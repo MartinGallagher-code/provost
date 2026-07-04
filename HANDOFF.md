@@ -46,7 +46,9 @@ sibling-`EnvoyExtract/` walk-up remains only as a transition fallback.
   until the Phase-5 hard cut) and rewrites `extract/VENDOR.json` (source git SHA,
   timestamp, counts). Do not hand-edit vendored files — edit upstream and
   re-sync. See `extract/README.md`.
-- **Suite runs in-place:** `bash glean/extract/tests/run_tests.sh`.
+- **Suite runs in-place:** `bash glean/extract/tests/run_tests.sh` →
+  **216/216 test files passed, 1103 assertions, 0 failed** (86 golden cases
+  skipped), exit 0. `glean/tests/smoke.sh` also passes against the vendored engine.
 
 > **Layout note:** an earlier take vendored to `lib/extract/`, which put the
 > engine's `../lib` at the confusing `lib/lib` and left the shared libs +

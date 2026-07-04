@@ -12,7 +12,10 @@
   sibling-`lib/` layout so the suite resolves paths unchanged. `sync-extract.sh`
   now also vendors `tools/` and the repo-root `lib/*.sh`. All 4 previously-failing
   files pass in the new location (21/21, 8/8, 13/13, 21/21). `glean` `_find_engine`
-  updated to `extract/envoy-extract`.
+  updated to `extract/envoy-extract`. **Full vendored suite now genuinely green:
+  216/216 test files passed, 1103 assertions, 0 failed (exit 0)** — correcting an
+  earlier premature "green" claim that was based on a partial run (the full run
+  had in fact exited 1 with the 13 failures above).
 - Files: `glean/extract/**` (relocated + `tools/`), `glean/lib/*.sh` (shared),
   `glean/tools/sync-extract.sh`, `glean/extract/README.md`, `glean/glean`,
   `glean/HANDOFF.md`.
