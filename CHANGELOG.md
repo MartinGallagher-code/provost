@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-04 — Phase-3: git core — capture-as-commit + restore
+- The workspace is now a **git repo**: every capture is one commit tagged
+  `capture-<id>`, replacing the flat-TSV-only store. Added verbs:
+  - `glean run [--] <cmd>` — execute a binary, capture combined stdout+stderr,
+    auto-detect + file it, and commit the capture (records `captures/<id>/meta.tsv`
+    + `output.txt`).
+  - `glean log` — list captures (id, timestamp, source, strategy, dataset, command).
+  - `glean restore <id|latest>` — check a capture's committed tree back out
+    (detached) to bring that run back up; `latest` returns to `main`.
+- Refactored the extract→classify→melt→store core into a shared `_ingest` used by
+  both `run` and pipe-`inject`; both now commit. `doctor` reports git-backed.
+- Chosen model: simplified **linear git history** (one commit per capture) rather
+  than EnvoyCapture's per-run + `__dataset`/`__results`/`__scripts` orphan-branch
+  machinery (proposal 0001 §7).
+- Smoke test extended to 11 checks incl. run→log→restore→restore-latest; all pass.
+- Still deferred to Phase-3 cont.: `stats` (vendor envoy-analyze) and schema
+  reconciliation (union columns vs `.v2` split).
+- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+
 ## 2026-07-04 — Phase-2 fix: relayout to extract/ + lib/, vendor missing deps
 - The first Phase-2 vendor (below) under-copied: the cross-suite shared libs
   (`envoy_version.sh`, `envoy_progress.sh`, …) and `EnvoyExtract/tools/` were left

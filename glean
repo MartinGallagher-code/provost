@@ -23,7 +23,7 @@
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.1.0-proto"
+GLEAN_VERSION="0.3.0-proto"
 
 # ---------------------------------------------------------------------------
 # Config (env-overridable; GLEAN_* is the post-rename namespace)
@@ -115,10 +115,33 @@ _melt_tidy () {
         }'
 }
 
-_ds_dir () { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
-_ensure_workspace () { mkdir -p "$(_ds_dir)"; }
+_ds_dir ()  { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
+_cap_dir () { printf '%s/captures\n' "$GLEAN_WORKSPACE"; }
 
-# Append tidy TSV (header+rows) to a dataset file. Minimal store rule:
+# git wrapper — pinned identity + no signing, so commits work in any environment.
+_git () { git -C "$GLEAN_WORKSPACE" -c user.name=glean -c user.email=glean@localhost -c commit.gpgsign=false "$@"; }
+
+# The workspace is a git repo: every capture is one commit (tagged capture-NNNN),
+# so a run can be brought back up later with `glean restore`.
+_ensure_workspace () {
+    mkdir -p "$(_ds_dir)" "$(_cap_dir)"
+    if [[ ! -d "$GLEAN_WORKSPACE/.git" ]]; then
+        _git init -q
+        printf 'glean workspace\n' > "$GLEAN_WORKSPACE/.gleanrc"
+        _git add -A >/dev/null 2>&1
+        _git commit -q -m "glean: init workspace" >/dev/null 2>&1 || true
+        _git branch -M main >/dev/null 2>&1 || true
+    fi
+}
+
+# Zero-padded next capture id from the count of existing capture dirs.
+_next_capture_id () {
+    local dir n; dir="$(_cap_dir)"
+    n=$(find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    printf 'c%04d\n' "$((n + 1))"
+}
+
+# Append tidy TSV (header+rows) to a dataset file. Store rule:
 #   header matches existing → append data rows; new → write header+rows;
 #   header differs → split into a numbered variant (.v2, .v3, …).
 # Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
@@ -147,8 +170,73 @@ _store_append () {
     printf '%s\t%s\n' "$target" "$rows"
 }
 
+# Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
+#   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
+#   $5 rc ("" for inject)
+# Extracts → classifies → melts → stores → records a capture → commits.
+_ingest () {
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
+    local engine; engine="$(_find_engine)" \
+        || die "extract engine not found. Set GLEAN_HOME or keep EnvoyExtract/ reachable."
+
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" RETURN
+    local metaf="$tmp/meta.txt" wide meta strategy conf
+    wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+            --emit-meta -f tsv --max-strategies 1 "$in" 2>"$metaf")" || true
+    meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
+    strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
+    conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
+    [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+
+    local final rows fields reason=""
+    if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
+    elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
+
+    if [[ -n "$reason" ]]; then
+        local r; r="$(_store_append "unsorted" "$(printf 'raw\n%s' \
+            "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")")"
+        final="unsorted"; rows="${r##*$'\t'}"; fields=1; strategy="${strategy:-none}"
+    else
+        local tidy result
+        tidy="$(printf '%s\n' "$wide" | _melt_tidy)"
+        fields="$(printf '%s\n' "$tidy" | head -1 | awk -F'\t' '{print NF}')"
+        result="$(_store_append "$strategy" "$tidy")"
+        final="${result%%$'\t'*}"; rows="${result##*$'\t'}"
+    fi
+
+    # Record the capture and commit it (one commit == one capture).
+    local id capd ts; id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
+    ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cp "$in" "$capd/output.txt"
+    {
+        printf 'id\t%s\n' "$id"
+        printf 'ts\t%s\n' "$ts"
+        printf 'source\t%s\n' "$source"
+        printf 'command\t%s\n' "$cmd"
+        printf 'rc\t%s\n' "$rc"
+        printf 'strategy\t%s\n' "$strategy"
+        printf 'confidence\t%s\n' "$conf"
+        printf 'dataset\t%s\n' "$final"
+        printf 'rows_total\t%s\n' "$rows"
+    } > "$capd/meta.tsv"
+
+    _git add -A >/dev/null 2>&1
+    local msg="capture $id: $source $strategy → $final"
+    [[ -n "$cmd" ]] && msg="$msg ($cmd)"
+    _git commit -q -m "$msg" >/dev/null 2>&1 || true
+    _git tag -f "capture-$id" >/dev/null 2>&1 || true
+
+    if [[ -n "$reason" ]]; then
+        info "$id: $reason — queued in 'unsorted' for triage (committed)."
+    else
+        ok "$id: → dataset '$final' (strategy $strategy, conf $conf) — $fields field(s), $rows row(s) total."
+    fi
+}
+
 # ---------------------------------------------------------------------------
-# Default verb: inject
+# Default verb: inject (pipe or file)
 # ---------------------------------------------------------------------------
 cmd_inject () {
     local file="" threshold="$GLEAN_MIN_CONFIDENCE"
@@ -162,15 +250,11 @@ cmd_inject () {
         esac
     done
 
-    local engine; engine="$(_find_engine)" \
-        || die "extract engine not found. Set GLEAN_HOME or keep EnvoyExtract/ reachable."
-
     _ensure_workspace
     local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
-    # shellcheck disable=SC2064  # bake $tmp in now: it is local and gone by EXIT
+    # shellcheck disable=SC2064
     trap "rm -rf '$tmp'" EXIT INT TERM
     local in="$tmp/in.txt"
-
     if [[ -n "$file" ]]; then
         [[ -f "$file" ]] || die "no such file: $file"
         tr -d '\r' < "$file" > "$in"
@@ -181,34 +265,80 @@ cmd_inject () {
     [[ "$(wc -c < "$in")" -le "$GLEAN_MAX_INPUT" ]] \
         || die "input too large (max $GLEAN_MAX_INPUT bytes; raise GLEAN_MAX_INPUT)."
 
-    # One extract pass: fields on stdout, winning strategy+confidence on stderr.
-    local metaf="$tmp/meta.txt" wide meta strategy conf
-    wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
-            --emit-meta -f tsv --max-strategies 1 "$in" 2>"$metaf")" || true
-    meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
-    strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
-    conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
-    [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+    _ingest "$in" "$threshold" "inject" "" ""
+}
 
-    # Classify: no match / low confidence → unsorted bucket.
-    if [[ -z "$strategy" || -z "$wide" ]]; then
-        _store_append "unsorted" "$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")" >/dev/null
-        info "no format matched — queued in 'unsorted' for triage."
+# ---------------------------------------------------------------------------
+# run — execute a command, capture its output as a commit, and ingest it.
+# ---------------------------------------------------------------------------
+cmd_run () {
+    local threshold="$GLEAN_MIN_CONFIDENCE"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--silent) GLEAN_QUIET=1; shift ;;
+            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            -h|--help) cmd_help; return 0 ;;
+            --) shift; break ;;
+            -*) die "unknown option: $1" ;;
+            *) break ;;
+        esac
+    done
+    [[ $# -gt 0 ]] || die "usage: glean run [--] <command> [args...]"
+
+    _ensure_workspace
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" EXIT INT TERM
+    local in="$tmp/in.txt" rc=0
+    # Capture combined stdout+stderr (the thing you'd otherwise eyeball).
+    "$@" > "$in" 2>&1 || rc=$?
+    tr -d '\r' < "$in" > "$in.clean" && mv "$in.clean" "$in"
+    local cmd="$*"
+    [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
+    _ingest "$in" "$threshold" "run" "$cmd" "$rc"
+    return "$rc"
+}
+
+# ---------------------------------------------------------------------------
+# log / restore — the git core: list captures, bring one back up.
+# ---------------------------------------------------------------------------
+cmd_log () {
+    _ensure_workspace
+    shopt -s nullglob
+    local d id ts src strat ds rc any=0
+    printf '%-6s %-20s %-7s %-14s %-12s %s\n' "ID" "WHEN" "SOURCE" "STRATEGY" "DATASET" "COMMAND" >&2
+    for d in $(printf '%s\n' "$(_cap_dir)"/*/ | sort); do
+        [[ -f "$d/meta.tsv" ]] || continue
+        any=1
+        id=$(awk -F'\t' '$1=="id"{print $2}' "$d/meta.tsv")
+        ts=$(awk -F'\t' '$1=="ts"{print $2}' "$d/meta.tsv")
+        src=$(awk -F'\t' '$1=="source"{print $2}' "$d/meta.tsv")
+        strat=$(awk -F'\t' '$1=="strategy"{print $2}' "$d/meta.tsv")
+        ds=$(awk -F'\t' '$1=="dataset"{print $2}' "$d/meta.tsv")
+        local cmd; cmd=$(awk -F'\t' '$1=="command"{print $2}' "$d/meta.tsv")
+        printf '%-6s %-20s %-7s %-14s %-12s %s\n' "$id" "$ts" "$src" "$strat" "$ds" "$cmd"
+    done
+    [[ $any -eq 1 ]] || info "no captures yet — run 'glean run <cmd>' or pipe into 'glean'."
+}
+
+cmd_restore () {
+    _ensure_workspace
+    local target="${1:?usage: glean restore <capture-id|latest>}"
+    if [[ "$target" == "latest" ]]; then
+        _git checkout -q main 2>/dev/null \
+            && ok "restored workspace to latest (main)." \
+            || die "could not return to latest."
         return 0
     fi
-    if [[ "$conf" -lt "$threshold" ]]; then
-        _store_append "unsorted" "$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")" >/dev/null
-        info "low confidence ($conf < $threshold) for '$strategy' — queued in 'unsorted'."
-        return 0
-    fi
-
-    # Present: melt to tidy, one row per record.
-    local tidy result final rows fields
-    tidy="$(printf '%s\n' "$wide" | _melt_tidy)"
-    fields="$(printf '%s\n' "$tidy" | head -1 | awk -F'\t' '{print NF}')"
-    result="$(_store_append "$strategy" "$tidy")"
-    final="${result%%$'\t'*}"; rows="${result##*$'\t'}"
-    ok "Injected into dataset '$final' (strategy $strategy, conf $conf) — $fields field(s), $rows row(s) total."
+    [[ "$target" == capture-* ]] || target="capture-$target"
+    _git rev-parse -q --verify "refs/tags/$target" >/dev/null 2>&1 \
+        || die "no such capture: ${target#capture-} (see 'glean log')."
+    # Bring that capture's committed tree back up (detached).
+    _git checkout -q "$target" 2>/dev/null \
+        || die "checkout failed for $target."
+    ok "brought up ${target#capture-} (detached). Return with: glean restore latest"
+    local capd; capd="$(_cap_dir)/${target#capture-}"
+    [[ -f "$capd/meta.tsv" ]] && { echo; sed 's/\t/: /' "$capd/meta.tsv"; }
 }
 
 # ---------------------------------------------------------------------------
@@ -250,30 +380,40 @@ cmd_doctor () {
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
     fi
-    printf '   workspace: %s\n' "$GLEAN_WORKSPACE"
+    printf '   workspace: %s' "$GLEAN_WORKSPACE"
+    [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' (git-backed)'; printf '\n'
     printf '   min-confidence: %s\n' "$GLEAN_MIN_CONFIDENCE"
 }
 
 cmd_help () {
     cat >&2 <<EOF
-glean $GLEAN_VERSION — turn command output into data (Phase-1 prototype)
+glean $GLEAN_VERSION — turn command output into data
 
 USAGE
+    glean run [--] <cmd> [args...]                capture a command's output as a
+                                                 commit, auto-detect + file it
     cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
     glean [FILE]                                  inject a file instead of stdin
+    glean log                                     list captures (the git history)
+    glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
     glean show NAME                               present a dataset as a tidy table
     glean triage                                  show low-confidence / unmatched bucket
-    glean doctor                                  check the extract engine is reachable
+    glean doctor                                  check engine + workspace
     glean help
 
+GIT CORE
+    The workspace is a git repo; every 'run'/inject is one commit tagged
+    capture-<id>. 'glean log' lists them; 'glean restore <id>' checks that
+    commit's tree back out; 'glean restore latest' returns to the tip.
+
 ENV
-    GLEAN_WORKSPACE        dataset store dir (default: ./.glean)
+    GLEAN_WORKSPACE        workspace/git dir (default: ./.glean)
     GLEAN_MIN_CONFIDENCE   commit threshold 0-100 (default: 50)
     GLEAN_MAX_INPUT        max input bytes (default: 10485760)
 
-Not yet in this prototype (proposal 0001, Phase 3): stats, git-based store,
-schema reconciliation. See docs/proposals/0001-glean-rename-and-simplification.md.
+Not yet in this prototype (proposal 0001, Phase 3 cont.): 'stats' (analyze core)
+and schema reconciliation. See docs/proposals/0001-glean-rename-and-simplification.md.
 EOF
 }
 
@@ -283,6 +423,9 @@ EOF
 main () {
     local verb="${1:-}"
     case "$verb" in
+        run)           shift; cmd_run "$@" ;;
+        log)           shift; cmd_log "$@" ;;
+        restore)       shift; cmd_restore "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
         triage)        shift; cmd_triage "$@" ;;

@@ -30,5 +30,24 @@ show_out="$("$GLEAN" show free 2>&1)"
 check "show free is tidy (per-record 'Mem' row)" "Mem" "$show_out"
 check "show free melted to per-field columns" "buff_cache" "$show_out"
 
+# --- git core: run captures a command as a commit; restore brings it back ---
+check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
+
+run_out="$("$GLEAN" run printf 'CONTAINER   CPU %%\nweb  12.5%%\ndb  3.2%%\n' 2>&1)"
+check "run captures a command (docker-ps)" "docker-ps" "$run_out"
+
+log_out="$("$GLEAN" log 2>&1)"
+check "log lists the run capture with its command" "printf" "$log_out"
+
+# a capture id is tagged as a real git commit
+tags="$(git -C "$WS" tag 2>&1)"
+check "capture is a tagged git commit" "capture-c" "$tags"
+
+# restore an earlier capture, then return to latest
+restore_out="$("$GLEAN" restore c0001 2>&1)"
+check "restore brings a capture back up" "brought up c0001" "$restore_out"
+latest_out="$("$GLEAN" restore latest 2>&1)"
+check "restore latest returns to the tip" "latest" "$latest_out"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

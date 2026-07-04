@@ -56,24 +56,46 @@ sibling-`EnvoyExtract/` walk-up remains only as a transition fallback.
 > `new_strategy.sh`/`review_strategy.sh`). Fixed by moving the engine to
 > `extract/` with shared libs at `lib/` and vendoring `tools/` + the shared libs.
 
+## Phase 3 — git core (done)
+
+The workspace is now a **git repo** (`$GLEAN_WORKSPACE`, default `./.glean`).
+Every capture is one commit, tagged `capture-<id>`, so a run can be brought back
+up later:
+
+```bash
+glean run free -m         # execute a binary, capture its output AS A COMMIT
+glean log                 # list captures (the git history): id, when, cmd, dataset
+glean restore c0003       # check that capture's committed tree back out (detached)
+glean restore latest      # return to the tip (main)
+```
+
+`run` and pipe-`inject` share one `_ingest` pipeline (extract → classify → melt →
+store → record capture → commit). Each capture writes `captures/<id>/{meta.tsv,
+output.txt}` alongside the dataset change, all in one commit. This is the
+simplified linear-history model chosen over EnvoyCapture's per-run + triple-orphan
+-branch machinery (proposal 0001 §7; decision made when the ask-tool was
+interrupted — revisit if full EnvoyCapture fidelity is wanted).
+
 ## Deliberately minimal (not bugs)
 
-- **Store** is flat TSV files under `$GLEAN_WORKSPACE` (default `./.glean`). No
-  git branches, no schema *reconciliation* — a differing header splits to a
-  numbered variant (`free.v2`), rather than union-merging columns. The git store
-  + reconciliation is Phase 3 (it lives in EnvoyCapture `lib/_core.sh` /
-  `cmd_inject.sh` today and will be ported/trimmed).
-- **No `stats`** yet — that's the carried-over analyze core, Phase 3.
+- **Store** commits real git history but still does no schema *reconciliation* — a
+  differing header splits to a numbered variant (`free.v2`) rather than
+  union-merging columns. Reconciliation (from EnvoyCapture `_core_dataset_append`)
+  is the remaining Phase-3 item.
+- **No `stats`** yet — the carried-over analyze core (envoy-analyze) is the next
+  Phase-3 step; the plan is to vendor it under `glean/analyze/` the same way the
+  extract engine was vendored, and wire `glean stats <dataset>`.
 
 ## Next steps (per proposal phases)
 
-1. **Phase 3** — implement `stats` (port analyze core) and replace the minimal
-   flat store with the trimmed git-based store + schema reconciliation.
+1. **Phase 3 (cont.)** — vendor envoy-analyze under `glean/analyze/` and wire
+   `glean stats <dataset>`; add schema reconciliation to `_store_append` (union
+   columns instead of splitting to `.v2`).
 2. **Phase 4** — rename plane: env vars (`GLEAN_*`, already used here), one man
    page, completions, packaging, README.
 3. **Phase 5** — hard-cut the `Envoy*` trees + satellites; archive
    `scenarios/`/`web/`/`tickets/` to a sibling repo. At that point retire
-   `tools/sync-extract.sh` — `lib/extract/` becomes canonical.
+   `tools/sync-extract.sh` — `extract/` becomes canonical.
 
 ## Open questions
 
