@@ -1,5 +1,30 @@
 # glean — Changelog
 
+## 2026-07-04 — Store model Stage A: global store + per-row provenance
+Implements the fuller "git core" directive (row→source traceability, global
+store, multi-user).
+- **Global store by default:** captures go to `$GLEAN_HOME` (or `~/.glean`) so you
+  can capture from any directory without being in a workspace. `GLEAN_WORKSPACE`
+  is an explicit override (wins; used by tests). `doctor` reports which store and
+  the next row index.
+- **Per-row provenance with a visible `#N` index:** every dataset row gets a
+  globally-unique index as its first column (shown by `show`). New
+  `glean source <#N>` maps a row back to the exact captured input that produced
+  it (prints the capture meta + stored `output.txt`). Provenance recorded in
+  `provenance.tsv` (`#` → dataset → capture); a monotonic counter in
+  `.next_row_id`.
+- **Multi-user safe:** a `mkdir`-based store lock (stale-PID break, configurable
+  `GLEAN_LOCK_TIMEOUT`) serialises concurrent writers; `git init` uses
+  double-checked locking so parallel first-writers to a shared store don't race.
+  Verified: 8 concurrent captures into a fresh shared store → 8 distinct indices,
+  0 duplicates, git fsck clean.
+- `_ingest` now assigns `#N`, writes provenance, and commits under the lock; both
+  `run` and pipe-`inject` go through it. Smoke test → 17 checks (adds `#N`,
+  `source`, concurrency); all pass. Version 0.3 → 0.4-proto.
+- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+- **Still pending (proposal Stages B/C + analyze):** controlled directories,
+  export/import, `stats`, schema reconciliation.
+
 ## 2026-07-04 — Phase-3: git core — capture-as-commit + restore
 - The workspace is now a **git repo**: every capture is one commit tagged
   `capture-<id>`, replacing the flat-TSV-only store. Added verbs:

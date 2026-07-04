@@ -2,36 +2,45 @@
 #
 # glean — turn command output into data.
 #
-# PHASE-1 PROTOTYPE (proposal 0001). Implements the product's one path:
+# PROTOTYPE (proposal 0001). Implements the product's one path — capture a
+# command's output, auto-detect its format, present it as a tidy, one-row-per-
+# record dataset — on a git-backed store:
 #
-#     cmd | glean            capture stdin → auto-detect format → present as a
-#                            tidy, one-row-per-record dataset, filed by type.
+#     glean run <cmd>        execute a binary, capture its output as a commit
+#     cmd | glean            inject stdin the same way
+#     glean source <N>       show the original source data behind dataset row #N
+#     glean log / restore    list captures / bring a capture's commit back up
+#     glean ls / show        list datasets / present one as a tidy table
+#     glean stats            (pending) statistics on a dataset
 #
-# This prototype wires the *real* extract engine (all 198 strategies) via its
-# `--emit-meta` contract, then melts + stores. The store here is deliberately
-# MINIMAL — flat TSV files under a workspace dir, no git branches and no schema
-# reconciliation. Those (and `stats`) are Phase 3 per the proposal; this file's
-# job is to prove the surface end-to-end.
+# The extract engine (all strategies) is the vendored copy at glean/extract/.
 #
-# Verbs implemented in Phase 1:
-#     glean            (default) inject stdin/FILE into a typed dataset
-#     glean ls         list datasets (name, rows)
-#     glean show NAME  present a dataset as a tidy table
-#     glean triage     show the low-confidence / unmatched bucket
-#     glean doctor     check the extract engine is reachable
-#     glean help
+# STORE MODEL (Stage A): the workspace is a git repo. By default captures go to
+# a GLOBAL store (~/.glean, override with GLEAN_HOME) so you can capture from any
+# directory. Every dataset row carries a globally-unique visible index (#N);
+# `glean source N` maps it back to the exact captured input that produced it.
+# The store may be shared by multiple users (point GLEAN_HOME at a shared,
+# group-writable dir); a mkdir-based lock serialises concurrent writers.
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.3.0-proto"
+GLEAN_VERSION="0.4.0-proto"
 
 # ---------------------------------------------------------------------------
 # Config (env-overridable; GLEAN_* is the post-rename namespace)
 # ---------------------------------------------------------------------------
-GLEAN_WORKSPACE="${GLEAN_WORKSPACE:-$PWD/.glean}"
+# Workspace resolution:
+#   1. $GLEAN_WORKSPACE explicit override (used by tests / one-off stores)
+#   2. else the global store: $GLEAN_HOME, or ~/.glean
+# (Stage B will insert "a controlled directory found by walking up from CWD"
+#  between these two.)
+_default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
+GLEAN_WORKSPACE_EXPLICIT="${GLEAN_WORKSPACE:+1}"   # set iff caller pinned GLEAN_WORKSPACE
+GLEAN_WORKSPACE="${GLEAN_WORKSPACE:-$(_default_home)}"
 GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
 GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
 GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
+GLEAN_LOCK_TIMEOUT="${GLEAN_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -117,20 +126,46 @@ _melt_tidy () {
 
 _ds_dir ()  { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
 _cap_dir () { printf '%s/captures\n' "$GLEAN_WORKSPACE"; }
+_prov_file ()  { printf '%s/provenance.tsv\n' "$GLEAN_WORKSPACE"; }
+_rowid_file () { printf '%s/.next_row_id\n' "$GLEAN_WORKSPACE"; }
 
 # git wrapper — pinned identity + no signing, so commits work in any environment.
 _git () { git -C "$GLEAN_WORKSPACE" -c user.name=glean -c user.email=glean@localhost -c commit.gpgsign=false "$@"; }
 
+# --- store lock (a shared GLEAN_HOME may have concurrent writers) ----------
+# mkdir is atomic across processes/users; spin up to GLEAN_LOCK_TIMEOUT seconds.
+_lock () {
+    local lock="$GLEAN_WORKSPACE/.lock" waited=0 pid
+    while ! mkdir "$lock" 2>/dev/null; do
+        pid="$(cat "$lock/pid" 2>/dev/null || echo)"
+        if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
+            rm -rf "$lock" 2>/dev/null; continue   # break a stale lock
+        fi
+        waited=$((waited + 1))
+        [[ $waited -ge $((GLEAN_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${GLEAN_LOCK_TIMEOUT}s): $lock"
+        sleep 0.2
+    done
+    echo "$$" > "$lock/pid"
+}
+_unlock () { rm -rf "$GLEAN_WORKSPACE/.lock" 2>/dev/null || true; }
+
 # The workspace is a git repo: every capture is one commit (tagged capture-NNNN),
-# so a run can be brought back up later with `glean restore`.
+# so a run can be brought back up later with `glean restore`. Initialization is
+# serialised with double-checked locking so concurrent first-writers to a shared
+# store don't race on `git init`.
 _ensure_workspace () {
     mkdir -p "$(_ds_dir)" "$(_cap_dir)"
-    if [[ ! -d "$GLEAN_WORKSPACE/.git" ]]; then
-        _git init -q
-        printf 'glean workspace\n' > "$GLEAN_WORKSPACE/.gleanrc"
-        _git add -A >/dev/null 2>&1
-        _git commit -q -m "glean: init workspace" >/dev/null 2>&1 || true
-        _git branch -M main >/dev/null 2>&1 || true
+    if [[ ! -d "$GLEAN_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
+        _lock
+        if [[ ! -d "$GLEAN_WORKSPACE/.git" ]]; then
+            _git init -q
+            printf 'glean workspace (store model %s)\n' "$GLEAN_VERSION" > "$GLEAN_WORKSPACE/.gleanrc"
+            _git add -A >/dev/null 2>&1 || true
+            _git commit -q -m "glean: init workspace" >/dev/null 2>&1 || true
+            _git branch -M main >/dev/null 2>&1 || true
+        fi
+        [[ -f "$(_rowid_file)" ]] || echo 1 > "$(_rowid_file)"
+        _unlock
     fi
 }
 
@@ -173,7 +208,8 @@ _store_append () {
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
 #   $5 rc ("" for inject)
-# Extracts → classifies → melts → stores → records a capture → commits.
+# Extracts → classifies → melts → assigns a global #N to each row → stores →
+# records provenance (#N → capture) → commits, all under the store lock.
 _ingest () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
     local engine; engine="$(_find_engine)" \
@@ -190,48 +226,70 @@ _ingest () {
     conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
     [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
 
-    local final rows fields reason=""
+    # Build the content to file (header + data rows), pre-#-index, for both the
+    # matched and the held-back (unsorted) paths.
+    local content dsname reason=""
     if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
     elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
-
     if [[ -n "$reason" ]]; then
-        local r; r="$(_store_append "unsorted" "$(printf 'raw\n%s' \
-            "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")")"
-        final="unsorted"; rows="${r##*$'\t'}"; fields=1; strategy="${strategy:-none}"
+        dsname="unsorted"; strategy="${strategy:-none}"
+        content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
     else
-        local tidy result
-        tidy="$(printf '%s\n' "$wide" | _melt_tidy)"
-        fields="$(printf '%s\n' "$tidy" | head -1 | awk -F'\t' '{print NF}')"
-        result="$(_store_append "$strategy" "$tidy")"
-        final="${result%%$'\t'*}"; rows="${result##*$'\t'}"
+        dsname="$strategy"
+        content="$(printf '%s\n' "$wide" | _melt_tidy)"
     fi
 
-    # Record the capture and commit it (one commit == one capture).
-    local id capd ts; id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
+    # --- critical section: assign #N, append, provenance, commit -----------
+    _lock
+    # shellcheck disable=SC2064
+    trap "_unlock; rm -rf '$tmp'" RETURN
+
+    local startid nrows fields id capd ts final
+    startid="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"
+    nrows=$(( $(printf '%s\n' "$content" | grep -c .) - 1 )); [[ $nrows -lt 0 ]] && nrows=0
+
+    # Prepend a visible, globally-unique '#' index to the header + each row.
+    local idcontent
+    idcontent="$(printf '%s\n' "$content" | awk -F'\t' -v OFS='\t' -v s="$startid" '
+        NR==1 { print "#", $0; next } { print (s + NR - 2), $0 }')"
+    fields=$(printf '%s\n' "$idcontent" | head -1 | awk -F'\t' '{print NF}')
+
+    local result; result="$(_store_append "$dsname" "$idcontent")"
+    final="${result%%$'\t'*}"
+
+    id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
     ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     cp "$in" "$capd/output.txt"
     {
-        printf 'id\t%s\n' "$id"
-        printf 'ts\t%s\n' "$ts"
-        printf 'source\t%s\n' "$source"
-        printf 'command\t%s\n' "$cmd"
-        printf 'rc\t%s\n' "$rc"
-        printf 'strategy\t%s\n' "$strategy"
-        printf 'confidence\t%s\n' "$conf"
-        printf 'dataset\t%s\n' "$final"
-        printf 'rows_total\t%s\n' "$rows"
+        printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
+        printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$cmd"
+        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$strategy"
+        printf 'confidence\t%s\n' "$conf";  printf 'dataset\t%s\n' "$final"
+        printf 'row_ids\t%s\n' "$([[ $nrows -gt 0 ]] && echo "$startid-$((startid+nrows-1))" || echo none)"
     } > "$capd/meta.tsv"
 
-    _git add -A >/dev/null 2>&1
-    local msg="capture $id: $source $strategy → $final"
-    [[ -n "$cmd" ]] && msg="$msg ($cmd)"
+    # Provenance: one line per row  (#N \t dataset \t capture)
+    [[ -f "$(_prov_file)" ]] || printf '#\tdataset\tcapture\n' > "$(_prov_file)"
+    local i
+    for (( i=0; i<nrows; i++ )); do
+        printf '%s\t%s\t%s\n' "$((startid+i))" "$final" "$id" >> "$(_prov_file)"
+    done
+    echo "$((startid + nrows))" > "$(_rowid_file)"
+
+    _git add -A >/dev/null 2>&1 || true
+    local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
+    [[ -n "$cmd" ]] && msg="$msg [$cmd]"
     _git commit -q -m "$msg" >/dev/null 2>&1 || true
     _git tag -f "capture-$id" >/dev/null 2>&1 || true
+    _unlock
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" RETURN
 
+    local idrange="#${startid}..$((startid+nrows-1))"; [[ $nrows -eq 0 ]] && idrange="(no rows)"
     if [[ -n "$reason" ]]; then
-        info "$id: $reason — queued in 'unsorted' for triage (committed)."
+        info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
     else
-        ok "$id: → dataset '$final' (strategy $strategy, conf $conf) — $fields field(s), $rows row(s) total."
+        ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf) — $((fields-1)) field(s)."
     fi
 }
 
@@ -342,6 +400,33 @@ cmd_restore () {
 }
 
 # ---------------------------------------------------------------------------
+# source — given a dataset row's #N index, show the original captured input.
+# ---------------------------------------------------------------------------
+cmd_source () {
+    _ensure_workspace
+    local n="${1:?usage: glean source <#N>}"
+    n="${n#\#}"                                   # tolerate a leading '#'
+    [[ "$n" =~ ^[0-9]+$ ]] || die "row index must be a number (got '$n')."
+    local prov; prov="$(_prov_file)"
+    [[ -f "$prov" ]] || die "no provenance yet — capture something first."
+    local line; line="$(awk -F'\t' -v n="$n" '$1==n {print; exit}' "$prov")"
+    [[ -n "$line" ]] || die "no row #$n (see 'glean ls' / 'glean show <dataset>')."
+    local ds cap; ds="$(printf '%s' "$line" | cut -f2)"; cap="$(printf '%s' "$line" | cut -f3)"
+    local capd; capd="$(_cap_dir)/$cap"
+
+    info "row #$n — dataset '$ds', from capture $cap"
+    if [[ -f "$capd/meta.tsv" ]]; then
+        echo; sed 's/\t/: /' "$capd/meta.tsv"
+    fi
+    if [[ -f "$capd/output.txt" ]]; then
+        echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$cap" "$C_RST"
+        cat "$capd/output.txt"
+    else
+        die "capture $cap has no stored output (workspace may be detached — try 'glean restore latest')."
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # ls / show / triage / doctor
 # ---------------------------------------------------------------------------
 cmd_ls () {
@@ -380,8 +465,12 @@ cmd_doctor () {
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
     fi
-    printf '   workspace: %s' "$GLEAN_WORKSPACE"
-    [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' (git-backed)'; printf '\n'
+    local kind="global"; [[ -n "${GLEAN_WORKSPACE_EXPLICIT:-}" ]] && kind="explicit override"
+    printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "$kind"
+    [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
+    if [[ -f "$(_rowid_file)" ]]; then
+        printf '   next row index: #%s\n' "$(cat "$(_rowid_file)")"
+    fi
     printf '   min-confidence: %s\n' "$GLEAN_MIN_CONFIDENCE"
 }
 
@@ -394,26 +483,33 @@ USAGE
                                                  commit, auto-detect + file it
     cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
     glean [FILE]                                  inject a file instead of stdin
+    glean source <#N>                             show the original source behind row #N
     glean log                                     list captures (the git history)
     glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
-    glean show NAME                               present a dataset as a tidy table
+    glean show NAME                               present a dataset (leading #N = row index)
     glean triage                                  show low-confidence / unmatched bucket
-    glean doctor                                  check engine + workspace
+    glean doctor                                  check engine + store
     glean help
 
-GIT CORE
-    The workspace is a git repo; every 'run'/inject is one commit tagged
-    capture-<id>. 'glean log' lists them; 'glean restore <id>' checks that
-    commit's tree back out; 'glean restore latest' returns to the tip.
+STORE (global by default)
+    Captures go to a GLOBAL git store so you can capture from any directory:
+      \$GLEAN_HOME, or ~/.glean if unset. Point GLEAN_HOME at a shared,
+      group-writable dir to collaborate; a lock serialises concurrent writers.
+    Every capture is one commit tagged capture-<id> ('log' / 'restore'). Every
+    dataset row has a globally-unique visible index #N; 'glean source N' maps it
+    back to the exact captured input that produced it.
 
 ENV
-    GLEAN_WORKSPACE        workspace/git dir (default: ./.glean)
-    GLEAN_MIN_CONFIDENCE   commit threshold 0-100 (default: 50)
-    GLEAN_MAX_INPUT        max input bytes (default: 10485760)
+    GLEAN_HOME            global store dir (default: ~/.glean)
+    GLEAN_WORKSPACE       explicit store override (wins over GLEAN_HOME)
+    GLEAN_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
+    GLEAN_MAX_INPUT       max input bytes (default: 10485760)
+    GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
 
-Not yet in this prototype (proposal 0001, Phase 3 cont.): 'stats' (analyze core)
-and schema reconciliation. See docs/proposals/0001-glean-rename-and-simplification.md.
+Not yet in this prototype (proposal 0001): controlled directories (Stage B),
+export/import (Stage C), 'stats' (analyze core), schema reconciliation.
+See docs/proposals/0001-glean-rename-and-simplification.md.
 EOF
 }
 
@@ -424,6 +520,7 @@ main () {
     local verb="${1:-}"
     case "$verb" in
         run)           shift; cmd_run "$@" ;;
+        source|src)    shift; cmd_source "$@" ;;
         log)           shift; cmd_log "$@" ;;
         restore)       shift; cmd_restore "$@" ;;
         ls)            shift; cmd_ls "$@" ;;

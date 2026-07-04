@@ -76,15 +76,36 @@ simplified linear-history model chosen over EnvoyCapture's per-run + triple-orph
 -branch machinery (proposal 0001 §7; decision made when the ask-tool was
 interrupted — revisit if full EnvoyCapture fidelity is wanted).
 
-## Deliberately minimal (not bugs)
+## Store model — Stage A (done)
 
-- **Store** commits real git history but still does no schema *reconciliation* — a
-  differing header splits to a numbered variant (`free.v2`) rather than
-  union-merging columns. Reconciliation (from EnvoyCapture `_core_dataset_append`)
-  is the remaining Phase-3 item.
-- **No `stats`** yet — the carried-over analyze core (envoy-analyze) is the next
-  Phase-3 step; the plan is to vendor it under `glean/analyze/` the same way the
-  extract engine was vendored, and wire `glean stats <dataset>`.
+Fuller realisation of the user's git-core directive (see proposal 0001 §5a):
+
+- **Global store by default** — `$GLEAN_HOME` or `~/.glean`; capture from anywhere.
+  `GLEAN_WORKSPACE` explicit override wins (tests use it).
+- **Per-row provenance** — every dataset row has a globally-unique visible `#N`
+  index (first column); `glean source <#N>` returns the exact captured input that
+  produced it (via `provenance.tsv` → `captures/<id>/output.txt`).
+- **Multi-user** — `mkdir` store lock + double-checked `git init`; verified under
+  8-way concurrency (distinct ids, 0 dups, fsck clean). Point `GLEAN_HOME` at a
+  shared group-writable dir to collaborate.
+
+### Stage B (next) — controlled directories
+`glean control <dir>` marks a directory as its own capture instance; captures run
+inside it (or a subdir) route there instead of global, and the commit's context
+includes the directory's contents. Registry walk-up inserts between the explicit-
+override and global-default resolution steps. Also: `glean instances` to list.
+
+### Stage C (after) — export / import
+`glean export → file`, `glean import file` elsewhere, so all datasets + capture
+commits are portable and browsable in another repo.
+
+## Still deferred (not bugs)
+
+- **No schema reconciliation** — a differing header splits to a numbered variant
+  (`free.v2`) rather than union-merging columns (port of EnvoyCapture
+  `_core_dataset_append`).
+- **No `stats`** — vendor `envoy-analyze` under `glean/analyze/` the way the
+  extract engine was vendored, then wire `glean stats <dataset>`.
 
 ## Next steps (per proposal phases)
 
