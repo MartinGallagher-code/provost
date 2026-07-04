@@ -1,0 +1,294 @@
+#!/usr/bin/env bash
+#
+# glean — turn command output into data.
+#
+# PHASE-1 PROTOTYPE (proposal 0001). Implements the product's one path:
+#
+#     cmd | glean            capture stdin → auto-detect format → present as a
+#                            tidy, one-row-per-record dataset, filed by type.
+#
+# This prototype wires the *real* extract engine (all 198 strategies) via its
+# `--emit-meta` contract, then melts + stores. The store here is deliberately
+# MINIMAL — flat TSV files under a workspace dir, no git branches and no schema
+# reconciliation. Those (and `stats`) are Phase 3 per the proposal; this file's
+# job is to prove the surface end-to-end.
+#
+# Verbs implemented in Phase 1:
+#     glean            (default) inject stdin/FILE into a typed dataset
+#     glean ls         list datasets (name, rows)
+#     glean show NAME  present a dataset as a tidy table
+#     glean triage     show the low-confidence / unmatched bucket
+#     glean doctor     check the extract engine is reachable
+#     glean help
+#
+set -euo pipefail
+
+GLEAN_VERSION="0.1.0-proto"
+
+# ---------------------------------------------------------------------------
+# Config (env-overridable; GLEAN_* is the post-rename namespace)
+# ---------------------------------------------------------------------------
+GLEAN_WORKSPACE="${GLEAN_WORKSPACE:-$PWD/.glean}"
+GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
+GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
+GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
+
+# ---------------------------------------------------------------------------
+# Tiny UI helpers
+# ---------------------------------------------------------------------------
+_is_tty () { [[ -t 2 ]]; }
+if _is_tty; then C_OK=$'\033[32m'; C_DIM=$'\033[2m'; C_ERR=$'\033[31m'; C_RST=$'\033[0m'
+else C_OK=""; C_DIM=""; C_ERR=""; C_RST=""; fi
+info () { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s\n' "$*" >&2; }
+ok ()   { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
+die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Locate the extract engine.
+#   Phase 1: engine still lives in the Envoy tree, so we fall back to it.
+#   Post-migration it will sit at $GLEAN_HOME/lib/extract/envoy-extract.
+# ---------------------------------------------------------------------------
+_find_engine () {
+    local here script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local candidates=(
+        "${GLEAN_HOME:-}/lib/extract/envoy-extract"
+        "$script_dir/lib/extract/envoy-extract"
+    )
+    # Walk up looking for a sibling EnvoyExtract/ (Phase-1 fallback).
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        candidates+=("$here/EnvoyExtract/envoy-extract")
+        here="$(dirname "$here")"
+    done
+    candidates+=("$(command -v envoy-extract 2>/dev/null || true)")
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# Tidy melt — reshape one wide `entry<N>.<field>` extract row into one row per
+# record (ported from EnvoyCapture lib/_core.sh `_core_melt_tidy`). Input and
+# output are both TSV on stdin/stdout. Header+1row that isn't a single indexed
+# table passes through unchanged.
+# ---------------------------------------------------------------------------
+_melt_tidy () {
+    awk -F'\t' -v OFS='\t' '
+        { L[NR]=$0 }
+        NR==1 { nf=NF; for(i=1;i<=NF;i++) H[i]=$i }
+        NR==2 { for(i=1;i<=nf;i++) V[i]=$i }
+        END {
+          if (NR!=2) { for(r=1;r<=NR;r++) print L[r]; exit }
+          np=0; nfld=0; nidx=0; nsc=0
+          for(i=1;i<=nf;i++){
+            h=H[i]; d=index(h,"."); isgroup=0
+            if (d>1){
+              left=substr(h,1,d-1); field=substr(h,d+1)
+              if (match(left,/[0-9]+$/)){
+                num=substr(left,RSTART)+0; pref=substr(left,1,RSTART-1)
+                if (pref!=""){
+                  isgroup=1
+                  if(!(pref in seenp)){seenp[pref]=1; np++}
+                  key=num SUBSEP field; cell[key]=V[i]
+                  if(!(num in seenix)){seenix[num]=1; idxs[++nidx]=num}
+                  if(!(field in seenf)){seenf[field]=1; flds[++nfld]=field}
+                }
+              }
+            }
+            if(!isgroup) scalidx[++nsc]=i
+          }
+          if (np!=1 || nfld==0){ print L[1]; print L[2]; exit }
+          for(a=1;a<=nidx;a++) for(b=a+1;b<=nidx;b++) if(idxs[b]<idxs[a]){t=idxs[a];idxs[a]=idxs[b];idxs[b]=t}
+          hdr="n"
+          for(k=1;k<=nfld;k++) hdr=hdr OFS flds[k]
+          for(s=1;s<=nsc;s++) hdr=hdr OFS H[scalidx[s]]
+          print hdr
+          for(a=1;a<=nidx;a++){ ix=idxs[a]; row=ix
+            for(k=1;k<=nfld;k++){key=ix SUBSEP flds[k]; row=row OFS ((key in cell)?cell[key]:"")}
+            for(s=1;s<=nsc;s++) row=row OFS V[scalidx[s]]
+            print row }
+        }'
+}
+
+_ds_dir () { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
+_ensure_workspace () { mkdir -p "$(_ds_dir)"; }
+
+# Append tidy TSV (header+rows) to a dataset file. Minimal store rule:
+#   header matches existing → append data rows; new → write header+rows;
+#   header differs → split into a numbered variant (.v2, .v3, …).
+# Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
+_store_append () {
+    local name="$1" tsv="$2" dir; dir="$(_ds_dir)"
+    local base="$dir/$name.tsv" target="$name" file
+    file="$base"
+    local new_header; new_header="$(printf '%s\n' "$tsv" | head -1)"
+    if [[ -f "$base" ]]; then
+        local old_header; old_header="$(head -1 "$base")"
+        if [[ "$old_header" != "$new_header" ]]; then
+            local v=2
+            while [[ -f "$dir/$name.v$v.tsv" ]] && \
+                  [[ "$(head -1 "$dir/$name.v$v.tsv")" != "$new_header" ]]; do
+                v=$((v+1))
+            done
+            target="$name.v$v"; file="$dir/$target.tsv"
+        fi
+    fi
+    if [[ -f "$file" ]]; then
+        printf '%s\n' "$tsv" | tail -n +2 >> "$file"
+    else
+        printf '%s\n' "$tsv" > "$file"
+    fi
+    local rows; rows=$(( $(wc -l < "$file") - 1 )); [[ $rows -lt 0 ]] && rows=0
+    printf '%s\t%s\n' "$target" "$rows"
+}
+
+# ---------------------------------------------------------------------------
+# Default verb: inject
+# ---------------------------------------------------------------------------
+cmd_inject () {
+    local file="" threshold="$GLEAN_MIN_CONFIDENCE"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--silent) GLEAN_QUIET=1; shift ;;
+            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            -h|--help) cmd_help; return 0 ;;
+            -*) die "unknown option: $1" ;;
+            *) file="$1"; shift ;;
+        esac
+    done
+
+    local engine; engine="$(_find_engine)" \
+        || die "extract engine not found. Set GLEAN_HOME or keep EnvoyExtract/ reachable."
+
+    _ensure_workspace
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064  # bake $tmp in now: it is local and gone by EXIT
+    trap "rm -rf '$tmp'" EXIT INT TERM
+    local in="$tmp/in.txt"
+
+    if [[ -n "$file" ]]; then
+        [[ -f "$file" ]] || die "no such file: $file"
+        tr -d '\r' < "$file" > "$in"
+    else
+        head -c "$((GLEAN_MAX_INPUT + 1))" | tr -d '\r' > "$in"
+    fi
+    [[ -s "$in" ]] || die "no input to glean (empty)."
+    [[ "$(wc -c < "$in")" -le "$GLEAN_MAX_INPUT" ]] \
+        || die "input too large (max $GLEAN_MAX_INPUT bytes; raise GLEAN_MAX_INPUT)."
+
+    # One extract pass: fields on stdout, winning strategy+confidence on stderr.
+    local metaf="$tmp/meta.txt" wide meta strategy conf
+    wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+            --emit-meta -f tsv --max-strategies 1 "$in" 2>"$metaf")" || true
+    meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
+    strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
+    conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
+    [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+
+    # Classify: no match / low confidence → unsorted bucket.
+    if [[ -z "$strategy" || -z "$wide" ]]; then
+        _store_append "unsorted" "$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")" >/dev/null
+        info "no format matched — queued in 'unsorted' for triage."
+        return 0
+    fi
+    if [[ "$conf" -lt "$threshold" ]]; then
+        _store_append "unsorted" "$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")" >/dev/null
+        info "low confidence ($conf < $threshold) for '$strategy' — queued in 'unsorted'."
+        return 0
+    fi
+
+    # Present: melt to tidy, one row per record.
+    local tidy result final rows fields
+    tidy="$(printf '%s\n' "$wide" | _melt_tidy)"
+    fields="$(printf '%s\n' "$tidy" | head -1 | awk -F'\t' '{print NF}')"
+    result="$(_store_append "$strategy" "$tidy")"
+    final="${result%%$'\t'*}"; rows="${result##*$'\t'}"
+    ok "Injected into dataset '$final' (strategy $strategy, conf $conf) — $fields field(s), $rows row(s) total."
+}
+
+# ---------------------------------------------------------------------------
+# ls / show / triage / doctor
+# ---------------------------------------------------------------------------
+cmd_ls () {
+    local dir; dir="$(_ds_dir)"
+    [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'glean'."; return 0; }
+    shopt -s nullglob
+    local f name rows any=0
+    printf '%-24s %8s\n' "DATASET" "ROWS" >&2
+    for f in "$dir"/*.tsv; do
+        any=1; name="$(basename "$f" .tsv)"
+        rows=$(( $(wc -l < "$f") - 1 )); [[ $rows -lt 0 ]] && rows=0
+        printf '%-24s %8d\n' "$name" "$rows"
+    done
+    [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'glean'."
+}
+
+cmd_show () {
+    local name="${1:?usage: glean show NAME}"
+    local f; f="$(_ds_dir)/$name.tsv"
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    if command -v column >/dev/null 2>&1; then column -t -s $'\t' "$f"
+    else cat "$f"; fi
+}
+
+cmd_triage () {
+    local f; f="$(_ds_dir)/unsorted.tsv"
+    [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
+    info "unsorted rows (low-confidence / no-match), base64-encoded raw input:"
+    cat "$f"
+}
+
+cmd_doctor () {
+    local engine
+    if engine="$(_find_engine)"; then
+        printf '%s ok%s extract engine: %s\n' "$C_OK" "$C_RST" "$engine"
+    else
+        printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
+    fi
+    printf '   workspace: %s\n' "$GLEAN_WORKSPACE"
+    printf '   min-confidence: %s\n' "$GLEAN_MIN_CONFIDENCE"
+}
+
+cmd_help () {
+    cat >&2 <<EOF
+glean $GLEAN_VERSION — turn command output into data (Phase-1 prototype)
+
+USAGE
+    cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
+    glean [FILE]                                  inject a file instead of stdin
+    glean ls                                      list datasets
+    glean show NAME                               present a dataset as a tidy table
+    glean triage                                  show low-confidence / unmatched bucket
+    glean doctor                                  check the extract engine is reachable
+    glean help
+
+ENV
+    GLEAN_WORKSPACE        dataset store dir (default: ./.glean)
+    GLEAN_MIN_CONFIDENCE   commit threshold 0-100 (default: 50)
+    GLEAN_MAX_INPUT        max input bytes (default: 10485760)
+
+Not yet in this prototype (proposal 0001, Phase 3): stats, git-based store,
+schema reconciliation. See docs/proposals/0001-glean-rename-and-simplification.md.
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Dispatch — bare invocation (or a leading option / FILE) means inject.
+# ---------------------------------------------------------------------------
+main () {
+    local verb="${1:-}"
+    case "$verb" in
+        ls)            shift; cmd_ls "$@" ;;
+        show)          shift; cmd_show "$@" ;;
+        triage)        shift; cmd_triage "$@" ;;
+        doctor)        shift; cmd_doctor "$@" ;;
+        help|-h|--help) cmd_help ;;
+        -V|--version)  printf 'glean %s\n' "$GLEAN_VERSION" ;;
+        inject)        shift; cmd_inject "$@" ;;   # explicit alias
+        *)             cmd_inject "$@" ;;          # default verb
+    esac
+}
+main "$@"
