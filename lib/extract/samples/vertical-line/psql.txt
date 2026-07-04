@@ -1,0 +1,7 @@
+Schema       Table          Rows       Size
+==========   ============   ========   ========
+public       users          125000     48 MB
+public       orders         890000     256 MB
+public       products       15000      12 MB
+public       sessions       42000      8 MB
+analytics    events         3200000    1.2 GB

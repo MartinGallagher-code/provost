@@ -1,0 +1,15 @@
+pgbench (PostgreSQL) 15.4
+starting vacuum...end.
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 10
+query mode: simple
+number of clients: 10
+number of threads: 2
+maximum number of tries: 1
+number of transactions actually processed: 10000
+number of failed transactions: 0 (0.000%)
+latency average = 4.567 ms
+latency stddev = 1.234 ms
+initial connection time = 12.345 ms
+tps = 2189.456789 (including connections establishing)
+tps = 2234.567890 (without initial connection time)

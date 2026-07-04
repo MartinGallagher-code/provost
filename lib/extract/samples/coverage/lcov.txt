@@ -1,0 +1,5 @@
+Reading tracefile coverage.info
+Summary coverage rate:
+  lines......: 89.2% (892 of 1000 lines)
+  functions..: 95.0% (76 of 80 functions)
+  branches...: 72.5% (145 of 200 branches)

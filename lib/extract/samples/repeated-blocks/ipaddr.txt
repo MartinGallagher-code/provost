@@ -1,0 +1,19 @@
+Interface: eth0
+State: UP
+MTU: 1500
+inet: 192.168.1.10/24
+inet6: fe80::a00:27ff:fea5:b3c1/64
+link/ether: 08:00:27:a5:b3:c1
+
+Interface: wlan0
+State: UP
+MTU: 1500
+inet: 192.168.1.25/24
+inet6: fe80::1234:5678:abcd:ef01/64
+link/ether: dc:a6:32:12:34:56
+
+Interface: lo
+State: UNKNOWN
+MTU: 65536
+inet: 127.0.0.1/8
+inet6: ::1/128

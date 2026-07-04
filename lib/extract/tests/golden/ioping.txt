@@ -1,0 +1,12 @@
+device /dev/sda
+device_type block_device
+device_size 500.1_GB
+requests_completed 20
+total_time 19.8_ms
+total_size 80_KiB
+iops 1.01_k
+throughput 3.95_MiB/s
+latency_min 223_us
+latency_avg 990_us
+latency_max 2.69_ms
+latency_mdev 670_us

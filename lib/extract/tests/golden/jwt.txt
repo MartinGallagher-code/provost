@@ -1,0 +1,9 @@
+header.alg RS256
+header.typ JWT
+payload.sub 1234567890
+payload.name John_Doe
+payload.admin true
+payload.iat 1516239022
+payload.exp 1516242622
+payload.iss auth.example.com
+payload.roles ["admin","user"]

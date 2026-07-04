@@ -1,0 +1,11 @@
+{
+  "vendored_from": "EnvoyExtract",
+  "source_git_sha": "4f6116678ec18bf95958b5e0d8635f659ee84e8b",
+  "source_git_describe": "4f61166-dirty",
+  "synced_at": "2026-07-04T22:00:24Z",
+  "runtime_only": false,
+  "components": ["envoy-extract","lib","strategies","samples","tests"],
+  "strategy_count": 202,
+  "file_count": 1145,
+  "note": "Regenerate with: bash glean/tools/sync-extract.sh. Do not hand-edit vendored files; edit upstream in EnvoyExtract/ and re-sync until the Phase-5 hard cut."
+}

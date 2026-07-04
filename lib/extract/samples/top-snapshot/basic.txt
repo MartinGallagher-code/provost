@@ -1,0 +1,10 @@
+Processes: 285 total, 2 running, 283 sleeping
+Load Avg: 1.23, 1.45, 1.67
+CPU usage: 12.3% user, 5.6% sys, 82.1% idle
+PhysMem: 8192M used, 8192M unused
+Networks: packets: 1234/5678K in, 567/890K out
+
+  PID  COMMAND      %CPU TIME     MEM
+  123  Safari       12.3 1:23.45  512M
+  456  Terminal      5.6 0:45.67  128M
+  789  Finder        2.1 0:12.34   64M

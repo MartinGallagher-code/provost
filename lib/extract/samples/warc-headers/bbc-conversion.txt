@@ -1,0 +1,14 @@
+WARC/1.0
+WARC-Type: conversion
+WARC-Target-URI: http://news.bbc.co.uk/2/hi/africa/3414345.stm
+WARC-Date: 2014-08-02T09:52:13Z
+WARC-Record-ID: 
+WARC-Refers-To: 
+WARC-Block-Digest: sha1:JROHLCS5SKMBR6XY46WXREW7RXM64EJC
+Content-Type: text/plain
+Content-Length: 6724
+
+BBC NEWS | Africa | Namibia braces for Nujoma exit
+...
+President Sam Nujoma works in very pleasant surroundings in the small but beautiful old State House...
+

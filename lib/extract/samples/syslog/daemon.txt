@@ -1,0 +1,7 @@
+Feb 15 08:00:00 server01 cron[1234]: (root) CMD (/usr/local/bin/backup.sh)
+Feb 15 08:00:05 server01 ntpd[891]: time reset +0.125432 s
+Feb 15 08:01:00 server01 dhclient[567]: DHCPREQUEST for 192.168.1.10 to 192.168.1.1 port 67
+Feb 15 08:01:01 server01 dhclient[567]: DHCPACK from 192.168.1.1 (xid=0x1a2b3c4d)
+Feb 15 08:05:00 server01 cron[1234]: (www-data) CMD (php /var/www/html/artisan schedule:run)
+Feb 15 08:10:00 server01 postfix/pickup[2345]: 1A2B3C4D5E: uid=33 from=<www-data@server01>
+Feb 15 08:10:01 server01 postfix/smtp[2346]: 1A2B3C4D5E: to=<admin@example.com>, relay=mail.example.com, status=sent

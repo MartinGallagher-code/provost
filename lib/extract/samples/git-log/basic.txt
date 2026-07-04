@@ -1,0 +1,11 @@
+commit abc1234567890abcdef1234567890abcdef12345
+Author: John Doe <john@example.com>
+Date:   Wed Jan 12 14:23:45 2024 -0500
+
+    Initial commit
+
+commit def4567890abcdef1234567890abcdef12345678
+Author: Jane Smith <jane@example.com>
+Date:   Thu Jan 13 09:15:30 2024 -0500
+
+    Add README and documentation

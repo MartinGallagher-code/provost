@@ -1,0 +1,6 @@
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+root                1                   0                   0                   Mar30               ?                   00:00:00            nginx: master process nginx -g daemon off;
+nginx               29                  1                   0                   Mar30               ?                   00:00:01            nginx: worker process
+nginx               30                  1                   0                   Mar30               ?                   00:00:01            nginx: worker process
+nginx               31                  1                   0                   Mar30               ?                   00:00:00            nginx: worker process
+nginx               32                  1                   0                   Mar30               ?                   00:00:00            nginx: worker process

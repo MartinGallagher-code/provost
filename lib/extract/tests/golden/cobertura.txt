@@ -1,0 +1,17 @@
+line-rate 0.85
+branch-rate 0.72
+lines-covered 340
+lines-valid 400
+branches-covered 58
+branches-valid 80
+complexity 0
+version 5.3
+timestamp 1705312800000
+package1.name com.example.app
+package1.line-rate 0.90
+package1.branch-rate 0.80
+package1.complexity 0
+package2.name com.example.utils
+package2.line-rate 0.80
+package2.branch-rate 0.65
+package2.complexity 0

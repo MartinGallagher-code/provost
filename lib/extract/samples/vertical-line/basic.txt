@@ -1,0 +1,5 @@
+Name       Score  Grade
+-----------------------
+Alice      95     A
+Bob        87     B
+Charlie    72     C

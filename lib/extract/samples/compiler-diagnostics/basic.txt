@@ -1,0 +1,8 @@
+src/main.c:42:15: error: use of undeclared identifier 'foo'
+    int x = foo + bar;
+            ^~~
+src/main.c:58:3: warning: unused variable 'temp' [-Wunused-variable]
+    int temp = 0;
+        ^~~~
+src/utils.c:12:1: note: include 'utils.h' for declaration
+2 errors generated.

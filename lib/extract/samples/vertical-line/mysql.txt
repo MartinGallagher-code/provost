@@ -1,0 +1,6 @@
+Name        Status    Connections
+---------   ------    -----------
+primary     active    42
+replica-1   active    28
+replica-2   standby   0
+monitor     active    5

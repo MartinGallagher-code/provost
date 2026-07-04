@@ -1,0 +1,7 @@
+Name            Department      Location        Salary
+-----------     -----------     -----------     --------
+Alice Chen      Engineering     San Francisco   145000
+Bob Martinez    Marketing       New York        92000
+Carol Kim       Engineering     Austin          128000
+Dave Johnson    Sales           Chicago         87000
+Eve Williams    Finance         San Francisco   110000

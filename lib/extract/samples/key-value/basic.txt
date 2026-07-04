@@ -1,0 +1,16 @@
+Architecture:                x86_64
+  CPU op-mode(s):            32-bit, 64-bit
+  Address sizes:             48 bits physical, 48 bits virtual
+  Byte Order:                Little Endian
+CPU(s):                      2
+  On-line CPU(s) list:       0,1
+Vendor ID:                   AuthenticAMD
+  Model name:                AMD EPYC 7763 64-Core Processor
+    CPU family:              25
+    Thread(s) per core:      2
+    BogoMIPS:                4890.86
+    Flags:                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr
+                             pge mca cmov pat pse36 clflush mmx fxsr sse sse2
+Caches (sum of all):
+  L1d:                       32 KiB (1 instance)
+  L2:                        512 KiB (1 instance)

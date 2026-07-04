@@ -1,0 +1,18 @@
+ Data for JOB [31452,1] offset 0 Total slots allocated 16
+
+ ========================   JOB MAP   ========================
+
+ Data for node: compute-01      Num slots: 8    Max slots: 0    Num procs: 4
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 0 Bound: socket 0[core 0[hwt 0]]:[B/././.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 1 Bound: socket 0[core 1[hwt 0]]:[./B/./.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 2 Bound: socket 0[core 2[hwt 0]]:[././B/.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 3 Bound: socket 0[core 3[hwt 0]]:[./././B][./././.]
+
+ Data for node: compute-02      Num slots: 8    Max slots: 0    Num procs: 4
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 4 Bound: socket 0[core 0[hwt 0]]:[B/././.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 5 Bound: socket 0[core 1[hwt 0]]:[./B/./.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 6 Bound: socket 0[core 2[hwt 0]]:[././B/.][./././.]
+        Process OMPI jobid: [31452,1] App: 0 Process rank: 7 Bound: socket 0[core 3[hwt 0]]:[./././B][./././.]
+
+ =============================================================
+ Num nodes: 2

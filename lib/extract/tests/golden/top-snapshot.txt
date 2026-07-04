@@ -1,0 +1,22 @@
+processes_total 285
+processes_running 2
+processes_sleeping 283load_avg_1min 1.23
+load_avg_5min 1.45
+load_avg_15min 1.67cpu_user 12.3%
+cpu_sys 5.6%
+cpu_idle 82.1%physmem_used 8192M
+physmem_unused 8192Mprocess1.pid 123
+process1.command Safari
+process1.cpu 12.3
+process1.time 1:23.45
+process1.mem 512M
+process2.pid 456
+process2.command Terminal
+process2.cpu 5.6
+process2.time 0:45.67
+process2.mem 128M
+process3.pid 789
+process3.command Finder
+process3.cpu 2.1
+process3.time 0:12.34
+process3.mem 64M

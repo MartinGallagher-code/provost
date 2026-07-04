@@ -1,0 +1,13 @@
+n 1000
+nb 80
+p 1
+q 1
+time_seconds 0.45
+gflops 1.48e+00
+run2.n 2000
+run2.nb 80
+run2.p 1
+run2.q 1
+run2.time_seconds 3.12
+run2.gflops 1.71e+00
+residual_check PASSED

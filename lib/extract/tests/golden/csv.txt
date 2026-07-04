@@ -1,0 +1,10 @@
+entry1.Name John
+entry1.Age 30
+entry1.City New_York
+entry2.Name Jane
+entry2.Age 25
+entry2.City Boston
+entry3.Name Bob
+entry3.Age 45
+entry3.City Chicago
+total_entries 3

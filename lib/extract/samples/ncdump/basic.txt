@@ -1,0 +1,27 @@
+netcdf climate_data {
+dimensions:
+	time = UNLIMITED ; // (365 currently)
+	lat = 180 ;
+	lon = 360 ;
+variables:
+	float temperature(time, lat, lon) ;
+		temperature:units = "K" ;
+		temperature:long_name = "Surface Temperature" ;
+	float precipitation(time, lat, lon) ;
+		precipitation:units = "mm/day" ;
+		precipitation:long_name = "Daily Precipitation" ;
+	double time(time) ;
+		time:units = "days since 2024-01-01" ;
+		time:calendar = "standard" ;
+	float lat(lat) ;
+		lat:units = "degrees_north" ;
+	float lon(lon) ;
+		lon:units = "degrees_east" ;
+
+// global attributes:
+		:title = "Global Climate Dataset 2024" ;
+		:institution = "National Weather Service" ;
+		:history = "created 2024-06-15 with ncdump" ;
+		:Conventions = "CF-1.6" ;
+data:
+}

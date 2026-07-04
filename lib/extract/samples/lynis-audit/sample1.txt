@@ -1,0 +1,36 @@
+  Lynis security scan details:
+
+  Hardening index : 72 [##############      ]
+  Tests performed : 256
+  Plugins enabled : 2
+
+  Components:
+  - Firewall               : OK
+  - Malware scanner         : WARNING
+
+  Scan mode:
+  Normal [V]
+
+  Lynis Modules:
+  - Compliance status       : ENABLED
+  - Security audit          : ENABLED
+  - Vulnerability scan      : ENABLED
+
+  Files:
+  - Test and samples        : /usr/share/lynis/db
+  - Report data             : /var/log/lynis-report.dat
+
+  Results:
+  Warnings               : 8
+  Suggestions            : 42
+  Great                  : 15
+  Skipped                : 3
+
+  Hardening strength     : 72
+  Tests performed        : 256
+  Debug mode             : NO
+  Compliance plugins     : 2
+  Running as             : root
+  OS name                : Ubuntu
+  OS version             : 22.04
+  Kernel version         : 5.15.0-100-generic

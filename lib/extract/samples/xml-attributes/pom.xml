@@ -1,0 +1,9 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" modelVersion="4.0.0">
+  <groupId>com.example</groupId>
+  <artifactId>my-app</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+  <dependency groupId="org.springframework.boot" artifactId="spring-boot-starter-web" version="3.2.2" scope="compile"/>
+  <dependency groupId="org.postgresql" artifactId="postgresql" version="42.7.1" scope="runtime"/>
+  <plugin groupId="org.apache.maven.plugins" artifactId="maven-compiler-plugin" version="3.12.1"/>
+</project>

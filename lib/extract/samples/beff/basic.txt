@@ -1,0 +1,13 @@
+b_eff (effective bandwidth benchmark)
+Version 3.5
+
+Number of processes = 8
+msglen = 1 ... 4194304
+
+b_eff(ring) = 3456.78 MB/s
+b_eff(random) = 2345.67 MB/s
+b_eff = 2901.23 MB/s
+
+ring bandwidth = 3456.78 MB/s
+random bandwidth = 2345.67 MB/s
+effective bandwidth: 2901.23 MB/s

@@ -1,0 +1,10 @@
+Unit.Description My_Application_Service
+Unit.After network.target
+Unit.Wants network-online.target
+Service.Type simple
+Service.User appuser
+Service.ExecStart /usr/bin/myapp_--config_/etc/myapp/config.yml
+Service.Restart on-failure
+Service.RestartSec 5
+Service.Environment NODE_ENV=production
+Install.WantedBy multi-user.target

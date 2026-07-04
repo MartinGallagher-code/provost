@@ -1,0 +1,6 @@
+[1/5] Compiling src/main.c
+[2/5] Compiling src/utils.c
+[3/5] Compiling src/parser.c
+[4/5] Linking libparser.a
+[5/5] Linking main
+Build finished successfully in 3.45s

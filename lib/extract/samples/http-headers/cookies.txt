@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Set-Cookie: session_id=abc123def456; Path=/; HttpOnly; Secure
+Set-Cookie: preferences=dark_mode; Path=/; Max-Age=31536000
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=63072000; includeSubDomains
+Content-Length: 8192
+Date: Sat, 15 Feb 2025 10:00:00 GMT
+Server: Apache/2.4.58

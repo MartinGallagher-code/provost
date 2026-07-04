@@ -1,0 +1,17 @@
+parallel_copies 2
+test1.name Dhrystone_2_using_register_variables
+test1.score 34567890.1
+test1.index 1234.5
+test2.name Double-Precision_Whetstone
+test2.score 6789.0
+test2.index 987.6
+test3.name Execl_Throughput
+test3.score 4567.8
+test3.index 765.4
+test4.name File_Copy_1024_bufsize_2000_maxblocks
+test4.score 567890.1
+test4.index 432.1
+test5.name Pipe_Throughput
+test5.score 1234567.8
+test5.index 876.5
+system_index_score 876.2

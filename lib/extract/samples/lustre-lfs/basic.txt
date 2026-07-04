@@ -1,0 +1,8 @@
+Filesystem           kbytes        Used   Available Use% Mounted on
+scratch-MDT0000_UUID       524288000    12345678   511942322   2% /scratch[MDT:0]
+scratch-OST0000_UUID      2097152000   734003200  1363148800  35% /scratch[OST:0]
+scratch-OST0001_UUID      2097152000   943718400  1153433600  45% /scratch[OST:1]
+scratch-OST0002_UUID      2097152000   524288000  1572864000  25% /scratch[OST:2]
+scratch-OST0003_UUID      2097152000   838860800  1258291200  40% /scratch[OST:3]
+
+filesystem_summary:       8388608000  3041070400  5347537600  36% /scratch

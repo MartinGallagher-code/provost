@@ -1,0 +1,19 @@
+<configuration>
+  <server>
+    <host>0.0.0.0</host>
+    <port>8080</port>
+    <workers>4</workers>
+    <timeout>30</timeout>
+  </server>
+  <database>
+    <host>localhost</host>
+    <port>5432</port>
+    <name>production</name>
+    <pool-size>10</pool-size>
+  </database>
+  <cache>
+    <enabled>true</enabled>
+    <ttl>3600</ttl>
+    <max-entries>10000</max-entries>
+  </cache>
+</configuration>

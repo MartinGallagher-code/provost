@@ -1,0 +1,13 @@
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+  125  9876 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0
+  456 34567 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+   89  6789 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+   12   890 DROP       all  --  *      *       10.0.0.0/8           0.0.0.0/0
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+
+Chain OUTPUT (policy ACCEPT 234 packets, 56789 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+  234 56789 ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0

@@ -1,0 +1,7 @@
+{
+  "name": "test-project",
+  "version": "1.2.3",
+  "count": 42,
+  "enabled": true,
+  "debug": false
+}

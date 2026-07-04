@@ -1,0 +1,13 @@
+* Connected to api.example.com (10.0.0.50) port 443
+> POST /api/v2/users HTTP/1.1
+> Host: api.example.com
+> Authorization: Bearer eyJhbGciOiJIUzI1NiJ9
+> Content-Type: application/json
+> Content-Length: 128
+>
+< HTTP/1.1 201 Created
+< Content-Type: application/json
+< X-Request-Id: abc-123-def-456
+< X-RateLimit-Remaining: 98
+< Date: Sat, 15 Feb 2025 12:00:00 GMT
+<

@@ -1,0 +1,19 @@
+[0] Starting simulation with 16 ranks
+[0] Loading input file: mesh.dat
+[1] Rank 1 initialized on compute-01
+[2] Rank 2 initialized on compute-01
+[3] Rank 3 initialized on compute-01
+[0] Grid decomposition: 4 x 4
+[0] Local grid size: 128 x 128
+[1] Local grid size: 128 x 128
+[0] Step 0 t=0.0 dt=0.001
+[0] Step 100 t=0.1 dt=0.001 residual=1.23e-04
+[1] Step 100 residual_local=1.45e-04
+[2] Step 100 residual_local=1.18e-04
+[0] Step 200 t=0.2 dt=0.001 residual=8.72e-05
+[0] Step 300 t=0.3 dt=0.001 residual=4.21e-05
+[0] Converged at step 342, t=0.342
+[0] Simulation complete. Total wall time: 245.8s
+[rank 0] writing output to results/final.h5
+[rank 1] writing output to results/final.h5
+[rank 2] writing output to results/final.h5

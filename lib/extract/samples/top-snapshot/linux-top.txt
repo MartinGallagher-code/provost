@@ -1,0 +1,13 @@
+Processes: 312 total, 3 running, 309 sleeping
+Load Avg: 2.45, 1.89, 1.52
+CPU usage: 18.2% user, 4.5% sys, 77.3% idle
+PhysMem: 12G used (4096M wired), 4G unused
+Networks: packets: 1234567/890M in, 987654/567M out
+Disks: 456789/12G read, 234567/8G written
+
+PID    COMMAND      %CPU TIME     MEM
+1234   node         45.2 12:34.56 512M
+5678   postgres     22.1 08:15.33 256M
+9012   nginx         8.5 03:45.12 128M
+3456   redis         5.3 01:22.45 64M
+7890   python        3.2 00:45.67 384M

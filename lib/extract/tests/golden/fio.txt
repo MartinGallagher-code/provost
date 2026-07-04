@@ -1,0 +1,7 @@
+name seqread
+read_iops 117k
+read_bw 458MiB/s
+lat_avg 251.89_usec
+lat_p99 502
+io_depth 1
+summary_read_bw 458MiB/s

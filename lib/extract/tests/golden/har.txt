@@ -1,0 +1,13 @@
+log.version 1.2
+log.creator.name WebInspector
+log.creator.version 537.36
+entry1.request.method GET
+entry1.request.url https://api.example.com/users
+entry1.response.status 200
+entry1.response.statusText OK
+entry1.time 150
+entry2.request.method POST
+entry2.request.url https://api.example.com/data
+entry2.response.status 201
+entry2.response.statusText Created
+entry2.time 85

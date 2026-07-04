@@ -1,0 +1,7 @@
+Start: 2024-01-15T10:30:00+0000
+HOST: webserver01            Loss%   Snt   Last   Avg  Best  Wrst StDev
+  1.|-- gateway               0.0%    10    0.5   0.6   0.4   1.2   0.2
+  2.|-- isp-router.net        0.0%    10    5.2   5.4   4.8   7.1   0.8
+  3.|-- ???                  100.0    10    0.0   0.0   0.0   0.0   0.0
+  4.|-- core.cdn.net           0.0%    10   15.3  15.5  14.9  18.2   1.1
+  5.|-- example.com            0.0%    10   20.1  20.3  19.8  22.5   0.9

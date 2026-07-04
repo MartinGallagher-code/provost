@@ -1,0 +1,11 @@
+--- PASS: TestParseConfig (0.01s)
+--- PASS: TestValidateInput (0.00s)
+--- PASS: TestDatabaseConnect (0.25s)
+--- FAIL: TestCacheExpiry (0.10s)
+    cache_test.go:42: expected cache miss after TTL, got hit
+--- PASS: TestHTTPHandler (0.05s)
+--- PASS: TestAuthMiddleware (0.02s)
+--- SKIP: TestExternalAPI (0.00s)
+    api_test.go:15: external API not available
+FAIL
+5 passed, 1 failed, 1 skipped in 0.43s

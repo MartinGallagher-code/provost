@@ -1,0 +1,7 @@
+NAME                    CPU(cores)   CPU%   MEMORY(bytes)   MEMORY%
+node-master-01          450m         22%    4096Mi          52%
+node-worker-01          1200m        60%    12288Mi         78%
+node-worker-02          800m         40%    8192Mi          51%
+node-worker-03          350m         17%    6144Mi          38%
+node-gpu-01             3800m        95%    28672Mi         89%
+node-worker-04          150m         7%     3072Mi          19%

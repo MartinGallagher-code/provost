@@ -1,0 +1,5 @@
+USER jdoe
+HOME /home/jdoe
+SHELL /bin/bash
+LANG en_US.UTF-8
+PATH /usr/local/bin:/usr/bin:/bin

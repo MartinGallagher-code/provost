@@ -1,0 +1,12 @@
+destination example.com
+destination_ip 93.184.216.34
+hop1_host gateway
+hop1_ip 192.168.1.1
+hop1_rtt 1.234
+hop2_host 10.0.0.1
+hop2_ip 10.0.0.1
+hop2_rtt 5.123
+hop3_host *
+hop4_host core-rtr.isp.net
+hop4_ip 203.0.113.1
+hop4_rtt 15.234

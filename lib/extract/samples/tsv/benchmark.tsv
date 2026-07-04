@@ -1,0 +1,6 @@
+test_name	iterations	mean_ns	median_ns	stddev_ns
+BM_StringConcat	1000000	45.2	44.8	2.1
+BM_StringFormat	500000	128.5	127.0	5.8
+BM_RegexMatch	200000	892.3	885.0	15.2
+BM_JSONParse	100000	2450.0	2430.0	42.5
+BM_HashLookup	5000000	12.8	12.5	0.9

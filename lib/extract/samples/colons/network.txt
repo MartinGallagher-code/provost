@@ -1,0 +1,11 @@
+Interface: eth0
+Link encap: Ethernet
+HW addr: 08:00:27:a5:b3:c1
+inet addr: 192.168.1.10
+Bcast: 192.168.1.255
+Mask: 255.255.255.0
+MTU: 1500
+RX packets: 1234567
+TX packets: 987654
+RX bytes: 1073741824
+TX bytes: 536870912

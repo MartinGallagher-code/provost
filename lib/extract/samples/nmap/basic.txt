@@ -1,0 +1,10 @@
+Starting Nmap 7.94 ( https://nmap.org )
+Nmap scan report for example.com (93.184.216.34)
+Host is up (0.023s latency).
+Not shown: 997 filtered ports
+PORT     STATE SERVICE  VERSION
+22/tcp   open  ssh      OpenSSH 8.9
+80/tcp   open  http     nginx 1.22.1
+443/tcp  open  https    nginx 1.22.1
+
+Nmap done: 1 IP scanned in 12.34 seconds

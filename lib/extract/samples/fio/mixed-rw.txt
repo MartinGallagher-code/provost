@@ -1,0 +1,15 @@
+fio-3.33
+Starting 1 process
+randrw: (groupid=0, jobs=1): err= 0: pid=12346: Wed Jan 15 10:25:00 2025
+  read: IOPS=8567, BW=33.5MiB/s (35.1MB/s)(1005MiB/30001msec)
+    clat (usec): min=10, max=12345, avg=350.00, stdev=120.45
+    clat percentiles (usec):
+     | 99.00th=[ 1024]
+  write: IOPS=2856, BW=11.2MiB/s (11.7MB/s)(335MiB/30001msec)
+    clat (usec): min=15, max=15678, avg=450.00, stdev=150.67
+    clat percentiles (usec):
+     | 99.00th=[ 1467]
+
+Run status group 0 (all jobs):
+   READ: bw=33.5MiB/s (35.1MB/s), 33.5MiB/s-33.5MiB/s (35.1MB/s-35.1MB/s), io=1005MiB (1054MB), run=30001-30001msec
+  WRITE: bw=11.2MiB/s (11.7MB/s), 11.2MiB/s-11.2MiB/s (11.7MB/s-11.7MB/s), io=335MiB (351MB), run=30001-30001msec

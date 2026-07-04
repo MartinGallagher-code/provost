@@ -1,0 +1,16 @@
+Run on (16 X 3800 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x16)
+  L2 Unified 512 KiB (x16)
+  L3 Unified 32768 KiB (x1)
+-------------------------------------------------------------
+Benchmark                     Time           CPU Iterations
+-------------------------------------------------------------
+BM_Queue/Push/1            45.2 ns       45.0 ns   15500000
+BM_Queue/Push/4            52.8 ns       52.5 ns   13300000
+BM_Queue/Pop/1             38.1 ns       38.0 ns   18400000
+BM_Queue/Pop/4             61.3 ns       61.0 ns   11500000
+BM_HashMap/Insert/1        125 ns        124 ns     5600000
+BM_HashMap/Insert/4        198 ns        197 ns     3550000
+BM_HashMap/Lookup/1        22.5 ns       22.4 ns   31200000
+BM_HashMap/Lookup/4        35.8 ns       35.6 ns   19600000

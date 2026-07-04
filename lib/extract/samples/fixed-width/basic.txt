@@ -1,0 +1,5 @@
+Name            Status    Priority   Count
+--------------  --------  --------   -----
+Task Alpha      Active    High       42
+Task Beta       Pending   Medium     17
+Task Gamma      Complete  Low        99

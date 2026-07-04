@@ -1,0 +1,15 @@
+Nmap scan report for 192.168.1.1
+Host is up (0.0012s latency).
+PORT     STATE  SERVICE
+22/tcp   open   ssh
+80/tcp   open   http
+443/tcp  open   https
+8080/tcp closed http-proxy
+
+Nmap scan report for 192.168.1.10
+Host is up (0.0008s latency).
+PORT     STATE    SERVICE
+22/tcp   open     ssh
+3306/tcp open     mysql
+5432/tcp open     postgresql
+6379/tcp filtered redis

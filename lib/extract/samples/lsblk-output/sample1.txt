@@ -1,0 +1,11 @@
+NAME        FSTYPE      FSVER  LABEL    UUID                                 FSAVAIL FSUSE% MOUNTPOINTS
+sda
+├─sda1      vfat        FAT32  EFI      ABCD-1234                               500M     1% /boot/efi
+├─sda2      ext4        1.0             12345678-abcd-1234-efgh-123456789abc   45.2G    25% /boot
+└─sda3      LVM2_member LVM2          87654321-dcba-4321-hgfe-cba987654321
+  ├─vg0-root ext4       1.0             aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee  120.5G    35% /
+  ├─vg0-home ext4       1.0             bbbbbbbb-cccc-dddd-eeee-ffffffffffff  450.2G    22% /home
+  └─vg0-swap swap       1              cccccccc-dddd-eeee-ffff-gggggggggggg                  [SWAP]
+nvme0n1
+├─nvme0n1p1 ext4        1.0             dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb  800.1G    10% /data
+└─nvme0n1p2 xfs                         eeeeeeee-ffff-aaaa-bbbb-cccccccccccc  1.5T      5% /backup

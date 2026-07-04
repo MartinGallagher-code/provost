@@ -1,0 +1,30 @@
+dmesg1_timestamp 0.000000
+dmesg1_message Linux
+dmesg1_detail version 5.15.0-91-generic (buildd@lcy02-amd64-045) (gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #101-Ubuntu SMP
+dmesg2_timestamp 0.000000
+dmesg2_message Command
+dmesg2_detail line: BOOT_IMAGE=/vmlinuz-5.15.0-91-generic root=/dev/sda2 ro quiet splash
+dmesg3_timestamp 0.000001
+dmesg3_message BIOS-provided
+dmesg3_detail physical RAM map:
+dmesg4_timestamp 0.000001
+dmesg4_message BIOS-e820:
+dmesg4_detail [mem 0x0000000000000000-0x000000000009fbff] usable
+dmesg5_timestamp 1.234567
+dmesg5_message ACPI:
+dmesg5_detail Core revision 20210730
+dmesg6_timestamp 2.345678
+dmesg6_message pci
+dmesg6_detail 0000:00:02.0: [8086:5917] type 00 class 0x030000
+dmesg7_timestamp 3.456789
+dmesg7_message usb
+dmesg7_detail 1-1: new high-speed USB device number 2 using xhci_hcd
+dmesg8_timestamp 5.678901
+dmesg8_message EXT4-fs
+dmesg8_detail (sda2): mounted filesystem with ordered data mode.
+dmesg9_timestamp 10.123456
+dmesg9_message audit:
+dmesg9_detail type=1400 audit(1705312200.123:2): apparmor="STATUS" operation="profile_load"
+dmesg10_timestamp 12.987654
+dmesg10_message systemd[1]:
+dmesg10_detail Started Journal Service.

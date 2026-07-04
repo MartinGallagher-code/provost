@@ -1,0 +1,10 @@
+Nmap scan report for webserver.example.com (10.0.0.50)
+Host is up (0.0025s latency).
+PORT     STATE SERVICE     VERSION
+22/tcp   open  ssh         OpenSSH 9.2p1 Debian 2
+80/tcp   open  http        nginx 1.24.0
+443/tcp  open  ssl/http    nginx 1.24.0
+3000/tcp open  ppp         Grafana 10.2.3
+5432/tcp open  postgresql  PostgreSQL 16.1
+8080/tcp open  http-proxy  Envoy 1.28.0
+9090/tcp open  http        Prometheus 2.48.1

@@ -1,0 +1,4 @@
+--- /dev/sda (block device 500.1 GB) ioping statistics ---
+20 requests completed in 19.8 ms, 80 KiB read, 1.01 k iops, 3.95 MiB/s
+generated 20 requests in 19.0 s, 80 KiB, 1 iops, 4.21 KiB/s
+min/avg/max/mdev = 223 us / 990 us / 2.69 ms / 670 us

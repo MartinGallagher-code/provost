@@ -1,0 +1,7 @@
+host 10.0.0.1
+port 5201
+sender_transfer 1.10_GBytes
+sender_bitrate 941_Mbits/sec
+sender_retransmits 0
+receiver_transfer 1.09_GBytes
+receiver_bitrate 935_Mbits/sec

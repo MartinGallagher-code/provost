@@ -1,0 +1,5 @@
+{"timestamp": "2025-02-15T08:00:01Z", "level": "INFO", "service": "api-gateway", "message": "Request processed", "status": 200}
+{"timestamp": "2025-02-15T08:00:02Z", "level": "WARN", "service": "auth-service", "message": "Token expiring soon", "status": 200}
+{"timestamp": "2025-02-15T08:00:03Z", "level": "ERROR", "service": "payment-service", "message": "Connection refused", "status": 503}
+{"timestamp": "2025-02-15T08:00:04Z", "level": "INFO", "service": "api-gateway", "message": "Health check passed", "status": 200}
+{"timestamp": "2025-02-15T08:00:05Z", "level": "ERROR", "service": "auth-service", "message": "Invalid credentials", "status": 401}

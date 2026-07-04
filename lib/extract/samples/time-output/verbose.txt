@@ -1,0 +1,14 @@
+Command being timed: "./build.sh"
+Elapsed (wall clock) time: 0:02:45.32
+Maximum resident set size (kbytes): 524288
+Average shared text size (kbytes): 0
+Average unshared data size (kbytes): 0
+Average stack size (kbytes): 0
+Average total size (kbytes): 0
+Major (requiring I/O) page faults: 12
+Minor (reclaiming a frame) page faults: 131072
+Voluntary context switches: 4521
+Involuntary context switches: 892
+File system inputs: 65536
+File system outputs: 32768
+Exit status: 0
