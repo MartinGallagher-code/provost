@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-07-04 — Phase-2 fix: relayout to extract/ + lib/, vendor missing deps
+- The first Phase-2 vendor (below) under-copied: the cross-suite shared libs
+  (`envoy_version.sh`, `envoy_progress.sh`, …) and `EnvoyExtract/tools/` were left
+  out, so 13 suite tests regressed (`--version`, `-V`, `--progress`,
+  `new_strategy.sh`/`review_strategy.sh`) — all green upstream but failing
+  vendored. Also, nesting the engine at `lib/extract/` put its `../lib` at the
+  confusing `lib/lib`.
+- Fix: moved the vendored engine to `glean/extract/` and the shared libs to
+  `glean/lib/` (the engine's `../lib`), mirroring the upstream engine-dir +
+  sibling-`lib/` layout so the suite resolves paths unchanged. `sync-extract.sh`
+  now also vendors `tools/` and the repo-root `lib/*.sh`. All 4 previously-failing
+  files pass in the new location (21/21, 8/8, 13/13, 21/21). `glean` `_find_engine`
+  updated to `extract/envoy-extract`.
+- Files: `glean/extract/**` (relocated + `tools/`), `glean/lib/*.sh` (shared),
+  `glean/tools/sync-extract.sh`, `glean/extract/README.md`, `glean/glean`,
+  `glean/HANDOFF.md`.
+
 ## 2026-07-04 — Phase-2: vendor the extract engine into lib/extract/
 - Vendored the full extract engine (entry point + `lib/` + all 202 strategies +
   tests + samples; ~1,145 files) from `EnvoyExtract/` into `glean/lib/extract/`

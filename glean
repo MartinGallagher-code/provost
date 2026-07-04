@@ -45,16 +45,17 @@ die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
 
 # ---------------------------------------------------------------------------
 # Locate the extract engine.
-#   Phase 2: the engine is vendored at lib/extract/ (see tools/sync-extract.sh)
-#   and is the canonical copy. The sibling-EnvoyExtract walk-up remains only as
-#   a transition fallback until the Phase-5 hard cut removes EnvoyExtract/.
+#   Phase 2: the engine is vendored at glean/extract/ (see tools/sync-extract.sh)
+#   with its shared libs at glean/lib/ (the engine's ../lib). This is the
+#   canonical copy. The sibling-EnvoyExtract walk-up remains only as a
+#   transition fallback until the Phase-5 hard cut removes EnvoyExtract/.
 # ---------------------------------------------------------------------------
 _find_engine () {
     local here script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     local candidates=(
-        "${GLEAN_HOME:-}/lib/extract/envoy-extract"
-        "$script_dir/lib/extract/envoy-extract"   # vendored (canonical)
+        "${GLEAN_HOME:-}/extract/envoy-extract"
+        "$script_dir/extract/envoy-extract"       # vendored (canonical)
     )
     # Walk up looking for a sibling EnvoyExtract/ (transition fallback).
     here="$script_dir"

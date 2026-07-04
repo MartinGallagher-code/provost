@@ -28,18 +28,31 @@ dataset.
 
 ## Phase 2 — engine vendored (done)
 
-The extract engine + all strategies now live **inside** the tree at
-`lib/extract/` (202 strategy scripts, ~1,143 files), vendored from `EnvoyExtract/`
-by `tools/sync-extract.sh`. `glean` resolves this vendored copy first; the
+The extract engine + all strategies now live **inside** the tree, vendored from
+`EnvoyExtract/` by `tools/sync-extract.sh`:
+
+- `extract/` — engine entry point + `lib/` + 202 strategies + `tools/` + tests +
+  samples.
+- `lib/` — the cross-suite shared libs (`envoy_*.sh`) the engine sources via its
+  `../lib`, vendored from the repo-root `lib/`. This layout mirrors how the
+  engine resolves paths upstream (engine dir with a sibling `lib/`), so its suite
+  runs unchanged.
+
+`glean` resolves the vendored engine (`extract/envoy-extract`) first; the
 sibling-`EnvoyExtract/` walk-up remains only as a transition fallback.
 
-- **Updatable from upstream:** `bash glean/tools/sync-extract.sh` re-vendors from
-  `EnvoyExtract/` (source of truth until the Phase-5 hard cut) and rewrites
-  `lib/extract/VENDOR.json` (source git SHA, timestamp, counts). Do not hand-edit
-  vendored files — edit upstream and re-sync. See `lib/extract/README.md`.
-- **Suite runs in-place:** `bash glean/lib/extract/tests/run_tests.sh` passes in
-  the new location (paths resolve from `BASH_SOURCE/..`, so the tree is
-  relocatable).
+- **Updatable from upstream:** `bash glean/tools/sync-extract.sh` re-vendors the
+  engine + shared libs from `EnvoyExtract/` and repo-root `lib/` (source of truth
+  until the Phase-5 hard cut) and rewrites `extract/VENDOR.json` (source git SHA,
+  timestamp, counts). Do not hand-edit vendored files — edit upstream and
+  re-sync. See `extract/README.md`.
+- **Suite runs in-place:** `bash glean/extract/tests/run_tests.sh`.
+
+> **Layout note:** an earlier take vendored to `lib/extract/`, which put the
+> engine's `../lib` at the confusing `lib/lib` and left the shared libs +
+> `tools/` un-vendored (13 suite failures: `--version`, `--progress`,
+> `new_strategy.sh`/`review_strategy.sh`). Fixed by moving the engine to
+> `extract/` with shared libs at `lib/` and vendoring `tools/` + the shared libs.
 
 ## Deliberately minimal (not bugs)
 
