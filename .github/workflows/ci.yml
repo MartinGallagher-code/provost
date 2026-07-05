@@ -1,0 +1,69 @@
+name: CI
+
+# NOTE: paths here are relative to the repo root. This file lives under glean/ in
+# the upstream Envoy repo (where GitHub ignores it — only root .github/ runs) and
+# becomes active once glean is extracted to its own repository.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    name: smoke (end-to-end)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: glean doctor
+        run: bash glean doctor || true
+      - name: smoke test
+        run: bash tests/smoke.sh
+
+  transform:
+    name: transform unit test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash transform/tests/test_melt.sh
+
+  extract-suite:
+    name: extract strategy + engine suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash extract/tests/run_tests.sh
+
+  analyze-engine:
+    name: analyze engine suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: use gawk (the analyze engine prefers it; Ubuntu defaults to mawk)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y gawk
+          sudo update-alternatives --set awk /usr/bin/gawk
+      - name: run engine tests (excluding tests for un-vendored browse/dashboard)
+        run: |
+          fail=0
+          for t in analyze/tests/test_*.sh; do
+            case "$(basename "$t")" in
+              test_browse_*|test_dashboard_*|test_help_overlay.sh|test_mdx.sh) continue ;;
+            esac
+            if ! ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash "$t" >/tmp/out 2>&1; then
+              echo "::error::analyze test failed: $(basename "$t")"; tail -5 /tmp/out; fail=1
+            fi
+          done
+          exit $fail
+
+  docs:
+    name: docs present
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: require CHANGELOG + HANDOFF + README
+        run: |
+          missing=0
+          for f in CHANGELOG.md HANDOFF.md README.md CLAUDE.md; do
+            [ -f "$f" ] || { echo "missing $f"; missing=1; }
+          done
+          exit $missing

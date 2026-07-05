@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-05 — standalone repo scaffolding: CLAUDE.md + CI workflow
+- Added `CLAUDE.md` (project instructions for the standalone repo: layout, the
+  "don't hand-edit vendored trees, re-sync from upstream" rule, doc + testing
+  conventions, mawk-safety + symlink + `GLEAN_*` invariants).
+- Added `.github/workflows/ci.yml` — inert in the upstream Envoy repo (GitHub
+  only runs root `.github/`), active once glean is its own repo. Jobs: `smoke`
+  (tests/smoke.sh), `transform` (transform/tests/test_melt.sh), `extract-suite`
+  (extract/tests/run_tests.sh), `analyze-engine` (engine tests on gawk, excluding
+  the un-vendored browse/dashboard tests), and `docs` (require the core docs).
+  Paths are glean-root-relative. Validated: YAML parses (5 jobs), docs check
+  passes, the analyze loop runs (only the known mawk-sensitive `test_correctness`
+  fails locally — the CI job installs gawk for exactly that).
+- Files: `glean/CLAUDE.md`, `glean/.github/workflows/ci.yml`.
+
 ## 2026-07-05 — prep for extraction to a standalone repository (revised Phase 5)
 - Decision: rather than hard-cutting the `Envoy*` trees in place, glean is
   extracted into its own repo; Envoy stays intact as upstream. Made the tree
