@@ -24,7 +24,7 @@
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.4.0-proto"
+GLEAN_VERSION="0.5.0-proto"
 
 # ---------------------------------------------------------------------------
 # Config (env-overridable; GLEAN_* is the post-rename namespace)
@@ -35,8 +35,36 @@ GLEAN_VERSION="0.4.0-proto"
 # (Stage B will insert "a controlled directory found by walking up from CWD"
 #  between these two.)
 _default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
-GLEAN_WORKSPACE_EXPLICIT="${GLEAN_WORKSPACE:+1}"   # set iff caller pinned GLEAN_WORKSPACE
-GLEAN_WORKSPACE="${GLEAN_WORKSPACE:-$(_default_home)}"
+
+# A controlled directory holds its instance at <dir>/.glean with a CONTROLLED
+# marker (which the global store lacks). Walk up from $start to find one.
+_find_controlling_dir () {
+    local here="$1"
+    here="$(cd "$here" 2>/dev/null && pwd)" || return 1
+    while [[ -n "$here" && "$here" != "/" ]]; do
+        [[ -f "$here/.glean/CONTROLLED" ]] && { printf '%s\n' "$here"; return 0; }
+        here="$(dirname "$here")"
+    done
+    [[ -f "/.glean/CONTROLLED" ]] && { printf '/\n'; return 0; }
+    return 1
+}
+
+# Resolve the active store:
+#   1. $GLEAN_WORKSPACE explicit override
+#   2. a controlled directory found by walking up from CWD
+#   3. the global store ($GLEAN_HOME / ~/.glean)
+GLEAN_WORKSPACE_EXPLICIT="${GLEAN_WORKSPACE:+1}"
+if [[ -n "$GLEAN_WORKSPACE_EXPLICIT" ]]; then
+    GLEAN_STORE_KIND="explicit override"
+else
+    _ctl="$(_find_controlling_dir "$PWD" 2>/dev/null || true)"
+    if [[ -n "$_ctl" ]]; then
+        GLEAN_WORKSPACE="$_ctl/.glean"; GLEAN_STORE_KIND="controlled: $_ctl"
+    else
+        GLEAN_WORKSPACE="$(_default_home)"; GLEAN_STORE_KIND="global"
+    fi
+    unset _ctl
+fi
 GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
 GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
 GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
@@ -276,6 +304,12 @@ _ingest () {
     done
     echo "$((startid + nrows))" > "$(_rowid_file)"
 
+    # In a controlled directory, snapshot the directory's contents as commit
+    # context so the capture is tied to what the tree looked like at the time.
+    if [[ "${GLEAN_STORE_KIND:-}" == controlled:* ]]; then
+        # Subshell so a set -e abort inside can't escape past the guard.
+        ( _snapshot_context "$(dirname "$GLEAN_WORKSPACE")" "$GLEAN_WORKSPACE" ) >/dev/null 2>&1 || true
+    fi
     _git add -A >/dev/null 2>&1 || true
     local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
     [[ -n "$cmd" ]] && msg="$msg [$cmd]"
@@ -400,6 +434,108 @@ cmd_restore () {
 }
 
 # ---------------------------------------------------------------------------
+# control / uncontrol / instances — a directory as its own capture instance.
+# ---------------------------------------------------------------------------
+_registry () { printf '%s/instances.tsv\n' "$(_default_home)"; }
+
+# Snapshot the controlled directory's contents as commit context: a manifest of
+# path/size/mtime/sha for each file (excluding the .glean instance and .git).
+_snapshot_context () {
+    local dir="$1" ws="$2" mani="$ws/context/manifest.tsv" f sz mt sha
+    mkdir -p "$ws/context"
+    printf 'path\tsize\tmtime\tsha1\n' > "$mani"
+    while IFS= read -r f; do
+        sz=$(stat -c '%s' "$f" 2>/dev/null || echo 0)
+        mt=$(stat -c '%Y' "$f" 2>/dev/null || echo 0)
+        if [[ "$sz" -le 1048576 ]] && command -v sha1sum >/dev/null 2>&1; then
+            sha=$(sha1sum "$f" 2>/dev/null | cut -d' ' -f1)
+        else sha="(skipped)"; fi
+        printf '%s\t%s\t%s\t%s\n' "${f#"$dir"/}" "$sz" "$mt" "$sha" >> "$mani"
+    done < <(find "$dir" -type f -not -path '*/.glean/*' -not -path '*/.git/*' 2>/dev/null | sort)
+    local n; n=$(( $(wc -l < "$mani") - 1 ))
+    printf '%s\n' "$n"
+}
+
+cmd_control () {
+    local dir="${1:-$PWD}"
+    dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
+    local ws="$dir/.glean"
+    if [[ -f "$ws/CONTROLLED" ]]; then info "already controlled: $dir"; return 0; fi
+    # Point this invocation's store at the new instance and initialise it.
+    GLEAN_WORKSPACE="$ws"; GLEAN_STORE_KIND="controlled: $dir"; GLEAN_WORKSPACE_EXPLICIT=1
+    _ensure_workspace
+    printf '%s\n' "$dir" > "$ws/CONTROLLED"
+    local n; n="$(_snapshot_context "$dir" "$ws")"
+    _lock
+    _git add -A >/dev/null 2>&1 || true
+    _git commit -q -m "glean: control $dir (context: $n file(s))" >/dev/null 2>&1 || true
+    _unlock
+    # Register in the global store so `glean instances` (run anywhere) sees it.
+    mkdir -p "$(_default_home)"
+    [[ -f "$(_registry)" ]] || printf 'directory\tcontrolled_at\n' > "$(_registry)"
+    grep -qxF "$dir	$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(_registry)" 2>/dev/null || \
+        printf '%s\t%s\n' "$dir" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$(_registry)"
+    ok "controlling '$dir' — captures run here now route to $ws (context: $n file(s))."
+}
+
+cmd_uncontrol () {
+    local dir="${1:-$PWD}"
+    dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
+    [[ -f "$dir/.glean/CONTROLLED" ]] || die "not a controlled directory: $dir"
+    rm -f "$dir/.glean/CONTROLLED"
+    if [[ -f "$(_registry)" ]]; then
+        grep -v "^$dir	" "$(_registry)" > "$(_registry).tmp" 2>/dev/null && mv "$(_registry).tmp" "$(_registry)" || true
+    fi
+    ok "released '$dir' (its .glean data is kept; captures here revert to the global store)."
+}
+
+cmd_instances () {
+    local reg; reg="$(_registry)"
+    [[ -f "$reg" ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    local n; n=$(( $(wc -l < "$reg") - 1 )); [[ $n -lt 0 ]] && n=0
+    [[ $n -gt 0 ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    printf '%-40s %-20s %s\n' "DIRECTORY" "CONTROLLED_AT" "ACTIVE" >&2
+    local d t
+    while IFS=$'\t' read -r d t; do
+        [[ "$d" == "directory" ]] && continue
+        printf '%-40s %-20s %s\n' "$d" "$t" "$([[ -f "$d/.glean/CONTROLLED" ]] && echo yes || echo released)"
+    done < "$reg"
+}
+
+# ---------------------------------------------------------------------------
+# export / import — a portable bundle of the whole store (datasets + commits).
+# ---------------------------------------------------------------------------
+cmd_export () {
+    _ensure_workspace
+    local out="${1:-}"
+    if [[ -z "$out" ]]; then out="$PWD/glean-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
+    _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
+    _lock
+    local rc=0
+    _git bundle create "$out" --all >/dev/null 2>&1 || rc=$?
+    _unlock
+    [[ $rc -eq 0 && -f "$out" ]] || die "export failed."
+    local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
+    ok "exported store → $out ($sz bytes). Import elsewhere with: glean import $out <dest>"
+}
+
+cmd_import () {
+    local file="${1:?usage: glean import <file.bundle> [<dest-dir>]}"
+    [[ -f "$file" ]] || die "no such export file: $file"
+    local dest="${2:-}"
+    [[ -z "$dest" ]] && dest="$PWD/glean-import-$(basename "$file" .bundle)"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid glean export bundle: $file"
+    git clone -q "$file" "$dest" >/dev/null 2>&1 || die "import (clone) failed."
+    git -C "$dest" checkout -q main >/dev/null 2>&1 || git -C "$dest" checkout -q master >/dev/null 2>&1 || true
+    local nds ncap
+    nds=$(find "$dest/datasets" -name '*.tsv' 2>/dev/null | wc -l | tr -d ' ')
+    ncap=$(find "$dest/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    ok "imported → $dest ($nds dataset(s), $ncap capture(s))."
+    info "browse it with: GLEAN_WORKSPACE='$dest' glean ls   (or show/log/source/restore)"
+}
+
+# ---------------------------------------------------------------------------
 # source — given a dataset row's #N index, show the original captured input.
 # ---------------------------------------------------------------------------
 cmd_source () {
@@ -465,8 +601,7 @@ cmd_doctor () {
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
     fi
-    local kind="global"; [[ -n "${GLEAN_WORKSPACE_EXPLICIT:-}" ]] && kind="explicit override"
-    printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "$kind"
+    printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "${GLEAN_STORE_KIND:-global}"
     [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
     if [[ -f "$(_rowid_file)" ]]; then
         printf '   next row index: #%s\n' "$(cat "$(_rowid_file)")"
@@ -484,6 +619,11 @@ USAGE
     cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
     glean [FILE]                                  inject a file instead of stdin
     glean source <#N>                             show the original source behind row #N
+    glean control [<dir>]                         make <dir> its own capture instance
+    glean uncontrol [<dir>]                        release a controlled directory
+    glean instances                               list controlled directories
+    glean export [<file>]                         bundle the store into a portable file
+    glean import <file> [<dest>]                   reconstitute a bundle elsewhere to browse
     glean log                                     list captures (the git history)
     glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
@@ -492,10 +632,14 @@ USAGE
     glean doctor                                  check engine + store
     glean help
 
-STORE (global by default)
+STORE (global by default, or a controlled directory)
     Captures go to a GLOBAL git store so you can capture from any directory:
       \$GLEAN_HOME, or ~/.glean if unset. Point GLEAN_HOME at a shared,
       group-writable dir to collaborate; a lock serialises concurrent writers.
+    'glean control <dir>' makes <dir> its own instance (<dir>/.glean): captures
+    run inside it (or a subdir) route there, and each commit snapshots the
+    directory's contents as context. Resolution: GLEAN_WORKSPACE override, else
+    the nearest controlled dir walking up from CWD, else the global store.
     Every capture is one commit tagged capture-<id> ('log' / 'restore'). Every
     dataset row has a globally-unique visible index #N; 'glean source N' maps it
     back to the exact captured input that produced it.
@@ -521,6 +665,11 @@ main () {
     case "$verb" in
         run)           shift; cmd_run "$@" ;;
         source|src)    shift; cmd_source "$@" ;;
+        control)       shift; cmd_control "$@" ;;
+        uncontrol)     shift; cmd_uncontrol "$@" ;;
+        instances)     shift; cmd_instances "$@" ;;
+        export)        shift; cmd_export "$@" ;;
+        import)        shift; cmd_import "$@" ;;
         log)           shift; cmd_log "$@" ;;
         restore)       shift; cmd_restore "$@" ;;
         ls)            shift; cmd_ls "$@" ;;

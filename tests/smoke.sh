@@ -65,5 +65,30 @@ n="$(tail -n +2 "$CWS/provenance.tsv" 2>/dev/null | wc -l | tr -d ' ')"
 check "6 concurrent captures all recorded" "6" "$n"
 check "no duplicate row indices under concurrency" "0" "$dup"
 
+# --- Stage B: controlled directories route captures locally -----------------
+GH="$(mktemp -d)/global"
+PROJ="$(mktemp -d)/proj"; mkdir -p "$PROJ/sub"; echo hi > "$PROJ/file.txt"
+ctl_out="$(cd "$PROJ" && GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" control 2>&1)"
+check "control marks a directory" "controlling" "$ctl_out"
+# capture from a SUBDIR must route to the project instance, not the global store
+( cd "$PROJ/sub" && GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" run printf 'CONTAINER  CPU\nweb  1\n' >/dev/null 2>&1 )
+check "capture from subdir lands in the controlled instance" "docker-ps" "$(ls "$PROJ/.glean/datasets" 2>&1)"
+check "capture from subdir did NOT touch the global store" "0" "$(ls "$GH/datasets" 2>/dev/null | grep -c .)"
+check "directory context manifest was captured" "file.txt" "$(cat "$PROJ/.glean/context/manifest.tsv" 2>&1)"
+inst_out="$(GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" instances 2>&1)"
+check "instances lists the controlled dir" "$PROJ" "$inst_out"
+
+# --- Stage C: export / import round-trip preserves datasets + provenance ----
+BUNDLE="$(mktemp -d)/store.bundle"
+exp_out="$("$GLEAN" export "$BUNDLE" 2>&1)"
+check "export writes a bundle" "exported store" "$exp_out"
+check "bundle file exists" "true" "$([[ -f "$BUNDLE" ]] && echo true)"
+DEST="$(mktemp -d)/imported"
+imp_out="$(GLEAN_WORKSPACE="" "$GLEAN" import "$BUNDLE" "$DEST" 2>&1)"
+check "import reconstitutes the store" "imported" "$imp_out"
+check "imported store lists the free dataset" "free" "$(GLEAN_WORKSPACE="$DEST" "$GLEAN" ls 2>&1)"
+# provenance survives the move: row #1's original source is browsable in the copy
+check "imported store preserves row #1 source" "Mem" "$(GLEAN_WORKSPACE="$DEST" "$GLEAN" source 1 2>&1)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

@@ -1,5 +1,29 @@
 # glean — Changelog
 
+## 2026-07-05 — Store model Stages B + C: controlled dirs + export/import
+Completes the git-core directive.
+- **Stage B — controlled directories.** `glean control [<dir>]` marks a directory
+  as its own capture instance (`<dir>/.glean` with a `CONTROLLED` marker).
+  Store resolution now walks up from CWD: `GLEAN_WORKSPACE` override → nearest
+  controlled dir → global store. Captures run inside a controlled dir (or a
+  subdir) route to its instance, and each capture commit **snapshots the
+  directory's contents as context** (`context/manifest.tsv`: path/size/mtime/sha1,
+  excluding `.glean`/`.git`). `glean instances` lists controlled dirs (from a
+  registry in the global store); `glean uncontrol` releases one (data kept).
+- **Stage C — export / import.** `glean export [<file>]` bundles the whole store
+  (all datasets + capture commits + tags) into a portable `git bundle`;
+  `glean import <file> [<dest>]` reconstitutes it elsewhere. Verified: after a
+  move, the imported store's datasets, capture log, and per-row `#N → source`
+  provenance are all browsable.
+- Fixed a `set -e` escape: the controlled-dir context snapshot in `_ingest` ran
+  as a bare `func || true` (current shell), so an internal failure aborted before
+  the guard; now wrapped in a subshell.
+- Smoke test → 27 checks (adds control/subdir-routing/context/instances +
+  export/import round-trip); all pass. Version 0.4 → 0.5-proto.
+- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`,
+  `glean/CHANGELOG.md`.
+- **Still deferred:** `stats` (vendor envoy-analyze) and schema reconciliation.
+
 ## 2026-07-04 — Store model Stage A: global store + per-row provenance
 Implements the fuller "git core" directive (row→source traceability, global
 store, multi-user).

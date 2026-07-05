@@ -89,15 +89,17 @@ Fuller realisation of the user's git-core directive (see proposal 0001 §5a):
   8-way concurrency (distinct ids, 0 dups, fsck clean). Point `GLEAN_HOME` at a
   shared group-writable dir to collaborate.
 
-### Stage B (next) — controlled directories
-`glean control <dir>` marks a directory as its own capture instance; captures run
-inside it (or a subdir) route there instead of global, and the commit's context
-includes the directory's contents. Registry walk-up inserts between the explicit-
-override and global-default resolution steps. Also: `glean instances` to list.
+### Stage B (done) — controlled directories
+`glean control [<dir>]` makes `<dir>` its own instance (`<dir>/.glean` +
+`CONTROLLED` marker). Resolution walks up from CWD (override → controlled →
+global). Captures inside route there and snapshot the directory's contents as
+commit context (`context/manifest.tsv`). `glean instances` lists them (registry
+in the global store); `glean uncontrol` releases (data kept).
 
-### Stage C (after) — export / import
-`glean export → file`, `glean import file` elsewhere, so all datasets + capture
-commits are portable and browsable in another repo.
+### Stage C (done) — export / import
+`glean export [<file>]` → a portable `git bundle` of the whole store;
+`glean import <file> [<dest>]` reconstitutes it elsewhere. Datasets, capture log,
+and per-row `#N → source` provenance all survive the move (verified in smoke).
 
 ## Still deferred (not bugs)
 
@@ -111,7 +113,8 @@ commits are portable and browsable in another repo.
 
 1. **Phase 3 (cont.)** — vendor envoy-analyze under `glean/analyze/` and wire
    `glean stats <dataset>`; add schema reconciliation to `_store_append` (union
-   columns instead of splitting to `.v2`).
+   columns instead of splitting to `.v2`). The store-model directive (Stages A–C)
+   is now complete.
 2. **Phase 4** — rename plane: env vars (`GLEAN_*`, already used here), one man
    page, completions, packaging, README.
 3. **Phase 5** — hard-cut the `Envoy*` trees + satellites; archive
