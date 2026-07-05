@@ -42,6 +42,17 @@ stats_out="$("$GLEAN" stats free 2>&1)"
 check "stats produces summary statistics" "Summary stats" "$stats_out"
 check "stats computes a mean over the column" "Mean" "$stats_out"
 
+# schema reconciliation: a trimmed same-type capture (>=60% column overlap)
+# unions into the base dataset instead of splitting to free.v2
+RWS="$(mktemp -d)/.recon"
+GLEAN_WORKSPACE="$RWS" "$GLEAN" run printf '              total   used   free   shared   buff/cache   available\nMem:  15943   2456   9876   123   3610   13234\n' >/dev/null 2>&1
+GLEAN_WORKSPACE="$RWS" "$GLEAN" run printf '              total   used   free\nMem:  16000   3050   8500\n' >/dev/null 2>&1
+recon_ls="$(ls "$RWS/datasets" 2>&1)"
+check "trimmed capture reconciles into 'free' (no variant)" "free.tsv" "$recon_ls"
+check "no free.v2 variant was created" "1" "$(ls "$RWS/datasets" | grep -c '^free')"
+# the reconciled dataset holds both rows, blank-filled
+check "reconciled dataset holds both captures' rows" "8500" "$(GLEAN_WORKSPACE="$RWS" "$GLEAN" show free 2>&1)"
+
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 

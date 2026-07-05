@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-05 — schema reconciliation (union columns vs the .v2 split)
+- `_store_append` now reconciles a same-typed capture whose column set differs
+  from the existing dataset instead of always splitting to a variant. If the
+  column overlap (Jaccard) ≥ `GLEAN_RECONCILE_OVERLAP` (default 60%), the two are
+  **unioned**: the dataset's header grows to the union of columns, existing rows
+  are blank-filled for new columns, and incoming rows are blank-filled for
+  missing ones — so same-typed rows (and their `#N` indices) stay in one table
+  that `show`/`stats`/`source` see whole. Below the threshold it still splits to
+  a numbered variant (`free.v2`). New awk helpers `_col_overlap`/`_union_header`/
+  `_align_rows`. Verified both branches (default unions the trimmed `free`;
+  threshold 99 forces the `.v2` split). Smoke → 32 checks; all pass. Version
+  0.5 → 0.6-proto.
+- Files: `glean/glean`, `glean/tests/smoke.sh`.
+
 ## 2026-07-05 — stats: vendor the analyze engine, wire `glean stats`
 - Vendored the analyze engine from `EnvoyAnalyze/` into `glean/analyze/` (entry
   point + `lib/` + `profiles/` + tests + samples) via new

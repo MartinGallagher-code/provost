@@ -24,7 +24,7 @@
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.5.0-proto"
+GLEAN_VERSION="0.6.0-proto"
 
 # ---------------------------------------------------------------------------
 # Config (env-overridable; GLEAN_* is the post-rename namespace)
@@ -69,6 +69,7 @@ GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
 GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
 GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
 GLEAN_LOCK_TIMEOUT="${GLEAN_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
+GLEAN_RECONCILE_OVERLAP="${GLEAN_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -225,30 +226,75 @@ _next_capture_id () {
     printf 'c%04d\n' "$((n + 1))"
 }
 
+# Column overlap (Jaccard, as an integer percent) between two tab-separated
+# headers passed as the two lines of stdin.
+_col_overlap () {
+    awk -F'\t' '
+        NR==1 { for(i=1;i<=NF;i++){a[$i]=1}; na=NF }
+        NR==2 { for(i=1;i<=NF;i++){ b[$i]=1; if($i in a) inter++ } }
+        END { for(k in a) u[k]=1; for(k in b) u[k]=1; nu=0; for(k in u) nu++;
+              if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
+}
+
+# Unified header = old columns in order, then any new-only columns appended.
+_union_header () {  # stdin: old header \n new header
+    awk -F'\t' -v OFS='\t' '
+        NR==1 { n=NF; for(i=1;i<=NF;i++){h[i]=$i; seen[$i]=1} }
+        NR==2 { for(i=1;i<=NF;i++) if(!($i in seen)){ h[++n]=$i; seen[$i]=1 } }
+        END { line=h[1]; for(i=2;i<=n;i++) line=line OFS h[i]; print line }'
+}
+
+# Reorder each stdin data row from SRC header layout to TGT header layout,
+# blank-filling columns absent from the source.
+_align_rows () {  # args: SRC_HEADER TGT_HEADER ; stdin: data rows
+    awk -F'\t' -v OFS='\t' -v SRC="$1" -v TGT="$2" '
+        BEGIN { ns=split(SRC,s,"\t"); nt=split(TGT,t,"\t");
+                for(i=1;i<=ns;i++) srcidx[s[i]]=i }
+        { out=""; for(j=1;j<=nt;j++){ v=(t[j] in srcidx)?$(srcidx[t[j]]):"";
+            out=(j==1)?v:out OFS v } print out }'
+}
+
 # Append tidy TSV (header+rows) to a dataset file. Store rule:
-#   header matches existing → append data rows; new → write header+rows;
-#   header differs → split into a numbered variant (.v2, .v3, …).
+#   new dataset            → write header + rows;
+#   header matches         → append data rows;
+#   header differs, overlap ≥ GLEAN_RECONCILE_OVERLAP% → RECONCILE: union the
+#                            columns, blank-fill both sides, rewrite in place;
+#   overlap below threshold → split into a numbered variant (.v2, .v3, …).
 # Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
 _store_append () {
     local name="$1" tsv="$2" dir; dir="$(_ds_dir)"
-    local base="$dir/$name.tsv" target="$name" file
-    file="$base"
+    local base="$dir/$name.tsv" target="$name" file="$dir/$name.tsv"
     local new_header; new_header="$(printf '%s\n' "$tsv" | head -1)"
-    if [[ -f "$base" ]]; then
-        local old_header; old_header="$(head -1 "$base")"
-        if [[ "$old_header" != "$new_header" ]]; then
-            local v=2
-            while [[ -f "$dir/$name.v$v.tsv" ]] && \
-                  [[ "$(head -1 "$dir/$name.v$v.tsv")" != "$new_header" ]]; do
-                v=$((v+1))
-            done
-            target="$name.v$v"; file="$dir/$target.tsv"
-        fi
-    fi
-    if [[ -f "$file" ]]; then
-        printf '%s\n' "$tsv" | tail -n +2 >> "$file"
+
+    if [[ ! -f "$base" ]]; then
+        printf '%s\n' "$tsv" > "$base"
     else
-        printf '%s\n' "$tsv" > "$file"
+        local old_header; old_header="$(head -1 "$base")"
+        if [[ "$old_header" == "$new_header" ]]; then
+            printf '%s\n' "$tsv" | tail -n +2 >> "$base"
+        else
+            local overlap; overlap="$(printf '%s\n%s\n' "$old_header" "$new_header" | _col_overlap)"
+            if [[ "$overlap" -ge "$GLEAN_RECONCILE_OVERLAP" ]]; then
+                # Reconcile into the base dataset: union header, realign both sides.
+                local unified tmp; unified="$(printf '%s\n%s\n' "$old_header" "$new_header" | _union_header)"
+                tmp="$(mktemp "$dir/.recon.XXXXXX")"
+                {
+                    printf '%s\n' "$unified"
+                    tail -n +2 "$base"                | _align_rows "$old_header" "$unified"
+                    printf '%s\n' "$tsv" | tail -n +2 | _align_rows "$new_header" "$unified"
+                } > "$tmp" && mv "$tmp" "$base" || { rm -f "$tmp"; return 1; }
+            else
+                # Genuinely different shape → variant file.
+                local v=2
+                while [[ -f "$dir/$name.v$v.tsv" ]] && \
+                      [[ "$(head -1 "$dir/$name.v$v.tsv")" != "$new_header" ]]; do
+                    v=$((v+1))
+                done
+                target="$name.v$v"; file="$dir/$target.tsv"
+                if [[ -f "$file" ]]; then printf '%s\n' "$tsv" | tail -n +2 >> "$file"
+                else printf '%s\n' "$tsv" > "$file"; fi
+            fi
+        fi
     fi
     local rows; rows=$(( $(wc -l < "$file") - 1 )); [[ $rows -lt 0 ]] && rows=0
     printf '%s\t%s\n' "$target" "$rows"

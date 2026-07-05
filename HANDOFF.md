@@ -108,14 +108,12 @@ reusing the shared libs at `glean/lib/`. `glean stats <dataset> [args]` runs it
 over a dataset's TSV. `browse`/`dashboard`/`pipeline` are intentionally NOT
 vendored, so their tests are excluded from the vendored analyze suite.
 
-## Still deferred (not a bug — a design choice pending)
+## Schema reconciliation — done
 
-- **Schema reconciliation.** A differing column set currently splits a dataset
-  into a numbered variant (`free.v2`) rather than union-merging columns. Porting
-  EnvoyCapture's `_core_dataset_append` (union header + blank-fill, with a
-  ~60%-overlap threshold before splitting) would keep same-typed rows — and their
-  `#N` indices — in one table. This is the next change; awaiting the user's call
-  on reconcile-vs-split.
+`_store_append` unions a differing-column same-type capture into the base dataset
+when column overlap ≥ `GLEAN_RECONCILE_OVERLAP` (default 60%), blank-filling both
+sides; below the threshold it splits to a numbered variant (`free.v2`). Keeps
+same-typed rows and their `#N` indices in one table.
 
 ## Next steps (per proposal phases)
 
