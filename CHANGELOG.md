@@ -1,5 +1,13 @@
 # glean — Changelog
 
+## 2026-07-05 — re-vendor extract engine: +3 everyday-command strategies
+- Re-synced `glean/extract/` from upstream after adding `df`, `ps-aux`, and
+  `mount` strategies (catalog 202 → 205). glean now auto-detects these common
+  inputs: `df -h` (previously `unsorted` at conf 30 → now `df` at 92), `ps aux`
+  (`ps-aux`, 90), and `mount` (90) — each producing a tidy one-row-per-record
+  dataset with `#N` provenance. Verified end-to-end via `glean run`.
+- Files: `glean/extract/**` (re-vendored), `glean/extract/VENDOR.json`.
+
 ## 2026-07-05 — schema reconciliation (union columns vs the .v2 split)
 - `_store_append` now reconciles a same-typed capture whose column set differs
   from the existing dataset instead of always splitting to a variant. If the
