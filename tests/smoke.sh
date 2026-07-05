@@ -53,6 +53,15 @@ check "no free.v2 variant was created" "1" "$(ls "$RWS/datasets" | grep -c '^fre
 # the reconciled dataset holds both rows, blank-filled
 check "reconciled dataset holds both captures' rows" "8500" "$(GLEAN_WORKSPACE="$RWS" "$GLEAN" show free 2>&1)"
 
+# install + symlink launcher: glean must find its vendored trees when run via a
+# symlink on PATH (regression guard for the GLEAN_ROOT symlink-resolution fix)
+IPREFIX="$(mktemp -d)/opt"
+PREFIX="$IPREFIX" bash "$HERE/../install.sh" >/dev/null 2>&1
+LWS="$(mktemp -d)/.launch"
+launch_out="$(GLEAN_WORKSPACE="$LWS" "$IPREFIX/bin/glean" run printf 'a=1, b=2\n' 2>&1)"
+check "glean runs via the installed symlink launcher" "dataset" "$launch_out"
+PREFIX="$IPREFIX" bash "$HERE/../install.sh" --uninstall >/dev/null 2>&1
+
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 

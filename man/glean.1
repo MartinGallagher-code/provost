@@ -1,0 +1,111 @@
+.TH GLEAN 1 "2026-07-05" "glean 0.7.0-proto" "User Commands"
+.SH NAME
+glean \- turn command output into data
+.SH SYNOPSIS
+.B glean run
+[\fB--\fR] \fIcommand\fR [\fIargs...\fR]
+.br
+.I command
+|
+.B glean
+[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR]
+.br
+.B glean
+\fIsubcommand\fR [\fIargs...\fR]
+.SH DESCRIPTION
+.B glean
+captures a command's output, auto-detects its format (via a library of 200+
+extract strategies), and presents it as a tidy, one-row-per-record dataset in a
+git-backed store. Every capture is a commit; every dataset row carries a
+globally-unique index so it can be traced back to its source.
+.SH SUBCOMMANDS
+.TP
+.B run [--] \fIcommand\fR [args...]
+Execute a command, capture its combined output as a commit, auto-detect the
+format, and file it into a typed dataset.
+.TP
+.I command
+| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR]
+Inject piped/stdin (or a FILE argument) the same way as
+.BR run .
+.TP
+.B source \fI#N\fR
+Show the original captured input behind dataset row \fI#N\fR.
+.TP
+.B control \fR[\fIdir\fR]
+Make \fIdir\fR (default: cwd) its own capture instance; captures run inside it
+route there, and each commit snapshots the directory's contents as context.
+.TP
+.B uncontrol \fR[\fIdir\fR]
+Release a controlled directory (its data is kept).
+.TP
+.B instances
+List controlled directories.
+.TP
+.B export \fR[\fIfile\fR]
+Bundle the whole store (datasets + capture commits) into a portable file.
+.TP
+.B import \fIfile\fR \fR[\fIdest\fR]
+Reconstitute a bundle elsewhere to browse.
+.TP
+.B log
+List captures (the git history).
+.TP
+.B restore \fI#id\fR|latest
+Bring a capture's commit back up; \fBlatest\fR returns to the tip.
+.TP
+.B ls
+List datasets.
+.TP
+.B show \fINAME\fR
+Present a dataset as a tidy table (leading \fB#N\fR is the row index).
+.TP
+.B stats \fINAME\fR [analyze-args]
+Statistics on a dataset (\fB--all\fR for every analysis).
+.TP
+.B triage
+Show the low-confidence / unmatched bucket.
+.TP
+.B doctor
+Check the extract/analyze engines and the store.
+.SH STORE
+By default captures go to a global git store at
+.BR $GLEAN_HOME ", or " ~/.glean
+if unset, so you can capture from any directory. Point
+.B GLEAN_HOME
+at a shared, group-writable directory to collaborate; a lock serialises
+concurrent writers. A controlled directory (see
+.BR control )
+overrides the global store while you are inside it.
+.SH ENVIRONMENT
+.TP
+.B GLEAN_HOME
+Global store directory (default: ~/.glean).
+.TP
+.B GLEAN_WORKSPACE
+Explicit store override (wins over GLEAN_HOME).
+.TP
+.B GLEAN_MIN_CONFIDENCE
+Commit threshold 0\-100 (default: 50).
+.TP
+.B GLEAN_MAX_INPUT
+Maximum input bytes (default: 10485760).
+.TP
+.B GLEAN_LOCK_TIMEOUT
+Seconds to wait for the store lock (default: 30).
+.TP
+.B GLEAN_RECONCILE_OVERLAP
+Percent column overlap to union (vs split a variant) on schema drift (default: 60).
+.SH EXAMPLES
+.nf
+free -m | glean                 # capture + auto-detect + file
+glean run df -h                 # capture a command as a commit
+glean ls                        # list datasets
+glean show df                   # present as a tidy table
+glean source 5                  # original input behind row #5
+glean stats df                  # statistics on the dataset
+glean export ~/store.bundle     # portable export
+.fi
+.SH SEE ALSO
+The glean prototype is documented in
+.IR docs/proposals/0001-glean-rename-and-simplification.md .

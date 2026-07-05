@@ -36,6 +36,22 @@ GLEAN_VERSION="0.7.0-proto"
 #  between these two.)
 _default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
 
+# The real directory of this script, following symlinks — so glean finds its
+# vendored extract/analyze/transform trees even when invoked via a symlink on
+# PATH (e.g. after install.sh). Computed once; used by all path resolvers.
+_glean_root () {
+    local src="${BASH_SOURCE[0]}" d
+    if command -v readlink >/dev/null 2>&1; then
+        src="$(readlink -f "$src" 2>/dev/null || echo "$src")"
+    fi
+    while [[ -L "$src" ]]; do
+        d="$(cd -P "$(dirname "$src")" && pwd)"; src="$(readlink "$src")"
+        [[ "$src" != /* ]] && src="$d/$src"
+    done
+    cd -P "$(dirname "$src")" && pwd
+}
+GLEAN_ROOT="$(_glean_root)"
+
 # A controlled directory holds its instance at <dir>/.glean with a CONTROLLED
 # marker (which the global store lacks). Walk up from $start to find one.
 _find_controlling_dir () {
@@ -89,8 +105,7 @@ die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
 #   transition fallback until the Phase-5 hard cut removes EnvoyExtract/.
 # ---------------------------------------------------------------------------
 _find_engine () {
-    local here script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local here script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/extract/envoy-extract"
         "$script_dir/extract/envoy-extract"       # vendored (canonical)
@@ -111,8 +126,7 @@ _find_engine () {
 
 # Locate the analyze engine (vendored at glean/analyze/, see sync-analyze.sh).
 _find_analyze () {
-    local here script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local here script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/analyze/envoy-analyze"
         "$script_dir/analyze/envoy-analyze"       # vendored (canonical)
@@ -138,8 +152,7 @@ _find_analyze () {
 # glean working before a sync until the Phase-5 hard cut.
 # ---------------------------------------------------------------------------
 _source_transform () {
-    local here script_dir
-    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local here script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/transform/melt.sh"
         "$script_dir/transform/melt.sh"           # vendored (canonical)

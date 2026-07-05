@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-07-05 — Phase 4: user-facing surface (README, completion, man, installer)
+- Added the glean-native rename-plane deliverables: `README.md` (one-tool story +
+  command/env reference), `completions/glean.bash` (verb + dataset/capture/path
+  completion), `man/glean.1` (renders clean), and `install.sh` (puts `glean` on
+  PATH + drops the completion and man page; supports `--uninstall`; installs in
+  place, nothing copied out of tree).
+- Fixed a symlink-safety bug surfaced by the installer: glean resolved its
+  vendored `extract/`/`analyze/`/`transform/` from `dirname(BASH_SOURCE)`, which
+  is the *symlink* path when run via a PATH launcher, so it failed with
+  "transform module not found". Now resolves the real script dir once
+  (`GLEAN_ROOT`, readlink-aware) and all three resolvers use it. Verified `glean`
+  runs correctly via the installed symlink.
+- Confirmed glean's own env surface is entirely `GLEAN_*`. Smoke → 33 checks
+  (adds an install+symlink-launcher guard); all pass.
+- Files: `glean/README.md`, `glean/completions/glean.bash`, `glean/man/glean.1`,
+  `glean/install.sh`, `glean/glean`, `glean/tests/smoke.sh`.
+
 ## 2026-07-05 — import the melt/transform from source (was hand-copied)
 - The extract-output transform — the tidy melt (`_core_melt_tidy`) plus the
   schema-union helpers (`_core_union_header`, `_core_align_rows`) — is now

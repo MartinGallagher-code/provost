@@ -120,15 +120,17 @@ same-typed rows and their `#N` indices in one table.
 
 ## Next steps (per proposal phases)
 
-1. **Phase 3 (cont.)** — vendor envoy-analyze under `glean/analyze/` and wire
-   `glean stats <dataset>`; add schema reconciliation to `_store_append` (union
-   columns instead of splitting to `.v2`). The store-model directive (Stages A–C)
-   is now complete.
-2. **Phase 4** — rename plane: env vars (`GLEAN_*`, already used here), one man
-   page, completions, packaging, README.
-3. **Phase 5** — hard-cut the `Envoy*` trees + satellites; archive
-   `scenarios/`/`web/`/`tickets/` to a sibling repo. At that point retire
-   `tools/sync-extract.sh` — `extract/` becomes canonical.
+**Phases 2, 3, 4 are done.** Extract + analyze + transform vendored; git core,
+provenance, controlled dirs, export/import, stats, and reconciliation all built;
+Phase-4 surface (README, `completions/glean.bash`, `man/glean.1`, `install.sh`)
+shipped and glean is symlink-safe on PATH.
+
+1. **Phase 5 (remaining)** — hard-cut the `Envoy*` trees + satellites; archive
+   `scenarios/`/`web/`/`tickets/` to a sibling repo. At that point retire the
+   `tools/sync-*.sh` scripts — `glean/{extract,analyze,transform}/` become
+   canonical. This is the consequential step (deletes the source-of-truth trees),
+   so it should be its own reviewed change.
+2. Ongoing: more extract strategies (`du`, `sensors`, `mpstat`, `ps -ef`, …).
 
 ## Open questions
 
