@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sagecor.example/envoy-analyze/output-v1.0.json",
+  "title": "envoy-analyze JSON output (v1.0)",
+  "type": "object",
+  "required": ["schema_version", "envoy_analyze_version", "items"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "envoy_analyze_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/item" }
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["id", "tag", "kind", "title", "body"],
+      "additionalProperties": true,
+      "properties": {
+        "id":    { "type": "integer", "minimum": 1 },
+        "tag":   {
+          "type": "string",
+          "enum": ["GOOD", "ADVANCED", "DIAGNOSTIC", "NOISY"]
+        },
+        "kind":  { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "body":  { "type": "string" }
+      }
+    }
+  }
+}

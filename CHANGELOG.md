@@ -11,12 +11,15 @@
   dataset's TSV (default = key findings; pass `--all`, a numbered analysis list,
   `--format json`, etc.). `doctor` now reports the analyze engine and warns if
   `gawk` is absent (this box has `mawk`; core analyses still work).
-- `glean stats` verified end-to-end via the smoke test (29 checks; all pass).
-  The vendored analyze engine also carries its own upstream test suite; the
-  `browse`/`dashboard` tests are excluded (those tools aren't vendored). A clean
-  exit-code run of the remaining engine tests was not completed in this
-  environment (several analyze tests hang on a pager/interactive path); to be
-  established separately rather than claimed green here.
+- Also vendored the engine's `completions/`, `schemas/`, and `docs/` (needed by
+  its test suite) — a first pass omitted them and regressed
+  `test_completions`/`test_json_schema` (they pass upstream). Vendored analyze
+  **engine tests: 26/27 pass** (excluding `browse`/`dashboard` tests and the two
+  browse-backed tests `test_help_overlay`/`test_mdx`, since those tools aren't
+  vendored). The single remaining failure, `test_correctness`, **also fails
+  upstream** in this `mawk` environment — an environment issue, not a vendoring
+  regression. `glean stats` itself is verified end-to-end via the smoke test
+  (29 checks; all pass).
 - Files: `glean/analyze/**` (vendored), `glean/tools/sync-analyze.sh`,
   `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
 - **Remaining:** schema reconciliation (union columns vs the `.v2` variant split).

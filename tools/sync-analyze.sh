@@ -15,7 +15,8 @@
 #     glean/lib/       shared suite libs (also maintained by sync-extract.sh)
 #
 # The big pipeline/ dir and the browse/dashboard tools are intentionally NOT
-# vendored — glean only needs the analyze engine. Retired at the Phase-5 cut.
+# vendored — glean only needs the analyze engine (its completions/schemas/docs
+# ARE vendored so the engine test suite passes). Retired at the Phase-5 cut.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,7 +24,7 @@ GLEAN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 ENGINE_DEST="$GLEAN_DIR/analyze"
 SHARED_DEST="$GLEAN_DIR/lib"
 
-RUNTIME=(envoy-analyze lib profiles)
+RUNTIME=(envoy-analyze lib profiles schemas completions docs)
 TESTDATA=(samples tests)
 runtime_only=0
 [[ "${1:-}" == "--runtime-only" ]] && runtime_only=1
