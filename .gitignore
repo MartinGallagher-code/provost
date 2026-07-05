@@ -1,0 +1,10 @@
+# glean runtime store (created on first capture; default ./.glean or ~/.glean)
+.glean/
+GLEAN_WORKSPACE/
+
+# Local backup snapshots
+*.bak
+
+# Python cache (if any tooling runs here)
+__pycache__/
+*.pyc

@@ -1,5 +1,37 @@
 # glean — Changelog
 
+## 2026-07-05 — extracted to standalone repository (glean split from envoy)
+- glean is now its own repository. The self-contained `glean/` tree was extracted
+  from `MartinGallagher-code/envoy` via `git subtree split --prefix=glean` (history
+  preserved: 15 glean commits replayed to repo root) and merged onto the existing
+  repo (LICENSE retained; the stub README replaced by the tree's real README).
+- **Restored the `extract/strategies/build/` directory (16 strategies + HANDOFF).**
+  These files were silently dropped when the tree was committed to envoy: envoy's
+  root `.gitignore` has a `build/` rule (for Python build artifacts) that matched
+  `glean/extract/strategies/build/`, so the 16 build-tool strategies (`cargo-tree`,
+  `cobertura`, `compiler-diagnostics`, `coverage`, `github-actions`, `go-mod-graph`,
+  `gradle-output`, `junit-xml`, `make-stats`, `maven-output`, `npm-list`, `pip-list`,
+  `sanitizer`, `test-results`, `test-summary`, `valgrind`) were never tracked even
+  though `VENDOR.json` counted them (205). Their tests/goldens/samples *were*
+  tracked, so the suite failed 17/219 until the strategies were restored. Recovered
+  from `EnvoyExtract/strategies/build/` at the vendor SHA (`81bcb18`) so they match
+  the rest of the vendored tree's goldens. Strategy count is now the recorded 205.
+- **Added a root `VERSION` file (`1.2.1`).** The vendored extract engine resolves
+  the canonical suite version by walking up for a `VERSION` file (`lib/envoy_version.sh`);
+  envoy's lived at the repo root, outside `glean/`, so the subtree split left it
+  behind and `--version` reported `0.0.0+unknown`. Restored at the extraction-point
+  version so `extract/tests/test_interface.sh` passes.
+- Added a `.gitignore` for the standalone repo (runtime `.glean/` store, backups,
+  Python cache). Deliberately omits a bare `build/` rule — that pattern is exactly
+  what dropped the build strategies upstream.
+- Verified green standalone (no sibling Envoy present): extract 219/219 test files,
+  smoke 33/33, transform 8/8, analyze engine suite 0 failures, `glean doctor` ok.
+- Note for future re-syncs: `tools/sync-extract.sh` pointed at an envoy checkout
+  will re-copy `strategies/build/` to disk, but envoy's `build/` gitignore rule
+  means a plain `git add` there still won't track them — fix envoy's `.gitignore`
+  or use `git add -f`. In this repo the files are tracked normally.
+- Files: `VERSION`, `.gitignore`, `extract/strategies/build/*` (17), `README.md`.
+
 ## 2026-07-05 — standalone repo scaffolding: CLAUDE.md + CI workflow
 - Added `CLAUDE.md` (project instructions for the standalone repo: layout, the
   "don't hand-edit vendored trees, re-sync from upstream" rule, doc + testing

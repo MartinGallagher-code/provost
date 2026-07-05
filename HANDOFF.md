@@ -1,6 +1,17 @@
 # Handoff — glean
 
-## Status: Phases 2–4 done; self-contained and ready to extract to its own repo
+## Status: Extracted — glean is now its own repository (Phases 2–4 done, standalone)
+
+> **2026-07-05 — extraction complete.** This repo was split out of
+> `MartinGallagher-code/envoy` via `git subtree split --prefix=glean` (glean
+> history preserved). Two things that lived outside `glean/` in envoy and had to
+> be restored here: the root **`VERSION`** file (the vendored engine walks up for
+> it; absent → `--version` read `0.0.0+unknown`) and **`extract/strategies/build/`**
+> (16 strategies that envoy's `build/` gitignore rule had silently kept untracked,
+> so they never made it into the subtree — restored from `EnvoyExtract` at the
+> vendor SHA `81bcb18`). Full suite green standalone: extract 219/219, smoke 33/33,
+> transform 8/8, analyze 0 failures. Re-syncing from envoy will re-hit that
+> `build/` gitignore rule — see CHANGELOG note.
 
 `glean` is the new single-binary tool proposed in
 [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md)
