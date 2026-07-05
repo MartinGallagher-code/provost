@@ -37,6 +37,11 @@ src_out="$("$GLEAN" source 3 2>&1)"
 check "source #3 resolves to a capture" "from capture" "$src_out"
 check "source #3 shows the 2nd sample's original input (used 3050)" "3050" "$src_out"
 
+# stats: the vendored analyze engine computes summary statistics on a dataset
+stats_out="$("$GLEAN" stats free 2>&1)"
+check "stats produces summary statistics" "Summary stats" "$stats_out"
+check "stats computes a mean over the column" "Mean" "$stats_out"
+
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 

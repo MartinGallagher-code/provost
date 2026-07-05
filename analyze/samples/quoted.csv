@@ -1,0 +1,8 @@
+name,city,note,value
+"Smith, John",New York,simple,100
+"O'Brien",Chicago,"has ""quotes""",200
+Alice,"San Francisco","line one
+line two",300
+Bob,Boston,,400
+"",Denver,"just empty name",500
+Carol,"Portland, OR","comma, in note",600

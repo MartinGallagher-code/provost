@@ -1,5 +1,26 @@
 # glean — Changelog
 
+## 2026-07-05 — stats: vendor the analyze engine, wire `glean stats`
+- Vendored the analyze engine from `EnvoyAnalyze/` into `glean/analyze/` (entry
+  point + `lib/` + `profiles/` + tests + samples) via new
+  `glean/tools/sync-analyze.sh`; it reuses the already-vendored shared libs at
+  `glean/lib/` (same `../lib` mechanism as the extract engine). The big
+  `pipeline/` dir and the `browse`/`dashboard` tools are intentionally NOT
+  vendored — glean only needs the analyze engine.
+- New `glean stats <dataset> [analyze-args...]` runs the vendored engine over a
+  dataset's TSV (default = key findings; pass `--all`, a numbered analysis list,
+  `--format json`, etc.). `doctor` now reports the analyze engine and warns if
+  `gawk` is absent (this box has `mawk`; core analyses still work).
+- `glean stats` verified end-to-end via the smoke test (29 checks; all pass).
+  The vendored analyze engine also carries its own upstream test suite; the
+  `browse`/`dashboard` tests are excluded (those tools aren't vendored). A clean
+  exit-code run of the remaining engine tests was not completed in this
+  environment (several analyze tests hang on a pager/interactive path); to be
+  established separately rather than claimed green here.
+- Files: `glean/analyze/**` (vendored), `glean/tools/sync-analyze.sh`,
+  `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+- **Remaining:** schema reconciliation (union columns vs the `.v2` variant split).
+
 ## 2026-07-05 — Store model Stages B + C: controlled dirs + export/import
 Completes the git-core directive.
 - **Stage B — controlled directories.** `glean control [<dir>]` marks a directory

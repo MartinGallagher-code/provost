@@ -108,6 +108,27 @@ _find_engine () {
     return 1
 }
 
+# Locate the analyze engine (vendored at glean/analyze/, see sync-analyze.sh).
+_find_analyze () {
+    local here script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local candidates=(
+        "${GLEAN_HOME:-}/analyze/envoy-analyze"
+        "$script_dir/analyze/envoy-analyze"       # vendored (canonical)
+    )
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        candidates+=("$here/EnvoyAnalyze/envoy-analyze")
+        here="$(dirname "$here")"
+    done
+    candidates+=("$(command -v envoy-analyze 2>/dev/null || true)")
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
 # ---------------------------------------------------------------------------
 # Tidy melt — reshape one wide `entry<N>.<field>` extract row into one row per
 # record (ported from EnvoyCapture lib/_core.sh `_core_melt_tidy`). Input and
@@ -563,6 +584,20 @@ cmd_source () {
 }
 
 # ---------------------------------------------------------------------------
+# stats — statistics on a dataset (the vendored analyze engine).
+# ---------------------------------------------------------------------------
+cmd_stats () {
+    local name="${1:?usage: glean stats <dataset> [analyze-args...]}"; shift || true
+    local f; f="$(_ds_dir)/$name.tsv"
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    local analyze; analyze="$(_find_analyze)" \
+        || die "analyze engine not found (vendor it: bash glean/tools/sync-analyze.sh)."
+    # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
+    # straight through (e.g. --all, a numbered analysis list, --format json).
+    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 env -u GIT_DIR bash "$analyze" "$f" "$@"
+}
+
+# ---------------------------------------------------------------------------
 # ls / show / triage / doctor
 # ---------------------------------------------------------------------------
 cmd_ls () {
@@ -601,6 +636,13 @@ cmd_doctor () {
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
     fi
+    local analyze
+    if analyze="$(_find_analyze)"; then
+        printf '%s ok%s analyze engine: %s\n' "$C_OK" "$C_RST" "$analyze"
+        command -v gawk >/dev/null 2>&1 || printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "$(awk --version 2>/dev/null | head -1 || echo awk)"
+    else
+        printf '   analyze engine not vendored (run: bash glean/tools/sync-analyze.sh)\n'
+    fi
     printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "${GLEAN_STORE_KIND:-global}"
     [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
     if [[ -f "$(_rowid_file)" ]]; then
@@ -628,6 +670,7 @@ USAGE
     glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
     glean show NAME                               present a dataset (leading #N = row index)
+    glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
     glean triage                                  show low-confidence / unmatched bucket
     glean doctor                                  check engine + store
     glean help
@@ -651,8 +694,8 @@ ENV
     GLEAN_MAX_INPUT       max input bytes (default: 10485760)
     GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
 
-Not yet in this prototype (proposal 0001): controlled directories (Stage B),
-export/import (Stage C), 'stats' (analyze core), schema reconciliation.
+Not yet in this prototype (proposal 0001): schema reconciliation (a differing
+column set currently splits a dataset into a numbered variant, e.g. free.v2).
 See docs/proposals/0001-glean-rename-and-simplification.md.
 EOF
 }
@@ -674,6 +717,7 @@ main () {
         restore)       shift; cmd_restore "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
+        stats)         shift; cmd_stats "$@" ;;
         triage)        shift; cmd_triage "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
         help|-h|--help) cmd_help ;;

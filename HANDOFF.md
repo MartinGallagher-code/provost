@@ -101,13 +101,21 @@ in the global store); `glean uncontrol` releases (data kept).
 `glean import <file> [<dest>]` reconstitutes it elsewhere. Datasets, capture log,
 and per-row `#N → source` provenance all survive the move (verified in smoke).
 
-## Still deferred (not bugs)
+## Analyze — done
 
-- **No schema reconciliation** — a differing header splits to a numbered variant
-  (`free.v2`) rather than union-merging columns (port of EnvoyCapture
-  `_core_dataset_append`).
-- **No `stats`** — vendor `envoy-analyze` under `glean/analyze/` the way the
-  extract engine was vendored, then wire `glean stats <dataset>`.
+`envoy-analyze` is vendored at `glean/analyze/` (via `tools/sync-analyze.sh`),
+reusing the shared libs at `glean/lib/`. `glean stats <dataset> [args]` runs it
+over a dataset's TSV. `browse`/`dashboard`/`pipeline` are intentionally NOT
+vendored, so their tests are excluded from the vendored analyze suite.
+
+## Still deferred (not a bug — a design choice pending)
+
+- **Schema reconciliation.** A differing column set currently splits a dataset
+  into a numbered variant (`free.v2`) rather than union-merging columns. Porting
+  EnvoyCapture's `_core_dataset_append` (union header + blank-fill, with a
+  ~60%-overlap threshold before splitting) would keep same-typed rows — and their
+  `#N` indices — in one table. This is the next change; awaiting the user's call
+  on reconcile-vs-split.
 
 ## Next steps (per proposal phases)
 

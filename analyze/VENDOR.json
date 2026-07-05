@@ -1,0 +1,11 @@
+{
+  "vendored_from": "EnvoyAnalyze",
+  "source_git_sha": "30922f4294a1cfe278f48dd848f8035c1bc9a89d",
+  "source_git_describe": "30922f4",
+  "synced_at": "2026-07-05T17:08:03Z",
+  "runtime_only": false,
+  "engine_components": ["envoy-analyze","lib","profiles","samples","tests"],
+  "shared_libs": 13,
+  "file_count": 92,
+  "note": "Regenerate with: bash glean/tools/sync-analyze.sh. Do not hand-edit; edit upstream in EnvoyAnalyze/ (or repo lib/) and re-sync until the Phase-5 hard cut."
+}
