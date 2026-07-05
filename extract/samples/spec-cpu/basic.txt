@@ -1,0 +1,28 @@
+                           SPEC CPU(r) 2017 Integer Rate Result
+                            Test Sponsor: Example Corp
+                             Tested by: Example Corp
+              Hardware Vendor: Example Corp
+                        System: Example Server X1
+                    # of CPUs: 2
+          Total Cores/Threads: 64/128
+              Base Copies: 128
+              Peak Copies: 128
+                       Compiler: GCC 12.2.0
+                       Firmware: BIOS v2.1
+
+                                      Estimated                       Estimated
+                Base     Base        Base        Peak     Peak        Peak
+Benchmarks      Copies  Run Time     Rate        Copies  Run Time     Rate
+-------------- ------  ---------  ---------     ------  ---------  ---------
+500.perlbench_r   128      234       678           128      212       752
+502.gcc_r         128      189       845           128      178       896
+505.mcf_r         128      267       488           128      245       532
+520.omnetpp_r     128      378       445           128      356       472
+523.xalancbmk_r   128      156       867           128      143       945
+525.x264_r        128       89      2512           128       82      2731
+531.deepsjeng_r   128      198       740           128      189       775
+541.leela_r       128      312       678           128      298       710
+548.exchange2_r   128       98      3421           128       91      3678
+557.xz_r          128      345       452           128      323       483
+ Est. SPECrate2017_int_base             867
+ Est. SPECrate2017_int_peak                                             923

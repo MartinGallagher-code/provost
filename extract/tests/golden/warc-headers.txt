@@ -1,0 +1,6 @@
+WARC-Version 1.0
+WARC-Type resource
+WARC-Date 2024-01-15T10:30:00Z
+WARC-Record-ID <urn:uuid:12345>
+Content-Length 500
+Content-Type text/plain

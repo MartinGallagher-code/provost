@@ -1,0 +1,6 @@
+CONTAINER ID   IMAGE                    COMMAND                  CREATED        STATUS                  PORTS                    NAMES
+a1b2c3d4e5f6   nginx:1.25-alpine        "/docker-entrypoint.…"   2 hours ago    Up 2 hours              0.0.0.0:80->80/tcp       web-frontend
+b2c3d4e5f6a7   postgres:16              "docker-entrypoint.s…"   3 hours ago    Up 3 hours              5432/tcp                 db-primary
+c3d4e5f6a7b8   redis:7.2                "docker-entrypoint.s…"   3 hours ago    Up 3 hours              6379/tcp                 cache-redis
+d4e5f6a7b8c9   app:latest               "python -m gunicorn …"   1 hour ago     Up 1 hour               0.0.0.0:8000->8000/tcp   api-server
+e5f6a7b8c9d0   grafana/grafana:10.2.3   "/run.sh"                5 hours ago    Up 5 hours              0.0.0.0:3000->3000/tcp   monitoring

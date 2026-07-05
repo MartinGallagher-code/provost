@@ -1,0 +1,27 @@
+{
+  "id": null,
+  "uid": "abc123def",
+  "title": "System Monitoring",
+  "tags": ["production", "monitoring"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "editable": true,
+  "panels": [
+    {
+      "id": 1,
+      "title": "CPU Usage",
+      "type": "timeseries",
+      "datasource": "Prometheus"
+    },
+    {
+      "id": 2,
+      "title": "Memory Usage",
+      "type": "gauge",
+      "datasource": "Prometheus"
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "refresh": "5s"
+}

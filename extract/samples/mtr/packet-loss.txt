@@ -1,0 +1,7 @@
+Start: 2024-06-01T08:00:00+0000
+HOST: monitor-01             Loss%   Snt   Last   Avg  Best  Wrst StDev
+  1.|-- router.local           0.0%    20    0.4   0.5   0.3   1.0   0.2
+  2.|-- edge.isp.com          10.0%    20    8.5   9.2   7.1  15.3   2.5
+  3.|-- ???                  100.0    20    0.0   0.0   0.0   0.0   0.0
+  4.|-- transit.peer.net      25.0%    20   45.2  50.1  42.5  95.3  15.2
+  5.|-- dest.example.org       5.0%    20   48.3  52.8  45.1  99.2  16.8

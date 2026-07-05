@@ -1,0 +1,27 @@
+$ flux jobs -a
+JOBID            STATE    NAME             USER     NTASKS  NNODES  T_SUBMIT                T_RUN               RUNTIME
+f:abcdef12       RUNNING  weather_sim      jdoe     64      4       2026-03-18T10:00:00     2026-03-18T10:01:30 01:23:45
+f:abcdef13       COMPLETED climate_model   asmith   128     8       2026-03-18T08:00:00     2026-03-18T08:02:00 03:45:12
+f:abcdef14       PENDING  ocean_dynamics   bwong    256     16      2026-03-18T11:00:00     -                   -
+
+$ flux resource list
+STATE    NNODES NCORES NGPUS NODELIST
+free     12     384    48    node[001-012]
+allocated 8     256    32    node[013-020]
+down     2      64     8     node[021-022]
+
+$ flux job info f:abcdef12
+id=f:abcdef12
+name=weather_sim
+userid=1001
+urgency=16
+state=RUNNING
+ntasks=64
+nnodes=4
+ncores=64
+ngpus=8
+queue=batch
+t_submit=1710756000.0
+t_run=1710756090.0
+duration=14400
+expiration=1710770400.0

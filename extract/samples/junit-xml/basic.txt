@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="MyTests" tests="3" failures="1" errors="0" time="1.234">
+  <testcase classname="com.example.MathTest" name="testAdd" time="0.123"/>
+  <testcase classname="com.example.MathTest" name="testSubtract" time="0.456">
+    <failure message="Expected 5 but was 4">AssertionError</failure>
+  </testcase>
+  <testcase classname="com.example.StringTest" name="testConcat" time="0.655"/>
+</testsuite>

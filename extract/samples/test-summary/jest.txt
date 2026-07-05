@@ -1,0 +1,8 @@
+PASS src/components/Button.test.js
+PASS src/utils/helpers.test.js
+FAIL src/services/api.test.js
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       3 failed, 12 passed, 15 total
+Snapshots:   0 total
+Time:        4.567 s

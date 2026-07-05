@@ -1,0 +1,16 @@
+entry1.PID 123
+entry1.USER root
+entry1.CPU 2.5
+entry1.MEM 1.2
+entry1.COMMAND systemd
+entry2.PID 456
+entry2.USER www
+entry2.CPU 15.3
+entry2.MEM 4.5
+entry2.COMMAND apache2
+entry3.PID 789
+entry3.USER postgres
+entry3.CPU 8.1
+entry3.MEM 12.0
+entry3.COMMAND postgres
+total_entries 3

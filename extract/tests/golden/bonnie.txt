@@ -1,0 +1,9 @@
+version 2.00a
+seq_output_per_chr_kps 456
+seq_output_block_kps 234567
+seq_rewrite_block_kps 123456
+seq_input_per_chr_kps 567
+seq_input_block_kps 345678
+random_seeks_per_sec 8765
+seq_create_per_sec 12345
+random_create_per_sec 9876

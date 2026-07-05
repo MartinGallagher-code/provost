@@ -1,0 +1,9 @@
+Name Alice
+Score 95
+Grade A
+Name Bob
+Score 87
+Grade B
+Name Charlie
+Score 72
+Grade C

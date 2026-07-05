@@ -1,0 +1,10 @@
+GOPATH=/home/user/go
+GOROOT=/usr/local/go
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk
+PYTHONPATH=/opt/app/lib
+CARGO_HOME=/home/user/.cargo
+RUSTUP_HOME=/home/user/.rustup
+NPM_CONFIG_PREFIX=/home/user/.npm-global
+PATH=/usr/local/go/bin:/home/user/go/bin:/usr/local/bin:/usr/bin:/bin
+XDG_CONFIG_HOME=/home/user/.config
+XDG_DATA_HOME=/home/user/.local/share

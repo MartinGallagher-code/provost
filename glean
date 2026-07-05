@@ -1,0 +1,762 @@
+#!/usr/bin/env bash
+#
+# glean — turn command output into data.
+#
+# PROTOTYPE (proposal 0001). Implements the product's one path — capture a
+# command's output, auto-detect its format, present it as a tidy, one-row-per-
+# record dataset — on a git-backed store:
+#
+#     glean run <cmd>        execute a binary, capture its output as a commit
+#     cmd | glean            inject stdin the same way
+#     glean source <N>       show the original source data behind dataset row #N
+#     glean log / restore    list captures / bring a capture's commit back up
+#     glean ls / show        list datasets / present one as a tidy table
+#     glean stats            (pending) statistics on a dataset
+#
+# The extract engine (all strategies) is the vendored copy at glean/extract/.
+#
+# STORE MODEL (Stage A): the workspace is a git repo. By default captures go to
+# a GLOBAL store (~/.glean, override with GLEAN_HOME) so you can capture from any
+# directory. Every dataset row carries a globally-unique visible index (#N);
+# `glean source N` maps it back to the exact captured input that produced it.
+# The store may be shared by multiple users (point GLEAN_HOME at a shared,
+# group-writable dir); a mkdir-based lock serialises concurrent writers.
+#
+set -euo pipefail
+
+GLEAN_VERSION="0.7.0-proto"
+
+# ---------------------------------------------------------------------------
+# Config (env-overridable; GLEAN_* is the post-rename namespace)
+# ---------------------------------------------------------------------------
+# Workspace resolution:
+#   1. $GLEAN_WORKSPACE explicit override (used by tests / one-off stores)
+#   2. else the global store: $GLEAN_HOME, or ~/.glean
+# (Stage B will insert "a controlled directory found by walking up from CWD"
+#  between these two.)
+_default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
+
+# The real directory of this script, following symlinks — so glean finds its
+# vendored extract/analyze/transform trees even when invoked via a symlink on
+# PATH (e.g. after install.sh). Computed once; used by all path resolvers.
+_glean_root () {
+    local src="${BASH_SOURCE[0]}" d
+    if command -v readlink >/dev/null 2>&1; then
+        src="$(readlink -f "$src" 2>/dev/null || echo "$src")"
+    fi
+    while [[ -L "$src" ]]; do
+        d="$(cd -P "$(dirname "$src")" && pwd)"; src="$(readlink "$src")"
+        [[ "$src" != /* ]] && src="$d/$src"
+    done
+    cd -P "$(dirname "$src")" && pwd
+}
+GLEAN_ROOT="$(_glean_root)"
+
+# A controlled directory holds its instance at <dir>/.glean with a CONTROLLED
+# marker (which the global store lacks). Walk up from $start to find one.
+_find_controlling_dir () {
+    local here="$1"
+    here="$(cd "$here" 2>/dev/null && pwd)" || return 1
+    while [[ -n "$here" && "$here" != "/" ]]; do
+        [[ -f "$here/.glean/CONTROLLED" ]] && { printf '%s\n' "$here"; return 0; }
+        here="$(dirname "$here")"
+    done
+    [[ -f "/.glean/CONTROLLED" ]] && { printf '/\n'; return 0; }
+    return 1
+}
+
+# Resolve the active store:
+#   1. $GLEAN_WORKSPACE explicit override
+#   2. a controlled directory found by walking up from CWD
+#   3. the global store ($GLEAN_HOME / ~/.glean)
+GLEAN_WORKSPACE_EXPLICIT="${GLEAN_WORKSPACE:+1}"
+if [[ -n "$GLEAN_WORKSPACE_EXPLICIT" ]]; then
+    GLEAN_STORE_KIND="explicit override"
+else
+    _ctl="$(_find_controlling_dir "$PWD" 2>/dev/null || true)"
+    if [[ -n "$_ctl" ]]; then
+        GLEAN_WORKSPACE="$_ctl/.glean"; GLEAN_STORE_KIND="controlled: $_ctl"
+    else
+        GLEAN_WORKSPACE="$(_default_home)"; GLEAN_STORE_KIND="global"
+    fi
+    unset _ctl
+fi
+GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
+GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
+GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
+GLEAN_LOCK_TIMEOUT="${GLEAN_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
+GLEAN_RECONCILE_OVERLAP="${GLEAN_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
+
+# ---------------------------------------------------------------------------
+# Tiny UI helpers
+# ---------------------------------------------------------------------------
+_is_tty () { [[ -t 2 ]]; }
+if _is_tty; then C_OK=$'\033[32m'; C_DIM=$'\033[2m'; C_ERR=$'\033[31m'; C_RST=$'\033[0m'
+else C_OK=""; C_DIM=""; C_ERR=""; C_RST=""; fi
+info () { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s\n' "$*" >&2; }
+ok ()   { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
+die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
+
+# ---------------------------------------------------------------------------
+# Locate the extract engine.
+#   Phase 2: the engine is vendored at glean/extract/ (see tools/sync-extract.sh)
+#   with its shared libs at glean/lib/ (the engine's ../lib). This is the
+#   canonical copy. The sibling-EnvoyExtract walk-up remains only as a
+#   transition fallback until the Phase-5 hard cut removes EnvoyExtract/.
+# ---------------------------------------------------------------------------
+_find_engine () {
+    local here script_dir="$GLEAN_ROOT"
+    local candidates=(
+        "${GLEAN_HOME:-}/extract/envoy-extract"
+        "$script_dir/extract/envoy-extract"       # vendored (canonical)
+    )
+    # Walk up looking for a sibling EnvoyExtract/ (transition fallback).
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        candidates+=("$here/EnvoyExtract/envoy-extract")
+        here="$(dirname "$here")"
+    done
+    candidates+=("$(command -v envoy-extract 2>/dev/null || true)")
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
+# Locate the analyze engine (vendored at glean/analyze/, see sync-analyze.sh).
+_find_analyze () {
+    local here script_dir="$GLEAN_ROOT"
+    local candidates=(
+        "${GLEAN_HOME:-}/analyze/envoy-analyze"
+        "$script_dir/analyze/envoy-analyze"       # vendored (canonical)
+    )
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        candidates+=("$here/EnvoyAnalyze/envoy-analyze")
+        here="$(dirname "$here")"
+    done
+    candidates+=("$(command -v envoy-analyze 2>/dev/null || true)")
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
+    done
+    return 1
+}
+
+# ---------------------------------------------------------------------------
+# Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
+# (`_core_union_header`, `_core_align_rows`) are IMPORTED from EnvoyCapture's
+# lib/_core.sh, vendored to glean/transform/melt.sh by tools/sync-melt.sh (not
+# re-implemented here). Source it now; the sibling-EnvoyCapture fallback keeps
+# glean working before a sync until the Phase-5 hard cut.
+# ---------------------------------------------------------------------------
+_source_transform () {
+    local here script_dir="$GLEAN_ROOT"
+    local candidates=(
+        "${GLEAN_HOME:-}/transform/melt.sh"
+        "$script_dir/transform/melt.sh"           # vendored (canonical)
+    )
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -r "$c" ]] && { source "$c"; return 0; }
+    done
+    # Fallback: source the transform functions straight from a sibling EnvoyCapture.
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        if [[ -r "$here/EnvoyCapture/lib/_core.sh" ]]; then
+            source <(awk '/^# Union of two TSV header lines/{f=1} /^# Append a TSV row to a dataset/{f=0} f' \
+                     "$here/EnvoyCapture/lib/_core.sh")
+            return 0
+        fi
+        here="$(dirname "$here")"
+    done
+    die "transform module not found (run: bash glean/tools/sync-melt.sh)."
+}
+_source_transform
+
+_ds_dir ()  { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
+_cap_dir () { printf '%s/captures\n' "$GLEAN_WORKSPACE"; }
+_prov_file ()  { printf '%s/provenance.tsv\n' "$GLEAN_WORKSPACE"; }
+_rowid_file () { printf '%s/.next_row_id\n' "$GLEAN_WORKSPACE"; }
+
+# git wrapper — pinned identity + no signing, so commits work in any environment.
+_git () { git -C "$GLEAN_WORKSPACE" -c user.name=glean -c user.email=glean@localhost -c commit.gpgsign=false "$@"; }
+
+# --- store lock (a shared GLEAN_HOME may have concurrent writers) ----------
+# mkdir is atomic across processes/users; spin up to GLEAN_LOCK_TIMEOUT seconds.
+_lock () {
+    local lock="$GLEAN_WORKSPACE/.lock" waited=0 pid
+    while ! mkdir "$lock" 2>/dev/null; do
+        pid="$(cat "$lock/pid" 2>/dev/null || echo)"
+        if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
+            rm -rf "$lock" 2>/dev/null; continue   # break a stale lock
+        fi
+        waited=$((waited + 1))
+        [[ $waited -ge $((GLEAN_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${GLEAN_LOCK_TIMEOUT}s): $lock"
+        sleep 0.2
+    done
+    echo "$$" > "$lock/pid"
+}
+_unlock () { rm -rf "$GLEAN_WORKSPACE/.lock" 2>/dev/null || true; }
+
+# The workspace is a git repo: every capture is one commit (tagged capture-NNNN),
+# so a run can be brought back up later with `glean restore`. Initialization is
+# serialised with double-checked locking so concurrent first-writers to a shared
+# store don't race on `git init`.
+_ensure_workspace () {
+    mkdir -p "$(_ds_dir)" "$(_cap_dir)"
+    if [[ ! -d "$GLEAN_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
+        _lock
+        if [[ ! -d "$GLEAN_WORKSPACE/.git" ]]; then
+            _git init -q
+            printf 'glean workspace (store model %s)\n' "$GLEAN_VERSION" > "$GLEAN_WORKSPACE/.gleanrc"
+            _git add -A >/dev/null 2>&1 || true
+            _git commit -q -m "glean: init workspace" >/dev/null 2>&1 || true
+            _git branch -M main >/dev/null 2>&1 || true
+        fi
+        [[ -f "$(_rowid_file)" ]] || echo 1 > "$(_rowid_file)"
+        _unlock
+    fi
+}
+
+# Zero-padded next capture id from the count of existing capture dirs.
+_next_capture_id () {
+    local dir n; dir="$(_cap_dir)"
+    n=$(find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    printf 'c%04d\n' "$((n + 1))"
+}
+
+# Column overlap (Jaccard, as an integer percent) between two tab-separated
+# headers passed as the two lines of stdin.
+_col_overlap () {
+    awk -F'\t' '
+        NR==1 { for(i=1;i<=NF;i++){a[$i]=1}; na=NF }
+        NR==2 { for(i=1;i<=NF;i++){ b[$i]=1; if($i in a) inter++ } }
+        END { for(k in a) u[k]=1; for(k in b) u[k]=1; nu=0; for(k in u) nu++;
+              if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
+}
+
+# (Header union + row alignment come from the imported transform module:
+# _core_union_header "$old" "$new"  and  _core_align_rows "$src" "$tgt" < rows.)
+
+# Append tidy TSV (header+rows) to a dataset file. Store rule:
+#   new dataset            → write header + rows;
+#   header matches         → append data rows;
+#   header differs, overlap ≥ GLEAN_RECONCILE_OVERLAP% → RECONCILE: union the
+#                            columns, blank-fill both sides, rewrite in place;
+#   overlap below threshold → split into a numbered variant (.v2, .v3, …).
+# Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
+_store_append () {
+    local name="$1" tsv="$2" dir; dir="$(_ds_dir)"
+    local base="$dir/$name.tsv" target="$name" file="$dir/$name.tsv"
+    local new_header; new_header="$(printf '%s\n' "$tsv" | head -1)"
+
+    if [[ ! -f "$base" ]]; then
+        printf '%s\n' "$tsv" > "$base"
+    else
+        local old_header; old_header="$(head -1 "$base")"
+        if [[ "$old_header" == "$new_header" ]]; then
+            printf '%s\n' "$tsv" | tail -n +2 >> "$base"
+        else
+            local overlap; overlap="$(printf '%s\n%s\n' "$old_header" "$new_header" | _col_overlap)"
+            if [[ "$overlap" -ge "$GLEAN_RECONCILE_OVERLAP" ]]; then
+                # Reconcile into the base dataset: union header, realign both sides
+                # (imported transform helpers).
+                local unified tmp; unified="$(_core_union_header "$old_header" "$new_header")"
+                tmp="$(mktemp "$dir/.recon.XXXXXX")"
+                {
+                    printf '%s\n' "$unified"
+                    tail -n +2 "$base"                | _core_align_rows "$old_header" "$unified"
+                    printf '%s\n' "$tsv" | tail -n +2 | _core_align_rows "$new_header" "$unified"
+                } > "$tmp" && mv "$tmp" "$base" || { rm -f "$tmp"; return 1; }
+            else
+                # Genuinely different shape → variant file.
+                local v=2
+                while [[ -f "$dir/$name.v$v.tsv" ]] && \
+                      [[ "$(head -1 "$dir/$name.v$v.tsv")" != "$new_header" ]]; do
+                    v=$((v+1))
+                done
+                target="$name.v$v"; file="$dir/$target.tsv"
+                if [[ -f "$file" ]]; then printf '%s\n' "$tsv" | tail -n +2 >> "$file"
+                else printf '%s\n' "$tsv" > "$file"; fi
+            fi
+        fi
+    fi
+    local rows; rows=$(( $(wc -l < "$file") - 1 )); [[ $rows -lt 0 ]] && rows=0
+    printf '%s\t%s\n' "$target" "$rows"
+}
+
+# Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
+#   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
+#   $5 rc ("" for inject)
+# Extracts → classifies → melts → assigns a global #N to each row → stores →
+# records provenance (#N → capture) → commits, all under the store lock.
+_ingest () {
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
+    local engine; engine="$(_find_engine)" \
+        || die "extract engine not found. Set GLEAN_HOME or keep EnvoyExtract/ reachable."
+
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" RETURN
+    local metaf="$tmp/meta.txt" wide meta strategy conf
+    wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+            --emit-meta -f tsv --max-strategies 1 "$in" 2>"$metaf")" || true
+    meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
+    strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
+    conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
+    [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+
+    # Build the content to file (header + data rows), pre-#-index, for both the
+    # matched and the held-back (unsorted) paths.
+    local content dsname reason=""
+    if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
+    elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
+    if [[ -n "$reason" ]]; then
+        dsname="unsorted"; strategy="${strategy:-none}"
+        content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
+    else
+        dsname="$strategy"
+        content="$(_core_melt_tidy "$wide")"
+    fi
+
+    # --- critical section: assign #N, append, provenance, commit -----------
+    _lock
+    # shellcheck disable=SC2064
+    trap "_unlock; rm -rf '$tmp'" RETURN
+
+    local startid nrows fields id capd ts final
+    startid="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"
+    nrows=$(( $(printf '%s\n' "$content" | grep -c .) - 1 )); [[ $nrows -lt 0 ]] && nrows=0
+
+    # Prepend a visible, globally-unique '#' index to the header + each row.
+    local idcontent
+    idcontent="$(printf '%s\n' "$content" | awk -F'\t' -v OFS='\t' -v s="$startid" '
+        NR==1 { print "#", $0; next } { print (s + NR - 2), $0 }')"
+    fields=$(printf '%s\n' "$idcontent" | head -1 | awk -F'\t' '{print NF}')
+
+    local result; result="$(_store_append "$dsname" "$idcontent")"
+    final="${result%%$'\t'*}"
+
+    id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
+    ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    cp "$in" "$capd/output.txt"
+    {
+        printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
+        printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$cmd"
+        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$strategy"
+        printf 'confidence\t%s\n' "$conf";  printf 'dataset\t%s\n' "$final"
+        printf 'row_ids\t%s\n' "$([[ $nrows -gt 0 ]] && echo "$startid-$((startid+nrows-1))" || echo none)"
+    } > "$capd/meta.tsv"
+
+    # Provenance: one line per row  (#N \t dataset \t capture)
+    [[ -f "$(_prov_file)" ]] || printf '#\tdataset\tcapture\n' > "$(_prov_file)"
+    local i
+    for (( i=0; i<nrows; i++ )); do
+        printf '%s\t%s\t%s\n' "$((startid+i))" "$final" "$id" >> "$(_prov_file)"
+    done
+    echo "$((startid + nrows))" > "$(_rowid_file)"
+
+    # In a controlled directory, snapshot the directory's contents as commit
+    # context so the capture is tied to what the tree looked like at the time.
+    if [[ "${GLEAN_STORE_KIND:-}" == controlled:* ]]; then
+        # Subshell so a set -e abort inside can't escape past the guard.
+        ( _snapshot_context "$(dirname "$GLEAN_WORKSPACE")" "$GLEAN_WORKSPACE" ) >/dev/null 2>&1 || true
+    fi
+    _git add -A >/dev/null 2>&1 || true
+    local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
+    [[ -n "$cmd" ]] && msg="$msg [$cmd]"
+    _git commit -q -m "$msg" >/dev/null 2>&1 || true
+    _git tag -f "capture-$id" >/dev/null 2>&1 || true
+    _unlock
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" RETURN
+
+    local idrange="#${startid}..$((startid+nrows-1))"; [[ $nrows -eq 0 ]] && idrange="(no rows)"
+    if [[ -n "$reason" ]]; then
+        info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
+    else
+        ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf) — $((fields-1)) field(s)."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Default verb: inject (pipe or file)
+# ---------------------------------------------------------------------------
+cmd_inject () {
+    local file="" threshold="$GLEAN_MIN_CONFIDENCE"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--silent) GLEAN_QUIET=1; shift ;;
+            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            -h|--help) cmd_help; return 0 ;;
+            -*) die "unknown option: $1" ;;
+            *) file="$1"; shift ;;
+        esac
+    done
+
+    _ensure_workspace
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" EXIT INT TERM
+    local in="$tmp/in.txt"
+    if [[ -n "$file" ]]; then
+        [[ -f "$file" ]] || die "no such file: $file"
+        tr -d '\r' < "$file" > "$in"
+    else
+        head -c "$((GLEAN_MAX_INPUT + 1))" | tr -d '\r' > "$in"
+    fi
+    [[ -s "$in" ]] || die "no input to glean (empty)."
+    [[ "$(wc -c < "$in")" -le "$GLEAN_MAX_INPUT" ]] \
+        || die "input too large (max $GLEAN_MAX_INPUT bytes; raise GLEAN_MAX_INPUT)."
+
+    _ingest "$in" "$threshold" "inject" "" ""
+}
+
+# ---------------------------------------------------------------------------
+# run — execute a command, capture its output as a commit, and ingest it.
+# ---------------------------------------------------------------------------
+cmd_run () {
+    local threshold="$GLEAN_MIN_CONFIDENCE"
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--silent) GLEAN_QUIET=1; shift ;;
+            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            -h|--help) cmd_help; return 0 ;;
+            --) shift; break ;;
+            -*) die "unknown option: $1" ;;
+            *) break ;;
+        esac
+    done
+    [[ $# -gt 0 ]] || die "usage: glean run [--] <command> [args...]"
+
+    _ensure_workspace
+    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmp'" EXIT INT TERM
+    local in="$tmp/in.txt" rc=0
+    # Capture combined stdout+stderr (the thing you'd otherwise eyeball).
+    "$@" > "$in" 2>&1 || rc=$?
+    tr -d '\r' < "$in" > "$in.clean" && mv "$in.clean" "$in"
+    local cmd="$*"
+    [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
+    _ingest "$in" "$threshold" "run" "$cmd" "$rc"
+    return "$rc"
+}
+
+# ---------------------------------------------------------------------------
+# log / restore — the git core: list captures, bring one back up.
+# ---------------------------------------------------------------------------
+cmd_log () {
+    _ensure_workspace
+    shopt -s nullglob
+    local d id ts src strat ds rc any=0
+    printf '%-6s %-20s %-7s %-14s %-12s %s\n' "ID" "WHEN" "SOURCE" "STRATEGY" "DATASET" "COMMAND" >&2
+    for d in $(printf '%s\n' "$(_cap_dir)"/*/ | sort); do
+        [[ -f "$d/meta.tsv" ]] || continue
+        any=1
+        id=$(awk -F'\t' '$1=="id"{print $2}' "$d/meta.tsv")
+        ts=$(awk -F'\t' '$1=="ts"{print $2}' "$d/meta.tsv")
+        src=$(awk -F'\t' '$1=="source"{print $2}' "$d/meta.tsv")
+        strat=$(awk -F'\t' '$1=="strategy"{print $2}' "$d/meta.tsv")
+        ds=$(awk -F'\t' '$1=="dataset"{print $2}' "$d/meta.tsv")
+        local cmd; cmd=$(awk -F'\t' '$1=="command"{print $2}' "$d/meta.tsv")
+        printf '%-6s %-20s %-7s %-14s %-12s %s\n' "$id" "$ts" "$src" "$strat" "$ds" "$cmd"
+    done
+    [[ $any -eq 1 ]] || info "no captures yet — run 'glean run <cmd>' or pipe into 'glean'."
+}
+
+cmd_restore () {
+    _ensure_workspace
+    local target="${1:?usage: glean restore <capture-id|latest>}"
+    if [[ "$target" == "latest" ]]; then
+        _git checkout -q main 2>/dev/null \
+            && ok "restored workspace to latest (main)." \
+            || die "could not return to latest."
+        return 0
+    fi
+    [[ "$target" == capture-* ]] || target="capture-$target"
+    _git rev-parse -q --verify "refs/tags/$target" >/dev/null 2>&1 \
+        || die "no such capture: ${target#capture-} (see 'glean log')."
+    # Bring that capture's committed tree back up (detached).
+    _git checkout -q "$target" 2>/dev/null \
+        || die "checkout failed for $target."
+    ok "brought up ${target#capture-} (detached). Return with: glean restore latest"
+    local capd; capd="$(_cap_dir)/${target#capture-}"
+    [[ -f "$capd/meta.tsv" ]] && { echo; sed 's/\t/: /' "$capd/meta.tsv"; }
+}
+
+# ---------------------------------------------------------------------------
+# control / uncontrol / instances — a directory as its own capture instance.
+# ---------------------------------------------------------------------------
+_registry () { printf '%s/instances.tsv\n' "$(_default_home)"; }
+
+# Snapshot the controlled directory's contents as commit context: a manifest of
+# path/size/mtime/sha for each file (excluding the .glean instance and .git).
+_snapshot_context () {
+    local dir="$1" ws="$2" mani="$ws/context/manifest.tsv" f sz mt sha
+    mkdir -p "$ws/context"
+    printf 'path\tsize\tmtime\tsha1\n' > "$mani"
+    while IFS= read -r f; do
+        sz=$(stat -c '%s' "$f" 2>/dev/null || echo 0)
+        mt=$(stat -c '%Y' "$f" 2>/dev/null || echo 0)
+        if [[ "$sz" -le 1048576 ]] && command -v sha1sum >/dev/null 2>&1; then
+            sha=$(sha1sum "$f" 2>/dev/null | cut -d' ' -f1)
+        else sha="(skipped)"; fi
+        printf '%s\t%s\t%s\t%s\n' "${f#"$dir"/}" "$sz" "$mt" "$sha" >> "$mani"
+    done < <(find "$dir" -type f -not -path '*/.glean/*' -not -path '*/.git/*' 2>/dev/null | sort)
+    local n; n=$(( $(wc -l < "$mani") - 1 ))
+    printf '%s\n' "$n"
+}
+
+cmd_control () {
+    local dir="${1:-$PWD}"
+    dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
+    local ws="$dir/.glean"
+    if [[ -f "$ws/CONTROLLED" ]]; then info "already controlled: $dir"; return 0; fi
+    # Point this invocation's store at the new instance and initialise it.
+    GLEAN_WORKSPACE="$ws"; GLEAN_STORE_KIND="controlled: $dir"; GLEAN_WORKSPACE_EXPLICIT=1
+    _ensure_workspace
+    printf '%s\n' "$dir" > "$ws/CONTROLLED"
+    local n; n="$(_snapshot_context "$dir" "$ws")"
+    _lock
+    _git add -A >/dev/null 2>&1 || true
+    _git commit -q -m "glean: control $dir (context: $n file(s))" >/dev/null 2>&1 || true
+    _unlock
+    # Register in the global store so `glean instances` (run anywhere) sees it.
+    mkdir -p "$(_default_home)"
+    [[ -f "$(_registry)" ]] || printf 'directory\tcontrolled_at\n' > "$(_registry)"
+    grep -qxF "$dir	$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(_registry)" 2>/dev/null || \
+        printf '%s\t%s\n' "$dir" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$(_registry)"
+    ok "controlling '$dir' — captures run here now route to $ws (context: $n file(s))."
+}
+
+cmd_uncontrol () {
+    local dir="${1:-$PWD}"
+    dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
+    [[ -f "$dir/.glean/CONTROLLED" ]] || die "not a controlled directory: $dir"
+    rm -f "$dir/.glean/CONTROLLED"
+    if [[ -f "$(_registry)" ]]; then
+        grep -v "^$dir	" "$(_registry)" > "$(_registry).tmp" 2>/dev/null && mv "$(_registry).tmp" "$(_registry)" || true
+    fi
+    ok "released '$dir' (its .glean data is kept; captures here revert to the global store)."
+}
+
+cmd_instances () {
+    local reg; reg="$(_registry)"
+    [[ -f "$reg" ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    local n; n=$(( $(wc -l < "$reg") - 1 )); [[ $n -lt 0 ]] && n=0
+    [[ $n -gt 0 ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    printf '%-40s %-20s %s\n' "DIRECTORY" "CONTROLLED_AT" "ACTIVE" >&2
+    local d t
+    while IFS=$'\t' read -r d t; do
+        [[ "$d" == "directory" ]] && continue
+        printf '%-40s %-20s %s\n' "$d" "$t" "$([[ -f "$d/.glean/CONTROLLED" ]] && echo yes || echo released)"
+    done < "$reg"
+}
+
+# ---------------------------------------------------------------------------
+# export / import — a portable bundle of the whole store (datasets + commits).
+# ---------------------------------------------------------------------------
+cmd_export () {
+    _ensure_workspace
+    local out="${1:-}"
+    if [[ -z "$out" ]]; then out="$PWD/glean-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
+    _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
+    _lock
+    local rc=0
+    _git bundle create "$out" --all >/dev/null 2>&1 || rc=$?
+    _unlock
+    [[ $rc -eq 0 && -f "$out" ]] || die "export failed."
+    local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
+    ok "exported store → $out ($sz bytes). Import elsewhere with: glean import $out <dest>"
+}
+
+cmd_import () {
+    local file="${1:?usage: glean import <file.bundle> [<dest-dir>]}"
+    [[ -f "$file" ]] || die "no such export file: $file"
+    local dest="${2:-}"
+    [[ -z "$dest" ]] && dest="$PWD/glean-import-$(basename "$file" .bundle)"
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid glean export bundle: $file"
+    git clone -q "$file" "$dest" >/dev/null 2>&1 || die "import (clone) failed."
+    git -C "$dest" checkout -q main >/dev/null 2>&1 || git -C "$dest" checkout -q master >/dev/null 2>&1 || true
+    local nds ncap
+    nds=$(find "$dest/datasets" -name '*.tsv' 2>/dev/null | wc -l | tr -d ' ')
+    ncap=$(find "$dest/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    ok "imported → $dest ($nds dataset(s), $ncap capture(s))."
+    info "browse it with: GLEAN_WORKSPACE='$dest' glean ls   (or show/log/source/restore)"
+}
+
+# ---------------------------------------------------------------------------
+# source — given a dataset row's #N index, show the original captured input.
+# ---------------------------------------------------------------------------
+cmd_source () {
+    _ensure_workspace
+    local n="${1:?usage: glean source <#N>}"
+    n="${n#\#}"                                   # tolerate a leading '#'
+    [[ "$n" =~ ^[0-9]+$ ]] || die "row index must be a number (got '$n')."
+    local prov; prov="$(_prov_file)"
+    [[ -f "$prov" ]] || die "no provenance yet — capture something first."
+    local line; line="$(awk -F'\t' -v n="$n" '$1==n {print; exit}' "$prov")"
+    [[ -n "$line" ]] || die "no row #$n (see 'glean ls' / 'glean show <dataset>')."
+    local ds cap; ds="$(printf '%s' "$line" | cut -f2)"; cap="$(printf '%s' "$line" | cut -f3)"
+    local capd; capd="$(_cap_dir)/$cap"
+
+    info "row #$n — dataset '$ds', from capture $cap"
+    if [[ -f "$capd/meta.tsv" ]]; then
+        echo; sed 's/\t/: /' "$capd/meta.tsv"
+    fi
+    if [[ -f "$capd/output.txt" ]]; then
+        echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$cap" "$C_RST"
+        cat "$capd/output.txt"
+    else
+        die "capture $cap has no stored output (workspace may be detached — try 'glean restore latest')."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# stats — statistics on a dataset (the vendored analyze engine).
+# ---------------------------------------------------------------------------
+cmd_stats () {
+    local name="${1:?usage: glean stats <dataset> [analyze-args...]}"; shift || true
+    local f; f="$(_ds_dir)/$name.tsv"
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    local analyze; analyze="$(_find_analyze)" \
+        || die "analyze engine not found (vendor it: bash glean/tools/sync-analyze.sh)."
+    # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
+    # straight through (e.g. --all, a numbered analysis list, --format json).
+    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 env -u GIT_DIR bash "$analyze" "$f" "$@"
+}
+
+# ---------------------------------------------------------------------------
+# ls / show / triage / doctor
+# ---------------------------------------------------------------------------
+cmd_ls () {
+    local dir; dir="$(_ds_dir)"
+    [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'glean'."; return 0; }
+    shopt -s nullglob
+    local f name rows any=0
+    printf '%-24s %8s\n' "DATASET" "ROWS" >&2
+    for f in "$dir"/*.tsv; do
+        any=1; name="$(basename "$f" .tsv)"
+        rows=$(( $(wc -l < "$f") - 1 )); [[ $rows -lt 0 ]] && rows=0
+        printf '%-24s %8d\n' "$name" "$rows"
+    done
+    [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'glean'."
+}
+
+cmd_show () {
+    local name="${1:?usage: glean show NAME}"
+    local f; f="$(_ds_dir)/$name.tsv"
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    if command -v column >/dev/null 2>&1; then column -t -s $'\t' "$f"
+    else cat "$f"; fi
+}
+
+cmd_triage () {
+    local f; f="$(_ds_dir)/unsorted.tsv"
+    [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
+    info "unsorted rows (low-confidence / no-match), base64-encoded raw input:"
+    cat "$f"
+}
+
+cmd_doctor () {
+    local engine
+    if engine="$(_find_engine)"; then
+        printf '%s ok%s extract engine: %s\n' "$C_OK" "$C_RST" "$engine"
+    else
+        printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
+    fi
+    local analyze
+    if analyze="$(_find_analyze)"; then
+        printf '%s ok%s analyze engine: %s\n' "$C_OK" "$C_RST" "$analyze"
+        command -v gawk >/dev/null 2>&1 || printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "$(awk --version 2>/dev/null | head -1 || echo awk)"
+    else
+        printf '   analyze engine not vendored (run: bash glean/tools/sync-analyze.sh)\n'
+    fi
+    printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "${GLEAN_STORE_KIND:-global}"
+    [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
+    if [[ -f "$(_rowid_file)" ]]; then
+        printf '   next row index: #%s\n' "$(cat "$(_rowid_file)")"
+    fi
+    printf '   min-confidence: %s\n' "$GLEAN_MIN_CONFIDENCE"
+}
+
+cmd_help () {
+    cat >&2 <<EOF
+glean $GLEAN_VERSION — turn command output into data
+
+USAGE
+    glean run [--] <cmd> [args...]                capture a command's output as a
+                                                 commit, auto-detect + file it
+    cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
+    glean [FILE]                                  inject a file instead of stdin
+    glean source <#N>                             show the original source behind row #N
+    glean control [<dir>]                         make <dir> its own capture instance
+    glean uncontrol [<dir>]                        release a controlled directory
+    glean instances                               list controlled directories
+    glean export [<file>]                         bundle the store into a portable file
+    glean import <file> [<dest>]                   reconstitute a bundle elsewhere to browse
+    glean log                                     list captures (the git history)
+    glean restore <id|latest>                     bring a capture's commit back up
+    glean ls                                      list datasets
+    glean show NAME                               present a dataset (leading #N = row index)
+    glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
+    glean triage                                  show low-confidence / unmatched bucket
+    glean doctor                                  check engine + store
+    glean help
+
+STORE (global by default, or a controlled directory)
+    Captures go to a GLOBAL git store so you can capture from any directory:
+      \$GLEAN_HOME, or ~/.glean if unset. Point GLEAN_HOME at a shared,
+      group-writable dir to collaborate; a lock serialises concurrent writers.
+    'glean control <dir>' makes <dir> its own instance (<dir>/.glean): captures
+    run inside it (or a subdir) route there, and each commit snapshots the
+    directory's contents as context. Resolution: GLEAN_WORKSPACE override, else
+    the nearest controlled dir walking up from CWD, else the global store.
+    Every capture is one commit tagged capture-<id> ('log' / 'restore'). Every
+    dataset row has a globally-unique visible index #N; 'glean source N' maps it
+    back to the exact captured input that produced it.
+
+ENV
+    GLEAN_HOME            global store dir (default: ~/.glean)
+    GLEAN_WORKSPACE       explicit store override (wins over GLEAN_HOME)
+    GLEAN_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
+    GLEAN_MAX_INPUT       max input bytes (default: 10485760)
+    GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
+
+Not yet in this prototype (proposal 0001): schema reconciliation (a differing
+column set currently splits a dataset into a numbered variant, e.g. free.v2).
+See docs/proposals/0001-glean-rename-and-simplification.md.
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# Dispatch — bare invocation (or a leading option / FILE) means inject.
+# ---------------------------------------------------------------------------
+main () {
+    local verb="${1:-}"
+    case "$verb" in
+        run)           shift; cmd_run "$@" ;;
+        source|src)    shift; cmd_source "$@" ;;
+        control)       shift; cmd_control "$@" ;;
+        uncontrol)     shift; cmd_uncontrol "$@" ;;
+        instances)     shift; cmd_instances "$@" ;;
+        export)        shift; cmd_export "$@" ;;
+        import)        shift; cmd_import "$@" ;;
+        log)           shift; cmd_log "$@" ;;
+        restore)       shift; cmd_restore "$@" ;;
+        ls)            shift; cmd_ls "$@" ;;
+        show)          shift; cmd_show "$@" ;;
+        stats)         shift; cmd_stats "$@" ;;
+        triage)        shift; cmd_triage "$@" ;;
+        doctor)        shift; cmd_doctor "$@" ;;
+        help|-h|--help) cmd_help ;;
+        -V|--version)  printf 'glean %s\n' "$GLEAN_VERSION" ;;
+        inject)        shift; cmd_inject "$@" ;;   # explicit alias
+        *)             cmd_inject "$@" ;;          # default verb
+    esac
+}
+main "$@"

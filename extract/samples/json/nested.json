@@ -1,0 +1,24 @@
+{
+  "server": {
+    "host": "api.example.com",
+    "port": 8443,
+    "tls": {
+      "enabled": true,
+      "cert_file": "/etc/ssl/server.crt",
+      "key_file": "/etc/ssl/server.key"
+    }
+  },
+  "database": {
+    "primary": {
+      "host": "db-primary.internal",
+      "port": 5432,
+      "name": "production"
+    },
+    "replica": {
+      "host": "db-replica.internal",
+      "port": 5432,
+      "read_only": true
+    }
+  },
+  "version": "2.4.1"
+}

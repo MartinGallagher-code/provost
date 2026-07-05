@@ -1,0 +1,9 @@
+HTTP/2 304 Not Modified
+Cache-Control: public, max-age=86400, stale-while-revalidate=3600
+ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"
+Last-Modified: Fri, 14 Feb 2025 08:00:00 GMT
+X-Cache: HIT from cdn-edge-01
+X-Cache-Hits: 42
+Age: 7200
+Vary: Accept-Encoding
+Date: Sat, 15 Feb 2025 14:00:00 GMT

@@ -1,0 +1,8 @@
+mmlsfs output for filesystem gpfs01:
+ -B 4194304 Block size
+ -i 4096 Inode size (inode-size)
+ -T /gpfs/fs01 Default mount point
+ -n 1000000 Estimated number of inodes (inum-limit)
+ -L 100000000 Max number of files (max-files)
+ -r 2 Default data replication factor (replication)
+ -j cluster Default metadata replication factor

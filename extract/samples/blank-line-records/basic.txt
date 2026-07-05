@@ -1,0 +1,11 @@
+Name: Server-A
+IP: 10.0.0.1
+Status: Active
+
+Name: Server-B
+IP: 10.0.0.2
+Status: Inactive
+
+Name: Server-C
+IP: 10.0.0.3
+Status: Active

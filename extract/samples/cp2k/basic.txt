@@ -1,0 +1,63 @@
+  **** **** ******  **  PROGRAM STARTED AT               2026-03-15 10:00:00.000
+ ***** ** ***  *** **   PROGRAM STARTED ON                          compute-001
+ **    ****   ******    PROGRAM STARTED BY                              user123
+ ***** **    ** ** **   PROGRAM PROCESS ID                                12345
+  **** **  *******  **  PROGRAM STARTED IN /scratch/user123/cp2k_run
+
+ CP2K| version string:                                         CP2K version 2024.1
+ CP2K| source code revision number:                                    git:abc1234
+ CP2K| cp2kflags: omp libint fftw3 libxc parallel mpi3 scalapack
+
+ GLOBAL| Run type                                                         ENERGY
+ GLOBAL| Project name                                                       h2o
+ GLOBAL| Preferred diagonalization lib.                                       SL
+
+ CELL| Volume [angstrom^3]:                                          1234.567890
+ CELL| Vector a [angstrom]:      12.000     0.000     0.000   |a| =    12.00000
+ CELL| Vector b [angstrom]:       0.000    12.000     0.000   |b| =    12.00000
+ CELL| Vector c [angstrom]:       0.000     0.000    12.000   |c| =    12.00000
+
+ TOTAL NUMBERS AND MAXIMUM NUMBERS
+
+  Total number of            - Loss of information
+    - Loss of information reported in file:
+
+  Total number of            - Atomic kinds:                                   2
+  Total number of            - Atoms:                                         96
+  Total number of            - Shell pairs:                                 4560
+  Total number of            - Shells:                                       288
+
+ MODULE QUICKSTEP:  DFT program module
+
+ Number of electrons:                                                       256
+ Number of occupied orbitals:                                               128
+
+ SCF WAVEFUNCTION OPTIMIZATION
+
+  Step     Update method      Time    Convergence         Total energy    Change
+  ------------------------------------------------------------------------------
+     1 NoMix/Diag. 0.30E+00    1.2     1.23456789       -123.000000000 -1.23E+02
+     2 Broy./Diag. 0.30E+00    0.8     0.34567890       -123.400000000 -4.00E-01
+     3 Broy./Diag. 0.30E+00    0.7     0.01234567       -123.450000000 -5.00E-02
+     4 Broy./Diag. 0.30E+00    0.7     0.00345678       -123.456000000 -6.00E-03
+     5 Broy./Diag. 0.30E+00    0.6     0.00012345       -123.456700000 -7.00E-04
+     6 Broy./Diag. 0.30E+00    0.6     0.00000456       -123.456780000 -8.00E-05
+     7 Broy./Diag. 0.30E+00    0.6     0.00000012       -123.456789012 -9.01E-06
+
+  *** SCF run converged in     7 steps ***
+
+  Electronic density on regular grids:       -255.9999998765        0.0000001235
+  Core density on regular grids:              255.9999999990       -0.0000000010
+
+ ENERGY| Total FORCE_EVAL ( QS ) energy [a.u.]:            -123.456789012345
+
+ DFT| Functional group                                               BLYP
+ DFT| Exchange-correlation functional                          BLYP (LIBXC)
+
+ DBCSR| Multiplication driver                                            BLAS
+
+  Maximum gradient:                                           0.00000012
+
+ PROGRAM ENDED AT                    2026-03-15 10:05:30.000
+
+  Elapsed time:                                               330.000 seconds

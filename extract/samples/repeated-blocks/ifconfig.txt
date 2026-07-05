@@ -1,0 +1,21 @@
+Interface: en0
+Type: Ethernet
+Status: active
+IP Address: 10.0.1.50
+Netmask: 255.255.255.0
+Broadcast: 10.0.1.255
+MAC: a4:83:e7:12:34:56
+
+Interface: en1
+Type: Wi-Fi
+Status: active
+IP Address: 10.0.1.75
+Netmask: 255.255.255.0
+Broadcast: 10.0.1.255
+MAC: a4:83:e7:12:34:78
+
+Interface: lo0
+Type: Loopback
+Status: active
+IP Address: 127.0.0.1
+Netmask: 255.0.0.0

@@ -1,0 +1,14 @@
+platform:
+  model: RaspberryPi 4B
+  revision: c03115
+  serial: 10000000abcdef01
+  soc:
+    type: BCM2711
+    cores: 4
+    frequency: 1500MHz
+  memory:
+    total: 4096MB
+    type: LPDDR4
+  storage:
+    type: microSD
+    capacity: 32GB

@@ -1,0 +1,6 @@
+Filesystem      Size  Used Avail Use% Mounted
+/dev/sda1        50G   32G   16G  67% /
+tmpfs           7.8G  1.2M  7.8G   1% /dev/shm
+/dev/sda2       200G  145G   45G  77% /home
+/dev/sdb1       1.0T  812G  188G  82% /data
+/dev/sdc1       500G   12G  488G   3% /backup

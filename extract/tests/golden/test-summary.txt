@@ -1,0 +1,5 @@
+total_passed 42
+total_failed 2
+total_skipped 1
+duration 3.45s
+framework pytest

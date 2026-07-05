@@ -1,0 +1,11 @@
+title My_Project
+version 1.2.3
+database.host localhost
+database.port 5432
+database.enabled true
+server.http.host 0.0.0.0
+server.http.port 8080
+targets.0.name production
+targets.0.url https://prod.example.com
+targets.1.name staging
+targets.1.url https://staging.example.com

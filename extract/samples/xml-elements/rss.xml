@@ -1,0 +1,19 @@
+<rss version="2.0">
+  <channel>
+    <title>Tech Blog</title>
+    <link>https://blog.example.com</link>
+    <description>Latest technology articles</description>
+    <item>
+      <title>Understanding Rust Ownership</title>
+      <link>https://blog.example.com/rust-ownership</link>
+      <pubDate>Sat, 15 Feb 2025 10:00:00 GMT</pubDate>
+      <author>alice@example.com</author>
+    </item>
+    <item>
+      <title>Docker Best Practices 2025</title>
+      <link>https://blog.example.com/docker-best-practices</link>
+      <pubDate>Fri, 14 Feb 2025 08:00:00 GMT</pubDate>
+      <author>bob@example.com</author>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,5 @@
+{"event": "page_view", "user_id": "u001", "page": "/dashboard", "duration_ms": 1250}
+{"event": "click", "user_id": "u002", "element": "signup_button", "duration_ms": 0}
+{"event": "purchase", "user_id": "u001", "item": "pro_plan", "duration_ms": 3400}
+{"event": "page_view", "user_id": "u003", "page": "/pricing", "duration_ms": 890}
+{"event": "logout", "user_id": "u002", "page": "/settings", "duration_ms": 200}

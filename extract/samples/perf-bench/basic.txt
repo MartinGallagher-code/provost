@@ -1,0 +1,18 @@
+# Running 'sched/pipe' benchmark:
+# Executed 1000000 pipe operations between two processes
+
+     Total time: 5.123 [sec]
+
+       5.123456 usecs/op
+         195180 ops/sec
+
+# Running 'mem/memcpy' benchmark:
+# function 'default' (Default memcpy() provided by glibc)
+# Copying 1MB Bytes ...
+
+       8.901234 GB/sec
+
+# Running 'futex/hash' benchmark:
+# Running with 1 threads, each operating on 1024 [private] futexes for 10 secs.
+
+Averaged 234567 operations/sec (+- 0.12%), total secs = 10

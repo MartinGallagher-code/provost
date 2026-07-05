@@ -1,0 +1,11 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+# Samples: 12K of event 'cycles'
+# Event: cycles
+#
+ Overhead  Shared Object     Symbol
+    32.45%  libc.so.6         [.] __memmove_avx_unaligned
+    21.30%  benchmark         [.] compute_inner
+    15.67%  libm.so.6         [.] __ieee754_exp_fma
+     8.92%  benchmark         [.] transform_data
+     6.43%  libc.so.6         [.] __memset_avx2_unaligned

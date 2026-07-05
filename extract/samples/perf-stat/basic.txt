@@ -1,0 +1,10 @@
+ Performance counter stats for './benchmark':
+
+       1,234,567      cycles                    #    3.200 GHz
+         456,789      instructions              #    0.37  insn per cycle
+          12,345      cache-misses              #    2.70% of all cache refs
+          45,678      branch-misses             #    1.23% of all branches
+
+       0.385432100 seconds time elapsed
+       0.234567000 seconds user
+       0.150000000 seconds sys

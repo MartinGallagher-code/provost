@@ -1,0 +1,11 @@
+line1.timestamp Wed_Jan_12_14:23:45.123456_2024
+line1.severity error
+line1.client 192.168.1.1
+line1.message File_does_not_exist:_/var/www/html/favicon.ico
+line2.timestamp Wed_Jan_12_14:24:01.234567_2024
+line2.severity warn
+line2.client 10.0.0.2
+line2.message mod_security:_Access_denied
+line3.timestamp Wed_Jan_12_14:25:30.345678_2024
+line3.severity notice
+line3.message AH00094:_Command_line:_'/usr/sbin/apache2'

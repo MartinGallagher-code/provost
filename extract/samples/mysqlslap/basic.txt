@@ -1,0 +1,15 @@
+Benchmark
+	Running for engine rbose
+	Average number of seconds to run all queries: 0.345 seconds
+	Minimum number of seconds to run all queries: 0.312 seconds
+	Maximum number of seconds to run all queries: 0.389 seconds
+	Number of clients running queries: 50
+	Average number of queries per client: 100
+
+Benchmark
+	Running for engine rbose
+	Average number of seconds to run all queries: 1.234 seconds
+	Minimum number of seconds to run all queries: 1.102 seconds
+	Maximum number of seconds to run all queries: 1.378 seconds
+	Number of clients running queries: 100
+	Average number of queries per client: 200

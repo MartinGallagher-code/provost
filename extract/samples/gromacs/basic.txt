@@ -1,0 +1,24 @@
+                      :-) GROMACS - gmx mdrun, 2023.3 (-:
+
+                            GROMACS is written by:
+     Emile Apol      Rossen Apostolov      Paul Bauer     Herman J.C. Berendsen
+
+GROMACS version:    2023.3
+Precision:          mixed
+Memory model:       64 bit
+
+Reading file md.tpr, VERSION 2023.3 (single precision)
+
+   number of atoms   = 24576
+
+nsteps   = 500000
+   dt     = 0.002
+
+Started mdrun on rank 0 Wed Mar 15 08:00:00 2024
+
+               Core t (s)   Wall t (s)        (%)
+       Time:    8467.230     1058.404      800.0
+                 (ns/day)    (hour/ns)
+Performance:      163.280        0.147
+
+GROMACS reminds you: "Science is what we understand well enough to explain to a computer." (Donald Knuth)

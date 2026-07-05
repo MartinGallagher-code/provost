@@ -1,0 +1,11 @@
+web.image nginx:latest
+web.ports 80:80,443:443
+web.restart always
+web.depends_on api
+api.build ./api
+api.environment NODE_ENV=production,PORT=3000
+api.ports 3000:3000
+api.restart on-failure
+db.image postgres:15
+db.volumes pgdata:/var/lib/postgresql/data
+db.environment POSTGRES_PASSWORD=secret

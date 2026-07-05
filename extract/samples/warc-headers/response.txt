@@ -1,0 +1,9 @@
+WARC/1.1
+WARC-Type: response
+WARC-Date: 2025-02-15T10:00:00Z
+WARC-Target-URI: https://www.example.com/
+WARC-Record-ID: <urn:uuid:a1b2c3d4-e5f6-7890-abcd-ef0123456789>
+Content-Type: application/http; msgtype=response
+Content-Length: 8192
+WARC-Payload-Digest: sha256:abc123def456
+WARC-IP-Address: 93.184.216.34

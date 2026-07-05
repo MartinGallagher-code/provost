@@ -1,0 +1,5 @@
+cert1.type CERTIFICATE
+cert1.size 336
+cert2.type CERTIFICATE
+cert2.size 292
+total_certificates 2

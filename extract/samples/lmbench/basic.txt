@@ -1,0 +1,45 @@
+                 L M B E N C H  3  . 0   S U M M A R Y
+                 ------------------------------------
+		 (2 CPU system)
+
+Basic system parameters
+------------------------------------------------------------------------------
+Host                 OS Description              Mhz  tlb  cache  mem   scal
+                                                       pages line   par
+--------- ------------- ----------------------- ---- ----- ----- ------ ----
+server1   Linux 5.4.0-8        x86_64-linux-gnu 3600    32   128  12.3    1
+
+Processor, Processes - times in microseconds - smaller is better
+------------------------------------------------------------------------------
+Host                 OS  Mhz null null      open slct sig  sig  fork exec sh
+                             call  I/O stat clos TCP  inst hndl proc proc proc
+--------- ------------- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+server1   Linux 5.4.0-8 3600 0.27 0.35 1.23 2.45 7.89 0.45 2.34 234. 567. 1234
+
+Basic integer operations - times in nanoseconds - smaller is better
+------------------------------------------------------------------------------
+Host                 OS  intgr intgr  intgr  intgr  intgr
+                          bit   add    mul    div    mod
+--------- ------------- ------ ------ ------ ------ ------
+server1   Linux 5.4.0-8  0.28   0.28   1.39   7.23   6.89
+
+Context switching - times in microseconds - smaller is better
+-------------------------------------------------------------------------
+Host                 OS  2p/0K 2p/16K 2p/64K 8p/16K 8p/64K 16p/16K 16p/64K
+                         ctxsw  ctxsw  ctxsw ctxsw  ctxsw   ctxsw   ctxsw
+--------- ------------- ------ ------ ------ ------ ------ ------- -------
+server1   Linux 5.4.0-8   1.23   2.34   3.45  4.56   5.67    6.78    7.89
+
+*Local* Communication latencies in microseconds - smaller is better
+---------------------------------------------------------------------
+Host                 OS 2p/0K  Pipe AF     UDP  RPC/   TCP  RPC/ TCP
+                        ctxsw       UNIX         UDP         TCP  conn
+--------- ------------- ----- ----- ---- ----- ----- ----- ----- ----
+server1   Linux 5.4.0-8  1.23  4.56 5.67  8.90 12.3  10.2  15.4 23.5
+
+Memory latencies in nanoseconds - smaller is better
+    (WARNING - notass alarm for alarm results, see resolve)
+------------------------------------------------------------------------------
+Host                 OS   Mhz   L1 $   L2 $    Main mem    Rand mem    Guesses
+--------- ------------- ------  -----  ------  ---------  ----------  ---------
+server1   Linux 5.4.0-8   3600   1.23    4.56      12.34       89.01

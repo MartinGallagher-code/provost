@@ -1,0 +1,19 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 04:00:00:00:00:01:15:4b:5a:c3:94
+        Issuer: C=US, O=Let's Encrypt, CN=R3
+        Validity
+            Not Before: Feb  1 00:00:00 2025 GMT
+            Not After : May  2 00:00:00 2025 GMT
+        Subject: CN=www.example.com
+        Subject Public Key Info:
+            Public Key Algorithm: id-ecPublicKey
+                Public-Key: (256 bit)
+
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 91:2b:08:4a:cf:0c:18:a7:53:f6:d6:2e:25:a7:5f:5a
+        Issuer: C=US, O=Internet Security Research Group, CN=ISRG Root X1
+        Subject: C=US, O=Let's Encrypt, CN=R3

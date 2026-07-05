@@ -1,0 +1,16 @@
+0.id 1
+0.name Alice
+0.role admin
+0.active true
+1.id 2
+1.name Bob
+1.role editor
+1.active true
+2.id 3
+2.name Carol
+2.role viewer
+2.active false
+3.id 4
+3.name Dave
+3.role editor
+3.active true

@@ -1,0 +1,5 @@
+HOME /Users/john
+PATH /usr/bin:/usr/local/bin
+SHELL /bin/bash
+EDITOR vim
+DB_URL postgres://user:pass@localhost/db

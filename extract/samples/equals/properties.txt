@@ -1,0 +1,10 @@
+spring.datasource.url=jdbc:postgresql://localhost:5432/myapp
+spring.datasource.username=appuser
+spring.datasource.password=secret123
+spring.jpa.hibernate.ddl-auto=update
+server.port=8080
+server.servlet.context-path=/api
+logging.level.root=INFO
+logging.level.com.example=DEBUG
+spring.cache.type=redis
+spring.redis.host=localhost

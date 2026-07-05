@@ -1,0 +1,5 @@
+sched_pipe.total_time_sec 5.123
+sched_pipe.usecs_per_op 5.123456
+sched_pipe.ops_per_sec 195180
+mem_memcpy.throughput_GB_per_sec 8.901234
+futex_hash.avg_ops_per_sec 234567

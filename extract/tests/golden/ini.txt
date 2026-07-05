@@ -1,0 +1,6 @@
+database.host localhost
+database.port 5432
+database.name mydb
+server.host 0.0.0.0
+server.port 8080
+server.debug true

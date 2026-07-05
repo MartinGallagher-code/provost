@@ -1,0 +1,3 @@
+device sda
+sda.cached_reads_MB_per_s 8234.56
+sda.buffered_reads_MB_per_s 151.50

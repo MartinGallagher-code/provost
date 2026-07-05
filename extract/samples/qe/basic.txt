@@ -1,0 +1,118 @@
+
+     Program PWSCF v.7.2 starts on 15Mar2026 at 10: 0: 0
+
+     This program is part of the open-source Quantum ESPRESSO suite
+     for quantum-mechanical molecular simulations.
+
+     Parallel version (MPI), running on     8 processors
+
+     MPI processes distributed on     1 nodes
+     R & G space division:  proc/nbgrp/npool/nimage =       8
+
+     Current dimensions of program PWSCF are:
+     Max number of different atomic species (ntypx) = 10
+     Max number of k-points (npk) =  40000
+
+     Subspace diagonalization in iterative solution of the eigenvalue problem:
+     a serial algorithm will be used
+
+
+     Parallelization info
+     --------------------
+     sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+     Min          72      36     12                 1234      432      82
+     Max          73      37     13                 1236      434      84
+     Sum         579     289     97                 9876     3456     662
+
+     Using Slab Decomposition
+
+     bravais-lattice index     =            2
+     lattice parameter (alat)  =      10.2000  a.u.
+     unit-cell volume          =     265.3020 (a.u.)^3
+     number of atoms/cell      =            2
+     number of atomic types    =            1
+     number of electrons       =         8.00
+     number of Kohn-Sham states=            8
+     kinetic-energy cutoff     =      60.0000  Ry
+     charge-density cutoff     =     480.0000  Ry
+     scf convergence threshold =      1.0E-08
+     mixing beta               =       0.7000
+
+     celldm(1)=  10.200000  celldm(2)=   0.000000  celldm(3)=   0.000000
+     celldm(4)=   0.000000  celldm(5)=   0.000000  celldm(6)=   0.000000
+
+     number of k points=    10
+     Dense  grid:     9876 G-vectors     FFT dimensions: (  32,  32,  32)
+     Smooth grid:     3456 G-vectors     FFT dimensions: (  24,  24,  24)
+
+     Estimated max dynamical RAM per process >       5.12 MB
+
+     Self-consistent Calculation
+
+     iteration #  1     ecut=    60.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.00E-02,  avg # of iterations =  2.0
+
+     total cpu time spent up to now is        0.5 secs
+
+     iteration #  2     ecut=    60.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  5.23E-04,  avg # of iterations =  1.0
+
+     total cpu time spent up to now is        0.7 secs
+
+     iteration #  3     ecut=    60.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  6.78E-06,  avg # of iterations =  2.4
+
+     total cpu time spent up to now is        0.9 secs
+
+     iteration #  4     ecut=    60.00 Ry     beta= 0.70
+     Davidson diagonalization with overlap
+     ethr =  1.23E-08,  avg # of iterations =  3.1
+
+     total cpu time spent up to now is        1.2 secs
+
+     convergence has been achieved in   4 iterations
+
+     Forces acting on atoms (cartesian axes, Ry/au):
+
+     atom    1 type  1   force =     0.00000000    0.00000000    0.00000000
+     atom    2 type  1   force =     0.00000000    0.00000000    0.00000000
+
+     Total force =     0.000000     Total SCF correction =     0.000000
+     SCF correction compared to forces is large: reduce conv_thr
+
+     Computing stress (Cartesian axis) for the given structure
+
+          total   stress  (Ry/bohr**3)                   (kbar)     P=      -3.45
+   0.00002345   0.00000000   0.00000000           -3.45      0.00      0.00
+   0.00000000   0.00002345   0.00000000            0.00     -3.45      0.00
+   0.00000000   0.00000000   0.00002345            0.00      0.00     -3.45
+
+
+!    total energy              =     -31.80883014 Ry
+     estimated scf accuracy    <          4.3E-10 Ry
+     smearing contrib. (-TS)   =      -0.00012345 Ry
+     internal energy E=F+TS    =     -31.80870669 Ry
+
+     The total energy is F = E - TS. (Alarm)
+
+     The total energy is the sum of the following terms:
+     one-electron contribution =       5.12345678 Ry
+     hartree contribution      =       1.23456789 Ry
+     xc contribution           =      -9.87654321 Ry
+     ewald contribution        =     -28.29030160 Ry
+
+     convergence has been achieved in   4 iterations
+
+     Writing all to output data dir ./tmp/si.save/
+
+     init_run     :      0.12s CPU      0.15s WALL (       1 calls)
+     electrons    :      0.89s CPU      1.05s WALL (       1 calls)
+     forces       :      0.05s CPU      0.06s WALL (       1 calls)
+     stress       :      0.15s CPU      0.18s WALL (       1 calls)
+
+     PWSCF        :      1.23s CPU      1.48s WALL
+
+     WALL time :     1.48s, CPU time :     1.23s

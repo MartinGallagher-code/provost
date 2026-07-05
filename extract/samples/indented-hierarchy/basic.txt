@@ -1,0 +1,12 @@
+System Information
+  Manufacturer: Dell Inc.
+  Product Name: PowerEdge R740
+  Serial Number: ABC123
+  BIOS Information
+    Vendor: Dell Inc.
+    Version: 2.12.2
+    Release Date: 01/15/2024
+  Memory
+    Total: 64 GB
+    Type: DDR4
+    Speed: 2933 MHz

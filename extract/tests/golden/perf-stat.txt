@@ -1,0 +1,7 @@
+cycles 1234567
+instructions 456789
+cache_misses 12345
+branch_misses 45678
+time_elapsed 0.385432100
+seconds_user 0.234567000
+seconds_sys 0.150000000

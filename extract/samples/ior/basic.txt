@@ -1,0 +1,20 @@
+IOR-3.3.0
+MPI Coordinated Test of Parallel I/O
+
+Num Tasks: 16
+nodes = 4
+clients per node = 4
+repetitions = 1
+xfersize = 1 MiB
+blocksize = 16 MiB
+aggregate filesize = 4 GiB
+
+Summary of all tests:
+Operation   Max(MiB)   Min(MiB)   Mean(MiB)  StdDev
+write       1234.56    1200.12    1218.34    12.45
+read        2345.67    2300.45    2320.56    15.67
+
+Max Write: 1234.56 MiB/sec (1294.56 MB/sec)
+Max Read:  2345.67 MiB/sec (2459.12 MB/sec)
+Mean Write: 1218.34 MiB/sec (1277.45 MB/sec)
+Mean Read:  2320.56 MiB/sec (2433.12 MB/sec)

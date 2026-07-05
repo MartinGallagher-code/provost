@@ -1,0 +1,18 @@
+Intel(R) Memory Latency Checker - v3.10
+Command line parameters: --idle_latency --bandwidth_matrix
+
+Measuring idle latencies (in ns)...
+		Numa node
+Numa node	     0	     1
+       0	  89.5	 139.2
+       1	 138.7	  89.1
+
+Measuring Peak Injection Memory Bandwidths for the system
+Bandwidths are in MB/sec (1 MB/sec = 1,000,000 Bytes/sec)
+Using all the threads from each core if different options are different
+Using traffic with the following read-write ratios
+ALL Reads        :      45678.9
+3:1 Reads-Writes :      42345.6
+2:1 Reads-Writes :      40123.4
+1:1 Reads-Writes :      38765.2
+Stream-triad like:      41234.5

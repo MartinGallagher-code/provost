@@ -1,0 +1,35 @@
+# darshan log version: 3.4.0
+# compression method: ZLIB
+# exe: /home/user/apps/io_benchmark
+# uid: 1001
+# jobid: 12345678
+# start_time: 1712748001
+# start_time_asci: Mon Apr 10 12:00:01 2026
+# end_time: 1712748421
+# end_time_asci: Mon Apr 10 12:07:01 2026
+# nprocs: 128
+# run time: 420
+# metadata: lib_ver = 3.4.0
+# metadata: h = romio_no_indep_rw=true;cb_nodes=4
+
+# description of columns:
+#   <module>: darshan module responsible for this I/O record.
+#   <rank>: MPI rank. -1 indicates that the file is shared across all processes.
+#   <record id>: hash of the record's file path.
+#   <counter name> and <counter value>: integer/floating-point counters.
+#   <file name>: full path to the file.
+
+# POSIX module data
+#<module> <rank> <record id>         <counter>             <value>               <file name>    <mount pt>     <fs type>
+POSIX     -1     12345678901234     POSIX_OPENS            128                   /lustre/out/data.h5   /lustre     lustre
+POSIX     -1     12345678901234     POSIX_READS            0                     /lustre/out/data.h5   /lustre     lustre
+POSIX     -1     12345678901234     POSIX_WRITES           524288                /lustre/out/data.h5   /lustre     lustre
+POSIX     -1     12345678901234     POSIX_SEEKS            0                     /lustre/out/data.h5   /lustre     lustre
+POSIX     -1     12345678901234     POSIX_BYTES_READ       0                     /lustre/out/data.h5   /lustre     lustre
+POSIX     -1     12345678901234     POSIX_BYTES_WRITTEN    17179869184           /lustre/out/data.h5   /lustre     lustre
+
+# MPIIO module data
+MPIIO     -1     12345678901234     MPIIO_INDEP_OPENS      0                     /lustre/out/data.h5   /lustre     lustre
+MPIIO     -1     12345678901234     MPIIO_COLL_OPENS       128                   /lustre/out/data.h5   /lustre     lustre
+MPIIO     -1     12345678901234     MPIIO_COLL_WRITES      512                   /lustre/out/data.h5   /lustre     lustre
+MPIIO     -1     12345678901234     MPIIO_BYTES_WRITTEN    17179869184           /lustre/out/data.h5   /lustre     lustre

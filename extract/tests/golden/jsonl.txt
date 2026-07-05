@@ -1,0 +1,12 @@
+line1.name Alice
+line1.age 30
+line1.city Portland
+line2.name Bob
+line2.age 25
+line2.city Seattle
+line3.name Carol
+line3.age 35
+line3.city Denver
+line4.name Dave
+line4.age 28
+line4.city Austin

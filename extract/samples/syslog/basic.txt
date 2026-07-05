@@ -1,0 +1,3 @@
+Jan 12 14:23:45 myhost sshd[1234]: Accepted publickey for user from 10.0.0.1 port 22 ssh2
+Jan 12 14:24:01 myhost cron[5678]: (root) CMD (/usr/bin/daily-backup)
+Jan 12 14:25:30 myhost kernel: [12345.678] eth0: link up

@@ -1,0 +1,21 @@
+[project]
+name = "my-package"
+version = "1.2.0"
+description = "A data processing toolkit"
+requires-python = ">=3.10"
+license = "MIT"
+
+[project.scripts]
+process = "my_package.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --cov=my_package"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

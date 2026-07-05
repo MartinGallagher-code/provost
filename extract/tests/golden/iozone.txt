@@ -1,0 +1,9 @@
+version 3.489
+file_size_kB 1024
+record_size_kB 4
+write 98765
+rewrite 99876
+read 234567
+reread 245678
+random_read 189012
+random_write 87654
