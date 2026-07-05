@@ -1,5 +1,23 @@
 # glean — Changelog
 
+## 2026-07-05 — prep for extraction to a standalone repository (revised Phase 5)
+- Decision: rather than hard-cutting the `Envoy*` trees in place, glean is
+  extracted into its own repo; Envoy stays intact as upstream. Made the tree
+  self-documenting/standalone-ready:
+  - Copied the design doc into the tree (`docs/0001-rename-and-simplification.md`)
+    and repointed the `README`/`HANDOFF` links to it (they referenced the
+    envoy-root `../docs/...`, which dangles at repo root).
+  - Documented the standalone model in `README`/`HANDOFF`: vendored
+    `extract/`/`analyze/`/`transform/`/`lib/` are canonical; `tools/sync-*.sh`
+    require an Envoy checkout via `ENVOY_EXTRACT_SRC`/`ENVOY_ANALYZE_SRC`/
+    `ENVOY_CAPTURE_SRC` (they error with that hint otherwise); extraction recipe
+    (`git subtree split --prefix=glean`).
+- Verified: `glean/` copied out of the envoy tree (no sibling `Envoy*`) runs
+  fully — `doctor` resolves both engines, smoke 33/33, melt unit test 8/8; sync
+  scripts fail helpfully standalone and work with the env overrides.
+- Files: `glean/docs/0001-rename-and-simplification.md`, `glean/README.md`,
+  `glean/HANDOFF.md`.
+
 ## 2026-07-05 — Phase 4: user-facing surface (README, completion, man, installer)
 - Added the glean-native rename-plane deliverables: `README.md` (one-tool story +
   command/env reference), `completions/glean.bash` (verb + dataset/capture/path

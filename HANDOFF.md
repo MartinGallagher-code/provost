@@ -1,11 +1,28 @@
-# Handoff — glean/ (Phase-2)
+# Handoff — glean
 
-## Status: Phase-2 — extract engine vendored & self-contained
+## Status: Phases 2–4 done; self-contained and ready to extract to its own repo
 
 `glean` is the new single-binary tool proposed in
-[docs/proposals/0001-glean-rename-and-simplification.md](../docs/proposals/0001-glean-rename-and-simplification.md)
+[docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md)
 to replace the three-binary `envoy-*` suite. This directory is the *fresh tree*
 the proposal calls for — built from the one product path, not migrated in place.
+
+### Standalone-repo model (Phase 5, revised)
+
+Instead of hard-cutting the `Envoy*` trees in place, `glean/` is extracted into
+its **own repository**; the Envoy repo stays intact as the upstream source. This
+tree is already self-contained — `glean` resolves its vendored
+`extract/`/`analyze/`/`transform/` from its own directory (`GLEAN_ROOT`), so it
+runs with no sibling `Envoy*` present (verified: copied out of tree, smoke 33/33).
+
+- The vendored `extract/`, `analyze/`, `transform/`, and `lib/` trees are
+  **canonical** in the standalone repo.
+- `tools/sync-*.sh` still work for pulling upstream changes, but require an Envoy
+  checkout — point them at it with `ENVOY_EXTRACT_SRC` / `ENVOY_ANALYZE_SRC` /
+  `ENVOY_CAPTURE_SRC` (they error with that hint when no sibling is found).
+- Extract preserving history with, e.g.,
+  `git subtree split --prefix=glean -b glean-export` → push that branch to the
+  new repo.
 
 ## What works now
 

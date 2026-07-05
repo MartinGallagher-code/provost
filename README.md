@@ -7,7 +7,7 @@ its source.
 
 > Prototype (proposal 0001) — the simplified successor to the three-binary
 > Envoy suite, as one tool. See
-> [../docs/proposals/0001-glean-rename-and-simplification.md](../docs/proposals/0001-glean-rename-and-simplification.md).
+> [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
 
 ## Quick start
 
@@ -73,8 +73,20 @@ glean/
 ```
 
 The `extract/`, `analyze/`, and `transform/` trees are vendored from the
-upstream Envoy projects and refreshed with the scripts in `tools/`; until the
-migration's Phase-5 hard cut, upstream is the source of truth.
+upstream Envoy projects and refreshed with the scripts in `tools/`.
+
+## Standalone repository
+
+This tree is self-contained: `glean` resolves its vendored engines from its own
+directory, so it runs with no sibling Envoy checkout present. When glean lives in
+its own repository the vendored trees are **canonical**. To pull later upstream
+changes you need an Envoy checkout — point the sync scripts at it:
+
+```bash
+ENVOY_EXTRACT_SRC=/path/to/envoy/EnvoyExtract bash tools/sync-extract.sh
+ENVOY_ANALYZE_SRC=/path/to/envoy/EnvoyAnalyze bash tools/sync-analyze.sh
+ENVOY_CAPTURE_SRC=/path/to/envoy/EnvoyCapture bash tools/sync-melt.sh
+```
 
 ## Environment
 
