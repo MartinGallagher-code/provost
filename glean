@@ -24,7 +24,7 @@
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.6.0-proto"
+GLEAN_VERSION="0.7.0-proto"
 
 # ---------------------------------------------------------------------------
 # Config (env-overridable; GLEAN_* is the post-rename namespace)
@@ -131,48 +131,36 @@ _find_analyze () {
 }
 
 # ---------------------------------------------------------------------------
-# Tidy melt — reshape one wide `entry<N>.<field>` extract row into one row per
-# record (ported from EnvoyCapture lib/_core.sh `_core_melt_tidy`). Input and
-# output are both TSV on stdin/stdout. Header+1row that isn't a single indexed
-# table passes through unchanged.
+# Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
+# (`_core_union_header`, `_core_align_rows`) are IMPORTED from EnvoyCapture's
+# lib/_core.sh, vendored to glean/transform/melt.sh by tools/sync-melt.sh (not
+# re-implemented here). Source it now; the sibling-EnvoyCapture fallback keeps
+# glean working before a sync until the Phase-5 hard cut.
 # ---------------------------------------------------------------------------
-_melt_tidy () {
-    awk -F'\t' -v OFS='\t' '
-        { L[NR]=$0 }
-        NR==1 { nf=NF; for(i=1;i<=NF;i++) H[i]=$i }
-        NR==2 { for(i=1;i<=nf;i++) V[i]=$i }
-        END {
-          if (NR!=2) { for(r=1;r<=NR;r++) print L[r]; exit }
-          np=0; nfld=0; nidx=0; nsc=0
-          for(i=1;i<=nf;i++){
-            h=H[i]; d=index(h,"."); isgroup=0
-            if (d>1){
-              left=substr(h,1,d-1); field=substr(h,d+1)
-              if (match(left,/[0-9]+$/)){
-                num=substr(left,RSTART)+0; pref=substr(left,1,RSTART-1)
-                if (pref!=""){
-                  isgroup=1
-                  if(!(pref in seenp)){seenp[pref]=1; np++}
-                  key=num SUBSEP field; cell[key]=V[i]
-                  if(!(num in seenix)){seenix[num]=1; idxs[++nidx]=num}
-                  if(!(field in seenf)){seenf[field]=1; flds[++nfld]=field}
-                }
-              }
-            }
-            if(!isgroup) scalidx[++nsc]=i
-          }
-          if (np!=1 || nfld==0){ print L[1]; print L[2]; exit }
-          for(a=1;a<=nidx;a++) for(b=a+1;b<=nidx;b++) if(idxs[b]<idxs[a]){t=idxs[a];idxs[a]=idxs[b];idxs[b]=t}
-          hdr="n"
-          for(k=1;k<=nfld;k++) hdr=hdr OFS flds[k]
-          for(s=1;s<=nsc;s++) hdr=hdr OFS H[scalidx[s]]
-          print hdr
-          for(a=1;a<=nidx;a++){ ix=idxs[a]; row=ix
-            for(k=1;k<=nfld;k++){key=ix SUBSEP flds[k]; row=row OFS ((key in cell)?cell[key]:"")}
-            for(s=1;s<=nsc;s++) row=row OFS V[scalidx[s]]
-            print row }
-        }'
+_source_transform () {
+    local here script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local candidates=(
+        "${GLEAN_HOME:-}/transform/melt.sh"
+        "$script_dir/transform/melt.sh"           # vendored (canonical)
+    )
+    local c
+    for c in "${candidates[@]}"; do
+        [[ -n "$c" && -r "$c" ]] && { source "$c"; return 0; }
+    done
+    # Fallback: source the transform functions straight from a sibling EnvoyCapture.
+    here="$script_dir"
+    while [[ "$here" != "/" ]]; do
+        if [[ -r "$here/EnvoyCapture/lib/_core.sh" ]]; then
+            source <(awk '/^# Union of two TSV header lines/{f=1} /^# Append a TSV row to a dataset/{f=0} f' \
+                     "$here/EnvoyCapture/lib/_core.sh")
+            return 0
+        fi
+        here="$(dirname "$here")"
+    done
+    die "transform module not found (run: bash glean/tools/sync-melt.sh)."
 }
+_source_transform
 
 _ds_dir ()  { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
 _cap_dir () { printf '%s/captures\n' "$GLEAN_WORKSPACE"; }
@@ -236,23 +224,8 @@ _col_overlap () {
               if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
 }
 
-# Unified header = old columns in order, then any new-only columns appended.
-_union_header () {  # stdin: old header \n new header
-    awk -F'\t' -v OFS='\t' '
-        NR==1 { n=NF; for(i=1;i<=NF;i++){h[i]=$i; seen[$i]=1} }
-        NR==2 { for(i=1;i<=NF;i++) if(!($i in seen)){ h[++n]=$i; seen[$i]=1 } }
-        END { line=h[1]; for(i=2;i<=n;i++) line=line OFS h[i]; print line }'
-}
-
-# Reorder each stdin data row from SRC header layout to TGT header layout,
-# blank-filling columns absent from the source.
-_align_rows () {  # args: SRC_HEADER TGT_HEADER ; stdin: data rows
-    awk -F'\t' -v OFS='\t' -v SRC="$1" -v TGT="$2" '
-        BEGIN { ns=split(SRC,s,"\t"); nt=split(TGT,t,"\t");
-                for(i=1;i<=ns;i++) srcidx[s[i]]=i }
-        { out=""; for(j=1;j<=nt;j++){ v=(t[j] in srcidx)?$(srcidx[t[j]]):"";
-            out=(j==1)?v:out OFS v } print out }'
-}
+# (Header union + row alignment come from the imported transform module:
+# _core_union_header "$old" "$new"  and  _core_align_rows "$src" "$tgt" < rows.)
 
 # Append tidy TSV (header+rows) to a dataset file. Store rule:
 #   new dataset            → write header + rows;
@@ -275,13 +248,14 @@ _store_append () {
         else
             local overlap; overlap="$(printf '%s\n%s\n' "$old_header" "$new_header" | _col_overlap)"
             if [[ "$overlap" -ge "$GLEAN_RECONCILE_OVERLAP" ]]; then
-                # Reconcile into the base dataset: union header, realign both sides.
-                local unified tmp; unified="$(printf '%s\n%s\n' "$old_header" "$new_header" | _union_header)"
+                # Reconcile into the base dataset: union header, realign both sides
+                # (imported transform helpers).
+                local unified tmp; unified="$(_core_union_header "$old_header" "$new_header")"
                 tmp="$(mktemp "$dir/.recon.XXXXXX")"
                 {
                     printf '%s\n' "$unified"
-                    tail -n +2 "$base"                | _align_rows "$old_header" "$unified"
-                    printf '%s\n' "$tsv" | tail -n +2 | _align_rows "$new_header" "$unified"
+                    tail -n +2 "$base"                | _core_align_rows "$old_header" "$unified"
+                    printf '%s\n' "$tsv" | tail -n +2 | _core_align_rows "$new_header" "$unified"
                 } > "$tmp" && mv "$tmp" "$base" || { rm -f "$tmp"; return 1; }
             else
                 # Genuinely different shape → variant file.
@@ -331,7 +305,7 @@ _ingest () {
         content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
     else
         dsname="$strategy"
-        content="$(printf '%s\n' "$wide" | _melt_tidy)"
+        content="$(_core_melt_tidy "$wide")"
     fi
 
     # --- critical section: assign #N, append, provenance, commit -----------

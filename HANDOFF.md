@@ -70,7 +70,10 @@ glean restore latest      # return to the tip (main)
 ```
 
 `run` and pipe-`inject` share one `_ingest` pipeline (extract → classify → melt →
-store → record capture → commit). Each capture writes `captures/<id>/{meta.tsv,
+store → record capture → commit). The melt/transform step (`_core_melt_tidy` +
+the schema-union helpers) is **imported** from EnvoyCapture via
+`tools/sync-melt.sh` into `glean/transform/melt.sh` (not re-implemented); unit
+test at `glean/transform/tests/test_melt.sh`. Each capture writes `captures/<id>/{meta.tsv,
 output.txt}` alongside the dataset change, all in one commit. This is the
 simplified linear-history model chosen over EnvoyCapture's per-run + triple-orphan
 -branch machinery (proposal 0001 §7; decision made when the ask-tool was

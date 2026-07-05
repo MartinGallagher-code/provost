@@ -1,5 +1,20 @@
 # glean — Changelog
 
+## 2026-07-05 — import the melt/transform from source (was hand-copied)
+- The extract-output transform — the tidy melt (`_core_melt_tidy`) plus the
+  schema-union helpers (`_core_union_header`, `_core_align_rows`) — is now
+  **imported from EnvoyCapture's `lib/_core.sh`** and vendored to
+  `glean/transform/melt.sh` by new `tools/sync-melt.sh`, instead of the earlier
+  hand-copied awk in `glean/glean`. `glean` sources the module and calls the
+  canonical `_core_*` functions; the three hand-written duplicates
+  (`_melt_tidy`/`_union_header`/`_align_rows`) are removed (`_col_overlap`, which
+  is glean-specific, stays). A sibling-EnvoyCapture fallback keeps glean working
+  before a sync. Added a transform unit test (`glean/transform/tests/test_melt.sh`,
+  8 checks) adapted from EnvoyCapture's tidy-melt integration assertions. Smoke
+  still 32/32. Version 0.6 → 0.7-proto.
+- Files: `glean/glean`, `glean/transform/melt.sh` (vendored),
+  `glean/transform/tests/test_melt.sh`, `glean/tools/sync-melt.sh`.
+
 ## 2026-07-05 — re-vendor extract engine: +3 everyday-command strategies
 - Re-synced `glean/extract/` from upstream after adding `df`, `ps-aux`, and
   `mount` strategies (catalog 202 → 205). glean now auto-detects these common
