@@ -18,7 +18,7 @@
 to replace the three-binary `envoy-*` suite. This directory is the *fresh tree*
 the proposal calls for — built from the one product path, not migrated in place.
 
-### Standalone-repo model (Phase 5, revised)
+### Standalone-repo model
 
 Instead of hard-cutting the `Envoy*` trees in place, `glean/` is extracted into
 its **own repository**; the Envoy repo stays intact as the upstream source. This
@@ -70,9 +70,9 @@ The extract engine + all strategies now live **inside** the tree, vendored from
 sibling-`EnvoyExtract/` walk-up remains only as a transition fallback.
 
 - **Updatable from upstream:** `bash glean/tools/sync-extract.sh` re-vendors the
-  engine + shared libs from `EnvoyExtract/` and repo-root `lib/` (source of truth
-  until the Phase-5 hard cut) and rewrites `extract/VENDOR.json` (source git SHA,
-  timestamp, counts). Do not hand-edit vendored files — edit upstream and
+  engine + shared libs from an upstream `EnvoyExtract/` checkout and repo-root
+  `lib/`, and rewrites `extract/VENDOR.json` (source git SHA, timestamp, counts).
+  The vendored trees here are canonical; do not hand-edit them — edit upstream and
   re-sync. See `extract/README.md`.
 - **Suite runs in-place:** `bash glean/extract/tests/run_tests.sh` →
   **216/216 test files passed, 1103 assertions, 0 failed** (86 golden cases
@@ -146,19 +146,16 @@ when column overlap ≥ `GLEAN_RECONCILE_OVERLAP` (default 60%), blank-filling b
 sides; below the threshold it splits to a numbered variant (`free.v2`). Keeps
 same-typed rows and their `#N` indices in one table.
 
-## Next steps (per proposal phases)
+## Next steps
 
-**Phases 2, 3, 4 are done.** Extract + analyze + transform vendored; git core,
-provenance, controlled dirs, export/import, stats, and reconciliation all built;
+**Phases 2, 3, 4 are done, and glean is extracted to this standalone repo.**
+Extract + analyze + transform vendored (canonical here); git core, provenance,
+controlled dirs, export/import, stats, and reconciliation all built; the
 Phase-4 surface (README, `completions/glean.bash`, `man/glean.1`, `install.sh`)
-shipped and glean is symlink-safe on PATH.
+shipped and glean is symlink-safe on PATH. Retiring the upstream `Envoy*` trees
+happens in the Envoy monorepo, not here — it is out of scope for this repo.
 
-1. **Phase 5 (remaining)** — hard-cut the `Envoy*` trees + satellites; archive
-   `scenarios/`/`web/`/`tickets/` to a sibling repo. At that point retire the
-   `tools/sync-*.sh` scripts — `glean/{extract,analyze,transform}/` become
-   canonical. This is the consequential step (deletes the source-of-truth trees),
-   so it should be its own reviewed change.
-2. Ongoing: more extract strategies (`du`, `sensors`, `mpstat`, `ps -ef`, …).
+1. Ongoing: more extract strategies (`du`, `sensors`, `mpstat`, `ps -ef`, …).
 
 ## Open questions
 

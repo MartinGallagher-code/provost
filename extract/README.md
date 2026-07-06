@@ -21,8 +21,8 @@ bash glean/tools/sync-extract.sh --runtime-only   # engine only, skip tests/samp
 `VENDOR.json` records the source git SHA, sync timestamp, and file/strategy
 counts so drift from upstream is visible.
 
-After the Phase-5 hard cut, `EnvoyExtract/` is deleted and this becomes the
-canonical location; the sync script is retired then.
+In this standalone repo this is the canonical location; the sync script re-vendors
+upstream changes when pointed at an `EnvoyExtract/` checkout (`ENVOY_EXTRACT_SRC`).
 
 ## Layout (mirrors upstream)
 

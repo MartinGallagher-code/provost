@@ -14,7 +14,8 @@
 # self-contained block (all pure awk, no capture/git dependencies) into a
 # standalone sourceable module. Companion to sync-extract.sh / sync-analyze.sh.
 #
-# Retired at the Phase-5 hard cut, when glean/transform/ becomes canonical.
+# In this standalone repo glean/transform/ is canonical; this script re-imports
+# the block when pointed at an EnvoyCapture checkout (ENVOY_CAPTURE_SRC).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

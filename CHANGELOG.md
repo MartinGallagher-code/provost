@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-07-06 — drop Phase-5 framing (out of scope for the standalone repo)
+- Phase 5 of proposal 0001 was "retire Envoy" — hard-cut the `Envoy*` trees in
+  place in the monorepo. The standalone-repo split (2026-07-05) superseded that:
+  `glean`'s vendored `extract/`/`analyze/`/`transform/`/`lib/` trees are already
+  canonical here, and removing the upstream `Envoy*` trees is now a task in the
+  Envoy monorepo, not this repo. Removed the stale "until the Phase-5 hard cut" /
+  "retired at the Phase-5 cut" caveats that framed pending in-repo work.
+- `HANDOFF.md`: dropped Phase 5 from "Next steps"; retitled the standalone-repo
+  section; clarified the vendored trees are canonical here.
+- `docs/0001-rename-and-simplification.md`: marked Phase 5 superseded by the split;
+  reworded the Phase-2 re-sync caveat.
+- `glean`, `tools/sync-{extract,analyze,melt}.sh`, `extract/README.md`: reworded
+  engine/transform-locator and sync-script comments to describe the trees as
+  canonical and the sync scripts as upstream re-vendoring (not "retired at Phase 5").
+- Regenerated the `note` text in `extract/VENDOR.json` and `analyze/VENDOR.json`
+  to match the updated sync scripts.
+- Historical CHANGELOG entries below that mention Phase 5 are left intact (dated
+  record). Verified green: smoke 33/33, transform 8/8.
+- Files: `HANDOFF.md`, `docs/0001-rename-and-simplification.md`, `glean`,
+  `tools/sync-extract.sh`, `tools/sync-analyze.sh`, `tools/sync-melt.sh`,
+  `extract/README.md`, `extract/VENDOR.json`, `analyze/VENDOR.json`.
+
 ## 2026-07-05 — extracted to standalone repository (glean split from envoy)
 - glean is now its own repository. The self-contained `glean/` tree was extracted
   from `MartinGallagher-code/envoy` via `git subtree split --prefix=glean` (history

@@ -7,5 +7,5 @@
   "engine_components": ["envoy-analyze","lib","profiles","schemas","completions","docs","samples","tests"],
   "shared_libs": 13,
   "file_count": 100,
-  "note": "Regenerate with: bash glean/tools/sync-analyze.sh. Do not hand-edit; edit upstream in EnvoyAnalyze/ (or repo lib/) and re-sync until the Phase-5 hard cut."
+  "note": "Regenerate with: bash glean/tools/sync-analyze.sh. Do not hand-edit; edit upstream in EnvoyAnalyze/ (or repo lib/) and re-sync."
 }

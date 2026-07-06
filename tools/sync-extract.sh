@@ -17,8 +17,8 @@
 #     glean/extract/     envoy-extract, lib/, strategies/, samples/, tests/, tools/
 #     glean/lib/         shared suite libs (envoy_*.sh) the engine sources via ../lib
 #
-# After the Phase-5 hard cut, EnvoyExtract is deleted and glean/extract/ becomes
-# canonical; this script is retired then.
+# In this standalone repo glean/extract/ is canonical; this script re-vendors
+# upstream changes when pointed at an EnvoyExtract checkout (ENVOY_EXTRACT_SRC).
 #
 # Writes glean/extract/VENDOR.json recording the source git SHA and file counts
 # so drift between the vendored copy and upstream is visible.
@@ -104,7 +104,7 @@ cat > "$ENGINE_DEST/VENDOR.json" <<EOF
   "strategy_count": $strat_n,
   "file_count": $total_n,
   "layout": "engine at glean/extract/, shared libs at glean/lib/ (engine's ../lib)",
-  "note": "Regenerate with: bash glean/tools/sync-extract.sh. Do not hand-edit vendored files; edit upstream in EnvoyExtract/ (or repo lib/) and re-sync until the Phase-5 hard cut."
+  "note": "Regenerate with: bash glean/tools/sync-extract.sh. Do not hand-edit vendored files; edit upstream in EnvoyExtract/ (or repo lib/) and re-sync."
 }
 EOF
 

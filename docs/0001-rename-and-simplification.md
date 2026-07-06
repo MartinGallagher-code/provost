@@ -203,7 +203,7 @@ extract engine via `--emit-meta`, tidy-melt present, and a minimal flat-TSV stor
 **Phase 2 — Carry the engine.** ✅ *Done.* Vendored `EnvoyExtract`'s entry point +
 `lib/` + all 202 strategies + `tools/` + tests + samples under **`glean/extract/`**, and
 the cross-suite shared libs (`envoy_*.sh`) under **`glean/lib/`** (the engine's `../lib`),
-via `glean/tools/sync-extract.sh` (re-syncable from upstream until the Phase-5 hard cut;
+via `glean/tools/sync-extract.sh` (re-syncable from an upstream checkout;
 `VENDOR.json` records the source SHA). Full vendored suite green: **216/216 test files,
 1103 assertions, 0 failed**. `glean` resolves the vendored engine first. Two fixes found
 along the way: an upstream test portability bug (hardcoded `EnvoyExtract/` path → resolved
@@ -232,8 +232,11 @@ symlink-safety bug (glean now resolves its real dir via `GLEAN_ROOT` so it finds
 vendored trees when run through a PATH symlink). The melt/transform was also imported
 from source (`glean/transform/melt.sh` via `tools/sync-melt.sh`) rather than hand-copied.
 
-**Phase 5 — Retire Envoy.** Remove the `Envoy*` trees, satellites, and their CI gates;
-archive `scenarios/`/`web/`/`tickets/` to a sibling repo. Final README/branding pass.
+**Phase 5 — Retire Envoy.** *Superseded by the standalone-repo split (2026-07-05):*
+`glean` was extracted into its own repository instead of hard-cutting the `Envoy*`
+trees in place, so the vendored trees here are already canonical. Removing the
+`Envoy*` trees, satellites, and their CI gates is now a task in the upstream Envoy
+monorepo, not this repo — out of scope here.
 
 ---
 

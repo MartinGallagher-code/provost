@@ -16,7 +16,7 @@
 #
 # The big pipeline/ dir and the browse/dashboard tools are intentionally NOT
 # vendored — glean only needs the analyze engine (its completions/schemas/docs
-# ARE vendored so the engine test suite passes). Retired at the Phase-5 cut.
+# ARE vendored so the engine test suite passes).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -80,7 +80,7 @@ cat > "$ENGINE_DEST/VENDOR.json" <<EOF
   "engine_components": [$(printf '"%s",' "${components[@]}" | sed 's/,$//')],
   "shared_libs": $shared_n,
   "file_count": $total_n,
-  "note": "Regenerate with: bash glean/tools/sync-analyze.sh. Do not hand-edit; edit upstream in EnvoyAnalyze/ (or repo lib/) and re-sync until the Phase-5 hard cut."
+  "note": "Regenerate with: bash glean/tools/sync-analyze.sh. Do not hand-edit; edit upstream in EnvoyAnalyze/ (or repo lib/) and re-sync."
 }
 EOF
 echo "sync-analyze: wrote $ENGINE_DEST/VENDOR.json (source $src_desc, $total_n files + $shared_n shared)"

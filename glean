@@ -102,7 +102,7 @@ die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
 #   Phase 2: the engine is vendored at glean/extract/ (see tools/sync-extract.sh)
 #   with its shared libs at glean/lib/ (the engine's ../lib). This is the
 #   canonical copy. The sibling-EnvoyExtract walk-up remains only as a
-#   transition fallback until the Phase-5 hard cut removes EnvoyExtract/.
+#   fallback for a co-located Envoy checkout.
 # ---------------------------------------------------------------------------
 _find_engine () {
     local here script_dir="$GLEAN_ROOT"
@@ -149,7 +149,7 @@ _find_analyze () {
 # (`_core_union_header`, `_core_align_rows`) are IMPORTED from EnvoyCapture's
 # lib/_core.sh, vendored to glean/transform/melt.sh by tools/sync-melt.sh (not
 # re-implemented here). Source it now; the sibling-EnvoyCapture fallback keeps
-# glean working before a sync until the Phase-5 hard cut.
+# glean working before a sync.
 # ---------------------------------------------------------------------------
 _source_transform () {
     local here script_dir="$GLEAN_ROOT"

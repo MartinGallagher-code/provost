@@ -9,5 +9,5 @@
   "strategy_count": 205,
   "file_count": 1171,
   "layout": "engine at glean/extract/, shared libs at glean/lib/ (engine's ../lib)",
-  "note": "Regenerate with: bash glean/tools/sync-extract.sh. Do not hand-edit vendored files; edit upstream in EnvoyExtract/ (or repo lib/) and re-sync until the Phase-5 hard cut."
+  "note": "Regenerate with: bash glean/tools/sync-extract.sh. Do not hand-edit vendored files; edit upstream in EnvoyExtract/ (or repo lib/) and re-sync."
 }
