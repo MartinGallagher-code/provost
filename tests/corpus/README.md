@@ -40,8 +40,17 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**100 tools tested; all 100 tidy — 87 via a generic parser, 13 via a bespoke
-strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+**200 tools tested; 169 tidy — 150 via a generic parser, 19 via a bespoke
+strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list. (The
+first 100 — core sysadmin — are all tidy; the second 100 add git/VCS, language
+runtimes, binutils, databases, monitoring, cloud/k8s, and more security/net, at
+69/100 so far.)
+
+The remaining ~31 gaps cluster into: psql/mysql box tables (`col | col` with
+`---+---` separators), version strings (`node-version`, `java-version`),
+banner+columnar monitoring tools (`perf-stat`, `turbostat`, `nethogs`, `iotop`),
+and a few key-value blocks (`gpg-list-keys`, `pkg-config`, `chage-l`) — the same
+kind of tail the first 100 needed, closable with targeted parser work.
 
 The generic parsers (led by `aligned-columns` with its header/headerless/two-line
 modes, plus `line-records`, `colons`, `yaml`, `key-value`, `equals`,
