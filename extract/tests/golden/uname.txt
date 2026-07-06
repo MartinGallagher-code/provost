@@ -1,0 +1,6 @@
+entry1.kernel_name Linux
+entry1.nodename host
+entry1.kernel_release 6.1.0-18-amd64
+entry1.machine x86_64
+entry1.operating_system GNU/Linux
+total_entries 1

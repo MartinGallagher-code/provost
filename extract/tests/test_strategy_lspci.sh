@@ -20,16 +20,16 @@ test_lspci_detect () {
 test_lspci_values () {
     local output
     output=$(run_mfe -r -s lspci "$SAMPLES_DIR/lspci/basic.txt")
-    assert_contains "$output" "device1.slot 00:02.0" "should extract VGA slot"
-    assert_contains "$output" "device1.class VGA compatible controller" "should extract VGA class"
-    assert_contains "$output" "device1.driver i915" "should extract VGA driver"
-    assert_contains "$output" "device2.slot 03:00.0" "should extract Ethernet slot"
-    assert_contains "$output" "device2.class Ethernet controller" "should extract Ethernet class"
-    assert_contains "$output" "device2.driver igb" "should extract Ethernet driver"
-    assert_contains "$output" "device3.driver nvme" "should extract NVMe driver"
-    assert_contains "$output" "device4.class 3D controller" "should extract GPU class"
-    assert_contains "$output" "device4.driver nvidia" "should extract GPU driver"
-    assert_contains "$output" "device_count 4" "should count 4 devices"
+    assert_contains "$output" "entry1.slot 00:02.0" "should extract VGA slot"
+    assert_contains "$output" "entry1.class VGA compatible controller" "should extract VGA class"
+    assert_contains "$output" "entry1.driver i915" "should extract VGA driver"
+    assert_contains "$output" "entry2.slot 03:00.0" "should extract Ethernet slot"
+    assert_contains "$output" "entry2.class Ethernet controller" "should extract Ethernet class"
+    assert_contains "$output" "entry2.driver igb" "should extract Ethernet driver"
+    assert_contains "$output" "entry3.driver nvme" "should extract NVMe driver"
+    assert_contains "$output" "entry4.class 3D controller" "should extract GPU class"
+    assert_contains "$output" "entry4.driver nvidia" "should extract GPU driver"
+    assert_contains "$output" "total_entries 4" "should count 4 devices"
 }
 
 test_lspci_not_json () {

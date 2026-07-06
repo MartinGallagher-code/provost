@@ -62,6 +62,18 @@ strategy_extract () {
     local headers; headers=()
     IFS='	' read -ra headers <<< "$header"
 
+    # Headerless TSV: if the first line already looks like data (a digit-bearing
+    # field), synthesise c1..cN column names and treat every line as a record —
+    # so `du` output (size <tab> path) stays one row per line instead of eating
+    # row 1 as a header.
+    local headerless=0 _hf
+    for _hf in "${headers[@]}"; do [[ "$_hf" =~ [0-9] ]] && { headerless=1; break; }; done
+    if [[ $headerless -eq 1 ]]; then
+        local _n=${#headers[@]} _i
+        headers=()
+        for ((_i = 1; _i <= _n; _i++)); do headers+=("c$_i"); done
+    fi
+
     # Process each data row as an indexed record group (entry<N>.<column>) so the
     # capture tidy melt renders one row per record — rather than welding every
     # row's cells into a single wide record with duplicate column names.
@@ -70,7 +82,7 @@ strategy_extract () {
     local rec=0
     while IFS= read -r line; do
         row_num=$((row_num + 1))
-        [[ $row_num -eq 1 ]] && continue  # skip header
+        [[ $row_num -eq 1 && $headerless -eq 0 ]] && continue  # skip header
         [[ -z "$line" ]] && continue
 
         # Split on tabs

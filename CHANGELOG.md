@@ -1,5 +1,23 @@
 # glean — Changelog
 
+## 2026-07-06 — close the 4 corpus gaps: 34/34 tools tidy
+- `du -h` — taught `tsv` a **headerless mode**: when the first line is already
+  data (a digit-bearing field) it synthesises `c1..cN` instead of eating row 1 as
+  a header. `du` (size <tab> path) now tidies to one row per line.
+- `id` — new generic **`inline-kv`** parser (space-separated `key=value` tokens on
+  a line) → `uid`/`gid`/`groups` columns.
+- `uname -a` — new small **`uname`** parser (single-line positional): kernel name,
+  nodename, release, machine, operating-system.
+- `lspci` — its bespoke strategy filtered output to GPU/NIC/storage and emitted
+  only those; rewrote it to emit **all** devices as (slot, class, description,
+  driver). Updated its unit test to the new schema.
+- Coverage now **34/34** — 31 via a generic parser (8 parsers total, adding
+  `inline-kv`), 3 via bespoke (`uptime`, `uname`, `lspci`). Full extract suite
+  219/219; smoke 33/33; melt 8/8; corpus golden regression 31/31.
+- Files: `extract/strategies/structured/{tsv,inline-kv}.sh`,
+  `extract/strategies/system/uname.sh`, `extract/strategies/hardware/lspci.sh`,
+  `extract/tests/test_strategy_lspci.sh`, new samples + goldens, `tests/corpus/*`.
+
 ## 2026-07-06 — broaden the corpus to 34 tools (30 tidy, 29 via generic parsers)
 - Expanded `tests/corpus/` from 22 to **34 common Linux tools**, including varied
   output for the same tool (`free -h`, `df -i`, `ps -ef`): added `ps-ef`, `lsof`,

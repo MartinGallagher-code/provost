@@ -10,12 +10,12 @@ yet tidy.
 | df-i | ✅ | aligned-columns |
 | dmesg | ✅ | bracket-log |
 | docker-ps | ✅ | aligned-columns |
-| du-h | ⏳ | — |
+| du-h | ✅ | tsv |
 | env | ✅ | equals |
 | ethtool | ✅ | colons |
 | free-h | ✅ | aligned-columns |
 | free | ✅ | aligned-columns |
-| id | ⏳ | — |
+| id | ✅ | inline-kv |
 | iostat | ✅ | aligned-columns |
 | ip-addr | ✅ | indented-hierarchy |
 | ip-route | ✅ | aligned-columns |
@@ -24,7 +24,7 @@ yet tidy.
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
 | lsof | ✅ | aligned-columns |
-| lspci | ⏳ | — |
+| lspci | ✅ᵇ | lspci (bespoke) |
 | lsusb | ✅ | aligned-columns |
 | mount | ✅ | aligned-columns |
 | netstat-tulpn | ✅ | aligned-columns |
@@ -33,14 +33,3 @@ yet tidy.
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
 | sensors | ✅ | colons |
-| ss-tulpn | ✅ | aligned-columns |
-| systemctl-list | ✅ | aligned-columns |
-| top | ✅ | aligned-columns |
-| uname-a | ⏳ | — |
-| uptime | ✅ᵇ | uptime (bespoke) |
-| vmstat | ✅ | aligned-columns |
-| who | ✅ | aligned-columns |
-
-
-**Coverage: 30 / 34** — ✅ 29 via a generic parser, ✅ᵇ 1 via a bespoke strategy.
-⏳ not yet tidy: du-h id lspci uname-a

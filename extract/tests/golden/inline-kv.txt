@@ -1,0 +1,4 @@
+entry1.uid 1000(alice)
+entry1.gid 1000(alice)
+entry1.groups 1000(alice),27(sudo),100(users)
+total_entries 1

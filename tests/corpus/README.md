@@ -34,24 +34,20 @@ bespoke strategy*.
 
 ## Tested tools & current coverage
 
-**34 tools tested; 30 tidy (29 via a generic parser, `uptime` via a bespoke
-strategy).** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+**34 tools tested; all 34 tidy — 31 via a generic parser, 3 (`uptime`, `uname`,
+`lspci`) via a bespoke strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live
+per-tool list.
 
-The generic ones are handled by just **7 generic parsers**: `aligned-columns`
-(with headerless + two-line-header modes), `bracket-log`, `yaml`, `key-value`,
-`equals`, `colons`, and `indented-hierarchy` — the bulk of common tool output
-collapses onto a handful of structural parsers, not one rule per tool. Includes
-varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
+The generic ones are handled by **8 generic parsers**: `aligned-columns` (with
+headerless + two-line-header modes), `bracket-log`, `inline-kv`, `yaml`,
+`key-value`, `equals`, `colons`, and `indented-hierarchy` — the bulk of common
+tool output collapses onto a handful of structural parsers, not one rule per
+tool. Includes varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
 `ps aux`/`ps -ef`).
 
-### Not yet tidy (4)
-
-| Tool | why | fix |
-|---|---|---|
-| `du -h` | tab-separated headerless 2-col; `tsv` (high priority) claims it and treats row 1 as a header | teach `tsv`/`csv` a headerless mode, or a 2-col headerless case |
-| `id` | single line `uid=…(…) gid=…(…) groups=…` | a single-line `k=v(label)` field parser |
-| `uname -a` | single freeform line | needs a small dedicated parser (like `uptime`) |
-| `lspci` | the bespoke `lspci` strategy only emits 1 of N devices (buggy) | fix/replace it, or a generic `slot class: desc` line parser |
+The 3 bespoke ones are the formats no generic structural parser fits: `uptime`
+and `uname -a` are single freeform lines, and `lspci` is a `slot class: desc`
+listing. That's the accepted floor for "no per-tool rule".
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
 whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out

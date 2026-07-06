@@ -93,14 +93,15 @@ redundant per-tool strategies once the generic parsers cover them.
 
 Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **34 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one batch harness `run.sh`. **30/34 tidy: 29 via a generic parser, `uptime`
-via a bespoke one.** `run.sh --coverage` regenerates `COVERAGE.md` (the queryable
-✅/✅ᵇ/⏳ list). The extract engine selects the **lowest-priority-number** matching
-strategy (confidence is mainly a threshold gate), so making a generic parser win
-is about its `## Priority` and `detect()`.
+and one batch harness `run.sh`. **All 34 tidy: 31 via a generic parser, 3
+(`uptime`, `uname`, `lspci`) via a bespoke one.** `run.sh --coverage` regenerates
+`COVERAGE.md` (the queryable ✅/✅ᵇ/⏳ list). The extract engine selects the
+**lowest-priority-number** matching strategy (confidence is mainly a threshold
+gate), so making a generic parser win is about its `## Priority` and `detect()`.
 
-Open gaps (4): `du-h` (tab-separated headerless 2-col stolen by `tsv`), `id` /
-`uname-a` (single-line freeform), `lspci` (bespoke strategy emits only 1 of N).
+The 8 generic parsers covering the corpus: `aligned-columns` (header, headerless,
+two-line), `bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons`,
+`indented-hierarchy`.
 
 The 7 generic parsers covering the corpus: `aligned-columns` (header, headerless,
 and two-line-header modes), `bracket-log`, `yaml`, `key-value`, `equals`,
