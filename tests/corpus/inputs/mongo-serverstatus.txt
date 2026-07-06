@@ -1,0 +1,9 @@
+host : mongo-primary-01:27017
+version : 7.0.5
+process : mongod
+pid : 1
+uptime : 482910
+uptimeMillis : 482910233
+localTime : ISODate("2026-07-06T09:14:22.481Z")
+connections.current : 34
+connections.available : 51166

@@ -1,0 +1,8 @@
+Name:             web-5b7d9c6f8-abcde
+Namespace:        prod
+Priority:         0
+Node:             gke-node-1/10.128.0.5
+Start Time:       Mon, 06 Jul 2026 10:12:03 +0000
+Labels:           app=web
+Status:           Running
+IP:               10.12.1.34

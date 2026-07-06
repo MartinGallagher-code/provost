@@ -1,0 +1,4 @@
+InstanceId           Type        State     PublicIp
+i-0abc123def4567890  t3.micro    running   54.210.12.34
+i-0def456abc7890123  t3.large    running   54.88.100.7
+i-0aaa111bbb2223334  m5.xlarge   stopped   -

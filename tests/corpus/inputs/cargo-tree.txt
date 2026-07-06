@@ -1,0 +1,9 @@
+myapp v0.1.0 (/home/user/projects/myapp)
+├── clap v4.4.11
+│   ├── clap_builder v4.4.11
+│   └── clap_derive v4.4.7
+├── serde v1.0.193
+│   └── serde_derive v1.0.193
+├── tokio v1.35.1
+│   └── tokio-macros v2.2.0
+└── anyhow v1.0.79

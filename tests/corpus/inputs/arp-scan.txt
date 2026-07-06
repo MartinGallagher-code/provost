@@ -1,0 +1,9 @@
+Interface: eth0, type: EN10MB, MAC: 00:16:3e:2a:4b:6c, IPv4: 192.168.1.24
+Starting arp-scan 1.9.7 with 256 hosts
+192.168.1.1     aa:bb:cc:dd:ee:ff       Netgear Inc.
+192.168.1.10    de:ad:be:ef:00:11       Raspberry Pi Foundation
+192.168.1.24    00:16:3e:2a:4b:6c       Xensource, Inc.
+192.168.1.42    52:54:00:12:34:56       QEMU Virtual NIC
+192.168.1.99    b8:27:eb:aa:bb:cc       Raspberry Pi Foundation
+
+5 packets received by filter, 0 packets dropped

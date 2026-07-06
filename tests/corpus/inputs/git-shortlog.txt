@@ -1,0 +1,5 @@
+    42	Jane Developer
+    37	Sam Maintainer
+    19	Alex Contributor
+     8	Pat Reviewer
+     3	Chris Newcomer

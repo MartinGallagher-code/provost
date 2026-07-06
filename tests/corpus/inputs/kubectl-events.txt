@@ -1,0 +1,4 @@
+LAST SEEN   TYPE      REASON      OBJECT           MESSAGE
+2m          Normal    Scheduled   pod/web-abcde    Successfully assigned prod/web-abcde to gke-node-1
+90s         Normal    Pulled      pod/web-abcde    Container image "web:1.4" already present on machine
+30s         Warning   BackOff     pod/api-xyz12    Back-off restarting failed container

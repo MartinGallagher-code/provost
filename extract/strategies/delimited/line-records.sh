@@ -32,18 +32,19 @@ strategy_detect () {
 
     local n=${#counts[@]}
     [[ $n -lt 1 ]] && return 1
-    # Require some numeric/structured content so pure prose isn't carved up.
-    [[ $hasnum -eq 1 ]] || return 1
 
     if [[ $n -eq 1 ]]; then
-        # single line: needs >=2 fields to be worth splitting
-        [[ ${counts[0]} -ge 2 ]] || return 1
+        # single line: needs >=2 fields AND a number, so pure prose (e.g. "no
+        # extractable content here") isn't carved into columns.
+        [[ ${counts[0]} -ge 2 && $hasnum -eq 1 ]] || return 1
         _STRATEGY_CONFIDENCE=80
         return 0
     fi
 
-    # multi-line: require a dominant modal column count (a consistent list/table),
-    # so ragged prose doesn't get carved into columns.
+    # Multi-line: a dominant modal column count means a consistent list/table
+    # (git ls-files, git branch, strings, git status …). The consistency itself is
+    # the structure signal, so no digit is required here — but ragged prose (which
+    # has no dominant column count) is still rejected.
     local mode=0 best=0 c d k
     for c in "${counts[@]}"; do
         k=0

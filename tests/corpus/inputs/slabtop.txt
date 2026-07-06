@@ -1,0 +1,12 @@
+ Active / Total Objects (% used)    : 1284210 / 1402884 (91.5%)
+ Active / Total Slabs (% used)      : 38210 / 38210 (100.0%)
+ Active / Total Caches (% used)     : 92 / 128 (71.9%)
+ Active / Total Size (% used)       : 384210.44K / 421088.12K (91.2%)
+ Minimum / Average / Maximum Object : 0.01K / 0.30K / 18.62K
+
+  OBJS ACTIVE  USE OBJ SIZE  SLABS OBJ/SLAB CACHE SIZE NAME
+420480 418210  99%    0.19K  20024       21     80096K dentry
+188352 180221  95%    0.06K   2943       64     11772K kmalloc-64
+ 96432  94108  97%    0.25K   6027       16     24108K filp
+ 45220  42011  92%    1.00K   2826       16     45216K ext4_inode_cache
+ 38016  36540  96%    0.13K   1188       32      4752K kernfs_node_cache

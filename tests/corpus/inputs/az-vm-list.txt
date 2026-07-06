@@ -1,0 +1,4 @@
+Name       ResourceGroup    Location    Zones    PowerState
+web-vm-1   prod-rg          eastus      1        VM running
+web-vm-2   prod-rg          eastus      2        VM running
+db-vm-1    prod-rg          westus2     1        VM deallocated

@@ -1,0 +1,10 @@
+The battery reports a discharge rate of 8.42 W
+
+Summary: 421.3 wakeups/second, 12.4 GPU ops/second, 0.0 VFS ops/sec
+
+  Usage       Events/s    Category       Description
+  45.2 ms/s    142.1       Process        /usr/lib/postgresql/postgres
+  12.8 ms/s     88.4       Process        nginx: worker process
+   8.1 ms/s     54.2       Interrupt      [12] eth0-rx
+   3.4 ms/s     21.0       Timer          hrtimer_wakeup
+   1.2 ms/s      9.8       kWork          intel_pstate_update_util

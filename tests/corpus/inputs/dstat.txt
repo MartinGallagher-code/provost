@@ -1,0 +1,6 @@
+--total-cpu-usage-- -dsk/total- -net/total- ---paging-- ---system--
+usr sys idl wai stl| read  writ| recv  send|  in   out | int   csw
+  8   3  88   1   0|  45k  128k|   0     0 |   0     0 | 2145  4310
+ 12   5  81   2   0| 128k  256k|  12k  8192 |   0     0 | 3201  6742
+  6   2  91   1   0|   0    64k| 4096  2048 |   0     0 | 1899  3820
+ 15   7  75   3   0| 512k  1024k| 45k   32k |   0     0 | 4210  8901

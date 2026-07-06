@@ -1,0 +1,4 @@
+NAME    READY   UP-TO-DATE   AVAILABLE   AGE
+web     3/3     3            3           12d
+api     2/2     2            2           5d
+redis   1/1     1            1           3d

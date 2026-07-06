@@ -1,0 +1,8 @@
+n	c1	total_entries
+1	certifi==2023.11.17	7
+2	charset-normalizer==3.3.2	7
+3	idna==3.6	7
+4	requests==2.31.0	7
+5	setuptools==69.0.2	7
+6	urllib3==2.1.0	7
+7	wheel==0.42.0	7

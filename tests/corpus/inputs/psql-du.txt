@@ -1,0 +1,7 @@
+                                   List of roles
+ Role name |                         Attributes                         | Member of
+-----------+------------------------------------------------------------+-----------
+ appuser   |                                                            | {}
+ postgres  | Superuser, Create role, Create DB, Replication, Bypass RLS | {}
+ readonly  | Cannot login                                               | {}
+ reporting | Password valid until 2027-01-01 00:00:00+00                 | {readonly}

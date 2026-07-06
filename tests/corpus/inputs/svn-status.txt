@@ -1,0 +1,5 @@
+M       src/app.py
+?       notes.txt
+A       src/newmod.py
+D       old/legacy.py
+M       README.md

@@ -1,0 +1,4 @@
+NAME                     READY   STATUS      RESTARTS   AGE
+web-5b7d9c6f8-abcde      1/1     Running     0          12d
+api-6c8f7d5b9-xyz12      1/1     Running     2          5d
+worker-7d9e8f6c1-lmn34   0/1     Pending     0          3m

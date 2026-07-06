@@ -1,0 +1,4 @@
+n	redis_version	redis_mode	os	arch_bits	process_id	uptime_in_seconds	tcp_port	connected_clients	blocked_clients	used_memory	used_memory_human	maxmemory_human
+1	7.2.4	standalone	Linux_6.5.0-14-generic_x86_64	64	1	842301	6379					
+2								12	0			
+3										1048576	1.00M	0B

@@ -1,0 +1,12 @@
+web-prod-03 (Linux 5.15.0-91-generic 64bit)                    Uptime: 12 days, 04:11:38
+
+CPU  [ 31.2%]   CPU     31.2%   MEM   52.4%   SWAP    0.0%   LOAD    4-core
+MEM  [ 52.4%]   user    24.1%   total  15.6G   total  2.00G   1 min   1.24
+LOAD [  1.24]   system   5.8%   used    8.2G   used    0.0G   5 min   0.98
+                idle    68.8%   free    7.4G   free   2.00G   15 min  0.76
+
+  PID USER        CPU%  MEM%   VIRT   RES    TIME+     COMMAND
+ 1842 www-data    18.4   6.2   482M   210M   1:24.18   nginx
+ 3120 postgres    12.1   9.8   1.20G  510M   4:08.42   postgres
+  998 mysql        8.0   4.1   980M   320M   2:11.05   mysqld
+ 2301 root         0.4   0.8   112M    22M   0:03.11   sshd

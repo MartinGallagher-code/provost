@@ -1,0 +1,5 @@
+init.o
+parser.o
+lexer.o
+util.o
+main.o

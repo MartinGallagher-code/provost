@@ -1,0 +1,5 @@
+ src/app.py       | 12 ++++++------
+ README.md        |  4 ++++
+ tests/test_app.py | 28 ++++++++++++++++++++++++++++
+ config/settings.yml |  2 +-
+ 4 files changed, 40 insertions(+), 6 deletions(-)

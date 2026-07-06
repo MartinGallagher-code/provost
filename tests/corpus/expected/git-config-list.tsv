@@ -1,0 +1,9 @@
+n	c1	c2	total_entries
+1	user.name=Jane	Developer	8
+2	user.email=jane@example.com		8
+3	core.editor=vim		8
+4	core.autocrlf=input		8
+5	color.ui=auto		8
+6	push.default=simple		8
+7	remote.origin.url=git@github.com:acme/widget.git		8
+8	branch.main.remote=origin		8

@@ -1,0 +1,5 @@
+n	c1	c2	total_entries
+1	/usr/bin/ping	cap_net_raw=ep	4
+2	/usr/bin/newuidmap	cap_setuid=ep	4
+3	/usr/bin/newgidmap	cap_setgid=ep	4
+4	/usr/bin/mtr-packet	cap_net_raw=ep	4

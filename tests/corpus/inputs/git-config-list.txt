@@ -1,0 +1,8 @@
+user.name=Jane Developer
+user.email=jane@example.com
+core.editor=vim
+core.autocrlf=input
+color.ui=auto
+push.default=simple
+remote.origin.url=git@github.com:acme/widget.git
+branch.main.remote=origin
