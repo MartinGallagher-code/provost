@@ -1,0 +1,11 @@
+entry1.time 10:15:01 AM
+entry1.CPU all
+entry1.pct_usr 2.34
+entry1.pct_nice 0.00
+entry1.pct_sys 1.02
+entry1.pct_iowait 0.10
+entry1.pct_irq 0.00
+entry1.pct_soft 0.05
+entry1.pct_steal 0.00
+entry1.pct_idle 96.49
+total_entries 1

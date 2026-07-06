@@ -25,11 +25,11 @@ yet tidy.
 | docker-images | ✅ | aligned-columns |
 | docker-network | ✅ | aligned-columns |
 | docker-ps | ✅ | aligned-columns |
-| dpkg-l | ⏳ | — |
+| dpkg-l | ✅ᵇ | dpkg-list (bespoke) |
 | du-h | ✅ | tsv |
 | env | ✅ | equals |
 | ethtool | ✅ | colons |
-| fdisk-l | ⏳ | — |
+| fdisk-l | ✅ᵇ | fdisk (bespoke) |
 | file | ⏳ | — |
 | findmnt | ✅ | aligned-columns |
 | firewall-cmd | ✅ | indented-hierarchy |
@@ -46,7 +46,7 @@ yet tidy.
 | ip-link | ✅ | indented-hierarchy |
 | ip-neigh | ✅ | aligned-columns |
 | ip-route | ✅ | aligned-columns |
-| iptables-save | ⏳ | — |
+| iptables-save | ✅ᵇ | iptables-save (bespoke) |
 | journalctl | ✅ | aligned-columns |
 | kubectl-nodes | ✅ | aligned-columns |
 | kubectl-pods | ✅ | aligned-columns |
@@ -64,26 +64,26 @@ yet tidy.
 | lsusb | ✅ | aligned-columns |
 | lvdisplay | ✅ | aligned-columns |
 | mount | ✅ | aligned-columns |
-| mpstat | ⏳ | — |
+| mpstat | ✅ᵇ | sysstat (bespoke) |
 | netstat-tulpn | ✅ | aligned-columns |
 | nmcli | ✅ | aligned-columns |
-| npm-ls | ⏳ | — |
+| npm-ls | ✅ | tree-view |
 | numactl-hardware | ✅ | key-value |
 | nvidia-smi | ✅ᵇ | nvidia-smi (bespoke) |
 | os-release | ✅ | aligned-columns |
-| pidstat | ⏳ | — |
-| ping | ⏳ | — |
+| pidstat | ✅ᵇ | sysstat (bespoke) |
+| ping | ✅ᵇ | ping (bespoke) |
 | podman-ps | ✅ | aligned-columns |
 | proc-cpuinfo | ✅ | tsv |
 | proc-loadavg | ✅ | line-records |
 | proc-meminfo | ✅ | yaml |
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
-| pstree | ⏳ | — |
+| pstree | ✅ | tree-view |
 | pvdisplay | ✅ | aligned-columns |
 | route-n | ✅ | aligned-columns |
 | rpm-qa | ✅ | line-records |
-| sar | ⏳ | — |
+| sar | ✅ᵇ | sysstat (bespoke) |
 | sensors | ✅ | aligned-columns |
 | snap-list | ✅ | aligned-columns |
 | ss-s | ✅ | aligned-columns |
@@ -96,16 +96,16 @@ yet tidy.
 | taskset | ✅ | line-records |
 | timedatectl | ✅ | colons |
 | top | ✅ | aligned-columns |
-| traceroute | ⏳ | — |
-| tree | ⏳ | — |
+| traceroute | ✅ᵇ | traceroute (bespoke) |
+| tree | ✅ | tree-view |
 | ufw-status | ✅ | fixed-width |
-| ulimit | ⏳ | — |
+| ulimit | ✅ᵇ | ulimit (bespoke) |
 | uname-a | ✅ | line-records |
 | uptime | ✅ | line-records |
 | vgdisplay | ✅ | aligned-columns |
 | vmstat | ✅ | aligned-columns |
-| w | ⏳ | — |
+| w | ✅ᵇ | w-sessions (bespoke) |
 | who | ✅ | aligned-columns |
 
-**Coverage: 82 / 100** — ✅ 80 via a generic parser, ✅ᵇ 2 via a bespoke strategy.
-⏳ not yet tidy: dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping pstree sar systemd-analyze traceroute tree ulimit w
+**Coverage: 95 / 100** — ✅ 83 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
+⏳ not yet tidy: file groups loginctl lshw systemd-analyze

@@ -1,0 +1,4 @@
+Linux 6.1.0-18-amd64 (host) 	07/06/2026 	_x86_64_	(8 CPU)
+
+10:15:01 AM  CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal   %idle
+10:15:01 AM  all    2.34    0.00    1.02    0.10    0.00    0.05    0.00   96.49

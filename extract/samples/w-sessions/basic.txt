@@ -1,0 +1,5 @@
+ 14:22:31 up 12 days,  3:47,  3 users,  load average: 0.42, 0.55, 0.61
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+alice    pts/0    10.0.4.12        09:14    0.00s  0.42s  0.03s w
+alice    pts/1    10.0.4.12        11:02    1:23m  0.11s  0.11s -bash
+bob      pts/2    192.168.1.55     13:47   12:04   2.31s  1.88s vim report.md

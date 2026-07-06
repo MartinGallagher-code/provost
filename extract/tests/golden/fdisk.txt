@@ -1,0 +1,29 @@
+entry1.device /dev/sda1
+entry1.boot *
+entry1.start 2048
+entry1.end 1050623
+entry1.sectors 1048576
+entry1.size 512M
+entry1.type Linux
+entry2.device /dev/sda2
+entry2.boot 
+entry2.start 1050624
+entry2.end 17827839
+entry2.sectors 16777216
+entry2.size 8G
+entry2.type Linux swap / Solaris
+entry3.device /dev/sda3
+entry3.boot 
+entry3.start 17827840
+entry3.end 494923775
+entry3.sectors 477095936
+entry3.size 227.5G
+entry3.type Linux
+entry4.device /dev/sda4
+entry4.boot 
+entry4.start 494923776
+entry4.end 976773167
+entry4.sectors 481849392
+entry4.size 229.8G
+entry4.type Linux
+total_entries 4

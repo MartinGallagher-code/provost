@@ -1,0 +1,17 @@
+entry1.depth 1
+entry1.name data
+entry2.depth 2
+entry2.name raw.csv
+entry3.depth 2
+entry3.name clean.csv
+entry4.depth 1
+entry4.name src
+entry5.depth 2
+entry5.name main.sh
+entry6.depth 2
+entry6.name util.sh
+entry7.depth 1
+entry7.name README.md
+entry8.depth 1
+entry8.name LICENSE
+total_entries 8

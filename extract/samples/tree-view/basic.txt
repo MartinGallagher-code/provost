@@ -1,0 +1,11 @@
+.
+├── data
+│   ├── raw.csv
+│   └── clean.csv
+├── src
+│   ├── main.sh
+│   └── util.sh
+├── README.md
+└── LICENSE
+
+2 directories, 6 files
