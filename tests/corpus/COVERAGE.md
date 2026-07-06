@@ -10,7 +10,7 @@ yet tidy.
 | apt-list | ✅ | aligned-columns |
 | arp | ✅ | aligned-columns |
 | blkid | ✅ | aligned-columns |
-| brew-list | ⏳ | — |
+| brew-list | ✅ | line-records |
 | conntrack | ✅ | inline-kv |
 | cpupower-frequency | ✅ | indented-hierarchy |
 | crictl-ps | ✅ | aligned-columns |
@@ -18,7 +18,7 @@ yet tidy.
 | df-T | ✅ | aligned-columns |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
-| dig-short | ⏳ | — |
+| dig-short | ✅ | line-records |
 | dmesg | ✅ | bracket-log |
 | dmidecode | ✅ | colons |
 | dnf-list | ✅ | aligned-columns |
@@ -75,14 +75,14 @@ yet tidy.
 | ping | ⏳ | — |
 | podman-ps | ✅ | aligned-columns |
 | proc-cpuinfo | ✅ | tsv |
-| proc-loadavg | ⏳ | — |
+| proc-loadavg | ✅ | line-records |
 | proc-meminfo | ✅ | yaml |
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
 | pstree | ⏳ | — |
 | pvdisplay | ✅ | aligned-columns |
 | route-n | ✅ | aligned-columns |
-| rpm-qa | ⏳ | — |
+| rpm-qa | ✅ | line-records |
 | sar | ⏳ | — |
 | sensors | ✅ | aligned-columns |
 | snap-list | ✅ | aligned-columns |
@@ -93,19 +93,19 @@ yet tidy.
 | sysctl | ✅ | aligned-columns |
 | systemctl-list | ✅ | aligned-columns |
 | systemd-analyze | ⏳ | — |
-| taskset | ⏳ | — |
+| taskset | ✅ | line-records |
 | timedatectl | ✅ | colons |
 | top | ✅ | aligned-columns |
 | traceroute | ⏳ | — |
 | tree | ⏳ | — |
 | ufw-status | ✅ | fixed-width |
 | ulimit | ⏳ | — |
-| uname-a | ✅ᵇ | uname (bespoke) |
-| uptime | ✅ᵇ | uptime (bespoke) |
+| uname-a | ✅ | line-records |
+| uptime | ✅ | line-records |
 | vgdisplay | ✅ | aligned-columns |
 | vmstat | ✅ | aligned-columns |
 | w | ⏳ | — |
 | who | ✅ | aligned-columns |
 
-**Coverage: 76 / 100** — ✅ 73 via a generic parser, ✅ᵇ 3 via a bespoke strategy.
-⏳ not yet tidy: brew-list date dig-short dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w
+**Coverage: 81 / 100** — ✅ 80 via a generic parser, ✅ᵇ 1 via a bespoke strategy.
+⏳ not yet tidy: date dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping pstree sar systemd-analyze traceroute tree ulimit w

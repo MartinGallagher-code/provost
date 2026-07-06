@@ -1,0 +1,7 @@
+n	c1	total_entries
+1	glibc-2.34-60.el9.x86_64	6
+2	bash-5.1.8-6.el9.x86_64	6
+3	openssl-libs-3.0.7-16.el9.x86_64	6
+4	systemd-252-14.el9.x86_64	6
+5	kernel-5.14.0-284.11.1.el9.x86_64	6
+6	python3-3.9.16-1.el9.x86_64	6
