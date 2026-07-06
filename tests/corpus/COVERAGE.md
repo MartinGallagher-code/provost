@@ -6,48 +6,106 @@ yet tidy.
 
 | Tool | Covered | Parser |
 |---|:---:|---|
+| apt-cache-policy | ✅ | indented-hierarchy |
 | apt-list | ⏳ | — |
+| arp | ✅ | aligned-columns |
+| blkid | ✅ | aligned-columns |
+| brew-list | ⏳ | — |
+| conntrack | ✅ | inline-kv |
+| cpupower-frequency | ✅ | indented-hierarchy |
+| crictl-ps | ✅ | aligned-columns |
 | date | ⏳ | — |
+| df-T | ⏳ | — |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
+| dig-short | ⏳ | — |
 | dmesg | ✅ | bracket-log |
 | dmidecode | ✅ᵇ | dmidecode (bespoke) |
+| dnf-list | ✅ | aligned-columns |
+| docker-images | ✅ | aligned-columns |
+| docker-network | ✅ | aligned-columns |
 | docker-ps | ✅ | aligned-columns |
+| dpkg-l | ⏳ | — |
 | du-h | ✅ | tsv |
 | env | ✅ | equals |
 | ethtool | ✅ | colons |
+| fdisk-l | ⏳ | — |
+| file | ⏳ | — |
+| findmnt | ✅ | aligned-columns |
+| firewall-cmd | ✅ | indented-hierarchy |
+| flatpak-list | ✅ | aligned-columns |
 | free-h | ✅ | aligned-columns |
 | free | ✅ | aligned-columns |
+| groups | ⏳ | — |
+| helm-list | ✅ | aligned-columns |
+| hostnamectl | ⏳ | — |
 | id | ✅ | inline-kv |
+| ifconfig | ✅ | indented-hierarchy |
 | iostat | ✅ | aligned-columns |
 | ip-addr | ✅ | indented-hierarchy |
 | ip-link | ✅ | indented-hierarchy |
+| ip-neigh | ✅ | aligned-columns |
 | ip-route | ✅ | aligned-columns |
+| iptables-save | ⏳ | — |
 | journalctl | ✅ | aligned-columns |
+| kubectl-nodes | ✅ | aligned-columns |
+| kubectl-pods | ✅ | aligned-columns |
+| kubectl-top-pods | ✅ | aligned-columns |
 | last | ✅ | aligned-columns |
+| loginctl | ⏳ | — |
 | ls-l | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
+| lshw | ⏳ | — |
 | lsmod | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci | ✅ᵇ | lspci (bespoke) |
+| lsscsi | ✅ | bracket-log |
 | lsusb | ✅ | aligned-columns |
+| lvdisplay | ✅ | aligned-columns |
 | mount | ✅ | aligned-columns |
 | mpstat | ⏳ | — |
 | netstat-tulpn | ✅ | aligned-columns |
 | nmcli | ✅ | aligned-columns |
+| npm-ls | ⏳ | — |
+| numactl-hardware | ✅ | key-value |
+| nvidia-smi | ✅ | colons |
 | os-release | ✅ | aligned-columns |
+| pidstat | ⏳ | — |
+| ping | ⏳ | — |
+| podman-ps | ✅ | aligned-columns |
+| proc-cpuinfo | ✅ | tsv |
+| proc-loadavg | ⏳ | — |
 | proc-meminfo | ✅ | yaml |
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
+| pstree | ⏳ | — |
+| pvdisplay | ✅ | aligned-columns |
+| route-n | ✅ | aligned-columns |
+| rpm-qa | ⏳ | — |
+| sar | ⏳ | — |
 | sensors | ✅ | colons |
+| snap-list | ✅ | aligned-columns |
+| ss-s | ✅ | aligned-columns |
 | ss-tulpn | ✅ | aligned-columns |
+| stat | ✅ | yaml |
+| swapon | ✅ | aligned-columns |
+| sysctl | ✅ | aligned-columns |
 | systemctl-list | ✅ | aligned-columns |
+| systemd-analyze | ⏳ | — |
+| taskset | ⏳ | — |
+| timedatectl | ✅ | colons |
 | top | ✅ | aligned-columns |
+| traceroute | ⏳ | — |
+| tree | ⏳ | — |
+| ufw-status | ✅ | fixed-width |
+| ulimit | ⏳ | — |
 | uname-a | ✅ᵇ | uname (bespoke) |
 | uptime | ✅ᵇ | uptime (bespoke) |
+| vgdisplay | ✅ | aligned-columns |
 | vmstat | ✅ | aligned-columns |
+| w | ⏳ | — |
 | who | ✅ | aligned-columns |
 
-**Coverage: 39 / 42** — ✅ 35 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
-⏳ not yet tidy: apt-list date mpstat
+**Coverage: 73 / 100** — ✅ 69 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
+⏳ not yet tidy: apt-list brew-list date df-T dig-short dpkg-l fdisk-l file groups hostnamectl iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w

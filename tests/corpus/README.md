@@ -40,7 +40,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**42 tools tested; 39 tidy — 35 via a generic parser, 4 (`uptime`, `uname`,
+**100 tools tested; 73 tidy — 69 via a generic parser, 4 (`uptime`, `uname`,
 `lspci`, `dmidecode`) via a bespoke strategy.** See [`COVERAGE.md`](COVERAGE.md)
 for the live per-tool list.
 
@@ -51,16 +51,18 @@ tool output collapses onto a handful of structural parsers, not one rule per
 tool. Includes varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
 `ps aux`/`ps -ef`).
 
-The 4 bespoke ones are formats no generic structural parser fits well (single
-freeform lines / nested key-value listings).
+### Not yet tidy (27) — the next work
 
-### Not yet tidy (3)
+The gaps cluster into a few patterns (see `COVERAGE.md` for the ⏳ list):
 
-| Tool | why | fix |
-|---|---|---|
-| `mpstat` | leading `Linux … (8 CPU)` banner + blank line before the table | generic "skip leading banner" before the columnar block (also helps `sar`) |
-| `apt list` | leading `Listing…` preamble line | same preamble-skip |
-| `date` | single freeform line | a single-line parser (like `uptime`/`uname`) |
+- **Leading banner / preamble line** before the table — `mpstat`, `sar`,
+  `pidstat`, `apt-list`, `dpkg-l`, `df-T`, … Fix: a generic "skip leading
+  banner/preamble" for the columnar parser.
+- **Single freeform line** — `date`, `groups`, `proc-loadavg`, `taskset`.
+- **Single-column lists** — `dig-short`, `rpm-qa`, `brew-list` (glean's tidy
+  model wants ≥2 columns).
+- **Tree / nested structures** — `pstree`, `tree`, `npm-ls`.
+- **Key-value snapshots not yet matched** — `hostnamectl`, `ulimit`, `loginctl`.
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
 whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out

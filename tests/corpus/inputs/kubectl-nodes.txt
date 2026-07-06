@@ -1,0 +1,4 @@
+NAME             STATUS   ROLES           AGE    VERSION
+control-plane    Ready    control-plane   45d    v1.29.2
+worker-node-01   Ready    <none>          45d    v1.29.2
+worker-node-02   Ready    <none>          30d    v1.29.2

@@ -1,0 +1,5 @@
+archive.tar.gz:  gzip compressed data, from Unix, original size modulo 2^32 102400
+report.csv:      CSV text
+photo.jpg:       JPEG image data, JFIF standard 1.01, resolution (DPI), density 72x72
+script.sh:       Bourne-Again shell script, ASCII text executable
+libutil.so.1:    ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked

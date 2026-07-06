@@ -1,0 +1,7 @@
+n	To	Action	From
+1	22	ALLOW	Anywhere
+2	80	ALLOW	Anywhere
+3	44	ALLOW	Anywhere
+4	22	ALLOW	Anywhere_(v6)
+5	80	ALLOW	Anywhere_(v6)
+6	44	ALLOW	Anywhere_(v6)

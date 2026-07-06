@@ -1,0 +1,10 @@
+n	---	Physical	volume	total_entries
+1	PV	Name	/dev/sda3	9
+2	VG	Name	vg0	9
+3	GiB_/_not_usable_3.00_MiB	Size	465.76	9
+4	Allocatable	yes		9
+5	MiB	Size	4.00	9
+6	Total	PE	119234	9
+7	Free	PE	42435	9
+8	Allocated	PE	76799	9
+9	PV	UUID	9zYxWv-8Ut7-Srq6-5Pon-4Mlk-3Jih-gFedCb	9

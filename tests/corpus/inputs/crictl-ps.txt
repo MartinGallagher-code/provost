@@ -1,0 +1,4 @@
+CONTAINER           IMAGE               CREATED             STATE               NAME                ATTEMPT             POD ID
+b3f1a2c9d8e7        6270bb605e12        3 hours ago         Running             coredns             0                   a1b2c3d4e5f60
+c4e2b3d0a9f8        a0bf559e280c        2 days ago          Running             kube-proxy          1                   b2c3d4e5f6a71
+d5f3c4e1b0a9        e3db313c6dbc        2 days ago          Running             etcd                0                   c3d4e5f6a7b82

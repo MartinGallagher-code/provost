@@ -1,0 +1,6 @@
+TARGET                SOURCE      FSTYPE   OPTIONS
+/                     /dev/sda1   ext4     rw,relatime
+├─/boot/efi           /dev/nvme0n1p1 vfat  rw,relatime,fmask=0022
+├─/home               /dev/sdb1   xfs      rw,relatime,attr2,inode64
+├─/var                /dev/sda3   ext4     rw,relatime
+└─/tmp                tmpfs       tmpfs    rw,nosuid,nodev,size=2097152k

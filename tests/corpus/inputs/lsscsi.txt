@@ -1,0 +1,4 @@
+[0:0:0:0]    disk    ATA      Samsung SSD 860  2B6Q  /dev/sda
+[1:0:0:0]    disk    ATA      WDC WD10EZEX-00W 1A01  /dev/sdb
+[2:0:0:0]    cd/dvd  HL-DT-ST DVDRAM GH24NSD1 LN00  /dev/sr0
+[6:0:0:0]    disk    Kingston DataTraveler 3. PMAP  /dev/sdc

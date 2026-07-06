@@ -1,0 +1,5 @@
+Filesystem     Type     1K-blocks      Used Available Use% Mounted on
+/dev/sda1      ext4      50268928  18342144  29348352  39% /
+/dev/sdb1      xfs      976510976 412339712 564171264  43% /home
+/dev/nvme0n1p1 vfat        523248      6132    517116   2% /boot/efi
+tmpfs          tmpfs      8168960         0   8168960   0% /dev/shm

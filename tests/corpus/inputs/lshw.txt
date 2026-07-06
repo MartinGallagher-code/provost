@@ -1,0 +1,9 @@
+H/W path        Device      Class          Description
+=========================================================
+                            system         Standard PC (Q35 + ICH9, 2009)
+/0                          bus            Motherboard
+/0/0                        memory         96KiB BIOS
+/0/400                      processor      Intel(R) Xeon(R) CPU E5-2680 v4
+/0/1000                     memory         16GiB System Memory
+/0/100/1/0      /dev/sda    disk           107GB QEMU HARDDISK
+/0/100/2        eth0        network        82540EM Gigabit Ethernet Controller

@@ -1,0 +1,20 @@
+n	---	Volume	group	total_entries
+1	VG	Name	vg0	19
+2	System	ID		19
+3	Format	lvm2		19
+4	Metadata	Areas	1	19
+5	3	Sequence	No	19
+6	VG	Access	read/write	19
+7	VG	Status	resizable	19
+8	MAX	LV	0	19
+9	Cur	LV	2	19
+10	Open	LV	2	19
+11	Max	PV	0	19
+12	Cur	PV	1	19
+13	Act	PV	1	19
+14	GiB	Size	<465.76	19
+15	MiB	Size	4.00	19
+16	Total	PE	119234	19
+17	Size_76799_/_<300.00_GiB	PE	/	19
+18	Size_42435_/_165.76_GiB	PE	/	19
+19	VG	UUID	aB3cD4-eF5g-H6iJ-7kLm-8nOp-9qRs-TuVwX0	19

@@ -1,0 +1,4 @@
+REPOSITORY          TAG       IMAGE ID       CREATED        SIZE
+nginx               latest    605c77e624dd   2 weeks ago    141MB
+postgres            15.3      3b6645d2c145   5 weeks ago    412MB
+redis               7-alpine  0e5b9f8d3a1c   3 months ago   32.4MB

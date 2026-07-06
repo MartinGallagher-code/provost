@@ -1,0 +1,7 @@
+SESSION  UID USER     SEAT  TTY
+      3 1000 martin   seat0 tty2
+      7 1000 martin         pts/0
+     12  998 postgres
+      1    0 root     seat0 tty1
+
+4 sessions listed.

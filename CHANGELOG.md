@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-06 — corpus to 100 tools (73 tidy) via parallel authoring
+- Grew the tidy corpus from 42 to **100 common Linux tools** — authored in
+  parallel by six subagents across networking, storage, system/process, package
+  managers, containers/k8s, and hardware/misc (58 new tools with realistic
+  captured output + manifest rows).
+- Coverage **73/100** — 69 via a generic parser (no new strategies needed), 4 via
+  bespoke. The parallel harness scores all 100 in ~44s (coverage) / ~6s (golden).
+- 27 documented gaps in a few clusters: leading banner/preamble (`mpstat`, `sar`,
+  `pidstat`, `apt-list`, `dpkg-l`, `df-T`, …), single freeform lines (`date`,
+  `groups`, `proc-loadavg`, `taskset`), single-column lists (`dig-short`,
+  `rpm-qa`, `brew-list`), tree structures (`pstree`, `tree`, `npm-ls`), and a few
+  key-value snapshots (`hostnamectl`, `ulimit`, `loginctl`).
+- Inputs + manifest + goldens only; no engine changes (extract suite 214/214).
+
 ## 2026-07-06 — widen the corpus to 42 tools (39 tidy)
 - Added 8 more common tools: `lsmod`, `nmcli`, `ip-link`, `last`, `date`,
   `mpstat`, `apt-list`, `dmidecode`. Coverage now **39/42** — 35 via a generic

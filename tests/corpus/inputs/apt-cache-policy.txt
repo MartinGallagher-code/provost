@@ -1,0 +1,9 @@
+curl:
+  Installed: 7.81.0-1ubuntu1.14
+  Candidate: 7.81.0-1ubuntu1.14
+  Version table:
+ *** 7.81.0-1ubuntu1.14 500
+        500 http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages
+        100 /var/lib/dpkg/status
+     7.81.0-1ubuntu1 500
+        500 http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages

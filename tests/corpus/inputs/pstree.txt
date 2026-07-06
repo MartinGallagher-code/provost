@@ -1,0 +1,8 @@
+systemd─┬─ModemManager───2*[{ModemManager}]
+        ├─NetworkManager───2*[{NetworkManager}]
+        ├─cron
+        ├─dbus-daemon
+        ├─sshd───sshd───bash───pstree
+        ├─systemd-journald
+        ├─systemd-logind
+        └─systemd-udevd
