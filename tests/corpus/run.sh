@@ -102,7 +102,6 @@ for f in "$IN"/*.txt; do
     is_tidy=0; _tidy_ok "$cols" "$rows" && is_tidy=1
 
     # Full-mode tidy (all strategies, incl. bespoke) — for the coverage view.
-    local fcols frows fwide
     fwide="$(_engine -f tsv --max-strategies 1 "$f")"
     read -r fcols frows <<< "$(_melt_dims "$fwide")"
     is_ftidy=0; _tidy_ok "$fcols" "$frows" && is_ftidy=1

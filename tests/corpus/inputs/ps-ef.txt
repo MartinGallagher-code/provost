@@ -1,0 +1,5 @@
+UID          PID    PPID  C STIME TTY          TIME CMD
+root           1       0  0 09:12 ?        00:00:03 /sbin/init
+root         420       1  0 09:12 ?        00:00:11 /usr/lib/systemd/systemd-journald
+www-data    1337     420  2 09:20 ?        00:01:42 nginx: worker process
+alice       2201    2180  0 10:01 pts/0    00:00:00 -bash

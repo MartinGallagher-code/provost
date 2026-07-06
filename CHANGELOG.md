@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-07-06 — broaden the corpus to 34 tools (30 tidy, 29 via generic parsers)
+- Expanded `tests/corpus/` from 22 to **34 common Linux tools**, including varied
+  output for the same tool (`free -h`, `df -i`, `ps -ef`): added `ps-ef`, `lsof`,
+  `du-h`, `lsusb`, `free-h`, `df-i`, `os-release`, `ethtool`, `id`, `uname-a`,
+  `journalctl`, `lspci`.
+- **29 of the new+old set tidy via a generic parser** with no new strategy needed
+  (the `aligned-columns` header/headerless/two-line modes and `bracket-log` carry
+  most of them); `uptime` stays bespoke. Coverage: **30 / 34** — see
+  `tests/corpus/COVERAGE.md` (regenerate with `run.sh --coverage`).
+- Four documented gaps for later: `du-h` (tab-separated headerless 2-col stolen by
+  `tsv`), `id` / `uname-a` (single-line freeform), `lspci` (its bespoke strategy
+  emits only 1 of N devices).
+- `run.sh` coverage view now also melts full mode so it can mark bespoke-only
+  coverage (✅ᵇ); fixed a stray `local` outside a function.
+- No engine/strategy changes this batch (inputs + manifest + harness only); smoke
+  33/33, golden regression 29/29.
+- Files: `tests/corpus/inputs/*` (+12), `tests/corpus/expected.tsv`,
+  `tests/corpus/expected/*`, `tests/corpus/run.sh`, `tests/corpus/COVERAGE.md`,
+  `tests/corpus/README.md`.
+
 ## 2026-07-06 — full tidy coverage of the 22-tool corpus (21 generic + 1 bespoke)
 - Closed the last corpus gaps; all 22 common tools now come out tidy — **21 via
   a generic parser, `uptime` via its small bespoke strategy** (a single-line

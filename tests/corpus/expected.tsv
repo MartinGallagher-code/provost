@@ -31,3 +31,15 @@ sensors	kv	-	2
 env	kv	-	5
 uptime	kv	-	4
 ip-addr	kv	-	2
+ps-ef	table	4	8
+lsof	table	3	9
+du-h	table	4	2
+lsusb	table	3	5
+free-h	table	2	4
+df-i	table	3	6
+os-release	kv	-	4
+ethtool	kv	-	3
+id	kv	-	3
+uname-a	kv	-	3
+journalctl	table	3	2
+lspci	table	3	2

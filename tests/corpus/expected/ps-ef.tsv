@@ -1,0 +1,5 @@
+n	UID	PID	PPID	C	STIME	TTY	TIME	CMD	total_entries
+1	root	1	0	0	09:12	?	00:00:03	/sbin/init	4
+2	root	420	1	0	09:12	?	00:00:11	/usr/lib/systemd/systemd-journald	4
+3	www-data	1337	420	2	09:20	?	00:01:42	nginx:_worker_process	4
+4	alice	2201	2180	0	10:01	pts/0	00:00:00	-bash	4

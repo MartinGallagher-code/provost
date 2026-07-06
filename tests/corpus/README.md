@@ -34,22 +34,29 @@ bespoke strategy*.
 
 ## Tested tools & current coverage
 
-**All 22 tidy: 21 via a generic parser, 1 (`uptime`) via a bespoke strategy.**
-See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+**34 tools tested; 30 tidy (29 via a generic parser, `uptime` via a bespoke
+strategy).** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
-The 21 generic ones are handled by just **7 generic parsers**:
-`aligned-columns` (with headerless + two-line-header modes), `bracket-log`,
-`yaml`, `key-value`, `equals`, `colons`, and `indented-hierarchy` — i.e. the
-bulk of common tool output collapses onto a handful of structural parsers, not
-one rule per tool.
+The generic ones are handled by just **7 generic parsers**: `aligned-columns`
+(with headerless + two-line-header modes), `bracket-log`, `yaml`, `key-value`,
+`equals`, `colons`, and `indented-hierarchy` — the bulk of common tool output
+collapses onto a handful of structural parsers, not one rule per tool. Includes
+varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
+`ps aux`/`ps -ef`).
 
-`uptime` is a single-line prose status (`… up 3 days, 3 users, load average: …`)
-that no generic structural parser fits; it keeps a small dedicated strategy.
-That's the one accepted exception to "no per-tool rule".
+### Not yet tidy (4)
+
+| Tool | why | fix |
+|---|---|---|
+| `du -h` | tab-separated headerless 2-col; `tsv` (high priority) claims it and treats row 1 as a header | teach `tsv`/`csv` a headerless mode, or a 2-col headerless case |
+| `id` | single line `uid=…(…) gid=…(…) groups=…` | a single-line `k=v(label)` field parser |
+| `uname -a` | single freeform line | needs a small dedicated parser (like `uptime`) |
+| `lspci` | the bespoke `lspci` strategy only emits 1 of N devices (buggy) | fix/replace it, or a generic `slot class: desc` line parser |
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
-whitespace splitting imperfect); `free`/`ip route` come out one-row-per-record
-with slightly rough column labels but pass the tidy shape check.
+whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out
+one-row-per-record with slightly rough column labels but pass the tidy shape
+check.
 
 The corpus makes coverage measurable and regression-proof: `run.sh --golden`
 diffs each tool's tidy output against a frozen golden, and the full extract

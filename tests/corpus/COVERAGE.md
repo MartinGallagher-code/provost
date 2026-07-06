@@ -7,27 +7,40 @@ yet tidy.
 | Tool | Covered | Parser |
 |---|:---:|---|
 | df-h | ✅ | aligned-columns |
+| df-i | ✅ | aligned-columns |
 | dmesg | ✅ | bracket-log |
 | docker-ps | ✅ | aligned-columns |
+| du-h | ⏳ | — |
 | env | ✅ | equals |
+| ethtool | ✅ | colons |
+| free-h | ✅ | aligned-columns |
 | free | ✅ | aligned-columns |
+| id | ⏳ | — |
 | iostat | ✅ | aligned-columns |
 | ip-addr | ✅ | indented-hierarchy |
 | ip-route | ✅ | aligned-columns |
+| journalctl | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
+| lsof | ✅ | aligned-columns |
+| lspci | ⏳ | — |
+| lsusb | ✅ | aligned-columns |
 | mount | ✅ | aligned-columns |
 | netstat-tulpn | ✅ | aligned-columns |
+| os-release | ✅ | aligned-columns |
 | proc-meminfo | ✅ | yaml |
 | ps-aux | ✅ | aligned-columns |
+| ps-ef | ✅ | aligned-columns |
 | sensors | ✅ | colons |
 | ss-tulpn | ✅ | aligned-columns |
 | systemctl-list | ✅ | aligned-columns |
 | top | ✅ | aligned-columns |
+| uname-a | ⏳ | — |
 | uptime | ✅ᵇ | uptime (bespoke) |
 | vmstat | ✅ | aligned-columns |
 | who | ✅ | aligned-columns |
 
 
-**Coverage: 22 / 22** — ✅ 21 via a generic parser, ✅ᵇ 1 via a bespoke strategy.
+**Coverage: 30 / 34** — ✅ 29 via a generic parser, ✅ᵇ 1 via a bespoke strategy.
+⏳ not yet tidy: du-h id lspci uname-a

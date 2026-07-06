@@ -1,0 +1,6 @@
+Settings for eth0:
+	Supported ports: [ TP ]
+	Speed: 1000Mb/s
+	Duplex: Full
+	Auto-negotiation: on
+	Link detected: yes
