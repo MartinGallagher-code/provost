@@ -49,6 +49,5 @@ yet tidy.
 | vmstat | ✅ | aligned-columns |
 | who | ✅ | aligned-columns |
 
-
 **Coverage: 39 / 42** — ✅ 35 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
 ⏳ not yet tidy: apt-list date mpstat
