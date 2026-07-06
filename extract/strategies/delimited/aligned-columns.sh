@@ -29,6 +29,15 @@ _ac_body () {
         fi
         out+="$_l"$'\n'
     done <<< "$text"
+
+    # Drop a trailing summary line like "4 sessions listed." (loginctl, machinectl)
+    # so it isn't counted as a data row.
+    local body="${out%$'\n'}" last
+    last="${body##*$'\n'}"
+    if [[ "$body" == *$'\n'* \
+          && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+[A-Za-z]+[[:space:]]+(listed|shown|found)\.?[[:space:]]*$ ]]; then
+        out="${body%$'\n'*}"$'\n'
+    fi
     printf '%s' "$out"
 }
 

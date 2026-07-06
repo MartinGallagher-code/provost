@@ -52,7 +52,7 @@ yet tidy.
 | kubectl-pods | ✅ | aligned-columns |
 | kubectl-top-pods | ✅ | aligned-columns |
 | last | ✅ | aligned-columns |
-| loginctl | ⏳ | — |
+| loginctl | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ✅ᵇ | w-sessions (bespoke) |
 | who | ✅ | aligned-columns |
 
-**Coverage: 97 / 100** — ✅ 85 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
-⏳ not yet tidy: file groups loginctl
+**Coverage: 98 / 100** — ✅ 86 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
+⏳ not yet tidy: file groups
