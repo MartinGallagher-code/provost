@@ -1,5 +1,16 @@
 # glean — Changelog
 
+## 2026-07-06 — widen the corpus to 42 tools (39 tidy)
+- Added 8 more common tools: `lsmod`, `nmcli`, `ip-link`, `last`, `date`,
+  `mpstat`, `apt-list`, `dmidecode`. Coverage now **39/42** — 35 via a generic
+  parser (`lsmod`/`nmcli`/`last` → `aligned-columns`, `ip-link` →
+  `indented-hierarchy`), 4 via bespoke (`dmidecode`, `lspci`, `uname`, `uptime`).
+- 3 new gaps, all a shared pattern: `mpstat` and `apt list` have a leading
+  banner/preamble line before the table; `date` is a single freeform line. Next
+  work: a generic "skip leading banner/preamble" for the columnar parser (also
+  helps `sar`), and a single-line parser for `date`.
+- Inputs + manifest + goldens only; no engine changes (suite 214/214 unaffected).
+
 ## 2026-07-06 — start pruning redundant per-tool strategies (−5)
 - Began removing bespoke strategies the generic parsers now cover, the payoff of
   the generic-parser work. Removed **`ss`, `df`, `ps-aux`, `lsblk`, `vmstat`**

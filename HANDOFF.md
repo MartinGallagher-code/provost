@@ -91,10 +91,11 @@ strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/
 + `structured/`) instead of a bespoke strategy per tool, and delete the
 redundant per-tool strategies once the generic parsers cover them.
 
-Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **34 common Linux
+Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **42 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one batch harness `run.sh`. **All 34 tidy: 31 via a generic parser, 3
-(`uptime`, `uname`, `lspci`) via a bespoke one.** `run.sh --coverage` regenerates
+and one batch harness `run.sh`. **39/42 tidy: 35 via a generic parser, 4
+(`uptime`, `uname`, `lspci`, `dmidecode`) via a bespoke one.** Open gaps:
+`mpstat`/`apt-list` (leading banner/preamble), `date` (single line). `run.sh --coverage` regenerates
 `COVERAGE.md` (the queryable ✅/✅ᵇ/⏳ list). The extract engine selects the
 **lowest-priority-number** matching strategy (confidence is mainly a threshold
 gate), so making a generic parser win is about its `## Priority` and `detect()`.

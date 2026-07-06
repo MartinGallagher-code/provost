@@ -6,9 +6,12 @@ yet tidy.
 
 | Tool | Covered | Parser |
 |---|:---:|---|
+| apt-list | ⏳ | — |
+| date | ⏳ | — |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
 | dmesg | ✅ | bracket-log |
+| dmidecode | ✅ᵇ | dmidecode (bespoke) |
 | docker-ps | ✅ | aligned-columns |
 | du-h | ✅ | tsv |
 | env | ✅ | equals |
@@ -18,16 +21,21 @@ yet tidy.
 | id | ✅ | inline-kv |
 | iostat | ✅ | aligned-columns |
 | ip-addr | ✅ | indented-hierarchy |
+| ip-link | ✅ | indented-hierarchy |
 | ip-route | ✅ | aligned-columns |
 | journalctl | ✅ | aligned-columns |
+| last | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
+| lsmod | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci | ✅ᵇ | lspci (bespoke) |
 | lsusb | ✅ | aligned-columns |
 | mount | ✅ | aligned-columns |
+| mpstat | ⏳ | — |
 | netstat-tulpn | ✅ | aligned-columns |
+| nmcli | ✅ | aligned-columns |
 | os-release | ✅ | aligned-columns |
 | proc-meminfo | ✅ | yaml |
 | ps-aux | ✅ | aligned-columns |
@@ -42,4 +50,5 @@ yet tidy.
 | who | ✅ | aligned-columns |
 
 
-**Coverage: 34 / 34** — ✅ 31 via a generic parser, ✅ᵇ 3 via a bespoke strategy.
+**Coverage: 39 / 42** — ✅ 35 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
+⏳ not yet tidy: apt-list date mpstat

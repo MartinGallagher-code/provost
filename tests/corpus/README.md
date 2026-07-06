@@ -34,9 +34,9 @@ bespoke strategy*.
 
 ## Tested tools & current coverage
 
-**34 tools tested; all 34 tidy — 31 via a generic parser, 3 (`uptime`, `uname`,
-`lspci`) via a bespoke strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live
-per-tool list.
+**42 tools tested; 39 tidy — 35 via a generic parser, 4 (`uptime`, `uname`,
+`lspci`, `dmidecode`) via a bespoke strategy.** See [`COVERAGE.md`](COVERAGE.md)
+for the live per-tool list.
 
 The generic ones are handled by **8 generic parsers**: `aligned-columns` (with
 headerless + two-line-header modes), `bracket-log`, `inline-kv`, `yaml`,
@@ -45,9 +45,16 @@ tool output collapses onto a handful of structural parsers, not one rule per
 tool. Includes varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
 `ps aux`/`ps -ef`).
 
-The 3 bespoke ones are the formats no generic structural parser fits: `uptime`
-and `uname -a` are single freeform lines, and `lspci` is a `slot class: desc`
-listing. That's the accepted floor for "no per-tool rule".
+The 4 bespoke ones are formats no generic structural parser fits well (single
+freeform lines / nested key-value listings).
+
+### Not yet tidy (3)
+
+| Tool | why | fix |
+|---|---|---|
+| `mpstat` | leading `Linux … (8 CPU)` banner + blank line before the table | generic "skip leading banner" before the columnar block (also helps `sar`) |
+| `apt list` | leading `Listing…` preamble line | same preamble-skip |
+| `date` | single freeform line | a single-line parser (like `uptime`/`uname`) |
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
 whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out

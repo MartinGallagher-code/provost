@@ -43,3 +43,11 @@ id	kv	-	3
 uname-a	kv	-	3
 journalctl	table	3	2
 lspci	table	3	2
+lsmod	table	3	3
+nmcli	table	3	4
+ip-link	kv	-	2
+last	table	3	4
+date	kv	-	3
+mpstat	table	1	8
+apt-list	table	3	3
+dmidecode	kv	-	3

@@ -1,0 +1,4 @@
+Module                  Size  Used by
+nvidia              56705024  126
+xfs                  2093056  1
+ext4                  962560  2

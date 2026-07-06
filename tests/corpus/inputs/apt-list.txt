@@ -1,0 +1,4 @@
+Listing...
+bash/stable,now 5.2.15-2 amd64 [installed]
+curl/stable,now 7.88.1-10 amd64 [installed]
+vim/stable,now 2:9.0.1378-2 amd64 [installed,automatic]
