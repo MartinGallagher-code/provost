@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-06 — start pruning redundant per-tool strategies (−5)
+- Began removing bespoke strategies the generic parsers now cover, the payoff of
+  the generic-parser work. Removed **`ss`, `df`, `ps-aux`, `lsblk`, `vmstat`**
+  (strategy + tests + goldens + samples), −5 strategies, coverage unchanged
+  (34/34).
+- `ss` was **broken** and shadowing a better strategy: it emitted `socket1_…`
+  (underscore, not the dotted `entryN.` melt convention) so full-mode `ss` came
+  out as one wide non-tidy row. It also outranked the good `ss-tulnp` (priority
+  40 < 42). Removing it lets `ss-tulnp` win → full-mode `ss` is now 3 tidy rows.
+- `df`/`ps-aux`/`lsblk`/`vmstat` now resolve to the generic `aligned-columns` in
+  full mode (verified tidy; the corpus goldens are exactly that output). The only
+  change is raw header column names (`%CPU`) instead of the bespoke's normalised
+  ones (`cpu_pct`) — an acceptable trade for one fewer strategy each.
+- Removed the now-dangling `vmstat` case from `test_snapshot_regression.sh`.
+- Extract suite 214/214; smoke 33/33; melt 8/8; corpus golden regression 31/31.
+- Method for the ongoing sweep: `tests/corpus/run.sh` compares generic vs
+  full-mode melt per tool — prune where generic is tidy-equal-or-better; the
+  broken/shadowing bespokes (like `ss`) are the highest-value targets.
+
 ## 2026-07-06 — close the 4 corpus gaps: 34/34 tools tidy
 - `du -h` — taught `tsv` a **headerless mode**: when the first line is already
   data (a digit-bearing field) it synthesises `c1..cN` instead of eating row 1 as

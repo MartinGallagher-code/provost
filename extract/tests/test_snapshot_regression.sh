@@ -127,14 +127,6 @@ test_snapshot_free () {
     [[ $count -gt 0 ]] || { echo "free: no fields extracted"; return 1; }
 }
 
-test_snapshot_vmstat () {
-    local out
-    out=$(snapshot vmstat vmstat/basic.txt)
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "vmstat: no fields extracted"; return 1; }
-}
-
 ################################################################################
 ## Network/container formats
 ################################################################################
@@ -207,7 +199,6 @@ run_test "http-headers basic snapshot" test_snapshot_http_headers
 run_test "ab basic snapshot" test_snapshot_ab
 run_test "fio basic snapshot" test_snapshot_fio
 run_test "free basic snapshot" test_snapshot_free
-run_test "vmstat basic snapshot" test_snapshot_vmstat
 run_test "nmap basic snapshot" test_snapshot_nmap
 run_test "docker-ps basic snapshot" test_snapshot_docker_ps
 run_test "syslog basic snapshot" test_snapshot_syslog

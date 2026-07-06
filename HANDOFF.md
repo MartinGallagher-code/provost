@@ -107,6 +107,21 @@ The 7 generic parsers covering the corpus: `aligned-columns` (header, headerless
 and two-line-header modes), `bracket-log`, `yaml`, `key-value`, `equals`,
 `colons`, `indented-hierarchy`.
 
+## Pruning redundant strategies (in progress)
+
+Removing bespoke per-tool strategies the generic parsers now cover — the payoff of
+the whole effort. Done so far (−5): `ss` (was broken — emitted a wide non-tidy row
+and shadowed the good `ss-tulnp`), `df`, `ps-aux`, `lsblk`, `vmstat` (now handled
+by generic `aligned-columns`). Method: `tests/corpus/run.sh` prints generic-vs-full
+melt dims per tool — prune where generic is tidy-equal-or-better, delete the
+strategy + its `test_strategy_*.sh` + `golden/*.txt` + `samples/*` + any snapshot
+case, and keep the extract suite green. Broken/shadowing bespokes are the
+highest-value targets. Candidates still to review: `env-vars` (vs `equals`),
+`iostat`/`netstat`/`top`/`systemctl`/`who` (already generic — check for a bespoke),
+and the long tail once the corpus is broader. Keep bespokes that are clearly
+better than the generic (`mount`, `free`, `docker-ps`, `ip-route`, `ls-l` give
+nicer columns).
+
 ## Next steps
 
 1. **Grow the corpus toward broad coverage** (in progress) — more common tools

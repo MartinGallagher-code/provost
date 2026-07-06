@@ -33,3 +33,13 @@ yet tidy.
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
 | sensors | ✅ | colons |
+| ss-tulpn | ✅ | aligned-columns |
+| systemctl-list | ✅ | aligned-columns |
+| top | ✅ | aligned-columns |
+| uname-a | ✅ᵇ | uname (bespoke) |
+| uptime | ✅ᵇ | uptime (bespoke) |
+| vmstat | ✅ | aligned-columns |
+| who | ✅ | aligned-columns |
+
+
+**Coverage: 34 / 34** — ✅ 31 via a generic parser, ✅ᵇ 3 via a bespoke strategy.
