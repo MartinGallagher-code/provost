@@ -1,0 +1,7 @@
+n	c1	c2	total_entries
+1	8.421s	NetworkManager-wait-online.service	6
+2	3.102s	docker.service	6
+3	1.874s	snapd.service	6
+4	942ms	systemd-udev-settle.service	6
+5	631ms	containerd.service	6
+6	418ms	postgresql@14-main.service	6

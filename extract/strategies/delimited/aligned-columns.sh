@@ -81,7 +81,10 @@ _ac_shape () {
     local caps0=0; [[ ! "$first_line" =~ [a-z] ]] && caps0=1
     local v0=0 _t _t1arr; _t1arr=(); read -ra _t1arr <<< "$first_line"
     for _t in "${_t1arr[@]}"; do
-        [[ "$_t" =~ ^[0-9]+([.,][0-9]+)*%?$ || "$_t" =~ ^[0-9]{1,2}:[0-9]{2} \
+        # value token = a number, optionally with a trailing unit (8.421s, 942ms,
+        # 7.8Gi, 39%), or a time / IP / date. `1K-blocks` is NOT one (the hyphen),
+        # so a df-T-style header label stays a header.
+        [[ "$_t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_t" =~ ^[0-9]{1,2}:[0-9]{2} \
            || "$_t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && v0=$((v0 + 1))
     done
     local maxd=0 i

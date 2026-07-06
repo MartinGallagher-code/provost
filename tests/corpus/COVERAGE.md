@@ -92,7 +92,7 @@ yet tidy.
 | swapon | ✅ | aligned-columns |
 | sysctl | ✅ | aligned-columns |
 | systemctl-list | ✅ | aligned-columns |
-| systemd-analyze | ⏳ | — |
+| systemd-analyze | ✅ | line-records |
 | taskset | ✅ | line-records |
 | timedatectl | ✅ | colons |
 | top | ✅ | aligned-columns |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ✅ᵇ | w-sessions (bespoke) |
 | who | ✅ | aligned-columns |
 
-**Coverage: 95 / 100** — ✅ 83 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
-⏳ not yet tidy: file groups loginctl lshw systemd-analyze
+**Coverage: 96 / 100** — ✅ 84 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
+⏳ not yet tidy: file groups loginctl lshw
