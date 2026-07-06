@@ -1,6 +1,6 @@
-n	c1	c2	c3	c4	total_entries
-1	/dev/sda1:	UUID="a4f1e2c3-0b9d-4e6a-8f21-3c7d9e1a2b4c"	TYPE="ext4"	PARTUUID="1a2b3c4d-01"	5
-2	/dev/sda2:	UUID="7d3e9f0a-1c2b-4d5e-9a6f-8b0c1d2e3f4a"	TYPE="swap"	PARTUUID="1a2b3c4d-02"	5
-3	/dev/sdb1:	LABEL="data"	UUID="e5c6d7f8-2a3b-4c5d-8e9f-0a1b2c3d4e5f"	TYPE="xfs"_PARTUUID="9f8e7d6c-01"	5
-4	/dev/nvme0n1p1:	UUID="B4E2-14AF"	TYPE="vfat"	PARTLABEL="EFI_System_Partition"_PARTUUID="c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"	5
-5	/dev/nvme0n1p2:	UUID="f0e1d2c3-b4a5-4968-8776-5a4b3c2d1e0f"	TYPE="ext4"	PARTUUID="c1d2e3f4-a5b6-47c8-9d0e-2f3a4b5c6d7f"	5
+n	name	value	total_entries
+1	/dev/sda1	UUID="a4f1e2c3-0b9d-4e6a-8f21-3c7d9e1a2b4c" TYPE="ext4" PARTUUID="1a2b3c4d-01"	5
+2	/dev/sda2	UUID="7d3e9f0a-1c2b-4d5e-9a6f-8b0c1d2e3f4a" TYPE="swap" PARTUUID="1a2b3c4d-02"	5
+3	/dev/sdb1	LABEL="data" UUID="e5c6d7f8-2a3b-4c5d-8e9f-0a1b2c3d4e5f" TYPE="xfs" PARTUUID="9f8e7d6c-01"	5
+4	/dev/nvme0n1p1	UUID="B4E2-14AF" TYPE="vfat" PARTLABEL="EFI System Partition" PARTUUID="c1d2e3f4-a5b6-47c8-9d0e-1f2a3b4c5d6e"	5
+5	/dev/nvme0n1p2	UUID="f0e1d2c3-b4a5-4968-8776-5a4b3c2d1e0f" TYPE="ext4" PARTUUID="c1d2e3f4-a5b6-47c8-9d0e-2f3a4b5c6d7f"	5

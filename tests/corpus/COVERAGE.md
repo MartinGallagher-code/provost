@@ -9,7 +9,7 @@ yet tidy.
 | apt-cache-policy | ✅ | indented-hierarchy |
 | apt-list | ✅ | aligned-columns |
 | arp | ✅ | aligned-columns |
-| blkid | ✅ | aligned-columns |
+| blkid | ✅ | labeled-records |
 | brew-list | ✅ | line-records |
 | conntrack | ✅ | inline-kv |
 | cpupower-frequency | ✅ | indented-hierarchy |
@@ -30,13 +30,13 @@ yet tidy.
 | env | ✅ | equals |
 | ethtool | ✅ | colons |
 | fdisk-l | ✅ᵇ | fdisk (bespoke) |
-| file | ⏳ | — |
+| file | ✅ | labeled-records |
 | findmnt | ✅ | aligned-columns |
 | firewall-cmd | ✅ | indented-hierarchy |
 | flatpak-list | ✅ | aligned-columns |
 | free-h | ✅ | aligned-columns |
 | free | ✅ | aligned-columns |
-| groups | ⏳ | — |
+| groups | ✅ᵇ | user-groups (bespoke) |
 | helm-list | ✅ | aligned-columns |
 | hostnamectl | ✅ | colons |
 | id | ✅ | inline-kv |
@@ -107,5 +107,4 @@ yet tidy.
 | w | ✅ᵇ | w-sessions (bespoke) |
 | who | ✅ | aligned-columns |
 
-**Coverage: 98 / 100** — ✅ 86 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
-⏳ not yet tidy: file groups
+**Coverage: 100 / 100** — ✅ 87 via a generic parser, ✅ᵇ 13 via a bespoke strategy.

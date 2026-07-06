@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-06 — 100/100 tidy coverage (the last gaps closed)
+- Drove the corpus from 82 to **100/100 tidy** (87 via generic parsers, 13
+  bespoke). The final gaps, in order:
+  - `systemd-analyze`: `aligned-columns` now counts a number+unit token (`8.421s`)
+    as a value, so its first line is data, not a header → falls to `line-records`.
+  - `lshw` (and any header/separator table): fixed `vertical-line` to emit one
+    record per data row (it was welding every cell into one wide record).
+  - `loginctl`: `aligned-columns` drops a trailing `N sessions listed.` summary.
+  - `file`: new generic `labeled-records` parser — one row per
+    `single-token-label: prose-value` line (distinct from meminfo's numeric values
+    and hostnamectl's multi-word labels, which stay single-observation).
+  - `groups`: small `user-groups` parser (`user : g1 g2 …` → one row per membership).
+- Extract suite 214/214; smoke 33/33; melt 8/8; corpus golden regression 87/87.
+
 ## 2026-07-06 — corpus to 100 tools (73 tidy) via parallel authoring
 - Grew the tidy corpus from 42 to **100 common Linux tools** — authored in
   parallel by six subagents across networking, storage, system/process, package

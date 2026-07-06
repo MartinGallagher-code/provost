@@ -40,8 +40,16 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**100 tools tested; 76 tidy — 73 via a generic parser, 3 via a bespoke
+**100 tools tested; all 100 tidy — 87 via a generic parser, 13 via a bespoke
 strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+
+The generic parsers (led by `aligned-columns` with its header/headerless/two-line
+modes, plus `line-records`, `colons`, `yaml`, `key-value`, `equals`,
+`indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`, `tree-view`,
+`vertical-line`) carry the common 87. The 13 bespoke ones are genuinely
+idiosyncratic formats — `mpstat`/`sar`/`pidstat` (sysstat banners),
+`ping`/`traceroute`/`w`, `dmidecode`/`lspci`/`uname`/`uptime`, `dpkg-l`/`fdisk`/
+`iptables-save` — where a format-family parser is warranted.
 
 The generic ones are handled by **8 generic parsers**: `aligned-columns` (with
 headerless + two-line-header modes), `bracket-log`, `inline-kv`, `yaml`,

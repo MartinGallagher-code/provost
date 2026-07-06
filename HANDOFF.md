@@ -93,18 +93,16 @@ redundant per-tool strategies once the generic parsers cover them.
 
 Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **100 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one parallel batch harness `run.sh`. **76/100 tidy: 73 via a generic parser,
-3 via a bespoke one.** 24 gaps cluster into: banner + time-prefixed table
-(`mpstat`/`sar`/`pidstat`), single freeform lines (`date`/`groups`/…),
-single-column lists (`dig-short`/`rpm-qa`/…), tree structures
-(`pstree`/`tree`/`npm-ls`), wrong-bespoke-shadowing (`ping`/`traceroute`/`w`), and
-assorted (`dpkg-l`/`loginctl`/`file`/…) — see the corpus README. `run.sh
---coverage` regenerates `COVERAGE.md` (the queryable ✅/✅ᵇ/⏳ list). The extract
-engine selects the **lowest-priority-number** matching strategy (confidence is
-mainly a threshold gate), so making a generic parser win is about its
-`## Priority` and `detect()`.
+and one parallel batch harness `run.sh`. **All 100 tidy: 87 via a generic parser,
+13 via a bespoke one** (no remaining gaps). The generic parsers carry the common
+87; the 13 bespoke are idiosyncratic format families (sysstat banners
+`mpstat`/`sar`/`pidstat`; `ping`/`traceroute`/`w`; `dmidecode`/`lspci`/`uname`/
+`uptime`; `dpkg-l`/`fdisk`/`iptables-save`). `run.sh --coverage` regenerates
+`COVERAGE.md` (the queryable ✅/✅ᵇ list). The extract engine selects the
+**lowest-priority-number** matching strategy (confidence is mainly a threshold
+gate), so making a generic parser win is about its `## Priority` and `detect()`.
 
-The 8 generic parsers covering the corpus: `aligned-columns` (header, headerless,
+The generic parsers covering the corpus: `aligned-columns` (header, headerless,
 two-line), `bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons`,
 `indented-hierarchy`.
 

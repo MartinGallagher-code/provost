@@ -1,0 +1,11 @@
+entry1.name archive.tar.gz
+entry1.value gzip compressed data, from Unix, original size modulo 2^32 102400
+entry2.name report.csv
+entry2.value CSV text
+entry3.name photo.jpg
+entry3.value JPEG image data, JFIF standard 1.01, resolution (DPI), density 72x72
+entry4.name script.sh
+entry4.value Bourne-Again shell script, ASCII text executable
+entry5.name libutil.so.1
+entry5.value ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked
+total_entries 5

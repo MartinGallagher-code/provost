@@ -1,0 +1,9 @@
+entry1.user alice
+entry1.group alice
+entry2.user alice
+entry2.group sudo
+entry3.user alice
+entry3.group users
+entry4.user alice
+entry4.group docker
+total_entries 4
