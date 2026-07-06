@@ -1,0 +1,12 @@
+[1/12] Building CXX object src/CMakeFiles/core.dir/main.cpp.o
+[2/12] Building CXX object src/CMakeFiles/core.dir/config.cpp.o
+[3/12] Building CXX object src/CMakeFiles/core.dir/server.cpp.o
+[4/12] Building CXX object src/CMakeFiles/core.dir/handler.cpp.o
+[5/12] Building CXX object src/CMakeFiles/core.dir/router.cpp.o
+[6/12] Linking CXX shared library lib/libcore.so
+[7/12] Building CXX object tests/CMakeFiles/tests.dir/test_config.cpp.o
+[8/12] Building CXX object tests/CMakeFiles/tests.dir/test_handler.cpp.o
+[9/12] Building CXX object tests/CMakeFiles/tests.dir/test_router.cpp.o
+[10/12] Linking CXX executable bin/tests
+[11/12] Building CXX object src/CMakeFiles/app.dir/app.cpp.o
+[12/12] Linking CXX executable bin/app

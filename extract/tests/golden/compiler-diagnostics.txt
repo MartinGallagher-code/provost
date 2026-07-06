@@ -1,0 +1,16 @@
+diag1.file src/main.c
+diag1.line 42
+diag1.column 15
+diag1.severity error
+diag1.message use_of_undeclared_identifier_'foo'
+diag2.file src/main.c
+diag2.line 58
+diag2.column 3
+diag2.severity warning
+diag2.message unused_variable_'temp'_[-Wunused-variable]
+diag3.file src/utils.c
+diag3.line 12
+diag3.column 1
+diag3.severity note
+diag3.message include_'utils.h'_for_declaration
+total_errors 2

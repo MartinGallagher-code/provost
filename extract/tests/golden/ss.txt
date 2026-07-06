@@ -1,0 +1,16 @@
+socket1_netid tcp
+socket1_state LISTEN
+socket1_local 0.0.0.0:22
+socket1_peer 0.0.0.0:*
+socket2_netid tcp
+socket2_state LISTEN
+socket2_local 0.0.0.0:80
+socket2_peer 0.0.0.0:*
+socket3_netid tcp
+socket3_state LISTEN
+socket3_local [::]:443
+socket3_peer [::]:*
+socket4_netid udp
+socket4_state UNCONN
+socket4_local 0.0.0.0:68
+socket4_peer 0.0.0.0:*

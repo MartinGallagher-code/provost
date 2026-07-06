@@ -1,0 +1,12 @@
+<html>
+<head>
+  <title>My Page Title</title>
+  <meta charset="utf-8"/>
+</head>
+<body>
+  <h1>Welcome</h1>
+  <p>This is a paragraph.</p>
+  <span class="info">Version 2.0</span>
+  <div id="count">42</div>
+</body>
+</html>

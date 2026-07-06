@@ -1,0 +1,14 @@
+; <<>> DiG 9.18.18 <<>> A cdn.example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 54321
+
+;; ANSWER SECTION:
+cdn.example.com.	300	IN	CNAME	d1234567.cloudfront.net.
+d1234567.cloudfront.net. 60	IN	A	52.85.100.1
+d1234567.cloudfront.net. 60	IN	A	52.85.100.2
+
+;; Query time: 8 msec
+;; SERVER: 1.1.1.1#53(1.1.1.1)
+;; WHEN: Sat Feb 15 11:00:00 UTC 2025
+;; MSG SIZE  rcvd: 96

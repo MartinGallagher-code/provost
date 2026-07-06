@@ -1,0 +1,16 @@
+host example.com
+ip 93.184.216.34
+latency 0.023s
+port1.port 22/tcp
+port1.state open
+port1.service ssh
+port1.version OpenSSH_8.9
+port2.port 80/tcp
+port2.state open
+port2.service http
+port2.version nginx_1.22.1
+port3.port 443/tcp
+port3.state open
+port3.service https
+port3.version nginx_1.22.1
+scan_time 12.34_seconds

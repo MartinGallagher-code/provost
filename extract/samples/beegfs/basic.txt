@@ -1,0 +1,9 @@
+BeeGFS Storage Targets (active):
+
+Storage targets:
+TargetID   NodeID    State      Capacity   Free
+=========  ========  =========  =========  =========
+1          node01    Online     500G       200G
+2          node02    Online     500G       150G
+3          node03    Online     500G       320G
+4          node04    Offline    500G       0G

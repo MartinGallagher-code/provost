@@ -1,0 +1,32 @@
+WARC/1.0
+WARC-Type: response
+WARC-Date: 2014-08-02T09:52:13Z
+WARC-Record-ID: 
+Content-Length: 43428
+Content-Type: application/http; msgtype=response
+WARC-Warcinfo-ID: 
+WARC-Concurrent-To: 
+WARC-IP-Address: 212.58.244.61
+WARC-Target-URI: http://news.bbc.co.uk/2/hi/africa/3414345.stm
+WARC-Payload-Digest: sha1:M63W6MNGFDWXDSLTHF7GWUPCJUH4JK3J
+WARC-Block-Digest: sha1:YHKQUSBOS4CLYFEKQDVGJ457OAPD6IJO
+WARC-Truncated: length
+
+HTTP/1.1 200 OK
+Server: Apache
+Vary: X-CDN
+Cache-Control: max-age=0
+Content-Type: text/html
+Date: Sat, 02 Aug 2014 09:52:13 GMT
+Expires: Sat, 02 Aug 2014 09:52:13 GMT
+Connection: close
+Set-Cookie: BBC-UID=...; expires=Sun, 02-Aug-15 09:52:13 GMT; path=/; domain=bbc.co.uk;
+
+<!doctype html public "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<title>
+	BBC NEWS | Africa | Namibia braces for Nujoma exit
+</title>
+...
+

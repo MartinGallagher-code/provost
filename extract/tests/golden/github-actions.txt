@@ -1,0 +1,11 @@
+run1.command npm_ci
+group1.name Run_npm_ci
+run2.command npm_test
+group2.name Run_npm_test
+error1.file src/auth.test.js
+error1.line 42
+error1.message Test_failed:_expected_200_received_401
+warning1.message Code_coverage_decreased_from_85%_to_82%
+run3.command npm_run_build
+group3.name Run_npm_run_build
+notice1.message Build_completed_successfully

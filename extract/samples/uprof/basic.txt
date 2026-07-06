@@ -1,0 +1,11 @@
+AMD uProf Performance Report
+============================
+Profile Duration: 15.230s
+
+IPC: 1.85
+Retired Instructions: 4,523,456,789
+Cache Miss Rate: 3.45%
+Branch Misprediction Rate: 1.22%
+L1 Data Cache Hit Rate: 96.8%
+L2 Cache Hit Rate: 89.2%
+Elapsed Time: 15.230s

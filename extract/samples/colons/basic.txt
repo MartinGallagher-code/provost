@@ -1,0 +1,5 @@
+Name: John Doe
+Age: 42
+City: New York
+Status: active
+Role: administrator

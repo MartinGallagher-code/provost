@@ -1,0 +1,15 @@
+# TYPE http_requests_total counter
+# UNIT http_requests_total requests
+# HELP http_requests_total Total HTTP requests
+http_requests_total{method="GET",code="200"} 1234 1705312800.0
+http_requests_total{method="POST",code="200"} 567 1705312800.0
+http_requests_total{method="GET",code="404"} 23 1705312800.0
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 456.78
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.1"} 500
+http_request_duration_seconds_bucket{le="0.5"} 800
+http_request_duration_seconds_bucket{le="1.0"} 950
+http_request_duration_seconds_count 1000
+http_request_duration_seconds_sum 234.56
+# EOF

@@ -1,0 +1,9 @@
+Run on (1 X 2300 MHz CPU )
+2016-06-25 19:34:24
+Benchmark              Time           CPU Iterations
+----------------------------------------------------
+BM_memcpy/32          11 ns         11 ns   79545455
+BM_memcpy/32k       2181 ns       2185 ns     324074
+BM_memcpy/32          12 ns         12 ns   54687500
+BM_memcpy/32k       1834 ns       1837 ns     357143
+

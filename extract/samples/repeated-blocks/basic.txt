@@ -1,0 +1,14 @@
+Interface: eth0
+  Status: up
+  IP: 10.0.0.1
+  MTU: 1500
+
+Interface: eth1
+  Status: down
+  IP: 10.0.0.2
+  MTU: 9000
+
+Interface: lo
+  Status: up
+  IP: 127.0.0.1
+  MTU: 65536

@@ -1,0 +1,15 @@
+id abc123def456789
+name mycontainer
+state.status running
+state.running true
+state.pid 12345
+config.image nginx:latest
+config.hostname abc123
+config.env.PATH /usr/local/sbin:/usr/local/bin
+config.env.NGINX_VERSION 1.25.3
+config.exposed_port 80/tcp
+config.exposed_port 443/tcp
+host_config.memory 536870912
+host_config.cpu_shares 1024
+network.ip_address 172.17.0.2
+network.gateway 172.17.0.1

@@ -1,0 +1,7 @@
+entry1.Name John
+entry1.Age 30
+entry1.City Portland
+entry2.Name Jane
+entry2.Age 25
+entry2.City Seattle
+total_entries 2

@@ -1,0 +1,4 @@
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  0.1 169404 11512 ?        Ss   Jun30   0:12 /sbin/init
+www-data  1234  2.5  1.3 987654 54321 ?        S    10:01   1:02 nginx: worker process
+postgres  4567  0.3  4.8 2345678 198765 ?      Ss   09:00   0:45 postgres: checkpointer

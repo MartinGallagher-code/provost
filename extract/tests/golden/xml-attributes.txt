@@ -1,0 +1,11 @@
+config.name my-app
+config.version 2.0
+database.host localhost
+database.port 5432
+database.ssl true
+server.host 0.0.0.0
+server.port 8080
+logging.level info
+logging.file /var/log/app.log
+feature.enabled true
+feature.name dark-mode

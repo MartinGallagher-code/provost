@@ -1,0 +1,12 @@
+entry1.name Mem
+entry1.total 15Gi
+entry1.used 8.2Gi
+entry1.free 1.5Gi
+entry1.shared 512Mi
+entry1.buff_cache 5.8Gi
+entry1.available 6.5Gi
+entry2.name Swap
+entry2.total 4.0Gi
+entry2.used 1.2Gi
+entry2.free 2.8Gi
+total_entries 2

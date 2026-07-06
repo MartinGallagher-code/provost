@@ -1,0 +1,12 @@
+Bus 001:
+  Port 1: Dev 1, Class=Hub
+    Port 1: Dev 2, Class=HID
+      Manufacturer: Logitech
+      Product: USB Keyboard
+    Port 2: Dev 3, Class=HID
+      Manufacturer: Logitech
+      Product: USB Mouse
+  Port 2: Dev 4, Class=Hub
+    Port 1: Dev 5, Class=Mass Storage
+      Manufacturer: SanDisk
+      Product: Ultra USB 3.0

@@ -1,0 +1,7 @@
+Account     Description         Debit       Credit      Balance
+--------    ----------------    --------    --------    ----------
+1001        Cash on Hand        50000.00    0.00        50000.00
+1002        Accounts Recv       32500.00    5000.00     27500.00
+2001        Accounts Pay        0.00        18750.00    -18750.00
+3001        Revenue             0.00        95000.00    -95000.00
+4001        Operating Exp       28000.00    0.00        28000.00

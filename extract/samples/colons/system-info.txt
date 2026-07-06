@@ -1,0 +1,13 @@
+Architecture: x86_64
+CPU op-mode: 32-bit, 64-bit
+Byte Order: Little Endian
+CPU(s): 16
+Thread(s) per core: 2
+Core(s) per socket: 8
+Socket(s): 1
+Model name: AMD Ryzen 7 5800X
+CPU MHz: 3800.000
+L1d cache: 256 KiB
+L1i cache: 256 KiB
+L2 cache: 4 MiB
+L3 cache: 32 MiB

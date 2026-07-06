@@ -1,0 +1,7 @@
+Filesystem Type MountPoint Options
+/dev/sda1 ext4 / rw,relatime
+/dev/sda2 ext4 /home rw,relatime
+tmpfs tmpfs /tmp rw,nosuid
+proc proc /proc rw,nosuid
+sysfs sysfs /sys rw,nosuid
+/dev/sdb1 xfs /data rw,noatime

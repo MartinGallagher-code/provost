@@ -1,0 +1,9 @@
+command ./my_program
+heap_in_use 1,234_bytes_in_5_blocks
+total_allocs 42
+total_frees 37
+definitely_lost 456_bytes_in_2_blocks
+indirectly_lost 0_bytes_in_0_blocks
+possibly_lost 234_bytes_in_1_blocks
+still_reachable 544_bytes_in_2_blocks
+total_errors 3

@@ -1,0 +1,11 @@
+[1/8] Building CXX object src/CMakeFiles/app.dir/main.cpp.o
+[2/8] Building CXX object src/CMakeFiles/app.dir/parser.cpp.o
+[3/8] Building CXX object src/CMakeFiles/app.dir/network.cpp.o
+[4/8] Building CXX object src/CMakeFiles/app.dir/database.cpp.o
+[5/8] Building CXX object src/CMakeFiles/app.dir/auth.cpp.o
+[6/8] Building CXX object src/CMakeFiles/app.dir/cache.cpp.o
+[7/8] Linking CXX executable bin/app
+FAILED: bin/app
+/usr/bin/c++ -o bin/app CMakeFiles/app.dir/main.cpp.o CMakeFiles/app.dir/parser.cpp.o -lssl -lcrypto
+ld: error: undefined symbol: Database::connect()
+[8/8] Building CXX object tests/CMakeFiles/test.dir/test_main.cpp.o

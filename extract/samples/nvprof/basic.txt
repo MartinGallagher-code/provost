@@ -1,0 +1,14 @@
+==12345== NVPROF is profiling process 12345
+==12345== Profiling application: ./cuda_app
+
+GPU activities:
+  Time(%)      Time     Calls       Avg       Min       Max  Name
+   52.34%  1.2345s       100   12.345ms  11.200ms  14.500ms  matrix_multiply_kernel
+   31.22%  0.7350s        50   14.700ms  13.100ms  16.200ms  reduce_kernel
+   16.44%  0.3870s       200    1.935ms   1.200ms   2.800ms  [CUDA memcpy HtoD]
+
+API calls:
+  Time(%)      Time     Calls       Avg       Min       Max  Name
+   45.67%  2.1000s       100   21.000ms  18.000ms  25.000ms  cudaMemcpy
+   32.10%  1.4800s       100   14.800ms  12.000ms  17.000ms  cudaLaunchKernel
+   22.23%  1.0240s        10  102.400ms  98.000ms 108.000ms  cudaMalloc

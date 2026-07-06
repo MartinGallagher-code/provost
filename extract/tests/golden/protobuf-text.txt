@@ -1,0 +1,11 @@
+name test_service
+version 1.0.0
+port 8080
+debug_mode false
+config1.max_connections 100
+config1.timeout_ms 5000
+config1.retry_enabled true
+endpoints1.path /api/v1/users
+endpoints1.method GET
+endpoints2.path /api/v1/data
+endpoints2.method POST

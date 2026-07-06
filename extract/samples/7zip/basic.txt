@@ -1,0 +1,14 @@
+7-Zip (a) [64] 16.02 : Copyright (c) 1999-2016 Igor Pavlov : 2016-05-21
+
+RAM size:    16384 MB,  # CPU hardware threads:   8
+RAM usage:    1765 MB,  # Benchmark threads:      8
+
+                       Compressing  |                  Decompressing
+Dict     Speed Usage    R/U Rating  |      Speed Usage    R/U Rating
+         KiB/s     %   MIPS   MIPS  |      KiB/s     %   MIPS   MIPS
+
+22:      25678   750   3334  25003  |     345678   798   3790  30245
+23:      24567   745   3365  25072  |     340123   795   3812  30312
+----------------------------------  | ------------------------------
+Avr:             748   3350  25038  |              797   3801  30279
+Tot:             772   3575  27658

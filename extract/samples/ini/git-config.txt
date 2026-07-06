@@ -1,0 +1,17 @@
+[user]
+name = Jane Developer
+email = jane@example.com
+
+[core]
+editor = vim
+autocrlf = input
+whitespace = fix
+
+[pull]
+rebase = true
+
+[alias]
+co = checkout
+br = branch
+ci = commit
+st = status

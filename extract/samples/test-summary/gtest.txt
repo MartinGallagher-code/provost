@@ -1,0 +1,24 @@
+[==========] Running 8 tests from 3 test suites.
+[----------] 3 tests from ConfigTest
+[ RUN      ] ConfigTest.ParseValid
+[       OK ] ConfigTest.ParseValid (2 ms)
+[ RUN      ] ConfigTest.ParseInvalid
+[       OK ] ConfigTest.ParseInvalid (1 ms)
+[ RUN      ] ConfigTest.Defaults
+[       OK ] ConfigTest.Defaults (0 ms)
+[----------] 3 tests from ServerTest
+[ RUN      ] ServerTest.StartStop
+[       OK ] ServerTest.StartStop (15 ms)
+[ RUN      ] ServerTest.HandleRequest
+[       OK ] ServerTest.HandleRequest (5 ms)
+[ RUN      ] ServerTest.Timeout
+[  FAILED  ] ServerTest.Timeout (1002 ms)
+[----------] 2 tests from UtilsTest
+[ RUN      ] UtilsTest.FormatDate
+[       OK ] UtilsTest.FormatDate (0 ms)
+[ RUN      ] UtilsTest.ParseURL
+[       OK ] UtilsTest.ParseURL (1 ms)
+[==========] 8 tests from 3 test suites ran. (1026 ms total)
+[  PASSED  ] 7 tests.
+[  FAILED  ] 1 test.
+7 passed, 1 failed in 1.03s

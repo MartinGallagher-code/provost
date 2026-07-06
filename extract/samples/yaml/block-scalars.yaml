@@ -1,0 +1,13 @@
+name: deploy-config
+version: 2.1
+description: |
+  Production deployment configuration
+  for the main application cluster.
+pre_deploy_script: |
+  echo "Running migrations"
+  python manage.py migrate
+post_deploy_script: >
+  Send notification to the ops channel
+  about deployment completion status.
+environment: production
+replicas: 3

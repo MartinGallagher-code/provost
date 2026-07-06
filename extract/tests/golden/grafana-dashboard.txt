@@ -1,0 +1,14 @@
+title System_Monitoring
+uid abc123def
+schemaVersion 39
+timezone browser
+editable true
+refresh 5s
+panel1.id 1
+panel1.title CPU_Usage
+panel1.type timeseries
+panel1.datasource Prometheus
+panel2.id 2
+panel2.title Memory_Usage
+panel2.type gauge
+panel2.datasource Prometheus

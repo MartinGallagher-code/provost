@@ -1,0 +1,9 @@
+threads 4
+mode cpu
+cpu_events_per_sec 12345.67
+total_time 10.0001s
+total_events 123457
+latency_min 0.28
+latency_avg 0.32
+latency_max 2.45
+latency_p95 0.39

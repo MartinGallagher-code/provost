@@ -1,0 +1,9 @@
+record1.Name Server-A
+record1.IP 10.0.0.1
+record1.Status Active
+record2.Name Server-B
+record2.IP 10.0.0.2
+record2.Status Inactive
+record3.Name Server-C
+record3.IP 10.0.0.3
+record3.Status Active

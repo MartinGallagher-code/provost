@@ -1,0 +1,9 @@
+TAU Performance Profile
+NODE 0, CONTEXT 0, THREAD 0
+
+Calls  Excl(ms)  Incl(ms)  %Time  Name
+-----------------------------------------
+  5000    45.230   120.560   37.5  compute
+  3000    32.100    85.430   26.7  transform
+  8000    18.900    42.310   14.8  allocate
+  1000    12.560    12.560   10.4  initialize

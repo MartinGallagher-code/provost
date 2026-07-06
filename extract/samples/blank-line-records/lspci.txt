@@ -1,0 +1,17 @@
+Slot: 00:00.0
+Class: Host bridge
+Vendor: Intel Corporation
+Device: Xeon E3-1200 v5 Host Bridge
+Rev: 07
+
+Slot: 00:02.0
+Class: VGA compatible controller
+Vendor: NVIDIA Corporation
+Device: GeForce RTX 3080
+Rev: a1
+
+Slot: 00:1f.2
+Class: SATA controller
+Vendor: Intel Corporation
+Device: C610/X99 series sSATA Controller
+Rev: 05

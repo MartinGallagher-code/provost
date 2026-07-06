@@ -1,0 +1,13 @@
+Model_Family Western_Digital_Blue
+Device_Model WDC WD10EZEX-08WN4A0
+Serial_Number WD-WMC3T0123456
+Firmware_Version 01.01A01
+User_Capacity 1.00 TB
+Sector_Size 512
+SMART_health PASSED
+Raw_Read_Error_Rate 0
+Spin_Up_Time 2166
+Reallocated_Sector_Ct 0
+Power_On_Hours 4234
+Start_Stop_Count 152
+Temperature_Celsius 39

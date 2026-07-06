@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config name="my-app" version="2.0">
+  <database host="localhost" port="5432" ssl="true"/>
+  <server host="0.0.0.0" port="8080">
+    <logging level="info" file="/var/log/app.log"/>
+  </server>
+  <feature enabled="true" name="dark-mode"/>
+</config>

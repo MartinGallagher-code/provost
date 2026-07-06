@@ -1,0 +1,9 @@
+artifact.name myproject
+tests.run 42
+tests.failures 0
+tests.errors 0
+tests.skipped 2
+artifact.version 1.0.0
+build.result SUCCESS
+build.time 8.234_s
+build.memory 42M/256M

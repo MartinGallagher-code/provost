@@ -1,0 +1,21 @@
+==12345== Memcheck, a memory error detector
+==12345== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==12345== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==12345== Command: ./app --config prod.conf
+==12345==
+==12345== 128 bytes in 4 blocks are definitely lost in loss record 1 of 3
+==12345==    at 0x4C2AB80: malloc (in /usr/lib/valgrind/vgpreload_memcheck.so)
+==12345==    by 0x401234: create_connection (connection.c:42)
+==12345==    by 0x401567: main (main.c:15)
+==12345==
+==12345== 1,024 bytes in 1 blocks are possibly lost in loss record 2 of 3
+==12345==    at 0x4C2AB80: malloc (in /usr/lib/valgrind/vgpreload_memcheck.so)
+==12345==    by 0x402345: buffer_alloc (buffer.c:28)
+==12345==    by 0x402678: process_request (handler.c:55)
+==12345==
+==12345== LEAK SUMMARY:
+==12345==    definitely lost: 128 bytes in 4 blocks
+==12345==    indirectly lost: 0 bytes in 0 blocks
+==12345==      possibly lost: 1,024 bytes in 1 blocks
+==12345==    still reachable: 4,096 bytes in 2 blocks
+==12345==         suppressed: 0 bytes in 0 blocks

@@ -1,0 +1,6 @@
+CONTAINER ID   IMAGE               COMMAND                  CREATED        STATUS                    PORTS                  NAMES
+f6a7b8c9d0e1   nginx:1.25          "/docker-entrypoint.…"   4 hours ago    Up 4 hours                0.0.0.0:80->80/tcp     web-proxy
+a7b8c9d0e1f2   mysql:8.0           "docker-entrypoint.s…"   6 hours ago    Exited (0) 2 hours ago                           db-mysql
+b8c9d0e1f2a3   node:20-alpine      "node server.js"         1 day ago      Exited (137) 12 hours ago                        api-old
+c9d0e1f2a3b4   memcached:1.6       "docker-entrypoint.s…"   2 days ago     Up 2 days                 11211/tcp              cache-mem
+d0e1f2a3b4c5   busybox             "sh -c 'echo done'"      3 days ago     Exited (0) 3 days ago                            setup-init

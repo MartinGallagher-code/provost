@@ -1,0 +1,16 @@
+WARC/1.1
+WARC-Type: request
+WARC-Date: 2025-02-15T10:00:00Z
+WARC-Target-URI: https://www.example.com/api/data
+WARC-Record-ID: <urn:uuid:11111111-2222-3333-4444-555555555555>
+Content-Type: application/http; msgtype=request
+Content-Length: 256
+
+WARC/1.1
+WARC-Type: response
+WARC-Date: 2025-02-15T10:00:01Z
+WARC-Target-URI: https://www.example.com/api/data
+WARC-Record-ID: <urn:uuid:66666666-7777-8888-9999-aaaaaaaaaaaa>
+Content-Type: application/http; msgtype=response
+Content-Length: 4096
+WARC-Payload-Digest: sha256:fedcba987654

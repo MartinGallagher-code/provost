@@ -1,0 +1,4 @@
+/dev/sda1 on / type ext4 (rw,relatime)
+tmpfs on /dev/shm type tmpfs (rw,nosuid,nodev)
+proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+/dev/sdb1 on /data type xfs (rw,noatime,attr2)

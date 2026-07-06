@@ -1,0 +1,7 @@
+Mar 31 10:30:00 webserver01 nginx[1234]: 192.168.1.50 - - [31/Mar/2026:10:30:00 +0000] "GET / HTTP/1.1" 200 612
+Mar 31 10:30:01 webserver01 sshd[5678]: Accepted publickey for admin from 192.168.1.10 port 54321
+Mar 31 10:30:02 webserver01 systemd[1]: Started PostgreSQL database server.
+Mar 31 10:30:03 webserver01 kernel[0]: [UFW BLOCK] IN=eth0 OUT= MAC=aa:bb:cc:dd:ee:ff SRC=10.0.0.5 DST=192.168.1.100
+Mar 31 10:30:05 webserver01 crond[9012]: (root) CMD (/usr/local/bin/backup.sh)
+Mar 31 10:30:10 webserver01 dockerd[3456]: time="2026-03-31T10:30:10Z" level=info msg="Container started"
+Mar 31 10:30:15 webserver01 prometheus[7890]: level=info ts=2026-03-31T10:30:15Z caller=main.go:123 msg="Server is ready"

@@ -1,0 +1,15 @@
+Chain INPUT (policy ACCEPT 15234 packets, 2345678 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 1234 98765 ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0
+  567 45678 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+  890 67890 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:80
+  234 12345 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:443
+   45  3456 DROP       all  --  *      *       10.0.0.0/8           0.0.0.0/0
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+ 5678 456789 ACCEPT    all  --  docker0 *      0.0.0.0/0            0.0.0.0/0
+ 4567 345678 ACCEPT    all  --  *      docker0 0.0.0.0/0            0.0.0.0/0
+
+Chain OUTPUT (policy ACCEPT 14567 packets, 1234567 bytes)
+ pkts bytes target     prot opt in     out     source               destination

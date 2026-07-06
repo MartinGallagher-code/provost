@@ -1,0 +1,5 @@
+192.168.1.10 - - [15/Feb/2025:14:00:01 +0000] "GET /index.html HTTP/2" 200 8192 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
+10.0.0.5 - - [15/Feb/2025:14:00:02 +0000] "GET /api/health HTTP/1.1" 200 64 "-" "kube-probe/1.28"
+172.16.0.99 - admin [15/Feb/2025:14:00:03 +0000] "POST /api/data HTTP/1.1" 201 512 "https://app.example.com" "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)"
+192.168.2.50 - - [15/Feb/2025:14:00:04 +0000] "GET /favicon.ico HTTP/2" 404 0 "-" "Mozilla/5.0 (Windows NT 10.0)"
+10.10.10.1 - - [15/Feb/2025:14:00:05 +0000] "OPTIONS /api/upload HTTP/1.1" 204 0 "-" "axios/1.6.2"

@@ -1,0 +1,9 @@
+[    0.000000] Linux version 6.1.0-17-amd64 (debian-kernel@lists.debian.org) (gcc-12 (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40) #1 SMP PREEMPT_DYNAMIC Debian 6.1.69-1 (2023-12-30)
+[    0.000000] Command line: BOOT_IMAGE=/boot/vmlinuz-6.1.0-17-amd64 root=UUID=a1b2c3d4-e5f6-7890-abcd-ef1234567890 ro
+[    0.523456] ACPI BIOS Error (bug): Could not resolve symbol [\_SB.PCI0.LPCB.EC0._Q66] (20221020/psargs-330)
+[    1.012345] ACPI Error: AE_NOT_FOUND, Evaluating _DSM (20221020/bus-0216)
+[    3.789012] ata1: SATA link down (SStatus 0 SControl 300)
+[    5.234567] EXT4-fs (nvme0n1p2): mounted filesystem with ordered data mode. Quota mode: none.
+[    7.890123] Bluetooth: hci0: BCM: chip id 63
+[    8.123456] Bluetooth: hci0: BCM: Failed to send firmware (-110)
+[   15.678901] systemd[1]: Failed to start Light Display Manager.

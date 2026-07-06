@@ -1,0 +1,7 @@
+Feb 15 09:00:01 gateway sshd[4521]: Accepted publickey for admin from 10.0.0.5 port 52100 ssh2
+Feb 15 09:00:02 gateway sshd[4521]: pam_unix(sshd:session): session opened for user admin
+Feb 15 09:01:15 gateway sshd[4580]: Failed password for invalid user test from 203.0.113.50 port 44322 ssh2
+Feb 15 09:01:16 gateway sshd[4580]: Connection closed by invalid user test 203.0.113.50 port 44322
+Feb 15 09:05:00 gateway sudo[4600]: admin : TTY=pts/0 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/systemctl restart nginx
+Feb 15 09:05:01 gateway sudo[4600]: pam_unix(sudo:session): session opened for user root by admin
+Feb 15 09:10:30 gateway sshd[4650]: Received disconnect from 10.0.0.5 port 52100:11: disconnected by user

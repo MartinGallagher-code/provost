@@ -1,0 +1,7 @@
+drwxr-xr-x user/group        0 2024-01-15 10:00 myproject/
+-rw-r--r-- user/group     1234 2024-01-15 10:00 myproject/README.md
+-rw-r--r-- user/group     5678 2024-01-15 10:00 myproject/package.json
+-rwxr-xr-x user/group     9012 2024-01-15 10:00 myproject/build.sh
+drwxr-xr-x user/group        0 2024-01-15 10:00 myproject/src/
+-rw-r--r-- user/group    15234 2024-01-15 10:00 myproject/src/main.js
+-rw-r--r-- user/group     3456 2024-01-15 10:00 myproject/src/utils.js

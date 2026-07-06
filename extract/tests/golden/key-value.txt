@@ -1,0 +1,30 @@
+entry1.key Architecture
+entry1.value x86_64
+entry2.key CPU op-mode(s)
+entry2.value 32-bit, 64-bit
+entry3.key Address sizes
+entry3.value 48 bits physical, 48 bits virtual
+entry4.key Byte Order
+entry4.value Little Endian
+entry5.key CPU(s)
+entry5.value 2
+entry6.key On-line CPU(s) list
+entry6.value 0,1
+entry7.key Vendor ID
+entry7.value AuthenticAMD
+entry8.key Model name
+entry8.value AMD EPYC 7763 64-Core Processor
+entry9.key CPU family
+entry9.value 25
+entry10.key Thread(s) per core
+entry10.value 2
+entry11.key BogoMIPS
+entry11.value 4890.86
+entry12.key Flags
+entry12.value fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2
+entry13.key Caches (sum of all)
+entry14.key L1d
+entry14.value 32 KiB (1 instance)
+entry15.key L2
+entry15.value 512 KiB (1 instance)
+total_entries 15

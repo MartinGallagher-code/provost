@@ -1,0 +1,19 @@
+ Performance counter stats for './mybenchmark':
+
+        5,432.15 msec  task-clock                       # 3.987 CPUs utilized
+             234       context-switches                 # 43.073 /sec
+              12       cpu-migrations                   # 2.209 /sec
+          45,678       page-faults                      # 8.410 K/sec
+  18,234,567,890       cpu-cycles                       # 3.357 GHz
+  25,678,901,234       instructions                     # 1.41  insn per cycle
+   3,456,789,012       branches                         # 636.277 M/sec
+      45,678,901       branch-misses                    # 1.32% of all branches
+   5,678,901,234       L1-dcache-loads                  # 1.045 G/sec
+     123,456,789       L1-dcache-load-misses            # 2.17% of all L1-dcache accesses
+      12,345,678       LLC-loads                        # 2.273 M/sec
+       1,234,567       LLC-load-misses                  # 10.00% of all LL-cache accesses
+
+       1.362345678 seconds time elapsed
+
+       5.123456789 seconds user
+       0.234567890 seconds sys

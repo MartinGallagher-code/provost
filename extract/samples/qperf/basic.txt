@@ -1,0 +1,23 @@
+tcp_bw:
+    bw              =    11.2 GB/sec
+    msg_rate        =     171 K/sec
+    send_cost       =   0.372 sec/GB
+    recv_cost       =   0.453 sec/GB
+    send_cpus_used  =     416 % cpus
+    recv_cpus_used  =     507 % cpus
+tcp_lat:
+    latency         =    12.3 us
+    msg_rate        =    81.3 K/sec
+    loc_cpus_used   =     100 % cpus
+    rem_cpus_used   =     100 % cpus
+udp_bw:
+    send_bw         =    4.56 GB/sec
+    recv_bw         =    4.55 GB/sec
+    msg_rate        =    69.6 K/sec
+    send_cpus_used  =     100 % cpus
+    recv_cpus_used  =     100 % cpus
+udp_lat:
+    latency         =    13.5 us
+    msg_rate        =    74.1 K/sec
+    loc_cpus_used   =     100 % cpus
+    rem_cpus_used   =     100 % cpus

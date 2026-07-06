@@ -1,0 +1,26 @@
+PLAY [Deploy web application] *************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [web-server-1]
+ok: [web-server-2]
+ok: [web-server-3]
+
+TASK [Install dependencies] ****************************************************
+changed: [web-server-1]
+changed: [web-server-2]
+changed: [web-server-3]
+
+TASK [Copy application files] **************************************************
+changed: [web-server-1]
+changed: [web-server-2]
+ok: [web-server-3]
+
+TASK [Restart service] *********************************************************
+changed: [web-server-1]
+changed: [web-server-2]
+changed: [web-server-3]
+
+PLAY RECAP *********************************************************************
+web-server-1               : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+web-server-2               : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+web-server-3               : ok=4    changed=2    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0

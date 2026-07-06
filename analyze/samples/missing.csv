@@ -1,0 +1,11 @@
+id,value,label,score
+1,100,alpha,85
+2,,beta,90
+3,NaN,gamma,
+4,200,NA,75
+5,null,delta,80
+6,300,None,N/A
+7,NULL,epsilon,95
+8,1.2e3,#N/A,nan
+9,-50,zeta,none
+10,.,lambda,-

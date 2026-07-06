@@ -1,0 +1,18 @@
+# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode
+# TYPE node_cpu_seconds_total counter
+node_cpu_seconds_total{cpu="0",mode="idle"} 123456.78
+node_cpu_seconds_total{cpu="0",mode="system"} 4567.89
+node_cpu_seconds_total{cpu="0",mode="user"} 8901.23
+node_cpu_seconds_total{cpu="1",mode="idle"} 122345.67
+node_cpu_seconds_total{cpu="1",mode="system"} 5678.90
+node_cpu_seconds_total{cpu="1",mode="user"} 9012.34
+# HELP node_memory_MemTotal_bytes Memory information field MemTotal
+# TYPE node_memory_MemTotal_bytes gauge
+node_memory_MemTotal_bytes 16777216000
+node_memory_MemFree_bytes 4294967296
+node_memory_MemAvailable_bytes 8589934592
+# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",endpoint="/api/v1/query",status="200"} 45678
+http_requests_total{method="POST",endpoint="/api/v1/write",status="200"} 12345
+http_requests_total{method="GET",endpoint="/api/v1/query",status="500"} 23
