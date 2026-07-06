@@ -28,6 +28,11 @@ strategy_detect () {
         if [[ $line_count -eq 0 ]]; then
             # First line must have commas
             [[ $c -eq 0 ]] && return 1
+            # Decline colon-delimited "key: value" lines whose commas are just
+            # prose inside the value (e.g. `file` output: "name: desc, more, ...").
+            # A `: ` before the first comma means this belongs to colons, not csv.
+            local _before="${_sep%%,*}"
+            [[ "$_before" == *": "* ]] && return 1
             header_commas=$c
         fi
         if [[ $c -gt 0 ]]; then
