@@ -1,30 +1,25 @@
-# glean/extract — vendored extract engine
+# glean/extract — the extract engine
 
-This directory is a **vendored copy** of the extract engine + all strategies
-from the top-level `EnvoyExtract/` project. `glean` runs it in-process (via the
-`--emit-meta` contract) to auto-detect the format of captured output.
+This directory holds glean's extract engine + all strategies. `glean` runs it
+in-process (via the `--emit-meta` contract) to auto-detect the format of captured
+output.
 
 The engine sources cross-suite shared libraries (version, progress, pager, …)
-from its sibling `../lib` — i.e. **`glean/lib/`** — which is also vendored (from
-the repo-root `lib/`). This mirrors how the engine resolves paths upstream, so
-its test suite runs unchanged here.
+from its sibling `../lib` — i.e. **`glean/lib/`**.
 
-**Do not hand-edit files here.** During the migration (proposal 0001, Phases
-2–4) `EnvoyExtract/` (and the repo-root `lib/`) are the source of truth. To pull
-upstream changes:
+**This is first-party glean code — edit it here.** The tree was originally
+imported from the Envoy suite's `EnvoyExtract/` project, but it is now maintained
+in this repo directly; there is no live upstream sync. Add a new format-detection
+strategy under `strategies/` with its sample + golden fixtures, then run the suite:
 
 ```bash
-bash glean/tools/sync-extract.sh          # refresh engine + strategies + shared libs
-bash glean/tools/sync-extract.sh --runtime-only   # engine only, skip tests/samples
+bash glean/extract/tests/run_tests.sh     # strategy + engine suite
 ```
 
-`VENDOR.json` records the source git SHA, sync timestamp, and file/strategy
-counts so drift from upstream is visible.
+`tools/new_strategy.sh` and `tools/review_strategy.sh` scaffold and check a new
+strategy.
 
-In this standalone repo this is the canonical location; the sync script re-vendors
-upstream changes when pointed at an `EnvoyExtract/` checkout (`ENVOY_EXTRACT_SRC`).
-
-## Layout (mirrors upstream)
+## Layout
 
 | Path | Purpose |
 |---|---|

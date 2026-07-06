@@ -13,7 +13,7 @@
 #     glean ls / show        list datasets / present one as a tidy table
 #     glean stats            (pending) statistics on a dataset
 #
-# The extract engine (all strategies) is the vendored copy at glean/extract/.
+# The extract engine (all strategies) is bundled in this repo at glean/extract/.
 #
 # STORE MODEL (Stage A): the workspace is a git repo. By default captures go to
 # a GLOBAL store (~/.glean, override with GLEAN_HOME) so you can capture from any
@@ -37,7 +37,7 @@ GLEAN_VERSION="0.7.0-proto"
 _default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
 
 # The real directory of this script, following symlinks — so glean finds its
-# vendored extract/analyze/transform trees even when invoked via a symlink on
+# bundled extract/analyze/transform trees even when invoked via a symlink on
 # PATH (e.g. after install.sh). Computed once; used by all path resolvers.
 _glean_root () {
     local src="${BASH_SOURCE[0]}" d
@@ -98,25 +98,15 @@ ok ()   { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_R
 die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Locate the extract engine.
-#   Phase 2: the engine is vendored at glean/extract/ (see tools/sync-extract.sh)
-#   with its shared libs at glean/lib/ (the engine's ../lib). This is the
-#   canonical copy. The sibling-EnvoyExtract walk-up remains only as a
-#   fallback for a co-located Envoy checkout.
+# Locate the extract engine. It is bundled in this repo at glean/extract/ with
+# its shared libs at glean/lib/ (the engine's ../lib). GLEAN_HOME can override.
 # ---------------------------------------------------------------------------
 _find_engine () {
-    local here script_dir="$GLEAN_ROOT"
+    local script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/extract/envoy-extract"
-        "$script_dir/extract/envoy-extract"       # vendored (canonical)
+        "$script_dir/extract/envoy-extract"       # bundled (canonical)
     )
-    # Walk up looking for a sibling EnvoyExtract/ (transition fallback).
-    here="$script_dir"
-    while [[ "$here" != "/" ]]; do
-        candidates+=("$here/EnvoyExtract/envoy-extract")
-        here="$(dirname "$here")"
-    done
-    candidates+=("$(command -v envoy-extract 2>/dev/null || true)")
     local c
     for c in "${candidates[@]}"; do
         [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
@@ -124,19 +114,13 @@ _find_engine () {
     return 1
 }
 
-# Locate the analyze engine (vendored at glean/analyze/, see sync-analyze.sh).
+# Locate the analyze engine (bundled at glean/analyze/). GLEAN_HOME can override.
 _find_analyze () {
-    local here script_dir="$GLEAN_ROOT"
+    local script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/analyze/envoy-analyze"
-        "$script_dir/analyze/envoy-analyze"       # vendored (canonical)
+        "$script_dir/analyze/envoy-analyze"       # bundled (canonical)
     )
-    here="$script_dir"
-    while [[ "$here" != "/" ]]; do
-        candidates+=("$here/EnvoyAnalyze/envoy-analyze")
-        here="$(dirname "$here")"
-    done
-    candidates+=("$(command -v envoy-analyze 2>/dev/null || true)")
     local c
     for c in "${candidates[@]}"; do
         [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
@@ -146,32 +130,20 @@ _find_analyze () {
 
 # ---------------------------------------------------------------------------
 # Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
-# (`_core_union_header`, `_core_align_rows`) are IMPORTED from EnvoyCapture's
-# lib/_core.sh, vendored to glean/transform/melt.sh by tools/sync-melt.sh (not
-# re-implemented here). Source it now; the sibling-EnvoyCapture fallback keeps
-# glean working before a sync.
+# (`_core_union_header`, `_core_align_rows`) live in glean/transform/melt.sh.
+# Source it now.
 # ---------------------------------------------------------------------------
 _source_transform () {
-    local here script_dir="$GLEAN_ROOT"
+    local script_dir="$GLEAN_ROOT"
     local candidates=(
         "${GLEAN_HOME:-}/transform/melt.sh"
-        "$script_dir/transform/melt.sh"           # vendored (canonical)
+        "$script_dir/transform/melt.sh"           # bundled (canonical)
     )
     local c
     for c in "${candidates[@]}"; do
         [[ -n "$c" && -r "$c" ]] && { source "$c"; return 0; }
     done
-    # Fallback: source the transform functions straight from a sibling EnvoyCapture.
-    here="$script_dir"
-    while [[ "$here" != "/" ]]; do
-        if [[ -r "$here/EnvoyCapture/lib/_core.sh" ]]; then
-            source <(awk '/^# Union of two TSV header lines/{f=1} /^# Append a TSV row to a dataset/{f=0} f' \
-                     "$here/EnvoyCapture/lib/_core.sh")
-            return 0
-        fi
-        here="$(dirname "$here")"
-    done
-    die "transform module not found (run: bash glean/tools/sync-melt.sh)."
+    die "transform module not found (expected at $script_dir/transform/melt.sh)."
 }
 _source_transform
 
@@ -295,7 +267,7 @@ _store_append () {
 _ingest () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
     local engine; engine="$(_find_engine)" \
-        || die "extract engine not found. Set GLEAN_HOME or keep EnvoyExtract/ reachable."
+        || die "extract engine not found (expected at $GLEAN_ROOT/extract/envoy-extract; set GLEAN_HOME to override)."
 
     local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
     # shellcheck disable=SC2064
@@ -617,14 +589,14 @@ cmd_source () {
 }
 
 # ---------------------------------------------------------------------------
-# stats — statistics on a dataset (the vendored analyze engine).
+# stats — statistics on a dataset (the bundled analyze engine).
 # ---------------------------------------------------------------------------
 cmd_stats () {
     local name="${1:?usage: glean stats <dataset> [analyze-args...]}"; shift || true
     local f; f="$(_ds_dir)/$name.tsv"
     [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
     local analyze; analyze="$(_find_analyze)" \
-        || die "analyze engine not found (vendor it: bash glean/tools/sync-analyze.sh)."
+        || die "analyze engine not found (expected at $GLEAN_ROOT/analyze/envoy-analyze)."
     # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
     # straight through (e.g. --all, a numbered analysis list, --format json).
     ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 env -u GIT_DIR bash "$analyze" "$f" "$@"
@@ -674,7 +646,7 @@ cmd_doctor () {
         printf '%s ok%s analyze engine: %s\n' "$C_OK" "$C_RST" "$analyze"
         command -v gawk >/dev/null 2>&1 || printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "$(awk --version 2>/dev/null | head -1 || echo awk)"
     else
-        printf '   analyze engine not vendored (run: bash glean/tools/sync-analyze.sh)\n'
+        printf '   analyze engine not found (expected at %s/analyze/)\n' "$GLEAN_ROOT"
     fi
     printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "${GLEAN_STORE_KIND:-global}"
     [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'

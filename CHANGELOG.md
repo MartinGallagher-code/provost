@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-06 — cut the cord to Envoy: extract/analyze/transform/lib are now first-party
+- glean is now a **fully standalone** project with no live tie to Envoy. The
+  `extract/`, `analyze/`, `transform/`, and `lib/` trees — originally imported
+  from the Envoy suite — are now maintained here directly as first-party code.
+  Extract strategies and engine changes are made in place, without regard to
+  upstream Envoy; any future re-integration is a deliberate manual merge.
+- **Removed the vendoring apparatus:** deleted `tools/sync-extract.sh`,
+  `tools/sync-analyze.sh`, `tools/sync-melt.sh` (emptying `tools/`), and the
+  `extract/VENDOR.json` / `analyze/VENDOR.json` provenance files. The original
+  import points are preserved in git history and in this log (extract from
+  `EnvoyExtract` @ `81bcb18`, analyze from `EnvoyAnalyze` @ `533bec8`, transform
+  from `EnvoyCapture` @ `8639a6ef`).
+- **`glean`:** removed the sibling-Envoy runtime fallbacks — `_find_engine` and
+  `_find_analyze` no longer walk up looking for `EnvoyExtract/`/`EnvoyAnalyze/` or
+  a `command -v envoy-*` on PATH, and `_source_transform` no longer falls back to
+  a sibling `EnvoyCapture/lib/_core.sh`. The engines resolve only from this tree
+  (`GLEAN_ROOT/extract`, `/analyze`, `/transform`) with a `GLEAN_HOME` override.
+  Reworded the "not found" errors and `doctor` note that pointed at the deleted
+  sync scripts to point at the expected in-repo paths.
+- **Docs flipped from "vendored, do not hand-edit" to first-party:** rewrote the
+  repository-layout / policy sections of `CLAUDE.md`, `README.md`, `HANDOFF.md`,
+  and `extract/README.md`; updated the `transform/melt.sh` header (kept the
+  original-import provenance line, dropped the "VENDORED / re-import" framing).
+  Retitled a couple of stale "vendored" comments in `install.sh` / `tests/smoke.sh`.
+- Historical CHANGELOG and `docs/0001` entries that describe the earlier vendored
+  model are left intact (dated record).
+- Verified green: smoke 33/33, transform 8/8, extract suite, analyze suite.
+- Files: `glean`, `transform/melt.sh`, `CLAUDE.md`, `README.md`, `HANDOFF.md`,
+  `extract/README.md`, `install.sh`, `tests/smoke.sh`; removed `tools/sync-*.sh`,
+  `extract/VENDOR.json`, `analyze/VENDOR.json`.
+
 ## 2026-07-06 — drop Phase-5 framing (out of scope for the standalone repo)
 - Phase 5 of proposal 0001 was "retire Envoy" — hard-cut the `Envoy*` trees in
   place in the monorepo. The standalone-repo split (2026-07-05) superseded that:

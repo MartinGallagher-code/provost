@@ -6,7 +6,7 @@
 #   PREFIX=/usr/local bash glean/install.sh   # install under /usr/local
 #   bash glean/install.sh --uninstall
 #
-# glean runs in place from this tree (it resolves its vendored extract/analyze/
+# glean runs in place from this tree (it resolves its bundled extract/analyze/
 # transform relative to the script), so "install" just creates a launcher on
 # PATH and drops the bash completion + man page. Nothing is copied out of tree.
 set -euo pipefail

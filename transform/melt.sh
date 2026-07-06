@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# glean/transform/melt.sh — VENDORED, do not hand-edit.
+# glean/transform/melt.sh — the extract-output transform (tidy melt + schema-union
+# helpers). First-party glean code; edit it here.
 #
-# The extract-output transform (tidy melt + schema-union helpers), imported
-# verbatim from EnvoyCapture/lib/_core.sh by glean/tools/sync-melt.sh.
 # Functions: _core_melt_tidy, _core_union_header, _core_align_rows.
-# Source: EnvoyCapture/lib/_core.sh @ 8639a6ef54fe5867aba8bee81171c5abd344adb3  (synced 2026-07-05T18:26:56Z)
-# Re-import with: bash glean/tools/sync-melt.sh
+# Originally imported from EnvoyCapture/lib/_core.sh
+# @ 8639a6ef54fe5867aba8bee81171c5abd344adb3 (2026-07-05); maintained locally since.
 
 # Union of two TSV header lines, by column name: all of $1's columns in order,
 # then any of $2's columns not already present. Prints the tab-joined header.

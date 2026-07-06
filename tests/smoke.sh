@@ -37,7 +37,7 @@ src_out="$("$GLEAN" source 3 2>&1)"
 check "source #3 resolves to a capture" "from capture" "$src_out"
 check "source #3 shows the 2nd sample's original input (used 3050)" "3050" "$src_out"
 
-# stats: the vendored analyze engine computes summary statistics on a dataset
+# stats: the bundled analyze engine computes summary statistics on a dataset
 stats_out="$("$GLEAN" stats free 2>&1)"
 check "stats produces summary statistics" "Summary stats" "$stats_out"
 check "stats computes a mean over the column" "Mean" "$stats_out"
@@ -53,7 +53,7 @@ check "no free.v2 variant was created" "1" "$(ls "$RWS/datasets" | grep -c '^fre
 # the reconciled dataset holds both rows, blank-filled
 check "reconciled dataset holds both captures' rows" "8500" "$(GLEAN_WORKSPACE="$RWS" "$GLEAN" show free 2>&1)"
 
-# install + symlink launcher: glean must find its vendored trees when run via a
+# install + symlink launcher: glean must find its bundled trees when run via a
 # symlink on PATH (regression guard for the GLEAN_ROOT symlink-resolution fix)
 IPREFIX="$(mktemp -d)/opt"
 PREFIX="$IPREFIX" bash "$HERE/../install.sh" >/dev/null 2>&1

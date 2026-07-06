@@ -9,27 +9,28 @@ its format, and present it as a tidy, git-backed dataset. Single entry point:
 | Path | What it is | Edit here? |
 |---|---|---|
 | `glean` | the tool (all first-party logic) | **yes** |
-| `extract/` | vendored extract engine + strategies (from EnvoyExtract) | no — see below |
-| `analyze/` | vendored analyze engine (from EnvoyAnalyze) | no |
-| `transform/` | imported tidy-melt transform (from EnvoyCapture) | no |
-| `lib/` | vendored shared suite libs (`envoy_*.sh`) | no |
-| `tools/` | the `sync-*.sh` re-vendoring scripts | yes |
-| `tests/`, `transform/tests/` | first-party tests | yes |
+| `extract/` | extract engine + strategies | **yes** |
+| `analyze/` | analyze engine | **yes** |
+| `transform/` | tidy-melt transform | **yes** |
+| `lib/` | shared suite libs (`envoy_*.sh`) | **yes** |
+| `tests/`, `transform/tests/` | first-party tests | **yes** |
 
-### Vendored trees are canonical here, but do not hand-edit them
+### Standalone — everything here is first-party, edit it in place
 
-`extract/`, `analyze/`, `transform/`, and `lib/` are vendored from the upstream
-Envoy repo. In this standalone repo they are the canonical copies, but changes to
-them belong **upstream**, then re-synced — do not edit vendored files in place.
-To pull upstream changes you need an Envoy checkout:
+This is a **standalone repository with no live tie to Envoy.** `extract/`,
+`analyze/`, `transform/`, and `lib/` were originally imported from the Envoy
+suite, but they are now maintained here directly — treat them as first-party
+code and edit them in place. Add extract strategies under
+`extract/strategies/`, wire analyze features under `analyze/`, and so on, without
+regard to upstream Envoy.
 
-```bash
-ENVOY_EXTRACT_SRC=/path/to/envoy/EnvoyExtract bash tools/sync-extract.sh
-ENVOY_ANALYZE_SRC=/path/to/envoy/EnvoyAnalyze bash tools/sync-analyze.sh
-ENVOY_CAPTURE_SRC=/path/to/envoy/EnvoyCapture bash tools/sync-melt.sh
-```
+The old `tools/sync-*.sh` re-vendoring scripts and the `VENDOR.json` provenance
+files have been removed; the original import point is recorded in `CHANGELOG.md`
+if it's ever needed. Any future re-integration with Envoy will be a deliberate,
+manual merge — not a routine sync.
 
-`VENDOR.json` in each tree records the upstream git SHA it was synced from.
+> The `envoy-*` names and `envoy_*.sh` libs inside these trees are retained as-is
+> (renaming them is a large, separate change) — they are simply glean's internals now.
 
 ## Documentation
 
@@ -47,13 +48,21 @@ bash tests/smoke.sh                 # end-to-end (33 checks)
 bash transform/tests/test_melt.sh   # transform unit test (8 checks)
 ```
 
-When you re-sync a vendored tree, run its suite in place:
+When you change the `extract/` or `transform/` trees (e.g. add an extract
+strategy), run that tree's suite:
 
 ```bash
-bash extract/tests/run_tests.sh     # strategy + engine suite
+bash extract/tests/run_tests.sh     # strategy + engine suite (CI-enforced)
 ```
 
-Add or update tests to cover any behavior you change.
+The analyze suite (`analyze/tests/`) still ships tests for the `browse` /
+`dashboard` surfaces that glean intentionally does **not** include, so the raw
+`analyze/tests/run_tests.sh` is red out of the box. CI runs a filtered subset
+that skips those (and installs `gawk`) — see the `analyze-engine` job in
+`.github/workflows/ci.yml`; run analyze tests the same way if you touch `analyze/`.
+
+Add or update tests to cover any behavior you change. New extract strategies
+ship with their own sample + golden fixtures under `extract/`.
 
 ## Conventions
 
