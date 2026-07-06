@@ -105,10 +105,14 @@ strategy_extract () {
     done <<< "$text"
     [[ -z "$data_lines" ]] && return
 
-    # For each data row, extract values using computed column boundaries
+    # For each data row, extract values using computed column boundaries and emit
+    # an indexed record group (entry<N>.<column>) so the tidy melt renders one row
+    # per data line instead of welding every cell into one wide record.
     local result=""
+    local entry=0
     while IFS= read -r row; do
         [[ -z "$row" ]] && continue
+        entry=$((entry + 1))
 
         for ((c=0; c<num_cols; c++)); do
             local lo=${col_lo[$c]}
@@ -127,9 +131,11 @@ strategy_extract () {
             [[ -z "$value" ]] && continue
 
             local name="${col_names[$c]}"
-            result+="${name} ${value}"$'\n'
+            name="${name//./_}"   # '.' would break the tidy melt's group key split
+            result+="entry${entry}.${name} ${value}"$'\n'
         done
     done <<< "$data_lines"
 
+    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

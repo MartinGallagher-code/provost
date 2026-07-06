@@ -56,7 +56,7 @@ yet tidy.
 | ls-l | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu | ✅ | key-value |
-| lshw | ⏳ | — |
+| lshw | ✅ | vertical-line |
 | lsmod | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci | ✅ᵇ | lspci (bespoke) |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ✅ᵇ | w-sessions (bespoke) |
 | who | ✅ | aligned-columns |
 
-**Coverage: 96 / 100** — ✅ 84 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
-⏳ not yet tidy: file groups loginctl lshw
+**Coverage: 97 / 100** — ✅ 85 via a generic parser, ✅ᵇ 12 via a bespoke strategy.
+⏳ not yet tidy: file groups loginctl
