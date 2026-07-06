@@ -93,7 +93,7 @@ redundant per-tool strategies once the generic parsers cover them.
 
 Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **100 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one parallel batch harness `run.sh`. **73/100 tidy: 69 via a generic parser, 4
+and one parallel batch harness `run.sh`. **76/100 tidy: 73 via a generic parser, 3
 (`uptime`, `uname`, `lspci`, `dmidecode`) via a bespoke one.** 27 gaps cluster
 into: leading banner/preamble, single freeform lines, single-column lists, tree
 structures, and a few key-value snapshots. `run.sh --coverage` regenerates
