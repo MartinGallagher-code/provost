@@ -19,7 +19,11 @@ strategy_detect () {
     local _tmp
     while IFS= read -r _line; do
         [[ -z "$_line" ]] && continue
-        _tmp="${_line//[^,]/}"
+        # Ignore commas inside parenthesised groups — those are not CSV field
+        # separators (e.g. `mount` options `(rw,nosuid,nodev)`). Counting only
+        # top-level commas keeps csv from claiming such lines.
+        local _sep="${_line//(*)/}"
+        _tmp="${_sep//[^,]/}"
         local c=${#_tmp}
         if [[ $line_count -eq 0 ]]; then
             # First line must have commas

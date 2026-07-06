@@ -21,20 +21,23 @@ strategy_detect () {
     # mapping — leave it to the dedicated record strategy (see _has_repeated_top_keys).
     _has_repeated_top_keys "$text" && return 1
 
-    # Must NOT look like INI (has [section] headers without = on other lines)
-    # INI sections look like [word] on a line by themselves
-    # But TOML also has [section], so check for YAML-specific features:
-    # indented sub-keys (2-space indent followed by key:)
-    [[ "$text" =~ (^|$'\n')[[:space:]][[:space:]]*[a-zA-Z][a-zA-Z0-9_-]*: ]] && return 0
-
-    # Also accept if we see --- document marker (YAML-specific)
-    [[ "$text" == *$'\n'"---"* || "$text" == "---"* ]] && return 0
-
-    # Accept if we see bare key: value lines with no [section] headers
-    if [[ "$text" != *$'\n'"["* && "$text" != "["* ]]; then
-        return 0
-    fi
-
+    # Require a strong majority of non-blank lines to be YAML-shaped — a `key:`
+    # mapping, a `- ` list item, or a `---` document marker. This stops yaml from
+    # claiming whitespace-columnar output that merely happens to have a
+    # colon-bearing line (e.g. `free` with its `Mem:`/`Swap:` rows, or `sensors`
+    # with an `Adapter:` line), which it would otherwise collapse to one record.
+    local nonblank=0 yamlish=0 _l
+    while IFS= read -r _l; do
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        nonblank=$((nonblank + 1))
+        if [[ "$_l" =~ ^[[:space:]]*[A-Za-z0-9_.-]+:([[:space:]]|$) ]] \
+           || [[ "$_l" =~ ^[[:space:]]*-[[:space:]] ]] \
+           || [[ "$_l" == "---"* ]]; then
+            yamlish=$((yamlish + 1))
+        fi
+    done <<< "$text"
+    [[ $nonblank -eq 0 ]] && return 1
+    [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] && return 0
     return 1
 }
 

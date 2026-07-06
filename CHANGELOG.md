@@ -1,5 +1,26 @@
 # glean — Changelog
 
+## 2026-07-06 — generic tidy coverage 13 → 18/22 (headerless tables + tighter structured parsers)
+- **Tightened the over-eager structured parsers** so they stop stealing tabular
+  input from the columnar parser: `json` now requires the input to *close* with
+  `}`/`]` (rejects `dmesg`'s `[ts] msg`), `yaml` requires a strong majority of
+  YAML-shaped lines (rejects `free`/`sensors`), and `csv` ignores commas inside
+  parentheses (rejects `mount` options like `(rw,nosuid,nodev)`).
+- **Added a guarded headerless mode to `aligned-columns`** (now the generic
+  parser for `who`, `mount`, `ip route`): when the first line already looks like
+  data (has a digit-bearing token) it synthesises `c1..cN` columns instead of
+  eating a data row as the header. Requires ≥3 consistent columns so it can't
+  swallow key/value input.
+- Net: generic-only tidy coverage **13 → 18 of 22** (`ss`, `lsblk`, `docker-ps`,
+  `mount`, `who`, `ip route`, `free`, `sensors` added). Full extract suite stays
+  **219/219**; smoke 33/33, melt 8/8.
+- **Coverage is now queryable**: `tests/corpus/run.sh --coverage` generates
+  `tests/corpus/COVERAGE.md`, a ✅/⏳ table of which tools tidy via a generic
+  parser. Remaining gaps: `dmesg`, `ls -l`, `vmstat`, `uptime` (each needs
+  targeted handling — see the corpus README).
+- Files: `extract/strategies/structured/{json,yaml,csv}.sh`,
+  `extract/strategies/delimited/aligned-columns.sh`, `tests/corpus/*`.
+
 ## 2026-07-06 — tidy-coverage corpus + generic columnar parser (fewer strategies)
 - Start moving toward the design goal of tidying common tool outputs with a
   **minimum of strategies** (the ~12 generic parsers), rather than one bespoke

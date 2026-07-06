@@ -1,0 +1,5 @@
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	/dev/sda1	on	/	type	ext4	(rw,relatime)	4
+2	proc	on	/proc	type	proc	(rw,nosuid,nodev,noexec,relatime)	4
+3	tmpfs	on	/dev/shm	type	tmpfs	(rw,nosuid,nodev)	4
+4	/dev/sdb1	on	/data	type	xfs	(rw,relatime,attr2)	4

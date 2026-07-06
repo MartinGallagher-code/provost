@@ -15,7 +15,16 @@ strategy_detect () {
     while [[ "$trimmed" == " "* || "$trimmed" == $'\t'* || "$trimmed" == $'\n'* ]]; do
         trimmed="${trimmed#?}"
     done
-    [[ "$trimmed" == "{"* || "$trimmed" == "["* ]]
+    # Trailing whitespace/newlines too, so we can check the closing bracket.
+    while [[ "$trimmed" == *" " || "$trimmed" == *$'\t' || "$trimmed" == *$'\n' ]]; do
+        trimmed="${trimmed%?}"
+    done
+    # Must open AND close like JSON. This rejects bracket-prefixed logs such as
+    # dmesg ("[    0.000000] Linux version …") which open with '[' but do not
+    # close with ']'/'}'.
+    [[ "$trimmed" == "{"* || "$trimmed" == "["* ]] || return 1
+    [[ "$trimmed" == *"}" || "$trimmed" == *"]" ]] || return 1
+    return 0
 }
 
 strategy_extract () {
