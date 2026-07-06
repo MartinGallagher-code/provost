@@ -1,0 +1,5 @@
+n	Role_name	Member_of	Attributes	total_entries
+1	appuser	{}		4
+2	postgres	{}	Superuser,_Create_role,_Create_DB,_Replication,_Bypass_RLS	4
+3	readonly	{}	Cannot_login	4
+4	reporting	{readonly}	Password_valid_until_2027-01-01_00:00:00+00	4

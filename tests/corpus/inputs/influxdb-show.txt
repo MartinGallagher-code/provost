@@ -1,0 +1,7 @@
+name: databases
+name
+----
+_internal
+telegraf
+metrics
+sensors

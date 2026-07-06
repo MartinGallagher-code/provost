@@ -1,0 +1,6 @@
+  PID USER      PRI  NI  VIRT   RES   SHR S  CPU%  MEM%   TIME+  Command
+ 1842 www-data   20   0  482M  210M  18M R  18.4   6.2  1:24.18 nginx: worker process
+ 3120 postgres   20   0 1200M  510M  64M S  12.1   9.8  4:08.42 postgres: writer
+  998 mysql      20   0  980M  320M  32M S   8.0   4.1  2:11.05 /usr/sbin/mysqld
+ 2301 root       20   0  112M   22M   8M S   0.4   0.8  0:03.11 sshd: root@pts/0
+ 4455 www-data   20   0  482M  198M  18M S   0.2   5.9  0:58.77 nginx: worker process

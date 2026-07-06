@@ -1,0 +1,6 @@
+NAME          STATUS   AGE
+default       Active   45d
+kube-system   Active   45d
+kube-public   Active   45d
+prod          Active   20d
+staging       Active   12d

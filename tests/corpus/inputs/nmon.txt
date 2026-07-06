@@ -1,0 +1,9 @@
+AAA,progname,nmon
+AAA,version,16m
+AAA,host,web-prod-03
+AAA,date,06-JUL-2026
+AAA,time,14:32:11
+CPU_ALL,CPU Total web-prod-03,User%,Sys%,Wait%,Idle%
+CPU_ALL,T0001,12.4,4.1,1.2,82.3
+MEM,Memory web-prod-03,Total MB,Free MB,Cached MB
+MEM,T0001,16384.0,3421.5,8210.2

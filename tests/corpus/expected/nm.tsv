@@ -1,0 +1,9 @@
+n	c1	c2	c3	total_entries
+1	0000000000004010	B	__bss_start	8
+2	0000000000001139	T	main	8
+3	00000000000010e0	T	_start	8
+4	0000000000004010	D	__data_start	8
+5	0000000000001040	T	printf@plt	8
+6	00000000000011a0	t	deregister_tm_clones	8
+7	0000000000004000	D	__dso_handle	8
+8	U	puts@GLIBC_2.2.5		8

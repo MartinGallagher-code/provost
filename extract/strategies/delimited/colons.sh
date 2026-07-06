@@ -21,7 +21,20 @@ strategy_detect () {
     # or end of line. Requiring whitespace after the colon avoids matching colons
     # inside timestamps/values (e.g. `date`'s `10:15:42`) as a key.
     local _re="(^|${_nl})[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|${_nl}|$)"
-    [[ "$text" =~ $_re ]]
+    [[ "$text" =~ $_re ]] || return 1
+
+    # Require key:value lines to be a real fraction of the content, not a lone
+    # stray colon in otherwise free text (e.g. a single `usage:` line inside
+    # `strings` output). Below ~40% this isn't colon-delimited data — let the
+    # last-resort line-records catch it as a one-column list instead.
+    local _kv=0 _nb=0 _l
+    local _line_re="^[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|$)"
+    while IFS= read -r _l; do
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        _nb=$((_nb + 1))
+        [[ "$_l" =~ $_line_re ]] && _kv=$((_kv + 1))
+    done <<< "$text"
+    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]]
 }
 
 strategy_extract () {

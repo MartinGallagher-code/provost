@@ -1,0 +1,8 @@
+0000000000004010 B __bss_start
+0000000000001139 T main
+00000000000010e0 T _start
+0000000000004010 D __data_start
+0000000000001040 T printf@plt
+00000000000011a0 t deregister_tm_clones
+0000000000004000 D __dso_handle
+                 U puts@GLIBC_2.2.5

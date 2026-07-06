@@ -1,0 +1,12 @@
+Name: blacklist
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 456
+References: 1
+Number of entries: 4
+Members:
+203.0.113.45
+198.51.100.22
+192.0.2.71
+203.0.113.9

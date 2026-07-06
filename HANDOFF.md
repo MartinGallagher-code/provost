@@ -38,7 +38,7 @@ docker stats   | ./glean
 ## Architecture
 
 ### Extract (the default verb)
-Runs the **extract engine** (all 205 strategies at `extract/`) via its
+Runs the **extract engine** (all strategies at `extract/`) via its
 `--emit-meta -f tsv --max-strategies 1` contract, classifies by the winning
 strategy + confidence, melts the wide `entry<N>.<field>` output to **one row per
 record**, and appends it to a per-type dataset. The engine sources the shared
@@ -91,20 +91,24 @@ strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/
 + `structured/`) instead of a bespoke strategy per tool, and delete the
 redundant per-tool strategies once the generic parsers cover them.
 
-Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **100 common Linux
+Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **200 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one parallel batch harness `run.sh`. **All 100 tidy: 87 via a generic parser,
-13 via a bespoke one** (no remaining gaps). The generic parsers carry the common
-87; the 13 bespoke are idiosyncratic format families (sysstat banners
+and one parallel batch harness `run.sh`. **All 200 tidy: 166 via a generic parser,
+34 via a bespoke one** (no remaining gaps). The generic parsers carry the common
+166; the 34 bespoke are idiosyncratic format families (sysstat banners
 `mpstat`/`sar`/`pidstat`; `ping`/`traceroute`/`w`; `dmidecode`/`lspci`/`uname`/
-`uptime`; `dpkg-l`/`fdisk`/`iptables-save`). `run.sh --coverage` regenerates
+`uptime`; the monitoring cluster `perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/
+`nethogs`/`perf-counters`; binutils `objdump-headers`/`readelf-sections`; and a
+handful of network/VCS/security tools). `run.sh --coverage` regenerates
 `COVERAGE.md` (the queryable ✅/✅ᵇ list). The extract engine selects the
 **lowest-priority-number** matching strategy (confidence is mainly a threshold
 gate), so making a generic parser win is about its `## Priority` and `detect()`.
 
 The generic parsers covering the corpus: `aligned-columns` (header, headerless,
-two-line), `bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons`,
-`indented-hierarchy`.
+two-line), `bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons`
+(now gated to ≥40% `key:` lines), `indented-hierarchy`, `line-records`,
+`labeled-records`, `tree-view`, `vertical-line`, `psql-table` (box tables),
+`version-string`, and `text-lines` (last-resort one-column dump).
 
 ## Pruning redundant strategies (in progress)
 

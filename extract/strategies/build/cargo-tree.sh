@@ -37,8 +37,7 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result=""
-    local dep_num=0
-    local is_root=1
+    local entry=0
 
     local _re_name_ver='^(.*) v([0-9]+\.[0-9]+[.0-9]*)'
 
@@ -79,17 +78,14 @@ strategy_extract () {
             name="${name// /_}"
             name="${name//-/_}"
 
-            if [[ $is_root -eq 1 ]]; then
-                result+="root.name ${name}"$'\n'
-                result+="root.version ${version}"$'\n'
-                is_root=0
-            else
-                dep_num=$((dep_num + 1))
-                result+="dep${dep_num}.name ${name}"$'\n'
-                result+="dep${dep_num}.version ${version}"$'\n'
-            fi
+            # Root crate (entry1) and every dependency are records on equal
+            # footing — one tidy row each, via the standard entry<N> contract.
+            entry=$((entry + 1))
+            result+="entry${entry}.name ${name}"$'\n'
+            result+="entry${entry}.version ${version}"$'\n'
         fi
     done <<< "$text"
 
+    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

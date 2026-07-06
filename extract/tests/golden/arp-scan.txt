@@ -1,0 +1,16 @@
+entry1.ip 192.168.1.1
+entry1.mac aa:bb:cc:dd:ee:ff
+entry1.vendor Netgear Inc.
+entry2.ip 192.168.1.10
+entry2.mac de:ad:be:ef:00:11
+entry2.vendor Raspberry Pi Foundation
+entry3.ip 192.168.1.24
+entry3.mac 00:16:3e:2a:4b:6c
+entry3.vendor Xensource, Inc.
+entry4.ip 192.168.1.42
+entry4.mac 52:54:00:12:34:56
+entry4.vendor QEMU Virtual NIC
+entry5.ip 192.168.1.99
+entry5.mac b8:27:eb:aa:bb:cc
+entry5.vendor Raspberry Pi Foundation
+total_entries 5

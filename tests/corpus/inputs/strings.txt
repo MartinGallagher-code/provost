@@ -1,0 +1,8 @@
+/lib64/ld-linux-x86-64.so.2
+libc.so.6
+GLIBC_2.2.5
+Hello, world!
+__cxa_finalize
+usage: %s [options] file
+Version 1.4.2 build 8891
+Copyright (c) 2024 Example Corp

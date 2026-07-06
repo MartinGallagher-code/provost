@@ -1,0 +1,13 @@
+entry1.name zlib
+entry1.description zlib - zlib compression library
+entry2.name openssl
+entry2.description OpenSSL - Secure Sockets Layer and cryptography libraries
+entry3.name libcurl
+entry3.description libcurl - Library to transfer files with ftp, http, etc.
+entry4.name glib-2.0
+entry4.description GLib - C Utility Library
+entry5.name libxml-2.0
+entry5.description libXML - libXML library version2.
+entry6.name ncurses
+entry6.description ncurses library
+total_entries 6

@@ -1,0 +1,10 @@
+entry1.name example.com
+entry1.record address
+entry1.value 93.184.216.34
+entry2.name example.com
+entry2.record ipv6_address
+entry2.value 2606:2800:220:1:248:1893:25c8:1946
+entry3.name example.com
+entry3.record mx
+entry3.value 10 mail.example.com.
+total_entries 3

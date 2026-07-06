@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-06 — 200/200 tidy coverage (second 100 driven to 100%)
+- Drove the full 200-tool corpus to **200/200 tidy** (166 via generic parsers,
+  34 bespoke) — up from 169/200. The 31 remaining gaps were closed by new,
+  format-family parsers (authored in parallel by five subagents, then integrated
+  and de-conflicted here):
+  - **Box tables** — `psql-table` (priority 35): `col | col` header, a `---+---`
+    separator, then `value | value` rows (psql `\l`/`\dt`/`\du`, `pg_stat_activity`,
+    mysql). Also cleaned up the previously-garbled `psql \du` columns.
+  - **Version banners** — `version-string` (priority 28): short `vN.N.N` /
+    `cmake version N.N.N` output (node/java/cmake/gcc `--version`). Guarded to
+    reject tab-separated, many-token headers so it no longer steals `mpstat`/`sar`.
+  - **Monitoring tables** — `perf-top`, `turbostat`, `slabtop`, `iotop`, `iftop`,
+    `nethogs` (banner + columnar), and `perf-counters` (priority 18) for
+    `perf stat`'s counter list → one tidy row per counter.
+  - **Binutils / packages** — `objdump-headers`, `readelf-sections`, `ldconfig-p`,
+    `pkg-config`, `gem-list`, `composer-show`.
+  - **Network / VCS / security** — `arp-scan`, `aws-s3-ls`, `host`, `mtr-report`,
+    `git-remote`, `lastb`, `gpg-list-keys`, `chage-l`.
+  - **Ragged single-column text** — `text-lines` (priority 97, absolute last
+    resort): one row per line for unstructured output like `strings`.
+- **Cross-strategy de-confliction** (the integration work): lowered `git-remote`
+  to 13 (beat generic `tsv`) and `gpg-list-keys` to 19 (beat `sqlite-output`);
+  gave the greedy `colons` fallback a "≥40% of lines are `key:`" gate so a lone
+  `usage:` line no longer captures `strings`; renamed the new mtr parser to
+  `mtr-report` with its own sample+golden so it stops clobbering the existing
+  `network-hops` mtr fixtures; dropped a duplicate `git-log` strategy; fixed the
+  corpus `git-log.txt` fixture to use realistic hex shas.
+- `cargo-tree` now emits the standard `entry<N>` + `total_entries` contract
+  (root crate = entry1), so its dependency tree melts to one tidy row per crate
+  (9 rows) instead of the old `root.`/`dep<N>.` shape.
+- Extract suite 214/214; smoke 33/33; melt 8/8; corpus golden regression
+  166/166. `COVERAGE.md` regenerated (queryable ✅/✅ᵇ list, 0 ⏳).
+
 ## 2026-07-06 — 100/100 tidy coverage (the last gaps closed)
 - Drove the corpus from 82 to **100/100 tidy** (87 via generic parsers, 13
   bespoke). The final gaps, in order:

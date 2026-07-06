@@ -110,6 +110,11 @@ wait
 pass=0; fail=0; total=0; relies=0; besp=0; skip=0
 declare -a FAILED
 
+# Coverage is the queryable record: write it to COVERAGE.md (and still echo to
+# the terminal) so the committed file can never silently drift from the live
+# result — `run.sh --coverage` alone regenerates it, no manual redirect needed.
+if [[ "$mode" == "coverage" ]]; then exec > >(tee "$HERE/COVERAGE.md"); fi
+
 if [[ "$mode" == "report" ]]; then
     printf '%-16s %-18s %-18s %6s %-6s %s\n' 'TOOL' 'FULL(conf)' 'GENERIC(conf)' 'CxR' 'TIDY' 'NOTE'
     printf '%s\n' "--------------------------------------------------------------------------------"

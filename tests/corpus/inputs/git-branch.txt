@@ -1,0 +1,5 @@
+* main
+  develop
+  feature/login
+  remotes/origin/main
+  remotes/origin/develop

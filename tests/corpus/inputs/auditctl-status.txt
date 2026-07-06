@@ -1,0 +1,7 @@
+enabled 1
+failure 1
+pid 1234
+rate_limit 0
+backlog_limit 8192
+lost 0
+backlog 0

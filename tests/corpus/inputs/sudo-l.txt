@@ -1,0 +1,7 @@
+Matching Defaults entries for alice on webhost:
+    env_reset, mail_badpass, secure_path=/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User alice may run the following commands on webhost:
+    (ALL : ALL) ALL
+    (root) NOPASSWD: /usr/bin/systemctl restart nginx
+    (root) NOPASSWD: /usr/bin/journalctl

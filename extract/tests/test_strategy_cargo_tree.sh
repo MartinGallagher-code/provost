@@ -14,14 +14,16 @@ echo "========================================"
 test_cargo_tree_basic () {
     local output
     output=$(run_mfe -r -s cargo-tree "$SAMPLES_DIR/cargo-tree/basic.txt")
-    assert_contains "$output" "root.name myapp" "should extract root name"
-    assert_contains "$output" "root.version 0.1.0" "should extract root version"
-    assert_contains "$output" "dep1.name serde" "should extract dep1 name"
-    assert_contains "$output" "dep1.version 1.0.195" "should extract dep1 version"
-    assert_contains "$output" "dep2.name serde_derive" "should extract nested dep name"
-    assert_contains "$output" "dep2.version 1.0.195" "should extract nested dep version"
-    assert_contains "$output" "dep9.name tokio" "should extract tokio dep"
-    assert_contains "$output" "dep12.name pin_project_lite" "should extract hyphenated dep"
+    # Root crate and every dependency share the standard entry<N> contract
+    # (entry1 = the root crate), one tidy row each.
+    assert_contains "$output" "entry1.name myapp" "should extract root name"
+    assert_contains "$output" "entry1.version 0.1.0" "should extract root version"
+    assert_contains "$output" "entry2.name serde" "should extract first dep name"
+    assert_contains "$output" "entry2.version 1.0.195" "should extract first dep version"
+    assert_contains "$output" "entry3.name serde_derive" "should extract nested dep name"
+    assert_contains "$output" "entry3.version 1.0.195" "should extract nested dep version"
+    assert_contains "$output" "entry10.name tokio" "should extract tokio dep"
+    assert_contains "$output" "entry13.name pin_project_lite" "should extract hyphenated dep"
 }
 
 test_cargo_tree_not_detected_for_json () {

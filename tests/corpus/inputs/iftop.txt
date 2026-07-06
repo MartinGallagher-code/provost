@@ -1,0 +1,13 @@
+interface: eth0
+IP address is: 10.0.2.15
+MAC address is: 52:54:00:8a:1c:2f
+                             last 2s   last 10s   last 40s cumulative
+--------------------------------------------------------------------------------
+web-prod-03      => 203.0.113.7      1.20Mb    980Kb     845Kb    12.4MB
+                 <=                  240Kb     198Kb     176Kb     2.1MB
+web-prod-03      => 198.51.100.22    512Kb     488Kb     501Kb     6.8MB
+                 <=                   88Kb      76Kb      80Kb     1.0MB
+--------------------------------------------------------------------------------
+Total send rate:                     1.71Mb    1.46Mb    1.34Mb
+Total receive rate:                   328Kb     274Kb     256Kb
+Total send and receive rate:         2.03Mb    1.73Mb    1.59Mb

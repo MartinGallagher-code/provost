@@ -1,0 +1,7 @@
+NetHogs version 0.8.6
+
+    PID USER     PROGRAM                        DEV        SENT      RECEIVED
+   1842 www-data /usr/sbin/nginx                eth0     124.512     18.402 KB/sec
+   2301 root     /usr/bin/sshd                  eth0       2.104      1.885 KB/sec
+   3120 postgres /usr/lib/postgresql/postgres   eth0      45.220     88.114 KB/sec
+    998 mysql    /usr/sbin/mysqld               eth0      12.088     30.221 KB/sec

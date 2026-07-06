@@ -1,0 +1,8 @@
+.gitignore
+README.md
+src/app.py
+src/client.py
+config/settings.yml
+tests/test_app.py
+tests/test_client.py
+docs/usage.md

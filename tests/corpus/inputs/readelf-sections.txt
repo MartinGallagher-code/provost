@@ -1,0 +1,9 @@
+There are 31 section headers, starting at offset 0x3978:
+
+Section Headers:
+  [Nr] Name              Type             Address           Offset    Size
+  [ 0]                   NULL             0000000000000000  00000000  000000
+  [ 1] .interp           PROGBITS         0000000000000318  00000318  00001c
+  [ 2] .text             PROGBITS         0000000000001060  00001060  000185
+  [ 3] .rodata           PROGBITS         0000000000002000  00002000  000012
+  [ 4] .data             PROGBITS         0000000000004000  00003000  000010

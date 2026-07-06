@@ -1,0 +1,9 @@
+          List of relations
+ Schema |   Name    | Type  |  Owner
+--------+-----------+-------+---------
+ public | customers | table | appuser
+ public | orders    | table | appuser
+ public | products  | table | appuser
+ public | sessions  | table | appuser
+ public | users     | table | appuser
+(5 rows)

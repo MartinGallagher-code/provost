@@ -1,0 +1,2 @@
+Name	Version	Summary	Home-page	Author	Author-email	License	Location	Requires	Required-by
+requests	2.31.0	Python_HTTP_for_Humans.	https://requests.readthedocs.io	Kenneth_Reitz	me@kennethreitz.org	Apache_2.0	/usr/lib/python3.11/site-packages	certifi,_charset-normalizer,_idna,_urllib3	httpie,_sphinx

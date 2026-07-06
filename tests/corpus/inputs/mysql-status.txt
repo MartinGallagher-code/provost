@@ -1,0 +1,12 @@
++---------------------------+---------+
+| Variable_name             | Value   |
++---------------------------+---------+
+| Aborted_clients           | 3       |
+| Bytes_received            | 8912345 |
+| Bytes_sent                | 4451200 |
+| Connections               | 1892    |
+| Queries                   | 44213   |
+| Threads_connected         | 7       |
+| Threads_running           | 2       |
+| Uptime                    | 81234   |
++---------------------------+---------+

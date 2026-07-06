@@ -1,0 +1,5 @@
+DRIVER    VOLUME NAME
+local     web-data
+local     api-cache
+local     db-storage
+local     redis-data
