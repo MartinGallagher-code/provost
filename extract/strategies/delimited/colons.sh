@@ -17,9 +17,10 @@ strategy_detect () {
     # Apply if input contains lines with colons (but not just URLs or timestamps)
     # Use variable for regex: (^|newline) to match any line start
     local _nl=$'\n'
-    # Allow leading whitespace so indented key/value output (hostnamectl,
-    # systemctl status, and other *ctl tools that align their keys) is recognised.
-    local _re="(^|${_nl})[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:"
+    # A real `key: value` line: optional indent, a label, a colon, then whitespace
+    # or end of line. Requiring whitespace after the colon avoids matching colons
+    # inside timestamps/values (e.g. `date`'s `10:15:42`) as a key.
+    local _re="(^|${_nl})[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|${_nl}|$)"
     [[ "$text" =~ $_re ]]
 }
 

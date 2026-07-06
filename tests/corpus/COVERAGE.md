@@ -14,7 +14,7 @@ yet tidy.
 | conntrack | ✅ | inline-kv |
 | cpupower-frequency | ✅ | indented-hierarchy |
 | crictl-ps | ✅ | aligned-columns |
-| date | ⏳ | — |
+| date | ✅ | line-records |
 | df-T | ✅ | aligned-columns |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
@@ -69,7 +69,7 @@ yet tidy.
 | nmcli | ✅ | aligned-columns |
 | npm-ls | ⏳ | — |
 | numactl-hardware | ✅ | key-value |
-| nvidia-smi | ✅ | colons |
+| nvidia-smi | ✅ᵇ | nvidia-smi (bespoke) |
 | os-release | ✅ | aligned-columns |
 | pidstat | ⏳ | — |
 | ping | ⏳ | — |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ⏳ | — |
 | who | ✅ | aligned-columns |
 
-**Coverage: 81 / 100** — ✅ 80 via a generic parser, ✅ᵇ 1 via a bespoke strategy.
-⏳ not yet tidy: date dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping pstree sar systemd-analyze traceroute tree ulimit w
+**Coverage: 82 / 100** — ✅ 80 via a generic parser, ✅ᵇ 2 via a bespoke strategy.
+⏳ not yet tidy: dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping pstree sar systemd-analyze traceroute tree ulimit w
