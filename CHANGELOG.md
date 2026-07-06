@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-06 — full tidy coverage of the 22-tool corpus (21 generic + 1 bespoke)
+- Closed the last corpus gaps; all 22 common tools now come out tidy — **21 via
+  a generic parser, `uptime` via its small bespoke strategy** (a single-line
+  prose status no generic parser fits; the accepted exception).
+- `aligned-columns`: added a **two-line-header** mode (group row + field row, for
+  `vmstat`) and a **`total <n>` preamble skip** (for `ls -l`).
+- New generic **`bracket-log`** parser (`extract/strategies/logging/bracket-log.sh`)
+  for `[tag] message` log lines — tidies `dmesg` (and the kernel ring buffer /
+  many app logs) into (timestamp, message) rows. Ships a sample + golden.
+- The 21 generic tools are covered by 7 parsers total: `aligned-columns`,
+  `bracket-log`, `yaml`, `key-value`, `equals`, `colons`, `indented-hierarchy`.
+- `run.sh --coverage` / `COVERAGE.md` now distinguish ✅ generic vs ✅ᵇ bespoke
+  coverage. Full extract suite 219/219; smoke 33/33; melt 8/8; golden regression
+  21/21.
+- Files: `extract/strategies/delimited/aligned-columns.sh`,
+  `extract/strategies/logging/bracket-log.sh`,
+  `extract/samples/bracket-log/dmesg.txt`, `extract/tests/golden/bracket-log.txt`,
+  `tests/corpus/*`.
+
 ## 2026-07-06 — generic tidy coverage 13 → 18/22 (headerless tables + tighter structured parsers)
 - **Tightened the over-eager structured parsers** so they stop stealing tabular
   input from the columnar parser: `json` now requires the input to *close* with

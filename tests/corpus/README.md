@@ -34,30 +34,23 @@ bespoke strategy*.
 
 ## Tested tools & current coverage
 
-**Generic-only tidy: 18 / 22** (see [`COVERAGE.md`](COVERAGE.md) for the live
-per-tool ✅/⏳ list). In full mode all 22 are handled; the goal is to retire the
-bespoke strategies in favour of the generic parsers.
+**All 22 tidy: 21 via a generic parser, 1 (`uptime`) via a bespoke strategy.**
+See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
-Covered generically: `ps aux`, `df`, `top`, `iostat`, `netstat`, `ss`, `lsblk`,
-`docker ps`, `systemctl`, `mount`, `who`, `ip route`, `free`, `sensors`,
-`/proc/meminfo`, `lscpu`, `env`, `ip addr` — via just `aligned-columns`,
-`yaml`, `key-value`, `equals`, `colons`, and `indented-hierarchy`.
+The 21 generic ones are handled by just **7 generic parsers**:
+`aligned-columns` (with headerless + two-line-header modes), `bracket-log`,
+`yaml`, `key-value`, `equals`, `colons`, and `indented-hierarchy` — i.e. the
+bulk of common tool output collapses onto a handful of structural parsers, not
+one rule per tool.
 
-## Known gaps → next work
-
-Four remain, each needing targeted (still generic-shaped) handling:
-
-| Tool | why | fix |
-|---|---|---|
-| `dmesg` | `[ts] message` log lines, not columnar | a bracket-prefix log parser (2-col: timestamp, message) — also covers journald |
-| `ls -l` | leading `total N` summary line inflates the row count | skip a leading `total <n>` line in the columnar parser |
-| `vmstat` | two-line header (group row + field row) | recognise a 2-row header |
-| `uptime` | single line | single-line field extraction (load averages, users) |
-
-The point of the corpus is that this is measurable: as the generic parsers
-improve, `run.sh` moves a tool from ⏳ to ✅ and a golden is frozen — with the
-full extract suite (`extract/tests/run_tests.sh`) kept green the whole way.
+`uptime` is a single-line prose status (`… up 3 days, 3 users, load average: …`)
+that no generic structural parser fits; it keeps a small dedicated strategy.
+That's the one accepted exception to "no per-tool rule".
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
 whitespace splitting imperfect); `free`/`ip route` come out one-row-per-record
 with slightly rough column labels but pass the tidy shape check.
+
+The corpus makes coverage measurable and regression-proof: `run.sh --golden`
+diffs each tool's tidy output against a frozen golden, and the full extract
+suite (`extract/tests/run_tests.sh`) is kept green through every parser change.

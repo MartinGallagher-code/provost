@@ -93,35 +93,31 @@ redundant per-tool strategies once the generic parsers cover them.
 
 Measured by `tests/corpus/` (see its README + `COVERAGE.md`): 22 common Linux
 tool inputs, a correctness manifest, golden outputs, and one batch harness
-`run.sh` that scores tidy coverage in **`--generic`** mode (generic parsers only).
-Current: **18/22** generic-tidy. `run.sh --coverage` regenerates `COVERAGE.md`
-(the queryable ✅/⏳ list). The extract engine selects the
-**lowest-priority-number** matching strategy (confidence is mainly a threshold
-gate), so making a generic parser win is about its `## Priority` and `detect()`.
+`run.sh`. **All 22 tidy: 21 via a generic parser, `uptime` via a bespoke one.**
+`run.sh --coverage` regenerates `COVERAGE.md` (the queryable ✅/✅ᵇ/⏳ list). The
+extract engine selects the **lowest-priority-number** matching strategy
+(confidence is mainly a threshold gate), so making a generic parser win is about
+its `## Priority` and `detect()`.
 
-The generic parsers now covering the corpus: `aligned-columns` (with a headerless
-mode), `yaml`, `key-value`, `equals`, `colons`, `indented-hierarchy`.
+The 7 generic parsers covering the corpus: `aligned-columns` (header, headerless,
+and two-line-header modes), `bracket-log`, `yaml`, `key-value`, `equals`,
+`colons`, `indented-hierarchy`.
 
 ## Next steps
 
-1. **Close the last 4 corpus gaps** (drive `run.sh` from 18/22 → 22/22):
-   - `dmesg` — add a bracket-prefix log parser (`[ts] message` → 2 cols; also
-     covers journald).
-   - `ls -l` — skip a leading `total <n>` summary line in the columnar parser.
-   - `vmstat` — recognise a two-line header (group row + field row).
-   - `uptime` — single-line field extraction.
-   Keep `extract/tests/run_tests.sh` green each step; `run.sh --update-golden`
-   freezes a golden per tool as it flips to ✅.
-2. **Grow the corpus toward broad coverage** — more common tools and *varied*
-   output per tool (flags/formats): `mpstat`, `sar`, `lsof`, `du`, `ip -s link`,
-   `journalctl`, `ps -ef`, `dmidecode`, `ethtool`, `nmcli`, … Add input +
-   manifest row; `COVERAGE.md` tracks what's covered.
-3. **Then prune** the now-redundant per-tool strategies (`df`, `ps-aux`, `ss`,
-   `lsblk`, `mount`, …) once the generic parsers cover them in full mode — the
-   payoff of the whole effort (fewer strategies).
-4. Optional: drop the stray `total_entries` column the columnar melt emits (minor
-   tidy noise; touches `aligned-columns` goldens in the extract suite).
-5. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
+1. **Grow the corpus toward broad coverage** (in progress) — more common tools
+   and *varied* output per tool (flags/formats): `mpstat`, `sar`, `lsof`, `du`,
+   `ip -s link`, `journalctl`, `ps -ef`, `dmidecode`, `ethtool`, `nmcli`,
+   `apt list`, `systemctl status`, … For each: add `inputs/<tool>.txt`, a
+   `expected.tsv` row, run `run.sh`, close any new gap in the generic parsers,
+   then `run.sh --update-golden`. `COVERAGE.md` stays the queryable record.
+2. **Then prune** the now-redundant per-tool strategies (`df`, `ps-aux`, `ss`,
+   `lsblk`, `mount`, `iostat`, `netstat`, `top`, `systemctl`, …) that the generic
+   parsers already cover in full mode — the payoff of the whole effort (fewer
+   strategies). Verify full-mode tidy stays intact as each is removed.
+3. Optional: drop the stray `total_entries` column the columnar melt emits (minor
+   tidy noise; touches `aligned-columns`/`bracket-log` goldens).
+4. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
    `glean`-native names (large, internals-only).
 
 ## Tests
