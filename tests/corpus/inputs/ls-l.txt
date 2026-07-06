@@ -1,0 +1,5 @@
+total 48
+drwxr-xr-x 2 root root 4096 Jul  6 09:12 bin
+-rw-r--r-- 1 alice users 1024 Jul  5 18:03 notes.txt
+-rwxr-xr-x 1 alice users 8192 Jul  4 11:20 run.sh
+lrwxrwxrwx 1 root root    7 Jul  1 00:00 sh -> busybox

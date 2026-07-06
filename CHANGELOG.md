@@ -1,5 +1,28 @@
 # glean — Changelog
 
+## 2026-07-06 — tidy-coverage corpus + generic columnar parser (fewer strategies)
+- Start moving toward the design goal of tidying common tool outputs with a
+  **minimum of strategies** (the ~12 generic parsers), rather than one bespoke
+  strategy per tool.
+- **New corpus + batch harness** under `tests/corpus/`: 22 common Linux tool
+  outputs (`inputs/`), a correctness manifest (`expected.tsv`: per-tool expected
+  tidy shape), frozen golden outputs for covered tools (`expected/`), and one
+  script `run.sh` that runs every input through the engine in full and
+  `--generic` modes, melts it, and checks tidiness. Modes: report / `--golden`
+  (regression) / `--update-golden`.
+- **Rewrote `aligned-columns` detection** (the generic whitespace-columnar
+  parser) from a brittle header-shape regex to structural column-consistency
+  with graded confidence, and raised its precedence (priority 70 → 55) so it
+  wins tabular input over the key/value parsers (`colons`/`equals`) that were
+  collapsing tables to a single row. Generic-only tidy coverage went **7 → 13
+  of 22** (now: ps, df, top, iostat, netstat, ss, lsblk, docker-ps, systemctl +
+  the key/value set). Full extract suite stays green (219/219); smoke 33/33,
+  melt 8/8.
+- Documented the tested tools and the 9 remaining gaps (over-eager
+  `json`/`yaml`/`csv`; headerless tables; irregular structure) in
+  `tests/corpus/README.md`.
+- Files: `extract/strategies/delimited/aligned-columns.sh`, `tests/corpus/*`.
+
 ## 2026-07-06 — cut the cord to Envoy: extract/analyze/transform/lib are now first-party
 - glean is now a **fully standalone** project with no live tie to Envoy. The
   `extract/`, `analyze/`, `transform/`, and `lib/` trees — originally imported

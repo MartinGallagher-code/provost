@@ -2,41 +2,54 @@
 ## Name: aligned-columns
 ## Description: Extract fields from whitespace-aligned columnar output (ps, df, mount, etc.)
 ## Version: 2.0
-## Priority: 70
+## Priority: 55
 ## Technique: yes
 ## Sample: samples/aligned-columns/basic.txt
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=30
+    _STRATEGY_CONFIDENCE=0
 
-    # Apply if input has a header-like first line and consistent column structure
-    # Must have at least 2 lines and 2+ words in the first line
-    local line_count=0
-    local first_line=""
+    # Structural detection: a header row of >=2 label tokens, followed by data
+    # rows with a consistent column count. This recognises the whole class of
+    # whitespace-columnar tool output (ps, df, ss, iostat, netstat, top, lsblk,
+    # systemctl, …) without a per-tool rule. Confidence scales with how
+    # consistent the columns are, so a clean table outranks the key/value
+    # parsers that would otherwise collapse it to a single row.
+    local n_h=0 idx=0 data_rows=0 consistent=0 header_alpha=0 header_caps=1
+    local _line
     while IFS= read -r _line; do
-        [[ -z "$_line" ]] && continue
-        line_count=$((line_count + 1))
-        if [[ $line_count -eq 1 ]]; then
-            first_line="$_line"
+        [[ -z "${_line//[[:space:]]/}" ]] && continue   # skip blank lines
+        idx=$((idx + 1))
+        local _toks; _toks=(); read -ra _toks <<< "$_line"
+        local n=${#_toks[@]}
+        if [[ $idx -eq 1 ]]; then
+            n_h=$n
+            [[ $n_h -lt 2 ]] && return 1
+            local t
+            for t in "${_toks[@]}"; do
+                [[ "$t" =~ [A-Za-z] ]] && header_alpha=1
+                [[ "$t" =~ [a-z] ]] && header_caps=0
+            done
+            # A purely numeric first line is data, not a header — bail.
+            [[ $header_alpha -eq 0 ]] && return 1
+            continue
         fi
-        [[ $line_count -ge 2 ]] && break
+        [[ $n -ge 2 ]] && data_rows=$((data_rows + 1))
+        # last column may absorb trailing tokens, so allow one short
+        [[ $n -ge $((n_h - 1)) ]] && consistent=$((consistent + 1))
+        [[ $idx -ge 40 ]] && break
     done <<< "$text"
-    [[ $line_count -lt 2 ]] && return 1
 
-    read -ra _arr <<< "$first_line"
-    local word_count=${#_arr[@]}
-    [[ $word_count -lt 2 ]] && return 1
+    [[ $data_rows -lt 1 ]] && return 1
 
-    # Check that header words are all uppercase or capitalized (heuristic)
-    # This helps distinguish column headers from regular text
-    if [[ "$first_line" =~ ^[A-Z%][A-Z%a-z0-9_\ -]*[A-Z%][A-Z%a-z0-9_\ -]*$ ]]; then
-        return 0
-    fi
-
-    # Also detect if there's a separator line (handled by vertical-line strategy primarily,
-    # but aligned-columns works without separators too)
-    return 1
+    local conf=40
+    [[ $data_rows -ge 2 ]] && conf=$((conf + 10))
+    conf=$((conf + consistent * 20 / data_rows))   # column-consistency bonus (0..20)
+    [[ $header_caps -eq 1 ]] && conf=$((conf + 5))  # ALL-CAPS header (ps/df/ss style)
+    [[ $conf -gt 75 ]] && conf=75
+    _STRATEGY_CONFIDENCE=$conf
+    return 0
 }
 
 strategy_extract () {

@@ -1,0 +1,6 @@
+n	USER	PID	%CPU	%MEM	VSZ	RSS	TTY	STAT	START	TIME	COMMAND	total_entries
+1	root	1	0.0	0.1	168140	11400	?	Ss	09:12	0:03	/sbin/init	5
+2	root	420	0.1	0.3	295180	25600	?	Ssl	09:12	0:11	/usr/lib/systemd/systemd-journald	5
+3	www-data	1337	2.3	1.2	812400	98240	?	Sl	09:20	1:42	nginx:_worker_process	5
+4	alice	2201	0.0	0.2	22300	8100	pts/0	Ss	10:01	0:00	-bash	5
+5	alice	2299	15.0	0.5	99120	42000	pts/0	R+	10:15	0:07	ps_aux	5

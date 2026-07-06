@@ -1,0 +1,4 @@
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      812/sshd
+tcp        0      0 127.0.0.1:5432          0.0.0.0:*               LISTEN      990/postgres
+udp        0      0 127.0.0.1:53            0.0.0.0:*                           640/systemd-resolve

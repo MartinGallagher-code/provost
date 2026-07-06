@@ -1,0 +1,33 @@
+# Correctness manifest for the tidy-coverage harness (tests/corpus/run.sh).
+# One row per corpus input. Fields:
+#   name     basename under inputs/ (without .txt)
+#   kind     table = repeated records, strict data-row count enforced
+#            kv    = key/value snapshot (one observation), row count not enforced
+#   rows     expected number of tidy DATA rows (table kind); '-' for kv
+#   mincols  minimum number of tidy columns expected
+# The engine must turn each input into tidy output meeting these, ideally via a
+# GENERIC strategy (no bespoke per-tool strategy). See run.sh.
+#
+# name	kind	rows	mincols
+free	table	2	4
+ps-aux	table	5	11
+df-h	table	3	6
+ls-l	table	4	9
+vmstat	table	2	16
+lsblk	table	4	6
+mount	table	4	3
+ss-tulpn	table	3	5
+iostat	table	3	6
+docker-ps	table	2	7
+who	table	3	3
+netstat-tulpn	table	3	6
+top	table	3	12
+dmesg	table	4	2
+systemctl-list	table	4	5
+ip-route	table	3	3
+proc-meminfo	kv	-	7
+lscpu	kv	-	4
+sensors	kv	-	2
+env	kv	-	5
+uptime	kv	-	4
+ip-addr	kv	-	2

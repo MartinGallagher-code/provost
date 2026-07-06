@@ -1,0 +1,2 @@
+1	link/loopback_00	2	link/ether_52
+lo:_<LOOPBACK,UP,LOWER_UP>_mtu_65536_qdisc_noqueue_state_UNKNOWN_group_default_qlen_1000	00:00:00:00:00_brd_00:00:00:00:00:00	eth0:_<BROADCAST,MULTICAST,UP,LOWER_UP>_mtu_1500_qdisc_fq_codel_state_UP_group_default_qlen_1000	54:00:12:34:56_brd_ff:ff:ff:ff:ff:ff

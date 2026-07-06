@@ -1,0 +1,5 @@
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda      8:0    0  100G  0 disk
+sda1     8:1    0  100G  0 part /
+sdb      8:16   0  500G  0 disk
+sdb1     8:17   0  500G  0 part /data

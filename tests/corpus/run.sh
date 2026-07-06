@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# tests/corpus/run.sh — batch tidy-coverage harness for common tool outputs.
+#
+# For every input under inputs/, run the extract engine twice — full mode (all
+# strategies) and --generic mode (only the ~12 fundamental parsers) — melt the
+# result to tidy TSV, and report whether each tool's output comes out tidy.
+#
+# The point of the corpus: prove that a MINIMAL set of generic strategies can
+# tidy all the common Linux tool outputs, without a bespoke strategy per tool.
+#
+# Modes:
+#   run.sh                 report table + summary (development view)
+#   run.sh --golden        regression: diff generic tidy output vs expected/<name>.tsv
+#   run.sh --update-golden  (re)write expected/<name>.tsv from current generic output
+#
+# "Tidy" (structural) = melted TSV with >=2 columns and >=1 data row, rectangular.
+set -u
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
+ENGINE="$ROOT/extract/envoy-extract"
+IN="$HERE/inputs"
+EXP="$HERE/expected"
+MANIFEST="$HERE/expected.tsv"
+# shellcheck source=/dev/null
+source "$ROOT/transform/melt.sh"
+
+mode="${1:-report}"
+[[ "$mode" == "--golden" ]] && mode="golden"
+[[ "$mode" == "--update-golden" ]] && mode="update"
+[[ "$mode" == "update" ]] && mkdir -p "$EXP"
+
+_meta_field () { printf '%s' "$1" | awk -F'\t' -v n="$2" '{print $n}'; }
+
+_engine () { env -u GIT_DIR bash "$ENGINE" "$@" 2>/dev/null; }
+# meta line is emitted on stderr — capture it (mixing with stdout is fine, we grep)
+_engine_meta () { env -u GIT_DIR bash "$ENGINE" "$@" 2>&1; }
+
+pass=0; fail=0; total=0; relies=0; skip=0
+declare -a FAILED
+
+if [[ "$mode" == "report" ]]; then
+    printf '%-18s %-20s %-18s %5s %-8s %s\n' \
+        'TOOL' 'FULL(conf)' 'GENERIC(conf)' 'CxR' 'TIDY' 'NOTE'
+    printf '%s\n' "--------------------------------------------------------------------------------"
+fi
+
+for f in "$IN"/*.txt; do
+    name="$(basename "$f" .txt)"
+    total=$((total+1))
+
+    fmeta="$(_engine_meta --emit-meta -f tsv --max-strategies 1 "$f" | grep '^__EXTRACT_META__' | tail -1)"
+    fstrat="$(_meta_field "$fmeta" 2)"; fconf="$(_meta_field "$fmeta" 3)"
+    [[ -z "$fstrat" ]] && fstrat="(none)"
+
+    gmeta="$(_engine_meta --generic --emit-meta -f tsv --max-strategies 1 "$f" | grep '^__EXTRACT_META__' | tail -1)"
+    gstrat="$(_meta_field "$gmeta" 2)"; gconf="$(_meta_field "$gmeta" 3)"
+    [[ -z "$gstrat" ]] && gstrat="(none)"
+    gwide="$(_engine --generic -f tsv --max-strategies 1 "$f")"
+    tidy="$(_core_melt_tidy "$gwide" 2>/dev/null || true)"
+
+    cols="$(printf '%s\n' "$tidy" | head -1 | awk -F'\t' '{print NF}')"
+    rows=$(( $(printf '%s\n' "$tidy" | grep -c .) - 1 )); [[ $rows -lt 0 ]] && rows=0
+    [[ -z "$cols" ]] && cols=0
+
+    # Expected correctness from the manifest (kind/rows/mincols).
+    exp="$(awk -F'\t' -v n="$name" '$1==n{print $2"\t"$3"\t"$4; exit}' "$MANIFEST")"
+    ekind="$(printf '%s' "$exp" | cut -f1)"; erows="$(printf '%s' "$exp" | cut -f2)"; emin="$(printf '%s' "$exp" | cut -f3)"
+
+    is_tidy=0; want=""
+    if [[ "$ekind" == "table" ]]; then
+        want="=${erows}r,>=${emin}c"
+        [[ "$rows" -eq "$erows" && "$cols" -ge "$emin" ]] && is_tidy=1
+    elif [[ "$ekind" == "kv" ]]; then
+        want=">=1r,>=${emin}c"
+        [[ "$rows" -ge 1 && "$cols" -ge "$emin" ]] && is_tidy=1
+    else
+        want="(unlisted)"
+        [[ "$cols" -ge 2 && "$rows" -ge 1 ]] && is_tidy=1
+    fi
+
+    # Does this tool currently RELY on a bespoke (non-generic) strategy?
+    note=""
+    if [[ "$fstrat" != "$gstrat" && "$fstrat" != "(none)" ]]; then
+        note="full uses bespoke '$fstrat'"; relies=$((relies+1))
+    fi
+
+    case "$mode" in
+      update)
+        # Only freeze a golden for tools that currently produce correct tidy
+        # output (per the manifest); leave not-yet-covered tools golden-free so
+        # --golden regression tracks exactly the covered set.
+        if [[ $is_tidy -eq 1 ]]; then
+            printf '%s\n' "$tidy" > "$EXP/$name.tsv"
+            echo "golden: $name.tsv ($cols col x $rows row)"
+        else
+            rm -f "$EXP/$name.tsv"
+            echo "skip (not tidy yet): $name"
+        fi
+        ;;
+      golden)
+        gf="$EXP/$name.tsv"
+        if [[ ! -f "$gf" ]]; then
+            skip=$((skip+1)); continue   # not-yet-covered tool, tracked in report mode
+        fi
+        if diff -q <(printf '%s\n' "$tidy") "$gf" >/dev/null 2>&1; then
+            pass=$((pass+1))
+        else
+            echo "FAIL $name — differs from golden"; fail=$((fail+1)); FAILED+=("$name")
+        fi
+        ;;
+      report)
+        tmark="FAIL"; if [[ $is_tidy -eq 1 ]]; then tmark="tidy"; pass=$((pass+1)); else fail=$((fail+1)); FAILED+=("$name"); fi
+        [[ -n "$note" ]] && note="want $want | $note" || note="want $want"
+        printf '%-16s %-18s %-18s %6s %-6s %s\n' \
+            "$name" "$fstrat($fconf)" "$gstrat($gconf)" "${cols}x${rows}" "$tmark" "$note"
+        ;;
+    esac
+done
+
+echo
+case "$mode" in
+  update) echo "wrote $total golden files to expected/";;
+  golden) echo "golden regression: $pass passed, $fail failed, $skip not-yet-covered of $total";;
+  report)
+    echo "generic-tidy: $pass/$total pass, $fail fail   |   $relies tool(s) currently rely on a bespoke strategy in full mode"
+    [[ $fail -gt 0 ]] && echo "not tidy under --generic: ${FAILED[*]}"
+    ;;
+esac
+[[ "${fail:-0}" -eq 0 ]]
