@@ -20,7 +20,7 @@ yet tidy.
 | df-i | ✅ | aligned-columns |
 | dig-short | ⏳ | — |
 | dmesg | ✅ | bracket-log |
-| dmidecode | ✅ᵇ | dmidecode (bespoke) |
+| dmidecode | ✅ | colons |
 | dnf-list | ✅ | aligned-columns |
 | docker-images | ✅ | aligned-columns |
 | docker-network | ✅ | aligned-columns |
@@ -38,7 +38,7 @@ yet tidy.
 | free | ✅ | aligned-columns |
 | groups | ⏳ | — |
 | helm-list | ✅ | aligned-columns |
-| hostnamectl | ⏳ | — |
+| hostnamectl | ✅ | colons |
 | id | ✅ | inline-kv |
 | ifconfig | ✅ | indented-hierarchy |
 | iostat | ✅ | aligned-columns |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ⏳ | — |
 | who | ✅ | aligned-columns |
 
-**Coverage: 75 / 100** — ✅ 71 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
-⏳ not yet tidy: brew-list date dig-short dpkg-l fdisk-l file groups hostnamectl iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w
+**Coverage: 76 / 100** — ✅ 73 via a generic parser, ✅ᵇ 3 via a bespoke strategy.
+⏳ not yet tidy: brew-list date dig-short dpkg-l fdisk-l file groups iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w
