@@ -7,7 +7,7 @@ yet tidy.
 | Tool | Covered | Parser |
 |---|:---:|---|
 | apt-cache-policy | ✅ | indented-hierarchy |
-| apt-list | ⏳ | — |
+| apt-list | ✅ | aligned-columns |
 | arp | ✅ | aligned-columns |
 | blkid | ✅ | aligned-columns |
 | brew-list | ⏳ | — |
@@ -15,7 +15,7 @@ yet tidy.
 | cpupower-frequency | ✅ | indented-hierarchy |
 | crictl-ps | ✅ | aligned-columns |
 | date | ⏳ | — |
-| df-T | ⏳ | — |
+| df-T | ✅ | aligned-columns |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
 | dig-short | ⏳ | — |
@@ -84,7 +84,7 @@ yet tidy.
 | route-n | ✅ | aligned-columns |
 | rpm-qa | ⏳ | — |
 | sar | ⏳ | — |
-| sensors | ✅ | colons |
+| sensors | ✅ | aligned-columns |
 | snap-list | ✅ | aligned-columns |
 | ss-s | ✅ | aligned-columns |
 | ss-tulpn | ✅ | aligned-columns |
@@ -107,5 +107,5 @@ yet tidy.
 | w | ⏳ | — |
 | who | ✅ | aligned-columns |
 
-**Coverage: 73 / 100** — ✅ 69 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
-⏳ not yet tidy: apt-list brew-list date df-T dig-short dpkg-l fdisk-l file groups hostnamectl iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w
+**Coverage: 75 / 100** — ✅ 71 via a generic parser, ✅ᵇ 4 via a bespoke strategy.
+⏳ not yet tidy: brew-list date dig-short dpkg-l fdisk-l file groups hostnamectl iptables-save loginctl lshw mpstat npm-ls pidstat ping proc-loadavg pstree rpm-qa sar systemd-analyze taskset traceroute tree ulimit w

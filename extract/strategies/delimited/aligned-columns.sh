@@ -6,14 +6,26 @@
 ## Technique: yes
 ## Sample: samples/aligned-columns/basic.txt
 
-# Echo the block with a leading `ls -l`-style "total <n>" summary line removed
-# (it is a block-count preamble, not a data row).
+# Echo the block with leading preamble removed: an `ls -l` "total <n>" line, or
+# short banner/preamble lines with <2 columns (e.g. `apt list`'s "Listing…"),
+# but only when a real (>=2 column) table follows.
 _ac_body () {
-    local text="$1" seen=0 _l out=""
+    local text="$1" _l _tk out="" started=0 has_table=0
     while IFS= read -r _l; do
-        if [[ $seen -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
-            seen=1
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        _tk=(); read -ra _tk <<< "$_l"
+        [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
+    done <<< "$text"
+
+    while IFS= read -r _l; do
+        if [[ $started -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
+            _tk=(); read -ra _tk <<< "$_l"
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
+            # A short word-like preamble line (e.g. `apt list`'s "Listing…") before
+            # a real table — but NOT a `{`/`[`/`<` structural line (JSON/XML), which
+            # must keep aligned-columns from matching those formats.
+            [[ $has_table -eq 1 && ${#_tk[@]} -lt 2 && "$_l" =~ ^[[:space:]]*[A-Za-z] ]] && continue
+            started=1
         fi
         out+="$_l"$'\n'
     done <<< "$text"
@@ -26,21 +38,24 @@ _ac_body () {
 #   HL   n — headerless table (synthesise c1..cN); n = modal column count
 # Prints nothing (returns 1) if the block isn't a consistent columnar table.
 #
-# Header vs headerless: a header row is all labels, so the first line having a
-# digit-bearing token (a path, IP, date, count) means the table is headerless
-# (who, mount, ls -l). Headerless needs >=3 consistent columns so it can't
-# swallow 2-column key/value input handled by colons/equals/yaml.
+# Header vs headerless: a header row is labels; data rows carry more pure-numeric
+# tokens (counts, sizes, percentages) than the header. So the block has a header
+# when row 2 has more pure-numeric tokens than row 1 — this correctly treats
+# `df -T` (whose header label `1K-blocks` merely contains a digit) as having a
+# header, while `who`/`mount` (no numeric columns) stay headerless. Headerless
+# needs >=3 consistent columns so it can't swallow 2-column key/value input.
 _ac_shape () {
     local text; text="$(_ac_body "$1")"
-    local counts=() hasdig=() idx=0 _line
+    local counts=() dcount=() idx=0 _line first_line=""
     while IFS= read -r _line; do
         [[ -z "${_line//[[:space:]]/}" ]] && continue
         idx=$((idx + 1))
+        [[ $idx -eq 1 ]] && first_line="$_line"
         local _tk; _tk=(); read -ra _tk <<< "$_line"
         counts+=("${#_tk[@]}")
         local d=0 t
-        for t in "${_tk[@]}"; do [[ "$t" =~ [0-9] ]] && { d=1; break; }; done
-        hasdig+=("$d")
+        for t in "${_tk[@]}"; do [[ "$t" =~ [0-9] ]] && d=$((d + 1)); done
+        dcount+=("$d")
         [[ $idx -ge 40 ]] && break
     done <<< "$text"
 
@@ -48,16 +63,30 @@ _ac_shape () {
     [[ $nlines -lt 2 ]] && return 1
     [[ ${counts[0]} -lt 2 ]] && return 1
 
-    # Two-line header: first two lines are label-only, the field row has more
-    # columns than the group row, and data (digits) starts on line 3 — vmstat,
-    # some sar/mpstat layouts.
-    if [[ $nlines -ge 3 && ${hasdig[0]} -eq 0 && ${hasdig[1]} -eq 0 \
-          && ${hasdig[2]} -eq 1 && ${counts[1]} -gt ${counts[0]} ]]; then
+    # Two-line header: rows 1-2 are label rows (no digit tokens), the field row has
+    # more columns, and numeric data starts on row 3 — vmstat, some sar layouts.
+    if [[ $nlines -ge 3 && ${dcount[0]} -eq 0 && ${dcount[1]} -eq 0 \
+          && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
         printf 'HDR2 %s\n' "${counts[1]}"
         return 0
     fi
 
-    if [[ ${hasdig[0]} -eq 0 ]]; then
+    # Header detection. Row 1 is a label header when either:
+    #   (a) it is an ALL-CAPS label row (systemctl/kubectl/ps — all-text tables), or
+    #   (b) it contains no *value* token (a bare number, time, IP or date) while the
+    #       data rows are more numeric than it. This treats df-T (header label
+    #       `1K-blocks` is not a value) and free-h (unit values `7.8Gi`) as headed,
+    #       but keeps log/record blocks headerless (who, mount, ip route, journalctl,
+    #       last — whose first line already carries times/IPs/counts).
+    local caps0=0; [[ ! "$first_line" =~ [a-z] ]] && caps0=1
+    local v0=0 _t _t1arr; _t1arr=(); read -ra _t1arr <<< "$first_line"
+    for _t in "${_t1arr[@]}"; do
+        [[ "$_t" =~ ^[0-9]+([.,][0-9]+)*%?$ || "$_t" =~ ^[0-9]{1,2}:[0-9]{2} \
+           || "$_t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && v0=$((v0 + 1))
+    done
+    local maxd=0 i
+    for ((i = 1; i < nlines; i++)); do [[ ${dcount[$i]} -gt $maxd ]] && maxd=${dcount[$i]}; done
+    if [[ $caps0 -eq 1 || ( $v0 -eq 0 && $maxd -gt ${dcount[0]} ) ]]; then
         printf 'HDR %s\n' "${counts[0]}"
         return 0
     fi
