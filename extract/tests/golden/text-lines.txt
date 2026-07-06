@@ -1,0 +1,9 @@
+entry1.c1 /lib64/ld-linux-x86-64.so.2
+entry2.c1 libc.so.6
+entry3.c1 GLIBC_2.2.5
+entry4.c1 Hello, world!
+entry5.c1 __cxa_finalize
+entry6.c1 usage: %s [options] file
+entry7.c1 Version 1.4.2 build 8891
+entry8.c1 Copyright (c) 2024 Example Corp
+total_entries 8

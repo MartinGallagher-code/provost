@@ -1,0 +1,17 @@
+entry1.count 8412.33
+entry1.event task-clock
+entry2.count 1204
+entry2.event context-switches
+entry3.count 88
+entry3.event cpu-migrations
+entry4.count 42105
+entry4.event page-faults
+entry5.count 24183921004
+entry5.event cycles
+entry6.count 31204882110
+entry6.event instructions
+entry7.count 6021442883
+entry7.event branches
+entry8.count 48210332
+entry8.event branch-misses
+total_entries 8

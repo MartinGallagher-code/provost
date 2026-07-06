@@ -40,51 +40,41 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**200 tools tested; 169 tidy — 150 via a generic parser, 19 via a bespoke
+**200 tools tested; all 200 tidy — 166 via a generic parser, 34 via a bespoke
 strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list. (The
-first 100 — core sysadmin — are all tidy; the second 100 add git/VCS, language
-runtimes, binutils, databases, monitoring, cloud/k8s, and more security/net, at
-69/100 so far.)
+first 100 — core sysadmin — plus a second 100 adding git/VCS, language runtimes,
+binutils, databases, monitoring, cloud/k8s, and more security/net.)
 
-The remaining ~31 gaps cluster into: psql/mysql box tables (`col | col` with
-`---+---` separators), version strings (`node-version`, `java-version`),
-banner+columnar monitoring tools (`perf-stat`, `turbostat`, `nethogs`, `iotop`),
-and a few key-value blocks (`gpg-list-keys`, `pkg-config`, `chage-l`) — the same
-kind of tail the first 100 needed, closable with targeted parser work.
+The last 31 gaps in the second 100 were closed with a handful of format-family
+parsers, not one-per-tool: `psql-table` (box tables with `---+---` separators),
+`version-string` (`node -v`, `cmake --version`), the monitoring cluster
+(`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`, `perf-counters`),
+binutils/packages (`objdump-headers`/`readelf-sections`/`ldconfig-p`/`pkg-config`/
+`gem-list`/`composer-show`), network/VCS/security (`arp-scan`/`aws-s3-ls`/`host`/
+`mtr-report`/`git-remote`/`lastb`/`gpg-list-keys`/`chage-l`), and `text-lines`
+(the last-resort one-column dump for ragged text like `strings`).
 
 The generic parsers (led by `aligned-columns` with its header/headerless/two-line
 modes, plus `line-records`, `colons`, `yaml`, `key-value`, `equals`,
 `indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`, `tree-view`,
-`vertical-line`) carry the common 87. The 13 bespoke ones are genuinely
-idiosyncratic formats — `mpstat`/`sar`/`pidstat` (sysstat banners),
-`ping`/`traceroute`/`w`, `dmidecode`/`lspci`/`uname`/`uptime`, `dpkg-l`/`fdisk`/
-`iptables-save` — where a format-family parser is warranted.
+`vertical-line`, `psql-table`, `version-string`, and the last-resort `text-lines`)
+carry the common 166. The 34 bespoke ones are genuinely idiosyncratic formats —
+`mpstat`/`sar`/`pidstat` (sysstat banners), `ping`/`traceroute`/`w`,
+`dmidecode`/`lspci`/`uname`/`uptime`, the monitoring cluster
+(`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`/`perf-counters`),
+binutils (`objdump-headers`/`readelf-sections`), and a handful of
+network/VCS/security tools — where a format-family parser is warranted.
 
-The generic ones are handled by **8 generic parsers**: `aligned-columns` (with
-headerless + two-line-header modes), `bracket-log`, `inline-kv`, `yaml`,
-`key-value`, `equals`, `colons`, and `indented-hierarchy` — the bulk of common
-tool output collapses onto a handful of structural parsers, not one rule per
-tool. Includes varied output for the same tool (`free`/`free -h`, `df -h`/`df -i`,
-`ps aux`/`ps -ef`).
+The design principle holds: the bulk of common tool output collapses onto a
+handful of structural parsers, not one rule per tool. The corpus includes varied
+output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
 
-### Not yet tidy (24) — the next work
+### Not yet tidy — none
 
-The gaps cluster into a few patterns (see `COVERAGE.md` for the ⏳ list):
-
-- **Banner + time-prefixed table** — `mpstat`, `sar`, `pidstat` (a `Linux …` banner
-  plus a leading `HH:MM:SS` column that reads as data). Needs banner-skip + a
-  time-column-aware header.
-- **Single freeform line** — `date`, `groups`, `proc-loadavg`, `taskset` (each
-  needs a small single-line parser, like `uptime`/`uname`).
-- **Single-column lists** — `dig-short`, `rpm-qa`, `brew-list` (glean's tidy model
-  wants ≥2 columns).
-- **Tree / nested structures** — `pstree`, `tree`, `npm-ls`.
-- **A wrong bespoke strategy shadows a would-be-good generic parse** — `ping`
-  (`ioping` steals it), `traceroute` (`network-hops` → wide), `w` (`uptime` matches
-  its banner). Like the pruned `ss`: fix or narrow the shadowing strategy.
-- **Assorted** — `dpkg-l` (5-line preamble), `loginctl` (trailing "N sessions"
-  line), `file` (`csv` steals commas in descriptions), `fdisk-l`, `lshw`,
-  `iptables-save`, `systemd-analyze`, `ulimit`.
+All 200 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
+corpus should first be checked against the generic parsers (`run.sh`); reach for
+a bespoke strategy only when the format is genuinely idiosyncratic and no generic
+parser produces a correct tidy shape.
 
 Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
 whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out

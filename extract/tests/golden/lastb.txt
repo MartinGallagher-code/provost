@@ -1,0 +1,26 @@
+entry1.user root
+entry1.terminal ssh:notty
+entry1.host 203.0.113.45
+entry1.when Mon Jul  6 10:01 - 10:01
+entry1.duration 00:00
+entry2.user admin
+entry2.terminal ssh:notty
+entry2.host 198.51.100.22
+entry2.when Mon Jul  6 09:58 - 09:58
+entry2.duration 00:00
+entry3.user oracle
+entry3.terminal ssh:notty
+entry3.host 203.0.113.45
+entry3.when Mon Jul  6 09:47 - 09:47
+entry3.duration 00:00
+entry4.user postgres
+entry4.terminal ssh:notty
+entry4.host 192.0.2.71
+entry4.when Mon Jul  6 09:33 - 09:33
+entry4.duration 00:00
+entry5.user root
+entry5.terminal ssh:notty
+entry5.host 198.51.100.22
+entry5.when Mon Jul  6 09:12 - 09:12
+entry5.duration 00:00
+total_entries 5

@@ -1,0 +1,13 @@
+entry1.name bundler
+entry1.versions 2.4.22, 2.3.26
+entry2.name json
+entry2.versions 2.7.1, 2.6.3
+entry3.name minitest
+entry3.versions 5.20.0
+entry4.name rack
+entry4.versions 3.0.8, 2.2.8
+entry5.name rake
+entry5.versions 13.1.0
+entry6.name rspec
+entry6.versions 3.12.0
+total_entries 6

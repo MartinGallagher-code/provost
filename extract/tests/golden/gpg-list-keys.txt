@@ -1,0 +1,5 @@
+entry1.type pub
+entry1.keyid 3AA5C34371567BD2
+entry1.uid Alice Example <alice@example.com>
+entry1.created 2026-01-15
+total_entries 1

@@ -1,0 +1,6 @@
+zlib                       zlib - zlib compression library
+openssl                    OpenSSL - Secure Sockets Layer and cryptography libraries
+libcurl                    libcurl - Library to transfer files with ftp, http, etc.
+glib-2.0                   GLib - C Utility Library
+libxml-2.0                 libXML - libXML library version2.
+ncurses                    ncurses library

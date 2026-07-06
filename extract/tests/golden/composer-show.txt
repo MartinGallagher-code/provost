@@ -1,0 +1,16 @@
+entry1.package monolog/monolog
+entry1.version 3.5.0
+entry1.description Sends your logs to files, sockets, inboxes, databases and various web services
+entry2.package psr/log
+entry2.version 3.0.0
+entry2.description Common interface for logging libraries
+entry3.package symfony/console
+entry3.version 6.4.2
+entry3.description Eases the creation of beautiful and testable command line interfaces
+entry4.package symfony/polyfill-mbstring
+entry4.version 1.28.0
+entry4.description Symfony polyfill for the Mbstring extension
+entry5.package guzzlehttp/guzzle
+entry5.version 7.8.1
+entry5.description Guzzle is a PHP HTTP client library
+total_entries 5

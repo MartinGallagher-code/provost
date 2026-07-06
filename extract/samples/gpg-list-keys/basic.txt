@@ -1,0 +1,6 @@
+/home/alice/.gnupg/pubring.kbx
+------------------------------
+pub   rsa4096/3AA5C34371567BD2 2026-01-15 [SC]
+      D8692123C4065DEA5E0F3AB5249B39D24F25E3B6
+uid   [ultimate] Alice Example <alice@example.com>
+sub   rsa4096/42B317FD4BA89E7A 2026-01-15 [E]
