@@ -1,0 +1,5 @@
+n	c1	c2	c3	total_entries
+1	net.netfilter.nf_conntrack_count	=	12847	4
+2	net.netfilter.nf_conntrack_max	=	262144	4
+3	net.netfilter.nf_conntrack_buckets	=	65536	4
+4	net.netfilter.nf_conntrack_tcp_timeout_established	=	432000	4

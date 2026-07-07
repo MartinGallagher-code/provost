@@ -1,0 +1,2 @@
+n	core_version	config_file	configured_module_search_path	ansible_python_module_location	ansible_collection_location	executable_location	python_version	jinja_version	libyaml	total_entries
+1	2.16.3	/etc/ansible/ansible.cfg	['/home/user/.ansible/plugins/modules',_'/usr/share/ansible/plugins/modules']	/usr/lib/python3/dist-packages/ansible	/home/user/.ansible/collections:/usr/share/ansible/collections	/usr/bin/ansible	3.11.6_(main,_Sep_30_2025,_12:00:00)_[GCC_13.2.0]	3.1.2	True	1

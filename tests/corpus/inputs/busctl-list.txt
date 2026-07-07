@@ -1,0 +1,7 @@
+NAME                             PID PROCESS        USER CONNECTION UNIT                        SESSION DESCRIPTION
+:1.0                               1 systemd        root :1.0       init.scope                  -       -
+:1.42                            412 systemd-logind root :1.42      systemd-logind.service      -       -
+:1.55                            623 NetworkManager root :1.55      NetworkManager.service      -       -
+org.freedesktop.NetworkManager   623 NetworkManager root :1.55      NetworkManager.service      -       -
+org.freedesktop.login1           412 systemd-logind root :1.42      systemd-logind.service      -       -
+org.freedesktop.systemd1           1 systemd        root :1.0       init.scope                  -       -

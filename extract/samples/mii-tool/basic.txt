@@ -1,0 +1,4 @@
+eth0: negotiated 1000baseT-FD flow-control, link ok
+eth1: negotiated 100baseTx-FD, link ok
+eth2: no link
+wlan0: negotiated 100baseTx-HD, link ok

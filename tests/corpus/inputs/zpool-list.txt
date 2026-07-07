@@ -1,0 +1,5 @@
+NAME    SIZE  ALLOC   FREE  CKPOINT  EXPANDSZ   FRAG    CAP  DEDUP    HEALTH  ALTROOT
+tank   9.06T  4.21T  4.85T        -         -    12%    46%  1.00x    ONLINE  -
+rpool   464G   120G   344G        -         -     8%    25%  1.00x    ONLINE  -
+backup  3.62T  2.90T   740G        -         -    31%    80%  1.00x  DEGRADED  -
+data    1.81T   900G   942G        -         -    18%    48%  1.00x    ONLINE  -

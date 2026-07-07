@@ -1,0 +1,17 @@
+Control group /:
+-.slice
+├─user.slice
+│ └─user-1000.slice
+│   ├─session-3.scope
+│   │ ├─12089 sshd: alice@pts/0
+│   │ ├─12090 -bash
+│   │ └─12250 systemd-cgls
+│   └─user@1000.service
+│     └─init.scope
+│       ├─12001 /lib/systemd/systemd --user
+│       └─12002 (sd-pam)
+└─system.slice
+  ├─sshd.service
+  │ └─901 /usr/sbin/sshd -D
+  └─cron.service
+    └─844 /usr/sbin/cron -f

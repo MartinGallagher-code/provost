@@ -1,0 +1,7 @@
+State  Recv-Q Send-Q     Local Address:Port       Peer Address:Port  Process
+ESTAB  0      0           192.168.1.24:22            10.0.0.5:52310
+	 skmem:(r0,rb131072,t0,tb87040,f0,w0,o0,bl0,d0)
+ESTAB  0      0           192.168.1.24:51820      203.0.113.7:51820
+	 skmem:(r0,rb212992,t0,tb87040,f4096,w0,o0,bl0,d0)
+ESTAB  0      36          192.168.1.24:443      93.184.216.34:39102
+	 skmem:(r0,rb369280,t0,tb46080,f0,w0,o0,bl0,d0)

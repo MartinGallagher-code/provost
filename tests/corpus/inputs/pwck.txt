@@ -1,0 +1,6 @@
+user 'lp': directory '/var/spool/lpd' does not exist
+user 'news': directory '/var/spool/news' does not exist
+user 'uucp': directory '/var/spool/uucp' does not exist
+user 'operator': directory '/root' does not exist
+user 'games': directory '/usr/games' does not exist
+pwck: no changes

@@ -1,0 +1,7 @@
+entry1.src 198.51.100.5
+entry1.dst 203.0.113.10
+entry1.proto esp
+entry2.src 203.0.113.10
+entry2.dst 198.51.100.5
+entry2.proto esp
+total_entries 2

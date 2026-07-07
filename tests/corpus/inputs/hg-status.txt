@@ -1,0 +1,6 @@
+M src/app.py
+M docs/readme.md
+A src/new_module.py
+R src/old_helper.py
+? notes/scratch.txt
+! assets/missing.png

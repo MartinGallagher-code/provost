@@ -1,0 +1,4 @@
+/home/user/glean            a1b2c3d [main]
+/home/user/glean-feature    e4f5a6b [feature/login]
+/home/user/glean-hotfix     0f9e8d7 [hotfix/urgent-patch]
+/home/user/glean-release    7c6b5a4 (detached HEAD)

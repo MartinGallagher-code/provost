@@ -1,0 +1,5 @@
+n	WHO	UID	USER	PID	COMM	WHAT	WHY	MODE	total_entries
+1	NetworkManager	0	root	623	NetworkManager	sleep	NetworkManager	needs_caution_block	4
+2	ModemManager	0	root	645	ModemManager	sleep	ModemManager	needs_to_reset_block	4
+3	UPower	0	root	701	upowerd	sleep	Pause	device_polling_delay	4
+4	gnome-session	1000	martin	1820	gnome-session-b	handle-lid-switch	User	session_inhibited_block	4

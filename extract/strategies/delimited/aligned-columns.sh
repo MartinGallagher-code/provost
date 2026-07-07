@@ -40,15 +40,18 @@ _ac_body () {
             [[ -n "$held" ]] && out+="$held"$'\n'
             started=1
         fi
+        # A pure separator rule under the header (`---- -----`, dashes/spaces only,
+        # ≥2 dashes) is not a data row — drop it wherever it appears.
+        [[ "$_l" =~ ^[[:space:]]*-+([[:space:]]+-+)*[[:space:]]*$ ]] && continue
         out+="$_l"$'\n'
     done <<< "$text"
 
-    # Drop a trailing summary line like "4 sessions listed." (loginctl, machinectl)
-    # so it isn't counted as a data row.
+    # Drop a trailing summary line like "4 sessions listed." / "5 loaded units
+    # listed." so it isn't counted as a data row.
     local body="${out%$'\n'}" last
     last="${body##*$'\n'}"
     if [[ "$body" == *$'\n'* \
-          && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+[A-Za-z]+[[:space:]]+(listed|shown|found)\.?[[:space:]]*$ ]]; then
+          && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]]; then
         out="${body%$'\n'*}"$'\n'
     fi
     printf '%s' "$out"
@@ -133,21 +136,34 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
 
-    # Decline pure key/value blocks — `label : value` (space-colon-space, e.g.
-    # `pacman -Qi`) or `Key=Value` (e.g. `systemctl show`). These are single-record
-    # snapshots the colons/equals parsers tidy to one wide row; aligned-columns
-    # would wrongly split them into a ragged 2-column table. A real table row has
-    # no such leading-label separator, so it stays with aligned-columns.
-    local _nb=0 _kv=0 _cl
+    # Decline pure key/value blocks — `label : value` / `label: value` (e.g.
+    # `pacman -Qi`, `rpm -qi`) or `Key=Value` (e.g. `systemctl show`). These are
+    # single-record snapshots the colons/equals parsers tidy to one wide row;
+    # aligned-columns would wrongly split them into a ragged 2-column table.
+    # But a consistent multi-column table whose rows happen to end in a `label:`
+    # (e.g. `/proc/softirqs` "HI:  0 0 0", `lsusb` "… Device 002: ID …") is a real
+    # table — so only decline when the block is RAGGED (no dominant column count),
+    # which is what a genuine key/value block looks like.
+    local _nb=0 _kv=0 _cl _cc=() _ct
     while IFS= read -r _cl; do
         [[ -z "${_cl//[[:space:]]/}" ]] && continue
         _nb=$((_nb + 1))
-        if [[ "$_cl" =~ ^[[:space:]]*[A-Za-z][^:=]*[[:space:]]:[[:space:]] \
+        if [[ "$_cl" =~ ^[[:space:]]*[A-Za-z][^:=]*:[[:space:]] \
               || "$_cl" =~ ^[[:space:]]*[A-Za-z][A-Za-z0-9_]*= ]]; then
             _kv=$((_kv + 1))
         fi
+        _ct=(); read -ra _ct <<< "$_cl"; _cc+=("${#_ct[@]}")
     done <<< "$text"
-    [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]] && return 1
+    if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
+        # Modal column count: a strong, consistent ≥3-column shape means a table,
+        # not a kv block — keep it with aligned-columns.
+        local _m=0 _best=0 _a _b _k
+        for _a in "${_cc[@]}"; do
+            _k=0; for _b in "${_cc[@]}"; do [[ "$_b" -eq "$_a" ]] && _k=$((_k + 1)); done
+            [[ $_k -gt $_best ]] && { _best=$_k; _m=$_a; }
+        done
+        [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
+    fi
 
     # Structural detection: a header row (or a headerless block) of columns with
     # a consistent count. Recognises the whole class of whitespace-columnar tool

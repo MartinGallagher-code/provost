@@ -1,0 +1,9 @@
+direnv exec path /usr/bin/direnv
+DIRENV_CONFIG /home/user/.config/direnv
+bash_path /usr/bin/bash
+disallow_stdin false
+Loaded RC path /home/user/project/.envrc
+Loaded watch path /home/user/project/.envrc
+Loaded RC allowed 0
+Found RC path /home/user/project/.envrc
+Found RC allowed 0

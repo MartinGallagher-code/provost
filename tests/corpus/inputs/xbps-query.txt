@@ -1,0 +1,7 @@
+ii base-files-0.143_5           Void Linux base system files
+ii bash-5.2.026_1               GNU Bourne Again Shell
+ii ca-certificates-20240203_1   Common CA certificates
+ii coreutils-9.4_1              GNU core utilities
+ii libssl3-3.0.13_1             OpenSSL cryptographic library - SSL/TLS
+ii xbps-0.59.1_9                XBPS package system utilities
+ii zlib-1.3.1_1                 Compression/decompression Library

@@ -1,0 +1,7 @@
+n	c1	c2	c3	c4	c5	c6	c7	c8	c9	total_entries
+1	ID	256	gen	12043	top	level	5	path	@	6
+2	ID	257	gen	12040	top	level	5	path	@home	6
+3	ID	258	gen	11980	top	level	256	path	@/var/log	6
+4	ID	259	gen	12001	top	level	5	path	@snapshots	6
+5	ID	260	gen	11500	top	level	259	path	@snapshots/2026-07-01	6
+6	ID	261	gen	12043	top	level	256	path	@/var/cache	6

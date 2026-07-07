@@ -1,0 +1,6 @@
+NAME                     CREATED AT
+pod-reader               2026-04-06T09:12:44Z
+configmap-editor         2026-04-18T14:03:21Z
+secret-reader            2026-05-02T11:47:09Z
+deployment-manager       2026-05-30T08:22:15Z
+leader-election-role     2026-06-12T16:41:52Z

@@ -1,0 +1,11 @@
+Keystore type: PKCS12
+Keystore provider: SUN
+
+Your keystore contains 6 entries
+
+mykey, Mar 01 2024, PrivateKeyEntry, A1:B2:C3:D4:E5:F6:07:18:29:3A:4B:5C:6D:7E:8F:90
+serverca, Mar 02 2024, trustedCertEntry, D4:E5:F6:07:18:29:3A:4B:5C:6D:7E:8F:90:A1:B2:C3
+rootca, Jan 15 2023, trustedCertEntry, 11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00
+intermediateca, Jun 20 2023, trustedCertEntry, 22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00
+clientkey, Feb 10 2024, PrivateKeyEntry, 33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11
+backupkey, Apr 05 2024, PrivateKeyEntry, 44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22

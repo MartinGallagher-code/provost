@@ -1,0 +1,6 @@
+NAME                                       CLUSTER        CDS        LDS        EDS        RDS        ECDS       ISTIOD                      VERSION
+web-6f8c9d7b5-2xq4z.default                 Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT   istiod-5c7b9f8d4-abcde      1.21.2
+api-7d9f8c6b4-9mk2l.default                 Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT   istiod-5c7b9f8d4-abcde      1.21.2
+checkout-5b8d7c9f6-lp3wq.shop               Kubernetes     SYNCED     SYNCED     SYNCED     STALE      NOT SENT   istiod-5c7b9f8d4-abcde      1.21.2
+ingressgateway-6c9d8f7b5-tz8vn.istio-system Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT   istiod-5c7b9f8d4-abcde      1.21.2
+worker-8f7c6d9b5-qw4rt.jobs                 Kubernetes     SYNCED     SYNCED     SYNCED     SYNCED     NOT SENT   istiod-5c7b9f8d4-abcde      1.21.1

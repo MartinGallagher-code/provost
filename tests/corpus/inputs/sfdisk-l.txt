@@ -1,0 +1,14 @@
+Disk /dev/sda: 465.76 GiB, 500107862016 bytes, 976773168 sectors
+Disk model: Samsung SSD 860
+Units: sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disklabel type: gpt
+Disk identifier: 3F2504E0-4F89-41D3-9A0C-0305E82C3301
+
+Device        Start       End   Sectors   Size Type
+/dev/sda1      2048   1050623   1048576   512M EFI-System
+/dev/sda2   1050624   3147775   2097152     1G Linux-filesystem
+/dev/sda3   3147776  99614719  96466944    46G Linux-filesystem
+/dev/sda4  99614720 792723455 693108736   331G Linux-filesystem
+/dev/sda5 792723456 976773119 184049664  87.8G Linux-swap

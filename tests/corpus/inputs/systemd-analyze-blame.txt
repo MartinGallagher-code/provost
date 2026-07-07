@@ -1,0 +1,6 @@
+          6.842s NetworkManager-wait-online.service
+          2.113s docker.service
+          1.402s snapd.service
+           874ms containerd.service
+           612ms systemd-journald.service
+           443ms postgresql@16-main.service

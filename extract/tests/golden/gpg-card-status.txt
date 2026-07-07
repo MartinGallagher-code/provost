@@ -1,0 +1,17 @@
+entry1.Reader Yubico_YubiKey_OTP+FIDO+CCID_00_00
+entry1.Application_ID D2760001240103040006123456780000
+entry1.Application_type OpenPGP
+entry1.Version 3.4
+entry1.Manufacturer Yubico
+entry1.Serial_number 12345678
+entry1.Name_of_cardholder Martin_Gallagher
+entry1.Language_prefs en
+entry1.Salutation Mr.
+entry1.URL_of_public_key [not_set]
+entry1.Login_data mgallagher
+entry1.Signature_PIN not_forced
+entry1.Key_attributes rsa2048_rsa2048_rsa2048
+entry1.Max_PIN_lengths 127_127_127
+entry1.PIN_retry_counter 3_0_3
+entry1.Signature_counter 42
+total_entries 1

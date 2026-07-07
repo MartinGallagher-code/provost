@@ -1,0 +1,10 @@
+entry1.core_version 2.16.3
+entry1.config_file /etc/ansible/ansible.cfg
+entry1.configured_module_search_path ['/home/user/.ansible/plugins/modules',_'/usr/share/ansible/plugins/modules']
+entry1.ansible_python_module_location /usr/lib/python3/dist-packages/ansible
+entry1.ansible_collection_location /home/user/.ansible/collections:/usr/share/ansible/collections
+entry1.executable_location /usr/bin/ansible
+entry1.python_version 3.11.6_(main,_Sep_30_2025,_12:00:00)_[GCC_13.2.0]
+entry1.jinja_version 3.1.2
+entry1.libyaml True
+total_entries 1

@@ -1,0 +1,7 @@
+WHO                  UID   USER      PID    COMM             WHAT                            WHY                              MODE
+NetworkManager       0     root      623    NetworkManager   sleep                           NetworkManager needs caution     block
+ModemManager         0     root      645    ModemManager     sleep                           ModemManager needs to reset      block
+UPower               0     root      701    upowerd          sleep                           Pause device polling             delay
+gnome-session        1000  martin    1820   gnome-session-b  handle-lid-switch               User session inhibited           block
+
+4 inhibitors listed.

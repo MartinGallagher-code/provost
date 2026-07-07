@@ -1,0 +1,19 @@
+# decode-dimms version 6.0
+Decoding EEPROM: /sys/bus/i2c/devices/i2c-0/0-0050
+Guessing DIMM is in			bank 1
+
+---=== SPD EEPROM Information ===---
+EEPROM CRC of bytes 0-125		OK (0x1B2C)
+# of bytes written to SDRAM EEPROM	176
+Total number of bytes in EEPROM		512
+Fundamental Memory type			DDR4 SDRAM
+SPD Revision				1.1
+
+---=== Memory Characteristics ===---
+Maximum module speed			2400 MHz (PC4-19200)
+Size					8192 MB
+Banks x Rows x Columns x Bits		16 x 16 x 10 x 64
+Ranks					1
+SDRAM Device Width			8 bits
+Manufacturer				Micron Technology
+Part Number				8ATF1G64HZ-2G3B1

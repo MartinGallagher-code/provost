@@ -1,0 +1,5 @@
+DEVICE OFFSET TYPE UUID                                 LABEL
+sda1   0x0    vfat A1B2-C3D4                            EFI
+sda2   0x438  ext4 e4c2f1a0-9b3d-4c6e-8f21-1a2b3c4d5e6f boot
+sda3   0x438  ext4 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d root
+sda5   0xff6  swap 1234abcd-5678-90ef-1234-567890abcdef swap

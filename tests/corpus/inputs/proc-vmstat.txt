@@ -1,0 +1,8 @@
+nr_free_pages 1503012
+nr_zone_inactive_anon 40213
+nr_zone_active_anon 302145
+nr_zone_inactive_file 502341
+nr_zone_active_file 803214
+nr_dirty 1203
+nr_writeback 0
+pgpgin 8945201

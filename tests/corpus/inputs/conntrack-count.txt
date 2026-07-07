@@ -1,0 +1,4 @@
+net.netfilter.nf_conntrack_count = 12847
+net.netfilter.nf_conntrack_max = 262144
+net.netfilter.nf_conntrack_buckets = 65536
+net.netfilter.nf_conntrack_tcp_timeout_established = 432000

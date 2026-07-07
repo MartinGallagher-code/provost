@@ -1,0 +1,6 @@
+ [ + ]  apache2
+ [ - ]  alsa-utils
+ [ + ]  cron
+ [ ? ]  dbus
+ [ + ]  ssh
+ [ - ]  x11-common

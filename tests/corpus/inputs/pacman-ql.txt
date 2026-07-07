@@ -1,0 +1,8 @@
+coreutils /usr/bin/
+coreutils /usr/bin/base64
+coreutils /usr/bin/cat
+coreutils /usr/bin/chmod
+coreutils /usr/bin/cp
+coreutils /usr/bin/ls
+coreutils /usr/share/info/coreutils.info.gz
+coreutils /usr/share/man/man1/ls.1.gz

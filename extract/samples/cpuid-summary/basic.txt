@@ -1,0 +1,18 @@
+CPU:
+   vendor_id = "GenuineIntel"
+   version information (1/eax):
+      processor type  = primary processor (0)
+      family          = 0x6 (6)
+      model           = 0xe (14)
+      stepping id     = 0xa (10)
+      extended family = 0x0 (0)
+      extended model  = 0x9 (9)
+      (family synth)  = 0x6 (6)
+      (model synth)   = 0x9e (158)
+   brand id = 0x00 (0): unknown
+   miscellaneous (1/ebx):
+      process local APIC physical ID = 0x0 (0)
+      cpu count                      = 0x10 (16)
+      CLFLUSH line size              = 0x8 (8)
+      brand index                    = 0x0 (0)
+   brand = "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz"

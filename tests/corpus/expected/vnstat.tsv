@@ -1,0 +1,4 @@
+n	month	rx	tx	total	rate	total_entries
+1	2026-05	42.18_GiB	8.91_GiB	51.09_GiB	158.72_kbit/s	3
+2	2026-06	55.03_GiB	12.44_GiB	67.47_GiB	208.19_kbit/s	3
+3	2026-07	9.77_GiB	2.10_GiB	11.87_GiB	241.03_kbit/s	3

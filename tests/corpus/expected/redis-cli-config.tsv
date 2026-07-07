@@ -1,0 +1,15 @@
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	maxmemory						14
+2	2147483648						14
+3	maxmemory-policy						14
+4	allkeys-lru						14
+5	maxmemory-samples						14
+6	5						14
+7	appendonly						14
+8	yes						14
+9	save						14
+10	3600	1	300	100	60	10000	14
+11	timeout						14
+12	0						14
+13	tcp-keepalive						14
+14	300						14

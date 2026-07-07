@@ -1,0 +1,5 @@
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	(192.168.1.24,	239.1.1.1)	Iif:	eth0	Oifs:	eth1_eth2	4
+2	(10.0.0.5,	239.2.2.2)	Iif:	eth0	Oifs:	eth1	4
+3	(0.0.0.0,	224.0.1.1)	Iif:	eth0	Oifs:	unresolved	4
+4	(172.16.0.9,	239.255.255.250)	Iif:	eth1	Oifs:	eth0	4

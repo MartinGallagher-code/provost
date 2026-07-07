@@ -1,0 +1,9 @@
+Fetching gem metadata from https://rubygems.org/.........
+Resolving dependencies...
+
+Gem        Current  Latest  Requested  Groups
+nokogiri   1.16.2   1.16.5  = 1.16.2   default
+puma       6.4.2    6.4.3   ~> 6.4     default
+rails      7.1.3    7.1.3.4 ~> 7.1     default
+sidekiq    7.2.0    7.2.4              default
+rubocop    1.62.1   1.63.4  ~> 1.62    development, test

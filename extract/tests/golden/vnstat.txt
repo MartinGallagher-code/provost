@@ -1,0 +1,16 @@
+entry1.month 2026-05
+entry1.rx 42.18_GiB
+entry1.tx 8.91_GiB
+entry1.total 51.09_GiB
+entry1.rate 158.72_kbit/s
+entry2.month 2026-06
+entry2.rx 55.03_GiB
+entry2.tx 12.44_GiB
+entry2.total 67.47_GiB
+entry2.rate 208.19_kbit/s
+entry3.month 2026-07
+entry3.rx 9.77_GiB
+entry3.tx 2.10_GiB
+entry3.total 11.87_GiB
+entry3.rate 241.03_kbit/s
+total_entries 3

@@ -1,0 +1,10 @@
+LISTEN                          UNIT                            ACTIVATES
+/dev/log                        systemd-journald.socket         systemd-journald.service
+/run/dbus/system_bus_socket     dbus.socket                     dbus.service
+/run/systemd/journal/dev-log    systemd-journald-dev-log.socket systemd-journald.service
+/run/systemd/journal/socket     systemd-journald.socket         systemd-journald.service
+/run/systemd/journal/stdout     systemd-journald.socket         systemd-journald.service
+/run/udev/control               systemd-udevd-control.socket    systemd-udevd.service
+[::]:22                         sshd.socket                     sshd.service
+
+7 sockets listed.

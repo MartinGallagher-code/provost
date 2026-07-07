@@ -1,0 +1,13 @@
+Starting Nmap 7.94 ( https://nmap.org ) at 2026-07-07 14:20 UTC
+Nmap scan report for gateway.lan (192.168.1.1)
+Host is up (0.0021s latency).
+MAC Address: 00:1A:2B:3C:4D:5E (Netgear)
+Nmap scan report for 192.168.1.12
+Host is up (0.043s latency).
+MAC Address: A4:5E:60:C1:2F:9B (Intel Corporate)
+Nmap scan report for laptop.lan (192.168.1.24)
+Host is up (0.00088s latency).
+Nmap scan report for 192.168.1.55
+Host is up (0.012s latency).
+MAC Address: B8:27:EB:44:9F:12 (Raspberry Pi Foundation)
+Nmap done: 4 IP addresses (4 hosts up) scanned in 2.31 seconds

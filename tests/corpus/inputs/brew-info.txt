@@ -1,0 +1,14 @@
+==> wget: stable 1.21.4 (bottled), HEAD
+Internet file retriever
+https://www.gnu.org/software/wget/
+Installed
+/opt/homebrew/Cellar/wget/1.21.4 (89 files, 4.3MB) *
+  Poured from bottle using the formulae.brew.sh API on 2024-01-15 at 10:03:41
+From: https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/w/wget.rb
+License: GPL-3.0-or-later
+==> Dependencies
+Required: libidn2 ✔, openssl@3 ✔
+==> Analytics
+install: 112,340 (30 days), 341,022 (90 days), 1,402,559 (365 days)
+install-on-request: 98,221 (30 days), 300,110 (90 days), 1,204,880 (365 days)
+build-error: 42 (30 days)

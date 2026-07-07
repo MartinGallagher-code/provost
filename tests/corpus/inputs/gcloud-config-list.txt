@@ -1,0 +1,9 @@
+[compute]
+region = us-central1
+zone = us-central1-a
+[core]
+account = alice@example.com
+disable_usage_reporting = True
+project = my-project-1234
+
+Your active configuration is: [default]

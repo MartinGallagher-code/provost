@@ -1,0 +1,8 @@
+slabinfo - version: 2.1
+# name            <active_objs> <num_objs> <objsize> <objperslab> <pagesperslab> : tunables <limit> <batchcount> <sharedfactor> : slabdata <active_slabs> <num_slabs> <sharedavail>
+kmalloc-8192          128    128   8192    4    8 : tunables    0    0    0 : slabdata     32     32      0
+kmalloc-1024         2048   2048   1024   32    8 : tunables    0    0    0 : slabdata     64     64      0
+dentry              48210  48312    192   42    2 : tunables    0    0    0 : slabdata   1150   1150      0
+inode_cache         30124  30240    600   54    8 : tunables    0    0    0 : slabdata    560    560      0
+task_struct           412    420   9088    3    8 : tunables    0    0    0 : slabdata    140    140      0
+buffer_head        102340 103104    104   39    1 : tunables    0    0    0 : slabdata   2644   2644      0

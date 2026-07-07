@@ -1,0 +1,13 @@
+*** LOCAL GEMS ***
+
+nokogiri (1.16.2)
+    Author: Aaron Patterson, Mike Dalessio, Yoko Harada, Tim Elliott, Akinori
+    MUSHA, John Shahid, Karol Bucek, Sam Ruby, Craig Barnes, Stephen Checkoway,
+    Lars Kanis, Sergio Arbeo, Timothy Elliott, Nobuyoshi Nakada
+    Homepage: https://nokogiri.org
+    License: MIT
+    Installed at: /usr/local/lib/ruby/gems/3.2.0
+
+    Nokogiri (鋸) makes it easy and painless to work with XML and HTML from
+    Ruby. It provides a sensible, easy-to-understand API for reading, writing,
+    modifying, and querying documents.

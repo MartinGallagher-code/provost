@@ -1,0 +1,8 @@
+Chain INPUT (policy DROP)
+target     prot opt source               destination
+ACCEPT     all  --  ::1/128              ::/0
+ACCEPT     ipv6-icmp  --  ::/0           ::/0
+ACCEPT     tcp  --  ::/0                 ::/0                 tcp dpt:22
+ACCEPT     tcp  --  ::/0                 ::/0                 tcp dpt:443
+ACCEPT     udp  --  ::/0                 fe80::/10            udp dpt:546
+DROP       all  --  ::/0                 ::/0

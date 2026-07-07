@@ -1,0 +1,8 @@
+mc0: 0 Uncorrected Errors with no DIMM info
+mc0: 0 Corrected Errors with no DIMM info
+mc0: csrow0: 0 Uncorrected Errors
+mc0: csrow0: ch0: 0 Corrected Errors
+mc0: csrow0: ch1: 0 Corrected Errors
+mc0: csrow1: 0 Uncorrected Errors
+mc0: csrow1: ch0: 0 Corrected Errors
+mc0: csrow1: ch1: 0 Corrected Errors

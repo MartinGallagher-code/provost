@@ -1,0 +1,14 @@
+{
+  db: 'sales',
+  collections: 12,
+  views: 0,
+  objects: 1048576,
+  avgObjSize: 512.34,
+  dataSize: 536870912,
+  storageSize: 268435456,
+  indexes: 24,
+  indexSize: 67108864,
+  totalSize: 335544320,
+  scaleFactor: 1,
+  ok: 1
+}

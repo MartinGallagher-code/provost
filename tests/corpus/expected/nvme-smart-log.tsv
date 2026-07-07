@@ -1,0 +1,21 @@
+n	Smart	Log	for	NVME	device:nvme0	namespace-id:ffffffff	total_entries
+1	critical_warning	:	0				20
+2	temperature	:	40	C			20
+3	available_spare	:	100%				20
+4	available_spare_threshold	:	10%				20
+5	percentage_used	:	3%				20
+6	endurance	group	critical	warning	summary:	0	20
+7	data_units_read	:	12,345,678				20
+8	data_units_written	:	9,876,543				20
+9	host_read_commands	:	234,567,890				20
+10	host_write_commands	:	123,456,789				20
+11	controller_busy_time	:	1,234				20
+12	power_cycles	:	456				20
+13	power_on_hours	:	7,890				20
+14	unsafe_shutdowns	:	12				20
+15	media_errors	:	0				20
+16	num_err_log_entries	:	5				20
+17	Warning	Temperature	Time	:	0		20
+18	Critical	Composite	Temperature	Time	:	0	20
+19	Temperature	Sensor	1	:	40	C	20
+20	Temperature	Sensor	2	:	45	C	20

@@ -1,0 +1,6 @@
+cryptroot	(253:0)
+vg0-root	(253:1)
+vg0-home	(253:2)
+vg0-swap	(253:3)
+vg0-var	(253:4)
+mpatha	(253:5)

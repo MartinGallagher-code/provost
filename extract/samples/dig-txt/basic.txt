@@ -1,0 +1,18 @@
+; <<>> DiG 9.18.24 <<>> TXT example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 8842
+;; flags: qr rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; QUESTION SECTION:
+;example.com.			IN	TXT
+
+;; ANSWER SECTION:
+example.com.		300	IN	TXT	"v=spf1 include:_spf.google.com ~all"
+example.com.		300	IN	TXT	"google-site-verification=abcdef1234567890"
+example.com.		300	IN	TXT	"MS=ms12345678"
+
+;; Query time: 18 msec
+;; SERVER: 192.168.1.1#53(192.168.1.1) (UDP)
+;; WHEN: Tue Jul 07 14:23:10 UTC 2026
+;; MSG SIZE  rcvd: 198

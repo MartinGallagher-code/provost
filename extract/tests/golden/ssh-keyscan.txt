@@ -1,0 +1,13 @@
+entry1.host host1.example.com
+entry1.keytype ssh-rsa
+entry2.host host1.example.com
+entry2.keytype ssh-ed25519
+entry3.host host2.example.com
+entry3.keytype ssh-rsa
+entry4.host host2.example.com
+entry4.keytype ecdsa-sha2-nistp256
+entry5.host 192.168.1.10
+entry5.keytype ssh-ed25519
+entry6.host gitlab.internal
+entry6.keytype ssh-rsa
+total_entries 6

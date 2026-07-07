@@ -1,0 +1,7 @@
+entry1.value policy:_default
+entry2.value preferred_node:_current
+entry3.value physcpubind:_0_1_2_3_4_5_6_7
+entry4.value cpubind:_0
+entry5.value nodebind:_0
+entry6.value membind:_0
+total_entries 6

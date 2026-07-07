@@ -1,0 +1,19 @@
+Blender - Free and open source 3D creation suite
+
+          ID: org.blender.Blender
+         Ref: app/org.blender.Blender/x86_64/stable
+        Arch: x86_64
+      Branch: stable
+     Version: 4.1.1
+     License: GPL-3.0-or-later
+      Origin: flathub
+  Collection: org.flathub.Stable
+Installation: system
+   Installed: 812.4 MB
+     Runtime: org.freedesktop.Platform/x86_64/23.08
+         Sdk: org.freedesktop.Sdk/x86_64/23.08
+
+      Commit: 9a1f2c3b7e4d5a6f8c9b0e1d2a3f4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a
+      Parent: 1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c
+     Subject: Update to 4.1.1 (a1b2c3d)
+        Date: 2024-04-30 14:22:07 +0000

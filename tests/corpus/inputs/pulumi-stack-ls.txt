@@ -1,0 +1,5 @@
+NAME       LAST UPDATE     RESOURCE COUNT  URL
+dev*       2 hours ago     42              https://app.pulumi.com/acme/proj/dev
+staging    3 days ago      45              https://app.pulumi.com/acme/proj/staging
+prod       1 week ago      48              https://app.pulumi.com/acme/proj/prod
+test       n/a             0               https://app.pulumi.com/acme/proj/test

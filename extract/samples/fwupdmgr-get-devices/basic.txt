@@ -1,0 +1,17 @@
+Computer
+│
+├─UEFI dbx:
+│     Device ID:          362301da643102b9f38477387e2193e57abaa590
+│     Summary:            UEFI revocation database
+│     Current version:    77
+│     Vendor:             UEFI:Linux Foundation
+│
+├─System Firmware:
+│     Device ID:          08d460be0f1f9f128413f816022a6439e0078c58
+│     Current version:    0.1.13
+│     Vendor:             Dell Inc. (DMI:Dell Inc.)
+│
+└─Samsung SSD 860 EVO 500GB:
+      Device ID:          e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b
+      Current version:    RVT02B6Q
+      Vendor:             Samsung

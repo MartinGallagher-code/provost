@@ -1,0 +1,16 @@
+● eth0
+                     Link File: /usr/lib/systemd/network/99-default.link
+                  Network File: /etc/systemd/network/10-eth0.network
+                          Type: ether
+                         State: routable (configured)
+                  Online state: online
+                          Path: pci-0000:02:00.0
+                        Driver: e1000e
+                        Vendor: Intel Corporation
+                         Model: 82574L Gigabit Network Connection
+                    HW Address: 52:54:00:a1:b2:c3
+                           MTU: 1500 (min: 68, max: 9000)
+                       Address: 192.168.1.42
+                                fe80::5054:ff:fea1:b2c3
+                       Gateway: 192.168.1.1
+                           DNS: 192.168.1.1

@@ -1,0 +1,2 @@
+n	Link_File	Network_File	Type	State	Online_state	Path	Driver	Vendor	Model	HW_Address	MTU	Address	fe80	Gateway	DNS
+0	/usr/lib/systemd/network/99-default.link	/etc/systemd/network/10-eth0.network	ether	routable_(configured)	online	pci-0000:02:00.0	e1000e	Intel_Corporation	82574L_Gigabit_Network_Connection	52:54:00:a1:b2:c3	1500_(min:_68,_max:_9000)	192.168.1.42	:5054:ff:fea1:b2c3	192.168.1.1	192.168.1.1

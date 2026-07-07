@@ -1,0 +1,2 @@
+n	smbios_version	Structure_Table_at	Structure_Table_length	Number_of_structures	Maximum_structure_size	total_entries
+1	3.2.1	0x000EC780	3084	84	704	1

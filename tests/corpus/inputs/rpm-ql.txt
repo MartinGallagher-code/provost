@@ -1,0 +1,10 @@
+/etc/skel/.bash_logout
+/etc/skel/.bash_profile
+/etc/skel/.bashrc
+/usr/bin/alias
+/usr/bin/bash
+/usr/bin/bashbug
+/usr/bin/sh
+/usr/lib/.build-id
+/usr/share/doc/bash/COPYING
+/usr/share/man/man1/bash.1.gz

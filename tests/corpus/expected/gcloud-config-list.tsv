@@ -1,0 +1,2 @@
+region	zone	account	disable_usage_reporting	project
+us-central1	us-central1-a	alice@example.com	True	my-project-1234

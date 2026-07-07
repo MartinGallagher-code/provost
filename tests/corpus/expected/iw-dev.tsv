@@ -1,0 +1,7 @@
+n	Interface	wlan0	total_entries
+1	ifindex	3	6
+2	wdev	0x1	6
+3	addr	b8:27:eb:44:9f:12	6
+4	type	managed	6
+5	channel	36_(5180_MHz),_width:_80_MHz,_center1:_5210_MHz	6
+6	txpower	22.00_dBm	6
