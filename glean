@@ -619,19 +619,38 @@ cmd_ls () {
     [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'glean'."
 }
 
+# The 'unsorted' dataset holds each held-back capture as a single base64-encoded
+# 'raw' column (see _ingest). Decode it back to text for display, escaping any
+# embedded tabs/newlines so each captured input stays on one line of the table.
+# 'glean source #N' remains the way back to the exact original bytes.
+_decode_unsorted_tsv () {
+    local f="$1" n b64 decoded
+    printf '#\traw\n'
+    tail -n +2 "$f" | while IFS=$'\t' read -r n b64; do
+        decoded="$(printf '%s' "$b64" | base64 -d 2>/dev/null || printf '%s' "$b64")"
+        decoded="${decoded//$'\t'/\\t}"
+        decoded="${decoded//$'\n'/\\n}"
+        printf '%s\t%s\n' "$n" "$decoded"
+    done
+}
+
 cmd_show () {
     local name="${1:?usage: glean show NAME}"
     local f; f="$(_ds_dir)/$name.tsv"
     [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
-    if command -v column >/dev/null 2>&1; then column -t -s $'\t' "$f"
+    if [[ "$name" == "unsorted" ]]; then
+        if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
+        else _decode_unsorted_tsv "$f"; fi
+    elif command -v column >/dev/null 2>&1; then column -t -s $'\t' "$f"
     else cat "$f"; fi
 }
 
 cmd_triage () {
     local f; f="$(_ds_dir)/unsorted.tsv"
     [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
-    info "unsorted rows (low-confidence / no-match), base64-encoded raw input:"
-    cat "$f"
+    info "unsorted rows (low-confidence / no-match), raw input decoded ('glean source #N' for exact bytes):"
+    if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
+    else _decode_unsorted_tsv "$f"; fi
 }
 
 cmd_doctor () {
@@ -676,7 +695,7 @@ USAGE
     glean ls                                      list datasets
     glean show NAME                               present a dataset (leading #N = row index)
     glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
-    glean triage                                  show low-confidence / unmatched bucket
+    glean triage                                  show low-confidence / unmatched bucket (raw input decoded)
     glean doctor                                  check engine + store
     glean help
 

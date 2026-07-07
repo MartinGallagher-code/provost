@@ -31,7 +31,8 @@ docker stats   | ./glean
 ./glean show free                   # present a dataset as a tidy table
 ./glean stats free                  # statistics via the analyze engine
 ./glean source 5                    # the original input behind row #5
-./glean triage                      # low-confidence / unmatched bucket
+./glean triage                      # low-confidence / unmatched bucket (raw input decoded)
+./glean show unsorted               # same bucket as a table; base64 raw decoded to text
 ./glean doctor                      # engine + store check
 ```
 

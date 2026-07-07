@@ -1,5 +1,16 @@
 # glean — Changelog
 
+## 2026-07-07 — `show unsorted` / `triage` render decoded raw input
+- The `unsorted` dataset stores each held-back capture as a single base64-encoded
+  `raw` column (so arbitrary bytes survive the TSV). Previously `glean show
+  unsorted` and `glean triage` printed those base64 blobs verbatim — unreadable.
+  They now decode each row back to text for display, escaping any embedded
+  tabs/newlines (`\t`/`\n`) so one capture stays one table row. `glean source #N`
+  is unchanged and remains the way back to the exact original bytes.
+- Files: `glean` (new `_decode_unsorted_tsv` helper; `cmd_show` special-cases the
+  `unsorted` dataset; `cmd_triage` reuses the decoder), `tests/smoke.sh` (three
+  new checks: show/triage decode the raw input and no longer emit the base64 blob).
+
 ## 2026-07-07 — 500/500 tidy coverage (fourth + fifth 100 driven to 100%)
 - Grew the corpus to **500 tools** (200 new: extended networking, containers/k8s,
   storage/LVM/ZFS, process & `/proc`, package managers, databases, security/auth,

@@ -53,6 +53,17 @@ check "no free.v2 variant was created" "1" "$(ls "$RWS/datasets" | grep -c '^fre
 # the reconciled dataset holds both rows, blank-filled
 check "reconciled dataset holds both captures' rows" "8500" "$(GLEAN_WORKSPACE="$RWS" "$GLEAN" show free 2>&1)"
 
+# unsorted: a held-back capture is stored base64-encoded, but 'show'/'triage'
+# render it decoded (readable), not as a raw base64 blob
+UWS="$(mktemp -d)/.unsorted"
+GLEAN_WORKSPACE="$UWS" "$GLEAN" --min-confidence 101 <<<'a=1;b=2' >/dev/null 2>&1
+unsorted_show="$(GLEAN_WORKSPACE="$UWS" "$GLEAN" show unsorted 2>&1)"
+check "show unsorted decodes the raw input (readable)" "a=1;b=2" "$unsorted_show"
+check "show unsorted does not print the base64 blob" "0" \
+    "$(printf '%s' "$unsorted_show" | grep -cF 'YT0xO2I9Mgo=')"
+unsorted_triage="$(GLEAN_WORKSPACE="$UWS" "$GLEAN" triage 2>&1)"
+check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
+
 # install + symlink launcher: glean must find its bundled trees when run via a
 # symlink on PATH (regression guard for the GLEAN_ROOT symlink-resolution fix)
 IPREFIX="$(mktemp -d)/opt"
