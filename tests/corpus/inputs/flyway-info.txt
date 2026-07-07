@@ -1,0 +1,9 @@
++-----------+---------+---------------------+--------+---------------------+---------+
+| Category  | Version | Description         | Type   | Installed On        | State   |
++-----------+---------+---------------------+--------+---------------------+---------+
+| Versioned | 1       | create baseline     | SQL    | 2026-01-04 10:12:33 | Success |
+| Versioned | 2       | add users table     | SQL    | 2026-01-11 09:44:01 | Success |
+| Versioned | 3       | add orders table    | SQL    | 2026-02-02 14:22:10 | Success |
+| Versioned | 4       | add index on email  | SQL    |                     | Pending |
+| Versioned | 5       | add audit columns   | SQL    |                     | Pending |
++-----------+---------+---------------------+--------+---------------------+---------+

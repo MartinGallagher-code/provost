@@ -1,0 +1,8 @@
+  Registered Targets:
+    aarch64    - AArch64 (little endian)
+    arm        - ARM
+    bpf        - BPF (host endian)
+    nvptx      - NVIDIA PTX 32-bit
+    riscv64    - 64-bit RISC-V
+    wasm32     - WebAssembly 32-bit
+    x86-64     - 64-bit X86: EM64T and AMD64

@@ -1,0 +1,7 @@
+Timezone=Europe/London
+LocalRTC=no
+CanNTP=yes
+NTP=yes
+NTPSynchronized=yes
+TimeUSec=Tue 2026-07-07 11:32:20 BST
+RTCTimeUSec=Tue 2026-07-07 10:32:20 UTC

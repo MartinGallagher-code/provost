@@ -1,0 +1,6 @@
+ID          Type     Priority  Status   Submit Date
+api         service  50        running  2026-06-14T09:32:11Z
+batch-etl   batch    40        dead     2026-06-13T22:05:47Z
+cache       service  70        running  2026-06-14T08:10:03Z
+web         service  50        running  2026-06-14T09:31:58Z
+worker      system   50        running  2026-06-12T14:20:19Z

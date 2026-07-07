@@ -1,0 +1,22 @@
+/dev/sdb1:
+          Magic : a92b4efc
+        Version : 1.2
+    Feature Map : 0x0
+     Array UUID : 3f7a1c2e:9b4d4e11:aa021c2d:3e4f5a6b
+           Name : host01:0  (local to host host01)
+  Creation Time : Tue May 12 14:03:21 2026
+     Raid Level : raid5
+   Raid Devices : 4
+ Avail Dev Size : 3906764976 sectors (1.82 TiB)
+     Array Size : 5860147464 KiB (5.46 TiB)
+    Data Offset : 264192 sectors
+   Super Offset : 8 sectors
+          State : clean
+    Device UUID : 1122aabb:3344ccdd:5566eeff:77889900
+    Update Time : Mon Jul  6 09:15:44 2026
+       Checksum : a1b2c3d4 - correct
+         Events : 48213
+         Layout : left-symmetric
+     Chunk Size : 512K
+   Device Role : Active device 1
+   Array State : AAAA ('A' == active, '.' == missing, 'R' == replacing)

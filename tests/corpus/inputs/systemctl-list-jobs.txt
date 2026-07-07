@@ -1,0 +1,7 @@
+JOB UNIT                     TYPE  STATE
+ 12 apt-daily.service        start waiting
+ 27 nginx.service            start running
+ 33 logrotate.service        start waiting
+ 41 man-db.service           start running
+
+4 jobs listed.

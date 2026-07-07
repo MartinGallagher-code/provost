@@ -1,0 +1,6 @@
+events
+events_local
+metrics
+metrics_agg
+sessions
+users

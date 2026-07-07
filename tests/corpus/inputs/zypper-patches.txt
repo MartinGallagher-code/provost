@@ -1,0 +1,8 @@
+Repository      | Name              | Category    | Severity  | Interactive | Status     | Summary
+----------------+-------------------+-------------+-----------+-------------+------------+--------
+openSUSE-Update | openSUSE-2024-101 | security    | important | ---         | needed     | Security update for openssl
+openSUSE-Update | openSUSE-2024-102 | recommended | moderate  | ---         | needed     | Recommended update for glibc
+openSUSE-Update | openSUSE-2024-103 | security    | critical  | reboot      | needed     | Security update for kernel
+openSUSE-Update | openSUSE-2024-104 | optional    | low       | ---         | not-needed | Optional update for vim
+openSUSE-Update | openSUSE-2024-105 | security    | important | ---         | applied    | Security update for curl
+openSUSE-Update | openSUSE-2024-106 | recommended | moderate  | ---         | needed     | Recommended update for systemd

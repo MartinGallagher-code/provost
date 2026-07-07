@@ -1,0 +1,8 @@
+alice (1000)
+           Since: Mon 2026-07-06 08:14:22 UTC; 1 day 2h ago
+           State: active
+        Sessions: *1 7
+          Linger: no
+            Unit: user-1000.slice
+                  ├─session-1.scope
+                  └─user@1000.service

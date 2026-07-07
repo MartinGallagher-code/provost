@@ -1,0 +1,10 @@
++--------+------------+--------------+--------------+-------------+-----------+-------------+------+------------+
+| Table  | Non_unique | Key_name     | Seq_in_index | Column_name | Collation | Cardinality | Null | Index_type |
++--------+------------+--------------+--------------+-------------+-----------+-------------+------+------------+
+| orders |          0 | PRIMARY      |            1 | id          | A         |      220145 |      | BTREE      |
+| orders |          1 | idx_customer |            1 | customer_id | A         |       12045 |      | BTREE      |
+| orders |          1 | idx_customer |            2 | created_at  | A         |      198220 |      | BTREE      |
+| orders |          1 | idx_status   |            1 | status      | A         |           6 |      | BTREE      |
+| orders |          1 | idx_total    |            1 | total       | A         |       88210 | YES  | BTREE      |
+| orders |          0 | uq_order_ref |            1 | order_ref   | A         |      220145 |      | BTREE      |
++--------+------------+--------------+--------------+-------------+-----------+-------------+------+------------+

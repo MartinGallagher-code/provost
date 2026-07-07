@@ -1,0 +1,9 @@
+UNIT FILE                     STATE           PRESET
+cron.service                  enabled         enabled
+dbus.service                  static          -
+getty@.service                enabled         enabled
+nginx.service                 enabled         enabled
+ssh.service                   enabled         enabled
+systemd-timesyncd.service     disabled        enabled
+
+6 unit files listed.

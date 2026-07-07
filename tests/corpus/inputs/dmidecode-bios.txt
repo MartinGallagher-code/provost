@@ -1,0 +1,22 @@
+# dmidecode 3.3
+Getting SMBIOS data from sysfs.
+SMBIOS 3.2.1 present.
+
+Handle 0x0000, DMI type 0, 26 bytes
+BIOS Information
+	Vendor: Dell Inc.
+	Version: 1.11.0
+	Release Date: 06/23/2021
+	Address: 0xF0000
+	Runtime Size: 64 kB
+	ROM Size: 32 MB
+	Characteristics:
+		PCI is supported
+		BIOS is upgradeable
+		BIOS shadowing is allowed
+		Boot from CD is supported
+		Selectable boot is supported
+		ACPI is supported
+		UEFI is supported
+	BIOS Revision: 1.11
+	Firmware Revision: 108.15

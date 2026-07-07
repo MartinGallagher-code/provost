@@ -1,0 +1,7 @@
+Path          Type          Accessor                  Description
+----          ----          --------                  -----------
+approle/      approle       auth_approle_3c2a1b09     n/a
+github/       github        auth_github_7f1e2d33      n/a
+kubernetes/   kubernetes    auth_kubernetes_9a8b7c6d  n/a
+ldap/         ldap          auth_ldap_1122aabb        n/a
+token/        token         auth_token_00ff11ee       token based credentials

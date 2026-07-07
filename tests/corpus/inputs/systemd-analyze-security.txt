@@ -1,0 +1,9 @@
+  NAME                                       DESCRIPTION                                    EXPOSURE
+✗ PrivateNetwork=                            Service has access to the host's network            0.5
+✗ User=/DynamicUser=                         Service runs as root, option does not matter        0.3
+✗ CapabilityBoundingSet=~CAP_SYS_ADMIN       Service has administrator privileges                0.3
+✓ RestrictAddressFamilies=~AF_(INET|INET6)   Service cannot allocate Internet sockets
+✗ RestrictNamespaces=~CLONE_NEWUSER          Service may create user namespaces                  0.3
+✗ NoNewPrivileges=                           Service processes may acquire new privileges        0.2
+
+→ Overall exposure level for nginx.service: 6.9 UNSAFE 😨

@@ -1,0 +1,6 @@
+NAME       ACTIVE   DRIVER         STATE     URL                          SWARM   DOCKER     ERRORS
+default    -        virtualbox     Running   tcp://192.168.99.100:2376    -       v24.0.7    -
+dev        *        digitalocean   Running   tcp://159.203.12.44:2376     -       v24.0.5    -
+prod-01    -        amazonec2      Running   tcp://54.221.10.9:2376       -       v24.0.7    -
+prod-02    -        amazonec2      Stopped   -                            -       Unknown    -
+staging    -        google         Running   tcp://35.190.22.7:2376       -       v24.0.6    -

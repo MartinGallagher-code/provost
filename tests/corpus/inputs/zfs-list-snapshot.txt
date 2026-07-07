@@ -1,0 +1,7 @@
+NAME                              USED  AVAIL     REFER  MOUNTPOINT
+tank/home@2026-06-01              128M      -     4.20G  -
+tank/home@2026-07-01               64M      -     4.35G  -
+tank/data@daily-2026-07-05       1.20G      -    88.40G  -
+tank/data@daily-2026-07-06        980M      -    88.90G  -
+rpool/ROOT/ubuntu@pre-upgrade     512M      -    12.10G  -
+tank/vm/win10@snap-before-patch  2.40G      -    42.00G  -

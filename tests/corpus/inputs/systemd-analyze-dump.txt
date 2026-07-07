@@ -1,0 +1,9 @@
+-> Unit nginx.service:
+        Description: A high performance web server and a reverse proxy server
+        Instance: n/a
+        Unit Load State: loaded
+        Unit Active State: active
+        State Change Timestamp: Tue 2026-07-07 09:14:02 BST
+        Active Enter Timestamp: Tue 2026-07-07 09:14:02 BST
+        Inactive Exit Timestamp: Tue 2026-07-07 09:14:00 BST
+        CGroup: /system.slice/nginx.service

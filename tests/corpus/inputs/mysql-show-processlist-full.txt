@@ -1,0 +1,9 @@
++------+-----------------+-----------------+-----------+---------+-------+------------------------+-----------------------------------------------+
+| Id   | User            | Host            | db        | Command | Time  | State                  | Info                                          |
++------+-----------------+-----------------+-----------+---------+-------+------------------------+-----------------------------------------------+
+|    5 | event_scheduler | localhost       | NULL      | Daemon  | 88213 | Waiting on empty queue | NULL                                          |
+|  142 | appuser         | 10.0.0.5:51234  | appdb     | Query   |     0 | starting               | SHOW FULL PROCESSLIST                         |
+|  145 | appuser         | 10.0.0.7:44120  | appdb     | Query   |    12 | Sending data           | SELECT * FROM orders WHERE customer_id = 4210 |
+|  151 | reporting       | 10.0.2.9:33980  | analytics | Query   |  3312 | Copying to tmp table   | SELECT region, SUM(total) FROM orders GROUP  |
+|  160 | root            | localhost       | NULL      | Sleep   |   240 |                        | NULL                                          |
++------+-----------------+-----------------+-----------+---------+-------+------------------------+-----------------------------------------------+

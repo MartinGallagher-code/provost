@@ -1,0 +1,7 @@
+Cabal 3.6.3.0
+aeson 2.1.2.1
+base 4.16.4.0
+bytestring 0.11.4.0
+containers 0.6.5.1
+text 2.0.2
+vector 0.13.1.0

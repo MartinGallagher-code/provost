@@ -1,0 +1,6 @@
+id=6 addr=127.0.0.1:58108 fd=8 name= age=6296 idle=0 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=26 qbuf-free=32742 obl=0 oll=0 omem=0 events=r cmd=client
+id=7 addr=10.0.0.4:50170 fd=9 name=worker-a age=142 idle=3 flags=N db=0 sub=2 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=subscribe
+id=8 addr=10.0.0.5:50188 fd=10 name=worker-b age=140 idle=0 flags=N db=1 sub=0 psub=1 multi=-1 qbuf=14 qbuf-free=32754 obl=0 oll=0 omem=0 events=rw cmd=get
+id=9 addr=10.0.0.6:50204 fd=11 name=ingest age=98 idle=0 flags=N db=0 sub=0 psub=0 multi=4 qbuf=512 qbuf-free=32256 obl=0 oll=0 omem=0 events=rw cmd=exec
+id=10 addr=10.0.0.7:50219 fd=12 name= age=12 idle=12 flags=N db=0 sub=0 psub=0 multi=-1 qbuf=0 qbuf-free=0 obl=0 oll=0 omem=0 events=r cmd=ping
+id=11 addr=10.0.0.8:50241 fd=13 name=metrics age=3 idle=0 flags=M db=3 sub=0 psub=0 multi=-1 qbuf=48 qbuf-free=32720 obl=0 oll=0 omem=0 events=rw cmd=info

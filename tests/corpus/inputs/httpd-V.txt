@@ -1,0 +1,13 @@
+Server version: Apache/2.4.57 (Debian)
+Server built:   2023-04-13T13:30:00
+Server's Module Magic Number: 20120211:127
+Server loaded:  APR 1.7.2, APR-UTIL 1.6.3
+Compiled using: APR 1.7.2, APR-UTIL 1.6.3
+Architecture:   64-bit
+Server MPM:     event
+Server compiled with....
+ -D APR_HAS_SENDFILE
+ -D APR_HAS_MMAP
+ -D APACHE_MPM_DIR="server/mpm/event"
+ -D HTTPD_ROOT="/etc/apache2"
+ -D SERVER_CONFIG_FILE="/etc/apache2/apache2.conf"

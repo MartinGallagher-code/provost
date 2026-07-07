@@ -1,0 +1,18 @@
+Certificate Revocation List (CRL):
+        Version 2 (0x1)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=US, O=Example CA, CN=Example Intermediate CA
+        Last Update: Jul  1 00:00:00 2026 GMT
+        Next Update: Jul  8 00:00:00 2026 GMT
+        CRL extensions:
+            X509v3 Authority Key Identifier:
+                keyid:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89
+            X509v3 CRL Number:
+                142
+Revoked Certificates:
+    Serial Number: 0A1B2C3D
+        Revocation Date: Jun 15 12:30:00 2026 GMT
+    Serial Number: 4E5F6071
+        Revocation Date: Jun 20 09:15:00 2026 GMT
+    Signature Algorithm: sha256WithRSAEncryption
+         3a:8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9

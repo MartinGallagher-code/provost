@@ -1,0 +1,5 @@
+10.0.0.61 62 88 12 1.20 1.15 1.08 cdfhilmrstw - es-node-1
+10.0.0.62 58 85  9 0.98 1.02 0.95 cdfhilmrstw * es-node-2
+10.0.0.63 65 90 15 1.44 1.30 1.19 cdfhilmrstw - es-node-3
+10.0.0.64 54 82  7 0.76 0.81 0.88 cdfhilmrstw - es-node-4
+10.0.0.65 12 40  2 0.10 0.14 0.20 cdfhilmrstw - es-node-5

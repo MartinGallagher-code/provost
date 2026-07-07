@@ -1,0 +1,11 @@
+Archive:  release-2.4.1.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+    18432  2026-06-15 10:30   bin/app
+     2048  2026-06-15 10:30   config/settings.yaml
+      512  2026-06-15 10:31   LICENSE
+    40960  2026-06-15 10:32   lib/libcore.so
+     1024  2026-06-14 22:00   README.md
+   131072  2026-06-15 10:33   share/data.bin
+---------                     -------
+   194048                     6 files

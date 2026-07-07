@@ -1,0 +1,6 @@
+a1b2c3d4e5 * assets/logo.png
+b2c3d4e5f6 * assets/hero.psd
+c3d4e5f6a7 - data/model.bin
+d4e5f6a7b8 * video/intro.mp4
+e5f6a7b8c9 * fonts/brand.otf
+f6a7b8c9d0 - archive/backup.zip

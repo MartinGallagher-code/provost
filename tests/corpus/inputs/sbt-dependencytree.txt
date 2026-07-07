@@ -1,0 +1,6 @@
+[info] default:myapp_2.13:0.1.0
+[info]   +-ch.qos.logback:logback-classic:1.4.14
+[info]   +-com.typesafe.akka:akka-actor_2.13:2.8.5
+[info]   +-com.typesafe:config:1.4.3
+[info]   +-org.scala-lang:scala-library:2.13.12
+[info]   +-org.slf4j:slf4j-api:2.0.9

@@ -1,0 +1,6 @@
+NAME                   READY   STATUS      RESTARTS   AGE   IP            NODE       NOMINATED NODE   READINESS GATES
+web-6d4cf56db6-8xk2n   1/1     Running     0          6d    10.244.1.12   worker-1   <none>           <none>
+web-6d4cf56db6-lm9qr   1/1     Running     0          6d    10.244.2.33   worker-2   <none>           <none>
+redis-master-0         1/1     Running     1          14d   10.244.1.9    worker-1   <none>           <none>
+api-5f7b9c8d4-tzp7w    2/2     Running     3          2d    10.244.3.51   worker-3   <none>           <none>
+db-migrate-x9k2p       0/1     Completed   0          1d    10.244.2.40   worker-2   <none>           <none>

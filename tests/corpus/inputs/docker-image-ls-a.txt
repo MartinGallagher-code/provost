@@ -1,0 +1,9 @@
+REPOSITORY            TAG          IMAGE ID       CREATED         SIZE
+nginx                 1.25         605c77e624dd   2 weeks ago     146MB
+postgres              16           a3c8e4f9b1d2   3 weeks ago     432MB
+redis                 7-alpine     b4a2c1d3e5f6   4 weeks ago     41.2MB
+<none>                <none>       9f3a1b2c4d5e   6 days ago      284MB
+ghcr.io/acme/api      2.1          c7d8e9f0a1b2   5 hours ago     118MB
+<none>                <none>       1a2b3c4d5e6f   6 days ago      312MB
+grafana/grafana       10.4         e2f3a4b5c6d7   2 weeks ago     398MB
+busybox               latest       3a5f7c9e1b3d   5 weeks ago     4.26MB

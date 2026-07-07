@@ -1,0 +1,9 @@
+                                    List of functions
+ Schema |       Name       | Result data type |     Argument data types      | Type
+--------+------------------+------------------+------------------------------+------
+ public | calc_tax         | numeric          | amount numeric, rate numeric | func
+ public | current_tenant   | integer          |                              | func
+ public | normalize_email  | text             | addr text                    | func
+ public | order_total      | numeric          | order_id integer             | func
+ public | update_timestamp | trigger          |                              | func
+(5 rows)

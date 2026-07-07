@@ -1,0 +1,25 @@
+{
+  inprog: [
+    {
+      type: 'op',
+      opid: 128374,
+      active: true,
+      secs_running: Long("12"),
+      op: 'query',
+      ns: 'ecommerce.orders',
+      planSummary: 'COLLSCAN',
+      waitingForLock: false
+    },
+    {
+      type: 'op',
+      opid: 128412,
+      active: true,
+      secs_running: Long("3"),
+      op: 'update',
+      ns: 'ecommerce.inventory',
+      planSummary: 'IXSCAN { sku: 1 }',
+      waitingForLock: true
+    }
+  ],
+  ok: 1
+}

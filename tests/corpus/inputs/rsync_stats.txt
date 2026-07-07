@@ -1,0 +1,11 @@
+Number of files: 1,284 (reg: 1,190, dir: 94)
+Number of created files: 37 (reg: 35, dir: 2)
+Number of deleted files: 0
+Number of regular files transferred: 42
+Total file size: 8,412,556 bytes
+Total transferred file size: 1,204,882 bytes
+Literal data: 1,204,882 bytes
+Matched data: 0 bytes
+File list size: 65,536
+Total bytes sent: 1,238,004
+Total bytes received: 1,204

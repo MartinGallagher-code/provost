@@ -1,0 +1,5 @@
+global.index-url='https://pypi.org/simple'
+global.timeout='60'
+global.trusted-host='pypi.org'
+install.no-cache-dir='false'
+install.user='true'

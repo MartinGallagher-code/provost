@@ -1,0 +1,8 @@
++------------------------------------------------------------------------+
+| Grants for appuser@%                                                    |
++------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `appuser`@`%`                                     |
+| GRANT SELECT, INSERT, UPDATE, DELETE ON `appdb`.* TO `appuser`@`%`      |
+| GRANT SELECT ON `analytics`.* TO `appuser`@`%`                          |
+| GRANT EXECUTE ON PROCEDURE `appdb`.`recalc_totals` TO `appuser`@`%`     |
++------------------------------------------------------------------------+

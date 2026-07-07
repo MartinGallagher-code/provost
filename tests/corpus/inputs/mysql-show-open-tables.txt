@@ -1,0 +1,9 @@
++----------+-----------+--------+-------------+
+| Database | Table     | In_use | Name_locked |
++----------+-----------+--------+-------------+
+| appdb    | customers |      0 |           0 |
+| appdb    | invoices  |      0 |           0 |
+| appdb    | orders    |      2 |           0 |
+| appdb    | products  |      0 |           0 |
+| appdb    | sessions  |      1 |           0 |
++----------+-----------+--------+-------------+

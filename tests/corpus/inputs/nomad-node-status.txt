@@ -1,0 +1,6 @@
+ID        DC    Name        Class    Drain  Eligibility  Status
+1a2b3c4d  dc1   node-01     compute  false  eligible     ready
+2b3c4d5e  dc1   node-02     compute  false  eligible     ready
+3c4d5e6f  dc2   node-03     memory   true   ineligible   ready
+4d5e6f70  dc2   node-04     compute  false  eligible     down
+5e6f7081  dc1   node-05     gpu      false  eligible     ready

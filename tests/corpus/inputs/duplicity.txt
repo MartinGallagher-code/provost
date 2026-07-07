@@ -1,0 +1,9 @@
+Last full backup date: Wed Jul  1 02:00:14 2026
+Collection Status
+-----------------
+Connecting with backend: BackendWrapper (LocalBackend)
+Archive dir: /home/martin/.cache/duplicity/d41d8cd
+Number of contained backup sets: 5
+Total number of contained volumes: 12
+Chain start time: Wed Jul  1 02:00:14 2026
+Chain end time: Sun Jul  5 02:00:11 2026

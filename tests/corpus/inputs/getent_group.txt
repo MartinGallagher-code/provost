@@ -1,0 +1,7 @@
+root:x:0:
+sudo:x:27:martin,alice
+docker:x:998:martin,deploy
+www-data:x:33:
+adm:x:4:syslog,martin
+users:x:100:martin,alice,bob
+staff:x:50:martin

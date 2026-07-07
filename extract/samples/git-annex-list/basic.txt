@@ -1,0 +1,9 @@
+here
+|web
+||remote-nyc
+|||
+X__ video/clip1.mov
+_X_ video/clip2.mov
+XX_ docs/manual.pdf
+__X music/track.flac
+X_X backup/archive.tar

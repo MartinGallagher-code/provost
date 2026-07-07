@@ -1,0 +1,18 @@
+NAME                            READY   STATUS    RESTARTS   AGE
+pod/web-6d4cf56db6-8xk2n        1/1     Running   0          6d4h
+pod/web-6d4cf56db6-lm9qr        1/1     Running   0          6d4h
+pod/redis-master-0             1/1     Running   1          14d
+pod/api-5f7b9c8d4-tzp7w        2/2     Running   3          2d1h
+
+NAME                 TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP    30d
+service/web          ClusterIP   10.96.140.22   <none>        80/TCP     6d4h
+service/redis        ClusterIP   10.96.88.10    <none>        6379/TCP   14d
+
+NAME                  READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/web   2/2     2            2           6d4h
+deployment.apps/api   1/1     1            1           2d1h
+
+NAME                             DESIRED   CURRENT   READY   AGE
+replicaset.apps/web-6d4cf56db6   2         2         2       6d4h
+replicaset.apps/api-5f7b9c8d4    1         1         1       2d1h

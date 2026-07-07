@@ -1,0 +1,9 @@
+                                      List of installed extensions
+        Name        | Version |   Schema   |                          Description
+--------------------+---------+------------+----------------------------------------------------------------
+ btree_gin          | 1.3     | public     | support for indexing common datatypes in GIN
+ citext             | 1.6     | public     | data type for case-insensitive character strings
+ pg_stat_statements | 1.10    | public     | track planning and execution statistics of all SQL statements
+ plpgsql            | 1.0     | pg_catalog | PL/pgSQL procedural language
+ uuid-ossp          | 1.1     | public     | generate universally unique identifiers (UUIDs)
+(5 rows)

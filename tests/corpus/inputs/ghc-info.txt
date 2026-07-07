@@ -1,0 +1,11 @@
+[("GHC version","9.4.7")
+,("Project version","9.4.7")
+,("Booter version","9.2.8")
+,("Stage","2")
+,("Build platform","x86_64-unknown-linux")
+,("Host platform","x86_64-unknown-linux")
+,("Target platform","x86_64-unknown-linux")
+,("Have interpreter","YES")
+,("Support SMP","YES")
+,("Support dynamic-too","YES")
+]

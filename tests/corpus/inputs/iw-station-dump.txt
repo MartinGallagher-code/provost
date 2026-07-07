@@ -1,0 +1,16 @@
+Station 40:9f:38:a1:b2:c3 (on wlan0)
+	inactive time:	1520 ms
+	rx bytes:	298475632
+	rx packets:	452817
+	tx bytes:	1048576234
+	tx packets:	389472
+	tx retries:	1832
+	tx failed:	14
+	signal:  	-52 dBm
+	signal avg:	-54 dBm
+	tx bitrate:	144.4 MBit/s MCS 15 short GI
+	rx bitrate:	120.0 MBit/s MCS 13
+	authorized:	yes
+	authenticated:	yes
+	associated:	yes
+	connected time:	48213 seconds

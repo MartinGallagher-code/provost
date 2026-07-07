@@ -1,0 +1,6 @@
+admin
+default
+kv-readonly
+pki-issuer
+root
+web-app

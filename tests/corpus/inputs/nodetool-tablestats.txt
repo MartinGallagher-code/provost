@@ -1,0 +1,20 @@
+Total number of tables: 38
+----------------
+Keyspace : ecommerce
+	Read Count: 1452301
+	Read Latency: 0.152 ms
+	Write Count: 892344
+	Write Latency: 0.045 ms
+	Pending Flushes: 0
+		Table: orders
+		SSTable count: 4
+		Space used (live): 1048576
+		Space used (total): 1048576
+		Number of partitions (estimate): 120453
+		Memtable cell count: 3421
+		Memtable data size: 262144
+		Local read count: 1452301
+		Local read latency: 0.148 ms
+		Bloom filter false positives: 12
+		Bloom filter false ratio: 0.00001
+		Compacted partition maximum bytes: 545791

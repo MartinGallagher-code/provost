@@ -1,0 +1,7 @@
+NAME                                        CREATED AT
+alertmanagerconfigs.monitoring.coreos.com   2026-05-12T09:14:22Z
+certificates.cert-manager.io                2026-04-01T11:02:10Z
+ippools.crd.projectcalico.org               2026-03-20T08:45:33Z
+prometheuses.monitoring.coreos.com          2026-05-12T09:14:23Z
+servicemonitors.monitoring.coreos.com       2026-05-12T09:14:24Z
+virtualservices.networking.istio.io         2026-06-01T14:30:05Z

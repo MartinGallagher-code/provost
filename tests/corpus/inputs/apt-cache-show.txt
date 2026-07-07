@@ -1,0 +1,17 @@
+Package: htop
+Version: 3.0.5-7build2
+Priority: optional
+Section: utils
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Installed-Size: 234 kB
+Depends: libc6 (>= 2.34), libncursesw6 (>= 6), libtinfo6 (>= 6)
+Recommends: lsof
+Suggests: strace
+Homepage: https://htop.dev
+Download-Size: 82.4 kB
+APT-Sources: http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages
+Description: interactive processes viewer
+ Htop is an ncurses-based process viewer similar to top, but it
+ allows one to scroll the list vertically and horizontally to see
+ all processes and their full command lines.

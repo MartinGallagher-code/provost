@@ -1,0 +1,7 @@
+2.4G	/var/log
+128M	/etc
+15G	/home/user
+4.2G	/opt
+890M	/usr/local
+36G	/srv/data
+512K	/tmp

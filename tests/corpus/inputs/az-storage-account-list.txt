@@ -1,0 +1,6 @@
+Name              ResourceGroup    Location    SkuName        Kind        AccessTier
+prodstorage001    prod-rg          eastus      Standard_LRS   StorageV2   Hot
+prodlogs002       prod-rg          eastus      Standard_GRS   StorageV2   Cool
+stagingstore001   staging-rg       eastus      Standard_LRS   StorageV2   Hot
+archivestore001   backup-rg        westus2     Standard_LRS   StorageV2   Archive
+diagstore001      shared-rg        centralus   Standard_LRS   StorageV2   Hot

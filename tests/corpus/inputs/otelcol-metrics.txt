@@ -1,0 +1,9 @@
+# HELP otelcol_receiver_accepted_spans Number of spans successfully pushed into the pipeline.
+# TYPE otelcol_receiver_accepted_spans counter
+otelcol_receiver_accepted_spans{receiver="otlp",transport="grpc"} 184213
+otelcol_receiver_refused_spans{receiver="otlp",transport="grpc"} 12
+otelcol_exporter_sent_spans{exporter="otlp/jaeger"} 184201
+otelcol_exporter_send_failed_spans{exporter="otlp/jaeger"} 3
+otelcol_processor_batch_batch_send_size_sum{processor="batch"} 184201
+otelcol_process_runtime_heap_alloc_bytes 78643200
+# EOF

@@ -1,0 +1,8 @@
+00:00.0 Host bridge [0600]: Intel Corporation Comet Lake Host Bridge/DRAM Registers [8086:9b54] (rev 05)
+00:02.0 VGA compatible controller [0300]: Intel Corporation CometLake-H GT2 [UHD Graphics] [8086:9bc4] (rev 05)
+00:14.0 USB controller [0c03]: Intel Corporation Comet Lake USB 3.1 xHCI Host Controller [8086:06ed]
+00:16.0 Communication controller [0780]: Intel Corporation Comet Lake HECI Controller [8086:06e0]
+00:1c.0 PCI bridge [0604]: Intel Corporation Comet Lake PCI Express Root Port [8086:06b8] (rev f0)
+00:1f.0 ISA bridge [0601]: Intel Corporation Comet Lake LPC Controller [8086:068e]
+01:00.0 Non-Volatile memory controller [0108]: Samsung Electronics NVMe SSD Controller [144d:a808]
+02:00.0 Ethernet controller [0200]: Realtek Semiconductor RTL8111/8168/8411 Gigabit Ethernet [10ec:8168] (rev 15)

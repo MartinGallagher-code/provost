@@ -1,0 +1,6 @@
+cargo-x86_64-unknown-linux-gnu (installed)
+clippy-x86_64-unknown-linux-gnu (installed)
+rust-analyzer-x86_64-unknown-linux-gnu
+rust-docs-x86_64-unknown-linux-gnu (installed)
+rust-src (installed)
+rustfmt-x86_64-unknown-linux-gnu (installed)

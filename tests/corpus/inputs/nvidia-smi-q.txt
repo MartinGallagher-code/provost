@@ -1,0 +1,31 @@
+==============NVSMI LOG==============
+
+Timestamp                                 : Mon Jul  7 09:14:22 2026
+Driver Version                            : 535.183.01
+CUDA Version                              : 12.2
+
+Attached GPUs                             : 1
+GPU 00000000:01:00.0
+    Product Name                          : NVIDIA GeForce RTX 3080
+    Product Brand                         : GeForce
+    Display Mode                          : Enabled
+    Display Active                        : Enabled
+    Persistence Mode                      : Disabled
+    Accounting Mode                       : Disabled
+    Serial Number                         : N/A
+    GPU UUID                              : GPU-1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809
+    Minor Number                          : 0
+    VBIOS Version                         : 94.02.42.00.9B
+    FB Memory Usage
+        Total                             : 10240 MiB
+        Used                              : 1024 MiB
+        Free                              : 9216 MiB
+    Temperature
+        GPU Current Temp                  : 45 C
+        GPU Shutdown Temp                 : 98 C
+    Power Readings
+        Power Draw                        : 32.11 W
+        Power Limit                       : 320.00 W
+    Clocks
+        Graphics                          : 210 MHz
+        Memory                            : 405 MHz

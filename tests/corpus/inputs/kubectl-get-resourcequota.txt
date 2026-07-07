@@ -1,0 +1,4 @@
+NAME      AGE   REQUEST                                        LIMIT
+compute   18d   requests.cpu: 4/8, requests.memory: 8Gi/16Gi   limits.cpu: 8/16, limits.memory: 16Gi/32Gi
+pods      18d   count/pods: 12/50                              count/pods: 12/50
+storage   18d   requests.storage: 40Gi/200Gi                   requests.storage: 40Gi/200Gi

@@ -1,0 +1,13 @@
+entry1.func vfs_fstatat
+entry1.count 8421
+entry2.func vfs_open
+entry2.count 4102
+entry3.func vfs_read
+entry3.count 31204
+entry4.func vfs_write
+entry4.count 18820
+entry5.func vfs_getattr
+entry5.count 6610
+entry6.func vfs_statx
+entry6.count 2201
+total_entries 6

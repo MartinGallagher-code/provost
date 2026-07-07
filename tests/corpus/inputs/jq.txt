@@ -1,0 +1,6 @@
+svc-01	web	running	2
+svc-02	api	running	4
+svc-03	db	degraded	1
+svc-04	cache	running	2
+svc-05	queue	stopped	0
+svc-06	worker	running	3

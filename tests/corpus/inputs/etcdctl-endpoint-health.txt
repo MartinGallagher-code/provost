@@ -1,0 +1,5 @@
+10.0.0.21:2379 is healthy: successfully committed proposal: took = 5.123ms
+10.0.0.22:2379 is healthy: successfully committed proposal: took = 4.871ms
+10.0.0.23:2379 is healthy: successfully committed proposal: took = 6.402ms
+10.0.0.24:2379 is healthy: successfully committed proposal: took = 5.998ms
+10.0.0.25:2379 is healthy: successfully committed proposal: took = 7.115ms

@@ -1,0 +1,10 @@
++-----------------------+----------+----------------+----------------+---------+
+| Name                  | Status   | Type           | Library        | License |
++-----------------------+----------+----------------+----------------+---------+
+| binlog                | ACTIVE   | STORAGE ENGINE | NULL           | GPL     |
+| mysql_native_password | ACTIVE   | AUTHENTICATION | NULL           | GPL     |
+| InnoDB                | ACTIVE   | STORAGE ENGINE | NULL           | GPL     |
+| CSV                   | ACTIVE   | STORAGE ENGINE | NULL           | GPL     |
+| MEMORY                | ACTIVE   | STORAGE ENGINE | NULL           | GPL     |
+| unix_socket           | ACTIVE   | AUTHENTICATION | auth_socket.so | GPL     |
++-----------------------+----------+----------------+----------------+---------+

@@ -1,0 +1,15 @@
+Statistics for policy file: /sys/fs/selinux/policy
+Policy Version & Type: v.33 (binary, mls)
+
+   Classes:            134    Permissions:        456
+   Sensitivities:        1    Categories:        1024
+   Types:             4914    Attributes:          253
+   Users:                8    Roles:                14
+   Booleans:           327    Cond. Expr.:         371
+   Allow:           108324    Neverallow:            0
+   Auditallow:         159    Dontaudit:         12256
+   Type_trans:       24505    Type_change:          78
+   Type_member:         289    Range_trans:        5417
+   Role_allow:          32    Role_trans:          426
+   Constraints:         96    Validatetrans:         0
+   Initial SIDs:        27    Fs_use:               29

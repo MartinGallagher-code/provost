@@ -1,0 +1,8 @@
+kernel.hostname = webserver01
+kernel.osrelease = 6.1.0-18-amd64
+kernel.ostype = Linux
+kernel.pid_max = 4194304
+kernel.threads-max = 63042
+kernel.randomize_va_space = 2
+kernel.panic = 0
+kernel.sched_rt_runtime_us = 950000

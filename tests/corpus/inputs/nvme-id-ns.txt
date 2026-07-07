@@ -1,0 +1,22 @@
+NVME Identify Namespace 1:
+nsze    : 0x74706db0
+ncap    : 0x74706db0
+nuse    : 0x74706db0
+nsfeat  : 0x2
+nlbaf   : 0
+flbas   : 0
+mc      : 0
+dpc     : 0
+dps     : 0
+nmic    : 0
+rescap  : 0
+fpi     : 0x80
+dlfeat  : 1
+nawun   : 0
+nawupf  : 0
+nacwu   : 0
+nvmcap  : 1000204886016
+noiob   : 0
+npwg    : 0
+npwa    : 0
+lbaf  0 : ms:0   lbads:9  rp:0 (in use)

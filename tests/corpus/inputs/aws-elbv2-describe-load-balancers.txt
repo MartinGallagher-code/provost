@@ -1,0 +1,11 @@
+-------------------------------------------------------------------------------------------------
+|                                DescribeLoadBalancers                                           |
++----------------------------+-------------+-------------------+----------+-------------------------+
+|      LoadBalancerName      |    Type     |      Scheme       |  State   |         DNSName          |
++----------------------------+-------------+-------------------+----------+-------------------------+
+|  prod-web-alb              |  application|  internet-facing  |  active  |  prod-web-alb-1234.elb.amazonaws.com |
+|  prod-internal-alb         |  application|  internal         |  active  |  prod-internal-alb-56.elb.amazonaws.com |
+|  orders-nlb                |  network    |  internal         |  active  |  orders-nlb-abcd.elb.amazonaws.com |
+|  staging-alb               |  application|  internet-facing  |  active  |  staging-alb-7788.elb.amazonaws.com |
+|  legacy-clb                |  classic    |  internet-facing  |  provisioning |  legacy-clb-9900.elb.amazonaws.com |
++----------------------------+-------------+-------------------+----------+-------------------------+

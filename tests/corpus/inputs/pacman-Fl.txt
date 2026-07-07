@@ -1,0 +1,8 @@
+linux usr/lib/modules/6.6.10-arch1-1/vmlinuz
+linux usr/lib/modules/6.6.10-arch1-1/modules.dep
+linux usr/lib/modules/6.6.10-arch1-1/kernel/
+bash usr/bin/bash
+bash usr/share/man/man1/bash.1.gz
+git usr/bin/git
+git usr/lib/git-core/git-add
+git usr/share/doc/git/RelNotes.txt

@@ -1,0 +1,6 @@
+1843 /usr/sbin/mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock
+2044 /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main
+2891 /usr/bin/redis-server 127.0.0.1:6379
+3310 /usr/share/elasticsearch/jdk/bin/java -Xms1g -Xmx1g -jar elasticsearch.jar
+9021 php-fpm: pool www
+774 /usr/bin/containerd

@@ -1,0 +1,5 @@
+NAME          REVISION             SUSPENDED   READY   MESSAGE
+flux-system   main@sha1:a1b2c3d4   False       True    stored artifact for revision 'main@sha1:a1b2c3d4'
+podinfo       master@sha1:9f8e7d   False       True    stored artifact for revision 'master@sha1:9f8e7d'
+web-config    main@sha1:1122aabb   True        False   suspended
+infra         main@sha1:ccddee00   False       True    stored artifact for revision 'main@sha1:ccddee00'

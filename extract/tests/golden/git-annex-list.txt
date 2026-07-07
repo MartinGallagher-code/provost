@@ -1,0 +1,11 @@
+entry1.flags X__
+entry1.path video/clip1.mov
+entry2.flags _X_
+entry2.path video/clip2.mov
+entry3.flags XX_
+entry3.path docs/manual.pdf
+entry4.flags __X
+entry4.path music/track.flac
+entry5.flags X_X
+entry5.path backup/archive.tar
+total_entries 5

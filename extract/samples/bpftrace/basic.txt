@@ -1,0 +1,8 @@
+Attaching 2 probes...
+
+@syscalls[read]: 48213
+@syscalls[write]: 22140
+@syscalls[openat]: 3312
+@syscalls[close]: 3298
+@syscalls[fstat]: 2104
+@syscalls[mmap]: 1877

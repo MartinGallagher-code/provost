@@ -1,0 +1,7 @@
+NAME       STATE     PID    UPTIME
+nginx      running   1203   12d
+postgres   running   1450   12d
+redis      running   1502   9d
+worker     stopped   -      -
+cron       running   890    30d
+sshd       running   712    30d

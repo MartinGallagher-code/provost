@@ -1,0 +1,10 @@
+ num     #instances         #bytes  class name
+----------------------------------------------
+   1:        184213       12048224  [C
+   2:        142118        4547776  java.lang.String
+   3:         88213        2822816  java.util.HashMap$Node
+   4:         42118        2022464  [Ljava.lang.Object;
+   5:         38821        1552840  java.lang.Class
+   6:         22140         708480  java.util.concurrent.ConcurrentHashMap$Node
+   7:         18877         604064  java.lang.reflect.Method
+Total       536500       24306664

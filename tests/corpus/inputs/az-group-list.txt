@@ -1,0 +1,7 @@
+Name           Location    Status
+prod-rg        eastus      Succeeded
+staging-rg     eastus      Succeeded
+dev-rg         westus2     Succeeded
+network-rg     eastus      Succeeded
+shared-rg      centralus   Succeeded
+backup-rg      westus2     Succeeded

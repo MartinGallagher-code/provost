@@ -1,0 +1,5 @@
+arn:aws:ecs:us-east-1:123456789012:cluster/prod-web
+arn:aws:ecs:us-east-1:123456789012:cluster/prod-workers
+arn:aws:ecs:us-east-1:123456789012:cluster/staging
+arn:aws:ecs:us-east-1:123456789012:cluster/batch-jobs
+arn:aws:ecs:us-east-1:123456789012:cluster/default

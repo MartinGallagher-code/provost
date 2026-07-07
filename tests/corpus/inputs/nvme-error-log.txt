@@ -1,0 +1,26 @@
+Error Log Entries for device:nvme0n1 entries:64
+.................
+ Entry[ 0]
+.................
+error_count     : 4521
+sqid            : 0
+cmdid           : 0x8
+status_field    : 0x4004(INVALID_FIELD: A reserved coded value or an unsupported value in a defined field)
+phase_tag       : 0
+parm_err_loc    : 0xffff
+lba             : 0
+nsid            : 0xffffffff
+vs              : 0
+trtype          : The transport type is not indicated or the error is not transport related.
+cs              : 0
+trtype_spec_info: 0
+.................
+ Entry[ 1]
+.................
+error_count     : 4520
+sqid            : 0
+cmdid           : 0x1006
+status_field    : 0x4004(INVALID_FIELD)
+lba             : 0
+nsid            : 0xffffffff
+.................

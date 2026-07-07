@@ -1,0 +1,8 @@
+ type | user     | database  | state  | addr          | port
+------+----------+-----------+--------+---------------+-------
+ C    | appuser  | app_prod  | active | 192.168.1.20  | 51234
+ C    | appuser  | app_prod  | idle   | 192.168.1.20  | 51236
+ C    | reporter | analytics | active | 192.168.1.44  | 40122
+ C    | reporter | analytics | waiting| 192.168.1.44  | 40130
+ C    | billsvc  | billing   | active | 192.168.1.60  | 33445
+ C    | appuser  | app_stage | idle   | 192.168.1.20  | 51999

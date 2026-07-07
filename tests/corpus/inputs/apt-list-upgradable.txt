@@ -1,0 +1,7 @@
+Listing...
+libssl3/jammy-security 3.0.2-0ubuntu1.15 amd64 [upgradable from: 3.0.2-0ubuntu1.12]
+openssl/jammy-security 3.0.2-0ubuntu1.15 amd64 [upgradable from: 3.0.2-0ubuntu1.12]
+curl/jammy-updates 7.81.0-1ubuntu1.16 amd64 [upgradable from: 7.81.0-1ubuntu1.15]
+libcurl4/jammy-updates 7.81.0-1ubuntu1.16 amd64 [upgradable from: 7.81.0-1ubuntu1.15]
+tzdata/jammy-updates 2024a-0ubuntu0.22.04 all [upgradable from: 2023d-0ubuntu0.22.04]
+vim-common/jammy-updates 2:8.2.3995-1ubuntu2.16 all [upgradable from: 2:8.2.3995-1ubuntu2.15]

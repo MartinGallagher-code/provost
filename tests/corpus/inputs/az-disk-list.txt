@@ -1,0 +1,6 @@
+Name             ResourceGroup    Location    Zones    DiskSizeGb    DiskState    OsType
+web-vm-1-osdisk  prod-rg          eastus      1        30            Attached     Linux
+web-vm-2-osdisk  prod-rg          eastus      2        30            Attached     Linux
+db-vm-1-osdisk   prod-rg          westus2     1        128           Attached     Linux
+db-data-disk-1   prod-rg          westus2     1        1024          Attached     Linux
+scratch-disk-1   dev-rg           westus2     1        256           Unattached   Linux

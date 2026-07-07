@@ -1,0 +1,11 @@
+System:
+      Firmware: UEFI 2.70 (American Megatrends 5.17)
+ Firmware Arch: x64
+   Secure Boot: enabled (user)
+  TPM2 Support: yes
+  Boot into FW: supported
+
+Current Boot Loader:
+      Product: systemd-boot 252.5-2
+     Features: Boot counting; Menu timeout control; TPM2 measurement
+          ESP: /dev/disk/by-partuuid/1b2c3d4e-5f60-7182-93a4-b5c6d7e8f901

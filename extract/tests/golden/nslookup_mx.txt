@@ -1,0 +1,16 @@
+entry1.domain gmail.com
+entry1.preference 5
+entry1.exchange gmail-smtp-in.l.google.com.
+entry2.domain gmail.com
+entry2.preference 10
+entry2.exchange alt1.gmail-smtp-in.l.google.com.
+entry3.domain gmail.com
+entry3.preference 20
+entry3.exchange alt2.gmail-smtp-in.l.google.com.
+entry4.domain gmail.com
+entry4.preference 30
+entry4.exchange alt3.gmail-smtp-in.l.google.com.
+entry5.domain gmail.com
+entry5.preference 40
+entry5.exchange alt4.gmail-smtp-in.l.google.com.
+total_entries 5

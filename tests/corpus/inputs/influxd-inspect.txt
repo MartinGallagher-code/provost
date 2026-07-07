@@ -1,0 +1,14 @@
+Summary:
+  Files: 8
+  Time Range: 2023-06-01T00:00:00Z - 2023-06-30T23:59:59Z
+  Duration: 719h59m59s
+
+Statistics
+  Series: 145230
+  Measurements: 42
+  Fields: 318
+  Tag Keys: 27
+  Tag Values: 12045
+  Points: 984523011
+
+Completed in 2.451s
