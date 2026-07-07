@@ -1,5 +1,23 @@
 # glean — Changelog
 
+## 2026-07-07 — flip defaults: async capture + rm --purge are now on by default
+- **Async is the default** for inject/`run`: a bare `cmd | glean` now spools and
+  captures in a detached background process, returning the prompt at once
+  (`queued (async …)`) instead of printing the resulting dataset. Use
+  `--sync`/`--wait` (or `GLEAN_ASYNC=0`) for the foreground path that prints the
+  dataset + `#N` range — this is what scripts that read the result inline should
+  use. (Implementation flip: `cmd_inject`/`cmd_run` default `${GLEAN_ASYNC:-1}`.)
+- **`glean rm` purges captures by default**: deleting a dataset now also drops the
+  `captures/<id>/` dirs that fed it (and their tags), not just the dataset file +
+  provenance rows. `--no-purge`/`--keep-captures` retains the source captures. The
+  deletion is still committed, so `glean log`/`restore` reach the pre-deletion
+  state regardless.
+- Docs/plumbing: help text, `man/glean.1`, and `completions/glean.bash` updated
+  for both flips (`--sync`, `--no-purge`/`--keep-captures`). Tests: `tests/smoke.sh`
+  pins `GLEAN_ASYNC=0` for its synchronous assertions, adds checks that the bare
+  default is async and `--sync` forces foreground, and updates the rm checks to the
+  purge-by-default behavior (49 checks, all green). Melt 8/8; extract unaffected.
+
 ## 2026-07-07 — opt-in async capture + a concurrency-lock fix it exposed
 - **Feature:** `--async` (and `GLEAN_ASYNC=1`) on inject/`run`. The input is
   spooled and the extract→classify→commit runs in a **detached background

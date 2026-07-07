@@ -8,6 +8,11 @@ set -euo pipefail
 # would otherwise shadow the bundled one and misclassify inputs. Clear every GLEAN_*
 # knob the caller's shell may carry, then set only what the test needs.
 unset GLEAN_HOME GLEAN_MIN_CONFIDENCE GLEAN_RECONCILE_OVERLAP GLEAN_QUIET GLEAN_MAX_INPUT
+# Capture is async BY DEFAULT now; the bulk of these checks assert on the
+# synchronous "→ dataset" result, so pin the foreground path for determinism
+# (exactly how a script that needs the result inline would invoke glean). The
+# dedicated async block below overrides this with GLEAN_ASYNC=1 / --async.
+export GLEAN_ASYNC=0
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GLEAN="$HERE/../glean"
@@ -71,28 +76,38 @@ check "show unsorted does not print the base64 blob" "0" \
 unsorted_triage="$(GLEAN_WORKSPACE="$UWS" "$GLEAN" triage 2>&1)"
 check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
 
-# rm: delete a dataset, prune its provenance rows, and (with --purge) drop the
-# captures that fed it — all committed, with the git history preserved
+# rm: delete a dataset, prune its provenance rows, and (by default) purge the
+# captures that fed it — all committed, with the git history preserved.
+# --no-purge keeps the captures.
 RMWS="$(mktemp -d)/.rm"
 GLEAN_WORKSPACE="$RMWS" "$GLEAN" run printf 'a=1, b=2\n' >/dev/null 2>&1        # -> kv-pairs (capture c0001)
 GLEAN_WORKSPACE="$RMWS" "$GLEAN" run printf '   total used free\nMem: 100 40 60\n' >/dev/null 2>&1  # -> free (c0002)
 rm_missing="$(GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f nope 2>&1 || true)"
 check "rm refuses a missing dataset" "no such dataset: nope" "$rm_missing"
-rm_out="$(GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f kv-pairs 2>&1)"
+# --no-purge: dataset + provenance go, but the source capture is kept
+rm_out="$(GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f --no-purge kv-pairs 2>&1)"
 check "rm reports the deletion" "deleted kv-pairs" "$rm_out"
 check "rm removes the dataset file" "0" "$(ls "$RMWS/datasets" 2>/dev/null | grep -c '^kv-pairs.tsv$')"
 check "rm prunes the dataset's provenance rows" "0" \
     "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'kv-pairs')"
 check "rm keeps other datasets' provenance rows" "1" \
     "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'free')"
-check "rm without --purge keeps the source capture" "true" \
+check "rm --no-purge keeps the source capture" "true" \
     "$([[ -d "$RMWS/captures/c0001" ]] && echo true)"
-# --purge also drops the capture dir that fed the removed dataset
-GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f --purge free >/dev/null 2>&1
-check "rm --purge drops the source capture dir" "true" \
+# default (purge on): also drops the capture dir that fed the removed dataset
+GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f free >/dev/null 2>&1
+check "rm purges the source capture dir by default" "true" \
     "$([[ ! -d "$RMWS/captures/c0002" ]] && echo true)"
 check "rm commits the deletion (history preserved)" "rm: deleted" \
     "$(git -C "$RMWS" log --oneline 2>&1 | head -1)"
+
+# async is the DEFAULT: a bare inject (no --async, GLEAN_ASYNC unset) backgrounds.
+DEFWS="$(mktemp -d)/.defasync"
+def_out="$(printf 'x=1\n' | env -u GLEAN_ASYNC GLEAN_WORKSPACE="$DEFWS" "$GLEAN" 2>&1)"
+check "async is the default for a bare inject" "queued (async" "$def_out"
+# --sync forces the foreground path (prints the resulting dataset inline)
+sync_out="$(printf 'p=1, q=2\n' | env -u GLEAN_ASYNC GLEAN_WORKSPACE="$DEFWS" "$GLEAN" --sync 2>&1)"
+check "--sync forces the foreground path" "dataset" "$sync_out"
 
 # --async: inject returns immediately and the capture lands in the background.
 # Also a concurrency guard — several detached ingests must not collide on row #s

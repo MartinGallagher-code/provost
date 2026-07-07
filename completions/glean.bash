@@ -21,7 +21,7 @@ _glean_complete () {
         show|stats|rm|delete|drop)
             # complete dataset names from the active store (rm also offers flags)
             case "$cur" in
-                -*) COMPREPLY=( $(compgen -W "-f --yes --purge --help" -- "$cur") ); return ;;
+                -*) COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ); return ;;
             esac
             local ds
             ds="$(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
