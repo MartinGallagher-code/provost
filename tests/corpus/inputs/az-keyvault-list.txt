@@ -1,0 +1,30 @@
+[
+  {
+    "id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/prod-rg/providers/Microsoft.KeyVault/vaults/prod-kv",
+    "name": "prod-kv",
+    "location": "eastus",
+    "resourceGroup": "prod-rg",
+    "type": "Microsoft.KeyVault/vaults"
+  },
+  {
+    "id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/staging-rg/providers/Microsoft.KeyVault/vaults/staging-kv",
+    "name": "staging-kv",
+    "location": "eastus",
+    "resourceGroup": "staging-rg",
+    "type": "Microsoft.KeyVault/vaults"
+  },
+  {
+    "id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/dev-rg/providers/Microsoft.KeyVault/vaults/dev-kv",
+    "name": "dev-kv",
+    "location": "westus2",
+    "resourceGroup": "dev-rg",
+    "type": "Microsoft.KeyVault/vaults"
+  },
+  {
+    "id": "/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/shared-rg/providers/Microsoft.KeyVault/vaults/shared-kv",
+    "name": "shared-kv",
+    "location": "centralus",
+    "resourceGroup": "shared-rg",
+    "type": "Microsoft.KeyVault/vaults"
+  }
+]

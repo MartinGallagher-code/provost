@@ -1,0 +1,7 @@
+CPU1 Temp        | 42 degrees C      | ok
+CPU2 Temp        | 40 degrees C      | ok
+System Temp      | 35 degrees C      | ok
+FAN1             | 4800 RPM          | ok
+FAN2             | 4680 RPM          | ok
+Vcore            | 1.10 Volts        | ok
+PS1 Status       | 0x01              | ok

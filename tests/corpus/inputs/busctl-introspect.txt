@@ -1,0 +1,7 @@
+NAME                                TYPE      SIGNATURE RESULT/VALUE  FLAGS
+org.freedesktop.systemd1.Manager    interface -         -             -
+.GetUnit                            method    s         o             -
+.ListUnits                          method    -         a(ssssssouso) -
+.Reload                             method    -         -             -
+.Version                            property  s         "252.5-2"     emits-change
+.Architecture                       property  s         "x86-64"      const

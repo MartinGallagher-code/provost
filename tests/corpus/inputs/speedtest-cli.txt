@@ -1,0 +1,9 @@
+   Speedtest by Ookla
+
+         ISP: Acme Broadband
+      Server: FastNet - London (id: 12345)
+Idle Latency: 18.44 ms
+    Download: 214.53 Mbps
+      Upload: 41.28 Mbps
+ Packet Loss: 0.0%
+  Result URL: https://www.speedtest.net/result/c/9f3a2b1c

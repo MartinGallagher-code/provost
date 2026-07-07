@@ -1,0 +1,10 @@
+                     List of relations
+ Schema |         Name          | Type  |  Owner  |   Table
+--------+-----------------------+-------+---------+-----------
+ public | customers_pkey        | index | appuser | customers
+ public | idx_orders_created_at | index | appuser | orders
+ public | idx_orders_customer   | index | appuser | orders
+ public | orders_pkey           | index | appuser | orders
+ public | products_pkey         | index | appuser | products
+ public | users_email_key       | index | appuser | users
+(6 rows)

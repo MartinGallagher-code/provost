@@ -1,0 +1,8 @@
+MAIN.uptime                  604800         1.00 Child process uptime
+MAIN.sess_conn              1049320        17.35 Sessions accepted
+MAIN.client_req             8765432       144.99 Good client requests received
+MAIN.cache_hit              6543210       108.21 Cache hits
+MAIN.cache_miss             1234567        20.41 Cache misses
+MAIN.backend_conn            456789         7.55 Backend conn. success
+MAIN.n_object                 34567          .   N struct object
+MAIN.threads                    200          .   Total number of threads

@@ -1,0 +1,7 @@
+-rw-r--r-- root/root       213 2024-02-11 14:02 ./usr/share/doc/hello/README
+drwxr-xr-x root/root         0 2024-02-11 14:02 ./usr/bin/dir
+-rwxr-xr-x root/root     27112 2024-02-11 14:02 ./usr/bin/hello
+-rw-r--r-- root/root      1210 2024-02-11 14:02 ./usr/share/man/man1/hello.1.gz
+-rw-r--r-- root/root       582 2024-02-11 14:02 ./usr/share/doc/hello/copyright
+drwxr-xr-x root/root         0 2024-02-11 14:02 ./usr/share/info/dir
+-rw-r--r-- root/root      3540 2024-02-11 14:02 ./usr/share/info/hello.info.gz

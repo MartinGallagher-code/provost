@@ -1,0 +1,12 @@
+--------------------------------------------------------------------------------------------------
+|                                        ListRoles                                               |
++----------------------------+------------------------+----------------------------------+--------+
+|          RoleName          |         RoleId         |               Arn                | Created |
++----------------------------+------------------------+----------------------------------+--------+
+|  eks-node-role             |  AROA1111EXAMPLE1      |  arn:aws:iam::123456789012:role/eks-node-role     |  2024-02-10 |
+|  lambda-orders-exec        |  AROA2222EXAMPLE2      |  arn:aws:iam::123456789012:role/lambda-orders-exec |  2024-05-21 |
+|  ec2-ssm-role              |  AROA3333EXAMPLE3      |  arn:aws:iam::123456789012:role/ec2-ssm-role       |  2023-11-30 |
+|  cross-account-audit       |  AROA4444EXAMPLE4      |  arn:aws:iam::123456789012:role/cross-account-audit|  2025-01-15 |
+|  cfn-deploy-role           |  AROA5555EXAMPLE5      |  arn:aws:iam::123456789012:role/cfn-deploy-role    |  2024-08-03 |
+|  AWSServiceRoleForRDS      |  AROA6666EXAMPLE6      |  arn:aws:iam::123456789012:role/AWSServiceRoleForRDS |  2023-09-01 |
++----------------------------+------------------------+----------------------------------+--------+

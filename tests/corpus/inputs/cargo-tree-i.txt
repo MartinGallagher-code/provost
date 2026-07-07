@@ -1,0 +1,8 @@
+libc v0.2.151
+├── getrandom v0.2.11
+│   └── rand_core v0.6.4
+│       └── rand v0.8.5
+│           └── myapp v0.1.0
+└── num_cpus v1.16.0
+    └── tokio v1.35.1
+        └── myapp v0.1.0

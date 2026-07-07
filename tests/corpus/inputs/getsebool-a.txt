@@ -1,0 +1,8 @@
+antivirus_can_scan_system --> off
+auditadm_exec_content --> on
+cluster_can_network_connect --> off
+daemons_dump_core --> on
+git_cgi_enable_homedirs --> off
+httpd_can_network_connect_db --> on
+nfs_export_all_ro --> on
+xserver_object_manager --> off

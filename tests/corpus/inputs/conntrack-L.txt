@@ -1,0 +1,5 @@
+tcp      6 431999 ESTABLISHED src=192.168.1.42 dst=93.184.216.34 sport=52134 dport=443 src=93.184.216.34 dst=192.168.1.42 sport=443 dport=52134 [ASSURED] mark=0 use=1
+tcp      6 120 TIME_WAIT src=192.168.1.42 dst=140.82.112.3 sport=41022 dport=443 src=140.82.112.3 dst=192.168.1.42 sport=443 dport=41022 [ASSURED] mark=0 use=1
+udp      17 29 src=192.168.1.42 dst=192.168.1.1 sport=51820 dport=53 src=192.168.1.1 dst=192.168.1.42 sport=53 dport=51820 mark=0 use=1
+tcp      6 300 ESTABLISHED src=10.0.0.5 dst=10.0.0.1 sport=48210 dport=5432 src=10.0.0.1 dst=10.0.0.5 sport=5432 dport=48210 [ASSURED] mark=0 use=1
+icmp     1 20 src=192.168.1.42 dst=8.8.8.8 type=8 code=0 id=4210 src=8.8.8.8 dst=192.168.1.42 type=0 code=0 id=4210 mark=0 use=1

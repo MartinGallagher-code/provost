@@ -1,0 +1,5 @@
+Name   Project  Compat   Latest   Kind    Platform
+serde  1.0.190  1.0.215  1.0.215  Normal  ---
+tokio  1.33.0   1.35.1   1.42.0   Normal  ---
+clap   4.4.6    4.4.18   4.5.23   Normal  ---
+regex  1.10.2   1.10.2   1.11.1   Normal  ---

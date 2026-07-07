@@ -1,0 +1,6 @@
+NAME            READY   AGE
+redis-master    3/3     14d
+mysql           2/2     20d
+kafka           3/3     9d
+zookeeper       3/3     9d
+elasticsearch   5/5     16d

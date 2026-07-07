@@ -1,0 +1,5 @@
+24	4	src/login.py
+12	0	templates/login.html
+31	0	tests/test_login.py
+6	6	config/loader.py
+0	18	old/legacy.py

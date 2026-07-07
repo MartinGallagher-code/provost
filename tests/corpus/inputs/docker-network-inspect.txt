@@ -1,0 +1,31 @@
+[
+    {
+        "Name": "app_backend",
+        "Id": "9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d",
+        "Created": "2026-07-04T09:14:22.104839217Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Config": [
+                {
+                    "Subnet": "172.19.0.0/16",
+                    "Gateway": "172.19.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": true,
+        "Ingress": false,
+        "ConfigOnly": false,
+        "Options": {
+            "com.docker.network.bridge.default_bridge": "false",
+            "com.docker.network.driver.mtu": "1500"
+        },
+        "Labels": {
+            "com.docker.compose.network": "backend",
+            "com.docker.compose.project": "acme"
+        }
+    }
+]

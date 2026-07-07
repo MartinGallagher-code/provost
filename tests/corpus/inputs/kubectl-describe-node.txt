@@ -1,0 +1,29 @@
+Name:               worker-1
+Roles:              <none>
+Labels:             beta.kubernetes.io/arch=amd64
+                    beta.kubernetes.io/os=linux
+                    kubernetes.io/hostname=worker-1
+Annotations:        node.alpha.kubernetes.io/ttl: 0
+                    volumes.kubernetes.io/controller-managed-attach-detach: true
+CreationTimestamp:  Mon, 20 Jan 2026 08:14:00 +0000
+Taints:             <none>
+Unschedulable:      false
+Addresses:
+  InternalIP:  10.0.1.21
+  Hostname:    worker-1
+Capacity:
+  cpu:                4
+  ephemeral-storage:  103880028Ki
+  memory:             16388476Ki
+  pods:               110
+Allocatable:
+  cpu:                3920m
+  ephemeral-storage:  95709640523
+  memory:             15761788Ki
+  pods:               110
+System Info:
+  Kernel Version:             6.8.0-45-generic
+  OS Image:                   Ubuntu 24.04.1 LTS
+  Container Runtime Version:  containerd://1.7.18
+  Kubelet Version:            v1.29.4
+PodCIDR:                      10.244.1.0/24

@@ -1,0 +1,7 @@
+{
+  "allow": true,
+  "deny": false,
+  "namespace": "production",
+  "max_replicas": 10,
+  "required_labels": ["app", "team", "env"]
+}

@@ -1,0 +1,8 @@
+  LV                    VG      Attr       LSize   Pool  Origin Data%  Meta%  Cpy%Sync Devices
+  [lvol0_pmspare]       vg_data ewi-------   4.00m                                       /dev/sdb1(0)
+  pool0                 vg_data twi-aotz--  60.00g                52.14  18.03            pool0_tdata(0)
+  [pool0_tdata]         vg_data Twi-ao----  60.00g                                       /dev/sdb1(1)
+  [pool0_tmeta]         vg_data ewi-ao----  64.00m                                       /dev/sdc1(0)
+  vol_backup            vg_data Vwi-aotz--  40.00g  pool0         78.21
+  root                  vg_sys  -wi-ao----  50.00g                                       /dev/sda2(0)
+  swap                  vg_sys  -wi-ao----   8.00g                                       /dev/sda2(12800)

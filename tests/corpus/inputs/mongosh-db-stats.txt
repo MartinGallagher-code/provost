@@ -1,0 +1,16 @@
+{
+  db: 'ecommerce',
+  collections: 14,
+  views: 2,
+  objects: 1452301,
+  avgObjSize: 512.4,
+  dataSize: 744258632,
+  storageSize: 402653184,
+  indexes: 38,
+  indexSize: 96468992,
+  totalSize: 499122176,
+  scaleFactor: 1,
+  fsUsedSize: 48318382080,
+  fsTotalSize: 214748364800,
+  ok: 1
+}

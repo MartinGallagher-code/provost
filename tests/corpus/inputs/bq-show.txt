@@ -1,0 +1,10 @@
+{
+  "creationTime": "1717000000000",
+  "id": "my-project-prod:analytics.daily_events",
+  "kind": "bigquery#table",
+  "lastModifiedTime": "1719500000000",
+  "location": "US",
+  "numBytes": "10485760",
+  "numRows": "204800",
+  "type": "TABLE"
+}

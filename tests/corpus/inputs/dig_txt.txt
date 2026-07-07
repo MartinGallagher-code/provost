@@ -1,0 +1,9 @@
+; <<>> DiG 9.18.24 <<>> TXT example.com
+;; global options: +cmd
+;; ANSWER SECTION:
+example.com.	3600	IN	TXT	"v=spf1 include:_spf.google.com ~all"
+example.com.	3600	IN	TXT	"google-site-verification=abcdefg123456"
+example.com.	3600	IN	TXT	"MS=ms12345678"
+example.com.	3600	IN	TXT	"apple-domain-verification=xyz987"
+
+;; Query time: 18 msec

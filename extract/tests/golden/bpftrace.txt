@@ -1,0 +1,13 @@
+entry1.key read
+entry1.count 48213
+entry2.key write
+entry2.count 22140
+entry3.key openat
+entry3.count 3312
+entry4.key close
+entry4.count 3298
+entry5.key fstat
+entry5.count 2104
+entry6.key mmap
+entry6.count 1877
+total_entries 6

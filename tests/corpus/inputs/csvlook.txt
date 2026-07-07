@@ -1,0 +1,7 @@
+| id | name        | dept        | salary |
+| -- | ----------- | ----------- | ------ |
+|  1 | Alice Brown | Engineering |  95000 |
+|  2 | Bob Nguyen  | Sales       |  72000 |
+|  3 | Carol Diaz  | Marketing   |  68000 |
+|  4 | Dan Fischer | Engineering |  88000 |
+|  5 | Eve Turner  | Support     |  54000 |

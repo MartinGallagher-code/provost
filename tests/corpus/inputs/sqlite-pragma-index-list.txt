@@ -1,0 +1,7 @@
+seq  name                unique  origin  partial
+---  ------------------  ------  ------  -------
+0    uq_order_ref        1       u       0
+1    idx_status          0       c       0
+2    idx_customer        0       c       0
+3    idx_total           0       c       1
+4    sqlite_autoindex_1  1       pk      0

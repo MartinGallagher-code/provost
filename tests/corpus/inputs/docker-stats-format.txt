@@ -1,0 +1,6 @@
+NAME       CPU %     MEM USAGE / LIMIT     MEM %     PIDS
+web        0.14%     28.4MiB / 7.77GiB     0.36%     5
+db         1.87%     212.6MiB / 7.77GiB    2.67%     9
+cache      0.09%     6.812MiB / 7.77GiB    0.09%     4
+api        3.42%     384.1MiB / 7.77GiB    4.83%     23
+grafana    0.51%     96.33MiB / 7.77GiB    1.21%     12

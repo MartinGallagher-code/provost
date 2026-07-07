@@ -1,0 +1,7 @@
+UID          PID    PPID     LWP  C NLWP STIME TTY          TIME CMD
+mysql       1843       1    1843  0   38 Jun28 ?        00:00:41 /usr/sbin/mysqld
+mysql       1843       1    1902  3   38 Jun28 ?        01:22:14 /usr/sbin/mysqld
+mysql       1843       1    1903  2   38 Jun28 ?        00:58:03 /usr/sbin/mysqld
+root        1122       1    1122  0    1 Jun28 ?        00:01:28 /lib/systemd/systemd-journald
+elastic     3310       1    3310  0  142 Jun29 ?        00:00:05 /usr/share/elasticsearch/jdk/bin/java
+elastic     3310       1    3388  1  142 Jun29 ?        00:14:52 /usr/share/elasticsearch/jdk/bin/java

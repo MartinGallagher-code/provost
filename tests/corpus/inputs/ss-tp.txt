@@ -1,0 +1,5 @@
+State      Recv-Q Send-Q Local Address:Port   Peer Address:Port   Process
+ESTAB      0      0      192.168.1.42:52134  93.184.216.34:443   users:(("firefox",pid=3421,fd=88))
+ESTAB      0      64     192.168.1.42:22     192.168.1.10:51422  users:(("sshd",pid=1820,fd=4))
+ESTAB      0      0      127.0.0.1:5432      127.0.0.1:48210     users:(("postgres",pid=990,fd=9))
+CLOSE-WAIT 1      0      192.168.1.42:41022  140.82.112.3:443    users:(("curl",pid=4102,fd=5))

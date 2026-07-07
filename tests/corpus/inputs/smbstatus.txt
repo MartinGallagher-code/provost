@@ -1,0 +1,8 @@
+Samba version 4.17.12-Debian
+
+PID     Username     Group        Machine        Protocol  Encryption  Signing
+-----------------------------------------------------------------------------------
+12345   alice        users        192.168.1.50   SMB3_11   -           AES-128-GMAC
+12346   bob          users        192.168.1.51   SMB3_11   AES-128     AES-128-GMAC
+12347   carol        staff        192.168.1.52   SMB3_11   -           partial
+12348   dave         staff        192.168.1.53   SMB2_10   -           -

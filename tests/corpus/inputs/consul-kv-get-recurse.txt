@@ -1,0 +1,6 @@
+service/api/log_level:info
+service/api/max_connections:200
+service/api/timeout:30s
+service/db/host:db.internal.example.com
+service/db/port:5432
+service/feature/beta_enabled:true

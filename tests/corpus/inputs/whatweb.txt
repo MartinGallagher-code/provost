@@ -1,0 +1,8 @@
+WhatWeb report for https://example.com
+Status     : 200 OK
+Title      : Example Domain
+IP         : 93.184.216.34
+Country    : UNITED STATES, US
+Server     : nginx/1.18.0
+X-Powered-By: PHP/8.1.2
+Content-Type: text/html; charset=UTF-8

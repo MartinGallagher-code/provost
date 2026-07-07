@@ -1,0 +1,7 @@
+ID | Name             | Type        | Reading    | Units | Event
+1  | CPU1 Temp        | Temperature | 42.00      | C     | 'OK'
+2  | CPU2 Temp        | Temperature | 40.00      | C     | 'OK'
+3  | System Temp      | Temperature | 35.00      | C     | 'OK'
+4  | FAN1             | Fan         | 4800.00    | RPM   | 'OK'
+5  | FAN2             | Fan         | 4680.00    | RPM   | 'OK'
+6  | Vcore            | Voltage     | 1.10       | V     | 'OK'

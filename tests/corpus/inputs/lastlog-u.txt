@@ -1,0 +1,7 @@
+Username         Port     From             Latest
+alice            pts/0    10.0.0.12        Sun Jul  5 21:03:47 +0000 2026
+bob              pts/1    10.0.0.34        Fri Jul  3 16:41:09 +0000 2026
+carol            pts/2    192.168.1.9      Sat Jul  4 14:22:17 +0000 2026
+deploy           pts/3    203.0.113.5      Mon Jul  6 08:14:22 +0000 2026
+postgres         tty1     0.0.0.0          Thu Jul  2 02:00:11 +0000 2026
+www-data         pts/4    198.51.100.22    Tue Jun 30 11:11:11 +0000 2026

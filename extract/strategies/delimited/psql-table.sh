@@ -51,9 +51,18 @@ _psql_trim () {
     _PSQL_TRIM="$v"
 }
 
-# Split a "a | b | c" row on '|' into the global array _PSQL_CELLS (trimmed).
+# Split a box-table row into the global array _PSQL_CELLS (trimmed). Strips one
+# outer '|' border on each side first, so `| a | b |` (mysql / aws --output table)
+# and `a | b` (psql) both yield the same inner cells.
 _psql_split () {
     local row="$1"
+    _psql_trim "$row"; row="$_PSQL_TRIM"
+    # Strip outer '|' borders only for a FULL box row (both ends piped, e.g.
+    # `| a | b |` from mysql / aws --output table). A psql row has no leading '|',
+    # so its trailing '|' denotes a genuine empty last column and must be kept.
+    local _lead=0
+    [[ "$row" == "|"* ]] && { row="${row#|}"; _lead=1; }
+    [[ $_lead -eq 1 && "$row" == *"|" ]] && row="${row%|}"
     _PSQL_CELLS=()
     local rest="$row" cell
     while [[ "$rest" == *"|"* ]]; do
@@ -68,55 +77,53 @@ _psql_split () {
 
 strategy_extract () {
     local text="$1"
-    local result="" entry=0
+    local result="" entry=0 _line
 
-    # Locate the separator line and grab the header directly above it.
-    local _prev="" _line header_line="" hit=0
+    # Collect every '|'-bearing, non-separator row's cell count. A box table's
+    # data/header rows share a modal cell count; a single-cell title banner
+    # (`aws --output table`'s "DescribeInstances") and the `(N rows)` footer /
+    # blanks / rules fall outside it and are dropped.
+    local counts=() _n
     while IFS= read -r _line; do
-        if _psql_is_separator "$_line" && [[ "$_prev" == *"|"* ]]; then
-            header_line="$_prev"
-            hit=1
-            break
-        fi
-        _prev="$_line"
+        [[ "$_line" == *"|"* ]] || continue
+        _psql_is_separator "$_line" && continue
+        _psql_split "$_line"
+        counts+=("${#_PSQL_CELLS[@]}")
     done <<< "$text"
-    [[ $hit -eq 1 ]] || return
+    [[ ${#counts[@]} -lt 2 ]] && return
 
-    # Column names from the header row.
-    _psql_split "$header_line"
-    local col_names=() _c name
-    for _c in "${_PSQL_CELLS[@]}"; do
-        name="$_c"
-        name="${name//./}"    # drop dots -- they break the tidy melt group key
-        name="${name// /_}"   # spaces -> underscore
-        col_names+=("$name")
+    local modal=0 best=0 a b k
+    for a in "${counts[@]}"; do
+        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k + 1)); done
+        [[ $k -gt $best ]] && { best=$k; modal=$a; }
     done
-    local num_cols=${#col_names[@]}
-    [[ $num_cols -lt 1 ]] && return
+    [[ $modal -lt 1 ]] && return
 
-    # Data rows live after the separator. Skip until we pass the separator, then
-    # consume rows containing '|'. Skip blanks, the "(N rows)" footer (no '|'),
-    # and psql wrap/continuation lines (empty first cell).
-    local past=0
-    _prev=""
+    # First modal-width row is the header; the rest (modal width, non-continuation)
+    # are data. A psql wrapped-cell continuation line has an empty first cell.
+    local col_names=() num_cols=0 have_header=0 _c name i val
     while IFS= read -r _line; do
-        if [[ $past -eq 0 ]]; then
-            _psql_is_separator "$_line" && [[ "$_prev" == *"|"* ]] && past=1
-            _prev="$_line"
+        [[ "$_line" == *"|"* ]] || continue
+        _psql_is_separator "$_line" && continue
+        _psql_split "$_line"
+        [[ ${#_PSQL_CELLS[@]} -ne $modal ]] && continue    # skip title/odd rows
+
+        if [[ $have_header -eq 0 ]]; then
+            for _c in "${_PSQL_CELLS[@]}"; do
+                name="$_c"; name="${name//./}"; name="${name// /_}"
+                [[ -z "$name" ]] && name="c$((${#col_names[@]} + 1))"
+                col_names+=("$name")
+            done
+            num_cols=${#col_names[@]}
+            have_header=1
             continue
         fi
-        [[ "$_line" == *"|"* ]] || continue   # skips footer + blank lines
 
-        _psql_split "$_line"
-        # Continuation line for a wrapped cell: leading column is empty.
-        [[ -z "${_PSQL_CELLS[0]}" ]] && continue
-
+        [[ -z "${_PSQL_CELLS[0]}" ]] && continue           # psql continuation row
         entry=$((entry + 1))
-        local i val
-        for ((i=0; i<num_cols; i++)); do
+        for ((i = 0; i < num_cols; i++)); do
             val="${_PSQL_CELLS[$i]}"
-            _psql_trim "$val"; val="$_PSQL_TRIM"
-            val="${val// /_}"
+            _psql_trim "$val"; val="$_PSQL_TRIM"; val="${val// /_}"
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done

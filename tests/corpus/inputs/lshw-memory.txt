@@ -1,0 +1,14 @@
+  *-firmware
+       description: BIOS
+       vendor: Dell Inc.
+       physical id: 0
+       version: 1.11.0
+       date: 06/23/2021
+       size: 64KiB
+       capacity: 32MiB
+       capabilities: pci upgrade shadowing cdboot bootselect acpi uefi
+  *-memory
+       description: System Memory
+       physical id: 3d
+       slot: System board or motherboard
+       size: 16GiB

@@ -1,0 +1,11 @@
+------------------------------------------------------------------------------------------------
+|                                 DescribeDBInstances                                           |
++---------------------------+------------+-----------------+-----------+---------------+---------+
+|   DBInstanceIdentifier    |   Engine   |      Class       |  Status   |  StorageGB    | MultiAZ |
++---------------------------+------------+-----------------+-----------+---------------+---------+
+|  prod-orders              |  postgres  |  db.r6g.xlarge  |  available|  500          |  True   |
+|  prod-users               |  mysql     |  db.m6g.large   |  available|  200          |  True   |
+|  staging-orders           |  postgres  |  db.t3.medium   |  available|  100          |  False  |
+|  analytics-warehouse      |  aurora    |  db.r6g.2xlarge |  available|  1000         |  True   |
+|  legacy-billing           |  mariadb   |  db.t3.small    |  stopped  |  50           |  False  |
++---------------------------+------------+-----------------+-----------+---------------+---------+

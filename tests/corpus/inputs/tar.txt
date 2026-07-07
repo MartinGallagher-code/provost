@@ -1,0 +1,6 @@
+-rw-r--r-- martin/martin  1048 2026-06-30 14:22 project/README.md
+-rw-r--r-- martin/martin 20480 2026-06-30 14:23 project/src/main.c
+-rwxr-xr-x martin/martin  4096 2026-06-30 14:25 project/build.sh
+drwxr-xr-x martin/martin     0 2026-06-30 14:20 project/docs/
+-rw-r--r-- martin/martin  8192 2026-06-29 09:11 project/docs/guide.md
+-rw-r--r-- martin/martin  1536 2026-06-28 17:45 project/.gitignore

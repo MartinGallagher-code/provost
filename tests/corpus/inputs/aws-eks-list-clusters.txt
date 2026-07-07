@@ -1,0 +1,4 @@
+prod-us-east-1
+staging-us-east-1
+data-platform
+sandbox

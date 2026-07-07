@@ -1,0 +1,6 @@
+NAME         SUBNET_MODE  BGP_ROUTING_MODE  IPV4_RANGE  GATEWAY_IPV4
+default      AUTO         REGIONAL
+prod-vpc     CUSTOM       GLOBAL
+staging-vpc  CUSTOM       REGIONAL
+data-vpc     CUSTOM       GLOBAL
+mgmt-vpc     AUTO         REGIONAL

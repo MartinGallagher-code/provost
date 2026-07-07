@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "instance": "10.0.1.12:9100",
+  "job": "node",
+  "scrapePool": "node",
+  "scrapeUrl": "http://10.0.1.12:9100/metrics",
+  "health": "up",
+  "lastScrape": "2026-07-07T09:14:22.113Z",
+  "lastScrapeDuration": 0.012482
+}

@@ -1,0 +1,12 @@
+Squid Object Cache: Version 5.7
+Start Time:     Mon, 07 Jul 2026 06:00:00 GMT
+Current Time:   Mon, 07 Jul 2026 10:00:00 GMT
+Number of clients accessing cache:      42
+Number of HTTP requests received:       123456
+Average HTTP requests per minute since start:   514.4
+Hits as % of all requests:      65.3%
+Request Memory Hit Ratios:      12.1%
+Storage Swap size:      2048000 KB
+Storage Mem size:       262144 KB
+Mean Object Size:       18.4 KB
+CPU Usage:      3.42%

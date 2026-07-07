@@ -1,0 +1,6 @@
+branches/
+tags/
+trunk/
+README.md
+LICENSE
+Makefile

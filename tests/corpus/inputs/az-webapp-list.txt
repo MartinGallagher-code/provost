@@ -1,0 +1,6 @@
+Name             Location      State    DefaultHostName                       ResourceGroup
+prod-api-app     East US       Running  prod-api-app.azurewebsites.net        prod-rg
+prod-web-app     East US       Running  prod-web-app.azurewebsites.net        prod-rg
+staging-api-app  East US       Running  staging-api-app.azurewebsites.net     staging-rg
+dev-web-app      West US 2     Stopped  dev-web-app.azurewebsites.net         dev-rg
+admin-portal     Central US    Running  admin-portal.azurewebsites.net        shared-rg

@@ -1,0 +1,5 @@
+; fully validated
+example.com.	3600	IN	A	93.184.216.34
+example.com.	3600	IN	A	93.184.216.35
+example.com.	3600	IN	AAAA	2606:2800:220:1:248:1893:25c8:1946
+example.com.	3600	IN	RRSIG	A 13 2 3600 20240201000000 20240101000000 12345 example.com. Zm9vYmFyMTIz==

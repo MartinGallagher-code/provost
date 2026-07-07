@@ -1,0 +1,10 @@
+name         : sha256
+driver       : sha256-generic
+module       : sha256_generic
+priority     : 100
+refcnt       : 3
+selftest     : passed
+internal     : no
+type         : shash
+blocksize    : 64
+digestsize   : 32

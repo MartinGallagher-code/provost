@@ -1,0 +1,7 @@
+nginx.service
+● ├─system.slice
+● ├─systemd-journald.socket
+● ├─sysinit.target
+● ├─network.target
+● ├─basic.target
+● └─network-online.target

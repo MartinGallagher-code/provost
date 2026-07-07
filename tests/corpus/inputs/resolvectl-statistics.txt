@@ -1,0 +1,16 @@
+DNSSEC supported by current servers: yes
+
+Transactions
+              Current Transactions: 0
+                Total Transactions: 148213
+
+Cache
+                Current Cache Size: 42
+                        Cache Hits: 98211
+                      Cache Misses: 12043
+
+DNSSEC Verdicts
+                            Secure: 512
+                          Insecure: 40233
+                            Bogus: 0
+                         Indeterminate: 0

@@ -1,0 +1,13 @@
+entry1.worktree /home/user/glean
+entry1.head a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
+entry1.branch main
+entry2.worktree /home/user/glean-feature
+entry2.head e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3
+entry2.branch feature/login
+entry3.worktree /home/user/glean-hotfix
+entry3.head 0f9e8d7c6b5a4938271605f4e3d2c1b0a9f8e7d6
+entry3.branch hotfix/urgent
+entry4.worktree /home/user/glean-release
+entry4.head 7c6b5a4d3e2f1908a7b6c5d4e3f2a1b0c9d8e7f6
+entry4.branch detached
+total_entries 4

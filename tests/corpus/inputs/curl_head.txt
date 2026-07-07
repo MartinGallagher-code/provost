@@ -1,0 +1,8 @@
+HTTP/2 200
+date: Mon, 15 Jan 2024 10:00:00 GMT
+content-type: text/html; charset=UTF-8
+content-length: 1256
+server: nginx
+last-modified: Thu, 17 Oct 2023 07:18:26 GMT
+etag: "651e1b02-4e8"
+cache-control: max-age=3600

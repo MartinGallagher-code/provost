@@ -1,0 +1,7 @@
+        NS TYPE   NPROCS   PID USER     COMMAND
+4026531835 cgroup    214     1 root     /sbin/init
+4026531836 pid       214     1 root     /sbin/init
+4026531837 user      214     1 root     /sbin/init
+4026532189 mnt         1  1843 mysql    /usr/sbin/mysqld
+4026532201 net        12   812 root     /usr/bin/dockerd
+4026532333 uts         3  2044 postgres postgres

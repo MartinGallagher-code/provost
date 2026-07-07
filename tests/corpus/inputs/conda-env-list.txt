@@ -1,0 +1,7 @@
+# conda environments:
+#
+base                  *  /opt/conda
+ml                       /opt/conda/envs/ml
+webdev                   /opt/conda/envs/webdev
+data-eng                 /opt/conda/envs/data-eng
+py38                     /opt/conda/envs/py38

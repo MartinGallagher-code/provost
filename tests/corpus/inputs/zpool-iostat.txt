@@ -1,0 +1,7 @@
+              capacity     operations     bandwidth
+pool        alloc   free   read  write   read  write
+----------  -----  -----  -----  -----  -----  -----
+tank         4.20T  3.30T     45     12   5.4M   1.2M
+data          820G  1.20T     10      3   1.1M   256K
+backup       6.10T   900G      2      8   128K   2.4M
+rpool        45.2G  60.8G      1      0    64K    12K

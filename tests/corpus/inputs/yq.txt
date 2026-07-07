@@ -1,0 +1,6 @@
+name	replicas	image	port
+frontend	3	nginx:1.25	80
+backend	2	api:2.4	8080
+cache	1	redis:7	6379
+db	1	postgres:16	5432
+worker	4	worker:1.2	0

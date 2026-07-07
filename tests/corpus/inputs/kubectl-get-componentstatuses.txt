@@ -1,0 +1,5 @@
+NAME                 STATUS    MESSAGE                          ERROR
+scheduler            Healthy   ok
+controller-manager   Healthy   ok
+etcd-0               Healthy   {"health":"true","reason":""}
+etcd-1               Healthy   {"health":"true","reason":""}

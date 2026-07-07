@@ -1,0 +1,8 @@
+admin.api
+admin.api.load
+caddy.adapters.caddyfile
+caddy.logging.encoders.console
+http.handlers.reverse_proxy
+http.handlers.file_server
+tls.issuance.acme
+dns.providers.cloudflare

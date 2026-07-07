@@ -1,0 +1,7 @@
+prefix ::1/128 label 0
+prefix ::/96 label 3
+prefix ::ffff:0.0.0.0/96 label 4
+prefix 2001::/32 label 6
+prefix 2001:10::/28 label 7
+prefix fc00::/7 label 5
+prefix ::/0 label 1

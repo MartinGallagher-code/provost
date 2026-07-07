@@ -1,0 +1,7 @@
+127.0.0.1       localhost
+::1             localhost ip6-localhost ip6-loopback
+192.168.1.10    server01.lan server01
+192.168.1.11    server02.lan server02
+192.168.1.20    nas.lan nas
+10.0.0.5        db-primary.internal db-primary
+203.0.113.7     gateway.example.com gateway

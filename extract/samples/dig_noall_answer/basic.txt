@@ -1,0 +1,6 @@
+example.com.	86400	IN	A	93.184.216.34
+www.example.com.	86400	IN	CNAME	example.com.
+example.com.	86400	IN	MX	10 mail.example.com.
+example.com.	86400	IN	MX	20 mail2.example.com.
+example.com.	86400	IN	NS	a.iana-servers.net.
+example.com.	86400	IN	NS	b.iana-servers.net.

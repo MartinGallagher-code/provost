@@ -1,0 +1,9 @@
+Spider mode enabled. Check if remote file exists.
+HTTP request sent, awaiting response... 200 OK
+  Content-Type: text/html; charset=UTF-8
+  Content-Length: 1256
+  Last-Modified: Thu, 17 Oct 2023 07:18:26 GMT
+  Server: nginx/1.18.0
+  Cache-Control: max-age=604800
+  Connection: keep-alive
+Remote file exists.

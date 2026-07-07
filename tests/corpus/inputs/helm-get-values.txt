@@ -1,0 +1,22 @@
+USER-SUPPLIED VALUES:
+image:
+  pullPolicy: IfNotPresent
+  repository: nginx
+  tag: "1.25"
+ingress:
+  enabled: true
+  hosts:
+    - host: web.example.com
+      paths:
+        - /
+replicaCount: 3
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+service:
+  port: 80
+  type: ClusterIP

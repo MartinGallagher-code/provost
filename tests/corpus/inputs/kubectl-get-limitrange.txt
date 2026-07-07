@@ -1,0 +1,5 @@
+NAME         CREATED AT
+mem-limit    2026-05-01T10:00:00Z
+cpu-limit    2026-05-01T10:00:00Z
+default-lr   2026-04-15T09:30:00Z
+storage-lr   2026-04-15T09:30:00Z

@@ -1,0 +1,6 @@
+  PV         VG      Fmt  Attr PSize    PFree    Used
+  /dev/sda2  vg_sys  lvm2 a--   58.00g   0.00g   58.00g
+  /dev/sdb1  vg_data lvm2 a--  100.00g  36.00g   64.00g
+  /dev/sdc1  vg_data lvm2 a--  100.00g  99.94g   64.00m
+  /dev/sdd1  vg_data lvm2 a--  200.00g 150.00g   50.00g
+  /dev/sde1  vg_data lvm2 a--  500.00g 450.00g   50.00g

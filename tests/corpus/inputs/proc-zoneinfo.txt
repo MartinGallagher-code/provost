@@ -1,0 +1,11 @@
+Node 0, zone      DMA
+  pages free     3921
+        min      13
+        low      16
+        high     19
+        spanned  4095
+        present  3998
+        managed  3977
+      nr_free_pages 3921
+      nr_zone_inactive_anon 0
+      nr_zone_active_anon 0

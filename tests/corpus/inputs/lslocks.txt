@@ -1,0 +1,7 @@
+COMMAND           PID   TYPE   SIZE MODE  M      START        END PATH
+mysqld           1843  FLOCK   128K WRITE 0          0          0 /var/lib/mysql/ibdata1
+postgres         2044  POSIX   1.2M WRITE 0          0 1073741823 /var/lib/postgresql/15/main/postmaster.pid
+containerd        774  POSIX     0B WRITE 0          0          0 /run/containerd/containerd.sock
+cron             1201  FLOCK     0B WRITE 0          0          0 /run/crond.pid
+redis-server     2891  POSIX     0B READ  0          0          0 /var/lib/redis/dump.rdb
+dockerd           812  FLOCK   4.0K WRITE 0          0          0 /var/run/docker.pid

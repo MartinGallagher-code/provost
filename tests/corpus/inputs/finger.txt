@@ -1,0 +1,6 @@
+Login     Name           Tty      Idle  Login Time   Office     Office Phone
+martin    Martin G       *:0            Jul  6 09:12
+alice     Alice Brown    pts/1     2:14 Jul  6 11:03
+bob       Bob Nguyen     pts/2       12 Jul  7 08:47
+deploy    Deploy Bot     pts/3    1:02  Jul  7 02:00
+carol     Carol Diaz     pts/4       5  Jul  7 09:30

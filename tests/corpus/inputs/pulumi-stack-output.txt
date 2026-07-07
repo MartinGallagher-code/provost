@@ -1,0 +1,7 @@
+{
+    "apiUrl": "https://api.prod.example.com",
+    "bucketName": "app-artifacts-prod-9c1f2a",
+    "dbEndpoint": "appdb.cluster-abc123.us-west-2.rds.amazonaws.com:5432",
+    "instanceCount": 3,
+    "vpcId": "vpc-0aa11bb22cc33dd44"
+}

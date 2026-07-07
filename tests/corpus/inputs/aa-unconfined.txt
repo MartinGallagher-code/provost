@@ -1,0 +1,6 @@
+1234 /usr/sbin/dhclient not confined
+1567 /usr/sbin/ntpd not confined
+2891 /usr/sbin/mysqld not confined
+3402 /usr/sbin/cupsd not confined
+4110 /usr/sbin/avahi-daemon not confined
+5678 /usr/lib/postfix/sbin/master not confined

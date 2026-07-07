@@ -1,0 +1,7 @@
+base-system-0.115_1
+bash-5.2.021_1
+dbus-1.14.10_1
+glibc-locales-2.36_1
+nano-7.2_1
+openssh-9.6p1_1
+xbps-0.59.2_1

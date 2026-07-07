@@ -1,0 +1,43 @@
+host:
+  arch: amd64
+  buildahVersion: 1.35.0
+  cgroupManager: systemd
+  cgroupVersion: v2
+  conmon:
+    package: conmon-2.1.10-1.fc40.x86_64
+    version: 'conmon version 2.1.10, commit: '
+  cpus: 8
+  cpuUtilization:
+    idlePercent: 96.71
+    systemPercent: 1.02
+    userPercent: 2.27
+  eventLogger: journald
+  hostname: build-01
+  kernel: 6.8.9-300.fc40.x86_64
+  memFree: 4923412480
+  memTotal: 8337477632
+  ociRuntime:
+    name: crun
+    version: |-
+      crun version 1.14.4
+  os: linux
+  swapFree: 0
+  swapTotal: 0
+  uptime: 128h 4m 12.00s (Approximately 5.33 days)
+store:
+  configFile: /home/dev/.config/containers/storage.conf
+  containerStore:
+    number: 6
+    paused: 0
+    running: 4
+    stopped: 2
+  graphDriverName: overlay
+  graphRoot: /home/dev/.local/share/containers/storage
+  imageStore:
+    number: 23
+version:
+  APIVersion: 5.0.2
+  Built: 1711065600
+  GoVersion: go1.22.1
+  OsArch: linux/amd64
+  Version: 5.0.2

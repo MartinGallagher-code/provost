@@ -1,0 +1,14 @@
+busybox-1.36.1-r5 description:
+Size optimized toolbox of many common UNIX utilities
+
+busybox-1.36.1-r5 webpage:
+https://busybox.net/
+
+busybox-1.36.1-r5 installed size:
+924 KiB
+
+busybox-1.36.1-r5 depends on:
+so:libc.musl-x86_64.so.1
+
+busybox-1.36.1-r5 provides:
+cmd:busybox=1.36.1-r5
