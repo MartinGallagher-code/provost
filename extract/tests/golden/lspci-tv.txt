@@ -1,0 +1,9 @@
+entry1.c1 -[0000:00]-+-00.0__Intel_Corporation_Comet_Lake_Host_Bridge/DRAM_Registers
+entry2.c1 ___________+-02.0__Intel_Corporation_CometLake-H_GT2_[UHD_Graphics]
+entry3.c1 ___________+-04.0__Intel_Corporation_Xeon_Processor_Thermal_Subsystem
+entry4.c1 ___________+-08.0__Intel_Corporation_Xeon_Gaussian_Mixture_Model
+entry5.c1 ___________+-14.0__Intel_Corporation_Comet_Lake_USB_3.1_xHCI_Host_Controller
+entry6.c1 ___________+-16.0__Intel_Corporation_Comet_Lake_HECI_Controller
+entry7.c1 ___________+-1c.0-[01]----00.0__Samsung_Electronics_NVMe_SSD_Controller
+entry8.c1 ___________\-1f.0__Intel_Corporation_Comet_Lake_LPC_Controller
+total_entries 8

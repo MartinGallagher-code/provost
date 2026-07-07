@@ -1,0 +1,9 @@
+entry1.c1 core_module_(static)
+entry2.c1 so_module_(static)
+entry3.c1 watchdog_module_(static)
+entry4.c1 http_module_(static)
+entry5.c1 log_config_module_(static)
+entry6.c1 logio_module_(static)
+entry7.c1 mpm_event_module_(shared)
+entry8.c1 authz_core_module_(shared)
+total_entries 8

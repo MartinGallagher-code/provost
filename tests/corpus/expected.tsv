@@ -932,7 +932,7 @@ proc-net-tcp	table	5	15
 proc-net-udp	table	4	11
 proc-net-route	table	5	9
 proc-net-arp	table	5	4
-proc-net-snmp	table	4	8
+proc-net-snmp	table	3	8
 proc-sys-kernel	kv	-	4
 ps-aux-sort	table	6	9
 ps-eo-custom	table	6	8

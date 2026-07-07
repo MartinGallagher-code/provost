@@ -1,0 +1,8 @@
+Timeout: 60.0 seconds ...
+Listing queues for vhost / ...
+orders.process	1523	4
+orders.dlq	12	0
+email.outbound	847	2
+notifications.push	3391	6
+analytics.ingest	20418	8
+reports.generate	5	1

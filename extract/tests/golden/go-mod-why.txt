@@ -1,0 +1,5 @@
+entry1.c1 github.com/myorg/app
+entry2.c1 github.com/myorg/app/internal/store
+entry3.c1 github.com/jmoiron/sqlx
+entry4.c1 github.com/pkg/errors
+total_entries 4

@@ -1,0 +1,6 @@
+Name           Options
+flathub        system
+flathub-beta   system
+gnome-nightly  system
+kde-nightly    system,no-enumerate
+elementary     user

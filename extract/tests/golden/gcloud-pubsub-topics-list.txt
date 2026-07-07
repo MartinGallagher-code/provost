@@ -1,0 +1,16 @@
+entry1.name projects/my-project-prod/topics/orders
+entry1.messageRetentionDuration 86400s
+entry1.kmsKeyName 
+entry2.name projects/my-project-prod/topics/payments
+entry2.messageRetentionDuration 604800s
+entry2.kmsKeyName 
+entry3.name projects/my-project-prod/topics/user-events
+entry3.messageRetentionDuration 86400s
+entry3.kmsKeyName 
+entry4.name projects/my-project-prod/topics/audit-log
+entry4.messageRetentionDuration 2592000s
+entry4.kmsKeyName projects/my-project-prod/locations/global/keyRings/pubsub/cryptoKeys/audit
+entry5.name projects/my-project-prod/topics/dead-letter
+entry5.messageRetentionDuration 604800s
+entry5.kmsKeyName 
+total_entries 5

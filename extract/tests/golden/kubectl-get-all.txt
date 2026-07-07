@@ -1,0 +1,13 @@
+entry1.kind pod
+entry1.count 4
+entry1.names web-6d4cf56db6-8xk2n_web-6d4cf56db6-lm9qr_redis-master-0_api-5f7b9c8d4-tzp7w
+entry2.kind service
+entry2.count 3
+entry2.names kubernetes_web_redis
+entry3.kind deployment.apps
+entry3.count 2
+entry3.names web_api
+entry4.kind replicaset.apps
+entry4.count 2
+entry4.names web-6d4cf56db6_api-5f7b9c8d4
+total_entries 4

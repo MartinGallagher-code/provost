@@ -1,0 +1,5 @@
+entry1.name example.com
+entry1.address 93.184.216.34
+entry1.address_ipv6 2606:2800:220:1:248:1893:25c8:1946
+entry1.link eth0
+total_entries 1

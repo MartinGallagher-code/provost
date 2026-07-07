@@ -1,0 +1,5 @@
+4 changesets have not been applied to appuser@jdbc:postgresql://localhost:5432/appdb
+     changelog/003-add-orders.sql::3::mgallagher
+     changelog/004-add-email-index.sql::4::mgallagher
+     changelog/005-add-audit-columns.sql::5::mgallagher
+     changelog/006-add-soft-delete.sql::6::mgallagher

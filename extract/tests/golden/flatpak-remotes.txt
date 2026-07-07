@@ -1,0 +1,11 @@
+entry1.name flathub
+entry1.options system
+entry2.name flathub-beta
+entry2.options system
+entry3.name gnome-nightly
+entry3.options system
+entry4.name kde-nightly
+entry4.options system,no-enumerate
+entry5.name elementary
+entry5.options user
+total_entries 5

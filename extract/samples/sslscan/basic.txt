@@ -1,0 +1,11 @@
+Version: 2.0.15
+Connected to 93.184.216.34
+
+Testing SSL server example.com on port 443 using SNI name example.com
+
+  Supported Server Cipher(s):
+Preferred TLSv1.3  256 bits  TLS_AES_256_GCM_SHA384
+Accepted  TLSv1.3  256 bits  TLS_CHACHA20_POLY1305_SHA256
+Accepted  TLSv1.3  128 bits  TLS_AES_128_GCM_SHA256
+Accepted  TLSv1.2  256 bits  ECDHE-RSA-AES256-GCM-SHA384
+Accepted  TLSv1.2  128 bits  ECDHE-RSA-AES128-GCM-SHA256

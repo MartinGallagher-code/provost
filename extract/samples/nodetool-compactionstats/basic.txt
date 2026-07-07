@@ -1,0 +1,7 @@
+pending tasks: 5
+id                                    compaction type   keyspace    table         completed    total       unit    progress
+54e2e2b0-0c1a-11ee-9f3a-0242ac110002  Compaction        ecommerce   orders        12582912     50331648    bytes   25.00%
+6a1f3c40-0c1a-11ee-9f3a-0242ac110002  Compaction        ecommerce   inventory     8388608      33554432    bytes   25.00%
+7b2f4d51-0c1a-11ee-9f3a-0242ac110002  Cleanup           ecommerce   sessions      2097152      4194304     bytes   50.00%
+8c3f5e62-0c1a-11ee-9f3a-0242ac110002  Validation        analytics   events        16777216     67108864    bytes   25.00%
+9d4f6f73-0c1a-11ee-9f3a-0242ac110002  Compaction        analytics   pageviews     41943040     83886080    bytes   50.00%

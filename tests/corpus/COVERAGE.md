@@ -6,8 +6,8 @@ yet tidy.
 
 | Tool | Covered | Parser |
 |---|:---:|---|
-| 7z | ⏳ | — |
-| R-version | ⏳ | — |
+| 7z | ✅ | 7z |
+| R-version | ✅ | R-version |
 | aa-status | ✅ | aligned-columns |
 | aa-unconfined | ✅ | aligned-columns |
 | acpi | ✅ | colons |
@@ -18,15 +18,15 @@ yet tidy.
 | ansible-galaxy-collection-list | ✅ | fixed-width |
 | ansible-inventory-list | ✅ | ansible-inventory-list |
 | ansible-version | ✅ | ansible-version |
-| apache2ctl-modules | ⏳ | — |
+| apache2ctl-modules | ✅ | apache2ctl-modules |
 | apk-info-a | ✅ | key-value |
 | apk-info | ✅ | line-records |
 | apk-list | ✅ | aligned-columns |
 | apk-stats | ✅ | yaml |
 | apt-cache-policy | ✅ | indented-hierarchy |
 | apt-cache-show | ✅ | yaml |
-| apt-list-upgradable | ⏳ | — |
-| apt-list | ⏳ | — |
+| apt-list-upgradable | ✅ | apt-list-upgradable |
+| apt-list | ✅ | aligned-columns |
 | apt-mark-showmanual | ✅ | line-records |
 | apt-show | ✅ | yaml |
 | aptitude-search | ✅ᵇ | pkg-config (bespoke) |
@@ -51,11 +51,11 @@ yet tidy.
 | aws-cloudwatch-list-metrics | ✅ | psql-table |
 | aws-configure-list | ✅ | aligned-columns |
 | aws-dynamodb-list-tables | ✅ | line-records |
-| aws-ec2-describe-instances | ✅ | psql-table |
+| aws-ec2-describe-instances | ⏳ | — |
 | aws-ec2-describe-security-groups | ✅ | psql-table |
 | aws-ec2-describe-snapshots | ✅ | psql-table |
 | aws-ec2-describe-subnets | ✅ | psql-table |
-| aws-ec2-describe-volumes | ✅ | psql-table |
+| aws-ec2-describe-volumes | ⏳ | — |
 | aws-ec2-describe-vpcs | ✅ | psql-table |
 | aws-ec2-describe | ✅ | aligned-columns |
 | aws-ecs-describe-services | ✅ | psql-table |
@@ -76,13 +76,13 @@ yet tidy.
 | aws-ssm-describe-instance-information | ✅ | psql-table |
 | aws-sts-caller-identity | ✅ | json |
 | aws-sts-get-caller-identity | ✅ | json |
-| az-account-list | ⏳ | — |
+| az-account-list | ✅ | az-account-list |
 | az-account-show | ✅ | json |
-| az-acr-list | ⏳ | — |
+| az-acr-list | ✅ | az-acr-list |
 | az-aks-list | ✅ | aligned-columns |
 | az-disk-list | ✅ | aligned-columns |
 | az-group-list | ✅ | aligned-columns |
-| az-keyvault-list | ⏳ | — |
+| az-keyvault-list | ✅ | az-keyvault-list |
 | az-network-vnet-list | ✅ | aligned-columns |
 | az-sql-server-list | ✅ | aligned-columns |
 | az-storage-account-list | ✅ | aligned-columns |
@@ -94,13 +94,13 @@ yet tidy.
 | biosdecode | ✅ | biosdecode |
 | blackbox-probe | ✅ᵇ | exposition-format (bespoke) |
 | blkid-list | ✅ | aligned-columns |
-| blkid | ✅ | labeled-records |
+| blkid | ⏳ | — |
 | blockdev-report | ✅ | aligned-columns |
 | bootctl-status | ✅ | indented-hierarchy |
 | borg | ⏳ | — |
 | bpftrace-l | ✅ | line-records |
 | bpftrace | ✅ | bpftrace |
-| bq-ls | ⏳ | — |
+| bq-ls | ✅ | bq-ls |
 | bq-show | ✅ | json |
 | brew-info | ✅ | colons |
 | brew-list | ✅ | line-records |
@@ -110,7 +110,7 @@ yet tidy.
 | bridge-mdb-show | ✅ | aligned-columns |
 | btrfs-device-stats | ✅ | line-records |
 | btrfs-filesystem-df | ✅ | csv |
-| btrfs-filesystem-show | ✅ | git-branch-vv |
+| btrfs-filesystem-show | ✅ | btrfs-filesystem-show |
 | btrfs-scrub-status | ✅ | key-value |
 | btrfs-subvolume-list | ✅ | aligned-columns |
 | buildah-containers | ✅ | aligned-columns |
@@ -123,15 +123,15 @@ yet tidy.
 | busctl-list | ✅ | aligned-columns |
 | busctl-status | ✅ | equals |
 | busctl-tree | ✅ | tree-view |
-| cabal-freeze | ⏳ | — |
+| cabal-freeze | ✅ | cabal-freeze |
 | cabal-list | ✅ | line-records |
 | caddy-list-modules | ✅ | line-records |
 | calicoctl-get-ippool | ✅ | aligned-columns |
 | capsh-print | ✅ | colons |
 | cargo-metadata | ✅ | json |
 | cargo-outdated | ✅ | aligned-columns |
-| cargo-tree-i | ✅ᵇ | cargo-tree (bespoke) |
-| cargo-tree | ✅ᵇ | cargo-tree (bespoke) |
+| cargo-tree-i | ✅ | poetry-show-tree |
+| cargo-tree | ✅ | poetry-show-tree |
 | cassandra-nodetool-info | ✅ | colons |
 | cassandra-nodetool-tpstats | ✅ | cassandra-nodetool-tpstats |
 | cdk-list | ✅ | line-records |
@@ -147,11 +147,11 @@ yet tidy.
 | clamscan-summary | ✅ | colons |
 | clang-targets | ✅ | aligned-columns |
 | clang-version | ✅ | colons |
-| clickhouse-processlist | ✅ | clickhouse-processlist |
+| clickhouse-processlist | ⏳ | — |
 | clickhouse-show-tables | ✅ | line-records |
 | cmake-version | ✅ | text-lines |
 | cockroach-node-status | ✅ | psql-table |
-| collectl | ⏳ | — |
+| collectl | ✅ | collectl |
 | column | ✅ | aligned-columns |
 | composer-licenses | ✅ | aligned-columns |
 | composer-outdated | ✅ | aligned-columns |
@@ -162,11 +162,11 @@ yet tidy.
 | conntrack-count | ✅ | aligned-columns |
 | conntrack | ✅ | inline-kv |
 | consul-catalog-services | ✅ᵇ | pkg-config (bespoke) |
-| consul-kv-get-recurse | ⏳ | — |
+| consul-kv-get-recurse | ✅ | consul-kv-get-recurse |
 | consul-members | ✅ | aligned-columns |
 | consul-operator-raft | ✅ | aligned-columns |
 | containerd-tasks | ✅ | aligned-columns |
-| coredumpctl-info | ✅ | git-branch-vv |
+| coredumpctl-info | ✅ | colons |
 | coredumpctl-list | ✅ | aligned-columns |
 | cpuid-summary | ✅ | cpuid-summary |
 | cpupower-frequency | ✅ | indented-hierarchy |
@@ -178,7 +178,7 @@ yet tidy.
 | crontab | ✅ | aligned-columns |
 | crun-list | ✅ | aligned-columns |
 | cryptsetup-luksdump | ✅ | key-value |
-| csvlook | ⏳ | — |
+| csvlook | ✅ | csvlook |
 | ctr-containers-ls | ✅ | aligned-columns |
 | ctr-images | ✅ | aligned-columns |
 | ctr-snapshots-ls | ✅ | aligned-columns |
@@ -187,7 +187,7 @@ yet tidy.
 | curl_head | ✅ | yaml |
 | curl_timing | ✅ | yaml |
 | date | ✅ | line-records |
-| dbmate-status | ⏳ | — |
+| dbmate-status | ✅ | dbmate-status |
 | decode-dimms | ✅ | decode-dimms |
 | delv | ✅ | aligned-columns |
 | deno-info | ✅ | colons |
@@ -214,7 +214,7 @@ yet tidy.
 | dmidecode-baseboard | ✅ | colons |
 | dmidecode-bios | ✅ | colons |
 | dmidecode-chassis | ✅ | colons |
-| dmidecode-memory | ✅ | git-branch-vv |
+| dmidecode-memory | ✅ | colons |
 | dmidecode-processor | ✅ | colons |
 | dmidecode-system | ✅ | colons |
 | dmidecode | ✅ | colons |
@@ -223,7 +223,7 @@ yet tidy.
 | dmsetup-table | ⏳ | — |
 | dnf-history-list | ✅ | vertical-line |
 | dnf-info | ✅ | colons |
-| dnf-list | ⏳ | — |
+| dnf-list | ✅ | aligned-columns |
 | dnf-provides | ✅ | aligned-columns |
 | dnf-repolist | ✅ | aligned-columns |
 | dnf-repoquery | ✅ | line-records |
@@ -241,7 +241,7 @@ yet tidy.
 | docker-machine-ls | ✅ | aligned-columns |
 | docker-network-inspect | ✅ | json |
 | docker-network | ✅ | aligned-columns |
-| docker-port | ✅ | aligned-columns |
+| docker-port | ⏳ | — |
 | docker-ps-a | ✅ | aligned-columns |
 | docker-ps | ✅ | aligned-columns |
 | docker-stats-format | ✅ | aligned-columns |
@@ -254,21 +254,21 @@ yet tidy.
 | docker-volume-ls | ✅ | aligned-columns |
 | doctl-kubernetes-list | ✅ | aligned-columns |
 | dotnet-info | ✅ | key-value |
-| dotnet-list-package | ⏳ | — |
+| dotnet-list-package | ✅ | dotnet-list-package |
 | dotnet-nuget-locals | ✅ | yaml |
 | dotnet-runtimes | ✅ | aligned-columns |
 | dovecot-n | ✅ | indented-hierarchy |
 | dpkg-L | ✅ | line-records |
-| dpkg-c | ✅ | aligned-columns |
+| dpkg-c | ⏳ | — |
 | dpkg-get-selections | ⏳ | — |
 | dpkg-l | ✅ᵇ | dpkg-list (bespoke) |
 | dpkg-query | ✅ᵇ | dpkg-list (bespoke) |
 | dpkg-s | ✅ | yaml |
 | drill | ✅ | drill |
-| dstat | ⏳ | — |
+| dstat | ✅ | aligned-columns |
 | du-h | ✅ | tsv |
 | du-sh-dirs | ✅ | tsv |
-| dub-list | ⏳ | — |
+| dub-list | ✅ | dub-list |
 | dumpe2fs-h | ✅ | key-value |
 | duplicity | ✅ | vertical-line |
 | edac-util | ✅ | yaml |
@@ -276,9 +276,9 @@ yet tidy.
 | elasticsearch-cat-indices | ✅ | aligned-columns |
 | elasticsearch-cluster-health | ✅ | json |
 | elasticsearch-nodes | ✅ | aligned-columns |
-| elixir-version | ⏳ | — |
+| elixir-version | ✅ | elixir-version |
 | env | ✅ | equals |
-| es-cat-allocation | ⏳ | — |
+| es-cat-allocation | ✅ | es-cat-allocation |
 | es-cat-nodes | ✅ | aligned-columns |
 | es-cat-shards | ✅ | aligned-columns |
 | es-cat-thread-pool | ✅ | aligned-columns |
@@ -294,8 +294,8 @@ yet tidy.
 | ethtool | ✅ | colons |
 | exportfs-v | ✅ | tsv |
 | fail2ban-status | ✅ | key-value |
-| faillock-user | ✅ | hg-branches |
-| faillock | ✅ | hg-branches |
+| faillock-user | ✅ | aligned-columns |
+| faillock | ✅ | aligned-columns |
 | fdisk-l | ✅ᵇ | fdisk (bespoke) |
 | file | ✅ | labeled-records |
 | findfs | ✅ | text-lines |
@@ -306,7 +306,7 @@ yet tidy.
 | firewalld-list-all | ✅ | indented-hierarchy |
 | flatpak-info | ✅ | yaml |
 | flatpak-list | ✅ | aligned-columns |
-| flatpak-remotes | ⏳ | — |
+| flatpak-remotes | ✅ | flatpak-remotes |
 | flux-get-kustomizations | ✅ | aligned-columns |
 | flux-get-sources | ✅ | aligned-columns |
 | flyway-info | ✅ | psql-table |
@@ -314,10 +314,10 @@ yet tidy.
 | fossil-timeline | ✅ | fossil-timeline |
 | fping | ✅ | aligned-columns |
 | free-h | ✅ | aligned-columns |
-| free-w | ✅ | aligned-columns |
-| free | ✅ | aligned-columns |
+| free-w | ✅ | dmsetup-table |
+| free | ✅ | dmsetup-table |
 | freeipmi | ✅ | aligned-columns |
-| fuser-v | ⏳ | — |
+| fuser-v | ✅ | fuser-v |
 | fwupdmgr-get-devices | ✅ | fwupdmgr-get-devices |
 | gcc-v | ✅ | aligned-columns |
 | gcc-version | ✅ | line-records |
@@ -331,7 +331,7 @@ yet tidy.
 | gcloud-functions-list | ✅ | aligned-columns |
 | gcloud-iam-service-accounts-list | ✅ | aligned-columns |
 | gcloud-projects-list | ✅ | aligned-columns |
-| gcloud-pubsub-topics-list | ⏳ | — |
+| gcloud-pubsub-topics-list | ✅ | gcloud-pubsub-topics-list |
 | gcloud-run-services-list | ✅ | aligned-columns |
 | gcloud-sql-instances-list | ✅ | aligned-columns |
 | gem-info | ✅ | block-records |
@@ -340,7 +340,7 @@ yet tidy.
 | getcap | ✅ | line-records |
 | getconf | ✅ | getconf |
 | getenforce | ✅ | text-lines |
-| getent-passwd | ✅ | colon-fields |
+| getent-passwd | ⏳ | — |
 | getent_group | ✅ | colon-fields |
 | getent_hosts | ✅ | aligned-columns |
 | getent_services | ✅ | line-records |
@@ -351,7 +351,7 @@ yet tidy.
 | git-annex-list | ✅ | git-annex-list |
 | git-bisect-log | ✅ | git-bisect-log |
 | git-branch-a | ✅ | line-records |
-| git-branch-vv | ✅ | git-branch-vv |
+| git-branch-vv | ⏳ | — |
 | git-branch | ✅ | line-records |
 | git-cat-file-tree | ✅ | tsv |
 | git-config-list-show-origin | ⏳ | — |
@@ -387,20 +387,20 @@ yet tidy.
 | go-env | ✅ | equals |
 | go-list-m-u | ✅ | aligned-columns |
 | go-list | ✅ | go-list |
-| go-mod-why | ⏳ | — |
-| goose-status | ⏳ | — |
+| go-mod-why | ✅ | go-mod-why |
+| goose-status | ✅ | goose-status |
 | gpg-card-status | ✅ | gpg-card-status |
 | gpg-list-keys | ✅ᵇ | gpg-list-keys (bespoke) |
-| gpg-list-packets | ✅ | git-branch-vv |
+| gpg-list-packets | ⏳ | — |
 | gpg-list-secret-keys | ✅ | vertical-line |
 | gradle-dependencies | ✅ | tree-view |
 | gradle-q-dependencies | ✅ | tree-view |
-| grafana-cli-plugins | ⏳ | — |
+| grafana-cli-plugins | ✅ | grafana-cli-plugins |
 | groups | ✅ᵇ | user-groups (bespoke) |
 | gsutil-du | ✅ | line-records |
-| gsutil-ls-l | ⏳ | — |
+| gsutil-ls-l | ✅ | gsutil-ls-l |
 | haproxy-stat | ✅ | csv |
-| haproxy-vv | ⏳ | — |
+| haproxy-vv | ✅ | haproxy-vv |
 | hdparm-i | ✅ | key-value |
 | helm-get-values | ✅ | yaml |
 | helm-history | ✅ | aligned-columns |
@@ -409,9 +409,9 @@ yet tidy.
 | helm-repo-list | ✅ | aligned-columns |
 | helm-status | ✅ | aligned-columns |
 | helmfile-list | ✅ | aligned-columns |
-| hg-branches | ✅ | hg-branches |
-| hg-heads | ✅ | hg-branches |
-| hg-log | ✅ | hg-branches |
+| hg-branches | ⏳ | — |
+| hg-heads | ✅ | block-records |
+| hg-log | ✅ | block-records |
 | hg-paths | ✅ | aligned-columns |
 | hg-status | ✅ | line-records |
 | hg-summary | ✅ | yaml |
@@ -435,9 +435,9 @@ yet tidy.
 | iostat-x | ✅ | iostat-x |
 | iostat | ✅ | iostat-d |
 | iotop | ✅ᵇ | iotop (bespoke) |
-| ip-6-route | ✅ | aligned-columns |
+| ip-6-route | ⏳ | — |
 | ip-addr | ✅ | indented-hierarchy |
-| ip-addrlabel-list | ✅ᵇ | pkg-config (bespoke) |
+| ip-addrlabel-list | ✅ | aligned-columns |
 | ip-br-addr | ✅ | text-lines |
 | ip-link | ✅ | indented-hierarchy |
 | ip-maddr | ✅ | ip-maddr |
@@ -451,35 +451,35 @@ yet tidy.
 | ip-rule | ✅ | tsv |
 | ip-tunnel-show | ✅ | ip-tunnel |
 | ip-tunnel | ✅ | ip-tunnel |
-| ip-xfrm-state | ✅ | git-branch-vv |
-| ip6tables-l | ✅ | aligned-columns |
-| ip6tables-nat | ✅ | aligned-columns |
-| ip6tables | ✅ | aligned-columns |
+| ip-xfrm-state | ✅ | ip-xfrm-state |
+| ip6tables-l | ✅ | iptables-nat |
+| ip6tables-nat | ✅ | iptables-nat |
+| ip6tables | ✅ | iptables-nat |
 | ipcalc | ✅ | colons |
 | ipcs-m | ✅ | aligned-columns |
 | ipcs-s | ✅ | aligned-columns |
-| iperf3 | ⏳ | — |
+| iperf3 | ✅ | iperf3-intervals |
 | ipmitool-chassis | ✅ | aligned-columns |
 | ipmitool-sdr | ✅ | text-lines |
-| ipmitool-sensor | ⏳ | — |
+| ipmitool-sensor | ✅ | ipmitool-sensor |
 | ipset-list | ✅ | aligned-columns |
-| iptables-nat | ⏳ | — |
-| iptables-nvL | ✅ | git-branch-vv |
+| iptables-nat | ✅ | iptables-nat |
+| iptables-nvL | ⏳ | — |
 | iptables-save | ✅ | text-lines |
 | istioctl-proxy-status | ✅ | aligned-columns |
-| iw-dev | ✅ | git-branch-vv |
-| iw-station-dump | ✅ | hg-branches |
+| iw-dev | ✅ | aligned-columns |
+| iw-station-dump | ✅ | colons |
 | iwconfig | ✅ | indented-hierarchy |
-| iwlist-scan | ✅ | git-branch-vv |
+| iwlist-scan | ✅ | iwlist-scan |
 | java-showsettings | ✅ | aligned-columns |
 | java-version | ✅ | text-lines |
 | jcmd-heap-info | ✅ | line-records |
 | jj-log | ✅ | jj-log |
-| jmap-histo | ✅ | git-branch-vv |
-| journalctl-boot | ✅ | git-branch-vv |
+| jmap-histo | ✅ | jmap-histo |
+| journalctl-boot | ✅ | aligned-columns |
 | journalctl-disk-usage | ✅ | line-records |
 | journalctl-k | ✅ᵇ | syslog (bespoke) |
-| journalctl-list-boots | ✅ | git-branch-vv |
+| journalctl-list-boots | ✅ | aligned-columns |
 | journalctl-u | ✅ᵇ | syslog (bespoke) |
 | journalctl | ✅ | aligned-columns |
 | jq-version | ✅ | text-lines |
@@ -495,7 +495,7 @@ yet tidy.
 | kubectl-describe-node | ✅ | key-value |
 | kubectl-describe-pod | ✅ | yaml |
 | kubectl-events | ✅ | aligned-columns |
-| kubectl-get-all | ⏳ | — |
+| kubectl-get-all | ✅ | kubectl-get-all |
 | kubectl-get-componentstatuses | ✅ | aligned-columns |
 | kubectl-get-configmap | ✅ | aligned-columns |
 | kubectl-get-crd | ✅ | aligned-columns |
@@ -539,22 +539,22 @@ yet tidy.
 | liquibase-status | ⏳ | — |
 | locale | ✅ | equals |
 | localectl-status | ✅ | aligned-columns |
-| loginctl-list-seats | ⏳ | — |
-| loginctl-list-sessions | ✅ | git-branch-vv |
+| loginctl-list-seats | ✅ | loginctl-list-seats |
+| loginctl-list-sessions | ✅ | aligned-columns |
 | loginctl-list-users | ✅ | aligned-columns |
-| loginctl-seat-status | ✅ | git-branch-vv |
-| loginctl-session-status | ✅ | git-branch-vv |
+| loginctl-seat-status | ✅ | indented-hierarchy |
+| loginctl-session-status | ✅ | indented-hierarchy |
 | loginctl-user-status | ✅ | indented-hierarchy |
-| loginctl | ✅ | git-branch-vv |
+| loginctl | ✅ | aligned-columns |
 | losetup-list | ✅ | aligned-columns |
 | lpq | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsattr | ✅ | line-records |
 | lsblk-f | ✅ | aligned-columns |
-| lsblk-fstype | ✅ | hg-branches |
-| lsblk | ✅ | hg-branches |
+| lsblk-fstype | ✅ | aligned-columns |
+| lsblk | ✅ | aligned-columns |
 | lscpu-cache | ✅ | aligned-columns |
-| lscpu-extended | ✅ | git-branch-vv |
+| lscpu-extended | ⏳ | — |
 | lscpu-parse | ✅ | lscpu-parse |
 | lscpu | ✅ | key-value |
 | lshw-disk | ✅ | colons |
@@ -564,32 +564,32 @@ yet tidy.
 | lshw | ✅ | vertical-line |
 | lsinitramfs | ✅ | line-records |
 | lslocks | ✅ | aligned-columns |
-| lsmem | ⏳ | — |
+| lsmem | ✅ | lsmem |
 | lsmod | ✅ | aligned-columns |
 | lsns | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci-nn | ✅ | text-lines |
-| lspci-tv | ⏳ | — |
+| lspci-tv | ✅ | lspci-tv |
 | lspci-vmm | ✅ | tsv |
 | lspci | ✅ | text-lines |
 | lsscsi | ✅ | colon-fields |
 | lstopo-no-graphics | ✅ | lstopo-no-graphics |
 | lsusb-t | ✅ | lsusb-t |
-| lsusb-v | ✅ | git-branch-vv |
+| lsusb-v | ⏳ | — |
 | lsusb | ✅ | aligned-columns |
-| lvdisplay-m | ⏳ | — |
-| lvdisplay | ✅ | aligned-columns |
+| lvdisplay-m | ✅ | lvdisplay-m |
+| lvdisplay | ✅ | lvdisplay-m |
 | lvs-devices | ✅ | aligned-columns |
 | lvs | ✅ | aligned-columns |
-| lynis-report | ✅ | hg-branches |
+| lynis-report | ✅ | equals |
 | machinectl-list | ✅ | aligned-columns |
-| machinectl-status | ✅ | git-branch-vv |
+| machinectl-status | ✅ | indented-hierarchy |
 | mamba-list | ✅ | aligned-columns |
-| mariadb-innodb-status | ✅ | hg-branches |
+| mariadb-innodb-status | ⏳ | — |
 | mariadb-show-plugins | ✅ | psql-table |
-| masscan | ⏳ | — |
+| masscan | ✅ | masscan |
 | mcelog | ✅ | text-lines |
-| mdadm-detail | ✅ | git-branch-vv |
+| mdadm-detail | ✅ | block-records |
 | mdadm-examine | ✅ | indented-hierarchy |
 | memcached-stats-items | ✅ | memcached-stats |
 | memcached-stats | ✅ | memcached-stats |
@@ -632,14 +632,14 @@ yet tidy.
 | nerdctl-images | ✅ | aligned-columns |
 | nerdctl-ps | ✅ | aligned-columns |
 | nethogs | ✅ᵇ | nethogs (bespoke) |
-| netstat-anp | ✅ | aligned-columns |
+| netstat-anp | ⏳ | — |
 | netstat-i | ✅ | aligned-columns |
 | netstat-rn | ✅ | aligned-columns |
 | netstat-s | ✅ | netstat-s |
 | netstat-tulpn | ✅ | aligned-columns |
 | networkctl-list | ✅ | aligned-columns |
-| networkctl-lldp | ⏳ | — |
-| networkctl-status | ✅ | git-branch-vv |
+| networkctl-lldp | ✅ | networkctl-lldp |
+| networkctl-status | ✅ | indented-hierarchy |
 | nft-list-chain | ✅ | nft-list-ruleset |
 | nft-list-ruleset | ✅ | nft-list-ruleset |
 | nft-list-tables | ✅ᵇ | pkg-config (bespoke) |
@@ -652,21 +652,21 @@ yet tidy.
 | nmap_os | ✅ᵇ | nmap (bespoke) |
 | nmap_sv | ✅ᵇ | nmap (bespoke) |
 | nmcli-connection | ✅ | aligned-columns |
-| nmcli-device-show | ✅ | hg-branches |
+| nmcli-device-show | ✅ | line-records |
 | nmcli | ✅ | aligned-columns |
 | nmon | ✅ | csv |
 | node-exporter | ✅ | aligned-columns |
 | node-version | ✅ | text-lines |
 | node-versions | ✅ | colons |
-| nodetool-compactionstats | ⏳ | — |
-| nodetool-ring | ⏳ | — |
-| nodetool-status | ⏳ | — |
+| nodetool-compactionstats | ✅ | nodetool-compactionstats |
+| nodetool-ring | ✅ | nodetool-ring |
+| nodetool-status | ✅ | nodetool-status |
 | nodetool-tablestats | ✅ | vertical-line |
 | nomad-job-status | ✅ | aligned-columns |
 | nomad-node-status | ✅ | aligned-columns |
 | nomad-status | ✅ | aligned-columns |
-| npm-ls-g | ✅ | tree-view |
-| npm-ls | ✅ | tree-view |
+| npm-ls-g | ⏳ | — |
+| npm-ls | ⏳ | — |
 | npm-outdated-g | ✅ | aligned-columns |
 | npm-outdated | ✅ | aligned-columns |
 | npm-view | ✅ | yaml |
@@ -680,7 +680,7 @@ yet tidy.
 | numactl-show | ✅ | numactl-show |
 | numastat | ✅ | numastat |
 | nvcc-version | ✅ | aligned-columns |
-| nvidia-smi-q | ✅ | hg-branches |
+| nvidia-smi-q | ✅ | block-records |
 | nvidia-smi | ✅ | psql-table |
 | nvme-error-log | ✅ | colons |
 | nvme-id-ctrl | ✅ | aligned-columns |
@@ -713,13 +713,13 @@ yet tidy.
 | parted-l | ✅ | parted-print |
 | parted-print | ✅ | parted-print |
 | passwd-status | ✅ | aligned-columns |
-| pcp-pmstat | ⏳ | — |
+| pcp-pmstat | ✅ | pcp-pmstat |
 | perf-list | ✅ | aligned-columns |
 | perf-report | ✅ | aligned-columns |
 | perf-sched | ✅ | aligned-columns |
 | perf-stat | ✅ | perf-counters |
 | perf-top | ✅ᵇ | perf-top (bespoke) |
-| perf-trace | ✅ | git-branch-vv |
+| perf-trace | ✅ | perf-trace |
 | perl-v | ✅ | line-records |
 | perl-version | ✅ | csv |
 | pg-locks | ✅ | psql-table |
@@ -742,18 +742,18 @@ yet tidy.
 | pidstat-w | ✅ | pidstat-w |
 | pidstat | ✅ᵇ | sysstat (bespoke) |
 | ping | ✅ᵇ | ping (bespoke) |
-| pip-config | ⏳ | — |
+| pip-config | ✅ | pip-config |
 | pip-freeze | ✅ | line-records |
 | pip-list-outdated | ✅ | aligned-columns |
 | pip-show | ✅ | yaml |
 | pip3-show | ✅ | yaml |
-| pipenv-graph | ⏳ | — |
+| pipenv-graph | ✅ | pipenv-graph |
 | pipx-list | ✅ | pipx-list |
 | pkg-config | ✅ᵇ | pkg-config (bespoke) |
 | pmap | ✅ | pmap |
-| pnpm-why | ⏳ | — |
+| pnpm-why | ✅ | pnpm-why |
 | podman-healthcheck | ✅ | json |
-| podman-image-tree | ✅ | tree-view |
+| podman-image-tree | ⏳ | — |
 | podman-images | ✅ | aligned-columns |
 | podman-info | ✅ | yaml |
 | podman-inspect | ✅ | json |
@@ -764,10 +764,10 @@ yet tidy.
 | podman-stats | ✅ | aligned-columns |
 | podman-system-df | ✅ | aligned-columns |
 | podman-volume-ls | ✅ | aligned-columns |
-| poetry-show-tree | ⏳ | — |
+| poetry-show-tree | ✅ | poetry-show-tree |
 | poetry-show | ✅ | text-lines |
 | postconf-n | ✅ | aligned-columns |
-| powercap-info | ✅ | git-branch-vv |
+| powercap-info | ✅ | indented-hierarchy |
 | powertop | ✅ᵇ | powertop (bespoke) |
 | printenv | ✅ | equals |
 | prlimit | ✅ | aligned-columns |
@@ -776,32 +776,32 @@ yet tidy.
 | proc-consoles | ✅ | aligned-columns |
 | proc-cpuinfo | ✅ | tsv |
 | proc-crypto | ✅ | aligned-columns |
-| proc-devices | ⏳ | — |
-| proc-diskstats | ⏳ | — |
+| proc-devices | ✅ | proc-devices |
+| proc-diskstats | ✅ | aligned-columns |
 | proc-dma | ✅ | labeled-records |
 | proc-filesystems | ⏳ | — |
-| proc-interrupts | ✅ | git-branch-vv |
+| proc-interrupts | ✅ | aligned-columns |
 | proc-iomem | ✅ | aligned-columns |
 | proc-ioports | ✅ | aligned-columns |
 | proc-keys | ✅ | aligned-columns |
 | proc-limits | ✅ | aligned-columns |
 | proc-loadavg | ✅ | line-records |
-| proc-locks | ⏳ | — |
+| proc-locks | ✅ | proc-locks |
 | proc-meminfo | ✅ | yaml |
 | proc-modules | ✅ | aligned-columns |
 | proc-mounts | ⏳ | — |
 | proc-net-arp | ✅ | aligned-columns |
-| proc-net-dev | ⏳ | — |
+| proc-net-dev | ✅ | aligned-columns |
 | proc-net-route | ✅ | tsv |
 | proc-net-snmp | ⏳ | — |
-| proc-net-tcp | ⏳ | — |
-| proc-net-udp | ✅ | aligned-columns |
-| proc-pagetypeinfo | ⏳ | — |
-| proc-partitions | ✅ | git-branch-vv |
-| proc-schedstat | ⏳ | — |
+| proc-net-tcp | ✅ | proc-net-tcp |
+| proc-net-udp | ✅ | proc-net-tcp |
+| proc-pagetypeinfo | ✅ | proc-pagetypeinfo |
+| proc-partitions | ✅ | aligned-columns |
+| proc-schedstat | ✅ | proc-schedstat |
 | proc-self-mountinfo | ⏳ | — |
 | proc-slabinfo | ✅ | proc-slabinfo |
-| proc-softirqs | ✅ | git-branch-vv |
+| proc-softirqs | ✅ | aligned-columns |
 | proc-stat | ✅ | text-lines |
 | proc-status | ✅ | yaml |
 | proc-swaps | ✅ | aligned-columns |
@@ -813,9 +813,9 @@ yet tidy.
 | ps-aux-sort | ✅ | aligned-columns |
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
-| ps-ejh | ✅ | git-branch-vv |
+| ps-ejh | ✅ | aligned-columns |
 | ps-elf | ✅ | aligned-columns |
-| ps-eo-custom | ⏳ | — |
+| ps-eo-custom | ✅ | ps-eo-custom |
 | ps-forest | ✅ | aligned-columns |
 | psql-conninfo | ✅ | text-lines |
 | psql-df | ✅ | psql-table |
@@ -828,7 +828,7 @@ yet tidy.
 | psql-l-plus | ✅ | psql-table |
 | psql-list | ✅ | psql-table |
 | psql-pg-available-extensions | ✅ | psql-table |
-| psql-pg-stat-bgwriter | ✅ | aligned-columns |
+| psql-pg-stat-bgwriter | ⏳ | — |
 | psql-pg-stat-database | ✅ | psql-table |
 | psql-pg-stat-replication | ✅ | psql-table |
 | psql-pg-stat-user-tables | ✅ | psql-table |
@@ -846,7 +846,7 @@ yet tidy.
 | python-sysconfig | ✅ | block-records |
 | python-version | ✅ | line-records |
 | python-vv | ✅ | line-records |
-| rabbitmqctl-list-queues | ⏳ | — |
+| rabbitmqctl-list-queues | ✅ | rabbitmqctl-list-queues |
 | rc-status | ✅ | rc-status |
 | readelf-header | ✅ | key-value |
 | readelf-sections | ✅ᵇ | readelf-sections (bespoke) |
@@ -858,17 +858,17 @@ yet tidy.
 | redis-info | ✅ | block-records |
 | redis-keys | ✅ | line-records |
 | repquota | ✅ | vertical-line |
-| resolvectl-query | ⏳ | — |
+| resolvectl-query | ✅ | resolvectl-query |
 | resolvectl-statistics | ✅ | block-records |
 | resolvectl-status | ✅ | block-records |
-| restic | ⏳ | — |
+| restic | ✅ | restic |
 | rfkill-list | ✅ | rfkill-list |
 | rkhunter-summary | ✅ | block-records |
 | rndc-status | ✅ | colons |
-| rocm-smi | ⏳ | — |
-| route-6 | ⏳ | — |
+| rocm-smi | ✅ | rocm-smi-concise |
+| route-6 | ✅ | route-6 |
 | route-n | ✅ | aligned-columns |
-| rpcinfo-p | ✅ | git-branch-vv |
+| rpcinfo-p | ✅ | aligned-columns |
 | rpm-V | ✅ | aligned-columns |
 | rpm-qa-last | ✅ | aligned-columns |
 | rpm-qa | ✅ | line-records |
@@ -877,17 +877,17 @@ yet tidy.
 | rpm-ql | ✅ | line-records |
 | rsync_stats | ✅ | colons |
 | ruby-version | ✅ | line-records |
-| rustc-cfg | ⏳ | — |
+| rustc-cfg | ✅ | rustc-cfg |
 | rustc-version | ✅ | line-records |
 | rustup-component | ✅ | line-records |
 | rustup-show | ✅ | block-records |
 | rustup-toolchain | ✅ | line-records |
 | sar-b | ✅ᵇ | sysstat (bespoke) |
 | sar | ✅ᵇ | sysstat (bespoke) |
-| sbt-dependencytree | ⏳ | — |
+| sbt-dependencytree | ✅ | sbt-dependencytree |
 | scala-version | ✅ | line-records |
 | schedtool | ✅ | aligned-columns |
-| sdparm-all | ✅ | git-branch-vv |
+| sdparm-all | ✅ | aligned-columns |
 | sdparm-inquiry | ✅ | colons |
 | seinfo | ✅ | key-value |
 | semanage-boolean | ✅ | semanage-boolean |
@@ -905,16 +905,16 @@ yet tidy.
 | skopeo-inspect | ✅ | json |
 | skopeo-list-tags | ✅ | json |
 | slabtop | ✅ᵇ | slabtop (bespoke) |
-| smartctl-attributes | ⏳ | — |
+| smartctl-attributes | ✅ | smartctl-attributes |
 | smartctl-health | ✅ᵇ | smartctl (bespoke) |
-| smartctl-selftest | ⏳ | — |
+| smartctl-selftest | ✅ | smartctl-selftest |
 | smartctl-x | ✅ | key-value |
 | smbstatus | ✅ | vertical-line |
-| snap-connections | ⏳ | — |
+| snap-connections | ✅ | snap-connections |
 | snap-info | ✅ | indented-hierarchy |
 | snap-list | ✅ | aligned-columns |
-| snmpget | ⏳ | — |
-| snmpwalk | ⏳ | — |
+| snmpget | ✅ | snmpget |
+| snmpwalk | ✅ | snmpwalk |
 | speedtest-cli | ✅ | aligned-columns |
 | sqlite-dbinfo | ✅ | key-value |
 | sqlite-pragma-index-list | ✅ | fixed-width |
@@ -922,14 +922,14 @@ yet tidy.
 | sqlite-tables | ✅ | aligned-columns |
 | squidclient-info | ✅ | key-value |
 | ss-e | ✅ | aligned-columns |
-| ss-listen | ✅ | aligned-columns |
+| ss-listen | ⏳ | — |
 | ss-memory | ✅ᵇ | ss-tulnp (bespoke) |
 | ss-o | ✅ | aligned-columns |
 | ss-s | ✅ | git-log-graph |
 | ss-tcp | ✅ | aligned-columns |
 | ss-tp | ✅ | aligned-columns |
 | ss-tulpn | ✅ | aligned-columns |
-| ss-udp | ✅ | aligned-columns |
+| ss-udp | ⏳ | — |
 | ssh-Q-cipher | ✅ | line-records |
 | ssh-Q-kex | ✅ | line-records |
 | ssh-add-l | ✅ | aligned-columns |
@@ -937,7 +937,7 @@ yet tidy.
 | ssh-keygen-l | ✅ | aligned-columns |
 | ssh-keyscan | ✅ | ssh-keyscan |
 | sshd-t | ✅ | sshd-t |
-| sslscan | ⏳ | — |
+| sslscan | ✅ | sslscan |
 | stack-ls-dependencies | ✅ | line-records |
 | stat | ✅ | yaml |
 | strings | ✅ | text-lines |
@@ -946,25 +946,25 @@ yet tidy.
 | svn-list | ✅ | line-records |
 | svn-status | ✅ | line-records |
 | swapon | ✅ | aligned-columns |
-| swift-version | ⏳ | — |
+| swift-version | ✅ | swift-version |
 | sysctl-net-ipv4 | ✅ | aligned-columns |
 | sysctl | ✅ | aligned-columns |
 | systemctl-cat | ✅ | block-records |
-| systemctl-failed | ✅ | aligned-columns |
+| systemctl-failed | ✅ | systemctl-list-units |
 | systemctl-list-dependencies | ✅ | tree-view |
 | systemctl-list-jobs | ✅ | aligned-columns |
 | systemctl-list-sockets | ✅ | aligned-columns |
 | systemctl-list-timers | ✅ | aligned-columns |
 | systemctl-list-unit-files | ✅ | aligned-columns |
-| systemctl-list-units | ⏳ | — |
+| systemctl-list-units | ✅ | systemctl-list-units |
 | systemctl-list | ✅ | aligned-columns |
 | systemctl-show-environment | ✅ | equals |
 | systemctl-show | ✅ | equals |
-| systemctl-status | ✅ | git-branch-vv |
+| systemctl-status | ✅ | block-records |
 | systemd-analyze-blame | ✅ | line-records |
 | systemd-analyze-critical-chain | ✅ | systemd-analyze-critical-chain |
 | systemd-analyze-dump | ✅ | indented-hierarchy |
-| systemd-analyze-security | ⏳ | — |
+| systemd-analyze-security | ✅ | systemd-analyze-security |
 | systemd-analyze-time | ✅ᵇ | pkg-config (bespoke) |
 | systemd-analyze | ✅ | line-records |
 | systemd-cgls | ✅ | systemd-cgls |
@@ -972,8 +972,8 @@ yet tidy.
 | systemd-detect-virt | ✅ | text-lines |
 | systemd-inhibit-list | ✅ | aligned-columns |
 | systemd-mount-list | ✅ | aligned-columns |
-| systemd-tmpfiles-cat-config | ⏳ | — |
-| tar | ✅ | aligned-columns |
+| systemd-tmpfiles-cat-config | ✅ | systemd-tmpfiles-cat-config |
+| tar | ⏳ | — |
 | taskset | ✅ | line-records |
 | tc-class | ✅ | aligned-columns |
 | tc-filter-show | ✅ᵇ | pkg-config (bespoke) |
@@ -982,7 +982,7 @@ yet tidy.
 | tcpdump-summary | ✅ | tcpdump-summary |
 | telegraf-test | ⏳ | — |
 | terraform-output | ✅ | aligned-columns |
-| terraform-plan | ⏳ | — |
+| terraform-plan | ✅ | terraform-plan-actions |
 | terraform-state-list | ✅ | line-records |
 | terraform-version | ✅ | text-lines |
 | terraform-workspace-list | ✅ | line-records |
@@ -994,18 +994,18 @@ yet tidy.
 | top | ✅ | aligned-columns |
 | traceroute | ✅ᵇ | traceroute (bespoke) |
 | traceroute6 | ✅ᵇ | traceroute (bespoke) |
-| tree | ✅ | tree-view |
+| tree | ✅ | poetry-show-tree |
 | tshark-summary | ✅ | tshark-summary |
 | tune2fs-l | ✅ | key-value |
 | turbostat | ✅ᵇ | turbostat (bespoke) |
 | udevadm-info-all | ✅ | colons |
 | udevadm-info | ✅ | colons |
-| ufw-status-numbered | ⏳ | — |
+| ufw-status-numbered | ✅ | ufw-status-numbered |
 | ufw-status | ✅ | fixed-width |
 | ulimit | ✅ | text-lines |
 | uname-a | ✅ | line-records |
-| unbound-stats | ⏳ | — |
-| unzip | ⏳ | — |
+| unbound-stats | ✅ | unbound-stats |
+| unzip | ✅ | unzip |
 | update_alternatives | ✅ | line-records |
 | upower-enumerate | ✅ | line-records |
 | upower-info | ✅ | key-value |
@@ -1020,12 +1020,12 @@ yet tidy.
 | vault-status | ✅ | vault-status |
 | velero-backup-get | ✅ | aligned-columns |
 | vgdisplay | ✅ | aligned-columns |
-| vgs-vg-free | ✅ | git-branch-vv |
-| vgs | ✅ | git-branch-vv |
-| vmstat-a | ⏳ | — |
+| vgs-vg-free | ✅ | aligned-columns |
+| vgs | ✅ | aligned-columns |
+| vmstat-a | ✅ | vmstat-a |
 | vmstat-d | ✅ | aligned-columns |
-| vmstat-w | ⏳ | — |
-| vmstat | ⏳ | — |
+| vmstat-w | ✅ | vmstat-w |
+| vmstat | ✅ | aligned-columns |
 | vnstat | ✅ | vnstat |
 | w | ✅ᵇ | w-sessions (bespoke) |
 | wg-show | ✅ | indented-hierarchy |
@@ -1052,10 +1052,11 @@ yet tidy.
 | zpool-list | ✅ | aligned-columns |
 | zpool-status | ✅ | zpool-status |
 | zypper-info | ✅ | zypper-info |
-| zypper-packages | ⏳ | — |
-| zypper-patches | ✅ | psql-table |
-| zypper-repos | ✅ | psql-table |
+| zypper-packages | ✅ | zypper-packages |
+| zypper-patches | ⏳ | — |
+| zypper-repos | ⏳ | — |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 958 / 1050** — ✅ 894 via a generic parser, ✅ᵇ 64 via a bespoke strategy.
-⏳ not yet tidy: 7z R-version apache2ctl-modules apt-list-upgradable apt-list az-account-list az-acr-list az-keyvault-list borg bq-ls cabal-freeze collectl consul-kv-get-recurse csvlook dbmate-status dmsetup-table dnf-list dotnet-list-package dpkg-get-selections dstat dub-list elixir-version es-cat-allocation flatpak-remotes fuser-v gcloud-pubsub-topics-list git-config-list-show-origin go-mod-why goose-status grafana-cli-plugins gsutil-ls-l haproxy-vv iperf3 ipmitool-sensor iptables-nat kubectl-get-all liquibase-status loginctl-list-seats lsmem lspci-tv lvdisplay-m masscan networkctl-lldp nodetool-compactionstats nodetool-ring nodetool-status pcp-pmstat pip-config pipenv-graph pnpm-why poetry-show-tree proc-buddyinfo proc-devices proc-diskstats proc-filesystems proc-locks proc-mounts proc-net-dev proc-net-snmp proc-net-tcp proc-pagetypeinfo proc-schedstat proc-self-mountinfo promtool-query ps-eo-custom rabbitmqctl-list-queues resolvectl-query restic rocm-smi route-6 rustc-cfg sbt-dependencytree smartctl-attributes smartctl-selftest snap-connections snmpget snmpwalk sslscan swift-version systemctl-list-units systemd-analyze-security systemd-tmpfiles-cat-config telegraf-test terraform-plan top-batch ufw-status-numbered unbound-stats unzip vmstat-a vmstat-w vmstat zypper-packages
+**Coverage: 1012 / 1050** — ✅ 951 via a generic parser, ✅ᵇ 61 via a bespoke strategy.
+⏳ not yet tidy: aws-ec2-describe-instances aws-ec2-describe-volumes blkid borg clickhouse-processlist dmsetup-table docker-port dpkg-c dpkg-get-selections getent-passwd git-branch-vv git-config-list-show-origin gpg-list-packets hg-branches ip-6-route iptables-nvL liquibase-status lscpu-extended lsusb-v mariadb-innodb-status netstat-anp npm-ls-g npm-ls podman-image-tree proc-buddyinfo proc-filesystems proc-mounts proc-net-snmp proc-self-mountinfo promtool-query psql-pg-stat-bgwriter ss-listen ss-udp tar telegraf-test top-batch zypper-patches zypper-repos
+COV_DONE ✅:950 ✅ᵇ:61 ⏳:38

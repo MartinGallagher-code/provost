@@ -1,0 +1,5 @@
+SEAT
+seat0
+seat1
+
+2 seats listed.

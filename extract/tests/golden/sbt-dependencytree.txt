@@ -1,0 +1,6 @@
+entry1.c1 ch.qos.logback:logback-classic:1.4.14
+entry2.c1 com.typesafe.akka:akka-actor_2.13:2.8.5
+entry3.c1 com.typesafe:config:1.4.3
+entry4.c1 org.scala-lang:scala-library:2.13.12
+entry5.c1 org.slf4j:slf4j-api:2.0.9
+total_entries 5

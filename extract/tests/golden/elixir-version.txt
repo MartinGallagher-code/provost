@@ -1,0 +1,5 @@
+entry1.product Elixir
+entry1.version 1.16.0
+entry1.erlang_otp 26
+entry1.erts 14.1.1
+total_entries 1

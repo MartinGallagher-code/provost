@@ -2,7 +2,7 @@
 ## Name: clickhouse-processlist
 ## Description: Extract rows from a ClickHouse PrettyCompact Unicode box table
 ## Version: 1.0
-## Priority: 26
+## Priority: 9
 ## Technique: yes
 ## Sample: samples/clickhouse-processlist/basic.txt
 
