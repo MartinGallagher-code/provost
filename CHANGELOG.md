@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-07 — opt-in async capture + a concurrency-lock fix it exposed
+- **Feature:** `--async` (and `GLEAN_ASYNC=1`) on inject/`run`. The input is
+  spooled and the extract→classify→commit runs in a **detached background
+  process**, so the shell prompt returns immediately (~0.03s vs ~0.35s). Results
+  appear in `glean log` shortly after; use `--sync`/`--wait` to force the
+  foreground path (or when `GLEAN_ASYNC=1` is the default). The spool lives
+  outside the workspace (never committed) and self-removes on success; on failure
+  it is kept, with a `log.txt`, for inspection. Store serialisation is unchanged —
+  the background child takes the same lock as any writer.
+- **Bug fix (found while testing async):** `_lock` recorded `$$` as the lock
+  owner, but a detached ingest runs in a subshell where `$$` is still the
+  already-exited parent glean. The stale-lock breaker then saw a "dead" owner and
+  could steal a live lock mid-write, producing **duplicate row indices**. `_lock`
+  now records `$BASHPID` (the real current process). This also hardens the
+  existing parallel-`run` path.
+- Files: `glean` (`_ingest_async`; `--async`/`--sync` on `cmd_inject`/`cmd_run`;
+  `_lock` → `$BASHPID`; help + ENV docs), `completions/glean.bash`, `man/glean.1`,
+  `tests/smoke.sh` (+3 async checks incl. a duplicate-index concurrency guard).
+
+## 2026-07-07 — extract engine ~40% faster per invocation (mktemp hoist)
+- **Perf:** piping into `glean` was ~0.6s wall per capture; the extract engine
+  was ~0.5s of that (git commit is ~0.01s). The auto-detect loop spawned a fresh
+  `mktemp` subprocess for **every** strategy it sourced (dozens per run, ~60 for a
+  typical input) just to capture source-time stderr. Hoisted that to a **single**
+  private temp file created once per run and reused (same umask-077, symlink-safe
+  mktemp — just not per-strategy). Measured ~0.60s → ~0.35s per pipe (~42%), with
+  identical classification. If the one temp file can't be created, the loop now
+  degrades to discarding source stderr rather than spawning per-strategy temps.
+- Verified: extract suite 214/214, smoke 44/44, melt 8/8 — all unchanged.
+- Files: `extract/lib/_discovery.sh` (`run_auto_strategies`).
+
 ## 2026-07-07 — hermetic smoke test + doctor warns on a shadowing engine
 - **Bug:** `bash tests/smoke.sh` could fail with the `free` sample classified as
   `dmsetup-table` (or any other type) on a machine whose `GLEAN_HOME` (e.g.

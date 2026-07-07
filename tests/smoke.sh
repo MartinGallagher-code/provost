@@ -94,6 +94,25 @@ check "rm --purge drops the source capture dir" "true" \
 check "rm commits the deletion (history preserved)" "rm: deleted" \
     "$(git -C "$RMWS" log --oneline 2>&1 | head -1)"
 
+# --async: inject returns immediately and the capture lands in the background.
+# Also a concurrency guard — several detached ingests must not collide on row #s
+# (regression guard for the _lock $BASHPID fix; $$ is wrong in the async subshell).
+AWS="$(mktemp -d)/.async"
+async_out="$(printf '              total   used   free\nMem:  100 40 60\n' | GLEAN_WORKSPACE="$AWS" "$GLEAN" --async 2>&1)"
+check "async injection reports it queued in the background" "queued (async" "$async_out"
+# fire a few more without waiting, then poll for all of them to land
+for i in 1 2 3 4; do printf "k=v%s\n" "$i" | GLEAN_WORKSPACE="$AWS" "$GLEAN" --async >/dev/null 2>&1; done
+async_landed=0
+for _try in $(seq 1 100); do
+    rows=0
+    [[ -f "$AWS/provenance.tsv" ]] && rows=$(($(wc -l < "$AWS/provenance.tsv") - 1))
+    [[ "$rows" -ge 5 ]] && { async_landed=1; break; }
+    sleep 0.2
+done
+check "async captures land in the background store" "1" "$async_landed"
+async_dups=$(tail -n +2 "$AWS/provenance.tsv" | cut -f1 | sort | uniq -d | wc -l | tr -d ' ')
+check "no duplicate row indices across async captures" "0" "$async_dups"
+
 # install + symlink launcher: glean must find its bundled trees when run via a
 # symlink on PATH (regression guard for the GLEAN_ROOT symlink-resolution fix)
 IPREFIX="$(mktemp -d)/opt"

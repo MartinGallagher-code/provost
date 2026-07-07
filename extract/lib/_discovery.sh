@@ -511,6 +511,15 @@ run_auto_strategies () {
 
     local strategy_version strategy_file strategy_name strategy_priority _eas_rc
 
+    # PERF: one private temp file for source-time stderr, reused across every
+    # strategy in this run, instead of an mktemp subprocess per strategy (the
+    # detection loop sources dozens of strategies — that was ~60 mktemp spawns
+    # per invocation). Same symlink-safe umask-077 mktemp as before, just hoisted.
+    local _old_umask _src_tmpf
+    _old_umask=$(umask); umask 077
+    _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || _src_tmpf=""
+    umask "$_old_umask"
+
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
 
@@ -547,20 +556,24 @@ run_auto_strategies () {
             _check_replay_version "$strategy_name" "$strategy_version"
         fi
 
-        # ENV-160: mktemp + umask 077 instead of the predictable
-        # `${TMPDIR:-/tmp}/_mfe_src_err.$$` (symlink-attack vector).
-        local _old_umask _src_tmpf
-        _old_umask=$(umask); umask 077
-        _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || { umask "$_old_umask"; continue; }
-        umask "$_old_umask"
-        if ! source "$strategy_file" 2>"$_src_tmpf"; then
-            _log_warn "Failed to source strategy '$strategy_name', skipping"
-            [[ -s "$_src_tmpf" ]] && _log_debug "Source error: $(cat "$_src_tmpf")"
-            rm -f "$_src_tmpf"
-            continue
+        # Capture source-time stderr into the reused private temp file (see the
+        # umask-077 mktemp hoisted above the loop). If it couldn't be created,
+        # fall back to discarding stderr rather than spawning a per-strategy one.
+        if [[ -n "$_src_tmpf" ]]; then
+            if ! source "$strategy_file" 2>"$_src_tmpf"; then
+                _log_warn "Failed to source strategy '$strategy_name', skipping"
+                [[ -s "$_src_tmpf" ]] && _log_debug "Source error: $(cat "$_src_tmpf")"
+                : > "$_src_tmpf"
+                continue
+            fi
+            [[ -s "$_src_tmpf" ]] && _log_debug "Source warnings for '$strategy_name': $(cat "$_src_tmpf")"
+            : > "$_src_tmpf"
+        else
+            if ! source "$strategy_file" 2>/dev/null; then
+                _log_warn "Failed to source strategy '$strategy_name', skipping"
+                continue
+            fi
         fi
-        [[ -s "$_src_tmpf" ]] && _log_debug "Source warnings for '$strategy_name': $(cat "$_src_tmpf")"
-        rm -f "$_src_tmpf"
 
         if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
             unset -f strategy_detect strategy_extract 2>/dev/null
@@ -583,6 +596,7 @@ run_auto_strategies () {
         unset _arr 2>/dev/null
         if [[ $_eas_rc -eq 2 ]]; then break; fi
     done <<< "$_SORTED_STRATEGIES"
+    [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0
 }
 

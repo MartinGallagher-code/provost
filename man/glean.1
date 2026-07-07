@@ -8,7 +8,7 @@ glean \- turn command output into data
 .I command
 |
 .B glean
-[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR]
+[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--async\fR]
 .br
 .B glean
 \fIsubcommand\fR [\fIargs...\fR]
@@ -25,9 +25,13 @@ Execute a command, capture its combined output as a commit, auto-detect the
 format, and file it into a typed dataset.
 .TP
 .I command
-| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR]
+| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--async\fR]
 Inject piped/stdin (or a FILE argument) the same way as
 .BR run .
+With \fB--async\fR (or \fBGLEAN_ASYNC=1\fR) the capture runs in a detached
+background process and the prompt returns at once; results appear in
+.B glean log
+shortly after. \fB--sync\fR/\fB--wait\fR forces the foreground path.
 .TP
 .B source \fI#N\fR
 Show the original captured input behind dataset row \fI#N\fR.
@@ -96,6 +100,9 @@ Explicit store override (wins over GLEAN_HOME).
 .TP
 .B GLEAN_MIN_CONFIDENCE
 Commit threshold 0\-100 (default: 50).
+.TP
+.B GLEAN_ASYNC
+If 1, capture in a detached background process by default (\fB--sync\fR overrides).
 .TP
 .B GLEAN_MAX_INPUT
 Maximum input bytes (default: 10485760).
