@@ -17,14 +17,27 @@ _ac_body () {
         [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
     done <<< "$text"
 
+    # A leading `#`-comment block (conda list, opam list) mixes prose banners with
+    # a commented column header on its last line. Drop the prose lines but keep
+    # that last comment as the header, de-hashed — held here until the first data
+    # line, so each new `#` line overwrites the previous candidate.
+    local held=""
     while IFS= read -r _l; do
         if [[ $started -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
             _tk=(); read -ra _tk <<< "$_l"
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
+            if [[ "$_l" =~ ^[[:space:]]*# ]]; then
+                # Strip the leading `#` (and one following space) — a candidate header.
+                local _h="${_l#"${_l%%[!#[:space:]]*}"}"
+                [[ -n "${_h//[[:space:]]/}" ]] && held="$_h"
+                continue
+            fi
             # A short word-like preamble line (e.g. `apt list`'s "Listing…") before
             # a real table — but NOT a `{`/`[`/`<` structural line (JSON/XML), which
             # must keep aligned-columns from matching those formats.
             [[ $has_table -eq 1 && ${#_tk[@]} -lt 2 && "$_l" =~ ^[[:space:]]*[A-Za-z] ]] && continue
+            # First real line: emit the held commented header (if any) before it.
+            [[ -n "$held" ]] && out+="$held"$'\n'
             started=1
         fi
         out+="$_l"$'\n'
@@ -119,6 +132,22 @@ _ac_shape () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+
+    # Decline pure key/value blocks — `label : value` (space-colon-space, e.g.
+    # `pacman -Qi`) or `Key=Value` (e.g. `systemctl show`). These are single-record
+    # snapshots the colons/equals parsers tidy to one wide row; aligned-columns
+    # would wrongly split them into a ragged 2-column table. A real table row has
+    # no such leading-label separator, so it stays with aligned-columns.
+    local _nb=0 _kv=0 _cl
+    while IFS= read -r _cl; do
+        [[ -z "${_cl//[[:space:]]/}" ]] && continue
+        _nb=$((_nb + 1))
+        if [[ "$_cl" =~ ^[[:space:]]*[A-Za-z][^:=]*[[:space:]]:[[:space:]] \
+              || "$_cl" =~ ^[[:space:]]*[A-Za-z][A-Za-z0-9_]*= ]]; then
+            _kv=$((_kv + 1))
+        fi
+    done <<< "$text"
+    [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]] && return 1
 
     # Structural detection: a header row (or a headerless block) of columns with
     # a consistent count. Recognises the whole class of whitespace-columnar tool

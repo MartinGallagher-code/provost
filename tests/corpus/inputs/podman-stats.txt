@@ -1,0 +1,5 @@
+ID            NAME          CPU %       MEM USAGE / LIMIT   MEM %       NET IO            BLOCK IO          PIDS
+a1b2c3d4e5f6  web-nginx     0.15%       12.4MB / 2.0GB      0.61%       1.2MB / 840kB     0B / 8.19kB       5
+b2c3d4e5f6a7  db-postgres   1.42%       128.7MB / 2.0GB     6.29%       620kB / 1.1MB     4.1MB / 24.6MB    12
+c3d4e5f6a7b8  cache-redis   0.08%       6.8MB / 2.0GB       0.33%       340kB / 210kB     0B / 0B           4
+d4e5f6a7b8c9  worker-app    3.21%       210.5MB / 2.0GB     10.28%      2.4MB / 3.9MB     12.3MB / 1.8MB    28

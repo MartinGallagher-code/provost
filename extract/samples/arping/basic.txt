@@ -1,0 +1,9 @@
+ARPING 192.168.1.1
+60 bytes from 00:14:bf:e4:5a:6c (192.168.1.1): index=0 time=1.234 msec
+60 bytes from 00:14:bf:e4:5a:6c (192.168.1.1): index=1 time=0.876 msec
+60 bytes from 00:14:bf:e4:5a:6c (192.168.1.1): index=2 time=0.912 msec
+60 bytes from 00:14:bf:e4:5a:6c (192.168.1.1): index=3 time=1.005 msec
+
+--- 192.168.1.1 statistics ---
+4 packets transmitted, 4 packets received,   0% unanswered (0 extra)
+rtt min/avg/max/std-dev = 0.876/1.007/1.234/0.135 ms

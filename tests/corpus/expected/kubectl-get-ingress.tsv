@@ -1,0 +1,5 @@
+n	NAME	CLASS	HOSTS	ADDRESS	PORTS	AGE	total_entries
+1	web-ingress	nginx	app.example.com	34.120.10.5	80,	443_14d	4
+2	api-ingress	nginx	api.example.com	34.120.10.5	80,	443_14d	4
+3	admin-ingress	nginx	admin.example.com	34.120.10.5	80	6d	4
+4	grafana	nginx	grafana.example.com	34.120.10.5	80,	443_2d	4

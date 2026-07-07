@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-07 — 300/300 tidy coverage (third 100 driven to 100%)
+- Grew the corpus to **300 tools** (100 new: extended Kubernetes/cloud/IaC,
+  containers, networking, systemd/storage, process/perf & security, package
+  managers, language/hardware/DB) and drove them to **300/300 tidy** — now
+  **264 via generic parsers, 36 bespoke**, zero gaps. New inputs under
+  `tests/corpus/inputs/`, manifest rows in `tests/corpus/expected.tsv`, goldens
+  re-frozen; `tests/corpus/COVERAGE.md` regenerated. (100 new inputs authored in
+  parallel by seven subagents; the 20 new parsers by four more, then integrated
+  and de-conflicted here.)
+- **New generic parser** — `colon-fields` (`extract/strategies/delimited/`,
+  priority 48): colon-delimited records (`/etc/passwd`/`group`/`getent`), keyed on
+  the first whitespace token carrying ≥3 colons so a stray `10:15:42` timestamp
+  never trips it. Also now cleanly tidies `lsscsi`'s `[H:C:I:L]` rows.
+- **Generic-parser improvements** (fixed several tools without a bespoke rule):
+  - `aligned-columns` now declines pure key/value blocks (`label : value` /
+    `Key=Value`) so `pacman -Qi` → `colons` and `systemctl show` → `equals` as
+    single wide rows; and collapses a leading `#`-comment block to its last line
+    as a de-hashed header (fixes `conda list`, `opam list`).
+  - `text-lines` accepts a lone single-token line (`getenforce` → "Enforcing")
+    while still declining multi-word prose.
+  - `sqlite-output` ignores ASCII tree glyphs (`|__`) when counting pipe columns,
+    so it no longer claims `lsusb -t` (git-diff-stat still works).
+  - `pkg-config` declines all-caps header tables (routing `prlimit`/`aws`/`who`
+    to `aligned-columns` for proper multi-column output).
+- **New bespoke parsers** (19): storage/trees `zpool-status`, `btrfs-filesystem-show`,
+  `multipath-ll`, `lsusb-t`; network `nft-list-ruleset`, `ip-maddr`, `rfkill-list`,
+  `bridge-fdb`, `netstat-s`; lists/footers `arping`, `bundle-list`, `php-modules`,
+  `go-list`, `getconf`; stats/kv `memcached-stats`, `numastat`, `pmap`,
+  `zypper-search`, `vault-status`.
+- Tests: extract suite **214/214**, smoke 33/33, melt 8/8, corpus golden 264/264.
+
 ## 2026-07-06 — 200/200 tidy coverage (second 100 driven to 100%)
 - Drove the full 200-tool corpus to **200/200 tidy** (166 via generic parsers,
   34 bespoke) — up from 169/200. The 31 remaining gaps were closed by new,

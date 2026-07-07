@@ -1,0 +1,6 @@
+n	MACHINE	CLASS	SERVICE	OS	VERSION	ADDRESSES	total_entries
+1	debian-web	container	systemd-nspawn	debian	12	10.0.0.11	5
+2	ubuntu-build	container	systemd-nspawn	ubuntu	24.04	10.0.0.12	5
+3	fedora-ci	container	systemd-nspawn	fedora	40	10.0.0.13	5
+4	alpine-edge	container	systemd-nspawn	alpine	3.20	10.0.0.14	5
+5	arch-dev	container	systemd-nspawn	arch	rolling	10.0.0.15	5

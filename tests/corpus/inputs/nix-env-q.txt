@@ -1,0 +1,6 @@
+bash-interactive-5.2p26
+coreutils-9.5
+curl-8.6.0
+git-2.44.0
+nix-2.18.1
+openssl-3.0.13

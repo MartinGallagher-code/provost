@@ -1,0 +1,9 @@
+n	line	total_entries
+1	/:_Bus_02.Port_1:_Dev_1,_Class=root_hub,_Driver=xhci_hcd/4p,_10000M	8
+2	|_Port_2:_Dev_2,_If_0,_Class=Mass_Storage,_Driver=usb-storage,_5000M	8
+3	/:_Bus_01.Port_1:_Dev_1,_Class=root_hub,_Driver=xhci_hcd/12p,_480M	8
+4	|_Port_3:_Dev_4,_If_0,_Class=Human_Interface_Device,_Driver=usbhid,_12M	8
+5	|_Port_3:_Dev_4,_If_1,_Class=Human_Interface_Device,_Driver=usbhid,_12M	8
+6	|_Port_5:_Dev_3,_If_0,_Class=Wireless,_Driver=btusb,_12M	8
+7	|_Port_5:_Dev_3,_If_1,_Class=Wireless,_Driver=btusb,_12M	8
+8	|_Port_7:_Dev_5,_If_0,_Class=Video,_Driver=uvcvideo,_480M	8

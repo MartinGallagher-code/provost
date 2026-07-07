@@ -18,15 +18,28 @@ strategy_detect () {
     # Structured markup is owned by real parsers; never wrap it line-by-line.
     [[ "$text" == *'{'* || "$text" == *'":'* ]] && return 1
 
-    local nb=0 _l
+    local nb=0 first="" _l
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         nb=$((nb + 1))
+        [[ $nb -eq 1 ]] && first="$_l"
         [[ $nb -ge 2 ]] && break
     done <<< "$text"
 
-    # Need at least two non-blank lines to call it a one-column list.
-    [[ $nb -ge 2 ]] || return 1
+    [[ $nb -ge 1 ]] || return 1
+
+    # A lone single line is only a record if it is a single bare token (e.g.
+    # `getenforce`'s "Enforcing") — never a multi-word prose sentence like
+    # "no extractable content here", which has no tabular structure and should
+    # fall through to nothing rather than be carved into a spurious 1-cell row.
+    if [[ $nb -eq 1 ]]; then
+        local trimmed="${first#"${first%%[![:space:]]*}"}"
+        trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+        [[ "$trimmed" == *[[:space:]]* ]] && return 1
+    fi
+
+    # Otherwise: >=2 non-blank lines — one row per line, single column. Runs only
+    # when every more-specific parser (incl. line-records) has declined.
     _STRATEGY_CONFIDENCE=55
     return 0
 }

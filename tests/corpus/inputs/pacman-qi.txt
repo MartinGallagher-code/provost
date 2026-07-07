@@ -1,0 +1,20 @@
+Name            : bash
+Version         : 5.2.021-5
+Description     : The GNU Bourne Again shell
+Architecture    : x86_64
+URL             : https://www.gnu.org/software/bash/bash.html
+Licenses        : GPL3
+Groups          : None
+Provides        : sh
+Depends On      : readline  libreadline.so=8-64  glibc  ncurses
+Optional Deps   : bash-completion: for tab completion
+Required By     : ca-certificates-utils  db  device-mapper
+Conflicts With  : None
+Replaces        : None
+Installed Size  : 8.60 MiB
+Packager        : Frederik Schwan <freswa@archlinux.org>
+Build Date      : Tue 09 Jan 2024 08:15:42 PM UTC
+Install Date    : Mon 15 Jan 2024 10:02:11 AM UTC
+Install Reason  : Explicitly installed
+Install Script  : Yes
+Validated By    : Signature

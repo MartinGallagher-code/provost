@@ -1,0 +1,6 @@
+repo id                          repo name
+appstream                        Rocky Linux 9 - AppStream
+baseos                           Rocky Linux 9 - BaseOS
+crb                              Rocky Linux 9 - CRB
+epel                             Extra Packages for Enterprise Linux 9 - x86_64
+extras                           Rocky Linux 9 - Extras

@@ -1,0 +1,4 @@
+n	id	name	type	soft	hard	total_entries
+1	0	phy0	Wireless_LAN	no	no	3
+2	1	hci0	Bluetooth	yes	no	3
+3	2	acpi-wmi	Wireless_WAN	yes	yes	3

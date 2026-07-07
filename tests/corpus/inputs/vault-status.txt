@@ -1,0 +1,15 @@
+Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false
+Total Shares    5
+Threshold       3
+Version         1.15.4
+Build Date      2024-01-04T10:57:13Z
+Storage Type    raft
+Cluster Name    vault-cluster-8f2a1b3c
+Cluster ID      1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+HA Enabled      true
+HA Cluster      https://10.0.1.5:8201
+HA Mode         active

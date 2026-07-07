@@ -1,0 +1,7 @@
+n	hcil	devnode	major_minor	dm_status	path_status	online	total_entries
+1	6:0:0:0	sdc	8:32	active	ready	running	6
+2	7:0:0:0	sde	8:64	active	ready	running	6
+3	6:0:0:1	sdd	8:48	active	ghost	running	6
+4	7:0:0:1	sdf	8:80	active	ghost	running	6
+5	6:0:0:2	sdg	8:96	active	ready	running	6
+6	7:0:0:2	sdh	8:112	active	ready	running	6

@@ -1,0 +1,6 @@
+NAME                    IMAGE                COMMAND                  SERVICE     CREATED         STATUS                   PORTS
+myapp-web-1             nginx:latest         "/docker-entrypoint.…"   web         5 minutes ago   Up 5 minutes             0.0.0.0:8080->80/tcp
+myapp-api-1            myorg/api:v1.4       "node server.js"         api         5 minutes ago   Up 5 minutes             0.0.0.0:3000->3000/tcp
+myapp-db-1             postgres:15.3        "docker-entrypoint.s…"   db          5 minutes ago   Up 5 minutes (healthy)   5432/tcp
+myapp-redis-1         redis:7-alpine       "docker-entrypoint.s…"   redis       5 minutes ago   Up 5 minutes             6379/tcp
+myapp-worker-1        myorg/worker:v1.4    "celery -A app worke…"   worker      5 minutes ago   Exited (0) 2 minutes ago

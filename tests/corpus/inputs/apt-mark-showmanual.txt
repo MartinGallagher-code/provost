@@ -1,0 +1,7 @@
+bash
+build-essential
+curl
+git
+htop
+vim
+zsh

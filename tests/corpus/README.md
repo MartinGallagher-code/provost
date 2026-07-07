@@ -40,14 +40,31 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**200 tools tested; all 200 tidy — 166 via a generic parser, 34 via a bespoke
+**300 tools tested; all 300 tidy — 264 via a generic parser, 36 via a bespoke
 strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list. (The
 first 100 — core sysadmin — plus a second 100 adding git/VCS, language runtimes,
-binutils, databases, monitoring, cloud/k8s, and more security/net.)
+binutils, databases, monitoring, cloud/k8s, and more security/net; plus a third
+100 extending into Kubernetes/cloud/IaC, containers, deeper networking,
+systemd/storage trees, process/perf & security, package managers, and
+language/hardware/DB.)
 
-The last 31 gaps in the second 100 were closed with a handful of format-family
-parsers, not one-per-tool: `psql-table` (box tables with `---+---` separators),
-`version-string` (`node -v`, `cmake --version`), the monitoring cluster
+The 24 gaps in the third 100 were closed the same way — one new generic parser
+plus a few refinements, and bespoke parsers only where the format is genuinely
+idiosyncratic. New generic: `colon-fields` (colon-delimited records like
+`/etc/passwd`/`group`/`getent`). Generic refinements: `aligned-columns` now defers
+pure key/value blocks (`pacman -Qi` → `colons`, `systemctl show` → `equals`) and
+collapses `#`-comment headers (`conda list`, `opam list`); `text-lines` accepts a
+lone single-token line (`getenforce`); `sqlite-output` ignores `|__` tree glyphs
+(`lsusb -t`); `pkg-config` defers all-caps header tables (`prlimit`/`aws`/`who`).
+Bespoke (19): storage trees `zpool-status`/`btrfs-filesystem-show`/`multipath-ll`/
+`lsusb-t`; grouped network `netstat-s`/`nft-list-ruleset`/`ip-maddr`/`rfkill-list`/
+`bridge-fdb`; `vault-status`, `memcached-stats`, `pmap`, `numastat`,
+`zypper-search`, and the list/footer tools `arping`/`bundle-list`/`php-modules`/
+`go-list`/`getconf`.
+
+The second 100's last 31 gaps were closed earlier with format-family parsers:
+`psql-table` (box tables with `---+---` separators), `version-string`
+(`node -v`, `cmake --version`), the monitoring cluster
 (`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`, `perf-counters`),
 binutils/packages (`objdump-headers`/`readelf-sections`/`ldconfig-p`/`pkg-config`/
 `gem-list`/`composer-show`), network/VCS/security (`arp-scan`/`aws-s3-ls`/`host`/
@@ -55,10 +72,11 @@ binutils/packages (`objdump-headers`/`readelf-sections`/`ldconfig-p`/`pkg-config
 (the last-resort one-column dump for ragged text like `strings`).
 
 The generic parsers (led by `aligned-columns` with its header/headerless/two-line
-modes, plus `line-records`, `colons`, `yaml`, `key-value`, `equals`,
-`indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`, `tree-view`,
-`vertical-line`, `psql-table`, `version-string`, and the last-resort `text-lines`)
-carry the common 166. The 34 bespoke ones are genuinely idiosyncratic formats —
+modes, plus `line-records`, `colons`, `colon-fields`, `yaml`, `key-value`,
+`equals`, `indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`,
+`tree-view`, `vertical-line`, `psql-table`, `version-string`, and the last-resort
+`text-lines`) carry the common 264. The 36 bespoke ones are genuinely idiosyncratic
+formats —
 `mpstat`/`sar`/`pidstat` (sysstat banners), `ping`/`traceroute`/`w`,
 `dmidecode`/`lspci`/`uname`/`uptime`, the monitoring cluster
 (`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`/`perf-counters`),
@@ -71,7 +89,7 @@ output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
 
 ### Not yet tidy — none
 
-All 200 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
+All 300 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
 corpus should first be checked against the generic parsers (`run.sh`); reach for
 a bespoke strategy only when the format is genuinely idiosyncratic and no generic
 parser produces a correct tidy shape.

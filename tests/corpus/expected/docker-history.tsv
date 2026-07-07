@@ -1,0 +1,9 @@
+n	IMAGE	CREATED	BY	SIZE	COMMENT	total_entries
+1	605c77e624dd	weeks	ago	/bin/sh	-c_#(nop)_CMD_["nginx"_"-g"_"daemon…_0B	8
+2	<missing>	weeks	ago	/bin/sh	-c_#(nop)_STOPSIGNAL_SIGQUIT_0B	8
+3	<missing>	weeks	ago	/bin/sh	-c_#(nop)_EXPOSE_80_0B	8
+4	<missing>	weeks	ago	/bin/sh	-c_#(nop)_ENTRYPOINT_["/docker-entr…_0B	8
+5	<missing>	weeks	ago	/bin/sh	-c_#(nop)_COPY_multi:0dc0e34d541bedd…_4.62kB	8
+6	<missing>	weeks	ago	/bin/sh	-c_set_-x_&&_addgroup_--system_-…_61.1MB	8
+7	<missing>	weeks	ago	/bin/sh	-c_#(nop)_CMD_["bash"]_0B	8
+8	<missing>	weeks	ago	/bin/sh	-c_#(nop)_ADD_file:d34ac1a7f68e40b9d…_80.4MB	8

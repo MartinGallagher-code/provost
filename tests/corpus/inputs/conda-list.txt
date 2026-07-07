@@ -1,0 +1,9 @@
+# packages in environment at /opt/conda/envs/ds:
+#
+# Name                    Version                   Build  Channel
+numpy                     1.26.4          py311h64a7726_0    conda-forge
+pandas                    2.2.1           py311h320fe9a_0    conda-forge
+python                    3.11.8          hab00c5b_0_cpython  conda-forge
+requests                  2.31.0          pyhd8ed1ab_0        conda-forge
+scipy                     1.12.0          py311h517d4fd_2    conda-forge
+setuptools                69.1.1          pyhd8ed1ab_0        conda-forge

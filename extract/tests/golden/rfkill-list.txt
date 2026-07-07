@@ -1,0 +1,16 @@
+entry1.id 0
+entry1.name phy0
+entry1.type Wireless_LAN
+entry1.soft no
+entry1.hard no
+entry2.id 1
+entry2.name hci0
+entry2.type Bluetooth
+entry2.soft yes
+entry2.hard no
+entry3.id 2
+entry3.name acpi-wmi
+entry3.type Wireless_WAN
+entry3.soft yes
+entry3.hard yes
+total_entries 3

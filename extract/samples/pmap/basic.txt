@@ -1,0 +1,9 @@
+3421:   /usr/bin/python3 /opt/app/server.py
+0000556f2a1a1000    148K r-x-- python3.11
+0000556f2a43f000     16K r---- python3.11
+0000556f2a443000      8K rw--- python3.11
+00007f9c3c000000    132K rw---   [ anon ]
+00007f9c44a21000   1804K r-x-- libc.so.6
+00007f9c44be4000     16K r---- libc.so.6
+00007ffd8b3a2000    132K rw---   [ stack ]
+ total           102400K

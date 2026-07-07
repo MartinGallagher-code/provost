@@ -1,0 +1,14 @@
+entry1.Seal_Type shamir
+entry1.Initialized true
+entry1.Sealed false
+entry1.Total_Shares 5
+entry1.Threshold 3
+entry1.Version 1.15.4
+entry1.Build_Date 2024-01-04T10:57:13Z
+entry1.Storage_Type raft
+entry1.Cluster_Name vault-cluster-8f2a1b3c
+entry1.Cluster_ID 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+entry1.HA_Enabled true
+entry1.HA_Cluster https://10.0.1.5:8201
+entry1.HA_Mode active
+total_entries 1

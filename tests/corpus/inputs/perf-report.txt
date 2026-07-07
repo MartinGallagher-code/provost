@@ -1,0 +1,10 @@
+# Overhead  Command    Shared Object        Symbol
+# ........  .........  ...................  ....................................
+#
+    24.13%  python3    libc.so.6            [.] __memmove_avx_unaligned_erms
+    18.07%  python3    python3.11           [.] _PyEval_EvalFrameDefault
+    11.42%  python3    libpython3.11.so.1   [.] lookdict_unicode_nodummy
+     9.85%  python3    [kernel.kallsyms]    [k] copy_user_enhanced_fast_string
+     6.31%  python3    libc.so.6            [.] malloc
+     4.02%  python3    python3.11           [.] PyObject_GC_Track
+     2.88%  python3    [kernel.kallsyms]    [k] __schedule

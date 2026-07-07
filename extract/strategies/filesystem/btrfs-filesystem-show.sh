@@ -1,0 +1,58 @@
+#!/bin/bash
+## Name: btrfs-filesystem-show
+## Description: Extract per-device rows from `btrfs filesystem show` output
+## Version: 1.0
+## Priority: 27
+## Technique: yes
+## Sample: samples/btrfs-filesystem-show/basic.txt
+
+strategy_detect () {
+    local text="$1"
+    _STRATEGY_CONFIDENCE=0
+    _is_json "$text" && return 1
+    # `btrfs filesystem show` is distinctive: `Label:` + `uuid:` headers, a
+    # `Total devices N FS bytes used ...` line, and `devid ... path /dev/...` rows.
+    local has_label=0 has_total=0 has_devid=0
+    while IFS= read -r line; do
+        [[ "$line" == "Label:"* && "$line" == *"uuid:"* ]] && has_label=1
+        [[ "$line" == *"Total devices"* && "$line" == *"FS bytes used"* ]] && has_total=1
+        [[ "$line" == *"devid"* && "$line" == *"path "* ]] && has_devid=1
+    done <<< "$text"
+    if [[ $has_label -eq 1 && $has_total -eq 1 && $has_devid -eq 1 ]]; then
+        _STRATEGY_CONFIDENCE=88
+        return 0
+    fi
+    return 1
+}
+
+strategy_extract () {
+    local text="$1"
+    local result=""
+    local entry=0
+    while IFS= read -r line; do
+        # Device rows look like: devid  1 size 931.51GiB used 420.00GiB path /dev/sda1
+        [[ "$line" == *"devid"* && "$line" == *"path "* ]] || continue
+
+        read -ra f <<< "$line"
+        # Pull each field by position relative to its keyword.
+        local devid="" size="" used="" path=""
+        local i
+        for ((i = 0; i < ${#f[@]}; i++)); do
+            case "${f[$i]}" in
+                devid) devid="${f[$((i + 1))]}" ;;
+                size)  size="${f[$((i + 1))]}" ;;
+                used)  used="${f[$((i + 1))]}" ;;
+                path)  path="${f[$((i + 1))]}" ;;
+            esac
+        done
+        [[ -n "$devid" && -n "$path" ]] || continue
+
+        entry=$((entry + 1))
+        result+="entry${entry}.devid ${devid}"$'\n'
+        result+="entry${entry}.size ${size}"$'\n'
+        result+="entry${entry}.used ${used}"$'\n'
+        result+="entry${entry}.path ${path}"$'\n'
+    done <<< "$text"
+    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+    echo "$result"
+}

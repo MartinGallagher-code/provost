@@ -1,0 +1,8 @@
+aws_instance.web[0]
+aws_instance.web[1]
+aws_security_group.allow_http
+aws_s3_bucket.assets
+aws_iam_role.app
+module.vpc.aws_vpc.this[0]
+module.vpc.aws_subnet.public[0]
+module.vpc.aws_subnet.public[1]

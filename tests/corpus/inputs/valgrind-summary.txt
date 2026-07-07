@@ -1,0 +1,12 @@
+==31542== HEAP SUMMARY:
+==31542==     in use at exit: 4,192 bytes in 3 blocks
+==31542==   total heap usage: 1,284 allocs, 1,281 frees, 2,048,912 bytes allocated
+==31542==
+==31542== LEAK SUMMARY:
+==31542==    definitely lost: 128 bytes in 1 blocks
+==31542==    indirectly lost: 64 bytes in 2 blocks
+==31542==      possibly lost: 0 bytes in 0 blocks
+==31542==    still reachable: 4,000 bytes in 0 blocks
+==31542==         suppressed: 0 bytes in 0 blocks
+==31542==
+==31542== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

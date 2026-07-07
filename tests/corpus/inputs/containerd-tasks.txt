@@ -1,0 +1,7 @@
+TASK                                             PID       STATUS
+nginx-web                                        2451      RUNNING
+redis-cache                                      2688      RUNNING
+postgres-db                                      2712      RUNNING
+worker-1                                         3104      RUNNING
+batch-job-7                                      3390      STOPPED
+sidecar-proxy                                    3455      PAUSED

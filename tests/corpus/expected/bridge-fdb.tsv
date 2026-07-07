@@ -1,0 +1,7 @@
+n	mac	dev	vlan	master	flags	total_entries
+1	33:33:00:00:00:01	eth0	NONE	self	permanent	6
+2	01:00:5e:00:00:01	eth0	NONE	self	permanent	6
+3	b8:27:eb:12:34:56	eth0	NONE	br0	NONE	6
+4	aa:bb:cc:dd:ee:01	eth0	10	br0	NONE	6
+5	de:ad:be:ef:00:02	vnet0	NONE	br0	permanent	6
+6	00:16:3e:aa:bb:cc	vnet1	NONE	br0	static	6

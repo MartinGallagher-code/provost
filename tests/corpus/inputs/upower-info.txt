@@ -1,0 +1,24 @@
+  native-path:          BAT0
+  vendor:               LGC
+  model:                5B10W13930
+  serial:               1234
+  power supply:         yes
+  updated:              Mon 06 Jul 2026 09:14:52 AM UTC (34 seconds ago)
+  has history:          yes
+  has statistics:       yes
+  battery
+    present:             yes
+    rechargeable:        yes
+    state:               discharging
+    warning-level:       none
+    energy:              42.117 Wh
+    energy-empty:        0 Wh
+    energy-full:         51.234 Wh
+    energy-full-design:  57.0 Wh
+    energy-rate:         9.812 W
+    voltage:             11.523 V
+    charge-cycles:       142
+    time to empty:       4.3 hours
+    percentage:          82%
+    capacity:            89.885%
+    technology:          lithium-ion

@@ -1,0 +1,17 @@
+apparmor module is loaded.
+42 profiles are loaded.
+38 profiles are in enforce mode.
+   /usr/bin/man
+   /usr/sbin/cupsd
+   /usr/sbin/nginx
+   /usr/sbin/tcpdump
+4 profiles are in complain mode.
+   /usr/bin/ping
+   /usr/sbin/dnsmasq
+6 processes have profiles defined.
+5 processes are in enforce mode.
+   /usr/sbin/nginx (1290)
+   /usr/sbin/nginx (1291)
+1 processes are in complain mode.
+   /usr/sbin/dnsmasq (988)
+0 processes are unconfined but have a profile defined.

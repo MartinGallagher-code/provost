@@ -1,0 +1,6 @@
+CONTAINER ID    IMAGE                              COMMAND                   CREATED           STATUS    PORTS                   NAMES
+a1b2c3d4e5f6    docker.io/library/nginx:latest     "/docker-entrypoint.…"    5 minutes ago     Up        0.0.0.0:80->80/tcp      web
+b2c3d4e5f6a7    docker.io/library/redis:7-alpine   "docker-entrypoint.s…"    2 hours ago       Up        6379/tcp                cache
+c3d4e5f6a7b8    docker.io/library/postgres:15.3    "docker-entrypoint.s…"    2 hours ago       Up        0.0.0.0:5432->5432/tcp  db
+d4e5f6a7b8c9    ghcr.io/myorg/worker:v2.1          "/app/worker"             30 minutes ago    Up        -                       worker-1
+e5f6a7b8c9d0    docker.io/library/busybox:latest   "sleep 3600"              10 minutes ago    Exited    -                       tmp-job

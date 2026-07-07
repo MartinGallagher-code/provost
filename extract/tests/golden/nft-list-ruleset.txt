@@ -1,0 +1,7 @@
+entry1.rule ct_state_established,related_accept
+entry2.rule iif_"lo"_accept
+entry3.rule ip_protocol_icmp_accept
+entry4.rule tcp_dport_22_accept
+entry5.rule tcp_dport_{_80,_443_}_accept
+entry6.rule counter_packets_1240_bytes_98230_drop
+total_entries 6

@@ -1,0 +1,7 @@
+REPOSITORY                          TAG      IMAGE ID       CREATED         SIZE
+docker.io/library/nginx             latest   605c77e624dd   2 weeks ago     146 MB
+localhost/my-app                    v1.2.0   9f3a1b2c4d5e   3 days ago      284 MB
+localhost/my-app                    latest   9f3a1b2c4d5e   3 days ago      284 MB
+docker.io/library/golang            1.21     b4a2c1d3e5f6   5 weeks ago     841 MB
+registry.access.redhat.com/ubi9     latest   c7d8e9f0a1b2   4 weeks ago     215 MB
+<none>                              <none>   1a2b3c4d5e6f   6 days ago      312 MB

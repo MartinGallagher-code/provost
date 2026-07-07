@@ -1,0 +1,5 @@
+NAME              REGION      EKSCTL CREATED
+prod-cluster      us-east-1   True
+staging-cluster   us-east-1   True
+dev-cluster       us-west-2   True
+data-cluster      eu-west-1   False

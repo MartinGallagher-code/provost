@@ -1,0 +1,7 @@
+n	rule	total_entries
+1	ct_state_established,related_accept	6
+2	iif_"lo"_accept	6
+3	ip_protocol_icmp_accept	6
+4	tcp_dport_22_accept	6
+5	tcp_dport_{_80,_443_}_accept	6
+6	counter_packets_1240_bytes_98230_drop	6

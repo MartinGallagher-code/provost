@@ -1,0 +1,6 @@
+NAME                 DATA   AGE
+kube-root-ca.crt     1      45d
+app-config           4      12d
+nginx-config         2      8d
+feature-flags        7      3d
+istio-ca-root-cert   1      45d
