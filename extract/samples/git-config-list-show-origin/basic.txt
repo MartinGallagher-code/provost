@@ -1,8 +1,0 @@
-file:/home/user/glean/.git/config	user.name=Jane Developer
-file:/home/user/glean/.git/config	user.email=jane@example.com
-file:/etc/gitconfig	core.editor=vim
-file:/home/user/.gitconfig	color.ui=auto
-file:/home/user/glean/.git/config	remote.origin.url=git@github.com:acme/widget.git
-file:/home/user/glean/.git/config	branch.main.remote=origin
-file:/home/user/glean/.git/config	branch.main.merge=refs/heads/main
-file:/home/user/.gitconfig	push.default=simple

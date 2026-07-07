@@ -1,5 +1,0 @@
-* main                  a1b2c3d [origin/main] Fix null pointer in request handler
-  develop               e4f5a6b [origin/develop: ahead 2] Add retry logic to client
-  feature/login         0f9e8d7 [origin/feature/login: ahead 1, behind 3] WIP login form
-  hotfix/urgent         7c6b5a4 Refactor session handling
-  release/2.0           b0a9f8e [origin/release/2.0: behind 5] Prep 2.0 release notes
