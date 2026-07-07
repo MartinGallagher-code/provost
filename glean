@@ -357,7 +357,9 @@ _ingest () {
 }
 
 # Fire-and-forget ingest: spool the input and run _ingest in a detached child so
-# the shell prompt returns immediately (opt-in via --async / GLEAN_ASYNC=1).
+# the shell prompt returns immediately. This is the DEFAULT for inject/run;
+# --sync/--wait (or GLEAN_ASYNC=0) forces the foreground path that prints the
+# resulting dataset + #N range instead of returning at once.
 # The spool lives OUTSIDE the workspace (so it is never swept into a git commit,
 # and survives the parent's tmp cleanup); the child ingests it, and on success
 # removes the spool. On failure the spool — including log.txt — is kept so the
@@ -382,7 +384,7 @@ _ingest_async () {
 # Default verb: inject (pipe or file)
 # ---------------------------------------------------------------------------
 cmd_inject () {
-    local file="" threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-0}"
+    local file="" threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-1}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) GLEAN_QUIET=1; shift ;;
@@ -418,7 +420,7 @@ cmd_inject () {
 # run — execute a command, capture its output as a commit, and ingest it.
 # ---------------------------------------------------------------------------
 cmd_run () {
-    local threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-0}"
+    local threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-1}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) GLEAN_QUIET=1; shift ;;
@@ -686,28 +688,29 @@ cmd_triage () {
 
 # ---------------------------------------------------------------------------
 # rm — delete one or more datasets, provenance-aware, tracked as a commit.
-#   glean rm [-f|--yes] [--purge] <dataset> [<dataset>...]
+#   glean rm [-f|--yes] [--no-purge] <dataset> [<dataset>...]
 # Removes each dataset file (only the named dataset — variants like NAME.v2 are
 # their own datasets, remove them by name), prunes the matching rows from
-# provenance.tsv, and (with --purge) drops the captures/<id>/ dirs that fed the
-# removed dataset(s). The deletion is committed, so the git history (and
-# 'glean restore') still holds the pre-deletion state. Row indices (#N) are
-# never reused.
+# provenance.tsv, and — BY DEFAULT — purges the captures/<id>/ dirs that fed the
+# removed dataset(s) too (--no-purge / --keep-captures keeps them). The deletion
+# is committed, so the git history (and 'glean restore') still holds the
+# pre-deletion state. Row indices (#N) are never reused.
 # ---------------------------------------------------------------------------
 cmd_rm () {
     _ensure_workspace
-    local yes=0 purge=0 names=()
+    local yes=0 purge=1 names=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -f|--yes|--force) yes=1; shift ;;
-            --purge)          purge=1; shift ;;
-            -h|--help)        cmd_help; return 0 ;;
-            --)               shift; while [[ $# -gt 0 ]]; do names+=("$1"); shift; done ;;
-            -*)               die "unknown option: $1" ;;
-            *)                names+=("$1"); shift ;;
+            -f|--yes|--force)        yes=1; shift ;;
+            --purge)                 purge=1; shift ;;
+            --no-purge|--keep-captures) purge=0; shift ;;
+            -h|--help)               cmd_help; return 0 ;;
+            --)                      shift; while [[ $# -gt 0 ]]; do names+=("$1"); shift; done ;;
+            -*)                      die "unknown option: $1" ;;
+            *)                       names+=("$1"); shift ;;
         esac
     done
-    [[ ${#names[@]} -gt 0 ]] || die "usage: glean rm [-f] [--purge] <dataset> [<dataset>...]"
+    [[ ${#names[@]} -gt 0 ]] || die "usage: glean rm [-f] [--no-purge] <dataset> [<dataset>...]"
 
     local dir; dir="$(_ds_dir)"
     # Validate every name up front — refuse the whole operation if any is missing.
@@ -725,7 +728,11 @@ cmd_rm () {
     done
     if [[ $yes -ne 1 ]]; then
         printf 'About to delete %d dataset(s), %d row(s): %s\n' "${#names[@]}" "$total" "${names[*]}" >&2
-        [[ $purge -eq 1 ]] && printf 'Also purging the captures that fed them (originals removed).\n' >&2
+        if [[ $purge -eq 1 ]]; then
+            printf 'Also purging the captures that fed them — originals removed (--no-purge to keep them).\n' >&2
+        else
+            printf 'Keeping the source captures (--no-purge).\n' >&2
+        fi
         printf '%s' 'Proceed? [y/N] ' >&2
         local ans=""; read -r ans || ans=""
         case "$ans" in y|Y|yes|YES|Yes) ;; *) info "aborted — nothing deleted."; return 0 ;; esac
@@ -781,7 +788,7 @@ cmd_rm () {
     if [[ $purge -eq 1 ]]; then
         ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s). History kept — 'glean log'/'restore' still reach the pre-deletion state."
     else
-        ok "deleted ${names[*]} (${total} row(s)). Captures kept ('glean source #N' for surviving rows); add --purge to drop the source captures too."
+        ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'glean source #N' still resolves surviving rows."
     fi
 }
 
@@ -822,8 +829,9 @@ glean $GLEAN_VERSION — turn command output into data
 USAGE
     glean run [--] <cmd> [args...]                capture a command's output as a
                                                  commit, auto-detect + file it
-    cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
-                [--async]                          ...returning at once; capture in the background
+    cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset —
+                [--sync]                           captures in the BACKGROUND by default;
+                                                 --sync/--wait to file it in the foreground
     glean [FILE]                                  inject a file instead of stdin
     glean source <#N>                             show the original source behind row #N
     glean control [<dir>]                         make <dir> its own capture instance
@@ -835,7 +843,7 @@ USAGE
     glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
     glean show NAME                               present a dataset (leading #N = row index)
-    glean rm [-f] [--purge] NAME...               delete dataset(s); --purge also drops their captures
+    glean rm [-f] [--no-purge] NAME...            delete dataset(s) + their captures (--no-purge keeps captures)
     glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
     glean triage                                  show low-confidence / unmatched bucket (raw input decoded)
     glean doctor                                  check engine + store
@@ -857,7 +865,7 @@ ENV
     GLEAN_HOME            global store dir (default: ~/.glean)
     GLEAN_WORKSPACE       explicit store override (wins over GLEAN_HOME)
     GLEAN_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
-    GLEAN_ASYNC          1 = capture in the background by default (--sync overrides)
+    GLEAN_ASYNC          background capture (default 1; set 0 or use --sync for foreground)
     GLEAN_MAX_INPUT       max input bytes (default: 10485760)
     GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
 

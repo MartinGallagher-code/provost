@@ -24,9 +24,9 @@ the git-core verbs `run` / `log` / `restore` / `source` / `export` / `import` /
 `control`:
 
 ```bash
-free -m        | ./glean            # auto-detect → tidy dataset, filed by type
+free -m        | ./glean            # captures in the BACKGROUND by default (async)
+free -m        | ./glean --sync     # foreground: prints the resulting dataset + #N
 docker stats   | ./glean
-big-cmd        | ./glean --async    # return at once; capture in the background
 ./glean run df -h                   # capture a command's output AS A COMMIT
 ./glean ls                          # list datasets
 ./glean show free                   # present a dataset as a tidy table
@@ -34,8 +34,8 @@ big-cmd        | ./glean --async    # return at once; capture in the background
 ./glean source 5                    # the original input behind row #5
 ./glean triage                      # low-confidence / unmatched bucket (raw input decoded)
 ./glean show unsorted               # same bucket as a table; base64 raw decoded to text
-./glean rm free                     # delete a dataset (prunes provenance, commits)
-./glean rm -f --purge free          # also drop the captures that fed it
+./glean rm free                     # delete a dataset + its captures (purge is default)
+./glean rm -f --no-purge free       # delete the dataset but keep the source captures
 ./glean doctor                      # engine + store check
 ```
 
@@ -154,7 +154,7 @@ nicer columns).
 ## Tests
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (47 checks)          [CI]
+bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 214/214]
 ```

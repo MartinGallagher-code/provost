@@ -8,7 +8,7 @@ glean \- turn command output into data
 .I command
 |
 .B glean
-[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--async\fR]
+[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR]
 .br
 .B glean
 \fIsubcommand\fR [\fIargs...\fR]
@@ -25,13 +25,14 @@ Execute a command, capture its combined output as a commit, auto-detect the
 format, and file it into a typed dataset.
 .TP
 .I command
-| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--async\fR]
+| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR]
 Inject piped/stdin (or a FILE argument) the same way as
 .BR run .
-With \fB--async\fR (or \fBGLEAN_ASYNC=1\fR) the capture runs in a detached
-background process and the prompt returns at once; results appear in
+By default the capture runs in a detached background process and the prompt
+returns at once; results appear in
 .B glean log
-shortly after. \fB--sync\fR/\fB--wait\fR forces the foreground path.
+shortly after. \fB--sync\fR/\fB--wait\fR (or \fBGLEAN_ASYNC=0\fR) forces the
+foreground path, which prints the resulting dataset and \fI#N\fR range.
 .TP
 .B source \fI#N\fR
 Show the original captured input behind dataset row \fI#N\fR.
@@ -65,12 +66,12 @@ List datasets.
 Present a dataset as a tidy table (leading \fB#N\fR is the row index).
 For the \fBunsorted\fR bucket the base64 \fBraw\fR column is decoded to text.
 .TP
-.B rm [\fB-f\fR|\fB--yes\fR] [\fB--purge\fR] \fINAME\fR...
+.B rm [\fB-f\fR|\fB--yes\fR] [\fB--no-purge\fR] \fINAME\fR...
 Delete one or more datasets. Removes each named dataset file, prunes its rows
 from the provenance map, and commits the deletion (the git history and
-\fBrestore\fR still reach the pre-deletion state). With \fB--purge\fR, also drops
-the captures that fed the removed dataset(s). Prompts unless \fB-f\fR/\fB--yes\fR.
-Aliases: \fBdelete\fR, \fBdrop\fR.
+\fBrestore\fR still reach the pre-deletion state). By default it also purges the
+captures that fed the removed dataset(s); \fB--no-purge\fR/\fB--keep-captures\fR
+keeps them. Prompts unless \fB-f\fR/\fB--yes\fR. Aliases: \fBdelete\fR, \fBdrop\fR.
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).
@@ -102,7 +103,8 @@ Explicit store override (wins over GLEAN_HOME).
 Commit threshold 0\-100 (default: 50).
 .TP
 .B GLEAN_ASYNC
-If 1, capture in a detached background process by default (\fB--sync\fR overrides).
+Background capture (default 1). Set 0 (or pass \fB--sync\fR/\fB--wait\fR) for the
+foreground path.
 .TP
 .B GLEAN_MAX_INPUT
 Maximum input bytes (default: 10485760).
