@@ -64,6 +64,29 @@ check "show unsorted does not print the base64 blob" "0" \
 unsorted_triage="$(GLEAN_WORKSPACE="$UWS" "$GLEAN" triage 2>&1)"
 check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
 
+# rm: delete a dataset, prune its provenance rows, and (with --purge) drop the
+# captures that fed it — all committed, with the git history preserved
+RMWS="$(mktemp -d)/.rm"
+GLEAN_WORKSPACE="$RMWS" "$GLEAN" run printf 'a=1, b=2\n' >/dev/null 2>&1        # -> kv-pairs (capture c0001)
+GLEAN_WORKSPACE="$RMWS" "$GLEAN" run printf '   total used free\nMem: 100 40 60\n' >/dev/null 2>&1  # -> free (c0002)
+rm_missing="$(GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f nope 2>&1 || true)"
+check "rm refuses a missing dataset" "no such dataset: nope" "$rm_missing"
+rm_out="$(GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f kv-pairs 2>&1)"
+check "rm reports the deletion" "deleted kv-pairs" "$rm_out"
+check "rm removes the dataset file" "0" "$(ls "$RMWS/datasets" 2>/dev/null | grep -c '^kv-pairs.tsv$')"
+check "rm prunes the dataset's provenance rows" "0" \
+    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'kv-pairs')"
+check "rm keeps other datasets' provenance rows" "1" \
+    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'free')"
+check "rm without --purge keeps the source capture" "true" \
+    "$([[ -d "$RMWS/captures/c0001" ]] && echo true)"
+# --purge also drops the capture dir that fed the removed dataset
+GLEAN_WORKSPACE="$RMWS" "$GLEAN" rm -f --purge free >/dev/null 2>&1
+check "rm --purge drops the source capture dir" "true" \
+    "$([[ ! -d "$RMWS/captures/c0002" ]] && echo true)"
+check "rm commits the deletion (history preserved)" "rm: deleted" \
+    "$(git -C "$RMWS" log --oneline 2>&1 | head -1)"
+
 # install + symlink launcher: glean must find its bundled trees when run via a
 # symlink on PATH (regression guard for the GLEAN_ROOT symlink-resolution fix)
 IPREFIX="$(mktemp -d)/opt"

@@ -19,7 +19,7 @@ directory (`GLEAN_ROOT`), so it runs with no external dependencies.
 
 ## What works now
 
-The default verb plus `ls` / `show` / `stats` / `triage` / `doctor` / `help`, and
+The default verb plus `ls` / `show` / `rm` / `stats` / `triage` / `doctor` / `help`, and
 the git-core verbs `run` / `log` / `restore` / `source` / `export` / `import` /
 `control`:
 
@@ -33,6 +33,8 @@ docker stats   | ./glean
 ./glean source 5                    # the original input behind row #5
 ./glean triage                      # low-confidence / unmatched bucket (raw input decoded)
 ./glean show unsorted               # same bucket as a table; base64 raw decoded to text
+./glean rm free                     # delete a dataset (prunes provenance, commits)
+./glean rm -f --purge free          # also drop the captures that fed it
 ./glean doctor                      # engine + store check
 ```
 

@@ -59,12 +59,21 @@ List datasets.
 .TP
 .B show \fINAME\fR
 Present a dataset as a tidy table (leading \fB#N\fR is the row index).
+For the \fBunsorted\fR bucket the base64 \fBraw\fR column is decoded to text.
+.TP
+.B rm [\fB-f\fR|\fB--yes\fR] [\fB--purge\fR] \fINAME\fR...
+Delete one or more datasets. Removes each named dataset file, prunes its rows
+from the provenance map, and commits the deletion (the git history and
+\fBrestore\fR still reach the pre-deletion state). With \fB--purge\fR, also drops
+the captures that fed the removed dataset(s). Prompts unless \fB-f\fR/\fB--yes\fR.
+Aliases: \fBdelete\fR, \fBdrop\fR.
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).
 .TP
 .B triage
-Show the low-confidence / unmatched bucket.
+Show the low-confidence / unmatched bucket, raw input decoded to text
+(\fBglean source #N\fR for the exact original bytes).
 .TP
 .B doctor
 Check the extract/analyze engines and the store.
