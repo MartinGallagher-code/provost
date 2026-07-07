@@ -1,0 +1,6 @@
+ID	Name	Retention	Shard group duration	Organization ID
+0e8f4a1b2c3d4e5f	_monitoring	168h0m0s	24h0m0s	b3c1d2e3f4a5b6c7
+1f9e8d7c6b5a4039	_tasks	72h0m0s	24h0m0s	b3c1d2e3f4a5b6c7
+2a3b4c5d6e7f8091	telemetry	720h0m0s	168h0m0s	b3c1d2e3f4a5b6c7
+3b4c5d6e7f809122	metrics	0s	168h0m0s	b3c1d2e3f4a5b6c7
+4c5d6e7f80912233	logs	2160h0m0s	168h0m0s	b3c1d2e3f4a5b6c7

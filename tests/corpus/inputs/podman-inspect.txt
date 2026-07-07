@@ -1,0 +1,63 @@
+[
+    {
+        "Id": "5f8e2d1c9a4b3e7f6d0c1b2a3948576859f0e1d2c3b4a5968778695a4b3c2d1e",
+        "Created": "2026-07-01T08:22:14.512389471Z",
+        "Path": "nginx",
+        "Args": [
+            "-g",
+            "daemon off;"
+        ],
+        "State": {
+            "OciVersion": "1.1.0",
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 20841,
+            "ExitCode": 0,
+            "StartedAt": "2026-07-01T08:22:15.001284763Z",
+            "FinishedAt": "0001-01-01T00:00:00Z",
+            "Healthcheck": {
+                "Status": "healthy",
+                "FailingStreak": 0
+            }
+        },
+        "Image": "sha256:605c77e624ddb75e6110f997c58876baa13f8754486b461117934b24a9dc3a85",
+        "ImageName": "docker.io/library/nginx:latest",
+        "Name": "web",
+        "RestartCount": 0,
+        "Driver": "overlay",
+        "MountLabel": "system_u:object_r:container_file_t:s0:c142,c789",
+        "ProcessLabel": "system_u:system_r:container_t:s0:c142,c789",
+        "HostConfig": {
+            "Binds": [
+                "/srv/www:/usr/share/nginx/html:ro"
+            ],
+            "NetworkMode": "bridge",
+            "RestartPolicy": {
+                "Name": "always",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "Memory": 268435456,
+            "CpuShares": 512
+        },
+        "Config": {
+            "Hostname": "5f8e2d1c9a4b",
+            "User": "",
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NGINX_VERSION=1.25.4"
+            ],
+            "Cmd": [
+                "nginx",
+                "-g",
+                "daemon off;"
+            ],
+            "WorkingDir": "/",
+            "StopSignal": "SIGQUIT"
+        }
+    }
+]

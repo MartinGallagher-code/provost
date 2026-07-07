@@ -1,0 +1,10 @@
+List of pre-defined events (to be used in -e):
+
+  branch-instructions OR branches                    [Hardware event]
+  branch-misses                                      [Hardware event]
+  cache-misses                                       [Hardware event]
+  cpu-cycles OR cycles                               [Hardware event]
+  instructions                                       [Hardware event]
+  context-switches OR cs                             [Software event]
+  page-faults OR faults                              [Software event]
+  L1-dcache-load-misses                              [Hardware cache event]

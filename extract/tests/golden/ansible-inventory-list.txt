@@ -1,0 +1,4 @@
+entry1.hostname web1.example.com
+entry2.hostname web2.example.com
+entry3.hostname db1.example.com
+total_entries 3

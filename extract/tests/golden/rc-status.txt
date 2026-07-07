@@ -1,0 +1,13 @@
+entry1.service dbus
+entry1.status started
+entry2.service sshd
+entry2.status started
+entry3.service nginx
+entry3.status started
+entry4.service cron
+entry4.status started
+entry5.service ntpd
+entry5.status stopped
+entry6.service haveged
+entry6.status started
+total_entries 6

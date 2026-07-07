@@ -1,0 +1,6 @@
+entry1.smbios_version 3.2.1
+entry1.Structure_Table_at 0x000EC780
+entry1.Structure_Table_length 3084
+entry1.Number_of_structures 84
+entry1.Maximum_structure_size 704
+total_entries 1

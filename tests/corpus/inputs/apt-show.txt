@@ -1,0 +1,17 @@
+Package: nginx
+Version: 1.18.0-6ubuntu14.4
+Priority: optional
+Section: web
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Nginx Maintainers <pkg-nginx-maintainers@alioth-lists.debian.net>
+Bugs: https://bugs.launchpad.net/ubuntu/+filebug
+Installed-Size: 49.2 kB
+Depends: nginx-core (<< 1.18.0-6ubuntu14.4.1~) | nginx-full, nginx-common (= 1.18.0-6ubuntu14.4)
+Homepage: https://nginx.net
+Download-Size: 3600 B
+APT-Sources: http://archive.ubuntu.com/ubuntu jammy-updates/main amd64 Packages
+Description: small, powerful, scalable web/proxy server
+ Nginx ("engine X") is a high-performance web and reverse proxy server
+ created by Igor Sysoev. It can be used both as a standalone web server
+ and as a proxy to reduce the load on back-end HTTP or mail servers.

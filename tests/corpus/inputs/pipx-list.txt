@@ -1,0 +1,13 @@
+venvs are in /home/user/.local/share/pipx/venvs
+apps are exposed on your $PATH at /home/user/.local/bin
+manual pages are exposed at /home/user/.local/share/man
+   package black 24.3.0, installed using Python 3.11.4
+    - black
+    - blackd
+   package poetry 1.8.2, installed using Python 3.11.4
+    - poetry
+   package httpie 3.2.2, installed using Python 3.11.4
+    - http
+    - https
+   package ruff 0.3.4, installed using Python 3.11.4
+    - ruff

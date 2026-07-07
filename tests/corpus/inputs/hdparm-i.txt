@@ -1,0 +1,24 @@
+/dev/sda:
+
+ATA device, with non-removable media
+	Model Number:       Samsung SSD 860 EVO 500GB
+	Serial Number:      S3Z1NB0K123456A
+	Firmware Revision:  RVT02B6Q
+	Transport:          Serial, ATA8-AST, SATA 1.0a, SATA II Extensions, SATA Rev 3.0
+Standards:
+	Used: unknown (minor revision code 0x005e)
+	Supported: 11 10 9 8 7 6 5
+	Likely used: 11
+Configuration:
+	Logical		max	current
+	cylinders	16383	16383
+	heads		16	16
+	sectors/track	63	63
+	CHS current addressable sectors:    16514064
+	LBA    user addressable sectors:   268435455
+	LBA48  user addressable sectors:   976773168
+	Logical  Sector size:                   512 bytes
+	Physical Sector size:                   512 bytes
+	device size with M = 1024*1024:      476940 MBytes
+	device size with M = 1000*1000:      500107 MBytes (500 GB)
+	Nominal Media Rotation Rate: Solid State Device

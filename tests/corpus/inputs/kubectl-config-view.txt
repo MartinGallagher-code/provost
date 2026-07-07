@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Config
+current-context: prod-cluster
+preferences: {}
+clusters:
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://prod.k8s.example.com:6443
+  name: prod-cluster
+- cluster:
+    certificate-authority-data: DATA+OMITTED
+    server: https://staging.k8s.example.com:6443
+  name: staging-cluster
+contexts:
+- context:
+    cluster: prod-cluster
+    namespace: default
+    user: prod-admin
+  name: prod-cluster
+- context:
+    cluster: staging-cluster
+    namespace: apps
+    user: staging-admin
+  name: staging-cluster
+users:
+- name: prod-admin
+  user:
+    client-certificate-data: DATA+OMITTED
+    client-key-data: DATA+OMITTED
+- name: staging-admin
+  user:
+    token: REDACTED

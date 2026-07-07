@@ -1,0 +1,7 @@
+n	value	total_entries
+1	policy:_default	6
+2	preferred_node:_current	6
+3	physcpubind:_0_1_2_3_4_5_6_7	6
+4	cpubind:_0	6
+5	nodebind:_0	6
+6	membind:_0	6

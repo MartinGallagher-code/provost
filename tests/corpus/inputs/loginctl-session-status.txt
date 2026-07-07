@@ -1,0 +1,10 @@
+2 - martin (1000)
+           Since: Mon 2026-07-06 08:12:44 UTC; 1h 30min ago
+          Leader: 1820 (gnome-session-b)
+            Seat: seat0; vc2
+             TTY: tty2
+         Service: gdm-password; type x11; class user
+           State: active
+            Unit: session-2.scope
+                  ├─1820 /usr/libexec/gnome-session-binary --systemd --session=ubuntu
+                  └─1905 /usr/bin/gnome-shell

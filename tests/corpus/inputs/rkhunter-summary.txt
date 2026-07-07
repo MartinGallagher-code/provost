@@ -1,0 +1,15 @@
+System checks summary
+=====================
+
+File properties checks...
+    Files checked: 145
+    Suspect files: 0
+
+Rootkit checks...
+    Rootkits checked: 497
+    Possible rootkits: 0
+
+Applications checks...
+    All checks skipped
+
+The system checks took: 3 minutes and 12 seconds

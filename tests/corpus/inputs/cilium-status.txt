@@ -1,0 +1,17 @@
+    /¯¯\
+ /¯¯\__/¯¯\    Cilium:             OK
+ \__/¯¯\__/    Operator:           OK
+ /¯¯\__/¯¯\    Envoy DaemonSet:    OK
+ \__/¯¯\__/    Hubble Relay:       OK
+    \__/       ClusterMesh:        disabled
+
+DaemonSet              cilium             Desired: 5, Ready: 5/5, Available: 5/5
+DaemonSet              cilium-envoy       Desired: 5, Ready: 5/5, Available: 5/5
+Deployment             cilium-operator    Desired: 2, Ready: 2/2, Available: 2/2
+Deployment             hubble-relay       Desired: 1, Ready: 1/1, Available: 1/1
+Containers:            cilium             Running: 5
+                       cilium-operator    Running: 2
+Cluster Pods:          142/142 managed by Cilium
+Helm chart version:    1.15.5
+Image versions         cilium             quay.io/cilium/cilium:v1.15.5: 5
+                       cilium-operator    quay.io/cilium/operator-generic:v1.15.5: 2

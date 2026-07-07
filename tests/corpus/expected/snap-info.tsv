@@ -1,0 +1,2 @@
+name	summary	publisher	store-url	contact	license	description	snap-id	tracking	refresh-date	channels.latest/stable	channels.latest/candidate	channels.latest/beta	channels.latest/edge	installed
+firefox	Mozilla_Firefox_web_browser	Mozilla**	https://snapcraft.io/firefox	https://support.mozilla.org	Proprietary	|	3wdHCAVyZEmYsCMFDE9qt92UV8rDowg9	latest/stable	2024-05-14	126.0-1_2024-05-14_(4173)_254MB_-	126.0-1_2024-05-13_(4173)_254MB_-	127.0b6_2024-05-15_(4180)_255MB_-	128.0a1_2024-05-16_(4185)_256MB_-	126.0-1____________(4173)_254MB_-

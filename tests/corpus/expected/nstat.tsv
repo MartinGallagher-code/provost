@@ -1,0 +1,11 @@
+n	metric	value	rate	total_entries
+1	IpInReceives	284719	0.0	10
+2	IpInDelivers	284703	0.0	10
+3	IpOutRequests	271884	0.0	10
+4	TcpActiveOpens	4821	0.0	10
+5	TcpPassiveOpens	1290	0.0	10
+6	TcpInSegs	248193	0.0	10
+7	TcpOutSegs	241087	0.0	10
+8	TcpRetransSegs	312	0.0	10
+9	UdpInDatagrams	35914	0.0	10
+10	UdpOutDatagrams	34122	0.0	10

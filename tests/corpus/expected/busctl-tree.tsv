@@ -1,0 +1,6 @@
+n	depth	name	total_entries
+1	0	/org	5
+2	0	/org/freedesktop	5
+3	1	/org/freedesktop/systemd1	5
+4	1	/org/freedesktop/systemd1/job	5
+5	1	/org/freedesktop/systemd1/unit	5

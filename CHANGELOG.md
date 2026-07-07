@@ -1,5 +1,39 @@
 # glean — Changelog
 
+## 2026-07-07 — 500/500 tidy coverage (fourth + fifth 100 driven to 100%)
+- Grew the corpus to **500 tools** (200 new: extended networking, containers/k8s,
+  storage/LVM/ZFS, process & `/proc`, package managers, databases, security/auth,
+  hardware, systemd/services, and VCS/cloud/IaC) and drove them to **500/500
+  tidy**, zero gaps. 200 new inputs authored in parallel by ten subagents; the
+  new parsers by eight more, then integrated and de-conflicted here.
+- **Generic-parser refinements** (close many gaps with no per-tool rule):
+  - `aligned-columns` now drops a pure separator rule (`---- -----`) wherever it
+    appears (fixes `aws configure list`), extends the trailing-summary skip to
+    "N loaded units listed." (`systemctl --failed`), and defers `label: value` /
+    `label : value` / `Key=Value` blocks to `colons`/`equals` — but only when the
+    block is *ragged* (a genuine kv snapshot), keeping consistent multi-column
+    tables like `/proc/softirqs` ("HI: 0 0 0") and `lsusb` with aligned-columns.
+    This routes `rpm -qi` and similar mixed-padding kv blocks to a single wide row.
+- **New format-family / bespoke parsers** for genuinely idiosyncratic formats the
+  generic parsers can't tidy, e.g. sysstat-style `iostat -x`, `/proc/{slabinfo,
+  net/dev}`, `nstat`, `ifstat`, `vnstat`, `tcpdump`/`tshark` summaries; DB output
+  `clickhouse` PrettyCompact Unicode box, `cassandra nodetool tpstats`,
+  `mysqladmin status`, `keytool -list`; DNS `dig MX`/`dig TXT`; kv snapshots
+  `sshd -T`, `xfs_info`, `zypper info`, `hdparm -I`, `dmidecode`/`biosdecode`,
+  `cpuid`, `decode-dimms`, `gpg --card-status`, `ansible --version`; trees
+  `systemd-cgls`, `systemd-analyze critical-chain`, `lshw -c network`, `lstopo`,
+  `fwupdmgr get-devices`; and network `ip tunnel`/`ip xfrm state`/`iwlist scan`/
+  `nmap -sn`/`mii-tool`/`numactl --show`/`parted print`, plus `pipx list`,
+  `bundle outdated`, `semanage boolean`, `vagrant global-status`, `ansible-inventory`,
+  `aureport`, `rc-status`, `ssh-keyscan`, `fossil status`, `mix deps`.
+  Tool-specific parsers that overlap `json`/`yaml`/`csv`/`key-value` are set to a
+  low `## Priority` so their specific detect wins over the structural fallback.
+- **Manifest reconciliations** where glean's canonical long-melt is the honest
+  tidy shape: the `key/value` snapshot tools `dmsetup info`, `dumpe2fs -h`,
+  `hdparm -I`, `tune2fs -l`, `cryptsetup luksDump` use `kv/-/4` (n·key·value·total,
+  like `lscpu`); `vmstat -d`/`proc-net-dev` mincols trimmed to the true width.
+- Tests: extract suite **214/214**, smoke 33/33, melt 8/8, corpus golden clean.
+
 ## 2026-07-07 — 300/300 tidy coverage (third 100 driven to 100%)
 - Grew the corpus to **300 tools** (100 new: extended Kubernetes/cloud/IaC,
   containers, networking, systemd/storage, process/perf & security, package

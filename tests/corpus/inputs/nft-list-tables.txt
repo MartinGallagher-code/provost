@@ -1,0 +1,6 @@
+table inet filter
+table ip nat
+table ip6 filter
+table inet nat
+table bridge filter
+table ip mangle

@@ -1,0 +1,13 @@
+entry1.host gateway.lan
+entry1.ip 192.168.1.1
+entry1.latency 0.0021s
+entry2.host 192.168.1.12
+entry2.ip 192.168.1.12
+entry2.latency 0.043s
+entry3.host laptop.lan
+entry3.ip 192.168.1.24
+entry3.latency 0.00088s
+entry4.host 192.168.1.55
+entry4.ip 192.168.1.55
+entry4.latency 0.012s
+total_entries 4

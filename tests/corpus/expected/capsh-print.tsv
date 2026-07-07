@@ -1,0 +1,2 @@
+Current	Current_IAB	Securebits	secure-noroot	secure-no-suid-fixup	secure-keep-caps	Guessed_mode
+cap_chown,cap_dac_override,cap_fowner,cap_setgid,cap_setuid+ep	!cap_chown,!cap_dac_override	00/0x0/1'b0	no_(unlocked)	no_(unlocked)	no_(unlocked)	UNCERTAIN_(0)

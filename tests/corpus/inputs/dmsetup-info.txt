@@ -1,0 +1,9 @@
+Name:              vg0-root
+State:             ACTIVE
+Read Ahead:        256
+Tables present:    LIVE
+Open count:        1
+Event number:      0
+Major, minor:      253, 1
+Number of targets: 1
+UUID: LVM-abc123def456ghi789jkl012mno345pqr678stu

@@ -1,0 +1,12 @@
+lynis_version=3.0.9
+lynis_update_available=0
+report_version=1.0
+report_datetime_start=2024-03-07 03:00:12
+report_datetime_end=2024-03-07 03:06:44
+hostid=abcdef1234567890
+os=Linux
+os_name=Ubuntu
+os_version=22.04
+hardening_index=68
+warning[]=SSH-7408|Consider hardening SSH configuration
+suggestion[]=BOOT-5122|Set a password on GRUB bootloader

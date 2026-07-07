@@ -1,0 +1,9 @@
+entry1.Uptime 58234
+entry1.Threads 3
+entry1.Questions 129483
+entry1.Slow_queries 2
+entry1.Opens 187
+entry1.Flush_tables 3
+entry1.Open_tables 158
+entry1.Queries_per_second_avg 2.223
+total_entries 1

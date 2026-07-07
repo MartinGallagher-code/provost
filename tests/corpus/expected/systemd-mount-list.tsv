@@ -1,0 +1,5 @@
+n	NODE	PATH	MODEL	WWN	FSTYPE	LABEL	UUID	total_entries
+1	/dev/sda1	/boot	n/a	n/a	vfat	ESP	A1B2-C3D4	4
+2	/dev/sda2	/	Samsung	SSD	970	EVO	0x5002538e40a1b2c3_ext4_root_12345678-90ab-cdef-1234-567890abcdef	4
+3	/dev/sdb1	/data	WDC	WD40EFRX	0x50014ee20abcde12	ext4	data_abcdef12-3456-7890-abcd-ef1234567890	4
+4	/dev/sr0	/media/cdrom	ASUS	DRW-24D5MT	n/a	iso9660	CDROM_2026-07-01-12-00-00-00	4

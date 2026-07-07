@@ -1,0 +1,4 @@
+n	Documentation=man	Description	Documentation	After	Wants	Type	PIDFile	ExecStartPre	ExecStart	ExecReload	ExecStop	TimeoutStopSec	KillMode	WantedBy
+1	nginx(8)	A_high_performance_web_server_and_a_reverse_proxy_server	man:nginx(8)	network-online.target_remote-fs.target_nss-lookup.target	network-online.target									
+2						forking	/run/nginx.pid	/usr/sbin/nginx_-t_-q_-g_daemon_on;_master_process_on;	/usr/sbin/nginx_-g_daemon_on;_master_process_on;	/usr/sbin/nginx_-g_daemon_on;_master_process_on;_-s_reload	-/sbin/start-stop-daemon_--quiet_--stop_--retry_QUIT/5_--pidfile_/run/nginx.pid	5	mixed	
+3														multi-user.target

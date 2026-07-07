@@ -1,0 +1,7 @@
+Runlevel: default
+ dbus                                                              [  started  ]
+ sshd                                                              [  started  ]
+ nginx                                                             [  started  ]
+ cron                                                              [  started  ]
+ ntpd                                                              [  stopped  ]
+ haveged                                                           [  started  ]

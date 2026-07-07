@@ -1,0 +1,7 @@
+n	When	Type	Source	Valid	total_entries
+1	2024-03-05	18:30:09	RHOST	192.168.1.9_V	6
+2	2024-03-05	18:30:12	RHOST	192.168.1.9_V	6
+3	2024-03-06	07:45:01	RHOST	10.0.0.34_V	6
+4	alice:				6
+5	When	Type	Source	Valid	6
+6	2024-03-06	09:15:44	RHOST	10.0.0.12_V	6

@@ -1,0 +1,6 @@
+docker-desktop
+minikube
+prod-cluster
+staging-cluster
+dev-cluster
+gke_myproject_us-central1_main

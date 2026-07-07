@@ -1,0 +1,19 @@
+Package: openssh-server
+Status: install ok installed
+Priority: optional
+Section: net
+Installed-Size: 858
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Architecture: amd64
+Source: openssh
+Version: 1:8.9p1-3ubuntu0.6
+Replaces: openssh-client (<< 1:7.9p1-8), ssh
+Provides: ssh-server
+Depends: adduser, dpkg (>= 1.9.0), libpam-modules, libpam-runtime, lsb-base, openssh-client (= 1:8.9p1-3ubuntu0.6)
+Recommends: default-logind | logind | libpam-systemd, ncurses-term, xauth
+Conflicts: sftp, ssh (<< 1:1.2.27-1)
+Description: secure shell (SSH) server, for secure access from remote machines
+ This is the portable version of OpenSSH, a free implementation of
+ the Secure Shell protocol as specified by the IETF secsh working group.
+Homepage: http://www.openssh.com/
+Original-Maintainer: Debian OpenSSH Maintainers <debian-ssh@lists.debian.org>

@@ -1,0 +1,4 @@
+ns-blue (id: 0)
+ns-green (id: 1)
+red
+ns-mgmt (id: 2)

@@ -1,0 +1,11 @@
++-------------------------+-----------+
+| Variable_name           | Value     |
++-------------------------+-----------+
+| autocommit              | ON        |
+| character_set_server    | utf8mb4   |
+| innodb_buffer_pool_size | 134217728 |
+| max_connections         | 151       |
+| version                 | 8.0.34    |
+| wait_timeout            | 28800     |
++-------------------------+-----------+
+6 rows in set (0.00 sec)

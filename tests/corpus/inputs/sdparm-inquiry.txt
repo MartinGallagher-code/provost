@@ -1,0 +1,12 @@
+    /dev/sda: ATA       Samsung SSD 860   RVT0
+    Standard INQUIRY response:
+      PQual=0  PDT=0  RMB=0  LU_CONG=0  hot_pluggable=0  version=0x05  [SPC-3]
+      [AERC=0]  [TrmTsk=0]  NormACA=0  HiSUP=0  Resp_data_format=2
+      SCCS=0  ACC=0  TPGS=0  3PC=0  Protect=0  [BQue=0]
+      EncServ=0  MultiP=0  [MChngr=0]  [ACKREQQ=0]  Addr16=0
+      [RelAdr=0]  WBUS16=0  Sync=0  [Linked=0]  [TranDis=0]  CmdQue=1
+      length=96 (0x60)   Peripheral device type: disk
+      Vendor identification: ATA
+      Product identification: Samsung SSD 860
+      Product revision level: RVT0
+      Unit serial number: S3Z1NB0K123456A

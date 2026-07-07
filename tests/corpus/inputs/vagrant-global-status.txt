@@ -1,0 +1,11 @@
+id       name    provider   state    directory
+------------------------------------------------------------------------
+a1b2c3d  default virtualbox running  /home/user/projects/web
+e4f5a6b  db      virtualbox poweroff /home/user/projects/db
+0f9e8d7  cache   docker     running  /home/user/projects/cache
+2c3d4e5  worker  libvirt    paused   /home/user/projects/worker
+
+The above shows information about all known Vagrant environments
+on this machine. This data is cached and may not be completely
+up-to-date. To interact with any of the machines, run this
+command in a directory where a Vagrant machine is running.

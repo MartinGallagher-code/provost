@@ -1,0 +1,6 @@
+NAME              PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+gp3 (default)     ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   92d
+gp2               kubernetes.io/aws-ebs   Delete          Immediate              true                   92d
+efs-sc            efs.csi.aws.com         Retain          Immediate              false                  63d
+local-path        rancher.io/local-path   Delete          WaitForFirstConsumer   false                  41d
+fast-ssd          ebs.csi.aws.com         Delete          WaitForFirstConsumer   true                   28d

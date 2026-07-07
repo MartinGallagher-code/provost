@@ -1,0 +1,15 @@
+n	c1	total_entries
+1	Machine_(15GB_total)	14
+2	Package_L#0	14
+3	NUMANode_L#0_(P#0_15GB)	14
+4	L3_L#0_(8192KB)	14
+5	L2_L#0_(256KB)_+_L1d_L#0_(32KB)_+_L1i_L#0_(32KB)_+_Core_L#0_+_PU_L#0_(P#0)	14
+6	L2_L#1_(256KB)_+_L1d_L#1_(32KB)_+_L1i_L#1_(32KB)_+_Core_L#1_+_PU_L#1_(P#1)	14
+7	L2_L#2_(256KB)_+_L1d_L#2_(32KB)_+_L1i_L#2_(32KB)_+_Core_L#2_+_PU_L#2_(P#2)	14
+8	L2_L#3_(256KB)_+_L1d_L#3_(32KB)_+_L1i_L#3_(32KB)_+_Core_L#3_+_PU_L#3_(P#3)	14
+9	HostBridge_L#0	14
+10	PCIBridge	14
+11	PCI_00:02.0_(VGA)	14
+12	PCI_00:1f.2_(SATA)	14
+13	Block(Disk)_"sda"	14
+14	Misc(MemoryModule)	14

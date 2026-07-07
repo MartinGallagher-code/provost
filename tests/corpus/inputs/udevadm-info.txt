@@ -1,0 +1,17 @@
+P: /devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda
+N: sda
+L: 0
+S: disk/by-id/ata-Samsung_SSD_970_EVO_500GB_S1A2B3C4
+S: disk/by-path/pci-0000:00:1f.2-ata-1
+E: DEVPATH=/devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda
+E: DEVNAME=/dev/sda
+E: DEVTYPE=disk
+E: MAJOR=8
+E: MINOR=0
+E: SUBSYSTEM=block
+E: ID_MODEL=Samsung_SSD_970_EVO_500GB
+E: ID_SERIAL=Samsung_SSD_970_EVO_500GB_S1A2B3C4
+E: ID_BUS=ata
+E: ID_TYPE=disk
+E: ID_FS_TYPE=ext4
+E: ID_FS_UUID=12345678-90ab-cdef-1234-567890abcdef

@@ -1,0 +1,9 @@
+   locktype    | database | relation |  pid  |       mode       | granted
+---------------+----------+----------+-------+------------------+---------
+ relation      |    16384 |    16401 | 20481 | AccessShareLock  | t
+ relation      |    16384 |    16401 | 20493 | RowExclusiveLock | t
+ transactionid |          |          | 20510 | ExclusiveLock    | t
+ relation      |    16384 |    16410 | 20522 | AccessShareLock  | f
+ tuple         |    16384 |    16401 | 20481 | ExclusiveLock    | t
+ virtualxid    |          |          | 20493 | ExclusiveLock    | t
+(6 rows)

@@ -1,0 +1,12 @@
+Current: cap_chown,cap_dac_override,cap_fowner,cap_setgid,cap_setuid+ep
+Bounding set =cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill
+Ambient set =
+Current IAB: !cap_chown,!cap_dac_override
+Securebits: 00/0x0/1'b0
+ secure-noroot: no (unlocked)
+ secure-no-suid-fixup: no (unlocked)
+ secure-keep-caps: no (unlocked)
+uid=0(root)
+gid=0(root)
+groups=0(root)
+Guessed mode: UNCERTAIN (0)

@@ -1,0 +1,6 @@
+i2c-3	i2c   	DPDDC-A                          	I2C adapter
+i2c-1	i2c   	Radeon i2c bit bus 0x91          	I2C adapter
+i2c-8	i2c   	i915 gmbus dpc                   	I2C adapter
+i2c-6	i2c   	i915 gmbus dpb                   	I2C adapter
+i2c-4	smbus 	SMBus PIIX4 adapter at 0b00      	SMBus adapter
+i2c-2	i2c   	Radeon i2c bit bus 0x92          	I2C adapter

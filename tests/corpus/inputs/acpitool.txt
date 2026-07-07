@@ -1,0 +1,11 @@
+  Battery #1     : present
+    Remaining capacity : 98%, 47520 mWh
+    Design capacity    : 52000 mWh
+    Present rate       : 0 mA
+    Charging state     : charged
+    Battery type       : Li-ion
+    Model number       : DELL ABC123
+  AC adapter     : on-line
+  Thermal zone 1 : ok, 45 C
+  Thermal zone 2 : ok, 42 C
+  Cooling device 0 : Processor, state 0 of 10

@@ -1,0 +1,6 @@
+NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                          STORAGECLASS   REASON   AGE
+pvc-3a1f8b2c-4d5e-6f70-8192-a3b4c5d6e7f8   8Gi        RWO            Delete           Bound    default/postgres-data          gp3                     41d
+pvc-9c8b7a6d-5e4f-3210-9182-b7c6d5e4f3a2   20Gi       RWO            Delete           Bound    monitoring/prometheus-data     gp3                     28d
+pvc-1122aabb-ccdd-eeff-0011-223344556677   5Gi        RWX            Retain           Bound    default/shared-uploads         efs-sc                  63d
+pvc-77665544-3322-1100-ffee-ddccbbaa9988   100Gi      RWO            Delete           Available                               gp3                     3h
+pvc-0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0   50Gi       RWO            Retain           Released monitoring/grafana-storage     gp2                     12d

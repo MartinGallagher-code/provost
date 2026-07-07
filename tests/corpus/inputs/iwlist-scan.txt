@@ -1,0 +1,19 @@
+wlan0     Scan completed :
+          Cell 01 - Address: 00:11:22:33:44:55
+                    Channel:36
+                    Frequency:5.18 GHz (Channel 36)
+                    Quality=65/70  Signal level=-45 dBm
+                    Encryption key:on
+                    ESSID:"HomeNet"
+          Cell 02 - Address: 66:77:88:99:AA:BB
+                    Channel:6
+                    Frequency:2.437 GHz (Channel 6)
+                    Quality=40/70  Signal level=-70 dBm
+                    Encryption key:on
+                    ESSID:"Guest"
+          Cell 03 - Address: CC:DD:EE:FF:00:11
+                    Channel:11
+                    Frequency:2.462 GHz (Channel 11)
+                    Quality=30/70  Signal level=-80 dBm
+                    Encryption key:off
+                    ESSID:"CoffeeShop"

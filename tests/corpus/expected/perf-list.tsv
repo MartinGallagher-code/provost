@@ -1,0 +1,9 @@
+n	List	of	pre-defined	events	(to	total_entries
+1	branch-instructions	OR	branches	[Hardware	event]	8
+2	branch-misses	[Hardware	event]			8
+3	cache-misses	[Hardware	event]			8
+4	cpu-cycles	OR	cycles	[Hardware	event]	8
+5	instructions	[Hardware	event]			8
+6	context-switches	OR	cs	[Software	event]	8
+7	page-faults	OR	faults	[Software	event]	8
+8	L1-dcache-load-misses	[Hardware	cache	event]		8

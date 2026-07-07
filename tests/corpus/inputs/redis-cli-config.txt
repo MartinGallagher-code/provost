@@ -1,0 +1,14 @@
+maxmemory
+2147483648
+maxmemory-policy
+allkeys-lru
+maxmemory-samples
+5
+appendonly
+yes
+save
+3600 1 300 100 60 10000
+timeout
+0
+tcp-keepalive
+300

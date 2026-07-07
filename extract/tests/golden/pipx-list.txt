@@ -1,0 +1,9 @@
+entry1.name black
+entry1.version 24.3.0
+entry2.name poetry
+entry2.version 1.8.2
+entry3.name httpie
+entry3.version 3.2.2
+entry4.name ruff
+entry4.version 0.3.4
+total_entries 4

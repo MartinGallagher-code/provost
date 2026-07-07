@@ -1,0 +1,6 @@
+ID 256 gen 12043 top level 5 path @
+ID 257 gen 12040 top level 5 path @home
+ID 258 gen 11980 top level 256 path @/var/log
+ID 259 gen 12001 top level 5 path @snapshots
+ID 260 gen 11500 top level 259 path @snapshots/2026-07-01
+ID 261 gen 12043 top level 256 path @/var/cache

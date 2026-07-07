@@ -1,0 +1,7 @@
+DRIVER      VOLUME NAME
+local       pgdata
+local       redis-cache
+local       grafana-storage
+local       prometheus-data
+local       app-uploads
+local       nginx-certs

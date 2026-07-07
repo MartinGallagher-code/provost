@@ -1,0 +1,5 @@
+/org/freedesktop/UPower/devices/line_power_AC
+/org/freedesktop/UPower/devices/battery_BAT0
+/org/freedesktop/UPower/devices/DisplayDevice
+/org/freedesktop/UPower/devices/keyboard_0003o046Dp4023
+/org/freedesktop/UPower/devices/mouse_0003o046Dp4023

@@ -1,0 +1,16 @@
+Reader ...........: Yubico YubiKey OTP+FIDO+CCID 00 00
+Application ID ...: D2760001240103040006123456780000
+Application type .: OpenPGP
+Version ..........: 3.4
+Manufacturer .....: Yubico
+Serial number ....: 12345678
+Name of cardholder: Martin Gallagher
+Language prefs ...: en
+Salutation .......: Mr.
+URL of public key : [not set]
+Login data .......: mgallagher
+Signature PIN ....: not forced
+Key attributes ...: rsa2048 rsa2048 rsa2048
+Max. PIN lengths .: 127 127 127
+PIN retry counter : 3 0 3
+Signature counter : 42

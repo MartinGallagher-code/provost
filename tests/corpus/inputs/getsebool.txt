@@ -1,0 +1,8 @@
+abrt_anon_write --> off
+antivirus_can_scan_system --> off
+auditadm_exec_content --> on
+authlogin_nsswitch_use_ldap --> off
+cron_can_relabel --> off
+httpd_can_network_connect --> on
+nfs_export_all_rw --> on
+samba_enable_home_dirs --> off

@@ -1,0 +1,48 @@
+n	key	value	total_entries
+1	Filesystem volume name	<none>	47
+2	Last mounted on	/home	47
+3	Filesystem UUID	e4c2f1a0-9b3d-4c6e-8f21-1a2b3c4d5e6f	47
+4	Filesystem magic number	0xEF53	47
+5	Filesystem revision #	1 (dynamic)	47
+6	Filesystem features	has_journal ext_attr resize_inode dir_index filetype needs_recovery extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum	47
+7	Filesystem flags	signed_directory_hash	47
+8	Default mount options	user_xattr acl	47
+9	Filesystem state	clean	47
+10	Errors behavior	Continue	47
+11	Filesystem OS type	Linux	47
+12	Inode count	6553600	47
+13	Block count	26214400	47
+14	Reserved block count	1310720	47
+15	Overhead clusters	512345	47
+16	Free blocks	18234567	47
+17	Free inodes	6401234	47
+18	First block	0	47
+19	Block size	4096	47
+20	Fragment size	4096	47
+21	Group descriptor size	64	47
+22	Reserved GDT blocks	1024	47
+23	Blocks per group	32768	47
+24	Fragments per group	32768	47
+25	Inodes per group	8192	47
+26	Inode blocks per group	512	47
+27	Flex block group size	16	47
+28	Filesystem created	Mon Jan  6 14:22:01 2025	47
+29	Last mount time	Tue Jul  1 08:11:33 2026	47
+30	Last write time	Tue Jul  1 08:11:33 2026	47
+31	Mount count	42	47
+32	Maximum mount count	-1	47
+33	Last checked	Mon Jan  6 14:22:01 2025	47
+34	Check interval	0 (<none>)	47
+35	Lifetime writes	1234 GB	47
+36	Reserved blocks uid	0 (user root)	47
+37	Reserved blocks gid	0 (group root)	47
+38	First inode	11	47
+39	Inode size	256	47
+40	Required extra isize	32	47
+41	Desired extra isize	32	47
+42	Journal inode	8	47
+43	Default directory hash	half_md4	47
+44	Directory Hash Seed	1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d	47
+45	Journal backup	inode blocks	47
+46	Checksum type	crc32c	47
+47	Checksum	0x9a8b7c6d	47

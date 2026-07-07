@@ -1,0 +1,10 @@
+entry1.address 00:11:22:33:44:55
+entry1.essid HomeNet
+entry1.quality 65/70
+entry2.address 66:77:88:99:AA:BB
+entry2.essid Guest
+entry2.quality 40/70
+entry3.address CC:DD:EE:FF:00:11
+entry3.essid CoffeeShop
+entry3.quality 30/70
+total_entries 3

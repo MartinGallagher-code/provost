@@ -1,0 +1,15 @@
+x86info v1.31
+Found 4 identical CPUs
+Extended Family: 0 Extended Model: 9 Family: 6 Model: 158 Stepping: 10
+Type: 0 (Original OEM)
+CPU Model (x86info's best guess): Core i7 (Coffee Lake)
+Processor name string: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+Cache info
+ L1 Data Cache: 32KB, 8-way associative, 64 byte line size
+ L1 Instruction Cache: 32KB, 8-way associative, 64 byte line size
+ L2 Unified Cache: 256KB, 4-way associative, 64 byte line size
+ L3 Unified Cache: 12288KB, 16-way associative, 64 byte line size
+TLB info
+ Instruction TLB: 4K pages, 8-way associative, 64 entries
+ Data TLB: 4KB pages, 4-way associative, 64 entries
+Total processor threads: 4

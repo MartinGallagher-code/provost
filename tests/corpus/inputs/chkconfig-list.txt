@@ -1,0 +1,6 @@
+NetworkManager 	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+auditd         	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+crond          	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+sshd           	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+firewalld      	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+rsyslog        	0:off	1:off	2:on	3:on	4:on	5:on	6:off

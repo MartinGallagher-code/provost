@@ -1,0 +1,14 @@
+Installed Packages
+Name         : httpd
+Version      : 2.4.53
+Release      : 11.el9_2.5
+Architecture : x86_64
+Size         : 4.7 M
+Source       : httpd-2.4.53-11.el9_2.5.src.rpm
+Repository   : @System
+From repo    : appstream
+Summary      : Apache HTTP Server
+URL          : https://httpd.apache.org/
+License      : ASL 2.0
+Description  : The Apache HTTP Server is a powerful, efficient, and extensible
+             : web server.

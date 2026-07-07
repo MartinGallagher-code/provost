@@ -1,0 +1,19 @@
+Volume Name: gv0
+Type: Distributed-Replicate
+Volume ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+Status: Started
+Snapshot Count: 0
+Number of Bricks: 2 x 3 = 6
+Transport-type: tcp
+Bricks:
+Brick1: node1:/data/brick1/gv0
+Brick2: node2:/data/brick1/gv0
+Brick3: node3:/data/brick1/gv0
+Brick4: node1:/data/brick2/gv0
+Brick5: node2:/data/brick2/gv0
+Brick6: node3:/data/brick2/gv0
+Options Reconfigured:
+transport.address-family: inet
+storage.fips-mode-rchecksum: on
+nfs.disable: on
+performance.client-io-threads: off

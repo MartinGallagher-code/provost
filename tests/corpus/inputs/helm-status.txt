@@ -1,0 +1,12 @@
+NAME: ingress-nginx
+LAST DEPLOYED: Fri Jun 12 09:14:22 2026
+NAMESPACE: ingress-nginx
+STATUS: deployed
+REVISION: 3
+CHART: ingress-nginx-4.10.1
+APP VERSION: 1.10.1
+DESCRIPTION: Upgrade complete
+TEST SUITE: None
+NOTES:
+The ingress-nginx controller has been installed.
+It may take a few minutes for the LoadBalancer IP to be available.

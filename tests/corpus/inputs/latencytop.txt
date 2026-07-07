@@ -1,0 +1,7 @@
+Cause                                            Maximum     Percentage
+Scheduler: waiting for cpu                      412.5 msec       32.1 %
+Reading from file                                89.3 msec       18.4 %
+Writing buffer to disk (synchronous)             65.1 msec       12.7 %
+Page fault                                       41.0 msec        9.3 %
+Waiting for event (poll)                        210.7 msec        7.8 %
+down_read_nested                                 12.4 msec        4.2 %

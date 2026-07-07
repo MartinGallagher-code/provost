@@ -40,13 +40,17 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**300 tools tested; all 300 tidy — 264 via a generic parser, 36 via a bespoke
-strategy.** See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list. (The
-first 100 — core sysadmin — plus a second 100 adding git/VCS, language runtimes,
-binutils, databases, monitoring, cloud/k8s, and more security/net; plus a third
-100 extending into Kubernetes/cloud/IaC, containers, deeper networking,
-systemd/storage trees, process/perf & security, package managers, and
-language/hardware/DB.)
+**500 tools tested; all 500 tidy.** See [`COVERAGE.md`](COVERAGE.md) for the live
+per-tool list. The corpus grew in five hundreds: core sysadmin; git/VCS, language
+runtimes, binutils, databases, monitoring, cloud/k8s, security/net; Kubernetes/
+cloud/IaC, containers, deeper networking, systemd/storage trees, process/perf &
+security, package managers, language/hardware/DB; then two more hundreds pushing
+further into extended networking, containers/k8s, storage (LVM/ZFS/btrfs), process
+& `/proc`, package managers, databases, security/auth, hardware, systemd/services,
+and VCS/cloud/IaC. The bulk are tidied by the generic structural parsers; the tail
+of genuinely idiosyncratic formats (sysstat/`/proc` stat tables, DB Unicode/box
+tables, DNS answers, tree/topology dumps, and aligned key/value snapshots) get a
+targeted format-family parser.
 
 The 24 gaps in the third 100 were closed the same way — one new generic parser
 plus a few refinements, and bespoke parsers only where the format is genuinely
@@ -75,7 +79,7 @@ The generic parsers (led by `aligned-columns` with its header/headerless/two-lin
 modes, plus `line-records`, `colons`, `colon-fields`, `yaml`, `key-value`,
 `equals`, `indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`,
 `tree-view`, `vertical-line`, `psql-table`, `version-string`, and the last-resort
-`text-lines`) carry the common 264. The 36 bespoke ones are genuinely idiosyncratic
+`text-lines`) carry the bulk; the idiosyncratic-format ones are genuinely idiosyncratic
 formats —
 `mpstat`/`sar`/`pidstat` (sysstat banners), `ping`/`traceroute`/`w`,
 `dmidecode`/`lspci`/`uname`/`uptime`, the monitoring cluster
@@ -89,7 +93,7 @@ output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
 
 ### Not yet tidy — none
 
-All 300 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
+All 500 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
 corpus should first be checked against the generic parsers (`run.sh`); reach for
 a bespoke strategy only when the format is genuinely idiosyncratic and no generic
 parser produces a correct tidy shape.

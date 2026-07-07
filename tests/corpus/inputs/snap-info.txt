@@ -1,0 +1,18 @@
+name:      firefox
+summary:   Mozilla Firefox web browser
+publisher: Mozilla**
+store-url: https://snapcraft.io/firefox
+contact:   https://support.mozilla.org
+license:   Proprietary
+description: |
+  Firefox is a powerful, extensible web browser with support for modern
+  web application technologies.
+snap-id:   3wdHCAVyZEmYsCMFDE9qt92UV8rDowg9
+tracking:     latest/stable
+refresh-date: 2024-05-14
+channels:
+  latest/stable:    126.0-1 2024-05-14 (4173) 254MB -
+  latest/candidate: 126.0-1 2024-05-13 (4173) 254MB -
+  latest/beta:      127.0b6 2024-05-15 (4180) 255MB -
+  latest/edge:      128.0a1 2024-05-16 (4185) 256MB -
+installed:          126.0-1            (4173) 254MB -

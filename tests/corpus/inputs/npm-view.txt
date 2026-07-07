@@ -1,0 +1,21 @@
+name: express
+description: Fast, unopinionated, minimalist web framework
+dist-tags:
+  latest: 4.19.2
+version: 4.19.2
+homepage: http://expressjs.com/
+license: MIT
+maintainers:
+  - wesleytodd <wes@wesleytodd.com>
+  - dougwilson <doug@somethingdoug.com>
+keywords: express, framework, sinatra, web, http, rest, router, app, api
+dependencies:
+  accepts: ~1.3.8
+  body-parser: 1.20.2
+  cookie: 0.6.0
+  qs: 6.11.0
+dist:
+  .tarball: https://registry.npmjs.org/express/-/express-4.19.2.tgz
+  .shasum: e25437827a3aa7f2a827bc8171bbbb664a356465
+  .integrity: sha512-REXG...
+published: 2 months ago by dougwilson <doug@somethingdoug.com>
