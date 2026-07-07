@@ -1,0 +1,25 @@
+entry1.status i+
+entry1.name git-core
+entry1.summary Core_git_tools
+entry1.type package
+entry2.status 
+entry2.name htop
+entry2.summary Interactive_text_mode_process_viewer
+entry2.type package
+entry3.status i
+entry3.name curl
+entry3.summary A_Tool_for_Transferring_Data_from_URLs
+entry3.type package
+entry4.status 
+entry4.name vim
+entry4.summary Vi_IMproved
+entry4.type package
+entry5.status i
+entry5.name wget
+entry5.summary A_Tool_for_Mirroring_FTP_and_HTTP_Servers
+entry5.type package
+entry6.status 
+entry6.name zsh
+entry6.summary The_Z_Shell
+entry6.type package
+total_entries 6

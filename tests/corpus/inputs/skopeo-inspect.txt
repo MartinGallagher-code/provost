@@ -1,0 +1,37 @@
+{
+    "Name": "docker.io/library/nginx",
+    "Digest": "sha256:6926dd802f40e5e7257fded83e0d8030039642e4e10c4a98a6478e9c6fe06153",
+    "RepoTags": [
+        "latest",
+        "1.25",
+        "1.25.3",
+        "stable",
+        "mainline"
+    ],
+    "Created": "2023-12-05T22:19:37.834066303Z",
+    "DockerVersion": "20.10.23",
+    "Labels": {
+        "maintainer": "NGINX Docker Maintainers <docker-maint@nginx.com>"
+    },
+    "Architecture": "amd64",
+    "Os": "linux",
+    "Layers": [
+        "sha256:1f7ce2fa46ab7f5c6f19a2c9de4a1e29c2b9a3c0f2e6d5b1a9c8d7e6f5a4b3c2",
+        "sha256:2a8b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+        "sha256:3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d"
+    ],
+    "LayersData": [
+        {
+            "MIMEType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+            "Digest": "sha256:1f7ce2fa46ab7f5c6f19a2c9de4a1e29c2b9a3c0f2e6d5b1a9c8d7e6f5a4b3c2",
+            "Size": 30439111,
+            "Annotations": null
+        }
+    ],
+    "Env": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "NGINX_VERSION=1.25.3",
+        "NJS_VERSION=0.8.2",
+        "PKG_RELEASE=1~bookworm"
+    ]
+}

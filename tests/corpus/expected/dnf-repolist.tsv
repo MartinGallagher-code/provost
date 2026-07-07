@@ -1,0 +1,6 @@
+n	repo	id	name	total_entries
+1	Linux	Rocky	9_-_AppStream	5
+2	Linux	Rocky	9_-_BaseOS	5
+3	Linux	Rocky	9_-_CRB	5
+4	Packages	Extra	for_Enterprise_Linux_9_-_x86_64	5
+5	Linux	Rocky	9_-_Extras	5

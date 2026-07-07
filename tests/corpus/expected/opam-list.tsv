@@ -1,0 +1,7 @@
+n	Name	#	Installed	Synopsis	total_entries
+1	base	standard	Full	library_replacement_for_OCaml	6
+2	cmdliner	definition	Declarative	of_command_line_interfaces	6
+3	dune	portable,	Fast,	and_opinionated_build_system	6
+4	ocaml	OCaml	The	compiler_(virtual_package)	6
+5	ppxlib	library	Standard	for_ppx_rewriters	6
+6	yojson	is	Yojson	an_optimized_parsing_library_for_JSON	6

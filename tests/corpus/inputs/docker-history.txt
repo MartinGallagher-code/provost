@@ -1,0 +1,9 @@
+IMAGE          CREATED        CREATED BY                                      SIZE      COMMENT
+605c77e624dd   2 weeks ago    /bin/sh -c #(nop)  CMD ["nginx" "-g" "daemon…   0B
+<missing>      2 weeks ago    /bin/sh -c #(nop)  STOPSIGNAL SIGQUIT           0B
+<missing>      2 weeks ago    /bin/sh -c #(nop)  EXPOSE 80                    0B
+<missing>      2 weeks ago    /bin/sh -c #(nop)  ENTRYPOINT ["/docker-entr…   0B
+<missing>      2 weeks ago    /bin/sh -c #(nop) COPY multi:0dc0e34d541bedd…   4.62kB
+<missing>      2 weeks ago    /bin/sh -c set -x     && addgroup --system -…   61.1MB
+<missing>      3 weeks ago    /bin/sh -c #(nop)  CMD ["bash"]                 0B
+<missing>      3 weeks ago    /bin/sh -c #(nop) ADD file:d34ac1a7f68e40b9d…   80.4MB

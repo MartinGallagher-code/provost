@@ -36,9 +36,14 @@ strategy_detect () {
             found_prompt=1
         fi
 
-        # Count pipes in line
-        local stripped="${_line//[^|]/}"
-        local pc=${#stripped}
+        # Count pipes in line — but ignore ASCII tree glyphs (`|__`, `|--` in
+        # lsusb -t / pstree), whose `|` is a drawing character, not a column
+        # delimiter. A real sqlite pipe row has content, not `_`/`-`, after `|`.
+        local pc=0
+        if [[ "$_line" != *'|_'* && "$_line" != *'|-'* ]]; then
+            local stripped="${_line//[^|]/}"
+            pc=${#stripped}
+        fi
 
         if [[ $pc -ge 1 ]]; then
             if [[ $first_pipe_count -eq -1 ]]; then
@@ -68,7 +73,9 @@ strategy_detect () {
         return 0
     fi
 
-    # Column mode with dash separator
+    # Column mode with dash separator (sqlite `.mode column`: header / --- ----- /
+    # rows). Tools that share this shape but have a better home (e.g. `vault
+    # status`) win via a lower-priority-number bespoke strategy ahead of this one.
     if [[ $found_dash_separator -eq 1 ]]; then
         return 0
     fi

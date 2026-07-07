@@ -1,0 +1,12 @@
+C /etc
+C /etc/nginx
+A /etc/nginx/conf.d/custom.conf
+C /var
+C /var/cache
+A /var/cache/nginx
+A /var/cache/nginx/client_temp
+C /run
+A /run/nginx.pid
+C /tmp
+A /tmp/build.log
+D /usr/share/nginx/html/index.html

@@ -1,0 +1,2 @@
+Address	Netmask	Wildcard	Network	HostMin	HostMax	Broadcast	Hosts/Net
+192.168.1.130	255.255.255.192_=_26	0.0.0.63	192.168.1.128/26	192.168.1.129	192.168.1.190	192.168.1.191	62____________________Class_C,_Private_Internet

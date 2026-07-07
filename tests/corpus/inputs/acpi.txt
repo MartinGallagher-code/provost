@@ -1,0 +1,6 @@
+Battery 0: Discharging, 87%, 03:12:45 remaining
+Battery 1: Full, 100%
+Adapter 0: off-line
+Thermal 0: ok, 47.0 degrees C
+Cooling 0: Processor 0 of 10
+Cooling 1: intel_pstate no state information available

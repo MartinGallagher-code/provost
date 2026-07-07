@@ -1,0 +1,7 @@
+n	Name	Version	Build	Channel	total_entries
+1	numpy	1.26.4	py311h64a7726_0	conda-forge	6
+2	pandas	2.2.1	py311h320fe9a_0	conda-forge	6
+3	python	3.11.8	hab00c5b_0_cpython	conda-forge	6
+4	requests	2.31.0	pyhd8ed1ab_0	conda-forge	6
+5	scipy	1.12.0	py311h517d4fd_2	conda-forge	6
+6	setuptools	69.1.1	pyhd8ed1ab_0	conda-forge	6

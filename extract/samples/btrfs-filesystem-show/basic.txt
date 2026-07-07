@@ -1,0 +1,8 @@
+Label: 'data'  uuid: 3f8a1c2d-4b5e-6f70-8a9b-0c1d2e3f4a5b
+	Total devices 2 FS bytes used 412.83GiB
+	devid    1 size 931.51GiB used 420.00GiB path /dev/sda1
+	devid    2 size 931.51GiB used 420.00GiB path /dev/sdb1
+
+Label: 'root'  uuid: 7e6d5c4b-3a29-18f7-e6d5-c4b3a2918f70
+	Total devices 1 FS bytes used 38.11GiB
+	devid    1 size 120.00GiB used 42.00GiB path /dev/nvme0n1p2

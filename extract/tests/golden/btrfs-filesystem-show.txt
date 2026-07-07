@@ -1,0 +1,13 @@
+entry1.devid 1
+entry1.size 931.51GiB
+entry1.used 420.00GiB
+entry1.path /dev/sda1
+entry2.devid 2
+entry2.size 931.51GiB
+entry2.used 420.00GiB
+entry2.path /dev/sdb1
+entry3.devid 1
+entry3.size 120.00GiB
+entry3.used 42.00GiB
+entry3.path /dev/nvme0n1p2
+total_entries 3

@@ -1,0 +1,4 @@
+n	devid	size	used	path	total_entries
+1	1	931.51GiB	420.00GiB	/dev/sda1	3
+2	2	931.51GiB	420.00GiB	/dev/sdb1	3
+3	1	120.00GiB	42.00GiB	/dev/nvme0n1p2	3

@@ -1,0 +1,11 @@
+Loading repository data...
+Reading installed packages...
+
+S  | Name         | Summary                                    | Type
+---+--------------+--------------------------------------------+--------
+i+ | git-core     | Core git tools                             | package
+   | htop         | Interactive text mode process viewer       | package
+i  | curl         | A Tool for Transferring Data from URLs     | package
+   | vim          | Vi IMproved                                | package
+i  | wget         | A Tool for Mirroring FTP and HTTP Servers  | package
+   | zsh          | The Z Shell                                | package

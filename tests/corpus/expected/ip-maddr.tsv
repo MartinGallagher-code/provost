@@ -1,0 +1,12 @@
+n	iface	family	address	total_entries
+1	lo	inet	224.0.0.251	11
+2	lo	inet	224.0.0.1	11
+3	lo	inet6	ff02::1	11
+4	lo	inet6	ff01::1	11
+5	eth0	link	33:33:00:00:00:01	11
+6	eth0	link	01:00:5e:00:00:01	11
+7	eth0	link	33:33:ff:12:34:56	11
+8	eth0	inet	224.0.0.251	11
+9	eth0	inet	224.0.0.1	11
+10	eth0	inet6	ff02::fb	11
+11	eth0	inet6	ff02::1	11

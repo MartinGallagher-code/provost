@@ -1,0 +1,5 @@
+NAME           CLUSTER                         NAMESPACE   PROJECT  STATUS     HEALTH    SYNCPOLICY  CONDITIONS  REPO                                         PATH        TARGET
+guestbook      https://kubernetes.default.svc  guestbook   default  Synced     Healthy   Auto        <none>      https://github.com/argoproj/argocd-example   guestbook   HEAD
+web-frontend   https://kubernetes.default.svc  web         prod     Synced     Healthy   Auto        <none>      https://github.com/acme/web-frontend         deploy      main
+api-backend    https://kubernetes.default.svc  api         prod     OutOfSync  Healthy   Auto        <none>      https://github.com/acme/api-backend          k8s         main
+worker         https://kubernetes.default.svc  jobs        prod     Synced     Degraded  Auto        <none>      https://github.com/acme/worker               manifests   main

@@ -1,0 +1,8 @@
+NAME          SHORTNAMES   APIVERSION   NAMESPACED   KIND
+configmaps    cm           v1           true         ConfigMap
+endpoints     ep           v1           true         Endpoints
+namespaces    ns           v1           false        Namespace
+pods          po           v1           true         Pod
+services      svc          v1           true         Service
+deployments   deploy       apps/v1      true         Deployment
+replicasets   rs           apps/v1      true         ReplicaSet

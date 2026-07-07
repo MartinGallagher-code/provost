@@ -1,0 +1,2 @@
+Id	Names	Description	LoadState	ActiveState	SubState	FragmentPath	UnitFileState	UnitFilePreset	MainPID	ExecMainStartTimestamp	ExecMainPID	ExecMainStatus	MemoryCurrent	MemoryPeak	TasksCurrent	TasksMax	CPUUsageNSec	Restart	User	Group	WorkingDirectory	LimitNOFILE	Result
+nginx.service	nginx.service	A_high_performance_web_server_and_a_reverse_proxy_server	loaded	active	running	/lib/systemd/system/nginx.service	enabled	enabled	1247	Mon_2026-06-15_09:14:22_UTC	1247	0	14680064	18923520	3	4915	2841000000	on-failure	www-data	www-data	/	1024	success

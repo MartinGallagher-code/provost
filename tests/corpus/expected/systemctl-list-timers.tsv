@@ -1,0 +1,7 @@
+n	NEXT	LEFT	LAST	PASSED	UNIT	ACTIVATES	total_entries
+1	Mon	2026-07-06	12:00:00	UTC	2h	41min_left_Mon_2026-07-06_09:00:12_UTC_18min_ago_logrotate.timer_logrotate.service	6
+2	Mon	2026-07-06	18:00:00	UTC	8h	left_Sun_2026-07-05_18:00:04_UTC_15h_ago_apt-daily.timer_apt-daily.service	6
+3	Tue	2026-07-07	00:00:00	UTC	14h	left_Mon_2026-07-06_00:00:08_UTC_9h_ago_man-db.timer_man-db.service	6
+4	Tue	2026-07-07	06:24:11	UTC	21h	left_Mon_2026-07-06_06:24:11_UTC_3h_5min_ago_fstrim.timer_fstrim.service	6
+5	Mon	2026-07-06	10:12:47	UTC	53min	left_Mon_2026-07-06_09:12:47_UTC_6min_ago_systemd-tmpfiles-clean.timer_systemd-tmpfiles-clean.service	6
+6	Sun	2026-07-12	03:10:00	UTC	5	days_left_Sun_2026-07-05_03:10:22_UTC_1_day_6h_ago_e2scrub_all.timer_e2scrub_all.service	6

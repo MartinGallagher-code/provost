@@ -1,0 +1,8 @@
+n	name	state	read	write	cksum	total_entries
+1	tank	ONLINE	0	0	0	7
+2	mirror-0	ONLINE	0	0	0	7
+3	sda	ONLINE	0	0	0	7
+4	sdb	ONLINE	0	0	0	7
+5	mirror-1	ONLINE	0	0	0	7
+6	sdc	ONLINE	0	0	0	7
+7	sdd	ONLINE	0	0	0	7

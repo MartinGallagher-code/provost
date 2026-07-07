@@ -1,0 +1,21 @@
+.NET SDK:
+ Version:           8.0.100
+ Commit:            57efcf1350
+ Workload version:  8.0.100-manifests.9f7c3e0f
+
+Runtime Environment:
+ OS Name:     ubuntu
+ OS Version:  22.04
+ OS Platform: Linux
+ RID:         linux-x64
+ Base Path:   /usr/share/dotnet/sdk/8.0.100/
+
+Host:
+  Version:      8.0.0
+  Architecture: x64
+  Commit:       5535e31a71
+
+.NET SDKs installed:
+  6.0.417 [/usr/share/dotnet/sdk]
+  7.0.404 [/usr/share/dotnet/sdk]
+  8.0.100 [/usr/share/dotnet/sdk]

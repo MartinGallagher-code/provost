@@ -1,0 +1,8 @@
+entry1.c1 example.com/myapp
+entry2.c1 github.com/gin-gonic/gin
+entry3.c1 github.com/go-playground/validator/v10
+entry4.c1 github.com/golang/protobuf
+entry5.c1 github.com/stretchr/testify
+entry6.c1 golang.org/x/crypto
+entry7.c1 google.golang.org/grpc
+total_entries 7

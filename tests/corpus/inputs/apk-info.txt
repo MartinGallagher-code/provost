@@ -1,0 +1,7 @@
+alpine-baselayout
+busybox
+ca-certificates
+musl
+openssl
+ssl_client
+zlib

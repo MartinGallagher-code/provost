@@ -1,5 +1,2 @@
-n	NAME="Debian	GNU/Linux"	total_entries
-1	VERSION_ID="12"		4
-2	VERSION="12	(bookworm)"	4
-3	ID=debian		4
-4	PRETTY_NAME="Debian	GNU/Linux_12_(bookworm)"	4
+NAME	VERSION_ID	VERSION	ID	PRETTY_NAME
+"Debian_GNU/Linux"	"12"	"12_(bookworm)"	debian	"Debian_GNU/Linux_12_(bookworm)"

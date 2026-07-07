@@ -1,0 +1,11 @@
+            name             |  setting  | unit
+-----------------------------+-----------+------
+ max_connections             | 100       |
+ shared_buffers              | 16384     | 8kB
+ work_mem                    | 4096      | kB
+ maintenance_work_mem        | 65536     | kB
+ effective_cache_size        | 524288    | 8kB
+ wal_buffers                 | 512       | 8kB
+ checkpoint_completion_target| 0.9       |
+ random_page_cost            | 4         |
+(8 rows)

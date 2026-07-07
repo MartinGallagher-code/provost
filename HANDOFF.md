@@ -91,24 +91,29 @@ strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/
 + `structured/`) instead of a bespoke strategy per tool, and delete the
 redundant per-tool strategies once the generic parsers cover them.
 
-Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **200 common Linux
+Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **300 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one parallel batch harness `run.sh`. **All 200 tidy: 166 via a generic parser,
-34 via a bespoke one** (no remaining gaps). The generic parsers carry the common
-166; the 34 bespoke are idiosyncratic format families (sysstat banners
+and one parallel batch harness `run.sh`. **All 300 tidy: 264 via a generic parser,
+36 via a bespoke one** (no remaining gaps). The generic parsers carry the common
+264; the 36 bespoke are idiosyncratic format families (sysstat banners
 `mpstat`/`sar`/`pidstat`; `ping`/`traceroute`/`w`; `dmidecode`/`lspci`/`uname`/
 `uptime`; the monitoring cluster `perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/
-`nethogs`/`perf-counters`; binutils `objdump-headers`/`readelf-sections`; and a
-handful of network/VCS/security tools). `run.sh --coverage` regenerates
-`COVERAGE.md` (the queryable ✅/✅ᵇ list). The extract engine selects the
-**lowest-priority-number** matching strategy (confidence is mainly a threshold
-gate), so making a generic parser win is about its `## Priority` and `detect()`.
+`nethogs`/`perf-counters`; storage trees `zpool-status`/`btrfs-filesystem-show`/
+`multipath-ll`/`lsusb-t`; grouped network stats `netstat-s`/`nft-list-ruleset`/
+`ip-maddr`/`rfkill-list`/`bridge-fdb`; `vault-status`/`memcached-stats`/`pmap`/
+`numastat`/`zypper-search`; and a handful of binutils / VCS / security tools).
+`run.sh --coverage` regenerates `COVERAGE.md` (the queryable ✅/✅ᵇ list). The
+extract engine selects the **lowest-priority-number** matching strategy (confidence
+is mainly a threshold gate), so making a generic parser win is about its
+`## Priority` and `detect()`.
 
 The generic parsers covering the corpus: `aligned-columns` (header, headerless,
-two-line), `bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons`
-(now gated to ≥40% `key:` lines), `indented-hierarchy`, `line-records`,
-`labeled-records`, `tree-view`, `vertical-line`, `psql-table` (box tables),
-`version-string`, and `text-lines` (last-resort one-column dump).
+two-line; defers pure key/value blocks and collapses `#`-comment headers),
+`bracket-log`, `inline-kv`, `yaml`, `key-value`, `equals`, `colons` (gated to ≥40%
+`key:` lines), `colon-fields` (colon-delimited records — `/etc/passwd`/`group`/
+`getent`), `indented-hierarchy`, `line-records`, `labeled-records`, `tree-view`,
+`vertical-line`, `psql-table` (box tables), `version-string`, and `text-lines`
+(last-resort one-column dump).
 
 ## Pruning redundant strategies (in progress)
 
@@ -147,7 +152,7 @@ nicer columns).
 ```bash
 bash tests/smoke.sh                 # end-to-end (33 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
-bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 219/219]
+bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 214/214]
 ```
 
 The analyze engine suite is also CI-enforced, but the raw

@@ -1,0 +1,7 @@
+NAME                    USED  AVAIL     REFER  MOUNTPOINT
+tank                    892G  1.67T      205K  /tank
+tank/home               412G  1.67T      412G  /tank/home
+tank/home/martin        118G  1.67T      118G  /tank/home/martin
+tank/vm                 331G  1.67T      331G  /tank/vm
+tank/backups            149G  1.67T      149G  /tank/backups
+tank/backups@daily      1.20G      -      148G  -

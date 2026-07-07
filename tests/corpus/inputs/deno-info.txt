@@ -1,0 +1,6 @@
+DENO_DIR location: /home/user/.cache/deno
+Remote modules cache: /home/user/.cache/deno/deps
+npm modules cache: /home/user/.cache/deno/npm
+Emitted modules cache: /home/user/.cache/deno/gen
+Language server registries cache: /home/user/.cache/deno/registries
+Origin storage: /home/user/.cache/deno/location_data
