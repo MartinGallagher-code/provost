@@ -1,5 +1,21 @@
 # glean — Changelog
 
+## 2026-07-07 — hermetic smoke test + doctor warns on a shadowing engine
+- **Bug:** `bash tests/smoke.sh` could fail with the `free` sample classified as
+  `dmsetup-table` (or any other type) on a machine whose `GLEAN_HOME` (e.g.
+  `~/.glean`) contained a stale `extract/envoy-extract`. `_find_engine` resolves
+  `$GLEAN_HOME/extract/…` *before* the bundled engine, so an old copy there
+  silently shadows the repo's engine — and the smoke test, which only set
+  `GLEAN_WORKSPACE`, inherited it. (PR CI was green; this only bit local runs.)
+- **Fix:** `tests/smoke.sh` is now hermetic — it clears every `GLEAN_*` knob the
+  caller's shell may carry (`GLEAN_HOME`, `GLEAN_MIN_CONFIDENCE`,
+  `GLEAN_RECONCILE_OVERLAP`, `GLEAN_QUIET`, `GLEAN_MAX_INPUT`) so it always
+  exercises the bundled trees.
+- **Diagnostic:** `glean doctor` now warns when the resolved extract engine is a
+  `GLEAN_HOME` override rather than the bundled one, and points at the bundled
+  path — so a shadowing/stale engine diagnoses itself.
+- Files: `tests/smoke.sh` (unset block), `glean` (`cmd_doctor` warning).
+
 ## 2026-07-07 — `glean rm` deletes datasets (provenance-aware, committed)
 - New verb `glean rm [-f|--yes] [--purge] <dataset>...` (aliases `delete`/`drop`).
   Previously there was no way to remove a dataset short of hand-deleting files

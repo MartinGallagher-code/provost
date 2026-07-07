@@ -2,6 +2,13 @@
 # Phase-1 smoke test: inject → ls → show end-to-end in a throwaway workspace.
 set -euo pipefail
 
+# Hermetic: test THIS repo's bundled extract/analyze/transform trees, never a
+# stale engine a developer happens to have in their global store. glean resolves
+# its engine from $GLEAN_HOME first (see _find_engine), so an old ~/.glean/extract
+# would otherwise shadow the bundled one and misclassify inputs. Clear every GLEAN_*
+# knob the caller's shell may carry, then set only what the test needs.
+unset GLEAN_HOME GLEAN_MIN_CONFIDENCE GLEAN_RECONCILE_OVERLAP GLEAN_QUIET GLEAN_MAX_INPUT
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GLEAN="$HERE/../glean"
 WS="$(mktemp -d)/.glean"
