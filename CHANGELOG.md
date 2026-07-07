@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-07 — opt-in async capture + a concurrency-lock fix it exposed
+- **Feature:** `--async` (and `GLEAN_ASYNC=1`) on inject/`run`. The input is
+  spooled and the extract→classify→commit runs in a **detached background
+  process**, so the shell prompt returns immediately (~0.03s vs ~0.35s). Results
+  appear in `glean log` shortly after; use `--sync`/`--wait` to force the
+  foreground path (or when `GLEAN_ASYNC=1` is the default). The spool lives
+  outside the workspace (never committed) and self-removes on success; on failure
+  it is kept, with a `log.txt`, for inspection. Store serialisation is unchanged —
+  the background child takes the same lock as any writer.
+- **Bug fix (found while testing async):** `_lock` recorded `$$` as the lock
+  owner, but a detached ingest runs in a subshell where `$$` is still the
+  already-exited parent glean. The stale-lock breaker then saw a "dead" owner and
+  could steal a live lock mid-write, producing **duplicate row indices**. `_lock`
+  now records `$BASHPID` (the real current process). This also hardens the
+  existing parallel-`run` path.
+- Files: `glean` (`_ingest_async`; `--async`/`--sync` on `cmd_inject`/`cmd_run`;
+  `_lock` → `$BASHPID`; help + ENV docs), `completions/glean.bash`, `man/glean.1`,
+  `tests/smoke.sh` (+3 async checks incl. a duplicate-index concurrency guard).
+
 ## 2026-07-07 — extract engine ~40% faster per invocation (mktemp hoist)
 - **Perf:** piping into `glean` was ~0.6s wall per capture; the extract engine
   was ~0.5s of that (git commit is ~0.01s). The auto-detect loop spawned a fresh

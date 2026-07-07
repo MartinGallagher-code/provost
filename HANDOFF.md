@@ -26,6 +26,7 @@ the git-core verbs `run` / `log` / `restore` / `source` / `export` / `import` /
 ```bash
 free -m        | ./glean            # auto-detect → tidy dataset, filed by type
 docker stats   | ./glean
+big-cmd        | ./glean --async    # return at once; capture in the background
 ./glean run df -h                   # capture a command's output AS A COMMIT
 ./glean ls                          # list datasets
 ./glean show free                   # present a dataset as a tidy table
@@ -153,7 +154,7 @@ nicer columns).
 ## Tests
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (44 checks)          [CI]
+bash tests/smoke.sh                 # end-to-end (47 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 214/214]
 ```

@@ -34,7 +34,7 @@ _glean_complete () {
             COMPREPLY=( $(compgen -o default -- "$cur") ) ;;   # paths
         run|inject)
             case "$cur" in
-                -*) COMPREPLY=( $(compgen -W "--silent --min-confidence --help" -- "$cur") ) ;;
+                -*) COMPREPLY=( $(compgen -W "--silent --min-confidence --async --sync --help" -- "$cur") ) ;;
                 *)  COMPREPLY=( $(compgen -c -- "$cur") ) ;;    # a command to run
             esac ;;
         *) COMPREPLY=() ;;

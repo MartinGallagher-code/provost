@@ -157,6 +157,9 @@ _git () { git -C "$GLEAN_WORKSPACE" -c user.name=glean -c user.email=glean@local
 
 # --- store lock (a shared GLEAN_HOME may have concurrent writers) ----------
 # mkdir is atomic across processes/users; spin up to GLEAN_LOCK_TIMEOUT seconds.
+# Record $BASHPID (this process), NOT $$: a detached async ingest runs in a
+# subshell where $$ is still the already-exited parent glean, and the stale-lock
+# breaker would then see a "dead" owner and steal a live lock mid-write.
 _lock () {
     local lock="$GLEAN_WORKSPACE/.lock" waited=0 pid
     while ! mkdir "$lock" 2>/dev/null; do
@@ -168,7 +171,7 @@ _lock () {
         [[ $waited -ge $((GLEAN_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${GLEAN_LOCK_TIMEOUT}s): $lock"
         sleep 0.2
     done
-    echo "$$" > "$lock/pid"
+    echo "$BASHPID" > "$lock/pid"
 }
 _unlock () { rm -rf "$GLEAN_WORKSPACE/.lock" 2>/dev/null || true; }
 
@@ -353,15 +356,39 @@ _ingest () {
     fi
 }
 
+# Fire-and-forget ingest: spool the input and run _ingest in a detached child so
+# the shell prompt returns immediately (opt-in via --async / GLEAN_ASYNC=1).
+# The spool lives OUTSIDE the workspace (so it is never swept into a git commit,
+# and survives the parent's tmp cleanup); the child ingests it, and on success
+# removes the spool. On failure the spool — including log.txt — is kept so the
+# error is inspectable. Store serialisation is unchanged: the child takes the
+# same _lock as any writer, so concurrent async captures stay consistent.
+_ingest_async () {
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
+    local spool; spool="$(mktemp -d "$GLEAN_TEMP_DIR/glean-async.XXXXXX")"
+    cp "$in" "$spool/in.txt"
+    (
+        trap '' HUP                                   # survive the shell exiting
+        if _ingest "$spool/in.txt" "$threshold" "$source" "$cmd" "$rc" \
+               >"$spool/log.txt" 2>&1; then
+            rm -rf "$spool"
+        fi                                            # keep spool+log on failure
+    ) </dev/null >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+    info "queued (async, pid $!) — capturing in the background; see 'glean log' shortly."
+}
+
 # ---------------------------------------------------------------------------
 # Default verb: inject (pipe or file)
 # ---------------------------------------------------------------------------
 cmd_inject () {
-    local file="" threshold="$GLEAN_MIN_CONFIDENCE"
+    local file="" threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-0}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) GLEAN_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            --async) async=1; shift ;;
+            --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
             -*) die "unknown option: $1" ;;
             *) file="$1"; shift ;;
@@ -383,18 +410,21 @@ cmd_inject () {
     [[ "$(wc -c < "$in")" -le "$GLEAN_MAX_INPUT" ]] \
         || die "input too large (max $GLEAN_MAX_INPUT bytes; raise GLEAN_MAX_INPUT)."
 
-    _ingest "$in" "$threshold" "inject" "" ""
+    if [[ "$async" -eq 1 ]]; then _ingest_async "$in" "$threshold" "inject" "" ""
+    else _ingest "$in" "$threshold" "inject" "" ""; fi
 }
 
 # ---------------------------------------------------------------------------
 # run — execute a command, capture its output as a commit, and ingest it.
 # ---------------------------------------------------------------------------
 cmd_run () {
-    local threshold="$GLEAN_MIN_CONFIDENCE"
+    local threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-0}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) GLEAN_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
+            --async) async=1; shift ;;
+            --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
             --) shift; break ;;
             -*) die "unknown option: $1" ;;
@@ -413,7 +443,8 @@ cmd_run () {
     tr -d '\r' < "$in" > "$in.clean" && mv "$in.clean" "$in"
     local cmd="$*"
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
-    _ingest "$in" "$threshold" "run" "$cmd" "$rc"
+    if [[ "$async" -eq 1 ]]; then _ingest_async "$in" "$threshold" "run" "$cmd" "$rc"
+    else _ingest "$in" "$threshold" "run" "$cmd" "$rc"; fi
     return "$rc"
 }
 
@@ -792,6 +823,7 @@ USAGE
     glean run [--] <cmd> [args...]                capture a command's output as a
                                                  commit, auto-detect + file it
     cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset
+                [--async]                          ...returning at once; capture in the background
     glean [FILE]                                  inject a file instead of stdin
     glean source <#N>                             show the original source behind row #N
     glean control [<dir>]                         make <dir> its own capture instance
@@ -825,6 +857,7 @@ ENV
     GLEAN_HOME            global store dir (default: ~/.glean)
     GLEAN_WORKSPACE       explicit store override (wins over GLEAN_HOME)
     GLEAN_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
+    GLEAN_ASYNC          1 = capture in the background by default (--sync overrides)
     GLEAN_MAX_INPUT       max input bytes (default: 10485760)
     GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
 
