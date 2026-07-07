@@ -1,5 +1,17 @@
 # glean — Changelog
 
+## 2026-07-07 — extract engine ~40% faster per invocation (mktemp hoist)
+- **Perf:** piping into `glean` was ~0.6s wall per capture; the extract engine
+  was ~0.5s of that (git commit is ~0.01s). The auto-detect loop spawned a fresh
+  `mktemp` subprocess for **every** strategy it sourced (dozens per run, ~60 for a
+  typical input) just to capture source-time stderr. Hoisted that to a **single**
+  private temp file created once per run and reused (same umask-077, symlink-safe
+  mktemp — just not per-strategy). Measured ~0.60s → ~0.35s per pipe (~42%), with
+  identical classification. If the one temp file can't be created, the loop now
+  degrades to discarding source stderr rather than spawning per-strategy temps.
+- Verified: extract suite 214/214, smoke 44/44, melt 8/8 — all unchanged.
+- Files: `extract/lib/_discovery.sh` (`run_auto_strategies`).
+
 ## 2026-07-07 — hermetic smoke test + doctor warns on a shadowing engine
 - **Bug:** `bash tests/smoke.sh` could fail with the `free` sample classified as
   `dmsetup-table` (or any other type) on a machine whose `GLEAN_HOME` (e.g.
