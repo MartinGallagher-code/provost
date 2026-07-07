@@ -1,0 +1,6 @@
+n	NAME	STATUS	TRIGGER	REGION	total_entries
+1	process-upload	ACTIVE	google.storage.object.finalize	us-central1	5
+2	resize-image	ACTIVE	google.storage.object.finalize	us-central1	5
+3	handle-webhook	ACTIVE	HTTPS	us-central1	5
+4	pubsub-worker	ACTIVE	google.pubsub.topic.publish	us-central1	5
+5	nightly-cleanup	ACTIVE	google.pubsub.topic.publish	us-west1	5

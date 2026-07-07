@@ -1,0 +1,8 @@
+n	c1	c2	c3	c4	total_entries
+1	root	x	0		7
+2	sudo	x	27	martin,alice	7
+3	docker	x	998	martin,deploy	7
+4	www-data	x	33		7
+5	adm	x	4	syslog,martin	7
+6	users	x	100	martin,alice,bob	7
+7	staff	x	50	martin	7

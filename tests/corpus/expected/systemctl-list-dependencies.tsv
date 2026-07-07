@@ -1,0 +1,7 @@
+n	depth	name	total_entries
+1	0	● system.slice	6
+2	0	● systemd-journald.socket	6
+3	0	● sysinit.target	6
+4	0	● network.target	6
+5	0	● basic.target	6
+6	0	● network-online.target	6

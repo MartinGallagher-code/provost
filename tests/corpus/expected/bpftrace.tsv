@@ -1,0 +1,7 @@
+n	key	count	total_entries
+1	read	48213	6
+2	write	22140	6
+3	openat	3312	6
+4	close	3298	6
+5	fstat	2104	6
+6	mmap	1877	6

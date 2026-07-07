@@ -1,0 +1,16 @@
+entry1.size 102400
+entry1.timestamp 2026-06-01T09:15:22Z
+entry1.url gs://my-bucket/logs/app-2026-06-01.log
+entry2.size 215040
+entry2.timestamp 2026-06-02T09:15:31Z
+entry2.url gs://my-bucket/logs/app-2026-06-02.log
+entry3.size 198656
+entry3.timestamp 2026-06-03T09:14:58Z
+entry3.url gs://my-bucket/logs/app-2026-06-03.log
+entry4.size 512000
+entry4.timestamp 2026-06-01T00:04:12Z
+entry4.url gs://my-bucket/exports/users.csv
+entry5.size 1048576
+entry5.timestamp 2026-06-01T00:05:47Z
+entry5.url gs://my-bucket/exports/events.csv
+total_entries 5

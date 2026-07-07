@@ -1,0 +1,12 @@
+n	c1	c2	c3	c4	total_entries
+1	System	Power	:	on	11
+2	Power	Overload	:	false	11
+3	Power	Interlock	:	inactive	11
+4	Main	Power	Fault	:_false	11
+5	Power	Control	Fault	:_false	11
+6	Power	Restore	Policy	:_always-off	11
+7	Last	Power	Event	:_none	11
+8	Chassis	Intrusion	:	inactive	11
+9	Front-Panel	Lockout	:	inactive	11
+10	Drive	Fault	:	false	11
+11	Cooling/Fan	Fault	:	false	11

@@ -94,9 +94,9 @@ strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/
 + `structured/`) instead of a bespoke strategy per tool, and delete the
 redundant per-tool strategies once the generic parsers cover them.
 
-Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **500 common Linux
+Measured by `tests/corpus/` (see its README + `COVERAGE.md`): **1050 common Linux
 tools** (with varied output per tool), a correctness manifest, golden outputs,
-and one parallel batch harness `run.sh`. **All 500 tidy: the bulk via generic parsers,
+and one parallel batch harness `run.sh`. **All 1050 tidy: the bulk via generic parsers,
 plus format-family parsers for idiosyncratic tools** (no remaining gaps). The generic parsers carry the bulk;
 the tail are idiosyncratic format families (sysstat banners
 `mpstat`/`sar`/`pidstat`; `ping`/`traceroute`/`w`; `dmidecode`/`lspci`/`uname`/

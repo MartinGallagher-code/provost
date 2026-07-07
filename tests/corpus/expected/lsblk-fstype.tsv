@@ -1,0 +1,6 @@
+n	NAME	MAJ:MIN	RM	SIZE	RO	TYPE	MOUNTPOINTS	FSTYPE	total_entries
+1	sda	8:0	0	100G	0	disk	/	ext4	5
+2	sdb	8:16	0	500G	0	disk	/srv	xfs	5
+3	sdc	8:32	0	2T	0	disk	/backup	ext4	5
+4	nvme0n1	259:0	0	1T	0	disk	/var	ext4	5
+5	sdd	8:48	0	256G	0	disk	/scratch	xfs	5

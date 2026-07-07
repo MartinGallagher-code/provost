@@ -1,0 +1,7 @@
+n	c1	c2	c3	total_entries
+1	S.5....T.	c	/etc/sysconfig/network	6
+2	.M.......	c	/etc/passwd	6
+3	S.5....T.	c	/etc/httpd/conf/httpd.conf	6
+4	.......T.	c	/etc/sudoers	6
+5	S.5....T.	c	/etc/ssh/sshd_config	6
+6	SM5....T.	c	/etc/nsswitch.conf	6

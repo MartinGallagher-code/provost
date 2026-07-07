@@ -1,0 +1,8 @@
+n	c1	total_entries
+1	CPU1 Temp        | 42 degrees C      | ok	7
+2	CPU2 Temp        | 40 degrees C      | ok	7
+3	System Temp      | 35 degrees C      | ok	7
+4	FAN1             | 4800 RPM          | ok	7
+5	FAN2             | 4680 RPM          | ok	7
+6	Vcore            | 1.10 Volts        | ok	7
+7	PS1 Status       | 0x01              | ok	7

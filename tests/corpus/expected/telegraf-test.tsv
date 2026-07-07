@@ -1,0 +1,7 @@
+n	measurement	tags	fields	timestamp	total_entries
+1	cpu	cpu=cpu-total,host=web01	usage_idle=91.2,usage_system=4.1,usage_user=4.7	1751879662000000000	6
+2	mem	host=web01	available_percent=42.8,used_percent=57.2	1751879662000000000	6
+3	disk	device=sda1,host=web01	free=10248540160i,used_percent=63.1	1751879662000000000	6
+4	system	host=web01	load1=0.42,load5=0.55,n_cpus=8i	1751879662000000000	6
+5	net	host=web01,interface=eth0	bytes_recv=88421331i,bytes_sent=12048221i	1751879662000000000	6
+6	swap	host=web01	used_percent=0	1751879662000000000	6

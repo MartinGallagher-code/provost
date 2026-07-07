@@ -1,0 +1,4 @@
+n	TOKEN	TTL	EXPIRES	USAGES	DESCRIPTION	EXTRA	GROUPS	total_entries
+1	abcdef.0123456789abcdef	22h	2026-07-08T06:14:00Z	authentication,signing	The	default	bootstrap_token_generated_by_'kubeadm_init'._system:bootstrappers:kubeadm:default-node-token	3
+2	ghijkl.0123456789ghijkl	<forever>	<never>	signing	token	generated	by_admin_system:bootstrappers	3
+3	mnopqr.0123456789mnopqr	5h	2026-07-07T14:20:00Z	authentication,signing	worker	join	token_system:bootstrappers:kubeadm:default-node-token	3

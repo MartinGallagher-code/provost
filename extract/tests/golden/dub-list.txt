@@ -1,0 +1,6 @@
+entry1.c1 dub_1.35.0:_/usr/lib/dub/
+entry2.c1 vibe-d_0.9.6:_/home/user/.dub/packages/vibe-d-0.9.6/
+entry3.c1 mir-core_1.7.0:_/home/user/.dub/packages/mir-core-1.7.0/
+entry4.c1 mir-algorithm_3.22.1:_/home/user/.dub/packages/mir-algorithm-3.22.1/
+entry5.c1 dyaml_0.9.2:_/home/user/.dub/packages/dyaml-0.9.2/
+total_entries 5

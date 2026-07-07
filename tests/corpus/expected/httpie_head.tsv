@@ -1,0 +1,2 @@
+Access-Control-Allow-Origin	Connection	Content-Length	Content-Type	Date	Server	Vary
+*	keep-alive	512	application/json	Mon,_15_Jan_2024_10:00:00_GMT	gunicorn/20.1.0	Accept-Encoding

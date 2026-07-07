@@ -1,0 +1,9 @@
+n	c1	total_entries
+1	flask_3.0.0_A_simple_framework_for_building_complex_web_applications.	8
+2	blinker_>=1.6.2	8
+3	click_>=8.1.3	8
+4	itsdangerous_>=2.1.2	8
+5	jinja2_>=3.1.2	8
+6	markupsafe_>=2.0	8
+7	werkzeug_>=3.0.0	8
+8	markupsafe_>=2.1.1	8

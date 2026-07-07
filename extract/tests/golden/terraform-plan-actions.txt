@@ -1,0 +1,11 @@
+entry1.resource aws_db_instance.primary
+entry1.action updated_in-place
+entry2.resource aws_instance.app_server
+entry2.action created
+entry3.resource aws_s3_bucket.artifacts
+entry3.action created
+entry4.resource aws_security_group.app_sg
+entry4.action created
+entry5.resource module.vpc.aws_nat_gateway.this
+entry5.action destroyed
+total_entries 5

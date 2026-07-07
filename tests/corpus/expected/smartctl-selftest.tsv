@@ -1,0 +1,7 @@
+n	num	test_description	status	remaining	lifetime	lba	total_entries
+1	1	Extended_offline	Completed_without_error	00%	18572	-	6
+2	2	Short_offline	Completed_without_error	00%	18563	-	6
+3	3	Short_offline	Completed_without_error	00%	18544	-	6
+4	4	Extended_offline	Completed_without_error	00%	18102	-	6
+5	5	Short_offline	Completed:_read_failure	90%	17998	2891734	6
+6	6	Short_offline	Completed_without_error	00%	17888	-	6

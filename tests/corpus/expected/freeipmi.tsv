@@ -1,0 +1,7 @@
+n	ID	|	Name	Type	Reading	Units	Event	total_entries
+1	1	C	CPU1	|	|	|	|_'OK'	6
+2	2	C	CPU2	|	|	|	|_'OK'	6
+3	3	C	System	|	|	|	|_'OK'	6
+4	4	|	FAN1	Fan	4800.00	RPM	'OK'	6
+5	5	|	FAN2	Fan	4680.00	RPM	'OK'	6
+6	6	|	Vcore	Voltage	1.10	V	'OK'	6

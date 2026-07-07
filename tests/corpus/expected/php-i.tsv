@@ -1,0 +1,8 @@
+n	PHP	Version	=>	8_1_2-1ubuntu2_14	total_entries
+1	System	=>	Linux	buildhost_5.15.0-91-generic_x86_64	7
+2	Build	Date	=>	Nov_24_2023_12:14:32	7
+3	Server	API	=>	Command_Line_Interface	7
+4	Configuration	File	(php.ini)	Path_=>_/etc/php/8.1/cli	7
+5	Loaded	Configuration	File	=>_/etc/php/8.1/cli/php.ini	7
+6	Thread	Safety	=>	disabled	7
+7	Zend	Signal	Handling	=>_enabled	7

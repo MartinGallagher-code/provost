@@ -1,0 +1,7 @@
+n	name	description	exposure	total_entries
+1	PrivateNetwork=	Service_has_access_to_the_host's_network	0.5	6
+2	User=/DynamicUser=	Service_runs_as_root,_option_does_not_matter	0.3	6
+3	CapabilityBoundingSet=~CAP_SYS_ADMIN	Service_has_administrator_privileges	0.3	6
+4	RestrictAddressFamilies=~AF_(INET|INET6)	Service_cannot_allocate_Internet_sockets	-	6
+5	RestrictNamespaces=~CLONE_NEWUSER	Service_may_create_user_namespaces	0.3	6
+6	NoNewPrivileges=	Service_processes_may_acquire_new_privileges	0.2	6

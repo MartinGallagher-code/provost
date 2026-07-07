@@ -1,0 +1,7 @@
+n	USER	PID	%CPU	%MEM	VSZ	RSS	TTY	STAT	START	TIME	COMMAND	total_entries
+1	mysql	1843	24.3	8.1	2894512	662104	?	Ssl	Jun28	412:07	/usr/sbin/mysqld	6
+2	www-data	9021	12.7	3.4	728104	278320	?	S	10:02	3:41	php-fpm:_pool_www	6
+3	root	1122	6.2	0.9	158920	74208	?	Ss	Jun28	88:14	/lib/systemd/systemd-journald	6
+4	postgres	2044	4.8	6.7	1204800	548016	?	Ss	Jun28	141:22	postgres:_checkpointer	6
+5	elastic	3310	3.1	12.4	4820104	1012440	?	Sl	Jun29	55:09	/usr/share/elasticsearch/jdk/bin/java	6
+6	redis	2891	1.9	0.6	95820	52104	?	Ssl	Jun28	40:11	/usr/bin/redis-server_127.0.0.1:6379	6

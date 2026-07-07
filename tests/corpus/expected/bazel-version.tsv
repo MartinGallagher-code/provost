@@ -1,0 +1,6 @@
+n	c1	c2	c3	total_entries
+1	Build	label:	6.4.0	5
+2	Build	target:	bazel-out/k8-opt/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar	5
+3	Build	time:	Mon_Oct_16_16:40:00_2023_(1697474400)	5
+4	Build	timestamp:	1697474400	5
+5	Build	timestamp	as_int:_1697474400	5

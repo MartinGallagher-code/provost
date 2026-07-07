@@ -1,0 +1,7 @@
+n	target	prot	opt	source	destination	total_entries
+1	DNAT	tcp	--	anywhere	anywhere	6
+2	REDIRECT	tcp	--	anywhere	anywhere	6
+3	ACCEPT	all	--	anywhere	anywhere	6
+4	MASQUERADE	all	--	10.0.0.0/24	anywhere	6
+5	SNAT	tcp	--	192.168.1.0/24	anywhere	6
+6	DNAT	udp	--	anywhere	anywhere	6

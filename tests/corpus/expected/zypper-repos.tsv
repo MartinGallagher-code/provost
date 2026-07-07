@@ -1,0 +1,7 @@
+n	#	Alias	Name	Enabled	GPG_Check	Refresh	total_entries
+1	1	openSUSE-Oss	Main_Repository	Yes	(r_)_Yes	Yes	6
+2	2	openSUSE-Non-Oss	Non-OSS_Repository	Yes	(r_)_Yes	Yes	6
+3	3	openSUSE-Update	Main_Update_Repo	Yes	(r_)_Yes	Yes	6
+4	4	packman	Packman	Yes	(r_)_Yes	Yes	6
+5	5	home_user	Home_Project	No	----	No	6
+6	6	google-chrome	Google_Chrome	Yes	(r_)_Yes	Yes	6

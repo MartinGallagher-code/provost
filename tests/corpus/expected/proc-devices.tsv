@@ -1,0 +1,12 @@
+n	type	major	name	total_entries
+1	character	1	mem	11
+2	character	4	tty	11
+3	character	5	/dev/tty	11
+4	character	7	vcs	11
+5	character	10	misc	11
+6	character	13	input	11
+7	character	128	ptm	11
+8	block	8	sd	11
+9	block	11	sr	11
+10	block	65	sd	11
+11	block	259	blkext	11

@@ -1,0 +1,13 @@
+entry1.package Newtonsoft.Json
+entry1.requested 13.0.3
+entry1.resolved 13.0.3
+entry2.package Serilog
+entry2.requested 3.1.1
+entry2.resolved 3.1.1
+entry3.package AutoMapper
+entry3.requested 12.0.1
+entry3.resolved 12.0.1
+entry4.package Dapper
+entry4.requested 2.1.28
+entry4.resolved 2.1.28
+total_entries 4

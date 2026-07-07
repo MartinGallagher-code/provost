@@ -1,0 +1,6 @@
+n	c1	total_entries
+1	/usr/lib/jvm/java-11-openjdk-amd64/bin/java	5
+2	/usr/lib/jvm/java-17-openjdk-amd64/bin/java	5
+3	/usr/lib/jvm/java-21-openjdk-amd64/bin/java	5
+4	/usr/lib/jvm/temurin-8-jdk-amd64/jre/bin/java	5
+5	/opt/graalvm-ce-java17/bin/java	5

@@ -1,0 +1,7 @@
+n	Collection	Status	total_entries
+1	Connecting	with_backend:_BackendWrapper_(LocalBackend)	6
+2	Archive_di	r:_/home/martin/.cache/duplicity/d41d8cd	6
+3	Number_of	contained_backup_sets:_5	6
+4	Total_numb	er_of_contained_volumes:_12	6
+5	Chain_star	t_time:_Wed_Jul__1_02:00:14_2026	6
+6	Chain_end	time:_Sun_Jul__5_02:00:11_2026	6

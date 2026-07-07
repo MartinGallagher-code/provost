@@ -1,0 +1,6 @@
+n	SOURCE	FSTYPE	SIZE	USED	AVAIL	USE%	TARGET	total_entries
+1	/dev/sda2	ext4	49.1G	8.5G	38.1G	17%	/	5
+2	/dev/sda1	vfat	511.7M	5.7M	506M	1%	/boot/efi	5
+3	/dev/sdb1	xfs	200G	80.1G	120G	40%	/srv/data	5
+4	tmpfs	tmpfs	1.6G	1.7M	1.6G	0%	/run	5
+5	/dev/mapper/vg-home	ext4	24.5G	4.9G	19.6G	20%	/home	5

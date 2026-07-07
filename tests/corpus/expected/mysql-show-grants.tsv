@@ -1,0 +1,5 @@
+n	Grants_for_appuser@%	total_entries
+1	GRANT_USAGE_ON_*.*_TO_`appuser`@`%`	4
+2	GRANT_SELECT,_INSERT,_UPDATE,_DELETE_ON_`appdb`.*_TO_`appuser`@`%`	4
+3	GRANT_SELECT_ON_`analytics`.*_TO_`appuser`@`%`	4
+4	GRANT_EXECUTE_ON_PROCEDURE_`appdb`.`recalc_totals`_TO_`appuser`@`%`	4

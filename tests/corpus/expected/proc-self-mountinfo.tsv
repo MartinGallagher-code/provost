@@ -1,0 +1,7 @@
+n	mount_id	parent_id	major_minor	root	mountpoint	mount_opts	optional	fstype	source	super_opts	total_entries
+1	23	28	0:21	/	/proc	rw,nosuid,nodev,noexec,relatime	shared:14	proc	proc	rw	6
+2	24	28	0:22	/	/sys	rw,nosuid,nodev,noexec,relatime	shared:2	sysfs	sysfs	rw	6
+3	25	28	0:5	/	/dev	rw,nosuid	shared:8	devtmpfs	devtmpfs	rw,size=8151234k,mode=755	6
+4	28	1	8:1	/	/	rw,relatime	shared:1	ext4	/dev/sda1	rw	6
+5	30	28	0:23	/	/run	rw,nosuid,nodev	shared:5	tmpfs	tmpfs	rw,size=1638400k,mode=755	6
+6	40	28	0:36	/	/sys/fs/cgroup	rw,nosuid,nodev,noexec,relatime	shared:9	cgroup2	cgroup2	rw,nsdelegate	6

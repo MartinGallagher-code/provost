@@ -1,0 +1,8 @@
+n	Using	built-in	specs_	total_entries
+1	COLLECT_GCC=gcc			7
+2	COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/11/lto-wrapper			7
+3	Target:	x86_64-linux-gnu		7
+4	Configured	with:	../src/configure_-v_--with-pkgversion='Ubuntu_11.4.0-1ubuntu1~22.04'_--enable-languages=c,c++,fortran	7
+5	Thread	model:	posix	7
+6	Supported	LTO	compression_algorithms:_zlib_zstd	7
+7	gcc	version	11.4.0_(Ubuntu_11.4.0-1ubuntu1~22.04)	7

@@ -1,0 +1,7 @@
+n	time	hash	message	user	total_entries
+1	10:15:42	a1b2c3d4e5	Add_login_form_validation	alice	6
+2	09:02:11	b2c3d4e5f6	Fix_crash_on_empty_config	bob	6
+3	08:30:05	c3d4e5f6a7	Update_build_script	alice	6
+4	18:44:03	d4e5f6a7b8	Refactor_session_handling	carol	6
+5	14:12:45	e5f6a7b8c9	Add_unit_tests_for_parser	dave	6
+6	09:20:33	f6a7b8c9d0	Initial_import_of_project_skeleton	alice	6

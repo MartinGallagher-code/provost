@@ -1,0 +1,6 @@
+entry1.product Swift
+entry1.version 5.9.2
+entry1.swiftlang 5.9.2.2.56
+entry1.clang 1500.1.9.2
+entry1.target arm64-apple-macosx14.0
+total_entries 1

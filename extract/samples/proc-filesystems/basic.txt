@@ -1,0 +1,7 @@
+nodev	sysfs
+nodev	tmpfs
+nodev	proc
+nodev	cgroup2
+	ext4
+	xfs
+	vfat

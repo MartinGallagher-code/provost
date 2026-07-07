@@ -1,0 +1,2 @@
+n	bLength	bDescriptorType	bcdUSB	bDeviceClass	bDeviceSubClass	bDeviceProtocol	bMaxPacketSize0	idVendor	idProduct	bcdDevice	iManufacturer	iProduct	iSerial	bNumConfigurations	total_entries
+1	18	1	2.01	224_Wireless	1_Radio_Frequency	1_Bluetooth	64	0x8087_Intel_Corp.	0x0026	0.02	0	0	0	1	1

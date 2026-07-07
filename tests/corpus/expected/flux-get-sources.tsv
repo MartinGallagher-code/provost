@@ -1,0 +1,5 @@
+n	NAME	REVISION	SUSPENDED	READY	MESSAGE	total_entries
+1	flux-system	main@sha1:a1b2c3d4	False	True	stored_artifact_for_revision_'main@sha1:a1b2c3d4'	4
+2	podinfo	master@sha1:9f8e7d	False	True	stored_artifact_for_revision_'master@sha1:9f8e7d'	4
+3	web-config	main@sha1:1122aabb	True	False	suspended	4
+4	infra	main@sha1:ccddee00	False	True	stored_artifact_for_revision_'main@sha1:ccddee00'	4

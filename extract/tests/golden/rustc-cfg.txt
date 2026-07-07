@@ -1,0 +1,9 @@
+entry1.c1 debug_assertions
+entry2.c1 panic="unwind"
+entry3.c1 target_arch="x86_64"
+entry4.c1 target_endian="little"
+entry5.c1 target_env="gnu"
+entry6.c1 target_family="unix"
+entry7.c1 target_os="linux"
+entry8.c1 target_pointer_width="64"
+total_entries 8

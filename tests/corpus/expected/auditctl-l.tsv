@@ -1,0 +1,7 @@
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	-w	/etc/passwd	-p	wa	-k	identity	6
+2	-w	/etc/shadow	-p	wa	-k	identity	6
+3	-w	/etc/group	-p	wa	-k	identity	6
+4	-w	/etc/sudoers	-p	wa	-k	privileged	6
+5	-w	/var/log/auth.log	-p	wa	-k	logins	6
+6	-w	/etc/ssh/sshd_config	-p	wa	-k	sshd	6

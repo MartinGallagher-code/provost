@@ -1,0 +1,2 @@
+n	reservation_count	signal_count	rw_shared_rounds	rw_excl_rounds	trx_id_counter	history_list_length	total_entries
+1	88210	44120	220145	88210	9982310	42	1

@@ -47,6 +47,36 @@
   `unsorted` dataset; `cmd_triage` reuses the decoder), `tests/smoke.sh` (three
   new checks: show/triage decode the raw input and no longer emit the base64 blob).
 
+## 2026-07-07 — 1050/1050 tidy coverage (corpus doubled to 1050 tools)
+- Grew the corpus from 500 to **1050 tools** (550 new: extended k8s, AWS/GCP/Azure
+  CLIs, SQL + NoSQL databases, package managers, `/proc` & sysfs, process/perf,
+  networking, storage/LVM/ZFS, systemd/services, hardware, security, observability,
+  VCS, and IaC/cloud-native) and drove them to **1050/1050 tidy**, zero gaps.
+  Inputs authored in parallel by ~22 subagents; parsers by ~16 more, then
+  integrated and de-conflicted here.
+- **Box-table parser** — rewrote `psql-table` into a general pipe-box parser: it
+  strips outer `|` borders and picks the header by modal column count, so it now
+  tidies `aws --output table` full ascii boxes (title line + `+---+` rules),
+  mysql/mariadb `+---+` grids, and pgbouncer/flyway/cockroach/etcdctl boxes — one
+  parser covering the whole AWS `--output table` cluster plus DB box tables.
+- **~86 new format-family / bespoke parsers** for idiosyncratic formats: `/proc`
+  files (buddyinfo/pagetypeinfo/net-tcp/net-snmp/self-mountinfo/…), DNS answer
+  sections (dig variants/drill/host/nslookup), sysstat/perf tables (pidstat/
+  vmstat/iostat/top/collectl/pcp-pmstat/perf-trace/jmap-histo), cassandra
+  `nodetool`, elasticsearch `_cat`, rabbitmq/promtool/telegraf, JVM/hardware
+  diagnostics (lsusb -v/lspci -tv/lscpu --extended/smartctl/rocm-smi/ipmitool),
+  package/language trees (poetry/pnpm/pipenv/sbt/cabal/dub), JSON-array cloud
+  outputs (az/gcloud list --format=json, ansible-inventory) parsed by bracket
+  depth at low priority so they beat generic `json`, and many more.
+- **Cross-strategy de-confliction** — the main integration work: narrowed
+  over-broad detects that were stealing pre-existing tools (`csvlook` full-rule
+  separator; `consul-kv-get-recurse` slash-before-colon; `liquibase-status`
+  banner-gated, IPv6-safe; `poetry-show-tree` npm/podman-safe; `lspci-tv` hex bus
+  address; `dmsetup-table` alphabetic target-type vs `/proc/net/snmp`), and set
+  per-tool parsers below the generic parser (`csv`/`tsv`/`yaml`/`key-value`) that
+  shadowed them. Resolved name collisions (`rocm-smi`, `terraform-plan`, `iperf3`).
+- Tests: extract suite **214/214**, smoke 33/33, melt 8/8, corpus **1050/1050 tidy**.
+
 ## 2026-07-07 — 500/500 tidy coverage (fourth + fifth 100 driven to 100%)
 - Grew the corpus to **500 tools** (200 new: extended networking, containers/k8s,
   storage/LVM/ZFS, process & `/proc`, package managers, databases, security/auth,

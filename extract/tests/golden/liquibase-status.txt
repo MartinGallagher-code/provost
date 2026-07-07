@@ -1,0 +1,13 @@
+entry1.path changelog/003-add-orders.sql
+entry1.id 3
+entry1.author mgallagher
+entry2.path changelog/004-add-email-index.sql
+entry2.id 4
+entry2.author mgallagher
+entry3.path changelog/005-add-audit-columns.sql
+entry3.id 5
+entry3.author mgallagher
+entry4.path changelog/006-add-soft-delete.sql
+entry4.id 6
+entry4.author mgallagher
+total_entries 4

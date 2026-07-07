@@ -1,0 +1,6 @@
+n	Optional	variables	and	total_entries
+1	ami_name	=	app-base-image	5
+2	aws_region	=	us-east-1	5
+3	instance_type	=	t3.micro	5
+4	ssh_username	=	ubuntu	5
+5	volume_size	=	20	5

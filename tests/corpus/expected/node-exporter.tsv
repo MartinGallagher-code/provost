@@ -1,0 +1,7 @@
+n	TYPE	node_cpu_seconds_total	total_entries
+1	node_cpu_seconds_total{cpu="0",mode="idle"}	194821.35	6
+2	node_cpu_seconds_total{cpu="0",mode="system"}	4821.11	6
+3	node_cpu_seconds_total{cpu="0",mode="user"}	12043.88	6
+4	node_filesystem_avail_bytes{device="/dev/sda1",mountpoint="/",fstype="ext4"}	12451889152	6
+5	node_memory_MemAvailable_bytes	8531423232	6
+6	node_load1	0.42	6

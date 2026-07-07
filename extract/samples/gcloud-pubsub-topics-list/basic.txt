@@ -1,0 +1,27 @@
+[
+  {
+    "name": "projects/my-project-prod/topics/orders",
+    "messageRetentionDuration": "86400s",
+    "kmsKeyName": ""
+  },
+  {
+    "name": "projects/my-project-prod/topics/payments",
+    "messageRetentionDuration": "604800s",
+    "kmsKeyName": ""
+  },
+  {
+    "name": "projects/my-project-prod/topics/user-events",
+    "messageRetentionDuration": "86400s",
+    "kmsKeyName": ""
+  },
+  {
+    "name": "projects/my-project-prod/topics/audit-log",
+    "messageRetentionDuration": "2592000s",
+    "kmsKeyName": "projects/my-project-prod/locations/global/keyRings/pubsub/cryptoKeys/audit"
+  },
+  {
+    "name": "projects/my-project-prod/topics/dead-letter",
+    "messageRetentionDuration": "604800s",
+    "kmsKeyName": ""
+  }
+]

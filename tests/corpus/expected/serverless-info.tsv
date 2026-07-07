@@ -1,0 +1,2 @@
+service	stage	region	stack	endpoint	functions.sendEmail	functions.sendSms
+notifications-api	prod	us-east-1	notifications-api-prod	POST_-_https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod/notify	notifications-api-prod-sendEmail	notifications-api-prod-sendSms

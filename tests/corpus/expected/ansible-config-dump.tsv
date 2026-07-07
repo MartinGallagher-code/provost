@@ -1,0 +1,7 @@
+n	ACTION_WARNINGS(default)	=	True	total_entries
+1	CACHE_PLUGIN(default)	=	memory	6
+2	DEFAULT_FORKS(default)	=	5	6
+3	DEFAULT_HOST_LIST(/etc/ansible/ansible.cfg)	=	['/etc/ansible/hosts']	6
+4	DEFAULT_ROLES_PATH(env:	ANSIBLE_ROLES_PATH)	=_['/opt/ansible/roles']	6
+5	DEFAULT_TIMEOUT(default)	=	10	6
+6	HOST_KEY_CHECKING(default)	=	False	6

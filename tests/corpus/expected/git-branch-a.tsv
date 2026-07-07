@@ -1,0 +1,7 @@
+n	c1	c2	c3	total_entries
+1	*	main		6
+2	develop			6
+3	feature/login			6
+4	remotes/origin/HEAD	->	origin/main	6
+5	remotes/origin/main			6
+6	remotes/origin/develop			6

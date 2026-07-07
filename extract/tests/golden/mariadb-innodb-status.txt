@@ -1,0 +1,7 @@
+entry1.reservation_count 88210
+entry1.signal_count 44120
+entry1.rw_shared_rounds 220145
+entry1.rw_excl_rounds 88210
+entry1.trx_id_counter 9982310
+entry1.history_list_length 42
+total_entries 1

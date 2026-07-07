@@ -1,0 +1,2 @@
+container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Since	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Leader	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Service	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Root	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Address	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).OS	container-web_(a1b2c3d4e5f60718293a4b5c6d7e8f90).Unit
+Tue_2026-07-07_08:00:12_BST;_3h_32min_ago	4821_(systemd)	systemd-nspawn;_class_container	/var/lib/machines/container-web	192.168.100.55	Debian_GNU/Linux_12_(bookworm)	machine-container-web.scope

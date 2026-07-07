@@ -1,0 +1,4 @@
+n	NAME	AGE	REQUEST	LIMIT	total_entries
+1	compute	18d	requests.cpu:	4/8,_requests.memory:_8Gi/16Gi_limits.cpu:_8/16,_limits.memory:_16Gi/32Gi	3
+2	pods	18d	count/pods:	12/50_count/pods:_12/50	3
+3	storage	18d	requests.storage:	40Gi/200Gi_requests.storage:_40Gi/200Gi	3

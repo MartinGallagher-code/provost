@@ -1,0 +1,6 @@
+n	name	ttl	class	type	preference	exchange	total_entries
+1	gmail.com.	3600	IN	MX	5	gmail-smtp-in.l.google.com.	5
+2	gmail.com.	3600	IN	MX	10	alt1.gmail-smtp-in.l.google.com.	5
+3	gmail.com.	3600	IN	MX	20	alt2.gmail-smtp-in.l.google.com.	5
+4	gmail.com.	3600	IN	MX	30	alt3.gmail-smtp-in.l.google.com.	5
+5	gmail.com.	3600	IN	MX	40	alt4.gmail-smtp-in.l.google.com.	5

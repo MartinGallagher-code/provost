@@ -1,0 +1,10 @@
+n	c1	total_entries
+1	systemd	9
+2	|-containerd	9
+3	|-cron -f	9
+4	|-dockerd -H fd:// --containerd=/run/containerd/containerd.sock	9
+5	|-mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock	9
+6	|-nginx -g daemon off;	9
+7	|-redis-server 127.0.0.1:6379	9
+8	|-sshd -D	9
+9	`-systemd-journald	9

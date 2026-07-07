@@ -1,0 +1,7 @@
+n	status	address	load	tokens	owns	host_id	rack	total_entries
+1	UN	10.0.0.11	145.23_GiB	256	33.5%	3a1f8c2e-9b4d-4f7a-8c1e-2d5b6a7f8c90	rack1	6
+2	UN	10.0.0.12	152.87_GiB	256	34.1%	4b2f9d3f-0c5e-5a8b-9d2f-3e6c7b8f9d01	rack1	6
+3	UN	10.0.0.13	139.44_GiB	256	32.4%	5c3f0e40-1d6f-6b9c-0e3f-4f7d8c9f0e12	rack2	6
+4	DN	10.0.0.14	148.12_GiB	256	33.9%	6d4f1f51-2e70-7c0d-1f40-5f8e9d0f1f23	rack2	6
+5	UN	10.0.0.15	151.05_GiB	256	33.0%	7e5f2062-3f81-8d1e-2051-6f9f0e1f2f34	rack3	6
+6	UN	10.0.0.16	144.90_GiB	256	33.1%	8f603173-4092-9e2f-3162-70a01f2f3f45	rack3	6

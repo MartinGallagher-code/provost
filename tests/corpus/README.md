@@ -40,7 +40,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**500 tools tested; all 500 tidy.** See [`COVERAGE.md`](COVERAGE.md) for the live
+**1050 tools tested; all 1050 tidy.** See [`COVERAGE.md`](COVERAGE.md) for the live
 per-tool list. The corpus grew in five hundreds: core sysadmin; git/VCS, language
 runtimes, binutils, databases, monitoring, cloud/k8s, security/net; Kubernetes/
 cloud/IaC, containers, deeper networking, systemd/storage trees, process/perf &
@@ -93,7 +93,7 @@ output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
 
 ### Not yet tidy — none
 
-All 500 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
+All 1050 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
 corpus should first be checked against the generic parsers (`run.sh`); reach for
 a bespoke strategy only when the format is genuinely idiosyncratic and no generic
 parser produces a correct tidy shape.

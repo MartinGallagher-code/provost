@@ -1,0 +1,7 @@
+n	c1	c2	total_entries
+1	0:	from_all_lookup_local	6
+2	100:	from_192.168.1.0/24_lookup_main	6
+3	200:	from_all_fwmark_0x1_lookup_100	6
+4	300:	from_all_to_10.0.0.0/8_lookup_vpn	6
+5	32766:	from_all_lookup_main	6
+6	32767:	from_all_lookup_default	6
