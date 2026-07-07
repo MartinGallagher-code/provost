@@ -153,10 +153,16 @@ nicer columns).
 ## Tests
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (33 checks)          [CI]
+bash tests/smoke.sh                 # end-to-end (44 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 214/214]
 ```
+
+`smoke.sh` is hermetic — it clears the caller's `GLEAN_*` env (notably
+`GLEAN_HOME`) so a stale `~/.glean/extract` engine can't shadow the bundled one
+and skew classification. If a real `glean` run misclassifies, check
+`glean doctor`: it now warns when the extract engine came from a `GLEAN_HOME`
+override rather than the bundled tree.
 
 The analyze engine suite is also CI-enforced, but the raw
 `analyze/tests/run_tests.sh` is red out of the box: it includes tests for the

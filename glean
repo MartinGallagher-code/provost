@@ -758,6 +758,14 @@ cmd_doctor () {
     local engine
     if engine="$(_find_engine)"; then
         printf '%s ok%s extract engine: %s\n' "$C_OK" "$C_RST" "$engine"
+        # The bundled engine is the canonical one. If we resolved a different one
+        # (a $GLEAN_HOME/extract/ override), warn — a stale copy there silently
+        # shadows the bundled engine and can misclassify inputs.
+        if [[ "$engine" != "$GLEAN_ROOT/extract/envoy-extract" ]]; then
+            printf '   %swarning%s using an engine from GLEAN_HOME, not the bundled one\n' "$C_ERR" "$C_RST"
+            printf '            bundled: %s\n' "$GLEAN_ROOT/extract/envoy-extract"
+            printf '            if this is a stale copy, remove it or unset GLEAN_HOME.\n'
+        fi
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
     fi
