@@ -1,0 +1,7 @@
+n	Username	Port	From	Latest	total_entries
+1	alice	pts/0	10.0.0.12	Sun_Jul_5_21:03:47_+0000_2026	6
+2	bob	pts/1	10.0.0.34	Fri_Jul_3_16:41:09_+0000_2026	6
+3	carol	pts/2	192.168.1.9	Sat_Jul_4_14:22:17_+0000_2026	6
+4	deploy	pts/3	203.0.113.5	Mon_Jul_6_08:14:22_+0000_2026	6
+5	postgres	tty1	0.0.0.0	Thu_Jul_2_02:00:11_+0000_2026	6
+6	www-data	pts/4	198.51.100.22	Tue_Jun_30_11:11:11_+0000_2026	6

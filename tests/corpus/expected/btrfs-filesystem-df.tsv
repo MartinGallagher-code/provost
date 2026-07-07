@@ -1,0 +1,4 @@
+n	Data	single:_total=200_00GiB	used=178_45GiB	total_entries
+1	System	DUP:_total=32.00MiB	used=48.00KiB	3
+2	Metadata	DUP:_total=4.00GiB	used=2.10GiB	3
+3	GlobalReserve	single:_total=512.00MiB	used=0.00B	3

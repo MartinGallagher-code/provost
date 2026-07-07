@@ -1,0 +1,5 @@
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	ttyS0	-W-	(EC	p	a)	4:64	4
+2	tty0	-WU	(EC	p	a)	4:1	4
+3	ttyAMA0	-W-	(EC	p	a)	204:64	4
+4	ttyUSB0	-W-	(EC	p	a)	188:0	4

@@ -1,4 +1,4 @@
-n	Device	tps	kB_read/s	kB_wrtn/s	kB_read	kB_wrtn	total_entries
+n	device	tps	kb_read_s	kb_wrtn_s	kb_read	kb_wrtn	total_entries
 1	sda	12.34	210.50	88.20	150240	62980	3
 2	sdb	3.10	45.00	12.00	32100	8600	3
 3	dm-0	0.55	2.10	0.90	1500	640	3

@@ -10,11 +10,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=86
     _is_json "$text" && return 1
-    # dmsetup table: "<name>: <start> <len> <type> <params>" — name then colon
-    # then two integers. Require at least two such lines.
+    # dmsetup table: "<name>: <start> <len> <type> <params>" — name, colon, two
+    # integers, then a device-mapper TARGET TYPE (an alphabetic keyword like
+    # linear/striped/crypt/thin/cache/mirror/raid…). The alphabetic 4th field is
+    # what distinguishes it from /proc/net/snmp value rows ("Ip: 1 64 0 …", all
+    # numeric).
     local hits=0
     while IFS= read -r _line; do
-        [[ "$_line" =~ ^[^[:space:]:]+:[[:space:]]+[0-9]+[[:space:]]+[0-9]+[[:space:]]+[^[:space:]]+ ]] && hits=$((hits + 1))
+        [[ "$_line" =~ ^[^[:space:]:]+:[[:space:]]+[0-9]+[[:space:]]+[0-9]+[[:space:]]+[a-zA-Z] ]] && hits=$((hits + 1))
     done <<< "$text"
     [[ $hits -ge 2 ]] && return 0
     return 1

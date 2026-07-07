@@ -1,0 +1,2 @@
+allow	deny	namespace	max_replicas	required_labels.0	required_labels.1	required_labels.2
+true	false	production	10	app	team	env

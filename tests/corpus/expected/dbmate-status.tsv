@@ -1,0 +1,6 @@
+n	status	name	total_entries
+1	applied	20260101120000_create_users.sql	5
+2	applied	20260102093000_create_orders.sql	5
+3	applied	20260115140000_add_email_index.sql	5
+4	pending	20260201100000_add_audit_log.sql	5
+5	pending	20260210160000_add_soft_delete.sql	5

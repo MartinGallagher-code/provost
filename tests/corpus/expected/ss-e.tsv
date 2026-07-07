@@ -1,0 +1,4 @@
+n	Netid	State	Recv-Q	Send-Q	Local	Address:Port	Peer	total_entries
+1	tcp	ESTAB	0	0	192.168.1.42:52134	uid:1000_ino:38472_sk:1a	timer:(keepalive,29sec,0)	3
+2	tcp	ESTAB	0	0	192.168.1.42:22	ino:29104_sk:2b	uid:0	3
+3	udp	ESTAB	0	0	192.168.1.42:68	ino:18402_sk:3c	uid:0	3

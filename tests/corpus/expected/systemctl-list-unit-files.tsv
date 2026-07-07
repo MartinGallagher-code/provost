@@ -1,0 +1,7 @@
+n	UNIT	FILE	STATE	total_entries
+1	cron.service	enabled	enabled	6
+2	dbus.service	static	-	6
+3	getty@.service	enabled	enabled	6
+4	nginx.service	enabled	enabled	6
+5	ssh.service	enabled	enabled	6
+6	systemd-timesyncd.service	disabled	enabled	6

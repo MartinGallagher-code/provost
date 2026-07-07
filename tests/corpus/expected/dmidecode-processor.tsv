@@ -1,0 +1,2 @@
+	Socket_Designation		Type		Family		Manufacturer		ID		Signature		Version		Voltage		External_Clock		Max_Speed		Current_Speed		Status		Core_Count		Core_Enabled		Thread_Count
+U3E1	Central_Processor	Core_i7	Intel(R)_Corporation	A5_06_08_00_FF_FB_EB_BF	Type_0,_Family_6,_Model_165,_Stepping_5	Intel(R)_Core(TM)_i7-10750H_CPU_@_2.60GHz	0.8_V	100_MHz	5000_MHz	2600_MHz	Populated,_Enabled	6	6	12

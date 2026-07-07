@@ -1,0 +1,7 @@
+n	unit	load	active	sub	description	total_entries
+1	cron.service	loaded	active	running	Regular_background_program_processing_daemon	6
+2	dbus.service	loaded	active	running	D-Bus_System_Message_Bus	6
+3	nginx.service	loaded	active	running	A_high_performance_web_server_and_a_reverse_proxy_server	6
+4	ssh.service	loaded	active	running	OpenBSD_Secure_Shell_server	6
+5	systemd-journald.service	loaded	active	running	Journal_Service	6
+6	systemd-logind.service	loaded	active	running	User_Login_Management	6

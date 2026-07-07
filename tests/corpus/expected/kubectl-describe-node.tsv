@@ -1,0 +1,28 @@
+n	key	value	total_entries
+1	Name	worker-1	27
+2	Roles	<none>	27
+3	Labels	beta.kubernetes.io/arch=amd64 beta.kubernetes.io/os=linux kubernetes.io/hostname=worker-1	27
+4	Annotations	node.alpha.kubernetes.io/ttl: 0	27
+5	volumes.kubernetes.io/controller-managed-attach-detach	true	27
+6	CreationTimestamp	Mon, 20 Jan 2026 08:14:00 +0000	27
+7	Taints	<none>	27
+8	Unschedulable	false	27
+9	Addresses		27
+10	InternalIP	10.0.1.21	27
+11	Hostname	worker-1	27
+12	Capacity		27
+13	cpu	4	27
+14	ephemeral-storage	103880028Ki	27
+15	memory	16388476Ki	27
+16	pods	110	27
+17	Allocatable		27
+18	cpu	3920m	27
+19	ephemeral-storage	95709640523	27
+20	memory	15761788Ki	27
+21	pods	110	27
+22	System Info		27
+23	Kernel Version	6.8.0-45-generic	27
+24	OS Image	Ubuntu 24.04.1 LTS	27
+25	Container Runtime Version	containerd://1.7.18	27
+26	Kubelet Version	v1.29.4	27
+27	PodCIDR	10.244.1.0/24	27

@@ -1,0 +1,9 @@
+n	c1	c2	c3	total_entries
+1	0000-001f	:	dma1	8
+2	0020-0021	:	pic1	8
+3	0040-0043	:	timer0	8
+4	0060-0060	:	keyboard	8
+5	0070-0071	:	rtc0	8
+6	0080-008f	:	dma	8
+7	00a0-00a1	:	pic2	8
+8	00c0-00df	:	dma2	8

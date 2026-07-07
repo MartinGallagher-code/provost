@@ -1,0 +1,8 @@
+n	name	setting	description	total_entries
+1	autovacuum	on	Starts_the_autovacuum_subprocess.	7
+2	max_connections	200	Sets_the_maximum_number_of_concurrent_connections.	7
+3	max_wal_size	4GB	Sets_the_WAL_size_that_triggers_a_checkpoint.	7
+4	shared_buffers	2GB	Sets_the_number_of_shared_memory_buffers_used_by_the_server.	7
+5	wal_level	replica	Sets_the_level_of_information_written_to_the_WAL.	7
+6	work_mem	16MB	Sets_the_maximum_memory_to_be_used_for_query_workspaces.	7
+7	statement_timeout	30s	Sets_the_maximum_allowed_duration_of_any_statement.	7

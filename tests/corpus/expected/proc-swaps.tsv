@@ -1,0 +1,5 @@
+n	Filename	Type	Size	Used	Priority	total_entries
+1	/dev/sda3	partition	8388604	12544	-2	4
+2	/dev/sdb2	partition	4194300	0	-3	4
+3	/swapfile	file	2097148	512	-4	4
+4	/swap/extra.img	file	1048572	0	-5	4

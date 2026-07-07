@@ -1,0 +1,6 @@
+n	Category	Version	Description	Type	Installed_On	State	total_entries
+1	Versioned	1	create_baseline	SQL	2026-01-04_10:12:33	Success	5
+2	Versioned	2	add_users_table	SQL	2026-01-11_09:44:01	Success	5
+3	Versioned	3	add_orders_table	SQL	2026-02-02_14:22:10	Success	5
+4	Versioned	4	add_index_on_email	SQL		Pending	5
+5	Versioned	5	add_audit_columns	SQL		Pending	5

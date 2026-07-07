@@ -1,0 +1,7 @@
+n	length	date	time	name	total_entries
+1	18432	2026-06-15	10:30	bin/app	6
+2	2048	2026-06-15	10:30	config/settings.yaml	6
+3	512	2026-06-15	10:31	LICENSE	6
+4	40960	2026-06-15	10:32	lib/libcore.so	6
+5	1024	2026-06-14	22:00	README.md	6
+6	131072	2026-06-15	10:33	share/data.bin	6

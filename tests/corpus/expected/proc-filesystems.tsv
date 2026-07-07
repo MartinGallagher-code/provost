@@ -1,0 +1,8 @@
+n	nodev	name	total_entries
+1	nodev	sysfs	7
+2	nodev	tmpfs	7
+3	nodev	proc	7
+4	nodev	cgroup2	7
+5		ext4	7
+6		xfs	7
+7		vfat	7

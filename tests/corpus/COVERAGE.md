@@ -51,11 +51,11 @@ yet tidy.
 | aws-cloudwatch-list-metrics | ✅ | psql-table |
 | aws-configure-list | ✅ | aligned-columns |
 | aws-dynamodb-list-tables | ✅ | line-records |
-| aws-ec2-describe-instances | ⏳ | — |
+| aws-ec2-describe-instances | ✅ | psql-table |
 | aws-ec2-describe-security-groups | ✅ | psql-table |
 | aws-ec2-describe-snapshots | ✅ | psql-table |
 | aws-ec2-describe-subnets | ✅ | psql-table |
-| aws-ec2-describe-volumes | ⏳ | — |
+| aws-ec2-describe-volumes | ✅ | psql-table |
 | aws-ec2-describe-vpcs | ✅ | psql-table |
 | aws-ec2-describe | ✅ | aligned-columns |
 | aws-ecs-describe-services | ✅ | psql-table |
@@ -94,10 +94,10 @@ yet tidy.
 | biosdecode | ✅ | biosdecode |
 | blackbox-probe | ✅ᵇ | exposition-format (bespoke) |
 | blkid-list | ✅ | aligned-columns |
-| blkid | ⏳ | — |
+| blkid | ✅ | labeled-records |
 | blockdev-report | ✅ | aligned-columns |
 | bootctl-status | ✅ | indented-hierarchy |
-| borg | ⏳ | — |
+| borg | ✅ | borg |
 | bpftrace-l | ✅ | line-records |
 | bpftrace | ✅ | bpftrace |
 | bq-ls | ✅ | bq-ls |
@@ -147,7 +147,7 @@ yet tidy.
 | clamscan-summary | ✅ | colons |
 | clang-targets | ✅ | aligned-columns |
 | clang-version | ✅ | colons |
-| clickhouse-processlist | ⏳ | — |
+| clickhouse-processlist | ✅ | clickhouse-processlist |
 | clickhouse-show-tables | ✅ | line-records |
 | cmake-version | ✅ | text-lines |
 | cockroach-node-status | ✅ | psql-table |
@@ -220,7 +220,7 @@ yet tidy.
 | dmidecode | ✅ | colons |
 | dmsetup-info | ✅ | key-value |
 | dmsetup-ls | ✅ | tsv |
-| dmsetup-table | ⏳ | — |
+| dmsetup-table | ✅ | dmsetup-table |
 | dnf-history-list | ✅ | vertical-line |
 | dnf-info | ✅ | colons |
 | dnf-list | ✅ | aligned-columns |
@@ -241,7 +241,7 @@ yet tidy.
 | docker-machine-ls | ✅ | aligned-columns |
 | docker-network-inspect | ✅ | json |
 | docker-network | ✅ | aligned-columns |
-| docker-port | ⏳ | — |
+| docker-port | ✅ | aligned-columns |
 | docker-ps-a | ✅ | aligned-columns |
 | docker-ps | ✅ | aligned-columns |
 | docker-stats-format | ✅ | aligned-columns |
@@ -259,8 +259,8 @@ yet tidy.
 | dotnet-runtimes | ✅ | aligned-columns |
 | dovecot-n | ✅ | indented-hierarchy |
 | dpkg-L | ✅ | line-records |
-| dpkg-c | ⏳ | — |
-| dpkg-get-selections | ⏳ | — |
+| dpkg-c | ✅ | aligned-columns |
+| dpkg-get-selections | ✅ | dpkg-get-selections |
 | dpkg-l | ✅ᵇ | dpkg-list (bespoke) |
 | dpkg-query | ✅ᵇ | dpkg-list (bespoke) |
 | dpkg-s | ✅ | yaml |
@@ -314,8 +314,8 @@ yet tidy.
 | fossil-timeline | ✅ | fossil-timeline |
 | fping | ✅ | aligned-columns |
 | free-h | ✅ | aligned-columns |
-| free-w | ✅ | dmsetup-table |
-| free | ✅ | dmsetup-table |
+| free-w | ✅ | aligned-columns |
+| free | ✅ | aligned-columns |
 | freeipmi | ✅ | aligned-columns |
 | fuser-v | ✅ | fuser-v |
 | fwupdmgr-get-devices | ✅ | fwupdmgr-get-devices |
@@ -340,7 +340,7 @@ yet tidy.
 | getcap | ✅ | line-records |
 | getconf | ✅ | getconf |
 | getenforce | ✅ | text-lines |
-| getent-passwd | ⏳ | — |
+| getent-passwd | ✅ | colon-fields |
 | getent_group | ✅ | colon-fields |
 | getent_hosts | ✅ | aligned-columns |
 | getent_services | ✅ | line-records |
@@ -351,10 +351,10 @@ yet tidy.
 | git-annex-list | ✅ | git-annex-list |
 | git-bisect-log | ✅ | git-bisect-log |
 | git-branch-a | ✅ | line-records |
-| git-branch-vv | ⏳ | — |
+| git-branch-vv | ✅ | git-branch-vv |
 | git-branch | ✅ | line-records |
 | git-cat-file-tree | ✅ | tsv |
-| git-config-list-show-origin | ⏳ | — |
+| git-config-list-show-origin | ✅ | git-config-list-show-origin |
 | git-config-list | ✅ | line-records |
 | git-count-objects | ✅ | yaml |
 | git-describe | ✅ | text-lines |
@@ -391,7 +391,7 @@ yet tidy.
 | goose-status | ✅ | goose-status |
 | gpg-card-status | ✅ | gpg-card-status |
 | gpg-list-keys | ✅ᵇ | gpg-list-keys (bespoke) |
-| gpg-list-packets | ⏳ | — |
+| gpg-list-packets | ✅ | gpg-list-packets |
 | gpg-list-secret-keys | ✅ | vertical-line |
 | gradle-dependencies | ✅ | tree-view |
 | gradle-q-dependencies | ✅ | tree-view |
@@ -409,12 +409,12 @@ yet tidy.
 | helm-repo-list | ✅ | aligned-columns |
 | helm-status | ✅ | aligned-columns |
 | helmfile-list | ✅ | aligned-columns |
-| hg-branches | ⏳ | — |
-| hg-heads | ✅ | block-records |
-| hg-log | ✅ | block-records |
+| hg-branches | ✅ | hg-branches |
+| hg-heads | ✅ | hg-branches |
+| hg-log | ✅ | hg-branches |
 | hg-paths | ✅ | aligned-columns |
 | hg-status | ✅ | line-records |
-| hg-summary | ✅ | yaml |
+| hg-summary | ✅ | hg-branches |
 | host | ✅ | host_a |
 | host_a | ✅ | host_a |
 | host_ns | ✅ | aligned-columns |
@@ -435,7 +435,7 @@ yet tidy.
 | iostat-x | ✅ | iostat-x |
 | iostat | ✅ | iostat-d |
 | iotop | ✅ᵇ | iotop (bespoke) |
-| ip-6-route | ⏳ | — |
+| ip-6-route | ✅ | aligned-columns |
 | ip-addr | ✅ | indented-hierarchy |
 | ip-addrlabel-list | ✅ | aligned-columns |
 | ip-br-addr | ✅ | text-lines |
@@ -464,7 +464,7 @@ yet tidy.
 | ipmitool-sensor | ✅ | ipmitool-sensor |
 | ipset-list | ✅ | aligned-columns |
 | iptables-nat | ✅ | iptables-nat |
-| iptables-nvL | ⏳ | — |
+| iptables-nvL | ✅ | iptables-nvL |
 | iptables-save | ✅ | text-lines |
 | istioctl-proxy-status | ✅ | aligned-columns |
 | iw-dev | ✅ | aligned-columns |
@@ -536,7 +536,7 @@ yet tidy.
 | latencytop | ✅ | aligned-columns |
 | ldconfig-p | ✅ᵇ | ldconfig-p (bespoke) |
 | ldd | ✅ | tsv |
-| liquibase-status | ⏳ | — |
+| liquibase-status | ✅ | liquibase-status |
 | locale | ✅ | equals |
 | localectl-status | ✅ | aligned-columns |
 | loginctl-list-seats | ✅ | loginctl-list-seats |
@@ -554,7 +554,7 @@ yet tidy.
 | lsblk-fstype | ✅ | aligned-columns |
 | lsblk | ✅ | aligned-columns |
 | lscpu-cache | ✅ | aligned-columns |
-| lscpu-extended | ⏳ | — |
+| lscpu-extended | ✅ | lscpu-extended |
 | lscpu-parse | ✅ | lscpu-parse |
 | lscpu | ✅ | key-value |
 | lshw-disk | ✅ | colons |
@@ -575,7 +575,7 @@ yet tidy.
 | lsscsi | ✅ | colon-fields |
 | lstopo-no-graphics | ✅ | lstopo-no-graphics |
 | lsusb-t | ✅ | lsusb-t |
-| lsusb-v | ⏳ | — |
+| lsusb-v | ✅ | lsusb-v |
 | lsusb | ✅ | aligned-columns |
 | lvdisplay-m | ✅ | lvdisplay-m |
 | lvdisplay | ✅ | lvdisplay-m |
@@ -585,7 +585,7 @@ yet tidy.
 | machinectl-list | ✅ | aligned-columns |
 | machinectl-status | ✅ | indented-hierarchy |
 | mamba-list | ✅ | aligned-columns |
-| mariadb-innodb-status | ⏳ | — |
+| mariadb-innodb-status | ✅ | mariadb-innodb-status |
 | mariadb-show-plugins | ✅ | psql-table |
 | masscan | ✅ | masscan |
 | mcelog | ✅ | text-lines |
@@ -632,7 +632,7 @@ yet tidy.
 | nerdctl-images | ✅ | aligned-columns |
 | nerdctl-ps | ✅ | aligned-columns |
 | nethogs | ✅ᵇ | nethogs (bespoke) |
-| netstat-anp | ⏳ | — |
+| netstat-anp | ✅ | aligned-columns |
 | netstat-i | ✅ | aligned-columns |
 | netstat-rn | ✅ | aligned-columns |
 | netstat-s | ✅ | netstat-s |
@@ -665,8 +665,8 @@ yet tidy.
 | nomad-job-status | ✅ | aligned-columns |
 | nomad-node-status | ✅ | aligned-columns |
 | nomad-status | ✅ | aligned-columns |
-| npm-ls-g | ⏳ | — |
-| npm-ls | ⏳ | — |
+| npm-ls-g | ✅ | tree-view |
+| npm-ls | ✅ | tree-view |
 | npm-outdated-g | ✅ | aligned-columns |
 | npm-outdated | ✅ | aligned-columns |
 | npm-view | ✅ | yaml |
@@ -753,7 +753,7 @@ yet tidy.
 | pmap | ✅ | pmap |
 | pnpm-why | ✅ | pnpm-why |
 | podman-healthcheck | ✅ | json |
-| podman-image-tree | ⏳ | — |
+| podman-image-tree | ✅ | podman-image-tree |
 | podman-images | ✅ | aligned-columns |
 | podman-info | ✅ | yaml |
 | podman-inspect | ✅ | json |
@@ -771,7 +771,7 @@ yet tidy.
 | powertop | ✅ᵇ | powertop (bespoke) |
 | printenv | ✅ | equals |
 | prlimit | ✅ | aligned-columns |
-| proc-buddyinfo | ⏳ | — |
+| proc-buddyinfo | ✅ | proc-buddyinfo |
 | proc-cgroups | ✅ | tsv |
 | proc-consoles | ✅ | aligned-columns |
 | proc-cpuinfo | ✅ | tsv |
@@ -779,7 +779,7 @@ yet tidy.
 | proc-devices | ✅ | proc-devices |
 | proc-diskstats | ✅ | aligned-columns |
 | proc-dma | ✅ | labeled-records |
-| proc-filesystems | ⏳ | — |
+| proc-filesystems | ✅ | proc-filesystems |
 | proc-interrupts | ✅ | aligned-columns |
 | proc-iomem | ✅ | aligned-columns |
 | proc-ioports | ✅ | aligned-columns |
@@ -789,17 +789,17 @@ yet tidy.
 | proc-locks | ✅ | proc-locks |
 | proc-meminfo | ✅ | yaml |
 | proc-modules | ✅ | aligned-columns |
-| proc-mounts | ⏳ | — |
+| proc-mounts | ✅ | proc-mounts |
 | proc-net-arp | ✅ | aligned-columns |
 | proc-net-dev | ✅ | aligned-columns |
 | proc-net-route | ✅ | tsv |
-| proc-net-snmp | ⏳ | — |
+| proc-net-snmp | ✅ | proc-net-snmp |
 | proc-net-tcp | ✅ | proc-net-tcp |
 | proc-net-udp | ✅ | proc-net-tcp |
 | proc-pagetypeinfo | ✅ | proc-pagetypeinfo |
 | proc-partitions | ✅ | aligned-columns |
 | proc-schedstat | ✅ | proc-schedstat |
-| proc-self-mountinfo | ⏳ | — |
+| proc-self-mountinfo | ✅ | proc-self-mountinfo |
 | proc-slabinfo | ✅ | proc-slabinfo |
 | proc-softirqs | ✅ | aligned-columns |
 | proc-stat | ✅ | text-lines |
@@ -809,7 +809,7 @@ yet tidy.
 | proc-vmstat | ✅ | line-records |
 | proc-zoneinfo | ✅ | line-records |
 | prometheus-targets | ✅ | json |
-| promtool-query | ⏳ | — |
+| promtool-query | ✅ | promtool-query |
 | ps-aux-sort | ✅ | aligned-columns |
 | ps-aux | ✅ | aligned-columns |
 | ps-ef | ✅ | aligned-columns |
@@ -828,7 +828,7 @@ yet tidy.
 | psql-l-plus | ✅ | psql-table |
 | psql-list | ✅ | psql-table |
 | psql-pg-available-extensions | ✅ | psql-table |
-| psql-pg-stat-bgwriter | ⏳ | — |
+| psql-pg-stat-bgwriter | ✅ | psql-pg-stat-bgwriter |
 | psql-pg-stat-database | ✅ | psql-table |
 | psql-pg-stat-replication | ✅ | psql-table |
 | psql-pg-stat-user-tables | ✅ | psql-table |
@@ -922,14 +922,14 @@ yet tidy.
 | sqlite-tables | ✅ | aligned-columns |
 | squidclient-info | ✅ | key-value |
 | ss-e | ✅ | aligned-columns |
-| ss-listen | ⏳ | — |
+| ss-listen | ✅ | aligned-columns |
 | ss-memory | ✅ᵇ | ss-tulnp (bespoke) |
 | ss-o | ✅ | aligned-columns |
 | ss-s | ✅ | git-log-graph |
 | ss-tcp | ✅ | aligned-columns |
 | ss-tp | ✅ | aligned-columns |
 | ss-tulpn | ✅ | aligned-columns |
-| ss-udp | ⏳ | — |
+| ss-udp | ✅ | aligned-columns |
 | ssh-Q-cipher | ✅ | line-records |
 | ssh-Q-kex | ✅ | line-records |
 | ssh-add-l | ✅ | aligned-columns |
@@ -973,14 +973,14 @@ yet tidy.
 | systemd-inhibit-list | ✅ | aligned-columns |
 | systemd-mount-list | ✅ | aligned-columns |
 | systemd-tmpfiles-cat-config | ✅ | systemd-tmpfiles-cat-config |
-| tar | ⏳ | — |
+| tar | ✅ | aligned-columns |
 | taskset | ✅ | line-records |
 | tc-class | ✅ | aligned-columns |
 | tc-filter-show | ✅ᵇ | pkg-config (bespoke) |
 | tc-qdisc-show | ✅ᵇ | pkg-config (bespoke) |
 | tc-qdisc | ✅ | colons |
 | tcpdump-summary | ✅ | tcpdump-summary |
-| telegraf-test | ⏳ | — |
+| telegraf-test | ✅ | telegraf-test |
 | terraform-output | ✅ | aligned-columns |
 | terraform-plan | ✅ | terraform-plan-actions |
 | terraform-state-list | ✅ | line-records |
@@ -990,7 +990,7 @@ yet tidy.
 | tilt-get | ✅ | aligned-columns |
 | timedatectl-show | ✅ | equals |
 | timedatectl | ✅ | colons |
-| top-batch | ⏳ | — |
+| top-batch | ✅ | top-batch |
 | top | ✅ | aligned-columns |
 | traceroute | ✅ᵇ | traceroute (bespoke) |
 | traceroute6 | ✅ᵇ | traceroute (bespoke) |
@@ -1053,10 +1053,8 @@ yet tidy.
 | zpool-status | ✅ | zpool-status |
 | zypper-info | ✅ | zypper-info |
 | zypper-packages | ✅ | zypper-packages |
-| zypper-patches | ⏳ | — |
-| zypper-repos | ⏳ | — |
+| zypper-patches | ✅ | psql-table |
+| zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1012 / 1050** — ✅ 951 via a generic parser, ✅ᵇ 61 via a bespoke strategy.
-⏳ not yet tidy: aws-ec2-describe-instances aws-ec2-describe-volumes blkid borg clickhouse-processlist dmsetup-table docker-port dpkg-c dpkg-get-selections getent-passwd git-branch-vv git-config-list-show-origin gpg-list-packets hg-branches ip-6-route iptables-nvL liquibase-status lscpu-extended lsusb-v mariadb-innodb-status netstat-anp npm-ls-g npm-ls podman-image-tree proc-buddyinfo proc-filesystems proc-mounts proc-net-snmp proc-self-mountinfo promtool-query psql-pg-stat-bgwriter ss-listen ss-udp tar telegraf-test top-batch zypper-patches zypper-repos
-COV_DONE ✅:950 ✅ᵇ:61 ⏳:38
+**Coverage: 1050 / 1050** — ✅ 989 via a generic parser, ✅ᵇ 61 via a bespoke strategy.

@@ -1,0 +1,5 @@
+n	NAME	CREATED	total_entries
+1	mem-limit	2026-05-01T10:00:00Z	4
+2	cpu-limit	2026-05-01T10:00:00Z	4
+3	default-lr	2026-04-15T09:30:00Z	4
+4	storage-lr	2026-04-15T09:30:00Z	4

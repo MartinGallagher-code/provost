@@ -1,0 +1,7 @@
+n	func	count	total_entries
+1	vfs_fstatat	8421	6
+2	vfs_open	4102	6
+3	vfs_read	31204	6
+4	vfs_write	18820	6
+5	vfs_getattr	6610	6
+6	vfs_statx	2201	6

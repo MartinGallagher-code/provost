@@ -1,0 +1,7 @@
+n	pid	user	pr	ni	virt	res	shr	s	cpu	mem	time	command	total_entries
+1	1843	mysql	20	0	2894512	662104	18204	S	24.3	8.1	412:07.44	mysqld	6
+2	9021	www-data	20	0	728104	278320	42108	S	12.7	3.4	3:41.02	php-fpm	6
+3	2044	postgres	20	0	1204800	548016	512004	S	4.8	6.7	141:22.10	postgres	6
+4	3310	elastic	20	0	4820104	1012440	22140	S	3.1	12.4	55:09.71	java	6
+5	2891	redis	20	0	95820	52104	3820	S	1.9	0.6	40:11.33	redis-server	6
+6	774	root	20	0	158920	18220	9204	S	0.4	0.2	4:41.18	containerd	6

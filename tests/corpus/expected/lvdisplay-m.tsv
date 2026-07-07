@@ -1,0 +1,2 @@
+n	LV_Path	LV_Name	VG_Name	LV_UUID	LV_Write_Access	LV_Creation_host,_time_host01,_2026-05-12_14:03:21_+0000	LV_Status	#_open	LV_Size	Current_LE	Segments	Allocation	Read_ahead_sectors	-_currently_set_to	Block_device	total_entries
+1	/dev/vg_data/vol_backup	vol_backup	vg_data	7fX2kd-3mNq-9aRt-2bYc-8dEf-1gHi-jKl0mN	read/write		available	1	40.00_GiB	10240	2	inherit	auto	256	253:4	1

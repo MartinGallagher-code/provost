@@ -1,0 +1,6 @@
+n	Name	Id	RecordSets	Private	total_entries
+1	example.com.	/hostedzone/Z1111ABC	42	False	5
+2	internal.example.com.	/hostedzone/Z2222DEF	17	True	5
+3	acme.io.	/hostedzone/Z3333GHI	8	False	5
+4	staging.example.com.	/hostedzone/Z4444JKL	23	False	5
+5	vpc.local.	/hostedzone/Z5555MNO	5	True	5

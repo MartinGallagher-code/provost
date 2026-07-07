@@ -1,0 +1,9 @@
+n	REPOSITORY	TAG	IMAGE	ID	CREATED	SIZE	total_entries
+1	nginx	1.25	605c77e624dd	2	weeks	ago_146MB	8
+2	postgres	16	a3c8e4f9b1d2	3	weeks	ago_432MB	8
+3	redis	7-alpine	b4a2c1d3e5f6	4	weeks	ago_41.2MB	8
+4	<none>	<none>	9f3a1b2c4d5e	6	days	ago_284MB	8
+5	ghcr.io/acme/api	2.1	c7d8e9f0a1b2	5	hours	ago_118MB	8
+6	<none>	<none>	1a2b3c4d5e6f	6	days	ago_312MB	8
+7	grafana/grafana	10.4	e2f3a4b5c6d7	2	weeks	ago_398MB	8
+8	busybox	latest	3a5f7c9e1b3d	5	weeks	ago_4.26MB	8

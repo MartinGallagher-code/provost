@@ -1,0 +1,7 @@
+n	path	user	pid	access	command	total_entries
+1	/var/lib/mysql	mysql	1843	F....	mysqld	6
+2	/var/lib/mysql	mysql	1902	f....	mysqld	6
+3	/var/lib/mysql	mysql	1903	f....	mysqld	6
+4	/var/lib/mysql	mysql	1904	f....	mysqld	6
+5	/var/log/syslog	syslog	387	F....	rsyslogd	6
+6	/var/log/syslog	syslog	388	f....	rsyslogd	6

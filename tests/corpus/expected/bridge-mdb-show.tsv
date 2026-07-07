@@ -1,0 +1,6 @@
+n	c1	c2	c3	c4	c5	c6	c7	total_entries
+1	dev	br0	port	eth0	grp	239.1.1.1	temp	5
+2	dev	br0	port	eth0	grp	224.0.0.251	temp	5
+3	dev	br0	port	vnet0	grp	239.255.255.250	permanent	5
+4	dev	br0	port	vnet1	grp	ff02::1:ff00:1	temp	5
+5	dev	br0	port	eth0	grp	224.0.0.1	temp	5

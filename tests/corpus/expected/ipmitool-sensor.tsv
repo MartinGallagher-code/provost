@@ -1,0 +1,7 @@
+n	name	reading	unit	status	lower_nr	lower_crit	lower_noncrit	upper_noncrit	upper_crit	upper_nr	total_entries
+1	CPU1_Temp	42.000	degrees_C	ok	na	na	5.000	85.000	90.000	95.000	6
+2	CPU2_Temp	40.000	degrees_C	ok	na	na	5.000	85.000	90.000	95.000	6
+3	System_Temp	35.000	degrees_C	ok	na	na	0.000	70.000	75.000	80.000	6
+4	FAN1	4800.000	RPM	ok	600.000	900.000	1200.000	na	na	na	6
+5	FAN2	4680.000	RPM	ok	600.000	900.000	1200.000	na	na	na	6
+6	Vcore	1.104	Volts	ok	0.800	0.850	0.900	1.400	1.450	1.500	6

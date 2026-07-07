@@ -1,0 +1,12 @@
+n	c1	c2	c3	c4	total_entries
+1	Node	0,	zone	DMA	11
+2	pages	free	3921		11
+3	min	13			11
+4	low	16			11
+5	high	19			11
+6	spanned	4095			11
+7	present	3998			11
+8	managed	3977			11
+9	nr_free_pages	3921			11
+10	nr_zone_inactive_anon	0			11
+11	nr_zone_active_anon	0			11

@@ -1,0 +1,22 @@
+n	NVME	Identify	Namespace	1:	total_entries
+1	nsze	:	0x74706db0		21
+2	ncap	:	0x74706db0		21
+3	nuse	:	0x74706db0		21
+4	nsfeat	:	0x2		21
+5	nlbaf	:	0		21
+6	flbas	:	0		21
+7	mc	:	0		21
+8	dpc	:	0		21
+9	dps	:	0		21
+10	nmic	:	0		21
+11	rescap	:	0		21
+12	fpi	:	0x80		21
+13	dlfeat	:	1		21
+14	nawun	:	0		21
+15	nawupf	:	0		21
+16	nacwu	:	0		21
+17	nvmcap	:	1000204886016		21
+18	noiob	:	0		21
+19	npwg	:	0		21
+20	npwa	:	0		21
+21	lbaf	0	:	ms:0_lbads:9_rp:0_(in_use)	21

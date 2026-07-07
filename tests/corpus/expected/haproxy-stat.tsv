@@ -1,0 +1,7 @@
+n	#_pxname	svname	scur	smax	slim	stot	bin	bout	status	weight	total_entries
+1	web_front	FRONTEND	12	45	2000	876543	10485760	20971520	OPEN		6
+2	web_back	web1	3	10		45231	5242880	10485760	UP	1	6
+3	web_back	web2	2	9		44120	5138432	10240000	UP	1	6
+4	web_back	web3	0	5		0	0	0	DOWN	1	6
+5	web_back	BACKEND	5	19	200	89351	10381312	20971520	UP	3	6
+6	app_back	app1	4	12		51234	6291456	12582912	UP	1	6

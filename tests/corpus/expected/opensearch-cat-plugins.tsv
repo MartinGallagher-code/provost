@@ -1,0 +1,7 @@
+n	c1	c2	c3	total_entries
+1	os-node-1	opensearch-alerting	2.11.0.0	6
+2	os-node-1	opensearch-anomaly-detection	2.11.0.0	6
+3	os-node-1	opensearch-security	2.11.0.0	6
+4	os-node-1	opensearch-sql	2.11.0.0	6
+5	os-node-2	opensearch-alerting	2.11.0.0	6
+6	os-node-2	opensearch-security	2.11.0.0	6

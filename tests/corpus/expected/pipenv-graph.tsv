@@ -1,0 +1,8 @@
+n	c1	total_entries
+1	Django==4.2.7	7
+2	asgiref_[required:_>=3.6.0,<4,_installed:_3.7.2]	7
+3	sqlparse_[required:_>=0.3.1,_installed:_0.4.4]	7
+4	requests==2.31.0	7
+5	certifi_[required:_>=2017.4.17,_installed:_2023.11.17]	7
+6	idna_[required:_>=2.5,<4,_installed:_3.6]	7
+7	urllib3_[required:_>=1.21.1,<3,_installed:_2.1.0]	7

@@ -1,0 +1,2 @@
+description	vendor	physical_id	version	date	size	capacity	capabilities	description	physical_id	slot	size
+BIOS	Dell_Inc.	0	1.11.0	06/23/2021	64KiB	32MiB	pci_upgrade_shadowing_cdboot_bootselect_acpi_uefi	System_Memory	3d	System_board_or_motherboard	16GiB

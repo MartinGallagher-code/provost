@@ -1,0 +1,5 @@
+n	path	id	author	total_entries
+1	changelog/003-add-orders.sql	3	mgallagher	4
+2	changelog/004-add-email-index.sql	4	mgallagher	4
+3	changelog/005-add-audit-columns.sql	5	mgallagher	4
+4	changelog/006-add-soft-delete.sql	6	mgallagher	4

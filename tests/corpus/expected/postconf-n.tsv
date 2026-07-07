@@ -1,0 +1,13 @@
+n	alias_maps	=	hash:/etc/aliases	total_entries
+1	command_directory	=	/usr/sbin	12
+2	compatibility_level	=	3.6	12
+3	inet_interfaces	=	all	12
+4	inet_protocols	=	all	12
+5	mailbox_size_limit	=	0	12
+6	myhostname	=	mail.example.com	12
+7	mynetworks	=	127.0.0.0/8_192.168.1.0/24	12
+8	myorigin	=	/etc/mailname	12
+9	smtpd_banner	=	$myhostname_ESMTP_$mail_name	12
+10	smtpd_tls_cert_file	=	/etc/ssl/certs/mail.pem	12
+11	smtpd_tls_security_level	=	may	12
+12	virtual_alias_maps	=	hash:/etc/postfix/virtual	12
