@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-07-07 — `glean rm` deletes datasets (provenance-aware, committed)
+- New verb `glean rm [-f|--yes] [--purge] <dataset>...` (aliases `delete`/`drop`).
+  Previously there was no way to remove a dataset short of hand-deleting files
+  from the store. `rm` now:
+  - removes each named dataset file (only the named dataset — variants like
+    `NAME.v2` are their own datasets, removed by name);
+  - prunes the matching rows from `provenance.tsv` so `glean source #N` no longer
+    points at a vanished dataset;
+  - with `--purge`, also drops the `captures/<id>/` dirs (and their `capture-<id>`
+    tags) that fed the removed dataset(s), identified by each capture's own meta
+    `dataset` field;
+  - commits the deletion, so the git history — and `glean log` / `glean restore`
+    — still reach the pre-deletion state. Row indices (`#N`) are never reused.
+  Prompts for confirmation unless `-f`/`--yes`; validates all names up front and
+  refuses the whole operation if any is missing.
+- Files: `glean` (new `cmd_rm`; dispatch `rm|delete|drop`; help entry),
+  `tests/smoke.sh` (8 new checks: refuse-missing, delete, file removal,
+  provenance prune, sibling rows kept, capture kept without purge, capture
+  purged with `--purge`, deletion committed).
+
 ## 2026-07-07 — `show unsorted` / `triage` render decoded raw input
 - The `unsorted` dataset stores each held-back capture as a single base64-encoded
   `raw` column (so arbitrary bytes survive the TSV). Previously `glean show

@@ -653,6 +653,107 @@ cmd_triage () {
     else _decode_unsorted_tsv "$f"; fi
 }
 
+# ---------------------------------------------------------------------------
+# rm — delete one or more datasets, provenance-aware, tracked as a commit.
+#   glean rm [-f|--yes] [--purge] <dataset> [<dataset>...]
+# Removes each dataset file (only the named dataset — variants like NAME.v2 are
+# their own datasets, remove them by name), prunes the matching rows from
+# provenance.tsv, and (with --purge) drops the captures/<id>/ dirs that fed the
+# removed dataset(s). The deletion is committed, so the git history (and
+# 'glean restore') still holds the pre-deletion state. Row indices (#N) are
+# never reused.
+# ---------------------------------------------------------------------------
+cmd_rm () {
+    _ensure_workspace
+    local yes=0 purge=0 names=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -f|--yes|--force) yes=1; shift ;;
+            --purge)          purge=1; shift ;;
+            -h|--help)        cmd_help; return 0 ;;
+            --)               shift; while [[ $# -gt 0 ]]; do names+=("$1"); shift; done ;;
+            -*)               die "unknown option: $1" ;;
+            *)                names+=("$1"); shift ;;
+        esac
+    done
+    [[ ${#names[@]} -gt 0 ]] || die "usage: glean rm [-f] [--purge] <dataset> [<dataset>...]"
+
+    local dir; dir="$(_ds_dir)"
+    # Validate every name up front — refuse the whole operation if any is missing.
+    local n missing=()
+    for n in "${names[@]}"; do
+        [[ -f "$dir/$n.tsv" ]] || missing+=("$n")
+    done
+    [[ ${#missing[@]} -eq 0 ]] || die "no such dataset: ${missing[*]} (try 'glean ls')."
+
+    # Confirm (unless -f), reporting how many rows go with the datasets.
+    local total=0 rows
+    for n in "${names[@]}"; do
+        rows=$(( $(wc -l < "$dir/$n.tsv") - 1 )); [[ $rows -lt 0 ]] && rows=0
+        total=$((total + rows))
+    done
+    if [[ $yes -ne 1 ]]; then
+        printf 'About to delete %d dataset(s), %d row(s): %s\n' "${#names[@]}" "$total" "${names[*]}" >&2
+        [[ $purge -eq 1 ]] && printf 'Also purging the captures that fed them (originals removed).\n' >&2
+        printf '%s' 'Proceed? [y/N] ' >&2
+        local ans=""; read -r ans || ans=""
+        case "$ans" in y|Y|yes|YES|Yes) ;; *) info "aborted — nothing deleted."; return 0 ;; esac
+    fi
+
+    _lock
+    # shellcheck disable=SC2064
+    trap "_unlock" RETURN
+
+    # A one-name-per-line file drives the awk/loop membership tests.
+    local tmp; tmp="$(mktemp "$dir/.rm.XXXXXX")"
+    printf '%s\n' "${names[@]}" > "$tmp"
+
+    # Drop the dataset files.
+    for n in "${names[@]}"; do rm -f "$dir/$n.tsv"; done
+
+    # Prune provenance rows whose dataset was removed (keep the header).
+    local prov ptmp; prov="$(_prov_file)"
+    if [[ -f "$prov" ]]; then
+        ptmp="$(mktemp "$dir/.rmprov.XXXXXX")"
+        awk -F'\t' '
+            NR==FNR { del[$0]=1; next }
+            FNR==1  { print; next }
+            !($2 in del) { print }
+        ' "$tmp" "$prov" > "$ptmp" && mv "$ptmp" "$prov" || { rm -f "$ptmp"; }
+    fi
+
+    # --purge: remove the capture dirs (and their tags) that fed a removed
+    # dataset, identified by each capture's own meta 'dataset' field.
+    local purged=0 d cid cds
+    if [[ $purge -eq 1 ]]; then
+        for d in "$(_cap_dir)"/*/; do
+            [[ -f "$d/meta.tsv" ]] || continue
+            cds=$(awk -F'\t' '$1=="dataset"{print $2}' "$d/meta.tsv")
+            if grep -qxF "$cds" "$tmp"; then
+                cid=$(awk -F'\t' '$1=="id"{print $2}' "$d/meta.tsv")
+                rm -rf "$d"
+                [[ -n "$cid" ]] && _git tag -d "capture-$cid" >/dev/null 2>&1 || true
+                purged=$((purged + 1))
+            fi
+        done
+    fi
+    rm -f "$tmp"
+
+    _git add -A >/dev/null 2>&1 || true
+    local msg="rm: deleted ${#names[@]} dataset(s) [${names[*]}], pruned $total row(s)"
+    [[ $purge -eq 1 ]] && msg="$msg, purged $purged capture(s)"
+    _git commit -q -m "$msg" >/dev/null 2>&1 || true
+    _unlock
+    # shellcheck disable=SC2064
+    trap - RETURN
+
+    if [[ $purge -eq 1 ]]; then
+        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s). History kept — 'glean log'/'restore' still reach the pre-deletion state."
+    else
+        ok "deleted ${names[*]} (${total} row(s)). Captures kept ('glean source #N' for surviving rows); add --purge to drop the source captures too."
+    fi
+}
+
 cmd_doctor () {
     local engine
     if engine="$(_find_engine)"; then
@@ -694,6 +795,7 @@ USAGE
     glean restore <id|latest>                     bring a capture's commit back up
     glean ls                                      list datasets
     glean show NAME                               present a dataset (leading #N = row index)
+    glean rm [-f] [--purge] NAME...               delete dataset(s); --purge also drops their captures
     glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
     glean triage                                  show low-confidence / unmatched bucket (raw input decoded)
     glean doctor                                  check engine + store
@@ -741,6 +843,7 @@ main () {
         restore)       shift; cmd_restore "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
+        rm|delete|drop) shift; cmd_rm "$@" ;;
         stats)         shift; cmd_stats "$@" ;;
         triage)        shift; cmd_triage "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;

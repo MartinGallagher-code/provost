@@ -7,7 +7,7 @@ _glean_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject source control uncontrol instances export import log restore ls show stats triage doctor help"
+    local verbs="run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help"
     local ws="${GLEAN_WORKSPACE:-${GLEAN_HOME:-$HOME/.glean}}"
 
     # First word: complete the verb.
@@ -18,8 +18,11 @@ _glean_complete () {
 
     local verb="${COMP_WORDS[1]}"
     case "$verb" in
-        show|stats)
-            # complete dataset names from the active store
+        show|stats|rm|delete|drop)
+            # complete dataset names from the active store (rm also offers flags)
+            case "$cur" in
+                -*) COMPREPLY=( $(compgen -W "-f --yes --purge --help" -- "$cur") ); return ;;
+            esac
             local ds
             ds="$(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
             COMPREPLY=( $(compgen -W "$ds" -- "$cur") ) ;;
