@@ -3,16 +3,16 @@
 ## 2026-07-09 — review 500 inputs: positional aligned-columns + shadow/identifier fixes
 - Reviewed ~500 corpus inputs (classified ok / just-text / parse-wrong). 11 more
   free-text/banner captures moved to `tests/corpus/text-inputs/` (corpus now 1036).
-- **aligned-columns rewritten to positional column parsing.** A column boundary
-  is a character position that is whitespace in EVERY row, so multi-word headers
-  (`IMAGE ID` → `IMAGE_ID`) and values (`2 weeks ago`, `Rocky Linux 9 - AppStream`,
-  `80, 443`) are no longer shredded on interior spaces; the last column runs to
-  end-of-line (full COMMAND / paths). Hybrid fallback to whitespace tokenization
-  when every row has a uniform token count that positional under-splits
-  (single-space "aligned" tables). Fixes the dominant mis-split cluster — ~52
-  docker / kubectl / helm / crictl / dnf / az / ip / gcloud tables — with no
-  bespoke-parser or golden regressions. File:
-  `extract/strategies/delimited/aligned-columns.sh`.
+- **aligned-columns multi-word mis-split — investigated, deferred.** docker /
+  kubectl / helm / crictl tables shred multi-word headers (`IMAGE ID`) and values
+  (`2 weeks ago`) because the parser tokenizes on whitespace. Two positional
+  rewrites were tried (all-row whitespace boundaries; header-region token
+  assignment) and both regressed a different set of common tools — single-space
+  irregular headers (ps/df), right-aligned numeric columns (ps-aux-sort), and
+  two-line headers (vmstat/dstat) — since multi-word values and right-aligned
+  numerics need opposite column-detection strategies. Reverted to the known-good
+  tokenization; a robust fix needs real fixed-width column inference (deferred,
+  see HANDOFF.md). The safe ` = ` assignment-block decline guard is kept.
 - **colon-fields declines uniform identifier lists**: an ARN/URI list (every line
   sharing the same first colon-field, e.g. `arn:aws:…`) is one value per line, not
   colon-delimited record fields. `aws-ecs-list-clusters` / `aws-sns-list-topics`

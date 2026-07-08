@@ -154,11 +154,29 @@ Two correctness passes over what tools actually emit (not just row/column shape)
 ### 500-input review (2026-07-09)
 
 Classified ~500 inputs (ok / just-text / parse-wrong). 339 ok, 11 just-text
-(moved to `text-inputs/`), 149 parse-wrong. Fixed the dominant clusters:
-- **aligned-columns → positional parsing** cleared the whole "multi-word header/
-  value mis-split" cluster (~52 tools: docker/kubectl/helm/crictl/dnf/az/ip/…).
+(moved to `text-inputs/`), 149 parse-wrong. Fixed:
 - `colon-fields` identifier-list decline (ARNs), `docker-ps` COMMAND guard
   (docker-stats/buildah), plus the batch-1 fixes.
+
+**Deferred — aligned-columns multi-word mis-split (~52 tools, the biggest
+cluster).** docker/kubectl/helm/crictl/dnf/az/ip tables shred multi-word headers
+(`IMAGE ID`) and values (`2 weeks ago`) because aligned-columns tokenizes on
+whitespace. Two positional rewrites were attempted and both regressed a
+*different* set of common tools, so both were reverted:
+- All-row whitespace-column boundaries: broke right-aligned numeric columns
+  (`ps-aux-sort` merged VSZ/RSS — the inter-column gap moves) and two-line headers
+  (`vmstat`/`dstat` — the group row breaks the boundaries).
+- Header-region token assignment (split header on 2+ spaces, assign each data
+  token to the region its start falls in): fixed docker/kubectl but broke `ps`/`df`
+  whose headers are *irregularly* spaced (short labels, mixed single/2+ gaps).
+The two data shapes need opposite strategies: a multi-word value needs the header
+to define column regions so internal spaces aren't split; a right-aligned numeric
+column needs data-gap detection because the header is irregular. A robust fix
+needs proper fixed-width column inference (cluster token start/end positions
+across data rows, à la `pandas.read_fwf`), which is a dedicated effort — not a
+detect/tokenize tweak. Until then these ~52 stay mis-split (the pre-existing
+baseline). The safe ` = ` assignment-block decline guard on aligned-columns is
+kept.
 
 **Remaining parse-wrong tail (~85 tools), by cluster — the next work:**
 1. **Greedy bespoke/generic shadows** (narrow `detect()`; the freed tools are now
