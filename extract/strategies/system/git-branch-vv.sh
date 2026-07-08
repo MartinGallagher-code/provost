@@ -14,7 +14,7 @@
 # record per branch (name, sha, upstream). Detection keys narrowly on a
 # `<name> <7-hex> [` signature so it declines vmstat/dstat/apt-list/dnf-list.
 
-_gbvv_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_gbvv_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

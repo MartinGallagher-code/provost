@@ -37,7 +37,6 @@ strategy_extract () {
             local help_text="${line#\# HELP }"
             local help_name="${help_text%% *}"
             local help_desc="${help_text#* }"
-            help_desc="${help_desc// /_}"
             result+="meta.${help_name}.help ${help_desc}"$'\n'
             continue
         fi
@@ -77,7 +76,6 @@ strategy_extract () {
                 # Strip quotes from value
                 lval="${lval#\"}"
                 lval="${lval%\"}"
-                lval="${lval// /_}"
                 [[ -n "$lkey" && -n "$lval" ]] && result+="${prefix}.label.${lkey} ${lval}"$'\n'
             done
         elif [[ "$line" =~ ^[a-zA-Z_][a-zA-Z0-9_]*\  ]]; then

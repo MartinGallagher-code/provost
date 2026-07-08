@@ -40,8 +40,6 @@ strategy_extract () {
         else
             ref=""
         fi
-        action="${action// /_}"
-        ref="${ref// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.action ${action}"$'\n'
         result+="entry${entry}.ref ${ref}"$'\n'

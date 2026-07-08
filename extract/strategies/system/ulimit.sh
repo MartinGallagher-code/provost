@@ -41,7 +41,7 @@ strategy_extract () {
             # Normalize description -> resource (spaces to underscores, trim)
             desc="${desc#"${desc%%[![:space:]]*}"}"
             desc="${desc%"${desc##*[![:space:]]}"}"
-            local resource="${desc// /_}"
+            local resource="${desc}"
             entry=$((entry + 1))
             result+="entry${entry}.resource ${resource}"$'\n'
             result+="entry${entry}.flag ${flag}"$'\n'

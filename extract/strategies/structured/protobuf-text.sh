@@ -135,7 +135,6 @@ strategy_extract () {
 
             # Replace spaces in key and value with underscores
             key="${key// /_}"
-            value="${value// /_}"
 
             # Skip if value is empty after stripping
             [[ -z "$value" ]] && continue

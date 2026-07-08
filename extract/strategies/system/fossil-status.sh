@@ -50,7 +50,6 @@ strategy_extract () {
             cleaned="${cleaned//  / }"
         done
         cleaned="${cleaned//$'\t'/ }"
-        cleaned="${cleaned// /_}"
 
         entry=$((entry + 1))
         result+="entry${entry}.line ${cleaned}"$'\n'

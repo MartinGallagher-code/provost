@@ -63,7 +63,6 @@ strategy_extract () {
                     read -ra _arr <<< "$field_line"
                     local fname="${_arr[0]}"
                     local fval="${field_line#"$fname" }"
-                    fval="${fval// /_}"
                     result+="line${line_num}.${fname} ${fval}"$'\n'
                 done <<< "$fields"
             fi
@@ -94,7 +93,6 @@ strategy_extract () {
                 else
                     break
                 fi
-                fval="${fval// /_}"
                 [[ -n "$fname" && -n "$fval" ]] && result+="line${line_num}.${fname} ${fval}"$'\n'
             done
         fi

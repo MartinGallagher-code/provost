@@ -44,7 +44,7 @@ _strat_har_extract_jq () {
     local creator_name
     creator_name=$(echo "$text" | jq -r '.log.creator.name // empty' 2>/dev/null) || true
     if [[ -n "$creator_name" ]]; then
-        local clean="${creator_name// /_}"
+        local clean="${creator_name}"
         result+="log.creator.name ${clean}"$'\n'
     fi
 
@@ -72,7 +72,7 @@ _strat_har_extract_jq () {
             local url
             url=$(echo "$text" | jq -r ".log.entries[$i].request.url // empty" 2>/dev/null) || true
             if [[ -n "$url" ]]; then
-                local clean_url="${url// /_}"
+                local clean_url="${url}"
                 result+="${prefix}.request.url ${clean_url}"$'\n'
             fi
 
@@ -85,7 +85,7 @@ _strat_har_extract_jq () {
             local status_text
             status_text=$(echo "$text" | jq -r ".log.entries[$i].response.statusText // empty" 2>/dev/null) || true
             if [[ -n "$status_text" ]]; then
-                local clean_st="${status_text// /_}"
+                local clean_st="${status_text}"
                 result+="${prefix}.response.statusText ${clean_st}"$'\n'
             fi
 
@@ -132,7 +132,6 @@ _strat_har_extract_fallback () {
         else
             break
         fi
-        value="${value// /_}"
         if [[ -n "$key" && -n "$value" ]]; then
             result+="${key} ${value}"$'\n'
         fi

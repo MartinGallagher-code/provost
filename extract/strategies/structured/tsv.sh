@@ -101,7 +101,6 @@ strategy_extract () {
             name="${name%_}"
             name="${name//./_}"   # '.' would break the tidy melt's group key split
             value="${value//\"}"
-            value="${value// /_}"
             [[ -z "$name" ]] && continue
             [[ -z "$value" ]] && continue
             result+="entry${rec}.${name} ${value}"$'\n'

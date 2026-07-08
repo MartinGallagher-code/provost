@@ -74,8 +74,6 @@ strategy_extract () {
             # Trim leading/trailing whitespace
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
-            # Replace spaces with underscores
-            val="${val// /_}"
             [[ -z "$val" ]] && continue
 
             # Normalize column name to lowercase

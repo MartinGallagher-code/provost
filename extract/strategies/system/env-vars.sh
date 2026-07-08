@@ -60,9 +60,6 @@ strategy_extract () {
         fi
         value="${value//\'/}"
 
-        # Replace spaces in value with underscores
-        value="${value// /_}"
-
         result+="${key} ${value}"$'\n'
     done <<< "$text"
 

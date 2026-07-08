@@ -33,7 +33,7 @@ strategy_extract () {
         [[ -n "$kv" ]] || continue
         key="${kv%%=*}"
         value="${kv#*=}"
-        origin="${origin// /_}"; key="${key// /_}"; value="${value// /_}"
+        key="${key// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.origin ${origin}"$'\n'
         result+="entry${entry}.key ${key}"$'\n'
