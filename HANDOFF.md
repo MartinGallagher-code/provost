@@ -204,13 +204,22 @@ records). Shadow narrowings landed: `hg-branches`, `git-log`, `version-string`,
 2. **Record-vs-one-wide-row** (a multi-record dump transposed into a single wide
    row — needs repeated-key/record detection): `yaml` (dpkg-s, edac-util,
    dotnet-nuget-locals, kubectl-config-view, flatpak-info), `ini` (dbmate-status,
-   dmesg, gcloud-config-list), `labeled-records` (blkid, bridge-link),
-   `vertical-line` (aureport-summary, chronyc-sources, duplicity), `equals`
-   (ausearch-avc, conntrack-count), `inline-kv` (conntrack, conntrack-L).
+   gcloud-config-list), `labeled-records` (blkid, bridge-link), `equals`
+   (conntrack-count), `inline-kv` (conntrack, conntrack-L). DONE:
+   `aureport-summary` / `duplicity` → `colons` (`vertical-line` now declines
+   `label: value` banner blocks); `dmesg` / `ausearch-avc` → `text-inputs/`
+   (free-form logs). `chronyc-sources` still on `vertical-line` (an aligned NTP
+   table — would be better on aligned-columns but routing it risks vertical-line's
+   own tables; left as-is).
 3. **Nested-heading grouping** (a section heading should open a sub-group, not be
-   flattened/duplicated): `indented-hierarchy` (ip-addr, ip-link, ifconfig,
-   dovecot-n, iwconfig), `key-value` (fail2ban-status, git-remote-show-origin,
-   cpupower-idle-info, hdparm-i, httpd-V), `biosdecode`, `btrfs-filesystem-show`.
+   flattened/duplicated): DONE — `ip-addr` / `ip-link` now have the bespoke
+   `ip-link` parser (one row per interface). Still hard: `ifconfig` (RX/TX keyword
+   collision — `packets`/`bytes` repeat across RX and TX lines, so a generic
+   keyword-value parse needs RX_/TX_ prefixing) and `iwconfig` (inline
+   `key:value`/`key=value`), `dovecot-n` (nested `{ }` config blocks),
+   `key-value` (fail2ban-status `|-` tree, hdparm-i); `git-remote-show-origin`,
+   `cpupower-idle-info`, `httpd-V`, `biosdecode`, `btrfs-filesystem-show` already
+   parse acceptably.
 4. **Colon inside a value** (MAC/IPv6 split): `colons` (iw-station-dump, ethtool-a),
    `ifconfig`.
 5. **Genuinely hard / low-ROI**: multi-panel dashboards (`glances`, `atop`),
