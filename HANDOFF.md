@@ -151,16 +151,70 @@ Two correctness passes over what tools actually emit (not just row/column shape)
   `detect()` narrowing (no priority changes), so bespoke parsers and non-box
   tools are untouched.
 
-**Still open (full-mode detect-narrowing tail):** a handful of other greedy
-low-priority parsers still shadow purpose-built ones for specific tools (e.g.
-`ini`, `git-log`, `container-top`, `version-string` claiming a few tools they
-mis-parse). Method to close each: `env -u GIT_DIR bash extract/envoy-extract
---emit-meta -f tsv --max-strategies 1 <input>` shows the full-mode winner;
-narrow the greedy parser's `detect()` (or fix priority) so the specific parser
-wins, then verify no regression with a full-mode winner scan across the corpus.
-The corpus goldens under `tests/corpus/expected/` are generic-mode and are
-regenerated with `run.sh --update-golden`; `run.sh --golden` is the (non-CI)
-regression check.
+### 500-input review (2026-07-09)
+
+Classified ~500 inputs (ok / just-text / parse-wrong). 339 ok, 11 just-text
+(moved to `text-inputs/`), 149 parse-wrong.
+
+**Done — aligned-columns opt-in positional parsing (~50 tools, the biggest
+cluster).** docker/kubectl/helm/crictl/dnf/az/gcloud tables were shredding
+multi-word headers (`IMAGE ID`) and values (`2 weeks ago`) on whitespace. Fixed
+by `_ac_aligned` (are ≥80% of data rows aligned to the header's 2+-space column
+starts?) gating `_ac_assign` (assign each token to its header column region,
+rejoining multi-word cells). Only *cleanly-aligned* blocks get positional
+parsing; irregular single-space headers (ps/df), right-aligned-overflow numerics
+(ps-aux-sort), two-line headers (vmstat/dstat), and headerless tables keep the
+known-good tokenization. This opt-in gate is the key: two earlier
+*unconditional* positional rewrites each regressed a different set of common
+tools (all-row-whitespace broke ps-aux-sort/vmstat; header-region-only broke
+ps/df) because multi-word values and right-aligned numerics need opposite
+column-detection — the gate sidesteps that by only firing where the header and
+data agree. **A second gate was added (2026-07-09):** `_ac_aligned` alone still
+mis-fired on single-token tables whose header uses single spaces between real
+labels (df `Used Avail Use%`, lsblk, ss, elasticsearch, losetup) — the header's
+2-space split under-counts columns and crams them. Positional now *also* requires
+a data row to carry more whitespace tokens than the header has labels (a genuine
+multi-word cell), so single-token tables stay on tokenization. All corpus goldens
+were regenerated afterward (`run.sh --golden`: 980/0). `hg-paths` was reclassified
+`table`→`kv` (it is a `key = value` block like `ansible-config-dump`). Also
+retired the `kubectl` and `container-top` bespokes (they
+transposed to one wide row + mis-split; aligned-columns now covers them as
+records). Shadow narrowings landed: `hg-branches`, `git-log`, `version-string`,
+`pip-list`, `colon-fields`, `docker-ps`, plus the batch-1 fixes.
+
+**Remaining parse-wrong tail (~70 tools), by cluster — the next work:**
+1. **Greedy bespoke/generic shadows still to narrow** (the freed tools are now
+   handled well by positional aligned-columns): `sqlite-output` (jmap-histo,
+   git-stash-show-stat, gpg-list-secret-keys, gradle-q-dependencies,
+   dnf-history-list, git-diff-stat), `pkg-config` (aptitude-search,
+   bundle-outdated, flatpak-list, ip-br-addr, ip6tables-l, ipmitool-sdr, deno-info),
+   `proc-stat` (etcdctl-alarm-list, ipset-list), `docker-compose-ps` (transpose),
+   `env-vars`, `line-records` (git-branch/-a, git-config-list, ghc-info, cgget,
+   java-showsettings, jcmd-heap-info). git-lfs/for-each-ref/gsutil-du,
+   hg-log/heads/summary, dig-short, git-submodule, composer-outdated, helm-list,
+   kubectl-get-*, docker/podman top, crictl-ps are already fixed.
+2. **Record-vs-one-wide-row** (a multi-record dump transposed into a single wide
+   row — needs repeated-key/record detection): `yaml` (dpkg-s, edac-util,
+   dotnet-nuget-locals, kubectl-config-view, flatpak-info), `ini` (dbmate-status,
+   dmesg, gcloud-config-list), `labeled-records` (blkid, bridge-link),
+   `vertical-line` (aureport-summary, chronyc-sources, duplicity), `equals`
+   (ausearch-avc, conntrack-count), `inline-kv` (conntrack, conntrack-L).
+3. **Nested-heading grouping** (a section heading should open a sub-group, not be
+   flattened/duplicated): `indented-hierarchy` (ip-addr, ip-link, ifconfig,
+   dovecot-n, iwconfig), `key-value` (fail2ban-status, git-remote-show-origin,
+   cpupower-idle-info, hdparm-i, httpd-V), `biosdecode`, `btrfs-filesystem-show`.
+4. **Colon inside a value** (MAC/IPv6 split): `colons` (iw-station-dump, ethtool-a),
+   `ifconfig`.
+5. **Genuinely hard / low-ROI**: multi-panel dashboards (`glances`, `atop`),
+   wide variable-width date columns (`helm-history`, `docker-history`), deeply
+   nested JSON (`cargo-metadata`).
+
+Method to close each: `env -u GIT_DIR bash extract/envoy-extract --emit-meta -f
+tsv --max-strategies 1 <input>` shows the winner; narrow the greedy parser's
+`detect()` (or improve the record/heading modeling), then verify no regression
+with the extract suite + a full-corpus winner scan. The corpus goldens under
+`tests/corpus/expected/` are generic-mode, regenerated with
+`run.sh --update-golden`; `run.sh --golden` is the (non-CI) regression check.
 
 ## Next steps
 

@@ -1,6 +1,2 @@
-n	c1	c2	c3	total_entries
-1	instance_id	=	"i-0abc123def4567890"	5
-2	instance_ip	=	"203.0.113.42"	5
-3	vpc_id	=	"vpc-0a1b2c3d4e5f6a7b8"	5
-4	db_endpoint	=	"mydb.abc123xyz.us-east-1.rds.amazonaws.com:5432"	5
-5	lb_dns_name	=	"my-lb-1234567890.us-east-1.elb.amazonaws.com"	5
+instance_id	instance_ip	vpc_id	db_endpoint	lb_dns_name
+"i-0abc123def4567890"	"203.0.113.42"	"vpc-0a1b2c3d4e5f6a7b8"	"mydb.abc123xyz.us-east-1.rds.amazonaws.com:5432"	"my-lb-1234567890.us-east-1.elb.amazonaws.com"

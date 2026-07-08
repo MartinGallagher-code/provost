@@ -1,2 +1,2 @@
-n	name	rev	hash	total_entries
-1	parent:	18	2f8a1c9b4d5e	1
+parent	branch	commit	update	phases
+18:2f8a1c9b4d5e tip	default	2 modified, 1 unknown	(current)	3 draft

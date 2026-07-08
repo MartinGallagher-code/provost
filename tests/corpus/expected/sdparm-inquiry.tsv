@@ -1,2 +1,2 @@
-/dev/sda	length=96_(0x60)___Peripheral_device_type	Vendor_identification	Product_identification	Product_revision_level	Unit_serial_number
+/dev/sda	length=96_(0x60)_Peripheral_device_type	Vendor_identification	Product_identification	Product_revision_level	Unit_serial_number
 ATA       Samsung SSD 860   RVT0	disk	ATA	Samsung SSD 860	RVT0	S3Z1NB0K123456A

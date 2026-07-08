@@ -140,7 +140,7 @@ PREFIX="$IPREFIX" bash "$HERE/../install.sh" --uninstall >/dev/null 2>&1
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 
-run_out="$("$GLEAN" run printf 'CONTAINER   CPU %%\nweb  12.5%%\ndb  3.2%%\n' 2>&1)"
+run_out="$("$GLEAN" run printf 'CONTAINER   COMMAND\nweb  "/entry web"\ndb  "/entry db"\n' 2>&1)"
 check "run captures a command (docker-ps)" "docker-ps" "$run_out"
 
 log_out="$("$GLEAN" log 2>&1)"
@@ -171,7 +171,7 @@ PROJ="$(mktemp -d)/proj"; mkdir -p "$PROJ/sub"; echo hi > "$PROJ/file.txt"
 ctl_out="$(cd "$PROJ" && GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" control 2>&1)"
 check "control marks a directory" "controlling" "$ctl_out"
 # capture from a SUBDIR must route to the project instance, not the global store
-( cd "$PROJ/sub" && GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" run printf 'CONTAINER  CPU\nweb  1\n' >/dev/null 2>&1 )
+( cd "$PROJ/sub" && GLEAN_HOME="$GH" GLEAN_WORKSPACE="" "$GLEAN" run printf 'CONTAINER  COMMAND\nweb  "/x"\n' >/dev/null 2>&1 )
 check "capture from subdir lands in the controlled instance" "docker-ps" "$(ls "$PROJ/.glean/datasets" 2>&1)"
 check "capture from subdir did NOT touch the global store" "0" "$(ls "$GH/datasets" 2>/dev/null | grep -c .)"
 check "directory context manifest was captured" "file.txt" "$(cat "$PROJ/.glean/context/manifest.tsv" 2>&1)"

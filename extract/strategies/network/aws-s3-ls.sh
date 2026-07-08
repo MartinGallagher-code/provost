@@ -21,13 +21,19 @@ _awss3_is_prefix () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
-    local line
+    local line _hits=0
     while IFS= read -r line; do
         if _awss3_is_object "$line" || _awss3_is_prefix "$line"; then
-            _STRATEGY_CONFIDENCE=88
-            return 0
+            _hits=$((_hits + 1))
         fi
     done <<< "$text"
+    # Require at least two object/prefix rows. A single "DATE TIME <num> …" line
+    # is coincidental (e.g. a `7z`/archive listing's summary row "… 100352 42218
+    # 6 files"), and firing on it hijacks a real columnar table.
+    if [[ $_hits -ge 2 ]]; then
+        _STRATEGY_CONFIDENCE=88
+        return 0
+    fi
     return 1
 }
 

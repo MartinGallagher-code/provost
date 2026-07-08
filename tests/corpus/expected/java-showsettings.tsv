@@ -1,11 +1,12 @@
-n	Property	settings:	total_entries
-1	file.encoding	=_UTF-8	10
-2	java.class.version	=_61.0	10
-3	java.home	=_/usr/lib/jvm/java-17-openjdk-amd64	10
-4	java.io.tmpdir	=_/tmp	10
-5	java.runtime.version	=_17.0.9+9-Ubuntu-122.04	10
-6	java.vendor	=_Private_Build	10
-7	java.version	=_17.0.9	10
-8	os.arch	=_amd64	10
-9	os.name	=_Linux	10
-10	openjdk	version_"17.0.9"_2023-10-17	10
+n	c1	c2	c3	c4	total_entries
+1	Property	settings:			11
+2	file.encoding	=	UTF-8		11
+3	java.class.version	=	61.0		11
+4	java.home	=	/usr/lib/jvm/java-17-openjdk-amd64		11
+5	java.io.tmpdir	=	/tmp		11
+6	java.runtime.version	=	17.0.9+9-Ubuntu-122.04		11
+7	java.vendor	=	Private	Build	11
+8	java.version	=	17.0.9		11
+9	os.arch	=	amd64		11
+10	os.name	=	Linux		11
+11	openjdk	version	"17.0.9"	2023-10-17	11

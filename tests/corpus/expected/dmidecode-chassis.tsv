@@ -1,2 +1,2 @@
-	Manufacturer		Type		Lock		Version		Serial_Number		Asset_Tag		Boot-up_State		Power_Supply_State		Thermal_State		Security_Status		OEM_Information		Height		Number_Of_Power_Cords		Contained_Elements
+Manufacturer	Type	Lock	Version	Serial_Number	Asset_Tag	Boot-up_State	Power_Supply_State	Thermal_State	Security_Status	OEM_Information	Height	Number_Of_Power_Cords	Contained_Elements
 Dell Inc.	Notebook	Not Present	Not Specified	8H2K3L4	Not Specified	Safe	Safe	Safe	None	0x00000000	Unspecified	1	0

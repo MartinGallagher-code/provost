@@ -1,7 +1,0 @@
-n	c1	total_entries
-1	Waiting for deployment "web" rollout to finish: 2 out of 4 new replicas have been updated...	6
-2	Waiting for deployment "web" rollout to finish: 2 out of 4 new replicas have been updated...	6
-3	Waiting for deployment "web" rollout to finish: 3 out of 4 new replicas have been updated...	6
-4	Waiting for deployment "web" rollout to finish: 1 old replicas are pending termination...	6
-5	Waiting for deployment "web" rollout to finish: 3 of 4 updated replicas are available...	6
-6	deployment "web" successfully rolled out	6

@@ -14,11 +14,17 @@ strategy_detect () {
     fi
     # Detect oneline format: "<7+ char hex> <message>"
     if [[ "$text" =~ ^[0-9a-f]{7,}\  ]]; then
-        # Make sure at least 2 lines match to avoid false positives
+        # Require >=2 lines, and guard against look-alikes: the hash must contain a
+        # hex LETTER (not a pure-decimal size — `gsutil du`), the line must not be
+        # tab-delimited (`git for-each-ref` "<hash> commit\t<ref>"), and the message
+        # must not be a `git lfs ls-files` "* <path>" status marker.
         local match_count=0
         while IFS= read -r _line; do
             if [[ "$_line" =~ ^[0-9a-f]{7,}\  ]]; then
-                match_count=$((match_count + 1))
+                local _h="${_line%%[[:space:]]*}" _rest="${_line#* }"
+                if [[ "$_h" =~ [a-f] && "$_line" != *$'\t'* && "$_rest" != "* "* && "$_rest" != "- "* ]]; then
+                    match_count=$((match_count + 1))
+                fi
             fi
             [[ $match_count -ge 2 ]] && return 0
         done <<< "$text"

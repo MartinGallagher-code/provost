@@ -8,14 +8,18 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
-    # First non-empty line should start with CONTAINER ID
+    # First non-empty line is the `docker ps` header: starts with CONTAINER and
+    # carries the ps-specific COMMAND column. Requiring COMMAND avoids hijacking
+    # `docker stats` (CONTAINER … CPU %/MEM …) and `buildah containers`
+    # (CONTAINER … BUILDER/IMAGE ID …) — those have no COMMAND column and are
+    # tidied fine by the generic aligned-columns parser.
     local first_line=""
     while IFS= read -r _line; do
         [[ -z "$_line" ]] && continue
         first_line="$_line"
         break
     done <<< "$text"
-    [[ "$first_line" == "CONTAINER"* ]]
+    [[ "$first_line" == "CONTAINER"* && "$first_line" == *"COMMAND"* ]]
 }
 
 strategy_extract () {

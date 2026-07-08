@@ -80,8 +80,14 @@ strategy_extract () {
         # Skip lines where key starts with a digit
         [[ "$key" =~ ^[0-9] ]] && continue
 
-        # Replace spaces in key with underscores, trim edges
+        # Trim the key's surrounding whitespace (column-alignment padding, e.g.
+        # `Battery #1     :`) BEFORE turning inner spaces into underscores, then
+        # collapse any runs so the field name is clean (`Battery_#1`, not
+        # `Battery_#1____`).
+        key="${key#"${key%%[![:space:]]*}"}"
+        key="${key%"${key##*[![:space:]]}"}"
         key="${key// /_}"
+        while [[ "$key" == *__* ]]; do key="${key//__/_}"; done
         key="${key#_}"
         key="${key%_}"
 

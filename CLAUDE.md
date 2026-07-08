@@ -71,3 +71,38 @@ ship with their own sample + golden fixtures under `extract/`.
 - glean's user-facing env vars are all `GLEAN_*`; keep it that way.
 - glean must run correctly when invoked via a symlink on `PATH` (it resolves its
   own directory via `GLEAN_ROOT`) — `install.sh` and the smoke test guard this.
+
+## Git practices (READ THIS — avoids the mistakes we kept making)
+
+This repo runs in an **ephemeral remote container** that can roll the local
+clone back to an older snapshot mid-session. That single fact caused every git
+problem we hit. Follow these rules and they don't recur:
+
+1. **Set the commit identity at the start of every session, before the first
+   commit.** A fresh clone resets `user.email` to the account default, which
+   produces "Unverified" commits. Run once up front (and again after any
+   suspected rollback):
+   ```bash
+   git config user.email noreply@anthropic.com
+   git config user.name  "Claude"
+   ```
+2. **Only pushed commits are safe.** Because the container can revert the local
+   tree, `commit` alone is not durable — a rollback silently discards unpushed
+   work. Commit *and* `git push -u origin <branch>` after each self-contained
+   step, not once at the end.
+3. **Recover from a rollback with the remote, never by redoing work.** If HEAD
+   or `origin/main` looks stale, the local clone was reset — your pushed commits
+   still exist on the remote. Restore with:
+   ```bash
+   git fetch origin <branch> && git reset --hard origin/<branch>
+   ```
+4. **Subagents must never run git.** A subagent running `git stash`/`reset`/
+   `checkout` in the shared working tree once wiped uncommitted work for the
+   whole session. Keep all git operations in the main agent; give subagents
+   read-only or file-scoped tasks.
+5. **Never commit a broken corpus regen.** `tests/corpus/run.sh --update-golden`
+   *deletes* the golden of any tool whose output stopped being tidy — a deleted
+   golden for a still-listed tool is a **regression**, not an intended change.
+   After regenerating, check `git status` for `D tests/corpus/expected/*.tsv`
+   against the manifest and run `bash tests/corpus/run.sh --golden` (0 failed)
+   before committing.

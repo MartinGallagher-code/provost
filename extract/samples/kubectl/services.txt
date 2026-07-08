@@ -1,6 +1,0 @@
-NAME              TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)          AGE     STATUS
-kubernetes        ClusterIP      10.96.0.1       <none>          443/TCP          30d     Active
-api-service       LoadBalancer   10.96.45.120    34.102.55.100   80:31234/TCP     7d      Active
-redis-service     ClusterIP      10.96.78.200    <none>          6379/TCP         7d      Active
-postgres-svc      ClusterIP      10.96.33.150    <none>          5432/TCP         7d      Active
-grafana           NodePort       10.96.90.88     <none>          3000:30300/TCP   14d     Active

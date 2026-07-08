@@ -1,5 +1,2 @@
-n	c1	c2	c3	total_entries
-1	default	=	https://hg.example.com/widget	4
-2	default-push	=	ssh://hg@hg.example.com/widget	4
-3	upstream	=	https://hg.example.com/upstream/widget	4
-4	backup	=	/srv/hg/mirrors/widget	4
+default	default-push	upstream	backup
+https://hg.example.com/widget	ssh://hg@hg.example.com/widget	https://hg.example.com/upstream/widget	/srv/hg/mirrors/widget

@@ -15,7 +15,7 @@ strategy_detect () {
         first_line="$_line"
         break
     done <<< "$text"
-    if [[ "$first_line" == "Package "* && "$first_line" == *"Version"* ]]; then
+    if [[ "$first_line" == "Package "* && "$first_line" == *"Version"* && "$first_line" != *"Latest"* ]]; then
         return 0
     fi
 

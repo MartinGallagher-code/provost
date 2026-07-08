@@ -47,7 +47,6 @@ lsmod	table	3	3
 nmcli	table	3	4
 ip-link	kv	-	2
 last	table	3	4
-date	kv	-	3
 mpstat	table	1	8
 apt-list	table	3	3
 dmidecode	kv	-	3
@@ -166,13 +165,11 @@ mvn-dependency-tree	table	6	2
 gradle-dependencies	table	5	1
 go-env	kv	-	2
 python-version	kv	-	2
-java-version	kv	-	2
 rustc-version	kv	-	2
 gcc-version	kv	-	2
 node-version	kv	-	2
 ruby-version	kv	-	2
 perl-version	kv	-	2
-cmake-version	kv	-	2
 dstat	table	4	8
 nmon	kv	-	2
 atop	kv	-	4
@@ -275,8 +272,6 @@ numastat	table	6	2
 getconf	table	8	1
 perf-report	table	7	3
 valgrind-summary	kv	-	3
-getenforce	table	1	1
-aa-status	kv	-	1
 fail2ban-status	kv	-	3
 ssh-add-l	table	4	3
 gpg-list-secret-keys	kv	-	2
@@ -302,7 +297,6 @@ dotnet-info	kv	-	2
 php-modules	table	23	1
 deno-info	kv	-	2
 clang-version	kv	-	2
-ghc-version	kv	-	1
 acpi	kv	-	2
 upower-info	kv	-	2
 lsusb-t	table	8	1
@@ -341,7 +335,6 @@ kubectl-get-endpoints	table	6	2
 kubectl-get-hpa	table	5	6
 kubectl-get-jobs	table	5	3
 kubectl-get-cronjobs	table	5	6
-kubectl-rollout-status	kv	-	2
 kubectl-config-view	kv	-	3
 kubectl-get-storageclass	table	5	5
 kubectl-get-role	table	5	1
@@ -474,7 +467,6 @@ systemctl-list-sockets	table	7	2
 systemctl-failed	table	4	4
 systemctl-cat	kv	-	5
 systemd-detect-virt	table	1	1
-journalctl-disk-usage	kv	-	1
 coredumpctl-info	kv	-	5
 busctl-list	table	6	5
 busctl-tree	table	5	1
@@ -713,8 +705,6 @@ python-sysconfig	kv	-	4
 python-vv	table	1	1
 pip-config	kv	-	4
 node-versions	kv	-	4
-deno-version	kv	-	4
-bun-version	table	1	1
 go-dist-list	table	8	1
 rustc-cfg	table	8	1
 rustup-toolchain	table	4	1
@@ -727,11 +717,9 @@ php-i	kv	-	4
 dotnet-runtimes	table	6	1
 dotnet-nuget-locals	kv	-	4
 swift-version	kv	-	4
-kotlinc-version	table	1	1
 scala-version	table	1	1
 ghc-info	kv	-	4
 elixir-version	kv	-	4
-R-version	kv	-	4
 nvcc-version	kv	-	4
 bazel-version	kv	-	4
 crontab	table	7	4
@@ -758,7 +746,6 @@ needrestart	kv	-	4
 cupsctl	kv	-	4
 rsync_stats	kv	-	4
 duplicity	kv	-	4
-alternatives_display	kv	-	4
 ethtool-k	kv	-	4
 ethtool-S	kv	-	4
 ethtool-a	kv	-	4
@@ -792,7 +779,6 @@ dig_mx	table	5	3
 dig_srv	table	4	3
 dig_caa	table	4	3
 dig_txt	table	4	3
-delv	table	4	3
 drill	table	5	3
 host_a	table	5	3
 host_ns	table	4	2
@@ -1054,7 +1040,7 @@ git-annex-list	table	5	1
 hg-summary	kv	-	4
 hg-branches	table	5	1
 hg-heads	table	3	3
-hg-paths	table	4	1
+hg-paths	kv	-	2
 svn-info	kv	-	4
 svn-list	table	6	1
 fossil-timeline	table	6	1

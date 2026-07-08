@@ -1,7 +1,0 @@
-NAME                          READY   STATUS    RESTARTS   AGE   IP            NODE
-api-server-7d4f8b9c6-x2k9l   1/1     Running   0          2d    10.244.1.15   node-01
-api-server-7d4f8b9c6-m3n7p   1/1     Running   0          2d    10.244.2.22   node-02
-worker-5c8a9b1d2-j4h6k       1/1     Running   3          5d    10.244.1.18   node-01
-redis-cache-0                 1/1     Running   0          7d    10.244.3.10   node-03
-postgres-primary-0            1/1     Running   0          7d    10.244.2.30   node-02
-celery-beat-6f7a8b-q9r2s      0/1     CrashLoopBackOff   8          1d    10.244.3.12   node-03

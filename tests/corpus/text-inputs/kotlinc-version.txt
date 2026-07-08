@@ -1,0 +1,1 @@
+info: kotlinc-jvm 1.9.22 (JRE 17.0.9+9-Ubuntu-122.04)
