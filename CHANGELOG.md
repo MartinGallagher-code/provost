@@ -1,5 +1,32 @@
 # glean — Changelog
 
+## 2026-07-09 — review 500 inputs: positional aligned-columns + shadow/identifier fixes
+- Reviewed ~500 corpus inputs (classified ok / just-text / parse-wrong). 11 more
+  free-text/banner captures moved to `tests/corpus/text-inputs/` (corpus now 1036).
+- **aligned-columns rewritten to positional column parsing.** A column boundary
+  is a character position that is whitespace in EVERY row, so multi-word headers
+  (`IMAGE ID` → `IMAGE_ID`) and values (`2 weeks ago`, `Rocky Linux 9 - AppStream`,
+  `80, 443`) are no longer shredded on interior spaces; the last column runs to
+  end-of-line (full COMMAND / paths). Hybrid fallback to whitespace tokenization
+  when every row has a uniform token count that positional under-splits
+  (single-space "aligned" tables). Fixes the dominant mis-split cluster — ~52
+  docker / kubectl / helm / crictl / dnf / az / ip / gcloud tables — with no
+  bespoke-parser or golden regressions. File:
+  `extract/strategies/delimited/aligned-columns.sh`.
+- **colon-fields declines uniform identifier lists**: an ARN/URI list (every line
+  sharing the same first colon-field, e.g. `arn:aws:…`) is one value per line, not
+  colon-delimited record fields. `aws-ecs-list-clusters` / `aws-sns-list-topics`
+  now come out as a single-column list; passwd/group still split.
+- **docker-ps requires the COMMAND column** so it stops hijacking `docker stats`
+  and `buildah containers` (no COMMAND); those tidy via their own / generic parsers.
+- Batch-1 review fixes: 7z (aws-s3-ls now needs ≥2 object rows), acpitool (colons
+  trims alignment-padding from keys), ansible-config dump (equals handles
+  `KEY(ctx) = value`; aligned-columns declines ` = ` blocks).
+- Verified: extract suite 214/214, goldens 414/414, smoke 49/49, melt 8/8.
+- Remaining review tail (documented in HANDOFF.md): greedy bespoke shadows
+  (kubectl/sqlite-output/git-log/hg-branches/pkg-config/proc-stat…), record-vs-wide-row
+  cases (yaml/ini/labeled-records), nested-heading grouping, and a few dashboards.
+
 ## 2026-07-08 — vet corpus output quality: preserve spaces in values; fix box-table shadowing
 - **Data values keep their spaces.** ~200 extract strategies were replacing
   spaces with underscores in emitted VALUES (`${v// /_}`), corrupting multi-word

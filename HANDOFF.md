@@ -151,16 +151,48 @@ Two correctness passes over what tools actually emit (not just row/column shape)
   `detect()` narrowing (no priority changes), so bespoke parsers and non-box
   tools are untouched.
 
-**Still open (full-mode detect-narrowing tail):** a handful of other greedy
-low-priority parsers still shadow purpose-built ones for specific tools (e.g.
-`ini`, `git-log`, `container-top`, `version-string` claiming a few tools they
-mis-parse). Method to close each: `env -u GIT_DIR bash extract/envoy-extract
---emit-meta -f tsv --max-strategies 1 <input>` shows the full-mode winner;
-narrow the greedy parser's `detect()` (or fix priority) so the specific parser
-wins, then verify no regression with a full-mode winner scan across the corpus.
-The corpus goldens under `tests/corpus/expected/` are generic-mode and are
-regenerated with `run.sh --update-golden`; `run.sh --golden` is the (non-CI)
-regression check.
+### 500-input review (2026-07-09)
+
+Classified ~500 inputs (ok / just-text / parse-wrong). 339 ok, 11 just-text
+(moved to `text-inputs/`), 149 parse-wrong. Fixed the dominant clusters:
+- **aligned-columns → positional parsing** cleared the whole "multi-word header/
+  value mis-split" cluster (~52 tools: docker/kubectl/helm/crictl/dnf/az/ip/…).
+- `colon-fields` identifier-list decline (ARNs), `docker-ps` COMMAND guard
+  (docker-stats/buildah), plus the batch-1 fixes.
+
+**Remaining parse-wrong tail (~85 tools), by cluster — the next work:**
+1. **Greedy bespoke/generic shadows** (narrow `detect()`; the freed tools are now
+   handled well by positional aligned-columns): `kubectl` (helm-list/-all,
+   docker-compose-ps, kubectl-get-all/daemonset), `sqlite-output` (jmap-histo,
+   git-stash-show-stat, gpg-list-secret-keys, gradle-q-dependencies,
+   dnf-history-list, git-diff-stat), `pkg-config` (aptitude-search,
+   bundle-outdated, flatpak-list, ip-br-addr, ip6tables-l, ipmitool-sdr, deno-info),
+   `git-log` (git-for-each-ref, git-lfs-ls-files, gsutil-du), `hg-branches`
+   (hg-heads/-log/-summary), `proc-stat` (etcdctl-alarm-list, ipset-list),
+   `container-top`, `version-string`, `pip-list`, `env-vars`, `line-records`
+   (git-branch/-a, git-config-list, ghc-info, cgget, java-showsettings, jcmd-heap-info).
+2. **Record-vs-one-wide-row** (a multi-record dump transposed into a single wide
+   row — needs repeated-key/record detection): `yaml` (dpkg-s, edac-util,
+   dotnet-nuget-locals, kubectl-config-view, flatpak-info), `ini` (dbmate-status,
+   dmesg, gcloud-config-list), `labeled-records` (blkid, bridge-link),
+   `vertical-line` (aureport-summary, chronyc-sources, duplicity), `equals`
+   (ausearch-avc, conntrack-count), `inline-kv` (conntrack, conntrack-L).
+3. **Nested-heading grouping** (a section heading should open a sub-group, not be
+   flattened/duplicated): `indented-hierarchy` (ip-addr, ip-link, ifconfig,
+   dovecot-n, iwconfig), `key-value` (fail2ban-status, git-remote-show-origin,
+   cpupower-idle-info, hdparm-i, httpd-V), `biosdecode`, `btrfs-filesystem-show`.
+4. **Colon inside a value** (MAC/IPv6 split): `colons` (iw-station-dump, ethtool-a),
+   `ifconfig`.
+5. **Genuinely hard / low-ROI**: multi-panel dashboards (`glances`, `atop`),
+   wide variable-width date columns (`helm-history`, `docker-history`), deeply
+   nested JSON (`cargo-metadata`).
+
+Method to close each: `env -u GIT_DIR bash extract/envoy-extract --emit-meta -f
+tsv --max-strategies 1 <input>` shows the winner; narrow the greedy parser's
+`detect()` (or improve the record/heading modeling), then verify no regression
+with the extract suite + a full-corpus winner scan. The corpus goldens under
+`tests/corpus/expected/` are generic-mode, regenerated with
+`run.sh --update-golden`; `run.sh --golden` is the (non-CI) regression check.
 
 ## Next steps
 
