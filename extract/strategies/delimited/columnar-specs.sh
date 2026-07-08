@@ -13,15 +13,23 @@
 #
 #   detect*       — substrings that must ALL appear in the input for this spec
 #   header_marker — skip every line up to and INCLUDING the first line containing
-#                   this (drops preamble + header/rule row); empty = headerless
+#                   this (drops preamble + header/rule row); `-` = headerless.
+#                   (Must not be empty — `read` collapses consecutive TAB fields.)
 #   delim         — "ws" (whitespace tokens) or "pipe" (split on `|`, trim cells)
 #   absorb        — 0-based index of the column that soaks up overflow tokens when
 #                   a row has more tokens than columns (ws only); -1 = none
 #   minreq        — minimum token count for a row to be accepted (lets trailing
 #                   columns be optional, e.g. ss `Process`)
+#   detect tokens may be plain substrings (must appear anywhere) or `re:PATTERN`
+#     (at least one line must match the bash regex PATTERN) — the latter gives the
+#     precision a substring can't, e.g. mount's `<dev> on <mp> type <fs>` shape.
 #   colN          — output field name, optionally with a transform:
 #                     name                 always emit
+#                     ~name                structural separator token (e.g. mount
+#                                          `on`/`type`): consume a token, emit nothing
 #                     name@opt             emit only if the cell is non-empty
+#                     name@unwrap          strip one layer of surrounding ()/[]/{}/""
+#                                          e.g. mount `(rw,relatime)` → `rw,relatime`
 #                     name@between@L@R     emit the substring between the first L
 #                                          and the next R (empty ⇒ skip); e.g.
 #                                          ss `users:(("sshd",…))` → `sshd`
@@ -36,6 +44,7 @@ _COLUMNAR_SPECS=(
   $'lsmem\tRANGE;REMOVABLE;BLOCK\tRANGE\tws\t-1\t5\trange,size,state,removable,block'
   $'ss-tulnp\tState;Local;Process\tRecv-Q\tws\t5\t5\tstate,recv_q,send_q,local,peer,process@between@users:(("@"\t0'
   $'smartctl-attributes\tATTRIBUTE_NAME;RAW_VALUE;WHEN_FAILED\tATTRIBUTE_NAME\tws\t-1\t10\tid,attribute_name,flag,value,worst,thresh,type,updated,when_failed,raw_value'
+  $'mount\tre:^[^[:space:]]+ on .* type \t-\tws\t-1\t6\tdevice,~on,mount_point,~type,fstype,options@unwrap'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
@@ -49,13 +58,20 @@ _cs_parse () {
     _CS_TOTAL="${p[7]:-1}"
 }
 
-# Does the text match this spec's detect substrings (all present)?
+# Does the text match this spec's detect tokens (all present)? A plain token is a
+# substring anywhere; a `re:PATTERN` token requires >=1 line to match the regex.
 _cs_matches () {
     local text="$1" det="$2" IFS=';' tok
     local -a toks=(); read -ra toks <<< "$det"
     for tok in "${toks[@]}"; do
         [[ -z "$tok" ]] && continue
-        [[ "$text" == *"$tok"* ]] || return 1
+        if [[ "$tok" == re:* ]]; then
+            local pat="${tok#re:}" _l hit=0
+            while IFS= read -r _l; do [[ "$_l" =~ $pat ]] && { hit=1; break; }; done <<< "$text"
+            [[ $hit -eq 1 ]] || return 1
+        else
+            [[ "$text" == *"$tok"* ]] || return 1
+        fi
     done
     return 0
 }
@@ -89,6 +105,13 @@ _cs_apply () {  # $1=raw value, $2=colspec (name@…)
     local xform="${c[1]:-}"
     case "$xform" in
         opt) [[ -z "$raw" ]] && _CS_SKIP=1 ;;
+        unwrap)
+            case "$raw" in
+                "("*")") _CS_OUT="${raw#(}"; _CS_OUT="${_CS_OUT%)}" ;;
+                "["*"]") _CS_OUT="${raw#[}"; _CS_OUT="${_CS_OUT%]}" ;;
+                "{"*"}") _CS_OUT="${raw#\{}"; _CS_OUT="${_CS_OUT%\}}" ;;
+                '"'*'"') _CS_OUT="${raw#\"}"; _CS_OUT="${_CS_OUT%\"}" ;;
+            esac ;;
         between)
             local L="${c[2]:-}" R="${c[3]:-}" out=""
             if [[ "$raw" == *"$L"* ]]; then local t="${raw#*"$L"}"; out="${t%%"$R"*}"; fi
@@ -113,7 +136,7 @@ strategy_extract () {
     local minreq="${_CS_MINREQ:-$ncols}"
 
     local result="" entry=0 line past=0
-    [[ -z "$_CS_HDR" ]] && past=1
+    [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
     while IFS= read -r line; do
         [[ -z "${line//[[:space:]]/}" ]] && continue
         if [[ $past -eq 0 ]]; then
@@ -150,6 +173,9 @@ strategy_extract () {
         entry=$((entry + 1))
         local i fname
         for ((i=0; i<ncols; i++)); do
+            # ~name = structural separator: it consumed a token slot (keeping later
+            # columns aligned) but is never emitted.
+            [[ "${cols[$i]}" == "~"* ]] && continue
             _cs_apply "${vals[$i]}" "${cols[$i]}"
             [[ "$_CS_SKIP" -eq 1 ]] && continue
             fname="${cols[$i]%%@*}"
