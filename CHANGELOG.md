@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-07-09 — declarative columnar-specs engine (foundation for spec-driven parsers)
+Introduces `extract/strategies/delimited/columnar-specs.sh`: a single data-driven
+engine that replaces per-tool columnar strategies with one TAB-separated spec line
+each (`name · detect substrings · header marker · delim ws|pipe · absorb column ·
+column names`). One engine detect/extract interprets all specs; the tidy output per
+tool is verified **byte-identical** to the retired bespoke before migration.
+Migrated first batch: `zypper-search`, `buildah-containers`, `lsmem` (3 bespokes →
+1 engine). Engine is `## Technique: yes` so it preserves generic-mode coverage.
+
+Scope note (important for anyone extending this): only a **minority** of the ~89
+"columnar" bespokes fit a simple spec. Most do value-add work a flat column-map
+can't express — sub-field parsing (`ss-tulnp` pulls the process name out of
+`users:((…))`), multi-section layouts (`stream`, `imb`, `nfsstat`), pattern-based
+token classification (`lsblk-output`), or positional multi-word cells (`docker-ps`).
+Those stay bespoke. Realistic clean-spec yield is modest, not a path to a large
+reduction on its own.
+
+Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+Count: 421 → 411 strategy files (420 → 410 distinct names) across this session's work.
+
 ## 2026-07-09 — consolidate strategies: merge same-logic families (420 → 412)
 A different angle on shrinking the strategy set than "delete redundant": **merge
 strategies that share the same extraction, keeping one whose `detect()` is the
