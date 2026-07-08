@@ -1,27 +1,29 @@
 #!/bin/bash
-## Name: snmpwalk
-## Description: Extract OID/type/value records from snmpwalk output
+## Name: snmp-output
+## Description: Extract OID/type/value records from snmpget and snmpwalk output
 ## Version: 1.0
 ## Priority: 20
 ## Technique: yes
-## Sample: samples/snmpwalk/basic.txt
+## Sample: samples/snmp-output/basic.txt
+
+# snmpget and snmpwalk print the same line shape — `MIB::name.N = TYPE: value` —
+# and want the same record output (oid/type/value per line). They were previously
+# two strategies split only by a detect heuristic (get = scalar `.0` instances,
+# walk = a subtree with non-`.0` indices); that distinction changes nothing about
+# the output, so a single parser covers both.
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=0
     _is_json "$text" && return 1
-    # snmpwalk lines: "MIB::name.N = TYPE: value" with at least one non-.0
-    # instance index (a walk spans a subtree).
-    local snmp=0 nonzero=0
+    local snmp=0 _line
     while IFS= read -r _line; do
         [[ -z "$_line" ]] && continue
         if [[ "$_line" =~ ^[^[:space:]]+::[^[:space:]=]+[[:space:]]+=[[:space:]]+[^:]+:[[:space:]] ]]; then
             snmp=$((snmp + 1))
-            local oid="${_line%% = *}"
-            [[ "$oid" =~ \.0$ ]] || nonzero=$((nonzero + 1))
         fi
     done <<< "$text"
-    [[ $snmp -ge 1 && $nonzero -ge 1 ]] && return 0
+    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=86; return 0; }
     return 1
 }
 
