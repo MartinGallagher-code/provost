@@ -304,7 +304,19 @@ strategy_extract () {
     if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
         local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
         local hd; hd="$(printf '%s\n' "${lines[@]:$hidx}")"
-        if [[ "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
+        # Positional assignment only helps when a data cell is multi-word (docker
+        # "2 hours ago", helm's timestamp) — i.e. data rows carry MORE whitespace
+        # tokens than the header has labels. When every cell is a single token
+        # (df, lsblk, ss, elasticsearch), the header's 2-space segmentation can
+        # UNDER-count columns (single-spaced labels like df's "Used Avail Use%"),
+        # so positional would cram them; whitespace tokenization is correct there.
+        local _htok _harr; _harr=(); read -ra _harr <<< "${lines[$hidx]}"; _htok=${#_harr[@]}
+        local _maxd=0 _dli _darr
+        for ((_dli = hidx + 1; _dli < ${#lines[@]}; _dli++)); do
+            _darr=(); read -ra _darr <<< "${lines[$_dli]}"
+            [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
+        done
+        if [[ $_maxd -gt $_htok && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
             local gridrows=() _g
             while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
             if [[ ${#gridrows[@]} -ge 2 ]]; then

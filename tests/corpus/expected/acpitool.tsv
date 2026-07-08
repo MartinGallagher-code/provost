@@ -1,2 +1,2 @@
-Battery_#1____	Remaining_capacity	Design_capacity___	Present_rate______	Charging_state____	Battery_type______	Model_number______	AC_adapter____	Thermal_zone_1	Thermal_zone_2	Cooling_device_0
+Battery_#1	Remaining_capacity	Design_capacity	Present_rate	Charging_state	Battery_type	Model_number	AC_adapter	Thermal_zone_1	Thermal_zone_2	Cooling_device_0
 present	98%, 47520 mWh	52000 mWh	0 mA	charged	Li-ion	DELL ABC123	on-line	ok, 45 C	ok, 42 C	Processor, state 0 of 10

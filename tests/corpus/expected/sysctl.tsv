@@ -1,8 +1,2 @@
-n	kernel_hostname	=	webhost01	total_entries
-1	kernel.ostype	=	Linux	7
-2	kernel.pid_max	=	4194304	7
-3	net.ipv4.ip_forward	=	1	7
-4	net.ipv4.tcp_syncookies	=	1	7
-5	net.core.somaxconn	=	4096	7
-6	vm.swappiness	=	60	7
-7	fs.file-max	=	9223372036854775807	7
+kernel.hostname	kernel.ostype	kernel.pid_max	net.ipv4.ip_forward	net.ipv4.tcp_syncookies	net.core.somaxconn	vm.swappiness	fs.file-max
+webhost01	Linux	4194304	1	1	4096	60	9223372036854775807

@@ -1,7 +1,7 @@
-n	CONTAINER	ID	IMAGE	COMMAND	CREATED	STATUS	PORTS	NAMES	total_entries
-1	f2a1b3c4d5e6	docker.io/library/nginx:latest	nginx	-g	daemon	o...	2	hours_ago_Up_2_hours_0.0.0.0:8080->80/tcp_proud_nginx	6
-2	a1b2c3d4e5f6	registry.fedoraproject.org/fedora	/bin/bash	4	days	ago	Exited	(0)_4_days_ago_vibrant_bash	6
-3	c3d4e5f6a7b8	quay.io/prometheus/prometheus:v2	--config.file=/et...	6	days	ago	Up	6_days_0.0.0.0:9090->9090/tcp_prom	6
-4	d4e5f6a7b8c9	docker.io/library/mariadb:11	mariadbd	6	days	ago	Up	6_days_(healthy)_3306/tcp_mariadb	6
-5	e5f6a7b8c9d0	localhost/acme-worker:dev	/worker	--loop	30	minutes	ago	Exited_(2)_5_minutes_ago_worker	6
-6	b8c9d0e1f2a3	docker.io/library/alpine:3.20	sleep	infinity	1	week	ago	Up_1_week_sidecar	6
+n	CONTAINER_ID	IMAGE	COMMAND	CREATED	STATUS	PORTS	NAMES	total_entries
+1	f2a1b3c4d5e6	docker.io/library/nginx:latest	nginx -g daemon o...	2 hours ago	Up 2 hours	0.0.0.0:8080->80/tcp	proud_nginx	6
+2	a1b2c3d4e5f6	registry.fedoraproject.org/fedora	/bin/bash	4 days ago	Exited (0) 4 days ago	vibrant_bash		6
+3	c3d4e5f6a7b8	quay.io/prometheus/prometheus:v2	--config.file=/et...	6 days ago	Up 6 days	0.0.0.0:9090->9090/tcp	prom	6
+4	d4e5f6a7b8c9	docker.io/library/mariadb:11	mariadbd	6 days ago	Up 6 days (healthy)	3306/tcp	mariadb	6
+5	e5f6a7b8c9d0	localhost/acme-worker:dev	/worker --loop	30 minutes ago	Exited (2) 5 minutes ago	worker		6
+6	b8c9d0e1f2a3	docker.io/library/alpine:3.20	sleep infinity	1 week ago	Up 1 week	sidecar		6

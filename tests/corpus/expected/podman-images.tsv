@@ -1,7 +1,7 @@
-n	REPOSITORY	TAG	IMAGE	ID	CREATED	SIZE	total_entries
-1	docker.io/library/nginx	latest	605c77e624dd	2	weeks	ago_146_MB	6
-2	docker.io/library/postgres	15.3	3b6645d2c145	5	weeks	ago_419_MB	6
-3	docker.io/library/redis	7-alpine	0e5b9f8d3a1c	3	months	ago_33.1_MB	6
-4	registry.fedoraproject.org/fedora	39	c8f4b4f4e5a2	6	weeks	ago_173_MB	6
-5	quay.io/podman/hello	latest	a6b0b0f8f2e3	8	months	ago_1.02_MB	6
-6	docker.io/library/alpine	3.19	f5c0a2b6d9e1	4	weeks	ago_7.66_MB	6
+n	REPOSITORY	TAG	IMAGE_ID	CREATED	SIZE	total_entries
+1	docker.io/library/nginx	latest	605c77e624dd	2 weeks ago	146 MB	6
+2	docker.io/library/postgres	15.3	3b6645d2c145	5 weeks ago	419 MB	6
+3	docker.io/library/redis	7-alpine	0e5b9f8d3a1c	3 months ago	33.1 MB	6
+4	registry.fedoraproject.org/fedora	39	c8f4b4f4e5a2	6 weeks ago	173 MB	6
+5	quay.io/podman/hello	latest	a6b0b0f8f2e3	8 months ago	1.02 MB	6
+6	docker.io/library/alpine	3.19	f5c0a2b6d9e1	4 weeks ago	7.66 MB	6

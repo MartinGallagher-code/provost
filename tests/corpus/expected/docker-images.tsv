@@ -1,4 +1,4 @@
-n	REPOSITORY	TAG	IMAGE	ID	CREATED	SIZE	total_entries
-1	nginx	latest	605c77e624dd	2	weeks	ago_141MB	3
-2	postgres	15.3	3b6645d2c145	5	weeks	ago_412MB	3
-3	redis	7-alpine	0e5b9f8d3a1c	3	months	ago_32.4MB	3
+n	REPOSITORY	TAG	IMAGE_ID	CREATED	SIZE	total_entries
+1	nginx	latest	605c77e624dd	2 weeks ago	141MB	3
+2	postgres	15.3	3b6645d2c145	5 weeks ago	412MB	3
+3	redis	7-alpine	0e5b9f8d3a1c	3 months ago	32.4MB	3

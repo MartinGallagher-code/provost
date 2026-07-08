@@ -1,6 +1,2 @@
-n	c1	c2	c3	total_entries
-1	alb_dns_name	=	"app-alb-1234567890.us-west-2.elb.amazonaws.com"	5
-2	cluster_name	=	"prod-eks"	5
-3	database_port	=	5432	5
-4	kms_key_arn	=	"arn:aws:kms:us-west-2:111122223333:key/abcd-1234-ef56"	5
-5	private_subnets	=	"subnet-0a1b,subnet-2c3d,subnet-4e5f"	5
+alb_dns_name	cluster_name	database_port	kms_key_arn	private_subnets
+"app-alb-1234567890.us-west-2.elb.amazonaws.com"	"prod-eks"	5432	"arn:aws:kms:us-west-2:111122223333:key/abcd-1234-ef56"	"subnet-0a1b,subnet-2c3d,subnet-4e5f"

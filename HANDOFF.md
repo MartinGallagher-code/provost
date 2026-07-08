@@ -169,7 +169,15 @@ known-good tokenization. This opt-in gate is the key: two earlier
 tools (all-row-whitespace broke ps-aux-sort/vmstat; header-region-only broke
 ps/df) because multi-word values and right-aligned numerics need opposite
 column-detection — the gate sidesteps that by only firing where the header and
-data agree. Also retired the `kubectl` and `container-top` bespokes (they
+data agree. **A second gate was added (2026-07-09):** `_ac_aligned` alone still
+mis-fired on single-token tables whose header uses single spaces between real
+labels (df `Used Avail Use%`, lsblk, ss, elasticsearch, losetup) — the header's
+2-space split under-counts columns and crams them. Positional now *also* requires
+a data row to carry more whitespace tokens than the header has labels (a genuine
+multi-word cell), so single-token tables stay on tokenization. All corpus goldens
+were regenerated afterward (`run.sh --golden`: 980/0). `hg-paths` was reclassified
+`table`→`kv` (it is a `key = value` block like `ansible-config-dump`). Also
+retired the `kubectl` and `container-top` bespokes (they
 transposed to one wide row + mis-split; aligned-columns now covers them as
 records). Shadow narrowings landed: `hg-branches`, `git-log`, `version-string`,
 `pip-list`, `colon-fields`, `docker-ps`, plus the batch-1 fixes.

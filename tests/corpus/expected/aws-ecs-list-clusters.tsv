@@ -1,6 +1,6 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
-1	arn	aws	ecs	us-east-1	123456789012	cluster/prod-web	5
-2	arn	aws	ecs	us-east-1	123456789012	cluster/prod-workers	5
-3	arn	aws	ecs	us-east-1	123456789012	cluster/staging	5
-4	arn	aws	ecs	us-east-1	123456789012	cluster/batch-jobs	5
-5	arn	aws	ecs	us-east-1	123456789012	cluster/default	5
+n	c1	total_entries
+1	arn:aws:ecs:us-east-1:123456789012:cluster/prod-web	5
+2	arn:aws:ecs:us-east-1:123456789012:cluster/prod-workers	5
+3	arn:aws:ecs:us-east-1:123456789012:cluster/staging	5
+4	arn:aws:ecs:us-east-1:123456789012:cluster/batch-jobs	5
+5	arn:aws:ecs:us-east-1:123456789012:cluster/default	5

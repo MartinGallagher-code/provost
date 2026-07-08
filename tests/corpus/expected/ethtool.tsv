@@ -1,2 +1,2 @@
-	Supported_ports		Speed		Duplex		Auto-negotiation		Link_detected
+Supported_ports	Speed	Duplex	Auto-negotiation	Link_detected
 [ TP ]	1000Mb/s	Full	on	yes

@@ -1040,7 +1040,7 @@ git-annex-list	table	5	1
 hg-summary	kv	-	4
 hg-branches	table	5	1
 hg-heads	table	3	3
-hg-paths	table	4	1
+hg-paths	kv	-	2
 svn-info	kv	-	4
 svn-list	table	6	1
 fossil-timeline	table	6	1

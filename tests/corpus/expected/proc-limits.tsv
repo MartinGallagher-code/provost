@@ -1,9 +1,9 @@
-n	Limit	Soft	Hard	Units	total_entries
-1	unlimited	cpu	unlimited	seconds	8
-2	unlimited	file	unlimited	bytes	8
-3	unlimited	data	unlimited	bytes	8
-4	unlimited	stack	8388608	bytes	8
-5	0	core	size	unlimited_bytes	8
-6	processes	processes	63201		8
-7	1048576	open	1048576	files	8
-8	8388608	locked	8388608	bytes	8
+n	Limit	Soft_Limit	Hard_Limit	Units	total_entries
+1	Max cpu time	unlimited	unlimited	seconds	8
+2	Max file size	unlimited	unlimited	bytes	8
+3	Max data size	unlimited	unlimited	bytes	8
+4	Max stack size	8388608	unlimited	bytes	8
+5	Max core file size	0	unlimited	bytes	8
+6	Max processes	63201	63201	processes	8
+7	Max open files	1048576	1048576	files	8
+8	Max locked memory	8388608	8388608	bytes	8

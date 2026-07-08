@@ -1,5 +1,5 @@
 n	NAME	UUID	TYPE	DEVICE	total_entries
-1	Wired	connection	1	a1b2c3d4-1111-2222-3333-444455556666_ethernet_eth0	4
+1	Wired connection 1	a1b2c3d4-1111-2222-3333-444455556666	ethernet	eth0	4
 2	office-wifi	b2c3d4e5-2222-3333-4444-555566667777	wifi	wlan0	4
 3	wg0	c3d4e5f6-3333-4444-5555-666677778888	wireguard	wg0	4
 4	docker0	d4e5f6a7-4444-5555-6666-777788889999	bridge	docker0	4

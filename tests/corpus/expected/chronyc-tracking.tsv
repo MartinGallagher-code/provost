@@ -1,13 +1,13 @@
-n	Reference	ID	:	C0248F01	(ntp1_example_com)	total_entries
-1	Stratum	:	3			12
-2	Ref	time	(UTC)	:	Mon_Jul_07_10:00:00_2026	12
-3	System	time	:	0.000012345	seconds_slow_of_NTP_time	12
-4	Last	offset	:	+0.000004567	seconds	12
-5	RMS	offset	:	0.000008901	seconds	12
-6	Frequency	:	12.345	ppm	slow	12
-7	Residual	freq	:	+0.001	ppm	12
-8	Skew	:	0.234	ppm		12
-9	Root	delay	:	0.012345678	seconds	12
-10	Root	dispersion	:	0.000456789	seconds	12
-11	Update	interval	:	64.2	seconds	12
-12	Leap	status	:	Normal		12
+n	Reference_ID	:_C0248F01_(ntp1_example_com)	total_entries
+1	Stratum	: 3	12
+2	Ref time (UTC)	: Mon Jul 07 10:00:00 2026	12
+3	System time	: 0.000012345 seconds slow of NTP time	12
+4	Last offset	: +0.000004567 seconds	12
+5	RMS offset	: 0.000008901 seconds	12
+6	Frequency	: 12.345 ppm slow	12
+7	Residual freq	: +0.001 ppm	12
+8	Skew	: 0.234 ppm	12
+9	Root delay	: 0.012345678 seconds	12
+10	Root dispersion	: 0.000456789 seconds	12
+11	Update interval	: 64.2 seconds	12
+12	Leap status	: Normal	12

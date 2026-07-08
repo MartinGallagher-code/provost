@@ -1,6 +1,6 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
-1	arn	aws	sns	us-east-1	123456789012	orders-events	5
-2	arn	aws	sns	us-east-1	123456789012	cloudwatch-alarms	5
-3	arn	aws	sns	us-east-1	123456789012	deploy-notifications	5
-4	arn	aws	sns	us-east-1	123456789012	billing-alerts	5
-5	arn	aws	sns	us-east-1	123456789012	security-findings	5
+n	c1	total_entries
+1	arn:aws:sns:us-east-1:123456789012:orders-events	5
+2	arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms	5
+3	arn:aws:sns:us-east-1:123456789012:deploy-notifications	5
+4	arn:aws:sns:us-east-1:123456789012:billing-alerts	5
+5	arn:aws:sns:us-east-1:123456789012:security-findings	5

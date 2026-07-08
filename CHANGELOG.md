@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-07-09 — aligned-columns: gate positional to multi-word tables; regen corpus goldens
+- **Fixed a regression in the opt-in positional path.** `_ac_aligned` keyed the
+  positional assignment off the header's 2-space column starts, which *under-counts*
+  columns when a header uses single spaces between real labels (df `Used Avail
+  Use%`, lsblk, ss, elasticsearch cat/nodes, losetup). Those clean single-token
+  tables were being crammed into 3 wide columns. Positional now requires a genuine
+  multi-word cell — a data row must carry **more** whitespace tokens than the header
+  has labels (docker `2 hours ago`, helm's timestamp) — before it fires; otherwise
+  whitespace tokenization (correct for single-token tables) is kept. Files:
+  `extract/strategies/delimited/aligned-columns.sh`.
+- **Regenerated all corpus goldens** (`tests/corpus/expected/*.tsv`) to reflect the
+  positional path: docker/helm/podman-top/crictl/kubectl now keep multi-word cells
+  whole, while df/lsblk/ss/elasticsearch/losetup are restored to their correct
+  multi-column split. `run.sh --golden`: 980 passed, 0 failed.
+- **Reclassified `hg-paths` to `kv`** in `tests/corpus/expected.tsv`. It is a
+  `key = value` block (same shape as `ansible-config-dump`), which the `equals`
+  parser tidies to one wide record; the old `table` expectation was a pre-guard
+  artifact. Manifest + golden updated to match.
+- Updated `CLAUDE.md` with a git-practices section (set the commit identity per
+  session, push after every step because the container can roll back, subagents
+  never run git, never commit a broken corpus regen).
+
 ## 2026-07-09 — review 500 inputs: positional aligned-columns + shadow/identifier fixes
 - Reviewed ~500 corpus inputs (classified ok / just-text / parse-wrong). 11 more
   free-text/banner captures moved to `tests/corpus/text-inputs/` (corpus now 1036).

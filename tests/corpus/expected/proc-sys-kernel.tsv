@@ -1,9 +1,2 @@
-n	c1	c2	c3	total_entries
-1	kernel.hostname	=	webserver01	8
-2	kernel.osrelease	=	6.1.0-18-amd64	8
-3	kernel.ostype	=	Linux	8
-4	kernel.pid_max	=	4194304	8
-5	kernel.threads-max	=	63042	8
-6	kernel.randomize_va_space	=	2	8
-7	kernel.panic	=	0	8
-8	kernel.sched_rt_runtime_us	=	950000	8
+kernel.hostname	kernel.osrelease	kernel.ostype	kernel.pid_max	kernel.threads-max	kernel.randomize_va_space	kernel.panic	kernel.sched_rt_runtime_us
+webserver01	6.1.0-18-amd64	Linux	4194304	63042	2	0	950000
