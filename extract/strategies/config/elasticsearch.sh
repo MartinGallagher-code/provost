@@ -129,8 +129,7 @@ _strat_es_extract_jq () {
                     local sval
                     sval=$(echo "$text" | jq -r ".hits.hits[$i]._source[\"$skey\"] // empty" 2>/dev/null) || true
                     if [[ -n "$sval" ]]; then
-                        local clean_val="${sval// /_}"
-                        result+="${prefix}._source.${skey} ${clean_val}"$'\n'
+                        result+="${prefix}._source.${skey} ${sval}"$'\n'
                     fi
                 done <<< "$source_keys"
             fi
@@ -172,7 +171,6 @@ _strat_es_extract_fallback () {
         else
             break
         fi
-        value="${value// /_}"
         if [[ -n "$key" && -n "$value" ]]; then
             result+="${key} ${value}"$'\n'
         fi

@@ -149,9 +149,8 @@ strategy_extract () {
                 '"'*) value="${value#\"}"; value="${value%\"}" ;;
             esac
 
-            # Replace spaces in key and value with underscores
+            # Replace spaces in key (field name) with underscores
             key="${key// /_}"
-            value="${value// /_}"
 
             # Skip if value is empty after stripping
             [[ -z "$value" ]] && continue

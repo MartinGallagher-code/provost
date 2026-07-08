@@ -4,7 +4,7 @@ request.Host example.com
 request.User-Agent curl/8.1.2
 request.Accept */*
 response.status 200
-response.content-type text/html;_charset=UTF-8
+response.content-type text/html; charset=UTF-8
 response.content-length 1256
-response.server ECS_(dcb/7F83)
-response.date Wed,_12_Jan_2024_14:23:45_GMT
+response.server ECS (dcb/7F83)
+response.date Wed, 12 Jan 2024 14:23:45 GMT

@@ -22,10 +22,10 @@ test_openssl_basic () {
 test_openssl_issuer_subject () {
     local output
     output=$(run_mfe -r -s openssl "$SAMPLES_DIR/openssl/basic.txt")
-    assert_contains "$output" "issuer C=US,_O=DigiCert_Inc,_CN=DigiCert_Global_Root_G2" "should extract issuer"
-    assert_contains "$output" "subject C=US,_ST=California,_O=Example_Inc,_CN=example.com" "should extract subject"
-    assert_contains "$output" "not_before Jan_12_00:00:00_2024_GMT" "should extract not_before"
-    assert_contains "$output" "not_after Jan_12_23:59:59_2025_GMT" "should extract not_after"
+    assert_contains "$output" "issuer C=US, O=DigiCert Inc, CN=DigiCert Global Root G2" "should extract issuer"
+    assert_contains "$output" "subject C=US, ST=California, O=Example Inc, CN=example.com" "should extract subject"
+    assert_contains "$output" "not_before Jan 12 00:00:00 2024 GMT" "should extract not_before"
+    assert_contains "$output" "not_after Jan 12 23:59:59 2025 GMT" "should extract not_after"
 }
 
 test_openssl_not_detected_for_json () {

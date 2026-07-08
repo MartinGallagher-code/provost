@@ -129,7 +129,7 @@ _strat_ioping_extract_completed_time () {
     [[ "$line" == *"completed in "* ]] || return
     local after="${line#*completed in }"
     local before_comma="${after%%,*}"
-    echo "${before_comma// /_}"
+    echo "${before_comma}"
 }
 
 # Extract total data size (e.g., "80 KiB") from completed line
@@ -227,7 +227,7 @@ _strat_ioping_extract_latency () {
         fi
         if [[ $count -eq $pos ]]; then
             # segment is like "223 us" or "2.69 ms"
-            echo "${segment// /_}"
+            echo "${segment}"
             return
         fi
     done

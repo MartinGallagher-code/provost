@@ -97,7 +97,5 @@ _strat_syslog_get_message () {
         # PID bracket + colon at end, message starts at field 5 (already handled)
         :
     fi
-    # Replace spaces with underscores
-    msg="${msg// /_}"
     echo "$msg"
 }

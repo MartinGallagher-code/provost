@@ -13,11 +13,11 @@ entry3.Owner postgres
 entry3.Encoding UTF8
 entry3.Collate en_US.UTF-8
 entry3.Ctype en_US.UTF-8
-entry3.Access_privileges =c/postgres__________+
+entry3.Access_privileges =c/postgres          +
 entry4.Name template1
 entry4.Owner postgres
 entry4.Encoding UTF8
 entry4.Collate en_US.UTF-8
 entry4.Ctype en_US.UTF-8
-entry4.Access_privileges =c/postgres__________+
+entry4.Access_privileges =c/postgres          +
 total_entries 4

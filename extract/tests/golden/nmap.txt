@@ -13,4 +13,4 @@ port3.port 443/tcp
 port3.state open
 port3.service https
 port3.version nginx_1.22.1
-scan_time 12.34_seconds
+scan_time 12.34 seconds

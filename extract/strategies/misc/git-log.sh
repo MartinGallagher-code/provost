@@ -66,7 +66,6 @@ _strat_git_log_extract_full () {
         if [[ "$line" == "Author: "* ]]; then
             current_author="${line#Author: }"
             while [[ "$current_author" == " "* ]]; do current_author="${current_author# }"; done
-            current_author="${current_author// /_}"
             in_message=0
             continue
         fi
@@ -74,7 +73,6 @@ _strat_git_log_extract_full () {
         if [[ "$line" == "Date: "* ]]; then
             current_date="${line#Date: }"
             while [[ "$current_date" == " "* ]]; do current_date="${current_date# }"; done
-            current_date="${current_date// /_}"
             in_message=0
             continue
         fi
@@ -90,7 +88,7 @@ _strat_git_log_extract_full () {
             local trimmed="$line"
             while [[ "$trimmed" == " "* ]]; do trimmed="${trimmed# }"; done
             if [[ -n "$trimmed" ]]; then
-                current_message="${trimmed// /_}"
+                current_message="${trimmed//$'\t'/_}"
             fi
         fi
     done <<< "$text"
@@ -135,7 +133,7 @@ _strat_git_log_extract_oneline () {
         local prefix="commit${commit_num}"
         local hash="${line%% *}"
         local message="${line#* }"
-        message="${message// /_}"
+        message="${message//$'\t'/_}"
         result+="${prefix}.hash ${hash}"$'\n'
         result+="${prefix}.message ${message}"$'\n'
     done <<< "$text"

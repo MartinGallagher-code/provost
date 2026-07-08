@@ -40,7 +40,6 @@ strategy_extract () {
         local date=""
         if [[ "$line" =~ \[([^\]]*)\] ]]; then
             date="${BASH_REMATCH[1]}"
-            date="${date// /_}"
         fi
 
         # Extract the first quoted string (request)
@@ -74,9 +73,9 @@ strategy_extract () {
                     _in_quotes=0
                     _quote_count=$((_quote_count + 1))
                     if [[ $_quote_count -eq 2 ]]; then
-                        referrer="${_current_quoted// /_}"
+                        referrer="${_current_quoted}"
                     elif [[ $_quote_count -eq 3 ]]; then
-                        user_agent="${_current_quoted// /_}"
+                        user_agent="${_current_quoted}"
                     fi
                 fi
             elif [[ $_in_quotes -eq 1 ]]; then

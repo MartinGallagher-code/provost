@@ -52,7 +52,6 @@ strategy_extract () {
                 value="${_stripped#*:}"
             fi
             key="${key// /_}"
-            value="${value// /_}"
             [[ -n "$key" ]] && [[ -n "$value" ]] && result+="request.${key} ${value}"$'\n'
             continue
         fi
@@ -75,7 +74,6 @@ strategy_extract () {
                 value="${_stripped#*:}"
             fi
             key="${key// /_}"
-            value="${value// /_}"
             [[ -n "$key" ]] && [[ -n "$value" ]] && result+="response.${key} ${value}"$'\n'
             continue
         fi

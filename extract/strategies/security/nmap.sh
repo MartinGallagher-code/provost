@@ -36,7 +36,6 @@ strategy_extract () {
                 host="$after"
                 ip=""
             fi
-            host="${host// /_}"
             result+="host ${host}"$'\n'
             [[ -n "$ip" ]] && result+="ip ${ip}"$'\n'
             continue
@@ -47,7 +46,6 @@ strategy_extract () {
             if [[ "$line" == *"("*"latency)"* ]]; then
                 local latency="${line#*(}"
                 latency="${latency%% latency)*}"
-                latency="${latency// /_}"
                 result+="latency ${latency}"$'\n'
             fi
             continue
@@ -90,7 +88,6 @@ strategy_extract () {
         if [[ "$line" == *"Nmap done:"* ]]; then
             if [[ "$line" == *"scanned in "* ]]; then
                 local scan_time="${line#*scanned in }"
-                scan_time="${scan_time// /_}"
                 result+="scan_time ${scan_time}"$'\n'
             fi
         fi

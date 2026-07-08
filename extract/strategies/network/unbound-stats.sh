@@ -10,7 +10,7 @@
 # (e.g. total.num.queries=234567). This is a key/value snapshot: emit a single
 # wide record `entry1.<key> value` for every counter, then total_entries 1.
 
-_us_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_us_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

@@ -1,5 +1,35 @@
 # glean — Changelog
 
+## 2026-07-08 — vet corpus output quality: preserve spaces in values; fix box-table shadowing
+- **Data values keep their spaces.** ~200 extract strategies were replacing
+  spaces with underscores in emitted VALUES (`${v// /_}`), corrupting multi-word
+  data ("Eye Holes" → "Eye_Holes", cert issuer "C=US, O=DigiCert Inc" →
+  "C=US,_O=DigiCert_Inc", commit subjects, package summaries, etc.). The engine
+  splits `entryN.field value` on the FIRST space, so multi-word values never
+  needed underscoring — only FIELD NAMES / column headers do (a space there is
+  the field/value boundary). The space-substitution was removed from every VALUE
+  path across the strategy set while field-name/header underscoring and the
+  tab→underscore TSV-safety substitution were kept. Files: all of
+  `extract/strategies/**` that carried `${var// /_}` on a value (config,
+  container, database, delimited, hardware, network, security, structured,
+  system, benchmark, build, logging, misc, packages, profiling trees).
+- **Regenerated 414 strategy goldens** (`extract/tests/golden/`) and updated 53
+  assertions across 18 `extract/tests/test_strategy_*.sh` to the space-preserving
+  output (values gained spaces; field names unchanged).
+- **Box-table shadowing fixed.** `pipe-table`, `sqlite-output`, `strace-summary`
+  and `fixed-width` now decline `+---+` box tables in `strategy_detect`, so
+  `psql-table`'s box parser (which strips outer borders and the single-cell
+  title banner) wins them. Fixes ~55 `aws --output table` / mysql / pg /
+  pgbouncer grids that were flattened to one/few columns
+  (e.g. `aws-ec2-describe-instances` 2 → 8 columns). No priority changes, so
+  bespoke parsers (nvidia-smi, vnstat, zypper, jmap-histo) still win their own
+  tools and non-box tools are unaffected. Files:
+  `extract/strategies/misc/pipe-table.sh`,
+  `extract/strategies/misc/sqlite-output.sh`,
+  `extract/strategies/system/strace-summary.sh`,
+  `extract/strategies/delimited/fixed-width.sh`.
+- Verified: extract suite 214/214, smoke 49/49, melt 8/8.
+
 ## 2026-07-07 — flip defaults: async capture + rm --purge are now on by default
 - **Async is the default** for inject/`run`: a bare `cmd | glean` now spools and
   captures in a detached background process, returning the prompt at once

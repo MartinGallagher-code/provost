@@ -3,13 +3,13 @@ entry1.c2 @14.234s
 entry2.c1 multi-user.target
 entry2.c2 @14.233s
 entry3.c1 nginx.service
-entry3.c2 @13.001s_+231ms
+entry3.c2 @13.001s +231ms
 entry4.c1 network-online.target
 entry4.c2 @12.998s
 entry5.c1 NetworkManager-wait-online.service
-entry5.c2 @6.140s_+6.842s
+entry5.c2 @6.140s +6.842s
 entry6.c1 NetworkManager.service
-entry6.c2 @1.201s_+231ms
+entry6.c2 @1.201s +231ms
 entry7.c1 dbus.socket
 entry7.c2 @1.198s
 total_entries 7

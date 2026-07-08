@@ -47,9 +47,6 @@ strategy_extract () {
         esac
         host="${f[0]}"
 
-        host="${host// /_}"
-        keytype="${keytype// /_}"
-
         entry=$((entry + 1))
         result+="entry${entry}.host ${host}"$'\n'
         result+="entry${entry}.keytype ${keytype}"$'\n'

@@ -46,9 +46,7 @@ strategy_extract () {
         else
             user=""
         fi
-        timev="${timev// /_}"; hash="${hash// /_}"
-        message="${message// /_}"; message="${message//$'\t'/_}"
-        user="${user// /_}"
+        message="${message//$'\t'/_}"
         entry=$((entry + 1))
         result+="entry${entry}.time ${timev}"$'\n'
         result+="entry${entry}.hash ${hash}"$'\n'

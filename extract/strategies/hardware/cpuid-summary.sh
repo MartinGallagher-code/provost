@@ -32,7 +32,6 @@ _cpuid_val () {
     v="${v# }"; v="${v% }"
     # Strip surrounding double quotes from string values.
     v="${v#\"}"; v="${v%\"}"
-    v="${v// /_}"
     printf '%s' "$v"
 }
 

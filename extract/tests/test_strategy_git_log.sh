@@ -17,18 +17,18 @@ test_git_log_basic () {
     # 2 commits x 4 fields = 8 fields
     assert_contains "$output" "commit1.hash abc1234567890abcdef1234567890abcdef12345" "should extract commit1 hash"
     assert_contains "$output" "commit1.author" "should extract commit1 author"
-    assert_contains "$output" "John_Doe" "should have author name"
+    assert_contains "$output" "John Doe" "should have author name"
     assert_contains "$output" "commit1.date" "should extract commit1 date"
-    assert_contains "$output" "commit1.message Initial_commit" "should extract commit1 message"
+    assert_contains "$output" "commit1.message Initial commit" "should extract commit1 message"
     assert_contains "$output" "commit2.hash def4567890abcdef1234567890abcdef12345678" "should extract commit2 hash"
-    assert_contains "$output" "commit2.message Add_README_and_documentation" "should extract commit2 message"
+    assert_contains "$output" "commit2.message Add README and documentation" "should extract commit2 message"
 }
 
 test_git_log_author () {
     local output
     output=$(run_mfe -r -s git-log "$SAMPLES_DIR/git-log/basic.txt")
-    assert_contains "$output" "commit1.author John_Doe_<john@example.com>" "should extract full author"
-    assert_contains "$output" "commit2.author Jane_Smith_<jane@example.com>" "should extract second author"
+    assert_contains "$output" "commit1.author John Doe <john@example.com>" "should extract full author"
+    assert_contains "$output" "commit2.author Jane Smith <jane@example.com>" "should extract second author"
 }
 
 test_git_log_oneline () {
@@ -39,7 +39,7 @@ test_git_log_oneline () {
     output=$(run_mfe -r -s git-log "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "commit1.hash abc1234" "should extract oneline hash"
-    assert_contains "$output" "commit1.message Initial_commit" "should extract oneline message"
+    assert_contains "$output" "commit1.message Initial commit" "should extract oneline message"
     assert_contains "$output" "commit2.hash def5678" "should extract second oneline hash"
 }
 

@@ -42,7 +42,7 @@ strategy_extract () {
         result+="${p}start ${start}"$'\n'
         result+="${p}len ${len}"$'\n'
         result+="${p}type ${type}"$'\n'
-        result+="${p}params ${params// /_}"$'\n'
+        result+="${p}params ${params}"$'\n'
     done <<< "$text"
 
     result+="total_entries ${n}"$'\n'

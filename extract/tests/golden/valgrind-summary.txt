@@ -1,0 +1,15 @@
+command ./myprogram
+heap.in_use_at_exit 1234
+heap.in_use_at_exit_bytes 5
+heap.total_heap_usage 45678
+leak.definitely_lost 456
+leak.definitely_lost_bytes 2
+leak.indirectly_lost 128
+leak.indirectly_lost_bytes 1
+leak.possibly_lost 0
+leak.possibly_lost_bytes 0
+leak.still_reachable 650
+leak.still_reachable_bytes 2
+leak.suppressed 0
+leak.suppressed_bytes 0
+error_summary.errors 3

@@ -182,7 +182,6 @@ strategy_extract () {
                 entry="${entry%\"}"
                 local env_key="${entry%%=*}"
                 local env_val="${entry#*=}"
-                env_val="${env_val// /_}"
                 result+="config.env.${env_key} ${env_val}"$'\n'
                 ;;
         esac
@@ -220,7 +219,6 @@ strategy_extract () {
         esac
     done <<< "$config_text"
     if [[ -n "$cmd_parts" ]]; then
-        cmd_parts="${cmd_parts// /_}"
         result+="config.cmd ${cmd_parts}"$'\n'
     fi
 

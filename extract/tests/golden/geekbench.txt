@@ -1,6 +1,6 @@
-operating_system Ubuntu_22.04.3_LTS
-model Custom_Build
-processor AMD_Ryzen_9_7950X
+operating_system Ubuntu 22.04.3 LTS
+model Custom Build
+processor AMD Ryzen 9 7950X
 single_core_score 2345
 multi_core_score 18765
 test1.name AES-XTS

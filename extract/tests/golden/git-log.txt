@@ -1,8 +1,8 @@
 commit1.hash abc1234567890abcdef1234567890abcdef12345
-commit1.author John_Doe_<john@example.com>
-commit1.date Wed_Jan_12_14:23:45_2024_-0500
-commit1.message Initial_commit
+commit1.author John Doe <john@example.com>
+commit1.date Wed Jan 12 14:23:45 2024 -0500
+commit1.message Initial commit
 commit2.hash def4567890abcdef1234567890abcdef12345678
-commit2.author Jane_Smith_<jane@example.com>
-commit2.date Thu_Jan_13_09:15:30_2024_-0500
-commit2.message Add_README_and_documentation
+commit2.author Jane Smith <jane@example.com>
+commit2.date Thu Jan 13 09:15:30 2024 -0500
+commit2.message Add README and documentation

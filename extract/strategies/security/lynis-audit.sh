@@ -47,7 +47,6 @@ strategy_extract () {
             while [[ "$val" == *" " ]]; do val="${val% }"; done
             key="${key// /_}"
             key="${key,,}"
-            val="${val// /_}"
             [[ -z "$key" || -z "$val" ]] && continue
             result+="${key} ${val}"$'\n'
         fi

@@ -38,8 +38,7 @@ strategy_extract () {
         path="${line#*[[:space:]]}"
         # ltrim any remaining leading whitespace on the path
         path="${path#"${path%%[![:space:]]*}"}"
-        status="${status// /_}"
-        path="${path// /_}"; path="${path//$'\t'/_}"
+        path="${path//$'\t'/_}"
         entry=$((entry + 1))
         result+="entry${entry}.flags ${status}"$'\n'
         result+="entry${entry}.path ${path}"$'\n'

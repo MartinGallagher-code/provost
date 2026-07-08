@@ -23,9 +23,9 @@ test_proc_stat_basic () {
 test_proc_stat_values_with_units () {
     local output
     output=$(run_mfe -r -s proc-stat "$SAMPLES_DIR/proc-stat/basic.txt")
-    assert_contains "$output" "16384000_kB" "should include unit in MemTotal value"
-    assert_contains "$output" "4096000_kB" "should include unit in MemFree value"
-    assert_contains "$output" "512000_kB" "should include unit in Buffers value"
+    assert_contains "$output" "16384000 kB" "should include unit in MemTotal value"
+    assert_contains "$output" "4096000 kB" "should include unit in MemFree value"
+    assert_contains "$output" "512000 kB" "should include unit in Buffers value"
 }
 
 test_proc_stat_not_applicable_for_json () {

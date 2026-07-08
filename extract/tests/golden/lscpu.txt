@@ -1,0 +1,20 @@
+architecture x86_64
+byte_order Little Endian
+cpus 64
+threads_per_core 2
+cores_per_socket 16
+sockets 2
+numa_nodes 2
+vendor_id GenuineIntel
+cpu_family 6
+model 106
+model_name Intel(R) Xeon(R) Gold 6326 CPU @ 2.90GHz
+stepping 6
+cpu_mhz 2900.000
+cpu_max_mhz 3500.0000
+bogomips 5800.00
+l1d_cache 48K
+l1i_cache 32K
+l2_cache 1280K
+l3_cache 24576K
+flags fpu vme de pse tsc msr pae mce cx8 apic sep avx avx2 avx512f

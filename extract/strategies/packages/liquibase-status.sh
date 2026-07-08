@@ -40,7 +40,6 @@ strategy_extract () {
         local rest="${body#*::}"
         local id="${rest%%::*}"
         local author="${rest#*::}"
-        path="${path// /_}"; id="${id// /_}"; author="${author// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.path ${path}"$'\n'
         result+="entry${entry}.id ${id}"$'\n'

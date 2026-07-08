@@ -40,8 +40,6 @@ strategy_extract () {
         # a[0]=graph glyph, a[1]=change id, a[2]=author, a[3]=date, last=commit id
         local change="${a[1]}" author="${a[2]}" datev="${a[3]}"
         local commit="${a[$((${#a[@]}-1))]}"
-        change="${change// /_}"; author="${author// /_}"
-        datev="${datev// /_}"; commit="${commit// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.change ${change}"$'\n'
         result+="entry${entry}.author ${author}"$'\n'

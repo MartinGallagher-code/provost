@@ -115,7 +115,6 @@ strategy_extract () {
                     # Remove trailing { and whitespace
                     loc_rest="${loc_rest%\{*}"
                     while [[ "$loc_rest" == *" " ]]; do loc_rest="${loc_rest% }"; done
-                    loc_rest="${loc_rest// /_}"
                     result+="server${server_num}.location${location_num}.path ${loc_rest}"$'\n'
                     continue
                     ;;
@@ -134,9 +133,6 @@ strategy_extract () {
             # No value
             continue
         fi
-
-        # Replace spaces in value with underscores
-        value="${value// /_}"
 
         # Skip block-only keywords
         case "$directive" in

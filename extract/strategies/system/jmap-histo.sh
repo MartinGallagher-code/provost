@@ -32,7 +32,7 @@ strategy_extract () {
         [[ ${#toks[@]} -ge 4 ]] || continue
         _jmap_histo_is_row "${toks[0]}" || continue
         local num="${toks[0]%:}"
-        local class="${toks[*]:3}"; class="${class// /_}"
+        local class="${toks[*]:3}"
         entry=$((entry + 1))
         result+="entry${entry}.num ${num}"$'\n'
         result+="entry${entry}.instances ${toks[1]}"$'\n'

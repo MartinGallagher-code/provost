@@ -41,7 +41,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.domain ${domain}"$'\n'
         result+="entry${entry}.preference ${pref}"$'\n'
-        result+="entry${entry}.exchange ${exch// /_}"$'\n'
+        result+="entry${entry}.exchange ${exch}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"

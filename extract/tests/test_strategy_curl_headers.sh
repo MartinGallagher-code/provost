@@ -23,9 +23,9 @@ test_curl_request_response_headers () {
     local output
     output=$(run_mfe -r -s curl-headers "$SAMPLES_DIR/curl-headers/basic.txt")
     assert_contains "$output" "request.Host example.com" "should extract request Host header"
-    assert_contains "$output" "response.content-type text/html;_charset=UTF-8" "should extract response content-type"
+    assert_contains "$output" "response.content-type text/html; charset=UTF-8" "should extract response content-type"
     assert_contains "$output" "response.content-length 1256" "should extract response content-length"
-    assert_contains "$output" "response.server ECS_(dcb/7F83)" "should extract response server"
+    assert_contains "$output" "response.server ECS (dcb/7F83)" "should extract response server"
 }
 
 test_curl_not_detected_for_json () {

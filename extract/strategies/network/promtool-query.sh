@@ -11,7 +11,7 @@
 # Emit ONE record per sample line: the metric series (name+labels), the value,
 # and the timestamp.
 
-_pq_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_pq_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

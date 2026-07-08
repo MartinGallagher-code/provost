@@ -2,34 +2,34 @@ line1.timestamp Feb_15_09_00_01
 line1.hostname gateway
 line1.process sshd
 line1.pid 4521
-line1.message Accepted_publickey_for_admin_from_10.0.0.5_port_52100_ssh2
+line1.message Accepted publickey for admin from 10.0.0.5 port 52100 ssh2
 line2.timestamp Feb_15_09_00_02
 line2.hostname gateway
 line2.process sshd
 line2.pid 4521
-line2.message pam_unix(sshd:session):_session_opened_for_user_admin
+line2.message pam_unix(sshd:session): session opened for user admin
 line3.timestamp Feb_15_09_01_15
 line3.hostname gateway
 line3.process sshd
 line3.pid 4580
-line3.message Failed_password_for_invalid_user_test_from_203.0.113.50_port_44322_ssh2
+line3.message Failed password for invalid user test from 203.0.113.50 port 44322 ssh2
 line4.timestamp Feb_15_09_01_16
 line4.hostname gateway
 line4.process sshd
 line4.pid 4580
-line4.message Connection_closed_by_invalid_user_test_203.0.113.50_port_44322
+line4.message Connection closed by invalid user test 203.0.113.50 port 44322
 line5.timestamp Feb_15_09_05_00
 line5.hostname gateway
 line5.process sudo
 line5.pid 4600
-line5.message admin_:_TTY=pts/0_;_PWD=/home/admin_;_USER=root_;_COMMAND=/bin/systemctl_restart_nginx
+line5.message admin : TTY=pts/0 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/systemctl restart nginx
 line6.timestamp Feb_15_09_05_01
 line6.hostname gateway
 line6.process sudo
 line6.pid 4600
-line6.message pam_unix(sudo:session):_session_opened_for_user_root_by_admin
+line6.message pam_unix(sudo:session): session opened for user root by admin
 line7.timestamp Feb_15_09_10_30
 line7.hostname gateway
 line7.process sshd
 line7.pid 4650
-line7.message Received_disconnect_from_10.0.0.5_port_52100:11:_disconnected_by_user
+line7.message Received disconnect from 10.0.0.5 port 52100:11: disconnected by user

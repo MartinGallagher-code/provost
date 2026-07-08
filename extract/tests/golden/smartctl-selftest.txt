@@ -1,36 +1,36 @@
 entry1.num 1
-entry1.test_description Extended_offline
-entry1.status Completed_without_error
+entry1.test_description Extended offline
+entry1.status Completed without error
 entry1.remaining 00%
 entry1.lifetime 18572
 entry1.lba -
 entry2.num 2
-entry2.test_description Short_offline
-entry2.status Completed_without_error
+entry2.test_description Short offline
+entry2.status Completed without error
 entry2.remaining 00%
 entry2.lifetime 18563
 entry2.lba -
 entry3.num 3
-entry3.test_description Short_offline
-entry3.status Completed_without_error
+entry3.test_description Short offline
+entry3.status Completed without error
 entry3.remaining 00%
 entry3.lifetime 18544
 entry3.lba -
 entry4.num 4
-entry4.test_description Extended_offline
-entry4.status Completed_without_error
+entry4.test_description Extended offline
+entry4.status Completed without error
 entry4.remaining 00%
 entry4.lifetime 18102
 entry4.lba -
 entry5.num 5
-entry5.test_description Short_offline
-entry5.status Completed:_read_failure
+entry5.test_description Short offline
+entry5.status Completed: read failure
 entry5.remaining 90%
 entry5.lifetime 17998
 entry5.lba 2891734
 entry6.num 6
-entry6.test_description Short_offline
-entry6.status Completed_without_error
+entry6.test_description Short offline
+entry6.status Completed without error
 entry6.remaining 00%
 entry6.lifetime 17888
 entry6.lba -

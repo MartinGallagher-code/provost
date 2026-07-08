@@ -52,7 +52,7 @@ strategy_extract () {
         while [[ "$trimmed" == *" " || "$trimmed" == *"	" ]]; do trimmed="${trimmed%?}"; done
         [[ -z "$trimmed" ]] && continue
 
-        local clean_content="${trimmed// /_}"
+        local clean_content="${trimmed}"
         [[ -z "$tagname" ]] && continue
 
         result+="${tagname} ${clean_content}"$'\n'
@@ -84,7 +84,6 @@ strategy_extract () {
             local attr_name="${attr%%=*}"
             local attr_value="${attr#*=\"}"
             attr_value="${attr_value%\"}"
-            attr_value="${attr_value// /_}"
 
             [[ -z "$attr_name" ]] && continue
             [[ -z "$attr_value" ]] && continue

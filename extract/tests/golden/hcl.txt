@@ -1,5 +1,5 @@
 provider.aws.region us-west-2
-variable.instance_type.description EC2_instance_type
+variable.instance_type.description EC2 instance type
 variable.instance_type.default t3.micro
 variable.instance_type.type string
 resource.aws_instance.web.ami ami-0c55b159cbfafe1f0
@@ -7,4 +7,4 @@ resource.aws_instance.web.instance_type var.instance_type
 resource.aws_instance.web.tags.Name WebServer
 resource.aws_instance.web.tags.Env production
 output.instance_id.value aws_instance.web.id
-output.instance_id.description The_instance_ID
+output.instance_id.description The instance ID

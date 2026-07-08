@@ -13,6 +13,13 @@ strategy_detect () {
     # Reject JSON-like input
     _is_json "$1" && return 1
 
+    # Decline `+---+` box tables — psql-table's box parser owns those.
+    local _bxl
+    while IFS= read -r _bxl; do
+        [[ "$_bxl" == *"+"* && "$_bxl" == *"---"* ]] || continue
+        [[ "$_bxl" =~ ^[[:space:]]*[-+[:space:]]+$ ]] && return 1
+    done <<< "$text"
+
     # Must have a separator line of dashes with gaps (scan line by line)
     local _det_line
     while IFS= read -r _det_line; do
@@ -167,10 +174,10 @@ strategy_extract () {
                 val="${line:$cs:$clen}"
             fi
 
-            # Trim whitespace and replace spaces with underscores
+            # Trim edges; spaces inside the value are preserved (the engine keeps
+            # everything after the first space as the value).
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
-            val="${val// /_}"
             [[ -z "$val" ]] && continue
 
             result+="row${row_num}.${hdr} ${val}"$'\n'

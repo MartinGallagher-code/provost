@@ -20,7 +20,6 @@ _strat_google_benchmark_extract_metadata () {
     done <<< "$text"
     if [[ -n "$run_line" ]]; then
         local cpu_info="${run_line#Run on }"
-        cpu_info="${cpu_info// /_}"
         result+="cpu_info ${cpu_info}"$'\n'
     fi
 
@@ -33,7 +32,6 @@ _strat_google_benchmark_extract_metadata () {
             # Trim leading whitespace, replace spaces with underscores
             local cache_val="$cline"
             while [[ "$cache_val" == " "* ]]; do cache_val="${cache_val# }"; done
-            cache_val="${cache_val// /_}"
             result+="cache${cache_num} ${cache_val}"$'\n'
         fi
     done <<< "$text"

@@ -53,8 +53,8 @@ strategy_extract () {
         n=$((n + 1))
         local p="entry${n}."
         result+="${p}num ${num}"$'\n'
-        result+="${p}test_description ${cols[1]// /_}"$'\n'
-        result+="${p}status ${cols[2]// /_}"$'\n'
+        result+="${p}test_description ${cols[1]}"$'\n'
+        result+="${p}status ${cols[2]}"$'\n'
         result+="${p}remaining ${cols[3]}"$'\n'
         result+="${p}lifetime ${cols[4]}"$'\n'
         result+="${p}lba ${cols[5]}"$'\n'

@@ -54,10 +54,8 @@ strategy_extract () {
             if [[ "$gname" == "Run "* ]]; then
                 run_num=$((run_num + 1))
                 local cmd="${gname#Run }"
-                cmd="${cmd// /_}"
                 result+="run${run_num}.command ${cmd}"$'\n'
             fi
-            gname="${gname// /_}"
             result+="group${group_num}.name ${gname}"$'\n'
             continue
         fi
@@ -100,12 +98,10 @@ strategy_extract () {
                     fi
                 done
 
-                msg="${msg// /_}"
                 result+="${prefix}.message ${msg}"$'\n'
             else
                 # No properties: ::error::message
                 local msg="${line#::error::}"
-                msg="${msg// /_}"
                 result+="${prefix}.message ${msg}"$'\n'
             fi
             continue
@@ -115,7 +111,6 @@ strategy_extract () {
         if [[ "$line" == "::warning::"* ]]; then
             warning_num=$((warning_num + 1))
             local msg="${line#::warning::}"
-            msg="${msg// /_}"
             result+="warning${warning_num}.message ${msg}"$'\n'
             continue
         fi
@@ -124,7 +119,6 @@ strategy_extract () {
         if [[ "$line" == "::notice::"* ]]; then
             notice_num=$((notice_num + 1))
             local msg="${line#::notice::}"
-            msg="${msg// /_}"
             result+="notice${notice_num}.message ${msg}"$'\n'
             continue
         fi

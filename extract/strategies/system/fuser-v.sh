@@ -18,7 +18,6 @@
 _fuser_sanitize () {
     local v="$1"
     v="${v//$'\t'/_}"
-    v="${v// /_}"
     printf '%s' "$v"
 }
 

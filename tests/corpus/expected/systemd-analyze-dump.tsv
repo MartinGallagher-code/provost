@@ -1,2 +1,2 @@
 ->_Unit_nginx.service.Description	->_Unit_nginx.service.Instance	->_Unit_nginx.service.Unit_Load_State	->_Unit_nginx.service.Unit_Active_State	->_Unit_nginx.service.State_Change_Timestamp	->_Unit_nginx.service.Active_Enter_Timestamp	->_Unit_nginx.service.Inactive_Exit_Timestamp	->_Unit_nginx.service.CGroup
-A_high_performance_web_server_and_a_reverse_proxy_server	n/a	loaded	active	Tue_2026-07-07_09:14:02_BST	Tue_2026-07-07_09:14:02_BST	Tue_2026-07-07_09:14:00_BST	/system.slice/nginx.service
+A high performance web server and a reverse proxy server	n/a	loaded	active	Tue 2026-07-07 09:14:02 BST	Tue 2026-07-07 09:14:02 BST	Tue 2026-07-07 09:14:00 BST	/system.slice/nginx.service

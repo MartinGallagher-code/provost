@@ -1,0 +1,14 @@
+hardening_index 72 [##############      ]
+tests_performed 256
+plugins_enabled 2
+warnings 8
+suggestions 42
+great 15
+skipped 3
+hardening_strength 72
+debug_mode NO
+compliance_plugins 2
+running_as root
+os_name Ubuntu
+os_version 22.04
+kernel_version 5.15.0-100-generic

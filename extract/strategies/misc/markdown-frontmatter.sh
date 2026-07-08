@@ -67,9 +67,6 @@ strategy_extract () {
             # Skip keys with no value (nested YAML sections)
             [[ -z "$value" ]] && continue
 
-            # Replace spaces with underscores in value
-            value="${value// /_}"
-
             result+="${key} ${value}"$'\n'
         fi
     done <<< "$text"

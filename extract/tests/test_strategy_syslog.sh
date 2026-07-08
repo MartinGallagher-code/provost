@@ -37,7 +37,7 @@ test_syslog_message () {
     local output
     output=$(run_mfe -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
     assert_contains "$output" "line1.message" "should extract message"
-    assert_contains "$output" "Accepted_publickey" "should have underscored message"
+    assert_contains "$output" "Accepted publickey" "should extract message"
 }
 
 test_syslog_not_detected_for_json () {

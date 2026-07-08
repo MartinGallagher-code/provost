@@ -1,2 +1,2 @@
 Image_Source	Total_Image_size	Potential_wasted_space	Image_efficiency_score	Inefficient_files_count	Highest_user_wasted_percent	Lowest_efficiency_threshold	Overall_result
-docker://ghcr.io/acme/api:2.1	121_MB	34_MB	96_%	7	22.8891_%	0.95	PASS
+docker://ghcr.io/acme/api:2.1	121 MB	34 MB	96 %	7	22.8891 %	0.95	PASS

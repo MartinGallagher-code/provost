@@ -64,7 +64,6 @@ strategy_extract () {
                 # Try alternate: strip make[N]:
                 make_msg="${line#*]: }"
             fi
-            make_msg="${make_msg// /_}"
             result+="step${step_num}.action ${make_msg}"$'\n'
             continue
         fi

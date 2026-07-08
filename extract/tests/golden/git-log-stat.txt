@@ -1,11 +1,11 @@
 entry1.path src/login.py
-entry1.changes 24_+++++++++++++++++++----
+entry1.changes 24 +++++++++++++++++++----
 entry2.path templates/login.html
-entry2.changes 12_++++++++++++
+entry2.changes 12 ++++++++++++
 entry3.path tests/test_login.py
-entry3.changes 31_+++++++++++++++++++++++++++++++
+entry3.changes 31 +++++++++++++++++++++++++++++++
 entry4.path config/loader.py
-entry4.changes 42_+++++++++++++++++++++-----------------------
+entry4.changes 42 +++++++++++++++++++++-----------------------
 entry5.path README.md
-entry5.changes 6_+++---
+entry5.changes 6 +++---
 total_entries 5

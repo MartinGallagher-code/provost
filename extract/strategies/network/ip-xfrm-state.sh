@@ -47,7 +47,7 @@ strategy_extract () {
     done <<< "$text"
     local i
     for ((i = 1; i <= entry; i++)); do
-        local src="${srcs[$i]// /_}" dst="${dsts[$i]// /_}" proto="${protos[$i]// /_}"
+        local src="${srcs[$i]}" dst="${dsts[$i]}" proto="${protos[$i]}"
         result+="entry${i}.src ${src}"$'\n'
         result+="entry${i}.dst ${dst}"$'\n'
         result+="entry${i}.proto ${proto}"$'\n'

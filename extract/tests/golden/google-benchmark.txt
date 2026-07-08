@@ -1,8 +1,8 @@
-cpu_info (8_X_2400_MHz_CPU_s)
-cache1 L1_Data_32_KiB_(x8)
-cache2 L1_Instruction_32_KiB_(x8)
-cache3 L2_Unified_256_KiB_(x8)
-cache4 L3_Unified_16384_KiB_(x1)
+cpu_info (8 X 2400 MHz CPU s)
+cache1 L1 Data 32 KiB (x8)
+cache2 L1 Instruction 32 KiB (x8)
+cache3 L2 Unified 256 KiB (x8)
+cache4 L3 Unified 16384 KiB (x1)
 bench1.name BM_StringCopy/8
 bench1.time 3.12_ns
 bench1.cpu 3.11_ns

@@ -51,7 +51,7 @@ strategy_extract () {
     done <<< "$text"
     local i
     for ((i = 1; i <= entry; i++)); do
-        local addr="${addrs[$i]// /_}" essid="${essids[$i]// /_}" qual="${quals[$i]// /_}"
+        local addr="${addrs[$i]}" essid="${essids[$i]}" qual="${quals[$i]}"
         result+="entry${i}.address ${addr}"$'\n'
         result+="entry${i}.essid ${essid}"$'\n'
         result+="entry${i}.quality ${qual}"$'\n'

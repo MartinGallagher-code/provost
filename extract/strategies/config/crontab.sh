@@ -57,7 +57,6 @@ strategy_extract () {
         if [[ "$line" =~ ^[A-Z_][A-Z0-9_]*= ]]; then
             local _key="${line%%=*}"
             local _val="${line#*=}"
-            _val="${_val// /_}"
             result+="${_key} ${_val}"$'\n'
             continue
         fi
@@ -69,7 +68,6 @@ strategy_extract () {
             local _shortcut="${BASH_REMATCH[1]}"
             local _cmd="${line#@"${_shortcut}"}"
             while [[ "$_cmd" == " "* ]]; do _cmd="${_cmd# }"; done
-            _cmd="${_cmd// /_}"
 
             # Expand shortcuts to schedule fields
             case "$_shortcut" in
@@ -126,7 +124,6 @@ strategy_extract () {
             result+="job${_job_num}.month ${BASH_REMATCH[4]}"$'\n'
             result+="job${_job_num}.day_of_week ${BASH_REMATCH[5]}"$'\n'
             local _cmd="${BASH_REMATCH[6]}"
-            _cmd="${_cmd// /_}"
             [[ -n "$_cmd" ]] && result+="job${_job_num}.command ${_cmd}"$'\n'
             continue
         fi

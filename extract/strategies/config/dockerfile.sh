@@ -122,11 +122,8 @@ strategy_extract () {
                         image="$rest"
                         ;;
                 esac
-                # Replace spaces with underscores
-                image="${image// /_}"
                 result+="${prefix}from ${image}"$'\n'
                 if [[ -n "$as_name" ]]; then
-                    as_name="${as_name// /_}"
                     result+="${prefix}from.as ${as_name}"$'\n'
                 fi
                 ;;
@@ -142,15 +139,12 @@ strategy_extract () {
                         # Could be key=value, possibly multiple
                         local key="${rest%%=*}"
                         local val="${rest#*=}"
-                        # Replace spaces in value with underscores
-                        val="${val// /_}"
                         result+="${prefix}env.${key} ${val}"$'\n'
                         ;;
                     *)
                         # ENV key value
                         local key="${rest%% *}"
                         local val="${rest#* }"
-                        val="${val// /_}"
                         result+="${prefix}env.${key} ${val}"$'\n'
                         ;;
                 esac
@@ -165,7 +159,6 @@ strategy_extract () {
                     *"="*)
                         local key="${rest%%=*}"
                         local val="${rest#*=}"
-                        val="${val// /_}"
                         result+="${prefix}arg.${key} ${val}"$'\n'
                         ;;
                     *)
@@ -179,7 +172,6 @@ strategy_extract () {
                     prefix="stage${stage_num}."
                 fi
                 local rest="${trimmed#EXPOSE }"
-                rest="${rest// /_}"
                 result+="${prefix}expose ${rest}"$'\n'
                 ;;
 
@@ -188,7 +180,6 @@ strategy_extract () {
                     prefix="stage${stage_num}."
                 fi
                 local rest="${trimmed#WORKDIR }"
-                rest="${rest// /_}"
                 result+="${prefix}workdir ${rest}"$'\n'
                 ;;
 
@@ -205,7 +196,6 @@ strategy_extract () {
                     '"'*'"') val="${val#\"}"; val="${val%\"}" ;;
                     "'"*"'") val="${val#\'}"; val="${val%\'}" ;;
                 esac
-                val="${val// /_}"
                 result+="${prefix}label.${key} ${val}"$'\n'
                 ;;
 
@@ -237,7 +227,6 @@ strategy_extract () {
                         rest="$cleaned"
                         ;;
                 esac
-                rest="${rest// /_}"
                 result+="${prefix}cmd ${rest}"$'\n'
                 ;;
 
@@ -267,7 +256,6 @@ strategy_extract () {
                         rest="$cleaned"
                         ;;
                 esac
-                rest="${rest// /_}"
                 result+="${prefix}entrypoint ${rest}"$'\n'
                 ;;
 

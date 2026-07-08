@@ -44,7 +44,6 @@ strategy_extract () {
             if [[ "$trimmed" == *" - "* ]]; then
                 unit_name="${trimmed%% - *}"
                 local desc="${trimmed#* - }"
-                desc="${desc// /_}"
                 result+="unit ${unit_name}"$'\n'
                 result+="description ${desc}"$'\n'
             else
@@ -65,7 +64,6 @@ strategy_extract () {
         case "$trimmed" in
             "Loaded: "*)
                 local val="${trimmed#Loaded: }"
-                val="${val// /_}"
                 result+="loaded ${val}"$'\n'
                 ;;
             "Active: "*)
@@ -77,7 +75,6 @@ strategy_extract () {
                 if [[ "$val" == *"since "* ]]; then
                     local since="${val#*since }"
                     since="${since%;*}"
-                    since="${since// /_}"
                     result+="since ${since}"$'\n'
                 fi
                 ;;
@@ -93,17 +90,14 @@ strategy_extract () {
                 ;;
             "Memory: "*)
                 local val="${trimmed#Memory: }"
-                val="${val// /_}"
                 result+="memory ${val}"$'\n'
                 ;;
             "CPU: "*)
                 local val="${trimmed#CPU: }"
-                val="${val// /_}"
                 result+="cpu ${val}"$'\n'
                 ;;
             "CGroup: "*)
                 local val="${trimmed#CGroup: }"
-                val="${val// /_}"
                 result+="cgroup ${val}"$'\n'
                 ;;
         esac

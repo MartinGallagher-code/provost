@@ -33,7 +33,6 @@ strategy_extract () {
         s="$line"
         while [[ -n "$s" && "$s" != [A-Za-z0-9]* ]]; do s="${s#?}"; done
         s="${s%"${s##*[![:space:]]}"}"
-        s="${s// /_}"
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.c1 ${s}"$'\n'

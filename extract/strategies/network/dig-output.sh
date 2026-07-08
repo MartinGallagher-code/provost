@@ -40,17 +40,14 @@ strategy_extract () {
             # Extract query metadata
             if [[ "$line" == *"Query time:"* ]]; then
                 local qt="${line#*Query time: }"
-                qt="${qt// /_}"
                 result+="query_time ${qt}"$'\n'
             fi
             if [[ "$line" == *"SERVER:"* ]]; then
                 local srv="${line#*SERVER: }"
-                srv="${srv// /_}"
                 result+="server ${srv}"$'\n'
             fi
             if [[ "$line" == *"MSG SIZE"* ]]; then
                 local ms="${line#*rcvd: }"
-                ms="${ms// /_}"
                 result+="msg_size ${ms}"$'\n'
             fi
             continue

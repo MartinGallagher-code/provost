@@ -4,40 +4,40 @@ entry1.source 192.168.1.24
 entry1.destination 93.184.216.34
 entry1.protocol TCP
 entry1.length 74
-entry1.info 51234_→_443_[SYN]_Seq=0_Win=64240_Len=0
+entry1.info 51234 → 443 [SYN] Seq=0 Win=64240 Len=0
 entry2.no 2
 entry2.time 0.018374000
 entry2.source 93.184.216.34
 entry2.destination 192.168.1.24
 entry2.protocol TCP
 entry2.length 74
-entry2.info 443_→_51234_[SYN,_ACK]_Seq=0_Ack=1_Win=65535_Len=0
+entry2.info 443 → 51234 [SYN, ACK] Seq=0 Ack=1 Win=65535 Len=0
 entry3.no 3
 entry3.time 0.018461000
 entry3.source 192.168.1.24
 entry3.destination 93.184.216.34
 entry3.protocol TCP
 entry3.length 66
-entry3.info 51234_→_443_[ACK]_Seq=1_Ack=1_Win=502_Len=0
+entry3.info 51234 → 443 [ACK] Seq=1 Ack=1 Win=502 Len=0
 entry4.no 4
 entry4.time 0.019022000
 entry4.source 192.168.1.24
 entry4.destination 93.184.216.34
 entry4.protocol TLSv1.3
 entry4.length 583
-entry4.info Client_Hello
+entry4.info Client Hello
 entry5.no 5
 entry5.time 0.041233000
 entry5.source 93.184.216.34
 entry5.destination 192.168.1.24
 entry5.protocol TCP
 entry5.length 66
-entry5.info 443_→_51234_[ACK]_Seq=1_Ack=518_Win=508_Len=0
+entry5.info 443 → 51234 [ACK] Seq=1 Ack=518 Win=508 Len=0
 entry6.no 6
 entry6.time 0.052910000
 entry6.source 93.184.216.34
 entry6.destination 192.168.1.24
 entry6.protocol TLSv1.3
 entry6.length 1514
-entry6.info Server_Hello
+entry6.info Server Hello
 total_entries 6

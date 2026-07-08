@@ -19,7 +19,7 @@ test_hcl_basic () {
     assert_contains "$output" "resource.aws_instance.web.ami ami-0c55b159cbfafe1f0" "should extract resource ami"
     assert_contains "$output" "resource.aws_instance.web.tags.Name WebServer" "should extract nested tags"
     assert_contains "$output" "output.instance_id.value aws_instance.web.id" "should extract output value"
-    assert_contains "$output" "output.instance_id.description The_instance_ID" "should extract output description"
+    assert_contains "$output" "output.instance_id.description The instance ID" "should extract output description"
 }
 
 test_hcl_not_detected_for_json () {

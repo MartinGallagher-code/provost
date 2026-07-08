@@ -11,7 +11,7 @@
 # `name<TAB>messages<TAB>consumers`. Emit ONE record per queue row; skip the
 # banners.
 
-_rq_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_rq_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

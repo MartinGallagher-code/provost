@@ -30,7 +30,7 @@ test_vl_sample2 () {
     assert_contains "$output" "Time" "should extract Time column"
     assert_contains "$output" "Iterations" "should extract Iterations column"
     # Values with units should be combined properly
-    assert_contains "$output" "11_ns" "Time value should include unit"
+    assert_contains "$output" "11 ns" "Time value should include unit"
 }
 
 test_vl_field_selection () {

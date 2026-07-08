@@ -45,8 +45,6 @@ strategy_extract () {
                 ttl)    ttl="${_t[$((i + 1))]:-}" ;;
             esac
         done
-        name="${name// /_}"; mode="${mode// /_}"
-        remote="${remote// /_}"; local_="${local_// /_}"; ttl="${ttl// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         result+="entry${entry}.mode ${mode}"$'\n'

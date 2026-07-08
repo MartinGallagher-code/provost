@@ -33,7 +33,7 @@ _mii_sanitise () {
     while [[ "$s" == *"  "* ]]; do s="${s//  / }"; done
     s="${s#"${s%%[![:space:]]*}"}"
     s="${s%"${s##*[![:space:]]}"}"
-    printf '%s' "${s// /_}"
+    printf '%s' "$s"
 }
 
 strategy_extract () {

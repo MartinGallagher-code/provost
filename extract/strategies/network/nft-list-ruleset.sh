@@ -58,7 +58,7 @@ strategy_extract () {
 
         # Whatever remains inside a chain block is a rule statement.
         n=$((n + 1))
-        result+="entry${n}.rule ${t// /_}"$'\n'
+        result+="entry${n}.rule ${t}"$'\n'
     done <<< "$text"
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'

@@ -12,7 +12,7 @@
 #   `└── ID: 3f371f9dd50e Size:  1.536kB Top Layer of: [...]`
 # Emit ONE record per LAYER line (id + size).
 
-_podtree_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_podtree_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

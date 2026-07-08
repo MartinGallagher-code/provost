@@ -1,0 +1,5 @@
+load_avg_1min 0.22
+load_avg_5min 0.62
+load_avg_15min 0.82
+users 0
+uptime_minutes 14

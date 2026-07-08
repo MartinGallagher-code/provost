@@ -26,7 +26,7 @@ _lsusbv_name () {
     out="${out#_}"; out="${out%_}"
     printf '%s' "$out"
 }
-_lsusbv_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_lsusbv_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

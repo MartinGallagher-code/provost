@@ -14,7 +14,7 @@
 # Detection keys narrowly on that token so it declines apt-list/dnf-list
 # (version strings like `2:9.0.1378-2` are not `NNN:hexhash`), vmstat and dstat.
 
-_hgbr_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_hgbr_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

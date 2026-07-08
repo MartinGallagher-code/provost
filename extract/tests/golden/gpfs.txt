@@ -1,0 +1,7 @@
+block_size 4194304
+inode_size 4096
+mount_point /gpfs/fs01
+inum_limit 1000000
+max_files 100000000
+replication 2
+replication cluster

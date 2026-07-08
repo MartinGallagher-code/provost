@@ -45,7 +45,6 @@ strategy_extract () {
         local value="${line#"$name"}"
         value="${value#"${value%%[![:space:]]*}"}"
         value="${value%"${value##*[![:space:]]}"}"
-        value="${value// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         result+="entry${entry}.value ${value}"$'\n'

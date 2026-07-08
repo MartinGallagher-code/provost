@@ -66,21 +66,18 @@ strategy_extract () {
         if [[ "$line" == *"aggregate filesize"* ]]; then
             local _val="${line##*= }"
             while [[ "$_val" == " "* ]]; do _val="${_val# }"; done
-            _val="${_val// /_}"
             [[ -n "$_val" ]] && result+="aggregate_size ${_val}"$'\n'
             continue
         fi
         if [[ "$line" == *"xfersize"*"="* ]]; then
             local _val="${line##*= }"
             while [[ "$_val" == " "* ]]; do _val="${_val# }"; done
-            _val="${_val// /_}"
             [[ -n "$_val" ]] && result+="xfer_size ${_val}"$'\n'
             continue
         fi
         if [[ "$line" == *"blocksize"*"="* ]] || [[ "$line" == *"blockSize"*"="* ]]; then
             local _val="${line##*= }"
             while [[ "$_val" == " "* ]]; do _val="${_val# }"; done
-            _val="${_val// /_}"
             [[ -n "$_val" ]] && result+="block_size ${_val}"$'\n'
             continue
         fi

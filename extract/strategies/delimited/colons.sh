@@ -85,12 +85,10 @@ strategy_extract () {
         key="${key#_}"
         key="${key%_}"
 
-        # Replace spaces in value with underscores for field storage, trim edges
+        # Trim edges of value; spaces inside the value are preserved (the engine
+        # keeps everything after the first space as the value).
         while [[ "$value" == " "* ]]; do value="${value# }"; done
         while [[ "$value" == *" " ]]; do value="${value% }"; done
-        value="${value// /_}"
-        value="${value#_}"
-        value="${value%_}"
 
         # Skip if value is empty
         [[ -z "$value" ]] && continue

@@ -8,5 +8,5 @@ entry1.maxwritten_clean 12
 entry1.buffers_backend 88210
 entry1.buffers_backend_fsync 0
 entry1.buffers_alloc 9982310
-entry1.stats_reset 2026-06-01_00:00:00.000000+00
+entry1.stats_reset 2026-06-01 00:00:00.000000+00
 total_entries 1

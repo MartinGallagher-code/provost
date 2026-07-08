@@ -12,7 +12,7 @@
 # progress cell. Emit ONE record per compaction row; skip the pending line and
 # the header.
 
-_nc_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_nc_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

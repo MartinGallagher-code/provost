@@ -67,11 +67,11 @@ strategy_extract () {
     # ("node -> v20.10.0", "openjdk", "cmake").
     local product="${first%%[[:space:]]*}"
 
-    # Raw = the whole first line, spaces collapsed to underscores so the value
-    # stays a single token in the key/value stream.
+    # Raw = the whole first line; tabs neutralised to underscores so the value
+    # can't split the tab-delimited key/value stream (spaces are fine — the
+    # engine splits the field name from the value on the first space only).
     local raw="$first"
-    raw="${raw//	/ }"
-    raw="${raw// /_}"
+    raw="${raw//$'\t'/_}"
 
     # One record; version plus product and raw give the melt >= 2 columns.
     result+="entry1.version ${version}"$'\n'

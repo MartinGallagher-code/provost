@@ -11,7 +11,7 @@
 # data row has 9 whitespace tokens whose first cell is an integer shard count.
 # Emit ONE record per node row; skip the header.
 
-_ea_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_ea_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

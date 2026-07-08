@@ -71,7 +71,6 @@ strategy_extract () {
                     local tname="${rest%% (*}"
                     local ttime="${rest##*(}"
                     ttime="${ttime%)}"
-                    tname="${tname// /_}"
                     result+="test${test_num}.name ${tname}"$'\n'
                     result+="test${test_num}.result PASS"$'\n'
                     result+="test${test_num}.time ${ttime}"$'\n'
@@ -86,7 +85,6 @@ strategy_extract () {
                     local tname="${rest%% (*}"
                     local ttime="${rest##*(}"
                     ttime="${ttime%)}"
-                    tname="${tname// /_}"
                     result+="test${test_num}.name ${tname}"$'\n'
                     result+="test${test_num}.result FAIL"$'\n'
                     result+="test${test_num}.time ${ttime}"$'\n'

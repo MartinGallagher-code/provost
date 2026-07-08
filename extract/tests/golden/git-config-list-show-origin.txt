@@ -1,6 +1,6 @@
 entry1.origin file:/home/user/glean/.git/config
 entry1.key user.name
-entry1.value Jane_Developer
+entry1.value Jane Developer
 entry2.origin file:/home/user/glean/.git/config
 entry2.key user.email
 entry2.value jane@example.com

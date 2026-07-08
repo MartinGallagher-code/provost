@@ -11,7 +11,7 @@
 # node. Load is "<num> <unit>" (two tokens). Emit ONE record per ring row keyed
 # on the IPv4 address in the first column.
 
-_nr_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_nr_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

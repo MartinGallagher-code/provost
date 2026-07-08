@@ -134,7 +134,6 @@ strategy_extract () {
 
             # Replace spaces in key and value with underscores
             key="${key// /_}"
-            value="${value// /_}"
 
             # Prefix with section if we have one
             if [[ -n "$current_section" ]]; then

@@ -193,7 +193,6 @@ strategy_extract () {
             # leading underscore by the space->underscore step below.
             while [[ "$value" == " "* || "$value" == "	"* ]]; do value="${value#?}"; done
             while [[ "$value" == *" " || "$value" == *"	" ]]; do value="${value%?}"; done
-            value="${value// /_}"
             [[ -z "$name" ]] && continue
             [[ -z "$value" ]] && continue
             result+="entry${rec}.${name} ${value}"$'\n'

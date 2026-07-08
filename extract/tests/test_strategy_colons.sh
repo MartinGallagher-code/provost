@@ -33,7 +33,7 @@ test_colons_field_selection () {
     local output
     output=$(run_mfe -s colons "$SAMPLES_DIR/colons/basic.txt" 1)
     assert_contains "$output" "Name" "should contain selected field"
-    assert_contains "$output" "John_Doe" "should contain field value"
+    assert_contains "$output" "John Doe" "should contain field value"
 }
 
 test_colons_json_format () {

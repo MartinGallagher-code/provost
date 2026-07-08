@@ -124,10 +124,9 @@ strategy_extract () {
             [[ $((lo + len)) -gt ${#row} ]] && len=$((${#row} - lo))
 
             local value="${row:$lo:$len}"
-            # Trim whitespace and replace internal spaces with underscores
+            # Trim surrounding whitespace; internal spaces are part of the value.
             while [[ "$value" == " "* ]]; do value="${value# }"; done
             while [[ "$value" == *" " ]]; do value="${value% }"; done
-            value="${value// /_}"
             [[ -z "$value" ]] && continue
 
             local name="${col_names[$c]}"

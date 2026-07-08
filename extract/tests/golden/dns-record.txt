@@ -6,5 +6,5 @@ record2.name example.com.
 record2.ttl 300
 record2.type AAAA
 record2.value 2606:2800:220:1:248:1893:25c8:1946
-query_time 23_msec
+query_time 23 msec
 server 8.8.8.8

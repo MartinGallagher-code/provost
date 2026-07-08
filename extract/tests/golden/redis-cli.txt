@@ -1,6 +1,6 @@
 redis_version 7.2.3
 redis_mode standalone
-os Linux_5.15.0
+os Linux 5.15.0
 tcp_port 6379
 uptime_in_seconds 86400
 uptime_in_days 1

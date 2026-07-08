@@ -101,12 +101,10 @@ strategy_extract () {
                         # Array value — grab until ]
                         _val="${_clean%%]*}]"
                         _clean="${_clean#*]}"
-                        _val="${_val// /_}"
                     else
                         _val="${_clean%%[,\}]*}"
                         _clean="${_clean#"$_val"}"
                     fi
-                    _val="${_val// /_}"
                     [[ -n "$_key" ]] && [[ -n "$_val" ]] && result+="header.${_key} ${_val}"$'\n'
                 else
                     break
@@ -150,12 +148,10 @@ strategy_extract () {
                     elif [[ "$_clean" == "["* ]]; then
                         _val="${_clean%%]*}]"
                         _clean="${_clean#*]}"
-                        _val="${_val// /_}"
                     else
                         _val="${_clean%%[,\}]*}"
                         _clean="${_clean#"$_val"}"
                     fi
-                    _val="${_val// /_}"
                     [[ -n "$_key" ]] && [[ -n "$_val" ]] && result+="payload.${_key} ${_val}"$'\n'
                 else
                     break

@@ -1,5 +1,5 @@
 array_size 10000000
-total_memory 2289_MiB_=_02_GiB
+total_memory 2289 MiB = 02 GiB
 num_threads 4
 copy.best_rate_MB_per_s 25012.3
 copy.avg_time 0.006489

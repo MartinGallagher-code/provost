@@ -36,7 +36,7 @@ test_csv_quoted_fields () {
     output=$(run_mfe -r -s csv "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Name" "should extract Name"
-    assert_contains "$output" "Smith,_John" "should handle quoted commas"
+    assert_contains "$output" "Smith, John" "should handle quoted commas"
 }
 
 test_csv_not_detected_for_non_csv () {
@@ -64,9 +64,9 @@ test_csv_trims_whitespace_after_comma () {
 test_csv_rows_are_indexed_records () {
     local output
     output=$(run_mfe -r -s csv "$SAMPLES_DIR/csv/employees.csv")
-    assert_contains "$output" "entry1.name Alice_Johnson" "row 1 under entry1"
+    assert_contains "$output" "entry1.name Alice Johnson" "row 1 under entry1"
     assert_contains "$output" "entry3.department Engineering" "row 3 keeps its department (no dup-key drop)"
-    assert_contains "$output" "entry5.title Junior_Developer" "row 5 under entry5"
+    assert_contains "$output" "entry5.title Junior Developer" "row 5 under entry5"
     assert_contains "$output" "total_entries 5" "five records"
 }
 

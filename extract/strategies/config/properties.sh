@@ -101,9 +101,8 @@ strategy_extract () {
         [[ -z "$key" ]] && continue
         [[ -z "$value" ]] && continue
 
-        # Replace spaces in key and value with underscores
+        # Replace spaces in key (field name) with underscores
         key="${key// /_}"
-        value="${value// /_}"
 
         result+="${key} ${value}"$'\n'
     done <<< "$text"

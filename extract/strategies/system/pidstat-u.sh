@@ -31,7 +31,7 @@ strategy_extract () {
         toks=(); read -ra toks <<< "$line"
         [[ ${#toks[@]} -ge 10 ]] || continue
         _pidstat_u_is_row "${toks[0]}" || continue
-        local cmd="${toks[*]:9}"; cmd="${cmd// /_}"
+        local cmd="${toks[*]:9}"
         entry=$((entry + 1))
         result+="entry${entry}.time ${toks[0]}"$'\n'
         result+="entry${entry}.uid ${toks[1]}"$'\n'

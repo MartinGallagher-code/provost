@@ -38,13 +38,13 @@ strategy_extract () {
             *"Document Length:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
-                result+="document_length ${_val// /_}"$'\n' ;;
+                result+="document_length ${_val}"$'\n' ;;
             *"Concurrency Level:"*)
                 result+="concurrency_level $(_strat_ab_extract_value "$line")"$'\n' ;;
             *"Time taken for tests:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
-                result+="time_taken ${_val// /_}"$'\n' ;;
+                result+="time_taken ${_val}"$'\n' ;;
             *"Complete requests:"*)
                 result+="complete_requests $(_strat_ab_extract_value "$line")"$'\n' ;;
             *"Failed requests:"*)
@@ -52,11 +52,11 @@ strategy_extract () {
             *"Total transferred:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
-                result+="total_transferred ${_val// /_}"$'\n' ;;
+                result+="total_transferred ${_val}"$'\n' ;;
             *"HTML transferred:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
-                result+="html_transferred ${_val// /_}"$'\n' ;;
+                result+="html_transferred ${_val}"$'\n' ;;
             *"Requests per second:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
@@ -75,7 +75,7 @@ strategy_extract () {
             *"Transfer rate:"*)
                 local _val
                 _val=$(_strat_ab_extract_value "$line")
-                result+="transfer_rate ${_val// /_}"$'\n' ;;
+                result+="transfer_rate ${_val}"$'\n' ;;
         esac
     done <<< "$text"
 

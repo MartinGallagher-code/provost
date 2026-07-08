@@ -1,7 +1,7 @@
 n	name	default_version	installed_version	comment	total_entries
-1	citext	1.6	1.6	data_type_for_case-insensitive_character_strings	6
-2	hstore	1.8		data_type_for_storing_sets_of_(key,_value)_pairs	6
-3	pg_stat_statements	1.10	1.10	track_planning_and_execution_statistics_of_all_SQL_statements	6
-4	pgcrypto	1.3		cryptographic_functions	6
-5	plpgsql	1.0	1.0	PL/pgSQL_procedural_language	6
-6	postgis	3.4.2		PostGIS_geometry_and_geography_spatial_types_and_functions	6
+1	citext	1.6	1.6	data type for case-insensitive character strings	6
+2	hstore	1.8		data type for storing sets of (key, value) pairs	6
+3	pg_stat_statements	1.10	1.10	track planning and execution statistics of all SQL statements	6
+4	pgcrypto	1.3		cryptographic functions	6
+5	plpgsql	1.0	1.0	PL/pgSQL procedural language	6
+6	postgis	3.4.2		PostGIS geometry and geography spatial types and functions	6

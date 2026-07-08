@@ -1,2 +1,2 @@
 public_(active).target	public_(active).icmp-block-inversion	public_(active).interfaces	public_(active).services	public_(active).ports	public_(active).masquerade
-default	no	eth0	dhcpv6-client_https_ssh	8080/tcp_9090/tcp	no
+default	no	eth0	dhcpv6-client https ssh	8080/tcp 9090/tcp	no

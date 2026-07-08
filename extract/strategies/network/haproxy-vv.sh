@@ -11,7 +11,7 @@
 # single wide record `entry1.<key> value` for every "key = value" line, then
 # total_entries 1.
 
-_hv_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_hv_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 _hv_key () {
     local k="$1"
     k="${k#"${k%%[![:space:]]*}"}"   # ltrim

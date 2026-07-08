@@ -44,7 +44,7 @@ strategy_extract () {
         n=$((n + 1))
         result+="entry${n}.id ${id}"$'\n'
         result+="entry${n}.name ${name:-unknown}"$'\n'
-        result+="entry${n}.type ${type// /_}"$'\n'
+        result+="entry${n}.type ${type}"$'\n'
         result+="entry${n}.soft ${soft:-unknown}"$'\n'
         result+="entry${n}.hard ${hard:-unknown}"$'\n'
     }

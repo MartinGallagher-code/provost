@@ -1,6 +1,6 @@
 n	id	name	dept	salary	total_entries
-1	1	Alice_Brown	Engineering	95000	5
-2	2	Bob_Nguyen	Sales	72000	5
-3	3	Carol_Diaz	Marketing	68000	5
-4	4	Dan_Fischer	Engineering	88000	5
-5	5	Eve_Turner	Support	54000	5
+1	1	Alice Brown	Engineering	95000	5
+2	2	Bob Nguyen	Sales	72000	5
+3	3	Carol Diaz	Marketing	68000	5
+4	4	Dan Fischer	Engineering	88000	5
+5	5	Eve Turner	Support	54000	5

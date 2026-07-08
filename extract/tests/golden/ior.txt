@@ -1,0 +1,17 @@
+ior_version 3.3.0
+num_tasks 16
+xfer_size 1 MiB
+block_size 16 MiB
+aggregate_size 4 GiB
+write.max_MiB 1234.56
+write.min_MiB 1200.12
+write.mean_MiB 1218.34
+write.std_dev 12.45
+read.max_MiB 2345.67
+read.min_MiB 2300.45
+read.mean_MiB 2320.56
+read.std_dev 15.67
+max_write_MiB 1234.56
+max_read_MiB 2345.67
+mean_write_MiB 1218.34
+mean_read_MiB 2320.56

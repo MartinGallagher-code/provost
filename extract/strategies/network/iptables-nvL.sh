@@ -12,7 +12,7 @@
 # target` column header keeps this distinct from `iptables -nL`/`iptables-nat`
 # (which have no pkts/bytes columns).
 
-_iptnvl_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_iptnvl_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

@@ -12,7 +12,7 @@
 #   buffers_checkpoint    | 4451200
 # Flatten the `key | value` rows into ONE wide record (`entry1.<key> value`).
 
-_psqlbg_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_psqlbg_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

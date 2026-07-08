@@ -4,7 +4,7 @@ total_time_secs 12.345000
 iterations_per_sec 24291.616878
 iterations 300000
 compiler_version GCC10.2.0
-compiler_flags -O2_-march=native_-DPERFORMANCE_RUN=1
+compiler_flags -O2 -march=native -DPERFORMANCE_RUN=1
 seed1_volatile 0x3415
 seed2_volatile 0x3415
 seed3_volatile 0x66

@@ -43,7 +43,6 @@ strategy_extract () {
         for ((i=4; i<${#f[@]}; i++)); do
             if [[ -z "$val" ]]; then val="${f[$i]}"; else val="${val}_${f[$i]}"; fi
         done
-        val="${val// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.name ${f[0]}"$'\n'
         result+="entry${entry}.ttl ${f[1]}"$'\n'

@@ -22,7 +22,7 @@ test_dockerfile_basic () {
     assert_contains "$output" "stage1.workdir /app" "should extract WORKDIR"
     assert_contains "$output" "stage1.label.maintainer team@example.com" "should extract LABEL maintainer"
     assert_contains "$output" "stage1.label.version 1.2.0" "should extract LABEL version"
-    assert_contains "$output" "stage2.cmd node_server.js" "should extract CMD"
+    assert_contains "$output" "stage2.cmd node server.js" "should extract CMD"
 }
 
 test_dockerfile_multistage () {
@@ -31,7 +31,7 @@ test_dockerfile_multistage () {
     assert_contains "$output" "stage1.from node:18-alpine" "should prefix stage1"
     assert_contains "$output" "stage1.from.as builder" "should extract AS alias"
     assert_contains "$output" "stage2.from node:18-alpine" "should prefix stage2"
-    assert_contains "$output" "stage2.cmd node_server.js" "should prefix stage2 cmd"
+    assert_contains "$output" "stage2.cmd node server.js" "should prefix stage2 cmd"
     assert_contains "$output" "stage2.env.NODE_ENV production" "should prefix stage2 env"
 }
 

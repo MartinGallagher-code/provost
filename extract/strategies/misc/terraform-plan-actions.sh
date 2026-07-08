@@ -37,7 +37,6 @@ strategy_extract () {
         body="${body#\# }"
         local resource="${body%% will be *}"
         local action="${body#* will be }"
-        resource="${resource// /_}"; action="${action// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.resource ${resource}"$'\n'
         result+="entry${entry}.action ${action}"$'\n'

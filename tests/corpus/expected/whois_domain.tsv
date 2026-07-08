@@ -1,2 +1,2 @@
 Domain_Name	Registry_Domain_ID	Registrar_WHOIS_Server	Registrar_URL	Updated_Date	Creation_Date	Registry_Expiry_Date	Registrar	Registrar_IANA_ID	Domain_Status	Name_Server	Name_Server
-EXAMPLE.COM	2336799_DOMAIN_COM-VRSN	whois.iana.org	http://res-dom.iana.org	2023-08-14T07:01:44Z	1995-08-14T04:00:00Z	2024-08-13T04:00:00Z	RESERVED-Internet_Assigned_Numbers_Authority	376	clientDeleteProhibited	A.IANA-SERVERS.NET	B.IANA-SERVERS.NET
+EXAMPLE.COM	2336799_DOMAIN_COM-VRSN	whois.iana.org	http://res-dom.iana.org	2023-08-14T07:01:44Z	1995-08-14T04:00:00Z	2024-08-13T04:00:00Z	RESERVED-Internet Assigned Numbers Authority	376	clientDeleteProhibited	A.IANA-SERVERS.NET	B.IANA-SERVERS.NET

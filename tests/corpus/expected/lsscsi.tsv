@@ -1,5 +1,5 @@
 n	c1	c2	c3	c4	total_entries
-1	[0	0	0	0]____disk____ATA______Samsung_SSD_860__2B6Q__/dev/sda	4
-2	[1	0	0	0]____disk____ATA______WDC_WD10EZEX-00W_1A01__/dev/sdb	4
-3	[2	0	0	0]____cd/dvd__HL-DT-ST_DVDRAM_GH24NSD1_LN00__/dev/sr0	4
-4	[6	0	0	0]____disk____Kingston_DataTraveler_3._PMAP__/dev/sdc	4
+1	[0	0	0	0]    disk    ATA      Samsung SSD 860  2B6Q  /dev/sda	4
+2	[1	0	0	0]    disk    ATA      WDC WD10EZEX-00W 1A01  /dev/sdb	4
+3	[2	0	0	0]    cd/dvd  HL-DT-ST DVDRAM GH24NSD1 LN00  /dev/sr0	4
+4	[6	0	0	0]    disk    Kingston DataTraveler 3. PMAP  /dev/sdc	4

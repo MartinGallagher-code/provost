@@ -78,7 +78,6 @@ strategy_extract () {
             name="${headers[$j]}"
             value="${_CELLS[$j]:-}"
             name="${name// /_}"; name="${name//./_}"
-            value="${value// /_}"
             [[ -z "$name" ]] && continue
             result+="entry${entry}.${name} ${value}"$'\n'
         done

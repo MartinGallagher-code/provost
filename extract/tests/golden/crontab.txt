@@ -12,7 +12,7 @@ job2.hour *
 job2.day_of_month *
 job2.month *
 job2.day_of_week *
-job2.command find_/tmp_-mtime_+7_-delete
+job2.command find /tmp -mtime +7 -delete
 job3.minute 0
 job3.hour 0
 job3.day_of_month *
@@ -24,6 +24,6 @@ job4.hour 3
 job4.day_of_month 1
 job4.month *
 job4.day_of_week *
-job4.command /usr/local/bin/audit.sh_--full
+job4.command /usr/local/bin/audit.sh --full
 job5.schedule @reboot
 job5.command /usr/local/bin/startup.sh

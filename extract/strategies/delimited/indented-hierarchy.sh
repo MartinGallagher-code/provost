@@ -76,9 +76,9 @@ strategy_extract () {
             while [[ "$key" == " "* ]]; do key="${key# }"; done
             while [[ "$key" == *" " ]]; do key="${key% }"; done
             key="${key// /_}"
-            # Trim value
+            # Trim value; spaces inside the value are preserved (the engine keeps
+            # everything after the first space as the value).
             while [[ "$value" == *" " ]]; do value="${value% }"; done
-            value="${value// /_}"
 
             if [[ -n "$value" ]]; then
                 # This is a key: value line -- emit with full path

@@ -35,7 +35,6 @@ strategy_extract () {
             # Extract type from BEGIN marker
             local _marker="${line#-----BEGIN }"
             _cert_type="${_marker%-----}"
-            _cert_type="${_cert_type// /_}"
             continue
         fi
 
@@ -60,7 +59,6 @@ strategy_extract () {
                     _subject="${_subject#subject=}"
                     _subject="${_subject#subject= }"
                     while [[ "$_subject" == " "* ]]; do _subject="${_subject# }"; done
-                    _subject="${_subject// /_}"
                     [[ -n "$_subject" ]] && result+="cert${_cert_num}.subject ${_subject}"$'\n'
                 fi
 
@@ -69,28 +67,24 @@ strategy_extract () {
                     _issuer="${_issuer#issuer=}"
                     _issuer="${_issuer#issuer= }"
                     while [[ "$_issuer" == " "* ]]; do _issuer="${_issuer# }"; done
-                    _issuer="${_issuer// /_}"
                     [[ -n "$_issuer" ]] && result+="cert${_cert_num}.issuer ${_issuer}"$'\n'
                 fi
 
                 _serial=$(printf '%s\n' "$_pem" | openssl x509 -noout -serial 2>/dev/null) || true
                 if [[ -n "$_serial" ]]; then
                     _serial="${_serial#serial=}"
-                    _serial="${_serial// /_}"
                     [[ -n "$_serial" ]] && result+="cert${_cert_num}.serial ${_serial}"$'\n'
                 fi
 
                 _not_before=$(printf '%s\n' "$_pem" | openssl x509 -noout -startdate 2>/dev/null) || true
                 if [[ -n "$_not_before" ]]; then
                     _not_before="${_not_before#notBefore=}"
-                    _not_before="${_not_before// /_}"
                     [[ -n "$_not_before" ]] && result+="cert${_cert_num}.not_before ${_not_before}"$'\n'
                 fi
 
                 _not_after=$(printf '%s\n' "$_pem" | openssl x509 -noout -enddate 2>/dev/null) || true
                 if [[ -n "$_not_after" ]]; then
                     _not_after="${_not_after#notAfter=}"
-                    _not_after="${_not_after// /_}"
                     [[ -n "$_not_after" ]] && result+="cert${_cert_num}.not_after ${_not_after}"$'\n'
                 fi
             fi

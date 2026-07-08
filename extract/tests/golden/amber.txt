@@ -1,0 +1,14 @@
+num_atoms 24030
+initial_nstep 1000
+initial_temp 298.56
+wallclock 125.00
+nstep 3000
+time 6.000
+temp 299.87
+press 3.4
+etot -75410.2345
+ektot 17310.6543
+eptot -92720.8888
+density 1.0134
+volume 234345.6789
+num_thermo_blocks 3

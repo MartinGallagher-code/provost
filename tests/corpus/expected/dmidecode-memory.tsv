@@ -1,2 +1,2 @@
 	Array_Handle		Error_Information_Handle		Total_Width		Data_Width		Size		Form_Factor		Set		Locator		Bank_Locator		Type		Type_Detail		Speed		Manufacturer		Serial_Number		Asset_Tag		Part_Number		Rank		Configured_Memory_Speed
-0x000F	Not_Provided	64_bits	64_bits	8_GB	SODIMM	None	DIMM_A	BANK_0	DDR4	Synchronous_Unbuffered_(Unregistered)	2933_MT/s	Micron_Technology	12AB34CD	9876543210	8ATF1G64HZ-2G6E1	1	2933_MT/s
+0x000F	Not Provided	64 bits	64 bits	8 GB	SODIMM	None	DIMM A	BANK 0	DDR4	Synchronous Unbuffered (Unregistered)	2933 MT/s	Micron Technology	12AB34CD	9876543210	8ATF1G64HZ-2G6E1	1	2933 MT/s
