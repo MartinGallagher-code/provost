@@ -12,22 +12,13 @@ echo "========================================"
 echo "Strategy Tests: pipe-table"
 echo "========================================"
 
-# --- SQL style (+---+ borders) ---
+# --- SQL style (+---+ borders): now DECLINED — psql-table's box parser owns
+#     these (it strips outer borders / title banners this parser mangled). ---
 
-test_pt_sql_basic () {
+test_pt_declines_sql_box () {
     local output
-    output=$(run_mfe -r -s pipe-table "$SAMPLES_DIR/sql-result/basic.txt")
-    assert_contains "$output" "row1.id 1" "should extract first row id"
-    assert_contains "$output" "row1.username alice" "should extract first username"
-    assert_contains "$output" "row2.score 87" "should extract second score"
-}
-
-test_pt_sql_values () {
-    local output
-    output=$(run_mfe -r -s pipe-table "$SAMPLES_DIR/sql-result/basic.txt")
-    assert_contains "$output" "row2.username bob" "should extract bob"
-    assert_contains "$output" "row3.username charlie" "should extract charlie"
-    assert_contains "$output" "row3.score 92" "should extract third score"
+    output=$(run_mfe -d -s pipe-table "$SAMPLES_DIR/sql-result/basic.txt" 2>&1)
+    assert_contains "$output" "not applicable" "pipe-table should decline +---+ box tables"
 }
 
 # --- Markdown style (|---| separators) ---
@@ -74,17 +65,14 @@ test_pt_not_detected_for_json () {
 
 # --- Inline input tests ---
 
-test_pt_sql_inline () {
+test_pt_declines_sql_box_inline () {
     local tmpfile
     tmpfile=$(mktemp)
     printf '+------+-------+\n| host | port  |\n+------+-------+\n| web1 | 80    |\n| db1  | 5432  |\n+------+-------+\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s pipe-table "$tmpfile")
+    output=$(run_mfe -d -s pipe-table "$tmpfile" 2>&1)
     rm -f "$tmpfile"
-    assert_contains "$output" "row1.host web1" "should extract SQL row1 host"
-    assert_contains "$output" "row1.port 80" "should extract SQL row1 port"
-    assert_contains "$output" "row2.host db1" "should extract SQL row2 host"
-    assert_contains "$output" "row2.port 5432" "should extract SQL row2 port"
+    assert_contains "$output" "not applicable" "pipe-table should decline an inline +---+ box"
 }
 
 test_pt_markdown_inline () {
@@ -100,14 +88,13 @@ test_pt_markdown_inline () {
     assert_contains "$output" "Age 25" "should extract markdown Age 25"
 }
 
-run_test "pipe-table: SQL basic extraction" test_pt_sql_basic
-run_test "pipe-table: SQL specific values" test_pt_sql_values
+run_test "pipe-table: declines +---+ box (psql-table owns it)" test_pt_declines_sql_box
 run_test "pipe-table: Markdown basic extraction" test_pt_markdown_basic
 run_test "pipe-table: Markdown multiple rows" test_pt_markdown_multiple_rows
 run_test "pipe-table: Markdown field selection" test_pt_markdown_field_selection
 run_test "pipe-table: Markdown row groups" test_pt_markdown_row_groups
 run_test "pipe-table: not detected for JSON" test_pt_not_detected_for_json
-run_test "pipe-table: SQL inline input" test_pt_sql_inline
+run_test "pipe-table: declines inline +---+ box" test_pt_declines_sql_box_inline
 run_test "pipe-table: Markdown inline input" test_pt_markdown_inline
 
 print_summary

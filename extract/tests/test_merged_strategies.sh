@@ -84,14 +84,16 @@ test_exposition_openmetrics_input () {
 ################################################################################
 
 test_pipe_table_sql_result_input () {
+    # +---+ box tables are now owned by psql-table (pipe-table declines them so
+    # its title-banner-mangling flatten parser no longer shadows the box parser).
     local tmpfile output rc
     tmpfile=$(mktemp)
     # SQL result format with +-+ borders
     printf '+------+-----+\n| Name | Age |\n+------+-----+\n| Alice|  30 |\n| Bob  |  25 |\n+------+-----+\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s pipe-table "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_mfe -r -s psql-table "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
-    assert_exit_zero "$rc" "pipe-table should handle SQL result format"
+    assert_exit_zero "$rc" "psql-table should handle SQL result box format"
     assert_contains "$output" "Name" "should extract Name from SQL result"
 }
 
