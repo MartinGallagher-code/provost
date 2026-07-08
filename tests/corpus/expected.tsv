@@ -22,7 +22,6 @@ docker-ps	table	2	7
 who	table	3	3
 netstat-tulpn	table	3	6
 top	table	3	12
-dmesg	table	4	2
 systemctl-list	table	4	5
 ip-route	table	3	3
 proc-meminfo	kv	-	7
@@ -948,7 +947,6 @@ cgget	kv	-	4
 seinfo	kv	-	4
 sesearch	table	6	5
 getsebool-a	table	8	1
-ausearch-avc	kv	-	4
 aureport-summary	kv	-	4
 iptables-nvL	table	6	7
 iptables-nat	table	6	3

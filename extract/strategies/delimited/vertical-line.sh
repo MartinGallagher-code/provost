@@ -10,7 +10,26 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=70
     # Apply if input contains a separator line (--- or === repeated)
-    [[ "$text" =~ (^|$'\n')[-=]{3,} ]]
+    [[ "$text" =~ (^|$'\n')[-=]{3,} ]] || return 1
+
+    # Decline a `label: value` key/value block that merely carries a `===`/`---`
+    # banner (aureport --summary, `duplicity collection-status`). vertical-line
+    # would split the banner's title line into positional columns and shred the
+    # values; the `colons` parser tidies these to one field per label. Examine the
+    # lines below the FIRST separator (the data region) — if most are `label: value`,
+    # defer.
+    local seen_sep=0 nb=0 kv=0 _l
+    while IFS= read -r _l; do
+        if [[ $seen_sep -eq 0 ]]; then
+            [[ "$_l" =~ ^[-=]{3,} ]] && seen_sep=1
+            continue
+        fi
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        nb=$((nb + 1))
+        [[ "$_l" =~ ^[[:space:]]*[A-Za-z][^:]*:[[:space:]] ]] && kv=$((kv + 1))
+    done <<< "$text"
+    [[ $nb -ge 2 && $(( kv * 100 / nb )) -ge 60 ]] && return 1
+    return 0
 }
 
 strategy_extract () {

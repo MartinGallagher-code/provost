@@ -1,5 +1,29 @@
 # glean — Changelog
 
+## 2026-07-09 — parse-wrong tail (clusters 2–3): ip-link parser, colon routing, text-inputs
+- **New `ip-link` parser** (`extract/strategies/network/ip-link.sh`, + sample +
+  golden) for iproute2 `ip addr` / `ip link`. Parses the multi-line per-interface
+  stanza into one tidy row per interface — `index, name, flags, mtu, qdisc, state,
+  group, qlen, mac, inet, inet6`. Previously `indented-hierarchy` transposed the
+  whole thing into a single mangled wide row. (Bespoke, so it improves real
+  full-mode `glean`; the `--generic` corpus goldens are unaffected.)
+- **`vertical-line` declines `label: value` blocks that merely carry a `===`/`---`
+  banner** → routed to `colons`. Fixes `aureport --summary` and
+  `duplicity collection-status` (were shredded into positional columns off the
+  banner's title line), and incidentally un-mangles `nodetool-tablestats` (its old
+  golden was `vertical-line` garbage; now a clean `colons` kv record). File:
+  `extract/strategies/delimited/vertical-line.sh`; goldens regenerated.
+- **Routed genuine logs to `tests/corpus/text-inputs/`**: `dmesg` (kernel ring
+  buffer) and `ausearch-avc` (audit log) are free-form log streams with no tidy
+  target — moved out of the corpus (manifest row + golden dropped), per the
+  established just-text policy.
+
+Verified: extract 213/213, smoke 49/49, melt 8/8, corpus golden 980/0 (1040 tools).
+Still deferred (need dedicated bespoke parsers — documented in `HANDOFF.md`):
+`ifconfig`/`iwconfig` (RX/TX field collisions, inline `key:value`), `git-diff-stat`,
+`gradle-q-dependencies`, `gpg-list-secret-keys`, and the record-vs-wide-row /
+colon-in-value groups.
+
 ## 2026-07-09 — parse-wrong tail (cluster 1): route shadowed tools to correct parsers
 Working the documented parse-wrong tail; the clean, verified wins in this batch:
 - **`git-config-list` → `equals`.** The `equals` detect key class excluded `.`, so

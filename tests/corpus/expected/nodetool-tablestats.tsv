@@ -1,19 +1,2 @@
-n	Total	number	of	tables:	38	total_entries
-1	Keysp	ace : e	com	merce		2301
-2		Read	Count:	14		2301
-3	52301		Read	Latenc		2301
-4	y:	0.152 ms		Writ		2301
-5	e Count	: 8	92344		Writ	2301
-6	e Laten	cy:	0.045 m	s		2301
-7		Pend	ing Flu			2301
-8	she	s: 0				2301
-9	Tab	le: ord	ers			2301
-10	SST	able co	unt	: 4		2301
-11		Spa	ce used	(l	ive): 10	2301
-12	48576			Spa	ce used	2301
-13	(t	otal): 1	048576			2301
-14	Num	ber of	par	titions	(estimate): 120453	2301
-15			Mem	table c	ell	2301
-16	count:	3421			Mem	2301
-17	table d	ata	size: 2	62144		2301
-18		Loc	al read	co	unt: 145	2301
+Total_number_of_tables	Keyspace	Read_Count	Read_Latency	Write_Count	Write_Latency	Pending_Flushes	Table	SSTable_count	Space_used_(live)	Space_used_(total)	Number_of_partitions_(estimate)	Memtable_cell_count	Memtable_data_size	Local_read_count	Local_read_latency	Bloom_filter_false_positives	Bloom_filter_false_ratio	Compacted_partition_maximum_bytes
+38	ecommerce	1452301	0.152 ms	892344	0.045 ms	0	orders	4	1048576	1048576	120453	3421	262144	1452301	0.148 ms	12	0.00001	545791
