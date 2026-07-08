@@ -33,7 +33,6 @@ strategy_extract () {
         local flag="${line:1:1}" name status
         name="${line:4}"
         while [[ "$name" == " "* ]]; do name="${name# }"; done
-        name="${name// /_}"
         if [[ "$flag" == "X" ]]; then status="applied"; else status="pending"; fi
         entry=$((entry + 1))
         result+="entry${entry}.status ${status}"$'\n'

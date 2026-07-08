@@ -102,7 +102,6 @@ strategy_extract () {
                 local value="${cells[$j]:-}"
                 name="${name// /_}"
                 name="${name//./_}"   # '.' would break the tidy melt's group split
-                value="${value// /_}"
                 [[ -z "$name" ]] && continue
                 [[ -z "$value" ]] && continue
                 # Both styles emit indexed row groups (row<N>.<field>) so the

@@ -167,10 +167,10 @@ strategy_extract () {
                 val="${line:$cs:$clen}"
             fi
 
-            # Trim whitespace and replace spaces with underscores
+            # Trim edges; spaces inside the value are preserved (the engine keeps
+            # everything after the first space as the value).
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
-            val="${val// /_}"
             [[ -z "$val" ]] && continue
 
             result+="row${row_num}.${hdr} ${val}"$'\n'

@@ -123,7 +123,7 @@ strategy_extract () {
         entry=$((entry + 1))
         for ((i = 0; i < num_cols; i++)); do
             val="${_PSQL_CELLS[$i]}"
-            _psql_trim "$val"; val="$_PSQL_TRIM"; val="${val// /_}"
+            _psql_trim "$val"; val="$_PSQL_TRIM"
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done

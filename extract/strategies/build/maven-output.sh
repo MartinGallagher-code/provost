@@ -64,8 +64,6 @@ strategy_extract () {
                 local rest="${line#*Total time:}"
                 # Trim leading whitespace
                 while [[ "$rest" == " "* ]]; do rest="${rest# }"; done
-                # Replace spaces with underscores
-                rest="${rest// /_}"
                 result+="build.time ${rest}"$'\n'
                 ;;
         esac
@@ -75,7 +73,6 @@ strategy_extract () {
             *"Final Memory:"*)
                 local rest="${line#*Final Memory:}"
                 while [[ "$rest" == " "* ]]; do rest="${rest# }"; done
-                rest="${rest// /_}"
                 result+="build.memory ${rest}"$'\n'
                 ;;
         esac

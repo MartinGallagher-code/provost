@@ -42,8 +42,6 @@ strategy_extract () {
         if [[ "$line" == "Model Family:"* ]]; then
             local val="${line#*:}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            # Replace spaces with underscores for field value
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="Model_Family ${val}"$'\n'
             continue
         fi
@@ -73,7 +71,6 @@ strategy_extract () {
             else
                 # Replace spaces/commas for cleaner value
                 val="${val//,/}"
-                val="${val// /_}"
                 result+="User_Capacity ${val}"$'\n'
             fi
             continue

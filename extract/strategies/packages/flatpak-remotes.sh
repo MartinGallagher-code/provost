@@ -39,8 +39,8 @@ strategy_extract () {
         opts="${opts%"${opts##*[![:space:]]}"}"
         [[ -z "$name" ]] && continue
         entry=$((entry + 1))
-        result+="entry${entry}.name ${name// /_}"$'\n'
-        result+="entry${entry}.options ${opts// /_}"$'\n'
+        result+="entry${entry}.name ${name}"$'\n'
+        result+="entry${entry}.options ${opts}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

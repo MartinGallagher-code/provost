@@ -37,7 +37,6 @@ strategy_extract () {
         s="${s//$'\xe2\x94\x80'/}"
         # Trim leading whitespace.
         while [[ "$s" == " "* || "$s" == $'\t'* ]]; do s="${s#[$' \t']}"; done
-        s="${s// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.c1 ${s}"$'\n'
     done <<< "$text"

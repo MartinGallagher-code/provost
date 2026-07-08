@@ -68,7 +68,6 @@ strategy_extract () {
         if [[ "$line" == *"Compiler version"* ]]; then
             local val="${line##*: }"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="compiler_version ${val}"$'\n'
             continue
         fi
@@ -77,7 +76,6 @@ strategy_extract () {
         if [[ "$line" == *"Compiler flags"* ]]; then
             local val="${line##*: }"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="compiler_flags ${val}"$'\n'
             continue
         fi

@@ -149,8 +149,6 @@ _strat_sqlite_extract_pipe () {
             # Trim whitespace
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
-            # Replace spaces with underscores
-            val="${val// /_}"
 
             if [[ $col_idx -lt ${#headers[@]} ]]; then
                 local col_name="${headers[$col_idx]}"
@@ -264,8 +262,6 @@ _strat_sqlite_extract_column () {
             # Trim whitespace
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
-            # Replace spaces with underscores
-            val="${val// /_}"
             [[ -z "$val" ]] && continue
 
             local col_name="${headers[$i]}"

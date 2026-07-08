@@ -41,8 +41,7 @@ strategy_extract () {
         sha="${rest%%[[:space:]]*}"
         message="${rest#*[[:space:]]}"
         message="${message#"${message%%[![:space:]]*}"}"
-        sha="${sha// /_}"
-        message="${message// /_}"; message="${message//$'\t'/_}"
+        message="${message//$'\t'/_}"
         entry=$((entry + 1))
         result+="entry${entry}.commit ${sha}"$'\n'
         result+="entry${entry}.message ${message}"$'\n'

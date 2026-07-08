@@ -63,11 +63,6 @@ strategy_extract () {
         done
         info="${info%" "}"
 
-        # Sanitise values: spaces -> underscore
-        src="${src// /_}"
-        dst="${dst// /_}"
-        info="${info// /_}"
-
         entry=$((entry + 1))
         result+="entry${entry}.no ${no}"$'\n'
         result+="entry${entry}.time ${time}"$'\n'

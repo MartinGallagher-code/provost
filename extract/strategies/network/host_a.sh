@@ -43,7 +43,7 @@ strategy_extract () {
             entry=$((entry + 1))
             result+="entry${entry}.name ${nm}"$'\n'
             result+="entry${entry}.type A"$'\n'
-            result+="entry${entry}.value ${v// /_}"$'\n'
+            result+="entry${entry}.value ${v}"$'\n'
             continue
         fi
         if [[ "$line" == *" has IPv6 address "* ]]; then
@@ -51,7 +51,7 @@ strategy_extract () {
             entry=$((entry + 1))
             result+="entry${entry}.name ${nm}"$'\n'
             result+="entry${entry}.type AAAA"$'\n'
-            result+="entry${entry}.value ${v// /_}"$'\n'
+            result+="entry${entry}.value ${v}"$'\n'
             continue
         fi
         if [[ "$line" == *" mail is handled by "* ]]; then
@@ -59,7 +59,7 @@ strategy_extract () {
             entry=$((entry + 1))
             result+="entry${entry}.name ${nm}"$'\n'
             result+="entry${entry}.type MX"$'\n'
-            result+="entry${entry}.value ${v// /_}"$'\n'
+            result+="entry${entry}.value ${v}"$'\n'
             continue
         fi
 
@@ -71,7 +71,6 @@ strategy_extract () {
         for ((i=4; i<${#f[@]}; i++)); do
             if [[ -z "$val" ]]; then val="${f[$i]}"; else val="${val}_${f[$i]}"; fi
         done
-        val="${val// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.name ${f[0]}"$'\n'
         result+="entry${entry}.ttl ${f[1]}"$'\n'

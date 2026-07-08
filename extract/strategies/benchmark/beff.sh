@@ -91,7 +91,6 @@ strategy_extract () {
         if [[ "$line" == *"msglen"*"="* ]]; then
             local _val="${line##*=}"
             while [[ "$_val" == " "* ]]; do _val="${_val# }"; done
-            _val="${_val// /_}"
             [[ -n "$_val" ]] && result+="msglen_range ${_val}"$'\n'
             continue
         fi

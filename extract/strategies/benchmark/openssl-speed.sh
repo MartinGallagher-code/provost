@@ -123,7 +123,6 @@ _strat_openssl_speed_extract_version () {
     # Remove everything after the parenthetical, trim
     local result="${line%% (Library:*}"
     while [[ "$result" == *" " ]]; do result="${result% }"; done
-    result="${result// /_}"
     echo "$result"
 }
 

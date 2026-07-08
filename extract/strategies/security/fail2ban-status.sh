@@ -64,7 +64,6 @@ strategy_extract () {
             key="${key// /_}"
             # Lowercase key
             key="${key,,}"
-            val="${val// /_}"
             [[ -z "$val" ]] && continue
             if [[ -n "$section" ]]; then
                 result+="${section}.${key} ${val}"$'\n'

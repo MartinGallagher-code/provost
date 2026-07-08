@@ -63,7 +63,6 @@ strategy_extract () {
 
         while [[ "$value" == " "* ]]; do value="${value# }"; done
         while [[ "$value" == *" " ]]; do value="${value% }"; done
-        value="${value// /_}"
 
         # Skip if value is empty
         [[ -z "$value" ]] && continue

@@ -37,7 +37,6 @@ strategy_extract () {
         if [[ "$stripped" == "Command:"* ]]; then
             local cmd="${stripped#Command:}"
             while [[ "$cmd" == " "* ]]; do cmd="${cmd# }"; done
-            cmd="${cmd// /_}"
             result+="command ${cmd}"$'\n'
             continue
         fi
@@ -46,7 +45,6 @@ strategy_extract () {
         if [[ "$stripped" == *"in use at exit:"* ]]; then
             local heap_use="${stripped#*in use at exit:}"
             while [[ "$heap_use" == " "* ]]; do heap_use="${heap_use# }"; done
-            heap_use="${heap_use// /_}"
             result+="heap_in_use ${heap_use}"$'\n'
             continue
         fi
@@ -67,7 +65,6 @@ strategy_extract () {
         if [[ "$stripped" == *"definitely lost:"* ]]; then
             local val="${stripped#*definitely lost:}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             result+="definitely_lost ${val}"$'\n'
             continue
         fi
@@ -75,7 +72,6 @@ strategy_extract () {
         if [[ "$stripped" == *"indirectly lost:"* ]]; then
             local val="${stripped#*indirectly lost:}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             result+="indirectly_lost ${val}"$'\n'
             continue
         fi
@@ -83,7 +79,6 @@ strategy_extract () {
         if [[ "$stripped" == *"possibly lost:"* ]]; then
             local val="${stripped#*possibly lost:}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             result+="possibly_lost ${val}"$'\n'
             continue
         fi
@@ -91,7 +86,6 @@ strategy_extract () {
         if [[ "$stripped" == *"still reachable:"* ]]; then
             local val="${stripped#*still reachable:}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             result+="still_reachable ${val}"$'\n'
             continue
         fi

@@ -72,7 +72,6 @@ strategy_extract () {
                         ;;
                 esac
 
-                task_name="${task_name// /_}"
                 result+="task${task_num}.name ${task_name}"$'\n'
                 result+="task${task_num}.status ${task_status}"$'\n'
                 ;;
@@ -84,7 +83,6 @@ strategy_extract () {
                 result+="build.result SUCCESS"$'\n'
                 local rest="${line#BUILD SUCCESSFUL in }"
                 if [[ "$rest" != "$line" ]]; then
-                    rest="${rest// /_}"
                     result+="build.time ${rest}"$'\n'
                 fi
                 ;;
@@ -92,7 +90,6 @@ strategy_extract () {
                 result+="build.result FAILED"$'\n'
                 local rest="${line#BUILD FAILED in }"
                 if [[ "$rest" != "$line" ]]; then
-                    rest="${rest// /_}"
                     result+="build.time ${rest}"$'\n'
                 fi
                 ;;

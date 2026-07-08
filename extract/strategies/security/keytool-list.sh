@@ -23,7 +23,6 @@ _kt_trim () {
 _kt_sanitize_val () {
     local v; v="$(_kt_trim "$1")"
     v="${v//$'\t'/_}"
-    v="${v// /_}"
     printf '%s' "$v"
 }
 

@@ -74,8 +74,7 @@ strategy_extract () {
             while [[ "$name" == " "* ]]; do name="${name# }"; done
             while [[ "$name" == *" " ]]; do name="${name% }"; done
 
-            # Replace spaces/special chars in name with underscores
-            name="${name// /_}"
+            # Replace dashes in name with underscores
             name="${name//-/_}"
 
             # Root crate (entry1) and every dependency are records on equal

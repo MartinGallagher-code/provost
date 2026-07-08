@@ -51,8 +51,6 @@ strategy_extract () {
             [[ -n "$name" ]] && name+="_"
             name+="${_f[$i]}"
         done
-        number="${number// /_}"; start="${start// /_}"; end="${end// /_}"
-        size="${size// /_}"; fs="${fs// /_}"; name="${name// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.number ${number}"$'\n'
         result+="entry${entry}.start ${start}"$'\n'

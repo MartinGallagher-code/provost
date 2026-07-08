@@ -117,7 +117,5 @@ _strat_cuda_bw_extract_device () {
     if [[ "$line" =~ Device\ [0-9]+:\ (.*) ]]; then
         name="${BASH_REMATCH[1]}"
     fi
-    # Replace spaces with underscores for field value
-    name="${name// /_}"
     echo "$name"
 }

@@ -53,10 +53,6 @@ strategy_extract () {
             continue
         fi
 
-        # Replace spaces with underscores in module paths (shouldn't have any, but be safe)
-        from_mod="${from_mod// /_}"
-        to_mod="${to_mod// /_}"
-
         edge_num=$((edge_num + 1))
         result+="edge${edge_num}.from ${from_mod}"$'\n'
         result+="edge${edge_num}.to ${to_mod}"$'\n'

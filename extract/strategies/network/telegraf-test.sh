@@ -11,7 +11,7 @@
 #   > measurement,tag=v,... field=v,... <timestamp>
 # Emit ONE record per point: measurement, tag set, field set, and timestamp.
 
-_tt_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_tt_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

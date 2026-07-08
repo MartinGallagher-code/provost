@@ -28,9 +28,8 @@ strategy_extract () {
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
         n=$((n + 1))
-        # Single-column: whole tree line, spaces sanitised to underscores.
-        local v="${line// /_}"
-        result+="entry${n}.c1 ${v}"$'\n'
+        # Single-column: whole tree line is the value (internal spaces preserved).
+        result+="entry${n}.c1 ${line}"$'\n'
     done <<< "$text"
 
     result+="total_entries ${n}"$'\n'

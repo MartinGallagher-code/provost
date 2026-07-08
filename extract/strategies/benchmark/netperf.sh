@@ -33,7 +33,6 @@ strategy_extract () {
         # Extract test name between MIGRATED and TEST
         local after="${test_line#*MIGRATED }"
         test_type="${after%% TEST*}"
-        test_type="${test_type// /_}"
         [[ -n "$test_type" ]] && result+="test_type ${test_type}"$'\n'
     fi
 

@@ -65,7 +65,6 @@ strategy_extract () {
             mapping+="${f[$j]} "; j=$((j + 1))
         done
         mapping="${mapping% }"
-        mapping="${mapping// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.address ${address}"$'\n'
         result+="entry${entry}.kbytes ${kbytes}"$'\n'

@@ -52,10 +52,5 @@ _strat_proc_stat_extract_value () {
     # Get everything after the colon, trim leading whitespace
     local raw="${line#*:}"
     while [[ "$raw" == " "* ]]; do raw="${raw# }"; done
-    # Replace spaces with underscores (e.g., "16384000 kB" -> "16384000_kB")
-    raw="${raw// /_}"
-    # Strip leading/trailing underscores
-    raw="${raw#_}"
-    raw="${raw%_}"
     echo "$raw"
 }

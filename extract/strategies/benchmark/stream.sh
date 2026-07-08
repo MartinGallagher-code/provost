@@ -55,7 +55,6 @@ strategy_extract () {
         _after="${_after//(/}"
         _after="${_after//)/}"
         _after="${_after//./}"
-        _after="${_after// /_}"
         # Strip trailing underscore
         while [[ "$_after" == *"_" ]]; do _after="${_after%_}"; done
         [[ -n "$_after" ]] && result+="total_memory ${_after}"$'\n'

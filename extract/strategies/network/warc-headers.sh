@@ -48,9 +48,6 @@ strategy_extract () {
                 # Skip empty values
                 [[ -z "$value" ]] && continue
 
-                # Replace spaces in value with underscores
-                value="${value// /_}"
-
                 result+="${key} ${value}"$'\n'
             fi
         fi

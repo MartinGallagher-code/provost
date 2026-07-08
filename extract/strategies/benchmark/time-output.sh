@@ -47,16 +47,10 @@ strategy_extract () {
         if [[ "$line" == *"Maximum resident set size"* ]]; then
             local val="${line##*: }"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
-            val="${val#_}"
-            val="${val%_}"
             [[ -n "$val" ]] && result+="Maximum_resident_set_size ${val}"$'\n'
         elif [[ "$line" == *"Elapsed"*"wall"*"clock"* ]]; then
             local val="${line##*: }"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
-            val="${val#_}"
-            val="${val%_}"
             [[ -n "$val" ]] && result+="Elapsed_wall_clock_time ${val}"$'\n'
         fi
     done <<< "$text"

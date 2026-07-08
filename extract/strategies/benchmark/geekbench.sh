@@ -42,21 +42,18 @@ strategy_extract () {
         if [[ "$line" == *"Operating System"* ]]; then
             local val="${line##*Operating System}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="operating_system ${val}"$'\n'
             continue
         fi
         if [[ "$line" == *"Model"* ]] && [[ "$line" != *"Model Name"* ]]; then
             local val="${line##*Model}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="model ${val}"$'\n'
             continue
         fi
         if [[ "$line" == *"Processor"* ]]; then
             local val="${line##*Processor}"
             while [[ "$val" == " "* ]]; do val="${val# }"; done
-            val="${val// /_}"
             [[ -n "$val" ]] && result+="processor ${val}"$'\n'
             continue
         fi

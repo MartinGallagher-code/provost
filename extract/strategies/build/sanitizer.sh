@@ -34,7 +34,6 @@ strategy_extract () {
             local _after_error="${line#*ERROR:}"
             while [[ "$_after_error" == " "* ]]; do _after_error="${_after_error# }"; done
             sanitizer="${_after_error%%:*}"
-            sanitizer="${sanitizer// /_}"
             result+="sanitizer ${sanitizer}"$'\n'
 
             # Extract error type (word after sanitizer name and colon)

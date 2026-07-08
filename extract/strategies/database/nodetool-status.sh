@@ -11,7 +11,7 @@
 # Rack`. Each data row starts with a 2-char status code (U/D + N/L/J/M) and the
 # Load column is "<num> <unit>" (two tokens). Emit ONE record per node row.
 
-_ns_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_ns_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

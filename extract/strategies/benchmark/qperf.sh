@@ -77,7 +77,5 @@ _strat_qperf_extract_field_value () {
     # Collapse multiple spaces: use read to split and rejoin
     read -ra _arr <<< "$value"
     value="${_arr[*]}"
-    # Replace spaces with underscores
-    value="${value// /_}"
     echo "$value"
 }

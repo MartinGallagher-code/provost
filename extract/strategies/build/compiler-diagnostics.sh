@@ -24,9 +24,6 @@ _strat_compiler_diagnostics_parse_line () {
         message="${BASH_REMATCH[5]}"
     fi
 
-    # Replace spaces in message with underscores
-    message="${message// /_}"
-
     echo "diag${num}.file ${file}"
     echo "diag${num}.line ${lineno}"
     echo "diag${num}.column ${col}"

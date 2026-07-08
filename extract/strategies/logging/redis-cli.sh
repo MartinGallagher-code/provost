@@ -112,8 +112,6 @@ strategy_extract () {
                 # Trim whitespace from value
                 while [[ "$val" == " "* ]]; do val="${val# }"; done
                 while [[ "$val" == *" " ]]; do val="${val% }"; done
-                # Replace spaces with underscores
-                val="${val// /_}"
                 [[ -z "$val" ]] && continue
                 result+="${key} ${val}"$'\n'
                 continue
@@ -130,7 +128,6 @@ strategy_extract () {
                 val="${val#\"}"
                 val="${val%\"}"
             fi
-            val="${val// /_}"
             result+="item${item_num} ${val}"$'\n'
             continue
         fi

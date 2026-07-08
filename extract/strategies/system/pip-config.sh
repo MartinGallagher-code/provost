@@ -43,7 +43,7 @@ strategy_extract () {
         key="${key// /_}"
         [[ -z "$key" ]] && continue
         entry=$((entry + 1))
-        result+="entry1.${key} ${val// /_}"$'\n'
+        result+="entry1.${key} ${val}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"

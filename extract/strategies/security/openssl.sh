@@ -42,7 +42,6 @@ strategy_extract () {
         if [[ "$trimmed" == "Serial Number:"* ]]; then
             local serial="${trimmed#Serial Number:}"
             while [[ "$serial" == " "* ]]; do serial="${serial# }"; done
-            serial="${serial// /_}"
             result+="serial_number ${serial}"$'\n'
             continue
         fi
@@ -51,7 +50,6 @@ strategy_extract () {
         if [[ "$trimmed" == "Signature Algorithm:"* ]]; then
             local sig_alg="${trimmed#Signature Algorithm:}"
             while [[ "$sig_alg" == " "* ]]; do sig_alg="${sig_alg# }"; done
-            sig_alg="${sig_alg// /_}"
             result+="signature_algorithm ${sig_alg}"$'\n'
             continue
         fi

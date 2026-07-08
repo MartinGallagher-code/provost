@@ -165,7 +165,6 @@ _strat_spec_cpu_extract_suite () {
     # Remove " Result" and everything after
     local result_type="${_after%% Result*}"
     while [[ "$result_type" == *" " ]]; do result_type="${result_type% }"; done
-    result_type="${result_type// /_}"
     if [[ -n "$result_type" ]]; then
         echo "SPEC_CPU_2017_${result_type}"
     else
@@ -179,7 +178,6 @@ _strat_spec_cpu_after_colon () {
     local val="${line##*:}"
     while [[ "$val" == " "* ]]; do val="${val# }"; done
     while [[ "$val" == *" " ]]; do val="${val% }"; done
-    val="${val// /_}"
     echo "$val"
 }
 

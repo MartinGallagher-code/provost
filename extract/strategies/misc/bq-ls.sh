@@ -38,8 +38,8 @@ strategy_extract () {
         type="${type%"${type##*[![:space:]]}"}"
         [[ -z "$id" ]] && continue
         entry=$((entry + 1))
-        result+="entry${entry}.tableid ${id// /_}"$'\n'
-        result+="entry${entry}.type ${type// /_}"$'\n'
+        result+="entry${entry}.tableid ${id}"$'\n'
+        result+="entry${entry}.type ${type}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

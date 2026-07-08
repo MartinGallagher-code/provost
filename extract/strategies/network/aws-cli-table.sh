@@ -89,8 +89,6 @@ strategy_extract () {
                 for ((j=0; j<${#headers[@]}; j++)); do
                     local name="${headers[$j]}"
                     local value="${_CELLS[$j]:-}"
-                    # Replace spaces with underscores in values
-                    value="${value// /_}"
                     [[ -z "$name" ]] && continue
                     [[ -z "$value" ]] && continue
                     result+="${prefix}.${name} ${value}"$'\n'

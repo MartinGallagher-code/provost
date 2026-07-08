@@ -53,8 +53,6 @@ strategy_extract () {
         name="$(_zs_trim "${cols[1]}")"
         summary="$(_zs_trim "${cols[2]}")"
         type="$(_zs_trim "${cols[3]}")"
-        status="${status// /_}"
-        summary="${summary// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.status ${status}"$'\n'
         result+="entry${entry}.name ${name}"$'\n'

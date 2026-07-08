@@ -47,9 +47,9 @@ strategy_extract () {
         fi
         [[ -z "$key" ]] && continue
 
-        # Sanitise spaces to underscores in both key and value.
+        # Sanitise spaces to underscores in the key (field name) only; the value
+        # keeps its internal spaces.
         key="${key// /_}"
-        val="${val// /_}"
         result+="entry1.${key} ${val}"$'\n'
     done <<< "$text"
 

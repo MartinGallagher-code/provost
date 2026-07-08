@@ -73,7 +73,6 @@ strategy_extract () {
 
             # Remainder is the path
             local _path="$_rest"
-            _path="${_path// /_}"
 
             result+="entry${_entry_num}.permissions ${_perms}"$'\n'
             result+="entry${_entry_num}.owner ${_owner}"$'\n'

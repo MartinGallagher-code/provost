@@ -54,9 +54,6 @@ strategy_extract () {
                     fi
                 done
 
-                name="${name// /_}"
-                value="${value// /_}"
-
                 result+="record${record_num}.name ${name}"$'\n'
                 result+="record${record_num}.ttl ${ttl}"$'\n'
                 result+="record${record_num}.type ${rtype}"$'\n'
@@ -69,7 +66,6 @@ strategy_extract () {
         if [[ "$line" == ";; Query time:"* ]]; then
             local qtime="${line#;; Query time: }"
             while [[ "$qtime" == " "* ]]; do qtime="${qtime# }"; done
-            qtime="${qtime// /_}"
             result+="query_time ${qtime}"$'\n'
         fi
 
@@ -78,7 +74,6 @@ strategy_extract () {
             while [[ "$server" == " "* ]]; do server="${server# }"; done
             # Extract just the IP (before #)
             server="${server%%#*}"
-            server="${server// /_}"
             result+="server ${server}"$'\n'
         fi
 

@@ -119,7 +119,6 @@ strategy_extract () {
             [[ -n "$_source" ]] && result+="${_prefix}.source ${_source}"$'\n'
             [[ -n "$_dest" ]] && result+="${_prefix}.destination ${_dest}"$'\n'
             if [[ -n "$_extra" ]]; then
-                _extra="${_extra// /_}"
                 result+="${_prefix}.extra ${_extra}"$'\n'
             fi
         fi

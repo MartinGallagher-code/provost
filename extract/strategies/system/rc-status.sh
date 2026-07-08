@@ -49,9 +49,6 @@ strategy_extract () {
         status="${status%%]*}"
         status="${status//[[:space:]]/}"
 
-        service="${service// /_}"
-        status="${status// /_}"
-
         entry=$((entry + 1))
         result+="entry${entry}.service ${service}"$'\n'
         result+="entry${entry}.status ${status}"$'\n'

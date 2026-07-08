@@ -35,7 +35,6 @@ strategy_extract () {
         s="${line##*+-}"
         s="${s#"${s%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
-        s="${s// /_}"
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.c1 ${s}"$'\n'

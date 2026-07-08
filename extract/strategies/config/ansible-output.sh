@@ -37,7 +37,6 @@ strategy_extract () {
             _play_num=$((_play_num + 1))
             local _pname="${line#PLAY \[}"
             _pname="${_pname%%\]*}"
-            _pname="${_pname// /_}"
             result+="play${_play_num}.name ${_pname}"$'\n'
             _in_recap=0
             continue
@@ -60,7 +59,6 @@ strategy_extract () {
                 local _hostname="${line%%:*}"
                 # Trim trailing spaces
                 while [[ "$_hostname" == *" " ]]; do _hostname="${_hostname% }"; done
-                _hostname="${_hostname// /_}"
 
                 result+="host${_host_num}.name ${_hostname}"$'\n'
 

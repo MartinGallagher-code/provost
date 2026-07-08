@@ -36,7 +36,6 @@ strategy_extract () {
             if [[ "$status_text" == "$line" ]]; then
                 status_text=""
             fi
-            status_text="${status_text// /_}"
             result+="HTTP-Status ${status_code}"$'\n'
             [[ -n "$status_text" ]] && result+="HTTP-Status-Text ${status_text}"$'\n'
             continue
@@ -60,7 +59,6 @@ strategy_extract () {
                 fi
                 # Trim leading spaces from value
                 while [[ "$value" == " "* ]]; do value="${value# }"; done
-                value="${value// /_}"
                 [[ -z "$value" ]] && continue
                 result+="${key} ${value}"$'\n'
             fi

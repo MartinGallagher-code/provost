@@ -54,7 +54,6 @@ strategy_extract () {
             local _paren_re='\(([^)]*)\)'
             if [[ "$line" =~ $_paren_re ]]; then
                 throughput="${BASH_REMATCH[1]}"
-                throughput="${throughput// /_}"
             fi
             [[ -n "$bytes" ]] && result+="bytes_transferred ${bytes}"$'\n'
             [[ -n "$time_s" ]] && result+="time_seconds ${time_s}"$'\n'

@@ -30,7 +30,6 @@ _gpgcs_val () {
     v="${v//$'\t'/ }"
     while [[ "$v" == *"  "* ]]; do v="${v//  / }"; done
     v="${v# }"; v="${v% }"
-    v="${v// /_}"
     printf '%s' "$v"
 }
 

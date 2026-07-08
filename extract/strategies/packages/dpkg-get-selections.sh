@@ -40,8 +40,8 @@ strategy_extract () {
         status="${line##*[[:space:]]}"
         [[ -z "$pkg" ]] && continue
         entry=$((entry + 1))
-        result+="entry${entry}.package ${pkg// /_}"$'\n'
-        result+="entry${entry}.status ${status// /_}"$'\n'
+        result+="entry${entry}.package ${pkg}"$'\n'
+        result+="entry${entry}.status ${status}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

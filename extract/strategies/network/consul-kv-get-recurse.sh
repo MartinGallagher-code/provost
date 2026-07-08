@@ -11,7 +11,7 @@
 # for every pair (path separators sanitised to underscores), then
 # total_entries 1.
 
-_ck_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_ck_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 
 strategy_detect () {
     local text="$1"

@@ -24,7 +24,6 @@ _sshdt_sanitize_val () {
     v="${v#"${v%%[![:space:]]*}"}"
     v="${v%"${v##*[![:space:]]}"}"
     v="${v//$'\t'/_}"
-    v="${v// /_}"
     printf '%s' "$v"
 }
 

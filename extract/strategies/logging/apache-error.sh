@@ -34,7 +34,6 @@ strategy_extract () {
         local timestamp=""
         if [[ "$line" =~ ^\[([^\]]*)\] ]]; then
             timestamp="${BASH_REMATCH[1]}"
-            timestamp="${timestamp// /_}"
         fi
         result+="${prefix}.timestamp ${timestamp}"$'\n'
 
@@ -66,7 +65,6 @@ strategy_extract () {
             # Strip leading space
             while [[ "$message" == " "* ]]; do message="${message# }"; done
         done
-        message="${message// /_}"
         if [[ -n "$message" ]]; then
             result+="${prefix}.message ${message}"$'\n'
         fi

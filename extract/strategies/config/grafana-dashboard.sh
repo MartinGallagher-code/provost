@@ -40,8 +40,7 @@ _strat_grafana_extract_jq () {
     local title
     title=$(echo "$text" | jq -r '.title // empty' 2>/dev/null) || true
     if [[ -n "$title" ]]; then
-        local clean="${title// /_}"
-        result+="title ${clean}"$'\n'
+        result+="title ${title}"$'\n'
     fi
 
     local uid

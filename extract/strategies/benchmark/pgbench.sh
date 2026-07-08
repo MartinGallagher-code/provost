@@ -30,7 +30,6 @@ strategy_extract () {
             *"transaction type:"*)
                 local val="${line#*transaction type:}"
                 while [[ "$val" == " "* ]]; do val="${val# }"; done
-                val="${val// /_}"
                 result+="transaction_type ${val}"$'\n' ;;
             *"scaling factor:"*)
                 result+="scaling_factor $(_strat_pgbench_extract_colon "$line")"$'\n' ;;
@@ -93,6 +92,5 @@ _strat_pgbench_extract_equals () {
         val="${line#*=}"
         while [[ "$val" == " "* ]]; do val="${val# }"; done
     fi
-    val="${val// /_}"
     echo "$val"
 }

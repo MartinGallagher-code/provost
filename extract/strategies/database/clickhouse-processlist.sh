@@ -31,12 +31,21 @@ _ch_trim () {
 }
 
 _ch_sanitise () {
-    # Collapse whitespace runs to single underscores.
+    # Collapse whitespace runs to single underscores. Used for column HEADERS,
+    # where the whole label becomes a field NAME.
     local s
     s="$(_ch_trim "$1")"
     s="${s//$'\t'/ }"
     while [[ "$s" == *"  "* ]]; do s="${s//  / }"; done
     printf '%s' "${s// /_}"
+}
+
+_ch_value () {
+    # Sanitise a data cell VALUE: trim edges and map tabs to underscores, but
+    # PRESERVE spaces (the engine keeps everything after the first space intact).
+    local s
+    s="$(_ch_trim "$1")"
+    printf '%s' "${s//$'\t'/_}"
 }
 
 strategy_detect () {
@@ -98,7 +107,7 @@ strategy_extract () {
                 cell="${rest2%%|*}"
                 field="${cols[$idx]:-col$((idx + 1))}"
                 [[ -z "$field" ]] && field="col$((idx + 1))"
-                result+="entry${entry}.${field} $(_ch_sanitise "$cell")"$'\n'
+                result+="entry${entry}.${field} $(_ch_value "$cell")"$'\n'
                 idx=$((idx + 1))
                 [[ "$rest2" == *"|"* ]] || break
                 rest2="${rest2#*|}"

@@ -35,7 +35,6 @@ strategy_extract () {
             array_size="${array_line#*array size:}"
             while [[ "$array_size" == " "* ]]; do array_size="${array_size# }"; done
         fi
-        array_size="${array_size// /_}"
         [[ -n "$array_size" ]] && result+="array_size ${array_size}"$'\n'
     fi
 
