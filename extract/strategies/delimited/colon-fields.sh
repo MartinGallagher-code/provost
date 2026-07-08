@@ -35,6 +35,21 @@ strategy_detect () {
     done <<< "$text"
 
     [[ $nb -ge 1 && $(( ok * 100 / nb )) -ge 60 ]] || return 1
+
+    # Decline a uniform identifier list: every line sharing the SAME first
+    # colon-field is a scheme prefix on one opaque identifier (ARNs "arn:aws:…",
+    # URIs), not per-record colon fields (passwd/group, whose first field is the
+    # varying record key). Splitting an ARN into arn|aws|service|… is wrong — it
+    # is a single value — so let a one-column list parser take it instead.
+    local _f1="" _same=1 _seen=0 _l2
+    while IFS= read -r _l2; do
+        [[ -z "${_l2//[[:space:]]/}" ]] && continue
+        local _pre="${_l2%%:*}"
+        if [[ $_seen -eq 0 ]]; then _f1="$_pre"; _seen=1
+        elif [[ "$_pre" != "$_f1" ]]; then _same=0; break; fi
+    done <<< "$text"
+    [[ $_seen -eq 1 && $_same -eq 1 && $nb -ge 2 ]] && return 1
+
     _STRATEGY_CONFIDENCE=80
     return 0
 }
