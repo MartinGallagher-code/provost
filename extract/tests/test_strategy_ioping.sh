@@ -14,9 +14,9 @@ echo "========================================"
 test_ioping_latency () {
     local output
     output=$(run_mfe -r -s ioping "$SAMPLES_DIR/ioping/basic.txt")
-    assert_contains "$output" "latency_avg 990_us" "should extract average latency"
-    assert_contains "$output" "latency_min 223_us" "should extract min latency"
-    assert_contains "$output" "latency_max 2.69_ms" "should extract max latency"
+    assert_contains "$output" "latency_avg 990 us" "should extract average latency"
+    assert_contains "$output" "latency_min 223 us" "should extract min latency"
+    assert_contains "$output" "latency_max 2.69 ms" "should extract max latency"
 }
 
 test_ioping_iops () {

@@ -23,11 +23,11 @@ test_valgrind_basic () {
 test_valgrind_leak_summary () {
     local output
     output=$(run_mfe -r -s valgrind "$SAMPLES_DIR/valgrind/basic.txt")
-    assert_contains "$output" "definitely_lost 456_bytes_in_2_blocks" "should extract definitely lost"
-    assert_contains "$output" "indirectly_lost 0_bytes_in_0_blocks" "should extract indirectly lost"
-    assert_contains "$output" "possibly_lost 234_bytes_in_1_blocks" "should extract possibly lost"
-    assert_contains "$output" "still_reachable 544_bytes_in_2_blocks" "should extract still reachable"
-    assert_contains "$output" "heap_in_use 1,234_bytes_in_5_blocks" "should extract heap in use"
+    assert_contains "$output" "definitely_lost 456 bytes in 2 blocks" "should extract definitely lost"
+    assert_contains "$output" "indirectly_lost 0 bytes in 0 blocks" "should extract indirectly lost"
+    assert_contains "$output" "possibly_lost 234 bytes in 1 blocks" "should extract possibly lost"
+    assert_contains "$output" "still_reachable 544 bytes in 2 blocks" "should extract still reachable"
+    assert_contains "$output" "heap_in_use 1,234 bytes in 5 blocks" "should extract heap in use"
 }
 
 test_valgrind_not_detected_for_json () {

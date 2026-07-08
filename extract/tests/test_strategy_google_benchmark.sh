@@ -32,12 +32,12 @@ test_google_benchmark_metadata () {
     output=$(run_mfe -r -s google-benchmark "$SAMPLES_DIR/google-benchmark/basic.txt")
     # Check CPU info
     assert_contains "$output" "cpu_info" "should extract cpu_info"
-    assert_contains "$output" "2400_MHz" "should contain CPU frequency"
+    assert_contains "$output" "2400 MHz" "should contain CPU frequency"
     # Check cache info
     assert_contains "$output" "cache1" "should extract cache1"
-    assert_contains "$output" "L1_Data" "should contain L1 Data cache"
+    assert_contains "$output" "L1 Data" "should contain L1 Data cache"
     assert_contains "$output" "cache4" "should extract cache4"
-    assert_contains "$output" "L3_Unified" "should contain L3 Unified cache"
+    assert_contains "$output" "L3 Unified" "should contain L3 Unified cache"
 }
 
 test_google_benchmark_not_json () {

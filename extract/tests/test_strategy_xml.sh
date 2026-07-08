@@ -14,16 +14,16 @@ echo "========================================"
 test_xml_elements_basic () {
     local output
     output=$(run_mfe -r -s xml "$SAMPLES_DIR/xml-elements/basic.xml")
-    assert_contains "$output" "title My_Page_Title" "should extract title element"
+    assert_contains "$output" "title My Page Title" "should extract title element"
     assert_contains "$output" "h1 Welcome" "should extract h1 element"
 }
 
 test_xml_elements_with_attributes () {
     local output
     output=$(run_mfe -r -s xml "$SAMPLES_DIR/xml-elements/basic.xml")
-    assert_contains "$output" "span Version_2.0" "should extract span text with class attribute"
+    assert_contains "$output" "span Version 2.0" "should extract span text with class attribute"
     assert_contains "$output" "div 42" "should extract div text with id attribute"
-    assert_contains "$output" "p This_is_a_paragraph." "should extract paragraph text"
+    assert_contains "$output" "p This is a paragraph." "should extract paragraph text"
 }
 
 test_xml_attributes_basic () {
@@ -47,7 +47,7 @@ test_xml_both_passes () {
     output=$(run_mfe -r -s xml "$SAMPLES_DIR/xml-elements/basic.xml")
     # Both element text and attribute key/value should be extracted
     assert_contains "$output" "h1 Welcome" "should extract element text"
-    assert_contains "$output" "span Version_2.0" "should extract element text with attr"
+    assert_contains "$output" "span Version 2.0" "should extract element text with attr"
 }
 
 test_xml_not_json () {

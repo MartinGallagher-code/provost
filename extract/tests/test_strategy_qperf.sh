@@ -18,9 +18,9 @@ test_qperf_basic () {
 test_qperf_values () {
     local output
     output=$(run_mfe -r -s qperf "$SAMPLES_DIR/qperf/basic.txt")
-    assert_contains "$output" "tcp_bw.bw 11.2_GB/sec" "should extract correct tcp bw"
-    assert_contains "$output" "tcp_lat.latency 12.3_us" "should extract correct latency"
-    assert_contains "$output" "udp_bw.send_bw 4.56_GB/sec" "should extract udp send bw"
+    assert_contains "$output" "tcp_bw.bw 11.2 GB/sec" "should extract correct tcp bw"
+    assert_contains "$output" "tcp_lat.latency 12.3 us" "should extract correct latency"
+    assert_contains "$output" "udp_bw.send_bw 4.56 GB/sec" "should extract udp send bw"
 }
 
 test_qperf_not_json () {

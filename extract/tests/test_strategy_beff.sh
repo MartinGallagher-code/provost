@@ -24,7 +24,7 @@ test_beff_values () {
     assert_contains "$output" "ring_bandwidth 3456.78" "should extract ring bandwidth"
     assert_contains "$output" "random_bandwidth 2345.67" "should extract random bandwidth"
     assert_contains "$output" "num_processes 8" "should extract process count"
-    assert_contains "$output" "msglen_range 1_..._4194304" "should extract message length range"
+    assert_contains "$output" "msglen_range 1 ... 4194304" "should extract message length range"
 }
 
 test_beff_not_json () {
