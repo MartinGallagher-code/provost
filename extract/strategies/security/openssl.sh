@@ -58,7 +58,6 @@ strategy_extract () {
         if [[ "$trimmed" == "Issuer:"* ]]; then
             local issuer="${trimmed#Issuer:}"
             while [[ "$issuer" == " "* ]]; do issuer="${issuer# }"; done
-            issuer="${issuer// /_}"
             result+="issuer ${issuer}"$'\n'
             continue
         fi
@@ -67,7 +66,6 @@ strategy_extract () {
         if [[ "$trimmed" == "Not Before:"* ]]; then
             local not_before="${trimmed#Not Before:}"
             while [[ "$not_before" == " "* ]]; do not_before="${not_before# }"; done
-            not_before="${not_before// /_}"
             result+="not_before ${not_before}"$'\n'
             continue
         fi
@@ -79,7 +77,6 @@ strategy_extract () {
             while [[ "$not_after" == " "* ]]; do not_after="${not_after# }"; done
             not_after="${not_after#:}"
             while [[ "$not_after" == " "* ]]; do not_after="${not_after# }"; done
-            not_after="${not_after// /_}"
             result+="not_after ${not_after}"$'\n'
             continue
         fi
@@ -88,7 +85,6 @@ strategy_extract () {
         if [[ "$trimmed" == "Subject:"* ]]; then
             local subject="${trimmed#Subject:}"
             while [[ "$subject" == " "* ]]; do subject="${subject# }"; done
-            subject="${subject// /_}"
             result+="subject ${subject}"$'\n'
             continue
         fi

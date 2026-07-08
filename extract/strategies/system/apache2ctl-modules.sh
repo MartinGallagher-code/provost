@@ -35,7 +35,6 @@ strategy_extract () {
         local mod="$line"
         while [[ "$mod" == " "* ]]; do mod="${mod# }"; done
         while [[ "$mod" == *" " ]]; do mod="${mod% }"; done
-        mod="${mod// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.c1 ${mod}"$'\n'
     done <<< "$text"

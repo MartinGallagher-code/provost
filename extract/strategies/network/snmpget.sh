@@ -41,7 +41,7 @@ strategy_extract () {
         local p="entry${n}."
         result+="${p}oid ${oid}"$'\n'
         result+="${p}type ${type}"$'\n'
-        result+="${p}value ${val// /_}"$'\n'
+        result+="${p}value ${val}"$'\n'
     done <<< "$text"
 
     result+="total_entries ${n}"$'\n'

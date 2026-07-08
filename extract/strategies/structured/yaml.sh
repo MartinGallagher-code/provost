@@ -97,8 +97,7 @@ strategy_extract () {
 
             # Block ended - emit accumulated value
             if [[ -n "$block_val" ]]; then
-                local clean_block="${block_val// /_}"
-                result+="${block_key} ${clean_block}"$'\n'
+                result+="${block_key} ${block_val}"$'\n'
             fi
             in_block=0
             block_val=""
@@ -149,7 +148,6 @@ strategy_extract () {
             local clean_val="$array_value"
             while [[ "$clean_val" == " "* || "$clean_val" == "	"* ]]; do clean_val="${clean_val#?}"; done
             while [[ "$clean_val" == *" " || "$clean_val" == *"	" ]]; do clean_val="${clean_val%?}"; done
-            clean_val="${clean_val// /_}"
             if [[ -n "$clean_val" ]]; then
                 result+="${full_key} ${clean_val}"$'\n'
             fi
@@ -198,7 +196,6 @@ strategy_extract () {
             local clean_val="$value"
             while [[ "$clean_val" == " "* || "$clean_val" == "	"* ]]; do clean_val="${clean_val#?}"; done
             while [[ "$clean_val" == *" " || "$clean_val" == *"	" ]]; do clean_val="${clean_val%?}"; done
-            clean_val="${clean_val// /_}"
             local clean_key="${full_key// /_}"
             result+="${clean_key} ${clean_val}"$'\n'
         fi
@@ -208,8 +205,7 @@ strategy_extract () {
 
     # Emit any remaining block scalar
     if [[ $in_block -eq 1 && -n "$block_val" ]]; then
-        local clean_block="${block_val// /_}"
-        result+="${block_key} ${clean_block}"$'\n'
+        result+="${block_key} ${block_val}"$'\n'
     fi
 
     echo "$result"

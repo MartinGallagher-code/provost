@@ -53,7 +53,6 @@ strategy_extract () {
         value="${value%"${value##*[![:space:]]}"}"
         # Sanitise key into a field name ("Seal Type" -> Seal_Type).
         local field="${key// /_}"
-        value="${value// /_}"
         [[ -n "$field" ]] || continue
         result+="entry1.${field} ${value}"$'\n'
     done <<< "$text"

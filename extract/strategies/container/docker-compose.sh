@@ -116,9 +116,8 @@ strategy_extract () {
                 continue
             fi
 
-            # Scalar value — replace spaces with underscores in value
-            local safe_value="${value// /_}"
-            result+="${current_service}.${key} ${safe_value}"$'\n'
+            # Scalar value
+            result+="${current_service}.${key} ${value}"$'\n'
             continue
         fi
 
@@ -131,8 +130,6 @@ strategy_extract () {
                     '"'*'"') item="${item#\"}"; item="${item%\"}" ;;
                     "'"*"'") item="${item#\'}"; item="${item%\'}" ;;
                 esac
-                # Replace spaces with underscores
-                item="${item// /_}"
                 if [[ -z "$list_items" ]]; then
                     list_items="$item"
                 else

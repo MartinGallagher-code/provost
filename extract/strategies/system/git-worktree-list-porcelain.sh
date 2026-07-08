@@ -34,9 +34,9 @@ strategy_extract () {
 
     _flush () {
         [[ $have -eq 1 ]] || return 0
-        local w="${wt// /_}"; w="${w//$'\t'/_}"
-        local h="${head// /_}"
-        local b="${branch// /_}"
+        local w="${wt//$'\t'/_}"
+        local h="${head}"
+        local b="${branch}"
         entry=$((entry + 1))
         result+="entry${entry}.worktree ${w}"$'\n'
         result+="entry${entry}.head ${h}"$'\n'

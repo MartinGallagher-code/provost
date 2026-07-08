@@ -41,8 +41,8 @@ strategy_extract () {
         path="${path%"${path##*[![:space:]]}"}"
         changes="${changes#"${changes%%[![:space:]]*}"}"
         changes="${changes%"${changes##*[![:space:]]}"}"
-        path="${path// /_}"; path="${path//$'\t'/_}"
-        changes="${changes// /_}"; changes="${changes//$'\t'/_}"
+        path="${path//$'\t'/_}"
+        changes="${changes//$'\t'/_}"
         entry=$((entry + 1))
         result+="entry${entry}.path ${path}"$'\n'
         result+="entry${entry}.changes ${changes}"$'\n'

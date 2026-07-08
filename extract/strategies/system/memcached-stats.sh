@@ -38,7 +38,6 @@ strategy_extract () {
         local key="${rest%% *}"
         local value="${rest#* }"
         [[ "$value" == "$rest" ]] && value=""   # key with no value
-        value="${value// /_}"
         [[ -n "$key" ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'

@@ -34,8 +34,9 @@ strategy_extract () {
         [[ -z "$line" ]] && continue
         # Skip bracketed section headers.
         [[ "$line" =~ ^\[.*\]$ ]] && continue
-        # Collapse internal spaces to underscores so multi-word names stay one value.
-        local v="${line// /_}"
+        # The whole line is the module name value; spaces (e.g. "Zend OPcache")
+        # survive because the engine splits each record on its first space only.
+        local v="${line}"
         entry=$((entry + 1))
         result+="entry${entry}.c1 ${v}"$'\n'
     done <<< "$text"

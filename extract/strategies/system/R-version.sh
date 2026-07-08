@@ -42,10 +42,10 @@ strategy_extract () {
         plat="${BASH_REMATCH[1]}"
     fi
     result+="entry1.product R"$'\n'
-    result+="entry1.version ${ver// /_}"$'\n'
-    result+="entry1.date ${date// /_}"$'\n'
-    result+="entry1.nickname ${nick// /_}"$'\n'
-    result+="entry1.platform ${plat// /_}"$'\n'
+    result+="entry1.version ${ver}"$'\n'
+    result+="entry1.date ${date}"$'\n'
+    result+="entry1.nickname ${nick}"$'\n'
+    result+="entry1.platform ${plat}"$'\n'
     result+="total_entries 1"$'\n'
     echo "$result"
 }

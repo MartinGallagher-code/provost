@@ -37,10 +37,10 @@ strategy_extract () {
         target="${BASH_REMATCH[1]}"
     fi
     result+="entry1.product Swift"$'\n'
-    result+="entry1.version ${ver// /_}"$'\n'
-    result+="entry1.swiftlang ${slang// /_}"$'\n'
-    result+="entry1.clang ${clang// /_}"$'\n'
-    result+="entry1.target ${target// /_}"$'\n'
+    result+="entry1.version ${ver}"$'\n'
+    result+="entry1.swiftlang ${slang}"$'\n'
+    result+="entry1.clang ${clang}"$'\n'
+    result+="entry1.target ${target}"$'\n'
     result+="total_entries 1"$'\n'
     echo "$result"
 }

@@ -56,7 +56,7 @@ strategy_extract () {
     done <<< "$text"
     local i
     for ((i = 1; i <= entry; i++)); do
-        local host="${hosts[$i]// /_}" ip="${ips[$i]// /_}" lat="${lats[$i]// /_}"
+        local host="${hosts[$i]}" ip="${ips[$i]}" lat="${lats[$i]}"
         result+="entry${i}.host ${host}"$'\n'
         result+="entry${i}.ip ${ip}"$'\n'
         result+="entry${i}.latency ${lat}"$'\n'

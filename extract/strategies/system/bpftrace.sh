@@ -35,7 +35,6 @@ strategy_extract () {
         # count = text after "]:" with surrounding whitespace stripped
         local rest="${line#*]:}"
         local count="${rest// /}"
-        key="${key// /_}"
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'
         result+="entry${entry}.count ${count}"$'\n'

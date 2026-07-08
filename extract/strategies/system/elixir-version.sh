@@ -34,9 +34,9 @@ strategy_extract () {
         erts="${BASH_REMATCH[1]}"
     fi
     result+="entry1.product Elixir"$'\n'
-    result+="entry1.version ${ver// /_}"$'\n'
-    result+="entry1.erlang_otp ${otp// /_}"$'\n'
-    result+="entry1.erts ${erts// /_}"$'\n'
+    result+="entry1.version ${ver}"$'\n'
+    result+="entry1.erlang_otp ${otp}"$'\n'
+    result+="entry1.erts ${erts}"$'\n'
     result+="total_entries 1"$'\n'
     echo "$result"
 }

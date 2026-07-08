@@ -10,7 +10,7 @@
 #   name | reading | unit | status | lnr | lcr | lnc | unc | ucr | unr
 # Emit ONE record per sensor row.
 
-_it_san () { local v="$1"; v="${v//$'\t'/_}"; v="${v// /_}"; printf '%s' "$v"; }
+_it_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
 _it_trim () {
     local s="$1"
     s="${s#"${s%%[![:space:]]*}"}"

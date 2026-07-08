@@ -91,8 +91,7 @@ _strat_grafana_extract_jq () {
             local p_title
             p_title=$(echo "$text" | jq -r ".panels[$i].title // empty" 2>/dev/null) || true
             if [[ -n "$p_title" ]]; then
-                local clean_t="${p_title// /_}"
-                result+="${prefix}.title ${clean_t}"$'\n'
+                result+="${prefix}.title ${p_title}"$'\n'
             fi
 
             local p_type
@@ -104,8 +103,7 @@ _strat_grafana_extract_jq () {
             local p_datasource
             p_datasource=$(echo "$text" | jq -r ".panels[$i].datasource // empty" 2>/dev/null) || true
             if [[ -n "$p_datasource" ]]; then
-                local clean_ds="${p_datasource// /_}"
-                result+="${prefix}.datasource ${clean_ds}"$'\n'
+                result+="${prefix}.datasource ${p_datasource}"$'\n'
             fi
 
             i=$((i + 1))
@@ -145,7 +143,6 @@ _strat_grafana_extract_fallback () {
         else
             break
         fi
-        value="${value// /_}"
         if [[ -n "$key" && -n "$value" ]]; then
             result+="${key} ${value}"$'\n'
         fi

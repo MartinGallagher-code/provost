@@ -158,22 +158,17 @@ strategy_extract () {
 
                 # Only emit if we have a CVE
                 if [[ -n "$cve" ]]; then
-                    cve="${cve// /_}"
                     result+="vuln${vuln_num}.id ${cve}"$'\n'
                     if [[ -n "$severity" ]]; then
-                        severity="${severity// /_}"
                         result+="vuln${vuln_num}.severity ${severity}"$'\n'
                     fi
                     if [[ -n "$library" ]]; then
-                        library="${library// /_}"
                         result+="vuln${vuln_num}.package ${library}"$'\n'
                     fi
                     if [[ -n "$installed" ]]; then
-                        installed="${installed// /_}"
                         result+="vuln${vuln_num}.installed_version ${installed}"$'\n'
                     fi
                     if [[ -n "$fixed" ]]; then
-                        fixed="${fixed// /_}"
                         result+="vuln${vuln_num}.fixed_version ${fixed}"$'\n'
                     fi
                 fi

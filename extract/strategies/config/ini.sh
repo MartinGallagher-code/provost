@@ -64,7 +64,6 @@ strategy_extract () {
         key="${key// /_}"
         while [[ "$value" == " "* ]]; do value="${value# }"; done
         while [[ "$value" == *" " ]]; do value="${value% }"; done
-        value="${value// /_}"
 
         # Prefix with section if we have one
         if [[ -n "$section" ]]; then
