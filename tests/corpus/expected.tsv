@@ -276,7 +276,6 @@ getconf	table	8	1
 perf-report	table	7	3
 valgrind-summary	kv	-	3
 getenforce	table	1	1
-aa-status	kv	-	1
 fail2ban-status	kv	-	3
 ssh-add-l	table	4	3
 gpg-list-secret-keys	kv	-	2
@@ -731,7 +730,6 @@ kotlinc-version	table	1	1
 scala-version	table	1	1
 ghc-info	kv	-	4
 elixir-version	kv	-	4
-R-version	kv	-	4
 nvcc-version	kv	-	4
 bazel-version	kv	-	4
 crontab	table	7	4
@@ -758,7 +756,6 @@ needrestart	kv	-	4
 cupsctl	kv	-	4
 rsync_stats	kv	-	4
 duplicity	kv	-	4
-alternatives_display	kv	-	4
 ethtool-k	kv	-	4
 ethtool-S	kv	-	4
 ethtool-a	kv	-	4

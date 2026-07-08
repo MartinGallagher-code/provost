@@ -136,6 +136,18 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
 
+    # Decline space-padded assignment blocks — `KEY = value`, `KEY(ctx) = value`
+    # (e.g. `ansible-config dump`). The ` = ` is a separator, not a data column;
+    # aligned-columns would split it into a bogus middle column and mangle any
+    # value with inner spaces. The equals parser tidies these to one field per key.
+    local _eq=0 _et=0 _el
+    while IFS= read -r _el; do
+        [[ -z "${_el//[[:space:]]/}" ]] && continue
+        _et=$((_et + 1))
+        [[ "$_el" == *" = "* ]] && _eq=$((_eq + 1))
+    done <<< "$text"
+    [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
+
     # Decline pure key/value blocks — `label : value` / `label: value` (e.g.
     # `pacman -Qi`, `rpm -qi`) or `Key=Value` (e.g. `systemctl show`). These are
     # single-record snapshots the colons/equals parsers tidy to one wide row;
