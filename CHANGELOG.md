@@ -1,5 +1,26 @@
 # glean — Changelog
 
+## 2026-07-09 — consolidate strategies: merge same-logic families (420 → 412)
+A different angle on shrinking the strategy set than "delete redundant": **merge
+strategies that share the same extraction, keeping one whose `detect()` is the
+union of the originals'.** Found the clusters by hashing each strategy's
+`strategy_extract` body and grouping identical ones. All merges are behavior-
+preserving (each old tool's output is byte-identical under the merged strategy):
+- **dig**: `dig_ns` + `dig_any` + `dig_trace` + `dig_noall_answer` →
+  **`dig-answer`** (all emit `name ttl class type value`; only the banner-type
+  detect differed). `dig-mx`/`dig-txt` (semantic `preference`/`exchange`, `text`
+  columns) and `dig-output` (full report) stay separate. 4 → 1.
+- **cloud JSON lists**: `az-account-list` + `az-acr-list` + `az-keyvault-list` +
+  `gcloud-pubsub-topics-list` → **`cloud-json-list`** (one JSON-array-by-brace-
+  depth extractor; per-command field-name guards OR-ed in detect). 4 → 1.
+- **snmp**: `snmpget` + `snmpwalk` → **`snmp-output`** (same OID/type/value parser,
+  split only by a `.0`-vs-subtree detect heuristic that changed no output). 2 → 1.
+- **kubectl top**: `kubectl-top-nodes` + `kubectl-top-pods` → **`kubectl-top`**
+  (one strategy; the header's `%` columns pick nodes-vs-pods mode). 2 → 1.
+
+Net −8 strategies (421 → 413 files; 420 → 412 distinct names). Verified: extract
+213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — redundant-strategy prune: investigated, nothing safe to remove
 Rigorous sweep to prune redundant per-tool strategies (the standing "then prune"
 goal). Computed the full-mode winner for all 1040 corpus tools, then byte-compared

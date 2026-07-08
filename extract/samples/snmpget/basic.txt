@@ -1,4 +1,0 @@
-SNMPv2-MIB::sysName.0 = STRING: edge-router
-IF-MIB::ifNumber.0 = INTEGER: 4
-HOST-RESOURCES-MIB::hrSystemNumUsers.0 = Gauge32: 3
-HOST-RESOURCES-MIB::hrSystemProcesses.0 = Gauge32: 214
