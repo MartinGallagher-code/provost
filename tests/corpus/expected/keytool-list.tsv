@@ -1,7 +1,7 @@
 n	alias	date	type	total_entries
-1	mykey	Mar_01_2024	PrivateKeyEntry	6
-2	serverca	Mar_02_2024	trustedCertEntry	6
-3	rootca	Jan_15_2023	trustedCertEntry	6
-4	intermediateca	Jun_20_2023	trustedCertEntry	6
-5	clientkey	Feb_10_2024	PrivateKeyEntry	6
-6	backupkey	Apr_05_2024	PrivateKeyEntry	6
+1	mykey	Mar 01 2024	PrivateKeyEntry	6
+2	serverca	Mar 02 2024	trustedCertEntry	6
+3	rootca	Jan 15 2023	trustedCertEntry	6
+4	intermediateca	Jun 20 2023	trustedCertEntry	6
+5	clientkey	Feb 10 2024	PrivateKeyEntry	6
+6	backupkey	Apr 05 2024	PrivateKeyEntry	6

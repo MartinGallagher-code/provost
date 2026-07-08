@@ -1,5 +1,5 @@
 n	Name	Owner	Encoding	Collate	Ctype	Access_privileges	total_entries
 1	appdb	appuser	UTF8	en_US.UTF-8	en_US.UTF-8		4
 2	postgres	postgres	UTF8	en_US.UTF-8	en_US.UTF-8		4
-3	template0	postgres	UTF8	en_US.UTF-8	en_US.UTF-8	=c/postgres__________+	4
-4	template1	postgres	UTF8	en_US.UTF-8	en_US.UTF-8	=c/postgres__________+	4
+3	template0	postgres	UTF8	en_US.UTF-8	en_US.UTF-8	=c/postgres          +	4
+4	template1	postgres	UTF8	en_US.UTF-8	en_US.UTF-8	=c/postgres          +	4

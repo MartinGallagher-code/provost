@@ -1,2 +1,2 @@
 apiVersion	kind	metadata.labels.app	metadata.labels.environment	metadata.name	metadata.namespace	spec.replicas	spec.selector.matchLabels.app	spec.template.metadata.labels.app	spec.template.spec.containers.0	spec.template.spec.containers._.name	spec.template.spec.containers._.ports.0
-apps/v1	Deployment	web	production	web	default	3	web	web	image:_nginx:1.25	web	containerPort:_80
+apps/v1	Deployment	web	production	web	default	3	web	web	image: nginx:1.25	web	containerPort: 80

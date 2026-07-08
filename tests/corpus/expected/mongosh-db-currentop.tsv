@@ -1,2 +1,2 @@
 inprog	type	opid	active	secs_running	op	ns	planSummary	waitingForLock	opid	secs_running	op	ns	planSummary	waitingForLock	ok
-[	'op',	128374,	true,	Long("12"),	'query',	'ecommerce.orders',	'COLLSCAN',	false	128412,	Long("3"),	'update',	'ecommerce.inventory',	'IXSCAN_{_sku:_1_}',	true	1
+[	'op',	128374,	true,	Long("12"),	'query',	'ecommerce.orders',	'COLLSCAN',	false	128412,	Long("3"),	'update',	'ecommerce.inventory',	'IXSCAN { sku: 1 }',	true	1

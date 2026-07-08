@@ -1,6 +1,6 @@
 n	name	sha	upstream	total_entries
 1	main	a1b2c3d	origin/main	5
-2	develop	e4f5a6b	origin/develop:_ahead_2	5
-3	feature/login	0f9e8d7	origin/feature/login:_ahead_1,_behind_3	5
+2	develop	e4f5a6b	origin/develop: ahead 2	5
+3	feature/login	0f9e8d7	origin/feature/login: ahead 1, behind 3	5
 4	hotfix/urgent	7c6b5a4	-	5
-5	release/2.0	b0a9f8e	origin/release/2.0:_behind_5	5
+5	release/2.0	b0a9f8e	origin/release/2.0: behind 5	5

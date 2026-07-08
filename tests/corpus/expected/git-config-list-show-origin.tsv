@@ -1,5 +1,5 @@
 n	origin	key	value	total_entries
-1	file:/home/user/glean/.git/config	user.name	Jane_Developer	8
+1	file:/home/user/glean/.git/config	user.name	Jane Developer	8
 2	file:/home/user/glean/.git/config	user.email	jane@example.com	8
 3	file:/etc/gitconfig	core.editor	vim	8
 4	file:/home/user/.gitconfig	color.ui	auto	8

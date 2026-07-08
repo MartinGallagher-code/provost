@@ -1,8 +1,8 @@
 n	c1	c2	total_entries
 1	graphical.target	@14.234s	7
 2	multi-user.target	@14.233s	7
-3	nginx.service	@13.001s_+231ms	7
+3	nginx.service	@13.001s +231ms	7
 4	network-online.target	@12.998s	7
-5	NetworkManager-wait-online.service	@6.140s_+6.842s	7
-6	NetworkManager.service	@1.201s_+231ms	7
+5	NetworkManager-wait-online.service	@6.140s +6.842s	7
+6	NetworkManager.service	@1.201s +231ms	7
 7	dbus.socket	@1.198s	7

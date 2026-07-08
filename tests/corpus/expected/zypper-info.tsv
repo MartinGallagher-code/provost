@@ -1,2 +1,2 @@
 n	repository	name	version	arch	vendor	installed_size	installed	status	source_package	upstream_url	summary	total_entries
-1	Main_Repository_(OSS)	vim	9.0.2103-150500.20.15.1	x86_64	SUSE_LLC_<https://www.suse.com/>	3.4_MiB	Yes	up-to-date	vim-9.0.2103-150500.20.15.1.src	http://www.vim.org/	Vi_IMproved	1
+1	Main Repository (OSS)	vim	9.0.2103-150500.20.15.1	x86_64	SUSE LLC <https://www.suse.com/>	3.4 MiB	Yes	up-to-date	vim-9.0.2103-150500.20.15.1.src	http://www.vim.org/	Vi IMproved	1

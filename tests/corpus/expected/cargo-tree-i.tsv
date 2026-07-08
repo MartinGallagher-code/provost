@@ -1,9 +1,9 @@
 n	c1	total_entries
-1	libc_v0.2.151	8
-2	getrandom_v0.2.11	8
-3	rand_core_v0.6.4	8
-4	rand_v0.8.5	8
-5	myapp_v0.1.0	8
-6	num_cpus_v1.16.0	8
-7	tokio_v1.35.1	8
-8	myapp_v0.1.0	8
+1	libc v0.2.151	8
+2	getrandom v0.2.11	8
+3	rand_core v0.6.4	8
+4	rand v0.8.5	8
+5	myapp v0.1.0	8
+6	num_cpus v1.16.0	8
+7	tokio v1.35.1	8
+8	myapp v0.1.0	8

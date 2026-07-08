@@ -1,23 +1,23 @@
 n	Summary	Report	total_entries
-1	Range_o	f_time_in_logs:_03/01/2024_08:12:33.001_-_03/07/2024_22:59:01.512	22
-2	Selecte	d_time_for_report:_03/01/2024_08:12:33_-_03/07/2024_22:59:01	22
-3	Number	of_changes_in_configuration:_14	22
-4	Number	of_changes_to_accounts,_groups,_or_roles:_3	22
-5	Number	of_logins:_42	22
-6	Number	of_failed_logins:_9	22
-7	Number	of_authentications:_51	22
-8	Number	of_failed_authentications:_12	22
-9	Number	of_users:_6	22
-10	Number	of_terminals:_8	22
-11	Number	of_host_names:_5	22
-12	Number	of_executables:_11	22
-13	Number	of_commands:_27	22
-14	Number	of_files:_0	22
-15	Number	of_AVC's:_4	22
-16	Number	of_MAC_events:_0	22
-17	Number	of_failed_syscalls:_3	22
-18	Number	of_anomaly_events:_1	22
-19	Number	of_crypto_events:_18	22
-20	Number	of_keys:_7	22
-21	Number	of_process_IDs:_214	22
-22	Number	of_events:_3841	22
+1	Range o	f time in logs: 03/01/2024 08:12:33.001 - 03/07/2024 22:59:01.512	22
+2	Selecte	d time for report: 03/01/2024 08:12:33 - 03/07/2024 22:59:01	22
+3	Number	of changes in configuration: 14	22
+4	Number	of changes to accounts, groups, or roles: 3	22
+5	Number	of logins: 42	22
+6	Number	of failed logins: 9	22
+7	Number	of authentications: 51	22
+8	Number	of failed authentications: 12	22
+9	Number	of users: 6	22
+10	Number	of terminals: 8	22
+11	Number	of host names: 5	22
+12	Number	of executables: 11	22
+13	Number	of commands: 27	22
+14	Number	of files: 0	22
+15	Number	of AVC's: 4	22
+16	Number	of MAC events: 0	22
+17	Number	of failed syscalls: 3	22
+18	Number	of anomaly events: 1	22
+19	Number	of crypto events: 18	22
+20	Number	of keys: 7	22
+21	Number	of process IDs: 214	22
+22	Number	of events: 3841	22

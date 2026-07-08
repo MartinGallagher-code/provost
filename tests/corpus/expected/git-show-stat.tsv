@@ -1,5 +1,5 @@
 n	path	changes	total_entries
-1	src/login.py	24_+++++++++++++++++++----	4
-2	templates/login.html	12_++++++++++++	4
-3	tests/test_login.py	31_+++++++++++++++++++++++++++++++	4
-4	docs/auth.md	8_++++----	4
+1	src/login.py	24 +++++++++++++++++++----	4
+2	templates/login.html	12 ++++++++++++	4
+3	tests/test_login.py	31 +++++++++++++++++++++++++++++++	4
+4	docs/auth.md	8 ++++----	4

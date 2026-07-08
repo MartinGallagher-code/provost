@@ -1,2 +1,2 @@
 n	TARGET	CPU	CC	CFLAGS	OPTIONS	bufsize	maxrewrite	maxpollevents	total_entries
-1	linux-glibc	generic	cc	-O2_-g_-fwrapv	USE_PCRE2=1_USE_OPENSSL=1_USE_LUA=1_USE_SYSTEMD=1	16384	1024	200	1
+1	linux-glibc	generic	cc	-O2 -g -fwrapv	USE_PCRE2=1 USE_OPENSSL=1 USE_LUA=1 USE_SYSTEMD=1	16384	1024	200	1

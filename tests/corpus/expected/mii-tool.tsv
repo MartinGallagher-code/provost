@@ -1,5 +1,5 @@
 n	iface	status	total_entries
-1	eth0	negotiated_1000baseT-FD_flow-control,_link_ok	4
-2	eth1	negotiated_100baseTx-FD,_link_ok	4
-3	eth2	no_link	4
-4	wlan0	negotiated_100baseTx-HD,_link_ok	4
+1	eth0	negotiated 1000baseT-FD flow-control, link ok	4
+2	eth1	negotiated 100baseTx-FD, link ok	4
+3	eth2	no link	4
+4	wlan0	negotiated 100baseTx-HD, link ok	4

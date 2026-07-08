@@ -1,2 +1,2 @@
 Name	Version	Summary	Home-page	Author	Author-email	License	Location	Requires	Required-by
-Flask	3.0.0	A_simple_framework_for_building_complex_web_applications.	https://palletsprojects.com/p/flask	Armin_Ronacher	armin.ronacher@active-4.com	BSD-3-Clause	/home/user/.venv/lib/python3.12/site-packages	blinker,_click,_itsdangerous,_Jinja2,_Werkzeug	Flask-Login,_Flask-SQLAlchemy
+Flask	3.0.0	A simple framework for building complex web applications.	https://palletsprojects.com/p/flask	Armin Ronacher	armin.ronacher@active-4.com	BSD-3-Clause	/home/user/.venv/lib/python3.12/site-packages	blinker, click, itsdangerous, Jinja2, Werkzeug	Flask-Login, Flask-SQLAlchemy

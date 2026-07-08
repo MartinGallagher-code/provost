@@ -1,2 +1,2 @@
 Name________	Version_____	Release_____	Architecture	Size________	Source______	Repository__	From_repo___	Summary_____	URL_________	License_____	Description_
-httpd	2.4.53	11.el9_2.5	x86_64	4.7_M	httpd-2.4.53-11.el9_2.5.src.rpm	@System	appstream	Apache_HTTP_Server	https://httpd.apache.org/	ASL_2.0	The_Apache_HTTP_Server_is_a_powerful,_efficient,_and_extensible
+httpd	2.4.53	11.el9_2.5	x86_64	4.7 M	httpd-2.4.53-11.el9_2.5.src.rpm	@System	appstream	Apache HTTP Server	https://httpd.apache.org/	ASL 2.0	The Apache HTTP Server is a powerful, efficient, and extensible

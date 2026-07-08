@@ -1,5 +1,5 @@
 n	resource	action	total_entries
-1	aws_db_instance.primary	updated_in-place	5
+1	aws_db_instance.primary	updated in-place	5
 2	aws_instance.app_server	created	5
 3	aws_s3_bucket.artifacts	created	5
 4	aws_security_group.app_sg	created	5
