@@ -33,6 +33,11 @@ strategy_detect () {
     local _vt; _vt=(); read -ra _vt <<< "$first"
     [[ ${#_vt[@]} -le 4 ]] || return 1
 
+    # Not a banner: a bare IPv4 (a `dig +short` address list) or a line carrying a
+    # 40-hex git object id (`git submodule status`) — record lists, not a version.
+    [[ "$first" =~ ^[[:space:]]*[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+[[:space:]]*$ ]] && return 1
+    [[ "$first" =~ [0-9a-f]{40} ]] && return 1
+
     # The FIRST non-blank line must carry a semantic version token:
     # [0-9]+.[0-9]+(.[0-9]+)? optionally prefixed by a 'v'. Being specific here
     # keeps this from stealing tables, whose header rows have no version number.
