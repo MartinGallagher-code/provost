@@ -35,6 +35,7 @@ _COLUMNAR_SPECS=(
   $'buildah-containers\tCONTAINER ID;BUILDER;CONTAINER NAME\tCONTAINER ID\tws\t3\t4\tid,builder,image_id,image_name@opt,name'
   $'lsmem\tRANGE;REMOVABLE;BLOCK\tRANGE\tws\t-1\t5\trange,size,state,removable,block'
   $'ss-tulnp\tState;Local;Process\tRecv-Q\tws\t5\t5\tstate,recv_q,send_q,local,peer,process@between@users:(("@"\t0'
+  $'smartctl-attributes\tATTRIBUTE_NAME;RAW_VALUE;WHEN_FAILED\tATTRIBUTE_NAME\tws\t-1\t10\tid,attribute_name,flag,value,worst,thresh,type,updated,when_failed,raw_value'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
