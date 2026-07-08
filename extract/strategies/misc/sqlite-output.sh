@@ -11,6 +11,14 @@ strategy_detect () {
     # Reject JSON
     _is_json "$1" && return 1
 
+    # Decline `+---+` box tables — psql-table's box parser owns those (it strips
+    # outer borders / title banners that this flatten-parser drops a column on).
+    local _bxl
+    while IFS= read -r _bxl; do
+        [[ "$_bxl" == *"+"* && "$_bxl" == *"---"* ]] || continue
+        [[ "$_bxl" =~ ^[[:space:]]*[-+[:space:]]+$ ]] && return 1
+    done <<< "$text"
+
     # Detect pipe-delimited mode: at least 2 lines with same number of pipe chars
     # OR column mode: header line followed by a line of dashes+spaces
     # OR sqlite> prompt or .mode/.headers commands

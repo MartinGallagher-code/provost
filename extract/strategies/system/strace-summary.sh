@@ -10,6 +10,14 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=95
     # Reject JSON
     _is_json "$1" && return 1
+
+    # Decline `+---+` box tables — those are psql/mysql/aws grids, not strace -c
+    # summaries; psql-table's box parser owns them.
+    local _bxl
+    while IFS= read -r _bxl; do
+        [[ "$_bxl" == *"+"* && "$_bxl" == *"---"* ]] || continue
+        [[ "$_bxl" =~ ^[[:space:]]*[-+[:space:]]+$ ]] && return 1
+    done <<< "$text"
     # Look for "% time" and "syscall" on the same line, or
     # a dashed separator line followed by syscall data pattern
     local found_header=0

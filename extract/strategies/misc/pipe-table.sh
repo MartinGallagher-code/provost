@@ -13,14 +13,15 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=75
 
-    local _nl=$'\n'
-
-    # SQL style: must have +---+ border lines AND | data lines
-    local _re_border="(^|${_nl})\+[-+]+"
-    if [[ "$text" =~ $_re_border ]]; then
-        local _re_pipe="(^|${_nl})\|[^|]+\|"
-        [[ "$text" =~ $_re_pipe ]] && return 0
-    fi
+    # Decline `+---+` box tables — psql-table's box parser owns those (it strips
+    # outer borders and drops the single-cell title banner that `aws --output
+    # table` / mysql grids carry, which this flatten-parser mangles into one
+    # column). This strategy keeps the Markdown `|---|` pipe-table case.
+    local _bxl
+    while IFS= read -r _bxl; do
+        [[ "$_bxl" == *"+"* && "$_bxl" == *"---"* ]] || continue
+        [[ "$_bxl" =~ ^[[:space:]]*[-+[:space:]]+$ ]] && return 1
+    done <<< "$text"
 
     # Markdown style: must have | lines AND a |---| separator row
     if [[ "$text" == *"|"* ]]; then
