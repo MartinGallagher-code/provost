@@ -1,5 +1,31 @@
 # glean — Changelog
 
+## 2026-07-09 — parse-wrong tail (cluster 1): route shadowed tools to correct parsers
+Working the documented parse-wrong tail; the clean, verified wins in this batch:
+- **`git-config-list` → `equals`.** The `equals` detect key class excluded `.`, so
+  dotted config keys (`user.name=Jane Developer`) never matched and fell to the
+  last-resort `line-records` (ragged `c1/c2`). Added `.` to the tight-assignment
+  key class; git-config-list now tidies to one wide `key=value` record with values
+  intact. Reclassified its manifest row `table`→`kv`. File:
+  `extract/strategies/delimited/equals.sh`.
+- **`jmap-histo` → its bespoke parser (un-shadowed).** `sqlite-output` claimed any
+  block with a dash rule, including jmap's single solid `----` banner, and flattened
+  it to one column. `sqlite-output` column-mode now requires a *segmented* separator
+  (`--- ----- ---`, ≥2 dash groups) the way `.mode column` prints it; a solid rule is
+  no longer a column separator, so the `jmap-histo` bespoke wins and emits proper
+  `num/instances/bytes/class` rows.
+- **`dnf-history-list` fixed in `sqlite-output` pipe mode.** Skip a pure dash/space
+  rule under the header (was becoming a bogus data row), and underscore multi-word
+  header names (`Command line`→`command_line`, `Date and time`→`date_and_time`) so
+  the tidy melt — which splits `entryN.field value` on the first space — keeps each
+  value whole. This header-underscore fix benefits every multi-word-header sqlite
+  pipe/column table. File: `extract/strategies/misc/sqlite-output.sh`.
+
+Verified: extract 213/213, smoke 49/49, melt 8/8, corpus golden 980/0.
+(The corpus goldens are `--generic`-mode; the `sqlite-output`/`jmap-histo` wins
+improve real full-mode `glean` but are not reflected in generic goldens — only the
+`equals` Technique change touched a generic golden.)
+
 ## 2026-07-09 — aligned-columns: gate positional to multi-word tables; regen corpus goldens
 - **Fixed a regression in the opt-in positional path.** `_ac_aligned` keyed the
   positional assignment off the header's 2-space column starts, which *under-counts*

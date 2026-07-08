@@ -151,7 +151,7 @@ git-diff-stat	table	4	2
 git-remote-v	table	4	2
 git-tag	table	6	1
 git-stash-list	table	3	1
-git-config-list	table	8	1
+git-config-list	kv	-	2
 git-shortlog	table	5	2
 git-ls-files	table	8	1
 git-show-ref	table	5	2

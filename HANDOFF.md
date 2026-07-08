@@ -182,17 +182,25 @@ transposed to one wide row + mis-split; aligned-columns now covers them as
 records). Shadow narrowings landed: `hg-branches`, `git-log`, `version-string`,
 `pip-list`, `colon-fields`, `docker-ps`, plus the batch-1 fixes.
 
-**Remaining parse-wrong tail (~70 tools), by cluster — the next work:**
-1. **Greedy bespoke/generic shadows still to narrow** (the freed tools are now
-   handled well by positional aligned-columns): `sqlite-output` (jmap-histo,
-   git-stash-show-stat, gpg-list-secret-keys, gradle-q-dependencies,
-   dnf-history-list, git-diff-stat), `pkg-config` (aptitude-search,
-   bundle-outdated, flatpak-list, ip-br-addr, ip6tables-l, ipmitool-sdr, deno-info),
-   `proc-stat` (etcdctl-alarm-list, ipset-list), `docker-compose-ps` (transpose),
-   `env-vars`, `line-records` (git-branch/-a, git-config-list, ghc-info, cgget,
-   java-showsettings, jcmd-heap-info). git-lfs/for-each-ref/gsutil-du,
-   hg-log/heads/summary, dig-short, git-submodule, composer-outdated, helm-list,
-   kubectl-get-*, docker/podman top, crictl-ps are already fixed.
+**Remaining parse-wrong tail, by cluster — the next work:**
+1. **Greedy bespoke/generic shadows still to narrow.** DONE this pass:
+   `git-config-list` (→ `equals`, added `.` to the key class; reclassified `kv`),
+   `jmap-histo` (→ its bespoke; `sqlite-output` column-mode now needs a *segmented*
+   dash separator, not a solid rule), `dnf-history-list` (`sqlite-output` pipe mode
+   skips the dash rule and underscores multi-word headers — a general fix for every
+   multi-word-header sqlite table). **Still hard / deferred** (genuine multi-line
+   records, trees, diffstats — need dedicated structural parsers, not just a decline;
+   verified that aligned-columns does NOT cleanly parse them): `gpg-list-secret-keys`
+   (multi-line key blocks), `gradle-q-dependencies` (dependency tree), `git-diff-stat`
+   / `git-stash-show-stat` (`file | N graph` diffstat), `git-branch`/`-a` (branch
+   list — `line-records` c1/c2 is acceptable), `ghc-info` (Haskell tuples), `cgget` /
+   `java-showsettings` / `jcmd-heap-info` (nested key blocks), `flatpak-list` /
+   `ip-br-addr` / `aptitude-search` / `ipmitool-sdr` / `deno-info` / `bundle-outdated`
+   / `ip6tables-l` (pkg-config shadows whose data is misaligned / headerless-pipe /
+   ` - `-delimited / multi-section — no clean existing home), `etcdctl-alarm-list` /
+   `ipset-list` (proc-stat). git-lfs/for-each-ref/gsutil-du, hg-log/heads/summary,
+   dig-short, git-submodule, composer-outdated, helm-list, kubectl-get-*,
+   docker/podman top, crictl-ps are already fixed.
 2. **Record-vs-one-wide-row** (a multi-record dump transposed into a single wide
    row — needs repeated-key/record detection): `yaml` (dpkg-s, edac-util,
    dotnet-nuget-locals, kubectl-config-view, flatpak-info), `ini` (dbmate-status,

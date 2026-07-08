@@ -14,8 +14,10 @@ strategy_detect () {
     # Use while-read so ^ anchors match per-line (not start of entire string)
     local _det_line
     while IFS= read -r _det_line; do
-        # Tight assignment: `KEY=value` (env vars, systemctl show).
-        [[ "$_det_line" =~ ^[A-Za-z][A-Za-z0-9_\ -]*=[^=] ]] && return 0
+        # Tight assignment: `KEY=value` (env vars, systemctl show, `git config
+        # --list`'s dotted keys `user.name=…`). The key allows `.` so dotted
+        # config keys match.
+        [[ "$_det_line" =~ ^[A-Za-z][A-Za-z0-9_.\ -]*=[^=] ]] && return 0
         # Space-padded assignment with a rich key: `KEY(ctx) = value`,
         # `KEY(env: X) = value` (ansible-config dump). Requires ` = ` so it does
         # not fire on prose that merely contains a lone '='.

@@ -62,14 +62,21 @@ strategy_detect () {
             fi
         fi
 
-        # Check for column-mode dash separator: line of --- and spaces
+        # Check for column-mode dash separator: line of --- and spaces. It must be
+        # SEGMENTED (>=2 space-separated dash groups, `--- ----- ---`), the way
+        # sqlite `.mode column` prints it — that segmentation is what defines the
+        # columns. A single solid rule (`--------`, jmap-histo / gpg key banners) is
+        # not a column separator; it carries no column boundaries, so decline it and
+        # let aligned-columns parse the real header + rows.
         local _re_dash='^[-]+[ ]*[-]*'
         if [[ "$_line" =~ $_re_dash ]]; then
             # Must be mostly dashes and spaces
             local nodash="${_line//[-]/}"
             nodash="${nodash// /}"
             if [[ ${#nodash} -eq 0 && ${#_line} -ge 5 ]]; then
-                found_dash_separator=1
+                # Count dash groups: segmented separators have an inner space.
+                local _dg; _dg="$(printf '%s' "$_line" | tr -s ' ' '\n' | grep -c '^-\+$')"
+                [[ "$_dg" -ge 2 ]] && found_dash_separator=1
             fi
         fi
 
@@ -126,6 +133,10 @@ _strat_sqlite_extract_pipe () {
     local headers=()
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
+        # Skip a pure dash/space rule under the header (dnf history's
+        # `------------`): it is a separator, not a data row.
+        local _nd="${line//[-]/}"; _nd="${_nd// /}"
+        [[ -z "$_nd" && "$line" == *"-"* ]] && continue
         line_num=$((line_num + 1))
 
         if [[ $line_num -eq 1 ]]; then
@@ -160,8 +171,10 @@ _strat_sqlite_extract_pipe () {
 
             if [[ $col_idx -lt ${#headers[@]} ]]; then
                 local col_name="${headers[$col_idx]}"
-                # Normalize to lowercase
-                col_name=$(echo "$col_name" | tr '[:upper:]' '[:lower:]')
+                # Normalize to lowercase; spaces to `_` so a multi-word header
+                # (`Command line`, `Date and time`) is one field name — the tidy
+                # melt splits `entryN.field value` on the FIRST space.
+                col_name=$(echo "$col_name" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
                 [[ -n "$val" ]] && result+="${prefix}.${col_name} ${val}"$'\n'
             fi
 
@@ -240,8 +253,8 @@ _strat_sqlite_extract_column () {
         # Trim whitespace
         while [[ "$name" == " "* ]]; do name="${name# }"; done
         while [[ "$name" == *" " ]]; do name="${name% }"; done
-        # Normalize to lowercase
-        name=$(echo "$name" | tr '[:upper:]' '[:lower:]')
+        # Normalize to lowercase; spaces to `_` (multi-word header = one field).
+        name=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')
         headers+=("$name")
     done
 
