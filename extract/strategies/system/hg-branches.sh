@@ -24,6 +24,10 @@ strategy_detect () {
     while IFS= read -r line; do
         # Line: name, whitespace, then a `NNN:hexhash` changeset token.
         if [[ "$line" =~ ^[^[:space:]]+[[:space:]]+[0-9]+:[0-9a-f]{6,}([[:space:]]|$) ]]; then
+            # A branch name is a bare word; decline `hg log`/`hg heads`/`hg summary`
+            # whose first token is a `key:` label (changeset:, tag:, parent:, …).
+            local _first="${line%%[[:space:]]*}"
+            [[ "$_first" == *: ]] && continue
             hit=1; break
         fi
     done <<< "$text"
