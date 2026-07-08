@@ -1,14 +1,14 @@
-entry1.Guessing_DIMM_is_in bank_1
-entry1.EEPROM_CRC_of_bytes_0_125 OK_(0x1B2C)
+entry1.Guessing_DIMM_is_in bank 1
+entry1.EEPROM_CRC_of_bytes_0_125 OK (0x1B2C)
 entry1.of_bytes_written_to_SDRAM_EEPROM 176
 entry1.Total_number_of_bytes_in_EEPROM 512
-entry1.Fundamental_Memory_type DDR4_SDRAM
+entry1.Fundamental_Memory_type DDR4 SDRAM
 entry1.SPD_Revision 1.1
-entry1.Maximum_module_speed 2400_MHz_(PC4-19200)
-entry1.Size 8192_MB
-entry1.Banks_x_Rows_x_Columns_x_Bits 16_x_16_x_10_x_64
+entry1.Maximum_module_speed 2400 MHz (PC4-19200)
+entry1.Size 8192 MB
+entry1.Banks_x_Rows_x_Columns_x_Bits 16 x 16 x 10 x 64
 entry1.Ranks 1
-entry1.SDRAM_Device_Width 8_bits
-entry1.Manufacturer Micron_Technology
+entry1.SDRAM_Device_Width 8 bits
+entry1.Manufacturer Micron Technology
 entry1.Part_Number 8ATF1G64HZ-2G3B1
 total_entries 1

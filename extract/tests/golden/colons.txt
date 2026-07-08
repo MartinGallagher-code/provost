@@ -1,5 +1,5 @@
-Name John_Doe
+Name John Doe
 Age 42
-City New_York
+City New York
 Status active
 Role administrator

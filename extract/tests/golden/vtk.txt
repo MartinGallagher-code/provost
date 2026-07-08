@@ -1,0 +1,15 @@
+version 3.0
+title Thermal Simulation Output
+format ASCII
+dataset_type STRUCTURED_POINTS
+dimensions 64x64x64
+origin 0.0,0.0,0.0
+spacing 0.5,0.5,0.5
+num_point_data 262144
+data_array1.name temperature
+data_array1.type scalars
+data_array1.datatype float
+data_array2.name velocity
+data_array2.type vectors
+data_array2.datatype float
+num_data_arrays 2

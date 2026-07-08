@@ -37,14 +37,14 @@ entry6.c1 postgres
 entry6.c2 x
 entry6.c3 111
 entry6.c4 117
-entry6.c5 PostgreSQL_administrator,,,
+entry6.c5 PostgreSQL administrator,,,
 entry6.c6 /var/lib/postgresql
 entry6.c7 /bin/bash
 entry7.c1 martin
 entry7.c2 x
 entry7.c3 1000
 entry7.c4 1000
-entry7.c5 Martin_Gallagher,,,
+entry7.c5 Martin Gallagher,,,
 entry7.c6 /home/martin
 entry7.c7 /bin/bash
 total_entries 7

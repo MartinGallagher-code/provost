@@ -1,0 +1,18 @@
+record1.name example.com.
+record1.ttl 3600
+record1.class IN
+record1.type A
+record1.data 93.184.216.34
+record2.name example.com.
+record2.ttl 3600
+record2.class IN
+record2.type AAAA
+record2.data 2606:2800:220:1:248:1893:25c8:1946
+record3.name example.com.
+record3.ttl 86400
+record3.class IN
+record3.type NS
+record3.data ns1.example.com.
+query_time 23 msec
+server 8.8.8.8#53(8.8.8.8) (UDP)
+msg_size 123

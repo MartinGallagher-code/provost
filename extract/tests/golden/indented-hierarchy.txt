@@ -1,9 +1,9 @@
-System_Information.Manufacturer Dell_Inc.
-System_Information.Product_Name PowerEdge_R740
+System_Information.Manufacturer Dell Inc.
+System_Information.Product_Name PowerEdge R740
 System_Information.Serial_Number ABC123
-System_Information.BIOS_Information.Vendor Dell_Inc.
+System_Information.BIOS_Information.Vendor Dell Inc.
 System_Information.BIOS_Information.Version 2.12.2
 System_Information.BIOS_Information.Release_Date 01/15/2024
-System_Information.Memory.Total 64_GB
+System_Information.Memory.Total 64 GB
 System_Information.Memory.Type DDR4
-System_Information.Memory.Speed 2933_MHz
+System_Information.Memory.Speed 2933 MHz

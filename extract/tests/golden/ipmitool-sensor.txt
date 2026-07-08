@@ -1,6 +1,6 @@
-entry1.name CPU1_Temp
+entry1.name CPU1 Temp
 entry1.reading 42.000
-entry1.unit degrees_C
+entry1.unit degrees C
 entry1.status ok
 entry1.lower_nr na
 entry1.lower_crit na
@@ -8,9 +8,9 @@ entry1.lower_noncrit 5.000
 entry1.upper_noncrit 85.000
 entry1.upper_crit 90.000
 entry1.upper_nr 95.000
-entry2.name CPU2_Temp
+entry2.name CPU2 Temp
 entry2.reading 40.000
-entry2.unit degrees_C
+entry2.unit degrees C
 entry2.status ok
 entry2.lower_nr na
 entry2.lower_crit na
@@ -18,9 +18,9 @@ entry2.lower_noncrit 5.000
 entry2.upper_noncrit 85.000
 entry2.upper_crit 90.000
 entry2.upper_nr 95.000
-entry3.name System_Temp
+entry3.name System Temp
 entry3.reading 35.000
-entry3.unit degrees_C
+entry3.unit degrees C
 entry3.status ok
 entry3.lower_nr na
 entry3.lower_crit na

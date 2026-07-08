@@ -1,4 +1,4 @@
-play1.name Deploy_web_application
+play1.name Deploy web application
 host1.name web-server-1
 host1.ok 4
 host1.changed 3

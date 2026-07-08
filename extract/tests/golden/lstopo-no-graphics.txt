@@ -1,15 +1,15 @@
-entry1.c1 Machine_(15GB_total)
-entry2.c1 Package_L#0
-entry3.c1 NUMANode_L#0_(P#0_15GB)
-entry4.c1 L3_L#0_(8192KB)
-entry5.c1 L2_L#0_(256KB)_+_L1d_L#0_(32KB)_+_L1i_L#0_(32KB)_+_Core_L#0_+_PU_L#0_(P#0)
-entry6.c1 L2_L#1_(256KB)_+_L1d_L#1_(32KB)_+_L1i_L#1_(32KB)_+_Core_L#1_+_PU_L#1_(P#1)
-entry7.c1 L2_L#2_(256KB)_+_L1d_L#2_(32KB)_+_L1i_L#2_(32KB)_+_Core_L#2_+_PU_L#2_(P#2)
-entry8.c1 L2_L#3_(256KB)_+_L1d_L#3_(32KB)_+_L1i_L#3_(32KB)_+_Core_L#3_+_PU_L#3_(P#3)
-entry9.c1 HostBridge_L#0
+entry1.c1 Machine (15GB total)
+entry2.c1 Package L#0
+entry3.c1 NUMANode L#0 (P#0 15GB)
+entry4.c1 L3 L#0 (8192KB)
+entry5.c1 L2 L#0 (256KB) + L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+entry6.c1 L2 L#1 (256KB) + L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+entry7.c1 L2 L#2 (256KB) + L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+entry8.c1 L2 L#3 (256KB) + L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+entry9.c1 HostBridge L#0
 entry10.c1 PCIBridge
-entry11.c1 PCI_00:02.0_(VGA)
-entry12.c1 PCI_00:1f.2_(SATA)
-entry13.c1 Block(Disk)_"sda"
+entry11.c1 PCI 00:02.0 (VGA)
+entry12.c1 PCI 00:1f.2 (SATA)
+entry13.c1 Block(Disk) "sda"
 entry14.c1 Misc(MemoryModule)
 total_entries 14

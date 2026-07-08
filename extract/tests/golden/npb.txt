@@ -1,0 +1,11 @@
+benchmark CG
+size 75000
+iterations 75
+num_processes 4
+class C
+time_seconds 12.34
+mops_total 5678.90
+mops_per_process 1419.73
+operation_type floating_point
+verification SUCCESSFUL
+compiler_version gcc 11.3.0

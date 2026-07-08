@@ -13,7 +13,7 @@ entry3.mapping python3.11
 entry4.address 00007f9c3c000000
 entry4.kbytes 132K
 entry4.mode rw---
-entry4.mapping [_anon_]
+entry4.mapping [ anon ]
 entry5.address 00007f9c44a21000
 entry5.kbytes 1804K
 entry5.mode r-x--
@@ -25,5 +25,5 @@ entry6.mapping libc.so.6
 entry7.address 00007ffd8b3a2000
 entry7.kbytes 132K
 entry7.mode rw---
-entry7.mapping [_stack_]
+entry7.mapping [ stack ]
 total_entries 7

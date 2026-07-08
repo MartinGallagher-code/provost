@@ -2,34 +2,34 @@ event1.last_seen 3m
 event1.type Normal
 event1.reason Scheduled
 event1.object pod/web-app-xyz
-event1.message Successfully_assigned_default/web-app-xyz_to_node-1
+event1.message Successfully assigned default/web-app-xyz to node-1
 event2.last_seen 3m
 event2.type Normal
 event2.reason Pulling
 event2.object pod/web-app-xyz
-event2.message Pulling_image_"nginx:latest"
+event2.message Pulling image "nginx:latest"
 event3.last_seen 2m
 event3.type Normal
 event3.reason Pulled
 event3.object pod/web-app-xyz
-event3.message Successfully_pulled_image_"nginx:latest"
+event3.message Successfully pulled image "nginx:latest"
 event4.last_seen 2m
 event4.type Normal
 event4.reason Created
 event4.object pod/web-app-xyz
-event4.message Created_container_nginx
+event4.message Created container nginx
 event5.last_seen 2m
 event5.type Normal
 event5.reason Started
 event5.object pod/web-app-xyz
-event5.message Started_container_nginx
+event5.message Started container nginx
 event6.last_seen 1m
 event6.type Warning
 event6.reason Unhealthy
 event6.object pod/web-app-xyz
-event6.message Readiness_probe_failed:_connection_refused
+event6.message Readiness probe failed: connection refused
 event7.last_seen 30s
 event7.type Normal
 event7.reason Killing
 event7.object pod/api-server-abc
-event7.message Stopping_container_api
+event7.message Stopping container api

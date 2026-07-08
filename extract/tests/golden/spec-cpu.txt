@@ -1,13 +1,13 @@
-suite SPEC_CPU_2017_Integer_Rate
-sponsor Example_Corp
-hardware_vendor Example_Corp
-system Example_Server_X1
+suite SPEC_CPU_2017_Integer Rate
+sponsor Example Corp
+hardware_vendor Example Corp
+system Example Server X1
 cpus 2
 cores_threads 64/128
 base_copies 128
 peak_copies 128
-compiler GCC_12.2.0
-firmware BIOS_v2.1
+compiler GCC 12.2.0
+firmware BIOS v2.1
 bench1.name 500.perlbench_r
 bench1.base_copies 128
 bench1.base_runtime 234

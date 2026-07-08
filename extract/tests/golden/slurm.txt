@@ -1,0 +1,9 @@
+job_id 987654
+job_name climate_sim
+partition compute
+state COMPLETED
+elapsed 02:34:17
+ncpus 128
+nnodes 4
+mem 64G
+exit_code 0:0

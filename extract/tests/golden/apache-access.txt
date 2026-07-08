@@ -1,6 +1,6 @@
 line1.ip 192.168.1.1
 line1.user -
-line1.date 12/Jan/2024:14:23:45_+0000
+line1.date 12/Jan/2024:14:23:45 +0000
 line1.method GET
 line1.path /index.html
 line1.status 200
@@ -9,7 +9,7 @@ line1.referrer https://example.com
 line1.user_agent Mozilla/5.0
 line2.ip 10.0.0.2
 line2.user admin
-line2.date 12/Jan/2024:14:24:01_+0000
+line2.date 12/Jan/2024:14:24:01 +0000
 line2.method POST
 line2.path /api/login
 line2.status 302
@@ -18,7 +18,7 @@ line2.referrer -
 line2.user_agent curl/7.88.0
 line3.ip 172.16.0.1
 line3.user -
-line3.date 12/Jan/2024:14:25:30_+0000
+line3.date 12/Jan/2024:14:25:30 +0000
 line3.method GET
 line3.path /style.css
 line3.status 304

@@ -1,0 +1,19 @@
+filename simulation_output.h5
+attribute1.name file_version
+dataset0.datatype H5T_STRING {
+dataset0.dimensions scalar
+attribute1.value "2.1"
+dataset1.datatype H5T_IEEE_F64LE
+dataset1.dimensions 100,50,50
+dataset2.datatype H5T_IEEE_F32LE
+dataset2.dimensions 100,50
+attribute2.name units
+dataset2.datatype H5T_STRING {
+dataset2.dimensions scalar
+attribute2.value "kelvin"
+dataset3.datatype H5T_IEEE_F64LE
+dataset3.dimensions 100
+num_groups 3
+num_datasets 3
+num_attributes 2
+dataset_names results/temperature,results/pressure,metadata/timestamps

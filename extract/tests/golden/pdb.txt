@@ -1,0 +1,10 @@
+pdb_id 8ABC
+classification OXIDOREDUCTASE
+title CRYSTAL STRUCTURE OF HUMAN CARBONIC ANHYDRASE II
+compound MOL_ID: 1; MOLECULE: CARBONIC ANHYDRASE 2;
+num_atoms 8
+num_hetatm 3
+num_residues 2
+resolution 1.54
+r_factor 0.1820
+space_group P 21 21 21

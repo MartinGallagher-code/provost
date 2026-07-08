@@ -1,4 +1,4 @@
-title My_Project
+title My Project
 version 1.2.3
 database.host localhost
 database.port 5432

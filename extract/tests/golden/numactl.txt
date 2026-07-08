@@ -1,0 +1,9 @@
+num_nodes 2
+node0.cpus 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+node0.size_MB 32168
+node0.free_MB 28456
+node1.cpus 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31
+node1.size_MB 32192
+node1.free_MB 30124
+distance.from0 10 21
+distance.from1 21 10

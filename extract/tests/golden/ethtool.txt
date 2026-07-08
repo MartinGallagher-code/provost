@@ -1,0 +1,13 @@
+interface eth0
+supported_ports [ TP MII ]
+supported_link_modes 10baseT/Half 10baseT/Full
+speed 1000Mb/s
+duplex Full
+auto_negotiation on
+port Twisted Pair
+link_detected yes
+driver e1000e
+firmware_version 0.13-3
+bus_info 0000:00:1f.6
+ring_rx 256
+ring_tx 256

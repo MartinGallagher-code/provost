@@ -2,30 +2,30 @@ entry1.name vg_sys-root
 entry1.start 0
 entry1.len 104857600
 entry1.type linear
-entry1.params 8:2_2048
+entry1.params 8:2 2048
 entry2.name vg_sys-swap
 entry2.start 0
 entry2.len 16777216
 entry2.type linear
-entry2.params 8:2_104859648
+entry2.params 8:2 104859648
 entry3.name vg_data-pool0_tmeta
 entry3.start 0
 entry3.len 131072
 entry3.type linear
-entry3.params 8:17_2048
+entry3.params 8:17 2048
 entry4.name vg_data-pool0_tdata
 entry4.start 0
 entry4.len 125829120
 entry4.type linear
-entry4.params 8:17_133120
+entry4.params 8:17 133120
 entry5.name vg_data-pool0-tpool
 entry5.start 0
 entry5.len 125829120
 entry5.type thin-pool
-entry5.params 253:2_253:3_128_32768_1_skip_block_zeroing
+entry5.params 253:2 253:3 128 32768 1 skip_block_zeroing
 entry6.name vg_data-vol_backup
 entry6.start 0
 entry6.len 83886080
 entry6.type thin
-entry6.params 253:4_1
+entry6.params 253:4 1
 total_entries 6

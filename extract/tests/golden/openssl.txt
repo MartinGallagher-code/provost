@@ -1,7 +1,7 @@
 version 3
 serial_number 12:34:56:78:9a:bc:de:f0
 signature_algorithm sha256WithRSAEncryption
-issuer C=US,_O=DigiCert_Inc,_CN=DigiCert_Global_Root_G2
-not_before Jan_12_00:00:00_2024_GMT
-not_after Jan_12_23:59:59_2025_GMT
-subject C=US,_ST=California,_O=Example_Inc,_CN=example.com
+issuer C=US, O=DigiCert Inc, CN=DigiCert Global Root G2
+not_before Jan 12 00:00:00 2024 GMT
+not_after Jan 12 23:59:59 2025 GMT
+subject C=US, ST=California, O=Example Inc, CN=example.com

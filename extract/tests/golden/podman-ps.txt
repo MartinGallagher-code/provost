@@ -1,0 +1,16 @@
+container1.id a1b2c3d4e5f6
+container1.image docker.io/library/nginx:latest
+container1.status Up
+container1.name mypod
+container2.id b2c3d4e5f6a7
+container2.image docker.io/library/redis:7
+container2.status Up
+container2.name mypod
+container3.id c3d4e5f6a7b8
+container3.image docker.io/library/postgres:15
+container3.status Exited
+container3.name none
+container4.id d4e5f6a7b8c9
+container4.image quay.io/prometheus/node:v1.5
+container4.status Up
+container4.name none

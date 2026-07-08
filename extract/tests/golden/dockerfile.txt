@@ -11,4 +11,4 @@ stage2.from node:18-alpine
 stage2.workdir /app
 stage2.env.NODE_ENV production
 stage2.expose 3000
-stage2.cmd node_server.js
+stage2.cmd node server.js

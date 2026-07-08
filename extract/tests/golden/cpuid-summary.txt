@@ -1,16 +1,16 @@
 entry1.vendor_id GenuineIntel
-entry1.processor_type primary_processor_(0)
-entry1.family 0x6_(6)
-entry1.model 0xe_(14)
-entry1.stepping_id 0xa_(10)
-entry1.extended_family 0x0_(0)
-entry1.extended_model 0x9_(9)
-entry1.family_synth 0x6_(6)
-entry1.model_synth 0x9e_(158)
-entry1.brand_id 0x00_(0):_unknown
-entry1.process_local_APIC_physical_ID 0x0_(0)
-entry1.cpu_count 0x10_(16)
-entry1.CLFLUSH_line_size 0x8_(8)
-entry1.brand_index 0x0_(0)
-entry1.brand Intel(R)_Core(TM)_i7-8700_CPU_@_3.20GHz
+entry1.processor_type primary processor (0)
+entry1.family 0x6 (6)
+entry1.model 0xe (14)
+entry1.stepping_id 0xa (10)
+entry1.extended_family 0x0 (0)
+entry1.extended_model 0x9 (9)
+entry1.family_synth 0x6 (6)
+entry1.model_synth 0x9e (158)
+entry1.brand_id 0x00 (0): unknown
+entry1.process_local_APIC_physical_ID 0x0 (0)
+entry1.cpu_count 0x10 (16)
+entry1.CLFLUSH_line_size 0x8 (8)
+entry1.brand_index 0x0 (0)
+entry1.brand Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
 total_entries 1

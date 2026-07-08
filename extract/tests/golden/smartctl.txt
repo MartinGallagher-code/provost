@@ -1,4 +1,4 @@
-Model_Family Western_Digital_Blue
+Model_Family Western Digital Blue
 Device_Model WDC WD10EZEX-08WN4A0
 Serial_Number WD-WMC3T0123456
 Firmware_Version 01.01A01

@@ -1,0 +1,16 @@
+gpu_index 0
+temp_edge_C 45.0
+power_W 35.0
+sclk_MHz 1500
+mclk_MHz 945
+fan_percent 0
+memory_use_percent 10
+gpu_use_percent 25
+gpu2.gpu_index 1
+gpu2.temp_edge_C 42.0
+gpu2.power_W 30.0
+gpu2.sclk_MHz 1350
+gpu2.mclk_MHz 945
+gpu2.fan_percent 5
+gpu2.memory_use_percent 8
+gpu2.gpu_use_percent 20

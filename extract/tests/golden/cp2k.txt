@@ -1,0 +1,8 @@
+total_energy -123.456789012345
+num_atoms 96
+num_electrons 256
+scf_cycles 7
+max_scf_gradient 0.00000012
+elapsed_time 330.000
+method DFT
+functional BLYP

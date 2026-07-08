@@ -1,8 +1,8 @@
 entry1.TARGET linux-glibc
 entry1.CPU generic
 entry1.CC cc
-entry1.CFLAGS -O2_-g_-fwrapv
-entry1.OPTIONS USE_PCRE2=1_USE_OPENSSL=1_USE_LUA=1_USE_SYSTEMD=1
+entry1.CFLAGS -O2 -g -fwrapv
+entry1.OPTIONS USE_PCRE2=1 USE_OPENSSL=1 USE_LUA=1 USE_SYSTEMD=1
 entry1.bufsize 16384
 entry1.maxrewrite 1024
 entry1.maxpollevents 200

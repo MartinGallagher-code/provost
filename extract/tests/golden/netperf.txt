@@ -1,4 +1,4 @@
-test_type TCP_STREAM
+test_type TCP STREAM
 recv_socket_size 131072
 send_socket_size 16384
 send_message_size 16384

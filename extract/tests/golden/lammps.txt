@@ -1,0 +1,13 @@
+lammps_version 2 Aug 2023 - Update 2
+initial_step 0
+initial_temp 1.44
+tau_per_day 121.025
+timesteps_per_s 280.315
+total_wall_time 0:00:04
+final_step 1000
+final_temp 0.7312
+final_press 0.0181
+total_energy -6.7674
+kinetic_energy 1.0968
+potential_energy -7.8642
+num_thermo_rows 5

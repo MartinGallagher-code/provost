@@ -1,18 +1,18 @@
 entry1.c1 Computer
 entry2.c1 
-entry3.c1 UEFI_dbx:
-entry4.c1 Device_ID:__________362301da643102b9f38477387e2193e57abaa590
-entry5.c1 Summary:____________UEFI_revocation_database
-entry6.c1 Current_version:____77
-entry7.c1 Vendor:_____________UEFI:Linux_Foundation
+entry3.c1 UEFI dbx:
+entry4.c1 Device ID:          362301da643102b9f38477387e2193e57abaa590
+entry5.c1 Summary:            UEFI revocation database
+entry6.c1 Current version:    77
+entry7.c1 Vendor:             UEFI:Linux Foundation
 entry8.c1 
-entry9.c1 System_Firmware:
-entry10.c1 Device_ID:__________08d460be0f1f9f128413f816022a6439e0078c58
-entry11.c1 Current_version:____0.1.13
-entry12.c1 Vendor:_____________Dell_Inc._(DMI:Dell_Inc.)
+entry9.c1 System Firmware:
+entry10.c1 Device ID:          08d460be0f1f9f128413f816022a6439e0078c58
+entry11.c1 Current version:    0.1.13
+entry12.c1 Vendor:             Dell Inc. (DMI:Dell Inc.)
 entry13.c1 
-entry14.c1 Samsung_SSD_860_EVO_500GB:
-entry15.c1 Device_ID:__________e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b
-entry16.c1 Current_version:____RVT02B6Q
-entry17.c1 Vendor:_____________Samsung
+entry14.c1 Samsung SSD 860 EVO 500GB:
+entry15.c1 Device ID:          e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b
+entry16.c1 Current version:    RVT02B6Q
+entry17.c1 Vendor:             Samsung
 total_entries 17

@@ -20,5 +20,5 @@ entry19.c1 standard
 entry20.c1 tokenizer
 entry21.c1 xml
 entry22.c1 zlib
-entry23.c1 Zend_OPcache
+entry23.c1 Zend OPcache
 total_entries 23
