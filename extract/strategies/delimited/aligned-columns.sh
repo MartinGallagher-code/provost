@@ -219,6 +219,73 @@ strategy_detect () {
     return 0
 }
 
+# Is the block cleanly column-aligned to its header? (first input line = header).
+# A data row is aligned when the character just before each header column start
+# is whitespace — i.e. no value bleeds across a header column boundary. Prints
+# "1" when >=80% of data rows are aligned and the header has >=2 columns, else
+# "0". Only cleanly-aligned tables (docker/kubectl/helm) get positional parsing;
+# irregular / right-aligned-overflow tables (ps/df/vmstat) stay on tokenization.
+_ac_aligned () {
+    awk '
+    NR==1 {
+        hl=$0; L=length(hl); i=1; nc=0
+        while (i<=L) {
+            while (i<=L && substr(hl,i,1)==" ") i++
+            if (i>L) break
+            nc++; cstart[nc]=i
+            while (i<=L && !(substr(hl,i,1)==" " && substr(hl,i+1,1)==" ")) i++
+        }
+        next
+    }
+    {
+        ndata++; ok=1
+        for (c=2;c<=nc;c++) {
+            ch=substr($0,cstart[c]-1,1)
+            if (ch!="" && ch!=" ") { ok=0; break }
+        }
+        if (ok) aligned++
+    }
+    END {
+        if (nc<2 || ndata==0) { print "0"; exit }
+        if (aligned*100/ndata >= 80) print "1"; else print "0"
+    }'
+}
+
+# Positional token assignment for a cleanly-aligned block. First input line is the
+# header; its 2+-space fields define column start positions. Each line's tokens
+# are assigned to the column region [cstart_i, cstart_{i+1}) their start falls in,
+# so a multi-word cell ("2 weeks ago" under CREATED) is rejoined and a multi-word
+# header ("IMAGE ID") names a single column. Emits TAB-separated cells per line.
+_ac_assign () {
+    awk '
+    NR==1 {
+        hl=$0; L=length(hl); i=1; nc=0
+        while (i<=L) {
+            while (i<=L && substr(hl,i,1)==" ") i++
+            if (i>L) break
+            nc++; cstart[nc]=i
+            while (i<=L && !(substr(hl,i,1)==" " && substr(hl,i+1,1)==" ")) i++
+        }
+        cstart[nc+1]=1000000
+    }
+    {
+        line=$0; L=length(line); i=1
+        for (c=1;c<=nc;c++) cell[c]=""
+        while (i<=L) {
+            while (i<=L && substr(line,i,1)==" ") i++
+            if (i>L) break
+            ts=i; tok=""
+            while (i<=L && substr(line,i,1)!=" ") { tok=tok substr(line,i,1); i++ }
+            col=1
+            for (c=1;c<=nc;c++) { if (cstart[c]<=ts) col=c; else break }
+            if (cell[col]=="") cell[col]=tok; else cell[col]=cell[col] " " tok
+        }
+        out=cell[1]
+        for (c=2;c<=nc;c++) out=out "\t" cell[c]
+        print out
+    }'
+}
+
 strategy_extract () {
     local text="$1"
     local shape; shape="$(_ac_shape "$text")" || { echo ""; return 0; }
@@ -230,6 +297,42 @@ strategy_extract () {
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         lines+=("$_l")
     done <<< "$(_ac_body "$text")"
+
+    # For a cleanly-aligned HDR/HDR2 table, use positional token assignment so
+    # multi-word headers/values (docker `IMAGE ID` / `2 weeks ago`, kubectl PORTS
+    # `80, 443`) survive. Everything else keeps whitespace tokenization.
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
+        local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
+        local hd; hd="$(printf '%s\n' "${lines[@]:$hidx}")"
+        if [[ "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
+            local gridrows=() _g
+            while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
+            if [[ ${#gridrows[@]} -ge 2 ]]; then
+                local headers=() result="" entry=0 li i
+                IFS=$'\t' read -ra headers <<< "${gridrows[0]}"
+                for ((i = 0; i < ${#headers[@]}; i++)); do
+                    local h="${headers[$i]//./_}"; h="${h// /_}"
+                    while [[ "$h" == *__* ]]; do h="${h//__/_}"; done
+                    h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && h="c$((i + 1))"
+                    headers[$i]="$h"
+                done
+                for ((li = 1; li < ${#gridrows[@]}; li++)); do
+                    local values; values=(); IFS=$'\t' read -ra values <<< "${gridrows[$li]}"
+                    local nonempty=0 v
+                    for v in "${values[@]}"; do [[ -n "${v//[[:space:]]/}" ]] && { nonempty=1; break; }; done
+                    [[ $nonempty -eq 0 ]] && continue
+                    entry=$((entry + 1))
+                    for ((i = 0; i < ${#headers[@]}; i++)); do
+                        local name="${headers[$i]}" value="${values[$i]:-}"
+                        [[ -z "$value" ]] && continue
+                        result+="entry${entry}.${name} ${value}"$'\n'
+                    done
+                done
+                [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+                echo "$result"; return 0
+            fi
+        fi
+    fi
 
     # Header names: the header line's tokens (HDR/HDR2), or synthetic c1..cN (HL).
     local headers=() startidx=0 i
