@@ -154,41 +154,37 @@ Two correctness passes over what tools actually emit (not just row/column shape)
 ### 500-input review (2026-07-09)
 
 Classified ~500 inputs (ok / just-text / parse-wrong). 339 ok, 11 just-text
-(moved to `text-inputs/`), 149 parse-wrong. Fixed:
-- `colon-fields` identifier-list decline (ARNs), `docker-ps` COMMAND guard
-  (docker-stats/buildah), plus the batch-1 fixes.
+(moved to `text-inputs/`), 149 parse-wrong.
 
-**Deferred — aligned-columns multi-word mis-split (~52 tools, the biggest
-cluster).** docker/kubectl/helm/crictl/dnf/az/ip tables shred multi-word headers
-(`IMAGE ID`) and values (`2 weeks ago`) because aligned-columns tokenizes on
-whitespace. Two positional rewrites were attempted and both regressed a
-*different* set of common tools, so both were reverted:
-- All-row whitespace-column boundaries: broke right-aligned numeric columns
-  (`ps-aux-sort` merged VSZ/RSS — the inter-column gap moves) and two-line headers
-  (`vmstat`/`dstat` — the group row breaks the boundaries).
-- Header-region token assignment (split header on 2+ spaces, assign each data
-  token to the region its start falls in): fixed docker/kubectl but broke `ps`/`df`
-  whose headers are *irregularly* spaced (short labels, mixed single/2+ gaps).
-The two data shapes need opposite strategies: a multi-word value needs the header
-to define column regions so internal spaces aren't split; a right-aligned numeric
-column needs data-gap detection because the header is irregular. A robust fix
-needs proper fixed-width column inference (cluster token start/end positions
-across data rows, à la `pandas.read_fwf`), which is a dedicated effort — not a
-detect/tokenize tweak. Until then these ~52 stay mis-split (the pre-existing
-baseline). The safe ` = ` assignment-block decline guard on aligned-columns is
-kept.
+**Done — aligned-columns opt-in positional parsing (~50 tools, the biggest
+cluster).** docker/kubectl/helm/crictl/dnf/az/gcloud tables were shredding
+multi-word headers (`IMAGE ID`) and values (`2 weeks ago`) on whitespace. Fixed
+by `_ac_aligned` (are ≥80% of data rows aligned to the header's 2+-space column
+starts?) gating `_ac_assign` (assign each token to its header column region,
+rejoining multi-word cells). Only *cleanly-aligned* blocks get positional
+parsing; irregular single-space headers (ps/df), right-aligned-overflow numerics
+(ps-aux-sort), two-line headers (vmstat/dstat), and headerless tables keep the
+known-good tokenization. This opt-in gate is the key: two earlier
+*unconditional* positional rewrites each regressed a different set of common
+tools (all-row-whitespace broke ps-aux-sort/vmstat; header-region-only broke
+ps/df) because multi-word values and right-aligned numerics need opposite
+column-detection — the gate sidesteps that by only firing where the header and
+data agree. Also retired the `kubectl` and `container-top` bespokes (they
+transposed to one wide row + mis-split; aligned-columns now covers them as
+records). Shadow narrowings landed: `hg-branches`, `git-log`, `version-string`,
+`pip-list`, `colon-fields`, `docker-ps`, plus the batch-1 fixes.
 
-**Remaining parse-wrong tail (~85 tools), by cluster — the next work:**
-1. **Greedy bespoke/generic shadows** (narrow `detect()`; the freed tools are now
-   handled well by positional aligned-columns): `kubectl` (helm-list/-all,
-   docker-compose-ps, kubectl-get-all/daemonset), `sqlite-output` (jmap-histo,
+**Remaining parse-wrong tail (~70 tools), by cluster — the next work:**
+1. **Greedy bespoke/generic shadows still to narrow** (the freed tools are now
+   handled well by positional aligned-columns): `sqlite-output` (jmap-histo,
    git-stash-show-stat, gpg-list-secret-keys, gradle-q-dependencies,
    dnf-history-list, git-diff-stat), `pkg-config` (aptitude-search,
    bundle-outdated, flatpak-list, ip-br-addr, ip6tables-l, ipmitool-sdr, deno-info),
-   `git-log` (git-for-each-ref, git-lfs-ls-files, gsutil-du), `hg-branches`
-   (hg-heads/-log/-summary), `proc-stat` (etcdctl-alarm-list, ipset-list),
-   `container-top`, `version-string`, `pip-list`, `env-vars`, `line-records`
-   (git-branch/-a, git-config-list, ghc-info, cgget, java-showsettings, jcmd-heap-info).
+   `proc-stat` (etcdctl-alarm-list, ipset-list), `docker-compose-ps` (transpose),
+   `env-vars`, `line-records` (git-branch/-a, git-config-list, ghc-info, cgget,
+   java-showsettings, jcmd-heap-info). git-lfs/for-each-ref/gsutil-du,
+   hg-log/heads/summary, dig-short, git-submodule, composer-outdated, helm-list,
+   kubectl-get-*, docker/podman top, crictl-ps are already fixed.
 2. **Record-vs-one-wide-row** (a multi-record dump transposed into a single wide
    row — needs repeated-key/record detection): `yaml` (dpkg-s, edac-util,
    dotnet-nuget-locals, kubectl-config-view, flatpak-info), `ini` (dbmate-status,
