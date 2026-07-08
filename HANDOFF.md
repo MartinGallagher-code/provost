@@ -134,6 +134,34 @@ and the long tail once the corpus is broader. Keep bespokes that are clearly
 better than the generic (`mount`, `free`, `docker-ps`, `ip-route`, `ls-l` give
 nicer columns).
 
+## Output-quality vetting (2026-07-08)
+
+Two correctness passes over what tools actually emit (not just row/column shape):
+
+- **Values keep their spaces.** ~200 strategies were underscoring spaces in
+  emitted VALUES (`${v// /_}`), mangling multi-word data. Removed from every
+  value path (kept it on field NAMES/headers, kept tab→`_` for TSV safety);
+  regenerated 414 goldens and 53 test assertions. `glean` now shows
+  e.g. R nickname "Eye Holes", cert issuer "C=US, O=DigiCert Inc",
+  systemd descriptions and commit subjects verbatim.
+- **Box-table shadowing.** `pipe-table`/`sqlite-output`/`strace-summary`/
+  `fixed-width` now decline `+---+` box tables so `psql-table`'s box parser wins
+  them — fixed ~55 `aws --output table`/mysql/pg/pgbouncer grids that were
+  flattened to one/few columns (aws-ec2-describe-instances 2→8 cols). Done via
+  `detect()` narrowing (no priority changes), so bespoke parsers and non-box
+  tools are untouched.
+
+**Still open (full-mode detect-narrowing tail):** a handful of other greedy
+low-priority parsers still shadow purpose-built ones for specific tools (e.g.
+`ini`, `git-log`, `container-top`, `version-string` claiming a few tools they
+mis-parse). Method to close each: `env -u GIT_DIR bash extract/envoy-extract
+--emit-meta -f tsv --max-strategies 1 <input>` shows the full-mode winner;
+narrow the greedy parser's `detect()` (or fix priority) so the specific parser
+wins, then verify no regression with a full-mode winner scan across the corpus.
+The corpus goldens under `tests/corpus/expected/` are generic-mode and are
+regenerated with `run.sh --update-golden`; `run.sh --golden` is the (non-CI)
+regression check.
+
 ## Next steps
 
 1. **Grow the corpus toward broad coverage** (in progress) — more common tools
