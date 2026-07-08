@@ -219,43 +219,120 @@ strategy_detect () {
     return 0
 }
 
+# Positional column split. A column boundary is a character position that is
+# whitespace in EVERY row — so an internal single space in a multi-word header
+# ("CONTAINER ID") or value ("2 weeks ago") is NOT a boundary (other rows carry
+# data there). Emits one TAB-separated row per input line (cells trimmed), which
+# keeps multi-word headers/values whole instead of shredding them on whitespace.
+# The final column extends to end of line.
+_ac_grid () {
+    awk '
+    { lines[NR]=$0; L=length($0); if (L>maxlen) maxlen=L }
+    END {
+        n=NR
+        for (c=1;c<=maxlen;c++) {
+            s=1
+            for (i=1;i<=n;i++) {
+                ch=substr(lines[i],c,1)
+                if (ch!="" && ch!=" " && ch!="\t") { s=0; break }
+            }
+            sep[c]=s
+        }
+        nf=0; infield=0
+        for (c=1;c<=maxlen;c++) {
+            if (sep[c]==0) { if (infield==0){ nf++; fstart[nf]=c; infield=1 } }
+            else infield=0
+        }
+        if (nf==0) { nf=1; fstart[1]=1 }
+        for (i=1;i<=n;i++) {
+            out=""
+            for (f=1;f<=nf;f++) {
+                st=fstart[f]
+                if (f==nf) len=length(lines[i])-st+1; else len=fstart[f+1]-st
+                if (len<0) len=0
+                cell=substr(lines[i],st,len)
+                gsub(/^[ \t]+/,"",cell); gsub(/[ \t]+$/,"",cell)
+                if (f>1) out=out "\t"
+                out=out cell
+            }
+            print out
+        }
+    }'
+}
+
 strategy_extract () {
     local text="$1"
     local shape; shape="$(_ac_shape "$text")" || { echo ""; return 0; }
-    local mode="${shape%% *}" ncols="${shape##* }"
+    local mode="${shape%% *}"
 
-    # Collect non-blank lines (after dropping any `total <n>` preamble).
-    local lines=() _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
-        lines+=("$_l")
-    done <<< "$(_ac_body "$text")"
+    # Positional grid of the (preamble-stripped) body: one TAB-separated row per
+    # non-blank line, columns sliced at whitespace-in-every-row boundaries.
+    local grid; grid="$(_ac_body "$text" | grep -v '^[[:space:]]*$' | _ac_grid)"
+    local gridrows=() _g
+    while IFS= read -r _g; do gridrows+=("$_g"); done <<< "$grid"
+    local nrows=${#gridrows[@]}
+    [[ $nrows -lt 1 ]] && { echo ""; return 0; }
 
-    # Header names: the header line's tokens (HDR/HDR2), or synthetic c1..cN (HL).
+    # Hybrid fallback: positional slicing needs columns separated by an all-space
+    # character column (2+ spaces / true alignment). Some tables are only
+    # single-space "aligned" — there the positional split under-counts columns.
+    # Detect that case (every non-blank body line has the SAME whitespace-token
+    # count, and positional produced fewer columns) and fall back to whitespace
+    # tokenization. Uniform token counts guarantee there are no multi-word cells,
+    # so tokenization is safe there.
+    local _npos; _npos="$(printf '%s' "${gridrows[0]}" | awk -F'\t' '{print NF}')"
+    local _bl _tc _uniform=1 _first_tc=-1
+    while IFS= read -r _bl; do
+        [[ -z "${_bl//[[:space:]]/}" ]] && continue
+        local _ta=(); read -ra _ta <<< "$_bl"; _tc=${#_ta[@]}
+        if [[ $_first_tc -eq -1 ]]; then _first_tc=$_tc
+        elif [[ $_tc -ne $_first_tc ]]; then _uniform=0; break; fi
+    done <<< "$(_ac_body "$text" | grep -v '^[[:space:]]*$')"
+    if [[ $_uniform -eq 1 && $_first_tc -gt ${_npos:-0} ]]; then
+        gridrows=()
+        while IFS= read -r _bl; do
+            [[ -z "${_bl//[[:space:]]/}" ]] && continue
+            local _ta=(); read -ra _ta <<< "$_bl"
+            local _joined; printf -v _joined '%s\t' "${_ta[@]}"
+            gridrows+=("${_joined%$'\t'}")
+        done <<< "$(_ac_body "$text" | grep -v '^[[:space:]]*$')"
+        nrows=${#gridrows[@]}
+    fi
+
+    # Header names: the header row's cells (HDR/HDR2), or synthetic c1..cN (HL).
     local headers=() startidx=0 i
     case "$mode" in
-        HDR)  read -ra headers <<< "${lines[0]}"; startidx=1 ;;
-        HDR2) read -ra headers <<< "${lines[1]}"; startidx=2 ;;
-        HL)   for ((i = 1; i <= ncols; i++)); do headers+=("c$i"); done; startidx=0 ;;
+        HDR)  IFS=$'\t' read -ra headers <<< "${gridrows[0]}"; startidx=1 ;;
+        HDR2) IFS=$'\t' read -ra headers <<< "${gridrows[1]}"; startidx=2 ;;
+        HL)   local maxf=0 _r _tmp
+              for _r in "${gridrows[@]}"; do
+                  _tmp=(); IFS=$'\t' read -ra _tmp <<< "$_r"
+                  [[ ${#_tmp[@]} -gt $maxf ]] && maxf=${#_tmp[@]}
+              done
+              for ((i = 1; i <= maxf; i++)); do headers+=("c$i"); done
+              startidx=0 ;;
     esac
-    # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
-    # the first dot).
-    for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
+    # Field NAMES can't hold a space (the engine splits entry<N>.field/value on the
+    # first space) or a '.' (the melt splits entry<N>.<field> on the first dot).
+    for ((i = 0; i < ${#headers[@]}; i++)); do
+        local h="${headers[$i]//./_}"; h="${h// /_}"
+        while [[ "$h" == *__* ]]; do h="${h//__/_}"; done
+        h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && h="c$((i + 1))"
+        headers[$i]="$h"
+    done
 
-    # Emit each data line as an indexed group (entry<N>.<field>) so the tidy melt
-    # renders one row per line with shared columns.
+    # Emit each data row as an indexed group (entry<N>.<field>) so the tidy melt
+    # renders one row per line with shared columns. Values keep internal spaces.
     local result="" entry=0 li
-    for ((li = startidx; li < ${#lines[@]}; li++)); do
-        local values; values=(); read -ra values <<< "${lines[$li]}"
+    for ((li = startidx; li < nrows; li++)); do
+        local values; values=(); IFS=$'\t' read -ra values <<< "${gridrows[$li]}"
+        local nonempty=0 v
+        for v in "${values[@]}"; do [[ -n "${v//[[:space:]]/}" ]] && { nonempty=1; break; }; done
+        [[ $nonempty -eq 0 ]] && continue
         entry=$((entry + 1))
         for ((i = 0; i < ${#headers[@]}; i++)); do
             local name="${headers[$i]}" value="${values[$i]:-}"
             [[ -z "$value" ]] && continue
-            # Last column absorbs any extra trailing tokens.
-            if [[ $i -eq $((${#headers[@]} - 1)) && ${#values[@]} -gt ${#headers[@]} ]]; then
-                local j
-                for ((j = i + 1; j < ${#values[@]}; j++)); do value+="_${values[$j]}"; done
-            fi
             result+="entry${entry}.${name} ${value}"$'\n'
         done
     done
