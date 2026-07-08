@@ -1,5 +1,30 @@
 # glean — Changelog
 
+## 2026-07-09 — richer columnar-specs engine: prove value-add transforms (ss-tulnp)
+Extended the `columnar-specs` engine (v1.1) so a spec can express the value-add
+work that per-tool bespokes do — not just a flat column map:
+- `minreq` — minimum tokens for a row (lets trailing columns be optional)
+- `name@opt` — emit a column only when non-empty
+- `name@between@L@R` — extract the substring between two markers (sub-field
+  parsing), e.g. ss `users:(("sshd",…))` → `sshd`
+- per-spec `total` flag — match bespokes that do/don't emit `total_entries`
+
+Migrated `ss-tulnp` (covers ss-tulpn / ss-memory / ss-udp / ss-tp, incl. the
+process-name extraction) into a single spec line; retired the bespoke. All four
+tools verified **byte-identical** (melted) to the old bespoke. ss generic goldens
+regenerated — they now carry the good ss-quality output (named columns + extracted
+process) in generic mode too, where they previously fell to a cruder parser.
+
+Performance (measured): a full auto-detect run is ~3.2s, ~89% of which is the
+detection loop's per-strategy overhead (source + metadata + detect + cleanup),
+~7ms per strategy file. The engine's per-tool cost is comparable/slightly lower
+(0.063s vs 0.074s forced), and every file it absorbs removes one loop iteration —
+so collapsing toward ~300 files projects to ~20-25% faster auto-detect. The spec
+engine is thus both a count reduction and the biggest lever on run latency.
+
+Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+Count: 410 files / 409 distinct names.
+
 ## 2026-07-09 — declarative columnar-specs engine (foundation for spec-driven parsers)
 Introduces `extract/strategies/delimited/columnar-specs.sh`: a single data-driven
 engine that replaces per-tool columnar strategies with one TAB-separated spec line
