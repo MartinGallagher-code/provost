@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-09 — redundant-strategy prune: investigated, nothing safe to remove
+Rigorous sweep to prune redundant per-tool strategies (the standing "then prune"
+goal). Computed the full-mode winner for all 1040 corpus tools, then byte-compared
+each shadowing bespoke's output against the generic golden. Finding: the
+obviously-redundant columnar bespokes (`df`, `ps-aux`, `ss`, `lsblk`, `vmstat`,
+`netstat`, `top`, `systemctl`, `kubectl`, `container-top`, …) were **already**
+removed in earlier sessions, and every *remaining* bespoke that shadows a
+generic-covered tool produces **better or distinct** output (e.g. `mount` names
+`device/mount_point/fstype/options` vs generic raw `c1..c6`; `free` labels the
+row; `ls-l` joins the date; `kv-pairs` strips the `, ` delimiter). So **no
+strategy is safely removable** — the count stays at 420 distinct strategies (421
+files; one stray duplicate `## Name: perf-stat`). Recorded in `HANDOFF.md` so the
+stale "prune" step isn't chased again. No code changes.
+
 ## 2026-07-09 — parse-wrong tail (clusters 2–3): ip-link parser, colon routing, text-inputs
 - **New `ip-link` parser** (`extract/strategies/network/ip-link.sh`, + sample +
   golden) for iproute2 `ip addr` / `ip link`. Parses the multi-line per-interface

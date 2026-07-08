@@ -241,10 +241,22 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
    `apt list`, `systemctl status`, … For each: add `inputs/<tool>.txt`, a
    `expected.tsv` row, run `run.sh`, close any new gap in the generic parsers,
    then `run.sh --update-golden`. `COVERAGE.md` stays the queryable record.
-2. **Then prune** the now-redundant per-tool strategies (`df`, `ps-aux`, `ss`,
-   `lsblk`, `mount`, `iostat`, `netstat`, `top`, `systemctl`, …) that the generic
-   parsers already cover in full mode — the payoff of the whole effort (fewer
-   strategies). Verify full-mode tidy stays intact as each is removed.
+2. **Prune redundant per-tool strategies — investigated 2026-07-09, essentially
+   DONE already.** The obviously-redundant columnar bespokes (`df`, `ps-aux`, `ps`,
+   `ss`, `lsblk`, `vmstat`, `dstat`, `netstat`, `top`, `systemctl`, `who`, `w`,
+   `kubectl`, `container-top`) were already removed in earlier sessions — none of
+   them exist now. A rigorous sweep (full-mode winner for all 1040 corpus tools,
+   then a byte-for-byte compare of each bespoke's output against the generic
+   golden) found **no remaining strategy is safely removable**: every bespoke that
+   still shadows a generic-covered tool produces *better or distinct* output, not
+   redundant output — e.g. `mount` → named `device/mount_point/fstype/options`
+   (generic gives raw `c1..c6` with literal `on`/`type`/`(rw,relatime)`), `free`
+   labels the `Mem`/`Swap` row, `ls-l` joins the split date, `kv-pairs` strips the
+   `, ` delimiter `inline-kv` leaves. 420 distinct strategies (421 files — a stray
+   duplicate `## Name: perf-stat` in `benchmark/` and `profiling/`; resolving that
+   needs picking the canonical impl, since both are shadowed by `perf-counters` in
+   the corpus). Net: the count (420) stands; do not delete value-adding bespokes to
+   shrink it.
 3. Optional: drop the stray `total_entries` column the columnar melt emits (minor
    tidy noise; touches `aligned-columns`/`bracket-log` goldens).
 4. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
