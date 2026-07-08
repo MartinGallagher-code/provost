@@ -1,4 +1,0 @@
-NAME                     READY   STATUS    RESTARTS   AGE
-nginx-deployment-abc12   1/1     Running   0          2d
-redis-master-def34       1/1     Running   0          5d
-api-server-ghi56         2/2     Running   3          1d
