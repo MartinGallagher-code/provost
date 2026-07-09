@@ -255,13 +255,19 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
    already tidies the tool). 13 such were retired output-neutrally:
    `docker-inspect`, `iostat`, `ip-addr`, `iperf3`, `podman-ps`, `rocm-smi`,
    `host`, `terraform-plan`, `perf-stat` (+dup), `lscpu`, `proc-meminfo`,
-   `valgrind-summary`, `perf-report`. **Remaining evaluable candidates are 4
-   mis-shadow BUGS**, not prunes — the bespoke is better but a greedy parser wins
-   with worse output: `cargo-tree` (→`poetry-show-tree` flattens the tree),
-   `fail2ban-status` (→`key-value` mangles the `|-` tree), `systemctl-status`
-   (→`syslog` misparses the unit block), `ulimit` (→`pkg-config` mis-splits
-   `name (…, -x) value`). Fix = narrow the greedy parser's `detect()` so the
-   bespoke wins; do NOT delete these. Method to find more: rebuild the winner
+   `valgrind-summary`, `perf-report`.
+
+   **Mis-shadow BUGS (bespoke is better; a greedy parser wins with worse output)
+   — 3 of 4 FIXED.** Fixed by lowering the bespoke's `## Priority` below its
+   greedy competitor (safe: each bespoke `detect()` is specific to its own tool,
+   verified by a full-corpus winner-scan showing each now wins exactly its own
+   input and nothing else): `systemctl-status` 22→19 (vs `syslog`),
+   `fail2ban-status` 20→10 (vs `key-value`), `ulimit` 25→20 (vs `pkg-config`).
+   **Still open: `cargo-tree`** — its competitor is the `poetry-show-tree`
+   *columnar-specs spec* (flattens the tree to one column), not a standalone
+   strategy, so the priority-lowering trick needs the spec's detect narrowed or
+   cargo-tree's tree-split preferred; lowest-value of the four (single tidy
+   column vs 2-column split). Method to find more mis-shadows: rebuild the winner
    scan (`--emit-meta --max-strategies 1` over `tests/corpus/inputs/*.txt`),
    intersect never-winning strategies with those that have a corpus input, then
    judge winner-vs-bespoke output quality per case.
