@@ -1,0 +1,12 @@
+PID=1
+PPID=n/a
+TTY=n/a
+UID=0
+EUID=0
+SUID=0
+FSUID=0
+GID=0
+EGID=0
+Label=unconfined
+Comm=systemd
+CmdLine=/sbin/init

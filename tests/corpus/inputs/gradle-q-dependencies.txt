@@ -1,0 +1,6 @@
+compileClasspath - Compile classpath for source set 'main'.
++--- org.springframework.boot:spring-boot-starter:3.2.1
+|    +--- org.springframework.boot:spring-boot:3.2.1
+|    +--- org.springframework.boot:spring-boot-autoconfigure:3.2.1
++--- com.fasterxml.jackson.core:jackson-databind:2.15.3
+\--- org.projectlombok:lombok:1.18.30

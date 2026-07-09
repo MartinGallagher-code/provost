@@ -1,0 +1,11 @@
+# HELP http_requests_total Total number of HTTP requests.
+# TYPE http_requests_total counter
+http_requests_total{method="get",code="200"} 34821
+http_requests_total{method="post",code="200"} 1204
+http_requests_total{method="get",code="404"} 88
+# HELP http_request_duration_seconds Request latency in seconds.
+# TYPE http_request_duration_seconds summary
+http_request_duration_seconds_sum{handler="/api"} 421.83
+http_request_duration_seconds_count{handler="/api"} 34899
+process_resident_memory_bytes 52428800
+# EOF

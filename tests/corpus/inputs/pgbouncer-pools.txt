@@ -1,0 +1,7 @@
+ database  | user     | cl_active | cl_waiting | sv_active | sv_idle | sv_used | maxwait | pool_mode
+-----------+----------+-----------+------------+-----------+---------+---------+---------+-------------
+ app_prod  | appuser  |        24 |          0 |         8 |       4 |       2 |       0 | transaction
+ app_stage | appuser  |         6 |          0 |         2 |       3 |       1 |       0 | transaction
+ analytics | reporter |        11 |          2 |         5 |       0 |       0 |       3 | session
+ billing   | billsvc  |         3 |          0 |         1 |       4 |       0 |       0 | transaction
+ pgbouncer | pgbouncer|         1 |          0 |         0 |       0 |       0 |       0 | statement

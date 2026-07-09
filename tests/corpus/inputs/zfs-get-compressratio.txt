@@ -1,0 +1,7 @@
+NAME                    PROPERTY       VALUE  SOURCE
+tank                    compressratio  1.42x  -
+tank/home               compressratio  1.08x  -
+tank/data               compressratio  2.31x  -
+tank/vm                 compressratio  1.67x  -
+rpool                   compressratio  1.15x  -
+rpool/ROOT/ubuntu       compressratio  1.19x  -

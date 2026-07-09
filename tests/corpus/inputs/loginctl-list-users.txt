@@ -1,0 +1,7 @@
+ UID USER  LINGER
+   0 root  no
+1000 alice yes
+1001 bob   no
+1002 carol no
+
+4 users listed.

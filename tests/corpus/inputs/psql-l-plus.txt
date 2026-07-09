@@ -1,0 +1,9 @@
+                                                              List of databases
+    Name    |  Owner   | Encoding | Collate | Ctype |        Access privileges        |  Size   | Tablespace |                Description
+------------+----------+----------+---------+-------+---------------------------------+---------+------------+--------------------------------------------
+ analytics  | appuser  | UTF8     | C       | C     |                                 | 128 MB  | pg_default |
+ appdb      | appuser  | UTF8     | C       | C     |                                 | 512 MB  | pg_default | primary application database
+ postgres   | postgres | UTF8     | C       | C     |                                 | 8553 kB | pg_default | default administrative connection database
+ template0  | postgres | UTF8     | C       | C     | =c/postgres postgres=CTc/postgres | 8393 kB | pg_default | unmodifiable empty database
+ template1  | postgres | UTF8     | C       | C     | =c/postgres postgres=CTc/postgres | 8393 kB | pg_default | default template for new databases
+(5 rows)

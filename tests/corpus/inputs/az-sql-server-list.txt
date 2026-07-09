@@ -1,0 +1,5 @@
+Name               ResourceGroup    Location    AdministratorLogin    Version    State
+prod-sql-server    prod-rg          eastus      sqladmin              12.0       Ready
+staging-sql-srv    staging-rg       eastus      sqladmin              12.0       Ready
+dev-sql-server     dev-rg           westus2     dbadmin               12.0       Ready
+analytics-sql-srv  prod-rg          eastus      sqladmin              12.0       Ready

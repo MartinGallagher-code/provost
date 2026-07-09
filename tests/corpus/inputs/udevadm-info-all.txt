@@ -1,0 +1,13 @@
+P: /devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
+N: sda
+L: 0
+S: disk/by-id/ata-Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456
+S: disk/by-path/pci-0000:00:17.0-ata-1
+E: DEVPATH=/devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
+E: DEVNAME=/dev/sda
+E: DEVTYPE=disk
+E: MAJOR=8
+E: MINOR=0
+E: ID_BUS=ata
+E: ID_MODEL=Samsung_SSD_860_EVO_500GB
+E: ID_SERIAL=Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456

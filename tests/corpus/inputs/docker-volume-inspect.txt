@@ -1,0 +1,14 @@
+[
+    {
+        "CreatedAt": "2026-07-01T18:42:07Z",
+        "Driver": "local",
+        "Labels": {
+            "com.docker.compose.project": "acme",
+            "com.docker.compose.volume": "pgdata"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/acme_pgdata/_data",
+        "Name": "acme_pgdata",
+        "Options": null,
+        "Scope": "local"
+    }
+]

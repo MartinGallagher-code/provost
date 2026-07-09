@@ -1,0 +1,7 @@
+Resources                                       Non-Resource URLs   Resource Names   Verbs
+*.*                                             []                  []               [*]
+pods                                            []                  []               [get list watch]
+deployments.apps                                []                  []               [get list watch create update]
+selfsubjectaccessreviews.authorization.k8s.io   []                  []               [create]
+                                                [/api/*]            []               [get]
+                                                [/healthz]          []               [get]

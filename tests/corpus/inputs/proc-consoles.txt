@@ -1,0 +1,4 @@
+ttyS0                -W- (EC p a)    4:64
+tty0                 -WU (EC p a)    4:1
+ttyAMA0              -W- (EC p a)    204:64
+ttyUSB0              -W- (EC p a)    188:0

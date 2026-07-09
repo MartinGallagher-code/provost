@@ -1,0 +1,8 @@
+ID     | Command line             | Date and time    | Action(s)      | Altered
+-------------------------------------------------------------------------------
+    12 | install nginx            | 2024-06-14 09:41 | Install        |    4
+    11 | update                   | 2024-06-10 03:02 | Upgrade        |   37
+    10 | remove telnet            | 2024-06-02 17:20 | Removed        |    1
+     9 | install postgresql       | 2024-05-28 11:15 | Install        |   12
+     8 | downgrade httpd          | 2024-05-20 08:55 | Downgrade      |    2
+     7 | install git              | 2024-05-11 14:30 | Install        |    6

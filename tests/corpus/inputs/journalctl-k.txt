@@ -1,0 +1,7 @@
+-- Journal begins at Tue 2026-07-07 08:00:04 UTC, ends at Tue 2026-07-07 11:32:20 UTC. --
+Jul 07 08:00:04 web01 kernel: Linux version 6.1.0-18-amd64 (debian-kernel@lists.debian.org)
+Jul 07 08:00:04 web01 kernel: Command line: BOOT_IMAGE=/vmlinuz-6.1.0-18-amd64 root=UUID=1a2b ro quiet
+Jul 07 08:00:04 web01 kernel: x86/fpu: Supporting XSAVE feature 0x001 x87 floating point registers
+Jul 07 08:00:04 web01 kernel: Memory: 16218044K/16777084K available (14336K kernel code)
+Jul 07 08:00:05 web01 kernel: EXT4-fs (sda1): mounted filesystem with ordered data mode
+Jul 07 08:00:06 web01 kernel: systemd[1]: systemd 252.5-2 running in system mode

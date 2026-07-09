@@ -1,0 +1,7 @@
+CONTAINER ID   IMAGE                  COMMAND                  CREATED         STATUS                     PORTS                                   NAMES
+b3f1a2c4d5e6   nginx:1.25             "/docker-entrypoint.…"   2 hours ago     Up 2 hours                 0.0.0.0:8080->80/tcp                    web
+7a8b9c0d1e2f   postgres:16            "docker-entrypoint.s…"   3 days ago      Up 3 days (healthy)        5432/tcp                                db
+c4d5e6f7a8b9   redis:7-alpine         "docker-entrypoint.s…"   3 days ago      Up 3 days                  0.0.0.0:6379->6379/tcp                  cache
+1a2b3c4d5e6f   ghcr.io/acme/api:2.1   "./api --serve"          5 hours ago     Exited (137) 1 hour ago                                            api
+9e8d7c6b5a4f   busybox:latest         "sh"                     6 days ago      Exited (0) 6 days ago                                              probe
+f0e1d2c3b4a5   grafana/grafana:10.4   "/run.sh"                2 weeks ago     Created                                                            grafana

@@ -1,0 +1,7 @@
+base 3-2
+bash 5.2.021-1
+coreutils 9.4-1
+git 2.43.0-1
+linux 6.6.10-arch1-1
+systemd 255.2-2
+vim 9.0.2189-1

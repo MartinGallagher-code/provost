@@ -1,0 +1,9 @@
+#kernel
+IpInReceives                    1482930            0.0
+IpInDelivers                    1482910            0.0
+IpOutRequests                   1382745            0.0
+TcpActiveOpens                  48213              0.0
+TcpPassiveOpens                 18402              0.0
+TcpInSegs                       1029384            0.0
+TcpOutSegs                      982734             0.0
+UdpInDatagrams                  84726              0.0

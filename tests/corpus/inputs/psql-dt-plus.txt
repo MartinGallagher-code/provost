@@ -1,0 +1,10 @@
+                                       List of relations
+ Schema |   Name    | Type  |  Owner  | Persistence | Access method |  Size   | Description
+--------+-----------+-------+---------+-------------+---------------+---------+-------------
+ public | customers | table | appuser | permanent   | heap          | 4360 kB |
+ public | invoices  | table | appuser | permanent   | heap          | 2208 kB |
+ public | orders    | table | appuser | permanent   | heap          | 16 MB   |
+ public | products  | table | appuser | permanent   | heap          | 800 kB  |
+ public | sessions  | table | appuser | unlogged    | heap          | 1240 kB |
+ public | users     | table | appuser | permanent   | heap          | 2568 kB |
+(6 rows)

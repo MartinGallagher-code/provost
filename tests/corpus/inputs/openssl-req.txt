@@ -1,0 +1,18 @@
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: C=US, ST=California, L=San Francisco, O=Example Inc, CN=www.example.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c4:1a:2b:3c:4d:5e:6f:70:81:92:a3:b4:c5:d6:
+                    e7:f8:09:1a:2b
+                Exponent: 65537 (0x10001)
+        Attributes:
+            Requested Extensions:
+                X509v3 Subject Alternative Name:
+                    DNS:www.example.com, DNS:example.com
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        3a:8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9

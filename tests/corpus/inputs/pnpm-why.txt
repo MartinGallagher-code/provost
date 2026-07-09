@@ -1,0 +1,8 @@
+myapp@1.0.0 /home/user/myapp
+
+dependencies:
+lodash 4.17.21
+├─┬ async 3.2.5
+│ └── lodash 4.17.21
+└─┬ webpack 5.89.0
+  └── lodash 4.17.21

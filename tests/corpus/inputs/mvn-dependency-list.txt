@@ -1,0 +1,5 @@
+[INFO]    org.springframework:spring-core:jar:6.1.2:compile
+[INFO]    org.springframework:spring-context:jar:6.1.2:compile
+[INFO]    com.google.guava:guava:jar:33.0.0-jre:compile
+[INFO]    org.slf4j:slf4j-api:jar:2.0.9:compile
+[INFO]    junit:junit:jar:4.13.2:test

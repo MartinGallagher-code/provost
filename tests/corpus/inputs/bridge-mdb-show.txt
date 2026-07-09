@@ -1,0 +1,5 @@
+dev br0 port eth0 grp 239.1.1.1 temp
+dev br0 port eth0 grp 224.0.0.251 temp
+dev br0 port vnet0 grp 239.255.255.250 permanent
+dev br0 port vnet1 grp ff02::1:ff00:1 temp
+dev br0 port eth0 grp 224.0.0.1 temp

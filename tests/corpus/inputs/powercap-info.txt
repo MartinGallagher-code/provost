@@ -1,0 +1,20 @@
+Zone 0
+  Name: package-0
+  Enabled: 1
+  Max energy range: 262143 uJ
+  Energy: 184521 uJ
+  Constraint 0
+    Name: long_term
+    Power limit: 15000000 uW
+    Time window: 27983872 us
+    Max power: 15000000 uW
+  Constraint 1
+    Name: short_term
+    Power limit: 44000000 uW
+    Time window: 2440 us
+    Max power: 64000000 uW
+  Zone 0:0
+    Name: core
+    Enabled: 0
+    Max energy range: 262143 uJ
+    Energy: 71204 uJ

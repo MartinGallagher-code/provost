@@ -1,0 +1,9 @@
+SSL-Session:
+    Protocol  : TLSv1.3
+    Cipher    : TLS_AES_256_GCM_SHA384
+    Session-ID: A1B2C3D4E5F6A7B8C9D0
+    Master-Key: 0011223344556677889900AABBCCDDEE
+    PSK identity: None
+    Start Time: 1705312800
+    Timeout   : 7200 (sec)
+    Verify return code: 0 (ok)

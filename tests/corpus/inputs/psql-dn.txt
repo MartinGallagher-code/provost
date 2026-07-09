@@ -1,0 +1,9 @@
+        List of schemas
+   Name    |       Owner
+-----------+-------------------
+ analytics | appuser
+ app       | appuser
+ audit     | appuser
+ public    | pg_database_owner
+ staging   | appuser
+(5 rows)

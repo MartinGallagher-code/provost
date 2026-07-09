@@ -1,0 +1,6 @@
+NAME           POD-SELECTOR           AGE
+default-deny   <none>                 20d
+allow-dns      <none>                 20d
+web-allow      app=web                12d
+api-allow      app=api,tier=backend   12d
+db-restrict    app=postgres           8d

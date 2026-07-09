@@ -1,0 +1,5 @@
+Export list for nfs.example.com:
+/srv/nfs/data 192.168.1.0/24
+/srv/nfs/home 10.0.0.0/8,172.16.0.0/12
+/srv/backup   192.168.2.15
+/export/media (everyone)

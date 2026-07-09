@@ -1,0 +1,6 @@
+PROJECT_ID          NAME                PROJECT_NUMBER
+my-project-prod     prod                483920184756
+my-project-staging  staging             771029384756
+my-project-dev      dev                 662819374651
+data-platform-2026  data-platform       905172638491
+sandbox-mgallagher  sandbox             114283746519

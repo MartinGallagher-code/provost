@@ -1,0 +1,7 @@
+nvme_core 143360 5 nvme, Live 0xffffffffc0a2b000
+ext4 950272 2 - Live 0xffffffffc0d00000
+x86_pkg_temp_thermal 20480 0 - Live 0xffffffffc0512000
+crc32_pclmul 16384 0 - Live 0xffffffffc0489000
+i2c_i801 36864 0 - Live 0xffffffffc04a1000
+snd_hda_intel 61440 3 - Live 0xffffffffc0700000
+xhci_pci 24576 0 - Live 0xffffffffc0311000

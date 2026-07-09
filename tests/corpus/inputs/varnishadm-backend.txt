@@ -1,0 +1,7 @@
+Backend name    Admin      Probe    Health
+default.web1    probe      5/5      healthy
+default.web2    probe      5/5      healthy
+default.web3    probe      2/5      sick
+default.api1    probe      5/5      healthy
+default.api2    healthy    0/5      sick
+default.cache   probe      5/5      healthy

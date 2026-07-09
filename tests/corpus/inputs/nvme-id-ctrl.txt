@@ -1,0 +1,16 @@
+NVME Identify Controller:
+vid       : 0x1e0f
+ssvid     : 0x1e0f
+sn        : Z1B0A0YZ2340
+mn        : KIOXIA KXG60ZNV1T02
+fr        : AGGA4104
+rab       : 6
+ieee      : 8ce38e
+cmic      : 0
+mdts      : 7
+cntlid    : 0x1
+ver       : 0x10400
+oacs      : 0x17
+acl       : 3
+aerl      : 3
+nn        : 1

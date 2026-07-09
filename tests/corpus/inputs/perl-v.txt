@@ -1,0 +1,13 @@
+Summary of my perl5 (revision 5 version 34 subversion 0) configuration:
+  Platform:
+    osname=linux
+    osvers=5.15.0
+    archname=x86_64-linux-gnu-thread-multi
+    uname='linux'
+  Compiler:
+    cc='cc'
+    optimize='-O2'
+    gccversion='11.4.0'
+  Characteristics of this binary:
+    useithreads=define
+    usemultiplicity=define

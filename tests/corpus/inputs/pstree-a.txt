@@ -1,0 +1,9 @@
+systemd
+  |-containerd
+  |-cron -f
+  |-dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+  |-mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock
+  |-nginx -g daemon off;
+  |-redis-server 127.0.0.1:6379
+  |-sshd -D
+  `-systemd-journald

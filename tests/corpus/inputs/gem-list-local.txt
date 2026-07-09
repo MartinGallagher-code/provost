@@ -1,0 +1,8 @@
+*** LOCAL GEMS ***
+
+bundler (2.4.22)
+json (2.6.3, 2.6.2)
+minitest (5.20.0)
+nokogiri (1.16.0)
+rails (7.1.2)
+rake (13.1.0)

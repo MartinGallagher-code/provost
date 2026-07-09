@@ -1,0 +1,5 @@
+Name          ResourceGroup    Location    NumSubnets    Prefixes        DdosProtection    EnableVmProtection
+prod-vnet     network-rg       eastus      3             10.0.0.0/16     False             False
+staging-vnet  network-rg       eastus      2             10.1.0.0/16     False             False
+dev-vnet      dev-rg           westus2     2             10.2.0.0/16     False             False
+hub-vnet      network-rg       eastus      4             10.10.0.0/16    True              False

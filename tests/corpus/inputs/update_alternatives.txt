@@ -1,0 +1,5 @@
+/usr/lib/jvm/java-11-openjdk-amd64/bin/java
+/usr/lib/jvm/java-17-openjdk-amd64/bin/java
+/usr/lib/jvm/java-21-openjdk-amd64/bin/java
+/usr/lib/jvm/temurin-8-jdk-amd64/jre/bin/java
+/opt/graalvm-ce-java17/bin/java

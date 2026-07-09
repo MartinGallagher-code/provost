@@ -1,0 +1,8 @@
+------ Semaphore Arrays --------
+key        semid      owner      perms      nsems
+0x00000000 0          postgres   600        17
+0x0052e2c1 32769      postgres   600        17
+0x00000000 65538      www-data   600        1
+0x62c8f1a4 98307      root       666        4
+0x00000000 131076     mysql      600        8
+0x00000000 163845     redis      644        2

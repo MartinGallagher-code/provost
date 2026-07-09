@@ -1,0 +1,7 @@
+core linux 6.6.10.arch1-1 [installed]
+core bash 5.2.021-1 [installed]
+core glibc 2.38-7
+extra vim 9.0.2189-1 [installed]
+extra git 2.43.0-1
+extra htop 3.2.2-4
+multilib lib32-glibc 2.38-7

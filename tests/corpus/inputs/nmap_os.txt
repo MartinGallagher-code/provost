@@ -1,0 +1,14 @@
+Nmap scan report for 192.0.2.20
+Host is up (0.015s latency).
+Not shown: 995 closed tcp ports (reset)
+PORT    STATE SERVICE
+22/tcp  open  ssh
+25/tcp  open  smtp
+80/tcp  open  http
+443/tcp open  https
+993/tcp open  imaps
+Device type: general purpose
+Running: Linux 5.X
+OS CPE: cpe:/o:linux:linux_kernel:5
+OS details: Linux 5.0 - 5.14
+Network Distance: 2 hops

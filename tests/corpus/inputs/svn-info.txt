@@ -1,0 +1,12 @@
+Path: .
+Working Copy Root Path: /home/user/widget
+URL: https://svn.example.com/widget/trunk
+Relative URL: ^/trunk
+Repository Root: https://svn.example.com/widget
+Repository UUID: 3f2a1c9b-4d5e-6f7a-8b9c-0d1e2f3a4b5c
+Revision: 1487
+Node Kind: directory
+Schedule: normal
+Last Changed Author: alice
+Last Changed Rev: 1485
+Last Changed Date: 2026-07-06 10:15:42 +0000 (Mon, 06 Jul 2026)

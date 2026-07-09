@@ -1,0 +1,6 @@
+ 0: parport0
+ 1: SoundBlaster8
+ 2: floppy
+ 3: parport1
+ 4: cascade
+ 5: SoundBlaster16

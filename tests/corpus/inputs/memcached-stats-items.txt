@@ -1,0 +1,9 @@
+STAT items:1:number 512
+STAT items:1:age 1204
+STAT items:1:evicted 0
+STAT items:1:outofmemory 0
+STAT items:2:number 348
+STAT items:2:age 862
+STAT items:2:evicted 12
+STAT items:2:outofmemory 0
+END

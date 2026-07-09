@@ -1,0 +1,8 @@
+{
+  "engine": "postgres",
+  "version": "15.4",
+  "schema": "public",
+  "tables": 8,
+  "views": 2,
+  "collation": "en_US.utf8"
+}

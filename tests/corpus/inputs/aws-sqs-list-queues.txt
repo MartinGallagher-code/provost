@@ -1,0 +1,5 @@
+https://sqs.us-east-1.amazonaws.com/123456789012/orders-inbound
+https://sqs.us-east-1.amazonaws.com/123456789012/orders-inbound-dlq
+https://sqs.us-east-1.amazonaws.com/123456789012/email-notifications
+https://sqs.us-east-1.amazonaws.com/123456789012/image-processing
+https://sqs.us-east-1.amazonaws.com/123456789012/audit-events

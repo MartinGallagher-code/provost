@@ -1,0 +1,6 @@
+KEY                       VALUE
+aws:region                us-west-2
+project:dbInstanceClass   db.t3.medium
+project:environment       production
+project:instanceCount     3
+project:vpcCidr           10.0.0.0/16

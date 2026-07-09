@@ -1,0 +1,12 @@
+* remote origin
+  Fetch URL: git@github.com:acme/widget.git
+  Push  URL: git@github.com:acme/widget.git
+  HEAD branch: main
+  Remote branches:
+    main          tracked
+    develop       tracked
+    feature/login tracked
+  Local branch configured for 'git pull':
+    main merges with remote main
+  Local ref configured for 'git push':
+    main pushes to main (up to date)

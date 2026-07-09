@@ -1,0 +1,6 @@
+example.com: 93.184.216.34                      -- link: eth0
+             2606:2800:220:1:248:1893:25c8:1946 -- link: eth0
+
+-- Information acquired via protocol DNS in 24.1ms.
+-- Data is authenticated: no; Data was acquired via local or encrypted transport: no
+-- Data from: network

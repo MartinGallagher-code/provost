@@ -1,0 +1,5 @@
+alertname="HighCPU" instance="web-01:9100" severity="warning" job="node"
+alertname="DiskWillFill" instance="web-02:9100" severity="critical" job="node"
+alertname="InstanceDown" instance="10.0.1.19:9100" severity="critical" job="node"
+alertname="HighMemory" instance="web-03:9100" severity="warning" job="node"
+alertname="TargetScrapeFailed" instance="db-01:9187" severity="warning" job="postgres"

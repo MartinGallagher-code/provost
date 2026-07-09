@@ -1,0 +1,5 @@
+arn:aws:sns:us-east-1:123456789012:orders-events
+arn:aws:sns:us-east-1:123456789012:cloudwatch-alarms
+arn:aws:sns:us-east-1:123456789012:deploy-notifications
+arn:aws:sns:us-east-1:123456789012:billing-alerts
+arn:aws:sns:us-east-1:123456789012:security-findings

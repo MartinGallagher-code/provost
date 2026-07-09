@@ -1,0 +1,9 @@
+coretemp-isa-0000
+Package id 0:  +47.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 0:        +45.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 1:        +44.0°C  (high = +100.0°C, crit = +100.0°C)
+Core 2:        +46.0°C  (high = +100.0°C, crit = +100.0°C)
+
+nvme-pci-0100
+Composite:     +38.9°C  (low  = -273.1°C, high = +84.8°C)
+Sensor 1:      +38.9°C  (low  = -273.1°C, high = +65261.8°C)

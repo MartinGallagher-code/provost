@@ -1,0 +1,6 @@
+Microsoft.AspNetCore.App 6.0.25 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]
+Microsoft.AspNetCore.App 7.0.14 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]
+Microsoft.AspNetCore.App 8.0.0 [/usr/share/dotnet/shared/Microsoft.AspNetCore.App]
+Microsoft.NETCore.App 6.0.25 [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+Microsoft.NETCore.App 7.0.14 [/usr/share/dotnet/shared/Microsoft.NETCore.App]
+Microsoft.NETCore.App 8.0.0 [/usr/share/dotnet/shared/Microsoft.NETCore.App]

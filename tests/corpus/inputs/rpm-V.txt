@@ -1,0 +1,6 @@
+S.5....T.  c /etc/sysconfig/network
+.M.......  c /etc/passwd
+S.5....T.  c /etc/httpd/conf/httpd.conf
+.......T.  c /etc/sudoers
+S.5....T.  c /etc/ssh/sshd_config
+SM5....T.  c /etc/nsswitch.conf

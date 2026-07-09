@@ -1,0 +1,13 @@
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: db-primary.internal
+                  Master_User: replica
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: binlog.000046
+          Read_Master_Log_Pos: 177
+               Relay_Log_File: relay-bin.000112
+                Relay_Log_Pos: 401
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+        Seconds_Behind_Master: 0

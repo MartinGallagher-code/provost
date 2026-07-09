@@ -1,0 +1,6 @@
+NAME       LOCATION       LOCATION_SCOPE  SIZE_GB  TYPE          STATUS
+web-1      us-central1-a  zone            10       pd-balanced   READY
+web-2      us-central1-b  zone            10       pd-balanced   READY
+db-data    us-central1-a  zone            500      pd-ssd        READY
+backup-1   us-central1-c  zone            2000     pd-standard   READY
+cache-1    us-central1-a  zone            50       pd-ssd        READY

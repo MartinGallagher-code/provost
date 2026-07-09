@@ -1,0 +1,6 @@
+23 28 0:21 / /proc rw,nosuid,nodev,noexec,relatime shared:14 - proc proc rw
+24 28 0:22 / /sys rw,nosuid,nodev,noexec,relatime shared:2 - sysfs sysfs rw
+25 28 0:5 / /dev rw,nosuid shared:8 - devtmpfs devtmpfs rw,size=8151234k,mode=755
+28 1 8:1 / / rw,relatime shared:1 - ext4 /dev/sda1 rw
+30 28 0:23 / /run rw,nosuid,nodev shared:5 - tmpfs tmpfs rw,size=1638400k,mode=755
+40 28 0:36 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime shared:9 - cgroup2 cgroup2 rw,nsdelegate

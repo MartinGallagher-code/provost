@@ -1,0 +1,6 @@
+kernel-5.14.0-362.el9.x86_64                  Thu 14 Sep 2023 10:12:11 CEST
+firefox-115.3.0-1.el9.x86_64                  Wed 13 Sep 2023 22:41:52 CEST
+glibc-2.34-60.el9.x86_64                      Mon 04 Sep 2023 08:03:19 CEST
+systemd-252-14.el9.x86_64                     Mon 04 Sep 2023 08:03:17 CEST
+openssl-3.0.7-24.el9.x86_64                   Fri 25 Aug 2023 16:55:40 CEST
+bash-5.1.8-6.el9.x86_64                       Fri 25 Aug 2023 16:55:38 CEST

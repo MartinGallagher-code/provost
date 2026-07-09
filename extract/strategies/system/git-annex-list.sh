@@ -1,0 +1,49 @@
+#!/bin/bash
+## Name: git-annex-list
+## Description: Extract per-file location tracking from `git annex list`
+## Version: 1.0
+## Priority: 22
+## Technique: yes
+## Sample: samples/git-annex-list/basic.txt
+
+# `git annex list` prints a legend of remotes (here / |web / ||remote) then one
+# line per file: a column of X/_ flags followed by the file path, e.g.
+#   X__ video/clip1.mov
+
+_gitannex_is_file () {
+    # two-or-more X/_ flag chars, whitespace, then a path.
+    [[ "$1" =~ ^[X_][X_]+[[:space:]]+[^[:space:]] ]]
+}
+
+strategy_detect () {
+    local text="$1"
+    _STRATEGY_CONFIDENCE=0
+    local line has_file=0
+    while IFS= read -r line; do
+        _gitannex_is_file "$line" && has_file=1
+    done <<< "$text"
+    if [[ $has_file -eq 1 ]]; then
+        _STRATEGY_CONFIDENCE=86
+        return 0
+    fi
+    return 1
+}
+
+strategy_extract () {
+    local text="$1"
+    local result="" entry=0 line status path
+    while IFS= read -r line; do
+        _gitannex_is_file "$line" || continue
+        status="${line%%[[:space:]]*}"
+        path="${line#*[[:space:]]}"
+        # ltrim any remaining leading whitespace on the path
+        path="${path#"${path%%[![:space:]]*}"}"
+        status="${status// /_}"
+        path="${path// /_}"; path="${path//$'\t'/_}"
+        entry=$((entry + 1))
+        result+="entry${entry}.flags ${status}"$'\n'
+        result+="entry${entry}.path ${path}"$'\n'
+    done <<< "$text"
+    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+    echo "$result"
+}

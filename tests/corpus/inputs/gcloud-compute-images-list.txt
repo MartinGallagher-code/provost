@@ -1,0 +1,6 @@
+NAME                                 PROJECT           FAMILY               STATUS
+debian-12-bookworm-v20260601         debian-cloud      debian-12            READY
+ubuntu-2404-noble-amd64-v20260528    ubuntu-os-cloud   ubuntu-2404-lts      READY
+rocky-linux-9-optimized-v20260515    rocky-linux-cloud rocky-linux-9        READY
+cos-113-lts-v20260610                cos-cloud         cos-113-lts          READY
+golden-web-v3                        my-project        web-images           READY

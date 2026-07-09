@@ -1,0 +1,8 @@
+service: notifications-api
+stage: prod
+region: us-east-1
+stack: notifications-api-prod
+endpoint: POST - https://abc123xyz.execute-api.us-east-1.amazonaws.com/prod/notify
+functions:
+  sendEmail: notifications-api-prod-sendEmail
+  sendSms: notifications-api-prod-sendSms

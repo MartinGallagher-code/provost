@@ -1,0 +1,8 @@
+# | Alias            | Name               | Enabled | GPG Check | Refresh
+--+------------------+--------------------+---------+-----------+--------
+1 | openSUSE-Oss     | Main Repository    | Yes     | (r ) Yes  | Yes
+2 | openSUSE-Non-Oss | Non-OSS Repository | Yes     | (r ) Yes  | Yes
+3 | openSUSE-Update  | Main Update Repo   | Yes     | (r ) Yes  | Yes
+4 | packman          | Packman            | Yes     | (r ) Yes  | Yes
+5 | home_user        | Home Project       | No      | ----      | No
+6 | google-chrome    | Google Chrome      | Yes     | (r ) Yes  | Yes

@@ -1,0 +1,4 @@
+http-cache: /home/user/.local/share/NuGet/v3-cache
+global-packages: /home/user/.nuget/packages/
+temp: /tmp/NuGetScratch
+plugins-cache: /home/user/.local/share/NuGet/plugins-cache

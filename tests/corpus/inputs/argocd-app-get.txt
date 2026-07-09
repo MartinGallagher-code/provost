@@ -1,0 +1,12 @@
+Name:               argocd/guestbook
+Project:            default
+Server:             https://kubernetes.default.svc
+Namespace:          guestbook
+URL:                https://argocd.example.com/applications/guestbook
+Repo:               https://github.com/argoproj/argocd-example-apps.git
+Target:             HEAD
+Path:               guestbook
+SyncWindow:         Sync Allowed
+Sync Policy:        Automated
+Sync Status:        Synced to HEAD (53e28ff)
+Health Status:      Healthy

@@ -1,0 +1,6 @@
+NAME              DESIRED   CURRENT   READY   AGE
+web-6d4cf56db6    2         2         2       6d
+web-5c9b7f8a4     0         0         0       20d
+api-5f7b9c8d4     1         1         1       2d
+redis-7d9c8b6f5   1         1         1       14d
+worker-6f8d7c5b9  3         3         3       9d

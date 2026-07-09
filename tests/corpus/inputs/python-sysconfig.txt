@@ -1,0 +1,23 @@
+Platform: "linux-x86_64"
+Python version: "3.11"
+Current installation scheme: "posix_prefix"
+
+Paths:
+	stdlib = "/usr/lib/python3.11"
+	platstdlib = "/usr/lib/python3.11"
+	purelib = "/usr/lib/python3.11/site-packages"
+	platlib = "/usr/lib/python3.11/site-packages"
+	include = "/usr/include/python3.11"
+	platinclude = "/usr/include/python3.11"
+	scripts = "/usr/bin"
+	data = "/usr"
+
+Variables:
+	ABIFLAGS = ""
+	AR = "ar"
+	ARFLAGS = "rcs"
+	CC = "gcc -pthread"
+	CXX = "g++ -pthread"
+	LDSHARED = "gcc -pthread -shared"
+	prefix = "/usr"
+	exec_prefix = "/usr"

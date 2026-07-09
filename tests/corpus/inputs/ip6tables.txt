@@ -1,0 +1,8 @@
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+ACCEPT     all      --  ::/0                 ::/0
+ACCEPT     icmpv6   --  ::/0                 ::/0
+ACCEPT     tcp      --  ::/0                 ::/0
+ACCEPT     udp      --  ::/0                 fe80::/10
+DROP       all      --  ::/0                 ::/0
+LOG        tcp      --  2001:db8::/32        ::/0

@@ -1,0 +1,9 @@
+# HELP probe_success Displays whether or not the probe was a success.
+# TYPE probe_success gauge
+probe_success 1
+probe_duration_seconds 0.184213
+probe_http_status_code 200
+probe_http_duration_seconds{phase="connect"} 0.012481
+probe_http_duration_seconds{phase="tls"} 0.044821
+probe_ssl_earliest_cert_expiry 1784211200
+# EOF

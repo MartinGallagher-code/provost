@@ -1,0 +1,8 @@
+Image Source: docker://ghcr.io/acme/api:2.1
+Total Image size: 121 MB
+Potential wasted space: 34 MB
+Image efficiency score: 96 %
+Inefficient files count: 7
+Highest user wasted percent: 22.8891 %
+Lowest efficiency threshold: 0.95
+Overall result: PASS

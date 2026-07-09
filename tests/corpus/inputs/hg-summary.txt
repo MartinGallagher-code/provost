@@ -1,0 +1,6 @@
+parent: 18:2f8a1c9b4d5e tip
+ Add login form validation
+branch: default
+commit: 2 modified, 1 unknown
+update: (current)
+phases: 3 draft

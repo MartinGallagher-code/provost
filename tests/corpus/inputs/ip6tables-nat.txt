@@ -1,0 +1,8 @@
+Chain PREROUTING (policy ACCEPT)
+target     prot opt source               destination
+DNAT       tcp  --  ::/0                 2001:db8::1
+ACCEPT     all  --  ::/0                 ::/0
+MASQUERADE all  --  2001:db8:1::/64      ::/0
+SNAT       tcp  --  2001:db8:2::/64      ::/0
+REDIRECT   udp  --  ::/0                 ::/0
+DNAT       tcp  --  fe80::/10            2001:db8::2

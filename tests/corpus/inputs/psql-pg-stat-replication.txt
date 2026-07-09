@@ -1,0 +1,6 @@
+  pid  |  usename   | application_name | client_addr |   state   | sync_state |   replay_lag
+-------+------------+------------------+-------------+-----------+------------+-----------------
+ 24518 | replicator | standby1         | 10.0.1.11   | streaming | sync       | 00:00:00.002145
+ 24519 | replicator | standby2         | 10.0.1.12   | streaming | async      | 00:00:00.184320
+ 24601 | replicator | standby3         | 10.0.2.20   | streaming | async      | 00:00:01.552000
+(3 rows)

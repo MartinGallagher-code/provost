@@ -1,0 +1,6 @@
+00001000-0009fbff : System RAM
+00100000-3fffffff : System RAM
+40000000-bfffffff : System RAM
+c0000000-cfffffff : System RAM
+d0000000-dfffffff : System RAM
+e0000000-efffffff : System RAM

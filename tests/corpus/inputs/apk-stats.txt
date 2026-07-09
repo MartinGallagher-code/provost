@@ -1,0 +1,9 @@
+Installed:
+  packages: 142
+  dirs: 389
+  files: 2011
+  bytes: 47448064
+apk world:
+  packages: 18
+Available:
+  packages: 15234

@@ -1,0 +1,6 @@
+coreutils-8.32-34.el9.x86_64
+bash-5.1.8-6.el9.x86_64
+glibc-2.34-60.el9.x86_64
+grep-3.6-5.el9.x86_64
+util-linux-core-2.37.4-15.el9.x86_64
+systemd-252-14.el9.x86_64

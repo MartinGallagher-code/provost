@@ -1,0 +1,5 @@
+glibc-2.34-60.el9.x86_64 : The GNU libc libraries
+Repo        : baseos
+Matched from:
+Filename    : /usr/lib64/libc.so.6
+Provide     : libc.so.6()(64bit)

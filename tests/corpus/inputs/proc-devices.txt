@@ -1,0 +1,14 @@
+Character devices:
+  1 mem
+  4 tty
+  5 /dev/tty
+  7 vcs
+ 10 misc
+ 13 input
+128 ptm
+
+Block devices:
+  8 sd
+ 11 sr
+ 65 sd
+259 blkext

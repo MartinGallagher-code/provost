@@ -1,0 +1,6 @@
+1258291      gs://my-bucket/logs/
+524288       gs://my-bucket/exports/
+104857600    gs://my-bucket/backups/
+2048         gs://my-bucket/config/
+33554432     gs://my-bucket/images/
+140639859    gs://my-bucket/

@@ -1,0 +1,5 @@
+# github.com/pkg/errors
+github.com/myorg/app
+github.com/myorg/app/internal/store
+github.com/jmoiron/sqlx
+github.com/pkg/errors

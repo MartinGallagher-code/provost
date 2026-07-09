@@ -1,0 +1,12 @@
+------------------------------------------------------------------------------------------
+|                                    ListMetrics                                          |
++----------------------+----------------------+---------------------+----------------------+
+|      Namespace        |      MetricName      |     Dimension        |    DimensionValue    |
++----------------------+----------------------+---------------------+----------------------+
+|  AWS/EC2             |  CPUUtilization      |  InstanceId          |  i-0abc123def4567890  |
+|  AWS/EC2             |  NetworkIn           |  InstanceId          |  i-0def456abc7890123  |
+|  AWS/RDS             |  DatabaseConnections |  DBInstanceIdentifier|  prod-orders          |
+|  AWS/Lambda          |  Invocations         |  FunctionName        |  orders-create        |
+|  AWS/Lambda          |  Errors              |  FunctionName        |  orders-webhook       |
+|  AWS/ApplicationELB  |  RequestCount        |  LoadBalancer        |  prod-web-alb         |
++----------------------+----------------------+---------------------+----------------------+

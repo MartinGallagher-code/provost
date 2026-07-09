@@ -1,0 +1,8 @@
+{
+  "cpu_util": 12.4,
+  "load1": 0.42,
+  "mem_used_percent": 57.2,
+  "swap_used_percent": 0.0,
+  "uptime": 1842133,
+  "procs": 214
+}

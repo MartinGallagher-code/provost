@@ -1,0 +1,17 @@
+=== START OF INFORMATION SECTION ===
+Model Family:     Samsung based SSDs
+Device Model:     Samsung SSD 870 EVO 1TB
+Serial Number:    S5Y2NJ0R123456A
+LU WWN Device Id: 5 002538 f31a2b3c4
+Firmware Version: SVT02B6Q
+User Capacity:    1,000,204,886,016 bytes [1.00 TB]
+Sector Size:      512 bytes logical/physical
+Rotation Rate:    Solid State Device
+Form Factor:      2.5 inches
+TRIM Command:     Available, deterministic, zeroed
+Device is:        In smartctl database 7.3/5528
+ATA Version is:   ACS-4 T13/BSR INCITS 529 revision 5
+SATA Version is:  SATA 3.3, 6.0 Gb/s (current: 6.0 Gb/s)
+Local Time is:    Tue Jul  7 09:15:44 2026 UTC
+SMART support is: Available - device has SMART capability.
+SMART support is: Enabled

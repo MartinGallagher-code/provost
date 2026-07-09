@@ -1,0 +1,9 @@
+Linux 6.5.0-27-generic (dbhost01) 	07/07/2026 	_x86_64_	(8 CPU)
+
+#      Time   UID       PID   cswch/s nvcswch/s  Command
+10:14:52       999      1843    812.00     44.00  mysqld
+10:14:52        33      9021    140.00     12.00  php-fpm
+10:14:52       999      2044    305.00      8.00  postgres
+10:14:52      1001      3310    620.00     31.00  java
+10:14:52       998      2891     90.00      2.00  redis-server
+10:14:52         0       774     15.00      1.00  containerd

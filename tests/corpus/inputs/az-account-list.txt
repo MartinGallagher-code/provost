@@ -1,0 +1,34 @@
+[
+  {
+    "cloudName": "AzureCloud",
+    "id": "12345678-1234-1234-1234-123456789abc",
+    "isDefault": true,
+    "name": "Production Subscription",
+    "state": "Enabled",
+    "tenantId": "abcdef00-0000-0000-0000-000000000000"
+  },
+  {
+    "cloudName": "AzureCloud",
+    "id": "23456789-2345-2345-2345-23456789abcd",
+    "isDefault": false,
+    "name": "Staging Subscription",
+    "state": "Enabled",
+    "tenantId": "abcdef00-0000-0000-0000-000000000000"
+  },
+  {
+    "cloudName": "AzureCloud",
+    "id": "34567890-3456-3456-3456-3456789abcde",
+    "isDefault": false,
+    "name": "Development Subscription",
+    "state": "Enabled",
+    "tenantId": "abcdef00-0000-0000-0000-000000000000"
+  },
+  {
+    "cloudName": "AzureCloud",
+    "id": "45678901-4567-4567-4567-456789abcdef",
+    "isDefault": false,
+    "name": "Sandbox Subscription",
+    "state": "Warned",
+    "tenantId": "abcdef00-0000-0000-0000-000000000000"
+  }
+]

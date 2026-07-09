@@ -1,0 +1,9 @@
+; <<>> DiG 9.18.24 <<>> CAA example.com
+;; global options: +cmd
+;; ANSWER SECTION:
+example.com.	3600	IN	CAA	0 issue "letsencrypt.org"
+example.com.	3600	IN	CAA	0 issuewild "digicert.com"
+example.com.	3600	IN	CAA	128 issue "sectigo.com"
+example.com.	3600	IN	CAA	0 iodef "mailto:security@example.com"
+
+;; Query time: 15 msec

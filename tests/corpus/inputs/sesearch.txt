@@ -1,0 +1,6 @@
+allow httpd_t httpd_config_t:dir { getattr search };
+allow httpd_t httpd_config_t:file { getattr read };
+allow httpd_t httpd_log_t:file { append open };
+allow sshd_t sshd_key_t:file { read open };
+allow init_t init_var_run_t:dir { add_name write };
+allow user_t user_home_t:file { ioctl read };

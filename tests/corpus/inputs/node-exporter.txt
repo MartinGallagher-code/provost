@@ -1,0 +1,8 @@
+# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode.
+# TYPE node_cpu_seconds_total counter
+node_cpu_seconds_total{cpu="0",mode="idle"} 194821.35
+node_cpu_seconds_total{cpu="0",mode="system"} 4821.11
+node_cpu_seconds_total{cpu="0",mode="user"} 12043.88
+node_filesystem_avail_bytes{device="/dev/sda1",mountpoint="/",fstype="ext4"} 12451889152
+node_memory_MemAvailable_bytes 8531423232
+node_load1 0.42

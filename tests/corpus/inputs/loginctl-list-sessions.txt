@@ -1,0 +1,7 @@
+SESSION  UID USER  SEAT  TTY
+      1 1000 alice seat0 tty2
+      7 1001 bob         pts/0
+     12    0 root        pts/1
+     15 1002 carol seat1 tty3
+
+4 sessions listed.

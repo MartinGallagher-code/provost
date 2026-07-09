@@ -1,0 +1,12 @@
+{
+  current: 42,
+  available: 51158,
+  totalCreated: 348271,
+  rejected: 0,
+  active: 9,
+  threaded: 42,
+  exhaustIsMaster: 0,
+  exhaustHello: 3,
+  awaitingTopologyChanges: 5,
+  loadBalanced: 0
+}

@@ -1,0 +1,6 @@
+CONTAINER           CPU %               MEM                 DISK                INODES
+a1b2c3d4e5f60       0.42                48.31MB             12.04kB             18
+b2c3d4e5f6a71       1.88                212.6MB             4.096kB             22
+c3d4e5f6a7b82       0.09                6.812MB             0B                  6
+d4e5f6a7b8c93       3.14                384.1MB             1.204MB             31
+e5f6a7b8c9d04       0.00                14.22MB             8.192kB             11

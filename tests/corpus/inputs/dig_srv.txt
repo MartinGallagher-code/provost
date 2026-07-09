@@ -1,0 +1,9 @@
+; <<>> DiG 9.18.24 <<>> SRV _xmpp-server._tcp.example.com
+;; global options: +cmd
+;; ANSWER SECTION:
+_xmpp-server._tcp.example.com.	3600	IN	SRV	5 0 5269 xmpp1.example.com.
+_xmpp-server._tcp.example.com.	3600	IN	SRV	10 0 5269 xmpp2.example.com.
+_xmpp-server._tcp.example.com.	3600	IN	SRV	20 10 5269 xmpp3.example.com.
+_xmpp-server._tcp.example.com.	3600	IN	SRV	20 20 5269 xmpp4.example.com.
+
+;; Query time: 12 msec

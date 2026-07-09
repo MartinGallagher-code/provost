@@ -1,0 +1,17 @@
+{
+  node: '18.17.1',
+  v8: '10.2.154.26-node.26',
+  uv: '1.44.2',
+  zlib: '1.2.13',
+  brotli: '1.0.9',
+  ares: '1.19.1',
+  modules: '108',
+  nghttp2: '1.52.0',
+  napi: '9',
+  llhttp: '6.0.11',
+  openssl: '3.0.9+quic',
+  cldr: '43.0',
+  icu: '73.1',
+  tz: '2023c',
+  unicode: '15.0'
+}
