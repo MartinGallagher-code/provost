@@ -1,8 +1,8 @@
-entry1.c1 Django==4.2.7
-entry2.c1 asgiref [required: >=3.6.0,<4, installed: 3.7.2]
-entry3.c1 sqlparse [required: >=0.3.1, installed: 0.4.4]
-entry4.c1 requests==2.31.0
-entry5.c1 certifi [required: >=2017.4.17, installed: 2023.11.17]
-entry6.c1 idna [required: >=2.5,<4, installed: 3.6]
-entry7.c1 urllib3 [required: >=1.21.1,<3, installed: 2.1.0]
+entry1.A Django==4.2.7
+entry2.A asgiref [required: >=3.6.0,<4, installed: 3.7.2]
+entry3.A sqlparse [required: >=0.3.1, installed: 0.4.4]
+entry4.A requests==2.31.0
+entry5.A certifi [required: >=2017.4.17, installed: 2023.11.17]
+entry6.A idna [required: >=2.5,<4, installed: 3.6]
+entry7.A urllib3 [required: >=1.21.1,<3, installed: 2.1.0]
 total_entries 7

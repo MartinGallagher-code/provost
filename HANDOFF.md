@@ -90,6 +90,20 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Direction: fewer strategies, more generic tidying
 
+> **2026-07-09 — reframe: judge output on tidy/meaningful merits, not bespoke
+> byte-fidelity.** See **[docs/0002-tidy-first-and-nameless-columns.md](docs/0002-tidy-first-and-nameless-columns.md)**.
+> A tidy table with positional columns is a *good* result even when it differs
+> from a bespoke's bytes — so generic parsers are allowed to be the answer, and
+> the migration no longer chases byte-parity. Two concrete changes landed with the
+> reframe: (a) genuinely-nameless columns are now labeled **`A,B,C…,Z,AA,BB`**
+> (via `_col_letter`) instead of `c1,c2,c3` — a pure affordance win, 224 corpus +
+> 17 extract goldens regenerated, gate green; (b) goldens are now **regression
+> snapshots**, not specs (regenerate on intended improvements; an unintended diff
+> is a bug). An LLM-judge pass over 21 nameless-column tools scored 13/21 tidy,
+> 15/21 usable — and **every** shortfall was an orthogonal parser-routing issue
+> (colon-block routing, separator-as-noise-column, numeric-blob splitting, tree
+> modeling), not a labeling one. Those routing gaps are the real remaining work.
+
 The active goal is to tidy **all common tool outputs with a minimum of
 strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/`
 + `structured/`) instead of a bespoke strategy per tool, and delete the
@@ -234,6 +248,29 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
 `run.sh --update-golden`; `run.sh --golden` is the (non-CI) regression check.
 
 ## Next steps
+
+0a. **Pruning redundant bespokes (tidy-first bar) — 13 retired, 374 → 361.**
+   Under the docs/0002 reframe, a full-corpus (1040-input) winner scan found the
+   bespokes that **never win their own corpus input** (a sibling/generic parser
+   already tidies the tool). 13 such were retired output-neutrally:
+   `docker-inspect`, `iostat`, `ip-addr`, `iperf3`, `podman-ps`, `rocm-smi`,
+   `host`, `terraform-plan`, `perf-stat` (+dup), `lscpu`, `proc-meminfo`,
+   `valgrind-summary`, `perf-report`.
+
+   **Mis-shadow BUGS (bespoke is better; a greedy parser wins with worse output)
+   — 3 of 4 FIXED.** Fixed by lowering the bespoke's `## Priority` below its
+   greedy competitor (safe: each bespoke `detect()` is specific to its own tool,
+   verified by a full-corpus winner-scan showing each now wins exactly its own
+   input and nothing else): `systemctl-status` 22→19 (vs `syslog`),
+   `fail2ban-status` 20→10 (vs `key-value`), `ulimit` 25→20 (vs `pkg-config`).
+   **Still open: `cargo-tree`** — its competitor is the `poetry-show-tree`
+   *columnar-specs spec* (flattens the tree to one column), not a standalone
+   strategy, so the priority-lowering trick needs the spec's detect narrowed or
+   cargo-tree's tree-split preferred; lowest-value of the four (single tidy
+   column vs 2-column split). Method to find more mis-shadows: rebuild the winner
+   scan (`--emit-meta --max-strategies 1` over `tests/corpus/inputs/*.txt`),
+   intersect never-winning strategies with those that have a corpus input, then
+   judge winner-vs-bespoke output quality per case.
 
 0. **Campaign: `columnar-specs` migration — at the clean floor (~374).**
    Express bespoke columnar strategies as one-line specs in

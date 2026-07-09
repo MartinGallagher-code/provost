@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	admin.api	8
 2	admin.api.load	8
 3	caddy.adapters.caddyfile	8

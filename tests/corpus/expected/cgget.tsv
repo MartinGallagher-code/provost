@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	total_entries
+n	A	B	C	D	E	F	G	total_entries
 1	mysql.service:							10
 2	cpu.weight:	100						10
 3	cpu.max:	max	100000					10

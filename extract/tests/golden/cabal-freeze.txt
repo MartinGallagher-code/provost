@@ -1,7 +1,7 @@
-entry1.c1 aeson ==2.1.2.1
-entry2.c1 base ==4.16.4.0
-entry3.c1 bytestring ==0.11.4.0
-entry4.c1 containers ==0.6.5.1
-entry5.c1 text ==2.0.2
-entry6.c1 vector ==0.13.1.0
+entry1.A aeson ==2.1.2.1
+entry2.A base ==4.16.4.0
+entry3.A bytestring ==0.11.4.0
+entry4.A containers ==0.6.5.1
+entry5.A text ==2.0.2
+entry6.A vector ==0.13.1.0
 total_entries 6

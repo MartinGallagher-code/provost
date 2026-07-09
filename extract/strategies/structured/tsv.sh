@@ -71,7 +71,7 @@ strategy_extract () {
     if [[ $headerless -eq 1 ]]; then
         local _n=${#headers[@]} _i
         headers=()
-        for ((_i = 1; _i <= _n; _i++)); do headers+=("c$_i"); done
+        for ((_i = 1; _i <= _n; _i++)); do headers+=("$(_col_letter "$_i")"); done
     fi
 
     # Process each data row as an indexed record group (entry<N>.<column>) so the

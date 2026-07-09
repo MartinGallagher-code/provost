@@ -34,7 +34,7 @@ strategy_extract () {
         [[ "$line" =~ ^\*[[:space:]]+([A-Za-z0-9_.-]+) ]] || continue
         local name="${BASH_REMATCH[1]}"
         entry=$((entry + 1))
-        result+="entry${entry}.c1 ${name}"$'\n'
+        result+="entry${entry}.A ${name}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

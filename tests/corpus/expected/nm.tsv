@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	0000000000004010	B	__bss_start	8
 2	0000000000001139	T	main	8
 3	00000000000010e0	T	_start	8

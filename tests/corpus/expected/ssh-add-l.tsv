@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	total_entries
+n	A	B	C	D	total_entries
 1	2048	SHA256:Qq3vXm8k1pR7yZ4nL0aB2cD5eF6gH8iJ9kL0mN1oP2q	/home/user/.ssh/id_rsa	(RSA)	4
 2	256	SHA256:aB1cD2eF3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3aB4c	/home/user/.ssh/id_ed25519	(ED25519)	4
 3	384	SHA256:zY9xW8vU7tS6rQ5pO4nM3lK2jI1hG0fE9dC8bA7zY6x	work-laptop	key_(ECDSA)	4

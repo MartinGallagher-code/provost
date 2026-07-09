@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	total_entries
+n	A	B	C	D	total_entries
 1	256	SHA256:9lK3xQ2mZ8vRtY7pN4wF1cJ6bH0aD5eU3sG8oL2iP4	root@web01	(ED25519)	6
 2	2048	SHA256:aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2uV3wX4yZ5aB6	root@web02	(RSA)	6
 3	3072	SHA256:cD5eF6gH7iJ8kL9mN0oP1qR2sT3uV4wX5yZ6aB7cD8	deploy@db01	(RSA)	6

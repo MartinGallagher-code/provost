@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	total_entries
+n	A	B	C	D	total_entries
 1	00001000-0009fbff	:	System	RAM	6
 2	00100000-3fffffff	:	System	RAM	6
 3	40000000-bfffffff	:	System	RAM	6

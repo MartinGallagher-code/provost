@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	stable-x86_64-unknown-linux-gnu	(default)	4
 2	beta-x86_64-unknown-linux-gnu		4
 3	nightly-x86_64-unknown-linux-gnu		4

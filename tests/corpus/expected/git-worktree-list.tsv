@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	/home/user/glean	a1b2c3d	[main]	4
 2	/home/user/glean-feature	e4f5a6b	[feature/login]	4
 3	/home/user/glean-hotfix	0f9e8d7	[hotfix/urgent-patch]	4

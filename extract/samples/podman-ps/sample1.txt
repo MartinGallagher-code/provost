@@ -1,5 +1,0 @@
-CONTAINER ID  IMAGE                           COMMAND               CREATED        STATUS            PORTS                   NAMES        POD ID        PODNAME
-a1b2c3d4e5f6  docker.io/library/nginx:latest  nginx -g daemon off   2 hours ago    Up 2 hours        0.0.0.0:8080->80/tcp    web-server   f1e2d3c4b5a6  mypod
-b2c3d4e5f6a7  docker.io/library/redis:7       redis-server          3 hours ago    Up 3 hours        6379/tcp                cache-svc    f1e2d3c4b5a6  mypod
-c3d4e5f6a7b8  docker.io/library/postgres:15   postgres              5 hours ago    Exited (0)                                db-main      0000000000    none
-d4e5f6a7b8c9  quay.io/prometheus/node:v1.5     /bin/node_exporter    1 day ago      Up 24 hours       9100/tcp                monitoring   0000000000    none

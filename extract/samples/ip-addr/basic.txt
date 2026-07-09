@@ -1,5 +1,0 @@
-1: lo    inet 127.0.0.1/8 scope host lo\       valid_lft forever preferred_lft forever
-1: lo    inet6 ::1/128 scope host \       valid_lft forever preferred_lft forever
-2: eth0    inet 10.0.1.50/16 metric 100 brd 10.0.255.255 scope global eth0\       valid_lft forever preferred_lft forever
-2: eth0    inet6 fe80::72a8:a5ff:fe41:1166/64 scope link \       valid_lft forever preferred_lft forever
-3: docker0    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0\       valid_lft forever preferred_lft forever

@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	debug_assertions	8
 2	panic="unwind"	8
 3	target_arch="x86_64"	8

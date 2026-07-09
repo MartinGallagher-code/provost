@@ -1,6 +1,0 @@
-disk0.KB_per_t 24.00
-disk0.tps 45
-disk0.MB_per_s 1.05
-disk1.KB_per_t 32.00
-disk1.tps 12
-disk1.MB_per_s 0.38

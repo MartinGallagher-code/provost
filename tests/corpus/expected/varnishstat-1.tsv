@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	MAIN.uptime                  604800         1.00 Child process uptime	8
 2	MAIN.sess_conn              1049320        17.35 Sessions accepted	8
 3	MAIN.client_req             8765432       144.99 Good client requests received	8

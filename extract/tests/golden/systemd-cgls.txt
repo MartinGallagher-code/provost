@@ -1,17 +1,17 @@
-entry1.c1 -.slice
-entry2.c1 user.slice
-entry3.c1 user-1000.slice
-entry4.c1 session-3.scope
-entry5.c1 12089 sshd: alice@pts/0
-entry6.c1 12090 -bash
-entry7.c1 12250 systemd-cgls
-entry8.c1 user@1000.service
-entry9.c1 init.scope
-entry10.c1 12001 /lib/systemd/systemd --user
-entry11.c1 12002 (sd-pam)
-entry12.c1 system.slice
-entry13.c1 sshd.service
-entry14.c1 901 /usr/sbin/sshd -D
-entry15.c1 cron.service
-entry16.c1 844 /usr/sbin/cron -f
+entry1.A -.slice
+entry2.A user.slice
+entry3.A user-1000.slice
+entry4.A session-3.scope
+entry5.A 12089 sshd: alice@pts/0
+entry6.A 12090 -bash
+entry7.A 12250 systemd-cgls
+entry8.A user@1000.service
+entry9.A init.scope
+entry10.A 12001 /lib/systemd/systemd --user
+entry11.A 12002 (sd-pam)
+entry12.A system.slice
+entry13.A sshd.service
+entry14.A 901 /usr/sbin/sshd -D
+entry15.A cron.service
+entry16.A 844 /usr/sbin/cron -f
 total_entries 16

@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	total_entries
+n	A	B	C	D	E	F	G	H	I	total_entries
 1	ID	256	gen	12043	top	level	5	path	@	6
 2	ID	257	gen	12040	top	level	5	path	@home	6
 3	ID	258	gen	11980	top	level	256	path	@/var/log	6

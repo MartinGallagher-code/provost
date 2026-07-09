@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	c11	total_entries
+n	A	B	C	D	E	F	G	H	I	J	K	total_entries
 1	Bus	002	Device	001:	ID	1d6b:0003	Linux	Foundation	3.0	root	hub	3
 2	Bus	001	Device	003:	ID	046d:c52b	Logitech,	Inc.	Unifying	Receiver		3
 3	Bus	001	Device	001:	ID	1d6b:0002	Linux	Foundation	2.0	root	hub	3

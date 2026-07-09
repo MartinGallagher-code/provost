@@ -2,7 +2,7 @@
 ## Name: fail2ban-status
 ## Description: Extract jail status from fail2ban-client status output
 ## Version: 1.0
-## Priority: 20
+## Priority: 10
 ## Technique: kv_colon
 ## Sample: samples/fail2ban-status/sample1.txt
 

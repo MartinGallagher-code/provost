@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	tracepoint:syscalls:sys_enter_read	8
 2	tracepoint:syscalls:sys_enter_write	8
 3	tracepoint:syscalls:sys_enter_openat	8

@@ -1,6 +1,6 @@
-entry1.c1 lodash 4.17.21
-entry2.c1 async 3.2.5
-entry3.c1 lodash 4.17.21
-entry4.c1 webpack 5.89.0
-entry5.c1 lodash 4.17.21
+entry1.A lodash 4.17.21
+entry2.A async 3.2.5
+entry3.A lodash 4.17.21
+entry4.A webpack 5.89.0
+entry5.A lodash 4.17.21
 total_entries 5

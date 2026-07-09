@@ -38,7 +38,7 @@ strategy_extract () {
         # survive because the engine splits each record on its first space only.
         local v="${line}"
         entry=$((entry + 1))
-        result+="entry${entry}.c1 ${v}"$'\n'
+        result+="entry${entry}.A ${v}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

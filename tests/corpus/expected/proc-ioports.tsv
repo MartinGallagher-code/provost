@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	0000-001f	:	dma1	8
 2	0020-0021	:	pic1	8
 3	0040-0043	:	timer0	8

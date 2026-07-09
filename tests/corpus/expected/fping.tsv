@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	192.168.1.1	is	alive	6
 2	192.168.1.2	is	alive	6
 3	192.168.1.10	is	alive	6

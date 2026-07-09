@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	graphical.target	@14.234s	7
 2	multi-user.target	@14.233s	7
 3	nginx.service	@13.001s +231ms	7
