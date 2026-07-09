@@ -56,6 +56,11 @@ _COLUMNAR_SPECS=(
   $'grafana-cli-plugins\tinstalled plugins\t-\tws\t-1\t3\tid,~at,version\t1\t @ [0-9]'
   $'bq-ls\ttableId;Type\ttableId\tws\t-1\t2\ttableid,type\t1\t[[:alpha:]]'
   $'arp-scan\tarp-scan\t-\tws\t-1\t3\tip,mac,vendor@rest\t1\t^[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+'
+  $'rustc-cfg\ttarget_arch=;target_os=\t-\tws\t-1\t1\tc1@line'
+  $'apache2ctl-modules\tLoaded Modules:\tLoaded Modules:\tws\t-1\t1\tc1@line'
+  $'dub-list\tknown to dub\tknown to dub\tws\t-1\t1\tc1@line'
+  $'lstopo-no-graphics\tMachine (;NUMANode\t-\tws\t-1\t1\tc1@line'
+  $'lshw-network\t*-network;logical name:\t-\tws\t-1\t1\tc1@line'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
@@ -153,6 +158,10 @@ strategy_extract () {
     # index of the terminal @rest column (soaks remaining tokens, space-joined), or -1
     local rest_idx=-1 _ci
     for ((_ci=0; _ci<ncols; _ci++)); do [[ "${cols[$_ci]}" == *"@rest" ]] && rest_idx=$_ci; done
+    # @line: a sole column capturing the whole TRIMMED line verbatim (no tokenizing).
+    # For single-column list outputs (module lists, cfg dumps, cgroup trees).
+    local line_mode=0
+    [[ $ncols -eq 1 && "${cols[0]}" == *"@line" ]] && line_mode=1
 
     local result="" entry=0 line past=0
     [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
@@ -164,6 +173,12 @@ strategy_extract () {
         fi
         # per-row accept guard (field 9): skip rows whose raw line doesn't match
         [[ -n "$_CS_ROWRE" && ! "$line" =~ $_CS_ROWRE ]] && continue
+        # @line mode: emit the whole trimmed line as the sole column (no tokenizing)
+        if [[ $line_mode -eq 1 ]]; then
+            entry=$((entry + 1))
+            result+="entry${entry}.${cols[0]%%@*} $(_cs_trim "$line")"$'\n'
+            continue
+        fi
         local -a tok=()
         if [[ "$_CS_DELIM" == "pipe" ]]; then
             [[ "$line" == *"|"* ]] || continue

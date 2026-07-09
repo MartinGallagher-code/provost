@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: @line transform; migrate 5 single-column lists
+Added the **`@line`** transform — a sole column whose value is the whole trimmed
+line (no tokenizing) — for single-column list outputs. Migrated, each verified
+byte-identical — **398 → 393 distinct strategy names**:
+- `rustc-cfg`, `apache2ctl-modules`, `dub-list`, `lstopo-no-graphics`,
+  `lshw-network`.
+- Recorded a real engine limit: the `_is_json` pre-check declines any input whose
+  first non-blank line starts with `[`/`{`, so bracket-headed outputs (e.g.
+  `php -m`'s `[PHP Modules]`) can't be a `columnar-specs` tool — stays bespoke.
+- Deferred `@line` variants needing prefix/token/tree-char stripping (go-list,
+  cabal-freeze, systemd-cgls, fwupdmgr, mix-deps, pnpm-why).
+- Doc `docs/columnar-specs-engine.md` updated (`@line`, JSON-guard limit).
+- Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: row-guard + @rest transforms; migrate 4 more
 Extended the engine with two transforms, each verified byte-identical on the
 tools it unlocked — **402 → 398 distinct strategy names**:

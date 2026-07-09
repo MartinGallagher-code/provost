@@ -50,8 +50,16 @@ match:
   regex `PATTERN`. A single `re:` token keeps its spaces (it is not split on
   whitespace), so `re:^[^[:space:]]+ on .* type ` is one pattern.
 
-Detection is **input-level, not per-row.** The engine has *no* per-row structural
-guard yet — every non-blank row past the header with `≥ minreq` tokens becomes an
+**JSON guard.** Before any spec is tried, the engine declines inputs that
+`_is_json` classifies as JSON — which includes any text whose first non-blank
+line starts with `[` or `{`. So a tool whose output opens with a bracketed
+section header (e.g. `php -m`'s `[PHP Modules]`) can **not** be detected by
+`columnar-specs` and must stay bespoke. (Symptom: `strategy_extract` works when
+the file is sourced alone but the engine reports "No fields extracted", because
+the standalone shell lacks `_is_json`.)
+
+Detection is **input-level, not per-row.** Beyond the `rowre` accept guard, the
+engine has no per-cell structural guard — every non-blank row past the header with `≥ minreq` tokens becomes an
 entry. If a tool's output contains footer/notes lines that would wrongly parse
 (e.g. a `TOTAL:` summary, a "Restart …" note), a flat spec cannot yet exclude
 them — those tools await a per-row guard transform (see *Limitations*).
@@ -97,6 +105,7 @@ tools; it was reverted.
 | `name@unwrap` | strip one layer of surrounding `()`/`[]`/`{}`/`""` — e.g. `(rw,relatime)` → `rw,relatime` |
 | `name@between@L@R` | emit the substring between the first `L` and the next `R` (empty ⇒ skip) — e.g. ss `users:(("sshd",…))` → `sshd` |
 | `name@rest` | **terminal** column: soaks every remaining token from its slot, joined with **single spaces** (verbatim internal spacing, unlike `absorb`'s `_`) — e.g. arp-scan's `vendor` = `Raspberry Pi Foundation`. No column may follow it. |
+| `name@line` | **sole-column** mode: the value is the whole **trimmed** line (no tokenizing) — for single-column list outputs (module lists, cfg dumps). Use `cols` = one `@line` column; `delim`/`absorb`/`minreq` are ignored for the value. Combine with `header_marker` and `rowre` to drop headers / sub-section lines. |
 
 ## Recipe: migrate a bespoke into a spec
 
@@ -150,8 +159,9 @@ lands — ranked by how many tools each would unlock):
   family) without hijacking them.
 - **transpose / `vertical`** — first field on each line becomes the field *name*
   (key/value outputs folded into one wide record).
-- **`@line`** — a single column capturing the whole trimmed line (dependency-tree
-  / module-list tools).
+- **line prefix strip** — an `@line` variant that strips a leading token/prefix
+  (go-list keeps only the first token; cabal-freeze strips `constraints:`; the
+  tree tools `systemd-cgls`/`fwupdmgr` strip box-drawing `├─` characters).
 - **`delim=tab`** — tab as a first-class delimiter (space-containing 2–3 col
   tables, e.g. the `git-*` family).
 - **`@default@<val>`** — placeholder for a missing optional column.
@@ -168,5 +178,6 @@ lands — ranked by how many tools each would unlock):
 
 zypper-search, buildah-containers, lsmem, ss-tulnp, smartctl-attributes, mount,
 iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
-dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan.
+dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
+rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network.
 (See `_COLUMNAR_SPECS` for the authoritative list.)

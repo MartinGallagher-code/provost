@@ -240,9 +240,11 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
    `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
    before retiring the bespoke; add engine transforms to unlock larger batches.
    Engine reference + recipe: **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**
-   (keep it current when extending the engine). At **398 distinct names**.
-   Engine now has: `rowre` per-row guard + `@rest` terminal column (plus the
-   earlier `~sep`/`@opt`/`@unwrap`/`@between`, `absorb`, `minreq`, `re:` detect).
+   (keep it current when extending the engine). At **393 distinct names**.
+   Engine now has: `rowre` per-row guard, `@rest` terminal column, `@line`
+   whole-line column (plus the earlier `~sep`/`@opt`/`@unwrap`/`@between`,
+   `absorb`, `minreq`, `re:` detect). Note the `_is_json` guard declines
+   bracket-headed inputs (`[…]`/`{…}` first line) — they stay bespoke.
    Highest-yield features still to add (by tools unlocked): **all-lines-match
    detect** (needed for the shared-shape package/image-list family, e.g.
    composer-show — a one-line detect hijacks 13 tools), transpose/`vertical`,
