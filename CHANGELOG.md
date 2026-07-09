@@ -1,5 +1,26 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: row-guard + @rest transforms; migrate 4 more
+Extended the engine with two transforms, each verified byte-identical on the
+tools it unlocked — **402 → 398 distinct strategy names**:
+- **`rowre`** (spec field 9): a per-row accept regex — process a row only if its
+  raw line matches. The engine's first per-row structural guard, for outputs
+  whose footer/note lines survive the `minreq` filter. Migrated `gsutil-ls-l`
+  (`TOTAL:` footer), `grafana-cli-plugins` (trailing note), `bq-ls` (rule row).
+- **`@rest`**: a terminal column that soaks the remaining tokens joined with
+  single spaces (verbatim internal spacing, unlike `absorb`'s `_`). Migrated
+  `arp-scan` (space-containing `vendor`).
+- Detection lessons (both caught by the corpus golden run): a greedy grafana
+  `re: @ [0-9]` hijacked CPU-info files → keyed on the `installed plugins`
+  header; `composer-show` shares its `vendor/pkg version` shape with docker/go/
+  apt/crictl image+package lists (hijacked 13 tools) and was reverted — it needs
+  an *all-lines-match* detect mode, now recorded as a future engine feature.
+- Doc **docs/columnar-specs-engine.md** updated (field 9, `@rest`, detection
+  limitations, migrated-tools list).
+- Files: `extract/strategies/delimited/columnar-specs.sh`,
+  `docs/columnar-specs-engine.md`, four removed strategy files.
+- Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs batch: migrate 5 more bespokes; add engine doc
 Migrated five more bespoke strategies into the `columnar-specs` engine as
 one-line specs, each verified **byte-for-byte identical** to the strategy it

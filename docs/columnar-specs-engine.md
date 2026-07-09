@@ -25,7 +25,7 @@ Each entry of the `_COLUMNAR_SPECS` array is a single TAB-separated string
 (written with `$'…\t…'`):
 
 ```
-name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB> cols [<TAB> total]
+name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB> cols [<TAB> total [<TAB> rowre]]
 ```
 
 | # | Field | Meaning |
@@ -34,10 +34,11 @@ name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB
 | 2 | `detect` | `;`-separated tokens that must **all** be present for this spec to match the input (see *Detection*) |
 | 3 | `header_marker` | skip every line up to **and including** the first line containing this substring (drops preamble + header row). `-` = headerless (start at line 1). Must not be empty. |
 | 4 | `delim` | `ws` (split on whitespace) or `pipe` (split on `|`, trim each cell) |
-| 5 | `absorb` | 0-based index of the column that soaks up overflow tokens when a row has more tokens than columns (`ws` only); `-1` = none |
+| 5 | `absorb` | 0-based index of the column that soaks up overflow tokens (joined with `_`) when a row has more tokens than columns (`ws` only); `-1` = none |
 | 6 | `minreq` | minimum token count for a row to be accepted (lets trailing columns be optional) |
 | 7 | `cols` | comma-separated output column names, each optionally carrying a transform (see *Transforms*) |
 | 8 | `total` | optional; `1` (default) appends a `total_entries N` record, `0` omits it — match whatever the bespoke did |
+| 9 | `rowre` | optional **per-row accept regex**: a row is processed only if its raw line matches this bash regex. The engine's per-row structural guard, for outputs with footer/note lines that survive the `minreq` filter (e.g. gsutil `TOTAL:`, grafana's trailing note, a `--- ---` rule row). Empty ⇒ every row past the header. To use `rowre` with the default total, set field 8 to `1` explicitly. |
 
 ### Detection (field 2)
 
@@ -57,11 +58,23 @@ them — those tools await a per-row guard transform (see *Limitations*).
 
 **Detection must be specific.** Because every input is tried against every spec
 (first match wins in generic mode), a too-greedy `detect` will *steal* other
-tools' inputs. Example: `re:^([^|]*[|]){9}` ("≥9 pipes") wrongly matched wide
-bordered SQL tables; the fix was to key on ipmitool's unique sensor-status field
-`re:[|] *(ok|na|nc|cr) *[|]`. The corpus golden run (`tests/corpus/run.sh
---golden`) is the collision detector — a new spec that hijacks another tool shows
-up there as a FAIL.
+tools' inputs. Two real examples that the corpus golden run (`tests/corpus/run.sh
+--golden`, the collision detector) caught as FAILs:
+
+- `re:^([^|]*[|]){9}` ("≥9 pipes") wrongly matched wide bordered SQL tables;
+  fixed by keying on ipmitool's unique sensor-status field
+  `re:[|] *(ok|na|nc|cr) *[|]`.
+- `re: @ [0-9]` (grafana plugin `name @ version`) wrongly matched CPU-info files
+  (`… CPU @ 2.80GHz`); fixed by keying on grafana's header `installed plugins`.
+
+Note a structural limitation: `re:` means **"at least one line matches"**, which
+is *weaker* than the guard many bespokes use ("**every** non-blank line matches
+this shape"). Tools whose only signature is a shape shared with other tools —
+e.g. `composer show`'s `vendor/pkg version description`, which collides with
+`docker images`, `go list -m`, `apt list`, crictl/nerdctl image lists — cannot be
+told apart by a one-line detect and **stay bespoke** until an *all-lines-match*
+detect mode is added. Attempting `composer-show` as a spec hijacked 13 other
+tools; it was reverted.
 
 ### Row handling (fields 3–6)
 
@@ -83,6 +96,7 @@ up there as a FAIL.
 | `name@opt` | emit only if the cell is non-empty (optional trailing column) |
 | `name@unwrap` | strip one layer of surrounding `()`/`[]`/`{}`/`""` — e.g. `(rw,relatime)` → `rw,relatime` |
 | `name@between@L@R` | emit the substring between the first `L` and the next `R` (empty ⇒ skip) — e.g. ss `users:(("sshd",…))` → `sshd` |
+| `name@rest` | **terminal** column: soaks every remaining token from its slot, joined with **single spaces** (verbatim internal spacing, unlike `absorb`'s `_`) — e.g. arp-scan's `vendor` = `Raspberry Pi Foundation`. No column may follow it. |
 
 ## Recipe: migrate a bespoke into a spec
 
@@ -122,18 +136,18 @@ The `mig.sh` harness lives in the scratchpad (dev-only, not shipped).
 ## Capabilities & limitations (current)
 
 **Handles:** header-skip or headerless tables; whitespace or pipe delimiters;
-positional column maps; one overflow-absorb column; optional trailing columns via
-`minreq`; the `~sep`, `@opt`, `@unwrap`, `@between` transforms; per-spec
+positional column maps; one overflow-absorb column; a terminal space-preserving
+`@rest` column; optional trailing columns via `minreq`; a per-row accept guard
+(`rowre`); the `~sep`, `@opt`, `@unwrap`, `@between`, `@rest` transforms; per-spec
 `total_entries` control; substring and regex (`re:`) input detection.
 
-**Does not yet handle** (tools needing these stay bespoke until the transform
+**Does not yet handle** (tools needing these stay bespoke until the feature
 lands — ranked by how many tools each would unlock):
 
-- **per-row guard** — accept a row only if a cell matches a pattern / reject
-  rows by prefix. Needed by tools with footer/note lines (`gsutil-ls-l`'s
-  `TOTAL:`, `grafana-cli-plugins`'s trailing note) and the dig/nodetool family.
-- **`@rest`** — a final column that keeps the remainder's *internal spaces*
-  verbatim (the current `absorb` joins with `_`).
+- **all-lines-match detect** — require *every* non-blank data line to match a
+  shape (not just one). Needed to safely migrate tools whose signature is a
+  shape shared with others (`composer-show`, and much of the package/image-list
+  family) without hijacking them.
 - **transpose / `vertical`** — first field on each line becomes the field *name*
   (key/value outputs folded into one wide record).
 - **`@line`** — a single column capturing the whole trimmed line (dependency-tree
@@ -141,6 +155,12 @@ lands — ranked by how many tools each would unlock):
 - **`delim=tab`** — tab as a first-class delimiter (space-containing 2–3 col
   tables, e.g. the `git-*` family).
 - **`@default@<val>`** — placeholder for a missing optional column.
+- **mid-row multi-token column** — a fixed-width value with internal spaces that
+  is *not* the last column (e.g. nodetool's `145.23 GiB` load); `@rest` only
+  covers the terminal column, `absorb` joins with `_`.
+- **stateful / continuation rows** — values inherited from a previous row
+  (`fuser -v`), or mixed record shapes in one output (`aws s3 ls` objects vs
+  `PRE` prefixes).
 - **`@split@<delim>`**, **`@keyword`** — split one token into two columns; locate
   a value by a preceding keyword.
 
@@ -148,4 +168,5 @@ lands — ranked by how many tools each would unlock):
 
 zypper-search, buildah-containers, lsmem, ss-tulnp, smartctl-attributes, mount,
 iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
-dpkg-get-selections. (See `_COLUMNAR_SPECS` for the authoritative list.)
+dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan.
+(See `_COLUMNAR_SPECS` for the authoritative list.)

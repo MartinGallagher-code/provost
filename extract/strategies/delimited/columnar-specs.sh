@@ -52,6 +52,10 @@ _COLUMNAR_SPECS=(
   $'goose-status\tApplied At;Migration\tApplied At\tws\t0\t2\tapplied_at,migration'
   $'ipmitool-sensor\tre:[|] *(ok|na|nc|cr) *[|]\t-\tpipe\t-1\t10\tname,reading,unit,status,lower_nr,lower_crit,lower_noncrit,upper_noncrit,upper_crit,upper_nr'
   $'dpkg-get-selections\tre:[[:space:]](install|deinstall|hold|purge)$\t-\tws\t-1\t2\tpackage,status'
+  $'gsutil-ls-l\tgs://\t-\tws\t-1\t3\tsize,timestamp,url\t1\tgs://'
+  $'grafana-cli-plugins\tinstalled plugins\t-\tws\t-1\t3\tid,~at,version\t1\t @ [0-9]'
+  $'bq-ls\ttableId;Type\ttableId\tws\t-1\t2\ttableid,type\t1\t[[:alpha:]]'
+  $'arp-scan\tarp-scan\t-\tws\t-1\t3\tip,mac,vendor@rest\t1\t^[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
@@ -63,6 +67,11 @@ _cs_parse () {
     _CS_NAME="${p[0]}"; _CS_DETECT="${p[1]}"; _CS_HDR="${p[2]}"
     _CS_DELIM="${p[3]}"; _CS_ABSORB="${p[4]}"; _CS_MINREQ="${p[5]}"; _CS_COLS="${p[6]}"
     _CS_TOTAL="${p[7]:-1}"
+    # Field 9 (optional): a per-row ACCEPT regex. When set, a row is processed
+    # only if its raw line matches — the engine's per-row structural guard, for
+    # outputs with footer/note lines that survive the minreq filter (e.g.
+    # gsutil `TOTAL:`, grafana trailing note). Empty ⇒ every row past the header.
+    _CS_ROWRE="${p[8]:-}"
 }
 
 # Does the text match this spec's detect tokens (all present)? A plain token is a
@@ -141,6 +150,9 @@ strategy_extract () {
     local -a cols=(); IFS=',' read -ra cols <<< "$_CS_COLS"
     local ncols=${#cols[@]}
     local minreq="${_CS_MINREQ:-$ncols}"
+    # index of the terminal @rest column (soaks remaining tokens, space-joined), or -1
+    local rest_idx=-1 _ci
+    for ((_ci=0; _ci<ncols; _ci++)); do [[ "${cols[$_ci]}" == *"@rest" ]] && rest_idx=$_ci; done
 
     local result="" entry=0 line past=0
     [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
@@ -150,6 +162,8 @@ strategy_extract () {
             [[ "$line" == *"$_CS_HDR"* ]] && past=1
             continue
         fi
+        # per-row accept guard (field 9): skip rows whose raw line doesn't match
+        [[ -n "$_CS_ROWRE" && ! "$line" =~ $_CS_ROWRE ]] && continue
         local -a tok=()
         if [[ "$_CS_DELIM" == "pipe" ]]; then
             [[ "$line" == *"|"* ]] || continue
@@ -160,9 +174,17 @@ strategy_extract () {
         fi
         [[ ${#tok[@]} -lt $minreq ]] && continue
 
-        # Assign tokens to columns, folding overflow into the absorb column.
+        # Assign tokens to columns.
         local -a vals=()
-        if [[ "$_CS_DELIM" == "ws" && "$_CS_ABSORB" -ge 0 && ${#tok[@]} -gt $ncols ]]; then
+        if [[ "$_CS_DELIM" == "ws" && $rest_idx -ge 0 ]]; then
+            # @rest column: takes every remaining token from its slot, joined with
+            # single spaces (verbatim internal spacing, unlike absorb's `_`). It is
+            # terminal — no columns follow it.
+            local i; for ((i=0; i<rest_idx; i++)); do vals+=("${tok[$i]:-}"); done
+            local r="${tok[$rest_idx]:-}" k
+            for ((k=rest_idx+1; k<${#tok[@]}; k++)); do r="$r ${tok[$k]}"; done
+            vals+=("$r")
+        elif [[ "$_CS_DELIM" == "ws" && "$_CS_ABSORB" -ge 0 && ${#tok[@]} -gt $ncols ]]; then
             local extra=$(( ${#tok[@]} - ncols )) i ti=0
             for ((i=0; i<ncols; i++)); do
                 if [[ $i -eq $_CS_ABSORB ]]; then

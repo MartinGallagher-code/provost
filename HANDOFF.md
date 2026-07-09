@@ -240,10 +240,13 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
    `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
    before retiring the bespoke; add engine transforms to unlock larger batches.
    Engine reference + recipe: **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**
-   (keep it current when extending the engine). At **402 distinct names** after
-   migrating iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
-   dpkg-get-selections. Highest-yield transforms still to add (by tools unlocked):
-   per-row guard, `@rest`, transpose/`vertical`, `@line`, `delim=tab`, `@default`.
+   (keep it current when extending the engine). At **398 distinct names**.
+   Engine now has: `rowre` per-row guard + `@rest` terminal column (plus the
+   earlier `~sep`/`@opt`/`@unwrap`/`@between`, `absorb`, `minreq`, `re:` detect).
+   Highest-yield features still to add (by tools unlocked): **all-lines-match
+   detect** (needed for the shared-shape package/image-list family, e.g.
+   composer-show — a one-line detect hijacks 13 tools), transpose/`vertical`,
+   `@line`, `delim=tab`, `@default`, mid-row multi-token column.
    Gate every batch: `run.sh --golden` (catches detect collisions) + extract +
    smoke + melt.
 
