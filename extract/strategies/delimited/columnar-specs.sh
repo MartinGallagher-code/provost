@@ -61,6 +61,9 @@ _COLUMNAR_SPECS=(
   $'dub-list\tknown to dub\tknown to dub\tws\t-1\t1\tc1@line'
   $'lstopo-no-graphics\tMachine (;NUMANode\t-\tws\t-1\t1\tc1@line'
   $'lshw-network\t*-network;logical name:\t-\tws\t-1\t1\tc1@line'
+  $'route-6\tKernel IPv6 routing\tDestination\tws\t-1\t7\tdestination,next_hop,flag,met,ref,use,iface'
+  $'snap-connections\tPlug;Slot;Notes\tInterface\tws\t-1\t4\tinterface,plug,slot,notes'
+  $'networkctl-lldp\tCHASSIS ID;PORT DESCRIPTION\tLINK\tws\t5\t6\tlink,chassis_id,system_name,caps,port_id,port_description\t1\t^eth[0-9]'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is

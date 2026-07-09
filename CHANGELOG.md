@@ -1,5 +1,13 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: migrate 3 more tables (no new engine code)
+Migrated three more bespokes using existing engine features (plain table,
+`absorb`, `rowre`) — **393 → 390 distinct strategy names**:
+- `route-6` (7-col IPv6 route table), `snap-connections` (4-col), and
+  `networkctl-lldp` (`absorb` folds the multi-word `PORT DESCRIPTION`; `rowre`
+  `^eth[0-9]` drops the `Capability Flags:` legend footer). Each byte-identical.
+- Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: @line transform; migrate 5 single-column lists
 Added the **`@line`** transform — a sole column whose value is the whole trimmed
 line (no tokenizing) — for single-column list outputs. Migrated, each verified
