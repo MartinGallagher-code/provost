@@ -1,0 +1,19 @@
+# glean extract — declarative tool hints
+#
+# One row routes a recognized tool's output to an existing GENERIC strategy,
+# replacing a per-tool parser script. Consulted by the engine before strategy
+# auto-detection (disable with --no-hints). First matching row wins; the row
+# order in this file is therefore most-specific first.
+#
+# Format (TAB-separated):
+#   tool <TAB> match-type <TAB> pattern <TAB> strategy
+#
+#   tool        dataset/report name for the match (the tool's identity)
+#   match-type  prefix   — first non-blank input line starts with pattern
+#               contains — pattern appears anywhere in the input
+#               regex    — input matches the bash ERE pattern
+#   strategy    an existing generic strategy (strategies/delimited/ or
+#               strategies/structured/)
+#
+# Keep patterns distinctive: they are tested against every capture. The corpus
+# (tests/corpus/run.sh --golden) verifies rows do not misfire on other tools.
