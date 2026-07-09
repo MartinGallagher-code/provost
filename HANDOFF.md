@@ -235,6 +235,23 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
 
 ## Next steps
 
+0. **Campaign: drive strategy count 407 → 300 via `columnar-specs` migration**
+   (in progress). Express bespoke columnar strategies as one-line specs in
+   `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
+   before retiring the bespoke; add engine transforms to unlock larger batches.
+   Engine reference + recipe: **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**
+   (keep it current when extending the engine). At **378 distinct names**.
+   Engine now has: `rowre` per-row guard, `@rest` terminal column, `@line`
+   whole-line column (plus the earlier `~sep`/`@opt`/`@unwrap`/`@between`,
+   `absorb`, `minreq`, `re:` detect). Note the `_is_json` guard declines
+   bracket-headed inputs (`[…]`/`{…}` first line) — they stay bespoke.
+   Highest-yield features still to add (by tools unlocked): **all-lines-match
+   detect** (needed for the shared-shape package/image-list family, e.g.
+   composer-show — a one-line detect hijacks 13 tools), transpose/`vertical`,
+   `@line`, `delim=tab`, `@default`, mid-row multi-token column.
+   Gate every batch: `run.sh --golden` (catches detect collisions) + extract +
+   smoke + melt.
+
 1. **Grow the corpus toward broad coverage** (in progress) — more common tools
    and *varied* output per tool (flags/formats): `mpstat`, `sar`, `lsof`, `du`,
    `ip -s link`, `journalctl`, `ps -ef`, `dmidecode`, `ethtool`, `nmcli`,
