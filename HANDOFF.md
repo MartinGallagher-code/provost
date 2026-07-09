@@ -90,6 +90,20 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Direction: fewer strategies, more generic tidying
 
+> **2026-07-09 — reframe: judge output on tidy/meaningful merits, not bespoke
+> byte-fidelity.** See **[docs/0002-tidy-first-and-nameless-columns.md](docs/0002-tidy-first-and-nameless-columns.md)**.
+> A tidy table with positional columns is a *good* result even when it differs
+> from a bespoke's bytes — so generic parsers are allowed to be the answer, and
+> the migration no longer chases byte-parity. Two concrete changes landed with the
+> reframe: (a) genuinely-nameless columns are now labeled **`A,B,C…,Z,AA,BB`**
+> (via `_col_letter`) instead of `c1,c2,c3` — a pure affordance win, 224 corpus +
+> 17 extract goldens regenerated, gate green; (b) goldens are now **regression
+> snapshots**, not specs (regenerate on intended improvements; an unintended diff
+> is a bug). An LLM-judge pass over 21 nameless-column tools scored 13/21 tidy,
+> 15/21 usable — and **every** shortfall was an orthogonal parser-routing issue
+> (colon-block routing, separator-as-noise-column, numeric-blob splitting, tree
+> modeling), not a labeling one. Those routing gaps are the real remaining work.
+
 The active goal is to tidy **all common tool outputs with a minimum of
 strategies** — lean on the ~12 generic parsers (`extract/strategies/delimited/`
 + `structured/`) instead of a bespoke strategy per tool, and delete the
