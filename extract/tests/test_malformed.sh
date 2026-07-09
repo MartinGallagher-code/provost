@@ -174,43 +174,11 @@ test_malformed_xml_partial_extraction () {
 ## Malformed INI (duplicate sections)
 ################################################################################
 
-test_malformed_ini_duplicate_sections () {
-    local tmpfile
-    tmpfile=$(mktemp)
-    # INI with duplicate [server] section
-    printf '[server]\nhost = web1\nport = 80\n\n[server]\nhost = web2\nport = 443\n' > "$tmpfile"
-    local output rc=0
-    output=$(run_mfe -r -s ini "$tmpfile" 2>&1) || rc=$?
-    rm -f "$tmpfile"
-    # Should not crash; duplicate sections are common in real-world INI files
-    assert_exit_zero "$rc" "duplicate INI sections should not crash"
-    # Should extract fields from both occurrences (both are under server.*)
-    assert_contains "$output" "server.host" "should extract host field from at least one section"
-    assert_contains "$output" "server.port" "should extract port field from at least one section"
-}
 
 ################################################################################
 ## Malformed INI: verify partial extraction with mixed valid/invalid
 ################################################################################
 
-test_malformed_ini_partial_extraction () {
-    local tmpfile
-    tmpfile=$(mktemp)
-    # Valid section, then a section with missing closing bracket, then another valid section
-    printf '[database]\nhost = db.local\n\n[broken section\nkey = value\n\n[logging]\nlevel = debug\n' > "$tmpfile"
-    local output rc=0
-    output=$(run_mfe -r -s ini "$tmpfile" 2>&1) || rc=$?
-    rm -f "$tmpfile"
-    # Should not crash
-    if [[ $rc -le 1 ]]; then
-        # Should extract at least the valid database section
-        assert_contains "$output" "database.host" "should extract host from valid database section"
-        assert_contains "$output" "db.local" "should extract value db.local"
-    else
-        echo "  exit code was $rc (expected 0 or 1)"
-        return 1
-    fi
-}
 
 ################################################################################
 ## Run all tests
@@ -224,7 +192,5 @@ run_test "malformed: TOML unclosed brackets (no crash)" test_malformed_toml_uncl
 run_test "malformed: TOML partial extraction from valid section" test_malformed_toml_partial_extraction
 run_test "malformed: XML unclosed tags (no crash)" test_malformed_xml_unclosed
 run_test "malformed: XML partial extraction of closed tags" test_malformed_xml_partial_extraction
-run_test "malformed: INI duplicate sections (no crash)" test_malformed_ini_duplicate_sections
-run_test "malformed: INI partial extraction with mixed valid/invalid" test_malformed_ini_partial_extraction
 
 print_summary

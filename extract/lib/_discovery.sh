@@ -331,6 +331,12 @@ _run_hint_strategy () {
         _log_warn "hint '$_HINT_TOOL': strategy '$_HINT_STRATEGY' not found"
         return 1
     fi
+    # A hint may route to a bespoke strategy (detection routing), but --generic
+    # promises format-level parsers only — honor only generic targets there.
+    if [[ "${_OPT_generic:-0}" -eq 1 ]] && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
+        _log_debug "hint '$_HINT_TOOL': target '$_HINT_STRATEGY' is bespoke; skipped under --generic"
+        return 1
+    fi
     read_strategy_metadata "$_FOUND_STRATEGY_FILE"
     if ! source "$_FOUND_STRATEGY_FILE" 2>/dev/null; then
         _log_warn "hint '$_HINT_TOOL': failed to source strategy '$_HINT_STRATEGY'"

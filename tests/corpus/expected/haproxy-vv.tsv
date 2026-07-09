@@ -1,2 +1,12 @@
-n	TARGET	CPU	CC	CFLAGS	OPTIONS	bufsize	maxrewrite	maxpollevents	total_entries
-1	linux-glibc	generic	cc	-O2 -g -fwrapv	USE_PCRE2=1 USE_OPENSSL=1 USE_LUA=1 USE_SYSTEMD=1	16384	1024	200	1
+n	HAProxy	version	2_6_12-1ppa1~jammy	2023/04/17	-	https://haproxy_org/	total_entries
+1	Status:	long-term	supported	branch	-	will_stop_receiving_fixes_around_Q2_2027.	11
+2	Build	options	:				11
+3	TARGET	=	linux-glibc				11
+4	CPU	=	generic				11
+5	CC	=	cc				11
+6	CFLAGS	=	-O2	-g	-fwrapv		11
+7	OPTIONS	=	USE_PCRE2=1	USE_OPENSSL=1	USE_LUA=1	USE_SYSTEMD=1	11
+8	Default	settings	:				11
+9	bufsize	=	16384				11
+10	maxrewrite	=	1024				11
+11	maxpollevents	=	200				11

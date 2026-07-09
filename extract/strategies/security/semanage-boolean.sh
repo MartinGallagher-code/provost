@@ -2,8 +2,7 @@
 ## Name: semanage-boolean
 ## Description: Extract SELinux booleans from `semanage boolean -l` output (name, state, description)
 ## Version: 1.0
-## Priority: 26
-## Technique: yes
+## Priority: 12
 ## Sample: samples/semanage-boolean/basic.txt
 
 # `semanage boolean -l` prints a header

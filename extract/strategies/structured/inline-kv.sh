@@ -3,7 +3,6 @@
 ## Description: Space-separated key=value pairs on a line (id, KEY=v KEY=v ...)
 ## Version: 1.0
 ## Priority: 30
-## Technique: yes
 ## Sample: samples/inline-kv/id.txt
 
 # Every non-blank line is a record of >=2 space-separated `key=value` tokens —

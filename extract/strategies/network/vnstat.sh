@@ -3,7 +3,6 @@
 ## Description: Extract monthly traffic totals from `vnstat` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/vnstat/basic.txt
 
 # `vnstat` (monthly view) prints a title, a `month rx | tx | total | avg. rate`

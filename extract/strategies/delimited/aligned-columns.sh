@@ -3,7 +3,6 @@
 ## Description: Extract fields from whitespace-aligned columnar output (ps, df, mount, etc.)
 ## Version: 3.1
 ## Priority: 55
-## Technique: yes
 ## Sample: samples/aligned-columns/basic.txt
 
 # Echo the block with leading preamble removed: an `ls -l` "total <n>" line, or

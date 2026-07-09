@@ -3,7 +3,6 @@
 ## Description: perf trace -s syscall summary table → one tidy row per syscall
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/perf-trace/basic.txt
 
 # `perf trace -s` prints a "Summary of events:" banner, a per-thread line

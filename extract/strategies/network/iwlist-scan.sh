@@ -3,7 +3,6 @@
 ## Description: Extract wireless cells (address/essid) from `iwlist wlan0 scan`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/iwlist-scan/basic.txt
 
 # `iwlist <iface> scan` prints "Cell NN - Address: <MAC>" blocks with indented

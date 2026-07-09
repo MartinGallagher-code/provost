@@ -1,9 +1,0 @@
-entry1.iface eth0
-entry1.status negotiated 1000baseT-FD flow-control, link ok
-entry2.iface eth1
-entry2.status negotiated 100baseTx-FD, link ok
-entry3.iface eth2
-entry3.status no link
-entry4.iface wlan0
-entry4.status negotiated 100baseTx-HD, link ok
-total_entries 4

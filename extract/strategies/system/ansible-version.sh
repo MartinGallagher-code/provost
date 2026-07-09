@@ -3,7 +3,6 @@
 ## Description: `ansible --version` banner (version + config/path/python key=value block)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/ansible-version/basic.txt
 
 # `ansible --version` prints "ansible [core X.Y.Z]" followed by an indented

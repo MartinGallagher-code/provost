@@ -3,7 +3,6 @@
 ## Description: Extract geometry fields from `xfs_info` (section `key=value` tokens)
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/xfs-info/basic.txt
 
 # `xfs_info` prints aligned sections (meta-data, data, naming, log, realtime),

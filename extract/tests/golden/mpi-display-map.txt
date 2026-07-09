@@ -1,6 +1,0 @@
-node.compute-01.name compute-01
-node.compute-01.num_procs 4
-node.compute-02.name compute-02
-num_nodes 2
-node.compute-02.num_procs 4
-total_procs 8

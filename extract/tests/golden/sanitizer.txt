@@ -1,6 +1,0 @@
-sanitizer AddressSanitizer
-error_type heap-buffer-overflow
-address 0x602000000014
-function main
-file /home/user/src/main.c
-line 42

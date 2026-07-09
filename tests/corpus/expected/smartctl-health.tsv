@@ -1,0 +1,3 @@
+n	Model_Family	Device_Model	Serial_Number	Firmware_Version	User_Capacity	Sector_Size	Rotation_Rate	Form_Factor	SATA_Version_is	SMART_overall-health_self-assessment_test_result
+2	Samsung_based_SSDs	Samsung_SSD_870_EVO_1TB	S6PWNX0T512345A	SVT02B6Q	1,000,204,886,016_bytes_[1.00_TB]	512_bytes_logical/physical	Solid_State_Device	2.5_inches	SATA_3.3,_6.0_Gb/s_(current:_6.0_Gb/s)	
+3										PASSED

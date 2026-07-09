@@ -3,7 +3,6 @@
 ## Description: Parse `iptables -t nat -L` rules (target prot opt source destination)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/iptables-nat/basic.txt
 
 # `iptables -t nat -L` prints per-chain blocks:

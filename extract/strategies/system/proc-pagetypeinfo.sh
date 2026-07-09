@@ -3,7 +3,6 @@
 ## Description: Extract per-zone/migrate-type free-page counts from /proc/pagetypeinfo
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/proc-pagetypeinfo/basic.txt
 
 # /proc/pagetypeinfo has a "Free pages count per migrate type at order ..." table:

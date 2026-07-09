@@ -1,17 +1,17 @@
-n	c1	total_entries
-1	-.slice	16
-2	user.slice	16
-3	user-1000.slice	16
-4	session-3.scope	16
-5	12089 sshd: alice@pts/0	16
-6	12090 -bash	16
-7	12250 systemd-cgls	16
-8	user@1000.service	16
-9	init.scope	16
-10	12001 /lib/systemd/systemd --user	16
-11	12002 (sd-pam)	16
-12	system.slice	16
-13	sshd.service	16
-14	901 /usr/sbin/sshd -D	16
-15	cron.service	16
-16	844 /usr/sbin/cron -f	16
+n	Control	group	/:	total_entries
+1	-.slice			16
+2	├─user.slice			16
+3	│	└─user-1000.slice		16
+4	│	├─session-3.scope		16
+5	│	│	├─12089_sshd:_alice@pts/0	16
+6	│	│	├─12090_-bash	16
+7	│	│	└─12250_systemd-cgls	16
+8	│	└─user@1000.service		16
+9	│	└─init.scope		16
+10	│	├─12001	/lib/systemd/systemd_--user	16
+11	│	└─12002	(sd-pam)	16
+12	└─system.slice			16
+13	├─sshd.service			16
+14	│	└─901	/usr/sbin/sshd_-D	16
+15	└─cron.service			16
+16	└─844	/usr/sbin/cron	-f	16

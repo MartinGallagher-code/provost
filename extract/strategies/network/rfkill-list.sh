@@ -3,7 +3,6 @@
 ## Description: Extract radio devices and block states from `rfkill list` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/rfkill-list/basic.txt
 
 # `rfkill list` prints one block per radio device:

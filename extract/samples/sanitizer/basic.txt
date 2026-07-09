@@ -1,9 +1,0 @@
-=================================================================
-==12345==ERROR: AddressSanitizer: heap-buffer-overflow on address 0x602000000014
-READ of size 4 at 0x602000000014 thread T0
-    #0 0x5555555551a0 in main /home/user/src/main.c:42
-    #1 0x7ffff7a2d840 in __libc_start_main /lib/libc.so.6
-    #2 0x555555555060 in _start
-
-0x602000000014 is located 0 bytes to the right of 4-byte region
-SUMMARY: AddressSanitizer: heap-buffer-overflow /home/user/src/main.c:42 in main

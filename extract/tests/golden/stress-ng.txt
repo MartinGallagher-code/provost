@@ -1,8 +1,0 @@
-name cpu
-bogo_ops 567890
-bogo_ops_per_sec_real 9464.83
-bogo_ops_per_sec_usr 10234.56
-wall_clock 60.00
-user_time 55.48
-sys_time 0.12
-run_duration 60.01s

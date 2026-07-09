@@ -3,7 +3,6 @@
 ## Description: Extract per-cache stats from /proc/slabinfo output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/proc-slabinfo/basic.txt
 
 # /proc/slabinfo starts with a `slabinfo - version: 2.1` line and a `# name ...`

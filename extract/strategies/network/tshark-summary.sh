@@ -3,7 +3,6 @@
 ## Description: Extract per-packet records from tshark packet summary output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/tshark-summary/basic.txt
 
 strategy_detect () {

@@ -3,7 +3,6 @@
 ## Description: `decode-dimms` SPD EEPROM snapshot ("field <TAB> value" block)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/decode-dimms/basic.txt
 
 # `decode-dimms` prints the SPD EEPROM contents as "Field name<TABs>value"

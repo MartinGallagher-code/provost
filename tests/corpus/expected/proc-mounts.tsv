@@ -1,8 +1,8 @@
-n	device	mountpoint	fstype	options	total_entries
-1	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime	7
-2	sysfs	/sys	sysfs	rw,nosuid,nodev,noexec,relatime	7
-3	/dev/sda1	/	ext4	rw,relatime	7
-4	tmpfs	/run	tmpfs	rw,nosuid,nodev,size=1638400k,mode=755	7
-5	cgroup2	/sys/fs/cgroup	cgroup2	rw,nosuid,nodev,noexec,relatime,nsdelegate	7
-6	/dev/sda2	/home	ext4	rw,relatime	7
-7	devpts	/dev/pts	devpts	rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000	7
+n	c1	c2	c3	c4	c5	c6	total_entries
+1	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime	0	0	7
+2	sysfs	/sys	sysfs	rw,nosuid,nodev,noexec,relatime	0	0	7
+3	/dev/sda1	/	ext4	rw,relatime	0	0	7
+4	tmpfs	/run	tmpfs	rw,nosuid,nodev,size=1638400k,mode=755	0	0	7
+5	cgroup2	/sys/fs/cgroup	cgroup2	rw,nosuid,nodev,noexec,relatime,nsdelegate	0	0	7
+6	/dev/sda2	/home	ext4	rw,relatime	0	0	7
+7	devpts	/dev/pts	devpts	rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=000	0	0	7

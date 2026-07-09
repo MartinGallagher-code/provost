@@ -3,7 +3,6 @@
 ## Description: Extract per-CPU topology rows from lscpu -p parsable CSV output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/lscpu-parse/basic.txt
 
 strategy_detect () {

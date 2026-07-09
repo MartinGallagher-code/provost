@@ -3,7 +3,6 @@
 ## Description: Extract bisect actions from `git bisect log`
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/git-bisect-log/basic.txt
 
 # `git bisect log` interleaves `# good:/# bad:` comments with the replayable

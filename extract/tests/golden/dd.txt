@@ -1,5 +1,0 @@
-records_in 2097152
-records_out 2097152
-bytes_copied 1073741824
-time_seconds 2.34567
-throughput 458_MB/s

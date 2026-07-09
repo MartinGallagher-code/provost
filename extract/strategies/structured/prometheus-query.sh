@@ -3,7 +3,6 @@
 ## Description: Extract metric values from Prometheus query result output
 ## Version: 1.0
 ## Priority: 25
-## Technique: mixed
 ## Sample: samples/prometheus-query/sample1.txt
 
 strategy_detect () {

@@ -1,10 +1,9 @@
-n	c1	total_entries
-1	data	9
-2	raw.csv	9
-3	clean.csv	9
-4	src	9
-5	main.sh	9
-6	util.sh	9
-7	README.md	9
-8	LICENSE	9
-9	2 directories, 6 files	9
+n	depth	name	total_entries
+1	1	data	8
+2	2	raw.csv	8
+3	2	clean.csv	8
+4	1	src	8
+5	2	main.sh	8
+6	2	util.sh	8
+7	1	README.md	8
+8	1	LICENSE	8

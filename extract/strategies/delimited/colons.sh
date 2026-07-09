@@ -3,7 +3,6 @@
 ## Description: Extract field:value pairs from colon-delimited data
 ## Version: 1.0
 ## Priority: 60
-## Technique: yes
 ## Sample: samples/colons/basic.txt
 
 strategy_detect () {

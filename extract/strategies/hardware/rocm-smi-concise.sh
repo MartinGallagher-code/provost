@@ -3,7 +3,6 @@
 ## Description: Extract the GPU concise-info table from rocm-smi (skips banners)
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/rocm-smi-concise/basic.txt
 
 strategy_detect () {

@@ -1,5 +1,5 @@
-n	name	mode	remote	local	ttl	total_entries
-1	gre0	gre/ip	any	any	inherit	4
-2	gretap0	gre/ip	any	any	inherit	4
-3	tun0	ip/ip	203.0.113.10	198.51.100.5	inherit	4
-4	sit1	ipv6/ip	192.0.2.1	192.0.2.5	64	4
+n	name	value	total_entries
+1	gre0	gre/ip remote any local any ttl inherit nopmtudisc	4
+2	gretap0	gre/ip remote any local any ttl inherit	4
+3	tun0	ip/ip remote 203.0.113.10 local 198.51.100.5 ttl inherit	4
+4	sit1	ipv6/ip remote 192.0.2.1 local 192.0.2.5 ttl 64	4

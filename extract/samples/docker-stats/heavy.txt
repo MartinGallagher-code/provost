@@ -1,4 +1,0 @@
-CONTAINER ID   NAME               CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
-1a2b3c4d5e6f   java-backend       95.30%    3.5GiB / 4GiB         87.50%    150MB / 80MB      2GB / 5GB         312
-7a8b9c0d1e2f   elasticsearch      45.20%    2GiB / 4GiB           50.00%    500MB / 250MB     10GB / 20GB       180
-3f4e5d6c7b8a   monitoring-agent   1.25%     128MiB / 256MiB       50.00%    5MB / 10MB        50MB / 100MB      8

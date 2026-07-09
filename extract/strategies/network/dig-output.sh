@@ -3,7 +3,6 @@
 ## Description: Extract DNS query results from dig command output
 ## Version: 1.0
 ## Priority: 20
-## Technique: mixed
 ## Sample: samples/dig-output/sample1.txt
 
 strategy_detect () {

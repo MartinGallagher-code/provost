@@ -3,7 +3,6 @@
 ## Description: Extract registered character/block devices from /proc/devices
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/proc-devices/basic.txt
 
 # /proc/devices has two sections, each a "<major> <name>" list:

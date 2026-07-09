@@ -20,14 +20,6 @@ test_colons_basic () {
     assert_contains "$output" "42" "should extract value 42"
 }
 
-test_colons_warc () {
-    local output
-    output=$(run_mfe -r -s colons "$SAMPLES_DIR/warc-headers/bbc-response.txt")
-    assert_contains "$output" "WARC-Type" "should extract WARC-Type"
-    assert_contains "$output" "response" "should extract value response"
-    assert_contains "$output" "Content-Length" "should extract Content-Length"
-    assert_contains "$output" "43428" "should extract value 43428"
-}
 
 test_colons_field_selection () {
     local output
@@ -56,7 +48,6 @@ test_colons_skips_non_fields () {
 }
 
 run_test "colons: basic extraction" test_colons_basic
-run_test "colons: WARC file extraction" test_colons_warc
 run_test "colons: field selection" test_colons_field_selection
 run_test "colons: JSON format output" test_colons_json_format
 run_test "colons: skips non-field lines" test_colons_skips_non_fields

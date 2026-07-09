@@ -1,7 +1,0 @@
-total_cycles 9876543210
-total_instructions 4523456789
-l1_data_cache_misses 12345678
-l2_data_cache_misses 3456789
-branch_mispredictions 567890
-branch_instructions 45678901
-ipc 0.457

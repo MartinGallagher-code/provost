@@ -1,7 +1,0 @@
-n	pkts	bytes	target	prot	opt	in	out	source	destination	total_entries
-1	152	9120	ACCEPT	all	--	lo	*	0.0.0.0/0	0.0.0.0/0	6
-2	1024	61440	ACCEPT	tcp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	6
-3	340	20400	ACCEPT	tcp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	6
-4	45	2700	DROP	udp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	6
-5	12	720	LOG	all	--	eth0	*	0.0.0.0/0	0.0.0.0/0	6
-6	0	0	REJECT	icmp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	6

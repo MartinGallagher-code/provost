@@ -3,7 +3,6 @@
 ## Description: Parse `zypper packages` box table (S | Repository | Name | Version | Arch)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/zypper-packages/basic.txt
 
 # `zypper packages` prints a pipe-delimited box table:

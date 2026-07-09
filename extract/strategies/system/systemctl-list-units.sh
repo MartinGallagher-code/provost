@@ -3,7 +3,6 @@
 ## Description: Parse `systemctl list-units` unit table (UNIT LOAD ACTIVE SUB DESCRIPTION)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/systemctl-list-units/basic.txt
 
 # `systemctl list-units` prints an aligned table:

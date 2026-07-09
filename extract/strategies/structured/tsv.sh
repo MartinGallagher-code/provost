@@ -3,7 +3,6 @@
 ## Description: Extract field names and values from TSV files (tab-delimited with header row)
 ## Version: 2.0
 ## Priority: 14
-## Technique: yes
 ## Sample: samples/tsv/basic.tsv
 
 strategy_detect () {

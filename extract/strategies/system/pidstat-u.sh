@@ -3,7 +3,6 @@
 ## Description: pidstat -u per-process CPU stats → one tidy row per process
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/pidstat-u/basic.txt
 
 # `pidstat -u` prints a "Linux ..." banner, a blank line, a

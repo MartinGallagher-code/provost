@@ -3,7 +3,6 @@
 ## Description: Extract service states from OpenRC rc-status output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/rc-status/basic.txt
 
 strategy_detect () {

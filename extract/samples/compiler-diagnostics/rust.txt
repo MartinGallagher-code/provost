@@ -1,7 +1,0 @@
-src/main.rs:15:9: error: mismatched types
-src/main.rs:15:9: note: expected type `String`, found `&str`
-src/lib.rs:42:5: warning: unused variable: `result`
-src/lib.rs:78:13: error: cannot borrow `self.data` as mutable because it is also borrowed as immutable
-src/utils.rs:23:1: warning: function `parse_config` is never used
-2 errors generated.
-1 warning generated.

@@ -3,7 +3,6 @@
 ## Description: Extract per-node memory counters from `numastat` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/numastat/basic.txt
 
 strategy_detect () {

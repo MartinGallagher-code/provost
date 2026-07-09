@@ -3,7 +3,6 @@
 ## Description: Extract rule rows from `iptables -nvL` per-chain tables
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/iptables-nvL/basic.txt
 
 # `iptables -nvL` prints one block per chain: a `Chain NAME (policy ...)` header,

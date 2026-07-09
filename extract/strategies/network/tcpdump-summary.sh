@@ -3,7 +3,6 @@
 ## Description: Extract packet summaries from `tcpdump` line-summary output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/tcpdump-summary/basic.txt
 
 # `tcpdump` (default summary mode) prints a `verbose output suppressed` banner

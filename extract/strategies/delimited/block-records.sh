@@ -3,7 +3,6 @@
 ## Description: Split input on blank lines into records, extract key:value and key=value fields
 ## Version: 1.0
 ## Priority: 40
-## Technique: yes
 ## Sample: samples/blank-line-records/basic.txt
 
 # Merges blank-line-records and repeated-blocks. Detects either:

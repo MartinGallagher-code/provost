@@ -3,7 +3,6 @@
 ## Description: Extract per-device extended I/O stats from `iostat -x` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/iostat-x/basic.txt
 
 # `iostat -x` prints a `Linux ...` banner, then an `avg-cpu:` block, then an

@@ -1,9 +1,9 @@
-n	c1	total_entries
-1	-[0000:00]-+-00.0  Intel Corporation Comet Lake Host Bridge/DRAM Registers	8
-2	           +-02.0  Intel Corporation CometLake-H GT2 [UHD Graphics]	8
-3	           +-04.0  Intel Corporation Xeon Processor Thermal Subsystem	8
-4	           +-08.0  Intel Corporation Xeon Gaussian Mixture Model	8
-5	           +-14.0  Intel Corporation Comet Lake USB 3.1 xHCI Host Controller	8
-6	           +-16.0  Intel Corporation Comet Lake HECI Controller	8
-7	           +-1c.0-[01]----00.0  Samsung Electronics NVMe SSD Controller	8
-8	           \-1f.0  Intel Corporation Comet Lake LPC Controller	8
+n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	total_entries
+1	-[0000:00]-+-00.0	Intel	Corporation	Comet	Lake	Host	Bridge/DRAM	Registers			8
+2	+-02.0	Intel	Corporation	CometLake-H	GT2	[UHD	Graphics]				8
+3	+-04.0	Intel	Corporation	Xeon	Processor	Thermal	Subsystem				8
+4	+-08.0	Intel	Corporation	Xeon	Gaussian	Mixture	Model				8
+5	+-14.0	Intel	Corporation	Comet	Lake	USB	3.1	xHCI	Host	Controller	8
+6	+-16.0	Intel	Corporation	Comet	Lake	HECI	Controller				8
+7	+-1c.0-[01]----00.0	Samsung	Electronics	NVMe	SSD	Controller					8
+8	\-1f.0	Intel	Corporation	Comet	Lake	LPC	Controller				8

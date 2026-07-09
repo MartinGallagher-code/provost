@@ -3,7 +3,6 @@
 ## Description: Extract package references from `dotnet list package` output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/dotnet-list-package/basic.txt
 
 # `dotnet list package` prints a "Top-level Package / Requested / Resolved"

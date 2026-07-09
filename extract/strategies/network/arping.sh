@@ -3,7 +3,6 @@
 ## Description: Extract ARP reply records from `arping` output (skips banner + stats footer)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/arping/basic.txt
 
 # arping prints a banner ("ARPING <ip>"), one line per reply

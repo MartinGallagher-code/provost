@@ -1,6 +1,0 @@
-filter.|__|-_currently_failed 	5
-filter.|__|-_total_failed 	234
-filter.|__`-_journal_matches 	_SYSTEMD_UNIT=sshd.service + _COMM=sshd
-actions.currently_banned 	3
-actions.total_banned 	47
-actions.banned_ip_list 	10.0.0.15 192.168.1.200 172.16.5.33

@@ -3,7 +3,6 @@
 ## Description: Extract DNS answer/authority records from `drill` output
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/drill/basic.txt
 
 # `drill <name>` (ldns) prints a dig-like report. Its ANSWER and AUTHORITY

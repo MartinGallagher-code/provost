@@ -3,7 +3,6 @@
 ## Description: Parse `resolvectl query` answer into one wide record (name/addresses/link)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/resolvectl-query/basic.txt
 
 # `resolvectl query NAME` prints the resolved addresses, then "-- ..." metadata

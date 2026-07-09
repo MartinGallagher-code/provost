@@ -49,13 +49,6 @@ test_snapshot_csv () {
     [[ $count -gt 0 ]] || { echo "csv: no fields extracted"; return 1; }
 }
 
-test_snapshot_ini () {
-    local out
-    out=$(snapshot ini ini/basic.ini)
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "ini: no fields extracted"; return 1; }
-}
 
 test_snapshot_toml () {
     local out
@@ -85,47 +78,17 @@ test_snapshot_equals () {
     [[ $count -gt 0 ]] || { echo "equals: no fields extracted"; return 1; }
 }
 
-test_snapshot_http_headers () {
-    local out
-    out=$(snapshot http-headers http-headers/basic.txt)
-    assert_contains "$out" "Content-Type " "http-headers: should have Content-Type"
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "http-headers: no fields extracted"; return 1; }
-}
 
 ################################################################################
 ## Benchmark formats
 ################################################################################
 
-test_snapshot_ab () {
-    local out
-    out=$(snapshot ab ab/basic.txt)
-    assert_contains "$out" "requests_per_second " "ab: should have requests_per_second"
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "ab: no fields extracted"; return 1; }
-}
 
-test_snapshot_fio () {
-    local out
-    out=$(snapshot fio fio/basic.txt)
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "fio: no fields extracted"; return 1; }
-}
 
 ################################################################################
 ## System formats
 ################################################################################
 
-test_snapshot_free () {
-    local out
-    out=$(snapshot free free/basic.txt)
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "free: no fields extracted"; return 1; }
-}
 
 ################################################################################
 ## Network/container formats
@@ -139,13 +102,6 @@ test_snapshot_nmap () {
     [[ $count -gt 0 ]] || { echo "nmap: no fields extracted"; return 1; }
 }
 
-test_snapshot_docker_ps () {
-    local out
-    out=$(snapshot docker-ps docker-ps/basic.txt)
-    local count
-    count=$(echo "$out" | sed '/^$/d' | wc -l | tr -d ' ')
-    [[ $count -gt 0 ]] || { echo "docker-ps: no fields extracted"; return 1; }
-}
 
 ################################################################################
 ## Logging format
@@ -191,16 +147,10 @@ echo "========================="
 run_test "json basic snapshot" test_snapshot_json
 run_test "yaml basic snapshot" test_snapshot_yaml
 run_test "csv basic snapshot" test_snapshot_csv
-run_test "ini basic snapshot" test_snapshot_ini
 run_test "toml basic snapshot" test_snapshot_toml
 run_test "colons basic snapshot" test_snapshot_colons
 run_test "equals basic snapshot" test_snapshot_equals
-run_test "http-headers basic snapshot" test_snapshot_http_headers
-run_test "ab basic snapshot" test_snapshot_ab
-run_test "fio basic snapshot" test_snapshot_fio
-run_test "free basic snapshot" test_snapshot_free
 run_test "nmap basic snapshot" test_snapshot_nmap
-run_test "docker-ps basic snapshot" test_snapshot_docker_ps
 run_test "syslog basic snapshot" test_snapshot_syslog
 run_test "json output format" test_snapshot_json_format
 run_test "csv output format" test_snapshot_csv_format

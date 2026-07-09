@@ -3,7 +3,6 @@
 ## Description: bpftrace @map[key]: count output → one tidy row per key
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/bpftrace/basic.txt
 
 # bpftrace prints an "Attaching N probes..." line, a blank line, then one

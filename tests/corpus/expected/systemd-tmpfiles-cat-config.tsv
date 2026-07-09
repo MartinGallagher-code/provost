@@ -1,7 +1,0 @@
-n	type	path	mode	user	group	age	arg	total_entries
-1	d	/run/user	0755	root	root	~10d	-	6
-2	F!	/run/utmp	0664	root	utmp	-	-	6
-3	d	/var/log/journal	2755	root	systemd-journal	-	-	6
-4	z	/var/log/journal/%m	2755	root	systemd-journal	-	-	6
-5	q	/tmp	1777	root	root	10d	-	6
-6	q	/var/tmp	1777	root	root	30d	-	6

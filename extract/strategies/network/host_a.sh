@@ -3,7 +3,6 @@
 ## Description: Extract DNS answer records from `host -a` output
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/host_a/basic.txt
 
 # `host -a <name>` prints a verbose dig-style report. Its ANSWER SECTION carries

@@ -3,7 +3,6 @@
 ## Description: Extract per-path rows from `multipath -ll` topology output
 ## Version: 1.0
 ## Priority: 27
-## Technique: yes
 ## Sample: samples/multipath-ll/basic.txt
 
 strategy_detect () {

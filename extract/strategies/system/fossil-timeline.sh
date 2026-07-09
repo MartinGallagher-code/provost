@@ -3,7 +3,6 @@
 ## Description: Extract checkins from a Fossil `fossil timeline`
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/fossil-timeline/basic.txt
 
 # `fossil timeline` groups entries under `=== DATE ===` banners:

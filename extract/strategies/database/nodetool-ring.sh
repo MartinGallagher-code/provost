@@ -3,7 +3,6 @@
 ## Description: Extract ring token rows from `nodetool ring`
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/nodetool-ring/basic.txt
 
 # `nodetool ring` prints a "Datacenter:" banner, a "====" rule, an aligned

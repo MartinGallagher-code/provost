@@ -3,7 +3,6 @@
 ## Description: Extract host public-key records from ssh-keyscan output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/ssh-keyscan/basic.txt
 
 strategy_detect () {

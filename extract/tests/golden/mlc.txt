@@ -1,7 +1,0 @@
-node0.idle_latency_ns 89.5
-node1.idle_latency_ns 89.1
-peak.ALL_Reads_MB_per_s 45678.9
-peak.3:1_Reads-Writes_MB_per_s 42345.6
-peak.2:1_Reads-Writes_MB_per_s 40123.4
-peak.1:1_Reads-Writes_MB_per_s 38765.2
-peak.Stream-triad_like_MB_per_s 41234.5

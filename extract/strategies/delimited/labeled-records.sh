@@ -3,7 +3,6 @@
 ## Description: One record per "label: prose" line (file, and similar per-line labelled output)
 ## Version: 1.0
 ## Priority: 40
-## Technique: yes
 ## Sample: samples/labeled-records/basic.txt
 
 # For output where EVERY line is `<single-token-label>: <prose value>` — e.g.

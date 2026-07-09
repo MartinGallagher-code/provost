@@ -3,7 +3,6 @@
 ## Description: Extract audit events from `aureport` summary output (skips title + column header)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/aureport/basic.txt
 
 # `aureport` prints a title line ("Authentication Report"), a "====" rule, a

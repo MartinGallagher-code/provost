@@ -3,7 +3,6 @@
 ## Description: Extract file entries from `unzip -l` listings (skips banner/header + rule + totals footer)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/unzip/basic.txt
 
 # `unzip -l` prints an "Archive:  <name>" banner, a "Length Date Time Name"

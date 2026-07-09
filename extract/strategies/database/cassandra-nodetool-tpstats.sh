@@ -3,7 +3,6 @@
 ## Description: Extract thread-pool rows from `nodetool tpstats`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/cassandra-nodetool-tpstats/basic.txt
 
 # `nodetool tpstats` starts with a thread-pool table:

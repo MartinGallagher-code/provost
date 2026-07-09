@@ -1,7 +1,0 @@
-github.com/user/myapp github.com/gin-gonic/gin@v1.9.1
-github.com/user/myapp github.com/lib/pq@v1.10.9
-github.com/user/myapp go.uber.org/zap@v1.26.0
-github.com/gin-gonic/gin@v1.9.1 github.com/gin-contrib/sse@v0.1.0
-github.com/gin-gonic/gin@v1.9.1 github.com/go-playground/validator/v10@v10.15.5
-go.uber.org/zap@v1.26.0 go.uber.org/multierr@v1.11.0
-go.uber.org/zap@v1.26.0 go.uber.org/atomic@v1.11.0

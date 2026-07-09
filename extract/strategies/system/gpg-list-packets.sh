@@ -3,7 +3,6 @@
 ## Description: Extract packet fields from `gpg --list-packets` into one wide record
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/gpg-list-packets/basic.txt
 
 # `gpg --list-packets` prints `# off=.. ctb=.. tag=..` markers, `:type packet:`

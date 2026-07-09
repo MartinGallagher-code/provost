@@ -1,2 +1,0 @@
-name,file_size,putc,putc_cpu,put_block,put_block_cpu,rewrite,rewrite_cpu,getc,getc_cpu,get_block,get_block_cpu,seeks,seeks_cpu
-myhost,16G,456,99,234567,45,123456,32,567,98,345678,38,8765,12

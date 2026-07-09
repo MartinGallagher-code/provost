@@ -1,6 +1,0 @@
-n	state	port	proto	ip	total_entries
-1	open	443	tcp	192.0.2.10	5
-2	open	22	tcp	192.0.2.10	5
-3	open	80	tcp	192.0.2.10	5
-4	open	3306	tcp	192.0.2.10	5
-5	open	8080	tcp	192.0.2.10	5

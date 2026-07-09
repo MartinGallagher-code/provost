@@ -3,7 +3,6 @@
 ## Description: Extract key/value pairs from `consul kv get -recurse`
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/consul-kv-get-recurse/basic.txt
 
 # `consul kv get -recurse <prefix>` prints one "path/key:value" line per entry.

@@ -1,7 +1,0 @@
-elapsed_time 15.230
-ipc 1.85
-retired_instructions 4523456789
-cache_miss_rate 3.45
-branch_miss_rate 1.22
-l1_hit_rate 96.8
-l2_hit_rate 89.2

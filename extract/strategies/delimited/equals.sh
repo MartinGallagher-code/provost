@@ -3,7 +3,6 @@
 ## Description: Extract field=value pairs from equals-delimited data
 ## Version: 1.0
 ## Priority: 65
-## Technique: yes
 ## Sample: samples/equals/basic.txt
 
 strategy_detect () {

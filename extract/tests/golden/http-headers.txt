@@ -1,6 +1,0 @@
-HTTP-Status 200
-HTTP-Status-Text OK
-Content-Type text/html
-Content-Length 1234
-Server Apache/2.4
-Cache-Control max-age=3600

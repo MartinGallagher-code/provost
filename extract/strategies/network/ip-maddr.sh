@@ -3,7 +3,6 @@
 ## Description: Extract multicast addresses from `ip maddr show` interface blocks
 ## Version: 1.0
 ## Priority: 12
-## Technique: yes
 ## Sample: samples/ip-maddr/basic.txt
 
 # `ip maddr` groups multicast addresses under interface blocks:

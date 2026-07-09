@@ -1,8 +1,0 @@
-n	pool_name	active	pending	completed	blocked	all_time_blocked	total_entries
-1	ReadStage	0	0	1204853	0	0	7
-2	MutationStage	0	0	982341	0	0	7
-3	CompactionExecutor	1	3	45021	0	0	7
-4	GossipStage	0	0	120394	0	0	7
-5	MemtableFlushWriter	0	0	4021	0	0	7
-6	MigrationStage	0	0	12	0	0	7
-7	RequestResponseStage	0	0	801234	0	2	7

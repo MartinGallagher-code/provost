@@ -3,7 +3,6 @@
 ## Description: Parse `systemd-analyze security` setting table (NAME DESCRIPTION EXPOSURE)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/systemd-analyze-security/basic.txt
 
 # `systemd-analyze security <unit>` prints a table of hardening settings, each

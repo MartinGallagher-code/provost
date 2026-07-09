@@ -3,7 +3,6 @@
 ## Description: Extract IPsec SAs (src/dst/proto) from `ip xfrm state`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/ip-xfrm-state/basic.txt
 
 # `ip xfrm state` prints each SA as a "src <A> dst <B>" line followed by

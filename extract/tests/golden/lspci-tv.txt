@@ -1,9 +1,0 @@
-entry1.c1 -[0000:00]-+-00.0  Intel Corporation Comet Lake Host Bridge/DRAM Registers
-entry2.c1            +-02.0  Intel Corporation CometLake-H GT2 [UHD Graphics]
-entry3.c1            +-04.0  Intel Corporation Xeon Processor Thermal Subsystem
-entry4.c1            +-08.0  Intel Corporation Xeon Gaussian Mixture Model
-entry5.c1            +-14.0  Intel Corporation Comet Lake USB 3.1 xHCI Host Controller
-entry6.c1            +-16.0  Intel Corporation Comet Lake HECI Controller
-entry7.c1            +-1c.0-[01]----00.0  Samsung Electronics NVMe SSD Controller
-entry8.c1            \-1f.0  Intel Corporation Comet Lake LPC Controller
-total_entries 8

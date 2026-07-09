@@ -80,7 +80,7 @@
 # _OPT_max_input_size    integer     default 52428800 (50 MB)  -- max input bytes
 # _OPT_validate_strategy string      default ""  -- path to strategy file to validate, then exit
 # _OPT_validate_all      bool (0/1)  default 0  -- validate all strategies and exit
-# _OPT_generic           bool (0/1)  default 0  -- use only ## Technique: yes strategies
+# _OPT_generic           bool (0/1)  default 0  -- only strategies/delimited/ + structured/
 # _OPT_batch             bool (0/1)  default 0  -- batch mode: read file paths from stdin, emit JSON Lines
 
 ################################################################################

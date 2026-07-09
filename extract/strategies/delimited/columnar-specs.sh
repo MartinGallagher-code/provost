@@ -3,7 +3,6 @@
 ## Description: Data-driven columnar parser — one spec per tool (detect + column map) instead of a bespoke strategy each
 ## Version: 1.1
 ## Priority: 14
-## Technique: yes
 ## Sample: samples/columnar-specs/basic.txt
 
 # A single engine that replaces many near-identical per-tool columnar strategies.

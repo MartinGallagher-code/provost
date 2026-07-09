@@ -3,7 +3,6 @@
 ## Description: Extract partition table (number/start/end/size/fs/name) from `parted print`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/parted-print/basic.txt
 
 # `parted print` prints a Model:/Disk:/Partition Table: header block, then a

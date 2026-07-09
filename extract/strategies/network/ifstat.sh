@@ -3,7 +3,6 @@
 ## Description: Extract per-interface throughput samples from `ifstat` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/ifstat/basic.txt
 
 # `ifstat` prints a two-line header: interface names on the first line, then a

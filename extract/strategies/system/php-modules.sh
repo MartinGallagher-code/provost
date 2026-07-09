@@ -3,7 +3,6 @@
 ## Description: Extract module names from `php -m` output (skips [PHP Modules]/[Zend Modules] section headers)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/php-modules/basic.txt
 
 # `php -m` prints bracketed section headers ("[PHP Modules]", "[Zend Modules]")

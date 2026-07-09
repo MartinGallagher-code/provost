@@ -1,7 +1,7 @@
-n	name	ttl	class	type	value	total_entries
+n	c1	c2	c3	c4	c5	total_entries
 1	example.com.	86400	IN	A	93.184.216.34	6
 2	www.example.com.	86400	IN	CNAME	example.com.	6
-3	example.com.	86400	IN	MX	10_mail.example.com.	6
-4	example.com.	86400	IN	MX	20_mail2.example.com.	6
+3	example.com.	86400	IN	MX	10 mail.example.com.	6
+4	example.com.	86400	IN	MX	20 mail2.example.com.	6
 5	example.com.	86400	IN	NS	a.iana-servers.net.	6
 6	example.com.	86400	IN	NS	b.iana-servers.net.	6

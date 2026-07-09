@@ -3,7 +3,6 @@
 ## Description: `perf stat` counter table → one tidy row per counter (count, event)
 ## Version: 1.0
 ## Priority: 18
-## Technique: yes
 ## Sample: samples/perf-counters/basic.txt
 
 # `perf stat` prints a "Performance counter stats for '<cmd>'" banner followed by

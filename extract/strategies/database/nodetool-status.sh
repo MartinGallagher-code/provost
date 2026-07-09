@@ -3,7 +3,6 @@
 ## Description: Extract node rows from `nodetool status`
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/nodetool-status/basic.txt
 
 # `nodetool status` prints a Datacenter banner, a "Status=Up/Down" legend, then

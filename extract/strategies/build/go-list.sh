@@ -3,7 +3,6 @@
 ## Description: Extract module paths from `go list -m all` output (main module + dependencies)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/go-list/basic.txt
 
 # `go list -m all` prints the main module on the first line (path only, no

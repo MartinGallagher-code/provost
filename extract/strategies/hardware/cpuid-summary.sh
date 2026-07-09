@@ -3,7 +3,6 @@
 ## Description: `cpuid` decoded summary ("key = value (n)" register fields)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/cpuid-summary/basic.txt
 
 # `cpuid` (decoded/summary form) prints indented "key = value" lines grouped

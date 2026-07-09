@@ -3,7 +3,6 @@
 ## Description: Extract configured remotes from `flatpak remotes` output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/flatpak-remotes/basic.txt
 
 # `flatpak remotes` prints a "Name  Options" header then one remote per line as

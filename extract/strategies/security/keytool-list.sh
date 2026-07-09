@@ -3,7 +3,6 @@
 ## Description: Extract keystore entries from `keytool -list`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/keytool-list/basic.txt
 
 # `keytool -list` prints a banner then one comma-separated line per keystore

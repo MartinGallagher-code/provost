@@ -3,7 +3,6 @@
 ## Description: Extract the SMART self-test log table from smartctl -l selftest output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/smartctl-selftest/basic.txt
 
 strategy_detect () {

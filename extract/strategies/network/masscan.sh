@@ -3,7 +3,6 @@
 ## Description: Parse masscan "Discovered open port PORT/PROTO on IP" lines
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/masscan/basic.txt
 
 # masscan prints a banner and progress lines, then one discovery line per open

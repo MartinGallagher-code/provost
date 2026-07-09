@@ -3,7 +3,6 @@
 ## Description: Extract worktrees from `git worktree list --porcelain`
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/git-worktree-list-porcelain/basic.txt
 
 # Porcelain output is blank-line-separated blocks:

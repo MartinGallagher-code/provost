@@ -3,7 +3,6 @@
 ## Description: Indentation-based hierarchical data, flattened with dot notation
 ## Version: 1.0
 ## Priority: 50
-## Technique: yes
 ## Sample: samples/indented-hierarchy/basic.txt
 
 strategy_detect () {

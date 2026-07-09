@@ -3,7 +3,6 @@
 ## Description: Extract DNS answer/delegation records from dig output (NS/ANY/+trace/+noall+answer)
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/dig-answer/basic.txt
 
 # Merged parser for the dig report variants whose answer rows share the generic

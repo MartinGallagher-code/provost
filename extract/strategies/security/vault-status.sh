@@ -3,7 +3,6 @@
 ## Description: Extract the aligned Key/Value snapshot from `vault status` output
 ## Version: 1.0
 ## Priority: 18
-## Technique: yes
 ## Sample: samples/vault-status/basic.txt
 
 strategy_detect () {

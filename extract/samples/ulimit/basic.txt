@@ -1,8 +1,0 @@
-core file size          (blocks, -c) 0
-data seg size           (kbytes, -d) unlimited
-scheduling priority             (-e) 0
-file size               (blocks, -f) unlimited
-max locked memory       (kbytes, -l) 65536
-open files                      (-n) 1024
-pipe size            (512 bytes, -p) 8
-max user processes              (-u) 63578

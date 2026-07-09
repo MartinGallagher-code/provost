@@ -3,7 +3,6 @@
 ## Description: Parse `kubectl get all` multi-section output — one record per resource kind
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/kubectl-get-all/basic.txt
 
 # `kubectl get all` prints one section per resource kind, each led by a "NAME ..."

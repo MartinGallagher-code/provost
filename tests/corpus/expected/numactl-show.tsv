@@ -1,7 +1,7 @@
-n	value	total_entries
-1	policy: default	6
-2	preferred node: current	6
-3	physcpubind: 0 1 2 3 4 5 6 7	6
-4	cpubind: 0	6
-5	nodebind: 0	6
-6	membind: 0	6
+n	c1	c2	c3	c4	c5	c6	c7	c8	c9	total_entries
+1	policy:	default								6
+2	preferred	node:	current							6
+3	physcpubind:	0	1	2	3	4	5	6	7	6
+4	cpubind:	0								6
+5	nodebind:	0								6
+6	membind:	0								6

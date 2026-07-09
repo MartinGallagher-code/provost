@@ -3,7 +3,6 @@
 ## Description: Extract file entries from `7z l` archive listings (skips header rule + totals footer)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/7z/basic.txt
 
 # `7z l` prints a column header ("Date Time Attr Size Compressed Name"), a

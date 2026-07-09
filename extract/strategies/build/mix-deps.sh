@@ -3,7 +3,6 @@
 ## Description: Extract dependencies from Elixir `mix deps` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/mix-deps/basic.txt
 
 # `mix deps` lists each dependency as a "* name version (Hex package) (mix)"

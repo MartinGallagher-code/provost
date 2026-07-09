@@ -3,7 +3,6 @@
 ## Description: Extract per-CPU scheduler statistics from /proc/schedstat
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/proc-schedstat/basic.txt
 
 # /proc/schedstat starts with "version N" and "timestamp N", then per-CPU lines

@@ -37,7 +37,6 @@ Required:
 Options:
   --description TEXT    Short description of the strategy (default: auto-generated)
   --priority N          Priority value 1-99 (default: 50)
-  --technique           Mark as a fundamental technique strategy (## Technique: yes)
   --version VER         Initial version (default: 1.0)
   --force               Overwrite existing strategy file
   -h, --help            Show this help
@@ -60,7 +59,6 @@ opt_category=""
 opt_sample=""
 opt_description=""
 opt_priority=50
-opt_technique=0
 opt_version="1.0"
 opt_force=0
 
@@ -84,8 +82,6 @@ while [[ $# -gt 0 ]]; do
         --priority)
             [[ $# -lt 2 ]] && echo "error: --priority requires an argument" >&2 && exit 1
             opt_priority="$2"; shift 2 ;;
-        --technique)
-            opt_technique=1; shift ;;
         --version)
             [[ $# -lt 2 ]] && echo "error: --version requires an argument" >&2 && exit 1
             opt_version="$2"; shift 2 ;;
@@ -169,12 +165,6 @@ while IFS= read -r hint_line; do
     detect_hints="${detect_hints}"$'\n'"    #   $hint_line"
 done <<< "$sample_head"
 
-# Build technique header line
-technique_line=""
-if [[ $opt_technique -eq 1 ]]; then
-    technique_line=$'\n'"## Technique: yes"
-fi
-
 # Convert name to function-safe prefix (hyphens to underscores)
 func_prefix="${opt_name//-/_}"
 
@@ -184,7 +174,7 @@ cat > "$strategy_file" <<STRATEGY_EOF
 ## Name: ${opt_name}
 ## Description: ${opt_description}
 ## Version: ${opt_version}
-## Priority: ${opt_priority}${technique_line}
+## Priority: ${opt_priority}
 ## Sample: samples/${opt_name}/sample1.txt
 
 strategy_detect () {

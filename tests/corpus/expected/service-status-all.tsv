@@ -1,7 +1,7 @@
-n	timestamp	message	total_entries
-1	+	apache2	6
-2	-	alsa-utils	6
-3	+	cron	6
-4	?	dbus	6
-5	+	ssh	6
-6	-	x11-common	6
+n	c1	c2	c3	c4	total_entries
+1	[	+	]	apache2	6
+2	[	-	]	alsa-utils	6
+3	[	+	]	cron	6
+4	[	?	]	dbus	6
+5	[	+	]	ssh	6
+6	[	-	]	x11-common	6

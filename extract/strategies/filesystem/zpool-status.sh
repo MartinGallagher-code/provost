@@ -3,7 +3,6 @@
 ## Description: Extract the vdev/device table from `zpool status` output
 ## Version: 1.0
 ## Priority: 27
-## Technique: yes
 ## Sample: samples/zpool-status/basic.txt
 
 strategy_detect () {

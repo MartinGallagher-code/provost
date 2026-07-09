@@ -1,6 +1,0 @@
-IF-MIB::ifDescr.1 = STRING: lo
-IF-MIB::ifDescr.2 = STRING: eth0
-IF-MIB::ifDescr.3 = STRING: eth1
-IF-MIB::ifOperStatus.2 = INTEGER: up(1)
-IF-MIB::ifOperStatus.3 = INTEGER: down(2)
-IF-MIB::ifSpeed.2 = Gauge32: 1000000000

@@ -3,7 +3,6 @@
 ## Description: Extract per-resource action lines from `terraform plan` ("# <resource> will be <action>")
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/terraform-plan-actions/basic.txt
 
 # A `terraform plan` summary lists each affected resource on a
