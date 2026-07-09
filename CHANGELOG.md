@@ -1,5 +1,23 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: migrate 5 more (git-remote, w, dpkg -l, tar, beegfs)
+Migrated five more bespokes with existing engine features — **378 → 373 distinct
+strategy names**. Each byte-identical to its bespoke (verified against the
+strategy's `## Sample`):
+- `git-remote` (`@unwrap` on `(fetch)`/`(push)`), `w-sessions` (`what@rest`),
+  `dpkg-list` (`dpkg -l`; `description@rest`), `tar-listing` (structural `re:`
+  detect, `~time` drop, `path@rest`), `beegfs` (`target` prefix, `~node_id`).
+- `tar`/`dpkg-c` generic goldens regenerated as **improvements** (old `c1..c6`
+  incl. the time token → now named `permissions/owner/size/date/path`).
+- **`free` NOT migrated** (reverted): it exposed that the `glean` tool names a
+  dataset after the winning *strategy*, so every columnar-migrated tool would
+  create a `columnar-specs` dataset instead of one named for the tool — the
+  smoke suite guards this via `free`. This is a latent property of the whole
+  columnar-specs approach (all migrated tools share the `columnar-specs`
+  identity); a follow-up should let a matched spec report its own name so
+  datasets stay per-tool. `free` stays bespoke until then.
+- Verified: extract all-pass, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: configurable record prefix; migrate crontab
 New engine feature **`prefix`** (spec field 10, default `entry`): some bespokes
 label records `jobN`/`commitN`/… instead of `entryN`. Migrated `crontab`

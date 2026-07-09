@@ -189,5 +189,6 @@ dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
 rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
 route-6, snap-connections, networkctl-lldp, memcached-stats,
 es-cat-allocation, bundle-list, nethogs, slabtop, objdump-headers,
-iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab.
+iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab,
+git-remote, w-sessions, dpkg-list, tar-listing, beegfs.
 (See `_COLUMNAR_SPECS` for the authoritative list.)
