@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs batch: migrate 5 more bespokes; add engine doc
+Migrated five more bespoke strategies into the `columnar-specs` engine as
+one-line specs, each verified **byte-for-byte identical** to the strategy it
+replaces before retirement — **407 → 402 distinct strategy names**:
+- `iostat-d`, `rabbitmqctl-list-queues`, `goose-status`, `ipmitool-sensor`,
+  `dpkg-get-selections` (removed their `extract/strategies/**/*.sh`).
+- Tightened the `ipmitool-sensor` detect to its sensor-status field
+  (`re:[|] *(ok|na|nc|cr) *[|]`) after a first, too-greedy "≥9 pipes" regex
+  hijacked wide bordered SQL tables (`mysql-show-index`,
+  `mysql-show-table-status`, `etcdctl-endpoint-status`) — caught by the corpus
+  golden run.
+- New doc **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**:
+  how the engine works, the spec format, transforms, the recipe for adding a
+  tool / a transform, and current limitations. To be kept current as engine
+  features are added.
+- Files: `extract/strategies/delimited/columnar-specs.sh`,
+  `docs/columnar-specs-engine.md`, five removed strategy files.
+- Verified: extract 213/213, corpus golden 978/0, smoke 49/49.
+
 ## 2026-07-09 — richer columnar-specs engine: prove value-add transforms (ss-tulnp)
 Extended the `columnar-specs` engine (v1.1) so a spec can express the value-add
 work that per-tool bespokes do — not just a flat column map:

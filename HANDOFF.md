@@ -235,6 +235,18 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
 
 ## Next steps
 
+0. **Campaign: drive strategy count 407 → 300 via `columnar-specs` migration**
+   (in progress). Express bespoke columnar strategies as one-line specs in
+   `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
+   before retiring the bespoke; add engine transforms to unlock larger batches.
+   Engine reference + recipe: **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**
+   (keep it current when extending the engine). At **402 distinct names** after
+   migrating iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
+   dpkg-get-selections. Highest-yield transforms still to add (by tools unlocked):
+   per-row guard, `@rest`, transpose/`vertical`, `@line`, `delim=tab`, `@default`.
+   Gate every batch: `run.sh --golden` (catches detect collisions) + extract +
+   smoke + melt.
+
 1. **Grow the corpus toward broad coverage** (in progress) — more common tools
    and *varied* output per tool (flags/formats): `mpstat`, `sar`, `lsof`, `du`,
    `ip -s link`, `journalctl`, `ps -ef`, `dmidecode`, `ethtool`, `nmcli`,

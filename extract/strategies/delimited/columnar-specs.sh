@@ -7,6 +7,8 @@
 ## Sample: samples/columnar-specs/basic.txt
 
 # A single engine that replaces many near-identical per-tool columnar strategies.
+# Full reference (spec format, transforms, how to add a tool / a transform):
+#   docs/columnar-specs-engine.md   — keep it current when you extend the engine.
 # Each tool is one TAB-separated spec line instead of a ~50-line .sh file:
 #
 #   name <TAB> detect1;detect2;… <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB> col,col,…
@@ -45,6 +47,11 @@ _COLUMNAR_SPECS=(
   $'ss-tulnp\tState;Local;Process\tRecv-Q\tws\t5\t5\tstate,recv_q,send_q,local,peer,process@between@users:(("@"\t0'
   $'smartctl-attributes\tATTRIBUTE_NAME;RAW_VALUE;WHEN_FAILED\tATTRIBUTE_NAME\tws\t-1\t10\tid,attribute_name,flag,value,worst,thresh,type,updated,when_failed,raw_value'
   $'mount\tre:^[^[:space:]]+ on .* type \t-\tws\t-1\t6\tdevice,~on,mount_point,~type,fstype,options@unwrap'
+  $'iostat-d\ttps;kB_read/s\tDevice\tws\t-1\t6\tdevice,tps,kb_read_s,kb_wrtn_s,kb_read,kb_wrtn'
+  $'rabbitmqctl-list-queues\tListing queues for vhost\tListing queues for vhost\tws\t-1\t3\tname,messages,consumers'
+  $'goose-status\tApplied At;Migration\tApplied At\tws\t0\t2\tapplied_at,migration'
+  $'ipmitool-sensor\tre:[|] *(ok|na|nc|cr) *[|]\t-\tpipe\t-1\t10\tname,reading,unit,status,lower_nr,lower_crit,lower_noncrit,upper_noncrit,upper_crit,upper_nr'
+  $'dpkg-get-selections\tre:[[:space:]](install|deinstall|hold|purge)$\t-\tws\t-1\t2\tpackage,status'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
