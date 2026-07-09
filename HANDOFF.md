@@ -249,6 +249,23 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
 
 ## Next steps
 
+0a. **Pruning redundant bespokes (tidy-first bar) — 13 retired, 374 → 361.**
+   Under the docs/0002 reframe, a full-corpus (1040-input) winner scan found the
+   bespokes that **never win their own corpus input** (a sibling/generic parser
+   already tidies the tool). 13 such were retired output-neutrally:
+   `docker-inspect`, `iostat`, `ip-addr`, `iperf3`, `podman-ps`, `rocm-smi`,
+   `host`, `terraform-plan`, `perf-stat` (+dup), `lscpu`, `proc-meminfo`,
+   `valgrind-summary`, `perf-report`. **Remaining evaluable candidates are 4
+   mis-shadow BUGS**, not prunes — the bespoke is better but a greedy parser wins
+   with worse output: `cargo-tree` (→`poetry-show-tree` flattens the tree),
+   `fail2ban-status` (→`key-value` mangles the `|-` tree), `systemctl-status`
+   (→`syslog` misparses the unit block), `ulimit` (→`pkg-config` mis-splits
+   `name (…, -x) value`). Fix = narrow the greedy parser's `detect()` so the
+   bespoke wins; do NOT delete these. Method to find more: rebuild the winner
+   scan (`--emit-meta --max-strategies 1` over `tests/corpus/inputs/*.txt`),
+   intersect never-winning strategies with those that have a corpus input, then
+   judge winner-vs-bespoke output quality per case.
+
 0. **Campaign: `columnar-specs` migration — at the clean floor (~374).**
    Express bespoke columnar strategies as one-line specs in
    `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
