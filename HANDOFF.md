@@ -235,22 +235,55 @@ with the extract suite + a full-corpus winner scan. The corpus goldens under
 
 ## Next steps
 
-0. **Campaign: drive strategy count 407 → 300 via `columnar-specs` migration**
-   (in progress). Express bespoke columnar strategies as one-line specs in
+0. **Campaign: `columnar-specs` migration — at the clean floor (~374).**
+   Express bespoke columnar strategies as one-line specs in
    `extract/strategies/delimited/columnar-specs.sh`, each verified byte-identical
-   before retiring the bespoke; add engine transforms to unlock larger batches.
-   Engine reference + recipe: **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**
-   (keep it current when extending the engine). At **374 distinct names** (crontab reverted — sample has env-var lines the spec drops).
-   Engine now has: `rowre` per-row guard, `@rest` terminal column, `@line`
-   whole-line column (plus the earlier `~sep`/`@opt`/`@unwrap`/`@between`,
-   `absorb`, `minreq`, `re:` detect). Note the `_is_json` guard declines
-   bracket-headed inputs (`[…]`/`{…}` first line) — they stay bespoke.
-   Highest-yield features still to add (by tools unlocked): **all-lines-match
-   detect** (needed for the shared-shape package/image-list family, e.g.
-   composer-show — a one-line detect hijacks 13 tools), transpose/`vertical`,
-   `@line`, `delim=tab`, `@default`, mid-row multi-token column.
-   Gate every batch: `run.sh --golden` (catches detect collisions) + extract +
-   smoke + melt.
+   before retiring the bespoke. Engine reference + recipe:
+   **[docs/columnar-specs-engine.md](docs/columnar-specs-engine.md)**.
+   **407 → 374 distinct names** (33 tools) so far, all merged to `main`, all
+   suites green. Engine features added: `~sep`, `@opt`, `@unwrap`, `@between`,
+   `@rest`, `@line`, `absorb`, `minreq`, `re:` detect, `rowre` per-row guard,
+   `prefix` (record label), and per-tool **report name** (`_STRATEGY_REPORT_NAME`
+   → `glean` datasets are per-tool, not one `columnar-specs`).
+
+   **The clean-with-current-features vein is essentially exhausted at ~374.**
+   Of the 374 strategies: **173 are `Technique: yes`** generic parsers (migrating
+   1:1 regresses *other* tools — off-limits), **158 have no corpus input**
+   (unverifiable against a golden), leaving ~40 candidates — and on close
+   inspection (verified against each `## Sample`) they each need a NEW engine
+   feature or hit a structural blocker, e.g.:
+   - transpose + key-slug: `ethtool`, `iostat`, `proc-stat`, `chage-l`,
+     `proc-meminfo`, `lscpu` (each slugs keys differently; some strip units)
+   - stateful / multi-line records: `gpg-list-keys`, `dmidecode`, `nmap`,
+     `iperf3`, `ip-addr`/`ip-link`, `fail2ban-status`, `valgrind-summary`
+   - fixed-width columns: `docker-ps`/`docker-stats`/`docker-compose-ps`,
+     `podman-ps`, `readelf-sections`
+   - mid-row multi-token / symlink names: `ls-l` (symlink `a -> b`), `lastb`
+   - number+unit merge: `iotop`, `iftop`, `powertop`, `rocm-smi`
+   - keyword-located fields: `ip-route`, `ping`, `ip-tunnel`, `bridge-fdb`
+   - `@rest`+`@unwrap` combo: `gem-list`
+   - shared-shape detect (no unique signature): `composer-show`, `pkg-config`,
+     `git-log` (all reverted — a one-line detect hijacks many tools)
+   - bracket-headed (`_is_json` declines): `dbmate-status`, `php-modules`
+
+   **To go below ~374** requires either (a) adding these narrow per-tool features
+   — each byte-verified against its `## Sample` — or (b) migrating no-input
+   strategies with sample-only verification (no golden coverage). Both are
+   deliberate tradeoffs; 300 is **not** reachable by clean 1:1 migration alone.
+
+   **Verification discipline (learned the hard way):**
+   - Skip `## Technique: yes` strategies (`mig.sh technique <name>`).
+   - Verify byte-identical against the strategy's **`## Sample`**, not only the
+     corpus input — samples are richer (e.g. crontab's sample has `SHELL=`/
+     `MAILTO=` env-var lines a job-only spec drops).
+   - After removing a bespoke, repoint or remove its
+     `extract/tests/test_strategy_<tool>.sh` (it calls `-s <tool>`; repoint to
+     `-s columnar-specs`) — else the CI extract suite goes red.
+   - Read the extract suite's final `Overall:` line AND exit code; don't trust a
+     mid-run "All tests passed" per-file line.
+   - Gate every batch: extract + `run.sh --golden` (catches detect collisions) +
+     smoke + melt; regenerate a tool's corpus golden only when generic-mode
+     output genuinely improved.
 
 1. **Grow the corpus toward broad coverage** (in progress) — more common tools
    and *varied* output per tool (flags/formats): `mpstat`, `sar`, `lsof`, `du`,
