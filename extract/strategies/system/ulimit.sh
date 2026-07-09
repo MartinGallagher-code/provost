@@ -2,7 +2,7 @@
 ## Name: ulimit
 ## Description: Extract resource limits from ulimit -a output
 ## Version: 1.0
-## Priority: 25
+## Priority: 20
 ## Sample: samples/ulimit/basic.txt
 
 strategy_detect () {

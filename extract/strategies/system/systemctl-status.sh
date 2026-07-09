@@ -2,7 +2,7 @@
 ## Name: systemctl-status
 ## Description: Extract service information from systemctl status output
 ## Version: 1.0
-## Priority: 22
+## Priority: 19
 ## Technique: kv_colon
 ## Sample: samples/systemctl-status/sample1.txt
 

@@ -1,5 +1,21 @@
 # glean — Changelog
 
+## 2026-07-09 — Fix 3 mis-shadow bugs (bespoke now wins via priority)
+Three tools were mis-parsed because a greedy generic parser out-prioritized the
+correct bespoke. Fixed by lowering each bespoke's `## Priority` below the greedy
+competitor — safe because each bespoke's `detect()` is specific to its own tool
+(so no other tool's winner changes):
+- `systemctl-status` (22→19): was won by `syslog` (misparsed the unit block as
+  journal rows); now yields `unit/description/loaded/active/since/main_pid/…`.
+- `fail2ban-status` (20→10): was won by `key-value` (mangled the `|-` tree); now
+  yields the named jail/filter/actions columns.
+- `ulimit` (25→20): was won by `pkg-config` (mis-split `name (…, -x) value`); now
+  yields `resource/flag/value` (e.g. `core file size | c | 0`).
+Bespoke output bytes unchanged (priority-only), so goldens stay valid. Verified
+no other tool changed winner via a full-corpus winner-scan diff. Gate: extract +
+smoke 49/49 + melt 8/8. This clears 3 of the 4 mis-shadow bugs from docs/0002 /
+HANDOFF; `cargo-tree` (competitor is a columnar-specs spec) is deferred.
+
 ## 2026-07-09 — Prune 13 redundant bespokes (tidy-first bar)
 Under the reframe (docs/0002 — judge output on tidy/meaningful merits, not
 byte-fidelity), retired 13 per-tool bespoke strategies that **never win their own
