@@ -1,5 +1,0 @@
-CONTAINER ID  BUILDER  IMAGE ID     IMAGE NAME                                       CONTAINER NAME
-a1b2c3d4e5f6  *        sha256:abc1  docker.io/library/ubuntu:22.04                   ubuntu-working-container
-b2c3d4e5f6a7           sha256:def2  docker.io/library/golang:1.21                    golang-build
-c3d4e5f6a7b8  *        sha256:ghi3  registry.access.redhat.com/ubi9/ubi:latest       ubi9-working-container
-d4e5f6a7b8c9           sha256:jkl4  docker.io/library/alpine:3.19                    alpine-scratch

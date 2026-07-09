@@ -1,5 +1,50 @@
 # glean — Changelog
 
+## 2026-07-09 — richer columnar-specs engine: prove value-add transforms (ss-tulnp)
+Extended the `columnar-specs` engine (v1.1) so a spec can express the value-add
+work that per-tool bespokes do — not just a flat column map:
+- `minreq` — minimum tokens for a row (lets trailing columns be optional)
+- `name@opt` — emit a column only when non-empty
+- `name@between@L@R` — extract the substring between two markers (sub-field
+  parsing), e.g. ss `users:(("sshd",…))` → `sshd`
+- per-spec `total` flag — match bespokes that do/don't emit `total_entries`
+
+Migrated `ss-tulnp` (covers ss-tulpn / ss-memory / ss-udp / ss-tp, incl. the
+process-name extraction) into a single spec line; retired the bespoke. All four
+tools verified **byte-identical** (melted) to the old bespoke. ss generic goldens
+regenerated — they now carry the good ss-quality output (named columns + extracted
+process) in generic mode too, where they previously fell to a cruder parser.
+
+Performance (measured): a full auto-detect run is ~3.2s, ~89% of which is the
+detection loop's per-strategy overhead (source + metadata + detect + cleanup),
+~7ms per strategy file. The engine's per-tool cost is comparable/slightly lower
+(0.063s vs 0.074s forced), and every file it absorbs removes one loop iteration —
+so collapsing toward ~300 files projects to ~20-25% faster auto-detect. The spec
+engine is thus both a count reduction and the biggest lever on run latency.
+
+Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+Count: 410 files / 409 distinct names.
+
+## 2026-07-09 — declarative columnar-specs engine (foundation for spec-driven parsers)
+Introduces `extract/strategies/delimited/columnar-specs.sh`: a single data-driven
+engine that replaces per-tool columnar strategies with one TAB-separated spec line
+each (`name · detect substrings · header marker · delim ws|pipe · absorb column ·
+column names`). One engine detect/extract interprets all specs; the tidy output per
+tool is verified **byte-identical** to the retired bespoke before migration.
+Migrated first batch: `zypper-search`, `buildah-containers`, `lsmem` (3 bespokes →
+1 engine). Engine is `## Technique: yes` so it preserves generic-mode coverage.
+
+Scope note (important for anyone extending this): only a **minority** of the ~89
+"columnar" bespokes fit a simple spec. Most do value-add work a flat column-map
+can't express — sub-field parsing (`ss-tulnp` pulls the process name out of
+`users:((…))`), multi-section layouts (`stream`, `imb`, `nfsstat`), pattern-based
+token classification (`lsblk-output`), or positional multi-word cells (`docker-ps`).
+Those stay bespoke. Realistic clean-spec yield is modest, not a path to a large
+reduction on its own.
+
+Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+Count: 421 → 411 strategy files (420 → 410 distinct names) across this session's work.
+
 ## 2026-07-09 — consolidate strategies: merge same-logic families (420 → 412)
 A different angle on shrinking the strategy set than "delete redundant": **merge
 strategies that share the same extraction, keeping one whose `detect()` is the
