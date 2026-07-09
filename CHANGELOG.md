@@ -1,5 +1,79 @@
 # glean — Changelog
 
+## 2026-07-09 — REFACTOR: generic-first extraction — hints table, honest metric, −218 bespoke parsers
+
+The project goal ("as many inputs with as few instructions as possible, no
+bespoke parsers, generalize to unseen input") was being defeated by drift: 375
+strategy scripts (~36k lines), a `## Technique: yes` header tag applied to
+~145 per-tool parsers so they counted as "generic" in the coverage metric, and
+a long tail of parsers each memorizing exactly one corpus fixture.
+
+**Engine** (`extract/envoy-extract`, `extract/lib/_discovery.sh`):
+- `--generic` is now **directory-based**: only `strategies/delimited/` +
+  `strategies/structured/` (28 files) participate. The `## Technique:` tag is
+  removed everywhere and no longer read; `--list-strategies` shows `[G]` (by
+  location) instead of `[T]` (by tag). The scaffolding tool
+  (`extract/tools/new_strategy.sh`) no longer emits the tag.
+- New **declarative hints layer**: `extract/hints.tsv` — one TAB row
+  (tool, match-type prefix|contains|regex, structural signature, target
+  strategy) routes a recognized tool to an existing strategy before
+  auto-detection, bypassing the target's detect. Reports the tool name via
+  `_STRATEGY_REPORT_NAME` (dataset identity without parser code). New flag
+  `--no-hints`; `MFE_HINTS_FILE` overrides the path. Under `--generic`, hints
+  may only target generic strategies. 46 rows cover 50 corpus inputs.
+
+**Corpus** (`tests/corpus/run.sh`, `COVERAGE.md`, `README.md`):
+- Coverage is now three-tier and honest: ✅ generic auto-detected · ✅ʰ
+  hint-routed · ✅ᵇ bespoke script. Result: **1039/1040 — ✅ 836, ✅ʰ 50,
+  ✅ᵇ 153, ⏳ 1** (`traceroute6`, whose previous "covered" entry was stale;
+  the old headline "989 via a generic parser" was tag-inflated — the honest
+  pre-refactor split was ~777 generic / ~274 per-tool).
+- Goldens regenerated (886, `--golden` 0 failed): 27 added, 62 updated
+  (hint-routed inputs changed parser), **119 deleted deliberately** — their
+  old "generic" goldens were pseudo-generic per-tool parser output; those
+  inputs are now honestly ✅ᵇ (bespoke-covered, no golden), like every other
+  bespoke tool. This is the intended exception to the "deleted golden =
+  regression" rule; the coverage table confirms none dropped to ⏳.
+
+**Deletions** (−220 strategies +2 restored = net −218; 375 → 156 strategy
+files, strategy code roughly halved):
+- Every bespoke strategy whose corpus inputs stay manifest-tidy via a generic
+  parser or hint row, plus their samples, goldens, and `test_strategy_*.sh`
+  files. Engine-level tests referencing deleted strategies (`ini`,
+  `pipe-table`, `network-hops`, `test-results`, `http-headers`,
+  `curl-headers`, `warc-headers`, `env-vars`, `journald`, snapshot cases)
+  were pruned.
+- `free.sh` and `docker-ps.sh` were **restored** after the smoke test showed
+  the generic parse is shape-tidy but qualitatively worse (merged columns) —
+  bespokes that beat the generic stay.
+- The unused config-file format parsers (`ini`, `hcl`, `properties`,
+  `crontab`, `dockerfile`, `systemd-unit`, `nginx-conf`) were deleted: no
+  corpus input needs them (glean's domain is command output) and `ini` was
+  grabby enough to hijack `dbmate-status`/`sbt-dependencytree`.
+
+**Detection-order fixes** (full mode):
+- `git-log-stat` p22→13 (before `git-log` p14); requires diffstat lines so it
+  can't hijack plain logs; also covers `git show --stat`, so `git-show-stat.sh`
+  was deleted.
+- `nmap-sn` p26→14 (before `nmap` p15) and its detect now declines outputs
+  containing a `PORT … STATE` table.
+- `bundle-outdated`/`semanage-boolean` p26→12 (before the grabby `pkg-config`
+  p21, which stays: it legitimately, if accidentally, tidies
+  `consul-catalog-services` and `systemd-analyze-time` as before).
+
+**Cleanup:**
+- Deleted the orphaned analyze `test_browse_*`/`test_dashboard_*`/
+  `test_help_overlay.sh`/`test_mdx.sh` (surfaces glean doesn't ship). The raw
+  `analyze/tests/run_tests.sh` is green now; CI runs it unfiltered.
+- Deleted 7 unreferenced shared libs: `lib/envoy_{common,format,humanize,spinner,status,tasklist}.sh`,
+  `lib/exit_codes.sh`.
+- Docs updated: `README.md` counts, `tests/corpus/README.md` (three-tier
+  model), strategy-dir HANDOFFs, `docs/columnar-specs-engine.md`,
+  `extract/lib/_globals.sh` comment.
+
+Verified: smoke 49/49, melt 8/8, extract 63/63 files, analyze suite green,
+corpus `--golden` 886/0, coverage 1039/1040.
+
 ## 2026-07-09 — FIX: repoint/repair migrated tools' dedicated tests; revert crontab
 Caught a real regression: removing a bespoke leaves its dedicated
 `extract/tests/test_strategy_<tool>.sh` calling `-s <tool>` (now "Strategy not
