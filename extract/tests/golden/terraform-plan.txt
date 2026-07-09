@@ -1,9 +1,0 @@
-resource1_name aws_instance.web
-resource1_action create
-resource2_name aws_security_group.allow_http
-resource2_action update
-resource3_name aws_instance.old
-resource3_action destroy
-plan_add 1
-plan_change 1
-plan_destroy 1

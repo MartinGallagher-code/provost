@@ -1,5 +1,31 @@
 # glean — Changelog
 
+## 2026-07-09 — Prune 13 redundant bespokes (tidy-first bar)
+Under the reframe (docs/0002 — judge output on tidy/meaningful merits, not
+byte-fidelity), retired 13 per-tool bespoke strategies that **never win their own
+corpus input** because a sibling or generic parser already produces tidy, usable
+output. Verified via a full-corpus (1040-input) winner scan: each retired bespoke
+wins zero corpus inputs, so deletion is full-mode output-neutral.
+
+Retired → replaced by: `docker-inspect`→`json`, `iostat`→`iostat-d` (spec),
+`ip-addr`→`ip-link`, `iperf3`→`iperf3-intervals`, `podman-ps`→`docker-ps`,
+`rocm-smi`→`rocm-smi-concise`, `host`→`host_a`, `terraform-plan`→
+`terraform-plan-actions`, `perf-stat`→`perf-counters` (also removes the known
+duplicate file in benchmark/ + profiling/), `lscpu`→`key-value`,
+`proc-meminfo`→`yaml`, `valgrind-summary`→`valgrind`, `perf-report`→
+`aligned-columns`. Each deletion removed the strategy + its `test_strategy_*.sh`
++ golden + sample; `test_search.sh`'s AND-semantics example repointed
+docker-inspect→docker-stats.
+
+NOT retired — 4 mis-shadow **bugs** where the bespoke is better but a greedy
+parser wins with worse output (deleting would lock in the worse output; these are
+detection fixes, tracked separately): `cargo-tree` (→`poetry-show-tree` flattens),
+`fail2ban-status` (→`key-value` mangles), `systemctl-status` (→`syslog` misparses),
+`ulimit` (→`pkg-config` misparses).
+
+Gate: extract suite + smoke 49/49 + melt 8/8 green; corpus golden unaffected
+(generic-mode, excludes bespokes). Strategy count: ~374 → ~361 distinct.
+
 ## 2026-07-09 — Nameless columns: spreadsheet-style A,B,C… (was c1,c2,c3)
 Renamed the placeholder labels glean emits for genuinely-nameless columns from
 `c1,c2,c3…` to the spreadsheet convention `A,B,C…,Z,AA,BB,CC…`. `c1` reads as an
