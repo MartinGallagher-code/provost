@@ -391,6 +391,9 @@ _detect_strategy () {
     fi
     _STRATEGY_CONFIDENCE=50
     _STRATEGY_CONFIDENCE_REASON=""
+    # Cleared before each detect so a per-tool report name set by one strategy
+    # (columnar-specs) never leaks to the next strategy's dispatch record.
+    _STRATEGY_REPORT_NAME=""
     if ! strategy_detect "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
         _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable"
         return 1
@@ -439,16 +442,21 @@ _extract_and_store () {
         echo "[profile] Strategy '$strategy_name': ${_prof_elapsed}s" >&2
     fi
     if [[ -n "$result" ]]; then
-        store "$result" "STRAT-${strategy_name}"
+        # A strategy may report a more specific name than its file name — the
+        # data-driven `columnar-specs` engine reports the matched TOOL name so
+        # each tool keeps its own dataset identity instead of collapsing to
+        # `columnar-specs`. Falls back to the file's strategy name.
+        local report_name="${_STRATEGY_REPORT_NAME:-$strategy_name}"
+        store "$result" "STRAT-${report_name}"
         strategies_matched=$((strategies_matched + 1))
         # ENV-200: record the first strategy that produced output (the dispatch
         # winner) + its confidence, for the opt-in --emit-meta line.
         if [[ -z "${_WINNER_NAME:-}" ]]; then
-            _WINNER_NAME="$strategy_name"
+            _WINNER_NAME="$report_name"
             _WINNER_CONF="${_STRATEGY_CONFIDENCE:-0}"
         fi
         [[ -n "$matched_strategies" ]] && matched_strategies+=","
-        matched_strategies+="${strategy_name}@${strategy_version:-0}"
+        matched_strategies+="${report_name}@${strategy_version:-0}"
         _count_lines "$result"
         total_fields=$((total_fields + _LINE_COUNT))
         _log_debug "Strategy '$strategy_name': extracted $_LINE_COUNT fields"

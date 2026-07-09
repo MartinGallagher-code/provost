@@ -42,7 +42,7 @@ test_ls_l_not_detected_for_json () {
 # ls -l output (whose second field is a numeric link count); ls-l handles it.
 test_tar_listing_does_not_grab_ls_output () {
     local output
-    output=$(run_mfe -d -s tar-listing "$SAMPLES_DIR/ls-l/basic.txt" 2>&1)
+    output=$(run_mfe -d -s columnar-specs "$SAMPLES_DIR/ls-l/basic.txt" 2>&1)
     assert_contains "$output" "not applicable" "tar-listing must not match ls -l output"
     output=$(run_mfe -d -s ls-l "$SAMPLES_DIR/ls-l/basic.txt" 2>&1)
     assert_not_contains "$output" "not applicable" "ls-l must match ls -l output"

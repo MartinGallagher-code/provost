@@ -1,7 +1,7 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
-1	-rw-r--r--	martin/martin	1048	2026-06-30	14:22	project/README.md	6
-2	-rw-r--r--	martin/martin	20480	2026-06-30	14:23	project/src/main.c	6
-3	-rwxr-xr-x	martin/martin	4096	2026-06-30	14:25	project/build.sh	6
-4	drwxr-xr-x	martin/martin	0	2026-06-30	14:20	project/docs/	6
-5	-rw-r--r--	martin/martin	8192	2026-06-29	09:11	project/docs/guide.md	6
-6	-rw-r--r--	martin/martin	1536	2026-06-28	17:45	project/.gitignore	6
+n	permissions	owner	size	date	path	total_entries
+1	-rw-r--r--	martin/martin	1048	2026-06-30	project/README.md	6
+2	-rw-r--r--	martin/martin	20480	2026-06-30	project/src/main.c	6
+3	-rwxr-xr-x	martin/martin	4096	2026-06-30	project/build.sh	6
+4	drwxr-xr-x	martin/martin	0	2026-06-30	project/docs/	6
+5	-rw-r--r--	martin/martin	8192	2026-06-29	project/docs/guide.md	6
+6	-rw-r--r--	martin/martin	1536	2026-06-28	project/.gitignore	6

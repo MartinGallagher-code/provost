@@ -13,7 +13,7 @@ echo "========================================"
 
 test_tar_listing_basic () {
     local output
-    output=$(run_mfe -r -s tar-listing "$SAMPLES_DIR/tar-listing/basic.txt")
+    output=$(run_mfe -r -s columnar-specs "$SAMPLES_DIR/tar-listing/basic.txt")
     assert_contains "$output" "entry1.permissions drwxr-xr-x" "should extract first entry permissions"
     assert_contains "$output" "entry1.owner user/group" "should extract first entry owner"
     assert_contains "$output" "entry2.size 1234" "should extract second entry size"
@@ -23,13 +23,13 @@ test_tar_listing_basic () {
 
 test_tar_listing_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s tar-listing "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_mfe -d -s columnar-specs "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "should not apply to JSON"
 }
 
 test_tar_listing_not_detected_for_aligned_columns () {
     local output
-    output=$(run_mfe -d -s tar-listing "$SAMPLES_DIR/aligned-columns/basic.txt" 2>&1)
+    output=$(run_mfe -d -s columnar-specs "$SAMPLES_DIR/aligned-columns/basic.txt" 2>&1)
     assert_contains "$output" "not applicable" "should not apply to aligned columns"
 }
 

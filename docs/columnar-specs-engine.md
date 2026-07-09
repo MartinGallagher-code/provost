@@ -10,6 +10,23 @@ tabular text output into `entryN.field value` records. One engine, many tools.
 > format table, the transform list, or the capability/limitation notes) in the
 > same change. This is a required doc, like `CHANGELOG.md` and `HANDOFF.md`.
 
+## Dataset identity — the engine reports the matched tool name
+
+`glean` names a dataset after the **reporting strategy**. To keep each migrated
+tool its own dataset (so `mount | glean` → dataset `mount`, not `columnar-specs`,
+and two different tools never collide into one dataset), `strategy_detect` sets
+the global `_STRATEGY_REPORT_NAME` to the matched spec's tool name. The engine
+(`extract/lib/_discovery.sh`) uses it for the dispatch winner, the `matched`
+list, and the `STRAT-<name>` record label, falling back to the file's strategy
+name when unset (it clears the global before each strategy's detect so a name
+never leaks to the next). This must be set in `strategy_detect` (parent shell),
+not `strategy_extract` (which runs in a command-substitution subshell, so its
+globals would not propagate).
+
+> `free` intentionally stays bespoke: it is the smoke suite's canonical
+> end-to-end example (reconciliation, provenance, variants), and migrating it —
+> though byte-identical on its sample — perturbs those `glean`-level tests.
+
 ## Why it exists
 
 Dozens of tools emit the same *shape* — a header row (or none) followed by
@@ -189,5 +206,6 @@ dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
 rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
 route-6, snap-connections, networkctl-lldp, memcached-stats,
 es-cat-allocation, bundle-list, nethogs, slabtop, objdump-headers,
-iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab.
+iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab,
+git-remote, w-sessions, dpkg-list, tar-listing, beegfs.
 (See `_COLUMNAR_SPECS` for the authoritative list.)
