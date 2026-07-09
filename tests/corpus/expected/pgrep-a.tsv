@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	1843 /usr/sbin/mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock	6
 2	2044 /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main	6
 3	2891 /usr/bin/redis-server 127.0.0.1:6379	6

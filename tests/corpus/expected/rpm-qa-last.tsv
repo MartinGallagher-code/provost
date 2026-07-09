@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	total_entries
+n	A	B	C	D	E	F	G	total_entries
 1	kernel-5.14.0-362.el9.x86_64	Thu	14	Sep	2023	10:12:11	CEST	6
 2	firefox-115.3.0-1.el9.x86_64	Wed	13	Sep	2023	22:41:52	CEST	6
 3	glibc-2.34-60.el9.x86_64	Mon	04	Sep	2023	08:03:19	CEST	6

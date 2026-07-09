@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	name	:	sha256	10
 2	driver	:	sha256-generic	10
 3	module	:	sha256_generic	10

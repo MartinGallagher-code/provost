@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	1	systemd	7
 2	842	sshd	7
 3	1290	nginx	7

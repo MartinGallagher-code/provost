@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	nvme_core	143360	5	nvme,	Live	0xffffffffc0a2b000	7
 2	ext4	950272	2	-	Live	0xffffffffc0d00000	7
 3	x86_pkg_temp_thermal	20480	0	-	Live	0xffffffffc0512000	7

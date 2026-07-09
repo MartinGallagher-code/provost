@@ -1,4 +1,4 @@
-entry1.c1 1.1.1.1
-entry2.c1 1.0.0.1
-entry3.c1 8.8.8.8
+entry1.A 1.1.1.1
+entry2.A 1.0.0.1
+entry3.A 8.8.8.8
 total_entries 3

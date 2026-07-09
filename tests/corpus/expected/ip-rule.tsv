@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	0:	from all lookup local	6
 2	100:	from 10.0.0.0/8 lookup 100	6
 3	32764:	from 192.168.1.0/24 iif eth0 lookup 200	6

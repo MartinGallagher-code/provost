@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-07-09 — Nameless columns: spreadsheet-style A,B,C… (was c1,c2,c3)
+Renamed the placeholder labels glean emits for genuinely-nameless columns from
+`c1,c2,c3…` to the spreadsheet convention `A,B,C…,Z,AA,BB,CC…`. `c1` reads as an
+apologetic internal placeholder ("we failed to name this"); `A` is the universal
+positional-column convention every spreadsheet user already understands as
+"unnamed column N, label it yourself." Same information, better affordance.
+- New helper `_col_letter <1-based idx>` in `extract/lib/_helpers.sh`
+  (1→A … 26→Z, 27→AA, 28→BB, 29→CC …; self-tested through AAA).
+- Wired into the generic parsers that mint nameless labels: `aligned-columns`,
+  `colon-fields`, `line-records`, `text-lines`, `psql-table` (header fallback),
+  and `structured/tsv`; plus the 5 `columnar-specs` `@line` specs (`c1@line`→
+  `A@line`) and 14 single-column columnar bespokes (`.c1`/`.c2`→`.A`/`.B`).
+- Regenerated 17 extract goldens + 224 corpus goldens; every diff verified as a
+  clean header-only positional rename (0 value drift, 0 multi-line changes).
+- Gate green: extract **213/213**, corpus golden **991 passed / 0 failed**
+  (up from 978 — the regen also captured goldens for 13 previously-uncovered
+  tidy tools), smoke **49/49**, melt **8/8**.
+- Rationale + the broader "judge output on tidy/meaningful merits, not bespoke
+  byte-fidelity" reframe: **docs/0002-tidy-first-and-nameless-columns.md**.
+
 ## 2026-07-09 — FIX: repoint/repair migrated tools' dedicated tests; revert crontab
 Caught a real regression: removing a bespoke leaves its dedicated
 `extract/tests/test_strategy_<tool>.sh` calling `-s <tool>` (now "Strategy not

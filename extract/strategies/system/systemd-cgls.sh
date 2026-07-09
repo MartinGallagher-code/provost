@@ -39,7 +39,7 @@ strategy_extract () {
         while [[ "$s" == " "* || "$s" == $'\t'* ]]; do s="${s#[$' \t']}"; done
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
-        result+="entry${entry}.c1 ${s}"$'\n'
+        result+="entry${entry}.A ${s}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

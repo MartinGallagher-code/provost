@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	total_entries
+n	A	B	C	D	E	F	G	H	I	J	total_entries
 1	Jul	7	14:20:01	gateway	arpwatch:	new	station	192.168.1.88	a4:5e:60:c1:2f:9b	eth0	5
 2	Jul	7	14:21:15	gateway	arpwatch:	changed	ethernet	address	192.168.1.24	3c:22:fb:88:1d:0a_eth0	5
 3	Jul	7	14:22:47	gateway	arpwatch:	new	activity	192.168.1.90	de:ad:be:ef:00:02	eth0	5

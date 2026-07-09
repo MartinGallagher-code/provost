@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	total_entries
+n	A	B	C	D	E	F	G	H	I	total_entries
 1	::1	dev	lo	proto	kernel	metric	256	pref	medium	6
 2	2001:db8:1::/64	dev	eth0	proto	kernel	metric	256	pref	medium	6
 3	2001:db8:2::/64	via	2001:db8:1::1	dev	eth0	proto	static	metric	1024_pref_medium	6

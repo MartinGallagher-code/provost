@@ -1,6 +1,6 @@
-entry1.c1 phoenix
-entry2.c1 ecto
-entry3.c1 jason
-entry4.c1 plug_cowboy
-entry5.c1 telemetry
+entry1.A phoenix
+entry2.A ecto
+entry3.A jason
+entry4.A plug_cowboy
+entry5.A telemetry
 total_entries 5

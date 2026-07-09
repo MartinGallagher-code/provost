@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	mcelog: Family 6 Model 158 CPU: only decoding architectural errors	12
 2	Hardware event. This is not a software error.	12
 3	MCE 0	12

@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	arn:aws:ecs:us-east-1:123456789012:cluster/prod-web	5
 2	arn:aws:ecs:us-east-1:123456789012:cluster/prod-workers	5
 3	arn:aws:ecs:us-east-1:123456789012:cluster/staging	5

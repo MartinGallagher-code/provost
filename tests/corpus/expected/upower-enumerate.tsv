@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	/org/freedesktop/UPower/devices/line_power_AC	5
 2	/org/freedesktop/UPower/devices/battery_BAT0	5
 3	/org/freedesktop/UPower/devices/DisplayDevice	5

@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	linux-vdso.so.1 (0x00007ffd3c5fe000)	6
 2	libssl.so.3 => /lib/x86_64-linux-gnu/libssl.so.3 (0x00007f8a2c4a1000)	6
 3	libcrypto.so.3 => /lib/x86_64-linux-gnu/libcrypto.so.3 (0x00007f8a2c000000)	6

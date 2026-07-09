@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	glibc-2.34-60.el9.x86_64	:	The_GNU_libc_libraries	5
 2	Repo	:	baseos	5
 3	Matched	from:		5

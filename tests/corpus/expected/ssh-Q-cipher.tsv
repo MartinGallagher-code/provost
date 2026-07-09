@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	3des-cbc	8
 2	aes128-cbc	8
 3	aes192-cbc	8

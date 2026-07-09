@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	linux	usr/lib/modules/6.6.10-arch1-1/vmlinuz	8
 2	linux	usr/lib/modules/6.6.10-arch1-1/modules.dep	8
 3	linux	usr/lib/modules/6.6.10-arch1-1/kernel/	8

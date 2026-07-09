@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	Newtonsoft.Json	13.0.3	5
 2	Serilog	3.1.1	5
 3	AutoMapper	12.0.1	5

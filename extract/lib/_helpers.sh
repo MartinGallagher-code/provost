@@ -154,3 +154,14 @@ clean_text () {
     _CLEAN_TEXT_DONE=1
     _CLEAN_TEXT_RESULT="$result"
 }
+
+# _col_letter <1-based index> — spreadsheet-style label for a nameless column:
+# 1->A .. 26->Z, 27->AA, 28->BB, 29->CC ... (repeated-letter convention).
+# Used by the generic parsers to name headerless columns A,B,C instead of c1,c2.
+_col_letter () {
+    local i="$1" reps rem ch out="" k
+    reps=$(( (i - 1) / 26 + 1 )); rem=$(( (i - 1) % 26 ))
+    printf -v ch '%b' "\\$(printf '%03o' $(( 65 + rem )))"
+    for (( k = 0; k < reps; k++ )); do out="${out}${ch}"; done
+    printf '%s' "$out"
+}

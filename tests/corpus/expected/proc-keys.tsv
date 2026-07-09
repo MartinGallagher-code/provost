@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	total_entries
+n	A	B	C	D	E	F	G	H	I	J	total_entries
 1	0a1b2c3d	I--Q---	3	perm	3f030000	1000	1000	keyring	_ses	2	6
 2	1f2e3d4c	I--Q---	1	perm	1f0f0000	1000	1000	keyring	_uid.1000	1	6
 3	2b3c4d5e	I--Q---	12	perm	3f030000	0	0	keyring	_ses	1	6

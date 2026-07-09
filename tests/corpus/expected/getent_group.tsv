@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	total_entries
+n	A	B	C	D	total_entries
 1	root	x	0		7
 2	sudo	x	27	martin,alice	7
 3	docker	x	998	martin,deploy	7

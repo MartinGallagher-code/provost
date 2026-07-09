@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	antivirus_can_scan_system	-->	off	8
 2	auditadm_exec_content	-->	on	8
 3	cluster_can_network_connect	-->	off	8

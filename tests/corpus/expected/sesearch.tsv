@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	total_entries
+n	A	B	C	D	E	F	G	total_entries
 1	allow	httpd_t	httpd_config_t:dir	{	getattr	search	};	6
 2	allow	httpd_t	httpd_config_t:file	{	getattr	read	};	6
 3	allow	httpd_t	httpd_log_t:file	{	append	open	};	6

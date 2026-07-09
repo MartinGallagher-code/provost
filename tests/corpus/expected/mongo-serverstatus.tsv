@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	host	:	mongo-primary-01:27017	9
 2	version	:	7.0.5	9
 3	process	:	mongod	9
