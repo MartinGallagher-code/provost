@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: migrate 3 more (memcached/es-cat/bundle-list)
+Migrated three more bespokes with existing engine features — **390 → 387
+distinct strategy names**:
+- `memcached-stats` (`~sep` drops the `STAT` literal), `es-cat-allocation`
+  (9-col ES table), `bundle-list` (`~star` + `@unwrap`, `rowre` drops the
+  footer). Each byte-identical.
+- **Lesson recorded** (doc + harness): a `## Technique: yes` strategy is a
+  **generic multi-tool parser**, not a per-tool bespoke — `getconf` also tidies
+  `docker-diff`/`nats-stream-ls`, so migrating it 1:1 silently regressed those.
+  Reverted getconf and flatpak-remotes (the latter's `Name;Options` detect was
+  too greedy). Added `mig.sh technique <name>` and a step-0 check to the recipe.
+- Verified: extract 213/213, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: migrate 3 more tables (no new engine code)
 Migrated three more bespokes using existing engine features (plain table,
 `absorb`, `rowre`) — **393 → 390 distinct strategy names**:

@@ -64,6 +64,9 @@ _COLUMNAR_SPECS=(
   $'route-6\tKernel IPv6 routing\tDestination\tws\t-1\t7\tdestination,next_hop,flag,met,ref,use,iface'
   $'snap-connections\tPlug;Slot;Notes\tInterface\tws\t-1\t4\tinterface,plug,slot,notes'
   $'networkctl-lldp\tCHASSIS ID;PORT DESCRIPTION\tLINK\tws\t5\t6\tlink,chassis_id,system_name,caps,port_id,port_description\t1\t^eth[0-9]'
+  $'memcached-stats\tre:^STAT \t-\tws\t-1\t3\t~stat,key,value'
+  $'es-cat-allocation\tdisk.indices;disk.percent\tshards\tws\t-1\t9\tshards,disk_indices,disk_used,disk_avail,disk_total,disk_percent,host,ip,node'
+  $'bundle-list\tGems included by the bundle\tGems included by the bundle\tws\t-1\t3\t~star,name,version@unwrap\t1\t^ *[*]'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is

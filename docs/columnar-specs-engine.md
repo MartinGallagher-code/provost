@@ -109,6 +109,12 @@ tools; it was reverted.
 
 ## Recipe: migrate a bespoke into a spec
 
+0. **Check `## Technique:` in the bespoke header first** (`mig.sh technique
+   <name>`). A `Technique: yes` strategy is a **generic multi-tool parser**, not a
+   per-tool bespoke — it wins *other* corpus inputs too (e.g. `getconf` also
+   tidies `docker-diff` and `nats-stream-ls`). Migrating one 1:1 reproduces only
+   its own input and silently regresses the others (the golden run catches it as
+   failures on *unrelated* tools). Do **not** migrate `Technique: yes` strategies.
 1. **Probe** the bespoke's output to learn its columns and edge cases:
    `mig.sh probe <name>` (dev harness; shows raw + tidy).
 2. **Read** the bespoke `.sh` for any per-row filtering or value cleanup — if it
@@ -180,5 +186,6 @@ zypper-search, buildah-containers, lsmem, ss-tulnp, smartctl-attributes, mount,
 iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
 dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
 rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
-route-6, snap-connections, networkctl-lldp.
+route-6, snap-connections, networkctl-lldp, memcached-stats,
+es-cat-allocation, bundle-list.
 (See `_COLUMNAR_SPECS` for the authoritative list.)
