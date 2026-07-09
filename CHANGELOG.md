@@ -1,5 +1,17 @@
 # glean — Changelog
 
+## 2026-07-09 — columnar-specs: configurable record prefix; migrate crontab
+New engine feature **`prefix`** (spec field 10, default `entry`): some bespokes
+label records `jobN`/`commitN`/… instead of `entryN`. Migrated `crontab`
+(`job` prefix, `command@rest`, `rowre ^[^#]` drops the header comment) —
+byte-identical; **379 → 378 distinct strategy names**. crontab generic golden
+regenerated (clean `minute/hour/…/command` columns).
+- Reverted `git-log`: its `re:^[0-9a-f]{7} ` detect matched any hex-prefixed
+  line and hijacked 8 tools (7z, nvme-list, vagrant, vault-*, …) — a bare
+  `hash message` list has no distinguishing one-line signature.
+- Doc updated (field 10 `prefix`).
+- Verified: extract all-pass, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: migrate 8 more (nethogs…traceroute)
 Migrated eight more bespokes with existing engine features — **387 → 379
 distinct strategy names**:

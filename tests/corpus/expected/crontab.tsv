@@ -1,8 +1,8 @@
-n	m	h	dom	mon	dow	command	total_entries
-1	0	2	*	*	*	/usr/local/bin/backup.sh	7
-2	30	3	*	*	0	/usr/bin/find_/tmp_-type_f_-mtime_+7_-delete	7
-3	*/15	*	*	*	*	/opt/monitor/check.sh_>/dev/null_2>&1	7
-4	0	0	1	*	*	/usr/local/bin/rotate-logs.sh	7
-5	15	6	*	*	1-5	/home/martin/bin/report.py_--daily	7
-6	45	23	*	*	*	/usr/bin/rsync_-a_/data_/mnt/backup	7
-7	0	*/4	*	*	*	/usr/local/bin/sync-mirror.sh	7
+n	minute	hour	day_of_month	month	day_of_week	command
+1	0	2	*	*	*	/usr/local/bin/backup.sh
+2	30	3	*	*	0	/usr/bin/find /tmp -type f -mtime +7 -delete
+3	*/15	*	*	*	*	/opt/monitor/check.sh >/dev/null 2>&1
+4	0	0	1	*	*	/usr/local/bin/rotate-logs.sh
+5	15	6	*	*	1-5	/home/martin/bin/report.py --daily
+6	45	23	*	*	*	/usr/bin/rsync -a /data /mnt/backup
+7	0	*/4	*	*	*	/usr/local/bin/sync-mirror.sh

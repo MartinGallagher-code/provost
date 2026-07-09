@@ -25,7 +25,7 @@ Each entry of the `_COLUMNAR_SPECS` array is a single TAB-separated string
 (written with `$'…\t…'`):
 
 ```
-name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB> cols [<TAB> total [<TAB> rowre]]
+name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB> cols [<TAB> total [<TAB> rowre [<TAB> prefix]]]
 ```
 
 | # | Field | Meaning |
@@ -39,6 +39,7 @@ name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB
 | 7 | `cols` | comma-separated output column names, each optionally carrying a transform (see *Transforms*) |
 | 8 | `total` | optional; `1` (default) appends a `total_entries N` record, `0` omits it — match whatever the bespoke did |
 | 9 | `rowre` | optional **per-row accept regex**: a row is processed only if its raw line matches this bash regex. The engine's per-row structural guard, for outputs with footer/note lines that survive the `minreq` filter (e.g. gsutil `TOTAL:`, grafana's trailing note, a `--- ---` rule row). Empty ⇒ every row past the header. To use `rowre` with the default total, set field 8 to `1` explicitly. |
+| 10 | `prefix` | optional record-name prefix (default `entry`). Some bespokes label records `jobN` (crontab) / `commitN` (git-log) instead of `entryN` — set this to match byte-for-byte. To use it, fill fields 8 and 9 explicitly. |
 
 ### Detection (field 2)
 
@@ -188,5 +189,5 @@ dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
 rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
 route-6, snap-connections, networkctl-lldp, memcached-stats,
 es-cat-allocation, bundle-list, nethogs, slabtop, objdump-headers,
-iptables-save, ldconfig-p, perf-top, turbostat, traceroute.
+iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab.
 (See `_COLUMNAR_SPECS` for the authoritative list.)

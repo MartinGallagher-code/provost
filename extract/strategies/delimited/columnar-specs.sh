@@ -75,6 +75,7 @@ _COLUMNAR_SPECS=(
   $'perf-top\tre:^Samples:\tSymbol\tws\t-1\t4\toverhead,shared_object,~marker,symbol@rest\t1\t%'
   $'turbostat\tBzy_MHz\t-\tws\t-1\t10\tCore,CPU,Avg_MHz,Busy_pct,Bzy_MHz,TSC_MHz,IRQ,PkgTmp,PkgWatt,RAMWatt\t1\t^[0-9]'
   $'traceroute\ttraceroute to\thops max\tws\t-1\t9\thop,host,~ip,rtt1,~m1,rtt2,~m2,rtt3,~m3'
+  $'crontab\tdom mon dow\t-\tws\t-1\t6\tminute,hour,day_of_month,month,day_of_week,command@rest\t0\t^[^#]\tjob'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is
@@ -91,6 +92,9 @@ _cs_parse () {
     # outputs with footer/note lines that survive the minreq filter (e.g.
     # gsutil `TOTAL:`, grafana trailing note). Empty ⇒ every row past the header.
     _CS_ROWRE="${p[8]:-}"
+    # Field 10 (optional): record-name prefix (default "entry"). Some bespokes
+    # label records `jobN`/`commitN`/… instead of `entryN`; match byte-for-byte.
+    _CS_PREFIX="${p[9]:-entry}"
 }
 
 # Does the text match this spec's detect tokens (all present)? A plain token is a
@@ -190,7 +194,7 @@ strategy_extract () {
         # @line mode: emit the whole trimmed line as the sole column (no tokenizing)
         if [[ $line_mode -eq 1 ]]; then
             entry=$((entry + 1))
-            result+="entry${entry}.${cols[0]%%@*} $(_cs_trim "$line")"$'\n'
+            result+="${_CS_PREFIX}${entry}.${cols[0]%%@*} $(_cs_trim "$line")"$'\n'
             continue
         fi
         local -a tok=()
@@ -237,7 +241,7 @@ strategy_extract () {
             _cs_apply "${vals[$i]}" "${cols[$i]}"
             [[ "$_CS_SKIP" -eq 1 ]] && continue
             fname="${cols[$i]%%@*}"
-            result+="entry${entry}.${fname} ${_CS_OUT}"$'\n'
+            result+="${_CS_PREFIX}${entry}.${fname} ${_CS_OUT}"$'\n'
         done
     done <<< "$text"
     [[ $entry -gt 0 && "${_CS_TOTAL:-1}" != "0" ]] && result+="total_entries ${entry}"$'\n'
