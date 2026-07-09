@@ -1,5 +1,37 @@
 # glean — Changelog
 
+## 2026-07-09 — FIX: repoint/repair migrated tools' dedicated tests; revert crontab
+Caught a real regression: removing a bespoke leaves its dedicated
+`extract/tests/test_strategy_<tool>.sh` calling `-s <tool>` (now "Strategy not
+found"), which fails the CI-enforced extract suite. Only `mount`'s test had been
+repointed; later migrations hadn't — so `test_strategy_crontab.sh`,
+`_beegfs.sh`, `_tar_listing.sh`, and `_ls_l.sh` were red (and shipped that way in
+earlier commits). Fixes:
+- Repointed `beegfs`, `tar-listing`, and `ls-l` tests to `-s columnar-specs`.
+- **Reverted `crontab`**: its `## Sample` includes `SHELL=`/`MAILTO=` env-var
+  lines that the bespoke extracts but the job-only spec drops — the batch-7
+  byte-check used the corpus input (which lacks them), not the richer sample.
+  crontab bespoke + test + golden restored; **373 → 374 distinct names**.
+- Process note: verify each migration against the strategy's `## Sample`
+  (what `test_strategy_*.sh` exercises), not only the corpus input, and read the
+  extract suite's final `Overall:` line + exit code.
+- Verified: extract **213/213 (exit 0)**, golden 978/0, smoke 49/49, melt 8/8.
+
+## 2026-07-09 — columnar-specs: report the matched tool name (per-tool datasets)
+Fixed a latent issue affecting every columnar-migrated tool: `glean` names a
+dataset after the winning *strategy*, so all migrated tools collapsed to a single
+`columnar-specs` dataset (and different tools would reconcile/collide into it).
+Now `strategy_detect` sets `_STRATEGY_REPORT_NAME` to the matched tool name and
+the engine (`extract/lib/_discovery.sh`) uses it for the dispatch winner, the
+`matched` list, and the `STRAT-<name>` label — so `mount | glean` → dataset
+`mount`, `iostat -d | glean` → `iostat-d`, etc. Cleared before each strategy's
+detect so a name never leaks; set in `strategy_detect` (parent shell) because
+`strategy_extract` runs in a command-substitution subshell.
+- Files: `extract/strategies/delimited/columnar-specs.sh`,
+  `extract/lib/_discovery.sh`, `docs/columnar-specs-engine.md`.
+- `free` stays bespoke (smoke's canonical reconciliation/provenance example).
+- Verified: extract all-pass, corpus golden 978/0, smoke 49/49, melt 8/8.
+
 ## 2026-07-09 — columnar-specs: migrate 5 more (git-remote, w, dpkg -l, tar, beegfs)
 Migrated five more bespokes with existing engine features — **378 → 373 distinct
 strategy names**. Each byte-identical to its bespoke (verified against the
