@@ -67,6 +67,14 @@ _COLUMNAR_SPECS=(
   $'memcached-stats\tre:^STAT \t-\tws\t-1\t3\t~stat,key,value'
   $'es-cat-allocation\tdisk.indices;disk.percent\tshards\tws\t-1\t9\tshards,disk_indices,disk_used,disk_avail,disk_total,disk_percent,host,ip,node'
   $'bundle-list\tGems included by the bundle\tGems included by the bundle\tws\t-1\t3\t~star,name,version@unwrap\t1\t^ *[*]'
+  $'nethogs\tre:PID +USER +PROGRAM\tRECEIVED\tws\t-1\t7\tpid,user,program,dev,sent,received,unit'
+  $'slabtop\tOBJ/SLAB\tNAME\tws\t-1\t8\tobjs,active,use,obj_size,slabs,obj_per_slab,cache_size,name'
+  $'objdump-headers\tfile format\tAlgn\tws\t-1\t7\tidx,name,size,vma,lma,file_off,algn\t1\t^ *[0-9]'
+  $'iptables-save\tre:^-A \t-\tws\t-1\t3\t~a,chain,rule@rest\t1\t^-A '
+  $'ldconfig-p\tre: => \tlibs found\tws\t-1\t4\tsoname,info@unwrap,~arrow,path\t1\t => '
+  $'perf-top\tre:^Samples:\tSymbol\tws\t-1\t4\toverhead,shared_object,~marker,symbol@rest\t1\t%'
+  $'turbostat\tBzy_MHz\t-\tws\t-1\t10\tCore,CPU,Avg_MHz,Busy_pct,Bzy_MHz,TSC_MHz,IRQ,PkgTmp,PkgWatt,RAMWatt\t1\t^[0-9]'
+  $'traceroute\ttraceroute to\thops max\tws\t-1\t9\thop,host,~ip,rtt1,~m1,rtt2,~m2,rtt3,~m3'
 )
 
 # Split a spec string into the globals used by detect/extract. Field 7 (total) is

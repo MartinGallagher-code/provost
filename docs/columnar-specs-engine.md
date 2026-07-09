@@ -187,5 +187,6 @@ iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
 dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
 rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
 route-6, snap-connections, networkctl-lldp, memcached-stats,
-es-cat-allocation, bundle-list.
+es-cat-allocation, bundle-list, nethogs, slabtop, objdump-headers,
+iptables-save, ldconfig-p, perf-top, turbostat, traceroute.
 (See `_COLUMNAR_SPECS` for the authoritative list.)
