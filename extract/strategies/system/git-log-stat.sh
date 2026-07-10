@@ -2,8 +2,7 @@
 ## Name: git-log-stat
 ## Description: Extract per-file diffstat lines from `git log --stat`
 ## Version: 1.0
-## Priority: 22
-## Technique: yes
+## Priority: 13
 ## Sample: samples/git-log-stat/basic.txt
 
 # `git log --stat` prints commit blocks; each changed file gets a line:

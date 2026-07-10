@@ -1,0 +1,1 @@
+{"apiVersion":"v1","kind":"Pod","metadata":{"name":"api-6d9f7b","namespace":"prod","labels":{"app":"api","tier":"backend"}},"status":{"phase":"Running","podIP":"10.42.3.17","startTime":"2026-07-01T04:12:09Z"}}

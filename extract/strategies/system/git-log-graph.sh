@@ -3,7 +3,6 @@
 ## Description: Extract commits from `git log --graph --oneline`
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/git-log-graph/basic.txt
 
 # `git log --graph --oneline` draws an ASCII graph; commit lines carry a `*`

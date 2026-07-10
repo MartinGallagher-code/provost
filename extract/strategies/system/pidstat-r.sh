@@ -3,7 +3,6 @@
 ## Description: pidstat -r per-process memory stats → one tidy row per process
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/pidstat-r/basic.txt
 
 # `pidstat -r` prints a "Linux ..." banner, a blank line, a

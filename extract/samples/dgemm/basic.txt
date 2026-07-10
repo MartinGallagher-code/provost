@@ -1,7 +1,0 @@
-DGEMM Benchmark
-Matrix size: 1000 x 1000
-Iterations: 100
-
-N=1000  GFLOPS=45.67  Time=0.0438s
-Peak: 53.4 GFLOPS
-Efficiency: 85.5%

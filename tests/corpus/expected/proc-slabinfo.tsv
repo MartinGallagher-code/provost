@@ -1,7 +1,0 @@
-n	name	active_objs	num_objs	objsize	objperslab	pagesperslab	total_entries
-1	kmalloc-8192	128	128	8192	4	8	6
-2	kmalloc-1024	2048	2048	1024	32	8	6
-3	dentry	48210	48312	192	42	2	6
-4	inode_cache	30124	30240	600	54	8	6
-5	task_struct	412	420	9088	3	8	6
-6	buffer_head	102340	103104	104	39	1	6

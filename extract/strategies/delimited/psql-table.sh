@@ -3,7 +3,6 @@
 ## Description: Pipe-delimited box tables with a ---+--- separator (psql, mysql \G-less output)
 ## Version: 1.0
 ## Priority: 35
-## Technique: yes
 ## Sample: samples/psql-table/basic.txt
 
 # Is a line a box-table separator? Only '-', '+', and spaces, with at least one

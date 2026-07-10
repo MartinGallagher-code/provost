@@ -3,7 +3,6 @@
 ## Description: Extract status lines from fossil status output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/fossil-status/basic.txt
 
 strategy_detect () {

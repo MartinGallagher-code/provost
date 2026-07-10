@@ -3,7 +3,6 @@
 ## Description: Extract the Logical volume key/value block from lvdisplay -m (one wide record)
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/lvdisplay-m/basic.txt
 
 strategy_detect () {

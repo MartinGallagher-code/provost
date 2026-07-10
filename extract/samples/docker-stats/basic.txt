@@ -1,4 +1,0 @@
-CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
-abc123def456   web-app       2.50%     256MiB / 4GiB         6.25%     10.5MB / 2.3MB    50MB / 100MB      25
-def789abc012   redis-cache   0.15%     64MiB / 1GiB          6.25%     1.2MB / 500kB     5MB / 10MB        4
-ghi345jkl678   postgres-db   5.00%     512MiB / 2GiB         25.00%    25MB / 15MB       200MB / 1GB       50

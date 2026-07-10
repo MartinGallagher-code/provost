@@ -3,7 +3,6 @@
 ## Description: Extract pending changesets from `liquibase status` output (path::id::author)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/liquibase-status/basic.txt
 
 # `liquibase status` prints an "N changesets have not been applied ..." header

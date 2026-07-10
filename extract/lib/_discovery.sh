@@ -9,10 +9,10 @@
 
 # Read strategy metadata from file header (first 15 lines).
 # Sets globals: _META_NAME, _META_DESCRIPTION, _META_VERSION, _META_PRIORITY,
-#               _META_TECHNIQUE, _META_DEPRECATED
+#               _META_DEPRECATED
 read_strategy_metadata () {
     local filepath="$1"
-    _META_NAME="" _META_DESCRIPTION="" _META_VERSION="0" _META_PRIORITY="99" _META_TECHNIQUE="" _META_DEPRECATED=""
+    _META_NAME="" _META_DESCRIPTION="" _META_VERSION="0" _META_PRIORITY="99" _META_DEPRECATED=""
     local n=0
     while IFS= read -r _metaline; do
         n=$((n + 1))
@@ -22,10 +22,22 @@ read_strategy_metadata () {
             '## Description: '*) _META_DESCRIPTION="${_metaline#'## Description: '}" ;;
             '## Version: '*)     _META_VERSION="${_metaline#'## Version: '}" ;;
             '## Priority: '*)    _META_PRIORITY="${_metaline#'## Priority: '}" ;;
-            '## Technique: '*)   _META_TECHNIQUE="${_metaline#'## Technique: '}" ;;
             '## Deprecated: '*)  _META_DEPRECATED="${_metaline#'## Deprecated: '}" ;;
         esac
     done < "$filepath"
+}
+
+# A strategy is "generic" iff it lives in one of the format-level categories.
+# Generic = parses a FORMAT (aligned columns, key/value, JSON, YAML, ...),
+# never a specific tool's output. Classification is by directory, so it cannot
+# drift via a mistagged header: strategies/delimited/ and strategies/structured/
+# are generic; every other category is bespoke.
+_is_generic_strategy_file () {
+    local _parent="${1%/*}"
+    case "${_parent##*/}" in
+        delimited|structured) return 0 ;;
+        *) return 1 ;;
+    esac
 }
 
 # Build a priority-sorted list of strategy files from all strategy directories.
@@ -49,11 +61,11 @@ build_strategy_list () {
                 continue
             fi
             names_seen+="$sname"$'\n'
-            read_strategy_metadata "$sf"
-            # In --generic mode, skip strategies not tagged ## Technique: yes
-            if [[ "${_OPT_generic:-0}" -eq 1 && "${_META_TECHNIQUE:-}" != "yes" ]]; then
+            # In --generic mode, only the format-level categories participate
+            if [[ "${_OPT_generic:-0}" -eq 1 ]] && ! _is_generic_strategy_file "$sf"; then
                 continue
             fi
+            read_strategy_metadata "$sf"
             local _padded="000${_META_PRIORITY}"
             list+="${_padded: -3}|${_META_VERSION}|${sf}"$'\n'
         done
@@ -82,9 +94,9 @@ list_strategies () {
         local name="${strategy_file##*/}"
         name="${name%.sh}"
         read_strategy_metadata "$strategy_file"
-        local _tech_marker=""
-        [[ "${_META_TECHNIQUE:-}" == "yes" ]] && _tech_marker="[T]"
-        printf "  %-20s v%-6s p%-4s %-4s %s\n" "$name" "${_META_VERSION:-?}" "${_META_PRIORITY:-99}" "$_tech_marker" "${_META_DESCRIPTION:-No description}"
+        local _generic_marker=""
+        _is_generic_strategy_file "$strategy_file" && _generic_marker="[G]"
+        printf "  %-20s v%-6s p%-4s %-4s %s\n" "$name" "${_META_VERSION:-?}" "${_META_PRIORITY:-99}" "$_generic_marker" "${_META_DESCRIPTION:-No description}"
     done <<< "$sorted_list"
 }
 
@@ -134,7 +146,7 @@ search_strategies () {
 
         read_strategy_metadata "$strategy_file"
         # Build the haystack — fields used for matching
-        local haystack="${name} ${_META_NAME:-} ${_META_DESCRIPTION:-} ${_META_TECHNIQUE:-} ${category}"
+        local haystack="${name} ${_META_NAME:-} ${_META_DESCRIPTION:-} ${category}"
         if [[ "$case_sensitive" -eq 0 ]]; then
             haystack="${haystack,,}"
         fi
@@ -262,6 +274,87 @@ run_chain_strategies () {
     if [[ -n "$chain_output" ]]; then
         store "$chain_output" "STRAT-chain"
     fi
+}
+
+# --- Declarative tool hints -------------------------------------------------
+# extract/hints.tsv routes a recognized tool's output to an existing GENERIC
+# strategy, replacing a per-tool parser script with one data row. Line format
+# (TAB-separated, "#" comments and blank lines allowed):
+#
+#   tool <TAB> match-type <TAB> pattern <TAB> strategy
+#
+#   match-type: prefix   — first non-blank input line starts with pattern
+#               contains — pattern appears anywhere in the input
+#               regex    — the input matches the bash ERE pattern
+#
+# First matching row wins. The hinted strategy runs before auto-detection and
+# BYPASSES its own strategy_detect — the hint row IS the detection. If it
+# extracts nothing, normal auto-detection proceeds. The extraction reports the
+# TOOL name (via _STRATEGY_REPORT_NAME), so the dataset keeps its tool identity
+# without a bespoke parser script.
+
+# Match the input against hints.tsv.
+# Sets _HINT_TOOL and _HINT_STRATEGY on a match. Returns 0 on match, 1 otherwise.
+_match_hint () {
+    local text="$1"
+    _HINT_TOOL="" _HINT_STRATEGY=""
+    [[ "${_OPT_no_hints:-0}" -eq 1 ]] && return 1
+    [[ -f "${HINTS_FILE:-}" ]] || return 1
+    local _mh_first="" _mh_line
+    while IFS= read -r _mh_line; do
+        [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; break; }
+    done <<< "$text"
+    local tool mtype pattern strategy _rest
+    while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
+        [[ -z "$tool" || "$tool" == \#* ]] && continue
+        [[ -z "$pattern" || -z "$strategy" ]] && continue
+        case "$mtype" in
+            prefix)   [[ "$_mh_first" == "$pattern"* ]] || continue ;;
+            contains) [[ "$text" == *"$pattern"* ]] || continue ;;
+            regex)    [[ "$text" =~ $pattern ]] || continue ;;
+            *)        continue ;;
+        esac
+        _HINT_TOOL="$tool"
+        _HINT_STRATEGY="$strategy"
+        return 0
+    done < "$HINTS_FILE"
+    return 1
+}
+
+# Hint fast-path: on a hints.tsv match, run the hinted generic strategy first.
+# Returns: 1 = no hint fired / produced nothing (continue auto-detection),
+#          2 = hint produced output and the strategy cap was hit (stop).
+#          0 = hint produced output, no cap hit (continue loop; dedup applies).
+_run_hint_strategy () {
+    _match_hint "$text" || return 1
+    if ! find_strategy_file "$_HINT_STRATEGY"; then
+        _log_warn "hint '$_HINT_TOOL': strategy '$_HINT_STRATEGY' not found"
+        return 1
+    fi
+    # A hint may route to a bespoke strategy (detection routing), but --generic
+    # promises format-level parsers only — honor only generic targets there.
+    if [[ "${_OPT_generic:-0}" -eq 1 ]] && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
+        _log_debug "hint '$_HINT_TOOL': target '$_HINT_STRATEGY' is bespoke; skipped under --generic"
+        return 1
+    fi
+    read_strategy_metadata "$_FOUND_STRATEGY_FILE"
+    if ! source "$_FOUND_STRATEGY_FILE" 2>/dev/null; then
+        _log_warn "hint '$_HINT_TOOL': failed to source strategy '$_HINT_STRATEGY'"
+        return 1
+    fi
+    _log_debug "hint '$_HINT_TOOL' matched: forcing strategy '$_HINT_STRATEGY'"
+    _STRATEGY_CONFIDENCE=95
+    _STRATEGY_REPORT_NAME="$_HINT_TOOL"
+    local _had_output_before="$strategies_matched" _rhs_rc=0
+    _extract_and_store "$_HINT_STRATEGY" "${_META_VERSION:-0}" || _rhs_rc=$?
+    unset -f strategy_detect strategy_extract 2>/dev/null
+    while IFS= read -r _ _ _post_fn; do
+        case "$_post_fn" in _strat_*) unset -f "$_post_fn" 2>/dev/null ;; esac
+    done < <(declare -F)
+    _STRATEGY_REPORT_NAME=""
+    [[ $_rhs_rc -eq 2 ]] && return 2
+    [[ "$strategies_matched" -gt "$_had_output_before" ]] && return 0
+    return 1
 }
 
 # Resolve the sorted strategy list for the current run.
@@ -503,6 +596,16 @@ run_auto_strategies () {
     fi
     _parse_replay_spec
     _run_custom_delimiter
+
+    # Declarative hint fast-path (auto-detect runs only; --strategy and
+    # --replay pin their own strategy set).
+    if [[ -z "$_OPT_strategy" && -z "$_OPT_replay" ]]; then
+        local _hint_rc=0
+        _run_hint_strategy || _hint_rc=$?
+        if [[ $_hint_rc -eq 2 ]]; then
+            return 0
+        fi
+    fi
 
     # ENV-135: total count for progress display. Below the 20-strategy
     # threshold the work is fast enough that progress would be noise; we

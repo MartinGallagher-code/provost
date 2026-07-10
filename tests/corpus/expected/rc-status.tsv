@@ -1,7 +1,0 @@
-n	service	status	total_entries
-1	dbus	started	6
-2	sshd	started	6
-3	nginx	started	6
-4	cron	started	6
-5	ntpd	stopped	6
-6	haveged	started	6

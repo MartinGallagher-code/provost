@@ -1,9 +1,0 @@
-walltime_used 01:52:18
-job_id 54321.pbs-head
-job_name molecular_dynamics
-queue batch
-state R
-nodes 2:ppn=8
-walltime 04:00:00
-cput 01:45:30
-exit_status 0

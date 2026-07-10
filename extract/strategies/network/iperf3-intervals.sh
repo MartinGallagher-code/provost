@@ -3,7 +3,6 @@
 ## Description: Extract per-interval rows from `iperf3 -c` client output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/iperf3-intervals/basic.txt
 
 # `iperf3 -c` prints a "Connecting to host" banner, a stream header, then one row

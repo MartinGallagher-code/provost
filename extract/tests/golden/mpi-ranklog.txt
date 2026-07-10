@@ -1,6 +1,0 @@
-num_ranks 4
-total_rank_lines 19
-rank.0.lines 11
-rank.1.lines 4
-rank.2.lines 3
-rank.3.lines 1

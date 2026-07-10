@@ -3,7 +3,6 @@
 ## Description: Extract stable InnoDB metrics from SHOW ENGINE INNODB STATUS
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/mariadb-innodb-status/basic.txt
 
 # `SHOW ENGINE INNODB STATUS` prints sectioned free-form text with labelled

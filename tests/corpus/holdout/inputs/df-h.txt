@@ -1,0 +1,6 @@
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme1n1p3  1.8T  912G  801G  54% /
+/dev/nvme1n1p1  511M  6.1M  505M   2% /boot/efi
+tmpfs            32G  184M   32G   1% /dev/shm
+/dev/sdb1       3.6T  2.9T  554G  85% /srv/media
+nas:/exports    7.2T  5.1T  2.1T  71% /mnt/nas

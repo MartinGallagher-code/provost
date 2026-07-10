@@ -3,7 +3,6 @@
 ## Description: Extract TCP socket table rows from /proc/net/tcp
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/proc-net-tcp/basic.txt
 
 # /proc/net/tcp has a fixed header:

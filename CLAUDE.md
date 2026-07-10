@@ -44,7 +44,7 @@ preserving can also go in `CHANGELOG.md`.
 When you change `glean` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (33 checks)
+bash tests/smoke.sh                 # end-to-end (49 checks)
 bash transform/tests/test_melt.sh   # transform unit test (8 checks)
 ```
 
@@ -55,14 +55,18 @@ strategy), run that tree's suite:
 bash extract/tests/run_tests.sh     # strategy + engine suite (CI-enforced)
 ```
 
-The analyze suite (`analyze/tests/`) still ships tests for the `browse` /
-`dashboard` surfaces that glean intentionally does **not** include, so the raw
-`analyze/tests/run_tests.sh` is red out of the box. CI runs a filtered subset
-that skips those (and installs `gawk`) — see the `analyze-engine` job in
-`.github/workflows/ci.yml`; run analyze tests the same way if you touch `analyze/`.
+When you touch `analyze/`, run its suite the way CI does (it installs `gawk`
+first — see the `analyze-engine` job in `.github/workflows/ci.yml`):
+
+```bash
+ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh
+```
 
 Add or update tests to cover any behavior you change. New extract strategies
-ship with their own sample + golden fixtures under `extract/`.
+ship with their own sample + golden fixtures under `extract/`. Prefer, in
+order: improving a generic parser (`extract/strategies/delimited/` +
+`structured/`), adding a hint row (`extract/hints.tsv`), and only then a
+bespoke strategy — and validate hint rows with `tests/corpus/run.sh --golden`.
 
 ## Conventions
 

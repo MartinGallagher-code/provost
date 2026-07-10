@@ -3,7 +3,6 @@
 ## Description: Extract machines from `vagrant global-status` output (skips header/rule/footer)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/vagrant-global-status/basic.txt
 
 # `vagrant global-status` prints a header ("id name provider state directory"), a

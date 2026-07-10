@@ -1,7 +1,0 @@
-n	time	uid	pid	pct_usr	pct_system	pct_guest	pct_wait	pct_cpu	cpu	command	total_entries
-1	10:14:52	999	1843	2.00	0.99	0.00	0.10	2.99	3	mysqld	6
-2	10:14:52	33	9021	1.50	0.50	0.00	0.05	2.00	1	php-fpm	6
-3	10:14:52	999	2044	0.99	0.30	0.00	0.02	1.29	5	postgres	6
-4	10:14:52	1001	3310	0.80	0.20	0.00	0.11	1.00	0	java	6
-5	10:14:52	998	2891	0.40	0.10	0.00	0.00	0.50	2	redis-server	6
-6	10:14:52	0	774	0.10	0.05	0.00	0.00	0.15	6	containerd	6

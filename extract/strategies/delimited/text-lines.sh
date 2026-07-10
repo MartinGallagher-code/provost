@@ -3,7 +3,6 @@
 ## Description: Absolute last resort — each non-blank line becomes a one-column record (whole line)
 ## Version: 1.0
 ## Priority: 97
-## Technique: yes
 ## Sample: samples/text-lines/basic.txt
 
 # The final fallback, below even line-records (p96). When no columnar structure

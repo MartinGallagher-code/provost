@@ -3,7 +3,6 @@
 ## Description: `mysqladmin status` single line of "Key: value" pairs
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/mysqladmin-status/basic.txt
 
 # `mysqladmin status` prints one line of space-padded "Key: value" pairs whose

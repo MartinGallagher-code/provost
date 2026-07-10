@@ -1,2 +1,0 @@
-CONTAINER ID   NAME          CPU %     MEM USAGE / LIMIT     MEM %     NET I/O           BLOCK I/O         PIDS
-fa9b2c3d4e5f   nginx-proxy   0.05%     32MiB / 512MiB        6.25%     500kB / 200kB     2MB / 1MB         3

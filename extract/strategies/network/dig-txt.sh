@@ -3,7 +3,6 @@
 ## Description: Extract TXT answer records from `dig TXT` output
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/dig-txt/basic.txt
 
 # `dig TXT <name>` prints one answer per line in the ANSWER SECTION:

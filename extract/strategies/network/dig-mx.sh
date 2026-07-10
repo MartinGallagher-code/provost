@@ -3,7 +3,6 @@
 ## Description: Extract MX answer records from `dig MX` output
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/dig-mx/basic.txt
 
 # `dig MX <name>` prints one answer per line in the ANSWER SECTION:

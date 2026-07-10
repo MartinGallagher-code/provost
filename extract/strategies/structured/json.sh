@@ -3,7 +3,6 @@
 ## Description: Extract key/value pairs from JSON input, flattening nested objects with dot notation
 ## Version: 1.0
 ## Priority: 10
-## Technique: yes
 ## Sample: samples/json/benchmark.json
 
 strategy_detect () {

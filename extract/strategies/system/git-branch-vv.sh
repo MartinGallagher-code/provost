@@ -3,7 +3,6 @@
 ## Description: Extract branch rows from `git branch -vv`
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/git-branch-vv/basic.txt
 
 # `git branch -vv` prints one line per branch:

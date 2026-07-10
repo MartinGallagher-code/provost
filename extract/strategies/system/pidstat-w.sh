@@ -3,7 +3,6 @@
 ## Description: pidstat -w per-process context-switch stats → one tidy row per process
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/pidstat-w/basic.txt
 
 # `pidstat -w` prints a "Linux ..." banner, a blank line, a

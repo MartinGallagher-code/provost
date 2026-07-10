@@ -3,7 +3,6 @@
 ## Description: Tree-structured output (tree, pstree, npm ls) — one row per node
 ## Version: 1.0
 ## Priority: 50
-## Technique: yes
 ## Sample: samples/tree-view/basic.txt
 
 # A single generic strategy for the many commands that draw a hierarchy with

@@ -3,7 +3,6 @@
 ## Description: Extract per-file location tracking from `git annex list`
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/git-annex-list/basic.txt
 
 # `git annex list` prints a legend of remotes (here / |web / ||remote) then one

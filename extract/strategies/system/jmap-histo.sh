@@ -3,7 +3,6 @@
 ## Description: jmap -histo class histogram → one tidy row per class
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/jmap-histo/basic.txt
 
 # `jmap -histo` prints a " num  #instances  #bytes  class name" header, a rule of

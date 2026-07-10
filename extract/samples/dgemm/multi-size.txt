@@ -1,7 +1,0 @@
-DGEMM Benchmark - Multiple Sizes
-
-Size    GFLOPS    Time(s)
-500     38.23     0.0065
-1000    45.67     0.0438
-2000    48.92     0.3271
-4000    50.15     2.5612

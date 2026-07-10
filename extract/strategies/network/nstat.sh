@@ -3,7 +3,6 @@
 ## Description: Extract kernel network counters from `nstat` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/nstat/basic.txt
 
 # `nstat` prints a `#kernel` header line then one row per metric:

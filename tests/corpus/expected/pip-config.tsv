@@ -1,2 +1,2 @@
-n	global.index-url	global.timeout	global.trusted-host	install.no-cache-dir	install.user	total_entries
-1	https://pypi.org/simple	60	pypi.org	false	true	1
+global.index-url	global.timeout	global.trusted-host	install.no-cache-dir	install.user
+'https://pypi.org/simple'	'60'	'pypi.org'	'false'	'true'

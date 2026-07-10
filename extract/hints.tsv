@@ -1,0 +1,58 @@
+# glean extract — declarative tool hints
+#
+# One row routes a recognized tool's output to an existing strategy, replacing
+# a per-tool parser script. Consulted by the engine before strategy
+# auto-detection (disable with --no-hints). First matching row wins.
+#
+# Format (TAB-separated):
+#   tool <TAB> match-type <TAB> pattern <TAB> strategy
+#
+#   tool        dataset/report name for the match (the tool's identity);
+#               a family row may cover several tools with one shared name
+#   match-type  prefix   — first non-blank input line starts with pattern
+#               contains — pattern appears anywhere in the input
+#               regex    — input matches the bash ERE pattern (anchor ^ = start
+#               of the whole input)
+#   strategy    usually a generic strategy (strategies/delimited/ or
+#               strategies/structured/); a bespoke target acts as detection
+#               routing and is skipped under --generic
+#
+# Keep patterns structural (format shape), not sample-specific (literal names,
+# dates, versions) — a row should also match UNSEEN output of the same tool.
+# The corpus (tests/corpus/run.sh --golden) verifies rows do not misfire on
+# other tools.
+7z	prefix	   Date      Time    Attr	7z
+aptitude-search	regex	^[ipvc][ A]{3}[a-z0-9]	text-lines
+aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	aligned-columns
+borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
+cabal-freeze	prefix	constraints:	line-records
+cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+	text-lines
+dbmate-status	contains	Applied: 	dbmate-status
+dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	aligned-columns
+docker-buildx-ls	prefix	NAME/NODE	aligned-columns
+fwupdmgr-get-devices	contains	Device ID:	text-lines
+getconf	prefix	PAGE_SIZE	line-records
+git-config-list-show-origin	prefix	file:/	line-records
+git-lfs-ls-files	regex	^[0-9a-f]{10} [*-] 	line-records
+git-show-ref	regex	^[0-9a-f]{40} refs/	line-records
+hg-branches	regex	^[a-zA-Z0-9._-]+ +[0-9]+:[0-9a-f]{12}	line-records
+ip-tunnel	regex	^[a-z0-9@]+: [a-z]+/ip remote 	labeled-records
+kotlinc-version	prefix	info: kotlinc-jvm 	line-records
+lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
+lsusb-t	prefix	/:  Bus	text-lines
+mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
+nft-list-tables	regex	^table [^{]+$	line-records
+pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
+pip-deps	regex	^[A-Za-z0-9._-]+==[0-9]	line-records
+pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines
+poetry-show-tree	regex	^[a-z0-9._-]+ [0-9]+\.[0-9]+\.[0-9]+ [A-Z]	aligned-columns
+proc-buddyinfo	prefix	Node 0, zone	aligned-columns
+proc-locks	regex	^1: (POSIX|FLOCK|OFDLCK)	line-records
+proc-mounts	prefix	proc /proc proc 	aligned-columns
+proc-self-mountinfo	regex	^[0-9]+ [0-9]+ [0-9]+:[0-9]+ / /	aligned-columns
+promtool-query	regex	^[A-Za-z_0-9:]+\{[^}]*\} => 	prometheus-query
+smartctl-health	contains	overall-health self-assessment	block-records
+tc-filter-show	prefix	filter parent 	text-lines
+tc-qdisc	prefix	qdisc 	text-lines
+telegraf-test	regex	^> [a-z]+,[a-z]	aligned-columns
+ufw-status-numbered	regex	\[ *[0-9]+\] [0-9]+/(tcp|udp)	aligned-columns

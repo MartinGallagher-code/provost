@@ -1,5 +1,0 @@
-num_processes 8
-msglen_range 1 ... 4194304
-ring_bandwidth 3456.78
-random_bandwidth 2345.67
-b_eff_value 2901.23

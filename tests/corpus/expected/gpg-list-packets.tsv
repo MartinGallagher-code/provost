@@ -1,2 +1,0 @@
-n	version	pkey_0	pkey_1	keyid	version_2	digest	hashed	hashed_2	subpkt	total_entries
-1	4, algo 1, created 1699999999, expires 0	[2048 bits]	[17 bits]	A1B2C3D4E5F60718	4, created 1699999999, md5len 0, sigclass 0x13	algo 8, begin of digest 3a 8f	subpkt 33 len 21 (issuer fpr)	subpkt 2 len 4 (sig created 2023-11-14)	16 len 8 (issuer key ID A1B2C3D4E5F60718)	1

@@ -1,5 +1,0 @@
-[Wed Feb 12 08:15:22.341920 2025] [core:notice] [pid 1234] AH00094: Command line: '/usr/sbin/apache2'
-[Wed Feb 12 08:16:45.112033 2025] [core:error] [pid 1235] [client 10.0.0.55:48832] AH00126: Invalid URI in request GET /%FF HTTP/1.1
-[Wed Feb 12 08:17:01.998411 2025] [core:notice] [pid 1234] AH00051: child pid 1240 exit signal Segmentation fault (11)
-[Wed Feb 12 08:17:02.001234 2025] [proxy:error] [pid 1236] [client 192.168.1.100:52100] AH01114: HTTP: failed to make connection to backend: 127.0.0.1
-[Wed Feb 12 08:18:33.456789 2025] [ssl:error] [pid 1237] [client 172.16.0.12:44556] AH02032: Hostname provided via SNI and target URL are inconsistent

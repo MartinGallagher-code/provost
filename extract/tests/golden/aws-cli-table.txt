@@ -1,8 +1,0 @@
-line1.Instance i-abc123
-line1.Type t2.micro
-line1.State running
-line1.Zone us-east-1
-line2.Instance i-def456
-line2.Type t3.medium
-line2.State stopped
-line2.Zone us-west-2

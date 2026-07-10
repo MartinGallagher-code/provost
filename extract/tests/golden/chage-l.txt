@@ -1,8 +1,0 @@
-entry1.last_password_change Jan 01, 2026
-entry1.password_expires Apr 01, 2026
-entry1.password_inactive Apr 15, 2026
-entry1.account_expires never
-entry1.minimum_number_of_days_between_password_change 0
-entry1.maximum_number_of_days_between_password_change 90
-entry1.number_of_days_of_warning_before_password_expires 7
-total_entries 1

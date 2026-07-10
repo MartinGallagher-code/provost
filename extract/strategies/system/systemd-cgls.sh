@@ -3,7 +3,6 @@
 ## Description: Extract control-group nodes from `systemd-cgls` tree output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/systemd-cgls/basic.txt
 
 # `systemd-cgls` prints a control-group hierarchy: a "Control group /:" header

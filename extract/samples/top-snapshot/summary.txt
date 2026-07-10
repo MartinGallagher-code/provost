@@ -1,6 +1,0 @@
-Processes: 185 total, 1 running, 184 sleeping
-Load Avg: 0.52, 0.48, 0.45
-CPU usage: 5.1% user, 2.3% sys, 92.6% idle
-PhysMem: 8G used (2048M wired), 8G unused
-Networks: packets: 567890/345M in, 234567/123M out
-Disks: 123456/4G read, 67890/2G written

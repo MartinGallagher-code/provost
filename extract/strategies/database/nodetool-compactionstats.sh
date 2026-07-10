@@ -3,7 +3,6 @@
 ## Description: Extract active compaction rows from `nodetool compactionstats`
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/nodetool-compactionstats/basic.txt
 
 # `nodetool compactionstats` prints "pending tasks: N", then an aligned table

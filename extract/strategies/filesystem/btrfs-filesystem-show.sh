@@ -3,7 +3,6 @@
 ## Description: Extract per-device rows from `btrfs filesystem show` output
 ## Version: 1.0
 ## Priority: 27
-## Technique: yes
 ## Sample: samples/btrfs-filesystem-show/basic.txt
 
 strategy_detect () {

@@ -1,4 +1,4 @@
-n	pid	ppid	user	pri	ni	cpu	mem	rss	stat	command	total_entries
+n	PID	PPID	USER	PRI	NI	%CPU	%MEM	RSS	STAT	COMMAND	total_entries
 1	1843	1	mysql	19	0	24.3	8.1	662104	Ssl	mysqld	6
 2	9021	8990	www-data	19	0	12.7	3.4	278320	S	php-fpm	6
 3	2044	1	postgres	19	0	4.8	6.7	548016	Ss	postgres	6

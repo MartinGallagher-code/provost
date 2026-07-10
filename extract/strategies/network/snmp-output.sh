@@ -3,7 +3,6 @@
 ## Description: Extract OID/type/value records from snmpget and snmpwalk output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/snmp-output/basic.txt
 
 # snmpget and snmpwalk print the same line shape — `MIB::name.N = TYPE: value` —

@@ -1,0 +1,10 @@
+server:
+  host: 10.20.30.40
+  port: 9443
+  tls: true
+logging:
+  level: warn
+  file: /var/log/svc/app.log
+limits:
+  max_conns: 2048
+  timeout_s: 45

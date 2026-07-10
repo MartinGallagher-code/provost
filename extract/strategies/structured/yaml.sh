@@ -3,7 +3,6 @@
 ## Description: Extract key/value pairs from YAML, flattening nested keys with dot notation
 ## Version: 1.1
 ## Priority: 12
-## Technique: yes
 ## Sample: samples/yaml/basic.yaml
 
 strategy_detect () {

@@ -3,7 +3,6 @@
 ## Description: `pipx list` — one record per installed package (name, version)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/pipx-list/basic.txt
 
 # `pipx list` prints a "venvs are in …" / "apps are exposed …" preamble, then one

@@ -1,2 +1,0 @@
-n	service_api_log_level	service_api_max_connections	service_api_timeout	service_db_host	service_db_port	service_feature_beta_enabled	total_entries
-1	info	200	30s	db.internal.example.com	5432	true	1

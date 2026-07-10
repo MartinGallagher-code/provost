@@ -1,4 +1,0 @@
-Package_pip 23.0.1
-Package_setuptools 67.6.1
-Package_wheel 0.40.0
-Package_requests 2.31.0

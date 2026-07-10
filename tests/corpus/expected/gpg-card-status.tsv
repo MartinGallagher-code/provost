@@ -1,2 +1,0 @@
-n	Reader	Application_ID	Application_type	Version	Manufacturer	Serial_number	Name_of_cardholder	Language_prefs	Salutation	URL_of_public_key	Login_data	Signature_PIN	Key_attributes	Max_PIN_lengths	PIN_retry_counter	Signature_counter	total_entries
-1	Yubico YubiKey OTP+FIDO+CCID 00 00	D2760001240103040006123456780000	OpenPGP	3.4	Yubico	12345678	Martin Gallagher	en	Mr.	[not set]	mgallagher	not forced	rsa2048 rsa2048 rsa2048	127 127 127	3 0 3	42	1

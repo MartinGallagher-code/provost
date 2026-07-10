@@ -3,7 +3,6 @@
 ## Description: Extract PCI device tree lines from lspci -tv output (one record per device)
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/lspci-tv/basic.txt
 
 strategy_detect () {

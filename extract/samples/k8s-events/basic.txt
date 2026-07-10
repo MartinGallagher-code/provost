@@ -1,8 +1,0 @@
-LAST SEEN   TYPE      REASON      OBJECT              MESSAGE
-3m          Normal    Scheduled   pod/web-app-xyz     Successfully assigned default/web-app-xyz to node-1
-3m          Normal    Pulling     pod/web-app-xyz     Pulling image "nginx:latest"
-2m          Normal    Pulled      pod/web-app-xyz     Successfully pulled image "nginx:latest"
-2m          Normal    Created     pod/web-app-xyz     Created container nginx
-2m          Normal    Started     pod/web-app-xyz     Started container nginx
-1m          Warning   Unhealthy   pod/web-app-xyz     Readiness probe failed: connection refused
-30s         Normal    Killing     pod/api-server-abc  Stopping container api

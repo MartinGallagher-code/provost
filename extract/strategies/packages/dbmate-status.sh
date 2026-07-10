@@ -3,7 +3,6 @@
 ## Description: Extract migrations from `dbmate status` output ([X]/[ ] lines; skips Applied/Pending footer)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/dbmate-status/basic.txt
 
 # `dbmate status` prints one line per migration: "[X] <name>" (applied) or

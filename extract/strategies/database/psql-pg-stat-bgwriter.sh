@@ -3,7 +3,6 @@
 ## Description: Extract pg_stat_bgwriter fields from psql expanded output
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/psql-pg-stat-bgwriter/basic.txt
 
 # psql `\x` expanded output for pg_stat_bgwriter:

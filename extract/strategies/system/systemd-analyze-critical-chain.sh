@@ -3,7 +3,6 @@
 ## Description: Extract the boot critical chain from `systemd-analyze critical-chain`
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/systemd-analyze-critical-chain/basic.txt
 
 # `systemd-analyze critical-chain` prints a preamble, then the boot critical

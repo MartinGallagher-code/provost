@@ -3,7 +3,6 @@
 ## Description: Parse `loginctl list-seats` single-column seat list
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/loginctl-list-seats/basic.txt
 
 # `loginctl list-seats` prints a "SEAT" header, one seat id per line, a blank

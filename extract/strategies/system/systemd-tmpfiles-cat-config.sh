@@ -3,7 +3,6 @@
 ## Description: Parse `systemd-tmpfiles --cat-config` lines (type path mode user group age arg)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/systemd-tmpfiles-cat-config/basic.txt
 
 # `systemd-tmpfiles --cat-config` concatenates tmpfiles.d fragments. Comment

@@ -1,7 +1,0 @@
-n	name	state	description	total_entries
-1	abrt_anon_write	off	Allow_ABRT_to_modify_public_files_used_for_public_file_transfer_services.	6
-2	antivirus_can_scan_system	on	Allow_antivirus_to_scan_system	6
-3	auditadm_exec_content	on	Allow_auditadm_to_exec_content	6
-4	httpd_can_network_connect	off	Allow_HTTPD_scripts_and_modules_to_connect_to_the_network	6
-5	nfs_export_all_rw	on	Allow_nfs_to_export_all_read/write	6
-6	samba_enable_home_dirs	off	Allow_samba_to_enable_home_directories	6

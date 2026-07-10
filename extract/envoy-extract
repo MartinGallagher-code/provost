@@ -35,6 +35,8 @@ set -o nounset
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STRATEGIES_DIR="$SCRIPT_DIR/strategies"
+# Declarative tool->strategy routing table (see _discovery.sh for the format).
+HINTS_FILE="${MFE_HINTS_FILE:-$SCRIPT_DIR/hints.tsv}"
 if [[ -r "$SCRIPT_DIR/../lib/envoy_version.sh" ]]; then
     # shellcheck disable=SC1091
     source "$SCRIPT_DIR/../lib/envoy_version.sh"
@@ -176,7 +178,8 @@ Filtering & Selection:
   --rename 'old=new,...'  Rename fields after extraction
   --no-dedup              Skip deduplication of fields across strategies
   --aggregate             Compute count/min/max/sum/avg for numeric fields
-  --generic               Use only fundamental technique strategies
+  --generic               Use only the generic format strategies (delimited/structured)
+  --no-hints              Skip the declarative hints.tsv tool-routing table
 
 Advanced:
   -c                      Output a fully-qualified command line for replay
@@ -262,6 +265,7 @@ _OPT_max_input_size=52428800
 _OPT_validate_strategy=""
 _OPT_validate_all=0
 _OPT_generic=0
+_OPT_no_hints=0
 _OPT_batch=0
 _OPT_batch_summary=0
 _OPT_explain=0
@@ -385,6 +389,8 @@ while [[ $# -gt 0 ]]; do
             envoy_pager_disable; shift ;;
         --generic)
             _OPT_generic=1; shift ;;
+        --no-hints)
+            _OPT_no_hints=1; shift ;;
         --batch)
             _OPT_batch=1; shift ;;
         --batch-summary)

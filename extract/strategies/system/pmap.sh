@@ -3,7 +3,6 @@
 ## Description: Extract memory mapping rows from `pmap <pid>` output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/pmap/basic.txt
 
 strategy_detect () {

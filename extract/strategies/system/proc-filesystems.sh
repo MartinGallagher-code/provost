@@ -3,7 +3,6 @@
 ## Description: Extract supported filesystem types from /proc/filesystems
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/proc-filesystems/basic.txt
 
 # /proc/filesystems lists one filesystem per line, tab-separated: an optional

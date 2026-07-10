@@ -3,7 +3,6 @@
 ## Description: Extract accepted/preferred cipher rows from sslscan output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/sslscan/basic.txt
 
 strategy_detect () {

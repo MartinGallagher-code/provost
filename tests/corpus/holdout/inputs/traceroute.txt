@@ -1,0 +1,5 @@
+traceroute to internal.corp (172.20.1.9), 30 hops max, 60 byte packets
+ 1  fw01.corp (172.16.0.1)  0.301 ms  0.290 ms  0.276 ms
+ 2  * * *
+ 3  core-rtr (172.18.0.1)  1.822 ms  1.799 ms  1.786 ms
+ 4  internal.corp (172.20.1.9)  2.410 ms  2.377 ms  2.399 ms

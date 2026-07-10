@@ -3,7 +3,6 @@
 ## Description: Extract per-protocol counters from `netstat -s` grouped statistics
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/netstat-s/basic.txt
 
 # `netstat -s` groups counters under protocol headers:

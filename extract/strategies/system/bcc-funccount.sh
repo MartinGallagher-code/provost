@@ -3,7 +3,6 @@
 ## Description: bcc funccount FUNC/COUNT table → one tidy row per function
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/bcc-funccount/basic.txt
 
 # bcc's `funccount` prints a "Tracing N functions ..." line, a "^C" interrupt

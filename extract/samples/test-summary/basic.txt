@@ -1,9 +1,0 @@
-============================= test session starts ==============================
-platform darwin -- Python 3.11.0, pytest-7.4.0
-collected 45 items
-
-tests/test_engine.py ......................                              [ 48%]
-tests/test_strategy.py ...................                               [ 91%]
-tests/test_edge.py ....                                                 [100%]
-
-============================== 42 passed, 2 failed, 1 skipped in 3.45s ===============================

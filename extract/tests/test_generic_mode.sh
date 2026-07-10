@@ -245,13 +245,13 @@ test_generic_empty_input_no_crash () {
 }
 
 # ---------------------------------------------------------------------------
-# --list-strategies shows [T] marker for technique-tagged strategies
+# --list-strategies shows [G] marker for generic (delimited/structured) strategies
 # ---------------------------------------------------------------------------
 
-test_generic_list_strategies_shows_T_marker () {
+test_generic_list_strategies_shows_G_marker () {
     local output
     output=$(run_mfe --list-strategies)
-    assert_contains "$output" "[T]" "--list-strategies should show [T] marker for technique strategies"
+    assert_contains "$output" "[G]" "--list-strategies should show [G] marker for generic strategies"
 }
 
 # ---------------------------------------------------------------------------
@@ -372,7 +372,7 @@ run_test "generic: works with --sort"                            test_generic_wi
 run_test "generic: works with --min-confidence"                  test_generic_with_min_confidence
 run_test "generic: works with --count"                           test_generic_with_count
 run_test "generic: empty input exits 0"                          test_generic_empty_input_no_crash
-run_test "generic: --list-strategies shows [T] marker"           test_generic_list_strategies_shows_T_marker
+run_test "generic: --list-strategies shows [G] marker"           test_generic_list_strategies_shows_G_marker
 run_test "technique: _tech_kv_colon basic"                       test_technique_kv_colon_basic
 run_test "technique: _tech_kv_colon URL skip"                    test_technique_kv_colon_url_skip
 run_test "technique: _tech_kv_equals skip comparisons"           test_technique_kv_equals_skip_comparisons

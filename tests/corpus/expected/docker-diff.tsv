@@ -1,4 +1,4 @@
-n	name	value	total_entries
+n	A	B	total_entries
 1	C	/etc	12
 2	C	/etc/nginx	12
 3	A	/etc/nginx/conf.d/custom.conf	12

@@ -3,7 +3,6 @@
 ## Description: `biosdecode` SMBIOS entry-point block (address/length/counts snapshot)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/biosdecode/basic.txt
 
 # `biosdecode` prints entry-point structures ("SMBIOS x.y present." followed by

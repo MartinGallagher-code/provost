@@ -3,7 +3,6 @@
 ## Description: Extract version fields from `elixir --version` banner
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/elixir-version/basic.txt
 
 # `elixir --version` prints an Erlang/OTP line ("Erlang/OTP 26 [erts-14.1.1] ...")

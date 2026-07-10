@@ -1,7 +1,7 @@
-n	name	start	len	type	params	total_entries
-1	vg_sys-root	0	104857600	linear	8:2 2048	6
-2	vg_sys-swap	0	16777216	linear	8:2 104859648	6
-3	vg_data-pool0_tmeta	0	131072	linear	8:17 2048	6
-4	vg_data-pool0_tdata	0	125829120	linear	8:17 133120	6
-5	vg_data-pool0-tpool	0	125829120	thin-pool	253:2 253:3 128 32768 1 skip_block_zeroing	6
-6	vg_data-vol_backup	0	83886080	thin	253:4 1	6
+n	A	B	C	D	E	F	total_entries
+1	vg_sys-root:	0	104857600	linear	8:2	2048	6
+2	vg_sys-swap:	0	16777216	linear	8:2	104859648	6
+3	vg_data-pool0_tmeta:	0	131072	linear	8:17	2048	6
+4	vg_data-pool0_tdata:	0	125829120	linear	8:17	133120	6
+5	vg_data-pool0-tpool:	0	125829120	thin-pool	253:2	253:3_128_32768_1_skip_block_zeroing	6
+6	vg_data-vol_backup:	0	83886080	thin	253:4	1	6

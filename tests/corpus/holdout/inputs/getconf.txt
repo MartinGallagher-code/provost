@@ -1,0 +1,5 @@
+PAGE_SIZE                          16384
+_NPROCESSORS_ONLN                  12
+LONG_BIT                           64
+OPEN_MAX                           1048576
+LEVEL1_DCACHE_LINESIZE             128

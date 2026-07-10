@@ -42,18 +42,8 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y gawk
           sudo update-alternatives --set awk /usr/bin/gawk
-      - name: run engine tests (excluding tests for un-vendored browse/dashboard)
-        run: |
-          fail=0
-          for t in analyze/tests/test_*.sh; do
-            case "$(basename "$t")" in
-              test_browse_*|test_dashboard_*|test_help_overlay.sh|test_mdx.sh) continue ;;
-            esac
-            if ! ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash "$t" >/tmp/out 2>&1; then
-              echo "::error::analyze test failed: $(basename "$t")"; tail -5 /tmp/out; fail=1
-            fi
-          done
-          exit $fail
+      - name: run engine tests
+        run: ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh
 
   docs:
     name: docs present

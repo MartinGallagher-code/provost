@@ -3,7 +3,6 @@
 ## Description: Extract field names and values from CSV files (comma-delimited with header row)
 ## Version: 2.0
 ## Priority: 14
-## Technique: yes
 ## Sample: samples/csv/basic.csv
 
 strategy_detect () {

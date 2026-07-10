@@ -3,7 +3,6 @@
 ## Description: Extract dependency lines from `pnpm why` tree output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/pnpm-why/basic.txt
 
 # `pnpm why` prints a project banner ("<name>@<ver> <path>"), a "dependencies:"

@@ -3,7 +3,6 @@
 ## Description: Extract MX records from `nslookup -type=mx` output
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/nslookup_mx/basic.txt
 
 # `nslookup -type=mx <domain>` prints the Server/Address banner, then one line

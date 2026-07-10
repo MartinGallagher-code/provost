@@ -1,8 +1,8 @@
 # Handoff — EnvoyExtract/strategies/delimited
 
-## Status: Complete (8 strategies, all tagged Technique: yes)
+## Status: Complete — every strategy in this directory is generic by location
 
-Delimiter-based and record-structured text format strategies. All 8 are tagged with `## Technique: yes` and are included in `--generic` mode as fundamental extraction techniques.
+Delimiter-based and record-structured text format strategies. Generic mode is directory-based: everything in `strategies/delimited/` (and `strategies/structured/`) runs under `envoy-extract --generic`; nothing else does.
 
 ## Strategies (8)
 
@@ -10,7 +10,7 @@ aligned-columns, blank-line-records, colons, equals, fixed-width, indented-hiera
 
 ## Generic Mode
 
-All 8 strategies in this category are tagged `## Technique: yes` and run under `envoy-extract --generic`. They implement fundamental text parsing patterns that apply broadly across unknown formats.
+Every strategy in this category runs under `envoy-extract --generic` by virtue of its location. They implement fundamental text parsing patterns that apply broadly across unknown formats — a strategy that keys on one tool's output does not belong here.
 
 ## Next Steps
 

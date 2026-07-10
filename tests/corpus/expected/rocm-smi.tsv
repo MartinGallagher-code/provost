@@ -1,5 +1,0 @@
-n	gpu	temp	avgpwr	sclk	mclk	fan	perf	pwrcap	vram_pct	gpu_pct	total_entries
-1	0	41.0c	35.0W	300Mhz	1200Mhz	21.96%	auto	290.0W	12%	0%	4
-2	1	44.0c	38.0W	300Mhz	1200Mhz	22.75%	auto	290.0W	15%	0%	4
-3	2	39.0c	33.0W	300Mhz	1200Mhz	20.00%	auto	290.0W	8%	0%	4
-4	3	42.0c	36.0W	300Mhz	1200Mhz	23.14%	auto	290.0W	11%	0%	4

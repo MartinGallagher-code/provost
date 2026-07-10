@@ -1,5 +1,0 @@
-matrix_size 1000
-gflops 45.67
-time_seconds 0.0438
-peak_gflops 53.4
-efficiency 85.5%

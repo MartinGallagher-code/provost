@@ -1,0 +1,4 @@
+root:x:0:0:root:/root:/bin/bash
+prometheus:x:998:996:Prometheus daemon:/var/lib/prometheus:/usr/sbin/nologin
+alice:x:1004:1004:Alice Nguyen:/home/alice:/bin/zsh
+builder:x:1200:1200::/srv/builder:/bin/sh

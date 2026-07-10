@@ -1,2 +1,0 @@
-n	Seal_Type	Initialized	Sealed	Total_Shares	Threshold	Version	Build_Date	Storage_Type	Cluster_Name	Cluster_ID	HA_Enabled	HA_Cluster	HA_Mode	total_entries
-1	shamir	true	false	5	3	1.15.4	2024-01-04T10:57:13Z	raft	vault-cluster-8f2a1b3c	1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d	true	https://10.0.1.5:8201	active	1

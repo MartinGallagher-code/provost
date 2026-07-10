@@ -3,7 +3,6 @@
 ## Description: Extract NUMA policy settings from `numactl --show` output
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/numactl-show/basic.txt
 
 # `numactl --show` prints one setting per line:

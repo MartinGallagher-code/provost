@@ -3,7 +3,6 @@
 ## Description: Parse a top-level JSON array from cloud CLIs (az/gcloud list) — one record per element
 ## Version: 1.0
 ## Priority: 8
-## Technique: yes
 ## Sample: samples/cloud-json-list/basic.txt
 
 # Merged parser for cloud-CLI `list --format=json` commands that emit a top-level

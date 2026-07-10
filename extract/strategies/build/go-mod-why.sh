@@ -3,7 +3,6 @@
 ## Description: Extract the import path chain from `go mod why` output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/go-mod-why/basic.txt
 
 # `go mod why` prints "# <module>" comment headers followed by the import path

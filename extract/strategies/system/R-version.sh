@@ -3,7 +3,6 @@
 ## Description: Extract version fields from `R --version` banner
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/R-version/basic.txt
 
 # `R --version` opens with 'R version 4.3.2 (2023-10-31) -- "Eye Holes"' and a

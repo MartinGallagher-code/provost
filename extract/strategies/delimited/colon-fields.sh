@@ -3,7 +3,6 @@
 ## Description: Colon-delimited records (/etc/passwd, /etc/group, getent, fstab-ish) → one row per line
 ## Version: 1.0
 ## Priority: 48
-## Technique: yes
 ## Sample: samples/colon-fields/basic.txt
 
 # Classic colon-delimited tables: `root:x:0:0:root:/root:/bin/bash`. Distinct from

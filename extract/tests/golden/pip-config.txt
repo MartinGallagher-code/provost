@@ -1,6 +1,0 @@
-entry1.global.index-url https://pypi.org/simple
-entry1.global.timeout 60
-entry1.global.trusted-host pypi.org
-entry1.install.no-cache-dir false
-entry1.install.user true
-total_entries 1

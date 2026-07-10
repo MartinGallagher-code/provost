@@ -3,7 +3,6 @@
 ## Description: Extract data from tables with separator lines (---, ===, etc.)
 ## Version: 1.0
 ## Priority: 45
-## Technique: yes
 ## Sample: samples/vertical-line/benchmark.txt
 
 strategy_detect () {

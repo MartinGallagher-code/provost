@@ -1,7 +1,0 @@
-n	host	keytype	total_entries
-1	host1.example.com	ssh-rsa	6
-2	host1.example.com	ssh-ed25519	6
-3	host2.example.com	ssh-rsa	6
-4	host2.example.com	ecdsa-sha2-nistp256	6
-5	192.168.1.10	ssh-ed25519	6
-6	gitlab.internal	ssh-rsa	6

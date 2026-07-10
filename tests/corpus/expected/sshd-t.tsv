@@ -1,2 +1,0 @@
-n	port	addressfamily	listenaddress	permitrootlogin	pubkeyauthentication	passwordauthentication	challengeresponseauthentication	kbdinteractiveauthentication	usepam	x11forwarding	maxauthtries	maxsessions	clientaliveinterval	clientalivecountmax	loglevel	ciphers	macs	kexalgorithms	total_entries
-1	22	any	0.0.0.0:22	no	yes	no	no	no	yes	no	4	10	300	2	VERBOSE	chacha20-poly1305@openssh.com,aes256-gcm@openssh.com	hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com	curve25519-sha256,diffie-hellman-group16-sha512	1

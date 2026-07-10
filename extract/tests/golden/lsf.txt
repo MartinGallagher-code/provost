@@ -1,6 +1,0 @@
-job_id 204851
-stat DONE
-queue normal
-from_host login02
-exec_host compute05
-job_name protein_fold

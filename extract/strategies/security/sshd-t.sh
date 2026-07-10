@@ -3,7 +3,6 @@
 ## Description: Extract effective sshd config from `sshd -T` (lowercase `key value` per line)
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/sshd-t/basic.txt
 
 # `sshd -T` dumps the effective server config, one directive per line as

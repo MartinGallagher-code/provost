@@ -1,6 +1,0 @@
-n	path	changes	total_entries
-1	src/login.py	24 +++++++++++++++++++----	5
-2	templates/login.html	12 ++++++++++++	5
-3	tests/test_login.py	31 +++++++++++++++++++++++++++++++	5
-4	config/loader.py	42 +++++++++++++++++++++-----------------------	5
-5	README.md	6 +++---	5

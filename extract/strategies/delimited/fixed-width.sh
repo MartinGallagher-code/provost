@@ -3,7 +3,6 @@
 ## Description: Fixed-width column format with header/separator
 ## Version: 1.0
 ## Priority: 30
-## Technique: yes
 ## Sample: samples/fixed-width/basic.txt
 
 strategy_detect () {

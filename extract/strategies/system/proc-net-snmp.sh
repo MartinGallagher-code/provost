@@ -3,7 +3,6 @@
 ## Description: Extract per-protocol SNMP counters from /proc/net/snmp
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/proc-net-snmp/basic.txt
 
 # /proc/net/snmp is a sequence of header/value line pairs, one pair per protocol:

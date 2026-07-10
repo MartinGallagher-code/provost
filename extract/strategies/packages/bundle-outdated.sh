@@ -2,8 +2,7 @@
 ## Name: bundle-outdated
 ## Description: Extract outdated gems from `bundle outdated` output (skips fetch preamble + header)
 ## Version: 1.0
-## Priority: 26
-## Technique: yes
+## Priority: 12
 ## Sample: samples/bundle-outdated/basic.txt
 
 # `bundle outdated` prints a "Fetching gem metadata..." / "Resolving

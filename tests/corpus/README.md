@@ -2,7 +2,8 @@
 
 A curated corpus of **common Linux tool outputs** plus a batch harness, used to
 drive glean toward its design goal: turn any tool output into tidy data with a
-**minimum of strategies** — ideally the ~12 generic parsers, no per-tool rule.
+**minimum of strategies** — ideally only the generic format parsers plus
+declarative hint rows, no per-tool parser code.
 
 - `inputs/<tool>.txt` — a representative captured output for each tool. These are
   the regression inputs; keep them stable.
@@ -40,68 +41,47 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**1050 tools tested; all 1050 tidy.** See [`COVERAGE.md`](COVERAGE.md) for the live
-per-tool list. The corpus grew in five hundreds: core sysadmin; git/VCS, language
-runtimes, binutils, databases, monitoring, cloud/k8s, security/net; Kubernetes/
-cloud/IaC, containers, deeper networking, systemd/storage trees, process/perf &
-security, package managers, language/hardware/DB; then two more hundreds pushing
-further into extended networking, containers/k8s, storage (LVM/ZFS/btrfs), process
-& `/proc`, package managers, databases, security/auth, hardware, systemd/services,
-and VCS/cloud/IaC. The bulk are tidied by the generic structural parsers; the tail
-of genuinely idiosyncratic formats (sysstat/`/proc` stat tables, DB Unicode/box
-tables, DNS answers, tree/topology dumps, and aligned key/value snapshots) get a
-targeted format-family parser.
+**1040 tools tested; all 1040 tidy** — ✅ 838 by a generic parser via
+auto-detection, ✅ʰ 37 by a generic parser routed by a hint row, ✅ᵇ 165 by a
+bespoke strategy. See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
-The 24 gaps in the third 100 were closed the same way — one new generic parser
-plus a few refinements, and bespoke parsers only where the format is genuinely
-idiosyncratic. New generic: `colon-fields` (colon-delimited records like
-`/etc/passwd`/`group`/`getent`). Generic refinements: `aligned-columns` now defers
-pure key/value blocks (`pacman -Qi` → `colons`, `systemctl show` → `equals`) and
-collapses `#`-comment headers (`conda list`, `opam list`); `text-lines` accepts a
-lone single-token line (`getenforce`); `sqlite-output` ignores `|__` tree glyphs
-(`lsusb -t`); `pkg-config` defers all-caps header tables (`prlimit`/`aws`/`who`).
-Bespoke (19): storage trees `zpool-status`/`btrfs-filesystem-show`/`multipath-ll`/
-`lsusb-t`; grouped network `netstat-s`/`nft-list-ruleset`/`ip-maddr`/`rfkill-list`/
-`bridge-fdb`; `vault-status`, `memcached-stats`, `pmap`, `numastat`,
-`zypper-search`, and the list/footer tools `arping`/`bundle-list`/`php-modules`/
-`go-list`/`getconf`.
+Coverage tiers, in order of preference:
 
-The second 100's last 31 gaps were closed earlier with format-family parsers:
-`psql-table` (box tables with `---+---` separators), `version-string`
-(`node -v`, `cmake --version`), the monitoring cluster
-(`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`, `perf-counters`),
-binutils/packages (`objdump-headers`/`readelf-sections`/`ldconfig-p`/`pkg-config`/
-`gem-list`/`composer-show`), network/VCS/security (`arp-scan`/`aws-s3-ls`/`host`/
-`mtr-report`/`git-remote`/`lastb`/`gpg-list-keys`/`chage-l`), and `text-lines`
-(the last-resort one-column dump for ragged text like `strings`).
+1. **Generic (✅)** — one of the ~28 format-level parsers in
+   `extract/strategies/delimited/` and `extract/strategies/structured/` (led by
+   `aligned-columns`, `line-records`, `psql-table`, `colons`, `text-lines`,
+   `key-value`, `indented-hierarchy`, `yaml`, …) detects and tidies the output
+   with no per-tool knowledge at all. This is the tier that generalizes to
+   unseen tools.
+2. **Hint row (✅ʰ)** — the format is parseable by a generic strategy but
+   auto-detection picks the wrong one, so one TAB-separated data row in
+   `extract/hints.tsv` (tool, signature, target strategy) routes it. A hint is
+   per-tool *data*, not per-tool *code*: signatures are structural (format
+   shape), so they also match unseen output of the same tool.
+3. **Bespoke (✅ᵇ)** — a per-tool strategy script, kept only where the format
+   is genuinely idiosyncratic (sysstat banners, DNS answer sections, storage
+   trees, `/proc` stat tables, grouped network stats, …) or where the generic
+   parse is shape-tidy but qualitatively worse (`free`, `lvdisplay`,
+   `mysqladmin-status` — verified by the golden-quality audit). Every bespoke
+   strategy that survived is the proven full-mode winner for at least one
+   corpus input; everything else was deleted.
 
-The generic parsers (led by `aligned-columns` with its header/headerless/two-line
-modes, plus `line-records`, `colons`, `colon-fields`, `yaml`, `key-value`,
-`equals`, `indented-hierarchy`, `bracket-log`, `inline-kv`, `labeled-records`,
-`tree-view`, `vertical-line`, `psql-table`, `version-string`, and the last-resort
-`text-lines`) carry the bulk; the idiosyncratic-format ones are genuinely idiosyncratic
-formats —
-`mpstat`/`sar`/`pidstat` (sysstat banners), `ping`/`traceroute`/`w`,
-`dmidecode`/`lspci`/`uname`/`uptime`, the monitoring cluster
-(`perf-top`/`turbostat`/`slabtop`/`iotop`/`iftop`/`nethogs`/`perf-counters`),
-binutils (`objdump-headers`/`readelf-sections`), and a handful of
-network/VCS/security tools — where a format-family parser is warranted.
+There is also a **held-out generalization set** — [`holdout/`](holdout/): a
+second, *different* output per tool (other hosts, versions, values, flags)
+with no goldens, judged on tidy shape only, the way an unseen capture would
+be. `bash tests/corpus/holdout/run.sh` runs it and attributes each win to a
+tier; new entries should land generic/hint, not bespoke. This is the measure
+of generalization (the main corpus, with its frozen fixtures, only measures
+regression).
+
+New tools added to the corpus should be checked against the generic parsers
+first (`run.sh`); then try a hint row; reach for a bespoke strategy only when
+no generic strategy produces a correct tidy shape even when forced
+(`envoy-extract --strategy <name>`).
 
 The design principle holds: the bulk of common tool output collapses onto a
 handful of structural parsers, not one rule per tool. The corpus includes varied
 output for the same tool (`free`/`free -h`, `df -h`/`df -i`, `ps aux`/`ps -ef`).
-
-### Not yet tidy — none
-
-All 1050 tools are tidy (`run.sh --coverage` shows 0 ⏳). New tools added to the
-corpus should first be checked against the generic parsers (`run.sh`); reach for
-a bespoke strategy only when the format is genuinely idiosyncratic and no generic
-parser produces a correct tidy shape.
-
-Notes: `docker ps` columns are approximate (spaces inside COMMAND/STATUS make
-whitespace splitting imperfect); `free`/`ip route`/`lsusb` come out
-one-row-per-record with slightly rough column labels but pass the tidy shape
-check.
 
 The corpus makes coverage measurable and regression-proof: `run.sh --golden`
 diffs each tool's tidy output against a frozen golden, and the full extract

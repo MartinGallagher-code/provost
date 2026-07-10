@@ -3,7 +3,6 @@
 ## Description: Extract version fields from `swift --version` banner
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/swift-version/basic.txt
 
 # `swift --version` prints "Apple Swift version 5.9.2 (swiftlang-... clang-...)"

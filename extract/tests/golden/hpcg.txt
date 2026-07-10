@@ -1,7 +1,0 @@
-problem_size 104 x 104 x 104
-iterations 50
-time_seconds 62.3245
-gflops 3.45678
-scaled_residual 2.34567e-15
-validity VALID
-memory 1.23_GB

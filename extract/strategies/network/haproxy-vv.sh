@@ -3,7 +3,6 @@
 ## Description: Extract build/settings key-values from `haproxy -vv`
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/haproxy-vv/basic.txt
 
 # `haproxy -vv` prints a "HAProxy version ..." banner followed by "key = value"

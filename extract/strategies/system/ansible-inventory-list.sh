@@ -3,7 +3,6 @@
 ## Description: Extract hosts from `ansible-inventory --list` JSON (keys under _meta.hostvars)
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/ansible-inventory-list/basic.txt
 
 # `ansible-inventory --list` emits a JSON document whose real inventory of hosts

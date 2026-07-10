@@ -3,7 +3,6 @@
 ## Description: Extract changes from a Jujutsu `jj log` graph
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/jj-log/basic.txt
 
 # `jj log` draws a graph; node lines carry the change id, author, timestamp and

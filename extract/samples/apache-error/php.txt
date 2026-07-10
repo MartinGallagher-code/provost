@@ -1,5 +1,0 @@
-[Thu Feb 13 14:22:10.112233 2025] [php:error] [pid 2001] [client 192.168.1.50:38900] PHP Fatal error: Uncaught Error: Class 'Database' not found in /var/www/html/index.php:42
-[Thu Feb 13 14:22:11.223344 2025] [php:warn] [pid 2002] [client 10.0.0.33:41200] PHP Warning: file_get_contents(): failed to open stream in /var/www/html/api.php:18
-[Thu Feb 13 14:23:00.334455 2025] [php:error] [pid 2003] [client 172.16.0.5:50100] PHP Parse error: syntax error, unexpected ';' in /var/www/html/config.php:7
-[Thu Feb 13 14:24:15.445566 2025] [php:notice] [pid 2001] PHP message: Session garbage collection completed
-[Thu Feb 13 14:25:30.556677 2025] [php:error] [pid 2004] [client 192.168.1.75:39800] PHP Fatal error: Allowed memory size of 134217728 bytes exhausted in /var/www/html/report.php:256

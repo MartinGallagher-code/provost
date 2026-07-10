@@ -3,7 +3,6 @@
 ## Description: Extract firewall rules from `nft list ruleset` nested table/chain output
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/nft-list-ruleset/basic.txt
 
 # `nft list ruleset` prints nested brace blocks:

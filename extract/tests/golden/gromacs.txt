@@ -1,8 +1,0 @@
-format log
-gromacs_version 2023.3
-num_atoms 24576
-nsteps 500000
-dt 0.002
-core_time 8467.230
-wall_time 1058.404
-performance_ns_per_day 163.280

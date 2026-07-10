@@ -3,7 +3,6 @@
 ## Description: Extract alert information from Grafana alert list output
 ## Version: 1.0
 ## Priority: 25
-## Technique: table
 ## Sample: samples/grafana-alerts/sample1.txt
 
 strategy_detect () {

@@ -2,8 +2,7 @@
 ## Name: nmap-sn
 ## Description: Extract discovered hosts (host/ip/latency) from `nmap -sn` output
 ## Version: 1.0
-## Priority: 26
-## Technique: yes
+## Priority: 14
 ## Sample: samples/nmap-sn/basic.txt
 
 # `nmap -sn` host discovery prints a "Starting Nmap" banner, then one
@@ -18,12 +17,15 @@ _nmapsn_is_report () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
-    local line saw_report=0 saw_up=0
+    local line saw_report=0 saw_up=0 saw_ports=0
     while IFS= read -r line; do
         _nmapsn_is_report "$line" && saw_report=1
         [[ "$line" == "Host is up"* ]] && saw_up=1
+        # A PORT table means a full scan, not a -sn ping sweep — that input
+        # belongs to the nmap strategy.
+        [[ "$line" == "PORT"*"STATE"* ]] && saw_ports=1
     done <<< "$text"
-    if [[ $saw_report -eq 1 && $saw_up -eq 1 ]]; then
+    if [[ $saw_report -eq 1 && $saw_up -eq 1 && $saw_ports -eq 0 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
     fi

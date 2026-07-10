@@ -1,7 +1,0 @@
-n	rule	total_entries
-1	ct state established,related accept	6
-2	iif "lo" accept	6
-3	ip protocol icmp accept	6
-4	tcp dport 22 accept	6
-5	tcp dport { 80, 443 } accept	6
-6	counter packets 1240 bytes 98230 drop	6

@@ -3,7 +3,6 @@
 ## Description: Extract process rows from `top -b -n1` (batch mode) output
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/top-batch/basic.txt
 
 # `top -b -n1` prints a summary block (top/Tasks/%Cpu/Mem/Swap lines), a blank

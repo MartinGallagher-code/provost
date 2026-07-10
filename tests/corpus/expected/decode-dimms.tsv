@@ -1,2 +1,0 @@
-n	Guessing_DIMM_is_in	EEPROM_CRC_of_bytes_0_125	of_bytes_written_to_SDRAM_EEPROM	Total_number_of_bytes_in_EEPROM	Fundamental_Memory_type	SPD_Revision	Maximum_module_speed	Size	Banks_x_Rows_x_Columns_x_Bits	Ranks	SDRAM_Device_Width	Manufacturer	Part_Number	total_entries
-1	bank 1	OK (0x1B2C)	176	512	DDR4 SDRAM	1.1	2400 MHz (PC4-19200)	8192 MB	16 x 16 x 10 x 64	1	8 bits	Micron Technology	8ATF1G64HZ-2G3B1	1

@@ -3,7 +3,6 @@
 ## Description: Extract per-sample rows from `pcp pmstat` / `pmstat` columnar output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/pcp-pmstat/basic.txt
 
 # `pcp pmstat` prints a two-line banner+header:

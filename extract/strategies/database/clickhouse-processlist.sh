@@ -3,7 +3,6 @@
 ## Description: Extract rows from a ClickHouse PrettyCompact Unicode box table
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/clickhouse-processlist/basic.txt
 
 # ClickHouse's PrettyCompact format draws a Unicode box table. Column names live

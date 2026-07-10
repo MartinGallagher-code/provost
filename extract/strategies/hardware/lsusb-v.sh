@@ -3,7 +3,6 @@
 ## Description: Extract descriptor fields from `lsusb -v` into one wide record
 ## Version: 1.0
 ## Priority: 9
-## Technique: yes
 ## Sample: samples/lsusb-v/basic.txt
 
 # `lsusb -v` prints a large indented key/value block for a device descriptor:

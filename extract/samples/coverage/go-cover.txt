@@ -1,7 +1,0 @@
-Name           Stmts   Miss  Cover
--------------------------------
-main.go           42      3    93%
-handler.go        88     12    86%
-config.go         35      0   100%
-utils.go          61      8    87%
-TOTAL            226     23    90%

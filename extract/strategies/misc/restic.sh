@@ -3,7 +3,6 @@
 ## Description: Extract snapshots from `restic snapshots` output (skips header rule + count footer)
 ## Version: 1.0
 ## Priority: 22
-## Technique: yes
 ## Sample: samples/restic/basic.txt
 
 # `restic snapshots` prints an "ID Time Host Tags Paths" header, a dashed rule,

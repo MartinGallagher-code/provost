@@ -3,7 +3,6 @@
 ## Description: Extract dependencies from `sbt dependencyTree` output
 ## Version: 1.0
 ## Priority: 20
-## Technique: yes
 ## Sample: samples/sbt-dependencytree/basic.txt
 
 # `sbt dependencyTree` prefixes every line with "[info]"; the root project is a

@@ -1,5 +1,0 @@
-2026-07-06 10:15:42       1024 file.txt
-2026-07-06 09:02:11     204800 archive.tar.gz
-2026-07-05 18:44:03       5321 report.csv
-                           PRE logs/
-                           PRE backups/

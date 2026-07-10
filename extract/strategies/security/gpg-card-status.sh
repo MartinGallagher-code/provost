@@ -3,7 +3,6 @@
 ## Description: `gpg --card-status` dotted "Field ....: value" snapshot
 ## Version: 1.0
 ## Priority: 26
-## Technique: yes
 ## Sample: samples/gpg-card-status/basic.txt
 
 # `gpg --card-status` prints a fixed set of "Label <dots>: value" lines whose
