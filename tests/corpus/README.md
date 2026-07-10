@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2040 tools tested; 2014 tidy (26 genuine format gaps ⏳)** — after two +500
+**2139 tools tested; 2108 tidy (31 genuine format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
-tidied with no new per-tool code — ~92% generalization each time), then a
-gap-closing round that fixed 41 of the 67 ⏳ with format-level capabilities
-only (melt long-form for lone pairs, a go-struct parser, header-promotion
-heuristics — zero per-tool code). Of the total: ✅ 1822 by a generic parser via
-auto-detection, ✅ʰ 56 by a generic parser routed by a hint row, ✅ᵇ 136 by a
-bespoke strategy. See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+tidied with no new per-tool code — ~92% generalization each time), a gap-closing
+round that fixed 41 of the 67 ⏳ with format-level capabilities only, and a +99
+benchmark-tool set (94/99 tidy, incl. a new markdown pipe-table parser). Of the
+total: ✅ 1915 by a generic parser via auto-detection, ✅ʰ 58 by a generic parser
+routed by a hint row, ✅ᵇ 135 by a bespoke strategy. See
+[`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:
 

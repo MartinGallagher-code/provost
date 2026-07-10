@@ -1,5 +1,35 @@
 # glean — Changelog
 
+## 2026-07-10 — +99 benchmark tool formats + generic markdown pipe-table parser
+
+Added 99 unique benchmark-tool outputs (0 basename overlap with the existing
+2040) spanning every benchmarking domain — CPU/system (sysbench, stress-ng,
+coremark, 7z b, openssl speed, geekbench, unixbench, spec-cpu, perf-stat, …),
+memory (STREAM, mbw, tinymembench, ramspeed), disk/IO (fio, ioping, bonnie++,
+iozone, dbench, kdiskmark), network (netperf, qperf, sockperf, iperf2, tcpkali),
+HTTP load (ab, hey, bombardier, oha, autocannon, siege, wrk2, h2load, vegeta,
+tsung, goose, artillery), database (pgbench, redis-benchmark, memtier, YCSB,
+cassandra-stress, hammerdb, tpcc), GPU/compute (glmark2, clpeak, gpu-burn,
+mixbench, hashcat, blender), language microbench (JMH, BenchmarkDotNet,
+google-benchmark, pytest-benchmark, cargo/go bench, nanobench, tinybench,
+vitest), and compression (zstd -b, lzbench, brotli).
+
+- **94/99 tidy with no per-tool code.**
+- **New generic `delimited/pipe-table` parser** for GitHub-flavored markdown
+  tables (`| a | b |` rows + a `|---|---|` rule) — closes BenchmarkDotNet and
+  generalizes to any markdown table. Distinct dialect from psql-table (no outer
+  pipes, `+` joints) so it collides with nothing; ships with sample + strategy
+  golden. Golden regression 0 changed / 0 deleted from adding it.
+- The 5 misses (stream-benchmark, kdiskmark, pytest-benchmark, lzbench,
+  blender-benchmark) are the documented multi-word-header + banner hard tail.
+- Coverage 2014/2040 → **2108 / 2139** (✅ 1915 generic · ✅ʰ 58 · ✅ᵇ 135);
+  golden regression **1972 pass / 0 fail / 0 deleted** (94 new benchmark
+  goldens); extract 62/62, smoke 49, melt 10, holdout 68/68.
+  Files: `tests/corpus/inputs/*.txt` (+99), `tests/corpus/expected.tsv` (+99),
+  `tests/corpus/expected/` (+94 goldens),
+  `extract/strategies/delimited/pipe-table.sh` (+ sample + strategy golden),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
 ## 2026-07-10 — Close 41 of the 67 corpus format gaps with generic capabilities
 
 Worked the full ⏳ list (39 from the batch-2 expansion + 28 older). Every fix

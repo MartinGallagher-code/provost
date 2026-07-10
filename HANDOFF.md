@@ -196,21 +196,33 @@ expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two 
 expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus size + gaps (2040 inputs, 26 ⏳ as of 2026-07-10)
+## Corpus size + gaps (2139 inputs, 31 ⏳ as of 2026-07-10)
 
 The corpus grew in two +500 expansions of unique never-before-seen tools
-(0 basename overlap each): **1040 → 1540 → 2040**. Each batch generalized at
-~92% with **no new per-tool code** (batch 1: 466/500; batch 2: 461/500), which
-is the headline result — the generic tier tidies the vast majority of tools it
-was never shown. A gap-closing round then fixed **41 of the 67 ⏳ with
-format-level capability only** (melt long-form for lone kv pairs, a
-`go-struct` parser, text-lines gate fixes, and a rebuilt header-promotion
-heuristic in aligned-columns — value-token contrast, styled all-text headers,
-2-column value tables, chrome dropping). Coverage is now **2014 / 2040**
-(✅ 1822 / ✅ʰ 56 / ✅ᵇ 136); golden regression 1878 pass / 0 fail /
-0 deleted; holdout 68/68.
+(0 basename overlap each): **1040 → 1540 → 2040**, then a **+99 benchmark-tool
+set** (2040 → 2139) covering every benchmarking domain (sysbench/fio/iperf/
+pgbench/JMH/glmark2/… — 94/99 tidy). Each batch generalized at ~92% with **no
+new per-tool code** (batch 1: 466/500; batch 2: 461/500; benchmarks: 94/99).
+Two gap-closing rounds added format-level capability only: (1) melt long-form
+for lone kv pairs, a `go-struct` parser, text-lines gate fixes, and a rebuilt
+aligned-columns header-promotion heuristic (value-token contrast, styled
+all-text headers, 2-column value tables, chrome dropping), which fixed 41 of the
+earlier 67 ⏳; (2) a `delimited/pipe-table` parser for GitHub-flavored markdown
+tables (`| a | b |` + `|---|` rule — BenchmarkDotNet and any markdown table).
+Coverage is now **2108 / 2139** (✅ 1915 / ✅ʰ 58 / ✅ᵇ 135); golden regression
+1972 pass / 0 fail / 0 deleted; holdout 68/68.
 
-The 26 ⏳ left (ansible-galaxy-list apachectl-S batch-jobs
+The 31 ⏳ left include 5 benchmark formats (stream-benchmark, kdiskmark-run,
+pytest-benchmark, lzbench-run, blender-benchmark) — all the same
+multi-word-header + banner shape as the rest of the tail:
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
+  spans 2 ragged lines or shares its token count with a banner, so no
+  width/value heuristic can split them safely.
+- **ragged first+last multi-word columns** (lzbench-run `zstd 1.5.5 -1` +
+  `silesia.tar`, blender-benchmark `NVIDIA GeForce RTX 4090`).
+- Earlier tail (ansible-galaxy-list apachectl-S batch-jobs
 bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status
 file-brief frr-show-bgp-summary gcloud-logging-logs-list getent-group
 gluster-volume-status hugo-build-stats hurl-report jless-navigate
@@ -253,7 +265,7 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (1878 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (1972 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```
