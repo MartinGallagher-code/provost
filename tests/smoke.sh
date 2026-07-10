@@ -21,7 +21,10 @@ export GLEAN_WORKSPACE="$WS"
 
 pass=0; fail=0
 check () { # desc, expected-substring, actual
-    if printf '%s' "$3" | grep -qF -- "$2"; then
+    # Here-string, not `printf | grep -q`: grep -q exits on the first match and
+    # closes the pipe mid-write, which under `set -o pipefail` flakily surfaces
+    # as a SIGPIPE ("Broken pipe") and fails the check.
+    if grep -qF -- "$2" <<< "$3"; then
         echo "  ok   $1"; pass=$((pass+1))
     else
         echo "  FAIL $1"; echo "       want substring: $2"; echo "       got: $3"; fail=$((fail+1))
