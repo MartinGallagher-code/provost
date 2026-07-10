@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2040 inputs (2026-07-10)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2139 inputs (2026-07-10)
 
 > Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
 > nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
