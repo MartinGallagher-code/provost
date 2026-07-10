@@ -1,0 +1,3 @@
+name;value;unit
+cpu_temp;44.2;C
+gpu_temp;38.1;C
