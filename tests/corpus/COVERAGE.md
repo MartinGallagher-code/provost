@@ -186,24 +186,24 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | curl_timing | ✅ | yaml |
 | dbmate-status | ✅ᵇ | dbmate-status (bespoke) |
 | decode-dimms | ✅ᵇ | decode-dimms (bespoke) |
-| delv | ✅ | aligned-columns |
+| delv | ✅ | dns-records |
 | deno-info | ✅ | colons |
 | deno-version | ✅ | line-records |
 | df-T | ✅ | aligned-columns |
 | df-h | ✅ | aligned-columns |
 | df-i | ✅ | aligned-columns |
 | df-output | ✅ | aligned-columns |
-| dig-mx | ✅ᵇ | dig-mx (bespoke) |
+| dig-mx | ✅ | dns-records |
 | dig-short | ✅ | line-records |
-| dig-txt | ✅ᵇ | dig-txt (bespoke) |
-| dig_any | ✅ᵇ | dig-answer (bespoke) |
-| dig_caa | ✅ᵇ | dig-output (bespoke) |
-| dig_mx | ✅ᵇ | dig-mx (bespoke) |
-| dig_noall_answer | ✅ | tsv |
-| dig_ns | ✅ᵇ | dig-answer (bespoke) |
-| dig_srv | ✅ᵇ | dig-output (bespoke) |
-| dig_trace | ✅ᵇ | dig-answer (bespoke) |
-| dig_txt | ✅ᵇ | dig-txt (bespoke) |
+| dig-txt | ✅ | dns-records |
+| dig_any | ✅ | dns-records |
+| dig_caa | ✅ | dns-records |
+| dig_mx | ✅ | dns-records |
+| dig_noall_answer | ✅ | dns-records |
+| dig_ns | ✅ | dns-records |
+| dig_srv | ✅ | dns-records |
+| dig_trace | ✅ | dns-records |
+| dig_txt | ✅ | dns-records |
 | direnv-status | ✅ | aligned-columns |
 | dive-summary | ✅ | colons |
 | dmesg-hw | ✅ | bracket-log |
@@ -260,7 +260,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dpkg-l | ✅ | dpkg-list |
 | dpkg-query | ✅ | dpkg-list |
 | dpkg-s | ✅ | yaml |
-| drill | ✅ᵇ | drill (bespoke) |
+| drill | ✅ | dns-records |
 | dstat | ✅ | aligned-columns |
 | du-h | ✅ | tsv |
 | du-sh-dirs | ✅ | tsv |
@@ -409,8 +409,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | hg-paths | ✅ | equals |
 | hg-status | ✅ | line-records |
 | hg-summary | ✅ | yaml |
-| host | ✅ | text-lines |
-| host_a | ✅ᵇ | host_a (bespoke) |
+| host | ✅ʰ | text-lines (hint: host) |
+| host_a | ✅ | dns-records |
 | host_ns | ✅ | aligned-columns |
 | hostnamectl | ✅ | colons |
 | htop-snapshot | ✅ | aligned-columns |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 838 via a generic parser, ✅ʰ 38 via a hint row, ✅ᵇ 164 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 848 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 153 via a bespoke strategy.

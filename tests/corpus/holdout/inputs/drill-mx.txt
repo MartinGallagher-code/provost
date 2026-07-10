@@ -1,0 +1,8 @@
+;; ->>HEADER<<- opcode: QUERY, rcode: NOERROR, id: 61234
+;; flags: qr rd ra ; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
+;; QUESTION SECTION:
+;; example.io.	IN	MX
+
+;; ANSWER SECTION:
+example.io.	600	IN	MX	1 aspmx.l.google.com.
+example.io.	600	IN	MX	5 alt1.aspmx.l.google.com.

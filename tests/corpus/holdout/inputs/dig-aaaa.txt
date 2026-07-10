@@ -1,0 +1,11 @@
+; <<>> DiG 9.20.1 <<>> AAAA cloud.example.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17781
+
+;; ANSWER SECTION:
+cloud.example.net.	299	IN	AAAA	2001:db8:4::1
+cloud.example.net.	299	IN	AAAA	2001:db8:4::2
+
+;; AUTHORITY SECTION:
+example.net.	172800	IN	NS	ns-cloud.example.net.

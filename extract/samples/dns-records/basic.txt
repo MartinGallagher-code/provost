@@ -1,0 +1,10 @@
+; <<>> DiG 9.18.24 <<>> MX example.org
+;; global options: +cmd
+;; ANSWER SECTION:
+example.org.	1800	IN	MX	10 mx1.example.org.
+example.org.	1800	IN	MX	20 mx2.example.org.
+example.org.	1800	IN	TXT	"v=spf1 include:_spf.example.org ~all"
+example.org.	1800	IN	A	203.0.113.7
+
+;; AUTHORITY SECTION:
+example.org.	86400	IN	NS	ns1.example.org.

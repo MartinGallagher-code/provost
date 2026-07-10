@@ -166,9 +166,11 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 Done since the refactor landed: golden-quality audit (restored 13 more
 bespokes, promoted bracket-log to generic), traceroute6 timeout hops
-(coverage 1040/1040), holdout set 24 → 40 (40/40), generic parsers
+(coverage 1040/1040), holdout set 24 → 46 (46/46), generic parsers
 psql-expanded + dashed-sections (replaced 2 bespokes, upgraded
-pvdisplay/vgdisplay).
+pvdisplay/vgdisplay), and dns-records (replaced the 6-strategy DNS family:
+dig-answer/dig-output/dig-mx/dig-txt/drill/host_a; upgraded delv +
+dig_noall_answer goldens). Coverage now ✅ 848 / ✅ʰ 39 / ✅ᵇ 153.
 
 ## Tests
 

@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-07-10 — dns-records generic parser collapses the DNS bespoke family (−6 strategies)
+
+`structured/dns-records` parses the standard BIND presentation format
+(`name ttl class type rdata`) that every dig/drill/host query prints — one
+record per RR line in any section, MX rdata split into preference/exchange,
+TXT quotes stripped. It replaces six bespokes with one format parser:
+`dig-answer`, `dig-output`, `dig-mx`, `dig-txt`, `drill`, and `host_a`
+(`host -a` output is the same RR format). All 10 corpus inputs they covered
+flip ✅ᵇ→✅ with named columns, plus two free golden upgrades (`delv` was
+"; fully validated"-header mush; `dig_noall_answer` was positional A–E).
+A `host` hint row (` has address ` → text-lines) keeps prose `host` output's
+dataset identity now that the host_a bespoke is gone.
+
+Holdout grown 40 → 46 (dig AAAA, drill MX, host prose, psql -x single-record,
+multi-LV lvdisplay, faillock per-user) — all pass first try: **46/46 tidy on
+unseen output — 30 generic, 13 hint, 3 bespoke.**
+
+Coverage: 1040/1040 — ✅ 848 generic (+10), ✅ʰ 39, ✅ᵇ 153 (−11).
+Strategy files 173 → 168 (1 added, 6 deleted).
+Gate: smoke 49/49, melt 8/8, extract 63/63, analyze green, corpus golden
+887/0, holdout 46/46.
+
 ## 2026-07-10 — Generic parsers for the labeled-record cluster; holdout grown to 40 (40/40)
 
 **Two new format parsers** attack the biggest shape in the bespoke tail
