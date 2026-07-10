@@ -30,39 +30,28 @@ cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+	text-lines
 dbmate-status	contains	Applied: 	dbmate-status
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	aligned-columns
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
-fossil-status	prefix	repository:	line-records
 fwupdmgr-get-devices	contains	Device ID:	text-lines
 getconf	prefix	PAGE_SIZE	line-records
-git-branch-vv	regex	^\* [^ ]+ +[0-9a-f]{7} \[	line-records
 git-config-list-show-origin	prefix	file:/	line-records
 git-lfs-ls-files	regex	^[0-9a-f]{10} [*-] 	line-records
 git-show-ref	regex	^[0-9a-f]{40} refs/	line-records
-haproxy-vv	prefix	HAProxy version 	aligned-columns
 hg-branches	regex	^[a-zA-Z0-9._-]+ +[0-9]+:[0-9a-f]{12}	line-records
 ip-tunnel	regex	^[a-z0-9@]+: [a-z]+/ip remote 	labeled-records
 kotlinc-version	prefix	info: kotlinc-jvm 	line-records
 lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
-lspci-tv	regex	^-\[[0-9a-f:]+\]-	line-records
 lsusb-t	prefix	/:  Bus	text-lines
-lsusb-v	contains	Device Descriptor:	line-records
-lvdisplay	contains	--- Logical volume ---	aligned-columns
 mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
-mysqladmin-status	contains	Queries per second avg	line-records
 nft-list-tables	regex	^table [^{]+$	line-records
-numactl-show	prefix	policy: 	line-records
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
 pip-deps	regex	^[A-Za-z0-9._-]+==[0-9]	line-records
 pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines
 poetry-show-tree	regex	^[a-z0-9._-]+ [0-9]+\.[0-9]+\.[0-9]+ [A-Z]	aligned-columns
 proc-buddyinfo	prefix	Node 0, zone	aligned-columns
-proc-filesystems	regex	^nodev[[:space:]]	text-lines
 proc-locks	regex	^1: (POSIX|FLOCK|OFDLCK)	line-records
 proc-mounts	prefix	proc /proc proc 	aligned-columns
 proc-self-mountinfo	regex	^[0-9]+ [0-9]+ [0-9]+:[0-9]+ / /	aligned-columns
 promtool-query	regex	^[A-Za-z_0-9:]+\{[^}]*\} => 	prometheus-query
 smartctl-health	contains	overall-health self-assessment	block-records
-snmp	regex	^[A-Za-z0-9-]+-MIB::	line-records
-systemd-cgls	prefix	Control group /:	aligned-columns
 tc-filter-show	prefix	filter parent 	text-lines
 tc-qdisc	prefix	qdisc 	text-lines
 telegraf-test	regex	^> [a-z]+,[a-z]	aligned-columns

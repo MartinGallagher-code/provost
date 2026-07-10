@@ -1,0 +1,9 @@
+entry1.timestamp 0.000000
+entry1.message Linux version 6.1.0-18-amd64 (debian-kernel@lists.debian.org)
+entry2.timestamp 0.000000
+entry2.message Command line: BOOT_IMAGE=/vmlinuz-6.1.0-18-amd64 root=/dev/sda1 ro quiet
+entry3.timestamp 1.234567
+entry3.message usb 1-1: new high-speed USB device number 2 using ehci-pci
+entry4.timestamp 2.345678
+entry4.message EXT4-fs (sda1): mounted filesystem with ordered data mode
+total_entries 4

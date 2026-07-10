@@ -1,8 +1,8 @@
-n	c1	total_entries
-1	[    0.000000] DMI: Dell Inc. XPS 15 9500/0C6WNP, BIOS 1.11.0 06/23/2021	7
-2	[    0.210341] smpboot: CPU0: Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz (family: 0x6, model: 0xa5, stepping: 0x5)	7
-3	[    0.512883] pci 0000:00:02.0: [8086:9bc4] type 00 class 0x030000	7
-4	[    1.024774] nvme nvme0: pci function 0000:01:00.0	7
-5	[    1.183920] usb 1-1: new high-speed USB device number 2 using xhci_hcd	7
-6	[    2.451003] tsc: Refined TSC clocksource calibration: 2592.000 MHz	7
-7	[    3.882910] thermal thermal_zone2: registered as cooling_device5	7
+n	timestamp	message	total_entries
+1	0.000000	DMI: Dell Inc. XPS 15 9500/0C6WNP, BIOS 1.11.0 06/23/2021	7
+2	0.210341	smpboot: CPU0: Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz (family: 0x6, model: 0xa5, stepping: 0x5)	7
+3	0.512883	pci 0000:00:02.0: [8086:9bc4] type 00 class 0x030000	7
+4	1.024774	nvme nvme0: pci function 0000:01:00.0	7
+5	1.183920	usb 1-1: new high-speed USB device number 2 using xhci_hcd	7
+6	2.451003	tsc: Refined TSC clocksource calibration: 2592.000 MHz	7
+7	3.882910	thermal thermal_zone2: registered as cooling_device5	7

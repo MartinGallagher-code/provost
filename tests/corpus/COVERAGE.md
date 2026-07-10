@@ -206,7 +206,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dig_txt | ✅ᵇ | dig-txt (bespoke) |
 | direnv-status | ✅ | aligned-columns |
 | dive-summary | ✅ | colons |
-| dmesg-hw | ✅ | text-lines |
+| dmesg-hw | ✅ | bracket-log |
 | dmidecode-baseboard | ✅ | colons |
 | dmidecode-bios | ✅ | colons |
 | dmidecode-chassis | ✅ | colons |
@@ -306,7 +306,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | flux-get-kustomizations | ✅ | aligned-columns |
 | flux-get-sources | ✅ | aligned-columns |
 | flyway-info | ✅ | psql-table |
-| fossil-status | ✅ʰ | line-records (hint: fossil-status) |
+| fossil-status | ✅ᵇ | fossil-status (bespoke) |
 | fossil-timeline | ✅ᵇ | fossil-timeline (bespoke) |
 | fping | ✅ | aligned-columns |
 | free-h | ✅ | aligned-columns |
@@ -345,7 +345,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-annex-list | ✅ᵇ | git-annex-list (bespoke) |
 | git-bisect-log | ✅ᵇ | git-bisect-log (bespoke) |
 | git-branch-a | ✅ | line-records |
-| git-branch-vv | ✅ʰ | line-records (hint: git-branch-vv) |
+| git-branch-vv | ✅ᵇ | git-branch-vv (bespoke) |
 | git-branch | ✅ | line-records |
 | git-cat-file-tree | ✅ | tsv |
 | git-config-list-show-origin | ✅ʰ | line-records (hint: git-config-list-show-origin) |
@@ -394,7 +394,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gsutil-du | ✅ | line-records |
 | gsutil-ls-l | ✅ | gsutil-ls-l |
 | haproxy-stat | ✅ | csv |
-| haproxy-vv | ✅ʰ | aligned-columns (hint: haproxy-vv) |
+| haproxy-vv | ✅ᵇ | haproxy-vv (bespoke) |
 | hdparm-i | ✅ | key-value |
 | helm-get-values | ✅ | yaml |
 | helm-history | ✅ | aligned-columns |
@@ -560,16 +560,16 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | lsns | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci-nn | ✅ | text-lines |
-| lspci-tv | ✅ʰ | line-records (hint: lspci-tv) |
+| lspci-tv | ✅ᵇ | lspci-tv (bespoke) |
 | lspci-vmm | ✅ | tsv |
 | lspci | ✅ | text-lines |
-| lsscsi | ✅ | colon-fields |
+| lsscsi | ✅ | bracket-log |
 | lstopo-no-graphics | ✅ | lstopo-no-graphics |
 | lsusb-t | ✅ʰ | text-lines (hint: lsusb-t) |
-| lsusb-v | ✅ʰ | line-records (hint: lsusb-v) |
+| lsusb-v | ✅ᵇ | lsusb-v (bespoke) |
 | lsusb | ✅ | aligned-columns |
-| lvdisplay-m | ✅ʰ | aligned-columns (hint: lvdisplay) |
-| lvdisplay | ✅ʰ | aligned-columns (hint: lvdisplay) |
+| lvdisplay-m | ✅ᵇ | lvdisplay-m (bespoke) |
+| lvdisplay | ✅ | aligned-columns |
 | lvs-devices | ✅ | aligned-columns |
 | lvs | ✅ | aligned-columns |
 | lynis-report | ✅ | equals |
@@ -600,8 +600,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mtr-report | ✅ᵇ | mtr-report (bespoke) |
 | mtr | ✅ᵇ | mtr-report (bespoke) |
 | multipath-ll | ✅ᵇ | multipath-ll (bespoke) |
-| mvn-dependency-list | ✅ | line-records |
-| mvn-dependency-tree | ✅ | aligned-columns |
+| mvn-dependency-list | ✅ | bracket-log |
+| mvn-dependency-tree | ✅ | bracket-log |
 | mysql-databases | ✅ | psql-table |
 | mysql-information-schema-tables | ✅ | psql-table |
 | mysql-processlist | ✅ | psql-table |
@@ -615,7 +615,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mysql-show-table-status | ✅ | psql-table |
 | mysql-show-variables | ✅ | psql-table |
 | mysql-status | ✅ | psql-table |
-| mysqladmin-status | ✅ʰ | line-records (hint: mysqladmin-status) |
+| mysqladmin-status | ✅ᵇ | mysqladmin-status (bespoke) |
 | mysqld-exporter | ✅ᵇ | exposition-format (bespoke) |
 | nats-stream-ls | ✅ | line-records |
 | needrestart | ✅ | yaml |
@@ -668,7 +668,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ntpq-p | ✅ | vertical-line |
 | nuget-list | ✅ | line-records |
 | numactl-hardware | ✅ | key-value |
-| numactl-show | ✅ʰ | line-records (hint: numactl-show) |
+| numactl-show | ✅ᵇ | numactl-show (bespoke) |
 | numastat | ✅ᵇ | numastat (bespoke) |
 | nvcc-version | ✅ | aligned-columns |
 | nvidia-smi-q | ✅ | block-records |
@@ -770,7 +770,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | proc-devices | ✅ᵇ | proc-devices (bespoke) |
 | proc-diskstats | ✅ | aligned-columns |
 | proc-dma | ✅ | labeled-records |
-| proc-filesystems | ✅ʰ | text-lines (hint: proc-filesystems) |
+| proc-filesystems | ✅ᵇ | proc-filesystems (bespoke) |
 | proc-interrupts | ✅ | aligned-columns |
 | proc-iomem | ✅ | aligned-columns |
 | proc-ioports | ✅ | aligned-columns |
@@ -886,7 +886,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | sensors-u | ✅ | key-value |
 | sensors | ✅ | colons |
 | serverless-info | ✅ | yaml |
-| service-status-all | ✅ | aligned-columns |
+| service-status-all | ✅ | bracket-log |
 | sesearch | ✅ | aligned-columns |
 | sestatus-v | ✅ | key-value |
 | sestatus | ✅ | key-value |
@@ -904,8 +904,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | snap-connections | ✅ | snap-connections |
 | snap-info | ✅ | indented-hierarchy |
 | snap-list | ✅ | aligned-columns |
-| snmpget | ✅ʰ | line-records (hint: snmp) |
-| snmpwalk | ✅ʰ | line-records (hint: snmp) |
+| snmpget | ✅ᵇ | snmp-output (bespoke) |
+| snmpwalk | ✅ᵇ | snmp-output (bespoke) |
 | speedtest-cli | ✅ | aligned-columns |
 | sqlite-dbinfo | ✅ | key-value |
 | sqlite-pragma-index-list | ✅ | fixed-width |
@@ -958,7 +958,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | systemd-analyze-security | ✅ᵇ | systemd-analyze-security (bespoke) |
 | systemd-analyze-time | ✅ᵇ | pkg-config (bespoke) |
 | systemd-analyze | ✅ | line-records |
-| systemd-cgls | ✅ʰ | aligned-columns (hint: systemd-cgls) |
+| systemd-cgls | ✅ᵇ | systemd-cgls (bespoke) |
 | systemd-cgtop | ✅ | aligned-columns |
 | systemd-detect-virt | ✅ | text-lines |
 | systemd-inhibit-list | ✅ | aligned-columns |
@@ -1048,5 +1048,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1039 / 1040** — ✅ 836 via a generic parser, ✅ʰ 50 via a hint row, ✅ᵇ 153 via a bespoke strategy.
+**Coverage: 1039 / 1040** — ✅ 837 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 165 via a bespoke strategy.
 ⏳ not yet tidy: traceroute6

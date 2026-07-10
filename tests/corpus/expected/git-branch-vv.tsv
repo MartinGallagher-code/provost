@@ -1,6 +1,0 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	total_entries
-1	*	main	a1b2c3d	[origin/main]	Fix	null	pointer	in	request	handler	5
-2	develop	e4f5a6b	[origin/develop:	ahead	2]	Add	retry	logic	to	client	5
-3	feature/login	0f9e8d7	[origin/feature/login:	ahead	1,	behind	3]	WIP	login	form	5
-4	hotfix/urgent	7c6b5a4	Refactor	session	handling						5
-5	release/2.0	b0a9f8e	[origin/release/2.0:	behind	5]	Prep	2.0	release	notes		5

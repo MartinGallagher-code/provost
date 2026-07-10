@@ -1,0 +1,15 @@
+entry1.bLength 18
+entry1.bDescriptorType 1
+entry1.bcdUSB 2.01
+entry1.bDeviceClass 224 Wireless
+entry1.bDeviceSubClass 1 Radio Frequency
+entry1.bDeviceProtocol 1 Bluetooth
+entry1.bMaxPacketSize0 64
+entry1.idVendor 0x8087 Intel Corp.
+entry1.idProduct 0x0026
+entry1.bcdDevice 0.02
+entry1.iManufacturer 0
+entry1.iProduct 0
+entry1.iSerial 0
+entry1.bNumConfigurations 1
+total_entries 1

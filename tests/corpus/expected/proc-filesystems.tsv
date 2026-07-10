@@ -1,8 +1,0 @@
-n	c1	total_entries
-1	nodev	cgroup2
-2	sysfs	cgroup2
-3	nodev	cgroup2
-4	tmpfs	cgroup2
-5	nodev	cgroup2
-6	proc	cgroup2
-7	nodev	cgroup2
