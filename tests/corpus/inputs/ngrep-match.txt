@@ -1,0 +1,4 @@
+T 10.0.1.4:51022 -> 10.0.1.24:443 [AP]
+  GET /api/health HTTP/1.1..Host: api.example.com
+T 10.0.1.24:443 -> 10.0.1.4:51022 [AP]
+  HTTP/1.1 200 OK..Content-Length: 12

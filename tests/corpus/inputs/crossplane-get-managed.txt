@@ -1,0 +1,3 @@
+NAME                       READY   SYNCED   EXTERNAL-NAME
+rdsinstance.prod-db        True    True     prod-db-abc
+s3bucket.prod-assets       True    True     prod-assets-123

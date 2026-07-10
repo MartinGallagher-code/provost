@@ -1,0 +1,4 @@
+n	alias	symbol:usb_register_driver	usbcore	total_entries
+1	options	snd_hda_intel	power_save=1	3
+2	blacklist	nouveau		3
+3	install	nvidia	/sbin/modprobe_--ignore-install_nvidia	3

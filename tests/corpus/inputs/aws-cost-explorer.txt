@@ -1,0 +1,4 @@
+TimePeriod            Service              Amount
+2026-07-01/2026-07-10 Amazon EC2           1204.44
+2026-07-01/2026-07-10 Amazon S3            88.20
+2026-07-01/2026-07-10 Amazon RDS           412.10

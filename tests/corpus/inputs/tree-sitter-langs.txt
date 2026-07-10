@@ -1,0 +1,4 @@
+bash          ✓ installed
+python        ✓ installed
+rust          ✓ installed
+javascript    ✗ not installed

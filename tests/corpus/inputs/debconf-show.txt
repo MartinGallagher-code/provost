@@ -1,0 +1,4 @@
+* postfix/main_mailer_type: Internet Site
+  postfix/mailname: mail.example.com
+* ufw/enable: true
+  tzdata/Areas: Europe

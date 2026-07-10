@@ -1,0 +1,4 @@
+Frequency: 3800 MHz
+Temp: 48 C
+Utilization: 44%
+Power: 42.1 W

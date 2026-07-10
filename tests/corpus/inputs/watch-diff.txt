@@ -1,0 +1,5 @@
+Every 2.0s: kubectl get pods
+
+NAME              READY   STATUS
+api-abc           2/2     Running
+web-def           1/1     Running

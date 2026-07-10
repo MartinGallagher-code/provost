@@ -1,0 +1,10 @@
+Name:         app-config
+Namespace:    prod
+Data
+====
+LOG_LEVEL:
+----
+info
+MAX_CONNS:
+----
+2048

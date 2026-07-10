@@ -1,0 +1,4 @@
+Number of logins: 88
+Number of failed logins: 12
+Number of authentications: 442
+Number of failed authentications: 8

@@ -1,0 +1,3 @@
+200      GET       12l       88w     1204c http://api.example.com/health
+301      GET        7l       11w      178c http://api.example.com/admin
+403      GET        3l        4w       44c http://api.example.com/backup

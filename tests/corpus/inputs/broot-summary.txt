@@ -1,0 +1,5 @@
+project
+├──src
+│  ├──main.rs   1.2 kB
+│  └──lib.rs    880 B
+└──Cargo.toml   412 B

@@ -1,0 +1,3 @@
+main            src/main.c        12
+parse           src/parser.c      44
+Config          include/config.h  8

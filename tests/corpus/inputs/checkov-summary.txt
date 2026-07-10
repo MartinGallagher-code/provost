@@ -1,0 +1,5 @@
+Passed checks: 88, Failed checks: 12, Skipped checks: 4
+
+Check: CKV_AWS_20: "S3 Bucket has an ACL defined which allows public access"
+	FAILED for resource: aws_s3_bucket.assets
+	File: /main.tf:14-22

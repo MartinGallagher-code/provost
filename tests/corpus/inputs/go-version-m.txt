@@ -1,0 +1,5 @@
+app: go1.22.5
+	path	example.com/app
+	mod	example.com/app	(devel)
+	dep	github.com/gin-gonic/gin	v1.10.0
+	build	-compiler=gc

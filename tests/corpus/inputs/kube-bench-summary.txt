@@ -1,0 +1,6 @@
+[INFO] 1 Control Plane Security Configuration
+[PASS] 1.1.1 Ensure that the API server pod file permissions are 600
+[FAIL] 1.2.1 Ensure that the --anonymous-auth argument is false
+== Summary ==
+88 checks PASS
+12 checks FAIL

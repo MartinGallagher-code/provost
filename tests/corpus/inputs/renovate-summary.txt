@@ -1,0 +1,5 @@
+ INFO: Repository finished
+       repository: example/app
+       durationMs: 12044
+       branchCount: 4
+       prCount: 3

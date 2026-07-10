@@ -1,0 +1,9 @@
+netcdf climate {
+dimensions:
+	time = UNLIMITED ; // (365 currently)
+	lat = 180 ;
+	lon = 360 ;
+variables:
+	float temperature(time, lat, lon) ;
+		temperature:units = "K" ;
+}

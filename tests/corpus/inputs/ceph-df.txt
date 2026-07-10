@@ -1,0 +1,7 @@
+--- RAW STORAGE ---
+CLASS   SIZE     AVAIL    USED
+ssd     12 TiB   7.9 TiB  4.1 TiB
+--- POOLS ---
+POOL       ID  STORED   OBJECTS
+cephfs     1   2.1 TiB  1204882
+rbd        2   1.8 TiB  882010

@@ -1,0 +1,7 @@
+Id=nginx.service
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=812
+MemoryCurrent=44201984
+TasksCurrent=4

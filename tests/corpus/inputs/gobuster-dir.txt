@@ -1,0 +1,3 @@
+/admin                (Status: 301) [Size: 178]
+/api                  (Status: 200) [Size: 1204]
+/backup               (Status: 403) [Size: 44]

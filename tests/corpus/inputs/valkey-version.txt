@@ -1,0 +1,1 @@
+Valkey server v=8.0.0 sha=00000000:0 bits=64

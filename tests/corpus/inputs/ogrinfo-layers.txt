@@ -1,0 +1,4 @@
+INFO: Open of `data.gpkg' using driver `GPKG' successful.
+1: roads (Line String)
+2: buildings (Polygon)
+3: points_of_interest (Point)

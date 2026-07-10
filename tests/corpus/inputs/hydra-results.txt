@@ -1,0 +1,3 @@
+[22][ssh] host: 10.0.1.24  login: admin  password: admin123
+[22][ssh] host: 10.0.1.24  login: root   password: toor
+1 of 1 target successfully completed, 2 valid passwords found

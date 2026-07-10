@@ -1,0 +1,7 @@
+Total: 428 (kernel 512)
+TCP:   214 (estab 88, closed 102, orphaned 0, timewait 98)
+
+Transport Total     IP        IPv6
+RAW       0         0         0
+UDP       12        8         4
+TCP       112       96        16

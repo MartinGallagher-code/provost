@@ -1,0 +1,2 @@
+NAME          LOCATION       STATE
+data-airflow  europe-west1   RUNNING

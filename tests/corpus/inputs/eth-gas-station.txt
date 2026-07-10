@@ -1,0 +1,4 @@
+SafeLow: 12 gwei
+Standard: 18 gwei
+Fast: 24 gwei
+Base Fee: 15 gwei

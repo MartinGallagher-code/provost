@@ -1,0 +1,3 @@
+WARN	- CIS-DI-0001: Create a user for the container
+INFO	- CIS-DI-0005: Enable Content trust for Docker
+PASS	- CIS-DI-0006: Add HEALTHCHECK instruction

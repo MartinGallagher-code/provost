@@ -1,0 +1,4 @@
+[
+  {"name": "pg-orders-cdc", "type": "source", "state": "RUNNING"},
+  {"name": "mysql-users-cdc", "type": "source", "state": "PAUSED"}
+]

@@ -1,0 +1,4 @@
+------ Top processes by CPU
+44.20%  postgres
+28.10%  dockerd
+12.40%  nginx

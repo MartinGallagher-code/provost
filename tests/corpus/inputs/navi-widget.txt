@@ -1,0 +1,4 @@
+docker · list all containers
+  docker ps -a
+git · undo last commit
+  git reset --soft HEAD~1

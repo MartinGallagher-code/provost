@@ -1,0 +1,4 @@
+● lua-language-server 3.9.3
+● rust-analyzer 2024-06-24
+● pyright 1.1.369
+○ gopls (not installed)

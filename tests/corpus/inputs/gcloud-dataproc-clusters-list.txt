@@ -1,0 +1,3 @@
+NAME          WORKER_COUNT   STATUS    ZONE
+analytics     4              RUNNING   europe-west1-b
+etl-batch     8              STOPPED   europe-west1-b

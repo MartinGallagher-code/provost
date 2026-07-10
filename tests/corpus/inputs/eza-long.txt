@@ -1,0 +1,3 @@
+drwxr-xr-x deploy  4.0k Thu 10 Jul 06:00 src
+.rw-r--r-- deploy  1.2k Thu 10 Jul 05:00 README.md
+.rwxr-xr-x deploy  2.4M Thu 10 Jul 06:00 app

@@ -1,0 +1,3 @@
+REPO ID              REPO TYPE   SIZE ON DISK   NB FILES   LAST MODIFIED
+meta-llama/Llama-3   model       16.1G         12         2 days ago
+openai/whisper       model       2.9G          8          1 week ago

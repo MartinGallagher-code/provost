@@ -1,0 +1,4 @@
+  ● lazy.nvim 11.14.1
+  ● telescope.nvim loaded
+  ● nvim-treesitter loaded
+  ● mason.nvim not loaded

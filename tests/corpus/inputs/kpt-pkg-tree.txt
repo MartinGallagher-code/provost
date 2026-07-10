@@ -1,0 +1,6 @@
+PKG: wordpress
+├── [Kptfile]  Kptfile wordpress
+├── [service.yaml]  Service wordpress
+├── [deployment.yaml]  Deployment wordpress
+└── PKG: mysql
+    └── [service.yaml]  Service wordpress-mysql

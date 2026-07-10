@@ -1,0 +1,2 @@
+Asciidoctor 2.0.23 [https://asciidoctor.org]
+Runtime Environment (ruby 3.3.3)

@@ -1,0 +1,4 @@
+ eth0  /  hourly
+     hour        rx      |     tx      |    total
+   06:00     1.20 GiB    |  412 MiB    |  1.60 GiB
+   05:00     880 MiB     |  340 MiB    |  1.20 GiB

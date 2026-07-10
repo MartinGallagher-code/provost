@@ -1,0 +1,5 @@
+n	Found	verified	result	total_entries
+1	Detector	Type:	AWS	4
+2	Decoder	Type:	PLAIN	4
+3	Raw	result:	AKIAIOSFODNN7EXAMPLE	4
+4	File:	config/prod.env		4

@@ -1,0 +1,5 @@
+n	Scanning	processes___	total_entries
+1	Scanning	candidates...	4
+2	Services	to_be_restarted:	4
+3	systemctl	restart_nginx.service	4
+4	systemctl	restart_postgresql@16-main.service	4

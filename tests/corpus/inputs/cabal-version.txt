@@ -1,0 +1,2 @@
+cabal-install version 3.12.1.0
+compiled using version 3.12.1.0 of the Cabal library

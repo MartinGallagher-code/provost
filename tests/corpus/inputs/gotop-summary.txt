@@ -1,0 +1,4 @@
+CPU  [||||||||          44%]
+Mem  [||||||            39%]  12.4G/32.0G
+Temp  CPU 48C  GPU 62C
+Net  RX 1.2Mb  TX 412Kb

@@ -1,0 +1,5 @@
+Number of platforms                               1
+  Platform Name                                   AMD Accelerated Parallel Processing
+  Platform Version                                OpenCL 2.1 AMD-APP
+Number of devices                                 1
+  Device Name                                     gfx1031

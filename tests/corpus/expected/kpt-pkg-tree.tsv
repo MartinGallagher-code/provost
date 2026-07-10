@@ -1,0 +1,6 @@
+n	depth	name	total_entries
+1	1	[Kptfile] Kptfile wordpress	5
+2	1	[service.yaml] Service wordpress	5
+3	1	[deployment.yaml] Deployment wordpress	5
+4	1	PKG: mysql	5
+5	2	[service.yaml] Service wordpress-mysql	5

@@ -1,0 +1,5 @@
+NVRM version:   555.42.06
+CUDA version:   12.5
+Device Index:   0
+Device Minor:   0
+Model:          NVIDIA GeForce RTX 4090

@@ -1,0 +1,5 @@
+Last password change                : Jul 01, 2026
+Password expires                    : never
+Password inactive                   : never
+Account expires                     : never
+Maximum number of days              : 99999

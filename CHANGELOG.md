@@ -1,5 +1,34 @@
 # glean — Changelog
 
+## 2026-07-10 — +500 more unique corpus inputs (batch 2): 1540 → 2040 tools
+
+Second +500 expansion of the tidy-coverage corpus with tools never seen by the
+first ~1540 (0 basename overlap, 432 distinct tool prefixes) across fresh
+domains: data engineering, ML serving, security scanners, bioinformatics,
+blockchain, distributed storage, APM, CI/CD, cloud services, container/k8s
+tooling, terminal monitors, HTTP clients, editors/gaming, and a large block of
+`--version` banners. This measures **generalization** (unseen tools) against the
+frozen-fixture corpus that measures regression.
+
+- **461 / 500 (92.2%) came out tidy with no new per-tool code** — 454 via a
+  generic parser (auto-detected), 7 via a bespoke fallback — mirroring batch 1's
+  466/500. No bespoke parser was added and no engine change was made; this batch
+  is pure corpus expansion (the batch-1 gap-closing engine work rode in the
+  previous entry).
+- **Corpus coverage 1512/1540 → 1973 / 2040** (✅ 1771 generic, ✅ʰ 55 hint,
+  ✅ᵇ 147 bespoke). 454 new goldens regenerated; golden regression 1826 pass /
+  0 fail / **0 deleted** (no existing tool lost its golden).
+- **39 batch-2 gaps left as an honest ⏳** — not manifest errors and not worth a
+  bespoke: ~19 single-line `--version`/one-liner banners that are genuinely not
+  datasets, and ~20 tables that need generic capability the format tier doesn't
+  yet have (headerless tables whose first data row is eaten as the header —
+  go-mod-graph, git-log-oneline, retroarch-cores, redis-cli-latency-history;
+  ragged/tree tables — ceph-osd-tree, scylla-nodetool-status; header-not-promoted
+  — dependabot-alerts, spark-sql-show-tables; colon-delimited getent-group).
+  Files: `tests/corpus/inputs/*.txt` (+500), `tests/corpus/expected.tsv`
+  (+500 manifest rows), `tests/corpus/expected/*.tsv` (+454 goldens),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
 ## 2026-07-10 — Close 6 of the 34 corpus gaps (json-array rewrite, box-table parser, 2 hints)
 
 Worked the format gaps the +500 expansion surfaced, closing the ones with a

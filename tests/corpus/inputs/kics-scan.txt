@@ -1,0 +1,7 @@
+Files scanned: 44
+Parsed files: 44
+Queries executed: 1204
+
+HIGH: 2
+MEDIUM: 8
+LOW: 12

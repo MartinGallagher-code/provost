@@ -1,0 +1,3 @@
+name                 hostname    version   connected
+agent-1-abc          runner-01   3.74.0    true
+agent-2-def          runner-02   3.74.0    true

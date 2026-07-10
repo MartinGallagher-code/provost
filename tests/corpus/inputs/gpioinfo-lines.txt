@@ -1,0 +1,4 @@
+gpiochip0 - 32 lines:
+	line   0:      "ID_SDA"       unused   input  active-high
+	line   1:      "ID_SCL"       unused   input  active-high
+	line  17:      "GPIO17"       "led"    output active-high

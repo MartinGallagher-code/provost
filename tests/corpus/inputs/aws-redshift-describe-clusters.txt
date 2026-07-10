@@ -1,0 +1,2 @@
+CLUSTER-ID       NODE-TYPE      NODES   STATUS      DB-NAME
+analytics-prod   ra3.4xlarge    4       available   analytics

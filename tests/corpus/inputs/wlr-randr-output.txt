@@ -1,0 +1,6 @@
+DP-1 "Dell U2720Q"
+  Enabled: yes
+  Modes:
+    3840x2160 px, 60.000000 Hz (preferred, current)
+  Position: 0,0
+  Scale: 1.500000

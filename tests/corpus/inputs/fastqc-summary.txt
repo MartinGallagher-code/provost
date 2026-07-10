@@ -1,0 +1,4 @@
+PASS	Basic Statistics	sample_R1.fastq.gz
+PASS	Per base sequence quality	sample_R1.fastq.gz
+WARN	Per base sequence content	sample_R1.fastq.gz
+FAIL	Overrepresented sequences	sample_R1.fastq.gz

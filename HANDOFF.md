@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first extraction refactor + quality audit landed (2026-07-10)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2040 inputs (2026-07-10)
 
 > Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
 > nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
@@ -191,16 +191,31 @@ git-stash-show-stat from sqlite-output's broken accidental parse),
 snmp-output promoted to structured/, sqlite-output deleted (zero wins
 left), and holdout 48 → 66 with the aws-s3-ls/dmsetup-table hint rows
 retargeted to line-records (aligned-columns returns empty on ragged
-mixed-width rows — found by the holdout). Coverage now
-✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66.
+mixed-width rows — found by the holdout). Coverage at that point (pre-corpus-
+expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two +500
+expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus format gaps (28 remaining ⏳ as of 2026-07-10)
+## Corpus size + gaps (2040 inputs, 67 ⏳ as of 2026-07-10)
 
-The +500 corpus expansion surfaced 34 gaps; 6 were closed (json-array
-single-line rewrite, box-table parser, iw-dev-scan/nvidia-smi-topo hints).
-The remaining 28 are deliberately left ⏳ — closing them requires either new
-generic capability or is genuinely-not-a-dataset:
+The corpus grew in two +500 expansions of unique never-before-seen tools
+(0 basename overlap each): **1040 → 1540 → 2040**. Each batch generalized at
+~92% with **no new per-tool code** (batch 1: 466/500; batch 2: 461/500), which
+is the headline result — the generic tier tidies the vast majority of tools it
+was never shown. Coverage is now **1973 / 2040** (✅ 1771 / ✅ʰ 55 / ✅ᵇ 147);
+golden regression 1826 pass / 0 fail / 0 deleted.
+
+The 67 ⏳ break into the same honest buckets each expansion surfaces — either
+new generic capability is needed, or the output is genuinely-not-a-dataset:
+- **headerless tables** whose first data row is eaten as the header
+  (go-mod-graph, git-log-oneline, retroarch-cores, redis-cli-latency-history)
+  and **header-not-promoted / ragged / tree** tables (dependabot-alerts,
+  spark-sql-show-tables, ceph-osd-tree, scylla-nodetool-status, statuspage-
+  components). A generic "no separator rule → synthesize positional columns,
+  keep every data row" mode would close most of these but is a broad, golden-
+  risky change — deferred out of a corpus-expansion PR.
+- **colon-delimited records** (getent-group) — candidate hint/delimiter route.
+- earlier survivors still open:
 - **2-col tables, free-text last column** (aligned-columns can't split a
   header's single-spaced labels from a multi-word value): spin-templates-list,
   vagrant-status, bluetoothctl-devices, ansible-galaxy-list, go-test-summary.
@@ -222,7 +237,7 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (875 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (1826 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```

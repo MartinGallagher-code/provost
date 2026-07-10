@@ -1,0 +1,4 @@
+[+] WordPress version 6.5.4 identified
+[+] 3 vulnerabilities identified
+[!] Title: XSS in comment form
+    Fixed in: 6.5.5

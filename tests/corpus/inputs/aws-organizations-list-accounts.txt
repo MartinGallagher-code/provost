@@ -1,0 +1,4 @@
+[
+  {"Id": "111122223333", "Name": "prod", "Status": "ACTIVE"},
+  {"Id": "444455556666", "Name": "staging", "Status": "ACTIVE"}
+]

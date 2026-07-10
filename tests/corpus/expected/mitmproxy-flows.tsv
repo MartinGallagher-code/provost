@@ -1,0 +1,4 @@
+n	A	B	C	D	E	total_entries
+1	GET	https://api.example.com/orders	200	1.2k	42ms	3
+2	POST	https://api.example.com/checkout	201	88b	128ms	3
+3	GET	https://api.example.com/health	200	12b	8ms	3

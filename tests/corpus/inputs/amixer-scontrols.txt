@@ -1,0 +1,4 @@
+Simple mixer control 'Master',0
+Simple mixer control 'Headphone',0
+Simple mixer control 'Speaker',0
+Simple mixer control 'PCM',0

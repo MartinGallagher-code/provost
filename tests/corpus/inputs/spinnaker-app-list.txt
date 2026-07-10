@@ -1,0 +1,3 @@
+NAME          ACCOUNTS       CLOUDPROVIDERS
+frontend      prod,staging   kubernetes
+backend       prod           kubernetes

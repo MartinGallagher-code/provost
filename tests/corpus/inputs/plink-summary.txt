@@ -1,0 +1,4 @@
+PLINK v2.00a5
+44201 samples loaded
+882010 variants loaded
+Total genotyping rate is 0.9942

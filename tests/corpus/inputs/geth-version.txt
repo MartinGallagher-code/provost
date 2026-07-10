@@ -1,0 +1,5 @@
+Geth
+Version: 1.14.5-stable
+Architecture: amd64
+Go Version: go1.22.4
+Operating System: linux

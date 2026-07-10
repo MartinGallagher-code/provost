@@ -1,0 +1,5 @@
+advisories ok
+bans ok
+licenses FAILED
+  error[L001]: failed to satisfy license requirements
+    GPL-3.0 for crate copyleft-lib 1.0.0

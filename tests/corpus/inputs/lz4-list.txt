@@ -1,0 +1,2 @@
+compressed   uncompressed   ratio   filename
+  5242880       12048820    0.435   data.lz4

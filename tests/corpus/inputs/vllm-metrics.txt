@@ -1,0 +1,5 @@
+vllm:num_requests_running 12
+vllm:num_requests_waiting 3
+vllm:gpu_cache_usage_perc 0.71
+vllm:time_to_first_token_seconds 0.142
+vllm:generation_tokens_total 8821004

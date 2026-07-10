@@ -1,0 +1,7 @@
+n	table	inet	filter	{	total_entries
+1	chain	input	{		6
+2	type	filter	hook	input_priority_0;	6
+3	tcp	dport	22	counter_packets_8821_bytes_442019_accept	6
+4	tcp	dport	443	counter_packets_128442_bytes_12048820_accept	6
+5	}				6
+6	}				6

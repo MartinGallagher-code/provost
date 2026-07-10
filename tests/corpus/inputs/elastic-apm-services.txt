@@ -1,0 +1,3 @@
+SERVICE          ENVIRONMENT   AGENT      THROUGHPUT   LATENCY
+api-gateway      production    nodejs     1204 tpm     42ms
+order-service    production    java       882 tpm      88ms

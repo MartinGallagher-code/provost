@@ -1,0 +1,4 @@
+Total package names: 88201 (1,764 k)
+Total distinct versions: 128442 (10.3 M)
+Total dependencies: 442019 (12.4 M)
+Total Provides mappings: 44201 (884 k)

@@ -1,0 +1,3 @@
+Name              Location   State    Service Name
+prod-postgres     eu-de      active   databases-for-postgresql
+prod-redis        eu-de      active   databases-for-redis

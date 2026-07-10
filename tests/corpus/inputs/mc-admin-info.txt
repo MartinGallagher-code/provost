@@ -1,0 +1,5 @@
+●  minio-1.example.com:9000
+   Uptime: 14 days
+   Version: 2026-06-30T00:00:00Z
+   Network: 4/4 OK
+   Drives: 8/8 OK

@@ -1,0 +1,3 @@
+Name        Stream    Profiles           Summary
+nodejs      20 [d]    common [d], dev    Javascript runtime
+postgresql  16 [d]    server [d], client PostgreSQL server

@@ -1,0 +1,7 @@
+{
+  opid: 88201,
+  active: true,
+  secs_running: 12,
+  op: 'query',
+  ns: 'orders.transactions'
+}

@@ -1,0 +1,4 @@
+ 06:00:00 up 14 days,  3:11,  3 users,  load average: 1.42, 1.20, 0.98
+USER     TTY      FROM             LOGIN@   IDLE   WHAT
+deploy   pts/0    10.1.2.99        07:00    0.00s  -bash
+alice    pts/1    10.1.2.50        07:15    2:00   vim

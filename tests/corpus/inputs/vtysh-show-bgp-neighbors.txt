@@ -1,0 +1,4 @@
+BGP neighbor is 10.0.0.2, remote AS 65002, local AS 65001
+  BGP state = Established, up for 2d04h
+  Total number of neighbors 2
+  Prefixes received 412, sent 88

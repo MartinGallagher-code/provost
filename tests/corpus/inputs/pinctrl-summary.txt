@@ -1,0 +1,2 @@
+pin 17 (GPIO17): led PU | hi // GPIO17 = output
+pin 18 (GPIO18): none PD | lo // GPIO18 = input

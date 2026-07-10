@@ -1,0 +1,3 @@
+Nestopia UE           Nintendo - NES
+Snes9x                Nintendo - SNES
+mGBA                  Nintendo - Game Boy Advance

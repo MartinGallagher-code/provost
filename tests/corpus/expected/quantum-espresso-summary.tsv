@@ -1,0 +1,6 @@
+n	A	B	C	D	E	total_entries
+1	Program	PWSCF	v.7.3.1	starts		5
+2	number	of	atoms/cell	=	8	5
+3	number	of	electrons	=	32.00	5
+4	total	energy	=	-155.4102	Ry	5
+5	convergence	has	been	achieved	in_12_iterations	5

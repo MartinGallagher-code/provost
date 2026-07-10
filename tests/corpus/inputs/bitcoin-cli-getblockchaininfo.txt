@@ -1,0 +1,7 @@
+{
+  "chain": "main",
+  "blocks": 850142,
+  "headers": 850142,
+  "verificationprogress": 0.9999,
+  "size_on_disk": 612340982012
+}

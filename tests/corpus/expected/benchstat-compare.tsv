@@ -1,0 +1,3 @@
+n	name	old_time/op	new_time/op	delta	total_entries
+1	Parse-8	412ns ± 2%	388ns ± 1%	-5.83%	2
+2	Encode-8	1.20µs ± 3%	1.18µs ±	2% -1.67%	2

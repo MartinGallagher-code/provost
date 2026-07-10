@@ -1,0 +1,5 @@
+editor - auto mode
+  link best version is /usr/bin/vim.basic
+  link editor is /usr/bin/vim.basic
+/usr/bin/nano - priority 40
+/usr/bin/vim.basic - priority 30

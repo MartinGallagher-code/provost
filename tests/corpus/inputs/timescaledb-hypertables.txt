@@ -1,0 +1,4 @@
+ hypertable_name | num_dimensions | num_chunks | compression_enabled
+-----------------+----------------+------------+--------------------
+ metrics         | 1              | 442        | t
+ events          | 2              | 88         | f

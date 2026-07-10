@@ -1,0 +1,1 @@
+HAProxy version 2.9.8-1ppa1~jammy 2026/06/01 - https://haproxy.org/

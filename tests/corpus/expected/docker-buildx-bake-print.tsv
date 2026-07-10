@@ -1,0 +1,2 @@
+target.app.context	target.app.dockerfile	target.app.tags.0
+.	Dockerfile	app:latest

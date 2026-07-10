@@ -1,0 +1,3 @@
+[INFO] Connected to wss://events.example.com
+[INFO] {"event":"heartbeat","ts":1751880000}
+[INFO] {"event":"update","id":442}

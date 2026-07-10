@@ -1,0 +1,6 @@
+IP Virtual Server version 1.2.1
+Prot LocalAddress:Port Scheduler Flags
+  -> RemoteAddress:Port           Forward Weight ActiveConn
+TCP  10.0.1.100:80 rr
+  -> 10.0.2.1:80                  Masq    1      412
+  -> 10.0.2.2:80                  Masq    1      388

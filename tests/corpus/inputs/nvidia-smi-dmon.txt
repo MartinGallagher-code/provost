@@ -1,0 +1,4 @@
+# gpu   sm   mem   enc   dec   tx    rx
+# Idx    %     %     %     %  MB/s  MB/s
+    0    84    41     0     0  1200   880
+    1    91    52     0     0  1400   920

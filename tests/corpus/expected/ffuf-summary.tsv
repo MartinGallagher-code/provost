@@ -1,0 +1,7 @@
+n	A	total_entries
+1	________________________________________________	6
+2	:: Method           : GET	6
+3	:: URL              : https://api.example.com/FUZZ	6
+4	:: Matcher          : Response status: 200	6
+5	admin                   [Status: 200, Size: 1204]	6
+6	api                     [Status: 200, Size: 8821]	6

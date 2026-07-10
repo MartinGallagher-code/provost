@@ -1,0 +1,6 @@
+Running 30s test @ http://api.example.com/health
+  Thread Stats   Avg      Stdev     Max
+    Latency    42.10ms   12.44ms   412.00ms
+    Req/Sec     2.10k     412.00    2.80k
+  88201 requests in 30.00s, 12.44MB read
+Requests/sec:   2940.03

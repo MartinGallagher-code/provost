@@ -1,0 +1,5 @@
+{
+  "target": {
+    "app": {"context": ".", "dockerfile": "Dockerfile", "tags": ["app:latest"]}
+  }
+}

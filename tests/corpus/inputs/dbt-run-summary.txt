@@ -1,0 +1,4 @@
+06:00:00  1 of 4 START sql table model stg_orders ...... [RUN]
+06:00:02  1 of 4 OK created sql table model stg_orders . [SELECT 88201 in 2.1s]
+06:00:04  Finished running 4 models in 6.4s.
+06:00:04  Completed successfully

@@ -1,0 +1,1 @@
+ClickHouse client version 24.6.1.4423 (official build).

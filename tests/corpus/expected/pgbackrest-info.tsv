@@ -1,0 +1,2 @@
+stanza	status	cipher	db_(current).wal_archive_min/max_(16)	db_(current).full_backup
+main	ok	aes-256-cbc	000000010000000000000001/00000001000000000000002A	20260710-060000F

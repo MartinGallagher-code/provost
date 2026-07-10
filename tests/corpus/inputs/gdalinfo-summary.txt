@@ -1,0 +1,6 @@
+Driver: GTiff/GeoTIFF
+Files: dem.tif
+Size is 3601, 3601
+Coordinate System is: WGS 84
+Pixel Size = (0.000277,-0.000277)
+Band 1 Block=3601x1 Type=Int16

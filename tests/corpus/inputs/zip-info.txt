@@ -1,0 +1,7 @@
+Archive:  release.zip
+Length      Date    Time    Name
+--------  ---------- -----   ----
+   12044  2026-07-08 10:00   app.js
+    8821  2026-07-08 10:00   style.css
+--------                    -------
+   20865                    2 files

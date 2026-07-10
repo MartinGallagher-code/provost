@@ -1,0 +1,5 @@
+n	A	total_entries
+1	[+] WordPress version 6.5.4 identified	4
+2	[+] 3 vulnerabilities identified	4
+3	[!] Title: XSS in comment form	4
+4	Fixed in: 6.5.5	4

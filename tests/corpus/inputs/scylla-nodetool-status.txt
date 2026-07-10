@@ -1,0 +1,7 @@
+Datacenter: dc1
+=======================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address     Load       Tokens  Owns    Host ID
+UN  10.0.1.1    412.4 GB   256     33.3%   a1b2c3d4
+UN  10.0.1.2    408.2 GB   256     33.3%   e5f6g7h8

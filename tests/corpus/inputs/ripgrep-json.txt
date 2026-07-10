@@ -1,0 +1,2 @@
+{"type":"match","data":{"path":{"text":"src/main.rs"},"line_number":12,"lines":{"text":"fn main() {"}}}
+{"type":"match","data":{"path":{"text":"src/parser.rs"},"line_number":44,"lines":{"text":"fn parse() {"}}}

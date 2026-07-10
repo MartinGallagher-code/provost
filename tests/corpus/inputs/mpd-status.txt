@@ -1,0 +1,4 @@
+volume: 70%   repeat: off   random: on
+Artist - Track Title
+[playing] #4/12   1:24/3:41 (38%)
+bitrate: 320 kbps

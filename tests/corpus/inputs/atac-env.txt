@@ -1,0 +1,5 @@
+[prod]
+base_url = https://api.example.com
+token = {{PROD_TOKEN}}
+[staging]
+base_url = https://staging.example.com

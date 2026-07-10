@@ -1,0 +1,4 @@
+[rank0]: Training started with 4 GPUs
+[rank0]: Epoch 1/10  loss=2.4102  acc=0.412
+[rank0]: Epoch 2/10  loss=1.8821  acc=0.588
+[rank0]: Checkpoint saved to /ckpt/epoch2.pt

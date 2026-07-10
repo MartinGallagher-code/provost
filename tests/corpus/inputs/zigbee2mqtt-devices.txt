@@ -1,0 +1,3 @@
+IEEE Address       Friendly Name    Type     Model
+0x00124b001       living_sensor    EndDev   WSDCGQ11LM
+0x00124b002       kitchen_plug     Router   SP-EUC01

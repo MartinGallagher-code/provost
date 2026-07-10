@@ -1,0 +1,4 @@
+Query 20260710_060000_00042_abcde, RUNNING, 3 nodes
+Splits: 412 total, 388 done (94.17%)
+CPU Time: 12.4s total, 88.2M rows/s
+Peak Memory: 1.20GB

@@ -1,0 +1,5 @@
+Mutation score: 88.20%
+Killed: 388
+Survived: 44
+No coverage: 12
+Timeout: 8

@@ -1,0 +1,2 @@
+- old_function_name(x)
++ new_function_name(x)

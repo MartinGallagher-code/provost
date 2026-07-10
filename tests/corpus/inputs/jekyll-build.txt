@@ -1,0 +1,5 @@
+Configuration file: /_config.yml
+            Source: /site
+       Destination: /_site
+      Generating...
+                    done in 3.412 seconds.

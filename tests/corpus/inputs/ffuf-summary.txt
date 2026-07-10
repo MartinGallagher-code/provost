@@ -1,0 +1,6 @@
+________________________________________________
+ :: Method           : GET
+ :: URL              : https://api.example.com/FUZZ
+ :: Matcher          : Response status: 200
+admin                   [Status: 200, Size: 1204]
+api                     [Status: 200, Size: 8821]

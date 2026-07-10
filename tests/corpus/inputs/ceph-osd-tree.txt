@@ -1,0 +1,5 @@
+ID  CLASS  WEIGHT   TYPE NAME       STATUS
+-1         12.0     root default
+-3          4.0         host node1
+ 0    ssd   1.0             osd.0   up
+ 1    ssd   1.0             osd.1   up

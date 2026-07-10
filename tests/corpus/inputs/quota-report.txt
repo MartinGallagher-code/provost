@@ -1,0 +1,4 @@
+                        Block limits               File limits
+User            used    soft    hard    used  soft  hard
+alice     --  1204882 2000000 2500000    8821 10000 12000
+bob       +- 2100000 2000000 2500000    4102  5000  6000

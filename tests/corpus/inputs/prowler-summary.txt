@@ -1,0 +1,5 @@
+Provider: aws
+Account: 123456789012
+-> PASS: 412
+-> FAIL: 88
+-> Total findings: 500

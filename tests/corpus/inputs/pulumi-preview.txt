@@ -1,0 +1,7 @@
+Previewing update (prod):
+     Type                       Name          Plan
+ +   aws:s3:Bucket              assets        create
+ ~   aws:ec2:Instance          web           update
+Resources:
+    + 1 to create
+    ~ 1 to update

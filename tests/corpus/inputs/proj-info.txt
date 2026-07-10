@@ -1,0 +1,4 @@
+PROJ 9.4.0
+NAD: /usr/share/proj
+SEARCH PATH: /usr/share/proj
+Databases: proj.db

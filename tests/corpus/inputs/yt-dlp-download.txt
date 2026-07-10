@@ -1,0 +1,4 @@
+[youtube] abc123: Downloading webpage
+[info] abc123: Downloading 1 format(s): 137+251
+[download] 100% of 88.20MiB in 00:12 at 7.35MiB/s
+[Merger] Merging formats into "video.mp4"

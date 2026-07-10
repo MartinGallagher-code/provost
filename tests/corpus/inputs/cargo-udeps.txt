@@ -1,0 +1,4 @@
+unused dependencies:
+`app v0.1.0`
+└─── dependencies
+     └─── "unused-crate"

@@ -1,0 +1,3 @@
+n	12:	python_lang_security_audit_dangerous-exec	total_entries
+1	44:	python.django.security.injection.sql	2
+2	Summary:	2_findings,_1_blocking	2

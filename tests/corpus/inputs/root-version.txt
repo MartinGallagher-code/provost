@@ -1,0 +1,2 @@
+ROOT Version: 6.32.02
+Built for linuxx8664gcc

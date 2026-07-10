@@ -1,0 +1,6 @@
+Server rpc stats:
+calls      badcalls   badclnt    badauth    xdrcall
+8821004    12         0          12         0
+Server nfs v4:
+null       compound
+44         8820960

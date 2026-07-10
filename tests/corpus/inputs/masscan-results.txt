@@ -1,0 +1,3 @@
+Discovered open port 22/tcp on 10.0.1.24
+Discovered open port 443/tcp on 10.0.1.24
+Discovered open port 8080/tcp on 10.0.1.30

@@ -1,0 +1,4 @@
+[drwxr-xr-x]  src
+[-rw-r--r--]  ├── main.rs
+[-rw-r--r--]  └── lib.rs
+[-rw-r--r--]  Cargo.toml

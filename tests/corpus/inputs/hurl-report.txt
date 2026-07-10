@@ -1,0 +1,4 @@
+health: Success (200) 42ms
+login: Success (200) 128ms
+orders: Success (200) 88ms
+3 requests, 3 succeeded

@@ -1,0 +1,4 @@
+id   pipeline/job         status     start
+442  main/build           succeeded  2026-07-10 06:00
+441  main/test            succeeded  2026-07-10 05:00
+440  main/deploy          failed     2026-07-10 04:00

@@ -1,0 +1,4 @@
+sensors/temp/living
+sensors/temp/kitchen
+sensors/humidity/living
+home/lights/status

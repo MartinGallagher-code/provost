@@ -1,0 +1,4 @@
+function        442
+struct          88
+variable        1204
+macro           44
