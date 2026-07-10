@@ -984,7 +984,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | top-batch | ✅ᵇ | top-batch (bespoke) |
 | top | ✅ | aligned-columns |
 | traceroute | ✅ | traceroute |
-| traceroute6 | ⏳ | — |
+| traceroute6 | ✅ | traceroute |
 | tree | ✅ | tree-view |
 | tshark-summary | ✅ᵇ | tshark-summary (bespoke) |
 | tune2fs-l | ✅ | key-value |
@@ -1048,5 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1039 / 1040** — ✅ 837 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 165 via a bespoke strategy.
-⏳ not yet tidy: traceroute6
+**Coverage: 1040 / 1040** — ✅ 838 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 165 via a bespoke strategy.

@@ -75,7 +75,7 @@ _COLUMNAR_SPECS=(
   $'ldconfig-p\tre: => \tlibs found\tws\t-1\t4\tsoname,info@unwrap,~arrow,path\t1\t => '
   $'perf-top\tre:^Samples:\tSymbol\tws\t-1\t4\toverhead,shared_object,~marker,symbol@rest\t1\t%'
   $'turbostat\tBzy_MHz\t-\tws\t-1\t10\tCore,CPU,Avg_MHz,Busy_pct,Bzy_MHz,TSC_MHz,IRQ,PkgTmp,PkgWatt,RAMWatt\t1\t^[0-9]'
-  $'traceroute\ttraceroute to\thops max\tws\t-1\t9\thop,host,~ip,rtt1,~m1,rtt2,~m2,rtt3,~m3'
+  $'traceroute\ttraceroute to\thops max\tws\t-1\t4\thop,host,~ip,rtt1@opt,~m1,rtt2@opt,~m2,rtt3@opt,~m3'
   $'git-remote\t(fetch);(push)\t-\tws\t-1\t3\tremote,url,direction@unwrap'
   $'w-sessions\tLOGIN@;JCPU;PCPU;WHAT\tTTY\tws\t-1\t8\tuser,tty,from,login,idle,jcpu,pcpu,what@rest'
   $'dpkg-list\tDesired=Unknown\t+++-\tws\t-1\t5\tstatus,name,version,arch,description@rest'
