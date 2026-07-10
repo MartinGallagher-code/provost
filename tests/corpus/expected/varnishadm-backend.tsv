@@ -1,4 +1,4 @@
-n	Backend	name	Admin	Probe	total_entries
+n	Backend_name	Admin	Probe	Health	total_entries
 1	default.web1	probe	5/5	healthy	6
 2	default.web2	probe	5/5	healthy	6
 3	default.web3	probe	2/5	sick	6

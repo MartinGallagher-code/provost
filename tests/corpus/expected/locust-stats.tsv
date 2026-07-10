@@ -1,3 +1,3 @@
-n	Type	Name	#	reqs	fails	Avg	Min	total_entries
-1	GET	/health	42	0	12	412	40	2
-2	POST	/checkout	128	4	44	880	120	2
+n	Type	Name	#_reqs	#_fails	Avg	Min	Max	Median	total_entries
+1	GET	/health	8821	0	42	12	412	40	2
+2	POST	/checkout	882	4	128	44	880	120	2

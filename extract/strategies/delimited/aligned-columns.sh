@@ -5,6 +5,25 @@
 ## Priority: 55
 ## Sample: samples/aligned-columns/basic.txt
 
+# Count a line's 2-space-gap segments — the columns a fixed-width header defines
+# (a multi-word cell like "Best Rate MB/s" is ONE segment; only a >=2-space gap
+# starts a new one).
+_ac_seg () {
+    local l="$1" n=0 i=0 L
+    l="${l#"${l%%[![:space:]]*}"}"; L=${#l}
+    while (( i < L )); do
+        while (( i < L )) && [[ "${l:i:1}" == " " ]]; do ((i++)); done
+        (( i >= L )) && break
+        ((n++))
+        while (( i < L )) && ! { [[ "${l:i:1}" == " " ]] && [[ "${l:i+1:1}" == " " ]]; }; do ((i++)); done
+    done
+    printf '%s' "$n"
+}
+
+# Is the token a value (number/size/%/time/version — anything starting with a
+# digit)? A header label never does.
+_ac_is_value () { [[ "$1" =~ ^[0-9] ]]; }
+
 # Echo the block with leading preamble removed: an `ls -l` "total <n>" line, or
 # short banner/preamble lines with <2 columns (e.g. `apt list`'s "Listing…"),
 # but only when a real (>=2 column) table follows.
@@ -55,6 +74,51 @@ _ac_body () {
         done <<< "$text"
     fi
 
+    # A title banner in front of a FIXED-WIDTH table (STREAM's "STREAM version
+    # 5.10", blender's "Blender 4.2.0 Benchmark", kdiskmark's "KDiskMark 3.1.4")
+    # — a leading single-column line (seg<2) or decorated rule, followed by an
+    # ALL-LABEL header over NUMERIC data. Both the all-label header and the
+    # numeric data are required so this never eats a real header that happens to
+    # be single-segment ("Installed Packages" over version rows — dnf-list) or a
+    # word-data list ("web  running (virtualbox)" — vagrant).
+    local _fwbanner=""
+    if [[ $has_table -eq 1 ]]; then
+        local _fl=() _fx
+        while IFS= read -r _fx; do
+            [[ -z "${_fx//[[:space:]]/}" ]] && continue
+            [[ "$_fx" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
+            _fl+=("$_fx"); [[ ${#_fl[@]} -ge 3 ]] && break
+        done <<< "$text"
+        if [[ ${#_fl[@]} -ge 3 ]]; then
+            local _b0="${_fl[0]}" _h1="${_fl[1]}" _d2="${_fl[2]}"
+            local _b0seg; _b0seg="$(_ac_seg "$_b0")"
+            if [[ ( $_b0seg -lt 2 || "$_b0" == *-----* ) && ! "$_b0" =~ ^[[:space:]]*[{[\<] ]]; then
+                # header all-label AND genuinely multi-COLUMN (>=2 two-space
+                # segments)? A kv line ("Revision a1b2c3d4", "Author: Name") has
+                # one segment and must never count as a fixed-width header.
+                local _hlab=1 _ht; _ht=(); read -ra _ht <<< "$_h1"
+                [[ ${#_ht[@]} -ge 2 ]] || _hlab=0
+                [[ "$(_ac_seg "$_h1")" -ge 2 ]] || _hlab=0
+                # every header token must be a real label: contains a letter and
+                # is not a value ("========================" in mpirun's decorated
+                # "==== JOB MAP ====" row is neither).
+                local _t
+                for _t in "${_ht[@]}"; do
+                    if _ac_is_value "$_t" || [[ ! "$_t" =~ [A-Za-z] ]]; then _hlab=0; break; fi
+                done
+                # data numeric?
+                local _dnum=0 _dt; _dt=(); read -ra _dt <<< "$_d2"
+                for _t in "${_dt[@]}"; do _ac_is_value "$_t" && { _dnum=1; break; }; done
+                # header and first data row must start at the SAME column — else
+                # the header has no column for a data-row label ("Read (MB/s)"
+                # indented over unindented "SEQ1M Q8T1 …" — kdiskmark's headerless
+                # first column), which positional assignment can only garble.
+                local _hind="${_h1%%[![:space:]]*}" _dind="${_d2%%[![:space:]]*}"
+                [[ $_hlab -eq 1 && $_dnum -eq 1 && ${#_hind} -eq ${#_dind} ]] && _fwbanner="$_b0"
+            fi
+        fi
+    fi
+
     # A leading `#`-comment block (conda list, opam list) mixes prose banners with
     # a commented column header. Collect the candidates and, at the first data
     # line, prefer the one whose token count matches the data row and whose
@@ -62,9 +126,14 @@ _ac_body () {
     # `# Idx % % …`); otherwise keep the last (conda's header is last).
     local held=() banner_budget=2
     while IFS= read -r _l; do
+        # Drop a pure separator rule up top so a LEADING rule (STREAM /
+        # pytest-benchmark bracket their header in rules) doesn't flip `started`
+        # and get mistaken for the first table line.
+        [[ "$_l" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
         if [[ $started -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
             _tk=(); read -ra _tk <<< "$_l"
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
+            [[ -n "$_fwbanner" && "$_l" == "$_fwbanner" ]] && { _fwbanner=""; continue; }
             [[ -n "$_title" && "$_l" == "$_title" ]] && { _title=""; continue; }
             if [[ "$_l" =~ ^[[:space:]]*# ]]; then
                 # Strip the leading `#` (and one following space) — a candidate header.
@@ -126,10 +195,6 @@ _ac_body () {
             fi
             started=1
         fi
-        # A pure separator rule under the header (`---- ----`/`==== ====`,
-        # dashes or equals + spaces only, ≥2 chars) is not a data row — drop
-        # it wherever it appears (psql/sysstat dashes, tokei's `=` rules).
-        [[ "$_l" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
         out+="$_l"$'\n'
     done <<< "$text"
 
@@ -525,19 +590,35 @@ strategy_extract () {
         # UNDER-count columns (single-spaced labels like df's "Used Avail Use%"),
         # so positional would cram them; whitespace tokenization is correct there.
         local _htok _harr; _harr=(); read -ra _harr <<< "${lines[$hidx]}"; _htok=${#_harr[@]}
-        local _maxd=0 _dli _darr
+        local _maxd=0 _dli _darr _dcnt=()
         for ((_dli = hidx + 1; _dli < ${#lines[@]}; _dli++)); do
             _darr=(); read -ra _darr <<< "${lines[$_dli]}"
             [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
+            _dcnt+=("${#_darr[@]}")
+        done
+        # Modal data-row token count.
+        local _moded=0 _mda _mdb _mdk _mdbest=0
+        for _mda in "${_dcnt[@]}"; do
+            _mdk=0; for _mdb in "${_dcnt[@]}"; do [[ "$_mdb" -eq "$_mda" ]] && _mdk=$((_mdk + 1)); done
+            [[ $_mdk -gt $_mdbest ]] && { _mdbest=$_mdk; _moded=$_mda; }
         done
         # In an ALL-TEXT table (no digits anywhere) the reverse mismatch also
         # wants positional assignment: a header with MORE tokens than the data
         # rows means multi-word labels (`Service Name`), which 2-space
         # segmentation names as one column. Numeric tables keep tokenization
-        # (their single-spaced labels under-segment — see comment above).
+        # (their single-spaced labels under-segment) UNLESS the header's own
+        # 2-space segmentation collapses EXACTLY to the data column count — a
+        # genuine multi-word-header table (STREAM's "Best Rate MB/s", docker's
+        # "IMAGE ID"). That equality is the safety: single-spaced labels (df's
+        # "Used Avail Use%") under-segment and so never match.
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
-        elif [[ $_htok -gt $_maxd && ! "$(printf '%s\n' "${lines[@]}")" =~ [0-9] ]]; then _use_pos=1
+        elif [[ $_htok -gt $_maxd ]]; then
+            if [[ ! "$(printf '%s\n' "${lines[@]}")" =~ [0-9] ]]; then _use_pos=1
+            else
+                local _hseg; _hseg="$(_ac_seg "${lines[$hidx]}")"
+                [[ $_hseg -ge 2 && $_hseg -eq $_moded ]] && _use_pos=1
+            fi
         fi
         if [[ $_use_pos -eq 1 && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
             local gridrows=() _g

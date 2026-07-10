@@ -1,0 +1,3 @@
+n	Gluster	process	TCP	Port	Online	total_entries
+1	Brick	node1:/data/brick	49152	Y	812	2
+2	Brick	node2:/data/brick	49152	Y	813	2

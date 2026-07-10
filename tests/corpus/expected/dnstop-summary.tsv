@@ -1,4 +1,4 @@
-n	Query	Name	Count	total_entries
+n	Query_Name	Count	%	total_entries
 1	example.com	8821004	44.2	3
 2	api.example.com	4102839	20.5	3
 3	cdn.example.com	2841029	14.2	3

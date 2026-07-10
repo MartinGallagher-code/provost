@@ -1,9 +1,8 @@
-n	BYTE	UNIX	Benchmarks	(Version	5_1_3)	total_entries
-1	System	Benchmarks	Index	Values	BASELINE_RESULT_INDEX	8
-2	Dhrystone	2	using	register	variables_116700.0_48210044.2_4131.1	8
-3	Double-Precision	Whetstone	55.0	12048.4	2190.6	8
-4	Execl	Throughput	43.0	8821.0	2051.4	8
-5	File	Copy	1024	bufsize	2000_maxblocks_3960.0_1204882.0_3042.6	8
-6	Pipe	Throughput	12440.0	4821004.0	3875.4	8
-7	Process	Creation	126.0	44210.0	3508.7	8
-8	System	Benchmarks	Index	Score	3210.4	8
+n	System	Benchmarks	Index	Values	BASELINE	RESULT	INDEX	total_entries
+1	Dhrystone	2	using	register	variables	116700.0	48210044.2_4131.1	7
+2	Double-Precision	Whetstone	55.0	12048.4	2190.6			7
+3	Execl	Throughput	43.0	8821.0	2051.4			7
+4	File	Copy	1024	bufsize	2000	maxblocks	3960.0_1204882.0_3042.6	7
+5	Pipe	Throughput	12440.0	4821004.0	3875.4			7
+6	Process	Creation	126.0	44210.0	3508.7			7
+7	System	Benchmarks	Index	Score	3210.4			7
