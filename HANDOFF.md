@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2139 inputs (2026-07-10)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2151 inputs (2026-07-10)
 
 > Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
 > nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
@@ -196,25 +196,34 @@ expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two 
 expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus size + gaps (2139 inputs, 31 ⏳ as of 2026-07-10)
+## Corpus size + gaps (2151 inputs, 36 ⏳ as of 2026-07-10)
 
 The corpus grew in two +500 expansions of unique never-before-seen tools
-(0 basename overlap each): **1040 → 1540 → 2040**, then a **+99 benchmark-tool
-set** (2040 → 2139) covering every benchmarking domain (sysbench/fio/iperf/
-pgbench/JMH/glmark2/… — 94/99 tidy). Each batch generalized at ~92% with **no
-new per-tool code** (batch 1: 466/500; batch 2: 461/500; benchmarks: 94/99).
-Two gap-closing rounds added format-level capability only: (1) melt long-form
-for lone kv pairs, a `go-struct` parser, text-lines gate fixes, and a rebuilt
-aligned-columns header-promotion heuristic (value-token contrast, styled
-all-text headers, 2-column value tables, chrome dropping), which fixed 41 of the
-earlier 67 ⏳; (2) a `delimited/pipe-table` parser for GitHub-flavored markdown
-tables (`| a | b |` + `|---|` rule — BenchmarkDotNet and any markdown table).
-Coverage is now **2108 / 2139** (✅ 1915 / ✅ʰ 58 / ✅ᵇ 135); golden regression
-1972 pass / 0 fail / 0 deleted; holdout 68/68.
+(0 basename overlap each): **1040 → 1540 → 2040**, a **+99 benchmark-tool set**
+(2040 → 2139) covering every benchmarking domain, and a **full-range fio
+expansion** (2139 → 2151 — 12 distinct fio output modes vs the previous 2).
+Each batch generalized at ~92% with **no new per-tool code** (batch 1: 466/500;
+batch 2: 461/500; benchmarks: 94/99). Format-level capability added over the
+rounds: melt long-form for lone kv pairs, a `go-struct` parser, text-lines gate
+fixes, a rebuilt aligned-columns header-promotion heuristic (value-token
+contrast, styled all-text headers, 2-column value tables, chrome dropping — 41
+of the earlier 67 ⏳ closed), a `delimited/pipe-table` parser for GitHub-flavored
+markdown tables (BenchmarkDotNet), and **headerless numeric CSV** in
+`structured/csv` (data loggers with no header row — fio `--write_bw_log` /
+`--write_iops_log`, `sar -o`, collectd; first-row-all-numeric ⟹ no header).
+Coverage is now **2115 / 2151** (✅ 1922 / ✅ʰ 58 / ✅ᵇ 135); golden regression
+1980 pass / 0 fail / 0 deleted; holdout 68/68.
 
-The 31 ⏳ left include 5 benchmark formats (stream-benchmark, kdiskmark-run,
-pytest-benchmark, lzbench-run, blender-benchmark) — all the same
-multi-word-header + banner shape as the rest of the tail:
+fio is a genuinely hard, multi-format tool: of its 12 output modes glean tidies
+3 (json, bw-log, iops-log), treats 3 as loose text (normal-full / multijob /
+status-line are nested reports, not single datasets), and leaves 5 as ⏳ —
+`;`-delimited terse (v3/v5; no semicolon parser) and the inline `label: k=v, k=v`
+sections (disk-stats, io-depths, run-status). Closing those needs a semicolon
+delimiter + a "labeled inline-kv record" parser — deferred as new capability.
+
+The 36 ⏳ left include those 5 fio forms plus 5 benchmark formats
+(stream-benchmark, kdiskmark-run, pytest-benchmark, lzbench-run,
+blender-benchmark) — all the same multi-word-header + banner shape as the tail:
 - **multi-line / banner-entangled headers** (numastat-p, quota-report,
   vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
   watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
@@ -265,7 +274,7 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (1972 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (1980 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```

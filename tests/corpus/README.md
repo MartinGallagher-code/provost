@@ -41,13 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2139 tools tested; 2108 tidy (31 genuine format gaps ⏳)** — after two +500
+**2151 tools tested; 2115 tidy (36 genuine format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
-round that fixed 41 of the 67 ⏳ with format-level capabilities only, and a +99
-benchmark-tool set (94/99 tidy, incl. a new markdown pipe-table parser). Of the
-total: ✅ 1915 by a generic parser via auto-detection, ✅ʰ 58 by a generic parser
-routed by a hint row, ✅ᵇ 135 by a bespoke strategy. See
+round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
+benchmark-tool set (94/99 tidy, incl. a new markdown pipe-table parser), and a
+full-range fio expansion (12 output modes + a headerless-numeric-CSV fix). Of
+the total: ✅ 1922 by a generic parser via auto-detection, ✅ʰ 58 by a generic
+parser routed by a hint row, ✅ᵇ 135 by a bespoke strategy. See
 [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:

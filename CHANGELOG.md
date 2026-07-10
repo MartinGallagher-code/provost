@@ -1,5 +1,34 @@
 # glean — Changelog
 
+## 2026-07-10 — Cover the full range of fio output + headerless numeric CSV
+
+The corpus had only 2 fio fixtures, both truncated slices of the *normal*
+report. fio actually emits a whole family of output shapes — added all 12
+distinct forms and measured each honestly (2139 → 2151 inputs):
+
+- **Tidy (3):** `fio-json-output` (flattened JSON), `fio-bw-log`, `fio-iops-log`.
+- **Loose text (3)** — nested multi-section *reports*, correctly not forced into
+  one table: `fio-normal-full`, `fio-multijob`, `fio-status-line`.
+- **Documented gaps ⏳ (5):** `fio-terse-v3`/`v5` (`;`-delimited record — no
+  semicolon parser), `fio-disk-stats` / `fio-io-depths` / `fio-run-status`
+  (inline `label: k=v, k=v` records — the same inline-kv-with-banner shape as
+  the rest of the hard tail).
+
+One generic, non-fio-specific capability added: **headerless numeric CSV**.
+`structured/csv` always ate row 1 as a header, which broke any data logger that
+emits raw rows with no header (fio `--write_bw_log` / `--write_iops_log`,
+`sar -o` CSV, collectd). Now if the first row's fields are all numeric there is
+no header — synthesise `A,B,C…` and keep every row. redis-benchmark-csv (which
+has a real header) is unaffected. Golden regression **0 changed / 0 deleted**
+from the csv change.
+
+Coverage 2108/2139 → **2115 / 2151** (✅ 1922 generic · ✅ʰ 58 · ✅ᵇ 135);
+golden regression 1980 pass / 0 fail / 0 deleted; extract 62/62, smoke 49,
+melt 10, holdout 68/68.
+Files: `tests/corpus/inputs/fio-*.txt` (+12), `tests/corpus/expected.tsv`,
+`tests/corpus/expected/` (+7 goldens), `extract/strategies/structured/csv.sh`,
+`tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
 ## 2026-07-10 — +99 benchmark tool formats + generic markdown pipe-table parser
 
 Added 99 unique benchmark-tool outputs (0 basename overlap with the existing

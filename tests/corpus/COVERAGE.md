@@ -608,8 +608,20 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | findmnt | ✅ | aligned-columns |
 | finger-user | ✅ | aligned-columns |
 | finger | ✅ | aligned-columns |
+| fio-bw-log | ✅ | csv |
+| fio-disk-stats | ⏳ | — |
+| fio-io-depths | ⏳ | — |
+| fio-iops-log | ✅ | csv |
+| fio-json-output | ✅ | json |
+| fio-latency-dist | ✅ | line-records |
 | fio-latency-pct | ✅ | aligned-columns |
+| fio-multijob | ✅ | yaml |
+| fio-normal-full | ✅ | key-value |
+| fio-run-status | ⏳ | — |
 | fio-run | ✅ | indented-hierarchy |
+| fio-status-line | ✅ | yaml |
+| fio-terse-v3 | ⏳ | — |
+| fio-terse-v5 | ⏳ | — |
 | firecracker-version | ✅ | line-records |
 | firewall-cmd-list-all | ✅ | indented-hierarchy |
 | firewall-cmd | ✅ | indented-hierarchy |
@@ -2147,5 +2159,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 2108 / 2139** — ✅ 1915 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 135 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs blender-benchmark bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief frr-show-bgp-summary gcloud-logging-logs-list getent-group gluster-volume-status hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p promtool-check-rules pueue-status pytest-benchmark pytest-cov-report quota-report sar-cpu scylla-nodetool-status stream-benchmark v4l2-ctl-list-devices vnstat-hourly watch-diff
+**Coverage: 2115 / 2151** — ✅ 1922 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 135 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs blender-benchmark bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief fio-disk-stats fio-io-depths fio-run-status fio-terse-v3 fio-terse-v5 frr-show-bgp-summary gcloud-logging-logs-list getent-group gluster-volume-status hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p promtool-check-rules pueue-status pytest-benchmark pytest-cov-report quota-report sar-cpu scylla-nodetool-status stream-benchmark v4l2-ctl-list-devices vnstat-hourly watch-diff
