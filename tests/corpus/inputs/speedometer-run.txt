@@ -1,0 +1,8 @@
+Speedometer 3.0
+
+Runs / Minute: 42.10
+    ±  0.88 (2.1%)
+
+TodoMVC-JavaScript-ES5:  12.44 ms
+TodoMVC-React:           28.10 ms
+TodoMVC-Vue:             22.44 ms

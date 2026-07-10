@@ -1,0 +1,7 @@
+Bombarding http://api.example.com:8080/health for 10s using 125 connections
+Statistics        Avg      Stdev        Max
+  Reqs/sec     12048.44    1204.21   14882.10
+  Latency       10.28ms     2.44ms    212.10ms
+  HTTP codes:
+    1xx - 0, 2xx - 120488, 3xx - 0, 4xx - 0, 5xx - 0
+  Throughput:    18.44MB/s

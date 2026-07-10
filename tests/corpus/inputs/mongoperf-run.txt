@@ -1,0 +1,6 @@
+new thread, total running : 1
+new thread, total running : 2
+new thread, total running : 4
+482100 ops/sec 1882 MB/sec
+488210 ops/sec 1908 MB/sec
+491044 ops/sec 1918 MB/sec

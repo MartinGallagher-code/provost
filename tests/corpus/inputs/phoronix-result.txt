@@ -1,0 +1,11 @@
+Processor Test Configuration
+    Test: CPU Stress
+
+    node1: 88201
+    node2: 88044
+    node3: 87882
+
+    Average: 88042
+    Deviation: 0.18%
+
+This benchmark measures the compilation time of the Linux kernel.

@@ -1,0 +1,6 @@
+<TpmC>
+                 48210.442 TpmC
+<Raw Results>
+  [0] sc:1204882 lt:44 rt:0 fl:0
+  [1] sc:120488  lt:12 rt:0 fl:0
+  [2] sc:120488  lt:8  rt:0 fl:0

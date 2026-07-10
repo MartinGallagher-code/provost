@@ -1,0 +1,3 @@
+
+     88 Mbps ↓ / 42 Mbps ↑
+     Latency: 12 ms (unloaded)   88 ms (loaded)

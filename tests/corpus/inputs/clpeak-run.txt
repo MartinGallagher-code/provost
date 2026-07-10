@@ -1,0 +1,13 @@
+Platform: NVIDIA CUDA
+  Device: NVIDIA GeForce RTX 4090
+    Driver version  : 555.42.06 (Linux x64)
+    Compute units   : 128
+    Clock frequency : 2520 MHz
+
+    Global memory bandwidth (GBPS)
+      float   : 912.44
+      float2  : 918.10
+      float4  : 921.88
+
+    Single-precision compute (GFLOPS)
+      float   : 82044.10

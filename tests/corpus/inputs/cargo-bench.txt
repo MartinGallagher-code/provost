@@ -1,0 +1,6 @@
+running 3 tests
+test bench_parse_small ... bench:         248 ns/iter (+/- 12)
+test bench_parse_large ... bench:      12,044 ns/iter (+/- 882)
+test bench_encode      ... bench:       1,002 ns/iter (+/- 44)
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 3 measured

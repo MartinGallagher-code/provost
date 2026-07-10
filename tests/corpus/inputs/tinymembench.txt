@@ -1,0 +1,11 @@
+tinymembench v0.4.9 (simple benchmark for memory throughput and latency)
+
+==========================================================================
+== Memory bandwidth tests                                               ==
+==========================================================================
+
+ C copy backwards                                     :   4821.2 MB/s
+ C copy                                               :   5210.4 MB/s
+ C fill                                               :  12048.8 MB/s
+ standard memcpy                                      :   8821.0 MB/s
+ standard memset                                      :  14210.2 MB/s

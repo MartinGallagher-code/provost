@@ -1,0 +1,3 @@
+Whetstone Benchmark (Double Precision)
+Loops: 1000, Iterations: 100, Duration: 4 sec.
+C Converted Double Precision Whetstones: 8821.2 MIPS

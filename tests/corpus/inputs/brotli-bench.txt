@@ -1,0 +1,4 @@
+brotli -q 5 silesia.tar
+compressed 211957760 -> 68812044 bytes (32.47%)
+compression speed: 44.2 MB/s
+decompression speed: 412.1 MB/s

@@ -1,0 +1,9 @@
+goos: linux
+goarch: amd64
+pkg: example.com/parser
+cpu: Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz
+BenchmarkParseSmall-8      4821021       248.4 ns/op       128 B/op        4 allocs/op
+BenchmarkParseLarge-8       120488     12044.0 ns/op     10248 B/op       88 allocs/op
+BenchmarkEncode-8          1204882      1002.1 ns/op      2048 B/op       12 allocs/op
+PASS
+ok      example.com/parser      8.821s

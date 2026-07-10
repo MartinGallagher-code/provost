@@ -1,0 +1,12 @@
+n	key	value	total_entries
+1	Running the test with following options		11
+2	Number of threads	64	11
+3	Thread yields per request	100	11
+4	General statistics		11
+5	total time	10.0044s	11
+6	total number of events	12048	11
+7	Latency (ms)		11
+8	min	12.10	11
+9	avg	53.12	11
+10	max	221.44	11
+11	95th percentile	88.20	11

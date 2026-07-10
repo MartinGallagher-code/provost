@@ -1,0 +1,2 @@
+Total_data_sent	Total_data_received	Bandwidth_per_channel	Aggregate_bandwidth	Packet_rate_estimate	Test_duration
+1204.8 MiB (1263410882_bytes)	88.2 MiB (92510442_bytes)	9.412⇅ Mbps (1176.5_kBps)	940.442↓, 88.201↑ Mbps	120488.4↓, 8820.1↑ (1↓,_12↑_TCP_MSS/op)	10.0044 s.

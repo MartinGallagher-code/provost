@@ -1,0 +1,7 @@
+Octane 2.0 Score: 48210
+
+Richards: 42100
+DeltaBlue: 48821
+Crypto: 38210
+RayTrace: 52104
+EarleyBoyer: 44821

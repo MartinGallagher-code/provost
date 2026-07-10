@@ -1,0 +1,15 @@
+-------------------------------------------------
+ nench.sh v2019.07.20 -- https://git.io/nench.sh
+-------------------------------------------------
+
+CPU: SHA256-hashing 500 MB
+    2.104 seconds
+CPU: bzip2-compressing 500 MB
+    4.821 seconds
+CPU: AES-encrypting 500 MB
+    0.882 seconds
+
+ioping: seek rate
+    min/avg/max/mdev = 44.2 us / 88.4 us / 412.1 us / 22.1 us
+ioping: sequential read speed
+    generated 12044 requests in 3.00 s, 2.94 GiB, 4014 iops, 15.7 GiB/s

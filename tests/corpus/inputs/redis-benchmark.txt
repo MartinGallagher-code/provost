@@ -1,0 +1,12 @@
+====== SET ======
+  120488 requests completed in 1.20 seconds
+  50 parallel clients
+  3 bytes payload
+  keep alive: 1
+
+Latency percentiles (usec)
+50.000% 412.00
+95.000% 882.00
+99.000% 1204.00
+100.000% 2210.00
+100482.44 requests per second

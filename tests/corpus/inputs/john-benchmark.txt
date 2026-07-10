@@ -1,0 +1,7 @@
+Benchmarking: descrypt, traditional crypt(3) [DES 256/256 AVX2]... DONE
+Many salts:     48210K c/s real, 48821K c/s virtual
+Only one salt:  12048K c/s real, 12210K c/s virtual
+
+Benchmarking: bcrypt ("$2a$05", 32 iterations) [Blowfish 32/64 X3]... DONE
+Speed for cost 1 (iteration count) of 32
+Raw:    12448 c/s real, 12610 c/s virtual

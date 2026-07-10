@@ -1,0 +1,5 @@
+Cinebench R23
+
+CPU (Multi Core)     : 24821 pts
+CPU (Single Core)    : 1882 pts
+MP Ratio             : 13.19 x

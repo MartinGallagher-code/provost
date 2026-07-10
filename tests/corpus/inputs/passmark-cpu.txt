@@ -1,0 +1,9 @@
+PassMark PerformanceTest Linux (11.0.1000)
+
+CPU Mark:                    48210
+    Integer Math:           120488 MOps/Sec
+    Floating Point Math:     88201 MOps/Sec
+    Prime Numbers:            4821 Million Primes/Sec
+    Compression:            412100 KB/Sec
+    Encryption:              12044 MB/Sec
+    Single Threaded:          3588 MOps/Sec

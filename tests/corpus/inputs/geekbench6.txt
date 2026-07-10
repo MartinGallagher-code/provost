@@ -1,0 +1,16 @@
+Geekbench 6.2.2 for Linux x86_64
+
+System Information
+  Operating System      Ubuntu 24.04 LTS
+  Model                 Dell PowerEdge R740
+  Processor             Intel Xeon Gold 6248 @ 2.50 GHz
+
+Single-Core Score       1842
+  Crypto                2210
+  Integer               1788
+  Floating Point        1902
+
+Multi-Core Score        14210
+  Crypto                18821
+  Integer               13990
+  Floating Point        14882

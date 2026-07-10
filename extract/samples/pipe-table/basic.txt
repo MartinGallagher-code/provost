@@ -1,0 +1,4 @@
+| Method     | Mean      | Allocated |
+|----------- |----------:|----------:|
+| ParseSmall |  14.42 us |     512 B |
+| ParseLarge | 448.21 us |   10248 B |

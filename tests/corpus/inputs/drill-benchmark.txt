@@ -1,0 +1,9 @@
+Time taken for tests      10.2 seconds
+Total requests            120488
+Successful requests       120488
+Failed requests           0
+Requests per second       11812.55 [#/sec]
+Median time per request   10ms
+Average time per request  12ms
+Sample standard deviation 8ms
+99.0'th percentile        88ms

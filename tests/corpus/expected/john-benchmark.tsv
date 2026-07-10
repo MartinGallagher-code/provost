@@ -1,0 +1,3 @@
+n	Benchmarking	Many_salts	Only_one_salt	Raw
+1	descrypt,_traditional_crypt(3)_[DES_256/256_AVX2]..._DONE	48210K_c/s_real,_48821K_c/s_virtual	12048K_c/s_real,_12210K_c/s_virtual	
+2	bcrypt_("$2a$05",_32_iterations)_[Blowfish_32/64_X3]..._DONE			12448_c/s_real,_12610_c/s_virtual

@@ -1,0 +1,9 @@
+        Iozone: Performance Test of File I/O
+                Version $Revision: 3.506 $
+
+        Run began: Thu Jul 10 06:00:00 2026
+        Record Size 4 kB
+        File size set to 524288 kB
+                                                        random   random
+   kB    reclen    write  rewrite    read    reread     read    write
+524288      4     482100   512044  1204882  1288201   882014   721048

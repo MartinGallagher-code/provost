@@ -1,0 +1,14 @@
+=======================================================
+    glmark2 2023.01
+=======================================================
+    OpenGL Information
+    GL_VENDOR:      NVIDIA Corporation
+    GL_RENDERER:    NVIDIA GeForce RTX 4090/PCIe/SSE2
+    GL_VERSION:     4.6.0 NVIDIA 555.42.06
+=======================================================
+[build] use-vbo=false: FPS: 4821 FrameTime: 0.207 ms
+[build] use-vbo=true: FPS: 5210 FrameTime: 0.192 ms
+[texture] texture-filter=nearest: FPS: 4482 FrameTime: 0.223 ms
+=======================================================
+                                  glmark2 Score: 4821
+=======================================================

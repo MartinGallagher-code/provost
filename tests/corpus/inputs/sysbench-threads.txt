@@ -1,0 +1,15 @@
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 64
+Thread yields per request: 100
+
+General statistics:
+    total time:                          10.0044s
+    total number of events:              12048
+
+Latency (ms):
+         min:                                   12.10
+         avg:                                   53.12
+         max:                                  221.44
+         95th percentile:                       88.20

@@ -1,0 +1,7 @@
+n	finished_in_10_02s	12048_44_req/s	18_44MB/s	total_entries
+1	requests: 120488 total	120488 started	120488 done	6
+2	status codes: 120488 2xx	0 3xx	0 4xx	6
+3	traffic: 184.42MB (193440210) total	4.21MB headers	178.20MB data	6
+4	min         max         mean         sd        +/- sd			6
+5	time for request:    2.10ms    212.44ms     12.48ms     8.21ms    88.42%			6
+6	time for connect:    1.20ms     12.10ms      4.44ms     2.10ms    72.10%			6

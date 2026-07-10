@@ -1,0 +1,8 @@
+n	[OVERALL]	RunTime(ms)	60021_0	total_entries
+1	[OVERALL]	Throughput(ops/sec)	20081.44	7
+2	[READ]	Operations	1082044.0	7
+3	[READ]	AverageLatency(us)	412.44	7
+4	[READ]	95thPercentileLatency(us)	882.0	7
+5	[READ]	99thPercentileLatency(us)	1204.0	7
+6	[UPDATE]	Operations	122838.0	7
+7	[UPDATE]	AverageLatency(us)	588.10	7

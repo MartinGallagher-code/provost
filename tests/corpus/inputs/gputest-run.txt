@@ -1,0 +1,6 @@
+GpuTest 0.7.0
+
+FurMark benchmark
+  Score: 12048 points (60000 ms, 1920x1080)
+  FPS: min=188, max=221, avg=200
+  GPU temp: 78 C

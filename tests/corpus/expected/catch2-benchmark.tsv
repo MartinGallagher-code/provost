@@ -1,0 +1,4 @@
+n	benchmark	name	samples	iterations	mean	total_entries
+1	parse	small	100	1204	248.4_ns	3
+2	parse	large	100	12	12044.0_ns	3
+3	encode	100	482	1002.1	ns	3

@@ -1,0 +1,13 @@
+n	key	value	total_entries
+1	File operations		12
+2	reads/s	4821.11	12
+3	writes/s	3214.02	12
+4	fsyncs/s	10288.44	12
+5	Throughput		12
+6	read, MiB/s	75.33	12
+7	written, MiB/s	50.22	12
+8	Latency (ms)		12
+9	min	0.01	12
+10	avg	0.44	12
+11	max	28.12	12
+12	95th percentile	1.10	12

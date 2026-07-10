@@ -1,0 +1,8 @@
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 12044
+Total time (secs): 12.044
+Iterations/Sec   : 41482.891
+Iterations       : 500000
+Compiler version : GCC13.2.0
+CoreMark 1.0 : 41482.891 / GCC13.2.0 -O2 / Heap

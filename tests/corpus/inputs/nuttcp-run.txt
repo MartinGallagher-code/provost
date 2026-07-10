@@ -1,0 +1,1 @@
+ 1188.4210 MB /  10.00 sec = 996.8821 Mbps 12 %TX 44 %RX 0 retrans 1.20 msRTT

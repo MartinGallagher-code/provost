@@ -1,0 +1,7 @@
+entry1.Method ParseSmall
+entry1.Mean 14.42 us
+entry1.Allocated 512 B
+entry2.Method ParseLarge
+entry2.Mean 448.21 us
+entry2.Allocated 10248 B
+total_entries 2
