@@ -1,0 +1,14 @@
+-[ RECORD 1 ]---------+------------------------------
+datname               | orders
+usename               | app_rw
+state                 | active
+query_start           | 2026-07-09 14:02:11.482910+00
+wait_event            |
+query                 | SELECT id, status FROM orders WHERE status = 'pending'
+-[ RECORD 2 ]---------+------------------------------
+datname               | metrics
+usename               | grafana_ro
+state                 | idle
+query_start           | 2026-07-09 13:58:03.001220+00
+wait_event            | ClientRead
+query                 | SELECT now()

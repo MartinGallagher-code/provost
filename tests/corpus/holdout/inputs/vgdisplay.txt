@@ -1,0 +1,12 @@
+  --- Volume group ---
+  VG Name               vg_fast
+  Format                lvm2
+  VG Access             read/write
+  VG Status             resizable
+  MAX LV                0
+  Cur LV                2
+  VG Size               931.51 GiB
+  PE Size               4.00 MiB
+  Total PE              238466
+  Free  PE / Size       61186 / 239.01 GiB
+  VG UUID               qW3eR5-tY7u-I9o0-P1a2-S3d4-F5g6-H7j8Kl

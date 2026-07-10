@@ -291,11 +291,27 @@ strategy_extract () {
     local mode="${shape%% *}" ncols="${shape##* }"
 
     # Collect non-blank lines (after dropping any `total <n>` preamble).
-    local lines=() _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    # For a HEADED table, a blank line after the header + at least one data
+    # row ends the table WHEN a footer legend follows — the next non-blank
+    # line is a "KEY = explanation" definition (`systemctl --failed` prints
+    # "LOAD = …" lines after a blank). A table that resumes after the blank
+    # (faillock's per-user sections) keeps collecting.
+    local _raw=() lines=() _l _li
+    while IFS= read -r _l; do _raw+=("$_l"); done <<< "$(_ac_body "$text")"
+    for ((_li = 0; _li < ${#_raw[@]}; _li++)); do
+        _l="${_raw[$_li]}"
+        if [[ -z "${_l//[[:space:]]/}" ]]; then
+            if [[ ( "$mode" == HDR && ${#lines[@]} -ge 2 ) || ( "$mode" == HDR2 && ${#lines[@]} -ge 3 ) ]]; then
+                local _peek="" _pi
+                for ((_pi = _li + 1; _pi < ${#_raw[@]}; _pi++)); do
+                    [[ -n "${_raw[$_pi]//[[:space:]]/}" ]] && { _peek="${_raw[$_pi]}"; break; }
+                done
+                [[ "$_peek" == *" = "* ]] && break
+            fi
+            continue
+        fi
         lines+=("$_l")
-    done <<< "$(_ac_body "$text")"
+    done
 
     # For a cleanly-aligned HDR/HDR2 table, use positional token assignment so
     # multi-word headers/values (docker `IMAGE ID` / `2 weeks ago`, kubectl PORTS

@@ -1,0 +1,10 @@
+  --- Physical volume ---
+  PV Name               /dev/nvme0n1p2
+  VG Name               vg_fast
+  PV Size               931.51 GiB / not usable 2.00 MiB
+  Allocatable           yes
+  PE Size               4.00 MiB
+  Total PE              238466
+  Free PE               61186
+  Allocated PE          177280
+  PV UUID               Mn9bV8-cX7z-L6k5-J4h3-G2f1-D0s9-A8p7Oi

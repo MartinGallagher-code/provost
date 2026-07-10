@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-10 — Generic parsers for the labeled-record cluster; holdout grown to 40 (40/40)
+
+**Two new format parsers** attack the biggest shape in the bespoke tail
+("one record over many labeled lines"):
+- `structured/psql-expanded` — any `psql \x` output, one record per
+  `-[ RECORD N ]` block of `key | value` lines. Replaces the
+  `psql-pg-stat-bgwriter` bespoke (single-record, keyed on one table's
+  column names) with identical output.
+- `delimited/dashed-sections` — `--- Section ---` banners over aligned
+  label/value lines, one record per banner (banner kept as a `section`
+  column). Replaces the `lvdisplay-m` bespoke (which dropped every section
+  after the first) and upgrades `pvdisplay`/`vgdisplay` from garbage-header
+  mush to full named columns.
+
+**Holdout grown 24 → 40 unseen variants** (`tests/corpus/holdout/`), and the
+four failures it surfaced were fixed at the root:
+- `pkg-config` detect: declines headed tables — a first line without the
+  ` - ` name/description separator while later lines have it (yum/dnf
+  repolist), and Title-Case 3+-token header lines (lastlog's
+  "Username Port From Latest").
+- `lastb` detect: declines lastlog's "Username …" headed table.
+- `aligned-columns`: a blank line after header + data ends the table when a
+  footer legend follows (next non-blank line contains " = ", e.g.
+  `systemctl --failed`'s LOAD/ACTIVE/SUB explanations); tables that resume
+  after a blank (faillock's per-user sections) keep collecting.
+- New `getcap` hint row (`/path cap_…` → line-records).
+
+Result: **holdout 40/40 — 25 generic, 12 hint, 3 bespoke.**
+Coverage: 1040/1040 — ✅ 838 generic, ✅ʰ 38 hint, ✅ᵇ 164 bespoke.
+Strategy files 170 → 170 (2 added, 2 deleted).
+Gate: smoke 49/49, melt 8/8, extract 63/63, analyze green, corpus golden
+876/0, holdout 40/40.
+
 ## 2026-07-10 — QUALITY: golden audit (restore 13 bespokes, promote bracket-log), traceroute6 fix, held-out generalization set
 
 Follow-through on the generic-first refactor's three open items.

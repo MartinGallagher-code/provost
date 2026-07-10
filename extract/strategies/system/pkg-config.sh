@@ -24,6 +24,26 @@ strategy_detect () {
         return 1
     fi
 
+    # Header smell: a real pkg-config list opens with an entry, so its first
+    # line carries the " - " name/description separator. A first line WITHOUT
+    # " - " followed by lines WITH it is a headed table (yum/dnf repolist's
+    # "repo id  repo name  status") — decline it for aligned-columns.
+    if [[ "$_first" != *" - "* && "$text" == *" - "* ]]; then
+        return 1
+    fi
+
+    # Same smell, Title-Case variant: a first line of 3+ tokens that ALL open
+    # with a capital ("Username Port From Latest") is a column header, not a
+    # package entry — package names are effectively never Title-Case runs.
+    local _htoks=() _ht _allcap=1
+    read -ra _htoks <<< "$_first"
+    if [[ ${#_htoks[@]} -ge 3 ]]; then
+        for _ht in "${_htoks[@]}"; do
+            [[ "$_ht" =~ ^[A-Z] ]] || { _allcap=0; break; }
+        done
+        [[ $_allcap -eq 1 ]] && return 1
+    fi
+
     # Distinctive: every line is "<package-name>   <prose description>".
     # A package name starts with a letter and is a single token; the remainder
     # is a free-text description (contains an alphabetic word). Reject anything

@@ -1,0 +1,4 @@
+REPOSITORY            TAG        IMAGE ID       CREATED        SIZE
+registry.local/api    v3.2.1     4f9a1c20be71   2 days ago     212MB
+postgres              16-alpine  9b2ff17c0091   3 weeks ago    243MB
+nginx                 1.27       01f2e5d99a44   5 weeks ago    188MB

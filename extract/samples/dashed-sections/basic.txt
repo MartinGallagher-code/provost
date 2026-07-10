@@ -1,0 +1,19 @@
+  --- Volume group ---
+  VG Name               vg_data
+  System ID
+  Format                lvm2
+  Metadata Areas        2
+  VG Access             read/write
+  VG Status             resizable
+  Cur LV                3
+  VG Size               <3.64 TiB
+  PE Size               4.00 MiB
+  Free  PE / Size       102400 / 400.00 GiB
+  VG UUID               Zn3kW9-8xYa-2bCd-4eFg-6hIj-1kLm-Op5qRs
+  --- Physical volume ---
+  PV Name               /dev/sdb1
+  VG Name               vg_data
+  PV Size               <1.82 TiB / not usable 4.00 MiB
+  Allocatable           yes
+  PE Size               4.00 MiB
+  PV UUID               Ab1cD2-eF3g-H4i5-J6k7-L8m9-N0o1-Pq2rSt
