@@ -1,5 +1,42 @@
 # glean — Changelog
 
+## 2026-07-10 — Three rounds: json-array + diffstat parsers, snmp-output promotion, sqlite-output deleted, holdout 66/66
+
+**Round A — `structured/json-array`.** A top-level JSON array of objects is a
+list of records; the `json` strategy flattened it into one 0.field/1.field
+row. json-array (structural detect: `[` then `{` plus a `"key":`) emits one
+record per element. Replaces `cloud-json-list` (same extract, tool-specific
+detect guards). 4 inputs flip ✅ᵇ→✅ (az-account-list, az-acr-list,
+az-keyvault-list, gcloud-pubsub-topics-list); the inspect quartet
+(docker-inspect, docker-network/volume-inspect, podman-inspect) upgrades to
+clean per-element records.
+
+**Round B — `delimited/diffstat` + snmp-output promotion + sqlite-output
+deleted.** diffstat parses the block every `git --stat` variant prints
+(file/changes/graph per line, files-changed summary as scalars), declining
+commit-header inputs (git-log-stat's domain). git-diff-stat +
+git-stash-show-stat flip to it from sqlite-output, which had been winning
+them accidentally with a broken parse. snmp-output moves to structured/
+(its detect is purely the Net-SNMP `MIB::oid = TYPE: value` format);
+snmpget + snmpwalk flip ✅ᵇ→✅. sqlite-output then had zero corpus wins and
+was deleted — it was also the engine's most notorious hijacker (7z,
+jmap-histo, dnf-history all carried guards against it).
+
+**Round C — holdout 48 → 66.** 18 new unseen variants (untested hint rows,
+kubectl/toml/jsonl/psql-table/exposition-histogram/kernel-log, new-parser
+variants). Two failures root-caused: both `aws-s3-ls` and `dmsetup-table`
+hint rows targeted aligned-columns, whose shape detection returns empty on
+ragged mixed-width rows (PRE dirs + dated files; crypt vs linear targets) —
+retargeted to line-records, which handles ragged rows positionally. The
+corpus dmsetup-table golden gained four columns of previously-dropped
+parameters in the process.
+
+**Holdout: 66/66 tidy on unseen output — 43 generic, 21 hint, 2 bespoke.**
+Coverage: 1040/1040 — ✅ 860 generic, ✅ʰ 39 hint, ✅ᵇ 141 bespoke.
+Strategy files: 168 (37 generic + 131 bespoke).
+Gate: smoke 49/49, melt 8/8, extract 62/62, analyze green, corpus golden
+899/0.
+
 ## 2026-07-10 — Promote exposition-format + syslog to the generic tier (−4 bespoke-covered inputs)
 
 Both parse standard FORMATS, not tools, so they belong in the generic

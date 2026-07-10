@@ -1,0 +1,9 @@
+entry1.name orders-api
+entry1.region eu-west-1
+entry1.state running
+entry1.replicas 4
+entry2.name billing-worker
+entry2.region eu-west-1
+entry2.state degraded
+entry2.replicas 2
+total_entries 2

@@ -1,0 +1,15 @@
+entry1.file lib/parser.rb
+entry1.changes 44
+entry1.graph +++++++++++++++++---------
+entry2.file lib/parser/tokens.rb
+entry2.changes 18
+entry2.graph ++++++-----
+entry3.file spec/parser_spec.rb
+entry3.changes 61
+entry3.graph ++++++++++++++++++++++++++++++++++++
+entry4.file assets/logo.png
+entry4.changes Bin_0_->_5120_bytes
+files_changed 4
+insertions 103
+deletions 20
+total_entries 4

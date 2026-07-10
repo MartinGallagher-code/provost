@@ -68,20 +68,20 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | aws-logs-describe-log-groups | ✅ | psql-table |
 | aws-rds-describe-db-instances | ✅ | psql-table |
 | aws-route53-list-hosted-zones | ✅ | psql-table |
-| aws-s3-ls | ✅ʰ | aligned-columns (hint: aws-s3-ls) |
+| aws-s3-ls | ✅ʰ | line-records (hint: aws-s3-ls) |
 | aws-s3api-list-buckets | ✅ | psql-table |
 | aws-sns-list-topics | ✅ | line-records |
 | aws-sqs-list-queues | ✅ | line-records |
 | aws-ssm-describe-instance-information | ✅ | psql-table |
 | aws-sts-caller-identity | ✅ | json |
 | aws-sts-get-caller-identity | ✅ | json |
-| az-account-list | ✅ᵇ | cloud-json-list (bespoke) |
+| az-account-list | ✅ | json-array |
 | az-account-show | ✅ | json |
-| az-acr-list | ✅ᵇ | cloud-json-list (bespoke) |
+| az-acr-list | ✅ | json-array |
 | az-aks-list | ✅ | aligned-columns |
 | az-disk-list | ✅ | aligned-columns |
 | az-group-list | ✅ | aligned-columns |
-| az-keyvault-list | ✅ᵇ | cloud-json-list (bespoke) |
+| az-keyvault-list | ✅ | json-array |
 | az-network-vnet-list | ✅ | aligned-columns |
 | az-sql-server-list | ✅ | aligned-columns |
 | az-storage-account-list | ✅ | aligned-columns |
@@ -216,7 +216,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dmidecode | ✅ | colons |
 | dmsetup-info | ✅ | key-value |
 | dmsetup-ls | ✅ | tsv |
-| dmsetup-table | ✅ʰ | aligned-columns (hint: dmsetup-table) |
+| dmsetup-table | ✅ʰ | line-records (hint: dmsetup-table) |
 | dnf-history-list | ✅ | vertical-line |
 | dnf-info | ✅ | colons |
 | dnf-list | ✅ | aligned-columns |
@@ -233,9 +233,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | docker-image-ls-a | ✅ | aligned-columns |
 | docker-images | ✅ | aligned-columns |
 | docker-info | ✅ | key-value |
-| docker-inspect | ✅ | json |
+| docker-inspect | ✅ | json-array |
 | docker-machine-ls | ✅ | aligned-columns |
-| docker-network-inspect | ✅ | json |
+| docker-network-inspect | ✅ | json-array |
 | docker-network | ✅ | aligned-columns |
 | docker-port | ✅ | aligned-columns |
 | docker-ps-a | ✅ | aligned-columns |
@@ -246,7 +246,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | docker-system-df | ✅ | aligned-columns |
 | docker-top | ✅ | aligned-columns |
 | docker-version | ✅ | key-value |
-| docker-volume-inspect | ✅ | json |
+| docker-volume-inspect | ✅ | json-array |
 | docker-volume-ls | ✅ | aligned-columns |
 | doctl-kubernetes-list | ✅ | aligned-columns |
 | dotnet-info | ✅ | key-value |
@@ -327,7 +327,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gcloud-functions-list | ✅ | aligned-columns |
 | gcloud-iam-service-accounts-list | ✅ | aligned-columns |
 | gcloud-projects-list | ✅ | aligned-columns |
-| gcloud-pubsub-topics-list | ✅ᵇ | cloud-json-list (bespoke) |
+| gcloud-pubsub-topics-list | ✅ | json-array |
 | gcloud-run-services-list | ✅ | aligned-columns |
 | gcloud-sql-instances-list | ✅ | aligned-columns |
 | gem-info | ✅ | block-records |
@@ -353,7 +353,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-count-objects | ✅ | yaml |
 | git-describe | ✅ | text-lines |
 | git-diff-numstat | ✅ | tsv |
-| git-diff-stat | ✅ᵇ | sqlite-output (bespoke) |
+| git-diff-stat | ✅ | diffstat |
 | git-for-each-ref | ✅ | tsv |
 | git-lfs-ls-files | ✅ʰ | line-records (hint: git-lfs-ls-files) |
 | git-log-graph | ✅ᵇ | git-log-graph (bespoke) |
@@ -369,7 +369,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-show-ref | ✅ʰ | line-records (hint: git-show-ref) |
 | git-show-stat | ✅ᵇ | git-log-stat (bespoke) |
 | git-stash-list | ✅ | labeled-records |
-| git-stash-show-stat | ✅ᵇ | sqlite-output (bespoke) |
+| git-stash-show-stat | ✅ | diffstat |
 | git-status | ✅ | line-records |
 | git-submodule-status | ✅ | aligned-columns |
 | git-tag | ✅ | line-records |
@@ -747,7 +747,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | podman-image-tree | ✅ | tree-view |
 | podman-images | ✅ | aligned-columns |
 | podman-info | ✅ | yaml |
-| podman-inspect | ✅ | json |
+| podman-inspect | ✅ | json-array |
 | podman-network-ls | ✅ | aligned-columns |
 | podman-pod-ps | ✅ | aligned-columns |
 | podman-ps-a | ✅ | aligned-columns |
@@ -904,8 +904,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | snap-connections | ✅ | snap-connections |
 | snap-info | ✅ | indented-hierarchy |
 | snap-list | ✅ | aligned-columns |
-| snmpget | ✅ᵇ | snmp-output (bespoke) |
-| snmpwalk | ✅ᵇ | snmp-output (bespoke) |
+| snmpget | ✅ | snmp-output |
+| snmpwalk | ✅ | snmp-output |
 | speedtest-cli | ✅ | aligned-columns |
 | sqlite-dbinfo | ✅ | key-value |
 | sqlite-pragma-index-list | ✅ | fixed-width |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 852 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 149 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 860 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 141 via a bespoke strategy.

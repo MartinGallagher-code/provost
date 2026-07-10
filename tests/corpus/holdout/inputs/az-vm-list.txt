@@ -1,0 +1,14 @@
+[
+  {
+    "name": "web-prod-1",
+    "location": "westeurope",
+    "vmSize": "Standard_D4s_v5",
+    "powerState": "VM running"
+  },
+  {
+    "name": "batch-worker-2",
+    "location": "westeurope",
+    "vmSize": "Standard_E8s_v5",
+    "powerState": "VM deallocated"
+  }
+]

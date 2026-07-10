@@ -1,0 +1,5 @@
+n	file	changes	graph	files_changed	insertions	deletions	total_entries
+1	src/parser.py	18	+++++++++++-------	4	41	8	4
+2	lib/utils.sh	6	++++--	4	41	8	4
+3	tests/fixtures.py	22	++++++++++++++++++++++	4	41	8	4
+4	config/dev.yml	3	+--	4	41	8	4

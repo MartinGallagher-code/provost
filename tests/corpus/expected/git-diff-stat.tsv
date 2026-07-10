@@ -1,0 +1,5 @@
+n	file	changes	graph	files_changed	insertions	deletions	total_entries
+1	src/app.py	12	++++++------	4	40	6	4
+2	README.md	4	++++	4	40	6	4
+3	tests/test_app.py	28	++++++++++++++++++++++++++++	4	40	6	4
+4	config/settings.yml	2	+-	4	40	6	4

@@ -23,12 +23,12 @@
 # other tools.
 7z	prefix	   Date      Time    Attr	7z
 aptitude-search	regex	^[ipvc][ A]{3}[a-z0-9]	text-lines
-aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	aligned-columns
+aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	line-records
 borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
 cabal-freeze	prefix	constraints:	line-records
 cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+	text-lines
 dbmate-status	contains	Applied: 	dbmate-status
-dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	aligned-columns
+dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
 fwupdmgr-get-devices	contains	Device ID:	text-lines
 getcap	regex	^/[^[:space:]]+ +[a-z0-9_,+]*cap_[a-z_,+]+[=+]	line-records

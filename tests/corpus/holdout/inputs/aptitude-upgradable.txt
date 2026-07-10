@@ -1,0 +1,3 @@
+i A openssl                         - Secure Sockets Layer toolkit - cryptographic utility
+i   nginx-core                      - nginx web/proxy server (standard version)
+p   varnish                         - state of the art, high-performance web accelerator

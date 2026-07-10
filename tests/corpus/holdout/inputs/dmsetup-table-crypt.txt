@@ -1,0 +1,2 @@
+cryptroot: 0 976771072 crypt aes-xts-plain64 :64:logon:cryptsetup:some-key 0 259:3 32768
+vg0-swap: 0 16777216 linear 259:4 2048

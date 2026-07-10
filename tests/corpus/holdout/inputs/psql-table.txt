@@ -1,0 +1,6 @@
+  datname  | numbackends | xact_commit | blks_read
+-----------+-------------+-------------+-----------
+ orders    |          24 |     9912734 |    128812
+ metrics   |           8 |    52101229 |   3391200
+ template1 |           0 |        1202 |       214
+(3 rows)

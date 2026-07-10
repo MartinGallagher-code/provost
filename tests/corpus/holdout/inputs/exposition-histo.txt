@@ -1,0 +1,7 @@
+# HELP request_seconds Request latency.
+# TYPE request_seconds histogram
+request_seconds_bucket{le="0.1",route="/api"} 24011
+request_seconds_bucket{le="0.5",route="/api"} 30122
+request_seconds_bucket{le="+Inf",route="/api"} 30300
+request_seconds_sum{route="/api"} 4102.33
+request_seconds_count{route="/api"} 30300
