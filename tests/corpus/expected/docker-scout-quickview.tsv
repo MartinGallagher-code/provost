@@ -1,4 +1,5 @@
-n	Target	│	app:latest	total_entries
-1	digest	│	a1b2c3d4e5f6	3
-2	Base image	│	debian:12-slim	3
-3	Vulnerabilities	│	0C 2H 6M 4L	3
+n	A	total_entries
+1	Target             │  app:latest	4
+2	digest           │  a1b2c3d4e5f6	4
+3	Base image         │  debian:12-slim	4
+4	Vulnerabilities    │  0C  2H  6M  4L	4

@@ -39,6 +39,11 @@ _core_align_rows () {
 # (repeated per row). Anything that is NOT a single clean repeating table —
 # plain scalars (`a b`), or multiple record prefixes — is passed through
 # unchanged, so this only reshapes table-shaped output.
+#
+# One exception: a single-column, single-row wide (one key/value observation —
+# the shape of a version banner or one-line status) is emitted in long form
+# (`field`/`value` columns), the canonical tidy layout for a lone observation
+# of a lone variable. Multi-column snapshots keep their wide layout.
 _core_melt_tidy () {
     local tsv="$1" capid="${2:-}"
     printf '%s\n' "$tsv" | awk -F'\t' -v OFS='\t' -v cap="$capid" '
@@ -65,7 +70,11 @@ _core_melt_tidy () {
             }
             if(!isgroup) scalidx[++nsc]=i
           }
-          if (np!=1 || nfld==0){ print L[1]; print L[2]; exit }   # not a single table
+          if (np!=1 || nfld==0){
+            # lone key/value observation -> long form (see header comment)
+            if (nf==1 && H[1]!="" && V[1]!=""){ print "field" OFS "value"; print H[1] OFS V[1]; exit }
+            print L[1]; print L[2]; exit                          # not a single table
+          }
           for(a=1;a<=nidx;a++) for(b=a+1;b<=nidx;b++) if(idxs[b]<idxs[a]){t=idxs[a];idxs[a]=idxs[b];idxs[b]=t}
           hdr=(cap!=""?"capture" OFS:"") "n"
           for(k=1;k<=nfld;k++) hdr=hdr OFS flds[k]

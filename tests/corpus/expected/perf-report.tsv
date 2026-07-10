@@ -1,8 +1,8 @@
-n	________	_________	___________________	____________________________________	total_entries
-1	24.13%	python3	libc.so.6	[.]___memmove_avx_unaligned_erms	7
-2	18.07%	python3	python3.11	[.]__PyEval_EvalFrameDefault	7
-3	11.42%	python3	libpython3.11.so.1	[.]_lookdict_unicode_nodummy	7
-4	9.85%	python3	[kernel.kallsyms]	[k]_copy_user_enhanced_fast_string	7
-5	6.31%	python3	libc.so.6	[.]_malloc	7
-6	4.02%	python3	python3.11	[.]_PyObject_GC_Track	7
-7	2.88%	python3	[kernel.kallsyms]	[k]___schedule	7
+n	Overhead	Command	Shared	Object	Symbol	total_entries
+1	24.13%	python3	libc.so.6	[.]	__memmove_avx_unaligned_erms	7
+2	18.07%	python3	python3.11	[.]	_PyEval_EvalFrameDefault	7
+3	11.42%	python3	libpython3.11.so.1	[.]	lookdict_unicode_nodummy	7
+4	9.85%	python3	[kernel.kallsyms]	[k]	copy_user_enhanced_fast_string	7
+5	6.31%	python3	libc.so.6	[.]	malloc	7
+6	4.02%	python3	python3.11	[.]	PyObject_GC_Track	7
+7	2.88%	python3	[kernel.kallsyms]	[k]	__schedule	7

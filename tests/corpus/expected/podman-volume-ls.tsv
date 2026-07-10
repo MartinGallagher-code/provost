@@ -1,4 +1,4 @@
-n	DRIVER	VOLUME	total_entries
+n	DRIVER	VOLUME_NAME	total_entries
 1	local	pgdata	6
 2	local	redis-cache	6
 3	local	grafana-storage	6

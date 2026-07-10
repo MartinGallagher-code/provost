@@ -1,8 +1,2 @@
-n	id:	a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6	total_entries
-1	health:	HEALTH_OK	7
-2	services:		7
-3	mon: 3 daemons,	quorum a,b,c	7
-4	osd: 12	osds: 12 up, 12 in	7
-5	data:		7
-6	pools:	4 pools, 512 pgs	7
-7	usage:	4.1 TiB used, 7.9 TiB / 12 TiB avail	7
+id	health	mon	osd	pools	usage
+a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6	HEALTH_OK	3 daemons, quorum a,b,c	12 osds: 12 up, 12 in	4 pools, 512 pgs	4.1 TiB used, 7.9 TiB / 12 TiB avail

@@ -1,3 +1,4 @@
-n	File	format	:	NetCDF4	total_entries
-1	-1	:	Institut	Source_T_Steptype_Levels_Num_Points_Num_Dtype	2
-2	unknown	unknown	v	instant_1_1_64800_1_F32	2
+n	A	total_entries
+1	File format : NetCDF4	3
+2	-1 : Institut Source   T Steptype Levels Num    Points Num Dtype	3
+3	unknown  unknown  v instant       1   1     64800   1  F32	3

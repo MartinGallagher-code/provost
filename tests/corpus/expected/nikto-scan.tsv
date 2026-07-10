@@ -1,4 +1,5 @@
-n	+	Server:	nginx/1_27_0	total_entries
-1	+	/admin/:	Admin_login_page_found.	3
-2	+	OSVDB-3092:	/backup/:_This_might_be_interesting.	3
-3	+	8821	requests:_0_error(s)_and_3_item(s)_reported	3
+n	A	total_entries
+1	+ Server: nginx/1.27.0	4
+2	+ /admin/: Admin login page found.	4
+3	+ OSVDB-3092: /backup/: This might be interesting.	4
+4	+ 8821 requests: 0 error(s) and 3 item(s) reported	4

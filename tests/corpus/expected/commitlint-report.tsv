@@ -1,4 +1,5 @@
-n	⧗	input:_fixed_stuff	total_entries
-1	✖	subject may not be empty [subject-empty]	3
-2	✖	type may not be empty [type-empty]	3
-3	✖	found 2 problems, 0 warnings	3
+n	A	total_entries
+1	⧗   input: fixed stuff	4
+2	✖   subject may not be empty [subject-empty]	4
+3	✖   type may not be empty [type-empty]	4
+4	✖   found 2 problems, 0 warnings	4

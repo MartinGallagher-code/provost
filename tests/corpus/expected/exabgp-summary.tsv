@@ -1,0 +1,7 @@
+n	A	total_entries
+1	neighbor 10.0.0.2 {	6
+2	local-address 10.0.0.1;	6
+3	local-as 65001;	6
+4	peer-as 65002;	6
+5	state established;	6
+6	}	6

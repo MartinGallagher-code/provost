@@ -15,26 +15,38 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
 
     # Structured markup is owned by real parsers; never wrap it line-by-line.
-    [[ "$text" == *'{'* || "$text" == *'":'* ]] && return 1
+    # A document is markup when it carries quoted-key `":` syntax, or when it
+    # OPENS with a brace/bracket and CLOSES with the matching kind (a JSON /
+    # array document). A `{` mid-line (a UUID in `vboxmanage list vms`, an
+    # exabgp block opener) or a leading `[INFO]` tag is just text.
+    [[ "$text" == *'":'* ]] && return 1
 
-    local nb=0 first="" _l
+    local nb=0 first="" last="" _l
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         nb=$((nb + 1))
         [[ $nb -eq 1 ]] && first="$_l"
-        [[ $nb -ge 2 ]] && break
+        last="$_l"
+        [[ $nb -ge 200 ]] && break
     done <<< "$text"
+    if [[ "$first" =~ ^[[:space:]]*[\{\[] ]]; then
+        local _lt="${last%"${last##*[![:space:]]}"}"
+        [[ "$_lt" == *'}' || "$_lt" == *']' || "$_lt" == *','  ]] && return 1
+    fi
 
     [[ $nb -ge 1 ]] || return 1
 
-    # A lone single line is only a record if it is a single bare token (e.g.
-    # `getenforce`'s "Enforcing") — never a multi-word prose sentence like
-    # "no extractable content here", which has no tabular structure and should
-    # fall through to nothing rather than be carved into a spurious 1-cell row.
+    # A lone single line is only a record when it reads like a status, not
+    # prose: a single bare token (`getenforce`'s "Enforcing") or a short
+    # phrase of <=3 tokens with no sentence-ending period ("gamemode is
+    # active", "Signature Verified"). Anything longer ("no extractable
+    # content here") is prose with no tabular structure and falls through
+    # to nothing rather than a spurious 1-cell row.
     if [[ $nb -eq 1 ]]; then
         local trimmed="${first#"${first%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
-        [[ "$trimmed" == *[[:space:]]* ]] && return 1
+        local _tk; _tk=(); read -ra _tk <<< "$trimmed"
+        [[ ${#_tk[@]} -gt 3 || "$trimmed" == *. ]] && return 1
     fi
 
     # Otherwise: >=2 non-blank lines — one row per line, single column. Runs only

@@ -1,5 +1,4 @@
-n	A	total_entries
-1	PLINK v2.00a5	4
-2	44201 samples loaded	4
-3	882010 variants loaded	4
-4	Total genotyping rate is 0.9942	4
+n	PLINK	v2_00a5	total_entries
+1	44201	samples_loaded	3
+2	882010	variants_loaded	3
+3	Total	genotyping_rate_is_0.9942	3

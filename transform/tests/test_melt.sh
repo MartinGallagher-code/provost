@@ -27,6 +27,11 @@ refute "melt: no wide entry1.* remains"          "entry1"      "$melted"
 scalar="$(printf 'a\tb\n1\t2\n')"
 check  "melt: plain scalar passes through"       "1"$'\t'"2"   "$(_core_melt_tidy "$scalar")"
 
+# 2b. A lone key/value observation goes to long form (field/value).
+lone="$(_core_melt_tidy "$(printf 'distrobox\n1.7.2.1\n')")"
+check  "melt: lone pair gets field/value header" $'field\tvalue' "$lone"
+check  "melt: lone pair kept as one long row"    "distrobox"$'\t'"1.7.2.1" "$lone"
+
 # 3. Header union + row alignment (the schema-reconcile helpers).
 uni="$(_core_union_header $'#\tname\tused\tfree' $'#\tname\tused')"
 check  "union: keeps all old columns"            $'#\tname\tused\tfree' "$uni"

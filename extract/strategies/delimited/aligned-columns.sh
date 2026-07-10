@@ -16,32 +16,120 @@ _ac_body () {
         [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
     done <<< "$text"
 
+    # The modal (most common) token count of the block — used to spot leading
+    # banner lines that are much wider than the table that follows (`w`'s
+    # load-average line, numastat's title). Only lines wider by >=3 tokens are
+    # banners; a leading line with FEWER tokens can be a group-header row
+    # (vmstat) and must stay.
+    local _modal=0
+    if [[ $has_table -eq 1 ]]; then
+        local _mc=() _mn=0
+        while IFS= read -r _l; do
+            [[ -z "${_l//[[:space:]]/}" ]] && continue
+            _tk=(); read -ra _tk <<< "$_l"
+            _mc+=("${#_tk[@]}"); _mn=$((_mn + 1)); [[ $_mn -ge 40 ]] && break
+        done <<< "$text"
+        local _a _b _k _best=0
+        for _a in "${_mc[@]}"; do
+            _k=0; for _b in "${_mc[@]}"; do [[ "$_b" -eq "$_a" ]] && _k=$((_k + 1)); done
+            [[ $_k -gt $_best ]] && { _best=$_k; _modal=$_a; }
+        done
+        # A banner is only recognisable against a real consensus: most of the
+        # block (>=65%) must share the modal count, or a wide first line is
+        # just one more ragged row (samtools flagstat), not chrome.
+        [[ $_best -lt 2 || $(( _best * 100 / _mn )) -lt 65 ]] && _modal=0
+    fi
+
+    # A section title — the FIRST line, ending with `:`, set off by a blank
+    # line before the table ("Current machine states:", `vagrant status`) —
+    # is chrome, not data. Identified by lookahead here, dropped in the loop.
+    local _title="" _prev="" _seenfirst=0
+    if [[ $has_table -eq 1 ]]; then
+        while IFS= read -r _l; do
+            if [[ $_seenfirst -eq 0 ]]; then
+                [[ -z "${_l//[[:space:]]/}" ]] && continue
+                _seenfirst=1; _prev="$_l"; continue
+            fi
+            [[ -z "${_l//[[:space:]]/}" && "$_prev" =~ :[[:space:]]*$ ]] && _title="$_prev"
+            break
+        done <<< "$text"
+    fi
+
     # A leading `#`-comment block (conda list, opam list) mixes prose banners with
-    # a commented column header on its last line. Drop the prose lines but keep
-    # that last comment as the header, de-hashed — held here until the first data
-    # line, so each new `#` line overwrites the previous candidate.
-    local held=""
+    # a commented column header. Collect the candidates and, at the first data
+    # line, prefer the one whose token count matches the data row and whose
+    # tokens are unique (nvidia-smi dmon's `# gpu sm mem …` over its units row
+    # `# Idx % % …`); otherwise keep the last (conda's header is last).
+    local held=() banner_budget=2
     while IFS= read -r _l; do
         if [[ $started -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
             _tk=(); read -ra _tk <<< "$_l"
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
+            [[ -n "$_title" && "$_l" == "$_title" ]] && { _title=""; continue; }
             if [[ "$_l" =~ ^[[:space:]]*# ]]; then
                 # Strip the leading `#` (and one following space) — a candidate header.
                 local _h="${_l#"${_l%%[!#[:space:]]*}"}"
-                [[ -n "${_h//[[:space:]]/}" ]] && held="$_h"
+                [[ -n "${_h//[[:space:]]/}" ]] && held+=("$_h")
                 continue
             fi
             # A short word-like preamble line (e.g. `apt list`'s "Listing…") before
             # a real table — but NOT a `{`/`[`/`<` structural line (JSON/XML), which
             # must keep aligned-columns from matching those formats.
             [[ $has_table -eq 1 && ${#_tk[@]} -lt 2 && "$_l" =~ ^[[:space:]]*[A-Za-z] ]] && continue
-            # First real line: emit the held commented header (if any) before it.
-            [[ -n "$held" ]] && out+="$held"$'\n'
+            # A leading progress line — any token ending in an ellipsis
+            # ("Listing... Done") — is chrome before the table, not data.
+            [[ $has_table -eq 1 && "$_l" =~ \.\.\.([[:space:]]|$) && ${#_tk[@]} -le 3 ]] && continue
+            # A leading banner line much WIDER than the table (>=3 tokens over
+            # the modal count): drop it (max 2 such lines). Chrome carries
+            # numbers (`w`'s uptime/load line, numastat's PID title), so the
+            # line must hold a VALUE token — a wide all-label header row
+            # (kubectl get pv) never does. Chrome is also not: a `label :
+            # value` line (in `chage -l` a wide pair is data), a line ending
+            # in a period (prose data — poetry's root-package row), or a line
+            # OPENING WITH THE SAME TOKEN as a table row (telegraf's log
+            # stream — same-shaped lines are the table itself).
+            if [[ $banner_budget -gt 0 && $_modal -ge 2 && ${#_tk[@]} -ge $((_modal + 3)) \
+                  && "$_l" =~ ^[[:space:]]*[A-Za-z0-9] && ! "$_l" =~ \.[[:space:]]*$ \
+                  && ! "$_l" =~ ^[[:space:]]*[A-Za-z][^:=]*:[[:space:]] ]]; then
+                local _bt _bv=0 _bsame=0 _bl2 _bt2
+                for _bt in "${_tk[@]}"; do
+                    [[ "$_bt" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_bt" =~ ^[0-9]{1,2}:[0-9]{2} \
+                       || "$_bt" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_bt" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && { _bv=1; break; }
+                done
+                if [[ $_bv -eq 1 ]]; then
+                    while IFS= read -r _bl2; do
+                        [[ -z "${_bl2//[[:space:]]/}" || "$_bl2" == "$_l" ]] && continue
+                        _bt2=(); read -ra _bt2 <<< "$_bl2"
+                        [[ "${_bt2[0]:-}" == "${_tk[0]}" ]] && { _bsame=1; break; }
+                    done <<< "$text"
+                    if [[ $_bsame -eq 0 ]]; then
+                        banner_budget=$((banner_budget - 1))
+                        continue
+                    fi
+                fi
+            fi
+            # First real line: emit the best held commented header (if any) —
+            # but only a candidate whose token count fits the data (exact, or
+            # one under for a trailing multi-word label). A lone `# <path>`
+            # provenance comment (ansible-galaxy) fits nothing and is dropped.
+            if [[ ${#held[@]} -gt 0 ]]; then
+                local _pick="" _c _ct _u _t2
+                for _c in "${held[@]}"; do
+                    _ct=(); read -ra _ct <<< "$_c"
+                    [[ ${#_ct[@]} -ne ${#_tk[@]} ]] && continue
+                    _u=1; local -A _seen_tok=()
+                    for _t2 in "${_ct[@]}"; do [[ -n "${_seen_tok[$_t2]:-}" ]] && { _u=0; break; }; _seen_tok[$_t2]=1; done
+                    [[ $_u -eq 1 ]] && { _pick="$_c"; break; }
+                done
+                [[ -z "$_pick" ]] && _pick="${held[${#held[@]}-1]}"
+                [[ -n "$_pick" ]] && out+="$_pick"$'\n'
+            fi
             started=1
         fi
-        # A pure separator rule under the header (`---- -----`, dashes/spaces only,
-        # ≥2 dashes) is not a data row — drop it wherever it appears.
-        [[ "$_l" =~ ^[[:space:]]*-+([[:space:]]+-+)*[[:space:]]*$ ]] && continue
+        # A pure separator rule under the header (`---- ----`/`==== ====`,
+        # dashes or equals + spaces only, ≥2 chars) is not a data row — drop
+        # it wherever it appears (psql/sysstat dashes, tokei's `=` rules).
+        [[ "$_l" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
         out+="$_l"$'\n'
     done <<< "$text"
 
@@ -102,7 +190,9 @@ _ac_shape () {
     #       `1K-blocks` is not a value) and free-h (unit values `7.8Gi`) as headed,
     #       but keeps log/record blocks headerless (who, mount, ip route, journalctl,
     #       last — whose first line already carries times/IPs/counts).
-    local caps0=0; [[ ! "$first_line" =~ [a-z] ]] && caps0=1
+    # ALL-CAPS needs a letter: a purely numeric first row (`redis-cli --latency
+    # -history`'s "1751880000 2") has no lowercase but is data, not a header.
+    local caps0=0; [[ ! "$first_line" =~ [a-z] && "$first_line" =~ [A-Z] ]] && caps0=1
     local v0=0 _t _t1arr; _t1arr=(); read -ra _t1arr <<< "$first_line"
     for _t in "${_t1arr[@]}"; do
         # value token = a number, optionally with a trailing unit (8.421s, 942ms,
@@ -111,11 +201,104 @@ _ac_shape () {
         [[ "$_t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_t" =~ ^[0-9]{1,2}:[0-9]{2} \
            || "$_t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && v0=$((v0 + 1))
     done
-    local maxd=0 i
-    for ((i = 1; i < nlines; i++)); do [[ ${dcount[$i]} -gt $maxd ]] && maxd=${dcount[$i]}; done
-    if [[ $caps0 -eq 1 || ( $v0 -eq 0 && $maxd -gt ${dcount[0]} ) ]]; then
+    # Row 1 is a header when it is a pure label row (zero digit tokens) over
+    # data that carries digits anywhere (az/aws listings — one digit-bearing
+    # row is enough); when it is digit-free of VALUE tokens while most data
+    # rows carry one (a number, time, IP or date — `multipass list`, whose
+    # header label IPv4 merely contains a digit); or — when row 1 itself has
+    # digit tokens (`1K-blocks`) — when MOST data rows are more numeric than
+    # it. The majority requirements stop a headerless log (`git log
+    # --oneline`) from having its first commit promoted just because one
+    # later row carries an extra digit token (CVE-2026-1101).
+    local moren=0 maxd=0 vrows=0 i
+    local _dl _dt _dtk
+    i=0
+    while IFS= read -r _dl; do
+        [[ -z "${_dl//[[:space:]]/}" ]] && continue
+        i=$((i + 1))
+        [[ $i -eq 1 ]] && continue
+        _dtk=(); read -ra _dtk <<< "$_dl"
+        for _dt in "${_dtk[@]}"; do
+            if [[ "$_dt" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_dt" =~ ^[0-9]{1,2}:[0-9]{2} \
+                 || "$_dt" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_dt" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
+                vrows=$((vrows + 1)); break
+            fi
+        done
+        [[ $i -ge 40 ]] && break
+    done <<< "$(_ac_body "$1")"
+    for ((i = 1; i < nlines; i++)); do
+        [[ ${dcount[$i]} -gt ${dcount[0]} ]] && moren=$((moren + 1))
+        [[ ${dcount[$i]} -gt $maxd ]] && maxd=${dcount[$i]}
+    done
+    # All promotion paths also demand the row LOOKS like labels: every token
+    # carries an alphanumeric (not `----`), none is bracketed (`[Hardware`,
+    # `event]` — perf-list data), and none ends in `.` (prose — "…sysfs.").
+    # Header labels with `:`/`(`/`#`/`%` (ss's Address:Port, vgs's #PV,
+    # kubectl's CPU(cores)) all pass.
+    # Bare single-char separators inside a header (`database | user`,
+    # `# reqs`, `Total / Used`) are skipped — they are layout, not content.
+    local labelly=1 _lbl_seen=0
+    for _t in "${_t1arr[@]}"; do
+        [[ "$_t" =~ ^[\|#/%+-]$ ]] && continue
+        _lbl_seen=1
+        [[ "$_t" =~ [A-Za-z0-9] && ! "$_t" =~ ^\[ && ! "$_t" =~ \]$ && ! "$_t" =~ \.$ ]] || { labelly=0; break; }
+    done
+    [[ $_lbl_seen -eq 0 ]] && labelly=0
+    if [[ $caps0 -eq 1 || ( $v0 -eq 0 && ${dcount[0]} -eq 0 && $labelly -eq 1 && $maxd -gt 0 ) \
+          || ( $v0 -eq 0 && $labelly -eq 1 && $vrows -gt 0 && $vrows -eq $((nlines - 1)) ) \
+          || ( $v0 -eq 0 && $labelly -eq 1 && $(( moren * 2 )) -gt $((nlines - 1)) ) ]]; then
         printf 'HDR %s\n' "${counts[0]}"
         return 0
+    fi
+
+    # All-text table (no digits anywhere): numeric contrast can't identify the
+    # header, but wording can — row 1 is a header when every token is a bare
+    # word (letters only, no path/host/option punctuation) and none of them
+    # recurs in row 2 (labels don't repeat as values). This promotes
+    # `Package Ecosystem Severity State` / `database tableName isTemporary`
+    # while `mount`/`retroarch`-style all-text records (slashes, dashes,
+    # repeated words) stay headerless.
+    local alltext=1
+    for ((i = 0; i < nlines; i++)); do [[ ${dcount[$i]} -gt 0 ]] && { alltext=0; break; }; done
+    if [[ $v0 -eq 0 && $alltext -eq 1 && $nlines -ge 3 ]]; then
+        local wordy=1 styled=0
+        for _t in "${_t1arr[@]}"; do [[ "$_t" =~ ^[A-Za-z][A-Za-z0-9_%]*$ ]] || { wordy=0; break; }; done
+        # Labels are STYLED words — Titlecase (`Package`) or camelCase
+        # (`tableName`); an all-lowercase row (`sqlite3 .tables` name grid)
+        # is data, not a header.
+        for _t in "${_t1arr[@]}"; do [[ "$_t" =~ ^[A-Z][a-z] || "$_t" =~ [a-z][A-Z] ]] && { styled=1; break; }; done
+        # And the data under it must be TABLE-shaped: a modal column count
+        # covering >=60% of the data rows, within 1 of the header's own count
+        # (multi-word labels run one over). Ragged prose (`dolt status`,
+        # whose "On branch main" is a sentence) fails this.
+        local shaped=0
+        if [[ $wordy -eq 1 && $styled -eq 1 ]]; then
+            local _dm=0 _db=0 _da _dbn
+            for ((i = 1; i < nlines; i++)); do
+                _dbn=0
+                for ((_da = 1; _da < nlines; _da++)); do [[ ${counts[$_da]} -eq ${counts[$i]} ]] && _dbn=$((_dbn + 1)); done
+                [[ $_dbn -gt $_db ]] && { _db=$_dbn; _dm=${counts[$i]}; }
+            done
+            local _hd=$(( counts[0] - _dm )); [[ $_hd -lt 0 ]] && _hd=$(( -_hd ))
+            [[ $(( _db * 100 / (nlines - 1) )) -ge 60 && $_hd -le 1 ]] && shaped=1
+            # `Name Description` over wider free-text rows (spin templates):
+            # a 2-label header with a consistent, much wider body is the
+            # name+description family — positional assignment reunites the
+            # description column downstream.
+            [[ $(( _db * 100 / (nlines - 1) )) -ge 60 && ${counts[0]} -eq 2 && $_dm -ge 4 ]] && shaped=1
+        fi
+        if [[ $shaped -eq 1 ]]; then
+            local second_line="" idx2=0
+            while IFS= read -r _line; do
+                [[ -z "${_line//[[:space:]]/}" ]] && continue
+                idx2=$((idx2 + 1)); [[ $idx2 -eq 2 ]] && { second_line="$_line"; break; }
+            done <<< "$text"
+            local overlap=0 _t2 _t2arr; _t2arr=(); read -ra _t2arr <<< "$second_line"
+            for _t in "${_t1arr[@]}"; do
+                for _t2 in "${_t2arr[@]}"; do [[ "$_t" == "$_t2" ]] && { overlap=1; break 2; }; done
+            done
+            [[ $overlap -eq 0 ]] && { printf 'HDR %s\n' "${counts[0]}"; return 0; }
+        fi
     fi
 
     # Headerless: require a modal column count (>=3) shared by most lines.
@@ -125,6 +308,22 @@ _ac_shape () {
         for d in "${counts[@]}"; do [[ "$d" -eq "$c" ]] && k=$((k + 1)); done
         [[ $k -gt $best ]] && { best=$k; mode=$c; }
     done
+    if [[ $mode -eq 2 && $nlines -ge 3 && $(( best * 100 / nlines )) -ge 60 ]]; then
+        # A strict 2-column block is a table (not prose / key-value) only when
+        # its tokens are VALUES: pure numbers or strings carrying separator
+        # punctuation (paths, module@version, timestamps) — `go mod graph`,
+        # redis latency history. Prose and `Key value` snapshots don't qualify.
+        local vlike=0 tot=0 _ln
+        while IFS= read -r _ln; do
+            [[ -z "${_ln//[[:space:]]/}" ]] && continue
+            _t1arr=(); read -ra _t1arr <<< "$_ln"
+            for _t in "${_t1arr[@]}"; do
+                tot=$((tot + 1))
+                [[ "$_t" =~ ^[0-9][0-9.,:%-]*$ || "$_t" == */* || "$_t" == *@* || "$_t" == *:* ]] && vlike=$((vlike + 1))
+            done
+        done <<< "$text"
+        [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge 75 ]] && { printf 'HL 2\n'; return 0; }
+    fi
     [[ $mode -lt 3 ]] && return 1
     [[ $(( best * 100 / ${#counts[@]} )) -lt 60 ]] && return 1
     printf 'HL %s\n' "$mode"
@@ -331,7 +530,16 @@ strategy_extract () {
             _darr=(); read -ra _darr <<< "${lines[$_dli]}"
             [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
         done
-        if [[ $_maxd -gt $_htok && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
+        # In an ALL-TEXT table (no digits anywhere) the reverse mismatch also
+        # wants positional assignment: a header with MORE tokens than the data
+        # rows means multi-word labels (`Service Name`), which 2-space
+        # segmentation names as one column. Numeric tables keep tokenization
+        # (their single-spaced labels under-segment — see comment above).
+        local _use_pos=0
+        if [[ $_maxd -gt $_htok ]]; then _use_pos=1
+        elif [[ $_htok -gt $_maxd && ! "$(printf '%s\n' "${lines[@]}")" =~ [0-9] ]]; then _use_pos=1
+        fi
+        if [[ $_use_pos -eq 1 && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
             local gridrows=() _g
             while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
             if [[ ${#gridrows[@]} -ge 2 ]]; then

@@ -367,7 +367,7 @@ ps-forest	table	7	7
 systemd-cgls	table	16	1
 latencytop	table	6	2
 schedtool	table	4	2
-perf-list	table	8	1
+perf-list	table	9	1
 vmstat-d	table	5	8
 iostat-x	table	4	8
 mpstat-a	table	5	8
@@ -1154,7 +1154,7 @@ gradle-tasks	text	-	2
 mvn-versions-display	text	-	2
 pytest-summary	text	-	2
 jest-summary	text	-	2
-go-test-summary	table	3	2
+go-test-summary	table	4	2
 cargo-test-summary	text	-	2
 shellcheck-json	table	2	2
 hadolint-output	table	3	3

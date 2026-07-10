@@ -1,4 +1,4 @@
-n	UNIT	FILE	STATE	total_entries
+n	UNIT_FILE	STATE	PRESET	total_entries
 1	cron.service	enabled	enabled	6
 2	dbus.service	static	-	6
 3	getty@.service	enabled	enabled	6

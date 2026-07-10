@@ -1,8 +1,9 @@
-n	zone	"example_com"	IN	{	total_entries
-1	type	master;			7
-2	file	"/etc/bind/db.example.com";			7
-3	};				7
-4	zone	"0.168.192.in-addr.arpa"	IN	{	7
-5	type	master;			7
-6	file	"/etc/bind/db.192.168.0";			7
-7	};				7
+n	A	total_entries
+1	zone "example.com" IN {	8
+2	type master;	8
+3	file "/etc/bind/db.example.com";	8
+4	};	8
+5	zone "0.168.192.in-addr.arpa" IN {	8
+6	type master;	8
+7	file "/etc/bind/db.192.168.0";	8
+8	};	8
