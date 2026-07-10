@@ -1,0 +1,3 @@
+table inet firewalld
+table ip mangle
+table ip6 raw

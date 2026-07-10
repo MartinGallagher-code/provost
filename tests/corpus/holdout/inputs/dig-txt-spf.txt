@@ -1,0 +1,4 @@
+; <<>> DiG 9.20.1 <<>> TXT _dmarc.example.co
+;; ANSWER SECTION:
+_dmarc.example.co.	3600	IN	TXT	"v=DMARC1; p=quarantine; rua=mailto:dmarc@example.co"
+example.co.		3600	IN	TXT	"v=spf1 mx include:spf.protection.example ~all"

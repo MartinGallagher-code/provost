@@ -173,7 +173,15 @@ dig-answer/dig-output/dig-mx/dig-txt/drill/host_a; upgraded delv +
 dig_noall_answer goldens), and the exposition-format + syslog promotions
 to the generic tier (label splitting added; syslog gained a majority-of-
 lines gate so it can't hijack status blocks). Coverage now
-✅ 852 / ✅ʰ 39 / ✅ᵇ 149; holdout 48/48.
+✅ 852 / ✅ʰ 39 / ✅ᵇ 149; holdout 48/48. Then three more rounds
+(2026-07-10): json-array (replaced cloud-json-list; upgraded the four
+docker/podman inspect goldens), diffstat (took git-diff-stat +
+git-stash-show-stat from sqlite-output's broken accidental parse),
+snmp-output promoted to structured/, sqlite-output deleted (zero wins
+left), and holdout 48 → 66 with the aws-s3-ls/dmsetup-table hint rows
+retargeted to line-records (aligned-columns returns empty on ragged
+mixed-width rows — found by the holdout). Coverage now
+✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66.
 
 ## Tests
 

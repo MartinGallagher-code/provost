@@ -68,7 +68,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | aws-logs-describe-log-groups | ✅ | psql-table |
 | aws-rds-describe-db-instances | ✅ | psql-table |
 | aws-route53-list-hosted-zones | ✅ | psql-table |
-| aws-s3-ls | ✅ʰ | aligned-columns (hint: aws-s3-ls) |
+| aws-s3-ls | ✅ʰ | line-records (hint: aws-s3-ls) |
 | aws-s3api-list-buckets | ✅ | psql-table |
 | aws-sns-list-topics | ✅ | line-records |
 | aws-sqs-list-queues | ✅ | line-records |
@@ -216,7 +216,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dmidecode | ✅ | colons |
 | dmsetup-info | ✅ | key-value |
 | dmsetup-ls | ✅ | tsv |
-| dmsetup-table | ✅ʰ | aligned-columns (hint: dmsetup-table) |
+| dmsetup-table | ✅ʰ | line-records (hint: dmsetup-table) |
 | dnf-history-list | ✅ | vertical-line |
 | dnf-info | ✅ | colons |
 | dnf-list | ✅ | aligned-columns |
