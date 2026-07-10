@@ -1,5 +1,40 @@
 # glean — Changelog
 
+## 2026-07-10 — Two generic parsers close 6 fio output forms
+
+Fully covered fio (its 12 output modes are now all handled — 9 tidy, 3 correctly
+loose text) with two format-level, non-fio-specific parsers:
+
+- **`delimited/semicolon-values`** — `;`-delimited records (fio
+  `--output-format=terse` v3/v5: one `;`-line of ~48 positional fields;
+  European-locale CSV). A single line is one headerless record; a strict
+  detector (every line ≥4 semicolons, consistent count) leaves the lone
+  `;`-legend line in `networkctl-lldp` alone.
+- **`delimited/labeled-inline-kv`** — `label: k=v, k=v, …` records (fio
+  disk-stats, run-status, io-depths, latency-dist; `ip -s`-style). The label
+  becomes a `name` column and each `k=v` a data column, one row per label, an
+  optional section title skipped. Records must dominate (≤1 non-record line), so
+  it stays off `key: value` snapshots (`mdadm --examine`, `nmcli`) that carry a
+  stray `label: k=v` line; splits on the last `=` so fio's `>=64=99.9%` keeps
+  its key.
+
+Coverage 2115/2151 → **2120 / 2151** (✅ 1927 generic · ✅ʰ 58 · ✅ᵇ 135);
+golden regression 1980 pass / 0 fail / 0 deleted (only 6 fio goldens changed);
+extract 62/62, smoke 49, melt 10, holdout 68/68.
+
+**Deliberately left ⏳ — 5 fixed-width benchmark tables** (stream-benchmark,
+pytest-benchmark, blender-benchmark, kdiskmark-run, lzbench-run): a title banner
++ multi-word column header over a whitespace grid. A dedicated `banner-fixed-table`
+strategy was prototyped (it cleanly tidied stream + blender) but its detector
+grabbed 26 existing inputs — the shape is structurally indistinguishable from
+headerless word-data lists (`vagrant status`, `clang -targets`), single-space
+headers (`netstat -rn`), and `key: value` blocks (`ceph status`) without gates
+that also break blender — so it was dropped rather than churn 2151 goldens. The
+principled fix is positional multi-word-header handling in `aligned-columns`
+(a genuine improvement — it reunites `Depended_by`, `NOMINATED_NODE`,
+`Flags_Mask` across ~60 tables) but it changes 69 goldens and needs a full
+audit round, deferred as separate work.
+
 ## 2026-07-10 — Cover the full range of fio output + headerless numeric CSV
 
 The corpus had only 2 fio fixtures, both truncated slices of the *normal*

@@ -196,7 +196,7 @@ expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two 
 expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus size + gaps (2151 inputs, 36 ⏳ as of 2026-07-10)
+## Corpus size + gaps (2151 inputs, 31 ⏳ as of 2026-07-10)
 
 The corpus grew in two +500 expansions of unique never-before-seen tools
 (0 basename overlap each): **1040 → 1540 → 2040**, a **+99 benchmark-tool set**
@@ -208,22 +208,34 @@ rounds: melt long-form for lone kv pairs, a `go-struct` parser, text-lines gate
 fixes, a rebuilt aligned-columns header-promotion heuristic (value-token
 contrast, styled all-text headers, 2-column value tables, chrome dropping — 41
 of the earlier 67 ⏳ closed), a `delimited/pipe-table` parser for GitHub-flavored
-markdown tables (BenchmarkDotNet), and **headerless numeric CSV** in
+markdown tables (BenchmarkDotNet), **headerless numeric CSV** in
 `structured/csv` (data loggers with no header row — fio `--write_bw_log` /
-`--write_iops_log`, `sar -o`, collectd; first-row-all-numeric ⟹ no header).
-Coverage is now **2115 / 2151** (✅ 1922 / ✅ʰ 58 / ✅ᵇ 135); golden regression
+`--write_iops_log`, `sar -o`, collectd; first-row-all-numeric ⟹ no header), and
+two parsers that fully closed fio's non-tabular sections: `delimited/semicolon-
+values` (fio terse v3/v5) and `delimited/labeled-inline-kv` (`label: k=v, k=v`
+records — fio disk-stats/run-status/io-depths/latency-dist).
+Coverage is now **2120 / 2151** (✅ 1927 / ✅ʰ 58 / ✅ᵇ 135); golden regression
 1980 pass / 0 fail / 0 deleted; holdout 68/68.
 
-fio is a genuinely hard, multi-format tool: of its 12 output modes glean tidies
-3 (json, bw-log, iops-log), treats 3 as loose text (normal-full / multijob /
-status-line are nested reports, not single datasets), and leaves 5 as ⏳ —
-`;`-delimited terse (v3/v5; no semicolon parser) and the inline `label: k=v, k=v`
-sections (disk-stats, io-depths, run-status). Closing those needs a semicolon
-delimiter + a "labeled inline-kv record" parser — deferred as new capability.
+fio is now fully handled: of its 12 output modes glean tidies 9 (json, bw-log,
+iops-log, terse-v3/v5, disk-stats, io-depths, run-status, latency-dist) and
+treats 3 as loose text (normal-full / multijob / status-line are nested reports,
+not single datasets).
 
-The 36 ⏳ left include those 5 fio forms plus 5 benchmark formats
-(stream-benchmark, kdiskmark-run, pytest-benchmark, lzbench-run,
-blender-benchmark) — all the same multi-word-header + banner shape as the tail:
+The 31 ⏳ left include 5 fixed-width benchmark tables (stream-benchmark,
+kdiskmark-run, pytest-benchmark, lzbench-run, blender-benchmark) — a title
+banner + multi-word header over a whitespace grid. A dedicated `banner-fixed-
+table` strategy was prototyped (tidied stream + blender cleanly) but its detector
+grabbed 26 existing inputs — the shape is indistinguishable from headerless
+word-data lists (`vagrant status`), single-space headers (`netstat -rn`), and
+`key: value` blocks (`ceph status`) — so it was dropped. The principled fix is
+positional multi-word-header handling in `aligned-columns` (a real improvement —
+reunites `Depended_by`/`NOMINATED_NODE`/`Flags_Mask` across ~60 tables) but it
+changes 69 goldens and needs a full audit round. The rest of the tail:
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
+  spans 2 ragged lines or shares its token count with a banner, so no
 - **multi-line / banner-entangled headers** (numastat-p, quota-report,
   vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
   watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
