@@ -196,26 +196,42 @@ expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two 
 expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus size + gaps (2040 inputs, 67 ⏳ as of 2026-07-10)
+## Corpus size + gaps (2040 inputs, 26 ⏳ as of 2026-07-10)
 
 The corpus grew in two +500 expansions of unique never-before-seen tools
 (0 basename overlap each): **1040 → 1540 → 2040**. Each batch generalized at
 ~92% with **no new per-tool code** (batch 1: 466/500; batch 2: 461/500), which
 is the headline result — the generic tier tidies the vast majority of tools it
-was never shown. Coverage is now **1973 / 2040** (✅ 1771 / ✅ʰ 55 / ✅ᵇ 147);
-golden regression 1826 pass / 0 fail / 0 deleted.
+was never shown. A gap-closing round then fixed **41 of the 67 ⏳ with
+format-level capability only** (melt long-form for lone kv pairs, a
+`go-struct` parser, text-lines gate fixes, and a rebuilt header-promotion
+heuristic in aligned-columns — value-token contrast, styled all-text headers,
+2-column value tables, chrome dropping). Coverage is now **2014 / 2040**
+(✅ 1822 / ✅ʰ 56 / ✅ᵇ 136); golden regression 1878 pass / 0 fail /
+0 deleted; holdout 68/68.
 
-The 67 ⏳ break into the same honest buckets each expansion surfaces — either
-new generic capability is needed, or the output is genuinely-not-a-dataset:
-- **headerless tables** whose first data row is eaten as the header
-  (go-mod-graph, git-log-oneline, retroarch-cores, redis-cli-latency-history)
-  and **header-not-promoted / ragged / tree** tables (dependabot-alerts,
-  spark-sql-show-tables, ceph-osd-tree, scylla-nodetool-status, statuspage-
-  components). A generic "no separator rule → synthesize positional columns,
-  keep every data row" mode would close most of these but is a broad, golden-
-  risky change — deferred out of a corpus-expansion PR.
-- **colon-delimited records** (getent-group) — candidate hint/delimiter route.
-- earlier survivors still open:
+The 26 ⏳ left (ansible-galaxy-list apachectl-S batch-jobs
+bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status
+file-brief frr-show-bgp-summary gcloud-logging-logs-list getent-group
+gluster-volume-status hugo-build-stats hurl-report jless-navigate
+kafka-topics-describe numastat-p promtool-check-rules pueue-status
+pytest-cov-report quota-report sar-cpu scylla-nodetool-status
+v4l2-ctl-list-devices vnstat-hourly watch-diff) are the genuinely hard tail:
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff) — the header spans 2 ragged lines or shares its token count
+  with a banner, so no width/value heuristic can split them safely.
+- **nested / grouped records** (ceph-osd-tree, kafka-topics-describe,
+  v4l2-ctl-list-devices, pueue-status, cryptsetup-status, apachectl-S,
+  bluetoothctl-devices) — need a "parent row + indented children" reshape.
+- **colon-delimited records** (getent-group) and **key: free-text rows**
+  (file-brief, hurl-report) — a `first-token = key, rest = value` mode.
+- **summary-row / footer entanglement** (pytest-cov-report TOTAL row,
+  hurl-report trailer, hugo-build-stats) and **strategy-competition losses**
+  (clickhouse-parts to nft-list-tables, promtool/ansible-galaxy to
+  line-records keeping a chrome row).
+- **genuinely not a dataset** (batch-jobs prose sentence, jless-navigate JSON
+  fragment, gcloud single-column NAME header).
 - **2-col tables, free-text last column** (aligned-columns can't split a
   header's single-spaced labels from a multi-word value): spin-templates-list,
   vagrant-status, bluetoothctl-devices, ansible-galaxy-list, go-test-summary.
@@ -237,7 +253,7 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (1826 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (1878 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```

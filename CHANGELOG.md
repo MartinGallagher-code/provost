@@ -1,5 +1,46 @@
 # glean — Changelog
 
+## 2026-07-10 — Close 41 of the 67 corpus format gaps with generic capabilities
+
+Worked the full ⏳ list (39 from the batch-2 expansion + 28 older). Every fix
+is a format-level rule, a new format parser, or a tidy-melt improvement — **no
+per-tool parser was added**. Coverage 1973 → **2014 / 2040** (✅ 1822 generic ·
+✅ʰ 56 hint · ✅ᵇ 136 bespoke); ⏳ 67 → 26. Golden regression **1878 pass / 0
+fail / 0 deleted** (48 changed goldens audited neutral-or-better — real headers
+instead of eaten first rows, correct multi-word labels, php-i's real kv fields);
+holdout 68/68.
+
+- **melt: lone key/value → long form.** A 1-col × 1-row wide (the shape of a
+  version banner or one-line status) now melts to canonical `field`/`value`
+  long form. Closes ~15 single-pair inputs (distrobox/nats/nx/task/envoy
+  versions, tofu-plan-summary, tasmota-status, …). +2 melt unit checks.
+- **New `structured/go-struct` parser** for Go `%+v` struct dumps
+  (`{Key:value Key:value …}` — helm/kustomize/kubectl version banners).
+- **text-lines**: the markup guard now requires a document to OPEN with `{`/`[`
+  and close with a matching bracket — a mid-line `{` (vboxmanage UUIDs, exabgp
+  blocks, `[INFO]` tags) is just text; a lone ≤3-token period-free line is a
+  status record (gamemode, signify).
+- **aligned-columns header heuristics** (the big one): value-token contrast
+  replaces raw digit-count for header promotion (labels like `IPv4`/`1K-blocks`
+  no longer confuse it, and promotion demands a label-looking row); all-text
+  tables promote a styled disjoint header (dependabot-alerts, spark-sql) while
+  name grids and prose stay headerless; 2-column value tables are recognized
+  (go-mod-graph, redis latency); leading chrome is dropped (wide banner lines —
+  `w`, numastat; trailing-colon titles — vagrant; ellipsis progress lines —
+  apt); `=`-rules treated like `-`-rules (tokei); `#`-comment headers picked by
+  token-count fit (nvidia-smi dmon); positional assignment extended to all-text
+  multi-word labels (ibmcloud `Service Name`, spin `Name Description`).
+- **Manifest corrections (verified clean output)**: go-test-summary 3→4 rows,
+  perf-list 8→9.
+- The remaining 26 ⏳ are documented in `HANDOFF.md` — nested/2-line-header/
+  ragged formats needing capability that would risk golden churn, plus a few
+  genuinely-not-a-dataset one-liners.
+  Files: `transform/melt.sh`, `transform/tests/test_melt.sh`,
+  `extract/strategies/delimited/{aligned-columns,text-lines}.sh`,
+  `extract/strategies/structured/go-struct.sh` (+ sample + strategy golden),
+  `tests/corpus/expected.tsv`, `tests/corpus/expected/` (52 new, 48 updated),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
 ## 2026-07-10 — +500 more unique corpus inputs (batch 2): 1540 → 2040 tools
 
 Second +500 expansion of the tidy-coverage corpus with tools never seen by the
