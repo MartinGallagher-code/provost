@@ -1,0 +1,5 @@
+ripgrep /usr/bin/
+ripgrep /usr/bin/rg
+ripgrep /usr/share/doc/
+ripgrep /usr/share/doc/ripgrep/
+ripgrep /usr/share/doc/ripgrep/README.md

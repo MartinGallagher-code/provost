@@ -1,0 +1,5 @@
+proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0
+sysfs /sys sysfs rw,nosuid,nodev,noexec,relatime 0 0
+/dev/vda1 / ext4 rw,discard,errors=remount-ro 0 0
+cgroup2 /sys/fs/cgroup cgroup2 rw,nosuid,nodev,noexec,relatime,nsdelegate 0 0
+10.0.9.2:/srv/share /mnt/share nfs rw,vers=4.1,addr=10.0.9.2 0 0

@@ -1,0 +1,5 @@
+LANG=fr_FR.UTF-8
+HOSTNAME=edge-cache-3
+JAVA_HOME=/opt/jdk-21
+KUBECONFIG=/home/ops/.kube/staging.yaml
+NODE_OPTIONS=--max-old-space-size=8192

@@ -1,0 +1,3 @@
+> net,host=db02,interface=eth1 bytes_recv=99182734i,bytes_sent=51028374i 1783041600000000000
+> swap,host=db02 free=8589934592i,used_percent=0.4 1783041600000000000
+> processes,host=db02 running=3i,sleeping=212i,zombies=0i 1783041600000000000

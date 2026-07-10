@@ -41,10 +41,9 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**1040 tools tested; 1039 tidy** — ✅ 836 by a generic parser via auto-detection,
-✅ʰ 50 by a generic parser routed by a hint row, ✅ᵇ 153 by a bespoke strategy,
-⏳ 1 not yet tidy (`traceroute6`). See [`COVERAGE.md`](COVERAGE.md) for the live
-per-tool list.
+**1040 tools tested; all 1040 tidy** — ✅ 838 by a generic parser via
+auto-detection, ✅ʰ 37 by a generic parser routed by a hint row, ✅ᵇ 165 by a
+bespoke strategy. See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:
 
@@ -59,11 +58,21 @@ Coverage tiers, in order of preference:
    `extract/hints.tsv` (tool, signature, target strategy) routes it. A hint is
    per-tool *data*, not per-tool *code*: signatures are structural (format
    shape), so they also match unseen output of the same tool.
-3. **Bespoke (✅ᵇ)** — a per-tool strategy script, kept only where the format is
-   genuinely idiosyncratic (sysstat banners, DNS answer sections, storage
-   trees, `/proc` stat tables, grouped network stats, …). Every bespoke
+3. **Bespoke (✅ᵇ)** — a per-tool strategy script, kept only where the format
+   is genuinely idiosyncratic (sysstat banners, DNS answer sections, storage
+   trees, `/proc` stat tables, grouped network stats, …) or where the generic
+   parse is shape-tidy but qualitatively worse (`free`, `lvdisplay`,
+   `mysqladmin-status` — verified by the golden-quality audit). Every bespoke
    strategy that survived is the proven full-mode winner for at least one
    corpus input; everything else was deleted.
+
+There is also a **held-out generalization set** — [`holdout/`](holdout/): a
+second, *different* output per tool (other hosts, versions, values, flags)
+with no goldens, judged on tidy shape only, the way an unseen capture would
+be. `bash tests/corpus/holdout/run.sh` runs it and attributes each win to a
+tier; new entries should land generic/hint, not bespoke. This is the measure
+of generalization (the main corpus, with its frozen fixtures, only measures
+regression).
 
 New tools added to the corpus should be checked against the generic parsers
 first (`run.sh`); then try a hint row; reach for a bespoke strategy only when

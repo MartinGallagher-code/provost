@@ -1,5 +1,47 @@
 # glean — Changelog
 
+## 2026-07-10 — QUALITY: golden audit (restore 13 bespokes, promote bracket-log), traceroute6 fix, held-out generalization set
+
+Follow-through on the generic-first refactor's three open items.
+
+**Golden-quality audit** (the refactor's manifest-tidy criterion checks shape,
+not content — this pass checked content):
+- Audited all 62 goldens the refactor changed, old parser output vs new. Most
+  positional `c1..cN` conversions are faithful and several improved (apk-list,
+  node-exporter, promtool-query gained proper labels); 18 tools had real
+  damage — shredded records, garbage headers (`--- Logical volume`,
+  `-[ RECORD 1 ]`), or lost fields.
+- `bracket-log` promoted to `strategies/delimited/` (it parses a format —
+  `[ts] message` lines — so it belongs in the generic tier): dmesg-hw, lsscsi,
+  mvn-dependency-list/-tree, service-status-all now tidy generically with
+  named `timestamp`/`message` columns.
+- 13 bespokes restored where quality beats the generic parse (the
+  free/docker-ps rule): R-version, lvdisplay-m, psql-pg-stat-bgwriter,
+  haproxy-vv, mysqladmin-status, lsusb-v, git-branch-vv, snmp-output
+  (snmpget+snmpwalk), lspci-tv, numactl-show, fossil-status,
+  proc-filesystems, systemd-cgls. 11 hint rows that had been shadowing them
+  with worse parses were dropped (35 rows remain).
+
+**traceroute6 — last coverage gap closed:** the columnar-specs traceroute spec
+required 9 tokens/row, silently dropping `* * *` timeout hops; minreq is now 4
+with `@opt` rtt columns, so timeout hops emit as rows.
+**Coverage: 1040/1040 — ✅ 838 generic, ✅ʰ 37 hint, ✅ᵇ 165 bespoke, ⏳ 0.**
+
+**Held-out generalization set** (`tests/corpus/holdout/`): 24 second samples
+of covered tools — different hosts/versions/values/flags, no goldens — judged
+on tidy shape only, the way unseen captures are. `holdout/run.sh` runs full
+mode and attributes each win to a tier. Current: **24/24 tidy on unseen
+output — 12 generic, 10 hint, 2 bespoke** (free, ping — both intentional).
+This is the direct measure of the "process inputs I haven't seen" goal; the
+frozen-fixture corpus only measures regression.
+
+Files: extract/strategies/** (restores + bracket-log move),
+extract/hints.tsv, extract/strategies/delimited/columnar-specs.sh,
+tests/corpus/holdout/** (new), tests/corpus/expected/** (regen),
+tests/corpus/{README,COVERAGE}.md, README.md, HANDOFF.md.
+Verified: smoke 49/49, melt 8/8, extract 63/63, analyze green, corpus golden
+875/0, holdout 24/24.
+
 ## 2026-07-09 — REFACTOR: generic-first extraction — hints table, honest metric, −218 bespoke parsers
 
 The project goal ("as many inputs with as few instructions as possible, no

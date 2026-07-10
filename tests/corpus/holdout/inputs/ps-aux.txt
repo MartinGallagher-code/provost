@@ -1,0 +1,5 @@
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root           1  0.0  0.1 172812 13924 ?        Ss   Mar02   4:11 /sbin/init splash
+postgres    2210  1.2  2.4 341208 98004 ?        Ssl  Mar02  88:02 /usr/lib/postgresql/16/bin/postgres
+grafana     3407  0.4  1.1 1250924 45120 ?       Ssl  Mar03  12:55 /usr/share/grafana/bin/grafana server
+deploy     29981  0.0  0.0  10072  3388 pts/2    R+   09:14   0:00 ps aux

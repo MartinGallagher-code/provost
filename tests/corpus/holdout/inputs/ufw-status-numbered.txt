@@ -1,0 +1,7 @@
+Status: active
+
+     To                         Action      From
+     --                         ------      ----
+[ 1] 8443/tcp                   ALLOW IN    10.8.0.0/24
+[ 2] 5432/tcp                   DENY IN     Anywhere
+[ 3] 443                        ALLOW IN    Anywhere (v6)

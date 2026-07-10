@@ -29,7 +29,7 @@ glean stats df                 # statistics on the dataset
 run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →  git-backed store
 ```
 
-- **Auto-capture format** — ~28 generic format parsers (plus a declarative
+- **Auto-capture format** — ~29 generic format parsers (plus a declarative
   hints table and a tail of bespoke strategies) recognise JSON, tables,
   logs, and system-tool output (`df`, `ps aux`, `free`, `mount`, `docker`, …).
 - **Present a dataset** — a wide `entry<N>.field` extract is melted to one row
@@ -63,7 +63,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 ```
 glean/
 ├── glean               # the single entry point
-├── extract/            # extract engine, 28 generic + 128 bespoke strategies, hints.tsv
+├── extract/            # extract engine, 29 generic + 141 bespoke strategies, hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries

@@ -1,0 +1,5 @@
+Listing... Done
+nginx/noble,now 1.24.0-2ubuntu7 amd64 [installed]
+redis-server/noble-updates,now 5:7.0.15-1ubuntu0.1 amd64 [installed,automatic]
+tmux/noble 3.4-1ubuntu1 amd64 [upgradable from: 3.3a-3]
+zsh/noble,now 5.9-6ubuntu2 amd64 [installed]

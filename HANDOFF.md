@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first extraction refactor landed (2026-07-09)
+## Status: Standalone; generic-first extraction refactor + quality audit landed (2026-07-10)
 
 `glean` is the single-binary tool proposed in
 [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md)
@@ -22,7 +22,7 @@ around that:
 
 1. **`--generic` is directory-based, not tag-based.** A strategy is generic iff
    it lives in `extract/strategies/delimited/` or `extract/strategies/structured/`
-   (28 files). The old `## Technique: yes` header tag had drifted onto ~145
+   (29 files, incl. the promoted `bracket-log`). The old `## Technique: yes` header tag had drifted onto ~145
    per-tool parsers, silently inflating the "generic coverage" metric; the tag
    is gone and the engine no longer reads it.
 2. **Declarative hints table** — `extract/hints.tsv`. One TAB-separated row
@@ -33,19 +33,22 @@ around that:
    row's tool name is reported via `_STRATEGY_REPORT_NAME`, so dataset identity
    survives without bespoke code. Signatures must be structural (format shape),
    never sample literals — they are expected to match unseen output of the
-   same tool. 46 rows currently cover 50 corpus inputs.
-3. **218 bespoke strategies deleted** (375 → 156 strategy files), with their
-   samples, goldens, and per-strategy tests. Deletion criterion: every corpus
-   input the strategy won stays manifest-tidy via a generic parser or hint row.
-   The 128 surviving bespokes are each the proven full-mode winner of at least
-   one corpus input, or qualitatively better than the generic parse
-   (`free`, `docker-ps` — the smoke test guards their column quality).
+   same tool. 35 rows currently cover 37 corpus inputs.
+3. **Net 205 bespoke strategies deleted** (375 → 170 strategy files), with
+   their samples, goldens, and per-strategy tests. Deletion criterion: every
+   corpus input the strategy won stays manifest-tidy via a generic parser or
+   hint row — then a golden-quality audit (2026-07-10) diffed all changed
+   goldens and restored 15 bespokes whose generic parse was shape-tidy but
+   qualitatively worse (`free`, `docker-ps`, `R-version`, `lvdisplay-m`,
+   `snmp-output`, …). The 141 survivors are each the proven full-mode winner
+   of at least one corpus input.
 4. **Coverage is three-tier and honest** (`tests/corpus/COVERAGE.md`):
-   ✅ 836 generic auto-detected · ✅ʰ 50 hint-routed · ✅ᵇ 153 bespoke ·
-   ⏳ 1 (`traceroute6`; its earlier "covered" entry was stale). Total
-   1039/1040. Goldens are generic-mode output: 119 old goldens were deleted
-   because they had been produced by pseudo-generic per-tool parsers — those
-   inputs are now honestly ✅ᵇ (no golden), same as every other bespoke tool.
+   ✅ 838 generic auto-detected · ✅ʰ 37 hint-routed · ✅ᵇ 165 bespoke ·
+   ⏳ 0. Total **1040/1040**. Goldens are generic-mode output; inputs covered
+   only bespokely have no golden. A **held-out generalization set**
+   (`tests/corpus/holdout/`, 24 unseen variants, no goldens) scores the
+   system the way unseen captures are judged: currently 24/24 tidy —
+   12 generic, 10 hint, 2 bespoke.
 5. **Detection-order fixes** in full mode: `git-log-stat` (p13) runs before
    `git-log` and absorbs `git show --stat` (the separate `git-show-stat`
    strategy was deleted); `nmap-sn` (p14) runs before `nmap` and declines
@@ -139,25 +142,21 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Next steps
 
-1. **Audit the 62 regenerated goldens for parse quality.** The corpus manifest
-   checks shape (row/col counts), not content quality. The hint-routed tools'
-   goldens changed parser; a row-by-row skim of `tests/corpus/expected/` diffs
-   in this branch would confirm none traded named columns for `c1..cN` mush.
-   (`free`/`docker-ps` were caught by the smoke test and kept bespoke; others
-   have no such guard.)
-2. **Whittle the ✅ᵇ tail (153 inputs, 128 strategies).** Each survivor either
-   needs a generic-parser feature (multi-line records, transpose+key-slug,
-   number+unit merge — see `docs/columnar-specs-engine.md` for the data-driven
-   columnar precedent) or is genuinely idiosyncratic. New engine features beat
-   new bespokes.
-3. **`traceroute6`** — the one ⏳: the columnar-specs `traceroute` spec drops
-   `* * *` timeout hops (manifest wants them as rows). Needs a spec/engine
-   tweak for placeholder rows.
-4. **Held-out generalization corpus** — second samples per tool (other
-   versions, locales, flag combinations) scored only on "does a generic parser
-   or hint tidy it", to measure generalization instead of memorization.
-5. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
+1. **Whittle the ✅ᵇ tail (165 inputs, 141 strategies).** Each survivor either
+   needs a generic-parser feature (multi-line records — the biggest cluster:
+   lvdisplay/lsusb-v/psql-expanded are all "one record over many labeled
+   lines"; transpose+key-slug; number+unit merge — see
+   `docs/columnar-specs-engine.md` for the data-driven columnar precedent) or
+   is genuinely idiosyncratic. New engine features beat new bespokes.
+2. **Grow the holdout set** (`tests/corpus/holdout/`, 24 entries) toward one
+   unseen variant per covered tool, and add locale/width edge cases. Keep new
+   entries landing generic/hint, never bespoke.
+3. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
    `glean`-native names (large, internals-only).
+
+Done since the refactor landed: golden-quality audit (restored 13 more
+bespokes, promoted bracket-log to generic), traceroute6 timeout hops
+(coverage 1040/1040), holdout starter set (24/24).
 
 ## Tests
 
@@ -166,8 +165,9 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (886 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (875 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
+bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```
 
 `smoke.sh` is hermetic — it clears the caller's `GLEAN_*` env (notably

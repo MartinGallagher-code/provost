@@ -1,0 +1,8 @@
+PING 10.44.0.7 (10.44.0.7) 56(84) bytes of data.
+64 bytes from 10.44.0.7: icmp_seq=1 ttl=61 time=2.31 ms
+64 bytes from 10.44.0.7: icmp_seq=2 ttl=61 time=2.05 ms
+64 bytes from 10.44.0.7: icmp_seq=3 ttl=61 time=2.44 ms
+
+--- 10.44.0.7 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 2.050/2.266/2.440/0.163 ms
