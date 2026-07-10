@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	a1b2c3d Fix null pointer in request handler	6
 2	e4f5a6b Add retry logic to HTTP client	6
 3	17c8d9e Bump dependencies to latest minor	6

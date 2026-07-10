@@ -26,7 +26,7 @@ strategy_extract () {
             if ($0 ~ /seats listed/) next
             if (NF < 1) next
             e++
-            print "entry" e ".c1 " $1
+            print "entry" e ".A " $1
         }
         END{ if(e>0) print "total_entries " e }
     '

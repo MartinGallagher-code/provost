@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	c11	c12	c13	c14	c15	c16	c17	total_entries
+n	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	Q	total_entries
 1	ATOP	-	web-prod-03	2026/07/06	14:32:11	10s	elapsed											7
 2	PRC	|	sys	1.42s	|	user	3.18s	|	#proc	284	|	#zombie	0	|	#exit	12	|	7
 3	CPU	|	sys	14%	|	user	31%	|	irq	2%	|	idle	248%	|	wait	5%	|	7

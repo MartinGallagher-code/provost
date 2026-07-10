@@ -28,7 +28,7 @@ strategy_extract () {
         [[ -z "$line" ]] && continue
         n=$((n + 1))
         # Single-column: whole tree line is the value (internal spaces preserved).
-        result+="entry${n}.c1 ${line}"$'\n'
+        result+="entry${n}.A ${line}"$'\n'
     done <<< "$text"
 
     result+="total_entries ${n}"$'\n'

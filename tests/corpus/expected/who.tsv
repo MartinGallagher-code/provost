@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	total_entries
+n	A	B	C	D	E	total_entries
 1	alice	pts/0	2026-07-06	10:01	(192.168.1.10)	3
 2	bob	pts/1	2026-07-06	09:45	(192.168.1.11)	3
 3	root	tty1	2026-07-05	18:00		3

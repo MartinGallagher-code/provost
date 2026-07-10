@@ -116,6 +116,68 @@ files, strategy code roughly halved):
 Verified: smoke 49/49, melt 8/8, extract 63/63 files, analyze suite green,
 corpus `--golden` 886/0, coverage 1039/1040.
 
+## 2026-07-09 — Fix 3 mis-shadow bugs (bespoke now wins via priority)
+Three tools were mis-parsed because a greedy generic parser out-prioritized the
+correct bespoke. Fixed by lowering each bespoke's `## Priority` below the greedy
+competitor — safe because each bespoke's `detect()` is specific to its own tool
+(so no other tool's winner changes):
+- `systemctl-status` (22→19): was won by `syslog` (misparsed the unit block as
+  journal rows); now yields `unit/description/loaded/active/since/main_pid/…`.
+- `fail2ban-status` (20→10): was won by `key-value` (mangled the `|-` tree); now
+  yields the named jail/filter/actions columns.
+- `ulimit` (25→20): was won by `pkg-config` (mis-split `name (…, -x) value`); now
+  yields `resource/flag/value` (e.g. `core file size | c | 0`).
+Bespoke output bytes unchanged (priority-only), so goldens stay valid. Verified
+no other tool changed winner via a full-corpus winner-scan diff. Gate: extract +
+smoke 49/49 + melt 8/8. This clears 3 of the 4 mis-shadow bugs from docs/0002 /
+HANDOFF; `cargo-tree` (competitor is a columnar-specs spec) is deferred.
+
+## 2026-07-09 — Prune 13 redundant bespokes (tidy-first bar)
+Under the reframe (docs/0002 — judge output on tidy/meaningful merits, not
+byte-fidelity), retired 13 per-tool bespoke strategies that **never win their own
+corpus input** because a sibling or generic parser already produces tidy, usable
+output. Verified via a full-corpus (1040-input) winner scan: each retired bespoke
+wins zero corpus inputs, so deletion is full-mode output-neutral.
+
+Retired → replaced by: `docker-inspect`→`json`, `iostat`→`iostat-d` (spec),
+`ip-addr`→`ip-link`, `iperf3`→`iperf3-intervals`, `podman-ps`→`docker-ps`,
+`rocm-smi`→`rocm-smi-concise`, `host`→`host_a`, `terraform-plan`→
+`terraform-plan-actions`, `perf-stat`→`perf-counters` (also removes the known
+duplicate file in benchmark/ + profiling/), `lscpu`→`key-value`,
+`proc-meminfo`→`yaml`, `valgrind-summary`→`valgrind`, `perf-report`→
+`aligned-columns`. Each deletion removed the strategy + its `test_strategy_*.sh`
++ golden + sample; `test_search.sh`'s AND-semantics example repointed
+docker-inspect→docker-stats.
+
+NOT retired — 4 mis-shadow **bugs** where the bespoke is better but a greedy
+parser wins with worse output (deleting would lock in the worse output; these are
+detection fixes, tracked separately): `cargo-tree` (→`poetry-show-tree` flattens),
+`fail2ban-status` (→`key-value` mangles), `systemctl-status` (→`syslog` misparses),
+`ulimit` (→`pkg-config` misparses).
+
+Gate: extract suite + smoke 49/49 + melt 8/8 green; corpus golden unaffected
+(generic-mode, excludes bespokes). Strategy count: ~374 → ~361 distinct.
+
+## 2026-07-09 — Nameless columns: spreadsheet-style A,B,C… (was c1,c2,c3)
+Renamed the placeholder labels glean emits for genuinely-nameless columns from
+`c1,c2,c3…` to the spreadsheet convention `A,B,C…,Z,AA,BB,CC…`. `c1` reads as an
+apologetic internal placeholder ("we failed to name this"); `A` is the universal
+positional-column convention every spreadsheet user already understands as
+"unnamed column N, label it yourself." Same information, better affordance.
+- New helper `_col_letter <1-based idx>` in `extract/lib/_helpers.sh`
+  (1→A … 26→Z, 27→AA, 28→BB, 29→CC …; self-tested through AAA).
+- Wired into the generic parsers that mint nameless labels: `aligned-columns`,
+  `colon-fields`, `line-records`, `text-lines`, `psql-table` (header fallback),
+  and `structured/tsv`; plus the 5 `columnar-specs` `@line` specs (`c1@line`→
+  `A@line`) and 14 single-column columnar bespokes (`.c1`/`.c2`→`.A`/`.B`).
+- Regenerated 17 extract goldens + 224 corpus goldens; every diff verified as a
+  clean header-only positional rename (0 value drift, 0 multi-line changes).
+- Gate green: extract **213/213**, corpus golden **991 passed / 0 failed**
+  (up from 978 — the regen also captured goldens for 13 previously-uncovered
+  tidy tools), smoke **49/49**, melt **8/8**.
+- Rationale + the broader "judge output on tidy/meaningful merits, not bespoke
+  byte-fidelity" reframe: **docs/0002-tidy-first-and-nameless-columns.md**.
+
 ## 2026-07-09 — FIX: repoint/repair migrated tools' dedicated tests; revert crontab
 Caught a real regression: removing a bespoke leaves its dedicated
 `extract/tests/test_strategy_<tool>.sh` calling `-s <tool>` (now "Strategy not

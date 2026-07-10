@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	total_entries
+n	A	B	C	D	E	F	G	total_entries
 1	root	x	0	0	root	/root	/bin/bash	7
 2	daemon	x	1	1	daemon	/usr/sbin	/usr/sbin/nologin	7
 3	bin	x	2	2	bin	/bin	/usr/sbin/nologin	7

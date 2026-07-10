@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	192.168.1.1	dev	eth0	lladdr	00:1a:2b:3c:4d:5e	REACHABLE	5
 2	192.168.1.12	dev	eth0	lladdr	a4:5e:60:c1:2f:9b	STALE	5
 3	192.168.1.24	dev	eth0	lladdr	3c:22:fb:88:1d:0a	DELAY	5

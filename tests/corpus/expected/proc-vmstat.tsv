@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	nr_free_pages	1503012	8
 2	nr_zone_inactive_anon	40213	8
 3	nr_zone_active_anon	302145	8

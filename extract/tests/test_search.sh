@@ -59,12 +59,12 @@ test_search_category_narrows_results () {
 
 test_search_multiple_keywords_and_semantics () {
     local out
-    # Find strategies with both "docker" and "inspect" in metadata (AND)
-    out=$(run_mfe search docker inspect 2>&1 || true)
-    assert_contains "$out" "docker-inspect" "AND of docker+inspect should find docker-inspect"
-    # "docker ps" strategy lacks "inspect" — should not appear
+    # Find strategies with both "docker" and "stats" in metadata (AND)
+    out=$(run_mfe search docker stats 2>&1 || true)
+    assert_contains "$out" "docker-stats" "AND of docker+stats should find docker-stats"
+    # "docker ps" strategy lacks "stats" — should not appear
     if echo "$out" | grep -q "^  container      docker-ps "; then
-        echo "  ASSERT FAILED: docker-ps should not match 'docker inspect' (AND semantics)"
+        echo "  ASSERT FAILED: docker-ps should not match 'docker stats' (AND semantics)"
         return 1
     fi
 }

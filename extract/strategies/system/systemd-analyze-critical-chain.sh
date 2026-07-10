@@ -39,8 +39,8 @@ strategy_extract () {
         local unit="${BASH_REMATCH[1]}"
         local timing="${BASH_REMATCH[2]}"
         entry=$((entry + 1))
-        result+="entry${entry}.c1 ${unit}"$'\n'
-        result+="entry${entry}.c2 ${timing}"$'\n'
+        result+="entry${entry}.A ${unit}"$'\n'
+        result+="entry${entry}.B ${timing}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

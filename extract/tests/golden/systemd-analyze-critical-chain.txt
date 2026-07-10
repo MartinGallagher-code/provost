@@ -1,15 +1,15 @@
-entry1.c1 graphical.target
-entry1.c2 @14.234s
-entry2.c1 multi-user.target
-entry2.c2 @14.233s
-entry3.c1 nginx.service
-entry3.c2 @13.001s +231ms
-entry4.c1 network-online.target
-entry4.c2 @12.998s
-entry5.c1 NetworkManager-wait-online.service
-entry5.c2 @6.140s +6.842s
-entry6.c1 NetworkManager.service
-entry6.c2 @1.201s +231ms
-entry7.c1 dbus.socket
-entry7.c2 @1.198s
+entry1.A graphical.target
+entry1.B @14.234s
+entry2.A multi-user.target
+entry2.B @14.233s
+entry3.A nginx.service
+entry3.B @13.001s +231ms
+entry4.A network-online.target
+entry4.B @12.998s
+entry5.A NetworkManager-wait-online.service
+entry5.B @6.140s +6.842s
+entry6.A NetworkManager.service
+entry6.B @1.201s +231ms
+entry7.A dbus.socket
+entry7.B @1.198s
 total_entries 7

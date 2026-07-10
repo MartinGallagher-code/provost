@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	ssh	22/tcp		7
 2	smtp	25/tcp	mail	7
 3	http	80/tcp	www	7

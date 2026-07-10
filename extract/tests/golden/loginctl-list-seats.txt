@@ -1,3 +1,3 @@
-entry1.c1 seat0
-entry2.c1 seat1
+entry1.A seat0
+entry2.A seat1
 total_entries 2

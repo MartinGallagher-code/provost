@@ -64,10 +64,10 @@ strategy_extract () {
             field="${rest%%:*}"
             rest="${rest#*:}"
             i=$((i + 1))
-            result+="entry${entry}.c${i} ${field}"$'\n'
+            result+="entry${entry}.$(_col_letter "$i") ${field}"$'\n'
         done
         i=$((i + 1))
-        result+="entry${entry}.c${i} ${rest}"$'\n'
+        result+="entry${entry}.$(_col_letter "$i") ${rest}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

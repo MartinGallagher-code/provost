@@ -110,7 +110,7 @@ strategy_extract () {
         if [[ $have_header -eq 0 ]]; then
             for _c in "${_PSQL_CELLS[@]}"; do
                 name="$_c"; name="${name//./}"; name="${name// /_}"
-                [[ -z "$name" ]] && name="c$((${#col_names[@]} + 1))"
+                [[ -z "$name" ]] && name="$(_col_letter $((${#col_names[@]} + 1)))"
                 col_names+=("$name")
             done
             num_cols=${#col_names[@]}

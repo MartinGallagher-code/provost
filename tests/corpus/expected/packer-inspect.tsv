@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	total_entries
+n	A	B	C	D	E	total_entries
 1	Optional	variables	and	their	defaults:	6
 2	ami_name	=	app-base-image			6
 3	aws_region	=	us-east-1			6

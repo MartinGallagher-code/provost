@@ -324,7 +324,7 @@ strategy_extract () {
                 for ((i = 0; i < ${#headers[@]}; i++)); do
                     local h="${headers[$i]//./_}"; h="${h// /_}"
                     while [[ "$h" == *__* ]]; do h="${h//__/_}"; done
-                    h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && h="c$((i + 1))"
+                    h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && h="$(_col_letter $((i + 1)))"
                     headers[$i]="$h"
                 done
                 for ((li = 1; li < ${#gridrows[@]}; li++)); do
@@ -350,7 +350,7 @@ strategy_extract () {
     case "$mode" in
         HDR)  read -ra headers <<< "${lines[0]}"; startidx=1 ;;
         HDR2) read -ra headers <<< "${lines[1]}"; startidx=2 ;;
-        HL)   for ((i = 1; i <= ncols; i++)); do headers+=("c$i"); done; startidx=0 ;;
+        HL)   for ((i = 1; i <= ncols; i++)); do headers+=("$(_col_letter "$i")"); done; startidx=0 ;;
     esac
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).

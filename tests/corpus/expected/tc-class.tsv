@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	c11	c12	c13	c14	c15	total_entries
+n	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	total_entries
 1	class	htb	1:1	root	rate	100Mbit	ceil	100Mbit	burst	1600b	cburst	1600b				5
 2	class	htb	1:10	parent	1:1	prio	0	rate	30Mbit	ceil	100Mbit	burst	15Kb	cburst	1600b	5
 3	class	htb	1:20	parent	1:1	prio	1	rate	20Mbit	ceil	60Mbit	burst	15Kb	cburst	1600b	5

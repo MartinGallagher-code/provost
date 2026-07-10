@@ -65,7 +65,7 @@ strategy_extract () {
         entry=$((entry + 1))
         local i
         for ((i = 0; i < ${#_tk[@]}; i++)); do
-            result+="entry${entry}.c$((i + 1)) ${_tk[$i]}"$'\n'
+            result+="entry${entry}.$(_col_letter $((i + 1))) ${_tk[$i]}"$'\n'
         done
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'

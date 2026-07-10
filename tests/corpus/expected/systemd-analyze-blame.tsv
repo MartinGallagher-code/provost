@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	6.842s	NetworkManager-wait-online.service	6
 2	2.113s	docker.service	6
 3	1.402s	snapd.service	6

@@ -45,7 +45,7 @@ strategy_extract () {
         [[ -z "${line//[[:space:]]/}" ]] && continue
         local path="${line%%[[:space:]]*}"
         entry=$((entry + 1))
-        result+="entry${entry}.c1 ${path}"$'\n'
+        result+="entry${entry}.A ${path}"$'\n'
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

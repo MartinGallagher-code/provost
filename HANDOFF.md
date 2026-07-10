@@ -2,6 +2,13 @@
 
 ## Status: Standalone; generic-first extraction refactor + quality audit landed (2026-07-10)
 
+> Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
+> nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
+> `extract/lib/_helpers.sh` and docs/0002), 13 never-winning bespokes pruned,
+> and 3 mis-shadow priority fixes (`systemctl-status`, `fail2ban-status`,
+> `ulimit` — kept as quality keepers here). Corpus goldens regenerated under
+> the merged engine.
+
 `glean` is the single-binary tool proposed in
 [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md)
 to replace the three-binary `envoy-*` suite. It lives in its own repository and

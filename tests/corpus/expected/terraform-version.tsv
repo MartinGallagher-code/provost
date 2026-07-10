@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	Terraform v1.7.5	4
 2	on linux_amd64	4
 3	+ provider registry.terraform.io/hashicorp/aws v5.31.0	4
