@@ -1,0 +1,4 @@
+4.2G  ┌── datasets
+1.8G  ├── models
+612M  ├── logs
+6.7G  ┌─┴ project

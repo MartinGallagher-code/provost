@@ -1,0 +1,11 @@
+General
+Complete name                            : movie.mkv
+Format                                   : Matroska
+File size                                : 1.42 GiB
+Duration                                 : 1 h 58 min
+Overall bit rate                         : 1 712 kb/s
+
+Video
+Format                                   : AVC
+Width                                    : 1 920 pixels
+Height                                   : 1 080 pixels

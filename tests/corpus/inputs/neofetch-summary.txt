@@ -1,0 +1,7 @@
+deploy@web01
+OS: Ubuntu 24.04 LTS x86_64
+Kernel: 6.8.0-45-generic
+Uptime: 14 days, 3 hours
+Shell: bash 5.2.21
+CPU: AMD Ryzen 7 5800X (16) @ 4.7GHz
+Memory: 12442MiB / 32946MiB

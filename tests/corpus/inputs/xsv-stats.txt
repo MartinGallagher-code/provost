@@ -1,0 +1,4 @@
+field,type,min,max,mean
+latency,Integer,2,881,46.51
+bytes,Integer,120,88201,14609.11
+status,Unicode,200,504,

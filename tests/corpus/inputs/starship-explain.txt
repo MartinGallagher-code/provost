@@ -1,0 +1,5 @@
+ (1s)  via  v20.14.0  on   main [!]
+ - directory: current path is ~/project
+ - nodejs: v20.14.0 (package.json present)
+ - git_branch: main
+ - git_status: modified files present

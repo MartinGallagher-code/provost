@@ -1,0 +1,5 @@
+Client:       Podman Engine
+Version:      5.1.1
+API Version:  5.1.1
+Go Version:   go1.22.4
+OS/Arch:      linux/amd64

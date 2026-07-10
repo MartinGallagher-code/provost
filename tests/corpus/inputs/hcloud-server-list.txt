@@ -1,0 +1,3 @@
+ID         NAME           STATUS    IPV4            TYPE      LOCATION
+31882910   app-nbg-1      running   116.203.1.4     cpx31     nbg1
+31882945   app-nbg-2      running   116.203.1.9     cpx31     nbg1

@@ -1,0 +1,4 @@
+DBI	1.643
+JSON::XS	4.03
+Moose	2.2207
+Mojolicious	9.36

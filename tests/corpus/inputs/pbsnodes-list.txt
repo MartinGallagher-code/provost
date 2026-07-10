@@ -1,0 +1,6 @@
+gpu01
+     state = free
+     np = 64
+     properties = a100,gpu
+     ntype = cluster
+     status = opsys=linux,uname=Linux,physmem=515000kb

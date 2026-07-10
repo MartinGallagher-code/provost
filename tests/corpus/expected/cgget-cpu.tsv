@@ -1,0 +1,7 @@
+n	A	B	C	total_entries
+1	cpu.max:	max	100000	6
+2	cpu.weight:	100		6
+3	cpu.stat:			6
+4	usage_usec	8821004000		6
+5	user_usec	4102839000		6
+6	system_usec	4718165000		6

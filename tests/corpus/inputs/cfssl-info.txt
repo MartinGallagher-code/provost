@@ -1,0 +1,5 @@
+{
+  "certificate": "-----BEGIN CERTIFICATE-----",
+  "usages": ["signing", "key encipherment", "server auth"],
+  "expiry": "8760h"
+}

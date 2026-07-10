@@ -1,0 +1,6 @@
+n	A	total_entries
+1	# conda environments:	5
+2	#	5
+3	base                     /opt/conda	5
+4	ml                    *  /opt/conda/envs/ml	5
+5	web                      /opt/conda/envs/web	5

@@ -1,0 +1,6 @@
+connection.id:                          homewifi
+connection.type:                        802-11-wireless
+connection.interface-name:              wlan0
+ipv4.method:                            auto
+ipv4.dns:                               1.1.1.1,8.8.8.8
+802-11-wireless.ssid:                   homewifi

@@ -1,0 +1,8 @@
+[FORMAT]
+filename=demo.mp4
+nb_streams=2
+format_name=mov,mp4,m4a,3gp,3g2,mj2
+duration=298.041000
+size=168231044
+bit_rate=4515082
+[/FORMAT]

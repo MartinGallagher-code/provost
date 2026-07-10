@@ -1,0 +1,4 @@
+SERVICE            OPERATIONS   SPANS/MIN
+api-gateway        44           12044
+order-service      88           8821
+payment-service    22           4102

@@ -1,0 +1,2 @@
+Context: prod-eu | Cluster: prod-eu | User: admin
+Namespace: prod | Pods: 44 | Nodes: 6

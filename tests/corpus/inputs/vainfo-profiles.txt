@@ -1,0 +1,6 @@
+vainfo: VA-API version: 1.20 (libva 2.20.0)
+vainfo: Driver version: Mesa Gallium driver 24.0.5 for AMD Radeon RX 6700 XT
+vainfo: Supported profile and entrypoints
+      VAProfileH264Main               : VAEntrypointVLD
+      VAProfileHEVCMain               : VAEntrypointVLD
+      VAProfileVP9Profile0            : VAEntrypointVLD

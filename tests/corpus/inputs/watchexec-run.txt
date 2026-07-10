@@ -1,0 +1,4 @@
+[Running: cargo test]
+[Completed: exit status 0]
+[Running: cargo test]
+[Completed: exit status 1]

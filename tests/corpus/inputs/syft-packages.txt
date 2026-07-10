@@ -1,0 +1,5 @@
+NAME          VERSION       TYPE
+bash          5.2.15-2      deb
+libc6         2.36-9        deb
+openssl       3.0.11-1      deb
+python3.11    3.11.2-6      deb

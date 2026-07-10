@@ -1,0 +1,4 @@
+n	Name	Version	Build	Channel	total_entries
+1	pytorch	2.3.1	py3.11_cuda12	pytorch	3
+2	torchvision	0.18.1	py311_cu121	pytorch	3
+3	cudatoolkit	12.1.0	h1234567_0	nvidia	3

@@ -1,0 +1,4 @@
+PID    USER      CPU   MEM   COMMAND
+1      root      0.0   0.1   /sbin/init
+812    root      0.2   0.3   sshd
+2210   postgres  8.4   12.0  postgres

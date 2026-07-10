@@ -1,0 +1,5 @@
+apparmor module is loaded.
+44 profiles are loaded.
+40 profiles are in enforce mode.
+4 profiles are in complain mode.
+12 processes have profiles defined.

@@ -1,0 +1,4 @@
+Name          Version   Build          Channel
+pytorch        2.3.1     py3.11_cuda12  pytorch
+torchvision    0.18.1    py311_cu121    pytorch
+cudatoolkit    12.1.0    h1234567_0     nvidia

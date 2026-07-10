@@ -1,0 +1,6 @@
+Dell Inc. XPS 15 9500
+│
+└─Thunderbolt Controller:
+  │   Device ID:          362301da643102b9f38477387e2193e57abaa590
+  │   Current version:    45.00
+  │   New version:        50.00

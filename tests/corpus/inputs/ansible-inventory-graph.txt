@@ -1,0 +1,7 @@
+@all:
+  |--@ungrouped:
+  |--@webservers:
+  |  |--web01.example.com
+  |  |--web02.example.com
+  |--@dbservers:
+  |  |--db01.example.com

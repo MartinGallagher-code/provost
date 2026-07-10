@@ -1,0 +1,3 @@
+class htb 1:1 root rate 1000Mbit ceil 1000Mbit burst 1600b
+class htb 1:10 parent 1:1 rate 400Mbit ceil 1000Mbit burst 1600b
+class htb 1:20 parent 1:1 rate 600Mbit ceil 1000Mbit burst 1600b

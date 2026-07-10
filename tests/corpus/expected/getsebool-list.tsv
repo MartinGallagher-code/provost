@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	abrt_anon_write	-->	off	4
+2	httpd_can_network_connect	-->	on	4
+3	httpd_enable_cgi	-->	on	4
+4	nfs_export_all_rw	-->	off	4

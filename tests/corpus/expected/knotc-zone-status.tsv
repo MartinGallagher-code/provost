@@ -1,0 +1,3 @@
+n	timestamp	message	total_entries
+1	example.com.	role: master | serial: 2026071001 | transaction: none	2
+2	test.example.	role: slave | serial: 2026070902 | transaction: none	2

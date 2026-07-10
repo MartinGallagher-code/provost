@@ -1,0 +1,4 @@
+Mem: 12.4G/32.0G  Swap: 0.5G/8.0G
+  Cached: 9.9G
+  Available: 13.2G
+Disk: /  412G/916G (45%)

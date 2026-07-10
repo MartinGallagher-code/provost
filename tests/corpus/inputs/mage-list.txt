@@ -1,0 +1,4 @@
+Targets:
+  build     compiles the binary
+  test      runs the tests
+  clean     removes build artifacts

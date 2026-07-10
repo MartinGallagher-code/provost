@@ -1,0 +1,7 @@
+==================== test session starts ====================
+platform linux -- Python 3.12.4, pytest-8.2.2
+collected 142 items
+
+tests/test_parser.py ........................        [ 40%]
+tests/test_engine.py ....................F...        [ 88%]
+==================== 1 failed, 141 passed in 12.44s ====================

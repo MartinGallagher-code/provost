@@ -1,0 +1,4 @@
+Name       Version    Rev    Tracking       Publisher   Notes
+core22     20240408   1380   latest/stable  canonical✓  base
+firefox    127.0.1    4321   latest/stable  mozilla✓    -
+snapd      2.63       21465  latest/stable  canonical✓  snapd

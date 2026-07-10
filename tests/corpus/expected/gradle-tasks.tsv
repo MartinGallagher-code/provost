@@ -1,0 +1,7 @@
+n	Build	tasks	total_entries
+1	assem	ble - Assembles the outputs.	6
+2	build	- Assembles and tests this project.	6
+3	Verif	ication tasks	6
+4	-----	-------------	6
+5	check	- Runs all checks.	6
+6	test	- Runs the unit tests.	6

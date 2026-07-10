@@ -1,0 +1,7 @@
+
+public (active)
+  target: default
+  interfaces: eth0
+  services: dhcpv6-client ssh https
+  ports: 8443/tcp
+  masquerade: no

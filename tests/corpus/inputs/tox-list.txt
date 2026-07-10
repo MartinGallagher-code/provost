@@ -1,0 +1,4 @@
+default environments:
+py312 -> run tests under 3.12
+lint  -> run linters
+docs  -> build documentation

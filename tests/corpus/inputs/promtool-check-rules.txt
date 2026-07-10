@@ -1,0 +1,5 @@
+
+Checking rules/alerts.yml
+  SUCCESS: 12 rules found
+Checking rules/recording.yml
+  SUCCESS: 8 rules found

@@ -1,0 +1,4 @@
+nix-2.18.2
+git-2.45.2
+firefox-127.0.1
+ripgrep-14.1.0

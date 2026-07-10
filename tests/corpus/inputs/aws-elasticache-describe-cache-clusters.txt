@@ -1,0 +1,3 @@
+CACHE-ID          ENGINE   VERSION   NODE-TYPE          STATUS
+sessions          redis    7.1.0     cache.r6g.large    available
+ratelimit         redis    7.1.0     cache.t4g.small    available

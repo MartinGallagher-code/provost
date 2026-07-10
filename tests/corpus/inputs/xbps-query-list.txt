@@ -1,0 +1,3 @@
+ii bash-5.2.032_1            GNU Bourne Again Shell
+ii curl-8.8.0_1             Multiprotocol file transfer library
+ii git-2.45.2_1             GIT Tree History Storage Tool

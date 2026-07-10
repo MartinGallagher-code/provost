@@ -1,0 +1,5 @@
+┌─database─┬─name────────┬─────rows─┬─bytes_on_disk─┐
+│ default  │ events      │ 48217304 │    4102839120 │
+│ default  │ sessions    │  1204882 │     201448320 │
+│ analytics│ pageviews   │ 88201442 │    9912834100 │
+└──────────┴─────────────┴──────────┴───────────────┘

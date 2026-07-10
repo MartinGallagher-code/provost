@@ -1,0 +1,7 @@
+                                  List of databases
+   Name    |  Owner   | Encoding |   Collate   |    Ctype    | Access privileges
+-----------+----------+----------+-------------+-------------+-------------------
+ orders    | app_rw   | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ metrics   | app_ro   | UTF8     | en_US.UTF-8 | en_US.UTF-8 |
+ template1 | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres
+(3 rows)

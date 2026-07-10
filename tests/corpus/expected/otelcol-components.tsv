@@ -1,0 +1,2 @@
+receivers.otlp.protocols	processors.batch.timeout	exporters.prometheus.endpoint
+[grpc, http]	10s	0.0.0.0:8889

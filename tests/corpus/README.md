@@ -41,7 +41,9 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**1040 tools tested; all 1040 tidy** — ✅ 838 by a generic parser via
+**1540 tools tested; 1506 tidy (34 genuine format gaps ⏳)** — after a +500
+expansion of unique never-before-seen tools, 466/500 of which tidied with no
+new per-tool code (a 93% generalization result). Of the total: ✅ 1317 by a generic parser via
 auto-detection, ✅ʰ 37 by a generic parser routed by a hint row, ✅ᵇ 165 by a
 bespoke strategy. See [`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 

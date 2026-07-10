@@ -1,0 +1,5 @@
+rotational: 0
+nr_requests: 256
+scheduler: [none] mq-deadline kyber
+read_ahead_kb: 128
+max_sectors_kb: 1280

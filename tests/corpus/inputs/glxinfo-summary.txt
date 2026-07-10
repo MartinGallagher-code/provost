@@ -1,0 +1,4 @@
+OpenGL vendor string: AMD
+OpenGL renderer string: AMD Radeon RX 6700 XT
+OpenGL core profile version string: 4.6 (Core Profile) Mesa 24.0.5
+OpenGL shading language version string: 4.60

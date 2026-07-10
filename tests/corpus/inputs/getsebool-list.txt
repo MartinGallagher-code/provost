@@ -1,0 +1,4 @@
+abrt_anon_write --> off
+httpd_can_network_connect --> on
+httpd_enable_cgi --> on
+nfs_export_all_rw --> off

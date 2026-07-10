@@ -1,0 +1,4 @@
+n	A	B	C	D	total_entries
+1	1	5	cron.daily	nice run-parts /etc/cron.daily	3
+2	7	10	cron.weekly	nice run-parts /etc/cron.weekly	3
+3	@monthly	15	cron.monthly	nice run-parts /etc/cron.monthly	3

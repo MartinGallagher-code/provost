@@ -1,0 +1,9 @@
+
+Model: ATA Samsung SSD 870 (scsi)
+Disk /dev/sda: 1000GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+
+Number  Start   End     Size    File system  Name  Flags
+ 1      1049kB  538MB   537MB   fat32        ESP   boot, esp
+ 2      538MB   1000GB  999GB   ext4

@@ -1,0 +1,4 @@
+/etc/puppetlabs/code/modules
+├── puppetlabs-stdlib (v9.6.0)
+├── puppetlabs-apt (v9.4.0)
+└── puppet-nginx (v5.0.0)

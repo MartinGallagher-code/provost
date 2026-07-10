@@ -1,0 +1,5 @@
+
+amq.direct	direct
+amq.fanout	fanout
+events	topic
+dlx	fanout

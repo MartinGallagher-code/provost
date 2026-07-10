@@ -1,0 +1,3 @@
+git	2.45.2	out	/gnu/store/aaa-git-2.45.2
+python	3.11.9	out	/gnu/store/bbb-python-3.11.9
+emacs	29.4	out	/gnu/store/ccc-emacs-29.4

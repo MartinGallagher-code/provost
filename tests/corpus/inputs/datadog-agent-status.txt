@@ -1,0 +1,7 @@
+Agent (v7.54.0)
+  Status date: 2026-07-10 06:00:00 UTC
+  Agent start: 2026-07-01 10:00:00 UTC
+  Hostname: web01
+  Checks:
+    cpu: OK
+    memory: OK

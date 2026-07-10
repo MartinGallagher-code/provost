@@ -1,0 +1,6 @@
+train.py:
+        changed deps:
+                modified:           data/train.csv
+model.pkl:
+        changed outs:
+                not in cache:       model.pkl

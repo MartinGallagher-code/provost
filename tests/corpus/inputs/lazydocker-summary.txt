@@ -1,0 +1,4 @@
+CONTAINERS
+  api          running   0.4%   212MB
+  web          running   2.1%   88MB
+  db           exited    -      -

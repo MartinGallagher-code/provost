@@ -63,7 +63,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 ```
 glean/
 ├── glean               # the single entry point
-├── extract/            # extract engine, 29 generic + 141 bespoke strategies, hints.tsv
+├── extract/            # extract engine, ~40 generic + ~130 bespoke strategies, hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries

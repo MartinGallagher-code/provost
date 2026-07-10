@@ -1,0 +1,4 @@
+n	PARTITION	AVAIL	TIMELIMIT	NODES	STATE	NODELIST	total_entries
+1	gpu*	up	infinite	4	alloc	gpu[01-04]	3
+2	gpu*	up	infinite	2	idle	gpu[05-06]	3
+3	cpu	up	7-00:00:00	16	mix	cpu[01-16]	3

@@ -1,0 +1,4 @@
+ok  	example.com/pkg/parser	0.412s
+ok  	example.com/pkg/engine	1.204s
+--- FAIL: TestIntegration (2.88s)
+FAIL	example.com/pkg/integration	2.881s

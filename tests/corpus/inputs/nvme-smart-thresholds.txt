@@ -1,0 +1,5 @@
+Temperature Sensor 1           : 41 C
+Temperature Sensor 2           : 45 C
+Warning Temperature Time       : 0
+Critical Composite Temp Time   : 0
+Thermal Management T1 Trans    : 12

@@ -1,0 +1,4 @@
+n	NAME	TYPE	CLUSTER-IP	EXTERNAL-IP	PORT(S)	AGE	SELECTOR	total_entries
+1	kubernetes	ClusterIP	10.96.0.1	<none>	443/TCP	214d	<none>	3
+2	api	ClusterIP	10.96.44.12	<none>	8080/TCP	120d	app=api	3
+3	web	LoadBalancer	10.96.201.7	34.90.11.2	80:31200/TCP	118d	app=web	3

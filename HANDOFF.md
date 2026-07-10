@@ -149,6 +149,17 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Next steps
 
+0. **The bespoke tail is measured (2026-07-10 exhaustive sweep).** Every
+   ✅ᵇ input was forced through every generic strategy via the hint path
+   (detect bypassed) with dispatch-winner verification and content-quality
+   review. Result: only 4 quality conversions existed (shipped), and the
+   sweep method itself is reusable (`scratchpad sweep.sh` pattern: forced
+   MFE_HINTS_FILE row, verify winner == hint name, compare columns AND
+   eyeball content). Further reduction requires NEW generic capabilities,
+   in observed-demand order: version-banner → named fields (ansible/elixir/
+   swift/R banners), nested/stateful multi-line records (lsusb -v, gpg,
+   multipath trees), number+unit merge (iotop/iftop), inline-label variants.
+   Shape-passing alone is NOT acceptance — 56 of 60 shape-passes were mush.
 1. **Whittle the ✅ᵇ tail (164 inputs, 140 strategies).** The labeled-record
    cluster now has two generic parsers (`psql-expanded`, `dashed-sections` —
    2026-07-10); remaining shapes: transpose+key-slug, number+unit merge,

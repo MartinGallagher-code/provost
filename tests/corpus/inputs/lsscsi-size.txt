@@ -1,0 +1,4 @@
+
+[0:0:0:0]    disk    ATA      Samsung SSD 870  2B6Q  /dev/sda   1.00TB
+[1:0:0:0]    disk    ATA      WDC WD40EFRX     0A82  /dev/sdb   4.00TB
+[2:0:0:0]    cd/dvd  HL-DT-ST DVDRAM GH24NSD1  LN00  /dev/sr0       -

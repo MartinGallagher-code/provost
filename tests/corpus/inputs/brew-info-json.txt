@@ -1,0 +1,10 @@
+[
+  {
+    "name": "ripgrep",
+    "full_name": "ripgrep",
+    "tap": "homebrew/core",
+    "desc": "Search tool like grep and The Silver Searcher",
+    "license": "MIT",
+    "installed_version": "14.1.0"
+  }
+]

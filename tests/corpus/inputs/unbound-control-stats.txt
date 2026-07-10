@@ -1,0 +1,6 @@
+total.num.queries=8821004
+total.num.cachehits=7712043
+total.num.cachemiss=1108961
+total.recursion.time.avg=0.088201
+num.query.type.A=4102839
+num.query.type.AAAA=2841029

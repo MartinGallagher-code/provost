@@ -1,0 +1,5 @@
+           $1,204.50  Assets:Checking
+          $12,048.20  Assets:Savings
+          -$4,102.83  Liabilities:CreditCard
+--------------------
+           $9,149.87

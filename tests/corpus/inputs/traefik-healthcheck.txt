@@ -1,0 +1,3 @@
+ROUTER          SERVICE       RULE                          STATUS
+api@docker      api-svc       Host(`api.example.com`)       enabled
+web@docker      web-svc       Host(`example.com`)           enabled

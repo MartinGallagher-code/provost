@@ -1,0 +1,3 @@
+REPOSITORY                    URI                                              CREATED
+api                           123456789.dkr.ecr.eu-west-1.amazonaws.com/api    2025-01-14
+web                           123456789.dkr.ecr.eu-west-1.amazonaws.com/web    2025-01-14

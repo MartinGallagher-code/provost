@@ -1,0 +1,5 @@
+n	A	B	total_entries
+1	amq.direct	direct	4
+2	amq.fanout	fanout	4
+3	events	topic	4
+4	dlx	fanout	4

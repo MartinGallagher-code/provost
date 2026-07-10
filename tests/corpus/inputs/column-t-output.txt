@@ -1,0 +1,4 @@
+NAME     SIZE   TYPE
+alpha    12M    dir
+beta     4.2G   file
+gamma    88K    link

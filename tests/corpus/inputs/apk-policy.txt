@@ -1,0 +1,4 @@
+openssl policy:
+  3.3.0-r2:
+    lib/apk/db/installed
+    https://dl-cdn.alpinelinux.org/alpine/v3.20/main

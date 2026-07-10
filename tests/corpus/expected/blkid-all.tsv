@@ -1,0 +1,4 @@
+n	UUID	TYPE	PARTUUID	total_entries
+1	"a1b2-c3d4"	"vfat"	"1111-01"	3
+2	"e5f6a7b8-c9d0-e1f2-a3b4-c5d6e7f8a9b0"	"ext4"	"1111-02"	3
+3	"9c8b7a6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d"	"xfs"		3

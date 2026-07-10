@@ -1,0 +1,5 @@
+/src/app.js
+  12:1   error    'foo' is not defined       no-undef
+  44:10  warning  Unexpected console statement no-console
+
+✖ 2 problems (1 error, 1 warning)

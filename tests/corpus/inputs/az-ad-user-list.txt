@@ -1,0 +1,3 @@
+DISPLAY-NAME        USER-PRINCIPAL-NAME              ENABLED
+Alice Nguyen        alice@contoso.com               True
+Bob Smith           bob@contoso.com                 True

@@ -1,0 +1,8 @@
+image: disk.qcow2
+file format: qcow2
+virtual size: 40 GiB (42949672960 bytes)
+disk size: 12.4 GiB
+cluster_size: 65536
+Format specific information:
+    compat: 1.1
+    lazy refcounts: false

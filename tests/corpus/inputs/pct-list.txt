@@ -1,0 +1,4 @@
+VMID       Status     Lock         Name
+200        running                 web-ct
+201        running                 db-ct
+202        stopped                 backup-ct

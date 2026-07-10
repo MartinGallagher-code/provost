@@ -1,0 +1,8 @@
+Status for the jail: sshd
+|- Filter
+|  |- Currently failed:	4
+|  |- Total failed:	8821
+|  `- File list:	/var/log/auth.log
+`- Actions
+   |- Currently banned:	2
+   `- Total banned:	441

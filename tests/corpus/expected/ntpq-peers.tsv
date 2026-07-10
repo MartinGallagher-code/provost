@@ -1,0 +1,3 @@
+n	remote	refid	st	t	when	poll	reach	delay	offset	jitter	total_entries
+1	*ntp1.example.com	.GPS.	1	u	41	64	377	0.412	+0.088	0.041	2
+2	+ntp2.example.com	192.168.1.1	2	u	88	64	377	1.204	-0.120	0.088	2

@@ -1,0 +1,5 @@
+Status `~/Project.toml`
+  [336ed68f] CSV v0.10.14
+  [a93c6f00] DataFrames v1.6.1
+  [7073ff75] IJulia v1.25.0
+  [91a5bcdd] Plots v1.40.4

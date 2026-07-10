@@ -1,0 +1,6 @@
+Total commands:   88201
+Unique commands:  4102
+Most used commands:
+  1204  git
+   882  kubectl
+   441  cd

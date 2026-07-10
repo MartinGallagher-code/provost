@@ -1,0 +1,6 @@
+Machine (31GB total)
+  Package L#0
+    NUMANode L#0 (P#0 15GB)
+    L3 L#0 (32MB)
+      Core L#0 + PU L#0 (P#0)
+      Core L#1 + PU L#1 (P#1)

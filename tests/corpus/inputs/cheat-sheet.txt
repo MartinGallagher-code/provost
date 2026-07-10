@@ -1,0 +1,5 @@
+# To find files by name:
+find . -name '*.log'
+
+# To find files modified in last day:
+find . -mtime -1

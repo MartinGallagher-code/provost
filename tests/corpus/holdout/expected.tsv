@@ -37,6 +37,7 @@ lsblk	table	5	4
 lvdisplay-multi	kv	-	4
 mount	table	4	3
 mount-nfs	table	3	4
+mysqladmin-status-2	kv	-	5
 nft-tables	table	3	2
 pacman-ql	table	5	2
 passwd-getent	table	4	5
@@ -59,6 +60,7 @@ tc-qdisc-show	table	3	2
 telegraf-test	table	3	4
 toml-config	kv	-	4
 traceroute	table	4	4
+tshark-udp	table	3	4
 ufw-status-numbered	table	3	3
 uname-a	kv	-	2
 uptime	kv	-	2

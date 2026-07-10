@@ -1,0 +1,3 @@
+  • loading config file       file=.goreleaser.yaml
+  • checking config
+  • config is valid

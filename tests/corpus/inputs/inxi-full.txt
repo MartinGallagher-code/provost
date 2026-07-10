@@ -1,0 +1,4 @@
+CPU:       8-core AMD Ryzen 7 5800X (-MT MCP-) speed/min/max: 3800/2200/4700 MHz
+Graphics:  Device-1: AMD Navi 22 [Radeon RX 6700 XT] driver: amdgpu v: kernel
+Memory:    RAM: total: 31.34 GiB used: 12.44 GiB (39.7%)
+Drives:    Local Storage: total: 2.73 TiB used: 1.20 TiB (44.0%)

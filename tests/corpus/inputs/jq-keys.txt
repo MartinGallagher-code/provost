@@ -1,0 +1,6 @@
+[
+  "id",
+  "name",
+  "status",
+  "created_at"
+]

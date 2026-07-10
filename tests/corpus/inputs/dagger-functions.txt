@@ -1,0 +1,4 @@
+NAME          DESCRIPTION
+build         Build the application
+test          Run the test suite
+publish       Publish the container image

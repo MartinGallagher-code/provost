@@ -1,0 +1,4 @@
+Version: ImageMagick 7.1.1-32 Q16-HDRI x86_64
+Copyright: (C) 1999 ImageMagick Studio LLC
+Features: Cipher DPC HDRI OpenMP
+Delegates (built-in): bzlib fontconfig freetype jng jp2 jpeg

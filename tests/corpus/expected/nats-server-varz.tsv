@@ -1,0 +1,2 @@
+server_id	version	connections	in_msgs	out_msgs	slow_consumers
+NDABC123	2.10.16	88	4821730	4820011	0

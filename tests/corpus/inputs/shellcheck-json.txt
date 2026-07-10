@@ -1,0 +1,4 @@
+[
+  {"file": "deploy.sh", "line": 12, "level": "warning", "code": 2086, "message": "Double quote to prevent globbing"},
+  {"file": "deploy.sh", "line": 44, "level": "error", "code": 1090, "message": "Can't follow non-constant source"}
+]

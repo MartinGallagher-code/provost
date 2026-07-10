@@ -1,0 +1,2 @@
+notBefore=Jul  1 00:00:00 2026 GMT
+notAfter=Sep 29 00:00:00 2026 GMT

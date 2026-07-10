@@ -1,0 +1,5 @@
+List of available languages in "/usr/share/tesseract-ocr/5/tessdata/" (4):
+deu
+eng
+fra
+osd

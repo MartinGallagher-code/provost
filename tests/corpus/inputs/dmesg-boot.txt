@@ -1,0 +1,4 @@
+[    0.000000] Linux version 6.8.0-45-generic
+[    0.043112] Command line: BOOT_IMAGE=/vmlinuz root=/dev/mapper/vg-root
+[    1.204882] systemd[1]: Detected virtualization kvm.
+[    2.410771] EXT4-fs (dm-0): mounted filesystem

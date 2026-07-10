@@ -1,0 +1,5 @@
+Total:   1 TiB
+Used:    412 GiB
+Free:    612 GiB
+Trashed: 8 GiB
+Objects: 128.44k

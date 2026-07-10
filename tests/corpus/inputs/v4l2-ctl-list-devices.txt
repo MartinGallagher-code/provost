@@ -1,0 +1,7 @@
+
+HD Webcam C920 (usb-0000:00:14.0-1):
+	/dev/video0
+	/dev/video1
+
+Integrated Camera (usb-0000:00:14.0-6):
+	/dev/video2

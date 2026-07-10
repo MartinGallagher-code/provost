@@ -1,0 +1,4 @@
+n	JobID	JobName	Partition	Account	AllocCPUS	State	ExitCode	total_entries
+1	4421	train.py	gpu	research	16	COMPLETED	0:0	3
+2	4421.batch	batch	research	16	COMPLETED	0:0		3
+3	4422	eval.py	gpu	research	8	RUNNING	0:0	3

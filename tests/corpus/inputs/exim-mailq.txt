@@ -1,0 +1,4 @@
+ 0m  2.0K A1B2C3-000abc-D4 <bounce@example.com>
+          user@dest.example
+ 2m  4.0K F6G7H8-000def-I9 <noreply@example.com>
+          admin@other.example

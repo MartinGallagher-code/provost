@@ -1,0 +1,6 @@
+
+msgRateIn: 1204.44
+msgRateOut: 1203.90
+storageSize: 2147483648
+backlogSize: 44201
+subscriptions: 3

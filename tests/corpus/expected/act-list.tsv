@@ -1,0 +1,4 @@
+n	Stage	Job	ID	name	Workflow	total_entries
+1	0	CI	build	ci.yml	push	3
+2	0	CI	test	ci.yml	push	3
+3	1	CI	deploy	ci.yml	push	3

@@ -1,0 +1,6 @@
+cpu.max: max 100000
+cpu.weight: 100
+cpu.stat:
+	usage_usec 8821004000
+	user_usec 4102839000
+	system_usec 4718165000

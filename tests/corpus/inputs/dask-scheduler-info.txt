@@ -1,0 +1,5 @@
+Scheduler: tcp://10.0.1.1:8786
+Workers: 8
+Cores: 64
+Memory: 512.00 GiB
+Tasks: 44201 (running: 88, waiting: 44113)

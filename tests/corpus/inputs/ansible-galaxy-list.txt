@@ -1,0 +1,4 @@
+# /home/deploy/.ansible/collections/ansible_collections
+community.general 8.6.0
+ansible.posix    1.5.4
+community.docker 3.10.2

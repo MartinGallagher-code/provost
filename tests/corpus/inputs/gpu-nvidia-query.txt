@@ -1,0 +1,3 @@
+name, memory.total [MiB], memory.used [MiB], utilization.gpu [%], temperature.gpu
+NVIDIA GeForce RTX 4090, 24564, 8201, 84, 62
+NVIDIA GeForce RTX 4090, 24564, 12044, 91, 68

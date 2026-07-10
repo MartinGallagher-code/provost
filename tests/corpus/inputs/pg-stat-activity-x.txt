@@ -1,0 +1,11 @@
+
+-[ RECORD 1 ]----+------------------------------
+pid              | 20144
+datname          | orders
+state            | active
+query            | SELECT count(*) FROM orders
+-[ RECORD 2 ]----+------------------------------
+pid              | 20161
+datname          | metrics
+state            | idle
+query            | COMMIT

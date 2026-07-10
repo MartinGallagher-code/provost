@@ -1,0 +1,6 @@
+n	NAME	FSTYPE	LABEL	UUID	MOUNTPOINT	total_entries
+1	sda					5
+2	├─sda1	vfat	BOOT	A1B2-C3D4	/boot/efi	5
+3	└─sda2	ext4	root	e5f6a7b8-c9d0-e1f2-a3b4-c5d6e7f8a9b0	/	5
+4	nvme0n1					5
+5	└─nvme0n1p1	xfs	data	9c8b7a6d-5e4f-3a2b-1c0d-9e8f7a6b5c4d	/data	5

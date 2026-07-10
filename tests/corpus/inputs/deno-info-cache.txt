@@ -1,0 +1,4 @@
+DENO_DIR location: /home/deploy/.cache/deno
+Remote modules cache: /home/deploy/.cache/deno/deps (44.2 MB)
+Emitted modules cache: /home/deploy/.cache/deno/gen (12.0 MB)
+Language server registries cache: 4.1 MB

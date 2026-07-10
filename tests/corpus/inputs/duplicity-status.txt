@@ -1,0 +1,6 @@
+Local and Remote metadata are synchronized, no sync needed.
+Last full backup date: Mon Jul  1 02:00:00 2026
+Collection Status
+-----------------
+Number of contained backup sets: 4
+Total number of contained volumes: 88

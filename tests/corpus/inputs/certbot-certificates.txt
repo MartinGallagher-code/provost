@@ -1,0 +1,5 @@
+Found the following certs:
+  Certificate Name: example.com
+    Domains: example.com www.example.com
+    Expiry Date: 2026-09-28 11:59:00+00:00 (VALID: 79 days)
+    Certificate Path: /etc/letsencrypt/live/example.com/fullchain.pem

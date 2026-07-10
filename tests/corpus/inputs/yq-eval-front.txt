@@ -1,0 +1,6 @@
+name: web-app
+replicas: 3
+image: nginx:1.27
+ports:
+  - 80
+  - 443

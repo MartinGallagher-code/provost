@@ -1,0 +1,4 @@
+[  4%] Building CXX object CMakeFiles/app.dir/main.cpp.o
+[ 50%] Building CXX object CMakeFiles/app.dir/util.cpp.o
+[100%] Linking CXX executable app
+[100%] Built target app

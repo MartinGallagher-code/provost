@@ -1,0 +1,4 @@
+{
+  "api_url": {"sensitive": false, "type": "string", "value": "https://api.example.com"},
+  "db_endpoint": {"sensitive": true, "type": "string", "value": "prod-pg.internal:5432"}
+}

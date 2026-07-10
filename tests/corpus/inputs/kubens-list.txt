@@ -1,0 +1,4 @@
+default
+kube-system
+prod
+monitoring

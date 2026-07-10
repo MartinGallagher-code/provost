@@ -1,0 +1,8 @@
+
+example.com
+	origin = ns1.example.com
+	mail addr = hostmaster.example.com
+	serial = 2026071001
+	refresh = 7200
+	retry = 3600
+	expire = 1209600

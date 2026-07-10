@@ -1,0 +1,7 @@
+       deploy@repo
+       ----------
+Project: glean (1284 commits)
+HEAD: a1b2c3d (main)
+Languages: Rust (88%), Python (12%)
+Authors: Alice (60%), Bob (40%)
+Last change: 2 hours ago

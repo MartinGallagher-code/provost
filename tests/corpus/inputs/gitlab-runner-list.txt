@@ -1,0 +1,4 @@
+Runtime platform     arch=amd64 os=linux version=17.1.0
+Listing configured runners      ConfigFile=/etc/gitlab-runner/config.toml
+docker-runner-1                 Executor=docker Token=abc123 URL=https://gitlab.com
+shell-runner-1                  Executor=shell  Token=def456 URL=https://gitlab.com

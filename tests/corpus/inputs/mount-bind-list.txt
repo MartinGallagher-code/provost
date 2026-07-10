@@ -1,0 +1,4 @@
+
+/dev/sda2 on / type ext4 (rw,relatime)
+proc on /proc type proc (rw,nosuid,nodev,noexec)
+/data/www on /var/www type none (rw,bind)

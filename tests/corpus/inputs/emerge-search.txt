@@ -1,0 +1,5 @@
+*  app-editors/vim
+      Latest version available: 9.1.0496
+      Latest version installed: 9.1.0496
+      Size of files: 17,204 KiB
+      Homepage:      https://www.vim.org/

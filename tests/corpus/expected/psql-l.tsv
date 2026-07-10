@@ -1,0 +1,4 @@
+n	Name	Owner	Encoding	Collate	Ctype	Access_privileges	total_entries
+1	orders	app_rw	UTF8	en_US.UTF-8	en_US.UTF-8		3
+2	metrics	app_ro	UTF8	en_US.UTF-8	en_US.UTF-8		3
+3	template1	postgres	UTF8	en_US.UTF-8	en_US.UTF-8	=c/postgres	3

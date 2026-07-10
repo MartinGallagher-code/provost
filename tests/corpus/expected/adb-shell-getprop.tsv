@@ -1,0 +1,6 @@
+n	A	B	C	total_entries
+1	[ro.product.model]:	[Pixel	8]	5
+2	[ro.product.brand]:	[google]		5
+3	[ro.build.version.release]:	[14]		5
+4	[ro.build.version.sdk]:	[34]		5
+5	[dalvik.vm.heapsize]:	[512m]		5

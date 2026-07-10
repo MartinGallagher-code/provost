@@ -1,0 +1,4 @@
+
+100.101.102.103  laptop-mg            mg@          linux   -
+100.101.102.150  nas                  mg@          linux   idle, tx 1200 rx 9100
+100.101.102.201  phone                mg@          iOS     active; direct

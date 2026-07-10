@@ -1,0 +1,4 @@
+  PV             VG      Fmt  Attr PSize   PFree
+  /dev/sda3      vg0     lvm2 a--  <1.82t  200.00g
+  /dev/sdb1      vg0     lvm2 a--  <1.82t  200.00g
+  /dev/nvme0n1p2 vg_data lvm2 a--  931.51g   0

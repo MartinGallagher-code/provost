@@ -1,0 +1,3 @@
+[IP-] [  ] app-shells/bash-5.2_p26:0
+[IP-] [  ] dev-lang/python-3.12.4:3.12
+[IP-] [  ] sys-apps/portage-3.0.65:0

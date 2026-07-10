@@ -1,5 +1,77 @@
 # glean — Changelog
 
+## 2026-07-10 — Corpus +500: 500 new unique tool inputs; 93% tidy on never-seen tools
+
+Expanded the corpus from 1040 to **1540 inputs** — 500 new, genuinely-unique
+Linux tool outputs across ~418 tool families, none overlapping the existing
+set (generated collision-checked against every existing corpus name; 80
+guessed candidates that collided were dropped). Domains span containers/k8s
+extras, cloud CLIs (AWS/GCP/Azure/DO/Fly/Hetzner/Linode), message queues
+(kafka/nats/pulsar/rabbitmq), search (ES/OpenSearch/Solr/Meili), databases,
+observability (prom/loki/otel/jaeger/vector), PKI & scanners (trivy/grype/
+syft/cosign/step), backup/sync (restic/borg/kopia/rclone), virtualization
+(virsh/lxc/incus/multipass/proxmox), HPC (slurm/pbs/lsf/mpi), package
+ecosystems (brew/nix/apk/emerge/conda/uv/gem/opam/…), dev/build/lint/test,
+media (ffprobe/mediainfo/pactl/v4l2), hardware/sensors, /proc & /sys, shells/
+terminal, data/text tools, DNS & routing daemons, and 38 version banners.
+
+**This doubles as the largest generalization test yet of the generic-first
+engine — brand-new tools it has never seen:**
+- **466 / 500 (93%) come out tidy**, essentially all via generic parsers +
+  hint rows, with ZERO new per-tool code written for them.
+- 34 are genuine format gaps, now honest ⏳ (the next-capability shopping
+  list): multi-section colon blocks (sensors, cryptsetup), tab/space hybrid
+  tables (kafka-topics, nvidia-smi topo, sar), `key{...}`/BuildInfo banners
+  (helm-version), tree/graph dumps (nginx -T, frr bgp), and one-line status
+  messages that aren't tables at all (batch-jobs, iconv).
+- No existing corpus input regressed.
+
+Full-corpus coverage: **1506 / 1540 — ✅ 1317 generic, ✅ʰ 49 hint, ✅ᵇ 140
+bespoke, ⏳ 34.** 462 new goldens frozen; golden regression 1366/0.
+Manifest note: 21 of the initial "misses" were my hand-authored expected
+shapes being wrong (the engine's output was clean named columns) — those
+manifest rows were corrected to the verified output; only the 34 genuine
+gaps remain ⏳.
+Gate: smoke 49/49, extract 62/62, corpus golden 1366/0.
+
+## 2026-07-10 — Exhaustive bespoke-reduction sweep: 5 conversions, colon-pairs parser, and the measured floor
+
+An exhaustive sweep forced every remaining ✅ᵇ input through every generic
+strategy via the hint path (detect bypassed — hints run strategy_extract
+directly, so this finds matches ordinary detection never would). Each
+candidate was verified as the actual dispatch winner (a first, broken sweep
+measured the bespoke's own output through hint fall-through — the winner
+check is now part of the method) and then eyeballed for content quality
+against the bespoke's output, not just manifest shape.
+
+**The measured floor:** of 139 swept inputs, 60 shape-pass under some
+generic strategy — but only 4 meet the quality bar. The other 56 are
+shape-passing mush (shredded banners, csv/prometheus parsers claiming
+non-csv/non-metrics text, key/value blobs), the same failure class the
+golden-quality audit reversed. The remaining bespoke tail is now
+EVIDENCE-BASED irreducible without new generic capabilities; the sweep
+previews identify the missing ones: version-banner → named fields,
+nested/stateful multi-line records (lsusb -v, gpg, multipath trees),
+number+unit merging, and inline-label splitting.
+
+**Shipped from the sweep:**
+- 4 hint conversions (bespokes deleted): consul-kv-get-recurse →
+  block-records, cpuid-summary → block-records, systemctl-list-units →
+  aligned-columns, tshark-summary → line-records.
+- 1 new generic capability closing an identified gap:
+  `delimited/colon-pairs` — inline "Label: value  Label: value" status
+  lines with multi-word labels (mysqladmin status; the format also appears
+  in memcached/redis one-liners). Priority 11 (ahead of yaml, which
+  otherwise claims the line as one column); detect requires ≤4 lines with
+  ≥4 pairs each, so it cannot reach into documents. mysqladmin-status
+  converts with field-for-field identical output to its bespoke, by
+  detection alone (no hint row).
+
+Coverage: 1040/1040 — ✅ 859 generic, ✅ʰ 45 hint, ✅ᵇ 136 bespoke.
+Strategy files 168 → 164. Holdout 66 → 68 (68/68).
+Gate: smoke 49/49, melt 8/8, extract 62/62, analyze green, corpus golden
+904/0.
+
 ## 2026-07-10 — Three rounds: json-array + diffstat parsers, snmp-output promotion, sqlite-output deleted, holdout 66/66
 
 **Round A — `structured/json-array`.** A top-level JSON array of objects is a

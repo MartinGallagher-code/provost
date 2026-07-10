@@ -1,0 +1,6 @@
+
+Summary:
+  Bytes Processed: 1.2 GB
+  Lines Processed: 8821004
+  Bytes Per Second: 412 MB
+  Exec Time: 2.9s

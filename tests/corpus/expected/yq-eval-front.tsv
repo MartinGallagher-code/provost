@@ -1,0 +1,2 @@
+name	replicas	image	ports.0	ports.1
+web-app	3	nginx:1.27	80	443

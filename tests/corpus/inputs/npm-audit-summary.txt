@@ -1,0 +1,8 @@
+# npm audit report
+
+lodash  <4.17.21
+Severity: high
+Prototype Pollution - https://github.com/advisories/GHSA-xxxx
+fix available via `npm audit fix`
+
+3 vulnerabilities (1 moderate, 2 high)

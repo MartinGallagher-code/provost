@@ -1,0 +1,6 @@
+Benchmark 1: rg pattern
+  Time (mean ± σ):      12.4 ms ±   0.8 ms
+  Range (min … max):    11.2 ms …  14.0 ms    212 runs
+
+Summary
+  'rg pattern' ran 1.42 ± 0.12 times faster than 'grep -r pattern'

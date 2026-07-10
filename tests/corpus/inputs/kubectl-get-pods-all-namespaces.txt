@@ -1,0 +1,5 @@
+NAMESPACE     NAME                        READY   STATUS      RESTARTS   AGE
+kube-system   coredns-5d78c9-abc12        1/1     Running     0          214d
+kube-system   kube-proxy-9x2mn            1/1     Running     3          214d
+prod          api-7f9c6b5d4-2xkzq         2/2     Running     0          6d
+prod          worker-5b8d7c6f9-qq2vx      1/1     Running     4          32d

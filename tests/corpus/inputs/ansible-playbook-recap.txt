@@ -1,0 +1,4 @@
+PLAY RECAP *********************************************************************
+web01.example.com          : ok=12   changed=3    unreachable=0    failed=0
+web02.example.com          : ok=12   changed=2    unreachable=0    failed=0
+db01.example.com           : ok=8    changed=0    unreachable=0    failed=1

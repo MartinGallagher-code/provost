@@ -1,0 +1,3 @@
+LAST SEEN   TYPE      REASON      OBJECT              MESSAGE
+2m          Warning   BackOff     pod/api-abc123      Back-off restarting failed container
+5m          Warning   Unhealthy   pod/web-def456      Readiness probe failed

@@ -1,0 +1,4 @@
+socat by Gerhard Rieger and contributors
+socat version 1.8.0.0 on 10 Jul 2026 06:00:00
+   running on Linux version #45-Ubuntu SMP
+   features: WITH_STDIO WITH_LISTEN WITH_OPENSSL WITH_TCP
