@@ -1,0 +1,3 @@
+Run status group 0 (all jobs):
+   READ: bw=482MiB/s (505MB/s), io=28.2GiB (30.3GB), run=60001-60001msec
+  WRITE: bw=344MiB/s (361MB/s), io=20.2GiB (21.7GB), run=60002-60002msec

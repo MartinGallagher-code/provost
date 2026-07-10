@@ -1,0 +1,18 @@
+{
+  "fio version" : "fio-3.36",
+  "timestamp" : 1751880000,
+  "jobs" : [
+    {
+      "jobname" : "randread",
+      "groupid" : 0,
+      "error" : 0,
+      "read" : {
+        "io_bytes" : 30283628544,
+        "bw" : 494082,
+        "iops" : 123520.44,
+        "runtime" : 60001,
+        "total_ios" : 7411882
+      }
+    }
+  ]
+}

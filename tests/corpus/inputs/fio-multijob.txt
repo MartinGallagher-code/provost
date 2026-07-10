@@ -1,0 +1,6 @@
+job1: (groupid=0, jobs=1): err= 0: pid=8821
+  read: IOPS=123k, BW=482MiB/s (505MB/s)(28.2GiB/60001msec)
+job2: (groupid=0, jobs=1): err= 0: pid=8822
+  read: IOPS=118k, BW=461MiB/s (483MB/s)(27.0GiB/60001msec)
+job3: (groupid=0, jobs=1): err= 0: pid=8823
+  write: IOPS=88.2k, BW=344MiB/s (361MB/s)(20.2GiB/60002msec)

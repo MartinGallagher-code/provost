@@ -2142,3 +2142,15 @@ speedometer-run	text	-	2
 octane-run	text	-	2
 tcpkali-run	kv	-	2
 wrk-lua-report	text	-	2
+fio-normal-full	text	-	2
+fio-terse-v3	table	1	20
+fio-terse-v5	table	1	20
+fio-json-output	text	-	2
+fio-disk-stats	table	3	5
+fio-io-depths	kv	-	5
+fio-latency-dist	kv	-	5
+fio-run-status	table	2	4
+fio-bw-log	table	4	5
+fio-multijob	text	-	2
+fio-iops-log	table	3	6
+fio-status-line	text	-	2
