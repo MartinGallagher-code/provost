@@ -1,0 +1,6 @@
+Cluster:      teleport.example.com
+Version:      15.3.1
+Proxy:        teleport.example.com:443
+User:         deploy
+Logins:       deploy, root
+Valid until:  2026-07-10 18:00:00 [valid for 11h]

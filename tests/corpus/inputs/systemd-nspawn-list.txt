@@ -1,0 +1,3 @@
+MACHINE   CLASS       SERVICE        OS       VERSION   ADDRESSES
+build     container   systemd-nsp    ubuntu   24.04     10.0.5.2
+test      container   systemd-nsp    debian   12        10.0.5.3

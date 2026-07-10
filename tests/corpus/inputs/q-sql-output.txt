@@ -1,0 +1,4 @@
+region,total
+eu-west-1,881204
+us-east-2,1509322
+ap-south-1,774210

@@ -1,0 +1,8 @@
+time_namelookup:  0.004212
+time_connect:  0.018904
+time_appconnect:  0.061203
+time_pretransfer:  0.061344
+time_starttransfer:  0.142981
+time_total:  0.148820
+http_code:  200
+size_download:  48213

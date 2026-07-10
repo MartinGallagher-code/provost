@@ -1,0 +1,4 @@
+Ncat: Version 7.94 ( https://nmap.org/ncat )
+Ncat: Listening on 0.0.0.0:8080
+Ncat: Connection from 10.0.1.4:51022.
+Ncat: Connection from 10.0.1.5:51044.

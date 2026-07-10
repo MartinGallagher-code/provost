@@ -1,0 +1,6 @@
+n	message	schema	{	total_entries
+1	required	int64	id;	5
+2	optional	binary	name_(STRING);	5
+3	optional	double	price;	5
+4	optional	int96	created_at;	5
+5	}			5

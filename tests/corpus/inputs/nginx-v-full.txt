@@ -1,0 +1,4 @@
+nginx version: nginx/1.27.0
+built by gcc 13.2.0
+built with OpenSSL 3.2.1
+configure arguments: --prefix=/etc/nginx --with-http_ssl_module

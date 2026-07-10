@@ -1,0 +1,6 @@
+⚡️ User toolchain:
+    Node runtimes:
+        v20.14.0 (default)
+        v22.4.1
+    Package managers:
+        npm@10.8.1 (default)

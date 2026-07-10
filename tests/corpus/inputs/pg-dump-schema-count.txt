@@ -1,0 +1,4 @@
+SCHEMA      TABLES   VIEWS   FUNCTIONS
+public      44       12      88
+audit       6        0       4
+reporting   0        18      12

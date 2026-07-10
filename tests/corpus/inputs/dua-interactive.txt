@@ -1,0 +1,5 @@
+  4.2 GiB  ./datasets
+  1.8 GiB  ./models
+612.0 MiB  ./logs
+ 44.0 MiB  ./configs
+  6.7 GiB  total

@@ -1,0 +1,7 @@
+database page size:  4096
+write format:        1
+page count:          20481
+freelist count:      12
+schema cookie:       88
+schema format:       4
+text encoding:       1 (utf8)

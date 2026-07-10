@@ -1,0 +1,7 @@
+
+server_id: NDABC123
+version: 2.10.16
+connections: 88
+in_msgs: 4821730
+out_msgs: 4820011
+slow_consumers: 0

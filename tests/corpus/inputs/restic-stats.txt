@@ -1,0 +1,4 @@
+Stats in restore-size mode:
+     Snapshots processed:  3
+        Total File Count:  128442
+              Total Size:  4.102 GiB

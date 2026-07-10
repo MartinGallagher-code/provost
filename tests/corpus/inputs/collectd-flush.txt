@@ -1,0 +1,2 @@
+Success: 44 records flushed to write_prometheus
+Success: 12 records flushed to network

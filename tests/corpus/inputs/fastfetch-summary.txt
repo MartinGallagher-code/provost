@@ -1,0 +1,6 @@
+OS: Fedora Linux 40
+Host: ROG STRIX B550-F
+Kernel: 6.9.5-200.fc40.x86_64
+Packages: 2044 (rpm), 44 (flatpak)
+DE: GNOME 46
+Terminal: kitty

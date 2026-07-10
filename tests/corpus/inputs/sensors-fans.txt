@@ -1,0 +1,5 @@
+nct6798-isa-0290
+fan1:        1204 RPM
+fan2:         882 RPM
+fan3:           0 RPM
+cpu_fan:     1488 RPM

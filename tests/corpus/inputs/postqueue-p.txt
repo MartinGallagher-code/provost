@@ -1,0 +1,6 @@
+-Queue ID-  --Size-- ----Arrival Time---- -Sender/Recipient-------
+A1B2C3D4E5     2048 Thu Jul 10 06:00:12  bounce@example.com
+                                         user@dest.example
+F6G7H8I9J0     4096 Thu Jul 10 06:02:44  noreply@example.com
+                                         admin@other.example
+-- 2 Kbytes in 2 Requests.

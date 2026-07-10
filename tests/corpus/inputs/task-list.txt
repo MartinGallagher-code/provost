@@ -1,0 +1,4 @@
+task: Available tasks for this project:
+* build:        Build the binary
+* test:         Run tests
+* docker:       Build docker image

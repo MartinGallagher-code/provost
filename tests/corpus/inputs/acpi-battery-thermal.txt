@@ -1,0 +1,4 @@
+Battery 0: Discharging, 49%, 02:14:00 remaining
+Thermal 0: ok, 48.0 degrees C
+Cooling 0: Processor 0 of 10
+Adapter 0: off-line

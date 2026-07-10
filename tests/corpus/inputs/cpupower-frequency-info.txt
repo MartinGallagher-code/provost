@@ -1,0 +1,6 @@
+analyzing CPU 0:
+  driver: acpi-cpufreq
+  CPUs which run at the same hardware frequency: 0
+  hardware limits: 2.20 GHz - 4.70 GHz
+  available cpufreq governors: conservative ondemand performance schedutil
+  current policy: frequency should be within 2.20 GHz and 4.70 GHz.

@@ -1,0 +1,7 @@
+Name: Alice Nguyen
+Email: alice@example.com
+Role: admin
+
+Name: Bob Smith
+Email: bob@example.com
+Role: user

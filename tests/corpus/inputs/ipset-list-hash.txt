@@ -1,0 +1,11 @@
+Name: blocklist
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536
+Size in memory: 296
+References: 1
+Number of entries: 3
+Members:
+203.0.113.10
+198.51.100.7
+192.0.2.44

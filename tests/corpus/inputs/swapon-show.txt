@@ -1,0 +1,3 @@
+NAME           TYPE       SIZE   USED  PRIO
+/dev/sda3      partition  8G     512M  -2
+/swapfile      file       4G     0B    -3

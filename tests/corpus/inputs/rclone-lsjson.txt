@@ -1,0 +1,4 @@
+[
+{"Path":"backups/db.sql.gz","Name":"db.sql.gz","Size":5242880,"IsDir":false},
+{"Path":"backups/media","Name":"media","Size":-1,"IsDir":true}
+]

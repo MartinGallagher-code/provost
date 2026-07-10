@@ -1,0 +1,4 @@
+4102  /home/deploy/project
+882   /home/deploy/notes
+441   /var/log
+44    /etc/nginx

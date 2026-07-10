@@ -1,0 +1,6 @@
+n	A	B	C	total_entries
+1	4.2	GiB	./datasets	5
+2	1.8	GiB	./models	5
+3	612.0	MiB	./logs	5
+4	44.0	MiB	./configs	5
+5	6.7	GiB	total	5

@@ -1,0 +1,3 @@
+api-abc123 api Starting server on :8080
+web-def456 web Request GET /health 200
+api-abc123 api Connected to database

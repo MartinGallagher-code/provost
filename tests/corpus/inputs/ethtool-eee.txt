@@ -1,0 +1,6 @@
+EEE settings for eth0:
+	EEE status: enabled - active
+	Tx LPI: 0 (us)
+	Supported EEE link modes:  100baseT/Full
+	                           1000baseT/Full
+	Advertised EEE link modes: 100baseT/Full

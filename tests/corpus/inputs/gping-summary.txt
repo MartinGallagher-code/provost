@@ -1,0 +1,2 @@
+example.com          last: 11.8ms   avg: 12.1ms   min: 11.2ms   max: 14.0ms
+1.1.1.1              last: 8.2ms    avg: 8.4ms    min: 8.0ms    max: 9.1ms

@@ -1,0 +1,7 @@
+port 22
+addressfamily any
+permitrootlogin no
+passwordauthentication no
+pubkeyauthentication yes
+x11forwarding no
+maxauthtries 3

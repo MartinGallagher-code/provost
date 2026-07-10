@@ -1,0 +1,4 @@
+Run          State      Runtime    Best-Acc
+sunny-dawn   finished   2:14:00    0.9421
+brisk-moon   running    0:41:00    0.8810
+calm-sky     crashed    0:12:00    0.4102

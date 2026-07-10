@@ -1,0 +1,4 @@
+      VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB) PID
+       100 web-server           running    8192       40           1284
+       101 db-server            running    16384      80           1290
+       102 test                 stopped    4096       20           0

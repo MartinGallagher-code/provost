@@ -1,0 +1,5 @@
+NodeName=gpu01 Arch=x86_64 CoresPerSocket=32
+   CPUAlloc=64 CPUTot=64 CPULoad=44.20
+   RealMemory=515000 AllocMem=412000 FreeMem=88201
+   State=ALLOCATED Gres=gpu:a100:8
+   Partitions=gpu

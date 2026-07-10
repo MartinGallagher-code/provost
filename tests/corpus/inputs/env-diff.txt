@@ -1,0 +1,4 @@
++DIRENV_DIR=/home/deploy/project
++NODE_ENV=development
++DATABASE_URL=postgres://localhost/dev
+-EDITOR=vi

@@ -1,0 +1,4 @@
+Verification for ghcr.io/example/api:2.4.0 --
+The following checks were performed on each of these signatures:
+  - The cosign claims were validated
+  - The signatures were verified against the specified public key

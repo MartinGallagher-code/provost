@@ -1,0 +1,2 @@
+Repository_ID	Location	Encrypted	Cache	Number_of_archives	Original_size	Deduplicated_size
+a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6	/mnt/backup/borg	Yes (repokey)	/home/deploy/.cache/borg	42	128.44 GB	12.04 GB

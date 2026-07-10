@@ -1,0 +1,2 @@
+The local CA is installed in the system trust store! 👍
+The local CA is installed in the Firefox and/or Chrome/Chromium trust store! 👍

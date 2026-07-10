@@ -1,0 +1,4 @@
+Wormhole code is: 42-trombonist-headwind
+On the other computer, please run:
+wormhole receive 42-trombonist-headwind
+Sending 128442 bytes

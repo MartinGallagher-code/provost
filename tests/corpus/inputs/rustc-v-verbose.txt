@@ -1,0 +1,6 @@
+rustc 1.79.0 (129f3b996 2026-06-10)
+binary: rustc
+commit-hash: 129f3b9964
+host: x86_64-unknown-linux-gnu
+release: 1.79.0
+LLVM version: 18.1.7

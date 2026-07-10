@@ -1,0 +1,4 @@
+COMPONENT              KIND         EVENTS IN   EVENTS OUT   ERRORS
+file_source            source       8821004     8821004      0
+remap_transform        transform    8821004     8820011      993
+loki_sink              sink         8820011     8820011      0

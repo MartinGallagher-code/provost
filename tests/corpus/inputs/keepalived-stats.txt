@@ -1,0 +1,6 @@
+VRRP Instance: VI_1
+  State: MASTER
+  Advertisements Sent: 8821004
+  Priority Zeroing: 0
+  Became master: 1
+  Released master: 0

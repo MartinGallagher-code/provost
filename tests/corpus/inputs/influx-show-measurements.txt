@@ -1,0 +1,8 @@
+name: measurements
+name
+----
+cpu
+disk
+mem
+net
+processes

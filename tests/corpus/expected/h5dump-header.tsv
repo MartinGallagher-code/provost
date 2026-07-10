@@ -1,0 +1,8 @@
+n	HDF5	"data_h5"	{	total_entries
+1	GROUP	"/"	{	7
+2	DATASET	"temperature"	{	7
+3	DATATYPE	H5T_IEEE_F64LE		7
+4	DATASPACE	SIMPLE	{_(_1024,_768_)_/_(_1024,_768_)_}	7
+5	}			7
+6	}			7
+7	}			7

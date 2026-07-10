@@ -1,0 +1,6 @@
+
+4.2G	./var/log
+1.8G	./var/lib/docker
+612M	./home/deploy
+44M	./etc
+6.7G	.

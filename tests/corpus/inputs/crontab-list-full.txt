@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+15 3 * * *  /usr/local/bin/backup.sh --incremental
+0 6 * * 1   /usr/local/bin/rotate-logs.sh
+*/10 * * * * curl -fsS https://hc-ping.com/abc > /dev/null

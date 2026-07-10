@@ -1,0 +1,6 @@
+running 44 tests
+test parser::tests::basic ... ok
+test engine::tests::detect ... ok
+test integration::e2e ... FAILED
+
+test result: FAILED. 43 passed; 1 failed; 0 ignored

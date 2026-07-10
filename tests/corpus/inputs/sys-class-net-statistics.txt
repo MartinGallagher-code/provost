@@ -1,0 +1,6 @@
+rx_bytes: 1288490188
+rx_packets: 8821004
+rx_errors: 0
+tx_bytes: 412283912
+tx_packets: 4102839
+tx_errors: 0

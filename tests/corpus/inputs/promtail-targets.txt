@@ -1,0 +1,5 @@
+job=varlogs (2 targets)
+  /var/log/syslog - ready
+  /var/log/auth.log - ready
+job=containers (1 target)
+  /var/lib/docker/containers/*.log - ready

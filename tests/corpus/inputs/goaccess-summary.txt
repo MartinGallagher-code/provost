@@ -1,0 +1,6 @@
+Total Requests    8821004
+Unique Visitors   128442
+Valid Requests    8712043
+Failed Requests   108961
+Log Size          1.20 GiB
+Bandwidth         412.44 GiB

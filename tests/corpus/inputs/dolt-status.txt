@@ -1,0 +1,5 @@
+On branch main
+Changes not staged for commit:
+  (use "dolt add <table>" to update what will be committed)
+	modified:         orders
+	new table:        customers

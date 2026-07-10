@@ -1,0 +1,5 @@
+Package        Version
+-------------- -------
+fastapi        0.111.0
+pydantic       2.8.2
+uvicorn        0.30.1

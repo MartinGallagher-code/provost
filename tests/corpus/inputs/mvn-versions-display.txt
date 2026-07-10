@@ -1,0 +1,3 @@
+[INFO] The following dependencies have newer versions:
+[INFO]   org.springframework:spring-core ......... 6.1.2 -> 6.1.10
+[INFO]   com.fasterxml.jackson.core:jackson ...... 2.17.0 -> 2.17.2

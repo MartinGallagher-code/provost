@@ -1,0 +1,4 @@
+{
+  "input": {"tail.0": {"records": 8821004, "bytes": 1288490188}},
+  "output": {"es.0": {"proc_records": 8820011, "errors": 0, "retries": 12}}
+}

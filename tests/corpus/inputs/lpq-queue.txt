@@ -1,0 +1,4 @@
+Office_HP is ready and printing
+Rank    Owner   Job     File(s)                         Total Size
+active  alice   412     report.pdf                      88201 bytes
+1st     bob     413     invoice.pdf                     12044 bytes

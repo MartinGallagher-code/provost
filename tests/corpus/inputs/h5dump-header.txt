@@ -1,0 +1,8 @@
+HDF5 "data.h5" {
+GROUP "/" {
+   DATASET "temperature" {
+      DATATYPE  H5T_IEEE_F64LE
+      DATASPACE  SIMPLE { ( 1024, 768 ) / ( 1024, 768 ) }
+   }
+}
+}

@@ -1,0 +1,7 @@
+lease 192.168.1.50 {
+  starts 4 2026/07/10 06:00:00;
+  ends 4 2026/07/10 18:00:00;
+  binding state active;
+  hardware ethernet aa:bb:cc:dd:ee:01;
+  client-hostname "laptop";
+}

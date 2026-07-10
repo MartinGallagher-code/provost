@@ -1,0 +1,4 @@
+id,name,amount
+1,alice,120.50
+2,bob,88.20
+3,carol,441.00

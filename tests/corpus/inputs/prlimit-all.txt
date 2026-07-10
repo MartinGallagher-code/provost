@@ -1,0 +1,5 @@
+RESOURCE   DESCRIPTION                             SOFT      HARD  UNITS
+CPU        CPU time                            unlimited unlimited seconds
+FSIZE      Maximum file size                   unlimited unlimited bytes
+NOFILE     Max number of open files                 1024   1048576 files
+NPROC      Max number of processes                 63000     63000 processes

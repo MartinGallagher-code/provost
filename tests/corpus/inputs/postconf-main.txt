@@ -1,0 +1,6 @@
+myhostname = mail.example.com
+mydomain = example.com
+inet_interfaces = all
+mynetworks = 127.0.0.0/8 10.0.0.0/8
+relayhost =
+message_size_limit = 26214400

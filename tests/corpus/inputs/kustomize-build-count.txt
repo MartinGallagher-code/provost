@@ -1,0 +1,5 @@
+KIND          COUNT
+Deployment    12
+Service       12
+ConfigMap     8
+Secret        4

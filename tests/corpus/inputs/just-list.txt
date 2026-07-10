@@ -1,0 +1,5 @@
+Available recipes:
+    build          # compile the project
+    test           # run the test suite
+    deploy env     # deploy to an environment
+    lint           # run linters

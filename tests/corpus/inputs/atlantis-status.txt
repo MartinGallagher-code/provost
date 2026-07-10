@@ -1,0 +1,5 @@
+Ran Plan for 2 projects:
+1. dir: `prod/vpc` workspace: `default`
+2. dir: `prod/eks` workspace: `default`
+
+Plan: 2 to add, 0 to change, 0 to destroy.

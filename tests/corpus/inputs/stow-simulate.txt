@@ -1,0 +1,3 @@
+LINK: .bashrc => ../dotfiles/bash/.bashrc
+LINK: .vimrc => ../dotfiles/vim/.vimrc
+UNLINK: .oldrc

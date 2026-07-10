@@ -1,0 +1,4 @@
+
+Device AA:BB:CC:DD:EE:01 WH-1000XM5
+Device AA:BB:CC:DD:EE:02 Magic Keyboard
+Device AA:BB:CC:DD:EE:03 MX Master 3S

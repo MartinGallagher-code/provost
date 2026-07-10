@@ -1,0 +1,4 @@
+ffmpeg version 7.0.1 Copyright (c) 2000-2026 the FFmpeg developers
+built with gcc 13.2.0
+configuration: --enable-gpl --enable-libx264 --enable-libvpx
+libavcodec    61.  3.100

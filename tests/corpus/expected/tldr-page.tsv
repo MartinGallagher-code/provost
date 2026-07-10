@@ -1,0 +1,4 @@
+n	-	Create	an	archive	from	total_entries
+1	tar	cf	target.tar	file1	file2	3
+2	-	Extract	an	archive:		3
+3	tar	xf	source.tar			3

@@ -1,0 +1,5 @@
+product: shiba
+serialno: a1b2c3d4e5
+secure: yes
+unlocked: no
+current-slot: a

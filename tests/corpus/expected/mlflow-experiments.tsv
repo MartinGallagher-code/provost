@@ -1,0 +1,4 @@
+n	Experiment	Id	Name	total_entries
+1	0	Default	./mlruns/0	3
+2	1	churn-model	s3://ml/churn	3
+3	2	fraud-detect	s3://ml/fraud	3

@@ -1,0 +1,3 @@
+1751880000 aa:bb:cc:dd:ee:01 192.168.1.50 laptop 01:aa:bb:cc:dd:ee:01
+1751879000 aa:bb:cc:dd:ee:02 192.168.1.51 phone *
+1751878000 aa:bb:cc:dd:ee:03 192.168.1.52 * *

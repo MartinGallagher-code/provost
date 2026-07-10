@@ -1,0 +1,3 @@
+2026-07-01 open Assets:Checking USD
+2026-07-10 balance Assets:Checking   1204.50 USD
+2026-07-10 balance Assets:Savings   12048.20 USD

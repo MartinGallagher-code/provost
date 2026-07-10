@@ -1,0 +1,8 @@
+{
+        "Hostname" : "web01",
+        "StaticHostname" : "web01",
+        "OperatingSystemPrettyName" : "Ubuntu 24.04 LTS",
+        "KernelName" : "Linux",
+        "KernelRelease" : "6.8.0-45-generic",
+        "Architecture" : "x86-64"
+}

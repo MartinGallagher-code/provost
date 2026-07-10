@@ -1,0 +1,5 @@
+- Certificate type: X.509
+- Got a certificate list of 2 certificates.
+- Description: (TLS1.3)-(ECDHE-X25519)-(RSA-PSS-RSAE-SHA256)-(AES-256-GCM)
+- Session ID: 44:20:1a:bc:99
+- Options: safe renegotiation,

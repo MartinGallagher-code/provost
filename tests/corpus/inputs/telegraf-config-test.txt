@@ -1,0 +1,3 @@
+2026-07-10T06:00:00Z I! Loaded inputs: cpu mem disk net
+2026-07-10T06:00:00Z I! Loaded outputs: influxdb
+2026-07-10T06:00:00Z I! Tags enabled: host=web01

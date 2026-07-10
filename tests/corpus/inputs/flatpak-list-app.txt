@@ -1,0 +1,3 @@
+Name              Application ID              Version   Branch  Installation
+Flatseal          com.github.tchx84.Flatseal  2.2.0     stable  system
+GIMP              org.gimp.GIMP               2.10.38   stable  system

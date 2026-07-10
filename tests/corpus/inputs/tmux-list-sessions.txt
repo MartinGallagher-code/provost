@@ -1,0 +1,3 @@
+dev: 3 windows (created Thu Jul 10 07:00:00 2026) (attached)
+ops: 1 windows (created Thu Jul 10 06:00:00 2026)
+logs: 2 windows (created Wed Jul  9 22:00:00 2026)

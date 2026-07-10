@@ -1,0 +1,6 @@
+== labels ==
+org.label-schema.build-date: 2026-07-01T10:00:00Z
+org.label-schema.schema-version: 1.0
+org.label-schema.usage.singularity.version: 4.1.3
+== runscript ==
+python3 /opt/train.py

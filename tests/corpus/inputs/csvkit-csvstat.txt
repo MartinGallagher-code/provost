@@ -1,0 +1,6 @@
+  1. "latency"
+	Type of data:          Number
+	Contains null values:  False
+	Smallest value:        2
+	Largest value:         881
+	Mean:                  46.51

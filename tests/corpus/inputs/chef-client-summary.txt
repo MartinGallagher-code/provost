@@ -1,0 +1,3 @@
+Chef Infra Client, version 18.4.12
+Converging 44 resources
+Chef Infra Client finished, 4/44 resources updated in 12 seconds

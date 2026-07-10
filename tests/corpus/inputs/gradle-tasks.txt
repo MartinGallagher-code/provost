@@ -1,0 +1,9 @@
+Build tasks
+-----------
+assemble - Assembles the outputs.
+build - Assembles and tests this project.
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the unit tests.

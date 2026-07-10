@@ -1,0 +1,4 @@
+//src:app
+//src:parser
+//src:engine
+@com_google_absl//absl/strings:strings

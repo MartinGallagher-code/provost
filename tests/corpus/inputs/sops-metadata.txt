@@ -1,0 +1,5 @@
+lastmodified: 2026-07-10T06:00:00Z
+mac: ENC[AES256_GCM,data:abc123,tag:def456]
+version: 3.9.0
+kms:
+    - arn: arn:aws:kms:eu-west-1:123456789:key/a1b2c3d4

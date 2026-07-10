@@ -1,0 +1,7 @@
+Key                 Value
+---                 -----
+accessor            a1b2c3d4
+display_name        token
+policies            [default web-read]
+ttl                 767h59m
+renewable           true

@@ -1,0 +1,7 @@
+  native-path:          BAT0
+  vendor:               SMP
+  model:                DELL 0X8VW
+  state:                discharging
+  energy:               44.201 Wh
+  energy-full:          88.442 Wh
+  percentage:           49%

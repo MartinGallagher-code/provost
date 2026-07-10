@@ -1,0 +1,4 @@
+NAME
+projects/prod/logs/cloudaudit.googleapis.com%2Factivity
+projects/prod/logs/run.googleapis.com%2Fstdout
+projects/prod/logs/compute.googleapis.com%2Fvpc_flows

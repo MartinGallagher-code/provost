@@ -1,0 +1,5 @@
+
+VirtualHost configuration:
+*:80                   is a NameVirtualHost
+         default server example.com (/etc/apache2/sites-enabled/000-default.conf:1)
+         port 80 namevhost example.com (/etc/apache2/sites-enabled/000-default.conf:1)

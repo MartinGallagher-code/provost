@@ -1,0 +1,4 @@
+installed plugins:
+grafana-piechart-panel @ 1.6.4
+grafana-clock-panel @ 2.1.7
+grafana-worldmap-panel @ 1.0.6

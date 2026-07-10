@@ -1,0 +1,8 @@
+{
+   "lscpu": [
+      {"field": "Architecture:", "data": "x86_64"},
+      {"field": "CPU(s):", "data": "16"},
+      {"field": "Model name:", "data": "AMD Ryzen 7 5800X 8-Core Processor"},
+      {"field": "Thread(s) per core:", "data": "2"}
+   ]
+}

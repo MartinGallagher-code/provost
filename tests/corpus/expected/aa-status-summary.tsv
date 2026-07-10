@@ -1,0 +1,5 @@
+n	apparmor	module	is	loaded_	total_entries
+1	44	profiles	are	loaded.	4
+2	40	profiles	are	in_enforce_mode.	4
+3	4	profiles	are	in_complain_mode.	4
+4	12	processes	have	profiles_defined.	4

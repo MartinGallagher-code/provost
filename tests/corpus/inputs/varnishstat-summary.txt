@@ -1,0 +1,6 @@
+MAIN.uptime                  1284433
+MAIN.sess_conn               8821004
+MAIN.cache_hit               7712043
+MAIN.cache_miss              1108961
+MAIN.backend_conn            1108961
+MAIN.n_object                44201

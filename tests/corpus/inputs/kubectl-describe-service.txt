@@ -1,0 +1,7 @@
+Name:              api
+Namespace:         prod
+Type:              ClusterIP
+IP:                10.96.44.12
+Port:              http 8080/TCP
+Endpoints:         10.244.1.5:8080,10.244.2.7:8080
+Session Affinity:  None

@@ -1,0 +1,4 @@
+Filesystem       Inodes   IUsed    IFree  IUse%  Mounted on
+/dev/sda2       6553600  412881  6140719     7%  /
+/dev/nvme0n1p1 12582912   88201 12494711     1%  /data
+tmpfs           4091234      92  4091142     1%  /run

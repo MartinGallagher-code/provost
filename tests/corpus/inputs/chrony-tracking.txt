@@ -1,0 +1,7 @@
+Reference ID    : C0A80101 (ntp1.example.com)
+Stratum         : 3
+Ref time (UTC)  : Thu Jul 10 06:00:00 2026
+System time     : 0.000004120 seconds fast
+Last offset     : +0.000041200 seconds
+RMS offset      : 0.000088201 seconds
+Frequency       : 12.442 ppm slow

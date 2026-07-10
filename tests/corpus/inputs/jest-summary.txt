@@ -1,0 +1,4 @@
+Tests:       3 failed, 210 passed, 213 total
+Snapshots:   12 passed, 12 total
+Time:        18.442 s
+Ran all test suites.

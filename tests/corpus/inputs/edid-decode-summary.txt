@@ -1,0 +1,6 @@
+EDID version: 1.4
+Manufacturer: DEL Model 41008 Serial Number 1094861636
+Made in week 40 of 2021
+Digital display
+Maximum image size: 60 cm x 34 cm
+Display supports: RGB 4:4:4

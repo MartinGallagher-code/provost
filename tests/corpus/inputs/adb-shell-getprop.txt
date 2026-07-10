@@ -1,0 +1,5 @@
+[ro.product.model]: [Pixel 8]
+[ro.product.brand]: [google]
+[ro.build.version.release]: [14]
+[ro.build.version.sdk]: [34]
+[dalvik.vm.heapsize]: [512m]

@@ -1,0 +1,7 @@
+
+id 34, type PipeWire:Interface:Node/3
+ 	node.name = "alsa_output.pci-0000_00_1f.3"
+ 	media.class = "Audio/Sink"
+id 48, type PipeWire:Interface:Node/3
+ 	node.name = "alsa_input.usb-Blue_Yeti"
+ 	media.class = "Audio/Source"

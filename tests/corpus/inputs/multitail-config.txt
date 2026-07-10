@@ -1,0 +1,1 @@
+Loaded 3 log files, 442 lines buffered, colorscheme: dark

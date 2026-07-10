@@ -1,0 +1,2 @@
+[example.com.] role: master | serial: 2026071001 | transaction: none
+[test.example.] role: slave | serial: 2026070902 | transaction: none

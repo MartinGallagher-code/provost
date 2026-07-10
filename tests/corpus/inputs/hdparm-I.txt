@@ -1,0 +1,7 @@
+/dev/sda:
+
+ATA device, with non-removable media
+	Model Number:       Samsung SSD 870 EVO 1TB
+	Serial Number:      S1A2B3C4D5E6F7
+	Firmware Revision:  SVT02B6Q
+	Transport:          Serial, SATA 3.3

@@ -1,0 +1,4 @@
+TARGET          SOURCE          FSTYPE   OPTIONS
+/               /dev/sda2       ext4     rw,relatime
+/boot/efi       /dev/sda1       vfat     rw,relatime
+/data           /dev/nvme0n1p1  xfs      rw,noatime

@@ -1,0 +1,6 @@
+message schema {
+  required int64 id;
+  optional binary name (STRING);
+  optional double price;
+  optional int96 created_at;
+}

@@ -1,0 +1,3 @@
+
+device for Office_HP: ipp://192.168.1.50/ipp/print
+device for Lab_Brother: socket://192.168.1.51:9100

@@ -1,0 +1,5 @@
+# conda environments:
+#
+base                     /opt/conda
+ml                    *  /opt/conda/envs/ml
+web                      /opt/conda/envs/web

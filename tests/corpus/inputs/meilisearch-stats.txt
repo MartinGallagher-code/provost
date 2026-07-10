@@ -1,0 +1,6 @@
+
+index: products
+numberOfDocuments: 88201
+isIndexing: false
+fieldDistribution.name: 88201
+fieldDistribution.price: 88201

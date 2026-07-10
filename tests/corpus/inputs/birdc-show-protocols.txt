@@ -1,0 +1,4 @@
+Name       Proto      Table      State  Since         Info
+device1    Device     ---        up     2026-07-01
+kernel1    Kernel     master4    up     2026-07-01
+bgp1       BGP        ---        up     2026-07-01    Established

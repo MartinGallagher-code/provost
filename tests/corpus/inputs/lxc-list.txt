@@ -1,0 +1,4 @@
+NAME       STATE     AUTOSTART   GROUPS   IPV4
+web        RUNNING   1           -        10.0.3.10
+db         RUNNING   1           -        10.0.3.11
+test       STOPPED   0           -        -

@@ -1,0 +1,2 @@
+Name	Namespace	Type	IP	Port	Endpoints
+api	prod	ClusterIP	10.96.44.12	http 8080/TCP	10.244.1.5:8080,10.244.2.7:8080

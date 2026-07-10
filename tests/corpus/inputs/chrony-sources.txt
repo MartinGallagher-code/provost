@@ -1,0 +1,4 @@
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+^* ntp1.example.com              2   10   377    41    +0.412ms
+^- ntp2.example.com              2   10   377    88    -1.204ms
+^+ ntp3.example.com              3   10   377   122    +2.881ms

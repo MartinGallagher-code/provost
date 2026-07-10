@@ -1,0 +1,3 @@
+ID          NAME              PUBLIC-IPV4      REGION   STATUS   SIZE
+398471023   web-fra1-01       159.89.10.4      fra1     active   s-2vcpu-4gb
+398471055   db-fra1-01        159.89.10.9      fra1     active   s-4vcpu-8gb

@@ -1,0 +1,4 @@
+alice:password123
+bob:hunter2
+
+2 password hashes cracked, 0 left

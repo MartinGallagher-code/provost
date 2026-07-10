@@ -1,0 +1,4 @@
+n	NAME	CHART_VERSION	APP_VERSION	DESCRIPTION	total_entries
+1	bitnami/postgresql	15.5.20	16.3.0	PostgreSQL is an open-source relational da...	3
+2	bitnami/redis	19.6.1	7.2.5	Redis is an open source, advanced key-valu...	3
+3	prometheus/prometheus	25.24.0	v2.53.0	Prometheus is a monitoring system and time...	3

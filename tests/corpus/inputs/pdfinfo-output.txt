@@ -1,0 +1,7 @@
+Title:           Quarterly Report
+Author:          Finance Team
+Creator:         LibreOffice
+Pages:           42
+Page size:       595 x 842 pts (A4)
+File size:       1204882 bytes
+PDF version:     1.7

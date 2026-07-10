@@ -1,0 +1,6 @@
+On branch main
+Changes:
+  M src/main.rs
+  M README.md
+  ? notes.txt
+2 staged, 1 unstaged, 1 untracked

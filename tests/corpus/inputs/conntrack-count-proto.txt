@@ -1,0 +1,4 @@
+PROTO   COUNT
+tcp     8214
+udp     412
+icmp    9

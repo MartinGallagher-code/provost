@@ -1,0 +1,4 @@
+mpv 0.38.0 Copyright (C) 2000-2026 mpv/MPlayer/mplayer2 projects
+ built on 2026-06-30
+FFmpeg library versions:
+   libavcodec      61.3.100

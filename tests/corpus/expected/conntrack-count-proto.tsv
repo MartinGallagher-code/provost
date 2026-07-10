@@ -1,0 +1,4 @@
+n	PROTO	COUNT	total_entries
+1	tcp	8214	3
+2	udp	412	3
+3	icmp	9	3

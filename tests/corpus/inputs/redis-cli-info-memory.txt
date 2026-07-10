@@ -1,0 +1,8 @@
+
+# Memory
+used_memory:2147483648
+used_memory_human:2.00G
+used_memory_rss:2415919104
+maxmemory:4294967296
+maxmemory_policy:allkeys-lru
+mem_fragmentation_ratio:1.12

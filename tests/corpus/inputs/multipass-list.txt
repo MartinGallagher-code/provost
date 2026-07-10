@@ -1,0 +1,3 @@
+Name             State       IPv4            Image
+primary          Running     10.0.4.2        Ubuntu 24.04 LTS
+builder          Stopped     --              Ubuntu 22.04 LTS

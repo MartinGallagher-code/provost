@@ -1,0 +1,6 @@
+Runtime
+OS PID: 812
+Total memory used: 214748364
+Uptime (seconds): 1284433
+RabbitMQ version: 3.13.2
+Erlang version: 26.2.5

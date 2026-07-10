@@ -1,0 +1,4 @@
+GROUP        TOPIC     PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG
+billing      orders    0          884210          884215          5
+billing      orders    1          772140          772140          0
+analytics    orders    0          812000          884215          72215

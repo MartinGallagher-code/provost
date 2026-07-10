@@ -1,0 +1,4 @@
+4.2G	/backup/daily.0/
+4.1G	/backup/daily.1/
+4.1G	/backup/daily.2/
+128M	/backup/weekly.0/

@@ -1,0 +1,5 @@
+Data for JOB [12345,1] offset 0 Total slots allocated 16
+========================   JOB MAP   ========================
+Data for node: gpu01	Num slots: 8	Max slots: 8	Num procs: 8
+Data for node: gpu02	Num slots: 8	Max slots: 8	Num procs: 8
+=============================================================

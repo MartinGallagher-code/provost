@@ -1,0 +1,4 @@
+Tool    Version   Source
+node    22.4.1    ~/.mise.toml
+python  3.12.4    ~/.mise.toml
+go      1.22.5    ~/.tool-versions

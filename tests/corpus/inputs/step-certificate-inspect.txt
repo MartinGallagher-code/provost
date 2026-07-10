@@ -1,0 +1,10 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 44201 (0xac99)
+        Signature Algorithm: ECDSA-SHA256
+        Issuer: CN=Example Intermediate CA
+        Validity
+            Not Before: Jul 1 00:00:00 2026 UTC
+            Not After : Sep 29 00:00:00 2026 UTC
+        Subject: CN=api.example.com

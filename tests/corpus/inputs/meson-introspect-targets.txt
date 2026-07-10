@@ -1,0 +1,4 @@
+[
+  {"name": "app", "type": "executable", "filename": ["/build/app"]},
+  {"name": "libcore", "type": "static library", "filename": ["/build/libcore.a"]}
+]

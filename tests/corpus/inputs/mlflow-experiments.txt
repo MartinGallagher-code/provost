@@ -1,0 +1,4 @@
+Experiment Id  Name              Artifact Location
+0              Default           ./mlruns/0
+1              churn-model       s3://ml/churn
+2              fraud-detect      s3://ml/fraud

@@ -1,0 +1,4 @@
+DEVICE   TYPE       STATE                   CONNECTION
+eth0     ethernet   connected               Wired connection 1
+wlan0    wifi       connected               homewifi
+tun0     tun        connected (externally)  --

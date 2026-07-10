@@ -1,0 +1,4 @@
+bash	5.2.21-2ubuntu4
+coreutils	9.4-3ubuntu6
+curl	8.5.0-2ubuntu10.6
+libc6	2.39-0ubuntu8.2

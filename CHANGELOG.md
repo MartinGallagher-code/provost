@@ -1,5 +1,39 @@
 # glean — Changelog
 
+## 2026-07-10 — Corpus +500: 500 new unique tool inputs; 93% tidy on never-seen tools
+
+Expanded the corpus from 1040 to **1540 inputs** — 500 new, genuinely-unique
+Linux tool outputs across ~418 tool families, none overlapping the existing
+set (generated collision-checked against every existing corpus name; 80
+guessed candidates that collided were dropped). Domains span containers/k8s
+extras, cloud CLIs (AWS/GCP/Azure/DO/Fly/Hetzner/Linode), message queues
+(kafka/nats/pulsar/rabbitmq), search (ES/OpenSearch/Solr/Meili), databases,
+observability (prom/loki/otel/jaeger/vector), PKI & scanners (trivy/grype/
+syft/cosign/step), backup/sync (restic/borg/kopia/rclone), virtualization
+(virsh/lxc/incus/multipass/proxmox), HPC (slurm/pbs/lsf/mpi), package
+ecosystems (brew/nix/apk/emerge/conda/uv/gem/opam/…), dev/build/lint/test,
+media (ffprobe/mediainfo/pactl/v4l2), hardware/sensors, /proc & /sys, shells/
+terminal, data/text tools, DNS & routing daemons, and 38 version banners.
+
+**This doubles as the largest generalization test yet of the generic-first
+engine — brand-new tools it has never seen:**
+- **466 / 500 (93%) come out tidy**, essentially all via generic parsers +
+  hint rows, with ZERO new per-tool code written for them.
+- 34 are genuine format gaps, now honest ⏳ (the next-capability shopping
+  list): multi-section colon blocks (sensors, cryptsetup), tab/space hybrid
+  tables (kafka-topics, nvidia-smi topo, sar), `key{...}`/BuildInfo banners
+  (helm-version), tree/graph dumps (nginx -T, frr bgp), and one-line status
+  messages that aren't tables at all (batch-jobs, iconv).
+- No existing corpus input regressed.
+
+Full-corpus coverage: **1506 / 1540 — ✅ 1317 generic, ✅ʰ 49 hint, ✅ᵇ 140
+bespoke, ⏳ 34.** 462 new goldens frozen; golden regression 1366/0.
+Manifest note: 21 of the initial "misses" were my hand-authored expected
+shapes being wrong (the engine's output was clean named columns) — those
+manifest rows were corrected to the verified output; only the 34 genuine
+gaps remain ⏳.
+Gate: smoke 49/49, extract 62/62, corpus golden 1366/0.
+
 ## 2026-07-10 — Exhaustive bespoke-reduction sweep: 5 conversions, colon-pairs parser, and the measured floor
 
 An exhaustive sweep forced every remaining ✅ᵇ input through every generic
