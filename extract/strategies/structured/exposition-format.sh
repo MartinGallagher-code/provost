@@ -127,7 +127,22 @@ strategy_extract () {
         metric_num=$((metric_num + 1))
         result+="metric${metric_num}.name ${mname}"$'\n'
         result+="metric${metric_num}.value ${mvalue}"$'\n'
-        [[ -n "$labels" ]] && result+="metric${metric_num}.labels ${labels}"$'\n'
+        # Split the label set into one label.<key> field per label so the
+        # melted table gets a real column per label key (method, code, cpu…)
+        # instead of a single opaque labels blob.
+        if [[ -n "$labels" ]]; then
+            local _lbl_rest="$labels" _lbl_pair _lbl_key _lbl_val
+            while [[ -n "$_lbl_rest" ]]; do
+                _lbl_pair="${_lbl_rest%%,*}"
+                if [[ "$_lbl_rest" == *,* ]]; then _lbl_rest="${_lbl_rest#*,}"; else _lbl_rest=""; fi
+                _lbl_key="${_lbl_pair%%=*}"
+                _lbl_val="${_lbl_pair#*=}"
+                _lbl_val="${_lbl_val#\"}"; _lbl_val="${_lbl_val%\"}"
+                [[ -z "$_lbl_key" || "$_lbl_key" == "$_lbl_pair" ]] && continue
+                _lbl_key="${_lbl_key//[[:space:]]/}"
+                result+="metric${metric_num}.label_${_lbl_key} ${_lbl_val}"$'\n'
+            done
+        fi
 
     done <<< "$text"
 

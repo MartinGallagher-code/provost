@@ -1,0 +1,8 @@
+# HELP queue_depth Current jobs waiting per queue.
+# TYPE queue_depth gauge
+queue_depth{queue="email",priority="high"} 12
+queue_depth{queue="email",priority="low"} 340
+queue_depth{queue="webhooks",priority="high"} 3
+# HELP worker_restarts_total Worker process restarts.
+# TYPE worker_restarts_total counter
+worker_restarts_total{pool="default"} 7

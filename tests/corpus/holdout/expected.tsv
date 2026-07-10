@@ -1,4 +1,6 @@
+app-metrics	table	4	3
 apt-list	table	4	3
+auth-log	table	4	3
 config-yaml	kv	-	6
 crontab-l	table	3	3
 df-h	table	5	4

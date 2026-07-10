@@ -1,0 +1,4 @@
+Jul 10 06:12:01 bastion sshd[30122]: Accepted publickey for deploy from 10.8.0.4 port 51022 ssh2: ED25519 SHA256:aBcD
+Jul 10 06:12:01 bastion sshd[30122]: pam_unix(sshd:session): session opened for user deploy(uid=1104) by (uid=0)
+Jul 10 06:17:44 bastion sudo[30201]:   deploy : TTY=pts/0 ; PWD=/home/deploy ; USER=root ; COMMAND=/usr/bin/systemctl restart nginx
+Jul 10 06:31:09 bastion CRON[30388]: (root) CMD (/usr/local/bin/healthcheck.sh)

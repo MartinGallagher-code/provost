@@ -8,8 +8,18 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=80
-    # Match BSD syslog timestamp pattern: Mon DD HH:MM:SS
-    [[ "$text" =~ (^|$'\n')[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]]
+    # A syslog CAPTURE is syslog lines throughout — require a majority of
+    # non-blank lines to open with the BSD timestamp (Mon DD HH:MM:SS).
+    # A status block that merely EMBEDS a few journal lines (systemctl
+    # status's log tail) is not a syslog capture and belongs to other
+    # parsers.
+    local line total=0 hits=0
+    while IFS= read -r line; do
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+        total=$((total + 1))
+        [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] && hits=$((hits + 1))
+    done <<< "$text"
+    [[ $total -gt 0 && $((hits * 100 / total)) -ge 50 ]]
 }
 
 strategy_extract () {

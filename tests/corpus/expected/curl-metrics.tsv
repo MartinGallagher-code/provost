@@ -1,4 +1,4 @@
-n	name	value	label.method	label.code	label.handler	meta.http_requests_total.help	meta.http_requests_total.type	meta.http_request_duration_seconds.help	meta.http_request_duration_seconds.type
+n	name	value	label_method	label_code	label_handler	http_requests_total.help	http_requests_total.type	http_request_duration_seconds.help	http_request_duration_seconds.type
 1	http_requests_total	34821	get	200		Total number of HTTP requests.	counter	Request latency in seconds.	summary
 2	http_requests_total	1204	post	200		Total number of HTTP requests.	counter	Request latency in seconds.	summary
 3	http_requests_total	88	get	404		Total number of HTTP requests.	counter	Request latency in seconds.	summary
