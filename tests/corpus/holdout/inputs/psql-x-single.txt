@@ -1,0 +1,6 @@
+-[ RECORD 1 ]--+---------------------------
+relname        | orders_2026_07
+n_live_tup     | 4821730
+n_dead_tup     | 91250
+last_vacuum    | 2026-07-08 03:11:52.11+00
+last_autovacuum| 2026-07-09 22:40:03.87+00

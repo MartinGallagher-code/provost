@@ -1,0 +1,4 @@
+internal.example.io has address 172.16.20.5
+internal.example.io has address 172.16.20.6
+internal.example.io has IPv6 address 2001:db8:beef::5
+internal.example.io mail exchanger = 10 mx.internal.example.io.

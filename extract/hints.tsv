@@ -37,6 +37,7 @@ git-config-list-show-origin	prefix	file:/	line-records
 git-lfs-ls-files	regex	^[0-9a-f]{10} [*-] 	line-records
 git-show-ref	regex	^[0-9a-f]{40} refs/	line-records
 hg-branches	regex	^[a-zA-Z0-9._-]+ +[0-9]+:[0-9a-f]{12}	line-records
+host	regex	 has (address|IPv6 address|mail exchanger|domain name pointer) 	text-lines
 ip-tunnel	regex	^[a-z0-9@]+: [a-z]+/ip remote 	labeled-records
 kotlinc-version	prefix	info: kotlinc-jvm 	line-records
 lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns

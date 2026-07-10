@@ -1,0 +1,12 @@
+  --- Logical volume ---
+  LV Path                /dev/vg1/lv_home
+  LV Name                lv_home
+  VG Name                vg1
+  LV Status              available
+  LV Size                500.00 GiB
+  --- Logical volume ---
+  LV Path                /dev/vg1/lv_var
+  LV Name                lv_var
+  VG Name                vg1
+  LV Status              available
+  LV Size                120.00 GiB
