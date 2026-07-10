@@ -1,0 +1,7 @@
+n	timestamp	hostname	process	pid	message
+1	Jul_07_09_14_00	web01	systemd	1	Starting nginx.service - A high performance web server...
+2	Jul_07_09_14_02	web01	systemd	1	Started nginx.service - A high performance web server.
+3	Jul_07_09_31_15	web01	systemd	1	Stopping nginx.service - A high performance web server...
+4	Jul_07_09_31_15	web01	nginx	812	Gracefully shutting down worker processes
+5	Jul_07_09_31_16	web01	systemd	1	nginx.service: Deactivated successfully.
+6	Jul_07_09_31_16	web01	systemd	1	Stopped nginx.service - A high performance web server.

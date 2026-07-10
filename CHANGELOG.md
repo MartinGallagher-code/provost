@@ -1,5 +1,32 @@
 # glean — Changelog
 
+## 2026-07-10 — Promote exposition-format + syslog to the generic tier (−4 bespoke-covered inputs)
+
+Both parse standard FORMATS, not tools, so they belong in the generic
+directories (the same reasoning that promoted `bracket-log`):
+- `structured/exposition-format` — the Prometheus/OpenMetrics text format.
+  Its extract now splits the label set into one `label_<key>` field per
+  label (method, code, cpu, …) instead of a single opaque `labels` blob, so
+  the melted table gets a real column per label key.
+- `delimited/syslog` — BSD syslog lines. Its detect now requires a
+  MAJORITY of non-blank lines to open with the syslog timestamp, so a
+  status block that merely embeds a journal tail (`systemctl status`) is
+  declined instead of hijacked — caught by the corpus gate during the
+  promotion.
+
+Effects: 4 inputs gained generic goldens (blackbox-probe, journalctl-k,
+journalctl-u, mysqld-exporter), 5 goldens upgraded (arpwatch + journalctl
+from positional mush to timestamp/hostname/process/message; the metrics
+trio keeps split labels), and the two strategies now serve unseen
+prometheus/syslog captures in generic mode — verified by two new holdout
+entries (app-metrics, auth-log), both tidy first try.
+
+Coverage: 1040/1040 — ✅ 852 generic, ✅ʰ 39 hint, ✅ᵇ 149 bespoke.
+Holdout 46 → 48 (48/48 — 32 generic, 13 hint, 3 bespoke). The empty
+`extract/strategies/logging/` category retires (only its HANDOFF remains).
+Gate: smoke 49/49, melt 8/8, extract 63/63, analyze green, corpus golden
+891/0.
+
 ## 2026-07-10 — dns-records generic parser collapses the DNS bespoke family (−6 strategies)
 
 `structured/dns-records` parses the standard BIND presentation format

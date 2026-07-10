@@ -37,7 +37,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | arp-scan | ✅ | arp-scan |
 | arp | ✅ | aligned-columns |
 | arping | ✅ᵇ | arping (bespoke) |
-| arpwatch | ✅ | aligned-columns |
+| arpwatch | ✅ | syslog |
 | atlas-schema-inspect | ✅ | json |
 | atop | ✅ | aligned-columns |
 | atq | ✅ | tsv |
@@ -91,7 +91,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | bazel-version | ✅ | aligned-columns |
 | bcc-funccount | ✅ᵇ | bcc-funccount (bespoke) |
 | biosdecode | ✅ᵇ | biosdecode (bespoke) |
-| blackbox-probe | ✅ᵇ | exposition-format (bespoke) |
+| blackbox-probe | ✅ | exposition-format |
 | blkid-list | ✅ | aligned-columns |
 | blkid | ✅ | labeled-records |
 | blockdev-report | ✅ | aligned-columns |
@@ -181,7 +181,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ctr-images | ✅ | aligned-columns |
 | ctr-snapshots-ls | ✅ | aligned-columns |
 | cupsctl | ✅ | equals |
-| curl-metrics | ✅ | prometheus-query |
+| curl-metrics | ✅ | exposition-format |
 | curl_head | ✅ | yaml |
 | curl_timing | ✅ | yaml |
 | dbmate-status | ✅ᵇ | dbmate-status (bespoke) |
@@ -470,10 +470,10 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | jj-log | ✅ᵇ | jj-log (bespoke) |
 | jmap-histo | ✅ᵇ | jmap-histo (bespoke) |
 | journalctl-boot | ✅ | aligned-columns |
-| journalctl-k | ✅ᵇ | syslog (bespoke) |
+| journalctl-k | ✅ | syslog |
 | journalctl-list-boots | ✅ | aligned-columns |
-| journalctl-u | ✅ᵇ | syslog (bespoke) |
-| journalctl | ✅ | aligned-columns |
+| journalctl-u | ✅ | syslog |
+| journalctl | ✅ | syslog |
 | jq-version | ✅ | text-lines |
 | jq | ✅ | tsv |
 | jstat-gc | ✅ | aligned-columns |
@@ -616,7 +616,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mysql-show-variables | ✅ | psql-table |
 | mysql-status | ✅ | psql-table |
 | mysqladmin-status | ✅ᵇ | mysqladmin-status (bespoke) |
-| mysqld-exporter | ✅ᵇ | exposition-format (bespoke) |
+| mysqld-exporter | ✅ | exposition-format |
 | nats-stream-ls | ✅ | line-records |
 | needrestart | ✅ | yaml |
 | neo4j-status | ✅ | line-records |
@@ -646,7 +646,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nmcli-device-show | ✅ | line-records |
 | nmcli | ✅ | aligned-columns |
 | nmon | ✅ | csv |
-| node-exporter | ✅ | prometheus-query |
+| node-exporter | ✅ | exposition-format |
 | node-version | ✅ | text-lines |
 | node-versions | ✅ | colons |
 | nodetool-compactionstats | ✅ᵇ | nodetool-compactionstats (bespoke) |
@@ -692,7 +692,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | openssl_sclient | ✅ | indented-hierarchy |
 | openvpn-status | ✅ | csv |
 | os-release | ✅ | equals |
-| otelcol-metrics | ✅ | prometheus-query |
+| otelcol-metrics | ✅ | exposition-format |
 | packer-inspect | ✅ | line-records |
 | pacman-Fl | ✅ | line-records |
 | pacman-Qe | ✅ | line-records |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 848 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 153 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 852 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 149 via a bespoke strategy.

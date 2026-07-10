@@ -170,7 +170,10 @@ bespokes, promoted bracket-log to generic), traceroute6 timeout hops
 psql-expanded + dashed-sections (replaced 2 bespokes, upgraded
 pvdisplay/vgdisplay), and dns-records (replaced the 6-strategy DNS family:
 dig-answer/dig-output/dig-mx/dig-txt/drill/host_a; upgraded delv +
-dig_noall_answer goldens). Coverage now ✅ 848 / ✅ʰ 39 / ✅ᵇ 153.
+dig_noall_answer goldens), and the exposition-format + syslog promotions
+to the generic tier (label splitting added; syslog gained a majority-of-
+lines gate so it can't hijack status blocks). Coverage now
+✅ 852 / ✅ʰ 39 / ✅ᵇ 149; holdout 48/48.
 
 ## Tests
 
