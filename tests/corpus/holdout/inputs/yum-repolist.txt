@@ -1,0 +1,4 @@
+repo id                          repo name                                    status
+baseos                           Rocky Linux 9 - BaseOS                       enabled
+appstream                        Rocky Linux 9 - AppStream                    enabled
+epel                             Extra Packages for Enterprise Linux 9        enabled

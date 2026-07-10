@@ -1,0 +1,4 @@
+SNMPv2-MIB::sysDescr.0 = STRING: Linux edge-fw 6.8.0 x86_64
+SNMPv2-MIB::sysUpTime.0 = Timeticks: (988123400) 114 days, 8:27:14.00
+IF-MIB::ifNumber.0 = INTEGER: 6
+IF-MIB::ifOperStatus.2 = INTEGER: up(1)

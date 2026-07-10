@@ -333,7 +333,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gem-info | ✅ | block-records |
 | gem-list-local | ✅ | aligned-columns |
 | gem-list | ✅ | text-lines |
-| getcap | ✅ | line-records |
+| getcap | ✅ʰ | line-records (hint: getcap) |
 | getconf | ✅ʰ | line-records (hint: getconf) |
 | getent-passwd | ✅ | colon-fields |
 | getent_group | ✅ | colon-fields |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 839 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 164 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 838 via a generic parser, ✅ʰ 38 via a hint row, ✅ᵇ 164 via a bespoke strategy.

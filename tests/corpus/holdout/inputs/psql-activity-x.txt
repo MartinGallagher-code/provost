@@ -1,0 +1,14 @@
+-[ RECORD 1 ]---+---------------------------------
+pid             | 20144
+datname         | billing
+usename         | worker
+state           | active
+wait_event_type |
+query           | UPDATE invoices SET paid = true WHERE id = 8812
+-[ RECORD 2 ]---+---------------------------------
+pid             | 20161
+datname         | billing
+usename         | reporter
+state           | idle in transaction
+wait_event_type | Client
+query           | SELECT sum(total) FROM invoices GROUP BY month

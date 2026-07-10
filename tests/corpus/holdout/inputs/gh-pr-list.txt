@@ -1,0 +1,3 @@
+#412  Fix flaky retry test         bugfix/retry-test       OPEN
+#409  Add rate limiter middleware  feat/rate-limit         OPEN
+#398  Bump deps for CVE-2026-1101  chore/deps-cve          MERGED

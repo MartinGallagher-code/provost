@@ -16,6 +16,10 @@ _lastb_is_login () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+    # lastlog's table opens with a "Username Port From Latest" header and its
+    # data rows mimic lastb's login lines — that table belongs to
+    # aligned-columns, not lastb (which has no header).
+    case "$text" in Username[[:space:]]*) return 1 ;; esac
     local line
     while IFS= read -r line; do
         if _lastb_is_login "$line"; then

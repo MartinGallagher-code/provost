@@ -149,21 +149,26 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Next steps
 
-1. **Whittle the ✅ᵇ tail (165 inputs, 141 strategies).** Each survivor either
-   needs a generic-parser feature (multi-line records — the biggest cluster:
-   lvdisplay/lsusb-v/psql-expanded are all "one record over many labeled
-   lines"; transpose+key-slug; number+unit merge — see
-   `docs/columnar-specs-engine.md` for the data-driven columnar precedent) or
-   is genuinely idiosyncratic. New engine features beat new bespokes.
-2. **Grow the holdout set** (`tests/corpus/holdout/`, 24 entries) toward one
-   unseen variant per covered tool, and add locale/width edge cases. Keep new
-   entries landing generic/hint, never bespoke.
+1. **Whittle the ✅ᵇ tail (164 inputs, 140 strategies).** The labeled-record
+   cluster now has two generic parsers (`psql-expanded`, `dashed-sections` —
+   2026-07-10); remaining shapes: transpose+key-slug, number+unit merge,
+   nested descriptor blocks (lsusb-v) — see `docs/columnar-specs-engine.md`
+   for the data-driven columnar precedent. New engine features beat new
+   bespokes.
+2. **Grow the holdout set** (`tests/corpus/holdout/`, 40 entries, 40/40)
+   toward one unseen variant per covered tool, and add locale/width edge
+   cases. Treat every holdout failure as a root-cause parser/detect bug, not
+   an expectation to relax — the 2026-07-10 round fixed four that way
+   (pkg-config header smells, lastb vs lastlog, aligned-columns footer
+   legends).
 3. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
    `glean`-native names (large, internals-only).
 
 Done since the refactor landed: golden-quality audit (restored 13 more
 bespokes, promoted bracket-log to generic), traceroute6 timeout hops
-(coverage 1040/1040), holdout starter set (24/24).
+(coverage 1040/1040), holdout set 24 → 40 (40/40), generic parsers
+psql-expanded + dashed-sections (replaced 2 bespokes, upgraded
+pvdisplay/vgdisplay).
 
 ## Tests
 
