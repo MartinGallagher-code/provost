@@ -181,7 +181,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | bjobs-lsf | ✅ | aligned-columns |
 | blackbox-probe | ✅ | exposition-format |
 | blast-tabular | ✅ | tsv |
-| blender-benchmark | ⏳ | — |
+| blender-benchmark | ✅ | aligned-columns |
 | blkid-all | ✅ | inline-kv |
 | blkid-list | ✅ | aligned-columns |
 | blkid | ✅ | labeled-records |
@@ -649,7 +649,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | free-w | ✅ | aligned-columns |
 | free | ✅ | aligned-columns |
 | freeipmi | ✅ | aligned-columns |
-| frr-show-bgp-summary | ⏳ | — |
+| frr-show-bgp-summary | ✅ | aligned-columns |
 | frr-show-ospf-neighbor | ✅ | aligned-columns |
 | fuser-v | ✅ | aligned-columns |
 | fwupdmgr-get-devices | ✅ʰ | text-lines (hint: fwupdmgr-get-devices) |
@@ -759,7 +759,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | glow-list | ✅ | aligned-columns |
 | gluster-peer-status | ✅ | colons |
 | gluster-volume-info | ✅ | colons |
-| gluster-volume-status | ⏳ | — |
+| gluster-volume-status | ✅ | aligned-columns |
 | glxinfo-summary | ✅ | colons |
 | gnuplot-version | ✅ | line-records |
 | gnutls-cli-info | ✅ | aligned-columns |
@@ -1325,7 +1325,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | node-exporter | ✅ | exposition-format |
 | node-version | ✅ | text-lines |
 | node-versions | ✅ | colons |
-| nodetool-compactionstats | ✅ᵇ | nodetool-compactionstats (bespoke) |
+| nodetool-compactionstats | ✅ | aligned-columns |
 | nodetool-ring | ✅ᵇ | nodetool-ring (bespoke) |
 | nodetool-status | ✅ᵇ | nodetool-status (bespoke) |
 | nodetool-tablestats | ✅ | colons |
@@ -1631,7 +1631,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | pwdx | ✅ | aligned-columns |
 | pyenv-versions | ✅ | line-records |
 | pyperf-run | ✅ | aligned-columns |
-| pytest-benchmark | ⏳ | — |
+| pytest-benchmark | ✅ | aligned-columns |
 | pytest-cov-report | ⏳ | — |
 | pytest-summary | ✅ | text-lines |
 | python-sysconfig | ✅ | block-records |
@@ -1856,7 +1856,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | stow-simulate | ✅ | yaml |
 | strace-summary | ✅ | fixed-width |
 | stratis-pool-list | ✅ | aligned-columns |
-| stream-benchmark | ⏳ | — |
+| stream-benchmark | ✅ | aligned-columns |
 | stress-ng-cpu-cache | ✅ | yaml |
 | stress-ng-metrics | ✅ | yaml |
 | strings-count | ✅ | text-lines |
@@ -2084,7 +2084,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | wandb-sweep-status | ✅ | colons |
 | wasmer-version | ✅ | line-records |
 | wasmtime-version | ✅ | line-records |
-| watch-diff | ⏳ | — |
+| watch-diff | ✅ | aligned-columns |
 | watchexec-run | ✅ | labeled-records |
 | weather-wttr | ✅ | indented-hierarchy |
 | websocat-log | ✅ | bracket-log |
@@ -2159,5 +2159,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 2120 / 2151** — ✅ 1927 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 135 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs blender-benchmark bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief frr-show-bgp-summary gcloud-logging-logs-list getent-group gluster-volume-status hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p promtool-check-rules pueue-status pytest-benchmark pytest-cov-report quota-report sar-cpu scylla-nodetool-status stream-benchmark v4l2-ctl-list-devices vnstat-hourly watch-diff
+**Coverage: 2126 / 2151** — ✅ 1934 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 134 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief gcloud-logging-logs-list getent-group hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p promtool-check-rules pueue-status pytest-cov-report quota-report sar-cpu scylla-nodetool-status v4l2-ctl-list-devices vnstat-hourly

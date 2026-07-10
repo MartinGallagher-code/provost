@@ -196,7 +196,7 @@ expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two 
 expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
 
 
-## Corpus size + gaps (2151 inputs, 31 ⏳ as of 2026-07-10)
+## Corpus size + gaps (2151 inputs, 25 ⏳ as of 2026-07-10)
 
 The corpus grew in two +500 expansions of unique never-before-seen tools
 (0 basename overlap each): **1040 → 1540 → 2040**, a **+99 benchmark-tool set**
@@ -214,7 +214,7 @@ markdown tables (BenchmarkDotNet), **headerless numeric CSV** in
 two parsers that fully closed fio's non-tabular sections: `delimited/semicolon-
 values` (fio terse v3/v5) and `delimited/labeled-inline-kv` (`label: k=v, k=v`
 records — fio disk-stats/run-status/io-depths/latency-dist).
-Coverage is now **2120 / 2151** (✅ 1927 / ✅ʰ 58 / ✅ᵇ 135); golden regression
+Coverage is now **2126 / 2151** (✅ 1934 / ✅ʰ 58 / ✅ᵇ 134); golden regression
 1980 pass / 0 fail / 0 deleted; holdout 68/68.
 
 fio is now fully handled: of its 12 output modes glean tidies 9 (json, bw-log,

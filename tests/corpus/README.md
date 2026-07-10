@@ -41,18 +41,20 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2151 tools tested; 2120 tidy (31 genuine format gaps ⏳)** — after two +500
+**2151 tools tested; 2126 tidy (25 genuine format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 1927 by a generic parser via auto-detection, ✅ʰ 58 by a generic parser
-routed by a hint row, ✅ᵇ 135 by a bespoke strategy. The 31 ⏳ include 5
-fixed-width benchmark tables (stream/pytest/blender/kdiskmark/lzbench) needing
-positional multi-word-header handling. See [`COVERAGE.md`](COVERAGE.md) for the
-live per-tool list.
+total: ✅ 1934 by a generic parser via auto-detection, ✅ʰ 58 by a generic parser
+routed by a hint row, ✅ᵇ 134 by a bespoke strategy. A later positional
+multi-word-header round in `aligned-columns` closed most of the fixed-width
+tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool); the 25 ⏳
+that remain are genuinely hard (headerless first column — kdiskmark;
+single-space multi-word cells — lzbench; nested/2-line-header records). See
+[`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:
 

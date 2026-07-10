@@ -1,5 +1,39 @@
 # glean — Changelog
 
+## 2026-07-10 — Positional multi-word headers + fixed-width banner strip (aligned-columns)
+
+The audited positional-header round. Two capabilities in `aligned-columns`, each
+validated by a full-corpus golden audit:
+
+- **Positional column assignment for multi-word headers.** It now also triggers
+  when the header carries MORE whitespace tokens than the data rows AND its
+  2-space segmentation collapses exactly to the modal data-column count — a
+  genuine multi-word-header table (STREAM's `Best Rate MB/s`, kubectl's
+  `NOMINATED NODE`). The equality is the safety net: single-spaced labels (df's
+  `Used Avail Use%`) under-segment and never match, so numeric tables keep
+  tokenization.
+- **Fixed-width banner strip.** A leading title banner before a fixed-width table
+  is dropped, gated by four discriminators (single-column/decorated-rule banner
+  shape, an all-label header — every token has a letter, none digit-leading,
+  ≥2 two-space segments — digit-bearing data, and header/data at the same
+  indent). Version banners (`Consul v1.18.1`), kv blocks (ipset, xh), logs
+  (git log) and decorated rules (mpirun `==== JOB MAP ====`) are all excluded,
+  each verified by audit.
+
+**Every changed golden audited individually**: 39 modified — all improvements
+(multi-word headers correctly joined AND previously-dropped trailing columns
+recovered: proc-net-arp's 6 columns, kubectl AGE / READINESS_GATES /
+ALLOWED_DISRUPTIONS, arp `Flags_Mask`+Iface, npm `Depended_by`, ss-tcp
+Local/Peer `Address:Port`, unixbench's real header, …). 7 new goldens: the
+target benchmarks (stream-benchmark, blender-benchmark) + 5 bonus recoveries
+from the old hard tail (frr-show-bgp-summary, gluster-volume-status, watch-diff,
+nodetool-compactionstats, pytest-benchmark). **0 goldens deleted.**
+
+Coverage 2120/2151 → **2126 / 2151** (✅ 1934 generic · ✅ʰ 58 · ✅ᵇ 134);
+extract 62/62, smoke 49, melt 10, holdout 68/68. Benchmark corpus now **97/99**
+(only kdiskmark — headerless first column — and lzbench — single-space multi-word
+cells — remain).
+
 ## 2026-07-10 — Two generic parsers close 6 fio output forms
 
 Fully covered fio (its 12 output modes are now all handled — 9 tidy, 3 correctly
