@@ -27,6 +27,8 @@ aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	line-records
 borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
 cabal-freeze	prefix	constraints:	line-records
 cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+	text-lines
+consul-kv-get-recurse	regex	^[a-z0-9_-]+/[a-z0-9_/-]+:[^ ]	block-records
+cpuid-summary	contains	vendor_id = "	block-records
 dbmate-status	contains	Applied: 	dbmate-status
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
@@ -54,7 +56,9 @@ proc-mounts	prefix	proc /proc proc 	aligned-columns
 proc-self-mountinfo	regex	^[0-9]+ [0-9]+ [0-9]+:[0-9]+ / /	aligned-columns
 promtool-query	regex	^[A-Za-z_0-9:]+\{[^}]*\} => 	prometheus-query
 smartctl-health	contains	overall-health self-assessment	block-records
+systemctl-list-units	regex	^ *UNIT +LOAD +ACTIVE	aligned-columns
 tc-filter-show	prefix	filter parent 	text-lines
 tc-qdisc	prefix	qdisc 	text-lines
 telegraf-test	regex	^> [a-z]+,[a-z]	aligned-columns
+tshark-summary	regex	^ *[0-9]+ [0-9.]+ +[0-9a-fA-F.:]+ → 	line-records
 ufw-status-numbered	regex	\[ *[0-9]+\] [0-9]+/(tcp|udp)	aligned-columns

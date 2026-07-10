@@ -1,7 +1,0 @@
-entry1.service_api_log_level info
-entry1.service_api_max_connections 200
-entry1.service_api_timeout 30s
-entry1.service_db_host db.internal.example.com
-entry1.service_db_port 5432
-entry1.service_feature_beta_enabled true
-total_entries 1

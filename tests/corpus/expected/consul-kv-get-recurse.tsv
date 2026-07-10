@@ -1,0 +1,2 @@
+n	service/api/log_level	service/api/max_connections	service/api/timeout	service/db/host	service/db/port	service/feature/beta_enabled
+1	info	200	30s	db.internal.example.com	5432	true

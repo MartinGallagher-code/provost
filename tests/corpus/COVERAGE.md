@@ -160,13 +160,13 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | conntrack-count | ✅ | equals |
 | conntrack | ✅ | inline-kv |
 | consul-catalog-services | ✅ᵇ | pkg-config (bespoke) |
-| consul-kv-get-recurse | ✅ᵇ | consul-kv-get-recurse (bespoke) |
+| consul-kv-get-recurse | ✅ʰ | block-records (hint: consul-kv-get-recurse) |
 | consul-members | ✅ | aligned-columns |
 | consul-operator-raft | ✅ | aligned-columns |
 | containerd-tasks | ✅ | aligned-columns |
 | coredumpctl-info | ✅ | colons |
 | coredumpctl-list | ✅ | aligned-columns |
-| cpuid-summary | ✅ᵇ | cpuid-summary (bespoke) |
+| cpuid-summary | ✅ʰ | block-records (hint: cpuid-summary) |
 | cpupower-frequency | ✅ | indented-hierarchy |
 | cpupower-idle-info | ✅ | key-value |
 | crictl-images | ✅ | aligned-columns |
@@ -615,7 +615,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mysql-show-table-status | ✅ | psql-table |
 | mysql-show-variables | ✅ | psql-table |
 | mysql-status | ✅ | psql-table |
-| mysqladmin-status | ✅ᵇ | mysqladmin-status (bespoke) |
+| mysqladmin-status | ✅ | colon-pairs |
 | mysqld-exporter | ✅ | exposition-format |
 | nats-stream-ls | ✅ | line-records |
 | needrestart | ✅ | yaml |
@@ -941,14 +941,14 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | sysctl-net-ipv4 | ✅ | equals |
 | sysctl | ✅ | equals |
 | systemctl-cat | ✅ | block-records |
-| systemctl-failed | ✅ | aligned-columns |
+| systemctl-failed | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
 | systemctl-list-dependencies | ✅ | tree-view |
 | systemctl-list-jobs | ✅ | aligned-columns |
 | systemctl-list-sockets | ✅ | aligned-columns |
 | systemctl-list-timers | ✅ | aligned-columns |
 | systemctl-list-unit-files | ✅ | aligned-columns |
-| systemctl-list-units | ✅ᵇ | systemctl-list-units (bespoke) |
-| systemctl-list | ✅ | aligned-columns |
+| systemctl-list-units | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
+| systemctl-list | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
 | systemctl-show-environment | ✅ | equals |
 | systemctl-show | ✅ | equals |
 | systemctl-status | ✅ | block-records |
@@ -986,7 +986,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | traceroute | ✅ | traceroute |
 | traceroute6 | ✅ | traceroute |
 | tree | ✅ | tree-view |
-| tshark-summary | ✅ᵇ | tshark-summary (bespoke) |
+| tshark-summary | ✅ʰ | line-records (hint: tshark-summary) |
 | tune2fs-l | ✅ | key-value |
 | turbostat | ✅ | turbostat |
 | udevadm-info-all | ✅ | colons |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 860 via a generic parser, ✅ʰ 39 via a hint row, ✅ᵇ 141 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 859 via a generic parser, ✅ʰ 45 via a hint row, ✅ᵇ 136 via a bespoke strategy.
