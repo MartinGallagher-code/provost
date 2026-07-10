@@ -1,0 +1,13 @@
+entry1.datname orders
+entry1.usename app_rw
+entry1.state active
+entry1.query_start 2026-07-09 14:02:11.482910+00
+entry1.wait_event 
+entry1.query SELECT id, status FROM orders WHERE status = 'pending'
+entry2.datname metrics
+entry2.usename grafana_ro
+entry2.state idle
+entry2.query_start 2026-07-09 13:58:03.001220+00
+entry2.wait_event ClientRead
+entry2.query SELECT now()
+total_entries 2

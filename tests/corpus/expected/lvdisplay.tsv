@@ -1,16 +1,2 @@
-n	---	Logical	volume	total_entries
-1	LV	Path	/dev/vg0/lv_root	15
-2	LV	Name	lv_root	15
-3	VG	Name	vg0	15
-4	LV	UUID	3xF9dK-2aBc-9zQw-7Lmn-4Pqr-8Stu-vWx1Yz	15
-5	read/write	Write	Access	15
-6	time_server1,_2026-05-12_10:22:41_+0100	Creation	host,	15
-7	LV	Status	available	15
-8	#	open	1	15
-9	GiB	Size	<200.00	15
-10	Current	LE	51199	15
-11	Segments	1		15
-12	Allocation	inherit		15
-13	auto	ahead	sectors	15
-14	to_256	currently	set	15
-15	Block	device	253:0	15
+n	section	LV_Path	LV_Name	VG_Name	LV_UUID	LV_Write_Access	LV_Creation_host,_time_server1,_2026-05-12_10:22:41_+0100	LV_Status	#_open	LV_Size	Current_LE	Segments	Allocation	Read_ahead_sectors	-_currently_set_to	Block_device	total_entries
+1	Logical_volume	/dev/vg0/lv_root	lv_root	vg0	3xF9dK-2aBc-9zQw-7Lmn-4Pqr-8Stu-vWx1Yz	read/write		available	1	<200.00 GiB	51199	1	inherit	auto	256	253:0	1

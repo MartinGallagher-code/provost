@@ -568,8 +568,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | lsusb-t | ✅ʰ | text-lines (hint: lsusb-t) |
 | lsusb-v | ✅ᵇ | lsusb-v (bespoke) |
 | lsusb | ✅ | aligned-columns |
-| lvdisplay-m | ✅ᵇ | lvdisplay-m (bespoke) |
-| lvdisplay | ✅ | aligned-columns |
+| lvdisplay-m | ✅ | dashed-sections |
+| lvdisplay | ✅ | dashed-sections |
 | lvs-devices | ✅ | aligned-columns |
 | lvs | ✅ | aligned-columns |
 | lynis-report | ✅ | equals |
@@ -819,7 +819,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | psql-l-plus | ✅ | psql-table |
 | psql-list | ✅ | psql-table |
 | psql-pg-available-extensions | ✅ | psql-table |
-| psql-pg-stat-bgwriter | ✅ | aligned-columns |
+| psql-pg-stat-bgwriter | ✅ | psql-expanded |
 | psql-pg-stat-database | ✅ | psql-table |
 | psql-pg-stat-replication | ✅ | psql-table |
 | psql-pg-stat-user-tables | ✅ | psql-table |
@@ -829,7 +829,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | pulumi-config | ✅ | aligned-columns |
 | pulumi-stack-ls | ✅ | aligned-columns |
 | pulumi-stack-output | ✅ | json |
-| pvdisplay | ✅ | aligned-columns |
+| pvdisplay | ✅ | dashed-sections |
 | pvs-pv-used | ✅ | aligned-columns |
 | pvs | ✅ | aligned-columns |
 | pwck | ✅ | aligned-columns |
@@ -1010,7 +1010,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | vault-secrets-list | ✅ | fixed-width |
 | vault-status | ✅ᵇ | vault-status (bespoke) |
 | velero-backup-get | ✅ | aligned-columns |
-| vgdisplay | ✅ | aligned-columns |
+| vgdisplay | ✅ | dashed-sections |
 | vgs-vg-free | ✅ | aligned-columns |
 | vgs | ✅ | aligned-columns |
 | vmstat-a | ✅ | aligned-columns |
@@ -1048,4 +1048,4 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1040 / 1040** — ✅ 838 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 165 via a bespoke strategy.
+**Coverage: 1040 / 1040** — ✅ 839 via a generic parser, ✅ʰ 37 via a hint row, ✅ᵇ 164 via a bespoke strategy.

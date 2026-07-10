@@ -1,0 +1,20 @@
+entry1.section Volume_group
+entry1.VG_Name vg_data
+entry1.System_ID 
+entry1.Format lvm2
+entry1.Metadata_Areas 2
+entry1.VG_Access read/write
+entry1.VG_Status resizable
+entry1.Cur_LV 3
+entry1.VG_Size <3.64 TiB
+entry1.PE_Size 4.00 MiB
+entry1.Free PE / Size       102400 / 400.00 GiB
+entry1.VG_UUID Zn3kW9-8xYa-2bCd-4eFg-6hIj-1kLm-Op5qRs
+entry2.section Physical_volume
+entry2.PV_Name /dev/sdb1
+entry2.VG_Name vg_data
+entry2.PV_Size <1.82 TiB / not usable 4.00 MiB
+entry2.Allocatable yes
+entry2.PE_Size 4.00 MiB
+entry2.PV_UUID Ab1cD2-eF3g-H4i5-J6k7-L8m9-N0o1-Pq2rSt
+total_entries 2
