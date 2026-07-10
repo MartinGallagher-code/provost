@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	vg_sys-root:	0	104857600	linear	8:2	2048	6
 2	vg_sys-swap:	0	16777216	linear	8:2	104859648	6
 3	vg_data-pool0_tmeta:	0	131072	linear	8:17	2048	6

@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	33	33	00	00	00	01 dev eth0 self permanent	6
 2	01	00	5e	00	00	01 dev eth0 self permanent	6
 3	b8	27	eb	12	34	56 dev eth0 master br0	6

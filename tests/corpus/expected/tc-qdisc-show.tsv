@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	qdisc noqueue 0: dev lo root refcnt 2	4
 2	qdisc fq_codel 0: dev eth0 root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn	4
 3	qdisc pfifo_fast 0: dev eth1 root refcnt 2 bands 3 priomap 1 2 2 2 1 2 0 0	4

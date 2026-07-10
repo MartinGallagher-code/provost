@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	Django==4.2.7						7
 2	-	asgiref	[required:	>=3.6.0,<4,	installed:	3.7.2]	7
 3	-	sqlparse	[required:	>=0.3.1,	installed:	0.4.4]	7

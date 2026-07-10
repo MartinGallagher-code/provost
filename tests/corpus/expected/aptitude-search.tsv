@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	i   curl                            - command line tool for transferring data with URL syntax	7
 2	i A libcurl4                        - easy-to-use client-side URL transfer library	7
 3	p   curl-dbgsym                     - debug symbols for curl	7

@@ -1,4 +1,4 @@
-n	c1	c2	total_entries
+n	A	B	total_entries
 1	PAGE_SIZE	4096	8
 2	_NPROCESSORS_ONLN	8	8
 3	_NPROCESSORS_CONF	8	8

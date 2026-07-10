@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	c7	c8	c9	c10	c11	total_entries
+n	A	B	C	D	E	F	G	H	I	J	K	total_entries
 1	23	28	0:21	/	/proc	rw,nosuid,nodev,noexec,relatime	shared:14	-	proc	proc	rw	6
 2	24	28	0:22	/	/sys	rw,nosuid,nodev,noexec,relatime	shared:2	-	sysfs	sysfs	rw	6
 3	25	28	0:5	/	/dev	rw,nosuid	shared:8	-	devtmpfs	devtmpfs	rw,size=8151234k,mode=755	6

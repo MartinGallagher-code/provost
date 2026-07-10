@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	filter parent 1: protocol ip pref 49152 fw chain 0	4
 2	filter parent 1: protocol ip pref 1 u32 chain 0	4
 3	filter parent 1: protocol ip pref 1 u32 chain 0 fh 800: ht divisor 1	4

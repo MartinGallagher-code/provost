@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	total_entries
+n	A	B	C	D	E	total_entries
 1	example.com.	86400	IN	A	93.184.216.34	6
 2	www.example.com.	86400	IN	CNAME	example.com.	6
 3	example.com.	86400	IN	MX	10 mail.example.com.	6

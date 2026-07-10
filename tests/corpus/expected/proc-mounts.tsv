@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime	0	0	7
 2	sysfs	/sys	sysfs	rw,nosuid,nodev,noexec,relatime	0	0	7
 3	/dev/sda1	/	ext4	rw,relatime	0	0	7

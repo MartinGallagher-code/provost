@@ -1,4 +1,4 @@
-n	c1	total_entries
+n	A	total_entries
 1	zlib                       zlib - zlib compression library	6
 2	openssl                    OpenSSL - Secure Sockets Layer and cryptography libraries	6
 3	libcurl                    libcurl - Library to transfer files with ftp, http, etc.	6

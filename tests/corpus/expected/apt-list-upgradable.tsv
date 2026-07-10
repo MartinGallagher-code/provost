@@ -1,4 +1,4 @@
-n	c1	c2	c3	c4	c5	c6	total_entries
+n	A	B	C	D	E	F	total_entries
 1	libssl3/jammy-security	3.0.2-0ubuntu1.15	amd64	[upgradable	from:	3.0.2-0ubuntu1.12]	6
 2	openssl/jammy-security	3.0.2-0ubuntu1.15	amd64	[upgradable	from:	3.0.2-0ubuntu1.12]	6
 3	curl/jammy-updates	7.81.0-1ubuntu1.16	amd64	[upgradable	from:	7.81.0-1ubuntu1.15]	6

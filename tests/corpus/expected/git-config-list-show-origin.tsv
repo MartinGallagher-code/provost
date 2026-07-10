@@ -1,4 +1,4 @@
-n	c1	c2	c3	total_entries
+n	A	B	C	total_entries
 1	file:/home/user/glean/.git/config	user.name=Jane	Developer	8
 2	file:/home/user/glean/.git/config	user.email=jane@example.com		8
 3	file:/etc/gitconfig	core.editor=vim		8
