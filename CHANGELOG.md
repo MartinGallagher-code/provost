@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-10 — Close 6 of the 34 corpus gaps (json-array rewrite, box-table parser, 2 hints)
+
+Worked the format gaps the +500 expansion surfaced, closing the ones with a
+genuine generic home (no memorization) and leaving the rest as an honest ⏳
+capability shopping list. Coverage 1506 → **1512 / 1540**; ⏳ 34 → 28.
+
+- **json-array rewritten as a real JSON scanner.** It previously only handled
+  objects spread over multiple lines; compact one-object-per-line arrays
+  (`[{"a":1,"b":2},…]` — what rclone, shellcheck, meson-introspect and most
+  `--format json` tools emit) produced nothing. The new char-scanner handles
+  both shapes and correctly skips nested objects/arrays as values — which also
+  fixed docker/podman-inspect goldens (the old code emitted a garbage `Args [`
+  cell from a nested array). Closes rclone-lsjson, shellcheck-json,
+  meson-introspect-targets.
+- **New `delimited/box-table` parser** for Unicode box-drawing tables
+  (`│` cells, `─┼╭╮╰╯` borders) — the format modern Rust/Python CLIs render
+  (pdm, gum, glow, …). Closes pdm-list and generalizes; it only fires on a
+  genuine `─`-rule + `│`-row, so ASCII tables stay with psql-table and tree
+  output is untouched. (Also incidentally gave hexyl-output a real
+  offset/hex/ascii tidy instead of its old 1-column box-border garbage.)
+- **2 hint rows** (verified clean, not shape-only): iw-dev-scan-summary and
+  nvidia-smi-topo → aligned-columns.
+
+The remaining 28 ⏳ are genuinely non-tabular (weather ASCII art, one-line
+version banners / error messages, prose status, nginx config, Go `BuildInfo{}`
+struct printing) or need real new capability (2-column tables whose last
+column is free text — spin/vagrant/bluetoothctl/ansible-galaxy/go-test;
+sysstat timestamp+%% headers — sar-cpu; nested tab records — kafka-topics).
+Forcing them would be memorization, so they stay honest ⏳.
+
+Coverage: 1512/1540 — ✅ 1321 generic, ✅ʰ 51 hint, ✅ᵇ 140 bespoke, ⏳ 28.
+Gate: smoke 49/49, melt 8/8, extract 62/62, analyze green, golden 1372/0.
+
 ## 2026-07-10 — Corpus +500: 500 new unique tool inputs; 93% tidy on never-seen tools
 
 Expanded the corpus from 1040 to **1540 inputs** — 500 new, genuinely-unique

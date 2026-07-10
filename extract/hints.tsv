@@ -41,11 +41,13 @@ git-show-ref	regex	^[0-9a-f]{40} refs/	line-records
 hg-branches	regex	^[a-zA-Z0-9._-]+ +[0-9]+:[0-9a-f]{12}	line-records
 host	regex	 has (address|IPv6 address|mail exchanger|domain name pointer) 	text-lines
 ip-tunnel	regex	^[a-z0-9@]+: [a-z]+/ip remote 	labeled-records
+iw-dev-scan-summary	regex	^BSS +SIGNAL +FREQ	aligned-columns
 kotlinc-version	prefix	info: kotlinc-jvm 	line-records
 lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
 lsusb-t	prefix	/:  Bus	text-lines
 mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
 nft-list-tables	regex	^table [^{]+$	line-records
+nvidia-smi-topo	contains	CPU Affinity	aligned-columns
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
 pip-deps	regex	^[A-Za-z0-9._-]+==[0-9]	line-records
 pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines

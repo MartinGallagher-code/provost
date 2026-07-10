@@ -1,0 +1,3 @@
+n	name	type	total_entries
+1	app	executable	2
+2	libcore	static_library	2

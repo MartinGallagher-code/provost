@@ -194,6 +194,27 @@ retargeted to line-records (aligned-columns returns empty on ragged
 mixed-width rows — found by the holdout). Coverage now
 ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66.
 
+
+## Corpus format gaps (28 remaining ⏳ as of 2026-07-10)
+
+The +500 corpus expansion surfaced 34 gaps; 6 were closed (json-array
+single-line rewrite, box-table parser, iw-dev-scan/nvidia-smi-topo hints).
+The remaining 28 are deliberately left ⏳ — closing them requires either new
+generic capability or is genuinely-not-a-dataset:
+- **2-col tables, free-text last column** (aligned-columns can't split a
+  header's single-spaced labels from a multi-word value): spin-templates-list,
+  vagrant-status, bluetoothctl-devices, ansible-galaxy-list, go-test-summary.
+  Needs a "first-token = key, rest = value" generic mode.
+- **sysstat timestamp + %% headers**: sar-cpu (header row is data values).
+- **nested tab records**: kafka-topics-describe.
+- **genuinely non-tabular** (correct ⏳, not datasets): weather-wttr (ASCII
+  art), dart-version / iconv-list-count / batch-jobs / glab-ci-status
+  (one-liners), helm-version-full (Go `BuildInfo{}` struct), nginx-T-servers
+  (config), cosign-verify / tofu-plan-summary / jless-navigate (prose),
+  xrandr-query, apachectl-S, apk-policy, cryptsetup-status, promtool-check-rules,
+  radvd-status, tokei-output, v4l2-ctl-list-devices, vboxmanage-list-vms,
+  frr-show-bgp-summary, gcloud-logging-logs-list.
+
 ## Tests
 
 ```bash

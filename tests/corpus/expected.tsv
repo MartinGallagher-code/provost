@@ -1067,7 +1067,7 @@ restic-snapshots	table	3	5
 restic-stats	kv	-	2
 borg-info	kv	-	2
 borg-list-archives	table	3	3
-rclone-lsjson	text	-	2
+rclone-lsjson	table	2	2
 rclone-about	kv	-	2
 kopia-snapshot-list	text	-	2
 rsync-stats	kv	-	2
@@ -1148,7 +1148,7 @@ make-dry-run	text	-	2
 cmake-build-summary	text	-	2
 ctest-summary	text	-	2
 ninja-summary	text	-	2
-meson-introspect-targets	text	-	2
+meson-introspect-targets	table	2	2
 bazel-query-deps	text	-	1
 gradle-tasks	text	-	2
 mvn-versions-display	text	-	2
@@ -1156,7 +1156,7 @@ pytest-summary	text	-	2
 jest-summary	text	-	2
 go-test-summary	table	3	2
 cargo-test-summary	text	-	2
-shellcheck-json	text	-	2
+shellcheck-json	table	2	2
 hadolint-output	table	3	3
 ruff-check	table	3	3
 eslint-stylish	text	-	2

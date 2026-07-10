@@ -603,7 +603,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | helm-status | ✅ | aligned-columns |
 | helm-version-full | ⏳ | — |
 | helmfile-list | ✅ | aligned-columns |
-| hexyl-output | ✅ | text-lines |
+| hexyl-output | ✅ | box-table |
 | hg-branches | ✅ʰ | line-records (hint: hg-branches) |
 | hg-heads | ✅ | block-records |
 | hg-log | ✅ | block-records |
@@ -679,7 +679,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | iptables-nvL | ✅ᵇ | iptables-nvL (bespoke) |
 | iptables-save | ✅ | iptables-save |
 | istioctl-proxy-status | ✅ | aligned-columns |
-| iw-dev-scan-summary | ⏳ | — |
+| iw-dev-scan-summary | ✅ʰ | aligned-columns (hint: iw-dev-scan-summary) |
 | iw-dev | ✅ | aligned-columns |
 | iw-station-dump | ✅ | colons |
 | iwconfig | ✅ | indented-hierarchy |
@@ -862,7 +862,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | meilisearch-stats | ✅ | yaml |
 | memcached-stats-items | ✅ | memcached-stats |
 | memcached-stats | ✅ | memcached-stats |
-| meson-introspect-targets | ⏳ | — |
+| meson-introspect-targets | ✅ | json-array |
 | mii-tool | ✅ʰ | labeled-records (hint: mii-tool) |
 | miller-cat-csv | ✅ | csv |
 | mise-ls | ✅ | aligned-columns |
@@ -986,7 +986,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | numastat | ✅ᵇ | numastat (bespoke) |
 | nvcc-version | ✅ | aligned-columns |
 | nvidia-smi-q | ✅ | block-records |
-| nvidia-smi-topo | ⏳ | — |
+| nvidia-smi-topo | ✅ʰ | aligned-columns (hint: nvidia-smi-topo) |
 | nvidia-smi | ✅ | psql-table |
 | nvme-error-log | ✅ | colons |
 | nvme-id-ctrl | ✅ | aligned-columns |
@@ -1035,7 +1035,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | pcp-pmstat | ✅ᵇ | pcp-pmstat (bespoke) |
 | pct-list | ✅ | aligned-columns |
 | pdfinfo-output | ✅ | key-value |
-| pdm-list | ⏳ | — |
+| pdm-list | ✅ | box-table |
 | pdns-control-list-zones | ✅ | line-records |
 | perf-list | ✅ | aligned-columns |
 | perf-report | ✅ | aligned-columns |
@@ -1216,7 +1216,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rbenv-versions | ✅ | line-records |
 | rc-status | ✅ᵇ | rc-status (bespoke) |
 | rclone-about | ✅ | yaml |
-| rclone-lsjson | ⏳ | — |
+| rclone-lsjson | ✅ | json-array |
 | readelf-header | ✅ | key-value |
 | readelf-sections | ✅ᵇ | readelf-sections (bespoke) |
 | recutils-recsel | ✅ | block-records |
@@ -1298,7 +1298,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | sestatus-v | ✅ | key-value |
 | sestatus | ✅ | key-value |
 | sfdisk-l | ✅ᵇ | fdisk (bespoke) |
-| shellcheck-json | ⏳ | — |
+| shellcheck-json | ✅ | json-array |
 | showmount-e | ✅ | aligned-columns |
 | sinfo-nodes | ✅ | aligned-columns |
 | size | ✅ | tsv |
@@ -1548,5 +1548,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 1506 / 1540** — ✅ 1317 via a generic parser, ✅ʰ 49 via a hint row, ✅ᵇ 140 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S apk-policy batch-jobs bluetoothctl-devices cosign-verify cryptsetup-status dart-version frr-show-bgp-summary gcloud-logging-logs-list glab-ci-status go-test-summary helm-version-full iconv-list-count iw-dev-scan-summary jless-navigate kafka-topics-describe meson-introspect-targets nginx-T-servers nvidia-smi-topo pdm-list promtool-check-rules radvd-status rclone-lsjson sar-cpu shellcheck-json spin-templates-list tofu-plan-summary tokei-output v4l2-ctl-list-devices vagrant-status vboxmanage-list-vms weather-wttr xrandr-query
+**Coverage: 1512 / 1540** — ✅ 1321 via a generic parser, ✅ʰ 51 via a hint row, ✅ᵇ 140 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S apk-policy batch-jobs bluetoothctl-devices cosign-verify cryptsetup-status dart-version frr-show-bgp-summary gcloud-logging-logs-list glab-ci-status go-test-summary helm-version-full iconv-list-count jless-navigate kafka-topics-describe nginx-T-servers promtool-check-rules radvd-status sar-cpu spin-templates-list tofu-plan-summary tokei-output v4l2-ctl-list-devices vagrant-status vboxmanage-list-vms weather-wttr xrandr-query
