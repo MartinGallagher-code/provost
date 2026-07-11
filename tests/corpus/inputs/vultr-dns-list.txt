@@ -1,0 +1,4 @@
+DOMAIN                  DATE CREATED
+example.com             2025-11-02T09:14:22+00:00
+acme-store.io           2026-01-14T14:08:19+00:00
+staging-app.dev         2026-05-27T02:00:03+00:00

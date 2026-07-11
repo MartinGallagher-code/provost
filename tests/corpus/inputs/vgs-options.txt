@@ -1,0 +1,3 @@
+  VG    #PV #LV #SN Attr   VSize    VFree   MaxLV  MaxPV
+  vg0     3   4   0 wz--n- <2.73t   1.99t       0      0
+  vg_ssd  1   2   0 wz--n- 931.51g  128.00g     0      0

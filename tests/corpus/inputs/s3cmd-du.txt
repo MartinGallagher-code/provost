@@ -1,0 +1,3 @@
+412481024000   88214 objects s3://media-assets/
+1478135156736    1204 objects s3://db-backups/
+ 94578901234  331902 objects s3://user-uploads/

@@ -1,0 +1,4 @@
+n	id	name	instance_name	database_name	status	size	created_at	total_entries
+1	7f2a1b3c-4d5e-6f70	prod-pg-daily-20260710	prod-pg	appdb	ready	4210884096	2026-07-10T02:00:14Z	3
+2	8a3b2c4d-5e6f-7081	prod-pg-daily-20260709	prod-pg	appdb	ready	4198301184	2026-07-09T02:00:11Z	3
+3	9b4c3d5e-6f70-8192	analytics-weekly-20260707	analytics-pg	metrics	ready	18240110592	2026-07-07T03:00:52Z	3

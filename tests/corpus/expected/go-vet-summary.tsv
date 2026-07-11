@@ -1,0 +1,7 @@
+n	A	B	C	D	total_entries
+1	# github.com/acme/svc/internal/handler				6
+2	./handler.go	52	2	 unreachable code	6
+3	./handler.go	88	6	 result of fmt.Sprintf call not used	6
+4	# github.com/acme/svc/internal/store				6
+5	./store.go	14	9	 Printf format %d has arg name of wrong type string	6
+6	./store.go	120	3	 lock copies value of type sync.Mutex	6

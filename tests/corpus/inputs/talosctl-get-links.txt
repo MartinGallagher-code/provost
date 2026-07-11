@@ -1,0 +1,5 @@
+NODE        NAMESPACE   TYPE         ID          VERSION   TYPE      KIND      HW ADDR             OPER STATE   LINK STATE
+10.5.0.2    network     LinkStatus   eth0        4         ether               52:54:00:a1:b2:c3   up           true
+10.5.0.2    network     LinkStatus   lo          2         loopback            00:00:00:00:00:00   unknown      true
+10.5.0.2    network     LinkStatus   cni0        6         ether     bridge    9a:1f:22:0d:e4:55   up           true
+10.5.0.2    network     LinkStatus   flannel.1   3         ether     vxlan     0e:22:9a:11:cc:80   unknown      true

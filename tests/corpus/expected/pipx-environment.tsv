@@ -1,0 +1,2 @@
+PIPX_HOME	PIPX_BIN_DIR	PIPX_LOCAL_VENVS	PIPX_TRAMPOLINE_DIR	PIPX_LOG_DIR
+/home/dev/.local/pipx	/home/dev/.local/bin	/home/dev/.local/pipx/venvs	/home/dev/.local/pipx/trampolines	/home/dev/.local/pipx/logs

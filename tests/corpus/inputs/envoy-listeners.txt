@@ -1,0 +1,4 @@
+ingress_http::0.0.0.0:8080
+ingress_https::0.0.0.0:8443
+egress_tcp::0.0.0.0:15001
+admin::127.0.0.1:9901

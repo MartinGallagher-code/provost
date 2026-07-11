@@ -1,0 +1,4 @@
+ID                      STATE      NAME        SIZE    REGION    ZONE    ENCRYPTED    ATTACHED VM       CREATED AT
+vol_9f2a1b3c4d5e6f7g    created    pgdata      10GB    iad       7a91    true         148ed2ef1c3489    2026-06-14T10:44:57Z
+vol_1a2b3c4d5e6f7g8h    created    pgdata      10GB    lhr       0e3f    true         3d8f11ab904782    2026-06-14T10:45:02Z
+vol_2b3c4d5e6f7g8h9i    created    uploads     50GB    iad       7a91    true                           2026-07-01T14:22:19Z

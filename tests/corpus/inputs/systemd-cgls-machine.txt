@@ -1,0 +1,7 @@
+Machine container-web1
+  Leader: 4821 (systemd)
+  └─payload
+    ├─1 /sbin/init
+    ├─48 /lib/systemd/systemd-journald
+    ├─72 /lib/systemd/systemd-networkd
+    └─101 /usr/bin/nginx -g daemon off;

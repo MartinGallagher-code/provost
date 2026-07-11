@@ -1,0 +1,5 @@
+Project              Path                       Version
+@acme/core           packages/core             1.4.0
+@acme/utils          packages/utils            1.4.0
+@acme/api            services/api              2.1.3
+@acme/web            apps/web                  3.0.1

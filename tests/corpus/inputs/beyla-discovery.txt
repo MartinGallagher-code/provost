@@ -1,0 +1,5 @@
+PID    EXE                     PORT   PROTOCOL   SERVICE            LANGUAGE
+4412   /app/api-server         8080   http       api-gateway        go
+5531   /usr/bin/python3        5000   http       inventory          python
+6620   /app/cart               8081   grpc       cart-service       go
+7714   /usr/lib/jvm/java       9090   http       reports            java

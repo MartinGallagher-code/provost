@@ -1,0 +1,6 @@
+   Vendoring anyhow v1.0.86 (/home/dev/.cargo/registry) to vendor/anyhow
+   Vendoring bytes v1.6.0 (/home/dev/.cargo/registry) to vendor/bytes
+   Vendoring libc v0.2.155 (/home/dev/.cargo/registry) to vendor/libc
+   Vendoring serde v1.0.203 (/home/dev/.cargo/registry) to vendor/serde
+   Vendoring tokio v1.38.0 (/home/dev/.cargo/registry) to vendor/tokio
+To use vendored sources, add this to your .cargo/config.toml:

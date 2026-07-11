@@ -1,0 +1,10 @@
+Unit Testing rules/tests/api_test.yml
+  SUCCESS
+
+Unit Testing rules/tests/node_test.yml
+  SUCCESS
+
+Unit Testing rules/tests/slo_test.yml
+  FAILED:
+    alertname: HighErrorRate, time: 5m
+        exp:1 got:0

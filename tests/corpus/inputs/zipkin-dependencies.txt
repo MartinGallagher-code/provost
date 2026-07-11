@@ -1,0 +1,6 @@
+parent          child            callCount   errorCount
+gateway         auth-service    18422       12
+gateway         cart-service    15903       0
+cart-service    redis           15900       3
+cart-service    orders-db       9021        41
+orders-service  payments        4410        88

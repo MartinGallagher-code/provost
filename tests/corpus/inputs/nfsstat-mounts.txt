@@ -1,0 +1,6 @@
+Flags: rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp
+
+nas01:/export/home mounted on /mnt/home:
+
+  op/s      rpc bklog
+ 142.30      0.00

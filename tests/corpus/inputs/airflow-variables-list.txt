@@ -1,0 +1,6 @@
+key                    value
+etl_batch_size         5000
+max_active_runs        4
+slack_alert_channel    #data-alerts
+feature_flag_v2        true
+model_registry_uri     s3://models/registry

@@ -1,0 +1,8 @@
+rbd image 'vm-101-disk-0':
+	size 64 GiB in 16384 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 2
+	id: 3a9f2b1c8d7e
+	block_name_prefix: rbd_data.3a9f2b1c8d7e
+	format: 2
+	features: layering, exclusive-lock, object-map, fast-diff, deep-flatten

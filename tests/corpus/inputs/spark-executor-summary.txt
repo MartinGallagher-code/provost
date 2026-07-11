@@ -1,0 +1,5 @@
+Executor ID   Address              Cores  Active Tasks  Failed Tasks  Complete Tasks  RDD Blocks  Storage Memory
+driver        10.0.2.4:41029           0             0             0               0           0  384.1 MiB
+1             10.0.2.11:38771          4             2             0             184          12  1.2 GiB
+2             10.0.2.12:44003          4             3             1             177           9  1.2 GiB
+3             10.0.2.13:39120          4             0             0             203          15  1.2 GiB

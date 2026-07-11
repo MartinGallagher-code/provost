@@ -1,0 +1,6 @@
+$ step ca provisioner list --ca-url https://ca.example.internal | jq -r '.[]|[.type,.name]|@tsv'
+TYPE       NAME              CLAIMS
+JWK        admin@example     default
+OIDC       google            default
+ACME       acme              default
+X5C        x5c-agents        maxTLSCertDuration=24h

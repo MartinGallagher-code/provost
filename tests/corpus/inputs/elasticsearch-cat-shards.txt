@@ -1,0 +1,7 @@
+index      shard prirep state      docs   store ip           node
+logs-000012 0    p     STARTED 8421002  4.2gb 10.1.0.21   es-data-0
+logs-000012 0    r     STARTED 8421002  4.2gb 10.1.0.22   es-data-1
+logs-000012 1    p     STARTED 8398441  4.1gb 10.1.0.22   es-data-1
+logs-000012 1    r     STARTED 8398441  4.1gb 10.1.0.23   es-data-2
+metrics-000004 0 p     STARTED 1200338  612mb 10.1.0.23   es-data-2
+metrics-000004 0 r     UNASSIGNED -      -     -           -

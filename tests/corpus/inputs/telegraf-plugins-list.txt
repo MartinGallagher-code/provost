@@ -1,0 +1,14 @@
+inputs:
+  cpu
+  disk
+  diskio
+  mem
+  net
+  procstat
+  postgresql
+outputs:
+  influxdb_v2
+  prometheus_client
+processors:
+  regex
+  enum

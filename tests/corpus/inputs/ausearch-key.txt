@@ -1,0 +1,5 @@
+$ ausearch -k passwd_changes --format text
+TIME                    EVENT    KEY              SUMMARY
+07/11/2026 09:12:44     1420     passwd_changes   root opened /etc/passwd
+07/11/2026 09:13:01     1425     passwd_changes   root modified /etc/shadow
+07/11/2026 10:02:18     1471     passwd_changes   admin opened /etc/passwd

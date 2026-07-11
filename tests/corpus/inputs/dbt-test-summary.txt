@@ -1,0 +1,7 @@
+14:22:31  Running 6 tests
+14:22:33  PASS not_null_orders_order_id ........................... [PASS in 1.42s]
+14:22:33  PASS unique_orders_order_id ............................. [PASS in 1.51s]
+14:22:34  PASS accepted_values_orders_status ...................... [PASS in 0.88s]
+14:22:35  WARN not_null_customers_email ........................... [WARN 12 in 1.10s]
+14:22:36  FAIL relationships_orders_customer_id .................. [FAIL 3 in 2.03s]
+14:22:36  Done. PASS=3 WARN=1 ERROR=1 SKIP=0 TOTAL=6

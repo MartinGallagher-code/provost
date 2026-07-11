@@ -1,0 +1,4 @@
+type                    name              last_updated
+Listener                ingress_http      2026-07-10T08:14:22Z
+Cluster                 service_backend   2026-07-10T08:14:20Z
+RouteConfiguration      local_route       2026-07-10T08:14:22Z

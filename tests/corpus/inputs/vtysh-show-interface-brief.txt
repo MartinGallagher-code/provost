@@ -1,0 +1,5 @@
+Interface       Status  VRF      Addresses
+eth0            up      default  10.0.0.1/24
+eth1            up      default  192.0.2.1/30
+lo              up      default  10.255.0.1/32
+tunnel0         down    default  -

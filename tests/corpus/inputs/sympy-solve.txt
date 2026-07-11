@@ -1,0 +1,8 @@
+>>> solve(Eq(x**2 - 5*x + 6, 0), x)
+[2, 3]
+>>> solve(Eq(sin(x), 0), x)
+[0, pi]
+>>> integrate(x**2, x)
+x**3/3
+>>> diff(cos(x), x)
+-sin(x)

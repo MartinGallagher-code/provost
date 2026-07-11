@@ -1,0 +1,7 @@
+  4a3e20 T main.main
+  4a4180 T main.parseFlags
+  4c9a00 D runtime.buildVersion
+  4ca100 B main.globalCache
+  4a5c40 T net/http.(*Server).ListenAndServe
+  4b1220 R runtime.typelink
+  000000 U syscall.Syscall

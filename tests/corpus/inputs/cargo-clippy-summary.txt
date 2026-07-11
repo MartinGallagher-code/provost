@@ -1,0 +1,7 @@
+lint                              level    count
+clippy::needless_return          warn     14
+clippy::redundant_clone          warn     6
+clippy::single_char_pattern      warn     3
+clippy::too_many_arguments       warn     2
+clippy::unwrap_used              deny     1
+warning: `myapp` generated 25 warnings

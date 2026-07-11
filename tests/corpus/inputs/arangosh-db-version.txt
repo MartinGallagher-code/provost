@@ -1,0 +1,12 @@
+{
+  "server" : "arango",
+  "license" : "community",
+  "version" : "3.11.8",
+  "details" : {
+    "architecture" : "64bit",
+    "build-date" : "2026-04-12 10:22:04",
+    "engine" : "rocksdb",
+    "mode" : "server",
+    "platform" : "linux"
+  }
+}

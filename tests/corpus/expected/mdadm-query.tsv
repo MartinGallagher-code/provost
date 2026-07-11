@@ -1,0 +1,3 @@
+n	A	total_entries
+1	/dev/md0: 3.63TiB raid5 4 devices, 1 spare. Use mdadm --detail for more detail.	2
+2	/dev/sda1: device 0 in 4 device active raid5 /dev/md0.  Use mdadm --examine for more detail.	2

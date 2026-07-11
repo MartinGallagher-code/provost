@@ -1,0 +1,5 @@
+NVME Namespace Identification Descriptors NS 1:
+nguid   : 0025385a71b12f4d0000000000000001
+eui64   : 0025385a71b12f4d
+csi     : 0
+nidt 3  : 4e564d6531323334

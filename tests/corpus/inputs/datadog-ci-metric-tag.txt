@@ -1,0 +1,5 @@
+metric                          type    tags                                value
+ci.pipeline.duration            gauge   repo:web,branch:main                412.3
+ci.job.duration                 gauge   repo:web,job:build                  188.1
+ci.job.duration                 gauge   repo:web,job:test                   224.2
+ci.pipeline.status              count   repo:web,status:success             1

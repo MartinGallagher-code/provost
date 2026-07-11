@@ -1,0 +1,7 @@
+n	A	total_entries
+1	=== jsmith@example.com Apps	6
+2	acme-api                  (eco)	6
+3	acme-web                  (standard-1x)	6
+4	acme-worker               (standard-2x)	6
+5	=== Collaborated Apps	6
+6	shared-analytics          jane@example.com  (eco)	6

@@ -1,0 +1,4 @@
+Name              Address       Port  Status  Leader  Region
+srv-01.global     10.0.1.10     4648  alive   true    global
+srv-02.global     10.0.1.11     4648  alive   false   global
+srv-03.global     10.0.1.12     4648  alive   false   global

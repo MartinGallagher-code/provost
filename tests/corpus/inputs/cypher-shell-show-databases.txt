@@ -1,0 +1,8 @@
++-----------------------------------------------------------------------------------+
+| name        | type       | access       | address          | role      | currentStatus |
++-----------------------------------------------------------------------------------+
+| "neo4j"     | "standard" | "read-write" | "10.0.4.11:7687" | "primary" | "online"      |
+| "system"    | "system"   | "read-write" | "10.0.4.11:7687" | "primary" | "online"      |
+| "movies"    | "standard" | "read-only"  | "10.0.4.12:7687" | "secondary"| "online"     |
+| "analytics" | "standard" | "read-write" | "10.0.4.11:7687" | "primary" | "online"      |
++-----------------------------------------------------------------------------------+

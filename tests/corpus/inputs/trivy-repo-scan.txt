@@ -1,0 +1,6 @@
+$ trivy repo https://github.com/example/service
+Target: go.sum
+LIBRARY                 VULNERABILITY    SEVERITY   FIXED-VERSION
+golang.org/x/net        CVE-2023-39325   HIGH       0.17.0
+github.com/gin-gonic    CVE-2023-26125   MEDIUM     1.9.1
+google.golang.org/grpc  CVE-2023-44487   HIGH       1.58.3

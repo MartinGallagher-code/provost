@@ -1,0 +1,4 @@
+n	NAME	ADDRESS	PORT	SSL	AUTO_LOADBALANCE	WEIGHT	total_entries
+1	origin-primary	origin.example.com	443	true	true	100	3
+2	origin-fallback	origin-dr.example.com	443	true	true	50	3
+3	static-s3	s3.us-east-1.amazonaws.com	443	true	false	100	3

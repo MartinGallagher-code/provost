@@ -1,0 +1,5 @@
+level=info ts=2026-07-10T09:14:22.104Z msg="compaction available" group=0@node-exporter blocks=6
+level=info ts=2026-07-10T09:14:24.887Z msg="compacted blocks" duration=2.783s result=01HTQD1E3F5G7H9J1K3L5M7N9P
+level=info ts=2026-07-10T09:14:25.012Z msg="deleting source blocks" count=6
+level=info ts=2026-07-10T09:14:26.551Z msg="downsampling" resolution=300000 blocks=3
+level=info ts=2026-07-10T09:14:29.334Z msg="downsampled" duration=2.783s

@@ -1,0 +1,5 @@
+$ step ca health --ca-url https://ca.example.internal
+status: ok
+version: 0.27.4
+serial: 0x1f4a...beef
+uptime: 14d 6h 22m

@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-07-11 — +539 unique corpus inputs (batch 3), ~98% generalized with no new code
+
+Third large expansion of unique never-before-seen tools, generated across 10
+domains (cloud/SaaS CLIs, k8s/containers, databases, observability, networking,
+security, build/language toolchains, data/ML/scientific, system/hardware,
+storage/backup). **529 of 539 (98%) tidied with no new per-tool code** — the
+generic parsers generalized to the unseen tools. The 10 genuine gaps left as ⏳
+are the usual hard shapes: JSON after a leading `-- comment` (surreal-sql-select),
+Unicode box tables `│` (supabase-projects-list), log-preamble-then-table
+(cargo-audit, cargo-nextest-run), inline `k=v` after a preamble
+(datadog-ci-junit-upload), `name = "v" # desc` list mistaken for kv (cargo-search),
+right-aligned banner tables (powertop-devices, gluster-volume-profile,
+vercel-list), offset dumps (openssl-asn1parse). Golden gate re-run clean (0
+existing goldens modified/deleted; 529 new goldens). A random data-sanity
+spot-check across domains confirmed the new goldens are real tidy tables, not
+shape-passing garbage. Files: `tests/corpus/inputs/*` (+539),
+`tests/corpus/expected/*` (+529), `tests/corpus/expected.tsv`,
+`tests/corpus/COVERAGE.md`.
+
 ## 2026-07-11 — Holdout generalization pass for the recently-touched tools
 
 Added 12 held-out (second, different-content) samples for the tools touched

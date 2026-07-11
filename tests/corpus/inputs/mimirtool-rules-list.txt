@@ -1,0 +1,7 @@
+Namespace       | Rule Group
+node-alerts     | node.recording
+node-alerts     | node.alerts
+api-slo         | slo.burnrate.5m
+api-slo         | slo.burnrate.1h
+api-slo         | slo.page
+tenant-42       | ingest.limits

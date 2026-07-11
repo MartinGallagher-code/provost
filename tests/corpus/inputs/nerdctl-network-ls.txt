@@ -1,0 +1,5 @@
+NETWORK ID    NAME       FILE                                        LABELS
+                bridge     /etc/cni/net.d/nerdctl-bridge.conflist
+b3f9a1c2d4e5  frontend   /etc/cni/net.d/nerdctl-frontend.conflist   app=web
+c9d8e7f6a5b4  backend    /etc/cni/net.d/nerdctl-backend.conflist    app=api
+                host

@@ -1,0 +1,4 @@
+NAME       URL                                    LATEST           AGE   CONDITIONS   READY   REASON
+hello      http://hello.default.example.com       hello-00003      12d   3 OK / 3     True
+echo       http://echo.default.example.com        echo-00007       8d    3 OK / 3     True
+resizer    http://resizer.default.example.com     resizer-00002    3d    2 OK / 3     False   RevisionMissing

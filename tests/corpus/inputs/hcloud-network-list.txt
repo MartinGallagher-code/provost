@@ -1,0 +1,4 @@
+ID        NAME            IP RANGE          SERVERS    AGE
+2044118   prod-net        10.0.0.0/16       6          210d
+2044552   staging-net     10.1.0.0/16       2          88d
+2050991   mgmt-net        10.2.0.0/24       1          14d

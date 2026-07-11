@@ -1,0 +1,4 @@
+10.5.0.2: kern:    info: [2026-07-10T14:02:11.334Z]: kernel: Linux version 6.6.32-talos
+10.5.0.2: kern:  notice: [2026-07-10T14:02:12.011Z]: cgroup: enabling cgroup2 memory controller
+10.5.0.2: user:    info: [2026-07-10T14:02:14.882Z]: [talos] task startAllServices (1/1)
+10.5.0.2: user:    info: [2026-07-10T14:02:15.440Z]: [talos] service "kubelet" phase running

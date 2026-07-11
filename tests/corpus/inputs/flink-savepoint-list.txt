@@ -1,0 +1,4 @@
+SAVEPOINT_ID     JOB_ID                            PATH                                   STATUS      TIMESTAMP
+sp-8a1c          4f2e9d1a6b3c8e7f0a1b2c3d4e5f6a7b    hdfs:///savepoints/sp-8a1c            COMPLETED   2026-07-09T08:12:00
+sp-9b2d          4f2e9d1a6b3c8e7f0a1b2c3d4e5f6a7b    hdfs:///savepoints/sp-9b2d            COMPLETED   2026-07-09T20:40:31
+sp-a3ce          77c1e0aa22bb44dd66ff8811aa33cc55    hdfs:///savepoints/sp-a3ce            IN_PROGRESS 2026-07-10T06:05:12

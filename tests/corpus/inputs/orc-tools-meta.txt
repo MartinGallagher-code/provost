@@ -1,0 +1,10 @@
+Processing data file part-00000.orc [length: 148923]
+Structure for part-00000.orc
+File Version: 0.12 with ORC_517
+Rows: 120000
+Compression: ZLIB
+Compression size: 262144
+Type: struct<id:bigint,name:string,ts:timestamp,amount:double>
+Stripe Statistics:
+  Stripe 1: rows 100000  min 1  max 100000
+  Stripe 2: rows 20000   min 100001 max 120000

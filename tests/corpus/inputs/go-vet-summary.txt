@@ -1,0 +1,6 @@
+# github.com/acme/svc/internal/handler
+./handler.go:52:2: unreachable code
+./handler.go:88:6: result of fmt.Sprintf call not used
+# github.com/acme/svc/internal/store
+./store.go:14:9: Printf format %d has arg name of wrong type string
+./store.go:120:3: lock copies value of type sync.Mutex

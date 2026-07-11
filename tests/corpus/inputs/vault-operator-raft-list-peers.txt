@@ -1,0 +1,6 @@
+$ vault operator raft list-peers
+Node       Address              State       Voter
+----       -------              -----       -----
+vault-0    10.0.1.10:8201       leader      true
+vault-1    10.0.1.11:8201       follower    true
+vault-2    10.0.1.12:8201       follower    true

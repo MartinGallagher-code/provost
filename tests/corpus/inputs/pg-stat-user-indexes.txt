@@ -1,0 +1,8 @@
+ schemaname |  relname  |        indexrelname        | idx_scan | idx_tup_read | idx_tup_fetch
+------------+-----------+----------------------------+----------+--------------+---------------
+ public     | orders    | orders_pkey                |  4820193 |      4820193 |       4820193
+ public     | orders    | orders_customer_id_idx     |   920184 |     18402011 |        892014
+ public     | orders    | orders_status_idx          |    48210 |      1204832 |         48012
+ public     | customers | customers_email_key        |   184203 |       184203 |        184203
+ public     | customers | customers_created_at_idx   |       12 |        48210 |             0
+(5 rows)

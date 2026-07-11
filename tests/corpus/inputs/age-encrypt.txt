@@ -1,0 +1,5 @@
+$ age -r age1fakerecipient0qz9x...placeholder -o secret.age secret.txt
+recipients: 1
+input: secret.txt (2048 bytes)
+output: secret.age (2216 bytes)
+armor: false

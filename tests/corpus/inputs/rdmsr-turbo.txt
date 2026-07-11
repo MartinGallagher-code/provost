@@ -1,0 +1,5 @@
+CPU  MSR       Register              Hex               Decimal
+0    0x1AD     TURBO_RATIO_LIMIT     0x2828282a2c2e30  Ratios 48-48
+1    0x1AD     TURBO_RATIO_LIMIT     0x2828282a2c2e30  Ratios 48-48
+2    0x199     IA32_PERF_CTL         0x2f00            Target 47x
+3    0x198     IA32_PERF_STATUS      0x2e00            Current 46x

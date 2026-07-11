@@ -1,0 +1,8 @@
+$ openssl asn1parse -in cert.pem
+    0:d=0  hl=4 l= 858 cons: SEQUENCE
+    4:d=1  hl=4 l= 578 cons: SEQUENCE
+    8:d=2  hl=2 l=   3 cons: cont [ 0 ]
+   10:d=3  hl=2 l=   1 prim: INTEGER           :02
+   13:d=2  hl=2 l=  16 prim: INTEGER           :0A1B2C3D4E5F60718293A4B5C6D7E8F9
+   31:d=2  hl=2 l=  13 cons: SEQUENCE
+   46:d=2  hl=2 l=  69 cons: SEQUENCE

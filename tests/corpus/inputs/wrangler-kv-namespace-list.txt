@@ -1,0 +1,17 @@
+[
+  {
+    "id": "a3f1c9e27b4d48e0b21f9c8a7d6e5f43",
+    "title": "SESSIONS",
+    "supports_url_encoding": true
+  },
+  {
+    "id": "b7e2d0f38c5e59f1c32a0d9b8e7f6045",
+    "title": "CONFIG_CACHE",
+    "supports_url_encoding": true
+  },
+  {
+    "id": "c8f3e1a49d6f6a02d43b1e0c9f807156",
+    "title": "RATE_LIMITS",
+    "supports_url_encoding": true
+  }
+]

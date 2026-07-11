@@ -1,0 +1,7 @@
+# Tests are approximate using memory only (no storage IO).
+PBKDF2-sha256    1842104 iterations per second for 256-bit key
+PBKDF2-sha512     942108 iterations per second for 256-bit key
+#     Algorithm |       Key |      Encryption |      Decryption
+        aes-xts        256b      3421.2 MiB/s      3389.4 MiB/s
+        aes-xts        512b      2988.1 MiB/s      2971.0 MiB/s
+    serpent-xts        256b       412.8 MiB/s       448.2 MiB/s

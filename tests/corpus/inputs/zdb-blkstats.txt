@@ -1,0 +1,5 @@
+Blocks  LSIZE   PSIZE   ASIZE    avg   comp   %Total  Type
+   142   4.44M   1.11M   3.34M   24.1K  4.00    0.01   DMU dnode
+  8912   1.09G   612M    1.20G    141K  1.82   34.20   ZFS plain file
+   331   41.4M   9.82M   19.7M    61K   4.21    0.55   ZFS directory
+ 21044   2.31G   1.44G   2.89G    144K  1.60   82.40   Total

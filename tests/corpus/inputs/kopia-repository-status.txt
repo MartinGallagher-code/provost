@@ -1,0 +1,8 @@
+Config file:         /home/alice/.config/kopia/repository.config
+Unique ID:           8a1f3c2e9b4d5e6f
+Storage type:        s3
+Storage bucket:      kopia-backups
+Hash:                BLAKE2B-256-128
+Encryption:          AES256-GCM-HMAC-SHA256
+Splitter:            DYNAMIC-4M-BUZHASH
+Format version:      3

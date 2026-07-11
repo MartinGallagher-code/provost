@@ -1,0 +1,5 @@
+$ amass intel -org "Example Inc" -whois
+ASN        ORGANIZATION
+AS64500    Example Inc
+AS64501    Example Cloud Services
+AS64502    Example Networks LLC

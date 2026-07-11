@@ -1,0 +1,15 @@
+n	A	total_entries
+1	inputs:	14
+2	cpu	14
+3	disk	14
+4	diskio	14
+5	mem	14
+6	net	14
+7	procstat	14
+8	postgresql	14
+9	outputs:	14
+10	influxdb_v2	14
+11	prometheus_client	14
+12	processors:	14
+13	regex	14
+14	enum	14

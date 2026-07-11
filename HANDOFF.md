@@ -1,6 +1,14 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2157 inputs (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2696 inputs (2026-07-11)
+
+> **2026-07-11 — batch 3 (+539 inputs).** Third large expansion of unique
+> never-before-seen tools across 10 domains (cloud/k8s/db/observability/
+> networking/security/build/ML/hardware/storage). **529 of 539 (98%) tidied
+> with no new per-tool code**; 10 genuine ⏳ gaps (JSON-after-comment, Unicode
+> box tables, log-preamble+table, kv-ambiguous lists). Golden gate re-run clean
+> (0 existing goldens changed; 529 new). Now **2696 tools; 2659 tidy; 37 ⏳**;
+> golden gate 2525 passed, 0 failed.
 
 > **2026-07-11 — segment-split cluster.** Added `_ac_split` (2-space-gap
 > splitter) to `aligned-columns`, HDR-only and gated on modal-data-tokens >

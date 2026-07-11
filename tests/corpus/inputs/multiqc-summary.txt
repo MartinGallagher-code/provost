@@ -1,0 +1,5 @@
+Sample          Dup%    GC%    Length   M Seqs   %Aligned
+sample_01       12.4    47     150      24.1     97.8
+sample_02       14.1    48     150      22.8     96.4
+sample_03       11.8    46     150      25.3     98.1
+sample_04       19.2    49     150      20.1     94.2

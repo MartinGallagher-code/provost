@@ -1,0 +1,6 @@
+n	depth	name	total_entries
+1	0	+--- Project ':app'	5
+2	0	+--- Project ':core'	5
+3	0	--- Project ':core:model'	5
+4	0	+--- Project ':data'	5
+5	0	--- Project ':feature:login'	5

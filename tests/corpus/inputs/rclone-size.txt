@@ -1,0 +1,3 @@
+Total objects: 88214 (88214)
+Total size: 412.481 GiB (442912084992 Byte)
+Total objects with unknown size: 0 (0)

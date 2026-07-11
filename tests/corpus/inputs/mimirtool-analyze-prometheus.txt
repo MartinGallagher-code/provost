@@ -1,0 +1,10 @@
+{
+  "total_active_series": 1842019,
+  "in_use_active_series": 1204553,
+  "additional_active_series": 637466,
+  "in_use_metric_counts": [
+    {"metric": "node_cpu_seconds_total", "count": 94213, "job_counts": [{"job": "node", "count": 94213}]},
+    {"metric": "http_request_duration_seconds_bucket", "count": 61200, "job_counts": [{"job": "api", "count": 61200}]},
+    {"metric": "container_memory_usage_bytes", "count": 44018, "job_counts": [{"job": "cadvisor", "count": 44018}]}
+  ]
+}

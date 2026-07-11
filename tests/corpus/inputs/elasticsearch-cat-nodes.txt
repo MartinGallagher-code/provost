@@ -1,0 +1,5 @@
+ip         heap.percent ram.percent cpu load_1m node.role master name
+10.1.0.21  61           88          12  1.42    dim       *      es-data-0
+10.1.0.22  57           85          9   1.10    dim       -      es-data-1
+10.1.0.23  63           90          15  1.88    dim       -      es-data-2
+10.1.0.30  22           40          3   0.31    m         -      es-master-0

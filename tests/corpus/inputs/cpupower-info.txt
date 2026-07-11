@@ -1,0 +1,8 @@
+analyzing CPU 0:
+  perf-bias: 6
+  hardware limits: 800 MHz - 5.00 GHz
+  available cpufreq governors: performance powersave
+  current policy: frequency should be within 800 MHz and 5.00 GHz.
+                  The governor "powersave" may decide which speed to use
+  current CPU frequency: 1.20 GHz (asserted by call to hardware)
+  boost state support: Supported: yes, Active: yes

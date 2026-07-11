@@ -1,0 +1,7 @@
+Admin Command Set
+ACS0     [Delete I/O Submission Queue        ] 00000001
+ACS1     [Create I/O Submission Queue        ] 00000001
+ACS4     [Delete I/O Completion Queue        ] 00000001
+ACS6     [Identify                           ] 00000001
+ACS9     [Set Features                       ] 00000009
+ACS10    [Get Features                       ] 00000001

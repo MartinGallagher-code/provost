@@ -1,0 +1,13 @@
+Total number of tables: 42
+----------------
+Keyspace : ks_events
+	Read Count: 920184
+	Read Latency: 0.092 ms
+	Write Count: 4820193
+	Write Latency: 0.031 ms
+		Table: events_by_day
+		SSTable count: 8
+		Space used (live): 210448201
+		Number of partitions (estimate): 48210
+		Compacted partition maximum bytes: 129557
+		Bloom filter false ratio: 0.00012

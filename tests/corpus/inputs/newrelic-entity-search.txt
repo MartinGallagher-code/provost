@@ -1,0 +1,5 @@
+GUID                            NAME                 TYPE         DOMAIN   REPORTING
+MjUwNTA|APM|APPLICATION|101   checkout-service     APPLICATION  APM      true
+MjUwNTA|APM|APPLICATION|102   cart-service         APPLICATION  APM      true
+MjUwNTA|INFRA|HOST|441        web-prod-01          HOST         INFRA    true
+MjUwNTA|BROWSER|APP|77        storefront           APPLICATION  BROWSER  false

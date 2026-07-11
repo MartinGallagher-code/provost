@@ -1,0 +1,7 @@
+$ nuclei -tl -stats
+templates loaded: 8214
+protocols: http=6820 dns=214 tcp=402 file=180 ssl=98
+severity: info=3120 low=1802 medium=2410 high=712 critical=170
+tags: cve=4890 exposure=612 misconfig=940
+authors: 622
+last-updated: 2026-07-09

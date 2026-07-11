@@ -1,0 +1,13 @@
++------------------------------+-----------+
+| Variable_name                | Value     |
++------------------------------+-----------+
+| Threads_connected            | 84        |
+| Threads_running              | 6         |
+| Questions                    | 482019334 |
+| Slow_queries                 | 1204      |
+| Uptime                       | 1820184   |
+| Innodb_buffer_pool_reads     | 920184    |
+| Innodb_rows_read             | 84820193  |
+| Bytes_sent                   | 902184331 |
++------------------------------+-----------+
+8 rows in set (0.01 sec)

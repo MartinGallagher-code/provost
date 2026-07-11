@@ -1,0 +1,4 @@
+Neighbor ID     Pri State           Up Time         Dead Time Address         Interface
+10.0.0.2          1 Full/DR         2d04h22m        00:00:37  10.0.0.2        eth0:10.0.0.1
+10.0.0.3          1 Full/Backup     2d04h21m        00:00:34  10.0.0.3        eth0:10.0.0.1
+192.0.2.2         1 Full/-          5d11h02m        00:00:39  192.0.2.2       eth1:192.0.2.1

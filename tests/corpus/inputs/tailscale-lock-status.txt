@@ -1,0 +1,7 @@
+Tailnet lock is ENABLED.
+
+This node is accessible under tailnet lock.
+This node's tailnet-lock key: tlpub:9a3f2c1b7d4e6058
+
+Number of trusted signing keys: 3
+Number of nodes trusted by tailnet lock: 14

@@ -1,0 +1,6 @@
+$ gitleaks protect --staged -v
+Finding    Rule                Secret        File
+API key    generic-api-key     FAKE-KEY-...  src/config.py
+AWS key    aws-access-token    AKIAFAKE...   deploy/env.sh
+JWT        jwt                  eyJfakeJ...   tests/fixtures.js
+2 leaks found in staged changes; 3 findings

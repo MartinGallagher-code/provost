@@ -1,0 +1,9 @@
+=== jsmith@example.com Apps
+
+acme-api                  (eco)
+acme-web                  (standard-1x)
+acme-worker               (standard-2x)
+
+=== Collaborated Apps
+
+shared-analytics          jane@example.com  (eco)

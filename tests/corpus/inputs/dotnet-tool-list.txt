@@ -1,0 +1,6 @@
+Package Id            Version      Commands
+--------------------------------------------------
+dotnet-ef            8.0.7        dotnet-ef
+dotnet-format        5.1.250801   dotnet-format
+csharpier           0.28.2       dotnet-csharpier
+dotnet-outdated-tool 4.6.4        dotnet-outdated

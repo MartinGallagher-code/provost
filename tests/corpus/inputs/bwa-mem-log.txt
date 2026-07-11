@@ -1,0 +1,8 @@
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 80000 sequences (12000000 bp)...
+[M::mem_process_seqs] Processed 80000 reads in 34.221 CPU sec, 8.720 real sec
+[M::process] read 80000 sequences (12000000 bp)...
+[M::mem_process_seqs] Processed 80000 reads in 33.980 CPU sec, 8.610 real sec
+[main] Version: 0.7.17-r1188
+[main] CMD: bwa mem -t 4 ref.fa reads_1.fq reads_2.fq
+[main] Real time: 41.552 sec; CPU: 158.204 sec

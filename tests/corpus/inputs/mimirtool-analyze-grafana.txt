@@ -1,0 +1,9 @@
+{
+  "metricsUsed": 1842,
+  "dashboards": [
+    {"slug": "node-exporter-full", "metrics_count": 214, "parse_errors": 0},
+    {"slug": "api-golden-signals", "metrics_count": 88, "parse_errors": 1},
+    {"slug": "loki-operational", "metrics_count": 142, "parse_errors": 0},
+    {"slug": "kubernetes-cluster", "metrics_count": 311, "parse_errors": 0}
+  ]
+}

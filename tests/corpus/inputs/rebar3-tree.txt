@@ -1,0 +1,6 @@
+└─ myapp─0.1.0 (project app)
+   ├─ cowboy─2.12.0 (hex package)
+   │  ├─ cowlib─2.13.0 (hex package)
+   │  └─ ranch─2.1.0 (hex package)
+   ├─ jsx─3.1.0 (hex package)
+   └─ telemetry─1.2.1 (hex package)

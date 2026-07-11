@@ -1,0 +1,10 @@
+n	A	B	C	D	E	total_entries
+1	Time	stamping	parameters	for	eth0:	9
+2	Capabilities:					9
+3	hardware-transmit					9
+4	software-transmit					9
+5	hardware-receive					9
+6	software-receive					9
+7	software-system-clock					9
+8	hardware-raw-clock					9
+9	PTP	Hardware	Clock:	0		9

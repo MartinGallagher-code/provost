@@ -1,0 +1,5 @@
+  Name       Active  Path
+  base       *       /opt/micromamba
+  ml                 /opt/micromamba/envs/ml
+  bio                /opt/micromamba/envs/bio
+  viz                /opt/micromamba/envs/viz

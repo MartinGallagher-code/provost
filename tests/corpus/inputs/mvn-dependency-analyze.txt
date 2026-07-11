@@ -1,0 +1,7 @@
+[INFO] --- maven-dependency-plugin:3.6.1:analyze (default-cli) @ acme-service ---
+[WARNING] Used undeclared dependencies found:
+[WARNING]    org.slf4j:slf4j-api:jar:2.0.13:compile
+[WARNING]    com.google.guava:guava:jar:33.2.1-jre:compile
+[WARNING] Unused declared dependencies found:
+[WARNING]    org.apache.commons:commons-lang3:jar:3.14.0:compile
+[WARNING]    junit:junit:jar:4.13.2:test

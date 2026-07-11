@@ -1,0 +1,7 @@
+$ trivy fs --severity HIGH,CRITICAL .
+Target: package-lock.json (npm)
+LIBRARY        VULNERABILITY    SEVERITY   INSTALLED   FIXED
+lodash         CVE-2021-23337   HIGH       4.17.20     4.17.21
+minimist       CVE-2021-44906   CRITICAL   1.2.5       1.2.6
+axios          CVE-2023-45857   HIGH       1.5.0       1.6.0
+tar            CVE-2024-28863   HIGH       6.1.11      6.2.1

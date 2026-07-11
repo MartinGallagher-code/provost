@@ -1,0 +1,5 @@
+id,domain,type,status,soa_email
+2984411,example.com,master,active,admin@example.com
+2984522,corp-internal.net,master,active,dns@corp-internal.net
+2990188,staging-app.io,master,active,ops@staging-app.io
+3001745,legacy.org,slave,disabled,

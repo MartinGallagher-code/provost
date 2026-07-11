@@ -1,0 +1,9 @@
+00:02.0 VGA compatible controller: Intel Corporation AlderLake-S GT1 (rev 0c)
+	Kernel driver in use: i915
+	Kernel modules: i915
+02:00.0 Ethernet controller: Intel Corporation Ethernet Controller I225-V (rev 03)
+	Kernel driver in use: igc
+	Kernel modules: igc
+04:00.0 Non-Volatile memory controller: Samsung NVMe SSD 980 PRO
+	Kernel driver in use: nvme
+	Kernel modules: nvme

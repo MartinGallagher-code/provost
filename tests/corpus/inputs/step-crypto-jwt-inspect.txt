@@ -1,0 +1,12 @@
+$ step crypto jwt inspect --insecure < token.jwt
+{
+  "header": { "alg": "ES256", "kid": "fake-kid-0f9a2c", "typ": "JWT" },
+  "payload": {
+    "iss": "https://auth.example.internal",
+    "sub": "svc-billing",
+    "aud": "api.example.internal",
+    "exp": 1783036800,
+    "iat": 1783033200
+  },
+  "signature": "AAAA-fake-signature-BBBB"
+}

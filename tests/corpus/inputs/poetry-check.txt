@@ -1,0 +1,4 @@
+Warning: [tool.poetry.dependencies] section is deprecated, use [project.dependencies]
+Warning: Declared README file 'README.rst' does not exist
+Error: Group "test" is declared but has no dependencies
+All set!

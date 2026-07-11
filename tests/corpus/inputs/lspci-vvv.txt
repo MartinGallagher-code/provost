@@ -1,0 +1,8 @@
+02:00.0 Ethernet controller: Intel Corporation Ethernet Controller I225-V (rev 03)
+	Subsystem: ASUSTeK Computer Inc. Ethernet Controller I225-V
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort-
+	Latency: 0, Cache Line Size: 64 bytes
+	Interrupt: pin A routed to IRQ 18
+	Region 0: Memory at 6001200000 (32-bit, non-prefetchable) [size=1M]
+	Capabilities: [40] Power Management version 3

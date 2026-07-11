@@ -1,0 +1,9 @@
+n	timestamp	message	total_entries
+1	quant	fragment length distribution will be estimated from the data	8
+2	index	k-mer length: 31	8
+3	index	number of targets: 188,753	8
+4	quant	running in paired-end mode	8
+5	quant	will process pair 1: reads_1.fastq.gz reads_2.fastq.gz	8
+6	quant	processed 28,441,203 reads, 26,110,447 reads pseudoaligned	8
+7	quant	estimated average fragment length: 187.442	8
+8	em	the Expectation-Maximization algorithm ran for 1,124 rounds	8

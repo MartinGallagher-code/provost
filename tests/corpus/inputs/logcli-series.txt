@@ -1,0 +1,5 @@
+{app="api", env="prod", namespace="default", pod="api-7d9f-abc12"}
+{app="api", env="prod", namespace="default", pod="api-7d9f-def34"}
+{app="worker", env="prod", namespace="jobs", pod="worker-55c-gh567"}
+{app="nginx", env="prod", namespace="ingress", pod="nginx-2f1-ij890"}
+{app="db", env="prod", namespace="data", pod="postgres-0"}

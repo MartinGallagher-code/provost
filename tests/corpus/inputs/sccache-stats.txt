@@ -1,0 +1,9 @@
+Compile requests                   3204
+Compile requests executed          3102
+Cache hits                         2688
+Cache hits (Rust)                  2688
+Cache misses                        414
+Cache misses (Rust)                 414
+Cache hits rate                  86.65 %
+Non-cacheable compilations          102
+Cache location         Local disk: /home/dev/.cache/sccache

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "private/22841100",
+    "label": "web-golden-2026-06",
+    "status": "available",
+    "size": 2400,
+    "type": "manual",
+    "is_public": false,
+    "created": "2026-06-01T10:22:14"
+  },
+  {
+    "id": "private/22855410",
+    "label": "worker-base",
+    "status": "available",
+    "size": 1800,
+    "type": "manual",
+    "is_public": false,
+    "created": "2026-04-19T08:03:51"
+  }
+]

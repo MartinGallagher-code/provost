@@ -1,0 +1,6 @@
+root//app:main
+root//app:lib
+root//core:core
+root//core:core_test
+root//third-party:absl
+root//third-party:grpc

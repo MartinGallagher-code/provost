@@ -1,0 +1,7 @@
+Project(s)
+----------
+src/Acme.Api/Acme.Api.csproj
+src/Acme.Core/Acme.Core.csproj
+src/Acme.Data/Acme.Data.csproj
+tests/Acme.Core.Tests/Acme.Core.Tests.csproj
+tests/Acme.Api.Tests/Acme.Api.Tests.csproj

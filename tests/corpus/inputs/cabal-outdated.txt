@@ -1,0 +1,5 @@
+Outdated dependencies:
+aeson         >=2.1 && <2.2 (latest: 2.2.3.0)
+containers    ==0.6.7       (latest: 0.7)
+lens          >=5.2 && <5.3 (latest: 5.3.2)
+text          ==2.0.2       (latest: 2.1.1)

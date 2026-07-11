@@ -1,0 +1,7 @@
+Reusing already existing virtualenv
+Generating production lockfile: /home/dev/proj/requirements.lock
+Generating dev lockfile: /home/dev/proj/requirements-dev.lock
+Installing dependencies
+Resolved 62 packages in 128ms
+   Installed 58 packages in 1.42s
+Done!

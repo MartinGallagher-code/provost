@@ -1,0 +1,24 @@
+[
+  {
+    "id": "148ed2ef1c3489",
+    "name": "acme-api-01",
+    "state": "started",
+    "region": "iad",
+    "image": "registry.fly.io/acme-api:deployment-01J",
+    "cpu_kind": "shared",
+    "cpus": 1,
+    "memory_mb": 512,
+    "created": "2026-07-10T08:14:22Z"
+  },
+  {
+    "id": "3d8f11ab904782",
+    "name": "acme-api-02",
+    "state": "started",
+    "region": "lhr",
+    "image": "registry.fly.io/acme-api:deployment-01J",
+    "cpu_kind": "shared",
+    "cpus": 1,
+    "memory_mb": 512,
+    "created": "2026-07-10T08:14:25Z"
+  }
+]

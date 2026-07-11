@@ -1,0 +1,8 @@
+debian-12
+           Type: raw
+           Path: /var/lib/machines/debian-12.raw
+      Read-Only: no
+          Usage: 4.2G
+          Limit: 20.0G
+        Created: Mon 2026-03-02 11:20:41 UTC
+       Modified: Wed 2026-06-18 09:02:10 UTC

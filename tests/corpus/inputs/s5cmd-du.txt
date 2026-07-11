@@ -1,0 +1,2 @@
+412481024000 bytes in 88214 objects: s3://media-assets/*
+1478135156736 bytes in 1204 objects: s3://db-backups/*

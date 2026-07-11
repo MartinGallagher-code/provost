@@ -1,0 +1,14 @@
+[
+  {
+    "analyzers": {},
+    "functions": {},
+    "params": {},
+    "tables": {
+      "user": "DEFINE TABLE user SCHEMAFULL PERMISSIONS FULL",
+      "post": "DEFINE TABLE post SCHEMAFULL PERMISSIONS FULL",
+      "comment": "DEFINE TABLE comment SCHEMALESS PERMISSIONS FULL"
+    },
+    "users": {},
+    "tokens": {}
+  }
+]

@@ -1,0 +1,5 @@
+ID       NAME               LANGUAGE   HEALTH    RESPONSE_MS   THROUGHPUT   ERROR_RATE
+101      checkout-service   go         green     42            184.2        0.2
+102      cart-service       go         green     12            902.1        0.1
+103      payments-service   java       yellow    140           44.8         1.9
+104      search-service     python     red       880           18.4         8.8

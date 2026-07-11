@@ -1,0 +1,7 @@
+Usage       Device name
+100.0%      Display backlight
+  4.2 W     USB device: Unifying Receiver (Logitech)
+  2.1 W     Radio device: iwlwifi
+  0.8 W     PCI Device: Intel Ethernet I225-V
+  0.3 W     USB device: USB2.0 Hub
+ 12.4%      CPU core

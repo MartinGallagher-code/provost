@@ -1,0 +1,8 @@
+Id=logrotate.timer
+NextElapseUSecRealtime=Sat 2026-07-11 00:00:00 UTC
+LastTriggerUSec=Fri 2026-07-10 00:00:14 UTC
+Result=success
+Persistent=yes
+AccuracySec=1h
+RandomizedDelayUSec=0
+Unit=logrotate.service

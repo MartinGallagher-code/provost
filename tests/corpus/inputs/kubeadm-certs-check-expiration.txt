@@ -1,0 +1,6 @@
+CERTIFICATE                EXPIRES                  RESIDUAL TIME   CERTIFICATE AUTHORITY   EXTERNALLY MANAGED
+admin.conf                 Jul 09, 2027 14:02 UTC   364d                                    no
+apiserver                  Jul 09, 2027 14:02 UTC   364d            ca                      no
+apiserver-kubelet-client   Jul 09, 2027 14:02 UTC   364d            ca                      no
+controller-manager.conf    Jul 09, 2027 14:02 UTC   364d                                    no
+front-proxy-client         Jul 09, 2027 14:02 UTC   364d            front-proxy-ca          no

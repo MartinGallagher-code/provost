@@ -1,0 +1,5 @@
+# Keyspace
+db0:keys=184203,expires=12045,avg_ttl=3600120
+db1:keys=52011,expires=52011,avg_ttl=86400000
+db2:keys=980,expires=0,avg_ttl=0
+db5:keys=4210,expires=120,avg_ttl=712000

@@ -1,0 +1,5 @@
+$ openssl s_time -connect example.com:443 -new -time 5
+Collecting connection statistics for 5 seconds
+243 connections in 4.98s; 48.80 connections/user sec, bytes read 0
+243 connections in 31 real seconds, 1024 bytes read per connection
+Timing new connections, TLSv1.3, cipher TLS_AES_256_GCM_SHA384

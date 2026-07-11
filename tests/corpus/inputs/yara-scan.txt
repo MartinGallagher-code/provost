@@ -1,0 +1,5 @@
+$ yara -r malware_rules.yar /opt/samples
+RULE                 FILE                          TAGS
+Suspicious_UPX       /opt/samples/packed.bin       packer
+Webshell_PHP         /opt/samples/shell.php        webshell
+Cobalt_Beacon        /opt/samples/beacon.dll       c2,apt

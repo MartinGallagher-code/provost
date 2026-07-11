@@ -1,0 +1,6 @@
+$ binwalk firmware.bin
+DECIMAL       HEXADECIMAL     DESCRIPTION
+0             0x0             uImage header, header size: 64 bytes
+64            0x40            LZMA compressed data
+1310720       0x140000        Squashfs filesystem, little endian, version 4.0
+3407872       0x340000        JFFS2 filesystem, little endian

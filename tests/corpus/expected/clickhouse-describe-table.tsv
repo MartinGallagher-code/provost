@@ -1,0 +1,6 @@
+n	event_id	UUID	C	D	total_entries
+1	user_id	UInt64			5
+2	event_type	LowCardinality(String)			5
+3	ts	DateTime64(3)	DEFAULT	now64()	5
+4	country	FixedString(2)			5
+5	payload	String	DEFAULT	'{}'	5

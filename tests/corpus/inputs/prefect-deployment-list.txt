@@ -1,0 +1,6 @@
+                                    Deployments
+NAME                          SCHEDULE          WORK POOL       STATUS
+etl-daily/production          0 2 * * *         kubernetes      READY
+scoring/hourly                0 * * * *         process-pool    READY
+backfill/manual               None              kubernetes      READY
+report/weekly                 0 6 * * 1         process-pool    PAUSED

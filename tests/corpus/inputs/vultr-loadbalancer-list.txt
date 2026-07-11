@@ -1,0 +1,4 @@
+ID                                      LABEL            STATUS    REGION    IPV4              INSTANCES
+e4d5f6a7-8091-92a3-b4c5-d6e7f8091a2b    prod-lb          active    ewr       149.28.100.44     2
+f5e6a7b8-9102-a3b4-c5d6-e7f8091a2b3c    api-lb           active    ewr       149.28.188.71     3
+a6f7b8c9-0213-b4c5-d6e7-f8091a2b3c4d    staging-lb       pending   lax       0.0.0.0           1

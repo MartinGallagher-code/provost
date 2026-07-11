@@ -1,0 +1,5 @@
+NAME                        TYPE      VERSION   SIZE       ALIASES
+mnist-dataset               dataset   v3        52.4 MB    latest
+resnet50-checkpoint         model     v11       98.1 MB    best, latest
+tokenizer                   model     v2        1.2 MB     latest
+eval-predictions            table     v7        4.8 MB     latest

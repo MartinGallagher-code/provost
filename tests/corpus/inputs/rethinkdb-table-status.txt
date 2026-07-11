@@ -1,0 +1,15 @@
+{
+  "db": "blog",
+  "name": "posts",
+  "id": "8f7e6d5c-4b3a-2019-8877-665544332211",
+  "status": {
+    "all_replicas_ready": true,
+    "ready_for_outdated_reads": true,
+    "ready_for_reads": true,
+    "ready_for_writes": true
+  },
+  "shards": [
+    { "primary_replicas": ["server_a"], "replicas": ["server_a", "server_b"] },
+    { "primary_replicas": ["server_b"], "replicas": ["server_a", "server_b"] }
+  ]
+}

@@ -1,0 +1,4 @@
+NODE_ID                                                    NODE_IP      STATE   CPU   GPU  OBJECT_STORE
+a1b2c3d4e5f60718293a4b5c6d7e8f9012345678aabbccdd11223344   10.0.0.5     ALIVE   16     1   9.31 GiB
+b2c3d4e5f60718293a4b5c6d7e8f9012345678aabbccdd112233445566 10.0.0.6     ALIVE   16     1   9.31 GiB
+c3d4e5f60718293a4b5c6d7e8f9012345678aabbccdd11223344556677 10.0.0.7     DEAD     8     0   4.66 GiB

@@ -1,0 +1,4 @@
+{"id": 1, "name": "alice", "signup_ts": 1720512000, "active": true}
+{"id": 2, "name": "bob", "signup_ts": 1720598400, "active": false}
+{"id": 3, "name": "carol", "signup_ts": 1720684800, "active": true}
+{"id": 4, "name": "dave", "signup_ts": 1720771200, "active": true}

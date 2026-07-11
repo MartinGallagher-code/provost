@@ -1,0 +1,8 @@
+[
+  "_replicator",
+  "_users",
+  "blog_posts",
+  "sessions",
+  "analytics",
+  "audit_log"
+]

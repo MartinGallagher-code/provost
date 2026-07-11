@@ -1,0 +1,6 @@
+$ openssl verify -CAfile ca-chain.pem server.crt
+server.crt: OK
+depth = 0, CN = api.example.internal
+depth = 1, CN = Example Intermediate CA
+depth = 2, CN = Example Root CA
+verify return code: 0 (ok)

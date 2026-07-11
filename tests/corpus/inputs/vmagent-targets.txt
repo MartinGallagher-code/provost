@@ -1,0 +1,5 @@
+endpoint                     state   labels                              last_scrape   scrape_duration   error
+http://10.0.1.5:9100/metrics up      {job="node",instance="10.0.1.5"}    2.1s ago      12.4ms            
+http://10.0.1.6:9100/metrics up      {job="node",instance="10.0.1.6"}    1.8s ago      9.9ms             
+http://10.0.2.4:8080/metrics down    {job="api",instance="10.0.2.4"}     3.0s ago      0ms               connection refused
+http://10.0.2.5:8080/metrics up      {job="api",instance="10.0.2.5"}     0.9s ago      18.7ms            

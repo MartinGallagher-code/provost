@@ -1,0 +1,6 @@
+$ katana -u https://app.example.com -silent
+METHOD   URL
+GET      https://app.example.com/
+GET      https://app.example.com/login
+POST     https://app.example.com/api/auth
+GET      https://app.example.com/dashboard

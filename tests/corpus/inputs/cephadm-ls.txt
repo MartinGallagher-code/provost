@@ -1,0 +1,6 @@
+NAME                   HOST    STATUS         REFRESHED  AGE  VERSION
+mon.ceph01             ceph01  running (3w)   5m ago     3w   18.2.2
+mgr.ceph01.abcdef      ceph01  running (3w)   5m ago     3w   18.2.2
+osd.0                  ceph01  running (3w)   5m ago     3w   18.2.2
+osd.1                  ceph02  running (3w)   5m ago     3w   18.2.2
+mds.cephfs.ceph03.xyz  ceph03  running (2w)   5m ago     2w   18.2.2

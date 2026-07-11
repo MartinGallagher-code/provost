@@ -1,0 +1,9 @@
+Socket 0:
++-------------------------------------+
+| Core 0  Core 1  Core 2  Core 3      |
+| 32 kB   32 kB   32 kB   32 kB   L1  |
+| 1 MB    1 MB    1 MB    1 MB    L2  |
+| 25 MB shared                    L3  |
++-------------------------------------+
+CPU type:	Intel Alderlake processor
+CPU cores:	8

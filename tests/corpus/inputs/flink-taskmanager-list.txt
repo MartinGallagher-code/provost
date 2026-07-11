@@ -1,0 +1,7 @@
+{
+  "taskmanagers": [
+    {"id": "10.0.3.10:6122-a1b2c3", "path": "akka.tcp://flink@10.0.3.10:6122/user/taskmanager", "dataPort": 39871, "slotsNumber": 4, "freeSlots": 1, "cpuCores": 8},
+    {"id": "10.0.3.11:6122-d4e5f6", "path": "akka.tcp://flink@10.0.3.11:6122/user/taskmanager", "dataPort": 41220, "slotsNumber": 4, "freeSlots": 0, "cpuCores": 8},
+    {"id": "10.0.3.12:6122-778899", "path": "akka.tcp://flink@10.0.3.12:6122/user/taskmanager", "dataPort": 44510, "slotsNumber": 4, "freeSlots": 3, "cpuCores": 8}
+  ]
+}

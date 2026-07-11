@@ -1,0 +1,6 @@
+  NAME          REGION         DEFAULT BRANCH   STATE     CREATED AT
+ ─────────────  ─────────────  ───────────────  ───────   ──────────────
+  commerce      us-east        main             ready     2 months ago
+  customer      us-east        main             ready     2 months ago
+  analytics     eu-west        main             ready     3 weeks ago
+  sandbox       us-west        main             sleeping  5 days ago

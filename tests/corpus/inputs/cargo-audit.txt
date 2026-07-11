@@ -1,0 +1,12 @@
+    Fetching advisory database from `https://github.com/RustSec/advisory-db.git`
+      Loaded 682 security advisories (from /home/dev/.cargo/advisory-db)
+    Updating crates.io index
+    Scanning Cargo.lock for vulnerabilities (312 crate dependencies)
+
+Crate     Version  Advisory           Severity  Title
+time      0.1.44   RUSTSEC-2020-0071  6.2        Potential segfault in time
+openssl   0.10.45  RUSTSEC-2023-0044  9.8        X509 name constraints
+smallvec  1.6.1    RUSTSEC-2021-0003  7.5        Buffer overflow in insert_many
+tokio     1.18.1   RUSTSEC-2023-0001  5.9        reject_remote_clients misconfig
+
+error: 4 vulnerabilities found!

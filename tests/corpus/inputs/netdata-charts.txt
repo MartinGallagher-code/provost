@@ -1,0 +1,6 @@
+CHART                       UNITS      DIMENSIONS                     UPDATE
+system.cpu                  percentage guest,system,user,iowait,idle 1s
+system.ram                  MiB        free,used,cached,buffers       1s
+system.net                  kilobits/s received,sent                 1s
+disk.io                     KiB/s      reads,writes                   1s
+apps.cpu                    percentage nginx,postgres,telegraf        1s

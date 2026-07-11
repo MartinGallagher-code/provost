@@ -1,0 +1,4 @@
+Checking zone example.com
+[warning] example.com: NS records for zone missing glue for ns2.example.com
+[error] www.example.com: CNAME and other data at same name
+Checked 42 records of 'example.com', 1 errors, 1 warnings.

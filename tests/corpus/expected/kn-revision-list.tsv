@@ -1,0 +1,5 @@
+n	NAME	SERVICE	TRAFFIC	TAGS	GENERATION	AGE	CONDITIONS	READY	total_entries
+1	hello-00003	hello	100%	3	12d	4 OK / 4	True		4
+2	echo-00007	echo	100%	latest	7	8d	4 OK / 4	True	4
+3	echo-00006	echo	stable	6	10d	3 OK / 4	True		4
+4	resizer-00002	resizer	0%	2	3d	2 OK / 4	False	ProgressDeadlineExceeded	4

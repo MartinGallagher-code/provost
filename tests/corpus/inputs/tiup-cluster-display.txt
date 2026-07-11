@@ -1,0 +1,10 @@
+Cluster type:       tidb
+Cluster name:       prod-tidb
+Cluster version:    v7.5.1
+ID           Role          Host          Ports        OS/Arch       Status   Data Dir              Deploy Dir
+--           ----          ----          -----        -------       ------   --------              ----------
+10.0.2.11    pd            10.0.2.11     2379/2380    linux/x86_64  Up|L     /data/pd              /deploy/pd
+10.0.2.12    tikv          10.0.2.12     20160/20180  linux/x86_64  Up       /data/tikv            /deploy/tikv
+10.0.2.13    tikv          10.0.2.13     20160/20180  linux/x86_64  Up       /data/tikv            /deploy/tikv
+10.0.2.14    tidb          10.0.2.14     4000/10080   linux/x86_64  Up       -                     /deploy/tidb
+10.0.2.15    tiflash       10.0.2.15     9000/8123    linux/x86_64  Up       /data/tiflash         /deploy/tiflash

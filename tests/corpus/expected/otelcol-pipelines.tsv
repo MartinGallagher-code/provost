@@ -1,0 +1,4 @@
+n	Pipeline	Receivers	Processors	Exporters	total_entries
+1	traces	otlp,jaeger	batch,memory_limiter	otlp,logging	3
+2	metrics	otlp,prometheus	batch,resourcedetection	prometheusremotewrite	3
+3	logs	otlp,filelog	batch,attributes	loki,logging	3

@@ -1,0 +1,6 @@
+serde = "1.0.203"           # A generic serialization/deserialization framework
+serde_json = "1.0.117"      # A JSON serialization file format
+serde_yaml = "0.9.34"       # YAML data format for Serde
+serde_derive = "1.0.203"    # Macros 1.1 implementation of #[derive(Serialize)]
+serde_with = "3.8.1"        # Custom de/serialization helpers
+... and 1274 crates more (use --limit N to see more)

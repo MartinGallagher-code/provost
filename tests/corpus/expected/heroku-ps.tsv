@@ -1,0 +1,6 @@
+n	A	B	C	D	E	F	G	H	total_entries
+1	===	web	(Standard-1X):	npm	start	(2)			5
+2	web.1:	up	2026/07/10	08:14:22	+0000	(~	9h	ago)	5
+3	web.2:	up	2026/07/10	08:14:25	+0000	(~	9h	ago)	5
+4	===	worker	(Standard-2X):	npm	run	worker	(1)		5
+5	worker.1:	up	2026/07/10	06:02:11	+0000	(~	11h	ago)	5

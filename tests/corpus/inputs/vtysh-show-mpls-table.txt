@@ -1,0 +1,4 @@
+ Inbound Label  Type       Nexthop         Outbound Label  Interface
+ 16             SR (OSPF)  10.0.0.2        implicit-null   eth0
+ 17             SR (OSPF)  10.0.0.3        18              eth0
+ 20             LDP        192.0.2.2       implicit-null   eth1

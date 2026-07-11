@@ -1,0 +1,4 @@
+TraceID                          RootServiceName   RootTraceName        StartTime              DurationMs
+4bf92f3577b34da6a3ce929d0e0e4736 frontend          HTTP GET /checkout   2026-07-10T09:10:01Z   1284
+9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f api-gateway       POST /v1/orders      2026-07-10T09:10:03Z   842
+1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d cart-service      GET /cart            2026-07-10T09:10:05Z   118

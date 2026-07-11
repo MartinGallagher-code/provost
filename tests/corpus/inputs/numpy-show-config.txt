@@ -1,0 +1,13 @@
+blas_armpl_info:
+  NOT AVAILABLE
+openblas_info:
+    libraries = ['openblas', 'openblas']
+    library_dirs = ['/usr/local/lib']
+    language = c
+    define_macros = [('HAVE_CBLAS', None)]
+lapack_opt_info:
+    libraries = ['openblas', 'openblas']
+    library_dirs = ['/usr/local/lib']
+Supported SIMD extensions in this NumPy install:
+    baseline = SSE,SSE2,SSE3
+    found = SSSE3,SSE41,POPCNT,SSE42,AVX,F16C,FMA3,AVX2

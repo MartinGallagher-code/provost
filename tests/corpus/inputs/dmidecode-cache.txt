@@ -1,0 +1,9 @@
+Cache Information
+	Socket Designation: L1 Cache
+	Configuration: Enabled, Not Socketed, Level 1
+	Operational Mode: Write Back
+	Installed Size: 1280 kB
+	Maximum Size: 1280 kB
+	Error Correction Type: Parity
+	System Type: Unified
+	Associativity: 12-way Set-associative

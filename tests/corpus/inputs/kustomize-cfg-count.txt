@@ -1,0 +1,5 @@
+KIND           COUNT
+Deployment     3
+Service        4
+ConfigMap      2
+Ingress        1

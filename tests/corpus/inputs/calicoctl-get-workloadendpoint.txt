@@ -1,0 +1,4 @@
+WORKLOAD          NODE          NETWORKS         INTERFACE
+web-6f9c-abc12    k3s-agent-1   10.244.1.7/32    cali9d3f1a2b0c4
+api-7a1d-def34    k3s-agent-1   10.244.1.14/32   cali22e9a1f0b3d
+redis-3b2c-gh567  k3s-agent-2   10.244.2.9/32    cali0e4d5c6b7a8

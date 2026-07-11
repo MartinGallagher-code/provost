@@ -1,0 +1,10 @@
+alice
+        Disposition: regular
+              State: active
+              UID: 60001
+              GID: 60001
+          Real Name: Alice Nyugen
+          Directory: /home/alice
+      Storage: luks
+         Disk Size: 20.0G
+        Disk Usage: 6.4G (32.0%)

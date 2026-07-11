@@ -1,0 +1,8 @@
+# /etc/systemd/system.conf
+[Manager]
+DefaultTimeoutStartSec=90s
+DefaultTimeoutStopSec=90s
+DefaultLimitNOFILE=1024:524288
+DefaultTasksMax=15%
+# /etc/systemd/system.conf.d/50-tasks.conf
+DefaultTasksMax=8192

@@ -1,0 +1,6 @@
+column	type	indexed	indexBlockCapacity	symbolCached	symbolCapacity	designated
+ts	TIMESTAMP	false	0	false	0	true
+symbol	SYMBOL	true	256	true	1024	false
+price	DOUBLE	false	0	false	0	false
+size	LONG	false	0	false	0	false
+side	SYMBOL	false	0	true	2	false

@@ -1,0 +1,5 @@
+$ age -d -i key.txt secret.age > secret.txt
+identities loaded: 1
+input: secret.age (2216 bytes)
+output: secret.txt (2048 bytes)
+status: decrypted

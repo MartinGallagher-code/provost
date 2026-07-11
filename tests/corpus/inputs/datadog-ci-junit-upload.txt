@@ -1,0 +1,8 @@
+Starting upload with concurrency 20
+Will upload jUnit XML test report file build/junit/results.xml
+Will look for jUnit XML test report files in ./build/junit
+service: web-frontend
+Uploaded 3 files in 1.42s
+  build/junit/results-unit.xml     tests=418   failures=0   skipped=12
+  build/junit/results-e2e.xml      tests=64    failures=2   skipped=1
+  build/junit/results-lint.xml     tests=1     failures=0   skipped=0

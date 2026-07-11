@@ -1,0 +1,6 @@
+dnsmasq[1442]: time 1720699200
+dnsmasq[1442]: cache size 10000, 0/48221 cache insertions re-used unexpired cache entries
+dnsmasq[1442]: queries forwarded 88213, queries answered locally 41120
+dnsmasq[1442]: queries for authoritative zones 0
+dnsmasq[1442]: server 1.1.1.1#53: queries sent 44120, retried or failed 12
+dnsmasq[1442]: server 9.9.9.9#53: queries sent 44093, retried or failed 4

@@ -1,0 +1,11 @@
+     list      | items
+---------------+-------
+ databases     |     6
+ users         |    12
+ pools         |     8
+ free_clients  |   180
+ used_clients  |    20
+ login_clients |     0
+ free_servers  |    40
+ used_servers  |    10
+(8 rows)

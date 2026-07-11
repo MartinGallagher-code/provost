@@ -1,0 +1,9 @@
+Masters:
+  UUID                              Host           Port  Role      State
+  11112222333344445555666677778888  10.0.1.21      7100  LEADER    RUNNING
+  22223333444455556666777788889999  10.0.1.22      7100  FOLLOWER  RUNNING
+  33334444555566667777888899990000  10.0.1.23      7100  FOLLOWER  RUNNING
+Tablet Servers:
+  UUID                              Host           Port  State
+  a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6  10.0.1.11      9100  RUNNING
+  b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7  10.0.1.12      9100  RUNNING

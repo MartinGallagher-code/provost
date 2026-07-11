@@ -1,0 +1,2 @@
+{."header"	{."payload"	{."iss"	{."sub"	{."aud"	{."exp"	{."iat"	{."signature"
+{ "alg": "ES256", "kid": "fake-kid-0f9a2c", "typ": "JWT" },	{	"https://auth.example.internal",	"svc-billing",	"api.example.internal",	1783036800,	1783033200	"AAAA-fake-signature-BBBB"

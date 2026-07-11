@@ -1,0 +1,6 @@
+name              type        documents   storageSize   totalIndexSize
+users             collection      184203       48.2 MB          9.1 MB
+orders            collection      920184      312.7 MB         64.8 MB
+sessions          collection       52011       12.0 MB          3.2 MB
+audit_log         collection     4820100      1.42 GB         210.4 MB
+products_view     view                 -            -               -

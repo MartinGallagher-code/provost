@@ -1,0 +1,2 @@
+ListenPort	PrivateKey	PublicKey	AllowedIPs	Endpoint	PersistentKeepalive
+51820	(hidden)	mBqz3xY7nL2pQ9rT5vW8kJ4hF6dG1sA0cX2eR7uZ1o=	10.10.0.2/32	203.0.113.9:51820	25

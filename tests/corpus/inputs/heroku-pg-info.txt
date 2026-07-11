@@ -1,0 +1,12 @@
+=== DATABASE_URL
+Plan:                  Standard 0
+Status:                Available
+Connections:           24/120
+PG Version:            15.6
+Created:               2025-11-02 09:14 UTC
+Data Size:             4.21 GB
+Tables:                38
+Rows:                  1842991/10000000 (In compliance)
+Fork/Follow:           Available
+Rollback:              earliest from 2026-07-06 00:00 UTC
+Continuous Protection: On

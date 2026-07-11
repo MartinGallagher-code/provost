@@ -1,0 +1,1 @@
+e3: 3 mons at {ceph01=[v2:10.0.0.11:3300/0,v1:10.0.0.11:6789/0],ceph02=[v2:10.0.0.12:3300/0],ceph03=[v2:10.0.0.13:3300/0]}, election epoch 84, leader 0 ceph01, quorum 0,1,2 ceph01,ceph02,ceph03

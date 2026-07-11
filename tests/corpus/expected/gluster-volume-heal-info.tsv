@@ -1,0 +1,3 @@
+n	Brick_node1	Status	Number_of_entries	Brick_node2
+1	/bricks/brick1	Connected	0	
+2		Connected	3	/bricks/brick1

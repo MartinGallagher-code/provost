@@ -1,0 +1,6 @@
+BIRD memory usage
+Routing tables:      1824 KB       1902 KB
+Route attributes:     412 KB        480 KB
+ROA tables:             0            16 B
+Protocols:            128 KB        140 KB
+Total:               2364 KB       2538 KB

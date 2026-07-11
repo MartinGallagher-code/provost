@@ -1,0 +1,6 @@
+Firmware Log for device:nvme0n1
+afi  : 0x1
+frs1 : 5B2QGXA7 (0x37414758514232)
+frs2 : 5B2QGXA6 (0x36414758514232)
+frs3 : 0
+frs4 : 0

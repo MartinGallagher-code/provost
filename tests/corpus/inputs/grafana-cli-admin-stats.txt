@@ -1,0 +1,8 @@
+Dashboards:        482
+Datasources:       17
+Users:             213
+Orgs:              6
+Playlists:         4
+Alerts:            96
+Active sessions:   58
+Stars:             311

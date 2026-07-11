@@ -1,0 +1,6 @@
+$ rekor-cli loginfo
+Verification Successful!
+Tree Size: 44218903
+Root Hash: sha256:aa11bb22cc33dd44ee55ff66fake778899aabbccddeeff001122334455
+Timestamp: 2026-07-11T10:20:44Z
+TreeID: 1193050959916656506

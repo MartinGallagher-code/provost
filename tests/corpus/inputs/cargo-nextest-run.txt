@@ -1,0 +1,8 @@
+    Starting 128 tests across 6 binaries
+        PASS [   0.021s] myapp config::tests::load_default
+        PASS [   0.044s] myapp net::tests::connect_timeout
+        FAIL [   0.102s] myapp parser::tests::malformed_input
+        PASS [   0.008s] myapp util::tests::checksum
+        SLOW [   1.502s] myapp db::tests::migration_roundtrip
+------------
+     Summary [   1.633s] 128 tests run: 127 passed, 1 failed, 3 skipped

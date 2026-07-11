@@ -1,0 +1,6 @@
+index         shard prirep state   docs store ip          node
+audit-000007  0     p      STARTED 3320118 1.9gb 10.5.0.11   os-node-1
+audit-000007  0     r      STARTED 3320118 1.9gb 10.5.0.12   os-node-2
+audit-000007  1     p      STARTED 3298004 1.8gb 10.5.0.12   os-node-2
+traces-000002 0     p      STARTED  882110 421mb 10.5.0.13   os-node-3
+traces-000002 0     r      INITIALIZING - -     10.5.0.11   os-node-1

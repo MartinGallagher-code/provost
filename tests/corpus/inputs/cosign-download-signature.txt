@@ -1,0 +1,3 @@
+$ cosign download signature ghcr.io/example/app:1.4.2
+{"Base64Signature":"MEUCIQfake...signature==","Payload":"eyJjcml0aWNhbCI6e30sImZha2UiOnRydWV9"}
+{"Base64Signature":"MEQCIGfake...signature2==","Payload":"eyJjcml0aWNhbCI6e30sImZha2UiOjJ9"}

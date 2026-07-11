@@ -1,0 +1,6 @@
+Repo ID     Last Used   Old  Size
+9f8a7b6c    2 days ago       142.891 MiB
+3c2d1e0f    5 days ago  old   88.412 MiB
+aabbccdd    32 days ago  old  12.004 MiB
+
+3 cache dirs in /home/alice/.cache/restic

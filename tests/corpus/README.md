@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2157 tools tested; 2130 tidy (27 genuine format gaps ⏳)** — after two +500
+**2696 tools tested; 2659 tidy (37 genuine format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -58,8 +58,10 @@ ip 20, …) and added 3 net-new generic-tidy mode samples (pvesm-status, rbd-du,
 zk-mntr). A segment-split round (`_ac_split` in `aligned-columns`, HDR-only)
 then closed right-aligned space-in-value fixed-width tables — `ceph osd df`'s
 "1.0 TiB" under a "RAW USE" multi-word header — and improved 8 already-covered
-tables (multi-word headers joined, space-in-value cells preserved). The 27 ⏳
-that remain are genuinely hard (headerless first column — kdiskmark;
+tables (multi-word headers joined, space-in-value cells preserved). A third
++539 expansion (batch 3: cloud/k8s/db/observability/networking/security/build/
+ML/hardware/storage CLIs) tidied **529 of 539 (98%) with no new per-tool code**.
+The 37 ⏳ that remain are genuinely hard (headerless first column — kdiskmark;
 single-space multi-word cells — lzbench; headerless space-in-value records —
 supervisorctl-status; multi-record comma `k=v` — ovs-ofctl-dump-flows;
 nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the live

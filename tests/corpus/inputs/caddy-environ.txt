@@ -1,0 +1,6 @@
+caddy.HomeDir=/var/lib/caddy
+caddy.AppDataDir=/var/lib/caddy/caddy
+caddy.ConfigAutosavePath=/var/lib/caddy/caddy/autosave.json
+HOME=/var/lib/caddy
+XDG_CONFIG_HOME=/var/lib/caddy/.config
+XDG_DATA_HOME=/var/lib/caddy/.local/share

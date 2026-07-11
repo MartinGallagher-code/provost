@@ -1,0 +1,4 @@
+NAME          STATUS    CREATED                          SCHEDULE      BACKUP TTL   LAST BACKUP   SELECTOR   PAUSED
+daily-full    Enabled   2026-06-01 09:00:00 +0000 UTC    0 2 * * *     720h0m0s     8h ago        <none>     false
+weekly-arch   Enabled   2026-06-01 09:00:00 +0000 UTC    0 3 * * 0     2160h0m0s    3d ago        <none>     false
+hourly-db     Enabled   2026-06-15 09:00:00 +0000 UTC    0 * * * *     48h0m0s      41m ago       app=db     false

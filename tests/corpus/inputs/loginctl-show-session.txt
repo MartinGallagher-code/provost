@@ -1,0 +1,10 @@
+Id=3
+User=1000
+Name=mgallagher
+Timestamp=Fri 2026-07-10 08:14:02 UTC
+Remote=no
+Service=login
+Type=tty
+Class=user
+Active=yes
+State=active

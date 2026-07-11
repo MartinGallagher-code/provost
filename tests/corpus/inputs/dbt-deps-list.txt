@@ -1,0 +1,5 @@
+package                  installed  latest   source
+dbt-labs/dbt_utils          1.1.1    1.1.1    hub
+calogica/dbt_expectations   0.10.1   0.10.3   hub
+dbt-labs/codegen            0.12.1   0.12.1   hub
+brooklyn-data/dbt_artifacts 2.6.2    2.6.4    hub

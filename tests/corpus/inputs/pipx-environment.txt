@@ -1,0 +1,8 @@
+Environment variables (set by user):
+PIPX_HOME=/home/dev/.local/pipx
+PIPX_BIN_DIR=/home/dev/.local/bin
+
+Derived values:
+PIPX_LOCAL_VENVS=/home/dev/.local/pipx/venvs
+PIPX_TRAMPOLINE_DIR=/home/dev/.local/pipx/trampolines
+PIPX_LOG_DIR=/home/dev/.local/pipx/logs

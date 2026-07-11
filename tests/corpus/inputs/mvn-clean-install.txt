@@ -1,0 +1,8 @@
+[INFO] Reactor Summary for acme-parent 2.3.0:
+[INFO]
+[INFO] acme-parent ........................................ SUCCESS [  0.412 s]
+[INFO] acme-common ........................................ SUCCESS [  4.128 s]
+[INFO] acme-service ....................................... SUCCESS [ 12.904 s]
+[INFO] acme-web ........................................... FAILURE [  2.017 s]
+[INFO] BUILD FAILURE
+[INFO] Total time:  19.821 s

@@ -1,0 +1,5 @@
+n	id	is_live	replicas	is_decommissioning	membership	is_draining	total_entries
+1	1	true	0	true	decommissioned	false	4
+2	2	true	84	false	active	false	4
+3	3	true	84	false	active	false	4
+4	4	false	12	true	decommissioning	true	4

@@ -1,0 +1,3 @@
+storage         s3://acme-dvc-store/data
+backup          gs://acme-dvc-backup
+local-cache     /mnt/dvc-cache

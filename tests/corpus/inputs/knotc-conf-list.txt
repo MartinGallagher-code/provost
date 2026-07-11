@@ -1,0 +1,4 @@
+server
+log
+zone[example.com.]
+zone[example.net.]

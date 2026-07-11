@@ -1,0 +1,11 @@
+Read1 before filtering:
+total reads: 1000000
+total bases: 150000000
+Q20 bases: 145211003(96.81%)
+Q30 bases: 139882140(93.25%)
+
+Filtering result:
+reads passed filter: 972188
+reads failed due to low quality: 21044
+reads failed due to too many N: 812
+reads with adapter trimmed: 88231

@@ -1,0 +1,5 @@
+$ gobuster vhost -u https://example.com -w vhosts.txt --append-domain
+FOUND                        STATUS   SIZE
+admin.example.com            200      4821
+internal.example.com         200      2044
+legacy.example.com           403      278

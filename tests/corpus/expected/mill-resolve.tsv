@@ -1,0 +1,7 @@
+n	A	total_entries
+1	core.compile	6
+2	core.test.compile	6
+3	core.test.test	6
+4	web.compile	6
+5	web.assembly	6
+6	web.test.test	6

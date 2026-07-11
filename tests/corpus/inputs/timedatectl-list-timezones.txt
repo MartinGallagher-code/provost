@@ -1,0 +1,8 @@
+Africa/Abidjan
+America/New_York
+Asia/Tokyo
+Australia/Sydney
+Europe/Dublin
+Europe/London
+Pacific/Auckland
+UTC

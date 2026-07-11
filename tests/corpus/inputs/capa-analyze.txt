@@ -1,0 +1,7 @@
+$ capa suspicious.exe
+CAPABILITY                          NAMESPACE                    MATCHES
+create process                      host-interaction/process     3
+read and write files                host-interaction/file        7
+encrypt data using RC4              data-manipulation/encryption 1
+communicate over HTTP               communication/http           2
+resolve DNS                         communication/dns            1

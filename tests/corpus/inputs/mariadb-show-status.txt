@@ -1,0 +1,13 @@
++-------------------------+----------+
+| Variable_name           | Value    |
++-------------------------+----------+
+| Aborted_clients         | 12       |
+| Aborted_connects        | 3        |
+| Connections             | 482019   |
+| Max_used_connections    | 142      |
+| Open_tables             | 420      |
+| Queries                 | 92018433 |
+| Threads_cached          | 8        |
+| Uptime                  | 1820184  |
++-------------------------+----------+
+8 rows in set (0.002 sec)

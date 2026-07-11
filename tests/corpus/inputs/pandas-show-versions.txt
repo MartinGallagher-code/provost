@@ -1,0 +1,11 @@
+INSTALLED VERSIONS
+------------------
+commit           : bdc79c146c2e32f2cab629be240f01658cfb6cc2
+python           : 3.11.9
+python-bits      : 64
+OS               : Linux
+pandas           : 2.2.2
+numpy            : 1.26.4
+pyarrow          : 16.1.0
+fastparquet      : None
+sqlalchemy       : 2.0.30

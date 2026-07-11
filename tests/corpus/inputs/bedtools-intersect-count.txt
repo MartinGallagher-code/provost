@@ -1,0 +1,6 @@
+chr1	promoters	12043
+chr1	exons	48210
+chr2	promoters	9821
+chr2	exons	41002
+chr3	promoters	7644
+chr3	exons	33188

@@ -1,0 +1,7 @@
+$ aide --check
+AIDE found differences between database and filesystem
+Summary:
+  Total number of entries:  184203
+  Added entries:            2
+  Removed entries:          0
+  Changed entries:          5

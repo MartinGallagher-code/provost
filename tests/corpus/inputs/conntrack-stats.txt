@@ -1,0 +1,4 @@
+cpu=0   found=18422 invalid=12 insert=0 insert_failed=0 drop=0 early_drop=0
+cpu=1   found=17993 invalid=8  insert=0 insert_failed=0 drop=0 early_drop=0
+cpu=2   found=18110 invalid=4  insert=0 insert_failed=0 drop=1 early_drop=0
+cpu=3   found=17842 invalid=6  insert=0 insert_failed=0 drop=0 early_drop=0

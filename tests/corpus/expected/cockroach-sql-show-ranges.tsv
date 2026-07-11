@@ -1,0 +1,5 @@
+n	start_key	end_key	range_id	range_size_mb	lease_holder	replicas	total_entries
+1	/Min	/Table/3	1	0.42	2	{2,3,4}	4
+2	/Table/3	/Table/4	2	12.80	3	{2,3,4}	4
+3	/Table/4	/Table/5	7	128.34	4	{2,3,4}	4
+4	/Table/5	/Max	11	64.91	2	{2,3,4}	4

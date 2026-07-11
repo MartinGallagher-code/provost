@@ -1,0 +1,5 @@
+pool           slots  used_slots  queued_slots  description
+default_pool     128         12             0  Default pool
+etl_pool          32          8             4  ETL heavy jobs
+ml_training       16          3             0  GPU training tasks
+sensors            8          8             2  Sensor tasks

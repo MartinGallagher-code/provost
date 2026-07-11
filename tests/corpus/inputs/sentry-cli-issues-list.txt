@@ -1,0 +1,5 @@
+SHORT-ID       TITLE                                  EVENTS  USERS  STATUS
+WEB-1042       TypeError: undefined is not a function 8421    902    unresolved
+WEB-1055       TimeoutError: upstream timeout         3308    410    unresolved
+API-0331       NullPointerException at OrderService   1204    118    ignored
+API-0340       RateLimitExceeded                      442     88     resolved

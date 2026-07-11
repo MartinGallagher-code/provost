@@ -1,0 +1,5 @@
+n	query	calls	total_exec_time	mean_exec_time	rows	total_entries
+1	SELECT * FROM orders WHERE ...	482019	184203.442	0.382	482019	4
+2	UPDATE orders SET status = $1	92018	48210.118	0.524	92018	4
+3	INSERT INTO audit_log ...	920184	120483.902	0.131	920184	4
+4	SELECT count(*) FROM sessions	12048	88044.210	7.308	12048	4

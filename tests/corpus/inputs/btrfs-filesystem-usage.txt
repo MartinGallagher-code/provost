@@ -1,0 +1,8 @@
+Overall:
+    Device size:                  10.91TiB
+    Device allocated:              4.02TiB
+    Device unallocated:            6.89TiB
+    Used:                          3.88TiB
+    Free (estimated):              6.98TiB
+    Data ratio:                       1.00
+    Metadata ratio:                   2.00

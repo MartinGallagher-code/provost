@@ -1,0 +1,8 @@
+Root project 'monorepo'
++--- Project ':app'
++--- Project ':core'
+|    \--- Project ':core:model'
++--- Project ':data'
+\--- Project ':feature:login'
+
+To see a list of the tasks of a project, run gradle <project-path>:tasks

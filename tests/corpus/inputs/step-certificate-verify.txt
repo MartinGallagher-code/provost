@@ -1,0 +1,5 @@
+$ step certificate verify server.crt --roots root_ca.crt
+result: OK
+subject: CN=api.example.internal
+issuer: CN=Example Intermediate CA
+not_after: 2026-10-08T12:00:00Z

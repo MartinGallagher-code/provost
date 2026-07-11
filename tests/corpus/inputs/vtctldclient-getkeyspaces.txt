@@ -1,0 +1,5 @@
+NAME        KEYSPACE_TYPE  BASE_KEYSPACE  SNAPSHOT_TIME  DURABILITY_POLICY
+commerce    NORMAL         -              -              semi_sync
+customer    NORMAL         -              -              semi_sync
+lookup      NORMAL         -              -              none
+corder_v2   SNAPSHOT       commerce       2026-05-01T09:00:00Z  none

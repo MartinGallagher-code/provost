@@ -1,0 +1,16 @@
+Keyspace : ks_orders
+	Read Count: 4820193
+	Read Latency: 0.184 ms
+	Write Count: 12048201
+	Write Latency: 0.052 ms
+	Pending Flushes: 0
+		Table: orders
+		SSTable count: 12
+		Space used (live): 4820193021
+		Space used (total): 4820193021
+		Number of partitions (estimate): 920184
+		Compression ratio: 0.42
+		Bloom filter false positives: 3
+		Local read count: 4820193
+		Local read latency: 0.181 ms
+		Local write count: 12048201

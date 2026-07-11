@@ -1,0 +1,7 @@
+core
+core-test
+util
+util-test
+server
+server-test
+Projects loaded from '/home/dev/proj/.bloop'

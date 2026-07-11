@@ -1,0 +1,6 @@
+$ trivy config ./deploy
+Target: deploy/pod.yaml
+MISCONFIG      TYPE         SEVERITY   CHECK
+AVD-KSV-0012   Kubernetes   MEDIUM     Runs as root user
+AVD-KSV-0014   Kubernetes   HIGH       Root filesystem not read-only
+AVD-KSV-0020   Kubernetes   LOW        Runs with low group ID

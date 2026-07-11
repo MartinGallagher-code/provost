@@ -1,0 +1,4 @@
+SRC       DST       SRC_NS      DST_NS      SECURED
+web       api       default     default     √
+api       redis     default     data        √
+api       postgres  default     data        √

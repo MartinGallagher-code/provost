@@ -1,0 +1,4 @@
+n	A	B	C	D	total_entries
+1	412481024000	88214	objects	s3://media-assets/	3
+2	1478135156736	1204	objects	s3://db-backups/	3
+3	94578901234	331902	objects	s3://user-uploads/	3

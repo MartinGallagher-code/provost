@@ -1,0 +1,2 @@
+MAC	MAC_length	PKCS7_Encrypted_data	Shrouded_Keybag
+sha256, Iteration 2048	32, salt length: 8	pbeWithSHA256And256BitAES-CBC, Iteration 2048	pbeWithSHA256And256BitAES-CBC, Iteration 2048
