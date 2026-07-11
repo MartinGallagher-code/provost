@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3122 tidy (74 format gaps ⏳)** — after two +500
+**3196 tools tested; 3125 tidy (71 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -78,7 +78,13 @@ colour escapes once per input (gated on an ESC byte, a no-op otherwise) — fixi
 colored tools (`gh`, `terraform plan`) and cleaning raw `\e[..m` codes out of 45
 already-covered `*-color` goldens — and `box-table` gained interior-row and
 duckdb "type row" handling (closing supabase / psql-unicode / duckdb box
-tables). The 74 ⏳ that remain are genuinely hard (nested multi-record blocks —
+tables). A short manifest-audit pass then reclassified three fixtures that were
+already tidying correctly but mis-scored: `kubectl-get-svc-none` and
+`lsblk-empty-mountpoint` were genuinely tidy tables (`<none>` / empty-mountpoint
+cells preserved) miscounted by one data row, and `systemctl-status-nginx` is a
+single-unit status snapshot — a key/value record, like the other eight
+describe/status fixtures — not a table. The 71 ⏳ that remain are genuinely hard
+(nested multi-record blocks —
 `ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
 single-space multi-word cells — lzbench; prose/diff formats — cargo clippy, git
 diff; nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the

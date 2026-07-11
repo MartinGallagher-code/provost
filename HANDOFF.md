@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table gap round (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit gap round (2026-07-11) — **3125 tidy, 71 ⏳**
+
+> **2026-07-11 — gap round (ANSI strip + box-table + manifest audit).** An
+> engine-level ANSI strip (once per input, gated on an ESC byte) fixed colored
+> tools and cleaned 45 `*-color` goldens; `box-table` gained interior-row +
+> duckdb "type row" handling (supabase / psql-unicode / duckdb). A closing
+> manifest audit reclassified three fixtures that were *already* tidying but
+> mis-scored — `kubectl-get-svc-none` and `lsblk-empty-mountpoint` (correct
+> tables over-counted by one data row; `<none>` / empty-mountpoint cells
+> preserved) and `systemctl-status-nginx` (`table`->`kv`, a single-unit status
+> snapshot). No parser code changed for the three; goldens frozen and verified
+> against live output. Golden gate 0 failed; **now 3196 tools; 3125 tidy; 71 ⏳.**
+> On PR #35.
 
 > **2026-07-11 — adversarial stress test (+500 hard inputs).** 500 inputs
 > generated to BREAK the parser across 10 hard mechanisms. Robust to ANSI color,

@@ -1497,7 +1497,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | kubectl-get-statefulset | ✅ | aligned-columns |
 | kubectl-get-storageclass | ✅ | aligned-columns |
 | kubectl-get-svc-color | ✅ | aligned-columns |
-| kubectl-get-svc-none | ⏳ | — |
+| kubectl-get-svc-none | ✅ | aligned-columns |
 | kubectl-get-svc-wide | ✅ | aligned-columns |
 | kubectl-get-svc | ✅ | aligned-columns |
 | kubectl-jsonpath-commas | ✅ | aligned-columns |
@@ -1594,7 +1594,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ls-color-long | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsattr | ✅ | line-records |
-| lsblk-empty-mountpoint | ⏳ | — |
+| lsblk-empty-mountpoint | ✅ | aligned-columns |
 | lsblk-f | ✅ | aligned-columns |
 | lsblk-fs | ✅ | aligned-columns |
 | lsblk-fstype | ✅ | aligned-columns |
@@ -2777,7 +2777,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | systemctl-show | ✅ | equals |
 | systemctl-status-color-dot | ✅ | aligned-columns |
 | systemctl-status-containerd | ✅ | indented-hierarchy |
-| systemctl-status-nginx | ⏳ | — |
+| systemctl-status-nginx | ✅ | block-records |
 | systemctl-status-postgresql | ✅ | indented-hierarchy |
 | systemctl-status | ✅ | block-records |
 | systemctl-timers-blank | ✅ | aligned-columns |

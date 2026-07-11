@@ -2808,7 +2808,7 @@ git-log-body	table	3	4
 git-log-fuller	table	4	4
 git-log-wrapped-body	table	3	4
 git-log-signed	table	3	4
-systemctl-status-nginx	table	4	2
+systemctl-status-nginx	kv	-	5
 systemctl-status-containerd	kv	-	5
 systemctl-status-postgresql	kv	-	5
 ip-s-link	table	3	7
@@ -2903,7 +2903,7 @@ kubectl-get-pods-pending	table	5	9
 docker-ps-empty-ports	table	4	7
 ps-aux-empty-tty	table	5	11
 mount-variants-ragged	table	6	4
-lsblk-empty-mountpoint	table	8	7
+lsblk-empty-mountpoint	table	7	7
 blkid-sparse-fields	kv	5	2
 ip-addr-mixed-scopes	table	3	2
 netstat-tuln-dash	table	5	6
@@ -2922,7 +2922,7 @@ who-a-ragged	table	6	5
 ausearch-record-gaps	kv	3	2
 journalctl-short-gaps	table	6	4
 kubectl-get-nodes-notready	table	4	5
-kubectl-get-svc-none	table	6	6
+kubectl-get-svc-none	table	5	6
 docker-images-none-tag	table	5	5
 nmcli-device-status-sparse	table	5	4
 ip-route-mixed-metric	kv	5	2

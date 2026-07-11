@@ -29,6 +29,18 @@ dozens of already-covered tools.
 Full golden audit: 45 improved (de-ANSI'd) + duckdb fix, 4 newly ✅, 2 honest ⏳
 demotions, 0 real regressions. Golden gate 0 failed; extract 62/62.
 
+Follow-up manifest audit (three fixtures that were *already* tidying but
+mis-scored, no code change): `kubectl-get-svc-none` (`table 6 6`->`5 6`) and
+`lsblk-empty-mountpoint` (`table 8 7`->`7 7`) were correct 6-/7-column tables
+whose `<none>` / empty-`MOUNTPOINT` cells are preserved — the manifest simply
+over-counted the data rows by one. `systemctl-status-nginx` was reclassified
+`table`->`kv - 5`: it is a single-unit status snapshot, the same key/value shape
+as the eight describe/status fixtures reclassified above, not a table. Goldens
+frozen for all three (aligned-columns / aligned-columns / block-records). Net:
+**3122 -> 3125 tidy, 74 -> 71 ⏳.** Files: `tests/corpus/expected.tsv`,
+`tests/corpus/expected/{kubectl-get-svc-none,lsblk-empty-mountpoint,systemctl-status-nginx}.tsv`,
+`tests/corpus/COVERAGE.md`, `tests/corpus/README.md`.
+
 ## 2026-07-11 — Multi-line records: single-resource describes are kv, not table
 
 The second frontier weakness from the adversarial round. Unlike trees, the
