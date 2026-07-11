@@ -1,0 +1,5 @@
+n	depth	name	total_entries
+1	1	[92mCargo.toml[0m 412	4
+2	1	[94msrc[0m -	4
+3	2	[37mmain.rs[0m 1204	4
+4	1	[94mtests[0m -	4

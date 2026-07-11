@@ -1,0 +1,5 @@
+│ code  │ label       │ qty   │
+│ ----- │ ----------- │ ----- │
+│ 00A   │ widget      │ 040   │
+│ 00B   │ gadget      │ 007   │
+│ 00C   │ gizmo       │ 128   │

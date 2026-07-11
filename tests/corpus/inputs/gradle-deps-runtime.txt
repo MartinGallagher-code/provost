@@ -1,0 +1,11 @@
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.springframework.boot:spring-boot-starter-web -> 2.7.7
+|    +--- org.springframework.boot:spring-boot-starter:2.7.7
+|    |    +--- org.springframework.boot:spring-boot:2.7.7
+|    |    +--- org.springframework.boot:spring-boot-autoconfigure:2.7.7
+|    |    \--- org.springframework.boot:spring-boot-starter-logging:2.7.7
+|    |         +--- ch.qos.logback:logback-classic:1.2.11
+|    |         \--- org.apache.logging.log4j:log4j-to-slf4j:2.17.2
+|    +--- org.springframework:spring-web:5.3.25
+|    \--- org.springframework:spring-webmvc:5.3.25
+\--- org.projectlombok:lombok -> 1.18.24

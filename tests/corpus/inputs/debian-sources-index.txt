@@ -1,0 +1,15 @@
+Package: coreutils
+Binary: coreutils
+Version: 9.1-1
+Priority: required
+Section: utils
+Directory: pool/main/c/coreutils
+Checksums-Sha256: aa11bb22
+
+Package: findutils
+Binary: findutils
+Version: 4.9.0-4
+Priority: required
+Section: utils
+Directory: pool/main/f/findutils
+Checksums-Sha256: cc33dd44

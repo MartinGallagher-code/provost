@@ -1,0 +1,6 @@
+USER       PID  %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1   0.0  0.1 167884 11540 ?        Ss   Jun10   0:42 /sbin/init
+root       412   0.0  0.0      0     0 ?        I<   Jun10   0:00 [kworker/0:1H]
+mgallag   2033   1.2  3.4 812440 68120 pts/0    Sl+  09:14   0:03 vim notes.md
+mgallag   2101   0.0  0.1  12984  4020 pts/1    R+   09:22   0:00 ps aux
+postgres  1188   0.3  2.1 402100 42880 ?        Ss   Jun10   5:11 postgres: checkpointer

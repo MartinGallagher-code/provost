@@ -1,0 +1,3 @@
+debian-12.4.0-amd64.iso     100%[===================>]   1.42G  11.3MB/s    in 2m1s
+ubuntu-22.04.3-live.iso      63%[===========>        ]   2.98G  14.1MB/s    eta 3m12s
+alpine-3.18-standard.iso     100%[===================>]  56.00M   9.8MB/s    in 6.0s

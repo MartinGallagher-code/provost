@@ -1,0 +1,5 @@
+   131074      4 drwxr-xr-x   2 mgallag mgallag     4096 Jul  9 11:02 ./src
+   131075      8 -rw-r--r--   1 mgallag mgallag     6420 Jul  9 11:02 ./src/main.c
+   131076      0 -rw-r--r--   1 root    root           0 Jul  1 08:00 ./src/empty.txt
+   131077     12 -rwxr-xr-x   1 mgallag mgallag    10240 Jul 10 14:33 ./build.sh
+   131078      4 lrwxrwxrwx   1 mgallag mgallag        7 Jul  9 11:05 ./latest -> src/main.c

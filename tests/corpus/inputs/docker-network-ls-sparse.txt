@@ -1,0 +1,6 @@
+NETWORK ID     NAME      DRIVER    SCOPE
+a1b2c3d4e5f6   bridge    bridge    local
+001122334455   host      host      local
+66778899aabb   none      null      local
+ccddeeff0011   myapp_net           local
+2233445566ff   ingress   overlay   swarm

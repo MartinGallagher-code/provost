@@ -1,0 +1,4 @@
+NAME          URL
+[36mstable[0m        https://charts.helm.sh/stable
+[36mbitnami[0m       https://charts.bitnami.com/bitnami
+[36mprometheus[0m    https://prometheus-community.github.io/helm-charts

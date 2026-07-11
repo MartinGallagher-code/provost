@@ -1,0 +1,5 @@
+   Compiling libc v0.2.153       [========>              ] 12/48
+   Compiling serde v1.0.197      [=============>         ] 24/48
+   Compiling tokio v1.36.0       [==================>    ] 38/48
+   Compiling hyper v1.2.0        [====================>  ] 44/48
+    Finished release [optimized]  [=====================] 48/48

@@ -1,0 +1,12 @@
+emacs@28.2
+  -> gtk+@3.24.34
+       -> glib@2.72.3
+            -> libffi@3.4.4
+            -> pcre@8.45
+       -> cairo@1.16.0
+            -> pixman@0.40.0
+            -> fontconfig@2.13.94
+  -> ncurses@6.2.20210619
+  -> libxml2@2.9.14
+       -> zlib@1.2.12
+       -> xz@5.2.5

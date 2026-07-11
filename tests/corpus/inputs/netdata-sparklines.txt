@@ -1,0 +1,6 @@
+chart              now      1-min sparkline
+system.cpu         42.1%    ▂▃▅▇█▆▄▃▂▁▂▄
+system.ram         61.8%    ▅▅▆▆▆▇▇▆▆▅▅▅
+system.net.eth0    12.4M    ▁▂▄▆█▇▅▃▂▁▁▂
+disk.util.sda      88.2%    ▆▇███▇▆▅▆▇██
+apps.cpu.postgres  9.1%     ▁▁▂▁▁▃▂▁▁▁▂▁

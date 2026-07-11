@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2696 tools tested; 2659 tidy (37 genuine format gaps ⏳)** — after two +500
+**3196 tools tested; 3090 tidy (106 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -61,9 +61,14 @@ then closed right-aligned space-in-value fixed-width tables — `ceph osd df`'s
 tables (multi-word headers joined, space-in-value cells preserved). A third
 +539 expansion (batch 3: cloud/k8s/db/observability/networking/security/build/
 ML/hardware/storage CLIs) tidied **529 of 539 (98%) with no new per-tool code**.
-The 37 ⏳ that remain are genuinely hard (headerless first column — kdiskmark;
-single-space multi-word cells — lzbench; headerless space-in-value records —
-supervisorctl-status; multi-record comma `k=v` — ovs-ofctl-dump-flows;
+Finally, a +500 **adversarial** round — inputs generated specifically to BREAK
+the parser across 10 hard mechanisms — found the parser robust to embedded ANSI
+color, grouped 2-row headers, paragraph-stanza records and TUI/progress bars,
+and rebuilt `box-table` (heavy/double/tabulate/dotted glyphs, interior-only
+rows, csvlook dash rule) to close 8 box-drawing breakers; 431 of the 500 tidy in
+full mode. The 106 ⏳ that remain are genuinely hard (deep indented trees;
+multi-line/wrapped records — `kubectl describe`, `git log` bodies; headerless
+first column — kdiskmark; single-space multi-word cells — lzbench;
 nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the live
 per-tool list.
 

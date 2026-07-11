@@ -1,0 +1,4 @@
+CONTAINER ID  IMAGE                            COMMAND     CREATED       STATUS         PORTS                   NAMES
+3f2a1b0c9d8e  docker.io/library/alpine:3.19    sh          2 hours ago   Up 2 hours                             sidecar
+8e7d6c5b4a39  docker.io/library/caddy:2        caddy run   1 day ago     Up 1 day       0.0.0.0:443->443/tcp    web
+1a2b3c4d5e6f  localhost/worker:latest          /worker     5 days ago    Exited (137)                           worker-old

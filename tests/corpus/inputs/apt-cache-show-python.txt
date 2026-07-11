@@ -1,0 +1,13 @@
+Package: python3-requests
+Version: 2.28.1+dfsg-1
+Architecture: all
+Priority: optional
+Section: python
+Depends: python3-urllib3, python3-certifi
+
+Package: python3-flask
+Version: 2.2.2-3
+Architecture: all
+Priority: optional
+Section: python
+Depends: python3-werkzeug, python3-jinja2

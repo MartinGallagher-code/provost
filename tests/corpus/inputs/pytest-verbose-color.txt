@@ -1,0 +1,3 @@
+tests/test_api.py::test_get[[36mcase1[0m]     [32mPASSED[0m   [ 25%]
+tests/test_api.py::test_get[[36mcase2[0m]     [31mFAILED[0m   [ 50%]
+tests/test_api.py::test_post[[36mjson[0m]     [32mPASSED[0m   [ 75%]

@@ -1,0 +1,6 @@
+192.168.1.1 dev eth0 lladdr 3c:84:6a:11:22:33 REACHABLE
+192.168.1.10 dev eth0 lladdr 8c:85:90:aa:bb:cc STALE
+192.168.1.55 dev eth0 FAILED
+192.168.1.99 dev eth0 lladdr a0:b1:c2:d3:e4:f5 DELAY
+fe80::1 dev eth0 lladdr 3c:84:6a:11:22:33 router REACHABLE
+10.0.0.9 dev tun0 INCOMPLETE

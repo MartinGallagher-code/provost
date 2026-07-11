@@ -1,0 +1,6 @@
+   role     │ can_login │ conn_limit │ valid_until
+────────────┼───────────┼────────────┼─────────────
+ app_rw     │ t         │ 100        │ infinity
+ app_ro     │ t         │ 50         │ 2027-01-01
+ migrator   │ f         │ -1         │ infinity
+(3 rows)

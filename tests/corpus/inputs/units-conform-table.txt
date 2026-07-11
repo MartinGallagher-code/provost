@@ -1,0 +1,4 @@
+from           to        factor
+1 mile         km        1.6093440
+1 gallon       litre     3.7854118
+1 lightyear    km        9.4607305e12

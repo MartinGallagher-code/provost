@@ -1,0 +1,17 @@
+*** Sampled system activity (2026-07-11 09:12:44 -0700) ***
+
+**** Processor usage ****
+
+Cluster       Active   Freq(MHz)   Idle(%)
+E-Cluster      12.40      1024.0    87.60
+P-Cluster      44.20      3204.0    55.80
+
+**** GPU usage ****
+
+GPU active residency:   38.42%
+GPU Power:              1204 mW
+
+**** CPU Power ****
+
+CPU Power:             8820 mW
+Package Power:        14402 mW

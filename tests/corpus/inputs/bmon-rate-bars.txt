@@ -1,0 +1,4 @@
+  Interface        RX bps    TX bps  Graph
+  eth0            12.4MiB   3.10MiB  ▁▂▃▅▆▇█▇▆▅▃▂
+  wlan0            842KiB   210KiB   ▁▁▂▂▃▃▂▂▁▁▁▁
+  lo               1.2MiB   1.2MiB   ▄▄▄▄▄▄▄▄▄▄▄▄

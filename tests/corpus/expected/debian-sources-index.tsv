@@ -1,0 +1,3 @@
+n	Package	Binary	Version	Priority	Section	Directory	Checksums-Sha256
+1	coreutils	coreutils	9.1-1	required	utils	pool/main/c/coreutils	aa11bb22
+2	findutils	findutils	4.9.0-4	required	utils	pool/main/f/findutils	cc33dd44

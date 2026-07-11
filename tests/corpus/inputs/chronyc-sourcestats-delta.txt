@@ -1,0 +1,5 @@
+Name/IP Address            NP  NR  Span  Frequency  Skew   Offset  StdDev
+==============================================================================
+ntp1.example.net           17  10   557    +0.012   0.045  -0.512   0.089
+ntp2.example.net           20  12   612    -0.034   0.067  +1.234   0.145
+ntp3.example.net           14   8   489    +0.101   0.123 -12.045   1.302

@@ -1,0 +1,4 @@
+[36mtests/test_auth.py[0m::[1mtest_login[0m
+[36mtests/test_auth.py[0m::[1mtest_logout[0m
+[36mtests/test_db.py[0m::[1mtest_connect[0m
+[36mtests/test_db.py[0m::[1mtest_query[0m

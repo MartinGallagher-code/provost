@@ -1,0 +1,4 @@
+n	step	operation	reversible	total_entries
+1	0001	add_column	yes	3
+2	0002	backfill	no	3
+3	0003	drop_index	yes	3

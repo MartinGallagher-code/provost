@@ -1,0 +1,6 @@
+n	NAME	USED	AVAIL	REFER	MOUNTPOINT	total_entries
+1	tank	412G	386G	192K	/tank	5
+2	tank/home	120G	386G	120G	/home	5
+3	tank/backups	88G	386G	88G	none	5
+4	tank/vol1	40G	420G	16K	-	5
+5	tank/data	164G	386G	164G	/tank/data	5

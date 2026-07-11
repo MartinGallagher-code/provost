@@ -1,0 +1,5 @@
+ NAME          CPU              MEM              NET RX/TX
+ api-gateway   [|||||     ] 48% [|||       ] 31% 12M / 4M
+ postgres      [|||||||   ] 71% [|||||||   ] 68% 2M / 8M
+ redis-cache   [|         ]  9% [||        ] 14% 1M / 1M
+ worker-01     [||||||||  ] 84% [|||||     ] 52% 40M / 6M

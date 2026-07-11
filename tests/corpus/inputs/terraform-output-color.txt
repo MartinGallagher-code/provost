@@ -1,0 +1,3 @@
+instance_ip = [33m"52.10.4.2"[0m
+bucket_name = [33m"assets-prod-9f2"[0m
+db_endpoint = [33m"db.internal:5432"[0m

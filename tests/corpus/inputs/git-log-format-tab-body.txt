@@ -1,0 +1,2 @@
+c1a2b3c	Alice	2026-05-01	Fix: parse commas, tabs in body
+d4e5f6a	Bob	2026-05-02	Add: feature X, Y; refs #12

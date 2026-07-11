@@ -1,0 +1,6 @@
+field                 value
+critical_warning      0x00
+temperature           45°C
+available_spare       99%
+data_units_read       0x1a2b3c4d
+power_cycles          0755

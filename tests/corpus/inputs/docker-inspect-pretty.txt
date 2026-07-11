@@ -1,0 +1,15 @@
+Container: web-app-7f9c
+Image: nginx:1.25-alpine
+State: running
+Created: 2024-01-15T08:22:41.882931043Z
+Started: 2024-01-15T08:22:42.104882901Z
+IPAddress: 172.18.0.4
+MacAddress: 02:42:ac:12:00:04
+Ports: 80/tcp -> 0.0.0.0:8080, 443/tcp -> 0.0.0.0:8443
+Mounts: /var/lib/docker/volumes/web-data/_data -> /usr/share/nginx/html
+    /etc/nginx/conf.d -> /etc/nginx/conf.d (ro)
+Env: PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    NGINX_VERSION=1.25.3
+    PKG_RELEASE=1
+Cmd: nginx -g daemon off;
+RestartPolicy: unless-stopped (max retries: 0)

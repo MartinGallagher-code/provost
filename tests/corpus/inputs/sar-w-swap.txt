@@ -1,0 +1,7 @@
+Linux 5.15.0-91-generic (batch-worker-9) 	07/11/2026 	_x86_64_	(8 CPU)
+
+12:00:01 AM  pswpin/s pswpout/s
+12:10:01 AM      0.00      0.00
+12:20:01 AM      0.10      2.44
+12:30:01 AM      1.22     18.90
+Average:         0.44      7.11

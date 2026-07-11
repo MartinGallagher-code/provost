@@ -1,0 +1,3 @@
+date;region;revenue;growth
+2026-01;EMEA;1.234.567,89;12,5%
+2026-02;APAC;2.345.678,90;8,3%

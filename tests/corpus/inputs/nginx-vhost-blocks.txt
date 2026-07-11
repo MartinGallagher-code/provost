@@ -1,0 +1,11 @@
+server_name: example.com
+listen: 80
+root: /var/www/example
+index: index.html
+access_log: /var/log/nginx/example.log
+
+server_name: api.example.com
+listen: 443
+root: /var/www/api
+index: index.php
+access_log: /var/log/nginx/api.log

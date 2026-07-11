@@ -1,0 +1,8 @@
+# m h  dom mon dow   command
+# backup nightly
+0 2 * * * /usr/local/bin/backup.sh --full
+
+# every 15 minutes
+*/15 * * * * /opt/app/healthcheck.sh
+30 4 1 * * root /usr/bin/logrotate /etc/logrotate.conf
+@reboot /usr/local/bin/warmcache.sh

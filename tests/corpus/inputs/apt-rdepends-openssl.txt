@@ -1,0 +1,14 @@
+openssl
+  Depends: libc6 (>= 2.34)
+  Depends: libssl3 (>= 3.0.0)
+libc6
+  Depends: libgcc-s1
+  Depends: libcrypt1 (>= 1:4.1.0)
+libssl3
+  Depends: libc6 (>= 2.34)
+  Depends: debconf (>= 0.5) | debconf-2.0
+libgcc-s1
+  Depends: gcc-12-base (= 12.2.0-14)
+  Depends: libc6 (>= 2.2.5)
+debconf
+  Depends: perl-base (>= 5.20.1-3)

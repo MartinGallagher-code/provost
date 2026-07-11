@@ -1,0 +1,12 @@
+TARGET                                SOURCE     FSTYPE     OPTIONS
+/                                     /dev/sda2  ext4       rw,relatime
+├─/sys                                sysfs      sysfs      rw,nosuid,nodev,noexec
+│ ├─/sys/kernel/security              securityfs securityfs rw,nosuid,nodev,noexec
+│ ├─/sys/fs/cgroup                    cgroup2    cgroup2    rw,nosuid,nodev,noexec
+│ └─/sys/fs/bpf                       bpf        bpf        rw,nosuid,nodev,noexec
+├─/proc                               proc       proc       rw,nosuid,nodev,noexec
+│ └─/proc/sys/fs/binfmt_misc          systemd-1  autofs     rw,relatime
+├─/dev                                udev       devtmpfs   rw,nosuid,relatime
+│ ├─/dev/pts                          devpts     devpts     rw,nosuid,noexec
+│ └─/dev/shm                          tmpfs      tmpfs      rw,nosuid,nodev
+└─/boot                               /dev/sda1  ext4       rw,relatime

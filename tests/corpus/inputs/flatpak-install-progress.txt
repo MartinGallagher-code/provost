@@ -1,0 +1,4 @@
+Installing 1/4… org.gimp.GIMP        [██████████] 100%  212.4 MB
+Installing 2/4… org.blender.Blender  [██████░░░░]  64%  388.1 MB
+Installing 3/4… com.spotify.Client   [██░░░░░░░░]  21%  144.9 MB
+Installing 4/4… org.mozilla.firefox  [█░░░░░░░░░]   8%   96.2 MB

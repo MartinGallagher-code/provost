@@ -1,0 +1,13 @@
+dn: uid=jdoe,ou=people,dc=example,dc=com
+uid: jdoe
+cn: John Doe
+mail: jdoe@example.com
+uidNumber: 1001
+gidNumber: 1001
+
+dn: uid=asmith,ou=people,dc=example,dc=com
+uid: asmith
+cn: Alice Smith
+mail: asmith@example.com
+uidNumber: 1002
+gidNumber: 1002

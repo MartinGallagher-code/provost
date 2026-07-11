@@ -1,0 +1,3 @@
+n	USER	FULL_NAME	SHELL	total_entries
+1	alice	Alice A. Smith	/bin/bash	2
+2	bob	Bob (admin, ops)	/usr/bin/zsh	2

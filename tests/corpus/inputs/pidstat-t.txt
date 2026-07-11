@@ -1,0 +1,8 @@
+Linux 5.15.0-91-generic (app-node-2) 	07/11/2026 	_x86_64_	(16 CPU)
+
+12:30:01 AM   UID      TGID       TID    %usr %system  %guest   %wait    %CPU   CPU  Command
+12:30:01 AM  1000      4412         -    8.10    2.30    0.00    0.44   10.40     3  java
+12:30:01 AM  1000         -      4413    3.20    0.90    0.00    0.10    4.10     3  |__java
+12:30:01 AM  1000         -      4414    2.80    0.70    0.00    0.08    3.50     5  |__GC-Thread
+12:30:01 AM     0      1120         -    0.50    0.20    0.00    0.00    0.70     1  systemd-journal
+12:30:01 AM     0         -      1121    0.50    0.20    0.00    0.00    0.70     1  |__systemd-journal

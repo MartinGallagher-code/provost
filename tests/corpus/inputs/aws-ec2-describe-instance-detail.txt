@@ -1,0 +1,13 @@
+Instance Id: i-0abcd1234efgh5678
+Instance Type: m5.2xlarge
+State: running
+Private Dns: ip-10-0-3-142.ec2.internal
+Public Dns: ec2-54-160-22-19.compute-1.amazonaws.com
+Iam Instance Profile: arn:aws:iam::123456789012:instance-profile/app-server-profile-production-us-east-1
+Launch Time: 2024-02-01T14:22:08+00:00
+Availability Zone: us-east-1c
+Security Groups: sg-0a1b2c3d (app-sg), sg-0e4f5a6b (ssh-restricted),
+    sg-09c8d7e6 (monitoring-agents)
+Block Devices: /dev/xvda (vol-0123456789abcdef0),
+    /dev/xvdf (vol-0fedcba987654321f)
+Tags: Name=app-server-3, Environment=production, Team=backend

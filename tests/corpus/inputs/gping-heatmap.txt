@@ -1,0 +1,3 @@
+example.com   ▁▂▃▅▆▇█▇▆▅▃▂▁▁▂▃▅   avg 34.2ms
+github.com    ▁▁▂▂▃▃▂▂▁▁▂▃▂▁▁▂▂   avg 21.8ms
+cloudflare.com▁▁▁▂▁▁▁▂▁▁▁▁▂▁▁▁▁   avg 12.4ms

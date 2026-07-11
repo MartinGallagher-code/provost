@@ -1,0 +1,10 @@
+/nix/store/xy9...-hello-2.12.1
+├───/nix/store/ab3...-glibc-2.35-224
+│   ├───/nix/store/cd4...-libidn2-2.3.2
+│   │   └───/nix/store/ef5...-libunistring-1.0
+│   └───/nix/store/gh6...-gcc-11.3.0-lib
+│       └───/nix/store/ab3...-glibc-2.35-224 [...]
+├───/nix/store/ij7...-bash-5.1-p16
+│   └───/nix/store/ab3...-glibc-2.35-224 [...]
+└───/nix/store/kl8...-acl-2.3.1
+    └───/nix/store/ab3...-glibc-2.35-224 [...]

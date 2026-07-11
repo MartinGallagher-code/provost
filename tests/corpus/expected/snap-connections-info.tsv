@@ -1,0 +1,3 @@
+n	Slot	Plug	Interface	Manual	Gadget
+1	:network	chromium:network	network	false	false
+2	:home	vlc:home	home	true	false

@@ -1,0 +1,4 @@
+sensor    now        delta      max
+core0     +43.0°C    +2.0°C     +71.0°C
+core1     +47.0°C    -1.0°C     +73.0°C
+core2     +45.0°C    +0.0°C     +70.0°C

@@ -1,0 +1,2 @@
+host	port	user	sslmode	host	sslmode	host	user	sslmode
+db1.example.com	5432	app	require	db2.example.com	prefer	127.0.0.1	dev	disable

@@ -1,0 +1,15 @@
+Package: vim
+Version: 2:9.0.1378-2
+Priority: optional
+Section: editors
+Filename: pool/main/v/vim/vim_9.0.1378-2_amd64.deb
+Size: 1650000
+SHA256: abc123def456
+
+Package: emacs
+Version: 1:28.2+1-15
+Priority: optional
+Section: editors
+Filename: pool/main/e/emacs/emacs_28.2+1-15_amd64.deb
+Size: 4200000
+SHA256: 789abc012def

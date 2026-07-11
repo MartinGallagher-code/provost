@@ -1,0 +1,18 @@
+# google_storage_bucket.assets:
+resource "google_storage_bucket" "assets" {
+    force_destroy               = false
+    id                          = "company-static-assets"
+    location                    = "US"
+    name                        = "company-static-assets"
+    project                     = "my-project-42981"
+    self_link                   = "https://www.googleapis.com/storage/v1/b/company-static-assets"
+    storage_class               = "STANDARD"
+    url                         = "gs://company-static-assets"
+    versioning {
+        enabled = true
+    }
+    website {
+        main_page_suffix = "index.html"
+        not_found_page   = "404.html"
+    }
+}

@@ -1,0 +1,5 @@
+metric      value
+Download    94.21 Mbit/s
+Upload      10.05 Mbit/s
+Ping        23.456 ms
+Jitter      +1.2 ms

@@ -1,0 +1,4 @@
+label    iec      bytes
+disk     1.5Gi    1610612736
+ram      900Mi    943718400
+swap     4.0Ki    4096

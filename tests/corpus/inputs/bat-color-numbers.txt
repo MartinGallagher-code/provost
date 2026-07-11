@@ -1,0 +1,5 @@
+   [2m1[0m   [35mimport[0m os
+   [2m2[0m   [35mimport[0m sys
+   [2m3[0m
+   [2m4[0m   [34mdef[0m [92mmain[0m():
+   [2m5[0m       [36mreturn[0m 0

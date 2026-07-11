@@ -1,0 +1,9 @@
+//src/main:server
+//src/main:handler
+//src/main:router
+//src/common:context
+//src/common:logging
+//third_party/grpc:grpc++
+//third_party/protobuf:protobuf
+//third_party/absl:strings
+//third_party/absl:base

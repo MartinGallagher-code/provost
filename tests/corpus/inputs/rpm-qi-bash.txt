@@ -1,0 +1,21 @@
+Name        : bash
+Version     : 5.1.8
+Release     : 6.el9_1
+Architecture: x86_64
+Install Date: Fri 10 Feb 2023 11:02:47 AM UTC
+Group       : Unspecified
+Size        : 7748268
+License     : GPLv3+
+Signature   : RSA/SHA256, Thu 26 Jan 2023 06:12:34 PM UTC, Key ID 199e2f91fd431d51
+Source RPM  : bash-5.1.8-6.el9_1.src.rpm
+Build Date  : Thu 26 Jan 2023 05:44:19 PM UTC
+Build Host  : x86-64-02.build.example.com
+Packager    : Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>
+Vendor      : Red Hat, Inc.
+URL         : https://www.gnu.org/software/bash
+Summary     : The GNU Bourne Again shell
+Description :
+The GNU Bourne Again shell (Bash) is a shell or command language
+interpreter that is compatible with the Bourne shell (sh). Bash
+incorporates useful features from the Korn shell (ksh) and the C shell
+(csh), such as command line editing and history.

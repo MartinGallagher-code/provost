@@ -1,0 +1,2 @@
+BUCKET	2026-01-01T00:00:00	my-logs, prod	us-east-1
+BUCKET	2026-02-01T00:00:00	my-data, staging	eu-west-1

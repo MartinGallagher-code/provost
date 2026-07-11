@@ -1,0 +1,13 @@
+Name: zlib-devel
+Version: 1.2.13
+Release: 4.fc39
+Summary: Header files for Zlib development
+License: zlib
+Requires: zlib
+
+Name: openssl-devel
+Version: 3.1.1
+Release: 2.fc39
+Summary: Files for development of OpenSSL apps
+License: ASL 2.0
+Requires: openssl-libs

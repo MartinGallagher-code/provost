@@ -1,0 +1,6 @@
+Process        Up          Down        Bar
+firefox        1.20 MiB/s  12.40 MiB/s ██████████
+spotify        0.10 MiB/s   0.84 MiB/s █░░░░░░░░░
+ssh            0.04 MiB/s   0.02 MiB/s ░░░░░░░░░░
+docker-proxy   3.40 MiB/s   1.10 MiB/s ██░░░░░░░░
+syncthing      0.90 MiB/s   2.20 MiB/s ███░░░░░░░

@@ -1,0 +1,20 @@
+mycrate v0.3.1 (/home/user/mycrate)
+├── serde v1.0.152
+│   └── serde_derive v1.0.152 (proc-macro)
+│       ├── proc-macro2 v1.0.49
+│       │   └── unicode-ident v1.0.6
+│       ├── quote v1.0.23
+│       │   └── proc-macro2 v1.0.49 (*)
+│       └── syn v1.0.107
+│           ├── proc-macro2 v1.0.49 (*)
+│           ├── quote v1.0.23 (*)
+│           └── unicode-ident v1.0.6 (*)
+├── tokio v1.24.1
+│   ├── bytes v1.3.0
+│   ├── mio v0.8.5
+│   │   └── libc v0.2.139
+│   └── pin-project-lite v0.2.9
+└── serde_json v1.0.91
+    ├── itoa v1.0.5
+    ├── ryu v1.0.12
+    └── serde v1.0.152 (*)

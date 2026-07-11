@@ -1,0 +1,5 @@
+Container      CPU               MEM
+web-frontend   ▏████░░░░░▏ 41%  ▏███░░░░░░▏ 210MiB
+api-backend    ▏███████░░░▏ 72%  ▏██████░░░▏ 512MiB
+db-primary     ▏██░░░░░░░░▏ 18%  ▏████████░▏ 1.4GiB
+cache-redis    ▏█░░░░░░░░░▏  6%  ▏█░░░░░░░░░▏ 64MiB

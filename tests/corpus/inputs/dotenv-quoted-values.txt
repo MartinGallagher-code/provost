@@ -1,0 +1,4 @@
+DATABASE_URL="postgres://user:p@ss@localhost:5432/db?sslmode=require"
+APP_NAME="My App, Inc."
+GREETING="hello world = welcome"
+SECRET_KEY='a=b,c=d'

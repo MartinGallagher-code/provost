@@ -1,0 +1,5 @@
+NAME       STATUS     ROLES           AGE    VERSION
+node-a01   Ready      control-plane   88d    v1.29.4
+node-b02   Ready      <none>          88d    v1.29.4
+node-c03   NotReady   <none>          17d    v1.29.4
+node-d04   Ready,SchedulingDisabled   worker   3d   v1.29.6

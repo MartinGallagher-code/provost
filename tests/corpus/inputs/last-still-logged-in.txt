@@ -1,0 +1,5 @@
+mgallag  pts/0        192.168.1.10     Fri Jul 11 09:14   still logged in
+mgallag  pts/1        192.168.1.10     Fri Jul 11 08:02 - 08:59  (00:57)
+reboot   system boot  6.8.0-40-generic Fri Jul 11 07:55   still running
+root     tty1                          Thu Jul 10 22:31 - 23:04  (00:33)
+backup   pts/2        10.0.0.9         Thu Jul 10 02:00 - crash  (05:12)

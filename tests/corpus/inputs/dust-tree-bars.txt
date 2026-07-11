@@ -1,0 +1,5 @@
+ 4.1G   │████████████████████│  45%  /home/user/media
+ 2.2G   │█████████░░░░░░░░░░░│  24%  /home/user/.cache
+ 1.4G   │██████░░░░░░░░░░░░░░│  15%  /home/user/.local
+ 780M   │███░░░░░░░░░░░░░░░░░│   8%  /home/user/Projects
+ 512M   │██░░░░░░░░░░░░░░░░░░│   5%  /home/user/Downloads

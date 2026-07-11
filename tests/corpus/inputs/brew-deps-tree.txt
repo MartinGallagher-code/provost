@@ -1,0 +1,16 @@
+ffmpeg
+├── aom
+│   └── jpeg-xl
+│       ├── brotli
+│       └── highway
+├── lame
+├── x264
+├── x265
+└── libvpx
+node
+├── brotli
+├── c-ares
+├── icu4c
+├── libuv
+└── openssl@3
+    └── ca-certificates

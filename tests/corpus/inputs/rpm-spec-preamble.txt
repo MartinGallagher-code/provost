@@ -1,0 +1,15 @@
+Name: httpd
+Version: 2.4.57
+Release: 5.fc39
+Summary: Apache HTTP Server
+License: ASL 2.0
+URL: https://httpd.apache.org
+Group: System Environment/Daemons
+
+Name: mariadb
+Version: 10.11.5
+Release: 1.fc39
+Summary: A community developed branch of MySQL
+License: GPLv2
+URL: https://mariadb.org
+Group: Applications/Databases

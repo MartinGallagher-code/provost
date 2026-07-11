@@ -1,0 +1,2 @@
+package.name	package.version	package.edition	dependencies.serde_derive	dependencies.proc-macro2	dev-dependencies.serde_json	dev-dependencies.bincode
+serde	1.0.188	2021	1.0.188	1.0	1.0	1.3

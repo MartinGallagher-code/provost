@@ -1,0 +1,2 @@
+url	timeout	backend	ttl
+jdbc:postgresql://host:5432/db?user=admin&pass=x=y	30	redis://:pw@127.0.0.1:6379/0	300

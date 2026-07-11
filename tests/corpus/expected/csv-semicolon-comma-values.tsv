@@ -1,0 +1,4 @@
+n	A	total_entries
+1	id;name;amount;note	3
+2	1;Widget, large;1,50;in stock	3
+3	2;Gadget, small;2,75;backorder	3

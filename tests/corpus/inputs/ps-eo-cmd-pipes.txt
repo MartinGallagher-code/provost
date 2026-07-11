@@ -1,0 +1,3 @@
+  PID PPID CMD
+ 2001    1 /bin/sh -c cat /var/log/syslog | grep error | mail -s "errors" root
+ 2002 2001 grep --color=auto error

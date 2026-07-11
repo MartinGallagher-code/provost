@@ -1,0 +1,2 @@
+alice:x:1000:1000:Alice Smith,Room 101,555-1234,,:/home/alice:/bin/bash
+bob:x:1001:1001:Bob Jones,Room 102,,,:/home/bob:/bin/bash

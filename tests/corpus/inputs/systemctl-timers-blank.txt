@@ -1,0 +1,5 @@
+NEXT                        LEFT          LAST                        PASSED       UNIT                       ACTIVATES
+Fri 2026-07-11 12:00:00 UTC 2h 35min left Fri 2026-07-11 06:00:00 UTC 3h 24min ago apt-daily.timer            apt-daily.service
+Sat 2026-07-12 00:00:00 UTC 12h left      Fri 2026-07-11 00:00:00 UTC 9h ago       logrotate.timer           logrotate.service
+n/a                         n/a           Fri 2026-07-11 07:55:01 UTC 1h 29min ago fstrim.timer               fstrim.service
+Fri 2026-07-11 10:30:00 UTC 1h 5min left  n/a                         n/a          motd-news.timer           motd-news.service

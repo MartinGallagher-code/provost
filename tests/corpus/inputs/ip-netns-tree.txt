@@ -1,0 +1,12 @@
+netns: default
+  ├─ veth-red@if3 -> red
+  │    netns: red
+  │      ├─ lo
+  │      └─ eth0 10.0.1.2/24
+  ├─ veth-blue@if5 -> blue
+  │    netns: blue
+  │      ├─ lo
+  │      └─ eth0 10.0.2.2/24
+  └─ br0
+       ├─ 10.0.1.1/24
+       └─ 10.0.2.1/24

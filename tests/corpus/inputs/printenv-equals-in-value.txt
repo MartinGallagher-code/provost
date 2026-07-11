@@ -1,0 +1,4 @@
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00
+TERMCAP=SC|screen|VT 100/ANSI:co#80:li#24
+PATH=/usr/local/bin:/usr/bin:/bin
+_=/usr/bin/printenv

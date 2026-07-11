@@ -1,0 +1,9 @@
+State    Recv-Q  Send-Q  Local Address:Port    Peer Address:Port
+ESTAB    0       0       10.0.1.24:22          10.0.1.5:51234
+	 cubic wscale:7,7 rto:204 rtt:0.312/0.104 ato:40 mss:1448 cwnd:10 bytes_sent:8841 bytes_acked:8841 segs_out:44 segs_in:38 data_segs_out:22
+ESTAB    0       0       10.0.1.24:443         10.0.1.88:44210
+	 cubic wscale:8,7 rto:212 rtt:1.021/0.512 mss:1448 cwnd:10 ssthresh:7 bytes_sent:120394 bytes_acked:120394 segs_out:210
+ESTAB    0       128     10.0.1.24:5432        10.0.1.90:38822
+	 cubic wscale:7,7 rto:208 rtt:0.688/0.201 mss:1448 cwnd:10 bytes_sent:44021 bytes_acked:44021 retrans:0/2
+CLOSE-WAIT 0     1       10.0.1.24:8080        10.0.1.14:60122
+	 cubic wscale:7,7 rto:220 rtt:2.104/1.002 mss:1448 cwnd:4 bytes_sent:9921

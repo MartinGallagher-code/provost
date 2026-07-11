@@ -1,0 +1,9 @@
+init─┬─agetty
+     ├─containerd───13*[{containerd}]
+     ├─dockerd─┬─containerd-shim─┬─node─┬─node───11*[{node}]
+     │         │                 │      └─5*[{node}]
+     │         │                 └─8*[{containerd-shim}]
+     │         └─10*[{dockerd}]
+     ├─cron
+     ├─sshd───sshd───sshd───bash───pstree
+     └─systemd-journal

@@ -1,0 +1,4 @@
+directory:  [94m~/proj/glean[0m
+git_branch:  [35mmain[0m
+rust:        [31mv1.77.0[0m
+duration:    [33m2.3s[0m

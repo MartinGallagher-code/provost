@@ -1,0 +1,6 @@
+  LV      VG      Attr       LSize   Pool   Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  root    vg0     -wi-ao----  200.00g
+  swap    vg0     -wi-ao----    8.00g
+  thinpool vg0    twi-aotz-- 400.00g               42.10  18.55
+  data    vg0     Vwi-aotz-- 100.00g thinpool        88.20
+  snap    vg0     Vwi-a-tz-- 100.00g thinpool data   12.40

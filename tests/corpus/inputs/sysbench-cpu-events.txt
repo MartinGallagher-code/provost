@@ -1,0 +1,5 @@
+metric                value
+events per second     1234.56
+total events          74073
+latency avg (ms)      0.81
+latency 95th (ms)     1.24e0

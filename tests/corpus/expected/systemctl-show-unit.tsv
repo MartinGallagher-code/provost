@@ -1,0 +1,2 @@
+Id	ExecStart	Environment	FragmentPath
+nginx.service	{ path=/usr/sbin/nginx ; argv[]=/usr/sbin/nginx -g daemon off; ; ignore_errors=no }	LANG=en_US.UTF-8 TZ=UTC	/lib/systemd/system/nginx.service

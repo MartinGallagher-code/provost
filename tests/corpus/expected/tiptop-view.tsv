@@ -1,0 +1,8 @@
+n	A	total_entries
+1	tiptop -  09:12:44   up  4 days,  loadavg  1.20  1.10  0.98	7
+2	Tasks:  312 total,   2 displayed                       screen  0: default	7
+3	PID [ %CPU] %SYS   P   Mcycle   Minstr   IPC  %MISS  %BMIS  %BUS COMMAND	7
+4	4412  198.4  22.1   3  8201.44  4120.88  0.50   1.42   0.88  2.10 java	7
+5	2201   88.9   9.4   7  3102.10  1044.19  0.34   0.90   0.44  1.10 postgres	7
+6	3312   44.2   4.8   1  1201.55   602.14  0.50   1.10   0.30  0.80 chrome	7
+7	1120    2.1   0.5   0    88.30    44.12  0.50   0.20   0.05  0.10 systemd	7

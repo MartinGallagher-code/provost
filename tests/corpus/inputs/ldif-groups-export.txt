@@ -1,0 +1,11 @@
+dn: cn=admins,ou=groups,dc=example,dc=com
+cn: admins
+gidNumber: 5000
+member: uid=jdoe
+description: System administrators
+
+dn: cn=devs,ou=groups,dc=example,dc=com
+cn: devs
+gidNumber: 5001
+member: uid=asmith
+description: Developers team

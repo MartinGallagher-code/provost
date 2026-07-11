@@ -1,0 +1,5 @@
+n	metric	value	total_entries
+1	events per second	1234.56	4
+2	total events	74073	4
+3	latency avg (ms)	0.81	4
+4	latency 95th (ms)	1.24e0	4

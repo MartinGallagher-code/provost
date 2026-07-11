@@ -1,0 +1,4 @@
+Severity    Title                          Package     Fixed
+[31mcritical[0m    Prototype Pollution            [1mlodash[0m      4.17.21
+[33mmoderate[0m    ReDoS in ansi parsing          [1mchalk[0m       4.1.2
+[31mhigh[0m        Arbitrary Code Execution       [1mvm2[0m         removed

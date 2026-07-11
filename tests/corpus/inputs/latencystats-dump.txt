@@ -1,0 +1,13 @@
+Latency stats (dpdk) - port 0
+-------------------------------------------------
+                        min       max       avg      50pct     90pct     99pct
+rx_to_worker[ns]        204       88201     1042      880       2104      12044
+worker_to_tx[ns]        118       44012      620      510       1220       8820
+end_to_end[ns]          412      120044     2044     1810      4402      33829
+
+Latency stats (dpdk) - port 1
+-------------------------------------------------
+                        min       max       avg      50pct     90pct     99pct
+rx_to_worker[ns]        210       90210     1101      902       2210      13102
+worker_to_tx[ns]        122       45102      644      520       1288       9210
+end_to_end[ns]          420      122044     2110     1888      4551      34012

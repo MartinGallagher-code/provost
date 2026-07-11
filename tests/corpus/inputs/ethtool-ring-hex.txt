@@ -1,0 +1,4 @@
+Parameter    Preset    Current
+rx           4096      0x0200
+rx-mini      0         0
+tx           4096      0x1000

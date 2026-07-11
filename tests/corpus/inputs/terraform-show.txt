@@ -1,0 +1,18 @@
+# aws_instance.web:
+resource "aws_instance" "web" {
+    ami                          = "ami-0c55b159cbfafe1f0"
+    arn                          = "arn:aws:ec2:us-east-1:123456789012:instance/i-0a1b2c3d4e5f6g7h8"
+    associate_public_ip_address  = true
+    availability_zone            = "us-east-1a"
+    cpu_core_count               = 2
+    id                           = "i-0a1b2c3d4e5f6g7h8"
+    instance_type                = "t3.medium"
+    private_ip                   = "10.0.1.24"
+    public_ip                    = "54.210.167.99"
+    tags                         = {
+        "Environment" = "production"
+        "Name"        = "web-server"
+        "Team"        = "platform"
+    }
+    user_data                    = "IyEvYmluL2Jhc2gKeXVtIGluc3RhbGwgLXkgbmdpbngK"
+}

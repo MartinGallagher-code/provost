@@ -1,0 +1,13 @@
+name: core20
+summary: Runtime environment based on Ubuntu 20.04
+publisher: Canonical
+license: unset
+tracking: latest/stable
+installed: 20230622
+
+name: hello-world
+summary: The classic hello-world snap
+publisher: Canonical
+license: unset
+tracking: latest/stable
+installed: 6.4

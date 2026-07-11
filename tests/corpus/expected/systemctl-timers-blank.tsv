@@ -1,0 +1,5 @@
+n	NEXT	LEFT	LAST	PASSED	UNIT	ACTIVATES	total_entries
+1	Fri	2026-07-11	12:00:00	UTC	2h	35min_left_Fri_2026-07-11_06:00:00_UTC_3h_24min_ago_apt-daily.timer_apt-daily.service	4
+2	Sat	2026-07-12	00:00:00	UTC	12h	left_Fri_2026-07-11_00:00:00_UTC_9h_ago_logrotate.timer_logrotate.service	4
+3	n/a	n/a	Fri	2026-07-11	07:55:01	UTC_1h_29min_ago_fstrim.timer_fstrim.service	4
+4	Fri	2026-07-11	10:30:00	UTC	1h	5min_left_n/a_n/a_motd-news.timer_motd-news.service	4

@@ -1,0 +1,4 @@
+n	label	iec	bytes	total_entries
+1	disk	1.5Gi	1610612736	3
+2	ram	900Mi	943718400	3
+3	swap	4.0Ki	4096	3

@@ -1,0 +1,6 @@
+ID# ATTRIBUTE_NAME              FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+  5 Reallocated_Sector_Ct       0x0033   100   100   010    Pre-fail  Always       -       0
+  9 Power_On_Hours              0x0032   099   099   000    Old_age   Always       -       2210
+ 12 Power_Cycle_Count           0x0032   099   099   000    Old_age   Always       -       88
+177 Wear_Leveling_Count         0x0013   098   098   000    Pre-fail  Always       -       41
+241 Total_LBAs_Written          0x0032   099   099   000    Old_age   Always       -       12849302104

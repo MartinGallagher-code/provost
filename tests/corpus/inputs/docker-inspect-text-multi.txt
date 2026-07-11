@@ -1,0 +1,13 @@
+Id: 3f2a1b0c9d8e
+Name: /web
+Image: nginx:1.25
+State: running
+IPAddress: 172.17.0.2
+RestartCount: 0
+
+Id: 7e6d5c4b3a29
+Name: /db
+Image: postgres:15
+State: running
+IPAddress: 172.17.0.3
+RestartCount: 1

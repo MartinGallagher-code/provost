@@ -1,0 +1,6 @@
+NAME                 USED  AVAIL     REFER  MOUNTPOINT
+tank                 412G   386G      192K  /tank
+tank/home            120G   386G      120G  /home
+tank/backups          88G   386G       88G  none
+tank/vol1             40G   420G       16K  -
+tank/data            164G   386G      164G  /tank/data

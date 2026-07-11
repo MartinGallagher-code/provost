@@ -1,0 +1,8 @@
+┌──────────────┬─────────────┬─────────┐
+│ column_name  │ column_type │ null    │
+│   varchar    │   varchar   │ varchar │
+├──────────────┼─────────────┼─────────┤
+│ user_id      │ BIGINT      │ NO      │
+│ email        │ VARCHAR     │ NO      │
+│ created_at   │ TIMESTAMP   │ YES     │
+└──────────────┴─────────────┴─────────┘

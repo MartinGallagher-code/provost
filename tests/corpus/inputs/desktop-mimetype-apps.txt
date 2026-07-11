@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Evince
+Exec=evince %U
+Type=Application
+MimeType=application/pdf;
+Categories=Office;Viewer;
+
+[Desktop Entry]
+Name=Eog
+Exec=eog %U
+Type=Application
+MimeType=image/png;image/jpeg;
+Categories=Graphics;Viewer;

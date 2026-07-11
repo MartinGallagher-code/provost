@@ -1,0 +1,14 @@
+Name: Ada Lovelace
+Email: ada@example.org
+Phone: +44 20 7946 0001
+Role: Analyst
+
+Name: Grace Hopper
+Email: grace@navy.mil
+Phone: +1 202 555 0117
+Role: Rear Admiral
+
+Name: Alan Turing
+Email: alan@bletchley.uk
+Phone: +44 1908 640404
+Role: Cryptanalyst

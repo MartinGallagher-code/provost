@@ -1,0 +1,5 @@
+n	id	name	email	status	total_entries
+1	1	Alice Chen	alice@example.com	active	4
+2	2	Bob Nguyen	bob.n@example.com	active	4
+3	3	Carol Diaz	carol@mail.example	pending	4
+4	4	Dan O'Neil	dan.oneil@corp.io	locked	4

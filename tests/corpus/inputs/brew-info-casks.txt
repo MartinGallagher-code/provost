@@ -1,0 +1,11 @@
+==> firefox
+Version: 116.0
+Homepage: https://www.mozilla.org/firefox/
+Artifact: Firefox.app
+Auto-updates: true
+
+==> iterm2
+Version: 3.4.20
+Homepage: https://iterm2.com/
+Artifact: iTerm.app
+Auto-updates: false

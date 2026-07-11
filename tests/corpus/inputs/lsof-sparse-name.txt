@@ -1,0 +1,6 @@
+COMMAND   PID    USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+sshd      812    root   3u   IPv4  18442      0t0    TCP *:ssh (LISTEN)
+nginx    1201    root   6u   IPv4  20101      0t0    TCP *:http (LISTEN)
+redis    1188  redis    5u  IPv6  21344      0t0    TCP localhost:6379 (LISTEN)
+bash     2033 mgallag  cwd    DIR    8,3     4096 131074 /home/mgallag
+python3  2201 mgallag   4r   REG    8,3    10240 262145 /home/mgallag/data.csv

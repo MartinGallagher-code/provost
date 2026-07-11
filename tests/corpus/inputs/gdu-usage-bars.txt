@@ -1,0 +1,6 @@
+                             apparent disk usage  used
+   12.3 GiB [##########] 45%  /var/lib/docker
+    6.1 GiB [#####     ] 22%  /home/user/.cache
+    3.9 GiB [###       ] 14%  /usr/lib
+    2.2 GiB [##        ]  8%  /var/log
+    1.1 GiB [#         ]  4%  /opt

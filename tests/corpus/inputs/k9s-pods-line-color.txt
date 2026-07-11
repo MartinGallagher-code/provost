@@ -1,0 +1,4 @@
+[32m●[0m  api-gw-6f8         1/1   [32mRunning[0m    0    45m
+[32m●[0m  auth-svc-2b1       1/1   [32mRunning[0m    1    45m
+[33m●[0m  billing-9c4        0/1   [33mPending[0m    0    2m
+[31m●[0m  notify-7a2         0/1   [31mError[0m      3    9m

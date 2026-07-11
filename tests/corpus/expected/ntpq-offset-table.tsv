@@ -1,0 +1,4 @@
+n	remote	refid	st	t	when	poll	reach	delay	offset	jitter	total_entries
+1	*time1.google.co	216.239.35.0	2	u	45	64	377	12.345	-0.512	0.089	3
+2	+ntp.ubuntu.com	17.253.34.253	2	u	38	64	377	23.456	+1.234	0.145	3
+3	-pool.ntp.org	130.207.244.2	4  3	u	51	64	377	45.678	-12.045	1.302	3

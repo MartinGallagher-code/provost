@@ -1,0 +1,4 @@
+NAME:  [36mprometheus[0m
+STATUS:  [32mdeployed[0m
+REVISION:  [33m7[0m
+NAMESPACE:  [35mmonitoring[0m

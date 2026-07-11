@@ -1,0 +1,11 @@
+object a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0
+type commit
+tag v1.0.0
+tagger Alice <alice@example.com> 1720000000 +0000
+message Release 1.0.0
+
+object c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0
+type commit
+tag v1.1.0
+tagger Bob <bob@example.com> 1720500000 +0000
+message Release 1.1.0

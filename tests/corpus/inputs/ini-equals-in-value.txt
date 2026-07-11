@@ -1,0 +1,6 @@
+[database]
+url = jdbc:postgresql://host:5432/db?user=admin&pass=x=y
+timeout = 30
+[cache]
+backend = redis://:pw@127.0.0.1:6379/0
+ttl = 300

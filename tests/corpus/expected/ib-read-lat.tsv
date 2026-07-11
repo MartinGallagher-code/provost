@@ -1,0 +1,8 @@
+n	Connection_type_:_RC	Using_SRQ	:_OFF	total_entries
+1	TX depth : 1			7
+2	Mtu : 4096[B]			7
+3	Link type : IB			7
+4	#bytes #iterations t_min[usec]	t_max[usec]	t_typical[usec] t_avg[usec] t_stdev[usec] 99% percentile[usec] 99.9% percentile[usec]	7
+5	2 1000 1.42	8.90	1.55 1.61 0.22 2.10 4.88	7
+6	8 1000 1.44	7.10	1.57 1.62 0.19 2.08 4.20	7
+7	64 1000 1.50	9.40	1.66 1.71 0.24 2.22 5.10	7

@@ -1,0 +1,10 @@
+NAME                          USED  AVAIL     REFER  MOUNTPOINT
+tank                          412G   488G       96K  /tank
+tank/home                     280G   488G      112K  /tank/home
+tank/home/alice               120G   488G      118G  /tank/home/alice
+tank/home/bob                 160G   488G      155G  /tank/home/bob
+tank/vms                      130G   488G       96K  /tank/vms
+tank/vms/web01                 45G   488G       44G  -
+tank/vms/db01                  85G   488G       82G  -
+tank/backups                  1.8G   488G       96K  /tank/backups
+tank/backups/daily            1.8G   488G      1.7G  /tank/backups/daily

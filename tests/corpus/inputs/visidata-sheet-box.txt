@@ -1,0 +1,5 @@
+ track                │ artist        │ plays │ rating
+──────────────────────┼───────────────┼───────┼────────
+ Midnight City        │ M83           │ 4821  │ 4.8
+ Redbone              │ Childish G.   │ 3910  │ 4.9
+ Nightcall            │ Kavinsky      │ 2755  │ 4.7

@@ -1,0 +1,9 @@
+Collecting numpy==1.26.4
+  Downloading numpy-1.26.4-cp311-cp311-manylinux_x86_64.whl (18.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━ 13.1/18.2 MB 5.4 MB/s eta 0:00:01
+Collecting pandas==2.1.4
+  Downloading pandas-2.1.4-cp311-cp311-manylinux_x86_64.whl (12.4 MB)
+     ━━━━━━━━━━━━╸━━━━━━━━━━━━━━━━━━ 4.8/12.4 MB 6.1 MB/s eta 0:00:02
+Collecting scipy==1.11.4
+  Downloading scipy-1.11.4-cp311-cp311-manylinux_x86_64.whl (36.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 36.6/36.6 MB 5.9 MB/s eta 0:00:00

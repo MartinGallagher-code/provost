@@ -1,0 +1,6 @@
+Format     Read   Write  Streaming  Compression
+parquet    ✓      ✓      ✓          ✓
+csv        ✓      ✓      ✓          ✗
+avro       ✓      ✓      ○          ✓
+orc        ✓      ✗      ✗          ✓
+json       ✓      ✓      ⚠          ✗

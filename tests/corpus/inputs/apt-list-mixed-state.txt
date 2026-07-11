@@ -1,0 +1,6 @@
+Listing...
+nginx/jammy-updates 1.18.0-6ubuntu14.4 amd64 [upgradable from: 1.18.0-6ubuntu14.1]
+curl/jammy,now 7.81.0-1ubuntu1.15 amd64 [installed]
+git/jammy,now 1:2.34.1-1ubuntu1.10 amd64 [installed,automatic]
+vim/jammy 2:8.2.3995-1ubuntu2 amd64
+htop/jammy,now 3.0.5-7build2 amd64 [installed]

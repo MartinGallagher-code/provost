@@ -1,0 +1,9 @@
+From: noreply@ci.example
+Subject: Build #421 passed
+Date: Wed, 08 Jul 2026 11:00:00 +0000
+X-Priority: 3
+
+From: noreply@ci.example
+Subject: Build #422 failed
+Date: Wed, 08 Jul 2026 12:30:00 +0000
+X-Priority: 1

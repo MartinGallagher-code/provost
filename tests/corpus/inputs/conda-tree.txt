@@ -1,0 +1,13 @@
+scipy=1.10.0
+├── numpy [>=1.19.5]
+│   ├── python [>=3.10,<3.11]
+│   └── libblas [>=3.9.0]
+│       └── libopenblas [>=0.3.21]
+├── python [>=3.10,<3.11]
+└── libgfortran5 [>=11.3.0]
+    └── libgcc-ng [>=12.2.0]
+pandas=1.5.3
+├── numpy [>=1.21.0]
+├── python-dateutil [>=2.8.1]
+│   └── six [>=1.5]
+└── pytz [>=2020.1]

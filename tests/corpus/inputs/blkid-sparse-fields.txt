@@ -1,0 +1,5 @@
+/dev/sda1: UUID="A1B2-C3D4" TYPE="vfat" PARTUUID="0001-01"
+/dev/sda2: LABEL="boot" UUID="7f3c1a2b-44de-4c1a-9b2e-1122aabbccdd" TYPE="ext4" PARTUUID="0001-02"
+/dev/sda3: UUID="9a8b7c6d-5e4f-3a2b-1c0d-eeff00112233" TYPE="ext4"
+/dev/sdb1: TYPE="xfs"
+/dev/sr0: BLOCK_SIZE="2048" UUID="2024-11-03-10-22-00-00" LABEL="UBUNTU" TYPE="iso9660"

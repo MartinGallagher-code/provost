@@ -1,0 +1,10 @@
+mysql> SELECT id, name, email, status FROM users LIMIT 4;
+┌────┬─────────────┬──────────────────────┬─────────┐
+│ id │ name        │ email                │ status  │
+├────┼─────────────┼──────────────────────┼─────────┤
+│  1 │ Alice Chen  │ alice@example.com    │ active  │
+│  2 │ Bob Nguyen  │ bob.n@example.com    │ active  │
+│  3 │ Carol Diaz  │ carol@mail.example   │ pending │
+│  4 │ Dan O'Neil  │ dan.oneil@corp.io    │ locked  │
+└────┴─────────────┴──────────────────────┴─────────┘
+4 rows in set (0.00 sec)

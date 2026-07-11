@@ -1,0 +1,5 @@
+n	state	recv_q	send_q	local	peer	process
+1	tcp	LISTEN	0	128	0.0.0.0:22	sshd
+2	tcp	LISTEN	0	511	127.0.0.1:6379	
+3	udp	UNCONN	0	0	0.0.0.0:68	dhclient
+4	tcp	LISTEN	0	4096	*:9090	

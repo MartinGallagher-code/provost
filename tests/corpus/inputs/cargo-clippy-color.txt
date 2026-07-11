@@ -1,0 +1,3 @@
+[93m[1mwarning[0m: [1munused import[0m: `std::io`         src/main.rs:3
+[93m[1mwarning[0m: [1mneedless return[0m                  src/lib.rs:42
+[91m[1merror[0m:   [1mmismatched types[0m                 src/db.rs:88

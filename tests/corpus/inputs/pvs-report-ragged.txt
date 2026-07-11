@@ -1,0 +1,5 @@
+  PV         VG    Fmt  Attr PSize   PFree
+  /dev/sda3  vg0   lvm2 a--  231.50g  23.50g
+  /dev/sdb1  vg0   lvm2 a--  458.00g      0
+  /dev/sdc1        lvm2 ---  100.00g 100.00g
+  /dev/sdd1  vg1   lvm2 a--  931.00g 512.00g

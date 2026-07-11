@@ -1,0 +1,12 @@
+base-clean
+  |
+  +- day1-configured
+  |    |
+  |    +- day2-app-installed
+  |    |    |
+  |    |    +- day3-before-upgrade
+  |    |    +- day3-experiment
+  |    |
+  |    +- day2-alternate-config
+  |
+  +- rescue-mode

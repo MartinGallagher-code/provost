@@ -1,0 +1,13 @@
+Name: eth0
+Type: ether
+State: routable
+Address: 10.0.0.5
+Gateway: 10.0.0.1
+MTU: 1500
+
+Name: wg0
+Type: wireguard
+State: carrier
+Address: 10.8.0.2
+Gateway: -
+MTU: 1420

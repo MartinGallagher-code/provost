@@ -1,0 +1,23 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:Acme Sales
+ORG:Acme Corp
+EMAIL:sales@acme.example
+TEL:+1-800-555-0100
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+FN:Globex Support
+ORG:Globex
+EMAIL:support@globex.example
+TEL:+1-800-555-0199
+END:VCARD
+
+BEGIN:VCARD
+VERSION:4.0
+FN:Initech Billing
+ORG:Initech
+EMAIL:billing@initech.example
+TEL:+1-800-555-0143
+END:VCARD

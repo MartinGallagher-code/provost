@@ -1,0 +1,15 @@
+Name:               postgres-primary
+Namespace:          databases
+CreationTimestamp:  Tue, 09 Jan 2024 04:11:02 +0000
+Selector:           app=postgres,role=primary
+Labels:             app=postgres
+                    role=primary
+Replicas:           3 desired | 3 total
+Update Strategy:    RollingUpdate
+Pods Status:        3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Events:
+  Type     Reason            Age   From                    Message
+  ----     ------            ----  ----                    -------
+  Normal   SuccessfulCreate  22m   statefulset-controller  create Pod postgres-primary-0 in StatefulSet postgres-primary successful and bound to persistent volume claim data-postgres-primary-0
+  Warning  RecreatingFailedPod 15m statefulset-controller  StatefulSet databases/postgres-primary is recreating failed Pod postgres-primary-1 which previously exited with a non-zero status after the liveness probe failed three consecutive times
+  Normal   SuccessfulCreate  14m   statefulset-controller  create Pod postgres-primary-1 in StatefulSet postgres-primary successful

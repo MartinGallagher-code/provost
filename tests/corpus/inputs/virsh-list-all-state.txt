@@ -1,0 +1,7 @@
+ Id   Name          State
+--------------------------------
+ 1    web-vm        running
+ 2    db-vm         running
+ -    build-vm      shut off
+ -    staging-vm    shut off
+ 4    cache-vm      paused

@@ -1,0 +1,4 @@
+[2msrc/lib.rs[0m
+[31m-[0m   [31m12[0m   let x = compute_old();
+[32m+[0m   [32m12[0m   let x = compute_new();
+[32m+[0m   [32m13[0m   log::info!("done");

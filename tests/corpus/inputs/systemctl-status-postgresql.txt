@@ -1,0 +1,14 @@
+● postgresql@14-main.service - PostgreSQL Cluster 14-main
+     Loaded: loaded (/lib/systemd/system/postgresql@.service; enabled-runtime; vendor preset: enabled)
+     Active: active (running) since Fri 2024-01-12 06:33:09 UTC; 6 days ago
+   Main PID: 1544 (postgres)
+      Tasks: 9 (limit: 9830)
+     Memory: 214.8M
+     CGroup: /system.slice/system-postgresql.slice/postgresql@14-main.service
+             ├─1544 /usr/lib/postgresql/14/bin/postgres -D /var/lib/postgresql/14/main -c config_file=/etc/postgresql/14/main/postgresql.conf
+             ├─1560 postgres: 14/main: checkpointer
+             ├─1561 postgres: 14/main: background writer
+             ├─1562 postgres: 14/main: walwriter
+             └─1563 postgres: 14/main: autovacuum launcher
+
+Jan 12 06:33:09 db-01 systemd[1]: Started PostgreSQL Cluster 14-main.

@@ -1,0 +1,14 @@
+Name:                                                  api-gateway
+Namespace:                                             production
+Reference:                                             Deployment/api-gateway
+Metrics:                                               ( current / target )
+  resource cpu on pods  (as a percentage of request):  61% (305m) / 70%
+Min replicas:                                          3
+Max replicas:                                          15
+Deployment pods:                                       6 current / 6 desired
+Events:
+  Type     Reason             Age   From                       Message
+  ----     ------             ----  ----                       -------
+  Normal   SuccessfulRescale  25m   horizontal-pod-autoscaler  New size: 6; reason: cpu resource utilization (percentage of request) above target of 70% sustained for more than the configured stabilization window
+  Warning  FailedGetResourceMetric 20m horizontal-pod-autoscaler unable to get metrics for resource cpu: no metrics returned from resource metrics API; the metrics-server may be unavailable or still starting up
+  Normal   SuccessfulRescale  5m    horizontal-pod-autoscaler  New size: 4; reason: All metrics below target

@@ -1,0 +1,5 @@
+Device   Read      Write     Usage
+nvme0n1  120MiB/s  44MiB/s   [███████░░░] 68%
+sda      12MiB/s   3MiB/s    [██░░░░░░░░] 21%
+sdb      0MiB/s    88MiB/s   [█████████░] 92%
+md0      140MiB/s  50MiB/s   [████░░░░░░] 44%

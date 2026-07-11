@@ -1,0 +1,4 @@
+Package        Version      Description
+libssl3        3.0.11-1     Secure Sockets Layer toolkit, shared libraries
+python3        3.11.4-1     interactive high-level object-oriented language
+git            2.39.2-1     fast, scalable, distributed revision control system

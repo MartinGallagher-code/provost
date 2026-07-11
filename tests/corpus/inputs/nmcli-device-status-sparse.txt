@@ -1,0 +1,6 @@
+DEVICE   TYPE      STATE         CONNECTION
+eth0     ethernet  connected     Wired connection 1
+wlan0    wifi      disconnected  --
+docker0  bridge    connected     docker0
+lo       loopback  unmanaged     --
+tun0     tun       connected     vpn-corp

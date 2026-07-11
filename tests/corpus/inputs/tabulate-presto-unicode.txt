@@ -1,0 +1,5 @@
+ warehouse   │ items    │ utilization
+─────────────┼──────────┼─────────────
+ north       │ 44210    │ 82%
+ south       │ 38120    │ 71%
+ central     │ 51002    │ 94%

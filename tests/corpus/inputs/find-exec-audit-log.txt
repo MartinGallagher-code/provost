@@ -1,0 +1,3 @@
+timestamp,action,path,result
+2026-06-01T10:00:00,scan,"/home/user/My Documents/report, final.pdf",ok
+2026-06-01T10:00:02,scan,"/var/log/app, backup/old.log",skipped
