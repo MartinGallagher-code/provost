@@ -1,4 +1,4 @@
 n	CONTAINER_ID	IMAGE	STATUS	PORTS	NAMES	total_entries
-1	a1b2c3d4e5f6	nginx:1.25	[32mUp 3 hours[0m	0.0.0.0:80->80/tcp	web-front	3
-2	f6e5d4c3b2a1	redis:7-alpine	[32mUp 3 hours[0m	6379/tcp	cache-01	3
-3	9988776655aa	postgres:16	[31mExited (1) 5 min ago[0m	5432/tcp	db-primary	3
+1	a1b2c3d4e5f6	nginx:1.25	Up 3 hours	0.0.0.0:80->80/tcp	web-front	3
+2	f6e5d4c3b2a1	redis:7-alpine	Up 3 hours	6379/tcp	cache-01	3
+3	9988776655aa	postgres:16	Exited (1) 5 min ago	5432/tcp	db-primary	3

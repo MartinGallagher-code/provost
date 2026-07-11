@@ -733,6 +733,30 @@ if [[ -n "$file" && -f "$file" ]]; then
     fi
 fi
 
+# Normalise alternate line terminators to \n so record splitting — which keys on
+# \n throughout — sees every logical line. Covers Windows CRLF, bare-CR (classic
+# Mac), vertical-tab / form-feed page breaks, and the Unicode line separators
+# NEL (U+0085), LS (U+2028) and PS (U+2029). Without this, a capture that uses any
+# of these instead of \n collapses to a single physical line and no rows are found.
+# Gated on such a byte being present, so it is a true no-op for ordinary \n input.
+# Order matters: strip CRLF's trailing CR first, then map any remaining bare CR /
+# VT / FF, then the multibyte separators — so CRLF never becomes a blank line.
+if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
+      || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
+    text="$(printf '%s' "$text" | sed 's/\r$//' | tr '\r\013\014' '\n\n\n' \
+            | sed $'s/\302\205/\\\n/g; s/\342\200\250/\\\n/g; s/\342\200\251/\\\n/g')"
+fi
+
+# Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
+# systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
+# split or pollute a data cell. Gated on an ESC byte being present, so it is a
+# true no-op — no subprocess — for the overwhelming majority of inputs that carry
+# none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
+# OSC form (ESC ] … BEL) and bare two-byte escapes.
+if [[ "$text" == *$'\033'* ]]; then
+    text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
+fi
+
 # Metadata for strategy interface enrichment
 _STATE_filename="${file:-}"
 _STATE_encoding_hint=""

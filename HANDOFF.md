@@ -1,6 +1,31 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; tree-flattening round (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit + gap-triage round (2026-07-11) — **3126 tidy, 70 ⏳**
+
+> **2026-07-11 — gap-triage.** Swept the 71 ⏳ for clean wins. Corrected the
+> README's stale tier counts (1934/58/134 -> live 2915/71/139). Routed
+> `vercel-list` (banner + fixed-width table `indented-hierarchy` was collapsing)
+> to `aligned-columns` via a unique structural hint (`Age +Deployment +Status`) —
+> new ✅ʰ. Confirmed the other tractable-looking candidates are NOT clean wins:
+> banner-table siblings (`pueue-status`/`apachectl-S`) lose at detection and
+> aren't banner-stripped; `lsblk-tree` can't hint without demoting generic
+> siblings; `df-locale-de` is a UTF-8/mawk byte-position issue; the wide-stat
+> cluster has embedded time/grouped/`|` headers. **Now 3126 tidy, 70 ⏳.** The
+> one bigger lever left (risky) is refining `indented-hierarchy` to decline
+> uniformly-indented flat tables — would unlock vercel/pueue-type cases but has
+> a 141-tool blast radius; deferred. On PR #35.
+
+> **2026-07-11 — gap round (ANSI strip + box-table + manifest audit).** An
+> engine-level ANSI strip (once per input, gated on an ESC byte) fixed colored
+> tools and cleaned 45 `*-color` goldens; `box-table` gained interior-row +
+> duckdb "type row" handling (supabase / psql-unicode / duckdb). A closing
+> manifest audit reclassified three fixtures that were *already* tidying but
+> mis-scored — `kubectl-get-svc-none` and `lsblk-empty-mountpoint` (correct
+> tables over-counted by one data row; `<none>` / empty-mountpoint cells
+> preserved) and `systemctl-status-nginx` (`table`->`kv`, a single-unit status
+> snapshot). No parser code changed for the three; goldens frozen and verified
+> against live output. Golden gate 0 failed; **now 3196 tools; 3125 tidy; 71 ⏳.**
+> On PR #35.
 
 > **2026-07-11 — adversarial stress test (+500 hard inputs).** 500 inputs
 > generated to BREAK the parser across 10 hard mechanisms. Robust to ANSI color,

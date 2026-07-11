@@ -1,5 +1,71 @@
 # glean — Changelog
 
+## 2026-07-11 — Gap-triage: vercel-list hint + README tier-count fix
+
+A focused pass over the 71 ⏳ gaps looking for clean, non-regressing wins.
+
+- **README tier counts corrected.** The per-tier breakdown had drifted stale
+  across the expansion rounds — it read "✅ 1934 / ✅ʰ 58 / ✅ᵇ 134" against a
+  live COVERAGE.md of **2915 / 71 / 139**. Updated to match (headline 3125/71 was
+  already correct; only the sub-sentence was wrong). File: `tests/corpus/README.md`.
+- **`vercel-list` routed via a hint.** A banner + fixed-width deployment table
+  (`Age  Deployment  Status  Environment  Duration  Username`) that
+  `indented-hierarchy` was collapsing to a single record. Added a structural hint
+  row (`vercel-list  regex  Age +Deployment +Status  aligned-columns`) — the
+  signature is unique in the corpus and matches the column layout (stable across
+  runs), so it also covers unseen vercel output. Now a clean 4-row × 6-col table,
+  `● Ready`/`● Error` preserved. New ✅ʰ. Files: `extract/hints.tsv`,
+  `tests/corpus/expected/vercel-list.tsv`, `tests/corpus/COVERAGE.md`.
+- **Triaged the rest as genuinely hard (documented, not closed):** banner-table
+  siblings `pueue-status` / `apachectl-S` (stolen by `indented-hierarchy` at
+  detection, banners not stripped), `lsblk-tree` (can't hint without demoting
+  already-generic lsblk siblings that share the `MAJ:MIN` / tree-glyph
+  signatures), `df-locale-de` (UTF-8/mawk byte-vs-char column positions —
+  umlaut headers), and the wide-stat cluster `sar-cpu` / `numastat-p` /
+  `quota-report` (embedded time columns, banners, grouped 2-row and
+  `|`-separated headers). Net: **3125 -> 3126 tidy, 71 -> 70 ⏳.**
+
+## 2026-07-11 — Gap-closing: ANSI strip + box-table interior/type-row
+
+Two generic capabilities that close a batch of the remaining ⏳ and improve
+dozens of already-covered tools.
+
+- **Engine-level ANSI strip.** Colored tool output (`ls --color`, `gh`, `git`,
+  `kubectl`, `systemctl status` dots, `terraform plan`, npm/cargo/pip/pytest, …)
+  embeds VT escape sequences that pollute or split data cells. The engine now
+  strips ECMA-48 CSI / OSC / two-byte escapes once, right after reading the
+  input — gated on an ESC byte being present, so it is a true no-op (no
+  subprocess) for the vast majority of inputs. Closed `gh-run-list-color` /
+  `terraform-plan-color` and **cleaned 45 already-covered color fixtures** whose
+  goldens had carried raw `\e[..m` codes inside cells (`[32mRunning[0m` ->
+  `Running`). Two colour fixtures that only "passed" because the escapes happened
+  to split them (`cargo-clippy-color`, `delta-diff-color`) are now honestly ⏳ —
+  they are prose/diff formats, not tables.
+- **box-table: interior rows + type rows.** Split now strips the outer `│` only
+  when a row is bracketed at BOTH ends, so an interior-only row with an empty
+  edge cell (psql `linestyle unicode` with a blank first column) keeps that cell
+  — closing `supabase-projects-list`, `psql-linestyle-unicode`,
+  `psql-pset-unicode`, `tabulate-presto-unicode`. And a duckdb/clickhouse "type
+  row" (every cell a bare SQL type keyword, printed under the header before the
+  separator rule) is skipped — closing `duckdb-box-output`, `duckdb-describe-box`
+  and fixing `duckdb-show-tables` (its golden had wrongly included the `varchar`
+  type row as data).
+
+Full golden audit: 45 improved (de-ANSI'd) + duckdb fix, 4 newly ✅, 2 honest ⏳
+demotions, 0 real regressions. Golden gate 0 failed; extract 62/62.
+
+Follow-up manifest audit (three fixtures that were *already* tidying but
+mis-scored, no code change): `kubectl-get-svc-none` (`table 6 6`->`5 6`) and
+`lsblk-empty-mountpoint` (`table 8 7`->`7 7`) were correct 6-/7-column tables
+whose `<none>` / empty-`MOUNTPOINT` cells are preserved — the manifest simply
+over-counted the data rows by one. `systemctl-status-nginx` was reclassified
+`table`->`kv - 5`: it is a single-unit status snapshot, the same key/value shape
+as the eight describe/status fixtures reclassified above, not a table. Goldens
+frozen for all three (aligned-columns / aligned-columns / block-records). Net:
+**3122 -> 3125 tidy, 74 -> 71 ⏳.** Files: `tests/corpus/expected.tsv`,
+`tests/corpus/expected/{kubectl-get-svc-none,lsblk-empty-mountpoint,systemctl-status-nginx}.tsv`,
+`tests/corpus/COVERAGE.md`, `tests/corpus/README.md`.
+
 ## 2026-07-11 — Multi-line records: single-resource describes are kv, not table
 
 The second frontier weakness from the adversarial round. Unlike trees, the

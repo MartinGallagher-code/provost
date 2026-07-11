@@ -1,4 +1,4 @@
 n	Severity	Title	Package	Fixed	total_entries
-1	[31mcritical[0m	Prototype Pollution	[1mlodash[0m	4.17.21	3
-2	[33mmoderate[0m	ReDoS in ansi parsing	[1mchalk[0m	4.1.2	3
-3	[31mhigh[0m	Arbitrary Code Execution	[1mvm2[0m	removed	3
+1	critical	Prototype Pollution	lodash	4.17.21	3
+2	moderate	ReDoS in ansi parsing	chalk	4.1.2	3
+3	high	Arbitrary Code Execution	vm2	removed	3

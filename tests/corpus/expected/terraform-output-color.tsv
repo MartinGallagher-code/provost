@@ -1,2 +1,2 @@
 instance_ip	bucket_name	db_endpoint
-[33m"52.10.4.2"[0m	[33m"assets-prod-9f2"[0m	[33m"db.internal:5432"[0m
+"52.10.4.2"	"assets-prod-9f2"	"db.internal:5432"

@@ -348,7 +348,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | cargo-bloat | ✅ | aligned-columns |
 | cargo-build-color-warn | ✅ | aligned-columns |
 | cargo-build-progress | ✅ | aligned-columns |
-| cargo-clippy-color | ✅ | aligned-columns |
+| cargo-clippy-color | ⏳ | — |
 | cargo-clippy-summary | ✅ | aligned-columns |
 | cargo-deny-check | ✅ | indented-hierarchy |
 | cargo-fmt-check | ✅ | text-lines |
@@ -585,7 +585,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | debian-packages-index | ✅ | block-records |
 | debian-sources-index | ✅ | block-records |
 | decode-dimms | ✅ᵇ | decode-dimms (bespoke) |
-| delta-diff-color | ✅ | text-lines |
+| delta-diff-color | ⏳ | — |
 | delta-diff-stat | ✅ | diffstat |
 | delv | ✅ | dns-records |
 | deno-check-summary | ✅ | indented-hierarchy |
@@ -750,8 +750,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dua-interactive | ✅ | aligned-columns |
 | dub-describe | ✅ | json |
 | dub-list | ✅ | dub-list |
-| duckdb-box-output | ⏳ | — |
-| duckdb-describe-box | ⏳ | — |
+| duckdb-box-output | ✅ | box-table |
+| duckdb-describe-box | ✅ | box-table |
 | duckdb-describe | ✅ᵇ | clickhouse-processlist (bespoke) |
 | duckdb-explain-box | ✅ | box-table |
 | duckdb-pragma-tables | ✅ | aligned-columns |
@@ -1002,7 +1002,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gh-pr-checks | ✅ | aligned-columns |
 | gh-pr-list-color | ✅ | line-records |
 | gh-release-list | ✅ | aligned-columns |
-| gh-run-list-color | ⏳ | — |
+| gh-run-list-color | ✅ | aligned-columns |
 | gh-run-list | ✅ | aligned-columns |
 | gh-workflow-list-color | ✅ | aligned-columns |
 | ghc-info | ✅ | line-records |
@@ -1011,7 +1011,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-bisect-log | ✅ᵇ | git-bisect-log (bespoke) |
 | git-blame-porcelain | ✅ | text-lines |
 | git-branch-a | ✅ | line-records |
-| git-branch-vv-color | ⏳ | — |
+| git-branch-vv-color | ✅ᵇ | git-branch-vv (bespoke) |
 | git-branch-vv | ✅ᵇ | git-branch-vv (bespoke) |
 | git-branch | ✅ | line-records |
 | git-cat-file-batch | ✅ | text-lines |
@@ -1054,7 +1054,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-show-stat | ✅ᵇ | git-log-stat (bespoke) |
 | git-stash-list | ✅ | labeled-records |
 | git-stash-show-stat | ✅ | diffstat |
-| git-status-short-color | ✅ | aligned-columns |
+| git-status-short-color | ✅ | line-records |
 | git-status | ✅ | line-records |
 | git-submodule-status | ✅ | aligned-columns |
 | git-tag-list | ✅ | line-records |
@@ -1497,7 +1497,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | kubectl-get-statefulset | ✅ | aligned-columns |
 | kubectl-get-storageclass | ✅ | aligned-columns |
 | kubectl-get-svc-color | ✅ | aligned-columns |
-| kubectl-get-svc-none | ⏳ | — |
+| kubectl-get-svc-none | ✅ | aligned-columns |
 | kubectl-get-svc-wide | ✅ | aligned-columns |
 | kubectl-get-svc | ✅ | aligned-columns |
 | kubectl-jsonpath-commas | ✅ | aligned-columns |
@@ -1594,7 +1594,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ls-color-long | ✅ | aligned-columns |
 | ls-l | ✅ | aligned-columns |
 | lsattr | ✅ | line-records |
-| lsblk-empty-mountpoint | ⏳ | — |
+| lsblk-empty-mountpoint | ✅ | aligned-columns |
 | lsblk-f | ✅ | aligned-columns |
 | lsblk-fs | ✅ | aligned-columns |
 | lsblk-fstype | ✅ | aligned-columns |
@@ -2492,7 +2492,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rtl-sdr-test | ✅ | text-lines |
 | ruby-v | ✅ | line-records |
 | ruby-version | ✅ | line-records |
-| ruff-check-color | ✅ | colon-fields |
+| ruff-check-color | ✅ | labeled-records |
 | ruff-check | ✅ | labeled-records |
 | runc-version | ✅ | colons |
 | rush-list | ✅ | aligned-columns |
@@ -2721,7 +2721,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | sudo-l | ✅ | indented-hierarchy |
 | supabase-db-migrations-list | ✅ | box-table |
 | supabase-functions-list | ✅ | box-table |
-| supabase-projects-list | ⏳ | — |
+| supabase-projects-list | ✅ | box-table |
 | super-pi-run | ✅ | text-lines |
 | supervisorctl-status | ⏳ | — |
 | surreal-info-db | ✅ | json-array |
@@ -2777,7 +2777,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | systemctl-show | ✅ | equals |
 | systemctl-status-color-dot | ✅ | aligned-columns |
 | systemctl-status-containerd | ✅ | indented-hierarchy |
-| systemctl-status-nginx | ⏳ | — |
+| systemctl-status-nginx | ✅ | block-records |
 | systemctl-status-postgresql | ✅ | indented-hierarchy |
 | systemctl-status | ✅ | block-records |
 | systemctl-timers-blank | ✅ | aligned-columns |
@@ -3027,7 +3027,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | velero-schedule-get | ✅ | aligned-columns |
 | vercel-domains-ls | ✅ | aligned-columns |
 | vercel-env-ls | ✅ | aligned-columns |
-| vercel-list | ⏳ | — |
+| vercel-list | ✅ʰ | aligned-columns (hint: vercel-list) |
 | vercel-projects-ls | ✅ | aligned-columns |
 | vgdisplay | ✅ | dashed-sections |
 | vgs-options | ✅ | aligned-columns |
@@ -3204,5 +3204,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3119 / 3196** — ✅ 2910 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 138 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram cargo-audit cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload df-locale-de dpkg-l-mixed-state duckdb-box-output duckdb-describe-box duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gh-run-list-color git-branch-vv-color gluster-volume-profile hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run nix-why-depends numastat-p openssl-asn1parse ovs-ofctl-dump-flows perf-stat-scientific powertop-devices promtool-check-rules pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supabase-projects-list supervisorctl-status surreal-sql-select systemctl-status-nginx terraform-plan-color v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged
+**Coverage: 3122 / 3196** — ✅ 2912 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 139 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram cargo-audit cargo-clippy-color cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload delta-diff-color df-locale-de dpkg-l-mixed-state duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gluster-volume-profile hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run nix-why-depends numastat-p openssl-asn1parse ovs-ofctl-dump-flows perf-stat-scientific powertop-devices promtool-check-rules pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supervisorctl-status surreal-sql-select systemctl-status-nginx terraform-plan-color v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged

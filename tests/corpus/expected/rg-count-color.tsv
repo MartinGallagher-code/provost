@@ -1,4 +1,4 @@
 n	A	total_entries
-1	[35msrc/parser.rs[0m:[32m14[0m	3
-2	[35msrc/lexer.rs[0m:[32m9[0m	3
-3	[35msrc/token.rs[0m:[32m3[0m	3
+1	src/parser.rs:14	3
+2	src/lexer.rs:9	3
+3	src/token.rs:3	3

@@ -1,4 +1,4 @@
-n	A	B	C	D	total_entries
-1	src/app.py	[36m10[0m	[36m5[0m	  [31mF401[0m  [1mos[0m imported but unused	3
-2	src/app.py	[36m22[0m	[36m1[0m	  [31mE302[0m  expected 2 blank lines	3
-3	src/db.py	[36m8[0m	[36m12[0m	  [33mW291[0m  trailing whitespace	3
+n	name	value	total_entries
+1	src/app.py	10:5:  F401  os imported but unused	3
+2	src/app.py	22:1:  E302  expected 2 blank lines	3
+3	src/db.py	8:12:  W291  trailing whitespace	3

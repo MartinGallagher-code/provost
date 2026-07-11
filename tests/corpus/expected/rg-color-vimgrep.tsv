@@ -1,5 +1,5 @@
 n	A	B	C	D	E	F	total_entries
-1	src/app.rs	[32m10[0m	[33m9[0m	    let [31m[1mtoken[0m = read();			4
-2	src/app.rs	[32m25[0m	[33m5[0m	    drop([31m[1mtoken[0m);			4
-3	src/db.rs	[32m3[0m	[33m5[0m	use [31m[1mtoken[0m		Auth;	4
-4	src/db.rs	[32m88[0m	[33m12[0m	    verify([31m[1mtoken[0m);			4
+1	src/app.rs	10	9	    let token = read();			4
+2	src/app.rs	25	5	    drop(token);			4
+3	src/db.rs	3	5	use token		Auth;	4
+4	src/db.rs	88	12	    verify(token);			4
