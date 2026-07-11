@@ -1,0 +1,5 @@
+n	Age	Deployment	Status	Environment	Duration	Username	total_entries
+1	2m	https://web-app-9f2a1b3c.vercel.app	● Ready	Production	44s	jsmith	4
+2	1h	https://web-app-7d4e2f1a.vercel.app	● Ready	Preview	38s	akhan	4
+3	3h	https://web-app-2c8b9e0d.vercel.app	● Error	Preview	12s	akhan	4
+4	1d	https://web-app-5a1f3c7b.vercel.app	● Ready	Production	51s	jsmith	4

@@ -3027,7 +3027,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | velero-schedule-get | ✅ | aligned-columns |
 | vercel-domains-ls | ✅ | aligned-columns |
 | vercel-env-ls | ✅ | aligned-columns |
-| vercel-list | ⏳ | — |
+| vercel-list | ✅ʰ | aligned-columns (hint: vercel-list) |
 | vercel-projects-ls | ✅ | aligned-columns |
 | vgdisplay | ✅ | dashed-sections |
 | vgs-options | ✅ | aligned-columns |

@@ -41,15 +41,15 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3125 tidy (71 format gaps ⏳)** — after two +500
+**3196 tools tested; 3126 tidy (70 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 1934 by a generic parser via auto-detection, ✅ʰ 58 by a generic parser
-routed by a hint row, ✅ᵇ 134 by a bespoke strategy. A later positional
+total: ✅ 2915 by a generic parser via auto-detection, ✅ʰ 72 by a generic parser
+routed by a hint row, ✅ᵇ 139 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
@@ -83,7 +83,16 @@ already tidying correctly but mis-scored: `kubectl-get-svc-none` and
 `lsblk-empty-mountpoint` were genuinely tidy tables (`<none>` / empty-mountpoint
 cells preserved) miscounted by one data row, and `systemctl-status-nginx` is a
 single-unit status snapshot — a key/value record, like the other eight
-describe/status fixtures — not a table. The 71 ⏳ that remain are genuinely hard
+describe/status fixtures — not a table. A gap-triage pass then routed
+`vercel-list` (a banner + fixed-width deployment table that `indented-hierarchy`
+was collapsing) to `aligned-columns` via a structural hint row (`Age +Deployment
++Status`), and confirmed the rest of the tractable-looking candidates are not
+clean wins: banner-table siblings (`pueue-status`, `apachectl-S`) are stolen by
+`indented-hierarchy` at detection and their banners aren't stripped;
+`lsblk-tree` can't be hinted without demoting its already-generic siblings;
+`df-locale-de` is a UTF-8/mawk byte-position problem (umlaut columns); and the
+wide-stat cluster (`sar-cpu`, `numastat-p`, `quota-report`) has embedded
+time/grouped/`|`-separated headers. The 70 ⏳ that remain are genuinely hard
 (nested multi-record blocks —
 `ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
 single-space multi-word cells — lzbench; prose/diff formats — cargo clippy, git

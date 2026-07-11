@@ -1,6 +1,19 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit gap round (2026-07-11) — **3125 tidy, 71 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit + gap-triage round (2026-07-11) — **3126 tidy, 70 ⏳**
+
+> **2026-07-11 — gap-triage.** Swept the 71 ⏳ for clean wins. Corrected the
+> README's stale tier counts (1934/58/134 -> live 2915/71/139). Routed
+> `vercel-list` (banner + fixed-width table `indented-hierarchy` was collapsing)
+> to `aligned-columns` via a unique structural hint (`Age +Deployment +Status`) —
+> new ✅ʰ. Confirmed the other tractable-looking candidates are NOT clean wins:
+> banner-table siblings (`pueue-status`/`apachectl-S`) lose at detection and
+> aren't banner-stripped; `lsblk-tree` can't hint without demoting generic
+> siblings; `df-locale-de` is a UTF-8/mawk byte-position issue; the wide-stat
+> cluster has embedded time/grouped/`|` headers. **Now 3126 tidy, 70 ⏳.** The
+> one bigger lever left (risky) is refining `indented-hierarchy` to decline
+> uniformly-indented flat tables — would unlock vercel/pueue-type cases but has
+> a 141-tool blast radius; deferred. On PR #35.
 
 > **2026-07-11 — gap round (ANSI strip + box-table + manifest audit).** An
 > engine-level ANSI strip (once per input, gated on an ESC byte) fixed colored

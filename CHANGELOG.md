@@ -1,5 +1,30 @@
 # glean — Changelog
 
+## 2026-07-11 — Gap-triage: vercel-list hint + README tier-count fix
+
+A focused pass over the 71 ⏳ gaps looking for clean, non-regressing wins.
+
+- **README tier counts corrected.** The per-tier breakdown had drifted stale
+  across the expansion rounds — it read "✅ 1934 / ✅ʰ 58 / ✅ᵇ 134" against a
+  live COVERAGE.md of **2915 / 71 / 139**. Updated to match (headline 3125/71 was
+  already correct; only the sub-sentence was wrong). File: `tests/corpus/README.md`.
+- **`vercel-list` routed via a hint.** A banner + fixed-width deployment table
+  (`Age  Deployment  Status  Environment  Duration  Username`) that
+  `indented-hierarchy` was collapsing to a single record. Added a structural hint
+  row (`vercel-list  regex  Age +Deployment +Status  aligned-columns`) — the
+  signature is unique in the corpus and matches the column layout (stable across
+  runs), so it also covers unseen vercel output. Now a clean 4-row × 6-col table,
+  `● Ready`/`● Error` preserved. New ✅ʰ. Files: `extract/hints.tsv`,
+  `tests/corpus/expected/vercel-list.tsv`, `tests/corpus/COVERAGE.md`.
+- **Triaged the rest as genuinely hard (documented, not closed):** banner-table
+  siblings `pueue-status` / `apachectl-S` (stolen by `indented-hierarchy` at
+  detection, banners not stripped), `lsblk-tree` (can't hint without demoting
+  already-generic lsblk siblings that share the `MAJ:MIN` / tree-glyph
+  signatures), `df-locale-de` (UTF-8/mawk byte-vs-char column positions —
+  umlaut headers), and the wide-stat cluster `sar-cpu` / `numastat-p` /
+  `quota-report` (embedded time columns, banners, grouped 2-row and
+  `|`-separated headers). Net: **3125 -> 3126 tidy, 71 -> 70 ⏳.**
+
 ## 2026-07-11 — Gap-closing: ANSI strip + box-table interior/type-row
 
 Two generic capabilities that close a batch of the remaining ⏳ and improve
