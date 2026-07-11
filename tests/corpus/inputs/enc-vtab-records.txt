@@ -1,0 +1,1 @@
+sensor   value   unitcpu      61      Cgpu      72      Cboard    38      Cinlet    24      C

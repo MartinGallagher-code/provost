@@ -1,0 +1,5 @@
+NODE  REGION     OWNER       LATENCY
+n1    東京       運用チーム     12ms
+n2    us-east    ops             4ms
+n3    서울       플랫폼팀       33ms
+n4    frankfurt  Müller          8ms

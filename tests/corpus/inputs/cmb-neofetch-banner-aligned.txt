@@ -1,0 +1,6 @@
+[38;5;33m        .-.[0m       user@workstation
+[38;5;33m       (o o)[0m      [1m---------------[0m
+[38;5;33m       | O |[0m      [1mOS[0m       Arch Linux
+[38;5;33m        \_/[0m       [1mWM[0m       Hyprland
+                    [1mShell[0m    zsh 5.9
+                    [1mTerm[0m     kitty

@@ -1,0 +1,4 @@
+COMPONENT  VERSION     BUILD
+kernel     ５.１５.０  ２０２３
+glibc      2.35        20220
+systemd    ２４９      stable

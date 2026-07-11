@@ -1,0 +1,17 @@
+public (active)
+  interfaces: eth0
+  services: ssh dhcpv6-client http https
+  ports: 8080/tcp 9090/tcp
+  masquerade: no
+
+internal
+  interfaces: eth1
+  services: ssh mdns samba-client
+  ports:
+  masquerade: no
+
+dmz
+  interfaces: eth2
+  services: ssh
+  ports: 443/tcp
+  masquerade: yes

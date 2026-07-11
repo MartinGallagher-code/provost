@@ -1,0 +1,3 @@
+level=info msg="request done, 200 OK" dur=12ms path=/api
+level=warn msg="slow query: 1.2s" table=users rows=4210
+level=error msg="failed to bind: address in use" port=8080

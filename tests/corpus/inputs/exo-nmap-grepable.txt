@@ -1,0 +1,8 @@
+# Nmap 7.94 scan initiated Sat Jul 11 09:20:03 2026 as: nmap -oG - 10.0.0.0/29
+Host: 10.0.0.1 (gw.lan)	Status: Up
+Host: 10.0.0.1 (gw.lan)	Ports: 22/open/tcp//ssh///, 53/open/tcp//domain///, 80/open/tcp//http///	Ignored State: closed (997)
+Host: 10.0.0.5 (workstation)	Status: Up
+Host: 10.0.0.5 (workstation)	Ports: 22/open/tcp//ssh///, 631/open/tcp//ipp///	Ignored State: closed (998)
+Host: 10.0.0.6 ()	Status: Up
+Host: 10.0.0.6 ()	Ports: 3306/filtered/tcp//mysql///, 8080/open/tcp//http-proxy///	Ignored State: closed (998)
+# Nmap done at Sat Jul 11 09:20:41 2026 -- 8 IP addresses (3 hosts up) scanned in 38.02 seconds

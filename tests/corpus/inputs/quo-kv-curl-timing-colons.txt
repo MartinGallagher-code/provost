@@ -1,0 +1,5 @@
+url_effective: https://api.example.com:8443/v1/health
+time_namelookup: 0:00.004
+time_connect: 0:00.021
+remote_ip: 2606:4700:4700::1111
+content_type: application/json; charset=utf-8

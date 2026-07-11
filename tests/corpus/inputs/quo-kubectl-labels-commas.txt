@@ -1,0 +1,4 @@
+NAME     LABELS
+web-0    app=web,tier=frontend,env=prod
+db-0     app=db,role=primary
+cache-0  app=cache,shard=0,zone=us-east-1a

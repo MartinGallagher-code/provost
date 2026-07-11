@@ -1,0 +1,5 @@
+ name    | expression        | result
+---------+-------------------+--------
+ or      | a \| b            | 7
+ concat  | s1 \|\| s2         | ab
+ plain   | x + y             | 5

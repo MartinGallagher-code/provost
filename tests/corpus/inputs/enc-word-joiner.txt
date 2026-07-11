@@ -1,0 +1,4 @@
+sku        name           qty
+A⁠100      widget alpha   12
+B⁠200      widget beta    7
+C300       widget⁠gamma   0

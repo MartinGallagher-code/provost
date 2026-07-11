@@ -1,0 +1,5 @@
+FORMULA  NAME                MW
+H₂O      water            18.02
+CO₂      carbon dioxide   44.01
+C₆H₁₂O₆  glucose         180.16
+NaCl     salt             58.44

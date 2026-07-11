@@ -1,0 +1,6 @@
+STAGE   STATUS      DURATION
+build   ✅ passed   2m14s
+test    ❌ failed   5m02s
+lint    ✅ passed   0m31s
+deploy  ⏳ running  1m00s
+notify  ⚠️ skipped   0m00s

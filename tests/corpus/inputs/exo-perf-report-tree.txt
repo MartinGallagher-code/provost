@@ -1,0 +1,18 @@
+# Samples: 44K of event 'cycles:u'
+# Event count (approx.): 38221004556
+#
+# Overhead  Command  Shared Object        Symbol
+# ........  .......  ...................  ..................................
+#
+    28.14%  postgres postgres             [.] ExecInterpExpr
+            |
+            ---ExecInterpExpr
+               |
+               |--18.02%--ExecScan
+               |          ExecSeqScan
+               |
+                --10.11%--advance_aggregates
+    14.77%  postgres libc.so.6            [.] __memcpy_avx_unaligned
+     9.31%  postgres postgres             [.] slot_deform_heap_tuple
+     6.02%  postgres postgres             [.] heap_getnextslot
+     3.88%  postgres [kernel.kallsyms]    [k] copy_user_enhanced_fast_string

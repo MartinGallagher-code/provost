@@ -1,0 +1,5 @@
+IFACE      RX-OK    TX-OK    STATE     
+eth0       881233   712004   up        
+eth1       12       3        down      
+lo         55110    55110    up        
+wg0        4021     3980     up        

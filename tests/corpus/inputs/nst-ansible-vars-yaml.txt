@@ -1,0 +1,14 @@
+nginx_version: "1.24.0"
+nginx_worker_processes: auto
+nginx_upstreams:
+  - name: backend
+    servers:
+      - 10.0.0.11:8080
+      - 10.0.0.12:8080
+  - name: cache
+    servers:
+      - 10.0.0.21:6379
+ssl_enabled: true
+ssl_protocols:
+  - TLSv1.2
+  - TLSv1.3

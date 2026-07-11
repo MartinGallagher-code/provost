@@ -1,0 +1,4 @@
+repo,visibility,tags
+core,public,"go,api,server"
+ui,private,"react,frontend"
+infra,internal,"terraform,aws,k8s"

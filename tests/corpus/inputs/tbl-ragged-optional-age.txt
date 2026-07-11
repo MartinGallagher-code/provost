@@ -1,0 +1,4 @@
+NAME       READY   STATUS    RESTARTS
+web-1      1/1     Running    0
+web-2      1/1     Running    3         (14h ago)
+db-1       0/1     Pending    0

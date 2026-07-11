@@ -1,0 +1,4 @@
+jdbc.url=jdbc:postgresql://db:5432/app
+log.pattern=%d{HH:mm:ss} %-5level %msg%n
+service.endpoint=http://localhost:8080/health
+cache.ttl=30

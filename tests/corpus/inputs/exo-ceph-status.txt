@@ -1,0 +1,20 @@
+  cluster:
+    id:     8f2a1b09-3c19-44aa-9b3c-0242ac110002
+    health: HEALTH_WARN
+            1 nearfull osd(s)
+            2 pool(s) nearfull
+
+  services:
+    mon: 3 daemons, quorum a,b,c (age 3w)
+    mgr: a(active, since 3w), standbys: b
+    osd: 12 osds: 12 up (since 2d), 12 in (since 2w)
+
+  data:
+    pools:   4 pools, 320 pgs
+    objects: 2.14M objects, 8.1 TiB
+    usage:   16 TiB used, 8.0 TiB / 24 TiB avail
+    pgs:     318 active+clean
+             2   active+clean+scrubbing+deep
+
+  io:
+    client:   12 MiB/s rd, 44 MiB/s wr, 812 op/s rd, 1.2k op/s wr

@@ -1,0 +1,23 @@
+Bus 001 Device 004: ID 046d:c52b Logitech, Inc. Unifying Receiver
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0
+  idVendor           0x046d Logitech, Inc.
+  idProduct          0xc52b Unifying Receiver
+  bcdDevice           24.07
+  iManufacturer           1 Logitech
+  iProduct                2 USB Receiver
+  Configuration Descriptor:
+    bLength                 9
+    bNumInterfaces          3
+    bConfigurationValue     1
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              098mA
+    Interface Descriptor:
+      bInterfaceNumber        0
+      bInterfaceClass         3 Human Interface Device
+      bInterfaceProtocol      1 Keyboard

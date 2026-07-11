@@ -1,0 +1,5 @@
+CONTAINER ID  IMAGE        NAMES         STATUS
+a1b2c3d4e5f6  nginx:1.25   网关代理服务  Up 3 hours
+9f8e7d6c5b4a  redis:7.2    缓存节点一    Up 2 days
+1122334455aa  postgres:16  数据库主节点  Up 10 minutes
+ffeeddccbbaa  busybox      测试          Up 5 seconds

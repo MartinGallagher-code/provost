@@ -1,0 +1,17 @@
+           Step           Time
+        5000000     10000.00000
+
+   Energies (kJ/mol)
+           Bond          Angle    Proper Dih.  Improper Dih.          LJ-14
+    1.28442e+04    3.31182e+04    4.42104e+04    8.82130e+02    1.18902e+04
+     Coulomb-14        LJ (SR)   Coulomb (SR)   Coul. recip.      Potential
+    2.21004e+05   -8.82134e+05   -4.42101e+06    3.39124e+03   -5.01283e+06
+    Kinetic En.   Total Energy  Conserved En.    Temperature Pres. DC (bar)
+    8.82130e+05   -4.13070e+06   -4.13051e+06    3.00142e+02   -1.28440e+02
+ Pressure (bar)   Constr. rmsd
+    1.02114e+00    2.88213e-06
+
+        Core t (s)   Wall t (s)        (%)
+        Time:    88213.442     1838.114     4798.0
+                 (ns/day)    (hour/ns)
+Performance:       47.021        0.510

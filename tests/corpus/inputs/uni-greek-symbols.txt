@@ -1,0 +1,6 @@
+SYMBOL  NAME      VALUE
+α       alpha    0.0073
+λ       lambda    632.8
+π       pi      3.14159
+Ω       omega     377.0
+Δ       delta     0.001

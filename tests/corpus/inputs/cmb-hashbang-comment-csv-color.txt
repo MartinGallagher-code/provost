@@ -1,0 +1,8 @@
+# exported 2026-07-11T09:00Z
+[1mhost,role,cpu[0m
+# app tier
+[32mweb-1[0m,frontend,24
+[32mweb-2[0m,frontend,31
+# data tier
+[33mdb-1[0m,postgres,88
+[33mdb-2[0m,postgres,12

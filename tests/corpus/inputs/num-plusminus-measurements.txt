@@ -1,0 +1,6 @@
+quantity   result            unit
+mass       938.272±0.006     MeV
+charge     -1.602e-19±0.0    C
+spin       0.5±0.0           hbar
+lifetime   2.2e-6±0.1e-6     s
+radius     0.84±0.02         fm

@@ -1,0 +1,19 @@
+=== START OF INFORMATION SECTION ===
+Model Family:     Western Digital Red
+Device Model:     WDC WD40EFRX-68N32N0
+Serial Number:    WD-WCC7K4PArt
+Firmware Version: 82.00A82
+
+=== START OF READ SMART DATA SECTION ===
+ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE     RAW_VALUE
+  1 Raw_Read_Error_Rate     0x002f   200   200   051    Pre-fail 0
+  5 Reallocated_Sector_Ct   0x0033   200   200   140    Pre-fail 0
+  9 Power_On_Hours          0x0032   061   061   000    Old_age  28912
+194 Temperature_Celsius     0x0022   118   105   000    Old_age  32
+197 Current_Pending_Sector  0x0032   200   200   000    Old_age  0
+199 UDMA_CRC_Error_Count    0x0032   200   200   000    Old_age  0
+
+SMART Self-test log:
+Num  Test_Description  Status                  Remaining  LifeTime
+# 1  Extended offline  Completed without error 00%        28900
+# 2  Short offline     Completed without error 00%        28810

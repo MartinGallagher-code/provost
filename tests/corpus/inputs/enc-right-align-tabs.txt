@@ -1,0 +1,5 @@
+account		debit		credit
+cash			1200		0
+inventory		450		0
+payable		0		1650
+equity		0		0

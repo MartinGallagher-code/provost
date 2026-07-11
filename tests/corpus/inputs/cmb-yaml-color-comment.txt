@@ -1,0 +1,7 @@
+# service manifest
+[34mname[0m: [32mcheckout[0m
+[34mreplicas[0m: [33m4[0m
+# networking
+[34mport[0m: [33m8080[0m
+[34mimage[0m: [32mcheckout:2.1.0[0m
+[34mtier[0m: [32mfrontend[0m

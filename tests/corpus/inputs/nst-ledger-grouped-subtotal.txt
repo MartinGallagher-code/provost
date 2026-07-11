@@ -1,0 +1,12 @@
+Assets
+  Checking          4200.00
+  Savings          18000.00
+  Total Assets     22200.00
+Liabilities
+  Credit Card       -850.00
+  Loan            -12000.00
+  Total Liab      -12850.00
+Equity
+  Opening          -8000.00
+  Net Income       -1350.00
+  Total Equity     -9350.00

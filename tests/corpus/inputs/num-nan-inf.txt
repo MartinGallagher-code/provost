@@ -1,0 +1,7 @@
+metric     mean       max
+latency    12.5       Inf
+loss       NaN        0.0
+gain       -0.0       +1e5
+drift      1.6e-19    -Inf
+jitter     NaN        NaN
+skew       -1.5e+3    +0.0

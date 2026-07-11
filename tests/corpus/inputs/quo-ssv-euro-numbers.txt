@@ -1,0 +1,4 @@
+artikel;preis;lager
+Schraube;"1.234,56";"12; nachbestellen"
+Mutter;"0,25";"800"
+Bolzen;"2,50";"5; kritisch"

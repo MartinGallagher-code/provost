@@ -1,0 +1,4 @@
+code    message           severity
+E01     diskfailure     high
+E02     link down         medium
+W07     tempwarning     low

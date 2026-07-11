@@ -1,0 +1,6 @@
+Device   Model            Size    Health
+sda      Samsung 870      500GB   PASSED
+sdb      Samsung 870      500GB   PASSED
+
+nvme0n1  WD Black SN850    1TB    PASSED
+nvme1n1  WD Black SN850    1TB    WARNING

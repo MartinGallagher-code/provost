@@ -1,0 +1,5 @@
+4.0G  project
+  2.1G  src
+    1.4G  vendor
+  1.2G  build
+  700M  docs

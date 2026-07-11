@@ -1,0 +1,11 @@
+COMMAND=nginx  PID=1201  USER=www-data
+  FD   TYPE   DEVICE   NAME
+  cwd  DIR    8,1      /
+  0u   CHR    1,3      /dev/null
+  6u   IPv4   28114    *:80 (LISTEN)
+  7u   IPv4   28115    *:443 (LISTEN)
+COMMAND=sshd  PID=980  USER=root
+  FD   TYPE   DEVICE   NAME
+  cwd  DIR    8,1      /
+  3u   IPv4   19022    *:22 (LISTEN)
+  4u   IPv6   19023    *:22 (LISTEN)

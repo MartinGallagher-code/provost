@@ -1,0 +1,4 @@
+name	city	count
+Smith, John	Denver, CO	42
+Doe, Jane	Austin, TX	37
+Ng, Wei	San Jose, CA	29

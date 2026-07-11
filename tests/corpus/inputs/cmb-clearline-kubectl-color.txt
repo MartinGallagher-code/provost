@@ -1,0 +1,5 @@
+[K[1mNAMESPACE    NAME            TYPE        AGE[0m
+[Kdefault      [36mhttp-gw[0m         Gateway     [90m4d[0m
+[Kdefault      [36mweb-route[0m       HTTPRoute   [90m4d[0m
+[Kkube-system  [36mmetrics[0m         Service     [90m180d[0m
+[Kingress      [36mtls-cert[0m        Certificate [90m2h[0m

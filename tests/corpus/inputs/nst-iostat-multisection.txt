@@ -1,0 +1,15 @@
+Linux 6.2.0-39 (db02)  07/11/2026  _x86_64_  (16 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           5.10    0.00    2.30    1.05    0.00   91.55
+
+Device            r/s     w/s   rkB/s    wkB/s  await
+sda              12.0    88.4  480.0   3540.0   1.22
+nvme0n1          45.2   210.9 1808.0  10440.0   0.34
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           6.44    0.00    3.01    0.88    0.00   89.67
+
+Device            r/s     w/s   rkB/s    wkB/s  await
+sda              10.5    77.1  420.0   3080.0   1.10
+nvme0n1          51.9   198.2 2076.0   9910.0   0.29

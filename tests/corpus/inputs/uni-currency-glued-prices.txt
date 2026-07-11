@@ -1,0 +1,6 @@
+SKU   NAME     PRICE
+1001  Coffee   €3.50
+1002  Tea      £2.80
+1003  Rice     ¥1200
+1004  Spice     ₹250
+1005  Book    $12.99

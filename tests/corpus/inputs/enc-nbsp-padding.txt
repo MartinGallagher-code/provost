@@ -1,0 +1,5 @@
+COMMAND   PID  USER   FD
+nginx     812  root   5u
+sshd      640  root   3u
+postgres 910  pgsql  7u
+redis     733  redis  4u

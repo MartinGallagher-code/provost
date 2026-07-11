@@ -1,0 +1,5 @@
+[1mCONTAINER   IMAGE                       STATUS        PORTS[0m
+web-1       ]8;;https://hub/nginx\nginx:1.25]8;;\          [32mUp 3 days[0m     0.0.0.0:80->80
+db-1        ]8;;https://hub/pg\postgres:16]8;;\         [32mUp 3 days[0m     5432/tcp
+cache-1     ]8;;https://hub/redis\redis:7.2]8;;\           [31mExited (1)[0m    6379/tcp
+proxy-1     ]8;;https://hub/envoy\envoy:1.29]8;;\          [33mRestarting[0m    0.0.0.0:8080->8080

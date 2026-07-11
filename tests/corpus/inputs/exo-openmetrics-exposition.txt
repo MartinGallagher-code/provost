@@ -1,0 +1,13 @@
+# HELP http_requests_total Total HTTP requests processed.
+# TYPE http_requests_total counter
+http_requests_total{method="get",code="200",handler="/api/v1/query"} 441201 1752225603114
+http_requests_total{method="get",code="500",handler="/api/v1/query"} 88 1752225603114
+http_requests_total{method="post",code="200",handler="/api/v1/write"} 2210044 1752225603114
+# HELP go_gc_duration_seconds A summary of GC pause durations.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 4.4218e-05
+go_gc_duration_seconds{quantile="0.5"} 8.8213e-05
+go_gc_duration_seconds{quantile="1"} 0.00221004
+go_gc_duration_seconds_sum 0.118442
+go_gc_duration_seconds_count 8814
+# EOF

@@ -1,0 +1,5 @@
+[1mID     TITLE                       STATUS      ASSIGNEE[0m
+#412   ]8;;https://tr.io/412\Fix login redirect]8;;\        open        alice
+#418   ]8;;https://tr.io/418\Cache invalidation]8;;\         open        bob
+#421   ]8;;https://tr.io/421\Upgrade openssl]8;;\            closed      carol
+#430   ]8;;https://tr.io/430\Docs typo]8;;\                  merged      dave

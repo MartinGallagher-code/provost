@@ -1,0 +1,8 @@
+group:web
+  web:web_00    RUNNING   pid 1201, uptime 4:12:33
+  web:web_01    RUNNING   pid 1202, uptime 4:12:33
+group:worker
+  worker:w_00   RUNNING   pid 1350, uptime 2:00:11
+  worker:w_01   FATAL     Exited too quickly
+  worker:w_02   STARTING
+scheduler       STOPPED   Not started

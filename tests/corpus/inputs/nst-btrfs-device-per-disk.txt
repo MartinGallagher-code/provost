@@ -1,0 +1,9 @@
+Filesystem UUID: 3f7a-c2e1  Label: data
+  Device /dev/sdb1:
+    write_io_errs    0
+    read_io_errs     0
+    flush_io_errs    3
+  Device /dev/sdc1:
+    write_io_errs    12
+    read_io_errs     0
+    flush_io_errs    0

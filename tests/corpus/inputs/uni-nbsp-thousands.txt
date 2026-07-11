@@ -1,0 +1,5 @@
+PAYS      POPULATION    PIB
+France    67 390 000  2 940
+Suisse     8 637 000    807
+Belgique  11 590 000    530
+Québec     8 501 000    461

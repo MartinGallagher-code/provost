@@ -1,0 +1,7 @@
+[1;33m::: deployspec :::[0m
+
+[35mapp[0m: [32mpayments[0m
+[35menv[0m: [32mproduction[0m
+[35mreplicas[0m: [33m6[0m
+[35mstrategy[0m: [32mrolling[0m
+[35mmax_surge[0m: [33m2[0m

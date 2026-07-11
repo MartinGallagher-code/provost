@@ -1,0 +1,6 @@
+Metric     Today    Delta    Trend
+cpu        45%      +5%      up
+mem        72%      -3%      down
+disk       88%      +0%      flat
+net        12%      ±0.5%    flat
+gpu        95%      +12%     up

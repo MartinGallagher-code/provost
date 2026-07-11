@@ -1,0 +1,5 @@
+target		deps
+all		build test
+build		compile link
+test		build
+clean		-

@@ -1,0 +1,6 @@
+Device    tps   kB_read/s   kB_wrtn/s   kB_read   kB_wrtn
+sda      12.3       456.7       123.4    123456     45678
+nvme0n1  45.6      1234.5       567.8    987654    234567
+Device    tps   kB_read/s   kB_wrtn/s   kB_read   kB_wrtn
+sda      13.1       478.2       130.1    124000     45900
+nvme0n1  48.9      1301.2       590.3    990000    235000

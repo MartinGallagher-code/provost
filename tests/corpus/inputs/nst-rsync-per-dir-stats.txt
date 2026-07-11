@@ -1,0 +1,15 @@
+sending incremental file list
+
+./src/
+  transferred: 44 files, 12.4 MB
+  deleted: 2 files
+
+./assets/
+  transferred: 128 files, 88.1 MB
+  deleted: 0 files
+
+./config/
+  transferred: 3 files, 12 KB
+  deleted: 0 files
+
+sent 100.6M bytes  received 4.1K bytes  total size 512.0M

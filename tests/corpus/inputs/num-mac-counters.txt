@@ -1,0 +1,5 @@
+Interface  MAC                 RxErrors   TxDrops
+eth0       de:ad:be:ef:00:01   1,234      12
+eth1       ca:fe:ba:be:00:02   0          0
+eth2       00:1a:2b:3c:4d:5e   9,999      1,024
+eth3       ff:ff:ff:ff:ff:ff   42         3

@@ -1,0 +1,4 @@
+TOKEN  LEN  NOTE
+ad​min    5  hidden zwsp
+user     4  plain
+ro​ot     4  hidden zwsp

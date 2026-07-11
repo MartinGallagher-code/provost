@@ -1,0 +1,15 @@
+Backup Job Report
+=================
+Job Name:   nightly-full
+Started:    2026-07-11 01:00:03
+Client:     fileserver01
+
+Volume       Files      Size       Status
+vol-daily    122045     18.4 GB    OK
+vol-home     88213      42.1 GB    OK
+vol-mail     305122     9.8 GB     WARN
+vol-db       12009      210.5 GB   OK
+
+Elapsed:    01:42:18
+Exit Code:  0
+Next Run:   2026-07-12 01:00:00

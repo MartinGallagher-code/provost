@@ -1,0 +1,5 @@
+n	host	status	latency	total_entries
+1	web01	up	12ms	4
+2	web02	up	15ms	4
+3	db01	down	-	4
+4	cache01	up	3ms	4

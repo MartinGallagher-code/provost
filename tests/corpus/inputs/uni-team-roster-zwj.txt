@@ -1,0 +1,5 @@
+MEMBER     ROLE    AVATAR
+Alice      Lead    👩‍💻
+Bob        Ops     👨‍🔧
+Carol      Design  👩‍🎨
+Household  Family  👨‍👩‍👧‍👦

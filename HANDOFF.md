@@ -1,6 +1,21 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit + gap-triage round (2026-07-11) — **3126 tidy, 70 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; adversarial +510 round 2 + line-terminator normalization (2026-07-11) — **3519 tidy, 187 ⏳**
+
+> **2026-07-11 — adversarial +510 (round 2).** 510 inputs generated (8 parallel
+> themed batches) to BREAK the parser across novel mechanisms: encoding/whitespace,
+> Unicode display-width vs byte math, numeric punctuation, embedded-delimiter
+> quoting, table oddities, nested multi-section, stacked color+box+emoji, real-tool
+> exotics. **393/510 tidied with no new per-tool code (77%)** — low by design.
+> The break-hunt yielded one clean format-level fix: **engine line-terminator
+> normalization** (CRLF, bare-CR, VT/FF, NEL/U+2028/U+2029 → `\n`, gated, no-op on
+> normal input) — fixing the cr-only/NEL/U+2028/VT/CRLF-block breakers with 0
+> golden regressions. 158 inputs landed ⏳ (documented frontier: nested per-record
+> sub-tables, quote-aware CSV/pipe, INI `[section]` files, Unicode-space
+> separators, CJK/emoji width math). **Now 3706 tools; 3519 tidy; 187 ⏳** (✅ 3302
+> / ✅ʰ 73 / ✅ᵇ 144). Golden freeze +388 new, 0 existing deleted/modified. Follow-up
+> to the merged PR #35 (line-terminator fix landed there); this corpus batch is a
+> fresh change rebased onto the post-merge main.
 
 > **2026-07-11 — gap-triage.** Swept the 71 ⏳ for clean wins. Corrected the
 > README's stale tier counts (1934/58/134 -> live 2915/71/139). Routed

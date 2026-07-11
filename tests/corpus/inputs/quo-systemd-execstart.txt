@@ -1,0 +1,4 @@
+unit                 execstart
+nginx.service        /usr/sbin/nginx -g 'daemon off; master_process on;'
+app.service          /opt/app --flags "--a=1 --b=2,3"
+timer.service        /bin/sh -c 'date; echo done'

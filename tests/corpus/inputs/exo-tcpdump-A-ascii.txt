@@ -1,0 +1,13 @@
+16:44:12.001923 IP 10.0.0.5.44120 > 151.101.1.140.80: Flags [P.], seq 1:78, ack 1, win 502, length 77
+E...4.@.@..............P..q.......6............
+GET / HTTP/1.1
+Host: example.com
+User-Agent: curl/8.5.0
+Accept: */*
+
+16:44:12.045118 IP 151.101.1.140.80 > 10.0.0.5.44120: Flags [P.], seq 1:341, ack 78, win 235, length 340
+E..d..@.9..............P........q..............
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 1256
+Connection: keep-alive

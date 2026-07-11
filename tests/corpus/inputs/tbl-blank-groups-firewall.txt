@@ -1,0 +1,6 @@
+Chain    Target  Prot  Source          Destination
+ACCEPT   all     tcp   0.0.0.0/0       0.0.0.0/0
+DROP     all     tcp   10.0.0.0/8      0.0.0.0/0
+
+ACCEPT   all     udp   0.0.0.0/0       0.0.0.0/0
+REJECT   all     udp   192.168.0.0/16  0.0.0.0/0

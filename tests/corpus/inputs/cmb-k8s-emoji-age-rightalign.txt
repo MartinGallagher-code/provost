@@ -1,0 +1,5 @@
+[1mNODE         ROLE     CONDITION       AGE[0m
+ctrl-01 👑   master   [32mReady[0m               [90m180d[0m
+node-a1 🖥️    worker   [32mReady[0m                [90m42d[0m
+node-b2 🖥️    worker   [31mDiskPressure[0m         [90m9d[0m
+node-c3 🖥️    worker   [33mMemoryPressure[0m       [90m1h[0m

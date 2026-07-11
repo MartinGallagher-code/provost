@@ -1,5 +1,37 @@
 # glean — Changelog
 
+## 2026-07-11 — Adversarial +510 (round 2) + line-terminator normalization
+
+A second adversarial expansion: 510 new inputs generated (8 parallel themed
+batches) specifically to BREAK the parser across mechanisms not stressed before —
+encoding/whitespace pathologies, Unicode display-width vs mawk byte math, numeric
+punctuation, embedded-delimiter quoting, structural table oddities, nested
+multi-section records, stacked color+box+emoji, and real-tool exotics
+(`openssl x509`, `ss -i`, `smartctl -a`, `perf -x`, …).
+
+- **Engine: line-terminator normalization** (`extract/envoy-extract`). The one
+  clean format-level fix the break-hunt surfaced. Record splitting keys on `\n`
+  throughout, so a capture using any other terminator collapsed to a single
+  physical line. The engine now normalises — once, before the ANSI strip, gated
+  on such a byte being present (a true no-op for ordinary input) — Windows CRLF,
+  bare-CR (classic Mac), vertical-tab / form-feed page breaks, and the Unicode
+  line separators NEL (U+0085), LS (U+2028), PS (U+2029). Fixed the cr-only /
+  NEL / U+2028 / vertical-tab / CRLF-block-records breakers. Golden gate 0
+  regressions (2987 existing goldens byte-identical), extract 62/62, smoke 49/0.
+- **Corpus +510** (`tests/corpus/inputs/`, `expected.tsv`, `expected/`). Of the
+  510 adversarial inputs, **393 tidied with no new per-tool code (77%)** — a
+  deliberately low rate, since they were built to fail. 117 landed ⏳, honestly
+  documenting the frontier. New tallies: **3706 tools; 3519 tidy; 187 ⏳** (✅ 3302
+  generic / ✅ʰ 73 hint / ✅ᵇ 144 bespoke). Golden freeze added 388 new goldens,
+  deleted/modified 0 existing (no regression).
+- **Break clusters left ⏳ (documented, not closed):** nested per-record
+  sub-tables (`ip -s link` RX/TX, grouped subtotals — the known hard frontier);
+  quote-aware CSV/pipe splitting (embedded commas/newlines/bars); INI/TOML
+  `[section]` files (candidate for a future `ini-sections` generic strategy);
+  Unicode-space column separators (NBSP / ideographic-space — conflicts with
+  NBSP-as-thousands-grouping, so not blindly normalisable); display-width vs byte
+  column math for CJK/emoji.
+
 ## 2026-07-11 — Gap-triage: vercel-list hint + README tier-count fix
 
 A focused pass over the 71 ⏳ gaps looking for clean, non-regressing wins.

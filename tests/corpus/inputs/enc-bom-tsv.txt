@@ -1,0 +1,5 @@
+﻿port	proto	state
+22	tcp	open
+80	tcp	open
+443	tcp	open
+53	udp	filtered

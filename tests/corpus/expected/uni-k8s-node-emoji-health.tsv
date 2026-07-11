@@ -1,0 +1,5 @@
+n	NODE	HEALTH	CPU	MEM	total_entries
+1	node-01	🟢 ok	23%	45%	4
+2	node-02	🔴 down	0%	0%	4
+3	node-03	🟡 warn	91%	88%	4
+4	node-04	🟢 ok	12%	30%	4

@@ -1,0 +1,7 @@
+SUITE    RESULT  COUNT
+parser   ✅        128
+network  ✅         64
+auth     ❌          3
+cache    ✅         42
+ui       🟡          7
+e2e      ❌         11

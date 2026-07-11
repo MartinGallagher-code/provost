@@ -1,0 +1,6 @@
+Item            Price         Discount
+Widget          $1,299.00     -$100.00
+Gadget          $49.99        $0.00
+Bundle          $2,499.50     -$250.00
+Service         $12,000.00    ($1,200.00)
+Refund          ($99.00)      $0.00

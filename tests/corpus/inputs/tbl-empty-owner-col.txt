@@ -1,0 +1,4 @@
+FILE           OWNER   GROUP   SIZE
+config.yaml            root    2048
+data.db                root  102400
+cache.tmp              www       512

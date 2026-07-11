@@ -1,0 +1,4 @@
+container   entrypoint
+web         ["/bin/sh","-c","nginx -g 'daemon off;'"]
+worker      ["python","app.py","--tags","a,b,c"]
+cron        ["/usr/sbin/crond","-f"]

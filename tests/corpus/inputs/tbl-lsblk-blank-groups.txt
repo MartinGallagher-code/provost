@@ -1,0 +1,7 @@
+NAME       SIZE TYPE MOUNTPOINT
+sda        500G disk
+sda1       512M part /boot
+sda2     499.5G part /
+
+nvme0n1      1T disk
+nvme0n1p1    1T part /data

@@ -1,0 +1,5 @@
+MODULE     FUNC     LINE
+обработка  старт      42
+сеть       connect   108
+база       query      77
+main       init        1

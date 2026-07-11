@@ -1,0 +1,4 @@
+name | pattern | action
+http | ^GET\|POST$ | allow
+smtp | HELO\|EHLO | log
+raw  | a\|b\|c | drop

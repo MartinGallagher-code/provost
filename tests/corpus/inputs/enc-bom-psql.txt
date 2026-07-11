@@ -1,0 +1,6 @@
+﻿ id | name  | active
+----+-------+--------
+  1 | alice | t
+  2 | bob   | f
+  3 | carol | t
+(3 rows)

@@ -1,0 +1,6 @@
+Region     Range                       Perms
+text       0x400000-0x452000           r-x
+data       0x652000-0x654000           rw-
+heap       0x1a2b000-0x1a5c000         rw-
+stack      0x7ffe0000-0x7fffe000       rw-
+vdso       0xffffffffff600000-...      r-x

@@ -1,0 +1,5 @@
+package      version    size
+libssl	3.0.2	1.4M
+zlib	1.2.11	220K
+curl	7.81.0	780K
+git	2.34.1	12M

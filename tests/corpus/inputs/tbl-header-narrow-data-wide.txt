@@ -1,0 +1,4 @@
+Name   Value  Unit
+temperature   45.2   C
+humidity      60.5   %
+pressure    1013.2   hPa

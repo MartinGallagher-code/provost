@@ -1,0 +1,7 @@
+Field           Value
+Subject         CN=example.com
+Issuer          Let's Encrypt R3
+Serial          03:a1:b2:c3:d4
+Not Before      Jul  1 00:00:00 2026 GMT
+Not After       Sep 29 23:59:59 2026 GMT
+Key Algorithm   RSA 2048

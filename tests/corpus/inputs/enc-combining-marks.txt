@@ -1,0 +1,4 @@
+name        score   grade
+José        91      A
+Zoë         84      B
+Renée       77      C

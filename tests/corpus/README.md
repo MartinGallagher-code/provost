@@ -41,15 +41,15 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3126 tidy (70 format gaps ⏳)** — after two +500
+**3706 tools tested; 3519 tidy (187 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 2915 by a generic parser via auto-detection, ✅ʰ 72 by a generic parser
-routed by a hint row, ✅ᵇ 139 by a bespoke strategy. A later positional
+total: ✅ 3302 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
@@ -92,12 +92,23 @@ clean wins: banner-table siblings (`pueue-status`, `apachectl-S`) are stolen by
 `lsblk-tree` can't be hinted without demoting its already-generic siblings;
 `df-locale-de` is a UTF-8/mawk byte-position problem (umlaut columns); and the
 wide-stat cluster (`sar-cpu`, `numastat-p`, `quota-report`) has embedded
-time/grouped/`|`-separated headers. The 70 ⏳ that remain are genuinely hard
-(nested multi-record blocks —
-`ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
-single-space multi-word cells — lzbench; prose/diff formats — cargo clippy, git
-diff; nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the
-live per-tool list.
+time/grouped/`|`-separated headers. A second **+510 adversarial** round then
+generated inputs specifically to BREAK the parser across novel mechanisms
+(encoding/whitespace pathologies, Unicode display-width vs byte math, numeric
+punctuation, embedded-delimiter quoting, structural table oddities, nested
+multi-section records, stacked color+box+emoji, and real-tool exotics like
+`openssl x509`, `ss -i`, `smartctl -a`). **393 of the 510 tidied with no new
+per-tool code (77%)** — a deliberately low rate, since these were built to fail —
+and the break-hunt surfaced one clean format-level fix: an **engine-level
+line-terminator normalization** (once, gated) that maps Windows CRLF, bare-CR
+(classic Mac), vertical-tab / form-feed page breaks, and the Unicode line
+separators NEL / U+2028 / U+2029 to `\n`, so a capture using any of them no
+longer collapses to a single physical line. The 187 ⏳ that remain are genuinely
+hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
+first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
+column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;
+prose/diff formats — cargo clippy, git diff; nested/2-line-header records). See
+[`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:
 

@@ -1,0 +1,18 @@
+defaults: &defaults
+  adapter: postgres
+  host: localhost
+  pool: 5
+
+development:
+  <<: *defaults
+  database: app_dev
+
+test:
+  <<: *defaults
+  database: app_test
+  pool: 1
+
+production:
+  <<: *defaults
+  database: app_prod
+  host: db.internal

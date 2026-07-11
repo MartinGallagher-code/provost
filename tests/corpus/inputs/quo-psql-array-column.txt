@@ -1,0 +1,6 @@
+ id |   name   |        tags
+----+----------+---------------------
+  1 | web      | {http,https,edge}
+  2 | db       | {postgres,primary}
+  3 | cache    | {redis,"a,b",fast}
+(3 rows)

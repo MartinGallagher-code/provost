@@ -1,0 +1,4 @@
+"region","hosts","note"
+"us-east-1","12","primary, active"
+"eu-west-2","7","standby, drained"
+"ap-south-1","5","primary, active"

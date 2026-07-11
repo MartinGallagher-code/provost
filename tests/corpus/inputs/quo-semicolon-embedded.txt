@@ -1,0 +1,4 @@
+name;role;bio
+alice;lead;"builds; ships; iterates"
+bob;dev;"writes code; reviews"
+carol;ops;"pages; on-call; fixes"

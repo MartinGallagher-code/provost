@@ -1,0 +1,4 @@
+n	interfaces	services	ports	masquerade
+1	eth0	ssh_dhcpv6-client_http_https	8080/tcp_9090/tcp	no
+2	eth1	ssh_mdns_samba-client		no
+3	eth2	ssh	443/tcp	yes

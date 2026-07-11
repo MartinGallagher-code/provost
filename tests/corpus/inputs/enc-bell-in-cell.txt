@@ -1,0 +1,4 @@
+job      host       status
+backup   nas01      ok
+sync     nas02      failed
+prune    nas03      ok

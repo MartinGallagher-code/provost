@@ -1,0 +1,6 @@
+[1mNAME              READY   STATUS             RESTARTS   AGE[0m
+api-7f9c-xk2  [32m1/1[0m     [32mRunning[0m 🟢          0          [90m14d[0m
+web-5d8-p4z   [32m2/2[0m     [32mRunning[0m 🟢          1          [90m3d[0m
+job-init-q9   [33m0/1[0m     [33mPending[0m 🟡          0          [90m2m[0m
+cache-a1-lm   [31m0/1[0m     [31mCrashLoop[0m 🔴        7          [90m1h[0m
+proxy-88-tt   [32m1/1[0m     [32mRunning[0m 🟢          0          [90m21d[0m

@@ -1,0 +1,5 @@
+SERVICE    PORT  STATE
+http       ８０  open
+https    ４４３  open
+ssh          22  open
+dns        ５３  filtered

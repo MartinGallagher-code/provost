@@ -1,0 +1,5 @@
+n	package	version	size	total_entries
+1	libssl	3.0.2	1.4M	4
+2	zlib	1.2.11	220K	4
+3	curl	7.81.0	780K	4
+4	git	2.34.1	12M	4

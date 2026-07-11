@@ -1,0 +1,4 @@
+n	id	data	ok
+1	1	{not json}	true
+2	2	a{b}c,d	false
+3	3	plain	true

@@ -1,0 +1,15 @@
+int xdp_drop(struct xdp_md * ctx):
+; int xdp_drop(struct xdp_md *ctx)
+   0: (b7) r0 = 1
+; void *data_end = (void *)(long)ctx->data_end;
+   1: (61) r2 = *(u32 *)(r1 +4)
+   2: (61) r3 = *(u32 *)(r1 +0)
+; struct ethhdr *eth = data;
+   3: (bf) r4 = r3
+   4: (07) r4 += 14
+; if (eth + 1 > data_end)
+   5: (2d) if r4 > r2 goto pc+8
+   6: (71) r5 = *(u8 *)(r3 +12)
+   7: (55) if r5 != 0x8 goto pc+6
+   8: (b7) r0 = 2
+   9: (95) exit

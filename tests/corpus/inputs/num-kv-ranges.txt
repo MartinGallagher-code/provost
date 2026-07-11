@@ -1,0 +1,5 @@
+PortRange: 1024-65535
+CpuAffinity: 0-3
+MemNodes: 0,2-4
+IpBlock: 192.168.1.0/24
+WorkHours: 08:00-17:00

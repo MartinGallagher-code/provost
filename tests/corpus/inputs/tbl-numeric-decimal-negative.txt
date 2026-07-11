@@ -1,0 +1,5 @@
+Account          Debit        Credit      Balance
+Cash          1,250.00          0.00     1,250.00
+Payable           0.00      3,400.50    -3,400.50
+Revenue           0.00     12,000.00   -12,000.00
+Expense       8,750.25          0.00     8,750.25

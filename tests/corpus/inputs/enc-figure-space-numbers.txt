@@ -1,0 +1,5 @@
+item      amount
+alpha       42
+bravo      309
+charlie   1024
+delta        7

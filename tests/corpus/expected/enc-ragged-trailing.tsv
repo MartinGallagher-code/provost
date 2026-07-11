@@ -1,0 +1,5 @@
+n	user	role	team	seat	total_entries
+1	alice	admin	sre	A1	4
+2	bob	dev	web		4
+3	carol	dev	data	C3	4
+4	dan	ops	infra	D9	4

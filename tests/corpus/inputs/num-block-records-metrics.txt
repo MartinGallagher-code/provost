@@ -1,0 +1,14 @@
+host: web01
+cpu: 45%
+mem: 3.5GiB
+load: 1,23
+
+host: web02
+cpu: 78%
+mem: 7.2GiB
+load: 2,71
+
+host: db01
+cpu: 12%
+mem: 12.1GiB
+load: 0,42

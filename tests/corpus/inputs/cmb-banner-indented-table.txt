@@ -1,0 +1,10 @@
+[1;36m  ___  _ __ ___   ___ [0m
+[1;36m / _ \| '_ \` _ \ / __|[0m  orchestrator v3.4.1
+[1;36m| (_) | | | | | | \__ \[0m
+[1;36m \___/|_| |_| |_| |___/[0m
+
+    [1mJOB          STATE      DURATION[0m
+    build        [32msuccess[0m    2m14s
+    test         [32msuccess[0m    5m01s
+    deploy       [33mrunning[0m    0m48s
+    notify       [90mpending[0m    --

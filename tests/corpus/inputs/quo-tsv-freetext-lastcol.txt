@@ -1,0 +1,4 @@
+code	sev	description
+1001	ERR	parse failed: expected , or ; got |
+1002	WARN	retry in 5s, backoff: 2x
+1003	INFO	ok: 200, path=/a|b

@@ -1,0 +1,5 @@
+POOL     SIZE     FREE
+   tank     10T      4T
+   backup   20T      9T
+   fast     2T       1T
+   cold     40T      30T

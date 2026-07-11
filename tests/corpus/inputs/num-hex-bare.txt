@@ -1,0 +1,6 @@
+Symbol      Offset      Size
+_start      000010e0    0000002f
+main        00001120    000000a4
+printf      DEADBEEF    CAFEBABE
+malloc      00001200    0000012c
+free        000012f0    00000038

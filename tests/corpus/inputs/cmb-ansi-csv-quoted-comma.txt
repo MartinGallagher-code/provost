@@ -1,0 +1,5 @@
+[1mname,note,amount,currency[0m
+[36mAcme Inc[0m,[90m"invoice #12, net30"[0m,[32m1204.50[0m,USD
+[36mGlobex[0m,[90m"credit, refund"[0m,[31m-88.00[0m,EUR
+[36mInitech[0m,[90m"retainer, Q3"[0m,[32m5000.00[0m,GBP
+[36mHooli[0m,[90m"deposit, held"[0m,[32m220.00[0m,USD

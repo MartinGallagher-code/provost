@@ -1,0 +1,5 @@
+[4mBRANCH[0m          [4mAHEAD[0m   [4mBEHIND[0m   [4mLASTCOMMIT[0m
+main            0       0        3h ago
+feature/login   4       1        2d ago
+hotfix/crash    1       0        20m ago
+release/2.0     12      44       5d ago

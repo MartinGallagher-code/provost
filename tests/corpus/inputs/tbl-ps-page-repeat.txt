@@ -1,0 +1,7 @@
+USER    PID %CPU %MEM    VSZ   RSS TTY   STAT START   TIME COMMAND
+root      1  0.0  0.1 168920 11234 ?     Ss   Jul01   0:12 /sbin/init
+root      2  0.0  0.0      0     0 ?     S    Jul01   0:00 [kthreadd]
+www     812  1.2  0.5 456789 45678 ?     Sl   09:15   2:34 nginx: worker
+USER    PID %CPU %MEM    VSZ   RSS TTY   STAT START   TIME COMMAND
+mysql   934  3.4  6.1 987654 87654 ?     Ssl  09:16  12:01 mysqld
+user   1502  0.7  2.3 345678 23456 pts/0 R+   10:22   0:03 top

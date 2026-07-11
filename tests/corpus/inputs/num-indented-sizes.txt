@@ -1,0 +1,7 @@
+root                3.5GiB
+  usr               2.1GiB
+    bin             512MiB
+    lib             1.5GiB
+  var               1.2GiB
+    log             800MiB
+    cache           400MiB

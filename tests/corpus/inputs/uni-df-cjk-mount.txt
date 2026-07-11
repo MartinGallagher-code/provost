@@ -1,0 +1,5 @@
+Filesystem  Size  Used  Avail  Use%  Mounted on
+/dev/sda1    50G   20G    30G   40%  /挂载点/数据
+/dev/sdb1   100G   80G    20G   80%  /备份
+tmpfs         2G     0     2G    0%  /临时
+/dev/sdc1     1T  500G   500G   50%  /home

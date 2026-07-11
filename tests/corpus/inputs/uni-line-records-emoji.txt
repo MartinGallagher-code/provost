@@ -1,0 +1,5 @@
+TIME   LEVEL     MSG
+10:00  ℹ️ info    服务已启动
+10:01  ⚠️ warn    内存使用率高
+10:02  🛑 error  连接超时
+10:03  ℹ️ info    恢复正常

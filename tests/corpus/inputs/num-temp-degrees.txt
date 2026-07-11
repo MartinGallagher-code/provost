@@ -1,0 +1,6 @@
+Sensor       Temp     Signal    Load
+cpu          42°C     -         25%
+gpu          58°C     -         71%
+wifi         39°C     -67dBm    12%
+ambient      21°C     -         -
+battery      33°C     -         88%

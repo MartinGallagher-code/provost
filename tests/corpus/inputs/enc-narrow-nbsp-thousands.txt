@@ -1,0 +1,5 @@
+symbol   shares       price
+AAPL     12 000       229.35
+MSFT     3 400        441.10
+GOOG     1 250        178.22
+AMZN     45 900       201.44

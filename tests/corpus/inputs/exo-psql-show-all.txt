@@ -1,0 +1,10 @@
+              name              |         setting          |                                        description
+--------------------------------+--------------------------+--------------------------------------------------------------
+ application_name               |                          | Sets the application name to be reported in statistics.
+ autovacuum                     | on                       | Starts the autovacuum subprocess.
+ checkpoint_timeout             | 5min                     | Sets the maximum time between automatic WAL checkpoints.
+ max_connections                | 100                      | Sets the maximum number of concurrent connections.
+ shared_buffers                 | 128MB                    | Sets the number of shared memory buffers used by the server.
+ timezone                       | Etc/UTC                  | Sets the time zone for displaying and interpreting timestamps.
+ work_mem                       | 4MB                      | Sets the maximum memory to be used for query workspaces.
+(7 rows)

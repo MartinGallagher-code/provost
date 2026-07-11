@@ -1,0 +1,13 @@
+Linux 5.15.0-91-generic (host01)  07/11/2026  _x86_64_  (8 CPU)
+
+12:00:01 AM     CPU     %user     %nice   %system   %iowait    %idle
+12:10:01 AM     all      3.42      0.00      1.28      0.55     94.75
+12:20:01 AM     all      4.11      0.00      1.90      0.12     93.87
+
+12:00:01 AM   kbmemfree   kbavail    kbused  %memused
+12:10:01 AM     1048576   3145728   5242880     71.42
+12:20:01 AM      983040   3080192   5308416     72.31
+
+12:00:01 AM     proc/s   cswch/s
+12:10:01 AM       1.22    880.15
+12:20:01 AM       0.98    905.44

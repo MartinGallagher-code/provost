@@ -1,0 +1,7 @@
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+            441203   compute assemble   mgalla  R    3:12:44      4 node[012-015]
+            441205   highmem  variant   mgalla PD       0:00      2 (Resources)
+            441206     debug     qc.sh    alexk  R       5:12      1 node021
+            441207   compute align.sh    alexk PD       0:00      8 (Priority)
+            441208       gpu   train.py  sunbo   R    1:44:02      1 gpu-node03
+            441209   compute  reindex     root CG       0:33      1 node008

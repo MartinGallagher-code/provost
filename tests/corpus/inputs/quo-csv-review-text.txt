@@ -1,0 +1,4 @@
+rating,product,review
+5,Widget,"Great, works well. Fast, reliable; would buy again"
+3,Gadget,"OK but pricey: costs 2x more, meh"
+1,Gizmo,"Broke on day 1, returned it"

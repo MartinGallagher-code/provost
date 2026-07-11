@@ -1,0 +1,5 @@
+Interface     RxBytes       TxBytes       Packets
+eth0          1 234 567     23 456 789    1 048 576
+eth1          12 345        234 567       98 765
+wlan0         9 876 543     1 234 567     654 321
+lo            1 000         1 000         2 000

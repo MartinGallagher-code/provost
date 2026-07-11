@@ -1,0 +1,3 @@
+k1="a b" k2='c=d' k3="e f g"
+mode="read write" owner='root:wheel' flags="-x -v"
+label="release v1.2, stable" env='prod=1'

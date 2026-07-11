@@ -1,0 +1,14 @@
+[tox]
+envlist = py38, py39, py310
+skipsdist = True
+
+[testenv]
+deps = pytest
+commands = pytest tests/
+
+[testenv:lint]
+deps = flake8
+commands = flake8 src/
+
+[flake8]
+max-line-length = 100

@@ -1,0 +1,10 @@
+Sales Report                     Page 1
+
+region    units    revenue
+west      1200     48000
+east      980      39200
+Sales Report                     Page 2
+
+region    units    revenue
+north     760      30400
+south     1440     57600

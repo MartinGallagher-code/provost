@@ -1,0 +1,4 @@
+FILE              SIZE  TYPE
+invoice‮gnp.exe‬  4096  danger
+report.pdf        2048  doc
+photo‮kpj.scr‬    8192  danger

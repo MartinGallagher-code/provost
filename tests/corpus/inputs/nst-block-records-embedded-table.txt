@@ -1,0 +1,17 @@
+Host: web01
+Role: frontend
+IP: 10.0.0.11
+Interfaces:
+  eth0   10.0.0.11   up
+  eth1   10.0.1.11   down
+
+Host: web02
+Role: frontend
+IP: 10.0.0.12
+
+Host: db01
+Role: database
+IP: 10.0.0.21
+Interfaces:
+  eth0   10.0.0.21   up
+  bond0  10.0.2.21   up

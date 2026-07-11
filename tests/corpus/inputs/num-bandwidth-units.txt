@@ -1,0 +1,6 @@
+Link     Speed      Signal     Latency
+wan0     1.2Gbps    -5dBm      12ms
+wan1     100Mbps    -72dBm     45ms
+lan0     10Gbps     -          0.3ms
+lan1     2.5Gbps    -          1ms
+lte0     150Mbps    -95dBm     88ms

@@ -1,0 +1,8 @@
+Device: /dev/sda  Model: Samsung SSD 870 EVO  Serial: S5Y2NJ0R  Capacity: 1.0 TB
+  Partitions:
+    Name        Size     Used     Mount
+    sda1        512M     108M     /boot/efi
+    sda2        2.0G     1.4G     /boot
+    sda3        920G     612G     /
+    sda4        60G      12G      /home
+    sda5        16G      0        [SWAP]

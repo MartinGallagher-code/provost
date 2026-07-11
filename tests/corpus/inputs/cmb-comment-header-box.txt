@@ -1,0 +1,8 @@
+# firewall zones snapshot
+┌──────────┬───────────┬──────────┐
+│ [1mZONE[0m     │ [1mTARGET[0m    │ [1mIFACES[0m   │
+├──────────┼───────────┼──────────┤
+│ public   │ [31mDROP[0m      │ eth0     │
+│ trusted  │ [32mACCEPT[0m    │ br0      │
+│ dmz      │ [33mREJECT[0m    │ eth1     │
+└──────────┴───────────┴──────────┘

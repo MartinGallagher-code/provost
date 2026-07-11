@@ -1,0 +1,6 @@
+Constant             Value         Uncertainty
+elementary_charge    1.602e-19     1.2e-28
+avogadro             6.022E23      3.0E16
+planck               6.626e-34     8.1e-42
+boltzmann            1.380649e-23  0.0
+gravity              9.80665       0.00001

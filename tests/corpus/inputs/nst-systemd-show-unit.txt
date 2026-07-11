@@ -1,0 +1,11 @@
+Id=nginx.service
+Names=nginx.service
+Description=A high performance web server
+LoadState=loaded
+ActiveState=active
+SubState=running
+MainPID=1201
+ExecMainStartTimestamp=Sat 2026-07-11 01:02:03 UTC
+MemoryCurrent=48234496
+CPUUsageNSec=1240009887
+Restart=on-failure

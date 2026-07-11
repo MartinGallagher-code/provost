@@ -1,0 +1,4 @@
+TEAM     REGION    FLAG
+Alpha    Scotland  🏴󠁧󠁢󠁳󠁣󠁴󠁿
+Bravo    Wales     🏴󠁧󠁢󠁷󠁬󠁳󠁿
+Charlie  England   🏴󠁧󠁢󠁥󠁮󠁧󠁿

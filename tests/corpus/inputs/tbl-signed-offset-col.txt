@@ -1,0 +1,5 @@
+Server         Offset(ms)   Jitter(ms)
+ntp1.example      -0.123        0.045
+ntp2.example      12.456        0.089
+ntp3.example      -8.901        0.234
+ntp4.example       3.210        0.012

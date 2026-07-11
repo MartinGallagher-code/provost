@@ -1,0 +1,4 @@
+Process              PID       RSS        VSZ
+firefox            2345    1 234 MB    3 456 MB
+chrome             3456    2 048 MB    5 120 MB
+code               4567      512 MB    1 024 MB

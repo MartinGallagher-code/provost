@@ -1,0 +1,14 @@
+                                                          QUERY PLAN
+------------------------------------------------------------------------------------------------------------------------------
+ Gather  (cost=1000.00..18412.44 rows=8821 width=244) (actual time=0.412..44.218 rows=8814 loops=1)
+   Workers Planned: 2
+   Workers Launched: 2
+   ->  Parallel Seq Scan on orders o  (cost=0.00..16530.34 rows=3675 width=244) (actual time=0.088..38.114 rows=2938 loops=3)
+         Filter: ((status)::text = 'shipped'::text)
+         Rows Removed by Filter: 118221
+   ->  Hash Join  (cost=214.00..1882.14 rows=4410 width=88) (actual time=1.204..12.882 rows=4408 loops=3)
+         Hash Cond: (o.customer_id = c.id)
+         ->  Index Scan using idx_cust on customers c  (cost=0.42..88.10 rows=2210 width=44) (actual time=0.021..2.114 rows=2208 loops=3)
+ Planning Time: 0.882 ms
+ Execution Time: 45.114 ms
+(11 rows)

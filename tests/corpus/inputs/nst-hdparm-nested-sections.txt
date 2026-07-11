@@ -1,0 +1,18 @@
+/dev/sda:
+
+ATA device, with non-removable media
+	Model Number:       Samsung SSD 870 EVO 1TB
+	Serial Number:      S5Y2NJ0R
+	Firmware Revision:  SVT01B6Q
+Standards:
+	Used: ATA-8-ACS
+	Supported: 11 10 9 8
+Configuration:
+	Logical		max	current
+	cylinders	16383	16383
+	heads		16	16
+	sectors/track	63	63
+Commands/features:
+	Enabled	Supported:
+	   *	SMART feature set
+	   *	Security Mode feature set

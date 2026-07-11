@@ -1,0 +1,4 @@
+NAME     MAJ:MIN  LABEL   SIZE  TYPE
+sda        8:0            500G  disk
+sda1       8:1            512M  part
+nvme0n1  259:0              1T  disk

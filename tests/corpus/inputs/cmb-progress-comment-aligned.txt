@@ -1,0 +1,8 @@
+# poller cycle 4412
+[1mSENSOR       READING                  TREND[0m
+# thermal group
+cpu_pkg      [31m████████░░[0m 78°C        up
+gpu          [33m█████░░░░░[0m 54°C        flat
+# power group
+psu_load     [32m███░░░░░░░[0m 31%         down
+fan_duty     [36m██████░░░░[0m 61%         up

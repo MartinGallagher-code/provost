@@ -1,0 +1,22 @@
+3f2a1b09c88de441a44c1988213aa44210df2210 1 1 3
+author Martin Gallagher
+author-mail <martin@example.com>
+author-time 1752225603
+author-tz +0000
+committer Martin Gallagher
+committer-mail <martin@example.com>
+committer-time 1752225603
+committer-tz +0000
+summary Add LRU eviction to query cache
+filename src/cache.rs
+	use std::collections::HashMap;
+3f2a1b09c88de441a44c1988213aa44210df2210 2 2
+	use std::time::Instant;
+c19bf2a118a5b2044210df2210338112449ac100 3 3 1
+author Alex Kim
+author-mail <alex@example.com>
+author-time 1751002211
+author-tz -0700
+summary Refactor connection pool
+filename src/cache.rs
+	pub struct QueryCache {

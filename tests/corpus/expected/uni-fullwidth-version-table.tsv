@@ -1,0 +1,4 @@
+n	COMPONENT	VERSION	BUILD	total_entries
+1	kernel	５.１５.０	２０２３	3
+2	glibc	2.35	20220	3
+3	systemd	２４９	stable	3

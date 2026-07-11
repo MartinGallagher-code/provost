@@ -1,0 +1,6 @@
+Vendor       Amount          Currency
+acme_us      $1,299.00       USD
+euro_gmbh    1.299,00 €      EUR
+swiss_ag     CHF 1'299.00    CHF
+tokyo_kk     ¥129,900        JPY
+london_ltd   £999.50         GBP

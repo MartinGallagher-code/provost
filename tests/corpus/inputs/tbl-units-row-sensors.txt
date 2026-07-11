@@ -1,0 +1,5 @@
+Sensor      Temp    Fan     Voltage
+            (C)     (RPM)   (V)
+cpu0        45.2    1200    1.234
+cpu1        47.8    1200    1.235
+gpu         62.1    2400    0.987

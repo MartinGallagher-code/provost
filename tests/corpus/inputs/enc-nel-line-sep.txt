@@ -1,0 +1,1 @@
+zone    type    ttla       A       300mx      MX      3600txt     TXT     600ns      NS      86400

@@ -1,0 +1,5 @@
+SIGN        MEANING  GLYPH
+heart       love     ❤️
+heart-text  love     ❤︎
+star        fav      ⭐
+warn        alert    ⚠️

@@ -1,0 +1,16 @@
+[PHP]
+memory_limit = 256M
+max_execution_time = 30
+display_errors = Off
+
+[Date]
+date.timezone = UTC
+
+[Session]
+session.gc_maxlifetime = 1440
+session.save_handler = files
+
+[opcache]
+opcache.enable = 1
+opcache.memory_consumption = 128
+opcache.max_accelerated_files = 10000

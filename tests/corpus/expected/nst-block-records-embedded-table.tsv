@@ -1,0 +1,4 @@
+n	Host	Role	IP
+1	web01	frontend	10.0.0.11
+2	web02	frontend	10.0.0.12
+3	db01	database	10.0.0.21

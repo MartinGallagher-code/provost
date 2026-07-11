@@ -1,0 +1,5 @@
+[server]
+name = "edge, primary"
+tags = ["a,b", "c:d", "e|f"]
+motd = "welcome; enjoy your stay"
+ratio = "16:9"

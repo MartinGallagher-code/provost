@@ -1,0 +1,5 @@
+| operator | meaning        | example    |
+|----------|----------------|------------|
+| `\|`     | bitwise or     | `a \| b`   |
+| `\|\|`   | logical or     | `x \|\| y` |
+| `&`      | bitwise and    | `a & b`    |

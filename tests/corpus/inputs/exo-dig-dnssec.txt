@@ -1,0 +1,16 @@
+; <<>> DiG 9.18.24 <<>> +dnssec example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 8841
+;; flags: qr rd ra ad; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags: do; udp: 1232
+;; ANSWER SECTION:
+example.com.		300	IN	A	93.184.216.34
+example.com.		300	IN	RRSIG	A 13 2 300 20260801000000 20260711000000 42 example.com. mdKvV8w2n1Rz6oJ4Q1pXbf2sT9cLmNpQrStUvWxYz01234567890abcdefABCDEF==
+
+;; Query time: 31 msec
+;; SERVER: 1.1.1.1#53(1.1.1.1) (UDP)
+;; WHEN: Sat Jul 11 09:31:02 UTC 2026
+;; MSG SIZE  rcvd: 187

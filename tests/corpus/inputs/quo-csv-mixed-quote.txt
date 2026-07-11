@@ -1,0 +1,5 @@
+pid,cmd,state
+101,nginx,running
+102,"postgres: writer process",sleeping
+103,redis-server,running
+104,"python app.py --flags a,b,c",running

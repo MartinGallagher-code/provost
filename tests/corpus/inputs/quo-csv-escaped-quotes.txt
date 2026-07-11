@@ -1,0 +1,4 @@
+sku,label,price
+A1,"6"" widget",4.50
+A2,"12"" pipe, steel",9.75
+A3,"nut, 3/8""",0.20

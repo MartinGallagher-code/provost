@@ -1,0 +1,12 @@
+Compression Benchmark (corpus: enwik8, 100 MB)
+Machine: 8-core, 32GB. Warmup runs discarded.
+
+Tool     Ratio   Speed
+gzip     2.74    38 MB/s
+zstd-3   3.11    420 MB/s *
+zstd-19  3.98    12 MB/s
+lz4      2.10    780 MB/s
+xz-9     4.42    3.1 MB/s **
+
+* default level
+** single-threaded only

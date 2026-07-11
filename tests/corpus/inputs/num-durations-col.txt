@@ -1,0 +1,6 @@
+Job         Elapsed        ISO
+build       2h34m          PT2H34M
+test        01:23:45.678   PT1H23M45S
+deploy      1d2h           P1DT2H
+lint        14m3s          PT14M3S
+package     30m            PT30M

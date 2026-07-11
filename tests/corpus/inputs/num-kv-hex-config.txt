@@ -1,0 +1,5 @@
+BaseAddress = 0xDEADBEEF
+StackSize   = 0x100000
+Flags       = 0b10110101
+Umask       = 0o022
+MaxHandles  = 65535

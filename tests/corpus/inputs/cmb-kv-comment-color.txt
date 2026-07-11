@@ -1,0 +1,7 @@
+# runtime facts
+[1mversion[0m     = [36m1.29.4[0m
+# build metadata
+[1mcommit[0m      = [36mdeadbeef[0m
+[1mgo_version[0m  = go1.22.3
+# limits
+[1mmax_procs[0m   = 32

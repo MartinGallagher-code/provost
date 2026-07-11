@@ -1,0 +1,3 @@
+Install dir: C:\Program Files\App
+Config: C:\Users\admin\.apprc
+Log path: D:\logs\app: rotated daily

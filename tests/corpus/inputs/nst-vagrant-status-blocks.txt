@@ -1,0 +1,9 @@
+Current machine states:
+
+web         running (virtualbox)
+db          running (virtualbox)
+cache       poweroff (virtualbox)
+lb          not created (virtualbox)
+
+This environment represents multiple VMs. The VMs are all listed
+above with their current state.

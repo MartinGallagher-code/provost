@@ -1,0 +1,4 @@
+product,size,qty
+Pipe,3/4",100
+Bolt,1-1/2",250
+Washer,5/16",500

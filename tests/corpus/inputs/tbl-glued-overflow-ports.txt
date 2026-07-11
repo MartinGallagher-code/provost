@@ -1,0 +1,4 @@
+CONTAINER          PORTS               STATUS
+web                0.0.0.0:80->80/tcp  Up
+api-gateway-service0.0.0.0:8080->8080/tcpUp
+db                 5432/tcp            Up

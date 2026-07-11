@@ -1,0 +1,20 @@
+Name        : openssl
+Version     : 3.2.1
+Release     : 2.fc40
+Architecture: x86_64
+Install Date: Mon 06 Jan 2026 12:03:44 PM UTC
+Group       : Unspecified
+Size        : 1128442
+License     : Apache-2.0
+Signature   : RSA/SHA256, Tue 04 Feb 2026 09:11:02 AM UTC, Key ID 8b3c192f8871aa0b
+Source RPM  : openssl-3.2.1-2.fc40.src.rpm
+Build Date  : Mon 03 Feb 2026 06:44:18 PM UTC
+Build Host  : buildvm-x86-12.iad2.fedoraproject.org
+Packager    : Fedora Project
+Vendor      : Fedora Project
+URL         : http://www.openssl.org/
+Summary     : Utilities from the general purpose cryptography library with TLS implementation
+Description :
+The OpenSSL toolkit provides support for secure communications between
+machines. OpenSSL includes a certificate management tool and shared
+libraries which provide various cryptographic algorithms and protocols.

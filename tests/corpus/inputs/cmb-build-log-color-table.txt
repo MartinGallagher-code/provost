@@ -1,0 +1,9 @@
+[32m[INFO][0m Scanning source tree...
+[32m[INFO][0m Compiled 214 modules
+[31m[FAIL][0m 2 modules had warnings
+
+[1mMODULE        WARNINGS   ERRORS   TIME[0m
+core          [33m3[0m          [32m0[0m        4.2s
+api           [32m0[0m          [32m0[0m        2.1s
+ui            [33m11[0m         [31m2[0m        8.8s
+cli           [32m0[0m          [32m0[0m        1.0s

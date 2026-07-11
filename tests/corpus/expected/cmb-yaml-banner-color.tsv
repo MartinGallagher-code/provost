@@ -1,0 +1,2 @@
+app	env	replicas	strategy	max_surge
+payments	production	6	rolling	2

@@ -1,0 +1,4 @@
+LOCALE  LANGUAGE
+fr_FR   Français
+es_ES   Español
+is_IS   Íslenska

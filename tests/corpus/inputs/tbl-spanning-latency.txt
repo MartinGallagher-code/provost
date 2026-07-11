@@ -1,0 +1,5 @@
+                 Latency (ms)
+Endpoint       min    avg    max   Requests
+/api/users     1.2    4.5   12.3      45678
+/api/orders    2.1    8.9   34.5      23456
+/api/health    0.3    0.8    2.1     123456
