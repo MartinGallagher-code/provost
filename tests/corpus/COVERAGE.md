@@ -1449,15 +1449,15 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | kubectl-cluster-info | ✅ | aligned-columns |
 | kubectl-config-view | ✅ | yaml |
 | kubectl-describe-configmap | ✅ | vertical-line |
-| kubectl-describe-cronjob | ⏳ | — |
-| kubectl-describe-daemonset | ⏳ | — |
-| kubectl-describe-deployment | ⏳ | — |
-| kubectl-describe-hpa-events | ⏳ | — |
+| kubectl-describe-cronjob | ✅ | indented-hierarchy |
+| kubectl-describe-daemonset | ✅ | indented-hierarchy |
+| kubectl-describe-deployment | ✅ | protobuf-text |
+| kubectl-describe-hpa-events | ✅ | indented-hierarchy |
 | kubectl-describe-node | ✅ | key-value |
 | kubectl-describe-pod | ✅ | yaml |
-| kubectl-describe-replicaset | ⏳ | — |
+| kubectl-describe-replicaset | ✅ | indented-hierarchy |
 | kubectl-describe-service | ✅ | yaml |
-| kubectl-describe-statefulset | ⏳ | — |
+| kubectl-describe-statefulset | ✅ | indented-hierarchy |
 | kubectl-events | ✅ | aligned-columns |
 | kubectl-get-all | ✅ᵇ | kubectl-get-all (bespoke) |
 | kubectl-get-componentstatuses | ✅ | aligned-columns |
@@ -2776,9 +2776,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | systemctl-show-units | ✅ | block-records |
 | systemctl-show | ✅ | equals |
 | systemctl-status-color-dot | ✅ | aligned-columns |
-| systemctl-status-containerd | ⏳ | — |
+| systemctl-status-containerd | ✅ | indented-hierarchy |
 | systemctl-status-nginx | ⏳ | — |
-| systemctl-status-postgresql | ⏳ | — |
+| systemctl-status-postgresql | ✅ | indented-hierarchy |
 | systemctl-status | ✅ | block-records |
 | systemctl-timers-blank | ✅ | aligned-columns |
 | systemctl-units-blank-sub | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
@@ -3204,5 +3204,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3111 / 3196** — ✅ 2902 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 138 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram cargo-audit cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload df-locale-de dpkg-l-mixed-state duckdb-box-output duckdb-describe-box duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gh-run-list-color git-branch-vv-color gluster-volume-profile hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run kubectl-describe-cronjob kubectl-describe-daemonset kubectl-describe-deployment kubectl-describe-hpa-events kubectl-describe-replicaset kubectl-describe-statefulset kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run nix-why-depends numastat-p openssl-asn1parse ovs-ofctl-dump-flows perf-stat-scientific powertop-devices promtool-check-rules pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supabase-projects-list supervisorctl-status surreal-sql-select systemctl-status-containerd systemctl-status-nginx systemctl-status-postgresql terraform-plan-color v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged
+**Coverage: 3119 / 3196** — ✅ 2910 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 138 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram cargo-audit cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload df-locale-de dpkg-l-mixed-state duckdb-box-output duckdb-describe-box duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gh-run-list-color git-branch-vv-color gluster-volume-profile hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run nix-why-depends numastat-p openssl-asn1parse ovs-ofctl-dump-flows perf-stat-scientific powertop-devices promtool-check-rules pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supabase-projects-list supervisorctl-status surreal-sql-select systemctl-status-nginx terraform-plan-color v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged

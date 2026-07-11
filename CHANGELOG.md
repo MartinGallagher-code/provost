@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-07-11 — Multi-line records: single-resource describes are kv, not table
+
+The second frontier weakness from the adversarial round. Unlike trees, the
+multi-line "breaks" had no single generic fix — they split two ways:
+
+- **Single-resource describes** (`kubectl describe`, `systemctl status`) are
+  fundamentally a `Key: value` snapshot of ONE object. The parser already
+  produces a clean 1-row kv (Name/Namespace/Selector/Replicas/…); they only
+  counted as "breaks" because the fixtures were labelled `table` (expecting the
+  embedded Conditions/Events sub-table). Reclassified 8 fixtures `table -> kv`
+  — the honest shape — so they land ✅ with no parser change.
+- **Genuinely nested multi-record** (`ip -s link`: interface header + RX:/TX:
+  sub-tables across 6 lines each) has no faithful flat form and stays ⏳; a
+  bespoke parser for it would be speculative and low-generality.
+
+Regen: **+8 kv goldens, 0 modified, 0 deleted.** Golden gate 0 failed.
+
 ## 2026-07-11 — Tree flattening: tree-view wins glyph hierarchies (priority + variants)
 
 Closes most of the deep-tree cluster the adversarial round exposed. The engine

@@ -1,0 +1,2 @@
+n	Selector	Replicas	StrategyType	Warning_FailedCreate_______6m____replicaset-controller__Error_creating	Name	Namespace	CreationTimestamp	Labels	Annotations
+1	app=api-gateway	3 desired | 3 updated | 3 total | 3 available | 0 unavailable	RollingUpdate	pods "api-gateway-7f9c8b-" is forbidden: exceeded quota: compute-resources, requested: limits.cpu=2, used: limits.cpu=14, limited: limits.cpu=15	api-gateway	production	Mon, 15 Jan 2024 08:22:41 +0000	app=api-gateway	deployment.kubernetes.io/revision: 7
