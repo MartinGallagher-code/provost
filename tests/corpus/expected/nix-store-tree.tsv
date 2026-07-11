@@ -1,0 +1,10 @@
+n	depth	name	total_entries
+1	1	/nix/store/aa1...-python3-3.10.9	9
+2	2	/nix/store/bb2...-glibc-2.35	9
+3	2	/nix/store/cc3...-openssl-3.0.7	9
+4	3	/nix/store/bb2...-glibc-2.35 (*)	9
+5	2	/nix/store/dd4...-sqlite-3.40.0	9
+6	3	/nix/store/bb2...-glibc-2.35 (*)	9
+7	1	/nix/store/ee5...-python3.10-numpy-1.24.1	9
+8	2	/nix/store/ff6...-openblas-0.3.21	9
+9	1	/nix/store/gg7...-python3.10-requests-2.28.1	9

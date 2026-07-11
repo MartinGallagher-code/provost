@@ -1,5 +1,35 @@
 # glean — Changelog
 
+## 2026-07-11 — Tree flattening: tree-view wins glyph hierarchies (priority + variants)
+
+Closes most of the deep-tree cluster the adversarial round exposed. The engine
+dispatches in priority order, first-match-wins, so a genuine glyph tree was
+being grabbed by block-records (p40) or indented-hierarchy (p50) — which seized
+a preamble or the first `label:` line and collapsed the whole tree to a single
+record — before tree-view (p50) ever ran.
+
+- **tree-view priority 50 -> 38**, so it is tried before those generic parsers.
+  Its detect gate (>=60% of non-blank lines carry a ├/└/┬ branch marker; no
+  ALL-CAPS columnar header) is specific enough that only real trees flip.
+- **Depth counts more conventions**: 2-column indent cells (`│ `/`  `, pstree /
+  systemd-cgls / pnpm) as well as the classic 4-column, and branch markers of
+  any dash count (`├─`, `├──`, `├─┬`, ASCII `+--`/`` `-- ``) — a small cosmetic
+  left-margin is dropped so it isn't mistaken for a level.
+- **Names lose connector debris**: a leading ASCII marker (`+---`, `` `-- ``,
+  stray dashes from the box-glyph pass) is stripped, while internal hyphens
+  (dbus-daemon) survive.
+
+Full golden audit: **0 deleted, 13 modified, +21 new goldens for now-covered
+trees**. The 13 modified are all improvements or benign depth-normalisation:
+systemd-cgls-machine (collapsed kv -> proper node table), gradle deps and
+ansible-inventory-graph (names no longer prefixed with `+---`/`--`), and
+pstree/busctl/broot depth values now counted consistently. Newly tidy: pnpm,
+ip-netns, conda-tree, systemd-cgls, npm-ls, yarn, and more. (A few — pipdeptree,
+cargo-tree-dedup, pstree-ap — remain shape-valid but carry cosmetic glyph debris
+where a non-tree-view parser still wins; left as-is.) Golden gate 2973 passed, 0
+failed; extract 62/62, smoke 49/0, melt 10/0. Coverage 3090 -> 3111 tidy of
+3196. Files: `extract/strategies/structured/tree-view.sh`, `tests/corpus/*`.
+
 ## 2026-07-11 — Adversarial stress test (+500 hard inputs) + box-table upgrade
 
 A red-team round: 500 inputs generated specifically to BREAK the parser, across

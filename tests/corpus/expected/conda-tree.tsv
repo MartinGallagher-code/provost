@@ -1,0 +1,12 @@
+n	depth	name	total_entries
+1	1	numpy [>=1.19.5]	11
+2	2	python [>=3.10,<3.11]	11
+3	2	libblas [>=3.9.0]	11
+4	3	libopenblas [>=0.3.21]	11
+5	1	python [>=3.10,<3.11]	11
+6	1	libgfortran5 [>=11.3.0]	11
+7	2	libgcc-ng [>=12.2.0]	11
+8	1	numpy [>=1.21.0]	11
+9	1	python-dateutil [>=2.8.1]	11
+10	2	six [>=1.5]	11
+11	1	pytz [>=2020.1]	11

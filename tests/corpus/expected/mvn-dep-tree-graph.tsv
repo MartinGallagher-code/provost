@@ -1,0 +1,10 @@
+n	A	B	C	D	total_entries
+1	digraph	"com.example:app:jar:1.0"	{		9
+2	"com.example:app:jar:1.0"	->	"org.slf4j:slf4j-api:jar:1.7.36:compile"	;	9
+3	"com.example:app:jar:1.0"	->	"ch.qos.logback:logback-classic:jar:1.2.11:compile"	;	9
+4	"ch.qos.logback:logback-classic:jar:1.2.11:compile"	->	"ch.qos.logback:logback-core:jar:1.2.11:compile"	;	9
+5	"ch.qos.logback:logback-classic:jar:1.2.11:compile"	->	"org.slf4j:slf4j-api:jar:1.7.32:compile:omitted"	;	9
+6	"com.example:app:jar:1.0"	->	"com.google.guava:guava:jar:31.1-jre:compile"	;	9
+7	"com.google.guava:guava:jar:31.1-jre:compile"	->	"com.google.guava:failureaccess:jar:1.0.1:compile"	;	9
+8	"com.google.guava:guava:jar:31.1-jre:compile"	->	"org.checkerframework:checker-qual:jar:3.12.0:compile"	;	9
+9	}				9

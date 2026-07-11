@@ -280,7 +280,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | bpytop-proc | ✅ | aligned-columns |
 | bq-ls | ✅ | bq-ls |
 | bq-show | ✅ | json |
-| brew-deps-tree | ⏳ | — |
+| brew-deps-tree | ✅ | tree-view |
 | brew-info-casks | ✅ | block-records |
 | brew-info-json | ✅ | json-array |
 | brew-info-multi | ✅ | block-records |
@@ -290,7 +290,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | brew-outdated-color | ✅ | aligned-columns |
 | brew-outdated-sparse | ✅ | aligned-columns |
 | brew-outdated | ✅ | aligned-columns |
-| brew-uses-tree | ⏳ | — |
+| brew-uses-tree | ✅ | tree-view |
 | bridge-fdb | ✅ | colon-fields |
 | bridge-link | ✅ | labeled-records |
 | bridge-mdb-show | ✅ | aligned-columns |
@@ -392,7 +392,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | cfssl-info | ✅ | json |
 | cgget-cpu | ✅ | line-records |
 | cgget | ✅ | line-records |
-| cgroup-tree | ⏳ | — |
+| cgroup-tree | ✅ | tree-view |
 | chage-l | ✅ | text-lines |
 | chage-list | ✅ | aligned-columns |
 | changesets-status | ✅ | line-records |
@@ -467,7 +467,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | conda-env-list | ✅ | aligned-columns |
 | conda-list | ✅ | aligned-columns |
 | conda-mamba-search | ✅ | aligned-columns |
-| conda-tree | ⏳ | — |
+| conda-tree | ✅ | tree-view |
 | conntrack-L | ✅ | inline-kv |
 | conntrack-count-proto | ✅ | aligned-columns |
 | conntrack-count | ✅ | equals |
@@ -722,7 +722,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | dpkg-L | ✅ | line-records |
 | dpkg-c | ✅ | tar-listing |
 | dpkg-deb-control-info | ✅ | block-records |
-| dpkg-depends-tree | ⏳ | — |
+| dpkg-depends-tree | ✅ | aligned-columns |
 | dpkg-divert-list | ✅ | aligned-columns |
 | dpkg-get-selections | ✅ | dpkg-get-selections |
 | dpkg-l-mixed-state | ⏳ | — |
@@ -1095,7 +1095,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | go-env | ✅ | equals |
 | go-list-m-u | ✅ | aligned-columns |
 | go-list | ✅ | line-records |
-| go-mod-graph-indented | ⏳ | — |
+| go-mod-graph-indented | ✅ | aligned-columns |
 | go-mod-graph | ✅ | aligned-columns |
 | go-mod-verify | ✅ | text-lines |
 | go-mod-why-graph | ✅ | line-records |
@@ -1132,7 +1132,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gputest-run | ✅ | indented-hierarchy |
 | gradle-dependencies | ✅ | tree-view |
 | gradle-deps-runtime | ✅ | tree-view |
-| gradle-deps-testruntime | ⏳ | — |
+| gradle-deps-testruntime | ✅ | tree-view |
 | gradle-projects | ✅ | tree-view |
 | gradle-q-dependencies | ✅ | tree-view |
 | gradle-tasks | ✅ | vertical-line |
@@ -1316,7 +1316,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ip-neigh-sparse-dev | ✅ | text-lines |
 | ip-neigh | ✅ | aligned-columns |
 | ip-netns-list | ✅ | aligned-columns |
-| ip-netns-tree | ⏳ | — |
+| ip-netns-tree | ✅ | tree-view |
 | ip-route-mixed-metric | ✅ | text-lines |
 | ip-route-table-all | ✅ | aligned-columns |
 | ip-route | ✅ | aligned-columns |
@@ -1389,7 +1389,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | journalctl-u | ✅ | syslog |
 | journalctl | ✅ | syslog |
 | jq-keys | ✅ | json |
-| jq-tree-keys | ⏳ | — |
+| jq-tree-keys | ✅ | tree-view |
 | jq-version | ✅ | text-lines |
 | jq | ✅ | tsv |
 | jstat-gc | ✅ | aligned-columns |
@@ -1778,8 +1778,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | multitail-config | ✅ | line-records |
 | mutmut-results | ✅ | yaml |
 | mvn-clean-install | ✅ | bracket-log |
-| mvn-dep-tree-graph | ⏳ | — |
-| mvn-dep-tree-verbose | ⏳ | — |
+| mvn-dep-tree-graph | ✅ | aligned-columns |
+| mvn-dep-tree-verbose | ✅ | bracket-log |
 | mvn-dependency-analyze | ✅ | bracket-log |
 | mvn-dependency-list | ✅ | bracket-log |
 | mvn-dependency-tree | ✅ | bracket-log |
@@ -1894,8 +1894,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nix-flake-metadata | ✅ | key-value |
 | nix-store-q | ✅ | line-records |
 | nix-store-query-refs | ✅ | line-records |
-| nix-store-tree | ⏳ | — |
-| nix-tree-hello | ⏳ | — |
+| nix-store-tree | ✅ | tree-view |
+| nix-tree-hello | ✅ | tree-view |
 | nix-why-depends | ⏳ | — |
 | nload-bars | ✅ | aligned-columns |
 | nm | ✅ | aligned-columns |
@@ -2045,7 +2045,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | orc-tools-meta | ✅ | indented-hierarchy |
 | os-release | ✅ | equals |
 | osqueryi-query | ✅ | psql-table |
-| ostree-refs-tree | ⏳ | — |
+| ostree-refs-tree | ✅ | tree-view |
 | osv-scanner | ✅ | box-table |
 | otelcol-components | ✅ | yaml |
 | otelcol-metrics | ✅ | exposition-format |
@@ -2175,10 +2175,10 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | pmap | ✅ᵇ | pmap (bespoke) |
 | pnpm-audit | ✅ᵇ | clickhouse-processlist (bespoke) |
 | pnpm-list-depth | ✅ | line-records |
-| pnpm-list-recursive | ⏳ | — |
+| pnpm-list-recursive | ✅ | tree-view |
 | pnpm-outdated | ✅ | box-table |
 | pnpm-version | ✅ | text-lines |
-| pnpm-why-react-dom | ⏳ | — |
+| pnpm-why-react-dom | ✅ | tree-view |
 | pnpm-why | ✅ᵇ | pnpm-why (bespoke) |
 | podman-generate-kube | ✅ | yaml |
 | podman-healthcheck | ✅ | json |
@@ -2319,7 +2319,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | psql-pset-unicode | ✅ | box-table |
 | psql-show-all | ✅ | psql-table |
 | pstree-a | ✅ | text-lines |
-| pstree-ap | ⏳ | — |
+| pstree-ap | ✅ | csv |
 | pstree-highlight | ✅ | tree-view |
 | pstree-p | ✅ | tree-view |
 | pstree | ✅ | tree-view |
@@ -2793,9 +2793,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | systemd-analyze-verify | ✅ | labeled-records |
 | systemd-analyze | ✅ | line-records |
 | systemd-cat-status | ✅ | line-records |
-| systemd-cgls-full | ⏳ | — |
-| systemd-cgls-machine-unit | ⏳ | — |
-| systemd-cgls-machine | ✅ | indented-hierarchy |
+| systemd-cgls-full | ✅ | tree-view |
+| systemd-cgls-machine-unit | ✅ | tree-view |
+| systemd-cgls-machine | ✅ | tree-view |
 | systemd-cgls | ✅ᵇ | systemd-cgls (bespoke) |
 | systemd-cgtop-memory | ✅ | aligned-columns |
 | systemd-cgtop | ✅ | aligned-columns |
@@ -2918,8 +2918,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | traefik-show-routers | ✅ | aligned-columns |
 | traefik-version | ✅ | colons |
 | transmission-list | ✅ | aligned-columns |
-| tree-l3-project | ⏳ | — |
-| tree-l4-node-modules | ⏳ | — |
+| tree-l3-project | ✅ | tree-view |
+| tree-l4-node-modules | ✅ | tree-view |
 | tree-permissions | ✅ | bracket-log |
 | tree-sitter-langs | ✅ | aligned-columns |
 | tree | ✅ | tree-view |
@@ -3204,5 +3204,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3090 / 3196** — ✅ 2881 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 138 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram brew-deps-tree brew-uses-tree cargo-audit cargo-nextest-run cargo-search ceph-osd-tree cgroup-tree clickhouse-parts conda-tree cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload df-locale-de dpkg-depends-tree dpkg-l-mixed-state duckdb-box-output duckdb-describe-box duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gh-run-list-color git-branch-vv-color gluster-volume-profile go-mod-graph-indented gradle-deps-testruntime hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-netns-tree ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace jq-tree-keys kafka-topics-describe kdiskmark-run kubectl-describe-cronjob kubectl-describe-daemonset kubectl-describe-deployment kubectl-describe-hpa-events kubectl-describe-replicaset kubectl-describe-statefulset kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run mvn-dep-tree-graph mvn-dep-tree-verbose nix-store-tree nix-tree-hello nix-why-depends numastat-p openssl-asn1parse ostree-refs-tree ovs-ofctl-dump-flows perf-stat-scientific pnpm-list-recursive pnpm-why-react-dom powertop-devices promtool-check-rules pstree-ap pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supabase-projects-list supervisorctl-status surreal-sql-select systemctl-status-containerd systemctl-status-nginx systemctl-status-postgresql systemd-cgls-full systemd-cgls-machine-unit terraform-plan-color tree-l3-project tree-l4-node-modules v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged
+**Coverage: 3111 / 3196** — ✅ 2902 via a generic parser, ✅ʰ 71 via a hint row, ✅ᵇ 138 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram cargo-audit cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload df-locale-de dpkg-l-mixed-state duckdb-box-output duckdb-describe-box duckdb-summarize-box etc-hosts-comments file-brief gcloud-logging-logs-list getent-group gh-run-list-color git-branch-vv-color gluster-volume-profile hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ip-addr-mixed-scopes ip-s-addr-stats ip-s-link-eth ip-s-link jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run kubectl-describe-cronjob kubectl-describe-daemonset kubectl-describe-deployment kubectl-describe-hpa-events kubectl-describe-replicaset kubectl-describe-statefulset kubectl-get-svc-none lsblk-empty-mountpoint lsblk-tree lsof-long-names lvs-report-sparse lzbench-run nix-why-depends numastat-p openssl-asn1parse ovs-ofctl-dump-flows perf-stat-scientific powertop-devices promtool-check-rules pueue-status pytest-cov-report quota-report rsync-itemize-paths-spaces sar-cpu scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info supabase-projects-list supervisorctl-status surreal-sql-select systemctl-status-containerd systemctl-status-nginx systemctl-status-postgresql terraform-plan-color v4l2-ctl-list-devices vercel-list vnstat-hourly w-empty-what who-a-ragged

@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3090 tidy (106 format gaps ⏳)** — after two +500
+**3196 tools tested; 3111 tidy (85 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -66,9 +66,13 @@ the parser across 10 hard mechanisms — found the parser robust to embedded ANS
 color, grouped 2-row headers, paragraph-stanza records and TUI/progress bars,
 and rebuilt `box-table` (heavy/double/tabulate/dotted glyphs, interior-only
 rows, csvlook dash rule) to close 8 box-drawing breakers; 431 of the 500 tidy in
-full mode. The 106 ⏳ that remain are genuinely hard (deep indented trees;
-multi-line/wrapped records — `kubectl describe`, `git log` bodies; headerless
-first column — kdiskmark; single-space multi-word cells — lzbench;
+full mode. A follow-up tree-flattening round then raised `tree-view`'s priority
+above the generic record parsers (so glyph hierarchies stop collapsing to a
+single record) and taught it more indent/marker conventions — closing most of
+the deep-tree cluster (pnpm/ip-netns/conda/systemd-cgls/npm/yarn/…) and cleaning
+connector debris from gradle/ansible names. The 85 ⏳ that remain are genuinely
+hard (multi-line/wrapped records — `kubectl describe`, `git log` bodies;
+headerless first column — kdiskmark; single-space multi-word cells — lzbench;
 nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the live
 per-tool list.
 

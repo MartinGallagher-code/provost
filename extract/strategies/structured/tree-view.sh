@@ -1,9 +1,16 @@
 #!/bin/bash
 ## Name: tree-view
 ## Description: Tree-structured output (tree, pstree, npm ls) — one row per node
-## Version: 1.0
-## Priority: 50
+## Version: 1.1
+## Priority: 38
 ## Sample: samples/tree-view/basic.txt
+
+# Priority 38 (was 50): the engine dispatches in priority order, first-match
+# wins, so a genuine glyph tree must be tried BEFORE the generic block-records
+# (40) and indented-hierarchy (50) parsers — otherwise those grab the preamble
+# or the first `label:` line and collapse the tree to a single record. The
+# detect gate (>=60% of non-blank lines carry a ├/└/┬ branch marker, and no
+# ALL-CAPS columnar header) is specific enough that only real trees flip here.
 
 # A single generic strategy for the many commands that draw a hierarchy with
 # box-drawing branch characters: `tree`, `pstree`, `npm ls`, `cargo tree`,
@@ -72,12 +79,20 @@ strategy_detect () {
 # Continuation cells are "│   " or four spaces; the marker cell is "├── "/"└── ".
 _tv_depth () {
     local s="$1" depth=0
+    # Drop a small cosmetic left-margin (some tools indent the whole tree a few
+    # spaces) so it is not mistaken for a depth level.
+    while [[ "$s" == '  '* && "$s" != '    '* ]]; do s="${s#'  '}"; done
     while true; do
         case "$s" in
+            # 4-column indent cells (classic tree / npm ls / cargo tree).
             "$_TV_VERT"'   '*) s="${s#"$_TV_VERT"'   '}";              depth=$((depth + 1)) ;;
             '    '*)           s="${s#'    '}";                        depth=$((depth + 1)) ;;
-            "$_TV_BRANCH$_TV_HORZ$_TV_HORZ"' '*) depth=$((depth + 1)); break ;;
-            "$_TV_LAST$_TV_HORZ$_TV_HORZ"' '*)   depth=$((depth + 1)); break ;;
+            # 2-column indent cells (pstree, systemd-cgls, pnpm: "│ " or "  ").
+            "$_TV_VERT"' '*)   s="${s#"$_TV_VERT"' '}";                depth=$((depth + 1)) ;;
+            '  '*)             s="${s#'  '}";                          depth=$((depth + 1)) ;;
+            # Branch markers of any dash count (├──/├─/└─/├─┬), then the label.
+            "$_TV_BRANCH"*|"$_TV_LAST"*) depth=$((depth + 1)); break ;;
+            '|--'*|'\--'*|'+--'*|'`--'*) depth=$((depth + 1)); break ;;
             *) break ;;
         esac
     done
@@ -96,6 +111,11 @@ _tv_name () {
     s="${s//$_TV_TDOWN/ }"
     s="${s//|/ }"
     s="${s//\\/ }"
+    # Strip a LEADING ASCII branch marker (`+---`, `` `-- ``, leading dashes left
+    # by the box-glyph pass) so the name isn't prefixed with connector debris.
+    # Only leading runs are removed — an internal hyphen (dbus-daemon) survives.
+    s="${s#"${s%%[![:space:]]*}"}"
+    while [[ "$s" == '+'* || "$s" == '`'* || "$s" == '-'* ]]; do s="${s#?}"; done
     # collapse + trim via word-splitting
     local -a parts
     read -r -a parts <<< "$s"

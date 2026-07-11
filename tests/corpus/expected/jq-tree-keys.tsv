@@ -1,0 +1,13 @@
+n	depth	name	total_entries
+1	1	name: "myservice"	12
+2	1	version: "2.1.0"	12
+3	1	config	12
+4	2	port: 8080	12
+5	2	host: "0.0.0.0"	12
+6	2	tls	12
+7	3	enabled: true	12
+8	3	cert: "/etc/ssl/cert.pem"	12
+9	1	dependencies	12
+10	2	[0]: "redis"	12
+11	2	[1]: "postgres"	12
+12	1	replicas: 3	12

@@ -1,0 +1,16 @@
+n	depth	name	total_entries
+1	1	system.slice	15
+2	2	nginx.service	15
+3	3	cgroup.procs: 812 813 814	15
+4	3	memory.current: 45678592	15
+5	2	postgresql.service	15
+6	3	cgroup.procs: 901	15
+7	3	memory.current: 128974848	15
+8	2	docker.service	15
+9	3	cgroup.procs: 1120	15
+10	1	user.slice	15
+11	2	user-1000.slice	15
+12	3	session-2.scope	15
+13	4	cgroup.procs: 2201 2340	15
+14	1	init.scope	15
+15	2	cgroup.procs: 1	15
