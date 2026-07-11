@@ -733,6 +733,16 @@ if [[ -n "$file" && -f "$file" ]]; then
     fi
 fi
 
+# Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
+# systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
+# split or pollute a data cell. Gated on an ESC byte being present, so it is a
+# true no-op — no subprocess — for the overwhelming majority of inputs that carry
+# none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
+# OSC form (ESC ] … BEL) and bare two-byte escapes.
+if [[ "$text" == *$'\033'* ]]; then
+    text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
+fi
+
 # Metadata for strategy interface enrichment
 _STATE_filename="${file:-}"
 _STATE_encoding_hint=""

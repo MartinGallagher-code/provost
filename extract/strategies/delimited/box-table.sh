@@ -62,7 +62,11 @@ _box_strip () {
 _box_split () {
     _box_norm "$1"; _box_trim "$_BOX_NORM"
     local row="$_BOX_TRIM"
-    row="${row#|}"; row="${row%|}"
+    # Strip the outer dividers only when the row is BRACKETED (a '|' at both
+    # ends). An interior-only row with an empty leading/trailing cell (psql
+    # `linestyle unicode`: "│ value …" where the first column is blank) keeps
+    # its edge '|' so the empty cell is not silently dropped.
+    [[ "$row" == "|"* && "$row" == *"|" ]] && { row="${row#|}"; row="${row%|}"; }
     _BOX_CELLS=()
     local rest="$row" cell
     while [[ "$rest" == *"|"* ]]; do
@@ -153,6 +157,22 @@ strategy_extract () {
                 col_names+=("$name")
             done
             num_cols=${#col_names[@]}; have_header=1; continue
+        fi
+        # Skip a duckdb/clickhouse "type row" — the line of column types printed
+        # under the names, before the header/data separator rule (every cell is a
+        # bare SQL type keyword). Only the row immediately after the header.
+        if [[ $entry -eq 0 ]]; then
+            local _allty=1 _tc
+            for _tc in "${_BOX_CELLS[@]}"; do
+                case "${_tc%%(*}" in
+                    varchar|char|text|string|blob|bytea|uuid|json|jsonb|xml|bool|boolean|bit \
+                    |int|integer|tinyint|smallint|bigint|hugeint|int2|int4|int8|serial \
+                    |float|float4|float8|double|real|decimal|numeric|number \
+                    |date|time|timestamp|timestamptz|datetime|interval|enum|array|map|struct) : ;;
+                    *) _allty=0; break ;;
+                esac
+            done
+            [[ $_allty -eq 1 ]] && continue
         fi
         entry=$((entry + 1))
         for ((i = 0; i < num_cols; i++)); do

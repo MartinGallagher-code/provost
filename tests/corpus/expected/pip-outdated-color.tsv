@@ -1,4 +1,4 @@
 n	Package	Version	Latest	Type	total_entries
-1	[33mnumpy[0m	1.26.0	1.26.4	wheel	3
-2	[31mscipy[0m	1.11.0	1.13.0	wheel	3
-3	[33mpandas[0m	2.1.0	2.2.2	wheel	3
+1	numpy	1.26.0	1.26.4	wheel	3
+2	scipy	1.11.0	1.13.0	wheel	3
+3	pandas	2.1.0	2.2.2	wheel	3

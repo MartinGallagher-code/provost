@@ -2236,7 +2236,7 @@ nodetool-gossipinfo	text	-	2
 scylla-nodetool-tablestats	kv	-	12
 clickhouse-system-mutations	table	3	8
 clickhouse-describe-table	table	5	6
-duckdb-show-tables	table	6	3
+duckdb-show-tables	table	5	3
 duckdb-summarize	table	4	9
 cypher-shell-show-databases	table	4	8
 influx-v2-task-list	table	4	9

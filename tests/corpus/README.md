@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3119 tidy (77 format gaps ⏳)** — after two +500
+**3196 tools tested; 3122 tidy (74 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -73,10 +73,16 @@ the deep-tree cluster (pnpm/ip-netns/conda/systemd-cgls/npm/yarn/…) and cleani
 connector debris from gradle/ansible names. Single-resource multi-line records
 (`kubectl describe`, `systemctl status`) were then recognised as the key/value
 snapshots they are — reclassified `table`->`kv` (8 fixtures) rather than forced
-into a bogus table. The 77 ⏳ that remain are genuinely hard (nested multi-record
-blocks — `ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
-single-space multi-word cells — lzbench; nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the live
-per-tool list.
+into a bogus table. Most recently, an **engine-level ANSI strip** removes VT
+colour escapes once per input (gated on an ESC byte, a no-op otherwise) — fixing
+colored tools (`gh`, `terraform plan`) and cleaning raw `\e[..m` codes out of 45
+already-covered `*-color` goldens — and `box-table` gained interior-row and
+duckdb "type row" handling (closing supabase / psql-unicode / duckdb box
+tables). The 74 ⏳ that remain are genuinely hard (nested multi-record blocks —
+`ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
+single-space multi-word cells — lzbench; prose/diff formats — cargo clippy, git
+diff; nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the
+live per-tool list.
 
 Coverage tiers, in order of preference:
 

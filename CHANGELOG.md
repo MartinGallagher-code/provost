@@ -1,5 +1,34 @@
 # glean — Changelog
 
+## 2026-07-11 — Gap-closing: ANSI strip + box-table interior/type-row
+
+Two generic capabilities that close a batch of the remaining ⏳ and improve
+dozens of already-covered tools.
+
+- **Engine-level ANSI strip.** Colored tool output (`ls --color`, `gh`, `git`,
+  `kubectl`, `systemctl status` dots, `terraform plan`, npm/cargo/pip/pytest, …)
+  embeds VT escape sequences that pollute or split data cells. The engine now
+  strips ECMA-48 CSI / OSC / two-byte escapes once, right after reading the
+  input — gated on an ESC byte being present, so it is a true no-op (no
+  subprocess) for the vast majority of inputs. Closed `gh-run-list-color` /
+  `terraform-plan-color` and **cleaned 45 already-covered color fixtures** whose
+  goldens had carried raw `\e[..m` codes inside cells (`[32mRunning[0m` ->
+  `Running`). Two colour fixtures that only "passed" because the escapes happened
+  to split them (`cargo-clippy-color`, `delta-diff-color`) are now honestly ⏳ —
+  they are prose/diff formats, not tables.
+- **box-table: interior rows + type rows.** Split now strips the outer `│` only
+  when a row is bracketed at BOTH ends, so an interior-only row with an empty
+  edge cell (psql `linestyle unicode` with a blank first column) keeps that cell
+  — closing `supabase-projects-list`, `psql-linestyle-unicode`,
+  `psql-pset-unicode`, `tabulate-presto-unicode`. And a duckdb/clickhouse "type
+  row" (every cell a bare SQL type keyword, printed under the header before the
+  separator rule) is skipped — closing `duckdb-box-output`, `duckdb-describe-box`
+  and fixing `duckdb-show-tables` (its golden had wrongly included the `varchar`
+  type row as data).
+
+Full golden audit: 45 improved (de-ANSI'd) + duckdb fix, 4 newly ✅, 2 honest ⏳
+demotions, 0 real regressions. Golden gate 0 failed; extract 62/62.
+
 ## 2026-07-11 — Multi-line records: single-resource describes are kv, not table
 
 The second frontier weakness from the adversarial round. Unlike trees, the

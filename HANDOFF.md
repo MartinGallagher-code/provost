@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; tree-flattening round (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table gap round (2026-07-11)
 
 > **2026-07-11 — adversarial stress test (+500 hard inputs).** 500 inputs
 > generated to BREAK the parser across 10 hard mechanisms. Robust to ANSI color,

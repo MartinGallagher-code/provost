@@ -1,5 +1,5 @@
 n	NAME	TYPE	CLUSTER-IP	PORT(S)	AGE	total_entries
 1	kubernetes	ClusterIP	10.96.0.1	443/TCP	120d	4
-2	api-svc	[32mClusterIP[0m	10.96.4.12	8080/TCP	12d	4
-3	web-lb	[33mLoadBalancer[0m	10.96.9.34	80:31000/TCP	12d	4
-4	redis-svc	[32mClusterIP[0m	10.96.2.21	6379/TCP	12d	4
+2	api-svc	ClusterIP	10.96.4.12	8080/TCP	12d	4
+3	web-lb	LoadBalancer	10.96.9.34	80:31000/TCP	12d	4
+4	redis-svc	ClusterIP	10.96.2.21	6379/TCP	12d	4

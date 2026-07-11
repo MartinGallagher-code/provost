@@ -1,4 +1,4 @@
 n	A	total_entries
-1	src/main.py:[32m12[0m:def [31m[1mparse[0m_config(path):	3
-2	src/main.py:[32m48[0m:    return [31m[1mparse[0m_json(data)	3
-3	src/utils.py:[32m7[0m:# helper for [31m[1mparse[0ming input	3
+1	src/main.py:12:def parse_config(path):	3
+2	src/main.py:48:    return parse_json(data)	3
+3	src/utils.py:7:# helper for parseing input	3

@@ -1,5 +1,5 @@
 n	Permissions	Size	User	Modified	Name	total_entries
-1	.rw-r--r--	1.0k	user	10 Jul 12:01	[92mREADME.md[0m	4
-2	drwxr-xr-x	-	user	9 Jul 08:15	[94m[1msrc[0m	4
-3	.rwxr-xr-x	2.0k	user	8 Jul 19:44	[92mbuild.sh[0m	4
-4	.rw-r--r--	512	user	7 Jul 10:00	[37mCargo.toml[0m	4
+1	.rw-r--r--	1.0k	user	10 Jul 12:01	README.md	4
+2	drwxr-xr-x	-	user	9 Jul 08:15	src	4
+3	.rwxr-xr-x	2.0k	user	8 Jul 19:44	build.sh	4
+4	.rw-r--r--	512	user	7 Jul 10:00	Cargo.toml	4

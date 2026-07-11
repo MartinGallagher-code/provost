@@ -1,5 +1,5 @@
 n	A	total_entries
-1	[36mtests/test_auth.py[0m::[1mtest_login[0m	4
-2	[36mtests/test_auth.py[0m::[1mtest_logout[0m	4
-3	[36mtests/test_db.py[0m::[1mtest_connect[0m	4
-4	[36mtests/test_db.py[0m::[1mtest_query[0m	4
+1	tests/test_auth.py::test_login	4
+2	tests/test_auth.py::test_logout	4
+3	tests/test_db.py::test_connect	4
+4	tests/test_db.py::test_query	4
