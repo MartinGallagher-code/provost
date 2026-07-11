@@ -1,0 +1,6 @@
+build/libcore.a: phony
+build/myapp: phony
+build/tests/unit_test: phony
+build/CMakeFiles/rebuild_cache.util: phony
+all: phony
+clean: phony

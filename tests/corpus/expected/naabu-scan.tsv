@@ -1,0 +1,5 @@
+n	HOST	PORT	total_entries
+1	scanme.example.com	22	4
+2	scanme.example.com	80	4
+3	scanme.example.com	443	4
+4	scanme.example.com	8443	4

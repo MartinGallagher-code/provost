@@ -1,0 +1,8 @@
+                          Number of input reads |	31204118
+                      Average input read length |	150
+                        Uniquely mapped reads % |	89.12%
+             % of reads mapped to multiple loci |	7.44%
+                  % of reads unmapped: too short |	2.98%
+                       Mismatch rate per base, % |	0.42%
+                              Deletion rate per base |	0.01%
+                             Insertion rate per base |	0.01%

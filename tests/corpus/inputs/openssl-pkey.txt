@@ -1,0 +1,7 @@
+$ openssl pkey -in key.pem -text -noout
+Private-Key: (2048 bit, 2 primes)
+modulus              : 00:c3:af:9e:11:7b:...:fake:8d
+publicExponent       : 65537 (0x10001)
+privateExponent      : 4a:22:e0:...:fake:91
+prime1               : 00:f1:0c:...:fake:2d
+prime2               : 00:d0:9a:...:fake:7c

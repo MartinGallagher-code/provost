@@ -1,0 +1,7 @@
+  id | is_live | replicas | is_decommissioning |   membership   | is_draining
+-----+---------+----------+--------------------+----------------+-------------
+   1 |  true   |        0 |        true         | decommissioned |    false
+   2 |  true   |       84 |        false        | active         |    false
+   3 |  true   |       84 |        false        | active         |    false
+   4 |  false  |       12 |        true         | decommissioning|    true
+(4 rows)

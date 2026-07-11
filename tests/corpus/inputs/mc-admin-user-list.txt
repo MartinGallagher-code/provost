@@ -1,0 +1,4 @@
+enabled    alice          readwrite
+enabled    bob            readonly
+disabled   carol          diagnostics
+enabled    svc-backup     backup-policy

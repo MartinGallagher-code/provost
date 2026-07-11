@@ -1,0 +1,7 @@
+name: "myapp"
+version: "0.4.2"
+author: "Jane Dev"
+desc: "A fast HTTP microframework"
+license: "MIT"
+srcDir: "src"
+requires: "nim >= 2.0.0, jester >= 0.6.0, chronos >= 4.0.0"

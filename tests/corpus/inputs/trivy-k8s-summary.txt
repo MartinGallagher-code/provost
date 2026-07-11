@@ -1,0 +1,5 @@
+NAMESPACE     RESOURCE                     VULNERABILITIES   MISCONFIGURATIONS   SECRETS
+default       Deployment/web               CRITICAL:2 HIGH:8   LOW:3               0
+default       Deployment/api               CRITICAL:0 HIGH:4   MEDIUM:2            1
+kube-system   DaemonSet/kube-proxy         CRITICAL:1 HIGH:5   LOW:1               0
+monitoring    StatefulSet/prometheus       CRITICAL:0 HIGH:2   MEDIUM:1            0

@@ -1,0 +1,11 @@
+Diff in src/main.rs at line 42:
+ fn parse(input: &str) -> Result<Config> {
+-    let cfg=Config::default();
++    let cfg = Config::default();
+Diff in src/lib.rs at line 8:
+-use std::collections::{HashMap,BTreeMap};
++use std::collections::{BTreeMap, HashMap};
+Diff in src/net/client.rs at line 130:
+-  timeout: 30,retries: 3
++    timeout: 30,
++    retries: 3

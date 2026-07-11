@@ -1,0 +1,8 @@
+table inet filter {
+	flowtable ft {
+		hook ingress priority filter
+		devices = { eth0, eth1 }
+		counter
+		flags offload
+	}
+}

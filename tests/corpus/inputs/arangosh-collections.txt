@@ -1,0 +1,6 @@
+name             id           type      status    count
+users            10021        document  loaded    184203
+sessions         10022        document  loaded     52011
+follows          10023        edge      loaded    920184
+likes            10024        edge      loaded   4820193
+_graphs          10001        document  loaded         4

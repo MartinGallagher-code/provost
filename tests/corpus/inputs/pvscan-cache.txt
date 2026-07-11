@@ -1,0 +1,4 @@
+  PV /dev/sda2   VG vg0             lvm2 [<931.51 GiB / 128.00 GiB free]
+  PV /dev/sdb1   VG vg0             lvm2 [<931.51 GiB / 0    free]
+  PV /dev/sdc1   VG vg0             lvm2 [<931.51 GiB / 1.87 TiB free]
+  Total: 3 [<2.73 TiB] / in use: 3 [<2.73 TiB] / in no VG: 0 [0]

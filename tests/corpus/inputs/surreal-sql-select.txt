@@ -1,0 +1,21 @@
+-- Query 1 (execution time: 2.14ms)
+[
+	{
+		"id": "user:alice",
+		"name": "Alice Ng",
+		"age": 34,
+		"active": true
+	},
+	{
+		"id": "user:bob",
+		"name": "Bob Reyes",
+		"age": 41,
+		"active": false
+	},
+	{
+		"id": "user:carol",
+		"name": "Carol Diaz",
+		"age": 29,
+		"active": true
+	}
+]

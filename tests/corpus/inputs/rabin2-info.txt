@@ -1,0 +1,7 @@
+$ rabin2 -I /usr/bin/curl
+format   elf64
+bintype  elf
+class    ELF64
+lang     c
+machine  AMD x86-64
+stripped false

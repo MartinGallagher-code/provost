@@ -1,0 +1,19 @@
+Configuration:
+  Redundancy mode        - triple
+  Storage engine         - ssd-2
+  Coordinators           - 3
+  Usable Regions         - 1
+
+Cluster:
+  FoundationDB processes - 9
+  Zones                  - 3
+  Machines               - 3
+  Memory availability    - 8.0 GB per process
+  Fault Tolerance        - 2 machines
+  Server time            - 2026-07-10 18:04:22
+
+Data:
+  Replication health     - Healthy
+  Moving data            - 0.000 GB
+  Sum of key-value sizes - 412 GB
+  Disk space used        - 1.204 TB

@@ -1,0 +1,5 @@
+Tablet Server UUID                RPC Host/Port          Heartbeat delay  Status   Reads/s  Writes/s
+a1b2c3d4e5f60718293a4b5c6d7e8f90  10.0.1.11:9100         0.34s            ALIVE    128.4    412.9
+b2c3d4e5f60718293a4b5c6d7e8f90a1  10.0.1.12:9100         0.41s            ALIVE    140.2    398.1
+c3d4e5f60718293a4b5c6d7e8f90a1b2  10.0.1.13:9100         0.29s            ALIVE    119.7    405.6
+d4e5f60718293a4b5c6d7e8f90a1b2c3  10.0.1.14:9100         12.80s           DEAD     0.0      0.0

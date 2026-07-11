@@ -1,0 +1,2 @@
+Name	Version	Nbthread	Process_num	Uptime_sec	CurrConns	CumConns	Maxconn
+HAProxy	2.8.5-1	4	1	512044	138	9928441	20000

@@ -1,0 +1,7 @@
+path                       is_dir   file_size
+model                      True     -
+conda.yaml                 False    412
+requirements.txt           False    288
+MLmodel                    False    561
+input_example.json         False    1024
+feature_importance.png     False    38210

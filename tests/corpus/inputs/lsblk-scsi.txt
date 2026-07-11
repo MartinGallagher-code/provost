@@ -1,0 +1,4 @@
+NAME HCTL       TYPE VENDOR   MODEL             REV SERIAL           TRAN
+sda  1:0:0:0    disk ATA      Samsung SSD 870   SVQ0 S5Y2NG0R203841 sata
+sdb  2:0:0:0    disk ATA      WDC WD40EFRX      82.0 WD-WCC7K4PN1234 sata
+sr0  3:0:0:0    rom  HL-DT-ST DVDRAM GH24NSD1   LN00 K1234567        sata

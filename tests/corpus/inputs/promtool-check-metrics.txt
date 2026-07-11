@@ -1,0 +1,7 @@
+node_cpu_seconds_total counter
+node_memory_MemAvailable_bytes gauge
+http_request_duration_seconds histogram
+http_requests_total counter
+go_goroutines gauge
+process_open_fds gauge
+scrape_duration_seconds gauge

@@ -1,0 +1,6 @@
+steps                    status    time
+install                  OK        0.402s
+zig build-exe myapp      OK        3.118s
+zig build-lib libcore    OK        1.244s
+run test                 OK        0.884s
+Build Summary: 4/4 steps succeeded; 128/128 tests passed

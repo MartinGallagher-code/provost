@@ -1,0 +1,6 @@
+$ httpx -l hosts.txt -status-code -title -tech-detect
+URL                          STATUS   TITLE              TECH
+https://api.example.com      200      API Gateway        nginx,Cloudflare
+https://app.example.com      200      Example App        React,nginx
+https://old.example.com      301      -                  Apache
+https://dev.example.com      403      Forbidden          nginx

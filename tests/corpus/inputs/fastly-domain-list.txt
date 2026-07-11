@@ -1,0 +1,4 @@
+NAME                   COMMENT
+www.example.com        primary apex
+example.com            apex redirect
+cdn.example.com        asset delivery

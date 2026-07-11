@@ -1,0 +1,8 @@
+n	A	total_entries
+1	# Tests are approximate using memory only (no storage IO).	7
+2	PBKDF2-sha256    1842104 iterations per second for 256-bit key	7
+3	PBKDF2-sha512     942108 iterations per second for 256-bit key	7
+4	#     Algorithm |       Key |      Encryption |      Decryption	7
+5	aes-xts        256b      3421.2 MiB/s      3389.4 MiB/s	7
+6	aes-xts        512b      2988.1 MiB/s      2971.0 MiB/s	7
+7	serpent-xts        256b       412.8 MiB/s       448.2 MiB/s	7

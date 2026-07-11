@@ -1,0 +1,7 @@
+version: 1e2f3a4b5c/1.29.4/Clean/RELEASE/BoringSSL
+state: LIVE
+hot_restart_version: 11.104
+uptime_current_epoch: 864321s
+uptime_all_epochs: 864321s
+node.id: web-envoy-01
+node.cluster: web-frontend

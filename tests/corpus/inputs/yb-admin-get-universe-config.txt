@@ -1,0 +1,16 @@
+version: 7
+replication_info {
+  live_replicas {
+    num_replicas: 3
+    placement_uuid: "live"
+    placement_blocks {
+      cloud_info { placement_cloud: "aws" placement_region: "us-east-1" placement_zone: "us-east-1a" }
+      min_num_replicas: 1
+    }
+    placement_blocks {
+      cloud_info { placement_cloud: "aws" placement_region: "us-east-1" placement_zone: "us-east-1b" }
+      min_num_replicas: 1
+    }
+  }
+}
+cluster_uuid: "8f7e6d5c-4b3a-2019-8877-665544332211"

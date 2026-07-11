@@ -1,0 +1,10 @@
+=================================================
+      Trace Event Information
+=================================================
+  Total records                     :     412083
+  Locked Load/Store Operations      :      18422
+  Load Operations                   :     201044
+  Loads - uncacheable               :         12
+  Loads - HITM                      :       3841
+  Store Operations                  :     211039
+  Store - L1 Hit                    :     198220

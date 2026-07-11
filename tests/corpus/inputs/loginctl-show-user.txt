@@ -1,0 +1,9 @@
+UID=1000
+GID=1000
+Name=mgallagher
+Timestamp=Fri 2026-07-10 08:13:59 UTC
+RuntimePath=/run/user/1000
+State=active
+Sessions=3
+IdleHint=no
+Linger=yes

@@ -1,0 +1,6 @@
+ALIAS             KEYSPACE  SHARD  TYPE      STATE    HOSTNAME       PRIMARY_TERM_START
+zone1-0000000100  commerce  -80    PRIMARY   SERVING  tablet-100     2026-06-12T14:22:01Z
+zone1-0000000101  commerce  -80    REPLICA   SERVING  tablet-101     -
+zone1-0000000102  commerce  -80    RDONLY    SERVING  tablet-102     -
+zone1-0000000200  commerce  80-    PRIMARY   SERVING  tablet-200     2026-06-12T14:22:03Z
+zone1-0000000201  commerce  80-    REPLICA   NOT_SERVING  tablet-201 -

@@ -1,0 +1,6 @@
+.
+├── swift-nio<https://github.com/apple/swift-nio.git@2.68.0>
+│   ├── swift-atomics<https://github.com/apple/swift-atomics.git@1.2.0>
+│   └── swift-collections<https://github.com/apple/swift-collections.git@1.1.2>
+├── swift-log<https://github.com/apple/swift-log.git@1.6.1>
+└── swift-argument-parser<https://github.com/apple/swift-argument-parser.git@1.5.0>

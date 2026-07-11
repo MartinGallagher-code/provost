@@ -1,0 +1,5 @@
+$ cosign public-key --key cosign.key
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfakepublickeydata0123456789
+abcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdef==
+-----END PUBLIC KEY-----

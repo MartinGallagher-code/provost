@@ -1,0 +1,4 @@
+NAME                 ID                      TYPE     ACTIVE VERSION    VERSIONS
+prod-cdn             7Gx3kP2mNq8vLd0aWc4Rb1  vcl      42                42
+api-edge             2Kf9jT4rBn6wXz5eHm1Qp0  vcl      18                19
+image-optimizer      9Lm2nV6sCp3xYd7fJk0Tq8  wasm     7                 7

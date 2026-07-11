@@ -1,0 +1,4 @@
+Socket Size   Request  Resp.   Elapsed  Trans.
+Send   Recv   Size     Size    Time     Rate
+bytes  Bytes  bytes    bytes   secs.    per sec
+212992 212992 1        1       10.00    18422.14

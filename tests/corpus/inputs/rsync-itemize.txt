@@ -1,0 +1,5 @@
+>f+++++++++ data/report-q2.parquet
+>f.st...... data/archive.tar.gz
+cd+++++++++ data/newdir/
+>f..t...... data/config.yaml
+.d..t...... data/logs/

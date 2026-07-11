@@ -1,0 +1,11 @@
+# Percona Toolkit MySQL Summary Report #######################
+              System time | 2026-07-10 18:22:04 UTC
+# Instances ##################################################
+  Port  Data Directory             Nice OOM Socket
+  ===== ========================== ==== === ======
+   3306 /var/lib/mysql             0    0   /var/run/mysqld/mysqld.sock
+# Processlist ################################################
+  Command                        COUNT(*) Working SUM(Time) MAX(Time)
+  ------------------------------ -------- ------- --------- ---------
+  Query                                 6       6        42        18
+  Sleep                                78       0      8420       600

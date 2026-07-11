@@ -1,0 +1,6 @@
+NAME                        USED
+tank                        4.31T
+tank/home                   1.87T
+tank/home/alice             642G
+tank/backups                1.24T
+tank/vm                     598G

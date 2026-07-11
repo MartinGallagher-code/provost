@@ -1,0 +1,5 @@
++ web-6f9c8-abc12 › nginx
++ web-6f9c8-def34 › nginx
+web-6f9c8-abc12 nginx 10.244.1.1 - - [10/Jul/2026:14:22:01 +0000] "GET /healthz HTTP/1.1" 200 2
+web-6f9c8-def34 nginx 10.244.1.1 - - [10/Jul/2026:14:22:02 +0000] "GET / HTTP/1.1" 200 612
+web-6f9c8-abc12 nginx 10.244.2.5 - - [10/Jul/2026:14:22:03 +0000] "POST /api/login HTTP/1.1" 302 0

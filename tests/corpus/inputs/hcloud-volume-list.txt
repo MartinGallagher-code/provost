@@ -1,0 +1,5 @@
+ID         NAME             SIZE    SERVER          LOCATION   AGE
+88104221   pg-data          100 GB  web-01          fsn1       124d
+88104755   redis-store      50 GB   web-01          fsn1       124d
+88120441   media-uploads    250 GB  worker-01       nbg1       42d
+88130998   backups          500 GB  -               hel1       12d

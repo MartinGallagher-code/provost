@@ -1,0 +1,6 @@
+  Domains found under acme-corp
+
+  Domain                 Registrar     Nameservers    Expiration Date        Age
+  example.com            Vercel        Vercel         2027-01-14             184d
+  example.io             Third Party   Custom         2026-11-02             412d
+  acme-staging.dev       Vercel        Vercel         2027-03-20              62d

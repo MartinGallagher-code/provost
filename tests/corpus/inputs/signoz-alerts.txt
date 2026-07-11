@@ -1,0 +1,5 @@
+ID   NAME                     SEVERITY   STATE      LABELS
+14   High API Latency         critical   firing     service=api-gateway
+15   Error Rate SLO Breach    critical   firing     service=payments
+16   Disk Almost Full         warning    inactive   host=web-01
+17   Pod Restart Loop         warning    pending    namespace=jobs

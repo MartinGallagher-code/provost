@@ -1,0 +1,10 @@
+=== START OF INFORMATION SECTION ===
+Model Family:     Samsung based SSDs
+Device Model:     Samsung SSD 870 EVO 500GB
+Serial Number:    S5Y2NG0R203841
+LU WWN Device Id: 5 002538 f41a1b2c3
+Firmware Version: SVQ01B6Q
+User Capacity:    500,107,862,016 bytes [500 GB]
+Sector Size:      512 bytes logical/physical
+Rotation Rate:    Solid State Device
+SMART support is: Enabled

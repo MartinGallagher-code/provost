@@ -1,0 +1,8 @@
+Name: HAProxy
+Version: 2.8.5-1
+Nbthread: 4
+Process_num: 1
+Uptime_sec: 512044
+CurrConns: 138
+CumConns: 9928441
+Maxconn: 20000

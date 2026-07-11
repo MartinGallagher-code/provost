@@ -1,0 +1,14 @@
+ 1) "length"
+ 2) (integer) 48210
+ 3) "radix-tree-keys"
+ 4) (integer) 194
+ 5) "radix-tree-nodes"
+ 6) (integer) 421
+ 7) "last-generated-id"
+ 8) "1720684800000-3"
+ 9) "groups"
+10) (integer) 2
+11) "first-entry"
+12) 1) "1720680000000-0"
+13) "last-entry"
+14) 1) "1720684800000-3"

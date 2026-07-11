@@ -1,0 +1,4 @@
+9a1b2c3d4e5f60718293a4b5  allPrivate   acme-app-uploads
+1f2e3d4c5b6a79808172a3b4  allPublic    acme-static-assets
+abcdef0123456789fedcba98  allPrivate   acme-backups-daily
+0123456789abcdeffedcba01  allPrivate   acme-db-snapshots

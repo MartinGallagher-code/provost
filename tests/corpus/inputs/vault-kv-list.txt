@@ -1,0 +1,8 @@
+$ vault kv list secret/apps
+Keys
+----
+billing/
+frontend/
+mailer/
+db-credentials
+stripe-key

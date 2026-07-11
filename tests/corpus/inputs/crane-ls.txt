@@ -1,0 +1,6 @@
+1.27.0
+1.27.0-alpine
+1.27.1
+1.27.1-alpine
+latest
+stable

@@ -1,0 +1,6 @@
+$ step ssh list
+SUBJECT           TYPE       KEY-ID              VALID-UNTIL
+alice@example     user       alice-1a2b3c        2026-07-12T09:00:00Z
+bob@example       user       bob-4d5e6f          2026-07-11T18:00:00Z
+node01            host       node01-7g8h9i        2026-08-10T00:00:00Z
+node02            host       node02-0j1k2l        2026-08-10T00:00:00Z

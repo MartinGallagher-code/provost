@@ -1,0 +1,6 @@
+src/python/acme/api:lib
+src/python/acme/core:lib
+src/python/acme/db:lib
+3rdparty/python:fastapi
+3rdparty/python:sqlalchemy
+3rdparty/python:pydantic

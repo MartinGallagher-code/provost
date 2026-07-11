@@ -1,0 +1,4 @@
+pong from laptop-work (100.101.102.5) via 203.0.113.9:41641 in 24ms
+pong from laptop-work (100.101.102.5) via 203.0.113.9:41641 in 22ms
+pong from laptop-work (100.101.102.5) via DERP(fra) in 41ms
+pong from laptop-work (100.101.102.5) via 203.0.113.9:41641 in 23ms

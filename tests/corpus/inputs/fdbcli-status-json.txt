@@ -1,0 +1,14 @@
+{
+  "cluster": {
+    "database_status": { "available": true, "healthy": true },
+    "workload": {
+      "operations": { "reads": { "hz": 48210.4 }, "writes": { "hz": 12048.1 } },
+      "transactions": { "committed": { "hz": 9204.2 }, "conflicted": { "hz": 3.1 } }
+    },
+    "data": {
+      "total_disk_used_bytes": 1323949834240,
+      "total_kv_size_bytes": 442381107200,
+      "moving_data": { "in_flight_bytes": 0 }
+    }
+  }
+}

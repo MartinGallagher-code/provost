@@ -1,0 +1,5 @@
+$ gobuster dns -d example.com -w subs.txt
+Found    HOST
+Found    admin.example.com
+Found    api.example.com
+Found    portal.example.com

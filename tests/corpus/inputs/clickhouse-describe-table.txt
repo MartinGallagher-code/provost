@@ -1,0 +1,8 @@
+┌─name───────┬─type────────────┬─default_type─┬─default_expression─┐
+│ event_id   │ UUID            │              │                    │
+│ user_id    │ UInt64          │              │                    │
+│ event_type │ LowCardinality(String) │       │                    │
+│ ts         │ DateTime64(3)   │ DEFAULT      │ now64()            │
+│ country    │ FixedString(2)  │              │                    │
+│ payload    │ String          │ DEFAULT      │ '{}'               │
+└────────────┴─────────────────┴──────────────┴────────────────────┘

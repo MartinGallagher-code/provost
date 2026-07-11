@@ -1,0 +1,2 @@
+cluster.database_status.available	cluster.database_status.healthy	cluster.workload.operations.reads.hz	cluster.workload.operations.writes.hz	cluster.workload.transactions.committed.hz	cluster.workload.transactions.conflicted.hz	cluster.data.total_disk_used_bytes	cluster.data.total_kv_size_bytes	cluster.data.moving_data.in_flight_bytes
+true	true	48210.4	12048.1	9204.2	3.1	1323949834240	442381107200	0

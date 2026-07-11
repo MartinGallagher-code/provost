@@ -1,0 +1,7 @@
+Control Group                            Tasks   %CPU   Memory  Input/s Output/s
+/                                          412    8.3    12.4G        -        -
+init.scope                                   1    0.0   324.0M        -        -
+system.slice                               188    5.1     6.8G        -        -
+system.slice/mysql.service                  38    2.7     3.1G        -        -
+user.slice                                 221    3.0     4.9G        -        -
+user.slice/user-1000.slice                 221    3.0     4.9G        -        -

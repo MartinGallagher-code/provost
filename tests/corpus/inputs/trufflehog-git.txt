@@ -1,0 +1,6 @@
+$ trufflehog git file://. --only-verified
+DETECTOR       VERIFIED   FILE               COMMIT
+AWS            true       infra/main.tf      a1b2c3d
+Stripe         true       app/billing.rb     e4f5a6b
+SlackWebhook   false      docs/setup.md      c7d8e9f
+Found 3 results, 2 verified

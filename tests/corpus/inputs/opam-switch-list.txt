@@ -1,0 +1,5 @@
+#  switch   compiler                     description
+   4.14.2   ocaml-base-compiler.4.14.2   4.14.2
+->  5.2.0   ocaml-base-compiler.5.2.0    5.2.0
+   default  ocaml.5.1.1                  default
+   proj-a   ocaml-base-compiler.5.1.1    proj-a

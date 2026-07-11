@@ -1,0 +1,6 @@
+WHAT                          WHERE            MOUNTED  IDLE TIMEOUT UNIT
+/dev/disk/by-label/data       /mnt/data        yes      600s         mnt-data.automount
+proc-sys-fs-binfmt_misc       /proc/sys/fs/bfm no       infinity     proc-sys-fs.automount
+/dev/sdb1                     /srv/backup      yes       120s        srv-backup.automount
+
+3 automounts listed.

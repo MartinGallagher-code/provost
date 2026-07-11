@@ -1,0 +1,4 @@
+Property Name                 Property ID    Latest    Staging    Production    Group
+www.example.com               prp_412093     14        13         13            Web Delivery
+api.example.com               prp_412188     8         8          7             API Acceleration
+downloads.example.com         prp_413044     22        22         22            Large File Delivery

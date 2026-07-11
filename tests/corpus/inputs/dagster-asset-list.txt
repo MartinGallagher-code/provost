@@ -1,0 +1,6 @@
+asset_key               group          compute_kind   last_materialized
+raw_events              ingestion      python         2026-07-10T02:00:14
+stg_events              staging        dbt            2026-07-10T02:05:31
+daily_active_users      marts          dbt            2026-07-10T02:11:09
+churn_features          ml             pandas         2026-07-10T02:22:47
+churn_model             ml             sklearn        2026-07-10T02:40:03

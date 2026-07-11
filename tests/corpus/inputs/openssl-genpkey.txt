@@ -1,0 +1,5 @@
+$ openssl genpkey -algorithm ED25519 -out ed25519.key -verbose
+Algorithm: ED25519
+Output: ed25519.key
+Key size: 256
+Status: written 119 bytes, PEM PKCS8 unencrypted

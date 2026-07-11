@@ -1,0 +1,5 @@
+{"location":"packages/core","name":"@acme/core"}
+{"location":"packages/ui","name":"@acme/ui"}
+{"location":"packages/api-client","name":"@acme/api-client"}
+{"location":"apps/web","name":"@acme/web"}
+{"location":"apps/admin","name":"@acme/admin"}

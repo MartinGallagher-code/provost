@@ -1,0 +1,5 @@
+n	ID	Source	total_entries
+1	web	db allow	4
+2	web	cache allow	4
+3	api-gateway	web allow	4
+4	*	db deny	4

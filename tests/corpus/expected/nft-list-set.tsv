@@ -1,0 +1,9 @@
+n	A	total_entries
+1	table inet fw {	8
+2	set blocklist {	8
+3	type ipv4_addr	8
+4	flags interval	8
+5	elements = { 10.20.0.0/16, 192.0.2.7, 198.51.100.0/24,	8
+6	203.0.113.44, 45.9.148.0/23 }	8
+7	}	8
+8	}	8

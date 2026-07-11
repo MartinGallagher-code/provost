@@ -1,0 +1,7 @@
+n	name	value	total_entries
+1	dnsmasq[1442]	time 1720699200	6
+2	dnsmasq[1442]	cache size 10000, 0/48221 cache insertions re-used unexpired cache entries	6
+3	dnsmasq[1442]	queries forwarded 88213, queries answered locally 41120	6
+4	dnsmasq[1442]	queries for authoritative zones 0	6
+5	dnsmasq[1442]	server 1.1.1.1#53: queries sent 44120, retried or failed 12	6
+6	dnsmasq[1442]	server 9.9.9.9#53: queries sent 44093, retried or failed 4	6

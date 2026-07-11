@@ -1,0 +1,7 @@
+[
+  {"name": "HTTP GET /checkout", "spanKind": "server"},
+  {"name": "HTTP POST /v1/orders", "spanKind": "server"},
+  {"name": "SELECT orders", "spanKind": "client"},
+  {"name": "redis GET cart", "spanKind": "client"},
+  {"name": "publish order.created", "spanKind": "producer"}
+]

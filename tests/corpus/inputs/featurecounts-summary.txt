@@ -1,0 +1,6 @@
+Status	sample_01.bam	sample_02.bam	sample_03.bam
+Assigned	24118203	22984110	25330441
+Unassigned_Unmapped	411203	389442	402118
+Unassigned_MultiMapping	1820441	1744009	1901220
+Unassigned_NoFeatures	2211043	2109887	2288109
+Unassigned_Ambiguity	488210	461200	501339

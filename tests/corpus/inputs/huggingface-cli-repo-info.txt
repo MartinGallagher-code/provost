@@ -1,0 +1,10 @@
+{
+  "id": "bert-base-uncased",
+  "sha": "86b5e0934494bd15c9632b12f734a8a67f723594",
+  "downloads": 48211903,
+  "likes": 1842,
+  "library_name": "transformers",
+  "pipeline_tag": "fill-mask",
+  "private": false,
+  "gated": false
+}

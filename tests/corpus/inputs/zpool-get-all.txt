@@ -1,0 +1,7 @@
+NAME  PROPERTY       VALUE   SOURCE
+tank  size           16.4T   -
+tank  capacity       26%     -
+tank  health         ONLINE  -
+tank  fragmentation  8%      -
+tank  free           12.1T   -
+tank  ashift         12      local

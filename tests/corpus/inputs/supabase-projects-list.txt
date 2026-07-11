@@ -1,0 +1,5 @@
+   LINKED │ ORG ID               │ REFERENCE ID          │ NAME              │ REGION              │ CREATED AT (UTC)
+  ────────┼──────────────────────┼───────────────────────┼───────────────────┼─────────────────────┼──────────────────────
+    ●     │ vwxyz1234567890abcd  │ abcdefghijklmnopqrst  │ acme-prod         │ West US (Oregon)    │ 2025-11-02 09:14:22
+          │ vwxyz1234567890abcd  │ uvwxyzabcdefghijklmn  │ acme-staging      │ West US (Oregon)    │ 2026-03-18 14:55:01
+          │ vwxyz1234567890abcd  │ nopqrstuvwxyzabcdefg  │ acme-dev          │ Central EU (Frankfurt) │ 2026-05-22 17:30:12

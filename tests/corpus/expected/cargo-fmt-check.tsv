@@ -1,0 +1,12 @@
+n	A	total_entries
+1	Diff in src/main.rs at line 42:	11
+2	fn parse(input: &str) -> Result<Config> {	11
+3	-    let cfg=Config::default();	11
+4	+    let cfg = Config::default();	11
+5	Diff in src/lib.rs at line 8:	11
+6	-use std::collections::{HashMap,BTreeMap};	11
+7	+use std::collections::{BTreeMap, HashMap};	11
+8	Diff in src/net/client.rs at line 130:	11
+9	-  timeout: 30,retries: 3	11
+10	+    timeout: 30,	11
+11	+    retries: 3	11

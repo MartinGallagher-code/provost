@@ -1,0 +1,6 @@
+Installed Workload Id      Manifest Version      Installation Source
+-----------------------------------------------------------------------
+android                    34.0.113/8.0.100      SDK 8.0.400
+ios                        17.5.8095/8.0.100     SDK 8.0.400
+maui-android               8.0.72/8.0.100        SDK 8.0.400
+wasm-tools                 8.0.7/8.0.100         SDK 8.0.400

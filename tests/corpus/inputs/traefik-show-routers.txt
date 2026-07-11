@@ -1,0 +1,4 @@
+Name                    Rule                       EntryPoints  Service      Status
+web@docker              Host(`app.example.com`)    websecure    web-svc      enabled
+api@docker              Host(`api.example.com`)    websecure    api-svc      enabled
+dashboard@internal      PathPrefix(`/dashboard`)   traefik      dashboard    enabled

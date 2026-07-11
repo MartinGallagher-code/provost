@@ -1,0 +1,5 @@
+ID        Source        Destination   Action
+                        web           db            allow
+                        web           cache         allow
+                        api-gateway   web           allow
+                        *             db            deny

@@ -1,0 +1,7 @@
+$ openssl pkcs12 -info -in bundle.p12 -noout -passin pass:changeit
+MAC: sha256, Iteration 2048
+MAC length: 32, salt length: 8
+PKCS7 Encrypted data: pbeWithSHA256And256BitAES-CBC, Iteration 2048
+Certificate bag
+PKCS7 Data
+Shrouded Keybag: pbeWithSHA256And256BitAES-CBC, Iteration 2048

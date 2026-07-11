@@ -1,0 +1,6 @@
+$ trivy sbom app.cdx.json
+Target: app.cdx.json (CycloneDX)
+LIBRARY       VULNERABILITY    SEVERITY   INSTALLED
+openssl       CVE-2024-0727    MEDIUM     3.0.11
+zlib          CVE-2023-45853   CRITICAL   1.2.13
+libcurl       CVE-2024-2004    LOW        8.4.0

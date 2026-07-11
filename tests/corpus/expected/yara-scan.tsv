@@ -1,0 +1,6 @@
+n	A	B	C	total_entries
+1	$	yara	-r_malware_rules.yar_/opt/samples	5
+2	RULE	FILE	TAGS	5
+3	Suspicious_UPX	/opt/samples/packed.bin	packer	5
+4	Webshell_PHP	/opt/samples/shell.php	webshell	5
+5	Cobalt_Beacon	/opt/samples/beacon.dll	c2,apt	5

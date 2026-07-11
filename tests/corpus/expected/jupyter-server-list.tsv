@@ -1,0 +1,4 @@
+n	Currently	running	servers:	total_entries
+1	http://localhost:8888/?token=REDACTED	::	/home/user/notebooks	3
+2	http://localhost:8889/?token=REDACTED	::	/home/user/projects/ml	3
+3	http://0.0.0.0:8890/?token=REDACTED	::	/workspace	3

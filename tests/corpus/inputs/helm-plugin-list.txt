@@ -1,0 +1,4 @@
+NAME       VERSION   DESCRIPTION
+diff       3.9.11    Preview helm upgrade changes as a diff
+secrets    4.6.0     Manage secrets stored in helm charts with SOPS
+s3         0.16.2    Provides AWS S3 protocol support for chart registries

@@ -1,0 +1,7 @@
+$ clamdscan --fdpass /home/user
+/home/user/downloads/eicar.txt: Win.Test.EICAR_HDB-1 FOUND
+----------- SCAN SUMMARY -----------
+Infected files: 1
+Total errors: 0
+Time: 4.221 sec (0 m 4 s)
+Scanned files: 12483

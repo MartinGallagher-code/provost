@@ -1,0 +1,8 @@
+$ r2 -c 'iI' -q /bin/ls
+arch     x86
+bits     64
+os       linux
+type     DYN (PIE)
+canary   true
+nx       true
+pic      true

@@ -1,0 +1,4 @@
+TYPE  NAME       REPO                                        INSECURE   OCI    STATUS       MESSAGE
+git   platform   https://github.com/acme/platform.git        false      false  Successful
+git              https://github.com/acme/apps.git            false      false  Successful
+helm  charts     https://charts.acme.io                      false      false  Failed       authentication required

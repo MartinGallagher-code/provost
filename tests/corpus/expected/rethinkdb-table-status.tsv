@@ -1,0 +1,2 @@
+db	name	id	status.all_replicas_ready	status.ready_for_outdated_reads	status.ready_for_reads	status.ready_for_writes	shards.0.primary_replicas.0	shards.0.replicas.0	shards.0.replicas.1	shards.1.primary_replicas.0	shards.1.replicas.0	shards.1.replicas.1
+blog	posts	8f7e6d5c-4b3a-2019-8877-665544332211	true	true	true	true	server_a	server_a	server_b	server_b	server_a	server_b

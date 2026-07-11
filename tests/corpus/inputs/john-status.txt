@@ -1,0 +1,6 @@
+$ john --status
+0g 0:00:03:14 3.42% (ETA 2026-07-11 11:44) 0g/s 184320p/s 184320c/s 184320C/s
+guesses: 12
+loaded hashes: 480
+remaining: 468
+session: hashrun-01

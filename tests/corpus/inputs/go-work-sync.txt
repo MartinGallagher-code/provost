@@ -1,0 +1,5 @@
+go: finding module for package github.com/acme/common
+go: downloading github.com/acme/common v1.4.2
+go: added github.com/acme/common v1.4.2 to ./api/go.mod
+go: updated ./worker/go.mod: github.com/acme/common v1.4.1 => v1.4.2
+go: synced 3 modules in workspace: ./api ./worker ./cli

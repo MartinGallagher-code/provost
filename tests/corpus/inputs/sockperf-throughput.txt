@@ -1,0 +1,6 @@
+sockperf: Summary: Message Rate is 184223 [msg/sec]
+sockperf: Summary: BandWidth is 179.90 MBps (1439.24 Mbps)
+sockperf: Total 1842230 messages sent in 10.000 sec
+sockperf: Total 42 messages dropped (0.0023%)
+sockperf: NOTE: test was performed using msg size 1024
+sockperf: [Valid Duration] RunTime=10.000 sec

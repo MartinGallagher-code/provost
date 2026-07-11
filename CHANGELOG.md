@@ -1,5 +1,70 @@
 # glean — Changelog
 
+## 2026-07-11 — +539 unique corpus inputs (batch 3), ~98% generalized with no new code
+
+Third large expansion of unique never-before-seen tools, generated across 10
+domains (cloud/SaaS CLIs, k8s/containers, databases, observability, networking,
+security, build/language toolchains, data/ML/scientific, system/hardware,
+storage/backup). **529 of 539 (98%) tidied with no new per-tool code** — the
+generic parsers generalized to the unseen tools. The 10 genuine gaps left as ⏳
+are the usual hard shapes: JSON after a leading `-- comment` (surreal-sql-select),
+Unicode box tables `│` (supabase-projects-list), log-preamble-then-table
+(cargo-audit, cargo-nextest-run), inline `k=v` after a preamble
+(datadog-ci-junit-upload), `name = "v" # desc` list mistaken for kv (cargo-search),
+right-aligned banner tables (powertop-devices, gluster-volume-profile,
+vercel-list), offset dumps (openssl-asn1parse). Golden gate re-run clean (0
+existing goldens modified/deleted; 529 new goldens). A random data-sanity
+spot-check across domains confirmed the new goldens are real tidy tables, not
+shape-passing garbage. Files: `tests/corpus/inputs/*` (+539),
+`tests/corpus/expected/*` (+529), `tests/corpus/expected.tsv`,
+`tests/corpus/COVERAGE.md`.
+
+## 2026-07-11 — Holdout generalization pass for the recently-touched tools
+
+Added 12 held-out (second, different-content) samples for the tools touched
+this session, to prove the parsers generalize to UNSEEN captures rather than
+memorising the corpus fixtures: `ceph-osd-df` (different OSDs, mixed hdd/ssd —
+the direct test that segment-split generalizes), the 8 segment-split
+beneficiaries (`zstd-list`, latencytop, google/catch2-benchmark, az-ad-user-list,
+bandwhich, gh-run-list, spark-history-apps), and the 3 multi-mode adds
+(pvesm-status, rbd-du, zk-mntr). All 12 land on the **generic** tier
+(aligned-columns / tsv) with no goldens — judged on tidy shape only, the way an
+unseen capture is. Holdout now **80/80 tidy** (generic 55, hint 23, bespoke 2).
+Files: `tests/corpus/holdout/inputs/*` (12), `tests/corpus/holdout/expected.tsv`.
+
+## 2026-07-11 — Segment-split for right-aligned space-in-value fixed-width tables (aligned-columns)
+
+Closes the hardest gap cluster: fixed-width tables whose values carry inner
+spaces ("1.0 TiB", "180 GiB") under a multi-word header ("RAW USE"), where the
+numbers are right-justified so positional (column-start) assignment can't align
+them — the value's start falls under the wrong header column. Flagship: `ceph
+osd df`.
+
+- **New `_ac_split`** in `aligned-columns` — splits a line on >=2-space gaps
+  (the same boundary a fixed-width table uses), keeping a single-spaced
+  multi-word cell intact. It is `_ac_seg` as a splitter.
+- **Tight, HDR-only trigger.** Fires only when: the block is a headed table
+  (`_ac_shape` == HDR — a header row fixes the true column count), every
+  non-blank line has the SAME >=2 two-space-segment count, and the MODAL data
+  row has MORE whitespace tokens than the header has labels. That last test is
+  the discriminator that keeps single-space-delimited tables (`ps -ef`'s narrow
+  "C STIME TTY" — three columns, not one multi-word cell; modal data tokens ==
+  header tokens) on tokenization, and excludes headerless log records
+  (`who`/`last`, whose "date time (host)" the established tidy splits into
+  columns — no header to say otherwise).
+
+**Full golden audit** (the discipline that caught a first-cut `ps-ef` deletion
+and a 38-file over-fire, both fixed by the modal-token gate): 8 modified —
+**all improvements** (multi-word headers joined AND space-in-value cells
+preserved AND previously-jammed trailing columns recovered: `az ad user list`
+DISPLAY-NAME, `bandwhich` "ip:port => ip:port", catch2 / google-benchmark
+"248 ns", `gh run list` TITLE, latencytop Cause, spark App ID, zstd "44.2 MiB").
+1 new golden: `ceph-osd-df` (the target, ⏳ -> ✅). **0 deleted, 0 regressions**;
+golden gate 1996 passed, 0 failed. Coverage **2156 -> 2157 tools; 2129 -> 2130
+tidy**. Files: `extract/strategies/delimited/aligned-columns.sh`,
+`tests/corpus/inputs/ceph-osd-df.txt`, `tests/corpus/expected/*` (9),
+`tests/corpus/expected.tsv`, `tests/corpus/COVERAGE.md`.
+
 ## 2026-07-11 — Multi-mode coverage audit (all ~1000 tools) + net-new mode samples
 
 An audit of whether every tool's *range* of output modes is sampled — the same

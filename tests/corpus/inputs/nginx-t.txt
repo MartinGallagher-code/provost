@@ -1,0 +1,4 @@
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: [warn] conflicting server name "localhost" on 0.0.0.0:80, ignored
+nginx: [warn] "ssl_stapling" ignored, issuer certificate not found
+nginx: configuration file /etc/nginx/nginx.conf test is successful

@@ -1,0 +1,9 @@
+n	Add-on	Plan	Price	State	total_entries
+1	─────────────────────────────────────────────	────────────────────────	──────────	───────	8
+2	heroku-postgresql	(postgresql-curved-12345)	heroku-postgresql:standard-0	$50/month_created	8
+3	└─	as	DATABASE		8
+4	heroku-redis	(redis-rounded-67890)	heroku-redis:premium-0	$15/month_created	8
+5	└─	as	REDIS		8
+6	papertrail	(papertrail-acute-24680)	papertrail:choklad	$0/month_created	8
+7	└─	as	PAPERTRAIL		8
+8	The	table	above	shows_3_add-ons.	8

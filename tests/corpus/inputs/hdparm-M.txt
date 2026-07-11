@@ -1,0 +1,8 @@
+/dev/sda:
+ acoustic      = not supported
+
+/dev/sdb:
+ acoustic      = 128 (128=quiet ... 254=fast)
+
+/dev/sdc:
+ acoustic      = 254 (128=quiet ... 254=fast)

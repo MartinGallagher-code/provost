@@ -1,0 +1,7 @@
+$ subfinder -d example.com -silent
+api.example.com
+app.example.com
+mail.example.com
+dev.example.com
+staging.example.com
+vpn.example.com

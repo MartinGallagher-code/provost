@@ -1,0 +1,6 @@
+Building for debugging...
+Compiling AcmeCore Model.swift
+Compiling AcmeCore Client.swift
+Compiling AcmeApp main.swift
+[42/42] Linking AcmeApp
+Build complete! (18.42s)

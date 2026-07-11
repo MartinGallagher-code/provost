@@ -1,0 +1,3 @@
+example.com.	type: master | serial: 2026071001 | transaction: none
+example.net.	type: master | serial: 2026070915 | transaction: none
+internal.lan.	type: slave  | serial: 2026070800 | transaction: none

@@ -1,0 +1,4 @@
+Mon Jul  6 03:00:11 2026 home/alice/.bashrc
+Mon Jul  6 03:00:11 2026 home/alice/documents/report.pdf
+Wed Jul  8 14:22:03 2026 home/alice/photos/img_0421.jpg
+Thu Jul  9 09:11:48 2026 home/alice/vm/debian.qcow2

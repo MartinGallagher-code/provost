@@ -1,0 +1,6 @@
+External dependencies for default:
+  - core           v0.16.2
+  - lwt            5.7.0
+  - yojson         2.2.2
+  - cmdliner       1.3.0
+  - ppx_deriving   6.0.2

@@ -1,0 +1,5 @@
+PDM version:        2.15.4
+Python Interpreter: /home/dev/proj/.venv/bin/python (3.12)
+Project Root:       /home/dev/proj
+Project Packages:   None
+Local Packages:     __pypackages__/3.12

@@ -1,0 +1,12 @@
+Checking prometheus.yml
+  SUCCESS: 4 rule files found
+  SUCCESS: prometheus.yml is valid prometheus config file syntax
+
+Checking rules/node.yml
+  SUCCESS: 12 rules found
+Checking rules/api.yml
+  SUCCESS: 8 rules found
+Checking rules/slo.yml
+  SUCCESS: 5 rules found
+Checking rules/blackbox.yml
+  SUCCESS: 3 rules found

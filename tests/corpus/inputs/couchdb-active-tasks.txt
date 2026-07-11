@@ -1,0 +1,18 @@
+[
+  {
+    "type": "indexer",
+    "database": "blog_posts",
+    "design_document": "_design/by_author",
+    "progress": 78,
+    "changes_done": 143820,
+    "total_changes": 184203
+  },
+  {
+    "type": "replication",
+    "source": "http://src/analytics/",
+    "target": "analytics",
+    "progress": 42,
+    "docs_written": 402011,
+    "missing_revisions_found": 12
+  }
+]

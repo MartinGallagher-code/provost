@@ -1,0 +1,2 @@
+order_id	customer_id	order_date	status	amount	items	pandas
+int64 not null	int64	timestamp[us, tz=UTC]	dictionary<values=string, indices=int32>	decimal128(12, 2)	list<item: struct<sku: string, qty: int32>>	'{"index_columns": ["order_id"], "column_indexes": [...]}'

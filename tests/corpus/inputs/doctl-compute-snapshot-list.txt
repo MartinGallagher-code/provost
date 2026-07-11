@@ -1,0 +1,4 @@
+ID           Name                          Created at              Regions          Min Disk Size    Size       Resource Id    Resource Type
+178993422    api-server-2026-07-01         2026-07-01T02:00:14Z    [nyc3]           50               2.14 GiB   412093881      droplet
+178993987    worker-golden-v3              2026-06-22T02:00:11Z    [nyc3 sfo3]      50               3.88 GiB   412094552      droplet
+179004120    db-pre-migration              2026-07-09T18:30:52Z    [nyc3]           100              12.40 GiB  a1b2c3d4       volume

@@ -1,0 +1,10 @@
+table inet filter {
+	chain input {
+		type filter hook input priority filter; policy drop;
+		ct state established,related accept
+		iif "lo" accept
+		tcp dport { 22, 80, 443 } accept
+		ip protocol icmp accept
+		counter packets 12843 bytes 1839221 drop
+	}
+}

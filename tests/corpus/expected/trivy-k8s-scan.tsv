@@ -1,0 +1,4 @@
+n	NAMESPACE	RESOURCE	CRITICAL	HIGH	MEDIUM	LOW	total_entries
+1	default	Deployment/web	1	4	7	12	3
+2	kube-system	DaemonSet/kube-proxy	0	2	3	5	3
+3	monitoring	StatefulSet/prom	0	1	6	9	3

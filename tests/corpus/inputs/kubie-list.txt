@@ -1,0 +1,5 @@
+dev-local
+staging
+prod-eu
+prod-us
+minikube

@@ -1,0 +1,5 @@
+n	Endpoint	State	Job	Discovered	Labels	total_entries
+1	10.0.1.5:9100/metrics	up	integrations/node	integrations/node_exporter	1.2s	4
+2	10.0.2.4:8080/metrics	up	app/api	app=api,env=prod	0.9s	4
+3	10.0.2.5:8080/metrics	down	app/api	app=api,env=prod	3.1s	4
+4	10.0.3.9:9256/metrics	up	process	process_exporter	1.8s	4

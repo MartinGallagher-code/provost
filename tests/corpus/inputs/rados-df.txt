@@ -1,0 +1,9 @@
+POOL_NAME         USED  OBJECTS  CLONES  COPIES  MISSING_ON_PRIMARY  UNFOUND  DEGRADED  RD_OPS       RD      WR_OPS       WR
+cephfs_data     1.4 TiB   358112       0  1074336                  0        0         0  12841204  4.1 TiB   8823419  2.9 TiB
+cephfs_metadata  892 MiB    41208       0   123624                  0        0         0   9218334  188 GiB   4410228   91 GiB
+.mgr             1.9 MiB        3       0        9                  0        0         0      1204  4.8 MiB      882   12 MiB
+
+total_objects    399323
+total_used       1.4 TiB
+total_avail      12 TiB
+total_space      13 TiB

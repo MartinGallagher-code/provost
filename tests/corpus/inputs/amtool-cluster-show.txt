@@ -1,0 +1,6 @@
+Cluster Status:    ready
+Name:              01HTQ8ZK9M4X2N7VBWEC3P6Y5A
+Peers:
+  - ID: 01HTQ8AAAA  Address: 10.4.0.10:9094
+  - ID: 01HTQ8BBBB  Address: 10.4.0.11:9094
+  - ID: 01HTQ8CCCC  Address: 10.4.0.12:9094

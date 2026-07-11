@@ -1,0 +1,2 @@
+trace_id_5f2a_inet_filter_input_packet	trace_id_b731_inet_filter_input_packet	trace_id_c009_inet_nat_postrouting_packet
+iif "eth0" ip saddr 203.0.113.9 ip daddr 10.0.0.5 tcp dport 22	iif "eth0" ip saddr 198.51.100.4 tcp dport 8080	oif "eth0" ip saddr 10.0.0.7 (verdict_masquerade)

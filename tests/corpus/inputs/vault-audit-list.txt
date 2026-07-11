@@ -1,0 +1,5 @@
+$ vault audit list -detailed
+Path      Type    Description         Replication    Options
+----      ----    -----------         -----------    -------
+file/     file    n/a                 replicated     file_path=/var/log/vault_audit.log
+syslog/   syslog  n/a                 replicated     facility=AUTH tag=vault

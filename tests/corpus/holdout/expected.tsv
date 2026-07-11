@@ -66,3 +66,15 @@ uname-a	kv	-	2
 uptime	kv	-	2
 vgdisplay	kv	-	5
 yum-repolist	table	3	3
+ceph-osd-df	table	4	14
+zstd-list	table	2	7
+latencytop	table	4	3
+google-benchmark	table	3	4
+catch2-benchmark	table	3	4
+az-ad-user-list	table	3	3
+bandwhich-connections	table	3	4
+gh-run-list	table	3	7
+spark-history-apps	table	3	4
+pvesm-status	table	3	6
+rbd-du	table	4	3
+zk-mntr	kv	-	2

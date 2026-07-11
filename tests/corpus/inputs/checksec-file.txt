@@ -1,0 +1,8 @@
+$ checksec --file=/usr/bin/sshd
+RELRO      Full RELRO
+Stack      Canary found
+NX         NX enabled
+PIE        PIE enabled
+RPATH      No RPATH
+RUNPATH    No RUNPATH
+Fortify    Yes

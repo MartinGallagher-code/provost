@@ -1,0 +1,4 @@
+Pipeline            Receivers              Processors               Exporters
+traces              otlp,jaeger            batch,memory_limiter     otlp,logging
+metrics             otlp,prometheus        batch,resourcedetection  prometheusremotewrite
+logs                otlp,filelog           batch,attributes         loki,logging

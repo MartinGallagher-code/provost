@@ -1,0 +1,7 @@
+Brick node1:/bricks/brick1
+Status: Connected
+Number of entries: 0
+
+Brick node2:/bricks/brick1
+Status: Connected
+Number of entries: 3

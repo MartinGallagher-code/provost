@@ -1,0 +1,6 @@
+$ naabu -host scanme.example.com -top-ports 100
+HOST                  PORT
+scanme.example.com    22
+scanme.example.com    80
+scanme.example.com    443
+scanme.example.com    8443

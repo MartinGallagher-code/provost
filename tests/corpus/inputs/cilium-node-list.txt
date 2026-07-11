@@ -1,0 +1,4 @@
+Name                     IPv4 Address   Endpoint CIDR   IPv6 Address   Endpoint CIDR
+default/k3s-master       10.5.0.2       10.244.0.0/24
+default/k3s-agent-1      10.5.0.3       10.244.1.0/24
+default/k3s-agent-2      10.5.0.4       10.244.2.0/24

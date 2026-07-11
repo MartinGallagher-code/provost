@@ -1,0 +1,5 @@
+Available kernels:
+  python3        /opt/conda/share/jupyter/kernels/python3
+  ir             /usr/local/share/jupyter/kernels/ir
+  julia-1.10     /home/user/.local/share/jupyter/kernels/julia-1.10
+  bash           /home/user/.local/share/jupyter/kernels/bash

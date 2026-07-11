@@ -1,0 +1,4 @@
+ref                              deadline             category      reward     teamCount  userHasEntered
+titanic                          2030-01-01 00:00:00  Getting Started  Knowledge     15234           False
+house-prices-advanced-regression 2030-01-01 00:00:00  Getting Started  Knowledge      6120           False
+llm-prompt-recovery              2026-04-16 23:59:00  Featured         $50,000        2874            True

@@ -1,0 +1,6 @@
+RESOURCE                          SCORE   GRADE   ISSUES
+pods                              82      B       12
+services                         95      A       2
+deployments                      74      C       18
+configmaps                       88      B       5
+horizontalpodautoscalers         100     A       0

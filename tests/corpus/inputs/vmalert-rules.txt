@@ -1,0 +1,4 @@
+group="node.alerts" name=HostHighCpu state=firing  activeAt=2026-07-10T09:02:11Z value=0.94
+group="node.alerts" name=HostOomRisk  state=pending  activeAt=2026-07-10T09:11:40Z value=0.88
+group="api.slo"     name=BurnRateFast state=firing  activeAt=2026-07-10T08:55:03Z value=14.2
+group="api.slo"     name=BurnRateSlow state=inactive activeAt=-                   value=0.3

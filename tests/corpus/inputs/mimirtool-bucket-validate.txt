@@ -1,0 +1,7 @@
+INFO validating bucket configuration backend=s3
+INFO checking bucket access bucket=mimir-blocks
+INFO bucket is writable bucket=mimir-blocks
+INFO bucket is readable bucket=mimir-blocks
+INFO validating bucket configuration backend=s3 bucket=mimir-ruler
+INFO bucket is writable bucket=mimir-ruler
+INFO validation completed successfully

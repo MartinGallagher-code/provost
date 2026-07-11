@@ -1,0 +1,3 @@
+Frames  Skips  Compressed  Uncompressed  Ratio  Check  Filename
+     3      0   12.8 MiB      48.9 MiB  3.820  XXH64  logs-2026.tar.zst
+     1      0  102.5 KiB     410.0 KiB  4.000  None   config.json.zst

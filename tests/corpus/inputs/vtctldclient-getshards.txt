@@ -1,0 +1,5 @@
+KEYSPACE   SHARD   PRIMARY_ALIAS   PRIMARY_TERM_START        IS_PRIMARY_SERVING
+commerce   -80     zone1-0000000100  2026-06-12T14:22:01Z    true
+commerce   80-     zone1-0000000200  2026-06-12T14:22:03Z    true
+customer   -       zone1-0000000300  2026-06-10T08:11:44Z    true
+lookup     -       zone1-0000000400  2026-06-11T19:05:12Z    true

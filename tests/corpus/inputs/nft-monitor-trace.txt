@@ -1,0 +1,6 @@
+trace id 5f2a inet filter input packet: iif "eth0" ip saddr 203.0.113.9 ip daddr 10.0.0.5 tcp dport 22
+trace id 5f2a inet filter input rule ct state established,related accept (verdict accept)
+trace id b731 inet filter input packet: iif "eth0" ip saddr 198.51.100.4 tcp dport 8080
+trace id b731 inet filter input rule tcp dport { 22, 80, 443 } accept (no match)
+trace id b731 inet filter input verdict drop
+trace id c009 inet nat postrouting packet: oif "eth0" ip saddr 10.0.0.7 (verdict masquerade)

@@ -1,0 +1,3 @@
+level=info msg="alert(s) posted successfully" count=2
+  alertname=DeployStarted  service=web    severity=info
+  alertname=DeployStarted  service=api    severity=info

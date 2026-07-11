@@ -1,0 +1,7 @@
++-build/myapp
+  +-build/main.o
+  | +-src/main.c
+  | +-include/config.h
+  +-build/util.o
+  | +-src/util.c
+  +-build/libcore.a

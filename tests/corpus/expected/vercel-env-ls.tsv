@@ -1,0 +1,5 @@
+n	name	value	environments	created	total_entries
+1	DATABASE_URL	Encrypted	Production	3d ago	4
+2	NEXT_PUBLIC_API_URL	Encrypted	Production, Preview	3d ago	4
+3	STRIPE_KEY	Encrypted	Production	12d ago	4
+4	LOG_LEVEL	Encrypted	Development	45d ago	4

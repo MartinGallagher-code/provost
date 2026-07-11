@@ -1,0 +1,4 @@
+KIND                NAMESPACE   NAME              API_VERSION                     REPLACE_WITH (SINCE)
+Ingress             default     legacy-ingress    networking.k8s.io/v1beta1       networking.k8s.io/v1 (1.19.0)
+PodSecurityPolicy   kube-system default-psp       policy/v1beta1                  (removed in 1.25.0)
+HorizontalPodAutoscaler monitoring prom-hpa       autoscaling/v2beta2             autoscaling/v2 (1.23.0)

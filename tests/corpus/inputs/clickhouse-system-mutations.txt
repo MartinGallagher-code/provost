@@ -1,0 +1,6 @@
+┌─database─┬─table────────┬─mutation_id──┬─command──────────────────────┬─is_done─┬─parts_to_do─┐
+│ analytics│ events       │ mutation_42  │ DELETE WHERE ts < '2026-01-01'│      1 │           0 │
+│ analytics│ events       │ mutation_43  │ UPDATE country = 'US' WHERE...│      0 │           4 │
+│ analytics│ sessions     │ mutation_11  │ DELETE WHERE user_id = 0     │      1 │           0 │
+│ staging  │ raw_logs     │ mutation_07  │ MODIFY COLUMN level String   │      0 │          12 │
+└──────────┴──────────────┴──────────────┴──────────────────────────────┴─────────┴─────────────┘

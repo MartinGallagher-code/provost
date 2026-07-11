@@ -1,0 +1,6 @@
+PATH                        CONDITION        UNIT                       ACTIVATES
+/var/spool/cups             DirectoryNotEmpty cups.path                 cups.service
+/run/systemd/ask-password   DirectoryNotEmpty systemd-ask-password.path systemd-ask-password.service
+/etc/letsencrypt/live       PathModified      certwatch.path            certwatch.service
+
+3 paths listed.

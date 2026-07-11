@@ -1,0 +1,5 @@
+GPU  Average Graphics Package Power (W)  Cap (W)
+0    142.0                               300.0
+1    118.0                               300.0
+2    201.0                               300.0
+3    96.0                                300.0

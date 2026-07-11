@@ -1,0 +1,6 @@
+Dependency      Current  Latest  Status
+ecto            3.11.1   3.12.3  Update possible
+jason           1.4.1    1.4.4   Update possible
+phoenix         1.7.12   1.7.14  Update possible
+plug            1.15.3   1.16.1  Update not possible
+telemetry       1.2.1    1.2.1   Up-to-date

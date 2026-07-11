@@ -1,0 +1,5 @@
+boost-system:x64-linux         1.85.0    Boost system module
+fmt:x64-linux                  10.2.1    Formatting library
+nlohmann-json:x64-linux        3.11.3    JSON for Modern C++
+openssl:x64-linux              3.3.1     OpenSSL library
+zlib:x64-linux                 1.3.1     Compression library

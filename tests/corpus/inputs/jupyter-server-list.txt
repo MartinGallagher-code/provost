@@ -1,0 +1,4 @@
+Currently running servers:
+http://localhost:8888/?token=REDACTED :: /home/user/notebooks
+http://localhost:8889/?token=REDACTED :: /home/user/projects/ml
+http://0.0.0.0:8890/?token=REDACTED :: /workspace

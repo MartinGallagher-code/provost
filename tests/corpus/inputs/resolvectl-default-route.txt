@@ -1,0 +1,5 @@
+Global: no
+Link 2 (eth0): yes
+Link 3 (wlan0): no
+Link 4 (docker0): no
+Link 5 (tun0): yes

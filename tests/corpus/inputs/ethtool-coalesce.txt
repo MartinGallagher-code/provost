@@ -1,0 +1,8 @@
+Coalesce parameters for eth0:
+Adaptive RX: on  TX: on
+rx-usecs: 3
+rx-frames: 0
+tx-usecs: 8
+tx-frames: 0
+rx-usecs-irq: 0
+tx-usecs-irq: 0

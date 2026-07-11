@@ -1,0 +1,10 @@
+  *-cpu
+       description: CPU
+       product: Intel(R) Core(TM) i7-12700K
+       vendor: Intel Corp.
+       physical id: 4
+       bus info: cpu@0
+       version: 6.151.2
+       size: 3600MHz
+       capacity: 5000MHz
+       width: 64 bits

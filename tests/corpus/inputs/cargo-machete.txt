@@ -1,0 +1,10 @@
+Analyzing dependencies of crates in this directory...
+mycrate -- /home/dev/proj/mycrate/Cargo.toml:
+	chrono
+	lazy_static
+	regex
+
+api-server -- /home/dev/proj/api-server/Cargo.toml:
+	futures
+
+cargo-machete found the following unused dependencies in this directory:

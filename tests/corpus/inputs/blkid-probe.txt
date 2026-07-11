@@ -1,0 +1,4 @@
+/dev/sda1: LABEL="boot" UUID="8a1f-3c2e" TYPE="vfat" PARTUUID="9b4d5e6f-01"
+/dev/sda2: LABEL="root" UUID="3c2d1e0f-8b7a-6959-4837-261504081726" TYPE="ext4" PARTUUID="9b4d5e6f-02"
+/dev/sdb1: UUID="aabbccdd-1122-3344-5566-778899aabbcc" TYPE="crypto_LUKS" PARTUUID="1a2b3c4d-01"
+/dev/mapper/data: LABEL="data" UUID="ffeeddcc-0099-8877-6655-443322110099" TYPE="xfs"

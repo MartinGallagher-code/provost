@@ -1,0 +1,7 @@
+web-01/cpu-0/cpu-idle
+web-01/cpu-0/cpu-user
+web-01/memory/memory-free
+web-01/memory/memory-used
+web-01/interface-eth0/if_octets
+web-01/df-root/df_complex-free
+web-01/load/load

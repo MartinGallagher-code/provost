@@ -1,0 +1,7 @@
+coretemp-isa-0000
+Adapter: ISA adapter
+Package id 0:  +109.4°F  (high = +212.0°F, crit = +212.0°F)
+Core 0:        +105.8°F  (high = +212.0°F, crit = +212.0°F)
+Core 1:        +107.6°F  (high = +212.0°F, crit = +212.0°F)
+Core 2:        +104.0°F  (high = +212.0°F, crit = +212.0°F)
+Core 3:        +109.4°F  (high = +212.0°F, crit = +212.0°F)

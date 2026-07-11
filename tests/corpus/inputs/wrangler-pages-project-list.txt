@@ -1,0 +1,7 @@
+┌──────────────────┬──────────────────────────────────┬─────────────────────┬──────────────────────────┐
+│ Project Name     │ Project Domains                  │ Git Provider        │ Last Modified            │
+├──────────────────┼──────────────────────────────────┼─────────────────────┼──────────────────────────┤
+│ marketing-site   │ marketing-site.pages.dev         │ Yes                 │ 2 days ago               │
+│ docs-portal      │ docs.example.com, docs.pages.dev │ Yes                 │ 6 hours ago              │
+│ status-page      │ status.pages.dev                 │ No                  │ 3 weeks ago              │
+└──────────────────┴──────────────────────────────────┴─────────────────────┴──────────────────────────┘

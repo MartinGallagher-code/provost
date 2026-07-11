@@ -1,0 +1,6 @@
+Shards installed:
+  * ameba (1.6.1)
+  * db (0.13.1)
+  * kemal (1.5.0)
+  * pg (0.28.0)
+  * radix (0.4.1)

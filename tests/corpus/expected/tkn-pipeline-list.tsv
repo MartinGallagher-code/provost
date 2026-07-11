@@ -1,0 +1,4 @@
+n	NAME	AGE	LAST_RUN	STARTED	DURATION	STATUS	total_entries
+1	ci-build	3 weeks ago	ci-build-run-9x2kf	2 hours ago	6m10s	Succeeded	3
+2	nightly-etl	1 month ago	nightly-etl-run-1zzk9	6 hours ago	12m4s	Failed	3
+3	release-pipeline	5 days ago	release-run-3ab77	2 days ago	9m41s	Succeeded	3

@@ -1,0 +1,4 @@
+2026-07-10T09:12:04Z {app="api", level="error"} msg="upstream timeout" route=/v1/orders status=504
+2026-07-10T09:12:07Z {app="api", level="warn"}  msg="retry scheduled" attempt=2 route=/v1/orders
+2026-07-10T09:12:11Z {app="api", level="error"} msg="upstream timeout" route=/v1/orders status=504
+2026-07-10T09:12:19Z {app="api", level="info"}  msg="request served" route=/v1/health status=200

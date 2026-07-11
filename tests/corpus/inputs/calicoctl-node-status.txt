@@ -1,0 +1,4 @@
+PEER ADDRESS   PEER TYPE     STATE   SINCE       INFO
+10.5.0.2       node-to-node  up      14:02:31    Established
+10.5.0.3       node-to-node  up      14:02:33    Established
+10.5.0.4       node-to-node  up      14:05:10    Established

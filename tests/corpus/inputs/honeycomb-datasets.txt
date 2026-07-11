@@ -1,0 +1,5 @@
+name              slug              last_written_at        regular_columns
+frontend          frontend          2026-07-10T09:13:59Z   214
+api-gateway       api-gateway       2026-07-10T09:13:58Z   188
+cart-service      cart-service      2026-07-10T09:13:40Z   142
+batch-jobs        batch-jobs        2026-07-10T08:59:11Z   96

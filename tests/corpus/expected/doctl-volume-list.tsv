@@ -1,0 +1,4 @@
+n	ID	Name	Size	Region	Filesystem	Type	Label	Droplet	IDs	total_entries
+1	a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d	pg-data-01	100	GiB	pgdata	ext4	[	412093881	]	3
+2	b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e	redis-store	50	GiB	redis	ext4	[	]		3
+3	c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f	backup-vol	500	GiB	backups	xfs	[	501228734	]	3

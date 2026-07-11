@@ -1,0 +1,9 @@
+Bus 001 Device 004: ID 046d:c52b Logitech, Inc. Unifying Receiver
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0
+  idVendor           0x046d Logitech, Inc.
+  idProduct          0xc52b
+  bNumConfigurations      1

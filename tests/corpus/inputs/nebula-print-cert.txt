@@ -1,0 +1,12 @@
+NebulaCertificate {
+	Details {
+		Name: web-server-01
+		Ips: [192.168.100.5/24]
+		Groups: [servers, web]
+		Not before: 2026-01-05 09:12:00 +0000 UTC
+		Not after: 2027-01-05 09:12:00 +0000 UTC
+		Is CA: false
+		Issuer: 4d1f9b2c8a3e57061928374655a6b7c8
+	}
+	Fingerprint: 8f2a1c9d3b4e5f6071829304a5b6c7d8
+}

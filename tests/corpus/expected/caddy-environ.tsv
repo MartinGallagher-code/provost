@@ -1,0 +1,2 @@
+caddy.HomeDir	caddy.AppDataDir	caddy.ConfigAutosavePath	HOME	XDG_CONFIG_HOME	XDG_DATA_HOME
+/var/lib/caddy	/var/lib/caddy/caddy	/var/lib/caddy/caddy/autosave.json	/var/lib/caddy	/var/lib/caddy/.config	/var/lib/caddy/.local/share

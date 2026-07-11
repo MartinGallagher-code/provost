@@ -1,0 +1,7 @@
+n	name	total_entries
+1	varchar	6
+2	customers	6
+3	line_items	6
+4	orders	6
+5	products	6
+6	shipments	6

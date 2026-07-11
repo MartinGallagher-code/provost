@@ -1,0 +1,2 @@
+Balance on '/mnt/data' is running
+2 out of about 41 chunks balanced (3 considered),  95% left

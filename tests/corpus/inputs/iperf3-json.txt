@@ -1,0 +1,10 @@
+{
+	"start": {
+		"connected": [{"socket": 5, "local_host": "10.0.0.5", "remote_host": "10.0.0.9"}],
+		"version": "iperf 3.16"
+	},
+	"end": {
+		"sum_sent": {"bytes": 1181239296, "bits_per_second": 943991424, "retransmits": 12},
+		"sum_received": {"bytes": 1178943488, "bits_per_second": 942154240}
+	}
+}

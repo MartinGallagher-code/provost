@@ -1,0 +1,2 @@
+type	provider	region	storage_class	type	scope
+s3	AWS	us-east-1	STANDARD_IA	drive	drive

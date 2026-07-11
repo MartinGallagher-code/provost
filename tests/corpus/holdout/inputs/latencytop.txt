@@ -1,0 +1,5 @@
+Cause                                            Maximum     Percentage
+Synchronous write to disk                       620.2 msec       41.8 %
+Waiting for TCP socket                          140.7 msec       22.5 %
+Memory allocation stall                          58.9 msec       11.0 %
+futex wait                                        9.7 msec        3.4 %

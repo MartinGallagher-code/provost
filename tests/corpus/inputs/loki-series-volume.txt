@@ -1,0 +1,5 @@
+series                                                   volume_bytes
+{app="api", env="prod"}                                  4823001922
+{app="nginx", env="prod"}                                2201884410
+{app="worker", env="prod"}                               1102003318
+{app="db", env="prod"}                                   442018820

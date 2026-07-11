@@ -1,0 +1,5 @@
+service            spans      errors   p50_ms   p99_ms
+frontend           184203     412      42       880
+api-gateway        158022     1204     28       540
+cart-service       90118      33       12       210
+payments           44102      882      88       1420

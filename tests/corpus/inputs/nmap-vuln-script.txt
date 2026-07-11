@@ -1,0 +1,7 @@
+$ nmap --script vuln -p 80,443 target.example.com
+PORT    STATE  SERVICE   SCRIPT-RESULT
+80/tcp  open   http      http-csrf: no CSRF vulnerabilities found
+80/tcp  open   http      http-dombased-xss: couldn't find any DOM XSS
+443/tcp open   https     ssl-heartbleed: NOT VULNERABLE
+443/tcp open   https     ssl-poodle: NOT VULNERABLE
+443/tcp open   https     http-slowloris-check: LIKELY VULNERABLE

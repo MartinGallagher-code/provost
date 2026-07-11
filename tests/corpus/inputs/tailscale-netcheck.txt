@@ -1,0 +1,11 @@
+Report:
+	* UDP: true
+	* IPv4: yes, 203.0.113.44:41641
+	* IPv6: no
+	* MappingVariesByDestIP: false
+	* PortMapping: UPnP
+	* Nearest DERP: Frankfurt
+	* DERP latency:
+		- fra: 12.4ms  (Frankfurt)
+		- ams: 18.9ms  (Amsterdam)
+		- lhr: 21.7ms  (London)

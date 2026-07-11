@@ -1,0 +1,7 @@
+-------------------------------------------------------------------------------
+Serializer benchmarks
+-------------------------------------------------------------------------------
+benchmark name                       samples    iterations          mean
+serialize json                           100          204       842.1 ns
+serialize msgpack                        100         1044       198.7 ns
+deserialize json                         100          188       1204.0 ns

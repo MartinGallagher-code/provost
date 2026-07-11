@@ -1,0 +1,8 @@
+order_id: int64 not null
+customer_id: int64
+order_date: timestamp[us, tz=UTC]
+status: dictionary<values=string, indices=int32>
+amount: decimal128(12, 2)
+items: list<item: struct<sku: string, qty: int32>>
+-- schema metadata --
+pandas: '{"index_columns": ["order_id"], "column_indexes": [...]}'

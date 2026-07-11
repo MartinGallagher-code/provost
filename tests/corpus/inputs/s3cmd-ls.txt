@@ -1,0 +1,4 @@
+2026-06-30 22:14  412481024   s3://media-assets/report-2026-q2.parquet
+2026-05-11 09:41 1478135156   s3://db-backups/nas-full-2026-05-11.tar.gz
+2026-07-01 03:00     8842112   s3://logs/access-2026-07-01.log.gz
+                       DIR   s3://media-assets/thumbnails/

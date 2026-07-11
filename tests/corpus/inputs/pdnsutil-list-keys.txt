@@ -1,0 +1,4 @@
+Zone          Type  Active  Algorithm      Bits
+example.com   KSK   1       ECDSAP256SHA256  256
+example.com   ZSK   1       ECDSAP256SHA256  256
+example.net   CSK   1       ED25519          256

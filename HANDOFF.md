@@ -1,6 +1,22 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2156 inputs (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2696 inputs (2026-07-11)
+
+> **2026-07-11 — batch 3 (+539 inputs).** Third large expansion of unique
+> never-before-seen tools across 10 domains (cloud/k8s/db/observability/
+> networking/security/build/ML/hardware/storage). **529 of 539 (98%) tidied
+> with no new per-tool code**; 10 genuine ⏳ gaps (JSON-after-comment, Unicode
+> box tables, log-preamble+table, kv-ambiguous lists). Golden gate re-run clean
+> (0 existing goldens changed; 529 new). Now **2696 tools; 2659 tidy; 37 ⏳**;
+> golden gate 2525 passed, 0 failed.
+
+> **2026-07-11 — segment-split cluster.** Added `_ac_split` (2-space-gap
+> splitter) to `aligned-columns`, HDR-only and gated on modal-data-tokens >
+> header-tokens, to close right-aligned space-in-value fixed-width tables (`ceph
+> osd df`'s "1.0 TiB" under "RAW USE"). Full golden audit: `ceph-osd-df` ⏳->✅,
+> 8 existing goldens improved (multi-word headers joined, space-in-value cells
+> preserved), 0 regressions (a first-cut `ps-ef` deletion + 38-file over-fire
+> were fixed by the modal-token gate). Now **2157 tools; 2130 tidy; 27 ⏳.**
 
 > **2026-07-11 — multi-mode coverage audit.** Verified the corpus already
 > samples multiple output modes per high-fanout tool (kubectl 54, aws 46,

@@ -1,0 +1,4 @@
+# table: web_be, type: ip, size:1048576, used:342
+0x7f2a1c00: key=203.0.113.9 use=0 exp=28114 gpc0=0 conn_rate(10000)=4
+0x7f2a1e40: key=198.51.100.4 use=2 exp=29901 gpc0=1 conn_rate(10000)=27
+0x7f2a2080: key=192.0.2.55 use=0 exp=14002 gpc0=0 conn_rate(10000)=1

@@ -1,0 +1,5 @@
+$ sops updatekeys secrets.enc.yaml
+2026/07/11 10:14:02 Syncing keys for file secrets.enc.yaml
+2026/07/11 10:14:02 Adding kms arn:aws:kms:us-east-1:000000000000:key/fake-key
+2026/07/11 10:14:02 Group 0: 2 data keys, 1 age recipient
+File secrets.enc.yaml updated: 3 keys synced, 0 removed

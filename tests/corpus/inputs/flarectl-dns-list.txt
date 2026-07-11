@@ -1,0 +1,6 @@
+ID                                 Type   Name                    Content              TTL    Proxied
+c1d2e3f4a5b60718293a4b5c6d7e8f90   A      example.com             203.0.113.10         1      true
+d2e3f4a5b6c70819304b5c6d7e8f9012   A      www.example.com         203.0.113.10         1      true
+e3f4a5b6c7d80920415c6d7e8f901234   CNAME  api.example.com         example.com          1      true
+f4a5b6c7d8e90a31526d7e8f90123456   MX     example.com             mx1.mailhost.net     3600   false
+a5b6c7d8e9f01b42637e8f9012345678   TXT    example.com             v=spf1 include...    3600   false

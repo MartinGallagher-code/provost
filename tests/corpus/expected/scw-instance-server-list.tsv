@@ -1,0 +1,5 @@
+n	ID	NAME	TYPE	STATE	ZONE	PUBLIC	IP	IMAGE	total_entries
+1	a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d	Noble	DEV1-M	running	fr-par-1	51.15.100.44	Ubuntu	24.04	4
+2	b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e	Noble	DEV1-M	running	fr-par-1	51.15.100.88	Ubuntu	24.04	4
+3	c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f	Bookworm	GP1-XS	running	nl-ams-1	51.158.55.12	Debian	12	4
+4	d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80	bastion	STARDUST1-S	stopped	fr-par-1	Ubuntu	24.04	Noble	4

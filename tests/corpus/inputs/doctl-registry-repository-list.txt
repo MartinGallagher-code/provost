@@ -1,0 +1,4 @@
+Name              Latest Tag    Tag Count    Manifest Count    Latest Manifest    Updated At
+api-gateway       v2.14.0       28           31                sha256:9f2a...     2026-07-08 16:22:41 UTC
+worker            v1.9.3        12           14                sha256:3c1b...     2026-07-05 09:14:55 UTC
+frontend          latest        44           47                sha256:7e8d...     2026-07-09 21:03:12 UTC

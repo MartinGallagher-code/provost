@@ -1,0 +1,7 @@
+Events:
+    sched_switch:            enabled
+    sched_wakeup:            enabled
+    kmem/kmalloc:            disabled
+Buffer size in kilobytes: 7040
+Buffer total size in kilobytes: 56320
+Overwrite mode: enabled

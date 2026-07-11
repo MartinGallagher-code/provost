@@ -1,0 +1,13 @@
+Block ID: 01HTQ8ZK9M4X2N7VBWEC3P6Y5A
+Duration: 2h0m0s
+Series: 184320
+Label names: 47
+Postings (unique label pairs): 9182
+Postings entries (total label pairs): 1204553
+
+Label pairs most involved in churning:
+94213 __name__=node_cpu_seconds_total
+41288 instance=10.0.4.12:9100
+33017 job=node-exporter
+28844 mode=idle
+19502 cpu=0

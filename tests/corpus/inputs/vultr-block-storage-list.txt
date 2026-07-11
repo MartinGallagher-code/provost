@@ -1,0 +1,4 @@
+ID                                      REGION    SIZE GB    STATUS    ATTACHED TO                             LABEL
+b1a2c3d4-5e6f-7081-92a3-b4c5d6e7f809    ewr       100        active    a9b8c7d6-e5f4-4a3b-2c1d-0e9f8a7b6c5d    pg-data
+c2b3d4e5-6f70-8192-a3b4-c5d6e7f8091a    ewr       50         active    b0c9d8e7-f6a5-4b3c-2d1e-1f0a9b8c7d6e    redis-vol
+d3c4e5f6-7081-92a3-b4c5-d6e7f8091a2b    lax       250        active                                            backup-store

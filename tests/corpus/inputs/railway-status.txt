@@ -1,0 +1,9 @@
+Project: acme-platform
+Environment: production
+Service: api
+
+Deployment: SUCCESS
+Deployment ID: 9f2a1b3c-4d5e-6f70-8192-a3b4c5d6e7f8
+Region: us-west1
+Replicas: 3
+Started: 2026-07-10 08:14:22

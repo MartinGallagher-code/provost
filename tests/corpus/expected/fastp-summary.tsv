@@ -1,0 +1,2 @@
+total_reads	total_bases	Q20_bases	Q30_bases	reads_passed_filter	reads_failed_due_to_low_quality	reads_failed_due_to_too_many_N	reads_with_adapter_trimmed
+1000000	150000000	145211003(96.81%)	139882140(93.25%)	972188	21044	812	88231

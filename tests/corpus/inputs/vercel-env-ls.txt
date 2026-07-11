@@ -1,0 +1,7 @@
+Environment Variables found for acme-corp/web-app
+
+  name                  value       environments               created
+  DATABASE_URL          Encrypted   Production                 3d ago
+  NEXT_PUBLIC_API_URL   Encrypted   Production, Preview         3d ago
+  STRIPE_KEY            Encrypted   Production                 12d ago
+  LOG_LEVEL             Encrypted   Development                 45d ago

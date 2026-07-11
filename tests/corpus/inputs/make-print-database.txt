@@ -1,0 +1,9 @@
+# Variables
+CC = gcc
+CFLAGS = -O2 -Wall -std=c11
+LDFLAGS = -lm -lpthread
+# Files
+myapp: main.o util.o
+	$(CC) $(LDFLAGS) -o $@ $^
+# Not a target:
+.PHONY: clean

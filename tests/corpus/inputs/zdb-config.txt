@@ -1,0 +1,9 @@
+tank:
+    version: 5000
+    name: 'tank'
+    state: 0
+    txg: 4821376
+    pool_guid: 8341992087654321012
+    hostname: 'nas01'
+    vdev_children: 1
+    ashift: 12

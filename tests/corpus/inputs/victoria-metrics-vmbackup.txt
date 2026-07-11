@@ -1,0 +1,6 @@
+INFO backup started src=/data dst=s3://vm-backups/2026-07-10
+INFO uploading part path=part_0001 size=134217728
+INFO uploading part path=part_0002 size=134217728
+INFO uploading part path=part_0003 size=88104412
+INFO backup finished parts=3 bytes=356539668 duration=8.412s
+INFO deleted stale parts count=2
