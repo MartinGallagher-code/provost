@@ -1,0 +1,5 @@
+NAME          PROVISIONED  USED
+db-primary         200 GiB  145 GiB
+db-replica         200 GiB  138 GiB
+cache-vol           40 GiB   12 GiB
+<TOTAL>            440 GiB  295 GiB

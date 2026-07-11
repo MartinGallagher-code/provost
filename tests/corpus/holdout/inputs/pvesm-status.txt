@@ -1,0 +1,4 @@
+Name             Type     Status           Total            Used       Available        %
+nvme-pool         zfs     active      1000000000       450000000       550000000    45.00%
+backup-nfs        nfs     active      8000000000      3200000000      4800000000    40.00%
+iso-store         dir  disabled               0               0               0     0.00%

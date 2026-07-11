@@ -1,0 +1,11 @@
+zk_version	3.9.1-1
+zk_avg_latency	2
+zk_max_latency	48
+zk_min_latency	0
+zk_packets_received	882014
+zk_packets_sent	882010
+zk_num_alive_connections	12
+zk_outstanding_requests	3
+zk_server_state	follower
+zk_znode_count	4821
+zk_watch_count	120

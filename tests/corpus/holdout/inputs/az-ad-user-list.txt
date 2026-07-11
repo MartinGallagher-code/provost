@@ -1,0 +1,4 @@
+DISPLAY-NAME        USER-PRINCIPAL-NAME              ENABLED
+Carol Danvers       carol@fabrikam.com               True
+David O'Brien       david.obrien@fabrikam.com        False
+Emma Watson         emma@fabrikam.com                True

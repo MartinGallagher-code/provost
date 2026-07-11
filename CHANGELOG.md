@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-07-11 — Holdout generalization pass for the recently-touched tools
+
+Added 12 held-out (second, different-content) samples for the tools touched
+this session, to prove the parsers generalize to UNSEEN captures rather than
+memorising the corpus fixtures: `ceph-osd-df` (different OSDs, mixed hdd/ssd —
+the direct test that segment-split generalizes), the 8 segment-split
+beneficiaries (`zstd-list`, latencytop, google/catch2-benchmark, az-ad-user-list,
+bandwhich, gh-run-list, spark-history-apps), and the 3 multi-mode adds
+(pvesm-status, rbd-du, zk-mntr). All 12 land on the **generic** tier
+(aligned-columns / tsv) with no goldens — judged on tidy shape only, the way an
+unseen capture is. Holdout now **80/80 tidy** (generic 55, hint 23, bespoke 2).
+Files: `tests/corpus/holdout/inputs/*` (12), `tests/corpus/holdout/expected.tsv`.
+
 ## 2026-07-11 — Segment-split for right-aligned space-in-value fixed-width tables (aligned-columns)
 
 Closes the hardest gap cluster: fixed-width tables whose values carry inner

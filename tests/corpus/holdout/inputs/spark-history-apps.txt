@@ -1,0 +1,4 @@
+App ID                        Name        Started              Duration
+app-20260711080000-0055       nightly-etl 2026-07-11 08:00    12.4 min
+app-20260711070000-0054       feature-agg 2026-07-11 07:00     3.1 min
+app-20260711060000-0053       cleanup     2026-07-11 06:00     0.9 min
