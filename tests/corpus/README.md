@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3519 tidy (187 format gaps ⏳)** — after two +500
+**3706 tools tested; 3522 tidy (184 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3302 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3305 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -103,8 +103,16 @@ and the break-hunt surfaced one clean format-level fix: an **engine-level
 line-terminator normalization** (once, gated) that maps Windows CRLF, bare-CR
 (classic Mac), vertical-tab / form-feed page breaks, and the Unicode line
 separators NEL / U+2028 / U+2029 to `\n`, so a capture using any of them no
-longer collapses to a single physical line. The 187 ⏳ that remain are genuinely
-hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
+longer collapses to a single physical line. A follow-up **`ini-sections`** generic
+parser then closed the multi-section INI/config cluster: `[section]` + `key =
+value` dumps that `equals` was flattening into one wide record (colliding
+duplicate keys across sections) now tidy to lossless (section, key, value) rows —
+closing `nst-ini-duplicate-keys` / `-php-ini-sections` / `-tox-ini-sections` and
+improving 9 already-covered configs (gitconfig, `systemctl cat`, rclone/gcloud
+config, …) from a duplicate-column form to the clean section table. It fires only
+on distinct simple-token sections, so ffprobe `[STREAM]` blocks, spaced section
+names and real TOML are left to their own parsers. The 184 ⏳ that remain are
+genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;
 prose/diff formats — cargo clippy, git diff; nested/2-line-header records). See

@@ -1,5 +1,35 @@
 # glean — Changelog
 
+## 2026-07-11 — Generic parser: ini-sections (multi-section INI/config)
+
+New `extract/strategies/structured/ini-sections.sh` (priority 20) — closes a
+cluster of non-conforming `⏳` inputs and improves a batch of already-covered
+config dumps.
+
+- **Problem.** Multi-section INI/config output (`[section]` headers + `key =
+  value` runs) was flattened by the plain `equals` parser into ONE wide record,
+  which collides duplicate keys across sections (three `host` columns) and drops
+  the section each value belongs to. The correct, lossless tidy is one row per
+  pair carrying its section: **(section, key, value)**.
+- **Fix.** `ini-sections` emits that long form. It fires only when section names
+  are simple tokens AND distinct, so repeated-section block formats (ffprobe
+  `[STREAM]…[/STREAM]`) and spaced section names (`[Unit multi-user.target]`)
+  are left to their better-fitting parsers, and `toml` (priority 15) still wins
+  real TOML. The line classifier is inlined into both detect and extract because
+  the engine unsets `_strat_*` helpers between the detection sweep and
+  extraction. Guards against `{`-only for JSON (INI legitimately opens with `[`,
+  which a bare `_is_json` check misreads as a JSON array — the bug that first
+  hid this parser from every INI input).
+- **Closes** `nst-ini-duplicate-keys`, `nst-php-ini-sections`,
+  `nst-tox-ini-sections` (3 ⏳ → ✅).
+- **Improves 9 already-covered configs** (`gitconfig-aliases`/`-multiline`,
+  `systemctl-cat`, `rclone-config-show`, `gcloud-config-list`, `atac-env`,
+  `wg-showconf`, `ini-database-profiles`, `ini-equals-in-value`) from a flat
+  duplicate-column form to the clean section/key/value table — goldens
+  re-frozen, each still meets its manifest (all improvements, 0 regressions).
+- Fixed `nst-tox-ini-sections` manifest row count (agent-written 8 → actual 7).
+  Coverage **3519 → 3522 tidy** of 3706 (**184 ⏳**) — ✅ 3305 / ✅ʰ 73 / ✅ᵇ 144.
+
 ## 2026-07-11 — Adversarial +510 (round 2) + line-terminator normalization
 
 A second adversarial expansion: 510 new inputs generated (8 parallel themed

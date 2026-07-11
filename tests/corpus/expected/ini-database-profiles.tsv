@@ -1,2 +1,13 @@
-host	port	user	sslmode	host	sslmode	host	user	sslmode
-db1.example.com	5432	app	require	db2.example.com	prefer	127.0.0.1	dev	disable
+n	section	key	value	total_entries
+1	production	host	db1.example.com	12
+2	production	port	5432	12
+3	production	user	app	12
+4	production	sslmode	require	12
+5	staging	host	db2.example.com	12
+6	staging	port	5432	12
+7	staging	user	app	12
+8	staging	sslmode	prefer	12
+9	local	host	127.0.0.1	12
+10	local	port	5432	12
+11	local	user	dev	12
+12	local	sslmode	disable	12

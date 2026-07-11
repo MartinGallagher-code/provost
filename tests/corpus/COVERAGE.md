@@ -114,7 +114,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | astropy-config | ✅ | equals |
 | asv-continuous | ✅ | aligned-columns |
 | at-queue | ✅ | tsv |
-| atac-env | ✅ | equals |
+| atac-env | ✅ | ini-sections |
 | atlantis-status | ✅ | aligned-columns |
 | atlas-schema-inspect | ✅ | json |
 | atop | ✅ | aligned-columns |
@@ -1151,7 +1151,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | gcloud-compute-images-list | ✅ | aligned-columns |
 | gcloud-compute-instances | ✅ | aligned-columns |
 | gcloud-compute-networks-list | ✅ | aligned-columns |
-| gcloud-config-list | ✅ | equals |
+| gcloud-config-list | ✅ | ini-sections |
 | gcloud-container-clusters | ✅ | aligned-columns |
 | gcloud-dataproc-clusters-list | ✅ | aligned-columns |
 | gcloud-functions-list | ✅ | aligned-columns |
@@ -1251,8 +1251,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | git-version-verbose | ✅ | colons |
 | git-worktree-list-porcelain | ✅ᵇ | git-worktree-list-porcelain (bespoke) |
 | git-worktree-list | ✅ | aligned-columns |
-| gitconfig-aliases | ✅ | text-lines |
-| gitconfig-multiline | ✅ | text-lines |
+| gitconfig-aliases | ✅ | ini-sections |
+| gitconfig-multiline | ✅ | ini-sections |
 | gitlab-runner-list | ✅ | aligned-columns |
 | gitleaks-detect | ✅ | yaml |
 | gitleaks-protect | ✅ | text-lines |
@@ -1475,8 +1475,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | influx-v2-task-list | ✅ | aligned-columns |
 | influxd-inspect | ✅ | block-records |
 | influxdb-show | ✅ | vertical-line |
-| ini-database-profiles | ✅ | equals |
-| ini-equals-in-value | ✅ | equals |
+| ini-database-profiles | ✅ | ini-sections |
+| ini-equals-in-value | ✅ | ini-sections |
 | intel-gpu-top | ✅ | aligned-columns |
 | inxi-full | ✅ | yaml |
 | ioping-run | ✅ | text-lines |
@@ -2157,7 +2157,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-firewall-zones-blocks | ✅ | block-records |
 | nst-gpg-packet-dump | ✅ | text-lines |
 | nst-hdparm-nested-sections | ✅ | key-value |
-| nst-ini-duplicate-keys | ⏳ | — |
+| nst-ini-duplicate-keys | ✅ | ini-sections |
 | nst-iostat-multisection | ✅ | block-records |
 | nst-ip-route-per-table | ✅ | text-lines |
 | nst-ip-s-link-nested | ⏳ | — |
@@ -2177,7 +2177,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-openssl-x509-text | ✅ | key-value |
 | nst-perf-report-sections | ✅ | indented-hierarchy |
 | nst-pg-report-mixed | ⏳ | — |
-| nst-php-ini-sections | ⏳ | — |
+| nst-php-ini-sections | ✅ | ini-sections |
 | nst-postfix-per-queue | ✅ | block-records |
 | nst-python-traceback-log | ✅ | text-lines |
 | nst-quota-grouped-subtotal | ⏳ | — |
@@ -2193,7 +2193,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-systemd-analyze-dump | ✅ | equals |
 | nst-systemd-show-unit | ✅ | equals |
 | nst-terraform-show-json | ✅ | json |
-| nst-tox-ini-sections | ⏳ | — |
+| nst-tox-ini-sections | ✅ | ini-sections |
 | nst-tree-node-attrs | ✅ | tree-view |
 | nst-vagrant-status-blocks | ✅ | text-lines |
 | nst-vmstat-sections | ✅ | aligned-columns |
@@ -2778,7 +2778,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rbenv-versions | ✅ | line-records |
 | rc-status | ✅ᵇ | rc-status (bespoke) |
 | rclone-about | ✅ | yaml |
-| rclone-config-show | ✅ | equals |
+| rclone-config-show | ✅ | ini-sections |
 | rclone-copy-progress | ✅ | aligned-columns |
 | rclone-lsd | ✅ | aligned-columns |
 | rclone-lsjson | ✅ | json-array |
@@ -3138,7 +3138,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | sysctl-net | ✅ | equals |
 | sysctl | ✅ | equals |
 | sysdig-summary | ✅ | line-records |
-| systemctl-cat | ✅ | block-records |
+| systemctl-cat | ✅ | ini-sections |
 | systemctl-failed-color | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
 | systemctl-failed | ✅ʰ | aligned-columns (hint: systemctl-list-units) |
 | systemctl-list-automounts | ✅ | aligned-columns |
@@ -3606,7 +3606,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | wg-show | ✅ | indented-hierarchy |
 | wg-showconf-interface | ✅ | block-records |
 | wg-showconf-peers | ✅ | block-records |
-| wg-showconf | ✅ | equals |
+| wg-showconf | ✅ | ini-sections |
 | wget-progress-bar | ✅ | aligned-columns |
 | wget_spider | ✅ | indented-hierarchy |
 | whatweb | ✅ | colons |

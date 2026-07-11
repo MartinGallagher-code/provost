@@ -3546,7 +3546,7 @@ nst-dig-multiline-dnskey	table	3	4
 nst-systemd-show-unit	kv	-	2
 nst-systemd-analyze-dump	text	-	2
 nst-ini-duplicate-keys	table	9	3
-nst-tox-ini-sections	table	8	3
+nst-tox-ini-sections	table	7	3
 nst-php-ini-sections	table	9	3
 nst-openssl-x509-text	kv	-	2
 nst-gpg-packet-dump	kv	-	2

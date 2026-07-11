@@ -1,6 +1,19 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; adversarial +510 round 2 + line-terminator normalization (2026-07-11) — **3519 tidy, 187 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; ini-sections parser (2026-07-11) — **3522 tidy, 184 ⏳**
+
+> **2026-07-11 — ini-sections generic parser.** Closed the multi-section
+> INI/config ⏳ cluster. `[section]` + `key = value` dumps were flattened by
+> `equals` into one wide record (colliding duplicate keys); the new
+> `structured/ini-sections.sh` (priority 20) emits lossless (section, key, value)
+> rows. Fires only on distinct simple-token sections (ffprobe `[STREAM]`, spaced
+> names, real TOML excluded). Detect guards `{`-only for JSON — a bare `_is_json`
+> check treats the opening `[section]` as a JSON array (the bug that first hid the
+> parser). Classifier inlined (engine unsets `_strat_*` helpers between detect and
+> extract). Closes 3 ⏳, improves 9 already-covered configs (goldens re-frozen, all
+> improvements, golden gate 3378/0, extract 62/62 + sample golden, smoke 49/0).
+> **Now 3522 tidy, 184 ⏳** (✅ 3305 / ✅ʰ 73 / ✅ᵇ 144). Follow-up on the branch
+> (rebased onto post-merge main).
 
 > **2026-07-11 — adversarial +510 (round 2).** 510 inputs generated (8 parallel
 > themed batches) to BREAK the parser across novel mechanisms: encoding/whitespace,
