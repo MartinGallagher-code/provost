@@ -1,0 +1,5 @@
+Group 0: (Blocks 0-32767)
+  Primary superblock at 0, Group descriptors at 1-4
+  Block bitmap at 5
+  Free blocks: 12044
+  Free inodes: 8188

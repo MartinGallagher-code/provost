@@ -1,0 +1,12 @@
+Running 30s test @ http://api.example.com/orders
+  4 threads and 100 connections
+  Thread calibration: mean lat.: 12.482ms, rate sampling interval: 44ms
+  Latency Distribution (HdrHistogram - Recorded Latency)
+ 50.000%   10.28ms
+ 75.000%   14.44ms
+ 90.000%   28.10ms
+ 99.000%   88.20ms
+ 99.999%  212.44ms
+  120488 requests in 30.00s, 18.44MB read
+Requests/sec:   4016.27
+Transfer/sec:      0.61MB

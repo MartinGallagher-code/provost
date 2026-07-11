@@ -1,0 +1,4 @@
+table     partition   rows       bytes       active
+events    202607      48217304   4102839120  1
+events    202606      88201442   9912834100  1
+sessions  202607      1204882    201448320   1

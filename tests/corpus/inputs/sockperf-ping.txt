@@ -1,0 +1,7 @@
+sockperf: Summary: Latency is 12.482 usec
+sockperf: Total 482100 observations; each percentile contains 4821.00 observations
+sockperf: ---> <MAX> observation =  221.442
+sockperf: ---> percentile 99.999 =  188.201
+sockperf: ---> percentile 99.000 =   44.210
+sockperf: ---> percentile 50.000 =   12.100
+sockperf: ---> <MIN> observation =    8.204

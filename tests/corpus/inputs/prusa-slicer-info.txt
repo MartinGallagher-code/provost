@@ -1,0 +1,4 @@
+Filament used: 4.21 m (12.4 g)
+Estimated printing time: 2h 43m
+Layer count: 412
+Nozzle diameter: 0.4 mm

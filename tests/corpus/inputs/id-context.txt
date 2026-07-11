@@ -1,0 +1,1 @@
+uid=1000(deploy) gid=1000(deploy) groups=1000(deploy),27(sudo) context=unconfined_u:unconfined_r

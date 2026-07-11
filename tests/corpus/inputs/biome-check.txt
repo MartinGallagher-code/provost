@@ -1,0 +1,4 @@
+checked 442 files in 88ms
+Found 12 errors
+Found 4 warnings
+src/app.ts:12:1 lint/suspicious/noExplicitAny

@@ -1,0 +1,3 @@
+[2026-07-10 06:00:00 UTC] 5.0MiB db-dump.sql.gz
+[2026-07-10 05:00:00 UTC]     0B backups/
+[2026-07-09 22:00:00 UTC]  44KiB audit.jsonl

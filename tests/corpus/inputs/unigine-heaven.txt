@@ -1,0 +1,10 @@
+Unigine Heaven Benchmark 4.0
+
+FPS:      142.4
+Score:    3588
+Min FPS:  28.1
+Max FPS:  288.2
+
+Render:   OpenGL
+Mode:     1920x1080 fullscreen
+Preset:   Ultra

@@ -1,0 +1,4 @@
+Status of volume: gv0
+Gluster process                    TCP Port  Online  Pid
+Brick node1:/data/brick            49152     Y       812
+Brick node2:/data/brick            49152     Y       813

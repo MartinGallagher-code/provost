@@ -1,0 +1,2 @@
+Found 8 warnings and 2 errors.
+Finished in 44ms on 442 files with 88 rules using 8 threads.

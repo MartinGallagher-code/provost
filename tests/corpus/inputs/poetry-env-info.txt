@@ -1,0 +1,5 @@
+Virtualenv
+Python:         3.12.4
+Implementation: CPython
+Path:           /home/dev/.cache/pypoetry/virtualenvs/app-abc
+Valid:          True

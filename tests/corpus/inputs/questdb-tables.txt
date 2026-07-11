@@ -1,0 +1,3 @@
+id  name         designatedTimestamp  partitionBy   rowCount
+1   trades       ts                   DAY           88201004
+2   quotes       ts                   HOUR          412839120

@@ -1,0 +1,4 @@
+Found 2 processes using old versions of upgraded files
+(2 distinct programs)
+812   /usr/sbin/nginx
+2210  /usr/lib/postgresql/16/bin/postgres

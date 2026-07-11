@@ -1,0 +1,4 @@
+[
+  {"name": "system", "count": 3, "vmSize": "Standard_D4s_v5", "mode": "System"},
+  {"name": "user", "count": 6, "vmSize": "Standard_E8s_v5", "mode": "User"}
+]

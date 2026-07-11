@@ -1,0 +1,4 @@
+aws
+  IAM:  12 findings (2 danger, 10 warning)
+  S3:   8 findings (1 danger, 7 warning)
+  EC2:  22 findings (4 danger, 18 warning)

@@ -1,0 +1,9 @@
+mixbench (v0.04-8-g1204882)
+------------------------ Device specifications ------------------------
+Device:              NVIDIA GeForce RTX 4090
+GPU clock rate:      2520 MHz
+Total global mem:    24564 MB
+-----------------------------------------------------------------------
+         Single Precision compute (GFLOPS): 82044.10
+         Double Precision compute (GFLOPS):  1288.44
+         Memory bandwidth (GB/sec):           912.10

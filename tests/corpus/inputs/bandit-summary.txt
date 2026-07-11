@@ -1,0 +1,6 @@
+Test results:
+>> Issue: [B602:subprocess_popen_with_shell_equals_true]
+   Severity: High   Confidence: High
+   Location: deploy.py:44
+Code scanned: 1204 lines
+Total issues (by severity): High: 1, Medium: 2, Low: 4

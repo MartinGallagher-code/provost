@@ -1,0 +1,4 @@
+n	Benchmark	Mode	Cnt	Score	Error	Units	total_entries
+1	ParserBench.parseSmall	thrpt	25	482100.44	±	1204.21_ops/s	3
+2	ParserBench.parseLarge	thrpt	25	12048.10	±	221.04_ops/s	3
+3	EncoderBench.encode	thrpt	25	88201.88	±	882.10_ops/s	3

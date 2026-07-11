@@ -1,0 +1,7 @@
+{
+  "packages": [
+    {"name": "app", "version": "0.1.0", "id": "app 0.1.0"},
+    {"name": "serde", "version": "1.0.203", "id": "serde 1.0.203"}
+  ],
+  "workspace_members": ["app 0.1.0"]
+}

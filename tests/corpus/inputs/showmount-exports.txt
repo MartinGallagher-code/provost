@@ -1,0 +1,3 @@
+Export list for nfs-server:
+/exports/projects 10.0.0.0/8
+/exports/media    10.0.1.0/24

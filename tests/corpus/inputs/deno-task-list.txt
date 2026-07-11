@@ -1,0 +1,7 @@
+Available tasks:
+- dev
+    deno run --watch main.ts
+- test
+    deno test
+- fmt
+    deno fmt

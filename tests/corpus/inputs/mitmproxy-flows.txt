@@ -1,0 +1,3 @@
+GET   https://api.example.com/orders        200  1.2k  42ms
+POST  https://api.example.com/checkout      201  88b   128ms
+GET   https://api.example.com/health        200  12b   8ms

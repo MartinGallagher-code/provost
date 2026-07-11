@@ -1,0 +1,2 @@
+Mage Build Tool 1.15.0
+Build Date: 2026-06-30

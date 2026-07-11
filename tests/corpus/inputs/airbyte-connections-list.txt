@@ -1,0 +1,3 @@
+CONNECTION                SOURCE          DESTINATION   STATUS
+postgres-to-snowflake     Postgres        Snowflake     active
+salesforce-to-bigquery    Salesforce      BigQuery      inactive

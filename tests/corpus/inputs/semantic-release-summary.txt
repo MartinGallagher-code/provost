@@ -1,0 +1,3 @@
+[semantic-release] Published release 2.5.0 on default channel
+[semantic-release] The next release version is 2.5.0
+[semantic-release] Created tag v2.5.0

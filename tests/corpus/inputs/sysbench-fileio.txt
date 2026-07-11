@@ -1,0 +1,16 @@
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+File operations:
+    reads/s:                      4821.11
+    writes/s:                     3214.02
+    fsyncs/s:                     10288.44
+
+Throughput:
+    read, MiB/s:                  75.33
+    written, MiB/s:               50.22
+
+Latency (ms):
+         min:                                    0.01
+         avg:                                    0.44
+         max:                                   28.12
+         95th percentile:                        1.10

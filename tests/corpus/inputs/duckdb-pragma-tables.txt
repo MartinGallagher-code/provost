@@ -1,0 +1,4 @@
+name       column_count   estimated_size
+orders     8              44201
+customers  5              9102
+products   12             88201

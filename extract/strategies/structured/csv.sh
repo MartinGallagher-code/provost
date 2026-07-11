@@ -122,6 +122,23 @@ strategy_extract () {
     local headers; headers=()
     IFS=',' read -ra headers <<< "$header"
 
+    # Headerless numeric CSV — data loggers (fio --write_bw_log / --write_iops_log,
+    # `sar -o` CSV, collectd) emit raw rows with no header. If the FIRST row's
+    # fields are all numeric, there is no header (a real header carries
+    # non-numeric column names): synthesise A,B,C… and keep row 1 as data.
+    local _headerless=1
+    [[ ${#headers[@]} -lt 2 ]] && _headerless=0
+    local _hf
+    for _hf in "${headers[@]}"; do
+        _hf="${_hf#"${_hf%%[![:space:]]*}"}"; _hf="${_hf%"${_hf##*[![:space:]]}"}"
+        [[ -z "$_hf" || "$_hf" =~ ^-?[0-9]+([.][0-9]+)?%?$ ]] || { _headerless=0; break; }
+    done
+    if [[ $_headerless -eq 1 ]]; then
+        local _hn=${#headers[@]} _hk
+        headers=()
+        for ((_hk=1; _hk<=_hn; _hk++)); do headers+=("$(_col_letter "$_hk")"); done
+    fi
+
     # Clean BOM and whitespace from header names
     local hi
     for ((hi=0; hi<${#headers[@]}; hi++)); do
@@ -141,7 +158,7 @@ strategy_extract () {
     local rec=0
     while IFS= read -r line; do
         row_num=$((row_num + 1))
-        [[ $row_num -eq 1 ]] && continue  # skip header
+        [[ $row_num -eq 1 && $_headerless -eq 0 ]] && continue  # skip header (unless headerless)
         [[ -z "$line" ]] && continue
 
         # Parse the line field by field, handling quoted fields

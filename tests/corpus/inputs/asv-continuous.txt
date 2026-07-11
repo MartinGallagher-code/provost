@@ -1,0 +1,4 @@
+       before           after         ratio
+     [a1b2c3d4]       [e5f6g7h8]
++      412±2ns          440±3ns      1.07  parser.time_parse
+-      1.20±0.1ms       1.10±0.1ms   0.92  engine.time_run

@@ -1,0 +1,4 @@
+Requests      [total, rate]       88201, 882.01
+Duration      [total, attack]     100s, 100s
+Latencies     [mean, p95, p99]    42ms, 128ms, 412ms
+Success       [ratio]             99.95%

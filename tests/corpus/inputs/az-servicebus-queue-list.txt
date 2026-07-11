@@ -1,0 +1,3 @@
+NAME              STATUS   MAX_SIZE_MB   MESSAGE_COUNT
+orders-queue      Active   1024          412
+notifications     Active   2048          88

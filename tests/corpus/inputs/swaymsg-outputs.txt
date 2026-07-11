@@ -1,0 +1,4 @@
+Output DP-1 'Dell U2720Q' (focused)
+  Current mode: 3840x2160 @ 60.000 Hz
+  Scale factor: 1.500000
+  Transform: normal

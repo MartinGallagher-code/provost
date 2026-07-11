@@ -1,0 +1,4 @@
+api_cluster::10.0.2.1:8080::health_flags::healthy
+api_cluster::10.0.2.1:8080::weight::1
+api_cluster::10.0.2.2:8080::health_flags::healthy
+api_cluster::default_priority::max_connections::1024

@@ -1,0 +1,6 @@
+stanza: main
+    status: ok
+    cipher: aes-256-cbc
+    db (current)
+        wal archive min/max (16): 000000010000000000000001/00000001000000000000002A
+        full backup: 20260710-060000F

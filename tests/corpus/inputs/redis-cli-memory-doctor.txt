@@ -1,0 +1,4 @@
+Sam, I detected a few issues in this Redis instance memory implants:
+
+ * Peak memory: allocator is 1.42x the peak.
+ * High fragmentation: fragmentation ratio 1.52.

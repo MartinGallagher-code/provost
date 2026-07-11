@@ -1,0 +1,3 @@
+NAME             KIND           LOCATION       PROVISIONING
+orders-cosmos    GlobalDocumentDB westeurope   Succeeded
+events-cosmos    MongoDB        westeurope     Succeeded

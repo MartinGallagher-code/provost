@@ -1,0 +1,5 @@
+🦋  Packages to be bumped at patch:
+🦋  @example/api
+🦋  @example/web
+🦋  Packages to be bumped at minor:
+🦋  @example/shared

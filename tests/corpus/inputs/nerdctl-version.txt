@@ -1,0 +1,6 @@
+Client:
+ Version:	v1.7.6
+ Go version:	go1.22.4
+Server:
+ containerd:
+  Version:	v1.7.18

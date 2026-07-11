@@ -1,0 +1,6 @@
+State: Printing
+File: benchy.gcode
+Progress: 44.2%
+Time Elapsed: 01:12:00
+Time Left: 01:31:00
+Nozzle: 210°C  Bed: 60°C

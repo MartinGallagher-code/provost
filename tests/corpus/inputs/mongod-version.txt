@@ -1,0 +1,5 @@
+db version v7.0.12
+Build Info: {
+    version: "7.0.12",
+    gitVersion: "a1b2c3d4"
+}

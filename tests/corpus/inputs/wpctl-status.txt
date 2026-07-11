@@ -1,0 +1,6 @@
+PipeWire 'pipewire-0' [1.0.5]
+ └─ Audio
+    ├─ Sinks:
+    │  *   49. Built-in Audio Analog Stereo  [vol: 0.70]
+    ├─ Sources:
+    │      52. Blue Yeti Mono               [vol: 1.00]

@@ -1,0 +1,4 @@
+Login: deploy       Name: Deploy User
+Directory: /home/deploy    Shell: /bin/bash
+On since Thu Jul 10 07:00 (UTC) on pts/0 from 10.1.2.99
+No mail.

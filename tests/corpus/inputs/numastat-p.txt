@@ -1,0 +1,5 @@
+Per-node process memory usage (in MBs) for PID 2210 (postgres)
+                           Node 0          Node 1           Total
+Huge                         0.00            0.00            0.00
+Heap                       412.44          388.20          800.64
+Stack                        1.20            0.88            2.08

@@ -1,0 +1,4 @@
+Triggered: KubePodCrashLooping
+Pod: api-abc123 (prod)
+Restarts: 12
+Action: Sent Slack notification to #alerts

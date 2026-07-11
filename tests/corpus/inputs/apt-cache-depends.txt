@@ -1,0 +1,5 @@
+nginx
+  Depends: libc6
+  Depends: libssl3
+  Depends: nginx-common
+  Recommends: fcgiwrap

@@ -1,0 +1,7 @@
+entry1.name django
+entry1.version 5.0.6
+entry1.location prod
+entry2.name celery
+entry2.version 5.4.0
+entry2.location prod
+total_entries 2

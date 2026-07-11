@@ -1,0 +1,2 @@
+RabbitMQ version: 3.13.2
+Erlang version: 26.2.5

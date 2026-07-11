@@ -1,0 +1,1 @@
+{Version:kustomize/v5.4.2 GitCommit:a1b2c3d4 BuildDate:2026-06-01T10:00:00Z GoOs:linux GoArch:amd64}

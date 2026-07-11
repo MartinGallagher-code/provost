@@ -1,0 +1,4 @@
+Group "default" (2 parallel):
+ id  status    command              start
+  0  Done      backup.sh            06:00:00
+  1  Running   sync.sh              06:05:00

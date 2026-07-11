@@ -1,0 +1,5 @@
+Super PI Version 1.1
+Calculating 1048576 digits of PI
+
+  1024K iteration completed
+Total calculation time: 8.821 sec

@@ -1,0 +1,4 @@
+Downloading a1b2c3d4 model.onnx
+Downloaded  a1b2c3d4 model.onnx
+Pulled ghcr.io/example/model:v2
+Digest: sha256:e5f6g7h8i9j0

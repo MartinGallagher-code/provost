@@ -1,0 +1,4 @@
+Agent Starting Run: brisk-otter-42 with config:
+  batch_size: 64
+  learning_rate: 0.001
+  epochs: 10

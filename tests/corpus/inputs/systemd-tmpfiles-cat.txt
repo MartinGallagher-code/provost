@@ -1,0 +1,3 @@
+d /run/myapp 0755 myapp myapp -
+f /var/log/myapp.log 0644 myapp myapp -
+L /var/lib/myapp/current - - - - /var/lib/myapp/v2

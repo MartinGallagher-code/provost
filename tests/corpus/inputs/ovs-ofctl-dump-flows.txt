@@ -1,0 +1,2 @@
+ cookie=0x0, duration=88201.442s, table=0, n_packets=1204882, n_bytes=98201442, priority=100,ip actions=NORMAL
+ cookie=0x0, duration=88201.442s, table=0, n_packets=482100, n_bytes=44210882, priority=0 actions=drop

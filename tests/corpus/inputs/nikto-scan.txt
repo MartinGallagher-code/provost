@@ -1,0 +1,4 @@
++ Server: nginx/1.27.0
++ /admin/: Admin login page found.
++ OSVDB-3092: /backup/: This might be interesting.
++ 8821 requests: 0 error(s) and 3 item(s) reported

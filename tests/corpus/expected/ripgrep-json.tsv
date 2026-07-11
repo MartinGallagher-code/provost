@@ -1,0 +1,3 @@
+n	type	data
+1	match	{"path":{"text":"src/main.rs"},"line_number":12,"lines":{"text":"fn main() {"}}
+2	match	{"path":{"text":"src/parser.rs"},"line_number":44,"lines":{"text":"fn parse() {"}}

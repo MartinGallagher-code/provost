@@ -1,0 +1,7 @@
+{
+  "rootPackage": "app",
+  "packages": [
+    {"name": "app", "version": "1.0.0"},
+    {"name": "vibe-d", "version": "0.10.0"}
+  ]
+}

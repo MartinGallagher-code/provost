@@ -1,0 +1,6 @@
+                   | EN
+-------------------+-----
+  Pages            | 442
+  Static files     | 88
+  Aliases          | 12
+Total in 1204 ms

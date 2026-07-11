@@ -1,0 +1,2 @@
+cache_device	cache_mode	state	dirty_data	cache_hit_ratio
+/dev/nvme0n1p2	writeback	clean	44.2 MiB	94.2%

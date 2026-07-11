@@ -1,0 +1,6 @@
+status playing
+file /music/album/track.flac
+duration 221
+position 84
+tag artist Example Artist
+tag title Example Track

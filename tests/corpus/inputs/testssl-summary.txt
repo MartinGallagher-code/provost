@@ -1,0 +1,5 @@
+ Protocols     TLS 1.2 offered, TLS 1.3 offered
+ Cipher order  OK
+ PFS           offered
+ Vulnerabilities  Heartbleed not vulnerable, POODLE not vulnerable
+ Rating        A+

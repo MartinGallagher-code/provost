@@ -1,0 +1,4 @@
+tcp_bw:
+    bw  =  9.41 Gb/sec
+tcp_lat:
+    latency  =  12.4 us

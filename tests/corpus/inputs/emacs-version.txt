@@ -1,0 +1,2 @@
+GNU Emacs 29.4
+Copyright (C) 2024 Free Software Foundation, Inc.

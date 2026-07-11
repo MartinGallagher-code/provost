@@ -1,0 +1,7 @@
+     Standalone
+┌─────────┬─────────┬──────────────┐
+│ Name    │ Type    │ Dependencies │
+├─────────┼─────────┼──────────────┤
+│ default │ virtual │ pytest       │
+│ docs    │ virtual │ mkdocs       │
+└─────────┴─────────┴──────────────┘

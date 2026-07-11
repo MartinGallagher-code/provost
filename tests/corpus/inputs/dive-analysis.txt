@@ -1,0 +1,8 @@
+Image Details
+Total Image size: 212 MB
+Potential wasted space: 12 MB
+Image efficiency score: 94%
+
+Layers
+44 MB  FROM debian:12-slim
+12 MB  RUN apt-get install -y curl

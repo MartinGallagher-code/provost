@@ -1,0 +1,6 @@
+MOS Configuration:
+        version: 5000
+        name: 'tank'
+        state: 0
+        txg: 8821004
+        pool_guid: 12345678901234567890

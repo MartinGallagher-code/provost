@@ -1,0 +1,3 @@
+DISPLAY-NAME    SHAPE              STATE     REGION
+web-prod-1      VM.Standard.E4    RUNNING   eu-frankfurt-1
+db-prod-1       VM.Standard.E4    RUNNING   eu-frankfurt-1

@@ -1,0 +1,18 @@
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Prime numbers limit: 20000
+
+CPU speed:
+    events per second:  4821.02
+
+General statistics:
+    total time:                          10.0012s
+    total number of events:              48221
+
+Latency (ms):
+         min:                                    1.42
+         avg:                                    1.65
+         max:                                   12.08
+         95th percentile:                        2.11

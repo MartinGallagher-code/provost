@@ -1,0 +1,5 @@
+Version  2.00       ------Sequential Output------ --Sequential Input- --Random-
+                    -Per Chr- --Block-- -Rewrite- -Per Chr- --Block-- --Seeks--
+Name:Size etc        K/sec %CP  K/sec %CP  K/sec %CP  K/sec %CP  K/sec %CP  /sec %CP
+node1        16G      882  99  482100  44  221044  22   1204  99  502110  38 1204.4  88
+Latency               12ms   88ms      44ms      8ms      12ms      412ms

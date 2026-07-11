@@ -1,0 +1,4 @@
+n	A	total_entries
+1	VRRP_Instance(VI_1) Entering MASTER STATE	3
+2	VRRP_Instance(VI_1) setting VIPs.	3
+3	VRRP_Instance(VI_1) Sending gratuitous ARPs on eth0 for 10.0.1.100	3

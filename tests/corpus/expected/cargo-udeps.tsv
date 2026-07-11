@@ -1,0 +1,4 @@
+n	unused	dependencies:	total_entries
+1	`app	v0.1.0`	3
+2	└───	dependencies	3
+3	└───	"unused-crate"	3

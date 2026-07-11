@@ -1,0 +1,3 @@
+Apache Maven 3.9.8
+Maven home: /opt/maven
+Java version: 21.0.3, vendor: Eclipse Adoptium

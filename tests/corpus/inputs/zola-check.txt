@@ -1,0 +1,4 @@
+Checking site...
+-> Created 442 pages and 12 sections
+-> Checked 88 internal links
+Done in 880ms.

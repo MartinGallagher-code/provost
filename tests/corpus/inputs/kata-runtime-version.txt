@@ -1,0 +1,3 @@
+kata-runtime  : 3.6.0
+   commit   : a1b2c3d4
+   OCI specs: 1.1.0

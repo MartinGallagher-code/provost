@@ -1,0 +1,3 @@
+REPOSITORY   FORMAT   LOCATION      SIZE(MB)
+docker-repo  DOCKER   europe-west1  4102.44
+npm-repo     NPM      europe-west1  88.20

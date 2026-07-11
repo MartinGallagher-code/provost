@@ -1,0 +1,4 @@
+  File: app
+  Size: 2481024   Blocks: 4848  IO Block: 4096  regular file
+Device: 259,2  Inode: 1835243   Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: (1000/deploy)  Gid: (1000/deploy)

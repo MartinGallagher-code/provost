@@ -1,0 +1,8 @@
+y-cruncher v0.8.3 Build 9541
+
+Constant: Pi
+Algorithm: Chudnovsky (1988)
+Decimal Digits: 1,000,000,000
+Total Computation Time: 88.201 seconds
+CPU Utilization: 788.44 %
+Multi-core Efficiency: 98.55 %

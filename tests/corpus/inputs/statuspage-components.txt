@@ -1,0 +1,5 @@
+Component            Status
+API                  Operational
+Dashboard            Operational
+Webhooks             Degraded Performance
+Database             Operational

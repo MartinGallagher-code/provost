@@ -1,0 +1,3 @@
+Name             Latest Version   Stage          Updated
+churn-predictor  4                Production     2026-07-08
+fraud-detector   7                Staging        2026-07-09

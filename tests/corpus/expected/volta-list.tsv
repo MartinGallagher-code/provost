@@ -1,6 +1,7 @@
-n	⚡️	User	total_entries
-1	Node	runtimes:	5
-2	v20.14.0	(default)	5
-3	v22.4.1		5
-4	Package	managers:	5
-5	npm@10.8.1	(default)	5
+n	A	B	C	total_entries
+1	⚡️	User	toolchain:	6
+2	Node	runtimes:		6
+3	v20.14.0	(default)		6
+4	v22.4.1			6
+5	Package	managers:		6
+6	npm@10.8.1	(default)		6

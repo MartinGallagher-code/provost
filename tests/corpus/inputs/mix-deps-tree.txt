@@ -1,0 +1,5 @@
+app
+├── phoenix ~> 1.7.14
+│   ├── plug ~> 1.14
+│   └── telemetry ~> 1.0
+└── ecto_sql ~> 3.11

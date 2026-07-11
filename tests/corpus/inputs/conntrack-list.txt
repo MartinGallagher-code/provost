@@ -1,0 +1,2 @@
+tcp  6 431999 ESTABLISHED src=10.0.1.4 dst=10.0.1.24 sport=51022 dport=443
+tcp  6 120 TIME_WAIT src=10.0.1.5 dst=10.0.1.24 sport=51044 dport=22

@@ -1,0 +1,1 @@
+hugo v0.128.0-a1b2c3d4 linux/amd64 BuildDate=2026-06-30T00:00:00Z

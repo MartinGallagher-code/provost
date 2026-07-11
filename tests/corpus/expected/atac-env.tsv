@@ -1,0 +1,2 @@
+base_url	token	base_url
+https://api.example.com	{{PROD_TOKEN}}	https://staging.example.com

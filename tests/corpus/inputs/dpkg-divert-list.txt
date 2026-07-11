@@ -1,0 +1,2 @@
+diversion of /usr/bin/foo to /usr/bin/foo.real by fooapp
+diversion of /etc/bar to /etc/bar.dpkg-orig by barapp

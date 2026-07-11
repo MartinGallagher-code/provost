@@ -1,0 +1,3 @@
+Name     Total / Used / Free       Properties
+tank     4 TiB / 2.1 TiB / 1.9 TiB  ~Ca,~Cr
+backup   8 TiB / 1.8 TiB / 6.2 TiB  ~Ca,~Cr

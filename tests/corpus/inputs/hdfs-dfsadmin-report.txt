@@ -1,0 +1,6 @@
+Configured Capacity: 13194139533312 (12.00 TB)
+DFS Used: 4508876412928 (4.10 TB)
+DFS Remaining: 8685263120384 (7.90 TB)
+Live datanodes (4):
+Name: 10.0.1.2:9866 (dn-1)
+Decommission Status : Normal

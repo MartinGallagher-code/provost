@@ -1,0 +1,4 @@
+HTTP/2 200
+content-type: application/json
+content-length: 88
+cache-control: max-age=3600

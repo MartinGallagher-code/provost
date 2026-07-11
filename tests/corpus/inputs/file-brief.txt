@@ -1,0 +1,3 @@
+app: ELF 64-bit LSB pie executable, x86-64, dynamically linked
+logo.png: PNG image data, 512 x 512, 8-bit/color RGBA
+data.csv: CSV text

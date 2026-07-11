@@ -1,0 +1,3 @@
+NVIM v0.10.0
+Build type: Release
+LuaJIT 2.1.1713773202

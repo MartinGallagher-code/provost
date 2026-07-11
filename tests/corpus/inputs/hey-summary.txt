@@ -1,0 +1,12 @@
+Summary:
+  Total:        10.2210 secs
+  Slowest:      0.2214 secs
+  Fastest:      0.0044 secs
+  Average:      0.0442 secs
+  Requests/sec: 8629.4402
+
+Latency distribution:
+  10% in 0.0210 secs
+  50% in 0.0442 secs
+  95% in 0.1288 secs
+  99% in 0.2010 secs

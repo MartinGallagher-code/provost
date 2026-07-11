@@ -1,0 +1,2 @@
+Found_event_files.train/events.out.tfevents.1751880000.scalars	Found_event_files.train/events.out.tfevents.1751880000.steps	Found_event_files.val/events.out.tfevents.1751880000.scalars
+loss, accuracy, lr	8821	val_loss, val_accuracy

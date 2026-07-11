@@ -1,0 +1,3 @@
+dev     ~/projects/app
+ops     ~/infra
+notes   ~/notes

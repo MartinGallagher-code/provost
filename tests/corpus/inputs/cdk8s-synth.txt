@@ -1,0 +1,4 @@
+Synthesizing...
+dist/prod.k8s.yaml
+dist/staging.k8s.yaml
+Done.

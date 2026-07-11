@@ -1,0 +1,5 @@
+Pass 1: Checking inodes, blocks, and sizes
+Pass 2: Checking directory structure
+Pass 3: Checking directory connectivity
+Pass 5: Checking group summary information
+/dev/sda2: 128442/6553600 files, 1204882/26214400 blocks

@@ -1,5 +1,269 @@
 # glean — Changelog
 
+## 2026-07-11 — Multi-mode coverage audit (all ~1000 tools) + net-new mode samples
+
+An audit of whether every tool's *range* of output modes is sampled — the same
+check that exposed fio's under-coverage earlier. Findings and actions:
+
+- **The corpus is already deeply multi-mode.** High-fanout tools already carry
+  many modes each (kubectl 54, aws 46, git 43, docker 28, ip 20, ss 13, tc 9,
+  sensors 5, zfs 4, …). Programmatically probing the ~738 single-sample tool
+  families for plausible additional modes produced **~70% collisions** — the
+  candidate mode was already represented — confirming the breadth is real, not
+  an artifact of fio being special.
+- **Net-new mode samples added (generic, no new code).** Three real common-tool
+  modes that weren't sampled and tidy under the generic parsers: `pvesm-status`
+  (Proxmox storage, aligned-columns), `rbd-du` (Ceph RBD usage with `50 GiB`
+  space-in-value cells, aligned-columns), `zk-mntr` (ZooKeeper `mntr`, tab kv).
+- **Two genuine gaps found and tracked honestly as ⏳** (same hard structural
+  classes as the existing 25): `supervisorctl-status` (multi-space-aligned
+  status table with `pid …, uptime …` value cells) and `ovs-ofctl-dump-flows`
+  (comma `k=v` flow records — the generic kv-pairs parse collapses multiple
+  flows to one record).
+- **Rejected a garbage-passing sample rather than inflate coverage.**
+  `ceph-osd-df` mechanically satisfied a shape check (17 cols × 2 rows) but its
+  data was misaligned garbage (multi-word `RAW USE` header + `1.0 TiB` /
+  `180 GiB` space-in-value cells shift every column; the tail jams into one
+  cell). Since the shape gate can't detect the misalignment, the sample was
+  removed entirely instead of committing a golden that enshrines wrong data.
+
+Coverage **2151 → 2156 tools; 2126 → 2129 tidy** (✅ 1937 generic, ✅ʰ 58 hint,
+✅ᵇ 134 bespoke); ⏳ 25 → 27. Golden gate re-run: **1995 passed, 0 failed**, no
+existing golden touched. Files: `tests/corpus/inputs/{pvesm-status,rbd-du,zk-mntr,ovs-ofctl-dump-flows,supervisorctl-status}.txt`,
+`tests/corpus/expected/{pvesm-status,rbd-du,zk-mntr}.tsv`,
+`tests/corpus/expected.tsv`, `tests/corpus/COVERAGE.md`.
+
+## 2026-07-10 — Positional multi-word headers + fixed-width banner strip (aligned-columns)
+
+The audited positional-header round. Two capabilities in `aligned-columns`, each
+validated by a full-corpus golden audit:
+
+- **Positional column assignment for multi-word headers.** It now also triggers
+  when the header carries MORE whitespace tokens than the data rows AND its
+  2-space segmentation collapses exactly to the modal data-column count — a
+  genuine multi-word-header table (STREAM's `Best Rate MB/s`, kubectl's
+  `NOMINATED NODE`). The equality is the safety net: single-spaced labels (df's
+  `Used Avail Use%`) under-segment and never match, so numeric tables keep
+  tokenization.
+- **Fixed-width banner strip.** A leading title banner before a fixed-width table
+  is dropped, gated by four discriminators (single-column/decorated-rule banner
+  shape, an all-label header — every token has a letter, none digit-leading,
+  ≥2 two-space segments — digit-bearing data, and header/data at the same
+  indent). Version banners (`Consul v1.18.1`), kv blocks (ipset, xh), logs
+  (git log) and decorated rules (mpirun `==== JOB MAP ====`) are all excluded,
+  each verified by audit.
+
+**Every changed golden audited individually**: 39 modified — all improvements
+(multi-word headers correctly joined AND previously-dropped trailing columns
+recovered: proc-net-arp's 6 columns, kubectl AGE / READINESS_GATES /
+ALLOWED_DISRUPTIONS, arp `Flags_Mask`+Iface, npm `Depended_by`, ss-tcp
+Local/Peer `Address:Port`, unixbench's real header, …). 7 new goldens: the
+target benchmarks (stream-benchmark, blender-benchmark) + 5 bonus recoveries
+from the old hard tail (frr-show-bgp-summary, gluster-volume-status, watch-diff,
+nodetool-compactionstats, pytest-benchmark). **0 goldens deleted.**
+
+Coverage 2120/2151 → **2126 / 2151** (✅ 1934 generic · ✅ʰ 58 · ✅ᵇ 134);
+extract 62/62, smoke 49, melt 10, holdout 68/68. Benchmark corpus now **97/99**
+(only kdiskmark — headerless first column — and lzbench — single-space multi-word
+cells — remain).
+
+## 2026-07-10 — Two generic parsers close 6 fio output forms
+
+Fully covered fio (its 12 output modes are now all handled — 9 tidy, 3 correctly
+loose text) with two format-level, non-fio-specific parsers:
+
+- **`delimited/semicolon-values`** — `;`-delimited records (fio
+  `--output-format=terse` v3/v5: one `;`-line of ~48 positional fields;
+  European-locale CSV). A single line is one headerless record; a strict
+  detector (every line ≥4 semicolons, consistent count) leaves the lone
+  `;`-legend line in `networkctl-lldp` alone.
+- **`delimited/labeled-inline-kv`** — `label: k=v, k=v, …` records (fio
+  disk-stats, run-status, io-depths, latency-dist; `ip -s`-style). The label
+  becomes a `name` column and each `k=v` a data column, one row per label, an
+  optional section title skipped. Records must dominate (≤1 non-record line), so
+  it stays off `key: value` snapshots (`mdadm --examine`, `nmcli`) that carry a
+  stray `label: k=v` line; splits on the last `=` so fio's `>=64=99.9%` keeps
+  its key.
+
+Coverage 2115/2151 → **2120 / 2151** (✅ 1927 generic · ✅ʰ 58 · ✅ᵇ 135);
+golden regression 1980 pass / 0 fail / 0 deleted (only 6 fio goldens changed);
+extract 62/62, smoke 49, melt 10, holdout 68/68.
+
+**Deliberately left ⏳ — 5 fixed-width benchmark tables** (stream-benchmark,
+pytest-benchmark, blender-benchmark, kdiskmark-run, lzbench-run): a title banner
++ multi-word column header over a whitespace grid. A dedicated `banner-fixed-table`
+strategy was prototyped (it cleanly tidied stream + blender) but its detector
+grabbed 26 existing inputs — the shape is structurally indistinguishable from
+headerless word-data lists (`vagrant status`, `clang -targets`), single-space
+headers (`netstat -rn`), and `key: value` blocks (`ceph status`) without gates
+that also break blender — so it was dropped rather than churn 2151 goldens. The
+principled fix is positional multi-word-header handling in `aligned-columns`
+(a genuine improvement — it reunites `Depended_by`, `NOMINATED_NODE`,
+`Flags_Mask` across ~60 tables) but it changes 69 goldens and needs a full
+audit round, deferred as separate work.
+
+## 2026-07-10 — Cover the full range of fio output + headerless numeric CSV
+
+The corpus had only 2 fio fixtures, both truncated slices of the *normal*
+report. fio actually emits a whole family of output shapes — added all 12
+distinct forms and measured each honestly (2139 → 2151 inputs):
+
+- **Tidy (3):** `fio-json-output` (flattened JSON), `fio-bw-log`, `fio-iops-log`.
+- **Loose text (3)** — nested multi-section *reports*, correctly not forced into
+  one table: `fio-normal-full`, `fio-multijob`, `fio-status-line`.
+- **Documented gaps ⏳ (5):** `fio-terse-v3`/`v5` (`;`-delimited record — no
+  semicolon parser), `fio-disk-stats` / `fio-io-depths` / `fio-run-status`
+  (inline `label: k=v, k=v` records — the same inline-kv-with-banner shape as
+  the rest of the hard tail).
+
+One generic, non-fio-specific capability added: **headerless numeric CSV**.
+`structured/csv` always ate row 1 as a header, which broke any data logger that
+emits raw rows with no header (fio `--write_bw_log` / `--write_iops_log`,
+`sar -o` CSV, collectd). Now if the first row's fields are all numeric there is
+no header — synthesise `A,B,C…` and keep every row. redis-benchmark-csv (which
+has a real header) is unaffected. Golden regression **0 changed / 0 deleted**
+from the csv change.
+
+Coverage 2108/2139 → **2115 / 2151** (✅ 1922 generic · ✅ʰ 58 · ✅ᵇ 135);
+golden regression 1980 pass / 0 fail / 0 deleted; extract 62/62, smoke 49,
+melt 10, holdout 68/68.
+Files: `tests/corpus/inputs/fio-*.txt` (+12), `tests/corpus/expected.tsv`,
+`tests/corpus/expected/` (+7 goldens), `extract/strategies/structured/csv.sh`,
+`tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
+## 2026-07-10 — +99 benchmark tool formats + generic markdown pipe-table parser
+
+Added 99 unique benchmark-tool outputs (0 basename overlap with the existing
+2040) spanning every benchmarking domain — CPU/system (sysbench, stress-ng,
+coremark, 7z b, openssl speed, geekbench, unixbench, spec-cpu, perf-stat, …),
+memory (STREAM, mbw, tinymembench, ramspeed), disk/IO (fio, ioping, bonnie++,
+iozone, dbench, kdiskmark), network (netperf, qperf, sockperf, iperf2, tcpkali),
+HTTP load (ab, hey, bombardier, oha, autocannon, siege, wrk2, h2load, vegeta,
+tsung, goose, artillery), database (pgbench, redis-benchmark, memtier, YCSB,
+cassandra-stress, hammerdb, tpcc), GPU/compute (glmark2, clpeak, gpu-burn,
+mixbench, hashcat, blender), language microbench (JMH, BenchmarkDotNet,
+google-benchmark, pytest-benchmark, cargo/go bench, nanobench, tinybench,
+vitest), and compression (zstd -b, lzbench, brotli).
+
+- **94/99 tidy with no per-tool code.**
+- **New generic `delimited/pipe-table` parser** for GitHub-flavored markdown
+  tables (`| a | b |` rows + a `|---|---|` rule) — closes BenchmarkDotNet and
+  generalizes to any markdown table. Distinct dialect from psql-table (no outer
+  pipes, `+` joints) so it collides with nothing; ships with sample + strategy
+  golden. Golden regression 0 changed / 0 deleted from adding it.
+- The 5 misses (stream-benchmark, kdiskmark, pytest-benchmark, lzbench,
+  blender-benchmark) are the documented multi-word-header + banner hard tail.
+- Coverage 2014/2040 → **2108 / 2139** (✅ 1915 generic · ✅ʰ 58 · ✅ᵇ 135);
+  golden regression **1972 pass / 0 fail / 0 deleted** (94 new benchmark
+  goldens); extract 62/62, smoke 49, melt 10, holdout 68/68.
+  Files: `tests/corpus/inputs/*.txt` (+99), `tests/corpus/expected.tsv` (+99),
+  `tests/corpus/expected/` (+94 goldens),
+  `extract/strategies/delimited/pipe-table.sh` (+ sample + strategy golden),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
+## 2026-07-10 — Close 41 of the 67 corpus format gaps with generic capabilities
+
+Worked the full ⏳ list (39 from the batch-2 expansion + 28 older). Every fix
+is a format-level rule, a new format parser, or a tidy-melt improvement — **no
+per-tool parser was added**. Coverage 1973 → **2014 / 2040** (✅ 1822 generic ·
+✅ʰ 56 hint · ✅ᵇ 136 bespoke); ⏳ 67 → 26. Golden regression **1878 pass / 0
+fail / 0 deleted** (48 changed goldens audited neutral-or-better — real headers
+instead of eaten first rows, correct multi-word labels, php-i's real kv fields);
+holdout 68/68.
+
+- **melt: lone key/value → long form.** A 1-col × 1-row wide (the shape of a
+  version banner or one-line status) now melts to canonical `field`/`value`
+  long form. Closes ~15 single-pair inputs (distrobox/nats/nx/task/envoy
+  versions, tofu-plan-summary, tasmota-status, …). +2 melt unit checks.
+- **New `structured/go-struct` parser** for Go `%+v` struct dumps
+  (`{Key:value Key:value …}` — helm/kustomize/kubectl version banners).
+- **text-lines**: the markup guard now requires a document to OPEN with `{`/`[`
+  and close with a matching bracket — a mid-line `{` (vboxmanage UUIDs, exabgp
+  blocks, `[INFO]` tags) is just text; a lone ≤3-token period-free line is a
+  status record (gamemode, signify).
+- **aligned-columns header heuristics** (the big one): value-token contrast
+  replaces raw digit-count for header promotion (labels like `IPv4`/`1K-blocks`
+  no longer confuse it, and promotion demands a label-looking row); all-text
+  tables promote a styled disjoint header (dependabot-alerts, spark-sql) while
+  name grids and prose stay headerless; 2-column value tables are recognized
+  (go-mod-graph, redis latency); leading chrome is dropped (wide banner lines —
+  `w`, numastat; trailing-colon titles — vagrant; ellipsis progress lines —
+  apt); `=`-rules treated like `-`-rules (tokei); `#`-comment headers picked by
+  token-count fit (nvidia-smi dmon); positional assignment extended to all-text
+  multi-word labels (ibmcloud `Service Name`, spin `Name Description`).
+- **Manifest corrections (verified clean output)**: go-test-summary 3→4 rows,
+  perf-list 8→9.
+- The remaining 26 ⏳ are documented in `HANDOFF.md` — nested/2-line-header/
+  ragged formats needing capability that would risk golden churn, plus a few
+  genuinely-not-a-dataset one-liners.
+  Files: `transform/melt.sh`, `transform/tests/test_melt.sh`,
+  `extract/strategies/delimited/{aligned-columns,text-lines}.sh`,
+  `extract/strategies/structured/go-struct.sh` (+ sample + strategy golden),
+  `tests/corpus/expected.tsv`, `tests/corpus/expected/` (52 new, 48 updated),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
+## 2026-07-10 — +500 more unique corpus inputs (batch 2): 1540 → 2040 tools
+
+Second +500 expansion of the tidy-coverage corpus with tools never seen by the
+first ~1540 (0 basename overlap, 432 distinct tool prefixes) across fresh
+domains: data engineering, ML serving, security scanners, bioinformatics,
+blockchain, distributed storage, APM, CI/CD, cloud services, container/k8s
+tooling, terminal monitors, HTTP clients, editors/gaming, and a large block of
+`--version` banners. This measures **generalization** (unseen tools) against the
+frozen-fixture corpus that measures regression.
+
+- **461 / 500 (92.2%) came out tidy with no new per-tool code** — 454 via a
+  generic parser (auto-detected), 7 via a bespoke fallback — mirroring batch 1's
+  466/500. No bespoke parser was added and no engine change was made; this batch
+  is pure corpus expansion (the batch-1 gap-closing engine work rode in the
+  previous entry).
+- **Corpus coverage 1512/1540 → 1973 / 2040** (✅ 1771 generic, ✅ʰ 55 hint,
+  ✅ᵇ 147 bespoke). 454 new goldens regenerated; golden regression 1826 pass /
+  0 fail / **0 deleted** (no existing tool lost its golden).
+- **39 batch-2 gaps left as an honest ⏳** — not manifest errors and not worth a
+  bespoke: ~19 single-line `--version`/one-liner banners that are genuinely not
+  datasets, and ~20 tables that need generic capability the format tier doesn't
+  yet have (headerless tables whose first data row is eaten as the header —
+  go-mod-graph, git-log-oneline, retroarch-cores, redis-cli-latency-history;
+  ragged/tree tables — ceph-osd-tree, scylla-nodetool-status; header-not-promoted
+  — dependabot-alerts, spark-sql-show-tables; colon-delimited getent-group).
+  Files: `tests/corpus/inputs/*.txt` (+500), `tests/corpus/expected.tsv`
+  (+500 manifest rows), `tests/corpus/expected/*.tsv` (+454 goldens),
+  `tests/corpus/COVERAGE.md`, `tests/corpus/README.md`, `HANDOFF.md`.
+
+## 2026-07-10 — Close 6 of the 34 corpus gaps (json-array rewrite, box-table parser, 2 hints)
+
+Worked the format gaps the +500 expansion surfaced, closing the ones with a
+genuine generic home (no memorization) and leaving the rest as an honest ⏳
+capability shopping list. Coverage 1506 → **1512 / 1540**; ⏳ 34 → 28.
+
+- **json-array rewritten as a real JSON scanner.** It previously only handled
+  objects spread over multiple lines; compact one-object-per-line arrays
+  (`[{"a":1,"b":2},…]` — what rclone, shellcheck, meson-introspect and most
+  `--format json` tools emit) produced nothing. The new char-scanner handles
+  both shapes and correctly skips nested objects/arrays as values — which also
+  fixed docker/podman-inspect goldens (the old code emitted a garbage `Args [`
+  cell from a nested array). Closes rclone-lsjson, shellcheck-json,
+  meson-introspect-targets.
+- **New `delimited/box-table` parser** for Unicode box-drawing tables
+  (`│` cells, `─┼╭╮╰╯` borders) — the format modern Rust/Python CLIs render
+  (pdm, gum, glow, …). Closes pdm-list and generalizes; it only fires on a
+  genuine `─`-rule + `│`-row, so ASCII tables stay with psql-table and tree
+  output is untouched. (Also incidentally gave hexyl-output a real
+  offset/hex/ascii tidy instead of its old 1-column box-border garbage.)
+- **2 hint rows** (verified clean, not shape-only): iw-dev-scan-summary and
+  nvidia-smi-topo → aligned-columns.
+
+The remaining 28 ⏳ are genuinely non-tabular (weather ASCII art, one-line
+version banners / error messages, prose status, nginx config, Go `BuildInfo{}`
+struct printing) or need real new capability (2-column tables whose last
+column is free text — spin/vagrant/bluetoothctl/ansible-galaxy/go-test;
+sysstat timestamp+%% headers — sar-cpu; nested tab records — kafka-topics).
+Forcing them would be memorization, so they stay honest ⏳.
+
+Coverage: 1512/1540 — ✅ 1321 generic, ✅ʰ 51 hint, ✅ᵇ 140 bespoke, ⏳ 28.
+Gate: smoke 49/49, melt 8/8, extract 62/62, analyze green, golden 1372/0.
+
 ## 2026-07-10 — Corpus +500: 500 new unique tool inputs; 93% tidy on never-seen tools
 
 Expanded the corpus from 1040 to **1540 inputs** — 500 new, genuinely-unique

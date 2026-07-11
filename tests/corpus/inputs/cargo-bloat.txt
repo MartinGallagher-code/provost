@@ -1,0 +1,4 @@
+ File  .text     Size Crate
+ 4.2%   12.1%  88.2KiB serde_json
+ 2.1%   8.4%   44.1KiB tokio
+12.4%  44.2%  412.4KiB [Unknown]

@@ -1,0 +1,4 @@
+Reader ...........: Yubico YubiKey
+Version ..........: 3.4
+Serial number ....: 12345678
+Signature key ....: AABB CCDD EEFF

@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	Queue	running:	1	4
+2	Queue	pending:	3	4
+3	History:	442	items	4
+4	VRAM:	8201/24564	MiB	4

@@ -1,0 +1,5 @@
+Found verified result 🐷🔑
+Detector Type: AWS
+Decoder Type: PLAIN
+Raw result: AKIAIOSFODNN7EXAMPLE
+File: config/prod.env

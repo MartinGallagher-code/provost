@@ -1,0 +1,3 @@
+ID   Done   Have    ETA    Up    Down   Ratio  Status    Name
+  1   100%  4.21GB  Done   0.0   0.0    2.14   Seeding   ubuntu.iso
+  2    44%  1.80GB  2h     0.0   1.2M   0.10   Down      dataset.tar

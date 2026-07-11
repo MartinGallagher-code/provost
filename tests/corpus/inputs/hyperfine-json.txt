@@ -1,0 +1,5 @@
+{
+  "results": [
+    {"command": "rg pattern", "mean": 0.0124, "stddev": 0.0008, "min": 0.0112}
+  ]
+}

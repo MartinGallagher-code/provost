@@ -1,0 +1,2 @@
+n	0	CoreMark_Size	Total_ticks	Total_time_(secs)	Iterations/Sec	Iterations	Compiler_version
+1	41482.891 / GCC13.2.0 -O2 / Heap	666	12044	12.044	41482.891	500000	GCC13.2.0

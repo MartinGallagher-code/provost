@@ -1,0 +1,3 @@
+NAME              ROLE            GLUEVERSION   WORKERTYPE
+crawl-events      glue-role       4.0           G.1X
+transform-orders  glue-role       4.0           G.2X

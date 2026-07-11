@@ -1,0 +1,4 @@
+framerate = 60
+bars = 0
+sensitivity = 100
+channels = stereo

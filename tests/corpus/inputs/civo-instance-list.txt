@@ -1,0 +1,3 @@
+NAME        REGION   SIZE          STATUS
+web-1       lon1     g4s.kube      ACTIVE
+db-1        lon1     g4m.medium    ACTIVE

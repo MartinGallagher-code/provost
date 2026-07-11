@@ -1,0 +1,15 @@
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running memory speed test with the following options:
+  block size: 1KiB
+  total size: 102400MiB
+  operation: write
+  scope: global
+
+Total operations: 104857600 (8821042.11 per second)
+
+102400.00 MiB transferred (8614.30 MiB/sec)
+
+General statistics:
+    total time:                          11.8912s
+    total number of events:              104857600

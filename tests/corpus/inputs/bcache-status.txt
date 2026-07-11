@@ -1,0 +1,5 @@
+cache device: /dev/nvme0n1p2
+cache mode: writeback
+state: clean
+dirty data: 44.2 MiB
+cache hit ratio: 94.2%

@@ -1,0 +1,4 @@
+api.example.com
+www.example.com
+mail.example.com
+vpn.example.com

@@ -1,0 +1,3 @@
+src/main.css
+ 12:3  ✖  Expected indentation of 2 spaces   indentation
+ 44:1  ✖  Unexpected empty block             block-no-empty

@@ -1,0 +1,8 @@
+Speed.#1.........:  1204.8 MH/s (88.42ms) @ Accel:64 Loops:1024 Thr:256 Vec:1
+Hashmode: 0 - MD5
+
+Speed.#1.........:   482.1 MH/s (44.21ms) @ Accel:32 Loops:512 Thr:256 Vec:1
+Hashmode: 1000 - NTLM
+
+Speed.#1.........:    12.4 kH/s (212.4ms) @ Accel:8 Loops:1024 Thr:128 Vec:1
+Hashmode: 3200 - bcrypt

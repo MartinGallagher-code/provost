@@ -1,0 +1,6 @@
+n	A	B	C	D	E	F	G	H	I	J	total_entries
+1	Long	uses	8	bytes.	Allocating	2*256MiB=512MiB	(256MiB)				5
+2	Getting	down	to	business...	Doing	10	runs	per	test.		5
+3	0	Method:	MEMCPY	Elapsed:	0.04821	MiB:	256.00000	Copy:	5310.221	MiB/s	5
+4	1	Method:	MEMCPY	Elapsed:	0.04722	MiB:	256.00000	Copy:	5421.882	MiB/s	5
+5	AVG	Method:	MEMCPY	Elapsed:	0.04788	MiB:	256.00000	Copy:	5346.100	MiB/s	5

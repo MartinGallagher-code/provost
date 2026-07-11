@@ -9,9 +9,12 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/../melt.sh"
 
 pass=0; fail=0
-check () { if printf '%s' "$3" | grep -qF -- "$2"; then echo "  ok   $1"; pass=$((pass+1))
+# Use a here-string, not `printf | grep -q`: grep -q exits on the first match and
+# closes the pipe while printf is still writing, which under `set -o pipefail`
+# surfaces as a SIGPIPE ("write error: Broken pipe") and flakily fails the check.
+check () { if grep -qF -- "$2" <<< "$3"; then echo "  ok   $1"; pass=$((pass+1))
            else echo "  FAIL $1"; echo "       want: $2"; echo "       got: $3"; fail=$((fail+1)); fi; }
-refute () { if printf '%s' "$3" | grep -qF -- "$2"; then echo "  FAIL $1 (unexpected: $2)"; fail=$((fail+1))
+refute () { if grep -qF -- "$2" <<< "$3"; then echo "  FAIL $1 (unexpected: $2)"; fail=$((fail+1))
             else echo "  ok   $1"; pass=$((pass+1)); fi; }
 
 # 1. A repeating entry<N>.<field> table melts to one row per record.
@@ -26,6 +29,11 @@ refute "melt: no wide entry1.* remains"          "entry1"      "$melted"
 # 2. Non-table scalar output passes through unchanged (opt-out).
 scalar="$(printf 'a\tb\n1\t2\n')"
 check  "melt: plain scalar passes through"       "1"$'\t'"2"   "$(_core_melt_tidy "$scalar")"
+
+# 2b. A lone key/value observation goes to long form (field/value).
+lone="$(_core_melt_tidy "$(printf 'distrobox\n1.7.2.1\n')")"
+check  "melt: lone pair gets field/value header" $'field\tvalue' "$lone"
+check  "melt: lone pair kept as one long row"    "distrobox"$'\t'"1.7.2.1" "$lone"
 
 # 3. Header union + row alignment (the schema-reconcile helpers).
 uni="$(_core_union_header $'#\tname\tused\tfree' $'#\tname\tused')"

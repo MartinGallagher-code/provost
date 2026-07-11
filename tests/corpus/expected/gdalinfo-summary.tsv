@@ -1,0 +1,6 @@
+n	Driver:	GTiff/GeoTIFF	total_entries
+1	Files:	dem.tif	5
+2	Size	is_3601,_3601	5
+3	Coordinate	System_is:_WGS_84	5
+4	Pixel	Size_=_(0.000277,-0.000277)	5
+5	Band	1_Block=3601x1_Type=Int16	5

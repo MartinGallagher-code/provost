@@ -1,0 +1,5 @@
+Total series: 4102839
+Total label pairs: 88201
+Series count by metric name:
+  node_cpu_seconds_total: 128442
+  http_requests_total: 88201

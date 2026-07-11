@@ -1,0 +1,3 @@
+SHORT-ID   TITLE                        EVENTS   USERS   STATUS
+API-42     NullPointerException         8821     412     unresolved
+API-41     TimeoutError on /checkout    442      88      resolved

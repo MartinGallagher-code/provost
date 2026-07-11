@@ -1,0 +1,6 @@
+Running 30s test @ http://api.example.com
+  Latency     12.44ms   8.21ms  212.10ms   88.42%
+  Req/Sec     3.02k     412.10    4.21k     72.10%
+  120488 requests in 30.00s, 18.44MB read
+Requests/sec:   4016.27
+Transfer/sec:      0.61MB

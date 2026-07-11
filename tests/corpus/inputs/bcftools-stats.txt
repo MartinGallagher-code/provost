@@ -1,0 +1,4 @@
+SN	0	number of samples:	1
+SN	0	number of records:	4821730
+SN	0	number of SNPs:	4102839
+SN	0	number of indels:	718891

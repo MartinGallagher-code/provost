@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	bash	✓	installed	4
+2	python	✓	installed	4
+3	rust	✓	installed	4
+4	javascript	✗	not_installed	4

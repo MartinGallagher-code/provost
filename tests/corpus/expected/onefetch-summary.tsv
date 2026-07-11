@@ -1,5 +1,6 @@
-n	Project:	glean	(1284	commits)	total_entries
-1	HEAD:	a1b2c3d	(main)		4
-2	Languages:	Rust	(88%),	Python_(12%)	4
-3	Authors:	Alice	(60%),	Bob_(40%)	4
-4	Last	change:	2	hours_ago	4
+n	A	B	C	D	E	total_entries
+1	Project:	glean	(1284	commits)		5
+2	HEAD:	a1b2c3d	(main)			5
+3	Languages:	Rust	(88%),	Python	(12%)	5
+4	Authors:	Alice	(60%),	Bob	(40%)	5
+5	Last	change:	2	hours	ago	5

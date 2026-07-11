@@ -1,0 +1,5 @@
+n	timestamp	message	total_entries
+1	drwxr-xr-x	src	4
+2	-rw-r--r--	├── main.rs	4
+3	-rw-r--r--	└── lib.rs	4
+4	-rw-r--r--	Cargo.toml	4

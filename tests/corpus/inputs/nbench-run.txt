@@ -1,0 +1,9 @@
+BYTEmark* Native Mode Benchmark ver. 2 (10/95)
+Index-split by Andrew D. Balsa (11/97)
+
+TEST                : Iterations/sec.  : Old Index   : New Index
+                    :                  : Pentium 90  : AMD K6/233
+NUMERIC SORT        :        1204.8    :      30.89   :      10.14
+STRING SORT         :         482.10   :     215.44   :      33.36
+FP EMULATION        :         221.04   :     106.10   :      24.48
+FOURIER             :       48210.0    :      54.82   :      30.78

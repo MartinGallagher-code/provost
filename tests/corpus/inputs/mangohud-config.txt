@@ -1,0 +1,4 @@
+fps_limit=144
+gpu_stats
+cpu_stats
+frame_timing=1

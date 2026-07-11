@@ -1,0 +1,3 @@
+AppID     Name                    State
+730       Counter-Strike 2        installed
+570       Dota 2                  update required

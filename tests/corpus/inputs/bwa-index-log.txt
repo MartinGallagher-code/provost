@@ -1,0 +1,4 @@
+[bwa_index] Pack FASTA... 12.44 sec
+[bwa_index] Construct BWT for the packed sequence...
+[bwa_index] 88.20 seconds elapse.
+[main] Version: 0.7.18-r1243

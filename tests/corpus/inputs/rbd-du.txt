@@ -1,0 +1,4 @@
+NAME          PROVISIONED  USED
+vm-disk-01          50 GiB  22 GiB
+vm-disk-02         100 GiB  48 GiB
+<TOTAL>            150 GiB  70 GiB

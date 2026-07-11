@@ -1,0 +1,3 @@
+n	CONNECTION	SOURCE	DESTINATION	STATUS	total_entries
+1	postgres-to-snowflake	Postgres	Snowflake	active	2
+2	salesforce-to-bigquery	Salesforce	BigQuery	inactive	2

@@ -1,0 +1,5 @@
+Running Collection: API Tests
+✓ GET health (42ms)
+✓ POST login (128ms)
+✗ GET protected (401)
+2 passed, 1 failed

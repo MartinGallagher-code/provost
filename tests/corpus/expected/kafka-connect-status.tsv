@@ -1,0 +1,2 @@
+name	connector.state	connector.worker_id	tasks.0.id	tasks.0.state	tasks.1.id	tasks.1.state
+s3-sink	RUNNING	10.0.1.4:8083	0	RUNNING	1	RUNNING

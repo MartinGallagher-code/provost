@@ -1,0 +1,4 @@
+model.shop.stg_orders
+model.shop.stg_customers
+model.shop.fct_orders
+test.shop.unique_orders_id

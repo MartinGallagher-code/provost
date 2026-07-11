@@ -1,0 +1,13 @@
+Benchmarking http://localhost:8080 for 10s using 100 connections
+
+Summary:
+  Elapsed        10.021s
+  Count          120488
+    2xx          120488
+  RPS            12024.44
+  Reads          18.44MB/s
+  Writes          1.20MB/s
+
+Statistics    Min      Mean     StdDev      Max
+  Latency    2.1ms    12.4ms    8.21ms    212.4ms
+  RPS       11020    12024     882.4     14210

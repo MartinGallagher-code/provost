@@ -1,0 +1,6 @@
+Found event files:
+  train/events.out.tfevents.1751880000
+    scalars: loss, accuracy, lr
+    steps: 8821
+  val/events.out.tfevents.1751880000
+    scalars: val_loss, val_accuracy

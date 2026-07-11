@@ -1,0 +1,4 @@
+Queue running: 1
+Queue pending: 3
+History: 442 items
+VRAM: 8201/24564 MiB

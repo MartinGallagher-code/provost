@@ -1,0 +1,3 @@
+n	Path	Name	Size	IsDir	total_entries
+1	backups/db.sql.gz	db.sql.gz	5242880	false	2
+2	backups/media	media	-1	true	2

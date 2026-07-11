@@ -1,0 +1,4 @@
+dag_id       task_id        state      execution_date
+etl_daily    extract        success    2026-07-10T00:00:00
+etl_daily    transform      success    2026-07-10T00:00:00
+etl_daily    load           running    2026-07-10T00:00:00

@@ -1,0 +1,12 @@
+Summary:
+  Success rate: 100.00%
+  Total:        10.0210 secs
+  Slowest:      0.2214 secs
+  Fastest:      0.0044 secs
+  Average:      0.0121 secs
+  Requests/sec: 12048.4421
+
+Response time histogram:
+  0.004 [1]     |
+  0.026 [88201] |========================================
+  0.048 [12044] |=====

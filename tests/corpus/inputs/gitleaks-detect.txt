@@ -1,0 +1,5 @@
+Finding:     aws_access_key_id = AKIA...
+Secret:      AKIAIOSFODNN7EXAMPLE
+RuleID:      aws-access-token
+File:        config/prod.env
+Line:        12

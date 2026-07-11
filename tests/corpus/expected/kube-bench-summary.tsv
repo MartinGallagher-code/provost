@@ -1,0 +1,7 @@
+n	A	total_entries
+1	[INFO] 1 Control Plane Security Configuration	6
+2	[PASS] 1.1.1 Ensure that the API server pod file permissions are 600	6
+3	[FAIL] 1.2.1 Ensure that the --anonymous-auth argument is false	6
+4	== Summary ==	6
+5	88 checks PASS	6
+6	12 checks FAIL	6

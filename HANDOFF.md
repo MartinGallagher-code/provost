@@ -1,6 +1,15 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first extraction refactor + quality audit landed (2026-07-10)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2156 inputs (2026-07-11)
+
+> **2026-07-11 — multi-mode coverage audit.** Verified the corpus already
+> samples multiple output modes per high-fanout tool (kubectl 54, aws 46,
+> git 43, docker 28, ip 20, …); probing single-sample families for extra modes
+> was ~70% collisions. Added 3 net-new generic-tidy mode samples (`pvesm-status`,
+> `rbd-du`, `zk-mntr`) and tracked 2 genuine ⏳ gaps (`supervisorctl-status`,
+> `ovs-ofctl-dump-flows`) in the existing hard classes. Rejected `ceph-osd-df`
+> (shape-passes but data is misaligned garbage) rather than inflate coverage.
+> Now **2156 tools; 2129 tidy; 27 ⏳.** Golden gate: 1995 passed, 0 failed.
 
 > Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
 > nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
@@ -191,8 +200,93 @@ git-stash-show-stat from sqlite-output's broken accidental parse),
 snmp-output promoted to structured/, sqlite-output deleted (zero wins
 left), and holdout 48 → 66 with the aws-s3-ls/dmsetup-table hint rows
 retargeted to line-records (aligned-columns returns empty on ragged
-mixed-width rows — found by the holdout). Coverage now
-✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66.
+mixed-width rows — found by the holdout). Coverage at that point (pre-corpus-
+expansion, 1540 inputs) ✅ 860 / ✅ʰ 39 / ✅ᵇ 141; holdout 66/66. The two +500
+expansions then took the corpus to 2040 (see "Corpus size + gaps" below).
+
+
+## Corpus size + gaps (2151 inputs, 25 ⏳ as of 2026-07-10)
+
+The corpus grew in two +500 expansions of unique never-before-seen tools
+(0 basename overlap each): **1040 → 1540 → 2040**, a **+99 benchmark-tool set**
+(2040 → 2139) covering every benchmarking domain, and a **full-range fio
+expansion** (2139 → 2151 — 12 distinct fio output modes vs the previous 2).
+Each batch generalized at ~92% with **no new per-tool code** (batch 1: 466/500;
+batch 2: 461/500; benchmarks: 94/99). Format-level capability added over the
+rounds: melt long-form for lone kv pairs, a `go-struct` parser, text-lines gate
+fixes, a rebuilt aligned-columns header-promotion heuristic (value-token
+contrast, styled all-text headers, 2-column value tables, chrome dropping — 41
+of the earlier 67 ⏳ closed), a `delimited/pipe-table` parser for GitHub-flavored
+markdown tables (BenchmarkDotNet), **headerless numeric CSV** in
+`structured/csv` (data loggers with no header row — fio `--write_bw_log` /
+`--write_iops_log`, `sar -o`, collectd; first-row-all-numeric ⟹ no header), and
+two parsers that fully closed fio's non-tabular sections: `delimited/semicolon-
+values` (fio terse v3/v5) and `delimited/labeled-inline-kv` (`label: k=v, k=v`
+records — fio disk-stats/run-status/io-depths/latency-dist).
+Coverage is now **2126 / 2151** (✅ 1934 / ✅ʰ 58 / ✅ᵇ 134); golden regression
+1980 pass / 0 fail / 0 deleted; holdout 68/68.
+
+fio is now fully handled: of its 12 output modes glean tidies 9 (json, bw-log,
+iops-log, terse-v3/v5, disk-stats, io-depths, run-status, latency-dist) and
+treats 3 as loose text (normal-full / multijob / status-line are nested reports,
+not single datasets).
+
+The 31 ⏳ left include 5 fixed-width benchmark tables (stream-benchmark,
+kdiskmark-run, pytest-benchmark, lzbench-run, blender-benchmark) — a title
+banner + multi-word header over a whitespace grid. A dedicated `banner-fixed-
+table` strategy was prototyped (tidied stream + blender cleanly) but its detector
+grabbed 26 existing inputs — the shape is indistinguishable from headerless
+word-data lists (`vagrant status`), single-space headers (`netstat -rn`), and
+`key: value` blocks (`ceph status`) — so it was dropped. The principled fix is
+positional multi-word-header handling in `aligned-columns` (a real improvement —
+reunites `Depended_by`/`NOMINATED_NODE`/`Flags_Mask` across ~60 tables) but it
+changes 69 goldens and needs a full audit round. The rest of the tail:
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
+  spans 2 ragged lines or shares its token count with a banner, so no
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff, stream-benchmark, kdiskmark-run, pytest-benchmark) — the header
+  spans 2 ragged lines or shares its token count with a banner, so no
+  width/value heuristic can split them safely.
+- **ragged first+last multi-word columns** (lzbench-run `zstd 1.5.5 -1` +
+  `silesia.tar`, blender-benchmark `NVIDIA GeForce RTX 4090`).
+- Earlier tail (ansible-galaxy-list apachectl-S batch-jobs
+bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status
+file-brief frr-show-bgp-summary gcloud-logging-logs-list getent-group
+gluster-volume-status hugo-build-stats hurl-report jless-navigate
+kafka-topics-describe numastat-p promtool-check-rules pueue-status
+pytest-cov-report quota-report sar-cpu scylla-nodetool-status
+v4l2-ctl-list-devices vnstat-hourly watch-diff) are the genuinely hard tail:
+- **multi-line / banner-entangled headers** (numastat-p, quota-report,
+  vnstat-hourly, frr-show-bgp-summary, sar-cpu, gluster-volume-status,
+  watch-diff) — the header spans 2 ragged lines or shares its token count
+  with a banner, so no width/value heuristic can split them safely.
+- **nested / grouped records** (ceph-osd-tree, kafka-topics-describe,
+  v4l2-ctl-list-devices, pueue-status, cryptsetup-status, apachectl-S,
+  bluetoothctl-devices) — need a "parent row + indented children" reshape.
+- **colon-delimited records** (getent-group) and **key: free-text rows**
+  (file-brief, hurl-report) — a `first-token = key, rest = value` mode.
+- **summary-row / footer entanglement** (pytest-cov-report TOTAL row,
+  hurl-report trailer, hugo-build-stats) and **strategy-competition losses**
+  (clickhouse-parts to nft-list-tables, promtool/ansible-galaxy to
+  line-records keeping a chrome row).
+- **genuinely not a dataset** (batch-jobs prose sentence, jless-navigate JSON
+  fragment, gcloud single-column NAME header).
+- **2-col tables, free-text last column** (aligned-columns can't split a
+  header's single-spaced labels from a multi-word value): spin-templates-list,
+  vagrant-status, bluetoothctl-devices, ansible-galaxy-list, go-test-summary.
+  Needs a "first-token = key, rest = value" generic mode.
+- **sysstat timestamp + %% headers**: sar-cpu (header row is data values).
+- **nested tab records**: kafka-topics-describe.
+- **genuinely non-tabular** (correct ⏳, not datasets): weather-wttr (ASCII
+  art), dart-version / iconv-list-count / batch-jobs / glab-ci-status
+  (one-liners), helm-version-full (Go `BuildInfo{}` struct), nginx-T-servers
+  (config), cosign-verify / tofu-plan-summary / jless-navigate (prose),
+  xrandr-query, apachectl-S, apk-policy, cryptsetup-status, promtool-check-rules,
+  radvd-status, tokei-output, v4l2-ctl-list-devices, vboxmanage-list-vms,
+  frr-show-bgp-summary, gcloud-logging-logs-list.
 
 ## Tests
 
@@ -201,7 +295,7 @@ bash tests/smoke.sh                 # end-to-end (49 checks)          [CI]
 bash transform/tests/test_melt.sh   # transform unit (8 checks)       [CI]
 bash extract/tests/run_tests.sh     # extract strategy + engine suite [CI: 63/63 files]
 ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh  # [CI, green raw]
-bash tests/corpus/run.sh --golden   # corpus regression (875 goldens, non-CI)
+bash tests/corpus/run.sh --golden   # corpus regression (1980 goldens, non-CI)
 bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```

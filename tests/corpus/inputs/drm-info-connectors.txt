@@ -1,0 +1,5 @@
+Connector 0 (DP-1): connected
+  Modes:
+    3840x2160@60.00
+    2560x1440@59.95
+Connector 1 (HDMI-A-1): disconnected

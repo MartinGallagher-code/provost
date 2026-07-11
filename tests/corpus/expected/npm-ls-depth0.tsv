@@ -1,0 +1,5 @@
+n	depth	name	total_entries
+1	1	express@4.19.2	4
+2	1	pino@9.2.0	4
+3	1	UNMET DEPENDENCY zod@^3.23.0	4
+4	1	typescript@5.4.5	4

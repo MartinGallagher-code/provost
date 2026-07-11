@@ -1,0 +1,2 @@
+Fluent Bit v3.1.0
+Git commit: a1b2c3d4

@@ -1,0 +1,3 @@
+be_api/api1 10.0.2.1:8080 UP  L7OK/200 in 2ms
+be_api/api2 10.0.2.2:8080 UP  L7OK/200 in 3ms
+be_api/api3 10.0.2.3:8080 DOWN L7TOUT in 2000ms

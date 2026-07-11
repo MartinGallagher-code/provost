@@ -1,0 +1,5 @@
+app@1.0.0 /home/dev/app
+├── express@4.19.2
+├── pino@9.2.0
+├── UNMET DEPENDENCY zod@^3.23.0
+└── typescript@5.4.5

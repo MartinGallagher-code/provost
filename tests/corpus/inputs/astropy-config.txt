@@ -1,0 +1,4 @@
+unicode_output = False
+max_lines = 25
+max_width = 80
+use_color = True

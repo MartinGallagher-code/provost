@@ -1,0 +1,7 @@
+                                 Estimated                   Estimated
+Base     Base       Base        Peak     Peak       Peak
+Benchmarks           Ref.   Run Time     Rate         Ref.   Run Time     Rate
+500.perlbench_r     1600        212       48.2       1600        208       49.1
+502.gcc_r           1400        188       44.8       1400        184       45.6
+505.mcf_r           1600        244       41.2       1600        240       42.0
+ SPECrate2017_int_base                    44.8

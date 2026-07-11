@@ -1,0 +1,7 @@
+table inet filter {
+	chain input {
+		type filter hook input priority 0;
+		tcp dport 22 counter packets 8821 bytes 442019 accept
+		tcp dport 443 counter packets 128442 bytes 12048820 accept
+	}
+}

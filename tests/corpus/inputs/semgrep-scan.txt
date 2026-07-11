@@ -1,0 +1,6 @@
+  Findings:
+    src/app.py
+       12: python.lang.security.audit.dangerous-exec
+       44: python.django.security.injection.sql
+
+  Summary: 2 findings, 1 blocking

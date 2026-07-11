@@ -1,0 +1,3 @@
+n	process	connection	up	down	total_entries
+1	firefox	10.0.1.24:51022	=>	1.2.3.4:443_12KiB_1.2MiB	2
+2	spotify	10.0.1.24:51044	=>	5.6.7.8:443_4KiB_880KiB	2

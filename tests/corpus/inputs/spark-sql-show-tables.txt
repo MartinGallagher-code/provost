@@ -1,0 +1,4 @@
+database   tableName    isTemporary
+default    events       false
+default    sessions     false
+analytics  pageviews    false

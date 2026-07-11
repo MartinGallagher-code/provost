@@ -1,0 +1,5 @@
+Total: 442
+Killed: 388
+Survived: 44
+Timeout: 8
+Suspicious: 2

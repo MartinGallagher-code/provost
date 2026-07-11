@@ -1,0 +1,4 @@
+dag_id           | filepath          | owner   | paused
+=================+===================+=========+=======
+etl_daily        | etl_daily.py      | data    | False
+report_weekly    | report_weekly.py  | data    | True

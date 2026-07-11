@@ -1,0 +1,2 @@
+[WARNING] Could not fetch resource logo.png
+[INFO] Wrote output.pdf (442 KB)

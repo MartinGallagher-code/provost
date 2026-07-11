@@ -1,0 +1,9 @@
+GPU 0: NVIDIA GeForce RTX 4090 (UUID: GPU-a1b2c3d4)
+100.0%  proc'd: 482100 (82044 Gflop/s)   errors: 0   temps: 78 C
+	Summary at:   Thu Jul 10 06:00:00 2026
+
+100.0%  proc'd: 488210 (82210 Gflop/s)   errors: 0   temps: 79 C
+Killing processes.. done
+
+Tested 1 GPUs:
+	GPU 0: OK
