@@ -2154,3 +2154,8 @@ fio-bw-log	table	4	5
 fio-multijob	text	-	2
 fio-iops-log	table	3	6
 fio-status-line	text	-	2
+pvesm-status	table	3	6
+rbd-du	table	3	3
+zk-mntr	kv	-	2
+ovs-ofctl-dump-flows	table	2	7
+supervisorctl-status	table	4	2

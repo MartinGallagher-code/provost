@@ -1410,6 +1410,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | otelcol-components | ✅ | yaml |
 | otelcol-metrics | ✅ | exposition-format |
 | ouch-list | ✅ | line-records |
+| ovs-ofctl-dump-flows | ⏳ | — |
 | oxlint-summary | ✅ | text-lines |
 | packer-inspect | ✅ | line-records |
 | packer-v | ✅ | line-records |
@@ -1623,6 +1624,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | puppet-agent-summary | ✅ | yaml |
 | puppet-module-list | ✅ | tree-view |
 | pvdisplay | ✅ | dashed-sections |
+| pvesm-status | ✅ | aligned-columns |
 | pvs-pv-used | ✅ | aligned-columns |
 | pvs-report | ✅ | aligned-columns |
 | pvs | ✅ | aligned-columns |
@@ -1658,6 +1660,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rage-keygen | ✅ | text-lines |
 | ramspeed-int | ✅ | key-value |
 | ray-status | ✅ | vertical-line |
+| rbd-du | ✅ | aligned-columns |
 | rbd-ls | ✅ | line-records |
 | rbenv-versions | ✅ | line-records |
 | rc-status | ✅ᵇ | rc-status (bespoke) |
@@ -1865,6 +1868,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | stylelint-summary | ✅ | text-lines |
 | sudo-l | ✅ | indented-hierarchy |
 | super-pi-run | ✅ | text-lines |
+| supervisorctl-status | ⏳ | — |
 | svn-info | ✅ | colons |
 | svn-list | ✅ | line-records |
 | svn-status | ✅ | line-records |
@@ -2146,6 +2150,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zig-version | ✅ | text-lines |
 | zigbee2mqtt-devices | ✅ | aligned-columns |
 | zip-info | ✅ | fixed-width |
+| zk-mntr | ✅ | tsv |
 | zola-check | ✅ | text-lines |
 | zoxide-query-list | ✅ | aligned-columns |
 | zpool-iostat | ✅ | fixed-width |
@@ -2159,5 +2164,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 2126 / 2151** — ✅ 1934 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 134 via a bespoke strategy.
-⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief gcloud-logging-logs-list getent-group hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p promtool-check-rules pueue-status pytest-cov-report quota-report sar-cpu scylla-nodetool-status v4l2-ctl-list-devices vnstat-hourly
+**Coverage: 2129 / 2156** — ✅ 1937 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 134 via a bespoke strategy.
+⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief gcloud-logging-logs-list getent-group hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p ovs-ofctl-dump-flows promtool-check-rules pueue-status pytest-cov-report quota-report sar-cpu scylla-nodetool-status supervisorctl-status v4l2-ctl-list-devices vnstat-hourly

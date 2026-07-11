@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-11 — Multi-mode coverage audit (all ~1000 tools) + net-new mode samples
+
+An audit of whether every tool's *range* of output modes is sampled — the same
+check that exposed fio's under-coverage earlier. Findings and actions:
+
+- **The corpus is already deeply multi-mode.** High-fanout tools already carry
+  many modes each (kubectl 54, aws 46, git 43, docker 28, ip 20, ss 13, tc 9,
+  sensors 5, zfs 4, …). Programmatically probing the ~738 single-sample tool
+  families for plausible additional modes produced **~70% collisions** — the
+  candidate mode was already represented — confirming the breadth is real, not
+  an artifact of fio being special.
+- **Net-new mode samples added (generic, no new code).** Three real common-tool
+  modes that weren't sampled and tidy under the generic parsers: `pvesm-status`
+  (Proxmox storage, aligned-columns), `rbd-du` (Ceph RBD usage with `50 GiB`
+  space-in-value cells, aligned-columns), `zk-mntr` (ZooKeeper `mntr`, tab kv).
+- **Two genuine gaps found and tracked honestly as ⏳** (same hard structural
+  classes as the existing 25): `supervisorctl-status` (multi-space-aligned
+  status table with `pid …, uptime …` value cells) and `ovs-ofctl-dump-flows`
+  (comma `k=v` flow records — the generic kv-pairs parse collapses multiple
+  flows to one record).
+- **Rejected a garbage-passing sample rather than inflate coverage.**
+  `ceph-osd-df` mechanically satisfied a shape check (17 cols × 2 rows) but its
+  data was misaligned garbage (multi-word `RAW USE` header + `1.0 TiB` /
+  `180 GiB` space-in-value cells shift every column; the tail jams into one
+  cell). Since the shape gate can't detect the misalignment, the sample was
+  removed entirely instead of committing a golden that enshrines wrong data.
+
+Coverage **2151 → 2156 tools; 2126 → 2129 tidy** (✅ 1937 generic, ✅ʰ 58 hint,
+✅ᵇ 134 bespoke); ⏳ 25 → 27. Golden gate re-run: **1995 passed, 0 failed**, no
+existing golden touched. Files: `tests/corpus/inputs/{pvesm-status,rbd-du,zk-mntr,ovs-ofctl-dump-flows,supervisorctl-status}.txt`,
+`tests/corpus/expected/{pvesm-status,rbd-du,zk-mntr}.tsv`,
+`tests/corpus/expected.tsv`, `tests/corpus/COVERAGE.md`.
+
 ## 2026-07-10 — Positional multi-word headers + fixed-width banner strip (aligned-columns)
 
 The audited positional-header round. Two capabilities in `aligned-columns`, each

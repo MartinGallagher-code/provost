@@ -1,6 +1,15 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2151 inputs (2026-07-10)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2156 inputs (2026-07-11)
+
+> **2026-07-11 — multi-mode coverage audit.** Verified the corpus already
+> samples multiple output modes per high-fanout tool (kubectl 54, aws 46,
+> git 43, docker 28, ip 20, …); probing single-sample families for extra modes
+> was ~70% collisions. Added 3 net-new generic-tidy mode samples (`pvesm-status`,
+> `rbd-du`, `zk-mntr`) and tracked 2 genuine ⏳ gaps (`supervisorctl-status`,
+> `ovs-ofctl-dump-flows`) in the existing hard classes. Rejected `ceph-osd-df`
+> (shape-passes but data is misaligned garbage) rather than inflate coverage.
+> Now **2156 tools; 2129 tidy; 27 ⏳.** Golden gate: 1995 passed, 0 failed.
 
 > Merged with main's parallel 2026-07-09 work (PR #23): spreadsheet-style
 > nameless columns (`A,B,C…` replaces `c1,c2,c3` — see `_col_letter` in
