@@ -1,5 +1,5 @@
 n	depth	name	total_entries
-1	0	myapp 0.1.0 (project app)	6
+1	1	myapp 0.1.0 (project app)	6
 2	0	cowboy 2.12.0 (hex package)	6
 3	0	cowlib 2.13.0 (hex package)	6
 4	0	ranch 2.1.0 (hex package)	6

@@ -1,0 +1,2 @@
+Name	Namespace	Selector	Node-Selector	Labels	Desired_Number_of_Nodes_Scheduled	Current_Number_of_Nodes_Scheduled	Number_of_Nodes_Scheduled_with_Up-to-date_Pods	Events.Normal___SuccessfulCreate__9m____daemonset-controller__Created_pod	Events.Normal___SuccessfulDelete__7m____daemonset-controller__Deleted_pod
+fluent-bit	logging	app=fluent-bit	<none>	app=fluent-bit	6	6	6	fluent-bit-x8k2p on node ip-10-0-3-14.ec2.internal to satisfy the desired state of one agent per schedulable node in the cluster	fluent-bit-q9v1z

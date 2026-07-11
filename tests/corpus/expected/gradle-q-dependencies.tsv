@@ -1,6 +1,6 @@
 n	depth	name	total_entries
-1	0	+--- org.springframework.boot:spring-boot-starter:3.2.1	5
-2	0	+--- org.springframework.boot:spring-boot:3.2.1	5
-3	0	+--- org.springframework.boot:spring-boot-autoconfigure:3.2.1	5
-4	0	+--- com.fasterxml.jackson.core:jackson-databind:2.15.3	5
-5	0	--- org.projectlombok:lombok:1.18.30	5
+1	1	org.springframework.boot:spring-boot-starter:3.2.1	5
+2	0	org.springframework.boot:spring-boot:3.2.1	5
+3	0	org.springframework.boot:spring-boot-autoconfigure:3.2.1	5
+4	1	com.fasterxml.jackson.core:jackson-databind:2.15.3	5
+5	1	org.projectlombok:lombok:1.18.30	5

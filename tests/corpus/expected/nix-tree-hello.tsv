@@ -1,0 +1,10 @@
+n	depth	name	total_entries
+1	1	/nix/store/ab3...-glibc-2.35-224	9
+2	2	/nix/store/cd4...-libidn2-2.3.2	9
+3	3	/nix/store/ef5...-libunistring-1.0	9
+4	2	/nix/store/gh6...-gcc-11.3.0-lib	9
+5	3	/nix/store/ab3...-glibc-2.35-224 [...]	9
+6	1	/nix/store/ij7...-bash-5.1-p16	9
+7	2	/nix/store/ab3...-glibc-2.35-224 [...]	9
+8	1	/nix/store/kl8...-acl-2.3.1	9
+9	2	/nix/store/ab3...-glibc-2.35-224 [...]	9
