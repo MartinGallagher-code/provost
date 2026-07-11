@@ -1,6 +1,14 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2156 inputs (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2157 inputs (2026-07-11)
+
+> **2026-07-11 — segment-split cluster.** Added `_ac_split` (2-space-gap
+> splitter) to `aligned-columns`, HDR-only and gated on modal-data-tokens >
+> header-tokens, to close right-aligned space-in-value fixed-width tables (`ceph
+> osd df`'s "1.0 TiB" under "RAW USE"). Full golden audit: `ceph-osd-df` ⏳->✅,
+> 8 existing goldens improved (multi-word headers joined, space-in-value cells
+> preserved), 0 regressions (a first-cut `ps-ef` deletion + 38-file over-fire
+> were fixed by the modal-token gate). Now **2157 tools; 2130 tidy; 27 ⏳.**
 
 > **2026-07-11 — multi-mode coverage audit.** Verified the corpus already
 > samples multiple output modes per high-fanout tool (kubectl 54, aws 46,

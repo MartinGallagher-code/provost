@@ -2159,3 +2159,4 @@ rbd-du	table	3	3
 zk-mntr	kv	-	2
 ovs-ofctl-dump-flows	table	2	7
 supervisorctl-status	table	4	2
+ceph-osd-df	table	2	14

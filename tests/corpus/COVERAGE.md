@@ -268,6 +268,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | cdk8s-synth | ✅ | line-records |
 | cdo-info | ✅ | text-lines |
 | ceph-df | ✅ | dashed-sections |
+| ceph-osd-df | ✅ | aligned-columns |
 | ceph-osd-tree | ⏳ | — |
 | ceph-status | ✅ | colons |
 | certbot-certificates | ✅ | indented-hierarchy |
@@ -2164,5 +2165,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 2129 / 2156** — ✅ 1937 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 134 via a bespoke strategy.
+**Coverage: 2130 / 2157** — ✅ 1938 via a generic parser, ✅ʰ 58 via a hint row, ✅ᵇ 134 via a bespoke strategy.
 ⏳ not yet tidy: ansible-galaxy-list apachectl-S batch-jobs bluetoothctl-devices ceph-osd-tree clickhouse-parts cryptsetup-status file-brief gcloud-logging-logs-list getent-group hugo-build-stats hurl-report jless-navigate kafka-topics-describe kdiskmark-run lzbench-run numastat-p ovs-ofctl-dump-flows promtool-check-rules pueue-status pytest-cov-report quota-report sar-cpu scylla-nodetool-status supervisorctl-status v4l2-ctl-list-devices vnstat-hourly

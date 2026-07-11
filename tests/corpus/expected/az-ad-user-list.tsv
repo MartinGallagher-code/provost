@@ -1,3 +1,3 @@
 n	DISPLAY-NAME	USER-PRINCIPAL-NAME	ENABLED	total_entries
-1	Alice	Nguyen	alice@contoso.com_True	2
-2	Bob	Smith	bob@contoso.com_True	2
+1	Alice Nguyen	alice@contoso.com	True	2
+2	Bob Smith	bob@contoso.com	True	2

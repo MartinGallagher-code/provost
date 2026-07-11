@@ -549,6 +549,26 @@ _ac_assign () {
     }'
 }
 
+# Split a line into cells at runs of >=2 spaces (the same column boundary a
+# fixed-width table uses), keeping a single-spaced multi-word cell intact ("1.0
+# TiB", "RAW USE", "pid 8821, uptime 2:14:08"). Emits TAB-separated cells. This
+# is `_ac_seg` as a splitter — used for right-aligned numeric tables whose values
+# carry inner spaces, which positional (start-of-column) assignment can't align.
+_ac_split () {
+    awk '{
+      line=$0; L=length(line); i=1; nc=0; out=""; cur=""
+      while(i<=L && substr(line,i,1)==" ") i++
+      while(i<=L){
+        if(substr(line,i,1)==" " && substr(line,i+1,1)==" "){
+          out=(nc==0?cur:out"\t"cur); nc++; cur=""
+          while(i<=L && substr(line,i,1)==" ") i++
+        } else { cur=cur substr(line,i,1); i++ }
+      }
+      if(cur!=""){ out=(nc==0?cur:out"\t"cur); nc++ }
+      print out
+    }'
+}
+
 strategy_extract () {
     local text="$1"
     local shape; shape="$(_ac_shape "$text")" || { echo ""; return 0; }
@@ -646,6 +666,74 @@ strategy_extract () {
                 done
                 [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
                 echo "$result"; return 0
+            fi
+        fi
+    fi
+
+    # Segment-split fallback for right-aligned space-in-value tables (ceph osd df's
+    # "1.0 TiB" under a "RAW USE" multi-word header; supervisorctl's "pid 8821,
+    # uptime 2:14:08"). Positional assignment above couldn't align these (their
+    # values are right-justified, so a value's start falls under the WRONG header
+    # column). Splitting on >=2-space gaps instead keeps each multi-word cell whole.
+    # Fires only for a PERFECTLY regular segmentation table (every non-blank line
+    # has the same >=2 segment count) that actually carries a multi-word cell
+    # (some row's whitespace-token count exceeds the segment count) — so a normal
+    # single-token table, already correct via tokenization, is never touched.
+    # HDR-only: a headed table's header row fixes the true column count, so
+    # rejoining segments is unambiguous. Headerless log records (who/last, whose
+    # "date time (host)" trailing field the established tidy splits into columns)
+    # are deliberately excluded — there is no header to say the field is one cell.
+    if [[ "$mode" == HDR ]] && [[ ${#lines[@]} -ge 2 ]]; then
+        local _sS="" _sok=1 _si _sarr _ss _sw _shw=0 _sdw=()
+        for ((_si = 0; _si < ${#lines[@]}; _si++)); do
+            _ss="$(_ac_seg "${lines[$_si]}")"
+            _sarr=(); read -ra _sarr <<< "${lines[$_si]}"; _sw=${#_sarr[@]}
+            [[ $_si -eq 0 ]] && _shw=$_sw || _sdw+=("$_sw")
+            [[ -z "$_sS" ]] && _sS="$_ss"
+            [[ "$_ss" -ne "$_sS" ]] && { _sok=0; break; }
+        done
+        # Modal (not max) data-row whitespace-token count: robust to a single
+        # ragged row. seg-split is right ONLY when data cells carry inner spaces —
+        # i.e. the typical data row has MORE whitespace tokens than the header has
+        # labels ("1.0 TiB" is 2 tokens in 1 column). When they're EQUAL, the
+        # columns are single-token and tokenization is already correct, even if a
+        # header label happens to be single-spaced (ps -ef's "C STIME TTY" — three
+        # narrow columns, not one multi-word cell). That equality is the guard that
+        # keeps single-space-delimited fixed tables on tokenization.
+        local _smod=0 _sa _sb _sk _sbest=0
+        for _sa in "${_sdw[@]}"; do
+            _sk=0; for _sb in "${_sdw[@]}"; do [[ "$_sb" -eq "$_sa" ]] && _sk=$((_sk + 1)); done
+            [[ $_sk -gt $_sbest ]] && { _sbest=$_sk; _smod=$_sa; }
+        done
+        if [[ $_sok -eq 1 && $_sS -ge 2 && $_smod -gt $_shw ]]; then
+            # mode==HDR guarantees a header row: split it on the same >=2-space
+            # boundaries and use its cells as column names ("RAW USE" -> RAW_USE).
+            local _sgrid=() _sg
+            while IFS= read -r _sg; do _sgrid+=("$_sg"); done < <(printf '%s\n' "${lines[@]}" | _ac_split)
+            local _sheaders=() _sstart=1
+            IFS=$'\t' read -ra _sheaders <<< "${_sgrid[0]}"
+            for ((_si = 0; _si < ${#_sheaders[@]}; _si++)); do
+                local _sh="${_sheaders[$_si]//./_}"; _sh="${_sh// /_}"
+                while [[ "$_sh" == *__* ]]; do _sh="${_sh//__/_}"; done
+                _sh="${_sh#_}"; _sh="${_sh%_}"; [[ -z "$_sh" ]] && _sh="$(_col_letter $((_si + 1)))"
+                _sheaders[$_si]="$_sh"
+            done
+            local _sresult="" _sentry=0 _sli
+            for ((_sli = _sstart; _sli < ${#_sgrid[@]}; _sli++)); do
+                local _svals=(); IFS=$'\t' read -ra _svals <<< "${_sgrid[$_sli]}"
+                local _sne=0 _sv
+                for _sv in "${_svals[@]}"; do [[ -n "${_sv//[[:space:]]/}" ]] && { _sne=1; break; }; done
+                [[ $_sne -eq 0 ]] && continue
+                _sentry=$((_sentry + 1))
+                for ((_si = 0; _si < ${#_sheaders[@]}; _si++)); do
+                    local _sname="${_sheaders[$_si]}" _sval="${_svals[$_si]:-}"
+                    [[ -z "$_sval" ]] && continue
+                    _sresult+="entry${_sentry}.${_sname} ${_sval}"$'\n'
+                done
+            done
+            if [[ $_sentry -gt 0 ]]; then
+                _sresult+="total_entries ${_sentry}"$'\n'
+                echo "$_sresult"; return 0
             fi
         fi
     fi

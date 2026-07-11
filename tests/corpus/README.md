@@ -41,7 +41,7 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**2156 tools tested; 2129 tidy (27 genuine format gaps ⏳)** — after two +500
+**2157 tools tested; 2130 tidy (27 genuine format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
@@ -55,11 +55,15 @@ tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
 samples many modes per high-fanout tool (kubectl 54, aws 46, git 43, docker 28,
 ip 20, …) and added 3 net-new generic-tidy mode samples (pvesm-status, rbd-du,
-zk-mntr). The 27 ⏳ that remain are genuinely hard (headerless first column —
-kdiskmark; single-space multi-word cells — lzbench; multi-word-header +
-space-in-value fixed-width tables — supervisorctl-status; multi-record comma
-`k=v` — ovs-ofctl-dump-flows; nested/2-line-header records). See
-[`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
+zk-mntr). A segment-split round (`_ac_split` in `aligned-columns`, HDR-only)
+then closed right-aligned space-in-value fixed-width tables — `ceph osd df`'s
+"1.0 TiB" under a "RAW USE" multi-word header — and improved 8 already-covered
+tables (multi-word headers joined, space-in-value cells preserved). The 27 ⏳
+that remain are genuinely hard (headerless first column — kdiskmark;
+single-space multi-word cells — lzbench; headerless space-in-value records —
+supervisorctl-status; multi-record comma `k=v` — ovs-ofctl-dump-flows;
+nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the live
+per-tool list.
 
 Coverage tiers, in order of preference:
 
