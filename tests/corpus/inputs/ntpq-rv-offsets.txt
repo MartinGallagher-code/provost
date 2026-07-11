@@ -1,0 +1,5 @@
+variable      value
+offset        -0.512
+frequency     +12.345
+sys_jitter    0.089
+clk_wander    0.006

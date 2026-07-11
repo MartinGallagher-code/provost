@@ -1,0 +1,5 @@
+n	A	total_entries
+1	[36maws_instance.web[0m	4
+2	[36maws_s3_bucket.assets[0m	4
+3	[36maws_security_group.default[0m	4
+4	[36mmodule.vpc.aws_subnet.public[0m	4

@@ -1,0 +1,22 @@
+node_modules
+├── @babel
+│   ├── core
+│   │   ├── lib
+│   │   │   └── index.js
+│   │   └── package.json
+│   └── runtime
+│       ├── helpers
+│       │   └── typeof.js
+│       └── package.json
+├── lodash
+│   ├── fp
+│   │   └── index.js
+│   ├── lodash.js
+│   └── package.json
+└── react
+    ├── cjs
+    │   └── react.production.min.js
+    ├── index.js
+    └── package.json
+
+11 directories, 11 files

@@ -1,0 +1,13 @@
+libc v0.2.139
+├── mio v0.8.5
+│   └── tokio v1.24.1
+│       ├── myapp v0.1.0 (/home/user/myapp)
+│       └── hyper v0.14.23
+│           └── myapp v0.1.0 (/home/user/myapp) (*)
+└── socket2 v0.4.7
+    └── tokio v1.24.1 (*)
+proc-macro2 v1.0.49
+└── quote v1.0.23
+    └── syn v1.0.107
+        └── serde_derive v1.0.152 (proc-macro)
+            └── serde v1.0.152

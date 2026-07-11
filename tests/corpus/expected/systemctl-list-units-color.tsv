@@ -1,0 +1,4 @@
+n	UNIT	LOAD	ACTIVE	SUB	total_entries
+1	nginx.service	[32mloaded[0m	[32mactive[0m	[32mrunning[0m	3
+2	mysql.service	[32mloaded[0m	[31mfailed[0m	[31mfailed[0m	3
+3	cron.service	[32mloaded[0m	[32mactive[0m	[32mrunning[0m	3

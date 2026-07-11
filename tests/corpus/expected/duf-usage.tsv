@@ -1,0 +1,5 @@
+n	│	MOUNTED	ON	SIZE	USED	AVAIL	USE%	TYPE	total_entries
+1	[#######........]	/	│	│	│	│	64.2%	ext4	4
+2	[####...........]	/home	│	│	│	│	44.2%	ext4	4
+3	[####...........]	/boot	│	│	│	│	30.5%	vfat	4
+4	[##############.]	/var	│	│	│	│	94.5%	xfs	4

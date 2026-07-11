@@ -1,0 +1,11 @@
+Linux 5.15.0-91-generic (app-node-2) 	07/11/2026 	_x86_64_	(16 CPU)
+
+12:30:01 AM   UID       PID  minflt/s  majflt/s     VSZ     RSS   %MEM  Command
+12:30:01 AM  1000      4412    122.40      0.10 8912340 2048112   6.10  java
+12:30:01 AM   999      2201     44.20      0.00 1204880  188320   0.56  postgres
+12:30:01 AM     0      1120      2.10      0.00  102400   12288   0.03  systemd-journal
+
+12:30:01 AM   UID       PID    %usr %system  %guest   %wait    %CPU   CPU  Command
+12:30:01 AM  1000      4412    8.10    2.30    0.00    0.44   10.40     3  java
+12:30:01 AM   999      2201    1.20    0.60    0.00    0.05    1.80     7  postgres
+12:30:01 AM     0      1120    0.50    0.20    0.00    0.00    0.70     1  systemd-journal

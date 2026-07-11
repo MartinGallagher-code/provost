@@ -1,0 +1,8 @@
+  pool: tank
+ state: DEGRADED
+  scan: resilver in progress, 44.20% done, 0h21m to go
+        NAME        STATE     PROGRESS
+        raidz2-0    DEGRADED  [#########-----------] 44.2%
+        sda         ONLINE    [####################] 100%
+        sdb         RESILVER  [#######-------------] 38.1%
+        sdc         ONLINE    [####################] 100%

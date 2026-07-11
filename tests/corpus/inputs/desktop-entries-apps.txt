@@ -1,0 +1,20 @@
+[Desktop Entry]
+Name=Firefox
+Exec=/usr/bin/firefox %u
+Icon=firefox
+Type=Application
+Categories=Network;WebBrowser;
+
+[Desktop Entry]
+Name=GIMP
+Exec=/usr/bin/gimp %U
+Icon=gimp
+Type=Application
+Categories=Graphics;
+
+[Desktop Entry]
+Name=VLC
+Exec=/usr/bin/vlc %U
+Icon=vlc
+Type=Application
+Categories=AudioVideo;Player;

@@ -1,0 +1,16 @@
+/sys/fs/cgroup
+├── system.slice
+│   ├── nginx.service
+│   │   ├── cgroup.procs: 812 813 814
+│   │   └── memory.current: 45678592
+│   ├── postgresql.service
+│   │   ├── cgroup.procs: 901
+│   │   └── memory.current: 128974848
+│   └── docker.service
+│       └── cgroup.procs: 1120
+├── user.slice
+│   └── user-1000.slice
+│       └── session-2.scope
+│           └── cgroup.procs: 2201 2340
+└── init.scope
+    └── cgroup.procs: 1

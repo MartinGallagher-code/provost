@@ -1,0 +1,2 @@
+bind	upstream	fallback	metrics
+[::1]:8080	[2001:db8::1]:443	127.0.0.1:80	[fe80::1%eth0]:9100

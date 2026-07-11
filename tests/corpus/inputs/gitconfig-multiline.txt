@@ -1,0 +1,12 @@
+[user]
+	name = Martin Gallagher
+	email = martin@example.com
+[core]
+	editor = vim
+	pager = less -FRX
+[alias]
+	lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'
+	cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | \
+		xargs -n 1 git branch -d"
+[url "git@github.com:"]
+	insteadOf = https://github.com/

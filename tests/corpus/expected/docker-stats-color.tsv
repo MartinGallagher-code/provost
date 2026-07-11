@@ -1,0 +1,4 @@
+n	CONTAINER	CPU_%	MEM_USAGE	NET_I/O	total_entries
+1	web-front	[32m2.15%[0m	[33m128MiB[0m / 512MiB	[36m1.2MB[0m / 3.4MB	3
+2	cache-01	[32m0.40%[0m	[32m64MiB[0m / 256MiB	[36m200kB[0m / 512kB	3
+3	db-primary	[31m88.10%[0m	[31m980MiB[0m / 1GiB	[36m12MB[0m / 40MB	3

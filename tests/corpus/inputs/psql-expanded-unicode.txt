@@ -1,0 +1,10 @@
+─[ RECORD 1 ]─┬──────────────────────
+customer_id   │ 4821
+name          │ Nordwind GmbH
+country       │ DE
+credit_limit  │ 50000.00
+─[ RECORD 2 ]─┼──────────────────────
+customer_id   │ 4822
+name          │ Sakura KK
+country       │ JP
+credit_limit  │ 75000.00

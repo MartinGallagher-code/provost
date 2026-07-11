@@ -1,0 +1,10 @@
+NAME        SIZE TYPE  FSTYPE      MOUNTPOINT
+nvme0n1   476.9G disk
+├─nvme0n1p1 512M part  vfat        /boot/efi
+├─nvme0n1p2   1G part  ext4        /boot
+└─nvme0n1p3 475.4G part LVM2_member
+  ├─sys-root  60G lvm   ext4        /
+  ├─sys-var   40G lvm   ext4        /var
+  └─sys-home 375G lvm   btrfs       /home
+nvme1n1   931.5G disk
+└─nvme1n1p1 931.5G part  zfs_member

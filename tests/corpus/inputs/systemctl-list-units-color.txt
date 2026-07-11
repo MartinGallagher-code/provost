@@ -1,0 +1,4 @@
+UNIT            LOAD     ACTIVE    SUB
+nginx.service   [32mloaded[0m   [32mactive[0m    [32mrunning[0m
+mysql.service   [32mloaded[0m   [31mfailed[0m    [31mfailed[0m
+cron.service    [32mloaded[0m   [32mactive[0m    [32mrunning[0m

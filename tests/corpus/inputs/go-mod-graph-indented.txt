@@ -1,0 +1,10 @@
+github.com/myorg/svc github.com/gin-gonic/gin@v1.8.2
+github.com/gin-gonic/gin@v1.8.2 github.com/gin-contrib/sse@v0.1.0
+github.com/gin-gonic/gin@v1.8.2 github.com/go-playground/validator/v10@v10.11.1
+github.com/go-playground/validator/v10@v10.11.1 github.com/leodido/go-urn@v1.2.1
+github.com/gin-gonic/gin@v1.8.2 github.com/mattn/go-isatty@v0.0.16
+github.com/mattn/go-isatty@v0.0.16 golang.org/x/sys@v0.0.0-20220811171246-fbc7d0a398ab
+github.com/gin-gonic/gin@v1.8.2 google.golang.org/protobuf@v1.28.1
+google.golang.org/protobuf@v1.28.1 github.com/google/go-cmp@v0.5.5
+github.com/myorg/svc golang.org/x/crypto@v0.5.0
+golang.org/x/crypto@v0.5.0 golang.org/x/sys@v0.4.0

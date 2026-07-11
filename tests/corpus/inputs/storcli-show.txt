@@ -1,0 +1,15 @@
+Controller = 0
+Status = Success
+Description = Show Drive Group
+
+TOPOLOGY :
+========
+-----------------------------------------------------------------------------
+DG Arr Row EID:Slot DID Type  State BT     Size PDC  PI SED DS3  FSpace TR
+-----------------------------------------------------------------------------
+ 0 -   -   -        -   RAID6 Optl  N  43.660 TB dsbl N  N   dflt N      N
+ 0 0   -   -        -   RAID6 Optl  N  43.660 TB dsbl N  N   dflt N      N
+ 0 0   0   252:0    12  DRIVE Onln  N   7.276 TB dsbl N  N   dflt -      N
+ 0 0   1   252:1    13  DRIVE Onln  N   7.276 TB dsbl N  N   dflt -      N
+ 0 0   2   252:2    14  DRIVE Onln  N   7.276 TB dsbl N  N   dflt -      N
+-----------------------------------------------------------------------------

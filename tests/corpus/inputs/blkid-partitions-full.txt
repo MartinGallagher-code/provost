@@ -1,0 +1,9 @@
+DEVNAME: /dev/nvme0n1p1
+UUID: A1B2-C3D4
+TYPE: vfat
+PARTLABEL: ESP
+
+DEVNAME: /dev/nvme0n1p2
+UUID: e5f6a7b8-c9d0-1234-5678-90abcdef1234
+TYPE: ext4
+PARTLABEL: linux-root

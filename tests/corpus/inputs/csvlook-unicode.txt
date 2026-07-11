@@ -1,0 +1,5 @@
+│ name    │ dept        │ salary │ active │
+│ ------- │ ----------- │ ------ │ ------ │
+│ Priya   │ Engineering │ 142000 │ True   │
+│ Marcus  │ Sales       │  98000 │ True   │
+│ Yuki    │ Design      │ 110500 │ False  │

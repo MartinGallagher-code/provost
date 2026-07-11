@@ -1,0 +1,17 @@
+==> git
+Version: 2.42.0
+Homepage: https://git-scm.com
+License: GPL-2.0-only
+Dependencies: gettext, pcre2
+
+==> jq
+Version: 1.7
+Homepage: https://jqlang.github.io/jq/
+License: MIT
+Dependencies: oniguruma
+
+==> ripgrep
+Version: 13.0.0
+Homepage: https://github.com/BurntSushi/ripgrep
+License: MIT
+Dependencies: pcre2

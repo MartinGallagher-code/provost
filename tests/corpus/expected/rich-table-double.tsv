@@ -1,0 +1,4 @@
+n	node	role	heartbeat	total_entries
+1	node-a1	leader	0.2s	3
+2	node-b2	follower	0.4s	3
+3	node-c3	follower	0.3s	3

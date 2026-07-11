@@ -1,0 +1,3 @@
+id	name	bio	updated
+1	Alice	Loves SQL, Python: and more	2026-01-01 12:00:00
+2	Bob	DBA, 10y exp	2026-02-02 09:30:00

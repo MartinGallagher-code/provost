@@ -1,0 +1,25 @@
+Adapter #0
+
+Enclosure Device ID: 252
+Slot Number: 0
+Media Type: Solid State Device
+PD Type: SATA
+Raw Size: 3.492 TB [0x1bf244b0 Sectors]
+Firmware state: Online, Spun Up
+Inquiry Data: SAMSUNG MZ7LH3T8  1234
+
+Enclosure Device ID: 252
+Slot Number: 1
+Media Type: Solid State Device
+PD Type: SATA
+Raw Size: 3.492 TB [0x1bf244b0 Sectors]
+Firmware state: Online, Spun Up
+Inquiry Data: SAMSUNG MZ7LH3T8  5678
+
+Enclosure Device ID: 252
+Slot Number: 2
+Media Type: Hard Disk Device
+PD Type: SAS
+Raw Size: 7.276 TB [0x37e48960 Sectors]
+Firmware state: Rebuild
+Inquiry Data: SEAGATE ST8000NM  9012

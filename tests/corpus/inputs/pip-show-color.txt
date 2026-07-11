@@ -1,0 +1,5 @@
+Name:  [36mrequests[0m
+Version:  [33m2.31.0[0m
+Summary:  [37mPython HTTP for Humans.[0m
+License:  [32mApache 2.0[0m
+Requires:  [35mcertifi, urllib3[0m

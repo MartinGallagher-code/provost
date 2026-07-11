@@ -1,0 +1,11 @@
+n	interface	plug	slot	notes	total_entries
+1	network	firefox:network	:network	-	10
+2	network-bind	firefox:network-bind	:network-bind	-	10
+3	home	firefox:home	:home	-	10
+4	audio-playback	firefox:audio-playback	:audio-playback	-	10
+5	opengl	firefox:opengl	:opengl	-	10
+6	camera	firefox:camera	-	-	10
+7	browser-support	firefox:browser-sandbox	:browser-support	-	10
+8	content[gnome-3-38]	firefox:gnome-3-38-2004	gnome-3-38-2004:gnome-3-38-2004	-	10
+9	desktop	chromium:desktop	:desktop	-	10
+10	desktop-legacy	chromium:desktop-legacy	:desktop-legacy	-	10

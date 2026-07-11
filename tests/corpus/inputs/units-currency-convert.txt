@@ -1,0 +1,4 @@
+from      to     rate
+1 USD     EUR    0,92
+1 GBP     USD    1.27
+1 BTC     USD    64.213,50

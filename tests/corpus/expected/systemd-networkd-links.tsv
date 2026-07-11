@@ -1,0 +1,3 @@
+n	Name	Type	State	Address	Gateway	MTU
+1	eth0	ether	routable	10.0.0.5	10.0.0.1	1500
+2	wg0	wireguard	carrier	10.8.0.2	-	1420

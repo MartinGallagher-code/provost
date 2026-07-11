@@ -1,0 +1,4 @@
+n	NAME	CPU(cores)	MEMORY(bytes)	total_entries
+1	api-server-abc	[32m142m[0m	[33m380Mi[0m	3
+2	worker-def	[31m890m[0m	[31m1210Mi[0m	3
+3	cache-ghi	[32m12m[0m	[32m64Mi[0m	3

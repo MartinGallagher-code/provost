@@ -1,0 +1,7 @@
+time->Fri Jul 11 09:01:12 2026
+type=USER_AUTH msg=audit(1752220872.113:441): pid=812 uid=0 auid=1000 ses=3 msg='op=PAM:authentication acct="mgallag" exe="/usr/sbin/sshd" hostname=192.168.1.10 res=success'
+----
+time->Fri Jul 11 09:02:47 2026
+type=USER_LOGIN msg=audit(1752220967.882:449): pid=815 uid=0 auid=1000 ses=3 msg='op=login acct="mgallag" exe="/usr/sbin/sshd" res=failed'
+----
+type=ANOM_ABEND msg=audit(1752221003.017:452): pid=2201 uid=1000 auid=1000 ses=3 sig=11 res=1

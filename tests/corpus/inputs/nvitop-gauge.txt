@@ -1,0 +1,3 @@
+GPU  Name              Temp  Power        Util
+0    RTX A6000         68C   280W/300W    [█████████░] 93%
+1    RTX A6000         44C   65W/300W     [██░░░░░░░░] 18%

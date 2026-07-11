@@ -1,0 +1,5 @@
+n	A	B	C	D	total_entries
+1	test	tokenize::splits_words	...	[32mok[0m	4
+2	test	tokenize::handles_ansi	...	[31mFAILED[0m	4
+3	test	parse::nested_tables	...	[32mok[0m	4
+4	test	parse::empty_input	...	[33mignored[0m	4

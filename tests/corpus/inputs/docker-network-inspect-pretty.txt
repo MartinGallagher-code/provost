@@ -1,0 +1,14 @@
+Network: bridge
+Id: f2c8d9a1b3e4567890abcdef1234567890abcdef1234567890abcdef1234567
+Driver: bridge
+Scope: local
+Created: 2024-01-10T11:03:22.19283746Z
+Subnet: 172.17.0.0/16
+Gateway: 172.17.0.1
+Containers: web-app-7f9c (172.17.0.4/16)
+    redis-cache-3a1 (172.17.0.5/16)
+    postgres-db-9de (172.17.0.6/16)
+Options: com.docker.network.bridge.default_bridge=true
+    com.docker.network.bridge.enable_icc=true
+    com.docker.network.driver.mtu=1500
+Labels: none

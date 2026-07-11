@@ -1,0 +1,4 @@
+Code   Account          Debit           Credit
+1000   Cash            1,234,567.00           0.00
+2000   Payables               0.00      98,765.43
+3000   Equity                 0.00   1,135,801.57

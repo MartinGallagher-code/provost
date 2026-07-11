@@ -1,0 +1,15 @@
+Name:                          nightly-report
+Namespace:                     batch
+Schedule:                      0 2 * * *
+Concurrency Policy:            Forbid
+Suspend:                       False
+Successful Job History Limit:  3
+Failed Job History Limit:      1
+Last Schedule Time:            Mon, 15 Jan 2024 02:00:00 +0000
+Active Jobs:                   <none>
+Events:
+  Type     Reason            Age   From                Message
+  ----     ------            ----  ----                -------
+  Normal   SuccessfulCreate  26h   cronjob-controller  Created job nightly-report-28412640
+  Warning  FailedCreate      2h    cronjob-controller  Error creating job: jobs.batch "nightly-report-28414080" already exists; the previous run may still be terminating and the concurrency policy forbids overlap
+  Normal   SawCompletedJob   90m   cronjob-controller  Saw completed job: nightly-report-28412640, status: Complete

@@ -1,0 +1,11 @@
+Link: eth0
+Current Scopes: DNS
+Protocols: +DefaultRoute
+DNS Servers: 192.168.1.1
+DNS Domain: lan
+
+Link: wlan0
+Current Scopes: DNS
+Protocols: -DefaultRoute
+DNS Servers: 10.0.0.1
+DNS Domain: corp.example

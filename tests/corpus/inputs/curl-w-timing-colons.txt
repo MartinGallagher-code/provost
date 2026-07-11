@@ -1,0 +1,5 @@
+url_effective: https://api.example.com:8443/v1/status
+time_namelookup: 0:0.004
+time_total: 0:1.234
+http_code: 200
+remote_ip: 2001:db8::42

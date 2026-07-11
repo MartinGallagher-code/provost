@@ -1,0 +1,19 @@
+Package: openssl
+Status: install ok installed
+Priority: important
+Section: utils
+Installed-Size: 1352
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Architecture: amd64
+Version: 3.0.2-0ubuntu1.10
+Depends: libc6 (>= 2.34), libssl3 (>= 3.0.2)
+Suggests: ca-certificates
+Conffiles: /etc/ssl/openssl.cnf 3f4b999b4cfa7dbcd0c5b0974e9e59f6
+Description: Secure Sockets Layer toolkit - cryptographic utility
+ This package is part of the OpenSSL project's implementation of the SSL
+ and TLS cryptographic protocols for secure communication over the
+ Internet.
+ .
+ It contains the general-purpose command line binary /usr/bin/openssl,
+ useful for cryptographic operations.
+Homepage: https://www.openssl.org/

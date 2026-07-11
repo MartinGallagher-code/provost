@@ -1,0 +1,3 @@
+[1mCI[0m          [32mactive[0m    [2m12345678[0m
+[1mRelease[0m     [32mactive[0m    [2m23456789[0m
+[1mNightly[0m     [33mdisabled[0m  [2m34567890[0m

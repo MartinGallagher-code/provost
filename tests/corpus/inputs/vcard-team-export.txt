@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Marie Curie
+ORG:Radium Labs
+EMAIL:marie@radium.fr
+TEL:+33 1 42 86 00 00
+END:VCARD
+
+BEGIN:VCARD
+VERSION:3.0
+FN:Niels Bohr
+ORG:Copenhagen Inst
+EMAIL:niels@nbi.dk
+TEL:+45 35 32 52 00
+END:VCARD

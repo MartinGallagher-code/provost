@@ -1,0 +1,8 @@
+n	Per-node	system	memory	usage	(in	MBs):	total_entries
+1	Node	0	Node	1	Node	2_Node_3_Total	7
+2	MemTotal	64512.0	64512.0	64512.0	64512.0	258048.0	7
+3	MemFree	8210.4	9120.8	7044.2	6890.1	31265.5	7
+4	MemUsed	56301.6	55391.2	57467.8	57621.9	226782.5	7
+5	Active	40218.7	39882.1	41002.5	41190.3	162293.6	7
+6	Inactive	12044.2	11908.6	12550.9	12610.4	49114.1	7
+7	Dirty	4.1	3.8	5.2	4.9	18.0	7

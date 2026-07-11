@@ -1,0 +1,6 @@
+md0 : active raid5 sda[0] sdb[1] sdc[2]
+Personalities : [raid5]
+      resync = 62.4% (1948672/3125248) finish=4.1min speed=48210K/sec
+      [============>........]  recovery = 62.4%  md0   sda   ok
+      [====================]  recovery = 100.0% md1   sdd   ok
+      [===>................]  recovery = 18.9%  md2   sde   ok

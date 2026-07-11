@@ -1,0 +1,4 @@
+UNIT                LOAD   ACTIVE SUB     DESCRIPTION
+nginx.service       loaded active running A high performance web server
+ssh.service         loaded active running OpenBSD Secure Shell server, sshd
+cron.service        loaded active running Regular background program processing

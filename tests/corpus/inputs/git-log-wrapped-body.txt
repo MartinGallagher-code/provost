@@ -1,0 +1,26 @@
+commit abcdef0123456789abcdef0123456789abcdef01
+Author: Sam Rivera <sam@example.com>
+Date:   Fri Jan 19 16:08:22 2024 +0000
+
+    Introduce circuit breaker for downstream calls
+
+    The payment gateway occasionally becomes unresponsive for several
+    minutes at a time. When that happens every request thread blocks on
+    the socket read, exhausting the pool and cascading the outage to the
+    rest of the service. This change wraps the gateway client in a
+    circuit breaker that trips after five consecutive failures.
+
+commit 2468ace02468ace02468ace02468ace02468ace0
+Author: Sam Rivera <sam@example.com>
+Date:   Fri Jan 19 10:12:44 2024 +0000
+
+    Add integration test for the circuit breaker
+
+commit 13579bdf13579bdf13579bdf13579bdf13579bdf1
+Author: Lena Ostrom <lena@example.com>
+Date:   Thu Jan 18 18:51:30 2024 +0000
+
+    Correct off-by-one in pagination cursor
+
+    The last page was being skipped when the total count was an exact
+    multiple of the page size.

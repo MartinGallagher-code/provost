@@ -1,0 +1,4 @@
+[##########........] | idealTree:build: react@18.2.0
+[##############....] \ reify:webpack: http fetch GET 200 2841ms
+[################..] / reify:typescript: timing metavuln
+[##################] - reify:esbuild: done 1284 packages

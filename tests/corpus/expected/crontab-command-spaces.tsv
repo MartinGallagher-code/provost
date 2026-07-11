@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	G	H	I	J	K	L	total_entries
+1	0	2	*	*	*	/usr/bin/backup.sh	--dest	/mnt/backups	--keep	7			3
+2	*/15	*	*	*	*	cd	/opt/app	&&	./run.sh	>>	/var/log/app.log	2>&1	3
+3	30	4	*	*	1	/bin/sh	-c	'tar	czf	/tmp/a.tgz	/etc	/var'	3

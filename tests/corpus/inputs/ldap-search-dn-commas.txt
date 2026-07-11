@@ -1,0 +1,5 @@
+dn: uid=alice,ou=People,dc=example,dc=com
+cn: Alice Smith
+mail: alice@example.com
+dn: uid=bob,ou=People,dc=example,dc=com
+cn: Bob Jones

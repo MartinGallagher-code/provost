@@ -1,0 +1,17 @@
+From: alice@example.com
+To: bob@example.com
+Subject: Meeting notes
+Date: Mon, 06 Jul 2026 09:12:00 +0000
+Message-ID: <a1@example.com>
+
+From: bob@example.com
+To: alice@example.com
+Subject: Re: Meeting notes
+Date: Mon, 06 Jul 2026 10:03:00 +0000
+Message-ID: <b2@example.com>
+
+From: carol@example.com
+To: team@example.com
+Subject: Release plan
+Date: Tue, 07 Jul 2026 14:22:00 +0000
+Message-ID: <c3@example.com>

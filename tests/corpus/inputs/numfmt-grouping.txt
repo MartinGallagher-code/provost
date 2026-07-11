@@ -1,0 +1,4 @@
+FIELD          RAW           GROUPED
+population     1234567       1,234,567
+budget         98765432      98,765,432
+deficit        -1234500      -1,234,500

@@ -1,0 +1,6 @@
+-- Boot 9f2c1a4b5d6e7f80 --
+Jul 11 07:55:00 dev-box kernel: Linux version 6.8.0-40-generic
+Jul 11 07:55:00 dev-box kernel: Command line: BOOT_IMAGE=/vmlinuz root=UUID=7f3c
+Jul 11 07:55:01 dev-box systemd[1]: Reached target Basic System.
+Jul 11 07:55:03 dev-box systemd[1]:
+Jul 11 07:55:04 dev-box NetworkManager[640]: <info>  device (eth0): carrier acquired

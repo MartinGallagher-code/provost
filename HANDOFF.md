@@ -1,6 +1,17 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 2696 inputs (2026-07-11)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs (2026-07-11)
+
+> **2026-07-11 — adversarial stress test (+500 hard inputs).** 500 inputs
+> generated to BREAK the parser across 10 hard mechanisms. Robust to ANSI color,
+> grouped headers, paragraph records, TUI bars; genuine soft spots are deep
+> trees, multi-line/wrapped records, and some box-drawing dialects. Rebuilt
+> `box-table` v2 (heavy/double/tabulate/dotted glyphs, interior-only rows,
+> csvlook dash rule) — closed 8 box breakers and upgraded railway-variables /
+> polars-describe from tokenised junk to real tables. In FULL mode 431/500 tidy;
+> 69 documented ⏳. Golden gate 2952 passed, 0 failed; extract 62/62, smoke 49/0,
+> melt 10/0. Now **3196 tools; 3090 tidy; 106 ⏳.** Remaining hard frontier: tree
+> flattening and multi-line-record reassembly.
 
 > **2026-07-11 — batch 3 (+539 inputs).** Third large expansion of unique
 > never-before-seen tools across 10 domains (cloud/k8s/db/observability/

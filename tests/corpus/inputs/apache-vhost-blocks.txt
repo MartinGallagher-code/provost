@@ -1,0 +1,11 @@
+ServerName: www.example.org
+DocumentRoot: /srv/www/example
+Port: 80
+ErrorLog: /var/log/apache2/example-error.log
+CustomLog: /var/log/apache2/example-access.log
+
+ServerName: shop.example.org
+DocumentRoot: /srv/www/shop
+Port: 443
+ErrorLog: /var/log/apache2/shop-error.log
+CustomLog: /var/log/apache2/shop-access.log

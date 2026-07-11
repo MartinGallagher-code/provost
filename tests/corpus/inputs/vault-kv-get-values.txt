@@ -1,0 +1,6 @@
+====== Data ======
+Key              Value
+---              -----
+db_connection    postgres://u:p@host:5432/db?opt=a,b
+message          hello, world: welcome
+tags             prod, critical, on-call

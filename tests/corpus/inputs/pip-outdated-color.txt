@@ -1,0 +1,4 @@
+Package     Version   Latest    Type
+[33mnumpy[0m       1.26.0    1.26.4    wheel
+[31mscipy[0m       1.11.0    1.13.0    wheel
+[33mpandas[0m      2.1.0     2.2.2     wheel

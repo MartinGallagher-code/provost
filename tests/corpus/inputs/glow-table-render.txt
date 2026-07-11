@@ -1,0 +1,5 @@
+  ┃ Task          ┃ Owner    ┃ Due        ┃
+  ┃━━━━━━━━━━━━━━━┃━━━━━━━━━━┃━━━━━━━━━━━━┃
+  ┃ Ship v2 API   ┃ team-core┃ 2026-07-20 ┃
+  ┃ Migrate DB    ┃ team-data┃ 2026-07-25 ┃
+  ┃ Audit logs    ┃ team-sec ┃ 2026-08-01 ┃

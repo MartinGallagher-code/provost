@@ -1,0 +1,20 @@
+<html>
+  <head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="app.css">
+  </head>
+  <body>
+    <div class="container">
+      <nav class="sidebar">
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/stats">Stats</a></li>
+        </ul>
+      </nav>
+      <main>
+        <h1>Overview</h1>
+        <p>Welcome back.</p>
+      </main>
+    </div>
+  </body>
+</html>

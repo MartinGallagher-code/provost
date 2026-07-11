@@ -1,0 +1,6 @@
+# m h  dom mon dow   command
+0 2 * * * /usr/local/bin/backup.sh --source /var/data --dest /mnt/backups \
+    --exclude '*.tmp' --compress --retention 30 >> /var/log/backup.log 2>&1
+*/15 * * * * /usr/bin/curl -s https://health.example.com/ping >> /var/log/health.log
+30 4 * * 0 /usr/local/bin/report.py --weekly --email ops@example.com
+0 0 1 * * /usr/local/bin/rotate-certs.sh && systemctl reload nginx

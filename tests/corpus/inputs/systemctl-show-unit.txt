@@ -1,0 +1,4 @@
+Id=nginx.service
+ExecStart={ path=/usr/sbin/nginx ; argv[]=/usr/sbin/nginx -g daemon off; ; ignore_errors=no }
+Environment=LANG=en_US.UTF-8 TZ=UTC
+FragmentPath=/lib/systemd/system/nginx.service

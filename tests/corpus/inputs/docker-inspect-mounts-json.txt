@@ -1,0 +1,4 @@
+[
+  {"Type":"bind","Source":"/home/user/My App","Destination":"/app","Mode":"rw,z"},
+  {"Type":"volume","Source":"data-vol","Destination":"/var/lib/data","Mode":"rw"}
+]

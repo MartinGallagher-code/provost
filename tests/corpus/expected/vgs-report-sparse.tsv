@@ -1,0 +1,4 @@
+n	VG	#PV	#LV	#SN	Attr	VSize	VFree	total_entries
+1	vg0	2	5	1	wz--n-	689.50g	23.50g	3
+2	vg1	1	0	0	wz--n-	931.00g	931.00g	3
+3	vg-old	0	0	0	wz--n-	0	0	3

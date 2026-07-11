@@ -1,0 +1,15 @@
+<beans>
+  <bean id="dataSource" class="HikariDataSource">
+    <property name="jdbcUrl" value="jdbc:postgresql://db:5432/app"/>
+    <property name="username" value="app"/>
+    <property name="pool">
+      <bean class="PoolConfig">
+        <property name="maxSize" value="20"/>
+        <property name="minIdle" value="5"/>
+      </bean>
+    </property>
+  </bean>
+  <bean id="txManager" class="DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+  </bean>
+</beans>

@@ -1,0 +1,14 @@
+[submodule "libfoo"]
+	path = vendor/libfoo
+	url = https://github.com/example/libfoo.git
+	branch = main
+
+[submodule "libbar"]
+	path = vendor/libbar
+	url = https://github.com/example/libbar.git
+	branch = stable
+
+[submodule "docs-theme"]
+	path = docs/theme
+	url = https://github.com/example/theme.git
+	branch = gh-pages

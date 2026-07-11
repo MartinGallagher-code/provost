@@ -1,0 +1,14 @@
+PublicKey = abc123abc123abc123abc123abc123abc123abc1
+AllowedIPs = 10.0.0.2/32
+Endpoint = 203.0.113.20:51820
+PersistentKeepalive = 25
+
+PublicKey = def456def456def456def456def456def456def4
+AllowedIPs = 10.0.0.3/32
+Endpoint = 203.0.113.21:51820
+PersistentKeepalive = 25
+
+PublicKey = 789ghi789ghi789ghi789ghi789ghi789ghi789g
+AllowedIPs = 10.0.0.4/32
+Endpoint = 203.0.113.22:51820
+PersistentKeepalive = 25

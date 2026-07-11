@@ -1,0 +1,14 @@
+Package: nginx
+Status: install ok installed
+Priority: optional
+Section: httpd
+Installed-Size: 108
+Maintainer: Debian Nginx Maintainers <pkg-nginx-maintainers@example.net>
+Architecture: all
+Version: 1.18.0-6ubuntu14.4
+Depends: nginx-core (<< 1.18.0-6ubuntu14.4.1~) | nginx-full (<< 1.18.0-6ubuntu14.4.1~)
+Description: small, powerful, scalable web/proxy server
+ Nginx ("engine X") is a high-performance web and reverse proxy server
+ created by Igor Sysoev. It can be used both as a standalone web server
+ and as a proxy to reduce the load on back-end HTTP or mail servers.
+Homepage: https://nginx.net

@@ -1,0 +1,5 @@
+  PID  Program     User    [32mCpu%[0m   [33mMem[0m
+ 1042  chrome      user    [31m42.1[0m   1.2G
+  880  node        user    [33m18.7[0m   512M
+  512  postgres    postgres [32m 3.4[0m   256M
+  221  systemd     root    [32m 0.1[0m    12M

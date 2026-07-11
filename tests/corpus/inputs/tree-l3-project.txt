@@ -1,0 +1,24 @@
+.
+├── docs
+│   ├── api
+│   │   ├── index.md
+│   │   └── reference.md
+│   └── guide
+│       ├── intro.md
+│       └── setup.md
+├── src
+│   ├── core
+│   │   ├── engine.rs
+│   │   └── mod.rs
+│   ├── cli
+│   │   ├── args.rs
+│   │   └── main.rs
+│   └── lib.rs
+├── tests
+│   ├── integration
+│   │   └── smoke.rs
+│   └── unit.rs
+├── Cargo.toml
+└── README.md
+
+7 directories, 15 files

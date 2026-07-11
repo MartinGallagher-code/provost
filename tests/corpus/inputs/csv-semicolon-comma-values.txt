@@ -1,0 +1,3 @@
+id;name;amount;note
+1;Widget, large;1,50;in stock
+2;Gadget, small;2,75;backorder

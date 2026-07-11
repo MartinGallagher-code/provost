@@ -1,0 +1,24 @@
+commit 3f9a1b2c4d5e6f7089abcdef0123456789abcdef
+Author: Martin Gallagher <martin@example.com>
+Date:   Mon Jan 15 08:22:41 2024 +0000
+
+    Fix race condition in connection pool
+
+    The pool was handing out connections that had already been closed by
+    the reaper thread. This adds a validity check before returning a
+    connection and re-establishes it if stale.
+
+commit a1b2c3d4e5f60718293a4b5c6d7e8f9012345678
+Author: Jane Doe <jane@example.com>
+Date:   Sun Jan 14 19:03:44 2024 +0000
+
+    Bump dependency versions for security patches
+
+commit 7788990011223344556677889900aabbccddeeff
+Author: Martin Gallagher <martin@example.com>
+Date:   Sat Jan 13 11:41:09 2024 +0000
+
+    Add retry logic to the HTTP client
+
+    Transient 503s from the upstream API were causing job failures. We now
+    retry up to three times with exponential backoff.

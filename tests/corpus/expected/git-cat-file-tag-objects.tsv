@@ -1,0 +1,11 @@
+n	A	B	C	D	E	total_entries
+1	object	a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0				10
+2	type	commit				10
+3	tag	v1.0.0				10
+4	tagger	Alice	<alice@example.com>	1720000000	+0000	10
+5	message	Release	1.0.0			10
+6	object	c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0				10
+7	type	commit				10
+8	tag	v1.1.0				10
+9	tagger	Bob	<bob@example.com>	1720500000	+0000	10
+10	message	Release	1.1.0			10

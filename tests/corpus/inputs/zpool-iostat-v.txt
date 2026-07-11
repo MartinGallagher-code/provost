@@ -1,0 +1,13 @@
+                              capacity     operations     bandwidth
+pool                        alloc   free   read  write   read  write
+--------------------------  -----  -----  -----  -----  -----  -----
+tank                        18.2T  25.8T    120  1.02K  14.4M   188M
+  raidz2                    18.2T  25.8T    120  1.02K  14.4M   188M
+    nvme0n1                     -      -     20    170  2.40M  31.3M
+    nvme1n1                     -      -     20    172  2.42M  31.4M
+    nvme2n1                     -      -     20    168  2.38M  31.2M
+logs                            -      -      -      -      -      -
+  mirror                    204M   3.7G      0    440      0   62.1M
+    nvme6n1p1                   -      -      0    220      0   31.0M
+    nvme7n1p1                   -      -      0    220      0   31.1M
+--------------------------  -----  -----  -----  -----  -----  -----

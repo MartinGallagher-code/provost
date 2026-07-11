@@ -1,0 +1,17 @@
+DEVNAME: /dev/sda1
+UUID: 1234-ABCD
+TYPE: vfat
+LABEL: EFI
+PARTUUID: aaaa-0001
+
+DEVNAME: /dev/sda2
+UUID: 5678efgh-90ab-cdef-1234-567890abcdef
+TYPE: ext4
+LABEL: root
+PARTUUID: aaaa-0002
+
+DEVNAME: /dev/sdb1
+UUID: 9012ijkl-3456-7890-abcd-ef1234567890
+TYPE: xfs
+LABEL: data
+PARTUUID: bbbb-0001

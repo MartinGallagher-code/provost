@@ -1,0 +1,6 @@
+core0  █ 92%
+core1  ▆ 71%
+core2  ▃ 38%
+core3  ▁ 11%
+core4  ▇ 84%
+core5  ▄ 52%

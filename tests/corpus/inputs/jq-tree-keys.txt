@@ -1,0 +1,13 @@
+.
+├── name: "myservice"
+├── version: "2.1.0"
+├── config
+│   ├── port: 8080
+│   ├── host: "0.0.0.0"
+│   └── tls
+│       ├── enabled: true
+│       └── cert: "/etc/ssl/cert.pem"
+├── dependencies
+│   ├── [0]: "redis"
+│   └── [1]: "postgres"
+└── replicas: 3

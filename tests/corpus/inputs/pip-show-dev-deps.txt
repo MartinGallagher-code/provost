@@ -1,0 +1,11 @@
+Name: pytest
+Version: 7.4.0
+Summary: pytest testing framework
+Location: /usr/lib/python3/dist-packages
+Requires: pluggy, iniconfig
+
+Name: black
+Version: 23.7.0
+Summary: The uncompromising code formatter
+Location: /usr/lib/python3/dist-packages
+Requires: click, mypy-extensions

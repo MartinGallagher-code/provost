@@ -1,0 +1,13 @@
+● containerd.service - containerd container runtime
+     Loaded: loaded (/lib/systemd/system/containerd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sun 2024-01-14 22:01:11 UTC; 4 days ago
+       Docs: https://containerd.io
+   Main PID: 883 (containerd)
+      Tasks: 142
+     Memory: 88.7M
+     CGroup: /system.slice/containerd.service
+             ├─ 883 /usr/bin/containerd
+             ├─2104 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 4f9c8b2a1d3e -address /run/containerd/containerd.sock
+             └─2311 /usr/bin/containerd-shim-runc-v2 -namespace k8s.io -id 6d5a4f0e9c8b -address /run/containerd/containerd.sock
+
+Jan 14 22:01:11 node-3 systemd[1]: Started containerd container runtime.

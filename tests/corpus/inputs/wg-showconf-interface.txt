@@ -1,0 +1,9 @@
+PublicKey = xyz000xyz000xyz000xyz000xyz000xyz000xyz0
+AllowedIPs = 10.10.0.2/32
+Endpoint = 198.51.100.30:51820
+LatestHandshake = 1720000000
+
+PublicKey = uvw111uvw111uvw111uvw111uvw111uvw111uvw1
+AllowedIPs = 10.10.0.3/32
+Endpoint = 198.51.100.31:51820
+LatestHandshake = 1720000123

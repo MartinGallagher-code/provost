@@ -1,0 +1,9 @@
+Name: bond0
+Kind: bond
+MACAddress: 02:42:ac:11:00:02
+MTUBytes: 9000
+
+Name: br0
+Kind: bridge
+MACAddress: 02:42:ac:11:00:03
+MTUBytes: 1500

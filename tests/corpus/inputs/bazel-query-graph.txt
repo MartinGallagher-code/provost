@@ -1,0 +1,11 @@
+digraph mygraph {
+  node [shape=box];
+  "//src:app"
+  "//src:app" -> "//src:lib"
+  "//src:app" -> "//src:cli"
+  "//src:lib" -> "//src:util"
+  "//src:lib" -> "@com_google_absl//absl/strings:strings"
+  "//src:cli" -> "//src:util"
+  "//src:cli" -> "@com_github_gflags_gflags//:gflags"
+  "//src:util" -> "@com_google_absl//absl/base:base"
+}

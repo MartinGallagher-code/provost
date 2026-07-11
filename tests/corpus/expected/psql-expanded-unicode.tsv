@@ -1,0 +1,10 @@
+n	─[	RECORD	1	]─┬──────────────────────	total_entries
+1	customer_id	│	4821		9
+2	name	│	Nordwind	GmbH	9
+3	country	│	DE		9
+4	credit_limit	│	50000.00		9
+5	─[	RECORD	2	]─┼──────────────────────	9
+6	customer_id	│	4822		9
+7	name	│	Sakura	KK	9
+8	country	│	JP		9
+9	credit_limit	│	75000.00		9

@@ -1,0 +1,5 @@
+type=USER_LOGIN
+msg=audit(1717236000.123:456)
+acct="alice, admin"
+exe="/usr/sbin/sshd"
+res=success

@@ -1,0 +1,3 @@
+COMMAND   PID  USER   FD   TYPE NAME
+firefox  4521  alice  txt  REG  /home/alice/My Files/cache 01.db
+Spotify  4600  alice  cwd  DIR  /home/alice/Music, Local

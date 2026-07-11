@@ -1,0 +1,12 @@
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:9a:bc:de brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped  missed   mcast
+    72019483321 66210394 0      88       0        12093
+    TX: bytes  packets  errors  dropped  carrier  collsns
+    41029384756 39102847 0      0        0        0
+3: eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc mq state UP mode DEFAULT group default qlen 1000
+    link/ether 52:54:00:1a:2b:3c brd ff:ff:ff:ff:ff:ff
+    RX: bytes  packets  errors  dropped  missed   mcast
+    9182734650  8102934  0      2        0        410
+    TX: bytes  packets  errors  dropped  carrier  collsns
+    7261048372  6100283  0      0        0        0

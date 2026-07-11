@@ -1,0 +1,4 @@
+test tokenize::splits_words       ... [32mok[0m
+test tokenize::handles_ansi        ... [31mFAILED[0m
+test parse::nested_tables          ... [32mok[0m
+test parse::empty_input            ... [33mignored[0m

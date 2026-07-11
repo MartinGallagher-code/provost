@@ -1,0 +1,15 @@
+Name:           checkout-service-6d5a4f
+Namespace:      production
+Selector:       app=checkout-service,pod-template-hash=6d5a4f
+Labels:         app=checkout-service
+                pod-template-hash=6d5a4f
+Controlled By:  Deployment/checkout-service
+Replicas:       2 current / 2 desired
+Pods Status:    2 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Events:
+  Type     Reason            Age   From                   Message
+  ----     ------            ----  ----                   -------
+  Normal   SuccessfulCreate  18m   replicaset-controller  Created pod: checkout-service-6d5a4f-2xk9p
+  Normal   SuccessfulCreate  18m   replicaset-controller  Created pod: checkout-service-6d5a4f-l7m4q
+  Warning  FailedCreate      11m   replicaset-controller  Error creating: pods "checkout-service-6d5a4f-" is forbidden: failed quota: team-quota: must specify limits.memory; resource limits are required by the namespace admission controller
+  Normal   SuccessfulDelete  4m    replicaset-controller  Deleted pod: checkout-service-6d5a4f-99abc

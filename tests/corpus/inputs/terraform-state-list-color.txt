@@ -1,0 +1,4 @@
+[36maws_instance.web[0m
+[36maws_s3_bucket.assets[0m
+[36maws_security_group.default[0m
+[36mmodule.vpc.aws_subnet.public[0m

@@ -1,0 +1,8 @@
+                     Deployments
+┏━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ service    ┃ replicas┃ status   ┃ updated    ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ api        │       4 │ Running  │ 2m ago     │
+│ worker     │       2 │ Running  │ 15m ago    │
+│ scheduler  │       1 │ Pending  │ 40s ago    │
+└────────────┴─────────┴──────────┴────────────┘

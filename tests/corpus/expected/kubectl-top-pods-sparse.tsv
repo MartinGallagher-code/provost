@@ -1,0 +1,5 @@
+n	NAME	CPU(cores)	MEMORY(bytes)	total_entries
+1	web-7d9f8c6b4-abc12	142m	210Mi	4
+2	api-5c6b7f9d2-ghi56	88m	512Mi	4
+3	worker-0	<unknown>	<unknown>	4
+4	redis-0	12m	64Mi	4

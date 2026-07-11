@@ -1,0 +1,12 @@
+zlib1g
+  Reverse Depends: libpng16-16 (>= 1.6.2-1)
+  Reverse Depends: dpkg (>= 1.17.0)
+  Reverse Depends: libxml2 (>= 2.7.4)
+libpng16-16
+  Reverse Depends: libgd3
+  Reverse Depends: libfreetype6
+libxml2
+  Reverse Depends: libxslt1.1
+  Reverse Depends: python3-lxml
+libgd3
+  Reverse Depends: php8.1-gd

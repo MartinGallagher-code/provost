@@ -1,0 +1,4 @@
+n	NAME	STATUS	ROLES	AGE	VERSION	total_entries
+1	node-cp-01	[32mReady[0m	control-plane	120d	v1.29.4	3
+2	node-w-01	[32mReady[0m	worker	120d	v1.29.4	3
+3	node-w-02	[31mNotReady[0m	worker	98d	v1.29.4	3

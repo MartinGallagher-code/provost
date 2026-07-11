@@ -1,0 +1,17 @@
+Legend: production dependency, optional only, dev only
+
+dependencies:
+react-dom 18.2.0
+├─┬ @mui/material 5.11.0
+│ └─┬ @emotion/react 11.10.5
+│   └── react-dom 18.2.0 peer
+├─┬ next 13.1.1
+│ └── react-dom 18.2.0
+└─┬ react-router-dom 6.6.1
+  └─┬ react-router 6.6.1
+    └── react-dom 18.2.0 peer
+
+devDependencies:
+react-dom 18.2.0
+└─┬ @testing-library/react 13.4.0
+  └── react-dom 18.2.0 peer

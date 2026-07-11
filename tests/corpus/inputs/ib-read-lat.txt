@@ -1,0 +1,11 @@
+---------------------------------------------------------------------------------------
+                    RDMA_Read Latency Test
+ Connection type : RC           Using SRQ      : OFF
+ TX depth        : 1
+ Mtu             : 4096[B]
+ Link type       : IB
+---------------------------------------------------------------------------------------
+ #bytes #iterations    t_min[usec]    t_max[usec]  t_typical[usec]    t_avg[usec]    t_stdev[usec]   99% percentile[usec]   99.9% percentile[usec]
+ 2      1000           1.42           8.90         1.55             1.61           0.22            2.10                   4.88
+ 8      1000           1.44           7.10         1.57             1.62           0.19            2.08                   4.20
+ 64     1000           1.50           9.40         1.66             1.71           0.24            2.22                   5.10

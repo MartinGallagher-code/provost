@@ -1,0 +1,4 @@
+[32m●[0m  nginx.service       [32mactive (running)[0m
+[32m●[0m  sshd.service        [32mactive (running)[0m
+[31m●[0m  mysql.service       [31mfailed (Result: exit-code)[0m
+[37m○[0m  cups.service        [37minactive (dead)[0m

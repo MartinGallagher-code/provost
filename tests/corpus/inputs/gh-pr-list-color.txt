@@ -1,0 +1,4 @@
+#[32m142[0m   [1mFix auth token refresh[0m         feature/auth       [32mOPEN[0m
+#[32m138[0m   [1mBump deps to latest[0m            chore/deps         [35mMERGED[0m
+#[32m131[0m   [1mAdd retry to uploader[0m          fix/upload         [32mOPEN[0m
+#[32m119[0m   [1mRework config loader[0m           refactor/config    [31mCLOSED[0m

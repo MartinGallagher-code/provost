@@ -1,0 +1,9 @@
+Name: /app/production/database/connection-string
+Type: SecureString
+Value: postgresql://appuser:s3cr3t@prod-db-cluster.cluster-c9xk2mzq.us-east-1.rds.amazonaws.com:5432/appdb
+    ?sslmode=require&connect_timeout=10&application_name=api-server
+Version: 7
+Last Modified Date: 2024-01-28T19:03:44.221000+00:00
+Last Modified User: arn:aws:sts::123456789012:assumed-role/deploy-role/github-actions-deploy-session-12345
+Arn: arn:aws:ssm:us-east-1:123456789012:parameter/app/production/database/connection-string
+Data Type: text

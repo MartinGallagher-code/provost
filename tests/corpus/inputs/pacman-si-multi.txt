@@ -1,0 +1,20 @@
+Repository      : extra
+Name            : htop
+Version         : 3.2.2-1
+Description     : Interactive process viewer
+Architecture    : x86_64
+Licenses        : GPL2
+
+Repository      : extra
+Name            : tmux
+Version         : 3.3a-3
+Description     : Terminal multiplexer
+Architecture    : x86_64
+Licenses        : ISC
+
+Repository      : core
+Name            : bash
+Version         : 5.1.016-1
+Description     : GNU Bourne Again shell
+Architecture    : x86_64
+Licenses        : GPL

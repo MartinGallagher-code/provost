@@ -1,0 +1,9 @@
+# golang.org/x/text/language
+github.com/myorg/app
+github.com/myorg/app/internal/i18n
+golang.org/x/text/language
+# golang.org/x/net/http2
+github.com/myorg/app
+github.com/myorg/app/internal/server
+google.golang.org/grpc
+golang.org/x/net/http2

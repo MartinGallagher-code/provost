@@ -1,0 +1,6 @@
+region     latency_ms   trend
+us-east    42           ▁▂▃▅▇▆▄▂
+us-west    88           ▃▅▇█▆▅▃▂
+eu-central 61           ▂▃▄▅▄▃▂▁
+ap-south   119          ▅▆▇██▇▆▅
+sa-east    73           ▂▄▆▅▃▂▁▁

@@ -1,0 +1,4 @@
+Usage        Wakeups/s   Category    Description
+5.2 W        311.0       Device      USB device: hub
+1.24e-3 W    0.5         Radio       Bluetooth
++0.5 W       42.1        CPU         Package C-state

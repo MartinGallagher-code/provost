@@ -1,0 +1,5 @@
+n	A	B	C	D	total_entries
+1	[32m●[0m	nginx.service	[32mactive	(running)[0m	4
+2	[32m●[0m	sshd.service	[32mactive	(running)[0m	4
+3	[31m●[0m	mysql.service	[31mfailed	(Result:_exit-code)[0m	4
+4	[37m○[0m	cups.service	[37minactive	(dead)[0m	4

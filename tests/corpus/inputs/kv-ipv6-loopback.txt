@@ -1,0 +1,4 @@
+bind: [::1]:8080
+upstream: [2001:db8::1]:443
+fallback: 127.0.0.1:80
+metrics: [fe80::1%eth0]:9100

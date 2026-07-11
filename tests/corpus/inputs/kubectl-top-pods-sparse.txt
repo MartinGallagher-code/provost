@@ -1,0 +1,5 @@
+NAME                       CPU(cores)   MEMORY(bytes)
+web-7d9f8c6b4-abc12        142m         210Mi
+api-5c6b7f9d2-ghi56        88m          512Mi
+worker-0                   <unknown>    <unknown>
+redis-0                    12m          64Mi

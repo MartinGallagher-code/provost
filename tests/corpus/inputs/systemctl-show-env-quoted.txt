@@ -1,0 +1,4 @@
+Names=docker.service
+ExecStartPre=/usr/bin/env bash -c 'echo starting'
+Environment="HTTP_PROXY=http://proxy:3128" "NO_PROXY=localhost,127.0.0.1"
+LimitNOFILE=1048576

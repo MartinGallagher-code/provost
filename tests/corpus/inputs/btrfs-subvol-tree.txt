@@ -1,0 +1,9 @@
+ID 256 gen 45120 top level 5 path @
+ID 257 gen 45118 top level 5 path @home
+ID 258 gen 45001 top level 256 path @/var/lib/machines
+ID 259 gen 44980 top level 256 path @/var/lib/portables
+ID 312 gen 45090 top level 257 path @home/user/.snapshots
+ID 313 gen 45090 top level 312 path @home/user/.snapshots/1/snapshot
+ID 314 gen 45095 top level 312 path @home/user/.snapshots/2/snapshot
+ID 401 gen 45100 top level 256 path @/.snapshots
+ID 402 gen 45100 top level 401 path @/.snapshots/1/snapshot

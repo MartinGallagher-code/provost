@@ -1,0 +1,11 @@
+Slot: :network
+Plug: chromium:network
+Interface: network
+Manual: false
+Gadget: false
+
+Slot: :home
+Plug: vlc:home
+Interface: home
+Manual: true
+Gadget: false

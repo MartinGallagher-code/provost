@@ -1,0 +1,11 @@
+[alias]
+	st = status -sb
+	co = checkout
+	graph = log --all --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset \
+		%s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+	amend = commit --amend --no-edit
+	unstage = reset HEAD --
+	wip = "!f() { git add -A && git commit -m \"wip: $1\"; }; f"
+[commit]
+	gpgsign = true
+	template = ~/.gitmessage

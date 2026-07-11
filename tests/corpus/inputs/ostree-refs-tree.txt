@@ -1,0 +1,13 @@
+fedora
+└── x86_64
+    ├── silverblue
+    │   ├── 37
+    │   └── 38
+    └── kinoite
+        ├── 37
+        └── 38
+centos
+└── x86_64
+    └── coreos
+        ├── stable
+        └── testing

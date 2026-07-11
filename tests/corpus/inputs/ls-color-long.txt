@@ -1,0 +1,5 @@
+total 24
+-rw-r--r--  1 user  staff  1024  Jul 10 12:01  [32mreport.txt[0m
+drwxr-xr-x  2 user  staff  4096  Jul  9 08:15  [94msrc[0m
+-rwxr-xr-x  1 user  staff  2048  Jul  8 19:44  [92mdeploy.sh[0m
+-rw-r--r--  1 user  staff   512  Jul  7 10:00  [35mnotes.md[0m

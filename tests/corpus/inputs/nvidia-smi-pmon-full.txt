@@ -1,0 +1,6 @@
+# gpu         pid   type     sm    mem    enc    dec    jpg    ofa    fb    ccpm    command
+# Idx           #    C/G      %      %      %      %      %      %    MB      MB    name
+    0       44120     C     94     42      0      0      0      0 21804       0    python3
+    0        2201     G      2      1      0      0      0      0   188       0    Xorg
+    1       33120     C     98     51      0      0      0      0 22018       0    python3
+    1        3312     G      1      0      0      0      0      0   402       0    gnome-shell

@@ -1,45 +1,120 @@
 #!/bin/bash
 ## Name: box-table
-## Description: Unicode box-drawing tables (│ cells, ─┼╭ borders) — pdm, gum, glow, many modern CLIs
-## Version: 1.0
+## Description: Unicode box-drawing tables (│ cells, ─┼╭ borders) — mysql/psql unicode, rich, tabulate, duckdb, gum, pdm, glow, many modern CLIs
+## Version: 2.0
 ## Priority: 34
 ## Sample: samples/box-table/basic.txt
 
 # Modern Rust/Python CLIs render tables with Unicode box-drawing:
 #
-#   ╭──────────┬─────────╮
-#   │ name     │ version │
-#   ├──────────┼─────────┤
-#   │ django   │ 5.0.6   │
-#   ╰──────────┴─────────╯
+#   ╭──────────┬─────────╮   ┏━━━━┳━━━━━━━┓   ╔════╦═══════╗    id │ name    │ v
+#   │ name     │ version │   ┃ id ┃ name  ┃   ║ id ║ name  ║   ────┼─────────┼───
+#   ├──────────┼─────────┤   ┣━━━━╋━━━━━━━┫   ╠════╬═══════╣     1 │ django  │ 5
+#   │ django   │ 5.0.6   │   ┃  1 ┃ django┃   ║  1 ║ django║     2 │ flask   │ 3
+#   ╰──────────┴─────────╯   ┗━━━━┻━━━━━━━┛   ╚════╩═══════╝
 #
-# Same shape as psql-table's ASCII box, just different glyphs: `│` is the cell
-# delimiter and the border/rule rows are made of ─ plus corner/joint glyphs
-# (┌┐└┘├┤┬┴┼╭╮╰╯ and the heavy/double variants). We recognize those, drop the
-# rules, and emit one record per data row. ASCII `+`/`-`/`|` tables stay with
-# psql-table; this only fires when a genuine `─`-run rule and a `│` row exist.
+# Same shape as psql-table's ASCII box, just different glyphs. The cell divider
+# is one of the vertical box glyphs (│ ┃ ║ ┆ …); border/rule rows are runs of a
+# horizontal glyph (─ ━ ═) with corner/joint glyphs, and some tools frame an
+# ASCII `--- ` dash rule inside the box (csvlook). Rows may or may not carry an
+# outer border (psql `linestyle unicode` has interior `│` only). We normalise the
+# verticals to `|`, drop the rules, and emit one record per data row. Sources:
+# mysql/psql unicode, duckdb, rich/textual, python `tabulate`
+# (fancy_grid/rounded/double/presto), polars, csvlook, gum, glow, pdm. ASCII
+# `+`/`-`/`|` tables stay with psql-table; this fires only when a box rule and a
+# box-cell row coexist.
 
-# A rule row is only box-drawing glyphs + spaces, containing a run of ─.
+# Normalise every vertical cell divider (light/heavy/double/dotted) to ASCII '|'.
+_box_norm () {
+    local v="$1"
+    v="${v//│/|}"; v="${v//┃/|}"; v="${v//║/|}"
+    v="${v//┆/|}"; v="${v//┇/|}"; v="${v//┊/|}"; v="${v//┋/|}"; v="${v//╎/|}"; v="${v//╏/|}"
+    _BOX_NORM="$v"
+}
+
+_box_trim () { local v="$1"; while [[ "$v" == " "* ]]; do v="${v# }"; done; while [[ "$v" == *" " ]]; do v="${v% }"; done; _BOX_TRIM="$v"; }
+
+# Strip every box-drawing glyph (borders, corners, joints of all weights) plus
+# spaces. A pure rule/border line reduces to empty.
+_box_strip () {
+    local s="$1"
+    # verticals
+    s="${s//│/}"; s="${s//┃/}"; s="${s//║/}"; s="${s//┆/}"; s="${s//┇/}"; s="${s//┊/}"; s="${s//┋/}"; s="${s//╎/}"; s="${s//╏/}"
+    # horizontals
+    s="${s//─/}"; s="${s//━/}"; s="${s//═/}"; s="${s//╌/}"; s="${s//╍/}"; s="${s//┄/}"; s="${s//┅/}"; s="${s//┈/}"; s="${s//┉/}"
+    # light corners/joints
+    s="${s//┌/}"; s="${s//┐/}"; s="${s//└/}"; s="${s//┘/}"; s="${s//├/}"; s="${s//┤/}"; s="${s//┬/}"; s="${s//┴/}"; s="${s//┼/}"
+    # heavy corners/joints
+    s="${s//┏/}"; s="${s//┓/}"; s="${s//┗/}"; s="${s//┛/}"; s="${s//┣/}"; s="${s//┫/}"; s="${s//┳/}"; s="${s//┻/}"; s="${s//╋/}"
+    # double corners/joints
+    s="${s//╔/}"; s="${s//╗/}"; s="${s//╚/}"; s="${s//╝/}"; s="${s//╠/}"; s="${s//╣/}"; s="${s//╦/}"; s="${s//╩/}"; s="${s//╬/}"
+    # rounded + tabulate mixed joints
+    s="${s//╭/}"; s="${s//╮/}"; s="${s//╰/}"; s="${s//╯/}"
+    s="${s//╒/}"; s="${s//╕/}"; s="${s//╘/}"; s="${s//╛/}"; s="${s//╞/}"; s="${s//╡/}"; s="${s//╤/}"; s="${s//╧/}"; s="${s//╪/}"
+    s="${s//╓/}"; s="${s//╖/}"; s="${s//╙/}"; s="${s//╜/}"; s="${s//╟/}"; s="${s//╢/}"; s="${s//╥/}"; s="${s//╨/}"; s="${s//╫/}"
+    s="${s// /}"
+    _BOX_STRIP="$s"
+}
+
+# Split a box row into _BOX_CELLS: normalise verticals to '|', drop any outer
+# '|', split on the interior '|'s. Handles both bordered (│ a │ b │) and
+# interior-only (a │ b │ c) rows.
+_box_split () {
+    _box_norm "$1"; _box_trim "$_BOX_NORM"
+    local row="$_BOX_TRIM"
+    row="${row#|}"; row="${row%|}"
+    _BOX_CELLS=()
+    local rest="$row" cell
+    while [[ "$rest" == *"|"* ]]; do
+        cell="${rest%%|*}"; rest="${rest#*|}"
+        _box_trim "$cell"; _BOX_CELLS+=("$_BOX_TRIM")
+    done
+    _box_trim "$rest"; _BOX_CELLS+=("$_BOX_TRIM")
+}
+
+# A rule/border line: a pure box rule (only box glyphs + spaces, carrying a
+# horizontal run), OR a framed ASCII dash rule (`│ --- │ --- │`, csvlook).
 _box_is_rule () {
     local l="$1"
-    [[ "$l" == *"─"* ]] || return 1
-    # after removing every box glyph and space, nothing should remain
-    local s="$l"
-    s="${s//─/}"; s="${s//│/}"; s="${s//┼/}"; s="${s//┬/}"; s="${s//┴/}"
-    s="${s//├/}"; s="${s//┤/}"; s="${s//┌/}"; s="${s//┐/}"; s="${s//└/}"; s="${s//┘/}"
-    s="${s//╭/}"; s="${s//╮/}"; s="${s//╰/}"; s="${s//╯/}"
-    s="${s//═/}"; s="${s//╬/}"; s="${s//╞/}"; s="${s//╡/}"; s="${s// /}"
-    [[ -z "$s" ]]
+    _box_strip "$l"
+    if [[ -z "$_BOX_STRIP" ]]; then
+        [[ "$l" == *─* || "$l" == *━* || "$l" == *═* || "$l" == *╌* || "$l" == *╍* \
+           || "$l" == *┄* || "$l" == *┅* || "$l" == *┈* || "$l" == *┉* ]]
+        return
+    fi
+    # framed dash rule: has a vertical divider and every split cell is dash-only.
+    [[ "$l" == *│* || "$l" == *┃* || "$l" == *║* || "$l" == *┆* ]] || return 1
+    [[ "$l" == *-* ]] || return 1
+    _box_split "$l"
+    [[ ${#_BOX_CELLS[@]} -ge 1 ]] || return 1
+    local _c
+    for _c in "${_BOX_CELLS[@]}"; do
+        [[ "$_c" == *-* ]] || return 1
+        local s="${_c//-/}"; s="${s//:/}"; s="${s// /}"
+        [[ -z "$s" ]] || return 1
+    done
+    return 0
+}
+
+# A data/header row: carries a vertical box divider and is not a pure rule.
+_box_is_row () {
+    local l="$1"
+    [[ "$l" == *│* || "$l" == *┃* || "$l" == *║* || "$l" == *┆* || "$l" == *┇* \
+       || "$l" == *┊* || "$l" == *┋* || "$l" == *╎* || "$l" == *╏* ]] || return 1
+    _box_is_rule "$l" && return 1
+    return 0
 }
 
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+    _STRATEGY_CONFIDENCE_REASON="unicode box-drawing table (│/┃/║ cells + ─/━/═ borders)"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local _line _saw_rule=0 _saw_cell=0
     while IFS= read -r _line; do
+        [[ -z "${_line//[[:space:]]/}" ]] && continue
         if _box_is_rule "$_line"; then _saw_rule=1
-        elif [[ "$_line" == *"│"* ]]; then _saw_cell=1; fi
+        elif _box_is_row "$_line"; then _saw_cell=1; fi
     done <<< "$text"
     if [[ $_saw_rule -eq 1 && $_saw_cell -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=88
@@ -48,30 +123,12 @@ strategy_detect () {
     return 1
 }
 
-_box_trim () { local v="$1"; while [[ "$v" == " "* ]]; do v="${v# }"; done; while [[ "$v" == *" " ]]; do v="${v% }"; done; _BOX_TRIM="$v"; }
-
-# Split a `│ a │ b │` row into _BOX_CELLS (inner cells, trimmed).
-_box_split () {
-    local row="$1"
-    _box_trim "$row"; row="$_BOX_TRIM"
-    [[ "$row" == "│"* ]] && row="${row#│}"
-    [[ "$row" == *"│" ]] && row="${row%│}"
-    _BOX_CELLS=()
-    local rest="$row" cell
-    while [[ "$rest" == *"│"* ]]; do
-        cell="${rest%%│*}"; rest="${rest#*│}"
-        _box_trim "$cell"; _BOX_CELLS+=("$_BOX_TRIM")
-    done
-    _box_trim "$rest"; _BOX_CELLS+=("$_BOX_TRIM")
-}
-
 strategy_extract () {
     local text="$1" result="" entry=0 _line
-    # modal cell count across non-rule │-rows
+    # modal cell count across box rows (rules excluded)
     local counts=()
     while IFS= read -r _line; do
-        [[ "$_line" == *"│"* ]] || continue
-        _box_is_rule "$_line" && continue
+        _box_is_row "$_line" || continue
         _box_split "$_line"; counts+=("${#_BOX_CELLS[@]}")
     done <<< "$text"
     [[ ${#counts[@]} -lt 2 ]] && return
@@ -84,13 +141,14 @@ strategy_extract () {
 
     local col_names=() num_cols=0 have_header=0 _c name i val
     while IFS= read -r _line; do
-        [[ "$_line" == *"│"* ]] || continue
-        _box_is_rule "$_line" && continue
+        _box_is_row "$_line" || continue
         _box_split "$_line"
         [[ ${#_BOX_CELLS[@]} -ne $modal ]] && continue
         if [[ $have_header -eq 0 ]]; then
             for _c in "${_BOX_CELLS[@]}"; do
                 name="$_c"; name="${name//./}"; name="${name// /_}"
+                while [[ "$name" == *__* ]]; do name="${name//__/_}"; done
+                name="${name#_}"; name="${name%_}"
                 [[ -z "$name" ]] && name="$(_col_letter $((${#col_names[@]} + 1)))"
                 col_names+=("$name")
             done

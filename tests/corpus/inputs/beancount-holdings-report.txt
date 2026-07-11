@@ -1,0 +1,4 @@
+Account               Units   Currency   Cost         Market
+Assets:US:Vanguard    12.5    VTI        $1,234.00    $1,299.50
+Assets:EU:Broker      100     IWDA       €7.500,00    €7.812,34
+Assets:Crypto         0.05    BTC        $2,000.00    $3,241.99

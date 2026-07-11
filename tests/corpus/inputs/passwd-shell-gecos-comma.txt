@@ -1,0 +1,3 @@
+root:x:0:0:root:/root:/bin/bash
+www-data:x:33:33:www-data,,,:/var/www:/usr/sbin/nologin
+postgres:x:110:117:PostgreSQL administrator,,,:/var/lib/postgresql:/bin/bash

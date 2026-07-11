@@ -1,0 +1,12 @@
+n	A	total_entries
+1	[alias]	11
+2	st = status -sb	11
+3	co = checkout	11
+4	graph = log --all --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset \	11
+5	%s %Cgreen(%cr) %C(bold blue)<%an>%Creset'	11
+6	amend = commit --amend --no-edit	11
+7	unstage = reset HEAD --	11
+8	wip = "!f() { git add -A && git commit -m \"wip: $1\"; }; f"	11
+9	[commit]	11
+10	gpgsign = true	11
+11	template = ~/.gitmessage	11

@@ -1,0 +1,4 @@
+metric     bytes         human
+ingress    1500000000    1.5G
+egress     900000000     900M
+cache      4096          4.0Ki

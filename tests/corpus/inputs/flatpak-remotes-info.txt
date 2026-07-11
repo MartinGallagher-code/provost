@@ -1,0 +1,11 @@
+Name: flathub
+Title: Flathub
+Url: https://dl.flathub.org/repo/
+Homepage: https://flathub.org
+Collection ID: org.flathub.Stable
+
+Name: gnome-nightly
+Title: GNOME Nightly
+Url: https://nightly.gnome.org/repo/
+Homepage: https://www.gnome.org
+Collection ID: org.gnome.Nightly

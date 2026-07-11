@@ -1,0 +1,3 @@
+n	NextElapseUSecRealtime=Sun_2026-07-12_06	Id	LoadState	ActiveState	NextElapseUSecRealtime	Unit	NextElapseUSecRealtime=Sun_2026-07-12_00
+1	00:00_UTC	apt-daily.timer	loaded	active	Sun_2026-07-12_06:00:00_UTC	apt-daily.service	
+2		logrotate.timer	loaded	active	Sun_2026-07-12_00:00:00_UTC	logrotate.service	00:00_UTC

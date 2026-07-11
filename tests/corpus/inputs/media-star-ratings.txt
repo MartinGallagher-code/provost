@@ -1,0 +1,6 @@
+Title                     Year   Rating
+Blade Runner 2049         2017   ★★★★☆
+The Matrix                1999   ★★★★★
+Dune Part Two             2024   ★★★★½
+Tenet                     2020   ★★★☆☆
+Prometheus                2012   ★★☆☆☆

@@ -1,0 +1,5 @@
+n	A	total_entries
+1	[2msrc/lib.rs[0m	4
+2	[31m-[0m   [31m12[0m   let x = compute_old();	4
+3	[32m+[0m   [32m12[0m   let x = compute_new();	4
+4	[32m+[0m   [32m13[0m   log::info!("done");	4

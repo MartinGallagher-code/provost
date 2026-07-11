@@ -1,0 +1,3 @@
+GPU   Temp_edge   Temp_junction   Power     SCLK
+0     45.0°C      58.0°C          125.0W    1700Mhz
+1     47.0°C      61.0°C          132.5W    1710Mhz

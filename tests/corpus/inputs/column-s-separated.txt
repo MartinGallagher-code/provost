@@ -1,0 +1,3 @@
+USER     FULL NAME          SHELL
+alice    Alice A. Smith     /bin/bash
+bob      Bob (admin, ops)   /usr/bin/zsh

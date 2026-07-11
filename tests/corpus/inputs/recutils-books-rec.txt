@@ -1,0 +1,9 @@
+Title: The Go Programming Language
+Author: Donovan
+Year: 2015
+ISBN: 9780134190440
+
+Title: Structure and Interpretation
+Author: Abelson
+Year: 1996
+ISBN: 9780262510875

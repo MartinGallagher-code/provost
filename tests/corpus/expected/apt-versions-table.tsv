@@ -1,0 +1,4 @@
+n	Package	Installed	Candidate	Arch	total_entries
+1	libc6	2.35-0ubuntu3.8	2.35-0ubuntu3.9	amd64	3
+2	openssl	3.0.2-0ubuntu1.15	3.0.2-0ubuntu1.18	amd64	3
+3	curl	7.81.0-1ubuntu1.6	7.81.0-1ubuntu1.7	amd64	3

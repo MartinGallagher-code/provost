@@ -1,0 +1,7 @@
+Linux 5.15.0-91-generic (lb-haproxy-1) 	07/11/2026 	_x86_64_	(8 CPU)
+
+12:00:01 AM    totsck    tcpsck    udpsck    rawsck   ip-frag    tcp-tw
+12:10:01 AM      8842      8120       210         0         0      1204
+12:20:01 AM      9105      8388       218         0         0      1330
+12:30:01 AM      8990      8290       214         0         0      1288
+Average:         8979      8266       214         0         0      1274

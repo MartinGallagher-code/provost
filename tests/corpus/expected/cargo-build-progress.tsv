@@ -1,0 +1,6 @@
+n	A	B	C	D	E	F	total_entries
+1	Compiling	libc	v0.2.153	[========>	]	12/48	5
+2	Compiling	serde	v1.0.197	[=============>	]	24/48	5
+3	Compiling	tokio	v1.36.0	[==================>	]	38/48	5
+4	Compiling	hyper	v1.2.0	[====================>	]	44/48	5
+5	Finished	release	[optimized]	[=====================]	48/48		5

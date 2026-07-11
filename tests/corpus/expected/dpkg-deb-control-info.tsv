@@ -1,0 +1,3 @@
+n	Package	Version	Architecture	Maintainer	Installed-Size	Depends	Depends:_libc6_(>
+1	hello	2.10-3	amd64	Santiago_Vila_<sanvila@debian.org>	280	libc6_(>=_2.14)	2.14)
+2	sl	5.02-1	amd64	Toyoda_Masashi_<mtoyoda@example.jp>	45	libc6_(>=_2.14),_libncurses6	2.14),_libncurses6

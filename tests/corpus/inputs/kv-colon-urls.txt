@@ -1,0 +1,4 @@
+homepage: https://example.com:8080/path
+repo: git@github.com:org/repo.git
+docs: http://docs.example.com/v2:latest
+contact: admin@example.com

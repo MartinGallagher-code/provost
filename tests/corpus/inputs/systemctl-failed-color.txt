@@ -1,0 +1,4 @@
+UNIT              LOAD     ACTIVE   SUB
+[31mmysql.service[0m     [32mloaded[0m   [31mfailed[0m   [31mfailed[0m
+[31mdocker.socket[0m     [32mloaded[0m   [31mfailed[0m   [31mfailed[0m
+[31mbackup.timer[0m      [32mloaded[0m   [31mfailed[0m   [31mfailed[0m

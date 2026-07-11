@@ -1,0 +1,13 @@
+n	A	total_entries
+1	[user]	12
+2	name = Martin Gallagher	12
+3	email = martin@example.com	12
+4	[core]	12
+5	editor = vim	12
+6	pager = less -FRX	12
+7	[alias]	12
+8	lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'	12
+9	cleanup = "!git branch --merged | grep -v '\\*\\|main\\|master' | \	12
+10	xargs -n 1 git branch -d"	12
+11	[url "git@github.com:"]	12
+12	insteadOf = https://github.com/	12

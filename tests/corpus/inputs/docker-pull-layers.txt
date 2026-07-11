@@ -1,0 +1,6 @@
+3.18: Pulling from library/alpine
+9fda8d8052c6: Pull complete
+a3ed95caeb02: Downloading [=====================>                             ]  12.4MB/31.2MB
+b8f262c62ec6: Downloading [============>                                      ]  4.1MB/18.0MB
+c1d02d0b3b1f: Extracting  [==================================>                ]  8.9MB/13.1MB
+d5f7e8a91c22: Waiting

@@ -1,0 +1,2 @@
+{"__REALTIME_TIMESTAMP":"1717236000000000","MESSAGE":"Accepted publickey for root from 10.0.0.1 port 51234 ssh2: RSA SHA256:abc","_PID":"1234"}
+{"__REALTIME_TIMESTAMP":"1717236010000000","MESSAGE":"pam_unix(sshd:session): session opened for user root","_PID":"1235"}

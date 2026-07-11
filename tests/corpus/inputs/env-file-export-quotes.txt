@@ -1,0 +1,3 @@
+export DB_HOST="db.internal, replica"
+export MOTD="Welcome to prod: do not break things"
+export JAVA_OPTS="-Xms512m -Xmx2g -Dfoo=bar"

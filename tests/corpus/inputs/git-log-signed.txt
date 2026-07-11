@@ -1,0 +1,28 @@
+commit c0ffee00c0ffee00c0ffee00c0ffee00c0ffee00
+gpg: Signature made Mon Jan 15 08:22:41 2024 UTC
+gpg:                using RSA key 4AEE18F83AFDEB23
+gpg: Good signature from "Martin Gallagher <martin@example.com>"
+Author: Martin Gallagher <martin@example.com>
+Date:   Mon Jan 15 08:22:41 2024 +0000
+
+    Release v2.4.0
+
+    Cuts the 2.4.0 release with the new circuit breaker and the updated
+    retry defaults.
+
+commit deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+Author: Jane Doe <jane@example.com>
+Date:   Sun Jan 14 12:00:00 2024 +0000
+
+    Prepare changelog for 2.4.0
+
+commit feedface00feedface00feedface00feedface00
+gpg: Signature made Sat Jan 13 09:00:00 2024 UTC
+gpg: Good signature from "Alex Kim <alex@example.com>"
+Author: Alex Kim <alex@example.com>
+Date:   Sat Jan 13 09:00:00 2024 +0000
+
+    Tighten default timeouts across all clients
+
+    Reduces the default read timeout from 60s to 15s to fail fast under
+    load.

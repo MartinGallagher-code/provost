@@ -1,0 +1,11 @@
+n	pool	alloc	free	read	write
+1	tank	18.2T	25.8T	14.4M	188M
+2	raidz2	18.2T	25.8T	14.4M	188M
+3	nvme0n1	-	-	2.40M	31.3M
+4	nvme1n1	-	-	2.42M	31.4M
+5	nvme2n1	-	-	2.38M	31.2M
+6	logs	-	-	-	-
+7	mirror	204M	3.7G	0	62.1M
+8	nvme6n1p1	-	-	0	31.0M
+9	nvme7n1p1	-	-	0	31.1M
+10	--------------------------	-----	-----	-----	-----

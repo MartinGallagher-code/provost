@@ -1,0 +1,4 @@
+_CMDLINE=/usr/lib/systemd/systemd --switched-root --system --deserialize 31
+_COMM=systemd
+_PID=1
+MESSAGE=Started Session c1 of user root.

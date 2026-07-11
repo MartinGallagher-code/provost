@@ -1,0 +1,15 @@
+Name:           fluent-bit
+Namespace:      logging
+Selector:       app=fluent-bit
+Node-Selector:  <none>
+Labels:         app=fluent-bit
+                k8s-app=fluent-bit-logging
+Desired Number of Nodes Scheduled: 6
+Current Number of Nodes Scheduled: 6
+Number of Nodes Scheduled with Up-to-date Pods: 6
+Events:
+  Type     Reason            Age   From                  Message
+  ----     ------            ----  ----                  -------
+  Normal   SuccessfulCreate  9m    daemonset-controller  Created pod: fluent-bit-x8k2p on node ip-10-0-3-14.ec2.internal to satisfy the desired state of one agent per schedulable node in the cluster
+  Warning  FailedDaemonPod   7m    daemonset-controller  Found failed daemon pod logging/fluent-bit-q9v1z on node ip-10-0-3-88, will try to kill it and reschedule a replacement on the same node
+  Normal   SuccessfulDelete  7m    daemonset-controller  Deleted pod: fluent-bit-q9v1z

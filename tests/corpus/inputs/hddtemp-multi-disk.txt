@@ -1,0 +1,3 @@
+/dev/sda: Samsung SSD 860: 34°C
+/dev/sdb: WDC WD40EFRX: 41°C
+/dev/nvme0n1: Sabrent Rocket: +52°C

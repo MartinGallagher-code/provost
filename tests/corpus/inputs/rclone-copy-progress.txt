@@ -1,0 +1,5 @@
+Transferred:   4.211 GiB / 12.400 GiB, 34%, 42.100 MiB/s, ETA 3m18s
+ *          backups/db-2024-01.tar.gz: 88% /2.100Gi, 12.4Mi/s, 0s
+ *              media/photos-hires.zip: 41% /5.400Gi, 22.1Mi/s, 3m2s
+ *                    logs/app-jan.log: 100% /820Mi, 9.1Mi/s, 0s
+ *               config/settings.bin:  12% /1.200Gi, 4.4Mi/s, 4m1s

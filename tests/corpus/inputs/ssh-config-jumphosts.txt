@@ -1,0 +1,11 @@
+Host internal-a
+    HostName 10.0.0.10
+    User ops
+    ProxyJump bastion
+    Port 22
+
+Host internal-b
+    HostName 10.0.0.11
+    User ops
+    ProxyJump bastion
+    Port 22

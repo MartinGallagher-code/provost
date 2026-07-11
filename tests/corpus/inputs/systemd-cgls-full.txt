@@ -1,0 +1,17 @@
+Control group /:
+-.slice
+├─user.slice
+│ └─user-1000.slice
+│   ├─user@1000.service
+│   │ ├─dbus.service
+│   │ │ └─1421 /usr/bin/dbus-daemon --session
+│   │ └─pipewire.service
+│   │   └─1430 /usr/bin/pipewire
+│   └─session-3.scope
+│     ├─1502 sshd: user [priv]
+│     └─1510 -bash
+└─system.slice
+  ├─sshd.service
+  │ └─1123 /usr/sbin/sshd -D
+  └─cron.service
+    └─802 /usr/sbin/cron -f

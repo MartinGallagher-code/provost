@@ -1,0 +1,6 @@
+COMMAND     PID   USER   FD   TYPE  DEVICE SIZE/OFF     NODE NAME
+rpc.statd   612  statd  cwd   DIR   0,24      4096        2 /run/rpc_pipefs
+mount.nfs  1802   root  txt   REG  259,3    142032   131900 /sbin/mount.nfs
+app        4410    app   9r   REG  0,45  10485760  1048577 /mnt/nfs/shared/exports/datasets/2024/january/full-corpus-snapshot.parquet
+app        4410    app  12u   REG  0,45   4194304  1048602 /mnt/nfs/shared/exports/logs/aggregated-2024-01-application-events.ndjson
+backup     5533 backup  cwd   DIR  0,45      4096  1048576 /mnt/nfs/shared

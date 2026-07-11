@@ -1,0 +1,7 @@
+UNIT                      LOAD   ACTIVE   SUB       DESCRIPTION
+sshd.service              loaded active   running   OpenSSH server daemon
+cron.service              loaded active   running   Regular background program
+nginx.service             loaded failed   failed    A high performance web server
+systemd-udevd.service     loaded active   running   Rule-based Manager for Device Events
+apt-daily.timer           loaded active   waiting   Daily apt download activities
+mnt-backup.mount          loaded inactive dead      Backup Mount

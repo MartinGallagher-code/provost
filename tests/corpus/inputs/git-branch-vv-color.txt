@@ -1,0 +1,3 @@
+[32m* main[0m         a1b2c3d [[31morigin/main[0m] Fix parser
+  feature-x    d4e5f6a [[31morigin/feature-x[0m: ahead 2] WIP
+  hotfix       9988776 [[31morigin/hotfix[0m: gone] Patch release

@@ -1,0 +1,4 @@
+[32m+[0m  aws_instance.web         will be [32mcreated[0m
+[33m~[0m  aws_security_group.sg    will be [33mupdated in-place[0m
+[31m-[0m  aws_s3_bucket.old        will be [31mdestroyed[0m
+[32m+[0m  aws_eip.web_ip           will be [32mcreated[0m

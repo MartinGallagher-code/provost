@@ -1,0 +1,10 @@
+Linux 6.2.0-39-generic (kafka-broker-11) 	07/11/2026 	_x86_64_	(48 CPU)
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+          22.40    0.00    5.10    3.20    0.00   69.30
+
+Device             tps    MB_read/s    MB_wrtn/s    MB_dscd/s    MB_read    MB_wrtn    MB_dscd
+nvme0n1        1820.00        44.20        88.60         0.00     318912     639104          0
+nvme1n1        1798.00        43.10        86.90         0.00     311040     627200          0
+nvme2n1        1544.00        30.00        60.10         0.00     216576     433792          0
+md0            3120.00        87.30       175.50         0.00     629888    1266432          0

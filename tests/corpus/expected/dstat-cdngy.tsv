@@ -1,0 +1,5 @@
+n	---load-avg---	--total-cpu-usage--	-net/eth0-	---system--	------memory-usage-----	total_entries
+1	1m	5m	15m	|usr	sys_idl_wai_stl|_recv_send|_int_csw|_used_free_buff_cach	4
+2	1.20	1.10	0.98|	14	4_81_1_0|_920k_440k|1204_3310|58.0G_8.2G_102M_8.4G	4
+3	3.44	2.80	1.90|	18	5_75_2_0|1.0M_480k|1330_3620|59.1G_7.0G_98M_8.9G	4
+4	7.10	5.20	3.11|	22	6_69_3_0|1.4M_620k|1510_4020|60.2G_6.1G_96M_9.2G	4

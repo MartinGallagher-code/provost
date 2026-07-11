@@ -1,0 +1,13 @@
+Package: hello
+Version: 2.10-3
+Architecture: amd64
+Maintainer: Santiago Vila <sanvila@debian.org>
+Installed-Size: 280
+Depends: libc6 (>= 2.14)
+
+Package: sl
+Version: 5.02-1
+Architecture: amd64
+Maintainer: Toyoda Masashi <mtoyoda@example.jp>
+Installed-Size: 45
+Depends: libc6 (>= 2.14), libncurses6

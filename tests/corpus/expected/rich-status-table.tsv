@@ -1,0 +1,4 @@
+n	check	result	duration	total_entries
+1	dns	ok	12ms	3
+2	tls_cert	ok	88ms	3
+3	http_200	fail	5000ms	3

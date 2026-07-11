@@ -1,0 +1,20 @@
+Package: curl
+Version: 7.88.1-10
+Architecture: amd64
+Maintainer: Alessandro Ghedini <ghedo@debian.org>
+Installed-Size: 1000
+Section: web
+
+Package: wget
+Version: 1.21.3-1
+Architecture: amd64
+Maintainer: Noel Kothe <noel@debian.org>
+Installed-Size: 3600
+Section: web
+
+Package: rsync
+Version: 3.2.7-1
+Architecture: amd64
+Maintainer: Samuel Henrique <samueloph@debian.org>
+Installed-Size: 1200
+Section: net

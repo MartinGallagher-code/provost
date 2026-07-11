@@ -1,8 +1,7 @@
-n	statistic__┆_sepal_l__┆_sepal_w__┆_petal_l__┆_petal_w	total_entries
-1	---        ┆ ---      ┆ ---      ┆ ---      ┆ ---	7
-2	str        ┆ f64      ┆ f64      ┆ f64      ┆ f64	7
-3	count      ┆ 150.0    ┆ 150.0    ┆ 150.0    ┆ 150.0	7
-4	mean       ┆ 5.843    ┆ 3.057    ┆ 3.758    ┆ 1.199	7
-5	std        ┆ 0.828    ┆ 0.436    ┆ 1.765    ┆ 0.762	7
-6	min        ┆ 4.3      ┆ 2.0      ┆ 1.0      ┆ 0.1	7
-7	max        ┆ 7.9      ┆ 4.4      ┆ 6.9      ┆ 2.5	7
+n	statistic	sepal_l	sepal_w	petal_l	petal_w	total_entries
+1	str	f64	f64	f64	f64	6
+2	count	150.0	150.0	150.0	150.0	6
+3	mean	5.843	3.057	3.758	1.199	6
+4	std	0.828	0.436	1.765	0.762	6
+5	min	4.3	2.0	1.0	0.1	6
+6	max	7.9	4.4	6.9	2.5	6

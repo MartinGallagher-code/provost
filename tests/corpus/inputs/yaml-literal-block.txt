@@ -1,0 +1,11 @@
+description: |
+  Multi-line description of the service that
+  spans several lines and should be treated as
+  one single value, not three separate records.
+version: "2.1.0"
+enabled: true
+replicas: 3
+command: |
+  #!/bin/sh
+  exec /app/server --port 8080 --workers 4
+timeout: 30

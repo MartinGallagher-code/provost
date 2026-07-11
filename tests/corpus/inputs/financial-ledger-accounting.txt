@@ -1,0 +1,4 @@
+Account              Debit         Credit        Balance
+Cash               $12,500.00           --     $12,500.00
+Accounts Payable          --     $3,499.99    ($3,499.99)
+Retained Earnings         --    $45,000.00   ($45,000.00)

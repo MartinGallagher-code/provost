@@ -1,0 +1,17 @@
+[production]
+host = db1.example.com
+port = 5432
+user = app
+sslmode = require
+
+[staging]
+host = db2.example.com
+port = 5432
+user = app
+sslmode = prefer
+
+[local]
+host = 127.0.0.1
+port = 5432
+user = dev
+sslmode = disable

@@ -1,0 +1,5 @@
+Package        Version
+[36mcertifi[0m        2024.2.2
+[36mcharset-normalizer[0m  3.3.2
+[36mrequests[0m       2.31.0
+[36murllib3[0m        2.2.1

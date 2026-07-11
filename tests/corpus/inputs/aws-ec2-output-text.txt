@@ -1,0 +1,2 @@
+i-0abc123	t3.micro	running	web server, prod	10.0.1.5
+i-0def456	t3.small	stopped	batch, staging	10.0.2.9

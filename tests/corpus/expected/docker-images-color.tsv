@@ -1,0 +1,4 @@
+n	REPOSITORY	TAG	IMAGE	ID	total_entries
+1	[36mnginx[0m	[33m1.25[0m	a1b2c3d4e5f6	187MB	3
+2	[36mredis[0m	[33m7-alpine[0m	f6e5d4c3b2a1	41MB	3
+3	[36mpostgres[0m	[33m16[0m	112233445566	438MB	3

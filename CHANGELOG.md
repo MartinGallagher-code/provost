@@ -1,5 +1,39 @@
 # glean — Changelog
 
+## 2026-07-11 — Adversarial stress test (+500 hard inputs) + box-table upgrade
+
+A red-team round: 500 inputs generated specifically to BREAK the parser, across
+10 hard mechanisms (Unicode box-drawing borders, embedded ANSI color codes,
+multi-line/wrapped cells, two-row/grouped headers, ragged/sparse tables,
+delimiter-in-value, deep indented trees, numeric-format edge cases,
+blank-line-separated paragraph records, and TUI/progress-bar chrome). Each
+carries a ground-truth tidy shape.
+
+**Break diagnosis** (`--generic`, single strategy): the parser is robust to
+embedded ANSI color, grouped 2-row headers, paragraph-stanza records, and
+TUI/progress bars (~0 breaks each). The genuine soft spots are **deep trees**
+(glyph-prefixed hierarchies), **multi-line/wrapped records** (`kubectl describe`,
+`git log` bodies), and a subset of **box-drawing** dialects. In FULL mode
+(hints + all strategies) 431 of the 500 tidy; 69 are documented ⏳ gaps.
+
+**Fix — `box-table` v2** (`extract/strategies/delimited/box-table.sh`): the
+previous version handled only light/rounded borders. Rebuilt as a strict
+superset that also covers heavy (`┃━┏┓`), double (`║╔╦╗`), tabulate
+(`╒╤╕╞╪╡`) and dotted (`┆`) glyphs, interior-only rows (psql `linestyle
+unicode`, no outer border), and a framed ASCII dash rule (`│ --- │`, csvlook).
+It normalises every vertical divider to `|` and recognises a rule as "strips to
+only box glyphs + spaces". This closed 8 box-drawing breakers (mysql/csvlook/
+heavy/double/tabulate) AND upgraded two already-covered corpus tables from
+tokenised junk to real tables (`railway-variables` 10-row `║`-noise → clean
+NAME/VALUE; `polars-describe` mangled `┆` column → proper 5-column table).
+
+All 500 added to the corpus (431 ✅ goldens, 69 ⏳). Full golden audit: 0
+existing goldens deleted, 2 improved (railway/polars, re-goldened after manifest
+correction), 427 new. Golden gate 2952 passed, 0 failed. Extract 62/62.
+Coverage 2696→3196 tools, 2659→3090 tidy (106 ⏳). Files:
+`extract/strategies/delimited/box-table.sh`, `tests/corpus/inputs/*` (+500),
+`tests/corpus/expected/*`, `tests/corpus/expected.tsv`, `tests/corpus/COVERAGE.md`.
+
 ## 2026-07-11 — +539 unique corpus inputs (batch 3), ~98% generalized with no new code
 
 Third large expansion of unique never-before-seen tools, generated across 10

@@ -1,0 +1,14 @@
+systemd,1 --switched-root --system --deserialize 31
+  ├─ModemManager,842
+  │   ├─{ModemManager},851
+  │   └─{ModemManager},903
+  ├─NetworkManager,861
+  │   ├─{NetworkManager},889
+  │   └─{NetworkManager},910
+  ├─sshd,1123 -D
+  │   └─sshd,4820
+  │       └─sshd,4835
+  │           └─bash,4836
+  │               └─pstree,5210 -ap
+  ├─systemd-journald,401
+  └─systemd-logind,845

@@ -1,0 +1,17 @@
+Package: curl
+Architecture: amd64
+Version: 7.81.0-1ubuntu1.14
+Priority: optional
+Section: web
+Origin: Ubuntu
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Installed-Size: 433
+Depends: libc6 (>= 2.34), libcurl4 (= 7.81.0-1ubuntu1.14), zlib1g (>= 1:1.1.4)
+Filename: pool/main/c/curl/curl_7.81.0-1ubuntu1.14_amd64.deb
+Size: 194554
+Description-en: command line tool for transferring data with URL syntax
+ curl is a command line tool for transferring data with URL syntax,
+ supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS,
+ LDAP, LDAPS, POP3, POP3S, RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET
+ and TFTP.
+Description-md5: 39ac1d0d711d3b3921e550fed1f24f6a
