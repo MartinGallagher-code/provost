@@ -1,2 +1,2 @@
 n	10_0_0_1_-_-_[01/Jun/2026:10:00:00_+0000]_GET_/path?a=1	total_entries
-1	10.0.0.2 - frank [01/Jun/2026:10:00:01 +0000] POST /api/v1/items HTTP/1.1 201 56 - curl/8.0	1
+1	10.0.0.2 - frank [01/Jun/2026:10:00:01 +0000] "POST /api/v1/items HTTP/1.1" 201 56 "-" "curl/8.0"	1

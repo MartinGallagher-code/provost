@@ -5,6 +5,45 @@
 ## Priority: 14
 ## Sample: samples/csv/basic.csv
 
+# Split one CSV line into _CSV_FIELDS, RFC-4180-style. A double quote is
+# STRUCTURAL only at field start (start of line, right after a comma, or after
+# only spaces since the comma) — `3/4"` keeps its literal inch mark, while
+# `"Cash, operating"` protects its comma. Inside a quoted field `""` is an
+# escaped quote. Sets _CSV_OPEN=1 when the line ends inside an open quoted
+# field (i.e. the logical record continues on the next physical line).
+_strat_csv_split () {
+    local line="$1" field="" in_quotes=0 at_start=1 i c
+    _CSV_FIELDS=()
+    _CSV_OPEN=0
+    for ((i=0; i<${#line}; i++)); do
+        c="${line:$i:1}"
+        if [[ $in_quotes -eq 1 ]]; then
+            if [[ "$c" == '"' ]]; then
+                if [[ "${line:$((i+1)):1}" == '"' ]]; then
+                    field+='"'
+                    ((i++))
+                else
+                    in_quotes=0
+                fi
+            else
+                field+="$c"
+            fi
+        elif [[ "$c" == '"' && $at_start -eq 1 ]]; then
+            in_quotes=1
+            at_start=0
+        elif [[ "$c" == ',' ]]; then
+            _CSV_FIELDS+=("$field")
+            field=""
+            at_start=1
+        else
+            field+="$c"
+            [[ "$c" != " " ]] && at_start=0
+        fi
+    done
+    _CSV_FIELDS+=("$field")
+    _CSV_OPEN=$in_quotes
+}
+
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
@@ -15,15 +54,18 @@ strategy_detect () {
     local header_commas=0
     local with_commas=0
     local matching=0
-    local _tmp
     while IFS= read -r _line; do
         [[ -z "$_line" ]] && continue
         # Ignore commas inside parenthesised groups — those are not CSV field
         # separators (e.g. `mount` options `(rw,nosuid,nodev)`). Counting only
         # top-level commas keeps csv from claiming such lines.
         local _sep="${_line//(*)/}"
-        _tmp="${_sep//[^,]/}"
-        local c=${#_tmp}
+        # Count only commas OUTSIDE quoted fields: a quoted value's embedded
+        # commas ("1,234,567.89", "go,api,server") are data, not separators.
+        # Without this, quoted CSV fails the consistency check below and falls
+        # through to a worse parser.
+        _strat_csv_split "$_sep"
+        local c=$(( ${#_CSV_FIELDS[@]} - 1 ))
         if [[ $line_count -eq 0 ]]; then
             # First line must have commas
             [[ $c -eq 0 ]] && return 1
@@ -58,12 +100,6 @@ strategy_detect () {
     return 1
 }
 
-_strat_csv_count_quotes () {
-    local _s="$1"
-    local _tmp="${_s//[^\"]/}"
-    echo "${#_tmp}"
-}
-
 strategy_extract () {
     local text="$1"
 
@@ -72,24 +108,23 @@ strategy_extract () {
     bom=$(printf '\xef\xbb\xbf')
     text="${text#"$bom"}"
 
-    # Pre-process: join multi-line quoted fields
-    # Lines with an odd number of quotes are continuation lines
+    # Pre-process: join multi-line quoted fields. A line whose RFC-4180 parse
+    # ends inside an OPEN quoted field continues on the next physical line.
+    # (Counting raw quote parity here would misfire on literal mid-field quotes
+    # — `3/4",100` is a complete row, not a continuation.)
     local processed=""
     local pending=""
     while IFS= read -r line; do
         if [[ -n "$pending" ]]; then
             pending+=" ${line}"
-            # Count quotes in accumulated line
-            local qcount
-            qcount=$(_strat_csv_count_quotes "$pending")
-            if [[ $((qcount % 2)) -eq 0 ]]; then
+            _strat_csv_split "$pending"
+            if [[ $_CSV_OPEN -eq 0 ]]; then
                 processed+="${pending}"$'\n'
                 pending=""
             fi
         else
-            local qcount
-            qcount=$(_strat_csv_count_quotes "$line")
-            if [[ $((qcount % 2)) -eq 1 ]]; then
+            _strat_csv_split "$line"
+            if [[ $_CSV_OPEN -eq 1 ]]; then
                 pending="$line"
             else
                 processed+="${line}"$'\n'
@@ -118,9 +153,11 @@ strategy_extract () {
         fi
     done <<< "$text"
 
-    # Split header into fields using IFS
+    # Split header quote-aware too — `"Last, First",Dept` is two columns, and a
+    # naive IFS=',' split would misalign every data row against it.
     local headers; headers=()
-    IFS=',' read -ra headers <<< "$header"
+    _strat_csv_split "$header"
+    headers=("${_CSV_FIELDS[@]}")
 
     # Headerless numeric CSV — data loggers (fio --write_bw_log / --write_iops_log,
     # `sar -o` CSV, collectd) emit raw rows with no header. If the FIRST row's
@@ -161,36 +198,11 @@ strategy_extract () {
         [[ $row_num -eq 1 && $_headerless -eq 0 ]] && continue  # skip header (unless headerless)
         [[ -z "$line" ]] && continue
 
-        # Parse the line field by field, handling quoted fields
+        # Parse the line field by field (same RFC-4180 splitter as the header:
+        # quotes structural only at field start, "" escapes, literal otherwise)
         local values; values=()
-        local field=""
-        local in_quotes=0
-        local i
-        for ((i=0; i<${#line}; i++)); do
-            local c="${line:$i:1}"
-            if [[ $in_quotes -eq 1 ]]; then
-                if [[ "$c" == '"' ]]; then
-                    if [[ "${line:$((i+1)):1}" == '"' ]]; then
-                        field+='"'
-                        ((i++))
-                    else
-                        in_quotes=0
-                    fi
-                else
-                    field+="$c"
-                fi
-            else
-                if [[ "$c" == '"' ]]; then
-                    in_quotes=1
-                elif [[ "$c" == ',' ]]; then
-                    values+=("$field")
-                    field=""
-                else
-                    field+="$c"
-                fi
-            fi
-        done
-        values+=("$field")
+        _strat_csv_split "$line"
+        values=("${_CSV_FIELDS[@]}")
 
         rec=$((rec + 1))
         local j
@@ -203,7 +215,9 @@ strategy_extract () {
             name="${name#_}"
             name="${name%_}"
             name="${name//./_}"   # '.' would break the tidy melt's group key split
-            value="${value//\"/}"
+            # NOTE: no blanket quote-strip on the value — the splitter already
+            # consumed the structural quotes, so any quote still present is
+            # literal data (3/4" inch marks, escaped "" quotes).
             # Trim leading/trailing whitespace (the header fields are trimmed the
             # same way above) so a ", value" delimiter's space isn't turned into a
             # leading underscore by the space->underscore step below.

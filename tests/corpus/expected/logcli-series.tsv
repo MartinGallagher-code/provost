@@ -1,5 +1,5 @@
 n	{app=api	env=prod	namespace=default	pod=api-7d9f-abc12}	total_entries
-1	{app=api	env=prod	namespace=default	pod=api-7d9f-def34}	4
-2	{app=worker	env=prod	namespace=jobs	pod=worker-55c-gh567}	4
-3	{app=nginx	env=prod	namespace=ingress	pod=nginx-2f1-ij890}	4
-4	{app=db	env=prod	namespace=data	pod=postgres-0}	4
+1	{app="api"	env="prod"	namespace="default"	pod="api-7d9f-def34"}	4
+2	{app="worker"	env="prod"	namespace="jobs"	pod="worker-55c-gh567"}	4
+3	{app="nginx"	env="prod"	namespace="ingress"	pod="nginx-2f1-ij890"}	4
+4	{app="db"	env="prod"	namespace="data"	pod="postgres-0"}	4

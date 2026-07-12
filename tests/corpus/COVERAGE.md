@@ -2692,12 +2692,12 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-cookie-header-semicolons | ✅ | yaml |
 | quo-cron-quoted-cmd | ⏳ | — |
 | quo-csv-all-quoted | ✅ | csv |
-| quo-csv-currency-thousands | ⏳ | — |
+| quo-csv-currency-thousands | ✅ | csv |
 | quo-csv-embedded-newline | ✅ | csv |
 | quo-csv-empty-quoted-fields | ✅ | csv |
 | quo-csv-escaped-quotes | ✅ | csv |
 | quo-csv-header-quoted-commas | ✅ | csv |
-| quo-csv-inch-marks | ⏳ | — |
+| quo-csv-inch-marks | ✅ | csv |
 | quo-csv-mixed-quote | ✅ | csv |
 | quo-csv-multi-multiline | ✅ | csv |
 | quo-csv-multiline-address | ✅ | csv |
@@ -2706,7 +2706,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-csv-quote-newline-comma | ✅ | csv |
 | quo-csv-review-text | ✅ | csv |
 | quo-csv-semicolon-delim | ✅ | aligned-columns |
-| quo-csv-tags-column | ⏳ | — |
+| quo-csv-tags-column | ✅ | csv |
 | quo-dig-txt-spf | ✅ | dns-records |
 | quo-dotenv-hash-equals | ✅ | equals |
 | quo-email-headers-colons | ✅ | yaml |

@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; ini-sections parser (2026-07-11) — **3522 tidy, 184 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; csv quote-awareness (2026-07-12) — **3525 tidy, 181 ⏳**
+
+> **2026-07-12 — csv RFC-4180 quote-awareness.** One shared splitter
+> (`_strat_csv_split`: quotes structural only at field start, `""` escape,
+> open-field flag) now drives csv detection (top-level commas only), the header
+> split (was naive `IFS=','`), the multi-line joiner (was raw quote parity —
+> welded literal inch-mark rows), and the row parser; the blanket value
+> quote-strip is gone (literal quotes are data). Closes 3 quoted-CSV ⏳, improves
+> 12 already-covered fixtures (audited: 7 improvements, 5 faithful-neutral, 0
+> regressions). **Now 3525 tidy, 181 ⏳** (✅ 3308 / ✅ʰ 73 / ✅ᵇ 144). Documented
+> not-cleanly-fixable: getent-group (decline rule would flip 5 csv winners),
+> quo-ssv-euro-numbers (semicolon-values is ;-dense by design). Next candidate
+> parser: space-delimited quoted/bracketed-field logs (apache combined family).
 
 > **2026-07-11 — ini-sections generic parser.** Closed the multi-section
 > INI/config ⏳ cluster. `[section]` + `key = value` dumps were flattened by

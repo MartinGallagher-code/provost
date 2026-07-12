@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3522 tidy (184 format gaps ⏳)** — after two +500
+**3706 tools tested; 3525 tidy (181 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3305 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3308 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -111,7 +111,17 @@ closing `nst-ini-duplicate-keys` / `-php-ini-sections` / `-tox-ini-sections` and
 improving 9 already-covered configs (gitconfig, `systemctl cat`, rclone/gcloud
 config, …) from a duplicate-column form to the clean section table. It fires only
 on distinct simple-token sections, so ffprobe `[STREAM]` blocks, spaced section
-names and real TOML are left to their own parsers. The 184 ⏳ that remain are
+names and real TOML are left to their own parsers. The `csv` parser then became
+**RFC-4180 quote-aware end-to-end**: detection now counts only commas *outside*
+quoted fields (quoted CSV used to fail the consistency check and fall through to
+a worse parser), the header is split with the same quote-aware splitter (a
+`"Last, First"` header column no longer misaligns every row), the multi-line
+joiner keys on an *open quoted field* instead of raw quote parity (so a literal
+inch-mark `3/4"` row is no longer welded into the next line), and quotes are
+structural only at field start with `""` as the escape — closing
+`quo-csv-currency-thousands` / `-tags-column` / `-inch-marks` and improving 12
+already-covered quoted-CSV fixtures (misaligned/garbled parses → correct
+columns; escaped quotes preserved as data). The 181 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

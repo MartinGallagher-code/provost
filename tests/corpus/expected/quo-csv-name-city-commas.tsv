@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	1,"Smith,	John",42,"Denver,	CO"	4
-2	2,"Doe,	Jane",37,"Austin,	TX"	4
-3	3,"Ng,	Wei-Lin",29,"San	Jose,_CA"	4
-4	4,"O'Brien,	Sean",51,"Cork,	IE"	4
+n	id	name	age	location	total_entries
+1	1	Smith, John	42	Denver, CO	4
+2	2	Doe, Jane	37	Austin, TX	4
+3	3	Ng, Wei-Lin	29	San Jose, CA	4
+4	4	O'Brien, Sean	51	Cork, IE	4

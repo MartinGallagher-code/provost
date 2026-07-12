@@ -1,5 +1,40 @@
 # glean — Changelog
 
+## 2026-07-12 — csv: RFC-4180 quote-awareness end-to-end
+
+Gap-cluster round on the quoted-CSV family (`strategies/structured/csv.sh`).
+The extractor's row parser was already quote-aware, but everything around it
+wasn't; four fixes, one shared splitter (`_strat_csv_split` — quotes structural
+only at field start, `""` escape, `_CSV_OPEN` flag for continuation lines):
+
+- **Detection counted commas inside quotes**, so genuinely quoted CSV
+  (`1001,"Cash, operating","1,234,567.89"`) failed the comma-consistency check
+  and fell through to a worse parser. Detect now counts only top-level commas.
+- **Header split was a naive `IFS=','`** — a quoted header column
+  (`"Last, First",Dept`) misaligned every data row. Now uses the same splitter.
+- **The multi-line joiner keyed on raw quote parity**, so a literal inch-mark
+  row (`Pipe,3/4",100`) was welded into the next line. Now keys on whether the
+  RFC-4180 parse ends inside an open quoted field.
+- **A blanket quote-strip erased literal quotes from values** (`6"" widget`
+  became `6 widget`). Structural quotes are consumed by the splitter; anything
+  left is data and stays.
+
+Closes `quo-csv-currency-thousands` / `quo-csv-tags-column` /
+`quo-csv-inch-marks` (3 ⏳). Full golden audit of the 12 changed goldens: 7
+outright improvements (`psql-csv-quoted-commas`, `sqlite-csv-mode-quotes`,
+`quo-csv-name-city-commas` went from garbled token-soup to correct columns;
+escaped `""` quotes now preserved; `tshark-fields-quoted` no longer splits its
+quoted request field), 5 faithful-neutral (logcli/ss/nginx keep the quotes the
+raw log really contains), **0 regressions** — all 12 still meet their manifest.
+Golden gate 0 failed, extract 62/62. Coverage 3522 -> 3525 tidy (181 ⏳).
+
+Also triaged and documented as NOT cleanly fixable this round: `getent-group`
+(csv steals it via member-list commas; a colon-vs-comma decline rule would flip
+5 existing csv winners), `quo-ssv-euro-numbers` (semicolon-values requires
+;-dense lines by design), and the quoted-access-log family
+(`quo-apache-combined-log`, `quo-nginx-log-ua-commas`, …) which needs a
+space-delimited quoted/bracketed-field log parser — a candidate next parser.
+
 ## 2026-07-11 — Generic parser: ini-sections (multi-section INI/config)
 
 New `extract/strategies/structured/ini-sections.sh` (priority 20) — closes a
