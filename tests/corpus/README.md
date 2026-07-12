@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3530 tidy (176 format gaps ⏳)** — after two +500
+**3706 tools tested; 3540 tidy (166 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3313 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3323 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -131,7 +131,19 @@ field count, and declines DNS RRs (`IN TXT`) — leaving dig, bracket-tag logs a
 JSON to their own parsers (verified by a full-corpus firing-surface scan: 5 gaps
 closed + exactly 3 flips, all improvements — `lspci-mm` one-blob → 7 columns,
 `nginx-access-log-quoted` garbled → clean 9-column table, `quo-haproxy-log-quoted`
-no longer splits its quoted request). The 176 ⏳ that remain are
+no longer splits its quoted request). A **table-chrome** round then taught
+`aligned-columns` (and the `columnar-specs` engine) to drop rows that are table
+furniture, not data: mid-table HEADER REPEATS (watch/top/vmstat/ps re-print the
+header every page/interval — dropped only when token-identical to a digit-free,
+≥3-token header, so a legitimately repeated log line survives) and a UNITS ROW
+directly under the header (`(C) (RPM) (V)`, `MHz dBm dB` — recognised only in
+that position, digit-free, deeper-indented, all tokens short and unit-shaped, so
+an all-lowercase data row with an empty first cell is never eaten). Four
+totals-footer fixtures were aligned with the corpus-wide convention that a
+`TOTAL`/`Average:` row IS a data row (the ✅ sar family, `rsync-stats` and
+`coverage-report` goldens all keep theirs). Closed 10 ⏳ and cleaned the repeated
+header out of 4 already-covered goldens (faillock, iostat-x, curl's second
+header-fragment row). The 166 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

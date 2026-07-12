@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; quoted-fields parser (2026-07-12) — **3530 tidy, 176 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; table-chrome round (2026-07-12) — **3540 tidy, 166 ⏳**
+
+> **2026-07-12 — table chrome.** `aligned-columns` + `columnar-specs` drop
+> mid-table HEADER REPEATS (token-identical to a digit-free ≥3-token header) and
+> a UNITS ROW under the header (digit-free, deeper indent, fewer tokens, every
+> token parenthesized/case-mixed ≤6 chars). Both rules were tightened twice by
+> the golden audit (first cuts ate entr's repeated log line, consul's
+> `web db allow` row, nerdctl/needrestart rows — all restored). Four
+> totals-footer manifests aligned with the corpus convention (`Average:`/`TOTAL`
+> row IS data — the sar-family goldens keep theirs). Closed 10 ⏳, improved 4
+> covered goldens (repeated-header chrome removed). `tbl-sar-interval-repeat`
+> stays ⏳ (timestamped header ⇒ headerless). **Now 3540 tidy, 166 ⏳**
+> (✅ 3323 / ✅ʰ 73 / ✅ᵇ 144).
 
 > **2026-07-12 — quoted-fields parser.** New generic `delimited/quoted-fields.sh`
 > (priority 12): space-delimited positional records with `"…"`/`'…'`/`[…]`

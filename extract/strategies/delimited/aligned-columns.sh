@@ -597,6 +597,57 @@ strategy_extract () {
         lines+=("$_l")
     done
 
+    # Table chrome, not data — drop it here so both the positional and the
+    # tokenized paths below see only real rows:
+    #   * mid-table HEADER REPEATS (watch/top/vmstat/sar re-print the header
+    #     every page/interval) — any later line token-identical to the header,
+    #     but only when the header is DIGIT-FREE, the mark of a label row: a
+    #     legitimately repeated log/data line ("[app] listening on :8080")
+    #     almost always carries a digit and must survive;
+    #   * a UNITS ROW printed directly under the header ("(C)  (RPM)  (V)",
+    #     "MHz  dBm  dB") — recognised only in that one position, and only when
+    #     it has fewer tokens than the header, no digit anywhere, a deeper
+    #     indent (its first column is blank), and EVERY token short (≤6 chars)
+    #     the way unit labels are. Real data rows carry digits, fill the first
+    #     column, or have long values (paths, service names).
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 ]]; then
+        local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
+        local _fharr=(); read -ra _fharr <<< "${lines[$_fhidx]}"
+        local _fhnorm="${_fharr[*]}"
+        local _fhind="${lines[$_fhidx]%%[![:space:]]*}"
+        # repeat-drop only for a real label row: >=3 tokens (a 2-token log line
+        # mistaken for a header must not eat its own repeats) and digit-free
+        local _fhdrfree=1
+        [[ "${lines[$_fhidx]}" =~ [0-9] || ${#_fharr[@]} -lt 3 ]] && _fhdrfree=0
+        local _fout=() _fi _farr _fnorm _fdind _ft _ftok
+        for ((_fi = 0; _fi < ${#lines[@]}; _fi++)); do
+            if [[ $_fi -gt $_fhidx ]]; then
+                _farr=(); read -ra _farr <<< "${lines[$_fi]}"
+                _fnorm="${_farr[*]}"
+                [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] && continue
+                if [[ $_fi -eq $((_fhidx + 1)) && ${#_farr[@]} -lt ${#_fharr[@]} \
+                      && ${#_farr[@]} -ge 2 && ! "${lines[$_fi]}" =~ [0-9] ]]; then
+                    _fdind="${lines[$_fi]%%[![:space:]]*}"
+                    if [[ ${#_fdind} -gt ${#_fhind} ]]; then
+                        # every token must LOOK like a unit label: parenthesized
+                        # ("(C)", "(RPM)") or case-mixed the way unit symbols are
+                        # ("MHz", "dBm", "GiB") — an all-lowercase data row with an
+                        # empty first cell ("web  db  allow") is data, not units
+                        _ft=1
+                        for _ftok in "${_farr[@]}"; do
+                            [[ ${#_ftok} -gt 6 ]] && { _ft=0; break; }
+                            if [[ "$_ftok" == "("*")" ]]; then continue; fi
+                            [[ "$_ftok" == *[A-Z]* && "$_ftok" == *[a-z]* ]] || { _ft=0; break; }
+                        done
+                        [[ $_ft -eq 1 ]] && continue
+                    fi
+                fi
+            fi
+            _fout+=("${lines[$_fi]}")
+        done
+        lines=("${_fout[@]}")
+    fi
+
     # For a cleanly-aligned HDR/HDR2 table, use positional token assignment so
     # multi-word headers/values (docker `IMAGE ID` / `2 weeks ago`, kubectl PORTS
     # `80, 443`) survive. Everything else keeps whitespace tokenization.

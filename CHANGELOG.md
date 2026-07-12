@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-12 — table chrome: header repeats + units rows
+
+`aligned-columns` and the `columnar-specs` engine now drop rows that are table
+furniture, not data. Both rules are containment-first (each first cut caused
+real regressions the golden audit caught; the shipped form restores all of them):
+
+- **Mid-table header repeats** (watch/top/vmstat/ps re-print the header every
+  page/interval): any later line token-identical to the header is dropped —
+  but only when the header is digit-free AND has ≥3 tokens, so a legitimately
+  repeated 2-token log line (`entr`'s "restarting: app.py") and repeated data
+  lines carrying digits ("[app] listening on :8080") survive. Same rule in
+  columnar-specs (exact repeat of the consumed header line), closing
+  `tbl-watch-diskio-repeat` via the iostat-d spec.
+- **Units row under the header** (`(C)  (RPM)  (V)`, `MHz  dBm  dB`): dropped
+  only in that one position and only when digit-free, deeper-indented (blank
+  first cell), fewer tokens than the header, and EVERY token unit-shaped
+  (parenthesized or case-mixed, ≤6 chars). An all-lowercase data row with an
+  empty first cell (consul's `web  db  allow`) or long values (nerdctl's
+  conflist paths, needrestart's service names) is never eaten.
+- **Totals-footer manifests aligned with corpus convention:** the ✅ sar family,
+  `rsync-stats`, `coverage-report` all keep their `Average:`/`TOTAL` row as a
+  data row, so the four adversarial footer fixtures now expect it too
+  (dropping totals corpus-wide would have flipped ~11 established goldens and
+  their manifests — wrong trade).
+
+Closes 10 ⏳: vmstat/ps/top header repeats, watch-diskio, sensors/SI units rows,
+and the four footer fixtures. Improves 4 already-covered goldens (faillock,
+exo-iostat-x-repeated, nst-vmstat-sections, curl-progress-meter — each carried
+a repeated-header/chrome row as data). `tbl-sar-interval-repeat` stays ⏳
+honestly: its header starts with a timestamp, so the table reads as headerless
+and there is nothing safe to key a repeat off. Golden gate 0 failed, extract
+62/62, smoke 49/0, melt 10/0. Coverage 3530 -> 3540 tidy of 3706 (166 ⏳).
+
 ## 2026-07-12 — quoted-fields parser: the access-log family
 
 New generic parser `strategies/delimited/quoted-fields.sh` (priority 12) for
