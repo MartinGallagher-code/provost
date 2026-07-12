@@ -1,6 +1,17 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; csv quote-awareness (2026-07-12) — **3525 tidy, 181 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; quoted-fields parser (2026-07-12) — **3530 tidy, 176 ⏳**
+
+> **2026-07-12 — quoted-fields parser.** New generic `delimited/quoted-fields.sh`
+> (priority 12): space-delimited positional records with `"…"`/`'…'`/`[…]`
+> grouping — the access-log family (apache combined, nginx, quoted app logs,
+> quoted crontabs, `lspci -mm`). Contained by: token-start-only grouping (logfmt
+> and quoted CSV never match), quote-span-on-every-line signature (brackets group
+> but don't qualify), ≥5 fields, spread ≤2, DNS-RR decline. Full-corpus firing
+> scan: 5 ⏳ closed + exactly 3 flips, all audited improvements (lspci-mm,
+> nginx-access-log-quoted, quo-haproxy-log-quoted). **Now 3530 tidy, 176 ⏳**
+> (✅ 3313 / ✅ʰ 73 / ✅ᵇ 144). Gotcha: `local x="$1" y=${#x}` breaks under the
+> engine's `set -u` — split declarations.
 
 > **2026-07-12 — csv RFC-4180 quote-awareness.** One shared splitter
 > (`_strat_csv_split`: quotes structural only at field start, `""` escape,

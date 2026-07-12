@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3525 tidy (181 format gaps ⏳)** — after two +500
+**3706 tools tested; 3530 tidy (176 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3308 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3313 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -121,7 +121,17 @@ inch-mark `3/4"` row is no longer welded into the next line), and quotes are
 structural only at field start with `""` as the escape — closing
 `quo-csv-currency-thousands` / `-tags-column` / `-inch-marks` and improving 12
 already-covered quoted-CSV fixtures (misaligned/garbled parses → correct
-columns; escaped quotes preserved as data). The 181 ⏳ that remain are
+columns; escaped quotes preserved as data). A new **`quoted-fields`** generic
+parser then closed the access-log family: space-delimited positional records
+where `"…"`, `'…'` and `[…]` group a multi-word value into one field (apache
+combined / nginx access logs, quoted app logs, quoted crontabs). Grouping is
+structural only at token start, so logfmt (`msg="…"`) and quoted CSV never
+match; detection demands a quote span on EVERY line, ≥5 fields, a near-constant
+field count, and declines DNS RRs (`IN TXT`) — leaving dig, bracket-tag logs and
+JSON to their own parsers (verified by a full-corpus firing-surface scan: 5 gaps
+closed + exactly 3 flips, all improvements — `lspci-mm` one-blob → 7 columns,
+`nginx-access-log-quoted` garbled → clean 9-column table, `quo-haproxy-log-quoted`
+no longer splits its quoted request). The 176 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

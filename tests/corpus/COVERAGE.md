@@ -1820,7 +1820,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | lsof-sparse-name | ✅ | aligned-columns |
 | lsof | ✅ | aligned-columns |
 | lspci-k | ✅ | colons |
-| lspci-mm | ✅ | text-lines |
+| lspci-mm | ✅ | quoted-fields |
 | lspci-nn | ✅ | text-lines |
 | lspci-tv | ✅ᵇ | lspci-tv (bespoke) |
 | lspci-vmm | ✅ | tsv |
@@ -2063,7 +2063,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nft-monitor-trace | ✅ | colons |
 | nftables-ruleset-counter | ✅ | text-lines |
 | nginx-T-servers | ✅ | indented-hierarchy |
-| nginx-access-log-quoted | ✅ | csv |
+| nginx-access-log-quoted | ✅ | quoted-fields |
 | nginx-stub-status | ✅ | colons |
 | nginx-t | ✅ | yaml |
 | nginx-v-full | ✅ | aligned-columns |
@@ -2683,14 +2683,14 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quantum-espresso-summary | ✅ | aligned-columns |
 | questdb-show-columns | ✅ | tsv |
 | questdb-tables | ✅ | aligned-columns |
-| quo-access-log-referer-query | ⏳ | — |
-| quo-apache-combined-log | ⏳ | — |
-| quo-app-log-quoted-fields | ⏳ | — |
+| quo-access-log-referer-query | ✅ | quoted-fields |
+| quo-apache-combined-log | ✅ | quoted-fields |
+| quo-app-log-quoted-fields | ✅ | quoted-fields |
 | quo-audit-exec-log | ✅ | aligned-columns |
 | quo-caddy-jsonl-access | ✅ | jsonl |
 | quo-colon-config-urls | ✅ | colon-fields |
 | quo-cookie-header-semicolons | ✅ | yaml |
-| quo-cron-quoted-cmd | ⏳ | — |
+| quo-cron-quoted-cmd | ✅ | quoted-fields |
 | quo-csv-all-quoted | ✅ | csv |
 | quo-csv-currency-thousands | ✅ | csv |
 | quo-csv-embedded-newline | ✅ | csv |
@@ -2713,7 +2713,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-entrypoint-json-array | ⏳ | — |
 | quo-env-quoted-special | ✅ | equals |
 | quo-gitlog-pipe-format | ✅ | labeled-records |
-| quo-haproxy-log-quoted | ✅ | aligned-columns |
+| quo-haproxy-log-quoted | ✅ | quoted-fields |
 | quo-ini-semicolon-in-value | ✅ | toml |
 | quo-jsonl-comma-string | ✅ | jsonl |
 | quo-jsonl-nested-braces | ✅ | jsonl |
@@ -2731,7 +2731,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-md-table-escaped-pipe | ✅ᵇ | csvlook (bespoke) |
 | quo-md-table-pipe-code | ✅ᵇ | csvlook (bespoke) |
 | quo-mysql-group-concat | ✅ | tsv |
-| quo-nginx-log-ua-commas | ⏳ | — |
+| quo-nginx-log-ua-commas | ✅ | quoted-fields |
 | quo-passwd-gecos-times | ✅ | colon-fields |
 | quo-pipe-escaped-bar | ⏳ | — |
 | quo-pipe-quoted-bar | ⏳ | — |

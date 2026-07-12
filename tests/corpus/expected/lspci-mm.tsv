@@ -1,6 +1,6 @@
-n	A	total_entries
-1	00:00.0 "Host bridge" "Intel Corporation" "12th Gen Core Host Bridge" -r02 "Intel Corporation" "Device 7270"	5
-2	00:02.0 "VGA compatible controller" "Intel Corporation" "AlderLake-S GT1" -r0c "Intel Corporation" "Device 3021"	5
-3	00:14.0 "USB controller" "Intel Corporation" "Alder Lake-S PCH USB 3.2 xHCI" -r11 "" ""	5
-4	02:00.0 "Ethernet controller" "Intel Corporation" "Ethernet Controller I225-V" -r03 "ASUSTeK" "Device 8672"	5
-5	04:00.0 "Non-Volatile memory controller" "Samsung" "NVMe SSD 980 PRO" -r00 "Samsung" "Device a801"	5
+n	A	B	C	D	E	F	G	total_entries
+1	00:00.0	Host bridge	Intel Corporation	12th Gen Core Host Bridge	-r02	Intel Corporation	Device 7270	5
+2	00:02.0	VGA compatible controller	Intel Corporation	AlderLake-S GT1	-r0c	Intel Corporation	Device 3021	5
+3	00:14.0	USB controller	Intel Corporation	Alder Lake-S PCH USB 3.2 xHCI	-r11			5
+4	02:00.0	Ethernet controller	Intel Corporation	Ethernet Controller I225-V	-r03	ASUSTeK	Device 8672	5
+5	04:00.0	Non-Volatile memory controller	Samsung	NVMe SSD 980 PRO	-r00	Samsung	Device a801	5

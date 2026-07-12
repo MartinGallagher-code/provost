@@ -1,5 +1,32 @@
 # glean — Changelog
 
+## 2026-07-12 — quoted-fields parser: the access-log family
+
+New generic parser `strategies/delimited/quoted-fields.sh` (priority 12) for
+space-delimited positional records where `"…"`, `'…'` and `[…]` group a
+multi-word value into ONE field — apache combined / nginx access logs, quoted
+app logs, quoted crontabs, `lspci -mm`. No header; columns are synthesised.
+
+Containment (the first cut fired on 45 corpus inputs; tightened to 9):
+- grouping/signature only at TOKEN start — logfmt (`msg="…"`) and quoted CSV
+  (quotes after commas) never form spans and stay with their parsers;
+- the signature is a QUOTE span on every line (brackets group `[ts +0000]`
+  but don't qualify — else every bracket-tag log and aligned table with a
+  `[SWAP]` cell would match), ≥5 fields, field-count spread ≤2;
+- DNS RRs decline via the (IN, <rr-type>) token pair — dig TXT stays with
+  dns-records; JSON declines via _is_json.
+
+Closes 5 ⏳ (`quo-apache-combined-log`, `quo-access-log-referer-query`,
+`quo-app-log-quoted-fields`, `quo-cron-quoted-cmd`, `quo-nginx-log-ua-commas`).
+Exactly 3 audited flips, all improvements: `lspci-mm` (one-blob text-lines →
+7 real columns), `nginx-access-log-quoted` (garbled csv 1-row → clean 9-column
+table), `quo-haproxy-log-quoted` (quoted request no longer split across 3
+columns). Ships sample + golden. Golden gate 0 failed, extract suite green,
+smoke/melt green. Coverage 3525 -> 3530 tidy of 3706 (176 ⏳); generic 3313.
+
+Also: `local x="$1" y=${#x}` breaks under the engine's `set -u` (bash expands
+all words of a `local` before any assignment lands) — split declarations.
+
 ## 2026-07-12 — csv: RFC-4180 quote-awareness end-to-end
 
 Gap-cluster round on the quoted-CSV family (`strategies/structured/csv.sh`).
