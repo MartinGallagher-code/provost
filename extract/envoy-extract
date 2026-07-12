@@ -747,6 +747,20 @@ if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
             | sed $'s/\302\205/\\\n/g; s/\342\200\250/\\\n/g; s/\342\200\251/\\\n/g')"
 fi
 
+# Normalise exotic Unicode horizontal spaces to ASCII space so column splitting
+# — which keys on runs of 0x20 — sees the alignment the terminal showed. Covers
+# NBSP (U+00A0, also used as locale thousands grouping — a SINGLE space inside a
+# number survives the 2+-space column rule, so "1 234,56" stays one cell while
+# NBSP-padded column gaps still split), narrow NBSP (U+202F), medium math space
+# (U+205F), the U+2000–U+200A quad/en/em/thin/hair family, and the ideographic
+# space (U+3000) CJK tables pad with. Gated on such a byte being present; the
+# U+2028/29 line separators were already mapped to \n above, and curly quotes
+# (U+2018-201D) fall outside the mapped ranges.
+if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342\201\237'* \
+      || "$text" == *$'\343\200\200'* ]]; then
+    text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
+fi
+
 # Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
 # systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
 # split or pollute a data cell. Gated on an ESC byte being present, so it is a

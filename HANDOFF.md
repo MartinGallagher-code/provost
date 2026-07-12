@@ -1,6 +1,20 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; table-chrome round (2026-07-12) — **3540 tidy, 166 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; unicode-space + CJK-header round (2026-07-12) — **3547 tidy, 159 ⏳**
+
+> **2026-07-12 — unicode spaces + CJK headers.** Engine now normalizes exotic
+> Unicode horizontal spaces (NBSP, narrow-NBSP, U+2000–U+200A, U+205F,
+> ideographic U+3000) to ASCII space — gated once-per-input like the ANSI strip;
+> a single normalized NBSP inside "1 234,56" survives the 2+-space column rule so
+> grouping and padding coexist. And aligned-columns' labelly check now accepts
+> non-ASCII header tokens, so CJK/hangul tables (名前 年齢 都市) get real column
+> names instead of the header landing in the data — contained to rows where
+> EVERY token is fully non-ASCII (first cut promoted glyph-decorated log lines:
+> ⚡️/✖/›/·/🐷 — all 6 victims restored). Closed 7 ⏳; 11 NBSP-family goldens
+> re-frozen clean. sed gotcha: byte ranges in $'…' scripts must be raw
+> ([\200-\212]); double-escaping = "Invalid range end". Follow-up noted:
+> fullwidth-colon (：) in the colons parser would finish uni-kv-fullwidth.
+> **Now 3547 tidy, 159 ⏳** (✅ 3330 / ✅ʰ 73 / ✅ᵇ 144).
 
 > **2026-07-12 — table chrome.** `aligned-columns` + `columnar-specs` drop
 > mid-table HEADER REPEATS (token-identical to a digit-free ≥3-token header) and

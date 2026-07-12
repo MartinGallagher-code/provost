@@ -1,5 +1,45 @@
 # glean — Changelog
 
+## 2026-07-12 — Unicode spaces + CJK headers
+
+Two fixes for the Unicode-space/width cluster:
+
+- **Engine: Unicode-space normalization** (`extract/envoy-extract`, after the
+  line-terminator block, same gated once-per-input pattern). Maps NBSP (U+00A0),
+  narrow NBSP (U+202F), U+2000–U+200A (quad/en/em/thin/hair), medium math space
+  (U+205F) and the ideographic space (U+3000) to ASCII space, so column
+  splitting — which keys on runs of 0x20 — sees the alignment the terminal
+  showed. The locale subtlety that blocked this before resolves itself: a
+  single normalized NBSP inside a grouped number ("1 234,56") survives the
+  2+-space column rule, so NBSP-as-grouping and NBSP-as-padding coexist.
+  Gotcha: in a $'…' sed script a byte range must be raw bytes ([\200-\212]) —
+  double-escaping puts a literal backslash in the bracket ("Invalid range end").
+- **aligned-columns: non-ASCII header labels.** The labelly check required
+  every header token to carry [A-Za-z0-9], so an all-CJK header row
+  (名前 年齢 都市) was never promoted and the header landed in the data as
+  row 1. A label token may now be any token carrying an ASCII alphanumeric OR
+  a multibyte character; CJK/hangul tables get real column names.
+
+Closes 7 ⏳: enc-nbsp-padding, enc-em-space-padding, enc-thin-space-sep,
+enc-ideographic-space, uni-ideographic-space-sep, uni-hangul-servers,
+enc-formfeed-pages (num-nbsp-grouping and uni-jp-en-mixed-table also now parse
+correctly — they carried goldens already). enc-nbsp-thousands-fr stays ⏳
+honestly (it is semicolon-delimited — the semicolon-values density cluster,
+not a space problem).
+
+Golden audit of the 17 flips: the labelly first cut (any multibyte token =
+label) promoted glyph-decorated LOG lines to headers (⚡️ volta, ✖ commitlint,
+› stern, · navi, 🐷 trufflehog, │ docker-scout — each losing row 1 as data);
+tightened to fire only when EVERY non-separator token in the row is fully
+non-ASCII (a pure CJK label row) — all 6 restored byte-identical. The 11
+NBSP-family goldens re-frozen as improvements (NBSP/em/thin/figure bytes ->
+clean cells; "1 234,56" one cell). One accepted trade: uni-kv-fullwidth now
+splits its fullwidth-colon pairs properly (was 4 unsplit blobs) but the
+pre-existing all-caps rule takes pair 1 as a header — still passes its kv
+manifest; the full fix is fullwidth-colon (：) support in the colons parser
+(noted as follow-up). Golden gate 0 failed after re-freeze; extract 62/62,
+smoke 49/0, melt 10/0.
+
 ## 2026-07-12 — table chrome: header repeats + units rows
 
 `aligned-columns` and the `columnar-specs` engine now drop rows that are table

@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3540 tidy (166 format gaps ⏳)** — after two +500
+**3706 tools tested; 3547 tidy (159 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3323 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3330 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -143,7 +143,17 @@ totals-footer fixtures were aligned with the corpus-wide convention that a
 `TOTAL`/`Average:` row IS a data row (the ✅ sar family, `rsync-stats` and
 `coverage-report` goldens all keep theirs). Closed 10 ⏳ and cleaned the repeated
 header out of 4 already-covered goldens (faillock, iostat-x, curl's second
-header-fragment row). The 166 ⏳ that remain are
+header-fragment row). An **engine-level Unicode-space normalization** (once,
+gated — the same pattern as the ANSI strip and line-terminator fixes) then maps
+NBSP, narrow-NBSP, the U+2000–U+200A quad/en/em/thin/hair family, medium math
+space and the CJK ideographic space to ASCII space, so column splitting sees the
+alignment the terminal showed; a single normalized NBSP inside a locale-grouped
+number ("1 234,56") survives the 2+-space column rule, so grouping and padding
+coexist. And `aligned-columns` header detection now accepts **non-ASCII label
+tokens** — a CJK header row (`名前  年齢  都市`) had no `[A-Za-z0-9]` so it was
+never promoted; those tables now get real column names. Together: 7 more ⏳
+closed (NBSP/em/thin/ideographic padding, hangul/JP tables, formfeed pages).
+The 159 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

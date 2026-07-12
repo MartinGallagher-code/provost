@@ -302,11 +302,24 @@ _ac_shape () {
     # kubectl's CPU(cores)) all pass.
     # Bare single-char separators inside a header (`database | user`,
     # `# reqs`, `Total / Used`) are skipped — they are layout, not content.
-    local labelly=1 _lbl_seen=0
+    # A CJK/hangul header row (名前 年齢 都市) has no [A-Za-z0-9] anywhere, so it
+    # could never pass the labelly check. Accept fully-non-ASCII tokens as labels
+    # — but ONLY when EVERY non-separator token in the row is fully non-ASCII (a
+    # pure CJK label row). A mixed row (⚡️ User toolchain:, + pod › nginx,
+    # docker · list …) is a decorated log/record line, not a header.
+    local _row_cjk=1
+    for _t in "${_t1arr[@]}"; do
+        [[ "$_t" =~ ^[\|#/%+-]$ ]] && continue
+        [[ "$_t" == *[[:ascii:]]* ]] && { _row_cjk=0; break; }
+    done
+    local labelly=1 _lbl_seen=0 _lbl_ok
     for _t in "${_t1arr[@]}"; do
         [[ "$_t" =~ ^[\|#/%+-]$ ]] && continue
         _lbl_seen=1
-        [[ "$_t" =~ [A-Za-z0-9] && ! "$_t" =~ ^\[ && ! "$_t" =~ \]$ && ! "$_t" =~ \.$ ]] || { labelly=0; break; }
+        _lbl_ok=0
+        [[ "$_t" =~ [A-Za-z0-9] ]] && _lbl_ok=1
+        [[ $_row_cjk -eq 1 && "$_t" != *[[:ascii:]]* ]] && _lbl_ok=1
+        [[ $_lbl_ok -eq 1 && ! "$_t" =~ ^\[ && ! "$_t" =~ \]$ && ! "$_t" =~ \.$ ]] || { labelly=0; break; }
     done
     [[ $_lbl_seen -eq 0 ]] && labelly=0
     if [[ $caps0 -eq 1 || ( $v0 -eq 0 && ${dcount[0]} -eq 0 && $labelly -eq 1 && $maxd -gt 0 ) \
