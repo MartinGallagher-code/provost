@@ -224,6 +224,16 @@ _ac_body () {
 _ac_shape () {
     local text; text="$(_ac_body "$1")"
     local counts=() dcount=() idx=0 _line first_line=""
+    # Track whether this block is dominantly a single-record COLON-KV
+    # description (dpkg/apt `Package: foo` / `Status: install ok installed` /
+    # `Header: family inet …`) rather than a real table — one field per line,
+    # each field a DISTINCT label. That shape belongs to `colons`
+    # (priority 60), which already renders it as one clean wide record; if
+    # aligned-columns claims it first, row 1's two tokens ("Package:", "vim")
+    # become literal COLUMN NAMES and every later field gets stuffed under
+    # them, producing garbage. Declining here lets colons pick it up.
+    local _kv_lines=0 _kv_dupe=0
+    local -A _kv_seen=()
     while IFS= read -r _line; do
         [[ -z "${_line//[[:space:]]/}" ]] && continue
         idx=$((idx + 1))
@@ -233,8 +243,26 @@ _ac_shape () {
         local d=0 t
         for t in "${_tk[@]}"; do [[ "$t" =~ [0-9] ]] && d=$((d + 1)); done
         dcount+=("$d")
+        if [[ "${_tk[0]:-}" =~ ^[A-Za-z][A-Za-z0-9_-]*:$ ]]; then
+            _kv_lines=$((_kv_lines + 1))
+            local _lab="${_tk[0]%:}"
+            [[ -n "${_kv_seen[$_lab]:-}" ]] && _kv_dupe=1
+            _kv_seen[$_lab]=1
+        fi
         [[ $idx -ge 40 ]] && break
     done <<< "$text"
+    # Also require ROW 1 ITSELF to be a colon-kv label line. Without this, a
+    # real table whose first COLUMN happens to be colon-suffixed labels
+    # (/proc/interrupts-style `HI:  TIMER:  NET_TX:  …` per-row counter names
+    # under a `CPU0 CPU1 CPU2 CPU3` header) satisfies "distinct label per
+    # line, majority of rows" just as well as a genuine kv description does —
+    # but there row 1 is the real header (no colon), not a field, so it fails
+    # this check and the table stays with aligned-columns where it belongs.
+    local _first_tok="${first_line%%[[:space:]]*}"
+    if [[ $idx -ge 8 && $_kv_dupe -eq 0 && $((_kv_lines * 2)) -ge $idx \
+          && "$_first_tok" =~ ^[A-Za-z][A-Za-z0-9_-]*:$ ]]; then
+        return 1
+    fi
 
     local nlines=${#counts[@]}
     [[ $nlines -lt 2 ]] && return 1

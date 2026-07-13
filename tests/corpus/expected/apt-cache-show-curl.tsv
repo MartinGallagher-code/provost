@@ -1,17 +1,2 @@
-n	Package:	curl	total_entries
-1	Architecture:	amd64	16
-2	Version:	7.81.0-1ubuntu1.14	16
-3	Priority:	optional	16
-4	Section:	web	16
-5	Origin:	Ubuntu	16
-6	Maintainer:	Ubuntu_Developers_<ubuntu-devel-discuss@lists.ubuntu.com>	16
-7	Installed-Size:	433	16
-8	Depends:	libc6_(>=_2.34),_libcurl4_(=_7.81.0-1ubuntu1.14),_zlib1g_(>=_1:1.1.4)	16
-9	Filename:	pool/main/c/curl/curl_7.81.0-1ubuntu1.14_amd64.deb	16
-10	Size:	194554	16
-11	Description-en:	command_line_tool_for_transferring_data_with_URL_syntax	16
-12	curl	is_a_command_line_tool_for_transferring_data_with_URL_syntax,	16
-13	supporting	DICT,_FILE,_FTP,_FTPS,_GOPHER,_HTTP,_HTTPS,_IMAP,_IMAPS,	16
-14	LDAP,	LDAPS,_POP3,_POP3S,_RTMP,_RTSP,_SCP,_SFTP,_SMTP,_SMTPS,_TELNET	16
-15	and	TFTP.	16
-16	Description-md5:	39ac1d0d711d3b3921e550fed1f24f6a	16
+Package	Architecture	Version	Priority	Section	Origin	Maintainer	Installed-Size	Depends	Filename	Size	Description-en	Description-md5
+curl	amd64	7.81.0-1ubuntu1.14	optional	web	Ubuntu	Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>	433	libc6 (>=_2.34), libcurl4 (=_7.81.0-1ubuntu1.14), zlib1g (>=_1:1.1.4)	pool/main/c/curl/curl_7.81.0-1ubuntu1.14_amd64.deb	194554	command line tool for transferring data with URL syntax	39ac1d0d711d3b3921e550fed1f24f6a
