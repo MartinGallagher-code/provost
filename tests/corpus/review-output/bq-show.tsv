@@ -1,0 +1,2 @@
+creationTime	id	kind	lastModifiedTime	location	numBytes	numRows	type
+1717000000000	my-project-prod:analytics.daily_events	bigquery#table	1719500000000	US	10485760	204800	TABLE

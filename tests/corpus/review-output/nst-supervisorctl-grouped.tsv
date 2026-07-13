@@ -1,0 +1,2 @@
+group	web	web	group	worker	worker	worker
+web	web_00    RUNNING   pid 1201, uptime 4:12:33	web_01    RUNNING   pid 1202, uptime 4:12:33	worker	w_00   RUNNING   pid 1350, uptime 2:00:11	w_01   FATAL     Exited too quickly	w_02   STARTING

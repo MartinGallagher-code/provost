@@ -1,0 +1,7 @@
+n	overhead	shared_object	symbol	total_entries
+1	14.32%	postgres	heap_page_prune	6
+2	9.87%	libc-2.31.so	__memmove_avx_unaligned_erms	6
+3	7.45%	[kernel]	finish_task_switch	6
+4	5.12%	postgres	ExecScanHashBucket	6
+5	3.98%	libjson.so.1	json_parse_value	6
+6	2.64%	[kernel]	copy_user_enhanced_fast_string	6

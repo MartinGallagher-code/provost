@@ -1,0 +1,2 @@
+Name	Type	Value	Version	Last_Modified_Date	Last_Modified_User	Arn	Data_Type
+/app/production/database/connection-string	SecureString	postgresql://appuser:s3cr3t@prod-db-cluster.cluster-c9xk2mzq.us-east-1.rds.amazonaws.com:5432/appdb	7	2024-01-28T19:03:44.221000+00:00	arn:aws:sts::123456789012:assumed-role/deploy-role/github-actions-deploy-session-12345	arn:aws:ssm:us-east-1:123456789012:parameter/app/production/database/connection-string	text

@@ -42,6 +42,14 @@ Also corrected the README headline to the tally-derived figure (the previous
 round's arithmetic overcounted by 2): now 3567 tidy, 139 ⏳ of 3706
 (✅ 3348 / ✅ʰ 77 / ✅ᵇ 142).
 
+## 2026-07-13 — corpus output review snapshot
+
+Added `tests/corpus/review-output/` — one tidy TSV per input in
+`tests/corpus/inputs/` (3707 files) generated via `--generic` mode + the tidy
+melt, plus `_summary.tsv` (tool, strategy, confidence, cols, rows) and a
+README. This is a review snapshot for spot-checking current output quality,
+not a change to the CI-enforced golden set (`tests/corpus/expected/`).
+
 ## 2026-07-12 — wrapped cells + the tab-collapse bug
 
 Two changes in `aligned-columns`' positional-grid path:

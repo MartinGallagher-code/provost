@@ -1,0 +1,4 @@
+n	ID	Spec	Name	Default	Ingress	Active	Deployment	In	Progress	total_entries
+1	2026-06-30	starfish-api	https://starfish-api.ondigital...	c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f	2026-03-14	09:22:11	UTC	18:04:52	UTC	3
+2	2026-06-28	marketing-web	https://marketing-web.ondigit...	a9b8c7d6-e5f4-4a3b-2c1d-0e9f8a7b6c5d	2026-01-08	14:51:03	UTC	11:33:20	UTC	3
+3	UTC	billing-worker	https://billing-worker.ondigi...	f0e1d2c3-b4a5-4968-8776-5544332211ff	aabbccdd-eeff-4001-9922-334455667788	2026-05-02	UTC	2026-07-09	22:15:07	3

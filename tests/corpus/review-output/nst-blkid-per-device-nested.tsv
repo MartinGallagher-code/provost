@@ -1,0 +1,12 @@
+n	A	B	total_entries
+1	/dev/sda1		11
+2	UUID	1234-ABCD	11
+3	TYPE	vfat	11
+4	LABEL	EFI	11
+5	/dev/sda2		11
+6	UUID	aa11-bb22-cc33	11
+7	TYPE	ext4	11
+8	LABEL	boot	11
+9	/dev/sda3		11
+10	UUID	dd44-ee55-ff66	11
+11	TYPE	LVM2_member	11

@@ -1,0 +1,2 @@
+n	CreatedAt	Driver	Mountpoint	Name	Options	Scope	total_entries
+1	2026-07-01T18:42:07Z	local	/var/lib/docker/volumes/acme_pgdata/_data	acme_pgdata	null	local	1

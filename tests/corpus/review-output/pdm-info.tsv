@@ -1,0 +1,6 @@
+n	key	value	total_entries
+1	PDM version	2.15.4	5
+2	Python Interpreter	/home/dev/proj/.venv/bin/python (3.12)	5
+3	Project Root	/home/dev/proj	5
+4	Project Packages	None	5
+5	Local Packages	__pypackages__/3.12	5

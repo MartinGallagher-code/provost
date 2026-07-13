@@ -1,0 +1,12 @@
+n	NAME:	ingress-nginx	total_entries
+1	LAST	DEPLOYED:_Fri_Jun_12_09:14:22_2026	11
+2	NAMESPACE:	ingress-nginx	11
+3	STATUS:	deployed	11
+4	REVISION:	3	11
+5	CHART:	ingress-nginx-4.10.1	11
+6	APP	VERSION:_1.10.1	11
+7	DESCRIPTION:	Upgrade_complete	11
+8	TEST	SUITE:_None	11
+9	NOTES:		11
+10	The	ingress-nginx_controller_has_been_installed.	11
+11	It	may_take_a_few_minutes_for_the_LoadBalancer_IP_to_be_available.	11

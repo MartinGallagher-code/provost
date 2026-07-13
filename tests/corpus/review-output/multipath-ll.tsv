@@ -1,0 +1,2 @@
+|_|-_6	|_`-_7	`-+-_policy='round-robin_0'_prio=9_status=enabled.|-_6	`-+-_policy='round-robin_0'_prio=9_status=enabled.`-_7	`-+-_policy='round-robin_0'_prio=14_status=active.|-_6	`-+-_policy='round-robin_0'_prio=14_status=active.`-_7
+0:0:0 sdc 8:32  active ready running	0:0:0 sde 8:64  active ready running	0:0:1 sdd 8:48  active ghost running	0:0:1 sdf 8:80  active ghost running	0:0:2 sdg 8:96  active ready running	0:0:2 sdh 8:112 active ready running

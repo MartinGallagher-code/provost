@@ -1,0 +1,2 @@
+db	collections	views	objects	avgObjSize	dataSize	storageSize	indexes	indexSize	totalSize	scaleFactor	ok
+'sales',	12,	0,	1048576,	512.34,	536870912,	268435456,	24,	67108864,	335544320,	1,	1

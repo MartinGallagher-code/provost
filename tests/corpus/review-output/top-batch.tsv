@@ -1,0 +1,12 @@
+n	key	value	total_entries
+1	top - 10	14:52 up 9 days,  3:22,  2 users,  load average: 0.84, 0.71, 0.65	11
+2	Tasks	214 total,   1 running, 213 sleeping,   0 stopped,   0 zombie	11
+3	%Cpu(s)	6.1 us,  2.3 sy,  0.0 ni, 90.8 id,  0.5 wa,  0.0 hi,  0.3 si,  0.0 st	11
+4	MiB Mem	7962.1 total,    412.3 free,   4820.6 used,   2729.2 buff/cache	11
+5	MiB Swap	2048.0 total,   1902.4 free,    145.6 used.   2610.8 avail Mem PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND	11
+6	1843 mysql     20   0 2894512 662104  18204 S  24.3   8.1 412	07.44 mysqld	11
+7	9021 www-data  20   0  728104 278320  42108 S  12.7   3.4   3	41.02 php-fpm	11
+8	2044 postgres  20   0 1204800 548016 512004 S   4.8   6.7 141	22.10 postgres	11
+9	3310 elastic   20   0 4820104 1012440 22140 S   3.1  12.4  55	09.71 java	11
+10	2891 redis     20   0   95820  52104   3820 S   1.9   0.6  40	11.33 redis-server	11
+11	774 root      20   0  158920  18220   9204 S   0.4   0.2   4	41.18 containerd	11

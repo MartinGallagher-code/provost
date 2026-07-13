@@ -1,0 +1,5 @@
+n	tableid	type	total_entries
+1	daily_events	TABLE	4
+2	user_profiles	TABLE	4
+3	session_facts	VIEW	4
+4	revenue_agg	TABLE	4

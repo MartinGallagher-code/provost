@@ -1,0 +1,23 @@
+n	A	total_entries
+1	=====================================	22
+2	2026-07-07 06:00:12 0x7f3a INNODB MONITOR OUTPUT	22
+3	=====================================	22
+4	Per second averages calculated from the last 41 seconds	22
+5	-----------------	22
+6	BACKGROUND THREAD	22
+7	-----------------	22
+8	srv_master_thread loops: 88213 srv_active, 0 srv_shutdown, 1204553 srv_idle	22
+9	srv_master_thread log flush and writes: 0	22
+10	----------	22
+11	SEMAPHORES	22
+12	----------	22
+13	OS WAIT ARRAY INFO: reservation count 88210	22
+14	OS WAIT ARRAY INFO: signal count 44120	22
+15	RW-shared spins 0, rounds 220145, OS waits 12045	22
+16	RW-excl spins 0, rounds 88210, OS waits 3312	22
+17	------------	22
+18	TRANSACTIONS	22
+19	------------	22
+20	Trx id counter 9982310	22
+21	Purge done for trx's n:o < 9982280 undo n:o < 0 state: running	22
+22	History list length 42	22

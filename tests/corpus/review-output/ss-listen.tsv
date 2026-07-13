@@ -1,0 +1,5 @@
+n	State	Recv-Q	Send-Q	Local	Address:Port	total_entries
+1	LISTEN	0	128	0.0.0.0:22	0.0.0.0:*	4
+2	LISTEN	0	511	0.0.0.0:80	0.0.0.0:*	4
+3	LISTEN	0	128	127.0.0.1:3306	0.0.0.0:*	4
+4	LISTEN	0	128	[::]:22	[::]:*	4

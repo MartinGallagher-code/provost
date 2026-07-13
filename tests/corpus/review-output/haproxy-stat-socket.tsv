@@ -1,0 +1,5 @@
+n	#_pxname	svname	scur	smax	slim	stot	status	qcur	total_entries
+1	frontend_http	FRONTEND	88	412	2000	8821004	OPEN		4
+2	backend_api	api1	12	44		1204882	UP	0	4
+3	backend_api	api2	10	41		1198740	UP	0	4
+4	backend_api	BACKEND	22	85	200	2403622	UP	0	4

@@ -1,0 +1,9 @@
+n	Authentication	Report	total_entries
+1	# date time ac	ct host term exe success event	8
+2	==============	==============================	8
+3	1. 03/01/2024	08:12:33 root 192.168.1.5 sshd /usr/sbin/sshd yes 28914	8
+4	2. 03/01/2024	09:45:02 alice 10.0.0.12 sshd /usr/sbin/sshd yes 28920	8
+5	3. 03/02/2024	14:22:17 bob 10.0.0.34 sshd /usr/sbin/sshd no 29011	8
+6	4. 03/03/2024	07:03:44 root tty1 /usr/bin/login /usr/bin/login yes 29102	8
+7	5. 03/05/2024	18:30:09 carol 192.168.1.9 sshd /usr/sbin/sshd no 29450	8
+8	6. 03/06/2024	11:11:11 dave 10.0.0.55 sshd /usr/sbin/sshd yes 29511	8

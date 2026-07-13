@@ -1,0 +1,4 @@
+n	ACTION	SHORTCUT	>	total_entries
+1	Rebuild	r		3
+2	Deploy	d	>	3
+3	Rollback	b		3

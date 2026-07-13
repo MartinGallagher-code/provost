@@ -1,0 +1,3 @@
+n	pool	state	scan	errors
+1	tank	DEGRADED	resilver_in_progress_since_Fri_Jul_11_06:00:00_2026	
+3				No_known_data_errors

@@ -1,0 +1,8 @@
+n	A	B	C	total_entries
+1	ssh	22/tcp		7
+2	smtp	25/tcp	mail	7
+3	http	80/tcp	www	7
+4	https	443/tcp		7
+5	ntp	123/udp		7
+6	imaps	993/tcp		7
+7	postgresql	5432/tcp		7

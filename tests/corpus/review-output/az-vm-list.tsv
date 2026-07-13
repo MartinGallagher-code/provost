@@ -1,0 +1,4 @@
+n	Name	ResourceGroup	Location	Zones	PowerState	total_entries
+1	web-vm-1	prod-rg	eastus	1	VM running	3
+2	web-vm-2	prod-rg	eastus	2	VM running	3
+3	db-vm-1	prod-rg	westus2	1	VM deallocated	3

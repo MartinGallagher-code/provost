@@ -1,0 +1,4 @@
+n	repo	visibility	tags	total_entries
+1	core	public	go,api,server	3
+2	ui	private	react,frontend	3
+3	infra	internal	terraform,aws,k8s	3

@@ -1,0 +1,3 @@
+n	VG	#PV	#LV	#SN	Attr	VSize	VFree	total_entries
+1	vg0	2	4	0	wz--n-	<3.64t	400.00g	2
+2	vg_data	1	2	0	wz--n-	931.51g	0	2

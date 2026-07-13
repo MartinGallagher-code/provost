@@ -1,0 +1,7 @@
+n	A	B	C	D	E	F	G	H	I	J	K	L	total_entries
+1	default	via	192.168.1.1	dev	eth0	table	main	proto	dhcp	metric	100		6
+2	10.0.0.0/24	dev	eth1	table	main	proto	kernel	scope	link	src	10.0.0.5		6
+3	broadcast	127.0.0.0	dev	lo	table	local	proto	kernel	scope	link	src	127.0.0.1	6
+4	local	127.0.0.1	dev	lo	table	local	proto	kernel	scope	host	src	127.0.0.1	6
+5	local	192.168.1.42	dev	eth0	table	local	proto	kernel	scope	host	src	192.168.1.42	6
+6	broadcast	192.168.1.255	dev	eth0	table	local	proto	kernel	scope	link	src	192.168.1.42	6

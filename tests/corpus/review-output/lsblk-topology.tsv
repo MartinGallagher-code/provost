@@ -1,0 +1,7 @@
+n	NAME	ALIGNMENT	MIN-IO	OPT-IO	PHY-SEC	LOG-SEC	ROTA	SCHED	RQ-SIZE	total_entries
+1	sda	0	512	0	512	512	1	mq-deadline	64	6
+2	├─sda1	0	512	0	512	512	1	mq-deadline	64	6
+3	└─sda2	0	512	0	512	512	1	mq-deadline	64	6
+4	nvme0n1	0	512	0	512	512	0	none	1023	6
+5	├─nvme0n1p1	0	512	0	512	512	0	none	1023	6
+6	└─nvme0n1p2	0	512	0	512	512	0	none	1023	6

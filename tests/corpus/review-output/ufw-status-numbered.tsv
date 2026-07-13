@@ -1,0 +1,7 @@
+n	To	Action	From	total_entries
+1	[ 1] 22/tcp	ALLOW IN	Anywhere	6
+2	[ 2] 80/tcp	ALLOW IN	Anywhere	6
+3	[ 3] 443/tcp	ALLOW IN	Anywhere	6
+4	[ 4] 22/tcp (v6)	ALLOW IN	Anywhere (v6)	6
+5	[ 5] 80/tcp (v6)	ALLOW IN	Anywhere (v6)	6
+6	[ 6] 3306/tcp	DENY IN	192.168.1.0/24	6

@@ -1,0 +1,7 @@
+n	A	B	total_entries
+1	a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0 commit	refs/heads/main	6
+2	b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1 commit	refs/heads/develop	6
+3	c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2 commit	refs/remotes/origin/main	6
+4	d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3 tag	refs/tags/v1.2.0	6
+5	e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4 commit	refs/tags/v2.0.0	6
+6	f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5 commit	refs/remotes/origin/develop	6

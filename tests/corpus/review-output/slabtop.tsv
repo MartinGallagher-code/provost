@@ -1,0 +1,6 @@
+n	objs	active	use	obj_size	slabs	obj_per_slab	cache_size	name	total_entries
+1	420480	418210	99%	0.19K	20024	21	80096K	dentry	5
+2	188352	180221	95%	0.06K	2943	64	11772K	kmalloc-64	5
+3	96432	94108	97%	0.25K	6027	16	24108K	filp	5
+4	45220	42011	92%	1.00K	2826	16	45216K	ext4_inode_cache	5
+5	38016	36540	96%	0.13K	1188	32	4752K	kernfs_node_cache	5

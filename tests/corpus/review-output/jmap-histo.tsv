@@ -1,0 +1,9 @@
+n	num	#instances	#bytes	class	name	total_entries
+1	1:	184213	12048224	[C		8
+2	2:	142118	4547776	java.	lang.String	8
+3	3:	88213	2822816	java.	util.HashMap$Node	8
+4	4:	42118	2022464	[Ljav	a.lang.Object;	8
+5	5:	38821	1552840	java.	lang.Class	8
+6	6:	22140	708480	java.	util.concurrent.ConcurrentHashMap$Node	8
+7	7:	18877	604064	java.	lang.reflect.Method	8
+8	Total	536500	24306664			8

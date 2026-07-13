@@ -1,0 +1,7 @@
+n	id	addr	fd	name	age	idle	flags	db	sub	psub	multi	qbuf	qbuf-free	obl	oll	omem	events	cmd	total_entries
+1	6	127.0.0.1:58108	8		6296	0	N	0	0	0	-1	26	32742	0	0	0	r	client	6
+2	7	10.0.0.4:50170	9	worker-a	142	3	N	0	2	0	-1	0	0	0	0	0	r	subscribe	6
+3	8	10.0.0.5:50188	10	worker-b	140	0	N	1	0	1	-1	14	32754	0	0	0	rw	get	6
+4	9	10.0.0.6:50204	11	ingest	98	0	N	0	0	0	4	512	32256	0	0	0	rw	exec	6
+5	10	10.0.0.7:50219	12		12	12	N	0	0	0	-1	0	0	0	0	0	r	ping	6
+6	11	10.0.0.8:50241	13	metrics	3	0	M	3	0	0	-1	48	32720	0	0	0	rw	info	6

@@ -1,0 +1,6 @@
+n	ServiceName	Status	Desired	Running	Pending	LaunchType	total_entries
+1	orders-api	ACTIVE	4	4	0	FARGATE	5
+2	orders-worker	ACTIVE	2	2	0	FARGATE	5
+3	web-frontend	ACTIVE	6	5	1	EC2	5
+4	image-processor	ACTIVE	3	3	0	FARGATE	5
+5	legacy-cron	DRAINING	1	0	0	EC2	5

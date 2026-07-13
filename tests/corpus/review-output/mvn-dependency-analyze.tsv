@@ -1,0 +1,8 @@
+n	timestamp	message	total_entries
+1	INFO	--- maven-dependency-plugin:3.6.1:analyze (default-cli) @ acme-service ---	7
+2	WARNING	Used undeclared dependencies found:	7
+3	WARNING	org.slf4j:slf4j-api:jar:2.0.13:compile	7
+4	WARNING	com.google.guava:guava:jar:33.2.1-jre:compile	7
+5	WARNING	Unused declared dependencies found:	7
+6	WARNING	org.apache.commons:commons-lang3:jar:3.14.0:compile	7
+7	WARNING	junit:junit:jar:4.13.2:test	7

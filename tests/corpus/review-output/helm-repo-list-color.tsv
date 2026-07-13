@@ -1,0 +1,4 @@
+n	NAME	URL	total_entries
+1	stable	https://charts.helm.sh/stable	3
+2	bitnami	https://charts.bitnami.com/bitnami	3
+3	prometheus	https://prometheus-community.github.io/helm-charts	3

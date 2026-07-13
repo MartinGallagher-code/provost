@@ -1,0 +1,2 @@
+Name	Namespace	CreationTimestamp	Selector	Labels	Replicas	Update_Strategy	Pods_Status
+postgres-primary	databases	Tue, 09 Jan 2024 04:11:02 +0000	app=postgres,role=primary	app=postgres	3 desired | 3 total	RollingUpdate	3 Running / 0 Waiting / 0 Succeeded / 0 Failed

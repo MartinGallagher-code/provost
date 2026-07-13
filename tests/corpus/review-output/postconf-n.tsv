@@ -1,0 +1,2 @@
+alias_maps	command_directory	compatibility_level	inet_interfaces	inet_protocols	mailbox_size_limit	myhostname	mynetworks	myorigin	smtpd_banner	smtpd_tls_cert_file	smtpd_tls_security_level	virtual_alias_maps
+hash:/etc/aliases	/usr/sbin	3.6	all	all	0	mail.example.com	127.0.0.0/8 192.168.1.0/24	/etc/mailname	$myhostname ESMTP $mail_name	/etc/ssl/certs/mail.pem	may	hash:/etc/postfix/virtual

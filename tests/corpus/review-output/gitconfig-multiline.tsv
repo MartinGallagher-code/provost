@@ -1,0 +1,8 @@
+n	section	key	value	total_entries
+1	user	name	Martin Gallagher	7
+2	user	email	martin@example.com	7
+3	core	editor	vim	7
+4	core	pager	less -FRX	7
+5	alias	lg	log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(white)%s%C(reset) %C(dim white)- %an%C(reset)'	7
+6	alias	cleanup	"!git branch --merged | grep -v '\\*\\|main\\|master' | \	7
+7	alias	insteadOf	https://github.com/	7

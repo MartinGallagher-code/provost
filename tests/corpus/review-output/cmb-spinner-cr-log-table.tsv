@@ -1,0 +1,10 @@
+n	A	total_entries
+1	⠋ Resolving packages	9
+2	⠙ Resolving packages	9
+3	⠹ Resolving packages	9
+4	✔ Resolved 128 packages	9
+5	PACKAGE        VERSION    LICENSE     SIZE	9
+6	left-pad       1.3.0      MIT         2 kB	9
+7	lodash         4.17.21    MIT         1.4 MB	9
+8	chalk          5.3.0      MIT         44 kB	9
+9	axios          1.6.7      MIT         420 kB	9

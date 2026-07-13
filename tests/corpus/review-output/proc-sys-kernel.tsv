@@ -1,0 +1,2 @@
+kernel.hostname	kernel.osrelease	kernel.ostype	kernel.pid_max	kernel.threads-max	kernel.randomize_va_space	kernel.panic	kernel.sched_rt_runtime_us
+webserver01	6.1.0-18-amd64	Linux	4194304	63042	2	0	950000

@@ -1,0 +1,3 @@
+n	server_name	listen	root	index	access_log
+1	example.com	80	/var/www/example	index.html	/var/log/nginx/example.log
+2	api.example.com	443	/var/www/api	index.php	/var/log/nginx/api.log

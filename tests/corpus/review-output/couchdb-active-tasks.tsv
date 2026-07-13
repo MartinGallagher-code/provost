@@ -1,0 +1,3 @@
+n	type	database	design_document	progress	changes_done	total_changes	source	target	docs_written	missing_revisions_found	total_entries
+1	indexer	blog_posts	_design/by_author	78	143820	184203					2
+2	replication			42			http://src/analytics/	analytics	402011	12	2

@@ -1,0 +1,12 @@
+n	A	total_entries
+1	Model: ATA Samsung SSD 860 (scsi)	11
+2	Disk /dev/sda: 500GB	11
+3	Sector size (logical/physical): 512B/512B	11
+4	Partition Table: gpt	11
+5	Disk Flags:	11
+6	Number  Start   End     Size    File system     Name  Flags	11
+7	1      1049kB  538MB   537MB   fat32           esp   boot, esp	11
+8	2      538MB   1075MB  537MB   ext4            boot	11
+9	3      1075MB  50.0GB  48.9GB  ext4            root	11
+10	4      50.0GB  450GB   400GB   ext4            home	11
+11	5      450GB   500GB   50.0GB  linux-swap(v1)  swap  swap	11

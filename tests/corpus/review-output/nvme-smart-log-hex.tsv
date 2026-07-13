@@ -1,0 +1,6 @@
+n	field	value	total_entries
+1	critical_warning	0x00	5
+2	temperature	45°C	5
+3	available_spare	99%	5
+4	data_units_read	0x1a2b3c4d	5
+5	power_cycles	0755	5

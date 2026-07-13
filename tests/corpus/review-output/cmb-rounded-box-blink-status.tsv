@@ -1,0 +1,5 @@
+n	NODE	ROLE	STATUS	total_entries
+1	node-a	control-plane	Ready	4
+2	node-b	worker	NotReady	4
+3	node-c	worker	Ready	4
+4	node-d	worker	SchedDisabled	4

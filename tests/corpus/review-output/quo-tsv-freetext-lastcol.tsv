@@ -1,0 +1,4 @@
+n	code	sev	description	total_entries
+1	1001	ERR	parse failed: expected , or ; got |	3
+2	1002	WARN	retry in 5s, backoff: 2x	3
+3	1003	INFO	ok: 200, path=/a|b	3

@@ -1,0 +1,5 @@
+n	UNIT	LOAD	ACTIVE_SUB	DESCRIPTION	total_entries
+1	sshd.service	loaded	active running	OpenSSH server daemon	4
+2	nginx.service	loaded	active running	A high performance web server	4
+3	cron.service	loaded	active running	Regular background program processing daemon	4
+4	postgresql@16-main.service	loaded	active running	PostgreSQL Cluster 16-main	4

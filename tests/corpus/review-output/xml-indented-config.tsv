@@ -1,0 +1,2 @@
+bean.id	bean.class	property.name	property.value	property.name	property.value	property.name	bean.class	property.name	property.value	property.name	property.value	bean.id	bean.class	property.name	property.ref
+dataSource	HikariDataSource	jdbcUrl	jdbc:postgresql://db:5432/app	username	app	pool	PoolConfig	maxSize	20	minIdle	5	txManager	DataSourceTransactionManager	dataSource	dataSource

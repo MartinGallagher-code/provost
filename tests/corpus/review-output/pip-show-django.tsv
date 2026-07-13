@@ -1,0 +1,2 @@
+Name	Version	Summary	Home-page	Author	Author-email	License	Location	Requires	Required-by
+Django	4.2.3	A high-level Python web framework that encourages rapid development	https://www.djangoproject.com/	Django Software Foundation	foundation@djangoproject.com	BSD-3-Clause	/home/user/.venv/lib/python3.11/site-packages	asgiref, sqlparse	django-extensions, djangorestframework, django-filter

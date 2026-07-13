@@ -1,0 +1,5 @@
+n	UNIT	LOAD	ACTIVE	DESCRIPTION	total_entries
+1	网络.service	loaded	active	网络管理守护进程	4
+2	定时.timer	loaded	active	定时任务调度器	4
+3	日志.service	loaded	failed	系统日志收集	4
+4	sshd.service	loaded	active	OpenSSH_server_daemon	4

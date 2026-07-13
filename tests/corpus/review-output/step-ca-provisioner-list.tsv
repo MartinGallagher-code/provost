@@ -1,0 +1,7 @@
+n	A	B	C	total_entries
+1	$	step	ca_provisioner_list_--ca-url_https://ca.example.internal_|_jq_-r_'.[]|[.type,.name]|@tsv'	6
+2	TYPE	NAME	CLAIMS	6
+3	JWK	admin@example	default	6
+4	OIDC	google	default	6
+5	ACME	acme	default	6
+6	X5C	x5c-agents	maxTLSCertDuration=24h	6

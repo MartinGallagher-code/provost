@@ -1,0 +1,14 @@
+n	A	B	C	D	E	F	total_entries
+1	/dev/sda:	ATA	Samsung	SSD	870	2B6Q	13
+2	Read	write	error	recovery	[rw_er_rec]	mode_page_[PS=0]:	13
+3	AWRE	1	[cha:	y,	def:	1]	13
+4	ARRE	0	[cha:	y,	def:	0]	13
+5	TB	0	[cha:	y,	def:	0]	13
+6	RC	0	[cha:	n,	def:	0]	13
+7	PER	0	[cha:	y,	def:	0]	13
+8	RRC	0	[cha:	n,	def:	0]	13
+9	Caching	[ca]	mode	page	[PS=0]:		13
+10	WCE	1	[cha:	y,	def:	1]	13
+11	RCD	0	[cha:	y,	def:	0]	13
+12	DPTL	0	[cha:	n,	def:	0]	13
+13	DRA	0	[cha:	n,	def:	0]	13

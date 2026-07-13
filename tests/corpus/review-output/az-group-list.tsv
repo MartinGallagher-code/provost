@@ -1,0 +1,7 @@
+n	Name	Location	Status	total_entries
+1	prod-rg	eastus	Succeeded	6
+2	staging-rg	eastus	Succeeded	6
+3	dev-rg	westus2	Succeeded	6
+4	network-rg	eastus	Succeeded	6
+5	shared-rg	centralus	Succeeded	6
+6	backup-rg	westus2	Succeeded	6

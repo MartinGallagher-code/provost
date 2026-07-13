@@ -1,0 +1,3 @@
+n	Application-Id	Application-Name	State	Final-State	Progress	total_entries
+1	application_1751880000_0042	spark-etl	RUNNING	UNDEFINED	88%	2
+2	application_1751880000_0041	hive-report	FINISHED	SUCCEEDED	100%	2

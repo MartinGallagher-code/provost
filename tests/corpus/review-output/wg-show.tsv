@@ -1,0 +1,2 @@
+interface	public_key	private_key	listening_port	peer	endpoint	allowed_ips	latest_handshake	transfer
+wg0	HIgo9xNzJMWLKASShiTqIybxZ0U3wGLiUeJ1PKf8ykw=	(hidden)	51820	xTIBA5rboUvnH4htodjb6e697QjLERt1NAB4mZqp8Dg=	203.0.113.7:51820	10.8.0.2/32	1 minute, 12 seconds ago	1.28 MiB received, 842.11 KiB sent

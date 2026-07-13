@@ -1,0 +1,4 @@
+n	role	can_login	conn_limit	valid_until	total_entries
+1	app_rw	t	100	infinity	3
+2	app_ro	t	50	2027-01-01	3
+3	migrator	f	-1	infinity	3

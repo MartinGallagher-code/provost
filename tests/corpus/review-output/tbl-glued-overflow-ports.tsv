@@ -1,0 +1,4 @@
+n	CONTAINER	PORTS	STATUS	total_entries
+1	web	0.0.0.0:80->80/tcp	Up	3
+2	api-gateway-service0.0.0.0:8080->8080/tcpUp			3
+3	db	5432/tcp	Up	3

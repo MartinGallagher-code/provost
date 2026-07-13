@@ -1,0 +1,6 @@
+n	Vendor	Amount	Currency	total_entries
+1	acme_us	$1,299.00	USD	5
+2	euro_gmbh	1.299,00 €	EUR	5
+3	swiss_ag	CHF 1'299.00	CHF	5
+4	tokyo_kk	¥129,900	JPY	5
+5	london_ltd	£999.50	GBP	5

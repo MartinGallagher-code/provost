@@ -1,0 +1,5 @@
+n	LABEL	UUID	TYPE	PARTUUID	total_entries
+1	"boot"	"8a1f-3c2e"	"vfat"	"9b4d5e6f-01"	4
+2	"root"	"3c2d1e0f-8b7a-6959-4837-261504081726"	"ext4"	"9b4d5e6f-02"	4
+3		"aabbccdd-1122-3344-5566-778899aabbcc"	"crypto_LUKS"	"1a2b3c4d-01"	4
+4	"data"	"ffeeddcc-0099-8877-6655-443322110099"	"xfs"		4

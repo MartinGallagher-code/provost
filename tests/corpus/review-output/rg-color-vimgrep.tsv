@@ -1,0 +1,5 @@
+n	A	B	C	D	E	F	total_entries
+1	src/app.rs	10	9	    let token = read();			4
+2	src/app.rs	25	5	    drop(token);			4
+3	src/db.rs	3	5	use token		Auth;	4
+4	src/db.rs	88	12	    verify(token);			4

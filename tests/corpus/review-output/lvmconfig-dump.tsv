@@ -1,0 +1,11 @@
+n	A	total_entries
+1	config {	10
+2	checks=1	10
+3	abort_on_errors=0	10
+4	profile_dir="/etc/lvm/profile"	10
+5	}	10
+6	devices {	10
+7	dir="/dev"	10
+8	scan="/dev"	10
+9	obtain_device_list_from_udev=1	10
+10	}	10

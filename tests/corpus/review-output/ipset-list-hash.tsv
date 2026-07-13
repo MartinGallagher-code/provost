@@ -1,0 +1,11 @@
+n	Name:	blocklist	total_entries
+1	Type:	hash:ip	10
+2	Revision:	4	10
+3	Header:	family_inet_hashsize_1024_maxelem_65536	10
+4	Size	in_memory:_296	10
+5	References:	1	10
+6	Number	of_entries:_3	10
+7	Members:		10
+8	203.0.113.10		10
+9	198.51.100.7		10
+10	192.0.2.44		10

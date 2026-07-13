@@ -1,0 +1,2 @@
+>>_Issue	Test_results.Severity	Test_results.Location	Code_scanned	Total_issues_(by_severity)
+[B602:subprocess_popen_with_shell_equals_true]	High   Confidence: High	deploy.py:44	1204 lines	High: 1, Medium: 2, Low: 4

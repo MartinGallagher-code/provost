@@ -1,0 +1,2 @@
+n	perf-bias	hardware_limits	available_cpufreq_governors	current_policy	current_CPU_frequency	boost_state_support
+0	6	800 MHz - 5.00 GHz	performance powersave	frequency should be within 800 MHz and 5.00 GHz.	1.20 GHz (asserted by call to hardware)	Supported: yes, Active: yes

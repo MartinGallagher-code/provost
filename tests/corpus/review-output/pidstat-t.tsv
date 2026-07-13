@@ -1,0 +1,7 @@
+n	Linux	5_15_0-91-generic	(app-node-2)	07/11/2026	_x86_64_	(16	CPU)	total_entries
+1	12:30:01	AM	UID	TGID	TID	%usr	%system_%guest_%wait_%CPU_CPU_Command	6
+2	12:30:01	AM	1000	4412	-	8.10	2.30_0.00_0.44_10.40_3_java	6
+3	12:30:01	AM	1000	-	4413	3.20	0.90_0.00_0.10_4.10_3_|__java	6
+4	12:30:01	AM	1000	-	4414	2.80	0.70_0.00_0.08_3.50_5_|__GC-Thread	6
+5	12:30:01	AM	0	1120	-	0.50	0.20_0.00_0.00_0.70_1_systemd-journal	6
+6	12:30:01	AM	0	-	1121	0.50	0.20_0.00_0.00_0.70_1_|__systemd-journal	6

@@ -1,0 +1,6 @@
+n	chart	now	1-min_sparkline	total_entries
+1	system.cpu	42.1%	▂▃▅▇█▆▄▃▂▁▂▄	5
+2	system.ram	61.8%	▅▅▆▆▆▇▇▆▆▅▅▅	5
+3	system.net.eth0	12.4M	▁▂▄▆█▇▅▃▂▁▁▂	5
+4	disk.util.sda	88.2%	▆▇███▇▆▅▆▇██	5
+5	apps.cpu.postgres	9.1%	▁▁▂▁▁▃▂▁▁▁▂▁	5

@@ -1,0 +1,9 @@
+n	A	total_entries
+1	core file size          (blocks, -c) 0	8
+2	data seg size           (kbytes, -d) unlimited	8
+3	scheduling priority             (-e) 0	8
+4	file size               (blocks, -f) unlimited	8
+5	max locked memory       (kbytes, -l) 65536	8
+6	open files                      (-n) 1024	8
+7	pipe size            (512 bytes, -p) 8	8
+8	max user processes              (-u) 63578	8

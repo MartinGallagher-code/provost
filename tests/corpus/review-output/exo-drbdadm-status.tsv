@@ -1,0 +1,3 @@
+n	r0_role	disk	peer1_role	replication	peer2_role	r1_role
+1	Primary	UpToDate	Secondary	SyncSource_peer-disk:Inconsistent_done:44.21	Secondary	
+2		UpToDate	Primary	Established_peer-disk:UpToDate		Secondary

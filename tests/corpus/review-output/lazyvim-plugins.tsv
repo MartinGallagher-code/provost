@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	●	lazy.nvim	11.14.1	4
+2	●	telescope.nvim	loaded	4
+3	●	nvim-treesitter	loaded	4
+4	●	mason.nvim	not_loaded	4

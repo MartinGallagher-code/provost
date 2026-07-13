@@ -1,0 +1,5 @@
+n	NAME	REGION	EKSCTL_CREATED	total_entries
+1	prod-cluster	us-east-1	True	4
+2	staging-cluster	us-east-1	True	4
+3	dev-cluster	us-west-2	True	4
+4	data-cluster	eu-west-1	False	4

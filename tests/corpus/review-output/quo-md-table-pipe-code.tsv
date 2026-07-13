@@ -1,0 +1,3 @@
+n	sh	`cmd_a	grep_b`	pipeline	total_entries
+1	sql	`a	b`	union-ish	2
+2	awk	`$1	$2`	fields	2

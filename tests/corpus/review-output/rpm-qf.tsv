@@ -1,0 +1,7 @@
+n	A	total_entries
+1	coreutils-8.32-34.el9.x86_64	6
+2	bash-5.1.8-6.el9.x86_64	6
+3	glibc-2.34-60.el9.x86_64	6
+4	grep-3.6-5.el9.x86_64	6
+5	util-linux-core-2.37.4-15.el9.x86_64	6
+6	systemd-252-14.el9.x86_64	6

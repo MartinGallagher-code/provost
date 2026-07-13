@@ -1,0 +1,3 @@
+n	alertname	service	severity	total_entries
+1	DeployStarted	web	info	2
+2	DeployStarted	api	info	2

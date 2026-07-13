@@ -1,0 +1,4 @@
+n	VMID	NAME	STATUS	MEM(MB)	BOOTDISK(GB)	PID	total_entries
+1	100	web-server	running	8192	40	1284	3
+2	101	db-server	running	16384	80	1290	3
+3	102	test	stopped	4096	20	0	3

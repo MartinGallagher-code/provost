@@ -1,0 +1,8 @@
+n	timestamp	message	total_entries
+1	INFO	Reactor Summary for acme-parent 2.3.0:	7
+2	INFO	acme-parent ........................................ SUCCESS [  0.412 s]	7
+3	INFO	acme-common ........................................ SUCCESS [  4.128 s]	7
+4	INFO	acme-service ....................................... SUCCESS [ 12.904 s]	7
+5	INFO	acme-web ........................................... FAILURE [  2.017 s]	7
+6	INFO	BUILD FAILURE	7
+7	INFO	Total time:  19.821 s	7

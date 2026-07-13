@@ -1,0 +1,6 @@
+n	column	type	indexed	indexBlockCapacity	symbolCached	symbolCapacity	designated	total_entries
+1	ts	TIMESTAMP	false	0	false	0	true	5
+2	symbol	SYMBOL	true	256	true	1024	false	5
+3	price	DOUBLE	false	0	false	0	false	5
+4	size	LONG	false	0	false	0	false	5
+5	side	SYMBOL	false	0	true	2	false	5

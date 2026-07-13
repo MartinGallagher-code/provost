@@ -1,0 +1,4 @@
+n	name	value	total_entries
+1	/dev/sda	Samsung SSD 860: 34°C	3
+2	/dev/sdb	WDC WD40EFRX: 41°C	3
+3	/dev/nvme0n1	Sabrent Rocket: +52°C	3

@@ -1,0 +1,7 @@
+n	Engine	Support	Comment	Transactions	XA	Savepoints	total_entries
+1	InnoDB	DEFAULT	Supports transactions, row-level locking, and foreign keys	YES	YES	YES	6
+2	MRG_MYISAM	YES	Collection of identical MyISAM tables	NO	NO	NO	6
+3	MEMORY	YES	Hash based, stored in memory, useful for temporary tables	NO	NO	NO	6
+4	MyISAM	YES	MyISAM storage engine	NO	NO	NO	6
+5	CSV	YES	CSV storage engine	NO	NO	NO	6
+6	ARCHIVE	YES	Archive storage engine	NO	NO	NO	6

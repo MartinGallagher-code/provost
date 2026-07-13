@@ -1,0 +1,5 @@
+n	Common_Name	Real_Address	Bytes_Received	Bytes_Sent	Connected_Since	total_entries
+1	alice	192.168.1.50:51234	10485760	20971520	Mon Jul  7 09:00:00 2026	4
+2	bob	203.0.113.20:44210	5242880	10485760	Mon Jul  7 09:15:00 2026	4
+3	carol	198.51.100.5:60001	20971520	41943040	Mon Jul  7 09:30:00 2026	4
+4	dave	192.0.2.88:33445	1048576	2097152	Mon Jul  7 09:45:00 2026	4

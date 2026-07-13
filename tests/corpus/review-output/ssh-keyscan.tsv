@@ -1,0 +1,8 @@
+n	A	B	C	total_entries
+1	host1.example.com:22	SSH-2.0-OpenSSH_8.9p1	Ubuntu-3ubuntu0.6	7
+2	host1.example.com	ssh-rsa	AAAAB3NzaC1yc2EAAAADAQABAAABgQCvp8pQ2sZ1kL9mN	7
+3	host1.example.com	ssh-ed25519	AAAAC3NzaC1lZDI1NTE5AAAAILk7mQ0dRfT2xYh8Jw	7
+4	host2.example.com	ssh-rsa	AAAAB3NzaC1yc2EAAAADAQABAAABAQDf3kR9pLm2nQ7bWx	7
+5	host2.example.com	ecdsa-sha2-nistp256	AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAA	7
+6	192.168.1.10	ssh-ed25519	AAAAC3NzaC1lZDI1NTE5AAAAILkQ9wZ2mR7nP0dTfX3hVc	7
+7	gitlab.internal	ssh-rsa	AAAAB3NzaC1yc2EAAAADAQABAAABgQDd4tR8kNm2pQ9wLxZ	7

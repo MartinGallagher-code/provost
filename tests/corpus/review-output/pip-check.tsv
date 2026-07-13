@@ -1,0 +1,2 @@
+n	fastapi_0_111_0_requires_starlette	which_is_not_installed_	total_entries
+1	uvicorn 0.30.1 has requirement click>=7.0	but you have click 6.7.	1

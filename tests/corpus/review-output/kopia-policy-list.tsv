@@ -1,0 +1,5 @@
+n	ID	POLICY_PATH	total_entries
+1	c1a2b3c4d5e6f7a8	(global)	4
+2	9f8e7d6c5b4a3210	alice@nas01:/home/alice	4
+3	1122334455667788	alice@nas01:/home/alice/vm	4
+4	aabbccddeeff0011	bob@nas01:/data	4

@@ -1,0 +1,7 @@
+n	A	B	C	D	total_entries
+1	$	trufflehog	git	file://._--only-verified	6
+2	DETECTOR	VERIFIED	FILE	COMMIT	6
+3	AWS	true	infra/main.tf	a1b2c3d	6
+4	Stripe	true	app/billing.rb	e4f5a6b	6
+5	SlackWebhook	false	docs/setup.md	c7d8e9f	6
+6	Found	3	results,	2_verified	6

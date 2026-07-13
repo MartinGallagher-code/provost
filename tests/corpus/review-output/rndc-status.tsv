@@ -1,0 +1,2 @@
+version	running_on_ns1	boot_time	last_configured	configuration_file	CPUs_found	worker_threads	UDP_listeners_per_interface	number_of_zones	debug_level	xfers_running	xfers_deferred	soa_queries_in_progress	recursive_clients	tcp_clients
+BIND 9.18.24-1-Debian (Extended_Support_Version) <id:>	Linux x86_64 6.1.0-18-amd64	Mon, 07 Jul 2026 06:00:00 GMT	Mon, 07 Jul 2026 06:00:05 GMT	/etc/bind/named.conf	8	8	8	102 (98_automatic)	0	0	0	0	0/900/1000	0/150

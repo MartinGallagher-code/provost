@@ -1,0 +1,4 @@
+n	user_id	name	roles	total_entries
+1	1	Alice	admin,editor,viewer	3
+2	2	Bob	viewer	3
+3	3	Carol	editor,viewer	3

@@ -1,0 +1,8 @@
+n	A	B	C	total_entries
+1	[X]	20260101120000_create_users.sql		7
+2	[X]	20260102093000_create_orders.sql		7
+3	[X]	20260115140000_add_email_index.sql		7
+4	[	]	20260201100000_add_audit_log.sql	7
+5	[	]	20260210160000_add_soft_delete.sql	7
+6	Applied:	3		7
+7	Pending:	2		7

@@ -1,0 +1,7 @@
+n	Cause	Maximum	Percentage	total_entries
+1	Scheduler: waiting for cpu	412.5 msec	32.1 %	6
+2	Reading from file	89.3 msec	18.4 %	6
+3	Writing buffer to disk (synchronous)	65.1 msec	12.7 %	6
+4	Page fault	41.0 msec	9.3 %	6
+5	Waiting for event (poll)	210.7 msec	7.8 %	6
+6	down_read_nested	12.4 msec	4.2 %	6

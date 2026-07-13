@@ -1,0 +1,14 @@
+n	section	key	value	total_entries
+1	Unit	Description	A high performance web server and a reverse proxy server	13
+2	Unit	Documentation	man:nginx(8)	13
+3	Unit	After	network-online.target remote-fs.target nss-lookup.target	13
+4	Unit	Wants	network-online.target	13
+5	Service	Type	forking	13
+6	Service	PIDFile	/run/nginx.pid	13
+7	Service	ExecStartPre	/usr/sbin/nginx -t -q -g daemon on; master_process on;	13
+8	Service	ExecStart	/usr/sbin/nginx -g daemon on; master_process on;	13
+9	Service	ExecReload	/usr/sbin/nginx -g daemon on; master_process on; -s reload	13
+10	Service	ExecStop	-/sbin/start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile /run/nginx.pid	13
+11	Service	TimeoutStopSec	5	13
+12	Service	KillMode	mixed	13
+13	Install	WantedBy	multi-user.target	13

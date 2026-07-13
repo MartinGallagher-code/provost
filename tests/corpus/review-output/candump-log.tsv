@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	G	H	I	J	K	total_entries
+1	can0	123	[8]	DE	AD	BE	EF	00	11	22	33	3
+2	can0	456	[4]	01	02	03	04					3
+3	can0	123	[8]	DE	AD	BE	EF	00	11	22	34	3

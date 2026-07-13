@@ -1,0 +1,2 @@
+mediaType	config.digest	config.size	layers.0.digest	layers.0.size
+application/vnd.oci.image.manifest.v1+json	sha256:a1b2c3d4	1204	sha256:e5f6g7h8	44201009

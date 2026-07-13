@@ -1,0 +1,9 @@
+n	key	value	total_entries
+1	Config file	/home/alice/.config/kopia/repository.config	8
+2	Unique ID	8a1f3c2e9b4d5e6f	8
+3	Storage type	s3	8
+4	Storage bucket	kopia-backups	8
+5	Hash	BLAKE2B-256-128	8
+6	Encryption	AES256-GCM-HMAC-SHA256	8
+7	Splitter	DYNAMIC-4M-BUZHASH	8
+8	Format version	3	8

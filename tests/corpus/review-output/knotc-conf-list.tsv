@@ -1,0 +1,5 @@
+n	A	total_entries
+1	server	4
+2	log	4
+3	zone[example.com.]	4
+4	zone[example.net.]	4

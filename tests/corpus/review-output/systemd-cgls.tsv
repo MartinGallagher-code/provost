@@ -1,0 +1,16 @@
+n	depth	name	total_entries
+1	1	user.slice	15
+2	2	user-1000.slice	15
+3	2	session-3.scope	15
+4	3	12089 sshd: alice@pts/0	15
+5	3	12090 -bash	15
+6	3	12250 systemd-cgls	15
+7	2	user@1000.service	15
+8	3	init.scope	15
+9	3	12001 /lib/systemd/systemd --user	15
+10	3	12002 (sd-pam)	15
+11	1	system.slice	15
+12	1	sshd.service	15
+13	2	901 /usr/sbin/sshd -D	15
+14	1	cron.service	15
+15	2	844 /usr/sbin/cron -f	15

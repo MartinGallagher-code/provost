@@ -1,0 +1,2 @@
+defaults	defaults.adapter	defaults.host	defaults.pool	development.database	test.database	test.pool	production.database	production.host
+&defaults	postgres	localhost	5	app_dev	app_test	1	app_prod	db.internal

@@ -1,0 +1,4 @@
+n	product_id	category	in_stock	total_entries
+1	SKU-0091	hardware	340	3
+2	SKU-0192	software	0	3
+3	SKU-0311	accessories	88	3

@@ -1,0 +1,2 @@
+database.dsn	database.options	database.label	cache.url
+host=db;port=5432;dbname=app	sslmode=require; connect_timeout=10	prod ; this is a comment	redis://host:6379,db=0

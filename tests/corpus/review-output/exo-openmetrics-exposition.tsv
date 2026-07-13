@@ -1,0 +1,9 @@
+n	name	value	label_method	label_code	label_handler	label_quantile	http_requests_total.help	http_requests_total.type	go_gc_duration_seconds.help	go_gc_duration_seconds.type
+1	http_requests_total	441201	get	200	/api/v1/query		Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+2	http_requests_total	88	get	500	/api/v1/query		Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+3	http_requests_total	2210044	post	200	/api/v1/write		Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+4	go_gc_duration_seconds	4.4218e-05				0	Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+5	go_gc_duration_seconds	8.8213e-05				0.5	Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+6	go_gc_duration_seconds	0.00221004				1	Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+7	go_gc_duration_seconds_sum	0.118442					Total HTTP requests processed.	counter	A summary of GC pause durations.	summary
+8	go_gc_duration_seconds_count	8814					Total HTTP requests processed.	counter	A summary of GC pause durations.	summary

@@ -1,0 +1,2 @@
+field	value
+resource_"aws_vpc"_"this"_{.arn______________________________=_"arn	aws:ec2:eu-west-1:987654321098:vpc/vpc-0abc1234def567890"

@@ -1,0 +1,6 @@
+n	A	B	C	D	E	total_entries
+1	Pass	1:	Checking	inodes,	blocks,_and_sizes	5
+2	Pass	2:	Checking	directory	structure	5
+3	Pass	3:	Checking	directory	connectivity	5
+4	Pass	5:	Checking	group	summary_information	5
+5	/dev/sda2:	128442/6553600	files,	1204882/26214400	blocks	5

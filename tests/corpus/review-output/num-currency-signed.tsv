@@ -1,0 +1,6 @@
+n	Item	Price	Discount	total_entries
+1	Widget	$1,299.00	-$100.00	5
+2	Gadget	$49.99	$0.00	5
+3	Bundle	$2,499.50	-$250.00	5
+4	Service	$12,000.00	($1,200.00)	5
+5	Refund	($99.00)	$0.00	5

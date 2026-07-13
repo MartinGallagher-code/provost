@@ -1,0 +1,8 @@
+n	key	value	total_entries
+1	Events		7
+2	sched_switch	enabled	7
+3	sched_wakeup	enabled	7
+4	kmem/kmalloc	disabled	7
+5	Buffer size in kilobytes	7040	7
+6	Buffer total size in kilobytes	56320	7
+7	Overwrite mode	enabled	7

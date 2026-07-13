@@ -1,0 +1,2 @@
+GO111MODULE	GOARCH	GOOS	GOPATH	GOROOT	GOBIN	GOCACHE	GOMODCACHE
+"on"	"amd64"	"linux"	"/home/user/go"	"/usr/local/go"	""	"/home/user/.cache/go-build"	"/home/user/go/pkg/mod"

@@ -1,0 +1,2 @@
+n	uid	gid	groups	context	total_entries
+1	1000(deploy)	1000(deploy)	1000(deploy),27(sudo)	unconfined_u:unconfined_r	1

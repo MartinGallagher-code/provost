@@ -1,0 +1,7 @@
+n	A	total_entries
+1	$ freshclam	6
+2	ClamAV update process started at Sat Jul 11 10:30:02 2026	6
+3	daily.cvd database is up-to-date (version: 27412, sigs: 2058931)	6
+4	main.cvd database is up-to-date (version: 62, sigs: 6647427)	6
+5	bytecode.cvd database is up-to-date (version: 335, sigs: 86)	6
+6	Total signatures: 8706444	6

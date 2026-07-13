@@ -1,0 +1,2 @@
+lynis_version	lynis_update_available	report_version	report_datetime_start	report_datetime_end	hostid	os	os_name	os_version	hardening_index	warning[]	suggestion[]
+3.0.9	0	1.0	2024-03-07 03:00:12	2024-03-07 03:06:44	abcdef1234567890	Linux	Ubuntu	22.04	68	SSH-7408|Consider hardening SSH configuration	BOOT-5122|Set a password on GRUB bootloader

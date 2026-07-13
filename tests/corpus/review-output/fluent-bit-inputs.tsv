@@ -1,0 +1,5 @@
+n	NAME	TAG	RECORDS	BYTES	RETRIES	total_entries
+1	tail.0	kube.var.log	1284003	842.1MB	0	4
+2	tail.1	app.access	220118	118.4MB	2	4
+3	systemd.0	host.systemd	44201	18.9MB	0	4
+4	forward.0	fwd.upstream	9021	4.2MB	0	4

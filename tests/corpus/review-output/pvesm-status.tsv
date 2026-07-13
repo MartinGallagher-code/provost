@@ -1,0 +1,4 @@
+n	Name	Type	Status	Total	Used	Available	%	total_entries
+1	local	dir	active	98497780	12048820	81421340	12.23%	3
+2	local-lvm	lvmthin	active	500000000	120488200	379511800	24.10%	3
+3	cephfs	cephfs	active	31457280000	2097152000	29360128000	6.67%	3

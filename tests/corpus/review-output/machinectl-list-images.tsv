@@ -1,0 +1,4 @@
+n	NAME	TYPE	RO	USAGE	CREATED	MODIFIED	total_entries
+1	debian-12	raw	no	4.2G	Mon 2026-03-02 11:20:41 UTC	Wed 2026-06-18 09:02:10 UTC	3
+2	alpine-edge	subvolume	yes	210.4M	Tue 2026-04-15 16:44:03 UTC	n/a	3
+3	build-sandbox	raw	no	8.9G	Fri 2026-05-30 07:11:55 UTC	Thu 2026-07-09 22:41:12 UTC	3

@@ -1,0 +1,4 @@
+n	timestamp	message	total_entries
+1	CVE-2021-44228	[http] [critical] https://api.example.com/	3
+2	exposed-panel	[http] [info] https://api.example.com/admin	3
+3	ssl-issuer	[ssl] [info] api.example.com	3

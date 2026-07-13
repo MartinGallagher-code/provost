@@ -1,0 +1,4 @@
+n	NAME	REVISION	SUSPENDED	READY	MESSAGE	total_entries
+1	podinfo	6.7.0	False	True	Release reconciliation succeeded	3
+2	ingress-nginx	4.11.1	False	True	Release reconciliation succeeded	3
+3	cert-manager	1.15.1	False	False	Helm upgrade failed: timed out waiting for the condition	3

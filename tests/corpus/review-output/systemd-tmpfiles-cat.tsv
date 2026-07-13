@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	total_entries
+1	d	/run/myapp	0755	myapp	myapp	-	3
+2	f	/var/log/myapp.log	0644	myapp	myapp	-	3
+3	L	/var/lib/myapp/current	-	-	-	-_/var/lib/myapp/v2	3

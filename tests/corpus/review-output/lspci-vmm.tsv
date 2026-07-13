@@ -1,0 +1,23 @@
+n	A	B	total_entries
+1	Slot:	00:00.0	22
+2	Class:	Host bridge	22
+3	Vendor:	Intel Corporation	22
+4	Device:	Comet Lake Host Bridge/DRAM Registers	22
+5	SVendor:	Dell	22
+6	SDevice:	Comet Lake Host Bridge/DRAM Registers	22
+7	Rev:	05	22
+8	Slot:	00:02.0	22
+9	Class:	VGA compatible controller	22
+10	Vendor:	Intel Corporation	22
+11	Device:	CometLake-H GT2 [UHD Graphics]	22
+12	SVendor:	Dell	22
+13	SDevice:	UHD Graphics	22
+14	Rev:	05	22
+15	Slot:	01:00.0	22
+16	Class:	Non-Volatile memory controller	22
+17	Vendor:	Samsung Electronics Co Ltd	22
+18	Device:	NVMe SSD Controller SM981/PM981/PM983	22
+19	SVendor:	Samsung	22
+20	SDevice:	SSD 970 EVO Plus 1TB	22
+21	Rev:	00	22
+22	ProgIf:	02	22

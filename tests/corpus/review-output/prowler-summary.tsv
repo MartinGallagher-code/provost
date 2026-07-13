@@ -1,0 +1,5 @@
+n	Provider:	aws	total_entries
+1	Account:	123456789012	4
+2	->	PASS:_412	4
+3	->	FAIL:_88	4
+4	->	Total_findings:_500	4

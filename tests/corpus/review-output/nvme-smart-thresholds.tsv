@@ -1,0 +1,6 @@
+n	A	B	C	D	E	F	total_entries
+1	Temperature	Sensor	1	:	41	C	5
+2	Temperature	Sensor	2	:	45	C	5
+3	Warning	Temperature	Time	:	0		5
+4	Critical	Composite	Temp	Time	:	0	5
+5	Thermal	Management	T1	Trans	:	12	5

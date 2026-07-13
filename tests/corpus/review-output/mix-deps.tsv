@@ -1,0 +1,16 @@
+n	A	total_entries
+1	* phoenix 1.7.11 (Hex package) (mix)	15
+2	locked at 1.7.11 (phoenix) b1e9dc8f	15
+3	ok	15
+4	* ecto 3.11.1 (Hex package) (mix)	15
+5	locked at 3.11.1 (ecto) 4c2e6a90	15
+6	ok	15
+7	* jason 1.4.1 (Hex package) (mix)	15
+8	locked at 1.4.1 (jason) fbc1e2d3	15
+9	ok	15
+10	* plug_cowboy 2.7.0 (Hex package) (mix)	15
+11	locked at 2.7.0 (plug_cowboy) 9a8b7c6d	15
+12	ok	15
+13	* telemetry 1.2.1 (Hex package) (mix)	15
+14	locked at 1.2.1 (telemetry) 3e4f5a6b	15
+15	ok	15

@@ -1,0 +1,4 @@
+n	state	recv_q	send_q	local	peer	process
+1	tcp	LISTEN	0	128	0.0.0.0:22	sshd
+2	tcp	LISTEN	0	511	0.0.0.0:80	nginx
+3	udp	UNCONN	0	0	127.0.0.1:53	systemd-resolve

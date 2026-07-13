@@ -1,0 +1,7 @@
+n	A	total_entries
+1	$ gitleaks protect --staged -v	6
+2	Finding    Rule                Secret        File	6
+3	API key    generic-api-key     FAKE-KEY-...  src/config.py	6
+4	AWS key    aws-access-token    AKIAFAKE...   deploy/env.sh	6
+5	JWT        jwt                  eyJfakeJ...   tests/fixtures.js	6
+6	2 leaks found in staged changes; 3 findings	6

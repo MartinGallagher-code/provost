@@ -1,0 +1,3 @@
+n	CACHE-ID	ENGINE	VERSION	NODE-TYPE	STATUS	total_entries
+1	sessions	redis	7.1.0	cache.r6g.large	available	2
+2	ratelimit	redis	7.1.0	cache.t4g.small	available	2

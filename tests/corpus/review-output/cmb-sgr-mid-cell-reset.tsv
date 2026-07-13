@@ -1,0 +1,5 @@
+n	USER	UID	SHELL	LASTLOGIN	total_entries
+1	alice	1001	/bin/bash	2026-07-10	4
+2	bob	1002	/bin/zsh	2026-07-09	4
+3	carol	1003	/usr/bin/fish	2026-06-30	4
+4	dave	1004	/sbin/nologin	never	4

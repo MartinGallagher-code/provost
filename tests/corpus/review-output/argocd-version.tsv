@@ -1,0 +1,2 @@
+argocd	argocd.BuildDate	argocd.GoVersion
+v2.11.3+a1b2c3d4	2026-06-01T10:00:00Z	go1.22.4

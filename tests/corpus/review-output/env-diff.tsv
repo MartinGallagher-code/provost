@@ -1,0 +1,5 @@
+n	A	total_entries
+1	+DIRENV_DIR=/home/deploy/project	4
+2	+NODE_ENV=development	4
+3	+DATABASE_URL=postgres://localhost/dev	4
+4	-EDITOR=vi	4

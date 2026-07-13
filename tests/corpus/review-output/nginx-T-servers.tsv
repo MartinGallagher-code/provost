@@ -1,0 +1,2 @@
+field	value
+server_{.location_/_{.proxy_pass_http	//127.0.0.1:8080;

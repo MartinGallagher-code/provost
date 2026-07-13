@@ -1,0 +1,4 @@
+n	ID	CODE	MESSAGE	total_entries
+1	1	E_PARSE	unexpected token: expected ',' or ';' near "x|y"	3
+2	2	E_AUTH	login failed for user=admin, host=db:5432	3
+3	3	E_IO	write error: /var/log/app.log (disk full, 100%)	3

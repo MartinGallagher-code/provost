@@ -1,0 +1,6 @@
+n	A	B	C	D	total_entries
+1	running	44	tests		5
+2	test	parser::tests::basic	...	ok	5
+3	test	engine::tests::detect	...	ok	5
+4	test	integration::e2e	...	FAILED	5
+5	test	result:	FAILED.	43_passed;_1_failed;_0_ignored	5

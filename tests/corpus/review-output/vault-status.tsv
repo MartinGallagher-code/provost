@@ -1,0 +1,14 @@
+n	Key	Value
+1	Sea	shamir
+2	Ini	true
+3	Sea	false
+4	Tot	5
+5	Thr	3
+6	Ver	1.15.4
+7	Bui	2024-01-04T10:57:13Z
+8	Sto	raft
+9	Clu	vault-cluster-8f2a1b3c
+10	Clu	1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d
+11	HA	true
+12	HA	https://10.0.1.5:8201
+13	HA	active

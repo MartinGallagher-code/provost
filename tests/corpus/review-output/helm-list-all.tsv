@@ -1,0 +1,5 @@
+n	NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	APP_VERSION	total_entries
+1	cert-manager	cert-manager	2	2026-06-01 10:22:14.123456 +0000 UTC	deployed	cert-manager-v1.14.4	v1.14.4	4
+2	ingress-nginx	ingress-nginx	3	2026-06-10 08:05:01.987654 +0000 UTC	deployed	ingress-nginx-4.10.0	1.10.0	4
+3	prometheus	monitoring	5	2026-06-15 14:30:44.555112 +0000 UTC	deployed	kube-prometheus-56.0.0	v0.72.0	4
+4	argo-cd	argocd	4	2026-06-20 09:12:33.111223 +0000 UTC	deployed	argo-cd-6.7.10	v2.11.0	4

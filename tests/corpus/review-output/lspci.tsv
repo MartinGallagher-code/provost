@@ -1,0 +1,4 @@
+n	A	total_entries
+1	00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)	3
+2	00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]	3
+3	00:02.0 VGA compatible controller: Cirrus Logic GD 5446	3

@@ -1,0 +1,3 @@
+n	VOLUME_NAME	DIRECTORY	total_entries
+1	pgdata	/var/lib/nerdctl/1935db/volumes/default/pgdata/_data	2
+2	cache	/var/lib/nerdctl/1935db/volumes/default/cache/_data	2

@@ -1,0 +1,4 @@
+n	Package	Version	Architecture	Maintainer	Installed-Size	Section
+1	curl	7.88.1-10	amd64	Alessandro_Ghedini_<ghedo@debian.org>	1000	web
+2	wget	1.21.3-1	amd64	Noel_Kothe_<noel@debian.org>	3600	web
+3	rsync	3.2.7-1	amd64	Samuel_Henrique_<samueloph@debian.org>	1200	net

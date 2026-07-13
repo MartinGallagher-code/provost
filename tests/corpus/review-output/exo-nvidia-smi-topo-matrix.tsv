@@ -1,0 +1,11 @@
+n	A	B	C	D	E	F	G	total_entries
+1	GPU0	GPU1	GPU2	GPU3	NIC0	CPU Affinity	NUMA Affinity	10
+2	GPU0	 X 	NV4	NV4	NV4	SYS	0-23	10
+3	GPU1	NV4	 X 	NV4	NV4	SYS	0-23	10
+4	GPU2	NV4	NV4	 X 	NV4	PHB	24-47	10
+5	GPU3	NV4	NV4	NV4	 X 	PHB	24-47	10
+6	NIC0	SYS	SYS	PHB	PHB	 X		10
+7	Legend:							10
+8	  X    = Self							10
+9	  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes							10
+10	  NV#  = Connection traversing a bonded set of # NVLinks							10

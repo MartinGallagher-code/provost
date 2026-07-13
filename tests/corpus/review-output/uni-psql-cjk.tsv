@@ -1,0 +1,4 @@
+n	id	名称	状态	total_entries
+1	1	订单处理服务	运行中	3
+2	2	库存同步	已停止	3
+3	3	payment-gw	running	3

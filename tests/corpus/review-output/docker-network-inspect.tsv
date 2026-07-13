@@ -1,0 +1,2 @@
+n	Name	Id	Created	Scope	Driver	EnableIPv6	Internal	Attachable	Ingress	ConfigOnly	total_entries
+1	app_backend	9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d	2026-07-04T09:14:22.104839217Z	local	bridge	false	false	true	false	false	1

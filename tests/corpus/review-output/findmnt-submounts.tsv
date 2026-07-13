@@ -1,0 +1,7 @@
+n	TARGET	SOURCE	FSTYPE	OPTIONS	total_entries
+1	/home	/dev/mapper/vg-home	ext4	rw,relatime	6
+2	├─/home/user/media	//nas/media	cifs	rw,vers=3.0	6
+3	├─/home/user/build	tmpfs	tmpfs	rw,size=4G	6
+4	│	└─/home/user/build/cache	overlay	overlay_rw,lowerdir=/ro	6
+5	└─/home/user/mnt	/dev/sdb1	xfs	rw,noatime	6
+6	└─/home/user/mnt/sub	/dev/sdb2	ext4	rw,relatime	6

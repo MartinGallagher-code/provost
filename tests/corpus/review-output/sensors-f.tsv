@@ -1,0 +1,7 @@
+n	key	value	total_entries
+1	Adapter	ISA adapter	6
+2	Package id 0	+109.4°F  (high = +212.0°F, crit = +212.0°F)	6
+3	Core 0	+105.8°F  (high = +212.0°F, crit = +212.0°F)	6
+4	Core 1	+107.6°F  (high = +212.0°F, crit = +212.0°F)	6
+5	Core 2	+104.0°F  (high = +212.0°F, crit = +212.0°F)	6
+6	Core 3	+109.4°F  (high = +212.0°F, crit = +212.0°F)	6

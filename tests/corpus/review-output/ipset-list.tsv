@@ -1,0 +1,12 @@
+n	Name:	blacklist	total_entries
+1	Type:	hash:ip	11
+2	Revision:	4	11
+3	Header:	family_inet_hashsize_1024_maxelem_65536	11
+4	Size	in_memory:_456	11
+5	References:	1	11
+6	Number	of_entries:_4	11
+7	Members:		11
+8	203.0.113.45		11
+9	198.51.100.22		11
+10	192.0.2.71		11
+11	203.0.113.9		11

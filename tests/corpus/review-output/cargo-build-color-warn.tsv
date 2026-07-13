@@ -1,0 +1,4 @@
+n	A	B	C	total_entries
+1	Compiling	serde	v1.0.197	3
+2	Compiling	tokio	v1.36.0	3
+3	warning:	unused	variable:_`ctx`	3

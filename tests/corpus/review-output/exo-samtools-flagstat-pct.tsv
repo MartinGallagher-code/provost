@@ -1,0 +1,17 @@
+n	A	total_entries
+1	2148361 + 0 in total (QC-passed reads + QC-failed reads)	16
+2	2140002 + 0 primary	16
+3	8359 + 0 secondary	16
+4	0 + 0 supplementary	16
+5	44210 + 0 duplicates	16
+6	44210 + 0 primary duplicates	16
+7	2138114 + 0 mapped (99.52% : N/A)	16
+8	2129755 + 0 primary mapped (99.52% : N/A)	16
+9	2140002 + 0 paired in sequencing	16
+10	1070001 + 0 read1	16
+11	1070001 + 0 read2	16
+12	2118440 + 0 properly paired (98.99% : N/A)	16
+13	2127118 + 0 with itself and mate mapped	16
+14	2637 + 0 singletons (0.12% : N/A)	16
+15	9902 + 0 with mate mapped to a different chr	16
+16	4418 + 0 with mate mapped to a different chr (mapQ>=5)	16

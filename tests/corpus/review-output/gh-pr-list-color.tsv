@@ -1,0 +1,5 @@
+n	A	B	C	D	E	F	G	total_entries
+1	#142	Fix	auth	token	refresh	feature/auth	OPEN	4
+2	#138	Bump	deps	to	latest	chore/deps	MERGED	4
+3	#131	Add	retry	to	uploader	fix/upload	OPEN	4
+4	#119	Rework	config	loader	refactor/config	CLOSED		4

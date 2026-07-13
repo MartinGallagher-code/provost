@@ -1,0 +1,5 @@
+n	A	B	C	D	E	total_entries
+1	name	|	pattern	|	action	4
+2	http	|	^GET\|POST$	|	allow	4
+3	smtp	|	HELO\|EHLO	|	log	4
+4	raw	|	a\|b\|c	|	drop	4

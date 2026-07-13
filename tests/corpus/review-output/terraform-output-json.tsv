@@ -1,0 +1,2 @@
+api_url.sensitive	api_url.type	api_url.value	db_endpoint.sensitive	db_endpoint.type	db_endpoint.value
+false	string	https://api.example.com	true	string	prod-pg.internal:5432

@@ -1,0 +1,5 @@
+n	name	ttl	class	type	value	preference	exchange	total_entries
+1	example.com.	3600	IN	SOA	dns.icann.org. noc.dns.icann.org. (			4
+2	example.com.	3600	IN	NS	a.iana-servers.net.			4
+3	example.com.	3600	IN	NS	b.iana-servers.net.			4
+4	example.com.	3600	IN	MX		10	mail.example.com.	4

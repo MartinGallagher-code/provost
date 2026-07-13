@@ -1,0 +1,2 @@
+Total_number_of_tables	Keyspace	Read_Count	Read_Latency	Write_Count	Write_Latency	Table	SSTable_count	Space_used_(live)	Number_of_partitions_(estimate)	Compacted_partition_maximum_bytes	Bloom_filter_false_ratio
+42	ks_events	920184	0.092 ms	4820193	0.031 ms	events_by_day	8	210448201	48210	129557	0.00012

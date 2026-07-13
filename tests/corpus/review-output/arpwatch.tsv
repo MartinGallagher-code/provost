@@ -1,0 +1,6 @@
+n	timestamp	hostname	process	message
+1	Jul_7_14_20_01	gateway	arpwatch	new station 192.168.1.88 a4:5e:60:c1:2f:9b eth0
+2	Jul_7_14_21_15	gateway	arpwatch	changed ethernet address 192.168.1.24 3c:22:fb:88:1d:0a eth0
+3	Jul_7_14_22_47	gateway	arpwatch	new activity 192.168.1.90 de:ad:be:ef:00:02 eth0
+4	Jul_7_14_25_33	gateway	arpwatch	flip flop 192.168.1.55 b8:27:eb:44:9f:12 eth0
+5	Jul_7_14_30_12	gateway	arpwatch	bogon 10.0.0.99 aa:bb:cc:dd:ee:01 eth0

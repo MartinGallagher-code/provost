@@ -1,0 +1,6 @@
+n	Metric	Count	Rate	Size	total_entries
+1	requests	4.7k	1.2k/s	3.4MB	5
+2	errors	23	0.1/s	1.1KB	5
+3	bytes	2.3M	45M/s	2.3GB	5
+4	conns	1.1G	-	-	5
+5	cache	890k	-	512MB	5

@@ -1,0 +1,4 @@
+n	PATH	CONDITION	UNIT	ACTIVATES	total_entries
+1	/var/spool/cups	DirectoryNotEmpty	cups.path	cups.service	3
+2	/run/systemd/ask-password	DirectoryNotEmpty	systemd-ask-password.path	systemd-ask-password.service	3
+3	/etc/letsencrypt/live	PathModified	certwatch.path	certwatch.service	3

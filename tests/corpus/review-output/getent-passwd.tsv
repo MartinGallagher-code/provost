@@ -1,0 +1,8 @@
+n	A	B	C	D	E	F	G	total_entries
+1	root	x	0	0	root	/root	/bin/bash	7
+2	daemon	x	1	1	daemon	/usr/sbin	/usr/sbin/nologin	7
+3	bin	x	2	2	bin	/bin	/usr/sbin/nologin	7
+4	sys	x	3	3	sys	/dev	/usr/sbin/nologin	7
+5	sshd	x	110	65534		/run/sshd	/usr/sbin/nologin	7
+6	postgres	x	111	117	PostgreSQL administrator,,,	/var/lib/postgresql	/bin/bash	7
+7	martin	x	1000	1000	Martin Gallagher,,,	/home/martin	/bin/bash	7

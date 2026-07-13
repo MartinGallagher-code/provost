@@ -1,0 +1,8 @@
+n	NAMESPACE	NAME	READY	STATUS	RESTARTS	AGE	IP	NODE	NOMINATED	READINESS	GATES	total_entries
+1	default	web-7d9f8c-abcde	1/1	Running	0	12d	10.244.1.14	<none>	<none>			7
+2	default	web-7d9f8c-fghij	1/1	Running	2	(3h	ago)	worker-02	10.244.2.09	<none>	<none>	7
+3	kube-system	coredns-5d78c9-klmno	1/1	Running	0	44d	10.244.0.03	<none>	<none>			7
+4	kube-system	etcd-control-01	1/1	Running	18	44d	10.0.0.10	<none>	<none>			7
+5	monitoring	prometheus-0	2/2	Running	0	8d	10.244.3.21	<none>	<none>			7
+6	default	migrate-9x2k1	0/1	Completed	0	2d	10.244.1.55	<none>	<none>			7
+7	default	broken-pod-88af2	0/1	CrashLoopBackOff	9	(2m	ago)	worker-02	10.244.2.77	<none>	<none>	7

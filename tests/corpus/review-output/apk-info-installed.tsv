@@ -1,0 +1,6 @@
+n	A	B	C	D	E	total_entries
+1	WARNING:	opening	from	cache	https://dl-cdn.alpinelinux.org	5
+2	busybox-1.36.1-r15					5
+3	musl-1.2.5-r0					5
+4	ca-certificates-20240226-r0					5
+5	openssl-3.3.0-r2					5

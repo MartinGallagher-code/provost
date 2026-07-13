@@ -1,0 +1,6 @@
+n	NAME	READY	CREATED_AT	PARENT	PRODUCTION	STATE	total_entries
+1	─────────────	───────	─────────── ───── ───── ──────────────				5
+2	main	true	2 months ago	-	true	ready	5
+3	add-index	true	3 days ago	main	false	ready	5
+4	refactor-fk	false	6 hours ago	main	false	ready	5
+5	hotfix-42	true	1 hour ago	main	false	ready	5

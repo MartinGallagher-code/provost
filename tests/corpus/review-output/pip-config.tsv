@@ -1,0 +1,2 @@
+global.index-url	global.timeout	global.trusted-host	install.no-cache-dir	install.user
+'https://pypi.org/simple'	'60'	'pypi.org'	'false'	'true'

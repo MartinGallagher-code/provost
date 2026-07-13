@@ -1,0 +1,4 @@
+n	job	host	status	total_entries
+1	backup	nas01	ok	3
+2	sync	nas02	failed	3
+3	prune	nas03	ok	3

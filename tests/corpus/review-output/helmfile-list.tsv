@@ -1,0 +1,6 @@
+n	NAME	NAMESPACE	ENABLED	INSTALLED	LABELS	CHART	VERSION	total_entries
+1	cert-manager	cert-manager	true	true	tier:infra	jetstack/cert-manager	v1.14.4	5
+2	grafana	monitoring	true	true	tier:obs	grafana/grafana	7.3.7	5
+3	ingress-nginx	ingress	true	true	tier:infra	ingress-nginx/ingress-nginx	4.10.0	5
+4	loki	monitoring	true	true	tier:obs	grafana/loki	5.43.3	5
+5	prometheus	monitoring	true	true	tier:obs	prometheus/prometheus	25.20.0	5

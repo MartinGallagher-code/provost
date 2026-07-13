@@ -1,0 +1,2 @@
+bssid	freq	ssid	id	mode	pairwise_cipher	group_cipher	key_mgmt	wpa_state	ip_address	p2p_device_address	address	uuid
+00:11:22:33:44:55	5180	HomeNet	0	station	CCMP	CCMP	WPA2-PSK	COMPLETED	192.168.1.24	b8:27:eb:44:9f:13	b8:27:eb:44:9f:12	12345678-90ab-cdef-1234-567890abcdef

@@ -1,0 +1,7 @@
+n	cid	name	type	notnull	pk	dflt_value
+1	0	id	INTEGER	1	1	
+2	1	customer_id	INTEGER	1	0	
+3	2	order_ref	TEXT	1	0	
+4	3	status	TEXT	0	0	'pending'
+5	4	total	NUMERIC	0	0	0
+6	5	created_at	TEXT	0	0	CURRENT_TIMESTAMP

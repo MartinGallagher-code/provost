@@ -1,0 +1,2 @@
+type	name	fields.0.name	fields.0.type	fields.1.name	fields.1.type
+record	Event	id	long	kind	string

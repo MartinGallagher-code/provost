@@ -1,0 +1,7 @@
+n	key	value	total_entries
+1	Package id 0	+47.0°C  (high = +100.0°C, crit = +100.0°C)	6
+2	Core 0	+45.0°C  (high = +100.0°C, crit = +100.0°C)	6
+3	Core 1	+44.0°C  (high = +100.0°C, crit = +100.0°C)	6
+4	Core 2	+46.0°C  (high = +100.0°C, crit = +100.0°C) nvme-pci-0100	6
+5	Composite	+38.9°C  (low  = -273.1°C, high = +84.8°C)	6
+6	Sensor 1	+38.9°C  (low  = -273.1°C, high = +65261.8°C)	6

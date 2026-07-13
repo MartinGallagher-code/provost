@@ -1,0 +1,6 @@
+n	NAME	SUBNET_MODE	BGP_ROUTING_MODE	total_entries
+1	default	AUTO	REGIONAL	5
+2	prod-vpc	CUSTOM	GLOBAL	5
+3	staging-vpc	CUSTOM	REGIONAL	5
+4	data-vpc	CUSTOM	GLOBAL	5
+5	mgmt-vpc	AUTO	REGIONAL	5

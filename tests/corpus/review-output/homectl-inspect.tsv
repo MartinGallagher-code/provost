@@ -1,0 +1,2 @@
+alice.Disposition	alice.State	alice.UID	alice.GID	alice.Real_Name	alice.Directory	alice.Storage	alice.Disk_Size	alice.Disk_Usage
+regular	active	60001	60001	Alice Nyugen	/home/alice	luks	20.0G	6.4G (32.0%)

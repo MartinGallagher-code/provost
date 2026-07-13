@@ -1,0 +1,11 @@
+n	A	B	C	total_entries
+1	Attaching	1	probe...	10
+2	^C			10
+3	@syscalls[read]:	44210		10
+4	@syscalls[write]:	38112		10
+5	@syscalls[openat]:	9021		10
+6	@syscalls[futex]:	88213		10
+7	@syscalls[epoll_wait]:	2210		10
+8	@syscalls[nanosleep]:	118		10
+9	@count[chrome,	3391]:	5521	10
+10	@count[postgres,	2288]:	4410	10

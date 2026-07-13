@@ -1,0 +1,4 @@
+n	value	count	percent	histogram	total_entries
+1	completed	8120	64.2%	████████████	3
+2	pending	3011	23.8%	████▌	3
+3	failed	1520	12.0%	██▎	3

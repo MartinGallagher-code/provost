@@ -1,0 +1,6 @@
+n	backup	nightly	total_entries
+1	0	2_*_*_*_/usr/local/bin/backup.sh_--full	5
+2	#	every_15_minutes	5
+3	*/15	*_*_*_*_/opt/app/healthcheck.sh	5
+4	30	4_1_*_*_root_/usr/bin/logrotate_/etc/logrotate.conf	5
+5	@reboot	/usr/local/bin/warmcache.sh	5

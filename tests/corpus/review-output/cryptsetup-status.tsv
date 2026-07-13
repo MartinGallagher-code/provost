@@ -1,0 +1,2 @@
+/dev/mapper/luks-data_is_active_and_is_in_use..type	/dev/mapper/luks-data_is_active_and_is_in_use..cipher	/dev/mapper/luks-data_is_active_and_is_in_use..keysize	/dev/mapper/luks-data_is_active_and_is_in_use..device	/dev/mapper/luks-data_is_active_and_is_in_use..sector_size	/dev/mapper/luks-data_is_active_and_is_in_use..size
+LUKS2	aes-xts-plain64	512 bits	/dev/nvme0n1p2	512	3900000000 sectors

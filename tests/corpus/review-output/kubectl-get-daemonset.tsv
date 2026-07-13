@@ -1,0 +1,5 @@
+n	NAME	DESIRED	CURRENT	READY	UP-TO-DATE	AVAILABLE	NODE_SELECTOR	AGE	total_entries
+1	kube-proxy	5	5	5	5	5	kubernetes.io/os=linux	30d	4
+2	cilium	5	5	5	5	5	<none>	30d	4
+3	node-exporter	5	5	5	5	5	<none>	18d	4
+4	fluentd	5	5	4	5	4	<none>	12d	4

@@ -1,0 +1,5 @@
+n	A	B	total_entries
+1	DBI	1.643	4
+2	JSON::XS	4.03	4
+3	Moose	2.2207	4
+4	Mojolicious	9.36	4

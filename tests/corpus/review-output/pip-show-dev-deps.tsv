@@ -1,0 +1,3 @@
+n	Name	Version	Summary	Location	Requires
+1	pytest	7.4.0	pytest_testing_framework	/usr/lib/python3/dist-packages	pluggy,_iniconfig
+2	black	23.7.0	The_uncompromising_code_formatter	/usr/lib/python3/dist-packages	click,_mypy-extensions

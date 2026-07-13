@@ -1,0 +1,2 @@
+metricsUsed	dashboards.0.slug	dashboards.0.metrics_count	dashboards.0.parse_errors	dashboards.1.slug	dashboards.1.metrics_count	dashboards.1.parse_errors	dashboards.2.slug	dashboards.2.metrics_count	dashboards.2.parse_errors	dashboards.3.slug	dashboards.3.metrics_count	dashboards.3.parse_errors
+1842	node-exporter-full	214	0	api-golden-signals	88	1	loki-operational	142	0	kubernetes-cluster	311	0

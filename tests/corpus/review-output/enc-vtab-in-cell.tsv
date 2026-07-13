@@ -1,0 +1,6 @@
+n	code	message	severity	total_entries
+1	E01	disk		5
+2	failure	high		5
+3	E02	link down	medium	5
+4	W07	temp		5
+5	warning	low		5

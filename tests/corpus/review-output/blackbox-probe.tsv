@@ -1,0 +1,7 @@
+n	name	value	label_phase	probe_success.help	probe_success.type
+1	probe_success	1		Displays whether or not the probe was a success.	gauge
+2	probe_duration_seconds	0.184213		Displays whether or not the probe was a success.	gauge
+3	probe_http_status_code	200		Displays whether or not the probe was a success.	gauge
+4	probe_http_duration_seconds	0.012481	connect	Displays whether or not the probe was a success.	gauge
+5	probe_http_duration_seconds	0.044821	tls	Displays whether or not the probe was a success.	gauge
+6	probe_ssl_earliest_cert_expiry	1784211200		Displays whether or not the probe was a success.	gauge

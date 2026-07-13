@@ -1,0 +1,7 @@
+n	A	B	total_entries
+1	cryptroot	(253:0)	6
+2	vg0-root	(253:1)	6
+3	vg0-home	(253:2)	6
+4	vg0-swap	(253:3)	6
+5	vg0-var	(253:4)	6
+6	mpatha	(253:5)	6

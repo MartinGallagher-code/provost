@@ -1,0 +1,6 @@
+n	param	domain	default	total_entries
+1	alpha	[0,1)	0.5	5
+2	beta	(-inf,5]	0.0	5
+3	gamma	[-1,1]	0.0	5
+4	delta	(0,100)	50	5
+5	epsilon	[0,inf)	1	5

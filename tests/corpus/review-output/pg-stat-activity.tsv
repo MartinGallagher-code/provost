@@ -1,0 +1,5 @@
+n	pid	usename	state	query	total_entries
+1	4412	appuser	active	SELECT * FROM orders WHERE status = 'new'	4
+2	4418	appuser	idle	COMMIT	4
+3	4501	reporting	active	SELECT count(*) FROM sessions	4
+4	4520	postgres	idle	SELECT pg_stat_activity view refresh	4

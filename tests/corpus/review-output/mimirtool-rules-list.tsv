@@ -1,0 +1,7 @@
+n	Namespace	|	Rule	total_entries
+1	node-alerts	|	node.recording	6
+2	node-alerts	|	node.alerts	6
+3	api-slo	|	slo.burnrate.5m	6
+4	api-slo	|	slo.burnrate.1h	6
+5	api-slo	|	slo.page	6
+6	tenant-42	|	ingest.limits	6

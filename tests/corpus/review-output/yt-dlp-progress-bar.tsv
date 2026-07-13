@@ -1,0 +1,4 @@
+n	timestamp	message	total_entries
+1	download	63.2% of  248.11MiB at   5.42MiB/s ETA 00:16  ███████████░░░░░░	3
+2	download	91.7% of   88.40MiB at   8.10MiB/s ETA 00:01  ████████████████░░	3
+3	download	100.0% of  512.00MiB at  11.20MiB/s ETA 00:00  ██████████████████	3

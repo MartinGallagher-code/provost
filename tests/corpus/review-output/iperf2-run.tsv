@@ -1,0 +1,7 @@
+n	A	total_entries
+1	------------------------------------------------------------	6
+2	Client connecting to 10.0.2.5, TCP port 5001	6
+3	------------------------------------------------------------	6
+4	[  3] local 10.0.2.10 port 51422 connected with 10.0.2.5 port 5001	6
+5	[ ID] Interval       Transfer     Bandwidth	6
+6	[  3]  0.0-10.0 sec  1.10 GBytes   944 Mbits/sec	6

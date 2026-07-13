@@ -1,0 +1,5 @@
+n	schema	name	type	owner	total_entries
+1	public	users	table	appuser	4
+2	public	orders	table	appuser	4
+3	public	sessions	view	appuser	4
+4	audit	log	table	postgres	4

@@ -1,0 +1,8 @@
+n	id	attribute_name	flag	value	worst	thresh	type	updated	when_failed	raw_value	total_entries
+1	1	Raw_Read_Error_Rate	0x000f	100	100	006	Pre-fail	Always	-	0	7
+2	5	Reallocated_Sector_Ct	0x0033	100	100	036	Pre-fail	Always	-	0	7
+3	9	Power_On_Hours	0x0032	089	089	000	Old_age	Always	-	9842	7
+4	12	Power_Cycle_Count	0x0032	099	099	020	Old_age	Always	-	412	7
+5	194	Temperature_Celsius	0x0022	036	045	000	Old_age	Always	-	36	7
+6	197	Current_Pending_Sector	0x0012	100	100	000	Old_age	Always	-	0	7
+7	198	Offline_Uncorrectable	0x0010	100	100	000	Old_age	Offline	-	0	7

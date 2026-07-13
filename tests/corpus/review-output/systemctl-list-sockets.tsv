@@ -1,0 +1,8 @@
+n	LISTEN	UNIT	ACTIVATES	total_entries
+1	/dev/log	systemd-journald.socket	systemd-journald.service	7
+2	/run/dbus/system_bus_socket	dbus.socket	dbus.service	7
+3	/run/systemd/journal/dev-log	systemd-journald-dev-log.socket	systemd-journald.service	7
+4	/run/systemd/journal/socket	systemd-journald.socket	systemd-journald.service	7
+5	/run/systemd/journal/stdout	systemd-journald.socket	systemd-journald.service	7
+6	/run/udev/control	systemd-udevd-control.socket	systemd-udevd.service	7
+7	[::]:22	sshd.socket	sshd.service	7

@@ -1,0 +1,8 @@
+n	A	B	C	D	total_entries
+1	prefix	::1/128	label	0	7
+2	prefix	::/96	label	3	7
+3	prefix	::ffff:0.0.0.0/96	label	4	7
+4	prefix	2001::/32	label	6	7
+5	prefix	2001:10::/28	label	7	7
+6	prefix	fc00::/7	label	5	7
+7	prefix	::/0	label	1	7

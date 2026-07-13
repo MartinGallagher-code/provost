@@ -1,0 +1,4 @@
+n	SRC	DST	SRC_NS	DST_NS	SECURED	total_entries
+1	web	api	default	default	√	3
+2	api	redis	default	data	√	3
+3	api	postgres	default	data	√	3

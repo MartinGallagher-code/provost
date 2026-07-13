@@ -1,0 +1,7 @@
+n	timestamp	message	total_entries
+1	info	default:myapp_2.13:0.1.0	6
+2	info	+-ch.qos.logback:logback-classic:1.4.14	6
+3	info	+-com.typesafe.akka:akka-actor_2.13:2.8.5	6
+4	info	+-com.typesafe:config:1.4.3	6
+5	info	+-org.scala-lang:scala-library:2.13.12	6
+6	info	+-org.slf4j:slf4j-api:2.0.9	6

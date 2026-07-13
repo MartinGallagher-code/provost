@@ -1,0 +1,9 @@
+n	A	B	C	total_entries
+1	$	checksec	--file=/usr/bin/sshd	8
+2	RELRO	Full	RELRO	8
+3	Stack	Canary	found	8
+4	NX	NX	enabled	8
+5	PIE	PIE	enabled	8
+6	RPATH	No	RPATH	8
+7	RUNPATH	No	RUNPATH	8
+8	Fortify	Yes		8

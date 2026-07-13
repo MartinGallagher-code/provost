@@ -1,0 +1,4 @@
+n	name	column_count	estimated_size	total_entries
+1	orders	8	44201	3
+2	customers	5	9102	3
+3	products	12	88201	3

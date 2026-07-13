@@ -1,0 +1,6 @@
+n	A	total_entries
+1	https://sqs.us-east-1.amazonaws.com/123456789012/orders-inbound	5
+2	https://sqs.us-east-1.amazonaws.com/123456789012/orders-inbound-dlq	5
+3	https://sqs.us-east-1.amazonaws.com/123456789012/email-notifications	5
+4	https://sqs.us-east-1.amazonaws.com/123456789012/image-processing	5
+5	https://sqs.us-east-1.amazonaws.com/123456789012/audit-events	5

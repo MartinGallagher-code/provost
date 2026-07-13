@@ -1,0 +1,2 @@
+Release-Date	Protocols	Features
+2026-05-22	dict file ftp ftps http https imap	alt-svc AsynchDNS brotli HSTS HTTP2 HTTPS-proxy IPv6

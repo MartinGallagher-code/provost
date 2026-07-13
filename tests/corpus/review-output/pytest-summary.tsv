@@ -1,0 +1,7 @@
+n	A	total_entries
+1	==================== test session starts ====================	6
+2	platform linux -- Python 3.12.4, pytest-8.2.2	6
+3	collected 142 items	6
+4	tests/test_parser.py ........................        [ 40%]	6
+5	tests/test_engine.py ....................F...        [ 88%]	6
+6	==================== 1 failed, 141 passed in 12.44s ====================	6

@@ -1,0 +1,9 @@
+n	direnv	exec	path	/usr/bin/direnv	total_entries
+1	DIRENV_CONFIG	/home/user/.config/direnv			8
+2	bash_path	/usr/bin/bash			8
+3	disallow_stdin	false			8
+4	Loaded	RC	path	/home/user/project/.envrc	8
+5	Loaded	watch	path	/home/user/project/.envrc	8
+6	Loaded	RC	allowed	0	8
+7	Found	RC	path	/home/user/project/.envrc	8
+8	Found	RC	allowed	0	8

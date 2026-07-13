@@ -1,0 +1,4 @@
+n	status	name	version	arch	description	total_entries
+1	ii	curl	7.81.0-1ubun..	amd64	command line tool for transferring	3
+2	ii	git	1:2.34.1-1u..	amd64	fast, scalable, distributed VCS	3
+3	un	oldpkg	<none>	<none>	(no description available)	3

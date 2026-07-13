@@ -1,0 +1,12 @@
+n	Quarterly	Availability	Report	total_entries
+1	This	report	summarizes_service_uptime_for_Q2_2026._All_figures_are	11
+2	derived	from	external_synthetic_probes_running_at_1-minute_intervals.	11
+3	Values	below	99.9%_breach_the_SLA_and_are_marked_with_a_dagger.	11
+4	Service	Uptime%	Incidents	11
+5	api-gateway	99.98	1	11
+6	auth	99.87†	3	11
+7	billing	99.95	2	11
+8	search	99.99	0	11
+9	Notes:			11
+10	†	Below	SLA_threshold_of_99.90%	11
+11	Incidents	counted	only_if_customer-impacting.	11

@@ -1,0 +1,5 @@
+n	name	value	total_entries
+1	[rank0]	Training started with 4 GPUs	4
+2	[rank0]	Epoch 1/10  loss=2.4102  acc=0.412	4
+3	[rank0]	Epoch 2/10  loss=1.8821  acc=0.588	4
+4	[rank0]	Checkpoint saved to /ckpt/epoch2.pt	4

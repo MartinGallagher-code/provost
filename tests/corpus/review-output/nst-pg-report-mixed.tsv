@@ -1,0 +1,3 @@
+n	Generated	Database	Recommendation	Autovacuum
+1	2026-07-11_03:00_UTC	production		
+3			VACUUM_FULL_during_maintenance_window	enabled

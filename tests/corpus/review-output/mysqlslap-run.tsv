@@ -1,0 +1,2 @@
+Benchmark.Average_number_of_seconds_to_run_all_queries	Benchmark.Minimum_number_of_seconds_to_run_all_queries	Benchmark.Maximum_number_of_seconds_to_run_all_queries	Benchmark.Number_of_clients_running_queries	Benchmark.Average_number_of_queries_per_client
+8.821 seconds	8.442 seconds	9.210 seconds	50	200

@@ -1,0 +1,8 @@
+n	A	total_entries
+1	myapp@1.0.0 /home/user/myapp	7
+2	dependencies:	7
+3	lodash 4.17.21	7
+4	├─┬ async 3.2.5	7
+5	│ └── lodash 4.17.21	7
+6	└─┬ webpack 5.89.0	7
+7	└── lodash 4.17.21	7

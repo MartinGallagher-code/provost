@@ -1,0 +1,2 @@
+total_runtime	calls_to_allocation_functions	temporary_memory_allocations	peak_heap_memory_consumption	total_memory_leaked
+12.44s	8821004	412839	44.20MB	0B

@@ -1,0 +1,5 @@
+n	id	domain	type	status	soa_email	total_entries
+1	2984411	example.com	master	active	admin@example.com	4
+2	2984522	corp-internal.net	master	active	dns@corp-internal.net	4
+3	2990188	staging-app.io	master	active	ops@staging-app.io	4
+4	3001745	legacy.org	slave	disabled		4

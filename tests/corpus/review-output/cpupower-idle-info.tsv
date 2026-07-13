@@ -1,0 +1,21 @@
+n	key	value	total_entries
+1	CPUidle driver	intel_idle	20
+2	CPUidle governor	menu	20
+3	analyzing CPU 0		20
+4	Number of idle states	5	20
+5	Available idle states	POLL C1 C1E C6 C8	20
+6	POLL		20
+7	Flags/Description	CPUIDLE CORE POLL IDLE	20
+8	Latency	0	20
+9	Usage	289471	20
+10	Duration	12938471	20
+11	C1		20
+12	Flags/Description	MWAIT 0x00	20
+13	Latency	2	20
+14	Usage	1839201	20
+15	Duration	88372910	20
+16	C1E		20
+17	Flags/Description	MWAIT 0x01	20
+18	Latency	10	20
+19	Usage	942381	20
+20	Duration	55192837	20

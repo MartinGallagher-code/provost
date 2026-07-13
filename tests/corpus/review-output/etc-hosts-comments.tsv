@@ -1,0 +1,8 @@
+n	A	total_entries
+1	# Static table lookup for hostnames.	7
+2	127.0.0.1   localhost	7
+3	127.0.1.1   dev-box.local dev-box	7
+4	# corporate hosts	7
+5	10.0.0.5    git.internal git	7
+6	10.0.0.6    ci.internal	7
+7	::1         localhost ip6-localhost ip6-loopback	7

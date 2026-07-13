@@ -1,0 +1,8 @@
+n	A	B	C	D	total_entries
+1	Runlevel:	default			7
+2	dbus	[	started	]	7
+3	sshd	[	started	]	7
+4	nginx	[	started	]	7
+5	cron	[	started	]	7
+6	ntpd	[	stopped	]	7
+7	haveged	[	started	]	7

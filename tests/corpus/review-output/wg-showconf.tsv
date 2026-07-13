@@ -1,0 +1,7 @@
+n	section	key	value	total_entries
+1	Interface	ListenPort	51820	6
+2	Interface	PrivateKey	(hidden)	6
+3	Peer	PublicKey	mBqz3xY7nL2pQ9rT5vW8kJ4hF6dG1sA0cX2eR7uZ1o=	6
+4	Peer	AllowedIPs	10.10.0.2/32	6
+5	Peer	Endpoint	203.0.113.9:51820	6
+6	Peer	PersistentKeepalive	25	6

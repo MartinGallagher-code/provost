@@ -1,0 +1,2 @@
+certificate	usages.0	usages.1	usages.2	expiry
+-----BEGIN CERTIFICATE-----	signing	key encipherment	server auth	8760h

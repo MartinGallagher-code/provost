@@ -1,0 +1,14 @@
+n	key	value	total_entries
+1	Running the test with following options		13
+2	Number of threads	8	13
+3	Prime numbers limit	20000	13
+4	CPU speed		13
+5	events per second	4821.02	13
+6	General statistics		13
+7	total time	10.0012s	13
+8	total number of events	48221	13
+9	Latency (ms)		13
+10	min	1.42	13
+11	avg	1.65	13
+12	max	12.08	13
+13	95th percentile	2.11	13

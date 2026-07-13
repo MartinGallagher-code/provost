@@ -1,0 +1,5 @@
+n	Running	Collection:	API	Tests	total_entries
+1	✓	GET	health	(42ms)	4
+2	✓	POST	login	(128ms)	4
+3	✗	GET	protected	(401)	4
+4	2	passed,	1	failed	4

@@ -1,0 +1,2 @@
+2	link/ether_52	RX	TX	3	link/ether_52
+eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000	54:00:9a:bc:de brd ff:ff:ff:ff:ff:ff	bytes  packets  errors  dropped  missed   mcast	bytes  packets  errors  dropped  carrier  collsns	eth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 9000 qdisc mq state UP mode DEFAULT group default qlen 1000	54:00:1a:2b:3c brd ff:ff:ff:ff:ff:ff

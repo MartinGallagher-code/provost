@@ -1,0 +1,2 @@
+snapshot_count	id	block_name_prefix	format	features
+2	3a9f2b1c8d7e	rbd_data.3a9f2b1c8d7e	2	layering, exclusive-lock, object-map, fast-diff, deep-flatten

@@ -1,0 +1,6 @@
+n	NODE	SERVICE	STATE	HEALTH	LAST_CHANGE	LAST_EVENT	total_entries
+1	10.5.0.2	apid	Running	OK	12h58m ago	Health check successful	5
+2	10.5.0.2	containerd	Running	OK	12h59m ago	Health check successful	5
+3	10.5.0.2	cri	Running	OK	12h58m ago	Health check successful	5
+4	10.5.0.2	etcd	Running	OK	12h57m ago	Health check successful	5
+5	10.5.0.2	kubelet	Running	OK	12h58m ago	Health check successful	5

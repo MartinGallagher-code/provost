@@ -1,0 +1,8 @@
+n	A	total_entries
+1	$ aureport --login -i	7
+2	Login Report	7
+3	# date time auth host term	7
+4	1  07/11/2026 08:02:11 root yes 10.0.1.4 pts/0	7
+5	2  07/11/2026 08:44:03 alice yes 10.0.1.9 pts/1	7
+6	3  07/11/2026 09:15:52 bob no 203.0.113.7 ssh	7
+7	4  07/11/2026 09:16:04 bob no 203.0.113.7 ssh	7

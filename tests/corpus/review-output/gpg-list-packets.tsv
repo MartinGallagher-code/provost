@@ -1,0 +1,16 @@
+n	A	total_entries
+1	# off=0 ctb=99 tag=6 hlen=3 plen=525	15
+2	:public key packet:	15
+3	version 4, algo 1, created 1699999999, expires 0	15
+4	pkey[0]: [2048 bits]	15
+5	pkey[1]: [17 bits]	15
+6	keyid: A1B2C3D4E5F60718	15
+7	# off=528 ctb=b4 tag=13 hlen=2 plen=32	15
+8	:user ID packet: "Alice Example <alice@example.com>"	15
+9	# off=562 ctb=89 tag=2 hlen=3 plen=307	15
+10	:signature packet: algo 1, keyid A1B2C3D4E5F60718	15
+11	version 4, created 1699999999, md5len 0, sigclass 0x13	15
+12	digest algo 8, begin of digest 3a 8f	15
+13	hashed subpkt 33 len 21 (issuer fpr)	15
+14	hashed subpkt 2 len 4 (sig created 2023-11-14)	15
+15	subpkt 16 len 8 (issuer key ID A1B2C3D4E5F60718)	15

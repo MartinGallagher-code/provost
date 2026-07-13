@@ -1,0 +1,5 @@
+n	SERVICE	STATUS	UPTIME	total_entries
+1	api	✅ up	99.9%	4
+2	worker	❌ down	0.0%	4
+3	cache	🟡 degraded	87.2%	4
+4	cdn	✅ up	100%	4

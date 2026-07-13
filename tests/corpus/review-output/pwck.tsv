@@ -1,0 +1,7 @@
+n	A	B	C	D	E	F	G	total_entries
+1	user	'lp':	directory	'/var/spool/lpd'	does	not	exist	6
+2	user	'news':	directory	'/var/spool/news'	does	not	exist	6
+3	user	'uucp':	directory	'/var/spool/uucp'	does	not	exist	6
+4	user	'operator':	directory	'/root'	does	not	exist	6
+5	user	'games':	directory	'/usr/games'	does	not	exist	6
+6	pwck:	no	changes					6

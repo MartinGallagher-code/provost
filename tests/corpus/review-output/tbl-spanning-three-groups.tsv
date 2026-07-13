@@ -1,0 +1,4 @@
+n	Iface	pkts	bytes	rx	tx	total_entries
+1	eth0	234567	187654321	0	2	3
+2	eth1	56789	45678901	1	0	3
+3	lo	1234	1234567	0	0	3

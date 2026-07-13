@@ -1,0 +1,5 @@
+n	CONTAINER_ID	IMAGE	COMMAND	CREATED	STATUS	PORTS	NAMES	total_entries
+1	a1b2c3d4e5f6	nginx:1.25	"/docker-entrypoint.…"	3 hours ago	Up 3 hours	0.0.0.0:80->80/tcp	proxy	4
+2	f6e5d4c3b2a1	redis:7	"docker-entrypoint.s…"	2 days ago	Up 2 days		cache	4
+3	9988776655aa	busybox:latest	"sh"	5 minutes ago	Exited (0) 4 minutes ago		debug-shell	4
+4	1122334455bb	postgres:16	"docker-entrypoint.s…"	1 week ago	Up 6 days (healthy)	5432/tcp	pgmain	4

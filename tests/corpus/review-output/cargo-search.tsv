@@ -1,0 +1,2 @@
+serde	serde_json	serde_yaml	serde_derive	serde_with
+"1.0.203"           # A generic serialization/deserialization framework	"1.0.117"      # A JSON serialization file format	"0.9.34"       # YAML data format for Serde	"1.0.203"    # Macros 1.1 implementation of #[derive(Serialize)]	"3.8.1"        # Custom de/serialization helpers
