@@ -1,0 +1,5 @@
+n	sensor	value	unit	tolerance	total_entries
+1	temp	3,14	C	0,05	4
+2	volt	12,50	V	0,10	4
+3	curr	0,75	A	0,02	4
+4	freq	50,00	Hz	0,01	4

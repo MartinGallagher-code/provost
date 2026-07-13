@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-12 — semicolon-values: quote-awareness + low-density band
+
+The csv treatment for `strategies/delimited/semicolon-values.sh`. One shared
+splitter (`_strat_ssv_split`: quotes structural at field start, `""` escape,
+top-level `;` counting) drives detection and extraction:
+
+- **Quote-aware counting/splitting:** a `;` inside "…" is data
+  (`Schraube;"1.234,56";"12; nachbestellen"` — the embedded `; ` stays in its
+  cell). Previously the raw count differed per line, detection failed, and the
+  input fell to a blob parser.
+- **Low-density band:** 2-3 top-level separators accepted only when EVERY line
+  has the IDENTICAL count and there are >=2 lines — prose with stray semicolons
+  ("o - Other; r - Repeater; …") varies line to line and never qualifies. The
+  dense fio band (>=4, ±1, single-line OK) is untouched: fio terse goldens
+  byte-identical.
+
+Closes 5 ⏳: quo-ssv-euro-numbers, enc-nbsp-thousands-fr (the one the
+unicode-space round couldn't take), cmb-ansi-csv-semicolon,
+num-decimal-comma-scsv, num-semicolon-eu-decimals. Improves 4 covered fixtures
+(csv-semicolon-comma-values, european-decimal-csv, quo-csv-semicolon-delim,
+quo-semicolon-embedded) — all had been one-blob or welded token-soup via
+text-lines/line-records/aligned-columns; now real headers and columns. Full
+blast scan: 12 detections total = fio x2 unchanged + 5 closes + 4 improvements
++ 1 non-flip (yaml still wins cmb-truecolor-colonsep-kv at the engine level).
+
+Telling find from the suite: the strategy's own sample golden was EMPTY — the
+old >=4 rule rejected the sample's documented `name;value;unit` case, and the
+golden had frozen that miss. Regenerated (7 fields). Golden gate 3408/0,
+extract 168 sample-golden verifications 0 failed, smoke 49/0, melt 10/0.
+Coverage 3547 -> 3554 tidy of 3706 (154 ⏳).
+
 ## 2026-07-12 — Unicode spaces + CJK headers
 
 Two fixes for the Unicode-space/width cluster:

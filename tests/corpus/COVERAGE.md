@@ -445,7 +445,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | cmb-256color-aligned-emoji | ✅ | aligned-columns |
 | cmb-ansi-csv-csvlook | ✅ | csv |
 | cmb-ansi-csv-quoted-comma | ✅ | csv |
-| cmb-ansi-csv-semicolon | ⏳ | — |
+| cmb-ansi-csv-semicolon | ✅ | semicolon-values |
 | cmb-banner-comment-box | ✅ | box-table |
 | cmb-banner-indented-table | ⏳ | — |
 | cmb-banner-truecolor-box-totals | ✅ | box-table |
@@ -597,7 +597,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | cryptsetup-status | ⏳ | — |
 | crystal-version | ✅ | colons |
 | csv-embedded-newline-quote | ✅ | aligned-columns |
-| csv-semicolon-comma-values | ✅ | text-lines |
+| csv-semicolon-comma-values | ✅ | semicolon-values |
 | csvkit-csvstat | ✅ | key-value |
 | csvlook-max-rows | ✅ | box-table |
 | csvlook-no-inference | ✅ | box-table |
@@ -890,7 +890,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | enc-nbsp-in-value | ✅ | aligned-columns |
 | enc-nbsp-leading-indent | ✅ | line-records |
 | enc-nbsp-padding | ✅ | aligned-columns |
-| enc-nbsp-thousands-fr | ⏳ | — |
+| enc-nbsp-thousands-fr | ✅ | semicolon-values |
 | enc-nel-line-sep | ✅ | aligned-columns |
 | enc-ragged-trailing | ✅ | aligned-columns |
 | enc-right-align-tabs | ✅ | tsv |
@@ -961,7 +961,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ethtool-stats | ✅ | indented-hierarchy |
 | ethtool-timestamp | ✅ | line-records |
 | ethtool | ✅ | colons |
-| european-decimal-csv | ✅ | line-records |
+| european-decimal-csv | ✅ | semicolon-values |
 | exa-tree-color | ✅ | tree-view |
 | exabgp-summary | ✅ | text-lines |
 | exiftool-image | ✅ | colons |
@@ -2221,7 +2221,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | num-colons-scientific | ✅ | aligned-columns |
 | num-csv-quoted-thousands | ✅ | csv |
 | num-currency-signed | ✅ | aligned-columns |
-| num-decimal-comma-scsv | ⏳ | — |
+| num-decimal-comma-scsv | ✅ | semicolon-values |
 | num-durations-col | ✅ | aligned-columns |
 | num-eu-dot-thousands | ✅ | aligned-columns |
 | num-exponent-leading-plus | ✅ | aligned-columns |
@@ -2260,7 +2260,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | num-ranges-pairs | ✅ | aligned-columns |
 | num-ratio-fractions | ✅ | aligned-columns |
 | num-scientific-mixed | ✅ | aligned-columns |
-| num-semicolon-eu-decimals | ⏳ | — |
+| num-semicolon-eu-decimals | ✅ | semicolon-values |
 | num-shift-ranges | ✅ | aligned-columns |
 | num-si-space-thousands | ✅ | aligned-columns |
 | num-si-suffix | ✅ | aligned-columns |
@@ -2705,7 +2705,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-csv-nested-delims | ✅ | csv |
 | quo-csv-quote-newline-comma | ✅ | csv |
 | quo-csv-review-text | ✅ | csv |
-| quo-csv-semicolon-delim | ✅ | aligned-columns |
+| quo-csv-semicolon-delim | ✅ | semicolon-values |
 | quo-csv-tags-column | ✅ | csv |
 | quo-dig-txt-spf | ✅ | dns-records |
 | quo-dotenv-hash-equals | ✅ | equals |
@@ -2741,8 +2741,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | quo-ps-quoted-args | ✅ | aligned-columns |
 | quo-psql-array-column | ✅ | psql-table |
 | quo-recutils-colon-values | ✅ | block-records |
-| quo-semicolon-embedded | ✅ | aligned-columns |
-| quo-ssv-euro-numbers | ⏳ | — |
+| quo-semicolon-embedded | ✅ | semicolon-values |
+| quo-ssv-euro-numbers | ✅ | semicolon-values |
 | quo-systemd-execstart | ⏳ | — |
 | quo-table-freetext-lastcol | ✅ | aligned-columns |
 | quo-table-notes-delimiters | ✅ | aligned-columns |

@@ -1,6 +1,15 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; unicode-space + CJK-header round (2026-07-12) — **3547 tidy, 159 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; semicolon quote-awareness round (2026-07-12) — **3554 tidy, 154 ⏳**
+
+> **2026-07-12 — semicolon-values quote-awareness.** The csv treatment:
+> `_strat_ssv_split` (quotes structural at field start, `""` escape) drives
+> top-level `;` counting and splitting; new low-density band (2-3 separators,
+> EVERY line identical count, >=2 lines) alongside the untouched fio dense band.
+> Closed 5 ⏳ (European `;`-CSV: embedded `; ` in quoted cells, decimal commas,
+> NBSP thousands), improved 4 covered fixtures (blob/token-soup -> real columns).
+> Blast scan: 12 fires = fio x2 unchanged + 5 + 4 + 1 non-flip. **Now 3554 tidy,
+> 154 ⏳** (✅ 3335 / ✅ʰ 73 / ✅ᵇ 144).
 
 > **2026-07-12 — unicode spaces + CJK headers.** Engine now normalizes exotic
 > Unicode horizontal spaces (NBSP, narrow-NBSP, U+2000–U+200A, U+205F,
