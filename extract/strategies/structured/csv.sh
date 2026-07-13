@@ -44,6 +44,34 @@ _strat_csv_split () {
     _CSV_OPEN=$in_quotes
 }
 
+# Drop THOUSANDS-SEPARATOR commas — a digit immediately before the comma and
+# EXACTLY THREE digits immediately after (not a 4th) — from comma-counting
+# only. The "exactly three, not a fourth" requirement is what makes this
+# precise: it matches a true grouping comma ("1,234", apt's "[1,234 kB]", a
+# status line's "2,341 kB/s") while correctly leaving alone a plain field
+# separator that merely happens to sit between two digit-ish tokens, e.g. a
+# region id ending in a digit followed by an ungrouped 6-digit count
+# ("eu-west-1,881204" — "881" then a 4th digit "2" disqualifies it, so the
+# comma stays a real separator). A genuine list/field separator followed by a
+# space ("[mean, p95, p99]", "88201, 882.01") never matches at all. Sets
+# _CSV_NOTH.
+_csv_strip_thousands () {
+    local s="$1" out="" i c prev grp after
+    for ((i = 0; i < ${#s}; i++)); do
+        c="${s:$i:1}"
+        if [[ "$c" == ',' ]]; then
+            prev="${s:$((i - 1)):1}"
+            grp="${s:$((i + 1)):3}"
+            after="${s:$((i + 4)):1}"
+            if [[ "$prev" =~ [0-9] && "$grp" =~ ^[0-9][0-9][0-9]$ && ! "$after" =~ [0-9] ]]; then
+                continue
+            fi
+        fi
+        out+="$c"
+    done
+    _CSV_NOTH="$out"
+}
+
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
@@ -57,9 +85,15 @@ strategy_detect () {
     while IFS= read -r _line; do
         [[ -z "$_line" ]] && continue
         # Ignore commas inside parenthesised groups — those are not CSV field
-        # separators (e.g. `mount` options `(rw,nosuid,nodev)`). Counting only
-        # top-level commas keeps csv from claiming such lines.
+        # separators (`mount` options `(rw,nosuid,nodev)`). And ignore
+        # THOUSANDS-SEPARATOR commas anywhere (apt's `[1,234 kB]`, a status
+        # line's `2,341 kB/s`) — counting only real separator commas keeps
+        # csv from claiming such lines just because embedded grouping
+        # punctuation happens to produce a similar comma count line-to-line
+        # (apt-get's download progress, whose only "consistency" came from
+        # repeated `[N,NNN kB]` tags).
         local _sep="${_line//(*)/}"
+        _csv_strip_thousands "$_sep"; _sep="$_CSV_NOTH"
         # Count only commas OUTSIDE quoted fields: a quoted value's embedded
         # commas ("1,234,567.89", "go,api,server") are data, not separators.
         # Without this, quoted CSV fails the consistency check below and falls

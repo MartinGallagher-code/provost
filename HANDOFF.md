@@ -1,6 +1,36 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; pivot-stats parser (2026-07-13) — **3571 tidy, 135 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; aligned-columns/csv false-positive fixes (2026-07-13) — golden gate 3430 passed / 0 failed / 276 not-yet-covered; coverage table refresh pending
+
+> **2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false
+> positive.** From a manual review of `tests/corpus/review-output/`: (1)
+> `aligned-columns` was claiming single-record colon-kv description blocks
+> (`apt-cache show`, `dpkg -s`) before `colons` could, hijacking row 1's two
+> tokens as column names — `_ac_shape` now declines when the block is
+> majority-distinct `Label:` lines AND row 1 itself is one (the second check
+> spares real tables like `/proc/interrupts` whose first *column* is
+> colon-suffixed labels but whose row 1 is a real header). Fixes
+> apt-cache-show-vim/curl, dpkg-s-nginx, dpkg-status-openssl,
+> ipset-list(-hash), helm-status. (2) `csv` was false-positive-detecting on
+> `apt-get` download-progress lines because bracketed thousands-grouping
+> commas (`[1,234 kB]`) gave a spuriously consistent per-line comma count; new
+> `_csv_strip_thousands` excludes a comma from the count only when it's a true
+> grouping comma (digit before, exactly 3 digits after, no 4th) — precise
+> enough to leave real separator commas alone (`eu-west-1,881204`) and to NOT
+> erase the bracket-internal comma-count variation `vegeta-report` needs to
+> correctly decline csv. Fixes apt-get-download-progress + vegeta-report,
+> un-breaks 8 incidental pre-existing false-positive csv winners, and closes
+> the `perf-stat-scientific` ⏳ gap. `ledger-balance` now correctly declines
+> csv too; its next-best winner (`vertical-line`) is imperfect but matches the
+> already-accepted lossy pattern on `hledger-balance` (both loose `text` kind
+> — flagged for the pending manifest-tightening pass, not fixed here). Golden
+> gate 3430 passed / 0 failed / 276 not-yet-covered (pre-existing gap, no
+> golden ever frozen for those — unrelated); extract 62/62; smoke 49/0; melt
+> 10/0. 9 goldens re-frozen, 1 new (perf-stat-scientific). **COVERAGE.md /
+> README numbers not yet refreshed — full-mode coverage regen was still
+> running at last check; a follow-up commit will land it.** Next queued: Bug
+> #1 — tighten the loose `text`/`kv` manifest kinds in `expected.tsv` (a
+> corpus-discipline pass, not a parser fix) now that 2 and 3 are done.
 
 > **2026-07-13 — pivot-stats (ip -s link pivot).** New generic
 > `structured/pivot-stats.sh` (priority 39): label line names counters, NEXT

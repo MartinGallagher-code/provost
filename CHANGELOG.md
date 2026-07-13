@@ -1,5 +1,57 @@
 # glean — Changelog
 
+## 2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false-positive
+
+Two root-cause fixes from a manual quality review of `tests/corpus/review-output/`
+(first 100 files triaged; full writeup in session notes).
+
+**`aligned-columns` first-kv-pair-as-header bug.** A single-record colon-kv
+description block (`apt-cache show` / `dpkg -s` style — `Package: vim` then one
+`Label: value` line per field) was being wrongly claimed by `aligned-columns`:
+row 1's two tokens ("Package:", "vim") became literal COLUMN NAMES and every
+later field got stuffed under them as if it were a second data row. `_ac_shape`
+now declines when a block is dominantly one DISTINCT `Label:` per line (majority
+of rows, no duplicate labels) AND row 1 itself is such a label line — the second
+condition is what keeps real tables whose first *column* happens to carry
+colon-suffixed labels (`/proc/interrupts`'s `HI:`/`TIMER:`/`NET_TX:` rows under a
+`CPU0 CPU1 CPU2 CPU3` header) on `aligned-columns`, since there row 1 is the real
+header, not a field. Declining hands the block to `colons` (priority 60), which
+already renders one clean wide record. Fixes apt-cache-show-vim/curl,
+dpkg-s-nginx, dpkg-status-openssl, ipset-list(-hash), helm-status.
+
+**`csv` comma-in-brackets false positive.** `apt-get`'s download-progress lines
+(`[1,234 kB]`, `2,341 kB/s`) have a consistent per-line comma count purely from
+repeated thousands-grouping punctuation, which was enough to satisfy csv's
+comma-count-consistency detector and produce garbage. Two bracket-stripping
+attempts (blanket greedy `[*]`, then a depth-tracking bracket stripper) were
+tried and dropped — both erased the bracket-internal comma-count *variation*
+that correctly makes `vegeta-report` decline csv (`[total, rate]` vs `[mean,
+p95, p99]`), so stripping bracket contents wholesale is the wrong lever. Landed
+on `_csv_strip_thousands`: exclude a comma from the count only when it has a
+digit immediately before it and EXACTLY three digits after (not a fourth) —
+precise enough to match true grouping commas anywhere (bracketed or not) while
+leaving a real field-separator comma alone even when it sits between two
+digit-ish tokens (`eu-west-1,881204` keeps its comma: 3 digits then a
+disqualifying 4th). Fixes apt-get-download-progress and vegeta-report (both now
+correctly decline to `text-lines`), and incidentally un-broke 8 pre-existing
+false-positive csv winners plus closed a standing ⏳ gap
+(`perf-stat-scientific`, headerless numeric CSV with `1,234,567,890`-style
+grouping). `ledger-balance` also stops false-detecting as csv; the next-best
+generic winner (`vertical-line`) is imperfect for this shape (dollar amounts +
+account names, no true header/separator table) but matches the same accepted
+lossy pattern already on file for its sibling `hledger-balance` — both are the
+loose `text` manifest kind flagged for the pending manifest-tightening pass.
+
+Blast-radius audit: full `tests/corpus/run.sh --golden` gate re-run after each
+fix, every flip diffed against its golden. Two false-positive regressions
+caught and fixed during development (`_ac_shape`'s first cut mis-claimed
+`/proc/interrupts`-shaped tables; the bracket-stripping attempts before
+`_csv_strip_thousands` broke `gpu-nvidia-query` and `vegeta-report`). Final
+state: golden gate 3430 passed / 0 failed / 276 not-yet-covered (pre-existing,
+no golden ever frozen — unrelated to this change); extract suite 62/62; smoke
+49/0; melt 10/0. 9 goldens re-frozen (7 kv-header targets + apt-get-download-
+progress + ledger-balance), 1 new golden written (perf-stat-scientific).
+
 ## 2026-07-13 — pivot-stats parser: the ip -s link pivot shape
 
 New generic parser `strategies/structured/pivot-stats.sh` (priority 39) for
