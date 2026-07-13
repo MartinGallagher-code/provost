@@ -1,0 +1,6 @@
+n	timestamp	hostname	process	message	pid
+1	Jul_11_05_00_01	host01	kernel	[12345.678] Call Trace:	
+2	Jul_11_05_00_01	host01	kernel	[12345.679] dump_stack+0x6d/0x8b	
+3	Jul_11_05_00_01	host01	kernel	[12345.680] __schedule_bug+0x54/0x70	
+4	Jul_11_05_00_02	host01	sshd	Accepted publickey for root from 10.0.0.5 port 51234	9021
+5	Jul_11_05_00_03	host01	systemd	Started Session 42 of user root.	1

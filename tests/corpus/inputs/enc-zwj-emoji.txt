@@ -1,0 +1,4 @@
+household   members   flag
+smiths      👨‍👩‍👧‍👦        🇬🇧
+patels      👩‍👩‍👧         🇮🇳
+chens       👨‍👦          🇨🇳

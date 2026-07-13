@@ -1,0 +1,10 @@
+25.114s NetworkManager-wait-online.service
+ 8.902s docker.service
+ 4.221s snapd.service
+ 3.118s systemd-journal-flush.service
+ 2.904s dev-sda2.device
+ 1.882s postgresql@16-main.service
+  912ms containerd.service
+  441ms systemd-udev-settle.service
+  118ms user@1000.service
+   88ms systemd-tmpfiles-setup.service

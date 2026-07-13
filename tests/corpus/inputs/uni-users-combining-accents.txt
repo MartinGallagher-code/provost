@@ -1,0 +1,5 @@
+USERNAME  FULLNAME       SHELL
+amelie    Amélie Dupont  /bin/bash
+andre     André Gide     /bin/zsh
+bjork     Björk          /bin/sh
+zoe       Zoë Ball       /bin/bash

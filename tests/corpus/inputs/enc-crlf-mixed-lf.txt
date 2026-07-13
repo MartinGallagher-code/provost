@@ -1,0 +1,5 @@
+host        status   latency
+web01       up       12ms
+web02       up       15ms
+db01        down     -
+cache01     up       3ms

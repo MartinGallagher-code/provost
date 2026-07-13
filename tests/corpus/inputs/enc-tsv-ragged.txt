@@ -1,0 +1,5 @@
+name	team	region	tier	oncall
+alice	sre		gold	yes
+bob		emea		no
+carol	data	apac	silver	
+dan	sre	amer	gold	yes

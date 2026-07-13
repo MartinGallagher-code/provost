@@ -1,0 +1,4 @@
+query_string = "a=1&b=2&c=3"
+assignment = "x = y + z"
+formula = "E = mc^2"
+regex = "^key=(.*)$"

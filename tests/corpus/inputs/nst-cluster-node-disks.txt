@@ -1,0 +1,10 @@
+Cluster: prod-ceph
+  Node node-01:
+    osd.0   /dev/sdb   1.8T   up
+    osd.1   /dev/sdc   1.8T   up
+  Node node-02:
+    osd.2   /dev/sdb   1.8T   down
+    osd.3   /dev/sdc   1.8T   up
+  Node node-03:
+    osd.4   /dev/sdb   3.6T   up
+    osd.5   /dev/sdc   3.6T   up

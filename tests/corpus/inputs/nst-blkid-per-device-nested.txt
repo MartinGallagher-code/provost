@@ -1,0 +1,11 @@
+/dev/sda1
+    UUID   1234-ABCD
+    TYPE   vfat
+    LABEL  EFI
+/dev/sda2
+    UUID   aa11-bb22-cc33
+    TYPE   ext4
+    LABEL  boot
+/dev/sda3
+    UUID   dd44-ee55-ff66
+    TYPE   LVM2_member

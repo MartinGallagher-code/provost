@@ -190,14 +190,17 @@ strategy_extract () {
     local line_mode=0
     [[ $ncols -eq 1 && "${cols[0]}" == *"@line" ]] && line_mode=1
 
-    local result="" entry=0 line past=0
+    local result="" entry=0 line past=0 _cs_hdr_line=""
     [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
     while IFS= read -r line; do
         [[ -z "${line//[[:space:]]/}" ]] && continue
         if [[ $past -eq 0 ]]; then
-            [[ "$line" == *"$_CS_HDR"* ]] && past=1
+            [[ "$line" == *"$_CS_HDR"* ]] && { past=1; _cs_hdr_line="$line"; }
             continue
         fi
+        # A mid-stream repeat of the header line (watch/interval re-prints the
+        # whole table every cycle) is chrome, not a data row.
+        [[ -n "$_cs_hdr_line" && "$line" == "$_cs_hdr_line" ]] && continue
         # per-row accept guard (field 9): skip rows whose raw line doesn't match
         [[ -n "$_CS_ROWRE" && ! "$line" =~ $_CS_ROWRE ]] && continue
         # @line mode: emit the whole trimmed line as the sole column (no tokenizing)

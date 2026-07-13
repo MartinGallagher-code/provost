@@ -1,0 +1,3 @@
+{"level":"info","ts":"12:00:01","request":{"method":"GET","uri":"/a?x=1,2"},"status":200}
+{"level":"info","ts":"12:00:02","request":{"method":"POST","uri":"/b"},"status":201}
+{"level":"warn","ts":"12:00:03","request":{"method":"GET","uri":"/c:d"},"status":404}

@@ -1,0 +1,6 @@
+SCHEDULE      COMMAND
+0 2 * * *     /usr/local/bin/backup.sh --dest /mnt/backup
+              --retention 30 --compress
+*/5 * * * *   /usr/local/bin/healthcheck.sh
+0 0 * * 0     /usr/local/bin/rotate-logs.sh --all
+              --gzip

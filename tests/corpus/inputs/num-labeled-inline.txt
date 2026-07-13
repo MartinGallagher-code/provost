@@ -1,0 +1,4 @@
+ts=00:00 cpu=45% mem=3.2GiB load=1,23 net=1.2Gbps
+ts=00:05 cpu=78% mem=7.1GiB load=2,71 net=980Mbps
+ts=00:10 cpu=12% mem=1.1GiB load=0,42 net=45Mbps
+ts=00:15 cpu=95% mem=9.9GiB load=5,00 net=2.5Gbps

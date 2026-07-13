@@ -1,0 +1,6 @@
+param     domain      default
+alpha     [0,1)       0.5
+beta      (-inf,5]    0.0
+gamma     [-1,1]      0.0
+delta     (0,100)     50
+epsilon   [0,inf)     1

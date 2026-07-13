@@ -1,0 +1,8 @@
+╭──────────────┬───────────────┬──────────────╮
+│ [1mNODE[0m         │ [1mROLE[0m          │ [1mSTATUS[0m       │
+├──────────────┼───────────────┼──────────────┤
+│ node-a       │ control-plane │ [5;32mReady[0m        │
+│ node-b       │ worker        │ [5;33mNotReady[0m     │
+│ node-c       │ worker        │ [5;32mReady[0m        │
+│ node-d       │ worker        │ [5;31mSchedDisabled[0m│
+╰──────────────┴───────────────┴──────────────╯

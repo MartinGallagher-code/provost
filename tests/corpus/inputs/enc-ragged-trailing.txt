@@ -1,0 +1,5 @@
+user      role       team      seat
+alice     admin      sre       A1  
+bob       dev        web         
+carol     dev        data      C3
+   dan       ops        infra     D9    

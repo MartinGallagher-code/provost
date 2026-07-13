@@ -1,0 +1,5 @@
+key  value
+driver  nvidia
+version 550.90
+memory  24576MiB
+power   320W

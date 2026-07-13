@@ -1,0 +1,5 @@
+Elementary charge: 1.602e-19
+Avogadro number  : 6.022E23
+Planck constant  : 6.626e-34
+Speed of light   : 2.998e8
+Gas constant     : 8.314

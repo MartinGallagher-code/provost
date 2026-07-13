@@ -1,0 +1,4 @@
+City: MÃ¼nchen
+Café: OPEN
+Owner: BjÃ¶rn
+Note: naÃ¯ve encoding

@@ -1,0 +1,4 @@
+"Last, First",Dept,"Salary, USD"
+"Smith, John",Eng,"120,000"
+"Doe, Jane",Ops,"98,500"
+"Ng, Wei",Eng,"115,250"

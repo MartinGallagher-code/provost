@@ -1,0 +1,4 @@
+svc      port   notes
+api      8080   "uses commas, colons: and | pipes; freely"
+worker   0      "no port; internal only"
+cache    6379   "redis://host:6379, db=0"

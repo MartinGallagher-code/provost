@@ -1,0 +1,4 @@
+key | value | note
+regex | "a|b|c" | alternation
+path  | "/usr/bin" | plain
+alt   | "x|y" | two options

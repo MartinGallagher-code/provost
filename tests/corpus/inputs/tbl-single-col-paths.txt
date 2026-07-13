@@ -1,0 +1,5 @@
+FILE
+/usr/local/bin/glean
+/etc/systemd/system/app.service
+/var/log/app/error log.txt
+/home/user/My Documents/notes.md

@@ -1,0 +1,4 @@
+﻿Hostname: build-runner-04
+Kernel: 6.8.0-40-generic
+Uptime: 12 days
+Load: 0.42

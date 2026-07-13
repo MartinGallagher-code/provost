@@ -1,0 +1,3 @@
+a1b2c3d|Alice|fix: handle a|b in parser
+e4f5a6b|Bob|feat: add --filter "x,y,z" flag
+c7d8e9f|Carol|refactor: split foo() | bar()

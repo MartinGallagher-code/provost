@@ -1,0 +1,5 @@
+Host      cpu   mem   disk   net
+node1     45                 120
+node2           78    90
+node3     30          85
+node4                        200

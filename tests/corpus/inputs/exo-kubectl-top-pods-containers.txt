@@ -1,0 +1,7 @@
+POD                     NAME          CPU(cores)   MEMORY(bytes)
+web-7d9f8c-abcde        nginx         2m           18Mi
+web-7d9f8c-abcde        app           142m         412Mi
+prometheus-0            prometheus    881m         3218Mi
+prometheus-0            config-reloader  1m         9Mi
+etcd-control-01         etcd          44m          214Mi
+coredns-5d78c9-klmno    coredns       3m           22Mi

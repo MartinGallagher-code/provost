@@ -41,15 +41,15 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3196 tools tested; 3126 tidy (70 format gaps ⏳)** — after two +500
+**3706 tools tested; 3558 tidy (150 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 2915 by a generic parser via auto-detection, ✅ʰ 72 by a generic parser
-routed by a hint row, ✅ᵇ 139 by a bespoke strategy. A later positional
+total: ✅ 3339 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
@@ -92,12 +92,92 @@ clean wins: banner-table siblings (`pueue-status`, `apachectl-S`) are stolen by
 `lsblk-tree` can't be hinted without demoting its already-generic siblings;
 `df-locale-de` is a UTF-8/mawk byte-position problem (umlaut columns); and the
 wide-stat cluster (`sar-cpu`, `numastat-p`, `quota-report`) has embedded
-time/grouped/`|`-separated headers. The 70 ⏳ that remain are genuinely hard
-(nested multi-record blocks —
-`ip -s link`'s RX:/TX: sub-tables; headerless first column — kdiskmark;
-single-space multi-word cells — lzbench; prose/diff formats — cargo clippy, git
-diff; nested/2-line-header records). See [`COVERAGE.md`](COVERAGE.md) for the
-live per-tool list.
+time/grouped/`|`-separated headers. A second **+510 adversarial** round then
+generated inputs specifically to BREAK the parser across novel mechanisms
+(encoding/whitespace pathologies, Unicode display-width vs byte math, numeric
+punctuation, embedded-delimiter quoting, structural table oddities, nested
+multi-section records, stacked color+box+emoji, and real-tool exotics like
+`openssl x509`, `ss -i`, `smartctl -a`). **393 of the 510 tidied with no new
+per-tool code (77%)** — a deliberately low rate, since these were built to fail —
+and the break-hunt surfaced one clean format-level fix: an **engine-level
+line-terminator normalization** (once, gated) that maps Windows CRLF, bare-CR
+(classic Mac), vertical-tab / form-feed page breaks, and the Unicode line
+separators NEL / U+2028 / U+2029 to `\n`, so a capture using any of them no
+longer collapses to a single physical line. A follow-up **`ini-sections`** generic
+parser then closed the multi-section INI/config cluster: `[section]` + `key =
+value` dumps that `equals` was flattening into one wide record (colliding
+duplicate keys across sections) now tidy to lossless (section, key, value) rows —
+closing `nst-ini-duplicate-keys` / `-php-ini-sections` / `-tox-ini-sections` and
+improving 9 already-covered configs (gitconfig, `systemctl cat`, rclone/gcloud
+config, …) from a duplicate-column form to the clean section table. It fires only
+on distinct simple-token sections, so ffprobe `[STREAM]` blocks, spaced section
+names and real TOML are left to their own parsers. The `csv` parser then became
+**RFC-4180 quote-aware end-to-end**: detection now counts only commas *outside*
+quoted fields (quoted CSV used to fail the consistency check and fall through to
+a worse parser), the header is split with the same quote-aware splitter (a
+`"Last, First"` header column no longer misaligns every row), the multi-line
+joiner keys on an *open quoted field* instead of raw quote parity (so a literal
+inch-mark `3/4"` row is no longer welded into the next line), and quotes are
+structural only at field start with `""` as the escape — closing
+`quo-csv-currency-thousands` / `-tags-column` / `-inch-marks` and improving 12
+already-covered quoted-CSV fixtures (misaligned/garbled parses → correct
+columns; escaped quotes preserved as data). A new **`quoted-fields`** generic
+parser then closed the access-log family: space-delimited positional records
+where `"…"`, `'…'` and `[…]` group a multi-word value into one field (apache
+combined / nginx access logs, quoted app logs, quoted crontabs). Grouping is
+structural only at token start, so logfmt (`msg="…"`) and quoted CSV never
+match; detection demands a quote span on EVERY line, ≥5 fields, a near-constant
+field count, and declines DNS RRs (`IN TXT`) — leaving dig, bracket-tag logs and
+JSON to their own parsers (verified by a full-corpus firing-surface scan: 5 gaps
+closed + exactly 3 flips, all improvements — `lspci-mm` one-blob → 7 columns,
+`nginx-access-log-quoted` garbled → clean 9-column table, `quo-haproxy-log-quoted`
+no longer splits its quoted request). A **table-chrome** round then taught
+`aligned-columns` (and the `columnar-specs` engine) to drop rows that are table
+furniture, not data: mid-table HEADER REPEATS (watch/top/vmstat/ps re-print the
+header every page/interval — dropped only when token-identical to a digit-free,
+≥3-token header, so a legitimately repeated log line survives) and a UNITS ROW
+directly under the header (`(C) (RPM) (V)`, `MHz dBm dB` — recognised only in
+that position, digit-free, deeper-indented, all tokens short and unit-shaped, so
+an all-lowercase data row with an empty first cell is never eaten). Four
+totals-footer fixtures were aligned with the corpus-wide convention that a
+`TOTAL`/`Average:` row IS a data row (the ✅ sar family, `rsync-stats` and
+`coverage-report` goldens all keep theirs). Closed 10 ⏳ and cleaned the repeated
+header out of 4 already-covered goldens (faillock, iostat-x, curl's second
+header-fragment row). An **engine-level Unicode-space normalization** (once,
+gated — the same pattern as the ANSI strip and line-terminator fixes) then maps
+NBSP, narrow-NBSP, the U+2000–U+200A quad/en/em/thin/hair family, medium math
+space and the CJK ideographic space to ASCII space, so column splitting sees the
+alignment the terminal showed; a single normalized NBSP inside a locale-grouped
+number ("1 234,56") survives the 2+-space column rule, so grouping and padding
+coexist. And `aligned-columns` header detection now accepts **non-ASCII label
+tokens** — a CJK header row (`名前  年齢  都市`) had no `[A-Za-z0-9]` so it was
+never promoted; those tables now get real column names. Together: 7 more ⏳
+closed (NBSP/em/thin/ideographic padding, hangul/JP tables, formfeed pages).
+Then **`semicolon-values` got the csv treatment**: top-level (quote-aware)
+semicolon counting and splitting with `""` escapes, plus a low-density band —
+2-3 separators accepted only when EVERY line has the IDENTICAL top-level count
+(prose with stray semicolons varies and never qualifies; fio's dense ±1 band is
+untouched). Closed 5 ⏳ (European-locale `;`-CSV with embedded `; ` in quoted
+cells, decimal commas, NBSP thousands) and improved 4 already-covered fixtures
+that had been parsed as blobs by text-lines/line-records — now real headers and
+columns with `"paid; net 30"` kept whole. A **wrapped-cells** round then taught
+the positional path in `aligned-columns` to rejoin continuation lines: a grid
+row whose only content sits in the LAST cell (first cell empty) is the previous
+row's last column wrapped onto a new line (kubectl events' MESSAGE, systemctl's
+DESCRIPTION, crontab COMMAND) and is appended, space-joined. The same round
+uncovered — and fixed — a long-standing positional bug: `IFS=$'\t' read -ra`
+treats TAB as IFS whitespace, so EMPTY grid cells collapsed and every value to
+their right shifted one column left; a tab-safe splitter now keeps cells in
+place, correcting the empty-cell column labeling of 22 already-covered tables
+(docker/podman ps with empty PORTS, lastlog's Never-logged-in rows, sparse
+network/volume listings). Closed 4 wrapped ⏳; `tbl-df-wrapped-device` stays
+open (first-column overflow in a single-space numeric table — the fixed-width
+byte-offset family). The 150 ⏳ that remain are
+genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
+first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
+column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;
+prose/diff formats — cargo clippy, git diff; nested/2-line-header records). See
+[`COVERAGE.md`](COVERAGE.md) for the live per-tool list.
 
 Coverage tiers, in order of preference:
 

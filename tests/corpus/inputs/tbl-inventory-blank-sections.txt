@@ -1,0 +1,8 @@
+Host          Role      CPU  Mem
+web01         frontend    4   8G
+web02         frontend    4   8G
+
+db01          database   16  64G
+db02          database   16  64G
+
+cache01       cache       8  32G

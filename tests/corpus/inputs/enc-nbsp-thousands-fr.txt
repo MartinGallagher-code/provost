@@ -1,0 +1,5 @@
+poste;montant;devise
+ventes;1 250 000,50;EUR
+achats;830 400,00;EUR
+salaires;1 010 200,75;EUR
+divers;12 500,00;EUR

@@ -1,0 +1,5 @@
+[1mUSER       UID     SHELL          LASTLOGIN[0m
+alice      [33m10[0m[36m01[0m    /bin/bash      2026-07-10
+bob        [33m10[0m[36m02[0m    /bin/zsh       2026-07-09
+carol      [33m10[0m[36m03[0m    /usr/bin/fish  2026-06-30
+dave       [33m10[0m[36m04[0m    /sbin/nologin  never

@@ -1,0 +1,6 @@
+Account         Debit         Credit
+Cash            12,500.00     -
+Receivable       8,750.00     -
+Payable         -             (4,200.00)
+Revenue         -             (45,000.00)
+Expenses        27,950.00     -

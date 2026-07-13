@@ -1,1 +1,7 @@
-
+entry1.name cpu_temp
+entry1.value 44.2
+entry1.unit C
+entry2.name gpu_temp
+entry2.value 38.1
+entry2.unit C
+total_entries 2

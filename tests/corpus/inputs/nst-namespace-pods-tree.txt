@@ -1,0 +1,11 @@
+Namespace: kube-system
+  NAME                       READY   STATUS    RESTARTS
+  coredns-5d78c9-abcde       1/1     Running   0
+  coredns-5d78c9-fghij       1/1     Running   1
+  etcd-master                1/1     Running   0
+Namespace: production
+  NAME                       READY   STATUS    RESTARTS
+  api-7f9c-11111             2/2     Running   0
+  api-7f9c-22222             2/2     Running   3
+  worker-6a2b-33333          1/1     Running   0
+  worker-6a2b-44444          0/1     Pending   0

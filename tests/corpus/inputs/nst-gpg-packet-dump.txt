@@ -1,0 +1,12 @@
+# off=0 ctb=99 tag=6 hlen=3 plen=525
+:public key packet:
+	version 4, algo 1, created 1710000000, expires 0
+	pkey[0]: [2048 bits]
+	pkey[1]: [17 bits]
+	keyid: A1B2C3D4E5F60718
+# off=528 ctb=b4 tag=13 hlen=2 plen=32
+:user ID packet: "Alice <alice@example.com>"
+# off=562 ctb=89 tag=2 hlen=3 plen=284
+:signature packet: algo 1, keyid A1B2C3D4E5F60718
+	version 4, created 1710000100, md5len 0, sigclass 0x13
+	digest algo 8, begin of digest a4 c3

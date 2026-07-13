@@ -1,0 +1,6 @@
+Vendor: Contoso
+Model: X900
+Serial: SN-4471
+Firmware: 2.14
+Capacity: 4TB
+Health: OK

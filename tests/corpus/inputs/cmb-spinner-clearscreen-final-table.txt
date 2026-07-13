@@ -1,0 +1,5 @@
+[36m⠋[0m warming caches[36m⠴[0m warming caches[2J[H[1mCACHE      ENTRIES   HITRATE   EVICTS[0m
+sessions   12040     [32m0.98[0m      12
+objects    88210     [33m0.81[0m      4402
+fragments  4210      [32m0.95[0m      88
+routes     120       [31m0.42[0m      910

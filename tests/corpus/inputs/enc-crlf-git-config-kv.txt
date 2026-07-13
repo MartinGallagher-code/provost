@@ -1,0 +1,5 @@
+user.name=Ada Lovelace
+user.email=ada@example.org
+core.editor=vim
+core.autocrlf=input
+push.default=simple

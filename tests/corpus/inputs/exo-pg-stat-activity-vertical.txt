@@ -1,0 +1,24 @@
+-[ RECORD 1 ]----+------------------------------------
+datid            | 16401
+datname          | appdb
+pid              | 2288
+usename          | app
+application_name | pgbench
+client_addr      | 10.0.0.9
+backend_start    | 2026-07-11 08:14:32.001923+00
+state            | active
+wait_event_type  | Lock
+wait_event       | transactionid
+query            | UPDATE accounts SET balance = balance - 10 WHERE aid = 4421;
+-[ RECORD 2 ]----+------------------------------------
+datid            | 16401
+datname          | appdb
+pid              | 2291
+usename          | app
+application_name | pgbench
+client_addr      | 10.0.0.9
+backend_start    | 2026-07-11 08:14:32.114562+00
+state            | idle in transaction
+wait_event_type  | Client
+wait_event       | ClientRead
+query            | BEGIN;

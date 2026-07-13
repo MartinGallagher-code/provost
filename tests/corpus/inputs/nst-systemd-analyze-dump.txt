@@ -1,0 +1,12 @@
+[Manager]
+Timestamp=Sat 2026-07-11 01:00:00 UTC
+Features=+PAM +AUDIT +SELINUX
+Architecture=x86-64
+
+[Unit multi-user.target]
+ActiveEnterTimestamp=Sat 2026-07-11 01:00:42 UTC
+InactiveExitTimestamp=Sat 2026-07-11 01:00:12 UTC
+
+[Unit network-online.target]
+ActiveEnterTimestamp=Sat 2026-07-11 01:00:38 UTC
+InactiveExitTimestamp=Sat 2026-07-11 01:00:20 UTC

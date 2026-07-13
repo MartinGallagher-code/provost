@@ -1,0 +1,5 @@
+名前          TYPE       値
+温度センサー  float    23.5
+湿度          int        60
+気圧計        float  1013.2
+door          bool     open

@@ -1,0 +1,6 @@
+name      count    ratio    status
+alpha     100      0.25     ok
+beta      250      0.50     ok
+gamma     375      0.75     warn
+delta     500      1.00     crit
+epsilon   625      1.25     crit

@@ -1,0 +1,6 @@
+node	cpu	mem	pods
+node-a	42%	61%	18
+node-b	77%	55%	24
+node-c	12%	33%	9
+node-d	90%	88%	31
+node-e	5%	20%	3

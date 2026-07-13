@@ -1,0 +1,2 @@
+url_effective	time_namelookup	time_connect	remote_ip	content_type
+https://api.example.com:8443/v1/health	0:00.004	0:00.021	2606:4700:4700::1111	application/json; charset=utf-8

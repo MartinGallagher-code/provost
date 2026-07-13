@@ -1,0 +1,5 @@
+CUSTID    NAME                REGION    
+000123    ACME INDUSTRIES     WEST      
+000124    GLOBEX CORP         EAST      
+000125    INITECH LLC         NORTH     
+000126    UMBRELLA CO         SOUTH     

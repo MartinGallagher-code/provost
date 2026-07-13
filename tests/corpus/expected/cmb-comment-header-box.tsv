@@ -1,0 +1,4 @@
+n	ZONE	TARGET	IFACES	total_entries
+1	public	DROP	eth0	3
+2	trusted	ACCEPT	br0	3
+3	dmz	REJECT	eth1	3

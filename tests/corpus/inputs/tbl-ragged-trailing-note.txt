@@ -1,0 +1,5 @@
+CHECK        STATUS   DURATION
+dns-lookup   PASS     0.12s
+tls-cert     WARN     0.45s   expires in 14 days
+http-get     PASS     0.08s
+disk-space   FAIL     0.01s   93% used on /var

@@ -1,0 +1,5 @@
+Component      init  ready  live  metrics
+api             ok            ok
+worker          ok    ok     ok       ok
+scheduler       ok            ok
+gateway         ok    ok             ok

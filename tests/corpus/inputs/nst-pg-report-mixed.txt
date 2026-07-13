@@ -1,0 +1,13 @@
+Database Maintenance Report
+Generated: 2026-07-11 03:00 UTC
+Database: production
+
+Top Bloated Tables:
+schema   table          bloat_ratio   wasted
+public   orders         2.44          1240 MB
+public   order_items    1.98          890 MB
+public   sessions       3.10          620 MB
+audit    events         1.55          410 MB
+
+Recommendation: VACUUM FULL during maintenance window
+Autovacuum: enabled

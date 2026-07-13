@@ -1,0 +1,4 @@
+root:x:0:0:root:/root:/bin/bash
+oncall:x:1001:1001:Oncall 09:00-17:00,Room 4,x231:/home/oncall:/bin/bash
+backup:x:34:34:backup 02:30 daily:/var/backups:/usr/sbin/nologin
+deploy:x:1002:1002:Deploy Bot,,,:/home/deploy:/bin/sh

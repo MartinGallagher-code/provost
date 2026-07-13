@@ -1,0 +1,5 @@
+Jul 11 05:00:01 host01 kernel: [12345.678] Call Trace:
+Jul 11 05:00:01 host01 kernel: [12345.679]  dump_stack+0x6d/0x8b
+Jul 11 05:00:01 host01 kernel: [12345.680]  __schedule_bug+0x54/0x70
+Jul 11 05:00:02 host01 sshd[9021]: Accepted publickey for root from 10.0.0.5 port 51234
+Jul 11 05:00:03 host01 systemd[1]: Started Session 42 of user root.

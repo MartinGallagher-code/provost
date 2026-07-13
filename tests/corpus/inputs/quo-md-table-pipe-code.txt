@@ -1,0 +1,5 @@
+| lang | snippet            | note      |
+|------|--------------------|-----------|
+| sh   | `cmd a | grep b`   | pipeline  |
+| sql  | `a | b`            | union-ish |
+| awk  | `$1 | $2`          | fields    |

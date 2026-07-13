@@ -1,0 +1,5 @@
+Name	Age	City
+Ann	29	Oslo
+Bartholomew	7	Reykjavik
+Cy	42	Rome
+Delphine	101	Nice

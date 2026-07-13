@@ -1,0 +1,18 @@
+# Samples: 12K of event 'cycles'
+# Event count (approx.): 9812340012
+#
+# Overhead  Command  Shared Object     Symbol
+# ........  .......  ................  ..................
+#
+    18.42%  postgres postgres          [.] heap_getnext
+    11.09%  postgres libc-2.31.so      [.] __memmove_avx
+     7.55%  postgres postgres          [.] ExecScan
+
+# Samples: 4K of event 'instructions'
+# Event count (approx.): 24019887711
+#
+# Overhead  Command  Shared Object     Symbol
+# ........  .......  ................  ..................
+#
+    22.10%  postgres postgres          [.] slot_deform_tuple
+     9.87%  postgres [kernel.kallsyms] [k] copy_user_generic

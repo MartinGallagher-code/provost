@@ -1,0 +1,6 @@
+Path              Mode    Owner
+/etc/passwd       0644    root
+/etc/shadow       0o600   root
+/usr/bin/sudo     4755    root
+/tmp              1777    root
+/root             0700    root

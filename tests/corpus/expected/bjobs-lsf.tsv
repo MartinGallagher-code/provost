@@ -1,4 +1,4 @@
 n	JOBID	USER	STAT	QUEUE	FROM_HOST	EXEC_HOST	JOB_NAME	SUBMIT_TIME	total_entries
 1	4421	alice	RUN	normal	login1	gpu01	train	Jul 10 04:00	3
 2	4422	bob	RUN	normal	login1	gpu03	eval	Jul 10 05:12	3
-3	4423	carol	PEND	normal	login1	sim	Jul 10 05:44		3
+3	4423	carol	PEND	normal	login1		sim	Jul 10 05:44	3

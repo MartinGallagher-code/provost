@@ -1,0 +1,4 @@
+row,raw,parsed
+1,"a,b;c:d|e",5
+2,"""quoted"" and, more",2
+3,"tab	here, too",1

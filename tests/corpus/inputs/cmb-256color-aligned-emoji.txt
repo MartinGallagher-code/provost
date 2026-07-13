@@ -1,0 +1,5 @@
+[1mSTATUS   NAME             REGION        SIZE[0m
+[38;5;40m●[0m active   [38;5;39mdb-primary[0m 🗄️      us-east-1     [38;5;208m4 vCPU[0m
+[38;5;40m●[0m active   [38;5;39mdb-replica[0m 🗄️      us-east-1     [38;5;208m4 vCPU[0m
+[38;5;226m●[0m syncing  [38;5;39mcache-01[0m 🧊        eu-west-1     [38;5;208m2 vCPU[0m
+[38;5;196m●[0m down     [38;5;39mworker-9[0m ⚙️        ap-south-1    [38;5;208m8 vCPU[0m

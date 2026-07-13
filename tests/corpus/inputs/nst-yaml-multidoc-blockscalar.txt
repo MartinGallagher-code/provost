@@ -1,0 +1,19 @@
+---
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  motd: |
+    Welcome to the cluster.
+    Maintenance every Sunday 02:00 UTC.
+  banner: >
+    This is a folded
+    scalar value that
+    becomes one line.
+---
+kind: Secret
+metadata:
+  name: app-secret
+type: Opaque
+data:
+  token: c2VjcmV0dG9rZW4=

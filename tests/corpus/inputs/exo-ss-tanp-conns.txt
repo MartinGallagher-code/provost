@@ -1,0 +1,8 @@
+State      Recv-Q Send-Q       Local Address:Port        Peer Address:Port     Process
+LISTEN     0      128                0.0.0.0:22               0.0.0.0:*         users:(("sshd",pid=812,fd=3))
+LISTEN     0      511              127.0.0.1:6379             0.0.0.0:*         users:(("redis-server",pid=1044,fd=6))
+ESTAB      0      0             10.0.0.5:51234          93.184.216.34:443       users:(("chrome",pid=3391,fd=88))
+ESTAB      36     0             10.0.0.5:22             10.0.0.9:60122          users:(("sshd",pid=9931,fd=4))
+TIME-WAIT  0      0             10.0.0.5:44120         151.101.1.140:80
+CLOSE-WAIT 1      0             10.0.0.5:38812          10.0.0.3:5432           users:(("python3",pid=2288,fd=12))
+LISTEN     0      4096                   *:9100                   *:*           users:(("node_exporter",pid=771,fd=3))

@@ -1,0 +1,5 @@
+date,event,count
+2026-01-01,login,42
+2026-01-02,logout,38
+2026-01-03,error,3
+2026-01-04,login,55

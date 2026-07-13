@@ -1,0 +1,25 @@
+; <<>> DiG 9.18.24 <<>> +multiline ANY example.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 51923
+;; flags: qr rd ra; QUERY: 1, ANSWER: 4, AUTHORITY: 0, ADDITIONAL: 1
+
+;; QUESTION SECTION:
+;example.com.		IN ANY
+
+;; ANSWER SECTION:
+example.com.		3600 IN SOA dns.icann.org. noc.dns.icann.org. (
+				2026070101 ; serial
+				7200       ; refresh (2 hours)
+				3600       ; retry (1 hour)
+				1209600    ; expire (2 weeks)
+				3600       ; minimum (1 hour)
+				)
+example.com.		3600 IN NS a.iana-servers.net.
+example.com.		3600 IN NS b.iana-servers.net.
+example.com.		3600 IN MX 10 mail.example.com.
+
+;; Query time: 24 msec
+;; SERVER: 127.0.0.53#53(127.0.0.53) (TCP)
+;; WHEN: Sat Jul 11 09:30:15 UTC 2026
+;; MSG SIZE  rcvd: 209

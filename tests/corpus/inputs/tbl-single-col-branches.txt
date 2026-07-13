@@ -1,0 +1,6 @@
+main
+develop
+feature/login
+feature/payments
+hotfix/security-patch
+release/2.0

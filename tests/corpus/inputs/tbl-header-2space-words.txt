@@ -1,0 +1,4 @@
+Node           Last  Seen        Status
+node-a         2 minutes ago     healthy
+node-b         5 minutes ago     degraded
+node-c         1 hour ago        healthy

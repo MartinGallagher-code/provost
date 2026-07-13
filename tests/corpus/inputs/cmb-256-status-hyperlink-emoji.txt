@@ -1,0 +1,5 @@
+[1mSTATE   NAME          REGION       TIER      LINK[0m
+[38;5;46m●[0m up      [38;5;51medge-1[0m 🌐       nyc          [38;5;220mpro[0m       ]8;;https://x/edge-1\open]8;;\
+[38;5;46m●[0m up      [38;5;51medge-2[0m 🌐       sfo          [38;5;220mpro[0m       ]8;;https://x/edge-2\open]8;;\
+[38;5;196m●[0m down    [38;5;51medge-3[0m 🌐       ams          [38;5;220mfree[0m      ]8;;https://x/edge-3\open]8;;\
+[38;5;226m●[0m warn    [38;5;51medge-4[0m 🌐       sin          [38;5;220mpro[0m       ]8;;https://x/edge-4\open]8;;\

@@ -1,0 +1,13 @@
+/dev/md0:
+        Version : 1.2
+     Raid Level : raid5
+     Array Size : 5860147200 (5.46 TiB)
+   Raid Devices : 4
+    Total Devices : 4
+          State : clean
+
+    Number   Major   Minor   RaidDevice State
+       0       8       17        0      active sync   /dev/sdb1
+       1       8       33        1      active sync   /dev/sdc1
+       2       8       49        2      active sync   /dev/sdd1
+       3       8       65        3      active sync   /dev/sde1

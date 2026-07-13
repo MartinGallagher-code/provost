@@ -1,0 +1,5 @@
+NAME      SCORE
+Ångström    100
+Ångström    100
+Angstrom    100
+ééé           3

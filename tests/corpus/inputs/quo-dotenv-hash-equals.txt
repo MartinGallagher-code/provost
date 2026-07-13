@@ -1,0 +1,5 @@
+DB_URL="postgres://u:p@host:5432/db?ssl=true"
+SECRET='k=v#notacomment'
+GREETING="hello world"  # trailing comment
+PROMPT="$ "
+FLAGS=-x=1 -y=2

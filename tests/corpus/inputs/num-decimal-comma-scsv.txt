@@ -1,0 +1,5 @@
+sensor;value;unit;tolerance
+temp;3,14;C;0,05
+volt;12,50;V;0,10
+curr;0,75;A;0,02
+freq;50,00;Hz;0,01

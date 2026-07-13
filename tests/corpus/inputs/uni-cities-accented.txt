@@ -1,0 +1,6 @@
+CITY       COUNTRY      TZ
+Zürich     Switzerland  +01:00
+São Paulo  Brazil       -03:00
+Reykjavík  Iceland      +00:00
+Malmö      Sweden       +01:00
+Da Nang    Vietnam      +07:00

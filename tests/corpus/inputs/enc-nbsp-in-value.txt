@@ -1,0 +1,5 @@
+account       balance      currency
+operating     1 204 330   EUR
+reserve         88 500   EUR
+payroll        512 010   EUR
+petty              1 250   EUR

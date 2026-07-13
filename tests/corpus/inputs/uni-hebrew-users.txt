@@ -1,0 +1,4 @@
+UID   NAME        DEPT
+1001  דוד כהן     הנדסה
+1002  שרה לוי     שיווק
+1003  John Smith  eng

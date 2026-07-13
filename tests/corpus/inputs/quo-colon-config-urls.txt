@@ -1,0 +1,4 @@
+upstream:api:https://api.example.com:8443/v1
+cache:redis:redis://10.0.0.5:6379/0
+db:primary:postgres://user@db:5432/app
+metrics:otlp:http://collector:4317

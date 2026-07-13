@@ -1,0 +1,10 @@
+-Queue ID-  --Size-- ----Arrival Time---- -Sender/Recipient-------
+A1B2C3D4       1842 Sat Jul 11 05:10:22  alice@example.com
+                                         bob@remote.net
+                                         carol@remote.net
+
+E5F6G7H8       2210 Sat Jul 11 05:11:03  noreply@example.com
+                (connect to mx.remote.net: Connection timed out)
+                                         dave@remote.net
+
+-- 4 Kbytes in 2 Requests.

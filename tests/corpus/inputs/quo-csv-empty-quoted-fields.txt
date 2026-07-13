@@ -1,0 +1,4 @@
+host,ipv4,ipv6,note
+web01,10.0.0.1,"","edge, public"
+web02,"","fe80::1","internal, drained"
+db01,10.0.0.9,"",""

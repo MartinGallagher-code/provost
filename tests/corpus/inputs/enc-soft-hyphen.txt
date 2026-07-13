@@ -1,0 +1,5 @@
+term            definition       ref
+inter­face      boundary layer   R1
+proto­col      agreed format    R2
+end­point      access url       R3
+gate­way       traffic relay    R4

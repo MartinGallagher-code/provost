@@ -1,0 +1,5 @@
+NAME       FLAGS   STATE     PID
+worker-1           running   1234
+worker-2           running   1235
+worker-3           stopped      -
+scheduler          running   1240

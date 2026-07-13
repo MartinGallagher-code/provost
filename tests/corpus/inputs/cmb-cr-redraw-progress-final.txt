@@ -1,0 +1,6 @@
+Building image  [33m[  0%][0mBuilding image  [33m[ 45%][0mBuilding image  [33m[ 88%][0mBuilding image  [32m[100%] done[0m
+
+[1mLAYER    COMMAND              SIZE     CACHED[0m
+sha256:a  RUN apt-get update    88 MB    yes
+sha256:b  COPY . /app           12 MB    no
+sha256:c  RUN make build        204 MB   no

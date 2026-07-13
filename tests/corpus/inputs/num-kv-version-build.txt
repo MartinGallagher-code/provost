@@ -1,0 +1,5 @@
+Version: 1.0.0-rc.1+build.42
+Commit: 0xA1B2C3D4
+BuildNumber: 4096
+Semver: 10.20.30-beta.1
+ABI: 3.4.5

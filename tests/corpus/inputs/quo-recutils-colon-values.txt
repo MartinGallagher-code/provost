@@ -1,0 +1,9 @@
+Name: Acme API
+URL: https://api.acme.io:443/v2
+Schedule: 09:00-17:00
+Note: rate limit: 100/min, burst: 20
+
+Name: Globex
+URL: http://globex.example:8080
+Schedule: 24/7
+Note: no auth; open: true

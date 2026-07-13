@@ -1,0 +1,5 @@
+USER   STATUS    EMOJI
+alice  waving    👋🏻
+bob    thumbsup  👍🏿
+carol  ok        👌🏽
+dave   clap      👏

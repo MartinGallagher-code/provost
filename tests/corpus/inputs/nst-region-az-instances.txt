@@ -1,0 +1,11 @@
+Region: us-east-1
+  AZ: us-east-1a
+    i-0a11  m5.large    running
+    i-0a12  t3.micro    running
+  AZ: us-east-1b
+    i-0b21  c5.xlarge   stopped
+Region: eu-west-1
+  AZ: eu-west-1a
+    i-0c31  m5.large    running
+    i-0c32  r5.2xlarge  running
+    i-0c33  t3.small    pending

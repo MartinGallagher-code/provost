@@ -1,5 +1,262 @@
 # glean — Changelog
 
+## 2026-07-12 — wrapped cells + the tab-collapse bug
+
+Two changes in `aligned-columns`' positional-grid path:
+
+- **Wrapped-cell rejoin.** A grid row whose only content sits in the LAST cell
+  (first cell empty) is the previous row's last column wrapped onto a new line
+  — kubectl events' MESSAGE, systemctl list-units' DESCRIPTION, a crontab's
+  two-line COMMAND, issue-tracker DESCRIPTION columns. Appended space-joined.
+  A sparse-matrix row keeps its row label, so first-cell-empty + only-last-cell
+  never fires there. (A leading-overflow rule — value alone on its own line,
+  next row's first cell empty — ships too, for the df long-device shape, but
+  that fixture doesn't reach the positional path; see below.)
+- **The tab-collapse bug (long-standing, uncovered by the wrap join not
+  firing):** `IFS=$'\t' read -ra` treats TAB as IFS *whitespace*, so empty grid
+  cells COLLAPSED and every value to their right shifted one column left —
+  docker/podman ps rows with empty PORTS carried their NAME in the PORTS
+  column; lastlog's "**Never logged in**" sat in the Port column. A tab-safe
+  splitter (`_ac_cells`) now keeps cells in place. 22 covered goldens
+  re-frozen, every one an empty-cell column-labeling fix (audited: docker-ps
+  x3, podman-ps x3, lastlog x2, sparse network/volume/branch listings, consul's
+  positionally-faithful relabel).
+
+Closes 4 ⏳: tbl-kubectl-events-wrapped, tbl-systemctl-wrapped-desc,
+tbl-two-line-wrapped-command, tbl-wrapped-desc-col. `tbl-df-wrapped-device`
+stays open honestly — its table never reaches the positional path
+(single-space numeric gaps fail `_ac_aligned`; the fixed-width byte-offset
+family). Golden gate 0 failed after re-freeze; extract 62/62, smoke 49/0,
+melt 10/0. Coverage 3554 -> 3558 tidy of 3706 (150 ⏳).
+
+## 2026-07-12 — semicolon-values: quote-awareness + low-density band
+
+The csv treatment for `strategies/delimited/semicolon-values.sh`. One shared
+splitter (`_strat_ssv_split`: quotes structural at field start, `""` escape,
+top-level `;` counting) drives detection and extraction:
+
+- **Quote-aware counting/splitting:** a `;` inside "…" is data
+  (`Schraube;"1.234,56";"12; nachbestellen"` — the embedded `; ` stays in its
+  cell). Previously the raw count differed per line, detection failed, and the
+  input fell to a blob parser.
+- **Low-density band:** 2-3 top-level separators accepted only when EVERY line
+  has the IDENTICAL count and there are >=2 lines — prose with stray semicolons
+  ("o - Other; r - Repeater; …") varies line to line and never qualifies. The
+  dense fio band (>=4, ±1, single-line OK) is untouched: fio terse goldens
+  byte-identical.
+
+Closes 5 ⏳: quo-ssv-euro-numbers, enc-nbsp-thousands-fr (the one the
+unicode-space round couldn't take), cmb-ansi-csv-semicolon,
+num-decimal-comma-scsv, num-semicolon-eu-decimals. Improves 4 covered fixtures
+(csv-semicolon-comma-values, european-decimal-csv, quo-csv-semicolon-delim,
+quo-semicolon-embedded) — all had been one-blob or welded token-soup via
+text-lines/line-records/aligned-columns; now real headers and columns. Full
+blast scan: 12 detections total = fio x2 unchanged + 5 closes + 4 improvements
++ 1 non-flip (yaml still wins cmb-truecolor-colonsep-kv at the engine level).
+
+Telling find from the suite: the strategy's own sample golden was EMPTY — the
+old >=4 rule rejected the sample's documented `name;value;unit` case, and the
+golden had frozen that miss. Regenerated (7 fields). Golden gate 3408/0,
+extract 168 sample-golden verifications 0 failed, smoke 49/0, melt 10/0.
+Coverage 3547 -> 3554 tidy of 3706 (154 ⏳).
+
+## 2026-07-12 — Unicode spaces + CJK headers
+
+Two fixes for the Unicode-space/width cluster:
+
+- **Engine: Unicode-space normalization** (`extract/envoy-extract`, after the
+  line-terminator block, same gated once-per-input pattern). Maps NBSP (U+00A0),
+  narrow NBSP (U+202F), U+2000–U+200A (quad/en/em/thin/hair), medium math space
+  (U+205F) and the ideographic space (U+3000) to ASCII space, so column
+  splitting — which keys on runs of 0x20 — sees the alignment the terminal
+  showed. The locale subtlety that blocked this before resolves itself: a
+  single normalized NBSP inside a grouped number ("1 234,56") survives the
+  2+-space column rule, so NBSP-as-grouping and NBSP-as-padding coexist.
+  Gotcha: in a $'…' sed script a byte range must be raw bytes ([\200-\212]) —
+  double-escaping puts a literal backslash in the bracket ("Invalid range end").
+- **aligned-columns: non-ASCII header labels.** The labelly check required
+  every header token to carry [A-Za-z0-9], so an all-CJK header row
+  (名前 年齢 都市) was never promoted and the header landed in the data as
+  row 1. A label token may now be any token carrying an ASCII alphanumeric OR
+  a multibyte character; CJK/hangul tables get real column names.
+
+Closes 7 ⏳: enc-nbsp-padding, enc-em-space-padding, enc-thin-space-sep,
+enc-ideographic-space, uni-ideographic-space-sep, uni-hangul-servers,
+enc-formfeed-pages (num-nbsp-grouping and uni-jp-en-mixed-table also now parse
+correctly — they carried goldens already). enc-nbsp-thousands-fr stays ⏳
+honestly (it is semicolon-delimited — the semicolon-values density cluster,
+not a space problem).
+
+Golden audit of the 17 flips: the labelly first cut (any multibyte token =
+label) promoted glyph-decorated LOG lines to headers (⚡️ volta, ✖ commitlint,
+› stern, · navi, 🐷 trufflehog, │ docker-scout — each losing row 1 as data);
+tightened to fire only when EVERY non-separator token in the row is fully
+non-ASCII (a pure CJK label row) — all 6 restored byte-identical. The 11
+NBSP-family goldens re-frozen as improvements (NBSP/em/thin/figure bytes ->
+clean cells; "1 234,56" one cell). One accepted trade: uni-kv-fullwidth now
+splits its fullwidth-colon pairs properly (was 4 unsplit blobs) but the
+pre-existing all-caps rule takes pair 1 as a header — still passes its kv
+manifest; the full fix is fullwidth-colon (：) support in the colons parser
+(noted as follow-up). Golden gate 0 failed after re-freeze; extract 62/62,
+smoke 49/0, melt 10/0.
+
+## 2026-07-12 — table chrome: header repeats + units rows
+
+`aligned-columns` and the `columnar-specs` engine now drop rows that are table
+furniture, not data. Both rules are containment-first (each first cut caused
+real regressions the golden audit caught; the shipped form restores all of them):
+
+- **Mid-table header repeats** (watch/top/vmstat/ps re-print the header every
+  page/interval): any later line token-identical to the header is dropped —
+  but only when the header is digit-free AND has ≥3 tokens, so a legitimately
+  repeated 2-token log line (`entr`'s "restarting: app.py") and repeated data
+  lines carrying digits ("[app] listening on :8080") survive. Same rule in
+  columnar-specs (exact repeat of the consumed header line), closing
+  `tbl-watch-diskio-repeat` via the iostat-d spec.
+- **Units row under the header** (`(C)  (RPM)  (V)`, `MHz  dBm  dB`): dropped
+  only in that one position and only when digit-free, deeper-indented (blank
+  first cell), fewer tokens than the header, and EVERY token unit-shaped
+  (parenthesized or case-mixed, ≤6 chars). An all-lowercase data row with an
+  empty first cell (consul's `web  db  allow`) or long values (nerdctl's
+  conflist paths, needrestart's service names) is never eaten.
+- **Totals-footer manifests aligned with corpus convention:** the ✅ sar family,
+  `rsync-stats`, `coverage-report` all keep their `Average:`/`TOTAL` row as a
+  data row, so the four adversarial footer fixtures now expect it too
+  (dropping totals corpus-wide would have flipped ~11 established goldens and
+  their manifests — wrong trade).
+
+Closes 10 ⏳: vmstat/ps/top header repeats, watch-diskio, sensors/SI units rows,
+and the four footer fixtures. Improves 4 already-covered goldens (faillock,
+exo-iostat-x-repeated, nst-vmstat-sections, curl-progress-meter — each carried
+a repeated-header/chrome row as data). `tbl-sar-interval-repeat` stays ⏳
+honestly: its header starts with a timestamp, so the table reads as headerless
+and there is nothing safe to key a repeat off. Golden gate 0 failed, extract
+62/62, smoke 49/0, melt 10/0. Coverage 3530 -> 3540 tidy of 3706 (166 ⏳).
+
+## 2026-07-12 — quoted-fields parser: the access-log family
+
+New generic parser `strategies/delimited/quoted-fields.sh` (priority 12) for
+space-delimited positional records where `"…"`, `'…'` and `[…]` group a
+multi-word value into ONE field — apache combined / nginx access logs, quoted
+app logs, quoted crontabs, `lspci -mm`. No header; columns are synthesised.
+
+Containment (the first cut fired on 45 corpus inputs; tightened to 9):
+- grouping/signature only at TOKEN start — logfmt (`msg="…"`) and quoted CSV
+  (quotes after commas) never form spans and stay with their parsers;
+- the signature is a QUOTE span on every line (brackets group `[ts +0000]`
+  but don't qualify — else every bracket-tag log and aligned table with a
+  `[SWAP]` cell would match), ≥5 fields, field-count spread ≤2;
+- DNS RRs decline via the (IN, <rr-type>) token pair — dig TXT stays with
+  dns-records; JSON declines via _is_json.
+
+Closes 5 ⏳ (`quo-apache-combined-log`, `quo-access-log-referer-query`,
+`quo-app-log-quoted-fields`, `quo-cron-quoted-cmd`, `quo-nginx-log-ua-commas`).
+Exactly 3 audited flips, all improvements: `lspci-mm` (one-blob text-lines →
+7 real columns), `nginx-access-log-quoted` (garbled csv 1-row → clean 9-column
+table), `quo-haproxy-log-quoted` (quoted request no longer split across 3
+columns). Ships sample + golden. Golden gate 0 failed, extract suite green,
+smoke/melt green. Coverage 3525 -> 3530 tidy of 3706 (176 ⏳); generic 3313.
+
+Also: `local x="$1" y=${#x}` breaks under the engine's `set -u` (bash expands
+all words of a `local` before any assignment lands) — split declarations.
+
+## 2026-07-12 — csv: RFC-4180 quote-awareness end-to-end
+
+Gap-cluster round on the quoted-CSV family (`strategies/structured/csv.sh`).
+The extractor's row parser was already quote-aware, but everything around it
+wasn't; four fixes, one shared splitter (`_strat_csv_split` — quotes structural
+only at field start, `""` escape, `_CSV_OPEN` flag for continuation lines):
+
+- **Detection counted commas inside quotes**, so genuinely quoted CSV
+  (`1001,"Cash, operating","1,234,567.89"`) failed the comma-consistency check
+  and fell through to a worse parser. Detect now counts only top-level commas.
+- **Header split was a naive `IFS=','`** — a quoted header column
+  (`"Last, First",Dept`) misaligned every data row. Now uses the same splitter.
+- **The multi-line joiner keyed on raw quote parity**, so a literal inch-mark
+  row (`Pipe,3/4",100`) was welded into the next line. Now keys on whether the
+  RFC-4180 parse ends inside an open quoted field.
+- **A blanket quote-strip erased literal quotes from values** (`6"" widget`
+  became `6 widget`). Structural quotes are consumed by the splitter; anything
+  left is data and stays.
+
+Closes `quo-csv-currency-thousands` / `quo-csv-tags-column` /
+`quo-csv-inch-marks` (3 ⏳). Full golden audit of the 12 changed goldens: 7
+outright improvements (`psql-csv-quoted-commas`, `sqlite-csv-mode-quotes`,
+`quo-csv-name-city-commas` went from garbled token-soup to correct columns;
+escaped `""` quotes now preserved; `tshark-fields-quoted` no longer splits its
+quoted request field), 5 faithful-neutral (logcli/ss/nginx keep the quotes the
+raw log really contains), **0 regressions** — all 12 still meet their manifest.
+Golden gate 0 failed, extract 62/62. Coverage 3522 -> 3525 tidy (181 ⏳).
+
+Also triaged and documented as NOT cleanly fixable this round: `getent-group`
+(csv steals it via member-list commas; a colon-vs-comma decline rule would flip
+5 existing csv winners), `quo-ssv-euro-numbers` (semicolon-values requires
+;-dense lines by design), and the quoted-access-log family
+(`quo-apache-combined-log`, `quo-nginx-log-ua-commas`, …) which needs a
+space-delimited quoted/bracketed-field log parser — a candidate next parser.
+
+## 2026-07-11 — Generic parser: ini-sections (multi-section INI/config)
+
+New `extract/strategies/structured/ini-sections.sh` (priority 20) — closes a
+cluster of non-conforming `⏳` inputs and improves a batch of already-covered
+config dumps.
+
+- **Problem.** Multi-section INI/config output (`[section]` headers + `key =
+  value` runs) was flattened by the plain `equals` parser into ONE wide record,
+  which collides duplicate keys across sections (three `host` columns) and drops
+  the section each value belongs to. The correct, lossless tidy is one row per
+  pair carrying its section: **(section, key, value)**.
+- **Fix.** `ini-sections` emits that long form. It fires only when section names
+  are simple tokens AND distinct, so repeated-section block formats (ffprobe
+  `[STREAM]…[/STREAM]`) and spaced section names (`[Unit multi-user.target]`)
+  are left to their better-fitting parsers, and `toml` (priority 15) still wins
+  real TOML. The line classifier is inlined into both detect and extract because
+  the engine unsets `_strat_*` helpers between the detection sweep and
+  extraction. Guards against `{`-only for JSON (INI legitimately opens with `[`,
+  which a bare `_is_json` check misreads as a JSON array — the bug that first
+  hid this parser from every INI input).
+- **Closes** `nst-ini-duplicate-keys`, `nst-php-ini-sections`,
+  `nst-tox-ini-sections` (3 ⏳ → ✅).
+- **Improves 9 already-covered configs** (`gitconfig-aliases`/`-multiline`,
+  `systemctl-cat`, `rclone-config-show`, `gcloud-config-list`, `atac-env`,
+  `wg-showconf`, `ini-database-profiles`, `ini-equals-in-value`) from a flat
+  duplicate-column form to the clean section/key/value table — goldens
+  re-frozen, each still meets its manifest (all improvements, 0 regressions).
+- Fixed `nst-tox-ini-sections` manifest row count (agent-written 8 → actual 7).
+  Coverage **3519 → 3522 tidy** of 3706 (**184 ⏳**) — ✅ 3305 / ✅ʰ 73 / ✅ᵇ 144.
+
+## 2026-07-11 — Adversarial +510 (round 2) + line-terminator normalization
+
+A second adversarial expansion: 510 new inputs generated (8 parallel themed
+batches) specifically to BREAK the parser across mechanisms not stressed before —
+encoding/whitespace pathologies, Unicode display-width vs mawk byte math, numeric
+punctuation, embedded-delimiter quoting, structural table oddities, nested
+multi-section records, stacked color+box+emoji, and real-tool exotics
+(`openssl x509`, `ss -i`, `smartctl -a`, `perf -x`, …).
+
+- **Engine: line-terminator normalization** (`extract/envoy-extract`). The one
+  clean format-level fix the break-hunt surfaced. Record splitting keys on `\n`
+  throughout, so a capture using any other terminator collapsed to a single
+  physical line. The engine now normalises — once, before the ANSI strip, gated
+  on such a byte being present (a true no-op for ordinary input) — Windows CRLF,
+  bare-CR (classic Mac), vertical-tab / form-feed page breaks, and the Unicode
+  line separators NEL (U+0085), LS (U+2028), PS (U+2029). Fixed the cr-only /
+  NEL / U+2028 / vertical-tab / CRLF-block-records breakers. Golden gate 0
+  regressions (2987 existing goldens byte-identical), extract 62/62, smoke 49/0.
+- **Corpus +510** (`tests/corpus/inputs/`, `expected.tsv`, `expected/`). Of the
+  510 adversarial inputs, **393 tidied with no new per-tool code (77%)** — a
+  deliberately low rate, since they were built to fail. 117 landed ⏳, honestly
+  documenting the frontier. New tallies: **3706 tools; 3519 tidy; 187 ⏳** (✅ 3302
+  generic / ✅ʰ 73 hint / ✅ᵇ 144 bespoke). Golden freeze added 388 new goldens,
+  deleted/modified 0 existing (no regression).
+- **Break clusters left ⏳ (documented, not closed):** nested per-record
+  sub-tables (`ip -s link` RX/TX, grouped subtotals — the known hard frontier);
+  quote-aware CSV/pipe splitting (embedded commas/newlines/bars); INI/TOML
+  `[section]` files (candidate for a future `ini-sections` generic strategy);
+  Unicode-space column separators (NBSP / ideographic-space — conflicts with
+  NBSP-as-thousands-grouping, so not blindly normalisable); display-width vs byte
+  column math for CJK/emoji.
+
 ## 2026-07-11 — Gap-triage: vercel-list hint + README tier-count fix
 
 A focused pass over the 71 ⏳ gaps looking for clean, non-regressing wins.

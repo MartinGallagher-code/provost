@@ -1,0 +1,9 @@
+n	depth	name	total_entries
+1	1	multi-user.target @31.441s	8
+2	1	docker.service @22.539s +8.902s	8
+3	2	network-online.target @22.531s	8
+4	3	NetworkManager-wait-online.service @-2.583s +25.114s	8
+5	3	NetworkManager.service @1.998s +604ms	8
+6	4	dbus.service @1.882s	8
+7	4	basic.target @1.774s	8
+8	5	sockets.target @1.770s	8

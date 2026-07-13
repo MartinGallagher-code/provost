@@ -1,0 +1,2 @@
+endpoint	timeout_ms	retries	auth_mode	pool_size
+https://api.svc:8443	3000	5	mtls	64

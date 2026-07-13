@@ -1,0 +1,10 @@
+dn: cn=John Smith,ou=People,dc=example,dc=com
+cn: John Smith
+mail: john@example.com
+description: Lead engineer, on-call: 09:00-17:00
+url: https://intra.example.com/u/jsmith
+
+dn: cn=Jane Doe,ou=People,dc=example,dc=com
+cn: Jane Doe
+mail: jane@example.com
+description: Manager, team: platform

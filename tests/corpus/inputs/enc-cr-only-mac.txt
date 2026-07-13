@@ -1,0 +1,1 @@
+model     cores   ghzepyc      64      2.4xeon      28      3.1ryzen     16      3.8arm       80      3.0

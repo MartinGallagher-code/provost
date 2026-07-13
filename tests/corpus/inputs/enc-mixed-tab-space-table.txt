@@ -1,0 +1,5 @@
+service	   port    state
+nginx  	80	     running
+sshd     	22    running
+postgres	 5432	 stopped
+redis   	 6379    running

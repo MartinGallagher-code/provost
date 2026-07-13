@@ -1,0 +1,12 @@
+Images
+  photos.tar      4.2G
+  thumbnails      120M
+  subtotal        4.32G
+Documents
+  reports.zip     880M
+  archive.tar     2.1G
+  subtotal        2.98G
+Videos
+  raw.mkv         18G
+  subtotal        18G
+Total             25.3G

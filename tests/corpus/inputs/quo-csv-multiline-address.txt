@@ -1,0 +1,7 @@
+order,customer,ship_to
+5001,Acme Corp,"742 Evergreen Terrace
+Springfield, IL 62704"
+5002,Globex,"1 Infinite Loop, Cupertino, CA"
+5003,Initech,"500 Main St
+Suite 300
+Waltham, MA"

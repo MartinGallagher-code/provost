@@ -1,0 +1,19 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            0a:1b:2c:3d:4e:5f:60:71:82:93
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=US, O=Let's Encrypt, CN=R3
+        Validity
+            Not Before: Jul  1 00:00:00 2026 GMT
+            Not After : Sep 29 23:59:59 2026 GMT
+        Subject: CN=example.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:c2:9a:1f:3b:5d:7e:9f:a1:b3:c5:d7:e9:0b:2d:
+                    4f:61:83:a5:c7:e9:0b:2d:4f:61:83:a5:c7:e9:0b:
+                    2d:4f
+                Exponent: 65537 (0x10001)

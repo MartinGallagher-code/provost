@@ -1,0 +1,4 @@
+key            value
+greeting       hello  world
+path           /usr/local  bin
+label          north  star

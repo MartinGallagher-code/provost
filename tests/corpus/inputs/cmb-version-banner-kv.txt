@@ -1,0 +1,10 @@
+[1;34m╔══════════════════════════════╗[0m
+[1;34m║   nodeinfo  build 2026.07     ║[0m
+[1;34m╚══════════════════════════════╝[0m
+
+Hostname:      [32mprod-web-03[0m
+Kernel:        6.8.0-41-generic
+Uptime:        [33m14 days, 3:22[0m
+CPU:           [36mAMD EPYC 7543[0m (32 cores)
+Memory:        [36m48.2 GiB / 128 GiB[0m
+Load average:  1.42 1.31 1.20

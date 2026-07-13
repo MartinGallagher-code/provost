@@ -1,0 +1,14 @@
+; <<>> DiG 9.18.24 <<>> +multiline example.com ANY
+;; ANSWER SECTION:
+example.com.            3600 IN SOA ns1.example.com. hostmaster.example.com. (
+                                2026071101 ; serial
+                                7200       ; refresh
+                                3600       ; retry
+                                1209600    ; expire
+                                3600       ; minimum
+                                )
+example.com.            3600 IN NS   ns1.example.com.
+example.com.            3600 IN NS   ns2.example.com.
+example.com.            3600 IN MX   10 mail.example.com.
+example.com.            300  IN A    93.184.216.34
+example.com.            300  IN AAAA 2606:2800:220:1:248:1893:25c8:1946

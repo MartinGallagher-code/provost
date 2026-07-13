@@ -1,0 +1,5 @@
+ITEM          PRICE  STOCK
+café au lait  3.50   yes
+café noir     2.80   yes
+crème brûlée  6.00   no
+thé vert      3.00   yes

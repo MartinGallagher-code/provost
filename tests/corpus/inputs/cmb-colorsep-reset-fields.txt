@@ -1,0 +1,4 @@
+[7mDATE[0m[7mLEVEL[0m[7mCODE[0m[7mMSG[0m[7mMS[0m
+[90m07-11[0m[31mERR[0m[33m502[0m[37mupstream timeout[0m[36m1204[0m
+[90m07-11[0m[32mINF[0m[33m200[0m[37mok[0m[36m12[0m
+[90m07-11[0m[33mWRN[0m[33m429[0m[37mrate limited[0m[36m88[0m

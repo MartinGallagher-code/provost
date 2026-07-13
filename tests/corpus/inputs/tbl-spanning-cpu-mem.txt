@@ -1,0 +1,5 @@
+              CPU                 Memory
+Pod        Req   Lim   Use    Req    Lim    Use
+web-1     100m  500m  234m   128Mi  256Mi  180Mi
+web-2     100m  500m  312m   128Mi  256Mi  201Mi
+api-1     250m 1000m  456m   256Mi  512Mi  390Mi

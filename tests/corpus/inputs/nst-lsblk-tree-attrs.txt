@@ -1,0 +1,9 @@
+NAME         SIZE TYPE  FSTYPE MOUNTPOINT
+sda          1.8T disk
+├─sda1       512M part  vfat   /boot/efi
+├─sda2         2G part  ext4   /boot
+└─sda3       1.3T part  LVM2_m
+  ├─vg-root  100G lvm   ext4   /
+  ├─vg-home    1T lvm   ext4   /home
+  └─vg-swap    8G lvm   swap   [SWAP]
+nvme0n1      477G disk

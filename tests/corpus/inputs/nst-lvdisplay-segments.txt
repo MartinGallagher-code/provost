@@ -1,0 +1,17 @@
+  --- Logical volume ---
+  LV Path                /dev/vg0/data
+  LV Name                data
+  VG Name                vg0
+  LV Size                500.00 GiB
+  Current LE             128000
+
+  --- Segments ---
+  Logical extents 0 to 63999:
+    Type		linear
+    Physical volume	/dev/sdb1
+    Physical extents	0 to 63999
+
+  Logical extents 64000 to 127999:
+    Type		linear
+    Physical volume	/dev/sdc1
+    Physical extents	0 to 63999

@@ -1,0 +1,5 @@
+[1mRelease:[0m     ]8;;https://gh/r/v2.4.0\v2.4.0]8;;\
+[1mCommit:[0m      [36ma1b2c3d[0m
+[1mAuthor:[0m      alice <]8;;mailto:a@x.io\a@x.io]8;;\>
+[1mDate:[0m        2026-07-10
+[1mArtifacts:[0m   ]8;;https://cdn/art\3 files]8;;\

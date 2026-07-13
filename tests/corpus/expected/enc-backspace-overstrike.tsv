@@ -1,0 +1,5 @@
+n	NNAAMMEE	SSIIZZEE	TTYYPPEE	total_entries
+1	kernel	12M	elf	4
+2	initrd	48M	cpio	4
+3	config	88K	text	4
+4	map	2M	text	4

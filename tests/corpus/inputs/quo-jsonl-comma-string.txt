@@ -1,0 +1,3 @@
+{"ts":"12:00:01","msg":"a, b, c","level":"info"}
+{"ts":"12:00:02","msg":"key: value, more","level":"warn"}
+{"ts":"12:00:03","msg":"done","level":"info"}

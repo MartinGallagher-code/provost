@@ -1,0 +1,5 @@
+MaxMemory: 3.5GiB
+DiskQuota: 500GB
+Bandwidth: 1.2Gbps
+Latency: 100ms
+Temperature: 42°C

@@ -1,0 +1,11 @@
+Group: developers
+  User      Used     Limit
+  alice     12G      20G
+  bob       8G       20G
+  carol     19G      20G
+  --sub--   39G      60G
+Group: analysts
+  User      Used     Limit
+  dave      4G       10G
+  erin      9G       10G
+  --sub--   13G      20G

@@ -1,0 +1,6 @@
+[36m⣾[0m connecting[36m⣷[0m connecting[32m✔[0m connected
+
+[1mHost:[0m       [38;2;80;200;255mbroker-01.msg.svc[0m
+[1mProtocol:[0m   [38;2;80;200;255mAMQP 0.9.1[0m
+[1mChannels:[0m   [38;2;255;200;0m42[0m
+[1mUptime:[0m     [38;2;255;200;0m9d 4h[0m

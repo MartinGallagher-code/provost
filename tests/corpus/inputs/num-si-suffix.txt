@@ -1,0 +1,6 @@
+Metric     Count    Rate       Size
+requests   4.7k     1.2k/s     3.4MB
+errors     23       0.1/s      1.1KB
+bytes      2.3M     45M/s      2.3GB
+conns      1.1G     -          -
+cache      890k     -          512MB

@@ -1,0 +1,5 @@
+ID  AUTHOR       PAPERS
+a1  Erdős          1525
+a2  Poincaré        500
+a3  Schrödinger     218
+a4  Curie           341

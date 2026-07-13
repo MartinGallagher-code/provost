@@ -1,0 +1,7 @@
+ [1mschema[0m │ [1mname[0m       │ [1mtype[0m  │ [1mowner[0m
+────────┼────────────┼───────┼─────────
+ public │ [36musers[0m      │ table │ appuser
+ public │ [36morders[0m     │ table │ appuser
+ public │ [36msessions[0m   │ view  │ appuser
+ audit  │ [36mlog[0m        │ table │ postgres
+(4 rows)

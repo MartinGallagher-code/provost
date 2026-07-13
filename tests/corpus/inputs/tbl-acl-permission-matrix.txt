@@ -1,0 +1,5 @@
+Role         read  write  delete  admin
+viewer        x
+editor        x     x
+publisher     x     x      x
+owner         x     x      x       x

@@ -1,0 +1,6 @@
+n	Host	Role	CPU	Mem	total_entries
+1	web01	frontend	4	8G	5
+2	web02	frontend	4	8G	5
+3	db01	database	16	64G	5
+4	db02	database	16	64G	5
+5	cache01	cache	8	32G	5

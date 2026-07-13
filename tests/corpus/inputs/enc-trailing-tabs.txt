@@ -1,0 +1,5 @@
+key        value	
+timeout    30s	
+retries    5		
+backend    redis	
+tls        on	

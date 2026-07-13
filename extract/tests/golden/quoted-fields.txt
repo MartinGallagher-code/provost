@@ -1,0 +1,15 @@
+entry1.A 10.0.0.1
+entry1.B -
+entry1.C -
+entry1.D 11/Jul/2026:09:15:42 +0000
+entry1.E GET /index.html HTTP/1.1
+entry1.F 200
+entry1.G 5120
+entry2.A 10.0.0.2
+entry2.B -
+entry2.C alice
+entry2.D 11/Jul/2026:09:15:43 +0000
+entry2.E POST /api/login HTTP/1.1
+entry2.F 302
+entry2.G 0
+total_entries 2

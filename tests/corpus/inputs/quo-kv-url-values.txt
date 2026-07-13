@@ -1,0 +1,4 @@
+Homepage: https://example.com/docs
+Repository: git://github.com/acme/tool
+Mirror: http://mirror.example.org:8080/pub
+Docs: see https://example.com/guide: chapter 3

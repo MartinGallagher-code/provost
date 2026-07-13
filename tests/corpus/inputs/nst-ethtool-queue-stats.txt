@@ -1,0 +1,13 @@
+NIC statistics for enp3s0:
+  Queue 0:
+     rx_packets: 88213
+     tx_packets: 77120
+  Queue 1:
+     rx_packets: 91002
+     tx_packets: 80441
+  Queue 2:
+     rx_packets: 45129
+     tx_packets: 39887
+  Queue 3:
+     rx_packets: 12009
+     tx_packets: 10552

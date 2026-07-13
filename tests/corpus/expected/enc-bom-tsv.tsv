@@ -1,0 +1,5 @@
+n	﻿port	proto	state	total_entries
+1	22	tcp	open	4
+2	80	tcp	open	4
+3	443	tcp	open	4
+4	53	udp	filtered	4

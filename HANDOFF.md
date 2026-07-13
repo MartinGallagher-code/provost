@@ -1,6 +1,103 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3196 inputs; ANSI + box-table + manifest-audit + gap-triage round (2026-07-11) — **3126 tidy, 70 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; wrapped-cells + tab-collapse fix (2026-07-12) — **3558 tidy, 150 ⏳**
+
+> **2026-07-12 — wrapped cells + tab-collapse bug.** aligned-columns' positional
+> path now rejoins continuation lines (only-last-cell grid row = previous row's
+> last column wrapped; appended space-joined) — closing kubectl-events/
+> systemctl/crontab/desc wrapped fixtures. Chasing why the join didn't fire
+> exposed a long-standing bug: `IFS=$'\t' read -ra` collapses EMPTY tab cells,
+> shifting all values left — docker-ps rows with empty PORTS had NAME in the
+> PORTS column. Tab-safe `_ac_cells` fixes column labeling in 22 covered
+> goldens (all audited + re-frozen). tbl-df-wrapped-device stays ⏳ (never
+> reaches the positional path). **Now 3558 tidy, 150 ⏳** (✅ 3339 / ✅ʰ 73 /
+> ✅ᵇ 144).
+
+> **2026-07-12 — semicolon-values quote-awareness.** The csv treatment:
+> `_strat_ssv_split` (quotes structural at field start, `""` escape) drives
+> top-level `;` counting and splitting; new low-density band (2-3 separators,
+> EVERY line identical count, >=2 lines) alongside the untouched fio dense band.
+> Closed 5 ⏳ (European `;`-CSV: embedded `; ` in quoted cells, decimal commas,
+> NBSP thousands), improved 4 covered fixtures (blob/token-soup -> real columns).
+> Blast scan: 12 fires = fio x2 unchanged + 5 + 4 + 1 non-flip. **Now 3554 tidy,
+> 154 ⏳** (✅ 3335 / ✅ʰ 73 / ✅ᵇ 144).
+
+> **2026-07-12 — unicode spaces + CJK headers.** Engine now normalizes exotic
+> Unicode horizontal spaces (NBSP, narrow-NBSP, U+2000–U+200A, U+205F,
+> ideographic U+3000) to ASCII space — gated once-per-input like the ANSI strip;
+> a single normalized NBSP inside "1 234,56" survives the 2+-space column rule so
+> grouping and padding coexist. And aligned-columns' labelly check now accepts
+> non-ASCII header tokens, so CJK/hangul tables (名前 年齢 都市) get real column
+> names instead of the header landing in the data — contained to rows where
+> EVERY token is fully non-ASCII (first cut promoted glyph-decorated log lines:
+> ⚡️/✖/›/·/🐷 — all 6 victims restored). Closed 7 ⏳; 11 NBSP-family goldens
+> re-frozen clean. sed gotcha: byte ranges in $'…' scripts must be raw
+> ([\200-\212]); double-escaping = "Invalid range end". Follow-up noted:
+> fullwidth-colon (：) in the colons parser would finish uni-kv-fullwidth.
+> **Now 3547 tidy, 159 ⏳** (✅ 3330 / ✅ʰ 73 / ✅ᵇ 144).
+
+> **2026-07-12 — table chrome.** `aligned-columns` + `columnar-specs` drop
+> mid-table HEADER REPEATS (token-identical to a digit-free ≥3-token header) and
+> a UNITS ROW under the header (digit-free, deeper indent, fewer tokens, every
+> token parenthesized/case-mixed ≤6 chars). Both rules were tightened twice by
+> the golden audit (first cuts ate entr's repeated log line, consul's
+> `web db allow` row, nerdctl/needrestart rows — all restored). Four
+> totals-footer manifests aligned with the corpus convention (`Average:`/`TOTAL`
+> row IS data — the sar-family goldens keep theirs). Closed 10 ⏳, improved 4
+> covered goldens (repeated-header chrome removed). `tbl-sar-interval-repeat`
+> stays ⏳ (timestamped header ⇒ headerless). **Now 3540 tidy, 166 ⏳**
+> (✅ 3323 / ✅ʰ 73 / ✅ᵇ 144).
+
+> **2026-07-12 — quoted-fields parser.** New generic `delimited/quoted-fields.sh`
+> (priority 12): space-delimited positional records with `"…"`/`'…'`/`[…]`
+> grouping — the access-log family (apache combined, nginx, quoted app logs,
+> quoted crontabs, `lspci -mm`). Contained by: token-start-only grouping (logfmt
+> and quoted CSV never match), quote-span-on-every-line signature (brackets group
+> but don't qualify), ≥5 fields, spread ≤2, DNS-RR decline. Full-corpus firing
+> scan: 5 ⏳ closed + exactly 3 flips, all audited improvements (lspci-mm,
+> nginx-access-log-quoted, quo-haproxy-log-quoted). **Now 3530 tidy, 176 ⏳**
+> (✅ 3313 / ✅ʰ 73 / ✅ᵇ 144). Gotcha: `local x="$1" y=${#x}` breaks under the
+> engine's `set -u` — split declarations.
+
+> **2026-07-12 — csv RFC-4180 quote-awareness.** One shared splitter
+> (`_strat_csv_split`: quotes structural only at field start, `""` escape,
+> open-field flag) now drives csv detection (top-level commas only), the header
+> split (was naive `IFS=','`), the multi-line joiner (was raw quote parity —
+> welded literal inch-mark rows), and the row parser; the blanket value
+> quote-strip is gone (literal quotes are data). Closes 3 quoted-CSV ⏳, improves
+> 12 already-covered fixtures (audited: 7 improvements, 5 faithful-neutral, 0
+> regressions). **Now 3525 tidy, 181 ⏳** (✅ 3308 / ✅ʰ 73 / ✅ᵇ 144). Documented
+> not-cleanly-fixable: getent-group (decline rule would flip 5 csv winners),
+> quo-ssv-euro-numbers (semicolon-values is ;-dense by design). Next candidate
+> parser: space-delimited quoted/bracketed-field logs (apache combined family).
+
+> **2026-07-11 — ini-sections generic parser.** Closed the multi-section
+> INI/config ⏳ cluster. `[section]` + `key = value` dumps were flattened by
+> `equals` into one wide record (colliding duplicate keys); the new
+> `structured/ini-sections.sh` (priority 20) emits lossless (section, key, value)
+> rows. Fires only on distinct simple-token sections (ffprobe `[STREAM]`, spaced
+> names, real TOML excluded). Detect guards `{`-only for JSON — a bare `_is_json`
+> check treats the opening `[section]` as a JSON array (the bug that first hid the
+> parser). Classifier inlined (engine unsets `_strat_*` helpers between detect and
+> extract). Closes 3 ⏳, improves 9 already-covered configs (goldens re-frozen, all
+> improvements, golden gate 3378/0, extract 62/62 + sample golden, smoke 49/0).
+> **Now 3522 tidy, 184 ⏳** (✅ 3305 / ✅ʰ 73 / ✅ᵇ 144). Follow-up on the branch
+> (rebased onto post-merge main).
+
+> **2026-07-11 — adversarial +510 (round 2).** 510 inputs generated (8 parallel
+> themed batches) to BREAK the parser across novel mechanisms: encoding/whitespace,
+> Unicode display-width vs byte math, numeric punctuation, embedded-delimiter
+> quoting, table oddities, nested multi-section, stacked color+box+emoji, real-tool
+> exotics. **393/510 tidied with no new per-tool code (77%)** — low by design.
+> The break-hunt yielded one clean format-level fix: **engine line-terminator
+> normalization** (CRLF, bare-CR, VT/FF, NEL/U+2028/U+2029 → `\n`, gated, no-op on
+> normal input) — fixing the cr-only/NEL/U+2028/VT/CRLF-block breakers with 0
+> golden regressions. 158 inputs landed ⏳ (documented frontier: nested per-record
+> sub-tables, quote-aware CSV/pipe, INI `[section]` files, Unicode-space
+> separators, CJK/emoji width math). **Now 3706 tools; 3519 tidy; 187 ⏳** (✅ 3302
+> / ✅ʰ 73 / ✅ᵇ 144). Golden freeze +388 new, 0 existing deleted/modified. Follow-up
+> to the merged PR #35 (line-terminator fix landed there); this corpus batch is a
+> fresh change rebased onto the post-merge main.
 
 > **2026-07-11 — gap-triage.** Swept the 71 ⏳ for clean wins. Corrected the
 > README's stale tier counts (1934/58/134 -> live 2915/71/139). Routed

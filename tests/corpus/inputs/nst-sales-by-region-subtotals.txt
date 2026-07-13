@@ -1,0 +1,12 @@
+Region: North
+  Product      Units   Revenue
+  Widget       1200    24000
+  Gadget       800     32000
+  Subtotal     2000    56000
+Region: South
+  Product      Units   Revenue
+  Widget       950     19000
+  Gadget       1100    44000
+  Doohickey    300     9000
+  Subtotal     2350    72000
+Grand Total    4350    128000

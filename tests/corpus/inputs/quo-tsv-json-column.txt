@@ -1,0 +1,4 @@
+id	payload	status
+1	{"a":1,"b":2}	ok
+2	{"x":"a,b","y":3}	ok
+3	{"nested":{"k":"v"}}	err

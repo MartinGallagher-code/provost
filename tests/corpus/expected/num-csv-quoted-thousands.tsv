@@ -1,0 +1,5 @@
+n	id	name	amount	note	total_entries
+1	1	Acme, Inc.	1,234.56	q1,2026	4
+2	2	Beta LLC	999.00	n/a	4
+3	3	Gamma, Ltd.	12,345.00	paid	4
+4	4	Delta	-1,000.00	refund	4

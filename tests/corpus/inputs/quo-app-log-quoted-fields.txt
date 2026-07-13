@@ -1,0 +1,3 @@
+2026-07-11 09:15:42 INFO  "started worker, id=3" pool=default
+2026-07-11 09:15:43 WARN  "queue depth: 1200, growing" pool=default
+2026-07-11 09:15:44 ERROR "panic: index out of range [3]" pool=io

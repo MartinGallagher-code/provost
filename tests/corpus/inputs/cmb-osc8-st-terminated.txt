@@ -1,0 +1,4 @@
+[1mARTIFACT        LINK                    SHA[0m
+app.tar.gz      ]8;;https://cdn.x/app download ]8;;         a1b2c3
+sbom.json       ]8;;https://cdn.x/sbom download ]8;;        d4e5f6
+sig.asc         ]8;;https://cdn.x/sig download ]8;;         9a8b7c

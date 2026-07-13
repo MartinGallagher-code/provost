@@ -1,0 +1,7 @@
+[database]
+dsn = "host=db;port=5432;dbname=app"
+options = "sslmode=require; connect_timeout=10"
+label = prod ; this is a comment
+
+[cache]
+url = "redis://host:6379,db=0"

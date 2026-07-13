@@ -1,0 +1,10 @@
+### user: root
+0 2 * * * /usr/local/bin/backup.sh
+30 4 * * 0 /usr/local/bin/cleanup.sh --weekly
+
+### user: deploy
+*/5 * * * * /home/deploy/healthcheck.sh
+0 0 * * * /home/deploy/rotate-logs.sh
+
+### user: www-data
+15 3 * * * /usr/bin/find /tmp -mtime +7 -delete

@@ -1,0 +1,14 @@
+[server]
+host = 10.0.0.1
+port = 8080
+timeout = 30
+
+[database]
+host = 10.0.0.5
+port = 5432
+timeout = 10
+pool = 20
+
+[cache]
+host = 10.0.0.9
+port = 6379

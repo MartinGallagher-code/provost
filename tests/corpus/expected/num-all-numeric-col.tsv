@@ -1,0 +1,6 @@
+n	name	count	ratio	status	total_entries
+1	alpha	100	0.25	ok	5
+2	beta	250	0.50	ok	5
+3	gamma	375	0.75	warn	5
+4	delta	500	1.00	crit	5
+5	epsilon	625	1.25	crit	5

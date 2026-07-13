@@ -1,0 +1,5 @@
+PORT   STATE     SERVICE   VERSION
+22     open      ssh       OpenSSH 8.9
+80     open      http      nginx 1.24.0
+443    open      https
+3306   filtered  mysql

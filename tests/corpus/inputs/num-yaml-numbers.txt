@@ -1,0 +1,8 @@
+version: 1.0.0-rc.1+build.42
+port: 0o644
+mask: 0xDEADBEEF
+ratio: 3.14
+scientific: 6.022e23
+timeout: 2h34m
+threshold: 1234
+enabled: 0b1010

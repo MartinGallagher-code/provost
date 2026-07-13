@@ -1,0 +1,4 @@
+Col A Col B Col C
+apple      red        crunchy
+banana     yellow     soft
+cherry     dark-red   firm

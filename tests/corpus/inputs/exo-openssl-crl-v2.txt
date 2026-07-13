@@ -1,0 +1,26 @@
+Certificate Revocation List (CRL):
+        Version 2 (0x1)
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=US, O=Internet Widgits Pty Ltd, CN=Widgits CA
+        Last Update: Jul  1 00:00:00 2026 GMT
+        Next Update: Aug  1 00:00:00 2026 GMT
+        CRL extensions:
+            X509v3 Authority Key Identifier:
+                keyid:8B:C3:19:2F:88:71:AA:0B:6D:41:90:8A:5B:2E:77:1C
+            X509v3 CRL Number:
+                42
+Revoked Certificates:
+    Serial Number: 1A2B3C
+        Revocation Date: Jun 12 09:33:10 2026 GMT
+        CRL entry extensions:
+            X509v3 CRL Reason Code:
+                Key Compromise
+    Serial Number: 1A2B3D
+        Revocation Date: Jun 15 14:02:55 2026 GMT
+    Serial Number: 1A2B44
+        Revocation Date: Jun 20 08:11:00 2026 GMT
+        CRL entry extensions:
+            X509v3 CRL Reason Code:
+                Cessation Of Operation
+    Signature Algorithm: sha256WithRSAEncryption
+         6d:41:90:8a:5b:2e:77:1c:0a:d5:c2:9e:78:1a:4f:33:88:be

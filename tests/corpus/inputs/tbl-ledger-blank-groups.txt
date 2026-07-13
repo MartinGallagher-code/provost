@@ -1,0 +1,8 @@
+Account                     Balance
+Assets:Checking            5432.10
+Assets:Savings            12000.00
+
+Liabilities:CreditCard     -850.25
+Liabilities:Loan         -15000.00
+
+Equity:Opening            -1581.85

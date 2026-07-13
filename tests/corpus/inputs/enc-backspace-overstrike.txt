@@ -1,0 +1,5 @@
+NNAAMMEE        SSIIZZEE     TTYYPPEE
+kernel      12M     elf
+initrd      48M     cpio
+config      88K     text
+map         2M      text

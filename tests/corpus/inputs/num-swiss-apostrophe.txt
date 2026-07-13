@@ -1,0 +1,5 @@
+Account            Debit         Credit
+1000 Cash        12'500.00      1'250.00
+2000 Payables     3'000.00     45'678.90
+3000 Equity     100'000.00          0.00
+4000 Revenue          0.00  1'234'567.00

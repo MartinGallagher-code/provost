@@ -1,0 +1,5 @@
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mapper/vg-root
+                 98G   45G   48G  49% /
+tmpfs           7.8G  1.2M  7.8G   1% /run
+/dev/sda1       512M  120M  392M  24% /boot

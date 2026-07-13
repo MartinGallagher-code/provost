@@ -1,0 +1,4 @@
+﻿symbol,price,change
+AAPL,229.35,+1.2
+MSFT,441.10,-0.4
+GOOG,178.22,+0.9

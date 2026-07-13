@@ -1,0 +1,6 @@
+processing input.csv[Kprocessing input.csv [done]
+[1mts,event,count[0m
+[90m09:00[0m,[32mlogin[0m,[33m420[0m
+[90m09:05[0m,[31merror[0m,[33m12[0m
+[90m09:10[0m,[32mlogin[0m,[33m388[0m
+[90m09:15[0m,[33mlogout[0m,[33m201[0m

@@ -1,0 +1,6 @@
+Process     RSS       VSZ       Time
+postgres    3.5GiB    12.1GiB   2h34m
+redis       512MiB    1.2GiB    1d2h
+nginx       45.2MiB   256MiB    14m3s
+node        1.1GiB    4.8GiB    5h12m
+java        2.7GiB    9.9GiB    30m

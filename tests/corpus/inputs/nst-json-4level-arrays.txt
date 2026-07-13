@@ -1,0 +1,18 @@
+{
+  "cluster": "prod",
+  "nodes": [
+    {
+      "name": "node-1",
+      "pods": [
+        { "name": "api-1", "containers": [ { "name": "app", "restarts": 0 }, { "name": "sidecar", "restarts": 2 } ] },
+        { "name": "api-2", "containers": [ { "name": "app", "restarts": 1 } ] }
+      ]
+    },
+    {
+      "name": "node-2",
+      "pods": [
+        { "name": "worker-1", "containers": [ { "name": "app", "restarts": 5 } ] }
+      ]
+    }
+  ]
+}

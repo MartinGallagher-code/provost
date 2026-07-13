@@ -1,0 +1,6 @@
+LAST SEEN   TYPE      REASON      OBJECT             MESSAGE
+2m          Normal    Scheduled   pod/web-abc123     Successfully assigned default/web-abc123 to
+                                                     node-3
+5m          Warning   BackOff     pod/api-def456     Back-off restarting failed container api in
+                                                     pod api-def456
+8m          Normal    Pulled      pod/db-ghi789      Container image already present on machine

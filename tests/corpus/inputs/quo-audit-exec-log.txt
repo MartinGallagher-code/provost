@@ -1,0 +1,4 @@
+time                 uid  exe            args
+09:15:42             0    /bin/bash      -c "rm -rf /tmp/x; echo done"
+09:15:43             1001 /usr/bin/curl  -H "Authorization: Bearer x,y" https://a.io
+09:15:44             0    /usr/sbin/sshd -o "PermitRootLogin no"

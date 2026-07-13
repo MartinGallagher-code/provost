@@ -1,0 +1,4 @@
+Host	api-gateway-1
+Region	eu-west-2
+Version	3.14.1
+Uptime	9d 4h

@@ -1,0 +1,5 @@
+﻿NAME        READY   STATUS    AGE
+api-7f9     1/1     Running   4d
+web-3c2     1/1     Running   9d
+db-0        1/1     Running   21d
+cache-5     0/1     Pending   2m

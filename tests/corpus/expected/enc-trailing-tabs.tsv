@@ -1,0 +1,5 @@
+n	key________value	total_entries
+1	timeout    30s	4
+2	retries    5	4
+3	backend    redis	4
+4	tls        on	4

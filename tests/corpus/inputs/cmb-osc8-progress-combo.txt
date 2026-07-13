@@ -1,0 +1,4 @@
+[1mSTEP        PROGRESS             DOCS[0m
+clone       [32m██████████[0m 100%   ]8;;https://d/clone\help]8;;\
+compile     [33m██████░░░░[0m 62%    ]8;;https://d/compile\help]8;;\
+package     [90m░░░░░░░░░░[0m 0%     ]8;;https://d/package\help]8;;\

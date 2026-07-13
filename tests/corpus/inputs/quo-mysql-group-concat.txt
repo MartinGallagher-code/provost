@@ -1,0 +1,4 @@
+user_id	name	roles
+1	Alice	admin,editor,viewer
+2	Bob	viewer
+3	Carol	editor,viewer

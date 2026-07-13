@@ -1,0 +1,15 @@
+NAME  PROPERTY              VALUE                  SOURCE
+tank  type                  filesystem             -
+tank  creation              Mon Jan  6 12:03 2025  -
+tank  used                  2.14T                  -
+tank  available             1.44T                  -
+tank  referenced            192K                   -
+tank  compressratio         1.38x                  -
+tank  mounted               yes                    -
+tank  quota                 none                   default
+tank  recordsize            128K                   default
+tank  mountpoint            /tank                  default
+tank  compression           lz4                    local
+tank  atime                 off                    local
+tank  dedup                 off                    default
+tank  encryption            aes-256-gcm            -

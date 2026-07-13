@@ -1,0 +1,15 @@
+upstream backend {
+    least_conn;
+    server 10.0.0.11:8080 weight=3;
+    server 10.0.0.12:8080;
+    server 10.0.0.13:8080 backup;
+}
+
+upstream cache {
+    server 10.0.0.21:6379 max_fails=2 fail_timeout=30s;
+    server 10.0.0.22:6379;
+}
+
+upstream static {
+    server cdn1.internal:80;
+}

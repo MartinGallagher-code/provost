@@ -1,0 +1,7 @@
+[1;35m~~~ envconfig dump ~~~[0m
+
+DATABASE_URL:   [38;2;0;200;100mpostgres://db:5432/app[0m
+REDIS_URL:      [38;2;0;200;100mredis://cache:6379[0m
+LOG_LEVEL:      [38;2;255;180;0minfo[0m
+MAX_CONNS:      [38;2;255;180;0m128[0m
+TLS_ENABLED:    [38;2;220;20;60mtrue[0m

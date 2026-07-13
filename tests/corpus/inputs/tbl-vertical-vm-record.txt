@@ -1,0 +1,7 @@
+Property        Value
+Name            web-server-01
+State           running
+vCPUs           4
+Memory          8192 MB
+IP Address      192.168.1.100
+Uptime          14 days 3 hours

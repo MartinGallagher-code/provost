@@ -1,0 +1,11 @@
+r0 role:Primary
+  disk:UpToDate
+  peer1 role:Secondary
+    replication:Established peer-disk:UpToDate
+  peer2 role:Secondary
+    replication:SyncSource peer-disk:Inconsistent done:44.21
+
+r1 role:Secondary
+  disk:UpToDate
+  peer1 role:Primary
+    replication:Established peer-disk:UpToDate

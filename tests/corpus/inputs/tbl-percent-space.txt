@@ -1,0 +1,4 @@
+Test               Coverage    Missed
+parser.c            98.5 %         12
+lexer.c             87.2 %         45
+codegen.c          100.0 %          0

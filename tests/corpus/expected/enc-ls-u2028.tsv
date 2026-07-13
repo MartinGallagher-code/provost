@@ -1,0 +1,5 @@
+n	key	value	total_entries
+1	region	us-east-1	4
+2	stage	prod	4
+3	count	42	4
+4	active	true	4

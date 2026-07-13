@@ -1,0 +1,4 @@
+Alice     Engineering   Senior      2019
+Bob       Marketing     Lead        2020
+Carol     Engineering   Staff       2018
+Dave      Sales         Manager     2021

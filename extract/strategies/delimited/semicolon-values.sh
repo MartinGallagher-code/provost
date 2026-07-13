@@ -12,34 +12,75 @@
 #
 # fio's terse output is one `;`-delimited line of ~130 positional fields; other
 # tools (European-locale CSV, some `--format` exporters) use `;` the way csv
-# uses `,`. Mirrors the csv strategy: a consistent, high semicolon count across
-# every non-blank line. If the first row is all-numeric there is no header
-# (fio terse) — synthesise A,B,C… and keep it; otherwise the first row names
-# the columns. Distinct from colons (single `key: value` per line) — this needs
-# MANY `;` per line, so a lone legend line ("o - Other; r - Repeater; …") under
-# a real table never triggers it.
+# uses `,`. Mirrors the csv strategy: a consistent semicolon count across every
+# non-blank line — counted QUOTE-AWARE (a `;` inside "…" is data, the
+# European-CSV case: `Schraube;"1.234,56";"12; nachbestellen"`). Two bands:
+#   * dense (top-level count >=4, ±1 across lines) — fio terse and friends;
+#   * low (2-3) — accepted only when EVERY line has the IDENTICAL top-level
+#     count and there are >=2 lines, so prose with stray semicolons
+#     ("o - Other; r - Repeater; …", which varies line to line) and a lone
+#     legend line never qualify.
+# If the first row is all-numeric there is no header (fio terse) — synthesise
+# A,B,C… and keep it; otherwise the first row names the columns.
+
+# Split one line on TOP-LEVEL semicolons into _SSV_CELLS (quote-aware: a quote
+# is structural only at field start; "" inside a quoted field is an escaped
+# quote; structural quotes are consumed, leftover quotes are data). Also sets
+# _SSV_N to the top-level separator count.
+_strat_ssv_split () {
+    local line="$1"
+    local i c field="" inq=0 atstart=1 len=${#line}
+    _SSV_CELLS=(); _SSV_N=0
+    i=0
+    while [[ $i -lt $len ]]; do
+        c="${line:$i:1}"
+        if [[ $inq -eq 1 ]]; then
+            if [[ "$c" == '"' ]]; then
+                if [[ "${line:$((i+1)):1}" == '"' ]]; then field+='"'; i=$((i+2)); continue; fi
+                inq=0; i=$((i+1)); continue
+            fi
+            field+="$c"; i=$((i+1)); continue
+        fi
+        if [[ "$c" == '"' && $atstart -eq 1 ]]; then inq=1; atstart=0; i=$((i+1)); continue; fi
+        if [[ "$c" == ';' ]]; then
+            _SSV_CELLS+=("$field"); _SSV_N=$((_SSV_N + 1))
+            field=""; atstart=1; i=$((i+1)); continue
+        fi
+        [[ "$c" != " " && "$c" != $'\t' ]] && atstart=0
+        field+="$c"; i=$((i+1))
+    done
+    _SSV_CELLS+=("$field")
+}
 
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
-    _STRATEGY_CONFIDENCE_REASON="consistent high semicolon count across lines"
+    _STRATEGY_CONFIDENCE_REASON="consistent semicolon count across lines (quote-aware)"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
 
-    local nonblank=0 first_sc=0 consistent=0 _l _t
+    local nonblank=0 first_sc=0 dense=1 _l sc
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         nonblank=$((nonblank + 1))
-        _t="${_l//[^;]/}"; local sc=${#_t}
-        [[ $sc -lt 4 ]] && return 1                 # every line must be ;-dense
-        if [[ $nonblank -eq 1 ]]; then first_sc=$sc; consistent=1
+        _strat_ssv_split "$_l"; sc=$_SSV_N
+        [[ $sc -lt 2 ]] && return 1
+        if [[ $nonblank -gt 1 ]]; then
+            if [[ $first_sc -ge 4 && $sc -ge 4 ]]; then
+                local d=$(( first_sc - sc )); [[ ${d#-} -le 1 ]] || return 1
+            else
+                [[ $sc -eq $first_sc ]] || return 1   # low band: exact match only
+            fi
         else
-            local d=$(( first_sc - sc )); [[ ${d#-} -le 1 ]] && consistent=$((consistent + 1))
+            first_sc=$sc
         fi
+        [[ $sc -lt 4 ]] && dense=0
         [[ $nonblank -ge 40 ]] && break
     done <<< "$text"
 
     [[ $nonblank -ge 1 ]] || return 1
-    [[ $consistent -eq $nonblank ]] || return 1
+    # a single low-density line is not enough signal (a lone prose line with
+    # two semicolons); the dense band keeps single-line acceptance (fio terse)
+    [[ $dense -eq 0 && $nonblank -lt 2 ]] && return 1
     _STRATEGY_CONFIDENCE=84
     return 0
 }
@@ -55,7 +96,7 @@ strategy_extract () {
         _nb=$((_nb + 1)); [[ -z "$header" ]] && header="$_l"
     done <<< "$text"
 
-    local hcells; hcells=(); IFS=';' read -ra hcells <<< "$header"
+    local hcells; _strat_ssv_split "$header"; hcells=("${_SSV_CELLS[@]}")
     # A single line is always one record (no header can exist without data); a
     # multi-line block is headerless only when its first row is all-numeric.
     local _headerless=1 _hc
@@ -83,7 +124,7 @@ strategy_extract () {
         [[ -z "${line//[[:space:]]/}" ]] && continue
         row=$((row + 1))
         [[ $row -eq 1 && $_headerless -eq 0 ]] && continue
-        local values; values=(); IFS=';' read -ra values <<< "$line"
+        local values; _strat_ssv_split "$line"; values=("${_SSV_CELLS[@]}")
         rec=$((rec + 1))
         local j v name
         for ((j=0; j<${#headers[@]}; j++)); do
