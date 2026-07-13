@@ -1,0 +1,8 @@
+n	command	pid	user	FD	TYPE	DEVICE	NAME	E	total_entries
+1	nginx	1201	www-data	cwd	DIR	8,1	/		7
+2	nginx	1201	www-data	0u	CHR	1,3	/dev/null		7
+3	nginx	1201	www-data	6u	IPv4	28114	*:80	(LISTEN)	7
+4	nginx	1201	www-data	7u	IPv4	28115	*:443	(LISTEN)	7
+5	sshd	980	root	cwd	DIR	8,1	/		7
+6	sshd	980	root	3u	IPv4	19022	*:22	(LISTEN)	7
+7	sshd	980	root	4u	IPv6	19023	*:22	(LISTEN)	7

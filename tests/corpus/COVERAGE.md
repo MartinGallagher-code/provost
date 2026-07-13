@@ -990,7 +990,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | exo-kubectl-get-wide-many | ✅ | aligned-columns |
 | exo-kubectl-top-pods-containers | ✅ | aligned-columns |
 | exo-lspci-vv-caps | ✅ | colons |
-| exo-lsusb-v-device | ✅ | indented-hierarchy |
+| exo-lsusb-v-device | ✅ʰ | indented-hierarchy (hint: lsusb-verbose) |
 | exo-mpstat-p-all-repeated | ✅ | aligned-columns |
 | exo-mtr-report-asn | ⏳ | — |
 | exo-nft-monitor-trace | ✅ | colons |
@@ -1488,7 +1488,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | iostat-xz | ✅ | block-records |
 | iostat | ✅ | iostat-d |
 | iotop-batch | ✅ | aligned-columns |
-| iotop | ✅ᵇ | iotop (bespoke) |
+| iotop | ✅ | grouped-rows |
 | iozone-run | ✅ | aligned-columns |
 | ip-6-route | ✅ | aligned-columns |
 | ip-addr-brief | ✅ | labeled-records |
@@ -2142,16 +2142,16 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-benchmark-report-footnotes | ⏳ | — |
 | nst-blkid-per-device-nested | ⏳ | — |
 | nst-block-records-embedded-table | ✅ | block-records |
-| nst-btrfs-device-per-disk | ⏳ | — |
+| nst-btrfs-device-per-disk | ✅ | grouped-rows |
 | nst-ceph-osd-tree-nested | ✅ | aligned-columns |
-| nst-cluster-node-disks | ⏳ | — |
+| nst-cluster-node-disks | ✅ | grouped-rows |
 | nst-crontab-per-user-sections | ✅ | aligned-columns |
 | nst-dig-multiline-dnskey | ✅ | dns-records |
 | nst-dig-multiline-soa | ⏳ | — |
-| nst-disk-smart-partitions | ⏳ | — |
+| nst-disk-smart-partitions | ✅ | grouped-rows |
 | nst-dns-zonefile | ⏳ | — |
 | nst-docker-inspect-nested | ✅ | json-array |
-| nst-du-by-category-subtotal | ⏳ | — |
+| nst-du-by-category-subtotal | ✅ | grouped-rows |
 | nst-du-tree-sizes-dates | ✅ | aligned-columns |
 | nst-ethtool-queue-stats | ⏳ | — |
 | nst-firewall-zones-blocks | ✅ | block-records |
@@ -2165,13 +2165,13 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-json-4level-arrays | ✅ | json |
 | nst-k8s-list-yaml | ⏳ | — |
 | nst-kv-table-kv-backup-report | ⏳ | — |
-| nst-ledger-grouped-subtotal | ⏳ | — |
+| nst-ledger-grouped-subtotal | ✅ | grouped-rows |
 | nst-lsblk-tree-attrs | ⏳ | — |
-| nst-lsof-per-process | ⏳ | — |
+| nst-lsof-per-process | ✅ | grouped-rows |
 | nst-lvdisplay-segments | ✅ | dashed-sections |
 | nst-mdadm-detail-devices | ⏳ | — |
 | nst-mysqltuner-mixed | ✅ | block-records |
-| nst-namespace-pods-tree | ⏳ | — |
+| nst-namespace-pods-tree | ✅ | grouped-rows |
 | nst-nginx-upstream-blocks | ✅ | indented-hierarchy |
 | nst-nvme-per-namespace-stats | ⏳ | — |
 | nst-openssl-x509-text | ✅ | key-value |
@@ -2180,15 +2180,15 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-php-ini-sections | ✅ | ini-sections |
 | nst-postfix-per-queue | ✅ | block-records |
 | nst-python-traceback-log | ✅ | text-lines |
-| nst-quota-grouped-subtotal | ⏳ | — |
-| nst-region-az-instances | ⏳ | — |
+| nst-quota-grouped-subtotal | ✅ | grouped-rows |
+| nst-region-az-instances | ✅ | grouped-rows |
 | nst-report-preamble-table-footnotes | ⏳ | — |
 | nst-rsync-per-dir-stats | ✅ | block-records |
-| nst-sales-by-region-subtotals | ⏳ | — |
+| nst-sales-by-region-subtotals | ✅ | grouped-rows |
 | nst-sar-multisection | ✅ | aligned-columns |
 | nst-slurm-sacct-nested | ✅ | fixed-width |
 | nst-smartctl-info-attrs-selftest | ⏳ | — |
-| nst-supervisorctl-grouped | ⏳ | — |
+| nst-supervisorctl-grouped | ✅ | grouped-rows |
 | nst-syslog-multiline-continuation | ✅ | syslog |
 | nst-systemd-analyze-dump | ✅ | equals |
 | nst-systemd-show-unit | ✅ | equals |
@@ -2283,7 +2283,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | numfmt-grouping | ✅ | aligned-columns |
 | numfmt-padding | ✅ | aligned-columns |
 | numfmt-si-suffix | ✅ | aligned-columns |
-| numpy-show-config | ✅ | aligned-columns |
+| numpy-show-config | ✅ʰ | aligned-columns (hint: numpy-show-config) |
 | nuttcp-run | ✅ | line-records |
 | nvcc-version | ✅ | aligned-columns |
 | nvidia-container-cli-info | ✅ | key-value |
@@ -2545,7 +2545,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | proc-cpuinfo-flags | ✅ | tsv |
 | proc-cpuinfo | ✅ | tsv |
 | proc-crypto | ✅ | aligned-columns |
-| proc-devices | ✅ᵇ | proc-devices (bespoke) |
+| proc-devices | ✅ | grouped-rows |
 | proc-diskstats | ✅ | aligned-columns |
 | proc-dma | ✅ | labeled-records |
 | proc-filesystems | ✅ᵇ | proc-filesystems (bespoke) |
@@ -2643,7 +2643,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | pueue-status | ⏳ | — |
 | pulsar-admin-topics-stats | ✅ | yaml |
 | pulumi-config | ✅ | aligned-columns |
-| pulumi-preview | ✅ | indented-hierarchy |
+| pulumi-preview | ✅ | grouped-rows |
 | pulumi-stack-ls | ✅ | aligned-columns |
 | pulumi-stack-output | ✅ | json |
 | puppet-agent-summary | ✅ | yaml |
@@ -3571,7 +3571,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | vmstat | ✅ | aligned-columns |
 | vnstat-hourly | ⏳ | — |
 | vnstat | ✅ᵇ | vnstat (bespoke) |
-| volta-list | ✅ | line-records |
+| volta-list | ✅ʰ | line-records (hint: volta-list) |
 | vtctldclient-getkeyspaces | ✅ | aligned-columns |
 | vtctldclient-getshards | ✅ | aligned-columns |
 | vtctldclient-gettablets | ✅ | aligned-columns |
@@ -3580,7 +3580,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | vtysh-show-ip-ospf-neighbor | ✅ | aligned-columns |
 | vtysh-show-ip-route | ✅ | csv |
 | vtysh-show-mpls-table | ✅ | aligned-columns |
-| vulkaninfo-summary | ✅ | text-lines |
+| vulkaninfo-summary | ✅ʰ | text-lines (hint: vulkaninfo-summary) |
 | vultr-block-storage-list | ✅ | aligned-columns |
 | vultr-dns-list | ✅ | aligned-columns |
 | vultr-instance-list | ✅ | aligned-columns |
@@ -3667,7 +3667,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | yt-dlp-download | ✅ | bracket-log |
 | yt-dlp-formats | ✅ | aligned-columns |
 | yt-dlp-progress-bar | ✅ | bracket-log |
-| yugabyte-cluster-status | ✅ | aligned-columns |
+| yugabyte-cluster-status | ✅ | grouped-rows |
 | yum-list-installed | ✅ | aligned-columns |
 | zabbix-get | ✅ | json |
 | zdb-blkstats | ✅ | aligned-columns |

@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; wrapped-cells + tab-collapse fix (2026-07-12) — **3558 tidy, 150 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; grouped-rows parser (2026-07-13) — **3567 tidy, 139 ⏳**
+
+> **2026-07-13 — grouped-rows (nested-records frontier).** New generic
+> `structured/grouped-rows.sh` (priority 41): GROUP line (Label:/KEY=val/
+> trailing-colon/bare-token/inline-pairs) over indented tabular leaves, 2
+> levels, group keys carried onto each row. Containment: leaves must be a
+> table (modal tokens ±1 ≥70%, leaves ≥ groups), YAML list markers abort,
+> priority sits after block-records/tree-view; 4 kv-flavoured victims pinned
+> back via hint rows (volta, vulkaninfo, numpy-config, lsusb-verbose).
+> Closed 11 nested ⏳; PROMOTED iotop + proc-devices ✅ᵇ→✅; improved pulumi/
+> yugabyte (carried group column). ip -s link stays ⏳ (label line = header
+> for the NEXT row — a pivot, different shape). README headline corrected to
+> tally-derived numbers. **Now 3567 tidy, 139 ⏳** (✅ 3348 / ✅ʰ 77 / ✅ᵇ 142).
 
 > **2026-07-12 — wrapped cells + tab-collapse bug.** aligned-columns' positional
 > path now rejoins continuation lines (only-last-cell grid row = previous row's

@@ -65,3 +65,7 @@ telegraf-test	regex	^> [a-z]+,[a-z]	aligned-columns
 tshark-summary	regex	^ *[0-9]+ [0-9.]+ +[0-9a-fA-F.:]+ → 	line-records
 ufw-status-numbered	regex	\[ *[0-9]+\] [0-9]+/(tcp|udp)	aligned-columns
 vercel-list	regex	Age +Deployment +Status	aligned-columns
+volta-list	contains	User toolchain:	line-records
+vulkaninfo-summary	contains	VULKANINFO	text-lines
+lsusb-verbose	contains	Device Descriptor:	indented-hierarchy
+numpy-show-config	contains	NOT AVAILABLE	aligned-columns

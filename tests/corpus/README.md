@@ -41,15 +41,15 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3558 tidy (150 format gaps ⏳)** — after two +500
+**3706 tools tested; 3567 tidy (139 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3339 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
-routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
+total: ✅ 3348 by a generic parser via auto-detection, ✅ʰ 77 by a generic parser
+routed by a hint row, ✅ᵇ 142 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
@@ -172,7 +172,22 @@ place, correcting the empty-cell column labeling of 22 already-covered tables
 (docker/podman ps with empty PORTS, lastlog's Never-logged-in rows, sparse
 network/volume listings). Closed 4 wrapped ⏳; `tbl-df-wrapped-device` stays
 open (first-column overflow in a single-space numeric table — the fixed-width
-byte-offset family). The 150 ⏳ that remain are
+byte-offset family). A **`grouped-rows`** generic parser (priority 41 — after
+block-records/tree-view, before indented-hierarchy) then opened the
+nested-records frontier: an outer GROUP line (`Region: us-east-1`,
+`COMMAND=nginx PID=1201`, `Node node-01:`, a bare `Images`, or
+`Filesystem UUID: … Label: …`) over INDENTED tabular rows, through two levels,
+with each group's keys carried down onto its leaf rows — the lossless tidy for
+per-record sub-tables, grouped subtotals and namespace→resource listings.
+Detection demands the leaf rows BE a table (modal token count ±1 over ≥70% of
+rows, leaves ≥ groups, no YAML list markers), so ifconfig-style attribute
+blocks, kv hierarchies and YAML never match; four kv-flavoured outputs the
+first cut token-souped (volta, vulkaninfo, numpy-config, lsusb -v) are pinned
+to their original parsers by hint rows. Closed 11 nested ⏳, promoted two
+bespoke-tier inputs to generic (`iotop`, `proc-devices` — their per-tool
+strategies are no longer their only route), and improved `pulumi-preview` and
+`yugabyte-cluster-status` (the carried group column is the point: Masters vs
+TServers rows are finally distinguishable). The 139 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

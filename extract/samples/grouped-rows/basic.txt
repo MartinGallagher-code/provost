@@ -1,0 +1,5 @@
+Region: us-east-1
+  i-0a11  m5.large  running
+  i-0a12  t3.micro  running
+Region: eu-west-1
+  i-0c31  m5.large  running

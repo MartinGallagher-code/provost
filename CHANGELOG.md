@@ -1,5 +1,47 @@
 # glean — Changelog
 
+## 2026-07-13 — grouped-rows parser: the nested-records frontier
+
+New generic parser `strategies/structured/grouped-rows.sh` (priority 41 —
+after block-records and tree-view, before indented-hierarchy) for the
+biggest remaining ⏳ cluster: an outer GROUP line over INDENTED tabular rows,
+up to two levels deep, with each group's keys carried down onto its leaf rows.
+
+Group forms recognised: `Label: value` (spaced; the no-space `group:web`
+variant only when alone on its line — `worker:w_02  STARTING` is a data row),
+a run of KEY=value tokens (`COMMAND=nginx PID=1201`), a trailing-colon opener
+(`Node node-01:`), a bare block token (`Images`), and multiple inline pairs
+(`Filesystem UUID: 3f7a  Label: data`). A digit-free FIRST leaf under a group
+names the leaf columns (`FD TYPE DEVICE NAME`); only the first — a later
+digit-free leaf (`w_02  STARTING`) is data.
+
+Containment (first cut fired on 42 corpus inputs; shipped form: 27 detects,
+4 engine flips beyond the targets):
+- leaves must BE a table — modal token count (±1) over >=70% of rows, and
+  leaves >= groups: ifconfig-style attribute blocks and kv hierarchies vary
+  too much / are group-heavy and never match;
+- YAML list markers (`- `) walk detection away from YAML documents entirely;
+- priority 41 leaves block-records (fdbcli, python-sysconfig, resolvectl) and
+  tree-view (ostree) their wins;
+- four kv-flavoured outputs the parser would token-soup (volta-list,
+  vulkaninfo-summary, numpy-show-config, lsusb -v family) are pinned to their
+  original parsers by hint rows — content byte-identical to their goldens.
+
+Closes 11 nested ⏳ (region→az→instances, lsof per-process FD tables, sales/
+quota/du/ledger grouped subtotals, supervisorctl groups, btrfs per-device
+io_errs, cluster node disks, namespace pods, disk-smart partitions).
+PROMOTES two bespoke-tier inputs to generic — `iotop` and `proc-devices` now
+tidy without their per-tool strategies. Improves `pulumi-preview` and
+`yugabyte-cluster-status` (the carried group column finally distinguishes
+Masters from TServers). Manifest fixes: nst-lsof 8->7 (generator miscount),
+nst-ledger 8->9 (actual leaf count), nst-du 7->9 (subtotals-are-data
+convention). ip -s link stays ⏳ (its RX:/TX: label lines are column headers
+for the FOLLOWING value row — a pivot, not a carry-down; different shape).
+
+Also corrected the README headline to the tally-derived figure (the previous
+round's arithmetic overcounted by 2): now 3567 tidy, 139 ⏳ of 3706
+(✅ 3348 / ✅ʰ 77 / ✅ᵇ 142).
+
 ## 2026-07-12 — wrapped cells + the tab-collapse bug
 
 Two changes in `aligned-columns`' positional-grid path:

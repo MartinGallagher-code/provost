@@ -1,0 +1,9 @@
+n	region	Product	Units	Revenue	D	total_entries
+1	North	Widget	1200	24000		8
+2	North	Gadget	800	32000		8
+3	North	Subtotal	2000	56000		8
+4	South	Widget	950	19000		8
+5	South	Gadget	1100	44000		8
+6	South	Doohickey	300	9000		8
+7	South	Subtotal	2350	72000		8
+8		Grand	Total	4350	128000	8

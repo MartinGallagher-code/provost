@@ -1,0 +1,7 @@
+n	region	az	A	B	C	total_entries
+1	us-east-1	us-east-1a	i-0a11	m5.large	running	6
+2	us-east-1	us-east-1a	i-0a12	t3.micro	running	6
+3	us-east-1	us-east-1b	i-0b21	c5.xlarge	stopped	6
+4	eu-west-1	eu-west-1a	i-0c31	m5.large	running	6
+5	eu-west-1	eu-west-1a	i-0c32	r5.2xlarge	running	6
+6	eu-west-1	eu-west-1a	i-0c33	t3.small	pending	6
