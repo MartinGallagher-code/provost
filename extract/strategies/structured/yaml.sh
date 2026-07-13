@@ -29,7 +29,11 @@ strategy_detect () {
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         nonblank=$((nonblank + 1))
-        if [[ "$_l" =~ ^[[:space:]]*[A-Za-z0-9_.-]+:([[:space:]]|$) ]] \
+        # A key must start with a LETTER, matching the overall gate above — a
+        # purely-numeric label before the colon (`/proc/interrupts`' IRQ rows:
+        # `0:`, `16:`) is a table row label, not a YAML key, and would otherwise
+        # inflate the yamlish ratio enough to hijack non-YAML numeric tables.
+        if [[ "$_l" =~ ^[[:space:]]*[A-Za-z][A-Za-z0-9_.-]*:([[:space:]]|$) ]] \
            || [[ "$_l" =~ ^[[:space:]]*-[[:space:]] ]] \
            || [[ "$_l" == "---"* ]]; then
             yamlish=$((yamlish + 1))

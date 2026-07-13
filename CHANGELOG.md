@@ -1,5 +1,55 @@
 # glean — Changelog
 
+## 2026-07-13 — manifest-discipline follow-up: yaml/iostat fixes + stale-golden cleanup
+
+Completes the manifest-discipline pass begun by the strict-`_ok` commit
+(`enforce text-kind mincols in the tidy harness`), which deliberately deferred
+"a coverage re-run + triage of newly-strict text entries" to this follow-up.
+
+**Two root-cause parser fixes surfaced by the strict-mincols re-run.**
+
+- `structured/yaml.sh` was false-positive-claiming `/proc/interrupts`-style
+  numeric tables: its yamlish-ratio line check counted a purely-numeric label
+  before a colon (`0:`, `16:` — IRQ row ids) as a YAML key, inflating the ratio
+  past the 80% gate on output that is not YAML at all. The check now requires a
+  key to start with a LETTER (matching the strategy's own top gate), so numeric
+  row-label tables no longer register as yamlish. Blast radius (full-corpus
+  winner scan, parallelised): 143 → 140 yaml winners, exactly 3 declined, zero
+  unintended — `proc-interrupts-smp` (→ aligned-columns; real per-CPU columns
+  now, residual one-column offset from the header-less leading IRQ-id column),
+  `docker-pull-layers` and `ogrinfo-layers` (both → labeled-records, clean
+  name/value lists). All three were yaml-garbage before; all three now clear
+  their manifest and are ✅.
+
+- `filesystem/iostat-x.sh`'s detect required BOTH `rrqm/s` and `aqu-sz` in the
+  Device header, so the reduced-column `iostat -c -x` variant (`iostat-cx`,
+  header carries `aqu-sz` but not `rrqm/s`) fell through to `block-records`,
+  which dropped the entire Device table and kept only a garbled `avg-cpu:` line
+  (2 cols vs the manifest's 9). Detect now keys on `aqu-sz` alone — distinctive
+  enough to never match a plain `iostat -d` table — so `iostat-cx` is tidied by
+  the bespoke `iostat-x` (all 9 columns, ✅ᵇ).
+
+**Stale-golden cleanup + manifest correction.** Re-running `--update-golden`
+under the now-strict `_ok` deleted 33 generic-mode goldens whose output no
+longer clears its manifest's `emin` (the loose goldens the discipline pass
+exists to retire). Each was triaged, generic AND full mode, to separate genuine
+gaps from apt-get-style manifest miscalibration: all 33 are genuine shortfalls,
+not bad manifests. The bespoke-covered subset (sar-u-all/-r-memory/-p-disk/
+-n-edev, mpstat-p-all, pidstat-t, iostat-cx/-xz) honestly moves ✅→✅ᵇ (they
+need a bespoke; generic can't); the rest (amdgpu-top, nvidia-smi-*, storcli-
+show, turbostat-wide, ssh-config-*, brew-info-*, zpool-iostat-*, …) become
+honest ⏳. One manifest WAS miscalibrated and is corrected: `apt-get-download-
+progress` `mincols 4 → 2` (the 4 was calibrated against the pre-bugfix garbled
+csv output; the honest single-column text-lines result is 2-wide and correct).
+
+Gates: golden 3397 passed / 0 failed / 309 not-yet-covered; extract 62/62;
+smoke 49/0; melt 10/0. Coverage **3546 / 3706** (✅ 3314 / ✅ʰ 83 / ✅ᵇ 149) —
+down from the pre-discipline 3571 because the strict check stops ~28 lossy
+parses from counting as tidy (the honest reclassification this pass is for),
+net of +3 from the yaml fix. Remaining wide-fixed-width gaps (turbostat-wide
+dropping 8 of 20 cols, storcli-show, nvidia-smi-full, the sar/iostat generic
+paths) are documented follow-ups, not addressed here.
+
 ## 2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false-positive
 
 Two root-cause fixes from a manual quality review of `tests/corpus/review-output/`

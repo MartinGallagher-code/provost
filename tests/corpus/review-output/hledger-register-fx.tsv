@@ -1,3 +1,4 @@
-n	2026-01-05_opening_balance___assets:checking________$1	234_56____$1	234_56	total_entries
-1	2026-01-08 coffee            expenses:food             -$4.50    $1	230.06		2
-2	2026-01-12 fx buy euros      assets:eur-wallet         €890	50      €890	50	2
+n	A	total_entries
+1	2026-01-05 opening balance   assets:checking        $1,234.56    $1,234.56	3
+2	2026-01-08 coffee            expenses:food             -$4.50    $1,230.06	3
+3	2026-01-12 fx buy euros      assets:eur-wallet         €890,50      €890,50	3

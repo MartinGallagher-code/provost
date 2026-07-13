@@ -24,10 +24,14 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=86
     # Require the avg-cpu block AND an extended Device header (aqu-sz + rrqm/s).
     [[ "$text" == *"avg-cpu:"* ]] || return 1
+    # `aqu-sz` alone (without `rrqm/s`) is a reduced extended-mode column set
+    # (e.g. `iostat -c -x`, a shorter field list) — still `iostat -x`'s output,
+    # just not every optional column. `aqu-sz` is distinctive enough on its own
+    # to not misfire on a plain `iostat -d` Device table (which never has it).
     local line seen=0
     while IFS= read -r line; do
         [[ "$line" == Device* ]] || continue
-        [[ "$line" == *"rrqm/s"* && "$line" == *"aqu-sz"* ]] && seen=1
+        [[ "$line" == *"aqu-sz"* ]] && seen=1
     done <<< "$text"
     [[ $seen -eq 1 ]] && return 0
     return 1

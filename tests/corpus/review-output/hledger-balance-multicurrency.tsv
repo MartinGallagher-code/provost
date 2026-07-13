@@ -1,5 +1,2 @@
-n	$1	234_56__assets:checking	total_entries
-1	€890	50  assets:eur	4
-2	-£1	200.00  liabilities:card	4
-3	--------------------		4
-4	$1	234.56	4
+n	-£1,200_00	liabilities:card	total_entries
+1	$1,234.56, €890,5	0, -£1,200.00	1

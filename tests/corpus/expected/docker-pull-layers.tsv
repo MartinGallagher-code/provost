@@ -1,2 +1,7 @@
-a3ed95caeb02	b8f262c62ec6	c1d02d0b3b1f	d5f7e8a91c22
-Downloading [=====================>                             ]  12.4MB/31.2MB	Downloading [============>                                      ]  4.1MB/18.0MB	Extracting  [==================================>                ]  8.9MB/13.1MB	Waiting
+n	name	value	total_entries
+1	3.18	Pulling from library/alpine	6
+2	9fda8d8052c6	Pull complete	6
+3	a3ed95caeb02	Downloading [=====================>                             ]  12.4MB/31.2MB	6
+4	b8f262c62ec6	Downloading [============>                                      ]  4.1MB/18.0MB	6
+5	c1d02d0b3b1f	Extracting  [==================================>                ]  8.9MB/13.1MB	6
+6	d5f7e8a91c22	Waiting	6

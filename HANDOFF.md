@@ -1,6 +1,25 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; aligned-columns/csv false-positive fixes (2026-07-13) — **3571 tidy, 135 ⏳** (golden gate 3430 passed / 0 failed / 276 not-yet-covered)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; manifest-discipline pass + yaml/iostat fixes (2026-07-13) — **3546 tidy, 160 ⏳** (golden gate 3397 passed / 0 failed / 309 not-yet-covered — honest strict-mincols count)
+
+> **2026-07-13 — manifest-discipline follow-up.** Completes the strict-`_ok`
+> pass (text-kind now honors the manifest's `emin`, not a hardcoded ≥2). Two
+> parser fixes surfaced by the strict re-run: `yaml.sh` no longer false-claims
+> `/proc/interrupts` numeric tables (a `key` must start with a LETTER, so `0:`/
+> `16:` IRQ ids don't count as YAML keys) — 143→140 yaml winners, 3 clean
+> declines (proc-interrupts-smp→aligned-columns, docker-pull-layers +
+> ogrinfo-layers→labeled-records, all ✅); `iostat-x.sh` detect keys on `aqu-sz`
+> alone so the reduced-column `iostat -c -x` (`iostat-cx`) is tidied bespokely
+> (✅ᵇ) instead of losing its Device table to block-records. Re-ran
+> `--update-golden` under strict `_ok`: 33 stale-loose generic goldens deleted
+> (all triaged as genuine shortfalls, not miscalibration — the bespoke-covered
+> subset moves ✅→✅ᵇ, the rest become honest ⏳); one real miscalibration fixed
+> (`apt-get-download-progress` mincols 4→2, was tuned to pre-bugfix garbled csv).
+> Gates: golden 3397/0, extract 62/62, smoke 49/0, melt 10/0. **Now 3546 tidy,
+> 160 ⏳** (✅ 3314 / ✅ʰ 83 / ✅ᵇ 149) — the honest number after the discipline
+> pass stops ~28 lossy parses counting as tidy. Frontier (documented, not fixed):
+> wide fixed-width tables dropping columns generically (turbostat-wide 12/20,
+> storcli-show, nvidia-smi-full, sar/iostat generic paths).
 
 > **2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false
 > positive.** From a manual review of `tests/corpus/review-output/`: (1)

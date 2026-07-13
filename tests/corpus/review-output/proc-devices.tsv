@@ -1,13 +1,12 @@
-n	Character	devices:	total_entries
-1	1	mem	12
-2	4	tty	12
-3	5	/dev/tty	12
-4	7	vcs	12
-5	10	misc	12
-6	13	input	12
-7	128	ptm	12
-8	Block	devices:	12
-9	8	sd	12
-10	11	sr	12
-11	65	sd	12
-12	259	blkext	12
+n	character	A	B	block	total_entries
+1	devices	1	mem		11
+2	devices	4	tty		11
+3	devices	5	/dev/tty		11
+4	devices	7	vcs		11
+5	devices	10	misc		11
+6	devices	13	input		11
+7		128	ptm		11
+8		8	sd	devices	11
+9		11	sr	devices	11
+10		65	sd	devices	11
+11		259	blkext		11

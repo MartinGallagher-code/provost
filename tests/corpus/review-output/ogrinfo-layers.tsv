@@ -1,2 +1,5 @@
-field	value
-INFO	Open of `data.gpkg' using driver `GPKG' successful.
+n	name	value	total_entries
+1	INFO	Open of `data.gpkg' using driver `GPKG' successful.	4
+2	1	roads (Line String)	4
+3	2	buildings (Polygon)	4
+4	3	points_of_interest (Point)	4
