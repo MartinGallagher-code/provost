@@ -1,0 +1,7 @@
+n	A	B	C	D	E	F	G	total_entries
+1	allow	httpd_t	httpd_config_t:dir	{	getattr	search	};	6
+2	allow	httpd_t	httpd_config_t:file	{	getattr	read	};	6
+3	allow	httpd_t	httpd_log_t:file	{	append	open	};	6
+4	allow	sshd_t	sshd_key_t:file	{	read	open	};	6
+5	allow	init_t	init_var_run_t:dir	{	add_name	write	};	6
+6	allow	user_t	user_home_t:file	{	ioctl	read	};	6

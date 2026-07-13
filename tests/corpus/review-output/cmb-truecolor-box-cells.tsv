@@ -1,0 +1,4 @@
+n	ZONE	RECORDS	STATUS	total_entries
+1	example.com	42	active	3
+2	internal.net	118	active	3
+3	legacy.io	7	suspended	3

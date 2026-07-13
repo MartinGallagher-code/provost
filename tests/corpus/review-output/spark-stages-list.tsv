@@ -1,0 +1,4 @@
+n	Stage_Id	Description	Status	Tasks	Input	Shuffle_Read	Shuffle_Write	Duration	total_entries
+1	0	map at Ingest.scala:44	COMPLETE	200/200	2.4 GiB	0.0 B	512 MiB	42 s	3
+2	1	reduceByKey Agg.scala:61	COMPLETE	200/200	0.0 B	512 MiB	128 MiB	1.2 min	3
+3	2	collect at Job.scala:88	RUNNING	87/200	0.0 B	128 MiB	0.0 B	33 s	3

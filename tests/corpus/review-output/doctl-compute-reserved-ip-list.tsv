@@ -1,0 +1,4 @@
+n	IP	Region	Droplet_ID	Droplet_Name	Project_ID	total_entries
+1	159.223.100.14	nyc3	412093881	api-server-01	2c1d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f	3
+2	138.197.55.203	nyc3	412094552	worker-01	2c1d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f	3
+3	167.71.12.99	sfo3			9f8e7d6c-5b4a-3928-1706-fedcba987654	3

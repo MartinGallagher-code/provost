@@ -1,0 +1,7 @@
+n	InstanceId	PlatformName	PlatVer	AgentVersion	PingStatus	IPAddress	total_entries
+1	i-0abc123def4567890	Amazon Linux	2023	3.3.40.0	Online	10.0.1.24	6
+2	i-0def456abc7890123	Ubuntu	22.04	3.3.40.0	Online	10.0.2.51	6
+3	i-0aaa111bbb2223334	Amazon Linux	2	3.2.582.0	ConnectionLost	10.0.1.90	6
+4	i-0ccc999ddd8887776	Red Hat	9.3	3.3.40.0	Online	10.0.3.12	6
+5	i-0eee222fff4445556	Windows Server	2022	3.3.40.0	Online	10.0.2.77	6
+6	i-0111aaa222bbb3334	Ubuntu	20.04	3.1.1927.0	Online	10.0.4.5	6

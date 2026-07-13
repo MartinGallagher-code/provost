@@ -1,0 +1,2 @@
+nginx.Depends	nginx.Depends	nginx.Depends	nginx.Recommends
+libc6	libssl3	nginx-common	fcgiwrap

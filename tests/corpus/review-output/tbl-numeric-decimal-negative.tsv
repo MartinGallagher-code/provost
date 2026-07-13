@@ -1,0 +1,5 @@
+n	Account	Debit	Credit	Balance	total_entries
+1	Cash	1,250.00	0.00	1,250.00	4
+2	Payable	0.00	3,400.50	-3,400.50	4
+3	Revenue	0.00	12,000.00	-12,000.00	4
+4	Expense	8,750.25	0.00	8,750.25	4

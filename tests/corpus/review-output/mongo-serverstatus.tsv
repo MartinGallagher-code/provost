@@ -1,0 +1,10 @@
+n	A	B	C	total_entries
+1	host	:	mongo-primary-01:27017	9
+2	version	:	7.0.5	9
+3	process	:	mongod	9
+4	pid	:	1	9
+5	uptime	:	482910	9
+6	uptimeMillis	:	482910233	9
+7	localTime	:	ISODate("2026-07-06T09:14:22.481Z")	9
+8	connections.current	:	34	9
+9	connections.available	:	51166	9

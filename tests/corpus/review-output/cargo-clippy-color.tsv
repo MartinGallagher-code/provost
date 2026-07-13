@@ -1,0 +1,2 @@
+warning	warning	error
+unused import: `std::io`         src/main.rs:3	needless return                  src/lib.rs:42	mismatched types                 src/db.rs:88

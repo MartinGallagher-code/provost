@@ -1,0 +1,5 @@
+n	account	debit	credit	total_entries
+1	cash	1200	0	4
+2	inventory	450	0	4
+3	payable	0	1650	4
+4	equity	0	0	4

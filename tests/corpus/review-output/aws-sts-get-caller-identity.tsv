@@ -1,0 +1,2 @@
+UserId	Account	Arn
+AROA1234567EXAMPLE:martin.gallagher	123456789012	arn:aws:sts::123456789012:assumed-role/AdminRole/martin.gallagher

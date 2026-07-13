@@ -1,0 +1,2 @@
+Name	Version	Release	Architecture	Install_Date	Group	Size	License	Signature	Source_RPM	Build_Date	Build_Host	Packager	Vendor	URL	Summary
+bash	5.1.8	6.el9_1	x86_64	Fri 10 Feb 2023 11:02:47 AM UTC	Unspecified	7748268	GPLv3+	RSA/SHA256, Thu 26 Jan 2023 06:12:34 PM UTC, Key ID 199e2f91fd431d51	bash-5.1.8-6.el9_1.src.rpm	Thu 26 Jan 2023 05:44:19 PM UTC	x86-64-02.build.example.com	Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>	Red Hat, Inc.	https://www.gnu.org/software/bash	The GNU Bourne Again shell

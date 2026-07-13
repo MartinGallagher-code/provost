@@ -1,0 +1,5 @@
+n	Name	Location	ResourceGroup	KubernetesVersion	ProvisioningState	Fqdn	total_entries
+1	prod-aks	eastus	prod-rg	1.29.4	Succeeded	prod-aks-dns-a1b2c3d4.hcp.eastus.azmk8s.io	4
+2	staging-aks	eastus	staging-rg	1.29.4	Succeeded	staging-aks-dns-e5f6g7h8.hcp.eastus.azmk8s.io	4
+3	dev-aks	westus2	dev-rg	1.28.9	Succeeded	dev-aks-dns-i9j0k1l2.hcp.westus2.azmk8s.io	4
+4	data-aks	eastus	prod-rg	1.29.4	Upgrading	data-aks-dns-m3n4o5p6.hcp.eastus.azmk8s.io	4

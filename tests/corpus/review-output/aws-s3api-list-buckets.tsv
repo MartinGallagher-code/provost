@@ -1,0 +1,7 @@
+n	Name	CreationDate	total_entries
+1	acme-prod-assets	2024-03-11T08:14Z	6
+2	acme-prod-logs	2024-03-11T08:15Z	6
+3	acme-terraform-state	2023-11-02T19:41Z	6
+4	acme-backups-eu	2024-06-20T06:02Z	6
+5	acme-data-lake-raw	2025-01-08T13:37Z	6
+6	acme-cloudtrail-archive	2023-09-14T22:10Z	6

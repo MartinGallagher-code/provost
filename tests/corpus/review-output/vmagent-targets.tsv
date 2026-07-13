@@ -1,0 +1,6 @@
+n	name	value	label.job	label.instance
+1	endpoint	state		
+2	http://10.0.1.5:9100/metrics up      	   2.1s ago      12.4ms            	node	10.0.1.5
+3	http://10.0.1.6:9100/metrics up      	   1.8s ago      9.9ms             	node	10.0.1.6
+4	http://10.0.2.4:8080/metrics down    	    3.0s ago      0ms               connection refused	api	10.0.2.4
+5	http://10.0.2.5:8080/metrics up      	    0.9s ago      18.7ms            	api	10.0.2.5

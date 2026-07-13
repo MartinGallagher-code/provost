@@ -1,0 +1,2 @@
+PATH_EXTRA	JAVA_OPTS	MSG	URL
+"/opt/bin:/usr/local/bin"	"-Xms512m -Xmx2g -Dfoo=bar"	'it'"'"'s fine'	https://user:pass@host:443/path?q=1

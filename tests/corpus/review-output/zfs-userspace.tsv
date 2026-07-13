@@ -1,0 +1,5 @@
+n	TYPE	NAME	USED	QUOTA	total_entries
+1	POSIX User	alice	642G	1T	4
+2	POSIX User	bob	318G	500G	4
+3	POSIX User	carol	91.4G	none	4
+4	POSIX User	root	12.0K	none	4

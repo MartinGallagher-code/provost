@@ -1,0 +1,2 @@
+Total_number_of_tables	Keyspace	Read_Count	Read_Latency	Write_Count	Write_Latency	Pending_Flushes	Table	SSTable_count	Space_used_(live)	Space_used_(total)	Number_of_partitions_(estimate)	Memtable_cell_count	Memtable_data_size	Local_read_count	Local_read_latency	Bloom_filter_false_positives	Bloom_filter_false_ratio	Compacted_partition_maximum_bytes
+38	ecommerce	1452301	0.152 ms	892344	0.045 ms	0	orders	4	1048576	1048576	120453	3421	262144	1452301	0.148 ms	12	0.00001	545791

@@ -1,0 +1,3 @@
+n	NAME	READY	SYNCED	EXTERNAL-NAME	total_entries
+1	rdsinstance.prod-db	True	True	prod-db-abc	2
+2	s3bucket.prod-assets	True	True	prod-assets-123	2

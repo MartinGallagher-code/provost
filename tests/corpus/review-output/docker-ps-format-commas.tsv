@@ -1,0 +1,3 @@
+n	CONTAINER	ID	IMAGE	PORTS	NAMES	total_entries
+1	a1b2c3d4	nginx:1.25	0.0.0.0:80->80/tcp,	0.0.0.0:443->443/tcp	web	2
+2	e5f6a7b8	redis:7	0.0.0.0:6379->6379/tcp	cache		2

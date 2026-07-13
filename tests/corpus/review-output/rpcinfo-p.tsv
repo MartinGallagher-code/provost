@@ -1,0 +1,9 @@
+n	program	vers	proto	port	service	total_entries
+1	100000	4	tcp	111	portmapper	8
+2	100000	3	tcp	111	portmapper	8
+3	100000	2	udp	111	portmapper	8
+4	100003	3	tcp	2049	nfs	8
+5	100003	4	tcp	2049	nfs	8
+6	100005	1	udp	20048	mountd	8
+7	100005	3	tcp	20048	mountd	8
+8	100021	4	udp	46123	nlockmgr	8

@@ -1,0 +1,3 @@
+n	ROUTER	SERVICE	RULE	STATUS	total_entries
+1	api@docker	api-svc	Host(`api.example.com`)	enabled	2
+2	web@docker	web-svc	Host(`example.com`)	enabled	2

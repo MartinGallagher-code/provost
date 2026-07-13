@@ -1,0 +1,5 @@
+n	A	total_entries
+1	a1b2c3d  Fix ANSI stripping in tokenizer	4
+2	d4e5f6a  Add colored fixtures	4
+3	9988776  Refactor delimited strategy	4
+4	5544332  Initial import from Envoy	4

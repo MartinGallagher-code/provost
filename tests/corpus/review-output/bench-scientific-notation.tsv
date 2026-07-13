@@ -1,0 +1,4 @@
+n	benchmark	time	iterations	throughput	total_entries
+1	BM_Alloc/1024	1.24e-9 s	536870912	8.06e8/s	3
+2	BM_Alloc/4096	4.56e-8 s	15728640	2.19e7/s	3
+3	BM_Hash/64	9.99e-7 s	700000	1.00e6/s	3

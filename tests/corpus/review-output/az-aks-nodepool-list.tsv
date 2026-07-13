@@ -1,0 +1,3 @@
+n	name	count	vmSize	mode	total_entries
+1	system	3	Standard_D4s_v5	System	2
+2	user	6	Standard_E8s_v5	User	2

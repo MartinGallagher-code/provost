@@ -1,0 +1,4 @@
+n	DEVNAME	UUID	TYPE	LABEL	PARTUUID
+1	/dev/sda1	1234-ABCD	vfat	EFI	aaaa-0001
+2	/dev/sda2	5678efgh-90ab-cdef-1234-567890abcdef	ext4	root	aaaa-0002
+3	/dev/sdb1	9012ijkl-3456-7890-abcd-ef1234567890	xfs	data	bbbb-0001

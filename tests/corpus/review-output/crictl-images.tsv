@@ -1,0 +1,7 @@
+n	IMAGE	TAG	IMAGE_ID	SIZE	total_entries
+1	docker.io/library/nginx	1.25	605c77e624dd0	146MB	6
+2	registry.k8s.io/coredns/coredns	v1.11.1	cbb01a7bd410d	18.2MB	6
+3	registry.k8s.io/etcd	3.5.12-0	3861cfcd7c04c	57.2MB	6
+4	registry.k8s.io/kube-apiserver	v1.30.2	56ce0fd9fb532	32.8MB	6
+5	registry.k8s.io/kube-proxy	v1.30.2	53c535741fb44	29.0MB	6
+6	registry.k8s.io/pause	3.9	e6f181688397d	744kB	6

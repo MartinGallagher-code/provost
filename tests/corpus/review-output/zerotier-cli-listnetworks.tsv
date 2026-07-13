@@ -1,0 +1,5 @@
+n	A	B	C	D	E	F	G	H	I	total_entries
+1	200	listnetworks	<nwid>	<name>	<mac>	<status>	<type>	<dev>	<ZT_assigned_ips>	4
+2	200	listnetworks	8056c2e21c000001	corp-lan	3e:1a:9f:22:71:04	OK	PRIVATE	ztyx7abc12	10.147.17.44/24	4
+3	200	listnetworks	e5cd7a9e1b220133	lab-net	a2:7f:3c:11:99:52	OK	PUBLIC	ztqp9def34	172.28.4.7/16	4
+4	200	listnetworks	93afae5963440210	dmz-seg	6c:0b:44:81:2d:0f	REQUESTING_CONFIGURATION	PRIVATE	ztkl2ghi56	-	4

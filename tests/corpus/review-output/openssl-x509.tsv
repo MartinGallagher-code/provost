@@ -1,0 +1,14 @@
+n	key	value	total_entries
+1	Certificate		13
+2	Data		13
+3	Version	3 (0x2)	13
+4	Serial Number		13
+5	0a	1b:2c:3d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9	13
+6	Signature Algorithm	sha256WithRSAEncryption	13
+7	Issuer	C=US, O=Let's Encrypt, CN=R3 Validity	13
+8	Not Before	Jun  1 00:00:00 2026 GMT	13
+9	Not After	Aug 30 23:59:59 2026 GMT	13
+10	Subject	CN=example.com	13
+11	Subject Public Key Info		13
+12	Public Key Algorithm	rsaEncryption	13
+13	Public-Key	(2048 bit)	13

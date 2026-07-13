@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	total_entries
+1	-	12	let	x	=	compute_old();	3
+2	+	12	let	x	=	compute_new();	3
+3	+	13	log::info!("done");				3

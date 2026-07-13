@@ -1,0 +1,4 @@
+n	Speed.#1.........	Hashmode
+1	1204.8_MH/s_(88.42ms)_@_Accel:64_Loops:1024_Thr:256_Vec:1	0_-_MD5
+2	482.1_MH/s_(44.21ms)_@_Accel:32_Loops:512_Thr:256_Vec:1	1000_-_NTLM
+3	12.4_kH/s_(212.4ms)_@_Accel:8_Loops:1024_Thr:128_Vec:1	3200_-_bcrypt

@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	alias	ll='ls	-alF'	4
+2	alias	gs='git	status'	4
+3	alias	k='kubectl'		4
+4	alias	..='cd	..'	4

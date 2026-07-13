@@ -1,0 +1,4 @@
+n	FILE	OWNER	GROUP	total_entries
+1	config.yaml	root	2048	3
+2	data.db	root	102400	3
+3	cache.tmp	www	512	3

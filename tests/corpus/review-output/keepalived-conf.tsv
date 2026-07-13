@@ -1,0 +1,11 @@
+n	A	total_entries
+1	vrrp_instance VI_1 {	10
+2	state MASTER	10
+3	interface eth0	10
+4	virtual_router_id 51	10
+5	priority 150	10
+6	advert_int 1	10
+7	virtual_ipaddress {	10
+8	192.0.2.100/24 dev eth0	10
+9	}	10
+10	}	10

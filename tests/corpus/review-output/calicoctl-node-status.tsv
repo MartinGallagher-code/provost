@@ -1,0 +1,4 @@
+n	PEER_ADDRESS	PEER_TYPE	STATE	SINCE	INFO	total_entries
+1	10.5.0.2	node-to-node	up	14:02:31	Established	3
+2	10.5.0.3	node-to-node	up	14:02:33	Established	3
+3	10.5.0.4	node-to-node	up	14:05:10	Established	3

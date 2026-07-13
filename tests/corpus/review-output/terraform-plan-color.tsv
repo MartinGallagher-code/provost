@@ -1,0 +1,3 @@
+n	~	aws_security_group_sg	will	be	updated	total_entries
+1	-	aws_s3_bucket.old	will	be	destroyed	2
+2	+	aws_eip.web_ip	will	be	created	2

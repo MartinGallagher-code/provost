@@ -1,0 +1,10 @@
+n	A	B	C	D	E	total_entries
+1	NTP	packets	received	:	1234567	9
+2	NTP	packets	dropped	:	12	9
+3	Command	packets	received	:	8901	9
+4	Command	packets	dropped	:	0	9
+5	Client	log	records	dropped	:_3	9
+6	NTS-KE	connections	accepted:	45		9
+7	NTS-KE	connections	dropped	:	1	9
+8	Authenticated	NTP	packets	:	1200000	9
+9	Interleaved	NTP	packets	:	34	9

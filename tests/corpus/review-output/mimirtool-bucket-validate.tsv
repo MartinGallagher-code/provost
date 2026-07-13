@@ -1,0 +1,8 @@
+n	A	B	C	D	E	total_entries
+1	INFO	validating	bucket	configuration	backend=s3	7
+2	INFO	checking	bucket	access	bucket=mimir-blocks	7
+3	INFO	bucket	is	writable	bucket=mimir-blocks	7
+4	INFO	bucket	is	readable	bucket=mimir-blocks	7
+5	INFO	validating	bucket	configuration	backend=s3_bucket=mimir-ruler	7
+6	INFO	bucket	is	writable	bucket=mimir-ruler	7
+7	INFO	validation	completed	successfully		7

@@ -1,0 +1,5 @@
+n	id	conn_id	conn_type	host	port	is_encrypted	total_entries
+1	1	postgres_default	postgres	db.internal	5432	True	4
+2	2	redis_default	redis	cache.internal	6379	True	4
+3	3	aws_default	aws	(none)	None	True	4
+4	4	snowflake_dwh	snowflake	acme.snowflakecomputing.com	443	True	4

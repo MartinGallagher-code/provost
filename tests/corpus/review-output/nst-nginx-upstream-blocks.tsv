@@ -1,0 +1,2 @@
+upstream_backend_{.server_10.0.0.11	upstream_backend_{.server_10.0.0.12	upstream_backend_{.server_10.0.0.13	upstream_cache_{.server_10.0.0.21	upstream_cache_{.server_10.0.0.22	upstream_static_{.server_cdn1.internal
+8080 weight=3;	8080;	8080 backup;	6379 max_fails=2 fail_timeout=30s;	6379;	80;

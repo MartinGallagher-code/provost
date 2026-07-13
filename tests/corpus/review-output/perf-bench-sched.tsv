@@ -1,0 +1,5 @@
+n	A	total_entries
+1	# Running 'sched/messaging' benchmark:	4
+2	# 20 sender and receiver processes per group	4
+3	# 10 groups == 400 processes run	4
+4	Total time: 0.882 [sec]	4

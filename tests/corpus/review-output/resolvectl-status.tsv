@@ -1,0 +1,3 @@
+n	Protocols	resolv.conf_mode	Current_DNS_Server	DNS_Servers	DNS_Domain	Protocols:_-LLMNR_-mDNS_-DNSOverTLS_DNSSEC	Current_Scopes
+1	-LLMNR_-mDNS_-DNSOverTLS_DNSSEC=no/unsupported	stub	1.1.1.1	1.1.1.1_8.8.8.8	~.	no/unsupported	
+2	+DefaultRoute_-LLMNR_-mDNS_-DNSOverTLS_DNSSEC=no/unsupported		192.168.1.1	192.168.1.1	lan		DNS

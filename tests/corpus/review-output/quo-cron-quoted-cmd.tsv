@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	G	H	I	J	total_entries
+1	0	2	*	*	*	/usr/local/bin/backup	--dst	s3://bucket/path	--note	nightly, full	3
+2	*/5	*	*	*	*	/bin/sh	-c	curl -s http://localhost:9000/ping; echo ok			3
+3	30	4	*	*	1	root	/opt/report	--range	2026-01-01:2026-12-31		3

@@ -1,0 +1,5 @@
+n	device	tps	kb_read_s	kb_wrtn_s	kb_read	kb_wrtn	total_entries
+1	sda	12.3	456.7	123.4	123456	45678	4
+2	nvme0n1	45.6	1234.5	567.8	987654	234567	4
+3	sda	13.1	478.2	130.1	124000	45900	4
+4	nvme0n1	48.9	1301.2	590.3	990000	235000	4

@@ -1,0 +1,6 @@
+n	NAME	REVISION	SUSPENDED	READY	MESSAGE	total_entries
+1	flux-system	main@sha1:a1b2c3d4	False	True	Applied revision: main@sha1:a1b2c3d4	5
+2	apps	main@sha1:e5f6a7b8	False	True	Applied revision: main@sha1:e5f6a7b8	5
+3	monitoring	main@sha1:c9d0e1f2	False	True	Applied revision: main@sha1:c9d0e1f2	5
+4	infrastructure	main@sha1:3a4b5c6d	False	False	Reconciliation in progress	5
+5	tenants	main@sha1:7e8f9a0b	True	True	Applied revision: main@sha1:7e8f9a0b	5

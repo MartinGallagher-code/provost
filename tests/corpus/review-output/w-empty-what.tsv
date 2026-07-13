@@ -1,0 +1,4 @@
+n	user	tty	from	login	idle	jcpu	pcpu	what	total_entries
+1	mgallag	pts/0	192.168.1.10	09:14	0.00s	0.30s	0.03s	vim notes.md	3
+2	mgallag	pts/1	192.168.1.10	08:02	1:21m	0.05s	0.05s	-bash	3
+3	backup	pts/2	10.0.0.9	02:00	45:00	0.01s	0.01s	sshd: backup [priv]	3

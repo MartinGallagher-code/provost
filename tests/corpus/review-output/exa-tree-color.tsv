@@ -1,0 +1,5 @@
+n	depth	name	total_entries
+1	1	Cargo.toml 412	4
+2	1	src -	4
+3	2	main.rs 1204	4
+4	1	tests -	4

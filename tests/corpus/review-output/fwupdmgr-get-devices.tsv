@@ -1,0 +1,18 @@
+n	A	total_entries
+1	Computer	17
+2	│	17
+3	├─UEFI dbx:	17
+4	│     Device ID:          362301da643102b9f38477387e2193e57abaa590	17
+5	│     Summary:            UEFI revocation database	17
+6	│     Current version:    77	17
+7	│     Vendor:             UEFI:Linux Foundation	17
+8	│	17
+9	├─System Firmware:	17
+10	│     Device ID:          08d460be0f1f9f128413f816022a6439e0078c58	17
+11	│     Current version:    0.1.13	17
+12	│     Vendor:             Dell Inc. (DMI:Dell Inc.)	17
+13	│	17
+14	└─Samsung SSD 860 EVO 500GB:	17
+15	Device ID:          e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b	17
+16	Current version:    RVT02B6Q	17
+17	Vendor:             Samsung	17

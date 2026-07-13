@@ -1,0 +1,6 @@
+n	depth	name	total_entries
+1	1	payload	5
+2	2	1 /sbin/init	5
+3	2	48 /lib/systemd/systemd-journald	5
+4	2	72 /lib/systemd/systemd-networkd	5
+5	2	101 /usr/bin/nginx -g daemon off;	5

@@ -1,0 +1,4 @@
+n	A	B	C	D	E	total_entries
+1	Kubernetes	control	plane	is	running_at_https://10.0.1.1:6443	3
+2	CoreDNS	is	running	at	https://10.0.1.1:6443/api/v1/namespaces/kube-system/services/kube-dns	3
+3	Metrics-server	is	running	at	https://10.0.1.1:6443/api/v1/namespaces/kube-system/services/metrics-server	3

@@ -1,0 +1,2 @@
+net.ipv4.conf.all.forwarding	net.ipv4.conf.all.rp_filter	net.ipv4.icmp_echo_ignore_broadcasts	net.ipv4.ip_forward	net.ipv4.ip_local_port_range	net.ipv4.tcp_congestion_control	net.ipv4.tcp_fin_timeout	net.ipv4.tcp_keepalive_time	net.ipv4.tcp_max_syn_backlog	net.ipv4.tcp_rmem	net.ipv4.tcp_syncookies	net.ipv4.tcp_window_scaling	net.ipv4.udp_rmem_min
+0	2	1	1	32768	60999	cubic	60	7200	512	4096	131072	6291456	1	1	4096

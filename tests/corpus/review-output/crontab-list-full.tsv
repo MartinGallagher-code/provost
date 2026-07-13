@@ -1,0 +1,2 @@
+SHELL	PATH
+/bin/bash	/usr/local/bin:/usr/bin:/bin

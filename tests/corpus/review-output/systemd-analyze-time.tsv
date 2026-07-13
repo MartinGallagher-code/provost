@@ -1,0 +1,3 @@
+n	A	total_entries
+1	Startup finished in 3.412s (kernel) + 6.271s (initrd) + 18.998s (userspace) = 28.682s	2
+2	graphical.target reached after 18.921s in userspace.	2

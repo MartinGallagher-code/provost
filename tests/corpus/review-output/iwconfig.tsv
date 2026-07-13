@@ -1,0 +1,2 @@
+n	11__ESSID	Mode	Retry_short_limit	Power_Management	Rx_invalid_nwid	Tx_excessive_retries
+802	"HomeNetwork"	Managed  Frequency:2.437 GHz  Access Point: 00:14:BF:E4:5A:6C	7   RTS thr:off   Fragment thr:off	on	0  Rx invalid crypt:0  Rx invalid frag:0	112  Invalid misc:34   Missed beacon:0

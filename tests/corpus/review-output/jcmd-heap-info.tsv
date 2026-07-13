@@ -1,0 +1,6 @@
+n	A	B	C	D	E	F	G	H	I	J	total_entries
+1	18342:										5
+2	garbage-first	heap	total	524288K,	used	218451K	[0x00000006c0000000,	0x00000007c0000000,	0x0000000800000000)		5
+3	region	size	2048K,	41	young	(83968K),	3	survivors	(6144K)		5
+4	Metaspace	used	40012K,	capacity	42240K,	committed	42496K,	reserved	1085440K		5
+5	class	space	used	4821K,	capacity	5120K,	committed	5248K,	reserved	1048576K	5

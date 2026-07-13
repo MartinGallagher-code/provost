@@ -1,0 +1,8 @@
+n	Chain	PREROUTING	(policy	ACCEPT)	total_entries
+1	target	prot	opt	source_destination	7
+2	DNAT	tcp	--	anywhere_anywhere	7
+3	REDIRECT	tcp	--	anywhere_anywhere	7
+4	ACCEPT	all	--	anywhere_anywhere	7
+5	MASQUERADE	all	--	10.0.0.0/24_anywhere	7
+6	SNAT	tcp	--	192.168.1.0/24_anywhere	7
+7	DNAT	udp	--	anywhere_anywhere	7

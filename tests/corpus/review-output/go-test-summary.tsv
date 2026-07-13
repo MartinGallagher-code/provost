@@ -1,0 +1,5 @@
+n	A	B	C	total_entries
+1	ok  	example.com/pkg/parser	0.412s	4
+2	ok  	example.com/pkg/engine	1.204s	4
+3	--- FAIL: TestIntegration (2.88s)			4
+4	FAIL	example.com/pkg/integration	2.881s	4

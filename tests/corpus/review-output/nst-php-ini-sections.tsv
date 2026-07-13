@@ -1,0 +1,10 @@
+n	section	key	value	total_entries
+1	PHP	memory_limit	256M	9
+2	PHP	max_execution_time	30	9
+3	PHP	display_errors	Off	9
+4	Date	date.timezone	UTC	9
+5	Session	session.gc_maxlifetime	1440	9
+6	Session	session.save_handler	files	9
+7	opcache	opcache.enable	1	9
+8	opcache	opcache.memory_consumption	128	9
+9	opcache	opcache.max_accelerated_files	10000	9

@@ -1,0 +1,13 @@
+n	A	total_entries
+1	mcelog: Family 6 Model 158 CPU: only decoding architectural errors	12
+2	Hardware event. This is not a software error.	12
+3	MCE 0	12
+4	CPU 0 BANK 5 TSC 12ab34cd	12
+5	MISC 0 ADDR 7fff0000	12
+6	TIME 1720353600 Mon Jul  7 12:00:00 2024	12
+7	MCG status:	12
+8	MCi status:	12
+9	Corrected error	12
+10	MCA: Internal Timer error	12
+11	STATUS 9020000000000000 MCGSTATUS 0	12
+12	CPUID Vendor Intel Family 6 Model 158	12

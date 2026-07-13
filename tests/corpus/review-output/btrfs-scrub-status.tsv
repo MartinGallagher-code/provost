@@ -1,0 +1,8 @@
+n	key	value	total_entries
+1	UUID	8c1d2e3f-4a5b-6c7d-8e9f-0a1b2c3d4e5f	7
+2	Scrub started	Mon Jul  6 03:00:01 2026	7
+3	Status	finished	7
+4	Duration	0:42:18	7
+5	Total to scrub	1.82TiB	7
+6	Rate	734.21MiB/s	7
+7	Error summary	no errors found	7

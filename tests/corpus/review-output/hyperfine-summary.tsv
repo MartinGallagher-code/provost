@@ -1,0 +1,2 @@
+Benchmark_1	Time_(mean_±_σ)	Range_(min_…_max)
+rg pattern	12.4 ms ±   0.8 ms	11.2 ms …  14.0 ms    212 runs

@@ -1,0 +1,6 @@
+n	Sensor	Temp	Status	total_entries
+1	Package id 0	+62.0°C	[██████░░░░] ⚠	5
+2	Core 0	+58.0°C	[█████░░░░░] ●	5
+3	Core 1	+71.0°C	[███████░░░] ⚠	5
+4	nvme	+44.0°C	[███░░░░░░░] ○	5
+5	acpitz	+38.0°C	[██░░░░░░░░] ○	5

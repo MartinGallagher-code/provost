@@ -1,0 +1,4 @@
+n	name	dept	salary	active	total_entries
+1	Priya	Engineering	142000	True	3
+2	Marcus	Sales	98000	True	3
+3	Yuki	Design	110500	False	3

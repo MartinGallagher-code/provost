@@ -1,0 +1,7 @@
+n	REPOSITORY	TAG	IMAGE	ID	CREATED	PLATFORM	SIZE	BLOB	total_entries
+1	nginx	1.25	605c77e624dd	2	weeks	ago	54.29MB	149.1MB	6
+2	alpine	3.20	3a5f7c9e1b3d	5	weeks	ago	3.348MB	7.669MB	6
+3	ghcr.io/acme/api	2.1	c7d8e9f0a1b2	5	hours	ago	41.02MB	121.4MB	6
+4	registry.k8s.io/pause	3.9	b2c3d4e5f6a7	11	months	ago	311.0KB	744.0KB	6
+5	docker.io/library/redis	7-alpine	b4a2c1d3e5f6	4	weeks	ago	16.77MB	42.81MB	6
+6	<none>	<none>	9f3a1b2c4d5e	6	days	ago	98.44MB	288.3MB	6

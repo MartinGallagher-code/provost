@@ -1,0 +1,5 @@
+n	Name	Active	Path	total_entries
+1	base	*	/opt/micromamba	4
+2	ml	/opt/micromamba/envs/ml		4
+3	bio	/opt/micromamba/envs/bio		4
+4	viz	/opt/micromamba/envs/viz		4

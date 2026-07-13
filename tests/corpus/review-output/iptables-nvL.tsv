@@ -1,0 +1,9 @@
+n	A	B	C	D	E	F	G	H	I	total_entries
+1	Chain	INPUT	(policy	DROP	12	packets,	720	bytes)		8
+2	pkts	bytes	target	prot	opt	in	out	source	destination	8
+3	152	9120	ACCEPT	all	--	lo	*	0.0.0.0/0	0.0.0.0/0	8
+4	1024	61440	ACCEPT	tcp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	8
+5	340	20400	ACCEPT	tcp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	8
+6	45	2700	DROP	udp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	8
+7	12	720	LOG	all	--	eth0	*	0.0.0.0/0	0.0.0.0/0	8
+8	0	0	REJECT	icmp	--	eth0	*	0.0.0.0/0	0.0.0.0/0	8

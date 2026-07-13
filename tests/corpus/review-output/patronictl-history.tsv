@@ -1,0 +1,5 @@
+n	TL	LSN	Reason	Timestamp	New_Leader	total_entries
+1	39	5D/2A100	no recovery target specified	2026-06-01T08:12:44.120384+00:00	pg-node-2	4
+2	40	6A/14800	no recovery target specified	2026-06-18T22:04:11.882910+00:00	pg-node-1	4
+3	41	7C/8B200	no recovery target specified	2026-07-02T03:45:09.402183+00:00	pg-node-3	4
+4	42	8F/1F900	no recovery target specified	2026-07-08T14:22:31.019284+00:00	pg-node-1	4

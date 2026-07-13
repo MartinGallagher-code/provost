@@ -1,0 +1,7 @@
+n	A	B	C	total_entries
+1	192.168.1.1	is	alive	6
+2	192.168.1.2	is	alive	6
+3	192.168.1.10	is	alive	6
+4	192.168.1.20	is	unreachable	6
+5	192.168.1.99	is	unreachable	6
+6	8.8.8.8	is	alive	6

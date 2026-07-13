@@ -1,0 +1,7 @@
+n	A	B	C	D	E	total_entries
+1	es-node-1	analyze	0	0	0	6
+2	es-node-1	search	2	0	0	6
+3	es-node-1	write	1	0	4	6
+4	es-node-2	search	0	0	0	6
+5	es-node-2	write	3	8	12	6
+6	es-node-3	get	1	0	0	6

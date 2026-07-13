@@ -1,0 +1,2 @@
+apiVersion	kind	metadata.name	metadata.namespace	data.startup.sh	data.message	data.retries
+v1	ConfigMap	app-config	production	|	>	"5"

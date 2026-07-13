@@ -1,0 +1,10 @@
+n	A	total_entries
+1	myapp v0.1.0 (/home/user/projects/myapp)	9
+2	├── clap v4.4.11	9
+3	│   ├── clap_builder v4.4.11	9
+4	│   └── clap_derive v4.4.7	9
+5	├── serde v1.0.193	9
+6	│   └── serde_derive v1.0.193	9
+7	├── tokio v1.35.1	9
+8	│   └── tokio-macros v2.2.0	9
+9	└── anyhow v1.0.79	9

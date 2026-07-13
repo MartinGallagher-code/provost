@@ -1,0 +1,2 @@
+n	Id	Created	Path	Image	ImageName	Name	RestartCount	Driver	MountLabel	ProcessLabel	total_entries
+1	5f8e2d1c9a4b3e7f6d0c1b2a3948576859f0e1d2c3b4a5968778695a4b3c2d1e	2026-07-01T08:22:14.512389471Z	nginx	sha256:605c77e624ddb75e6110f997c58876baa13f8754486b461117934b24a9dc3a85	docker.io/library/nginx:latest	web	0	overlay	system_u:object_r:container_file_t:s0:c142,c789	system_u:system_r:container_t:s0:c142,c789	1

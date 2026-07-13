@@ -1,0 +1,2 @@
+rx-checksumming	tx-checksumming	scatter-gather	tx-scatter-gather	tx-scatter-gather-fraglist	tcp-segmentation-offload	tx-tcp-segmentation	tx-tcp-ecn-segmentation	generic-segmentation-offload	generic-receive-offload	large-receive-offload	rx-vlan-offload	tx-vlan-offload	ntuple-filters	receive-hashing	highdma
+on	on	on	on	off [fixed]	on	on	off [fixed]	on	on	off [fixed]	on	on	off	on	on [fixed]

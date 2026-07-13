@@ -1,0 +1,4 @@
+n	Run	State	Runtime	Best-Acc	total_entries
+1	sunny-dawn	finished	2:14:00	0.9421	3
+2	brisk-moon	running	0:41:00	0.8810	3
+3	calm-sky	crashed	0:12:00	0.4102	3

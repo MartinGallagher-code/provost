@@ -1,0 +1,5 @@
+n	A	total_entries
+1	NAME	4
+2	projects/prod/logs/cloudaudit.googleapis.com%2Factivity	4
+3	projects/prod/logs/run.googleapis.com%2Fstdout	4
+4	projects/prod/logs/compute.googleapis.com%2Fvpc_flows	4

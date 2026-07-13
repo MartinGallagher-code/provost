@@ -1,0 +1,2 @@
+Name	Namespace	Schedule	Concurrency_Policy	Suspend	Successful_Job_History_Limit	Failed_Job_History_Limit	Last_Schedule_Time	Active_Jobs	Events.Warning__FailedCreate______2h____cronjob-controller__Error_creating_job	Events.Normal___SawCompletedJob___90m___cronjob-controller__Saw_completed_job
+nightly-report	batch	0 2 * * *	Forbid	False	3	1	Mon, 15 Jan 2024 02:00:00 +0000	<none>	jobs.batch "nightly-report-28414080" already exists; the previous run may still be terminating and the concurrency policy forbids overlap	nightly-report-28412640, status: Complete

@@ -1,0 +1,7 @@
+n	target	prot	opt	source	destination	total_entries
+1	DNAT	tcp	--	::/0	2001:db8::1	6
+2	ACCEPT	all	--	::/0	::/0	6
+3	MASQUERADE	all	--	2001:db8:1::/64	::/0	6
+4	SNAT	tcp	--	2001:db8:2::/64	::/0	6
+5	REDIRECT	udp	--	::/0	::/0	6
+6	DNAT	tcp	--	fe80::/10	2001:db8::2	6

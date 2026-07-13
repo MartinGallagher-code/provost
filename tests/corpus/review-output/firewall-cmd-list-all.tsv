@@ -1,0 +1,2 @@
+public_(active).target	public_(active).interfaces	public_(active).services	public_(active).ports	public_(active).masquerade
+default	eth0	dhcpv6-client ssh https	8443/tcp	no

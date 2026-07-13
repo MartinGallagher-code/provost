@@ -1,0 +1,6 @@
+n	A	B	total_entries
+1	FILE		5
+2	/usr/local/bin/glean		5
+3	/etc/systemd/system/app.service		5
+4	/var/log/app/error	log.txt	5
+5	/home/user/My	Documents/notes.md	5

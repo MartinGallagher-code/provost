@@ -1,0 +1,4 @@
+n	A	B	C	D	total_entries
+1	albums	employees	invoices	playlists	3
+2	artists	genres	media_types	tracks	3
+3	customers	invoice_items	playlist_track		3

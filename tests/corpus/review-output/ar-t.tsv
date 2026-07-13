@@ -1,0 +1,6 @@
+n	A	total_entries
+1	init.o	5
+2	parser.o	5
+3	lexer.o	5
+4	util.o	5
+5	main.o	5

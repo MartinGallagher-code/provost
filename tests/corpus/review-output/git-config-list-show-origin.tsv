@@ -1,0 +1,9 @@
+n	A	B	C	total_entries
+1	file:/home/user/glean/.git/config	user.name=Jane	Developer	8
+2	file:/home/user/glean/.git/config	user.email=jane@example.com		8
+3	file:/etc/gitconfig	core.editor=vim		8
+4	file:/home/user/.gitconfig	color.ui=auto		8
+5	file:/home/user/glean/.git/config	remote.origin.url=git@github.com:acme/widget.git		8
+6	file:/home/user/glean/.git/config	branch.main.remote=origin		8
+7	file:/home/user/glean/.git/config	branch.main.merge=refs/heads/main		8
+8	file:/home/user/.gitconfig	push.default=simple		8

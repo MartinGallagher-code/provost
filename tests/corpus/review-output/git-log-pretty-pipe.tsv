@@ -1,0 +1,4 @@
+n	A	total_entries
+1	commit|author|subject|date	3
+2	a1b2c3d|Alice Smith|Refactor: split module, add tests|2026-05-01	3
+3	d4e5f6a|Bob Jones|Fix CRLF, LF handling|2026-05-02	3

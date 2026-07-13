@@ -1,0 +1,2 @@
+HTTP_request_sent,_awaiting_response..._200_OK.Content-Type	HTTP_request_sent,_awaiting_response..._200_OK.Content-Length	HTTP_request_sent,_awaiting_response..._200_OK.Last-Modified	HTTP_request_sent,_awaiting_response..._200_OK.Server	HTTP_request_sent,_awaiting_response..._200_OK.Cache-Control	HTTP_request_sent,_awaiting_response..._200_OK.Connection
+text/html; charset=UTF-8	1256	Thu, 17 Oct 2023 07:18:26 GMT	nginx/1.18.0	max-age=604800	keep-alive

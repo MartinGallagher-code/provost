@@ -1,0 +1,2 @@
+tcp	tcp
+[1] 10.0.1.50:3260,1 iqn.2026-07.com.example:storage.disk1 (non-flash)	[2] 10.0.1.51:3260,1 iqn.2026-07.com.example:storage.disk2 (non-flash)

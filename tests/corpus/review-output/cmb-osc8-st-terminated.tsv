@@ -1,0 +1,4 @@
+n	ARTIFACT	LINK	SHA	total_entries
+1	app.tar.gz	download	a1b2c3	3
+2	sbom.json	download	d4e5f6	3
+3	sig.asc	download	9a8b7c	3

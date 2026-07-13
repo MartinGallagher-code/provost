@@ -1,0 +1,2 @@
+binary	commit-hash	host	release	LLVM_version
+rustc	129f3b9964	x86_64-unknown-linux-gnu	1.79.0	18.1.7

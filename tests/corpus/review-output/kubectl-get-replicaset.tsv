@@ -1,0 +1,6 @@
+n	NAME	DESIRED	CURRENT	READY	AGE	total_entries
+1	web-6d4cf56db6	2	2	2	6d	5
+2	web-5c9b7f8a4	0	0	0	20d	5
+3	api-5f7b9c8d4	1	1	1	2d	5
+4	redis-7d9c8b6f5	1	1	1	14d	5
+5	worker-6f8d7c5b9	3	3	3	9d	5

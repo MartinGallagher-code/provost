@@ -1,0 +1,6 @@
+n	NAME	STATUS	AGE	total_entries
+1	default	Active	45d	5
+2	kube-system	Active	45d	5
+3	kube-public	Active	45d	5
+4	prod	Active	20d	5
+5	staging	Active	12d	5

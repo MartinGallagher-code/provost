@@ -1,0 +1,11 @@
+n	A	B	C	D	E	F	total_entries
+1	tensorflow==2.11.0						10
+2	-	absl-py	[required:	>=1.0.0,	installed:	1.3.0]	10
+3	-	astunparse	[required:	>=1.6.0,	installed:	1.6.3]	10
+4	-	keras	[required:	>=2.11.0,<2.12,	installed:	2.11.0]	10
+5	-	numpy	[required:	>=1.20,	installed:	1.24.1]	10
+6	-	protobuf	[required:	>=3.9.2,<3.20,	installed:	3.19.6]	10
+7	-	grpcio	[required:	>=1.24.3,<2.0,	installed:	1.51.1]	10
+8	-	six	[required:	>=1.5.2,	installed:	1.16.0]	10
+9	-	h5py	[required:	>=2.9.0,	installed:	3.7.0]	10
+10	-	numpy	[required:	>=1.14.5,	installed:	1.24.1]	10

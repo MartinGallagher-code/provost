@@ -1,0 +1,2 @@
+apiVersion	kind	metadata.name	metadata.labels.app	spec.0	spec.containers.image	spec.containers.0
+v1	Pod	web-pod	web	name: web	docker.io/library/nginx:1.27	containerPort: 80

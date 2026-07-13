@@ -1,0 +1,2 @@
+n	section	LV_Path	LV_Name	VG_Name	LV_UUID	LV_Write_Access	LV_Creation_host,_time_server1,_2026-05-12_10:22:41_+0100	LV_Status	#_open	LV_Size	Current_LE	Segments	Allocation	Read_ahead_sectors	-_currently_set_to	Block_device	total_entries
+1	Logical_volume	/dev/vg0/lv_root	lv_root	vg0	3xF9dK-2aBc-9zQw-7Lmn-4Pqr-8Stu-vWx1Yz	read/write		available	1	<200.00 GiB	51199	1	inherit	auto	256	253:0	1

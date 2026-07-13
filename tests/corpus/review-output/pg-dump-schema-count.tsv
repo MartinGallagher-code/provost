@@ -1,0 +1,4 @@
+n	SCHEMA	TABLES	VIEWS	FUNCTIONS	total_entries
+1	public	44	12	88	3
+2	audit	6	0	4	3
+3	reporting	0	18	12	3

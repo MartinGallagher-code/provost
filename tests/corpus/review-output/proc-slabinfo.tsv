@@ -1,0 +1,9 @@
+n	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	P	total_entries
+1	slabinfo	-	version:	2.1													8
+2	#	name	<active_objs>	<num_objs>	<objsize>	<objperslab>	<pagesperslab>	:	tunables	<limit>	<batchcount>	<sharedfactor>	:	slabdata	<active_slabs>	<num_slabs>_<sharedavail>	8
+3	kmalloc-8192	128	128	8192	4	8	:	tunables	0	0	0	:	slabdata	32	32	0	8
+4	kmalloc-1024	2048	2048	1024	32	8	:	tunables	0	0	0	:	slabdata	64	64	0	8
+5	dentry	48210	48312	192	42	2	:	tunables	0	0	0	:	slabdata	1150	1150	0	8
+6	inode_cache	30124	30240	600	54	8	:	tunables	0	0	0	:	slabdata	560	560	0	8
+7	task_struct	412	420	9088	3	8	:	tunables	0	0	0	:	slabdata	140	140	0	8
+8	buffer_head	102340	103104	104	39	1	:	tunables	0	0	0	:	slabdata	2644	2644	0	8

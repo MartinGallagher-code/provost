@@ -1,0 +1,4 @@
+n	Name	Application	ID	Version	Branch	Installation	total_entries
+1	GIMP	org.gimp.GIMP	2.10.34	stable	system		3
+2	Blender	org.blender.Blender	3.6.1	stable	system		3
+3	Visual	Studio	Code	com.visualstudio.code	1.80.1	stable_user	3

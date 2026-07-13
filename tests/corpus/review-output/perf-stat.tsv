@@ -1,0 +1,11 @@
+n	A	total_entries
+1	Performance counter stats for 'postgres -c fsync=off':	10
+2	8,412.33 msec task-clock                #    0.842 CPUs utilized	10
+3	1,204      context-switches          #  143.121 /sec	10
+4	88      cpu-migrations            #   10.461 /sec	10
+5	42,105      page-faults               #    5.005 K/sec	10
+6	24,183,921,004      cycles                    #    2.874 GHz	10
+7	31,204,882,110      instructions              #    1.29  insn per cycle	10
+8	6,021,442,883      branches                  #  715.601 M/sec	10
+9	48,210,332      branch-misses             #    0.80% of all branches	10
+10	10.002143288 seconds time elapsed	10

@@ -1,0 +1,5 @@
+n	switch	compiler	description	total_entries
+1	4.14.2	ocaml-base-compiler.4.14.2	4.14.2	4
+2	->	5.2.0	ocaml-base-compiler.5.2.0_5.2.0	4
+3	default	ocaml.5.1.1	default	4
+4	proj-a	ocaml-base-compiler.5.1.1	proj-a	4

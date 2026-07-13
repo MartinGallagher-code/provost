@@ -1,0 +1,13 @@
+n	A	total_entries
+1	base-clean	12
+2	|	12
+3	+- day1-configured	12
+4	|    |	12
+5	|    +- day2-app-installed	12
+6	|    |    |	12
+7	|    |    +- day3-before-upgrade	12
+8	|    |    +- day3-experiment	12
+9	|    |	12
+10	|    +- day2-alternate-config	12
+11	|	12
+12	+- rescue-mode	12

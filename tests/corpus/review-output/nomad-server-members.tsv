@@ -1,0 +1,4 @@
+n	Name	Address	Port	Status	Leader	Region	total_entries
+1	srv-01.global	10.0.1.10	4648	alive	true	global	3
+2	srv-02.global	10.0.1.11	4648	alive	false	global	3
+3	srv-03.global	10.0.1.12	4648	alive	false	global	3

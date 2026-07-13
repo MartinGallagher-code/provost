@@ -1,0 +1,5 @@
+n	A	B	C	D	E	total_entries
+1	container	entrypoint				4
+2	web	["/bin/sh","-c","nginx	-g	'daemon	off;'"]	4
+3	worker	["python","app.py","--tags","a,b,c"]				4
+4	cron	["/usr/sbin/crond","-f"]				4

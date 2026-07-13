@@ -1,0 +1,9 @@
+n	A	total_entries
+1	$ hashcat --status --status-timer=10	8
+2	Session..........: hashcat	8
+3	Status...........: Running	8
+4	Hash.Mode........: 22000 (WPA-PBKDF2-PMKID+EAPOL)	8
+5	Speed.#1.........: 412.3 kH/s	8
+6	Recovered........: 1/8 (12.50%) Digests	8
+7	Progress.........: 1024000/402710400 (0.25%)	8
+8	Time.Estimated...: Sat Jul 11 14:02:19 2026	8

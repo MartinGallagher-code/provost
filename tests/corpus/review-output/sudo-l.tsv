@@ -1,0 +1,2 @@
+Matching_Defaults_entries_for_alice_on_webhost.env_reset,_mail_badpass,_secure_path=/usr/sbin\	User_alice_may_run_the_following_commands_on_webhost.(ALL	User_alice_may_run_the_following_commands_on_webhost.(root)_NOPASSWD	User_alice_may_run_the_following_commands_on_webhost.(root)_NOPASSWD
+/usr/bin\:/sbin\:/bin	ALL) ALL	/usr/bin/systemctl restart nginx	/usr/bin/journalctl

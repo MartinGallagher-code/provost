@@ -1,0 +1,2 @@
+instance_ip	bucket_name	db_endpoint
+"52.10.4.2"	"assets-prod-9f2"	"db.internal:5432"

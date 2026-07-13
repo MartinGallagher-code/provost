@@ -1,0 +1,14 @@
+n	A	B	C	D	E	F	G	H	I	J	K	total_entries
+1	Summary	of	my	perl5	(revision	5	version	34	subversion	0)	configuration:	13
+2	Platform:											13
+3	osname=linux											13
+4	osvers=5.15.0											13
+5	archname=x86_64-linux-gnu-thread-multi											13
+6	uname='linux'											13
+7	Compiler:											13
+8	cc='cc'											13
+9	optimize='-O2'											13
+10	gccversion='11.4.0'											13
+11	Characteristics	of	this	binary:								13
+12	useithreads=define											13
+13	usemultiplicity=define											13

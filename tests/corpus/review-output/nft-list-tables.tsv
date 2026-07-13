@@ -1,0 +1,7 @@
+n	A	B	C	total_entries
+1	table	inet	filter	6
+2	table	ip	nat	6
+3	table	ip6	filter	6
+4	table	inet	nat	6
+5	table	bridge	filter	6
+6	table	ip	mangle	6

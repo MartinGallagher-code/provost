@@ -1,0 +1,8 @@
+n	A	total_entries
+1	$ rustscan -a 192.168.1.50 --range 1-1000	7
+2	Open 192.168.1.50:22	7
+3	Open 192.168.1.50:80	7
+4	Open 192.168.1.50:443	7
+5	Open 192.168.1.50:8080	7
+6	Scanned 1000 ports in 1.84s	7
+7	Starting nmap on found ports	7

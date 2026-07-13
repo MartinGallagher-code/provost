@@ -1,0 +1,12 @@
+n	A	total_entries
+1	smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.15.0-91-generic] (local build)	11
+2	Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org	11
+3	=== START OF READ SMART DATA SECTION ===	11
+4	SMART Self-test log structure revision number 1	11
+5	Num  Test_Description    Status                  Remaining  LifeTime(hours)  LBA_of_first_error	11
+6	# 1  Extended offline    Completed without error       00%     18572         -	11
+7	# 2  Short offline       Completed without error       00%     18563         -	11
+8	# 3  Short offline       Completed without error       00%     18544         -	11
+9	# 4  Extended offline    Completed without error       00%     18102         -	11
+10	# 5  Short offline       Completed: read failure       90%     17998         2891734	11
+11	# 6  Short offline       Completed without error       00%     17888         -	11

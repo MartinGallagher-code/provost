@@ -1,0 +1,9 @@
+n	3421:	/usr/bin/python3	/opt/app/server_py	total_entries
+1	0000556f2a1a1000	148K	r-x--_python3.11	8
+2	0000556f2a43f000	16K	r----_python3.11	8
+3	0000556f2a443000	8K	rw---_python3.11	8
+4	00007f9c3c000000	132K	rw---_[_anon_]	8
+5	00007f9c44a21000	1804K	r-x--_libc.so.6	8
+6	00007f9c44be4000	16K	r----_libc.so.6	8
+7	00007ffd8b3a2000	132K	rw---_[_stack_]	8
+8	total	102400K		8

@@ -1,0 +1,7 @@
+n	name	value	mysql_up.help	mysql_up.type
+1	mysql_up	1	Whether the MySQL server is up.	gauge
+2	mysql_global_status_threads_connected	42	Whether the MySQL server is up.	gauge
+3	mysql_global_status_queries	18842133	Whether the MySQL server is up.	gauge
+4	mysql_global_status_slow_queries	118	Whether the MySQL server is up.	gauge
+5	mysql_global_status_uptime	1842133	Whether the MySQL server is up.	gauge
+6	mysql_global_status_bytes_received	8842139904	Whether the MySQL server is up.	gauge

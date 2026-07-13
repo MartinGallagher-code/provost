@@ -1,0 +1,5 @@
+n	apps	are	exposed	on	your	$PATH	at	total_entries
+1	package	black	24.4.2,	installed	using	Python	3.12.4	4
+2	-	black						4
+3	package	ruff	0.5.0,	installed	using	Python	3.12.4	4
+4	-	ruff						4

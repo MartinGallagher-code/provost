@@ -1,0 +1,6 @@
+n	Name	Location	State	DefaultHostName	ResourceGroup	total_entries
+1	prod-api-app	East US	Running	prod-api-app.azurewebsites.net	prod-rg	5
+2	prod-web-app	East US	Running	prod-web-app.azurewebsites.net	prod-rg	5
+3	staging-api-app	East US	Running	staging-api-app.azurewebsites.net	staging-rg	5
+4	dev-web-app	West US 2	Stopped	dev-web-app.azurewebsites.net	dev-rg	5
+5	admin-portal	Central US	Running	admin-portal.azurewebsites.net	shared-rg	5

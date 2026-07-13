@@ -1,0 +1,12 @@
+n	==31542==	HEAP	SUMMARY:	total_entries
+1	==31542==	in	use_at_exit:_4,192_bytes_in_3_blocks	11
+2	==31542==	total	heap_usage:_1,284_allocs,_1,281_frees,_2,048,912_bytes_allocated	11
+3	==31542==			11
+4	==31542==	LEAK	SUMMARY:	11
+5	==31542==	definitely	lost:_128_bytes_in_1_blocks	11
+6	==31542==	indirectly	lost:_64_bytes_in_2_blocks	11
+7	==31542==	possibly	lost:_0_bytes_in_0_blocks	11
+8	==31542==	still	reachable:_4,000_bytes_in_0_blocks	11
+9	==31542==	suppressed:	0_bytes_in_0_blocks	11
+10	==31542==			11
+11	==31542==	ERROR	SUMMARY:_2_errors_from_2_contexts_(suppressed:_0_from_0)	11

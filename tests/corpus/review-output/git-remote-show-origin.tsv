@@ -1,0 +1,7 @@
+n	key	value	total_entries
+1	Fetch URL	git@github.com:acme/widget.git	6
+2	Push  URL	git@github.com:acme/widget.git	6
+3	HEAD branch	main	6
+4	Remote branches	main          tracked develop       tracked feature/login tracked	6
+5	Local branch configured for 'git pull'	main merges with remote main	6
+6	Local ref configured for 'git push'	main pushes to main (up to date)	6

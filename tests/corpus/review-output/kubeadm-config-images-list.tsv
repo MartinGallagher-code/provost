@@ -1,0 +1,8 @@
+n	A	total_entries
+1	registry.k8s.io/kube-apiserver:v1.30.2	7
+2	registry.k8s.io/kube-controller-manager:v1.30.2	7
+3	registry.k8s.io/kube-scheduler:v1.30.2	7
+4	registry.k8s.io/kube-proxy:v1.30.2	7
+5	registry.k8s.io/coredns/coredns:v1.11.1	7
+6	registry.k8s.io/pause:3.9	7
+7	registry.k8s.io/etcd:3.5.12-0	7

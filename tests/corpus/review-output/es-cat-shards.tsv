@@ -1,0 +1,7 @@
+n	A	B	C	D	E	F	G	H	total_entries
+1	logs-2023.06.15	0	p	STARTED	1204531	2.3gb	10.0.0.61	es-node-1	6
+2	logs-2023.06.15	0	r	STARTED	1204531	2.3gb	10.0.0.62	es-node-2	6
+3	logs-2023.06.15	1	p	STARTED	1198220	2.2gb	10.0.0.63	es-node-3	6
+4	logs-2023.06.15	1	r	STARTED	1198220	2.2gb	10.0.0.61	es-node-1	6
+5	metrics-2023.06	0	p	STARTED	8843102	5.1gb	10.0.0.62	es-node-2	6
+6	metrics-2023.06	0	r	STARTED	8843102	5.1gb	10.0.0.63	es-node-3	6

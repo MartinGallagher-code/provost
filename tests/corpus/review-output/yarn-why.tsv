@@ -1,0 +1,5 @@
+n	A	total_entries
+1	=> Found "lodash@4.17.21"	4
+2	info Reasons this module exists	4
+3	- "webpack#loader-utils" depends on it	4
+4	- Hoisted from "webpack#loader-utils#lodash"	4

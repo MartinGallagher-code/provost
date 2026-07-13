@@ -1,0 +1,4 @@
+n	NAME	DESCRIPTION	total_entries
+1	build	Build the application	3
+2	test	Run the test suite	3
+3	publish	Publish the container image	3

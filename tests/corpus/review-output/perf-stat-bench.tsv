@@ -1,0 +1,9 @@
+n	A	B	C	D	E	F	G	total_entries
+1	Performance	counter	stats	for	'./parser':			8
+2	8,821.44	msec	task-clock	#	0.998	CPUs	utilized	8
+3	482	context-switches	#	54.640	/sec			8
+4	12	cpu-migrations	#	1.360	/sec			8
+5	1,204	page-faults	#	136.484	/sec			8
+6	24,821,004,210	cycles	#	2.814	GHz			8
+7	48,210,882,044	instructions	#	1.94	insn	per	cycle	8
+8	8.842010442	seconds	time	elapsed				8

@@ -1,0 +1,4 @@
+n	SERVICE	OPERATIONS	SPANS/MIN	total_entries
+1	api-gateway	44	12044	3
+2	order-service	88	8821	3
+3	payment-service	22	4102	3

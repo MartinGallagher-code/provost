@@ -1,0 +1,4 @@
+n	Platform	Device	Driver_version	Compute_units	Clock_frequency	float	float2	float4
+1	NVIDIA_CUDA	NVIDIA_GeForce_RTX_4090	555.42.06_(Linux_x64)	128	2520_MHz			
+2						912.44	918.10	921.88
+3						82044.10		

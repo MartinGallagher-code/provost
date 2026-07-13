@@ -1,0 +1,22 @@
+n	key	value	total_entries
+1	randwrite	(g=0): rw=randwrite, bs=(R) 4096B-4096B, ioengine=libaio, iodepth=64 fio-3.36 Starting 1 process	21
+2	randwrite	(groupid=0, jobs=1): err= 0: pid=8842: Thu Jul 10 06:00:00 2026	21
+3	write	IOPS=88.2k, BW=344MiB/s (361MB/s)(20.2GiB/60002msec); 0 zone resets	21
+4	slat (nsec)	min=1204, max=142100, avg=3210.44, stdev=1442.10	21
+5	clat (usec)	min=44, max=18442, avg=712.10, stdev=288.44	21
+6	lat (usec)	min=48, max=18448, avg=715.31, stdev=288.60	21
+7	clat percentiles (usec)	|  1.00th=[  412],  5.00th=[  482], 10.00th=[  524], 20.00th=[  588], | 30.00th=[  644], 40.00th=[  692], 50.00th=[  732], 60.00th=[  788], | 70.00th=[  844], 80.00th=[  912], 90.00th=[ 1004], 95.00th=[ 1128], | 99.00th=[ 1448], 99.50th=[ 1688], 99.90th=[ 3210], 99.95th=[ 4210]	21
+8	bw (  KiB/s)	min=310248, max=364882, per=100.00%, avg=352104.10, stdev=8821.44, samples=119	21
+9	iops	min=77562, max=91220, avg=88026.02, stdev=2205.36, samples=119	21
+10	lat (usec)	50=0.01%, 100=0.02%, 250=0.44%, 500=12.10%, 750=48.20%	21
+11	lat (usec)	1000=32.44%, 2000=6.10%, 4000=0.62%, 10000=0.07%	21
+12	cpu	usr=18.42%, sys=52.10%, ctx=2408821, majf=0, minf=44	21
+13	IO depths	1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=99.9%	21
+14	submit	0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%	21
+15	complete	0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%	21
+16	issued rwts	total=0,5292010,0,0 short=0,0,0,0 dropped=0,0,0,0	21
+17	latency	target=0, window=0, percentile=100.00%, depth=64	21
+18	Run status group 0 (all jobs)		21
+19	WRITE	bw=344MiB/s (361MB/s), io=20.2GiB (21.7GB), run=60002-60002msec	21
+20	Disk stats (read/write)		21
+21	sda	ios=0/5288201, merge=0/1204, ticks=0/3721044, in_queue=3722108, util=99.44%	21

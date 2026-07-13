@@ -1,0 +1,3 @@
+n	NAME	KIND	LOCATION	PROVISIONING	total_entries
+1	orders-cosmos	GlobalDocumentDB	westeurope	Succeeded	2
+2	events-cosmos	MongoDB	westeurope	Succeeded	2

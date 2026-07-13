@@ -1,0 +1,2 @@
+n	export	MOTD="Welcome	to	prod:	total_entries
+1	export	JAVA_OPTS="-Xms512m	-Xmx2g	-Dfoo=bar"	1

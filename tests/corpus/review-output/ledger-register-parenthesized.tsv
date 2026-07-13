@@ -1,0 +1,4 @@
+n	A	B	C	D	E	total_entries
+1	2026-01-15	Adjustment	Equity:Opening	(1,234.50)	(1,234.50)	3
+2	2026-01-16	Correction	Expenses:Misc	56.78	(1,177.72)	3
+3	2026-01-20	Reversal	Income:Refund	(999.99)	(2,177.71)	3

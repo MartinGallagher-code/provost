@@ -1,0 +1,2 @@
+apiUrl	bucketName	dbEndpoint	instanceCount	vpcId
+https://api.prod.example.com	app-artifacts-prod-9c1f2a	appdb.cluster-abc123.us-west-2.rds.amazonaws.com:5432	3	vpc-0aa11bb22cc33dd44

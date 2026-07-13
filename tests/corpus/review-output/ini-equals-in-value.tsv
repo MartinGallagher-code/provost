@@ -1,0 +1,5 @@
+n	section	key	value	total_entries
+1	database	url	jdbc:postgresql://host:5432/db?user=admin&pass=x=y	4
+2	database	timeout	30	4
+3	cache	backend	redis://:pw@127.0.0.1:6379/0	4
+4	cache	ttl	300	4

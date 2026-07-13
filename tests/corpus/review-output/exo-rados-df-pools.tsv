@@ -1,0 +1,9 @@
+n	POOL_NAME	USED	OBJECTS	CLONES	COPIES	MISSING_ON_PRIMARY	UNFOUND	DEGRADED	RD_OPS	RD	WR_OPS	WR	COMPR	UNDER	total_entries
+1	.mgr	12044	MiB	3	0	9	0	0	0	4210	88	MiB	0_B_0_B	MiB	8
+2	cephfs_data	12044118	TiB	1882144	0	5646432	0	0	0	8821004	118	TiB	2.1_TiB_6.3_TiB	TiB	8
+3	cephfs_metadata	3391442	MiB	44210	0	132630	0	0	0	221004	9.2	GiB	0_B_0_B	TiB	8
+4	rbd	118902334	TiB	221004	0	663012	0	0	0	44210338	882	TiB	1.2_TiB_3.6_TiB	TiB	8
+5	total_objects	2148361													8
+6	total_used	16	TiB												8
+7	total_avail	8.0	TiB												8
+8	total_space	24	TiB												8

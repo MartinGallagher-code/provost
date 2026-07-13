@@ -1,0 +1,2 @@
+Volume_Name	Type	Volume_ID	Status	Snapshot_Count	Number_of_Bricks	Transport-type	Brick1	Brick2	Brick3	Brick4	Brick5	Brick6	transport.address-family	storage.fips-mode-rchecksum	nfs.disable	performance.client-io-threads
+gv0	Distributed-Replicate	a1b2c3d4-e5f6-7890-abcd-ef1234567890	Started	0	2 x 3 = 6	tcp	node1:/data/brick1/gv0	node2:/data/brick1/gv0	node3:/data/brick1/gv0	node1:/data/brick2/gv0	node2:/data/brick2/gv0	node3:/data/brick2/gv0	inet	on	on	off

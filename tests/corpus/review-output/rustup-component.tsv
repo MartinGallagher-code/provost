@@ -1,0 +1,7 @@
+n	A	B	total_entries
+1	cargo-x86_64-unknown-linux-gnu	(installed)	6
+2	clippy-x86_64-unknown-linux-gnu	(installed)	6
+3	rust-analyzer-x86_64-unknown-linux-gnu		6
+4	rust-docs-x86_64-unknown-linux-gnu	(installed)	6
+5	rust-src	(installed)	6
+6	rustfmt-x86_64-unknown-linux-gnu	(installed)	6

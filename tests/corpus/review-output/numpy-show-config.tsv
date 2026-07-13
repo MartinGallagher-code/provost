@@ -1,0 +1,12 @@
+n	NOT	AVAILABLE	total_entries
+1	openblas_info:		11
+2	libraries	=_['openblas',_'openblas']	11
+3	library_dirs	=_['/usr/local/lib']	11
+4	language	=_c	11
+5	define_macros	=_[('HAVE_CBLAS',_None)]	11
+6	lapack_opt_info:		11
+7	libraries	=_['openblas',_'openblas']	11
+8	library_dirs	=_['/usr/local/lib']	11
+9	Supported	SIMD_extensions_in_this_NumPy_install:	11
+10	baseline	=_SSE,SSE2,SSE3	11
+11	found	=_SSSE3,SSE41,POPCNT,SSE42,AVX,F16C,FMA3,AVX2	11

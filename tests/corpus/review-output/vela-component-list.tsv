@@ -1,0 +1,5 @@
+n	NAME	DEFINITION-TYPE	DESCRIPTION	total_entries
+1	webservice	autodetects.core	Describes long-running, scalable, containerized services with a stable network endpoint.	4
+2	worker	autodetects.core	Describes long-running, scalable, containerized services without a network endpoint.	4
+3	task	autodetects.core	Describes jobs that run code or a script to completion.	4
+4	cron-task	autodetects.core	Describes cron jobs that run code or a script to completion on a schedule.	4

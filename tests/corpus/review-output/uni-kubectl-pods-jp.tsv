@@ -1,0 +1,6 @@
+n	NAME	READY	STATUS	RESTARTS	NAMESPACE	total_entries
+1	注文サービス-7d9f	1/1	Running	0	本番環境	5
+2	在庫管理-5b2c	2/2	Running	3	本番環境	5
+3	決済ゲートウェイ-88	0/1	Pending	0	検証環境	5
+4	ログ収集-aa11	1/1	Running	1	監視	5
+5	api-gateway-xyz	1/1	Running	0	default	5

@@ -1,0 +1,2 @@
+==>_wget	From	License	Required	install	install-on-request	build-error
+stable 1.21.4 (bottled), HEAD	https://github.com/Homebrew/homebrew-core/blob/HEAD/Formula/w/wget.rb	GPL-3.0-or-later	libidn2 ✔, openssl@3 ✔	112,340 (30_days), 341,022 (90_days), 1,402,559 (365_days)	98,221 (30_days), 300,110 (90_days), 1,204,880 (365_days)	42 (30_days)

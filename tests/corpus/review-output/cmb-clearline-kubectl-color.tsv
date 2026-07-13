@@ -1,0 +1,5 @@
+n	NAMESPACE	NAME	TYPE	AGE	total_entries
+1	default	http-gw	Gateway	4d	4
+2	default	web-route	HTTPRoute	4d	4
+3	kube-system	metrics	Service	180d	4
+4	ingress	tls-cert	Certificate	2h	4

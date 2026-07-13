@@ -1,0 +1,4 @@
+n	A	B	C	D	total_entries
+1	bash/stable,now	5.2.15-2	amd64	[installed]	3
+2	curl/stable,now	7.88.1-10	amd64	[installed]	3
+3	vim/stable,now	2:9.0.1378-2	amd64	[installed,automatic]	3

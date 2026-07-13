@@ -1,0 +1,4 @@
+n	NAME	AGE	PHASE	IP	NODENAME	READY	total_entries
+1	fedora-vm	2d	Running	10.244.1.55	k3s-agent-1	True	3
+2	windows-vm	6h	Running	10.244.2.61	k3s-agent-2	True	3
+3	test-vm	4m	Scheduling	False			3

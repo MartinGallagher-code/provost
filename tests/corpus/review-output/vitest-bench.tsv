@@ -1,0 +1,8 @@
+n	A	total_entries
+1	✓ src/parser.bench.ts (3) 1204ms	7
+2	name              hz        min      max     mean      p75      p99     samples	7
+3	· parse small  4,025,102   0.0002   0.0088   0.0002   0.0002   0.0004   4025102	7
+4	· parse large     83,027   0.0120   0.0221   0.0120   0.0120   0.0182     83027	7
+5	· encode         997,904   0.0010   0.0044   0.0010   0.0010   0.0021    997904	7
+6	BENCH  Summary	7
+7	parse small - src/parser.bench.ts	7

@@ -1,0 +1,10 @@
+n	meta-data=/dev/sda2______________isize=512____agcount=4	agsize=6553600_blks	total_entries
+1	=                       sectsz=512   attr=2	projid32bit=1	9
+2	=                       crc=1        finobt=1	sparse=1	9
+3	=                       reflink=1    bigtime=0 inobtcount=0		9
+4	data     =                       bsize=4096   blocks=26214400	imaxpct=25	9
+5	=                       sunit=0      swidth=0 blks		9
+6	naming   =version 2              bsize=4096   ascii-ci=0	ftype=1	9
+7	log      =internal log           bsize=4096   blocks=12800	version=2	9
+8	=                       sectsz=512   sunit=0 blks	lazy-count=1	9
+9	realtime =none                   extsz=4096   blocks=0	rtextents=0	9

@@ -1,0 +1,2 @@
+n	Model	Disk_/dev/sda	Sector_size_(logical/physical)	Partition_Table
+1	ATA_Samsung_SSD_870_(scsi)	1000GB	512B/512B	gpt

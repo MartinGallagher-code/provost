@@ -1,0 +1,4 @@
+n	NAME	SIZE	TYPE	total_entries
+1	alpha	12M	dir	3
+2	beta	4.2G	file	3
+3	gamma	88K	link	3

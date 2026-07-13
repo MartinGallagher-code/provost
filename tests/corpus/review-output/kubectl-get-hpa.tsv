@@ -1,0 +1,6 @@
+n	NAME	REFERENCE	TARGETS	MINPODS	MAXPODS	REPLICAS	AGE	total_entries
+1	web	Deployment/web	42%/70%	2	10	4	41d	5
+2	api	Deployment/api	61%/80%	3	12	6	28d	5
+3	worker	Deployment/worker	12%/50%	1	8	1	63d	5
+4	frontend	Deployment/frontend	<unknown>/75%	2	6	2	3h	5
+5	checkout	Deployment/checkout	88%/70%	4	20	14	12d	5

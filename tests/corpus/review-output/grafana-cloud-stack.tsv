@@ -1,0 +1,2 @@
+Stack	Prometheus	Loki	Tempo
+prod-observability	https://prometheus-prod.grafana.net	https://logs-prod.grafana.net	https://tempo-prod.grafana.net

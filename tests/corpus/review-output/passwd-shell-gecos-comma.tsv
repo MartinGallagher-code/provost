@@ -1,0 +1,4 @@
+n	A	B	C	D	E	F	G	total_entries
+1	root	x	0	0	root	/root	/bin/bash	3
+2	www-data	x	33	33	www-data,,,	/var/www	/usr/sbin/nologin	3
+3	postgres	x	110	117	PostgreSQL administrator,,,	/var/lib/postgresql	/bin/bash	3

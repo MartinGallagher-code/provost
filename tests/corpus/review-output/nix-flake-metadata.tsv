@@ -1,0 +1,7 @@
+n	key	value	total_entries
+1	Resolved URL	github:NixOS/nixpkgs/nixos-24.05	6
+2	Locked URL	github:NixOS/nixpkgs/a1b2c3d4	6
+3	Description	A collection of packages for Nix	6
+4	Path	/nix/store/xyz-source	6
+5	Revision	a1b2c3d4e5f6a7b8	6
+6	Last modified	2026-06-30 12:00:00	6

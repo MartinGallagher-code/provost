@@ -1,0 +1,2 @@
+Bombarding_http	Statistics________Avg______Stdev________Max.Throughput
+//api.example.com:8080/health for 10s using 125 connections	18.44MB/s

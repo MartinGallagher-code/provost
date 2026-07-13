@@ -1,0 +1,3 @@
+n	OSV_URL	ECOSYSTEM	PACKAGE	total_entries
+1	GHSA-xxxx-yyyy	PyPI	requests	2
+2	GHSA-aaaa-bbbb	npm	lodash	2

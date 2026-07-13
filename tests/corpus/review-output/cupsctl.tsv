@@ -1,0 +1,2 @@
+debug_logging	remote_admin	remote_any	share_printers	user_cancel_any	BrowseLocalProtocols	DefaultAuthType	WebInterface
+0	0	0	1	0	dnssd	Basic	Yes

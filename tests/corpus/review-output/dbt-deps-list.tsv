@@ -1,0 +1,5 @@
+n	package	installed	latest	source	total_entries
+1	dbt-labs/dbt_utils	1.1.1	1.1.1	hub	4
+2	calogica/dbt_expectations	0.10.1	0.10.3	hub	4
+3	dbt-labs/codegen	0.12.1	0.12.1	hub	4
+4	brooklyn-data/dbt_artifacts	2.6.2	2.6.4	hub	4

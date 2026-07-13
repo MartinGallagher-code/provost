@@ -1,0 +1,6 @@
+n	Name	Version	Schema	Description	total_entries
+1	btree_gin	1.3	public	support for indexing common datatypes in GIN	5
+2	citext	1.6	public	data type for case-insensitive character strings	5
+3	pg_stat_statements	1.10	public	track planning and execution statistics of all SQL statements	5
+4	plpgsql	1.0	pg_catalog	PL/pgSQL procedural language	5
+5	uuid-ossp	1.1	public	generate universally unique identifiers (UUIDs)	5

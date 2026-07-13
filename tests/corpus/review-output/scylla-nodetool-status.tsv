@@ -1,0 +1,6 @@
+n	Datacenter:	dc1	total_entries
+1	Status=Up/D	own	5
+2	|/ State=No	rmal/Leaving/Joining/Moving	5
+3	--  Address	Load       Tokens  Owns    Host ID	5
+4	UN  10.0.1.	1    412.4 GB   256     33.3%   a1b2c3d4	5
+5	UN  10.0.1.	2    408.2 GB   256     33.3%   e5f6g7h8	5

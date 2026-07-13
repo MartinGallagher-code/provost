@@ -1,0 +1,9 @@
+n	A	total_entries
+1	diffie-hellman-group1-sha1	8
+2	diffie-hellman-group14-sha1	8
+3	diffie-hellman-group14-sha256	8
+4	diffie-hellman-group16-sha512	8
+5	diffie-hellman-group18-sha512	8
+6	ecdh-sha2-nistp256	8
+7	ecdh-sha2-nistp384	8
+8	curve25519-sha256	8

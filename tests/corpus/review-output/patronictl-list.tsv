@@ -1,0 +1,4 @@
+n	Member	Host	Role	State	TL	Lag_in_MB	total_entries
+1	pg-node-1	10.0.6.11	Leader	running	42		3
+2	pg-node-2	10.0.6.12	Replica	streaming	42	0	3
+3	pg-node-3	10.0.6.13	Replica	streaming	42	1	3

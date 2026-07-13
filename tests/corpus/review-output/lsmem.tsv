@@ -1,0 +1,5 @@
+n	range	size	state	removable	block	total_entries
+1	0x0000000000000000-0x000000007fffffff	2G	online	yes	0-1	4
+2	0x0000000080000000-0x00000000ffffffff	2G	online	yes	2-3	4
+3	0x0000000100000000-0x000000027fffffff	6G	online	no	4-9	4
+4	0x0000000280000000-0x00000003ffffffff	6G	online	yes	10-15	4

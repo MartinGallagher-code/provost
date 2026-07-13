@@ -1,0 +1,15 @@
+n	key	value	total_entries
+1	SQL statistics		14
+2	queries performed		14
+3	read	1204882	14
+4	write	344252	14
+5	other	172126	14
+6	total	1721260	14
+7	transactions	86063  (1434.21 per sec.)	14
+8	queries	1721260 (28684.10 per sec.)	14
+9	ignored errors	0      (0.00 per sec.)	14
+10	Latency (ms)		14
+11	min	4.42	14
+12	avg	22.10	14
+13	max	212.44	14
+14	95th percentile	44.98	14

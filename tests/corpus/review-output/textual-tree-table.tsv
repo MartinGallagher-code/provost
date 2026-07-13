@@ -1,0 +1,4 @@
+n	path	type	size	total_entries
+1	src/	dir	-	3
+2	src/main.rs	file	8.1 KB	3
+3	src/lib.rs	file	3.4 KB	3

@@ -1,0 +1,2 @@
+Name	Version	Release	Architecture	Install_Date	Group	Size	License	Signature	Source_RPM	Build_Date	Build_Host	Packager	Vendor	URL	Summary
+openssl	3.2.1	2.fc40	x86_64	Mon 06 Jan 2026 12:03:44 PM UTC	Unspecified	1128442	Apache-2.0	RSA/SHA256, Tue 04 Feb 2026 09:11:02 AM UTC, Key ID 8b3c192f8871aa0b	openssl-3.2.1-2.fc40.src.rpm	Mon 03 Feb 2026 06:44:18 PM UTC	buildvm-x86-12.iad2.fedoraproject.org	Fedora Project	Fedora Project	http://www.openssl.org/	Utilities from the general purpose cryptography library with TLS implementation

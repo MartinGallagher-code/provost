@@ -1,0 +1,2 @@
+name	version	author	desc	license	srcDir	requires
+"myapp"	"0.4.2"	"Jane Dev"	"A fast HTTP microframework"	"MIT"	"src"	"nim >= 2.0.0, jester >= 0.6.0, chronos >= 4.0.0"

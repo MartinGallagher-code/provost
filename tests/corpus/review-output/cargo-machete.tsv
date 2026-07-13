@@ -1,0 +1,9 @@
+n	A	total_entries
+1	Analyzing dependencies of crates in this directory...	8
+2	mycrate -- /home/dev/proj/mycrate/Cargo.toml:	8
+3	chrono	8
+4	lazy_static	8
+5	regex	8
+6	api-server -- /home/dev/proj/api-server/Cargo.toml:	8
+7	futures	8
+8	cargo-machete found the following unused dependencies in this directory:	8

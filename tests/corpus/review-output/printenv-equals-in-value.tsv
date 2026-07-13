@@ -1,0 +1,2 @@
+LS_COLORS	TERMCAP	PATH	
+rs=0:di=01;34:ln=01;36:mh=00	SC|screen|VT 100/ANSI:co#80:li#24	/usr/local/bin:/usr/bin:/bin	/usr/bin/printenv

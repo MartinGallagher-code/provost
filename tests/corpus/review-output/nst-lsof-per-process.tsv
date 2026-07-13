@@ -1,0 +1,2 @@
+COMMAND=nginx__PID=1201__USER=www-data.6u___IPv4___28114____*	COMMAND=nginx__PID=1201__USER=www-data.7u___IPv4___28115____*	COMMAND=sshd__PID=980__USER=root.3u___IPv4___19022____*	COMMAND=sshd__PID=980__USER=root.4u___IPv6___19023____*
+80 (LISTEN)	443 (LISTEN)	22 (LISTEN)	22 (LISTEN)

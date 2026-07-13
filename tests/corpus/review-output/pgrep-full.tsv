@@ -1,0 +1,4 @@
+n	A	B	C	total_entries
+1	812	/usr/sbin/sshd	-D	3
+2	1044	/usr/bin/dockerd	--host=fd://	3
+3	2210	/usr/lib/postgresql/16/bin/postgres	-D_/var/lib/postgresql/16/main	3

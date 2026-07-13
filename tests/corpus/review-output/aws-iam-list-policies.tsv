@@ -1,0 +1,7 @@
+n	PolicyName	PolicyId	Arn	Attach	Created	total_entries
+1	OrdersServiceReadWrite	ANPA1111EXAMPLE1	arn:aws:iam::123456789012:policy/OrdersServiceReadWrite	3	2024-03-02	6
+2	S3BackupsReadOnly	ANPA2222EXAMPLE2	arn:aws:iam::123456789012:policy/S3BackupsReadOnly	1	2024-06-11	6
+3	DenyProductionDelete	ANPA3333EXAMPLE3	arn:aws:iam::123456789012:policy/DenyProductionDelete	8	2023-12-19	6
+4	CloudWatchLogsWriter	ANPA4444EXAMPLE4	arn:aws:iam::123456789012:policy/CloudWatchLogsWriter	12	2024-01-08	6
+5	SecretsManagerReadApp	ANPA5555EXAMPLE5	arn:aws:iam::123456789012:policy/SecretsManagerReadApp	4	2025-02-27	6
+6	EnforceMFA	ANPA6666EXAMPLE6	arn:aws:iam::123456789012:policy/EnforceMFA	0	2023-10-05	6

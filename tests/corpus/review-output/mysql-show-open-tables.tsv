@@ -1,0 +1,6 @@
+n	Database	Table	In_use	Name_locked	total_entries
+1	appdb	customers	0	0	5
+2	appdb	invoices	0	0	5
+3	appdb	orders	2	0	5
+4	appdb	products	0	0	5
+5	appdb	sessions	1	0	5
