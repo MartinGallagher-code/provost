@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3567 tidy (139 format gaps ⏳)** — after two +500
+**3706 tools tested; 3571 tidy (135 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3348 by a generic parser via auto-detection, ✅ʰ 77 by a generic parser
+total: ✅ 3347 by a generic parser via auto-detection, ✅ʰ 82 by a generic parser
 routed by a hint row, ✅ᵇ 142 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -187,7 +187,16 @@ to their original parsers by hint rows. Closed 11 nested ⏳, promoted two
 bespoke-tier inputs to generic (`iotop`, `proc-devices` — their per-tool
 strategies are no longer their only route), and improved `pulumi-preview` and
 `yugabyte-cluster-status` (the carried group column is the point: Masters vs
-TServers rows are finally distinguishable). The 139 ⏳ that remain are
+TServers rows are finally distinguishable). A **`pivot-stats`** parser then took
+the last piece of that frontier — the `ip -s link` PIVOT shape, where a label
+line (`RX: bytes packets errors …`) is the column header of the single value
+row that FOLLOWS it. One wide row per record: the interface name, generic
+`word value` pairs from its header line (mtu, qdisc, state, …), and each pivot
+folded into prefixed counters (rx_bytes, tx_packets, …). Routed by one hint row
+(`RX: +bytes` → pivot-stats) so it also beats the early key-value parser on
+`ip -s addr`; closes the whole 4-fixture family plus `exo-ip-s-s-link` (whose
+old golden was welded blobs; the doubled `RX errors:` sub-counters remain the
+residual). The 135 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

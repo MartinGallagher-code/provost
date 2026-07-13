@@ -1,0 +1,10 @@
+1: lo: <LOOPBACK,UP> mtu 65536 qdisc noqueue state UNKNOWN
+    RX: bytes packets errors
+    1200 20 0
+    TX: bytes packets errors
+    1200 20 0
+2: eth0: <BROADCAST,UP> mtu 1500 qdisc mq state UP
+    RX: bytes packets errors
+    99887 766 1
+    TX: bytes packets errors
+    55443 322 0

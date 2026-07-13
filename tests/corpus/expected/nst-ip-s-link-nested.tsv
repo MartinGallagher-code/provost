@@ -1,0 +1,4 @@
+n	name	mtu	qdisc	state	mode	rx_bytes	rx_packets	rx_errors	rx_dropped	rx_overrun	rx_mcast	tx_bytes	tx_packets	tx_errors	tx_dropped	tx_carrier	tx_collsns	total_entries
+1	lo	65536	noqueue	UNKNOWN	DEFAULT	123456789	98765	0	0	0	0	123456789	98765	0	0	0	0	3
+2	eth0	1500	mq	UP	DEFAULT	9876543210	7654321	12	3	0	456	5432109876	4321098	0	1	0	0	3
+3	wlan0	1500	noqueue	UP	DORMANT	445566778	334455	0	9	0	120	112233445	223344	0	0	0	0	3

@@ -1,6 +1,16 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; grouped-rows parser (2026-07-13) — **3567 tidy, 139 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; pivot-stats parser (2026-07-13) — **3571 tidy, 135 ⏳**
+
+> **2026-07-13 — pivot-stats (ip -s link pivot).** New generic
+> `structured/pivot-stats.sh` (priority 39): label line names counters, NEXT
+> line carries the values — one wide row per record (name + header `word value`
+> pairs + rx_/tx_-prefixed counters). One hint row (`RX: +bytes` → pivot-stats)
+> routes the family, incl. past key-value (prio 11) for `ip -s addr`. Closes 4
+> fixtures + improves exo-ip-s-s-link (old golden was welded blobs). Residuals:
+> `ip -s -s` doubled stats (2-token `RX errors:` label) drop error details;
+> nvme/ethtool kv-under-group stay ⏳ (key-value steals at prio 11, different
+> shape). **Now 3571 tidy, 135 ⏳** (✅ 3347 / ✅ʰ 82 / ✅ᵇ 142).
 
 > **2026-07-13 — grouped-rows (nested-records frontier).** New generic
 > `structured/grouped-rows.sh` (priority 41): GROUP line (Label:/KEY=val/
