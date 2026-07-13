@@ -1,6 +1,21 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; manifest-discipline pass + yaml/iostat fixes (2026-07-13) — **3546 tidy, 160 ⏳** (golden gate 3397 passed / 0 failed / 309 not-yet-covered — honest strict-mincols count)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; wide-fixed-width follow-up (2026-07-13) — **3548 tidy, 158 ⏳** (golden gate 3394 passed / 0 failed / 309 not-yet-covered)
+
+> **2026-07-13 — wide fixed-width follow-up.** Two generic fixes for wide tables
+> that were dropping columns. (1) `columnar-specs` `_cs_row_overflow`: a
+> fixed-layout ws spec (no absorb, no `@rest`) declines when ≥80% of its data
+> rows carry MORE tokens than it has columns — it was silently dropping the
+> extras and mis-labelling the rest (`turbostat`'s 10-col spec mangling the
+> 20-col `turbostat -q`); also de-false-positives `hadolint-output` (the
+> `dpkg-get-selections` spec grabbed it for ending in "…install"). (2) `tsv`
+> header rescue: row 1 was treated headerless whenever a field merely CONTAINED
+> a digit, demoting real headers with digit-bearing labels (`Core CPU … C1 C6`);
+> now a dual-row check keeps row 1 as a header when a column is a label in row 1
+> over a numeric value in row 2, gated ≥3 columns so 2-col KV/pair lists (`wg
+> show`, colon-KV) stay headerless. Closes `turbostat-wide` + `enc-tsv-numeric`
+> (⏳→✅), real column names for nvidia-topo + featurecounts. Blast radius audited
+> 50→5→final; 0 regressions. **Now 3548 tidy, 158 ⏳** (✅ 3316 / ✅ʰ 83 / ✅ᵇ 149).
 
 > **2026-07-13 — manifest-discipline follow-up.** Completes the strict-`_ok`
 > pass (text-kind now honors the manifest's `emin`, not a hardcoded ≥2). Two

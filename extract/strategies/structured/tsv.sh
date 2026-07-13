@@ -61,12 +61,38 @@ strategy_extract () {
     local headers; headers=()
     IFS='	' read -ra headers <<< "$header"
 
-    # Headerless TSV: if the first line already looks like data (a digit-bearing
-    # field), synthesise c1..cN column names and treat every line as a record —
-    # so `du` output (size <tab> path) stays one row per line instead of eating
-    # row 1 as a header.
+    # Headerless TSV: synthesise A,B,C… names and treat every line as a record
+    # when row 1 is already DATA — so `du` output (size <tab> path) stays one row
+    # per line instead of eating row 1 as a header. Trigger (long-standing): row
+    # 1 bears a digit anywhere — a header of pure labels does not.
     local headerless=0 _hf
     for _hf in "${headers[@]}"; do [[ "$_hf" =~ [0-9] ]] && { headerless=1; break; }; done
+    # …but a digit-BEARING row 1 can still be a genuine header whose LABELS embed
+    # digits (`C1`, `C6`, `Avg_MHz`). Distinguish by comparing row 1 to the first
+    # data row, column by column: if some column is a non-numeric label in row 1
+    # yet a numeric value in row 2, row 1 is a header after all — keep it (so
+    # turbostat -q's 20-wide table keeps every column name instead of collapsing
+    # to A…T). This override only ever fires when row 1 already looked headerless,
+    # so nothing that used a header before changes. Gated to >=3 columns: a
+    # 2-column tsv is a key/value or pair LIST (`wg show` pubkey<tab>time,
+    # colon-value KV dumps) where the value column legitimately mixes text and
+    # numbers row to row — never a wide table whose header needs rescuing.
+    if [[ $headerless -eq 1 && ${#headers[@]} -ge 3 ]]; then
+        local _second="" _ln=0
+        while IFS= read -r _hf; do _ln=$((_ln + 1)); [[ $_ln -eq 2 ]] && { _second="$_hf"; break; }; done <<< "$text"
+        if [[ -n "$_second" ]]; then
+            local -a _d2=(); IFS='	' read -ra _d2 <<< "$_second"
+            local _i _h _v
+            for ((_i=0; _i<${#headers[@]}; _i++)); do
+                _h="${headers[$_i]}"; _h="${_h#"${_h%%[![:space:]]*}"}"
+                _v="${_d2[$_i]:-}"; _v="${_v#"${_v%%[![:space:]]*}"}"
+                if [[ "$_h" != [0-9]* && "$_h" != -[0-9]* ]] \
+                   && { [[ "$_v" == [0-9]* ]] || [[ "$_v" == -[0-9]* ]]; }; then
+                    headerless=0; break
+                fi
+            done
+        fi
+    fi
     if [[ $headerless -eq 1 ]]; then
         local _n=${#headers[@]} _i
         headers=()

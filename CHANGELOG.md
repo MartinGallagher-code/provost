@@ -1,5 +1,44 @@
 # glean — Changelog
 
+## 2026-07-13 — wide fixed-width follow-up: columnar-spec overflow-decline + tsv header rescue
+
+Closes the wide-fixed-width column-dropping gaps flagged as follow-ups by the
+manifest-discipline pass, via two generic capability fixes (no per-tool code).
+
+**`columnar-specs` overflow-decline (`_cs_row_overflow`).** A ws-delim spec with
+a FIXED column layout (no `absorb` sink, no terminal `@rest`) silently dropped
+any tokens past its column count — and worse, on a table WIDER than the spec it
+mapped the first N tokens onto the wrong names (`turbostat`'s 10-column
+space-aligned spec claiming `turbostat -q`'s 20-column tab output: SMI→PkgTmp,
+POLL→PkgWatt, …, 10 columns lost). Such a spec now declines when the
+overwhelming majority (≥80%) of its accepted data rows carry more tokens than it
+has columns, so a generic full-width parser wins instead. No fixed-layout spec
+can legitimately rely on the drop (a real multi-token trailing column already
+needs `@rest`/absorb), so this only removes misapplications — it also
+de-false-positives `hadolint-output`, which the `dpkg-get-selections` spec was
+grabbing purely because its lines end in "…apt get install" (now honest
+text-lines rather than a bogus `package`/`status` split).
+
+**`tsv` header-vs-headerless disambiguation.** tsv treated row 1 as headerless
+(synthesised `A,B,C…`) whenever any field merely CONTAINED a digit — which
+demoted genuine headers whose labels embed digits (`Core CPU … C1 C6`,
+`Avg_MHz`), losing every column name. It now keeps the long-standing
+digit-bearing trigger but overrides back to "header" when a column is a
+non-numeric label in row 1 yet a numeric value in row 2 (a real label-over-data
+column), gated to ≥3 columns so 2-column key/value & pair lists (`wg show`
+pubkey→time, colon-value KV dumps) — whose value column legitimately mixes text
+and numbers row to row — are never mis-promoted.
+
+Together: `turbostat-wide` (all 20 columns, ⏳→✅) and `enc-tsv-numeric` (⏳→✅),
+plus real column names for the already-✅ `exo-nvidia-smi-topo-matrix` and
+`featurecounts-summary`. Full blast-radius audit: an over-broad first cut (tsv
+"all-numeric" then "digit-leading" rules) hit 50 then 5 goldens; the final
+dual-row + ≥3-col form lands at exactly 5 flips, all classified — 4
+improvements/neutral re-goldens + 1 honest de-false-positive, 0 regressions.
+Gates: golden 3394 passed / 0 failed / 309 not-yet-covered (then re-frozen);
+extract 62/62; smoke 49/0; melt 10/0. Coverage 3548 / 3706 (+2 vs the
+discipline pass).
+
 ## 2026-07-13 — manifest-discipline follow-up: yaml/iostat fixes + stale-golden cleanup
 
 Completes the manifest-discipline pass begun by the strict-`_ok` commit
