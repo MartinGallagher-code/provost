@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; aligned-columns/csv false-positive fixes (2026-07-13) — golden gate 3430 passed / 0 failed / 276 not-yet-covered; coverage table refresh pending
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; aligned-columns/csv false-positive fixes (2026-07-13) — **3571 tidy, 135 ⏳** (golden gate 3430 passed / 0 failed / 276 not-yet-covered)
 
 > **2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false
 > positive.** From a manual review of `tests/corpus/review-output/`: (1)
@@ -26,9 +26,14 @@
 > — flagged for the pending manifest-tightening pass, not fixed here). Golden
 > gate 3430 passed / 0 failed / 276 not-yet-covered (pre-existing gap, no
 > golden ever frozen for those — unrelated); extract 62/62; smoke 49/0; melt
-> 10/0. 9 goldens re-frozen, 1 new (perf-stat-scientific). **COVERAGE.md /
-> README numbers not yet refreshed — full-mode coverage regen was still
-> running at last check; a follow-up commit will land it.** Next queued: Bug
+> 10/0. 9 goldens re-frozen, 1 new (perf-stat-scientific). Full-mode
+> `--coverage` regen: **3571 / 3706** (✅ 3346 / ✅ʰ 84 / ✅ᵇ 141). The
+> committed `COVERAGE.md` had drifted stale (last regenerated before the
+> grouped-rows/pivot-stats rounds landed, still showing 3478/3706) — this
+> commit both catches that up and folds in this round's fixes, net +93 items
+> tidy, -1 (`lsusb-v`, confirmed via an `e4acc0b` worktree comparison to be an
+> unrelated pre-existing gap the stale doc just hadn't surfaced, not a
+> regression from this change). Next queued: Bug
 > #1 — tighten the loose `text`/`kv` manifest kinds in `expected.tsv` (a
 > corpus-discipline pass, not a parser fix) now that 2 and 3 are done.
 

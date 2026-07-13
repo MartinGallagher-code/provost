@@ -48,8 +48,8 @@ round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3347 by a generic parser via auto-detection, ✅ʰ 82 by a generic parser
-routed by a hint row, ✅ᵇ 142 by a bespoke strategy. A later positional
+total: ✅ 3346 by a generic parser via auto-detection, ✅ʰ 84 by a generic parser
+routed by a hint row, ✅ᵇ 141 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
 multi-mode coverage audit across all ~1000 tools confirmed the corpus already
@@ -196,7 +196,20 @@ folded into prefixed counters (rx_bytes, tx_packets, …). Routed by one hint ro
 (`RX: +bytes` → pivot-stats) so it also beats the early key-value parser on
 `ip -s addr`; closes the whole 4-fixture family plus `exo-ip-s-s-link` (whose
 old golden was welded blobs; the doubled `RX errors:` sub-counters remain the
-residual). The 135 ⏳ that remain are
+residual). A manual review of `review-output/` then caught two false-positive
+detection bugs: `aligned-columns` was claiming single-record colon-kv
+description blocks (`apt-cache show`, `dpkg -s`) before `colons` could, turning
+row 1's two tokens into literal column names — it now declines when a block is
+majority-distinct `Label:` lines AND row 1 itself is one (real tables whose
+first *column* is colon-suffixed labels, like `/proc/interrupts`, keep their
+row-1 real header and are unaffected). And `csv` was false-detecting on
+bracketed thousands-grouping commas (`apt-get`'s `[1,234 kB]`) that gave a
+spuriously consistent per-line comma count; a precise thousands-comma exclusion
+(digit before, exactly 3 digits after, no 4th) fixes it while preserving the
+comma-count *variation* `vegeta-report` needs to correctly decline csv. Fixed 7
+kv-header targets + apt-get-download-progress + vegeta-report, incidentally
+un-broke 8 pre-existing csv false positives, and closed `perf-stat-scientific`.
+The 135 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

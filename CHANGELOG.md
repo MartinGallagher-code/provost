@@ -51,6 +51,12 @@ state: golden gate 3430 passed / 0 failed / 276 not-yet-covered (pre-existing,
 no golden ever frozen — unrelated to this change); extract suite 62/62; smoke
 49/0; melt 10/0. 9 goldens re-frozen (7 kv-header targets + apt-get-download-
 progress + ledger-balance), 1 new golden written (perf-stat-scientific).
+Coverage 3571 / 3706 (✅ 3346 / ✅ʰ 84 / ✅ᵇ 141) — the committed `COVERAGE.md`
+had drifted stale since before the grouped-rows/pivot-stats rounds (last
+showing 3478/3706); this commit both catches that up and folds in this
+round's fixes. Net vs. the stale baseline: +93 tidy, -1 (`lsusb-v`, confirmed
+via an `e4acc0b` worktree diff to be an unrelated pre-existing gap the stale
+doc hadn't surfaced, not a regression from this change).
 
 ## 2026-07-13 — pivot-stats parser: the ip -s link pivot shape
 
