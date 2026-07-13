@@ -69,3 +69,4 @@ volta-list	contains	User toolchain:	line-records
 vulkaninfo-summary	contains	VULKANINFO	text-lines
 lsusb-verbose	contains	Device Descriptor:	indented-hierarchy
 numpy-show-config	contains	NOT AVAILABLE	aligned-columns
+ip-stats	regex	RX: +bytes	pivot-stats

@@ -3520,7 +3520,7 @@ tbl-full-width-equals-rule	table	3	2
 tbl-df-wrapped-device	table	3	6
 tbl-spanning-three-groups	table	3	7
 tbl-numeric-decimal-negative	table	4	4
-nst-ip-s-link-nested	table	6	6
+nst-ip-s-link-nested	table	3	6
 nst-disk-smart-partitions	table	5	4
 nst-ethtool-queue-stats	table	8	3
 nst-nvme-per-namespace-stats	table	6	4

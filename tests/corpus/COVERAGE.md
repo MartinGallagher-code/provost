@@ -985,7 +985,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | exo-iostat-x-repeated | ✅ | aligned-columns |
 | exo-ip-j-addr-json | ✅ | json-array |
 | exo-ip-route-get | ✅ | aligned-columns |
-| exo-ip-s-s-link | ✅ | indented-hierarchy |
+| exo-ip-s-s-link | ✅ʰ | pivot-stats (hint: ip-stats) |
 | exo-journalctl-export | ✅ | block-records |
 | exo-kubectl-get-wide-many | ✅ | aligned-columns |
 | exo-kubectl-top-pods-containers | ✅ | aligned-columns |
@@ -1512,9 +1512,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | ip-rule-list | ✅ | tsv |
 | ip-rule-show | ✅ | tsv |
 | ip-rule | ✅ | tsv |
-| ip-s-addr-stats | ⏳ | — |
-| ip-s-link-eth | ⏳ | — |
-| ip-s-link | ⏳ | — |
+| ip-s-addr-stats | ✅ʰ | pivot-stats (hint: ip-stats) |
+| ip-s-link-eth | ✅ʰ | pivot-stats (hint: ip-stats) |
+| ip-s-link | ✅ʰ | pivot-stats (hint: ip-stats) |
 | ip-tunnel-show | ✅ʰ | labeled-records (hint: ip-tunnel) |
 | ip-tunnel | ✅ʰ | labeled-records (hint: ip-tunnel) |
 | ip-xfrm-state | ✅ᵇ | ip-xfrm-state (bespoke) |
@@ -2160,7 +2160,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-ini-duplicate-keys | ✅ | ini-sections |
 | nst-iostat-multisection | ✅ | block-records |
 | nst-ip-route-per-table | ✅ | text-lines |
-| nst-ip-s-link-nested | ⏳ | — |
+| nst-ip-s-link-nested | ✅ʰ | pivot-stats (hint: ip-stats) |
 | nst-java-log-stacktrace | ✅ | text-lines |
 | nst-json-4level-arrays | ✅ | json |
 | nst-k8s-list-yaml | ⏳ | — |

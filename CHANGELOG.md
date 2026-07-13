@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-13 — pivot-stats parser: the ip -s link pivot shape
+
+New generic parser `strategies/structured/pivot-stats.sh` (priority 39) for
+the shape grouped-rows explicitly could not take: a LABEL line naming counters
+with the values on the NEXT line — a pivot, not a carry-down:
+
+    2: eth0: <BROADCAST,...> mtu 1500 qdisc mq state UP ...
+        RX: bytes  packets  errors  dropped  overrun  mcast
+        9928374011 8837422  0       12       0        4421
+
+One wide row per record: `name` from the `N: name:` header (or first token),
+generic `word value` pairs from the header line (mtu 1500, qdisc mq, state UP,
+mode DEFAULT, qlen 1000 — a token scan, no ip-specific list), and each pivot
+folded into prefixed counters (rx_bytes, rx_packets, …, tx_bytes, …).
+Detection needs >=2 header+values pivot pairs under >=1 unindented record
+header; a value row must match the header's token count with every token
+numeric — so ordinary labeled text never pairs up.
+
+Routed by one hint row (`ip-stats  regex  RX: +bytes  pivot-stats`): the
+signature IS the family, and the hint also carries `ip -s addr` past the
+key-value parser (priority 11, unreachable otherwise). Closes the 4-fixture
+family (ip-s-link, ip-s-link-eth, ip-s-addr-stats, nst-ip-s-link-nested — the
+nested manifest aligned 6->3 to the family's one-row-per-interface wide
+convention) and improves `exo-ip-s-s-link`, whose old indented-hierarchy
+golden was welded header blobs. Residual noted: `ip -s -s` doubled stats
+(`RX errors:` two-token label) drop the error-detail counters. The
+kv-under-group siblings (nvme/ethtool per-namespace stats) stay ⏳ — they lose
+to key-value at priority 11 and are a different shape (kv carry-down, not
+pivot). Gates: golden 0 failed, extract green, smoke/melt green. Coverage
+3567 -> 3571 tidy of 3706 (135 ⏳); ✅ 3347 / ✅ʰ 82 / ✅ᵇ 142.
+
 ## 2026-07-13 — grouped-rows parser: the nested-records frontier
 
 New generic parser `strategies/structured/grouped-rows.sh` (priority 41 —
