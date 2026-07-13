@@ -708,6 +708,63 @@ strategy_extract () {
             local gridrows=() _g
             while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
             if [[ ${#gridrows[@]} -ge 2 ]]; then
+                # Tab-SAFE cell split: `IFS=$'\t' read -ra` treats TAB as IFS
+                # whitespace, so leading/consecutive tabs COLLAPSE and an empty
+                # leading cell shifts every value left. Split explicitly.
+                _ac_cells () {
+                    local _s="$1"; _AC_CELLS=()
+                    while [[ "$_s" == *$'\t'* ]]; do
+                        _AC_CELLS+=("${_s%%$'\t'*}"); _s="${_s#*$'\t'}"
+                    done
+                    _AC_CELLS+=("$_s")
+                }
+                # WRAPPED CELLS: rejoin continuation lines before emitting.
+                #   * tail wrap — a grid row whose FIRST cell is empty and whose
+                #     only content sits in the LAST cell is the previous row's
+                #     last column wrapped onto a new line (kubectl events'
+                #     MESSAGE, systemctl's DESCRIPTION, crontab COMMAND): append
+                #     it, space-joined. A sparse-matrix row keeps its row label,
+                #     so first-cell-empty + only-last-cell never fires there.
+                #   * leading overflow — a grid row with ONLY its first cell
+                #     filled, when the NEXT row's first cell is empty, is a value
+                #     too long for column 1 printed alone (df's long device
+                #     path): carry it into the next row's first cell.
+                local _wj=() _wr _wc=() _wn _wonly_last _wonly_first _wnc
+                for ((_wr = 1; _wr < ${#gridrows[@]}; _wr++)); do
+                    _ac_cells "${gridrows[$_wr]}"; _wc=("${_AC_CELLS[@]}")
+                    _wnc=${#_wc[@]}
+                    _wonly_last=0; _wonly_first=0
+                    if [[ $_wnc -ge 2 ]]; then
+                        local _wi _wfilled=0 _wlastfill=0 _wfirstfill=0
+                        for ((_wi = 0; _wi < _wnc; _wi++)); do
+                            [[ -n "${_wc[$_wi]//[[:space:]]/}" ]] || continue
+                            _wfilled=$((_wfilled + 1))
+                            [[ $_wi -eq $((_wnc - 1)) ]] && _wlastfill=1
+                            [[ $_wi -eq 0 ]] && _wfirstfill=1
+                        done
+                        [[ $_wfilled -eq 1 && $_wlastfill -eq 1 ]] && _wonly_last=1
+                        [[ $_wfilled -eq 1 && $_wfirstfill -eq 1 ]] && _wonly_first=1
+                    fi
+                    if [[ $_wonly_last -eq 1 && ${#_wj[@]} -gt 0 ]]; then
+                        # append to previous kept row's last cell
+                        local _wprev=() _wpi=$(( ${#_wj[@]} - 1 ))
+                        _ac_cells "${_wj[$_wpi]}"; _wprev=("${_AC_CELLS[@]}")
+                        _wprev[$((${#_wprev[@]} - 1))]="${_wprev[$((${#_wprev[@]} - 1))]:+${_wprev[$((${#_wprev[@]} - 1))]} }${_wc[$((_wnc - 1))]}"
+                        _wj[$_wpi]="$(IFS=$'\t'; printf '%s' "${_wprev[*]}")"
+                        continue
+                    fi
+                    if [[ $_wonly_first -eq 1 && $((_wr + 1)) -lt ${#gridrows[@]} ]]; then
+                        local _wnext=(); _ac_cells "${gridrows[$((_wr + 1))]}"; _wnext=("${_AC_CELLS[@]}")
+                        if [[ ${#_wnext[@]} -ge 2 && -z "${_wnext[0]//[[:space:]]/}" ]]; then
+                            _wnext[0]="${_wc[0]}"
+                            gridrows[$((_wr + 1))]="$(IFS=$'\t'; printf '%s' "${_wnext[*]}")"
+                            continue
+                        fi
+                    fi
+                    _wj+=("${gridrows[$_wr]}")
+                done
+                gridrows=("${gridrows[0]}" "${_wj[@]}")
+
                 local headers=() result="" entry=0 li i
                 IFS=$'\t' read -ra headers <<< "${gridrows[0]}"
                 for ((i = 0; i < ${#headers[@]}; i++)); do
@@ -717,7 +774,7 @@ strategy_extract () {
                     headers[$i]="$h"
                 done
                 for ((li = 1; li < ${#gridrows[@]}; li++)); do
-                    local values; values=(); IFS=$'\t' read -ra values <<< "${gridrows[$li]}"
+                    local values; _ac_cells "${gridrows[$li]}"; values=("${_AC_CELLS[@]}")
                     local nonempty=0 v
                     for v in "${values[@]}"; do [[ -n "${v//[[:space:]]/}" ]] && { nonempty=1; break; }; done
                     [[ $nonempty -eq 0 ]] && continue

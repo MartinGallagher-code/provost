@@ -1,5 +1,34 @@
 # glean — Changelog
 
+## 2026-07-12 — wrapped cells + the tab-collapse bug
+
+Two changes in `aligned-columns`' positional-grid path:
+
+- **Wrapped-cell rejoin.** A grid row whose only content sits in the LAST cell
+  (first cell empty) is the previous row's last column wrapped onto a new line
+  — kubectl events' MESSAGE, systemctl list-units' DESCRIPTION, a crontab's
+  two-line COMMAND, issue-tracker DESCRIPTION columns. Appended space-joined.
+  A sparse-matrix row keeps its row label, so first-cell-empty + only-last-cell
+  never fires there. (A leading-overflow rule — value alone on its own line,
+  next row's first cell empty — ships too, for the df long-device shape, but
+  that fixture doesn't reach the positional path; see below.)
+- **The tab-collapse bug (long-standing, uncovered by the wrap join not
+  firing):** `IFS=$'\t' read -ra` treats TAB as IFS *whitespace*, so empty grid
+  cells COLLAPSED and every value to their right shifted one column left —
+  docker/podman ps rows with empty PORTS carried their NAME in the PORTS
+  column; lastlog's "**Never logged in**" sat in the Port column. A tab-safe
+  splitter (`_ac_cells`) now keeps cells in place. 22 covered goldens
+  re-frozen, every one an empty-cell column-labeling fix (audited: docker-ps
+  x3, podman-ps x3, lastlog x2, sparse network/volume/branch listings, consul's
+  positionally-faithful relabel).
+
+Closes 4 ⏳: tbl-kubectl-events-wrapped, tbl-systemctl-wrapped-desc,
+tbl-two-line-wrapped-command, tbl-wrapped-desc-col. `tbl-df-wrapped-device`
+stays open honestly — its table never reaches the positional path
+(single-space numeric gaps fail `_ac_aligned`; the fixed-width byte-offset
+family). Golden gate 0 failed after re-freeze; extract 62/62, smoke 49/0,
+melt 10/0. Coverage 3554 -> 3558 tidy of 3706 (150 ⏳).
+
 ## 2026-07-12 — semicolon-values: quote-awareness + low-density band
 
 The csv treatment for `strategies/delimited/semicolon-values.sh`. One shared

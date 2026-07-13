@@ -1,6 +1,17 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; semicolon quote-awareness round (2026-07-12) — **3554 tidy, 154 ⏳**
+## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; wrapped-cells + tab-collapse fix (2026-07-12) — **3558 tidy, 150 ⏳**
+
+> **2026-07-12 — wrapped cells + tab-collapse bug.** aligned-columns' positional
+> path now rejoins continuation lines (only-last-cell grid row = previous row's
+> last column wrapped; appended space-joined) — closing kubectl-events/
+> systemctl/crontab/desc wrapped fixtures. Chasing why the join didn't fire
+> exposed a long-standing bug: `IFS=$'\t' read -ra` collapses EMPTY tab cells,
+> shifting all values left — docker-ps rows with empty PORTS had NAME in the
+> PORTS column. Tab-safe `_ac_cells` fixes column labeling in 22 covered
+> goldens (all audited + re-frozen). tbl-df-wrapped-device stays ⏳ (never
+> reaches the positional path). **Now 3558 tidy, 150 ⏳** (✅ 3339 / ✅ʰ 73 /
+> ✅ᵇ 144).
 
 > **2026-07-12 — semicolon-values quote-awareness.** The csv treatment:
 > `_strat_ssv_split` (quotes structural at field start, `""` escape) drives

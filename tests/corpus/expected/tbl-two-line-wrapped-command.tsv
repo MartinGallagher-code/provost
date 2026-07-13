@@ -1,0 +1,4 @@
+n	SCHEDULE	COMMAND	total_entries
+1	0 2 * * *	/usr/local/bin/backup.sh --dest /mnt/backup --retention 30 --compress	3
+2	*/5 * * * *	/usr/local/bin/healthcheck.sh	3
+3	0 0 * * 0	/usr/local/bin/rotate-logs.sh --all --gzip	3

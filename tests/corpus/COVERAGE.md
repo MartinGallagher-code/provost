@@ -3242,7 +3242,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | tbl-headerless-roster | ✅ | aligned-columns |
 | tbl-headerless-timesheet | ✅ | aligned-columns |
 | tbl-inventory-blank-sections | ✅ | aligned-columns |
-| tbl-kubectl-events-wrapped | ⏳ | — |
+| tbl-kubectl-events-wrapped | ✅ | aligned-columns |
 | tbl-ledger-blank-groups | ⏳ | — |
 | tbl-lowercase-header-multiword | ✅ | aligned-columns |
 | tbl-lsblk-blank-groups | ✅ | aligned-columns |
@@ -3266,12 +3266,12 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | tbl-spanning-three-groups | ✅ | aligned-columns |
 | tbl-sparse-component-matrix | ⏳ | — |
 | tbl-sparse-metrics | ✅ | aligned-columns |
-| tbl-systemctl-wrapped-desc | ⏳ | — |
+| tbl-systemctl-wrapped-desc | ✅ | systemctl-list-units |
 | tbl-thousands-space-rss | ✅ | aligned-columns |
 | tbl-tib-space-unit | ✅ | aligned-columns |
 | tbl-top-repeated-header | ✅ | aligned-columns |
 | tbl-transpose-two-records | ✅ | aligned-columns |
-| tbl-two-line-wrapped-command | ⏳ | — |
+| tbl-two-line-wrapped-command | ✅ | aligned-columns |
 | tbl-underline-1space | ✅ | fixed-width |
 | tbl-units-row-sensors | ✅ | aligned-columns |
 | tbl-vertical-build-info | ✅ | aligned-columns |
@@ -3279,7 +3279,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | tbl-vertical-vm-record | ✅ | aligned-columns |
 | tbl-vmstat-header-repeat | ✅ | aligned-columns |
 | tbl-watch-diskio-repeat | ✅ | iostat-d |
-| tbl-wrapped-desc-col | ⏳ | — |
+| tbl-wrapped-desc-col | ✅ | aligned-columns |
 | tc-class-show | ✅ | aligned-columns |
 | tc-class | ✅ | aligned-columns |
 | tc-filter-show | ✅ʰ | text-lines (hint: tc-filter-show) |

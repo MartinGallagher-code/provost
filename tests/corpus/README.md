@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3554 tidy (154 format gaps ⏳)** — after two +500
+**3706 tools tested; 3558 tidy (150 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3335 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
+total: ✅ 3339 by a generic parser via auto-detection, ✅ʰ 73 by a generic parser
 routed by a hint row, ✅ᵇ 144 by a bespoke strategy. A later positional
 multi-word-header round in `aligned-columns` closed most of the fixed-width
 tables (stream/blender/pytest + frr/gluster/watch-diff/nodetool). A later
@@ -160,7 +160,19 @@ semicolon counting and splitting with `""` escapes, plus a low-density band —
 untouched). Closed 5 ⏳ (European-locale `;`-CSV with embedded `; ` in quoted
 cells, decimal commas, NBSP thousands) and improved 4 already-covered fixtures
 that had been parsed as blobs by text-lines/line-records — now real headers and
-columns with `"paid; net 30"` kept whole. The 154 ⏳ that remain are
+columns with `"paid; net 30"` kept whole. A **wrapped-cells** round then taught
+the positional path in `aligned-columns` to rejoin continuation lines: a grid
+row whose only content sits in the LAST cell (first cell empty) is the previous
+row's last column wrapped onto a new line (kubectl events' MESSAGE, systemctl's
+DESCRIPTION, crontab COMMAND) and is appended, space-joined. The same round
+uncovered — and fixed — a long-standing positional bug: `IFS=$'\t' read -ra`
+treats TAB as IFS whitespace, so EMPTY grid cells collapsed and every value to
+their right shifted one column left; a tab-safe splitter now keeps cells in
+place, correcting the empty-cell column labeling of 22 already-covered tables
+(docker/podman ps with empty PORTS, lastlog's Never-logged-in rows, sparse
+network/volume listings). Closed 4 wrapped ⏳; `tbl-df-wrapped-device` stays
+open (first-column overflow in a single-space numeric table — the fixed-width
+byte-offset family). The 150 ⏳ that remain are
 genuinely hard (nested multi-record blocks — `ip -s link`'s RX:/TX: sub-tables; headerless
 first column — kdiskmark; single-space multi-word cells — lzbench; Unicode-space
 column separators — NBSP/ideographic-space; quote-aware CSV/pipe splitting;

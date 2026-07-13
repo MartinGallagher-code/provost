@@ -1,4 +1,4 @@
 n	TYPE	NAME	REPO	INSECURE	OCI	STATUS	MESSAGE	total_entries
 1	git	platform	https://github.com/acme/platform.git	false	false	Successful		3
-2	git	https://github.com/acme/apps.git	false	false	Successful			3
+2	git		https://github.com/acme/apps.git	false	false	Successful		3
 3	helm	charts	https://charts.acme.io	false	false	Failed	authentication required	3

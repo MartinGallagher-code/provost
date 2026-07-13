@@ -1,8 +1,8 @@
-n	ID	CLASS	WEIGHT	TYPE_NAME	STATUS	REWEIGHT	total_entries
+n	ID	WEIGHT	TYPE_NAME	CLASS	STATUS	REWEIGHT	total_entries
 1	-1	10.91695	root default				7
 2	-3	3.63898	host ceph-01				7
-3	0	hdd	1.81949	osd.0	up	1.00000	7
-4	1	hdd	1.81949	osd.1	up	1.00000	7
+3	0	1.81949	osd.0	hdd	up	1.00000	7
+4	1	1.81949	osd.1	hdd	up	1.00000	7
 5	-5	3.63898	host ceph-02				7
-6	2	hdd	1.81949	osd.2	down	0	7
-7	3	hdd	1.81949	osd.3	up	1.00000	7
+6	2	1.81949	osd.2	hdd	down	0	7
+7	3	1.81949	osd.3	hdd	up	1.00000	7
