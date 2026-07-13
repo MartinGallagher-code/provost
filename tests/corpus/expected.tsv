@@ -3527,7 +3527,7 @@ nst-nvme-per-namespace-stats	table	6	4
 nst-zpool-vdev-tree	table	7	4
 nst-btrfs-device-per-disk	table	6	3
 nst-sar-multisection	text	-	2
-nst-lsof-per-process	table	8	4
+nst-lsof-per-process	table	7	4
 nst-iostat-multisection	text	-	2
 nst-vmstat-sections	text	-	2
 nst-perf-report-sections	text	-	2
@@ -3554,9 +3554,9 @@ nst-tree-node-attrs	table	8	3
 nst-du-tree-sizes-dates	table	7	3
 nst-lsblk-tree-attrs	table	7	4
 nst-sales-by-region-subtotals	table	8	3
-nst-du-by-category-subtotal	table	7	2
+nst-du-by-category-subtotal	table	9	2
 nst-quota-grouped-subtotal	table	7	3
-nst-ledger-grouped-subtotal	table	8	2
+nst-ledger-grouped-subtotal	table	9	2
 nst-java-log-stacktrace	text	-	2
 nst-python-traceback-log	text	-	2
 nst-syslog-multiline-continuation	text	-	2

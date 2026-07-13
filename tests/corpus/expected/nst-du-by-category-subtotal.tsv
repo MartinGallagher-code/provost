@@ -1,0 +1,10 @@
+n	group	A	B	total_entries
+1	Images	photos.tar	4.2G	9
+2	Images	thumbnails	120M	9
+3	Images	subtotal	4.32G	9
+4	Documents	reports.zip	880M	9
+5	Documents	archive.tar	2.1G	9
+6	Documents	subtotal	2.98G	9
+7	Videos	raw.mkv	18G	9
+8	Videos	subtotal	18G	9
+9		Total	25.3G	9

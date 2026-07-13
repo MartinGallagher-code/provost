@@ -1,0 +1,13 @@
+entry1.region us-east-1
+entry1.A i-0a11
+entry1.B m5.large
+entry1.C running
+entry2.region us-east-1
+entry2.A i-0a12
+entry2.B t3.micro
+entry2.C running
+entry3.region eu-west-1
+entry3.A i-0c31
+entry3.B m5.large
+entry3.C running
+total_entries 3

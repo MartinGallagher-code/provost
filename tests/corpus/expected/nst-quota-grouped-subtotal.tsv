@@ -1,0 +1,8 @@
+n	group	User	Used	Limit	total_entries
+1	developers	alice	12G	20G	7
+2	developers	bob	8G	20G	7
+3	developers	carol	19G	20G	7
+4	developers	--sub--	39G	60G	7
+5	analysts	dave	4G	10G	7
+6	analysts	erin	9G	10G	7
+7	analysts	--sub--	13G	20G	7
