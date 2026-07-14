@@ -1,0 +1,13 @@
+entry1.Volume vol-a
+entry1.Files 1204
+entry1.Size 18.4 GB
+entry1.Status OK
+entry2.Volume vol-b
+entry2.Files 8821
+entry2.Size 42.1 GB
+entry2.Status OK
+entry3.Volume vol-c
+entry3.Files 3051
+entry3.Size 9.8 GB
+entry3.Status WARN
+total_entries 3

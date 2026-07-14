@@ -1,4 +1,4 @@
-n	Pod	Req	Lim	Use	total_entries
-1	web-1	128Mi	256Mi	180Mi	3
-2	web-2	128Mi	256Mi	201Mi	3
-3	api-1	256Mi	512Mi	390Mi	3
+n	Pod	CPU_Req	CPU_Lim	CPU_Use	Memory_Req	Memory_Lim	Memory_Use	total_entries
+1	web-1	100m	500m	234m	128Mi	256Mi	180Mi	3
+2	web-2	100m	500m	312m	128Mi	256Mi	201Mi	3
+3	api-1	250m	1000m	456m	256Mi	512Mi	390Mi	3

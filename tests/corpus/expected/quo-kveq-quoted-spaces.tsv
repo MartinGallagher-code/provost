@@ -1,0 +1,4 @@
+n	k1	k2	k3	mode	owner	flags	label	env	total_entries
+1	a b	c=d	e f g						3
+2				read write	root:wheel	-x -v			3
+3							release v1.2, stable	prod=1	3

@@ -1,5 +1,185 @@
 # glean — Changelog
 
+## 2026-07-14 — embedded-table parser: the report shape (nst-* round)
+
+New generic parser `strategies/delimited/embedded-table.sh` (priority 37,
+ahead of block-records) for the REPORT shape: prose/kv preamble, ONE dominant
+whitespace-aligned table, optional footnotes — smartctl -a, benchmark
+write-ups, backup job reports, trivy scans. Finds the largest table window
+(labelly header + >=3 digit-bearing consistent rows) and extracts only it via
+positional slicing with midpoint column boundaries and an overflow snap (a
+boundary landing inside a token slides right, so `zstd-19` under a 4-char
+`Tool` label and `Reallocated_Sector_Ct` past its header span stay whole);
+inner alignment padding collapses to one space.
+
+Containment took five gate rounds (31 → 11 → 17 → 5 flips) and is where the
+value lives:
+- chrome must include a PROSE line — >=3 tokens, >=2 alphanumeric-bearing,
+  digit-free, no kv colon, no box-drawing glyphs. An all-kv report
+  (mdadm --detail, nvidia-smi -q, kubectl describe) is fully representable by
+  the kv-capable parsers — taking only its table would LOSE the fields;
+- a chrome line token-identical to the window header (faillock's per-user
+  sections, ps/top page reprints) or a token-SUBSET of it (yugabyte's
+  narrower sibling section header) means a multi-section table — decline,
+  aligned-columns/grouped-rows collect those in full;
+- the window must open a section (preceded by blank/start/narrower line —
+  banner chrome like `=== SECTION ===` excepted) and close one (followed by
+  blank/EOF/narrower line) — a truncated window inside a bigger table
+  (prlimit's digit-free `unlimited` rows, `worker stopped - -`) declines;
+- header tokens must start alphanumeric-or-bracket (a diff hunk's `+use`
+  line is not a header) and data rows never end in '.' (prose sentences).
+
+Closes 5 of the 6 report-shaped nst-* gaps (nst-benchmark-report-footnotes,
+nst-report-preamble-table-footnotes, nst-kv-table-kv-backup-report,
+nst-pg-report-mixed, nst-smartctl-info-attrs-selftest;
+nst-mdadm-detail-devices stays ⏳ — all-kv chrome, needs kv+table dual
+emission) plus NINE bonus gaps the same shape covers: cargo-audit,
+dotnet-list-package, kubectl-get-all, nmap_sv, rocm-smi, sfdisk-l, and three
+cmb spinner/clear-screen tables. Upgrades trivy ×4 (real vulnerability
+columns instead of the command line shredded into token rows) and
+nodetool-netstats (the Pool table instead of `Mode:/NORMAL` as a header) —
+whose manifests were re-calibrated (they had been tuned to the old mush:
+trivy-fs 7r7c → 4r5c, config/repo/sbom 6r → 3r4c, nodetool 9r4c → 3r6c).
+Gates: golden 0 failed post-freeze; extract 62/62 (new sample + baseline);
+smoke 49/0; melt 10/0.
+
+## 2026-07-14 — encoding round: VT-in-cell, control bytes, fullwidth digits, ZWSP, lowercase headers
+
+Engine-normalization refinements plus one aligned-columns promotion rule,
+closing 6 of the 8 enc-* gaps (and the noted fullwidth-colon follow-up):
+
+- **VT is context-sensitive.** The line-terminator normalization mapped VT
+  unconditionally to `\n`, so a stray vertical tab INSIDE a cell
+  (`disk\vfailure`) split its row in two. When the input already has real
+  `\n` lines, VT now becomes a SPACE; only in a `\n`-less capture (VT as the
+  sole separator — the adversarial breaker the block was built for) does it
+  stay a line break. FF is untouched (page breaks).
+- **BEL/BS stripped** (gated; after the ANSI strip, since BEL terminates OSC
+  sequences) — decoration/erase intent, never data.
+- **ZWSP (U+200B) deleted** — invisible, corrupts field names and comparisons.
+  ZWNJ/ZWJ stay: Farsi half-spaces and emoji family joins are real content.
+- **Fullwidth digits U+FF10–FF19 and colon U+FF1A → ASCII** — CJK tables get
+  numeric-contrast header detection and clean `key: value` splits
+  (`uni-kv-fullwidth`, the follow-up noted since the Unicode-spaces round).
+- **Lowercase headers with data-side styling contrast** (aligned-columns):
+  the all-text promotion demanded a Titlecase/camelCase header token, so
+  `username fullname active` / `household members flag` / `key value` stayed
+  headerless. A lowercase wordy header now promotes when EVERY data row
+  carries a token the header lacks — Titlecase (`Alice Anders`) or fully
+  non-ASCII (emoji, Farsi) — while a lowercase name grid (sqlite .tables)
+  has neither and stays data.
+
+Closes enc-control-mix, enc-vtab-in-cell, enc-fullwidth-digits,
+enc-zwsp-header, enc-zwj-emoji, enc-zwnj-farsi. Deliberately left ⏳:
+enc-formfeed-report (page banners differing only in page number — needs
+banner-modulo-digits logic) and enc-two-space-in-value (a 2-space run inside
+a value is indistinguishable from a column gap). Golden audit: 11 flips, all
+content-level normalization improvements (invisible bytes removed, fullwidth
+digits ASCII-normalized) — enc-backspace-overstrike and enc-bell-in-cell now
+byte-clean, uni-fullwidth ×3 / uni-zero-width-hidden / uni-jp-en / uni-yaml-cjk
+values normalized. Gates: golden 0 failed post-freeze; extract 62/62; smoke
+49/0; melt 10/0.
+
+## 2026-07-14 — spanning group headers, sysstat headers, wrapped device rows
+
+Four `aligned-columns` capabilities closing the tbl-* spanning/structural
+cluster (5 targets) plus two long-standing hard-tail gaps for free:
+
+- **HDR2 widened to digit-bearing field rows.** The two-line-header path
+  (group row + field row) demanded a digit-free field row, so `p50`/`p99`/
+  `BW(MB/s)` labels demoted benchmark tables to single-line-header mush. The
+  discriminator is now VALUE-shaped tokens (bare number/time/IP/date): row 2
+  must have none while row 3 has one. Contained by two shape gates — every
+  row-1 token must bear an alphanumeric (a `==== test session starts ====`
+  banner fails), and row 2 may hold no lone-punctuation token (an
+  ` X : Y ` kv line fails) — both added after the first cut claimed
+  pytest-summary/ib-write-bw/opam-list/pandas-show-versions prose.
+- **Group-prefixing for duplicate header names.** A field row repeating names
+  under group labels (`Req Lim Use  Req Lim Use` under `CPU  Memory`) used to
+  COLLIDE in the wide record — the melt silently dropped the earlier group's
+  columns (tbl-spanning-three-groups' golden had lost its whole Ingress
+  group; vmstat -d its reads block; proc-net-dev its Receive block).
+  Duplicated names now get the positionally-nearest group label as a prefix
+  (`CPU_Req`, `Read_IOPS`, `reads_merged` — group tokens dash-trimmed), with
+  duplicates marked on the ORIGINAL names first so the second group doesn't
+  hide behind the first's rename. Skipped when the group row is banner chrome
+  (punctuation-edged tokens — goose-report).
+- **sysstat interval headers.** A row-1 whose ONLY value-shaped token is a
+  leading bare clock time, over >=half %-prefixed/ALL-CAPS labels
+  (`07:00:01  CPU  %user …`), is now promoted to a header — and the
+  header-repeat chrome drop accepts digit-bearing headers when their exact
+  repeats are RARE (<=1/4 of data rows), so sar's per-interval reprint is
+  dropped while a block dominated by one repeated log line (entr) keeps its
+  data. Closes tbl-sar-interval-repeat AND the long-documented sar-cpu gap.
+- **First-cell wrap merge.** A lone-token data row followed by an INDENTED row
+  one column short is a too-long column-1 value printed on its own line
+  (df's `/dev/mapper/vg-root`) — the pair merges into one row (headed tables
+  with >=4 columns only). Closes tbl-df-wrapped-device.
+
+Bonus closures from the same mechanics: `sar-cpu` (AM/PM interval header) and
+`quota-report` (Block/File-limits group header; minor prefix-assignment warts
+from centered labels, all values in distinct columns). Golden audit: 8 flips
+in the first cut → 5 regressions contained with the two shape gates + the
+banner-prefix skip → final 3 flips, all improvements re-frozen (each recovers
+a silently-lost column group). Gates: golden 3405/0 (then re-frozen), extract
+62/62, smoke 49/0, melt 10/0.
+
+## 2026-07-14 — quoted-delimiter round: the quo-* cluster (8 gaps) + bare pipe tables
+
+Closes the full `quo-*` quoted/escaped-delimiter gap cluster with five
+format-level capabilities (no per-tool code), each blast-radius-audited to
+zero regressions:
+
+- **`psql-table` escape-aware split** — `\|` inside a cell is a literal bar
+  (regex alternations, `s1 || s2` concat); a naive split shredded such rows off
+  the modal width so they were silently dropped. Closes
+  `quo-pipe-table-bar-in-cell`.
+- **`pipe-table` bare dialect** — `a | b | c` rows with NO outer pipes and NO
+  rule row, split escape- and quote-aware (`\|` literal, `"a|b"` protected).
+  Strictly gated: every non-blank line must split to the same >=2 top-level
+  cell count, >=3 lines, no `---+---`, no border pipes, and no cell may contain
+  an internal 2+-space run (TUI gauge lines like glances' `|####|` bars never
+  match). Headerless when a row-1 cell is digit-leading (`ipmitool sdr`).
+  Closes `quo-pipe-escaped-bar`/`quo-pipe-quoted-bar`, and upgrades 7 covered
+  fixtures from literal-`|`-token mush to real columns (freeipmi, ipmitool-sdr,
+  lutris-list, mimirtool-rules-list, pgbouncer-show-pools,
+  thanos-tools-bucket-inspect, wireshark-tshark-io) plus closes the standing
+  `git-log-pretty-pipe` gap for free.
+- **`inline-kv` quote-aware tokenization** — `k="a b"` / logfmt
+  `msg="request done, 200 OK"` spans are one token (quotes structural only at
+  token start or right after `=`, the proven csv containment rule; outer quote
+  pair stripped from the value). A leading `label:` token becomes a `name`
+  column instead of counting against the kv-majority gate — so blkid keeps its
+  device column. Closes `quo-kveq-quoted-spaces`/`quo-logfmt-quoted`; upgrades
+  blkid ×3 and thanos-compact-status (complete msg values, real columns).
+- **`tsv` quote-aware tabs** — `"a<TAB>b"` is one cell (protected tab becomes a
+  space; tab RUNS still collapse like the `IFS read` this replaced, so ldd /
+  proc-cpuinfo alignment padding doesn't shift columns). Plus a numbered-series
+  header rescue (`col1 col2 col3` — same alpha prefix, suffixes ascending by 1
+  — is a header even though it bears digits). Closes `quo-tsv-quoted-tab`.
+- **new `delimited/two-col-gap.sh` (priority 54)** — the long-documented
+  "2-col table, free-text last column" class: single-token key, a 2+-space gap,
+  then a value that freely contains single spaces (`systemctl show`-style
+  execstart tables, container entrypoint lists, getent hosts/services). Heavily
+  contained after the first cut fired on ~600 inputs: value may not contain a
+  2+-space run; free-text evidence must come from a data row (not a `VOLUME
+  NAME` header); a (near-)uniform >=2-token value word count (>=2/3 modal
+  share) is an aligned GRID and declines (git-worktree-list, rpm -V, dust); a
+  multi-token row-1 value whose word count equals the modal data count is a
+  single-space-aligned table header (lsblk) and declines; headerless when a
+  row-1 cell is digit-leading. Closes `quo-entrypoint-json-array` /
+  `quo-systemd-execstart`; getent_hosts-style inputs keep their aligned-columns
+  goldens.
+
+One manifest correction: `mimirtool-rules-list` mincols 5 → 4 (the 5 was
+calibrated against the old junk output whose literal `|` counted as a column).
+
+Audit trail: three full-gate rounds during containment (670 → 45 → 31 → 17 → 16
+flips), every flip diffed and classified; final state is 16 improvement
+re-freezes + 9 new goldens (8 quo-* + git-log-pretty-pipe), 0 regressions, 0
+deletions. Gates: golden 0 failed; extract 62/62 (incl. the new two-col-gap
+sample + baseline); smoke 49/0; melt 10/0.
+
 ## 2026-07-13 — wide fixed-width follow-up: columnar-spec overflow-decline + tsv header rescue
 
 Closes the wide-fixed-width column-dropping gaps flagged as follow-ups by the

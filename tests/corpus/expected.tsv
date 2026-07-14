@@ -2230,7 +2230,7 @@ mongosh-coll-indexes	text	-	2
 redis-cli-cluster-info	kv	-	3
 redis-cli-xinfo-stream	text	-	2
 valkey-cli-info-keyspace	kv	-	8
-nodetool-netstats	table	9	4
+nodetool-netstats	table	3	6
 nodetool-cfstats	kv	-	16
 nodetool-gossipinfo	text	-	2
 scylla-nodetool-tablestats	kv	-	12
@@ -2278,7 +2278,7 @@ promtool-query-range	text	-	2
 thanos-tools-bucket-ls	table	4	7
 thanos-tools-bucket-inspect	table	3	10
 thanos-compact-status	text	-	2
-mimirtool-rules-list	table	6	5
+mimirtool-rules-list	table	6	4
 mimirtool-analyze-prometheus	text	-	2
 mimirtool-bucket-validate	text	-	2
 logcli-series	table	4	6
@@ -2405,10 +2405,10 @@ cosign-public-key	text	-	2
 rekor-cli-get	text	-	2
 rekor-cli-search	table	5	7
 rekor-cli-loginfo	text	-	2
-trivy-fs-scan	table	7	7
-trivy-repo-scan	table	6	6
-trivy-config-scan	table	6	3
-trivy-sbom-scan	table	6	6
+trivy-fs-scan	table	4	5
+trivy-repo-scan	table	3	4
+trivy-config-scan	table	3	4
+trivy-sbom-scan	table	3	4
 trivy-k8s-scan	table	3	8
 grype-db-status	text	-	2
 syft-json-summary	text	-	2

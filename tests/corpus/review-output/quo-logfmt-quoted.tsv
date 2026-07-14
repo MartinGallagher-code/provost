@@ -1,2 +1,4 @@
-level	level	level
-info msg="request done, 200 OK" dur=12ms path=/api	warn msg="slow query: 1.2s" table=users rows=4210	error msg="failed to bind: address in use" port=8080
+n	level	msg	dur	path	table	rows	port	total_entries
+1	info	request done, 200 OK	12ms	/api				3
+2	warn	slow query: 1.2s			users	4210		3
+3	error	failed to bind: address in use					8080	3

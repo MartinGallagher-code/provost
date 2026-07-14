@@ -1,0 +1,5 @@
+n	NAME	READY	STATUS	RESTARTS	AGE	total_entries
+1	pod/web-6d4cf56db6-8xk2n	1/1	Running	0	6d4h	4
+2	pod/web-6d4cf56db6-lm9qr	1/1	Running	0	6d4h	4
+3	pod/redis-master-0	1/1	Running	1	14d	4
+4	pod/api-5f7b9c8d4-tzp7w	2/2	Running	3	2d1h	4

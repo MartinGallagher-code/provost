@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	total_entries
-1	🦋	Packages	to	be	bumped	at	patch:	5
-2	🦋	@example/api						5
-3	🦋	@example/web						5
-4	🦋	Packages	to	be	bumped	at	minor:	5
-5	🦋	@example/shared						5
+n	A	B	total_entries
+1	🦋	Packages to be bumped at patch:	5
+2	🦋	@example/api	5
+3	🦋	@example/web	5
+4	🦋	Packages to be bumped at minor:	5
+5	🦋	@example/shared	5

@@ -1,7 +1,7 @@
-n	A	total_entries
-1	14:05:02  1 of 3 START freshness of raw.events ..................... [RUN]	6
-2	14:05:04  1 of 3 PASS freshness of raw.events ..................... [PASS in 2.10s]	6
-3	14:05:04  2 of 3 START freshness of raw.orders ..................... [RUN]	6
-4	14:05:06  2 of 3 WARN freshness of raw.orders ..................... [WARN in 1.98s]	6
-5	14:05:06  3 of 3 START freshness of raw.sessions ................... [RUN]	6
-6	14:05:09  3 of 3 ERROR STALE freshness of raw.sessions ............ [ERROR STALE in 2.44s]	6
+n	A	B	total_entries
+1	14:05:02	1 of 3 START freshness of raw.events ..................... [RUN]	6
+2	14:05:04	1 of 3 PASS freshness of raw.events ..................... [PASS in 2.10s]	6
+3	14:05:04	2 of 3 START freshness of raw.orders ..................... [RUN]	6
+4	14:05:06	2 of 3 WARN freshness of raw.orders ..................... [WARN in 1.98s]	6
+5	14:05:06	3 of 3 START freshness of raw.sessions ................... [RUN]	6
+6	14:05:09	3 of 3 ERROR STALE freshness of raw.sessions ............ [ERROR STALE in 2.44s]	6

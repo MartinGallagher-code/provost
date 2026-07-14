@@ -1,5 +1,4 @@
-n	A	B	C	total_entries
-1	col1	col2	col3	4
-2	row1	a	b	4
-3	row2	c	d	4
-4	row3	simple	plain3	4
+n	col1	col2	col3	total_entries
+1	row1	a b	plain	3
+2	row2	c d	plain2	3
+3	row3	simple	plain3	3

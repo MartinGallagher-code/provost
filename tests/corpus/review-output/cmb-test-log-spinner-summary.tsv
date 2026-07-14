@@ -1,8 +1,4 @@
-n	A	B	C	D	total_entries
-1	⠋	running	suite		7
-2	⠸	running	suite		7
-3	✔	3	suites	done	7
-4	SUITE	PASS	FAIL	SKIP	7
-5	unit	204	0	2	7
-6	integration	88	1	0	7
-7	e2e	41	0	5	7
+n	SUITE	PASS	FAIL	SKIP	total_entries
+1	unit	204	0	2	3
+2	integration	88	1	0	3
+3	e2e	41	0	5	3

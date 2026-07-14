@@ -1,2 +1,4 @@
-k1	mode	label
-"a b" k2='c=d' k3="e f g"	"read write" owner='root:wheel' flags="-x -v"	"release v1.2, stable" env='prod=1'
+n	k1	k2	k3	mode	owner	flags	label	env	total_entries
+1	a b	c=d	e f g						3
+2				read write	root:wheel	-x -v			3
+3							release v1.2, stable	prod=1	3

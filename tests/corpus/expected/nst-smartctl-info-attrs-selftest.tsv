@@ -1,0 +1,7 @@
+n	ID#	ATTRIBUTE_NAME	FLAG	VALUE	WORST	THRESH	TYPE	RAW_VALUE	total_entries
+1	1	Raw_Read_Error_Rate	0x002f	200	200	051	Pre-fail	0	6
+2	5	Reallocated_Sector_Ct	0x0033	200	200	140	Pre-fail	0	6
+3	9	Power_On_Hours	0x0032	061	061	000	Old_age	28912	6
+4	194	Temperature_Celsius	0x0022	118	105	000	Old_age	32	6
+5	197	Current_Pending_Sector	0x0032	200	200	000	Old_age	0	6
+6	199	UDMA_CRC_Error_Count	0x0032	200	200	000	Old_age	0	6

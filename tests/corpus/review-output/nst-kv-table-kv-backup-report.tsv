@@ -1,3 +1,5 @@
-n	Job_Name	Started	Client	Elapsed	Exit_Code	Next_Run
-1	nightly-full	2026-07-11_01:00:03	fileserver01			
-3				01:42:18	0	2026-07-12_01:00:00
+n	Volume	Files	Size	Status	total_entries
+1	vol-daily	122045	18.4 GB	OK	4
+2	vol-home	88213	42.1 GB	OK	4
+3	vol-mail	305122	9.8 GB	WARN	4
+4	vol-db	12009	210.5 GB	OK	4

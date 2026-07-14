@@ -1,3 +1,3 @@
-n	User	used	soft	hard	total_entries
-1	alice	2500000	8821	10000_12000	2
-2	bob	2500000	4102	5000_6000	2
+n	User	Block_used	Block_soft	limits_hard	limits_used	File_soft	File_hard	total_entries
+1	alice	--	1204882	2000000	2500000	8821	10000_12000	2
+2	bob	+-	2100000	2000000	2500000	4102	5000_6000	2

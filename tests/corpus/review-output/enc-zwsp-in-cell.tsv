@@ -1,5 +1,5 @@
 n	repo	branch	commits	total_entries
-1	front​end	main	1284	4
-2	back​end	develop	902	4
+1	frontend	main	1284	4
+2	backend	develop	902	4
 3	infra	main	341	4
-4	docs	gh​pages	77	4
+4	docs	ghpages	77	4

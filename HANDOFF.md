@@ -1,6 +1,81 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; wide-fixed-width follow-up (2026-07-13) — **3548 tidy, 158 ⏳** (golden gate 3394 passed / 0 failed / 309 not-yet-covered)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; embedded-table round (2026-07-14) — **3579 tidy, 127 ⏳** (golden gate 0 failed)
+
+> **2026-07-14 — embedded-table (report shape, nst-* round).** New generic
+> `delimited/embedded-table.sh` (p37): prose/kv preamble + ONE dominant
+> aligned table + footnotes (smartctl -a, benchmark write-ups, backup/db
+> reports, trivy scans). Largest table window, positional slicing with
+> midpoint boundaries + overflow snap (`zstd-19`, `Reallocated_Sector_Ct`
+> stay whole). Containment (five gate rounds, 31→11→17→5 flips): chrome must
+> hold a digit-free PROSE line (all-kv reports like mdadm --detail /
+> kubectl describe stay with kv parsers — their fields would be LOST);
+> header-identical or token-subset chrome = multi-section table → decline
+> (faillock, ps/top reprints, yugabyte); window must open/close a section
+> (blank/narrower neighbors, `===` banners excepted) so truncated windows
+> inside bigger tables decline (prlimit); `+use` diff lines aren't headers;
+> sentence rows aren't data. Closes 5 nst-* report gaps + 9 bonuses
+> (cargo-audit, dotnet-list-package, kubectl-get-all, nmap_sv, rocm-smi,
+> sfdisk-l, cmb-spinner ×3); upgrades trivy ×4 + nodetool-netstats (5
+> manifests re-calibrated — they'd been tuned to command-line-shred mush).
+> nst-mdadm-detail-devices stays ⏳ (all-kv chrome; needs kv+table dual
+> emission). Gates: golden 3435/0, extract 62/62, smoke 49/0, melt 10/0.
+> **Now 3579 tidy, 127 ⏳** (✅ 3352 / ✅ʰ 83 / ✅ᵇ 144 — 5 bespoke-only
+> inputs went generic).
+
+> **2026-07-14 — encoding round (enc-* cluster, 6 of 8 + fullwidth-colon
+> follow-up).** Engine: VT is context-sensitive (a space inside real-\n input,
+> a line break only in \n-less captures); BEL/BS stripped (after the ANSI
+> strip — BEL terminates OSC); ZWSP deleted (ZWNJ/ZWJ stay — Farsi half-space,
+> emoji joins are content); fullwidth digits + colon → ASCII (closes the
+> uni-kv-fullwidth follow-up noted since the Unicode-spaces round).
+> aligned-columns: lowercase wordy headers promote when EVERY data row carries
+> a token the header lacks — Titlecase or fully non-ASCII (`username fullname
+> active` over `alice  Alice Anders  yes`; emoji/Farsi tables) — while
+> lowercase name grids (sqlite .tables) stay data. Closes enc-control-mix,
+> -vtab-in-cell, -fullwidth-digits, -zwsp-header, -zwj-emoji, -zwnj-farsi;
+> deliberately ⏳: enc-formfeed-report (page banners modulo page number),
+> enc-two-space-in-value (in-value 2-space run ≡ column gap, undecidable).
+> Audit: 11 flips, all invisible-byte / fullwidth normalization improvements.
+> Gates: golden 0 failed, extract 62/62, smoke 49/0, melt 10/0. **Now 3570
+> tidy, 136 ⏳** (✅ 3338 / ✅ʰ 83 / ✅ᵇ 149).
+
+> **2026-07-14 — spanning group headers + sysstat headers + wrapped rows.**
+> Four `aligned-columns` capabilities: HDR2 accepts digit-bearing FIELD rows
+> (`p50`, `BW(MB/s)`) — the discriminator is value-shaped tokens, gated on
+> alphanumeric row-1 tokens (kills `====` banners) and no lone-punct row-2
+> tokens (kills ` X : Y ` kv lines); duplicate header names under group labels
+> get the positionally-nearest group as a prefix (`CPU_Req`, `Read_IOPS`,
+> `reads_merged`) — before this the melt silently DROPPED the earlier group's
+> columns (three-groups/vmstat-d/proc-net-dev goldens all had lost a whole
+> group; all three re-frozen recovered); sysstat interval headers
+> (`07:00:01  CPU  %user …`) promote despite the leading time, and their exact
+> mid-table repeats drop when rare (<=1/4 of rows); a lone-token row + indented
+> one-short row merge as a wrapped column-1 value (df device paths). Closes 5
+> tbl-* targets + sar-cpu + quota-report (both long-documented hard-tail gaps).
+> Audit: 8 first-cut flips → 5 contained → final 3, all improvements. Gates:
+> golden 0 failed, extract 62/62, smoke 49/0, melt 10/0. **Now 3564 tidy,
+> 142 ⏳** (✅ 3332 / ✅ʰ 83 / ✅ᵇ 149).
+
+> **2026-07-14 — quoted-delimiter round (quo-* cluster, 8 gaps + 1 bonus).**
+> Five format-level capabilities: `psql-table` honors `\|` escapes in cells;
+> `pipe-table` gains a strictly-gated BARE dialect (`a | b | c`, no outer pipes,
+> no rule; escape+quote-aware split; no cell may hold a 2+-space run so TUI
+> gauges never match; digit-leading row-1 cell ⇒ headerless) — closes 2 quo
+> gaps + `git-log-pretty-pipe` and upgrades 7 fixtures from literal-`|` mush to
+> real columns; `inline-kv` tokenizes quote-aware (logfmt `msg="…"`) and keeps
+> a leading `label:` as a `name` column (blkid keeps its device); `tsv` splits
+> quote-aware (`"a<TAB>b"` one cell, tab runs still collapse) + numbered-series
+> header rescue (`col1 col2 col3`); new `delimited/two-col-gap.sh` (p54) for
+> the long-documented "2-col table, free-text last column" class, contained by
+> value-no-2+-space-run, data-row spacey evidence, modal-word-count grid
+> decline (>=2/3), header-matches-modal decline, digit-leading headerless.
+> Containment was hard-won: first cut fired on ~600 inputs; three audit rounds
+> (670→45→31→17→16 flips) ended at 16 improvement re-freezes + 9 new goldens,
+> 0 regressions, 0 deletions. One manifest fix (`mimirtool-rules-list` 5→4,
+> was calibrated to the old junk `|` column). Gates: golden 3408/0, extract
+> 62/62, smoke 49/0, melt 10/0. **Now 3557 tidy, 149 ⏳** (✅ 3325 / ✅ʰ 83 /
+> ✅ᵇ 149).
 
 > **2026-07-13 — wide fixed-width follow-up.** Two generic fixes for wide tables
 > that were dropping columns. (1) `columnar-specs` `_cs_row_overflow`: a

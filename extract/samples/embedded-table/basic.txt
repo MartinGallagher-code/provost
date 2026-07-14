@@ -1,0 +1,9 @@
+Nightly Job Report
+Client:   web01
+
+Volume     Files    Size      Status
+vol-a      1204     18.4 GB   OK
+vol-b      8821     42.1 GB   OK
+vol-c      3051     9.8 GB    WARN
+
+Exit Code: 0

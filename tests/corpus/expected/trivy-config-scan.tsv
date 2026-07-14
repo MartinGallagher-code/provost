@@ -1,7 +1,4 @@
-n	A	total_entries
-1	$ trivy config ./deploy	6
-2	Target: deploy/pod.yaml	6
-3	MISCONFIG      TYPE         SEVERITY   CHECK	6
-4	AVD-KSV-0012   Kubernetes   MEDIUM     Runs as root user	6
-5	AVD-KSV-0014   Kubernetes   HIGH       Root filesystem not read-only	6
-6	AVD-KSV-0020   Kubernetes   LOW        Runs with low group ID	6
+n	MISCONFIG	TYPE	SEVERITY	CHECK	total_entries
+1	AVD-KSV-0012	Kubernetes	MEDIUM	Runs as root user	3
+2	AVD-KSV-0014	Kubernetes	HIGH	Root filesystem not read-only	3
+3	AVD-KSV-0020	Kubernetes	LOW	Runs with low group ID	3

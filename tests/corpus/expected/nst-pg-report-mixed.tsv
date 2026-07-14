@@ -1,0 +1,5 @@
+n	schema	table	bloat_ratio	wasted	total_entries
+1	public	orders	2.44	1240 MB	4
+2	public	order_items	1.98	890 MB	4
+3	public	sessions	3.10	620 MB	4
+4	audit	events	1.55	410 MB	4

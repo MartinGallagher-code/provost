@@ -1,5 +1,4 @@
-n	id	label	value	total_entries
-1	1	alpha	10	4
-2	2	be		4
-3	ta	20		4
-4	3	gamma	30	4
+n	id	label	value	total_entries
+1	1	alpha	10	3
+2	2	be ta	20	3
+3	3	gamma	30	3
