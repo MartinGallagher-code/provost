@@ -50,6 +50,40 @@ strategy_detect () {
     return 1
 }
 
+# Split one TSV line into _TSV_FIELDS, QUOTE-AWARE (the csv treatment with a
+# tab delimiter): a '"' is structural only at FIELD START — it protects any
+# tabs inside the field (`"a<TAB>b"` is ONE cell, not two) and is consumed;
+# a mid-field quote is literal data. A protected tab becomes a single space in
+# the emitted value — the tidy output is itself TSV, so a literal tab inside a
+# cell would shear every column after it.
+#
+# Empty fields are DROPPED (a run of tabs counts as one separator, leading tabs
+# are stripped) — matching the `IFS=tab read -ra` semantics this replaced. Tools
+# pad with extra tabs for display alignment (ldd's leading tab, proc-cpuinfo's
+# `flags<TAB><TAB>: …`), and preserving those as empty cells would shift every
+# later column's name and orphan values into phantom columns.
+_tsv_split () {
+    local line="$1"
+    local field="" i c in_q=0 n=${#line}
+    _TSV_FIELDS=()
+    for ((i = 0; i < n; i++)); do
+        c="${line:$i:1}"
+        if [[ $in_q -eq 1 ]]; then
+            if [[ "$c" == '"' ]]; then in_q=0
+            elif [[ "$c" == '	' ]]; then field+=' '
+            else field+="$c"; fi
+        elif [[ "$c" == '"' && -z "$field" ]]; then
+            in_q=1
+        elif [[ "$c" == '	' ]]; then
+            [[ -n "$field" ]] && _TSV_FIELDS+=("$field")
+            field=""
+        else
+            field+="$c"
+        fi
+    done
+    [[ -n "$field" ]] && _TSV_FIELDS+=("$field")
+}
+
 strategy_extract () {
     local text="$1"
 
@@ -57,9 +91,9 @@ strategy_extract () {
     local header=""
     IFS= read -r header <<< "$text"
 
-    # Split header into fields on tabs
+    # Split header into fields on tabs (quote-aware — see _tsv_split)
     local headers; headers=()
-    IFS='	' read -ra headers <<< "$header"
+    _tsv_split "$header"; headers=("${_TSV_FIELDS[@]}")
 
     # Headerless TSV: synthesise A,B,C… names and treat every line as a record
     # when row 1 is already DATA — so `du` output (size <tab> path) stays one row
@@ -81,7 +115,7 @@ strategy_extract () {
         local _second="" _ln=0
         while IFS= read -r _hf; do _ln=$((_ln + 1)); [[ $_ln -eq 2 ]] && { _second="$_hf"; break; }; done <<< "$text"
         if [[ -n "$_second" ]]; then
-            local -a _d2=(); IFS='	' read -ra _d2 <<< "$_second"
+            local -a _d2=(); _tsv_split "$_second"; _d2=("${_TSV_FIELDS[@]}")
             local _i _h _v
             for ((_i=0; _i<${#headers[@]}; _i++)); do
                 _h="${headers[$_i]}"; _h="${_h#"${_h%%[![:space:]]*}"}"
@@ -89,6 +123,27 @@ strategy_extract () {
                 if [[ "$_h" != [0-9]* && "$_h" != -[0-9]* ]] \
                    && { [[ "$_v" == [0-9]* ]] || [[ "$_v" == -[0-9]* ]]; }; then
                     headerless=0; break
+                fi
+            done
+        fi
+        # Second rescue: row 1's fields form a NUMBERED SERIES — >=2 adjacent
+        # labels with one shared alpha prefix and integer suffixes ascending by
+        # 1 (`col1 col2 col3`, `q1 q2 q3 q4`). That's a header-labeling idiom;
+        # a data row essentially never enumerates itself like that.
+        if [[ $headerless -eq 1 ]]; then
+            local _run=1 _prevp="" _prevn=-1 _p _num
+            for _hf in "${headers[@]}"; do
+                if [[ "$_hf" =~ ^([A-Za-z_]+)([0-9]+)$ ]]; then
+                    _p="${BASH_REMATCH[1]}"; _num="${BASH_REMATCH[2]}"
+                    if [[ "$_p" == "$_prevp" && "$_num" -eq $((_prevn + 1)) ]]; then
+                        _run=$((_run + 1))
+                        [[ $_run -ge 2 ]] && { headerless=0; break; }
+                    else
+                        _run=1
+                    fi
+                    _prevp="$_p"; _prevn="$_num"
+                else
+                    _run=1; _prevp=""; _prevn=-1
                 fi
             done
         fi
@@ -110,9 +165,9 @@ strategy_extract () {
         [[ $row_num -eq 1 && $headerless -eq 0 ]] && continue  # skip header
         [[ -z "$line" ]] && continue
 
-        # Split on tabs
+        # Split on tabs (quote-aware — see _tsv_split)
         local values; values=()
-        IFS='	' read -ra values <<< "$line"
+        _tsv_split "$line"; values=("${_TSV_FIELDS[@]}")
 
         rec=$((rec + 1))
         local j

@@ -62,15 +62,24 @@ _psql_split () {
     local _lead=0
     [[ "$row" == "|"* ]] && { row="${row#|}"; _lead=1; }
     [[ $_lead -eq 1 && "$row" == *"|" ]] && row="${row%|}"
+    # Split on '|' EXCEPT a backslash-escaped '\|' — SQL result cells legitimately
+    # contain literal bars (regex alternations, `s1 || s2` concat expressions) and
+    # psql-style renderers escape them as '\|'. A naive split shreds such a row
+    # into extra cells, pushing it off the modal width so it's silently DROPPED.
+    # The escape is table-encoding, so the emitted cell carries the bare '|'.
     _PSQL_CELLS=()
-    local rest="$row" cell
-    while [[ "$rest" == *"|"* ]]; do
-        cell="${rest%%|*}"
-        rest="${rest#*|}"
-        _psql_trim "$cell"
-        _PSQL_CELLS+=("$_PSQL_TRIM")
+    local cell="" i c n=${#row}
+    for ((i = 0; i < n; i++)); do
+        c="${row:$i:1}"
+        if [[ "$c" == '\' && "${row:$((i + 1)):1}" == '|' ]]; then
+            cell+='|'; i=$((i + 1))
+        elif [[ "$c" == '|' ]]; then
+            _psql_trim "$cell"; _PSQL_CELLS+=("$_PSQL_TRIM"); cell=""
+        else
+            cell+="$c"
+        fi
     done
-    _psql_trim "$rest"
+    _psql_trim "$cell"
     _PSQL_CELLS+=("$_PSQL_TRIM")
 }
 

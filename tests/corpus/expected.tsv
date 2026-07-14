@@ -2278,7 +2278,7 @@ promtool-query-range	text	-	2
 thanos-tools-bucket-ls	table	4	7
 thanos-tools-bucket-inspect	table	3	10
 thanos-compact-status	text	-	2
-mimirtool-rules-list	table	6	5
+mimirtool-rules-list	table	6	4
 mimirtool-analyze-prometheus	text	-	2
 mimirtool-bucket-validate	text	-	2
 logcli-series	table	4	6

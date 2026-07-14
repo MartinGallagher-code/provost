@@ -1,6 +1,26 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; wide-fixed-width follow-up (2026-07-13) — **3548 tidy, 158 ⏳** (golden gate 3394 passed / 0 failed / 309 not-yet-covered)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; quoted-delimiter round (2026-07-14) — **3557 tidy, 149 ⏳** (golden gate 3408 passed / 0 failed / 298 not-yet-covered)
+
+> **2026-07-14 — quoted-delimiter round (quo-* cluster, 8 gaps + 1 bonus).**
+> Five format-level capabilities: `psql-table` honors `\|` escapes in cells;
+> `pipe-table` gains a strictly-gated BARE dialect (`a | b | c`, no outer pipes,
+> no rule; escape+quote-aware split; no cell may hold a 2+-space run so TUI
+> gauges never match; digit-leading row-1 cell ⇒ headerless) — closes 2 quo
+> gaps + `git-log-pretty-pipe` and upgrades 7 fixtures from literal-`|` mush to
+> real columns; `inline-kv` tokenizes quote-aware (logfmt `msg="…"`) and keeps
+> a leading `label:` as a `name` column (blkid keeps its device); `tsv` splits
+> quote-aware (`"a<TAB>b"` one cell, tab runs still collapse) + numbered-series
+> header rescue (`col1 col2 col3`); new `delimited/two-col-gap.sh` (p54) for
+> the long-documented "2-col table, free-text last column" class, contained by
+> value-no-2+-space-run, data-row spacey evidence, modal-word-count grid
+> decline (>=2/3), header-matches-modal decline, digit-leading headerless.
+> Containment was hard-won: first cut fired on ~600 inputs; three audit rounds
+> (670→45→31→17→16 flips) ended at 16 improvement re-freezes + 9 new goldens,
+> 0 regressions, 0 deletions. One manifest fix (`mimirtool-rules-list` 5→4,
+> was calibrated to the old junk `|` column). Gates: golden 3408/0, extract
+> 62/62, smoke 49/0, melt 10/0. **Now 3557 tidy, 149 ⏳** (✅ 3325 / ✅ʰ 83 /
+> ✅ᵇ 149).
 
 > **2026-07-13 — wide fixed-width follow-up.** Two generic fixes for wide tables
 > that were dropping columns. (1) `columnar-specs` `_cs_row_overflow`: a

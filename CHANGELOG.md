@@ -1,5 +1,61 @@
 # glean — Changelog
 
+## 2026-07-14 — quoted-delimiter round: the quo-* cluster (8 gaps) + bare pipe tables
+
+Closes the full `quo-*` quoted/escaped-delimiter gap cluster with five
+format-level capabilities (no per-tool code), each blast-radius-audited to
+zero regressions:
+
+- **`psql-table` escape-aware split** — `\|` inside a cell is a literal bar
+  (regex alternations, `s1 || s2` concat); a naive split shredded such rows off
+  the modal width so they were silently dropped. Closes
+  `quo-pipe-table-bar-in-cell`.
+- **`pipe-table` bare dialect** — `a | b | c` rows with NO outer pipes and NO
+  rule row, split escape- and quote-aware (`\|` literal, `"a|b"` protected).
+  Strictly gated: every non-blank line must split to the same >=2 top-level
+  cell count, >=3 lines, no `---+---`, no border pipes, and no cell may contain
+  an internal 2+-space run (TUI gauge lines like glances' `|####|` bars never
+  match). Headerless when a row-1 cell is digit-leading (`ipmitool sdr`).
+  Closes `quo-pipe-escaped-bar`/`quo-pipe-quoted-bar`, and upgrades 7 covered
+  fixtures from literal-`|`-token mush to real columns (freeipmi, ipmitool-sdr,
+  lutris-list, mimirtool-rules-list, pgbouncer-show-pools,
+  thanos-tools-bucket-inspect, wireshark-tshark-io) plus closes the standing
+  `git-log-pretty-pipe` gap for free.
+- **`inline-kv` quote-aware tokenization** — `k="a b"` / logfmt
+  `msg="request done, 200 OK"` spans are one token (quotes structural only at
+  token start or right after `=`, the proven csv containment rule; outer quote
+  pair stripped from the value). A leading `label:` token becomes a `name`
+  column instead of counting against the kv-majority gate — so blkid keeps its
+  device column. Closes `quo-kveq-quoted-spaces`/`quo-logfmt-quoted`; upgrades
+  blkid ×3 and thanos-compact-status (complete msg values, real columns).
+- **`tsv` quote-aware tabs** — `"a<TAB>b"` is one cell (protected tab becomes a
+  space; tab RUNS still collapse like the `IFS read` this replaced, so ldd /
+  proc-cpuinfo alignment padding doesn't shift columns). Plus a numbered-series
+  header rescue (`col1 col2 col3` — same alpha prefix, suffixes ascending by 1
+  — is a header even though it bears digits). Closes `quo-tsv-quoted-tab`.
+- **new `delimited/two-col-gap.sh` (priority 54)** — the long-documented
+  "2-col table, free-text last column" class: single-token key, a 2+-space gap,
+  then a value that freely contains single spaces (`systemctl show`-style
+  execstart tables, container entrypoint lists, getent hosts/services). Heavily
+  contained after the first cut fired on ~600 inputs: value may not contain a
+  2+-space run; free-text evidence must come from a data row (not a `VOLUME
+  NAME` header); a (near-)uniform >=2-token value word count (>=2/3 modal
+  share) is an aligned GRID and declines (git-worktree-list, rpm -V, dust); a
+  multi-token row-1 value whose word count equals the modal data count is a
+  single-space-aligned table header (lsblk) and declines; headerless when a
+  row-1 cell is digit-leading. Closes `quo-entrypoint-json-array` /
+  `quo-systemd-execstart`; getent_hosts-style inputs keep their aligned-columns
+  goldens.
+
+One manifest correction: `mimirtool-rules-list` mincols 5 → 4 (the 5 was
+calibrated against the old junk output whose literal `|` counted as a column).
+
+Audit trail: three full-gate rounds during containment (670 → 45 → 31 → 17 → 16
+flips), every flip diffed and classified; final state is 16 improvement
+re-freezes + 9 new goldens (8 quo-* + git-log-pretty-pipe), 0 regressions, 0
+deletions. Gates: golden 0 failed; extract 62/62 (incl. the new two-col-gap
+sample + baseline); smoke 49/0; melt 10/0.
+
 ## 2026-07-13 — wide fixed-width follow-up: columnar-spec overflow-decline + tsv header rescue
 
 Closes the wide-fixed-width column-dropping gaps flagged as follow-ups by the

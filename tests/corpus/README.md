@@ -41,14 +41,14 @@ is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 
 ## Tested tools & current coverage
 
-**3706 tools tested; 3548 tidy (158 format gaps ⏳)** — after two +500
+**3706 tools tested; 3557 tidy (149 format gaps ⏳)** — after two +500
 expansions of unique never-before-seen tools (461/500 and 466/500 of which
 tidied with no new per-tool code — ~92% generalization each time), a gap-closing
 round that fixed 41 of the 67 ⏳ with format-level capabilities only, a +99
 benchmark-tool set (a new markdown pipe-table parser), and a full-range fio
 expansion (12 output modes — all handled — via a headerless-numeric-CSV fix plus
 two new generic parsers, `semicolon-values` and `labeled-inline-kv`). Of the
-total: ✅ 3316 by a generic parser via auto-detection, ✅ʰ 83 by a generic parser
+total: ✅ 3325 by a generic parser via auto-detection, ✅ʰ 83 by a generic parser
 routed by a hint row, ✅ᵇ 149 by a bespoke strategy. (The count dropped from a
 looser 3571 when a 2026-07-13 manifest-discipline pass made the harness honor
 each `text`-kind entry's recorded min-column count instead of a hardcoded ≥2,

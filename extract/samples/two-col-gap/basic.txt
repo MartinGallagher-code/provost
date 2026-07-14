@@ -1,0 +1,4 @@
+unit                 command
+web.service          /usr/sbin/nginx -g 'daemon off;'
+app.service          /opt/app --flags "--a=1 --b=2"
+cron.service         /usr/sbin/crond -f

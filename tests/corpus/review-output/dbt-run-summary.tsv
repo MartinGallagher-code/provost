@@ -1,5 +1,5 @@
-n	A	total_entries
-1	06:00:00  1 of 4 START sql table model stg_orders ...... [RUN]	4
-2	06:00:02  1 of 4 OK created sql table model stg_orders . [SELECT 88201 in 2.1s]	4
-3	06:00:04  Finished running 4 models in 6.4s.	4
-4	06:00:04  Completed successfully	4
+n	A	B	total_entries
+1	06:00:00	1 of 4 START sql table model stg_orders ...... [RUN]	4
+2	06:00:02	1 of 4 OK created sql table model stg_orders . [SELECT 88201 in 2.1s]	4
+3	06:00:04	Finished running 4 models in 6.4s.	4
+4	06:00:04	Completed successfully	4

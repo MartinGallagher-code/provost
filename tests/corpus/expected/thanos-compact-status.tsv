@@ -1,6 +1,6 @@
 n	level	ts	msg	group	blocks	duration	result	count	resolution	total_entries
-1	info	2026-07-10T09:14:22.104Z	"compaction	0@node-exporter	6					5
-2	info	2026-07-10T09:14:24.887Z	"compacted			2.783s	01HTQD1E3F5G7H9J1K3L5M7N9P			5
-3	info	2026-07-10T09:14:25.012Z	"deleting					6		5
-4	info	2026-07-10T09:14:26.551Z	"downsampling"		3				300000	5
-5	info	2026-07-10T09:14:29.334Z	"downsampled"			2.783s				5
+1	info	2026-07-10T09:14:22.104Z	compaction available	0@node-exporter	6					5
+2	info	2026-07-10T09:14:24.887Z	compacted blocks			2.783s	01HTQD1E3F5G7H9J1K3L5M7N9P			5
+3	info	2026-07-10T09:14:25.012Z	deleting source blocks					6		5
+4	info	2026-07-10T09:14:26.551Z	downsampling		3				300000	5
+5	info	2026-07-10T09:14:29.334Z	downsampled			2.783s				5
