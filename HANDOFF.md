@@ -1,6 +1,23 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; quoted-delimiter round (2026-07-14) — **3557 tidy, 149 ⏳** (golden gate 3408 passed / 0 failed / 298 not-yet-covered)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; spanning-header round (2026-07-14) — **3564 tidy, 142 ⏳** (golden gate 0 failed)
+
+> **2026-07-14 — spanning group headers + sysstat headers + wrapped rows.**
+> Four `aligned-columns` capabilities: HDR2 accepts digit-bearing FIELD rows
+> (`p50`, `BW(MB/s)`) — the discriminator is value-shaped tokens, gated on
+> alphanumeric row-1 tokens (kills `====` banners) and no lone-punct row-2
+> tokens (kills ` X : Y ` kv lines); duplicate header names under group labels
+> get the positionally-nearest group as a prefix (`CPU_Req`, `Read_IOPS`,
+> `reads_merged`) — before this the melt silently DROPPED the earlier group's
+> columns (three-groups/vmstat-d/proc-net-dev goldens all had lost a whole
+> group; all three re-frozen recovered); sysstat interval headers
+> (`07:00:01  CPU  %user …`) promote despite the leading time, and their exact
+> mid-table repeats drop when rare (<=1/4 of rows); a lone-token row + indented
+> one-short row merge as a wrapped column-1 value (df device paths). Closes 5
+> tbl-* targets + sar-cpu + quota-report (both long-documented hard-tail gaps).
+> Audit: 8 first-cut flips → 5 contained → final 3, all improvements. Gates:
+> golden 0 failed, extract 62/62, smoke 49/0, melt 10/0. **Now 3564 tidy,
+> 142 ⏳** (✅ 3332 / ✅ʰ 83 / ✅ᵇ 149).
 
 > **2026-07-14 — quoted-delimiter round (quo-* cluster, 8 gaps + 1 bonus).**
 > Five format-level capabilities: `psql-table` honors `\|` escapes in cells;

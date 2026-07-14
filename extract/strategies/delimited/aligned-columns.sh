@@ -275,6 +275,47 @@ _ac_shape () {
         printf 'HDR2 %s\n' "${counts[1]}"
         return 0
     fi
+    # Same shape, but the FIELD row's labels carry digits (`p50`, `BW(MB/s)`,
+    # `Lat(ms)` — benchmark/spanning-group tables). A digit alone can't demote
+    # it: the discriminator is VALUE-shaped tokens (a bare number/time/IP/date).
+    # Row 2 must have none while row 3 has at least one.
+    if [[ $nlines -ge 3 && ${dcount[0]} -eq 0 && ${dcount[1]} -gt 0 \
+          && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
+        local _h2v=0 _h3v=0 _h2t _h2i=0 _h2l="" _h3l=""
+        while IFS= read -r _h2t; do
+            [[ -z "${_h2t//[[:space:]]/}" ]] && continue
+            _h2i=$((_h2i + 1))
+            [[ $_h2i -eq 2 ]] && _h2l="$_h2t"
+            [[ $_h2i -eq 3 ]] && { _h3l="$_h2t"; break; }
+        done <<< "$text"
+        local _h2arr=(); read -ra _h2arr <<< "$_h2l"
+        for _h2t in "${_h2arr[@]}"; do
+            [[ "$_h2t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_h2t" =~ ^[0-9]{1,2}:[0-9]{2} \
+               || "$_h2t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_h2t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && _h2v=$((_h2v + 1))
+        done
+        local _h3arr=(); read -ra _h3arr <<< "$_h3l"
+        for _h2t in "${_h3arr[@]}"; do
+            [[ "$_h2t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_h2t" =~ ^[0-9]{1,2}:[0-9]{2} \
+               || "$_h2t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_h2t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && _h3v=$((_h3v + 1))
+        done
+        # Containment: row 1 must be a real GROUP-LABEL row — every token
+        # alphanumeric-bearing (a `==== test session starts ====` banner fails
+        # on its `====`), and row 2 a real FIELD row — no lone-punctuation
+        # tokens (an ` X : Y   Z : W ` kv line fails on its bare `:`).
+        local _h1ok=1 _h1arr=()
+        read -ra _h1arr <<< "$first_line"
+        for _h2t in "${_h1arr[@]}"; do
+            [[ "$_h2t" =~ [A-Za-z0-9] ]] || { _h1ok=0; break; }
+        done
+        local _h2ok=1
+        for _h2t in "${_h2arr[@]}"; do
+            [[ "$_h2t" =~ ^[\|#/%+:=-]+$ ]] && { _h2ok=0; break; }
+        done
+        if [[ $_h1ok -eq 1 && $_h2ok -eq 1 && $_h2v -eq 0 && $_h3v -ge 1 ]]; then
+            printf 'HDR2 %s\n' "${counts[1]}"
+            return 0
+        fi
+    fi
 
     # Header detection. Row 1 is a label header when either:
     #   (a) it is an ALL-CAPS label row (systemctl/kubectl/ps — all-text tables), or
@@ -340,6 +381,22 @@ _ac_shape () {
         [[ "$_t" =~ ^[\|#/%+-]$ ]] && continue
         [[ "$_t" == *[[:ascii:]]* ]] && { _row_cjk=0; break; }
     done
+    # sysstat convention: sar prints the interval TIMESTAMP as the first header
+    # token (`07:00:01  CPU  %user %nice …`), which counts as a value token and
+    # would veto promotion. Forgive exactly that: row 1's ONLY value-shaped
+    # token is a leading bare clock time AND the remaining tokens look like
+    # sysstat column labels (at least half are %-prefixed or ALL-CAPS) — a log
+    # line that merely starts with a time (`07:00:01 app started`) has
+    # lowercase words and stays headerless.
+    if [[ $v0 -eq 1 && ${#_t1arr[@]} -ge 4 \
+          && "${_t1arr[0]}" =~ ^[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?$ ]]; then
+        local _ss_lab=0 _ss_i
+        for ((_ss_i = 1; _ss_i < ${#_t1arr[@]}; _ss_i++)); do
+            [[ "${_t1arr[$_ss_i]}" == %* ]] && { _ss_lab=$((_ss_lab + 1)); continue; }
+            [[ "${_t1arr[$_ss_i]}" =~ ^[A-Z][A-Z0-9/]*$ ]] && _ss_lab=$((_ss_lab + 1))
+        done
+        [[ $((_ss_lab * 2)) -ge $(( ${#_t1arr[@]} - 1 )) ]] && v0=0
+    fi
     local labelly=1 _lbl_seen=0 _lbl_ok
     for _t in "${_t1arr[@]}"; do
         [[ "$_t" =~ ^[\|#/%+-]$ ]] && continue
@@ -657,9 +714,25 @@ strategy_extract () {
         local _fhnorm="${_fharr[*]}"
         local _fhind="${lines[$_fhidx]%%[![:space:]]*}"
         # repeat-drop only for a real label row: >=3 tokens (a 2-token log line
-        # mistaken for a header must not eat its own repeats) and digit-free
+        # mistaken for a header must not eat its own repeats) and digit-free —
+        # OR digit-bearing but with RARE repeats: sar's timestamped header
+        # (`07:00:01  CPU  %user …`) re-prints each interval, and those exact
+        # repeats are chrome even though the timestamp carries digits. The
+        # rarity gate (repeats <= 1/4 of data rows) is what separates that from
+        # a block dominated by one legitimately repeated log line (entr), where
+        # the repeats ARE the data and must survive.
         local _fhdrfree=1
-        [[ "${lines[$_fhidx]}" =~ [0-9] || ${#_fharr[@]} -lt 3 ]] && _fhdrfree=0
+        if [[ ${#_fharr[@]} -lt 3 ]]; then
+            _fhdrfree=0
+        elif [[ "${lines[$_fhidx]}" =~ [0-9] ]]; then
+            local _frep=0 _ftot=0 _fj _fjarr
+            for ((_fj = _fhidx + 1; _fj < ${#lines[@]}; _fj++)); do
+                _ftot=$((_ftot + 1))
+                _fjarr=(); read -ra _fjarr <<< "${lines[$_fj]}"
+                [[ "${_fjarr[*]}" == "$_fhnorm" ]] && _frep=$((_frep + 1))
+            done
+            [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
+        fi
         local _fout=() _fi _farr _fnorm _fdind _ft _ftok
         for ((_fi = 0; _fi < ${#lines[@]}; _fi++)); do
             if [[ $_fi -gt $_fhidx ]]; then
@@ -687,6 +760,34 @@ strategy_extract () {
             _fout+=("${lines[$_fi]}")
         done
         lines=("${_fout[@]}")
+    fi
+
+    # FIRST-CELL WRAP: a data row that is a LONE token, followed by an INDENTED
+    # row exactly one column short, is a value too long for column 1 printed on
+    # its own line (df's `/dev/mapper/vg-root` over an indented `98G 45G …`) —
+    # merge the pair into one row. Gated on a headed table with >=4 columns so
+    # narrow key/value layouts never pair-merge.
+    if [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 ]]; then
+        local _mw=() _mi _mt1 _mt2
+        for ((_mi = 0; _mi < ${#lines[@]}; _mi++)); do
+            if [[ $_mi -gt 0 && $((_mi + 1)) -lt ${#lines[@]} ]]; then
+                _mt1=(); read -ra _mt1 <<< "${lines[$_mi]}"
+                if [[ ${#_mt1[@]} -eq 1 ]]; then
+                    _mt2=(); read -ra _mt2 <<< "${lines[$((_mi + 1))]}"
+                    # merged pair must land on a full row: ncols tokens, or one
+                    # short of it (a multi-word header label like `Mounted on`
+                    # makes ncols one higher than any data row)
+                    if [[ $((1 + ${#_mt2[@]})) -ge $((ncols - 1)) && $((1 + ${#_mt2[@]})) -le $ncols \
+                          && "${lines[$((_mi + 1))]}" == [' 	']* ]]; then
+                        _mw+=("${_mt1[0]} ${_mt2[*]}")
+                        _mi=$((_mi + 1))
+                        continue
+                    fi
+                fi
+            fi
+            _mw+=("${lines[$_mi]}")
+        done
+        lines=("${_mw[@]}")
     fi
 
     # For a cleanly-aligned HDR/HDR2 table, use positional token assignment so
@@ -894,6 +995,84 @@ strategy_extract () {
         HDR2) read -ra headers <<< "${lines[1]}"; startidx=2 ;;
         HL)   for ((i = 1; i <= ncols; i++)); do headers+=("$(_col_letter "$i")"); done; startidx=0 ;;
     esac
+    # HDR2 group-prefixing: when the field row repeats names under different
+    # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
+    # duplicates would COLLIDE in the wide record and the melt silently drops
+    # the earlier group's columns. Disambiguate positionally: each duplicated
+    # header token (except the first, key column) gets the group label whose
+    # printed CENTER is nearest — `CPU_Req`, `Memory_Req`. Unique names stay
+    # untouched, so single-group two-line headers (vmstat) are unaffected.
+    if [[ "$mode" == HDR2 && ${#headers[@]} -ge 3 ]]; then
+        local _gpdup=0 _gpi _gpj
+        for ((_gpi = 1; _gpi < ${#headers[@]} && _gpdup == 0; _gpi++)); do
+            for ((_gpj = _gpi + 1; _gpj < ${#headers[@]}; _gpj++)); do
+                [[ "${headers[$_gpi]}" == "${headers[$_gpj]}" ]] && { _gpdup=1; break; }
+            done
+        done
+        if [[ $_gpdup -eq 1 ]]; then
+            # token centers of a raw line -> _GP_CENTERS / _GP_TOKS
+            _gp_scan () {
+                local _s="$1"
+                local _i _c _st=-1 _n=${#_s}
+                _GP_CENTERS=(); _GP_TOKS=()
+                for ((_i = 0; _i <= _n; _i++)); do
+                    _c="${_s:$_i:1}"
+                    if [[ "$_c" != " " && "$_c" != "	" && $_i -lt $_n ]]; then
+                        [[ $_st -lt 0 ]] && _st=$_i
+                    elif [[ $_st -ge 0 ]]; then
+                        _GP_TOKS+=("${_s:$_st:$((_i - _st))}")
+                        _GP_CENTERS+=($(( (_st + _i - 1) / 2 )))
+                        _st=-1
+                    fi
+                done
+            }
+            _gp_scan "${lines[0]}"
+            local _gpg_toks=("${_GP_TOKS[@]}") _gpg_cent=("${_GP_CENTERS[@]}")
+            # The group row's tokens become NAME PREFIXES — sanitize each
+            # (vmstat -d's `------------reads------------` → `reads`), and bail
+            # out entirely when the row is banner chrome rather than labels
+            # (goose's `=== PER REQUEST METRICS ===`: punctuation-only edge
+            # tokens mark a banner, whose words would make junk prefixes).
+            local _gpk _gpsan=1
+            if [[ ! "${_gpg_toks[0]}" =~ [A-Za-z0-9] \
+                  || ! "${_gpg_toks[$(( ${#_gpg_toks[@]} - 1 ))]}" =~ [A-Za-z0-9] ]]; then
+                _gpsan=0
+            fi
+            for ((_gpk = 0; _gpk < ${#_gpg_toks[@]}; _gpk++)); do
+                local _gpt="${_gpg_toks[$_gpk]}"
+                _gpt="${_gpt##+(-)}"; _gpt="${_gpt%%+(-)}"
+                while [[ "$_gpt" == -* ]]; do _gpt="${_gpt#-}"; done
+                while [[ "$_gpt" == *- ]]; do _gpt="${_gpt%-}"; done
+                [[ -z "$_gpt" ]] && { _gpsan=0; break; }
+                _gpg_toks[$_gpk]="$_gpt"
+            done
+            _gp_scan "${lines[1]}"
+            local _gph_cent=("${_GP_CENTERS[@]}")
+            if [[ $_gpsan -eq 1 && ${#_gpg_toks[@]} -ge 2 && ${#_gph_cent[@]} -eq ${#headers[@]} ]]; then
+                # Mark duplicates on the ORIGINAL names first — renaming inside
+                # the same pass would hide a later twin (`Req` at index 4 stops
+                # matching once index 1 became `CPU_Req`) and leave the second
+                # group's columns bare and still colliding with any third.
+                local _gpdups=()
+                for ((_gpi = 0; _gpi < ${#headers[@]}; _gpi++)); do _gpdups[$_gpi]=0; done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    for ((_gpj = 1; _gpj < ${#headers[@]}; _gpj++)); do
+                        [[ $_gpj -ne $_gpi && "${headers[$_gpj]}" == "${headers[$_gpi]}" ]] && { _gpdups[$_gpi]=1; break; }
+                    done
+                done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    [[ ${_gpdups[$_gpi]} -eq 0 ]] && continue
+                    local _gpbest=0 _gpbd=999999 _gpdist
+                    for ((_gpj = 0; _gpj < ${#_gpg_toks[@]}; _gpj++)); do
+                        _gpdist=$(( ${_gph_cent[$_gpi]} - ${_gpg_cent[$_gpj]} ))
+                        [[ $_gpdist -lt 0 ]] && _gpdist=$(( -_gpdist ))
+                        [[ $_gpdist -lt $_gpbd ]] && { _gpbd=$_gpdist; _gpbest=$_gpj; }
+                    done
+                    headers[$_gpi]="${_gpg_toks[$_gpbest]}_${headers[$_gpi]}"
+                done
+            fi
+        fi
+    fi
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done

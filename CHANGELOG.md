@@ -1,5 +1,49 @@
 # glean — Changelog
 
+## 2026-07-14 — spanning group headers, sysstat headers, wrapped device rows
+
+Four `aligned-columns` capabilities closing the tbl-* spanning/structural
+cluster (5 targets) plus two long-standing hard-tail gaps for free:
+
+- **HDR2 widened to digit-bearing field rows.** The two-line-header path
+  (group row + field row) demanded a digit-free field row, so `p50`/`p99`/
+  `BW(MB/s)` labels demoted benchmark tables to single-line-header mush. The
+  discriminator is now VALUE-shaped tokens (bare number/time/IP/date): row 2
+  must have none while row 3 has one. Contained by two shape gates — every
+  row-1 token must bear an alphanumeric (a `==== test session starts ====`
+  banner fails), and row 2 may hold no lone-punctuation token (an
+  ` X : Y ` kv line fails) — both added after the first cut claimed
+  pytest-summary/ib-write-bw/opam-list/pandas-show-versions prose.
+- **Group-prefixing for duplicate header names.** A field row repeating names
+  under group labels (`Req Lim Use  Req Lim Use` under `CPU  Memory`) used to
+  COLLIDE in the wide record — the melt silently dropped the earlier group's
+  columns (tbl-spanning-three-groups' golden had lost its whole Ingress
+  group; vmstat -d its reads block; proc-net-dev its Receive block).
+  Duplicated names now get the positionally-nearest group label as a prefix
+  (`CPU_Req`, `Read_IOPS`, `reads_merged` — group tokens dash-trimmed), with
+  duplicates marked on the ORIGINAL names first so the second group doesn't
+  hide behind the first's rename. Skipped when the group row is banner chrome
+  (punctuation-edged tokens — goose-report).
+- **sysstat interval headers.** A row-1 whose ONLY value-shaped token is a
+  leading bare clock time, over >=half %-prefixed/ALL-CAPS labels
+  (`07:00:01  CPU  %user …`), is now promoted to a header — and the
+  header-repeat chrome drop accepts digit-bearing headers when their exact
+  repeats are RARE (<=1/4 of data rows), so sar's per-interval reprint is
+  dropped while a block dominated by one repeated log line (entr) keeps its
+  data. Closes tbl-sar-interval-repeat AND the long-documented sar-cpu gap.
+- **First-cell wrap merge.** A lone-token data row followed by an INDENTED row
+  one column short is a too-long column-1 value printed on its own line
+  (df's `/dev/mapper/vg-root`) — the pair merges into one row (headed tables
+  with >=4 columns only). Closes tbl-df-wrapped-device.
+
+Bonus closures from the same mechanics: `sar-cpu` (AM/PM interval header) and
+`quota-report` (Block/File-limits group header; minor prefix-assignment warts
+from centered labels, all values in distinct columns). Golden audit: 8 flips
+in the first cut → 5 regressions contained with the two shape gates + the
+banner-prefix skip → final 3 flips, all improvements re-frozen (each recovers
+a silently-lost column group). Gates: golden 3405/0 (then re-frozen), extract
+62/62, smoke 49/0, melt 10/0.
+
 ## 2026-07-14 — quoted-delimiter round: the quo-* cluster (8 gaps) + bare pipe tables
 
 Closes the full `quo-*` quoted/escaped-delimiter gap cluster with five
