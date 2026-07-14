@@ -1,5 +1,48 @@
 # glean — Changelog
 
+## 2026-07-14 — embedded-table parser: the report shape (nst-* round)
+
+New generic parser `strategies/delimited/embedded-table.sh` (priority 37,
+ahead of block-records) for the REPORT shape: prose/kv preamble, ONE dominant
+whitespace-aligned table, optional footnotes — smartctl -a, benchmark
+write-ups, backup job reports, trivy scans. Finds the largest table window
+(labelly header + >=3 digit-bearing consistent rows) and extracts only it via
+positional slicing with midpoint column boundaries and an overflow snap (a
+boundary landing inside a token slides right, so `zstd-19` under a 4-char
+`Tool` label and `Reallocated_Sector_Ct` past its header span stay whole);
+inner alignment padding collapses to one space.
+
+Containment took five gate rounds (31 → 11 → 17 → 5 flips) and is where the
+value lives:
+- chrome must include a PROSE line — >=3 tokens, >=2 alphanumeric-bearing,
+  digit-free, no kv colon, no box-drawing glyphs. An all-kv report
+  (mdadm --detail, nvidia-smi -q, kubectl describe) is fully representable by
+  the kv-capable parsers — taking only its table would LOSE the fields;
+- a chrome line token-identical to the window header (faillock's per-user
+  sections, ps/top page reprints) or a token-SUBSET of it (yugabyte's
+  narrower sibling section header) means a multi-section table — decline,
+  aligned-columns/grouped-rows collect those in full;
+- the window must open a section (preceded by blank/start/narrower line —
+  banner chrome like `=== SECTION ===` excepted) and close one (followed by
+  blank/EOF/narrower line) — a truncated window inside a bigger table
+  (prlimit's digit-free `unlimited` rows, `worker stopped - -`) declines;
+- header tokens must start alphanumeric-or-bracket (a diff hunk's `+use`
+  line is not a header) and data rows never end in '.' (prose sentences).
+
+Closes 5 of the 6 report-shaped nst-* gaps (nst-benchmark-report-footnotes,
+nst-report-preamble-table-footnotes, nst-kv-table-kv-backup-report,
+nst-pg-report-mixed, nst-smartctl-info-attrs-selftest;
+nst-mdadm-detail-devices stays ⏳ — all-kv chrome, needs kv+table dual
+emission) plus NINE bonus gaps the same shape covers: cargo-audit,
+dotnet-list-package, kubectl-get-all, nmap_sv, rocm-smi, sfdisk-l, and three
+cmb spinner/clear-screen tables. Upgrades trivy ×4 (real vulnerability
+columns instead of the command line shredded into token rows) and
+nodetool-netstats (the Pool table instead of `Mode:/NORMAL` as a header) —
+whose manifests were re-calibrated (they had been tuned to the old mush:
+trivy-fs 7r7c → 4r5c, config/repo/sbom 6r → 3r4c, nodetool 9r4c → 3r6c).
+Gates: golden 0 failed post-freeze; extract 62/62 (new sample + baseline);
+smoke 49/0; melt 10/0.
+
 ## 2026-07-14 — encoding round: VT-in-cell, control bytes, fullwidth digits, ZWSP, lowercase headers
 
 Engine-normalization refinements plus one aligned-columns promotion rule,

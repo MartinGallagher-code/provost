@@ -1,8 +1,5 @@
-n	A	B	C	D	total_entries
-1	⠋	warming	caches		7
-2	⠴	warming	caches		7
-3	CACHE	ENTRIES	HITRATE	EVICTS	7
-4	sessions	12040	0.98	12	7
-5	objects	88210	0.81	4402	7
-6	fragments	4210	0.95	88	7
-7	routes	120	0.42	910	7
+n	CACHE	ENTRIES	HITRATE	EVICTS	total_entries
+1	sessions	12040	0.98	12	4
+2	objects	88210	0.81	4402	4
+3	fragments	4210	0.95	88	4
+4	routes	120	0.42	910	4

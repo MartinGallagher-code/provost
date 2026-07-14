@@ -1,18 +1,4 @@
-n	A	total_entries
-1	table inet filter {	17
-2	chain input {	17
-3	type filter hook input priority filter; policy drop;	17
-4	ct state established,related accept	17
-5	iif "lo" accept	17
-6	ip protocol icmp accept	17
-7	tcp dport 22 accept	17
-8	tcp dport { 80, 443 } accept	17
-9	counter packets 1240 bytes 98230 drop	17
-10	}	17
-11	chain forward {	17
-12	type filter hook forward priority filter; policy drop;	17
-13	}	17
-14	chain output {	17
-15	type filter hook output priority filter; policy accept;	17
-16	}	17
-17	}	17
+n	ip	protocol	icmp	accept	total_entries
+1	tcp	dport 22	accept		3
+2	tcp	dport {	80,	443 } accept	3
+3	counter	packets		1240 bytes 98230 drop	3

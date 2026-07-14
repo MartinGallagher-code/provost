@@ -1,11 +1,6 @@
-n	A	total_entries
-1	Starting Nmap 7.94 ( https://nmap.org ) at 2024-01-15 10:05 UTC	10
-2	Nmap scan report for 192.0.2.10	10
-3	Host is up (0.020s latency).	10
-4	PORT     STATE SERVICE  VERSION	10
-5	22/tcp   open  ssh      OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)	10
-6	80/tcp   open  http     nginx 1.18.0 (Ubuntu)	10
-7	443/tcp  open  ssl/http nginx 1.18.0 (Ubuntu)	10
-8	3306/tcp open  mysql    MySQL 8.0.35-0ubuntu0.22.04.1	10
-9	8080/tcp open  http     Apache Tomcat 9.0.71	10
-10	Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .	10
+n	PORT	STATE	SERVICE	VERSION	total_entries
+1	22/tcp	open	ssh	OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)	5
+2	80/tcp	open	http	nginx 1.18.0 (Ubuntu)	5
+3	443/tcp	open	ssl/http	nginx 1.18.0 (Ubuntu)	5
+4	3306/tcp	open	mysql	MySQL 8.0.35-0ubuntu0.22.04.1	5
+5	8080/tcp	open	http	Apache Tomcat 9.0.71	5

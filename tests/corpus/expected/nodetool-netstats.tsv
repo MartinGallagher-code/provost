@@ -1,10 +1,4 @@
-n	Mode:	NORMAL	total_entries
-1	Not	sending_any_streams.	9
-2	Read	Repair_Statistics:	9
-3	Attempted:	18402	9
-4	Mismatch	(Blocking):_12	9
-5	Mismatch	(Background):_84	9
-6	Pool	Name_Active_Pending_Completed_Dropped	9
-7	Large	messages_n/a_0_412_0	9
-8	Small	messages_n/a_2_48210934_18	9
-9	Gossip	messages_n/a_0_1204831_0	9
+n	Pool	Name	Active	Pending	Completed	Dropped	total_entries
+1	Large	messages	n/a	0	412	0	3
+2	Small	messages	n/a	2	48210934	18	3
+3	Gossip	messages	n/a	0	1204831	0	3

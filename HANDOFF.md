@@ -1,6 +1,27 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; encoding round (2026-07-14) — **3570 tidy, 136 ⏳** (golden gate 0 failed)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; embedded-table round (2026-07-14) — **3579 tidy, 127 ⏳** (golden gate 0 failed)
+
+> **2026-07-14 — embedded-table (report shape, nst-* round).** New generic
+> `delimited/embedded-table.sh` (p37): prose/kv preamble + ONE dominant
+> aligned table + footnotes (smartctl -a, benchmark write-ups, backup/db
+> reports, trivy scans). Largest table window, positional slicing with
+> midpoint boundaries + overflow snap (`zstd-19`, `Reallocated_Sector_Ct`
+> stay whole). Containment (five gate rounds, 31→11→17→5 flips): chrome must
+> hold a digit-free PROSE line (all-kv reports like mdadm --detail /
+> kubectl describe stay with kv parsers — their fields would be LOST);
+> header-identical or token-subset chrome = multi-section table → decline
+> (faillock, ps/top reprints, yugabyte); window must open/close a section
+> (blank/narrower neighbors, `===` banners excepted) so truncated windows
+> inside bigger tables decline (prlimit); `+use` diff lines aren't headers;
+> sentence rows aren't data. Closes 5 nst-* report gaps + 9 bonuses
+> (cargo-audit, dotnet-list-package, kubectl-get-all, nmap_sv, rocm-smi,
+> sfdisk-l, cmb-spinner ×3); upgrades trivy ×4 + nodetool-netstats (5
+> manifests re-calibrated — they'd been tuned to command-line-shred mush).
+> nst-mdadm-detail-devices stays ⏳ (all-kv chrome; needs kv+table dual
+> emission). Gates: golden 3435/0, extract 62/62, smoke 49/0, melt 10/0.
+> **Now 3579 tidy, 127 ⏳** (✅ 3352 / ✅ʰ 83 / ✅ᵇ 144 — 5 bespoke-only
+> inputs went generic).
 
 > **2026-07-14 — encoding round (enc-* cluster, 6 of 8 + fullwidth-colon
 > follow-up).** Engine: VT is context-sensitive (a space inside real-\n input,
