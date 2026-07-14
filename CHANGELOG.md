@@ -1,5 +1,48 @@
 # glean — Changelog
 
+## 2026-07-14 — kv-under-group parser: the kv carry-down shape
+
+New generic parser `strategies/structured/kv-under-group.sh` (priority 10 —
+it must outrank `key-value` at 11, which flattens these into one record with
+colliding keys) for the long-documented kv-CARRY-DOWN frontier that
+grouped-rows explicitly cannot take (its leaves must be a table) and
+pivot-stats cannot either (no header/values pivot): a GROUP label over an
+INDENTED run of `key: value` / `KEY value` leaves, the same keys repeating
+group after group (ethtool per-queue stats, nvme per-namespace stats,
+blkid-style per-device attribute runs). One wide row per leaf group —
+`name` = the label, one column per key, the nearest OUTER level (nvme's
+`Controller nvme0 …`, ethtool's NIC title) carried as a `group` column.
+
+Sitting at priority 10 demanded the strictest containment of any round; the
+detection signature plus seven vetoes, each earned from a real gate victim:
+- THE signature: >=2 groups with >=2 leaves each AND >=2 leaf keys repeated
+  across DIFFERENT groups — a single-record kv snapshot never has that;
+- `- ` list items or `&anchor`/`*alias` tokens → YAML's (kubectl config
+  view, helm values, YAML anchors);
+- `{`/`}` block syntax → config files (named.conf);
+- >20% of leaves with a value whose 1st/2nd token ends ':' → the real keys
+  are MULTI-WORD (`API version: 1.43`) and this model would truncate them
+  (docker version, dotnet --info, resolvectl);
+- a key repeated WITHIN one group (ifconfig's two RX lines) → not kv keys;
+- bare (colon-less) leaf keys must be ALL-CAPS or lowercase_snake — a
+  Titlecase word is the first word of a multi-word key (geekbench);
+- >=70% of bare leaves sharing a uniform >=3-token count → the leaves are
+  TABLE rows under a group header (lsof per-process) — grouped-rows' shape;
+- group labels must bear an alphanumeric (netlify's `────` card separators).
+
+Closes nst-ethtool-queue-stats, nst-nvme-per-namespace-stats,
+nst-blkid-per-device-nested (manifests re-calibrated to the corpus's
+one-row-per-record wide convention: 8r3c → 4r4c, 6r4c → 3r5c, 6r3c → 3r4c —
+they had been authored for a long form) and upgrades five covered fixtures
+whose old goldens embedded real losses: conan-info (dotted-key single row →
+row per package), lshw-memory (duplicate-key collision dropped columns),
+nst-btrfs-device-per-disk (A/B token pairs → real stat columns; manifest
+6r3c → 2r5c wide), nst-firewall-zones-blocks (the `internal` zone had been
+LOST entirely), nst-rsync-per-dir-stats (rows gain their directory name).
+Golden audit: 17 first-cut flips → 7 → final 5, all improvements. Gates:
+golden 3430/0 pre-freeze; extract 62/62 (new sample + baseline); smoke 49/0;
+melt 10/0.
+
 ## 2026-07-14 — embedded-table parser: the report shape (nst-* round)
 
 New generic parser `strategies/delimited/embedded-table.sh` (priority 37,

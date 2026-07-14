@@ -1,0 +1,9 @@
+entry1.name Queue 0
+entry1.group NIC statistics for eth0
+entry1.rx_packets 100
+entry1.tx_packets 90
+entry2.name Queue 1
+entry2.group NIC statistics for eth0
+entry2.rx_packets 200
+entry2.tx_packets 180
+total_entries 2
