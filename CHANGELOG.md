@@ -1,5 +1,42 @@
 # glean — Changelog
 
+## 2026-07-14 — encoding round: VT-in-cell, control bytes, fullwidth digits, ZWSP, lowercase headers
+
+Engine-normalization refinements plus one aligned-columns promotion rule,
+closing 6 of the 8 enc-* gaps (and the noted fullwidth-colon follow-up):
+
+- **VT is context-sensitive.** The line-terminator normalization mapped VT
+  unconditionally to `\n`, so a stray vertical tab INSIDE a cell
+  (`disk\vfailure`) split its row in two. When the input already has real
+  `\n` lines, VT now becomes a SPACE; only in a `\n`-less capture (VT as the
+  sole separator — the adversarial breaker the block was built for) does it
+  stay a line break. FF is untouched (page breaks).
+- **BEL/BS stripped** (gated; after the ANSI strip, since BEL terminates OSC
+  sequences) — decoration/erase intent, never data.
+- **ZWSP (U+200B) deleted** — invisible, corrupts field names and comparisons.
+  ZWNJ/ZWJ stay: Farsi half-spaces and emoji family joins are real content.
+- **Fullwidth digits U+FF10–FF19 and colon U+FF1A → ASCII** — CJK tables get
+  numeric-contrast header detection and clean `key: value` splits
+  (`uni-kv-fullwidth`, the follow-up noted since the Unicode-spaces round).
+- **Lowercase headers with data-side styling contrast** (aligned-columns):
+  the all-text promotion demanded a Titlecase/camelCase header token, so
+  `username fullname active` / `household members flag` / `key value` stayed
+  headerless. A lowercase wordy header now promotes when EVERY data row
+  carries a token the header lacks — Titlecase (`Alice Anders`) or fully
+  non-ASCII (emoji, Farsi) — while a lowercase name grid (sqlite .tables)
+  has neither and stays data.
+
+Closes enc-control-mix, enc-vtab-in-cell, enc-fullwidth-digits,
+enc-zwsp-header, enc-zwj-emoji, enc-zwnj-farsi. Deliberately left ⏳:
+enc-formfeed-report (page banners differing only in page number — needs
+banner-modulo-digits logic) and enc-two-space-in-value (a 2-space run inside
+a value is indistinguishable from a column gap). Golden audit: 11 flips, all
+content-level normalization improvements (invisible bytes removed, fullwidth
+digits ASCII-normalized) — enc-backspace-overstrike and enc-bell-in-cell now
+byte-clean, uni-fullwidth ×3 / uni-zero-width-hidden / uni-jp-en / uni-yaml-cjk
+values normalized. Gates: golden 0 failed post-freeze; extract 62/62; smoke
+49/0; melt 10/0.
+
 ## 2026-07-14 — spanning group headers, sysstat headers, wrapped device rows
 
 Four `aligned-columns` capabilities closing the tbl-* spanning/structural

@@ -1,6 +1,23 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; spanning-header round (2026-07-14) — **3564 tidy, 142 ⏳** (golden gate 0 failed)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; encoding round (2026-07-14) — **3570 tidy, 136 ⏳** (golden gate 0 failed)
+
+> **2026-07-14 — encoding round (enc-* cluster, 6 of 8 + fullwidth-colon
+> follow-up).** Engine: VT is context-sensitive (a space inside real-\n input,
+> a line break only in \n-less captures); BEL/BS stripped (after the ANSI
+> strip — BEL terminates OSC); ZWSP deleted (ZWNJ/ZWJ stay — Farsi half-space,
+> emoji joins are content); fullwidth digits + colon → ASCII (closes the
+> uni-kv-fullwidth follow-up noted since the Unicode-spaces round).
+> aligned-columns: lowercase wordy headers promote when EVERY data row carries
+> a token the header lacks — Titlecase or fully non-ASCII (`username fullname
+> active` over `alice  Alice Anders  yes`; emoji/Farsi tables) — while
+> lowercase name grids (sqlite .tables) stay data. Closes enc-control-mix,
+> -vtab-in-cell, -fullwidth-digits, -zwsp-header, -zwj-emoji, -zwnj-farsi;
+> deliberately ⏳: enc-formfeed-report (page banners modulo page number),
+> enc-two-space-in-value (in-value 2-space run ≡ column gap, undecidable).
+> Audit: 11 flips, all invisible-byte / fullwidth normalization improvements.
+> Gates: golden 0 failed, extract 62/62, smoke 49/0, melt 10/0. **Now 3570
+> tidy, 136 ⏳** (✅ 3338 / ✅ʰ 83 / ✅ᵇ 149).
 
 > **2026-07-14 — spanning group headers + sysstat headers + wrapped rows.**
 > Four `aligned-columns` capabilities: HDR2 accepts digit-bearing FIELD rows

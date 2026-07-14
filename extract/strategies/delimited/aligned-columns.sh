@@ -430,6 +430,28 @@ _ac_shape () {
         # (`tableName`); an all-lowercase row (`sqlite3 .tables` name grid)
         # is data, not a header.
         for _t in "${_t1arr[@]}"; do [[ "$_t" =~ ^[A-Z][a-z] || "$_t" =~ [a-z][A-Z] ]] && { styled=1; break; }; done
+        # …or the styling contrast is on the DATA side: a lowercase header
+        # (`username fullname active`, `household members flag`) still reads
+        # as a header when EVERY data row carries a token the header lacks —
+        # Titlecase (`Alice Anders`) or fully non-ASCII (emoji, Farsi). A
+        # lowercase name grid (sqlite .tables) has neither and stays data.
+        if [[ $wordy -eq 1 && $styled -eq 0 ]]; then
+            local _dc_all=1 _dc_hit _dc_tk _dc_l _dc_i=0
+            while IFS= read -r _dc_l; do
+                [[ -z "${_dc_l//[[:space:]]/}" ]] && continue
+                _dc_i=$((_dc_i + 1))
+                [[ $_dc_i -eq 1 ]] && continue          # skip the header row
+                _dc_hit=0
+                local _dc_arr=(); read -ra _dc_arr <<< "$_dc_l"
+                for _dc_tk in "${_dc_arr[@]}"; do
+                    [[ "$_dc_tk" =~ ^[A-Z][a-z] ]] && { _dc_hit=1; break; }
+                    [[ "$_dc_tk" != *[[:ascii:]]* ]] && { _dc_hit=1; break; }
+                done
+                [[ $_dc_hit -eq 0 ]] && { _dc_all=0; break; }
+                [[ $_dc_i -ge 40 ]] && break
+            done <<< "$text"
+            [[ $_dc_all -eq 1 ]] && styled=1
+        fi
         # And the data under it must be TABLE-shaped: a modal column count
         # covering >=60% of the data rows, within 1 of the header's own count
         # (multi-word labels run one over). Ragged prose (`dolt status`,

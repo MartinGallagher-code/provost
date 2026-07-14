@@ -862,7 +862,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | enc-bom-psql | ✅ | psql-table |
 | enc-bom-tsv | ✅ | tsv |
 | enc-combining-marks | ✅ | aligned-columns |
-| enc-control-mix | ⏳ | — |
+| enc-control-mix | ✅ | aligned-columns |
 | enc-cr-only-mac | ✅ | aligned-columns |
 | enc-crlf-block-records | ✅ | block-records |
 | enc-crlf-csv | ✅ | csv |
@@ -877,7 +877,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | enc-formfeed-kv | ✅ | yaml |
 | enc-formfeed-pages | ✅ | aligned-columns |
 | enc-formfeed-report | ⏳ | — |
-| enc-fullwidth-digits | ⏳ | — |
+| enc-fullwidth-digits | ✅ | aligned-columns |
 | enc-ideographic-space | ✅ | aligned-columns |
 | enc-leading-space-rows | ✅ | aligned-columns |
 | enc-ls-u2028 | ✅ | aligned-columns |
@@ -910,12 +910,12 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | enc-tsv-numeric | ✅ | tsv |
 | enc-tsv-ragged | ✅ | tsv |
 | enc-two-space-in-value | ⏳ | — |
-| enc-vtab-in-cell | ⏳ | — |
+| enc-vtab-in-cell | ✅ | aligned-columns |
 | enc-vtab-records | ✅ | aligned-columns |
 | enc-word-joiner | ✅ | aligned-columns |
-| enc-zwj-emoji | ⏳ | — |
-| enc-zwnj-farsi | ⏳ | — |
-| enc-zwsp-header | ⏳ | — |
+| enc-zwj-emoji | ✅ | aligned-columns |
+| enc-zwnj-farsi | ✅ | aligned-columns |
+| enc-zwsp-header | ✅ | aligned-columns |
 | enc-zwsp-in-cell | ✅ | aligned-columns |
 | entr-restart | ✅ | aligned-columns |
 | env-diff | ✅ | line-records |
@@ -3714,5 +3714,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3564 / 3706** — ✅ 3332 via a generic parser, ✅ʰ 83 via a hint row, ✅ᵇ 149 via a bespoke strategy.
-⏳ not yet tidy: amdgpu-top ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram brew-info-casks brew-info-multi cargo-audit cargo-clippy-color cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cmb-banner-indented-table cmb-build-log-color-table cmb-colorsep-only cmb-colorsep-reset-fields cmb-comment-color-rows cmb-cr-log-csv-color cmb-cr-redraw-progress-final cmb-double-header-color-emoji cmb-figlet-banner-table cmb-grouped-header-progress cmb-hashbang-comment-csv-color cmb-osc8-comment-aligned cmb-progress-comment-aligned cmb-spinner-clearscreen-final-table cmb-spinner-cr-log-table cmb-test-log-spinner-summary corefreq-topology cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload delta-diff-color df-locale-de dpkg-l-mixed-state dstat-cdngy duckdb-summarize-box enc-control-mix enc-formfeed-report enc-fullwidth-digits enc-two-space-in-value enc-vtab-in-cell enc-zwj-emoji enc-zwnj-farsi enc-zwsp-header etc-hosts-comments exo-mtr-report-asn exo-openssl-asn1parse-deep exo-perf-stat-x-csv exo-rados-df-pools exo-slurm-sacct-pipe exo-smartctl-a-attrs exo-strace-c-summary file-brief flatpak-remotes-info gcloud-logging-logs-list getent-group getent-passwd-gecos-colons git-cat-file-commit-objects gluster-volume-profile gpg-list-keys-uid-commas hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ib-read-lat iostat-xmt ip-addr-mixed-scopes jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run lsblk-tree lsof-long-names lsusb-v lvs-report-sparse lzbench-run mdadm-resync-progress megacli-pdlist nicstat-summary nix-why-depends nst-benchmark-report-footnotes nst-blkid-per-device-nested nst-dig-multiline-soa nst-dns-zonefile nst-ethtool-queue-stats nst-k8s-list-yaml nst-kv-table-kv-backup-report nst-lsblk-tree-attrs nst-mdadm-detail-devices nst-nvme-per-namespace-stats nst-pg-report-mixed nst-report-preamble-table-footnotes nst-smartctl-info-attrs-selftest num-labeled-inline num-ledger-parens-quarters num-year-columns numastat-p nvidia-smi-dashboard nvidia-smi-full openssl-asn1parse ovs-ofctl-dump-flows perftest-write-bw powertop-devices promtool-check-rules pueue-status pytest-cov-report rsync-itemize-paths-spaces scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info ssh-config-hosts ssh-config-jumphosts storcli-show supervisorctl-status surreal-sql-select tbl-acl-permission-matrix tbl-du-sum-footer tbl-header-spacing-off tbl-ledger-blank-groups tbl-single-col-packages tbl-single-col-paths tbl-sparse-component-matrix terraform-plan-color tiptop-view v4l2-ctl-list-devices vnstat-hourly w-empty-what who-a-ragged zpool-iostat-latency zpool-iostat-v
+**Coverage: 3570 / 3706** — ✅ 3338 via a generic parser, ✅ʰ 83 via a hint row, ✅ᵇ 149 via a bespoke strategy.
+⏳ not yet tidy: amdgpu-top ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram brew-info-casks brew-info-multi cargo-audit cargo-clippy-color cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cmb-banner-indented-table cmb-build-log-color-table cmb-colorsep-only cmb-colorsep-reset-fields cmb-comment-color-rows cmb-cr-log-csv-color cmb-cr-redraw-progress-final cmb-double-header-color-emoji cmb-figlet-banner-table cmb-grouped-header-progress cmb-hashbang-comment-csv-color cmb-osc8-comment-aligned cmb-progress-comment-aligned cmb-spinner-clearscreen-final-table cmb-spinner-cr-log-table cmb-test-log-spinner-summary corefreq-topology cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload delta-diff-color df-locale-de dpkg-l-mixed-state dstat-cdngy duckdb-summarize-box enc-formfeed-report enc-two-space-in-value etc-hosts-comments exo-mtr-report-asn exo-openssl-asn1parse-deep exo-perf-stat-x-csv exo-rados-df-pools exo-slurm-sacct-pipe exo-smartctl-a-attrs exo-strace-c-summary file-brief flatpak-remotes-info gcloud-logging-logs-list getent-group getent-passwd-gecos-colons git-cat-file-commit-objects gluster-volume-profile gpg-list-keys-uid-commas hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ib-read-lat iostat-xmt ip-addr-mixed-scopes jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run lsblk-tree lsof-long-names lsusb-v lvs-report-sparse lzbench-run mdadm-resync-progress megacli-pdlist nicstat-summary nix-why-depends nst-benchmark-report-footnotes nst-blkid-per-device-nested nst-dig-multiline-soa nst-dns-zonefile nst-ethtool-queue-stats nst-k8s-list-yaml nst-kv-table-kv-backup-report nst-lsblk-tree-attrs nst-mdadm-detail-devices nst-nvme-per-namespace-stats nst-pg-report-mixed nst-report-preamble-table-footnotes nst-smartctl-info-attrs-selftest num-labeled-inline num-ledger-parens-quarters num-year-columns numastat-p nvidia-smi-dashboard nvidia-smi-full openssl-asn1parse ovs-ofctl-dump-flows perftest-write-bw powertop-devices promtool-check-rules pueue-status pytest-cov-report rsync-itemize-paths-spaces scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info ssh-config-hosts ssh-config-jumphosts storcli-show supervisorctl-status surreal-sql-select tbl-acl-permission-matrix tbl-du-sum-footer tbl-header-spacing-off tbl-ledger-blank-groups tbl-single-col-packages tbl-single-col-paths tbl-sparse-component-matrix terraform-plan-color tiptop-view v4l2-ctl-list-devices vnstat-hourly w-empty-what who-a-ragged zpool-iostat-latency zpool-iostat-v

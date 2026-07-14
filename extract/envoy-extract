@@ -741,11 +741,21 @@ fi
 # Gated on such a byte being present, so it is a true no-op for ordinary \n input.
 # Order matters: strip CRLF's trailing CR first, then map any remaining bare CR /
 # VT / FF, then the multibyte separators — so CRLF never becomes a blank line.
+#
+# VT is context-sensitive: when the input ALREADY has real \n lines, a VT is not
+# a line break at all — it's a stray control byte INSIDE a cell (`disk\vfailure`)
+# and becomes a SPACE, keeping the row whole. Only in a \n-less capture (VT as
+# the sole line separator — the adversarial breaker this block was built for)
+# does VT map to \n.
 if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
       || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
-    text="$(printf '%s' "$text" | sed 's/\r$//' | tr '\r\013\014' '\n\n\n' \
+    local_vt_to=$'\n'
+    [[ "$text" == *$'\n'* ]] && local_vt_to=' '
+    text="$(printf '%s' "$text" | sed 's/\r$//' | tr '\r\013\014' $'\n'"${local_vt_to}"$'\n' \
             | sed $'s/\302\205/\\\n/g; s/\342\200\250/\\\n/g; s/\342\200\251/\\\n/g')"
+    unset local_vt_to
 fi
+
 
 # Normalise exotic Unicode horizontal spaces to ASCII space so column splitting
 # — which keys on runs of 0x20 — sees the alignment the terminal showed. Covers
@@ -761,6 +771,23 @@ if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342
     text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
 fi
 
+# Delete ZERO-WIDTH SPACE (U+200B) — invisible in the terminal, so it can only
+# corrupt: a header token carrying one (`user​name`) prints as one word but
+# compares unequal to its plain form and pollutes the melted field name. Only
+# ZWSP is dropped; ZWNJ/ZWJ (U+200C/D) are orthographically REAL (Farsi
+# half-space, emoji family joins) and stay. Gated on the byte pair.
+if [[ "$text" == *$'\342\200\213'* ]]; then
+    text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\342\200\213//g')"
+fi
+
+# Normalise FULLWIDTH digits (U+FF10–FF19, CJK tables: `８０`) and the fullwidth
+# colon (U+FF1A) to their ASCII forms so numeric-contrast header detection and
+# `key: value` splitting see them the way a reader does. Gated on the FF-block
+# lead bytes being present.
+if [[ "$text" == *$'\357\274'* ]]; then
+    text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\357\274\220/0/g; s/\357\274\221/1/g; s/\357\274\222/2/g; s/\357\274\223/3/g; s/\357\274\224/4/g; s/\357\274\225/5/g; s/\357\274\226/6/g; s/\357\274\227/7/g; s/\357\274\230/8/g; s/\357\274\231/9/g; s/\357\274\232/:/g')"
+fi
+
 # Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
 # systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
 # split or pollute a data cell. Gated on an ESC byte being present, so it is a
@@ -769,6 +796,15 @@ fi
 # OSC form (ESC ] … BEL) and bare two-byte escapes.
 if [[ "$text" == *$'\033'* ]]; then
     text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
+fi
+
+# Strip terminal-bell and backspace control bytes (BEL \a, BS \b) — decoration
+# or erase intent, never data; leaving them embeds invisible bytes in a cell.
+# Runs AFTER the ANSI strip: BEL terminates an OSC sequence, so deleting it
+# first would orphan `ESC]…BEL` sequences the OSC rule needs intact. Gated on
+# presence, a no-op otherwise.
+if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
+    text="$(printf '%s' "$text" | tr -d '\007\010')"
 fi
 
 # Metadata for strategy interface enrichment

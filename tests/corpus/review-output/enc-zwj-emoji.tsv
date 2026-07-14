@@ -1,5 +1,4 @@
-n	A	B	C	total_entries
-1	household	members	flag	4
-2	smiths	👨‍👩‍👧‍👦	🇬🇧	4
-3	patels	👩‍👩‍👧	🇮🇳	4
-4	chens	👨‍👦	🇨🇳	4
+n	household	members	flag	total_entries
+1	smiths	👨‍👩‍👧‍👦	🇬🇧	3
+2	patels	👩‍👩‍👧	🇮🇳	3
+3	chens	👨‍👦	🇨🇳	3
