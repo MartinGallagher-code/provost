@@ -1,2 +1,5 @@
-Total_DISK_READ	Current_DISK_READ	1284__be/4__postgres____0.00_B/s___512.44_K/s__0.00_%___4.12_%_postgres	4455__be/4__www-data____0.00_B/s___210.33_K/s__0.00_%___1.02_%_nginx
-0.00 B/s | Total DISK WRITE:      1845.23 K/s	0.00 B/s | Current DISK WRITE:    2013.44 K/s	writer	worker
+n	read	write	TID	PRIO	USER	DISK	READ	WRITE	SWAPIN	IO>	COMMAND	K	L	M	total_entries
+1	0.00	2013.44	1284	be/4	postgres	512.44	B/s	K/s	0.00	%	4.12	%	postgres:	writer	4
+2	0.00	2013.44	3021	be/4	root	980.11	B/s	K/s	0.00	%	8.45	%	[jbd2/sda1-8]		4
+3	0.00	2013.44	4455	be/4	www-data	210.33	B/s	K/s	0.00	%	1.02	%	nginx:	worker	4
+4	0.00	2013.44	892	be/4	mysql	142.35	B/s	K/s	0.00	%	0.88	%	mysqld		4

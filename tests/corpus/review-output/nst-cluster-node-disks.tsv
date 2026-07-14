@@ -1,2 +1,7 @@
-field	value
-Cluster	prod-ceph
+n	cluster	node	A	B	C	D	total_entries
+1	prod-ceph	node-01	osd.0	/dev/sdb	1.8T	up	6
+2	prod-ceph	node-01	osd.1	/dev/sdc	1.8T	up	6
+3	prod-ceph	node-02	osd.2	/dev/sdb	1.8T	down	6
+4	prod-ceph	node-02	osd.3	/dev/sdc	1.8T	up	6
+5	prod-ceph	node-03	osd.4	/dev/sdb	3.6T	up	6
+6	prod-ceph	node-03	osd.5	/dev/sdc	3.6T	up	6

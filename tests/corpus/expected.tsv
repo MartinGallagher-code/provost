@@ -3149,7 +3149,7 @@ systemd-networkd-netdev	text	-	4
 resolvectl-status-links	text	-	5
 blkid-full-devices	text	-	5
 blkid-partitions-full	text	-	4
-apt-get-download-progress	text	-	4
+apt-get-download-progress	text	-	2
 dnf-download-progress	text	-	3
 pip-download-bars	text	-	2
 docker-pull-layers	text	-	2

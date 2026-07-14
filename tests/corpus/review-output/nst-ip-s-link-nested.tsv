@@ -1,2 +1,4 @@
-1	link/loopback_00	RX	TX	2	link/ether_52	3	link/ether_a4
-lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT	00:00:00:00:00 brd 00:00:00:00:00:00	bytes  packets  errors  dropped overrun mcast	bytes  packets  errors  dropped carrier collsns	eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT	54:00:12:34:56 brd ff:ff:ff:ff:ff:ff	wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DORMANT	c3:f0:aa:bb:cc brd ff:ff:ff:ff:ff:ff
+n	name	mtu	qdisc	state	mode	rx_bytes	rx_packets	rx_errors	rx_dropped	rx_overrun	rx_mcast	tx_bytes	tx_packets	tx_errors	tx_dropped	tx_carrier	tx_collsns	total_entries
+1	lo	65536	noqueue	UNKNOWN	DEFAULT	123456789	98765	0	0	0	0	123456789	98765	0	0	0	0	3
+2	eth0	1500	mq	UP	DEFAULT	9876543210	7654321	12	3	0	456	5432109876	4321098	0	1	0	0	3
+3	wlan0	1500	noqueue	UP	DORMANT	445566778	334455	0	9	0	120	112233445	223344	0	0	0	0	3

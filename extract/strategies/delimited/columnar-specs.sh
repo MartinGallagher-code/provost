@@ -102,6 +102,42 @@ _cs_parse () {
     _CS_PREFIX="${p[9]:-entry}"
 }
 
+# A ws-delim spec with a FIXED column layout (no `absorb` overflow sink and no
+# terminal `@rest` column) can only faithfully map a row whose token count is at
+# most its column count — any extra tokens are silently DROPPED, and worse, when
+# the real table is WIDER than the spec, its first `ncols` tokens get mapped onto
+# the wrong names (turbostat -q's 20-column output mis-labelled by the 10-column
+# `turbostat` spec: SMI->PkgTmp, POLL->PkgWatt, …, 10 columns lost). Since no
+# fixed-layout spec can legitimately rely on that drop (a genuinely multi-token
+# trailing column would already need @rest/absorb), a spec whose data rows carry
+# MORE tokens than it has columns is being misapplied — decline so a generic
+# parser (tsv / aligned-columns) can take the full width. Returns 0 (overflow →
+# decline) only for ws specs with no absorb and no @rest; every other spec shape
+# returns 1 (no objection). Uses the already-parsed _CS_* globals.
+_cs_row_overflow () {
+    local text="$1"
+    [[ "$_CS_DELIM" == "ws" ]] || return 1
+    [[ "${_CS_ABSORB:--1}" -ge 0 ]] && return 1
+    local -a cols=(); IFS=',' read -ra cols <<< "$_CS_COLS"
+    local ncols=${#cols[@]} _ci
+    [[ $ncols -le 1 ]] && return 1                 # @line / single-col: never overflows
+    for ((_ci=0; _ci<ncols; _ci++)); do [[ "${cols[$_ci]}" == *"@rest" ]] && return 1; done
+    local _l past=0 wide=0 seen=0
+    [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
+    while IFS= read -r _l; do
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        if [[ $past -eq 0 ]]; then [[ "$_l" == *"$_CS_HDR"* ]] && past=1; continue; fi
+        [[ -n "$_CS_ROWRE" && ! "$_l" =~ $_CS_ROWRE ]] && continue
+        local -a _tk=(); read -ra _tk <<< "$_l"
+        [[ ${#_tk[@]} -lt "${_CS_MINREQ:-$ncols}" ]] && continue
+        seen=$((seen + 1))
+        [[ ${#_tk[@]} -gt $ncols ]] && wide=$((wide + 1))
+    done <<< "$text"
+    # Decline only when the OVERWHELMING majority of accepted rows are wider than
+    # the layout — a lone ragged row shouldn't lose the spec its normal input.
+    [[ $seen -ge 2 && $((wide * 100 / seen)) -ge 80 ]]
+}
+
 # Does the text match this spec's detect tokens (all present)? A plain token is a
 # substring anywhere; a `re:PATTERN` token requires >=1 line to match the regex.
 _cs_matches () {
@@ -128,6 +164,10 @@ strategy_detect () {
     for spec in "${_COLUMNAR_SPECS[@]}"; do
         _cs_parse "$spec"
         if _cs_matches "$text" "$_CS_DETECT"; then
+            # A fixed-layout spec that would silently drop columns on a wider
+            # table declines here (see _cs_row_overflow) so a generic full-width
+            # parser wins instead.
+            _cs_row_overflow "$text" && continue
             _CS_MATCHED="$spec"
             _STRATEGY_CONFIDENCE=86
             # Report the matched TOOL name (not the shared "columnar-specs") so

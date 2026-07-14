@@ -1,2 +1,3 @@
-2	link/ether_52	RX	RX_errors	TX	TX_errors	3
-eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000	54:00:a1:b2:c3 brd ff:ff:ff:ff:ff:ff	bytes  packets  errors  dropped overrun mcast	length   crc     frame   fifo    missed	bytes  packets  errors  dropped carrier collsns	aborted  fifo    window  heartbeat transns	wg0: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1420 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+n	name	mtu	qdisc	state	mode	group	qlen	rx_bytes	rx_packets	rx_errors	rx_dropped	rx_overrun	rx_mcast	tx_bytes	tx_packets	tx_errors	tx_dropped	tx_carrier	tx_collsns	total_entries
+1	eth0	1500	mq	UP	DEFAULT	default	1000	98123441	882134	0	12	0	4410	41882290	331028	0	0	0	0	2
+2	wg0	1420	noqueue	UNKNOWN	DEFAULT	default	1000	221004	1882	0	0	0	0	198221	1744	0	9	0	0	2

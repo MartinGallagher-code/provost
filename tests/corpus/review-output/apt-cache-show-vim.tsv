@@ -1,19 +1,2 @@
-n	Package:	vim	total_entries
-1	Architecture:	amd64	18
-2	Version:	2:8.2.3995-1ubuntu2.15	18
-3	Priority:	optional	18
-4	Section:	editors	18
-5	Origin:	Ubuntu	18
-6	Maintainer:	Ubuntu_Developers_<ubuntu-devel-discuss@lists.ubuntu.com>	18
-7	Installed-Size:	3743	18
-8	Provides:	editor	18
-9	Depends:	vim-common_(=_2:8.2.3995-1ubuntu2.15),_vim-runtime_(=_2:8.2.3995-1ubuntu2.15),_libc6_(>=_2.34)	18
-10	Filename:	pool/main/v/vim/vim_8.2.3995-1ubuntu2.15_amd64.deb	18
-11	Size:	1731404	18
-12	Description-en:	Vi_IMproved_-_enhanced_vi_editor	18
-13	Vim	is_an_almost_compatible_version_of_the_UNIX_editor_Vi.	18
-14	.		18
-15	Many	new_features_have_been_added:_multi_level_undo,_syntax	18
-16	highlighting,	command_line_history,_on-line_help,_spell_checking,	18
-17	filename	completion,_block_operations,_folding,_Unicode_support,_etc.	18
-18	Description-md5:	90ba4bab55f7e9b7b0f6f4c1e6c1a1a0	18
+Package	Architecture	Version	Priority	Section	Origin	Maintainer	Installed-Size	Provides	Depends	Filename	Size	Description-en	Many_new_features_have_been_added	Description-md5
+vim	amd64	2:8.2.3995-1ubuntu2.15	optional	editors	Ubuntu	Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>	3743	editor	vim-common (=_2:8.2.3995-1ubuntu2.15), vim-runtime (=_2:8.2.3995-1ubuntu2.15), libc6 (>=_2.34)	pool/main/v/vim/vim_8.2.3995-1ubuntu2.15_amd64.deb	1731404	Vi IMproved - enhanced vi editor	multi level undo, syntax	90ba4bab55f7e9b7b0f6f4c1e6c1a1a0

@@ -1,2 +1,7 @@
-field	value
-Filesystem_UUID	3f7a-c2e1  Label: data
+n	uuid	label	device	A	B	total_entries
+1	3f7a-c2e1	data	/dev/sdb1	write_io_errs	0	6
+2	3f7a-c2e1	data	/dev/sdb1	read_io_errs	0	6
+3	3f7a-c2e1	data	/dev/sdb1	flush_io_errs	3	6
+4	3f7a-c2e1	data	/dev/sdc1	write_io_errs	12	6
+5	3f7a-c2e1	data	/dev/sdc1	read_io_errs	0	6
+6	3f7a-c2e1	data	/dev/sdc1	flush_io_errs	0	6

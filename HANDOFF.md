@@ -1,6 +1,40 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus grown to 3706 inputs; aligned-columns/csv false-positive fixes (2026-07-13) — golden gate 3430 passed / 0 failed / 276 not-yet-covered; coverage table refresh pending
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; wide-fixed-width follow-up (2026-07-13) — **3548 tidy, 158 ⏳** (golden gate 3394 passed / 0 failed / 309 not-yet-covered)
+
+> **2026-07-13 — wide fixed-width follow-up.** Two generic fixes for wide tables
+> that were dropping columns. (1) `columnar-specs` `_cs_row_overflow`: a
+> fixed-layout ws spec (no absorb, no `@rest`) declines when ≥80% of its data
+> rows carry MORE tokens than it has columns — it was silently dropping the
+> extras and mis-labelling the rest (`turbostat`'s 10-col spec mangling the
+> 20-col `turbostat -q`); also de-false-positives `hadolint-output` (the
+> `dpkg-get-selections` spec grabbed it for ending in "…install"). (2) `tsv`
+> header rescue: row 1 was treated headerless whenever a field merely CONTAINED
+> a digit, demoting real headers with digit-bearing labels (`Core CPU … C1 C6`);
+> now a dual-row check keeps row 1 as a header when a column is a label in row 1
+> over a numeric value in row 2, gated ≥3 columns so 2-col KV/pair lists (`wg
+> show`, colon-KV) stay headerless. Closes `turbostat-wide` + `enc-tsv-numeric`
+> (⏳→✅), real column names for nvidia-topo + featurecounts. Blast radius audited
+> 50→5→final; 0 regressions. **Now 3548 tidy, 158 ⏳** (✅ 3316 / ✅ʰ 83 / ✅ᵇ 149).
+
+> **2026-07-13 — manifest-discipline follow-up.** Completes the strict-`_ok`
+> pass (text-kind now honors the manifest's `emin`, not a hardcoded ≥2). Two
+> parser fixes surfaced by the strict re-run: `yaml.sh` no longer false-claims
+> `/proc/interrupts` numeric tables (a `key` must start with a LETTER, so `0:`/
+> `16:` IRQ ids don't count as YAML keys) — 143→140 yaml winners, 3 clean
+> declines (proc-interrupts-smp→aligned-columns, docker-pull-layers +
+> ogrinfo-layers→labeled-records, all ✅); `iostat-x.sh` detect keys on `aqu-sz`
+> alone so the reduced-column `iostat -c -x` (`iostat-cx`) is tidied bespokely
+> (✅ᵇ) instead of losing its Device table to block-records. Re-ran
+> `--update-golden` under strict `_ok`: 33 stale-loose generic goldens deleted
+> (all triaged as genuine shortfalls, not miscalibration — the bespoke-covered
+> subset moves ✅→✅ᵇ, the rest become honest ⏳); one real miscalibration fixed
+> (`apt-get-download-progress` mincols 4→2, was tuned to pre-bugfix garbled csv).
+> Gates: golden 3397/0, extract 62/62, smoke 49/0, melt 10/0. **Now 3546 tidy,
+> 160 ⏳** (✅ 3314 / ✅ʰ 83 / ✅ᵇ 149) — the honest number after the discipline
+> pass stops ~28 lossy parses counting as tidy. Frontier (documented, not fixed):
+> wide fixed-width tables dropping columns generically (turbostat-wide 12/20,
+> storcli-show, nvidia-smi-full, sar/iostat generic paths).
 
 > **2026-07-13 — aligned-columns kv-header guard + csv thousands-comma false
 > positive.** From a manual review of `tests/corpus/review-output/`: (1)
@@ -26,9 +60,14 @@
 > — flagged for the pending manifest-tightening pass, not fixed here). Golden
 > gate 3430 passed / 0 failed / 276 not-yet-covered (pre-existing gap, no
 > golden ever frozen for those — unrelated); extract 62/62; smoke 49/0; melt
-> 10/0. 9 goldens re-frozen, 1 new (perf-stat-scientific). **COVERAGE.md /
-> README numbers not yet refreshed — full-mode coverage regen was still
-> running at last check; a follow-up commit will land it.** Next queued: Bug
+> 10/0. 9 goldens re-frozen, 1 new (perf-stat-scientific). Full-mode
+> `--coverage` regen: **3571 / 3706** (✅ 3346 / ✅ʰ 84 / ✅ᵇ 141). The
+> committed `COVERAGE.md` had drifted stale (last regenerated before the
+> grouped-rows/pivot-stats rounds landed, still showing 3478/3706) — this
+> commit both catches that up and folds in this round's fixes, net +93 items
+> tidy, -1 (`lsusb-v`, confirmed via an `e4acc0b` worktree comparison to be an
+> unrelated pre-existing gap the stale doc just hadn't surfaced, not a
+> regression from this change). Next queued: Bug
 > #1 — tighten the loose `text`/`kv` manifest kinds in `expected.tsv` (a
 > corpus-discipline pass, not a parser fix) now that 2 and 3 are done.
 

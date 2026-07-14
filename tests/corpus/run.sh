@@ -88,12 +88,22 @@ _worker () {
     ekind="$(printf '%s' "$exp" | cut -f1)"; erows="$(printf '%s' "$exp" | cut -f2)"; emin="$(printf '%s' "$exp" | cut -f3)"
 
     local gtidy_ok=0 ftidy_ok=0 want
+    # `text`'s min-col bound was silently ignored (hardcoded >=2 regardless of
+    # the manifest's recorded `emin`) -- a garbled parse that happened to clear
+    # 2 columns passed even when the manifest asked for many more. Honor emin
+    # here too (falling back to the >=2 floor only when the manifest genuinely
+    # has no column expectation, i.e. emin=='-' -- free text like ASCII art).
     _ok () { # $1=cols $2=rows
         if [[ "$ekind" == "table" ]]; then [[ "$2" -eq "$erows" && "$1" -ge "$emin" ]]
         elif [[ "$ekind" == "kv" ]]; then [[ "$2" -ge 1 && "$1" -ge "$emin" ]]
+        elif [[ "$emin" != "-" ]]; then [[ "$1" -ge "$emin" && "$2" -ge 1 ]]
         else [[ "$1" -ge 2 && "$2" -ge 1 ]]; fi
     }
-    case "$ekind" in table) want="=${erows}r,>=${emin}c" ;; kv) want=">=1r,>=${emin}c" ;; *) want="(unlisted)" ;; esac
+    case "$ekind" in
+        table) want="=${erows}r,>=${emin}c" ;;
+        kv)    want=">=1r,>=${emin}c" ;;
+        *)     if [[ "$emin" != "-" ]]; then want=">=1r,>=${emin}c"; else want="(unlisted)"; fi ;;
+    esac
     _ok "$gc" "$gr" && gtidy_ok=1
     _ok "$fc" "$fr" && ftidy_ok=1
 
