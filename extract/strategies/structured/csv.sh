@@ -77,6 +77,27 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=90
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
 
+    # TAB-dominant input is tsv's: `aws … --output text` emits TAB fields
+    # whose VALUES contain commas ("my-logs, prod"). When every non-blank
+    # line carries tabs and the tab count is uniform and >= the comma
+    # count, the tabs are the real delimiter — decline so tsv claims it.
+    local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0
+    while IFS= read -r _td_l; do
+        [[ -z "${_td_l//[[:space:]]/}" ]] && continue
+        _td_n=$((_td_n + 1))
+        local _td_only="${_td_l//[!$'\t']/}"
+        _td_tabs=${#_td_only}
+        local _td_conly="${_td_l//[!,]/}"
+        [[ ${#_td_conly} -gt $_td_commas ]] && _td_commas=${#_td_conly}
+        [[ $_td_first -lt 0 ]] && _td_first=$_td_tabs
+        [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; break; }
+        [[ $_td_n -ge 10 ]] && break
+    done <<< "$text"
+    if [[ $_td_n -ge 2 && $_td_uniform -eq 1 && $_td_first -ge 1 \
+          && $_td_first -ge $_td_commas ]]; then
+        return 1
+    fi
+
     # Check first 5 non-empty lines for CSV characteristics
     local line_count=0
     local header_commas=0
@@ -204,6 +225,44 @@ strategy_extract () {
         _hf="${_hf#"${_hf%%[![:space:]]*}"}"; _hf="${_hf%"${_hf##*[![:space:]]}"}"
         [[ -z "$_hf" || "$_hf" =~ ^-?[0-9]+([.][0-9]+)?%?$ ]] || { _headerless=0; break; }
     done
+    # DUAL-ROW SHAPE test — a header names its columns, so somewhere row 1
+    # must be LABEL-shaped over a differently-shaped value (`age` over `30`).
+    # When every column has the SAME shape in rows 1 and 2 (both numeric /
+    # both IP-ish / both long mixed strings) AND at least one column is
+    # value-shaped, row 1 is data (`Simple mixer control 'Master',0` over
+    # `…'Headphone',0` — amixer). Pure label-over-label tables (all-text,
+    # no value shapes anywhere) keep their header.
+    if [[ $_headerless -eq 0 && ${#headers[@]} -ge 2 ]]; then
+        local _dr2="" _dri=0 _drl
+        while IFS= read -r _drl; do
+            [[ -z "$_drl" ]] && continue
+            _dri=$((_dri + 1))
+            [[ $_dri -eq 2 ]] && { _dr2="$_drl"; break; }
+        done <<< "$text"
+        if [[ -n "$_dr2" ]]; then
+            _strat_csv_split "$_dr2"
+            local _drv=("${_CSV_FIELDS[@]}")
+            _csv_shape () {
+                local v="$1"
+                v="${v#"${v%%[![:space:]]*}"}"; v="${v%"${v##*[![:space:]]}"}"
+                if [[ "$v" =~ ^-?[0-9]+([.][0-9]+)?[a-zA-Z%]{0,4}$ ]]; then echo num
+                elif [[ "$v" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo ip
+                elif [[ "$v" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} || "$v" =~ ^[0-9]{1,2}:[0-9]{2} ]]; then echo date
+                else echo str
+                fi
+            }
+            if [[ ${#_drv[@]} -eq ${#headers[@]} ]]; then
+                local _drj _drcontrast=0 _drvaluish=0 _drs1 _drs2
+                for ((_drj = 0; _drj < ${#headers[@]}; _drj++)); do
+                    _drs1="$(_csv_shape "${headers[$_drj]}")"
+                    _drs2="$(_csv_shape "${_drv[$_drj]:-}")"
+                    [[ "$_drs1" == str && "$_drs2" != str ]] && _drcontrast=1
+                    [[ "$_drs1" != str ]] && _drvaluish=1
+                done
+                [[ $_drcontrast -eq 0 && $_drvaluish -eq 1 ]] && _headerless=1
+            fi
+        fi
+    fi
     if [[ $_headerless -eq 1 ]]; then
         local _hn=${#headers[@]} _hk
         headers=()

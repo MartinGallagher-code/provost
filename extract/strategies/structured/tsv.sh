@@ -154,6 +154,56 @@ strategy_extract () {
         for ((_i = 1; _i <= _n; _i++)); do headers+=("$(_col_letter "$_i")"); done
     fi
 
+    # CELL-SPLIT pre-pass. Two shapes hide multiple fields inside ONE tab
+    # cell, recognisable only across the whole column:
+    #  * datetime-prefix (`Thu Jul 10 18:00:00 2026 a deploy` — at/atq):
+    #    every row's cell opens with a full ctime-style stamp followed by a
+    #    UNIFORM number of trailing tokens → stamp column + one column per
+    #    trailing token.
+    #  * constant multi-word prefix (`nice run-parts /etc/cron.daily` —
+    #    anacrontab): every row shares the same >=2-token prefix with a
+    #    non-empty remainder → prefix column + remainder column.
+    local _cs_rows=() _cs_l _cs_rn=0
+    while IFS= read -r _cs_l; do
+        _cs_rn=$((_cs_rn + 1))
+        [[ $_cs_rn -eq 1 && $headerless -eq 0 ]] && continue
+        [[ -z "$_cs_l" ]] && continue
+        _cs_rows+=("$_cs_l")
+    done <<< "$text"
+    local _dt_split=() _cp_split=() _cp_pref=() _dt_ntok=()
+    local _dt_re='^([A-Z][a-z]{2}[[:space:]]+[A-Z][a-z]{2}[[:space:]]+[0-9]{1,2}[[:space:]]+[0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]+[0-9]{4})[[:space:]]+(.+)$'
+    if [[ ${#_cs_rows[@]} -ge 2 ]]; then
+        local _cs_j _cs_r
+        for ((_cs_j = 0; _cs_j < ${#headers[@]}; _cs_j++)); do
+            local _dt_all=1 _dt_n=-1 _cp_all=1 _cp_p=""
+            for _cs_r in "${_cs_rows[@]}"; do
+                _tsv_split "$_cs_r"
+                local _cs_v="${_TSV_FIELDS[$_cs_j]:-}"
+                if [[ "$_cs_v" =~ $_dt_re ]]; then
+                    local _dt_rest=() ; read -ra _dt_rest <<< "${BASH_REMATCH[2]}"
+                    [[ $_dt_n -lt 0 ]] && _dt_n=${#_dt_rest[@]}
+                    [[ ${#_dt_rest[@]} -ne $_dt_n ]] && _dt_all=0
+                else
+                    _dt_all=0
+                fi
+                local _cp_tk=() ; read -ra _cp_tk <<< "$_cs_v"
+                if [[ ${#_cp_tk[@]} -ge 3 ]]; then
+                    local _cp_this="${_cp_tk[0]} ${_cp_tk[1]}"
+                    [[ -z "$_cp_p" ]] && _cp_p="$_cp_this"
+                    [[ "$_cp_this" != "$_cp_p" ]] && _cp_all=0
+                else
+                    _cp_all=0
+                fi
+            done
+            _dt_split[$_cs_j]=0; _cp_split[$_cs_j]=0; _cp_pref[$_cs_j]=""; _dt_ntok[$_cs_j]=0
+            if [[ $_dt_all -eq 1 && $_dt_n -ge 1 ]]; then
+                _dt_split[$_cs_j]=1; _dt_ntok[$_cs_j]=$_dt_n
+            elif [[ $_cp_all -eq 1 && -n "$_cp_p" ]]; then
+                _cp_split[$_cs_j]=1; _cp_pref[$_cs_j]="$_cp_p"
+            fi
+        done
+    fi
+
     # Process each data row as an indexed record group (entry<N>.<column>) so the
     # capture tidy melt renders one row per record — rather than welding every
     # row's cells into a single wide record with duplicate column names.
@@ -174,6 +224,25 @@ strategy_extract () {
         for ((j=0; j<${#headers[@]}; j++)); do
             local name="${headers[$j]}"
             local value="${values[$j]:-}"
+            if [[ "${_dt_split[$j]:-0}" -eq 1 && "$value" =~ $_dt_re ]]; then
+                local _dt_stamp="${BASH_REMATCH[1]}" _dt_tail="${BASH_REMATCH[2]}"
+                local _dt_tt=() _dt_k
+                read -ra _dt_tt <<< "$_dt_tail"
+                local _nm0="${name//\"}"; _nm0="${_nm0// /_}"; _nm0="${_nm0//./_}"
+                result+="entry${rec}.${_nm0} ${_dt_stamp}"$'\n'
+                for ((_dt_k = 0; _dt_k < ${#_dt_tt[@]}; _dt_k++)); do
+                    result+="entry${rec}.${_nm0}_$(_col_letter $((_dt_k + 2))) ${_dt_tt[$_dt_k]}"$'\n'
+                done
+                continue
+            fi
+            if [[ "${_cp_split[$j]:-0}" -eq 1 ]]; then
+                local _cp_rest="${value#"${_cp_pref[$j]}"}"
+                _cp_rest="${_cp_rest# }"
+                local _nm1="${name//\"}"; _nm1="${_nm1// /_}"; _nm1="${_nm1//./_}"
+                result+="entry${rec}.${_nm1} ${_cp_pref[$j]}"$'\n'
+                [[ -n "$_cp_rest" ]] && result+="entry${rec}.${_nm1}_b ${_cp_rest}"$'\n'
+                continue
+            fi
             # Clean up name and value: replace spaces with underscores, remove quotes
             name="${name//\"}"
             name="${name// /_}"
