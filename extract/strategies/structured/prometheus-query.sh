@@ -18,10 +18,10 @@ strategy_detect () {
         # LABEL ASSIGNMENT (`key="value"`) and the line must END in a bare
         # number. Without both, a package list whose `{origin}` braces have no
         # `=` and whose line ends `[installed]` (apk list) or `(license)` false
-        # -matches. `name value` bare metrics still qualify via the else-branch.
+        # -matches. Only the braced form qualifies here: a bare `name value`
+        # is the exposition-format parser's domain, not this one — matching it
+        # would steal proc-vmstat / package lists / any `word number` output.
         if [[ "$line" == *"{"*'="'*'"'*"}"* && "$line" =~ [[:space:]][0-9][0-9.eE+-]*$ ]]; then
-            prom_count=$((prom_count + 1))
-        elif [[ "$line" != *"{"* && "$line" =~ ^[A-Za-z_:][A-Za-z0-9_:]*[[:space:]]+[0-9][0-9.eE+-]*$ ]]; then
             prom_count=$((prom_count + 1))
         fi
         [[ $prom_count -ge 3 ]] && return 0
