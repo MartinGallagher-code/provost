@@ -187,7 +187,11 @@ strategy_extract () {
                     _dt_all=0
                 fi
                 local _cp_tk=() ; read -ra _cp_tk <<< "$_cs_v"
-                if [[ ${#_cp_tk[@]} -ge 3 ]]; then
+                # The remainder must be ARGUMENT-shaped (a path, flag or
+                # number: anacrontab's `/etc/cron.daily`) — a word remainder
+                # means the cell is one multi-word LABEL ("number of
+                # samples:" — bcftools) and must stay whole.
+                if [[ ${#_cp_tk[@]} -ge 3 && "${_cp_tk[2]}" =~ ^[/~.0-9-] ]]; then
                     local _cp_this="${_cp_tk[0]} ${_cp_tk[1]}"
                     [[ -z "$_cp_p" ]] && _cp_p="$_cp_this"
                     [[ "$_cp_this" != "$_cp_p" ]] && _cp_all=0
