@@ -5,13 +5,14 @@
 ## Priority: 35
 ## Sample: samples/psql-table/basic.txt
 
-# Is a line a box-table separator? Only '-', '+', and spaces, with at least one
-# '+' joint and a run of dashes -- e.g. "----+----+----" or "+----+----+".
+# Is a line a box-table separator? Only '-'/'=', '+', and spaces, with at least
+# one '+' joint and a run of the rule char -- e.g. "----+----+----",
+# "+----+----+", or airflow's equals rule "====+====+====".
 _psql_is_separator () {
     local l="$1"
     [[ "$l" == *"+"* ]] || return 1
-    [[ "$l" =~ ^[-+\ ]+$ ]] || return 1
-    [[ "$l" == *"---"* ]] || return 1
+    [[ "$l" =~ ^[-=+\ ]+$ ]] || return 1
+    [[ "$l" == *"---"* || "$l" == *"==="* ]] || return 1
     return 0
 }
 
