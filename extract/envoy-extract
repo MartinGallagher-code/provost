@@ -847,14 +847,15 @@ _lc_strip () {
     fi
 }
 # Interspersed `== section ==` banner lines (apptainer inspect's
-# `== labels ==` / `== runscript ==`) are pure section decoration — drop
-# any line that is entirely `==…== words ==…==`, wherever it sits. Tightly
-# shaped (leading and trailing `==` runs, alnum-bearing middle) so a real
-# `a == b` comparison row is never touched. Gated on the byte pair.
+# `== labels ==` / `== runscript ==`) are pure section decoration — drop a
+# line delimited by EXACTLY-two-equals runs (`== word ==`). Longer runs
+# (`=== SET ===`, `====== JOB MAP ======`) are GROUP-LABEL banners that the
+# embedded-table / kv-under-group parsers legitimately consume, so the
+# exact-`==` shape is the discriminator. Gated on the byte pair.
 if [[ "$text" == *'== '* ]]; then
     _banner_out=""
     while IFS= read -r _bl; do
-        if [[ "$_bl" =~ ^[[:space:]]*={2,}[[:space:]]+[A-Za-z0-9].*[[:space:]]+={2,}[[:space:]]*$ ]]; then
+        if [[ "$_bl" =~ ^[[:space:]]*==[[:space:]]+[A-Za-z0-9][^=]*[[:space:]]+==[[:space:]]*$ ]]; then
             continue
         fi
         _banner_out+="$_bl"$'\n'
