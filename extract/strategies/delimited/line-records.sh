@@ -11,8 +11,26 @@
 # columns c1..cN. Priority 96 keeps it strictly last-resort — every real parser
 # runs first.
 
+# A LEADING `# …` line when no other line starts `# ` is a location banner
+# (`# /home/…/ansible_collections` over the collection list), not a record.
+# Kept strategy-local: bespoke parsers (go mod why) read their `# module`
+# markers, so the engine must not strip these globally.
+_lr_body () {
+    local text="$1" _l _n=0 _later=0
+    while IFS= read -r _l; do
+        _n=$((_n + 1))
+        [[ $_n -ge 2 && "$_l" == "# "* ]] && _later=1
+    done <<< "$text"
+    if [[ $_later -eq 0 && "$text" == "# "* && $_n -ge 3 ]]; then
+        printf '%s' "${text#*$'\n'}"
+    else
+        printf '%s' "$text"
+    fi
+}
+
 strategy_detect () {
     local text="$1"
+    text="$(_lr_body "$text")"
     _STRATEGY_CONFIDENCE=0
 
     # Decline structured markup (JSON / quoted key-value) — real parsers own it,
@@ -58,6 +76,7 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
+    text="$(_lr_body "$text")"
     local result="" entry=0 _l
 
     # COLON-STRUCTURED single-column lists (ARNs — `arn:aws:ecs:region:

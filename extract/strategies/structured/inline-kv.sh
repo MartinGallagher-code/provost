@@ -130,10 +130,14 @@ strategy_extract () {
         entry=$((entry + 1))
         # A leading `label:` token names the record (blkid's `/dev/sda1:`) —
         # emit it as a `name` column so the device/label isn't dropped.
+        # ansible-recap style spells it as two tokens (`web01 : ok=12 …`).
         if [[ "${toks[0]:-}" == *: && ! "${toks[0]:-}" == *=* ]]; then
             local _nm="${toks[0]%:}"
             [[ -n "$_nm" ]] && result+="entry${entry}.name ${_nm}"$'\n'
             toks=("${toks[@]:1}")
+        elif [[ "${toks[1]:-}" == ":" && ! "${toks[0]:-}" == *=* ]]; then
+            result+="entry${entry}.name ${toks[0]}"$'\n'
+            toks=("${toks[@]:2}")
         fi
         # COLON flavor (aria2c's `#id 512MiB/1.4GiB(36%) CN:8 DL:12MiB ETA:1m14s`):
         # when the line has no `=` pairs but >=2 strict colon pairs, emit the

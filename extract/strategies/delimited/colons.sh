@@ -19,7 +19,7 @@ strategy_detect () {
     # A real `key: value` line: optional indent, a label, a colon, then whitespace
     # or end of line. Requiring whitespace after the colon avoids matching colons
     # inside timestamps/values (e.g. `date`'s `10:15:42`) as a key.
-    local _re="(^|${_nl})[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|${_nl}|$)"
+    local _re="(^|${_nl})[[:space:]]*[A-Za-z][A-Za-z0-9_. -]*:([[:space:]]|${_nl}|$)"
     # Bracketed keys — Android getprop's `[ro.product.model]: [Pixel 8]`.
     local _bre="(^|${_nl})\[[A-Za-z][A-Za-z0-9._-]*\]:([[:space:]]|${_nl}|$)"
     [[ "$text" =~ $_re || "$text" =~ $_bre ]] || return 1
@@ -29,7 +29,7 @@ strategy_detect () {
     # `strings` output). Below ~40% this isn't colon-delimited data — let the
     # last-resort line-records catch it as a one-column list instead.
     local _kv=0 _nb=0 _l
-    local _line_re="^[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|$)"
+    local _line_re="^[[:space:]]*[A-Za-z][A-Za-z0-9_. -]*:([[:space:]]|$)"
     local _bline_re="^[[:space:]]*\[[A-Za-z][A-Za-z0-9._-]*\]:([[:space:]]|$)"
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue

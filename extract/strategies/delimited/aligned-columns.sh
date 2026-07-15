@@ -29,6 +29,56 @@ _ac_is_value () { [[ "$1" =~ ^[0-9] ]]; }
 # but only when a real (>=2 column) table follows.
 _ac_body () {
     local text="$1" _l _tk out="" started=0 has_table=0
+
+    # AUDIT-REPORT chrome (aureport family): `====` rule lines are never
+    # data; a 1-2 token line DIRECTLY ABOVE a rule is the report title; a
+    # single `# label label …` line among the first lines is the real
+    # header wearing a comment marker — strip the marker. Sequentially
+    # numbered `N.` first tokens on every data row are row numbers (the
+    # melt's `n` column already carries that) — strip them.
+    if [[ "$text" == *$'\n'====* || "$text" =~ (^|$'\n')'# '[a-z] ]]; then
+        local _ar_lines=() _ar_i
+        while IFS= read -r _l; do _ar_lines+=("$_l"); done <<< "$text"
+        # drop rules + the title above the first rule
+        local _ar_out=() _ar_hash=-1 _ar_hashes=0
+        for ((_ar_i = 0; _ar_i < ${#_ar_lines[@]}; _ar_i++)); do
+            _l="${_ar_lines[$_ar_i]}"
+            if [[ "$_l" =~ ^[[:space:]]*={4,}[[:space:]]*$ ]]; then
+                # title directly above the FIRST rule (<=2 tokens, no colon)
+                if [[ ${#_ar_out[@]} -ge 1 ]]; then
+                    local _ar_last="${_ar_out[$(( ${#_ar_out[@]} - 1 ))]}"
+                    local _ar_lt=(); read -ra _ar_lt <<< "$_ar_last"
+                    [[ ${#_ar_lt[@]} -le 2 && ! "$_ar_last" == *:* && "$_ar_last" =~ ^[A-Z] ]] && unset '_ar_out[$(( ${#_ar_out[@]} - 1 ))]'
+                    _ar_out=("${_ar_out[@]}")
+                fi
+                continue
+            fi
+            [[ "$_l" == "# "* ]] && { _ar_hashes=$((_ar_hashes + 1)); _ar_hash=${#_ar_out[@]}; }
+            _ar_out+=("$_l")
+        done
+        # exactly one `# …` line within the first 3 kept lines → header
+        if [[ $_ar_hashes -eq 1 && $_ar_hash -ge 0 && $_ar_hash -le 2 ]]; then
+            _ar_out[$_ar_hash]="${_ar_out[$_ar_hash]#\# }"
+        fi
+        # sequential `N.` first tokens on every line after the header
+        local _ar_seq=1 _ar_want=1 _ar_started=0
+        for ((_ar_i = _ar_hash >= 0 ? _ar_hash + 1 : 1; _ar_i < ${#_ar_out[@]}; _ar_i++)); do
+            [[ -z "${_ar_out[$_ar_i]//[[:space:]]/}" ]] && continue
+            _tk=(); read -ra _tk <<< "${_ar_out[$_ar_i]}"
+            [[ "${_tk[0]:-}" == "${_ar_want}." ]] || { _ar_seq=0; break; }
+            _ar_want=$((_ar_want + 1)); _ar_started=1
+        done
+        if [[ $_ar_seq -eq 1 && $_ar_started -eq 1 && $_ar_want -ge 3 ]]; then
+            for ((_ar_i = _ar_hash >= 0 ? _ar_hash + 1 : 1; _ar_i < ${#_ar_out[@]}; _ar_i++)); do
+                [[ -z "${_ar_out[$_ar_i]//[[:space:]]/}" ]] && continue
+                local _ar_rest="${_ar_out[$_ar_i]#*.}"
+                _ar_rest="${_ar_rest# }"
+                _ar_out[$_ar_i]="$_ar_rest"
+            done
+        fi
+        text="$(printf '%s\n' "${_ar_out[@]}")"
+    fi
+
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         _tk=(); read -ra _tk <<< "$_l"

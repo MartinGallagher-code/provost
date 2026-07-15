@@ -1524,7 +1524,7 @@ multipass-list	table	2	4
 vboxmanage-list-vms	text	-	2
 vagrant-status	table	3	2
 systemd-nspawn-list	table	2	6
-adb-devices	table	3	2
+adb-devices	table	2	2
 adb-shell-getprop	kv	-	2
 fastboot-getvar	kv	-	2
 esptool-flash-id	kv	-	2
