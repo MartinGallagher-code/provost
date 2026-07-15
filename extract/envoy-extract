@@ -846,6 +846,22 @@ _lc_strip () {
         printf '%s' "$_in"
     fi
 }
+# Interspersed `== section ==` banner lines (apptainer inspect's
+# `== labels ==` / `== runscript ==`) are pure section decoration — drop
+# any line that is entirely `==…== words ==…==`, wherever it sits. Tightly
+# shaped (leading and trailing `==` runs, alnum-bearing middle) so a real
+# `a == b` comparison row is never touched. Gated on the byte pair.
+if [[ "$text" == *'== '* ]]; then
+    _banner_out=""
+    while IFS= read -r _bl; do
+        if [[ "$_bl" =~ ^[[:space:]]*={2,}[[:space:]]+[A-Za-z0-9].*[[:space:]]+={2,}[[:space:]]*$ ]]; then
+            continue
+        fi
+        _banner_out+="$_bl"$'\n'
+    done <<< "$text"
+    text="${_banner_out%$'\n'}"
+fi
+
 case "$text" in
     '$ '*|WARNING:*|ERROR:*|NOTICE:*|*'******'*|List\ *|Ran\ *)
         text="$(_lc_strip "$text")" ;;

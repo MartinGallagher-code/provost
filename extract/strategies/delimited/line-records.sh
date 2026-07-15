@@ -11,21 +11,18 @@
 # columns c1..cN. Priority 96 keeps it strictly last-resort — every real parser
 # runs first.
 
-# A LEADING `# …` line when no other line starts `# ` is a location banner
-# (`# /home/…/ansible_collections` over the collection list), not a record.
-# Kept strategy-local: bespoke parsers (go mod why) read their `# module`
-# markers, so the engine must not strip these globally.
+# A LEADING `# /path` line is a location banner (`# /home/…/ansible_collections`
+# over the collection list), not a record. Narrow to a PATH content (`# /…`)
+# so section titles (`# conda environments:`, `# Memory`, `# name`) that a
+# real parser uses as a header are never stripped. Strategy-local: bespoke
+# parsers (go mod why) read their own `# module` markers.
 _lr_body () {
-    local text="$1" _l _n=0 _later=0
-    while IFS= read -r _l; do
-        _n=$((_n + 1))
-        [[ $_n -ge 2 && "$_l" == "# "* ]] && _later=1
-    done <<< "$text"
-    if [[ $_later -eq 0 && "$text" == "# "* && $_n -ge 3 ]]; then
-        printf '%s' "${text#*$'\n'}"
-    else
-        printf '%s' "$text"
+    local text="$1"
+    if [[ "$text" == '# /'* ]]; then
+        local _rest="${text#*$'\n'}"
+        [[ -n "${_rest//[[:space:]]/}" ]] && { printf '%s' "$_rest"; return; }
     fi
+    printf '%s' "$text"
 }
 
 strategy_detect () {

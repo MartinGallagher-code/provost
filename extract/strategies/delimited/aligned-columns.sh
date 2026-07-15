@@ -36,7 +36,7 @@ _ac_body () {
     # header wearing a comment marker — strip the marker. Sequentially
     # numbered `N.` first tokens on every data row are row numbers (the
     # melt's `n` column already carries that) — strip them.
-    if [[ "$text" == *$'\n'====* || "$text" =~ (^|$'\n')'# '[a-z] ]]; then
+    if [[ "$text" == *$'\n'====* ]]; then
         local _ar_lines=() _ar_i
         while IFS= read -r _l; do _ar_lines+=("$_l"); done <<< "$text"
         # drop rules + the title above the first rule
