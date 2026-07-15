@@ -1,8 +1,7 @@
-n	A	B	C	D	E	total_entries
-1	$	subfinder	-d	example.com	-silent	7
-2	api.example.com					7
-3	app.example.com					7
-4	mail.example.com					7
-5	dev.example.com					7
-6	staging.example.com					7
-7	vpn.example.com					7
+n	A	total_entries
+1	api.example.com	6
+2	app.example.com	6
+3	mail.example.com	6
+4	dev.example.com	6
+5	staging.example.com	6
+6	vpn.example.com	6

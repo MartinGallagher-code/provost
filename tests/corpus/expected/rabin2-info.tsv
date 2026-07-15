@@ -1,8 +1,7 @@
-n	A	B	C	D	total_entries
-1	$	rabin2	-I	/usr/bin/curl	7
-2	format	elf64			7
-3	bintype	elf			7
-4	class	ELF64			7
-5	lang	c			7
-6	machine	AMD	x86-64		7
-7	stripped	false			7
+n	A	B	C	total_entries
+1	format	elf64		6
+2	bintype	elf		6
+3	class	ELF64		6
+4	lang	c		6
+5	machine	AMD	x86-64	6
+6	stripped	false		6

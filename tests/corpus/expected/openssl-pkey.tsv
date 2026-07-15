@@ -1,2 +1,7 @@
-Private-Key	modulus	publicExponent	privateExponent	prime1	prime2
-(2048_bit,_2_primes)	00:c3:af:9e:11:7b:...:fake:8d	65537 (0x10001)	4a:22:e0:...:fake:91	00:f1:0c:...:fake:2d	00:d0:9a:...:fake:7c
+n	A	B	C	total_entries
+1	Private-Key:	(2048	bit,_2_primes)	6
+2	modulus	:	00:c3:af:9e:11:7b:...:fake:8d	6
+3	publicExponent	:	65537_(0x10001)	6
+4	privateExponent	:	4a:22:e0:...:fake:91	6
+5	prime1	:	00:f1:0c:...:fake:2d	6
+6	prime2	:	00:d0:9a:...:fake:7c	6
