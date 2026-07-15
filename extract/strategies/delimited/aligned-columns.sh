@@ -690,22 +690,83 @@ _ac_assign () {
             while (i<=L && !(substr(hl,i,1)==" " && substr(hl,i+1,1)==" ")) i++
         }
         cstart[nc+1]=1000000
-    }
-    {
-        line=$0; L=length(line); i=1
-        for (c=1;c<=nc;c++) cell[c]=""
+        # Header tokens with their own start/end offsets — the raw material
+        # for the sub-column refinement below.
+        hn=0; i=1
         while (i<=L) {
-            while (i<=L && substr(line,i,1)==" ") i++
+            while (i<=L && substr(hl,i,1)==" ") i++
             if (i>L) break
-            ts=i; tok=""
-            while (i<=L && substr(line,i,1)!=" ") { tok=tok substr(line,i,1); i++ }
-            col=1
-            for (c=1;c<=nc;c++) { if (cstart[c]<=ts) col=c; else break }
-            if (cell[col]=="") cell[col]=tok; else cell[col]=cell[col] " " tok
+            hn++; hts[hn]=i
+            while (i<=L && substr(hl,i,1)!=" ") i++
+            hte[hn]=i-1
         }
-        out=cell[1]
-        for (c=2;c<=nc;c++) out=out "\t" cell[c]
-        print out
+    }
+    { rows[NR]=$0; nr=NR }
+    END {
+        # SUB-COLUMN REFINEMENT. A 2-space window holding k>=2 header tokens
+        # is EITHER one multi-word label ("Ends At", "Property Name") OR k
+        # separate single-space-separated columns ("SIZE USED PRIO",
+        # "DEVICE OFFSET TYPE UUID"). The tell is alignment: real sub-columns
+        # keep their data tokens edge-aligned under each header token (left
+        # edge for left-aligned, right edge for right-aligned); a multi-word
+        # value ("2026-07-11 06:00:00" under "Ends At") aligns only with the
+        # window, not with each label token. Split a window into sub-columns
+        # only when EVERY header token in it edge-aligns in >=60% of rows.
+        ndata=nr-1
+        for (r=2;r<=nr;r++) {
+            line=rows[r]; L=length(line); i=1
+            while (i<=L) {
+                while (i<=L && substr(line,i,1)==" ") i++
+                if (i>L) break
+                ts=i
+                while (i<=L && substr(line,i,1)!=" ") i++
+                sa[r "," ts]=1; ea[r "," (i-1)]=1
+            }
+        }
+        m=0
+        for (w=1;w<=nc;w++) {
+            k=0
+            for (t=1;t<=hn;t++)
+                if (hts[t]>=cstart[w] && hts[t]<cstart[w+1]) { k++; wt[k]=t }
+            ok=0
+            if (k>=2 && ndata>0) {
+                ok=1
+                for (j=1;j<=k;j++) {
+                    t=wt[j]; hit=0
+                    for (r=2;r<=nr;r++)
+                        if (sa[r "," hts[t]] || ea[r "," hte[t]]) hit++
+                    if (hit*100/ndata < 60) { ok=0; break }
+                }
+            }
+            if (ok) {
+                for (j=1;j<=k;j++) {
+                    m++; bstart[m]=hts[wt[j]]; bend[m]=hte[wt[j]]; bsub[m]=1
+                }
+            } else { m++; bstart[m]=cstart[w]; bend[m]=0; bsub[m]=0 }
+        }
+        bstart[m+1]=1000000
+        for (r=1;r<=nr;r++) {
+            line=rows[r]; L=length(line); i=1
+            for (c=1;c<=m;c++) cell[c]=""
+            while (i<=L) {
+                while (i<=L && substr(line,i,1)==" ") i++
+                if (i>L) break
+                ts=i; tok=""
+                while (i<=L && substr(line,i,1)!=" ") { tok=tok substr(line,i,1); i++ }
+                te=i-1
+                col=1
+                for (c=1;c<=m;c++) { if (bstart[c]<=ts) col=c; else break }
+                # Right-aligned escape: a value wider than its header label
+                # starts left of the sub-column boundary but ENDS on the
+                # label end — end-alignment wins over start assignment.
+                for (c=1;c<=m;c++)
+                    if (bsub[c] && te==bend[c]) { col=c; break }
+                if (cell[col]=="") cell[col]=tok; else cell[col]=cell[col] " " tok
+            }
+            out=cell[1]
+            for (c=2;c<=m;c++) out=out "\t" cell[c]
+            print out
+        }
     }'
 }
 
@@ -728,6 +789,136 @@ _ac_split () {
       print out
     }'
 }
+
+# Char-accurate positional grid for blocks with SCATTERED multibyte content
+# (asv's `412±2ns`): the awk grid measures BYTES, so every token after a
+# multibyte char drifts right and lands under the wrong header window. Bash
+# under a UTF-8 locale measures characters. Subshell body so the locale
+# switch can't leak. Prints the TAB grid when the block is cleanly aligned
+# (>=80% of rows), else exits 1 (caller falls back). Fully-CJK tables keep
+# the awk path — their double-width glyphs make byte math the closer proxy.
+_ac_grid_mb () (
+    export LC_ALL=C.UTF-8
+    local hl; IFS= read -r hl
+    local L=${#hl}; local i=0; local nc=0; local cstart=()
+    while (( i < L )); do
+        while (( i < L )) && [[ "${hl:$i:1}" == " " ]]; do i=$((i+1)); done
+        (( i >= L )) && break
+        cstart+=("$i"); nc=$((nc+1))
+        while (( i < L )); do
+            [[ "${hl:$i:1}" == " " && "${hl:$((i+1)):1}" == " " ]] && break
+            i=$((i+1))
+        done
+    done
+    (( nc < 2 )) && exit 1
+    local rows=("$hl"); local l
+    # `|| [[ -n "$l" ]]`: the caller pipes without a trailing newline, and a
+    # plain read loop would silently drop the final data row.
+    while IFS= read -r l || [[ -n "$l" ]]; do rows+=("$l"); done
+    local aligned=0; local ndata=0; local r; local c; local ch
+    for ((r=1; r<${#rows[@]}; r++)); do
+        ndata=$((ndata+1)); local ok=1
+        for ((c=1; c<nc; c++)); do
+            ch="${rows[$r]:$((${cstart[$c]}-1)):1}"
+            [[ -n "$ch" && "$ch" != " " ]] && { ok=0; break; }
+        done
+        [[ $ok -eq 1 ]] && aligned=$((aligned+1))
+    done
+    (( ndata == 0 )) && exit 1
+    if (( aligned * 100 / ndata >= 80 )); then
+        for ((r=0; r<${#rows[@]}; r++)); do
+            local line="${rows[$r]}"; local n=${#line}; local j=0
+            local cells=()
+            for ((c=0; c<nc; c++)); do cells+=(""); done
+            while (( j < n )); do
+                while (( j < n )) && [[ "${line:$j:1}" == " " ]]; do j=$((j+1)); done
+                (( j >= n )) && break
+                local ts=$j; local tok=""
+                while (( j < n )) && [[ "${line:$j:1}" != " " ]]; do tok+="${line:$j:1}"; j=$((j+1)); done
+                local col=0
+                for ((c=0; c<nc; c++)); do
+                    if (( ${cstart[$c]} <= ts )); then col=$c; else break; fi
+                done
+                if [[ -z "${cells[$col]}" ]]; then cells[$col]="$tok"; else cells[$col]+=" $tok"; fi
+            done
+            local out="${cells[0]}"
+            for ((c=1; c<nc; c++)); do out+=$'\t'"${cells[$c]}"; done
+            printf '%s\n' "$out"
+        done
+        exit 0
+    fi
+    # RAGGED-ALIGNMENT fallback: a benchmark-style table whose data rows have
+    # a UNIFORM token count above the label count (asv's `+ 412±2ns 440±3ns
+    # 1.07 parser.time_parse` under `before after ratio`) with right-aligned
+    # bleed. Use the first modal-width row's token spans as the reference
+    # columns, map each header label onto the column it overlaps most (extra
+    # columns stay unnamed for the caller's letter fallback), then assign
+    # every row's tokens to reference columns by best overlap.
+    _mb_spans () {  # $1=line -> _MB_TS/_MB_TE/_MB_TOK arrays
+        local line="$1"; local n=${#line}; local j=0
+        _MB_TS=(); _MB_TE=(); _MB_TOK=()
+        while (( j < n )); do
+            while (( j < n )) && [[ "${line:$j:1}" == " " ]]; do j=$((j+1)); done
+            (( j >= n )) && break
+            local ts=$j; local tok=""
+            while (( j < n )) && [[ "${line:$j:1}" != " " ]]; do tok+="${line:$j:1}"; j=$((j+1)); done
+            _MB_TS+=("$ts"); _MB_TE+=("$((j-1))"); _MB_TOK+=("$tok")
+        done
+    }
+    local counts=(); local r2
+    for ((r2=1; r2<${#rows[@]}; r2++)); do
+        _mb_spans "${rows[$r2]}"
+        counts+=("${#_MB_TOK[@]}")
+    done
+    local modal=0; local best=0; local a; local b; local k
+    for a in "${counts[@]}"; do
+        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k+1)); done
+        [[ $k -gt $best ]] && { best=$k; modal=$a; }
+    done
+    (( modal > nc && best >= 2 )) || exit 1
+    local refts=(); local refte=()
+    for ((r2=1; r2<${#rows[@]}; r2++)); do
+        _mb_spans "${rows[$r2]}"
+        [[ ${#_MB_TOK[@]} -eq $modal ]] || continue
+        refts=("${_MB_TS[@]}"); refte=("${_MB_TE[@]}"); break
+    done
+    [[ ${#refts[@]} -eq $modal ]] || exit 1
+    _mb_best_col () {  # $1=ts $2=te -> echoes reference column with max overlap
+        local ts=$1; local te=$2; local bc=0; local bo=-999999; local c2 o lo hi
+        for ((c2=0; c2<modal; c2++)); do
+            lo=$ts; [[ ${refts[$c2]} -gt $lo ]] && lo=${refts[$c2]}
+            hi=$te; [[ ${refte[$c2]} -lt $hi ]] && hi=${refte[$c2]}
+            o=$((hi - lo))
+            [[ $o -gt $bo ]] && { bo=$o; bc=$c2; }
+        done
+        echo "$bc"
+    }
+    local out_rows=(); local hdr=(); local c3
+    for ((c3=0; c3<modal; c3++)); do hdr+=(""); done
+    _mb_spans "$hl"
+    local hi2
+    for ((hi2=0; hi2<${#_MB_TOK[@]}; hi2++)); do
+        c3="$(_mb_best_col "${_MB_TS[$hi2]}" "${_MB_TE[$hi2]}")"
+        if [[ -z "${hdr[$c3]}" ]]; then hdr[$c3]="${_MB_TOK[$hi2]}"; else hdr[$c3]+=" ${_MB_TOK[$hi2]}"; fi
+    done
+    local out="${hdr[0]}"
+    for ((c3=1; c3<modal; c3++)); do out+=$'\t'"${hdr[$c3]}"; done
+    out_rows+=("$out")
+    for ((r2=1; r2<${#rows[@]}; r2++)); do
+        _mb_spans "${rows[$r2]}"
+        local cells2=()
+        for ((c3=0; c3<modal; c3++)); do cells2+=(""); done
+        for ((hi2=0; hi2<${#_MB_TOK[@]}; hi2++)); do
+            c3="$(_mb_best_col "${_MB_TS[$hi2]}" "${_MB_TE[$hi2]}")"
+            if [[ -z "${cells2[$c3]}" ]]; then cells2[$c3]="${_MB_TOK[$hi2]}"; else cells2[$c3]+=" ${_MB_TOK[$hi2]}"; fi
+        done
+        out="${cells2[0]}"
+        for ((c3=1; c3<modal; c3++)); do out+=$'\t'"${cells2[$c3]}"; done
+        out_rows+=("$out")
+    done
+    printf '%s\n' "${out_rows[@]}"
+    exit 0
+)
 
 strategy_extract () {
     local text="$1"
@@ -905,9 +1096,22 @@ strategy_extract () {
             local _hsegq; _hsegq="$(_ac_seg "${lines[$hidx]}")"
             [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]] && _use_pos=1
         fi
-        if [[ $_use_pos -eq 1 && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
+        # Route lightly-non-ASCII blocks (<20% multibyte chars) through the
+        # char-accurate bash grid; everything else through the awk grid.
+        local _mb_grid=""
+        if [[ $_use_pos -eq 1 && "$hd" == *[![:ascii:]]* ]]; then
+            local _mb_ascii="${hd//[![:ascii:]]/}"
+            if (( (${#hd} - ${#_mb_ascii}) * 5 < ${#hd} )); then
+                _mb_grid="$(printf '%s' "$hd" | _ac_grid_mb)" || _mb_grid=""
+            fi
+        fi
+        if [[ $_use_pos -eq 1 ]] && { [[ -n "$_mb_grid" ]] || [[ "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; }; then
             local gridrows=() _g
-            while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
+            if [[ -n "$_mb_grid" ]]; then
+                while IFS= read -r _g; do gridrows+=("$_g"); done <<< "$_mb_grid"
+            else
+                while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
+            fi
             if [[ ${#gridrows[@]} -ge 2 ]]; then
                 # Tab-SAFE cell split: `IFS=$'\t' read -ra` treats TAB as IFS
                 # whitespace, so leading/consecutive tabs COLLAPSE and an empty
@@ -967,7 +1171,11 @@ strategy_extract () {
                 gridrows=("${gridrows[0]}" "${_wj[@]}")
 
                 local headers=() result="" entry=0 li i
-                IFS=$'\t' read -ra headers <<< "${gridrows[0]}"
+                # Tab-SAFE header split too: the ragged-alignment mb grid can
+                # emit EMPTY leading/interior header cells (asv's unnamed sign
+                # column) — IFS-tab read would strip them and shift every name
+                # left. Empty cells fall through to the letter fallback below.
+                _ac_cells "${gridrows[0]}"; headers=("${_AC_CELLS[@]}")
                 for ((i = 0; i < ${#headers[@]}; i++)); do
                     local h="${headers[$i]//./_}"; h="${h// /_}"
                     while [[ "$h" == *__* ]]; do h="${h//__/_}"; done
@@ -1148,6 +1356,87 @@ strategy_extract () {
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
+
+    # SCAFFOLD SPLIT: headerless RAGGED rows sharing >=2 function words
+    # (`? (ip) at MAC [ether] on eth0` / `? (ip) at <incomplete> on eth0`,
+    # arp -an) are sentence-records, and per-position columns misalign the
+    # moment an optional field is absent. The constant function words are the
+    # real field boundaries: split there, name each following segment after
+    # its scaffold word, and keep multi-token segments as ONE cell. Fires
+    # only when every row carries the SAME allowlisted words (at on from via
+    # dev to of by for), each exactly once, in the same order, with a uniform
+    # prefix width — so ordinary uniform tables and ip-route-style blocks
+    # (word sets differ per row) never enter.
+    if [[ "$mode" == HL && ${#lines[@]} -ge 2 ]]; then
+        local _sc_r _sc_tk _sc_w0=-1 _sc_ragged=0
+        for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
+            _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+            [[ $_sc_w0 -lt 0 ]] && _sc_w0=${#_sc_tk[@]}
+            [[ ${#_sc_tk[@]} -ne $_sc_w0 ]] && _sc_ragged=1
+        done
+        if [[ $_sc_ragged -eq 1 ]]; then
+            local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_t _sc_i
+            _sc_tk=(); read -ra _sc_tk <<< "${lines[$startidx]}"
+            for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
+                case "${_sc_tk[$_sc_i]}" in
+                    at|on|from|via|dev|to|of|by|for)
+                        [[ ${#_sc_seq[@]} -eq 0 ]] && _sc_pre=$_sc_i
+                        _sc_seq+=("${_sc_tk[$_sc_i]}") ;;
+                esac
+            done
+            local _sc_a _sc_b
+            for ((_sc_a = 0; _sc_a < ${#_sc_seq[@]} && _sc_ok == 1; _sc_a++)); do
+                for ((_sc_b = _sc_a + 1; _sc_b < ${#_sc_seq[@]}; _sc_b++)); do
+                    [[ "${_sc_seq[$_sc_a]}" == "${_sc_seq[$_sc_b]}" ]] && { _sc_ok=0; break; }
+                done
+            done
+            if [[ $_sc_ok -eq 1 && ${#_sc_seq[@]} -ge 2 && $_sc_pre -ge 1 ]]; then
+                # verify every row: same words, same order, exactly once,
+                # same prefix width
+                local _sc_rows=()
+                for ((_sc_r = startidx; _sc_r < ${#lines[@]} && _sc_ok == 1; _sc_r++)); do
+                    _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+                    local _sc_found=() _sc_fpre=-1
+                    for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
+                        case "${_sc_tk[$_sc_i]}" in
+                            at|on|from|via|dev|to|of|by|for)
+                                [[ ${#_sc_found[@]} -eq 0 ]] && _sc_fpre=$_sc_i
+                                _sc_found+=("${_sc_tk[$_sc_i]}") ;;
+                        esac
+                    done
+                    [[ "${_sc_found[*]}" == "${_sc_seq[*]}" && $_sc_fpre -eq $_sc_pre ]] || _sc_ok=0
+                done
+                if [[ $_sc_ok -eq 1 ]]; then
+                    local _sc_res="" _sc_e=0
+                    for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
+                        _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+                        _sc_e=$((_sc_e + 1))
+                        for ((_sc_i = 0; _sc_i < _sc_pre; _sc_i++)); do
+                            _sc_res+="entry${_sc_e}.$(_col_letter $((_sc_i + 1))) ${_sc_tk[$_sc_i]}"$'\n'
+                        done
+                        local _sc_name="" _sc_val=""
+                        for ((_sc_i = _sc_pre; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
+                            local _sc_isword=0
+                            case "${_sc_tk[$_sc_i]}" in
+                                at|on|from|via|dev|to|of|by|for) _sc_isword=1 ;;
+                            esac
+                            if [[ $_sc_isword -eq 1 ]]; then
+                                [[ -n "$_sc_name" && -n "$_sc_val" ]] && _sc_res+="entry${_sc_e}.${_sc_name} ${_sc_val}"$'\n'
+                                _sc_name="${_sc_tk[$_sc_i]}"; _sc_val=""
+                            else
+                                _sc_val+="${_sc_val:+ }${_sc_tk[$_sc_i]}"
+                            fi
+                        done
+                        [[ -n "$_sc_name" && -n "$_sc_val" ]] && _sc_res+="entry${_sc_e}.${_sc_name} ${_sc_val}"$'\n'
+                    done
+                    if [[ $_sc_e -gt 0 ]]; then
+                        _sc_res+="total_entries ${_sc_e}"$'\n'
+                        echo "$_sc_res"; return 0
+                    fi
+                fi
+            fi
+        fi
+    fi
 
     # HEADERLESS PHRASE MERGE: with no header to say otherwise, a pair of
     # adjacent columns holding the SAME two lowercase words on every row
