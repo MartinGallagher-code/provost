@@ -78,11 +78,12 @@ strategy_extract () {
     # (2+ spaces) or the line is a bare label (colon at end). A URL
     # (`https://…`), a `so:lib…` / `cmd:pkg=…` token — colon NOT followed by a
     # space — is NOT structural, so it folds as a value below its label.
+    # Structural = a label, a colon, then WHITESPACE or end-of-line
+    # (`Containers: 12`, `Client:`, `Byte Order:  Little`). A URL
+    # (`https://…` — colon then `/`), a `so:libc…` / `cmd:pkg=…` token
+    # (colon then a non-space) is NOT structural, so it folds as a value.
     _kv_structural () {
-        local x="$1"
-        [[ "$x" =~ ^[A-Za-z][^:]*:$ ]] && return 0            # bare label
-        [[ "$x" =~ ^[A-Za-z][^:]*:[[:space:]][[:space:]] ]] && return 0
-        return 1
+        [[ "$1" =~ ^[A-Za-z][^:]*:([[:space:]]|$) ]]
     }
     local _await_val=0
     while IFS= read -r line; do
@@ -123,18 +124,19 @@ strategy_extract () {
         fi
     done <<< "$text"
 
-    # Drop bare SECTION-HEADER labels — an empty-value key immediately
-    # followed by another key is a heading ("Summary:" over the totals), not
-    # a field; the reviewer flagged it as a spurious row. A trailing empty-
-    # value key (a real field that happens to be blank) is kept.
-    local result="" i entry=0
+    # NOTE: bare section-header labels (aide-check's `Summary:`, lscpu's
+    # `Caches (sum of all):`) are still emitted as empty-value rows. Dropping
+    # them blindly loses GROUP context where the "header" actually
+    # disambiguates repeated keys (sensors' `Core 0:` / `Core 1:` over the
+    # same temp keys, docker's `Client:` / `Server:` over `Version`) — that
+    # is the kv-under-group shape, deferred to a dedicated pivot round rather
+    # than a blunt drop here.
+    local result="" i
     for ((i=1; i<=n; i++)); do
-        if [[ -z "${V[$i]}" && $i -lt $n ]]; then continue; fi
-        entry=$((entry + 1))
-        result+="entry${entry}.key ${K[$i]}"$'\n'
-        [[ -n "${V[$i]}" ]] && result+="entry${entry}.value ${V[$i]}"$'\n'
+        result+="entry${i}.key ${K[$i]}"$'\n'
+        [[ -n "${V[$i]}" ]] && result+="entry${i}.value ${V[$i]}"$'\n'
     done
-    (( entry > 0 )) && result+="total_entries ${entry}"$'\n'
+    (( n > 0 )) && result+="total_entries ${n}"$'\n'
 
     echo "$result"
 }
