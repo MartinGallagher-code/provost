@@ -1,9 +1,7 @@
-n	A	B	C	D	E	F	total_entries
-1	$	r2	-c	'iI'	-q	/bin/ls	8
-2	arch	x86					8
-3	bits	64					8
-4	os	linux					8
-5	type	DYN	(PIE)				8
-6	canary	true					8
-7	nx	true					8
-8	pic	true					8
+n	arch	x86	total_entries
+1	bits	64	6
+2	os	linux	6
+3	type	DYN (PIE)	6
+4	canary	true	6
+5	nx	true	6
+6	pic	true	6
