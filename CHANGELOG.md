@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 6 (R6, partial): pipe-table equals rule
+
+Sixth review-workbook round (round-2 marks). The reviewer's firmest R6 ask
+— "pipes are delimiters, remove them from the output." First landed fix:
+
+- `delimited/psql-table.sh`: the box-separator now recognises an EQUALS
+  rule (`====+====+====`) alongside the dash rule, so airflow dags list
+  (`dag_id | filepath | owner | paused` over a `===+===` rule) parses as a
+  clean 4-column pipe table (pipes gone) instead of vertical-line keeping
+  the `|` glyphs as their own columns. 1 flip, 0 collateral.
+
+Still open in R6 (each a distinct format, deferred): atop (`PRC | sys 1.42s
+| …` pipe-delimited kv rows), alias-list (`alias NAME='VALUE'` — `=` split,
+drop the `alias` keyword), artillery-report (dot-leader `……` delimiters),
+ansible-v (bracket + space → A/B), autocannon-run (first line is data),
+bundle-outdated (missed rows). Gate 3443/0.
+
 ## 2026-07-15 — reviewer round 5 (R5, partial): kv misroutes + multiline values
 
 Fifth review-workbook round (round-2 marks). R5's headline — single-entity
