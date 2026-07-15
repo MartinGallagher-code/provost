@@ -14,12 +14,12 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | aa-status-summary | ✅ | text-lines |
 | aa-unconfined | ✅ | aligned-columns |
 | accounting-trial-balance | ✅ | aligned-columns |
-| acpi-battery-thermal | ✅ | aligned-columns |
+| acpi-battery-thermal | ✅ | colons |
 | acpi | ✅ | colons |
 | acpitool | ✅ | colons |
 | act-list | ✅ | aligned-columns |
 | adb-devices | ✅ | aligned-columns |
-| adb-shell-getprop | ✅ | line-records |
+| adb-shell-getprop | ✅ | colons |
 | age-decrypt | ✅ | colons |
 | age-encrypt | ✅ | yaml |
 | age-keygen | ✅ | text-lines |
@@ -74,7 +74,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | apt-cache-show-vim | ✅ | colons |
 | apt-cache-show | ✅ | yaml |
 | apt-cache-showsrc-multi | ✅ | block-records |
-| apt-cache-stats | ✅ | aligned-columns |
+| apt-cache-stats | ✅ | colons |
 | apt-get-download-progress | ✅ | text-lines |
 | apt-list-mixed-state | ✅ | aligned-columns |
 | apt-list-upgradable | ✅ | aligned-columns |
@@ -95,7 +95,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | argocd-cluster-list | ✅ | aligned-columns |
 | argocd-repo-list | ✅ | aligned-columns |
 | argocd-version | ✅ | yaml |
-| aria2c-progress | ✅ | aligned-columns |
+| aria2c-progress | ✅ | inline-kv |
 | arp-a | ✅ | aligned-columns |
 | arp-an-incomplete | ✅ | aligned-columns |
 | arp-scan | ✅ | arp-scan |
@@ -215,7 +215,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | bazel-query-deps | ✅ | line-records |
 | bazel-query-graph | ⏳ | — |
 | bazel-query-somepath | ✅ | line-records |
-| bazel-version | ✅ | aligned-columns |
+| bazel-version | ✅ | colons |
 | bazelisk-version | ✅ | colons |
 | bc-scale-output | ✅ | aligned-columns |
 | bcache-status | ✅ | colons |
@@ -652,7 +652,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | delta-diff-stat | ✅ | diffstat |
 | delv | ✅ | dns-records |
 | deno-check-summary | ✅ | indented-hierarchy |
-| deno-info-cache | ✅ | aligned-columns |
+| deno-info-cache | ✅ | colons |
 | deno-info | ✅ | colons |
 | deno-lint-summary | ✅ | aligned-columns |
 | deno-task-list | ✅ | line-records |
@@ -941,7 +941,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | etc-hosts-comment-tabs | ✅ | tsv |
 | etc-hosts-comments | ⏳ | — |
 | etcd-version | ✅ | aligned-columns |
-| etcdctl-alarm-list | ✅ | aligned-columns |
+| etcdctl-alarm-list | ✅ | inline-kv |
 | etcdctl-endpoint-health | ✅ | line-records |
 | etcdctl-endpoint-status | ✅ | psql-table |
 | etcdctl-get-prefix | ✅ | line-records |
@@ -1697,8 +1697,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | kubectl-top-pods-color | ✅ | aligned-columns |
 | kubectl-top-pods-sparse | ✅ | aligned-columns |
 | kubectl-top-pods | ✅ | aligned-columns |
-| kubectl-version-short | ✅ | aligned-columns |
-| kubectl-version | ✅ | aligned-columns |
+| kubectl-version-short | ✅ | colons |
+| kubectl-version | ✅ | colons |
 | kubectx-list | ✅ | line-records |
 | kubeflow-pipelines-list | ✅ | aligned-columns |
 | kubens-list | ✅ | line-records |
@@ -1911,7 +1911,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | mimirtool-rules-list | ✅ | pipe-table |
 | minimap2-log | ✅ | bracket-log |
 | minio-mc-ls | ✅ | bracket-log |
-| minisign-verify | ✅ | aligned-columns |
+| minisign-verify | ✅ | colons |
 | mise-ls | ✅ | aligned-columns |
 | mitmproxy-flows | ✅ | aligned-columns |
 | mix-deps-tree | ✅ | tree-view |
@@ -2758,7 +2758,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rabbitmqctl-list-connections | ✅ | aligned-columns |
 | rabbitmqctl-list-exchanges | ✅ | line-records |
 | rabbitmqctl-list-queues | ✅ | rabbitmqctl-list-queues |
-| rabbitmqctl-status | ✅ | aligned-columns |
+| rabbitmqctl-status | ✅ | colons |
 | rabin2-info | ✅ | line-records |
 | racket-version | ✅ | line-records |
 | radeontop-usage | ✅ | aligned-columns |
@@ -2871,7 +2871,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | rsync-itemize-paths-spaces | ⏳ | — |
 | rsync-itemize | ✅ | line-records |
 | rsync-progress | ✅ | indented-hierarchy |
-| rsync-stats | ✅ | aligned-columns |
+| rsync-stats | ✅ | colons |
 | rsync_stats | ✅ | colons |
 | rtl-sdr-test | ✅ | text-lines |
 | ruby-v | ✅ | line-records |

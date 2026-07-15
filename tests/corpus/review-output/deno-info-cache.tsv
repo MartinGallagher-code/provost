@@ -1,4 +1,2 @@
-n	DENO_DIR	location:	/home/deploy/_cache/deno	total_entries
-1	Remote	modules	cache:_/home/deploy/.cache/deno/deps_(44.2_MB)	3
-2	Emitted	modules	cache:_/home/deploy/.cache/deno/gen_(12.0_MB)	3
-3	Language	server	registries_cache:_4.1_MB	3
+DENO_DIR_location	Remote_modules_cache	Emitted_modules_cache	Language_server_registries_cache
+/home/deploy/.cache/deno	/home/deploy/.cache/deno/deps (44.2_MB)	/home/deploy/.cache/deno/gen (12.0_MB)	4.1 MB

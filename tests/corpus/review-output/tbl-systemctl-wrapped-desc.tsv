@@ -1,4 +1,4 @@
-n	UNIT	LOAD	ACTIVE_SUB	DESCRIPTION	total_entries
-1	ssh.service	loaded	active running	OpenBSD Secure Shell server	3
-2	NetworkManager.service	loaded	active running	Network Manager that manages network connections and devices	3
-3	cron.service	loaded	active running	Regular background program processing daemon	3
+n	UNIT	LOAD	ACTIVE	SUB	DESCRIPTION	total_entries
+1	ssh.service	loaded	active	running	OpenBSD Secure Shell server	3
+2	NetworkManager.service	loaded	active	running	Network Manager that manages network connections and devices	3
+3	cron.service	loaded	active	running	Regular background program processing daemon	3
