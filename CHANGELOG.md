@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 5 (R5, partial): kv misroutes + multiline values
+
+Fifth review-workbook round (round-2 marks). R5's headline — single-entity
+kv → one wide row — is a large convention change; this pass ships the
+contained, unambiguous fixes and DEFERS the sweeping pivot (it needs the
+kv-under-group grouping treatment, not a blunt row-drop: sensters `Core 0:`
+/ docker `Client:` are group labels that disambiguate repeated keys).
+
+- `structured/prometheus-query.sh`: detection tightened to the real
+  `name{key="value"} 123.45` form — braces must hold a `="` assignment and
+  the line end in a bare number. A package list whose `{origin}` braces have
+  no `=` (apk list → aligned-columns per-package rows) and a profiling
+  table (parca-query → clean 5-col aligned table) no longer false-match.
+- `structured/key-value.sh`: a bare label (`webpage:`) folds the
+  below-the-line value VERBATIM — its own colons are data, not a new key
+  (`https://busybox.net/`, `so:libc…`, openssl's multiline Serial Number
+  `0a:1b:…`). Fixes apk info -a (URLs no longer split into `https:` keys)
+  and collapses bogus hex-fragment keys across the openssl / x509 / crl /
+  cryptsetup / numactl family into their parent labels.
+
+Closes reviewer fixtures apk-list, apk-info-a; upgrades the openssl/x509
+family + parca-query. Gate 3443 passed, 0 failed, 263 ⏳, 0 deletions
+(14 goldens re-frozen; parca-query manifest 5→4 rows; vmagent-targets
+demoted to ⏳ — labeled-inline-kv splits its endpoint URLs, needs a
+containment pass). Suites: smoke 49/0, melt 10/0, extract all green.
+
+DEFERRED to a dedicated kv-pivot round: aide-check (single row + drop
+Summary), R-sessioninfo (missing R version), apachebench / atuin-stats
+(embedded bottom table), amtool-cluster-show / avro (list-value → rows),
+ansible-version (header line as field).
+
 ## 2026-07-15 — reviewer round 4 (R4): tree-view ancestor + value columns
 
 Fourth review-workbook round (round-2 marks; plan

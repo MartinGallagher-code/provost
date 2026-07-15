@@ -1,17 +1,16 @@
 n	key	value	total_entries
-1	Certificate Revocation List (CRL)	Version 2 (0x1)	16
-2	Signature Algorithm	sha256WithRSAEncryption	16
-3	Issuer	C=US, O=Example CA, CN=Example Intermediate CA	16
-4	Last Update	Jul  1 00:00:00 2026 GMT	16
-5	Next Update	Jul  8 00:00:00 2026 GMT	16
-6	CRL extensions		16
-7	X509v3 Authority Key Identifier		16
-8	keyid	AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89	16
-9	X509v3 CRL Number	142	16
-10	Revoked Certificates		16
-11	Serial Number	0A1B2C3D	16
-12	Revocation Date	Jun 15 12:30:00 2026 GMT	16
-13	Serial Number	4E5F6071	16
-14	Revocation Date	Jun 20 09:15:00 2026 GMT	16
-15	Signature Algorithm	sha256WithRSAEncryption	16
-16	3a	8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9	16
+1	Certificate Revocation List (CRL)	Version 2 (0x1)	15
+2	Signature Algorithm	sha256WithRSAEncryption	15
+3	Issuer	C=US, O=Example CA, CN=Example Intermediate CA	15
+4	Last Update	Jul  1 00:00:00 2026 GMT	15
+5	Next Update	Jul  8 00:00:00 2026 GMT	15
+6	CRL extensions		15
+7	X509v3 Authority Key Identifier	keyid:AB:CD:EF:01:23:45:67:89:AB:CD:EF:01:23:45:67:89	15
+8	X509v3 CRL Number	142	15
+9	Revoked Certificates		15
+10	Serial Number	0A1B2C3D	15
+11	Revocation Date	Jun 15 12:30:00 2026 GMT	15
+12	Serial Number	4E5F6071	15
+13	Revocation Date	Jun 20 09:15:00 2026 GMT	15
+14	Signature Algorithm	sha256WithRSAEncryption	15
+15	3a	8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9	15

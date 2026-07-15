@@ -2288,7 +2288,6 @@ tempo-query-search	table	3	7
 cortex-ring-status	table	4	8
 vmctl-verify	text	-	2
 vmalert-rules	text	-	2
-vmagent-targets	table	5	5
 grafana-cli-admin-stats	text	-	2
 amtool-silence-query	table	3	7
 amtool-config-show	text	-	2
@@ -2308,7 +2307,7 @@ netdata-charts	table	5	6
 vector-validate	text	-	2
 fluent-bit-inputs	table	4	7
 pyroscope-apps	table	5	5
-parca-query	table	5	5
+parca-query	table	4	5
 uptrace-services	table	4	7
 signoz-alerts	table	4	7
 sentry-cli-issues-list	table	4	7

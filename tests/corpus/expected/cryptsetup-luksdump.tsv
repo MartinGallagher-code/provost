@@ -1,32 +1,29 @@
 n	key	value	total_entries
-1	Version	2	31
-2	Epoch	4	31
-3	Metadata area	16384 [bytes]	31
-4	Keyslots area	16744448 [bytes]	31
-5	UUID	a1b2c3d4-e5f6-7890-abcd-ef1234567890	31
-6	Label	(no label)	31
-7	Subsystem	(no subsystem)	31
-8	Flags	(no flags)	31
-9	Data segments		31
-10	0	crypt	31
-11	offset	16777216 [bytes]	31
-12	length	(whole device)	31
-13	cipher	aes-xts-plain64	31
-14	sector	512 [bytes]	31
-15	Keyslots		31
-16	0	luks2	31
-17	Key	512 bits	31
-18	Priority	normal	31
-19	Cipher	aes-xts-plain64	31
-20	Cipher key	512 bits	31
-21	PBKDF	argon2id	31
-22	Time cost	4	31
-23	Memory	1048576	31
-24	Threads	4	31
-25	Salt	9a 8b 7c 6d 5e 4f 3a 2b 1c 0d ef 12 34 56 78 90	31
-26	AF stripes	4000	31
-27	Tokens		31
-28	Digests		31
-29	0	pbkdf2	31
-30	Hash	sha256	31
-31	Iterations	129847	31
+1	Version	2	28
+2	Epoch	4	28
+3	Metadata area	16384 [bytes]	28
+4	Keyslots area	16744448 [bytes]	28
+5	UUID	a1b2c3d4-e5f6-7890-abcd-ef1234567890	28
+6	Label	(no label)	28
+7	Subsystem	(no subsystem)	28
+8	Flags	(no flags)	28
+9	Data segments	0: crypt	28
+10	offset	16777216 [bytes]	28
+11	length	(whole device)	28
+12	cipher	aes-xts-plain64	28
+13	sector	512 [bytes]	28
+14	Keyslots	0: luks2	28
+15	Key	512 bits	28
+16	Priority	normal	28
+17	Cipher	aes-xts-plain64	28
+18	Cipher key	512 bits	28
+19	PBKDF	argon2id	28
+20	Time cost	4	28
+21	Memory	1048576	28
+22	Threads	4	28
+23	Salt	9a 8b 7c 6d 5e 4f 3a 2b 1c 0d ef 12 34 56 78 90	28
+24	AF stripes	4000	28
+25	Tokens		28
+26	Digests	0: pbkdf2	28
+27	Hash	sha256	28
+28	Iterations	129847	28
