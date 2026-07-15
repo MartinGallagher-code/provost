@@ -1,4 +1,4 @@
-n	ID	Name	Plan	Status	Servers	total_entries
-1	9a1b2c3d4e5f60718293a4b5c6d7e8f9	ada.ns.cloudflare.com,	Pro	active	bob.ns.cloudflare.com	3
-2	1f2e3d4c5b6a79808172635445362718	carl.ns.cloudflare.com,	Business	active	dana.ns.cloudflare.com	3
-3	abcdef0123456789abcdef0123456789	ada.ns.cloudflare.com,	Free	active	bob.ns.cloudflare.com	3
+n	ID	Name	Plan	Status	Name_Servers	total_entries
+1	9a1b2c3d4e5f60718293a4b5c6d7e8f9	example.com	Pro	active	ada.ns.cloudflare.com, bob.ns.cloudflare.com	3
+2	1f2e3d4c5b6a79808172635445362718	corp-store.io	Business	active	carl.ns.cloudflare.com, dana.ns.cloudflare.com	3
+3	abcdef0123456789abcdef0123456789	blog.example.net	Free	active	ada.ns.cloudflare.com, bob.ns.cloudflare.com	3

@@ -1,5 +1,5 @@
-n	NAME	LAST	UPDATE	RESOURCE	COUNT	URL	total_entries
-1	dev*	2	hours	ago	42	https://app.pulumi.com/acme/proj/dev	4
-2	staging	3	days	ago	45	https://app.pulumi.com/acme/proj/staging	4
-3	prod	1	week	ago	48	https://app.pulumi.com/acme/proj/prod	4
-4	test	n/a	0	https://app.pulumi.com/acme/proj/test			4
+n	NAME	LAST_UPDATE	RESOURCE_COUNT	URL	total_entries
+1	dev*	2 hours ago	42	https://app.pulumi.com/acme/proj/dev	4
+2	staging	3 days ago	45	https://app.pulumi.com/acme/proj/staging	4
+3	prod	1 week ago	48	https://app.pulumi.com/acme/proj/prod	4
+4	test	n/a	0	https://app.pulumi.com/acme/proj/test	4

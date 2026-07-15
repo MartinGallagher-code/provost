@@ -1,5 +1,80 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 1 (R1): column fidelity across the table core
+
+First fix round driven by the human review workbook
+(docs/0002-review-fix-plan.md, marks in docs/review-marks-2026-07-15.tsv;
+195 pages reviewed, 58 actionable, clustered into rounds R1–R7). R1 takes
+the worst cluster: aligned-columns splitting multi-word headers/values on
+single spaces — in akamai-property-list it silently DROPPED a whole data
+column (duplicate `Property` keys collided in the melt).
+
+`extract/strategies/delimited/aligned-columns.sh`:
+- EQUAL-token-count positional gate: a table whose header token count equals
+  its data rows' can still hide multi-word labels AND multi-word values
+  ("Property Name … Group" over "www.example.com … Web Delivery"); it now
+  reaches the positional grid when the header's 2-space segmentation
+  collapses below its token count AND the data segments the same way the
+  header does (data segmenting more finely — pam-tally2, ip6tables — means
+  the single-spaced header under-segments and tokenization is right).
+- SUB-COLUMN refinement in `_ac_assign` (buffered): a 2-space window holding
+  k>=2 header tokens splits into k sub-columns only when every header token
+  edge-aligns (start OR end, ±1) with the data in >=60% of rows — so
+  swapon's "SIZE USED PRIO", wipefs, vgs, smartctl, systemctl ACTIVE/SUB,
+  lsblk, xz-list, bconsole Type/Level all split, while "Ends At",
+  "Property Name" (one value below) stay one column. Eight vetoes earned
+  from the 89-flip audit: max-window-tokens >= k (a lone "webapp" under
+  "Job ID" must never split — melt collision drops data), alnum-only edge
+  witnesses (docker-stats' "/" false witness), per-ordinal denominators
+  (lsblk's sparse MOUNTPOINT), bridge tokens spanning a sub-label start
+  (ss-e "Peer Address:Port"), duplicate sub-labels across windows
+  (kube-capacity "CPU REQUESTS / CPU LIMITS"), bare separators BETWEEN
+  window values (ctop's "12M / 4M" — but a trailing bare "/" mountpoint is
+  a value, not a separator), plus the data-segmentation gate above.
+- Char-accurate bash grid (`_ac_grid_mb`) for lightly-non-ASCII blocks —
+  the awk grid measures bytes, so `412±2ns` (asv-continuous) drifted a
+  window right; narrow 2-byte chars only (emoji/CJK/box-drawing/soft-hyphen/
+  combining marks keep the awk path), with a ragged-alignment label-overlap
+  fallback (asv's unnamed sign + benchmark-name columns become letters).
+- PROSE-header veto: `Titleword lower lower …` with a stopword over
+  mismatched-width data is a title ("List of devices attached" — adb),
+  not labels; "Host cpu mem disk net" (no stopword) stays a header.
+- Multi-word colon-label decline: blocks where EVERY line is a distinct
+  `Two words: value` go to `colons` (apt-cache-stats, acpi, bazel-version,
+  kubectl version, rabbitmqctl, rsync-stats, deno-info, lsusb-style
+  same-digit-template labels exempted — those are table rows).
+- HEADERLESS trailing phrase-merge: the last column pair holding the same
+  two lowercase words on every row is one phrase ("not confined" —
+  aa-unconfined); trailing-only so ls -l's owner/group stay columns.
+- SCAFFOLD split for ragged headerless sentence-records: constant function
+  words (at/on/from/via/dev/to/of/by/for) once per row in the same order
+  become field anchors — arp -an's `<incomplete>` rows align, MAC+"[ether]"
+  stays one cell.
+
+`extract/strategies/delimited/colons.sh`: bracketed kv unwrap
+(`[ro.product.model]: [Pixel 8]` → key ro.product.model, value "Pixel 8" —
+adb-shell-getprop).
+
+`extract/strategies/structured/inline-kv.sh`: strict colon-pair flavor
+(`CN:8 DL:12MiB ETA:1m14s`, one colon, alpha label, same label set on every
+line) with positional letters for the unlabeled leading run, plus gauge-line
+outer-bracket unwrap — aria2c-progress becomes A/B/CN/DL/ETA columns.
+
+Corpus: 47 goldens re-frozen, every flip audited (many fixed silently
+SHIFTED goldens: nerdctl PLATFORM, flarectl Name, exo-kubectl NODE,
+talosctl, vercel, doctl, kube-capacity values). Six manifests re-calibrated
+from shredded-column counts to the honest merged columns (akamai 9→8c,
+doctl 11→9c, pscale-db 9→8c, vercel-domains 8→7c, vercel-projects 8→5c,
+adb-devices 2→3r until R3 strips its title row). Gate: 3438 passed,
+0 failed, 0 deleted goldens. Suites: smoke 49/0, melt 10/0, extract 62/62,
+analyze 8/8.
+
+Files: extract/strategies/delimited/aligned-columns.sh,
+extract/strategies/delimited/colons.sh,
+extract/strategies/structured/inline-kv.sh, tests/corpus/expected.tsv,
+tests/corpus/expected/*.tsv (47), docs/0002-review-fix-plan.md,
+docs/review-marks-2026-07-15.tsv, COVERAGE.md, tests/corpus/review-output/.
+
 ## 2026-07-14 — kv-under-group parser: the kv carry-down shape
 
 New generic parser `strategies/structured/kv-under-group.sh` (priority 10 —

@@ -1,2 +1,2 @@
-n	Signature	and	comment	signature	total_entries
-1	Trusted	comment:	timestamp:1751880000	file:release.tar.gz	1
+field	value
+Trusted_comment	timestamp:1751880000 file:release.tar.gz

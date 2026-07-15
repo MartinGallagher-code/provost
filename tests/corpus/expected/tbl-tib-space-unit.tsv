@@ -1,4 +1,4 @@
-n	Pool	Total	Size	Used	Free	total_entries
-1	tank	10.0	TiB	6.5	3.5	3
-2	backup	4.0	TiB	3.8	0.2	3
-3	scratch	2.0	GiB	512.0	1.5	3
+n	Pool	Total_Size	Used_Size	Free_Size	total_entries
+1	tank	10.0 TiB	6.5 TiB	3.5 TiB	3
+2	backup	4.0 TiB	3.8 TiB	0.2 TiB	3
+3	scratch	2.0 TiB	512.0 GiB	1.5 TiB	3

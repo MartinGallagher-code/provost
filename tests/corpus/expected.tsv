@@ -1524,7 +1524,7 @@ multipass-list	table	2	4
 vboxmanage-list-vms	text	-	2
 vagrant-status	table	3	2
 systemd-nspawn-list	table	2	6
-adb-devices	table	2	2
+adb-devices	table	3	2
 adb-shell-getprop	kv	-	2
 fastboot-getvar	kv	-	2
 esptool-flash-id	kv	-	2
@@ -2161,7 +2161,7 @@ ovs-ofctl-dump-flows	table	2	7
 supervisorctl-status	table	4	2
 ceph-osd-df	table	2	14
 doctl-apps-list	table	3	11
-doctl-volume-list	table	3	11
+doctl-volume-list	table	3	9
 doctl-registry-repository-list	table	3	7
 doctl-vpcs-list	text	-	2
 doctl-compute-snapshot-list	table	3	11
@@ -2183,9 +2183,9 @@ fastly-service-list	table	3	7
 fastly-backend-list	table	3	8
 fastly-domain-list	table	3	4
 vercel-list	table	4	5
-vercel-domains-ls	table	3	8
+vercel-domains-ls	table	3	7
 vercel-env-ls	table	4	6
-vercel-projects-ls	table	4	8
+vercel-projects-ls	table	4	5
 netlify-sites-list	text	-	2
 netlify-deploy-list	table	3	7
 heroku-apps	text	-	2
@@ -2213,7 +2213,7 @@ scw-instance-server-list	table	4	10
 scw-rdb-instance-list	table	3	9
 scw-k8s-cluster-list	table	3	9
 b2-list-buckets	table	4	5
-akamai-property-list	table	3	9
+akamai-property-list	table	3	8
 scaleway-database-backup-list	table	3	9
 cockroach-node-decommission-status	table	4	8
 cockroach-sql-show-ranges	table	4	8
@@ -2265,7 +2265,7 @@ mysql-show-status-global	table	8	4
 mariadb-show-status	table	8	4
 pt-diskstats	table	3	18
 pt-mysql-summary	text	-	2
-pscale-database-list	table	5	9
+pscale-database-list	table	5	8
 pscale-branch-list	table	5	8
 neon-branches-list	table	3	7
 supabase-db-migrations-list	table	4	5
