@@ -60,6 +60,17 @@ strategy_detect () {
     [[ $nodes -lt 2 ]] && return 1
     (( nodes * 10 < nonblank * 6 )) && return 1
 
+    # NUMBERED-HOP decline: `mtr` / `traceroute` draw `1.|-- host …` — the
+    # `|--` is a hop-number connector, not tree indentation, and every line
+    # carries a columnar `Loss% Snt Last …` record. A real tree never prefixes
+    # its branch marker with `N.`. When most node lines match `^ *NN.|--`,
+    # this is a numbered report → decline so aligned-columns reads the columns.
+    local _hop=0 _hl
+    while IFS= read -r _hl; do
+        [[ "$_hl" =~ ^[[:space:]]*[0-9]+\.\|?[[:space:]]*[|\\+]?-- ]] && _hop=$((_hop + 1))
+    done <<< "$text"
+    (( _hop * 2 >= nodes )) && return 1
+
     # Decline columnar tables that merely use tree chars in their first column
     # (e.g. findmnt): if the first non-blank line is not itself a node and looks
     # like an ALL-CAPS column header, this belongs to aligned-columns, not here.

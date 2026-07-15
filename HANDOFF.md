@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; reviewer-driven fix rounds R1–R7 underway on PR #44 (branch claude/review-fixes); R1+R2+R3 landed 2026-07-15 — golden gate **3443/0, 263 ⏳** (R3 stripped chrome: $-prompts, # /path banners, ==== rules, == section == banners, prose titles; new ping-report parser)
+## Status: Standalone; reviewer-driven fix rounds R1–R7 underway on PR #44 (branch claude/review-fixes); R1-R4 landed 2026-07-15 — golden gate **3443/0, 263 ⏳** (R4 redesigned tree-view: parent + value columns, numbered-hop decline)
 
 > **2026-07-15 — reviewer round R1 (column fidelity).** The user filled the
 > 3,706-page review workbook for the `a*` pages (195 reviewed: 140 OK /

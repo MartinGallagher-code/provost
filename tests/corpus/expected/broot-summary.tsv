@@ -1,5 +1,5 @@
-n	depth	name	total_entries
-1	1	src	4
-2	1	main.rs 1.2 kB	4
-3	1	lib.rs 880 B	4
-4	1	Cargo.toml 412 B	4
+n	depth	parent	name	value	total_entries
+1	1	project	src		4
+2	2	src	main.rs	1.2 kB	4
+3	2	src	lib.rs	880 B	4
+4	1	project	Cargo.toml	412 B	4

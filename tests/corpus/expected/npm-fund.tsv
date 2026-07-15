@@ -1,5 +1,5 @@
-n	depth	name	total_entries
-1	1	https://opencollective.com/express	4
-2	2	express@4.19.2	4
-3	1	https://github.com/sponsors/sindresorhus	4
-4	2	p-limit@5.0.0	4
+n	depth	parent	name	total_entries
+1	1	app@1.0.0	https://opencollective.com/express	4
+2	2	https://opencollective.com/express	express@4.19.2	4
+3	1	app@1.0.0	https://github.com/sponsors/sindresorhus	4
+4	2	https://github.com/sponsors/sindresorhus	p-limit@5.0.0	4

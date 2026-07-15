@@ -1,5 +1,37 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 4 (R4): tree-view ancestor + value columns
+
+Fourth review-workbook round (round-2 marks; plan
+docs/0002-review-fix-plan.md). tree-view emitted a flat depth/name dump —
+the reviewer wanted the hierarchy legible ("the things one level up are the
+context"). Redesigned `structured/tree-view.sh`:
+
+- **parent column** — a depth-keyed ancestor stack gives every node its
+  immediate parent, turning the dump into a navigable parent -> child edge
+  list (brew-uses-tree, broot-summary, ansible-inventory-graph group ->
+  member, npm/pstree/systemd-cgls/gradle/terraform all readable).
+- **value column** — a trailing metric after a 2+-space gap
+  (broot's `main.rs   1.2 kB`, exa's file sizes, pstree's `2*[{proc}]`
+  counts) splits off the name instead of welding to it.
+- **depth generalized** to variable-width vertical cells (`│  `, `│   `,
+  ASCII `|  `) so 2-space-indented trees (broot) get correct depths.
+- **numbered-hop decline** — `mtr` / `traceroute` draw `1.|-- host …`
+  whose `|--` is a hop connector, not tree indentation; tree-view now
+  declines when most node lines carry an `N.|--` prefix, so those columnar
+  reports fall to aligned-columns instead of a false tree (mtr / mtr-report
+  correctly stay ⏳ rather than become garbage goldens).
+
+Audit: 47 flips, all tree fixtures gaining parent/value — zero node-count
+changes (depth rewrite lossless), the 6 name changes all legitimate
+value-splits. Gate 3443 passed, 0 failed, 263 ⏳, 0 deletions. Extract
+self-test golden (tree-view) updated. Suites: smoke 49/0, melt 10/0,
+extract 173/0.
+
+Deferred to R5 (they are kv, not trees, and want the header line as a
+field): ansible-version / ansible-v, apk-policy, apt-cache-policy,
+aplay-list, apachectl-S.
+
 ## 2026-07-15 — reviewer round 3 (R3): chrome rows — prompts, comments, banners, titles
 
 Third review-workbook round (plan: docs/0002-review-fix-plan.md). The
