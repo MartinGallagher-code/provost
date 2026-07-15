@@ -744,10 +744,13 @@ _ac_assign () {
                 }
                 # Only alnum-bearing tokens witness an edge: a bare "/"
                 # separator (docker stats MEM USAGE) must not vouch for a
-                # sub-column boundary. Spans are kept for the bridge veto.
+                # sub-column boundary. Spans are kept for the bridge veto;
+                # bare separators are kept for the composite-value veto.
                 if (anum) {
                     sa[r "," ts]=1; ea[r "," (i-1)]=1
                     tn[r]++; tsA[r "," tn[r]]=ts; teA[r "," tn[r]]=i-1
+                } else {
+                    bn[r]++; bsA[r "," bn[r]]=ts
                 }
             }
         }
@@ -790,6 +793,12 @@ _ac_assign () {
                     # column; the joined window names stay unique.
                     for (j=1;j<=k;j++)
                         if (hcnt[htx[wt[j]]] > 1) ok=0
+                    # COMPOSITE-VALUE veto: a bare separator token ("12M / 4M"
+                    # under "NET RX/TX" — ctop gauges) inside the window marks
+                    # one composite value, never two columns.
+                    for (r=2;r<=nr && ok;r++)
+                        for (x=1;x<=bn[r]+0;x++)
+                            if (bsA[r "," x] >= cstart[w] && bsA[r "," x] < cstart[w+1]) { ok=0; break }
                     # BRIDGE veto: a data token that SPANS a sub-column
                     # start ("93.184.216.34:443" across "Peer Address:Port")
                     # is one value bridging both labels — splitting would
