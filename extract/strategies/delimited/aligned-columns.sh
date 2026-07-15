@@ -233,6 +233,7 @@ _ac_shape () {
     # become literal COLUMN NAMES and every later field gets stuffed under
     # them, producing garbage. Declining here lets colons pick it up.
     local _kv_lines=0 _kv_dupe=0 _kvm_lines=0 _kvm_dupe=0
+    local _kvm_tpl="" _kvm_tpl_same=1
     local -A _kv_seen=() _kvm_seen=()
     local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
     while IFS= read -r _line; do
@@ -252,11 +253,19 @@ _ac_shape () {
         fi
         # MULTI-WORD colon labels ("Total package names: 88201 (1,764 k)"):
         # single-space tokenization shreds these, so they must go to `colons`.
+        # Track the label's digit-TEMPLATE too (digits collapsed to #): when
+        # every label is the SAME template ("Bus ### Device ###" — lsusb),
+        # the "labels" are really table rows and the veto must not fire.
         if [[ "$_line" =~ $_kvm_re ]]; then
             _kvm_lines=$((_kvm_lines + 1))
             local _mlab="${BASH_REMATCH[1]}"
             [[ -n "${_kvm_seen[$_mlab]:-}" ]] && _kvm_dupe=1
             _kvm_seen[$_mlab]=1
+            local _mtpl="${_mlab//[0-9]/#}"
+            while [[ "$_mtpl" == *"##"* ]]; do _mtpl="${_mtpl//##/#}"; done
+            if [[ -z "$_kvm_tpl" ]]; then _kvm_tpl="$_mtpl"
+            elif [[ "$_mtpl" != "$_kvm_tpl" ]]; then _kvm_tpl_same=0
+            fi
         fi
         [[ $idx -ge 40 ]] && break
     done <<< "$text"
@@ -275,8 +284,11 @@ _ac_shape () {
     # EVERY line a distinct multi-word colon label => a colon-kv description
     # ("Total package names: …"), never a table. The multi-word requirement
     # keeps single-token label columns (/proc/interrupts' `HI:`) out of this
-    # veto — those stay with the row-1-label check above.
-    if [[ $idx -ge 3 && $_kvm_dupe -eq 0 && $_kvm_lines -eq $idx ]]; then
+    # veto — those stay with the row-1-label check above. Labels that all
+    # share one digit-template ("Bus ### Device ###" — lsusb) are table rows
+    # wearing colons, not field names: the veto stands down.
+    if [[ $idx -ge 3 && $_kvm_dupe -eq 0 && $_kvm_lines -eq $idx \
+          && ! ( $_kvm_tpl_same -eq 1 && "$_kvm_tpl" == *"#"* ) ]]; then
         return 1
     fi
 
@@ -431,11 +443,16 @@ _ac_shape () {
     # ("Property Name … Group") and survive; lowercase HEADERS ("username
     # fullname active") fail the Titlecase-first test and survive.
     if [[ $labelly -eq 1 && ${#_t1arr[@]} -ge 3 && "${_t1arr[0]}" =~ ^[A-Z][a-z]+$ ]]; then
-        local _pr_low=1 _pr_i
+        local _pr_low=1 _pr_stop=0 _pr_i
         for ((_pr_i = 1; _pr_i < ${#_t1arr[@]}; _pr_i++)); do
             [[ "${_t1arr[$_pr_i]}" =~ ^[a-z]+$ ]] || { _pr_low=0; break; }
+            case "${_t1arr[$_pr_i]}" in
+                of|the|to|in|for|with|and|on|at|by|from|is|are) _pr_stop=1 ;;
+            esac
         done
-        if [[ $_pr_low -eq 1 ]]; then
+        # A sentence carries a function word ("List OF devices attached");
+        # a lowercase label row ("Host cpu mem disk net") does not.
+        if [[ $_pr_low -eq 1 && $_pr_stop -eq 1 ]]; then
             local _pr_m=0 _pr_b=0 _pr_a _pr_n
             for ((_pr_i = 1; _pr_i < nlines; _pr_i++)); do
                 _pr_n=0
@@ -696,10 +713,11 @@ _ac_assign () {
         while (i<=L) {
             while (i<=L && substr(hl,i,1)==" ") i++
             if (i>L) break
-            hn++; hts[hn]=i
-            while (i<=L && substr(hl,i,1)!=" ") i++
+            hn++; hts[hn]=i; htx[hn]=""
+            while (i<=L && substr(hl,i,1)!=" ") { htx[hn]=htx[hn] substr(hl,i,1); i++ }
             hte[hn]=i-1
         }
+        for (i2=1;i2<=hn;i2++) hcnt[htx[i2]]++
     }
     { rows[NR]=$0; nr=NR }
     END {
@@ -715,12 +733,38 @@ _ac_assign () {
         ndata=nr-1
         for (r=2;r<=nr;r++) {
             line=rows[r]; L=length(line); i=1
+            tn[r]=0
+            while (i<=L) {
+                while (i<=L && substr(line,i,1)==" ") i++
+                if (i>L) break
+                ts=i; anum=0
+                while (i<=L && substr(line,i,1)!=" ") {
+                    if (substr(line,i,1) ~ /[A-Za-z0-9]/) anum=1
+                    i++
+                }
+                # Only alnum-bearing tokens witness an edge: a bare "/"
+                # separator (docker stats MEM USAGE) must not vouch for a
+                # sub-column boundary. Spans are kept for the bridge veto.
+                if (anum) {
+                    sa[r "," ts]=1; ea[r "," (i-1)]=1
+                    tn[r]++; tsA[r "," tn[r]]=ts; teA[r "," tn[r]]=i-1
+                }
+            }
+        }
+        # Token spans per row are also needed window-wise: a window may only
+        # split when the MODAL count of data tokens inside it equals its
+        # label count — a single "webapp" under "Job ID", "0.006442" under
+        # "Avg time" or "a1b2c3" under "CONTAINER ID" must never split (the
+        # duplicate/empty sub-columns collide in the melt and DROP data).
+        for (r=2;r<=nr;r++) {
+            line=rows[r]; L=length(line); i=1
             while (i<=L) {
                 while (i<=L && substr(line,i,1)==" ") i++
                 if (i>L) break
                 ts=i
                 while (i<=L && substr(line,i,1)!=" ") i++
-                sa[r "," ts]=1; ea[r "," (i-1)]=1
+                for (w=1;w<=nc;w++)
+                    if (ts>=cstart[w] && ts<cstart[w+1]) { wc[r "," w]++; break }
             }
         }
         m=0
@@ -730,12 +774,52 @@ _ac_assign () {
                 if (hts[t]>=cstart[w] && hts[t]<cstart[w+1]) { k++; wt[k]=t }
             ok=0
             if (k>=2 && ndata>0) {
-                ok=1
-                for (j=1;j<=k;j++) {
-                    t=wt[j]; hit=0
-                    for (r=2;r<=nr;r++)
-                        if (sa[r "," hts[t]] || ea[r "," hte[t]]) hit++
-                    if (hit*100/ndata < 60) { ok=0; break }
+                # MAX data token count inside this window must REACH the
+                # label count: a lone "webapp" under "Job ID" (max 1 < 2)
+                # must never split — the duplicate/empty sub-columns collide
+                # in the melt and DROP data. More tokens than labels is fine
+                # (xz-list holds "12.4 MiB  88.2 MiB" under
+                # "Compressed Uncompressed"); the edge gate arbitrates.
+                mo=0
+                for (r=2;r<=nr;r++) if (wc[r "," w]+0 > mo) mo=wc[r "," w]+0
+                if (mo>=k) {
+                    ok=1
+                    # DUPLICATE-NAME veto: sub-labels that repeat elsewhere
+                    # in the header ("CPU REQUESTS  CPU LIMITS" —
+                    # kube-capacity) would collide in the melt and DROP a
+                    # column; the joined window names stay unique.
+                    for (j=1;j<=k;j++)
+                        if (hcnt[htx[wt[j]]] > 1) ok=0
+                    # BRIDGE veto: a data token that SPANS a sub-column
+                    # start ("93.184.216.34:443" across "Peer Address:Port")
+                    # is one value bridging both labels — splitting would
+                    # strand an empty sub-column.
+                    for (j=2;j<=k && ok;j++) {
+                        t=wt[j]; br=0; bden=0
+                        for (r=2;r<=nr;r++) {
+                            if (wc[r "," w]+0 < 1) continue
+                            bden++
+                            for (x=1;x<=tn[r];x++)
+                                if (tsA[r "," x] < hts[t] && teA[r "," x] >= hts[t]) { br++; break }
+                        }
+                        if (bden>0 && br*100/bden >= 40) ok=0
+                    }
+                    if (!ok) { m++; bstart[m]=cstart[w]; bend[m]=0; bsub[m]=0; continue }
+                    for (j=1;j<=k;j++) {
+                        t=wt[j]; hit=0; den=0
+                        # Denominator: only rows that HAVE a j-th token in
+                        # this window — a sparse trailing sub-column (lsblk
+                        # MOUNTPOINT) is judged on the rows where it exists.
+                        # +-1 tolerance: `#`-prefixed headers (collectl) and
+                        # one-char pads shift edges by a column.
+                        for (r=2;r<=nr;r++) {
+                            if (wc[r "," w]+0 < j) continue
+                            den++
+                            if (sa[r "," hts[t]] || sa[r "," (hts[t]-1)] || sa[r "," (hts[t]+1)] || \
+                                ea[r "," hte[t]] || ea[r "," (hte[t]-1)] || ea[r "," (hte[t]+1)]) hit++
+                        }
+                        if (den==0 || hit*100/den < 60) { ok=0; break }
+                    }
                 }
             }
             if (ok) {
@@ -758,9 +842,10 @@ _ac_assign () {
                 for (c=1;c<=m;c++) { if (bstart[c]<=ts) col=c; else break }
                 # Right-aligned escape: a value wider than its header label
                 # starts left of the sub-column boundary but ENDS on the
-                # label end — end-alignment wins over start assignment.
+                # label end (+-1, matching the split tolerance) —
+                # end-alignment wins over start assignment.
                 for (c=1;c<=m;c++)
-                    if (bsub[c] && te==bend[c]) { col=c; break }
+                    if (bsub[c] && te>=bend[c]-1 && te<=bend[c]+1) { col=c; break }
                 if (cell[col]=="") cell[col]=tok; else cell[col]=cell[col] " " tok
             }
             out=cell[1]
@@ -1090,18 +1175,41 @@ strategy_extract () {
             # values in the same table ("Property Name … Group" over
             # "www.example.com … Web Delivery" — 8 tokens each). The tell: the
             # header's 2-space segmentation collapses BELOW its token count
-            # (multi-word labels exist). Only cleanly-aligned tables survive the
-            # _ac_aligned check below, so right-aligned single-space headers
-            # (df's "Used Avail Use%") still fall through to tokenization.
+            # (multi-word labels exist) while the DATA rows segment the same
+            # way the header does. Data that segments more finely than the
+            # header (pam-tally2, ip6tables — their own 2-space runs mark MORE
+            # columns than the header shows) is telling us the single-spaced
+            # header under-segments, and tokenization is the right reading.
             local _hsegq; _hsegq="$(_ac_seg "${lines[$hidx]}")"
-            [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]] && _use_pos=1
+            if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
+                local _dsegc=() _dsi _dsa _dsb _dsk _dsbest=0 _dsmod=0
+                for ((_dsi = hidx + 1; _dsi < ${#lines[@]}; _dsi++)); do
+                    _dsegc+=("$(_ac_seg "${lines[$_dsi]}")")
+                done
+                for _dsa in "${_dsegc[@]}"; do
+                    _dsk=0; for _dsb in "${_dsegc[@]}"; do [[ "$_dsb" -eq "$_dsa" ]] && _dsk=$((_dsk + 1)); done
+                    [[ $_dsk -gt $_dsbest ]] && { _dsbest=$_dsk; _dsmod=$_dsa; }
+                done
+                [[ $_dsmod -eq $_hsegq ]] && _use_pos=1
+            fi
         fi
         # Route lightly-non-ASCII blocks (<20% multibyte chars) through the
         # char-accurate bash grid; everything else through the awk grid.
+        # Only NARROW 2-byte chars qualify (±, µ, é): emoji/CJK/box-drawing
+        # (3-4 byte, double-width), soft hyphens (zero-width) and combining
+        # marks all break the char==display-column assumption, so those
+        # blocks keep the awk path.
         local _mb_grid=""
         if [[ $_use_pos -eq 1 && "$hd" == *[![:ascii:]]* ]]; then
             local _mb_ascii="${hd//[![:ascii:]]/}"
-            if (( (${#hd} - ${#_mb_ascii}) * 5 < ${#hd} )); then
+            local _mb_wide=0
+            case "$hd" in
+                *$'\xe0'*|*$'\xe1'*|*$'\xe2'*|*$'\xe3'*|*$'\xe4'*|*$'\xe5'*|*$'\xe6'*|*$'\xe7'*|*$'\xe8'*|*$'\xe9'*|*$'\xea'*|*$'\xeb'*|*$'\xec'*|*$'\xed'*|*$'\xee'*|*$'\xef'*|*$'\xf0'*|*$'\xf1'*|*$'\xf2'*|*$'\xf3'*|*$'\xf4'*) _mb_wide=1 ;;
+            esac
+            case "$hd" in
+                *$'\xc2\xad'*|*$'\xcc'*|*$'\xcd'*) _mb_wide=1 ;;
+            esac
+            if [[ $_mb_wide -eq 0 ]] && (( (${#hd} - ${#_mb_ascii}) * 5 < ${#hd} )); then
                 _mb_grid="$(printf '%s' "$hd" | _ac_grid_mb)" || _mb_grid=""
             fi
         fi
@@ -1438,28 +1546,29 @@ strategy_extract () {
         fi
     fi
 
-    # HEADERLESS PHRASE MERGE: with no header to say otherwise, a pair of
-    # adjacent columns holding the SAME two lowercase words on every row
-    # ("not confined" split into C/D — aa-unconfined) is one phrase, not two
-    # columns. Merge only the constant-pair case: both cells pure lowercase
-    # alpha and identical down the whole table, every row full-width. A
-    # varying column ("on eth0/tun0") never merges.
+    # HEADERLESS PHRASE MERGE: with no header to say otherwise, the TRAILING
+    # pair of columns holding the SAME two lowercase words on every row
+    # ("not confined" split into C/D — aa-unconfined) is one status phrase,
+    # not two columns. Trailing-only: a constant mid-table word pair is a
+    # real pair of columns that happens to be constant (`ls -l`'s owner and
+    # group, masscan's "open port"), so only the LAST pair may merge. Both
+    # cells pure lowercase alpha, identical down the whole table, every row
+    # full-width.
     local _pm_join=()
     if [[ "$mode" == HL && ${#headers[@]} -ge 3 && ${#lines[@]} -ge 2 ]]; then
         local _pm_c _pm_l _pm_vals _pm_first _pm_ok
         for ((i = 0; i < ${#headers[@]}; i++)); do _pm_join[$i]=0; done
-        for ((_pm_c = 1; _pm_c < ${#headers[@]}; _pm_c++)); do
-            _pm_ok=1; _pm_first=""
-            for ((_pm_l = startidx; _pm_l < ${#lines[@]}; _pm_l++)); do
-                _pm_vals=(); read -ra _pm_vals <<< "${lines[$_pm_l]}"
-                [[ ${#_pm_vals[@]} -eq ${#headers[@]} ]] || { _pm_ok=0; break; }
-                local _pm_pair="${_pm_vals[$((_pm_c - 1))]} ${_pm_vals[$_pm_c]}"
-                [[ "${_pm_vals[$((_pm_c - 1))]}" =~ ^[a-z]+$ && "${_pm_vals[$_pm_c]}" =~ ^[a-z]+$ ]] || { _pm_ok=0; break; }
-                [[ -z "$_pm_first" ]] && _pm_first="$_pm_pair"
-                [[ "$_pm_pair" != "$_pm_first" ]] && { _pm_ok=0; break; }
-            done
-            [[ $_pm_ok -eq 1 ]] && _pm_join[$_pm_c]=1
+        _pm_c=$(( ${#headers[@]} - 1 ))
+        _pm_ok=1; _pm_first=""
+        for ((_pm_l = startidx; _pm_l < ${#lines[@]}; _pm_l++)); do
+            _pm_vals=(); read -ra _pm_vals <<< "${lines[$_pm_l]}"
+            [[ ${#_pm_vals[@]} -eq ${#headers[@]} ]] || { _pm_ok=0; break; }
+            local _pm_pair="${_pm_vals[$((_pm_c - 1))]} ${_pm_vals[$_pm_c]}"
+            [[ "${_pm_vals[$((_pm_c - 1))]}" =~ ^[a-z]+$ && "${_pm_vals[$_pm_c]}" =~ ^[a-z]+$ ]] || { _pm_ok=0; break; }
+            [[ -z "$_pm_first" ]] && _pm_first="$_pm_pair"
+            [[ "$_pm_pair" != "$_pm_first" ]] && { _pm_ok=0; break; }
         done
+        [[ $_pm_ok -eq 1 ]] && _pm_join[$_pm_c]=1
     fi
 
     # Emit each data line as an indexed group (entry<N>.<field>) so the tidy melt
