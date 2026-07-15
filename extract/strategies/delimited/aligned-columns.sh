@@ -232,8 +232,9 @@ _ac_shape () {
     # aligned-columns claims it first, row 1's two tokens ("Package:", "vim")
     # become literal COLUMN NAMES and every later field gets stuffed under
     # them, producing garbage. Declining here lets colons pick it up.
-    local _kv_lines=0 _kv_dupe=0
-    local -A _kv_seen=()
+    local _kv_lines=0 _kv_dupe=0 _kvm_lines=0 _kvm_dupe=0
+    local -A _kv_seen=() _kvm_seen=()
+    local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
     while IFS= read -r _line; do
         [[ -z "${_line//[[:space:]]/}" ]] && continue
         idx=$((idx + 1))
@@ -249,6 +250,14 @@ _ac_shape () {
             [[ -n "${_kv_seen[$_lab]:-}" ]] && _kv_dupe=1
             _kv_seen[$_lab]=1
         fi
+        # MULTI-WORD colon labels ("Total package names: 88201 (1,764 k)"):
+        # single-space tokenization shreds these, so they must go to `colons`.
+        if [[ "$_line" =~ $_kvm_re ]]; then
+            _kvm_lines=$((_kvm_lines + 1))
+            local _mlab="${BASH_REMATCH[1]}"
+            [[ -n "${_kvm_seen[$_mlab]:-}" ]] && _kvm_dupe=1
+            _kvm_seen[$_mlab]=1
+        fi
         [[ $idx -ge 40 ]] && break
     done <<< "$text"
     # Also require ROW 1 ITSELF to be a colon-kv label line. Without this, a
@@ -261,6 +270,13 @@ _ac_shape () {
     local _first_tok="${first_line%%[[:space:]]*}"
     if [[ $idx -ge 8 && $_kv_dupe -eq 0 && $((_kv_lines * 2)) -ge $idx \
           && "$_first_tok" =~ ^[A-Za-z][A-Za-z0-9_-]*:$ ]]; then
+        return 1
+    fi
+    # EVERY line a distinct multi-word colon label => a colon-kv description
+    # ("Total package names: …"), never a table. The multi-word requirement
+    # keeps single-token label columns (/proc/interrupts' `HI:`) out of this
+    # veto — those stay with the row-1-label check above.
+    if [[ $idx -ge 3 && $_kvm_dupe -eq 0 && $_kvm_lines -eq $idx ]]; then
         return 1
     fi
 
@@ -407,6 +423,30 @@ _ac_shape () {
         [[ $_lbl_ok -eq 1 && ! "$_t" =~ ^\[ && ! "$_t" =~ \]$ && ! "$_t" =~ \.$ ]] || { labelly=0; break; }
     done
     [[ $_lbl_seen -eq 0 ]] && labelly=0
+    # PROSE veto: a sentence is not a header. Row 1 shaped `Titleword lower
+    # lower …` — first token Titlecase, EVERY other token a pure lowercase
+    # word (>=2 of them), no digits anywhere — over data whose modal token
+    # count differs from row 1's is a title line ("List of devices attached"),
+    # not labels. Real multi-word-label headers keep further Titlecase tokens
+    # ("Property Name … Group") and survive; lowercase HEADERS ("username
+    # fullname active") fail the Titlecase-first test and survive.
+    if [[ $labelly -eq 1 && ${#_t1arr[@]} -ge 3 && "${_t1arr[0]}" =~ ^[A-Z][a-z]+$ ]]; then
+        local _pr_low=1 _pr_i
+        for ((_pr_i = 1; _pr_i < ${#_t1arr[@]}; _pr_i++)); do
+            [[ "${_t1arr[$_pr_i]}" =~ ^[a-z]+$ ]] || { _pr_low=0; break; }
+        done
+        if [[ $_pr_low -eq 1 ]]; then
+            local _pr_m=0 _pr_b=0 _pr_a _pr_n
+            for ((_pr_i = 1; _pr_i < nlines; _pr_i++)); do
+                _pr_n=0
+                for ((_pr_a = 1; _pr_a < nlines; _pr_a++)); do
+                    [[ ${counts[$_pr_a]} -eq ${counts[$_pr_i]} ]] && _pr_n=$((_pr_n + 1))
+                done
+                [[ $_pr_n -gt $_pr_b ]] && { _pr_b=$_pr_n; _pr_m=${counts[$_pr_i]}; }
+            done
+            [[ $_pr_m -ne ${counts[0]} ]] && labelly=0
+        fi
+    fi
     if [[ $caps0 -eq 1 || ( $v0 -eq 0 && ${dcount[0]} -eq 0 && $labelly -eq 1 && $maxd -gt 0 ) \
           || ( $v0 -eq 0 && $labelly -eq 1 && $vrows -gt 0 && $vrows -eq $((nlines - 1)) ) \
           || ( $v0 -eq 0 && $labelly -eq 1 && $(( moren * 2 )) -gt $((nlines - 1)) ) ]]; then
@@ -854,6 +894,16 @@ strategy_extract () {
                 local _hseg; _hseg="$(_ac_seg "${lines[$hidx]}")"
                 [[ $_hseg -ge 2 && $_hseg -eq $_moded ]] && _use_pos=1
             fi
+        else
+            # EQUAL token counts can still hide multi-word labels AND multi-word
+            # values in the same table ("Property Name … Group" over
+            # "www.example.com … Web Delivery" — 8 tokens each). The tell: the
+            # header's 2-space segmentation collapses BELOW its token count
+            # (multi-word labels exist). Only cleanly-aligned tables survive the
+            # _ac_aligned check below, so right-aligned single-space headers
+            # (df's "Used Avail Use%") still fall through to tokenization.
+            local _hsegq; _hsegq="$(_ac_seg "${lines[$hidx]}")"
+            [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]] && _use_pos=1
         fi
         if [[ $_use_pos -eq 1 && "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; then
             local gridrows=() _g
@@ -1099,17 +1149,58 @@ strategy_extract () {
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
 
+    # HEADERLESS PHRASE MERGE: with no header to say otherwise, a pair of
+    # adjacent columns holding the SAME two lowercase words on every row
+    # ("not confined" split into C/D — aa-unconfined) is one phrase, not two
+    # columns. Merge only the constant-pair case: both cells pure lowercase
+    # alpha and identical down the whole table, every row full-width. A
+    # varying column ("on eth0/tun0") never merges.
+    local _pm_join=()
+    if [[ "$mode" == HL && ${#headers[@]} -ge 3 && ${#lines[@]} -ge 2 ]]; then
+        local _pm_c _pm_l _pm_vals _pm_first _pm_ok
+        for ((i = 0; i < ${#headers[@]}; i++)); do _pm_join[$i]=0; done
+        for ((_pm_c = 1; _pm_c < ${#headers[@]}; _pm_c++)); do
+            _pm_ok=1; _pm_first=""
+            for ((_pm_l = startidx; _pm_l < ${#lines[@]}; _pm_l++)); do
+                _pm_vals=(); read -ra _pm_vals <<< "${lines[$_pm_l]}"
+                [[ ${#_pm_vals[@]} -eq ${#headers[@]} ]] || { _pm_ok=0; break; }
+                local _pm_pair="${_pm_vals[$((_pm_c - 1))]} ${_pm_vals[$_pm_c]}"
+                [[ "${_pm_vals[$((_pm_c - 1))]}" =~ ^[a-z]+$ && "${_pm_vals[$_pm_c]}" =~ ^[a-z]+$ ]] || { _pm_ok=0; break; }
+                [[ -z "$_pm_first" ]] && _pm_first="$_pm_pair"
+                [[ "$_pm_pair" != "$_pm_first" ]] && { _pm_ok=0; break; }
+            done
+            [[ $_pm_ok -eq 1 ]] && _pm_join[$_pm_c]=1
+        done
+    fi
+
     # Emit each data line as an indexed group (entry<N>.<field>) so the tidy melt
     # renders one row per line with shared columns.
     local result="" entry=0 li
     for ((li = startidx; li < ${#lines[@]}; li++)); do
         local values; values=(); read -ra values <<< "${lines[$li]}"
+        # Apply the phrase merges (right-to-left so indices stay valid).
+        if [[ ${#_pm_join[@]} -gt 0 && ${#values[@]} -eq ${#headers[@]} ]]; then
+            for ((i = ${#headers[@]} - 1; i >= 1; i--)); do
+                [[ "${_pm_join[$i]:-0}" -eq 1 ]] || continue
+                values[$((i - 1))]="${values[$((i - 1))]} ${values[$i]}"
+                values=("${values[@]:0:$i}" "${values[@]:$((i + 1))}")
+            done
+        fi
         entry=$((entry + 1))
-        for ((i = 0; i < ${#headers[@]}; i++)); do
-            local name="${headers[$i]}" value="${values[$i]:-}"
+        local _ncols=${#headers[@]}
+        if [[ ${#_pm_join[@]} -gt 0 ]]; then
+            _ncols=0
+            for ((i = 0; i < ${#headers[@]}; i++)); do
+                [[ "${_pm_join[$i]:-0}" -eq 1 ]] || _ncols=$((_ncols + 1))
+            done
+        fi
+        for ((i = 0; i < _ncols; i++)); do
+            local name; name="$(_col_letter $((i + 1)))"
+            [[ ${#_pm_join[@]} -eq 0 || $_ncols -eq ${#headers[@]} ]] && name="${headers[$i]}"
+            local value="${values[$i]:-}"
             [[ -z "$value" ]] && continue
             # Last column absorbs any extra trailing tokens.
-            if [[ $i -eq $((${#headers[@]} - 1)) && ${#values[@]} -gt ${#headers[@]} ]]; then
+            if [[ $i -eq $((_ncols - 1)) && ${#values[@]} -gt $_ncols ]]; then
                 local j
                 for ((j = i + 1; j < ${#values[@]}; j++)); do value+="_${values[$j]}"; done
             fi

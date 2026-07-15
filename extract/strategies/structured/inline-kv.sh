@@ -38,34 +38,90 @@ _ikv_split () {
     [[ -n "$tok" ]] && _IKV_TOKS+=("$tok")
 }
 
+# Gauge-line unwrap: when EVERY non-blank line is wrapped in one outer `[…]`
+# (aria2c's `[#f1a2b3 512MiB/1.4GiB(36%) CN:8 …]`), the brackets are display
+# chrome — strip them so the inner fields parse. Guarded away from JSON: an
+# inner starting `"`/`{`/`[` or containing no space is data, not a gauge.
+_ikv_body () {
+    local text="$1" _l all=1 inner
+    while IFS= read -r _l; do
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        if [[ "$_l" =~ ^\[(.+)\]$ ]]; then
+            inner="${BASH_REMATCH[1]}"
+            [[ "$inner" == *" "* ]] || { all=0; break; }
+            case "$inner" in '"'*|'{'*|'['*) all=0 ;; esac
+            [[ $all -eq 0 ]] && break
+        else
+            all=0; break
+        fi
+    done <<< "$text"
+    if [[ $all -eq 1 ]]; then
+        while IFS= read -r _l; do
+            if [[ "$_l" =~ ^\[(.+)\]$ ]]; then printf '%s\n' "${BASH_REMATCH[1]}"
+            else printf '%s\n' "$_l"; fi
+        done <<< "$text"
+    else
+        printf '%s\n' "$text"
+    fi
+}
+
+# Is a token a strict COLON pair (`CN:8`, `DL:12MiB`, `model:Pixel_8`)?
+# Exactly one colon, alpha-led label, value with no colon/slash-start — so
+# timestamps (06:00:12), MACs (3c:84:…), URLs (http://…) and ratios never
+# qualify.
+_ikv_colon_tok () {
+    [[ "$1" =~ ^[A-Za-z][A-Za-z0-9_-]*:[^:/[:space:]][^:]*$ ]]
+}
+
 strategy_detect () {
     local text="$1"
+    text="$(_ikv_body "$text")"
     _STRATEGY_CONFIDENCE=0
 
-    local nonblank=0 kvlines=0 _l
+    local nonblank=0 kvlines=0 clines=0 _l
+    local clabels="" cuniform=1
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         nonblank=$((nonblank + 1))
         local toks; toks=()
         _ikv_split "$_l"; toks=("${_IKV_TOKS[@]}")
-        local n=${#toks[@]} kv=0 t
-        for t in "${toks[@]}"; do [[ "$t" =~ ^[A-Za-z_][A-Za-z0-9_-]*=.+ ]] && kv=$((kv + 1)); done
+        local n=${#toks[@]} kv=0 ckv=0 t clab=""
+        for t in "${toks[@]}"; do
+            [[ "$t" =~ ^[A-Za-z_][A-Za-z0-9_-]*=.+ ]] && kv=$((kv + 1))
+            _ikv_colon_tok "$t" && { ckv=$((ckv + 1)); clab+="${t%%:*} "; }
+        done
         # A leading `label:` token (blkid's `/dev/sda1:`) is the record's NAME,
         # not a failed pair — don't let it count against the kv majority.
         [[ $n -ge 2 && "${toks[0]}" == *: && ! "${toks[0]}" == *=* ]] && n=$((n - 1))
         [[ $n -ge 2 && $kv -ge 2 && $(( kv * 100 / n )) -ge 60 ]] && kvlines=$((kvlines + 1))
+        # COLON flavor: >=2 strict colon pairs and a colon-pair majority.
+        # Riskier than `=` (colons appear in free text), so detection also
+        # demands the SAME label set on every line (aria2c's CN/DL/ETA,
+        # adb's product/model/device) — checked across the loop.
+        if [[ $n -ge 2 && $ckv -ge 2 && $(( ckv * 100 / n )) -ge 60 ]]; then
+            clines=$((clines + 1))
+            [[ -z "$clabels" ]] && clabels="$clab"
+            [[ "$clab" != "$clabels" ]] && cuniform=0
+        fi
         [[ $nonblank -ge 40 ]] && break
     done <<< "$text"
 
     # Every non-blank line must be inline-kv (so we don't claim prose that
     # happens to contain one `a=b`).
-    [[ $nonblank -ge 1 && $kvlines -eq $nonblank ]] || return 1
-    _STRATEGY_CONFIDENCE=80
-    return 0
+    if [[ $nonblank -ge 1 && $kvlines -eq $nonblank ]]; then
+        _STRATEGY_CONFIDENCE=80
+        return 0
+    fi
+    if [[ $nonblank -ge 2 && $clines -eq $nonblank && $cuniform -eq 1 ]]; then
+        _STRATEGY_CONFIDENCE=80
+        return 0
+    fi
+    return 1
 }
 
 strategy_extract () {
     local text="$1"
+    text="$(_ikv_body "$text")"
     local result="" entry=0 _l
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
@@ -79,7 +135,30 @@ strategy_extract () {
             [[ -n "$_nm" ]] && result+="entry${entry}.name ${_nm}"$'\n'
             toks=("${toks[@]:1}")
         fi
-        local t
+        # COLON flavor (aria2c's `#id 512MiB/1.4GiB(36%) CN:8 DL:12MiB ETA:1m14s`):
+        # when the line has no `=` pairs but >=2 strict colon pairs, emit the
+        # colon pairs as fields and the leading UNLABELED run as positional
+        # columns (A, B, …) so the id/progress cells aren't dropped.
+        local _has_eq=0 t
+        for t in "${toks[@]}"; do
+            [[ "$t" =~ ^[A-Za-z_][A-Za-z0-9_-]*=.+ ]] && { _has_eq=1; break; }
+        done
+        if [[ $_has_eq -eq 0 ]]; then
+            local _cn=0
+            for t in "${toks[@]}"; do _ikv_colon_tok "$t" && _cn=$((_cn + 1)); done
+            if [[ $_cn -ge 2 ]]; then
+                local _letters=(A B C D E F G H I J K L M) _li=0
+                for t in "${toks[@]}"; do
+                    if _ikv_colon_tok "$t"; then
+                        result+="entry${entry}.${t%%:*} ${t#*:}"$'\n'
+                    else
+                        result+="entry${entry}.${_letters[$_li]:-Z} ${t}"$'\n'
+                        _li=$((_li + 1))
+                    fi
+                done
+                continue
+            fi
+        fi
         for t in "${toks[@]}"; do
             [[ "$t" =~ ^([A-Za-z_][A-Za-z0-9_-]*)=(.*)$ ]] || continue
             local k="${BASH_REMATCH[1]//./_}" v="${BASH_REMATCH[2]}"
