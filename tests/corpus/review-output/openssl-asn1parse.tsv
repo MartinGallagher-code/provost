@@ -1,2 +1,8 @@
-$_openssl_asn1parse_-in_cert.pem.0	$_openssl_asn1parse_-in_cert.pem.4	$_openssl_asn1parse_-in_cert.pem.8	$_openssl_asn1parse_-in_cert.pem.10	$_openssl_asn1parse_-in_cert.pem.13	$_openssl_asn1parse_-in_cert.pem.31	$_openssl_asn1parse_-in_cert.pem.46
-d=0  hl=4 l= 858 cons: SEQUENCE	d=1  hl=4 l= 578 cons: SEQUENCE	d=2  hl=2 l=   3 cons: cont [ 0 ]	d=3  hl=2 l=   1 prim: INTEGER           :02	d=2  hl=2 l=  16 prim: INTEGER           :0A1B2C3D4E5F60718293A4B5C6D7E8F9	d=2  hl=2 l=  13 cons: SEQUENCE	d=2  hl=2 l=  69 cons: SEQUENCE
+n	A	total_entries
+1	0:d=0  hl=4 l= 858 cons: SEQUENCE	7
+2	4:d=1  hl=4 l= 578 cons: SEQUENCE	7
+3	8:d=2  hl=2 l=   3 cons: cont [ 0 ]	7
+4	10:d=3  hl=2 l=   1 prim: INTEGER           :02	7
+5	13:d=2  hl=2 l=  16 prim: INTEGER           :0A1B2C3D4E5F60718293A4B5C6D7E8F9	7
+6	31:d=2  hl=2 l=  13 cons: SEQUENCE	7
+7	46:d=2  hl=2 l=  69 cons: SEQUENCE	7

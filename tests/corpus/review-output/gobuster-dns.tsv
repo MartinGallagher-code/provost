@@ -1,6 +1,5 @@
-n	A	B	C	D	E	F	G	total_entries
-1	$	gobuster	dns	-d	example.com	-w	subs.txt	5
-2	Found	HOST						5
-3	Found	admin.example.com						5
-4	Found	api.example.com						5
-5	Found	portal.example.com						5
+n	A	B	total_entries
+1	Found	HOST	4
+2	Found	admin.example.com	4
+3	Found	api.example.com	4
+4	Found	portal.example.com	4
