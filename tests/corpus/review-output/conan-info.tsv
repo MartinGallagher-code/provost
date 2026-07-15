@@ -1,2 +1,3 @@
-zlib/1.3.1.remote	zlib/1.3.1.license	zlib/1.3.1.binary	openssl/3.3.1.remote	openssl/3.3.1.license	openssl/3.3.1.binary	openssl/3.3.1.requires
-conancenter	Zlib	Cache	conancenter	Apache-2.0	Download	zlib/1.3.1
+n	name	remote	license	binary	requires	total_entries
+1	zlib/1.3.1	conancenter	Zlib	Cache		2
+2	openssl/3.3.1	conancenter	Apache-2.0	Download	zlib/1.3.1	2

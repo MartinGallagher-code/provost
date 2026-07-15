@@ -3522,10 +3522,10 @@ tbl-spanning-three-groups	table	3	7
 tbl-numeric-decimal-negative	table	4	4
 nst-ip-s-link-nested	table	3	6
 nst-disk-smart-partitions	table	5	4
-nst-ethtool-queue-stats	table	8	3
-nst-nvme-per-namespace-stats	table	6	4
+nst-ethtool-queue-stats	table	4	4
+nst-nvme-per-namespace-stats	table	3	5
 nst-zpool-vdev-tree	table	7	4
-nst-btrfs-device-per-disk	table	6	3
+nst-btrfs-device-per-disk	table	2	5
 nst-sar-multisection	text	-	2
 nst-lsof-per-process	table	7	4
 nst-iostat-multisection	text	-	2
@@ -3581,7 +3581,7 @@ nst-postfix-per-queue	text	-	2
 nst-hdparm-nested-sections	text	-	2
 nst-mdadm-detail-devices	table	4	4
 nst-lvdisplay-segments	text	-	2
-nst-blkid-per-device-nested	table	6	3
+nst-blkid-per-device-nested	table	3	4
 nst-x509-san-list-nested	kv	-	2
 cmb-color-box-borders	table	4	4
 cmb-nested-box-cell	table	3	3

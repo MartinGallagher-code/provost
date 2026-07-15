@@ -1,0 +1,7 @@
+NIC statistics for eth0:
+  Queue 0:
+     rx_packets: 100
+     tx_packets: 90
+  Queue 1:
+     rx_packets: 200
+     tx_packets: 180

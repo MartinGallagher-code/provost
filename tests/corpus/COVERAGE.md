@@ -525,7 +525,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | composer-outdated | ✅ | aligned-columns |
 | composer-show-installed | ✅ | text-lines |
 | composer-show | ✅ | text-lines |
-| conan-info | ✅ | indented-hierarchy |
+| conan-info | ✅ | kv-under-group |
 | concourse-builds | ✅ | aligned-columns |
 | conda-env-list | ✅ | aligned-columns |
 | conda-list | ✅ | aligned-columns |
@@ -1803,7 +1803,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | lshw-class-storage | ✅ | colons |
 | lshw-cpu | ✅ | colons |
 | lshw-disk | ✅ | colons |
-| lshw-memory | ✅ | colons |
+| lshw-memory | ✅ | kv-under-group |
 | lshw-network | ✅ | lshw-network |
 | lshw-short | ✅ | vertical-line |
 | lshw | ✅ | vertical-line |
@@ -2140,9 +2140,9 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nslookup_mx | ✅ᵇ | nslookup_mx (bespoke) |
 | nst-ansible-vars-yaml | ✅ | yaml |
 | nst-benchmark-report-footnotes | ✅ | embedded-table |
-| nst-blkid-per-device-nested | ⏳ | — |
+| nst-blkid-per-device-nested | ✅ | kv-under-group |
 | nst-block-records-embedded-table | ✅ | block-records |
-| nst-btrfs-device-per-disk | ✅ | grouped-rows |
+| nst-btrfs-device-per-disk | ✅ | kv-under-group |
 | nst-ceph-osd-tree-nested | ✅ | aligned-columns |
 | nst-cluster-node-disks | ✅ | grouped-rows |
 | nst-crontab-per-user-sections | ✅ | aligned-columns |
@@ -2153,8 +2153,8 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-docker-inspect-nested | ✅ | json-array |
 | nst-du-by-category-subtotal | ✅ | grouped-rows |
 | nst-du-tree-sizes-dates | ✅ | aligned-columns |
-| nst-ethtool-queue-stats | ⏳ | — |
-| nst-firewall-zones-blocks | ✅ | block-records |
+| nst-ethtool-queue-stats | ✅ | kv-under-group |
+| nst-firewall-zones-blocks | ✅ | kv-under-group |
 | nst-gpg-packet-dump | ✅ | text-lines |
 | nst-hdparm-nested-sections | ✅ | key-value |
 | nst-ini-duplicate-keys | ✅ | ini-sections |
@@ -2173,7 +2173,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-mysqltuner-mixed | ✅ | block-records |
 | nst-namespace-pods-tree | ✅ | grouped-rows |
 | nst-nginx-upstream-blocks | ✅ | indented-hierarchy |
-| nst-nvme-per-namespace-stats | ⏳ | — |
+| nst-nvme-per-namespace-stats | ✅ | kv-under-group |
 | nst-openssl-x509-text | ✅ | key-value |
 | nst-perf-report-sections | ✅ | indented-hierarchy |
 | nst-pg-report-mixed | ✅ | embedded-table |
@@ -2183,7 +2183,7 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | nst-quota-grouped-subtotal | ✅ | grouped-rows |
 | nst-region-az-instances | ✅ | grouped-rows |
 | nst-report-preamble-table-footnotes | ✅ | embedded-table |
-| nst-rsync-per-dir-stats | ✅ | block-records |
+| nst-rsync-per-dir-stats | ✅ | kv-under-group |
 | nst-sales-by-region-subtotals | ✅ | grouped-rows |
 | nst-sar-multisection | ✅ | aligned-columns |
 | nst-slurm-sacct-nested | ✅ | fixed-width |
@@ -3714,5 +3714,5 @@ tidied by a **bespoke** strategy script; ⏳ = not yet tidy.
 | zypper-repos | ✅ | psql-table |
 | zypper-search | ✅ | zypper-search |
 
-**Coverage: 3579 / 3706** — ✅ 3352 via a generic parser, ✅ʰ 83 via a hint row, ✅ᵇ 144 via a bespoke strategy.
-⏳ not yet tidy: amdgpu-top ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram brew-info-casks brew-info-multi cargo-clippy-color cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cmb-banner-indented-table cmb-build-log-color-table cmb-colorsep-only cmb-colorsep-reset-fields cmb-comment-color-rows cmb-cr-log-csv-color cmb-cr-redraw-progress-final cmb-double-header-color-emoji cmb-figlet-banner-table cmb-grouped-header-progress cmb-hashbang-comment-csv-color cmb-osc8-comment-aligned cmb-progress-comment-aligned corefreq-topology cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload delta-diff-color df-locale-de dpkg-l-mixed-state dstat-cdngy duckdb-summarize-box enc-formfeed-report enc-two-space-in-value etc-hosts-comments exo-mtr-report-asn exo-openssl-asn1parse-deep exo-perf-stat-x-csv exo-rados-df-pools exo-slurm-sacct-pipe exo-smartctl-a-attrs exo-strace-c-summary file-brief flatpak-remotes-info gcloud-logging-logs-list getent-group getent-passwd-gecos-colons git-cat-file-commit-objects gluster-volume-profile gpg-list-keys-uid-commas hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ib-read-lat iostat-xmt ip-addr-mixed-scopes jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run lsblk-tree lsof-long-names lsusb-v lvs-report-sparse lzbench-run mdadm-resync-progress megacli-pdlist nicstat-summary nix-why-depends nst-blkid-per-device-nested nst-dig-multiline-soa nst-dns-zonefile nst-ethtool-queue-stats nst-k8s-list-yaml nst-lsblk-tree-attrs nst-mdadm-detail-devices nst-nvme-per-namespace-stats num-labeled-inline num-ledger-parens-quarters num-year-columns numastat-p nvidia-smi-dashboard nvidia-smi-full openssl-asn1parse ovs-ofctl-dump-flows perftest-write-bw powertop-devices promtool-check-rules pueue-status pytest-cov-report rsync-itemize-paths-spaces scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info ssh-config-hosts ssh-config-jumphosts storcli-show supervisorctl-status surreal-sql-select tbl-acl-permission-matrix tbl-du-sum-footer tbl-header-spacing-off tbl-ledger-blank-groups tbl-single-col-packages tbl-single-col-paths tbl-sparse-component-matrix terraform-plan-color tiptop-view v4l2-ctl-list-devices vnstat-hourly w-empty-what who-a-ragged zpool-iostat-latency zpool-iostat-v
+**Coverage: 3582 / 3706** — ✅ 3355 via a generic parser, ✅ʰ 83 via a hint row, ✅ᵇ 144 via a bespoke strategy.
+⏳ not yet tidy: amdgpu-top ansible-galaxy-list apachectl-S apt-rdepends-openssl apt-rdepends-reverse batch-jobs bazel-query-graph bluetoothctl-devices bpftrace-histogram brew-info-casks brew-info-multi cargo-clippy-color cargo-nextest-run cargo-search ceph-osd-tree clickhouse-parts cmb-banner-indented-table cmb-build-log-color-table cmb-colorsep-only cmb-colorsep-reset-fields cmb-comment-color-rows cmb-cr-log-csv-color cmb-cr-redraw-progress-final cmb-double-header-color-emoji cmb-figlet-banner-table cmb-grouped-header-progress cmb-hashbang-comment-csv-color cmb-osc8-comment-aligned cmb-progress-comment-aligned corefreq-topology cron-d-file-comments crontab-backup-jobs crontab-with-comments crontab-wrapped cryptsetup-status datadog-ci-junit-upload delta-diff-color df-locale-de dpkg-l-mixed-state dstat-cdngy duckdb-summarize-box enc-formfeed-report enc-two-space-in-value etc-hosts-comments exo-mtr-report-asn exo-openssl-asn1parse-deep exo-perf-stat-x-csv exo-rados-df-pools exo-slurm-sacct-pipe exo-smartctl-a-attrs exo-strace-c-summary file-brief flatpak-remotes-info gcloud-logging-logs-list getent-group getent-passwd-gecos-colons git-cat-file-commit-objects gluster-volume-profile gpg-list-keys-uid-commas hledger-balance-multicurrency hledger-register-fx hugo-build-stats hurl-report hyperfine-benchmark-delta ib-read-lat iostat-xmt ip-addr-mixed-scopes jless-navigate journalctl-stacktrace kafka-topics-describe kdiskmark-run lsblk-tree lsof-long-names lsusb-v lvs-report-sparse lzbench-run mdadm-resync-progress megacli-pdlist nicstat-summary nix-why-depends nst-dig-multiline-soa nst-dns-zonefile nst-k8s-list-yaml nst-lsblk-tree-attrs nst-mdadm-detail-devices num-labeled-inline num-ledger-parens-quarters num-year-columns numastat-p nvidia-smi-dashboard nvidia-smi-full openssl-asn1parse ovs-ofctl-dump-flows perftest-write-bw powertop-devices promtool-check-rules pueue-status pytest-cov-report rsync-itemize-paths-spaces scylla-nodetool-status smartctl-scan-devices ss-i ss-socket-info ss-tcp-info ssh-config-hosts ssh-config-jumphosts storcli-show supervisorctl-status surreal-sql-select tbl-acl-permission-matrix tbl-du-sum-footer tbl-header-spacing-off tbl-ledger-blank-groups tbl-single-col-packages tbl-single-col-paths tbl-sparse-component-matrix terraform-plan-color tiptop-view v4l2-ctl-list-devices vnstat-hourly w-empty-what who-a-ragged zpool-iostat-latency zpool-iostat-v

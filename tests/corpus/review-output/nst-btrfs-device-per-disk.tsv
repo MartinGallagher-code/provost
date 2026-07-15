@@ -1,7 +1,3 @@
-n	uuid	label	device	A	B	total_entries
-1	3f7a-c2e1	data	/dev/sdb1	write_io_errs	0	6
-2	3f7a-c2e1	data	/dev/sdb1	read_io_errs	0	6
-3	3f7a-c2e1	data	/dev/sdb1	flush_io_errs	3	6
-4	3f7a-c2e1	data	/dev/sdc1	write_io_errs	12	6
-5	3f7a-c2e1	data	/dev/sdc1	read_io_errs	0	6
-6	3f7a-c2e1	data	/dev/sdc1	flush_io_errs	0	6
+n	name	group	write_io_errs	read_io_errs	flush_io_errs	total_entries
+1	Device /dev/sdb1	Filesystem UUID: 3f7a-c2e1  Label: data	0	0	3	2
+2	Device /dev/sdc1	Filesystem UUID: 3f7a-c2e1  Label: data	12	0	0	2

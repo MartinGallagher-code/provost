@@ -1,2 +1,3 @@
-description	vendor	physical_id	version	date	size	capacity	capabilities	description	physical_id	slot	size
-BIOS	Dell Inc.	0	1.11.0	06/23/2021	64KiB	32MiB	pci upgrade shadowing cdboot bootselect acpi uefi	System Memory	3d	System board or motherboard	16GiB
+n	name	description	vendor	physical	version	date	size	capacity	capabilities	slot	total_entries
+1	*-firmware	BIOS	Dell Inc.	id: 0	1.11.0	06/23/2021	64KiB	32MiB	pci upgrade shadowing cdboot bootselect acpi uefi		2
+2	*-memory	System Memory		id: 3d			16GiB			System board or motherboard	2

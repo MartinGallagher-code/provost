@@ -1,6 +1,26 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; embedded-table round (2026-07-14) — **3579 tidy, 127 ⏳** (golden gate 0 failed)
+## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; kv-under-group round (2026-07-14) — **3582 tidy, 124 ⏳** (golden gate 0 failed)
+
+> **2026-07-14 — kv-under-group (the kv carry-down frontier).** New generic
+> `structured/kv-under-group.sh` (p10, outranking key-value at 11): GROUP
+> label over indented `key: value` / `KEY value` leaves with the SAME KEYS
+> repeating group after group — one wide row per leaf group (`name` +
+> per-key columns + nearest outer level as `group`). Closes the shape both
+> grouped-rows (table leaves only) and pivot-stats (header/values pivot)
+> explicitly could not take: ethtool per-queue stats, nvme per-namespace
+> stats (2-level: Controller carried), blkid-style per-device runs.
+> Priority 10 demanded the strictest containment yet — the repeated-keys
+> signature plus seven vetoes, each from a real gate victim (YAML list/
+> anchor markers; `{}` config syntax; multi-word-key mangling evidence;
+> within-group key repeats = ifconfig; Titlecase bare keys = geekbench;
+> uniform-token bare leaves = lsof table rows; punctuation-only group
+> labels = netlify separators). Audit: 17 → 7 → 5 flips, all improvements —
+> conan-info (row per package), lshw-memory (dup-key collision recovered),
+> nst-btrfs (real stat columns), nst-firewall-zones (a LOST zone recovered),
+> nst-rsync (dir names). 4 manifests re-calibrated to the wide convention.
+> Gates: golden 0 failed, extract 62/62, smoke 49/0, melt 10/0. **Now 3582
+> tidy, 124 ⏳** (✅ 3355 / ✅ʰ 83 / ✅ᵇ 144).
 
 > **2026-07-14 — embedded-table (report shape, nst-* round).** New generic
 > `delimited/embedded-table.sh` (p37): prose/kv preamble + ONE dominant
