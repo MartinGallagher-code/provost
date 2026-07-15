@@ -793,12 +793,24 @@ _ac_assign () {
                     # column; the joined window names stay unique.
                     for (j=1;j<=k;j++)
                         if (hcnt[htx[wt[j]]] > 1) ok=0
-                    # COMPOSITE-VALUE veto: a bare separator token ("12M / 4M"
+                    # COMPOSITE-VALUE veto: a bare SEPARATOR token ("12M / 4M"
                     # under "NET RX/TX" — ctop gauges) inside the window marks
-                    # one composite value, never two columns.
+                    # one composite value, never two columns. A separator sits
+                    # BETWEEN alnum tokens of the same window; a bare token
+                    # with nothing after it is a value in its own right
+                    # (a "/" mountpoint) and does not veto.
                     for (r=2;r<=nr && ok;r++)
-                        for (x=1;x<=bn[r]+0;x++)
-                            if (bsA[r "," x] >= cstart[w] && bsA[r "," x] < cstart[w+1]) { ok=0; break }
+                        for (x=1;x<=bn[r]+0;x++) {
+                            if (!(bsA[r "," x] >= cstart[w] && bsA[r "," x] < cstart[w+1])) continue
+                            lft=0; rgt=0
+                            for (y=1;y<=tn[r];y++) {
+                                if (tsA[r "," y] >= cstart[w] && tsA[r "," y] < cstart[w+1]) {
+                                    if (teA[r "," y] < bsA[r "," x]) lft=1
+                                    if (tsA[r "," y] > bsA[r "," x]) rgt=1
+                                }
+                            }
+                            if (lft && rgt) { ok=0; break }
+                        }
                     # BRIDGE veto: a data token that SPANS a sub-column
                     # start ("93.184.216.34:443" across "Peer Address:Port")
                     # is one value bridging both labels — splitting would
