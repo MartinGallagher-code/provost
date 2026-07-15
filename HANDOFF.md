@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; reviewer-driven fix rounds R1–R7 underway on PR #44 (branch claude/review-fixes); R1 landed 2026-07-15 — **3582 tidy, 124 ⏳** (golden gate 3438/0)
+## Status: Standalone; reviewer-driven fix rounds R1–R7 underway on PR #44 (branch claude/review-fixes); R1+R2 landed 2026-07-15 — golden gate **3439/0, 267 ⏳** (R2 closed exo-perf-stat-x-csv; COVERAGE.md headline regen batched with R3)
 
 > **2026-07-15 — reviewer round R1 (column fidelity).** The user filled the
 > 3,706-page review workbook for the `a*` pages (195 reviewed: 140 OK /

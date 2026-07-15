@@ -1,5 +1,42 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 2 (R2): headerless detection — row 1 is data, not a header
+
+Second review-workbook round (plan: docs/0002-review-fix-plan.md). The
+cluster: delimited parsers eating the first DATA row as a header
+(`i-0abc123 / t3.micro / 10.0.1.5` became sanitized column names).
+
+- `structured/csv.sh`: TAB-dominant input declines to tsv (aws `--output
+  text` carries commas *inside* values — "my-logs, prod"); DUAL-ROW SHAPE
+  test — a header must show label-over-value contrast somewhere, so when
+  every column has the same shape in rows 1-2 and at least one is
+  value-shaped, row 1 is data (amixer's `'Master',0`, tshark's quoted
+  fields, ycsb's `[OVERALL]` rows, logcli timestamps — all previously
+  header-eaten).
+- `structured/tsv.sh`: cell-split pre-pass — a ctime-style stamp opening
+  every row's cell with a uniform token tail becomes stamp + per-token
+  columns (`at`/`atq`: job | datetime | queue | user); a constant
+  >=2-token prefix with an ARGUMENT-shaped remainder (path/flag/number)
+  splits into prefix + rest (anacrontab's `nice run-parts` |
+  `/etc/cron.daily`; bcftools' "number of samples:" label stays whole).
+- `delimited/line-records.sh`: space-free lines with a uniform colon count
+  >=2 split on colons (ECS/SNS ARNs → arn|aws|service|region|account|name,
+  bpftrace probes → type|provider|name); URLs and non-alpha-led lines
+  keep theirs.
+
+Closes reviewer fixtures aws-ec2-output-text, aws-s3api-text-tabs,
+amixer-scontrols, at-queue, atq, anacron-tab, aws-ecs-list-clusters, plus
+6 collateral upgrades (aws-sns-list-topics, bpftrace-l, logcli-query,
+pytest-collect-color, tshark-fields-quoted, ycsb-run — three of which had
+their first data row baked into golden headers) and one NEW gap closed:
+exo-perf-stat-x-csv. Gate: 3439 passed, 0 failed, 267 ⏳, 0 deletions
+(13 goldens re-frozen + 1 new). Suites: smoke 49/0, melt 10/0, extract
+62/62, analyze all green. COVERAGE.md headline regen batched with R3.
+
+Files: extract/strategies/structured/csv.sh,
+extract/strategies/structured/tsv.sh,
+extract/strategies/delimited/line-records.sh, tests/corpus/expected/*.
+
 ## 2026-07-15 — reviewer round 1 (R1): column fidelity across the table core
 
 First fix round driven by the human review workbook
