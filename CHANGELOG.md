@@ -1,5 +1,52 @@
 # glean — Changelog
 
+## 2026-07-15 — reviewer round 3 (R3): chrome rows — prompts, comments, banners, titles
+
+Third review-workbook round (plan: docs/0002-review-fix-plan.md). The
+cluster: non-data lines a capture drags in — shell-prompt echoes, comment
+banners, rule lines, section banners, prose titles — leaking into the
+dataset (amass-intel's `$ amass intel …` prompt defeated table detection
+entirely; aureport's `# date time acct …` comment IS the header).
+
+- Engine (`extract/envoy-extract`): leading-chrome strip — `$ command`
+  prompt echoes, `WARNING:`/`ERROR:`/`NOTICE:` stderr noise, `NAME ****`
+  banner rules, and prose-title first lines (`List of devices attached`),
+  each leading-only over >=2 remaining lines; interspersed `== word ==`
+  section banners dropped anywhere (apptainer's `== labels ==` /
+  `== runscript ==`) — exactly-two-equals so `=== SET ===` /
+  `====== JOB MAP ======` GROUP-LABEL banners the embedded-table /
+  kv-under-group parsers consume stay intact.
+- `delimited/aligned-columns.sh` (`_ac_body`): audit-report chrome, gated
+  on a `====` rule — drops the rules and the title above the first rule,
+  promotes a lone `# col col …` comment to the real header, strips
+  sequential `N.` row-number prefixes (aureport).
+- `delimited/vertical-line.sh`: defers the `# header` + `====` audit shape
+  to aligned-columns.
+- `delimited/line-records.sh`: strips a leading `# /path` location banner
+  (ansible-galaxy's collection root) — narrowed to paths so `# title`
+  section lines a parser uses as a header survive; go-mod-why's bespoke
+  `# module` markers untouched (strategy-local).
+- `structured/inline-kv.sh`: `host : k=v` two-token name form
+  (ansible-playbook-recap → one row per host).
+- NEW `delimited/ping-report.sh` (priority 35): ping/ping6/arping reply
+  streams — one row per reply (bytes / from / optional ip / a column per
+  `k=v` with the trailing bare unit folded in), banner and
+  `--- … statistics ---` footer dropped.
+
+Closes reviewer fixtures amass-intel, aureport, aureport-login,
+ansible-galaxy-list, apk-info-installed, apptainer-inspect (banners),
+ansible-playbook-recap, arping, adb-devices (title row); ~26 collateral
+`$`-prompt improvements across security tooling (checksec, subfinder,
+yara, hashcat, gitleaks, gobuster, trufflehog, openssl/cosign/step/rekor).
+Gate: 3443 passed, 0 failed, 263 ⏳, 0 deletions (35 goldens re-frozen +
+4 new). 11 manifests recalibrated from pre-strip dims. Suites: smoke 49/0,
+melt 10/0, extract all green.
+
+Files: extract/envoy-extract, extract/strategies/delimited/{aligned-columns,
+vertical-line,line-records,ping-report}.sh,
+extract/strategies/structured/inline-kv.sh, extract/samples/ping-report/,
+tests/corpus/expected/*, tests/corpus/expected.tsv.
+
 ## 2026-07-15 — reviewer round 2 (R2): headerless detection — row 1 is data, not a header
 
 Second review-workbook round (plan: docs/0002-review-fix-plan.md). The
