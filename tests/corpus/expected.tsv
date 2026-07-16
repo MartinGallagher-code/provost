@@ -1354,7 +1354,6 @@ kubectl-api-groups	table	3	5
 crontab-list-full	text	-	2
 systemd-run-status	kv	-	2
 anacron-tab	table	3	4
-batch-jobs	text	-	2
 ledger-balance	text	-	2
 hledger-balance	text	-	2
 beancount-balances	text	-	2

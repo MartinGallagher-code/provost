@@ -180,3 +180,40 @@ bonnie-plus, borg-create-progress, borg-prune-list, bowtie2-align-summary,
 bpftool-prog-show, bpftrace-histogram, bridge-fdb, bridge-link,
 btrfs-filesystem-show, bun-install-summary, bwa-index-log, bwa-mem-log,
 cabal-freeze. Plus adb-devices (device:/model:/device: → columns).
+
+---
+
+# Round 3 review ingest (2026-07-16, reviewed 7z-benchmark → ceph-osd-pool-stats)
+
+244 pages marked (checkbox pages only; the 133 round-1+2 VALIDATED pages
+carried a badge, no checkbox): 171 OK, 17 Not quite, 56 Horrible. Raw marks
+`docs/review-marks-2026-07-16-round3.tsv`.
+
+**Cumulative VALIDATED set → 258** (fixtures marked OK in >=2 rounds;
+`docs/review-validated-cumulative.txt`). +125 newly validated this round
+(mostly b*/c* confirmed OK in r2 and again in r3).
+
+**Zero regressions from R4-R6.** 10 fixtures went OK(r2)→flagged(r3)
+(apache2ctl-modules, aptitude-search, asdf-list, atlantis-status,
+batch-jobs, bpftrace, brew-outdated-sparse, btrfs-balance-status,
+btrfs-device-stats, buck2-targets) but NONE appears in the R4/R5/R6 flip
+lists — output byte-identical to r2, reviewer standards sharpened.
+
+**Done this round:** batch-jobs REMOVED from the corpus per the reviewer
+("REMOVE THIS ONE" — the input is an error message, not data). Corpus
+3706 → 3705.
+
+**Refined guidance folded into open rounds:**
+- R5b (kv grouping / header-as-field, biggest remaining): ansible-version
+  ("most info missing"), ansible-v ("[core 2.17.1] one column"),
+  apachectl-S ("info is in the column headers"), apachebench (connection-
+  times sub-table into cells), apache2ctl-modules ((static)/(shared) own
+  column), asdf-list (nodejs/python as two rows).
+- R6 (delimiters): atop / 7z-benchmark (pipes are not values), alias-list
+  (list, or everything-after-"alias " as col 2).
+- New: apk-list bracket-aware tokenization (keep `(MPL-2.0 AND MIT)` whole
+  — a space-bearing parenthesized license currently splits across D/E),
+  aptitude-search (4 columns), amdgpu-top (two tables, neither parsed).
+- R7: amdgpu-top / chart family.
+
+Remaining ~70 c*/d*… actionable items to triage in a focused follow-up.

@@ -203,7 +203,6 @@ bareos-status-storage	?
 bash-version-full	?
 bat-color-numbers	?
 bat-config	?
-batch-jobs	?
 bazel-query-deps	?
 bazel-query-graph	?
 bazel-query-somepath	?
