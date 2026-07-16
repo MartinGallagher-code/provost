@@ -1,13 +1,13 @@
-n	depth	name	total_entries
-1	1	machine-qemu x2d1 x2dwin10.scope	12
-2	2	payload	12
-3	3	3421 /usr/bin/qemu-system-x86_64 -name guest=win10	12
-4	2	libvirt	12
-5	2	3410 /usr/sbin/virtlogd	12
-6	1	machine-lxc x2d4102 x2dweb.scope	12
-7	2	4102 /sbin/init	12
-8	2	4180 /lib/systemd/systemd-journald	12
-9	2	4230 nginx: master process	12
-10	1	machine-lxc x2d4300 x2ddb.scope	12
-11	1	4300 /sbin/init	12
-12	1	4520 postgres: checkpointer	12
+n	depth	parent	name	total_entries
+1	1	Unit machine.slice (/machine.slice):	machine-qemu x2d1 x2dwin10.scope	12
+2	2	machine-qemu x2d1 x2dwin10.scope	payload	12
+3	3	payload	3421 /usr/bin/qemu-system-x86_64 -name guest=win10	12
+4	2	machine-qemu x2d1 x2dwin10.scope	libvirt	12
+5	2	machine-qemu x2d1 x2dwin10.scope	3410 /usr/sbin/virtlogd	12
+6	1	Unit machine.slice (/machine.slice):	machine-lxc x2d4102 x2dweb.scope	12
+7	2	machine-lxc x2d4102 x2dweb.scope	4102 /sbin/init	12
+8	2	machine-lxc x2d4102 x2dweb.scope	4180 /lib/systemd/systemd-journald	12
+9	2	machine-lxc x2d4102 x2dweb.scope	4230 nginx: master process	12
+10	1	Unit machine.slice (/machine.slice):	machine-lxc x2d4300 x2ddb.scope	12
+11	1	Unit machine.slice (/machine.slice):	4300 /sbin/init	12
+12	1	Unit machine.slice (/machine.slice):	4520 postgres: checkpointer	12

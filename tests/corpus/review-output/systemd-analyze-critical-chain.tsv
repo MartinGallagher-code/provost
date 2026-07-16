@@ -1,7 +1,7 @@
-n	depth	name	total_entries
-1	1	multi-user.target @14.233s	6
-2	1	nginx.service @13.001s +231ms	6
-3	2	network-online.target @12.998s	6
-4	3	NetworkManager-wait-online.service @6.140s +6.842s	6
-5	3	NetworkManager.service @1.201s +231ms	6
-6	4	dbus.socket @1.198s	6
+n	depth	parent	name	total_entries
+1	1	The time when unit became active or started is printed after the "@" character.	multi-user.target @14.233s	6
+2	1	The time when unit became active or started is printed after the "@" character.	nginx.service @13.001s +231ms	6
+3	2	nginx.service @13.001s +231ms	network-online.target @12.998s	6
+4	3	network-online.target @12.998s	NetworkManager-wait-online.service @6.140s +6.842s	6
+5	3	network-online.target @12.998s	NetworkManager.service @1.201s +231ms	6
+6	4	NetworkManager.service @1.201s +231ms	dbus.socket @1.198s	6
