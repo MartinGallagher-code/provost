@@ -1172,7 +1172,7 @@ starship-explain	text	-	2
 locale-output	kv	-	2
 hostnamectl-json	text	-	2
 env-diff	text	-	2
-alias-list	text	-	2
+alias-list	table	4	2
 fzf-version	text	-	2
 bat-config	text	-	2
 zoxide-query-list	table	4	2
@@ -2131,7 +2131,7 @@ super-pi-run	text	-	2
 passmark-cpu	text	-	2
 fast-cli	text	-	2
 librespeed-cli	kv	-	2
-artillery-report	text	-	2
+artillery-report	table	9	2
 drill-benchmark	kv	-	2
 tsung-summary	table	4	8
 goose-report	text	-	2

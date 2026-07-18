@@ -30,6 +30,59 @@
 # digit-bearing token (data, not prose). And the window must be EMBEDDED:
 # >=2 non-blank lines outside it — a bare table stays with aligned-columns.
 
+# Does a SHORT data row (fewer tokens than the header) still belong to this
+# table? Only if every token positionally aligns to a distinct header column in
+# increasing order — a genuine blank interior cell (bundle-outdated's sidekiq
+# row with an empty `Requested`), not a prose footnote that merely has a digit.
+# Column boundaries mirror the extractor's midpoint model. $1=header line,
+# $2=data line. Returns 0 when aligned.
+_et_row_aligns () {
+    local hline="$1" dline="$2"
+    # Header token start columns.
+    local -a hs=() he=()
+    local i c inw=-1 n=${#hline}
+    for ((i = 0; i < n; i++)); do
+        c="${hline:$i:1}"
+        if [[ "$c" != ' ' && "$c" != $'\t' ]]; then
+            [[ $inw -lt 0 ]] && { inw=$i; hs+=("$i"); }
+        elif [[ $inw -ge 0 ]]; then he+=($((i - 1))); inw=-1; fi
+    done
+    [[ $inw -ge 0 ]] && he+=($((n - 1)))
+    local ncols=${#hs[@]}
+    [[ $ncols -lt 3 ]] && return 1
+    # Midpoint boundary opening each column c (>=1); col 0 opens at 0.
+    local -a bnd=(0)
+    for ((i = 1; i < ncols; i++)); do
+        bnd+=($(( (${he[$((i - 1))]} + ${hs[$i]} + 1) / 2 )))
+    done
+    # Bucket each data token's start into a column; require strictly increasing
+    # distinct columns and a left-aligned first token (column 0).
+    local dn=${#dline} prev=-1 tok=0 first=1
+    inw=-1
+    for ((i = 0; i <= dn; i++)); do
+        c="${dline:$i:1}"
+        if [[ $i -lt $dn && "$c" != ' ' && "$c" != $'\t' ]]; then
+            if [[ $inw -lt 0 ]]; then
+                inw=$i
+                # column for a token starting at inw
+                local col=0 k
+                for ((k = 0; k < ncols; k++)); do
+                    [[ $inw -ge ${bnd[$k]} ]] && col=$k
+                done
+                [[ $first -eq 1 && $col -ne 0 ]] && return 1
+                first=0
+                [[ $col -le $prev ]] && return 1
+                prev=$col
+                tok=$((tok + 1))
+            fi
+        else
+            inw=-1
+        fi
+    done
+    [[ $tok -ge 3 ]] || return 1
+    return 0
+}
+
 # Find the best window. Sets _ET_START (header line index, 0-based over
 # non-blank-preserved raw lines), _ET_LEN (data row count), _ET_COLS.
 _et_scan () {
@@ -77,7 +130,18 @@ _et_scan () {
             local dl="${_lines[$j]}"
             [[ -z "${dl//[[:space:]]/}" ]] && break
             local -a dk=(); read -ra dk <<< "$dl"
-            [[ ${#dk[@]} -lt ${#hk[@]} ]] && break
+            # A row with fewer tokens than the header is admitted ONLY when its
+            # tokens positionally align to distinct header columns — a blank
+            # interior cell (bundle-outdated's sidekiq), not a prose footnote.
+            # The FIRST row must be full-width, though: it anchors the window as
+            # a genuine table. A header whose token count is inflated by
+            # multi-word column labels (spec-cpu's doubled `Ref. Run Time Rate`)
+            # makes EVERY data row "short" — that is aligned-columns' positional
+            # multi-word-header case, not an embedded table.
+            if [[ ${#dk[@]} -lt ${#hk[@]} ]]; then
+                [[ $rows -eq 0 ]] && break
+                _et_row_aligns "$_l" "$dl" || break
+            fi
             [[ "$dl" =~ [0-9] ]] || break
             [[ "$dl" =~ \.$ ]] && break
             rows=$((rows + 1))

@@ -1,5 +1,40 @@
 # glean — Changelog
 
+## 2026-07-18 — reviewer round 6 (R6, cont.): alias / dot-leader / blank-cell rows
+
+Continued R6 delimiter/decoration cleanup — three more of the reviewer's
+firmest asks landed, each a format-level generic parser or a contained fix:
+
+- `delimited/alias-list.sh` (NEW, priority 14): shell `alias NAME='CMD'`
+  listings now emit a clean `name`/`command` table — the `alias ` keyword
+  and the surrounding quotes are stripped, the command kept whole. Detection
+  is exact (EVERY non-empty line is `alias <name>=<value>`), zero blast
+  radius. Was aligned-columns shredding `ls -alF` across columns and keeping
+  a redundant `alias` column A. (reviewer: "horrid — `=` split")
+- `delimited/dot-leader-kv.sh` (NEW, priority 15): `label: ....... value`
+  reports (artillery and similar) where a run of dot leaders separates key
+  from value now emit one `key`/`value` row per metric, leaders stripped.
+  Nested section metrics (`min`/`max`/`mean` under `http.response_time:`)
+  are captured; the valueless section header is dropped. Detection requires
+  ≥3 dot-leader lines. (reviewer: "dot-leaders are delimiters")
+- `delimited/embedded-table.sh`: the detection window now admits a row with
+  FEWER tokens than the header when its tokens positionally align to
+  distinct header columns — a genuine blank interior cell. bundle-outdated
+  (sidekiq's empty `Requested`, rubocop's `development, test`) now yields
+  all 5 rows instead of 3. The first data row must still be full-width so a
+  multi-word-label header (spec-cpu's doubled `Ref. Run Time Rate`, which
+  makes every row "short") stays with aligned-columns — verified no flip.
+
+Files: `extract/strategies/delimited/{alias-list,dot-leader-kv,embedded-table}.sh`,
+new samples under `extract/strategies/delimited/samples/{alias-list,dot-leader-kv}/`,
+goldens `tests/corpus/expected/{alias-list,artillery-report,bundle-outdated}.tsv`,
+manifest `tests/corpus/expected.tsv` (alias-list/artillery-report text→table).
+Gate 3444/0, extract 62/62, smoke 49/0, melt 10/0. Zero regressions.
+
+Still open in R6 (each niche, best-effort): atop (`PRC | sys 1.42s | …`
+pipe-delimited kv rows), ansible-v (bracket+space → A/B), 7z-benchmark
+(dual-table with a `|` gutter), autocannon-run (box-drawing frame).
+
 ## 2026-07-15 — reviewer round 6 (R6, partial): pipe-table equals rule
 
 Sixth review-workbook round (round-2 marks). The reviewer's firmest R6 ask
