@@ -31,9 +31,19 @@ goldens `tests/corpus/expected/{alias-list,artillery-report,bundle-outdated}.tsv
 manifest `tests/corpus/expected.tsv` (alias-list/artillery-report text→table).
 Gate 3444/0, extract 62/62, smoke 49/0, melt 10/0. Zero regressions.
 
-Still open in R6 (each niche, best-effort): atop (`PRC | sys 1.42s | …`
-pipe-delimited kv rows), ansible-v (bracket+space → A/B), 7z-benchmark
-(dual-table with a `|` gutter), autocannon-run (box-drawing frame).
+- `delimited/pipe-cells.sh` (NEW, priority 31): atop-style monitor rows —
+  a short row LABEL followed by `|`-separated `key value` cells — now tidy
+  to a long `group`/`key`/`value` table with the pipes removed (atop:
+  6 groups → 28 rows). Detection is tight (uppercase-led label OUTSIDE the
+  pipes, trailing pipe, ≥2 two-token cells per row), so it poaches no real
+  pipe/box table — full-corpus gate flipped atop and nothing else. A lone
+  device-name cell (DSK's `sda`) is skipped; empty cells (SWP's gap) too.
+  Was aligned-columns keeping the `|` glyphs as their own columns.
+  (reviewer: "pipes are delimiters, remove them")
+
+Still open in R6 (each niche, best-effort): ansible-v (bracket+space → A/B),
+7z-benchmark (dual-table with a `|` gutter), autocannon-run (box-drawing
+frame).
 
 ## 2026-07-15 — reviewer round 6 (R6, partial): pipe-table equals rule
 

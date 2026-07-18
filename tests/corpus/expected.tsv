@@ -171,7 +171,7 @@ ruby-version	kv	-	2
 perl-version	kv	-	2
 dstat	table	4	8
 nmon	kv	-	2
-atop	kv	-	4
+atop	table	28	3
 iotop	table	4	6
 iftop	table	4	4
 nethogs	table	4	6
