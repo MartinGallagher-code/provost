@@ -1507,7 +1507,7 @@ luarocks-list	table	3	2
 composer-show-installed	table	3	3
 cargo-install-list	text	-	2
 rustup-toolchain-list	text	-	1
-asdf-list	text	-	1
+asdf-list	table	4	3
 mise-ls	table	3	3
 snap-list-all	table	3	6
 flatpak-list-app	table	2	5

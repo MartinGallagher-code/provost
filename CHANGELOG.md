@@ -1,5 +1,29 @@
 # glean — Changelog
 
+## 2026-07-18 — R5b (contained): asdf-list grouped versions
+
+- `delimited/grouped-list.sh` (NEW, priority 49): a version-manager listing —
+  unindented tool labels over indented version members with the active one
+  flagged `*` (asdf list) — now tidies to long form: one row per version,
+  `group` (tool) carried down, `value` (version), and a `current` flag for the
+  `*`-marked one. Was line-records flattening it to a 1-column list with the
+  `*` glued on.
+  Detection is deliberately version-specific — members must be a single
+  colon-free token carrying an ASCII digit, labels must not be colon-suffixed
+  section headers — so it does not poach indented-hierarchy trees
+  (nodetool gossipinfo's `key:value` leaves, a CJK node tree) or plain
+  indented lists (telegraf `inputs:` plugins). The full-corpus gate flipped
+  asdf-list and nothing else across two containment iterations.
+
+  Golden re-frozen, manifest text→table 4. Gate 3444/0, extract 62/62.
+
+The larger R5b pieces stay deferred as they need their own focused pass /
+reviewer sign-off (each is a convention change with corpus-wide golden churn
+in a high-traffic structured parser): list-value → one row per element with
+outer fields repeated (amtool-cluster-show Peers, avro-tools-getschema
+fields — a JSON/YAML list-explode), and ansible-version's header-line-as-field
+kv snapshot.
+
 ## 2026-07-18 — round-3 specifics: apk-list license, apache2ctl module type
 
 Two contained columnar-spec fixes from the round-3 review notes:
