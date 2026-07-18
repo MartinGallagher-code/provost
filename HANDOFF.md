@@ -1,6 +1,34 @@
 # Handoff — glean
 
-## Status: Standalone; reviewer-driven fix rounds R1–R7 underway on PR #44 (branch claude/review-fixes); R1-R6(partial) landed 2026-07-15 — golden gate **3443/0, 263 ⏳** (R6: psql-table === rule for airflow pipe table; atop/alias/artillery deferred)
+## Status: Standalone; reviewer-driven fix rounds on PR #44 (branch claude/review-fixes); R1–R6 + round-3 specifics + R5b-contained landed 2026-07-18 — golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+
+> **2026-07-18 — R6 finished + round-3 specifics + R5b (contained).** Seven
+> more contained wins, each gated to zero corpus regressions:
+> - `delimited/alias-list.sh` (NEW): `alias NAME='CMD'` → name/command table.
+> - `delimited/dot-leader-kv.sh` (NEW): `label: …… value` (artillery) → one
+>   key/value row per metric, leaders stripped.
+> - `delimited/pipe-cells.sh` (NEW): atop `PRC | sys 1.42s | …` → long
+>   group/key/value, pipes removed (6 groups → 28 rows).
+> - `delimited/grouped-list.sh` (NEW): asdf version listing → group/value/
+>   current long form (version-specific detection so it stays off
+>   indented-hierarchy trees / plain lists).
+> - `delimited/embedded-table.sh`: admit a positionally-aligned short row
+>   (blank interior cell) after a full-width anchor — bundle-outdated 3→5
+>   rows; spec-cpu multi-word-label header stays with aligned-columns.
+> - `columnar-specs.sh`: apache2ctl-modules → module/type; apk-list (NEW
+>   spec) → package/arch/origin/license/status, brackets unwrapped, the
+>   space-bearing licence kept whole in one column via absorb.
+>
+> Goldens re-frozen for the 7 (+manifests text/kv→table where reclassified).
+> **Deferred, needing a focused pass / reviewer sign-off** (each is large or
+> has no recoverable tidy shape): R5b list-explode convention (amtool Peers,
+> avro fields — a JSON/YAML list → one-row-per-element change with
+> corpus-wide golden churn), ansible-version header-as-field kv; R7 charts
+> (asciichart = pure box-drawing, no tabular data; asciigraph needs a
+> fragile chart-axis heuristic; amdgpu-top is two independent tables that
+> can't share one tidy dataset). aptitude-search left on its text-lines
+> hint (tool-specific fixed-width prefix). Review doc regenerated as
+> `glean_corpus_review_7.docx` (258 VALIDATED).
 
 > **2026-07-15 — reviewer round R1 (column fidelity).** The user filled the
 > 3,706-page review workbook for the `a*` pages (195 reviewed: 140 OK /

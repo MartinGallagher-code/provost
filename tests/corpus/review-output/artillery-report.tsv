@@ -1,4 +1,10 @@
-n	All_VUs_finished._Total_time	Summary_report_@_06	http.codes.200	http.request_rate	http.requests	min	max	mean	p95	p99	vusers.completed
-1	1_minute,_2_seconds										
-2		00:12(+0000)									
-3			................_120488	............._12024/sec	................._120488	........................._2	........................._212	........................_12.4	........................._44	........................._88	.............._12000
+n	key	value	total_entries
+1	http.codes.200	120488	9
+2	http.request_rate	12024/sec	9
+3	http.requests	120488	9
+4	min	2	9
+5	max	212	9
+6	mean	12.4	9
+7	p95	44	9
+8	p99	88	9
+9	vusers.completed	12000	9
