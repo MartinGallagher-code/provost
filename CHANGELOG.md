@@ -1,5 +1,28 @@
 # glean — Changelog
 
+## 2026-07-18 — round-3 specifics: apk-list license, apache2ctl module type
+
+Two contained columnar-spec fixes from the round-3 review notes:
+
+- `delimited/columnar-specs.sh` apache2ctl-modules: was one `@line` column
+  (`core_module (static)`); now two — `module` and `type@unwrap` (static /
+  shared as its own column). (reviewer: "(static)/(shared) own column")
+- `delimited/columnar-specs.sh` apk-list (NEW spec): `pkg arch {origin}
+  (license) [status]` now maps to package / arch / origin / license / status
+  with the origin/license/status brackets unwrapped. The `absorb` sink on the
+  license column keeps a space-bearing licence whole in ONE column
+  (`(MPL-2.0 AND MIT)` → `MPL-2.0_AND_MIT`, underscore-joined by the absorb
+  mechanism) instead of splitting it across two columns as aligned-columns
+  did. (reviewer: "keep `(MPL-2.0 AND MIT)` whole")
+
+Goldens re-frozen (both already `table` in the manifest; mincols tightened).
+Gate 3444/0, extract 62/62. Zero regressions.
+
+aptitude-search (reviewer wanted 4 columns) stays on its `text-lines` hint:
+its fixed-width state prefix (`i  `/`i A`) plus ` - ` description separator
+is genuinely tool-specific and doesn't fit the generic columnar engines
+without a fragile bespoke — left as acknowledged.
+
 ## 2026-07-18 — reviewer round 6 (R6, cont.): alias / dot-leader / blank-cell rows
 
 Continued R6 delimiter/decoration cleanup — three more of the reviewer's

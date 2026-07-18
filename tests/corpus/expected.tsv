@@ -391,7 +391,7 @@ rpm-qi	kv	-	8
 rpm-ql	table	10	1
 zypper-info	kv	-	8
 pacman-ql	table	8	1
-apk-list	table	7	1
+apk-list	table	7	4
 xbps-query	table	7	1
 brew-info	kv	-	2
 brew-outdated	table	6	2
@@ -794,7 +794,7 @@ wget_spider	kv	-	4
 whois_domain	kv	-	4
 openssl_sclient	kv	-	4
 whatweb	kv	-	4
-apache2ctl-modules	table	8	1
+apache2ctl-modules	table	8	3
 varnishstat-1	table	8	2
 varnishadm-backend	table	6	2
 pgbouncer-pools	table	5	7
