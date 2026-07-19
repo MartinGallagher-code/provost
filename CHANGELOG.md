@@ -1,5 +1,38 @@
 # glean — Changelog
 
+## 2026-07-19 — R5b list-explode: JSON/YAML list-of-records → one row per element
+
+The larger R5b piece: a flat JSON/YAML record with a single list-valued field
+now explodes to one tidy row per element with the scalar keys repeated, instead
+of a wide `field.0.* field.1.* …` row whose duplicate leaf names collide in the
+melt (the akamai failure mode, one layer deeper).
+
+- `lib/_helpers.sh` `_list_explode` (NEW): pivots the flat `key value` pairs
+  when there is EXACTLY ONE indexed list (`prefix.N` / `prefix.N.sub`, N a
+  0-based int, non-empty prefix). `json.sh` and `yaml.sh` pipe their output
+  through it. avro-tools-getschema `fields` → one row per field
+  (type/name repeated); amtool-cluster-show `Peers` → one row per peer.
+- **Dominant-list guard** (the containment that makes it safe): a list of
+  RECORDS (elements carry sub-keys) always explodes; a list of bare SCALARS
+  only when it dominates the record (element count ≥ scalar-key count). So a
+  kv snapshot with a small incidental list stays ONE wide row (config `tags`,
+  npm-view `maintainers`, opa-eval `required_labels`, yq-eval-front `ports`,
+  amtool-config `receivers` — all left flat), honoring R5, while a record whose
+  content IS the list becomes rows (skopeo 10 `Tags`, solr `collections`,
+  cfssl `usages`), honoring R5b.
+- **Empty-prefix guard**: a bare `.0`/`.1` (a jq array-boundary artifact in
+  multi-array JSON — kubectl config, nvim-checkhealth) is not a named list and
+  never triggers explode.
+
+15 corpus fixtures flipped, every one audited as an improvement (indexed-wide →
+tidy rows, zero data loss) and re-frozen: amtool-cluster-show, avro-tools-
+getschema, cfssl-info, docker-manifest-inspect, dub-describe, flink-taskmanager-
+list, kafka-connect-status, lscpu-json, mimirtool-analyze-{grafana,prometheus},
+nst-json-4level-arrays, podman-healthcheck, rethinkdb-table-status,
+skopeo-list-tags, solr-collections-list. Gate 3444/0, extract 62/62 (yaml
+self-test unchanged — basic.yaml's 2-tag list stays flat under the dominant
+guard), smoke 49/0, melt 10/0. Zero regressions.
+
 ## 2026-07-18 — R5b (contained): asdf-list grouped versions
 
 - `delimited/grouped-list.sh` (NEW, priority 49): a version-manager listing —

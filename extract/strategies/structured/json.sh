@@ -29,11 +29,14 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
 
-    # Try jq first (most reliable), fall back to awk-based parser
+    # Try jq first (most reliable), fall back to awk-based parser. Pipe the flat
+    # key/value pairs through _list_explode so a single indexed list-of-records
+    # (avro `fields`, amtool `Peers`) becomes one tidy row per element instead of
+    # a wide `fields.0.* fields.1.*` row whose duplicate leaf names collide.
     if command -v jq &>/dev/null; then
-        _strat_json_extract_jq "$text"
+        _strat_json_extract_jq "$text" | _list_explode
     else
-        _strat_json_extract_fallback "$text"
+        _strat_json_extract_fallback "$text" | _list_explode
     fi
 }
 

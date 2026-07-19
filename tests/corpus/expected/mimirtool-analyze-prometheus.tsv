@@ -1,2 +1,4 @@
-total_active_series	in_use_active_series	additional_active_series	in_use_metric_counts.0.metric	in_use_metric_counts.0.count	in_use_metric_counts.0.job_counts.0.job	in_use_metric_counts.0.job_counts.0.count	in_use_metric_counts.1.metric	in_use_metric_counts.1.count	in_use_metric_counts.1.job_counts.0.job	in_use_metric_counts.1.job_counts.0.count	in_use_metric_counts.2.metric	in_use_metric_counts.2.count	in_use_metric_counts.2.job_counts.0.job	in_use_metric_counts.2.job_counts.0.count
-1842019	1204553	637466	node_cpu_seconds_total	94213	node	94213	http_request_duration_seconds_bucket	61200	api	61200	container_memory_usage_bytes	44018	cadvisor	44018
+n	total_active_series	in_use_active_series	additional_active_series	in_use_metric_counts.metric	in_use_metric_counts.count	in_use_metric_counts.job_counts.0.job	in_use_metric_counts.job_counts.0.count	total_entries
+1	1842019	1204553	637466	node_cpu_seconds_total	94213	node	94213	3
+2	1842019	1204553	637466	http_request_duration_seconds_bucket	61200	api	61200	3
+3	1842019	1204553	637466	container_memory_usage_bytes	44018	cadvisor	44018	3
