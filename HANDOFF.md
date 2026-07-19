@@ -1,6 +1,26 @@
 # Handoff — glean
 
-## Status: Standalone; reviewer-driven fix rounds on PR #44 (branch claude/review-fixes); R1–R6 + round-3 specifics + R5b-contained landed 2026-07-18 — golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+## Status: Standalone; reviewer-driven fix rounds on PR #44 (branch claude/review-fixes); R1–R7 + R5b (incl. list-explode) landed 2026-07-19 — golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+
+> **2026-07-19 — R5b list-explode + R7 charts (all rounds now landed).**
+> - `lib/_helpers.sh` `_list_explode`: json/yaml with ONE indexed list
+>   (`prefix.N[.sub]`) explode to one row per element, scalars repeated —
+>   avro `fields`, amtool `Peers`, skopeo `Tags`, docker-manifest, flink,
+>   kafka, lscpu, mimirtool, solr, cfssl, rethinkdb, podman (15 flips, all
+>   improvements, re-frozen). Contained by a **dominant-list guard** (record
+>   lists always; bare-scalar lists only when they out-number the scalar
+>   siblings — so config `tags`/npm `maintainers`/opa `required_labels` stay
+>   one wide row, honoring R5) and an **empty-prefix guard** (bare `.N` jq
+>   array artifacts in kubectl-config/nvim-checkhealth never trigger).
+> - `delimited/asciigraph.sh`: line-chart footer (x-axis + `series v v v`)
+>   → one row per point, graphics dropped (asciigraph-plot → 6 rows).
+> - Honest ⏳ (nothing to recover): asciichart-boxed/series-frame (box-drawn
+>   series, only y-scale labels — no per-point data), amdgpu-top (two
+>   independent tables, one-dataset-per-input mismatch; a partial parse would
+>   drop half the data).
+>
+> All 7 reviewer rounds (R1–R7) + R5b are now landed. Remaining corpus ⏳
+> (261) are format-genuine hard cases, not reviewer asks.
 
 > **2026-07-18 — R6 finished + round-3 specifics + R5b (contained).** Seven
 > more contained wins, each gated to zero corpus regressions:

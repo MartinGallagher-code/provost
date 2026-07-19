@@ -3168,7 +3168,7 @@ ctop-gauges	text	-	4
 bandwhich-bandwidth	text	-	3
 termgraph-bars	text	-	2
 spark-cli-sparkline	text	-	2
-asciigraph-plot	text	-	2
+asciigraph-plot	table	6	2
 hyperfine-histogram	text	-	2
 dust-tree-bars	text	-	3
 speedtest-progress	text	-	2

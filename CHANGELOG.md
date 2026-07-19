@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-07-19 — R7 charts (best-effort): asciigraph values recovered
+
+- `delimited/asciigraph.sh` (NEW, priority 46): an asciigraph line chart is
+  braille/box-drawing graphics with a numeric footer — an x-axis label row over
+  a `<series> v v v …` value row. This drops the plot and emits one row per
+  point (the axis label + the series value): asciigraph-plot → 6 rows of
+  x=00:00… / req/s=18…. Detection needs ≥2 `┤`/`┼` plot lines AND a numeric
+  series footer, so it stays off ordinary tables — gate flipped asciigraph-plot
+  and nothing else. (reviewer: "extract the values, not the graphics")
+
+**Left honestly ⏳** (best-effort has nothing to recover): asciichart-boxed and
+asciichart-series-frame are a box-drawn series with only y-axis SCALE labels —
+no per-point values exist in the text, so there is no tidy data to emit.
+amdgpu-top is TWO independent tables (GRBM/VRAM + Sensors) with different
+columns; glean emits one dataset per input, and a partial parse would silently
+drop half the data — less honest than ⏳. Both documented rather than
+fake-tidied.
+
+Gate 3444/0, extract 62/62, smoke 49/0, melt 10/0.
+
 ## 2026-07-19 — R5b list-explode: JSON/YAML list-of-records → one row per element
 
 The larger R5b piece: a flat JSON/YAML record with a single list-valued field
