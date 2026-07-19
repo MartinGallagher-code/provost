@@ -34,7 +34,7 @@ amixer-scontrols	?
 amtool-alert	?
 amtool-alert-add	?
 amtool-alert-query	?
-amtool-cluster-show	?
+amtool-cluster-show	yaml
 amtool-config-show	?
 amtool-silence-query	?
 anacron-tab	?
@@ -100,7 +100,7 @@ artillery-report	dot-leader-kv
 asciichart-boxed	?
 asciichart-series-frame	?
 asciidoctor-version	?
-asciigraph-plot	?
+asciigraph-plot	asciigraph
 asciinema-list	?
 asdf-list	grouped-list
 astropy-config	?
@@ -123,7 +123,7 @@ ausearch-msg-fields	?
 ausearch-record-gaps	?
 ausearch-time	?
 autocannon-run	?
-avro-tools-getschema	?
+avro-tools-getschema	json
 avro-tools-tojson	?
 aws-apigateway-get-rest-apis	?
 aws-appconfig-list	?
@@ -380,7 +380,7 @@ ceph-pg-stat	?
 ceph-status	?
 cephadm-ls	?
 certbot-certificates	?
-cfssl-info	?
+cfssl-info	json
 cgget	?
 cgget-cpu	?
 cgroup-tree	?
@@ -727,7 +727,7 @@ docker-inspect-networks	?
 docker-inspect-pretty	?
 docker-inspect-text-multi	?
 docker-machine-ls	?
-docker-manifest-inspect	?
+docker-manifest-inspect	json
 docker-network	?
 docker-network-inspect	?
 docker-network-inspect-pretty	?
@@ -802,7 +802,7 @@ du-sh-dirs	?
 du-summary	?
 du-tree-depth3	?
 dua-interactive	?
-dub-describe	?
+dub-describe	json
 dub-list	?
 duckdb-box-output	?
 duckdb-describe	?
@@ -1094,7 +1094,7 @@ flatpak-remotes	?
 flatpak-remotes-info	?
 flink-list-jobs	?
 flink-savepoint-list	?
-flink-taskmanager-list	?
+flink-taskmanager-list	json
 fluent-bit-inputs	?
 fluent-bit-metrics	?
 fluent-bit-version	?
@@ -1586,7 +1586,7 @@ k6-summary	?
 k9s-context	?
 k9s-pods-line-color	?
 k9s-version	?
-kafka-connect-status	?
+kafka-connect-status	json
 kafka-consumer-groups	?
 kafka-topics-describe	?
 kafka-version	?
@@ -1787,7 +1787,7 @@ lsblk-tree	?
 lscpu	?
 lscpu-cache	?
 lscpu-extended	?
-lscpu-json	?
+lscpu-json	json
 lscpu-parse	?
 lsd-long	?
 lshw	?
@@ -1896,8 +1896,8 @@ mii-tool	?
 mill-resolve	?
 miller-cat-csv	?
 mimir-version	?
-mimirtool-analyze-grafana	?
-mimirtool-analyze-prometheus	?
+mimirtool-analyze-grafana	json
+mimirtool-analyze-prometheus	json
 mimirtool-bucket-validate	?
 mimirtool-rules-list	?
 minimap2-log	?
@@ -2153,7 +2153,7 @@ nst-iostat-multisection	?
 nst-ip-route-per-table	?
 nst-ip-s-link-nested	?
 nst-java-log-stacktrace	?
-nst-json-4level-arrays	?
+nst-json-4level-arrays	json
 nst-k8s-list-yaml	?
 nst-kv-table-kv-backup-report	?
 nst-ledger-grouped-subtotal	?
@@ -2487,7 +2487,7 @@ pnpm-version	?
 pnpm-why	?
 pnpm-why-react-dom	?
 podman-generate-kube	?
-podman-healthcheck	?
+podman-healthcheck	json
 podman-image-tree	?
 podman-images	?
 podman-info	?
@@ -2820,7 +2820,7 @@ restic-cache-list	?
 restic-check	?
 restic-snapshots	?
 restic-stats	?
-rethinkdb-table-status	?
+rethinkdb-table-status	json
 retroarch-cores	?
 rfkill-json	?
 rfkill-list	?
@@ -2974,7 +2974,7 @@ size	?
 skaffold-version	?
 skopeo-copy-log	?
 skopeo-inspect	?
-skopeo-list-tags	?
+skopeo-list-tags	json
 skopeo-version	?
 slabtop	?
 smartctl-all	?
@@ -3004,7 +3004,7 @@ socat-version	?
 sockperf-ping	?
 sockperf-throughput	?
 solana-validators	?
-solr-collections-list	?
+solr-collections-list	json
 sops-metadata	?
 sops-updatekeys	?
 spack-find	?
