@@ -1,5 +1,2 @@
-n	OS	PID:	812	total_entries
-1	Total	memory	used:_214748364	4
-2	Uptime	(seconds):	1284433	4
-3	RabbitMQ	version:	3.13.2	4
-4	Erlang	version:	26.2.5	4
+OS_PID	Total_memory_used	Uptime_(seconds)	RabbitMQ_version	Erlang_version
+812	214748364	1284433	3.13.2	26.2.5

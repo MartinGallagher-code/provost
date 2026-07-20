@@ -1,5 +1,389 @@
 # glean — Changelog
 
+## 2026-07-19 — R7 charts (best-effort): asciigraph values recovered
+
+- `delimited/asciigraph.sh` (NEW, priority 46): an asciigraph line chart is
+  braille/box-drawing graphics with a numeric footer — an x-axis label row over
+  a `<series> v v v …` value row. This drops the plot and emits one row per
+  point (the axis label + the series value): asciigraph-plot → 6 rows of
+  x=00:00… / req/s=18…. Detection needs ≥2 `┤`/`┼` plot lines AND a numeric
+  series footer, so it stays off ordinary tables — gate flipped asciigraph-plot
+  and nothing else. (reviewer: "extract the values, not the graphics")
+
+**Left honestly ⏳** (best-effort has nothing to recover): asciichart-boxed and
+asciichart-series-frame are a box-drawn series with only y-axis SCALE labels —
+no per-point values exist in the text, so there is no tidy data to emit.
+amdgpu-top is TWO independent tables (GRBM/VRAM + Sensors) with different
+columns; glean emits one dataset per input, and a partial parse would silently
+drop half the data — less honest than ⏳. Both documented rather than
+fake-tidied.
+
+Gate 3444/0, extract 62/62, smoke 49/0, melt 10/0.
+
+## 2026-07-19 — R5b list-explode: JSON/YAML list-of-records → one row per element
+
+The larger R5b piece: a flat JSON/YAML record with a single list-valued field
+now explodes to one tidy row per element with the scalar keys repeated, instead
+of a wide `field.0.* field.1.* …` row whose duplicate leaf names collide in the
+melt (the akamai failure mode, one layer deeper).
+
+- `lib/_helpers.sh` `_list_explode` (NEW): pivots the flat `key value` pairs
+  when there is EXACTLY ONE indexed list (`prefix.N` / `prefix.N.sub`, N a
+  0-based int, non-empty prefix). `json.sh` and `yaml.sh` pipe their output
+  through it. avro-tools-getschema `fields` → one row per field
+  (type/name repeated); amtool-cluster-show `Peers` → one row per peer.
+- **Dominant-list guard** (the containment that makes it safe): a list of
+  RECORDS (elements carry sub-keys) always explodes; a list of bare SCALARS
+  only when it dominates the record (element count ≥ scalar-key count). So a
+  kv snapshot with a small incidental list stays ONE wide row (config `tags`,
+  npm-view `maintainers`, opa-eval `required_labels`, yq-eval-front `ports`,
+  amtool-config `receivers` — all left flat), honoring R5, while a record whose
+  content IS the list becomes rows (skopeo 10 `Tags`, solr `collections`,
+  cfssl `usages`), honoring R5b.
+- **Empty-prefix guard**: a bare `.0`/`.1` (a jq array-boundary artifact in
+  multi-array JSON — kubectl config, nvim-checkhealth) is not a named list and
+  never triggers explode.
+
+15 corpus fixtures flipped, every one audited as an improvement (indexed-wide →
+tidy rows, zero data loss) and re-frozen: amtool-cluster-show, avro-tools-
+getschema, cfssl-info, docker-manifest-inspect, dub-describe, flink-taskmanager-
+list, kafka-connect-status, lscpu-json, mimirtool-analyze-{grafana,prometheus},
+nst-json-4level-arrays, podman-healthcheck, rethinkdb-table-status,
+skopeo-list-tags, solr-collections-list. Gate 3444/0, extract 62/62 (yaml
+self-test unchanged — basic.yaml's 2-tag list stays flat under the dominant
+guard), smoke 49/0, melt 10/0. Zero regressions.
+
+## 2026-07-18 — R5b (contained): asdf-list grouped versions
+
+- `delimited/grouped-list.sh` (NEW, priority 49): a version-manager listing —
+  unindented tool labels over indented version members with the active one
+  flagged `*` (asdf list) — now tidies to long form: one row per version,
+  `group` (tool) carried down, `value` (version), and a `current` flag for the
+  `*`-marked one. Was line-records flattening it to a 1-column list with the
+  `*` glued on.
+  Detection is deliberately version-specific — members must be a single
+  colon-free token carrying an ASCII digit, labels must not be colon-suffixed
+  section headers — so it does not poach indented-hierarchy trees
+  (nodetool gossipinfo's `key:value` leaves, a CJK node tree) or plain
+  indented lists (telegraf `inputs:` plugins). The full-corpus gate flipped
+  asdf-list and nothing else across two containment iterations.
+
+  Golden re-frozen, manifest text→table 4. Gate 3444/0, extract 62/62.
+
+The larger R5b pieces stay deferred as they need their own focused pass /
+reviewer sign-off (each is a convention change with corpus-wide golden churn
+in a high-traffic structured parser): list-value → one row per element with
+outer fields repeated (amtool-cluster-show Peers, avro-tools-getschema
+fields — a JSON/YAML list-explode), and ansible-version's header-line-as-field
+kv snapshot.
+
+## 2026-07-18 — round-3 specifics: apk-list license, apache2ctl module type
+
+Two contained columnar-spec fixes from the round-3 review notes:
+
+- `delimited/columnar-specs.sh` apache2ctl-modules: was one `@line` column
+  (`core_module (static)`); now two — `module` and `type@unwrap` (static /
+  shared as its own column). (reviewer: "(static)/(shared) own column")
+- `delimited/columnar-specs.sh` apk-list (NEW spec): `pkg arch {origin}
+  (license) [status]` now maps to package / arch / origin / license / status
+  with the origin/license/status brackets unwrapped. The `absorb` sink on the
+  license column keeps a space-bearing licence whole in ONE column
+  (`(MPL-2.0 AND MIT)` → `MPL-2.0_AND_MIT`, underscore-joined by the absorb
+  mechanism) instead of splitting it across two columns as aligned-columns
+  did. (reviewer: "keep `(MPL-2.0 AND MIT)` whole")
+
+Goldens re-frozen (both already `table` in the manifest; mincols tightened).
+Gate 3444/0, extract 62/62. Zero regressions.
+
+aptitude-search (reviewer wanted 4 columns) stays on its `text-lines` hint:
+its fixed-width state prefix (`i  `/`i A`) plus ` - ` description separator
+is genuinely tool-specific and doesn't fit the generic columnar engines
+without a fragile bespoke — left as acknowledged.
+
+## 2026-07-18 — reviewer round 6 (R6, cont.): alias / dot-leader / blank-cell rows
+
+Continued R6 delimiter/decoration cleanup — three more of the reviewer's
+firmest asks landed, each a format-level generic parser or a contained fix:
+
+- `delimited/alias-list.sh` (NEW, priority 14): shell `alias NAME='CMD'`
+  listings now emit a clean `name`/`command` table — the `alias ` keyword
+  and the surrounding quotes are stripped, the command kept whole. Detection
+  is exact (EVERY non-empty line is `alias <name>=<value>`), zero blast
+  radius. Was aligned-columns shredding `ls -alF` across columns and keeping
+  a redundant `alias` column A. (reviewer: "horrid — `=` split")
+- `delimited/dot-leader-kv.sh` (NEW, priority 15): `label: ....... value`
+  reports (artillery and similar) where a run of dot leaders separates key
+  from value now emit one `key`/`value` row per metric, leaders stripped.
+  Nested section metrics (`min`/`max`/`mean` under `http.response_time:`)
+  are captured; the valueless section header is dropped. Detection requires
+  ≥3 dot-leader lines. (reviewer: "dot-leaders are delimiters")
+- `delimited/embedded-table.sh`: the detection window now admits a row with
+  FEWER tokens than the header when its tokens positionally align to
+  distinct header columns — a genuine blank interior cell. bundle-outdated
+  (sidekiq's empty `Requested`, rubocop's `development, test`) now yields
+  all 5 rows instead of 3. The first data row must still be full-width so a
+  multi-word-label header (spec-cpu's doubled `Ref. Run Time Rate`, which
+  makes every row "short") stays with aligned-columns — verified no flip.
+
+Files: `extract/strategies/delimited/{alias-list,dot-leader-kv,embedded-table}.sh`,
+new samples under `extract/strategies/delimited/samples/{alias-list,dot-leader-kv}/`,
+goldens `tests/corpus/expected/{alias-list,artillery-report,bundle-outdated}.tsv`,
+manifest `tests/corpus/expected.tsv` (alias-list/artillery-report text→table).
+Gate 3444/0, extract 62/62, smoke 49/0, melt 10/0. Zero regressions.
+
+- `delimited/pipe-cells.sh` (NEW, priority 31): atop-style monitor rows —
+  a short row LABEL followed by `|`-separated `key value` cells — now tidy
+  to a long `group`/`key`/`value` table with the pipes removed (atop:
+  6 groups → 28 rows). Detection is tight (uppercase-led label OUTSIDE the
+  pipes, trailing pipe, ≥2 two-token cells per row), so it poaches no real
+  pipe/box table — full-corpus gate flipped atop and nothing else. A lone
+  device-name cell (DSK's `sda`) is skipped; empty cells (SWP's gap) too.
+  Was aligned-columns keeping the `|` glyphs as their own columns.
+  (reviewer: "pipes are delimiters, remove them")
+
+Still open in R6 (each niche, best-effort): ansible-v (bracket+space → A/B),
+7z-benchmark (dual-table with a `|` gutter), autocannon-run (box-drawing
+frame).
+
+## 2026-07-15 — reviewer round 6 (R6, partial): pipe-table equals rule
+
+Sixth review-workbook round (round-2 marks). The reviewer's firmest R6 ask
+— "pipes are delimiters, remove them from the output." First landed fix:
+
+- `delimited/psql-table.sh`: the box-separator now recognises an EQUALS
+  rule (`====+====+====`) alongside the dash rule, so airflow dags list
+  (`dag_id | filepath | owner | paused` over a `===+===` rule) parses as a
+  clean 4-column pipe table (pipes gone) instead of vertical-line keeping
+  the `|` glyphs as their own columns. 1 flip, 0 collateral.
+
+Still open in R6 (each a distinct format, deferred): atop (`PRC | sys 1.42s
+| …` pipe-delimited kv rows), alias-list (`alias NAME='VALUE'` — `=` split,
+drop the `alias` keyword), artillery-report (dot-leader `……` delimiters),
+ansible-v (bracket + space → A/B), autocannon-run (first line is data),
+bundle-outdated (missed rows). Gate 3443/0.
+
+## 2026-07-15 — reviewer round 5 (R5, partial): kv misroutes + multiline values
+
+Fifth review-workbook round (round-2 marks). R5's headline — single-entity
+kv → one wide row — is a large convention change; this pass ships the
+contained, unambiguous fixes and DEFERS the sweeping pivot (it needs the
+kv-under-group grouping treatment, not a blunt row-drop: sensters `Core 0:`
+/ docker `Client:` are group labels that disambiguate repeated keys).
+
+- `structured/prometheus-query.sh`: detection tightened to the real
+  `name{key="value"} 123.45` form — braces must hold a `="` assignment and
+  the line end in a bare number. A package list whose `{origin}` braces have
+  no `=` (apk list → aligned-columns per-package rows) and a profiling
+  table (parca-query → clean 5-col aligned table) no longer false-match.
+- `structured/key-value.sh`: a bare label (`webpage:`) folds the
+  below-the-line value VERBATIM — its own colons are data, not a new key
+  (`https://busybox.net/`, `so:libc…`, openssl's multiline Serial Number
+  `0a:1b:…`). Fixes apk info -a (URLs no longer split into `https:` keys)
+  and collapses bogus hex-fragment keys across the openssl / x509 / crl /
+  cryptsetup / numactl family into their parent labels.
+
+Closes reviewer fixtures apk-list, apk-info-a; upgrades the openssl/x509
+family + parca-query. Gate 3443 passed, 0 failed, 263 ⏳, 0 deletions
+(14 goldens re-frozen; parca-query manifest 5→4 rows; vmagent-targets
+demoted to ⏳ — labeled-inline-kv splits its endpoint URLs, needs a
+containment pass). Suites: smoke 49/0, melt 10/0, extract all green.
+
+DEFERRED to a dedicated kv-pivot round: aide-check (single row + drop
+Summary), R-sessioninfo (missing R version), apachebench / atuin-stats
+(embedded bottom table), amtool-cluster-show / avro (list-value → rows),
+ansible-version (header line as field).
+
+## 2026-07-15 — reviewer round 4 (R4): tree-view ancestor + value columns
+
+Fourth review-workbook round (round-2 marks; plan
+docs/0002-review-fix-plan.md). tree-view emitted a flat depth/name dump —
+the reviewer wanted the hierarchy legible ("the things one level up are the
+context"). Redesigned `structured/tree-view.sh`:
+
+- **parent column** — a depth-keyed ancestor stack gives every node its
+  immediate parent, turning the dump into a navigable parent -> child edge
+  list (brew-uses-tree, broot-summary, ansible-inventory-graph group ->
+  member, npm/pstree/systemd-cgls/gradle/terraform all readable).
+- **value column** — a trailing metric after a 2+-space gap
+  (broot's `main.rs   1.2 kB`, exa's file sizes, pstree's `2*[{proc}]`
+  counts) splits off the name instead of welding to it.
+- **depth generalized** to variable-width vertical cells (`│  `, `│   `,
+  ASCII `|  `) so 2-space-indented trees (broot) get correct depths.
+- **numbered-hop decline** — `mtr` / `traceroute` draw `1.|-- host …`
+  whose `|--` is a hop connector, not tree indentation; tree-view now
+  declines when most node lines carry an `N.|--` prefix, so those columnar
+  reports fall to aligned-columns instead of a false tree (mtr / mtr-report
+  correctly stay ⏳ rather than become garbage goldens).
+
+Audit: 47 flips, all tree fixtures gaining parent/value — zero node-count
+changes (depth rewrite lossless), the 6 name changes all legitimate
+value-splits. Gate 3443 passed, 0 failed, 263 ⏳, 0 deletions. Extract
+self-test golden (tree-view) updated. Suites: smoke 49/0, melt 10/0,
+extract 173/0.
+
+Deferred to R5 (they are kv, not trees, and want the header line as a
+field): ansible-version / ansible-v, apk-policy, apt-cache-policy,
+aplay-list, apachectl-S.
+
+## 2026-07-15 — reviewer round 3 (R3): chrome rows — prompts, comments, banners, titles
+
+Third review-workbook round (plan: docs/0002-review-fix-plan.md). The
+cluster: non-data lines a capture drags in — shell-prompt echoes, comment
+banners, rule lines, section banners, prose titles — leaking into the
+dataset (amass-intel's `$ amass intel …` prompt defeated table detection
+entirely; aureport's `# date time acct …` comment IS the header).
+
+- Engine (`extract/envoy-extract`): leading-chrome strip — `$ command`
+  prompt echoes, `WARNING:`/`ERROR:`/`NOTICE:` stderr noise, `NAME ****`
+  banner rules, and prose-title first lines (`List of devices attached`),
+  each leading-only over >=2 remaining lines; interspersed `== word ==`
+  section banners dropped anywhere (apptainer's `== labels ==` /
+  `== runscript ==`) — exactly-two-equals so `=== SET ===` /
+  `====== JOB MAP ======` GROUP-LABEL banners the embedded-table /
+  kv-under-group parsers consume stay intact.
+- `delimited/aligned-columns.sh` (`_ac_body`): audit-report chrome, gated
+  on a `====` rule — drops the rules and the title above the first rule,
+  promotes a lone `# col col …` comment to the real header, strips
+  sequential `N.` row-number prefixes (aureport).
+- `delimited/vertical-line.sh`: defers the `# header` + `====` audit shape
+  to aligned-columns.
+- `delimited/line-records.sh`: strips a leading `# /path` location banner
+  (ansible-galaxy's collection root) — narrowed to paths so `# title`
+  section lines a parser uses as a header survive; go-mod-why's bespoke
+  `# module` markers untouched (strategy-local).
+- `structured/inline-kv.sh`: `host : k=v` two-token name form
+  (ansible-playbook-recap → one row per host).
+- NEW `delimited/ping-report.sh` (priority 35): ping/ping6/arping reply
+  streams — one row per reply (bytes / from / optional ip / a column per
+  `k=v` with the trailing bare unit folded in), banner and
+  `--- … statistics ---` footer dropped.
+
+Closes reviewer fixtures amass-intel, aureport, aureport-login,
+ansible-galaxy-list, apk-info-installed, apptainer-inspect (banners),
+ansible-playbook-recap, arping, adb-devices (title row); ~26 collateral
+`$`-prompt improvements across security tooling (checksec, subfinder,
+yara, hashcat, gitleaks, gobuster, trufflehog, openssl/cosign/step/rekor).
+Gate: 3443 passed, 0 failed, 263 ⏳, 0 deletions (35 goldens re-frozen +
+4 new). 11 manifests recalibrated from pre-strip dims. Suites: smoke 49/0,
+melt 10/0, extract all green.
+
+Files: extract/envoy-extract, extract/strategies/delimited/{aligned-columns,
+vertical-line,line-records,ping-report}.sh,
+extract/strategies/structured/inline-kv.sh, extract/samples/ping-report/,
+tests/corpus/expected/*, tests/corpus/expected.tsv.
+
+## 2026-07-15 — reviewer round 2 (R2): headerless detection — row 1 is data, not a header
+
+Second review-workbook round (plan: docs/0002-review-fix-plan.md). The
+cluster: delimited parsers eating the first DATA row as a header
+(`i-0abc123 / t3.micro / 10.0.1.5` became sanitized column names).
+
+- `structured/csv.sh`: TAB-dominant input declines to tsv (aws `--output
+  text` carries commas *inside* values — "my-logs, prod"); DUAL-ROW SHAPE
+  test — a header must show label-over-value contrast somewhere, so when
+  every column has the same shape in rows 1-2 and at least one is
+  value-shaped, row 1 is data (amixer's `'Master',0`, tshark's quoted
+  fields, ycsb's `[OVERALL]` rows, logcli timestamps — all previously
+  header-eaten).
+- `structured/tsv.sh`: cell-split pre-pass — a ctime-style stamp opening
+  every row's cell with a uniform token tail becomes stamp + per-token
+  columns (`at`/`atq`: job | datetime | queue | user); a constant
+  >=2-token prefix with an ARGUMENT-shaped remainder (path/flag/number)
+  splits into prefix + rest (anacrontab's `nice run-parts` |
+  `/etc/cron.daily`; bcftools' "number of samples:" label stays whole).
+- `delimited/line-records.sh`: space-free lines with a uniform colon count
+  >=2 split on colons (ECS/SNS ARNs → arn|aws|service|region|account|name,
+  bpftrace probes → type|provider|name); URLs and non-alpha-led lines
+  keep theirs.
+
+Closes reviewer fixtures aws-ec2-output-text, aws-s3api-text-tabs,
+amixer-scontrols, at-queue, atq, anacron-tab, aws-ecs-list-clusters, plus
+6 collateral upgrades (aws-sns-list-topics, bpftrace-l, logcli-query,
+pytest-collect-color, tshark-fields-quoted, ycsb-run — three of which had
+their first data row baked into golden headers) and one NEW gap closed:
+exo-perf-stat-x-csv. Gate: 3439 passed, 0 failed, 267 ⏳, 0 deletions
+(13 goldens re-frozen + 1 new). Suites: smoke 49/0, melt 10/0, extract
+62/62, analyze all green. COVERAGE.md headline regen batched with R3.
+
+Files: extract/strategies/structured/csv.sh,
+extract/strategies/structured/tsv.sh,
+extract/strategies/delimited/line-records.sh, tests/corpus/expected/*.
+
+## 2026-07-15 — reviewer round 1 (R1): column fidelity across the table core
+
+First fix round driven by the human review workbook
+(docs/0002-review-fix-plan.md, marks in docs/review-marks-2026-07-15.tsv;
+195 pages reviewed, 58 actionable, clustered into rounds R1–R7). R1 takes
+the worst cluster: aligned-columns splitting multi-word headers/values on
+single spaces — in akamai-property-list it silently DROPPED a whole data
+column (duplicate `Property` keys collided in the melt).
+
+`extract/strategies/delimited/aligned-columns.sh`:
+- EQUAL-token-count positional gate: a table whose header token count equals
+  its data rows' can still hide multi-word labels AND multi-word values
+  ("Property Name … Group" over "www.example.com … Web Delivery"); it now
+  reaches the positional grid when the header's 2-space segmentation
+  collapses below its token count AND the data segments the same way the
+  header does (data segmenting more finely — pam-tally2, ip6tables — means
+  the single-spaced header under-segments and tokenization is right).
+- SUB-COLUMN refinement in `_ac_assign` (buffered): a 2-space window holding
+  k>=2 header tokens splits into k sub-columns only when every header token
+  edge-aligns (start OR end, ±1) with the data in >=60% of rows — so
+  swapon's "SIZE USED PRIO", wipefs, vgs, smartctl, systemctl ACTIVE/SUB,
+  lsblk, xz-list, bconsole Type/Level all split, while "Ends At",
+  "Property Name" (one value below) stay one column. Eight vetoes earned
+  from the 89-flip audit: max-window-tokens >= k (a lone "webapp" under
+  "Job ID" must never split — melt collision drops data), alnum-only edge
+  witnesses (docker-stats' "/" false witness), per-ordinal denominators
+  (lsblk's sparse MOUNTPOINT), bridge tokens spanning a sub-label start
+  (ss-e "Peer Address:Port"), duplicate sub-labels across windows
+  (kube-capacity "CPU REQUESTS / CPU LIMITS"), bare separators BETWEEN
+  window values (ctop's "12M / 4M" — but a trailing bare "/" mountpoint is
+  a value, not a separator), plus the data-segmentation gate above.
+- Char-accurate bash grid (`_ac_grid_mb`) for lightly-non-ASCII blocks —
+  the awk grid measures bytes, so `412±2ns` (asv-continuous) drifted a
+  window right; narrow 2-byte chars only (emoji/CJK/box-drawing/soft-hyphen/
+  combining marks keep the awk path), with a ragged-alignment label-overlap
+  fallback (asv's unnamed sign + benchmark-name columns become letters).
+- PROSE-header veto: `Titleword lower lower …` with a stopword over
+  mismatched-width data is a title ("List of devices attached" — adb),
+  not labels; "Host cpu mem disk net" (no stopword) stays a header.
+- Multi-word colon-label decline: blocks where EVERY line is a distinct
+  `Two words: value` go to `colons` (apt-cache-stats, acpi, bazel-version,
+  kubectl version, rabbitmqctl, rsync-stats, deno-info, lsusb-style
+  same-digit-template labels exempted — those are table rows).
+- HEADERLESS trailing phrase-merge: the last column pair holding the same
+  two lowercase words on every row is one phrase ("not confined" —
+  aa-unconfined); trailing-only so ls -l's owner/group stay columns.
+- SCAFFOLD split for ragged headerless sentence-records: constant function
+  words (at/on/from/via/dev/to/of/by/for) once per row in the same order
+  become field anchors — arp -an's `<incomplete>` rows align, MAC+"[ether]"
+  stays one cell.
+
+`extract/strategies/delimited/colons.sh`: bracketed kv unwrap
+(`[ro.product.model]: [Pixel 8]` → key ro.product.model, value "Pixel 8" —
+adb-shell-getprop).
+
+`extract/strategies/structured/inline-kv.sh`: strict colon-pair flavor
+(`CN:8 DL:12MiB ETA:1m14s`, one colon, alpha label, same label set on every
+line) with positional letters for the unlabeled leading run, plus gauge-line
+outer-bracket unwrap — aria2c-progress becomes A/B/CN/DL/ETA columns.
+
+Corpus: 47 goldens re-frozen, every flip audited (many fixed silently
+SHIFTED goldens: nerdctl PLATFORM, flarectl Name, exo-kubectl NODE,
+talosctl, vercel, doctl, kube-capacity values). Six manifests re-calibrated
+from shredded-column counts to the honest merged columns (akamai 9→8c,
+doctl 11→9c, pscale-db 9→8c, vercel-domains 8→7c, vercel-projects 8→5c,
+adb-devices 2→3r until R3 strips its title row). Gate: 3438 passed,
+0 failed, 0 deleted goldens. Suites: smoke 49/0, melt 10/0, extract 62/62,
+analyze 8/8.
+
+Files: extract/strategies/delimited/aligned-columns.sh,
+extract/strategies/delimited/colons.sh,
+extract/strategies/structured/inline-kv.sh, tests/corpus/expected.tsv,
+tests/corpus/expected/*.tsv (47), docs/0002-review-fix-plan.md,
+docs/review-marks-2026-07-15.tsv, COVERAGE.md, tests/corpus/review-output/.
+
 ## 2026-07-14 — kv-under-group parser: the kv carry-down shape
 
 New generic parser `strategies/structured/kv-under-group.sh` (priority 10 —

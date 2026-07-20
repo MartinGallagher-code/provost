@@ -1,2 +1,4 @@
-responseHeader.status	responseHeader.QTime	collections.0	collections.1	collections.2
-0	12	orders	metrics	logs
+n	responseHeader.status	responseHeader.QTime	collections	total_entries
+1	0	12	orders	3
+2	0	12	metrics	3
+3	0	12	logs	3

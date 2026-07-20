@@ -211,7 +211,9 @@ strategy_extract () {
         result+="${block_key} ${block_val}"$'\n'
     fi
 
-    echo "$result"
+    # A single indexed list-of-records (amtool `Peers`, avro-style `fields`)
+    # explodes to one tidy row per element with the scalar keys repeated.
+    printf '%s' "$result" | _list_explode
 }
 
 # Helper: get array counter for a given depth. Result in _YAML_COUNTER.

@@ -1,2 +1,4 @@
-certificate	usages.0	usages.1	usages.2	expiry
------BEGIN CERTIFICATE-----	signing	key encipherment	server auth	8760h
+n	certificate	expiry	usages	total_entries
+1	-----BEGIN CERTIFICATE-----	8760h	signing	3
+2	-----BEGIN CERTIFICATE-----	8760h	key encipherment	3
+3	-----BEGIN CERTIFICATE-----	8760h	server auth	3

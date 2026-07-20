@@ -1,2 +1,3 @@
-n	BUCKET	prod	2026-01-01T00:00:00	my-logs	us-east-1	total_entries
-1	BUCKET	staging	2026-02-01T00:00:00	my-data	eu-west-1	1
+n	A	B	C	D	total_entries
+1	BUCKET	2026-01-01T00:00:00	my-logs, prod	us-east-1	2
+2	BUCKET	2026-02-01T00:00:00	my-data, staging	eu-west-1	2

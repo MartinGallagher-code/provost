@@ -807,6 +807,74 @@ if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
     text="$(printf '%s' "$text" | tr -d '\007\010')"
 fi
 
+# LEADING-CHROME strip — lines a capture drags in ABOVE the data (reviewer
+# round R3). Only the LEADING run of a block with >=2 remaining lines is
+# touched, each form gated to leading-only so real content is never lost:
+#   * `$ command` shell-prompt echoes (`$ amass intel -org …`);
+#   * `WARNING:`/`ERROR:`/`NOTICE:` stderr noise when no later line starts
+#     the same way (apk's cache warning);
+#   * `NAME ********…` banner rules (ansible's `PLAY RECAP ****`).
+_lc_strip () {
+    local _in="$1" _out="" _body="" _l _lead=1 _n=0
+    local _drop_warn=1
+    while IFS= read -r _l; do
+        _n=$((_n + 1))
+        [[ $_n -le 1 ]] && continue
+        [[ "$_l" =~ ^(WARNING|ERROR|NOTICE): ]] && _drop_warn=0
+    done <<< "$_in"
+    _n=0
+    while IFS= read -r _l; do
+        if [[ $_lead -eq 1 ]]; then
+            if [[ -z "${_l//[[:space:]]/}" ]]; then :
+            elif [[ "$_l" =~ ^\$\ [A-Za-z] ]]; then continue
+            elif [[ $_drop_warn -eq 1 && "$_l" =~ ^(WARNING|ERROR|NOTICE): ]]; then continue
+            elif [[ "$_l" =~ \*{6,}[[:space:]]*$ && "$_l" =~ ^[A-Z] ]]; then continue
+            elif [[ "$_l" =~ ^[A-Z][a-z]+([[:space:]]+[a-z]+){2,}$ ]] && \
+                 [[ "$_l" =~ [[:space:]](of|the|to|in|for|with|and|on|at|by|from|is|are)[[:space:]] ]]; then
+                # prose title ("List of devices attached") — Titlecase word +
+                # lowercase words incl. a function word, no colon/digits
+                continue
+            else _lead=0
+            fi
+        fi
+        _body+="$_l"$'\n'
+        [[ -n "${_l//[[:space:]]/}" ]] && _n=$((_n + 1))
+    done <<< "$_in"
+    if [[ $_n -ge 2 && "$_body" != "$_in"$'\n' ]]; then
+        printf '%s' "${_body%$'\n'}"
+    else
+        printf '%s' "$_in"
+    fi
+}
+# Interspersed `== section ==` banner lines (apptainer inspect's
+# `== labels ==` / `== runscript ==`) are pure section decoration — drop a
+# line delimited by EXACTLY-two-equals runs (`== word ==`). Longer runs
+# (`=== SET ===`, `====== JOB MAP ======`) are GROUP-LABEL banners that the
+# embedded-table / kv-under-group parsers legitimately consume, so the
+# exact-`==` shape is the discriminator. Gated on the byte pair.
+if [[ "$text" == *'== '* ]]; then
+    _banner_out=""
+    while IFS= read -r _bl; do
+        if [[ "$_bl" =~ ^[[:space:]]*==[[:space:]]+[A-Za-z0-9][^=]*[[:space:]]+==[[:space:]]*$ ]]; then
+            continue
+        fi
+        _banner_out+="$_bl"$'\n'
+    done <<< "$text"
+    text="${_banner_out%$'\n'}"
+fi
+
+case "$text" in
+    '$ '*|WARNING:*|ERROR:*|NOTICE:*|*'******'*|List\ *|Ran\ *)
+        text="$(_lc_strip "$text")" ;;
+    [A-Z]*)
+        # prose-title first line — cheap pre-check before the full pass
+        _lc_first="${text%%$'\n'*}"
+        if [[ "$_lc_first" =~ ^[A-Z][a-z]+([[:space:]]+[a-z]+){2,}$ ]]; then
+            text="$(_lc_strip "$text")"
+        fi
+        ;;
+esac
+
 # Metadata for strategy interface enrichment
 _STATE_filename="${file:-}"
 _STATE_encoding_hint=""

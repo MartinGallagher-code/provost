@@ -1,10 +1,10 @@
-n	depth	name	total_entries
-1	0	init agetty	9
-2	1	containerd 13*[{containerd}]	9
-3	1	dockerd containerd-shim node node 11*[{node}]	9
-4	1	5*[{node}]	9
-5	1	8*[{containerd-shim}]	9
-6	1	10*[{dockerd}]	9
-7	1	cron	9
-8	1	sshd sshd sshd bash pstree	9
-9	1	systemd-journal	9
+n	depth	name	parent	value	total_entries
+1	0	init agetty			9
+2	1	containerd	init agetty	13*[{containerd}]	9
+3	1	dockerd containerd-shim node node	init agetty	11*[{node}]	9
+4	1	5*[{node}]	init agetty		9
+5	1	8*[{containerd-shim}]	init agetty		9
+6	1	10*[{dockerd}]	init agetty		9
+7	1	cron	init agetty		9
+8	1	sshd sshd sshd bash pstree	init agetty		9
+9	1	systemd-journal	init agetty		9

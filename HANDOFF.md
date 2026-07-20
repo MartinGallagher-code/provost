@@ -1,6 +1,86 @@
 # Handoff — glean
 
-## Status: Standalone; generic-first refactor + quality audit landed; corpus 3706 inputs; kv-under-group round (2026-07-14) — **3582 tidy, 124 ⏳** (golden gate 0 failed)
+## Status: Standalone; reviewer-driven fix rounds on PR #44 (branch claude/review-fixes); R1–R7 + R5b (incl. list-explode) landed 2026-07-19 — golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+
+> **2026-07-19 — R5b list-explode + R7 charts (all rounds now landed).**
+> - `lib/_helpers.sh` `_list_explode`: json/yaml with ONE indexed list
+>   (`prefix.N[.sub]`) explode to one row per element, scalars repeated —
+>   avro `fields`, amtool `Peers`, skopeo `Tags`, docker-manifest, flink,
+>   kafka, lscpu, mimirtool, solr, cfssl, rethinkdb, podman (15 flips, all
+>   improvements, re-frozen). Contained by a **dominant-list guard** (record
+>   lists always; bare-scalar lists only when they out-number the scalar
+>   siblings — so config `tags`/npm `maintainers`/opa `required_labels` stay
+>   one wide row, honoring R5) and an **empty-prefix guard** (bare `.N` jq
+>   array artifacts in kubectl-config/nvim-checkhealth never trigger).
+> - `delimited/asciigraph.sh`: line-chart footer (x-axis + `series v v v`)
+>   → one row per point, graphics dropped (asciigraph-plot → 6 rows).
+> - Honest ⏳ (nothing to recover): asciichart-boxed/series-frame (box-drawn
+>   series, only y-scale labels — no per-point data), amdgpu-top (two
+>   independent tables, one-dataset-per-input mismatch; a partial parse would
+>   drop half the data).
+>
+> All 7 reviewer rounds (R1–R7) + R5b are now landed. Remaining corpus ⏳
+> (261) are format-genuine hard cases, not reviewer asks.
+
+> **2026-07-18 — R6 finished + round-3 specifics + R5b (contained).** Seven
+> more contained wins, each gated to zero corpus regressions:
+> - `delimited/alias-list.sh` (NEW): `alias NAME='CMD'` → name/command table.
+> - `delimited/dot-leader-kv.sh` (NEW): `label: …… value` (artillery) → one
+>   key/value row per metric, leaders stripped.
+> - `delimited/pipe-cells.sh` (NEW): atop `PRC | sys 1.42s | …` → long
+>   group/key/value, pipes removed (6 groups → 28 rows).
+> - `delimited/grouped-list.sh` (NEW): asdf version listing → group/value/
+>   current long form (version-specific detection so it stays off
+>   indented-hierarchy trees / plain lists).
+> - `delimited/embedded-table.sh`: admit a positionally-aligned short row
+>   (blank interior cell) after a full-width anchor — bundle-outdated 3→5
+>   rows; spec-cpu multi-word-label header stays with aligned-columns.
+> - `columnar-specs.sh`: apache2ctl-modules → module/type; apk-list (NEW
+>   spec) → package/arch/origin/license/status, brackets unwrapped, the
+>   space-bearing licence kept whole in one column via absorb.
+>
+> Goldens re-frozen for the 7 (+manifests text/kv→table where reclassified).
+> **Deferred, needing a focused pass / reviewer sign-off** (each is large or
+> has no recoverable tidy shape): R5b list-explode convention (amtool Peers,
+> avro fields — a JSON/YAML list → one-row-per-element change with
+> corpus-wide golden churn), ansible-version header-as-field kv; R7 charts
+> (asciichart = pure box-drawing, no tabular data; asciigraph needs a
+> fragile chart-axis heuristic; amdgpu-top is two independent tables that
+> can't share one tidy dataset). aptitude-search left on its text-lines
+> hint (tool-specific fixed-width prefix). Review doc regenerated as
+> `glean_corpus_review_7.docx` (258 VALIDATED).
+
+> **2026-07-15 — reviewer round R1 (column fidelity).** The user filled the
+> 3,706-page review workbook for the `a*` pages (195 reviewed: 140 OK /
+> 31 Not quite / 23 Horrible); ingested marks live in
+> docs/review-marks-2026-07-15.tsv and the 7-round fix plan in
+> docs/0002-review-fix-plan.md. R1 = the worst cluster: aligned-columns
+> splitting multi-word headers/values (akamai silently DROPPED a column).
+> Fixes: equal-token-count positional gate (+ data-segmentation match);
+> sub-column refinement in `_ac_assign` — a multi-token header window
+> splits only when every label edge-aligns ±1 with data in >=60% of rows,
+> guarded by eight vetoes each earned from the 89-flip audit (max-tokens>=k
+> melt-collision guard, alnum-only witnesses, per-ordinal sparse
+> denominators, bridge tokens, duplicate sub-labels, between-value bare
+> separators, prose-header stopword veto, lsusb digit-template exemption);
+> char-accurate bash grid for narrow-2-byte non-ASCII (asv's ±) with
+> ragged label-overlap fallback; colons takes bracketed kv (adb getprop)
+> and multi-word colon labels (apt-cache-stats, bazel, rsync-stats →
+> wide kv records); inline-kv colon flavor + gauge unwrap (aria2c);
+> trailing phrase-merge (aa-unconfined) and scaffold-word split (arp -an).
+> All 11 R1 reviewer fixtures match the requested output. 47 goldens
+> re-frozen (audit: improvements only; a dozen fixed silently-SHIFTED
+> goldens), 6 manifests recalibrated. Gates: golden 3438/0 (0 deletions),
+> extract 62/62, smoke 49/0, melt 10/0, analyze 8/8. Coverage headline
+> unchanged (fidelity round): **3582 tidy, 124 ⏳**.
+>
+> **Next:** R2 headerless detection (csv tab-dominant decline, dual-row
+> shape test for amixer, ARN colon-split in line-records, at/atq datetime
+> cells, anacron constant-prefix). Then R3 chrome ($-prompt/#-comment/
+> banner/prose-row strip — also finishes adb-devices' title row and
+> arping), R4 hierarchy redesign (indented-hierarchy → kv-under-group
+> shape), R5 kv-snapshot wide pivot (convention change, biggest churn),
+> R6 decorations, R7 charts. PR #44 (draft) tracks the whole arc.
 
 > **2026-07-14 — kv-under-group (the kv carry-down frontier).** New generic
 > `structured/kv-under-group.sh` (p10, outranking key-value at 11): GROUP

@@ -68,9 +68,38 @@ strategy_extract () {
     local n=0
     local line t key value cont
 
+    # `_await_val` is set after a BARE label line (`webpage:` with nothing
+    # after the colon). The reviewer's rule: the value then sits on the line(s)
+    # below, so the next non-blank line is that value VERBATIM — its own colons
+    # are data, not a new key (`https://busybox.net/`, `so:libc.musl…`,
+    # `cmd:busybox=1.36.1-r5`). Without this the URL's `https:` became a spurious
+    # key and the real value was lost (apk info -a).
+    # A line is STRUCTURAL kv when a colon is followed by an aligned value
+    # (2+ spaces) or the line is a bare label (colon at end). A URL
+    # (`https://…`), a `so:lib…` / `cmd:pkg=…` token — colon NOT followed by a
+    # space — is NOT structural, so it folds as a value below its label.
+    # Structural = a label, a colon, then WHITESPACE or end-of-line
+    # (`Containers: 12`, `Client:`, `Byte Order:  Little`). A URL
+    # (`https://…` — colon then `/`), a `so:libc…` / `cmd:pkg=…` token
+    # (colon then a non-space) is NOT structural, so it folds as a value.
+    _kv_structural () {
+        [[ "$1" =~ ^[A-Za-z][^:]*:([[:space:]]|$) ]]
+    }
+    local _await_val=0
     while IFS= read -r line; do
         t="${line#"${line%%[![:space:]]*}"}"   # strip leading whitespace
-        [[ -z "$t" ]] && continue
+        [[ -z "$t" ]] && { _await_val=0; continue; }   # blank ends a value block
+
+        # A below-the-line value: fold it — UNLESS it is itself a structural
+        # kv line, which means the bare label above it was a SECTION HEADER
+        # (aide-check's `Summary:` over `Total …:  184203`), not a label
+        # awaiting a value.
+        if [[ $_await_val -eq 1 ]] && ! _kv_structural "$t"; then
+            cont="${t%"${t##*[![:space:]]}"}"
+            if [[ -n "${V[$n]}" ]]; then V[$n]="${V[$n]} ${cont}"; else V[$n]="$cont"; fi
+            continue
+        fi
+        _await_val=0
 
         if [[ "$t" == *:* ]]; then
             key="${t%%:*}"
@@ -82,6 +111,8 @@ strategy_extract () {
             n=$((n + 1))
             K[$n]="$key"
             V[$n]="$value"
+            # a bare label opens a below-the-line value block
+            [[ -z "$value" ]] && _await_val=1
         elif (( n > 0 )); then
             # Wrapped continuation line — fold into the previous value.
             cont="${t%"${t##*[![:space:]]}"}"
@@ -93,6 +124,13 @@ strategy_extract () {
         fi
     done <<< "$text"
 
+    # NOTE: bare section-header labels (aide-check's `Summary:`, lscpu's
+    # `Caches (sum of all):`) are still emitted as empty-value rows. Dropping
+    # them blindly loses GROUP context where the "header" actually
+    # disambiguates repeated keys (sensors' `Core 0:` / `Core 1:` over the
+    # same temp keys, docker's `Client:` / `Server:` over `Version`) — that
+    # is the kv-under-group shape, deferred to a dedicated pivot round rather
+    # than a blunt drop here.
     local result="" i
     for ((i=1; i<=n; i++)); do
         result+="entry${i}.key ${K[$i]}"$'\n'

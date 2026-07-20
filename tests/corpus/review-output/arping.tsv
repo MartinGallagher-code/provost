@@ -1,8 +1,5 @@
-n	ARPING	192_168_1_1	total_entries
-1	60	bytes_from_00:14:bf:e4:5a:6c_(192.168.1.1):_index=0_time=1.234_msec	7
-2	60	bytes_from_00:14:bf:e4:5a:6c_(192.168.1.1):_index=1_time=0.876_msec	7
-3	60	bytes_from_00:14:bf:e4:5a:6c_(192.168.1.1):_index=2_time=0.912_msec	7
-4	60	bytes_from_00:14:bf:e4:5a:6c_(192.168.1.1):_index=3_time=1.005_msec	7
-5	---	192.168.1.1_statistics_---	7
-6	4	packets_transmitted,_4_packets_received,_0%_unanswered_(0_extra)	7
-7	rtt	min/avg/max/std-dev_=_0.876/1.007/1.234/0.135_ms	7
+n	bytes	from	ip	index	time	total_entries
+1	60	00:14:bf:e4:5a:6c	192.168.1.1	0	1.234 msec	4
+2	60	00:14:bf:e4:5a:6c	192.168.1.1	1	0.876 msec	4
+3	60	00:14:bf:e4:5a:6c	192.168.1.1	2	0.912 msec	4
+4	60	00:14:bf:e4:5a:6c	192.168.1.1	3	1.005 msec	4

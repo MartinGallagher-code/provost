@@ -1,4 +1,4 @@
-n	NODE	NAMESPACE	TYPE	ID	VERSION	HOSTNAME	MACHINE	OS	total_entries
-1	10.5.0.2	cluster	Talos	talos-cp-01	6	talos-cp-01	controlplane	(v1.7.6)	3
-2	10.5.0.3	cluster	Talos	talos-cp-02	6	talos-cp-02	controlplane	(v1.7.6)	3
-3	10.5.0.4	cluster	Talos	talos-wrk-01	4	talos-wrk-01	worker	(v1.7.6)	3
+n	NODE	NAMESPACE	TYPE	ID	VERSION	HOSTNAME	MACHINE_TYPE	OS	total_entries
+1	10.5.0.2	cluster	Member	talos-cp-01	6	talos-cp-01	controlplane	Talos (v1.7.6)	3
+2	10.5.0.3	cluster	Member	talos-cp-02	6	talos-cp-02	controlplane	Talos (v1.7.6)	3
+3	10.5.0.4	cluster	Member	talos-wrk-01	4	talos-wrk-01	worker	Talos (v1.7.6)	3

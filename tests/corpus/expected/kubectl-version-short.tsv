@@ -1,4 +1,2 @@
-n	A	B	C	total_entries
-1	Client	Version:	v1.30.2	3
-2	Kustomize	Version:	v5.4.2	3
-3	Server	Version:	v1.29.4	3
+Client_Version	Kustomize_Version	Server_Version
+v1.30.2	v5.4.2	v1.29.4

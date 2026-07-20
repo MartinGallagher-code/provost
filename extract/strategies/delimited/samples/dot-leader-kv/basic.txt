@@ -1,0 +1,4 @@
+http.codes.200: ................ 120488
+http.request_rate: ............. 12024/sec
+http.requests: ................. 120488
+vusers.completed: .............. 12000

@@ -1,7 +1,5 @@
-n	A	total_entries
-1	nodejs	6
-2	*20.14.0	6
-3	22.4.1	6
-4	python	6
-5	3.11.9	6
-6	*3.12.4	6
+n	group	value	current	total_entries
+1	nodejs	20.14.0	true	4
+2	nodejs	22.4.1		4
+3	python	3.11.9		4
+4	python	3.12.4	true	4

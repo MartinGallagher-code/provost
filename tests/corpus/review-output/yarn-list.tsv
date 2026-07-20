@@ -1,7 +1,7 @@
-n	depth	name	total_entries
-1	1	chalk@4.1.2	6
-2	1	express@4.18.2	6
-3	1	lodash@4.17.21	6
-4	1	react@18.2.0	6
-5	1	typescript@5.3.3	6
-6	1	webpack@5.90.1	6
+n	depth	parent	name	total_entries
+1	1	yarn list v1.22.19	chalk@4.1.2	6
+2	1	yarn list v1.22.19	express@4.18.2	6
+3	1	yarn list v1.22.19	lodash@4.17.21	6
+4	1	yarn list v1.22.19	react@18.2.0	6
+5	1	yarn list v1.22.19	typescript@5.3.3	6
+6	1	yarn list v1.22.19	webpack@5.90.1	6

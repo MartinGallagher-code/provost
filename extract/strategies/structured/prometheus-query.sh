@@ -14,8 +14,14 @@ strategy_detect () {
     while IFS= read -r line; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
-        # Match pattern: name{labels} value or name value
-        if [[ "$line" == *"{"*"}"*[0-9]* ]]; then
+        # Match pattern: name{labels} value — the braces must hold a real
+        # LABEL ASSIGNMENT (`key="value"`) and the line must END in a bare
+        # number. Without both, a package list whose `{origin}` braces have no
+        # `=` and whose line ends `[installed]` (apk list) or `(license)` false
+        # -matches. Only the braced form qualifies here: a bare `name value`
+        # is the exposition-format parser's domain, not this one — matching it
+        # would steal proc-vmstat / package lists / any `word number` output.
+        if [[ "$line" == *"{"*'="'*'"'*"}"* && "$line" =~ [[:space:]][0-9][0-9.eE+-]*$ ]]; then
             prom_count=$((prom_count + 1))
         fi
         [[ $prom_count -ge 3 ]] && return 0

@@ -11,8 +11,23 @@
 # columns c1..cN. Priority 96 keeps it strictly last-resort — every real parser
 # runs first.
 
+# A LEADING `# /path` line is a location banner (`# /home/…/ansible_collections`
+# over the collection list), not a record. Narrow to a PATH content (`# /…`)
+# so section titles (`# conda environments:`, `# Memory`, `# name`) that a
+# real parser uses as a header are never stripped. Strategy-local: bespoke
+# parsers (go mod why) read their own `# module` markers.
+_lr_body () {
+    local text="$1"
+    if [[ "$text" == '# /'* ]]; then
+        local _rest="${text#*$'\n'}"
+        [[ -n "${_rest//[[:space:]]/}" ]] && { printf '%s' "$_rest"; return; }
+    fi
+    printf '%s' "$text"
+}
+
 strategy_detect () {
     local text="$1"
+    text="$(_lr_body "$text")"
     _STRATEGY_CONFIDENCE=0
 
     # Decline structured markup (JSON / quoted key-value) — real parsers own it,
@@ -58,7 +73,43 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
+    text="$(_lr_body "$text")"
     local result="" entry=0 _l
+
+    # COLON-STRUCTURED single-column lists (ARNs — `arn:aws:ecs:region:
+    # account:cluster/name`): every line space-free with the SAME colon
+    # count >=2 means the colons are field separators, not punctuation.
+    # Split them into columns instead of emitting one opaque cell.
+    local _cs_ok=1 _cs_first=-1 _cs_n=0
+    while IFS= read -r _l; do
+        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        _cs_n=$((_cs_n + 1))
+        # URLs (`https://host:port`) and bare time lists keep their colons:
+        # require no `//` and an alpha-led first field.
+        if [[ "$_l" == *" "* || "$_l" == *$'\t'* || "$_l" != *:*:* \
+              || "$_l" == *//* || ! "$_l" =~ ^[A-Za-z] ]]; then _cs_ok=0; break; fi
+        local _cs_only="${_l//[!:]/}"
+        [[ $_cs_first -lt 0 ]] && _cs_first=${#_cs_only}
+        [[ ${#_cs_only} -ne $_cs_first ]] && { _cs_ok=0; break; }
+    done <<< "$text"
+    if [[ $_cs_ok -eq 1 && $_cs_n -ge 2 && $_cs_first -ge 2 ]]; then
+        while IFS= read -r _l; do
+            [[ -z "${_l//[[:space:]]/}" ]] && continue
+            entry=$((entry + 1))
+            local _cs_i=0 _cs_part
+            while [[ "$_l" == *:* ]]; do
+                _cs_part="${_l%%:*}"; _l="${_l#*:}"
+                _cs_i=$((_cs_i + 1))
+                [[ -n "$_cs_part" ]] && result+="entry${entry}.$(_col_letter $_cs_i) ${_cs_part}"$'\n'
+            done
+            _cs_i=$((_cs_i + 1))
+            [[ -n "$_l" ]] && result+="entry${entry}.$(_col_letter $_cs_i) ${_l}"$'\n'
+        done <<< "$text"
+        [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+        echo "$result"
+        return 0
+    fi
+
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
         local _tk; _tk=(); read -ra _tk <<< "$_l"

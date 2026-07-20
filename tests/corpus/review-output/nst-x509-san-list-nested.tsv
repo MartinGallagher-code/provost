@@ -1,10 +1,8 @@
 n	key	value	total_entries
-1	X509v3 extensions		9
-2	X509v3 Key Usage	critical Digital Signature, Key Encipherment	9
-3	X509v3 Extended Key Usage	TLS Web Server Authentication, TLS Web Client Authentication	9
-4	X509v3 Basic Constraints	critical	9
-5	CA	FALSE	9
-6	X509v3 Subject Alternative Name		9
-7	DNS	example.com, DNS:www.example.com, DNS:api.example.com	9
-8	X509v3 Authority Key Identifier		9
-9	keyid	14:2E:B3:17:B7:58:56:CB:AE:50:09:40:E6:1F:AF:9D:8B:14:C2:C6	9
+1	X509v3 extensions		7
+2	X509v3 Key Usage	critical Digital Signature, Key Encipherment	7
+3	X509v3 Extended Key Usage	TLS Web Server Authentication, TLS Web Client Authentication	7
+4	X509v3 Basic Constraints	critical	7
+5	CA	FALSE	7
+6	X509v3 Subject Alternative Name	DNS:example.com, DNS:www.example.com, DNS:api.example.com	7
+7	X509v3 Authority Key Identifier	keyid:14:2E:B3:17:B7:58:56:CB:AE:50:09:40:E6:1F:AF:9D:8B:14:C2:C6	7

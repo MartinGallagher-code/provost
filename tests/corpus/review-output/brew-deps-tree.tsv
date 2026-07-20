@@ -1,15 +1,15 @@
-n	depth	name	total_entries
-1	1	aom	14
-2	2	jpeg-xl	14
-3	3	brotli	14
-4	3	highway	14
-5	1	lame	14
-6	1	x264	14
-7	1	x265	14
-8	1	libvpx	14
-9	1	brotli	14
-10	1	c-ares	14
-11	1	icu4c	14
-12	1	libuv	14
-13	1	openssl@3	14
-14	2	ca-certificates	14
+n	depth	parent	name	total_entries
+1	1	ffmpeg	aom	14
+2	2	aom	jpeg-xl	14
+3	2	aom	brotli	14
+4	2	aom	highway	14
+5	1	ffmpeg	lame	14
+6	1	ffmpeg	x264	14
+7	1	ffmpeg	x265	14
+8	1	ffmpeg	libvpx	14
+9	1	ffmpeg	brotli	14
+10	1	ffmpeg	c-ares	14
+11	1	ffmpeg	icu4c	14
+12	1	ffmpeg	libuv	14
+13	1	ffmpeg	openssl@3	14
+14	2	openssl@3	ca-certificates	14

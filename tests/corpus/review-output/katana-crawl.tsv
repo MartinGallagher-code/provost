@@ -1,7 +1,5 @@
-n	A	B	C	D	E	total_entries
-1	$	katana	-u	https://app.example.com	-silent	6
-2	METHOD	URL				6
-3	GET	https://app.example.com/				6
-4	GET	https://app.example.com/login				6
-5	POST	https://app.example.com/api/auth				6
-6	GET	https://app.example.com/dashboard				6
+n	METHOD	URL	total_entries
+1	GET	https://app.example.com/	4
+2	GET	https://app.example.com/login	4
+3	POST	https://app.example.com/api/auth	4
+4	GET	https://app.example.com/dashboard	4

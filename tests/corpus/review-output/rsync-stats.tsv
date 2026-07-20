@@ -1,6 +1,2 @@
-n	A	B	C	D	E	total_entries
-1	Number	of	files:	128,442	(reg:_120,000,_dir:_8,442)	5
-2	Number	of	created	files:	1,204	5
-3	Number	of	deleted	files:	88	5
-4	Total	file	size:	4,102,839,120	bytes	5
-5	Total	transferred	file	size:	12,048,820_bytes	5
+Number_of_files	Number_of_created_files	Number_of_deleted_files	Total_file_size	Total_transferred_file_size
+128,442 (reg:_120,000,_dir:_8,442)	1,204	88	4,102,839,120 bytes	12,048,820 bytes

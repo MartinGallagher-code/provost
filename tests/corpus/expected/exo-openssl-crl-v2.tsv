@@ -1,23 +1,22 @@
 n	key	value	total_entries
-1	Certificate Revocation List (CRL)	Version 2 (0x1)	22
-2	Signature Algorithm	sha256WithRSAEncryption	22
-3	Issuer	C=US, O=Internet Widgits Pty Ltd, CN=Widgits CA	22
-4	Last Update	Jul  1 00:00:00 2026 GMT	22
-5	Next Update	Aug  1 00:00:00 2026 GMT	22
-6	CRL extensions		22
-7	X509v3 Authority Key Identifier		22
-8	keyid	8B:C3:19:2F:88:71:AA:0B:6D:41:90:8A:5B:2E:77:1C	22
-9	X509v3 CRL Number	42	22
-10	Revoked Certificates		22
-11	Serial Number	1A2B3C	22
-12	Revocation Date	Jun 12 09:33:10 2026 GMT	22
-13	CRL entry extensions		22
-14	X509v3 CRL Reason Code	Key Compromise	22
-15	Serial Number	1A2B3D	22
-16	Revocation Date	Jun 15 14:02:55 2026 GMT	22
-17	Serial Number	1A2B44	22
-18	Revocation Date	Jun 20 08:11:00 2026 GMT	22
-19	CRL entry extensions		22
-20	X509v3 CRL Reason Code	Cessation Of Operation	22
-21	Signature Algorithm	sha256WithRSAEncryption	22
-22	6d	41:90:8a:5b:2e:77:1c:0a:d5:c2:9e:78:1a:4f:33:88:be	22
+1	Certificate Revocation List (CRL)	Version 2 (0x1)	21
+2	Signature Algorithm	sha256WithRSAEncryption	21
+3	Issuer	C=US, O=Internet Widgits Pty Ltd, CN=Widgits CA	21
+4	Last Update	Jul  1 00:00:00 2026 GMT	21
+5	Next Update	Aug  1 00:00:00 2026 GMT	21
+6	CRL extensions		21
+7	X509v3 Authority Key Identifier	keyid:8B:C3:19:2F:88:71:AA:0B:6D:41:90:8A:5B:2E:77:1C	21
+8	X509v3 CRL Number	42	21
+9	Revoked Certificates		21
+10	Serial Number	1A2B3C	21
+11	Revocation Date	Jun 12 09:33:10 2026 GMT	21
+12	CRL entry extensions		21
+13	X509v3 CRL Reason Code	Key Compromise	21
+14	Serial Number	1A2B3D	21
+15	Revocation Date	Jun 15 14:02:55 2026 GMT	21
+16	Serial Number	1A2B44	21
+17	Revocation Date	Jun 20 08:11:00 2026 GMT	21
+18	CRL entry extensions		21
+19	X509v3 CRL Reason Code	Cessation Of Operation	21
+20	Signature Algorithm	sha256WithRSAEncryption	21
+21	6d	41:90:8a:5b:2e:77:1c:0a:d5:c2:9e:78:1a:4f:33:88:be	21

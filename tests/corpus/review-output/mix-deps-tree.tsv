@@ -1,5 +1,5 @@
-n	depth	name	total_entries
-1	1	phoenix ~> 1.7.14	4
-2	2	plug ~> 1.14	4
-3	2	telemetry ~> 1.0	4
-4	1	ecto_sql ~> 3.11	4
+n	depth	parent	name	total_entries
+1	1	app	phoenix ~> 1.7.14	4
+2	2	phoenix ~> 1.7.14	plug ~> 1.14	4
+3	2	phoenix ~> 1.7.14	telemetry ~> 1.0	4
+4	1	app	ecto_sql ~> 3.11	4

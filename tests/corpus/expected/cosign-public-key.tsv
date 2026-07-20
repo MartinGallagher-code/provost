@@ -1,4 +1,4 @@
-n	$	cosign	public-key	--key	cosign_key	total_entries
-1	M	FkwEwYH	KoZIzj0CAQY	IKoZIz	j0DAQcDQgAEfakepublickeydata0123456789	3
-2	a	bcdefFA	KEabcdefFAK	Eabcde	fFAKEabcdefFAKEabcdefFAKEabcdef==	3
-3	-	----END	PUBLIC KEY	-----		3
+n	-----BEGIN	PUBLIC	KEY-----	total_entries
+1	MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfakepublickeydata0123456789			3
+2	abcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdef==			3
+3	-----END	PUBLIC	KEY-----	3

@@ -1,5 +1,2 @@
-n	A	B	C	D	E	F	total_entries
-1	Total	package	names:	88201	(1,764	k)	4
-2	Total	distinct	versions:	128442	(10.3	M)	4
-3	Total	dependencies:	442019	(12.4	M)		4
-4	Total	Provides	mappings:	44201	(884	k)	4
+Total_package_names	Total_distinct_versions	Total_dependencies	Total_Provides_mappings
+88201 (1,764_k)	128442 (10.3_M)	442019 (12.4_M)	44201 (884_k)

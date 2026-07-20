@@ -1,6 +1,6 @@
-n	NAME	REGION	DEFAULT	BRANCH	STATE	CREATED	AT	total_entries
-1	─────────────	─────────────	───────────────	───────	──────────────			5
-2	commerce	us-east	main	ready	2	months	ago	5
-3	customer	us-east	main	ready	2	months	ago	5
-4	analytics	eu-west	main	ready	3	weeks	ago	5
-5	sandbox	us-west	main	sleeping	5	days	ago	5
+n	NAME	DEFAULT_BRANCH	AT	REGION	STATE	CREATED	total_entries
+1	─────────────	─────────────	─────────────── ─────── ──────────────				5
+2	commerce	main	ago	us-east	ready	2 months	5
+3	customer	main	ago	us-east	ready	2 months	5
+4	analytics	main	ago	eu-west	ready	3 weeks	5
+5	sandbox	main	ago	us-west	sleeping	5 days	5

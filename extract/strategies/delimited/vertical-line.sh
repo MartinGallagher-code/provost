@@ -28,6 +28,18 @@ strategy_detect () {
         [[ "$_l" =~ ^[[:space:]]*[A-Za-z][^:]*:[[:space:]] ]] && kv=$((kv + 1))
     done <<< "$text"
     [[ $nb -ge 2 && $(( kv * 100 / nb )) -ge 60 ]] && return 1
+
+    # Audit-report shape (aureport): a `# col col …` header line adjacent to
+    # a `===` rule. aligned-columns strips that chrome and reads the real
+    # header; splitting on the rule here would shred it.
+    local _prev="" _cur
+    while IFS= read -r _cur; do
+        if [[ "$_cur" == "# "* && "$_prev" =~ ^[-=]{3,} ]] || \
+           [[ "$_cur" =~ ^[-=]{3,} && "$_prev" == "# "* ]]; then
+            return 1
+        fi
+        _prev="$_cur"
+    done <<< "$text"
     return 0
 }
 

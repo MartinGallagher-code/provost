@@ -1,6 +1,4 @@
-n	A	total_entries
-1	$ amass intel -org "Example Inc" -whois	5
-2	ASN        ORGANIZATION	5
-3	AS64500    Example Inc	5
-4	AS64501    Example Cloud Services	5
-5	AS64502    Example Networks LLC	5
+n	ASN	ORGANIZATION	total_entries
+1	AS64500	Example Inc	3
+2	AS64501	Example Cloud Services	3
+3	AS64502	Example Networks LLC	3

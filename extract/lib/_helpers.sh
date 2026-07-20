@@ -165,3 +165,68 @@ _col_letter () {
     for (( k = 0; k < reps; k++ )); do out="${out}${ch}"; done
     printf '%s' "$out"
 }
+
+# _list_explode — pivot a flat "key value" record that has EXACTLY ONE indexed
+# list field (keys `<prefix>.<N>` or `<prefix>.<N>.<sub>`, N a 0-based integer)
+# into one record per element, repeating the scalar (non-list) keys. Reads the
+# pair lines on stdin, writes the (possibly transformed) pairs on stdout.
+# Passthrough unchanged when there is not exactly one indexed list or it has
+# fewer than 2 elements. Lets json/yaml render a list-of-records (avro schema
+# `fields`, amtool `Peers`) as tidy rows instead of one wide `field.0.* field.1.*`
+# row whose duplicate leaf names collide in the melt.
+_list_explode () {
+    mawk '
+    {
+        key = $1; val = ""
+        if (length($0) > length(key) + 1) val = substr($0, length(key) + 2)
+        K[NR] = key; V[NR] = val; n = NR
+    }
+    END {
+        np = 0
+        for (i = 1; i <= n; i++) {
+            k = K[i]
+            # A list key needs a NON-EMPTY named prefix before its `.N`; a bare
+            # `.0`/`.1` (empty prefix — a jq array-boundary artifact in
+            # multi-array JSON like kubectl config) is not a real named list.
+            if (match(k, /\.[0-9]+(\.|$)/) && RSTART > 1) {
+                pre = substr(k, 1, RSTART - 1)
+                rest = substr(k, RSTART + 1)
+                idx = rest; sub(/\..*$/, "", idx)
+                sfx = ""
+                if (rest ~ /\./) { sfx = rest; sub(/^[0-9]+\./, "", sfx) }
+                PRE[i] = pre; IDX[i] = idx + 0; SFX[i] = sfx; ISLIST[i] = 1
+                if (!(pre in seenpre)) { seenpre[pre] = 1; np++; onlypre = pre }
+            } else { ISLIST[i] = 0 }
+        }
+        maxidx = -1; has_subkey = 0; nscalar = 0
+        for (i = 1; i <= n; i++) {
+            if (!ISLIST[i]) { nscalar++; continue }
+            if (np == 1 && PRE[i] == onlypre) {
+                if (IDX[i] > maxidx) maxidx = IDX[i]
+                if (SFX[i] != "") has_subkey = 1
+            }
+        }
+        # Explode a list of RECORDS (elements carry sub-keys) always; a list of
+        # bare SCALARS only when it DOMINATES the record (element count >= the
+        # number of scalar sibling keys). This keeps a kv snapshot with a small
+        # incidental list (a config tags list, npm maintainers) as one wide row,
+        # while a record whose content IS the list (amtool Peers, skopeo Tags)
+        # becomes one row per element.
+        nelem = maxidx + 1
+        if (np != 1 || maxidx < 1 || (!has_subkey && nelem < nscalar)) {
+            for (i = 1; i <= n; i++) print K[i] " " V[i]
+        } else {
+            entry = 0
+            for (e = 0; e <= maxidx; e++) {
+                entry++
+                for (i = 1; i <= n; i++) if (!ISLIST[i]) print "entry" entry "." K[i] " " V[i]
+                for (i = 1; i <= n; i++)
+                    if (ISLIST[i] && PRE[i] == onlypre && IDX[i] == e) {
+                        if (SFX[i] == "") print "entry" entry "." PRE[i] " " V[i]
+                        else print "entry" entry "." PRE[i] "." SFX[i] " " V[i]
+                    }
+            }
+            print "total_entries " entry
+        }
+    }'
+}

@@ -1,2 +1,2 @@
-$_syft_ghcr.io/example/app	{."count"	{."types"
-1.4.2 -o json | jq '{count:(.artifacts|length),types:(.artifacts|group_by(.type)|map({(.[0].type):length})|add)}'	214,	{ "deb": 148, "python": 41, "npm": 18, "go-module": 7 }
+count	types.deb	types.python	types.npm	types.go-module
+214	148	41	18	7
