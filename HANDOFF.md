@@ -1,6 +1,26 @@
 # Handoff — glean
 
-## Status: Standalone; reviewer-driven fix rounds on PR #44 (branch claude/review-fixes); R1–R7 + R5b (incl. list-explode) landed 2026-07-19 — golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+## Status: Standalone; pip/PyPI packaging landed 2026-07-23 (branch claude/glean-pip-pypi-deploy-1mv0g2) — `pip install glean-data`, 100% launcher coverage, REUSE-compliant; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+
+> **2026-07-23 — pip-installable + PyPI-ready + REUSE.**
+> - `pip install glean-data` installs the `glean` command: hatchling wheel
+>   bundles the whole Bash tree under `glean_data/_bundle/` (runtime paths
+>   only — force-include list in `pyproject.toml`; hatchling `exclude` does
+>   NOT apply to force-include, so a new runtime subdir under `extract/` or
+>   `analyze/` must be added to that list). Python launcher in
+>   `src/glean_data/` execs the bundled script via bash; version is dynamic
+>   from `VERSION`. PyPI name `glean-data` (`glean` + `glean-cli` are taken).
+> - Tests: `tests/python/test_launcher.py`, 100% line+branch coverage
+>   enforced (`--cov-fail-under=100`, wired into pyproject + CI
+>   `python-package` job, which also builds, twine-checks, installs the
+>   wheel, and pushes a capture through it).
+> - REUSE (spec 3.3): `REUSE.toml` bulk-declares GPL-3.0-only,
+>   `LICENSES/GPL-3.0-only.txt`; `reuse lint` compliant; `reuse` CI job.
+> - Release: `.github/workflows/release.yml` → PyPI Trusted Publishing on
+>   GitHub release. **Next step for a human**: register the trusted
+>   publisher on pypi.org (project `glean-data`, repo
+>   `MartinGallagher-code/glean`, workflow `release.yml`, environment
+>   `pypi`) — details in the workflow header — then publish a release.
 
 > **2026-07-19 — R5b list-explode + R7 charts (all rounds now landed).**
 > - `lib/_helpers.sh` `_list_explode`: json/yaml with ONE indexed list

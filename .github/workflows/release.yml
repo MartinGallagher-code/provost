@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Martin Gallagher
+#
+# SPDX-License-Identifier: GPL-3.0-only
+
+# Publish glean-data to PyPI via Trusted Publishing (OIDC — no API token).
+# One-time setup on https://pypi.org/manage/account/publishing/:
+#   project: glean-data, owner: MartinGallagher-code, repo: glean,
+#   workflow: release.yml, environment: pypi
+# Then publishing a GitHub release (or dispatching this workflow) uploads the
+# sdist + wheel built from the tagged commit.
+name: Release to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build sdist + wheel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
+      - name: smoke-test the wheel
+        run: |
+          python -m pip install dist/*.whl
+          glean --version
+          glean doctor
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

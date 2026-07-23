@@ -9,10 +9,22 @@ its source.
 > Envoy suite, as one tool. See
 > [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
 
+## Install
+
+```bash
+pip install glean-data         # from PyPI — installs the `glean` command
+# or, from a git checkout:
+bash glean/install.sh          # symlink `glean` onto your PATH (~/.local/bin)
+```
+
+The PyPI package (`glean-data`; the import name `glean` was taken) bundles the
+complete tool — the `glean` entry point plus its extract/analyze/transform
+engines — and a thin Python launcher execs it in place. Requires bash and git,
+like any glean install.
+
 ## Quick start
 
 ```bash
-bash glean/install.sh          # put `glean` on your PATH (~/.local/bin)
 glean doctor                   # check engines + store
 
 free -m | glean                # capture stdin → auto-detect → tidy dataset

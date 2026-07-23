@@ -8,3 +8,10 @@ GLEAN_WORKSPACE/
 # Python cache (if any tooling runs here)
 __pycache__/
 *.pyc
+
+# Python packaging / test artifacts
+dist/
+build/
+*.egg-info/
+.coverage
+.pytest_cache/

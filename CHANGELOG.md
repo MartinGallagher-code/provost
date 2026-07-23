@@ -1,5 +1,42 @@
 # glean — Changelog
 
+## 2026-07-23 — pip-installable package (PyPI: `glean-data`) + 100% launcher coverage + REUSE compliance
+
+- **PyPI packaging**: `pip install glean-data` now installs the `glean`
+  command. `pyproject.toml` (hatchling) builds a wheel that carries the whole
+  Bash tree under `glean_data/_bundle/` (entry point + extract/analyze/
+  transform engines + lib/completions/man, runtime paths only — test/sample
+  trees stay out via explicit force-include, since hatchling's `exclude` does
+  not apply to force-included paths). A ~25-line Python launcher
+  (`src/glean_data/__init__.py`, console script `glean`) execs the bundled
+  script via bash, so an installed glean behaves byte-for-byte like a
+  git-checkout install (`GLEAN_ROOT` self-resolution included). The name
+  `glean` was taken on PyPI (Mozilla's Glean SDK), hence `glean-data`; the
+  command is still `glean`. Version is dynamic from the top-level `VERSION`
+  file (single source of truth). Verified end-to-end: wheel installed into a
+  clean venv → `glean doctor` finds both bundled engines, stdin capture →
+  dataset works, `twine check` passes on sdist + wheel.
+- **100% test coverage** on the new Python code: `tests/python/
+  test_launcher.py` (8 tests) with `pytest --cov` — 100% line *and branch*
+  coverage of `glean_data`, enforced by `--cov-fail-under=100` in
+  `pyproject.toml` and by the new `python-package` CI job (which also builds
+  the distributions, twine-checks them, installs the wheel, and runs a real
+  capture through it).
+- **REUSE compliance** (reuse.software spec 3.3): `LICENSES/GPL-3.0-only.txt`
+  + `REUSE.toml` declaring the whole tree GPL-3.0-only in bulk (per-file
+  headers are impossible for golden fixtures; `precedence = "closest"` lets
+  individual files carry their own headers — the new Python/TOML/workflow
+  files do). `reuse lint`: compliant, 11,902/11,902 files covered. New
+  `reuse` CI job (fsfe/reuse-action).
+- **Release automation**: `.github/workflows/release.yml` publishes sdist +
+  wheel to PyPI via Trusted Publishing (OIDC, no token) on GitHub release,
+  after rebuilding, twine-checking, and smoke-testing the wheel. One-time
+  PyPI-side setup is documented in the workflow header.
+- Files: `pyproject.toml`, `src/glean_data/{__init__,__main__}.py`,
+  `tests/python/test_launcher.py`, `REUSE.toml`, `LICENSES/GPL-3.0-only.txt`,
+  `.github/workflows/{ci,release}.yml`, `README.md`, `.gitignore`,
+  `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-19 — R7 charts (best-effort): asciigraph values recovered
 
 - `delimited/asciigraph.sh` (NEW, priority 46): an asciigraph line chart is

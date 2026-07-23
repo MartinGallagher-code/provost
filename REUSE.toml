@@ -1,0 +1,19 @@
+# REUSE compliance (https://reuse.software, spec 3.3).
+#
+# The whole tree is first-party GPL-3.0-only code (see CLAUDE.md: the
+# extract/analyze/transform/lib trees imported from Envoy are maintained here
+# as first-party code). Licensing is declared here in bulk rather than as
+# per-file headers — the tree contains hundreds of shell strategies and test
+# fixtures, and fixtures especially cannot carry headers without breaking the
+# byte-exact golden comparisons. `precedence = "closest"` means any file that
+# does carry its own SPDX header keeps it.
+version = 1
+SPDX-PackageName = "glean"
+SPDX-PackageSupplier = "Martin Gallagher <martinjgallagher@icloud.com>"
+SPDX-PackageDownloadLocation = "https://github.com/MartinGallagher-code/glean"
+
+[[annotations]]
+path = "**"
+precedence = "closest"
+SPDX-FileCopyrightText = "2026 Martin Gallagher"
+SPDX-License-Identifier = "GPL-3.0-only"
