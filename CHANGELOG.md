@@ -1,5 +1,33 @@
 # glean — Changelog
 
+## 2026-07-23 — deframe integration: --plugin-dir + '#%' metadata prologue
+
+Two fixes surfaced by deframe (an external project piping into glean):
+
+- **`--plugin-dir DIR` on inject/run (+ `GLEAN_PLUGIN_DIR`)**: forwarded to
+  the extract engine's existing `--plugin-dir`, so a wrapper's strategies
+  compete in detection first-class — previously they could only reach the
+  engine via an auto-maintained symlink into its `~/.mfe/strategies` user
+  dir. The dir is validated up front (`die` on missing) and recorded in the
+  capture's `meta.tsv` (`plugin_dir` key) for provenance.
+- **`#%` metadata prologue**: a leading run of `#%` lines on injected input
+  is capture context, not data. `_ingest` peels it before detection (a
+  prepended header can no longer corrupt the generic parsers — previously a
+  wrapper could only prepend context when its own header-aware strategy won
+  the parse, and otherwise had to smuggle context through its run manifest),
+  stores it as `captures/<id>/context.txt` (+ `context` key in `meta.tsv`),
+  and keeps `output.txt` verbatim so `glean source` shows the exact original
+  input, header included. A `#%` line after the first data line is data and
+  passes through untouched.
+- Smoke test grew 49 → 59 checks: plugin strategy wins via flag and via env
+  (run verb), bad dir dies, meta records plugin_dir/context, prologue-body
+  still detects as 'free', context.txt content, verbatim `source`, and
+  mid-file `#%` not peeled. Docs: help text, man page, bash completion,
+  README (badges + "Integrating from another tool" section), CLAUDE.md
+  test-count refresh.
+- Files: `glean`, `tests/smoke.sh`, `man/glean.1`, `completions/glean.bash`,
+  `README.md`, `CLAUDE.md`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-23 — pip-installable package (PyPI: `glean-data`) + 100% launcher coverage + REUSE compliance
 
 - **PyPI packaging**: `pip install glean-data` now installs the `glean`

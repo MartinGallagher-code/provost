@@ -44,9 +44,13 @@ preserving can also go in `CHANGELOG.md`.
 When you change `glean` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (49 checks)
-bash transform/tests/test_melt.sh   # transform unit test (8 checks)
+bash tests/smoke.sh                 # end-to-end (59 checks)
+bash transform/tests/test_melt.sh   # transform unit test (10 checks)
 ```
+
+When you change `src/glean_data/` (the PyPI launcher) or `pyproject.toml`, run
+`python -m pytest` — 100% line+branch coverage of `glean_data` is enforced
+(`--cov-fail-under=100`, CI `python-package` job).
 
 When you change the `extract/` or `transform/` trees (e.g. add an extract
 strategy), run that tree's suite:

@@ -193,5 +193,65 @@ check "imported store lists the free dataset" "free" "$(GLEAN_WORKSPACE="$DEST" 
 # provenance survives the move: row #1's original source is browsable in the copy
 check "imported store preserves row #1 source" "Mem" "$(GLEAN_WORKSPACE="$DEST" "$GLEAN" source 1 2>&1)"
 
+# --- plugin strategies + metadata prologue (deframe integration) -----------
+# An external project's strategies reach detection via --plugin-dir (or
+# $GLEAN_PLUGIN_DIR) — no ~/.mfe/strategies symlink required.
+PLUG="$(mktemp -d)/strategies"; mkdir -p "$PLUG"
+cat > "$PLUG/frames.sh" <<'EOS'
+#!/bin/bash
+## Name: frames
+## Description: smoke-test plugin strategy — '@@frame N status' lines
+## Version: 1.0
+## Priority: 10
+## Sample: samples/frames/basic.txt
+
+strategy_detect () {
+    local text="$1"
+    _STRATEGY_CONFIDENCE=0
+    [[ "$text" == "@@frame "* ]] || return 1
+    _STRATEGY_CONFIDENCE=95
+    return 0
+}
+
+strategy_extract () {
+    local text="$1" entry=0 line f2 f3 result=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" == "@@frame "* ]] || continue
+        entry=$((entry + 1))
+        f2="${line#@@frame }"; f3="${f2#* }"; f2="${f2%% *}"
+        result+="entry${entry}.frame ${f2}"$'\n'
+        result+="entry${entry}.status ${f3}"$'\n'
+    done <<< "$text"
+    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+    echo "$result"
+}
+EOS
+FRAMES_IN="$(mktemp)"; printf '@@frame 1 ok\n@@frame 2 dropped\n' > "$FRAMES_IN"
+plug_out="$("$GLEAN" --plugin-dir "$PLUG" "$FRAMES_IN" 2>&1)"
+check "--plugin-dir strategy wins the parse" "dataset 'frames'" "$plug_out"
+check "plugin parse carries its confidence" "conf 95" "$plug_out"
+plugcap="$(ls "$WS/captures" | sort | tail -1)"
+check "capture meta records the plugin dir" "$PLUG" "$(cat "$WS/captures/$plugcap/meta.tsv")"
+plug_env_out="$(GLEAN_PLUGIN_DIR="$PLUG" "$GLEAN" run --sync -- cat "$FRAMES_IN" 2>&1)"
+check "GLEAN_PLUGIN_DIR reaches 'run' detection too" "dataset 'frames'" "$plug_env_out"
+badplug_out="$("$GLEAN" --plugin-dir /nonexistent/nowhere "$FRAMES_IN" 2>&1 || true)"
+check "--plugin-dir validates the directory up front" "plugin strategy dir not found" "$badplug_out"
+
+# A leading '#%' prologue is capture context, not data: peeled before
+# detection (generic parsers stay uncorrupted), stored as context.txt, and
+# 'glean source' still shows the input verbatim.
+pro_out="$(printf '#%% source: deframe\n#%% frame: 7\n              total        used        free      shared  buff/cache   available\nMem:           15943        2456        9876         123        3610       13234\nSwap:           2047           0        2047\n' | "$GLEAN" 2>&1)"
+check "'#%' prologue does not corrupt detection (body still 'free')" "dataset 'free'" "$pro_out"
+procap="$(ls "$WS/captures" | sort | tail -1)"
+check "prologue stored with the capture as context.txt" "#% frame: 7" "$(cat "$WS/captures/$procap/context.txt" 2>&1)"
+check "capture meta records the context" "context" "$(cat "$WS/captures/$procap/meta.tsv")"
+prorow="$(printf '%s\n' "$pro_out" | sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' | head -1)"
+check "source of a prologue capture is verbatim (header included)" "#% source: deframe" "$("$GLEAN" source "$prorow" 2>&1)"
+
+# '#%' after the first data line is data, not context — nothing is peeled.
+printf 'alias ll='\''ls -alF'\''\n#%% not-a-prologue\n' | "$GLEAN" >/dev/null 2>&1 || true
+midcap="$(ls "$WS/captures" | sort | tail -1)"
+check "mid-file '#%' is data — no context recorded" "0" "$(ls "$WS/captures/$midcap/context.txt" 2>/dev/null | grep -c .)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; pip/PyPI packaging landed 2026-07-23 (branch claude/glean-pip-pypi-deploy-1mv0g2) — `pip install glean-data`, 100% launcher coverage, REUSE-compliant; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 49/0, melt 10/0
+## Status: Standalone; pip/PyPI packaging + deframe integration landed 2026-07-23 (branch claude/glean-pip-pypi-deploy-1mv0g2) — `pip install glean-data`, 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 59/0, melt 10/0
+
+> **2026-07-23 — deframe integration fixes.**
+> - `glean [inject|run] --plugin-dir DIR` / `GLEAN_PLUGIN_DIR`: forwarded to
+>   the engine's `--plugin-dir` so external strategies (deframe) compete in
+>   detection without the `~/.mfe/strategies` symlink; validated up front,
+>   recorded in `meta.tsv` as `plugin_dir`.
+> - `#%` metadata prologue: leading `#%` lines are peeled in `_ingest`
+>   before detection (can't corrupt generic parsers), stored as
+>   `captures/<id>/context.txt` + `context` meta key; `output.txt` /
+>   `glean source` stay verbatim; mid-file `#%` lines are data.
+> - Smoke 49 → 59 checks (plugin + prologue coverage). Docs: help, man,
+>   completion, README ("Integrating from another tool" + badges).
 
 > **2026-07-23 — pip-installable + PyPI-ready + REUSE.**
 > - `pip install glean-data` installs the `glean` command: hatchling wheel

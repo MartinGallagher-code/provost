@@ -8,7 +8,7 @@ glean \- turn command output into data
 .I command
 |
 .B glean
-[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR]
+[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
 .br
 .B glean
 \fIsubcommand\fR [\fIargs...\fR]
@@ -25,7 +25,7 @@ Execute a command, capture its combined output as a commit, auto-detect the
 format, and file it into a typed dataset.
 .TP
 .I command
-| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR]
+| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
 Inject piped/stdin (or a FILE argument) the same way as
 .BR run .
 By default the capture runs in a detached background process and the prompt
@@ -33,6 +33,13 @@ returns at once; results appear in
 .B glean log
 shortly after. \fB--sync\fR/\fB--wait\fR (or \fBGLEAN_ASYNC=0\fR) forces the
 foreground path, which prints the resulting dataset and \fI#N\fR range.
+\fB--plugin-dir\fR \fIDIR\fR (or \fBGLEAN_PLUGIN_DIR\fR) adds an extra strategy
+directory to detection, so a wrapping project's strategies compete without
+being symlinked into \fI~/.mfe/strategies\fR.
+A leading run of \fB#%\fR lines on injected input is a metadata prologue:
+it is peeled off before detection (it cannot corrupt a parse), stored with the
+capture as \fIcontext.txt\fR, and shown verbatim by
+.BR "glean source" .
 .TP
 .B source \fI#N\fR
 Show the original captured input behind dataset row \fI#N\fR.
@@ -101,6 +108,10 @@ Explicit store override (wins over GLEAN_HOME).
 .TP
 .B GLEAN_MIN_CONFIDENCE
 Commit threshold 0\-100 (default: 50).
+.TP
+.B GLEAN_PLUGIN_DIR
+Extra strategy directory for detection (same as \fB--plugin-dir\fR on
+inject/run).
 .TP
 .B GLEAN_ASYNC
 Background capture (default 1). Set 0 (or pass \fB--sync\fR/\fB--wait\fR) for the
