@@ -125,7 +125,7 @@ Wrappers that pipe into glean (e.g. deframe) get two hooks:
 ## Tests
 
 ```bash
-bash glean/tests/smoke.sh              # end-to-end (59 checks)
+bash glean/tests/smoke.sh              # end-to-end (58 checks)
 bash glean/transform/tests/test_melt.sh  # transform unit tests (10 checks)
 python -m pytest                       # PyPI launcher (100% coverage enforced)
 ```
