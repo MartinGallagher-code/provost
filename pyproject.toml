@@ -78,7 +78,6 @@ include = [
     "lib",
     "completions",
     "man",
-    "install.sh",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",

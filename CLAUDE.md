@@ -77,8 +77,7 @@ bespoke strategy — and validate hint rows with `tests/corpus/run.sh --golden`.
 - First-party code is Bash; keep it POSIX-ish and **mawk-safe** (no gawk-only
   awk features) so it runs anywhere — CI covers this.
 - glean's user-facing env vars are all `GLEAN_*`; keep it that way.
-- glean must run correctly when invoked via a symlink on `PATH` (it resolves its
-  own directory via `GLEAN_ROOT`) — `install.sh` and the smoke test guard this.
+- glean must run correctly when invoked via `GLEAN_ROOT` — the smoke test guards this.
 
 ## Git practices (READ THIS — avoids the mistakes we kept making)
 
