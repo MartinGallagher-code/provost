@@ -1,5 +1,29 @@
 # glean — Changelog
 
+## 2026-07-24 — pip-only install; bundle.txt is now pure printable ASCII
+
+- **Install via `pip install glean-data` only.** Removed `install.sh` (the
+  git-checkout symlink installer). Updated `README.md` (single install
+  method), `pyproject.toml` (dropped `install.sh` from the sdist),
+  `tests/smoke.sh` (removed the symlink-launcher test), `CLAUDE.md`, and
+  `analyze/completions/HANDOFF.md`.
+- **`bundle.txt` regenerated as straight printable ASCII.** The bundle now
+  contains no escape characters and no non-printable/non-ASCII bytes (only
+  printable ASCII plus tab and newline), so it is safe to view, diff, and
+  paste anywhere plain text is expected.
+  - Enabled by a new `FILE-ESC` section in the `shared_tools` `merge.sh`/
+    `split.sh` (bundle format **v3**): text files whose bytes include ESC
+    sequences, control chars, or UTF-8 are inlined with only the offending
+    byte-runs escaped as `<TOKEN><hex><TOKEN>`. `<TOKEN>` is the shortest
+    alphanumeric string that occurs nowhere in the tree (and cannot be
+    confused with a hex run or a fence boundary), recorded in the header on
+    a `# esc-delim:` line. No backslashes or escape-looking sequences appear.
+  - Tabs and newlines stay literal (TSV fixtures remain readable); pure-ASCII
+    files, base64 binaries, symlinks, empty dirs, and per-file sha256
+    verification are unchanged. Round-trip verified byte-for-byte across all
+    11,904 entries (all checksums OK).
+- Files: `bundle.txt`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-23 — deframe integration: --plugin-dir + '#%' metadata prologue
 
 Two fixes surfaced by deframe (an external project piping into glean):

@@ -1,6 +1,20 @@
 # Handoff — glean
 
-## Status: Standalone; pip/PyPI packaging + deframe integration landed 2026-07-23 (branch claude/glean-pip-pypi-deploy-1mv0g2) — `pip install glean-data`, 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 59/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 59/0, melt 10/0
+
+> **2026-07-24 — pip-only install + pure-ASCII bundle.**
+> - Install is now `pip install glean-data` only; `install.sh` deleted and
+>   its references removed from `README.md`, `pyproject.toml` (sdist),
+>   `tests/smoke.sh` (symlink-launcher test dropped), `CLAUDE.md`, and
+>   `analyze/completions/HANDOFF.md`.
+> - `bundle.txt` regenerated with the updated `shared_tools` `merge.sh` so it
+>   is straight printable ASCII — no escape characters, no non-printable or
+>   non-ASCII bytes. New `FILE-ESC` section (bundle format v3) escapes only
+>   offending byte-runs as `<TOKEN><hex><TOKEN>`, where `<TOKEN>` is the
+>   shortest tree-absent alphanumeric marker, declared in the header
+>   (`# esc-delim:`). Byte-for-byte round-trip verified (11,904 entries,
+>   checksums OK). Next: nothing outstanding for the bundle; if the tree
+>   changes, rerun `bash ../shared_tools/scripts/merge.sh bundle.txt .`.
 
 > **2026-07-23 — deframe integration fixes.**
 > - `glean [inject|run] --plugin-dir DIR` / `GLEAN_PLUGIN_DIR`: forwarded to
