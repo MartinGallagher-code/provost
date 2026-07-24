@@ -3273,7 +3273,7 @@ store, multi-user).
   `glean/tests/smoke.sh`.
 ===END===
 ===FILE-ESC: CLAUDE.md===
-===META: mode=644 sha256=41d5e8c493f94478d1467f64f7f77ff850f62f4133c6b0bb1dfb28e177c0ae19===
+===META: mode=644 sha256=e97f648f5e49e56eb0864c153fbc123347389ee508da5be07a385d321d271c45===
 # Project Instructions AOe28094AO glean
 
 `glean` turns command output into data: capture a command's output, auto-detect
@@ -3320,7 +3320,7 @@ preserving can also go in `CHANGELOG.md`.
 When you change `glean` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (59 checks)
+bash tests/smoke.sh                 # end-to-end (58 checks)
 bash transform/tests/test_melt.sh   # transform unit test (10 checks)
 ```
 
@@ -3391,10 +3391,10 @@ problem we hit. Follow these rules and they don't recur:
    before committing.
 ===END===
 ===FILE-ESC: HANDOFF.md===
-===META: mode=644 sha256=c67e9df3f71721c5878daa251c6dfcd59228989acb41379410a4726dd56e224c===
+===META: mode=644 sha256=6d0df02d0753f722e4eb8ea1fee19de041c97197a4978b87f3806f5635512d0d===
 # Handoff AOe28094AO glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 AOe28094AO 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 AOe28fb3AO**, extract 62/62, smoke 59/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 AOe28094AO 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 AOe28fb3AO**, extract 62/62, smoke 58/0, melt 10/0
 
 > **2026-07-24 AOe28094AO pip-only install + pure-ASCII bundle.**
 > - Install is now `pip install glean-data` only; `install.sh` deleted and
@@ -5516,7 +5516,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 ===END===
 ===FILE-ESC: README.md===
-===META: mode=644 sha256=e1fcb3648a1d87bc46949127d2f076450b18674e3464d7e04fd781d1ed0b3575===
+===META: mode=644 sha256=b2c0399731c54700a8a61e7d8753ca45eabfd46b994e62c690e983cfd9d36642===
 # glean
 
 [![CI](https://github.com/MartinGallagher-code/glean/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/glean/actions/workflows/ci.yml)
@@ -5644,7 +5644,7 @@ Wrappers that pipe into glean (e.g. deframe) get two hooks:
 ## Tests
 
 ```bash
-bash glean/tests/smoke.sh              # end-to-end (59 checks)
+bash glean/tests/smoke.sh              # end-to-end (58 checks)
 bash glean/transform/tests/test_melt.sh  # transform unit tests (10 checks)
 python -m pytest                       # PyPI launcher (100% coverage enforced)
 ```

@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 59/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 58/0, melt 10/0
 
 > **2026-07-24 — pip-only install + pure-ASCII bundle.**
 > - Install is now `pip install glean-data` only; `install.sh` deleted and
