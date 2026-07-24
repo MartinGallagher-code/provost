@@ -17,15 +17,12 @@ its source.
 ## Install
 
 ```bash
-pip install glean-data         # from PyPI — installs the `glean` command
-# or, from a git checkout:
-bash glean/install.sh          # symlink `glean` onto your PATH (~/.local/bin)
+pip install glean-data
 ```
 
 The PyPI package (`glean-data`; the import name `glean` was taken) bundles the
 complete tool — the `glean` entry point plus its extract/analyze/transform
-engines — and a thin Python launcher execs it in place. Requires bash and git,
-like any glean install.
+engines — and a thin Python launcher execs it in place. Requires bash and git.
 
 ## Quick start
 
@@ -86,7 +83,6 @@ glean/
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries
 ├── completions/, man/  # bash completion, man page
-├── install.sh
 └── tests/              # smoke + unit tests
 ```
 
