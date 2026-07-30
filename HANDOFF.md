@@ -2,6 +2,27 @@
 
 ## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3441/0, 261 ⏳** (3 goldens re-tidied by the round-8 dot-leader fix), extract 62/62, smoke 58/0, melt 10/0
 
+> **2026-07-30 — round-8 parser work: indented-colon-groups.** Follow-up on the
+> 5 "one column that should be several" cases the reviewer flagged. New generic
+> strategy `extract/strategies/delimited/indented-colon-groups.sh` (priority 35)
+> parses `header:` over indented single-token members into `group | value`, and
+> into `name | path | value` when every member-bearing header carries a ` -- `
+> split. Wins `cargo-machete`, `cargo-install-list`, `telegraf-plugins-list`,
+> `v4l2-ctl-list-devices`.
+> - `cargo-install-list` turned out **not** to be a parser gap: a `hints.tsv`
+>   row for `cargo tree` was force-routing it to the blob parser. Narrowed that
+>   regex with `[^:]`; the 10 other tools it covers are byte-identical.
+> - Detection is deliberately narrow (single-token members, no `key: value`
+>   pairs, noise only at the very ends) — 22 corpus inputs share the loose
+>   shape, only 5 match, and `ethtool-timestamp` self-rejects.
+> - **Verified so far:** extract suite 62/62; the 4 target tidy outputs; the 6
+>   hint-dependent tools unchanged. **Full corpus golden gate was still running
+>   when this was committed — confirm `bash tests/corpus/run.sh --golden`
+>   reports 0 failed before treating this as done.**
+> - Still outstanding from the reviewer's 10: `perf-bench-sched` (comment lines
+>   + one kv), `bowtie2-align-summary` (count/percent/text triples),
+>   `hammerdb-tpcc` (colon-separated multi-column). Each needs its own shape.
+
 > **2026-07-30 — round-8 reviewer marks worked.** The reviewer marked the first
 > ~11 entries of the pre-screen workbook and disagreed with 10 (marks saved in
 > `docs/review-marks-2026-07-30-round8.tsv`). Two responses landed:

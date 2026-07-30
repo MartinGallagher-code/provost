@@ -1,5 +1,36 @@
 # glean — Changelog
 
+## 2026-07-30 — indented-colon-groups: header-over-members parsing (round-8 follow-up)
+
+- **`extract/strategies/delimited/indented-colon-groups.sh` (NEW, priority 35)** —
+  parses an unindented `header:` line followed by indented single-token members
+  into `group | value` rows, carrying the header down instead of stranding it in
+  its own row. When *every* member-bearing header carries a ` -- ` split
+  (`cargo-machete`'s `crate -- /path/Cargo.toml:`) the group becomes two columns,
+  `name | path`, so the crate and its manifest are separately addressable —
+  the shape the round-8 reviewer asked for.
+  - Detection is deliberately narrow so it cannot steal already-good output:
+    members must be a SINGLE token carrying no `key: value` pair, the header's
+    own text must hold no `key: value` pair, and unclassifiable lines are
+    tolerated only as a leading preamble or trailing footer — never between
+    groups. 22 corpus inputs share the loose shape; only these match.
+  - Wins: `cargo-machete` (8 blob rows → 4 × `name|path|value`),
+    `cargo-install-list` (6 → 3 × `group|value`), `telegraf-plugins-list`
+    (14 → 11), `v4l2-ctl-list-devices` (previously deferred → 3 rows).
+    `ethtool-timestamp` self-rejects (nested sub-headers are a different shape)
+    and is left to the existing parsers.
+- **`extract/hints.tsv` — narrowed the `cargo-tree` hint.** `cargo-install-list`
+  was not a parser gap: the hint regex `^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+`,
+  written for `cargo tree`, also matched `cargo-audit v0.20.0:` and force-routed
+  it to the blob parser ahead of auto-detection. Added a `[^:]` suffix so a
+  version banner ending in a colon no longer matches. Verified the 10 other
+  inputs the row legitimately covers (`cargo-tree{,-i,-invert,-dedup}`,
+  `dagger-version`, `gleam-deps-list`, `hugo-version`, `tinymembench`,
+  `uv-tree`, `y-cruncher-pi`) are byte-identical.
+- Files: `extract/strategies/delimited/indented-colon-groups.sh`,
+  `extract/strategies/delimited/samples/indented-colon-groups/basic.txt`,
+  `extract/hints.tsv`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-30 — round-8 review: dot-leader key/value fix + stronger pre-screen
 
 Reviewer marks on the round-8 workbook (`docs/review-marks-2026-07-30-round8.tsv`)
