@@ -2,6 +2,28 @@
 
 ## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 58/0, melt 10/0
 
+> **2026-07-30 — corpus review pre-screen.** Round 8's review workbook
+> (`glean_corpus_review_8.docx`, supplied by the reviewer) is **in sync with
+> the corpus but entirely unmarked** — 3,706 entries, 258 pre-stamped
+> `VALIDATED` (exactly `docs/review-validated-cumulative.txt`), 3,447 blank
+> forms, zero ticked boxes. Verified: its tidy blocks match
+> `tests/corpus/review-output/` on 3,703 of 3,705 entries (the 2 differences
+> are Word empty-cell rendering artifacts, not output drift). So there is no
+> round-8 reviewer feedback to action yet.
+> - To narrow what the reviewer must actually look at,
+>   `tests/corpus/prescreen.py` triages the 3,448 not-yet-validated entries:
+>   **2,863 `looks-fine`**, 116 `looks-fine-thin`, 466 `needs-review`, 3
+>   `no-output` → `docs/review-prescreen-round8.tsv`.
+> - Calibrated with `--validate` against the existing marks: 95% of the 258
+>   validated tools pass, 38% of the round-3 `Horrible` tools are flagged.
+>   It is a *structural* screen — all 17 `Not quite` tools pass it, and
+>   spot-checks found real semantic misses inside `looks-fine` (`k6-summary`
+>   keeps its dot-leaders, `pgrep-a` leaves pid unsplit from command). Treat
+>   `looks-fine` as "skip unless you want to be thorough", not as a sign-off.
+> - **No generator for the .docx workbook exists in-repo** — it is produced
+>   outside the tree, so round 9 is not reproducible on demand. Worth adding
+>   if the review cycle continues.
+
 > **2026-07-24 — pip-only install + pure-ASCII bundle.**
 > - Install is now `pip install glean-data` only; `install.sh` deleted and
 >   its references removed from `README.md`, `pyproject.toml` (sdist),

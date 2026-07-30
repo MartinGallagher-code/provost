@@ -1,5 +1,33 @@
 # glean — Changelog
 
+## 2026-07-30 — corpus review pre-screen (round 8 triage)
+
+- **`tests/corpus/prescreen.py` (NEW)** — triages `tests/corpus/review-output/`
+  so a human reviewer can skip the structurally clean entries. Emits a verdict
+  per tool: `looks-fine`, `looks-fine-thin` (clean shape but far fewer captured
+  cells than input lines — possible dropped content), `needs-review` (named
+  structural defect), `no-output`.
+  - Structural defects checked: ragged rows, blank header cell, duplicate
+    column names, separator row kept as data, unsplit cells (a `"a   b"` run
+    inside one cell), pipes left in cells, untrimmed cells, and column
+    misalignment (the same literal token landing under more than one column
+    across rows — catches whitespace-shredded parses such as
+    `ip-route-table-all`).
+  - `--validate` scores the screen against the marks already in `docs/`:
+    **95%** of the 258 reviewer-validated tools pass, **38%** of the 55
+    round-3 `Horrible` tools are flagged. Generic column names (`A`/`B`/`C`)
+    are deliberately *not* a defect — the reviewer accepted them at widths up
+    to 12 columns, so the count carries no signal.
+- **`docs/review-prescreen-round8.tsv` (NEW)** — the screen applied to the
+  3,448 corpus entries that are not yet in
+  `docs/review-validated-cumulative.txt`: 2,863 `looks-fine`, 116
+  `looks-fine-thin`, 466 `needs-review`, 3 `no-output`.
+- The screen sees structure only. A parse that is cleanly rectangular but split
+  on the wrong boundary reads as fine (all 17 round-3 `Not quite` tools pass),
+  so `looks-fine` means "nothing mechanically wrong", not "correct".
+- Files: `tests/corpus/prescreen.py`, `docs/review-prescreen-round8.tsv`,
+  `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-24 — pip-only install; bundle.txt is now pure printable ASCII
 
 - **Install via `pip install glean-data` only.** Removed `install.sh` (the
