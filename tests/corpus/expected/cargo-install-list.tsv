@@ -1,7 +1,4 @@
-n	A	total_entries
-1	cargo-audit v0.20.0:	6
-2	cargo-audit	6
-3	ripgrep v14.1.0:	6
-4	rg	6
-5	just v1.29.1:	6
-6	just	6
+n	group	value	total_entries
+1	cargo-audit v0.20.0	cargo-audit	3
+2	ripgrep v14.1.0	rg	3
+3	just v1.29.1	just	3

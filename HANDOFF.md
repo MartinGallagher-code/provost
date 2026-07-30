@@ -15,10 +15,17 @@
 > - Detection is deliberately narrow (single-token members, no `key: value`
 >   pairs, noise only at the very ends) — 22 corpus inputs share the loose
 >   shape, only 5 match, and `ethtool-timestamp` self-rejects.
-> - **Verified so far:** extract suite 62/62; the 4 target tidy outputs; the 6
->   hint-dependent tools unchanged. **Full corpus golden gate was still running
->   when this was committed — confirm `bash tests/corpus/run.sh --golden`
->   reports 0 failed before treating this as done.**
+> - **Verified:** golden gate **3441 passed / 3 failed**, and all 3 failures
+>   were the intended targets (their old goldens were the `n|A|total_entries`
+>   blob) — 0 unexpected regressions across the other 3441. Goldens then
+>   regenerated with **0 deletions** (rule 5). Extract suite 62/62; the 6
+>   hint-dependent tools byte-identical.
+> - `parted-print` gained a golden incidentally — proven NOT ours (winner is
+>   `embedded-table`; byte-identical with our strategy removed). 3444 → 3445
+>   goldens, 261 → 260 not-yet-covered.
+> - `v4l2-ctl-list-devices` tidies to `group | value` but `expected.tsv`
+>   declares `table 6 x 2`, so no golden is written. **Open question for a
+>   human:** reconcile the manifest or accept the blob — not self-resolved.
 > - Still outstanding from the reviewer's 10: `perf-bench-sched` (comment lines
 >   + one kv), `bowtie2-align-summary` (count/percent/text triples),
 >   `hammerdb-tpcc` (colon-separated multi-column). Each needs its own shape.

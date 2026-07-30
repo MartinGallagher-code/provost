@@ -27,9 +27,26 @@
   inputs the row legitimately covers (`cargo-tree{,-i,-invert,-dedup}`,
   `dagger-version`, `gleam-deps-list`, `hugo-version`, `tinymembench`,
   `uv-tree`, `y-cruncher-pi`) are byte-identical.
+- **Goldens regenerated.** `cargo-install-list`, `cargo-machete`,
+  `telegraf-plugins-list` promoted to the new tidy shape; review-output
+  snapshots refreshed for those three plus `v4l2-ctl-list-devices` and
+  `parted-print`. **No goldens deleted** (CLAUDE.md rule 5 checked: 0
+  `D tests/corpus/expected/*.tsv`).
+  - `parted-print` gained a golden it did not have before — an incidental
+    coverage gain, **not** caused by this change: its winner is
+    `embedded-table`, and with the new strategy removed and the hint reverted
+    it produces byte-identical output. Coverage 3444 → 3445 goldens,
+    not-yet-covered 261 → 260.
+  - `v4l2-ctl-list-devices` tidies to `group | value` (3 rows) but still gets
+    no golden: `expected.tsv` declares it `table 6 x 2`, and the manifest is
+    the arbiter of the expected shape. The output is an improvement on the
+    blob, but the declared shape disagrees — left for a human to reconcile
+    rather than rewriting the manifest to match our own output.
 - Files: `extract/strategies/delimited/indented-colon-groups.sh`,
   `extract/strategies/delimited/samples/indented-colon-groups/basic.txt`,
-  `extract/hints.tsv`, `CHANGELOG.md`, `HANDOFF.md`.
+  `extract/hints.tsv`, `tests/corpus/expected/{cargo-install-list,cargo-machete,
+  telegraf-plugins-list,parted-print}.tsv`, `tests/corpus/review-output/*`,
+  `CHANGELOG.md`, `HANDOFF.md`.
 
 ## 2026-07-30 — round-8 review: dot-leader key/value fix + stronger pre-screen
 
