@@ -36,7 +36,8 @@
     coverage gain, **not** caused by this change: its winner is
     `embedded-table`, and with the new strategy removed and the hint reverted
     it produces byte-identical output. Coverage 3444 → 3445 goldens,
-    not-yet-covered 261 → 260.
+    not-yet-covered 261 → 260. Confirming gate after regeneration:
+    **3445 passed, 0 failed, 260 not-yet-covered of 3705**.
   - `v4l2-ctl-list-devices` tidies to `group | value` (3 rows) but still gets
     no golden: `expected.tsv` declares it `table 6 x 2`, and the manifest is
     the arbiter of the expected shape. The output is an improvement on the

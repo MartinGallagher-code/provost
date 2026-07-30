@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3441/0, 261 ⏳** (3 goldens re-tidied by the round-8 dot-leader fix), extract 62/62, smoke 58/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3445/0, 260 ⏳** (round-8 parser work: dot-leader fix + indented-colon-groups), extract 62/62, smoke 58/0, melt 10/0
 
 > **2026-07-30 — round-8 parser work: indented-colon-groups.** Follow-up on the
 > 5 "one column that should be several" cases the reviewer flagged. New generic
@@ -18,7 +18,8 @@
 > - **Verified:** golden gate **3441 passed / 3 failed**, and all 3 failures
 >   were the intended targets (their old goldens were the `n|A|total_entries`
 >   blob) — 0 unexpected regressions across the other 3441. Goldens then
->   regenerated with **0 deletions** (rule 5). Extract suite 62/62; the 6
+>   regenerated with **0 deletions** (rule 5), and the confirming re-run is
+>   **3445 passed / 0 failed / 260 ⏳**. Extract suite 62/62; the 6
 >   hint-dependent tools byte-identical.
 > - `parted-print` gained a golden incidentally — proven NOT ours (winner is
 >   `embedded-table`; byte-identical with our strategy removed). 3444 → 3445
