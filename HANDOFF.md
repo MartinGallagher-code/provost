@@ -1,8 +1,26 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 58/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3441/0, 261 ⏳** (3 goldens re-tidied by the round-8 dot-leader fix), extract 62/62, smoke 58/0, melt 10/0
 
-> **2026-07-30 — corpus review pre-screen.** Round 8's review workbook
+> **2026-07-30 — round-8 reviewer marks worked.** The reviewer marked the first
+> ~11 entries of the pre-screen workbook and disagreed with 10 (marks saved in
+> `docs/review-marks-2026-07-30-round8.tsv`). Two responses landed:
+> - **Parser fix** (`extract/strategies/delimited/dot-leader-kv.sh`): dot leaders
+>   that pad the *key* before the colon (`Reader ...........: Yubico`, gpg/hashcat)
+>   are now parsed to clean `key | value`, both leader orderings handled, unpadded
+>   stragglers kept, and repeated-key record blocks (hashcat `--benchmark`) left to
+>   the record parsers. `gpg-card-edit`, `gpg-card-status`, `hashcat-status`,
+>   `k6-summary` re-tidied; 3 goldens + 4 review-output snapshots regenerated;
+>   golden gate 3441/0, 0 regressions.
+> - **Screen hardened** (`tests/corpus/prescreen.py`): new `key-value-delimiter-in-cell`
+>   and `lone-delimiter-column` flags. `looks-fine` 2863→2763, `needs-review`
+>   466→568. Catches 5 of the 10 disagreements; `--validate` still 94% on the
+>   validated set. The other 5 (`perf-bench-sched`, `bowtie2-align-summary`,
+>   `cargo-install-list`, `cargo-machete`, `hammerdb-tpcc`) are "one column that
+>   should be several" — semantic, beyond a structural screen; each needs its own
+>   parser change. **Next:** those 5 shapes are the outstanding parser work.
+>
+> **Prior context — 2026-07-30 corpus review pre-screen.** Round 8's review workbook
 > (`glean_corpus_review_8.docx`, supplied by the reviewer) is **in sync with
 > the corpus but entirely unmarked** — 3,706 entries, 258 pre-stamped
 > `VALIDATED` (exactly `docs/review-validated-cumulative.txt`), 3,447 blank

@@ -1,5 +1,5 @@
-n	A	total_entries
-1	Reader ...........: Yubico YubiKey	4
-2	Version ..........: 3.4	4
-3	Serial number ....: 12345678	4
-4	Signature key ....: AABB CCDD EEFF	4
+n	key	value	total_entries
+1	Reader	Yubico YubiKey	4
+2	Version	3.4	4
+3	Serial number	12345678	4
+4	Signature key	AABB CCDD EEFF	4

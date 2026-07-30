@@ -45,11 +45,22 @@ UNSPLIT_RE = re.compile(r"\S {2,}\S")
 SEP_RE = re.compile(r"[-=+_|\s]{4,}")
 # Values that carry no column identity, so they say nothing about alignment.
 NUMERIC_RE = re.compile(r"[-+0-9.,%:]+")
+# A cell that is itself a `key: value` or `key ....: value` pair -- the
+# delimiter (colon, optionally with dot leaders) was left sitting inside the
+# cell instead of splitting the row into columns. This is the failure the
+# round-8 reviewer caught in gpg-card-status, chronyc-tracking, hammerdb-tpcc:
+# a whole key/value line captured as one blob. Guarded to avoid firing on a
+# bare `HH:MM` time or a `scheme://` URL, which legitimately carry a colon.
+DELIM_IN_CELL_RE = re.compile(r"^\S.*?(?:\.{2,}\s*)?:\s+\S")
+TIME_RE = re.compile(r"^\d{1,2}:\d\d")
+URL_RE = re.compile(r"://")
 
 # Rates above which a defect is real rather than one odd cell.
 UNSPLIT_RATE = 0.10
 PIPE_RATE = 0.10
 UNTRIMMED_RATE = 0.10
+# Fraction of content cells that are themselves an unsplit key: value pair.
+DELIM_IN_CELL_RATE = 0.30
 # Fraction of repeated tokens landing in more than one column.
 MISALIGN_RATE = 0.15
 # Captured content cells per non-blank input line.
@@ -92,6 +103,22 @@ def structural_flags(rows):
         flags.append("separator-row-as-data")
     if len(header) > 1 and len(set(header)) != len(header):
         flags.append("duplicate-column-names")
+    # Only the content cells can hold a stranded key/value pair -- n and
+    # total_entries never do, and counting them would dilute the rate.
+    idx = content_idx(header)
+    content_cells = [r[i] for r in data for i in idx if i < len(r) and r[i].strip()]
+    if content_cells:
+        def stranded(c):
+            if URL_RE.search(c) or TIME_RE.match(c):
+                return False
+            return bool(DELIM_IN_CELL_RE.match(c))
+        if sum(1 for c in content_cells if stranded(c)) / len(content_cells) > DELIM_IN_CELL_RATE:
+            flags.append("key-value-delimiter-in-cell")
+        # A cell that is nothing but a lone delimiter means the parser split the
+        # delimiter into its own column instead of using it to split key from
+        # value -- chronyc-tracking comes out `Reference | ID | : | C0248F01`.
+        if any(c.strip() in (":", "=", "|") for c in content_cells):
+            flags.append("lone-delimiter-column")
     return flags
 
 

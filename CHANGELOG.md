@@ -1,5 +1,44 @@
 # glean — Changelog
 
+## 2026-07-30 — round-8 review: dot-leader key/value fix + stronger pre-screen
+
+Reviewer marks on the round-8 workbook (`docs/review-marks-2026-07-30-round8.tsv`)
+disagreed with 10 of the first 11 `looks-fine` calls. Root causes and response:
+
+- **`extract/strategies/delimited/dot-leader-kv.sh` — handle leaders *before*
+  the colon.** gpg `--card-status`/`--card-edit` and hashcat `--status` pad the
+  *key* with dots and put the colon last (`Reader ...........: Yubico`); the
+  strategy only matched dots *after* the colon (`label: .... value`), so these
+  fell through to the generic blob parser and came out as one `A` column per
+  line. Now both orderings (form A / form B) are parsed to clean `key | value`,
+  the dot/space padding stripped from the key. Within a form-B block, unpadded
+  `label: value` stragglers (`Signature counter : 42`) are kept rather than
+  dropped. Guarded against flattening genuine grouped records: a block whose
+  keys *repeat* (hashcat `--benchmark`: `Speed.#1`/`Hashmode` per mode) is left
+  to the record parsers. New sample `samples/dot-leader-kv/leader-before-colon.txt`.
+  - Golden gate: 3441 passed, 3 improved (`gpg-card-edit`, `hashcat-status`,
+    `k6-summary` now `key | value`), `hashcat-benchmark` unchanged, 0
+    regressions. Goldens regenerated for the 3.
+- **`tests/corpus/prescreen.py` — two new structural flags.** The screen was
+  calling these key/value tools `looks-fine` because it only checks structure.
+  Added `key-value-delimiter-in-cell` (a whole `key: value` / `key ...: value`
+  pair left inside one cell, guarded against bare `HH:MM` times and `scheme://`
+  URLs) and `lone-delimiter-column` (the delimiter split into its own column,
+  as in `chronyc-tracking`). Together these move 5 of the 10 reviewer
+  disagreements from `looks-fine` to `needs-review`, with no loss on the
+  validated set (still 94% pass in `--validate`).
+- **Honest limit, restated.** The other 5 disagreements (`perf-bench-sched`,
+  `bowtie2-align-summary`, `cargo-install-list`, `cargo-machete`,
+  `hammerdb-tpcc`) are the "one column that should be several" class — a
+  *semantic* judgment a structural screen cannot separate from a legitimately
+  single-column output like `rpm-qa`. They remain `looks-fine`; fixing them is
+  five more parser changes, one per shape.
+- Files: `extract/strategies/delimited/dot-leader-kv.sh`,
+  `extract/strategies/delimited/samples/dot-leader-kv/leader-before-colon.txt`,
+  `tests/corpus/expected/{gpg-card-edit,hashcat-status,k6-summary}.tsv`,
+  `tests/corpus/prescreen.py`, `docs/review-marks-2026-07-30-round8.tsv`,
+  `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-30 — corpus review pre-screen (round 8 triage)
 
 - **`tests/corpus/prescreen.py` (NEW)** — triages `tests/corpus/review-output/`

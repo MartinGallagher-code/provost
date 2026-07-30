@@ -1,12 +1,12 @@
 name	verdict	detail	content_cols	header
-7z-benchmark	needs-review	unsplit-cells;pipes-in-cells;separator-row-as-data	1	n / A / total_entries
+7z-benchmark	needs-review	unsplit-cells;pipes-in-cells;separator-row-as-data;key-value-delimiter-in-cell	1	n / A / total_entries
 R-sessioninfo	looks-fine-thin	cells-per-line=0.40	2	Platform / Running_under
 adb-devices	needs-review	unsplit-cells	2	n / A / B / total_entries
 aide-check	looks-fine	good	2	n / key / value / total_entries
 alias-list	looks-fine	good	2	n / name / command / total_entries
 amdgpu-top	needs-review	unsplit-cells	1	n / A / total_entries
 ansible-inventory-graph	needs-review	column-misalignment=0.29	3	n / depth / parent / name / total_entries
-ansible-v	looks-fine	strong	4	n / A / B / C / D / total_entries
+ansible-v	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 ansible-version	looks-fine-thin	cells-per-line=0.22	2	n / 16.3].ansible_collection_location_=_/home/user/.ansible/collections / 16.3].
 apache2ctl-modules	looks-fine	good	2	n / module / type / total_entries
 apachebench	looks-fine	good	2	n / key / value / total_entries
@@ -14,7 +14,7 @@ apachectl-S	needs-review	unsplit-cells	3	* / VirtualHost_configuration.default_s
 apk-info-a	looks-fine	good	2	n / key / value / total_entries
 apk-list	looks-fine	strong	5	n / package / arch / origin / license / status / total_entries
 apk-policy	looks-fine	good	2	field / value
-aplay-list	looks-fine	good	4	card_0 / ****_List_of_PLAYBACK_Hardware_Devices_****.Subdevices / ****_List_of_P
+aplay-list	needs-review	key-value-delimiter-in-cell	4	card_0 / ****_List_of_PLAYBACK_Hardware_Devices_****.Subdevices / ****_List_of_P
 apt-cache-policy	looks-fine-thin	cells-per-line=0.44	4	curl.Installed / curl.Candidate / curl.***_7.81.0-1ubuntu1.14_500.500_http / cur
 apt-cache-show-vim	looks-fine	good	15	Package / Architecture / Version / Priority / Section / Origin / Maintainer / In
 apt-get-download-progress	looks-fine	good	1	n / A / total_entries
@@ -43,15 +43,15 @@ bluetoothctl-devices	looks-fine-thin	cells-per-line=0.33	1	n / Device_AA
 bombardier-run	looks-fine-thin	cells-per-line=0.29	2	Bombarding_http / Statistics________Avg______Stdev________Max.Throughput
 bonnie-plus	needs-review	unsplit-cells	1	n / A / total_entries
 borg-create-progress	looks-fine	strong	4	n / Archive / Original / Compressed / Progress / total_entries
-borg-prune-list	needs-review	unsplit-cells	1	n / A / total_entries
+borg-prune-list	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 bowtie2-align-summary	looks-fine	good	1	n / A / total_entries
-bpftool-prog-show	needs-review	unsplit-cells	1	n / A / total_entries
+bpftool-prog-show	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 bpftrace	looks-fine	good	2	n / A / B / total_entries
 bpftrace-histogram	needs-review	unsplit-cells;pipes-in-cells	1	n / A / total_entries
 brew-outdated-sparse	looks-fine	strong	4	n / A / B / C / D / total_entries
 brew-uses-tree	needs-review	column-misalignment=0.27	3	n / depth / parent / name / total_entries
 bridge-fdb	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
-bridge-link	looks-fine	good	2	n / name / value / total_entries
+bridge-link	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_entries
 broot-summary	looks-fine	strong	4	n / depth / parent / name / value / total_entries
 btrfs-balance-status	looks-fine	good	5	n / Balance / on / '/mnt/data' / is / running / total_entries
 btrfs-device-stats	looks-fine	good	2	n / A / B / total_entries
@@ -81,10 +81,10 @@ cargo-bench	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entrie
 cargo-bloat	looks-fine	strong	4	n / File / _text / Size / Crate / total_entries
 cargo-build-color-warn	looks-fine	strong	3	n / A / B / C / total_entries
 cargo-build-progress	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
-cargo-clippy-color	needs-review	unsplit-cells;duplicate-column-names	3	warning / warning / error
+cargo-clippy-color	needs-review	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell	3	warning / warning / error
 cargo-clippy-summary	looks-fine	strong	3	n / lint / level / count / total_entries
 cargo-deny-check	looks-fine-thin	cells-per-line=0.40	2	field / value
-cargo-fmt-check	needs-review	unsplit-cells	1	n / A / total_entries
+cargo-fmt-check	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 cargo-install-list	looks-fine	good	1	n / A / total_entries
 cargo-machete	looks-fine	good	1	n / A / total_entries
 cargo-metadata	looks-fine	good	39	packages.0.name / packages.0.version / packages.0.id / packages.0.license / pack
@@ -103,7 +103,7 @@ cargo-vendor	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 cargo-version-full	looks-fine	good	4	n / A / B / C / D / total_entries
 cassandra-nodetool-info	looks-fine	good	16	ID / Gossip_active / Native_Transport_active / Thrift_active / Load / Generation
 cassandra-nodetool-tpstats	looks-fine	strong	6	n / Pool_Name / Active / Pending / Completed / Blocked / All_time_blocked / tota
-cassandra-stress	looks-fine	good	2	n / key / value / total_entries
+cassandra-stress	needs-review	key-value-delimiter-in-cell	2	n / key / value / total_entries
 cat-meminfo-extended	looks-fine	good	7	MemTotal / MemFree / MemAvailable / Buffers / Cached / SwapTotal / SwapFree
 cat-os-release	looks-fine	good	6	PRETTY_NAME / NAME / VERSION_ID / VERSION_CODENAME / ID / ID_LIKE
 catch2-benchmark	looks-fine	strong	4	n / benchmark_name / samples / iterations / mean / total_entries
@@ -111,7 +111,7 @@ cava-config	looks-fine	good	4	framerate / bars / sensitivity / channels
 ccache-stats	looks-fine	good	2	n / key / value / total_entries
 cdk-list	looks-fine	good	1	n / A / total_entries
 cdk8s-synth	looks-fine	good	1	n / A / total_entries
-cdo-info	needs-review	unsplit-cells	1	n / A / total_entries
+cdo-info	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 ceph-df	needs-review	unsplit-cells	6	n / section / CLASS / ssd / POOL / cephfs / rbd / total_entries
 ceph-mon-stat	looks-fine	good	2	field / value
 ceph-osd-df	looks-fine	strong	14	n / ID / CLASS / WEIGHT / REWEIGHT / SIZE / RAW_USE / DATA / OMAP / META / AVAIL
@@ -126,11 +126,11 @@ cfssl-info	looks-fine	strong	3	n / certificate / expiry / usages / total_entries
 cgget	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 cgget-cpu	looks-fine	strong	3	n / A / B / C / total_entries
 cgroup-tree	needs-review	column-misalignment=0.31	3	n / depth / parent / name / total_entries
-chage-l	needs-review	unsplit-cells	1	n / A / total_entries
-chage-list	looks-fine	strong	4	n / A / B / C / D / total_entries
+chage-l	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+chage-list	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 changesets-status	looks-fine	good	2	n / A / B / total_entries
 cheat-sheet	looks-fine	strong	5	n / To / find / files / by / name: / total_entries
-checkov-summary	looks-fine	good	4	Passed_checks / Check / FAILED_for_resource / File
+checkov-summary	needs-review	key-value-delimiter-in-cell	4	Passed_checks / Check / FAILED_for_resource / File
 checkrestart-list	needs-review	unsplit-cells	1	n / A / total_entries
 checksec-file	looks-fine	good	2	n / RELRO / Full_RELRO / total_entries
 chef-client-summary	looks-fine	good	2	n / Chef_Infra_Client / version_18_4_12 / total_entries
@@ -141,10 +141,10 @@ choose-output	looks-fine	good	1	n / A / total_entries
 chrony-sources	looks-fine	strong	7	n / MS / Name/IP / address / Stratum / Poll / Reach / LastRx / total_entries
 chrony-tracking	looks-fine	good	7	Reference_ID / Stratum / Ref_time_(UTC) / System_time / Last_offset / RMS_offset
 chronyc-offset-signed	looks-fine	strong	9	n / MS / Name/IP / address / Stratum / Poll / Reach / LastRx / Last / sample / t
-chronyc-serverstats	needs-review	column-misalignment=0.21	5	n / A / B / C / D / E / total_entries
+chronyc-serverstats	needs-review	lone-delimiter-column;column-misalignment=0.21	5	n / A / B / C / D / E / total_entries
 chronyc-sources	looks-fine	strong	9	n / MS / Name/IP / address / Stratum / Poll / Reach / LastRx / Last / sample / t
 chronyc-sourcestats-delta	looks-fine	strong	9	n / Name/IP / Address / NP / NR / Span / Frequency / Skew / Offset / StdDev / to
-chronyc-tracking	looks-fine	strong	5	n / A / B / C / D / E / total_entries
+chronyc-tracking	needs-review	lone-delimiter-column	5	n / A / B / C / D / E / total_entries
 chrt	looks-fine	good	6	n / pid / 3421's / current / scheduling / policy: / SCHED_OTHER / total_entries
 cilium-bpf-lb-list	looks-fine	good	2	n / SERVICE_ADDRESS / BACKEND_ADDRESS / total_entries
 cilium-endpoint-list	needs-review	column-misalignment=0.67	6	n / ENDPOINT / IDENTITY / POLICY(ingress) / POLICY(egress) / IPv4 / STATUS / tot
@@ -292,7 +292,7 @@ coroot-applications	looks-fine	strong	7	n / application / namespace / status / i
 cortex-ring-status	looks-fine	strong	6	n / INSTANCE / STATE / ADDRESS / ZONE / TOKENS / OWNERSHIP / total_entries
 cosign-download-signature	looks-fine	good	2	n / Base64Signature / Payload
 cosign-public-key	looks-fine	strong	3	n / -----BEGIN / PUBLIC / KEY----- / total_entries
-cosign-tree	needs-review	column-misalignment=0.33	3	n / depth / parent / name / total_entries
+cosign-tree	needs-review	key-value-delimiter-in-cell;column-misalignment=0.33	3	n / depth / parent / name / total_entries
 cosign-triangulate	looks-fine	good	3	signature / digest / type
 cosign-verify	looks-fine	good	2	field / value
 couchdb-active-tasks	looks-fine	strong	10	n / type / database / design_document / progress / changes_done / total_changes 
@@ -315,7 +315,7 @@ crictl-pods	looks-fine	strong	6	n / POD_ID / CREATED / STATE / NAME / NAMESPACE 
 crictl-ps	looks-fine	strong	7	n / CONTAINER / IMAGE / CREATED / STATE / NAME / ATTEMPT / POD_ID / total_entrie
 crictl-stats	looks-fine	strong	5	n / CONTAINER / CPU_% / MEM / DISK / INODES / total_entries
 criterion-bench	needs-review	column-misalignment=0.17	8	n / A / B / C / D / E / F / G / H / total_entries
-croc-send	looks-fine	good	1	n / A / total_entries
+croc-send	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 cron-d-file-comments	looks-fine	strong	4	n / /etc/cron_d/certbot: / renew / SSL / certs / total_entries
 crontab	looks-fine	strong	6	n / m / h / dom / mon / dow / command / total_entries
 crontab-backup-jobs	looks-fine	strong	6	n / min / hour / dom / mon / dow / command / total_entries
@@ -381,10 +381,10 @@ debezium-connectors	looks-fine	strong	3	n / name / type / state / total_entries
 debian-packages-index	looks-fine	strong	7	n / Package / Version / Priority / Section / Filename / Size / SHA256
 debian-sources-index	needs-review	column-misalignment=0.25	7	n / Package / Binary / Version / Priority / Section / Directory / Checksums-Sha2
 decode-dimms	looks-fine-thin	cells-per-line=0.06	1	n / Decoding_EEPROM
-delta-diff-color	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
+delta-diff-color	needs-review	lone-delimiter-column	6	n / A / B / C / D / E / F / total_entries
 delta-diff-stat	needs-review	separator-row-as-data	6	n / file / changes / graph / files_changed / insertions / deletions / total_entr
 delv	looks-fine	strong	5	n / name / ttl / class / type / value / total_entries
-deno-check-summary	needs-review	duplicate-column-names	5	Check_file / error / server.listen(port).at_file / error / server.listen(port).a
+deno-check-summary	needs-review	duplicate-column-names;key-value-delimiter-in-cell	5	Check_file / error / server.listen(port).at_file / error / server.listen(port).a
 deno-info	looks-fine	good	6	DENO_DIR_location / Remote_modules_cache / npm_modules_cache / Emitted_modules_c
 deno-info-cache	looks-fine	good	4	DENO_DIR_location / Remote_modules_cache / Emitted_modules_cache / Language_serv
 deno-lint-summary	looks-fine	strong	6	n / error[no-explicit-any]: / `any` / type / is / not / allowed / total_entries
@@ -421,10 +421,10 @@ direnv-status	looks-fine	strong	4	n / direnv / exec / path / /usr/bin/direnv / t
 distrobox-version	looks-fine	good	2	field / value
 dive-analysis	looks-fine	good	2	n / Image / Details / total_entries
 dive-summary	looks-fine	good	8	Image_Source / Total_Image_size / Potential_wasted_space / Image_efficiency_scor
-dmesg-boot	looks-fine	good	2	n / timestamp / message / total_entries
-dmesg-hw	looks-fine	good	2	n / timestamp / message / total_entries
-dmesg-level	needs-review	unsplit-cells	1	n / A / total_entries
-dmesg-thermal	looks-fine	good	2	n / timestamp / message / total_entries
+dmesg-boot	needs-review	key-value-delimiter-in-cell	2	n / timestamp / message / total_entries
+dmesg-hw	needs-review	key-value-delimiter-in-cell	2	n / timestamp / message / total_entries
+dmesg-level	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+dmesg-thermal	needs-review	key-value-delimiter-in-cell	2	n / timestamp / message / total_entries
 dmidecode	looks-fine	good	4	Manufacturer / Product_Name / Serial_Number / UUID
 dmidecode-baseboard	looks-fine	good	9	Manufacturer / Product_Name / Version / Serial_Number / Asset_Tag / Location_In_
 dmidecode-bios	looks-fine-thin	cells-per-line=0.38	8	Vendor / Version / Release_Date / Address / Runtime_Size / ROM_Size / BIOS_Revis
@@ -437,12 +437,12 @@ dmidecode-system	looks-fine	good	10	Manufacturer / Product_Name / Version / Seri
 dmsetup-info	looks-fine	good	2	n / key / value / total_entries
 dmsetup-ls	looks-fine	good	2	n / A / B / total_entries
 dmsetup-table	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
-dnf-download-progress	looks-fine	good	9	n / (4/4): / 100% / [========================] / 21 / MB/s / | / 812 / kB / 00m0
+dnf-download-progress	needs-review	lone-delimiter-column	9	n / (4/4): / 100% / [========================] / 21 / MB/s / | / 812 / kB / 00m0
 dnf-history-list	needs-review	pipes-in-cells	8	n / | / Command / line / Date / and / time / Action(s) / Altered / total_entries
 dnf-info	looks-fine	good	12	Name / Version / Release / Architecture / Size / Source / Repository / From_repo
 dnf-list	looks-fine	good	2	n / Installed / Packages / total_entries
 dnf-module-list	looks-fine	strong	4	n / Name / Stream / Profiles / Summary / total_entries
-dnf-provides	looks-fine	strong	3	n / A / B / C / total_entries
+dnf-provides	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 dnf-repolist	looks-fine	good	2	n / repo_id / repo_name / total_entries
 dnf-repoquery	looks-fine	good	1	n / A / total_entries
 dnf-repoquery-provides	looks-fine	good	1	n / A / total_entries
@@ -491,7 +491,7 @@ docker-top	looks-fine	strong	8	n / UID / PID / PPID / C / STIME / TTY / TIME / C
 docker-version	looks-fine	good	2	n / key / value / total_entries
 docker-volume-inspect	looks-fine-thin	cells-per-line=0.43	6	n / CreatedAt / Driver / Mountpoint / Name / Options / Scope / total_entries
 docker-volume-ls	looks-fine	good	2	n / DRIVER / VOLUME_NAME / total_entries
-dockle-scan	looks-fine	good	2	n / A / B / total_entries
+dockle-scan	needs-review	key-value-delimiter-in-cell	2	n / A / B / total_entries
 doctl-apps-list	looks-fine	strong	9	n / ID / Spec / Name / Default / Ingress / Active / Deployment / In / Progress /
 doctl-compute-load-balancer-list	looks-fine	strong	9	n / ID / IP / Name / Status / Created / At / Region / Size / Droplet / total_ent
 doctl-compute-reserved-ip-list	looks-fine	strong	5	n / IP / Region / Droplet_ID / Droplet_Name / Project_ID / total_entries
@@ -518,7 +518,7 @@ dovecot-n	looks-fine-thin	cells-per-line=0.20	3	n / 3.19.1_(9b53102964) / #_OS /
 dpkg-L	looks-fine	good	1	n / A / total_entries
 dpkg-c	looks-fine	strong	5	n / permissions / owner / size / date / path / total_entries
 dpkg-deb-control-info	looks-fine	strong	7	n / Package / Version / Architecture / Maintainer / Installed-Size / Depends / D
-dpkg-depends-tree	needs-review	pipes-in-cells;column-misalignment=0.20	4	n / A / B / C / D / total_entries
+dpkg-depends-tree	needs-review	pipes-in-cells;lone-delimiter-column;column-misalignment=0.20	4	n / A / B / C / D / total_entries
 dpkg-divert-list	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 dpkg-get-selections	looks-fine	good	2	n / package / status / total_entries
 dpkg-l	looks-fine	strong	5	n / status / name / version / arch / description / total_entries
@@ -538,18 +538,18 @@ drm-info-connectors	looks-fine-thin	cells-per-line=0.40	2	Connector_0_(DP-1) / C
 drone-build-info	looks-fine	good	7	Number / Status / Event / Commit / Branch / Started / Duration
 dstat	needs-review	pipes-in-cells	12	n / usr / sys / idl / wai / stl| / read / writ| / recv / send| / in / out_|_int 
 dstat-cdngy	needs-review	pipes-in-cells	5	n / ---load-avg--- / --total-cpu-usage-- / -net/eth0- / ---system-- / ------memo
-dstat-full	needs-review	pipes-in-cells	14	n / usr / sys / idl / wai / stl| / read / writ| / recv / send| / in / out / | / 
+dstat-full	needs-review	pipes-in-cells;lone-delimiter-column	14	n / usr / sys / idl / wai / stl| / read / writ| / recv / send| / in / out / | / 
 du-h	looks-fine	good	2	n / A / B / total_entries
 du-sh-dirs	looks-fine	good	2	n / A / B / total_entries
 du-summary	looks-fine	good	2	n / A / B / total_entries
 du-tree-depth3	looks-fine	good	2	n / A / B / total_entries
 dua-interactive	looks-fine	strong	3	n / A / B / C / total_entries
 dub-describe	needs-review	column-misalignment=0.50	3	n / rootPackage / packages.name / packages.version / total_entries
-dub-list	looks-fine	good	1	n / A / total_entries
+dub-list	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 duckdb-box-output	looks-fine	strong	3	n / country / city / pop_m / total_entries
 duckdb-describe	looks-fine	strong	3	n / column_name / column_type / null / total_entries
 duckdb-describe-box	looks-fine	strong	3	n / column_name / column_type / null / total_entries
-duckdb-explain-box	looks-fine-thin	cells-per-line=0.18	1	n / HASH_JOIN / total_entries
+duckdb-explain-box	needs-review	key-value-delimiter-in-cell	1	n / HASH_JOIN / total_entries
 duckdb-pragma-tables	looks-fine	strong	3	n / name / column_count / estimated_size / total_entries
 duckdb-show-tables	looks-fine	good	1	n / name / total_entries
 duckdb-summarize	looks-fine	strong	7	n / column_name / column_type / min / max / mean / count / null_pct / total_entr
@@ -572,7 +572,7 @@ e2fsck-summary	looks-fine	strong	5	n / A / B / C / D / E / total_entries
 earthly-ls	looks-fine	good	1	n / A / total_entries
 earthly-org-list	looks-fine	good	2	n / NAME / ADMIN / total_entries
 earthly-version	looks-fine	good	4	n / A / B / C / D / total_entries
-edac-util	needs-review	duplicate-column-names	8	mc0 / mc0 / mc0 / mc0 / mc0 / mc0 / mc0 / mc0
+edac-util	needs-review	duplicate-column-names;key-value-delimiter-in-cell	8	mc0 / mc0 / mc0 / mc0 / mc0 / mc0 / mc0 / mc0
 edid-decode-summary	looks-fine	good	4	EDID_version / Manufacturer / Maximum_image_size / Display_supports
 eksctl-get-cluster	looks-fine	strong	3	n / NAME / REGION / EKSCTL_CREATED / total_entries
 elastic-apm-services	looks-fine	strong	5	n / SERVICE / ENVIRONMENT / AGENT / THROUGHPUT / LATENCY / total_entries
@@ -619,7 +619,7 @@ enc-mixed-indent-tree	looks-fine	good	1	n / A / total_entries
 enc-mixed-tab-space-table	needs-review	unsplit-cells;untrimmed-cells	2	n / service / __port____state / total_entries
 enc-mojibake-utf8	looks-fine	good	2	n / name / value / total_entries
 enc-narrow-nbsp-thousands	looks-fine	strong	3	n / symbol / shares / price / total_entries
-enc-nbsp-colon-kv	looks-fine	strong	3	n / A / B / C / total_entries
+enc-nbsp-colon-kv	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 enc-nbsp-in-value	looks-fine	strong	3	n / account / balance / currency / total_entries
 enc-nbsp-leading-indent	looks-fine	good	2	n / A / B / total_entries
 enc-nbsp-padding	looks-fine	strong	4	n / COMMAND / PID / USER / FD / total_entries
@@ -675,7 +675,7 @@ etc-hosts-comment-tabs	looks-fine	strong	3	n / A / B / C / total_entries
 etc-hosts-comments	needs-review	unsplit-cells	1	n / A / total_entries
 etcd-version	looks-fine	strong	3	n / A / B / C / total_entries
 etcdctl-alarm-list	looks-fine	good	2	n / memberID / alarm / total_entries
-etcdctl-endpoint-health	looks-fine	strong	9	n / A / B / C / D / E / F / G / H / I / total_entries
+etcdctl-endpoint-health	needs-review	lone-delimiter-column	9	n / A / B / C / D / E / F / G / H / I / total_entries
 etcdctl-endpoint-status	looks-fine	strong	9	n / ENDPOINT / ID / VERSION / DB_SIZE / IS_LEADER / IS_LEARNER / RAFT_TERM / RAF
 etcdctl-get-prefix	looks-fine	good	1	n / A / total_entries
 etcdctl-member-list	looks-fine	strong	6	n / ID / STATUS / NAME / PEER_ADDRS / CLIENT_ADDRS / IS_LEARNER / total_entries
@@ -710,7 +710,7 @@ exo-dig-multiline-any	looks-fine	strong	7	n / name / ttl / class / type / value 
 exo-dig-plus-trace	looks-fine	strong	5	n / name / ttl / class / type / value / total_entries
 exo-dmidecode-handles-multi	needs-review	duplicate-column-names	18	Manufacturer / Product_Name / Version / Serial_Number / Location_In_Chassis / Ch
 exo-docker-inspect-array	looks-fine-thin	cells-per-line=0.22	6	n / Id / Created / Path / Image / Name / RestartCount / total_entries
-exo-dpkg-deb-I-control	looks-fine	good	2	n / new_Debian_package / version_2_0_ / total_entries
+exo-dpkg-deb-I-control	needs-review	key-value-delimiter-in-cell	2	n / new_Debian_package / version_2_0_ / total_entries
 exo-drbdadm-status	needs-review	column-misalignment=0.40	6	n / r0_role / disk / peer1_role / replication / peer2_role / r1_role
 exo-git-blame-porcelain	looks-fine	good	1	n / A / total_entries
 exo-git-log-graph-branches	needs-review	pipes-in-cells	1	n / A / total_entries
@@ -727,21 +727,21 @@ exo-lsusb-v-device	looks-fine-thin	cells-per-line=0.09	2	field / value
 exo-mpstat-p-all-repeated	looks-fine	strong	7	n / Linux / 6_5_0-generic / (workstation) / 07/11/2026 / _x86_64_ / (4 / CPU) / 
 exo-mtr-report-asn	needs-review	unsplit-cells	2	Start / HOST
 exo-nft-monitor-trace	looks-fine-thin	cells-per-line=0.40	2	trace_id_3f2a1b09_inet_filter_input_packet / trace_id_7c88de41_inet_filter_input
-exo-nmap-grepable	needs-review	ragged-rows;duplicate-column-names	6	Host / Host / Host / Host / Host / Host
+exo-nmap-grepable	needs-review	ragged-rows;duplicate-column-names;key-value-delimiter-in-cell	6	Host / Host / Host / Host / Host / Host
 exo-nmap-normal-scan	needs-review	unsplit-cells	1	n / A / total_entries
 exo-numactl-hardware-matrix	looks-fine	good	2	n / key / value / total_entries
 exo-nvidia-smi-topo-matrix	needs-review	untrimmed-cells;column-misalignment=0.31	7	n / GPU0 / GPU1 / GPU2 / GPU3 / NIC0 / CPU_Affinity / NUMA_Affinity / total_entr
 exo-openmetrics-exposition	looks-fine	strong	10	n / name / value / label_method / label_code / label_handler / label_quantile / 
-exo-openssl-asn1parse-deep	needs-review	unsplit-cells	1	n / A / total_entries
+exo-openssl-asn1parse-deep	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 exo-openssl-crl-v2	looks-fine	good	2	n / key / value / total_entries
 exo-openssl-dhparam-text	looks-fine	strong	4	n / A / B / C / D / total_entries
 exo-openssl-x509-text-full	looks-fine	good	2	n / key / value / total_entries
-exo-perf-report-tree	needs-review	unsplit-cells	1	n / A / total_entries
-exo-perf-script-samples	needs-review	unsplit-cells	2	n / key / value / total_entries
+exo-perf-report-tree	needs-review	unsplit-cells;lone-delimiter-column	1	n / A / total_entries
+exo-perf-script-samples	needs-review	unsplit-cells;key-value-delimiter-in-cell	2	n / key / value / total_entries
 exo-perf-stat-x-csv	looks-fine	strong	6	n / A / C / D / E / F / G / total_entries
 exo-pg-stat-activity-vertical	looks-fine	strong	11	n / datid / datname / pid / usename / application_name / client_addr / backend_s
 exo-pidstat-repeated	looks-fine	strong	7	n / Linux / 6_5_0-generic / (workstation) / 07/11/2026 / _x86_64_ / (48 / CPU) /
-exo-psql-explain-analyze-tree	looks-fine	good	2	n / QUERY / PLAN / total_entries
+exo-psql-explain-analyze-tree	needs-review	key-value-delimiter-in-cell	2	n / QUERY / PLAN / total_entries
 exo-psql-show-all	looks-fine	strong	3	n / name / description / setting / total_entries
 exo-rados-df-pools	looks-fine	strong	14	n / POOL_NAME / USED / OBJECTS / CLONES / COPIES / MISSING_ON_PRIMARY / UNFOUND 
 exo-rpm-qi-full	looks-fine	good	16	Name / Version / Release / Architecture / Install_Date / Group / Size / License 
@@ -766,7 +766,7 @@ exportfs-v	needs-review	untrimmed-cells	2	n / A / B / total_entries
 eza-color-long-git	looks-fine	strong	5	n / Permissions / Size / User / Modified / Name / total_entries
 eza-long	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entries
 fail2ban-client-status	needs-review	pipes-in-cells	1	n / A / total_entries
-fail2ban-jail-sshd	needs-review	pipes-in-cells;column-misalignment=0.33	5	n / Status / for / the / jail: / sshd / total_entries
+fail2ban-jail-sshd	needs-review	pipes-in-cells;lone-delimiter-column;column-misalignment=0.33	5	n / Status / for / the / jail: / sshd / total_entries
 fail2ban-status	needs-review	unsplit-cells;pipes-in-cells	2	n / key / value / total_entries
 faillock	looks-fine	strong	4	n / When / Type / Source / Valid / total_entries
 faillock-user	looks-fine	strong	4	n / When / Type / Source / Valid / total_entries
@@ -783,14 +783,14 @@ fastqc-summary	looks-fine	strong	3	n / A / B / C / total_entries
 fd-list	looks-fine	good	1	n / A / total_entries
 fdbcli-status	looks-fine-thin	cells-per-line=0.06	1	n / Server_time____________-_2026-07-10_18
 fdbcli-status-json	looks-fine	good	9	cluster.database_status.available / cluster.database_status.healthy / cluster.wo
-fdisk-l	needs-review	unsplit-cells	1	n / A / total_entries
+fdisk-l	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 feature-support-matrix	needs-review	column-misalignment=0.22	5	n / Format / Read / Write / Streaming / Compression / total_entries
 featurecounts-summary	looks-fine	strong	4	n / Status / sample_01_bam / sample_02_bam / sample_03_bam / total_entries
 feroxbuster-scan	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 ffmpeg-version	looks-fine	good	1	n / A / total_entries
 ffprobe-format	looks-fine	good	6	filename / nb_streams / format_name / duration / size / bit_rate
 ffprobe-streams	needs-review	duplicate-column-names	13	index / codec_name / codec_type / width / height / r_frame_rate / bit_rate / ind
-ffuf-summary	needs-review	unsplit-cells;separator-row-as-data	1	n / A / total_entries
+ffuf-summary	needs-review	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell	1	n / A / total_entries
 figlet-banner	needs-review	unsplit-cells;pipes-in-cells;separator-row-as-data	1	n / A / total_entries
 file	looks-fine	good	2	n / name / value / total_entries
 file-brief	looks-fine	good	2	field / value
@@ -811,13 +811,13 @@ fio-io-depths	looks-fine	good	8	n / name / 1 / 2 / 4 / 8 / 16 / 32 / 64 / total_
 fio-iops-log	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 fio-json-output	looks-fine	good	10	fio / timestamp / jobs.0.jobname / jobs.0.groupid / jobs.0.error / jobs.0.read.i
 fio-latency-dist	looks-fine	good	8	n / name / 50 / 100 / 250 / 500 / 750 / 1000 / 2000 / total_entries
-fio-latency-pct	needs-review	pipes-in-cells	3	n / clat / percentiles / (usec): / total_entries
+fio-latency-pct	needs-review	pipes-in-cells;lone-delimiter-column	3	n / clat / percentiles / (usec): / total_entries
 fio-latency-scientific	looks-fine	strong	3	n / percentile / read_lat_ns / write_lat_ns / total_entries
-fio-multijob	looks-fine	strong	5	n / read / write / job1 / job2 / job3
+fio-multijob	needs-review	key-value-delimiter-in-cell	5	n / read / write / job1 / job2 / job3
 fio-normal-full	looks-fine	good	2	n / key / value / total_entries
-fio-run	needs-review	duplicate-column-names	8	randread / Jobs / randread / Starting_1_process.read / Starting_1_process.slat_(
+fio-run	needs-review	duplicate-column-names;key-value-delimiter-in-cell	8	randread / Jobs / randread / Starting_1_process.read / Starting_1_process.slat_(
 fio-run-status	looks-fine	strong	4	n / name / bw / io / run / total_entries
-fio-status-line	looks-fine	good	2	field / value
+fio-status-line	needs-review	key-value-delimiter-in-cell	2	field / value
 fio-terse-v3	looks-fine	good	45	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / Q / R / S / 
 fio-terse-v5	looks-fine	good	38	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / Q / R / S / 
 firecracker-version	looks-fine	good	2	n / A / B / total_entries
@@ -866,8 +866,8 @@ freshclam-update	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_e
 frr-show-bgp-summary	looks-fine	strong	7	n / Neighbor / V / AS / MsgRcvd / MsgSent / Up/Down / State/PfxRcd / total_entri
 frr-show-ospf-neighbor	looks-fine	strong	6	n / Neighbor / ID / Pri / State / Up / Time / total_entries
 fuser-v	needs-review	column-misalignment=0.22	4	n / USER / PID / ACCESS / COMMAND / total_entries
-fwupdmgr-get-devices	needs-review	unsplit-cells	1	n / A / total_entries
-fwupdmgr-get-updates	needs-review	unsplit-cells	1	n / A / total_entries
+fwupdmgr-get-devices	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+fwupdmgr-get-updates	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 fx-summary	looks-fine	good	3	count / page / hasMore
 fzf-version	looks-fine	good	2	n / A / B / total_entries
 gallery-dl-log	looks-fine	good	2	n / timestamp / message / total_entries
@@ -965,7 +965,7 @@ git-ls-files	looks-fine	good	1	n / A / total_entries
 git-ls-files-stage	looks-fine	good	2	n / A / B / total_entries
 git-ls-tree	looks-fine	good	2	n / A / B / total_entries
 git-notes-list	needs-review	column-misalignment=0.67	2	n / A / B / total_entries
-git-reflog	looks-fine	good	1	n / A / total_entries
+git-reflog	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 git-remote-show-origin	looks-fine	good	2	n / key / value / total_entries
 git-remote-v	looks-fine	strong	3	n / remote / url / direction / total_entries
 git-rev-list-count	looks-fine	good	1	n / A / total_entries
@@ -974,7 +974,7 @@ git-shortlog-email	needs-review	untrimmed-cells	2	n / A / B / total_entries
 git-shortlog-summary	looks-fine	strong	3	n / A / B / C / total_entries
 git-show-ref	looks-fine	good	2	n / A / B / total_entries
 git-show-stat	looks-fine-thin	cells-per-line=0.22	2	n / Author / Date
-git-stash-list	looks-fine	good	2	n / name / value / total_entries
+git-stash-list	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_entries
 git-stash-show-stat	needs-review	separator-row-as-data	6	n / file / changes / graph / files_changed / insertions / deletions / total_entr
 git-status	looks-fine	good	2	n / A / B / total_entries
 git-status-short-color	looks-fine	good	2	n / A / B / total_entries
@@ -989,7 +989,7 @@ gitconfig-multiline	looks-fine	strong	3	n / section / key / value / total_entrie
 gitlab-runner-list	looks-fine	strong	4	n / A / B / C / D / total_entries
 gitleaks-detect	looks-fine	good	5	Finding / Secret / RuleID / File / Line
 gitleaks-protect	looks-fine	strong	4	n / Finding / Rule / Secret / File / total_entries
-gitmodules-submodules	looks-fine	strong	3	n / A / B / C / total_entries
+gitmodules-submodules	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 gitui-status	looks-fine	strong	3	n / On / branch / main / total_entries
 glab-ci-status	looks-fine	good	2	field / value
 glances	needs-review	unsplit-cells	5	web-prod-03_(Linux_5.15.0-91-generic_64bit)____________________Uptime / LOAD_[__
@@ -1027,10 +1027,10 @@ go-tool-nm	looks-fine	strong	3	n / A / B / C / total_entries
 go-version-full	looks-fine	good	4	n / A / B / C / D / total_entries
 go-version-m	looks-fine	strong	3	n / A / B / C / total_entries
 go-vet-summary	needs-review	untrimmed-cells	4	n / A / B / C / D / total_entries
-go-work-sync	needs-review	duplicate-column-names	5	go / go / go / go / go
+go-work-sync	needs-review	duplicate-column-names;key-value-delimiter-in-cell	5	go / go / go / go / go
 go-ycsb-run	looks-fine	good	1	n / A / total_entries
 goaccess-summary	looks-fine	strong	3	n / A / B / C / total_entries
-gobuster-dir	looks-fine	good	2	n / A / B / total_entries
+gobuster-dir	needs-review	key-value-delimiter-in-cell	2	n / A / B / total_entries
 gobuster-dns	looks-fine	good	2	n / A / B / total_entries
 gobuster-vhost	looks-fine	strong	3	n / FOUND / STATUS / SIZE / total_entries
 goenv-versions	looks-fine	strong	5	n / A / B / C / D / E / total_entries
@@ -1039,11 +1039,11 @@ goose-report	looks-fine	strong	6	n / Name / # / reqs / fails / req/s / fail/s / 
 goose-status	looks-fine	good	2	n / applied_at / migration / total_entries
 goreleaser-check	needs-review	unsplit-cells	1	n / A / total_entries
 gotop-summary	looks-fine	strong	3	n / CPU / [|||||||| / 44%] / total_entries
-gpg-card-edit	looks-fine	good	1	n / A / total_entries
-gpg-card-status	looks-fine	good	1	n / A / total_entries
+gpg-card-edit	looks-fine	good	2	n / key / value / total_entries
+gpg-card-status	looks-fine	good	2	n / key / value / total_entries
 gpg-list-keys	needs-review	unsplit-cells	1	n / /home/alice/_gnupg/pubring_kbx / total_entries
 gpg-list-keys-uid-commas	looks-fine	good	1	n / A / total_entries
-gpg-list-packets	looks-fine	good	1	n / A / total_entries
+gpg-list-packets	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 gpg-list-secret-keys	needs-review	unsplit-cells	1	n / /home/user/_gnupg/pubring_kbx / total_entries
 gping-heatmap	looks-fine	strong	4	n / A / B / C / D / total_entries
 gping-summary	looks-fine	strong	5	n / example.com__________last / avg / min / max / 1.1.1.1______________last / to
@@ -1066,7 +1066,7 @@ grafana-cli-plugins	looks-fine	good	2	n / id / version / total_entries
 grafana-cli-plugins-ls	looks-fine	good	2	n / id / version / total_entries
 grafana-cloud-stack	looks-fine	good	4	Stack / Prometheus / Loki / Tempo
 grafana-version	looks-fine	good	6	n / A / B / C / D / E / F / total_entries
-grep-color-nmatch	needs-review	unsplit-cells	1	n / A / total_entries
+grep-color-nmatch	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 gron-output	looks-fine	good	5	json / json.id / json.name / json.tags / json.tags[0]
 gron-ungron	looks-fine	good	2	id / tags.0
 groups	looks-fine	good	2	field / value
@@ -1084,9 +1084,9 @@ gum-format-preview	looks-fine	good	1	n / A / total_entries
 gum-table-box	looks-fine	strong	3	n / BRANCH / AUTHOR / AHEAD / total_entries
 gum-table-selected	looks-fine	strong	3	n / POD / NAMESPACE / RESTARTS / total_entries
 gvisor-version	looks-fine	good	2	field / value
-h2load-run	needs-review	unsplit-cells	3	n / finished_in_10_02s / 12048_44_req/s / 18_44MB/s / total_entries
+h2load-run	needs-review	unsplit-cells;key-value-delimiter-in-cell	3	n / finished_in_10_02s / 12048_44_req/s / 18_44MB/s / total_entries
 h5dump-header	looks-fine	good	1	n / A / total_entries
-hadolint-output	looks-fine	good	1	n / A / total_entries
+hadolint-output	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 hammerdb-tpcc	looks-fine	good	1	n / A / total_entries
 haproxy-show-backend	looks-fine	good	2	n / A / B / total_entries
 haproxy-show-info	looks-fine	good	8	Name / Version / Nbthread / Process_num / Uptime_sec / CurrConns / CumConns / Ma
@@ -1100,7 +1100,7 @@ harlequin-query-grid	looks-fine	strong	3	n / invoice_no / amount_due / status / 
 harlequin-results-box	looks-fine	strong	3	n / product_id / category / in_stock / total_entries
 harlequin-schema-box	looks-fine	strong	3	n / table / column / type / total_entries
 hashcat-benchmark	looks-fine	good	2	n / Speed.#1......... / Hashmode
-hashcat-status	looks-fine	good	1	n / A / total_entries
+hashcat-status	looks-fine	good	2	n / key / value / total_entries
 haskell-stack-version	looks-fine	good	7	n / A / B / C / D / E / F / G / total_entries
 hatch-dep-show	looks-fine	good	2	n / Name / Versions / total_entries
 hatch-env-show	looks-fine	strong	3	n / Name / Type / Dependencies / total_entries
@@ -1109,7 +1109,7 @@ hcloud-load-balancer-list	looks-fine	strong	8	n / ID / NAME / HEALTH / IPV4 / IP
 hcloud-network-list	looks-fine	strong	5	n / ID / NAME / IP_RANGE / SERVERS / AGE / total_entries
 hcloud-server-list	looks-fine	strong	6	n / ID / NAME / STATUS / IPV4 / TYPE / LOCATION / total_entries
 hcloud-volume-list	looks-fine	strong	6	n / ID / NAME / SIZE / SERVER / LOCATION / AGE / total_entries
-hddtemp-multi-disk	looks-fine	good	2	n / name / value / total_entries
+hddtemp-multi-disk	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_entries
 hdfs-dfs-df	looks-fine	good	5	n / Filesystem / Size / Used / Available / Use% / total_entries
 hdfs-dfsadmin-report	looks-fine	good	5	Configured_Capacity / DFS_Used / DFS_Remaining / Name / Decommission_Status
 hdparm-C	looks-fine	good	2	n / key / value / total_entries
@@ -1186,7 +1186,7 @@ i2cdetect-output	looks-fine	strong	17	n / A / B / C / D / E / F / G / H / I / J 
 i2cget-read	looks-fine	good	1	n / A / total_entries
 i7z-summary	needs-review	unsplit-cells	1	n / A / total_entries
 ib-read-lat	looks-fine	strong	3	n / Connection_type_:_RC / Using_SRQ / :_OFF / total_entries
-ib-write-bw	looks-fine	strong	3	n / RDMA_Write / BW / Test / total_entries
+ib-write-bw	needs-review	lone-delimiter-column	3	n / RDMA_Write / BW / Test / total_entries
 ibmcloud-resource-service-instances	looks-fine	strong	4	n / Name / Location / State / Service_Name / total_entries
 icalendar-vevent-schedule	looks-fine	strong	7	n / BEGIN / UID / SUMMARY / DTSTART / DTEND / LOCATION / END
 icalendar-vtodo-tasks	looks-fine	strong	7	n / BEGIN / UID / SUMMARY / DUE / STATUS / PRIORITY / END
@@ -1210,9 +1210,9 @@ influxd-inspect	looks-fine	strong	9	n / Files / Time_Range / Duration / Series /
 influxdb-show	looks-fine	good	1	n / name / total_entries
 ini-database-profiles	looks-fine	strong	3	n / section / key / value / total_entries
 ini-equals-in-value	looks-fine	strong	3	n / section / key / value / total_entries
-intel-gpu-top	needs-review	pipes-in-cells	4	n / ENGINE / BUSY / MI_SEMA / MI_WAIT / total_entries
-inxi-full	looks-fine	good	4	CPU / Graphics / Memory / Drives
-ioping-run	looks-fine	good	1	n / A / total_entries
+intel-gpu-top	needs-review	pipes-in-cells;lone-delimiter-column	4	n / ENGINE / BUSY / MI_SEMA / MI_WAIT / total_entries
+inxi-full	needs-review	key-value-delimiter-in-cell	4	CPU / Graphics / Memory / Drives
+ioping-run	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 iostat	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wrtn_s / kb_read / kb_wrtn / total_entries
 iostat-cx	looks-fine-thin	cells-per-line=0.14	1	n / avg-cpu
 iostat-d	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wrtn_s / kb_read / kb_wrtn / total_entries
@@ -1224,16 +1224,16 @@ iotop	looks-fine	strong	14	n / read / write / TID / PRIO / USER / DISK / READ / 
 iotop-batch	needs-review	column-misalignment=0.33	7	n / TID / PRIO / USER / DISK / READ / WRITE / COMMAND / total_entries
 iozone-run	looks-fine	strong	6	n / Iozone: / Performance / Test / of / File / I/O / total_entries
 ip-6-route	needs-review	column-misalignment=0.20	9	n / A / B / C / D / E / F / G / H / I / total_entries
-ip-addr	looks-fine	good	4	1 / link/loopback_00 / 2 / link/ether_52
+ip-addr	needs-review	key-value-delimiter-in-cell	4	1 / link/loopback_00 / 2 / link/ether_52
 ip-addr-brief	needs-review	unsplit-cells	2	n / name / value / total_entries
-ip-addr-mixed-scopes	looks-fine	good	5	1 / inet6 / 2 / inet6_fe80 / 3
+ip-addr-mixed-scopes	needs-review	key-value-delimiter-in-cell	5	1 / inet6 / 2 / inet6_fe80 / 3
 ip-addrlabel-list	looks-fine	strong	4	n / A / B / C / D / total_entries
 ip-br-addr	needs-review	unsplit-cells	1	n / A / total_entries
-ip-link	looks-fine	good	4	1 / link/loopback_00 / 2 / link/ether_52
+ip-link	needs-review	key-value-delimiter-in-cell	4	1 / link/loopback_00 / 2 / link/ether_52
 ip-link-mac	looks-fine	strong	5	n / idx / iface / state / mac / mtu / total_entries
 ip-maddr	needs-review	unsplit-cells	2	n / A / B / total_entries
 ip-mroute	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
-ip-mroute-show	needs-review	unsplit-cells	1	n / A / total_entries
+ip-mroute-show	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 ip-neigh	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 ip-neigh-show	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 ip-neigh-sparse-dev	looks-fine	good	1	n / A / total_entries
@@ -1263,7 +1263,7 @@ iperf3	needs-review	unsplit-cells	2	n / timestamp / message / total_entries
 iperf3-json	looks-fine	good	9	start.connected.0.socket / start.connected.0.local_host / start.connected.0.remo
 iperf3-server-report	looks-fine	strong	3	n / INTERVAL / TRANSFER / BITRATE / total_entries
 iperf3-udp	needs-review	unsplit-cells	2	n / timestamp / message / total_entries
-ipmitool-chassis	looks-fine	strong	4	n / A / B / C / D / total_entries
+ipmitool-chassis	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 ipmitool-sdr	looks-fine	strong	3	n / A / B / C / total_entries
 ipmitool-sensor	looks-fine	strong	10	n / name / reading / unit / status / lower_nr / lower_crit / lower_noncrit / upp
 ipsec-statusall	looks-fine	good	2	Security_Associations_(2_up,_0_connecting).vpn-eu[1] / Security_Associations_(2_
@@ -1286,7 +1286,7 @@ jack-lsp	looks-fine	good	1	n / A / total_entries
 jaeger-operations	looks-fine	good	2	n / name / spanKind / total_entries
 jaeger-services	looks-fine	strong	3	n / SERVICE / OPERATIONS / SPANS/MIN / total_entries
 jaq-output	looks-fine	good	1	n / A / total_entries
-java-showsettings	looks-fine	strong	4	n / A / B / C / D / total_entries
+java-showsettings	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 jcmd-heap-info	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 jekyll-build	looks-fine	good	3	Configuration_file / Source / Destination
 jest-summary	looks-fine	good	3	Tests / Snapshots / Time
@@ -1302,7 +1302,7 @@ journalctl-boot	looks-fine	strong	3	n / IDX_BOOT_ID / FIRST_ENTRY / LAST_ENTRY /
 journalctl-boot-gaps	looks-fine	strong	5	n / timestamp / hostname / process / message / pid
 journalctl-cmdline-field	looks-fine	good	4	CMDLINE / COMM / PID / MESSAGE
 journalctl-disk-usage	looks-fine	good	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
-journalctl-json-message	looks-fine	strong	3	n / __REALTIME_TIMESTAMP / MESSAGE / _PID
+journalctl-json-message	needs-review	key-value-delimiter-in-cell	3	n / __REALTIME_TIMESTAMP / MESSAGE / _PID
 journalctl-k	looks-fine	strong	4	n / timestamp / hostname / process / message
 journalctl-list-boots	looks-fine	strong	3	n / IDX_BOOT_ID / FIRST_ENTRY / LAST_ENTRY / total_entries
 journalctl-multiline	looks-fine	strong	5	n / timestamp / hostname / process / pid / message
@@ -1324,8 +1324,8 @@ just-list	needs-review	unsplit-cells	1	n / A / total_entries
 just-version	looks-fine	good	2	n / A / B / total_entries
 jx-activities	needs-review	unsplit-cells	1	n / A / total_entries
 k3s-kubectl-get-nodes	looks-fine	strong	5	n / NAME / STATUS / ROLES / AGE / VERSION / total_entries
-k6-summary	looks-fine	strong	3	n / A / B / C / total_entries
-k9s-context	needs-review	pipes-in-cells	2	Context / Namespace
+k6-summary	needs-review	unsplit-cells	2	n / key / value / total_entries
+k9s-context	needs-review	pipes-in-cells;key-value-delimiter-in-cell	2	Context / Namespace
 k9s-pods-line-color	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 k9s-version	looks-fine	good	3	Version / Commit / Date
 kafka-connect-status	needs-review	column-misalignment=0.50	5	n / name / connector.state / connector.worker_id / tasks.id / tasks.state / tota
@@ -1350,14 +1350,14 @@ kn-revision-list	looks-fine	strong	9	n / NAME / SERVICE / TRAFFIC / GENERATION /
 kn-service-list	looks-fine	strong	7	n / NAME / URL / LATEST / AGE / CONDITIONS / READY / REASON / total_entries
 knife-node-list	looks-fine	good	1	n / A / total_entries
 knotc-conf-list	looks-fine	good	1	n / A / total_entries
-knotc-status	needs-review	pipes-in-cells	2	n / A / B / total_entries
-knotc-zone-status	needs-review	pipes-in-cells	2	n / timestamp / message / total_entries
+knotc-status	needs-review	pipes-in-cells;key-value-delimiter-in-cell	2	n / A / B / total_entries
+knotc-zone-status	needs-review	pipes-in-cells;key-value-delimiter-in-cell	2	n / timestamp / message / total_entries
 kopia-policy-list	looks-fine	good	2	n / ID / POLICY_PATH / total_entries
 kopia-repository-status	looks-fine	good	2	n / key / value / total_entries
 kopia-snapshot-list	looks-fine	good	3	deploy@server01 / 2026-07-08_01 / 2026-07-09_01
 kotlin-version	looks-fine	good	3	n / A / B / C / total_entries
 kotlinc-version	looks-fine	good	5	n / A / B / C / D / E / total_entries
-kpt-pkg-tree	needs-review	column-misalignment=0.17	3	n / depth / parent / name / total_entries
+kpt-pkg-tree	needs-review	key-value-delimiter-in-cell;column-misalignment=0.17	3	n / depth / parent / name / total_entries
 kube-bench-summary	looks-fine	good	1	n / A / total_entries
 kube-capacity-pods	looks-fine	strong	7	n / NODE / NAMESPACE / POD / CPU_REQUESTS / CPU_LIMITS / MEMORY_REQUESTS / MEMOR
 kubeadm-certs-check-expiration	looks-fine	strong	5	n / CERTIFICATE / EXPIRES / RESIDUAL_TIME / EXTERNALLY_MANAGED / CERTIFICATE_AUT
@@ -1412,7 +1412,7 @@ kubectl-get-pods-wide	looks-fine	strong	9	n / NAME / READY / STATUS / RESTARTS /
 kubectl-get-pv	looks-fine	strong	8	n / NAME / CAPACITY / ACCESS / MODES / RECLAIM / POLICY / STATUS / CLAIM / total
 kubectl-get-pvc	looks-fine	strong	7	n / NAME / STATUS / VOLUME / CAPACITY / ACCESS_MODES / STORAGECLASS / AGE / tota
 kubectl-get-replicaset	looks-fine	strong	5	n / NAME / DESIRED / CURRENT / READY / AGE / total_entries
-kubectl-get-resourcequota	needs-review	column-misalignment=0.25	4	n / NAME / AGE / REQUEST / LIMIT / total_entries
+kubectl-get-resourcequota	needs-review	key-value-delimiter-in-cell;column-misalignment=0.25	4	n / NAME / AGE / REQUEST / LIMIT / total_entries
 kubectl-get-role	looks-fine	good	2	n / NAME / CREATED_AT / total_entries
 kubectl-get-secret	looks-fine	strong	4	n / NAME / TYPE / DATA / AGE / total_entries
 kubectl-get-serviceaccount	looks-fine	strong	3	n / NAME / SECRETS / AGE / total_entries
@@ -1538,7 +1538,7 @@ lshw-class-storage	looks-fine	good	10	description / product / vendor / physical_
 lshw-cpu	looks-fine	good	9	description / product / vendor / physical_id / bus_info / version / size / capac
 lshw-disk	looks-fine	good	10	description / product / physical_id / bus_info / logical_name / version / serial
 lshw-memory	looks-fine	strong	10	n / name / description / vendor / physical / version / date / size / capacity / 
-lshw-network	looks-fine	good	1	n / A / total_entries
+lshw-network	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 lshw-short	looks-fine	strong	5	n / Class / Description / H/W / path / Device / total_entries
 lsinitramfs	looks-fine	good	1	n / A / total_entries
 lslocks	looks-fine	strong	9	n / COMMAND / PID / TYPE / SIZE / MODE / M / START / END / PATH / total_entries
@@ -1565,8 +1565,8 @@ lstopo-no-graphics	looks-fine	good	1	n / A / total_entries
 lstopo-text	looks-fine	good	1	n / A / total_entries
 lsusb	looks-fine	strong	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
 lsusb-s	looks-fine-thin	cells-per-line=0.22	2	field / value
-lsusb-t	needs-review	pipes-in-cells	1	n / A / total_entries
-lsusb-tree	needs-review	unsplit-cells;pipes-in-cells	1	n / A / total_entries
+lsusb-t	needs-review	pipes-in-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+lsusb-tree	needs-review	unsplit-cells;pipes-in-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 lsusb-v	looks-fine-thin	cells-per-line=0.12	2	field / value
 lua-v	looks-fine	good	7	n / A / B / C / D / E / F / G / total_entries
 luarocks-list	looks-fine	good	2	n / Installed / rocks: / total_entries
@@ -1619,13 +1619,13 @@ mdadm-detail-full	looks-fine	good	11	n / Version / Creation_Time / Raid_Level / 
 mdadm-detail-scan	looks-fine	strong	4	n / metadata / name / UUID / spares / total_entries
 mdadm-examine	looks-fine	good	21	n / Magic / Version / Feature_Map / Array_UUID / Name / Creation_Time / Raid_Lev
 mdadm-examine-scan	looks-fine	strong	4	n / A / B / C / D / total_entries
-mdadm-query	needs-review	unsplit-cells	1	n / A / total_entries
+mdadm-query	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 mdadm-resync-progress	looks-fine-thin	cells-per-line=0.33	2	md0 / Personalities
 mdcat-github-table	looks-fine	strong	4	n / pr / author / files / status / total_entries
 mdcat-table-unicode	looks-fine	strong	4	n / metric / p50 / p95 / p99 / total_entries
 media-star-ratings	looks-fine	strong	3	n / Title / Year / Rating / total_entries
 mediainfo-summary	looks-fine	strong	7	n / Complete_name / Format / File_size / Duration / Overall_bit_rate / Width / H
-megacli-pdlist	looks-fine	good	1	n / A / total_entries
+megacli-pdlist	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 meilisearch-stats	looks-fine	good	3	index / numberOfDocuments / isIndexing
 memcached-stats	looks-fine	good	2	n / key / value / total_entries
 memcached-stats-items	looks-fine	good	2	n / key / value / total_entries
@@ -1662,10 +1662,10 @@ mlr-stats	looks-fine	strong	6	n / field / count / sum / mean / min / max / total
 modal-app-list	looks-fine	strong	5	n / App / ID / Name / State / Created / total_entries
 modbus-read	looks-fine	good	2	n / A / B / total_entries
 modprobe-c-summary	looks-fine	strong	3	n / alias / symbol:usb_register_driver / usbcore / total_entries
-mongo-serverstatus	looks-fine	strong	3	n / A / B / C / total_entries
+mongo-serverstatus	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 mongod-version	needs-review	duplicate-column-names	2	Build / Build
 mongodump-log	looks-fine	strong	5	n / A / B / C / D / E / total_entries
-mongoperf-run	looks-fine	good	1	n / A / total_entries
+mongoperf-run	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 mongosh-coll-indexes	looks-fine	strong	3	n / v / name / unique / total_entries
 mongosh-currentop	looks-fine	good	5	opid / active / secs_running / op / ns
 mongosh-db-currentop	needs-review	duplicate-column-names	16	inprog / type / opid / active / secs_running / op / ns / planSummary / waitingFo
@@ -1679,8 +1679,8 @@ mosquitto-sub-log	looks-fine	good	2	n / name / value / total_entries
 mount	looks-fine	strong	4	n / device / mount_point / fstype / options / total_entries
 mount-bind-list	looks-fine	strong	4	n / device / mount_point / fstype / options / total_entries
 mount-variants-ragged	looks-fine	strong	4	n / device / mount_point / fstype / options / total_entries
-mpd-status	needs-review	unsplit-cells	3	volume / [playing]_#4/12_1 / bitrate
-mpirun-map	needs-review	ragged-rows;duplicate-column-names	2	Data_for_node / Data_for_node
+mpd-status	needs-review	unsplit-cells;key-value-delimiter-in-cell	3	volume / [playing]_#4/12_1 / bitrate
+mpirun-map	needs-review	ragged-rows;duplicate-column-names;key-value-delimiter-in-cell	2	Data_for_node / Data_for_node
 mpstat	looks-fine	strong	7	n / Linux / 6_1_0-18-amd64 / (host) / 07/06/2026 / _x86_64_ / (8 / CPU) / total_
 mpstat-a	looks-fine	strong	7	n / Linux / 5_15_0-91-generic / (host01) / 07/07/2026 / _x86_64_ / (8 / CPU) / t
 mpstat-all	looks-fine	strong	7	n / Linux / 6_5_0-27-generic / (dbhost01) / 07/07/2026 / _x86_64_ / (8 / CPU) / 
@@ -1733,13 +1733,13 @@ mysqldump-status	needs-review	unsplit-cells	1	n / A / total_entries
 mysqlslap-run	looks-fine	good	5	Benchmark.Average_number_of_seconds_to_run_all_queries / Benchmark.Minimum_numbe
 naabu-scan	looks-fine	good	2	n / HOST / PORT / total_entries
 named-checkconf	looks-fine	good	1	n / A / total_entries
-nanobench-run	needs-review	pipes-in-cells	6	n / | / ns/op / op/s / err% / total / benchmark / total_entries
+nanobench-run	needs-review	pipes-in-cells;lone-delimiter-column	6	n / | / ns/op / op/s / err% / total / benchmark / total_entries
 nats-server-varz	looks-fine	good	6	server_id / version / connections / in_msgs / out_msgs / slow_consumers
 nats-stream-ls	looks-fine	good	1	n / A / total_entries
 nats-version	looks-fine	good	2	field / value
 navi-list	looks-fine	good	1	n / A / total_entries
 navi-widget	looks-fine	good	1	n / A / total_entries
-nbench-run	needs-review	unsplit-cells	2	n / key / value / total_entries
+nbench-run	needs-review	unsplit-cells;key-value-delimiter-in-cell	2	n / key / value / total_entries
 ncat-broker-log	needs-review	duplicate-column-names	4	Ncat / Ncat / Ncat / Ncat
 ncdu-bar-columns	needs-review	separator-row-as-data	5	n / A / B / C / D / E / total_entries
 ncdu-export	looks-fine	strong	5	n / A / B / C / D / E / total_entries
@@ -1797,14 +1797,14 @@ nft-monitor-trace	looks-fine	good	3	trace_id_5f2a_inet_filter_input_packet / tra
 nftables-ruleset-counter	looks-fine	good	1	n / A / total_entries
 nginx-T-servers	looks-fine-thin	cells-per-line=0.25	2	field / value
 nginx-access-log-quoted	looks-fine	strong	9	n / A / B / C / D / E / F / G / H / I / total_entries
-nginx-stub-status	looks-fine	good	2	Active_connections / Reading
+nginx-stub-status	needs-review	key-value-delimiter-in-cell	2	Active_connections / Reading
 nginx-t	needs-review	duplicate-column-names	4	nginx / nginx / nginx / nginx
 nginx-v-full	looks-fine	strong	4	n / A / B / C / D / total_entries
 nginx-vhost-blocks	looks-fine	strong	5	n / server_name / listen / root / index / access_log
 ngrep-match	looks-fine	good	4	T_10.0.1.4 / GET_/api/health_HTTP/1.1..Host / T_10.0.1.24 / HTTP/1.1_200_OK..Con
 nicstat	looks-fine	strong	10	n / Time / Int / rKB/s / wKB/s / rPk/s / wPk/s / rAvs / wAvs / %Util / Sat / tot
 nicstat-summary	needs-review	pipes-in-cells	3	n / nicstat / -S / summary / total_entries
-nikto-scan	looks-fine	good	1	n / A / total_entries
+nikto-scan	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 nim-version	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 nimble-dump	looks-fine	good	7	name / version / author / desc / license / srcDir / requires
 nimble-list-installed	looks-fine	good	2	n / A / B / total_entries
@@ -1822,7 +1822,7 @@ nix-why-depends	looks-fine-thin	cells-per-line=0.44	4	n / ..-firefox-108.0.1.└
 nload-bars	needs-review	pipes-in-cells	2	n / Device / eth0 / total_entries
 nm	looks-fine	strong	3	n / A / B / C / total_entries
 nmap	needs-review	unsplit-cells	1	n / A / total_entries
-nmap-sn	looks-fine	good	1	n / A / total_entries
+nmap-sn	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 nmap-vuln-script	looks-fine	strong	4	n / PORT / STATE / SERVICE / SCRIPT-RESULT / total_entries
 nmap_allports	needs-review	unsplit-cells	1	n / A / total_entries
 nmap_os	looks-fine-thin	cells-per-line=0.43	6	Not_shown / Device_type / Running / OS_CPE / OS_details / Network_Distance
@@ -1830,7 +1830,7 @@ nmap_sv	looks-fine	strong	4	n / PORT / STATE / SERVICE / VERSION / total_entries
 nmcli	looks-fine	strong	4	n / DEVICE / TYPE / STATE / CONNECTION / total_entries
 nmcli-connection	looks-fine	strong	4	n / NAME / UUID / TYPE / DEVICE / total_entries
 nmcli-connection-show	looks-fine	good	2	n / A / B / total_entries
-nmcli-device-show	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
+nmcli-device-show	needs-review	lone-delimiter-column	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 nmcli-device-status	looks-fine	strong	4	n / DEVICE / TYPE / STATE / CONNECTION / total_entries
 nmcli-device-status-sparse	looks-fine	strong	4	n / DEVICE / TYPE / STATE / CONNECTION / total_entries
 nmon	looks-fine	strong	3	n / AAA / progname / nmon / total_entries
@@ -1853,10 +1853,10 @@ nomad-status	looks-fine	strong	5	n / ID / Type / Priority / Status / Submit_Date
 nomad-version	looks-fine	good	2	n / A / B / total_entries
 npm-audit-color-table	looks-fine	strong	4	n / Severity / Title / Package / Fixed / total_entries
 npm-audit-summary	looks-fine-thin	cells-per-line=0.17	1	n / Severity
-npm-ci-summary	looks-fine	good	1	n / A / total_entries
+npm-ci-summary	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 npm-dedupe	looks-fine	strong	3	n / package / before / after / total_entries
 npm-fund	needs-review	column-misalignment=0.40	3	n / depth / parent / name / total_entries
-npm-install-progress	looks-fine	good	2	n / timestamp / message / total_entries
+npm-install-progress	needs-review	key-value-delimiter-in-cell	2	n / timestamp / message / total_entries
 npm-ls	looks-fine	strong	3	n / depth / parent / name / total_entries
 npm-ls-color	looks-fine	strong	3	n / depth / parent / name / total_entries
 npm-ls-deep	needs-review	column-misalignment=0.29	3	n / depth / parent / name / total_entries
@@ -1869,7 +1869,7 @@ npm-outdated-sparse	looks-fine	strong	6	n / Package / Current / Wanted / Latest 
 npm-version	looks-fine	good	1	n / A / total_entries
 npm-view	looks-fine	good	14	name / description / dist-tags.latest / version / homepage / license / maintaine
 nslookup	needs-review	duplicate-column-names	4	Server / Address / Name / Address
-nslookup-soa	looks-fine	strong	4	n / A / B / C / D / total_entries
+nslookup-soa	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 nslookup_mx	looks-fine	good	2	n / A / B / total_entries
 nst-ansible-vars-yaml	needs-review	duplicate-column-names	10	nginx_version / nginx_worker_processes / nginx_upstreams.0 / nginx_upstreams._.s
 nst-benchmark-report-footnotes	looks-fine	strong	3	n / Tool / Ratio / Speed / total_entries
@@ -1888,7 +1888,7 @@ nst-du-by-category-subtotal	looks-fine	strong	3	n / group / A / B / total_entrie
 nst-du-tree-sizes-dates	looks-fine	strong	3	n / Directory / listing / (size, / total_entries
 nst-ethtool-queue-stats	looks-fine	strong	4	n / name / group / rx_packets / tx_packets / total_entries
 nst-firewall-zones-blocks	looks-fine	strong	5	n / name / interfaces / services / ports / masquerade / total_entries
-nst-gpg-packet-dump	looks-fine	good	1	n / A / total_entries
+nst-gpg-packet-dump	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 nst-hdparm-nested-sections	looks-fine	good	2	n / key / value / total_entries
 nst-ini-duplicate-keys	looks-fine	strong	3	n / section / key / value / total_entries
 nst-iostat-multisection	looks-fine-thin	cells-per-line=0.18	1	n / avg-cpu
@@ -1932,7 +1932,7 @@ nst-vagrant-status-blocks	needs-review	unsplit-cells	1	n / A / total_entries
 nst-vmstat-sections	looks-fine	strong	17	n / r / b / swpd / free / buff / cache / si / so / bi / bo / in / cs / us / sy /
 nst-x509-san-list-nested	looks-fine	good	2	n / key / value / total_entries
 nst-yaml-anchors-aliases	looks-fine	good	9	defaults / defaults.adapter / defaults.host / defaults.pool / development.databa
-nst-yaml-multidoc-blockscalar	needs-review	pipes-in-cells;duplicate-column-names	9	kind / metadata.name / data.motd / data.Maintenance_every_Sunday_02 / data.banne
+nst-yaml-multidoc-blockscalar	needs-review	pipes-in-cells;duplicate-column-names;lone-delimiter-column	9	kind / metadata.name / data.motd / data.Maintenance_every_Sunday_02 / data.banne
 nst-zpool-vdev-tree	looks-fine-thin	cells-per-line=0.25	3	n / pool / state / errors
 nstat	looks-fine	strong	3	n / A / B / C / total_entries
 nstat-az	looks-fine	strong	3	n / A / B / C / total_entries
@@ -1951,7 +1951,7 @@ num-binary-flags	looks-fine	strong	4	n / Pin / Direction / State / Mask / total_
 num-block-records-metrics	looks-fine	strong	4	n / host / cpu / mem / load
 num-box-table-numeric	looks-fine	strong	3	n / Symbol / Price / Change / total_entries
 num-cidr-routes	looks-fine	strong	4	n / Destination / Gateway / Metric / Flags / total_entries
-num-colons-scientific	looks-fine	strong	4	n / A / B / C / D / total_entries
+num-colons-scientific	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 num-csv-quoted-thousands	looks-fine	strong	4	n / id / name / amount / note / total_entries
 num-currency-signed	looks-fine	strong	3	n / Item / Price / Discount / total_entries
 num-decimal-comma-scsv	looks-fine	strong	4	n / sensor / value / unit / tolerance / total_entries
@@ -2017,7 +2017,7 @@ numfmt-grouping	looks-fine	strong	3	n / FIELD / RAW / GROUPED / total_entries
 numfmt-padding	looks-fine	strong	3	n / name / value / padded / total_entries
 numfmt-si-suffix	looks-fine	strong	3	n / metric / bytes / human / total_entries
 numpy-show-config	looks-fine	good	2	n / NOT / AVAILABLE / total_entries
-nuttcp-run	looks-fine	good	16	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / total_entrie
+nuttcp-run	needs-review	lone-delimiter-column	16	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / total_entrie
 nvcc-version	looks-fine	strong	6	n / nvcc: / NVIDIA / (R) / Cuda / compiler / driver / total_entries
 nvidia-container-cli-info	looks-fine	good	2	n / key / value / total_entries
 nvidia-smi	needs-review	unsplit-cells;separator-row-as-data	1	n / NVIDIA-SMI_5509007______________Driver_Version:_5509007______CUDA_Version:_1
@@ -2029,20 +2029,20 @@ nvidia-smi-pmon	looks-fine	strong	8	n / gpu / pid / type / sm / mem / enc / dec 
 nvidia-smi-pmon-full	looks-fine	strong	12	n / gpu / pid / type / sm / mem / enc / dec / jpg / ofa / fb / ccpm / command / 
 nvidia-smi-q	looks-fine	strong	24	n / Timestamp / Driver_Version / CUDA_Version / Attached_GPUs / GPU_00000000 / P
 nvidia-smi-topo	needs-review	column-misalignment=0.40	6	n / GPU0 / GPU1 / GPU2 / GPU3 / CPU / Affinity / total_entries
-nvim-checkhealth	looks-fine	good	4	nvim / .0 / .1 / .2
+nvim-checkhealth	needs-review	key-value-delimiter-in-cell	4	nvim / .0 / .1 / .2
 nvim-version	looks-fine	strong	3	n / A / B / C / total_entries
 nvitop-gauge	looks-fine	strong	5	n / GPU / Name / Temp / Power / Util / total_entries
 nvme-effects-log	looks-fine	strong	3	n / Admin / Command / Set / total_entries
 nvme-error-log	needs-review	duplicate-column-names	16	Error_Log_Entries_for_device / error_count / sqid / cmdid / status_field / phase
 nvme-fw-log	looks-fine	good	6	Firmware_Log_for_device / afi / frs1 / frs2 / frs3 / frs4
-nvme-id-ctrl	looks-fine	strong	3	n / NVME / Identify / Controller: / total_entries
-nvme-id-ns	looks-fine	strong	3	n / A / B / C / total_entries
+nvme-id-ctrl	needs-review	lone-delimiter-column	3	n / NVME / Identify / Controller: / total_entries
+nvme-id-ns	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 nvme-list	needs-review	unsplit-cells	7	n / Node / SN / Model / Namespace / Usage / Format / FW_Rev
 nvme-list-subsys	looks-fine-thin	cells-per-line=0.33	2	nvme-subsys0_-_NQN / nvme-subsys1_-_NQN
-nvme-ns-descs	looks-fine	strong	3	n / A / B / C / total_entries
-nvme-smart-log	looks-fine	strong	6	n / Smart / Log / for / NVME / device:nvme0 / namespace-id:ffffffff / total_entr
+nvme-ns-descs	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
+nvme-smart-log	needs-review	lone-delimiter-column	6	n / Smart / Log / for / NVME / device:nvme0 / namespace-id:ffffffff / total_entr
 nvme-smart-log-hex	looks-fine	good	2	n / field / value / total_entries
-nvme-smart-thresholds	needs-review	column-misalignment=0.17	6	n / A / B / C / D / E / F / total_entries
+nvme-smart-thresholds	needs-review	lone-delimiter-column;column-misalignment=0.17	6	n / A / B / C / D / E / F / total_entries
 nvtop-gpu-gauge	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 nvtop-processes	looks-fine	strong	6	n / PID / USER / GPU / MEM / GPU-MEM / COMMAND / total_entries
 nx-graph-summary	needs-review	unsplit-cells	2	Nx_read_the_output_from_the_cache_instead_of_running_the_command_for_4_out_of_6_
@@ -2068,14 +2068,14 @@ openocd-targets	looks-fine	good	5	n / TargetName / Type / Endian / TapName / Sta
 opensearch-cat-plugins	looks-fine	strong	3	n / A / B / C / total_entries
 opensearch-cat-shards	looks-fine	strong	8	n / index / shard / prirep / state / docs / store / ip / node / total_entries
 opensearch-cluster-health	looks-fine	good	7	cluster_name / status / number_of_nodes / active_primary_shards / active_shards 
-openssl-asn1parse	needs-review	unsplit-cells	1	n / A / total_entries
+openssl-asn1parse	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 openssl-ciphers	needs-review	column-misalignment=0.18	4	n / Kx / Au / Enc / Mac / total_entries
 openssl-crl-text	looks-fine	good	2	n / key / value / total_entries
 openssl-dgst	looks-fine	good	2	n / A / B / total_entries
 openssl-enc	looks-fine-thin	cells-per-line=0.33	2	bytes_in / bytes_out
 openssl-genpkey	looks-fine	good	4	Algorithm / Output / Key_size / Status
 openssl-pkcs12-info	looks-fine	good	4	MAC / MAC_length / PKCS7_Encrypted_data / Shrouded_Keybag
-openssl-pkey	looks-fine	strong	3	n / A / B / C / total_entries
+openssl-pkey	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 openssl-req	looks-fine	good	2	n / key / value / total_entries
 openssl-rsa	looks-fine	good	11	Private-Key / modulus.00 / modulus.e7 / publicExponent / privateExponent.3f / pr
 openssl-s-time	looks-fine	good	1	n / A / total_entries
@@ -2101,7 +2101,7 @@ otelcol-pipelines	looks-fine	strong	4	n / Pipeline / Receivers / Processors / Ex
 ouch-list	looks-fine	good	1	n / A / total_entries
 ovs-ofctl-dump-flows	looks-fine	good	7	n / cookie / duration / table / n_packets / n_bytes / priority / actions / total
 oxlint-summary	looks-fine	good	1	n / A / total_entries
-packer-inspect	looks-fine	strong	5	n / A / B / C / D / E / total_entries
+packer-inspect	needs-review	lone-delimiter-column	5	n / A / B / C / D / E / total_entries
 packer-v	looks-fine	good	2	n / A / B / total_entries
 packer-version	looks-fine	good	1	n / A / total_entries
 pacman-Fl	looks-fine	good	2	n / A / B / total_entries
@@ -2120,8 +2120,8 @@ pandoc-list-input-formats	looks-fine	good	1	n / A / total_entries
 pants-dependencies	looks-fine	good	3	n / src/python/acme/api / src/python/acme/core / src/python/acme/db
 parca-query	looks-fine	strong	5	n / name / labels / samples / value_sum / unit / total_entries
 parquet-tools-schema	looks-fine	strong	3	n / A / B / C / total_entries
-parted-l	needs-review	unsplit-cells	1	n / A / total_entries
-parted-print	needs-review	unsplit-cells	1	n / A / total_entries
+parted-l	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+parted-print	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 parted-print-all	looks-fine	good	4	n / Model / Disk_/dev/sda / Sector_size_(logical/physical) / Partition_Table
 passmark-cpu	looks-fine	good	2	n / key / value / total_entries
 passwd-shell-gecos-comma	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
@@ -2129,7 +2129,7 @@ passwd-status	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 patroni-list	looks-fine	strong	6	n / Member / Host / Role / State / TL / Lag_in_MB / total_entries
 patronictl-history	looks-fine	strong	5	n / TL / LSN / Reason / Timestamp / New_Leader / total_entries
 patronictl-list	looks-fine	strong	6	n / Member / Host / Role / State / TL / Lag_in_MB / total_entries
-pbsnodes-list	looks-fine	strong	3	n / A / B / C / total_entries
+pbsnodes-list	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 pcp-pmstat	looks-fine	strong	6	n / loadavg / memory / swap / io / system / cpu / total_entries
 pct-list	looks-fine	strong	3	n / VMID / Status / Lock / total_entries
 pdfinfo-output	looks-fine	good	2	n / key / value / total_entries
@@ -2142,7 +2142,7 @@ perf-bench-sched	looks-fine	good	1	n / A / total_entries
 perf-c2c	looks-fine	good	2	n / key / value / total_entries
 perf-list	needs-review	unsplit-cells	1	n / A / total_entries
 perf-report	looks-fine	strong	5	n / Overhead / Command / Shared / Object / Symbol / total_entries
-perf-sched	looks-fine	strong	8	n / Task / | / Runtime / ms / Switches / Avg / delay / Max / total_entries
+perf-sched	needs-review	lone-delimiter-column	8	n / Task / | / Runtime / ms / Switches / Avg / delay / Max / total_entries
 perf-sched-latency	looks-fine	strong	5	n / Task / Runtime_ms / Switches / Avg_delay_ms / Max_delay_ms / total_entries
 perf-stat	needs-review	unsplit-cells	1	n / A / total_entries
 perf-stat-bench	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
@@ -2150,7 +2150,7 @@ perf-stat-grouped	needs-review	unsplit-cells	1	n / A / total_entries
 perf-stat-scientific	looks-fine	strong	5	n / A / B / C / D / E / total_entries
 perf-top	looks-fine	strong	3	n / overhead / shared_object / symbol / total_entries
 perf-trace	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entries
-perftest-write-bw	needs-review	unsplit-cells;separator-row-as-data	1	n / ************************************ / total_entries
+perftest-write-bw	needs-review	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell	1	n / ************************************ / total_entries
 perl-V-short	looks-fine	good	12	n / A / B / C / D / E / F / G / H / I / J / K / L / total_entries
 perl-v	looks-fine	strong	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
 perl-version	looks-fine	good	2	n / This_is_perl_5 / version_36 / total_entries
@@ -2166,7 +2166,7 @@ pg-stat-replication	looks-fine	strong	8	n / pid / usename / application_name / c
 pg-stat-statements	looks-fine	strong	5	n / query / calls / total_exec_time / mean_exec_time / rows / total_entries
 pg-stat-user-indexes	looks-fine	strong	6	n / schemaname / relname / indexrelname / idx_scan / idx_tup_read / idx_tup_fetc
 pgbackrest-info	looks-fine	good	5	stanza / status / cipher / db_(current).wal_archive_min/max_(16) / db_(current).
-pgbench-run	looks-fine	strong	6	n / transaction / type: / <builtin: / TPC-B / (sort / of)> / total_entries
+pgbench-run	needs-review	lone-delimiter-column	6	n / transaction / type: / <builtin: / TPC-B / (sort / of)> / total_entries
 pgbouncer-clients	looks-fine	strong	6	n / type / user / database / state / addr / port / total_entries
 pgbouncer-databases	needs-review	column-misalignment=0.17	7	n / name / host / port / database / force_user / pool_size / pool_mode / total_e
 pgbouncer-pools	looks-fine	strong	9	n / database / user / cl_active / cl_waiting / sv_active / sv_idle / sv_used / m
@@ -2180,7 +2180,7 @@ pgrep-full	looks-fine	strong	3	n / A / B / C / total_entries
 phoronix-result	looks-fine	strong	6	n / Test / node1 / node2 / node3 / Average / Deviation
 php-i	looks-fine	good	8	PHP_Version / System / Build_Date / Server_API / Configuration_File_(php.ini)_Pa
 php-modules	looks-fine	good	2	n / A / B / total_entries
-php-v	looks-fine	good	1	n / A / total_entries
+php-v	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 pidof	looks-fine	good	5	n / A / B / C / D / E / total_entries
 pidstat	looks-fine	strong	7	n / Linux / 5_15_0-91-generic / (webhost01) / 07/06/2026 / _x86_64_ / (8 / CPU) 
 pidstat-d	looks-fine	strong	7	n / Linux / 5_15_0-91-generic / (host01) / 07/07/2026 / _x86_64_ / (8 / CPU) / t
@@ -2190,7 +2190,7 @@ pidstat-t	looks-fine	strong	7	n / Linux / 5_15_0-91-generic / (app-node-2) / 07/
 pidstat-u	looks-fine	strong	7	n / Linux / 6_5_0-27-generic / (dbhost01) / 07/07/2026 / _x86_64_ / (8 / CPU) / 
 pidstat-w	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 pigz-version	looks-fine	good	2	n / A / B / total_entries
-pinctrl-summary	looks-fine	strong	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
+pinctrl-summary	needs-review	lone-delimiter-column	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
 ping	looks-fine	strong	5	n / bytes / from / icmp_seq / ttl / time / total_entries
 ping-heatmap	looks-fine	strong	4	n / Host / min/avg/max / Heatmap / (last / total_entries
 pip-check	looks-fine	good	2	n / fastapi_0_111_0_requires_starlette / which_is_not_installed_ / total_entries
@@ -2223,14 +2223,14 @@ plow-run	looks-fine-thin	cells-per-line=0.18	2	field / value
 pmap	looks-fine	strong	3	n / 3421: / /usr/bin/python3 / /opt/app/server_py / total_entries
 pnpm-audit	looks-fine	good	2	n / high / Prototype_Pollution / total_entries
 pnpm-list-depth	looks-fine	good	2	n / A / B / total_entries
-pnpm-list-recursive	looks-fine	strong	3	n / depth / parent / name / total_entries
+pnpm-list-recursive	needs-review	key-value-delimiter-in-cell	3	n / depth / parent / name / total_entries
 pnpm-outdated	looks-fine	strong	4	n / Package / Current / Wanted / Latest / total_entries
 pnpm-version	looks-fine	good	1	n / A / total_entries
 pnpm-why	looks-fine	good	1	n / A / total_entries
 pnpm-why-react-dom	needs-review	column-misalignment=0.33	3	n / depth / parent / name / total_entries
 podman-generate-kube	looks-fine	good	7	apiVersion / kind / metadata.name / metadata.labels.app / spec.0 / spec.containe
 podman-healthcheck	needs-review	blank-header-cell	7	n / Status / FailingStreak /  / Log.Start / Log.End / Log.ExitCode / Log.Output 
-podman-image-tree	looks-fine	strong	4	n / depth / parent / name / value / total_entries
+podman-image-tree	needs-review	key-value-delimiter-in-cell	4	n / depth / parent / name / value / total_entries
 podman-images	looks-fine	strong	5	n / REPOSITORY / TAG / IMAGE_ID / CREATED / SIZE / total_entries
 podman-info	looks-fine	good	34	host.arch / host.buildahVersion / host.cgroupManager / host.cgroupVersion / host
 podman-inspect	looks-fine-thin	cells-per-line=0.16	10	n / Id / Created / Path / Image / ImageName / Name / RestartCount / Driver / Mou
@@ -2266,7 +2266,7 @@ powertop-watts-tunables	looks-fine	strong	4	n / Usage / Wakeups/s / Category / D
 pre-commit-run	looks-fine	good	1	n / A / total_entries
 prefect-deployment-list	looks-fine	strong	4	n / NAME / SCHEDULE / WORK_POOL / STATUS / total_entries
 prefect-flow-runs	looks-fine	strong	4	n / name / state / start_time / duration / total_entries
-presto-query-stats	looks-fine	good	2	n / Query_20260710_060000_00042_abcde / RUNNING / total_entries
+presto-query-stats	needs-review	key-value-delimiter-in-cell	2	n / Query_20260710_060000_00042_abcde / RUNNING / total_entries
 prettier-check	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entries
 printenv	looks-fine	good	8	SHELL / USER / PATH / PWD / LANG / HOME / TERM / EDITOR
 printenv-equals-in-value	needs-review	blank-header-cell;pipes-in-cells	4	LS_COLORS / TERMCAP / PATH / 
@@ -2277,15 +2277,15 @@ proc-cgroups	looks-fine	strong	4	n / #subsys_name / hierarchy / num_cgroups / en
 proc-consoles	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 proc-cpuinfo	looks-fine	good	2	n / A / B / total_entries
 proc-cpuinfo-flags	looks-fine	good	2	n / A / B / total_entries
-proc-crypto	looks-fine	strong	3	n / A / B / C / total_entries
+proc-crypto	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 proc-devices	looks-fine	strong	4	n / character / A / B / block / total_entries
 proc-diskstats	looks-fine	strong	20	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / Q / R / S / 
 proc-dma	looks-fine	good	2	n / name / value / total_entries
 proc-filesystems	looks-fine	good	2	n / nodev / sysfs / total_entries
 proc-interrupts	looks-fine	strong	4	n / CPU0 / CPU1 / CPU2 / CPU3 / total_entries
 proc-interrupts-smp	looks-fine	strong	8	n / CPU0 / CPU1 / CPU2 / CPU3 / CPU4 / CPU5 / CPU6 / CPU7 / total_entries
-proc-iomem	looks-fine	strong	4	n / A / B / C / D / total_entries
-proc-ioports	looks-fine	strong	3	n / A / B / C / total_entries
+proc-iomem	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
+proc-ioports	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 proc-keys	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 proc-limits	looks-fine	strong	4	n / Limit / Soft_Limit / Hard_Limit / Units / total_entries
 proc-loadavg	looks-fine	good	5	n / A / B / C / D / E / total_entries
@@ -2304,7 +2304,7 @@ proc-pagetypeinfo	looks-fine	strong	17	n / A / B / C / D / E / F / G / H / I / J
 proc-partitions	looks-fine	strong	4	n / major / minor / #blocks / name / total_entries
 proc-schedstat	looks-fine	good	1	n / A / total_entries
 proc-self-mountinfo	needs-review	column-misalignment=0.22	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
-proc-slabinfo	looks-fine	strong	16	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / total_entrie
+proc-slabinfo	needs-review	lone-delimiter-column	16	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / total_entrie
 proc-softirqs	looks-fine	strong	4	n / CPU0 / CPU1 / CPU2 / CPU3 / total_entries
 proc-softirqs-cpu	looks-fine	strong	4	n / CPU0 / CPU1 / CPU2 / CPU3 / total_entries
 proc-stat	looks-fine	good	1	n / A / total_entries
@@ -2319,7 +2319,7 @@ procs-table	needs-review	column-misalignment=0.25	5	n / PID / USER / CPU / MEM /
 procs-tree	looks-fine	strong	5	n / PID / USER / TREE / CPU / MEM / total_entries
 proj-info	looks-fine	good	2	n / PROJ / 9_4_0 / total_entries
 prometheus-targets	looks-fine	good	8	status / instance / job / scrapePool / scrapeUrl / health / lastScrape / lastScr
-prometheus-version	looks-fine	good	3	n / 53.0_(branch / build_user / go_version
+prometheus-version	needs-review	key-value-delimiter-in-cell	3	n / 53.0_(branch / build_user / go_version
 promtail-targets	looks-fine	strong	3	n / A / B / C / total_entries
 promtool-check-config	looks-fine-thin	cells-per-line=0.18	1	n / SUCCESS
 promtool-check-metrics	looks-fine	good	2	n / A / B / total_entries
@@ -2345,7 +2345,7 @@ ps-forest-args	looks-fine	good	2	n / PID / COMMAND / total_entries
 ps-o-args-full	looks-fine	good	2	n / PID / COMMAND / total_entries
 pscale-branch-list	needs-review	column-misalignment=0.21	6	n / NAME / READY / CREATED_AT / PARENT / PRODUCTION / STATE / total_entries
 pscale-database-list	looks-fine	strong	6	n / NAME / DEFAULT_BRANCH / AT / REGION / STATE / CREATED / total_entries
-psql-conninfo	looks-fine	good	1	n / A / total_entries
+psql-conninfo	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 psql-copy-csv-newlines	looks-fine	strong	3	n / id / description / status / total_entries
 psql-csv-quoted-commas	looks-fine	strong	4	n / id / name / notes / created / total_entries
 psql-df	looks-fine	strong	5	n / Schema / Name / Result_data_type / Argument_data_types / Type / total_entrie
@@ -2390,7 +2390,7 @@ pvs-pv-used	looks-fine	strong	7	n / PV / VG / Fmt / Attr / PSize / PFree / Used 
 pvs-report	looks-fine	strong	6	n / PV / VG / Fmt / Attr / PSize / PFree / total_entries
 pvs-report-ragged	looks-fine	strong	6	n / PV / VG / Fmt / Attr / PSize / PFree / total_entries
 pvscan-cache	needs-review	unsplit-cells	1	n / A / total_entries
-pw-cli-list-nodes	looks-fine	strong	3	n / A / B / C / total_entries
+pw-cli-list-nodes	needs-review	lone-delimiter-column	3	n / A / B / C / total_entries
 pwck	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 pwdx	looks-fine	good	2	n / A / B / total_entries
 pyenv-versions	looks-fine	strong	5	n / A / B / C / D / E / total_entries
@@ -2406,15 +2406,15 @@ python-sysconfig	needs-review	column-misalignment=0.29	19	n / Platform / Python_
 python-version	looks-fine	good	2	n / A / B / total_entries
 python-vv	looks-fine	good	9	n / A / B / C / D / E / F / G / H / I / total_entries
 q-sql-output	looks-fine	good	2	n / region / total / total_entries
-qalc-output	looks-fine	good	8	n / A / B / C / D / E / F / G / H / total_entries
+qalc-output	needs-review	lone-delimiter-column	8	n / A / B / C / D / E / F / G / H / total_entries
 qbittorrent-list	looks-fine	strong	5	n / Name / Size / Progress / Status / Ratio / total_entries
 qemu-img-info	looks-fine	good	7	image / file_format / virtual_size / disk_size / cluster_size / Format_specific_
 qemu-version	looks-fine	good	1	n / A / total_entries
 qm-list	looks-fine	strong	6	n / VMID / NAME / STATUS / MEM(MB) / BOOTDISK(GB) / PID / total_entries
-qperf-tcp-bw	looks-fine	strong	4	n / A / B / C / D / total_entries
+qperf-tcp-bw	needs-review	lone-delimiter-column	4	n / A / B / C / D / total_entries
 qstat-jobs	looks-fine	strong	6	n / Job / id / Name / User / Time / Use / total_entries
 quantlib-pricing	looks-fine	strong	5	n / Instrument / NPV / Delta / Gamma / Vega / total_entries
-quantum-espresso-summary	looks-fine	strong	5	n / A / B / C / D / E / total_entries
+quantum-espresso-summary	needs-review	lone-delimiter-column	5	n / A / B / C / D / E / total_entries
 questdb-show-columns	needs-review	column-misalignment=0.18	7	n / column / type / indexed / indexBlockCapacity / symbolCached / symbolCapacity
 questdb-tables	looks-fine	strong	5	n / id / name / designatedTimestamp / partitionBy / rowCount / total_entries
 quo-access-log-referer-query	looks-fine	strong	5	n / A / B / C / D / E / total_entries
@@ -2458,7 +2458,7 @@ quo-kv-ipv6-values	looks-fine	good	4	Gateway / DNS_server / Loopback / Link_loca
 quo-kv-json-in-value	looks-fine	good	3	Request / Labels / Range
 quo-kv-ratio-time	looks-fine	strong	3	n / A / B / C / total_entries
 quo-kv-url-values	looks-fine	good	4	Homepage / Repository / Mirror / Docs
-quo-kv-windows-paths	looks-fine	good	3	Install_dir / Config / Log_path
+quo-kv-windows-paths	needs-review	key-value-delimiter-in-cell	3	Install_dir / Config / Log_path
 quo-kveq-quoted-spaces	looks-fine	strong	8	n / k1 / k2 / k3 / mode / owner / flags / label / env / total_entries
 quo-ldif-colon-values	looks-fine	strong	5	n / dn / cn / mail / description / dn:_cn
 quo-logfmt-quoted	looks-fine	strong	7	n / level / msg / dur / path / table / rows / port / total_entries
@@ -2482,7 +2482,7 @@ quo-table-freetext-lastcol	looks-fine	strong	3	n / ID / CODE / MESSAGE / total_e
 quo-table-notes-delimiters	looks-fine	strong	3	n / svc / port / notes / total_entries
 quo-toml-quoted-array	needs-review	pipes-in-cells	4	server.name / server.tags / server.motd / server.ratio
 quo-tsv-embedded-comma	looks-fine	strong	3	n / name / city / count / total_entries
-quo-tsv-freetext-lastcol	needs-review	pipes-in-cells	3	n / code / sev / description / total_entries
+quo-tsv-freetext-lastcol	needs-review	pipes-in-cells;key-value-delimiter-in-cell	3	n / code / sev / description / total_entries
 quo-tsv-json-column	looks-fine	strong	3	n / id / payload / status / total_entries
 quo-tsv-kv-colon-values	looks-fine	good	2	n / A / B / total_entries
 quo-tsv-quoted-tab	looks-fine	strong	3	n / col1 / col2 / col3 / total_entries
@@ -2499,7 +2499,7 @@ radeontop-usage	looks-fine	strong	5	n / gpu / ee / vgt / ta / sx / total_entries
 rados-df	looks-fine	strong	12	n / POOL_NAME / USED / OBJECTS / CLONES / COPIES / MISSING_ON_PRIMARY / UNFOUND 
 radosgw-admin-bucket-stats	looks-fine	strong	5	n / bucket / num_objects / size_actual / size_utilized / num_shards / total_entr
 radvd-status	looks-fine-thin	cells-per-line=0.22	2	field / value
-rage-keygen	looks-fine	good	1	n / A / total_entries
+rage-keygen	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 railway-status	looks-fine	good	7	Project / Environment / Service / Deployment / Region / Replicas / Started
 railway-variables	looks-fine	good	2	n / NAME / VALUE / total_entries
 ramspeed-int	needs-review	unsplit-cells	2	n / key / value / total_entries
@@ -2532,7 +2532,7 @@ redis-cli-cluster-info	looks-fine	good	1	n / A / total_entries
 redis-cli-config	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 redis-cli-info-memory	looks-fine	good	2	n / A / B / total_entries
 redis-cli-latency-history	looks-fine	good	2	n / A / B / total_entries
-redis-cli-memory-doctor	looks-fine	good	1	n / A / total_entries
+redis-cli-memory-doctor	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 redis-cli-slowlog	looks-fine-thin	cells-per-line=0.24	5	1)_1)_(integer)_14.4)_1)_"GET".2)_"user / 1)_1)_(integer)_14.5)_"10.0.0.23 / 2)_
 redis-cli-xinfo-stream	looks-fine	good	2	n / 1) / "length" / total_entries
 redis-client-list	looks-fine	strong	18	n / id / addr / fd / name / age / idle / flags / db / sub / psub / multi / qbuf 
@@ -2551,9 +2551,9 @@ render-services-list	looks-fine	strong	6	n / ID / NAME / TYPE / ENV / REGION / S
 renovate-summary	looks-fine	good	5	INFO / repository / durationMs / branchCount / prCount
 repquota	looks-fine	strong	4	n / User / used / soft / hard / total_entries
 resolvectl-default-route	looks-fine	good	2	n / Global: / no / total_entries
-resolvectl-dns	looks-fine	good	1	n / A / total_entries
+resolvectl-dns	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 resolvectl-mdns	looks-fine	good	5	Link_2_(eth0).Current_Scopes / Link_2_(eth0).Protocols / Current_DNS_Server / Li
-resolvectl-query	looks-fine	good	1	n / A / total_entries
+resolvectl-query	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 resolvectl-statistics	looks-fine	strong	10	n / DNSSEC_supported_by_current_servers / Current_Transactions / Total_Transacti
 resolvectl-status	looks-fine	strong	7	n / Protocols / resolv.conf_mode / Current_DNS_Server / DNS_Servers / DNS_Domain
 resolvectl-status-links	looks-fine	strong	5	n / Link / Current_Scopes / Protocols / DNS_Servers / DNS_Domain
@@ -2607,11 +2607,11 @@ rsync-itemize-paths-spaces	looks-fine	strong	4	n / >f+++++++++ / My / Documents/
 rsync-progress	looks-fine-thin	cells-per-line=0.40	2	n / parquet.412,481,024_100%__118.42MB/s____0 / data/archive.tar.gz.1,204,883,45
 rsync-stats	looks-fine	good	5	Number_of_files / Number_of_created_files / Number_of_deleted_files / Total_file
 rsync_stats	looks-fine	good	11	Number_of_files / Number_of_created_files / Number_of_deleted_files / Number_of_
-rtl-sdr-test	looks-fine	good	1	n / A / total_entries
+rtl-sdr-test	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 ruby-v	looks-fine	good	6	n / A / B / C / D / E / F / total_entries
 ruby-version	looks-fine	good	6	n / A / B / C / D / E / F / total_entries
-ruff-check	looks-fine	good	2	n / name / value / total_entries
-ruff-check-color	needs-review	unsplit-cells	2	n / name / value / total_entries
+ruff-check	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_entries
+ruff-check-color	needs-review	unsplit-cells;key-value-delimiter-in-cell	2	n / name / value / total_entries
 runc-version	looks-fine	good	3	commit / spec / go
 rush-list	looks-fine	strong	3	n / Project / Path / Version / total_entries
 rustc-cfg	looks-fine	good	1	n / A / total_entries
@@ -2675,7 +2675,7 @@ scylla-nodetool-tablestats	looks-fine	good	12	Total_number_of_tables / Keyspace 
 sd-preview	looks-fine	good	2	n / A / B / total_entries
 sdparm-all	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
 sdparm-inquiry	needs-review	unsplit-cells	6	/dev/sda / length=96_(0x60)_Peripheral_device_type / Vendor_identification / Pro
-seinfo	needs-review	unsplit-cells	2	n / key / value / total_entries
+seinfo	needs-review	unsplit-cells;key-value-delimiter-in-cell	2	n / key / value / total_entries
 semanage-boolean	needs-review	unsplit-cells	1	n / A / total_entries
 semantic-release-summary	looks-fine	good	2	n / timestamp / message / total_entries
 semgrep-scan	looks-fine-thin	cells-per-line=0.40	2	field / value
@@ -2737,7 +2737,7 @@ snakemake-summary	looks-fine	strong	4	n / job / count / min_threads / max_thread
 snap-connections	looks-fine	strong	4	n / interface / plug / slot / notes / total_entries
 snap-connections-all	looks-fine	strong	4	n / interface / plug / slot / notes / total_entries
 snap-connections-info	looks-fine	strong	5	n / Slot / Plug / Interface / Manual / Gadget
-snap-info	looks-fine	good	15	name / summary / publisher / store-url / contact / license / description / snap-
+snap-info	needs-review	lone-delimiter-column	15	name / summary / publisher / store-url / contact / license / description / snap-
 snap-info-multi	looks-fine	strong	6	n / name / summary / publisher / license / tracking / installed
 snap-list	looks-fine	strong	6	n / Name / Version / Rev / Tracking / Publisher / Notes / total_entries
 snap-list-all	looks-fine	strong	6	n / Name / Version / Rev / Tracking / Publisher / Notes / total_entries
@@ -2745,11 +2745,11 @@ snmpget	looks-fine	strong	3	n / oid / type / value / total_entries
 snmpwalk	looks-fine	strong	3	n / oid / type / value / total_entries
 socat-version	looks-fine	good	2	n / 8.0.0_on_10_Jul_2026_06 / socat_by_Gerhard_Rieger_and_contributors.features
 sockperf-ping	needs-review	unsplit-cells;duplicate-column-names	7	sockperf / sockperf / sockperf / sockperf / sockperf / sockperf / sockperf
-sockperf-throughput	needs-review	duplicate-column-names	6	sockperf / sockperf / sockperf / sockperf / sockperf / sockperf
+sockperf-throughput	needs-review	duplicate-column-names;key-value-delimiter-in-cell	6	sockperf / sockperf / sockperf / sockperf / sockperf / sockperf
 solana-validators	looks-fine	strong	5	n / Identity / Vote / Account / Commission / Active / total_entries
 solr-collections-list	looks-fine	strong	3	n / responseHeader.status / responseHeader.QTime / collections / total_entries
 sops-metadata	looks-fine	good	4	lastmodified / mac / version / kms.0
-sops-updatekeys	looks-fine	good	1	n / A / total_entries
+sops-updatekeys	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 spack-find	needs-review	unsplit-cells	1	n / A / total_entries
 spark-cli-sparkline	looks-fine	strong	3	n / region / latency_ms / trend / total_entries
 spark-executor-summary	looks-fine	strong	8	n / Executor / ID / Address / Cores / Active / Tasks / Failed / Complete / total
@@ -2806,13 +2806,13 @@ ssh-keyscan	looks-fine	strong	3	n / A / B / C / total_entries
 sshd-T-config	looks-fine	good	2	n / A / B / total_entries
 sshd-t	looks-fine	good	2	n / A / B / total_entries
 sslscan	looks-fine-thin	cells-per-line=0.11	1	n / Version
-sslyze-scan	looks-fine	good	1	n / A / total_entries
+sslyze-scan	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 stack-ls-dependencies	looks-fine	good	2	n / A / B / total_entries
 star-align-summary	needs-review	pipes-in-cells;untrimmed-cells	2	n / A / B / total_entries
-starship-explain	looks-fine	good	1	n / A / total_entries
+starship-explain	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 starship-modules-color	looks-fine	good	4	directory / git_branch / rust / duration
-stat	needs-review	unsplit-cells;duplicate-column-names	8	_.File / _.Size / Device / Access / Access / Modify / Change / Birth
-stat-format	needs-review	unsplit-cells	4	_.File / _.Size / Device / Access
+stat	needs-review	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell	8	_.File / _.Size / Device / Access / Access / Modify / Change / Birth
+stat-format	needs-review	unsplit-cells;key-value-delimiter-in-cell	4	_.File / _.Size / Device / Access
 stata-summarize	needs-review	unsplit-cells	2	n / Variable / Obs________Mean____Std_dev_______Min________Max / total_entries
 statuspage-components	looks-fine	good	2	n / Component / Status / total_entries
 steam-cmd-apps	looks-fine	strong	3	n / AppID / Name / State / total_entries
@@ -2829,8 +2829,8 @@ stow-simulate	needs-review	duplicate-column-names	3	LINK / LINK / UNLINK
 strace-summary	looks-fine	strong	6	n / %_time / seconds / usecs/call / calls / syscall / errors
 stratis-pool-list	looks-fine	strong	3	n / Name / Total_/_Used_/_Free / Properties / total_entries
 stream-benchmark	looks-fine	strong	5	n / Function / Best_Rate_MB/s / Avg_time / Min_time / Max_time / total_entries
-stress-ng-cpu-cache	needs-review	unsplit-cells;duplicate-column-names	4	stress-ng / stress-ng / stress-ng / stress-ng
-stress-ng-metrics	needs-review	unsplit-cells;duplicate-column-names	5	stress-ng / stress-ng / stress-ng / stress-ng / stress-ng
+stress-ng-cpu-cache	needs-review	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell	4	stress-ng / stress-ng / stress-ng / stress-ng
+stress-ng-metrics	needs-review	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell	5	stress-ng / stress-ng / stress-ng / stress-ng / stress-ng
 strings	looks-fine	good	1	n / A / total_entries
 strings-count	looks-fine	good	1	n / A / total_entries
 stryker-summary	looks-fine	good	5	Mutation_score / Killed / Survived / No_coverage / Timeout
@@ -2897,7 +2897,7 @@ systemctl-status	looks-fine	strong	15	n / Loaded / Active / Docs / Process / Mai
 systemctl-status-color-dot	looks-fine	strong	4	n / A / B / C / D / total_entries
 systemctl-status-containerd	looks-fine	good	8	●_containerd.service_-_containerd_container_runtime.Loaded / ●_containerd.servic
 systemctl-status-nginx	looks-fine	strong	16	n / Loaded / Active / Docs / Process / Main_PID / Tasks / Memory / CPU / CGroup 
-systemctl-status-postgresql	looks-fine	good	11	●_postgresql@14-main.service_-_PostgreSQL_Cluster_14-main.Loaded / ●_postgresql@
+systemctl-status-postgresql	needs-review	key-value-delimiter-in-cell	11	●_postgresql@14-main.service_-_PostgreSQL_Cluster_14-main.Loaded / ●_postgresql@
 systemctl-timers-blank	needs-review	column-misalignment=0.18	6	n / NEXT / LEFT / LAST / PASSED / UNIT / ACTIVATES / total_entries
 systemctl-units-blank-sub	looks-fine	strong	5	n / UNIT / LOAD / ACTIVE / SUB / DESCRIPTION / total_entries
 systemd-analyze	looks-fine	good	2	n / A / B / total_entries
@@ -2909,7 +2909,7 @@ systemd-analyze-plot-summary	looks-fine	good	1	n / A / total_entries
 systemd-analyze-security	looks-fine	strong	3	n / NAME / DESCRIPTION / EXPOSURE / total_entries
 systemd-analyze-time	looks-fine	good	1	n / A / total_entries
 systemd-analyze-timespan	looks-fine	good	3	Original / μs / Human
-systemd-analyze-verify	looks-fine	good	2	n / name / value / total_entries
+systemd-analyze-verify	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_entries
 systemd-cat-status	looks-fine	good	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 systemd-cgls	needs-review	column-misalignment=0.25	3	n / depth / parent / name / total_entries
 systemd-cgls-full	needs-review	column-misalignment=0.31	3	n / depth / parent / name / total_entries
@@ -2935,7 +2935,7 @@ tabulate-mixed-grid	looks-fine	strong	3	n / endpoint / calls / avg_ms / total_en
 tabulate-presto-unicode	looks-fine	strong	3	n / warehouse / items / utilization / total_entries
 tabulate-rounded-grid	looks-fine	strong	3	n / package / version / downloads / total_entries
 tailscale-lock-status	looks-fine	strong	3	n / This_node's_tailnet-lock_key / Number_of_trusted_signing_keys / Number_of_no
-tailscale-netcheck	looks-fine	good	1	n / A / total_entries
+tailscale-netcheck	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 tailscale-ping	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entries
 tailscale-status	needs-review	unsplit-cells	1	n / A / total_entries
 tailscale-whois	looks-fine	good	5	Machine.Name / Machine.ID / Machine.Addresses / User.LoginName / User.DisplayNam
@@ -2945,7 +2945,7 @@ talosctl-get-members	needs-review	column-misalignment=0.38	8	n / NODE / NAMESPAC
 talosctl-services	looks-fine	strong	6	n / NODE / SERVICE / STATE / HEALTH / LAST_CHANGE / LAST_EVENT / total_entries
 tar	looks-fine	strong	5	n / permissions / owner / size / date / path / total_entries
 targetcli-ls	looks-fine	good	2	o-_/_.........................................._[...].|_o-_block_...............
-task-list	needs-review	unsplit-cells	1	n / A / total_entries
+task-list	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 task-version	looks-fine	good	2	field / value
 taskset	looks-fine	good	6	n / A / B / C / D / E / F / total_entries
 taskset-affinity	looks-fine	good	6	n / pid / 2210's / current / affinity / mask: / ff / total_entries
@@ -3016,9 +3016,9 @@ tbl-watch-diskio-repeat	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wr
 tbl-wrapped-desc-col	looks-fine	strong	3	n / ID / STATUS / DESCRIPTION / total_entries
 tc-class	needs-review	column-misalignment=0.39	15	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / total_entries
 tc-class-show	needs-review	column-misalignment=0.45	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
-tc-filter-show	looks-fine	good	1	n / A / total_entries
-tc-qdisc	looks-fine	good	1	n / A / total_entries
-tc-qdisc-show	looks-fine	good	1	n / A / total_entries
+tc-filter-show	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
+tc-qdisc	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
+tc-qdisc-show	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 tcl-version	looks-fine	good	1	n / A / total_entries
 tcpdump-count	looks-fine	strong	5	n / A / B / C / D / E / total_entries
 tcpdump-summary	looks-fine	good	1	n / A / total_entries
@@ -3043,7 +3043,7 @@ terraform-plan	looks-fine-thin	cells-per-line=0.14	1	n / Plan
 terraform-plan-color	looks-fine	strong	5	n / ~ / aws_security_group_sg / will / be / updated / total_entries
 terraform-providers	needs-review	column-misalignment=0.20	3	n / depth / parent / name / total_entries
 terraform-show	looks-fine-thin	cells-per-line=0.11	2	field / value
-terraform-show-resource	looks-fine-thin	cells-per-line=0.17	3	n / size / timestamp / url / total_entries
+terraform-show-resource	needs-review	lone-delimiter-column	3	n / size / timestamp / url / total_entries
 terraform-state-list	looks-fine	good	1	n / A / total_entries
 terraform-state-list-color	looks-fine	good	1	n / A / total_entries
 terraform-state-show	looks-fine-thin	cells-per-line=0.12	2	field / value
@@ -3073,7 +3073,7 @@ timeshift-list	looks-fine	strong	4	n / Num / Name / Tags / Description / total_e
 timewarrior-summary	looks-fine	strong	7	n / Wk / Date / Day / Tags / Start / End / Time / total_entries
 timoni-list	looks-fine	strong	5	n / NAME / NAMESPACE / MODULE / VERSION / LAST_APPLIED / total_entries
 tinybench-run	looks-fine	strong	6	n / (index) / Task_Name / ops/sec / Average_Time_(ns) / Margin / Samples / total
-tinymembench	needs-review	unsplit-cells;separator-row-as-data	1	n / A / total_entries
+tinymembench	needs-review	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell	1	n / A / total_entries
 tiptop-view	needs-review	unsplit-cells	1	n / A / total_entries
 tiup-cluster-display	looks-fine	strong	8	n / ID / Role / Host / Ports / OS/Arch / Status / Data_Dir / Deploy_Dir
 tiup-cluster-list	looks-fine	strong	5	n / Name / User / Version / Path / PrivateKey
@@ -3115,12 +3115,12 @@ trivy-repo-scan	looks-fine	strong	4	n / LIBRARY / VULNERABILITY / SEVERITY / FIX
 trivy-sbom-scan	looks-fine	strong	4	n / LIBRARY / VULNERABILITY / SEVERITY / INSTALLED / total_entries
 trufflehog-git	looks-fine	strong	4	n / DETECTOR / VERIFIED / FILE / COMMIT / total_entries
 trufflehog-results	looks-fine	strong	3	n / A / B / C / total_entries
-tshark-conv-tcp	needs-review	pipes-in-cells;column-misalignment=0.25	7	n / A / B / C / D / E / F / G / total_entries
+tshark-conv-tcp	needs-review	pipes-in-cells;lone-delimiter-column;column-misalignment=0.25	7	n / A / B / C / D / E / F / G / total_entries
 tshark-fields-quoted	looks-fine	strong	5	n / A / B / C / D / E / total_entries
 tshark-summary	needs-review	column-misalignment=0.21	16	n / A / B / C / D / E / F / G / H / I / J / K / L / M / N / O / P / total_entrie
 tsung-summary	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 tune2fs-l	looks-fine	good	2	n / key / value / total_entries
-turbo-run-summary	looks-fine	good	6	•_Packages_in_scope / •_Running_build_in_3_packages.api / •_Running_build_in_3_p
+turbo-run-summary	needs-review	key-value-delimiter-in-cell	6	•_Packages_in_scope / •_Running_build_in_3_packages.api / •_Running_build_in_3_p
 turbo-version	looks-fine	good	1	n / A / total_entries
 turbostat	looks-fine	strong	10	n / Core / CPU / Avg_MHz / Busy_pct / Bzy_MHz / TSC_MHz / IRQ / PkgTmp / PkgWatt
 turbostat-core	looks-fine	strong	9	n / Package / Core / CPU / Avg_MHz / Busy% / Bzy_MHz / PkgWatt / CorWatt / GFXWa
@@ -3232,7 +3232,7 @@ v4l2-ctl-list-devices	looks-fine	strong	4	n / A / B / C / D / total_entries
 vagrant-global-status	looks-fine	strong	5	n / id / name / provider / state / directory / total_entries
 vagrant-status	looks-fine	strong	3	n / A / B / C / total_entries
 vagrant-v	looks-fine	good	2	n / A / B / total_entries
-vainfo-profiles	needs-review	duplicate-column-names	6	vainfo / vainfo / vainfo / VAProfileH264Main / VAProfileHEVCMain / VAProfileVP9P
+vainfo-profiles	needs-review	duplicate-column-names;key-value-delimiter-in-cell	6	vainfo / vainfo / vainfo / VAProfileH264Main / VAProfileHEVCMain / VAProfileVP9P
 valgrind-massif	needs-review	duplicate-column-names	4	n / n / time(i) / total(B) / useful-heap(B) / extra-heap(B) / total_entries
 valgrind-summary	looks-fine	strong	3	n / ==31542== / HEAP / SUMMARY: / total_entries
 valkey-cli-info-keyspace	looks-fine	strong	6	n / db0:keys / expires / avg_ttl / db1:keys / db2:keys / db5:keys / total_entrie
@@ -3287,13 +3287,13 @@ virsh-list-all	looks-fine	strong	3	n / Id / Name / State / total_entries
 virsh-list-all-state	looks-fine	strong	3	n / Id / Name / State / total_entries
 virsh-net-list	needs-review	column-misalignment=0.25	4	n / Name / State / Autostart / Persistent / total_entries
 virsh-pool-list	looks-fine	strong	3	n / Name / State / Autostart / total_entries
-virsh-snapshot-tree	needs-review	unsplit-cells;pipes-in-cells;separator-row-as-data	1	n / A / total_entries
+virsh-snapshot-tree	needs-review	unsplit-cells;pipes-in-cells;separator-row-as-data;lone-delimiter-column	1	n / A / total_entries
 visidata-describe	looks-fine	strong	6	n / column / type / nulls / distinct / min / max / total_entries
 visidata-describe-box	looks-fine	strong	5	n / column / nulls / distinct / mean / stdev / total_entries
 visidata-freq-box	looks-fine	strong	4	n / value / count / percent / histogram / total_entries
 visidata-sheet-box	looks-fine	strong	4	n / track / artist / plays / rating / total_entries
 vitest-bench	needs-review	unsplit-cells	1	n / A / total_entries
-vkmark-run	looks-fine	good	6	=======================================================.Vendor_ID / ============
+vkmark-run	needs-review	key-value-delimiter-in-cell	6	=======================================================.Vendor_ID / ============
 vllm-metrics	looks-fine	good	2	n / A / B / total_entries
 vmagent-targets	needs-review	unsplit-cells;column-misalignment=0.29	6	n / name / 10_0_1_5_9100_metrics_up_job / instance / 10_0_1_6_9100_metrics_up_jo
 vmalert-rules	looks-fine	strong	5	n / group / name / state / activeAt / value / total_entries
@@ -3358,7 +3358,7 @@ wlr-randr-output	looks-fine	good	3	DP-1_"Dell_U2720Q".Enabled / DP-1_"Dell_U2720
 woodpecker-info	looks-fine	good	3	Version / Source / Status
 wpa-cli-status	looks-fine	good	13	bssid / freq / ssid / id / mode / pairwise_cipher / group_cipher / key_mgmt / wp
 wpctl-status	looks-fine-thin	cells-per-line=0.33	2	n / 0.5].└─_Audio.│__*___49._Built-in_Audio_Analog_Stereo__[vol / 0.5].└─_Audio.
-wpscan-summary	looks-fine	good	1	n / A / total_entries
+wpscan-summary	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 wrangler-d1-list	looks-fine	strong	4	n / uuid / name / version / num_tables / total_entries
 wrangler-deployments-list	looks-fine	good	2	n / key / value / total_entries
 wrangler-kv-namespace-list	looks-fine	strong	3	n / id / title / supports_url_encoding / total_entries
@@ -3382,9 +3382,9 @@ xrandr-query	looks-fine-thin	cells-per-line=0.40	2	field / value
 xsv-stats	looks-fine	strong	5	n / field / type / min / max / mean / total_entries
 xxd-output	looks-fine	strong	10	n / A / B / C / D / E / F / G / H / I / J / total_entries
 xz-list	looks-fine	good	7	n / Strms / Blocks / Compressed / Uncompressed / Ratio / Check / Filename / tota
-y-cruncher-pi	looks-fine	good	1	n / A / total_entries
-yaml-block-scalar	needs-review	pipes-in-cells	7	apiVersion / kind / metadata.name / metadata.namespace / data.startup.sh / data.
-yaml-literal-block	needs-review	pipes-in-cells	6	description / version / enabled / replicas / command / timeout
+y-cruncher-pi	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
+yaml-block-scalar	needs-review	pipes-in-cells;lone-delimiter-column	7	apiVersion / kind / metadata.name / metadata.namespace / data.startup.sh / data.
+yaml-literal-block	needs-review	pipes-in-cells;lone-delimiter-column	6	description / version / enabled / replicas / command / timeout
 yaml-nested-maps	looks-fine	good	13	services.web.image / services.web.ports.0 / services.web.ports.1 / services.web.
 yara-scan	looks-fine	strong	3	n / RULE / FILE / TAGS / total_entries
 yarn-application-list	looks-fine	strong	5	n / Application-Id / Application-Name / State / Final-State / Progress / total_e
@@ -3440,7 +3440,7 @@ zpool-list	looks-fine	strong	11	n / NAME / SIZE / ALLOC / FREE / CKPOINT / EXPAN
 zpool-resilver-progress	looks-fine	good	2	n / pool: / tank / total_entries
 zpool-status	looks-fine-thin	cells-per-line=0.31	4	n / pool / state / scan / errors
 zpool-status-gaps	looks-fine-thin	cells-per-line=0.31	4	n / pool / state / scan / errors
-zstd-bench	looks-fine	strong	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
+zstd-bench	needs-review	lone-delimiter-column	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
 zstd-list	looks-fine	good	7	n / Frames / Skips / Compressed / Uncompressed / Ratio / Check / Filename / tota
 zypper-info	looks-fine	good	11	Repository / Name / Version / Arch / Vendor / Installed_Size / Installed / Statu
 zypper-packages	looks-fine	strong	5	n / S / Repository / Name / Version / Arch / total_entries

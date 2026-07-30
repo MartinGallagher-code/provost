@@ -1,6 +1,6 @@
-n	A	B	C	total_entries
-1	data_received..................:	12	MB_1.2_MB/s	5
-2	http_req_duration..............:	avg=42ms	p(95)=128ms	5
-3	http_reqs......................:	88201	882/s	5
-4	iterations.....................:	88201	882/s	5
-5	vus............................:	100		5
+n	key	value	total_entries
+1	data_received	12 MB  1.2 MB/s	5
+2	http_req_duration	avg=42ms  p(95)=128ms	5
+3	http_reqs	88201  882/s	5
+4	iterations	88201  882/s	5
+5	vus	100	5

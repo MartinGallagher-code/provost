@@ -1,0 +1,6 @@
+Reader ...........: Yubico YubiKey OTP+FIDO+CCID 00 00
+Application ID ...: D2760001240103040006123456780000
+Application type .: OpenPGP
+Version ..........: 3.4
+Serial number ....: 12345678
+Signature counter : 42
