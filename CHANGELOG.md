@@ -1,5 +1,17 @@
 # glean — Changelog
 
+## 2026-07-30 — prescreen: --exclude-marked, and a refreshed verification workbook
+
+- **`prescreen.py --emit-json --exclude-marked TSV`** drops tools already ruled
+  on in a marks file. A reviewer should not be re-asked a question they have
+  answered — and, more importantly, an entry they called *wrong* must never be
+  re-presented as one we think is fine. Excluding the 11 round-8 marks takes the
+  workbook from 2,879 to 2,868 entries.
+- Regenerated `docs/review-prescreen-round8.tsv` against the current corpus:
+  `looks-fine` 2863 → **2763**, `looks-fine-thin` 116 → **114**,
+  `needs-review` 466 → **568**. The drop is the hardened screen plus the
+  parser fixes moving tools out of the passing set.
+
 ## 2026-07-30 — indented-colon-groups: header-over-members parsing (round-8 follow-up)
 
 - **`extract/strategies/delimited/indented-colon-groups.sh` (NEW, priority 35)** —

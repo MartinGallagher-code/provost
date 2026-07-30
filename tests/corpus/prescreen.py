@@ -22,6 +22,7 @@ Usage:
   python3 tests/corpus/prescreen.py [-o docs/review-prescreen-round8.tsv]
   python3 tests/corpus/prescreen.py --validate
   python3 tests/corpus/prescreen.py --emit-json /tmp/good.json   # feeds make_review_doc.js
+      [--exclude-marked docs/review-marks-2026-07-30-round8.tsv]
 """
 
 import argparse
@@ -250,11 +251,28 @@ def sanitize(s, expand=False):
     return "".join(_visible(c) for c in s)
 
 
-def emit_json(path):
-    """Risk-ranked JSON of every passing entry, for make_review_doc.js."""
+def marks_from(path):
+    """Tool -> mark from ONE marks TSV (not the merged round 1-3 view)."""
+    out = {}
+    with open(path, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh, delimiter="\t"):
+            m = row["mark"].strip()
+            out[row["name"]] = "mixed" if ";" in m else m.split("=")[0].strip()
+    return out
+
+
+def emit_json(path, exclude_marked=None):
+    """Risk-ranked JSON of every passing entry, for make_review_doc.js.
+
+    exclude_marked: path to a marks TSV whose tools are dropped. A reviewer
+    who has already ruled on an entry should not be shown it again -- and an
+    entry they called wrong must not be re-presented as one we think is fine.
+    """
     import json
 
     done = validated()
+    if exclude_marked:
+        done = done | set(marks_from(exclude_marked))
     out = []
     for name in corpus_names():
         if name in done:
@@ -332,6 +350,8 @@ def main():
                     help="score the screen against the reviewer marks and exit")
     ap.add_argument("--emit-json", metavar="PATH",
                     help="write risk-ranked JSON of the passing entries for make_review_doc.js")
+    ap.add_argument("--exclude-marked", metavar="TSV",
+                    help="drop tools already ruled on in this marks file (used with --emit-json)")
     args = ap.parse_args()
 
     if args.validate:
@@ -339,7 +359,7 @@ def main():
         return 0
 
     if args.emit_json:
-        emit_json(args.emit_json)
+        emit_json(args.emit_json, exclude_marked=args.exclude_marked)
         return 0
 
     done = validated() if args.skip_validated else set()

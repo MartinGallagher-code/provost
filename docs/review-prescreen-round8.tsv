@@ -85,8 +85,8 @@ cargo-clippy-color	needs-review	unsplit-cells;duplicate-column-names;key-value-d
 cargo-clippy-summary	looks-fine	strong	3	n / lint / level / count / total_entries
 cargo-deny-check	looks-fine-thin	cells-per-line=0.40	2	field / value
 cargo-fmt-check	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
-cargo-install-list	looks-fine	good	1	n / A / total_entries
-cargo-machete	looks-fine	good	1	n / A / total_entries
+cargo-install-list	looks-fine	good	2	n / group / value / total_entries
+cargo-machete	looks-fine	strong	3	n / name / path / value / total_entries
 cargo-metadata	looks-fine	good	39	packages.0.name / packages.0.version / packages.0.id / packages.0.license / pack
 cargo-metadata-summary	looks-fine	good	7	packages.0.name / packages.0.version / packages.0.id / packages.1.name / package
 cargo-nextest-run	looks-fine	good	5	n / SLOW / [ / 1_502s] / myapp / db::tests::migration_roundtrip / total_entries
@@ -2121,7 +2121,7 @@ pants-dependencies	looks-fine	good	3	n / src/python/acme/api / src/python/acme/c
 parca-query	looks-fine	strong	5	n / name / labels / samples / value_sum / unit / total_entries
 parquet-tools-schema	looks-fine	strong	3	n / A / B / C / total_entries
 parted-l	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
-parted-print	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
+parted-print	needs-review	column-misalignment=0.28	7	n / Number / Start / End / Size / File / Name / Flags / total_entries
 parted-print-all	looks-fine	good	4	n / Model / Disk_/dev/sda / Sector_size_(logical/physical) / Partition_Table
 passmark-cpu	looks-fine	good	2	n / key / value / total_entries
 passwd-shell-gecos-comma	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
@@ -3025,7 +3025,7 @@ tcpdump-summary	looks-fine	good	1	n / A / total_entries
 tcpkali-run	looks-fine	good	6	Total_data_sent / Total_data_received / Bandwidth_per_channel / Aggregate_bandwi
 tealdeer-update	looks-fine	good	6	n / A / B / C / D / E / F / total_entries
 telegraf-config-test	looks-fine	strong	5	n / A / B / C / D / E / total_entries
-telegraf-plugins-list	looks-fine	good	1	n / A / total_entries
+telegraf-plugins-list	looks-fine	good	2	n / group / value / total_entries
 telegraf-test	looks-fine	strong	4	n / A / B / C / D / total_entries
 telegraf-version	looks-fine	good	4	n / A / B / C / D / total_entries
 teleport-status	looks-fine	good	5	Cluster / Version / Proxy / User / Logins
@@ -3228,7 +3228,7 @@ uv-lock-summary	looks-fine	good	1	n / A / total_entries
 uv-pip-list	looks-fine	good	2	n / Package / Version
 uv-tree	needs-review	unsplit-cells	1	n / A / total_entries
 v-version	looks-fine	good	3	n / A / B / C / total_entries
-v4l2-ctl-list-devices	looks-fine	strong	4	n / A / B / C / D / total_entries
+v4l2-ctl-list-devices	looks-fine	good	2	n / group / value / total_entries
 vagrant-global-status	looks-fine	strong	5	n / id / name / provider / state / directory / total_entries
 vagrant-status	looks-fine	strong	3	n / A / B / C / total_entries
 vagrant-v	looks-fine	good	2	n / A / B / total_entries
