@@ -21,6 +21,7 @@ split on the wrong boundary reads as fine here, so `looks-fine` means
 Usage:
   python3 tests/corpus/prescreen.py [-o docs/review-prescreen-round8.tsv]
   python3 tests/corpus/prescreen.py --validate
+  python3 tests/corpus/prescreen.py --emit-json /tmp/good.json   # feeds make_review_doc.js
 """
 
 import argparse
@@ -151,6 +152,110 @@ def corpus_names():
     return sorted(os.path.splitext(f)[0] for f in os.listdir(IN_DIR))
 
 
+# --- risk ranking, for the human verification pass ------------------------
+# Everything scored here already *passed* the screen. The score orders those
+# passes by how likely the pass is to be wrong, so a reviewer checking the
+# screen can start where it is weakest instead of reading 3,000 entries.
+
+HEADERISH_RE = re.compile(r"^[A-Z][A-Z0-9_()/%.-]*$")
+
+
+def risk(name, verdict, rows):
+    header, data = rows[0], rows[1:]
+    content = [c for c in header if c not in META_COLS]
+    idx = content_idx(header)
+    cells = [r[i] for r in data for i in idx if i < len(r) and r[i].strip()]
+    generic = [c for c in content if re.fullmatch(r"[A-Z]", c)]
+    all_generic = bool(content) and len(generic) == len(content)
+
+    score, why = 0, []
+    if verdict == "looks-fine-thin":
+        score += 4
+        why.append("few captured cells vs input lines")
+    if all_generic:
+        score += 3
+        why.append("all columns unnamed (A/B/C)")
+    if len(content) < 2:
+        score += 2
+        why.append("single content column")
+    if cells and sum(1 for c in cells if "..." in c or c.rstrip().endswith(":")) / len(cells) > 0.15:
+        score += 2
+        why.append("dot-leaders / trailing colons kept in cells")
+    if cells and sum(1 for c in cells if "=" in c) / len(cells) > 0.15:
+        score += 1
+        why.append("'=' left inside cells")
+    if all_generic:
+        path = os.path.join(IN_DIR, name + ".txt")
+        first = ""
+        if os.path.exists(path):
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                first = next((l for l in fh.read().split("\n") if l.strip()), "")
+        if sum(1 for w in first.split() if HEADERISH_RE.fullmatch(w)) >= 2:
+            score += 2
+            why.append("source looks like it has a header row, but columns came out unnamed")
+    if len(data) == 1 and len(content) >= 6:
+        score += 1
+        why.append("single wide row")
+    return score, "; ".join(why) or "no risk signals"
+
+
+# Control characters are illegal in Word XML. The corpus carries plenty (ANSI
+# colour escapes), and they matter to a reviewer judging the parse, so show
+# them as Unicode control pictures rather than dropping them.
+def _visible(ch):
+    o = ord(ch)
+    if o == 0x7F:
+        return "␡"
+    if o < 0x20:
+        return chr(0x2400 + o)
+    return ch
+
+
+def _expand_tabs(s, width=8):
+    out = ""
+    for ch in s:
+        out += " " * (width - len(out) % width) if ch == "\t" else ch
+    return out
+
+
+def sanitize(s, expand=False):
+    s = _expand_tabs(s) if expand else s.replace("\t", " ")
+    return "".join(_visible(c) for c in s)
+
+
+def emit_json(path):
+    """Risk-ranked JSON of every passing entry, for make_review_doc.js."""
+    import json
+
+    done = validated()
+    out = []
+    for name in corpus_names():
+        if name in done:
+            continue
+        verdict, detail, ncontent, _ = classify(name)
+        if not verdict.startswith("looks-fine"):
+            continue
+        rows = load(name)
+        score, why = risk(name, verdict, rows)
+        src_path = os.path.join(IN_DIR, name + ".txt")
+        src = []
+        if os.path.exists(src_path):
+            with open(src_path, encoding="utf-8", errors="replace") as fh:
+                src = fh.read().rstrip("\n").split("\n")
+        out.append({
+            "name": name, "verdict": verdict, "tier": detail,
+            "risk": score, "why": why, "ncontent": ncontent,
+            "input": [sanitize(l, expand=True) for l in src],
+            "table": [[sanitize(c) for c in r] for r in rows],
+        })
+    out.sort(key=lambda d: (-d["risk"], d["name"]))
+    for i, d in enumerate(out, 1):
+        d["rank"] = i
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(out, fh)
+    print("wrote %s — %d entries" % (path, len(out)))
+
+
 def validated():
     path = os.path.join(DOCS, "review-validated-cumulative.txt")
     with open(path, encoding="utf-8") as fh:
@@ -198,10 +303,16 @@ def main():
                     help="include already-validated tools")
     ap.add_argument("--validate", action="store_true",
                     help="score the screen against the reviewer marks and exit")
+    ap.add_argument("--emit-json", metavar="PATH",
+                    help="write risk-ranked JSON of the passing entries for make_review_doc.js")
     args = ap.parse_args()
 
     if args.validate:
         validate()
+        return 0
+
+    if args.emit_json:
+        emit_json(args.emit_json)
         return 0
 
     done = validated() if args.skip_validated else set()

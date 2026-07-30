@@ -22,11 +22,24 @@
   3,448 corpus entries that are not yet in
   `docs/review-validated-cumulative.txt`: 2,863 `looks-fine`, 116
   `looks-fine-thin`, 466 `needs-review`, 3 `no-output`.
+- **`tests/corpus/make_review_doc.js` (NEW)** + `prescreen.py --emit-json` —
+  render the passing entries as a Word review workbook so the screen itself can
+  be checked. Sections are ordered **most-likely-to-be-wrong first** by a risk
+  score (thin capture, all-unnamed columns, single content column, dot-leaders
+  or `=` left in cells, a source header row that came out unnamed, single wide
+  row), so verification starts where the screen is weakest: 1,198 of the 2,979
+  passes carry at least one risk signal, the remaining 1,781 carry none.
+  Control characters are illegal in Word XML, and this corpus holds 1,670 of
+  them (mostly ANSI colour escapes, across 108 entries), so they render as
+  Unicode control pictures (`␛`, `␇`) rather than being dropped; input tabs
+  expand to 8-column stops the way a terminal shows them. Outputs wider than
+  12 columns render as pipe-separated monospace rows instead of an unreadable
+  table. Needs `npm install docx`.
 - The screen sees structure only. A parse that is cleanly rectangular but split
   on the wrong boundary reads as fine (all 17 round-3 `Not quite` tools pass),
   so `looks-fine` means "nothing mechanically wrong", not "correct".
-- Files: `tests/corpus/prescreen.py`, `docs/review-prescreen-round8.tsv`,
-  `CHANGELOG.md`, `HANDOFF.md`.
+- Files: `tests/corpus/prescreen.py`, `tests/corpus/make_review_doc.js`,
+  `docs/review-prescreen-round8.tsv`, `CHANGELOG.md`, `HANDOFF.md`.
 
 ## 2026-07-24 — pip-only install; bundle.txt is now pure printable ASCII
 

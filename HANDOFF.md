@@ -20,9 +20,19 @@
 >   spot-checks found real semantic misses inside `looks-fine` (`k6-summary`
 >   keeps its dot-leaders, `pgrep-a` leaves pid unsplit from command). Treat
 >   `looks-fine` as "skip unless you want to be thorough", not as a sign-off.
-> - **No generator for the .docx workbook exists in-repo** — it is produced
->   outside the tree, so round 9 is not reproducible on demand. Worth adding
->   if the review cycle continues.
+> - A Word workbook of the 2,979 passing entries, ordered most-likely-to-be-
+>   wrong first, is reproducible in-repo:
+>   ```bash
+>   npm install docx
+>   python3 tests/corpus/prescreen.py --emit-json /tmp/good.json
+>   node tests/corpus/make_review_doc.js /tmp/good.json good.docx
+>   ```
+>   Verified: XSD-valid, and all 2,979 input blocks and 2,979 output tables
+>   round-trip byte-exact against the corpus. (`soffice` cannot open *any*
+>   .docx in this container — a trivial one fails too — so it was checked by
+>   XSD validation plus text round-trip, not by rendering.)
+> - The reviewer's own `.docx` workbook still has no generator in-repo; this
+>   covers the pre-screen output only, not the full 3,706-entry form.
 
 > **2026-07-24 — pip-only install + pure-ASCII bundle.**
 > - Install is now `pip install glean-data` only; `install.sh` deleted and
