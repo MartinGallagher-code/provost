@@ -57,7 +57,6 @@ _COLUMNAR_SPECS=(
   $'grafana-cli-plugins\tinstalled plugins\t-\tws\t-1\t3\tid,~at,version\t1\t @ [0-9]'
   $'bq-ls\ttableId;Type\ttableId\tws\t-1\t2\ttableid,type\t1\t[[:alpha:]]'
   $'arp-scan\tarp-scan\t-\tws\t-1\t3\tip,mac,vendor@rest\t1\t^[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+'
-  $'rustc-cfg\ttarget_arch=;target_os=\t-\tws\t-1\t1\tA@line'
   $'apache2ctl-modules\tLoaded Modules:\tLoaded Modules:\tws\t-1\t2\tmodule,type@unwrap'
   $'apk-list\tre:\\{[^}]+\\} \\([^)]+\\)\t-\tws\t3\t5\tpackage,arch,origin@unwrap,license@unwrap,status@unwrap'
   $'dub-list\tknown to dub\tknown to dub\tws\t-1\t1\tA@line'

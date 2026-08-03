@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3451/0, 254 ⏳** in under 4 min (engine batch mode + caches; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks: 19 disagreements — **12 fixed**, 7 open (triaged in CHANGELOG part-3 entry).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #48). Round-10 marks: 17 disagreements — **13 fixed**, 4 open (triaged in CHANGELOG).
+
+> **2026-08-03 — round-10 marks (post-merge, fresh branch).** 13 of 17 worst-20
+> disagreements fixed. `equals` pin/cfg list modes (pip-freeze, rye-list,
+> rustc-cfg — entry-prefixed rows, cfg gated on a bare flag token so env/wpa
+> snapshots stay wide); `indented-colon-groups` relative/indented headers + `=`
+> split (perl-v); `tsv` leading-tab fix (ldd); new strategies dep-tree,
+> arrow-map, numeric-lead-records, brace-groups, checking-groups; powertop
+> hint. Free riders: mangohud (bare-flag data-loss fix), pipdeptree full/reverse
+> (tree-view). 5 manifest rows retyped to row-shaped output. Gate 3452/0/253,
+> 0 deleted (three regen passes each caught + fixed a deletion). **4 open:**
+> kubectl-describe-deployment, npm-audit-summary, nslookup_mx (colon-header
+> banner variant), nst-python-traceback-log — see CHANGELOG.
 
 > **2026-08-03 — round-9 part 3.** Three new generic strategies close four
 > more marks: `repeated-lead-records` p38 (keepalived label|value,

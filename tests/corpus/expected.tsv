@@ -156,7 +156,7 @@ git-ls-files	table	8	1
 git-show-ref	table	5	2
 svn-status	table	5	2
 pip-show	kv	-	2
-pip-freeze	table	7	1
+pip-freeze	table	7	2
 gem-list	table	6	1
 composer-show	table	5	2
 cargo-tree	table	9	1
@@ -705,7 +705,7 @@ python-vv	table	1	1
 pip-config	kv	-	4
 node-versions	kv	-	4
 go-dist-list	table	8	1
-rustc-cfg	table	8	1
+rustc-cfg	table	8	2
 rustup-toolchain	table	4	1
 rustup-component	table	6	1
 gcc-v	kv	-	4
@@ -3001,7 +3001,7 @@ tree-l3-project	table	21	4
 pstree-ap	table	13	4
 npm-ls-deep	table	16	4
 pnpm-why-react-dom	table	10	4
-pipdeptree-full	table	14	9
+pipdeptree-full	table	11	3
 cargo-tree-dedup	table	20	3
 go-mod-graph-indented	table	9	4
 mvn-dep-tree-verbose	table	13	4
@@ -3029,7 +3029,7 @@ jq-tree-keys	table	12	4
 xml-indented-config	text	-	3
 html-indented-dom	text	-	3
 yaml-nested-maps	text	-	3
-pipdeptree-reverse	table	10	7
+pipdeptree-reverse	table	7	3
 cargo-tree-invert	table	13	3
 mvn-dep-tree-graph	table	9	6
 gradle-deps-testruntime	table	12	4
@@ -3038,7 +3038,7 @@ systemd-cgls-machine-unit	table	12	4
 tree-l4-node-modules	table	19	4
 pstree-highlight	table	9	4
 pnpm-list-recursive	table	9	4
-pip-tree-text	table	10	8
+pip-tree-text	table	10	5
 go-mod-why-graph	table	9	4
 lsblk-nvme-tree	table	9	7
 findmnt-submounts	table	6	6

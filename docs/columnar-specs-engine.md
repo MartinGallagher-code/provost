@@ -203,7 +203,7 @@ lands — ranked by how many tools each would unlock):
 zypper-search, buildah-containers, lsmem, ss-tulnp, smartctl-attributes, mount,
 iostat-d, rabbitmqctl-list-queues, goose-status, ipmitool-sensor,
 dpkg-get-selections, gsutil-ls-l, grafana-cli-plugins, bq-ls, arp-scan,
-rustc-cfg, apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
+apache2ctl-modules, dub-list, lstopo-no-graphics, lshw-network,
 route-6, snap-connections, networkctl-lldp, memcached-stats,
 es-cat-allocation, bundle-list, nethogs, slabtop, objdump-headers,
 iptables-save, ldconfig-p, perf-top, turbostat, traceroute, crontab,

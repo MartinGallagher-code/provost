@@ -1464,7 +1464,7 @@ lazyvim-plugins	looks-fine	strong	3	n / A / B / C / total_entries
 ldap-search-dn-commas	looks-fine	good	2	n / name / value / total_entries
 ldapsearch-ldif-people	looks-fine	strong	7	n / dn / uid / cn / mail / uidNumber / gidNumber / dn:_uid
 ldconfig-p	looks-fine	strong	3	n / soname / info / path / total_entries
-ldd	looks-fine	good	1	n / A / total_entries
+ldd	looks-fine	strong	3	n / name / address / target / total_entries
 ldd-recursive	looks-fine	strong	3	n / A / B / C / total_entries
 ldif-groups-export	looks-fine	strong	7	n / dn / cn / gidNumber / member / description / dn:_cn / member:_uid
 ledger-balance	looks-fine	strong	3	n / amount / account / total / total_entries
@@ -1573,7 +1573,7 @@ luarocks-list	looks-fine	good	2	n / Installed / rocks: / total_entries
 lutris-list	looks-fine	strong	3	n / A / B / C / total_entries
 lvdisplay	looks-fine	good	16	n / section / LV_Path / LV_Name / VG_Name / LV_UUID / LV_Write_Access / LV_Creat
 lvdisplay-m	looks-fine	strong	22	n / section / LV_Path / LV_Name / VG_Name / LV_UUID / LV_Write_Access / LV_Creat
-lvmconfig-dump	looks-fine	good	1	n / A / total_entries
+lvmconfig-dump	looks-fine	strong	3	n / group / key / value / total_entries
 lvs	looks-fine	strong	4	n / LV / VG / Attr / LSize / total_entries
 lvs-devices	looks-fine	strong	7	n / LV / VG / Attr / LSize / Pool / Origin / Data% / total_entries
 lvs-report	looks-fine	strong	4	n / LV / VG / Attr / LSize / total_entries
@@ -1597,7 +1597,7 @@ mamba-env-list	needs-review	unsplit-cells	1	n / A / total_entries
 mamba-list	looks-fine	strong	4	n / Name / Version / Build / Channel / total_entries
 mamba-repoquery-search	looks-fine	strong	4	n / Name / Version / Build / Channel / total_entries
 mame-listxml-count	looks-fine	good	2	field / value
-mangohud-config	looks-fine	good	2	fps_limit / frame_timing
+mangohud-config	looks-fine	good	2	n / key / value / total_entries
 mariadb-innodb-status	needs-review	separator-row-as-data	1	n / A / total_entries
 mariadb-show-plugins	looks-fine	strong	5	n / Name / Status / Type / Library / License / total_entries
 mariadb-show-status	looks-fine	good	2	n / Variable_name / Value / total_entries
@@ -1905,7 +1905,7 @@ nst-lvdisplay-segments	looks-fine-thin	cells-per-line=0.47	12	n / section / LV_P
 nst-mdadm-detail-devices	looks-fine	good	6	n / Version / Raid_Level / Array_Size / Raid_Devices / Total_Devices / State
 nst-mysqltuner-mixed	looks-fine-thin	cells-per-line=0.45	5	n / Version / Uptime / Slow_queries / Highest_usage_of_available_connections / A
 nst-namespace-pods-tree	looks-fine	strong	5	n / namespace / NAME / READY / STATUS / RESTARTS / total_entries
-nst-nginx-upstream-blocks	looks-fine-thin	cells-per-line=0.46	6	upstream_backend_{.server_10.0.0.11 / upstream_backend_{.server_10.0.0.12 / upst
+nst-nginx-upstream-blocks	looks-fine	good	2	n / group / value / total_entries
 nst-nvme-per-namespace-stats	looks-fine	strong	5	n / name / group / Size / Used / LBA / total_entries
 nst-openssl-x509-text	looks-fine	good	2	n / key / value / total_entries
 nst-perf-report-sections	needs-review	duplicate-column-names	4	#_Samples / #_Event_count_(approx.) / #_Samples / #_Event_count_(approx.)
@@ -2152,7 +2152,7 @@ perf-top	looks-fine	strong	3	n / overhead / shared_object / symbol / total_entri
 perf-trace	looks-fine	strong	8	n / A / B / C / D / E / F / G / H / total_entries
 perftest-write-bw	needs-review	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell	1	n / ************************************ / total_entries
 perl-V-short	looks-fine	good	12	n / A / B / C / D / E / F / G / H / I / J / K / L / total_entries
-perl-v	looks-fine	strong	11	n / A / B / C / D / E / F / G / H / I / J / K / total_entries
+perl-v	looks-fine	strong	3	n / group / key / value / total_entries
 perl-version	looks-fine	good	2	n / This_is_perl_5 / version_36 / total_entries
 pg-basebackup-progress	looks-fine	good	2	n / 1204882/4102839_kB_(29%) / 1/1_tablespace / total_entries
 pg-dump-schema-count	looks-fine	strong	4	n / SCHEMA / TABLES / VIEWS / FUNCTIONS / total_entries
@@ -2175,7 +2175,7 @@ pgbouncer-show-pools	looks-fine	strong	6	n / database / user / cl_active / cl_wa
 pgbouncer-show-servers	looks-fine	strong	9	n / type / user / database / state / addr / port / local_addr / local_port / con
 pgbouncer-stats	looks-fine	strong	7	n / database / total_xact_count / total_query_count / total_received / total_sen
 pgrep	looks-fine	good	2	n / A / B / total_entries
-pgrep-a	looks-fine	good	1	n / A / total_entries
+pgrep-a	looks-fine	good	2	n / id / value / total_entries
 pgrep-full	looks-fine	strong	3	n / A / B / C / total_entries
 phoronix-result	looks-fine	strong	6	n / Test / node1 / node2 / node3 / Average / Deviation
 php-i	looks-fine	good	8	PHP_Version / System / Build_Date / Server_API / Configuration_File_(php.ini)_Pa
@@ -2196,7 +2196,7 @@ ping-heatmap	looks-fine	strong	4	n / Host / min/avg/max / Heatmap / (last / tota
 pip-check	looks-fine	good	2	n / fastapi_0_111_0_requires_starlette / which_is_not_installed_ / total_entries
 pip-config	looks-fine	good	5	global.index-url / global.timeout / global.trusted-host / install.no-cache-dir /
 pip-download-bars	looks-fine-thin	cells-per-line=0.33	3	Collecting_numpy==1.26.4.Downloading_numpy-1.26.4-cp311-cp311-manylinux_x86_64.w
-pip-freeze	looks-fine	good	1	n / A / total_entries
+pip-freeze	looks-fine	good	2	n / package / version / total_entries
 pip-list-color-table	looks-fine	good	2	n / Package / Version / total_entries
 pip-list-outdated	looks-fine	strong	4	n / Package / Version / Latest / Type / total_entries
 pip-list-outdated-sparse	looks-fine	strong	4	n / Package / Version / Latest / Type / total_entries
@@ -2207,12 +2207,12 @@ pip-show-dev-deps	looks-fine	strong	5	n / Name / Version / Summary / Location / 
 pip-show-django	looks-fine	good	10	Name / Version / Summary / Home-page / Author / Author-email / License / Locatio
 pip-show-multi	looks-fine	strong	5	n / Name / Version / Summary / Author / License
 pip-show-requests	looks-fine	good	13	Name / Version / Summary / Home-page / Author / Author-email / License / Locatio
-pip-tree-text	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
+pip-tree-text	looks-fine	strong	5	n / A / installed / B / required / C / total_entries
 pip-versions-pinned	looks-fine	good	2	n / Package / Version / total_entries
 pip3-show	looks-fine	good	10	Name / Version / Summary / Home-page / Author / Author-email / License / Locatio
-pipdeptree-full	needs-review	column-misalignment=0.17	7	n / A / B / C / D / E / F / G / total_entries
-pipdeptree-reverse	needs-review	column-misalignment=0.16	5	n / A / B / C / D / E / total_entries
-pipenv-graph	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
+pipdeptree-full	needs-review	key-value-delimiter-in-cell;column-misalignment=0.17	3	n / depth / parent / name / total_entries
+pipdeptree-reverse	needs-review	key-value-delimiter-in-cell;column-misalignment=0.38	3	n / depth / parent / name / total_entries
+pipenv-graph	looks-fine	strong	4	n / A / installed / B / required / total_entries
 pipx-environment	looks-fine	good	5	PIPX_HOME / PIPX_BIN_DIR / PIPX_LOCAL_VENVS / PIPX_TRAMPOLINE_DIR / PIPX_LOG_DIR
 pipx-list	looks-fine	strong	4	n / venvs / are / in / /home/user/_local/share/pipx/venvs / total_entries
 pipx-list-full	looks-fine	strong	7	n / apps / are / exposed / on / your / $PATH / at / total_entries
@@ -2259,7 +2259,7 @@ posting-collection	looks-fine	good	2	field / value
 postqueue-p	needs-review	unsplit-cells	2	A1B2C3D4E5_____2048_Thu_Jul_10_06 / F6G7H8I9J0_____4096_Thu_Jul_10_06
 powercap-info	looks-fine	good	16	n / Name / Enabled / Max_energy_range / Energy / Constraint_0.Name / Constraint_
 powermetrics-summary	looks-fine-thin	cells-per-line=0.45	5	n / ***_Sampled_system_activity_(2026-07-11_09 / GPU_active_residency / GPU_Powe
-powertop	looks-fine-thin	cells-per-line=0.12	1	n / Summary
+powertop	looks-fine	strong	4	n / Usage / Events/s / Category / Description / total_entries
 powertop-devices	looks-fine	good	4	100.0%______Display_backlight.4.2_W_____USB_device / 100.0%______Display_backlig
 powertop-summary	looks-fine	good	2	field / value
 powertop-watts-tunables	looks-fine	strong	4	n / Usage / Wakeups/s / Category / Description / total_entries
@@ -2321,9 +2321,9 @@ proj-info	looks-fine	good	2	n / PROJ / 9_4_0 / total_entries
 prometheus-targets	looks-fine	good	8	status / instance / job / scrapePool / scrapeUrl / health / lastScrape / lastScr
 prometheus-version	needs-review	key-value-delimiter-in-cell	3	n / 53.0_(branch / build_user / go_version
 promtail-targets	looks-fine	strong	3	n / A / B / C / total_entries
-promtool-check-config	looks-fine-thin	cells-per-line=0.18	1	n / SUCCESS
+promtool-check-config	looks-fine	strong	3	n / file / level / message / total_entries
 promtool-check-metrics	looks-fine	good	2	n / A / B / total_entries
-promtool-check-rules	looks-fine-thin	cells-per-line=0.25	1	n / SUCCESS
+promtool-check-rules	looks-fine	strong	3	n / file / level / message / total_entries
 promtool-query	looks-fine	strong	4	n / name / value / label.instance / label.job
 promtool-query-range	looks-fine	good	2	n / A / B / total_entries
 promtool-test-rules	looks-fine-thin	cells-per-line=0.25	2	n / alertname / exp
@@ -2614,7 +2614,7 @@ ruff-check	needs-review	key-value-delimiter-in-cell	2	n / name / value / total_e
 ruff-check-color	needs-review	unsplit-cells;key-value-delimiter-in-cell	2	n / name / value / total_entries
 runc-version	looks-fine	good	3	commit / spec / go
 rush-list	looks-fine	strong	3	n / Project / Path / Version / total_entries
-rustc-cfg	looks-fine	good	1	n / A / total_entries
+rustc-cfg	looks-fine	good	2	n / key / value / total_entries
 rustc-v-verbose	looks-fine	good	5	binary / commit-hash / host / release / LLVM_version
 rustc-version	looks-fine	good	4	n / A / B / C / D / total_entries
 rustic-snapshots	looks-fine	strong	8	n / ID / Time / Host / Label / Paths / Files / Size / Tags / total_entries
@@ -2623,7 +2623,7 @@ rustup-component	looks-fine	good	2	n / A / B / total_entries
 rustup-show	looks-fine-thin	cells-per-line=0.18	2	n / Default_host / rustup_home
 rustup-toolchain	looks-fine	good	2	n / A / B / total_entries
 rustup-toolchain-list	looks-fine	good	2	n / A / B / total_entries
-rye-list	looks-fine	good	1	n / A / total_entries
+rye-list	looks-fine	good	2	n / package / version / total_entries
 rye-sync	looks-fine	strong	4	n / Reusing / already / existing / virtualenv / total_entries
 s-tui-stress	looks-fine	strong	4	n / Core / Freq(MHz) / Util / Power / total_entries
 s-tui-summary	looks-fine	good	4	Frequency / Temp / Utilization / Power

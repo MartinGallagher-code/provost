@@ -50,9 +50,9 @@ mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	
 nft-list-tables	regex	^table [^{]+$	line-records
 nvidia-smi-topo	contains	CPU Affinity	aligned-columns
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
-pip-deps	regex	^[A-Za-z0-9._-]+==[0-9]	line-records
 pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines
 poetry-show-tree	regex	^[a-z0-9._-]+ [0-9]+\.[0-9]+\.[0-9]+ [A-Z]	aligned-columns
+powertop	regex	Usage[[:space:]]+Events/s[[:space:]]+Category[[:space:]]+Description	embedded-table
 proc-buddyinfo	prefix	Node 0, zone	aligned-columns
 proc-locks	regex	^1: (POSIX|FLOCK|OFDLCK)	line-records
 proc-mounts	prefix	proc /proc proc 	aligned-columns
