@@ -1,2 +1,5 @@
-n	avg-cpu
-2	%user___%nice_%system_%iowait__%steal___%idle
+n	Device	tps	MB_read/s	MB_wrtn/s	MB_dscd/s	MB_read	MB_wrtn	MB_dscd	total_entries
+1	nvme0n1	1820.00	44.20	88.60	0.00	318912	639104	0	4
+2	nvme1n1	1798.00	43.10	86.90	0.00	311040	627200	0	4
+3	nvme2n1	1544.00	30.00	60.10	0.00	216576	433792	0	4
+4	md0	3120.00	87.30	175.50	0.00	629888	1266432	0	4

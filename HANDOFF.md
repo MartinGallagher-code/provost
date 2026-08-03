@@ -1,6 +1,29 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3445/0, 260 ⏳** (round-8 parser work complete: dot-leader fix, indented-colon-groups, colons comment-skip, unspaced-colon-kv, count-percent-label), extract 62/62, smoke 58/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3449/0, 256 ⏳** (round-9 part 1: iostat family via embedded-table 1.1 + hint), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks are in: 26 of 150, 19 disagree — 5 fixed, 14 triaged in CHANGELOG.
+
+> **2026-08-03 — round-9 marks, part 1: iostat family fixed.** The reviewer
+> marked 26 of the 150-entry round-9 batch (19 disagree, 7 agree —
+> `docs/review-marks-2026-08-03-round9.tsv`). The biggest cluster was
+> `iostat-{x,cx,xz,xmt}` + `nst-iostat-multisection`, all one root cause:
+> `embedded-table` rejected `%`-led header tokens, its detection policy sat
+> inside `_et_scan` where the hint path also hit it, and single windows dropped
+> repeated sections. Fixed as embedded-table 1.1 + an `avg-cpu:` hint row (5
+> matching inputs, all targets). Numeric-aware boundary snap also repaired
+> `sfdisk-l`'s welded golden and `nst-vmstat-sections`' separator garbage.
+> - Verified: gate 3449/0/256 (4 goldens ADDED, 3 modified-better, 0 deleted),
+>   extract 62/62, smoke 58/0, melt 10/0. First-cut lessons are in CHANGELOG
+>   (nearest-edge snap broke dotnet/parted until restricted to numerics).
+> - **Remaining round-9 work: 14 disagreements**, triaged in CHANGELOG — next
+>   easiest: `pre-commit-run` (colonless dot-leader form), `env-diff` (equals
+>   with +/- sign prefix), `hwinfo-short` (multi-token members for
+>   indented-colon-groups).
+> - **Design note from the reviewer:** an input may deserve MULTIPLE outputs —
+>   e.g. iostat's avg-cpu kv block AND its Device table are both real data, but
+>   the engine's one-winner model keeps exactly one. Today we take the table
+>   and drop avg-cpu. Honouring both means a `--max-strategies >1`-style merge
+>   or section-splitting ahead of detection — an architectural decision, not a
+>   parser tweak; not started.
 
 > **2026-08-03 — round-8 reviewer marks: all ten now answered.** The last three
 > disagreements (`perf-bench-sched`, `bowtie2-align-summary`, `hammerdb-tpcc`)

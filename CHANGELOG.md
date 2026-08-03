@@ -1,5 +1,72 @@
 # glean — Changelog
 
+## 2026-08-03 — round-9 marks, part 1: the iostat family
+
+The round-9 workbook came back with 26 marks (19 disagree, 7 agree; saved in
+`docs/review-marks-2026-08-03-round9.tsv`). This lands the biggest cluster:
+`iostat-x`, `iostat-cx`, `iostat-xz`, `iostat-xmt` — four "you didn't even
+try" marks with one root cause — plus `nst-iostat-multisection`, which shared
+it. All five went from a one-column blob (or worse, `block-records` welding
+the avg-cpu header into `%user___%nice_...`) to the real per-device table.
+
+- **`embedded-table` 1.0 → 1.1** (three changes, each with its own guard):
+  - Header tokens may now lead with `%` (or an escaped `\%`): iostat, sar and
+    pidstat name percentage columns `%util`, `%rrqm`, `%idle`, and the old
+    `^[A-Za-z0-9[]` gate rejected the whole header line for it.
+  - Detection POLICY (embeddedness, the prose-chrome rule, section-repeat
+    rejection) moved out of `_et_scan` into `_et_policy`, called only by
+    `strategy_detect`. A hints.tsv route bypasses detect — the hint row IS the
+    detection — so extract now works from any found window. Auto-detection
+    behaviour is unchanged.
+  - `strategy_extract` merges the rows of every section whose header is
+    token-identical to the primary window's (`iostat -x 5` prints the same
+    table per interval), and a header that repeats verbatim drops the 3-row
+    window floor to 1 — two devices per sample is still a table. Merging means
+    multi-sample reports keep EVERY section's rows instead of the largest
+    window only.
+  - The boundary-snap rule for tokens straddling a column boundary is now
+    numeric-aware: a pure number nearer its own start snaps LEFT (right-aligned
+    numerics spilling ahead of a narrow label — sfdisk's wide sector counts,
+    iostat's ` 10440.0` under `wkB/s`); text keeps the old weld-right rule
+    (dotnet's `> Newtonsoft.Json` under a multi-word label stays one cell).
+    First cut snapped every token to the nearer edge and broke
+    `dotnet-list-package` and `parted-print`; the numeric restriction restored
+    both while keeping the fixes.
+- **`extract/hints.tsv`** — new family row routes `avg-cpu:` reports to
+  `embedded-table`. Exactly 5 corpus inputs match; all 5 are the targets.
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3449 passed, 0 failed**, 256 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted (rule 5) | **0** |
+
+4 goldens ADDED (the iostat family enters coverage, 260 → 256 ⏳) and 3
+modified, each verified an improvement by eye: `nst-iostat-multisection` (blob
+→ 4-row table), `nst-vmstat-sections` (dropped its `--- 5 second interval ---`
+separator garbage), `sfdisk-l` (its old golden carried `3147776 99614719`
+welded into one cell with an empty neighbour — the numeric snap fix).
+
+### Still open from round 9 (15 disagreements, triaged)
+
+- `pre-commit-run` — dot leaders with NO colon (`check yaml.....Failed`);
+  a third form for `dot-leader-kv`.
+- `env-diff` — `+VAR=value` / `-VAR=value`; the `equals` parser rejects the
+  sign prefix.
+- `hwinfo-short` — `indented-colon-groups` but with MULTI-token members;
+  needs a relaxation of its single-token gate.
+- `keepalived-vrrp-state` — repeated `VRRP_Instance(VI_1)` first token, rest
+  is message: first-token/rest records.
+- `sdparm-all`, `fossil-timeline` — repeated section banners as a column value
+  carried down (reviewer described the shape).
+- `bluetoothctl-devices`, `hledger-balance`, `fdbcli-status` — "you lost
+  data/info": content dropped, not misparsed; each needs its own look.
+- `btrfs-filesystem-show`, `cmb-cr-redraw-progress-final`, `decode-dimms`,
+  `dvc-dag`, `go-ycsb-run`, `hugo-version` — marked without notes; unstudied.
+
 ## 2026-08-03 — .gitignore: npm artifacts from the review-workbook generator
 
 - Building a review workbook needs `npm install docx`, which drops

@@ -1,0 +1,29 @@
+# Round-9 reviewer marks (batch: docs/review-batch-round9.tsv).
+# 150 sent, 26 marked: 19 DISAGREE, 7 agree. 124 left blank.
+name	mark	note
+gum-format-preview	OK=x	-
+hwinfo-short	Horrible=x	cpu, keyboard, graphics card, etc. are keys.
+keepalived-vrrp-state	Horrible=x	A and B columns
+magic-wormhole-send	OK=x	-
+mcelog	OK=x	-
+mpv-version	OK=x	-
+pre-commit-run	Horrible=x	Remove the dot spacers. Then, two columns, A and B
+schedtool	OK=x	-
+sdparm-all	Horrible=x	First line is kind of like a comment. Read… and Caching… are repeated column values, with items below each in multiple columns
+zola-check	OK=x	-
+bluetoothctl-devices	Horrible=x	You lost info. Should be three columns
+btrfs-filesystem-show	Horrible=x	-
+cmb-cr-redraw-progress-final	Horrible=x	-
+decode-dimms	Horrible=x	-
+dvc-dag	Horrible=x	-
+env-diff	Horrible=x	We have key-value here. Two columns A,B
+fdbcli-status	Horrible=x	lost all of the info,
+fossil-timeline	Horrible=x	Each section should have repeated ‘===…..’ column value, with each line beneath parsed.
+go-ycsb-run	Horrible=x	-
+grafana-version	OK=x	-
+hledger-balance	Horrible=x	You lost data.
+hugo-version	Horrible=x	you didn’t event try
+iostat-cx	Horrible=x	you didn’t even try,
+iostat-x	Horrible=x	you didn’t even try
+iostat-xmt	Horrible=x	You didn’t even try
+iostat-xz	Horrible=x	horrible!
