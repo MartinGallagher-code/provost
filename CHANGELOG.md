@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-08-03 — .gitignore: npm artifacts from the review-workbook generator
+
+- Building a review workbook needs `npm install docx`, which drops
+  `node_modules/` (11 MB) plus a scaffolded `package.json` and
+  `package-lock.json` into the working tree. `tests/corpus/make_review_doc.js`
+  already documents the package as *"not vendored here"*, so all three are local
+  build artifacts and are now ignored.
+- Committing them would have broken the REUSE licensing lint and bloated
+  `bundle.txt` by 11 MB of third-party JS. Verified the current `bundle.txt` is
+  unaffected: it was generated before the install and carries **0**
+  `===FILE: node_modules/...===` sections (the 38 textual matches for
+  `node_modules` are corpus fixtures — npm/yarn outputs that legitimately
+  mention those paths).
+
 ## 2026-08-03 — round-9 review batch: the 150 riskiest passing entries
 
 - **`docs/review-batch-round9.tsv` (NEW)** — records which entries went out for
