@@ -1,0 +1,156 @@
+# Round-9 review batch: the 150 riskiest entries that PASS the structural
+# pre-screen, ordered most-likely-to-be-wrong first (prescreen.py risk()).
+# Excludes the 258 cumulative VALIDATED entries and the 11 round-8 marks.
+# Sent as glean_review_round9_top150.{docx,txt}. Marks come back as
+# docs/review-marks-<date>-round9.tsv.
+rank	name	risk	verdict	content_cols	why
+1	gum-format-preview	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+2	hwinfo-short	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+3	keepalived-vrrp-state	7	looks-fine	1	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed
+4	magic-wormhole-send	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+5	mcelog	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+6	mpv-version	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+7	pre-commit-run	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+8	schedtool	7	looks-fine	11	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; source looks like it has a header row, but columns came out unnamed
+9	sdparm-all	7	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; source looks like it has a header row, but columns came out unnamed
+10	zola-check	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells
+11	bluetoothctl-devices	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+12	btrfs-filesystem-show	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+13	cmb-cr-redraw-progress-final	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+14	decode-dimms	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+15	dvc-dag	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+16	env-diff	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+17	fdbcli-status	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+18	fossil-timeline	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+19	go-ycsb-run	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+20	grafana-version	6	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+21	hledger-balance	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+22	hugo-version	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+23	iostat-cx	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+24	iostat-x	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+25	iostat-xmt	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+26	iostat-xz	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+27	kubectl-describe-deployment	6	looks-fine-thin	9	few captured cells vs input lines; '=' left inside cells; single wide row
+28	ldd	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+29	ledger-balance	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+30	loki-version	6	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+31	lvmconfig-dump	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+32	mimir-version	6	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+33	npm-audit-summary	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+34	nslookup_mx	6	looks-fine	2	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; '=' left inside cells
+35	nst-iostat-multisection	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+36	nst-ip-route-per-table	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+37	nst-nginx-upstream-blocks	6	looks-fine-thin	6	few captured cells vs input lines; '=' left inside cells; single wide row
+38	nst-python-traceback-log	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+39	perl-v	6	looks-fine	11	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; '=' left inside cells
+40	pgrep-a	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+41	pip-freeze	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+42	pip-tree-text	6	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; '=' left inside cells
+43	pipenv-graph	6	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; '=' left inside cells
+44	powertop	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+45	promtool-check-config	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+46	promtool-check-rules	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+47	rustc-cfg	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+48	rye-list	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+49	sage-version	6	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+50	sslscan	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+51	systemd-analyze-plot-summary	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+52	systemd-analyze-time	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+53	taskset	6	looks-fine	6	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+54	tempo-version	6	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+55	terraform-plan	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+56	tfsec-results	6	looks-fine-thin	1	few captured cells vs input lines; single content column
+57	thanos-version	6	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; single wide row
+58	uname-a	6	looks-fine	10	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed; single wide row
+59	yarn-why	6	looks-fine	1	all columns unnamed (A/B/C); single content column; '=' left inside cells
+60	apt-get-download-progress	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+61	asciidoctor-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+62	atlantis-status	5	looks-fine	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+63	biosdecode	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+64	bpftrace	5	looks-fine	2	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+65	bun-install-summary	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+66	cabal-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+67	caddy-list-modules	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+68	candump-log	5	looks-fine	11	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+69	cargo-bench	5	looks-fine	8	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+70	cargo-test-color	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+71	cargo-test-summary	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+72	cdk-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+73	ceph-osd-pool-stats	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+74	cgget	5	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+75	cgget-cpu	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+76	changesets-status	5	looks-fine	2	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+77	chezmoi-managed	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+78	chkrootkit-summary	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+79	choose-output	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+80	clickhouse-show-tables	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+81	cmake-version-full	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+82	cmb-colorsep-only	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+83	cmb-colorsep-reset-fields	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+84	code-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+85	collectd-listval	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+86	comfyui-queue	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+87	consul-catalog-datacenters	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+88	crane-ls	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+89	cups-lpstat-v	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+90	dagger-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+91	dasel-select	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+92	dbt-ls	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+93	dbt-source-freshness	5	looks-fine	2	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+94	difftastic-summary	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+95	dig-short	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+96	dmidecode-bios	5	looks-fine-thin	8	few captured cells vs input lines; single wide row
+97	dnf-repoquery	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+98	dnf-repoquery-provides	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+99	docker-network-inspect	5	looks-fine-thin	10	few captured cells vs input lines; single wide row
+100	docker-volume-inspect	5	looks-fine-thin	6	few captured cells vs input lines; single wide row
+101	dotnet-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+102	dpkg-L	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+103	e2fsck-summary	5	looks-fine	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+104	earthly-ls	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+105	elixir-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+106	emacs-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+107	enc-mixed-indent-tree	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+108	enc-single-space-names	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+109	enc-tab-space-indent-mix	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+110	envoy-clusters	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+111	erl-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+112	esphome-logs	5	looks-fine	7	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+113	etcd-version	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+114	etcdctl-get-prefix	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+115	eth-gas-station	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+116	ethtool-timestamp	5	looks-fine	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+117	exabgp-summary	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+118	exo-bpftrace-map-count	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+119	exo-docker-inspect-array	5	looks-fine-thin	6	few captured cells vs input lines; single wide row
+120	exo-git-blame-porcelain	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+121	exo-nft-monitor-trace	5	looks-fine-thin	2	few captured cells vs input lines; '=' left inside cells
+122	exo-openssl-dhparam-text	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+123	exo-samtools-flagstat-pct	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+124	exo-tcpdump-x-hexdump	5	looks-fine	10	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+125	exo-zonefile-origin-ttl	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+126	fd-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+127	ffmpeg-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+128	findfs	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+129	firewall-cmd	5	looks-fine-thin	6	few captured cells vs input lines; single wide row
+130	firewalld-list-all	5	looks-fine-thin	6	few captured cells vs input lines; single wide row
+131	firewalld-list-services	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+132	fluent-bit-version	5	looks-fine	3	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+133	flutter-version	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+134	freshclam-update	5	looks-fine	8	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+135	gamemode-status	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+136	gcloud-logging-logs-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+137	gem-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+138	git-blame-porcelain	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+139	git-cat-file-batch	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+140	git-cat-file-commit-objects	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+141	git-describe	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+142	git-describe-tags	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+143	git-log	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+144	git-ls-files	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+145	git-rev-list-count	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+146	git-tag	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+147	git-tag-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+148	gleam-deps-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column
+149	gnutls-cli-info	5	looks-fine	4	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+150	go-dist-list	5	looks-fine	1	all columns unnamed (A/B/C); single content column

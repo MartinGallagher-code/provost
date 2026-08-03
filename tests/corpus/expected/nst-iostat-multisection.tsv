@@ -1,3 +1,5 @@
-n	avg-cpu
-2	%user___%nice_%system_%iowait__%steal___%idle
-4	%user___%nice_%system_%iowait__%steal___%idle
+n	Device	r/s	w/s	rkB/s	wkB/s	await	total_entries
+1	sda	12.0	88.4	480.0	3540.0	1.22	4
+2	nvme0n1	45.2	210.9	1808.0	10440.0	0.34	4
+3	sda	10.5	77.1	420.0	3080.0	1.10	4
+4	nvme0n1	51.9	198.2	2076.0	9910.0	0.29	4

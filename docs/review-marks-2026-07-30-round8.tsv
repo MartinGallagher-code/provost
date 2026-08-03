@@ -1,0 +1,12 @@
+name	parser	mark	note
+perf-bench-sched	?	Horrible=x	The total time is obvious a key/value pair. The others are comments.
+bowtie2-align-summary	?	Horrible=x	separate the numbers, percentages and text into three separate columns.
+cargo-install-list	?	Horrible=x	Line 1 is the key, line 2 is the value, likewise 3&4 and 5&6. Two different columns.
+cargo-machete	?	Horrible=x	columns: for example: mycrate in one column, the path in another, and the chrono, lazy_static, and regex in the third. This could translate to three rows. Likewise the api-server row should have three columns, but only one row.
+cdk8s-synth	?	OK=x	-
+chronyc-tracking	?	Horrible=x	the colons are delimiters, not values. In this case, everything to the left of the colon should  be in one column and everything to the right should be parsed accordingly.
+duckdb-explain-box	?	Horrible=x	This should be key/value, two columns
+gpg-card-edit	?	Horrible=x	remove the dots, and use the colon as a delimiter. The first column is everything to the left of the dots. The second column is everything to the right of the colon.
+gpg-card-status	?	Horrible=x	You didn’t even try on this one. It should be two columns, divided by the colon, and removing any dots
+hammerdb-tpcc	?	Horrible=x	This has multiple columns, separated by colons.
+hashcat-status	?	Horrible=x	This should have multiple columns, separated by colons, and removing the spacer dots.

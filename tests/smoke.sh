@@ -121,7 +121,10 @@ check "async injection reports it queued in the background" "queued (async" "$as
 # fire a few more without waiting, then poll for all of them to land
 for i in 1 2 3 4; do printf "k=v%s\n" "$i" | GLEAN_WORKSPACE="$AWS" "$GLEAN" --async >/dev/null 2>&1; done
 async_landed=0
-for _try in $(seq 1 100); do
+# 200 x 0.2s = 40s. A CI runner hosting many parallel jobs has taken >20s to
+# land 5 detached ingests (one shard timed out at 100 tries while its twin
+# passed); a real async breakage still fails -- zero rows stays zero forever.
+for _try in $(seq 1 200); do
     rows=0
     [[ -f "$AWS/provenance.tsv" ]] && rows=$(($(wc -l < "$AWS/provenance.tsv") - 1))
     [[ "$rows" -ge 5 ]] && { async_landed=1; break; }

@@ -1,5 +1,478 @@
 # glean — Changelog
 
+## 2026-08-03 — round-9 marks, part 3: keepalived, bluetoothctl, hledger, fossil (+2 free)
+
+Four more reviewer disagreements fixed — 12 of the 19 now answered (the docs
+previously said 9 fixed after part 2; the correct count was 8, having wrongly
+included nst-iostat-multisection, which was never a marked item). Three new
+generic strategies, each held to the corpus the hard way: the first cut of
+this batch broke **33 tools**; the gates below took that to 0.
+
+- **`repeated-lead-records` (NEW, priority 38)** — every line opens with one
+  IDENTICAL token: keepalived's `VRRP_Instance(VI_1) …` (the reviewer's "A and
+  B columns") and bluetoothctl's `Device MAC name` (their "should be three
+  columns" — the MAC is promoted to an `id` column when every line's second
+  token is a structured id, digit + `:`/`-`, charset-tight so btrfs's bare
+  `256` never qualifies). A repeated first token is COMMON, and the first cut
+  stole 25 tools; acceptance is now ID case or PROSE case (stamp-shaped lead,
+  >=75% plain-word rest — `host` rows sit at 66% and keep their word-split,
+  keepalived runs 83%), with `: ` lines and `[bracketed]` leads excluded
+  (kv and bracket-log territory).
+- **`ledger-balance` (NEW, priority 44)** — right-aligned `AMOUNT  account`
+  balance reports with a dash rule and lone grand total (the reviewer's "you
+  lost data" on hledger). The total is kept as a scalar `total` field. Also
+  fixed the `ledger-balance` corpus tool itself — its old golden was the same
+  garbage (`n | -$4,102_83` as a header). At least one amount must carry a
+  currency symbol: integer+path listings (gsutil du, zoxide query -l) were
+  already parsed right and stay put.
+- **`banner-groups` (NEW, priority 34)** — `=== SECTION ===` banners carried
+  down as a `group` column (the reviewer's fossil-timeline note). Banners are
+  EXACTLY three equals per side — pytest/rocm draw 10-20-equals decoration
+  rules, which are lines, not labels — and any `Key: value` member rejects the
+  block (smartctl's sections belong to the kv/embedded parsers).
+  `nst-ip-route-per-table` improved as a byproduct (blob → `table main │
+  default via 10.0.0.1 …`).
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3451 passed, 0 failed**, 254 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted / added | **0 / 2** (bluetoothctl-devices, fossil-timeline enter coverage) |
+
+4 goldens modified: 2 reviewer-directed (hledger, keepalived) and 2 replacing
+garbage (`ledger-balance`, `nst-ip-route-per-table` — both were blobs with
+data welded into header names). Screen calibration holds at 94%.
+
+### Still open from round 9 (7)
+
+`sdparm-all` (mode-page sections with `[cha: y, def: 1]` members — the member
+colon gate that protects YAML also blocks this; needs its own thought),
+`btrfs-filesystem-show` (kv header + device table per section — the
+multi-output-per-input design question), `cmb-cr-redraw-progress-final`
+(embedded table whose chrome is all digit-bearing progress lines — the same
+prose-rule wall iostat hit, but no clean hint anchor), `decode-dimms`
+(tab-aligned phrase keys — needs a tab-kv treatment), `dvc-dag` (ASCII-box
+DAG), `go-ycsb-run` (mixed properties block + `LABEL - k: v, …` metrics
+lines), `hugo-version` (single version banner line — conflicts with the
+deliberate text-lines convention for version banners; needs a decision).
+
+## 2026-08-03 — round-9 marks, part 2: pre-commit, env-diff, hwinfo, fdbcli
+
+Four more of the reviewer's 19 disagreements fixed (5 were the iostat family;
+10 remain). Also hardened the flaky async smoke test.
+
+- **`dot-leader-kv` 1.1 → 1.2, form C** — `label.......value` with NO colon
+  (pre-commit's `check yaml.....Failed`), the reviewer's *"remove the dot
+  spacers, then two columns"*. Line-by-line matching would eat `working....done`
+  spinner chatter, so form C only fires when EVERY non-blank line is that shape
+  (>=3 of them), the dot run is >=4, and the key holds no dots or colons.
+  `pre-commit-run`: 4 blob rows → 4 × `key | value`.
+- **`equals` 1.0 → 1.1, signed assignments** — `+KEY=value` / `-KEY=value`
+  (env-diff), the reviewer's *"we have key-value here"*. The sign is DATA (which
+  side changed) and stays on the key. Exactly one sign then a tight sign-free
+  key, so `--flag=value` option help and `+ x = 1` patch hunks stay out.
+- **`indented-colon-groups` 1.0 → 1.1, multi-token members** — the reviewer's
+  *"cpu, keyboard, graphics card, etc. are keys"* (hwinfo --short). Single-
+  token-ness was the first shape we met, not the discriminator; the `key: value`
+  colon gate is what keeps YAML out. Relaxing it exposed two shapes the
+  strategy must NOT eat, now gated: ` = ` members (python -m sysconfig, qperf,
+  hdparm — assignment blocks, kv territory) and same-width member rows
+  (yugabyte, pulumi — embedded tables whose columns welding would lose;
+  rejected when >=3 members share one token count >=3 covering half the
+  members). An all-` - `-pair block is exempt and splits into `group | key |
+  value` — which fixes **`fdbcli-status`** (the reviewer's *"lost all of the
+  info"*; its old golden had `Server_time____-_2026-07-10_18` as a COLUMN
+  NAME) as a byproduct: 14 rows, nothing dropped.
+- **`tests/smoke.sh`** — the async-landing test's poll window doubled to 40s.
+  One CI shard timed out at 20s while its twin on the same commit passed
+  (runner contention); a real async breakage still fails, zero stays zero.
+- **`docs/review-marks-2026-08-03-round9.tsv`** — comment lines removed: the
+  prescreen's `--validate` globs every `review-marks-*` file with a DictReader,
+  and a comment line above the header broke it. Format now matches round 8.
+
+### The one manifest change, and why it is legitimate
+
+`--update-golden` DELETED `hwinfo-short`'s golden on the first pass: the
+manifest row said `table 15 1` — written for the old 15-line one-column blob,
+headers-as-data. The reviewer has explicitly ruled that shape wrong. Updating
+the row to `table 8 2` records the reviewer's decision, which is a different
+thing from rewriting the manifest to match our own output — the reason
+`v4l2-ctl-list-devices`'s manifest stays untouched (no reviewer ruling there).
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3449 passed, 0 failed**, 256 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted / added | **0 / 0** (4 modified, all reviewer-directed) |
+
+The first cut of the multi-token relaxation broke 6 tools; the two gates took
+that to 0 while keeping all four targets. Screen calibration holds at 94% on
+the 258 known-good.
+
+## 2026-08-03 — engine: batch extraction + caches take the golden gate from ~10 min to under 4
+
+The reviewer asked how the golden gate could be faster. Three layers landed;
+the full 3,705-input gate now runs in **3m51s** (same 3449/0/256 result,
+verified byte-identical), and a filtered run covers just what you touched.
+
+- **`envoy-extract --batch-out DIR`** (requires `--batch`) — instead of JSON
+  Lines, write per-input `<name>.wide` (the `-f`-formatted extraction) and
+  `<name>.meta` (the `--emit-meta` line) under DIR. One engine process serves
+  a whole file list.
+  - Fixing this exposed **two real batch-mode bugs** that predate it: the
+    batch loop skipped the entire input-normalisation pipeline (ANSI strip,
+    line-terminator mapping, leading-chrome strip, …), so the same file could
+    pick a DIFFERENT winner in batch than alone (`adb-devices`: `tsv` alone,
+    `aligned-columns` in batch); and `_WINNER_NAME` is only-set-if-empty, so
+    every batch file after the first would have reported the first file's
+    winner. The pipeline is now factored into `preprocess_input_text()`
+    (`extract/lib/_helpers.sh`) and shared by both paths; the winner record
+    resets per file.
+- **Discovery caches** (`extract/lib/_discovery.sh`) — all invisible to a
+  single-file run, compounding in batch:
+  - `read_strategy_metadata` memoised per path (was ~200 file reads per input);
+  - the sorted strategy list memoised on dirs+generic key (a directory rescan
+    plus a `sort` fork per input);
+  - **strategy function cache**: the first source of a strategy file diffs
+    `declare -F` before/after and snapshots every function the file defines —
+    detect, extract, AND helpers. Later loads replay one fork-free `eval`.
+    The first cut snapshotted only detect/extract and left helpers to the old
+    per-strategy `_strat_*` unset sweep — which would have made every
+    `_strat_*`-helper strategy (json, yaml, syslog, …) silently fail from the
+    second batch file on. Caught before commit; the snapshot now covers all of
+    a file's functions and the sweep is gone (it cost a `< <(declare -F)`
+    fork per strategy per input; helper names are verified unique across all
+    185 strategy files, so nothing can go stale).
+- **`tests/corpus/run.sh`**: golden/update modes feed one batch engine per job
+  slot and workers consume the precomputed files — the strategy tree is read
+  JOBS times per run instead of 3,705 times. report/coverage keep the per-input
+  spawn (they need a second full-mode call anyway). New optional filter arg:
+  `run.sh --golden '^iostat'` re-checks only matching tools and labels the
+  summary with the filter.
+
+Measured on the 60-input sample: 23.5s → 9.3s for the batch phase alone;
+full gate ~10 min → 3m51s end-to-end.
+
+### Verification
+
+Byte-equivalence proven twice: the 60-input sample compared `.wide`/`.meta`
+against the single-file path (all identical), then the full golden gate
+(3449 passed, 0 failed — unchanged from before the engine work). Extract
+62/62, smoke 58/0, melt 10/0.
+
+## 2026-08-03 — round-9 marks, part 1: the iostat family
+
+The round-9 workbook came back with 26 marks (19 disagree, 7 agree; saved in
+`docs/review-marks-2026-08-03-round9.tsv`). This lands the biggest cluster:
+`iostat-x`, `iostat-cx`, `iostat-xz`, `iostat-xmt` — four "you didn't even
+try" marks with one root cause — plus `nst-iostat-multisection`, which shared
+it. All five went from a one-column blob (or worse, `block-records` welding
+the avg-cpu header into `%user___%nice_...`) to the real per-device table.
+
+- **`embedded-table` 1.0 → 1.1** (three changes, each with its own guard):
+  - Header tokens may now lead with `%` (or an escaped `\%`): iostat, sar and
+    pidstat name percentage columns `%util`, `%rrqm`, `%idle`, and the old
+    `^[A-Za-z0-9[]` gate rejected the whole header line for it.
+  - Detection POLICY (embeddedness, the prose-chrome rule, section-repeat
+    rejection) moved out of `_et_scan` into `_et_policy`, called only by
+    `strategy_detect`. A hints.tsv route bypasses detect — the hint row IS the
+    detection — so extract now works from any found window. Auto-detection
+    behaviour is unchanged.
+  - `strategy_extract` merges the rows of every section whose header is
+    token-identical to the primary window's (`iostat -x 5` prints the same
+    table per interval), and a header that repeats verbatim drops the 3-row
+    window floor to 1 — two devices per sample is still a table. Merging means
+    multi-sample reports keep EVERY section's rows instead of the largest
+    window only.
+  - The boundary-snap rule for tokens straddling a column boundary is now
+    numeric-aware: a pure number nearer its own start snaps LEFT (right-aligned
+    numerics spilling ahead of a narrow label — sfdisk's wide sector counts,
+    iostat's ` 10440.0` under `wkB/s`); text keeps the old weld-right rule
+    (dotnet's `> Newtonsoft.Json` under a multi-word label stays one cell).
+    First cut snapped every token to the nearer edge and broke
+    `dotnet-list-package` and `parted-print`; the numeric restriction restored
+    both while keeping the fixes.
+- **`extract/hints.tsv`** — new family row routes `avg-cpu:` reports to
+  `embedded-table`. Exactly 5 corpus inputs match; all 5 are the targets.
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3449 passed, 0 failed**, 256 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted (rule 5) | **0** |
+
+4 goldens ADDED (the iostat family enters coverage, 260 → 256 ⏳) and 3
+modified, each verified an improvement by eye: `nst-iostat-multisection` (blob
+→ 4-row table), `nst-vmstat-sections` (dropped its `--- 5 second interval ---`
+separator garbage), `sfdisk-l` (its old golden carried `3147776 99614719`
+welded into one cell with an empty neighbour — the numeric snap fix).
+
+### Still open from round 9 (15 disagreements, triaged)
+
+- `pre-commit-run` — dot leaders with NO colon (`check yaml.....Failed`);
+  a third form for `dot-leader-kv`.
+- `env-diff` — `+VAR=value` / `-VAR=value`; the `equals` parser rejects the
+  sign prefix.
+- `hwinfo-short` — `indented-colon-groups` but with MULTI-token members;
+  needs a relaxation of its single-token gate.
+- `keepalived-vrrp-state` — repeated `VRRP_Instance(VI_1)` first token, rest
+  is message: first-token/rest records.
+- `sdparm-all`, `fossil-timeline` — repeated section banners as a column value
+  carried down (reviewer described the shape).
+- `bluetoothctl-devices`, `hledger-balance`, `fdbcli-status` — "you lost
+  data/info": content dropped, not misparsed; each needs its own look.
+- `btrfs-filesystem-show`, `cmb-cr-redraw-progress-final`, `decode-dimms`,
+  `dvc-dag`, `go-ycsb-run`, `hugo-version` — marked without notes; unstudied.
+
+## 2026-08-03 — .gitignore: npm artifacts from the review-workbook generator
+
+- Building a review workbook needs `npm install docx`, which drops
+  `node_modules/` (11 MB) plus a scaffolded `package.json` and
+  `package-lock.json` into the working tree. `tests/corpus/make_review_doc.js`
+  already documents the package as *"not vendored here"*, so all three are local
+  build artifacts and are now ignored.
+- Committing them would have broken the REUSE licensing lint and bloated
+  `bundle.txt` by 11 MB of third-party JS. Verified the current `bundle.txt` is
+  unaffected: it was generated before the install and carries **0**
+  `===FILE: node_modules/...===` sections (the 38 textual matches for
+  `node_modules` are corpus fixtures — npm/yarn outputs that legitimately
+  mention those paths).
+
+## 2026-08-03 — round-9 review batch: the 150 riskiest passing entries
+
+- **`docs/review-batch-round9.tsv` (NEW)** — records which entries went out for
+  round-9 review: the 150 highest-`risk()` entries that still **pass** the
+  structural pre-screen, worst-first, excluding the 258 cumulative `VALIDATED`
+  and the 11 round-8 marks. Sent as `glean_review_round9_top150.docx` (for
+  markup, same format as round 8) and `.txt` (plain, for constrained upload
+  paths). The workbooks themselves are not committed — only the manifest, as
+  with previous rounds.
+- **Sizing is deliberate.** Round 8 shipped 2,868 entries and came back with 11
+  marked. A 150-entry batch is the same amount of reviewer attention aimed at
+  the part of the distribution where the screen is weakest. Risk spread across
+  the 2,868 eligible: 10 at 7, 49 at 6, 273 at 5, 125 at 4, 350 at 3, 56 at 2,
+  248 at 1, and **1,757 with no risk signal at all** — so the batch is the whole
+  of risk >= 6 plus the top of risk 5.
+- The dominant signals are the same ones behind the reviewer's ten: 683 entries
+  with all-unnamed `A`/`B`/`C` columns, 233 with a single content column, 132
+  still carrying dot-leaders or trailing colons inside cells.
+
+## 2026-08-03 — the last three round-8 disagreements: colons as delimiters, and count/percent/label
+
+Closes the three tools the round-8 reviewer marked *Horrible* that the previous
+round left unfixed. Each needed its own parser change; none could reuse the
+dot-leader or indented-colon work.
+
+- **`extract/strategies/delimited/colons.sh` (1.0 → 1.1)** — `#` comment banners
+  are now excluded from BOTH sides of the 40% key/value ratio in
+  `strategy_detect`. They are not data, `strategy_extract` already dropped them,
+  and counting them in the denominator buried the real pairs. `perf bench sched`
+  prints three banner lines over a single `Total time: 0.882 [sec]` — 25% with
+  the banners, 100% without. Fixes the reviewer's *"the total time is obviously a
+  key/value pair, the others are comments"*: 4 blob rows → `Total_time | 0.882 [sec]`.
+
+- **`extract/strategies/delimited/unspaced-colon-kv.sh` (NEW, priority 52)** —
+  owns `Label:value` lines with NO space after the colon. `colons` (priority 60)
+  requires that space, because it is what separates a real pair from a colon
+  living inside a value (`10:15:42`), so HammerDB's `Vuser 1:RAMPUP complete`
+  fell through to the blob parser. This is the reviewer's *"the colons are
+  delimiters, not values"*. Labels repeat, so the output is records — a real
+  two-column table — not a key/value map that would collapse them.
+  `hammerdb-tpcc`: 4 blob rows → 4 × `label | value`.
+  - Nine gates keep it off output other parsers already own; each was added
+    after catching it steal something. In order of what they saved: whitespace
+    must appear somewhere on the line (`user:1001`, `src/main.rs:12`,
+    `system:capture_1`, image refs); no 2+ space run anywhere (that gap is
+    column alignment — `lsblk`, `vcpkg list`, `haproxy show servers`); no value
+    starting `digits:` (grep's `file:LINE:text`); no value starting `:` (IPv6
+    `prefix ::1/128`, pytest's `test_auth.py::test_login`); a MAJORITY of lines
+    unspaced (one unspaced banner over a spaced block is still a `colons`
+    document — `nvme smart-log`); and at least two DISTINCT labels (one label on
+    every line is a namespace, not a key — `vllm:num_requests_running`), which
+    mirrors the uniform-identifier guard `colon-fields` already carries.
+  - The clock guard is `(^|[^0-9:])[0-9][0-9]?:[0-9][0-9]([^0-9]|$)`. The
+    trailing `[^0-9]` is load-bearing: without it `Vuser 1:482100` reads as the
+    time `1:48` and the tool rejects its own target.
+
+- **`extract/strategies/delimited/count-percent-label.sh` (NEW, priority 42)** —
+  splits `N (P%) description` alignment summaries into `count | percent | label`,
+  the reviewer's *"separate the numbers, percentages and text into three separate
+  columns"*. Accepts three line forms (`N (P%) text`, `N text`, `P% text`) and
+  requires EVERY non-blank line to be one of them plus at least two carrying the
+  parenthesised percentage — that signature is what keeps ordinary counted lists
+  (`uniq -c`) with `line-records`. Indentation encodes nesting but is
+  presentation, not data, so rows are emitted flat in file order.
+  `bowtie2-align-summary`: 8 blob rows → 8 × `count | percent | label`.
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3445 passed, 0 failed**, 260 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke (end-to-end) | 58 / 0 |
+| transform melt | 10 / 0 |
+| goldens deleted / added (CLAUDE.md rule 5) | **0 / 0** |
+
+Exactly 3 goldens changed, all of them the intended targets. The first cut of
+`unspaced-colon-kv` failed 25 tools; the gates above took that to 3, then 0.
+`count-percent-label` caused no collateral change at any point.
+
+The manifest rows for all three stay `text … 2` rather than being retyped as
+`table`: `mincols` is a floor and the new output clears it, and rewriting the
+manifest from our own output is what we deliberately declined to do for
+`v4l2-ctl-list-devices`. The byte-exact goldens remain the real gate.
+
+## 2026-07-30 — prescreen: --exclude-marked, and a refreshed verification workbook
+
+- **`prescreen.py --emit-json --exclude-marked TSV`** drops tools already ruled
+  on in a marks file. A reviewer should not be re-asked a question they have
+  answered — and, more importantly, an entry they called *wrong* must never be
+  re-presented as one we think is fine. Excluding the 11 round-8 marks takes the
+  workbook from 2,879 to 2,868 entries.
+- Regenerated `docs/review-prescreen-round8.tsv` against the current corpus:
+  `looks-fine` 2863 → **2763**, `looks-fine-thin` 116 → **114**,
+  `needs-review` 466 → **568**. The drop is the hardened screen plus the
+  parser fixes moving tools out of the passing set.
+
+## 2026-07-30 — indented-colon-groups: header-over-members parsing (round-8 follow-up)
+
+- **`extract/strategies/delimited/indented-colon-groups.sh` (NEW, priority 35)** —
+  parses an unindented `header:` line followed by indented single-token members
+  into `group | value` rows, carrying the header down instead of stranding it in
+  its own row. When *every* member-bearing header carries a ` -- ` split
+  (`cargo-machete`'s `crate -- /path/Cargo.toml:`) the group becomes two columns,
+  `name | path`, so the crate and its manifest are separately addressable —
+  the shape the round-8 reviewer asked for.
+  - Detection is deliberately narrow so it cannot steal already-good output:
+    members must be a SINGLE token carrying no `key: value` pair, the header's
+    own text must hold no `key: value` pair, and unclassifiable lines are
+    tolerated only as a leading preamble or trailing footer — never between
+    groups. 22 corpus inputs share the loose shape; only these match.
+  - Wins: `cargo-machete` (8 blob rows → 4 × `name|path|value`),
+    `cargo-install-list` (6 → 3 × `group|value`), `telegraf-plugins-list`
+    (14 → 11), `v4l2-ctl-list-devices` (previously deferred → 3 rows).
+    `ethtool-timestamp` self-rejects (nested sub-headers are a different shape)
+    and is left to the existing parsers.
+- **`extract/hints.tsv` — narrowed the `cargo-tree` hint.** `cargo-install-list`
+  was not a parser gap: the hint regex `^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+`,
+  written for `cargo tree`, also matched `cargo-audit v0.20.0:` and force-routed
+  it to the blob parser ahead of auto-detection. Added a `[^:]` suffix so a
+  version banner ending in a colon no longer matches. Verified the 10 other
+  inputs the row legitimately covers (`cargo-tree{,-i,-invert,-dedup}`,
+  `dagger-version`, `gleam-deps-list`, `hugo-version`, `tinymembench`,
+  `uv-tree`, `y-cruncher-pi`) are byte-identical.
+- **Goldens regenerated.** `cargo-install-list`, `cargo-machete`,
+  `telegraf-plugins-list` promoted to the new tidy shape; review-output
+  snapshots refreshed for those three plus `v4l2-ctl-list-devices` and
+  `parted-print`. **No goldens deleted** (CLAUDE.md rule 5 checked: 0
+  `D tests/corpus/expected/*.tsv`).
+  - `parted-print` gained a golden it did not have before — an incidental
+    coverage gain, **not** caused by this change: its winner is
+    `embedded-table`, and with the new strategy removed and the hint reverted
+    it produces byte-identical output. Coverage 3444 → 3445 goldens,
+    not-yet-covered 261 → 260. Confirming gate after regeneration:
+    **3445 passed, 0 failed, 260 not-yet-covered of 3705**.
+  - `v4l2-ctl-list-devices` tidies to `group | value` (3 rows) but still gets
+    no golden: `expected.tsv` declares it `table 6 x 2`, and the manifest is
+    the arbiter of the expected shape. The output is an improvement on the
+    blob, but the declared shape disagrees — left for a human to reconcile
+    rather than rewriting the manifest to match our own output.
+- Files: `extract/strategies/delimited/indented-colon-groups.sh`,
+  `extract/strategies/delimited/samples/indented-colon-groups/basic.txt`,
+  `extract/hints.tsv`, `tests/corpus/expected/{cargo-install-list,cargo-machete,
+  telegraf-plugins-list,parted-print}.tsv`, `tests/corpus/review-output/*`,
+  `CHANGELOG.md`, `HANDOFF.md`.
+
+## 2026-07-30 — round-8 review: dot-leader key/value fix + stronger pre-screen
+
+Reviewer marks on the round-8 workbook (`docs/review-marks-2026-07-30-round8.tsv`)
+disagreed with 10 of the first 11 `looks-fine` calls. Root causes and response:
+
+- **`extract/strategies/delimited/dot-leader-kv.sh` — handle leaders *before*
+  the colon.** gpg `--card-status`/`--card-edit` and hashcat `--status` pad the
+  *key* with dots and put the colon last (`Reader ...........: Yubico`); the
+  strategy only matched dots *after* the colon (`label: .... value`), so these
+  fell through to the generic blob parser and came out as one `A` column per
+  line. Now both orderings (form A / form B) are parsed to clean `key | value`,
+  the dot/space padding stripped from the key. Within a form-B block, unpadded
+  `label: value` stragglers (`Signature counter : 42`) are kept rather than
+  dropped. Guarded against flattening genuine grouped records: a block whose
+  keys *repeat* (hashcat `--benchmark`: `Speed.#1`/`Hashmode` per mode) is left
+  to the record parsers. New sample `samples/dot-leader-kv/leader-before-colon.txt`.
+  - Golden gate: 3441 passed, 3 improved (`gpg-card-edit`, `hashcat-status`,
+    `k6-summary` now `key | value`), `hashcat-benchmark` unchanged, 0
+    regressions. Goldens regenerated for the 3.
+- **`tests/corpus/prescreen.py` — two new structural flags.** The screen was
+  calling these key/value tools `looks-fine` because it only checks structure.
+  Added `key-value-delimiter-in-cell` (a whole `key: value` / `key ...: value`
+  pair left inside one cell, guarded against bare `HH:MM` times and `scheme://`
+  URLs) and `lone-delimiter-column` (the delimiter split into its own column,
+  as in `chronyc-tracking`). Together these move 5 of the 10 reviewer
+  disagreements from `looks-fine` to `needs-review`, with no loss on the
+  validated set (still 94% pass in `--validate`).
+- **Honest limit, restated.** The other 5 disagreements (`perf-bench-sched`,
+  `bowtie2-align-summary`, `cargo-install-list`, `cargo-machete`,
+  `hammerdb-tpcc`) are the "one column that should be several" class — a
+  *semantic* judgment a structural screen cannot separate from a legitimately
+  single-column output like `rpm-qa`. They remain `looks-fine`; fixing them is
+  five more parser changes, one per shape.
+- Files: `extract/strategies/delimited/dot-leader-kv.sh`,
+  `extract/strategies/delimited/samples/dot-leader-kv/leader-before-colon.txt`,
+  `tests/corpus/expected/{gpg-card-edit,hashcat-status,k6-summary}.tsv`,
+  `tests/corpus/prescreen.py`, `docs/review-marks-2026-07-30-round8.tsv`,
+  `CHANGELOG.md`, `HANDOFF.md`.
+
+## 2026-07-30 — corpus review pre-screen (round 8 triage)
+
+- **`tests/corpus/prescreen.py` (NEW)** — triages `tests/corpus/review-output/`
+  so a human reviewer can skip the structurally clean entries. Emits a verdict
+  per tool: `looks-fine`, `looks-fine-thin` (clean shape but far fewer captured
+  cells than input lines — possible dropped content), `needs-review` (named
+  structural defect), `no-output`.
+  - Structural defects checked: ragged rows, blank header cell, duplicate
+    column names, separator row kept as data, unsplit cells (a `"a   b"` run
+    inside one cell), pipes left in cells, untrimmed cells, and column
+    misalignment (the same literal token landing under more than one column
+    across rows — catches whitespace-shredded parses such as
+    `ip-route-table-all`).
+  - `--validate` scores the screen against the marks already in `docs/`:
+    **95%** of the 258 reviewer-validated tools pass, **38%** of the 55
+    round-3 `Horrible` tools are flagged. Generic column names (`A`/`B`/`C`)
+    are deliberately *not* a defect — the reviewer accepted them at widths up
+    to 12 columns, so the count carries no signal.
+- **`docs/review-prescreen-round8.tsv` (NEW)** — the screen applied to the
+  3,448 corpus entries that are not yet in
+  `docs/review-validated-cumulative.txt`: 2,863 `looks-fine`, 116
+  `looks-fine-thin`, 466 `needs-review`, 3 `no-output`.
+- **`tests/corpus/make_review_doc.js` (NEW)** + `prescreen.py --emit-json` —
+  render the passing entries as a Word review workbook so the screen itself can
+  be checked. Sections are ordered **most-likely-to-be-wrong first** by a risk
+  score (thin capture, all-unnamed columns, single content column, dot-leaders
+  or `=` left in cells, a source header row that came out unnamed, single wide
+  row), so verification starts where the screen is weakest: 1,198 of the 2,979
+  passes carry at least one risk signal, the remaining 1,781 carry none.
+  Control characters are illegal in Word XML, and this corpus holds 1,670 of
+  them (mostly ANSI colour escapes, across 108 entries), so they render as
+  Unicode control pictures (`␛`, `␇`) rather than being dropped; input tabs
+  expand to 8-column stops the way a terminal shows them. Outputs wider than
+  12 columns render as pipe-separated monospace rows instead of an unreadable
+  table. Needs `npm install docx`.
+- The screen sees structure only. A parse that is cleanly rectangular but split
+  on the wrong boundary reads as fine (all 17 round-3 `Not quite` tools pass),
+  so `looks-fine` means "nothing mechanically wrong", not "correct".
+- Files: `tests/corpus/prescreen.py`, `tests/corpus/make_review_doc.js`,
+  `docs/review-prescreen-round8.tsv`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-07-24 — pip-only install; bundle.txt is now pure printable ASCII
 
 - **Install via `pip install glean-data` only.** Removed `install.sh` (the

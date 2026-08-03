@@ -16,8 +16,11 @@
 # Modes:
 #   run.sh                 report table + summary (development view)
 #   run.sh --coverage      markdown coverage table (regenerates COVERAGE.md)
-#   run.sh --golden        regression: diff generic tidy output vs expected/<name>.tsv
-#   run.sh --update-golden (re)write expected/<name>.tsv from current generic output
+#   run.sh --golden [ERE]   regression: diff generic tidy output vs expected/<name>.tsv
+#   run.sh --update-golden [ERE]
+#                          (re)write expected/<name>.tsv from current generic output
+#   The optional ERE filters tool names, so an iterate loop can re-check only
+#   what it touched: run.sh --golden '^iostat'  (counts then cover that set).
 #
 # Speed: each tool is processed in parallel (job pool sized to the CPU count),
 # and each engine invocation uses --emit-meta so the wide output (stdout) and the
@@ -39,6 +42,11 @@ mode="${1:-report}"
 [[ "$mode" == "--update-golden" ]] && mode="update"
 [[ "$mode" == "--coverage" ]] && mode="coverage"
 [[ "$mode" == "update" ]] && mkdir -p "$EXP"
+
+# Optional 2nd arg: an ERE filter on tool names, so an iterate loop can re-run
+# only the tools it touched (`run.sh --golden '^iostat'`) instead of all 3705.
+# Pass/fail counts then cover only the filtered set — the summary says so.
+FILTER="${2:-}"
 
 # Full mode is only needed to show the full-mode winner (report) or bespoke
 # coverage (coverage). Skip it for golden/update to halve the engine calls.
@@ -63,11 +71,19 @@ _worker () {
     local f="$1" name; name="$(basename "$f" .txt)"
     local em="$WORK/$name.err"
 
-    # One generic call: wide on stdout, meta on stderr.
-    local gwide gstrat gconf
-    gwide="$(env -u GIT_DIR bash "$ENGINE" --generic --emit-meta -f tsv --max-strategies 1 "$f" 2>"$em")"
-    gstrat="$(awk -F'\t' '/^__EXTRACT_META__/{s=$2;c=$3} END{print s}' "$em")"; [[ -z "$gstrat" ]] && gstrat="(none)"
-    gconf="$(awk -F'\t' '/^__EXTRACT_META__/{c=$3} END{print c+0}' "$em")"
+    # Precomputed by the batch phase (golden/update), or one generic call
+    # (report/coverage): wide on stdout, meta on stderr.
+    local gwide gstrat="" gconf=0
+    if [[ -n "$PRE_DIR" && -f "$PRE_DIR/$name.meta" ]]; then
+        gwide="$(cat "$PRE_DIR/$name.wide" 2>/dev/null || true)"
+        IFS=$'\t' read -r _ gstrat gconf < "$PRE_DIR/$name.meta" || true
+        [[ -z "$gstrat" ]] && gstrat="(none)"
+        [[ -z "$gconf" ]] && gconf=0
+    else
+        gwide="$(env -u GIT_DIR bash "$ENGINE" --generic --emit-meta -f tsv --max-strategies 1 "$f" 2>"$em")"
+        gstrat="$(awk -F'\t' '/^__EXTRACT_META__/{s=$2;c=$3} END{print s}' "$em")"; [[ -z "$gstrat" ]] && gstrat="(none)"
+        gconf="$(awk -F'\t' '/^__EXTRACT_META__/{c=$3} END{print c+0}' "$em")"
+    fi
     local gtidy; gtidy="$(_core_melt_tidy "$gwide" 2>/dev/null || true)"
     printf '%s\n' "$gtidy" > "$WORK/$name.tidy"
     local gc gr; read -r gc gr <<< "$(_melt_dims "$gwide")"
@@ -114,8 +130,44 @@ _worker () {
     printf '%s\n' "$want" >> "$WORK/$name.rec"
 }
 
-# --- fan out over inputs with a bounded job pool ---------------------------
+# --- build the (possibly filtered) input list ------------------------------
+INPUTS=()
 for f in "$IN"/*.txt; do
+    if [[ -n "$FILTER" ]]; then
+        _fname="$(basename "$f" .txt)"
+        [[ "$_fname" =~ $FILTER ]] || continue
+    fi
+    INPUTS+=("$f")
+done
+
+# --- batch extraction fast path (golden / update) --------------------------
+# One engine process per job slot handles a whole chunk of inputs via
+# `--batch --batch-out`, so the ~200-file strategy tree is read and parsed
+# JOBS times per run instead of once per input. Workers then consume the
+# precomputed .wide/.meta files (PRE_DIR) instead of spawning the engine.
+# report/coverage keep the per-input spawn: they need a second full-mode
+# call per input anyway and are not the CI hot path.
+PRE_DIR=""
+if [[ "$mode" == "golden" || "$mode" == "update" ]]; then
+    PRE_DIR="$WORK/pre"
+    mkdir -p "$PRE_DIR"
+    _chunk=0
+    while [[ $_chunk -lt $JOBS ]]; do
+        (
+            _i=$_chunk
+            while [[ $_i -lt ${#INPUTS[@]} ]]; do
+                printf '%s\n' "${INPUTS[$_i]}"
+                _i=$((_i + JOBS))
+            done | env -u GIT_DIR bash "$ENGINE" --batch --batch-out "$PRE_DIR" \
+                       --generic -f tsv --max-strategies 1 2>/dev/null
+        ) &
+        _chunk=$((_chunk + 1))
+    done
+    wait
+fi
+
+# --- fan out over inputs with a bounded job pool ---------------------------
+for f in "${INPUTS[@]}"; do
     _worker "$f" &
     while [[ "$(jobs -r | wc -l)" -ge "$JOBS" ]]; do wait -n 2>/dev/null || break; done
 done
@@ -182,8 +234,8 @@ done
 
 echo
 case "$mode" in
-  update)   echo "wrote goldens to expected/ ($total tools processed)" ;;
-  golden)   echo "golden regression: $pass passed, $fail failed, $skip not-yet-covered of $total" ;;
+  update)   echo "wrote goldens to expected/ ($total tools processed)${FILTER:+ [filter: $FILTER]}" ;;
+  golden)   echo "golden regression: $pass passed, $fail failed, $skip not-yet-covered of $total${FILTER:+ [filter: $FILTER]}" ;;
   report)   echo "generic-tidy: $pass/$total pass, $fail fail   |   $relies tool(s) currently rely on a bespoke strategy in full mode"
             [[ $fail -gt 0 ]] && echo "not tidy under --generic: ${FAILED[*]}" ;;
   coverage) echo "**Coverage: $((pass + hint + besp)) / $total** — ✅ $pass via a generic parser, ✅ʰ $hint via a hint row, ✅ᵇ $besp via a bespoke strategy."

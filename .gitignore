@@ -15,3 +15,11 @@ build/
 *.egg-info/
 .coverage
 .pytest_cache/
+
+# Node deps for the review-workbook generator. tests/corpus/make_review_doc.js
+# documents `docx` as "not vendored here" — you `npm install docx` when you need
+# to build a workbook, and npm scaffolds package.json/package-lock.json as a
+# side effect. All three are local build artifacts, not project files.
+node_modules/
+package.json
+package-lock.json

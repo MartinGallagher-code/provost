@@ -1,6 +1,165 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3444/0, 261 ⏳**, extract 62/62, smoke 58/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3451/0, 254 ⏳** in under 4 min (engine batch mode + caches; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks: 19 disagreements — **12 fixed**, 7 open (triaged in CHANGELOG part-3 entry).
+
+> **2026-08-03 — round-9 part 3.** Three new generic strategies close four
+> more marks: `repeated-lead-records` p38 (keepalived label|value,
+> bluetoothctl label|id|value), `ledger-balance` p44 (hledger amount|account
+> + scalar total; also fixed the ledger-balance tool's own garbage golden),
+> `banner-groups` p34 (fossil `=== date ===` carried down; nst-ip-route
+> improved free). First cut broke 33 tools; documented gates took it to 0.
+> Gate 3451/0/254 (2 goldens ADDED, 4 modified — 2 reviewer-directed, 2
+> replacing garbage), 0 deleted. **12 of 19 round-9 disagreements now fixed;
+> 7 open** — see CHANGELOG for why each remaining one is genuinely hard
+> (sdparm colon-gate conflict, btrfs multi-output design, cmb-cr prose-rule
+> wall, decode-dimms tab-kv, dvc-dag ASCII DAG, go-ycsb mixed sections,
+> hugo-version convention decision).
+
+> **2026-08-03 — round-9 part 2 + engine speed.** Fixed `pre-commit-run`
+> (dot-leader form C, colonless), `env-diff` (signed `+KEY=value` in equals),
+> `hwinfo-short` (multi-token members in indented-colon-groups, two new
+> anti-theft gates), and `fdbcli-status` (` - ` member pairs split to
+> `group | key | value`) — see CHANGELOG for the gates and the one
+> reviewer-directed manifest change (hwinfo-short `15 1` → `8 2`). Engine:
+> `--batch-out` + discovery caches take the full gate ~10 min → 3m51s, and
+> `run.sh --golden '^iostat'` re-checks only matching tools. Batch mode also
+> got two latent bugs fixed (skipped normalisation pipeline; winner leak).
+> Async smoke poll window doubled after a CI shard timed out while its twin
+> passed. **Open: 10 round-9 disagreements** — next: `keepalived-vrrp-state`
+> (first-token records), `sdparm-all`/`fossil-timeline` (section banners as
+> carried-down column), `bluetoothctl-devices`/`hledger-balance` (lost data),
+> and 5 marked without notes (`btrfs-filesystem-show`,
+> `cmb-cr-redraw-progress-final`, `decode-dimms`, `dvc-dag`, `go-ycsb-run`,
+> `hugo-version`).
+
+> **2026-08-03 — round-9 marks, part 1: iostat family fixed.** The reviewer
+> marked 26 of the 150-entry round-9 batch (19 disagree, 7 agree —
+> `docs/review-marks-2026-08-03-round9.tsv`). The biggest cluster was
+> `iostat-{x,cx,xz,xmt}` + `nst-iostat-multisection`, all one root cause:
+> `embedded-table` rejected `%`-led header tokens, its detection policy sat
+> inside `_et_scan` where the hint path also hit it, and single windows dropped
+> repeated sections. Fixed as embedded-table 1.1 + an `avg-cpu:` hint row (5
+> matching inputs, all targets). Numeric-aware boundary snap also repaired
+> `sfdisk-l`'s welded golden and `nst-vmstat-sections`' separator garbage.
+> - Verified: gate 3449/0/256 (4 goldens ADDED, 3 modified-better, 0 deleted),
+>   extract 62/62, smoke 58/0, melt 10/0. First-cut lessons are in CHANGELOG
+>   (nearest-edge snap broke dotnet/parted until restricted to numerics).
+> - **Remaining round-9 work: 14 disagreements**, triaged in CHANGELOG — next
+>   easiest: `pre-commit-run` (colonless dot-leader form), `env-diff` (equals
+>   with +/- sign prefix), `hwinfo-short` (multi-token members for
+>   indented-colon-groups).
+> - **Design note from the reviewer:** an input may deserve MULTIPLE outputs —
+>   e.g. iostat's avg-cpu kv block AND its Device table are both real data, but
+>   the engine's one-winner model keeps exactly one. Today we take the table
+>   and drop avg-cpu. Honouring both means a `--max-strategies >1`-style merge
+>   or section-splitting ahead of detection — an architectural decision, not a
+>   parser tweak; not started.
+
+> **2026-08-03 — round-8 reviewer marks: all ten now answered.** The last three
+> disagreements (`perf-bench-sched`, `bowtie2-align-summary`, `hammerdb-tpcc`)
+> are fixed. Each was a genuinely distinct shape and needed its own change:
+> - **`colons` 1.0 → 1.1** — `#` comment banners no longer count in the 40%
+>   key/value detection ratio (either side of it). `perf bench sched` was 25%
+>   with its three banner lines, 100% without; the banners were already being
+>   dropped at extract time. Now `Total_time | 0.882 [sec]`.
+> - **`unspaced-colon-kv` (NEW, p52)** — `Label:value` with no space after the
+>   colon, which `colons` (p60) cannot take because that space is what tells a
+>   pair from a colon inside a value. Emits records, since labels repeat.
+>   `hammerdb-tpcc` → 4 × `label | value`.
+> - **`count-percent-label` (NEW, p42)** — `N (P%) text` alignment summaries into
+>   `count | percent | label`. `bowtie2-align-summary` → 8 rows × 3 columns.
+> - **Verified:** golden gate **3445 passed / 0 failed / 260 ⏳**, extract 62/62,
+>   smoke 58/0, melt 10/0. Exactly 3 goldens changed (the intended targets),
+>   **0 deleted, 0 added** (rule 5). The first cut of `unspaced-colon-kv` broke
+>   25 tools; nine documented gates took that to 3, then 0. `count-percent-label`
+>   never caused collateral change.
+> - Manifest rows left as `text … 2` for all three: `mincols` is a floor the new
+>   output clears, and rewriting the manifest from our own output is what we
+>   declined to do for `v4l2-ctl-list-devices`. Goldens are the real gate.
+>
+> **Still open for a human:** `v4l2-ctl-list-devices` tidies to `group | value`
+> (3 rows) but `expected.tsv` declares `table 6 x 2`, so no golden is written —
+> reconcile the manifest or accept the blob. And PyPI Trusted Publisher
+> registration (account-level, cannot be done from a session).
+
+> **2026-07-30 — round-8 parser work: indented-colon-groups.** Follow-up on the
+> 5 "one column that should be several" cases the reviewer flagged. New generic
+> strategy `extract/strategies/delimited/indented-colon-groups.sh` (priority 35)
+> parses `header:` over indented single-token members into `group | value`, and
+> into `name | path | value` when every member-bearing header carries a ` -- `
+> split. Wins `cargo-machete`, `cargo-install-list`, `telegraf-plugins-list`,
+> `v4l2-ctl-list-devices`.
+> - `cargo-install-list` turned out **not** to be a parser gap: a `hints.tsv`
+>   row for `cargo tree` was force-routing it to the blob parser. Narrowed that
+>   regex with `[^:]`; the 10 other tools it covers are byte-identical.
+> - Detection is deliberately narrow (single-token members, no `key: value`
+>   pairs, noise only at the very ends) — 22 corpus inputs share the loose
+>   shape, only 5 match, and `ethtool-timestamp` self-rejects.
+> - **Verified:** golden gate **3441 passed / 3 failed**, and all 3 failures
+>   were the intended targets (their old goldens were the `n|A|total_entries`
+>   blob) — 0 unexpected regressions across the other 3441. Goldens then
+>   regenerated with **0 deletions** (rule 5), and the confirming re-run is
+>   **3445 passed / 0 failed / 260 ⏳**. Extract suite 62/62; the 6
+>   hint-dependent tools byte-identical.
+> - `parted-print` gained a golden incidentally — proven NOT ours (winner is
+>   `embedded-table`; byte-identical with our strategy removed). 3444 → 3445
+>   goldens, 261 → 260 not-yet-covered.
+> - `v4l2-ctl-list-devices` tidies to `group | value` but `expected.tsv`
+>   declares `table 6 x 2`, so no golden is written. **Open question for a
+>   human:** reconcile the manifest or accept the blob — not self-resolved.
+> - Still outstanding from the reviewer's 10: `perf-bench-sched` (comment lines
+>   + one kv), `bowtie2-align-summary` (count/percent/text triples),
+>   `hammerdb-tpcc` (colon-separated multi-column). Each needs its own shape.
+
+> **2026-07-30 — round-8 reviewer marks worked.** The reviewer marked the first
+> ~11 entries of the pre-screen workbook and disagreed with 10 (marks saved in
+> `docs/review-marks-2026-07-30-round8.tsv`). Two responses landed:
+> - **Parser fix** (`extract/strategies/delimited/dot-leader-kv.sh`): dot leaders
+>   that pad the *key* before the colon (`Reader ...........: Yubico`, gpg/hashcat)
+>   are now parsed to clean `key | value`, both leader orderings handled, unpadded
+>   stragglers kept, and repeated-key record blocks (hashcat `--benchmark`) left to
+>   the record parsers. `gpg-card-edit`, `gpg-card-status`, `hashcat-status`,
+>   `k6-summary` re-tidied; 3 goldens + 4 review-output snapshots regenerated;
+>   golden gate 3441/0, 0 regressions.
+> - **Screen hardened** (`tests/corpus/prescreen.py`): new `key-value-delimiter-in-cell`
+>   and `lone-delimiter-column` flags. `looks-fine` 2863→2763, `needs-review`
+>   466→568. Catches 5 of the 10 disagreements; `--validate` still 94% on the
+>   validated set. The other 5 (`perf-bench-sched`, `bowtie2-align-summary`,
+>   `cargo-install-list`, `cargo-machete`, `hammerdb-tpcc`) are "one column that
+>   should be several" — semantic, beyond a structural screen; each needs its own
+>   parser change. **Next:** those 5 shapes are the outstanding parser work.
+>
+> **Prior context — 2026-07-30 corpus review pre-screen.** Round 8's review workbook
+> (`glean_corpus_review_8.docx`, supplied by the reviewer) is **in sync with
+> the corpus but entirely unmarked** — 3,706 entries, 258 pre-stamped
+> `VALIDATED` (exactly `docs/review-validated-cumulative.txt`), 3,447 blank
+> forms, zero ticked boxes. Verified: its tidy blocks match
+> `tests/corpus/review-output/` on 3,703 of 3,705 entries (the 2 differences
+> are Word empty-cell rendering artifacts, not output drift). So there is no
+> round-8 reviewer feedback to action yet.
+> - To narrow what the reviewer must actually look at,
+>   `tests/corpus/prescreen.py` triages the 3,448 not-yet-validated entries:
+>   **2,863 `looks-fine`**, 116 `looks-fine-thin`, 466 `needs-review`, 3
+>   `no-output` → `docs/review-prescreen-round8.tsv`.
+> - Calibrated with `--validate` against the existing marks: 95% of the 258
+>   validated tools pass, 38% of the round-3 `Horrible` tools are flagged.
+>   It is a *structural* screen — all 17 `Not quite` tools pass it, and
+>   spot-checks found real semantic misses inside `looks-fine` (`k6-summary`
+>   keeps its dot-leaders, `pgrep-a` leaves pid unsplit from command). Treat
+>   `looks-fine` as "skip unless you want to be thorough", not as a sign-off.
+> - A Word workbook of the 2,979 passing entries, ordered most-likely-to-be-
+>   wrong first, is reproducible in-repo:
+>   ```bash
+>   npm install docx
+>   python3 tests/corpus/prescreen.py --emit-json /tmp/good.json
+>   node tests/corpus/make_review_doc.js /tmp/good.json good.docx
+>   ```
+>   Verified: XSD-valid, and all 2,979 input blocks and 2,979 output tables
+>   round-trip byte-exact against the corpus. (`soffice` cannot open *any*
+>   .docx in this container — a trivial one fails too — so it was checked by
+>   XSD validation plus text round-trip, not by rendering.)
+> - The reviewer's own `.docx` workbook still has no generator in-repo; this
+>   covers the pre-screen output only, not the full 3,706-entry form.
 
 > **2026-07-24 — pip-only install + pure-ASCII bundle.**
 > - Install is now `pip install glean-data` only; `install.sh` deleted and

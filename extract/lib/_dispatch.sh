@@ -116,6 +116,14 @@ run_batch_mode () {
     declare -A _bs_strategy_counts=()
     local -a _bs_all_field_names_per_file=()
 
+    # --batch-out: per-input result files instead of JSON Lines.
+    if [[ -n "$_OPT_batch_out" ]]; then
+        if ! mkdir -p "$_OPT_batch_out" 2>/dev/null; then
+            _log_error "--batch-out: cannot create directory: $_OPT_batch_out"
+            exit 1
+        fi
+    fi
+
     while IFS= read -r _bfile; do
         [[ -z "$_bfile" ]] && continue
 
@@ -148,7 +156,8 @@ run_batch_mode () {
         # Read content
         text=$(<"$_bfile")
 
-        # Binary detection
+        # Binary detection (below) needs the RAW text; the shared
+        # normalisation pipeline runs right after it.
         _bbytes=$(printf '%s' "$text" | wc -c)
         if [[ $((_bsize - _bbytes)) -gt 2 ]]; then
             _log_warn "batch: binary file skipped: $_bfile"
@@ -162,6 +171,11 @@ run_batch_mode () {
             continue
         fi
 
+        # Same normalisation the single-file path applies (ANSI strip,
+        # line-terminator/space mapping, leading-chrome strip, …) so a file
+        # extracts IDENTICALLY in batch and alone.
+        preprocess_input_text
+
         # Set per-file state globals
         file="$_bfile"
         _STATE_filename="$_bfile"
@@ -171,6 +185,12 @@ run_batch_mode () {
         esac
         _CLEAN_TEXT_CACHE=""
         _CLEAN_TEXT_DONE=0
+        # The winner record is only-set-if-empty (ENV-200), so without this
+        # reset every file after the first would report the FIRST file's
+        # winning strategy in its .meta -- a cross-file leak the JSON Lines
+        # path never noticed because it doesn't emit the winner.
+        _WINNER_NAME=""
+        _WINNER_CONF=0
 
         # Run strategies (auto only; --chain and --replay are excluded by conflicts)
         run_auto_strategies
@@ -185,6 +205,40 @@ run_batch_mode () {
         fi
         if [[ -n "$_OPT_rename" && -n "$output" ]]; then
             output=$(apply_renames "$output" "$_OPT_rename")
+        fi
+
+        # --batch-out: write <name>.wide (formatted like the single-file -f
+        # path: STRAT- prefixes stripped, then the -f formatter) and
+        # <name>.meta (the --emit-meta line), then move on -- no JSON Lines.
+        if [[ -n "$_OPT_batch_out" ]]; then
+            local _bo_name; _bo_name="$(basename "$_bfile")"
+            _bo_name="${_bo_name%.txt}"
+            local _bo_fields=""
+            if [[ -n "$output" ]]; then
+                while IFS= read -r _bl; do
+                    [[ -z "$_bl" ]] && continue
+                    strip_strat_prefix "$_bl"
+                    _bo_fields+="$_STRIPPED_LINE"$'\n'
+                done <<< "$output"
+                _bo_fields="${_bo_fields%$'\n'}"
+            fi
+            {
+                if [[ -n "$_bo_fields" ]]; then
+                    case "$_OPT_format" in
+                        json)        format_json "$_bo_fields" ;;
+                        json-nested) format_json_nested "$_bo_fields" ;;
+                        csv)         format_csv "$_bo_fields" ;;
+                        tsv)         format_tsv "$_bo_fields" ;;
+                        plain)       format_plain "$_bo_fields" ;;
+                        yaml)        format_yaml "$_bo_fields" ;;
+                        xml)         format_xml "$_bo_fields" ;;
+                    esac
+                fi
+            } > "$_OPT_batch_out/$_bo_name.wide"
+            printf '__EXTRACT_META__\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" \
+                > "$_OPT_batch_out/$_bo_name.meta"
+            _bany=1
+            continue
         fi
 
         # Build fields JSON object from extracted output

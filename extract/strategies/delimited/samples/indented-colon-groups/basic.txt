@@ -1,0 +1,6 @@
+cargo-audit v0.20.0:
+    cargo-audit
+ripgrep v14.1.0:
+    rg
+just v1.29.1:
+    just

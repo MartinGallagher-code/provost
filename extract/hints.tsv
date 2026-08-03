@@ -26,7 +26,7 @@ aptitude-search	regex	^[ipvc][ A]{3}[a-z0-9]	text-lines
 aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	line-records
 borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
 cabal-freeze	prefix	constraints:	line-records
-cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+	text-lines
+cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+[^:]	text-lines
 consul-kv-get-recurse	regex	^[a-z0-9_-]+/[a-z0-9_/-]+:[^ ]	block-records
 cpuid-summary	contains	vendor_id = "	block-records
 dbmate-status	contains	Applied: 	dbmate-status
@@ -40,6 +40,7 @@ git-lfs-ls-files	regex	^[0-9a-f]{10} [*-] 	line-records
 git-show-ref	regex	^[0-9a-f]{40} refs/	line-records
 hg-branches	regex	^[a-zA-Z0-9._-]+ +[0-9]+:[0-9a-f]{12}	line-records
 host	regex	 has (address|IPv6 address|mail exchanger|domain name pointer) 	text-lines
+iostat	regex	avg-cpu:[[:space:]]+%user[[:space:]]	embedded-table
 ip-tunnel	regex	^[a-z0-9@]+: [a-z]+/ip remote 	labeled-records
 iw-dev-scan-summary	regex	^BSS +SIGNAL +FREQ	aligned-columns
 kotlinc-version	prefix	info: kotlinc-jvm 	line-records

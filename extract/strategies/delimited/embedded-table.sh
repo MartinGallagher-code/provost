@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: embedded-table
 ## Description: Reports with one dominant aligned table amid prose/kv preamble and footnotes
-## Version: 1.0
+## Version: 1.1
 ## Priority: 37
 ## Sample: samples/embedded-table/basic.txt
 
@@ -102,10 +102,13 @@ _et_scan () {
         local -a hk=(); read -ra hk <<< "$_l"
         [[ ${#hk[@]} -lt 3 ]] && continue
         local t ok=1
+        # a label: alphanumeric-bearing, starts alnum-or-bracket (a diff
+        # hunk's `+use` line must not read as a header), no kv colon. An
+        # optional leading `%` (or an escaped `\%`) is allowed too: iostat,
+        # sar and pidstat name percentage columns `%util`, `%rrqm`, `%idle`.
+        local _et_lead='^[%\]{0,2}[A-Za-z0-9[]'
         for t in "${hk[@]}"; do
-            # a label: alphanumeric-bearing, starts alnum-or-bracket (a diff
-            # hunk's `+use` line must not read as a header), no kv colon
-            [[ "$t" =~ [A-Za-z0-9] && "$t" != *: && "$t" =~ ^[A-Za-z0-9\[] ]] || { ok=0; break; }
+            [[ "$t" =~ [A-Za-z0-9] && "$t" != *: && "$t" =~ $_et_lead ]] || { ok=0; break; }
         done
         [[ $ok -eq 0 ]] && continue
         # The header must open a section: preceded by a blank line, the start
@@ -155,11 +158,42 @@ _et_scan () {
             local -a nk=(); read -ra nk <<< "${_lines[$nxt]}"
             [[ ${#nk[@]} -ge ${#hk[@]} ]] && continue
         fi
-        if [[ $rows -ge 3 && $rows -gt $_ET_LEN ]]; then
+        # >=3 rows keeps prose from reading as a table — but a header line that
+        # REPEATS verbatim elsewhere in the input has proven itself: interval
+        # reports (`iostat -x 5`) reprint the same header per sample, often
+        # with only a device or two beneath each. For those the floor drops to
+        # 1; the extractor merges every same-header section's rows anyway.
+        local need=3
+        if [[ $rows -ge 1 && $rows -lt 3 ]]; then
+            local reps=0 r2
+            for ((r2 = 0; r2 < n; r2++)); do
+                local -a rk2=(); read -ra rk2 <<< "${_lines[$r2]}"
+                [[ "${rk2[*]}" == "${hk[*]}" ]] && reps=$((reps + 1))
+            done
+            [[ $reps -ge 2 ]] && need=1
+        fi
+        if [[ $rows -ge $need && $rows -gt $_ET_LEN ]]; then
             _ET_START=$i; _ET_LEN=$rows; _ET_COLS=${#hk[@]}
         fi
     done
     [[ $_ET_START -lt 0 ]] && return 1
+    return 0
+}
+
+# Detection POLICY over a found window — kept separate from _et_scan so a
+# hints.tsv route (which bypasses strategy_detect, the hint row IS the
+# detection) can extract any found window: iostat's chrome is a digit-bearing
+# banner plus an `avg-cpu:` block, which the prose rule below rightly rejects
+# for AUTO-detection but which the hint has already vouched for.
+_et_policy () {
+    local text="$1"
+    local -a _lines=()
+    local _l i
+    while IFS= read -r _l; do _lines+=("$_l"); done <<< "$text"
+    local n=${#_lines[@]} nonblank=0
+    for ((i = 0; i < n; i++)); do
+        [[ -n "${_lines[$i]//[[:space:]]/}" ]] && nonblank=$((nonblank + 1))
+    done
     # Embedded means real chrome around it: >=2 non-blank lines OUTSIDE.
     [[ $(( nonblank - _ET_LEN - 1 )) -ge 2 ]] || return 1
     # And the chrome must contain at least one PROSE/banner line — >=3 tokens,
@@ -217,6 +251,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE_REASON="report with one dominant embedded aligned table"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     _et_scan "$text" || return 1
+    _et_policy "$text" || return 1
     _STRATEGY_CONFIDENCE=76
     return 0
 }
@@ -254,8 +289,37 @@ strategy_extract () {
     done
     col_hi+=(99999)
 
-    local result="" entry=0 j
-    for ((j = _ET_START + 1; j <= _ET_START + _ET_LEN; j++)); do
+    # Rows to emit: the primary window, then — multi-sample reports like
+    # `iostat -x 5` or `nstat`-wrapped iostat print the SAME table repeatedly,
+    # one section per interval — the rows under every OTHER header line that is
+    # token-identical to the primary's. Auto-detection still rejects repeated
+    # sections (aligned-columns owns the bare multi-section case); this path is
+    # reached via a hints.tsv route, and merging keeps every section's rows
+    # instead of silently dropping all but the largest window.
+    local -a row_idx=()
+    local j
+    for ((j = _ET_START + 1; j <= _ET_START + _ET_LEN; j++)); do row_idx+=("$j"); done
+    local _hnorm k
+    { local -a _hk3=(); read -ra _hk3 <<< "$hline"; _hnorm="${_hk3[*]}"; }
+    for ((k = 0; k < ${#_lines[@]}; k++)); do
+        [[ $k -eq $_ET_START ]] && continue
+        local -a _sk=(); read -ra _sk <<< "${_lines[$k]}"
+        [[ "${_sk[*]}" == "$_hnorm" ]] || continue
+        for ((j = k + 1; j < ${#_lines[@]}; j++)); do
+            local dl="${_lines[$j]}"
+            [[ -z "${dl//[[:space:]]/}" ]] && break
+            local -a dk2=(); read -ra dk2 <<< "$dl"
+            if [[ ${#dk2[@]} -lt $ncols ]]; then
+                _et_row_aligns "$hline" "$dl" || break
+            fi
+            [[ "$dl" =~ [0-9] ]] || break
+            [[ "$dl" =~ \.$ ]] && break
+            row_idx+=("$j")
+        done
+    done
+
+    local result="" entry=0
+    for j in "${row_idx[@]}"; do
         local row="${_lines[$j]}"
         local rlen=${#row}
         entry=$((entry + 1))
@@ -266,10 +330,25 @@ strategy_extract () {
                 # A boundary landing INSIDE a token means that cell overflows
                 # its printed column (`zstd-19` under a 4-char `Tool` label,
                 # `Reallocated_Sector_Ct` past ATTRIBUTE_NAME's span): snap the
-                # cut right to the token's end so the cell stays whole.
-                while [[ $b -gt 0 && $b -lt $rlen && "${row:$b:1}" != ' ' && "${row:$((b - 1)):1}" != ' ' ]]; do
-                    b=$((b + 1))
-                done
+                # cut right to the token's end so the cell stays whole — EXCEPT
+                # for a pure NUMBER nearer its own start. Numbers are printed
+                # right-aligned, so one spilling LEFT of its label (iostat's
+                # ` 10440.0` under a narrow wkB/s, sfdisk's wide sector counts)
+                # belongs to the column ahead; welding it back would glue two
+                # numeric cells. Text columns are left-aligned — for them the
+                # old weld-right rule stays (dotnet's `> Newtonsoft.Json` under
+                # a multi-word `Top-level Package` label must stay one cell).
+                if [[ $b -gt 0 && $b -lt $rlen && "${row:$b:1}" != ' ' && "${row:$((b - 1)):1}" != ' ' ]]; then
+                    local _ts=$b _te=$b
+                    while [[ $_ts -gt 0 && "${row:$((_ts - 1)):1}" != ' ' ]]; do _ts=$((_ts - 1)); done
+                    while [[ $_te -lt $rlen && "${row:$_te:1}" != ' ' ]]; do _te=$((_te + 1)); done
+                    local _tok="${row:$_ts:$((_te - _ts))}"
+                    if [[ "$_tok" =~ ^[0-9][0-9.,]*$ && $((b - _ts)) -lt $((_te - b)) && $_ts -gt $lo ]]; then
+                        b=$_ts
+                    else
+                        b=$_te
+                    fi
+                fi
             else
                 b=$rlen
             fi

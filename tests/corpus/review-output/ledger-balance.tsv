@@ -1,2 +1,4 @@
-n	-$4,102_83	total_entries
-1	$9,149.87	1
+n	amount	account	total	total_entries
+1	$1,204.50	Assets:Checking	$9,149.87	3
+2	$12,048.20	Assets:Savings	$9,149.87	3
+3	-$4,102.83	Liabilities:CreditCard	$9,149.87	3
