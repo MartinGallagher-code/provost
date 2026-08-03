@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-08-03 — round-9 review batch: the 150 riskiest passing entries
+
+- **`docs/review-batch-round9.tsv` (NEW)** — records which entries went out for
+  round-9 review: the 150 highest-`risk()` entries that still **pass** the
+  structural pre-screen, worst-first, excluding the 258 cumulative `VALIDATED`
+  and the 11 round-8 marks. Sent as `glean_review_round9_top150.docx` (for
+  markup, same format as round 8) and `.txt` (plain, for constrained upload
+  paths). The workbooks themselves are not committed — only the manifest, as
+  with previous rounds.
+- **Sizing is deliberate.** Round 8 shipped 2,868 entries and came back with 11
+  marked. A 150-entry batch is the same amount of reviewer attention aimed at
+  the part of the distribution where the screen is weakest. Risk spread across
+  the 2,868 eligible: 10 at 7, 49 at 6, 273 at 5, 125 at 4, 350 at 3, 56 at 2,
+  248 at 1, and **1,757 with no risk signal at all** — so the batch is the whole
+  of risk >= 6 plus the top of risk 5.
+- The dominant signals are the same ones behind the reviewer's ten: 683 entries
+  with all-unnamed `A`/`B`/`C` columns, 233 with a single content column, 132
+  still carrying dot-leaders or trailing colons inside cells.
+
 ## 2026-08-03 — the last three round-8 disagreements: colons as delimiters, and count/percent/label
 
 Closes the three tools the round-8 reviewer marked *Horrible* that the previous
