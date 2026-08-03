@@ -1,9 +1,9 @@
-n	A	total_entries
-1	1000000 reads; of these:	8
-2	1000000 (100.00%) were paired; of these:	8
-3	45231 (4.52%) aligned concordantly 0 times	8
-4	889012 (88.90%) aligned concordantly exactly 1 time	8
-5	65757 (6.58%) aligned concordantly >1 times	8
-6	45231 pairs aligned concordantly 0 times; of these:	8
-7	12044 (26.63%) aligned discordantly 1 time	8
-8	98.14% overall alignment rate	8
+n	count	percent	label	total_entries
+1	1000000	-	reads; of these:	8
+2	1000000	100.00%	were paired; of these:	8
+3	45231	4.52%	aligned concordantly 0 times	8
+4	889012	88.90%	aligned concordantly exactly 1 time	8
+5	65757	6.58%	aligned concordantly >1 times	8
+6	45231	-	pairs aligned concordantly 0 times; of these:	8
+7	12044	26.63%	aligned discordantly 1 time	8
+8	-	98.14%	overall alignment rate	8

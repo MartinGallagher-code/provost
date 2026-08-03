@@ -44,7 +44,7 @@ bombardier-run	looks-fine-thin	cells-per-line=0.29	2	Bombarding_http / Statistic
 bonnie-plus	needs-review	unsplit-cells	1	n / A / total_entries
 borg-create-progress	looks-fine	strong	4	n / Archive / Original / Compressed / Progress / total_entries
 borg-prune-list	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
-bowtie2-align-summary	looks-fine	good	1	n / A / total_entries
+bowtie2-align-summary	looks-fine	strong	3	n / count / percent / label / total_entries
 bpftool-prog-show	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 bpftrace	looks-fine	good	2	n / A / B / total_entries
 bpftrace-histogram	needs-review	unsplit-cells;pipes-in-cells	1	n / A / total_entries
@@ -1087,7 +1087,7 @@ gvisor-version	looks-fine	good	2	field / value
 h2load-run	needs-review	unsplit-cells;key-value-delimiter-in-cell	3	n / finished_in_10_02s / 12048_44_req/s / 18_44MB/s / total_entries
 h5dump-header	looks-fine	good	1	n / A / total_entries
 hadolint-output	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
-hammerdb-tpcc	looks-fine	good	1	n / A / total_entries
+hammerdb-tpcc	looks-fine	good	2	n / label / value / total_entries
 haproxy-show-backend	looks-fine	good	2	n / A / B / total_entries
 haproxy-show-info	looks-fine	good	8	Name / Version / Nbthread / Process_num / Uptime_sec / CurrConns / CumConns / Ma
 haproxy-show-servers	looks-fine	strong	6	n / A / B / C / D / E / F / total_entries
@@ -2138,7 +2138,7 @@ pdm-list	looks-fine	good	2	n / name / version / total_entries
 pdns-control-list-zones	looks-fine	good	1	n / A / total_entries
 pdnsutil-check-zone	looks-fine	strong	3	n / Checking / zone / example_com / total_entries
 pdnsutil-list-keys	looks-fine	strong	5	n / Zone / Type / Active / Algorithm / Bits / total_entries
-perf-bench-sched	looks-fine	good	1	n / A / total_entries
+perf-bench-sched	looks-fine	good	2	field / value
 perf-c2c	looks-fine	good	2	n / key / value / total_entries
 perf-list	needs-review	unsplit-cells	1	n / A / total_entries
 perf-report	looks-fine	strong	5	n / Overhead / Command / Shared / Object / Symbol / total_entries
