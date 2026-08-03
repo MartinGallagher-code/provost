@@ -7,11 +7,36 @@
 ##               _postprocess.sh (store)
 ################################################################################
 
-# Read strategy metadata from file header (first 15 lines).
+# ---------------------------------------------------------------------------
+# In-process caches. A single-file run pays each cost once, so these are
+# almost free there — but batch mode runs the whole discovery pipeline once
+# PER INPUT, which used to mean ~200 metadata re-reads, a directory rescan +
+# sort, and ~60 strategy re-sources for every file in the batch. Everything
+# cached here is immutable for the life of the process (strategy files are
+# not edited mid-run).
+# ENV-182 note applies: assoc arrays are explicitly initialised to empty —
+# bash 4.x with `set -u` aborts expanding an unassigned assoc array.
+# ---------------------------------------------------------------------------
+declare -A _META_CACHE_HAVE=()
+declare -A _META_CACHE_NAME=()
+declare -A _META_CACHE_DESC=()
+declare -A _META_CACHE_VER=()
+declare -A _META_CACHE_PRI=()
+declare -A _META_CACHE_DEP=()
+
+# Read strategy metadata from file header (first 15 lines), memoised per path.
 # Sets globals: _META_NAME, _META_DESCRIPTION, _META_VERSION, _META_PRIORITY,
 #               _META_DEPRECATED
 read_strategy_metadata () {
     local filepath="$1"
+    if [[ -n "${_META_CACHE_HAVE[$filepath]:-}" ]]; then
+        _META_NAME="${_META_CACHE_NAME[$filepath]}"
+        _META_DESCRIPTION="${_META_CACHE_DESC[$filepath]}"
+        _META_VERSION="${_META_CACHE_VER[$filepath]}"
+        _META_PRIORITY="${_META_CACHE_PRI[$filepath]}"
+        _META_DEPRECATED="${_META_CACHE_DEP[$filepath]}"
+        return 0
+    fi
     _META_NAME="" _META_DESCRIPTION="" _META_VERSION="0" _META_PRIORITY="99" _META_DEPRECATED=""
     local n=0
     while IFS= read -r _metaline; do
@@ -25,6 +50,62 @@ read_strategy_metadata () {
             '## Deprecated: '*)  _META_DEPRECATED="${_metaline#'## Deprecated: '}" ;;
         esac
     done < "$filepath"
+    _META_CACHE_HAVE[$filepath]=1
+    _META_CACHE_NAME[$filepath]="$_META_NAME"
+    _META_CACHE_DESC[$filepath]="$_META_DESCRIPTION"
+    _META_CACHE_VER[$filepath]="$_META_VERSION"
+    _META_CACHE_PRI[$filepath]="$_META_PRIORITY"
+    _META_CACHE_DEP[$filepath]="$_META_DEPRECATED"
+}
+
+# Strategy function cache: the FIRST source of a file diffs the defined
+# function set before/after and snapshots the source of every function the
+# file contributed — strategy_detect, strategy_extract, AND its helpers
+# (`_strat_*`, `_et_*`, `_dl_*`, …, which detect/extract call by name).
+# Later loads replay that snapshot with one fork-free `eval`, so a batch of
+# N inputs reads + parses each strategy file once instead of N times.
+# SAFETY: helper names are unique per file (verified across all 185
+# strategies — the per-file-prefix convention holds), and top-level
+# assignments (regex constants) persist as globals from the first source.
+declare -A _STRAT_FN_STATE=()
+declare -A _STRAT_FN_DEFS=()
+
+# _source_strategy_cached FILE [ERRFILE] — make FILE's strategy_detect /
+# strategy_extract (and its helper functions) current. Returns 1 if the
+# file failed to source.
+_source_strategy_cached () {
+    local f="$1" errf="${2:-/dev/null}"
+    local st="${_STRAT_FN_STATE[$f]:-}"
+    if [[ -z "$st" ]]; then
+        local _pre_fns _post_fns _fn _names=""
+        _pre_fns="$(declare -F)"
+        unset -f strategy_detect strategy_extract 2>/dev/null
+        if ! source "$f" 2>"$errf"; then
+            _STRAT_FN_STATE[$f]="bad"
+            return 1
+        fi
+        _post_fns="$(declare -F)"
+        while IFS=' ' read -r _ _ _fn; do
+            [[ -z "$_fn" ]] && continue
+            if [[ "$_fn" == strategy_detect || "$_fn" == strategy_extract ]]; then
+                _names+="$_fn "
+            elif [[ $'\n'"$_pre_fns"$'\n' != *$'\n'"declare -f $_fn"$'\n'* ]]; then
+                _names+="$_fn "
+            fi
+        done <<< "$_post_fns"
+        if [[ -n "$_names" ]]; then
+            # shellcheck disable=SC2086
+            _STRAT_FN_DEFS[$f]="$(declare -f $_names 2>/dev/null)"
+        else
+            _STRAT_FN_DEFS[$f]=""
+        fi
+        _STRAT_FN_STATE[$f]="ok"
+        return 0
+    fi
+    [[ "$st" == "bad" ]] && return 1
+    unset -f strategy_detect strategy_extract 2>/dev/null
+    [[ -n "${_STRAT_FN_DEFS[$f]}" ]] && eval "${_STRAT_FN_DEFS[$f]}"
+    return 0
 }
 
 # A strategy is "generic" iff it lives in one of the format-level categories.
@@ -338,7 +419,7 @@ _run_hint_strategy () {
         return 1
     fi
     read_strategy_metadata "$_FOUND_STRATEGY_FILE"
-    if ! source "$_FOUND_STRATEGY_FILE" 2>/dev/null; then
+    if ! _source_strategy_cached "$_FOUND_STRATEGY_FILE" /dev/null; then
         _log_warn "hint '$_HINT_TOOL': failed to source strategy '$_HINT_STRATEGY'"
         return 1
     fi
@@ -347,10 +428,10 @@ _run_hint_strategy () {
     _STRATEGY_REPORT_NAME="$_HINT_TOOL"
     local _had_output_before="$strategies_matched" _rhs_rc=0
     _extract_and_store "$_HINT_STRATEGY" "${_META_VERSION:-0}" || _rhs_rc=$?
+    # No _strat_* helper sweep here: the cached loader re-defines a file's own
+    # functions on every load, so helpers cannot go stale — and the old
+    # `< <(declare -F)` sweep was a fork per strategy per input.
     unset -f strategy_detect strategy_extract 2>/dev/null
-    while IFS= read -r _ _ _post_fn; do
-        case "$_post_fn" in _strat_*) unset -f "$_post_fn" 2>/dev/null ;; esac
-    done < <(declare -F)
     _STRATEGY_REPORT_NAME=""
     [[ $_rhs_rc -eq 2 ]] && return 2
     [[ "$strategies_matched" -gt "$_had_output_before" ]] && return 0
@@ -364,6 +445,15 @@ _resolve_strategy_list () {
     local strategy_dirs=("$@")
     _SORTED_STRATEGIES=""
 
+    # Memoise the directory scan + sort: in batch mode this runs once per
+    # input over an identical directory set. Keyed on dirs + generic flag;
+    # the single-strategy fast path below is cheap and stays uncached.
+    local _rsl_key="${_OPT_generic:-0}|${strategy_dirs[*]}"
+    if [[ -z "$_OPT_strategy" && "$_rsl_key" == "${_SORTED_STRATEGIES_KEY:-}" && -n "${_SORTED_STRATEGIES_CACHE:-}" ]]; then
+        _SORTED_STRATEGIES="$_SORTED_STRATEGIES_CACHE"
+        return 0
+    fi
+
     if [[ -n "$_OPT_strategy" && -z "$_OPT_replay" ]]; then
         # Fast path: locate single strategy via find_strategy_file
         if find_strategy_file "$_OPT_strategy"; then
@@ -376,6 +466,8 @@ _resolve_strategy_list () {
         exit 1
     else
         _SORTED_STRATEGIES=$(build_strategy_list "${strategy_dirs[@]}")
+        _SORTED_STRATEGIES_KEY="$_rsl_key"
+        _SORTED_STRATEGIES_CACHE="$_SORTED_STRATEGIES"
     fi
 }
 
@@ -670,8 +762,10 @@ run_auto_strategies () {
         # Capture source-time stderr into the reused private temp file (see the
         # umask-077 mktemp hoisted above the loop). If it couldn't be created,
         # fall back to discarding stderr rather than spawning a per-strategy one.
+        # The cached loader only pays the file read + parse ONCE per process;
+        # every later pass (each batch input) reinstates one-line shims.
         if [[ -n "$_src_tmpf" ]]; then
-            if ! source "$strategy_file" 2>"$_src_tmpf"; then
+            if ! _source_strategy_cached "$strategy_file" "$_src_tmpf"; then
                 _log_warn "Failed to source strategy '$strategy_name', skipping"
                 [[ -s "$_src_tmpf" ]] && _log_debug "Source error: $(cat "$_src_tmpf")"
                 : > "$_src_tmpf"
@@ -680,19 +774,17 @@ run_auto_strategies () {
             [[ -s "$_src_tmpf" ]] && _log_debug "Source warnings for '$strategy_name': $(cat "$_src_tmpf")"
             : > "$_src_tmpf"
         else
-            if ! source "$strategy_file" 2>/dev/null; then
+            if ! _source_strategy_cached "$strategy_file" /dev/null; then
                 _log_warn "Failed to source strategy '$strategy_name', skipping"
                 continue
             fi
         fi
 
         if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
+            # No _strat_* helper sweep (see _source_strategy_cached): every
+            # load re-defines its file's own functions, and the old
+            # `< <(declare -F)` sweep cost a fork per strategy per input.
             unset -f strategy_detect strategy_extract 2>/dev/null
-            # Clean up _strat_* helper functions (naming convention per HANDOFF.md)
-            # Note: < <(declare -F) process substitution is portable.
-            while IFS= read -r _ _ _post_fn; do
-                case "$_post_fn" in _strat_*) unset -f "$_post_fn" 2>/dev/null ;; esac
-            done < <(declare -F)
             unset _arr 2>/dev/null
             continue
         fi
@@ -700,10 +792,6 @@ run_auto_strategies () {
         _eas_rc=0
         _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
         unset -f strategy_detect strategy_extract 2>/dev/null
-        # Clean up _strat_* helper functions (naming convention per HANDOFF.md)
-        while IFS= read -r _ _ _post_fn; do
-            case "$_post_fn" in _strat_*) unset -f "$_post_fn" 2>/dev/null ;; esac
-        done < <(declare -F)
         unset _arr 2>/dev/null
         if [[ $_eas_rc -eq 2 ]]; then break; fi
     done <<< "$_SORTED_STRATEGIES"

@@ -1,5 +1,56 @@
 # glean — Changelog
 
+## 2026-08-03 — engine: batch extraction + caches take the golden gate from ~10 min to under 4
+
+The reviewer asked how the golden gate could be faster. Three layers landed;
+the full 3,705-input gate now runs in **3m51s** (same 3449/0/256 result,
+verified byte-identical), and a filtered run covers just what you touched.
+
+- **`envoy-extract --batch-out DIR`** (requires `--batch`) — instead of JSON
+  Lines, write per-input `<name>.wide` (the `-f`-formatted extraction) and
+  `<name>.meta` (the `--emit-meta` line) under DIR. One engine process serves
+  a whole file list.
+  - Fixing this exposed **two real batch-mode bugs** that predate it: the
+    batch loop skipped the entire input-normalisation pipeline (ANSI strip,
+    line-terminator mapping, leading-chrome strip, …), so the same file could
+    pick a DIFFERENT winner in batch than alone (`adb-devices`: `tsv` alone,
+    `aligned-columns` in batch); and `_WINNER_NAME` is only-set-if-empty, so
+    every batch file after the first would have reported the first file's
+    winner. The pipeline is now factored into `preprocess_input_text()`
+    (`extract/lib/_helpers.sh`) and shared by both paths; the winner record
+    resets per file.
+- **Discovery caches** (`extract/lib/_discovery.sh`) — all invisible to a
+  single-file run, compounding in batch:
+  - `read_strategy_metadata` memoised per path (was ~200 file reads per input);
+  - the sorted strategy list memoised on dirs+generic key (a directory rescan
+    plus a `sort` fork per input);
+  - **strategy function cache**: the first source of a strategy file diffs
+    `declare -F` before/after and snapshots every function the file defines —
+    detect, extract, AND helpers. Later loads replay one fork-free `eval`.
+    The first cut snapshotted only detect/extract and left helpers to the old
+    per-strategy `_strat_*` unset sweep — which would have made every
+    `_strat_*`-helper strategy (json, yaml, syslog, …) silently fail from the
+    second batch file on. Caught before commit; the snapshot now covers all of
+    a file's functions and the sweep is gone (it cost a `< <(declare -F)`
+    fork per strategy per input; helper names are verified unique across all
+    185 strategy files, so nothing can go stale).
+- **`tests/corpus/run.sh`**: golden/update modes feed one batch engine per job
+  slot and workers consume the precomputed files — the strategy tree is read
+  JOBS times per run instead of 3,705 times. report/coverage keep the per-input
+  spawn (they need a second full-mode call anyway). New optional filter arg:
+  `run.sh --golden '^iostat'` re-checks only matching tools and labels the
+  summary with the filter.
+
+Measured on the 60-input sample: 23.5s → 9.3s for the batch phase alone;
+full gate ~10 min → 3m51s end-to-end.
+
+### Verification
+
+Byte-equivalence proven twice: the 60-input sample compared `.wide`/`.meta`
+against the single-file path (all identical), then the full golden gate
+(3449 passed, 0 failed — unchanged from before the engine work). Extract
+62/62, smoke 58/0, melt 10/0.
+
 ## 2026-08-03 — round-9 marks, part 1: the iostat family
 
 The round-9 workbook came back with 26 marks (19 disagree, 7 agree; saved in

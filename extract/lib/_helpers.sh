@@ -230,3 +230,160 @@ _list_explode () {
         }
     }'
 }
+
+# ---------------------------------------------------------------------------
+# preprocess_input_text — the input-normalisation pipeline, applied to the
+# global $text BEFORE strategy detection. Factored out of the single-file
+# main path so batch mode runs the IDENTICAL pipeline: before this existed,
+# `--batch` skipped every step below, so the same file could pick a different
+# winner in batch than alone (adb-devices: `tsv` alone, `aligned-columns` in
+# batch, because the leading-chrome strip never removed its banner line).
+# Operates on the global `text`, in the same order as before:
+#   line-terminator normalisation, exotic-space normalisation, ZWSP delete,
+#   fullwidth digit/colon mapping, ANSI/OSC strip, BEL/BS strip,
+#   `== section ==` banner drop, and the leading-chrome strip (_lc_strip).
+# ---------------------------------------------------------------------------
+preprocess_input_text () {
+    local local_vt_to _banner_out _bl _lc_first
+    # Normalise alternate line terminators to \n so record splitting — which keys on
+    # \n throughout — sees every logical line. Covers Windows CRLF, bare-CR (classic
+    # Mac), vertical-tab / form-feed page breaks, and the Unicode line separators
+    # NEL (U+0085), LS (U+2028) and PS (U+2029). Without this, a capture that uses any
+    # of these instead of \n collapses to a single physical line and no rows are found.
+    # Gated on such a byte being present, so it is a true no-op for ordinary \n input.
+    # Order matters: strip CRLF's trailing CR first, then map any remaining bare CR /
+    # VT / FF, then the multibyte separators — so CRLF never becomes a blank line.
+    #
+    # VT is context-sensitive: when the input ALREADY has real \n lines, a VT is not
+    # a line break at all — it's a stray control byte INSIDE a cell (`disk\vfailure`)
+    # and becomes a SPACE, keeping the row whole. Only in a \n-less capture (VT as
+    # the sole line separator — the adversarial breaker this block was built for)
+    # does VT map to \n.
+    if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
+          || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
+        local_vt_to=$'\n'
+        [[ "$text" == *$'\n'* ]] && local_vt_to=' '
+        text="$(printf '%s' "$text" | sed 's/\r$//' | tr '\r\013\014' $'\n'"${local_vt_to}"$'\n' \
+                | sed $'s/\302\205/\\\n/g; s/\342\200\250/\\\n/g; s/\342\200\251/\\\n/g')"
+        unset local_vt_to
+    fi
+
+
+    # Normalise exotic Unicode horizontal spaces to ASCII space so column splitting
+    # — which keys on runs of 0x20 — sees the alignment the terminal showed. Covers
+    # NBSP (U+00A0, also used as locale thousands grouping — a SINGLE space inside a
+    # number survives the 2+-space column rule, so "1 234,56" stays one cell while
+    # NBSP-padded column gaps still split), narrow NBSP (U+202F), medium math space
+    # (U+205F), the U+2000–U+200A quad/en/em/thin/hair family, and the ideographic
+    # space (U+3000) CJK tables pad with. Gated on such a byte being present; the
+    # U+2028/29 line separators were already mapped to \n above, and curly quotes
+    # (U+2018-201D) fall outside the mapped ranges.
+    if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342\201\237'* \
+          || "$text" == *$'\343\200\200'* ]]; then
+        text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
+    fi
+
+    # Delete ZERO-WIDTH SPACE (U+200B) — invisible in the terminal, so it can only
+    # corrupt: a header token carrying one (`user​name`) prints as one word but
+    # compares unequal to its plain form and pollutes the melted field name. Only
+    # ZWSP is dropped; ZWNJ/ZWJ (U+200C/D) are orthographically REAL (Farsi
+    # half-space, emoji family joins) and stay. Gated on the byte pair.
+    if [[ "$text" == *$'\342\200\213'* ]]; then
+        text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\342\200\213//g')"
+    fi
+
+    # Normalise FULLWIDTH digits (U+FF10–FF19, CJK tables: `８０`) and the fullwidth
+    # colon (U+FF1A) to their ASCII forms so numeric-contrast header detection and
+    # `key: value` splitting see them the way a reader does. Gated on the FF-block
+    # lead bytes being present.
+    if [[ "$text" == *$'\357\274'* ]]; then
+        text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\357\274\220/0/g; s/\357\274\221/1/g; s/\357\274\222/2/g; s/\357\274\223/3/g; s/\357\274\224/4/g; s/\357\274\225/5/g; s/\357\274\226/6/g; s/\357\274\227/7/g; s/\357\274\230/8/g; s/\357\274\231/9/g; s/\357\274\232/:/g')"
+    fi
+
+    # Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
+    # systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
+    # split or pollute a data cell. Gated on an ESC byte being present, so it is a
+    # true no-op — no subprocess — for the overwhelming majority of inputs that carry
+    # none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
+    # OSC form (ESC ] … BEL) and bare two-byte escapes.
+    if [[ "$text" == *$'\033'* ]]; then
+        text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
+    fi
+
+    # Strip terminal-bell and backspace control bytes (BEL \a, BS \b) — decoration
+    # or erase intent, never data; leaving them embeds invisible bytes in a cell.
+    # Runs AFTER the ANSI strip: BEL terminates an OSC sequence, so deleting it
+    # first would orphan `ESC]…BEL` sequences the OSC rule needs intact. Gated on
+    # presence, a no-op otherwise.
+    if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
+        text="$(printf '%s' "$text" | tr -d '\007\010')"
+    fi
+
+    # LEADING-CHROME strip — lines a capture drags in ABOVE the data (reviewer
+    # round R3). Only the LEADING run of a block with >=2 remaining lines is
+    # touched, each form gated to leading-only so real content is never lost:
+    #   * `$ command` shell-prompt echoes (`$ amass intel -org …`);
+    #   * `WARNING:`/`ERROR:`/`NOTICE:` stderr noise when no later line starts
+    #     the same way (apk's cache warning);
+    #   * `NAME ********…` banner rules (ansible's `PLAY RECAP ****`).
+    _lc_strip () {
+        local _in="$1" _out="" _body="" _l _lead=1 _n=0
+        local _drop_warn=1
+        while IFS= read -r _l; do
+            _n=$((_n + 1))
+            [[ $_n -le 1 ]] && continue
+            [[ "$_l" =~ ^(WARNING|ERROR|NOTICE): ]] && _drop_warn=0
+        done <<< "$_in"
+        _n=0
+        while IFS= read -r _l; do
+            if [[ $_lead -eq 1 ]]; then
+                if [[ -z "${_l//[[:space:]]/}" ]]; then :
+                elif [[ "$_l" =~ ^\$\ [A-Za-z] ]]; then continue
+                elif [[ $_drop_warn -eq 1 && "$_l" =~ ^(WARNING|ERROR|NOTICE): ]]; then continue
+                elif [[ "$_l" =~ \*{6,}[[:space:]]*$ && "$_l" =~ ^[A-Z] ]]; then continue
+                elif [[ "$_l" =~ ^[A-Z][a-z]+([[:space:]]+[a-z]+){2,}$ ]] && \
+                     [[ "$_l" =~ [[:space:]](of|the|to|in|for|with|and|on|at|by|from|is|are)[[:space:]] ]]; then
+                    # prose title ("List of devices attached") — Titlecase word +
+                    # lowercase words incl. a function word, no colon/digits
+                    continue
+                else _lead=0
+                fi
+            fi
+            _body+="$_l"$'\n'
+            [[ -n "${_l//[[:space:]]/}" ]] && _n=$((_n + 1))
+        done <<< "$_in"
+        if [[ $_n -ge 2 && "$_body" != "$_in"$'\n' ]]; then
+            printf '%s' "${_body%$'\n'}"
+        else
+            printf '%s' "$_in"
+        fi
+    }
+    # Interspersed `== section ==` banner lines (apptainer inspect's
+    # `== labels ==` / `== runscript ==`) are pure section decoration — drop a
+    # line delimited by EXACTLY-two-equals runs (`== word ==`). Longer runs
+    # (`=== SET ===`, `====== JOB MAP ======`) are GROUP-LABEL banners that the
+    # embedded-table / kv-under-group parsers legitimately consume, so the
+    # exact-`==` shape is the discriminator. Gated on the byte pair.
+    if [[ "$text" == *'== '* ]]; then
+        _banner_out=""
+        while IFS= read -r _bl; do
+            if [[ "$_bl" =~ ^[[:space:]]*==[[:space:]]+[A-Za-z0-9][^=]*[[:space:]]+==[[:space:]]*$ ]]; then
+                continue
+            fi
+            _banner_out+="$_bl"$'\n'
+        done <<< "$text"
+        text="${_banner_out%$'\n'}"
+    fi
+
+    case "$text" in
+        '$ '*|WARNING:*|ERROR:*|NOTICE:*|*'******'*|List\ *|Ran\ *)
+            text="$(_lc_strip "$text")" ;;
+        [A-Z]*)
+            # prose-title first line — cheap pre-check before the full pass
+            _lc_first="${text%%$'\n'*}"
+            if [[ "$_lc_first" =~ ^[A-Z][a-z]+([[:space:]]+[a-z]+){2,}$ ]]; then
+                text="$(_lc_strip "$text")"
+            fi
+            ;;
+    esac
+}
