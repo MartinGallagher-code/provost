@@ -457,7 +457,7 @@ lscpu-parse	table	8	8
 numactl-show	table	6	1
 lsinitramfs	table	20	1
 lstopo-no-graphics	table	14	1
-hwinfo-short	table	15	1
+hwinfo-short	table	8	2
 lshw-network	table	18	1
 fwupdmgr-get-devices	table	17	1
 mcelog	table	12	1

@@ -1,5 +1,61 @@
 # glean — Changelog
 
+## 2026-08-03 — round-9 marks, part 2: pre-commit, env-diff, hwinfo, fdbcli
+
+Four more of the reviewer's 19 disagreements fixed (5 were the iostat family;
+10 remain). Also hardened the flaky async smoke test.
+
+- **`dot-leader-kv` 1.1 → 1.2, form C** — `label.......value` with NO colon
+  (pre-commit's `check yaml.....Failed`), the reviewer's *"remove the dot
+  spacers, then two columns"*. Line-by-line matching would eat `working....done`
+  spinner chatter, so form C only fires when EVERY non-blank line is that shape
+  (>=3 of them), the dot run is >=4, and the key holds no dots or colons.
+  `pre-commit-run`: 4 blob rows → 4 × `key | value`.
+- **`equals` 1.0 → 1.1, signed assignments** — `+KEY=value` / `-KEY=value`
+  (env-diff), the reviewer's *"we have key-value here"*. The sign is DATA (which
+  side changed) and stays on the key. Exactly one sign then a tight sign-free
+  key, so `--flag=value` option help and `+ x = 1` patch hunks stay out.
+- **`indented-colon-groups` 1.0 → 1.1, multi-token members** — the reviewer's
+  *"cpu, keyboard, graphics card, etc. are keys"* (hwinfo --short). Single-
+  token-ness was the first shape we met, not the discriminator; the `key: value`
+  colon gate is what keeps YAML out. Relaxing it exposed two shapes the
+  strategy must NOT eat, now gated: ` = ` members (python -m sysconfig, qperf,
+  hdparm — assignment blocks, kv territory) and same-width member rows
+  (yugabyte, pulumi — embedded tables whose columns welding would lose;
+  rejected when >=3 members share one token count >=3 covering half the
+  members). An all-` - `-pair block is exempt and splits into `group | key |
+  value` — which fixes **`fdbcli-status`** (the reviewer's *"lost all of the
+  info"*; its old golden had `Server_time____-_2026-07-10_18` as a COLUMN
+  NAME) as a byproduct: 14 rows, nothing dropped.
+- **`tests/smoke.sh`** — the async-landing test's poll window doubled to 40s.
+  One CI shard timed out at 20s while its twin on the same commit passed
+  (runner contention); a real async breakage still fails, zero stays zero.
+- **`docs/review-marks-2026-08-03-round9.tsv`** — comment lines removed: the
+  prescreen's `--validate` globs every `review-marks-*` file with a DictReader,
+  and a comment line above the header broke it. Format now matches round 8.
+
+### The one manifest change, and why it is legitimate
+
+`--update-golden` DELETED `hwinfo-short`'s golden on the first pass: the
+manifest row said `table 15 1` — written for the old 15-line one-column blob,
+headers-as-data. The reviewer has explicitly ruled that shape wrong. Updating
+the row to `table 8 2` records the reviewer's decision, which is a different
+thing from rewriting the manifest to match our own output — the reason
+`v4l2-ctl-list-devices`'s manifest stays untouched (no reviewer ruling there).
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3449 passed, 0 failed**, 256 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted / added | **0 / 0** (4 modified, all reviewer-directed) |
+
+The first cut of the multi-token relaxation broke 6 tools; the two gates took
+that to 0 while keeping all four targets. Screen calibration holds at 94% on
+the 258 known-good.
+
 ## 2026-08-03 — engine: batch extraction + caches take the golden gate from ~10 min to under 4
 
 The reviewer asked how the golden gate could be faster. Three layers landed;

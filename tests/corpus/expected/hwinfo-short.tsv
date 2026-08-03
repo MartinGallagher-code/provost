@@ -1,16 +1,9 @@
-n	A	total_entries
-1	cpu:	15
-2	Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, 3200 MHz	15
-3	Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, 3200 MHz	15
-4	keyboard:	15
-5	/dev/input/event3    AT Translated Set 2 keyboard	15
-6	mouse:	15
-7	/dev/input/mice      Logitech USB Optical Mouse	15
-8	graphics card:	15
-9	Intel UHD Graphics 630	15
-10	storage:	15
-11	Intel SATA Controller	15
-12	network:	15
-13	eth0                 Intel Ethernet Connection I219-LM	15
-14	disk:	15
-15	/dev/sda             Samsung SSD 860 EVO 500GB	15
+n	group	value	total_entries
+1	cpu	Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, 3200 MHz	8
+2	cpu	Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, 3200 MHz	8
+3	keyboard	/dev/input/event3 AT Translated Set 2 keyboard	8
+4	mouse	/dev/input/mice Logitech USB Optical Mouse	8
+5	graphics card	Intel UHD Graphics 630	8
+6	storage	Intel SATA Controller	8
+7	network	eth0 Intel Ethernet Connection I219-LM	8
+8	disk	/dev/sda Samsung SSD 860 EVO 500GB	8

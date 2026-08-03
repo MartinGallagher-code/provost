@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: indented-colon-groups
-## Description: `header:` lines over indented single-token members (cargo install/machete, ethtool caps) -> group/value rows
-## Version: 1.0
+## Description: `header:` lines over indented members (cargo install/machete, hwinfo --short) -> group/value rows
+## Version: 1.1
 ## Priority: 35
 ## Sample: samples/indented-colon-groups/basic.txt
 
@@ -22,11 +22,13 @@
 # `path`, so the crate and its manifest are addressable separately -- exactly
 # what a reviewer asked for (crate, path, and one dependency per row).
 #
-# Kept off config / YAML / key:value output by three gates: members must be a
-# SINGLE token (no whitespace) and carry no `key: value` colon pair, and the
-# header's own text (before the trailing colon) must hold no `key: value`
-# pair either. Preamble and footer lines are tolerated only at the very top
-# and bottom -- any unclassifiable line in the middle rejects the block.
+# Kept off config / YAML / key:value output by two gates: members carry no
+# `key: value` colon pair, and the header's own text (before the trailing
+# colon) holds no `key: value` pair either. Preamble and footer lines are
+# tolerated only at the very top and bottom -- any unclassifiable line in
+# the middle rejects the block. (v1.0 also required members to be a single
+# token; hwinfo --short's multi-token members showed that was the first
+# shape we met, not the discriminator -- the colon gate is what matters.)
 
 # Leading whitespace width of $1 -> _ICG_IND
 _icg_indent () {
@@ -51,9 +53,14 @@ _icg_classify () {
         fi
         return
     fi
-    # A member: indented, a single token, no colon pair.
-    [[ "$body" == *[[:space:]]* ]] && return
+    # A member: indented, no `key: value` colon pair. Members may be
+    # MULTI-token — hwinfo --short's `/dev/input/event3    AT Translated Set 2
+    # keyboard` is one member, its 2+-space run being column alignment inside
+    # the member, so runs collapse to a single space in the value. The colon
+    # gate is what keeps YAML / config mappings out; single-token-ness never
+    # was the discriminator, it was just the first shape we met.
     [[ "$body" == *": "* ]] && return
+    while [[ "$body" == *"  "* ]]; do body="${body//  / }"; done
     _ICG_BODY="$body"; _ICG_KIND=M
 }
 
@@ -73,6 +80,36 @@ strategy_detect () {
     done <<< "$text"
     # Need real grouping: >=2 headers and at least one member each.
     [[ $groups -ge 2 && $members -ge $groups ]] || return 1
+    # Multi-token members brought two shapes this strategy must NOT eat:
+    #   * ` = ` members are an assignment block under section headers
+    #     (python -m sysconfig, qperf, hdparm) — kv parsers' territory;
+    #   * same-width members are an embedded TABLE's rows (yugabyte's
+    #     `UUID Host Port Role State`, pulumi's Type/Name/Plan) — welding a
+    #     row into one value cell loses its columns. Rejected when >=3
+    #     members share one token count >=3 covering at least half of all
+    #     members. Exempt: an all-` - `-pair block (fdbcli status), which
+    #     LOOKS same-width only because the dashes align — it is a kv list
+    #     and extract splits it properly.
+    local _m_eq=0 _m_dash=0 _m_counts=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        _icg_classify "$line"
+        [[ "$_ICG_KIND" == M ]] || continue
+        [[ "$_ICG_BODY" == *" = "* ]] && _m_eq=1
+        [[ "$_ICG_BODY" == *" - "* ]] && _m_dash=$((_m_dash + 1))
+        local -a _mt=(); read -ra _mt <<< "$_ICG_BODY"
+        _m_counts+="${#_mt[@]} "
+    done <<< "$text"
+    [[ $_m_eq -eq 1 ]] && return 1
+    if [[ $_m_dash -lt $members ]]; then
+        local _c _best=0
+        for _c in $_m_counts; do
+            [[ $_c -lt 3 ]] && continue
+            local _n=0 _c2
+            for _c2 in $_m_counts; do [[ "$_c2" == "$_c" ]] && _n=$((_n + 1)); done
+            [[ $_n -gt $_best ]] && _best=$_n
+        done
+        [[ $_best -ge 3 && $(( _best * 2 )) -ge $members ]] && return 1
+    fi
     # Noise (preamble/footer) only at the very ends -- never between groups.
     local core="${order#"${order%%[!N]*}"}"   # strip leading N run
     core="${core%"${core##*[!N]}"}"           # strip trailing N run
@@ -110,6 +147,22 @@ strategy_extract () {
     done <<< "$text"
     [[ $saw_group -eq 1 ]] || split=0
 
+    # An all-` - `-pair member block (fdbcli status: `Redundancy mode - triple`)
+    # is a kv list whose dashes merely align; split each member into key |
+    # value instead of welding the pair into one cell. Only when the header
+    # ` -- ` split is off — the two shapes have not co-occurred.
+    local dash=0
+    if [[ $split -eq 0 ]]; then
+        local _dm=0 _mm=0
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            _icg_classify "$line"
+            [[ "$_ICG_KIND" == M ]] || continue
+            _mm=$((_mm + 1))
+            [[ "$_ICG_BODY" == *" - "* ]] && _dm=$((_dm + 1))
+        done <<< "$text"
+        [[ $_mm -gt 0 && $_dm -eq $_mm ]] && dash=1
+    fi
+
     local result="" entry=0 gname="" gpath="" group=""
     while IFS= read -r line || [[ -n "$line" ]]; do
         _icg_classify "$line"
@@ -130,7 +183,13 @@ strategy_extract () {
                 else
                     result+="entry${entry}.group ${group}"$'\n'
                 fi
-                result+="entry${entry}.value ${_ICG_BODY}"$'\n'
+                if [[ $dash -eq 1 ]]; then
+                    local _mk="${_ICG_BODY%% - *}" _mv="${_ICG_BODY#* - }"
+                    result+="entry${entry}.key ${_mk}"$'\n'
+                    result+="entry${entry}.value ${_mv}"$'\n'
+                else
+                    result+="entry${entry}.value ${_ICG_BODY}"$'\n'
+                fi
                 ;;
         esac
     done <<< "$text"

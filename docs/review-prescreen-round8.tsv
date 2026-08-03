@@ -652,7 +652,7 @@ enc-zwsp-header	looks-fine	strong	3	n / username / fullname / active / total_ent
 enc-zwsp-in-cell	looks-fine	strong	3	n / repo / branch / commits / total_entries
 entr-restart	looks-fine	good	2	n / restarting: / app_py / total_entries
 env	looks-fine	good	5	PATH / HOME / SHELL / LANG / TERM
-env-diff	looks-fine	good	1	n / A / total_entries
+env-diff	looks-fine	good	4	+DIRENV_DIR / +NODE_ENV / +DATABASE_URL / -EDITOR
 env-file-export-quotes	looks-fine	good	4	n / export / MOTD="Welcome / to / prod: / total_entries
 envoy-clusters	looks-fine	good	1	n / A / total_entries
 envoy-config-dump-summary	looks-fine	strong	3	n / type / name / last_updated / total_entries
@@ -781,7 +781,7 @@ fastly-service-list	looks-fine	strong	5	n / NAME / ID / TYPE / ACTIVE_VERSION / 
 fastp-summary	looks-fine	good	8	total_reads / total_bases / Q20_bases / Q30_bases / reads_passed_filter / reads_
 fastqc-summary	looks-fine	strong	3	n / A / B / C / total_entries
 fd-list	looks-fine	good	1	n / A / total_entries
-fdbcli-status	looks-fine-thin	cells-per-line=0.06	1	n / Server_time____________-_2026-07-10_18
+fdbcli-status	looks-fine	strong	3	n / group / key / value / total_entries
 fdbcli-status-json	looks-fine	good	9	cluster.database_status.available / cluster.database_status.healthy / cluster.wo
 fdisk-l	needs-review	unsplit-cells;key-value-delimiter-in-cell	1	n / A / total_entries
 feature-support-matrix	needs-review	column-misalignment=0.22	5	n / Format / Read / Write / Streaming / Compression / total_entries
@@ -1173,7 +1173,7 @@ huggingface-cli-scan	looks-fine	strong	6	n / REPO / ID / TYPE / SIZE / ON / DISK
 hugo-build-stats	looks-fine	good	2	n / Pages / 442 / total_entries
 hugo-version	looks-fine	good	1	n / A / total_entries
 hurl-report	looks-fine	strong	4	n / A / B / C / D / total_entries
-hwinfo-short	looks-fine	good	1	n / A / total_entries
+hwinfo-short	looks-fine	good	2	n / group / value / total_entries
 hydra-http-post	looks-fine	strong	3	n / HOST / LOGIN / PASSWORD / total_entries
 hydra-results	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
 hyperfine-benchmark-delta	looks-fine	strong	7	n / A / B / C / D / E / F / G / total_entries
@@ -1214,12 +1214,12 @@ intel-gpu-top	needs-review	pipes-in-cells;lone-delimiter-column	4	n / ENGINE / B
 inxi-full	needs-review	key-value-delimiter-in-cell	4	CPU / Graphics / Memory / Drives
 ioping-run	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 iostat	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wrtn_s / kb_read / kb_wrtn / total_entries
-iostat-cx	looks-fine-thin	cells-per-line=0.14	1	n / avg-cpu
+iostat-cx	looks-fine	strong	9	n / Device / r/s / rkB/s / w/s / wkB/s / \%util / aqu-sz / await / svctm / total
 iostat-d	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wrtn_s / kb_read / kb_wrtn / total_entries
 iostat-throughput-si	looks-fine	strong	6	n / device / tps / kb_read_s / kb_wrtn_s / kb_read / kb_wrtn / total_entries
-iostat-x	looks-fine-thin	cells-per-line=0.12	1	n / avg-cpu
-iostat-xmt	looks-fine-thin	cells-per-line=0.12	1	n / avg-cpu
-iostat-xz	looks-fine-thin	cells-per-line=0.15	1	n / avg-cpu
+iostat-x	looks-fine	strong	16	n / Device / r/s / w/s / rkB/s / wkB/s / rrqm/s / wrqm/s / %rrqm / %wrqm / r_awa
+iostat-xmt	looks-fine	strong	8	n / Device / tps / MB_read/s / MB_wrtn/s / MB_dscd/s / MB_read / MB_wrtn / MB_ds
+iostat-xz	looks-fine	strong	23	n / Device / r/s / rkB/s / rrqm/s / %rrqm / r_await / rareq-sz / w/s / wkB/s / w
 iotop	looks-fine	strong	14	n / read / write / TID / PRIO / USER / DISK / READ / WRITE / SWAPIN / IO> / COMM
 iotop-batch	needs-review	column-misalignment=0.33	7	n / TID / PRIO / USER / DISK / READ / WRITE / COMMAND / total_entries
 iozone-run	looks-fine	strong	6	n / Iozone: / Performance / Test / of / File / I/O / total_entries
@@ -1891,7 +1891,7 @@ nst-firewall-zones-blocks	looks-fine	strong	5	n / name / interfaces / services /
 nst-gpg-packet-dump	needs-review	key-value-delimiter-in-cell	1	n / A / total_entries
 nst-hdparm-nested-sections	looks-fine	good	2	n / key / value / total_entries
 nst-ini-duplicate-keys	looks-fine	strong	3	n / section / key / value / total_entries
-nst-iostat-multisection	looks-fine-thin	cells-per-line=0.18	1	n / avg-cpu
+nst-iostat-multisection	looks-fine	strong	6	n / Device / r/s / w/s / rkB/s / wkB/s / await / total_entries
 nst-ip-route-per-table	looks-fine	good	1	n / A / total_entries
 nst-ip-s-link-nested	looks-fine	strong	17	n / name / mtu / qdisc / state / mode / rx_bytes / rx_packets / rx_errors / rx_d
 nst-java-log-stacktrace	looks-fine	good	1	n / A / total_entries
@@ -2263,7 +2263,7 @@ powertop	looks-fine-thin	cells-per-line=0.12	1	n / Summary
 powertop-devices	looks-fine	good	4	100.0%______Display_backlight.4.2_W_____USB_device / 100.0%______Display_backlig
 powertop-summary	looks-fine	good	2	field / value
 powertop-watts-tunables	looks-fine	strong	4	n / Usage / Wakeups/s / Category / Description / total_entries
-pre-commit-run	looks-fine	good	1	n / A / total_entries
+pre-commit-run	looks-fine	good	2	n / key / value / total_entries
 prefect-deployment-list	looks-fine	strong	4	n / NAME / SCHEDULE / WORK_POOL / STATUS / total_entries
 prefect-flow-runs	looks-fine	strong	4	n / name / state / start_time / duration / total_entries
 presto-query-stats	needs-review	key-value-delimiter-in-cell	2	n / Query_20260710_060000_00042_abcde / RUNNING / total_entries

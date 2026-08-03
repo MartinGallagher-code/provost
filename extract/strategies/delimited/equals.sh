@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: equals
 ## Description: Extract field=value pairs from equals-delimited data
-## Version: 1.0
+## Version: 1.1
 ## Priority: 65
 ## Sample: samples/equals/basic.txt
 
@@ -17,6 +17,12 @@ strategy_detect () {
         # --list`'s dotted keys `user.name=…`). The key allows `.` so dotted
         # config keys match.
         [[ "$_det_line" =~ ^[A-Za-z][A-Za-z0-9_.\ -]*=[^=] ]] && return 0
+        # Signed assignment: `+KEY=value` / `-KEY=value` — env-diff style
+        # (direnv, `env -0 | comm`) marks additions and removals with one
+        # leading sign. The sign is DATA (it says which side changed) so it
+        # stays on the key. Exactly one sign then a tight sign-free key, so
+        # `--flag=value` option help and `+ x = 1` patch hunks stay out.
+        [[ "$_det_line" =~ ^[+-][A-Za-z][A-Za-z0-9_.]*=[^=] ]] && return 0
         # Space-padded assignment with a rich key: `KEY(ctx) = value`,
         # `KEY(env: X) = value` (ansible-config dump). Requires ` = ` so it does
         # not fire on prose that merely contains a lone '='.

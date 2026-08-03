@@ -1,6 +1,23 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3449/0, 256 ⏳** (round-9 part 1: iostat family via embedded-table 1.1 + hint), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks are in: 26 of 150, 19 disagree — 5 fixed, 14 triaged in CHANGELOG.
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3449/0, 256 ⏳** in **under 4 min** (engine batch mode + caches; `run.sh --golden '<ERE>'` for filtered runs), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks: 19 disagreements — **9 fixed** (iostat ×5, pre-commit-run, env-diff, hwinfo-short, fdbcli-status), 10 open (triaged in CHANGELOG).
+
+> **2026-08-03 — round-9 part 2 + engine speed.** Fixed `pre-commit-run`
+> (dot-leader form C, colonless), `env-diff` (signed `+KEY=value` in equals),
+> `hwinfo-short` (multi-token members in indented-colon-groups, two new
+> anti-theft gates), and `fdbcli-status` (` - ` member pairs split to
+> `group | key | value`) — see CHANGELOG for the gates and the one
+> reviewer-directed manifest change (hwinfo-short `15 1` → `8 2`). Engine:
+> `--batch-out` + discovery caches take the full gate ~10 min → 3m51s, and
+> `run.sh --golden '^iostat'` re-checks only matching tools. Batch mode also
+> got two latent bugs fixed (skipped normalisation pipeline; winner leak).
+> Async smoke poll window doubled after a CI shard timed out while its twin
+> passed. **Open: 10 round-9 disagreements** — next: `keepalived-vrrp-state`
+> (first-token records), `sdparm-all`/`fossil-timeline` (section banners as
+> carried-down column), `bluetoothctl-devices`/`hledger-balance` (lost data),
+> and 5 marked without notes (`btrfs-filesystem-show`,
+> `cmb-cr-redraw-progress-final`, `decode-dimms`, `dvc-dag`, `go-ycsb-run`,
+> `hugo-version`).
 
 > **2026-08-03 — round-9 marks, part 1: iostat family fixed.** The reviewer
 > marked 26 of the 150-entry round-9 batch (19 disagree, 7 agree —

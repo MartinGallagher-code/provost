@@ -1,5 +1,5 @@
-n	A	total_entries
-1	trim trailing whitespace.................................................Passed	4
-2	fix end of files.........................................................Passed	4
-3	check yaml...............................................................Failed	4
-4	black....................................................................Passed	4
+n	key	value	total_entries
+1	trim trailing whitespace	Passed	4
+2	fix end of files	Passed	4
+3	check yaml	Failed	4
+4	black	Passed	4
