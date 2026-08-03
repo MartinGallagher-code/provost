@@ -1,6 +1,33 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is now pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3445/0, 260 ⏳** (round-8 parser work: dot-leader fix + indented-colon-groups), extract 62/62, smoke 58/0, melt 10/0
+## Status: Standalone; **pip-only install** (`pip install glean-data`, `install.sh` removed); `bundle.txt` is pure printable ASCII (merge/split **v3**). pip/PyPI packaging + deframe integration landed 2026-07-23 — 100% launcher coverage, REUSE-compliant, `--plugin-dir` + `#%` prologue; golden gate **3445/0, 260 ⏳** (round-8 parser work complete: dot-leader fix, indented-colon-groups, colons comment-skip, unspaced-colon-kv, count-percent-label), extract 62/62, smoke 58/0, melt 10/0
+
+> **2026-08-03 — round-8 reviewer marks: all ten now answered.** The last three
+> disagreements (`perf-bench-sched`, `bowtie2-align-summary`, `hammerdb-tpcc`)
+> are fixed. Each was a genuinely distinct shape and needed its own change:
+> - **`colons` 1.0 → 1.1** — `#` comment banners no longer count in the 40%
+>   key/value detection ratio (either side of it). `perf bench sched` was 25%
+>   with its three banner lines, 100% without; the banners were already being
+>   dropped at extract time. Now `Total_time | 0.882 [sec]`.
+> - **`unspaced-colon-kv` (NEW, p52)** — `Label:value` with no space after the
+>   colon, which `colons` (p60) cannot take because that space is what tells a
+>   pair from a colon inside a value. Emits records, since labels repeat.
+>   `hammerdb-tpcc` → 4 × `label | value`.
+> - **`count-percent-label` (NEW, p42)** — `N (P%) text` alignment summaries into
+>   `count | percent | label`. `bowtie2-align-summary` → 8 rows × 3 columns.
+> - **Verified:** golden gate **3445 passed / 0 failed / 260 ⏳**, extract 62/62,
+>   smoke 58/0, melt 10/0. Exactly 3 goldens changed (the intended targets),
+>   **0 deleted, 0 added** (rule 5). The first cut of `unspaced-colon-kv` broke
+>   25 tools; nine documented gates took that to 3, then 0. `count-percent-label`
+>   never caused collateral change.
+> - Manifest rows left as `text … 2` for all three: `mincols` is a floor the new
+>   output clears, and rewriting the manifest from our own output is what we
+>   declined to do for `v4l2-ctl-list-devices`. Goldens are the real gate.
+>
+> **Still open for a human:** `v4l2-ctl-list-devices` tidies to `group | value`
+> (3 rows) but `expected.tsv` declares `table 6 x 2`, so no golden is written —
+> reconcile the manifest or accept the blob. And PyPI Trusted Publisher
+> registration (account-level, cannot be done from a session).
 
 > **2026-07-30 — round-8 parser work: indented-colon-groups.** Follow-up on the
 > 5 "one column that should be several" cases the reviewer flagged. New generic

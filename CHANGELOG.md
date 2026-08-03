@@ -1,5 +1,71 @@
 # glean — Changelog
 
+## 2026-08-03 — the last three round-8 disagreements: colons as delimiters, and count/percent/label
+
+Closes the three tools the round-8 reviewer marked *Horrible* that the previous
+round left unfixed. Each needed its own parser change; none could reuse the
+dot-leader or indented-colon work.
+
+- **`extract/strategies/delimited/colons.sh` (1.0 → 1.1)** — `#` comment banners
+  are now excluded from BOTH sides of the 40% key/value ratio in
+  `strategy_detect`. They are not data, `strategy_extract` already dropped them,
+  and counting them in the denominator buried the real pairs. `perf bench sched`
+  prints three banner lines over a single `Total time: 0.882 [sec]` — 25% with
+  the banners, 100% without. Fixes the reviewer's *"the total time is obviously a
+  key/value pair, the others are comments"*: 4 blob rows → `Total_time | 0.882 [sec]`.
+
+- **`extract/strategies/delimited/unspaced-colon-kv.sh` (NEW, priority 52)** —
+  owns `Label:value` lines with NO space after the colon. `colons` (priority 60)
+  requires that space, because it is what separates a real pair from a colon
+  living inside a value (`10:15:42`), so HammerDB's `Vuser 1:RAMPUP complete`
+  fell through to the blob parser. This is the reviewer's *"the colons are
+  delimiters, not values"*. Labels repeat, so the output is records — a real
+  two-column table — not a key/value map that would collapse them.
+  `hammerdb-tpcc`: 4 blob rows → 4 × `label | value`.
+  - Nine gates keep it off output other parsers already own; each was added
+    after catching it steal something. In order of what they saved: whitespace
+    must appear somewhere on the line (`user:1001`, `src/main.rs:12`,
+    `system:capture_1`, image refs); no 2+ space run anywhere (that gap is
+    column alignment — `lsblk`, `vcpkg list`, `haproxy show servers`); no value
+    starting `digits:` (grep's `file:LINE:text`); no value starting `:` (IPv6
+    `prefix ::1/128`, pytest's `test_auth.py::test_login`); a MAJORITY of lines
+    unspaced (one unspaced banner over a spaced block is still a `colons`
+    document — `nvme smart-log`); and at least two DISTINCT labels (one label on
+    every line is a namespace, not a key — `vllm:num_requests_running`), which
+    mirrors the uniform-identifier guard `colon-fields` already carries.
+  - The clock guard is `(^|[^0-9:])[0-9][0-9]?:[0-9][0-9]([^0-9]|$)`. The
+    trailing `[^0-9]` is load-bearing: without it `Vuser 1:482100` reads as the
+    time `1:48` and the tool rejects its own target.
+
+- **`extract/strategies/delimited/count-percent-label.sh` (NEW, priority 42)** —
+  splits `N (P%) description` alignment summaries into `count | percent | label`,
+  the reviewer's *"separate the numbers, percentages and text into three separate
+  columns"*. Accepts three line forms (`N (P%) text`, `N text`, `P% text`) and
+  requires EVERY non-blank line to be one of them plus at least two carrying the
+  parenthesised percentage — that signature is what keeps ordinary counted lists
+  (`uniq -c`) with `line-records`. Indentation encodes nesting but is
+  presentation, not data, so rows are emitted flat in file order.
+  `bowtie2-align-summary`: 8 blob rows → 8 × `count | percent | label`.
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3445 passed, 0 failed**, 260 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke (end-to-end) | 58 / 0 |
+| transform melt | 10 / 0 |
+| goldens deleted / added (CLAUDE.md rule 5) | **0 / 0** |
+
+Exactly 3 goldens changed, all of them the intended targets. The first cut of
+`unspaced-colon-kv` failed 25 tools; the gates above took that to 3, then 0.
+`count-percent-label` caused no collateral change at any point.
+
+The manifest rows for all three stay `text … 2` rather than being retyped as
+`table`: `mincols` is a floor and the new output clears it, and rewriting the
+manifest from our own output is what we deliberately declined to do for
+`v4l2-ctl-list-devices`. The byte-exact goldens remain the real gate.
+
 ## 2026-07-30 — prescreen: --exclude-marked, and a refreshed verification workbook
 
 - **`prescreen.py --emit-json --exclude-marked TSV`** drops tools already ruled

@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: colons
 ## Description: Extract field:value pairs from colon-delimited data
-## Version: 1.0
+## Version: 1.1
 ## Priority: 60
 ## Sample: samples/colons/basic.txt
 
@@ -28,11 +28,18 @@ strategy_detect () {
     # stray colon in otherwise free text (e.g. a single `usage:` line inside
     # `strings` output). Below ~40% this isn't colon-delimited data — let the
     # last-resort line-records catch it as a one-column list instead.
+    #
+    # `#` comment banners are excluded from BOTH sides of that ratio: they are
+    # not data, strategy_extract already drops them (no colon, or an empty
+    # value), and counting them in the denominator buries the real pairs. `perf
+    # bench sched` prints three banner lines over a single `Total time:` pair —
+    # 25% with the banners, 100% without, and only the pair is data.
     local _kv=0 _nb=0 _l
     local _line_re="^[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|$)"
     local _bline_re="^[[:space:]]*\[[A-Za-z][A-Za-z0-9._-]*\]:([[:space:]]|$)"
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
+        [[ "${_l#"${_l%%[![:space:]]*}"}" == "#"* ]] && continue
         _nb=$((_nb + 1))
         [[ "$_l" =~ $_line_re || "$_l" =~ $_bline_re ]] && _kv=$((_kv + 1))
     done <<< "$text"
