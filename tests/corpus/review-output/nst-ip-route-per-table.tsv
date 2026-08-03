@@ -1,11 +1,8 @@
-n	A	total_entries
-1	=== table main ===	10
-2	default via 10.0.0.1 dev eth0 proto dhcp metric 100	10
-3	10.0.0.0/24 dev eth0 proto kernel scope link src 10.0.0.11	10
-4	169.254.0.0/16 dev eth0 scope link metric 1000	10
-5	=== table 200 (vpn) ===	10
-6	default via 10.8.0.1 dev tun0	10
-7	10.8.0.0/24 dev tun0 proto kernel scope link src 10.8.0.6	10
-8	=== table local ===	10
-9	broadcast 10.0.0.0 dev eth0 proto kernel scope link src 10.0.0.11	10
-10	local 10.0.0.11 dev eth0 proto kernel scope host src 10.0.0.11	10
+n	group	value	total_entries
+1	table main	default via 10.0.0.1 dev eth0 proto dhcp metric 100	7
+2	table main	10.0.0.0/24 dev eth0 proto kernel scope link src 10.0.0.11	7
+3	table main	169.254.0.0/16 dev eth0 scope link metric 1000	7
+4	table 200 (vpn)	default via 10.8.0.1 dev tun0	7
+5	table 200 (vpn)	10.8.0.0/24 dev tun0 proto kernel scope link src 10.8.0.6	7
+6	table local	broadcast 10.0.0.0 dev eth0 proto kernel scope link src 10.0.0.11	7
+7	table local	local 10.0.0.11 dev eth0 proto kernel scope host src 10.0.0.11	7

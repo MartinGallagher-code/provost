@@ -1,5 +1,64 @@
 # glean — Changelog
 
+## 2026-08-03 — round-9 marks, part 3: keepalived, bluetoothctl, hledger, fossil (+2 free)
+
+Four more reviewer disagreements fixed — 12 of the 19 now answered (the docs
+previously said 9 fixed after part 2; the correct count was 8, having wrongly
+included nst-iostat-multisection, which was never a marked item). Three new
+generic strategies, each held to the corpus the hard way: the first cut of
+this batch broke **33 tools**; the gates below took that to 0.
+
+- **`repeated-lead-records` (NEW, priority 38)** — every line opens with one
+  IDENTICAL token: keepalived's `VRRP_Instance(VI_1) …` (the reviewer's "A and
+  B columns") and bluetoothctl's `Device MAC name` (their "should be three
+  columns" — the MAC is promoted to an `id` column when every line's second
+  token is a structured id, digit + `:`/`-`, charset-tight so btrfs's bare
+  `256` never qualifies). A repeated first token is COMMON, and the first cut
+  stole 25 tools; acceptance is now ID case or PROSE case (stamp-shaped lead,
+  >=75% plain-word rest — `host` rows sit at 66% and keep their word-split,
+  keepalived runs 83%), with `: ` lines and `[bracketed]` leads excluded
+  (kv and bracket-log territory).
+- **`ledger-balance` (NEW, priority 44)** — right-aligned `AMOUNT  account`
+  balance reports with a dash rule and lone grand total (the reviewer's "you
+  lost data" on hledger). The total is kept as a scalar `total` field. Also
+  fixed the `ledger-balance` corpus tool itself — its old golden was the same
+  garbage (`n | -$4,102_83` as a header). At least one amount must carry a
+  currency symbol: integer+path listings (gsutil du, zoxide query -l) were
+  already parsed right and stay put.
+- **`banner-groups` (NEW, priority 34)** — `=== SECTION ===` banners carried
+  down as a `group` column (the reviewer's fossil-timeline note). Banners are
+  EXACTLY three equals per side — pytest/rocm draw 10-20-equals decoration
+  rules, which are lines, not labels — and any `Key: value` member rejects the
+  block (smartctl's sections belong to the kv/embedded parsers).
+  `nst-ip-route-per-table` improved as a byproduct (blob → `table main │
+  default via 10.0.0.1 …`).
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3451 passed, 0 failed**, 254 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted / added | **0 / 2** (bluetoothctl-devices, fossil-timeline enter coverage) |
+
+4 goldens modified: 2 reviewer-directed (hledger, keepalived) and 2 replacing
+garbage (`ledger-balance`, `nst-ip-route-per-table` — both were blobs with
+data welded into header names). Screen calibration holds at 94%.
+
+### Still open from round 9 (7)
+
+`sdparm-all` (mode-page sections with `[cha: y, def: 1]` members — the member
+colon gate that protects YAML also blocks this; needs its own thought),
+`btrfs-filesystem-show` (kv header + device table per section — the
+multi-output-per-input design question), `cmb-cr-redraw-progress-final`
+(embedded table whose chrome is all digit-bearing progress lines — the same
+prose-rule wall iostat hit, but no clean hint anchor), `decode-dimms`
+(tab-aligned phrase keys — needs a tab-kv treatment), `dvc-dag` (ASCII-box
+DAG), `go-ycsb-run` (mixed properties block + `LABEL - k: v, …` metrics
+lines), `hugo-version` (single version banner line — conflicts with the
+deliberate text-lines convention for version banners; needs a decision).
+
 ## 2026-08-03 — round-9 marks, part 2: pre-commit, env-diff, hwinfo, fdbcli
 
 Four more of the reviewer's 19 disagreements fixed (5 were the iostat family;

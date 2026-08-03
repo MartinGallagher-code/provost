@@ -39,7 +39,7 @@ bird-show-route	needs-review	unsplit-cells	1	n / A / total_entries
 birdc-show-memory	needs-review	unsplit-cells	2	n / key / value / total_entries
 blkid-sparse-fields	looks-fine	good	2	n / name / value / total_entries
 bloop-projects	looks-fine	strong	4	n / A / B / C / D / total_entries
-bluetoothctl-devices	looks-fine-thin	cells-per-line=0.33	1	n / Device_AA
+bluetoothctl-devices	looks-fine	strong	3	n / label / id / value / total_entries
 bombardier-run	looks-fine-thin	cells-per-line=0.29	2	Bombarding_http / Statistics________Avg______Stdev________Max.Throughput
 bonnie-plus	needs-review	unsplit-cells	1	n / A / total_entries
 borg-create-progress	looks-fine	strong	4	n / Archive / Original / Compressed / Progress / total_entries
@@ -855,7 +855,7 @@ flyctl-volumes-list	looks-fine	strong	9	n / ID / STATE / NAME / SIZE / REGION / 
 flyway-info	looks-fine	strong	6	n / Category / Version / Description / Type / Installed_On / State / total_entri
 fnm-list	looks-fine	strong	3	n / A / B / C / total_entries
 fossil-status	looks-fine	good	7	repository / local-root / config-db / checkout / parent / tags / comment
-fossil-timeline	looks-fine	good	1	n / A / total_entries
+fossil-timeline	looks-fine	good	2	n / group / value / total_entries
 fping	looks-fine	strong	3	n / A / B / C / total_entries
 free	looks-fine	strong	6	n / total / used / free / shared / buff/cache / available / total_entries
 free-h	looks-fine	strong	6	n / total / used / free / shared / buff/cache / available / total_entries
@@ -1148,7 +1148,7 @@ hg-paths	looks-fine	good	4	default / default-push / upstream / backup
 hg-status	looks-fine	good	2	n / A / B / total_entries
 hg-summary	looks-fine	good	5	parent / branch / commit / update / phases
 hive-show-partitions	needs-review	duplicate-column-names	3	year / year / year
-hledger-balance	looks-fine-thin	cells-per-line=0.20	1	n / -$10,025_00 / total_entries
+hledger-balance	looks-fine	strong	3	n / amount / account / total / total_entries
 hledger-balance-multicurrency	looks-fine-thin	cells-per-line=0.40	2	n / -£1,200_00 / liabilities:card / total_entries
 hledger-register-fx	needs-review	unsplit-cells	1	n / A / total_entries
 home-assistant-states	looks-fine	strong	3	n / entity_id / state / last_changed / total_entries
@@ -1342,7 +1342,7 @@ katana-crawl	looks-fine	good	2	n / METHOD / URL / total_entries
 kdiskmark-run	looks-fine	strong	4	n / A / B / C / D / total_entries
 keepalived-conf	looks-fine	good	1	n / A / total_entries
 keepalived-stats	looks-fine	good	6	VRRP_Instance / State / Advertisements_Sent / Priority_Zeroing / Became_master /
-keepalived-vrrp-state	looks-fine	good	1	n / A / total_entries
+keepalived-vrrp-state	looks-fine	good	2	n / label / value / total_entries
 keytool-list	looks-fine	strong	8	n / Keystore_type / Keystore_provider / mykey,_Mar_01_2024,_PrivateKeyEntry,_A1 
 khal-calendar	looks-fine	good	3	Thursday,_2026-07-10.09 / Thursday,_2026-07-10.14 / Friday,_2026-07-11.11
 kics-scan	looks-fine	good	6	Files_scanned / Parsed_files / Queries_executed / HIGH / MEDIUM / LOW
@@ -1467,7 +1467,7 @@ ldconfig-p	looks-fine	strong	3	n / soname / info / path / total_entries
 ldd	looks-fine	good	1	n / A / total_entries
 ldd-recursive	looks-fine	strong	3	n / A / B / C / total_entries
 ldif-groups-export	looks-fine	strong	7	n / dn / cn / gidNumber / member / description / dn:_cn / member:_uid
-ledger-balance	looks-fine-thin	cells-per-line=0.20	1	n / -$4,102_83 / total_entries
+ledger-balance	looks-fine	strong	3	n / amount / account / total / total_entries
 ledger-register-parenthesized	looks-fine	strong	5	n / A / B / C / D / E / total_entries
 lerna-version	looks-fine	good	1	n / A / total_entries
 librespeed-cli	needs-review	unsplit-cells	4	Ping / Download / Upload / Server
@@ -1892,7 +1892,7 @@ nst-gpg-packet-dump	needs-review	key-value-delimiter-in-cell	1	n / A / total_ent
 nst-hdparm-nested-sections	looks-fine	good	2	n / key / value / total_entries
 nst-ini-duplicate-keys	looks-fine	strong	3	n / section / key / value / total_entries
 nst-iostat-multisection	looks-fine	strong	6	n / Device / r/s / w/s / rkB/s / wkB/s / await / total_entries
-nst-ip-route-per-table	looks-fine	good	1	n / A / total_entries
+nst-ip-route-per-table	looks-fine	good	2	n / group / value / total_entries
 nst-ip-s-link-nested	looks-fine	strong	17	n / name / mtu / qdisc / state / mode / rx_bytes / rx_packets / rx_errors / rx_d
 nst-java-log-stacktrace	looks-fine	good	1	n / A / total_entries
 nst-json-4level-arrays	looks-fine	strong	10	n / cluster / nodes.name / nodes.pods.0.name / nodes.pods.0.containers.0.name / 

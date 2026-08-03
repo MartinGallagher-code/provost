@@ -1,6 +1,19 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3449/0, 256 ⏳** in **under 4 min** (engine batch mode + caches; `run.sh --golden '<ERE>'` for filtered runs), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks: 19 disagreements — **9 fixed** (iostat ×5, pre-commit-run, env-diff, hwinfo-short, fdbcli-status), 10 open (triaged in CHANGELOG).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3451/0, 254 ⏳** in under 4 min (engine batch mode + caches; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. Round-9 marks: 19 disagreements — **12 fixed**, 7 open (triaged in CHANGELOG part-3 entry).
+
+> **2026-08-03 — round-9 part 3.** Three new generic strategies close four
+> more marks: `repeated-lead-records` p38 (keepalived label|value,
+> bluetoothctl label|id|value), `ledger-balance` p44 (hledger amount|account
+> + scalar total; also fixed the ledger-balance tool's own garbage golden),
+> `banner-groups` p34 (fossil `=== date ===` carried down; nst-ip-route
+> improved free). First cut broke 33 tools; documented gates took it to 0.
+> Gate 3451/0/254 (2 goldens ADDED, 4 modified — 2 reviewer-directed, 2
+> replacing garbage), 0 deleted. **12 of 19 round-9 disagreements now fixed;
+> 7 open** — see CHANGELOG for why each remaining one is genuinely hard
+> (sdparm colon-gate conflict, btrfs multi-output design, cmb-cr prose-rule
+> wall, decode-dimms tab-kv, dvc-dag ASCII DAG, go-ycsb mixed sections,
+> hugo-version convention decision).
 
 > **2026-08-03 — round-9 part 2 + engine speed.** Fixed `pre-commit-run`
 > (dot-leader form C, colonless), `env-diff` (signed `+KEY=value` in equals),
