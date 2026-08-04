@@ -1,0 +1,4 @@
+=> Found "lodash@4.17.21"
+info Reasons this module exists
+   - "webpack#loader-utils" depends on it
+   - Hoisted from "webpack#loader-utils#lodash"

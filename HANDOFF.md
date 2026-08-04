@@ -1,15 +1,19 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #50 — every reviewer mark from rounds 8–10 plus `--multi` is landed). **Round-11 review batch is out**: worst-20 workbook awaiting the reviewer's marks (`docs/review-batch-2026-08-04-round11.tsv`).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3459/0, 246 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #51, draft). **Round-11 marks: all 12 disagreements fixed** (8 OK, 12 disagree — `docs/review-marks-2026-08-04-round11.tsv`). Next: reviewer marks round-12, or extend the workbook deeper into the 2,725 remaining unreviewed entries.
 
-> **2026-08-04 — round-11 batch prepared (post-#50).** `review-output/`
-> refreshed (38 of 3,705 changed — all PR #50 fixes + documented free riders);
-> worst-20 workbook generated from the 2,745 not-yet-reviewed passing entries
-> (excludes VALIDATED + all round 1–3/8–10 marks), risk-ranked. Sent as
-> `glean_corpus_review_11_worst20.docx`; batch recorded in
-> `docs/review-batch-2026-08-04-round11.tsv`; marks come back as
-> `docs/review-marks-<date>-round11.tsv`. Next when marks arrive: work the
-> disagreements as in rounds 8–10.
+> **2026-08-04 — round-11 marks: all 12 fixed.** version-line 1.1 (Prometheus
+> `NAME, version X (branch: …)` → named columns; tempo/thanos + loki/mimir/ghc
+> riders), dotted-kv-tree p31 (cgget family — reviewer's exact key/subkey/value
+> spec; lowercase-dotted key gate, NN:NN linter-coordinate veto), probe-verdict
+> p37 (chkrootkit `name | result`), engine color-as-separator recovery (SGR-only
+> column boundaries → TAB, gated on no-2+-space-run per line; cmb-colorsep pair
+> recovered, mid-cell recolors/gauges/boxes untouched), and five narrow p39
+> strategies (cipher-suites, plan-actions, result-blocks, decorated-groups,
+> arrow-info-records) for the singleton shapes. 4 goldens net ADDED
+> (cmb-colorsep ×2, sslscan, terraform-plan), 0 deleted. First cuts stole
+> 18 (dotted keys) / 8 (empty-indent lead) — both gated to zero. Gate
+> 3459/0/246; review-output refreshed (15 changed, all intended).
 
 > **2026-08-04 — multi-dataset extraction (`--multi`).** The reviewer's
 > "one input may deserve multiple outputs" note is an engine mode: blank-line

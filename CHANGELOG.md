@@ -1,5 +1,46 @@
 # glean — Changelog
 
+## 2026-08-04 — round-11 marks: all 12 disagreements fixed
+
+The round-11 worst-20 workbook came back 8 OK / 12 disagree
+(`docs/review-marks-2026-08-04-round11.tsv`). All 12 are fixed, in three
+commits on this branch:
+
+- **`version-line` 1.0 → 1.1** — form B `NAME, version X (branch: B,
+  revision: R)`: name may be multi-word (ghc), paren pairs become named
+  columns. Fixes tempo/thanos ("version/branch/revision as column headers");
+  loki/mimir/ghc improve identically (5 goldens regenerated). perl's
+  `This is perl 5, version 38,` stays out (trailing comma on the token).
+- **New `dotted-kv-tree` p31** — cgget/cgget-cpu. Dotted cgroup keys: flat
+  pairs, `cpu.stat:` headers over indented members (header → key, member
+  first token → subkey — the reviewer's exact A/B/C spec), packed pair values
+  (`anon N file N`, `some avg10=0.00 …`) decomposed one row per pair,
+  unindented `mysql.service:` as a carried group column. Keys must be
+  lowercase alpha-led dotted segments; a `NN:NN`-opening value is a linter
+  coordinate (ruff). First cut stole 18 tools; final steals zero.
+- **New `probe-verdict` p37** — chkrootkit's `Checking \`name'... verdict` →
+  `name | result`, dots and quotes dropped, verdict whole. Identical-lead +
+  dots-glued gates keep borg and cargo test out.
+- **Engine: color-as-separator recovery** (before the ANSI strip) — TUI
+  columns separated ONLY by SGR spans get a TAB at each reset-abuts-SGR
+  boundary; per-line gate (no 2+-space run after stripping) protects mid-cell
+  recolors ("1001"), gauge bars, box tables. cmb-colorsep-only 4×4 and
+  cmb-colorsep-reset-fields 3×5 (named header recovered) — two goldens ADDED.
+- **Five narrow strategies for the singleton shapes** (each p39, all
+  reviewer-specified): `cipher-suites` (sslscan → status/protocol/bits/cipher,
+  5 rows), `plan-actions` (terraform `# R will be ACTION` → resource/action),
+  `result-blocks` (tfsec `Result N` + `[rule][SEV]` blocks →
+  rule/severity/message/location), `decorated-groups` (changesets' 🦋 lead
+  dropped, `group | comma-joined members` — decoration must LEAD the line;
+  an indented empty-token line must never count, which the first cut got
+  wrong and ate 8 indented `header:` families), `arrow-info-records`
+  (yarn-why `=> Found` / `info` labels carried onto bullets). sslscan and
+  terraform-plan goldens ADDED (previously uncovered).
+- Manifests retyped for the 8 reshaped tools; `review-output/` refreshed (15
+  changed — the 12 marks + loki/mimir/ghc riders, rest byte-identical).
+  Final gate **3459/0/246** (4 goldens added net), 0 deleted; extract 63/63,
+  smoke 58/0, melt 10/0.
+
 ## 2026-08-04 — round-11 review batch: worst-20 workbook + review-output refresh
 
 Post-merge follow-up to PR #50 (fresh branch from `main`). Prepares the next

@@ -1,0 +1,5 @@
+Result 1
+  [aws-s3-enable-bucket-encryption][HIGH]
+  Bucket does not have encryption enabled
+  main.tf:14-22
+  1 passed, 3 potential problems detected.

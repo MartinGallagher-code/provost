@@ -1,0 +1,6 @@
+entry1.result 1
+entry1.rule aws-s3-enable-bucket-encryption
+entry1.severity HIGH
+entry1.message Bucket does not have encryption enabled
+entry1.location main.tf:14-22
+total_entries 1
