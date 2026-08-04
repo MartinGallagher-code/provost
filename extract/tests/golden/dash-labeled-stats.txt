@@ -1,0 +1,13 @@
+entry1.name READ
+entry1.Takes(s) 48.8
+entry1.Count 800482
+entry1.OPS 16398.4
+entry1.Avg(us) 921
+entry1.P99(us) 2210
+entry2.name UPDATE
+entry2.Takes(s) 48.8
+entry2.Count 199518
+entry2.OPS 4088.2
+entry2.Avg(us) 1204
+entry2.P99(us) 3210
+total_entries 2

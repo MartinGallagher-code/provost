@@ -1,6 +1,81 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #48). Round-10 marks: 17 disagreements — **13 fixed**, 4 open (triaged in CHANGELOG).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed. Multi-dataset extraction shipped as `envoy-extract --multi`** (docs/0003-multi-dataset.md); glean capture adoption deliberately deferred (one-dataset-per-capture is a core invariant — scoped as its own change).
+
+> **2026-08-04 — multi-dataset extraction (`--multi`).** The reviewer's
+> "one input may deserve multiple outputs" note is an engine mode: blank-line
+> block split → detect-only pass per block → group consecutive blocks sharing
+> winner name AND shape (modal token count ±1) → full pipeline per group →
+> datasets emitted behind `__DATASET__ n strategy confidence` separators.
+> iostat -x → 3 datasets (banner, avg-cpu kv, Device table) — nothing
+> dropped; blank-separated record streams re-form into one. New
+> test_multi_mode.sh (extract 63/63). Capture-pipeline adoption + a corpus
+> `multi` kind are scoped in docs/0003-multi-dataset.md, not started.
+
+> **2026-08-04 — round-10 complete (npm-audit + kubectl-describe).** New
+> `headline-kv-blocks` p36: npm audit's advisory blocks (`name  <range>`
+> headline + `Severity:` kv + `Title - URL`) → name/A/Severity/B/C/detail —
+> the "missed columns" all recovered. New `describe-report` p21: kubectl
+> describe's aligned kv (+continuations `; `-joined) + `Section:` tables
+> sliced at their `----` separator positions (overflow-safe boundary walk) →
+> one record per Conditions/Events row with kv carried; 5 sibling describes
+> improve free (events had been welded into COLUMN NAMES). Gotcha refound:
+> `local x="$1" y=${#x}` breaks under `set -u` — split declarations. Gate
+> 3455/0/250, 0 deleted.
+
+> **2026-08-04 — nst-python-traceback-log (bracket-log 1.1).** Non-bracketed
+> continuation runs (first line indented or colon-terminated — a Python
+> traceback under its ERROR line) absorb into the entry above as a `detail`
+> column, `; `-joined. Pure 80%-bracketed logs unchanged; bare `[tag]` spacer
+> lines skipped (mvn byte-identical). Free rider: wpscan-summary blob → 3
+> records. Gate 3455/0/250, 0 deleted.
+
+> **2026-08-04 — CR-redraw preprocessing + box-dag.** Engine: `\r`-redrawn
+> progress lines are transient chrome — interior-`\r` lines whose first/last
+> segments share a ≥8-char prefix are DROPPED (kept collapsed-to-final when
+> they are all the input has); pre-baked welds (CRs consumed upstream, `%]`
+> gate, first-12-chars-recur signature) get the same rule after the ANSI strip.
+> Zero collateral over 3705 inputs; cmb-cr-redraw-progress-final now yields its
+> real `LAYER | COMMAND | SIZE | CACHED` table. New `box-dag` p30: dvc dag's
+> ASCII-boxed pipeline → one `stage` row per box; interior `|` (real box
+> table) rejects. Gate 3455/0/250, 0 deleted.
+
+> **2026-08-04 — decode-dimms / btrfs / hugo / go-ycsb (four strategies).**
+> `banner-sections-kv` p45 (+`---=== ` hint): dash-wrapped section banners over
+> tab-kv pairs → group|key|value (decode-dimms 14 rows). `inline-kv-groups`
+> p39: inline `k: v` headers over word-run→value members → header pairs
+> carried onto per-member rows (btrfs fi show — devid rows recovered).
+> `version-line` p44: single-line `name vX.Y.Z …` banners → name|version +
+> named `k=v` columns (hugo, dagger); the over-broad cargo-tree hint narrowed
+> to require `├──`/`└──`, releasing tinymembench + y-cruncher to real parses
+> and improving 17 version-tool goldens (name/version named columns).
+> `dash-labeled-stats` p42: `NAME - k: v, k: v` records → name + per-key
+> columns (go-ycsb). Gate 3454/0/251, 0 deleted; extract 62/62, smoke 58/0.
+
+> **2026-08-04 — `sdparm-all` (sectioned-fields).** New generic
+> `sectioned-fields` p46. Colon-terminated section header → carried `group`
+> column; indented `NAME value [cha: y, def: N]` field rows → `name | value` +
+> the trailing bracket decomposed to `cha | def`; leading device line drops as
+> a comment. The reviewer's "Read…/Caching… repeated column values, items below
+> in multiple columns." Auto-detect (before aligned-columns): members MUST end
+> in a `[key: value, …]` bracket and no unclassified line may follow a header —
+> zero blast radius. Manifest `kv - 4` → `table 10 5`; golden regenerated. Gate
+> 3452/0/253, 0 deleted; extract 62/62, smoke 58/0.
+
+> **2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv).** New generic
+> `section-kv` p58 + a `contains mail exchanger = ` hint. A bare `Header:` line
+> (colon, no value) is carried DOWN as the key of each plain line beneath it,
+> ordinary `key: value` lines above emit as themselves → one entry-prefixed
+> `key | value` table (the reviewer's "each gmail entry should have
+> `Non-authoritative answer:` as its key"). Plain `nslookup` untouched (its
+> `Name:`/`Address:` under the same banner are their own kv pairs → the bare
+> header carries nothing → drops). Auto-detect first cut stole 20 tools; gated
+> to 0 (carried members need an INTERNAL tab after indent — excludes rpm -qi
+> prose, ipset token lists, perf-list padding, cgget tab-indent — plus ≥1 kv
+> before the first section, no kv-pair members, no pre-header loose lines).
+> Manifest `nslookup_mx` `table 5 1` → `7 2`. Gate 3452/0/253, 0 deleted;
+> extract 62/62, smoke 58/0. **3 open:** kubectl-describe-deployment,
+> npm-audit-summary, nst-python-traceback-log — see CHANGELOG.
 
 > **2026-08-03 — round-10 marks (post-merge, fresh branch).** 13 of 17 worst-20
 > disagreements fixed. `equals` pin/cfg list modes (pip-freeze, rye-list,

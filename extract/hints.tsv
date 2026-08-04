@@ -26,10 +26,11 @@ aptitude-search	regex	^[ipvc][ A]{3}[a-z0-9]	text-lines
 aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	line-records
 borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
 cabal-freeze	prefix	constraints:	line-records
-cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+[^:]	text-lines
+cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+[^:].*(├──|└──)	text-lines
 consul-kv-get-recurse	regex	^[a-z0-9_-]+/[a-z0-9_/-]+:[^ ]	block-records
 cpuid-summary	contains	vendor_id = "	block-records
 dbmate-status	contains	Applied: 	dbmate-status
+decode-dimms	contains	---=== 	banner-sections-kv
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
 fwupdmgr-get-devices	contains	Device ID:	text-lines
@@ -48,6 +49,7 @@ lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
 lsusb-t	prefix	/:  Bus	text-lines
 mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
 nft-list-tables	regex	^table [^{]+$	line-records
+nslookup_mx	contains	mail exchanger = 	section-kv
 nvidia-smi-topo	contains	CPU Affinity	aligned-columns
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
 pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines

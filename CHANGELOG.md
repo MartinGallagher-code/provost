@@ -1,5 +1,209 @@
 # glean — Changelog
 
+## 2026-08-04 — multi-dataset extraction (`--multi`, docs/0003)
+
+The reviewer's design note — "an input may deserve MULTIPLE outputs, e.g. a
+key/value in the same input with a table" — is now an engine mode.
+
+- **`envoy-extract --multi`** (`extract/envoy-extract`,
+  `extract/lib/_dispatch.sh` `run_multi_mode`): split the preprocessed input
+  on blank-line boundaries; detect-only pass per block; group consecutive
+  blocks sharing BOTH winner name AND shape (modal token count ±1 — name
+  alone is too coarse: iostat's avg-cpu block and Device table both detect
+  aligned-columns but are 6-7 vs 16 tokens wide); run the FULL pipeline
+  (hints, auto-detection, dedup) per group; emit each surviving dataset
+  behind `__DATASET__<TAB>n<TAB>strategy<TAB>confidence` in the -f format.
+  Nameless blocks (banners) join the open group; blank-separated record
+  streams share name+shape so they re-form and extract as ONE dataset.
+  `iostat -x` → 3 datasets (uname banner, avg-cpu, Device) — nothing dropped.
+  Conflicts with `--batch`/`--stream`/`--chain`/`--replay`/`--strategy`/
+  `--interactive`.
+- **Deliberately NOT adopted in the glean capture pipeline** — one dataset per
+  capture is a core invariant (meta.tsv, show/export, melt, the corpus
+  harness). Adoption is scoped as its own change in
+  `docs/0003-multi-dataset.md` (dataset-N siblings, `show <id>:<n>`, a
+  corpus `multi` kind).
+- Tests: `extract/tests/test_multi_mode.sh` (3-dataset split, record-stream
+  re-forming, separator format, conflicts) — extract suite now 63/63. Corpus
+  gate untouched by the feature: 3455/0/250, 0 deleted; smoke 58/0.
+
+## 2026-08-04 — npm-audit-summary + kubectl-describe (round-10 complete: 17/17)
+
+The last two round-10 marks. All 17 disagreements from the round-10 workbook
+are now fixed.
+
+- **New: `headline-kv-blocks` p36** (auto-detected). npm audit's advisory
+  blocks — blank-separated, each opening with a `name  <range>` 2+-space
+  headline over `Severity: high` kv lines and free lines. One record per
+  block: headline first field → `name`, remaining headline fields positional;
+  kv lines → named columns; a ` - ` free line → two positional columns
+  (title/advisory URL); other free lines → `detail`. A leading title block
+  (`# npm audit report`) and trailing summary block are chrome; any OTHER
+  non-qualifying block rejects. → `name | A | Severity | B | C | detail` — the
+  reviewer's "missed columns" all recovered (block-records had kept only
+  `Severity: high`). Manifest `text - 2` → `table 1 6`.
+- **New: `describe-report` p21** (auto-detected). kubectl describe's house
+  style: 2+-space-aligned top kv (keys may hold spaces), deep-indented
+  continuation lines (`Labels:`' second value, `Annotations:`' JSON — joined
+  `; `), and `Section:` headers over tables whose `----` separator row gives
+  the EXACT column extents. One record per section-table row (`section` + the
+  table's own header names), sliced at the dash-run positions with an
+  OVERFLOW-safe boundary (a cell wider than its dash run — hpa's
+  `FailedGetResourceMetric` — walks the boundary right so the token stays
+  whole); top kv emit as flat fields the melt repeats onto every row. Nothing
+  is lost — the old parse welded JSON fragments into key names and events into
+  columns. Free riders: kubectl-describe-{cronjob,daemonset,hpa-events,
+  replicaset,statefulset} all improve from event-welded-into-column-name
+  goldens to real `section | Type | Status/Reason | Age | From | Message`
+  rows. Manifests: deployment `kv - 5` → `table 6 6`; the five siblings
+  `kv - 5` → `table 3-4 6`.
+  - Gotcha refound: `local row="$1" rl=${#row}` in ONE statement breaks under
+    the engine's `set -u` (rl expands before row assigns) — split
+    declarations; this silently killed detection until the debug log showed
+    `row: unbound variable`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0.
+
+## 2026-08-04 — `nst-python-traceback-log` (bracket-log 1.1 continuations)
+
+Round-10 mark: two record shapes interleaved in one stream — timestamped log
+lines plus a Python traceback.
+
+- **`bracket-log` 1.0 → 1.1 — continuation runs.** A contiguous non-bracketed
+  run whose FIRST line is indented or ends in `:` (`Traceback (most recent
+  call last):`) is a CONTINUATION of the log entry above it — absorbed into
+  that entry's new `detail` column, lines joined with `; `. Detection accepts
+  the classic 80% bracketed majority (pure logs — output unchanged) OR ≥3
+  bracketed lines starting at line 1 with every non-bracketed run
+  continuation-shaped. A report merely opening with a `[tag]` line still falls
+  through (its lines are unindented, not colon-terminated). A bare `[tag]`
+  line with no message (mvn's `[INFO]` spacers) is chrome — skipped, never
+  absorbed. → `timestamp | message | detail`, the traceback riding its ERROR
+  entry.
+- Free rider: **wpscan-summary** text blob → 3 records (`+`/`!` tag, message,
+  the indented `Fixed in: 6.5.5` as detail). mvn-clean-install byte-identical
+  after the bare-tag skip. Manifests: nst-python-traceback-log `text - 2` →
+  `table 3 2`, wpscan-summary `text - 2` → `table 3 2`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0.
+
+## 2026-08-04 — cmb-cr-redraw + dvc-dag (CR-redraw preprocessing, box-dag)
+
+The last two earlier-triaged reviewer marks.
+
+- **Engine: CR-redraw collapse** (`extract/lib/_helpers.sh`
+  `preprocess_input_text`, two flavors). A progress bar redrawn with `\r` is
+  TRANSIENT CHROME — a terminal shows only the final state and even that is not
+  data. (1) Interior-`\r` flavor, at the line-terminator step: when the first
+  and last `\r`-segments of a line share a ≥8-char prefix (same label redrawn
+  with a new value), the whole line is dropped — provided ≥2 non-blank lines
+  remain; otherwise its final state is kept. Non-matching segments (spinner
+  glyphs vary their first char, `\r`-separated log records) fall through to
+  the historical CR→`\n` mapping unchanged. (2) Pre-baked weld flavor (CRs
+  consumed upstream: `…[  0%]Building image  [ 45%]…` in ONE line), after the
+  ANSI strip, gated on `%]`: the first-12-chars-recur signature, same
+  drop-or-keep-final rule. Zero collateral across all 3705 corpus inputs;
+  `cmb-cr-redraw-progress-final` now parses to its real LAYER table
+  (`LAYER | COMMAND | SIZE | CACHED`, spaces preserved in cells) instead of
+  block-records' welded blobs.
+- **New: `box-dag` p30.** `dvc dag`'s ASCII-boxed pipeline (`+---+` borders,
+  one stage per box, `*` edge lines) → one `stage` row per box in graph order.
+  psql-table had promoted the FIRST stage to a column name. Runs before
+  psql-table (p35); detection requires every non-blank line to be border /
+  single-cell content / edge-glyph, and any interior `|` (a multi-column row —
+  a real box table) rejects. Manifest `text - 2` → `table 4 1`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0, melt 10/0.
+
+## 2026-08-04 — decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run (four strategies)
+
+Four more earlier-triaged reviewer marks closed, each with a small generic
+strategy; 21 free-rider goldens improved along the way.
+
+- **New: `banner-sections-kv` p45 + `decode-dimms` hint (`contains ---=== `).**
+  `---=== SECTION ===---` banners over TAB-separated `key <TAB..> value` pairs
+  → `group | key | value` rows (14 for decode-dimms; block-records had kept 1
+  line and dropped everything else). A pair splits on the first tab run, else
+  `: `; the dash-wrapped banner is a label (never contends with banner-groups'
+  bare `=== x ===`); the `# decode-dimms version 6.0` title is decoration (no
+  tab), while the real `# of bytes …` key IS kept (it has one). Manifest
+  `kv - 6` → `table 14 3`.
+- **New: `inline-kv-groups` p39** (auto-detected). btrfs filesystem show:
+  `Label: 'data'  uuid: …` headers are ONLY inline `k: v` pairs; members
+  (`devid 1 size 931.51GiB used 420.00GiB path /dev/sda1`, `Total devices 2 FS
+  bytes used 412.83GiB`) decompose completely into word-run → value pairs
+  (value = digit- or /-led token). One row per member with header pairs carried
+  → `Label | uuid | Total_devices | FS_bytes_used | devid | size | used |
+  path`, 5 rows; the old parse had DROPPED every devid row. Detection needs ≥2
+  fully-decomposing headers and every line classified — zero corpus collateral.
+  Manifest `table 3 4` → `table 5 7`.
+- **New: `version-line` p44** (auto-detected). Single-line `name vX.Y.Z …`
+  banners split into `name | version` + `Key=value` tokens as named columns +
+  bare tokens as positional letters (hugo-version — the reviewer's "you didn't
+  even try" — and dagger-version). Containment is single-line-ness itself.
+  - The over-broad `cargo-tree` hint (any `name vX.Y.Z` start) was narrowed to
+    require a real tree glyph (`├──`/`└──`), releasing hugo/dagger plus
+    tinymembench (→ key-value: 5 real benchmark rows) and y-cruncher-pi
+    (→ colons: 6 real kv fields) from text-lines blobs.
+  - **17 free-rider goldens improved** (cargo-version-full, elixir-v,
+    gleam-deps-list, gnuplot-version, grafana-version, helix-version, lua-v,
+    maxima-version, python-vv, ruby-v, ruby-version, rustc-version,
+    telegraf-version, v-version, vault-version, vector-version,
+    weechat-version): same token split, now with `name`/`version` named
+    columns (gleam-deps-list → real `name | version` rows). 16 manifest rows
+    retyped `kv - 3`; tinymembench `table 5 2`, y-cruncher `kv - 6`, hugo &
+    dagger `kv - 4`.
+- **New: `dash-labeled-stats` p42** (auto-detected). `NAME - k: v, k: v, …`
+  stat records (go-ycsb's READ/UPDATE lines) → `name` + one column per key
+  (`Takes(s) | Count | OPS | Avg(us) | P99(us)`). Needs ≥2 records, each ≥2
+  comma-separated `k: v` pairs after the dash (fdbcli's single-pair ` - `
+  lines never match). The properties preamble and banners are tolerated
+  noise. Manifest `text - 2` → `table 2 6`.
+- Gate after all four: **3454 passed / 0 failed / 251 ⏳, 0 deleted**; extract
+  62/62 (4 new strategy goldens), smoke 58/0.
+
+## 2026-08-04 — `sdparm-all` (sectioned-fields)
+
+- **New: `sectioned-fields` p46.** The reviewer's `sdparm --all` note: "first
+  line is kind of like a comment; Read… and Caching… are repeated column
+  values, with items below each in multiple columns." A colon-terminated
+  section header (`Read write error recovery [rw_er_rec] mode page [PS=0]:`) is
+  carried down as a `group` column; each indented `NAME value [cha: y, def: N]`
+  field row splits into `name | value` plus the trailing bracket decomposed
+  into one column per bracket key (`cha`, `def`); the leading `/dev/sda: …`
+  device line drops as a pre-header comment. → `group | name | value | cha |
+  def`, 10 rows. Auto-detect (p46, before aligned-columns): headers are
+  unindented bare-colon lines with no interior `key: value`; members are
+  indented and MUST end in a `[key: value, …]` bracket; any unclassified line
+  after the first header rejects — which held blast radius to zero across the
+  full corpus. Manifest `sdparm-all` `kv - 4` → `table 10 5`; golden
+  regenerated. Gate 3452/0/253, 0 deleted; extract 62/62, smoke 58/0.
+
+## 2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv)
+
+Post-merge follow-up to PR #49; the branch was restarted from the merged `main`
+(PR #49) as a fresh change. First of the four still-open round-10 marks.
+
+- **New: `section-kv` p58 + `nslookup_mx` hint.** The reviewer's note on
+  `nslookup -type=mx`: "each of the gmail.com entries should have
+  `Non-authoritative answer:` as their key for the key/value pair." A bare
+  `Header:` line (colon, no value) is carried DOWN as the key of every plain
+  line beneath it, while the ordinary `key: value` lines above emit as
+  themselves — one entry-prefixed `key | value` table (`Server`, `Address`,
+  then `Non-authoritative answer` ×5). A bare header whose followers are all
+  their own `key: value` pairs carries nothing and drops out, so plain
+  `nslookup` (whose `Name:`/`Address:` sit under the same banner) is untouched
+  and its golden stays green. Routed by a `contains  mail exchanger = ` hint so
+  it wins over `tsv`, which otherwise reads the tab layout as a 2-column table.
+  - Auto-detect gates (first cut stole 20 corpus tools; taken to zero): a
+    carried member must hold an INTERNAL tab after its indent (nslookup's
+    `domain <TAB> mail exchanger = …`) — which excludes rpm -qi's trailing
+    `Description:` prose, ipset's `Members:` token list, perf list's
+    space-padded events, and cgget's tab-INDENTED `\tusage_usec …`; plus ≥1
+    `key: value` pair must precede the first section (kills header-first lists),
+    no member may hold its own `key: value` pair, and no plain line may precede
+    the first header.
+  - Manifest: `nslookup_mx` `table 5 1` → `table 7 2` (now the row-shaped
+    key/value output). Corpus golden gate 3452 passed / 0 failed / 0 deleted;
+    extract suite 62/62, 174 goldens; smoke 58/0.
+
 ## 2026-08-03 — round-10 marks: 13 of 17 fixed (six new strategies)
 
 The round-10 worst-20 workbook came back with 17 disagreements. Thirteen are

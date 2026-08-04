@@ -1,0 +1,7 @@
+entry1.name lodash
+entry1.A <4.17.21
+entry1.Severity high
+entry1.B Prototype Pollution
+entry1.C https://github.com/advisories/GHSA-xxxx
+entry1.detail fix available via `npm audit fix`
+total_entries 1

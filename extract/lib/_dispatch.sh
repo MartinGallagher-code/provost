@@ -639,3 +639,157 @@ run_output_mode () {
         fi
     fi
 }
+
+# ---------------------------------------------------------------------------
+# run_multi_mode — MULTI-DATASET extraction (--multi).
+#
+# The one-winner model keeps exactly one dataset per input, but some reports
+# genuinely hold SEVERAL: iostat prints an avg-cpu kv block AND a Device
+# table; kubectl describe holds kv plus two tables. The reviewer's design
+# note (2026-08-03): "an input may deserve MULTIPLE outputs — a key/value in
+# the same input with a table."
+#
+# Model: split the (already preprocessed) input on blank-line boundaries into
+# blocks; find each block's would-be winner by a detect-only pass over the
+# priority-sorted strategy list; group CONSECUTIVE blocks that detect the same
+# strategy (a block detecting nothing joins the group before it, so banners
+# and stray chrome ride along; blank-line record streams — block-records —
+# re-form because their blocks all detect alike); then run the FULL extraction
+# pipeline (hints, auto-detection, dedup) on each group independently.
+#
+# Output contract (stdout): per surviving group, one separator line
+#   __DATASET__<TAB>n<TAB>strategy<TAB>confidence
+# followed by that group's fields in the -f format. Groups whose extraction
+# yields nothing are skipped. Errors/logging stay on stderr as usual.
+#
+# NOT wired into the glean capture pipeline: a capture stores ONE dataset by
+# invariant (meta.tsv, captures/<id>/). Adopting multi-dataset captures is a
+# deliberate follow-up (see docs/0003-multi-dataset.md).
+# ---------------------------------------------------------------------------
+
+# Detect-only winner for "$1" -> _MULTI_DET (strategy name). Returns 1 if no
+# strategy detects. Mirrors run_auto_strategies' filters (generic dirs,
+# deprecation, _should_run_strategy) without extracting.
+_multi_detect_name () {
+    local btext="$1"
+    _MULTI_DET=""
+    local _priority strategy_version strategy_file strategy_name
+    while IFS='|' read -r _priority strategy_version strategy_file; do
+        [[ -z "$strategy_file" ]] && continue
+        strategy_name="${strategy_file##*/}"
+        strategy_name="${strategy_name%.sh}"
+        _should_run_strategy "$strategy_name" || continue
+        read_strategy_metadata "$strategy_file"
+        [[ -n "$_META_DEPRECATED" ]] && continue
+        _source_strategy_cached "$strategy_file" /dev/null || continue
+        _STRATEGY_CONFIDENCE=50
+        if strategy_detect "$btext" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" >/dev/null 2>&1; then
+            _MULTI_DET="$strategy_name"
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            return 0
+        fi
+        unset -f strategy_detect strategy_extract 2>/dev/null
+    done <<< "$_SORTED_STRATEGIES"
+    return 1
+}
+
+run_multi_mode () {
+    # Resolve the strategy list once for the detect-only pass (the per-group
+    # run_auto_strategies calls resolve again from cache — cheap).
+    local strategy_dirs=("$STRATEGIES_DIR")
+    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
+    [[ -n "$_OPT_plugin_dir" && -d "$_OPT_plugin_dir" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _resolve_strategy_list "${strategy_dirs[@]}"
+    if [[ -z "$_SORTED_STRATEGIES" ]]; then
+        _log_error "No strategies found."
+        return 1
+    fi
+
+    # Blank-line blocks.
+    local -a blocks=()
+    local block="" line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        if [[ -z "${line//[[:space:]]/}" ]]; then
+            [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
+            block=""
+            continue
+        fi
+        block+="$line"$'\n'
+    done <<< "$text"
+    [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
+    [[ ${#blocks[@]} -eq 0 ]] && { _log_warn "multi: empty input."; return 0; }
+
+    # Group consecutive same-winner blocks — but only when they also share
+    # SHAPE (modal token count ±1). Same-name alone is too coarse: iostat's
+    # avg-cpu block and its Device table both detect aligned-columns, yet they
+    # are different datasets (6-7 vs 16 tokens per row) — merging them lets
+    # the bigger table swallow the kv block. A record STREAM's blocks (colons
+    # kv records, block-records) share both name and shape and re-form; a
+    # table split by a stray blank line likewise. A nameless block joins the
+    # open group (leading chrome opens a nameless group the first named block
+    # adopts).
+    local -a group_text=() group_name=() group_shape=()
+    local gi=-1 bname bshape b
+    for b in "${blocks[@]}"; do
+        if _multi_detect_name "$b"; then bname="$_MULTI_DET"; else bname=""; fi
+        # modal token count of the block's non-blank lines
+        bshape=$(printf '%s\n' "$b" | awk 'NF { c[NF]++ } END { best=0; m=0; for (k in c) if (c[k] > best || (c[k] == best && k+0 < m)) { best=c[k]; m=k+0 } print m }')
+        local _shape_ok=0
+        if [[ $gi -ge 0 ]]; then
+            local _gs="${group_shape[$gi]:-0}"
+            local _d=$((bshape - _gs)); [[ $_d -lt 0 ]] && _d=$((-_d))
+            [[ $_d -le 1 ]] && _shape_ok=1
+        fi
+        if [[ $gi -ge 0 && ( -z "$bname" || ( "$bname" == "${group_name[$gi]}" && $_shape_ok -eq 1 ) || -z "${group_name[$gi]}" ) ]]; then
+            group_text[$gi]+=$'\n\n'"$b"
+            if [[ -z "${group_name[$gi]}" ]]; then
+                group_name[$gi]="$bname"
+                group_shape[$gi]="$bshape"
+            fi
+        else
+            gi=$((gi + 1))
+            group_text[$gi]="$b"
+            group_name[$gi]="$bname"
+            group_shape[$gi]="$bshape"
+        fi
+    done
+
+    # Full extraction per group; emit surviving datasets.
+    local i ds=0
+    for ((i = 0; i <= gi; i++)); do
+        text="${group_text[$i]}"
+        _CLEAN_TEXT_CACHE=""
+        _CLEAN_TEXT_DONE=0
+        _WINNER_NAME=""
+        _WINNER_CONF=0
+        output=""
+        run_auto_strategies
+        if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then
+            local _m_pre="$output"
+            output=$(deduplicate_output "$output")
+            [[ -z "$output" && -n "$_m_pre" ]] && output="$_m_pre"
+        fi
+        [[ -n "$output" ]] || continue
+        ds=$((ds + 1))
+        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}"
+        local _m_fields="" _m_line
+        while IFS= read -r _m_line; do
+            [[ -z "$_m_line" ]] && continue
+            strip_strat_prefix "$_m_line"
+            _m_fields+="$_STRIPPED_LINE"$'\n'
+        done <<< "$output"
+        _m_fields="${_m_fields%$'\n'}"
+        case "$_OPT_format" in
+            json)        format_json "$_m_fields" ;;
+            json-nested) format_json_nested "$_m_fields" ;;
+            csv)         format_csv "$_m_fields" ;;
+            tsv)         format_tsv "$_m_fields" ;;
+            plain)       format_plain "$_m_fields" ;;
+            yaml)        format_yaml "$_m_fields" ;;
+            xml)         format_xml "$_m_fields" ;;
+            *)           format_plain "$_m_fields" ;;
+        esac
+    done
+    [[ $ds -eq 0 ]] && _log_warn "multi: no dataset extracted."
+    return 0
+}

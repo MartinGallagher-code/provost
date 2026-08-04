@@ -1,4 +1,5 @@
-n	data/rawcsv	total_entries
-1	preprocess	3
-2	train	3
-3	evaluate	3
+n	stage	total_entries
+1	data/raw.csv	4
+2	preprocess	4
+3	train	4
+4	evaluate	4

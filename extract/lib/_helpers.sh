@@ -263,7 +263,45 @@ preprocess_input_text () {
           || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
         local_vt_to=$'\n'
         [[ "$text" == *$'\n'* ]] && local_vt_to=' '
-        text="$(printf '%s' "$text" | sed 's/\r$//' | tr '\r\013\014' $'\n'"${local_vt_to}"$'\n' \
+        text="$(printf '%s' "$text" | sed 's/\r$//')"
+        # CR-REDRAW collapse. An INTERIOR \r on an \n-terminated line is a
+        # terminal overwrite (progress bars: `…[  0%]\r…[ 45%]\r…[100%] done`),
+        # not a line break — the terminal shows only the final state, and even
+        # that is transient chrome, not data. When the first and last
+        # \r-segments of a line share a >=8-char prefix (the redraw signature:
+        # same label redrawn with a new value), the whole line is DROPPED —
+        # provided at least 2 non-blank lines remain to be the data (otherwise
+        # the collapsed final state is kept: it is all the input has). Leading
+        # blanks exposed by a drop go with it. Segments that DON'T share a
+        # prefix (spinner glyphs vary their first char; \r-separated log
+        # records) fall through to the historical CR -> \n mapping below, so
+        # classic-Mac files and \r-separated logs split into lines as before.
+        if [[ "$text" == *$'\r'* && "$text" == *$'\n'* ]]; then
+            text="$(printf '%s' "$text" | awk '
+                {
+                    line = $0; redraw = 0
+                    n = split(line, seg, "\r")
+                    if (n >= 2) {
+                        a = seg[1]; b = seg[n]
+                        m = length(a); if (length(b) < m) m = length(b)
+                        p = 0
+                        while (p < m && substr(a, p + 1, 1) == substr(b, p + 1, 1)) p++
+                        if (p >= 8) { line = b; redraw = 1 }
+                    }
+                    buf[NR] = line; isr[NR] = redraw
+                    if (!redraw && line !~ /^[ \t]*$/) keep++
+                }
+                END {
+                    lead = 1
+                    for (i = 1; i <= NR; i++) {
+                        if (keep >= 2 && isr[i]) continue
+                        if (keep >= 2 && lead && buf[i] ~ /^[ \t]*$/) continue
+                        lead = 0
+                        print buf[i]
+                    }
+                }')"
+        fi
+        text="$(printf '%s' "$text" | tr '\r\013\014' $'\n'"${local_vt_to}"$'\n' \
                 | sed $'s/\302\205/\\\n/g; s/\342\200\250/\\\n/g; s/\342\200\251/\\\n/g')"
         unset local_vt_to
     fi
@@ -317,6 +355,57 @@ preprocess_input_text () {
     # presence, a no-op otherwise.
     if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
         text="$(printf '%s' "$text" | tr -d '\007\010')"
+    fi
+
+    # Collapse pre-baked CR-REDRAW progress welds. A `\r`-redrawn progress line
+    # whose CRs were consumed upstream of the capture arrives as ONE line
+    # holding every redraw state welded together:
+    #   Building image  [  0%]Building image  [ 45%]Building image  [100%] done
+    # A terminal would show only the LAST state, and even that is transient
+    # chrome — so a weld line is DROPPED when at least 2 non-blank lines remain
+    # to be the data (kept, collapsed to its final state, otherwise). The weld
+    # signature is the line's first 12 characters recurring later in the SAME
+    # line; guards: the prefix must contain a letter and at least 3 distinct
+    # characters (a `====` banner's repeating prefix is one char and stays).
+    # Runs AFTER the ANSI strip (the weld's color codes are already gone) and
+    # is gated on a `%]` byte pair — the progress-percent tail — so ordinary
+    # input never pays the awk pass. The interior-\r flavor of the same redraw
+    # is handled at the line-terminator step above.
+    if [[ "$text" == *'%]'* ]]; then
+        text="$(printf '%s' "$text" | awk '
+            {
+                line = $0; weld = 0
+                if (length(line) >= 30) {
+                    pre = substr(line, 1, 12)
+                    if (pre ~ /[A-Za-z]/) {
+                        d = 0
+                        for (i = 1; i <= 12; i++) {
+                            c = substr(pre, i, 1); seen[c] = 1
+                        }
+                        for (c in seen) d++
+                        delete seen
+                        if (d >= 3 && index(substr(line, 2), pre) > 0) {
+                            rest = line; off = 0
+                            while ((p = index(substr(rest, 2), pre)) > 0) {
+                                off += p
+                                rest = substr(line, off + 1)
+                            }
+                            line = rest; weld = 1
+                        }
+                    }
+                }
+                buf[NR] = line; isw[NR] = weld
+                if (!weld && line !~ /^[ \t]*$/) keep++
+            }
+            END {
+                lead = 1
+                for (i = 1; i <= NR; i++) {
+                    if (keep >= 2 && isw[i]) continue
+                    if (keep >= 2 && lead && buf[i] ~ /^[ \t]*$/) continue
+                    lead = 0
+                    print buf[i]
+                }
+            }')"
     fi
 
     # LEADING-CHROME strip — lines a capture drags in ABOVE the data (reviewer

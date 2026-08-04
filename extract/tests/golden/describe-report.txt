@@ -1,0 +1,41 @@
+entry1.section Conditions
+entry1.Type Available
+entry1.Status True
+entry1.Reason MinimumReplicasAvailable
+entry2.section Conditions
+entry2.Type Progressing
+entry2.Status True
+entry2.Reason NewReplicaSetAvailable
+entry3.section Events
+entry3.Type Normal
+entry3.Reason ScalingReplicaSet
+entry3.Age 12m
+entry3.From deployment-controller
+entry3.Message Scaled up replica set api-gateway-7f9c8b to 3 because the horizontal pod autoscaler requested more capacity for the incoming traffic
+entry4.section Events
+entry4.Type Normal
+entry4.Reason ScalingReplicaSet
+entry4.Age 8m
+entry4.From deployment-controller
+entry4.Message Scaled down replica set api-gateway-6d5a4f to 1
+entry5.section Events
+entry5.Type Warning
+entry5.Reason FailedCreate
+entry5.Age 6m
+entry5.From replicaset-controller
+entry5.Message Error creating: pods "api-gateway-7f9c8b-" is forbidden: exceeded quota: compute-resources, requested: limits.cpu=2, used: limits.cpu=14, limited: limits.cpu=15
+entry6.section Events
+entry6.Type Normal
+entry6.Reason ScalingReplicaSet
+entry6.Age 3m
+entry6.From deployment-controller
+entry6.Message Scaled up replica set api-gateway-7f9c8b to 3
+Name api-gateway
+Namespace production
+CreationTimestamp Mon, 15 Jan 2024 08:22:41 +0000
+Labels app=api-gateway; tier=frontend
+Annotations deployment.kubernetes.io/revision: 7; kubectl.kubernetes.io/last-applied-configuration:; {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"api-gateway"}}
+Selector app=api-gateway
+Replicas 3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType RollingUpdate
+total_entries 6

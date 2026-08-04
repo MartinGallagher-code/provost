@@ -192,6 +192,13 @@ Advanced:
   --max-input-size N      Max input size in bytes (default: 50MB)
   --emit-meta             Print the winning strategy + confidence to stderr as
                           one line: __EXTRACT_META__<TAB>strategy<TAB>confidence
+  --multi                 MULTI-DATASET mode: split the input on blank-line
+                          boundaries, group consecutive blocks that detect the
+                          same strategy, and emit EACH group as its own dataset
+                          (iostat's avg-cpu kv block AND its Device table).
+                          Datasets are separated on stdout by a line
+                          __DATASET__<TAB>n<TAB>strategy<TAB>confidence
+                          followed by the group's extraction in the -f format.
 
 Debug & Development:
   -d, --debug             Show strategy matching details and field provenance
@@ -279,6 +286,7 @@ _OPT_batch_summary=0
 _OPT_batch_out=
 _OPT_explain=0
 _OPT_emit_meta=0
+_OPT_multi=0
 _OPT_field_pattern=""
 _OPT_exclude_fields=()
 
@@ -411,6 +419,8 @@ while [[ $# -gt 0 ]]; do
             _OPT_explain=1; shift ;;
         --emit-meta)
             _OPT_emit_meta=1; shift ;;
+        --multi)
+            _OPT_multi=1; shift ;;
         --field-pattern)
             [[ $# -lt 2 ]] && _log_error "--field-pattern requires an argument" && exit 1
             _OPT_field_pattern="$2"; shift 2 ;;
@@ -497,6 +507,16 @@ if [[ -n "$_OPT_batch_out" && $_OPT_batch -eq 0 ]]; then
 fi
 if [[ -n "$_OPT_batch_out" && $_OPT_batch_summary -eq 1 ]]; then
     _log_error "--batch-out and --batch-summary cannot be used together"; exit 1
+fi
+if [[ $_OPT_multi -eq 1 ]]; then
+    # --multi drives the auto-detection loop per section group; the modes that
+    # pin a strategy set or change the input model conflict with it.
+    [[ $_OPT_batch -eq 1 ]] && { _log_error "--multi and --batch cannot be used together"; exit 1; }
+    [[ $_OPT_stream -eq 1 ]] && { _log_error "--multi and --stream cannot be used together"; exit 1; }
+    [[ -n "$_OPT_chain" ]] && { _log_error "--multi and --chain cannot be used together"; exit 1; }
+    [[ -n "$_OPT_replay" ]] && { _log_error "--multi and --replay cannot be used together"; exit 1; }
+    [[ -n "$_OPT_strategy" ]] && { _log_error "--multi and --strategy cannot be used together"; exit 1; }
+    [[ $_OPT_interactive -eq 1 ]] && { _log_error "--multi and --interactive cannot be used together"; exit 1; }
 fi
 
 # Validate --field-pattern regex (catch invalid regex early)
@@ -792,6 +812,12 @@ case "$_OPT_progress" in
 esac
 [[ "$_OPT_quiet" -eq 1 ]] && export ENVOY_QUIET=1
 envoy_progress_init
+
+# Multi-dataset mode: sections extracted independently (see _dispatch.sh).
+if [[ $_OPT_multi -eq 1 ]]; then
+    run_multi_mode
+    exit 0
+fi
 
 # Dispatch to chain or auto strategy runner
 if [[ -n "$_OPT_chain" ]]; then
