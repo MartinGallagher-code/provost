@@ -1,10 +1,4 @@
-n	A	total_entries
-1	[2026-07-11 04:20:01] INFO worker started pid=4412	9
-2	[2026-07-11 04:20:05] ERROR task failed id=t-5521	9
-3	Traceback (most recent call last):	9
-4	File "/app/worker.py", line 88, in run	9
-5	result = handler(payload)	9
-6	File "/app/handlers.py", line 33, in handler	9
-7	return data["key"]	9
-8	KeyError: 'key'	9
-9	[2026-07-11 04:20:06] INFO worker retry id=t-5521 attempt=2	9
+n	timestamp	message	detail	total_entries
+1	2026-07-11 04:20:01	INFO worker started pid=4412		3
+2	2026-07-11 04:20:05	ERROR task failed id=t-5521	Traceback (most recent call last):; File "/app/worker.py", line 88, in run; result = handler(payload); File "/app/handlers.py", line 33, in handler; return data["key"]; KeyError: 'key'	3
+3	2026-07-11 04:20:06	INFO worker retry id=t-5521 attempt=2		3

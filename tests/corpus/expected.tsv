@@ -1889,7 +1889,7 @@ kics-scan	kv	-	2
 kube-bench-summary	text	-	2
 falco-events	text	-	2
 nuclei-scan	text	-	2
-wpscan-summary	text	-	2
+wpscan-summary	table	3	2
 nikto-scan	text	-	2
 sslyze-scan	text	-	2
 testssl-summary	kv	-	2
@@ -3556,7 +3556,7 @@ nst-du-by-category-subtotal	table	9	2
 nst-quota-grouped-subtotal	table	7	3
 nst-ledger-grouped-subtotal	table	9	2
 nst-java-log-stacktrace	text	-	2
-nst-python-traceback-log	text	-	2
+nst-python-traceback-log	table	3	2
 nst-syslog-multiline-continuation	text	-	2
 nst-report-preamble-table-footnotes	table	4	3
 nst-benchmark-report-footnotes	table	5	3

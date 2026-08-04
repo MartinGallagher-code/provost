@@ -1,6 +1,13 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: 14 of 17 fixed. Earlier-triaged marks **all fixed** (sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run, cmb-cr-redraw-progress-final, dvc-dag). Still open: kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log (genuinely hard — triaged in CHANGELOG); the multi-output design item.
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: **15 of 17 fixed** (nst-python-traceback-log landed via bracket-log 1.1). Earlier-triaged marks **all fixed** (sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run, cmb-cr-redraw-progress-final, dvc-dag). Still open: kubectl-describe-deployment, npm-audit-summary (genuinely hard — triaged in CHANGELOG); the multi-output design item.
+
+> **2026-08-04 — nst-python-traceback-log (bracket-log 1.1).** Non-bracketed
+> continuation runs (first line indented or colon-terminated — a Python
+> traceback under its ERROR line) absorb into the entry above as a `detail`
+> column, `; `-joined. Pure 80%-bracketed logs unchanged; bare `[tag]` spacer
+> lines skipped (mvn byte-identical). Free rider: wpscan-summary blob → 3
+> records. Gate 3455/0/250, 0 deleted.
 
 > **2026-08-04 — CR-redraw preprocessing + box-dag.** Engine: `\r`-redrawn
 > progress lines are transient chrome — interior-`\r` lines whose first/last

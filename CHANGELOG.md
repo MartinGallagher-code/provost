@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-08-04 — `nst-python-traceback-log` (bracket-log 1.1 continuations)
+
+Round-10 mark: two record shapes interleaved in one stream — timestamped log
+lines plus a Python traceback.
+
+- **`bracket-log` 1.0 → 1.1 — continuation runs.** A contiguous non-bracketed
+  run whose FIRST line is indented or ends in `:` (`Traceback (most recent
+  call last):`) is a CONTINUATION of the log entry above it — absorbed into
+  that entry's new `detail` column, lines joined with `; `. Detection accepts
+  the classic 80% bracketed majority (pure logs — output unchanged) OR ≥3
+  bracketed lines starting at line 1 with every non-bracketed run
+  continuation-shaped. A report merely opening with a `[tag]` line still falls
+  through (its lines are unindented, not colon-terminated). A bare `[tag]`
+  line with no message (mvn's `[INFO]` spacers) is chrome — skipped, never
+  absorbed. → `timestamp | message | detail`, the traceback riding its ERROR
+  entry.
+- Free rider: **wpscan-summary** text blob → 3 records (`+`/`!` tag, message,
+  the indented `Fixed in: 6.5.5` as detail). mvn-clean-install byte-identical
+  after the bare-tag skip. Manifests: nst-python-traceback-log `text - 2` →
+  `table 3 2`, wpscan-summary `text - 2` → `table 3 2`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0.
+
 ## 2026-08-04 — cmb-cr-redraw + dvc-dag (CR-redraw preprocessing, box-dag)
 
 The last two earlier-triaged reviewer marks.
