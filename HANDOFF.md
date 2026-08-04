@@ -1,6 +1,15 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed. Multi-dataset extraction shipped as `envoy-extract --multi`** (docs/0003-multi-dataset.md); glean capture adoption deliberately deferred (one-dataset-per-capture is a core invariant — scoped as its own change).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #50 — every reviewer mark from rounds 8–10 plus `--multi` is landed). **Round-11 review batch is out**: worst-20 workbook awaiting the reviewer's marks (`docs/review-batch-2026-08-04-round11.tsv`).
+
+> **2026-08-04 — round-11 batch prepared (post-#50).** `review-output/`
+> refreshed (38 of 3,705 changed — all PR #50 fixes + documented free riders);
+> worst-20 workbook generated from the 2,745 not-yet-reviewed passing entries
+> (excludes VALIDATED + all round 1–3/8–10 marks), risk-ranked. Sent as
+> `glean_corpus_review_11_worst20.docx`; batch recorded in
+> `docs/review-batch-2026-08-04-round11.tsv`; marks come back as
+> `docs/review-marks-<date>-round11.tsv`. Next when marks arrive: work the
+> disagreements as in rounds 8–10.
 
 > **2026-08-04 — multi-dataset extraction (`--multi`).** The reviewer's
 > "one input may deserve multiple outputs" note is an engine mode: blank-line

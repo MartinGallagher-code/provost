@@ -1,2 +1,2 @@
-n	A	B	C	D	E	total_entries
-1	Vault	v1.17.1	(a1b2c3d4),	built	2026-06-01T10:00:00Z	1
+name	version	A	B	C
+Vault	v1.17.1	(a1b2c3d4),	built	2026-06-01T10:00:00Z

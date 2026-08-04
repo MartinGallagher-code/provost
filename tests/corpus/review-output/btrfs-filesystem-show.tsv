@@ -1,3 +1,6 @@
-n	Label
-1	'data'__uuid:_3f8a1c2d-4b5e-6f70-8a9b-0c1d2e3f4a5b
-2	'root'__uuid:_7e6d5c4b-3a29-18f7-e6d5-c4b3a2918f70
+n	Label	uuid	Total_devices	FS_bytes_used	devid	size	used	path	total_entries
+1	'data'	3f8a1c2d-4b5e-6f70-8a9b-0c1d2e3f4a5b	2	412.83GiB					5
+2	'data'	3f8a1c2d-4b5e-6f70-8a9b-0c1d2e3f4a5b			1	931.51GiB	420.00GiB	/dev/sda1	5
+3	'data'	3f8a1c2d-4b5e-6f70-8a9b-0c1d2e3f4a5b			2	931.51GiB	420.00GiB	/dev/sdb1	5
+4	'root'	7e6d5c4b-3a29-18f7-e6d5-c4b3a2918f70	1	38.11GiB					5
+5	'root'	7e6d5c4b-3a29-18f7-e6d5-c4b3a2918f70			1	120.00GiB	42.00GiB	/dev/nvme0n1p2	5

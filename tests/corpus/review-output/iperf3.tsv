@@ -1,11 +1,11 @@
-n	timestamp	message	total_entries
-1	5	local 10.0.2.10 port 51422 connected to 10.0.2.5 port 5201	10
-2	ID	Interval           Transfer     Bitrate         Retr  Cwnd	10
-3	5	0.00-1.00   sec   112 MBytes   940 Mbits/sec    0    412 KBytes	10
-4	5	1.00-2.00   sec   110 MBytes   923 Mbits/sec    0    418 KBytes	10
-5	5	2.00-3.00   sec   111 MBytes   931 Mbits/sec    2    401 KBytes	10
-6	5	3.00-4.00   sec   112 MBytes   939 Mbits/sec    0    409 KBytes	10
-7	5	4.00-5.00   sec   110 MBytes   922 Mbits/sec    0    415 KBytes	10
-8	ID	Interval           Transfer     Bitrate         Retr	10
-9	5	0.00-5.00   sec   555 MBytes   931 Mbits/sec    2             sender	10
-10	5	0.00-5.00   sec   554 MBytes   929 Mbits/sec                  receiver	10
+n	timestamp	message	detail	total_entries
+1	5	local 10.0.2.10 port 51422 connected to 10.0.2.5 port 5201		10
+2	ID	Interval           Transfer     Bitrate         Retr  Cwnd		10
+3	5	0.00-1.00   sec   112 MBytes   940 Mbits/sec    0    412 KBytes		10
+4	5	1.00-2.00   sec   110 MBytes   923 Mbits/sec    0    418 KBytes		10
+5	5	2.00-3.00   sec   111 MBytes   931 Mbits/sec    2    401 KBytes		10
+6	5	3.00-4.00   sec   112 MBytes   939 Mbits/sec    0    409 KBytes		10
+7	5	4.00-5.00   sec   110 MBytes   922 Mbits/sec    0    415 KBytes	- - - - - - - - - - - - - - - - - - - - - - - - -	10
+8	ID	Interval           Transfer     Bitrate         Retr		10
+9	5	0.00-5.00   sec   555 MBytes   931 Mbits/sec    2             sender		10
+10	5	0.00-5.00   sec   554 MBytes   929 Mbits/sec                  receiver		10

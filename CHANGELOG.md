@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-08-04 — round-11 review batch: worst-20 workbook + review-output refresh
+
+Post-merge follow-up to PR #50 (fresh branch from `main`). Prepares the next
+review round now that every prior mark is answered.
+
+- **`tests/corpus/review-output/` refreshed** — 38 of 3,705 snapshots changed,
+  all of them PR #50's intended fixes and their documented free riders (the 14
+  marks, the 17 version-tool improvements from `version-line`, the 5 sibling
+  kubectl describes, tinymembench/y-cruncher). Regenerated via the same
+  batch+melt path as `run.sh`; the other 3,667 are byte-identical.
+- **`docs/review-batch-2026-08-04-round11.tsv`** — the 20 riskiest entries
+  that pass the structural pre-screen, drawn from the 2,745 not-yet-reviewed
+  passing entries (excludes the cumulative VALIDATED set and every mark from
+  rounds 1–3/8–10). Rendered as `glean_corpus_review_11_worst20.docx` (all 20
+  entries verified present; input/output blocks from the refreshed snapshots).
+  Marks come back as `docs/review-marks-<date>-round11.tsv`.
+
 ## 2026-08-04 — multi-dataset extraction (`--multi`, docs/0003)
 
 The reviewer's design note — "an input may deserve MULTIPLE outputs, e.g. a
