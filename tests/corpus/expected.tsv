@@ -991,7 +991,7 @@ btrfs-filesystem-df	kv	-	4
 btrfs-scrub-status	kv	-	4
 mdadm-examine	kv	-	4
 nvme-id-ctrl	kv	-	4
-sdparm-all	kv	-	4
+sdparm-all	table	10	5
 smartctl-x	kv	-	4
 systemctl-list-units	table	6	3
 systemctl-list-unit-files	table	6	1

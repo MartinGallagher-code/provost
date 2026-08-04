@@ -2,6 +2,16 @@
 
 ## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #49). Round-10 marks: 17 disagreements — **14 fixed**, 3 open (kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log — triaged in CHANGELOG).
 
+> **2026-08-04 — `sdparm-all` (sectioned-fields).** New generic
+> `sectioned-fields` p46. Colon-terminated section header → carried `group`
+> column; indented `NAME value [cha: y, def: N]` field rows → `name | value` +
+> the trailing bracket decomposed to `cha | def`; leading device line drops as
+> a comment. The reviewer's "Read…/Caching… repeated column values, items below
+> in multiple columns." Auto-detect (before aligned-columns): members MUST end
+> in a `[key: value, …]` bracket and no unclassified line may follow a header —
+> zero blast radius. Manifest `kv - 4` → `table 10 5`; golden regenerated. Gate
+> 3452/0/253, 0 deleted; extract 62/62, smoke 58/0.
+
 > **2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv).** New generic
 > `section-kv` p58 + a `contains mail exchanger = ` hint. A bare `Header:` line
 > (colon, no value) is carried DOWN as the key of each plain line beneath it,

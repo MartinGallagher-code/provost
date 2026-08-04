@@ -1,0 +1,51 @@
+entry1.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry1.name AWRE
+entry1.value 1
+entry1.cha y
+entry1.def 1
+entry2.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry2.name ARRE
+entry2.value 0
+entry2.cha y
+entry2.def 0
+entry3.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry3.name TB
+entry3.value 0
+entry3.cha y
+entry3.def 0
+entry4.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry4.name RC
+entry4.value 0
+entry4.cha n
+entry4.def 0
+entry5.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry5.name PER
+entry5.value 0
+entry5.cha y
+entry5.def 0
+entry6.group Read write error recovery [rw_er_rec] mode page [PS=0]
+entry6.name RRC
+entry6.value 0
+entry6.cha n
+entry6.def 0
+entry7.group Caching [ca] mode page [PS=0]
+entry7.name WCE
+entry7.value 1
+entry7.cha y
+entry7.def 1
+entry8.group Caching [ca] mode page [PS=0]
+entry8.name RCD
+entry8.value 0
+entry8.cha y
+entry8.def 0
+entry9.group Caching [ca] mode page [PS=0]
+entry9.name DPTL
+entry9.value 0
+entry9.cha n
+entry9.def 0
+entry10.group Caching [ca] mode page [PS=0]
+entry10.name DRA
+entry10.value 0
+entry10.cha n
+entry10.def 0
+total_entries 10

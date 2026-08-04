@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-08-04 — `sdparm-all` (sectioned-fields)
+
+- **New: `sectioned-fields` p46.** The reviewer's `sdparm --all` note: "first
+  line is kind of like a comment; Read… and Caching… are repeated column
+  values, with items below each in multiple columns." A colon-terminated
+  section header (`Read write error recovery [rw_er_rec] mode page [PS=0]:`) is
+  carried down as a `group` column; each indented `NAME value [cha: y, def: N]`
+  field row splits into `name | value` plus the trailing bracket decomposed
+  into one column per bracket key (`cha`, `def`); the leading `/dev/sda: …`
+  device line drops as a pre-header comment. → `group | name | value | cha |
+  def`, 10 rows. Auto-detect (p46, before aligned-columns): headers are
+  unindented bare-colon lines with no interior `key: value`; members are
+  indented and MUST end in a `[key: value, …]` bracket; any unclassified line
+  after the first header rejects — which held blast radius to zero across the
+  full corpus. Manifest `sdparm-all` `kv - 4` → `table 10 5`; golden
+  regenerated. Gate 3452/0/253, 0 deleted; extract 62/62, smoke 58/0.
+
 ## 2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv)
 
 Post-merge follow-up to PR #49; the branch was restarted from the merged `main`
