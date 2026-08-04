@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: tsv
 ## Description: Extract field names and values from TSV files (tab-delimited with header row)
-## Version: 2.0
+## Version: 2.1
 ## Priority: 14
 ## Sample: samples/tsv/basic.tsv
 
@@ -16,10 +16,13 @@ strategy_detect () {
     done <<< "$text"
     [[ $line_count -lt 2 ]] && return 1
 
-    # First line must contain tabs
+    # First line must contain a NON-LEADING tab: a tab at the start of the
+    # line is indentation (ldd's tab-indented mapping lines), not an empty
+    # first cell — real TSV delimits between values.
     local first_line=""
     IFS= read -r first_line <<< "$text"
-    [[ "$first_line" != *"	"* ]] && return 1
+    local _fl_stripped="${first_line#"${first_line%%[!$'\t']*}"}"
+    [[ "$_fl_stripped" != *"	"* ]] && return 1
 
     # Tab count should be consistent between header and first data row
     local header_tabs=0 data_tabs=0

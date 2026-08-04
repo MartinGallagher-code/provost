@@ -1,7 +1,7 @@
 #!/bin/bash
 ## Name: indented-colon-groups
 ## Description: `header:` lines over indented members (cargo install/machete, hwinfo --short) -> group/value rows
-## Version: 1.1
+## Version: 1.2
 ## Priority: 35
 ## Sample: samples/indented-colon-groups/basic.txt
 
@@ -30,6 +30,33 @@
 # token; hwinfo --short's multi-token members showed that was the first
 # shape we met, not the discriminator -- the colon gate is what matters.)
 
+# Header indent for this input -> _ICG_HIND. Headers were originally
+# UNINDENTED only; perl -V indents its section headers (`  Platform:`) under
+# a one-line preamble that itself ends in a colon. The header level is the
+# MODAL indent among colon-ended, pair-free lines — the preamble is one line,
+# the section headers are many, so the sections win and the preamble falls
+# out as tolerated leading noise.
+_icg_scan_hind () {
+    local text="$1" line body counts=""
+    _ICG_HIND=0
+    local -A _hc=()
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+        body="${line#"${line%%[![:space:]]*}"}"
+        body="${body%"${body##*[![:space:]]}"}"
+        [[ "$body" == [A-Za-z0-9]* && "$body" == *: && "${body%:}" != *": "* ]] || continue
+        _icg_indent "$line"
+        _hc[$_ICG_IND]=$(( ${_hc[$_ICG_IND]:-0} + 1 ))
+    done <<< "$text"
+    local best=0 k
+    for k in "${!_hc[@]}"; do
+        if [[ ${_hc[$k]} -gt $best || ( ${_hc[$k]} -eq $best && $k -lt ${_ICG_HIND} ) ]]; then
+            best=${_hc[$k]}; _ICG_HIND=$k
+        fi
+    done
+    return 0
+}
+
 # Leading whitespace width of $1 -> _ICG_IND
 _icg_indent () {
     local l="$1" i=0
@@ -45,10 +72,11 @@ _icg_classify () {
     _icg_indent "$l"
     local body="${l#"${l%%[![:space:]]*}"}"    # lstrip
     body="${body%"${body##*[![:space:]]}"}"    # rstrip
-    if [[ $_ICG_IND -eq 0 ]]; then
-        # A group header: unindented, ends in ':', and the text before that
-        # colon holds no `key: value` pair (so YAML/config mappings stay out).
-        if [[ "$body" == *: && "${body%:}" != *": "* ]]; then
+    if [[ $_ICG_IND -le ${_ICG_HIND:-0} ]]; then
+        # A group header: at the header indent (see _icg_scan_hind), ends in
+        # ':', and the text before that colon holds no `key: value` pair (so
+        # YAML/config mappings stay out). Anything shallower is noise.
+        if [[ $_ICG_IND -eq ${_ICG_HIND:-0} && "$body" == [A-Za-z0-9]* && "$body" == *: && "${body%:}" != *": "* ]]; then
             _ICG_BODY="${body%:}"; _ICG_KIND=G
         fi
         return
@@ -67,6 +95,7 @@ _icg_classify () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+    _icg_scan_hind "$text"
     local line groups=0 members=0
     local order=""
     while IFS= read -r line || [[ -n "$line" ]]; do
@@ -124,6 +153,7 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line
+    _icg_scan_hind "$text"
 
     # Two-column group name only when EVERY member-bearing header carries the
     # ` -- ` split; otherwise a single `group` column, so a file never mixes the
@@ -151,16 +181,20 @@ strategy_extract () {
     # is a kv list whose dashes merely align; split each member into key |
     # value instead of welding the pair into one cell. Only when the header
     # ` -- ` split is off — the two shapes have not co-occurred.
-    local dash=0
+    local dash=0 eqsplit=0
     if [[ $split -eq 0 ]]; then
-        local _dm=0 _mm=0
+        local _dm=0 _mm=0 _em=0
         while IFS= read -r line || [[ -n "$line" ]]; do
             _icg_classify "$line"
             [[ "$_ICG_KIND" == M ]] || continue
             _mm=$((_mm + 1))
             [[ "$_ICG_BODY" == *" - "* ]] && _dm=$((_dm + 1))
+            [[ "$_ICG_BODY" =~ ^[A-Za-z_][A-Za-z0-9_.-]*=[^=[:space:]].*$ && "$_ICG_BODY" != *" "* ]] && _em=$((_em + 1))
         done <<< "$text"
         [[ $_mm -gt 0 && $_dm -eq $_mm ]] && dash=1
+        # Every member a tight `k=v` (perl -V's osname=linux) -> key | value,
+        # the reviewer's "three columns: platform, osname, linux".
+        [[ $dash -eq 0 && $_mm -gt 0 && $_em -eq $_mm ]] && eqsplit=1
     fi
 
     local result="" entry=0 gname="" gpath="" group=""
@@ -187,6 +221,9 @@ strategy_extract () {
                     local _mk="${_ICG_BODY%% - *}" _mv="${_ICG_BODY#* - }"
                     result+="entry${entry}.key ${_mk}"$'\n'
                     result+="entry${entry}.value ${_mv}"$'\n'
+                elif [[ $eqsplit -eq 1 ]]; then
+                    result+="entry${entry}.key ${_ICG_BODY%%=*}"$'\n'
+                    result+="entry${entry}.value ${_ICG_BODY#*=}"$'\n'
                 else
                     result+="entry${entry}.value ${_ICG_BODY}"$'\n'
                 fi

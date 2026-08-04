@@ -1,0 +1,10 @@
+config {
+	checks=1
+	abort_on_errors=0
+	profile_dir="/etc/lvm/profile"
+}
+devices {
+	dir="/dev"
+	scan="/dev"
+	obtain_device_list_from_udev=1
+}

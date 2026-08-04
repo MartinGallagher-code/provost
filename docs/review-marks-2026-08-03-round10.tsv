@@ -1,0 +1,21 @@
+name	mark	note
+kubectl-describe-deployment	Horrible=x	-
+ldd	Horrible=x	You could parse this a bit, even though not all of the rows have all of the columns.
+loki-version	OK=x	-
+lvmconfig-dump	Horrible=x	I think the config and devices should be values in a separate column, with the appropriate value against each line of the contents of the correct {}.
+mimir-version	OK=x	-
+npm-audit-summary	Horrible=x	Missed columns
+nslookup_mx	Horrible=x	Each  of the gmail.com entries should have non-authoritative answer: as their key for the key/value pair.
+nst-nginx-upstream-blocks	Horrible=x	as key/values: upstream  backend and upstream cache  are the (non-unique) keys in on column, and the contents of the {} for each are individual values with the same key.
+nst-python-traceback-log	Horrible=x	-
+perl-v	Horrible=x	horrible. This should be three columns: (for example): platform, osname, linux\nplatform, osvers, 5.15.0, etc.
+pgrep-a	Horrible=x	you didn’t try.
+pip-freeze	Horrible=x	cmon!! You didn’t try this one!! It’s a simple key/value!!!
+pip-tree-text	Horrible=x	This should be a tree of sorts, with tensorflow in column A and the value in a required column. The  next entry should be tenfsorflow in column A, and absl-py in columns B, and values for required and installed., etc. The -six column should have tensorflow in A, grpcio in B, and six in C. Get it?
+pipenv-graph	Horrible=x	Close. Rows 1 should have Django in A, and the the value in the required: column. Required and installed should be column names. Get rid of the square brackets. Also, For rows 2 and 3, Row A should still have Django, and rows 5,6,7 should have requests. Get it?
+powertop	Horrible=x	Try, at least.
+promtool-check-config	Horrible=x	Nope. Not even close.
+promtool-check-rules	Horrible=x	You lost information
+rustc-cfg	Horrible=x	This is key/value. Debug_assertions should  be a key
+rye-list	Horrible=x	Cmon, Man! Key/Value!!!
+sage-version	OK=x	-

@@ -1,5 +1,68 @@
 # glean — Changelog
 
+## 2026-08-03 — round-10 marks: 13 of 17 fixed (six new strategies)
+
+The round-10 worst-20 workbook came back with 17 disagreements. Thirteen are
+fixed here; the branch was restarted from the merged `main` (PR #48) as a fresh
+change. Six new generic strategies plus three existing-strategy extensions.
+
+- **`equals` 1.1 → 1.2 — pin and cfg LISTS.** `name==1.2.3` (pip freeze, rye
+  list) → `package | version` rows; a cfg dump with at least one BARE flag
+  token (rustc `--print cfg`'s `debug_assertions`) → `key | value` rows, the
+  bare token being the reviewer's "this is key/value" signal AND what tells a
+  cfg LIST from an env/config SNAPSHOT (env, wpa-cli status — unique keys, all
+  `=`, correctly ONE wide record). Both emit entry-prefixed RECORDS, not one
+  wide row. The over-broad `pip-deps` hint (which force-routed every `name==`
+  line to `line-records`) was removed.
+- **`indented-colon-groups` 1.1 → 1.2 — relative headers + `=` split.** Section
+  headers may now be INDENTED (perl -V's `  Platform:` under a preamble): the
+  header level is the modal indent among alnum-led colon lines, so the one-line
+  preamble falls out as noise. Tight `k=v` members split to `key | value`
+  (perl -V → `group | key | value`, the reviewer's "platform, osname, linux").
+- **`tsv` 2.0 → 2.1 — leading tab is indentation.** A tab at line start is not
+  an empty first cell; ldd's tab-indented lines no longer misread as TSV.
+- **New:** `dep-tree` p32 (pipdeptree/pipenv `- name [required: R, installed: I]`
+  → ancestor-path columns + required/installed); `arrow-map` p43 (ldd's
+  `name => target (0xaddr)` → name/target/address, rows without an arrow kept);
+  `numeric-lead-records` p57 (`PID command` → id/value, value must start
+  path/alnum/`[` so samtools flagstat's `N + 0 …` stays out); `brace-groups`
+  p33 (lvmconfig/nginx `name { … }` → group/key/value or group/value);
+  `checking-groups` p36 (promtool `Checking FILE` / `LEVEL: msg` → file/level/
+  message); a `powertop` hint routes its Usage/Events/s table to embedded-table.
+
+### Free riders and honest golden changes
+
+`mangohud-config` now keeps its bare flags (`gpu_stats` → `gpu_stats true`)
+instead of DROPPING them — a data-loss fix, same treatment rustc got.
+`pipdeptree-full`/`-reverse` improved from the removed-hint blob to tree-view's
+`depth | parent | name`. Five manifest rows were retyped to the new (row-shaped)
+output: pip-freeze/rustc-cfg `table N 1` → `N 2`, pip-tree-text `10 8` → `10 5`,
+pipdeptree-full `14 9` → `11 3`, pipdeptree-reverse `10 7` → `7 3`.
+
+### Testing
+
+| check | result |
+|---|---|
+| corpus golden gate | **3452 passed, 0 failed**, 253 not-yet-covered of 3705 |
+| extract strategy + engine | 62/62 |
+| smoke / melt | 58/0, 10/0 |
+| goldens deleted (rule 5) | **0** — three separate regen passes each caught
+a deletion (`env`/`wpa` from a greedy cfg_mode, six from stale manifests) and
+each was fixed by gating or a reviewer-directed manifest edit before commit |
+
+Coverage 3451 → 3452. The first full gate after the new strategies showed 18
+failures; iterating with `run.sh --golden '<ERE>'` took collateral (samtools
+flagstat, sslyze, tldr, env, wpa) to zero via documented gates.
+
+### Still open from round 10 (4)
+
+`kubectl-describe-deployment` (no note — deeply nested describe, needs the
+multi-section design), `npm-audit-summary` ("missed columns" — advisory blocks
+with a free-form body), `nslookup_mx` (wants the `Non-authoritative answer:`
+section header carried down as the key — a colon-header variant of
+banner-groups), `nst-python-traceback-log` (no note — interleaved log lines and
+a Python traceback, two different record shapes in one stream).
+
 ## 2026-08-03 — round-9 marks, part 3: keepalived, bluetoothctl, hledger, fossil (+2 free)
 
 Four more reviewer disagreements fixed — 12 of the 19 now answered (the docs
