@@ -1,6 +1,16 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3454/0, 251 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: 14 of 17 fixed. Earlier-triaged marks: sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run **fixed**; still open: dvc-dag (ASCII DAG), cmb-cr-redraw-progress-final, kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log; plus the multi-output design item.
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: 14 of 17 fixed. Earlier-triaged marks **all fixed** (sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run, cmb-cr-redraw-progress-final, dvc-dag). Still open: kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log (genuinely hard — triaged in CHANGELOG); the multi-output design item.
+
+> **2026-08-04 — CR-redraw preprocessing + box-dag.** Engine: `\r`-redrawn
+> progress lines are transient chrome — interior-`\r` lines whose first/last
+> segments share a ≥8-char prefix are DROPPED (kept collapsed-to-final when
+> they are all the input has); pre-baked welds (CRs consumed upstream, `%]`
+> gate, first-12-chars-recur signature) get the same rule after the ANSI strip.
+> Zero collateral over 3705 inputs; cmb-cr-redraw-progress-final now yields its
+> real `LAYER | COMMAND | SIZE | CACHED` table. New `box-dag` p30: dvc dag's
+> ASCII-boxed pipeline → one `stage` row per box; interior `|` (real box
+> table) rejects. Gate 3455/0/250, 0 deleted.
 
 > **2026-08-04 — decode-dimms / btrfs / hugo / go-ycsb (four strategies).**
 > `banner-sections-kv` p45 (+`---=== ` hint): dash-wrapped section banners over

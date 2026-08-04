@@ -2511,7 +2511,7 @@ prefect-deployment-list	table	4	6
 mlflow-runs-list	table	4	8
 mlflow-artifacts-list	table	6	5
 wandb-artifact-ls	table	4	7
-dvc-dag	text	-	2
+dvc-dag	table	4	1
 dvc-metrics-show	table	1	7
 dvc-remote-list	text	-	2
 huggingface-cli-repo-info	text	-	2

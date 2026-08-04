@@ -1,5 +1,32 @@
 # glean — Changelog
 
+## 2026-08-04 — cmb-cr-redraw + dvc-dag (CR-redraw preprocessing, box-dag)
+
+The last two earlier-triaged reviewer marks.
+
+- **Engine: CR-redraw collapse** (`extract/lib/_helpers.sh`
+  `preprocess_input_text`, two flavors). A progress bar redrawn with `\r` is
+  TRANSIENT CHROME — a terminal shows only the final state and even that is not
+  data. (1) Interior-`\r` flavor, at the line-terminator step: when the first
+  and last `\r`-segments of a line share a ≥8-char prefix (same label redrawn
+  with a new value), the whole line is dropped — provided ≥2 non-blank lines
+  remain; otherwise its final state is kept. Non-matching segments (spinner
+  glyphs vary their first char, `\r`-separated log records) fall through to
+  the historical CR→`\n` mapping unchanged. (2) Pre-baked weld flavor (CRs
+  consumed upstream: `…[  0%]Building image  [ 45%]…` in ONE line), after the
+  ANSI strip, gated on `%]`: the first-12-chars-recur signature, same
+  drop-or-keep-final rule. Zero collateral across all 3705 corpus inputs;
+  `cmb-cr-redraw-progress-final` now parses to its real LAYER table
+  (`LAYER | COMMAND | SIZE | CACHED`, spaces preserved in cells) instead of
+  block-records' welded blobs.
+- **New: `box-dag` p30.** `dvc dag`'s ASCII-boxed pipeline (`+---+` borders,
+  one stage per box, `*` edge lines) → one `stage` row per box in graph order.
+  psql-table had promoted the FIRST stage to a column name. Runs before
+  psql-table (p35); detection requires every non-blank line to be border /
+  single-cell content / edge-glyph, and any interior `|` (a multi-column row —
+  a real box table) rejects. Manifest `text - 2` → `table 4 1`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0, melt 10/0.
+
 ## 2026-08-04 — decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run (four strategies)
 
 Four more earlier-triaged reviewer marks closed, each with a small generic

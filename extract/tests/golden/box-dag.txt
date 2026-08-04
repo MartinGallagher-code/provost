@@ -1,0 +1,5 @@
+entry1.stage data/raw.csv
+entry2.stage preprocess
+entry3.stage train
+entry4.stage evaluate
+total_entries 4
