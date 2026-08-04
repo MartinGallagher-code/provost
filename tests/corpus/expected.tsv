@@ -943,7 +943,7 @@ ipcs-s	table	6	3
 fuser-v	table	6	2
 pstree-a	table	9	1
 pgrep-a	table	6	1
-cgget	kv	-	4
+cgget	table	14	4
 seinfo	kv	-	4
 sesearch	table	6	5
 getsebool-a	table	8	1
@@ -1266,7 +1266,7 @@ sys-class-net-statistics	kv	-	2
 sys-power-supply	kv	-	2
 cat-os-release	kv	-	2
 cat-meminfo-extended	kv	-	2
-cgget-cpu	kv	-	2
+cgget-cpu	table	5	3
 zig-version	text	-	2
 nim-version	text	-	2
 crystal-version	text	-	2

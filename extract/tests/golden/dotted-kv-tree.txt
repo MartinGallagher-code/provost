@@ -1,0 +1,50 @@
+entry1.group mysql.service
+entry1.key cpu.weight
+entry1.value 100
+entry2.group mysql.service
+entry2.key cpu.max
+entry2.value max 100000
+entry3.group mysql.service
+entry3.key cpu.pressure
+entry3.subkey some avg10
+entry3.value 0.00
+entry4.group mysql.service
+entry4.key cpu.pressure
+entry4.subkey some avg60
+entry4.value 0.00
+entry5.group mysql.service
+entry5.key cpu.pressure
+entry5.subkey some avg300
+entry5.value 0.00
+entry6.group mysql.service
+entry6.key cpu.pressure
+entry6.subkey some total
+entry6.value 1204882
+entry7.group mysql.service
+entry7.key memory.current
+entry7.value 662732800
+entry8.group mysql.service
+entry8.key memory.peak
+entry8.value 701448192
+entry9.group mysql.service
+entry9.key memory.max
+entry9.value max
+entry10.group mysql.service
+entry10.key memory.high
+entry10.value max
+entry11.group mysql.service
+entry11.key memory.swap.current
+entry11.value 0
+entry12.group mysql.service
+entry12.key memory.stat
+entry12.subkey anon
+entry12.value 512004096
+entry13.group mysql.service
+entry13.key memory.stat
+entry13.subkey file
+entry13.value 150728704
+entry14.group mysql.service
+entry14.key memory.stat
+entry14.subkey kernel
+entry14.value 8421376
+total_entries 14
