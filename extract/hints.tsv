@@ -48,6 +48,7 @@ lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
 lsusb-t	prefix	/:  Bus	text-lines
 mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
 nft-list-tables	regex	^table [^{]+$	line-records
+nslookup_mx	contains	mail exchanger = 	section-kv
 nvidia-smi-topo	contains	CPU Affinity	aligned-columns
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
 pkg-config	regex	^[a-z0-9._+-]+ +[a-z0-9._+-]+ - [A-Za-z]	text-lines

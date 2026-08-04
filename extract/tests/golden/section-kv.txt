@@ -1,0 +1,11 @@
+entry1.key Server
+entry1.value 127.0.0.53
+entry2.key Address
+entry2.value 127.0.0.53#53
+entry3.key Non-authoritative answer
+entry3.value gmail.com mail exchanger = 5 gmail-smtp-in.l.google.com.
+entry4.key Non-authoritative answer
+entry4.value gmail.com mail exchanger = 10 alt1.gmail-smtp-in.l.google.com.
+entry5.key Non-authoritative answer
+entry5.value gmail.com mail exchanger = 20 alt2.gmail-smtp-in.l.google.com.
+total_entries 5

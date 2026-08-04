@@ -1,5 +1,33 @@
 # glean — Changelog
 
+## 2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv)
+
+Post-merge follow-up to PR #49; the branch was restarted from the merged `main`
+(PR #49) as a fresh change. First of the four still-open round-10 marks.
+
+- **New: `section-kv` p58 + `nslookup_mx` hint.** The reviewer's note on
+  `nslookup -type=mx`: "each of the gmail.com entries should have
+  `Non-authoritative answer:` as their key for the key/value pair." A bare
+  `Header:` line (colon, no value) is carried DOWN as the key of every plain
+  line beneath it, while the ordinary `key: value` lines above emit as
+  themselves — one entry-prefixed `key | value` table (`Server`, `Address`,
+  then `Non-authoritative answer` ×5). A bare header whose followers are all
+  their own `key: value` pairs carries nothing and drops out, so plain
+  `nslookup` (whose `Name:`/`Address:` sit under the same banner) is untouched
+  and its golden stays green. Routed by a `contains  mail exchanger = ` hint so
+  it wins over `tsv`, which otherwise reads the tab layout as a 2-column table.
+  - Auto-detect gates (first cut stole 20 corpus tools; taken to zero): a
+    carried member must hold an INTERNAL tab after its indent (nslookup's
+    `domain <TAB> mail exchanger = …`) — which excludes rpm -qi's trailing
+    `Description:` prose, ipset's `Members:` token list, perf list's
+    space-padded events, and cgget's tab-INDENTED `\tusage_usec …`; plus ≥1
+    `key: value` pair must precede the first section (kills header-first lists),
+    no member may hold its own `key: value` pair, and no plain line may precede
+    the first header.
+  - Manifest: `nslookup_mx` `table 5 1` → `table 7 2` (now the row-shaped
+    key/value output). Corpus golden gate 3452 passed / 0 failed / 0 deleted;
+    extract suite 62/62, 174 goldens; smoke 58/0.
+
 ## 2026-08-03 — round-10 marks: 13 of 17 fixed (six new strategies)
 
 The round-10 worst-20 workbook came back with 17 disagreements. Thirteen are

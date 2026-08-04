@@ -781,7 +781,7 @@ dig_txt	table	4	3
 drill	table	5	3
 host_a	table	5	3
 host_ns	table	4	2
-nslookup_mx	table	5	1
+nslookup_mx	table	7	2
 nmap_allports	table	5	1
 nmap_sv	table	5	2
 nmap_os	table	5	1

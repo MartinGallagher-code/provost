@@ -1,6 +1,21 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #48). Round-10 marks: 17 disagreements — **13 fixed**, 4 open (triaged in CHANGELOG).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #49). Round-10 marks: 17 disagreements — **14 fixed**, 3 open (kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log — triaged in CHANGELOG).
+
+> **2026-08-04 — round-10 follow-up: `nslookup_mx` (section-kv).** New generic
+> `section-kv` p58 + a `contains mail exchanger = ` hint. A bare `Header:` line
+> (colon, no value) is carried DOWN as the key of each plain line beneath it,
+> ordinary `key: value` lines above emit as themselves → one entry-prefixed
+> `key | value` table (the reviewer's "each gmail entry should have
+> `Non-authoritative answer:` as its key"). Plain `nslookup` untouched (its
+> `Name:`/`Address:` under the same banner are their own kv pairs → the bare
+> header carries nothing → drops). Auto-detect first cut stole 20 tools; gated
+> to 0 (carried members need an INTERNAL tab after indent — excludes rpm -qi
+> prose, ipset token lists, perf-list padding, cgget tab-indent — plus ≥1 kv
+> before the first section, no kv-pair members, no pre-header loose lines).
+> Manifest `nslookup_mx` `table 5 1` → `7 2`. Gate 3452/0/253, 0 deleted;
+> extract 62/62, smoke 58/0. **3 open:** kubectl-describe-deployment,
+> npm-audit-summary, nst-python-traceback-log — see CHANGELOG.
 
 > **2026-08-03 — round-10 marks (post-merge, fresh branch).** 13 of 17 worst-20
 > disagreements fixed. `equals` pin/cfg list modes (pip-freeze, rye-list,
