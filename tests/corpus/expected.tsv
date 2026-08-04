@@ -1162,7 +1162,7 @@ ruff-check	table	3	3
 eslint-stylish	text	-	2
 pre-commit-run	text	-	2
 tox-list	text	-	2
-npm-audit-summary	text	-	2
+npm-audit-summary	table	1	6
 yarn-why	text	-	2
 tmux-list-sessions	kv	-	2
 tmux-list-panes	text	-	2
@@ -2797,11 +2797,11 @@ helm-repo-list-color	table	3	2
 kubectl-get-svc-color	table	4	5
 brew-outdated-color	table	3	3
 ruff-check-color	table	3	4
-kubectl-describe-deployment	kv	-	5
-kubectl-describe-statefulset	kv	-	5
-kubectl-describe-daemonset	kv	-	5
-kubectl-describe-replicaset	kv	-	5
-kubectl-describe-hpa-events	kv	-	5
+kubectl-describe-deployment	table	6	6
+kubectl-describe-statefulset	table	3	6
+kubectl-describe-daemonset	table	3	6
+kubectl-describe-replicaset	table	4	6
+kubectl-describe-hpa-events	table	3	6
 git-log-body	table	3	4
 git-log-fuller	table	4	4
 git-log-wrapped-body	table	3	4
@@ -2846,7 +2846,7 @@ yaml-block-scalar	text	-	2
 yaml-literal-block	text	-	2
 gitconfig-multiline	text	-	2
 gitconfig-aliases	text	-	2
-kubectl-describe-cronjob	kv	-	5
+kubectl-describe-cronjob	table	3	6
 iostat-xz	text	-	23
 iostat-cx	text	-	9
 iostat-xmt	text	-	8

@@ -1,5 +1,41 @@
 # glean — Changelog
 
+## 2026-08-04 — npm-audit-summary + kubectl-describe (round-10 complete: 17/17)
+
+The last two round-10 marks. All 17 disagreements from the round-10 workbook
+are now fixed.
+
+- **New: `headline-kv-blocks` p36** (auto-detected). npm audit's advisory
+  blocks — blank-separated, each opening with a `name  <range>` 2+-space
+  headline over `Severity: high` kv lines and free lines. One record per
+  block: headline first field → `name`, remaining headline fields positional;
+  kv lines → named columns; a ` - ` free line → two positional columns
+  (title/advisory URL); other free lines → `detail`. A leading title block
+  (`# npm audit report`) and trailing summary block are chrome; any OTHER
+  non-qualifying block rejects. → `name | A | Severity | B | C | detail` — the
+  reviewer's "missed columns" all recovered (block-records had kept only
+  `Severity: high`). Manifest `text - 2` → `table 1 6`.
+- **New: `describe-report` p21** (auto-detected). kubectl describe's house
+  style: 2+-space-aligned top kv (keys may hold spaces), deep-indented
+  continuation lines (`Labels:`' second value, `Annotations:`' JSON — joined
+  `; `), and `Section:` headers over tables whose `----` separator row gives
+  the EXACT column extents. One record per section-table row (`section` + the
+  table's own header names), sliced at the dash-run positions with an
+  OVERFLOW-safe boundary (a cell wider than its dash run — hpa's
+  `FailedGetResourceMetric` — walks the boundary right so the token stays
+  whole); top kv emit as flat fields the melt repeats onto every row. Nothing
+  is lost — the old parse welded JSON fragments into key names and events into
+  columns. Free riders: kubectl-describe-{cronjob,daemonset,hpa-events,
+  replicaset,statefulset} all improve from event-welded-into-column-name
+  goldens to real `section | Type | Status/Reason | Age | From | Message`
+  rows. Manifests: deployment `kv - 5` → `table 6 6`; the five siblings
+  `kv - 5` → `table 3-4 6`.
+  - Gotcha refound: `local row="$1" rl=${#row}` in ONE statement breaks under
+    the engine's `set -u` (rl expands before row assigns) — split
+    declarations; this silently killed detection until the debug log showed
+    `row: unbound variable`.
+- Gate: **3455/0/250, 0 deleted**; extract 62/62, smoke 58/0.
+
 ## 2026-08-04 — `nst-python-traceback-log` (bracket-log 1.1 continuations)
 
 Round-10 mark: two record shapes interleaved in one stream — timestamped log

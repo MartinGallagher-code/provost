@@ -1,6 +1,17 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: **15 of 17 fixed** (nst-python-traceback-log landed via bracket-log 1.1). Earlier-triaged marks **all fixed** (sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run, cmb-cr-redraw-progress-final, dvc-dag). Still open: kubectl-describe-deployment, npm-audit-summary (genuinely hard — triaged in CHANGELOG); the multi-output design item.
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed.** Remaining open item: the multi-output-per-input design (one input deserving BOTH a kv block and a table — iostat).
+
+> **2026-08-04 — round-10 complete (npm-audit + kubectl-describe).** New
+> `headline-kv-blocks` p36: npm audit's advisory blocks (`name  <range>`
+> headline + `Severity:` kv + `Title - URL`) → name/A/Severity/B/C/detail —
+> the "missed columns" all recovered. New `describe-report` p21: kubectl
+> describe's aligned kv (+continuations `; `-joined) + `Section:` tables
+> sliced at their `----` separator positions (overflow-safe boundary walk) →
+> one record per Conditions/Events row with kv carried; 5 sibling describes
+> improve free (events had been welded into COLUMN NAMES). Gotcha refound:
+> `local x="$1" y=${#x}` breaks under `set -u` — split declarations. Gate
+> 3455/0/250, 0 deleted.
 
 > **2026-08-04 — nst-python-traceback-log (bracket-log 1.1).** Non-bracketed
 > continuation runs (first line indented or colon-terminated — a Python
