@@ -1,6 +1,16 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed.** Remaining open item: the multi-output-per-input design (one input deserving BOTH a kv block and a table — iostat).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed. Multi-dataset extraction shipped as `envoy-extract --multi`** (docs/0003-multi-dataset.md); glean capture adoption deliberately deferred (one-dataset-per-capture is a core invariant — scoped as its own change).
+
+> **2026-08-04 — multi-dataset extraction (`--multi`).** The reviewer's
+> "one input may deserve multiple outputs" note is an engine mode: blank-line
+> block split → detect-only pass per block → group consecutive blocks sharing
+> winner name AND shape (modal token count ±1) → full pipeline per group →
+> datasets emitted behind `__DATASET__ n strategy confidence` separators.
+> iostat -x → 3 datasets (banner, avg-cpu kv, Device table) — nothing
+> dropped; blank-separated record streams re-form into one. New
+> test_multi_mode.sh (extract 63/63). Capture-pipeline adoption + a corpus
+> `multi` kind are scoped in docs/0003-multi-dataset.md, not started.
 
 > **2026-08-04 — round-10 complete (npm-audit + kubectl-describe).** New
 > `headline-kv-blocks` p36: npm audit's advisory blocks (`name  <range>`

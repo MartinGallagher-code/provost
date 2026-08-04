@@ -1,5 +1,32 @@
 # glean — Changelog
 
+## 2026-08-04 — multi-dataset extraction (`--multi`, docs/0003)
+
+The reviewer's design note — "an input may deserve MULTIPLE outputs, e.g. a
+key/value in the same input with a table" — is now an engine mode.
+
+- **`envoy-extract --multi`** (`extract/envoy-extract`,
+  `extract/lib/_dispatch.sh` `run_multi_mode`): split the preprocessed input
+  on blank-line boundaries; detect-only pass per block; group consecutive
+  blocks sharing BOTH winner name AND shape (modal token count ±1 — name
+  alone is too coarse: iostat's avg-cpu block and Device table both detect
+  aligned-columns but are 6-7 vs 16 tokens wide); run the FULL pipeline
+  (hints, auto-detection, dedup) per group; emit each surviving dataset
+  behind `__DATASET__<TAB>n<TAB>strategy<TAB>confidence` in the -f format.
+  Nameless blocks (banners) join the open group; blank-separated record
+  streams share name+shape so they re-form and extract as ONE dataset.
+  `iostat -x` → 3 datasets (uname banner, avg-cpu, Device) — nothing dropped.
+  Conflicts with `--batch`/`--stream`/`--chain`/`--replay`/`--strategy`/
+  `--interactive`.
+- **Deliberately NOT adopted in the glean capture pipeline** — one dataset per
+  capture is a core invariant (meta.tsv, show/export, melt, the corpus
+  harness). Adoption is scoped as its own change in
+  `docs/0003-multi-dataset.md` (dataset-N siblings, `show <id>:<n>`, a
+  corpus `multi` kind).
+- Tests: `extract/tests/test_multi_mode.sh` (3-dataset split, record-stream
+  re-forming, separator format, conflicts) — extract suite now 63/63. Corpus
+  gate untouched by the feature: 3455/0/250, 0 deleted; smoke 58/0.
+
 ## 2026-08-04 — npm-audit-summary + kubectl-describe (round-10 complete: 17/17)
 
 The last two round-10 marks. All 17 disagreements from the round-10 workbook
