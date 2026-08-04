@@ -338,6 +338,33 @@ preprocess_input_text () {
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\357\274\220/0/g; s/\357\274\221/1/g; s/\357\274\222/2/g; s/\357\274\223/3/g; s/\357\274\224/4/g; s/\357\274\225/5/g; s/\357\274\226/6/g; s/\357\274\227/7/g; s/\357\274\230/8/g; s/\357\274\231/9/g; s/\357\274\232/:/g')"
     fi
 
+    # COLOR-AS-SEPARATOR recovery — runs BEFORE the ANSI strip, which would
+    # otherwise weld the fields together irrecoverably. Some TUIs emit columns
+    # with NO whitespace between them, each field its own SGR span:
+    #   ESC[31m1420ESC[0mESC[32mrootESC[0mESC[33m12.4ESC[0m  ->  1420root12.4
+    # There the reset-abuts-next-SGR boundary IS the column separator, so a TAB
+    # is inserted at each one. Gated per line: only when the stripped line has
+    # NO 2+-space run (color is the only separator present). That gate is what
+    # protects the counter-shapes — a space-aligned table whose one cell is
+    # recolored mid-value (`ESC[33m10ESC[0mESC[36m01ESC[0m` inside "1001"),
+    # gauge bars, and box tables all carry real space runs and pass untouched.
+    if [[ "$text" == *$'\033[0m\033['* ]]; then
+        text="$(printf '%s' "$text" | awk '
+            BEGIN { esc = sprintf("%c", 27) }
+            {
+                line = $0
+                bnd = esc "\\[0m" esc "\\[[0-9;]*m"
+                if (line ~ bnd) {
+                    stripped = line
+                    gsub(esc "\\[[0-9;?]*[@-~]", "", stripped)
+                    if (stripped !~ /  / && stripped ~ /[^ ]/) {
+                        gsub(esc "\\[0m" esc "\\[", esc "[0m\t" esc "[", line)
+                    }
+                }
+                print line
+            }')"
+    fi
+
     # Strip ANSI/VT escape sequences (colored output: ls --color, gh, git, kubectl,
     # systemctl status dots, terraform plan, npm/cargo, …) so a color code can never
     # split or pollute a data cell. Gated on an ESC byte being present, so it is a
