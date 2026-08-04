@@ -1,8 +1,3 @@
-n	A	total_entries
-1	***************** properties *****************	7
-2	"threadcount"="16"	7
-3	"operationcount"="1000000"	7
-4	**********************************************	7
-5	Run finished, takes 48.821021s	7
-6	READ   - Takes(s): 48.8, Count: 800482, OPS: 16398.4, Avg(us): 921, P99(us): 2210	7
-7	UPDATE - Takes(s): 48.8, Count: 199518, OPS: 4088.2, Avg(us): 1204, P99(us): 3210	7
+n	name	Takes(s)	Count	OPS	Avg(us)	P99(us)	total_entries
+1	READ	48.8	800482	16398.4	921	2210	2
+2	UPDATE	48.8	199518	4088.2	1204	3210	2

@@ -1,6 +1,18 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3452/0, 253 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #49). Round-10 marks: 17 disagreements — **14 fixed**, 3 open (kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log — triaged in CHANGELOG).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3454/0, 251 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 62/62, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). Round-10: 14 of 17 fixed. Earlier-triaged marks: sdparm-all, decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run **fixed**; still open: dvc-dag (ASCII DAG), cmb-cr-redraw-progress-final, kubectl-describe-deployment, npm-audit-summary, nst-python-traceback-log; plus the multi-output design item.
+
+> **2026-08-04 — decode-dimms / btrfs / hugo / go-ycsb (four strategies).**
+> `banner-sections-kv` p45 (+`---=== ` hint): dash-wrapped section banners over
+> tab-kv pairs → group|key|value (decode-dimms 14 rows). `inline-kv-groups`
+> p39: inline `k: v` headers over word-run→value members → header pairs
+> carried onto per-member rows (btrfs fi show — devid rows recovered).
+> `version-line` p44: single-line `name vX.Y.Z …` banners → name|version +
+> named `k=v` columns (hugo, dagger); the over-broad cargo-tree hint narrowed
+> to require `├──`/`└──`, releasing tinymembench + y-cruncher to real parses
+> and improving 17 version-tool goldens (name/version named columns).
+> `dash-labeled-stats` p42: `NAME - k: v, k: v` records → name + per-key
+> columns (go-ycsb). Gate 3454/0/251, 0 deleted; extract 62/62, smoke 58/0.
 
 > **2026-08-04 — `sdparm-all` (sectioned-fields).** New generic
 > `sectioned-fields` p46. Colon-terminated section header → carried `group`

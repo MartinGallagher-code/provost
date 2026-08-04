@@ -26,10 +26,11 @@ aptitude-search	regex	^[ipvc][ A]{3}[a-z0-9]	text-lines
 aws-s3-ls	regex	[[:space:]]PRE [^[:space:]]+/	line-records
 borg	regex	 \[[0-9a-f]{12}\]	aligned-columns
 cabal-freeze	prefix	constraints:	line-records
-cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+[^:]	text-lines
+cargo-tree	regex	^[a-z0-9_-]+ v[0-9]+\.[0-9]+\.[0-9]+[^:].*(├──|└──)	text-lines
 consul-kv-get-recurse	regex	^[a-z0-9_-]+/[a-z0-9_/-]+:[^ ]	block-records
 cpuid-summary	contains	vendor_id = "	block-records
 dbmate-status	contains	Applied: 	dbmate-status
+decode-dimms	contains	---=== 	banner-sections-kv
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
 fwupdmgr-get-devices	contains	Device ID:	text-lines

@@ -1,0 +1,43 @@
+entry1.group 
+entry1.key Decoding EEPROM
+entry1.value /sys/bus/i2c/devices/i2c-0/0-0050
+entry2.group 
+entry2.key Guessing DIMM is in
+entry2.value bank 1
+entry3.group SPD EEPROM Information
+entry3.key EEPROM CRC of bytes 0-125
+entry3.value OK (0x1B2C)
+entry4.group SPD EEPROM Information
+entry4.key # of bytes written to SDRAM EEPROM
+entry4.value 176
+entry5.group SPD EEPROM Information
+entry5.key Total number of bytes in EEPROM
+entry5.value 512
+entry6.group SPD EEPROM Information
+entry6.key Fundamental Memory type
+entry6.value DDR4 SDRAM
+entry7.group SPD EEPROM Information
+entry7.key SPD Revision
+entry7.value 1.1
+entry8.group Memory Characteristics
+entry8.key Maximum module speed
+entry8.value 2400 MHz (PC4-19200)
+entry9.group Memory Characteristics
+entry9.key Size
+entry9.value 8192 MB
+entry10.group Memory Characteristics
+entry10.key Banks x Rows x Columns x Bits
+entry10.value 16 x 16 x 10 x 64
+entry11.group Memory Characteristics
+entry11.key Ranks
+entry11.value 1
+entry12.group Memory Characteristics
+entry12.key SDRAM Device Width
+entry12.value 8 bits
+entry13.group Memory Characteristics
+entry13.key Manufacturer
+entry13.value Micron Technology
+entry14.group Memory Characteristics
+entry14.key Part Number
+entry14.value 8ATF1G64HZ-2G3B1
+total_entries 14

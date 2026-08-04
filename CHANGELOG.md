@@ -1,5 +1,52 @@
 # glean — Changelog
 
+## 2026-08-04 — decode-dimms, btrfs-filesystem-show, hugo-version, go-ycsb-run (four strategies)
+
+Four more earlier-triaged reviewer marks closed, each with a small generic
+strategy; 21 free-rider goldens improved along the way.
+
+- **New: `banner-sections-kv` p45 + `decode-dimms` hint (`contains ---=== `).**
+  `---=== SECTION ===---` banners over TAB-separated `key <TAB..> value` pairs
+  → `group | key | value` rows (14 for decode-dimms; block-records had kept 1
+  line and dropped everything else). A pair splits on the first tab run, else
+  `: `; the dash-wrapped banner is a label (never contends with banner-groups'
+  bare `=== x ===`); the `# decode-dimms version 6.0` title is decoration (no
+  tab), while the real `# of bytes …` key IS kept (it has one). Manifest
+  `kv - 6` → `table 14 3`.
+- **New: `inline-kv-groups` p39** (auto-detected). btrfs filesystem show:
+  `Label: 'data'  uuid: …` headers are ONLY inline `k: v` pairs; members
+  (`devid 1 size 931.51GiB used 420.00GiB path /dev/sda1`, `Total devices 2 FS
+  bytes used 412.83GiB`) decompose completely into word-run → value pairs
+  (value = digit- or /-led token). One row per member with header pairs carried
+  → `Label | uuid | Total_devices | FS_bytes_used | devid | size | used |
+  path`, 5 rows; the old parse had DROPPED every devid row. Detection needs ≥2
+  fully-decomposing headers and every line classified — zero corpus collateral.
+  Manifest `table 3 4` → `table 5 7`.
+- **New: `version-line` p44** (auto-detected). Single-line `name vX.Y.Z …`
+  banners split into `name | version` + `Key=value` tokens as named columns +
+  bare tokens as positional letters (hugo-version — the reviewer's "you didn't
+  even try" — and dagger-version). Containment is single-line-ness itself.
+  - The over-broad `cargo-tree` hint (any `name vX.Y.Z` start) was narrowed to
+    require a real tree glyph (`├──`/`└──`), releasing hugo/dagger plus
+    tinymembench (→ key-value: 5 real benchmark rows) and y-cruncher-pi
+    (→ colons: 6 real kv fields) from text-lines blobs.
+  - **17 free-rider goldens improved** (cargo-version-full, elixir-v,
+    gleam-deps-list, gnuplot-version, grafana-version, helix-version, lua-v,
+    maxima-version, python-vv, ruby-v, ruby-version, rustc-version,
+    telegraf-version, v-version, vault-version, vector-version,
+    weechat-version): same token split, now with `name`/`version` named
+    columns (gleam-deps-list → real `name | version` rows). 16 manifest rows
+    retyped `kv - 3`; tinymembench `table 5 2`, y-cruncher `kv - 6`, hugo &
+    dagger `kv - 4`.
+- **New: `dash-labeled-stats` p42** (auto-detected). `NAME - k: v, k: v, …`
+  stat records (go-ycsb's READ/UPDATE lines) → `name` + one column per key
+  (`Takes(s) | Count | OPS | Avg(us) | P99(us)`). Needs ≥2 records, each ≥2
+  comma-separated `k: v` pairs after the dash (fdbcli's single-pair ` - `
+  lines never match). The properties preamble and banners are tolerated
+  noise. Manifest `text - 2` → `table 2 6`.
+- Gate after all four: **3454 passed / 0 failed / 251 ⏳, 0 deleted**; extract
+  62/62 (4 new strategy goldens), smoke 58/0.
+
 ## 2026-08-04 — `sdparm-all` (sectioned-fields)
 
 - **New: `sectioned-fields` p46.** The reviewer's `sdparm --all` note: "first

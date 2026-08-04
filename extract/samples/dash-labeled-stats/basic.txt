@@ -1,0 +1,7 @@
+***************** properties *****************
+"threadcount"="16"
+"operationcount"="1000000"
+**********************************************
+Run finished, takes 48.821021s
+READ   - Takes(s): 48.8, Count: 800482, OPS: 16398.4, Avg(us): 921, P99(us): 2210
+UPDATE - Takes(s): 48.8, Count: 199518, OPS: 4088.2, Avg(us): 1204, P99(us): 3210
