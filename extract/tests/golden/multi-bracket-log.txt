@@ -1,0 +1,13 @@
+entry1.A 06:00:00
+entry1.B I
+entry1.C sensor:094
+entry1.message 'Living Temp': Sending state 21.4 °C
+entry2.A 06:00:00
+entry2.B I
+entry2.C sensor:094
+entry2.message 'Living Humidity': Sending state 44.2 %
+entry3.A 06:00:05
+entry3.B D
+entry3.C api:102
+entry3.message Client connected
+total_entries 3

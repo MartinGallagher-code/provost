@@ -1,8 +1,2 @@
-n	A	total_entries
-1	Last password change                                    : Jan 01, 2026	7
-2	Password expires                                        : Apr 01, 2026	7
-3	Password inactive                                       : Apr 15, 2026	7
-4	Account expires                                         : never	7
-5	Minimum number of days between password change          : 0	7
-6	Maximum number of days between password change          : 90	7
-7	Number of days of warning before password expires       : 7	7
+Last_password_change	Password_expires	Password_inactive	Account_expires	Minimum_number_of_days_between_password_change	Maximum_number_of_days_between_password_change	Number_of_days_of_warning_before_password_expires
+Jan 01, 2026	Apr 01, 2026	Apr 15, 2026	never	0	90	7

@@ -1,0 +1,17 @@
+entry1.A api_cluster
+entry1.B 10.0.2.1:8080
+entry1.C health_flags
+entry1.D healthy
+entry2.A api_cluster
+entry2.B 10.0.2.1:8080
+entry2.C weight
+entry2.D 1
+entry3.A api_cluster
+entry3.B 10.0.2.2:8080
+entry3.C health_flags
+entry3.D healthy
+entry4.A api_cluster
+entry4.B default_priority
+entry4.C max_connections
+entry4.D 1024
+total_entries 4

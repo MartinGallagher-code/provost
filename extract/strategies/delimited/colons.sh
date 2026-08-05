@@ -52,6 +52,51 @@ strategy_extract () {
     # Clean text (dates, parentheses) -- cached by engine after first call
     clean_text "$text"; text="$_CLEAN_TEXT_RESULT"
 
+    # FOLD indented list blocks into their bare header. A `Key:` line with no
+    # value over STRICTLY deeper-indented, colon-free plain lines is a list
+    # field (dmidecode's `Characteristics:` over `PCI is supported` …). Both
+    # halves used to be dropped — the header for its empty value, the items
+    # for having no colon ("you left most of the info out"). The items join
+    # into the header's value with `; `. Lines that don't fit pass through
+    # untouched, so ordinary kv extraction is unchanged.
+    local _fold="" _f_hdr="" _f_hind="" _f_items="" _f_l _f_count=0
+    _colons_flush_fold () {
+        if [[ -n "$_f_hdr" ]]; then
+            # A LIST needs >=2 items — a lone indented line under a bare
+            # header is a usage hint (dolt status's `(use "dolt add …")`),
+            # not data, and folding it would keep chrome as a value.
+            if [[ -n "$_f_items" && $_f_count -ge 2 ]]; then
+                _fold+="${_f_hdr} ${_f_items}"$'\n'
+            else
+                _fold+="${_f_hdr}"$'\n'
+            fi
+            _f_hdr=""; _f_items=""; _f_count=0
+        fi
+    }
+    while IFS= read -r _f_l; do
+        if [[ -n "$_f_hdr" ]]; then
+            local _f_ind="${_f_l%%[![:space:]]*}"
+            local _f_body="${_f_l#"$_f_ind"}"
+            if [[ -n "$_f_body" && ${#_f_ind} -gt ${#_f_hind} \
+                  && "$_f_body" != *": "* && "$_f_body" != *: ]]; then
+                _f_body="${_f_body%"${_f_body##*[![:space:]]}"}"
+                _f_items+="${_f_items:+; }${_f_body}"
+                _f_count=$((_f_count + 1))
+                continue
+            fi
+            _colons_flush_fold
+        fi
+        # A bare header: `Key:` (letter-led, no value after the colon).
+        if [[ "$_f_l" =~ ^([[:space:]]*)([A-Za-z][A-Za-z0-9_\ -]*):[[:space:]]*$ ]]; then
+            _f_hind="${BASH_REMATCH[1]}"
+            _f_hdr="$_f_l"
+            continue
+        fi
+        _fold+="$_f_l"$'\n'
+    done <<< "$text"
+    _colons_flush_fold
+    text="${_fold%$'\n'}"
+
     # Collapse spaces around colons and extract "key: value" lines
     # Skip lines where the "key" portion is too long (>50 chars) or empty
     local result=""
@@ -87,6 +132,13 @@ strategy_extract () {
             while [[ "$value" == *" " ]]; do value="${value% }"; done
             [[ "$value" =~ ^\[(.*)\]$ ]] && value="${BASH_REMATCH[1]}"
         fi
+
+        # Trim the key's surrounding whitespace BEFORE the length check — a
+        # column-aligned kv block pads its keys to the colon (`chage -l`'s
+        # `Last password change                : …`), and judging the padded
+        # length rejected every line of it (empty extraction, no winner).
+        key="${key#"${key%%[![:space:]]*}"}"
+        key="${key%"${key##*[![:space:]]}"}"
 
         # Skip if key is empty, too long, or looks like a non-field line
         [[ -z "$key" ]] && continue

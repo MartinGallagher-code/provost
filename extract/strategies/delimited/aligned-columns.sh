@@ -341,6 +341,54 @@ _ac_shape () {
           && ! ( $_kvm_tpl_same -eq 1 && "$_kvm_tpl" == *"#"* ) ]]; then
         return 1
     fi
+    # MIXED-label colon-kv block. The two vetoes above each have a blind spot
+    # the reviewer hit three times in one round: single- and multi-word labels
+    # MIXED in one block (`Queue running: 1` + `VRAM: 8201/24564 MiB` —
+    # comfyui), blocks SHORTER than 3 multi-word lines (cups-lpstat's two
+    # `device for X: uri` lines), and a same-template run broken by one odd
+    # label (e2fsck's `Pass N:` ×4 + `/dev/sda2:` — the lsusb exemption stood
+    # down on the Pass template alone). This veto takes the union: EVERY line
+    # is `label: value` (label single-spaced — no 2+-space run, so a table
+    # cell before a later colon never counts — and colon-free), labels are
+    # DISTINCT, at least one label holds a space or `/` (pure single-token
+    # label columns still belong to the row-1 check), and the labels do NOT
+    # all share one digit template (lsusb again). Such a block is `colons`'
+    # territory: one field per line, split at the first colon.
+    local _mixed_ok=1 _mixed_multi=0 _mx_line _mx_tpl="" _mx_tpl_same=1 _mx_colons=0 _mx_n=0
+    local -A _mx_seen=()
+    if [[ $idx -ge 2 ]]; then
+        while IFS= read -r _mx_line; do
+            [[ -z "${_mx_line//[[:space:]]/}" ]] && continue
+            if [[ ! "$_mx_line" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
+                _mixed_ok=0; break
+            fi
+            local _mxl="${BASH_REMATCH[1]}"
+            _mxl="${_mxl#"${_mxl%%[![:space:]]*}"}"
+            _mxl="${_mxl%"${_mxl##*[![:space:]]}"}"
+            [[ "$_mxl" == *"  "* || -z "$_mxl" ]] && { _mixed_ok=0; break; }
+            # A possessive/prose label (`pid 3421's current scheduling
+            # policy`) is a sentence wearing a colon, not a field name —
+            # chrt/taskset keep their aligned parse.
+            [[ "$_mxl" == *"'"* ]] && { _mixed_ok=0; break; }
+            [[ -n "${_mx_seen[$_mxl]:-}" ]] && { _mixed_ok=0; break; }
+            _mx_seen[$_mxl]=1
+            [[ "$_mxl" == *" "* || "$_mxl" == */* ]] && _mixed_multi=1
+            _mx_n=$((_mx_n + 1))
+            [[ "$_mxl" =~ ^[A-Za-z][A-Za-z0-9_\ -]*$ ]] && _mx_colons=$((_mx_colons + 1))
+            local _mxt="${_mxl//[0-9]/#}"
+            while [[ "$_mxt" == *"##"* ]]; do _mxt="${_mxt//##/#}"; done
+            if [[ -z "$_mx_tpl" ]]; then _mx_tpl="$_mxt"
+            elif [[ "$_mxt" != "$_mx_tpl" ]]; then _mx_tpl_same=0
+            fi
+        done <<< "$text"
+        # Only defer when `colons` will actually ACCEPT the block (>=40% of
+        # labels letter-led simple charset) — else no parser takes it at all.
+        if [[ $_mixed_ok -eq 1 && $_mixed_multi -eq 1 && $_mx_n -ge 1 \
+              && $(( _mx_colons * 100 / _mx_n )) -ge 40 \
+              && ! ( $_mx_tpl_same -eq 1 && "$_mx_tpl" == *"#"* ) ]]; then
+            return 1
+        fi
+    fi
 
     local nlines=${#counts[@]}
     [[ $nlines -lt 2 ]] && return 1

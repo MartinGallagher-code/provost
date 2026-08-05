@@ -1,5 +1,60 @@
 # glean — Changelog
 
+## 2026-08-05 — round-12 marks: 11 of 12 disagreements fixed
+
+The round-12 next-30 workbook came back 19 OK / 11 disagree
+(`docs/review-marks-2026-08-05-round12.tsv`). Eleven fixed; one
+(`enc-tab-space-indent-mix`) is acknowledged-open — the reviewer's own note
+was "not sure what to do with this" (a nested nginx-style brace config with
+mixed tab/space indent; candidate shape is a nested-group extension of
+brace-groups, deferred until a direction is chosen).
+
+- **Mixed-label colon-kv blocks → `colons`** (comfyui-queue, cups-lpstat-v,
+  e2fsck-summary + 19 audited free riders — chage/chronyc/ipmitool/nvme/
+  eth-gas/onefetch/prowler + 8 version tools). One veto in aligned-columns,
+  mirrored in line-records and text-lines, covering the union its two
+  existing kv vetoes missed; fires only when >=40% of labels are
+  colons-charset so a deferred block always has a taker. `colons` also trims
+  key padding BEFORE its 50-char cap (chage -l had NO winner at all).
+- **`colons` 1.2 — bare-header list folding.** A `Key:` header over >=2
+  deeper-indented colon-free lines folds them into its value with `; `
+  (dmidecode's `Characteristics:` — "you left most of the info out");
+  a lone indented line is a usage hint and stays dropped (dolt-status).
+  dmidecode baseboard/processor/exo-handles + sdparm-inquiry improve free.
+- **`json-array` 1.1 — nested values flattened, not skipped.** Dotted-prefix
+  recursion (`IPAM.Config.1.Subnet`, `Options.…mtu`, `Labels.…`) — the
+  docker-network-inspect "nope"; docker/podman-inspect family, ip -j addr,
+  meson, mongosh, surreal all recover their nested fields (additive only).
+  Fixed a latent awk bug en route: `end` was global in the recursion.
+- **New strategies:** `double-colon-fields` p43 (envoy-clusters `a::b::c::d`
+  → positional columns, "use :: as the delimiter"); `line-pairs` p44
+  (etcdctl get --prefix alternating key/value lines → key|value rows);
+  `multi-bracket-log` p47 (esphome's glued `[t][lvl][tag]: msg` → one column
+  per bracket + message, "every set of square brackets is its own column");
+  `progress-ledger` p42 (dbt's `HH:MM:SS N of M OP subject …… [STATUS]` →
+  time|seq|operation|subject|status, dots dropped); `indent-tree` p36 (bare
+  single-token indent tree, tabs count 8 — enc-mixed-indent-tree's "there is
+  a tree here that you missed" → depth|parent|name).
+- **`line-records` — uniform `+` lead stripped** (earthly ls; mixed `+/-`
+  diffs and `*` selections untouched).
+- 43 goldens regenerated across the three commits (22 kv flips + 21 here),
+  **0 deleted**; manifests already covered the new shapes except
+  cups-lpstat-v (table→kv). review-output refreshed (43 changed, all
+  intended). Gate **3459/0/246**; extract 63/63, smoke 58/0, melt 10/0.
+
+## 2026-08-05 — round-12 review batch: next-30 workbook
+
+Post-merge follow-up to PR #51 (fresh branch from `main`). All rounds 1–11
+marks are answered; this prepares round 12.
+
+- **`docs/review-batch-2026-08-05-round12.tsv`** — the 30 riskiest entries
+  that pass the structural pre-screen, drawn from the 2,725 not-yet-reviewed
+  passing entries (excludes the cumulative VALIDATED set and every mark from
+  rounds 1–3/8–11). All 30 sit at risk 5 — the round-11 batch consumed the
+  risk-6 tier. Rendered as `glean_corpus_review_12_next30.docx` (all 30
+  entries + verdict boxes verified present). Marks come back as
+  `docs/review-marks-<date>-round12.tsv`. No parser or snapshot changes.
+
 ## 2026-08-04 — round-11 marks: all 12 disagreements fixed
 
 The round-11 worst-20 workbook came back 8 OK / 12 disagree

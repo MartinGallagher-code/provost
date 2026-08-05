@@ -1,0 +1,31 @@
+entry1.time 14:05:02
+entry1.seq 1 of 3
+entry1.operation START
+entry1.subject freshness of raw.events
+entry1.status RUN
+entry2.time 14:05:04
+entry2.seq 1 of 3
+entry2.operation PASS
+entry2.subject freshness of raw.events
+entry2.status PASS in 2.10s
+entry3.time 14:05:04
+entry3.seq 2 of 3
+entry3.operation START
+entry3.subject freshness of raw.orders
+entry3.status RUN
+entry4.time 14:05:06
+entry4.seq 2 of 3
+entry4.operation WARN
+entry4.subject freshness of raw.orders
+entry4.status WARN in 1.98s
+entry5.time 14:05:06
+entry5.seq 3 of 3
+entry5.operation START
+entry5.subject freshness of raw.sessions
+entry5.status RUN
+entry6.time 14:05:09
+entry6.seq 3 of 3
+entry6.operation ERROR STALE
+entry6.subject freshness of raw.sessions
+entry6.status ERROR STALE in 2.44s
+total_entries 6

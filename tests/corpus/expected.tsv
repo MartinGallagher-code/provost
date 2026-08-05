@@ -1460,7 +1460,7 @@ bluetoothctl-info	kv	-	2
 rfkill-json	table	2	4
 lpstat-p	table	2	2
 lpq-queue	table	2	2
-cups-lpstat-v	table	2	2
+cups-lpstat-v	kv	-	2
 xrandr-query	text	-	2
 glxinfo-summary	kv	-	2
 vainfo-profiles	text	-	2

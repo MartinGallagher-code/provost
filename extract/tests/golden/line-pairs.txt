@@ -1,0 +1,9 @@
+entry1.key /config/service/api/replicas
+entry1.value 3
+entry2.key /config/service/api/timeout
+entry2.value 30s
+entry3.key /config/service/worker/replicas
+entry3.value 8
+entry4.key /config/service/worker/queue
+entry4.value default
+total_entries 4

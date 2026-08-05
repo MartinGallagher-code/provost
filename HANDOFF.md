@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3459/0, 246 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #51, draft). **Round-11 marks: all 12 disagreements fixed** (8 OK, 12 disagree — `docs/review-marks-2026-08-04-round11.tsv`). Next: reviewer marks round-12, or extend the workbook deeper into the 2,725 remaining unreviewed entries.
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3459/0, 246 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #51 — all rounds 1–11 marks answered). **Round-12 marks: 11 of 12 fixed** (19 OK / 12 disagree; `enc-tab-space-indent-mix` acknowledged-open — reviewer unsure of desired shape). 2,695 passing entries remain unreviewed.
 
 > **2026-08-04 — round-11 marks: all 12 fixed.** version-line 1.1 (Prometheus
 > `NAME, version X (branch: …)` → named columns; tempo/thanos + loki/mimir/ghc
