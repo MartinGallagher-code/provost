@@ -1,3 +1,2 @@
-n	A	B	C	total_entries
-1	Client	version:	6.2	2
-2	Server	version:	6.2	2
+Client_version	Server_version
+6.2	6.2

@@ -1,0 +1,8 @@
+/config/service/api/replicas
+3
+/config/service/api/timeout
+30s
+/config/service/worker/replicas
+8
+/config/service/worker/queue
+default

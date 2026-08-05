@@ -22,6 +22,25 @@ _lr_body () {
         local _rest="${text#*$'\n'}"
         [[ -n "${_rest//[[:space:]]/}" ]] && { printf '%s' "$_rest"; return; }
     fi
+    # A UNIFORM leading `+` on every line is target-list decoration (earthly
+    # ls prints `+base`, `+build`, …) — the reviewer's "remove the + signs".
+    # Only `+`: a mixed `+`/`-` lead is a diff, a `*` lead marks a selection
+    # (git branch), and both must stay data.
+    local _ul_ok=1 _ul_l _ul_n=0
+    while IFS= read -r _ul_l; do
+        [[ -z "${_ul_l//[[:space:]]/}" ]] && continue
+        _ul_n=$((_ul_n + 1))
+        [[ "$_ul_l" == +[!+]* ]] || { _ul_ok=0; break; }
+    done <<< "$text"
+    if [[ $_ul_ok -eq 1 && $_ul_n -ge 2 ]]; then
+        local _ul_out=""
+        while IFS= read -r _ul_l; do
+            [[ -z "${_ul_l//[[:space:]]/}" ]] && { _ul_out+="$_ul_l"$'\n'; continue; }
+            _ul_out+="${_ul_l#+}"$'\n'
+        done <<< "$text"
+        printf '%s' "${_ul_out%$'\n'}"
+        return
+    fi
     printf '%s' "$text"
 }
 

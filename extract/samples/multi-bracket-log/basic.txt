@@ -1,0 +1,3 @@
+[06:00:00][I][sensor:094]: 'Living Temp': Sending state 21.4 °C
+[06:00:00][I][sensor:094]: 'Living Humidity': Sending state 44.2 %
+[06:00:05][D][api:102]: Client connected

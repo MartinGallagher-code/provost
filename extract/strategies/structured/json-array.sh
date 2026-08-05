@@ -1,16 +1,22 @@
 #!/bin/bash
 ## Name: json-array
-## Description: Top-level JSON array of objects — one record per element (az/gcloud/aws list, docker inspect)
-## Version: 1.0
+## Description: Top-level JSON array of objects — one record per element (az/gcloud/aws list, docker inspect); nested objects flattened with dotted keys
+## Version: 1.1
 ## Priority: 9
 ## Sample: samples/json-array/basic.txt
 
 # A top-level JSON ARRAY of objects is a list of records; parsing it as one
 # blob (the `json` strategy's 0.field/1.field flatten) buries that. This
-# parser emits one record per array element with its top-level scalar
-# fields — the natural tidy shape for every `<cli> list --format=json` and
-# `docker inspect` style output. Nested objects/arrays inside an element are
-# skipped (their scalars are not top-level fields of the record).
+# parser emits one record per array element — the natural tidy shape for
+# every `<cli> list --format=json` and `docker inspect` style output.
+#
+# v1.1 — nested values are FLATTENED, not skipped. `docker network inspect`
+# keeps its real data inside nested objects (`IPAM.Config[0].Subnet`, the
+# `Options` and `Labels` maps), and dropping them lost most of the record —
+# the reviewer's "nope". A nested OBJECT's scalars emit with a dotted prefix
+# (`Options.com.docker.network.driver.mtu 1500`); a nested ARRAY of objects
+# emits with an element index in the path (`IPAM.Config.1.Subnet`); arrays
+# of scalars emit indexed (`Tags.1 web`).
 
 strategy_detect () {
     local text="$1"
@@ -52,10 +58,12 @@ strategy_extract () {
             gsub(/[ \t\r\n]+/,"_",v)
             return v
         }
-        # Emit scalar "key": value pairs at the object top level (obj includes
-        # its outer braces). Nested objects/arrays as values are skipped.
-        function emit(obj, e,   n,i,c,instr,esc,key,val,ve,vc) {
-            n=length(obj); instr=0; esc=0; i=2   # skip opening {
+        # Emit "key": value pairs of the object (obj includes its outer
+        # braces) under entry number e, key path prefix pfx. Nested objects
+        # recurse with a dotted prefix; nested arrays recurse per element
+        # with a 1-based index in the path; scalars print.
+        function emit(obj, e, pfx,   n,i,c,key,val,vc,end) {
+            n=length(obj); i=2   # skip opening {
             while (i<=n) {
                 c=substr(obj,i,1)
                 if (c=="\"") {                    # a key
@@ -69,7 +77,16 @@ strategy_extract () {
                     i++
                     while (i<=n && substr(obj,i,1) ~ /[ \t\r\n]/) i++
                     c=substr(obj,i,1)
-                    if (c=="{" || c=="[") { i=findmatch(obj,i)+1; continue }   # nested: skip
+                    if (c=="{") {                 # nested object: recurse
+                        end=findmatch(obj,i)
+                        emit(substr(obj,i,end-i+1), e, pfx key ".")
+                        i=end+1; continue
+                    }
+                    if (c=="[") {                 # nested array: recurse per element
+                        end=findmatch(obj,i)
+                        emitarr(substr(obj,i,end-i+1), e, pfx key ".")
+                        i=end+1; continue
+                    }
                     # scalar value: read to next top-level , or }
                     val=""
                     if (c=="\"") { val="\""; i++
@@ -80,8 +97,39 @@ strategy_extract () {
                     } else {
                         while (i<=n) { vc=substr(obj,i,1); if (vc=="," || vc=="}") break; val=val vc; i++ }
                     }
-                    if (key != "") print "entry" e "." key " " clean(val)
+                    if (key != "") print "entry" e "." pfx key " " clean(val)
                 } else i++
+            }
+        }
+        # Elements of a [...] value under key path pfx: objects recurse with
+        # a 1-based index segment, scalars print indexed.
+        function emitarr(arr, e, pfx,   n,i,c,idx,end,val,vc) {
+            n=length(arr); i=2; idx=0
+            while (i<=n) {
+                c=substr(arr,i,1)
+                if (c ~ /[ \t\r\n,]/) { i++; continue }
+                if (c=="]") break
+                idx++
+                if (c=="{") {
+                    end=findmatch(arr,i)
+                    emit(substr(arr,i,end-i+1), e, pfx idx ".")
+                    i=end+1; continue
+                }
+                if (c=="[") {
+                    end=findmatch(arr,i)
+                    emitarr(substr(arr,i,end-i+1), e, pfx idx ".")
+                    i=end+1; continue
+                }
+                val=""
+                if (c=="\"") { val="\""; i++
+                    while (i<=n) { vc=substr(arr,i,1); val=val vc
+                        if (vc=="\\") { i++; val=val substr(arr,i,1) }
+                        else if (vc=="\"") { i++; break }
+                        i++ }
+                } else {
+                    while (i<=n) { vc=substr(arr,i,1); if (vc=="," || vc=="]") break; val=val vc; i++ }
+                }
+                print "entry" e "." pfx idx " " clean(val)
             }
         }
         { buf = buf $0 "\n" }
@@ -96,7 +144,7 @@ strategy_extract () {
                 if (c=="{") {
                     if (ad==1 && od==0) {           # a top-level array element
                         end=findmatch(s,i); e++
-                        emit(substr(s,i,end-i+1), e)
+                        emit(substr(s,i,end-i+1), e, "")
                         i=end+1; continue
                     }
                     od++; i++; continue

@@ -1,5 +1,2 @@
-n	A	B	C	total_entries
-1	SafeLow:	12	gwei	4
-2	Standard:	18	gwei	4
-3	Fast:	24	gwei	4
-4	Base	Fee:	15_gwei	4
+SafeLow	Standard	Fast	Base_Fee
+12 gwei	18 gwei	24 gwei	15 gwei

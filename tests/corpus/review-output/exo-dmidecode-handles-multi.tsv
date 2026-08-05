@@ -1,2 +1,2 @@
-Manufacturer	Product_Name	Version	Serial_Number	Location_In_Chassis	Chassis_Handle	Array_Handle	Total_Width	Data_Width	Size	Form_Factor	Locator	Bank_Locator	Type	Speed	Manufacturer	Serial_Number	Part_Number
-ASUSTeK COMPUTER INC.	PRIME X570-PRO	Rev X.0x	200812345678	Not Specified	0x0003	0x0008	64 bits	64 bits	16 GB	DIMM	DIMM_A2	P0 CHANNEL A	DDR4	3200 MT/s	G.Skill	00000000	F4-3600C18-16GVK
+Manufacturer	Product_Name	Version	Serial_Number	Features	Location_In_Chassis	Chassis_Handle	Array_Handle	Total_Width	Data_Width	Size	Form_Factor	Locator	Bank_Locator	Type	Speed	Manufacturer	Serial_Number	Part_Number
+ASUSTeK COMPUTER INC.	PRIME X570-PRO	Rev X.0x	200812345678	Board is a hosting board; Board is replaceable	Not Specified	0x0003	0x0008	64 bits	64 bits	16 GB	DIMM	DIMM_A2	P0 CHANNEL A	DDR4	3200 MT/s	G.Skill	00000000	F4-3600C18-16GVK

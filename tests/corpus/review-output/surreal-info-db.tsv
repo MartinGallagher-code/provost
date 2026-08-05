@@ -1,2 +1,2 @@
-field	value
-total_entries	1
+n	tables.user	tables.post	tables.comment	total_entries
+1	DEFINE_TABLE_user_SCHEMAFULL_PERMISSIONS_FULL	DEFINE_TABLE_post_SCHEMAFULL_PERMISSIONS_FULL	DEFINE_TABLE_comment_SCHEMALESS_PERMISSIONS_FULL	1
