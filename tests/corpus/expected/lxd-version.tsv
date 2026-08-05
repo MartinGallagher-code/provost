@@ -1,3 +1,2 @@
-n	A	B	C	D	total_entries
-1	Client	version:	5.21.1	LTS	2
-2	Server	version:	5.21.1	LTS	2
+Client_version	Server_version
+5.21.1 LTS	5.21.1 LTS

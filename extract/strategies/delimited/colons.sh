@@ -88,6 +88,13 @@ strategy_extract () {
             [[ "$value" =~ ^\[(.*)\]$ ]] && value="${BASH_REMATCH[1]}"
         fi
 
+        # Trim the key's surrounding whitespace BEFORE the length check — a
+        # column-aligned kv block pads its keys to the colon (`chage -l`'s
+        # `Last password change                : …`), and judging the padded
+        # length rejected every line of it (empty extraction, no winner).
+        key="${key#"${key%%[![:space:]]*}"}"
+        key="${key%"${key##*[![:space:]]}"}"
+
         # Skip if key is empty, too long, or looks like a non-field line
         [[ -z "$key" ]] && continue
         [[ ${#key} -gt 50 ]] && continue

@@ -34,6 +34,44 @@ strategy_detect () {
     # and this catch-all must not pollute the engine's multi-strategy merge.
     [[ "$text" == *'{'* || "$text" == *'":'* ]] && return 1
 
+    # Decline a MIXED-label colon-kv block (every line `label: value`, labels
+    # distinct + single-spaced + apostrophe-free, >=1 multi-word/slash label,
+    # not all one digit-template) — the same union aligned-columns 1.x
+    # declines, so the block falls through to `colons` for a first-colon
+    # split (resolvectl's `Link 2 (eth0): yes`) instead of being carved into
+    # word tokens here.
+    local _kvb_ok=1 _kvb_multi=0 _kvb_l _kvb_tpl="" _kvb_tpl_same=1 _kvb_n=0 _kvb_colons=0
+    local -A _kvb_seen=()
+    while IFS= read -r _kvb_l; do
+        [[ -z "${_kvb_l//[[:space:]]/}" ]] && continue
+        _kvb_n=$((_kvb_n + 1))
+        if [[ ! "$_kvb_l" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
+            _kvb_ok=0; break
+        fi
+        local _kvbl="${BASH_REMATCH[1]}"
+        _kvbl="${_kvbl#"${_kvbl%%[![:space:]]*}"}"
+        _kvbl="${_kvbl%"${_kvbl##*[![:space:]]}"}"
+        [[ "$_kvbl" == *"  "* || -z "$_kvbl" || "$_kvbl" == *"'"* ]] && { _kvb_ok=0; break; }
+        [[ -n "${_kvb_seen[$_kvbl]:-}" ]] && { _kvb_ok=0; break; }
+        _kvb_seen[$_kvbl]=1
+        [[ "$_kvbl" == *" "* || "$_kvbl" == */* ]] && _kvb_multi=1
+        [[ "$_kvbl" =~ ^[A-Za-z][A-Za-z0-9_\ -]*$ ]] && _kvb_colons=$((_kvb_colons + 1))
+        local _kvbt="${_kvbl//[0-9]/#}"
+        while [[ "$_kvbt" == *"##"* ]]; do _kvbt="${_kvbt//##/#}"; done
+        if [[ -z "$_kvb_tpl" ]]; then _kvb_tpl="$_kvbt"
+        elif [[ "$_kvbt" != "$_kvb_tpl" ]]; then _kvb_tpl_same=0
+        fi
+    done <<< "$text"
+    # Only defer when `colons` will actually ACCEPT the block: its detection
+    # needs >=40% of lines to carry a letter-led simple label (parens, Greek,
+    # digit-led ranges all fail its charset). Deferring a block colons then
+    # declines would leave NO winner at all (resolvectl's `Link 2 (eth0):`).
+    if [[ $_kvb_n -ge 2 && $_kvb_ok -eq 1 && $_kvb_multi -eq 1 \
+          && $(( _kvb_colons * 100 / _kvb_n )) -ge 40 \
+          && ! ( $_kvb_tpl_same -eq 1 && "$_kvb_tpl" == *"#"* ) ]]; then
+        return 1
+    fi
+
     local counts=() idx=0 hasnum=0 _l
     while IFS= read -r _l; do
         [[ -z "${_l//[[:space:]]/}" ]] && continue
