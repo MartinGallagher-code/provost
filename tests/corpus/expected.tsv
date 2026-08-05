@@ -3119,7 +3119,7 @@ ldapsearch-ldif-people	text	-	6
 ldif-groups-export	text	-	5
 mbox-email-headers	text	-	5
 email-headers-thread	text	-	4
-git-cat-file-commit-objects	text	-	5
+git-cat-file-commit-objects	table	10	2
 git-cat-file-tag-objects	text	-	5
 pacman-si-multi	text	-	6
 pip-show-multi	text	-	6
