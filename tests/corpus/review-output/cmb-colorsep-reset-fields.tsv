@@ -1,5 +1,4 @@
-n	A	total_entries
-1	DATELEVELCODEMSGMS	4
-2	07-11ERR502upstream timeout1204	4
-3	07-11INF200ok12	4
-4	07-11WRN429rate limited88	4
+n	DATE	LEVEL	CODE	MSG	MS	total_entries
+1	07-11	ERR	502	upstream timeout	1204	3
+2	07-11	INF	200	ok	12	3
+3	07-11	WRN	429	rate limited	88	3

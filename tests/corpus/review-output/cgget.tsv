@@ -1,11 +1,15 @@
-n	A	B	C	D	E	F	G	total_entries
-1	mysql.service:							10
-2	cpu.weight:	100						10
-3	cpu.max:	max	100000					10
-4	cpu.pressure:	some	avg10=0.00	avg60=0.00	avg300=0.00	total=1204882		10
-5	memory.current:	662732800						10
-6	memory.peak:	701448192						10
-7	memory.max:	max						10
-8	memory.high:	max						10
-9	memory.swap.current:	0						10
-10	memory.stat:	anon	512004096	file	150728704	kernel	8421376	10
+n	group	key	value	subkey	total_entries
+1	mysql.service	cpu.weight	100		14
+2	mysql.service	cpu.max	max 100000		14
+3	mysql.service	cpu.pressure	0.00	some avg10	14
+4	mysql.service	cpu.pressure	0.00	some avg60	14
+5	mysql.service	cpu.pressure	0.00	some avg300	14
+6	mysql.service	cpu.pressure	1204882	some total	14
+7	mysql.service	memory.current	662732800		14
+8	mysql.service	memory.peak	701448192		14
+9	mysql.service	memory.max	max		14
+10	mysql.service	memory.high	max		14
+11	mysql.service	memory.swap.current	0		14
+12	mysql.service	memory.stat	512004096	anon	14
+13	mysql.service	memory.stat	150728704	file	14
+14	mysql.service	memory.stat	8421376	kernel	14

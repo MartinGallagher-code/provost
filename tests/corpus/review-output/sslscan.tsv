@@ -1,2 +1,6 @@
-n	Version
-1	2.0.15
+n	status	protocol	bits	cipher	total_entries
+1	Preferred	TLSv1.3	256	TLS_AES_256_GCM_SHA384	5
+2	Accepted	TLSv1.3	256	TLS_CHACHA20_POLY1305_SHA256	5
+3	Accepted	TLSv1.3	128	TLS_AES_128_GCM_SHA256	5
+4	Accepted	TLSv1.2	256	ECDHE-RSA-AES256-GCM-SHA384	5
+5	Accepted	TLSv1.2	128	ECDHE-RSA-AES128-GCM-SHA256	5

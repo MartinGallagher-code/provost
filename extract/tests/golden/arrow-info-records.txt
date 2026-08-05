@@ -1,0 +1,9 @@
+entry1.label Found
+entry1.value "lodash@4.17.21"
+entry2.label info
+entry2.value Reasons this module exists
+entry3.label info
+entry3.value "webpack#loader-utils" depends on it
+entry4.label info
+entry4.value Hoisted from "webpack#loader-utils#lodash"
+total_entries 4

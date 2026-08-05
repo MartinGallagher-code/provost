@@ -1,0 +1,9 @@
+entry1.name ifconfig
+entry1.result not infected
+entry2.name ls
+entry2.result not infected
+entry3.name sshd
+entry3.result not infected
+entry4.name lkm
+entry4.result nothing detected
+total_entries 4

@@ -1,0 +1,21 @@
+name	mark	note
+sslscan	Horrible=x	You missed lots of lines
+systemd-analyze-plot-summary	OK=x	-
+systemd-analyze-time	OK=x	-
+taskset	OK=x	-
+tempo-version	Horrible=x	version should be a column header, branch should be a column header, revision should be a column header.
+terraform-plan	Horrible=x	you lost information
+tfsec-results	Horrible=x	you lost information
+thanos-version	Horrible=x	same as a previous one
+uname-a	OK=x	-
+yarn-why	Horrible=x	Column A: Found, info, info, info. Column B…the rest
+cgget	Horrible=x	In this one, the multiple word values are really mostly key/values. Find a way to make this work.
+cgget-cpu	Horrible=x	in Column A, there should only be cpu.max, cpu.weight, cpu.stat. The B column should have nothing for cpu.max and cpu_weight, but usage_usec, etc for the cpu.stat sub entries. Column C is the values.
+changesets-status	Horrible=x	column A should be deleted. There are two rows, packages to be bumped at patch, and packages to be bumped at minor. The next field should be a comma separated listing of the sub-items
+chezmoi-managed	OK=x	-
+chkrootkit-summary	Horrible=x	the spacing dots should be deleted. The value after the spacing dots should be a single column, not two columns.
+choose-output	OK=x	-
+clickhouse-show-tables	OK=x	-
+cmake-version-full	OK=x	-
+cmb-colorsep-only	Horrible=x	The encoding should be removed. The columns are PID, USER, CPU, MEM, and the rows should be separated into four different columns
+cmb-colorsep-reset-fields	Horrible=x	Same as previous

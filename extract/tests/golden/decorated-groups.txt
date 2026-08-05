@@ -1,0 +1,5 @@
+entry1.group Packages to be bumped at patch
+entry1.members @example/api, @example/web
+entry2.group Packages to be bumped at minor
+entry2.members @example/shared
+total_entries 2

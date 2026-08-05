@@ -1,6 +1,19 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3455/0, 250 ⏳** (~4 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #50, draft), restarted from merged main (PR #49). **Round-10: all 17 of 17 fixed. Earlier-triaged marks: all fixed. Multi-dataset extraction shipped as `envoy-extract --multi`** (docs/0003-multi-dataset.md); glean capture adoption deliberately deferred (one-dataset-per-capture is a core invariant — scoped as its own change).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3459/0, 246 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #51, draft). **Round-11 marks: all 12 disagreements fixed** (8 OK, 12 disagree — `docs/review-marks-2026-08-04-round11.tsv`). Next: reviewer marks round-12, or extend the workbook deeper into the 2,725 remaining unreviewed entries.
+
+> **2026-08-04 — round-11 marks: all 12 fixed.** version-line 1.1 (Prometheus
+> `NAME, version X (branch: …)` → named columns; tempo/thanos + loki/mimir/ghc
+> riders), dotted-kv-tree p31 (cgget family — reviewer's exact key/subkey/value
+> spec; lowercase-dotted key gate, NN:NN linter-coordinate veto), probe-verdict
+> p37 (chkrootkit `name | result`), engine color-as-separator recovery (SGR-only
+> column boundaries → TAB, gated on no-2+-space-run per line; cmb-colorsep pair
+> recovered, mid-cell recolors/gauges/boxes untouched), and five narrow p39
+> strategies (cipher-suites, plan-actions, result-blocks, decorated-groups,
+> arrow-info-records) for the singleton shapes. 4 goldens net ADDED
+> (cmb-colorsep ×2, sslscan, terraform-plan), 0 deleted. First cuts stole
+> 18 (dotted keys) / 8 (empty-indent lead) — both gated to zero. Gate
+> 3459/0/246; review-output refreshed (15 changed, all intended).
 
 > **2026-08-04 — multi-dataset extraction (`--multi`).** The reviewer's
 > "one input may deserve multiple outputs" note is an engine mode: blank-line

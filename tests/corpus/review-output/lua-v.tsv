@@ -1,2 +1,2 @@
-n	A	B	C	D	E	F	G	total_entries
-1	Lua	5.4.6	Copyright	(C)	1994-2023	Lua.org,	PUC-Rio	1
+name	version	A	B	C	D	E
+Lua	5.4.6	Copyright	(C)	1994-2023	Lua.org,	PUC-Rio

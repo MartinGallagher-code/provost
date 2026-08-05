@@ -1,2 +1,4 @@
-n	sha256
-2	c__RUN_make_build________204_MB___no
+n	LAYER	COMMAND	SIZE	CACHED	total_entries
+1	sha256:a	RUN apt-get update	88 MB	yes	3
+2	sha256:b	COPY . /app	12 MB	no	3
+3	sha256:c	RUN make build	204 MB	no	3

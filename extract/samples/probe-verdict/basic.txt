@@ -1,0 +1,4 @@
+Checking `ifconfig'... not infected
+Checking `ls'... not infected
+Checking `sshd'... not infected
+Checking `lkm'... nothing detected

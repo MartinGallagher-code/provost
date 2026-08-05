@@ -1,9 +1,6 @@
-n	A	total_entries
-1	tinymembench v0.4.9 (simple benchmark for memory throughput and latency)	8
-2	==========================================================================	8
-3	==========================================================================	8
-4	C copy backwards                                     :   4821.2 MB/s	8
-5	C copy                                               :   5210.4 MB/s	8
-6	C fill                                               :  12048.8 MB/s	8
-7	standard memcpy                                      :   8821.0 MB/s	8
-8	standard memset                                      :  14210.2 MB/s	8
+n	key	value	total_entries
+1	C copy backwards	4821.2 MB/s	5
+2	C copy	5210.4 MB/s	5
+3	C fill	12048.8 MB/s	5
+4	standard memcpy	8821.0 MB/s	5
+5	standard memset	14210.2 MB/s	5

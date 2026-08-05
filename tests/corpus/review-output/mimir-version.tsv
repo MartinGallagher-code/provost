@@ -1,2 +1,2 @@
-n	A	B	C	D	E	F	G	total_entries
-1	Mimir,	version	2.13.0	(branch:	HEAD,	revision:	a1b2c3d4)	1
+name	version	branch	revision
+Mimir	2.13.0	HEAD	a1b2c3d4
