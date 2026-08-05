@@ -2,7 +2,7 @@
 ## Name: paren-tail-kv
 ## Description: `name (value)` lines — key outside the parens, value inside (gem list) -> key/value rows
 ## Version: 1.0
-## Priority: 56
+## Priority: 54
 ## Sample: samples/paren-tail-kv/basic.txt
 
 # `gem list` prints a name then its versions parenthesised:
@@ -30,6 +30,9 @@ strategy_detect () {
     local line n=0
     while IFS= read -r line || [[ -n "$line" ]]; do
         [[ -z "${line//[[:space:]]/}" ]] && continue
+        # A `*** BANNER ***` decoration line (gem list's `*** LOCAL GEMS ***`)
+        # is chrome — tolerated and skipped, not a data row.
+        [[ "$line" =~ ^\*\*\*\ .*\ \*\*\*$ ]] && continue
         [[ "$line" =~ $_ptk_re ]] || return 1
         n=$((n + 1))
     done <<< "$text"

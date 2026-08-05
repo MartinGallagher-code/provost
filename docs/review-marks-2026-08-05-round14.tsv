@@ -1,0 +1,16 @@
+# Round-14: disagreements surfaced by the 100 least-risky confidence pass
+# (structurally clean per the pre-screen, but semantically off per review).
+name	mark	note
+cmb-nested-box-color-status	Horrible=x	Not sure what we could do about this. It isn't really data
+df-output	Horrible=x	-
+exo-iostat-x-repeated	Horrible=x	-
+gem-list-local	Horrible=x	Remove the parentheses
+ip-s-link	Horrible=x	Not a table
+jstat-gc	Horrible=x	Not a table
+nft-monitor-trace	Horrible=x	-
+nst-block-records-embedded-table	Horrible=x	Missing info
+pstree-p	Horrible=x	-
+sensors-u	Horrible=x	-
+upower-info	Horrible=x	-
+vmstat-wide	Horrible=x	Not a table
+wrk-lua-report	Horrible=x	-
