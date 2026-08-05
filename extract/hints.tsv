@@ -79,3 +79,4 @@ git-cat-file-batch	regex	^[0-9a-f]+ commit [0-9]+	first-word-kv
 git-cat-file-commit-objects	regex	^tree [0-9a-f]{40}	first-word-kv
 git-log	regex	^[0-9a-f]{7,40} [A-Z][a-z]+ 	first-word-kv
 gnutls-cli-info	prefix	- Certificate type:	colons
+ethtool-timestamp	prefix	Time stamping parameters for	colon-header-members
