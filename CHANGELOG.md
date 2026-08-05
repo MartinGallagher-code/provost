@@ -1,5 +1,24 @@
 # glean — Changelog
 
+## 2026-08-05 — confidence pass + workbook renders wide outputs as real tables
+
+- **make_review_doc.js: every output is now a real Word table.** Past ~12
+  columns the renderer used to fall back to pipe-separated monospace text,
+  which the reviewer (rightly) found un-assessable ("not a table"). It now
+  always emits a `<w:tbl>`: wide tables shrink the font (12pt >12 cols, 10pt
+  >20) and cell margins and extend past the page margin (Word scrolls them)
+  instead of degrading to pipes.
+- **Confidence pass (100 least-risky).** Came back 87 agree / 13 disagree. The
+  87 agreed appended to `docs/review-validated-cumulative.txt` (258 -> 345).
+  Of the 13, four (exo-iostat-x-repeated, ip-s-link, jstat-gc, vmstat-wide)
+  were the pipe-rendering artifact above -- re-sent as real tables for a real
+  verdict, not treated as parser bugs. The other nine are
+  `docs/review-marks-2026-08-05-round14.tsv`.
+- **gem-list-local** (round-14): `paren-tail-kv` tolerates a `*** BANNER ***`
+  chrome line and moves to priority 54 (ahead of aligned-columns) -> key|value
+  with parens stripped; gem-outdated/-sparse improve free. 3 goldens
+  regenerated, 0 deleted. Gate 3461/0/244; extract 63/63.
+
 ## 2026-08-05 — round-13 review batch: next-50 workbook
 
 Post-merge follow-up to PR #52 (fresh branch from `main`). Rounds 1–12 are

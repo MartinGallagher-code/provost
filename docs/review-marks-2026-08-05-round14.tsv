@@ -1,16 +1,17 @@
-# Round-14: disagreements surfaced by the 100 least-risky confidence pass
-# (structurally clean per the pre-screen, but semantically off per review).
+# Round-14: disagreements from the 100 least-risky confidence pass.
+# The 4 wide "not a table" entries (exo-iostat-x-repeated, ip-s-link, jstat-gc,
+# vmstat-wide) were NOT parser problems -- they exceeded the workbook's column
+# cap and rendered as pipe-text, so they were un-assessable. make_review_doc.js
+# now renders every output as a real Word table (wide ones shrink + scroll);
+# those 4 are re-sent for a real verdict, not listed here.
+# gem-list-local is already fixed (paren-tail-kv banner + priority).
 name	mark	note
-cmb-nested-box-color-status	Horrible=x	Not sure what we could do about this. It isn't really data
+cmb-nested-box-color-status	Horrible=x	Not sure what we could do about this. It isn't really data (reviewer unsure -- decorative box art)
 df-output	Horrible=x	-
-exo-iostat-x-repeated	Horrible=x	-
-gem-list-local	Horrible=x	Remove the parentheses
-ip-s-link	Horrible=x	Not a table
-jstat-gc	Horrible=x	Not a table
+gem-list-local	Horrible=x	Remove the parentheses (FIXED: paren-tail-kv)
 nft-monitor-trace	Horrible=x	-
 nst-block-records-embedded-table	Horrible=x	Missing info
 pstree-p	Horrible=x	-
 sensors-u	Horrible=x	-
 upower-info	Horrible=x	-
-vmstat-wide	Horrible=x	Not a table
 wrk-lua-report	Horrible=x	-
