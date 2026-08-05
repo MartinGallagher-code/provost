@@ -1,5 +1,19 @@
 # glean — Changelog
 
+## 2026-08-05 — round-13 review batch: next-50 workbook
+
+Post-merge follow-up to PR #52 (fresh branch from `main`). Rounds 1–12 are
+answered (one acknowledged-open); this prepares round 13.
+
+- **`docs/review-batch-2026-08-05-round13.tsv`** — the 50 riskiest entries
+  that pass the structural pre-screen, drawn from the 2,700 not-yet-reviewed
+  passing entries (excludes the cumulative VALIDATED set and every mark from
+  rounds 1–3/8–12). All 50 sit at risk 5; a large git-list cluster
+  (git-tag/-log/-ls-files/-describe…) and several ip-* families dominate.
+  Rendered as `glean_corpus_review_13_next50.docx` (all 50 entries + verdict
+  boxes verified present). Marks come back as
+  `docs/review-marks-<date>-round13.tsv`. No parser or snapshot changes.
+
 ## 2026-08-05 — round-12 marks: 11 of 12 disagreements fixed
 
 The round-12 next-30 workbook came back 19 OK / 11 disagree
