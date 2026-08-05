@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-08-05 — round-12 review batch: next-30 workbook
+
+Post-merge follow-up to PR #51 (fresh branch from `main`). All rounds 1–11
+marks are answered; this prepares round 12.
+
+- **`docs/review-batch-2026-08-05-round12.tsv`** — the 30 riskiest entries
+  that pass the structural pre-screen, drawn from the 2,725 not-yet-reviewed
+  passing entries (excludes the cumulative VALIDATED set and every mark from
+  rounds 1–3/8–11). All 30 sit at risk 5 — the round-11 batch consumed the
+  risk-6 tier. Rendered as `glean_corpus_review_12_next30.docx` (all 30
+  entries + verdict boxes verified present). Marks come back as
+  `docs/review-marks-<date>-round12.tsv`. No parser or snapshot changes.
+
 ## 2026-08-04 — round-11 marks: all 12 disagreements fixed
 
 The round-11 worst-20 workbook came back 8 OK / 12 disagree
