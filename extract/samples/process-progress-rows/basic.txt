@@ -1,0 +1,2 @@
+[a1/2b3c4d] process > FASTQC (sample_01)      [100%] 8 of 8
+[3a/4b5c6d] process > MULTIQC                 [  0%] 0 of 1

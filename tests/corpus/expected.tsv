@@ -459,7 +459,7 @@ lsinitramfs	table	20	1
 lstopo-no-graphics	table	14	1
 hwinfo-short	table	8	2
 lshw-network	table	18	1
-fwupdmgr-get-devices	table	17	1
+fwupdmgr-get-devices	table	10	1
 mcelog	table	12	1
 systemctl-status	kv	-	5
 systemctl-list-sockets	table	7	2
@@ -2500,7 +2500,7 @@ spark-executor-summary	table	4	10
 spark-stages-list	table	3	10
 flink-taskmanager-list	text	-	2
 flink-savepoint-list	table	3	7
-dbt-test-summary	table	7	3
+dbt-test-summary	table	5	3
 dbt-deps-list	table	4	6
 dbt-source-freshness	table	6	3
 airflow-pools-list	table	4	7
@@ -2547,7 +2547,7 @@ kallisto-quant-run	text	-	2
 star-align-summary	text	-	2
 featurecounts-summary	text	-	2
 snakemake-summary	table	6	5
-nextflow-log	table	8	3
+nextflow-log	table	4	3
 systemd-cgtop-memory	table	6	8
 systemd-cgls-machine	text	-	2
 systemctl-list-automounts	table	3	7

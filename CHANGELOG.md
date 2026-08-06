@@ -1,5 +1,47 @@
 # glean — Changelog
 
+## 2026-08-06 — round-16: 17 of 18 marked disagreements fixed (9 new strategies)
+
+Marks on the 526-entry needs-review workbook: 5 validated (fail2ban-client-status,
+nvme-ns-descs, redis-cli-memory-doctor, rtl-sdr-test, spark-submit-status —
+screen false-alarms), 18 disagreements. Fixed 17; netperf-tcp stays open (the
+reviewer could not identify its shape either).
+
+- **nested-colon-kv** (hint-only): indent-nested `Header:` sections over
+  `k: v` / `k = v` / bare members, tree glyphs (│├─└) normalized, section path
+  carried (`Report > DERP latency`). Serves sslyze-scan, tailscale-netcheck,
+  vulkaninfo-summary, fwupdmgr-get-devices, fwupdmgr-get-updates.
+- **dot-leader-row** (hint-only): dot-filled rows with a bracketed result —
+  filler dots and brackets removed, left fields positional, pytest's `....F...`
+  ticks reduce to their markers. Serves pytest-summary, dbt-test-summary.
+- **two-space-kv** (hint-only): first 2+-space run splits a multi-word label
+  from its value (testssl-summary).
+- **trailing-table** (hint-only): finds the aligned header+rows table after a
+  kv preamble (parted-l; parted-print improves free — `File system` header no
+  longer truncated to `File`).
+- **boxed-table** (hint-only): `+--+`/`|` ASCII box stripped, first box row =
+  headers, short/long rows get a `label` column (likwid-topology). Hint anchors
+  on `^Socket N:` — a bare box-rule pattern stole 50 mysql/aws/nvidia psql-style
+  tables in the first cut.
+- **pv-records** (hint-only): `PV <dev> VG <vg> <fmt> [<size>]` → pv/vg/format/
+  size; Total footer drops (pvscan-cache).
+- **histogram-buckets** (hint-only): bpftrace `@map:` + `[bucket) count |@@|`
+  rows → map/bucket/count, bar dropped (exo-bpftrace-hist).
+- **process-progress-rows** (hint-only): nextflow `[id] process > NAME (TAG)
+  [PCT%] N of M` → six named columns (nextflow-log).
+- **path-line-content** (auto, p44): strict `path:LINE:content` grep -n lists →
+  file/line/content; vimgrep's `path:LINE:COL:` explicitly declined
+  (grep-color-nmatch).
+- **first-word-kv v1.4**: `#`-led comment lines skipped (mamba-env-list;
+  conda-env-list improves free). **section-name-value v1.1**: short multi-word
+  `Header:` titles allowed + ` # ` splits recipe from comment (just-list —
+  the reviewer's exact A/B/C spec). task-list + testssl routed by hint.
+- dbt hint tightened (`STATUS name ....` shape) after stealing
+  dbt-source-freshness's richer parse.
+- 20 goldens regenerated (17 marks + conda-env-list, parted-print), 0 deleted;
+  3 manifest row counts updated to the new intended shapes. Gate 3463/0/242;
+  extract 63/63.
+
 ## 2026-08-06 — re-triage of the unreviewed corpus pool (post round-15)
 
 - Re-ran `tests/corpus/prescreen.py` over the whole corpus with the merged

@@ -45,6 +45,9 @@ strategy_extract () {
         # A line with no alphanumeric character is a separator / progress rule
         # (pyperf's `.....................`), not a key-bearing record — skip it.
         [[ "$s" == *[[:alnum:]]* ]] || continue
+        # A `#`-led line is a comment (mamba/conda env listings open with
+        # `# conda environments:`), not a record — skip it.
+        [[ "$s" == \#* ]] && continue
         local key="${s%%[[:space:]]*}"
         local val="${s#"$key"}"
         # A trailing colon on the key is a delimiter, not part of the name
