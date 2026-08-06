@@ -1,5 +1,17 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 localectl-status (colon-kv with continuation)
+
+- **New `colon-kv-continuation` strategy** (hint-only): an aligned `Key: value`
+  list where an indented follow-on line continues the previous value. The
+  reviewer on `localectl status`: "LC_TIME should be part of the System Locale
+  column ... simple key/value with colon delimiter." So `System Locale:
+  LANG=…` + the indented `LC_TIME=…` fold into one value, multi-word keys keep
+  their spaces (`System Locale`, `VC Keymap`), and an empty-valued key
+  (`X11 Variant:`) is preserved. Routed via hint on the `System Locale:` lead.
+- 1 golden regenerated, 0 deleted. Gate 3461/0/244; extract 63/63; melt 10/0.
+  Files: `colon-kv-continuation.sh` (+ sample & golden), `hints.tsv`.
+
 ## 2026-08-06 — round-15 modbus-read + pyperf-run (first-word-kv guards)
 
 - **modbus-read** (`[0]: 220` → `0 | 220`): the reviewer's "remove square
