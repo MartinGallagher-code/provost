@@ -1,5 +1,21 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 colon-delimiter cluster (pwdx, ip rule, nmcli)
+
+- **first-word-kv strips a trailing colon from the key.** The reviewer's
+  round-15 note on the colon-delimited family was "colons are delimiters:
+  remove from values". `first-word-kv` already splits first-token/rest; it now
+  drops one trailing `:` from the key so `1337:` → `1337`, `0:` → `0`,
+  `connection.id:` → `connection.id`. Git-family keys carry no trailing colon,
+  so the strip is a no-op there.
+- **Routed four tools to first-word-kv via `extract/hints.tsv`:** `pwdx`
+  (`^[0-9]+: /[^ ]`), the `ip rule` family — `ip-rule`, `ip-rule-list`,
+  `ip-rule-show` (`^[0-9]+:[[:space:]]+from `), and `nmcli connection show`
+  (`^connection\.[a-z-]+:[[:space:]]`). Each now emits clean `key | value`
+  rows with the colon delimiter gone. Files: `first-word-kv.sh`, `hints.tsv`.
+- 5 goldens regenerated (pwdx, ip-rule, ip-rule-list, ip-rule-show,
+  nmcli-connection-show), 0 deleted. Gate 3461/0/244; extract 63/63.
+
 ## 2026-08-05 — confidence pass + workbook renders wide outputs as real tables
 
 - **make_review_doc.js: every output is now a real Word table.** Past ~12

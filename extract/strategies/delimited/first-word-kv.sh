@@ -18,9 +18,14 @@
 #
 # The reviewer's repeated note across the git family: "key value." The first
 # whitespace-run splits key from value; the value keeps its own spaces. A bare
-# `- ` bullet or leading `#` comment lead is stripped first (gnutls-cli-info's
-# `- Certificate type: X.509` also routes here, though its value keeps the
-# inner colon).
+# `- ` bullet or leading `#` comment lead is stripped first.
+#
+# The same first-token split also serves a colon-delimited family the reviewer
+# marked "colons are delimiters: remove from values" — `pwdx` (`1337:
+# /var/www/html`), `ip rule list` (`0:\tfrom all lookup local`), and `nmcli
+# connection show` (`connection.id:  homewifi`). Their key token ends in a
+# colon, so a single trailing `:` is stripped from the key. Git-family keys
+# carry no trailing colon, so the strip is a no-op there.
 #
 # This is a deliberately GENERIC 2-column split, far too broad to auto-detect
 # safely (half the corpus is space-separated) — its `strategy_detect` is a
@@ -39,6 +44,10 @@ strategy_extract () {
         [[ -z "${s//[[:space:]]/}" ]] && continue
         local key="${s%%[[:space:]]*}"
         local val="${s#"$key"}"
+        # A trailing colon on the key is a delimiter, not part of the name
+        # (`1337:`, `0:`, `connection.id:`) — the reviewer's repeated note on
+        # the colon-delimited family is "remove from values". Drop one.
+        key="${key%:}"
         val="${val#"${val%%[![:space:]]*}"}"
         val="${val%"${val##*[![:space:]]}"}"
         entry=$((entry + 1))

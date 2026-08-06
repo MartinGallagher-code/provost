@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3459/0, 246 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw`, restarted from merged main (PR #51 — all rounds 1–11 marks answered). **Round-13 batch is out**: next-50 workbook (`docs/review-batch-2026-08-05-round13.tsv`, all risk-5) awaiting the reviewer’s marks; 2,700 ranked entries remain unreviewed. Round-12 landed in merged PR #52 (11 of 12 fixed; `enc-tab-space-indent-mix` acknowledged-open).
+## Status: Standalone; **pip-only install** (`pip install glean-data`); golden gate **3461/0, 244 ⏳** (~5 min; `run.sh --golden '<ERE>'` filters), extract 63/63, smoke 58/0, melt 10/0. On `claude/where-are-we-wqnqmw` (PR #53 draft). **Round-15 in progress**: 44 agrees validated (→393 cumulative), 54 disagreements recorded in `docs/review-marks-2026-08-06-round15.tsv`. First cluster landed: the **colon-delimiter family** (pwdx, ip-rule/-list/-show, nmcli-connection-show) now routes to `first-word-kv` with a trailing-colon strip. Remaining round-15 clusters still open: package-lists (rpm/pacman/nix), /proc stats, nft family, lspci/lstopo, progress bars, localectl continuation-fold, and the assorted singles. Round-13/14 hard shapes also still open.
 
 > **2026-08-04 — round-11 marks: all 12 fixed.** version-line 1.1 (Prometheus
 > `NAME, version X (branch: …)` → named columns; tempo/thanos + loki/mimir/ghc
