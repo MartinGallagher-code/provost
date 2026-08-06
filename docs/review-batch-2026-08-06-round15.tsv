@@ -1,0 +1,107 @@
+# Round-15 review batch: the 100 riskiest entries that PASS the structural
+# pre-screen, ordered most-likely-to-be-wrong first (prescreen.py risk()),
+# drawn from the 2,550 not-yet-reviewed passing entries after excluding the
+# cumulative VALIDATED set (349) and every mark from rounds 1-3 and 8-14.
+# Rendered with the fixed workbook renderer (every output a real Word table).
+# Sent as glean_corpus_review_15_next100.docx. Marks -> review-marks-<date>-round15.tsv.
+rank	name	risk	why
+1	ip-rule-list	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+2	ip-rule-show	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+3	ip-xfrm-state	5	all columns unnamed (A/B/C); single content column
+4	ip6-neigh-table	5	all columns unnamed (A/B/C); single content column
+5	ipmitool-sdr	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+6	iptables-nvL	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+7	jack-lsp	5	all columns unnamed (A/B/C); single content column
+8	jaq-output	5	all columns unnamed (A/B/C); single content column
+9	jq-version	5	all columns unnamed (A/B/C); single content column
+10	keepalived-conf	5	all columns unnamed (A/B/C); single content column
+11	knife-node-list	5	all columns unnamed (A/B/C); single content column
+12	knotc-conf-list	5	all columns unnamed (A/B/C); single content column
+13	kotlinc-version	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+14	kube-bench-summary	5	all columns unnamed (A/B/C); single content column
+15	kubeadm-config-images-list	5	all columns unnamed (A/B/C); single content column
+16	kubectl-api-versions	5	all columns unnamed (A/B/C); single content column
+17	kubectx-list	5	all columns unnamed (A/B/C); single content column
+18	kubens-list	5	all columns unnamed (A/B/C); single content column
+19	kubie-list	5	all columns unnamed (A/B/C); single content column
+20	kustomize-version	5	all columns unnamed (A/B/C); single content column
+21	lerna-version	5	all columns unnamed (A/B/C); single content column
+22	localectl-status	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+23	logcli-labels	5	all columns unnamed (A/B/C); single content column
+24	loki-labels	5	all columns unnamed (A/B/C); single content column
+25	lsinitramfs	5	all columns unnamed (A/B/C); single content column
+26	lspci	5	all columns unnamed (A/B/C); single content column
+27	lspci-nn	5	all columns unnamed (A/B/C); single content column
+28	lspci-vmm	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+29	lstopo-no-graphics	5	all columns unnamed (A/B/C); single content column
+30	lstopo-text	5	all columns unnamed (A/B/C); single content column
+31	make-print-database	5	few captured cells vs input lines; '=' left inside cells
+32	mbw-run	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+33	mcfly-search	5	all columns unnamed (A/B/C); single content column
+34	meson-version	5	all columns unnamed (A/B/C); single content column
+35	mill-resolve	5	all columns unnamed (A/B/C); single content column
+36	mix-deps	5	all columns unnamed (A/B/C); single content column
+37	mkcert-caroot	5	all columns unnamed (A/B/C); single content column
+38	modbus-read	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+39	mqtt-topic-list	5	all columns unnamed (A/B/C); single content column
+40	mvn-version	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+41	named-checkconf	5	all columns unnamed (A/B/C); single content column
+42	nats-stream-ls	5	all columns unnamed (A/B/C); single content column
+43	navi-list	5	all columns unnamed (A/B/C); single content column
+44	navi-widget	5	all columns unnamed (A/B/C); single content column
+45	ncdump-header	5	few captured cells vs input lines; '=' left inside cells
+46	nft-list-chain	5	all columns unnamed (A/B/C); single content column
+47	nft-list-flowtables	5	all columns unnamed (A/B/C); single content column
+48	nft-list-set	5	all columns unnamed (A/B/C); single content column
+49	nft-list-table-inet	5	all columns unnamed (A/B/C); single content column
+50	nftables-ruleset-counter	5	all columns unnamed (A/B/C); single content column
+51	ninja-version	5	all columns unnamed (A/B/C); single content column
+52	nix-env-q	5	all columns unnamed (A/B/C); single content column
+53	nix-env-query	5	all columns unnamed (A/B/C); single content column
+54	nix-store-q	5	all columns unnamed (A/B/C); single content column
+55	nix-store-query-refs	5	all columns unnamed (A/B/C); single content column
+56	nmap_os	5	few captured cells vs input lines; single wide row
+57	nmcli-connection-show	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+58	node-version	5	all columns unnamed (A/B/C); single content column
+59	npm-version	5	all columns unnamed (A/B/C); single content column
+60	nst-java-log-stacktrace	5	all columns unnamed (A/B/C); single content column
+61	nst-terraform-show-json	5	few captured cells vs input lines; single wide row
+62	num-ledger-parens-quarters	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+63	nvtop-gpu-gauge	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+64	openssl-s-time	5	all columns unnamed (A/B/C); single content column
+65	oras-pull	5	all columns unnamed (A/B/C); single content column
+66	ouch-list	5	all columns unnamed (A/B/C); single content column
+67	oxlint-summary	5	all columns unnamed (A/B/C); single content column
+68	packer-version	5	all columns unnamed (A/B/C); single content column
+69	pacman-Sl	5	all columns unnamed (A/B/C); single content column
+70	pandoc-list-input-formats	5	all columns unnamed (A/B/C); single content column
+71	pdns-control-list-zones	5	all columns unnamed (A/B/C); single content column
+72	pnpm-list-depth	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+73	pnpm-version	5	all columns unnamed (A/B/C); single content column
+74	pnpm-why	5	all columns unnamed (A/B/C); single content column
+75	proc-locks	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+76	proc-schedstat	5	all columns unnamed (A/B/C); single content column
+77	proc-stat	5	all columns unnamed (A/B/C); single content column
+78	proc-stat-cpu	5	all columns unnamed (A/B/C); single content column
+79	pwck	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+80	pwdx	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+81	pyperf-run	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+82	qemu-version	5	all columns unnamed (A/B/C); single content column
+83	quo-nginx-log-ua-commas	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+84	rbd-ls	5	all columns unnamed (A/B/C); single content column
+85	rclone-copy-progress	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+86	redis-benchmark	5	few captured cells vs input lines; '=' left inside cells
+87	redis-cli-cluster-info	5	all columns unnamed (A/B/C); single content column
+88	redis-keys	5	all columns unnamed (A/B/C); single content column
+89	restic-check	5	all columns unnamed (A/B/C); single content column
+90	rfkill-list	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+91	rg-count	5	all columns unnamed (A/B/C); single content column
+92	rg-count-color	5	all columns unnamed (A/B/C); single content column
+93	root-version	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+94	rpm-V	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+95	rpm-qa	5	all columns unnamed (A/B/C); single content column
+96	rpm-qf	5	all columns unnamed (A/B/C); single content column
+97	rpm-ql	5	all columns unnamed (A/B/C); single content column
+98	rsync-copy-progress	5	few captured cells vs input lines; '=' left inside cells
+99	rsync-itemize	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+100	rsync-progress	5	few captured cells vs input lines; '=' left inside cells
