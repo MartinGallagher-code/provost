@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 modbus-read + pyperf-run (first-word-kv guards)
+
+- **modbus-read** (`[0]: 220` → `0 | 220`): the reviewer's "remove square
+  brackets and colons". `first-word-kv` already dropped the trailing colon;
+  it now also unwraps a bracket-indexed key (`[0]` → `0`). Routed via hint.
+- **pyperf-run** (reviewer: "dots are not values"): the `.....` progress
+  rules were landing as data rows. `first-word-kv` now skips any line with no
+  alphanumeric character (a separator/progress rule carries no key), and
+  pyperf routes to it → one `name | measurement` row per benchmark, dot lines
+  gone. Both guards are no-ops for the existing first-word-kv tools.
+- 2 goldens regenerated, 0 deleted. Gate 3461/0/244; extract 63/63. Files:
+  `first-word-kv.sh`, `hints.tsv`.
+
 ## 2026-08-06 — round-15 package-list cluster (rpm -qa/-qf, nix-env -q)
 
 - **New `name-version-suffix` strategy** (hint-only, p58): splits a package

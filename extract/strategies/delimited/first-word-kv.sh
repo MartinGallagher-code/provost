@@ -42,12 +42,18 @@ strategy_extract () {
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s#- }"; s="${s#\* }"
         [[ -z "${s//[[:space:]]/}" ]] && continue
+        # A line with no alphanumeric character is a separator / progress rule
+        # (pyperf's `.....................`), not a key-bearing record — skip it.
+        [[ "$s" == *[[:alnum:]]* ]] || continue
         local key="${s%%[[:space:]]*}"
         local val="${s#"$key"}"
         # A trailing colon on the key is a delimiter, not part of the name
         # (`1337:`, `0:`, `connection.id:`) — the reviewer's repeated note on
         # the colon-delimited family is "remove from values". Drop one.
         key="${key%:}"
+        # A bracket-indexed key is a register/array index — the reviewer's
+        # modbus note "remove square brackets and colons" wants `[0]` → `0`.
+        if [[ "$key" == \[*\] ]]; then key="${key#\[}"; key="${key%\]}"; fi
         val="${val#"${val%%[![:space:]]*}"}"
         val="${val%"${val##*[![:space:]]}"}"
         entry=$((entry + 1))

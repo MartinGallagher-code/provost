@@ -83,5 +83,7 @@ pwdx	regex	^[0-9]+: /[^ ]	first-word-kv
 nmcli-connection-show	regex	^connection\.[a-z-]+:[[:space:]]	first-word-kv
 rpm-nevra	regex	^[A-Za-z0-9][A-Za-z0-9._+-]*-[0-9][A-Za-z0-9._-]*\.(x86_64|noarch|i686|aarch64|s390x|ppc64le|armv7hl)	name-version-suffix
 nix-env-query	regex	^[a-z][a-z0-9+_-]*-[0-9]+\.[0-9]	name-version-suffix
+modbus-read	regex	^\[[0-9]+\]:[[:space:]]	first-word-kv
+pyperf-run	regex	^\.{5,}	first-word-kv
 gnutls-cli-info	prefix	- Certificate type:	colons
 ethtool-timestamp	prefix	Time stamping parameters for	colon-header-members
