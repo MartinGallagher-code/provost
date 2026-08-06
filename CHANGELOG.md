@@ -1,5 +1,15 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 /proc stats (proc-stat, proc-stat-cpu, proc-schedstat)
+
+- The `/proc/stat` and `/proc/schedstat` dumps are ragged (each label carries a
+  different count of integers), so they landed as one opaque column. Routed to
+  `first-word-kv` via hints (`^cpu  +N N N `, `^version N`) → `label | values`,
+  one row per label with the counters as the value. No new strategy — a hint
+  each. `proc-schedstat` manifest updated to the new shape (table 10×2) and now
+  covered (was golden-less). Gate 3462/0/243; 0 deleted. Files: `hints.tsv`,
+  `expected.tsv`, 3 goldens.
+
 ## 2026-08-06 — round-15 colon-value group (rg --count, redis cluster info)
 
 - **New `first-colon-kv` strategy**: splits each line on its FIRST colon, no
