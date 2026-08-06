@@ -1,4 +1,4 @@
-n	A	total_entries
-1	fe80::1 dev eth0 lladdr 00:1a:2b:3c:4d:5e router REACHABLE	3
-2	2001:db8::ff dev eth0 lladdr 52:54:00:12:34:56 STALE	3
-3	::1 dev lo NOARP	3
+n	address	dev	lladdr	state	total_entries
+1	fe80::1	eth0	00:1a:2b:3c:4d:5e	REACHABLE	3
+2	2001:db8::ff	eth0	52:54:00:12:34:56	STALE	3
+3	::1	lo		NOARP	3

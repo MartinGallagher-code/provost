@@ -1,5 +1,17 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 ip neigh (ip6-neigh-table + IPv4 siblings)
+
+- **New `ip-neigh-record` strategy** (hint-only, p45): an `ip neigh` line is an
+  address followed by keyword/value pairs and a trailing NUD state. Pulls the
+  address, the `dev` interface, the `lladdr` MAC (absent for some entries), and
+  the UPPERCASE state into their own columns; a bare `router` flag is dropped.
+  Fixes ip6-neigh-table, and the IPv4 siblings ip-neigh / ip-neigh-show /
+  ip-neigh-sparse-dev improve for free (they had been split on raw whitespace,
+  keeping the literal `dev`/`lladdr` keywords as columns).
+- 4 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `ip-neigh-record.sh` (+ sample & golden), `hints.tsv`.
+
 ## 2026-08-06 — round-15 navi-list + pacman -Sl
 
 - **New `middot-split` strategy** (hint-only): splits `tag · description` on the
