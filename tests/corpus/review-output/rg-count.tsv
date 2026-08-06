@@ -1,4 +1,4 @@
-n	A	total_entries
-1	src/main.rs:12	3
-2	src/parser.rs:44	3
-3	tests/parser_test.rs:8	3
+n	key	value	total_entries
+1	src/main.rs	12	3
+2	src/parser.rs	44	3
+3	tests/parser_test.rs	8	3

@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-08-06 — re-triage of the unreviewed corpus pool (post round-15)
+
+- Re-ran `tests/corpus/prescreen.py` over the whole corpus with the merged
+  round-15 strategies, excluding everything already reviewed. Of **2981
+  unreviewed** tools, 2384 are structurally clean and **526 carry a structural
+  defect**; the largest fixable cluster (132) is colon key/value kept in one
+  cell — the same shape the round-15 family already fixes. Findings written to
+  `docs/review-unreviewed-landscape-2026-08-06.md`,
+  `docs/review-prescreen-2026-08-06-round16.tsv` (full verdict), and
+  `docs/review-needs-2026-08-06-round16.tsv` (the 526, risk-ranked).
+- **prescreen.py**: `marks()` / `marks_from()` now skip leading `#` comment
+  lines and blank lines, so marks files that open with a note (round-14,
+  round-15) parse. `--validate` and `--emit-json` work again.
+- Refreshed the `tests/corpus/review-output/` snapshot for the 44 tools whose
+  generic parse changed across rounds 12/13/15 (they had drifted from the
+  last snapshot). Review aid only — the CI goldens live in `expected/`.
+
 ## 2026-08-06 — round-15 pnpm list (sectioned name/version)
 
 - **New `section-name-value` strategy** (hint-only, p46): a bare `Section:`

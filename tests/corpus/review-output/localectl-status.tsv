@@ -1,8 +1,7 @@
-n	A	B	C	total_entries
-1	System	Locale:	LANG=en_US.UTF-8	7
-2	LC_TIME=en_GB.UTF-8			7
-3	VC	Keymap:	uk	7
-4	X11	Layout:	gb	7
-5	X11	Model:	pc105	7
-6	X11	Variant:		7
-7	X11	Options:	terminate:ctrl_alt_bksp	7
+n	key	value	total_entries
+1	System Locale	LANG=en_US.UTF-8 LC_TIME=en_GB.UTF-8	6
+2	VC Keymap	uk	6
+3	X11 Layout	gb	6
+4	X11 Model	pc105	6
+5	X11 Variant		6
+6	X11 Options	terminate:ctrl_alt_bksp	6

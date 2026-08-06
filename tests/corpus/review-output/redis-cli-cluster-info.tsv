@@ -1,12 +1,12 @@
-n	A	total_entries
-1	cluster_state:ok	11
-2	cluster_slots_assigned:16384	11
-3	cluster_slots_ok:16384	11
-4	cluster_slots_pfail:0	11
-5	cluster_slots_fail:0	11
-6	cluster_known_nodes:6	11
-7	cluster_size:3	11
-8	cluster_current_epoch:6	11
-9	cluster_my_epoch:2	11
-10	cluster_stats_messages_sent:482913	11
-11	cluster_stats_messages_received:482910	11
+n	key	value	total_entries
+1	cluster_state	ok	11
+2	cluster_slots_assigned	16384	11
+3	cluster_slots_ok	16384	11
+4	cluster_slots_pfail	0	11
+5	cluster_slots_fail	0	11
+6	cluster_known_nodes	6	11
+7	cluster_size	3	11
+8	cluster_current_epoch	6	11
+9	cluster_my_epoch	2	11
+10	cluster_stats_messages_sent	482913	11
+11	cluster_stats_messages_received	482910	11

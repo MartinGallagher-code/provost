@@ -1,7 +1,7 @@
-n	A	B	total_entries
-1	0:	from all lookup local	6
-2	100:	from 192.168.1.0/24 lookup main	6
-3	200:	from all fwmark 0x1 lookup 100	6
-4	300:	from all to 10.0.0.0/8 lookup vpn	6
-5	32766:	from all lookup main	6
-6	32767:	from all lookup default	6
+n	key	value	total_entries
+1	0	from all lookup local	6
+2	100	from 192.168.1.0/24 lookup main	6
+3	200	from all fwmark 0x1 lookup 100	6
+4	300	from all to 10.0.0.0/8 lookup vpn	6
+5	32766	from all lookup main	6
+6	32767	from all lookup default	6
