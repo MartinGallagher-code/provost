@@ -343,3 +343,7 @@ vcard-vendor-contacts
 vgs-report
 watchexec-run
 zenith-disk-bars
+exo-iostat-x-repeated
+ip-s-link
+jstat-gc
+vmstat-wide
