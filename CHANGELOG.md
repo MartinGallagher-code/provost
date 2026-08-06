@@ -1,5 +1,21 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 colon-value group (rg --count, redis cluster info)
+
+- **New `first-colon-kv` strategy**: splits each line on its FIRST colon, no
+  space required (the `colons` parser needs `key: value`). Two entry points:
+  - **auto-detect** fires only on the unambiguous `path:integer` list — every
+    non-blank line is `token:integer` with exactly one colon and no spaces
+    (rg/ugrep `--count`). That strict whole-line shape (checked per line, so
+    `$`-anchored) excludes the many `word:value` outputs that share only a
+    first colon — ruff `f.py:12:5: msg`, passwd `root:x:0:…`, ARNs,
+    envoy-listeners `name::ip:port`.
+  - **hint** routes tight `key:value` configs (`redis-cli cluster info`).
+- Fixes rg-count, rg-count-color (ANSI stripped upstream), redis-cli-cluster-info;
+  ugrep-count picks up the same split for free. 4 goldens regenerated, 0 deleted.
+  Gate 3461/0/244; extract 63/63. (redis-keys left as a plain key list — a
+  namespace split is too ambiguous to auto-detect safely.)
+
 ## 2026-08-06 — round-15 localectl-status (colon-kv with continuation)
 
 - **New `colon-kv-continuation` strategy** (hint-only): an aligned `Key: value`
