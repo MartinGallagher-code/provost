@@ -93,3 +93,4 @@ proc-stat	regex	^cpu  +[0-9]+ [0-9]+ [0-9]+ 	first-word-kv
 proc-schedstat	regex	^version [0-9]+	first-word-kv
 lspci	regex	^[0-9a-f]{2}:[0-9a-f]{2}\.[0-9] 	lspci-line
 jack-lsp	regex	^[a-z0-9_-]+:(capture|playback|input|output|midi)	first-colon-kv
+navi-list	regex	^[a-z0-9_-]+ · 	middot-split

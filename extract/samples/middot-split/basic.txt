@@ -1,0 +1,3 @@
+git · undo last commit
+docker · remove all stopped containers
+kubernetes · get pods in all namespaces

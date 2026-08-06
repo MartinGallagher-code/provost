@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 navi-list + pacman -Sl
+
+- **New `middot-split` strategy** (hint-only): splits `tag · description` on the
+  ` · ` middle-dot (navi cheatsheets) → key | value. Fixes navi-list.
+- **New `pkg-repo-columns` strategy** (auto-detect, p20): `repo name version
+  [status]` → repo | name | version | status, the optional bracketed status
+  keeping ragged rows aligned. Auto-detect requires EVERY line to be
+  `repo name version-REL [ [..] ]` with a `-<digit>` pkgrel — specific enough
+  to exclude version banners, `ip route`, and `tc class` (all failed the strict
+  per-line shape). Fixes pacman-Sl.
+- 2 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `middot-split.sh`, `pkg-repo-columns.sh` (+ samples & goldens), `hints.tsv`.
+
 ## 2026-08-06 — round-15 lspci + jack-lsp
 
 - **New `lspci-line` strategy** (hint-only, p45): `SLOT class: description` →

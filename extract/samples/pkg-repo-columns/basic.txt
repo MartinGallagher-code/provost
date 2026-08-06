@@ -1,0 +1,3 @@
+core linux 6.6.10.arch1-1 [installed]
+core glibc 2.38-7
+extra vim 9.0.2189-1 [installed]
