@@ -91,3 +91,5 @@ ethtool-timestamp	prefix	Time stamping parameters for	colon-header-members
 redis-cli-cluster-info	regex	^cluster_[a-z_]+:[a-z0-9]	first-colon-kv
 proc-stat	regex	^cpu  +[0-9]+ [0-9]+ [0-9]+ 	first-word-kv
 proc-schedstat	regex	^version [0-9]+	first-word-kv
+lspci	regex	^[0-9a-f]{2}:[0-9a-f]{2}\.[0-9] 	lspci-line
+jack-lsp	regex	^[a-z0-9_-]+:(capture|playback|input|output|midi)	first-colon-kv

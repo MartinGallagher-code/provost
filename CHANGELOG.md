@@ -1,5 +1,18 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 lspci + jack-lsp
+
+- **New `lspci-line` strategy** (hint-only, p45): `SLOT class: description` →
+  slot | class | description. The SLOT is the first token; the remainder splits
+  at its first `": "` so a later `[8086:9b54]` vendor id stays in the
+  description. Guards bail (fall through) on the verbose/`-k` dumps (tab-indented
+  capability/driver sub-lines) and the `-mm` quoted format, so only plain
+  `lspci`/`lspci -nn` route here. Fixes lspci, lspci-nn.
+- **jack-lsp** ("do multiple columns"): `system:capture_1` → `system | capture_1`
+  via `first-colon-kv`, routed on the jack port-name shape.
+- 3 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `lspci-line.sh` (+ sample & golden), `hints.tsv`.
+
 ## 2026-08-06 — round-15 /proc stats (proc-stat, proc-stat-cpu, proc-schedstat)
 
 - The `/proc/stat` and `/proc/schedstat` dumps are ragged (each label carries a
