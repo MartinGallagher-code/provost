@@ -95,3 +95,4 @@ lspci	regex	^[0-9a-f]{2}:[0-9a-f]{2}\.[0-9] 	lspci-line
 jack-lsp	regex	^[a-z0-9_-]+:(capture|playback|input|output|midi)	first-colon-kv
 navi-list	regex	^[a-z0-9_-]+ · 	middot-split
 ip6-neigh-table	regex	^[0-9a-fA-F:.]+ dev [^ ]+ (lladdr|router|FAILED|STALE|REACHABLE|NOARP|PERMANENT|DELAY|PROBE)	ip-neigh-record
+pnpm-list-depth	regex	^dependencies:	section-name-value

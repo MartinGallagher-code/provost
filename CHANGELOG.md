@@ -1,5 +1,13 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 pnpm list (sectioned name/version)
+
+- **New `section-name-value` strategy** (hint-only, p46): a bare `Section:`
+  header carries down as a column over the `name value` rows beneath it, so
+  `pnpm list` tidies to section | name | value (dependencies vs
+  devDependencies preserved) instead of breaking on the header lines. Fixes
+  pnpm-list-depth. 1 golden, 0 deleted. Gate 3462/0/243; extract 63/63.
+
 ## 2026-08-06 — round-15 ip neigh (ip6-neigh-table + IPv4 siblings)
 
 - **New `ip-neigh-record` strategy** (hint-only, p45): an `ip neigh` line is an

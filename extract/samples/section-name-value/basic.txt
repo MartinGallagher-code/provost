@@ -1,0 +1,6 @@
+dependencies:
+express 4.19.2
+pino 9.2.0
+
+devDependencies:
+typescript 5.4.5
