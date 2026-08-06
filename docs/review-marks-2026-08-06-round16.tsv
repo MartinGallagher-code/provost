@@ -1,0 +1,20 @@
+# Round-16: marks on the 526 needs-review workbook (top 23 ruled; rest left to me).
+name	mark	note
+pytest-summary	Horrible=x	filler = an . and square brackets should be removed
+vulkaninfo-summary	Horrible=x	Some of the info is header, not data
+dbt-test-summary	Horrible=x	You didn’t parse this! Remove the …. and the square brackets from the values, and put the data into three different columns.
+exo-bpftrace-hist	Horrible=x	try try try
+fwupdmgr-get-devices	Horrible=x	Parse this, please, and remove the lines after interpretation
+fwupdmgr-get-updates	Horrible=x	Parse this, and remove the lines after interpretation
+grep-color-nmatch	Horrible=x	Key/value
+just-list	Horrible=x	Available recipes is the A value for all rows, then there is a column B and a column C( the comment)
+likwid-topology	Horrible=x	Strip out the decoation, and then parse as a table.
+mamba-env-list	Horrible=x	when comments are removed, the reset is key/value
+netperf-tcp	Horrible=x	I’m not sure what this is
+nextflow-log	Horrible=x	There is a header here, and then a formatted table.
+parted-l	Horrible=x	This one should be easy! It’s just a table.
+pvscan-cache	Horrible=x	This one should be easy, it’s just a table.
+sslyze-scan	Horrible=x	Two levels of hierarchy
+tailscale-netcheck	Horrible=x	Three levels of hierarchy
+task-list	Horrible=x	Key/Value
+testssl-summary	Horrible=x	Two columns
