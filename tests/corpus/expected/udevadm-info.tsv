@@ -1,2 +1,18 @@
-P	N	L	S	S	E	E	E	E	E	E	E	E	E	E	E	E
-/devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda	sda	0	disk/by-id/ata-Samsung_SSD_970_EVO_500GB_S1A2B3C4	disk/by-path/pci-0000:00:1f.2-ata-1	DEVPATH=/devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda	DEVNAME=/dev/sda	DEVTYPE=disk	MAJOR=8	MINOR=0	SUBSYSTEM=block	ID_MODEL=Samsung_SSD_970_EVO_500GB	ID_SERIAL=Samsung_SSD_970_EVO_500GB_S1A2B3C4	ID_BUS=ata	ID_TYPE=disk	ID_FS_TYPE=ext4	ID_FS_UUID=12345678-90ab-cdef-1234-567890abcdef
+n	key	value	total_entries
+1	P	/devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda	17
+2	N	sda	17
+3	L	0	17
+4	S	disk/by-id/ata-Samsung_SSD_970_EVO_500GB_S1A2B3C4	17
+5	S	disk/by-path/pci-0000:00:1f.2-ata-1	17
+6	E	DEVPATH=/devices/pci0000:00/0000:00:1f.2/ata1/host0/target0:0:0/0:0:0:0/block/sda	17
+7	E	DEVNAME=/dev/sda	17
+8	E	DEVTYPE=disk	17
+9	E	MAJOR=8	17
+10	E	MINOR=0	17
+11	E	SUBSYSTEM=block	17
+12	E	ID_MODEL=Samsung_SSD_970_EVO_500GB	17
+13	E	ID_SERIAL=Samsung_SSD_970_EVO_500GB_S1A2B3C4	17
+14	E	ID_BUS=ata	17
+15	E	ID_TYPE=disk	17
+16	E	ID_FS_TYPE=ext4	17
+17	E	ID_FS_UUID=12345678-90ab-cdef-1234-567890abcdef	17

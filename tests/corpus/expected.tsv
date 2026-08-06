@@ -441,7 +441,7 @@ clamscan-summary	kv	-	6
 gpg-card-status	kv	-	6
 lynis-report	kv	-	5
 rkhunter-summary	kv	-	4
-nvme-smart-log	kv	-	8
+nvme-smart-log	kv	-	2
 hdparm-i	kv	-	4
 sdparm-inquiry	kv	-	4
 biosdecode	kv	-	4
@@ -473,7 +473,7 @@ loginctl-session-status	kv	-	5
 systemd-inhibit-list	table	4	4
 networkctl-status	kv	-	5
 networkctl-list	table	5	4
-udevadm-info	kv	-	5
+udevadm-info	kv	-	2
 systemd-analyze-blame	table	6	2
 systemd-analyze-critical-chain	table	7	2
 rc-status	table	6	1

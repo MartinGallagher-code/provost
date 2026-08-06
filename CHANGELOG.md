@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-08-06 — round-16 sweep: 13 more kv dumps routed (per the reviewer's brief)
+
+The reviewer left the remaining ~503 workbook entries unmarked with "see if you
+can solve some of these — check where there ought to be a table or some
+key/value portion." Probed all 503 against the new strategies; 126 matched
+`nested-colon-kv` structurally, of which 13 were clear single-record key/value
+dumps whose current parse was flagged — routed via hints and regenerated:
+nvme-id-ns, nvme-id-ctrl, nvme-smart-log, proc-status, proc-crypto (old parse
+kept the literal `:` as a column), mongo-serverstatus, proc-ioports,
+whois_domain + whois + whois-domain (old parses were underscore-mangled pivots
+or an aligned-columns mess), udevadm-info + udevadm-info-all (family hint), and
+nmcli-device-show (→ first-word-kv, consistent with the round-15
+nmcli-connection-show ruling).
+
+Explicitly NOT converted after inspection: multi-record blocks whose per-record
+pivot is the better shape (mbox-email-headers, email-headers-thread,
+apt-cache-showsrc-multi, debian-sources-index, docker-inspect-networks — their
+real defect is block-records' space→underscore mangling, a separate fix), and
+two-pairs-per-line dumps where kv would leave a colon in the value (seinfo,
+ethtool-coalesce). 13 goldens regenerated, 5 manifest rows updated to the kv
+shape, 0 deleted. Gate 3463/0/242; extract 63/63.
+
 ## 2026-08-06 — round-16: 17 of 18 marked disagreements fixed (9 new strategies)
 
 Marks on the 526-entry needs-review workbook: 5 validated (fail2ban-client-status,

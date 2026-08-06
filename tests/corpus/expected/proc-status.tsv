@@ -1,2 +1,19 @@
-Name	Umask	State	Tgid	Ngid	Pid	PPid	TracerPid	Uid	Gid	FDSize	Groups	VmPeak	VmSize	VmRSS	Threads	voluntary_ctxt_switches	nonvoluntary_ctxt_switches
-mysqld	0007	S (sleeping)	1843	0	1843	1	0	114	114	114	114	120	120	120	120	256	120	2894512 kB	2894512 kB	662104 kB	38	812043	44021
+n	key	value	total_entries
+1	Name	mysqld	Threads
+2	Umask	0007	Threads
+3	State	S (sleeping)	Threads
+4	Tgid	1843	Threads
+5	Ngid	0	Threads
+6	Pid	1843	Threads
+7	PPid	1	Threads
+8	TracerPid	0	Threads
+9	Uid	114	Threads
+10	114	114	Threads
+11	114	Gid	Threads
+12	120	120	Threads
+13	120	120	Threads
+14	FDSize	256	Threads
+15	Groups	120	Threads
+16	VmPeak	2894512 kB	Threads
+17	VmSize	2894512 kB	Threads
+18	VmRSS	662104 kB	Threads

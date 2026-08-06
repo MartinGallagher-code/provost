@@ -109,3 +109,13 @@ just-list	prefix	Available recipes:	section-name-value
 likwid-topology	regex	^Socket [0-9]+:	boxed-table
 nextflow-log	contains	] process > 	process-progress-rows
 bpftrace-hist	regex	\) +[0-9]+ \|@	histogram-buckets
+nvme-id-ns	prefix	NVME Identify Namespace	nested-colon-kv
+nvme-id-ctrl	prefix	NVME Identify Controller	nested-colon-kv
+nvme-smart-log	prefix	Smart Log for NVME	nested-colon-kv
+proc-status	contains	Umask:	nested-colon-kv
+proc-crypto	regex	^name +: [a-z0-9]	nested-colon-kv
+mongo-serverstatus	regex	^host : 	nested-colon-kv
+proc-ioports	regex	^[0-9a-f]{4}-[0-9a-f]{4} : 	nested-colon-kv
+whois_domain	prefix	Domain Name:	nested-colon-kv
+udevadm-info	regex	^P: /devices/	nested-colon-kv
+nmcli-device-show	regex	^GENERAL\.DEVICE:	first-word-kv
