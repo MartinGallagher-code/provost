@@ -1,5 +1,26 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 package-list cluster (rpm -qa/-qf, nix-env -q)
+
+- **New `name-version-suffix` strategy** (hint-only, p58): splits a package
+  token `name-VERSION` at the first `-` before a digit, so the hyphenated name
+  (`openssl-libs`, `util-linux-core`, `bash-interactive`) stays intact and the
+  version lands in its own column. `name="${s%%-[0-9]*}"` (longest `-<digit>…`
+  suffix removed) is the whole trick.
+- **Guarded against over-reach.** The extractor emits nothing (so a hint match
+  falls through to normal auto-detection, preserving the original parse) unless
+  every line is a bare whitespace-free token AND there are ≥2 of them. That
+  keeps `apk-list`/`dnf-provides`/`rpm-qa-last`/progress bars (line has spaces)
+  and single-line version banners (`jq-1.7.1`, `wine-9.12`) on their existing
+  parsers.
+- **Routed via `extract/hints.tsv`:** `rpm-nevra` (arch-suffixed NEVRA →
+  rpm-qa/-qf, dnf-repoquery-provides) and `nix-env-query` (bare dotted
+  name-version → nix-env -q/-query, xbps-query-m, apk-info-installed). Seven
+  tools now split cleanly into `name | version`; the four the reviewer flagged
+  (rpm-qa, rpm-qf, nix-env-q, nix-env-query) plus three same-shape siblings.
+- 7 goldens regenerated, 0 deleted. Gate 3461/0/244; extract 63/63. Files:
+  `name-version-suffix.sh` (+ sample & golden), `hints.tsv`.
+
 ## 2026-08-06 — round-15 colon-delimiter cluster (pwdx, ip rule, nmcli)
 
 - **first-word-kv strips a trailing colon from the key.** The reviewer's

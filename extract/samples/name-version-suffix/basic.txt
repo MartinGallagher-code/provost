@@ -1,0 +1,6 @@
+glibc-2.34-60.el9.x86_64
+openssl-libs-3.0.7-16.el9.x86_64
+bash-interactive-5.2p26
+util-linux-core-2.37.4-15.el9.x86_64
+git-2.44.0
+firefox-127.0.1
