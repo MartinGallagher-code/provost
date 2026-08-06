@@ -1,0 +1,9 @@
+entry1.key src/main.rs
+entry1.value 12
+entry2.key src/parser.rs
+entry2.value 44
+entry3.key tests/parser_test.rs
+entry3.value 8
+entry4.key README.md
+entry4.value 3
+total_entries 4

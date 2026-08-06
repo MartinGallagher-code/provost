@@ -1,0 +1,12 @@
+entry1.repo core
+entry1.name linux
+entry1.version 6.6.10.arch1-1
+entry1.status [installed]
+entry2.repo core
+entry2.name glibc
+entry2.version 2.38-7
+entry3.repo extra
+entry3.name vim
+entry3.version 9.0.2189-1
+entry3.status [installed]
+total_entries 3

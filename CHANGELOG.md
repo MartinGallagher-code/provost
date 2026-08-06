@@ -1,5 +1,172 @@
 # glean — Changelog
 
+## 2026-08-06 — round-15 pnpm list (sectioned name/version)
+
+- **New `section-name-value` strategy** (hint-only, p46): a bare `Section:`
+  header carries down as a column over the `name value` rows beneath it, so
+  `pnpm list` tidies to section | name | value (dependencies vs
+  devDependencies preserved) instead of breaking on the header lines. Fixes
+  pnpm-list-depth. 1 golden, 0 deleted. Gate 3462/0/243; extract 63/63.
+
+## 2026-08-06 — round-15 ip neigh (ip6-neigh-table + IPv4 siblings)
+
+- **New `ip-neigh-record` strategy** (hint-only, p45): an `ip neigh` line is an
+  address followed by keyword/value pairs and a trailing NUD state. Pulls the
+  address, the `dev` interface, the `lladdr` MAC (absent for some entries), and
+  the UPPERCASE state into their own columns; a bare `router` flag is dropped.
+  Fixes ip6-neigh-table, and the IPv4 siblings ip-neigh / ip-neigh-show /
+  ip-neigh-sparse-dev improve for free (they had been split on raw whitespace,
+  keeping the literal `dev`/`lladdr` keywords as columns).
+- 4 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `ip-neigh-record.sh` (+ sample & golden), `hints.tsv`.
+
+## 2026-08-06 — round-15 navi-list + pacman -Sl
+
+- **New `middot-split` strategy** (hint-only): splits `tag · description` on the
+  ` · ` middle-dot (navi cheatsheets) → key | value. Fixes navi-list.
+- **New `pkg-repo-columns` strategy** (auto-detect, p20): `repo name version
+  [status]` → repo | name | version | status, the optional bracketed status
+  keeping ragged rows aligned. Auto-detect requires EVERY line to be
+  `repo name version-REL [ [..] ]` with a `-<digit>` pkgrel — specific enough
+  to exclude version banners, `ip route`, and `tc class` (all failed the strict
+  per-line shape). Fixes pacman-Sl.
+- 2 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `middot-split.sh`, `pkg-repo-columns.sh` (+ samples & goldens), `hints.tsv`.
+
+## 2026-08-06 — round-15 lspci + jack-lsp
+
+- **New `lspci-line` strategy** (hint-only, p45): `SLOT class: description` →
+  slot | class | description. The SLOT is the first token; the remainder splits
+  at its first `": "` so a later `[8086:9b54]` vendor id stays in the
+  description. Guards bail (fall through) on the verbose/`-k` dumps (tab-indented
+  capability/driver sub-lines) and the `-mm` quoted format, so only plain
+  `lspci`/`lspci -nn` route here. Fixes lspci, lspci-nn.
+- **jack-lsp** ("do multiple columns"): `system:capture_1` → `system | capture_1`
+  via `first-colon-kv`, routed on the jack port-name shape.
+- 3 goldens regenerated, 0 deleted. Gate 3462/0/243; extract 63/63. Files:
+  `lspci-line.sh` (+ sample & golden), `hints.tsv`.
+
+## 2026-08-06 — round-15 /proc stats (proc-stat, proc-stat-cpu, proc-schedstat)
+
+- The `/proc/stat` and `/proc/schedstat` dumps are ragged (each label carries a
+  different count of integers), so they landed as one opaque column. Routed to
+  `first-word-kv` via hints (`^cpu  +N N N `, `^version N`) → `label | values`,
+  one row per label with the counters as the value. No new strategy — a hint
+  each. `proc-schedstat` manifest updated to the new shape (table 10×2) and now
+  covered (was golden-less). Gate 3462/0/243; 0 deleted. Files: `hints.tsv`,
+  `expected.tsv`, 3 goldens.
+
+## 2026-08-06 — round-15 colon-value group (rg --count, redis cluster info)
+
+- **New `first-colon-kv` strategy**: splits each line on its FIRST colon, no
+  space required (the `colons` parser needs `key: value`). Two entry points:
+  - **auto-detect** fires only on the unambiguous `path:integer` list — every
+    non-blank line is `token:integer` with exactly one colon and no spaces
+    (rg/ugrep `--count`). That strict whole-line shape (checked per line, so
+    `$`-anchored) excludes the many `word:value` outputs that share only a
+    first colon — ruff `f.py:12:5: msg`, passwd `root:x:0:…`, ARNs,
+    envoy-listeners `name::ip:port`.
+  - **hint** routes tight `key:value` configs (`redis-cli cluster info`).
+- Fixes rg-count, rg-count-color (ANSI stripped upstream), redis-cli-cluster-info;
+  ugrep-count picks up the same split for free. 4 goldens regenerated, 0 deleted.
+  Gate 3461/0/244; extract 63/63. (redis-keys left as a plain key list — a
+  namespace split is too ambiguous to auto-detect safely.)
+
+## 2026-08-06 — round-15 localectl-status (colon-kv with continuation)
+
+- **New `colon-kv-continuation` strategy** (hint-only): an aligned `Key: value`
+  list where an indented follow-on line continues the previous value. The
+  reviewer on `localectl status`: "LC_TIME should be part of the System Locale
+  column ... simple key/value with colon delimiter." So `System Locale:
+  LANG=…` + the indented `LC_TIME=…` fold into one value, multi-word keys keep
+  their spaces (`System Locale`, `VC Keymap`), and an empty-valued key
+  (`X11 Variant:`) is preserved. Routed via hint on the `System Locale:` lead.
+- 1 golden regenerated, 0 deleted. Gate 3461/0/244; extract 63/63; melt 10/0.
+  Files: `colon-kv-continuation.sh` (+ sample & golden), `hints.tsv`.
+
+## 2026-08-06 — round-15 modbus-read + pyperf-run (first-word-kv guards)
+
+- **modbus-read** (`[0]: 220` → `0 | 220`): the reviewer's "remove square
+  brackets and colons". `first-word-kv` already dropped the trailing colon;
+  it now also unwraps a bracket-indexed key (`[0]` → `0`). Routed via hint.
+- **pyperf-run** (reviewer: "dots are not values"): the `.....` progress
+  rules were landing as data rows. `first-word-kv` now skips any line with no
+  alphanumeric character (a separator/progress rule carries no key), and
+  pyperf routes to it → one `name | measurement` row per benchmark, dot lines
+  gone. Both guards are no-ops for the existing first-word-kv tools.
+- 2 goldens regenerated, 0 deleted. Gate 3461/0/244; extract 63/63. Files:
+  `first-word-kv.sh`, `hints.tsv`.
+
+## 2026-08-06 — round-15 package-list cluster (rpm -qa/-qf, nix-env -q)
+
+- **New `name-version-suffix` strategy** (hint-only, p58): splits a package
+  token `name-VERSION` at the first `-` before a digit, so the hyphenated name
+  (`openssl-libs`, `util-linux-core`, `bash-interactive`) stays intact and the
+  version lands in its own column. `name="${s%%-[0-9]*}"` (longest `-<digit>…`
+  suffix removed) is the whole trick.
+- **Guarded against over-reach.** The extractor emits nothing (so a hint match
+  falls through to normal auto-detection, preserving the original parse) unless
+  every line is a bare whitespace-free token AND there are ≥2 of them. That
+  keeps `apk-list`/`dnf-provides`/`rpm-qa-last`/progress bars (line has spaces)
+  and single-line version banners (`jq-1.7.1`, `wine-9.12`) on their existing
+  parsers.
+- **Routed via `extract/hints.tsv`:** `rpm-nevra` (arch-suffixed NEVRA →
+  rpm-qa/-qf, dnf-repoquery-provides) and `nix-env-query` (bare dotted
+  name-version → nix-env -q/-query, xbps-query-m, apk-info-installed). Seven
+  tools now split cleanly into `name | version`; the four the reviewer flagged
+  (rpm-qa, rpm-qf, nix-env-q, nix-env-query) plus three same-shape siblings.
+- 7 goldens regenerated, 0 deleted. Gate 3461/0/244; extract 63/63. Files:
+  `name-version-suffix.sh` (+ sample & golden), `hints.tsv`.
+
+## 2026-08-06 — round-15 colon-delimiter cluster (pwdx, ip rule, nmcli)
+
+- **first-word-kv strips a trailing colon from the key.** The reviewer's
+  round-15 note on the colon-delimited family was "colons are delimiters:
+  remove from values". `first-word-kv` already splits first-token/rest; it now
+  drops one trailing `:` from the key so `1337:` → `1337`, `0:` → `0`,
+  `connection.id:` → `connection.id`. Git-family keys carry no trailing colon,
+  so the strip is a no-op there.
+- **Routed four tools to first-word-kv via `extract/hints.tsv`:** `pwdx`
+  (`^[0-9]+: /[^ ]`), the `ip rule` family — `ip-rule`, `ip-rule-list`,
+  `ip-rule-show` (`^[0-9]+:[[:space:]]+from `), and `nmcli connection show`
+  (`^connection\.[a-z-]+:[[:space:]]`). Each now emits clean `key | value`
+  rows with the colon delimiter gone. Files: `first-word-kv.sh`, `hints.tsv`.
+- 5 goldens regenerated (pwdx, ip-rule, ip-rule-list, ip-rule-show,
+  nmcli-connection-show), 0 deleted. Gate 3461/0/244; extract 63/63.
+
+## 2026-08-05 — confidence pass + workbook renders wide outputs as real tables
+
+- **make_review_doc.js: every output is now a real Word table.** Past ~12
+  columns the renderer used to fall back to pipe-separated monospace text,
+  which the reviewer (rightly) found un-assessable ("not a table"). It now
+  always emits a `<w:tbl>`: wide tables shrink the font (12pt >12 cols, 10pt
+  >20) and cell margins and extend past the page margin (Word scrolls them)
+  instead of degrading to pipes.
+- **Confidence pass (100 least-risky).** Came back 87 agree / 13 disagree. The
+  87 agreed appended to `docs/review-validated-cumulative.txt` (258 -> 345).
+  Of the 13, four (exo-iostat-x-repeated, ip-s-link, jstat-gc, vmstat-wide)
+  were the pipe-rendering artifact above -- re-sent as real tables for a real
+  verdict, not treated as parser bugs. The other nine are
+  `docs/review-marks-2026-08-05-round14.tsv`.
+- **gem-list-local** (round-14): `paren-tail-kv` tolerates a `*** BANNER ***`
+  chrome line and moves to priority 54 (ahead of aligned-columns) -> key|value
+  with parens stripped; gem-outdated/-sparse improve free. 3 goldens
+  regenerated, 0 deleted. Gate 3461/0/244; extract 63/63.
+
+## 2026-08-05 — round-13 review batch: next-50 workbook
+
+Post-merge follow-up to PR #52 (fresh branch from `main`). Rounds 1–12 are
+answered (one acknowledged-open); this prepares round 13.
+
+- **`docs/review-batch-2026-08-05-round13.tsv`** — the 50 riskiest entries
+  that pass the structural pre-screen, drawn from the 2,700 not-yet-reviewed
+  passing entries (excludes the cumulative VALIDATED set and every mark from
+  rounds 1–3/8–12). All 50 sit at risk 5; a large git-list cluster
+  (git-tag/-log/-ls-files/-describe…) and several ip-* families dominate.
+  Rendered as `glean_corpus_review_13_next50.docx` (all 50 entries + verdict
+  boxes verified present). Marks come back as
+  `docs/review-marks-<date>-round13.tsv`. No parser or snapshot changes.
+
 ## 2026-08-05 — round-12 marks: 11 of 12 disagreements fixed
 
 The round-12 next-30 workbook came back 19 OK / 11 disagree

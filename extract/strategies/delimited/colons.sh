@@ -52,6 +52,19 @@ strategy_extract () {
     # Clean text (dates, parentheses) -- cached by engine after first call
     clean_text "$text"; text="$_CLEAN_TEXT_RESULT"
 
+    # A UNIFORM `- ` bullet lead on every non-blank line is a bulleted list
+    # (gnutls-cli-info's `- Certificate type: X.509`) — the dash is chrome,
+    # stripped below. Detected once here (not per line) so a stray `- foo`
+    # diff/hexdump line elsewhere never loses its dash.
+    local _dash_bullets=1 _db_l _db_n=0
+    while IFS= read -r _db_l; do
+        [[ -z "${_db_l//[[:space:]]/}" ]] && continue
+        _db_n=$((_db_n + 1))
+        local _db_s="${_db_l#"${_db_l%%[![:space:]]*}"}"
+        [[ "$_db_s" == "- "* ]] || { _dash_bullets=0; break; }
+    done <<< "$text"
+    [[ $_db_n -ge 2 ]] || _dash_bullets=0
+
     # FOLD indented list blocks into their bare header. A `Key:` line with no
     # value over STRICTLY deeper-indented, colon-free plain lines is a list
     # field (dmidecode's `Characteristics:` over `PCI is supported` …). Both
@@ -110,10 +123,14 @@ strategy_extract () {
         # Extract key (everything before first colon) and value (everything after)
         local key value
 
-        # Strip leading "* " bullet markers and spaces
+        # Strip leading "* " bullet markers and spaces; "- " only in a
+        # uniformly dash-bulleted block (see _dash_bullets above).
         local _stripped="$line"
         if [[ "$_stripped" == "* "* ]]; then
             _stripped="${_stripped#\* }"
+        elif [[ $_dash_bullets -eq 1 ]]; then
+            local _ds="${_stripped#"${_stripped%%[![:space:]]*}"}"
+            [[ "$_ds" == "- "* ]] && _stripped="${_ds#- }"
         fi
         while [[ "$_stripped" == " "* ]]; do _stripped="${_stripped# }"; done
 

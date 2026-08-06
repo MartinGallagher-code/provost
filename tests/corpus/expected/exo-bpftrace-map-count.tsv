@@ -1,0 +1,9 @@
+n	map	key1	value	key2	total_entries
+1	syscalls	read	44210		8
+2	syscalls	write	38112		8
+3	syscalls	openat	9021		8
+4	syscalls	futex	88213		8
+5	syscalls	epoll_wait	2210		8
+6	syscalls	nanosleep	118		8
+7	count	chrome	5521	3391	8
+8	count	postgres	4410	2288	8

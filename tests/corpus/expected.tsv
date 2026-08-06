@@ -903,7 +903,7 @@ proc-cgroups	table	7	2
 proc-buddyinfo	table	6	13
 proc-zoneinfo	kv	-	4
 proc-pagetypeinfo	table	6	15
-proc-schedstat	table	4	8
+proc-schedstat	table	10	2
 proc-locks	table	6	6
 proc-self-mountinfo	table	6	9
 proc-crypto	kv	-	4
@@ -3119,7 +3119,7 @@ ldapsearch-ldif-people	text	-	6
 ldif-groups-export	text	-	5
 mbox-email-headers	text	-	5
 email-headers-thread	text	-	4
-git-cat-file-commit-objects	text	-	5
+git-cat-file-commit-objects	table	10	2
 git-cat-file-tag-objects	text	-	5
 pacman-si-multi	text	-	6
 pip-show-multi	text	-	6

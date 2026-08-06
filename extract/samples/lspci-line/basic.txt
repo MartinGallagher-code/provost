@@ -1,0 +1,3 @@
+00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)
+00:02.0 VGA compatible controller: Cirrus Logic GD 5446
+00:1f.0 ISA bridge [0601]: Intel Corporation Comet Lake LPC Controller [8086:068e]

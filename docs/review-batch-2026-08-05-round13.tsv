@@ -1,0 +1,57 @@
+# Round-13 review batch: the 50 riskiest entries that PASS the structural
+# pre-screen, ordered most-likely-to-be-wrong first (prescreen.py risk()),
+# drawn from the 2,700 not-yet-reviewed passing entries after excluding the
+# cumulative VALIDATED set and every mark from rounds 1-3 and 8-12.
+# Sent as glean_corpus_review_13_next50.docx. Marks come back as
+# docs/review-marks-<date>-round13.tsv.
+rank	name	risk	why
+1	ethtool-timestamp	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+2	exabgp-summary	5	all columns unnamed (A/B/C); single content column
+3	exo-bpftrace-map-count	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+4	exo-git-blame-porcelain	5	all columns unnamed (A/B/C); single content column
+5	exo-nft-monitor-trace	5	few captured cells vs input lines; '=' left inside cells
+6	exo-openssl-dhparam-text	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+7	exo-samtools-flagstat-pct	5	all columns unnamed (A/B/C); single content column
+8	exo-tcpdump-x-hexdump	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+9	exo-zonefile-origin-ttl	5	all columns unnamed (A/B/C); single content column
+10	fd-list	5	all columns unnamed (A/B/C); single content column
+11	ffmpeg-version	5	all columns unnamed (A/B/C); single content column
+12	findfs	5	all columns unnamed (A/B/C); single content column
+13	firewall-cmd	5	few captured cells vs input lines; single wide row
+14	firewalld-list-all	5	few captured cells vs input lines; single wide row
+15	firewalld-list-services	5	all columns unnamed (A/B/C); single content column
+16	fluent-bit-version	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+17	flutter-version	5	all columns unnamed (A/B/C); single content column
+18	freshclam-update	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+19	gamemode-status	5	all columns unnamed (A/B/C); single content column
+20	gcloud-logging-logs-list	5	all columns unnamed (A/B/C); single content column
+21	gem-list	5	all columns unnamed (A/B/C); single content column
+22	git-blame-porcelain	5	all columns unnamed (A/B/C); single content column
+23	git-cat-file-batch	5	all columns unnamed (A/B/C); single content column
+24	git-cat-file-commit-objects	5	all columns unnamed (A/B/C); single content column
+25	git-describe	5	all columns unnamed (A/B/C); single content column
+26	git-describe-tags	5	all columns unnamed (A/B/C); single content column
+27	git-log	5	all columns unnamed (A/B/C); single content column
+28	git-ls-files	5	all columns unnamed (A/B/C); single content column
+29	git-rev-list-count	5	all columns unnamed (A/B/C); single content column
+30	git-tag	5	all columns unnamed (A/B/C); single content column
+31	git-tag-list	5	all columns unnamed (A/B/C); single content column
+32	gnutls-cli-info	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+33	go-dist-list	5	all columns unnamed (A/B/C); single content column
+34	go-mod-verify	5	all columns unnamed (A/B/C); single content column
+35	gpg-list-keys-uid-commas	5	all columns unnamed (A/B/C); single content column
+36	gpioinfo-lines	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+37	grpcurl-list	5	all columns unnamed (A/B/C); single content column
+38	guile-version	5	all columns unnamed (A/B/C); single content column
+39	h5dump-header	5	all columns unnamed (A/B/C); single content column
+40	haproxy-show-servers	5	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed
+41	hdparm-M	5	single content column; dot-leaders / trailing colons kept in cells; '=' left inside cells
+42	host	5	all columns unnamed (A/B/C); single content column
+43	hurl-report	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+44	hydra-results	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+45	i2cget-read	5	all columns unnamed (A/B/C); single content column
+46	ip-mroute	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+47	ip-neigh-sparse-dev	5	all columns unnamed (A/B/C); single content column
+48	ip-netns-list	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
+49	ip-route-mixed-metric	5	all columns unnamed (A/B/C); single content column
+50	ip-rule	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells

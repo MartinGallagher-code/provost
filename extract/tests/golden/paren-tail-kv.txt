@@ -1,0 +1,13 @@
+entry1.key bundler
+entry1.value 2.4.22, 2.3.26
+entry2.key json
+entry2.value 2.7.1, 2.6.3
+entry3.key minitest
+entry3.value 5.20.0
+entry4.key rack
+entry4.value 3.0.8, 2.2.8
+entry5.key rake
+entry5.value 13.1.0
+entry6.key rspec
+entry6.value 3.12.0
+total_entries 6

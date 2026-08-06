@@ -1,0 +1,11 @@
+Attaching 1 probe...
+^C
+
+@syscalls[read]: 44210
+@syscalls[write]: 38112
+@syscalls[openat]: 9021
+@syscalls[futex]: 88213
+@syscalls[epoll_wait]: 2210
+@syscalls[nanosleep]: 118
+@count[chrome, 3391]: 5521
+@count[postgres, 2288]: 4410

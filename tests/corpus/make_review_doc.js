@@ -47,34 +47,36 @@ const cell = (text, width, opts = {}) =>
   new TableCell({
     width: { size: width, type: WidthType.DXA },
     shading: opts.header ? { type: ShadingType.CLEAR, fill: 'EDEDED' } : undefined,
-    margins: { top: 20, bottom: 20, left: 60, right: 60 },
+    margins: { top: 20, bottom: 20, left: opts.marg ?? 60, right: opts.marg ?? 60 },
     children: [
       new Paragraph({
         spacing: { before: 0, after: 0 },
-        children: [new TextRun({ text: text === '' ? ' ' : text, font: MONO, size: 14, bold: !!opts.header })],
+        children: [new TextRun({ text: text === '' ? ' ' : text, font: MONO, size: opts.size ?? 14, bold: !!opts.header })],
       }),
     ],
   });
 
-// Wide tables become unreadable in Word, so past 12 columns fall back to
-// monospace rows. Nothing is dropped either way.
-const MAX_TABLE_COLS = 12;
-
+// Every output renders as a REAL Word table, however wide. Past ~12 columns
+// the font and cell margins shrink and the table is allowed to extend beyond
+// the page margin (Word scrolls it) rather than falling back to pipe-separated
+// text — a genuine grid is far easier to assess. Nothing is dropped.
 function outputBlock(rows) {
   const ncols = Math.max(...rows.map((r) => r.length));
-  if (ncols > MAX_TABLE_COLS) {
-    return rows.map((r, i) => mono((i === 0 ? '' : '') + r.join(' | '), { bold: i === 0 }));
-  }
-  const w = Math.floor(CONTENT_W / ncols);
-  const widths = Array.from({ length: ncols }, (_, i) => (i === ncols - 1 ? CONTENT_W - w * (ncols - 1) : w));
+  const size = ncols > 20 ? 10 : ncols > 12 ? 12 : 14;   // half-points
+  const marg = ncols > 12 ? 30 : 60;                     // DXA
+  const MIN_COL = 620;                                   // ~0.43"
+  const even = Math.floor(CONTENT_W / ncols);
+  const colW = Math.max(MIN_COL, even);
+  const totalW = colW * ncols;                           // may exceed CONTENT_W (wide table scrolls)
+  const widths = Array.from({ length: ncols }, () => colW);
   return [
     new Table({
       columnWidths: widths,
-      width: { size: CONTENT_W, type: WidthType.DXA },
+      width: { size: totalW, type: WidthType.DXA },
       rows: rows.map((r, ri) =>
         new TableRow({
           tableHeader: ri === 0,
-          children: widths.map((wd, ci) => cell(r[ci] === undefined ? '' : r[ci], wd, { header: ri === 0 })),
+          children: widths.map((wd, ci) => cell(r[ci] === undefined ? '' : r[ci], wd, { header: ri === 0, size, marg })),
         })
       ),
     }),
@@ -101,7 +103,7 @@ children.push(
   new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: 'The screen checks structure only: ragged rows, blank or duplicate headers, separator rows kept as data, unsplit cells, pipes or stray whitespace left in cells, and column misalignment. It cannot see meaning. A parse that is cleanly rectangular but split on the wrong boundary passes. So "fine" means nothing is mechanically wrong, not that the result is correct.', size: 20 })] }),
   new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: 'Measured against your existing marks: 95% of the 258 you validated pass this screen, and it flags 38% of the round-3 Horrible entries. All 17 Not quite entries pass it — those failures are semantic, and invisible here.', size: 20 })] }),
   new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: 'Two known false passes are already in this document, left in deliberately as calibration: k6-summary (keeps its dot-leaders) and pgrep-a (pid not split from command).', size: 20, italics: true })] }),
-  new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: `Outputs with more than ${MAX_TABLE_COLS} columns are shown as pipe-separated monospace rows rather than a table, purely so they stay readable. Nothing is truncated anywhere in this document.`, size: 20 })] }),
+  new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: `Every output is a real Word table. Wide ones (many columns) use a smaller font and extend past the page margin — scroll right to see them — rather than falling back to pipe text. Nothing is truncated anywhere in this document.`, size: 20 })] }),
   new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: 'Rendering of raw bytes: control characters are illegal in Word XML, so the 1,670 of them in this corpus (mostly ANSI colour escapes, across 108 entries) are shown as visible control pictures — ␛ for ESC, ␇ for BEL, and so on. Tabs in the INPUT block are expanded to 8-column stops, the way a terminal shows them, so that column alignment reads correctly. Nothing is removed.', size: 20 })] }),
   new Paragraph({ children: [new PageBreak()] })
 );
