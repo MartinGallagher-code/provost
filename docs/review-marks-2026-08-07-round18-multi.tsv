@@ -1,0 +1,42 @@
+# Round-18: marks on the multi-dataset first-100 workbook v2 (entries 1-40).
+# mark: OK | FormatOff (split right, a piece parsed badly) | Horrible (wrong split)
+name	mark	note
+7z-benchmark	Horrible=x	dividing line should never be a part of a row (--------, etc). In this case. The dividing line indicates that there is summarization happening below,which would indicate a third data set.
+R-sessioninfo	FormatOff=x	you lost the Running Under entry. Also, the line for the second data set is not really the headers. There are not headers.
+R-version	OK=x	-
+age-keygen	OK=x	-
+amdgpu-top	Horrible=x	The first line is a stand-alone line in its own data set. The next line is a “super header” and the next line is the “header”. In other words, the super header entries apply to multiple entries in the header line. Dataset 2 of 2  is correct
+ansible-galaxy-collection-list	OK=x	-
+ansible-galaxy-list	OK=x	-
+apachebench	OK=x	-
+apk-info-a	Horrible=x	This is really a key/value single dataset set.
+arp-scan	Horrible=x	You lost the first two lines
+arping	OK=x	-
+artillery-report	FormatOff=x	rows should not contain just -------‘s
+atlantis-status	Horrible=x	the “Ran plan for 2 projects” should be a separate data set
+aureport	Horrible=x	Dataset 2 of 3 is the headers for dataset 3 of 3
+aureport-login	Horrible=x	dataset 2 is the headers for dataset 3
+autocannon-run	OK=x	-
+biosdecode	Horrible=x	You lost a large chunk of information
+blackbox-probe	FormatOff=x	dataset 2 of 5 should have a B column
+blender-benchmark	OK=x	-
+bpftrace	OK=x	-
+btrfs-filesystem-show	FormatOff=x	You lost data.
+bun-install-summary	OK=x	-
+bundle-outdated	FormatOff=x	dataset 1 should not be multiple columns
+cargo-audit	FormatOff=x	dataset 1 should not only be two columns
+cargo-bench	Horrible=x	line 1 should be in its own dataset
+cargo-machete	Horrible=x	-
+cargo-test-summary	Horrible=x	line 1 should be its own dataset
+cassandra-nodetool-tpstats	OK=x	-
+cheat-sheet	Horrible=x	This is all  unparsible text
+checkov-summary	OK=x	-
+cilium-status	FormatOff=x	the decoration lineart should be removed
+cinebench-r23	OK=x	-
+clpeak-run	FormatOff=x	You lost “Global memory  and width”
+cmb-banner-comment-box	OK=x	-
+cmb-banner-indented-table	OK=x	-
+cmb-build-log-color-table	OK=x	-
+cmb-clear-screen-table	OK=x	-
+cmb-comment-header-box	OK=x	-
+cmb-figlet-banner-table	OK=x	-
