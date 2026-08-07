@@ -176,6 +176,45 @@ EOF
     assert_eq "1" "$n" "an aligned header row is not treated as a count preamble"
 }
 
+# The scored search: a boundary that DESTROYS a better whole-input parse must
+# be vetoed. kubectl describe has no blank line -- a top kv block runs straight
+# into `Conditions:` and `Events:` -- and describe-report handles all three
+# shapes together. Any candidate split of it loses content, so the whole input
+# must win.
+test_multi_scoring_vetoes_a_losing_split () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+Name:                   api-gateway
+Namespace:              production
+Replicas:               3 desired | 3 updated
+Conditions:
+  Type           Status  Reason
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+EOF
+    out=$(run_mfe --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "1" "$n" "a split that loses to the whole-input parse is vetoed"
+}
+
+# ...but a split that RECOVERS dropped content must survive the veto: without
+# it, only the Device table would be kept and the avg-cpu block lost.
+test_multi_scoring_keeps_a_winning_split () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    _multi_iostat_input > "$tmpfile"
+    out=$(run_mfe --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_contains "$out" "%user" "the avg-cpu block the whole-input parse would drop is kept"
+    [ "$n" -ge 2 ] && assert_eq "1" "1" "a split that recovers content survives the veto" \
+        || assert_eq "2+" "$n" "a split that recovers content survives the veto"
+}
+
+run_test "scoring vetoes a losing split"        test_multi_scoring_vetoes_a_losing_split
+run_test "scoring keeps a winning split"        test_multi_scoring_keeps_a_winning_split
 run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
 run_test "aligned header is not a preamble"     test_multi_header_is_not_a_preamble
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits

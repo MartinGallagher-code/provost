@@ -1,5 +1,50 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi decides boundaries by SCORING, not by guessing
+
+Three experiments this week failed the same way: the splitter chose boundaries
+BEFORE detection, so it could not tell a cut that helps from one that pre-empts
+a better parse. Splitting `kubectl describe` at its `Conditions:` header
+destroyed `describe-report`; NOT splitting `iostat -x` kept only the Device
+table. A splitter deciding up front cannot separate those two. **A splitter that
+scores the finished parses can** — the signal is simply invisible until both
+parses exist:
+
+|                  | whole | split |
+|------------------|------:|------:|
+| kubectl describe | 100%  |  94%  |
+| iostat -x        |  82%  |  99%  |
+
+- **New `extract/lib/_score.sh`.** Scores a candidate parse on two terms, since
+  neither works alone. COVERAGE — the fraction of the input's significant tokens
+  surviving into some output cell — catches dropped sections and shredded
+  values, but alone is gameable (echoing every line as one opaque column scores
+  100%). TIDINESS — the fraction of cells free of a structural defect (unsplit
+  column boundary, separator row kept as data, `key: value` left inside a cell,
+  ragged row) — is what stops that. These are the checks
+  `tests/corpus/prescreen.py` applies to review output, now scoring inside the
+  engine. Tokens are compared with underscores split as whitespace, because the
+  engine encodes a space inside a value as `_`.
+- **`run_multi_mode` is now a search.** Extraction is separated from emission,
+  the whole input always competes against the proposed split, and only the
+  winner is printed. The boundary rules PROPOSE; the score VETOES only when the
+  whole-input parse is MATERIALLY better (>2%) — a near-tie keeps the split,
+  because the rules that produced it are evidence too and a few points out of
+  10000 is noise, not a finding. kubectl clears the margin by 600; cargo-bench
+  differs by 18.
+- Every case the reviewer ruled on now resolves correctly *and for the right
+  reason*: kubectl describe 1, iostat-x 3, proc-slabinfo 3, 7z-benchmark 3,
+  artillery-report 3, cargo-bench 3, cargo-test-summary 3, atlantis-status 3.
+- **New `tests/corpus/coverage.sh`** turns the same measure into a review
+  signal, ranking the corpus by how much of each input survives its parse so
+  lossy parses surface by themselves. Documented as a signal, NOT a gate:
+  measured against the reviewer's marks the lossy group scored 13–68% and the
+  agreed group 59–100% — separated on average, overlapping in the middle,
+  because many parses legitimately drop chrome and units.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (9 -> 11), one per
+  direction of the veto. Corpus gate 3463/0/242 unchanged, extract 63/63,
+  smoke 65/0, melt 10/0.
+
 ## 2026-08-07 — --multi: a count preamble is its own dataset
 
 - The reviewer on cargo-test-summary — *"'running 44 tests' is a separate

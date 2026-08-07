@@ -875,57 +875,109 @@ run_multi_mode () {
         fi
     done
 
-    # Full extraction per group; emit surviving datasets.
+    # --- candidate scoring -------------------------------------------------
+    # Extraction is now separated from emission so competing SEGMENTATIONS can
+    # be parsed, scored, and only then have the winner printed. Splitting is a
+    # search, not a commitment: the whole input always competes against the
+    # split, because neither is right in general (see _score.sh).
+    _multi_extract_into () {
+        # $1 = array-name prefix; extracts every group into <prefix>_name/
+        # <prefix>_conf/<prefix>_fields and sets <prefix>_n.
+        local _p="$1" _i _n=0
+        for ((_i = 0; _i <= gi; _i++)); do
+            text="${group_text[$_i]}"
+            if [[ "${group_istext[$_i]:-0}" -eq 1 ]]; then
+                local _t_out="" _t_line _t_n=0
+                while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
+                    [[ -z "${_t_line//[[:space:]]/}" ]] && continue
+                    _t_n=$((_t_n + 1))
+                    _t_out+="line${_t_n} ${_t_line}"$'\n'
+                done <<< "$text"
+                [[ $_t_n -gt 0 ]] || continue
+                eval "${_p}_name[$_n]=text; ${_p}_conf[$_n]=100"
+                eval "${_p}_fields[$_n]=\"\${_t_out%\$'\\n'}\""
+                _n=$((_n + 1))
+                continue
+            fi
+            _CLEAN_TEXT_CACHE=""; _CLEAN_TEXT_DONE=0
+            _WINNER_NAME=""; _WINNER_CONF=0
+            output=""
+            run_auto_strategies
+            if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then
+                local _m_pre="$output"
+                output=$(deduplicate_output "$output")
+                [[ -z "$output" && -n "$_m_pre" ]] && output="$_m_pre"
+            fi
+            [[ -n "$output" ]] || continue
+            local _m_fields="" _m_line
+            while IFS= read -r _m_line; do
+                [[ -z "$_m_line" ]] && continue
+                strip_strat_prefix "$_m_line"
+                _m_fields+="$_STRIPPED_LINE"$'\n'
+            done <<< "$output"
+            eval "${_p}_name[$_n]=\"\${_WINNER_NAME:-}\"; ${_p}_conf[$_n]=\"\${_WINNER_CONF:-0}\""
+            eval "${_p}_fields[$_n]=\"\${_m_fields%\$'\\n'}\""
+            _n=$((_n + 1))
+        done
+        eval "${_p}_n=$_n"
+    }
+
+    local _whole_text="$text"
+    local -a split_name=() split_conf=() split_fields=() split_n=0
+    local -a whole_name=() whole_conf=() whole_fields=() whole_n=0
+    local -a group_text_saved=() group_name_saved=() group_istext_saved=()
+    local _gi_saved=$gi
+
+    _multi_extract_into split
+    group_text_saved=("${group_text[@]}")
+    group_name_saved=("${group_name[@]}")
+    group_istext_saved=("${group_istext[@]:-}")
+
+    # The rival candidate: no split at all.
+    gi=0
+    group_text=("$_whole_text"); group_name=(""); group_istext=(0)
+    _multi_extract_into whole
+    gi=$_gi_saved
+
+    # Namespace each dataset's field names before concatenating, so the
+    # `entryN.` prefixes the ragged-row check groups on cannot collide between
+    # datasets (every dataset restarts at entry1).
+    _multi_ns () { printf '%s\n' "$2" | sed "s/^/d$1_/"; }
+    local _cat_split="" _cat_whole="" _q
+    for ((_q = 0; _q < split_n; _q++)); do _cat_split+="$(_multi_ns "$_q" "${split_fields[$_q]}")"$'\n'; done
+    for ((_q = 0; _q < whole_n; _q++)); do _cat_whole+="$(_multi_ns "$_q" "${whole_fields[$_q]}")"$'\n'; done
+    local _sc_split=0 _sc_whole=0
+    _score_parse "$_whole_text" "$_cat_split" "$split_n"; _sc_split=$_SCORE
+    _score_parse "$_whole_text" "$_cat_whole" "$whole_n"; _sc_whole=$_SCORE
+    _log_debug "multi: candidate scores — split($split_n)=$_sc_split whole($whole_n)=$_sc_whole"
+
+    # The boundary rules PROPOSED this split; the score only VETOES it when the
+    # whole-input parse is MATERIALLY better — more than _MULTI_VETO_MARGIN
+    # (2%) ahead. A near-tie keeps the split, because the rules that produced it
+    # (a rule line, a comment run, a count preamble) are themselves evidence
+    # about the input, and because a margin of a few points out of 10000 is
+    # noise in a heuristic score, not a finding. kubectl describe clears the
+    # margin by 600; cargo bench differs by 18.
+    local -a win_name=() win_conf=() win_fields=()
+    local win_n=0
+    local _MULTI_VETO_MARGIN=200
+    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN ]]; then
+        win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
+        win_fields=("${split_fields[@]}"); win_n=$split_n
+    elif [[ $whole_n -gt 0 ]]; then
+        win_name=("${whole_name[@]}"); win_conf=("${whole_conf[@]}")
+        win_fields=("${whole_fields[@]}"); win_n=$whole_n
+    else
+        win_name=("${split_name[@]:-}"); win_conf=("${split_conf[@]:-}")
+        win_fields=("${split_fields[@]:-}"); win_n=$split_n
+    fi
+
+    # Emit the winner.
     local i ds=0
-    for ((i = 0; i <= gi; i++)); do
-        text="${group_text[$i]}"
-        # A comment/legend run is emitted VERBATIM as a `text` dataset — one
-        # `lineN` field per line. Forcing a parser on it would invent columns
-        # out of prose; dropping it would lose context the reader wants.
-        if [[ "${group_istext[$i]:-0}" -eq 1 ]]; then
-            local _t_out="" _t_line _t_n=0
-            while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
-                [[ -z "${_t_line//[[:space:]]/}" ]] && continue
-                _t_n=$((_t_n + 1))
-                _t_out+="line${_t_n} ${_t_line}"$'\n'
-            done <<< "$text"
-            [[ $_t_n -gt 0 ]] || continue
-            ds=$((ds + 1))
-            printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "text" "100"
-            _t_out="${_t_out%$'\n'}"
-            case "$_OPT_format" in
-                json)        format_json "$_t_out" ;;
-                json-nested) format_json_nested "$_t_out" ;;
-                csv)         format_csv "$_t_out" ;;
-                tsv)         format_tsv "$_t_out" ;;
-                plain)       format_plain "$_t_out" ;;
-                yaml)        format_yaml "$_t_out" ;;
-                xml)         format_xml "$_t_out" ;;
-                *)           format_plain "$_t_out" ;;
-            esac
-            continue
-        fi
-        _CLEAN_TEXT_CACHE=""
-        _CLEAN_TEXT_DONE=0
-        _WINNER_NAME=""
-        _WINNER_CONF=0
-        output=""
-        run_auto_strategies
-        if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then
-            local _m_pre="$output"
-            output=$(deduplicate_output "$output")
-            [[ -z "$output" && -n "$_m_pre" ]] && output="$_m_pre"
-        fi
-        [[ -n "$output" ]] || continue
+    for ((i = 0; i < win_n; i++)); do
         ds=$((ds + 1))
-        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}"
-        local _m_fields="" _m_line
-        while IFS= read -r _m_line; do
-            [[ -z "$_m_line" ]] && continue
-            strip_strat_prefix "$_m_line"
-            _m_fields+="$_STRIPPED_LINE"$'\n'
-        done <<< "$output"
-        _m_fields="${_m_fields%$'\n'}"
+        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${win_name[$i]}" "${win_conf[$i]}"
+        local _m_fields="${win_fields[$i]}"
         case "$_OPT_format" in
             json)        format_json "$_m_fields" ;;
             json-nested) format_json_nested "$_m_fields" ;;
