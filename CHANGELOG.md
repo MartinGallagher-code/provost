@@ -1,5 +1,30 @@
 # glean — Changelog
 
+## 2026-08-07 — multi-dataset capture (`glean --multi`)
+
+- **`glean --multi` / `glean run --multi` / `GLEAN_MULTI=1`** files EVERY
+  dataset an input holds, instead of letting one winner drop the rest. The
+  reviewer's framing: one input may carry key/value data (possibly with
+  different delimiters), tabular data, and text best left unparsed — all at
+  once. The `--multi` engine mode (2026-08-04) was the building block; this is
+  the capture-pipeline adoption that was deferred then.
+- `_ingest` now builds a LIST of datasets and loops over it — the ordinary
+  one-winner capture is the N=1 case, so the default path is unchanged. Each
+  dataset melts and stores through the normal `_store_append`, so it
+  accumulates, reconciles, and splits into variants like any other; two parts
+  of one input that parse the same way but differ in shape land in `NAME` and
+  `NAME.v2` with no special naming.
+- One capture, N datasets: row ids run consecutively across them, each row gets
+  its own provenance line, and `glean source N` still returns the whole
+  original input. `meta.tsv` gains `datasets` + `dataset_rows`; `strategy`,
+  `confidence` and `dataset` become comma-joined.
+- A below-threshold dataset is dropped (a fragment of an input whose other
+  parts matched); if none clears the bar the capture falls back to the single
+  path so unmatched input still reaches `unsorted`.
+- `iostat -x` → 3 datasets (uname banner, avg-cpu kv, Device table) where the
+  default keeps only the table. 7 new smoke checks (58 → 65, 0 failed); melt
+  10/0. Files: `glean`, `tests/smoke.sh`, `docs/0003-multi-dataset.md`.
+
 ## 2026-08-06 — round-16 sweep: 13 more kv dumps routed (per the reviewer's brief)
 
 The reviewer left the remaining ~503 workbook entries unmarked with "see if you

@@ -1,7 +1,7 @@
 # 0003 — Multi-dataset extraction (`--multi`)
 
-**Status: engine mode shipped (2026-08-04); glean capture adoption deliberately
-deferred.**
+**Status: engine mode shipped (2026-08-04); glean capture adoption shipped
+(2026-08-07) — `glean --multi` / `GLEAN_MULTI=1`.**
 
 ## The problem
 
@@ -53,25 +53,56 @@ outputs — for instance a key/value in the same input with a table."*
 Tests: `extract/tests/test_multi_mode.sh` (three-dataset split, record-stream
 re-forming, separator format, flag conflicts).
 
-## What was deliberately NOT done
+## The capture adoption (2026-08-07)
 
-**glean's capture pipeline still stores ONE dataset per capture.** The
-`captures/<id>/` layout, `meta.tsv`, melt/analyze, and the corpus harness all
-assume one tidy table per input; multi-dataset captures touch every one of
-those surfaces (dataset naming, `show`/`export` addressing, review tooling).
-That adoption should be its own change with its own review — the engine mode
-is the building block, usable today by callers that want it
-(`glean run -- iostat -x` piping through `envoy-extract --multi` by hand).
+`glean --multi` (also `glean run --multi`, or `GLEAN_MULTI=1`) files every
+dataset an input holds. The rationale, in the reviewer's words: *"one input may
+have different types of data — some that fits well as key/value (possibly with
+different delimiters), some that fits well into a table, and some that is just
+left unparsed (headers or comments) — all from a single input."*
+
+`_ingest` now builds a **list** of datasets and loops over it; the ordinary
+one-winner capture is simply the N=1 case, so nothing about the default path
+changed. Per capture:
+
+- Each dataset is melted and stored through the normal `_store_append`, so it
+  **accumulates across captures, reconciles, and splits into variants** exactly
+  like a single-dataset one. Two parts of one input that parse the same way but
+  differ in shape land in `NAME` and `NAME.v2` — the store's existing rule does
+  the disambiguation, no special naming needed.
+- **One capture, N datasets.** Row ids (#N) run consecutively across them and
+  each row gets its own provenance line, so `glean source N` still returns the
+  whole original input. There is one `output.txt`, one commit, one tag.
+- `meta.tsv` keeps its existing keys (`strategy`, `confidence`, `dataset`
+  become comma-joined) and adds `datasets` (how many) and `dataset_rows`
+  (`name:#a..b,…`) when there is more than one.
+- A dataset below the confidence threshold is **dropped rather than queued**:
+  it is a fragment of an input whose other parts did match, and the whole input
+  is stored with the capture regardless. If NO dataset clears the bar the
+  capture falls back to the single path, so an unmatched input still reaches
+  the `unsorted` triage queue.
+
+`iostat -x` under `glean --multi` files three datasets — the uname banner, the
+avg-cpu kv block, and the Device table — where the default capture keeps only
+the table. Covered by 7 checks in `tests/smoke.sh` (65 passing).
 
 The corpus golden gate keeps running single-dataset (`--max-strategies 1`);
 no goldens changed with this feature.
 
 ## Possible next steps
 
-- `glean capture --multi` storing `dataset-N.tsv` siblings + a `datasets`
-  meta key; `glean show <id>:<n>` addressing.
+- **Smarter section splitting.** Blank lines are the only boundary today, so an
+  input whose sections are marked by indentation or a `Section:` header still
+  reads as one block: `proc-slabinfo` (a `# name …` comment header over a
+  table, no blank lines) and `kubectl describe` (handled whole by
+  `describe-report`) both stay single under `--multi`. Splitting on a *shape
+  change* — or on `Section:` headers — would feed the same
+  group-extract-emit pipeline and is the highest-value follow-up.
+- **Leave-unparsed as a first-class outcome.** A banner or comment run
+  currently either finds a weak parse (`version-line` on the uname line) or is
+  dropped by the threshold. A `text` dataset kind that keeps such a block
+  verbatim, labelled, would match the reviewer's "just left unparsed" case
+  exactly.
 - Corpus: a `multi` manifest kind for inputs whose right answer is several
   tables (amdgpu-top, iostat family), gating each dataset against its own
   golden.
-- Smarter section splitting (indentation-scoped sections, `Section:` headers)
-  feeding the same group-extract-emit pipeline.

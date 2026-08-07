@@ -86,6 +86,7 @@ GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
 GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
 GLEAN_LOCK_TIMEOUT="${GLEAN_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 GLEAN_RECONCILE_OVERLAP="${GLEAN_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
+GLEAN_MULTI="${GLEAN_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -297,25 +298,66 @@ _ingest () {
     if [[ -n "${GLEAN_PLUGIN_DIR:-}" ]]; then
         eargs+=(--plugin-dir "$GLEAN_PLUGIN_DIR")
     fi
-    wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
-            ${eargs[@]+"${eargs[@]}"} \
-            --emit-meta -f tsv --max-strategies 1 "$body" 2>"$metaf")" || true
-    meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
-    strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
-    conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
-    [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
 
-    # Build the content to file (header + data rows), pre-#-index, for both the
-    # matched and the held-back (unsorted) paths.
+    # The datasets this capture will file. A normal capture yields exactly one;
+    # --multi (GLEAN_MULTI=1) can yield several, because some reports genuinely
+    # hold more than one table (iostat -x: a uname banner, an avg-cpu kv block
+    # and a Device table). Everything downstream — row ids, provenance, the
+    # commit — loops over these, so the single-dataset case is just N=1.
+    local -a ds_name=() ds_strategy=() ds_conf=() ds_content=()
     local content dsname reason=""
-    if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
-    elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
-    if [[ -n "$reason" ]]; then
-        dsname="unsorted"; strategy="${strategy:-none}"
-        content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
-    else
-        dsname="$strategy"
-        content="$(_core_melt_tidy "$wide")"
+
+    if [[ "${GLEAN_MULTI:-0}" -eq 1 ]]; then
+        # --multi splits the input into blocks, groups them, and emits each
+        # surviving dataset behind a `__DATASET__ n strategy confidence` line.
+        local multi_out="$tmp/multi.txt"
+        env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+            ${eargs[@]+"${eargs[@]}"} --multi -f tsv --max-strategies 1 "$body" \
+            >"$multi_out" 2>"$metaf" || true
+        awk -F'\t' -v dir="$tmp" '
+            /^__DATASET__/ { n = $2; printf "%s\t%s\n", $3, $4 > (dir "/ds." n ".meta"); next }
+            n != "" { print > (dir "/ds." n ".wide") }
+        ' "$multi_out" 2>/dev/null || true
+        local i=1 dstrat dconf dwide
+        while [[ -f "$tmp/ds.$i.meta" ]]; do
+            IFS=$'\t' read -r dstrat dconf < "$tmp/ds.$i.meta" || true
+            dwide="$(cat "$tmp/ds.$i.wide" 2>/dev/null || true)"
+            [[ "$dconf" =~ ^[0-9]+$ ]] || dconf=0
+            # A dataset below the threshold is dropped rather than queued: it is
+            # a fragment of an input whose other parts did match, and the whole
+            # input is stored with the capture either way.
+            if [[ -n "$dstrat" && -n "$dwide" && "$dconf" -ge "$threshold" ]]; then
+                ds_name+=("$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
+                ds_content+=("$(_core_melt_tidy "$dwide")")
+            fi
+            i=$((i + 1))
+        done
+    fi
+
+    if [[ ${#ds_content[@]} -eq 0 ]]; then
+        # Single-dataset path — also the fallback when --multi found nothing
+        # worth filing, so an unmatched input still reaches the triage queue.
+        wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+                ${eargs[@]+"${eargs[@]}"} \
+                --emit-meta -f tsv --max-strategies 1 "$body" 2>"$metaf")" || true
+        meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
+        strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
+        conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
+        [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+
+        # Build the content to file (header + data rows), pre-#-index, for both
+        # the matched and the held-back (unsorted) paths.
+        if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
+        elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
+        if [[ -n "$reason" ]]; then
+            dsname="unsorted"; strategy="${strategy:-none}"
+            content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
+        else
+            dsname="$strategy"
+            content="$(_core_melt_tidy "$wide")"
+        fi
+        ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
+        ds_content=("$content")
     fi
 
     # --- critical section: assign #N, append, provenance, commit -----------
@@ -324,41 +366,65 @@ _ingest () {
     trap "_unlock; rm -rf '$tmp'" RETURN
 
     local startid nrows fields id capd ts final
-    startid="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"
-    nrows=$(( $(printf '%s\n' "$content" | grep -c .) - 1 )); [[ $nrows -lt 0 ]] && nrows=0
-
-    # Prepend a visible, globally-unique '#' index to the header + each row.
-    local idcontent
-    idcontent="$(printf '%s\n' "$content" | awk -F'\t' -v OFS='\t' -v s="$startid" '
-        NR==1 { print "#", $0; next } { print (s + NR - 2), $0 }')"
-    fields=$(printf '%s\n' "$idcontent" | head -1 | awk -F'\t' '{print NF}')
-
-    local result; result="$(_store_append "$dsname" "$idcontent")"
-    final="${result%%$'\t'*}"
-
     id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
     ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     cp "$in" "$capd/output.txt"
     if [[ -s "$ctxf" ]]; then cp "$ctxf" "$capd/context.txt"; fi
+    [[ -f "$(_prov_file)" ]] || printf '#\tdataset\tcapture\n' > "$(_prov_file)"
+
+    # File each dataset in turn: allocate its own #N range, store it, and record
+    # a provenance line per row. Row ids run consecutively across the datasets
+    # of one capture, so every row still maps back to this one input.
+    local nextid firstid totalrows=0 idcontent result k i
+    nextid="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"; firstid="$nextid"
+    local -a out_names=() out_ranges=()
+    for (( k=0; k<${#ds_content[@]}; k++ )); do
+        content="${ds_content[k]}"
+        startid="$nextid"
+        nrows=$(( $(printf '%s\n' "$content" | grep -c .) - 1 )); [[ $nrows -lt 0 ]] && nrows=0
+
+        # Prepend a visible, globally-unique '#' index to the header + each row.
+        idcontent="$(printf '%s\n' "$content" | awk -F'\t' -v OFS='\t' -v s="$startid" '
+            NR==1 { print "#", $0; next } { print (s + NR - 2), $0 }')"
+        fields=$(printf '%s\n' "$idcontent" | head -1 | awk -F'\t' '{print NF}')
+
+        result="$(_store_append "${ds_name[k]}" "$idcontent")"
+        final="${result%%$'\t'*}"
+        out_names+=("$final")
+        out_ranges+=("$([[ $nrows -gt 0 ]] && echo "#${startid}..$((startid+nrows-1))" || echo none)")
+
+        for (( i=0; i<nrows; i++ )); do
+            printf '%s\t%s\t%s\n' "$((startid+i))" "$final" "$id" >> "$(_prov_file)"
+        done
+        nextid=$((startid + nrows)); totalrows=$((totalrows + nrows))
+    done
+    echo "$nextid" > "$(_rowid_file)"
+
+    # meta.tsv keeps its single-dataset keys; with several datasets they carry a
+    # comma-joined value and `datasets` records how many (plus each one's rows).
+    local j all_names="" all_strats="" all_confs="" all_rows=""
+    for (( j=0; j<${#out_names[@]}; j++ )); do
+        all_names="${all_names:+$all_names,}${out_names[j]}"
+        all_strats="${all_strats:+$all_strats,}${ds_strategy[j]}"
+        all_confs="${all_confs:+$all_confs,}${ds_conf[j]}"
+        all_rows="${all_rows:+$all_rows,}${out_names[j]}:${out_ranges[j]}"
+    done
     {
         printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
         printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$cmd"
-        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$strategy"
-        printf 'confidence\t%s\n' "$conf";  printf 'dataset\t%s\n' "$final"
-        printf 'row_ids\t%s\n' "$([[ $nrows -gt 0 ]] && echo "$startid-$((startid+nrows-1))" || echo none)"
+        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$all_strats"
+        printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
+        printf 'row_ids\t%s\n' "$([[ $totalrows -gt 0 ]] && echo "$firstid-$((nextid-1))" || echo none)"
+        if [[ ${#out_names[@]} -gt 1 ]]; then
+            printf 'datasets\t%s\n' "${#out_names[@]}"
+            printf 'dataset_rows\t%s\n' "$all_rows"
+        fi
         if [[ -n "${GLEAN_PLUGIN_DIR:-}" ]]; then
             printf 'plugin_dir\t%s\n' "$GLEAN_PLUGIN_DIR"
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
     } > "$capd/meta.tsv"
-
-    # Provenance: one line per row  (#N \t dataset \t capture)
-    [[ -f "$(_prov_file)" ]] || printf '#\tdataset\tcapture\n' > "$(_prov_file)"
-    local i
-    for (( i=0; i<nrows; i++ )); do
-        printf '%s\t%s\t%s\n' "$((startid+i))" "$final" "$id" >> "$(_prov_file)"
-    done
-    echo "$((startid + nrows))" > "$(_rowid_file)"
+    startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
     # In a controlled directory, snapshot the directory's contents as commit
     # context so the capture is tied to what the tree looked like at the time.
@@ -378,6 +444,11 @@ _ingest () {
     local idrange="#${startid}..$((startid+nrows-1))"; [[ $nrows -eq 0 ]] && idrange="(no rows)"
     if [[ -n "$reason" ]]; then
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
+    elif [[ ${#out_names[@]} -gt 1 ]]; then
+        ok "$id: → ${#out_names[@]} datasets, rows $idrange:"
+        for (( j=0; j<${#out_names[@]}; j++ )); do
+            info "      ${out_names[j]}  ${out_ranges[j]}  (strategy ${ds_strategy[j]}, conf ${ds_conf[j]})"
+        done
     else
         ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf) — $((fields-1)) field(s)."
     fi
@@ -417,6 +488,7 @@ cmd_inject () {
             -q|--silent) GLEAN_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
             --plugin-dir) GLEAN_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
+            --multi) GLEAN_MULTI=1; shift ;;
             --async) async=1; shift ;;
             --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
@@ -457,6 +529,7 @@ cmd_run () {
             -q|--silent) GLEAN_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
             --plugin-dir) GLEAN_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
+            --multi) GLEAN_MULTI=1; shift ;;
             --async) async=1; shift ;;
             --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
@@ -866,8 +939,11 @@ USAGE
                                                  commit, auto-detect + file it
     cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset —
                 [--sync] [--plugin-dir DIR]        captures in the BACKGROUND by default;
-                                                 --sync/--wait to file it in the foreground;
-                                                 --plugin-dir adds an extra strategy dir
+                [--multi]                          --sync/--wait to file it in the foreground;
+                                                 --plugin-dir adds an extra strategy dir;
+                                                 --multi files EVERY dataset the input
+                                                 holds (a kv block and a table and a
+                                                 banner) instead of one winner
     glean [FILE]                                  inject a file instead of stdin
     glean source <#N>                             show the original source behind row #N
     glean control [<dir>]                         make <dir> its own capture instance
@@ -905,8 +981,21 @@ ENV
                           on inject/run; for wrappers like deframe — no
                           ~/.mfe/strategies symlink needed)
     GLEAN_ASYNC          background capture (default 1; set 0 or use --sync for foreground)
+    GLEAN_MULTI           file every dataset an input holds (default 0; same as --multi)
     GLEAN_MAX_INPUT       max input bytes (default: 10485760)
     GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
+
+MULTIPLE DATASETS PER INPUT (--multi)
+    Some reports hold more than one kind of data — a key/value block, a table,
+    and a banner or comment run that is best left alone. The default one-winner
+    capture keeps whichever the engine ranks first and drops the rest; --multi
+    splits the input, parses each part on its own terms (a kv block and a table
+    can even use different delimiters), and files each as its own dataset under
+    ONE capture. Datasets are named by their winning strategy, so two parts that
+    parse the same way but differ in shape land in NAME and NAME.v2. Row indices
+    (#N) run consecutively across them and 'glean source N' still returns the
+    whole original input. 'glean log' shows the comma-joined list; the capture's
+    meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
 
 METADATA PROLOGUE
     A leading run of '#%' lines on injected input is treated as capture context,
