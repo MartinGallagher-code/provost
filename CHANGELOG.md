@@ -1,5 +1,152 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi: section-header splitting tried and reverted (finding recorded)
+
+- Implemented "a bare `Header:` over an indented body opens a sub-block" so
+  sectioned reports without blank lines (`kubectl describe`: a kv block running
+  straight into `Conditions:` and `Events:`) would decompose. It split that
+  input three ways and made the parse **worse**: `describe-report` @85 handling
+  all three shapes together became `protobuf-text` @80 with mangled keys,
+  `aligned-columns` @70, and `indented-hierarchy` @65 with the Message column
+  shredded. Dedenting the section bodies first does not rescue it —
+  `fixed-width` then wins on Events and truncates values to the `----` widths.
+- Cause is ordering: splitting happens BEFORE detection, so a strategy written
+  to handle the sections together never sees the whole input. Three candidate
+  guards were rejected (bespoke-vs-generic does not separate the cases —
+  `describe-report` lives in `delimited/` and counts as generic; "any strategy
+  detects the whole block" is far too broad; "sections detect different
+  strategies" is true here too). Reverted rather than shipped.
+- Costs the iostat family nothing: its sections are already blank-line
+  separated, so they split before a section rule would apply. Rationale and the
+  coverage-measure design a future attempt needs are in
+  `docs/0003-multi-dataset.md`.
+- Comment-run splitting and multi-dataset capture are unaffected and stay.
+  test_multi_mode 6/6, extract 63/63, smoke 65/0, melt 10/0, corpus 3463/0/242.
+
+## 2026-08-07 — --multi: comment runs split, and stay unparsed
+
+- **Blank lines are no longer the only boundary.** A maximal run of `#`-led
+  lines now splits its block into `[before][comments][after]`, catching the
+  common shape of a legend sitting directly above a table with no blank line
+  between (`/proc/slabinfo`'s `# name <active_objs> …`). A comment group never
+  merges with the data either side of it.
+- **A comment run is kept VERBATIM** as a `text` dataset (one `lineN` field per
+  line, confidence 100) instead of being force-fitted to a parser that would
+  invent columns out of prose, or dropped. That makes "just left unparsed
+  (headers or comments)" a first-class outcome alongside kv and tabular.
+- `/proc/slabinfo` under `--multi` now yields three datasets (version banner as
+  kv, legend as text, the table) where it read as one block before.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (4 → 6). Corpus gate
+  3463/0/242 unchanged (it runs single-dataset), extract 63/63, smoke 65/0,
+  melt 10/0. Files: `extract/lib/_dispatch.sh`, `extract/tests/test_multi_mode.sh`,
+  `docs/0003-multi-dataset.md`.
+
+## 2026-08-07 — multi-dataset capture (`glean --multi`)
+
+- **`glean --multi` / `glean run --multi` / `GLEAN_MULTI=1`** files EVERY
+  dataset an input holds, instead of letting one winner drop the rest. The
+  reviewer's framing: one input may carry key/value data (possibly with
+  different delimiters), tabular data, and text best left unparsed — all at
+  once. The `--multi` engine mode (2026-08-04) was the building block; this is
+  the capture-pipeline adoption that was deferred then.
+- `_ingest` now builds a LIST of datasets and loops over it — the ordinary
+  one-winner capture is the N=1 case, so the default path is unchanged. Each
+  dataset melts and stores through the normal `_store_append`, so it
+  accumulates, reconciles, and splits into variants like any other; two parts
+  of one input that parse the same way but differ in shape land in `NAME` and
+  `NAME.v2` with no special naming.
+- One capture, N datasets: row ids run consecutively across them, each row gets
+  its own provenance line, and `glean source N` still returns the whole
+  original input. `meta.tsv` gains `datasets` + `dataset_rows`; `strategy`,
+  `confidence` and `dataset` become comma-joined.
+- A below-threshold dataset is dropped (a fragment of an input whose other
+  parts matched); if none clears the bar the capture falls back to the single
+  path so unmatched input still reaches `unsorted`.
+- `iostat -x` → 3 datasets (uname banner, avg-cpu kv, Device table) where the
+  default keeps only the table. 7 new smoke checks (58 → 65, 0 failed); melt
+  10/0. Files: `glean`, `tests/smoke.sh`, `docs/0003-multi-dataset.md`.
+
+## 2026-08-06 — round-16 sweep: 13 more kv dumps routed (per the reviewer's brief)
+
+The reviewer left the remaining ~503 workbook entries unmarked with "see if you
+can solve some of these — check where there ought to be a table or some
+key/value portion." Probed all 503 against the new strategies; 126 matched
+`nested-colon-kv` structurally, of which 13 were clear single-record key/value
+dumps whose current parse was flagged — routed via hints and regenerated:
+nvme-id-ns, nvme-id-ctrl, nvme-smart-log, proc-status, proc-crypto (old parse
+kept the literal `:` as a column), mongo-serverstatus, proc-ioports,
+whois_domain + whois + whois-domain (old parses were underscore-mangled pivots
+or an aligned-columns mess), udevadm-info + udevadm-info-all (family hint), and
+nmcli-device-show (→ first-word-kv, consistent with the round-15
+nmcli-connection-show ruling).
+
+Explicitly NOT converted after inspection: multi-record blocks whose per-record
+pivot is the better shape (mbox-email-headers, email-headers-thread,
+apt-cache-showsrc-multi, debian-sources-index, docker-inspect-networks — their
+real defect is block-records' space→underscore mangling, a separate fix), and
+two-pairs-per-line dumps where kv would leave a colon in the value (seinfo,
+ethtool-coalesce). 13 goldens regenerated, 5 manifest rows updated to the kv
+shape, 0 deleted. Gate 3463/0/242; extract 63/63.
+
+## 2026-08-06 — round-16: 17 of 18 marked disagreements fixed (9 new strategies)
+
+Marks on the 526-entry needs-review workbook: 5 validated (fail2ban-client-status,
+nvme-ns-descs, redis-cli-memory-doctor, rtl-sdr-test, spark-submit-status —
+screen false-alarms), 18 disagreements. Fixed 17; netperf-tcp stays open (the
+reviewer could not identify its shape either).
+
+- **nested-colon-kv** (hint-only): indent-nested `Header:` sections over
+  `k: v` / `k = v` / bare members, tree glyphs (│├─└) normalized, section path
+  carried (`Report > DERP latency`). Serves sslyze-scan, tailscale-netcheck,
+  vulkaninfo-summary, fwupdmgr-get-devices, fwupdmgr-get-updates.
+- **dot-leader-row** (hint-only): dot-filled rows with a bracketed result —
+  filler dots and brackets removed, left fields positional, pytest's `....F...`
+  ticks reduce to their markers. Serves pytest-summary, dbt-test-summary.
+- **two-space-kv** (hint-only): first 2+-space run splits a multi-word label
+  from its value (testssl-summary).
+- **trailing-table** (hint-only): finds the aligned header+rows table after a
+  kv preamble (parted-l; parted-print improves free — `File system` header no
+  longer truncated to `File`).
+- **boxed-table** (hint-only): `+--+`/`|` ASCII box stripped, first box row =
+  headers, short/long rows get a `label` column (likwid-topology). Hint anchors
+  on `^Socket N:` — a bare box-rule pattern stole 50 mysql/aws/nvidia psql-style
+  tables in the first cut.
+- **pv-records** (hint-only): `PV <dev> VG <vg> <fmt> [<size>]` → pv/vg/format/
+  size; Total footer drops (pvscan-cache).
+- **histogram-buckets** (hint-only): bpftrace `@map:` + `[bucket) count |@@|`
+  rows → map/bucket/count, bar dropped (exo-bpftrace-hist).
+- **process-progress-rows** (hint-only): nextflow `[id] process > NAME (TAG)
+  [PCT%] N of M` → six named columns (nextflow-log).
+- **path-line-content** (auto, p44): strict `path:LINE:content` grep -n lists →
+  file/line/content; vimgrep's `path:LINE:COL:` explicitly declined
+  (grep-color-nmatch).
+- **first-word-kv v1.4**: `#`-led comment lines skipped (mamba-env-list;
+  conda-env-list improves free). **section-name-value v1.1**: short multi-word
+  `Header:` titles allowed + ` # ` splits recipe from comment (just-list —
+  the reviewer's exact A/B/C spec). task-list + testssl routed by hint.
+- dbt hint tightened (`STATUS name ....` shape) after stealing
+  dbt-source-freshness's richer parse.
+- 20 goldens regenerated (17 marks + conda-env-list, parted-print), 0 deleted;
+  3 manifest row counts updated to the new intended shapes. Gate 3463/0/242;
+  extract 63/63.
+
+## 2026-08-06 — re-triage of the unreviewed corpus pool (post round-15)
+
+- Re-ran `tests/corpus/prescreen.py` over the whole corpus with the merged
+  round-15 strategies, excluding everything already reviewed. Of **2981
+  unreviewed** tools, 2384 are structurally clean and **526 carry a structural
+  defect**; the largest fixable cluster (132) is colon key/value kept in one
+  cell — the same shape the round-15 family already fixes. Findings written to
+  `docs/review-unreviewed-landscape-2026-08-06.md`,
+  `docs/review-prescreen-2026-08-06-round16.tsv` (full verdict), and
+  `docs/review-needs-2026-08-06-round16.tsv` (the 526, risk-ranked).
+- **prescreen.py**: `marks()` / `marks_from()` now skip leading `#` comment
+  lines and blank lines, so marks files that open with a note (round-14,
+  round-15) parse. `--validate` and `--emit-json` work again.
+- Refreshed the `tests/corpus/review-output/` snapshot for the 44 tools whose
+  generic parse changed across rounds 12/13/15 (they had drifted from the
+  last snapshot). Review aid only — the CI goldens live in `expected/`.
+
 ## 2026-08-06 — round-15 pnpm list (sectioned name/version)
 
 - **New `section-name-value` strategy** (hint-only, p46): a bare `Section:`

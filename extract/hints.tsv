@@ -33,7 +33,7 @@ dbmate-status	contains	Applied: 	dbmate-status
 decode-dimms	contains	---=== 	banner-sections-kv
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
-fwupdmgr-get-devices	contains	Device ID:	text-lines
+fwupdmgr-get-devices	contains	Device ID:	nested-colon-kv
 getcap	regex	^/[^[:space:]]+ +[a-z0-9_,+]*cap_[a-z_,+]+[=+]	line-records
 getconf	prefix	PAGE_SIZE	line-records
 git-config-list-show-origin	prefix	file:/	line-records
@@ -69,7 +69,7 @@ tshark-summary	regex	^ *[0-9]+ [0-9.]+ +[0-9a-fA-F.:]+ → 	line-records
 ufw-status-numbered	regex	\[ *[0-9]+\] [0-9]+/(tcp|udp)	aligned-columns
 vercel-list	regex	Age +Deployment +Status	aligned-columns
 volta-list	contains	User toolchain:	line-records
-vulkaninfo-summary	contains	VULKANINFO	text-lines
+vulkaninfo-summary	contains	VULKANINFO	nested-colon-kv
 lsusb-verbose	contains	Device Descriptor:	indented-hierarchy
 numpy-show-config	contains	NOT AVAILABLE	aligned-columns
 ip-stats	regex	RX: +bytes	pivot-stats
@@ -96,3 +96,26 @@ jack-lsp	regex	^[a-z0-9_-]+:(capture|playback|input|output|midi)	first-colon-kv
 navi-list	regex	^[a-z0-9_-]+ · 	middot-split
 ip6-neigh-table	regex	^[0-9a-fA-F:.]+ dev [^ ]+ (lladdr|router|FAILED|STALE|REACHABLE|NOARP|PERMANENT|DELAY|PROBE)	ip-neigh-record
 pnpm-list-depth	regex	^dependencies:	section-name-value
+task-list	prefix	task: Available tasks	first-word-kv
+testssl-summary	regex	^ Protocols +TLS	two-space-kv
+parted-l	contains	Partition Table:	trailing-table
+pvscan-cache	regex	^ +PV /dev/	pv-records
+mamba-env-list	prefix	# conda environments:	first-word-kv
+pytest-summary	regex	^=+ test session starts =+	dot-leader-row
+dbt-test-summary	regex	(PASS|FAIL|WARN|ERROR|SKIP) [a-z_]+ \.{4,}	dot-leader-row
+sslyze-scan	regex	^ \* [A-Z][^:]*:	nested-colon-kv
+tailscale-netcheck	prefix	Report:	nested-colon-kv
+just-list	prefix	Available recipes:	section-name-value
+likwid-topology	regex	^Socket [0-9]+:	boxed-table
+nextflow-log	contains	] process > 	process-progress-rows
+bpftrace-hist	regex	\) +[0-9]+ \|@	histogram-buckets
+nvme-id-ns	prefix	NVME Identify Namespace	nested-colon-kv
+nvme-id-ctrl	prefix	NVME Identify Controller	nested-colon-kv
+nvme-smart-log	prefix	Smart Log for NVME	nested-colon-kv
+proc-status	contains	Umask:	nested-colon-kv
+proc-crypto	regex	^name +: [a-z0-9]	nested-colon-kv
+mongo-serverstatus	regex	^host : 	nested-colon-kv
+proc-ioports	regex	^[0-9a-f]{4}-[0-9a-f]{4} : 	nested-colon-kv
+whois_domain	prefix	Domain Name:	nested-colon-kv
+udevadm-info	regex	^P: /devices/	nested-colon-kv
+nmcli-device-show	regex	^GENERAL\.DEVICE:	first-word-kv

@@ -251,12 +251,19 @@ def sanitize(s, expand=False):
     return "".join(_visible(c) for c in s)
 
 
+def _marks_reader(fh):
+    """csv.DictReader over a marks TSV, tolerating leading `#` comment lines
+    and blank lines (some rounds prefix the file with a note)."""
+    lines = [ln for ln in fh if ln.strip() and not ln.lstrip().startswith("#")]
+    return csv.DictReader(lines, delimiter="\t")
+
+
 def marks_from(path):
     """Tool -> mark from ONE marks TSV (not the merged round 1-3 view)."""
     out = {}
     with open(path, encoding="utf-8") as fh:
-        for row in csv.DictReader(fh, delimiter="\t"):
-            m = row["mark"].strip()
+        for row in _marks_reader(fh):
+            m = (row.get("mark") or "").strip()
             out[row["name"]] = "mixed" if ";" in m else m.split("=")[0].strip()
     return out
 
@@ -314,8 +321,8 @@ def marks():
         if not fn.startswith("review-marks-"):
             continue
         with open(os.path.join(DOCS, fn), encoding="utf-8") as fh:
-            for row in csv.DictReader(fh, delimiter="\t"):
-                m = row["mark"].strip()
+            for row in _marks_reader(fh):
+                m = (row.get("mark") or "").strip()
                 out[row["name"]] = "mixed" if ";" in m else m.split("=")[0].strip()
     return out
 

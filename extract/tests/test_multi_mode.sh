@@ -84,9 +84,46 @@ test_multi_conflicts_with_batch () {
     assert_eq "1" "$rc" "--multi and --batch conflict"
 }
 
+# A `#`-led legend sitting directly above a table — no blank line between —
+# is a boundary too: /proc/slabinfo's `# name <active_objs> …` is neither part
+# of the table nor a table of its own.
+_multi_comment_input () {
+    cat <<'EOF'
+# name            <active_objs> <num_objs> <objsize>
+kmalloc-8192          128    128   8192
+kmalloc-1024         2048   2048   1024
+dentry              48210  48312    192
+EOF
+}
+
+test_multi_comment_run_splits_block () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    _multi_comment_input > "$tmpfile"
+    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "2" "$n" "comment legend splits from the table it sits above"
+    assert_contains "$out" "$(printf '__DATASET__\t1\ttext')" "the comment run is a text dataset"
+    assert_contains "$out" "kmalloc-8192" "the table itself still parses"
+}
+
+test_multi_comment_run_kept_verbatim () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    _multi_comment_input > "$tmpfile"
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    # Kept as-is (one lineN field), not forced through a parser that would
+    # invent columns out of the legend's words.
+    assert_contains "$out" "line1 # name" "comment line kept verbatim under a lineN field"
+}
+
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one
 run_test "--multi/--batch conflict"             test_multi_conflicts_with_batch
+run_test "comment run splits its block"         test_multi_comment_run_splits_block
+run_test "comment run kept verbatim"            test_multi_comment_run_kept_verbatim
 
 print_summary

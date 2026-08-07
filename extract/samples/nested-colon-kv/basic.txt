@@ -1,0 +1,4 @@
+Report:
+	* UDP: true
+	* DERP latency:
+		- fra: 12.4ms  (Frankfurt)

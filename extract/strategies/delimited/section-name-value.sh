@@ -34,12 +34,28 @@ strategy_extract () {
         [[ -z "${line//[[:space:]]/}" ]] && continue
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
-        # A lone `word:` (no interior space) is a section header.
-        if [[ "$s" == *: && "$s" != *[[:space:]]* ]]; then
-            section="${s%:}"
-            continue
+        # A `Header:` line — single word, or a short multi-word title whose
+        # ONLY colon is the trailing one (`Available recipes:`) — is a
+        # section header.
+        if [[ "$s" == *: && "${s%:}" != *:* ]]; then
+            local hw="${s%:}"
+            local nw=0 w
+            for w in $hw; do nw=$((nw + 1)); done
+            if [[ "$s" != *[[:space:]]* || $nw -le 3 ]]; then
+                section="$hw"
+                continue
+            fi
         fi
-        local name="${s%%[[:space:]]*}" val="${s#"${s%%[[:space:]]*}"}"
+        local name val
+        if [[ "$s" == *" # "* ]]; then
+            # A ` # ` splits recipe from comment (just --list): the left side
+            # is the name (it may hold spaces — `deploy env`), the right the
+            # value.
+            name="${s%% # *}"; val="${s#* # }"
+            name="${name%"${name##*[![:space:]]}"}"
+        else
+            name="${s%%[[:space:]]*}"; val="${s#"${s%%[[:space:]]*}"}"
+        fi
         val="${val#"${val%%[![:space:]]*}"}"
         entry=$((entry + 1))
         result+="entry${entry}.section ${section}"$'\n'

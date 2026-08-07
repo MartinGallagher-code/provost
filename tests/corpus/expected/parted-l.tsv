@@ -1,0 +1,6 @@
+n	Number	Start	End	Size	File_system	Name	Flags	total_entries
+1	1	1049kB	538MB	537MB	fat32	efi	boot	5
+2	2	538MB	34.9GB	34.4GB	linux-swap	swap	swap	5
+3	3	34.9GB	568GB	533GB	ext4	root	legacy_boot	5
+4	4	568GB	740GB	172GB	xfs	data	msftdata	5
+5	5	740GB	1000GB	260GB	ext4	home	msftdata	5

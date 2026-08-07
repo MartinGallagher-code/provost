@@ -1,4 +1,4 @@
-n	A	total_entries
-1	src/parser.rs:14	3
-2	src/lexer.rs:9	3
-3	src/token.rs:3	3
+n	key	value	total_entries
+1	src/parser.rs	14	3
+2	src/lexer.rs	9	3
+3	src/token.rs	3	3

@@ -391,3 +391,8 @@ qemu-version
 rbd-ls
 rpm-V
 rsync-itemize
+fail2ban-client-status
+nvme-ns-descs
+redis-cli-memory-doctor
+rtl-sdr-test
+spark-submit-status

@@ -1,0 +1,7 @@
+entry1.file src/main.py
+entry1.line 12
+entry1.content def parse_config(path):
+entry2.file src/utils.py
+entry2.line 7
+entry2.content # helper for parsing input
+total_entries 2

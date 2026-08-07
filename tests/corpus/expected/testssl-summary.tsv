@@ -1,6 +1,6 @@
-n	A	total_entries
-1	Protocols     TLS 1.2 offered, TLS 1.3 offered	5
-2	Cipher order  OK	5
-3	PFS           offered	5
-4	Vulnerabilities  Heartbleed not vulnerable, POODLE not vulnerable	5
-5	Rating        A+	5
+n	key	value	total_entries
+1	Protocols	TLS 1.2 offered, TLS 1.3 offered	5
+2	Cipher order	OK	5
+3	PFS	offered	5
+4	Vulnerabilities	Heartbleed not vulnerable, POODLE not vulnerable	5
+5	Rating	A+	5

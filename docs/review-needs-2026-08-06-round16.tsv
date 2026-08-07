@@ -1,0 +1,527 @@
+risk	name	risk_signals	structural_detail
+8	pytest-summary	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells; '=' left inside cells	unsplit-cells
+8	vulkaninfo-summary	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells; '=' left inside cells	unsplit-cells
+7	dbt-test-summary	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells
+7	exo-bpftrace-hist	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;pipes-in-cells
+7	fail2ban-client-status	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	pipes-in-cells
+7	fwupdmgr-get-devices	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;key-value-delimiter-in-cell
+7	fwupdmgr-get-updates	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;key-value-delimiter-in-cell
+7	grep-color-nmatch	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;key-value-delimiter-in-cell
+7	just-list	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells
+7	likwid-topology	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;pipes-in-cells;separator-row-as-data
+7	mamba-env-list	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells
+7	netperf-tcp	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed	unsplit-cells
+7	nextflow-log	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed	unsplit-cells
+7	nvme-ns-descs	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells; source looks like it has a header row, but columns came out unnamed	lone-delimiter-column
+7	parted-l	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed	unsplit-cells;key-value-delimiter-in-cell
+7	pvscan-cache	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed	unsplit-cells
+7	redis-cli-memory-doctor	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+7	rtl-sdr-test	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+7	spark-submit-status	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells
+7	sslyze-scan	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+7	tailscale-netcheck	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+7	task-list	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells	unsplit-cells;key-value-delimiter-in-cell
+7	testssl-summary	all columns unnamed (A/B/C); single content column; source looks like it has a header row, but columns came out unnamed	unsplit-cells
+6	dbench-run	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+6	exo-openssl-asn1parse-deep	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells;key-value-delimiter-in-cell
+6	gatling-summary	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells;separator-row-as-data
+6	goreleaser-check	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+6	gpg-list-packets	all columns unnamed (A/B/C); single content column; '=' left inside cells	key-value-delimiter-in-cell
+6	heroku-apps	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+6	heroku-releases	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+6	ioping-run	all columns unnamed (A/B/C); single content column; '=' left inside cells	key-value-delimiter-in-cell
+6	lsusb-t	all columns unnamed (A/B/C); single content column; '=' left inside cells	pipes-in-cells;key-value-delimiter-in-cell
+6	lsusb-tree	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells;pipes-in-cells;key-value-delimiter-in-cell
+6	nst-gpg-packet-dump	all columns unnamed (A/B/C); single content column; '=' left inside cells	key-value-delimiter-in-cell
+6	openssl-asn1parse	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells;key-value-delimiter-in-cell
+6	pstree-a	all columns unnamed (A/B/C); single content column; '=' left inside cells	pipes-in-cells
+6	spack-find	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+6	who-a-ragged	all columns unnamed (A/B/C); single content column; '=' left inside cells	unsplit-cells
+5	checkrestart-list	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	clamdscan-summary	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	separator-row-as-data
+5	clinfo-summary	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	cmb-banner-indented-table	all columns unnamed (A/B/C); single content column	unsplit-cells;pipes-in-cells;separator-row-as-data
+5	cmb-neofetch-banner-aligned	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	commitlint-report	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	composer-show	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	composer-show-installed	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	cowsay-output	all columns unnamed (A/B/C); single content column	unsplit-cells;separator-row-as-data
+5	croc-send	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	cryptsetup-benchmark	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	dmesg-level	all columns unnamed (A/B/C); single content column	unsplit-cells;key-value-delimiter-in-cell
+5	dnf-provides	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	docker-scout-quickview	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	drill-benchmark	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	dub-list	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	enc-nbsp-colon-kv	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	etc-hosts-comments	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	etcdctl-endpoint-health	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	exim-mailq	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	exo-git-log-graph-branches	all columns unnamed (A/B/C); single content column	pipes-in-cells
+5	exo-nmap-normal-scan	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	exo-perf-report-tree	all columns unnamed (A/B/C); single content column	unsplit-cells;lone-delimiter-column
+5	fdisk-l	all columns unnamed (A/B/C); single content column	unsplit-cells;key-value-delimiter-in-cell
+5	ffuf-summary	all columns unnamed (A/B/C); single content column	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell
+5	figlet-banner	all columns unnamed (A/B/C); single content column	unsplit-cells;pipes-in-cells;separator-row-as-data
+5	gatk-haplotypecaller-log	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	geekbench6	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	git-annex-list	all columns unnamed (A/B/C); single content column	pipes-in-cells
+5	git-log-graph	all columns unnamed (A/B/C); single content column	pipes-in-cells
+5	git-log-oneline-color	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	git-reflog	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	glances-cpu-bars	all columns unnamed (A/B/C); single content column	unsplit-cells;pipes-in-cells
+5	hadolint-output	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	hledger-register-fx	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	i2cdetect	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed	untrimmed-cells
+5	i7z-summary	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	ip-br-addr	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	ip-mroute-show	all columns unnamed (A/B/C); single content column	unsplit-cells;key-value-delimiter-in-cell
+5	iperf2-run	all columns unnamed (A/B/C); single content column	unsplit-cells;separator-row-as-data
+5	jx-activities	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	lpstat-p	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	lshw-network	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	lzbench-run	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	mariadb-innodb-status	all columns unnamed (A/B/C); single content column	separator-row-as-data
+5	mdadm-query	all columns unnamed (A/B/C); single content column	unsplit-cells;key-value-delimiter-in-cell
+5	megacli-pdlist	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	mongo-serverstatus	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	mongoperf-run	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	mysqldump-status	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	newsboat-feeds	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	nikto-scan	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	nmap	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	nmap-sn	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	nmap_allports	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	nmcli-device-show	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	npm-ci-summary	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	nst-vagrant-status-blocks	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	nvidia-smi-mig	all columns unnamed (A/B/C); single content column	unsplit-cells;pipes-in-cells;separator-row-as-data
+5	nvme-id-ns	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	openssl-pkey	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	perf-list	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	perf-stat	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	perf-stat-grouped	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	php-v	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	pinctrl-summary	all columns unnamed (A/B/C); source looks like it has a header row, but columns came out unnamed	lone-delimiter-column
+5	pkg-config	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	poetry-show	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	poetry-show-outdated	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	proc-crypto	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	proc-iomem	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	proc-ioports	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells	lone-delimiter-column
+5	psql-conninfo	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	rage-keygen	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	resolvectl-dns	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	resolvectl-query	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	sccache-stats	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	scons-tree	all columns unnamed (A/B/C); single content column	pipes-in-cells
+5	semanage-boolean	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	smartctl-selftest	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	sops-updatekeys	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	starship-explain	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	stylelint-summary	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	tailscale-status	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	tbl-acl-permission-matrix	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	tbl-sparse-component-matrix	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	tc-filter-show	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	tc-qdisc	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	tc-qdisc-show	all columns unnamed (A/B/C); single content column	key-value-delimiter-in-cell
+5	tiptop-view	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	udevadm-info	all columns unnamed (A/B/C); '=' left inside cells; single wide row	duplicate-column-names
+5	udevadm-info-all	all columns unnamed (A/B/C); '=' left inside cells; single wide row	duplicate-column-names
+5	ulimit	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	uv-tree	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	varnishstat-1	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	vegeta-report	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	virsh-snapshot-tree	all columns unnamed (A/B/C); single content column	unsplit-cells;pipes-in-cells;separator-row-as-data;lone-delimiter-column
+5	vitest-bench	all columns unnamed (A/B/C); single content column	unsplit-cells
+5	xbps-query	all columns unnamed (A/B/C); single content column	unsplit-cells
+4	dpkg-depends-tree	all columns unnamed (A/B/C); '=' left inside cells	pipes-in-cells;lone-delimiter-column;column-misalignment=0.20
+4	exportfs-v	all columns unnamed (A/B/C); '=' left inside cells	untrimmed-cells
+4	gitmodules-submodules	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	java-showsettings	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	kubectl-describe-configmap	single content column; dot-leaders / trailing colons kept in cells	separator-row-as-data
+4	logcli-query	all columns unnamed (A/B/C); '=' left inside cells	unsplit-cells
+4	nslookup-soa	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	nuttcp-run	all columns unnamed (A/B/C); single wide row	lone-delimiter-column
+4	packer-inspect	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	pbsnodes-list	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	pw-cli-list-nodes	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	qalc-output	all columns unnamed (A/B/C); single wide row	lone-delimiter-column
+4	qperf-tcp-bw	all columns unnamed (A/B/C); '=' left inside cells	lone-delimiter-column
+4	tshark-summary	all columns unnamed (A/B/C); '=' left inside cells	column-misalignment=0.21
+3	criterion-bench	all columns unnamed (A/B/C)	column-misalignment=0.17
+3	ctest-summary	dot-leaders / trailing colons kept in cells; single wide row	unsplit-cells
+3	delta-diff-color	all columns unnamed (A/B/C)	lone-delimiter-column
+3	dockle-scan	all columns unnamed (A/B/C)	key-value-delimiter-in-cell
+3	exo-slurm-sacct-pipe	all columns unnamed (A/B/C)	pipes-in-cells
+3	find-ls-longformat	all columns unnamed (A/B/C)	column-misalignment=0.17
+3	getent-passwd	all columns unnamed (A/B/C)	column-misalignment=0.21
+3	getent-passwd-sparse	all columns unnamed (A/B/C)	column-misalignment=0.16
+3	gh-release-list	all columns unnamed (A/B/C)	column-misalignment=0.40
+3	git-notes-list	all columns unnamed (A/B/C)	column-misalignment=0.67
+3	git-shortlog	all columns unnamed (A/B/C)	untrimmed-cells
+3	git-shortlog-email	all columns unnamed (A/B/C)	untrimmed-cells
+3	go-mod-graph	all columns unnamed (A/B/C)	column-misalignment=0.25
+3	go-mod-why	all columns unnamed (A/B/C)	column-misalignment=0.20
+3	go-mod-why-graph	all columns unnamed (A/B/C)	column-misalignment=0.29
+3	go-test-summary	all columns unnamed (A/B/C)	untrimmed-cells
+3	go-vet-summary	all columns unnamed (A/B/C)	untrimmed-cells
+3	gobuster-dir	all columns unnamed (A/B/C)	key-value-delimiter-in-cell
+3	ip-6-route	all columns unnamed (A/B/C)	column-misalignment=0.20
+3	ip-maddr	all columns unnamed (A/B/C)	unsplit-cells
+3	ip-route	all columns unnamed (A/B/C)	column-misalignment=0.20
+3	ip-route-table-all	all columns unnamed (A/B/C)	column-misalignment=0.53
+3	knotc-status	all columns unnamed (A/B/C)	pipes-in-cells;key-value-delimiter-in-cell
+3	last	all columns unnamed (A/B/C)	column-misalignment=0.20
+3	last-still-logged-in	all columns unnamed (A/B/C)	column-misalignment=0.18
+3	liquibase-status	all columns unnamed (A/B/C)	untrimmed-cells
+3	make-dry-run	all columns unnamed (A/B/C)	column-misalignment=0.25
+3	multipathd-show-paths	all columns unnamed (A/B/C)	unsplit-cells
+3	mvn-dep-tree-graph	all columns unnamed (A/B/C)	column-misalignment=0.23
+3	ncdu-bar-columns	all columns unnamed (A/B/C)	separator-row-as-data
+3	nvidia-smi	single content column; '=' left inside cells	unsplit-cells;separator-row-as-data
+3	nvidia-smi-full	single content column; '=' left inside cells	unsplit-cells;separator-row-as-data
+3	proc-mounts	all columns unnamed (A/B/C)	column-misalignment=0.25
+3	proc-self-mountinfo	all columns unnamed (A/B/C)	column-misalignment=0.22
+3	proc-slabinfo	all columns unnamed (A/B/C)	lone-delimiter-column
+3	quantum-espresso-summary	all columns unnamed (A/B/C)	lone-delimiter-column
+3	quo-haproxy-log-quoted	all columns unnamed (A/B/C)	separator-row-as-data
+3	rg-color-vimgrep	all columns unnamed (A/B/C)	untrimmed-cells
+3	star-align-summary	all columns unnamed (A/B/C)	pipes-in-cells;untrimmed-cells
+3	stern-multi	all columns unnamed (A/B/C)	column-misalignment=0.21
+3	sysdig-summary	all columns unnamed (A/B/C)	separator-row-as-data
+3	tc-class	all columns unnamed (A/B/C)	column-misalignment=0.39
+3	tc-class-show	all columns unnamed (A/B/C)	column-misalignment=0.45
+3	tshark-conv-tcp	all columns unnamed (A/B/C)	pipes-in-cells;lone-delimiter-column;column-misalignment=0.25
+3	zstd-bench	all columns unnamed (A/B/C)	lone-delimiter-column
+2	enc-trailing-tabs	single content column	unsplit-cells
+2	exo-lspci-vv-caps	'=' left inside cells; single wide row	duplicate-column-names
+2	fail2ban-jail-sshd	dot-leaders / trailing colons kept in cells	pipes-in-cells;lone-delimiter-column;column-misalignment=0.33
+2	fio-run	'=' left inside cells; single wide row	duplicate-column-names;key-value-delimiter-in-cell
+2	fuser-v	dot-leaders / trailing colons kept in cells	column-misalignment=0.22
+2	gpg-list-keys	single content column	unsplit-cells
+2	gpg-list-secret-keys	single content column	unsplit-cells
+2	journalctl-stacktrace	dot-leaders / trailing colons kept in cells	duplicate-column-names
+2	linkerd-check	single content column	separator-row-as-data
+2	mvn-clean-install	dot-leaders / trailing colons kept in cells	unsplit-cells
+2	nix-store-tree	dot-leaders / trailing colons kept in cells	column-misalignment=0.33
+2	nix-tree-hello	dot-leaders / trailing colons kept in cells	column-misalignment=0.50
+2	nload-bars	dot-leaders / trailing colons kept in cells	pipes-in-cells
+2	npm-install-progress	dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+2	nvme-id-ctrl	dot-leaders / trailing colons kept in cells	lone-delimiter-column
+2	nvme-smart-log	dot-leaders / trailing colons kept in cells	lone-delimiter-column
+2	perftest-write-bw	single content column	unsplit-cells;separator-row-as-data;key-value-delimiter-in-cell
+2	podman-image-tree	dot-leaders / trailing colons kept in cells	key-value-delimiter-in-cell
+2	sockperf-ping	'=' left inside cells; single wide row	unsplit-cells;duplicate-column-names
+2	sockperf-throughput	'=' left inside cells; single wide row	duplicate-column-names;key-value-delimiter-in-cell
+2	termgraph-stacked-box	single content column	unsplit-cells
+2	terraform-providers	dot-leaders / trailing colons kept in cells	column-misalignment=0.20
+1	conda-tree	'=' left inside cells	column-misalignment=0.27
+1	dd-status-progress	'=' left inside cells	unsplit-cells
+1	desktop-entries-apps	single wide row	duplicate-column-names
+1	desktop-mimetype-apps	single wide row	duplicate-column-names
+1	dnf-download-progress	single wide row	lone-delimiter-column
+1	docker-pull-layers	'=' left inside cells	unsplit-cells
+1	duplicity	single wide row	unsplit-cells
+1	edac-util	single wide row	duplicate-column-names;key-value-delimiter-in-cell
+1	ethtool-coalesce	single wide row	unsplit-cells
+1	exo-dmidecode-handles-multi	single wide row	duplicate-column-names
+1	exo-nmap-grepable	single wide row	ragged-rows;duplicate-column-names;key-value-delimiter-in-cell
+1	exo-psql-explain-analyze-tree	'=' left inside cells	key-value-delimiter-in-cell
+1	exo-tcpdump-vv-packets	single wide row	duplicate-column-names
+1	ffprobe-streams	single wide row	duplicate-column-names
+1	fio-latency-pct	'=' left inside cells	pipes-in-cells;lone-delimiter-column
+1	fio-multijob	'=' left inside cells	key-value-delimiter-in-cell
+1	fio-status-line	'=' left inside cells	key-value-delimiter-in-cell
+1	go-work-sync	'=' left inside cells	duplicate-column-names;key-value-delimiter-in-cell
+1	hdparm-t	'=' left inside cells	unsplit-cells
+1	hive-show-partitions	'=' left inside cells	duplicate-column-names
+1	html-indented-dom	single wide row	duplicate-column-names
+1	ifconfig	'=' left inside cells	unsplit-cells
+1	ipcalc	single wide row	unsplit-cells
+1	iw-station-dump	single wide row	ragged-rows
+1	iwconfig	single wide row	unsplit-cells
+1	iwlist-scan	single wide row	duplicate-column-names
+1	kubectl-config-view	single wide row	duplicate-column-names
+1	lsblk-tree	single wide row	unsplit-cells
+1	lspci-k	single wide row	duplicate-column-names
+1	lynis-report	single wide row	pipes-in-cells
+1	mongosh-db-currentop	single wide row	duplicate-column-names
+1	mongosh-rs-status	single wide row	duplicate-column-names
+1	multipath-ll	single wide row	unsplit-cells
+1	needrestart	single wide row	duplicate-column-names
+1	nst-ansible-vars-yaml	single wide row	duplicate-column-names
+1	nst-k8s-list-yaml	single wide row	duplicate-column-names
+1	nst-systemd-analyze-dump	single wide row	duplicate-column-names
+1	nst-yaml-multidoc-blockscalar	single wide row	pipes-in-cells;duplicate-column-names;lone-delimiter-column
+1	nvme-error-log	single wide row	duplicate-column-names
+1	octoprint-status	single wide row	unsplit-cells
+1	openssl-x509-subject-commas	'=' left inside cells	unsplit-cells
+1	orc-tools-meta	single wide row	unsplit-cells
+1	pactl-list-sinks	single wide row	unsplit-cells
+1	pipdeptree-full	'=' left inside cells	key-value-delimiter-in-cell;column-misalignment=0.17
+1	pipdeptree-reverse	'=' left inside cells	key-value-delimiter-in-cell;column-misalignment=0.38
+1	printenv-equals-in-value	'=' left inside cells	blank-header-cell;pipes-in-cells
+1	proc-status	single wide row	ragged-rows
+1	quo-cookie-header-semicolons	'=' left inside cells	duplicate-column-names
+1	quo-dotenv-hash-equals	'=' left inside cells	unsplit-cells
+1	restic-backup-progress	'=' left inside cells	unsplit-cells
+1	scylla-nodetool-status	'=' left inside cells	unsplit-cells
+1	sdparm-inquiry	single wide row	unsplit-cells
+1	sensors	'=' left inside cells	unsplit-cells
+1	sensors-A	'=' left inside cells	unsplit-cells
+1	sensors-f	'=' left inside cells	unsplit-cells
+1	sensors-wrapped	'=' left inside cells	unsplit-cells
+1	snap-info	single wide row	lone-delimiter-column
+1	stat	single wide row	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell
+1	stow-simulate	'=' left inside cells	duplicate-column-names
+1	sysctl-net-ipv4	single wide row	ragged-rows
+1	systemctl-status-postgresql	single wide row	key-value-delimiter-in-cell
+1	terraform-show-resource	'=' left inside cells	lone-delimiter-column
+1	torchrun-summary	'=' left inside cells	unsplit-cells
+1	turbo-run-summary	single wide row	key-value-delimiter-in-cell
+1	vainfo-profiles	single wide row	duplicate-column-names;key-value-delimiter-in-cell
+1	vault-audit-list	'=' left inside cells	column-misalignment=0.33
+1	vkmark-run	single wide row	key-value-delimiter-in-cell
+1	whois_domain	single wide row	duplicate-column-names
+1	xfs-info	'=' left inside cells	unsplit-cells
+1	xfs-info-full	'=' left inside cells	unsplit-cells
+1	xml-indented-config	single wide row	duplicate-column-names
+1	yaml-block-scalar	single wide row	pipes-in-cells;lone-delimiter-column
+1	yaml-literal-block	single wide row	pipes-in-cells;lone-delimiter-column
+0	cgroup-tree	no risk signals	column-misalignment=0.31
+0	checkov-summary	no risk signals	key-value-delimiter-in-cell
+0	cilium-endpoint-list	no risk signals	column-misalignment=0.67
+0	cilium-status	no risk signals	unsplit-cells
+0	cloc-summary	no risk signals	unsplit-cells;separator-row-as-data
+0	cmb-double-header-color-emoji	no risk signals	unsplit-cells
+0	cmb-grouped-header-progress	no risk signals	unsplit-cells
+0	cockroach-node-decommission-status	no risk signals	column-misalignment=0.40
+0	cockroach-node-status	no risk signals	column-misalignment=0.35
+0	cockroach-sql-show-ranges	no risk signals	column-misalignment=0.50
+0	collectd-flush	no risk signals	duplicate-column-names
+0	corefreq-topology	no risk signals	unsplit-cells;separator-row-as-data
+0	cosign-tree	no risk signals	key-value-delimiter-in-cell;column-misalignment=0.33
+0	crossplane-get-managed	no risk signals	column-misalignment=0.20
+0	ctop-gauges	no risk signals	pipes-in-cells
+0	ctr-snapshots-ls	no risk signals	column-misalignment=0.44
+0	curl-progress-meter	no risk signals	column-misalignment=0.20
+0	debian-sources-index	no risk signals	column-misalignment=0.25
+0	delta-diff-stat	no risk signals	separator-row-as-data
+0	deno-check-summary	no risk signals	duplicate-column-names;key-value-delimiter-in-cell
+0	dmesg-boot	no risk signals	key-value-delimiter-in-cell
+0	dmesg-hw	no risk signals	key-value-delimiter-in-cell
+0	dmesg-thermal	no risk signals	key-value-delimiter-in-cell
+0	dnf-history-list	no risk signals	pipes-in-cells
+0	docker-inspect-networks	no risk signals	column-misalignment=0.50
+0	docker-network	no risk signals	column-misalignment=0.20
+0	docker-network-ls-sparse	no risk signals	column-misalignment=0.15
+0	docker-stats	no risk signals	column-misalignment=0.15
+0	dstat	no risk signals	pipes-in-cells
+0	dstat-cdngy	no risk signals	pipes-in-cells
+0	dstat-full	no risk signals	pipes-in-cells;lone-delimiter-column
+0	dub-describe	no risk signals	column-misalignment=0.50
+0	duckdb-summarize-box	no risk signals	column-misalignment=0.17
+0	duplicity-status	no risk signals	unsplit-cells
+0	enc-mixed-tab-space-table	no risk signals	unsplit-cells;untrimmed-cells
+0	enc-tab-width8-make	no risk signals	column-misalignment=0.17
+0	enc-tsv-ragged	no risk signals	column-misalignment=0.15
+0	equery-list	no risk signals	unsplit-cells
+0	eslint-stylish	no risk signals	unsplit-cells
+0	ethtool-a	no risk signals	ragged-rows
+0	ethtool-pause	no risk signals	ragged-rows
+0	exa-tree-color	no risk signals	column-misalignment=0.25
+0	exo-apt-policy-pin	no risk signals	duplicate-column-names
+0	exo-dpkg-deb-I-control	no risk signals	key-value-delimiter-in-cell
+0	exo-drbdadm-status	no risk signals	column-misalignment=0.40
+0	exo-ip-j-addr-json	no risk signals	column-misalignment=0.22
+0	exo-mtr-report-asn	no risk signals	unsplit-cells
+0	exo-nvidia-smi-topo-matrix	no risk signals	untrimmed-cells;column-misalignment=0.31
+0	exo-perf-script-samples	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	exo-strace-c-summary	no risk signals	separator-row-as-data
+0	exo-systemd-critical-chain	no risk signals	column-misalignment=0.44
+0	exo-traceroute-mpls	no risk signals	column-misalignment=0.20
+0	fail2ban-status	no risk signals	unsplit-cells;pipes-in-cells
+0	fast-cli	no risk signals	unsplit-cells
+0	feature-support-matrix	no risk signals	column-misalignment=0.22
+0	git-diff-stat	no risk signals	separator-row-as-data
+0	git-stash-list	no risk signals	key-value-delimiter-in-cell
+0	git-stash-show-stat	no risk signals	separator-row-as-data
+0	glances	no risk signals	unsplit-cells
+0	gluster-volume-heal-info	no risk signals	column-misalignment=0.50
+0	go-mod-graph-indented	no risk signals	column-misalignment=0.36
+0	gradle-deps-runtime	no risk signals	column-misalignment=0.18
+0	gradle-deps-testruntime	no risk signals	column-misalignment=0.15
+0	gradle-projects	no risk signals	column-misalignment=0.17
+0	gradle-q-dependencies	no risk signals	column-misalignment=0.17
+0	gradle-tasks	no risk signals	separator-row-as-data
+0	h2load-run	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	hddtemp-multi-disk	no risk signals	key-value-delimiter-in-cell
+0	hdparm-i	no risk signals	unsplit-cells
+0	helm-list	no risk signals	column-misalignment=0.15
+0	honeycomb-datasets	no risk signals	column-misalignment=0.50
+0	hyperfine-summary	no risk signals	unsplit-cells
+0	ib-write-bw	no risk signals	lone-delimiter-column
+0	iftop	no risk signals	separator-row-as-data
+0	intel-gpu-top	no risk signals	pipes-in-cells;lone-delimiter-column
+0	inxi-full	no risk signals	key-value-delimiter-in-cell
+0	iotop-batch	no risk signals	column-misalignment=0.33
+0	ip-addr	no risk signals	key-value-delimiter-in-cell
+0	ip-addr-brief	no risk signals	unsplit-cells
+0	ip-addr-mixed-scopes	no risk signals	key-value-delimiter-in-cell
+0	ip-link	no risk signals	key-value-delimiter-in-cell
+0	ip-netns-tree	no risk signals	column-misalignment=0.33
+0	iperf3	no risk signals	unsplit-cells;separator-row-as-data
+0	iperf3-udp	no risk signals	unsplit-cells
+0	ipvsadm-list	no risk signals	unsplit-cells
+0	iscsiadm-session	no risk signals	duplicate-column-names
+0	journalctl-json-message	no risk signals	key-value-delimiter-in-cell
+0	jq-tree-keys	no risk signals	column-misalignment=0.17
+0	k6-summary	no risk signals	unsplit-cells
+0	k9s-context	no risk signals	pipes-in-cells;key-value-delimiter-in-cell
+0	kafka-connect-status	no risk signals	column-misalignment=0.50
+0	knotc-zone-status	no risk signals	pipes-in-cells;key-value-delimiter-in-cell
+0	kpt-pkg-tree	no risk signals	key-value-delimiter-in-cell;column-misalignment=0.17
+0	kubectl-api-groups	no risk signals	column-misalignment=0.18
+0	kubectl-get-pdb	no risk signals	column-misalignment=0.25
+0	kubectl-get-resourcequota	no risk signals	key-value-delimiter-in-cell;column-misalignment=0.25
+0	latencystats-dump	no risk signals	unsplit-cells;separator-row-as-data
+0	librespeed-cli	no risk signals	unsplit-cells
+0	linkerd-edges	no risk signals	column-misalignment=0.29
+0	loki-series-volume	no risk signals	untrimmed-cells
+0	lslogins-user	no risk signals	column-misalignment=0.17
+0	lspci-tv	no risk signals	unsplit-cells
+0	lsscsi	no risk signals	unsplit-cells
+0	lsscsi-size	no risk signals	unsplit-cells
+0	mbox-email-headers	no risk signals	column-misalignment=0.15
+0	memtier-benchmark	no risk signals	unsplit-cells;separator-row-as-data
+0	mix-deps-tree	no risk signals	column-misalignment=0.20
+0	mongod-version	no risk signals	duplicate-column-names
+0	mpd-status	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	mpirun-map	no risk signals	ragged-rows;duplicate-column-names;key-value-delimiter-in-cell
+0	mtr-report	no risk signals	unsplit-cells
+0	mtr-wide-report	no risk signals	unsplit-cells
+0	multipath-topology	no risk signals	unsplit-cells
+0	mvn-dep-tree-verbose	no risk signals	unsplit-cells;pipes-in-cells
+0	nanobench-run	no risk signals	pipes-in-cells;lone-delimiter-column
+0	nbench-run	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	ncat-broker-log	no risk signals	duplicate-column-names
+0	neon-branches-list	no risk signals	column-misalignment=0.18
+0	newrelic-entity-search	no risk signals	pipes-in-cells
+0	nginx-stub-status	no risk signals	key-value-delimiter-in-cell
+0	nginx-t	no risk signals	duplicate-column-names
+0	nicstat-summary	no risk signals	pipes-in-cells
+0	nodetool-ring	no risk signals	unsplit-cells
+0	nodetool-status	no risk signals	unsplit-cells
+0	npm-fund	no risk signals	column-misalignment=0.40
+0	npm-ls-deep	no risk signals	column-misalignment=0.29
+0	npm-outdated-g	no risk signals	column-misalignment=0.20
+0	nslookup	no risk signals	duplicate-column-names
+0	nst-btrfs-device-per-disk	no risk signals	unsplit-cells
+0	nst-ledger-grouped-subtotal	no risk signals	column-misalignment=0.15
+0	nst-perf-report-sections	no risk signals	duplicate-column-names
+0	nvidia-smi-dashboard	no risk signals	unsplit-cells
+0	nvidia-smi-topo	no risk signals	column-misalignment=0.40
+0	nvim-checkhealth	no risk signals	key-value-delimiter-in-cell
+0	nvme-list	no risk signals	unsplit-cells
+0	nx-graph-summary	no risk signals	unsplit-cells
+0	opam-switch-list	no risk signals	column-misalignment=0.29
+0	openssl-ciphers	no risk signals	column-misalignment=0.18
+0	openvpn-status	no risk signals	unsplit-cells
+0	ostree-refs-tree	no risk signals	column-misalignment=0.57
+0	parted-print	no risk signals	column-misalignment=0.28
+0	perf-sched	no risk signals	lone-delimiter-column
+0	pgbench-run	no risk signals	lone-delimiter-column
+0	pgbouncer-databases	no risk signals	column-misalignment=0.17
+0	pnpm-list-recursive	no risk signals	key-value-delimiter-in-cell
+0	pnpm-why-react-dom	no risk signals	column-misalignment=0.33
+0	podman-healthcheck	no risk signals	blank-header-cell
+0	poetry-check	no risk signals	duplicate-column-names
+0	postqueue-p	no risk signals	unsplit-cells
+0	presto-query-stats	no risk signals	key-value-delimiter-in-cell
+0	procs-table	no risk signals	column-misalignment=0.25
+0	prometheus-version	no risk signals	key-value-delimiter-in-cell
+0	pscale-branch-list	no risk signals	column-misalignment=0.21
+0	psql-list	no risk signals	column-misalignment=0.25
+0	pstree-ap	no risk signals	unsplit-cells
+0	pt-mysql-summary	no risk signals	pipes-in-cells
+0	pvesm-status	no risk signals	column-misalignment=0.17
+0	pytest-cov-report	no risk signals	separator-row-as-data
+0	python-sysconfig	no risk signals	column-misalignment=0.29
+0	questdb-show-columns	no risk signals	column-misalignment=0.18
+0	quo-gitlog-pipe-format	no risk signals	pipes-in-cells
+0	quo-kv-windows-paths	no risk signals	key-value-delimiter-in-cell
+0	quo-pipe-escaped-bar	no risk signals	pipes-in-cells
+0	quo-pipe-quoted-bar	no risk signals	pipes-in-cells
+0	quo-pipe-sql-in-query	no risk signals	pipes-in-cells
+0	quo-pipe-table-bar-in-cell	no risk signals	pipes-in-cells
+0	quo-toml-quoted-array	no risk signals	pipes-in-cells
+0	quo-tsv-freetext-lastcol	no risk signals	pipes-in-cells;key-value-delimiter-in-cell
+0	ramspeed-int	no risk signals	unsplit-cells
+0	ray-status	no risk signals	separator-row-as-data
+0	rclone-tree	no risk signals	column-misalignment=0.33
+0	rebar3-tree	no risk signals	column-misalignment=0.83
+0	restic	no risk signals	unsplit-cells;separator-row-as-data
+0	rethinkdb-table-status	no risk signals	column-misalignment=0.50
+0	rfkill-json	no risk signals	column-misalignment=0.33
+0	ruff-check	no risk signals	key-value-delimiter-in-cell
+0	ruff-check-color	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	sacct-jobs	no risk signals	column-misalignment=0.25
+0	sas-proc-means	no risk signals	separator-row-as-data
+0	seinfo	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	sensors-signed-celsius	no risk signals	column-misalignment=0.20
+0	size	no risk signals	untrimmed-cells
+0	smbstatus	no risk signals	unsplit-cells
+0	spark-stages-list	no risk signals	column-misalignment=0.21
+0	stat-format	no risk signals	unsplit-cells;key-value-delimiter-in-cell
+0	stata-summarize	no risk signals	unsplit-cells
+0	storcli-show	no risk signals	unsplit-cells;separator-row-as-data
+0	stress-ng-cpu-cache	no risk signals	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell
+0	stress-ng-metrics	no risk signals	unsplit-cells;duplicate-column-names;key-value-delimiter-in-cell
+0	sudo-l	no risk signals	duplicate-column-names
+0	supabase-functions-list	no risk signals	column-misalignment=0.30
+0	supervisorctl-status	no risk signals	unsplit-cells
+0	swift-package-show-dependencies	no risk signals	column-misalignment=0.20
+0	sysctl-net	no risk signals	ragged-rows
+0	systemctl-failed-color	no risk signals	column-misalignment=0.20
+0	systemctl-list-dependencies	no risk signals	column-misalignment=0.71
+0	systemctl-timers-blank	no risk signals	column-misalignment=0.18
+0	systemd-analyze-cat-config	no risk signals	duplicate-column-names
+0	systemd-analyze-critical-chain	no risk signals	column-misalignment=0.43
+0	systemd-analyze-verify	no risk signals	key-value-delimiter-in-cell
+0	systemd-cgls	no risk signals	column-misalignment=0.25
+0	systemd-cgls-full	no risk signals	column-misalignment=0.31
+0	systemd-cgls-machine	no risk signals	column-misalignment=0.17
+0	systemd-cgls-machine-unit	no risk signals	column-misalignment=0.23
+0	talosctl-dmesg	no risk signals	blank-header-cell
+0	talosctl-get-links	no risk signals	column-misalignment=0.20
+0	talosctl-get-members	no risk signals	column-misalignment=0.38
+0	timescaledb-chunks	no risk signals	column-misalignment=0.17
+0	tmux-list-sessions	no risk signals	unsplit-cells
+0	top-batch	no risk signals	unsplit-cells
+0	tpcc-mysql-run	no risk signals	unsplit-cells
+0	traceroute6	no risk signals	column-misalignment=0.17
+0	tree	no risk signals	column-misalignment=0.25
+0	tree-l3-project	no risk signals	column-misalignment=0.33
+0	tree-l4-node-modules	no risk signals	column-misalignment=0.53
+0	uni-df-cjk-mount	no risk signals	column-misalignment=0.19
+0	unzip	no risk signals	separator-row-as-data
+0	utmpdump-output	no risk signals	duplicate-column-names
+0	valgrind-massif	no risk signals	duplicate-column-names
+0	vault-auth-list	no risk signals	column-misalignment=0.42
+0	vegeta-histogram	no risk signals	unsplit-cells
+0	vgs-vg-free	no risk signals	column-misalignment=0.33
+0	virsh-net-list	no risk signals	column-misalignment=0.25
+0	vmagent-targets	no risk signals	unsplit-cells;column-misalignment=0.29
+0	vnstat	no risk signals	unsplit-cells
+0	vnstat-hourly	no risk signals	pipes-in-cells
+0	vtysh-show-mpls-table	no risk signals	column-misalignment=0.20
+0	yt-dlp-progress-bar	no risk signals	unsplit-cells
+0	zenith-cpu	no risk signals	pipes-in-cells
+0	zfs-list	no risk signals	column-misalignment=0.20
+0	zfs-list-sparse-mount	no risk signals	column-misalignment=0.17
+0	zip-info	no risk signals	separator-row-as-data
+0	zpool-iostat-latency	no risk signals	separator-row-as-data
+0	zpool-iostat-v	no risk signals	separator-row-as-data
+0	zypper-repos	no risk signals	separator-row-as-data

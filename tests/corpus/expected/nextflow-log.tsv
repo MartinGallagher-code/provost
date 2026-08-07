@@ -1,9 +1,5 @@
-n	A	total_entries
-1	N E X T F L O W  ~  version 24.04.2	8
-2	Launching `main.nf` [nostalgic_curie] DSL2 - revision: a1b2c3d4e5	8
-3	executor >  slurm (34)	8
-4	[a1/2b3c4d] process > FASTQC (sample_01)      [100%] 8 of 8	8
-5	[e5/f6a7b8] process > TRIM (sample_01)        [100%] 8 of 8	8
-6	[c9/d0e1f2] process > ALIGN (sample_03)       [ 87%] 7 of 8	8
-7	[3a/4b5c6d] process > MULTIQC                 [  0%] 0 of 1	8
-8	Completed at: 11-Jul-2026 09:44:12	8
+n	id	process	tag	percent	done	total	total_entries
+1	a1/2b3c4d	FASTQC	sample_01	100%	8	8	4
+2	e5/f6a7b8	TRIM	sample_01	100%	8	8	4
+3	c9/d0e1f2	ALIGN	sample_03	87%	7	8	4
+4	3a/4b5c6d	MULTIQC		0%	0	1	4

@@ -1,10 +1,11 @@
-n	Domain	Name:	EXAMPLE_COM	total_entries
-1	Registry	Domain	ID:_2336799_DOMAIN_COM-VRSN	9
-2	Registrar	WHOIS	Server:_whois.iana.org	9
-3	Registrar:	RESERVED-Internet	Assigned_Numbers_Authority	9
-4	Updated	Date:	2025-08-14T07:01:44Z	9
-5	Creation	Date:	1995-08-14T04:00:00Z	9
-6	Registry	Expiry	Date:_2026-08-13T04:00:00Z	9
-7	Domain	Status:	clientDeleteProhibited	9
-8	Name	Server:	A.IANA-SERVERS.NET	9
-9	Name	Server:	B.IANA-SERVERS.NET	9
+n	key	value	total_entries
+1	Domain Name	EXAMPLE.COM	10
+2	Registry Domain ID	2336799_DOMAIN_COM-VRSN	10
+3	Registrar WHOIS Server	whois.iana.org	10
+4	Registrar	RESERVED-Internet Assigned Numbers Authority	10
+5	Updated Date	2025-08-14T07:01:44Z	10
+6	Creation Date	1995-08-14T04:00:00Z	10
+7	Registry Expiry Date	2026-08-13T04:00:00Z	10
+8	Domain Status	clientDeleteProhibited	10
+9	Name Server	A.IANA-SERVERS.NET	10
+10	Name Server	B.IANA-SERVERS.NET	10

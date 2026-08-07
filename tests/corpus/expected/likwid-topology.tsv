@@ -1,10 +1,4 @@
-n	A	total_entries
-1	Socket 0:	CPU cores:
-2	+-------------------------------------+	CPU cores:
-3	| Core 0  Core 1  Core 2  Core 3      |	CPU cores:
-4	| 32 kB   32 kB   32 kB   32 kB   L1  |	CPU cores:
-5	| 1 MB    1 MB    1 MB    1 MB    L2  |	CPU cores:
-6	| 25 MB shared                    L3  |	CPU cores:
-7	+-------------------------------------+	CPU cores:
-8	CPU type:	CPU cores:
-9	Intel Alderlake processor	CPU cores:
+n	section	Core_0	Core_1	Core_2	Core_3	label	total_entries
+1	Socket 0	32 kB	32 kB	32 kB	32 kB	L1	3
+2	Socket 0	1 MB	1 MB	1 MB	1 MB	L2	3
+3	Socket 0	25 MB shared				L3	3

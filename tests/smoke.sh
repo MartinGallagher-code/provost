@@ -247,5 +247,28 @@ printf 'alias ll='\''ls -alF'\''\n#%% not-a-prologue\n' | "$GLEAN" >/dev/null 2>
 midcap="$(ls "$WS/captures" | sort | tail -1)"
 check "mid-file '#%' is data — no context recorded" "0" "$(ls "$WS/captures/$midcap/context.txt" 2>/dev/null | grep -c .)"
 
+# --multi: one input that holds several datasets (a banner, a key/value block
+# and a table) files each of them separately under ONE capture, instead of
+# letting a single winner drop the rest.
+MULTI_IN="$(mktemp)"
+printf 'Linux 5.15.0-91-generic (host01) \t07/07/2026 \t_x86_64_\t(8 CPU)\n\navg-cpu:  %%user   %%nice %%system %%iowait  %%steal   %%idle\n           4.21    0.00    1.83    0.42    0.00   93.54\n\nDevice            r/s     w/s     rkB/s     wkB/s   rrqm/s   wrqm/s   %%rrqm   %%wrqm  r_await  w_await\nsda             12.34    8.91   1024.50    512.30     0.42     1.83    3.29   17.03     0.84     1.20\nsdb              3.21    2.10    256.40    128.20     0.10     0.45    3.02   17.65     0.62     0.95\n' > "$MULTI_IN"
+multi_out="$("$GLEAN" --sync --multi "$MULTI_IN" 2>&1)"
+check "--multi files several datasets from one input" "3 datasets" "$multi_out"
+multicap="$(ls "$WS/captures" | sort | tail -1)"
+multimeta="$(cat "$WS/captures/$multicap/meta.tsv")"
+check "multi capture meta records the dataset count" "datasets	3" "$multimeta"
+check "multi capture meta records each dataset's rows" "dataset_rows" "$multimeta"
+check "multi datasets share one capture (one stored input)" "1" \
+    "$(ls "$WS/captures/$multicap/output.txt" | grep -c .)"
+# The two same-strategy tables differ in shape, so the store's variant rule
+# keeps them apart rather than welding them together.
+check "same-strategy datasets split into a variant" "aligned-columns.v2" "$multimeta"
+multirow="$(printf '%s\n' "$multi_out" | sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' | head -1)"
+check "a multi-capture row still traces back to its input" "original source" \
+    "$("$GLEAN" source "$multirow" 2>&1)"
+# Without --multi the same input keeps the one-winner behaviour.
+single_out="$("$GLEAN" --sync "$MULTI_IN" 2>&1)"
+check "default capture is still single-dataset" "→ dataset" "$single_out"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]
