@@ -1,5 +1,22 @@
 # glean — Changelog
 
+## 2026-08-07 — survey: which corpus inputs hold multiple datasets
+
+- Swept the corpus under `--multi` to find inputs that split into more than one
+  dataset. **247+ found** (scan still completing at the time of writing);
+  `docs/multi-dataset-first100-2026-08-07.tsv` lists the alphabetically first
+  100 with their dataset count and the strategy+confidence of each part,
+  `docs/multi-dataset-scan-2026-08-07.tsv` holds the full scan.
+- Among the first 100: 62 split in two, 17 in three, 14 in four, 3 in five and
+  4 in six. The `text` dataset (a comment/legend run kept verbatim) appears
+  throughout — `cmb-kv-comment-color` and `cmb-hashbang-comment-csv-color` both
+  alternate comment and data six ways, and the `crontab`/`dmidecode`/`collectl`
+  families all separate their banner or comment block from the data.
+- Notable: `decode-dimms` splits six ways across three different strategies;
+  the `dig` family separates its header, answer and footer sections; `amdgpu-top`
+  (long marked honest-⏳ because either choice dropped half the data) now yields
+  both of its tables.
+
 ## 2026-08-07 — --multi: section-header splitting tried and reverted (finding recorded)
 
 - Implemented "a bare `Header:` over an indented body opens a sub-block" so
