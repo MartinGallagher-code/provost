@@ -37,7 +37,14 @@ parses exist:
   artillery-report 3, cargo-bench 3, cargo-test-summary 3, atlantis-status 3.
 - **New `tests/corpus/coverage.sh`** turns the same measure into a review
   signal, ranking the corpus by how much of each input survives its parse so
-  lossy parses surface by themselves. Documented as a signal, NOT a gate:
+  lossy parses surface by themselves. Validated against the reviewer's own
+  "you lost information" marks — every one of them ranks at the bottom, in
+  order: biosdecode 9% ("lost a large chunk"), R-sessioninfo 27% ("lost the
+  Running Under entry"), btrfs-filesystem-show 36% ("lost data"), clpeak-run
+  45% ("lost Global memory bandwidth"), arp-scan 52% ("lost the first two
+  lines"), against cinebench-r23 84% and apachebench 100% which were agreed.
+  iostat-x sits at 62% single-dataset, which is precisely why `--multi` splits
+  it. Documented as a signal, NOT a gate:
   measured against the reviewer's marks the lossy group scored 13–68% and the
   agreed group 59–100% — separated on average, overlapping in the middle,
   because many parses legitimately drop chrome and units.
