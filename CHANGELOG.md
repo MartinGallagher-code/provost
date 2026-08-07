@@ -3,15 +3,16 @@
 ## 2026-08-07 — survey: which corpus inputs hold multiple datasets
 
 - Swept the corpus under `--multi` to find inputs that split into more than one
-  dataset. **247+ found** (scan still completing at the time of writing);
+  dataset. **412 of 3705 (11%)** do.
   `docs/multi-dataset-first100-2026-08-07.tsv` lists the alphabetically first
-  100 with their dataset count and the strategy+confidence of each part,
-  `docs/multi-dataset-scan-2026-08-07.tsv` holds the full scan.
-- Among the first 100: 62 split in two, 17 in three, 14 in four, 3 in five and
-  4 in six. The `text` dataset (a comment/legend run kept verbatim) appears
-  throughout — `cmb-kv-comment-color` and `cmb-hashbang-comment-csv-color` both
-  alternate comment and data six ways, and the `crontab`/`dmidecode`/`collectl`
-  families all separate their banner or comment block from the data.
+  100 with their dataset count and the strategy+confidence of each part;
+  `docs/multi-dataset-scan-2026-08-07.tsv` holds the complete scan.
+- Distribution: 274 split in two, 84 in three, 33 in four, 11 in five, 9 in six
+  and 1 in seven (`git-log-signed`). **109 of the 412 (26%) involve a `text`
+  dataset** — a comment/legend run kept verbatim rather than force-parsed, the
+  outcome added the same day. `cmb-kv-comment-color` and
+  `cmb-hashbang-comment-csv-color` alternate comment and data six ways, and the
+  `crontab`/`dmidecode`/`collectl` families each separate banner from data.
 - Notable: `decode-dimms` splits six ways across three different strategies;
   the `dig` family separates its header, answer and footer sections; `amdgpu-top`
   (long marked honest-⏳ because either choice dropped half the data) now yields
