@@ -1,0 +1,12 @@
+# Round-17: marks on the multi-dataset first-100 workbook (first 33 reviewed).
+name	mark	note
+amdgpu-top	Horrible=x	-
+aureport	Horrible=x	Set 2 is the headers  for set 3
+aureport-login	Horrible=x	set 2 is the headers for set 3
+biosdecode	Horrible=x	-
+btrfs-filesystem-show	Horrible=x	You lost some information
+cargo-bench	Horrible=x	-
+cargo-machete	Horrible=x	-
+cargo-test-summary	Horrible=x	Running 44 tests is a separate take
+cilium-status	Horrible=x	-
+clpeak-run	Horrible=x	-
