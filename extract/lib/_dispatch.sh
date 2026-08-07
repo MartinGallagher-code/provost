@@ -720,10 +720,30 @@ run_multi_mode () {
     # measurably degrades that parse.
     local -a blocks=() block_istext=()
     local block="" line
+    # A RULE LINE (`--------`, `========`, `----  |  ----`) is a boundary too,
+    # and is never data: the reviewer on 7z-benchmark — "a dividing line should
+    # never be part of a row; it indicates that summarization is happening
+    # below, which means a third dataset" — and on artillery-report, "rows
+    # should not contain just -------'s". Such a line splits its block and is
+    # dropped. Column pipes and spaces are ignored when testing, so a ruled
+    # two-column separator counts as one rule.
+    _multi_is_rule () {
+        local s="${1//[[:space:]|]/}"
+        [[ ${#s} -ge 3 && -z "${s//[-=_~*+]/}" ]]
+    }
     _multi_push_block () {
         local b="${1%$'\n'}" cur="" incomment=-1 l is
         [[ -z "${b//[[:space:]]/}" ]] && return 0
         while IFS= read -r l || [[ -n "$l" ]]; do
+            if _multi_is_rule "$l"; then
+                if [[ -n "$cur" ]]; then
+                    blocks+=("${cur%$'\n'}")
+                    block_istext+=("$([[ $incomment -eq 1 ]] && echo 1 || echo 0)")
+                    cur=""
+                fi
+                incomment=-1
+                continue
+            fi
             if [[ "${l#"${l%%[![:space:]]*}"}" == \#* ]]; then is=1; else is=0; fi
             if [[ $incomment -ne -1 && $is -ne $incomment && -n "$cur" ]]; then
                 blocks+=("${cur%$'\n'}"); block_istext+=("$incomment"); cur=""

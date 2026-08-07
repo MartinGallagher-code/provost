@@ -1,5 +1,35 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi: a rule line is a boundary, never a data row
+
+- Round-18 marks on the multi-dataset workbook (entries 1-40): 19 agree,
+  8 "split OK but formatting off", 12 wrong-split. Recorded in
+  `docs/review-marks-2026-08-07-round18-multi.tsv`; the 19 appended to the
+  validated set (398 -> 409).
+- **Rule lines now split.** A line whose content is only rule characters
+  (`--------`, `========`, and ruled two-column separators like
+  `------  |  ------`, since pipes and spaces are ignored) ends its block and is
+  dropped. The reviewer on 7z-benchmark: *"a dividing line should never be part
+  of a row; it indicates that summarization is happening below, which would
+  indicate a third data set"* — and on artillery-report, *"rows should not
+  contain just -------'s"*. Both now behave: 7z-benchmark yields banner / the
+  per-dict table / the Avr+Tot summary, and artillery-report's `Summary report`
+  block no longer carries two rule rows. 255 corpus inputs contain a rule line,
+  so the reach is wide.
+- 1 new check in `extract/tests/test_multi_mode.sh` (6 -> 7). Corpus gate
+  3463/0/242 unchanged (single-dataset), extract 63/63, smoke 65/0, melt 10/0.
+- **The workbook renderer** (now committed at `tests/corpus/make_multi_doc.js`)
+  gained the reviewer's requested third verdict — "SPLIT OK, FORMATTING OFF" —
+  which separates a boundary problem from a parser problem, and stamps each
+  entry with any mark already given so a re-issue never asks twice.
+- **Tried and reverted:** using a one-line `#` comment as the following table's
+  HEADER (the reviewer's "set 2 is the headers for set 3" on aureport).
+  Prepending the de-commented line made aureport WORSE — `vertical-line` then
+  sliced rows at the header's character positions and shredded every value —
+  and aureport-login did not trigger at all, its header naming 5 columns where
+  the data has 7. Header-to-column correspondence is not a token-count match;
+  it needs the column parsers to align names to detected boundaries.
+
 ## 2026-08-07 — survey: which corpus inputs hold multiple datasets
 
 - Swept the corpus under `--multi` to find inputs that split into more than one

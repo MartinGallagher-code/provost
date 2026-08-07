@@ -119,6 +119,30 @@ test_multi_comment_run_kept_verbatim () {
     assert_contains "$out" "line1 # name" "comment line kept verbatim under a lineN field"
 }
 
+# A rule line (`------`) is a boundary, never a data row: 7z-benchmark rules off
+# its per-dict rows from the Avr/Tot summary below, which is a separate dataset.
+_multi_rule_input () {
+    cat <<'EOF'
+Dict     Speed Usage    R/U Rating
+22:      48210   644  12048  77488
+23:      47122   641  12211  78221
+----------------------------------
+Avr:     47666   642  12129  77854
+EOF
+}
+
+test_multi_rule_line_splits () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    _multi_rule_input > "$tmpfile"
+    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "2" "$n" "a rule line splits the rows above from the summary below"
+    assert_not_contains "$out" "------" "the rule line itself is dropped, never a data row"
+}
+
+run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one
