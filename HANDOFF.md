@@ -1,6 +1,6 @@
 # Handoff — glean
 
-## Status: **multi-dataset capture shipped** (2026-08-07) — `glean --multi` files every dataset an input holds (kv block + table + banner) under one capture; smoke 58→65, melt 10/0, corpus gate 3463/0/242 unchanged. Earlier: PR #53 merged (round-15, 24 fixes); PR #54 open draft (re-triage + round-16, 30 tools). Validated 398. Next on multi: smarter section splitting (blank lines are the only boundary today, so proc-slabinfo and kubectl-describe stay single) and a `text` dataset kind for deliberately-unparsed banner/comment blocks — see docs/0003-multi-dataset.md.
+## Status: **multi-dataset capture shipped** (2026-08-07) — `glean --multi` files every dataset an input holds (kv block + table + banner) under one capture; smoke 58→65, melt 10/0, corpus gate 3463/0/242 unchanged. Earlier: PR #53 merged (round-15, 24 fixes); PR #54 open draft (re-triage + round-16, 30 tools). Validated 398. Multi also splits comment runs (`#`-led legends directly above a table) and keeps them verbatim as a `text` dataset — kv, table and left-unparsed all from one input. Next on multi: section splitting beyond comment runs (indentation / `Section:` headers — kubectl-describe still reads whole) — see docs/0003-multi-dataset.md.
 
 **CI note (2026-08-06):** GitHub Actions had a multi-hour action-resolution outage ("Failed to resolve action download info: Service Unavailable") failing every job before any code ran. All suites pass locally; re-run the workflows once GitHub recovers. Round-13/14 hard shapes also still open.
 

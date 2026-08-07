@@ -1,5 +1,23 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi: comment runs split, and stay unparsed
+
+- **Blank lines are no longer the only boundary.** A maximal run of `#`-led
+  lines now splits its block into `[before][comments][after]`, catching the
+  common shape of a legend sitting directly above a table with no blank line
+  between (`/proc/slabinfo`'s `# name <active_objs> …`). A comment group never
+  merges with the data either side of it.
+- **A comment run is kept VERBATIM** as a `text` dataset (one `lineN` field per
+  line, confidence 100) instead of being force-fitted to a parser that would
+  invent columns out of prose, or dropped. That makes "just left unparsed
+  (headers or comments)" a first-class outcome alongside kv and tabular.
+- `/proc/slabinfo` under `--multi` now yields three datasets (version banner as
+  kv, legend as text, the table) where it read as one block before.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (4 → 6). Corpus gate
+  3463/0/242 unchanged (it runs single-dataset), extract 63/63, smoke 65/0,
+  melt 10/0. Files: `extract/lib/_dispatch.sh`, `extract/tests/test_multi_mode.sh`,
+  `docs/0003-multi-dataset.md`.
+
 ## 2026-08-07 — multi-dataset capture (`glean --multi`)
 
 - **`glean --multi` / `glean run --multi` / `GLEAN_MULTI=1`** files EVERY

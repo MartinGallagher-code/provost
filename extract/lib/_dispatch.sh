@@ -705,18 +705,39 @@ run_multi_mode () {
         return 1
     fi
 
-    # Blank-line blocks.
-    local -a blocks=()
+    # Blank-line blocks, then a secondary split on COMMENT RUNS. Blank lines are
+    # not the only boundary: `/proc/slabinfo` puts a `# name <active_objs> …`
+    # legend directly above its table with no blank line between, and that
+    # legend is neither part of the table nor a table of its own. A maximal run
+    # of `#`-led lines therefore splits its block into [before][comments][after],
+    # and the comment run is marked so it is kept VERBATIM rather than
+    # force-fitted to a parser (see _MULTI_TEXT below).
+    local -a blocks=() block_istext=()
     local block="" line
+    _multi_push_block () {
+        local b="${1%$'\n'}" cur="" incomment=-1 l is
+        [[ -z "${b//[[:space:]]/}" ]] && return 0
+        while IFS= read -r l || [[ -n "$l" ]]; do
+            if [[ "${l#"${l%%[![:space:]]*}"}" == \#* ]]; then is=1; else is=0; fi
+            if [[ $incomment -ne -1 && $is -ne $incomment && -n "$cur" ]]; then
+                blocks+=("${cur%$'\n'}"); block_istext+=("$incomment"); cur=""
+            fi
+            incomment=$is
+            cur+="$l"$'\n'
+        done <<< "$b"
+        if [[ -n "$cur" ]]; then
+            blocks+=("${cur%$'\n'}"); block_istext+=("$([[ $incomment -eq 1 ]] && echo 1 || echo 0)")
+        fi
+    }
     while IFS= read -r line || [[ -n "$line" ]]; do
         if [[ -z "${line//[[:space:]]/}" ]]; then
-            [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
+            [[ -n "$block" ]] && _multi_push_block "$block"
             block=""
             continue
         fi
         block+="$line"$'\n'
     done <<< "$text"
-    [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
+    [[ -n "$block" ]] && _multi_push_block "$block"
     [[ ${#blocks[@]} -eq 0 ]] && { _log_warn "multi: empty input."; return 0; }
 
     # Group consecutive same-winner blocks — but only when they also share
@@ -728,9 +749,18 @@ run_multi_mode () {
     # table split by a stray blank line likewise. A nameless block joins the
     # open group (leading chrome opens a nameless group the first named block
     # adopts).
-    local -a group_text=() group_name=() group_shape=()
-    local gi=-1 bname bshape b
-    for b in "${blocks[@]}"; do
+    local -a group_text=() group_name=() group_shape=() group_istext=()
+    local gi=-1 bname bshape b bi
+    for ((bi = 0; bi < ${#blocks[@]}; bi++)); do
+        b="${blocks[$bi]}"
+        # A comment run is its own group and never merges with data either side:
+        # it is context to keep, not a record set to parse.
+        if [[ "${block_istext[$bi]}" -eq 1 ]]; then
+            gi=$((gi + 1))
+            group_text[$gi]="$b"; group_name[$gi]="text"; group_shape[$gi]=0
+            group_istext[$gi]=1
+            continue
+        fi
         if _multi_detect_name "$b"; then bname="$_MULTI_DET"; else bname=""; fi
         # modal token count of the block's non-blank lines
         bshape=$(printf '%s\n' "$b" | awk 'NF { c[NF]++ } END { best=0; m=0; for (k in c) if (c[k] > best || (c[k] == best && k+0 < m)) { best=c[k]; m=k+0 } print m }')
@@ -740,7 +770,9 @@ run_multi_mode () {
             local _d=$((bshape - _gs)); [[ $_d -lt 0 ]] && _d=$((-_d))
             [[ $_d -le 1 ]] && _shape_ok=1
         fi
-        if [[ $gi -ge 0 && ( -z "$bname" || ( "$bname" == "${group_name[$gi]}" && $_shape_ok -eq 1 ) || -z "${group_name[$gi]}" ) ]]; then
+        # A comment group never adopts the data that follows it.
+        if [[ $gi -ge 0 && "${group_istext[$gi]:-0}" -eq 0 && \
+              ( -z "$bname" || ( "$bname" == "${group_name[$gi]}" && $_shape_ok -eq 1 ) || -z "${group_name[$gi]}" ) ]]; then
             group_text[$gi]+=$'\n\n'"$b"
             if [[ -z "${group_name[$gi]}" ]]; then
                 group_name[$gi]="$bname"
@@ -751,6 +783,7 @@ run_multi_mode () {
             group_text[$gi]="$b"
             group_name[$gi]="$bname"
             group_shape[$gi]="$bshape"
+            group_istext[$gi]=0
         fi
     done
 
@@ -758,6 +791,32 @@ run_multi_mode () {
     local i ds=0
     for ((i = 0; i <= gi; i++)); do
         text="${group_text[$i]}"
+        # A comment/legend run is emitted VERBATIM as a `text` dataset — one
+        # `lineN` field per line. Forcing a parser on it would invent columns
+        # out of prose; dropping it would lose context the reader wants.
+        if [[ "${group_istext[$i]:-0}" -eq 1 ]]; then
+            local _t_out="" _t_line _t_n=0
+            while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
+                [[ -z "${_t_line//[[:space:]]/}" ]] && continue
+                _t_n=$((_t_n + 1))
+                _t_out+="line${_t_n} ${_t_line}"$'\n'
+            done <<< "$text"
+            [[ $_t_n -gt 0 ]] || continue
+            ds=$((ds + 1))
+            printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "text" "100"
+            _t_out="${_t_out%$'\n'}"
+            case "$_OPT_format" in
+                json)        format_json "$_t_out" ;;
+                json-nested) format_json_nested "$_t_out" ;;
+                csv)         format_csv "$_t_out" ;;
+                tsv)         format_tsv "$_t_out" ;;
+                plain)       format_plain "$_t_out" ;;
+                yaml)        format_yaml "$_t_out" ;;
+                xml)         format_xml "$_t_out" ;;
+                *)           format_plain "$_t_out" ;;
+            esac
+            continue
+        fi
         _CLEAN_TEXT_CACHE=""
         _CLEAN_TEXT_DONE=0
         _WINNER_NAME=""

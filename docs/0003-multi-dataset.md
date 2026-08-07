@@ -86,23 +86,35 @@ changed. Per capture:
 avg-cpu kv block, and the Device table — where the default capture keeps only
 the table. Covered by 7 checks in `tests/smoke.sh` (65 passing).
 
+## Comment runs: split, and left unparsed (2026-08-07)
+
+Blank lines were the only boundary, which missed a common shape: a `#`-led
+legend sitting *directly above* a table with no blank line between it and the
+data (`/proc/slabinfo`'s `# name <active_objs> …`). That legend is neither part
+of the table nor a table of its own.
+
+A maximal run of `#`-led lines now splits its block into
+`[before][comments][after]`, and a comment group never merges with the data on
+either side. Such a group is emitted **verbatim** as a `text` dataset — one
+`lineN` field per line, confidence 100 — rather than force-fitted to a parser
+that would invent columns out of prose, and rather than dropped. This is the
+reviewer's "some data that is just left unparsed (headers or comments)" case as
+a first-class outcome.
+
+`/proc/slabinfo` under `--multi` now yields three datasets — the
+`slabinfo - version: 2.1` banner as kv, the legend as `text`, and the table —
+where it previously read as one block. Covered by
+`extract/tests/test_multi_mode.sh` (6 checks).
+
 The corpus golden gate keeps running single-dataset (`--max-strategies 1`);
 no goldens changed with this feature.
 
 ## Possible next steps
 
-- **Smarter section splitting.** Blank lines are the only boundary today, so an
-  input whose sections are marked by indentation or a `Section:` header still
-  reads as one block: `proc-slabinfo` (a `# name …` comment header over a
-  table, no blank lines) and `kubectl describe` (handled whole by
-  `describe-report`) both stay single under `--multi`. Splitting on a *shape
-  change* — or on `Section:` headers — would feed the same
-  group-extract-emit pipeline and is the highest-value follow-up.
-- **Leave-unparsed as a first-class outcome.** A banner or comment run
-  currently either finds a weak parse (`version-line` on the uname line) or is
-  dropped by the threshold. A `text` dataset kind that keeps such a block
-  verbatim, labelled, would match the reviewer's "just left unparsed" case
-  exactly.
+- **Section splitting beyond comment runs.** Indentation-scoped sections and
+  `Section:` headers are still not boundaries, so `kubectl describe` (handled
+  whole by `describe-report`) stays single under `--multi`. Splitting on a
+  sustained *shape change* would feed the same group-extract-emit pipeline.
 - Corpus: a `multi` manifest kind for inputs whose right answer is several
   tables (amdgpu-top, iostat family), gating each dataset against its own
   golden.
