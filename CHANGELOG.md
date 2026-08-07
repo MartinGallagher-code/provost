@@ -1,5 +1,31 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi: a count preamble is its own dataset
+
+- The reviewer on cargo-test-summary — *"'running 44 tests' is a separate
+  take"* — and on atlantis-status — *"'Ran plan for 2 projects' should be a
+  separate data set"*. Both were landing as a ragged first row of the table
+  below them. A leading COUNT PREAMBLE now splits off.
+- Two conditions must hold together, so an ordinary header row is never
+  mistaken for one: (a) the line announces a count — >=3 tokens, at least one a
+  bare integer and two purely alphabetic — AND is PROSE, i.e. single-spaced,
+  since a column-aligned header is separated by 2+ spaces; (b) every line below
+  shares one lead signature (first token, digits collapsed to `#`) that differs
+  from the first line's — `test`/`test`/`test` under `running`, `#.`/`#.` under
+  `Ran`. A real table's data rows lead with varied names, so a header fails (b)
+  too. The first cut lacked the prose test and split `TOP 3 PODS   STATUS` off
+  its rows; that case is now a regression test.
+- cargo-bench, cargo-test-summary and atlantis-status each yield the preamble,
+  the rows, and the trailing summary as three datasets.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (7 -> 9). Corpus gate
+  3463/0/242 unchanged, extract 63/63, smoke 65/0, melt 10/0.
+- **Measured but not changed:** the cilium-status ASCII lineart the reviewer
+  asked to strip. Only 3 corpus inputs carry a lineart prefix (cilium-status,
+  weather-wttr, figlet-banner); stripping would help the first two and risks
+  the third, which is pure art. The strip also needs multibyte-safe handling
+  (`¯` is U+00AF) to meet the repo's portability bar, so it is left for a
+  focused change rather than rushed in alongside the splitter work.
+
 ## 2026-08-07 — --multi: a rule line is a boundary, never a data row
 
 - Round-18 marks on the multi-dataset workbook (entries 1-40): 19 agree,

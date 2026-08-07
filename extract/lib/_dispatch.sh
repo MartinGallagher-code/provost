@@ -731,6 +731,44 @@ run_multi_mode () {
         local s="${1//[[:space:]|]/}"
         [[ ${#s} -ge 3 && -z "${s//[-=_~*+]/}" ]]
     }
+
+    # A COUNT PREAMBLE is its own dataset, not the first row of the table below
+    # it — the reviewer on cargo-test-summary: "'running 44 tests' is a separate
+    # take", and on atlantis-status: "'Ran plan for 2 projects' should be a
+    # separate data set". Both were landing as a ragged first row.
+    #
+    # Two conditions together, so an ordinary HEADER row is never mistaken for
+    # one. (a) The line announces a count: >=3 tokens, at least one a bare
+    # integer and at least two purely alphabetic — `running 3 tests`,
+    # `Ran Plan for 2 projects:`. A header like `Device r/s w/s` or
+    # `NAME STATUS` carries no number and is thus excluded. (b) Every line below
+    # shares one lead signature (first token, digits collapsed) that differs
+    # from the first line's — `test`/`test`/`test` under `running`, `#.`/`#.`
+    # under `Ran`. A real table's data rows lead with varied names, so a header
+    # over them fails (b) as well.
+    _multi_lead_sig () {
+        local t="${1#"${1%%[![:space:]]*}"}"
+        t="${t%%[[:space:]]*}"
+        local o="" i c
+        for ((i = 0; i < ${#t}; i++)); do
+            c="${t:i:1}"
+            case "$c" in [0-9]) o+="#" ;; *) o+="$c" ;; esac
+        done
+        printf '%s' "$o"
+    }
+    _multi_is_count_preamble () {
+        local l="$1" nint=0 nalpha=0 ntok=0 tok
+        # A preamble is PROSE — single-spaced. A column-aligned header row is
+        # separated by 2+ spaces, so `TOP 3 PODS   STATUS` is excluded here even
+        # though it carries a number and alphabetic words.
+        [[ "${l#"${l%%[![:space:]]*}"}" == *"  "* ]] && return 1
+        for tok in $l; do
+            ntok=$((ntok + 1))
+            if [[ "$tok" =~ ^[0-9]+$ ]]; then nint=$((nint + 1))
+            elif [[ "$tok" =~ ^[A-Za-z]+:?$ ]]; then nalpha=$((nalpha + 1)); fi
+        done
+        [[ $ntok -ge 3 && $nint -ge 1 && $nalpha -ge 2 ]]
+    }
     _multi_push_block () {
         local b="${1%$'\n'}" cur="" incomment=-1 l is
         [[ -z "${b//[[:space:]]/}" ]] && return 0
@@ -755,15 +793,39 @@ run_multi_mode () {
             blocks+=("${cur%$'\n'}"); block_istext+=("$([[ $incomment -eq 1 ]] && echo 1 || echo 0)")
         fi
     }
+    # Peel a count preamble off the front of a block before pushing it.
+    _multi_push_outer () {
+        local b="${1%$'\n'}"
+        [[ -z "${b//[[:space:]]/}" ]] && return 0
+        local -a ls=()
+        local l
+        while IFS= read -r l || [[ -n "$l" ]]; do ls+=("$l"); done <<< "$b"
+        if [[ ${#ls[@]} -ge 3 ]] && _multi_is_count_preamble "${ls[0]}"; then
+            local sig0 sig1 j uniform=1
+            sig0="$(_multi_lead_sig "${ls[0]}")"
+            sig1="$(_multi_lead_sig "${ls[1]}")"
+            for ((j = 2; j < ${#ls[@]}; j++)); do
+                [[ "$(_multi_lead_sig "${ls[$j]}")" == "$sig1" ]] || { uniform=0; break; }
+            done
+            if [[ $uniform -eq 1 && "$sig0" != "$sig1" ]]; then
+                _multi_push_block "${ls[0]}"
+                local rest="" k
+                for ((k = 1; k < ${#ls[@]}; k++)); do rest+="${ls[$k]}"$'\n'; done
+                _multi_push_block "$rest"
+                return 0
+            fi
+        fi
+        _multi_push_block "$b"
+    }
     while IFS= read -r line || [[ -n "$line" ]]; do
         if [[ -z "${line//[[:space:]]/}" ]]; then
-            [[ -n "$block" ]] && _multi_push_block "$block"
+            [[ -n "$block" ]] && _multi_push_outer "$block"
             block=""
             continue
         fi
         block+="$line"$'\n'
     done <<< "$text"
-    [[ -n "$block" ]] && _multi_push_block "$block"
+    [[ -n "$block" ]] && _multi_push_outer "$block"
     [[ ${#blocks[@]} -eq 0 ]] && { _log_warn "multi: empty input."; return 0; }
 
     # Group consecutive same-winner blocks — but only when they also share

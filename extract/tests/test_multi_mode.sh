@@ -142,6 +142,42 @@ test_multi_rule_line_splits () {
     assert_not_contains "$out" "------" "the rule line itself is dropped, never a data row"
 }
 
+# A count preamble ("running 3 tests") is its own dataset, not the first row of
+# the table under it -- but an ordinary HEADER row must never be mistaken for one.
+test_multi_count_preamble_splits () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+running 3 tests
+test bench_parse_small ... ok
+test bench_parse_large ... ok
+test bench_encode ... ok
+EOF
+    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "2" "$n" "count preamble splits from the rows below it"
+}
+
+test_multi_header_is_not_a_preamble () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    # Carries a number and alphabetic words like a preamble, but is column
+    # aligned (2+ spaces) -- a header, so it must stay with its rows.
+    cat > "$tmpfile" <<'EOF'
+TOP 3 PODS   STATUS
+pod-1   Running
+pod-2   Running
+pod-3   Running
+EOF
+    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "1" "$n" "an aligned header row is not treated as a count preamble"
+}
+
+run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
+run_test "aligned header is not a preamble"     test_multi_header_is_not_a_preamble
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
