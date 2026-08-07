@@ -711,7 +711,13 @@ run_multi_mode () {
     # legend is neither part of the table nor a table of its own. A maximal run
     # of `#`-led lines therefore splits its block into [before][comments][after],
     # and the comment run is marked so it is kept VERBATIM rather than
-    # force-fitted to a parser (see _MULTI_TEXT below).
+    # force-fitted to a parser.
+    #
+    # A bare `Header:` over an indented body (kubectl describe's `Conditions:` /
+    # `Events:`) is deliberately NOT a boundary — see the "sections" note in
+    # docs/0003-multi-dataset.md: splitting there pre-empts whole-input
+    # strategies that were written to handle the sections together, and
+    # measurably degrades that parse.
     local -a blocks=() block_istext=()
     local block="" line
     _multi_push_block () {

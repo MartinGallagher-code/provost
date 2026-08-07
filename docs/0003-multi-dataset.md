@@ -109,12 +109,53 @@ where it previously read as one block. Covered by
 The corpus golden gate keeps running single-dataset (`--max-strategies 1`);
 no goldens changed with this feature.
 
+## Sections: why a bare `Header:` is NOT a boundary (tried, reverted 2026-08-07)
+
+The obvious next boundary looks like the section header. `kubectl describe` has
+no blank line anywhere: a top-level kv block runs straight into `Conditions:`
+and `Events:`, each a bare `Header:` at column 0 over an indented table. Adding
+"a bare `Header:` whose next line is indented opens a sub-block" was
+implemented and it did split that input three ways — and made the result
+**worse**:
+
+| | whole input | split into sections |
+|---|---|---|
+| kubectl-describe-deployment | `describe-report` @85, all three shapes parsed together | `protobuf-text` @80 (mangled keys), `aligned-columns` @70, `indented-hierarchy` @65 (Message column shredded) |
+
+The cause is ordering: splitting happens *before* detection, so a strategy
+written to handle the sections **together** never sees the whole input.
+`describe-report` exists precisely because those sections belong to one report
+(it slices each `Section:` table at its `----` separator positions). Dedenting
+the section bodies first does not rescue it — `fixed-width` then wins on Events
+and truncates values to the `----` widths.
+
+Guards that were considered and rejected:
+
+- *"Don't split if a bespoke strategy claims the whole block."* `describe-report`
+  lives in `strategies/delimited/`, so it is classified GENERIC — the
+  generic/bespoke line does not separate these cases.
+- *"Don't split if any strategy detects the whole block."* Far too broad:
+  `colons` detects almost any kv-ish block, so this suppresses nearly every
+  useful split.
+- *"Split only when the sections detect different strategies."* True for
+  kubectl-describe as well (three different winners), so it does not
+  discriminate.
+
+The distinguishing fact — that `describe-report` already accounts for every
+section while `iostat` accounts for only the Device table — is not visible from
+any signal the engine currently has. Note that this costs the `iostat` family
+nothing: its sections are already separated by BLANK LINES, so they split
+before a section rule would ever apply.
+
+A future attempt needs a **coverage measure**: how much of the input's content
+the whole-block parse actually accounts for, compared with the sum of the
+section parses. Split only when the whole-block parse leaves data on the floor.
+That is a real piece of work, not a heuristic tweak.
+
 ## Possible next steps
 
-- **Section splitting beyond comment runs.** Indentation-scoped sections and
-  `Section:` headers are still not boundaries, so `kubectl describe` (handled
-  whole by `describe-report`) stays single under `--multi`. Splitting on a
-  sustained *shape change* would feed the same group-extract-emit pipeline.
+- **Coverage-driven section splitting** (see above) — the principled version of
+  the reverted experiment.
 - Corpus: a `multi` manifest kind for inputs whose right answer is several
   tables (amdgpu-top, iostat family), gating each dataset against its own
   golden.

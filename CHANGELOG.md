@@ -1,5 +1,28 @@
 # glean — Changelog
 
+## 2026-08-07 — --multi: section-header splitting tried and reverted (finding recorded)
+
+- Implemented "a bare `Header:` over an indented body opens a sub-block" so
+  sectioned reports without blank lines (`kubectl describe`: a kv block running
+  straight into `Conditions:` and `Events:`) would decompose. It split that
+  input three ways and made the parse **worse**: `describe-report` @85 handling
+  all three shapes together became `protobuf-text` @80 with mangled keys,
+  `aligned-columns` @70, and `indented-hierarchy` @65 with the Message column
+  shredded. Dedenting the section bodies first does not rescue it —
+  `fixed-width` then wins on Events and truncates values to the `----` widths.
+- Cause is ordering: splitting happens BEFORE detection, so a strategy written
+  to handle the sections together never sees the whole input. Three candidate
+  guards were rejected (bespoke-vs-generic does not separate the cases —
+  `describe-report` lives in `delimited/` and counts as generic; "any strategy
+  detects the whole block" is far too broad; "sections detect different
+  strategies" is true here too). Reverted rather than shipped.
+- Costs the iostat family nothing: its sections are already blank-line
+  separated, so they split before a section rule would apply. Rationale and the
+  coverage-measure design a future attempt needs are in
+  `docs/0003-multi-dataset.md`.
+- Comment-run splitting and multi-dataset capture are unaffected and stay.
+  test_multi_mode 6/6, extract 63/63, smoke 65/0, melt 10/0, corpus 3463/0/242.
+
 ## 2026-08-07 — --multi: comment runs split, and stay unparsed
 
 - **Blank lines are no longer the only boundary.** A maximal run of `#`-led
