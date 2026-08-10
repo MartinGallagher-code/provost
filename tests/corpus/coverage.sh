@@ -63,8 +63,16 @@ _coverage_of () {
         {
             if ($0 == "") next
             sp = index($0, " "); val = (sp ? substr($0, sp + 1) : "")
+            fname = (sp ? substr($0, 1, sp - 1) : $0)
             n = split(val, b, /[ \t_]+/)
             for (i = 1; i <= n; i++) { t = norm(b[i]); if (t ~ /[A-Za-z0-9]/) so[t] = 1 }
+            # Field names count as survival too — see _score.sh.
+            nm = fname
+            sub(/^d[0-9]+_/, "", nm); sub(/^entry[0-9]+\./, "", nm)
+            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm !~ /^[A-Z][A-Z]?$/) {
+                n = split(nm, k, /[ \t_.]+/)
+                for (i = 1; i <= n; i++) { t = norm(k[i]); if (t ~ /[A-Za-z0-9]/) so[t] = 1 }
+            }
         }
         END {
             if (ntok == 0) { print 100; exit }

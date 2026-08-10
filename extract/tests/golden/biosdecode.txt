@@ -1,6 +1,40 @@
-entry1.smbios_version 3.2.1
-entry1.Structure_Table_at 0x000EC780
-entry1.Structure_Table_length 3084
-entry1.Number_of_structures 84
-entry1.Maximum_structure_size 704
-total_entries 1
+entry1.section biosdecode
+entry1.key version
+entry1.value 3.3
+entry2.section SMBIOS 3.2.1
+entry2.key Structure Table at
+entry2.value 0x000EC780
+entry3.section SMBIOS 3.2.1
+entry3.key Structure Table length
+entry3.value 3084 bytes
+entry4.section SMBIOS 3.2.1
+entry4.key Number of structures
+entry4.value 84
+entry5.section SMBIOS 3.2.1
+entry5.key Maximum structure size
+entry5.value 704 bytes
+entry6.section BIOS32 Service Directory
+entry6.key Revision
+entry6.value 0
+entry7.section BIOS32 Service Directory
+entry7.key Calling Interface Address
+entry7.value 0x000FB320
+entry8.section PNP BIOS PnP 1.0
+entry8.key Event Notification
+entry8.value Not Supported
+entry9.section PNP BIOS PnP 1.0
+entry9.key Real Mode 16-bit Code Address
+entry9.value 0xF0000:0x9B0B
+entry10.section PNP BIOS PnP 1.0
+entry10.key 16-bit Protected Mode Code Address
+entry10.value 0x000F9B36
+entry11.section ACPI 2.0
+entry11.key OEM Identifier
+entry11.value ALASKA
+entry12.section ACPI 2.0
+entry12.key RSD Table 32-bit Address
+entry12.value 0x7A9E7028
+entry13.section ACPI 2.0
+entry13.key XSD Table 64-bit Address
+entry13.value 0x000000007A9E7000
+total_entries 13

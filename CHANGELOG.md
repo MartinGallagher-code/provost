@@ -1,5 +1,61 @@
 # glean — Changelog
 
+## 2026-08-10 — a column NAME counts as survival; two more scored candidates
+
+Round 18 asked for aureport's `# date time acct …` legend to become the header
+of the table under it — a fix attempted twice before as an unconditional rule
+and reverted twice, because a legend that does not really name the columns
+shifts every value one place. Scoring makes it safe to attempt, but only after
+fixing what the score was measuring.
+
+- **`_score_parse` now counts field NAMES, not just values** (`extract/lib/_score.sh`,
+  mirrored in `tests/corpus/coverage.sh`). `entry1.acct alice` keeps *both*
+  `acct` and `alice`; counting only the value ranked promoting a header word to
+  a column name BELOW dumping that header out as prose, which is backwards, and
+  made the header fold unwinnable by construction. Names the engine invents
+  (`lineN`, `total_entries`, the `A`/`B`/`C` placeholders of an unnamed table)
+  are skipped rather than credited.
+- **Candidate 3 — the header fold** (`extract/lib/_dispatch.sh`). A one-line
+  `#` legend directly above a data block is folded in as that block's header
+  and scored against the plain split. Guarded on field counts agreeing, with a
+  single exception: a legend may omit a leading ROW ORDINAL, because that
+  column is generated rather than named — and only when every row starts with
+  one, and it is given the explicit name `num`. aureport now yields
+  `num/date/time/acct/host/term/exe/success/event` instead of `A`…`I`.
+  aureport-login's legend is two names short of its rows, so it stays prose.
+- **Candidate 1b — strict grouping.** Block grouping's shape tolerance is now a
+  parameter, and both settings compete. Tolerance 1 keeps a record stream
+  together when one record carries an extra field; it also welded `iostat`'s
+  6-column avg-cpu block onto its 5-column Device table and labelled the Device
+  header with avg-cpu's column names. Tolerance 0 keeps those apart but
+  shatters the ragged record stream. Neither is right in general, so the score
+  picks. Both refinements compete for the split slot and only need to TIE, then
+  the winner faces the whole-input veto as before.
+- **The test harness was reporting PASS for tests whose assertions failed**
+  (`extract/tests/helpers.sh`). `run_test` invokes each test as
+  `( set -e; "$func" ) || result=$?`, and a command on the left of `||` has
+  `set -e` suppressed for its whole body — so a test whose first assertion
+  failed kept running and exited with the status of its last command. Failures
+  are now recorded in a file that crosses the subshell boundary. This is how
+  the iostat mis-grouping above went unnoticed: its assertion had been failing
+  in a "passing" test.
+- **ASCII-art gutter strip** (`extract/lib/_helpers.sh`, in the shared input
+  preprocessing so default and `--multi` both get it). `cilium status` draws a
+  hexagon down the left margin out of `/`, `\`, `_` and `¯` (U+00AF) with its
+  real output beside it on the same lines, and the kv parser was reading the
+  key as `/¯¯\__/¯¯\    Cilium`. A leading run of art characters separated from
+  the content by a column gap is stripped and the art-only lines dropped.
+  Gated hard, because a left margin is usually meaningful: the run must contain
+  a `/`, `\` or `¯` (spaces and underscores alone are indentation), 2+ lines
+  must carry art AND content, 3+ lines must be involved. Byte-oriented
+  (`LC_ALL=C` with the U+00AF bytes written out) rather than relying on the
+  locale awk or grep runs under. Swept over all 3,705 corpus inputs: it fires
+  on exactly one, cilium-status.
+- `extract/tests/test_multi_mode.sh` 11 -> 13 checks, covering the fold, the
+  ordinal exception, and the under-naming legend that must not fold;
+  `test_encoding.sh` 4 -> 6, covering the art gutter and the indented block
+  that must not be mistaken for one.
+
 ## 2026-08-07 — --multi decides boundaries by SCORING, not by guessing
 
 Three experiments this week failed the same way: the splitter chose boundaries

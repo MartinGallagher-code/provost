@@ -1,28 +1,45 @@
 #!/bin/bash
 ## Name: biosdecode
-## Description: `biosdecode` SMBIOS entry-point block (address/length/counts snapshot)
-## Version: 1.0
+## Description: `biosdecode` entry-point structures -> section/key/value rows
+## Version: 2.0
 ## Priority: 26
 ## Sample: samples/biosdecode/basic.txt
 
-# `biosdecode` prints entry-point structures ("SMBIOS x.y present." followed by
-# indented "Some Label <value>" detail lines). There is no colon separator, so
-# generic key/value parsers cannot find the fields. This lifts the SMBIOS
-# entry-point block into one wide record: the value is the first numeric / hex
-# token on each indented line, the label is the words before it.
+# `biosdecode` prints one block per entry-point structure: a flush-left
+# `<Name> present.` header followed by TAB-indented `Some Label <value>` detail
+# lines. There is no colon separator, so generic key/value parsers cannot find
+# the fields.
+#
+# v2.0 emits every block, as one row per detail line with the block it came
+# from in a `section` column. v1.0 lifted only the SMBIOS block into a single
+# wide record and silently dropped BIOS32 / PNP BIOS / ACPI — the reviewer's
+# "lost a large chunk". Long form is also the honest shape here: the blocks
+# share no columns with each other, so a wide record would be mostly holes.
 
-_bios_key () {
-    local s="$1" out="" c i n=${#1}
+# Where does the label end and the value begin? There is no separator, so it is
+# decided by what the value LOOKS like — the first token that is a hex address,
+# a bare number, a quoted string, or the start of a `Not Supported` style
+# verdict. Everything before it is the label, everything from it on is the
+# value (`3084 bytes` keeps its unit; v1.0 kept only `3084`).
+_bios_split () {
+    _BIOS_KEY=""; _BIOS_VAL=""
+    local -a t=(); read -ra t <<< "$1"
+    local i n=${#t[@]} tok
     for ((i = 0; i < n; i++)); do
-        c="${s:i:1}"
-        case "$c" in
-            [A-Za-z0-9]) out+="$c" ;;
-            *) out+="_" ;;
-        esac
+        tok="${t[$i]}"
+        if [[ "$tok" =~ ^0x[0-9A-Fa-f] || "$tok" =~ ^[0-9]+$ || "$tok" == \"*  \
+              || ( "$tok" == "Not" && $((i + 1)) -lt $n ) ]]; then
+            [[ $i -eq 0 ]] && return 1       # no label at all — not a detail line
+            _BIOS_KEY="${t[*]:0:i}"
+            _BIOS_VAL="${t[*]:i}"
+            _BIOS_VAL="${_BIOS_VAL%\"}"; _BIOS_VAL="${_BIOS_VAL#\"}"
+            return 0
+        fi
     done
-    while [[ "$out" == *__* ]]; do out="${out//__/_}"; done
-    out="${out#_}"; out="${out%_}"
-    printf '%s' "$out"
+    # No value-shaped token: the whole line is the label with an empty value
+    # (`Event Notification` style flags that carry no reading).
+    _BIOS_KEY="$1"
+    return 0
 }
 
 strategy_detect () {
@@ -40,48 +57,48 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
-    local result="" line trimmed in_block=0 key val tok
-    local -a toks
+    local result="" line trimmed section="" n=0
 
     while IFS= read -r line; do
         trimmed="${line//[[:space:]]/}"
         [[ -z "$trimmed" ]] && continue
 
-        # SMBIOS entry-point header: capture the version, start the block.
-        if [[ "$line" =~ ^SMBIOS[[:space:]]+([0-9][0-9.]*)[[:space:]]+present ]]; then
-            result+="entry1.smbios_version ${BASH_REMATCH[1]}"$'\n'
-            in_block=1
+        # `# biosdecode 3.3` — the tool's own version, kept rather than dropped.
+        if [[ "$line" =~ ^#[[:space:]]*biosdecode[[:space:]]+([0-9][0-9.]*) ]]; then
+            n=$((n + 1))
+            result+="entry${n}.section biosdecode"$'\n'
+            result+="entry${n}.key version"$'\n'
+            result+="entry${n}.value ${BASH_REMATCH[1]}"$'\n'
             continue
         fi
 
-        # A non-indented, non-blank line ends the SMBIOS block.
+        # Flush-left line: a new block header. `SMBIOS 3.2.1 present.` ->
+        # section `SMBIOS 3.2.1`. A flush-left line that is not a header still
+        # closes the block, so stray trailer text is never filed under it.
         if [[ "$line" != [[:space:]]* ]]; then
-            [[ $in_block -eq 1 ]] && break
+            line="${line%.}"
+            if [[ "$line" == *" present" ]]; then
+                section="${line% present}"
+            else
+                section=""
+            fi
             continue
         fi
 
-        [[ $in_block -eq 1 ]] || continue
+        [[ -n "$section" ]] || continue
 
-        # Indented detail line: "Label words 0x1234." — strip trailing period,
-        # split at the first numeric/hex token.
         line="${line#"${line%%[![:space:]]*}"}"
         line="${line%.}"
-        toks=(); read -ra toks <<< "$line"
-        key=""; val=""
-        for tok in "${toks[@]}"; do
-            if [[ "$tok" =~ ^0x[0-9A-Fa-f]+$ || "$tok" =~ ^[0-9]+$ ]]; then
-                val="$tok"
-                break
-            fi
-            [[ -n "$key" ]] && key+=" "
-            key+="$tok"
-        done
-        [[ -z "$val" ]] && continue
-        key="$(_bios_key "$key")"
-        [[ -z "$key" ]] && continue
-        result+="entry1.${key} ${val}"$'\n'
+        _bios_split "$line" || continue
+        [[ -n "$_BIOS_KEY" ]] || continue
+
+        n=$((n + 1))
+        result+="entry${n}.section ${section}"$'\n'
+        result+="entry${n}.key ${_BIOS_KEY}"$'\n'
+        result+="entry${n}.value ${_BIOS_VAL}"$'\n'
     done <<< "$text"
 
-    result+="total_entries 1"$'\n'
+    [[ $n -gt 0 ]] || return 1
+    result+="total_entries ${n}"$'\n'
     printf '%s' "$result"
 }

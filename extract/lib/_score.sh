@@ -112,6 +112,24 @@ _score_parse () {
                 t = norm(b[i])
                 if (significant(t)) seen_out[t] = 1
             }
+
+            # A field NAME taken from the input SURVIVED into the parse just as
+            # much as a value did: `entry1.acct alice` keeps both `acct` and
+            # `alice`. Counting only values would rank promoting a header word
+            # to a column name BELOW dumping that header out as prose, which is
+            # backwards. Names the engine invents (lineN, total_entries, the
+            # A/B/C placeholders of an unnamed table) are not input tokens, so
+            # they are skipped rather than credited.
+            nm = fname
+            sub(/^d[0-9]+_/, "", nm)
+            sub(/^entry[0-9]+\./, "", nm)
+            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm !~ /^[A-Z][A-Z]?$/) {
+                n = split(nm, k, /[ \t_.]+/)
+                for (i = 1; i <= n; i++) {
+                    t = norm(k[i])
+                    if (significant(t)) seen_out[t] = 1
+                }
+            }
         }
 
         END {

@@ -474,6 +474,33 @@ preprocess_input_text () {
             printf '%s' "$_in"
         fi
     }
+    # ASCII-ART GUTTER. Some tools print a logo down the left margin and their
+    # real output to the right of it, on the same lines — `cilium status` draws
+    # a hexagon out of `/`, `\`, `_` and `¯` (U+00AF) beside `Cilium: OK`. The
+    # art is not a column: it made the kv parser read the key as
+    # `/¯¯\__/¯¯\    Cilium`. Strip a LEADING run of art characters when it is
+    # separated from the content by a column gap (2+ spaces), and drop the
+    # art-only lines with it.
+    #
+    # Gated hard, because a left margin is usually meaningful: the run must
+    # contain a `/`, `\` or `¯` (a run of only spaces and underscores is
+    # indentation, not a logo), 2+ lines must carry art AND content, and 3+
+    # lines must be involved in total. Byte-oriented (LC_ALL=C with the U+00AF
+    # bytes written out) so the multibyte glyph is matched exactly rather than
+    # depending on the locale awk or grep happens to run under.
+    if [[ "$text" == *$'\302\257'* || "$text" == *'/'*'\'* || "$text" == *'\_'* ]]; then
+        local _art_set=$' /\\\\_\302\257' _art_re _art_only_re _art_n _art_only
+        _art_re="^[${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*  +[^ ]"
+        _art_only_re="^[${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*$"
+        _art_n=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_re")
+        _art_only=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_only_re")
+        if [[ ${_art_n:-0} -ge 2 && $((_art_n + _art_only)) -ge 3 ]]; then
+            text="$(printf '%s' "$text" | LC_ALL=C sed -E \
+                -e "/${_art_only_re}/d" \
+                -e "s#^([${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*)  +##")"
+        fi
+    fi
+
     # Interspersed `== section ==` banner lines (apptainer inspect's
     # `== labels ==` / `== runscript ==`) are pure section decoration — drop a
     # line delimited by EXACTLY-two-equals runs (`== word ==`). Longer runs

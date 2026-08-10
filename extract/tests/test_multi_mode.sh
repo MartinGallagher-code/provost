@@ -85,8 +85,9 @@ test_multi_conflicts_with_batch () {
 }
 
 # A `#`-led legend sitting directly above a table — no blank line between —
-# is a boundary too: /proc/slabinfo's `# name <active_objs> …` is neither part
-# of the table nor a table of its own.
+# is a boundary candidate, but /proc/slabinfo's `# name <active_objs> …` names
+# exactly the columns below it, so the parse that reads it as the table's
+# HEADER wins on the score and the columns come out named.
 _multi_comment_input () {
     cat <<'EOF'
 # name            <active_objs> <num_objs> <objsize>
@@ -96,27 +97,68 @@ dentry              48210  48312    192
 EOF
 }
 
-test_multi_comment_run_splits_block () {
+test_multi_comment_legend_becomes_header () {
     local tmpfile out n
-    tmpfile=$(mktemp)
-    _multi_comment_input > "$tmpfile"
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
-    rm -f "$tmpfile"
-    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
-    assert_eq "2" "$n" "comment legend splits from the table it sits above"
-    assert_contains "$out" "$(printf '__DATASET__\t1\ttext')" "the comment run is a text dataset"
-    assert_contains "$out" "kmalloc-8192" "the table itself still parses"
-}
-
-test_multi_comment_run_kept_verbatim () {
-    local tmpfile out
     tmpfile=$(mktemp)
     _multi_comment_input > "$tmpfile"
     out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
-    # Kept as-is (one lineN field), not forced through a parser that would
-    # invent columns out of the legend's words.
-    assert_contains "$out" "line1 # name" "comment line kept verbatim under a lineN field"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "1" "$n" "a legend that names the columns folds into its table"
+    assert_contains "$out" "entry1.name kmalloc-8192" "the legend's words become column names"
+    assert_not_contains "$out" "line1 # name" "the legend is not also kept as prose"
+}
+
+# ...but only when it actually names the columns. A legend two names short of
+# its rows would shift every value, so it is left alone rather than guessed at.
+test_multi_undernaming_legend_not_folded () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# date time auth host term
+1 07/11/2026 08:02:11 root yes 10.0.1.4 pts/0
+2 07/11/2026 08:44:03 alice yes 10.0.1.9 pts/1
+3 07/11/2026 09:15:52 bob no 203.0.113.7 ssh
+EOF
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "line1 # date" "a legend two names short is kept as prose, not guessed at"
+    assert_not_contains "$out" "entry1.date 1" "and never labels the rows it does not match"
+}
+
+# The single allowed exception: a legend may omit a leading ROW ORDINAL, which
+# is generated rather than named. aureport prints `1.`/`2.` down its first
+# column and its `# date time …` legend names only the rest.
+test_multi_legend_may_omit_row_ordinal () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# date time acct host
+1. 03/01/2024 08:12:33 root sshd
+2. 03/01/2024 09:45:02 alice sshd
+3. 03/02/2024 14:22:17 bob sshd
+EOF
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "entry1.num 1." "the unnamed ordinal column gets an explicit name"
+    assert_contains "$out" "entry1.date 03/01/2024" "and the legend's names land on the right values"
+}
+
+# A multi-line comment run is prose, not a header: kept verbatim either way.
+test_multi_comment_run_kept_verbatim () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# slabinfo - version: 2.1
+# see /proc/slabinfo for the live counters
+kmalloc-8192          128    128   8192
+kmalloc-1024         2048   2048   1024
+dentry              48210  48312    192
+EOF
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "line1 # slabinfo" "comment run kept verbatim under a lineN field"
+    assert_contains "$out" "kmalloc-8192" "the table itself still parses"
 }
 
 # A rule line (`------`) is a boundary, never a data row: 7z-benchmark rules off
@@ -222,7 +264,9 @@ run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one
 run_test "--multi/--batch conflict"             test_multi_conflicts_with_batch
-run_test "comment run splits its block"         test_multi_comment_run_splits_block
+run_test "legend folds in as the table header"  test_multi_comment_legend_becomes_header
+run_test "under-naming legend is not folded"    test_multi_undernaming_legend_not_folded
+run_test "legend may omit the row ordinal"      test_multi_legend_may_omit_row_ordinal
 run_test "comment run kept verbatim"            test_multi_comment_run_kept_verbatim
 
 print_summary

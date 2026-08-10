@@ -839,6 +839,21 @@ run_multi_mode () {
     # adopts).
     local -a group_text=() group_name=() group_shape=() group_istext=()
     local gi=-1 bname bshape b bi
+    # Grouping is a FUNCTION so a candidate variant (see the comment-as-header
+    # candidate below) can re-group a different block list through exactly the
+    # same rules, rather than duplicating them.
+    #
+    # $1 is the SHAPE TOLERANCE — how far two blocks' modal token counts may
+    # differ and still re-form into one dataset. Neither value is right in
+    # general, so both are tried and scored: 1 keeps a record stream together
+    # when one record carries an extra field, but it also welds `iostat`'s
+    # 6-column avg-cpu block onto its 5-column Device table and labels the
+    # Device header with avg-cpu's column names. 0 keeps those apart but
+    # shatters the ragged record stream.
+    local _group_tol=1
+    _multi_group_blocks () {
+    _group_tol="${1:-1}"
+    group_text=(); group_name=(); group_shape=(); group_istext=(); gi=-1
     for ((bi = 0; bi < ${#blocks[@]}; bi++)); do
         b="${blocks[$bi]}"
         # A comment run is its own group and never merges with data either side:
@@ -856,7 +871,7 @@ run_multi_mode () {
         if [[ $gi -ge 0 ]]; then
             local _gs="${group_shape[$gi]:-0}"
             local _d=$((bshape - _gs)); [[ $_d -lt 0 ]] && _d=$((-_d))
-            [[ $_d -le 1 ]] && _shape_ok=1
+            [[ $_d -le $_group_tol ]] && _shape_ok=1
         fi
         # A comment group never adopts the data that follows it.
         if [[ $gi -ge 0 && "${group_istext[$gi]:-0}" -eq 0 && \
@@ -874,6 +889,8 @@ run_multi_mode () {
             group_istext[$gi]=0
         fi
     done
+    }
+    _multi_group_blocks 1
 
     # --- candidate scoring -------------------------------------------------
     # Extraction is now separated from emission so competing SEGMENTATIONS can
@@ -923,6 +940,7 @@ run_multi_mode () {
     }
 
     local _whole_text="$text"
+    local -a blocks_saved=("${blocks[@]}") istext_saved=("${block_istext[@]}")
     local -a split_name=() split_conf=() split_fields=() split_n=0
     local -a whole_name=() whole_conf=() whole_fields=() whole_n=0
     local -a group_text_saved=() group_name_saved=() group_istext_saved=()
@@ -932,6 +950,20 @@ run_multi_mode () {
     group_text_saved=("${group_text[@]}")
     group_name_saved=("${group_name[@]}")
     group_istext_saved=("${group_istext[@]:-}")
+
+    # CANDIDATE 1b: the same split with the shape tolerance turned off, so two
+    # adjacent blocks re-form only when their rows are the SAME width.
+    local -a strict_name=() strict_conf=() strict_fields=() strict_n=0
+    _multi_group_blocks 0
+    local _strict_gi=$gi
+    if [[ $_strict_gi -ne $_gi_saved ]]; then
+        _multi_extract_into strict
+    fi
+    blocks=("${blocks_saved[@]}"); block_istext=("${istext_saved[@]}")
+    group_text=("${group_text_saved[@]}")
+    group_name=("${group_name_saved[@]}")
+    group_istext=("${group_istext_saved[@]}")
+    gi=$_gi_saved
 
     # The rival candidate: no split at all.
     gi=0
@@ -943,13 +975,73 @@ run_multi_mode () {
     # `entryN.` prefixes the ragged-row check groups on cannot collide between
     # datasets (every dataset restarts at entry1).
     _multi_ns () { printf '%s\n' "$2" | sed "s/^/d$1_/"; }
-    local _cat_split="" _cat_whole="" _q
+    # CANDIDATE 3: a one-line `#` comment folded in as the following block's
+    # HEADER, instead of kept as its own `text` dataset. The reviewer on
+    # aureport: "set 2 is the headers for set 3". This was twice implemented as
+    # an unconditional rule and twice reverted, because prepending the
+    # de-commented line let a parser slice rows against a legend that does not
+    # actually name the columns, shifting every value one place. So the fold is
+    # both GUARDED (field counts must agree) and SCORED (it still has to beat
+    # the plain split). Where the input is nothing BUT legend + table candidate
+    # 2 already covers it — the whole-input parse reads the legend as a header
+    # by itself; candidate 3 is what keeps that available on a COMPOUND input,
+    # where taking the whole input would lose the other sections.
+    local -a hdr_name=() hdr_conf=() hdr_fields=() hdr_n=0
+    local _have_hdr=0 _hj
+    local -a _hblocks=() _histext=()
+    for ((_hj = 0; _hj < ${#blocks_saved[@]}; _hj++)); do
+        if [[ "${istext_saved[$_hj]}" -eq 1 && $((_hj + 1)) -lt ${#blocks_saved[@]} &&               "${istext_saved[$_hj+1]}" -eq 0 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]]; then
+            local _cb="${blocks_saved[$_hj]}"
+            _cb="${_cb#"${_cb%%[![:space:]]*}"}"; _cb="${_cb#\#}"
+            _cb="${_cb#"${_cb%%[![:space:]]*}"}"
+            # Field counts must agree, or the fold mislabels every value:
+            # aureport's `# date time acct host term exe success event` names 8
+            # columns for 9-field rows, so every name would land one place off.
+            local _hn _rn
+            _hn=$(printf '%s\n' "$_cb" | awk '{ print NF }')
+            _rn=$(printf '%s\n' "${blocks_saved[$_hj+1]}" | awk 'NF { c[NF]++ } END { best=0; m=0; for (k in c) if (c[k] > best || (c[k] == best && k+0 < m)) { best=c[k]; m=k+0 } print m+0 }')
+            # One exception, and only one: a legend is allowed to omit a leading
+            # ROW ORDINAL, because that column is generated rather than named
+            # (`1.`/`2.` down aureport's first column). Only when EVERY row
+            # starts with one, and it gets an explicit name rather than a blank.
+            if [[ "${_hn:-0}" -gt 1 && $((_rn - _hn)) -eq 1 ]] &&
+               printf '%s\n' "${blocks_saved[$_hj+1]}" |
+                 awk 'NF && $1 !~ /^[0-9]+[.)]?$/ { bad = 1 } END { exit (bad ? 1 : 0) }'; then
+                _cb="num $_cb"
+                _hn=$((_hn + 1))
+            fi
+            if [[ -n "${_cb//[[:space:]]/}" && "${_hn:-0}" -gt 1 && "${_hn:-0}" -eq "${_rn:-0}" ]]; then
+                blocks_saved[$_hj+1]="${_cb}"$'\n'"${blocks_saved[$_hj+1]}"
+                _have_hdr=1
+                continue
+            fi
+        fi
+        _hblocks+=("${blocks_saved[$_hj]}"); _histext+=("${istext_saved[$_hj]}")
+    done
+    if [[ $_have_hdr -eq 1 ]]; then
+        blocks=("${_hblocks[@]}"); block_istext=("${_histext[@]}")
+        _multi_group_blocks
+        _multi_extract_into hdr
+        gi=$_gi_saved
+    fi
+
+    local _cat_split="" _cat_whole="" _cat_hdr="" _q
     for ((_q = 0; _q < split_n; _q++)); do _cat_split+="$(_multi_ns "$_q" "${split_fields[$_q]}")"$'\n'; done
     for ((_q = 0; _q < whole_n; _q++)); do _cat_whole+="$(_multi_ns "$_q" "${whole_fields[$_q]}")"$'\n'; done
-    local _sc_split=0 _sc_whole=0
+    for ((_q = 0; _q < hdr_n;   _q++)); do _cat_hdr+="$(_multi_ns "$_q" "${hdr_fields[$_q]}")"$'\n'; done
+    local _cat_strict=""
+    for ((_q = 0; _q < strict_n; _q++)); do _cat_strict+="$(_multi_ns "$_q" "${strict_fields[$_q]}")"$'\n'; done
+    local _sc_split=0 _sc_whole=0 _sc_hdr=-1 _sc_strict=-1
     _score_parse "$_whole_text" "$_cat_split" "$split_n"; _sc_split=$_SCORE
     _score_parse "$_whole_text" "$_cat_whole" "$whole_n"; _sc_whole=$_SCORE
-    _log_debug "multi: candidate scores — split($split_n)=$_sc_split whole($whole_n)=$_sc_whole"
+    if [[ $hdr_n -gt 0 ]]; then
+        _score_parse "$_whole_text" "$_cat_hdr" "$hdr_n"; _sc_hdr=$_SCORE
+    fi
+    if [[ $strict_n -gt 0 ]]; then
+        _score_parse "$_whole_text" "$_cat_strict" "$strict_n"; _sc_strict=$_SCORE
+    fi
+    _log_debug "multi: candidate scores — split($split_n)=$_sc_split strict($strict_n)=$_sc_strict whole($whole_n)=$_sc_whole hdr($hdr_n)=$_sc_hdr"
 
     # The boundary rules PROPOSED this split; the score only VETOES it when the
     # whole-input parse is MATERIALLY better — more than _MULTI_VETO_MARGIN
@@ -961,6 +1053,21 @@ run_multi_mode () {
     local -a win_name=() win_conf=() win_fields=()
     local win_n=0
     local _MULTI_VETO_MARGIN=200
+    # The strict grouping and the header fold are both REFINEMENTS of the split,
+    # so they compete for the split slot first, and the winner of that then
+    # faces the whole-input veto. Each only needs to TIE: given equal coverage
+    # and tidiness, not welding two differently-shaped blocks together, and
+    # naming a column from a header the input supplied, are the better parses.
+    if [[ $strict_n -gt 0 && $_sc_strict -ge $_sc_split ]]; then
+        split_name=("${strict_name[@]}"); split_conf=("${strict_conf[@]}")
+        split_fields=("${strict_fields[@]}"); split_n=$strict_n; _sc_split=$_sc_strict
+        _log_debug "multi: strict grouping wins the split slot"
+    fi
+    if [[ $hdr_n -gt 0 && $_sc_hdr -ge $_sc_split ]]; then
+        split_name=("${hdr_name[@]}"); split_conf=("${hdr_conf[@]}")
+        split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
+        _log_debug "multi: header fold wins the split slot"
+    fi
     if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN ]]; then
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
         win_fields=("${split_fields[@]}"); win_n=$split_n
