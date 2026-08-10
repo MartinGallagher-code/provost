@@ -720,10 +720,68 @@ run_multi_mode () {
     # measurably degrades that parse.
     local -a blocks=() block_istext=()
     local block="" line
+    # A RULE LINE (`--------`, `========`, `----  |  ----`) is a boundary too,
+    # and is never data: the reviewer on 7z-benchmark — "a dividing line should
+    # never be part of a row; it indicates that summarization is happening
+    # below, which means a third dataset" — and on artillery-report, "rows
+    # should not contain just -------'s". Such a line splits its block and is
+    # dropped. Column pipes and spaces are ignored when testing, so a ruled
+    # two-column separator counts as one rule.
+    _multi_is_rule () {
+        local s="${1//[[:space:]|]/}"
+        [[ ${#s} -ge 3 && -z "${s//[-=_~*+]/}" ]]
+    }
+
+    # A COUNT PREAMBLE is its own dataset, not the first row of the table below
+    # it — the reviewer on cargo-test-summary: "'running 44 tests' is a separate
+    # take", and on atlantis-status: "'Ran plan for 2 projects' should be a
+    # separate data set". Both were landing as a ragged first row.
+    #
+    # Two conditions together, so an ordinary HEADER row is never mistaken for
+    # one. (a) The line announces a count: >=3 tokens, at least one a bare
+    # integer and at least two purely alphabetic — `running 3 tests`,
+    # `Ran Plan for 2 projects:`. A header like `Device r/s w/s` or
+    # `NAME STATUS` carries no number and is thus excluded. (b) Every line below
+    # shares one lead signature (first token, digits collapsed) that differs
+    # from the first line's — `test`/`test`/`test` under `running`, `#.`/`#.`
+    # under `Ran`. A real table's data rows lead with varied names, so a header
+    # over them fails (b) as well.
+    _multi_lead_sig () {
+        local t="${1#"${1%%[![:space:]]*}"}"
+        t="${t%%[[:space:]]*}"
+        local o="" i c
+        for ((i = 0; i < ${#t}; i++)); do
+            c="${t:i:1}"
+            case "$c" in [0-9]) o+="#" ;; *) o+="$c" ;; esac
+        done
+        printf '%s' "$o"
+    }
+    _multi_is_count_preamble () {
+        local l="$1" nint=0 nalpha=0 ntok=0 tok
+        # A preamble is PROSE — single-spaced. A column-aligned header row is
+        # separated by 2+ spaces, so `TOP 3 PODS   STATUS` is excluded here even
+        # though it carries a number and alphabetic words.
+        [[ "${l#"${l%%[![:space:]]*}"}" == *"  "* ]] && return 1
+        for tok in $l; do
+            ntok=$((ntok + 1))
+            if [[ "$tok" =~ ^[0-9]+$ ]]; then nint=$((nint + 1))
+            elif [[ "$tok" =~ ^[A-Za-z]+:?$ ]]; then nalpha=$((nalpha + 1)); fi
+        done
+        [[ $ntok -ge 3 && $nint -ge 1 && $nalpha -ge 2 ]]
+    }
     _multi_push_block () {
         local b="${1%$'\n'}" cur="" incomment=-1 l is
         [[ -z "${b//[[:space:]]/}" ]] && return 0
         while IFS= read -r l || [[ -n "$l" ]]; do
+            if _multi_is_rule "$l"; then
+                if [[ -n "$cur" ]]; then
+                    blocks+=("${cur%$'\n'}")
+                    block_istext+=("$([[ $incomment -eq 1 ]] && echo 1 || echo 0)")
+                    cur=""
+                fi
+                incomment=-1
+                continue
+            fi
             if [[ "${l#"${l%%[![:space:]]*}"}" == \#* ]]; then is=1; else is=0; fi
             if [[ $incomment -ne -1 && $is -ne $incomment && -n "$cur" ]]; then
                 blocks+=("${cur%$'\n'}"); block_istext+=("$incomment"); cur=""
@@ -735,15 +793,39 @@ run_multi_mode () {
             blocks+=("${cur%$'\n'}"); block_istext+=("$([[ $incomment -eq 1 ]] && echo 1 || echo 0)")
         fi
     }
+    # Peel a count preamble off the front of a block before pushing it.
+    _multi_push_outer () {
+        local b="${1%$'\n'}"
+        [[ -z "${b//[[:space:]]/}" ]] && return 0
+        local -a ls=()
+        local l
+        while IFS= read -r l || [[ -n "$l" ]]; do ls+=("$l"); done <<< "$b"
+        if [[ ${#ls[@]} -ge 3 ]] && _multi_is_count_preamble "${ls[0]}"; then
+            local sig0 sig1 j uniform=1
+            sig0="$(_multi_lead_sig "${ls[0]}")"
+            sig1="$(_multi_lead_sig "${ls[1]}")"
+            for ((j = 2; j < ${#ls[@]}; j++)); do
+                [[ "$(_multi_lead_sig "${ls[$j]}")" == "$sig1" ]] || { uniform=0; break; }
+            done
+            if [[ $uniform -eq 1 && "$sig0" != "$sig1" ]]; then
+                _multi_push_block "${ls[0]}"
+                local rest="" k
+                for ((k = 1; k < ${#ls[@]}; k++)); do rest+="${ls[$k]}"$'\n'; done
+                _multi_push_block "$rest"
+                return 0
+            fi
+        fi
+        _multi_push_block "$b"
+    }
     while IFS= read -r line || [[ -n "$line" ]]; do
         if [[ -z "${line//[[:space:]]/}" ]]; then
-            [[ -n "$block" ]] && _multi_push_block "$block"
+            [[ -n "$block" ]] && _multi_push_outer "$block"
             block=""
             continue
         fi
         block+="$line"$'\n'
     done <<< "$text"
-    [[ -n "$block" ]] && _multi_push_block "$block"
+    [[ -n "$block" ]] && _multi_push_outer "$block"
     [[ ${#blocks[@]} -eq 0 ]] && { _log_warn "multi: empty input."; return 0; }
 
     # Group consecutive same-winner blocks — but only when they also share
@@ -757,6 +839,21 @@ run_multi_mode () {
     # adopts).
     local -a group_text=() group_name=() group_shape=() group_istext=()
     local gi=-1 bname bshape b bi
+    # Grouping is a FUNCTION so a candidate variant (see the comment-as-header
+    # candidate below) can re-group a different block list through exactly the
+    # same rules, rather than duplicating them.
+    #
+    # $1 is the SHAPE TOLERANCE — how far two blocks' modal token counts may
+    # differ and still re-form into one dataset. Neither value is right in
+    # general, so both are tried and scored: 1 keeps a record stream together
+    # when one record carries an extra field, but it also welds `iostat`'s
+    # 6-column avg-cpu block onto its 5-column Device table and labels the
+    # Device header with avg-cpu's column names. 0 keeps those apart but
+    # shatters the ragged record stream.
+    local _group_tol=1
+    _multi_group_blocks () {
+    _group_tol="${1:-1}"
+    group_text=(); group_name=(); group_shape=(); group_istext=(); gi=-1
     for ((bi = 0; bi < ${#blocks[@]}; bi++)); do
         b="${blocks[$bi]}"
         # A comment run is its own group and never merges with data either side:
@@ -774,7 +871,7 @@ run_multi_mode () {
         if [[ $gi -ge 0 ]]; then
             local _gs="${group_shape[$gi]:-0}"
             local _d=$((bshape - _gs)); [[ $_d -lt 0 ]] && _d=$((-_d))
-            [[ $_d -le 1 ]] && _shape_ok=1
+            [[ $_d -le $_group_tol ]] && _shape_ok=1
         fi
         # A comment group never adopts the data that follows it.
         if [[ $gi -ge 0 && "${group_istext[$gi]:-0}" -eq 0 && \
@@ -792,58 +889,202 @@ run_multi_mode () {
             group_istext[$gi]=0
         fi
     done
+    }
+    _multi_group_blocks 1
 
-    # Full extraction per group; emit surviving datasets.
+    # --- candidate scoring -------------------------------------------------
+    # Extraction is now separated from emission so competing SEGMENTATIONS can
+    # be parsed, scored, and only then have the winner printed. Splitting is a
+    # search, not a commitment: the whole input always competes against the
+    # split, because neither is right in general (see _score.sh).
+    _multi_extract_into () {
+        # $1 = array-name prefix; extracts every group into <prefix>_name/
+        # <prefix>_conf/<prefix>_fields and sets <prefix>_n.
+        local _p="$1" _i _n=0
+        for ((_i = 0; _i <= gi; _i++)); do
+            text="${group_text[$_i]}"
+            if [[ "${group_istext[$_i]:-0}" -eq 1 ]]; then
+                local _t_out="" _t_line _t_n=0
+                while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
+                    [[ -z "${_t_line//[[:space:]]/}" ]] && continue
+                    _t_n=$((_t_n + 1))
+                    _t_out+="line${_t_n} ${_t_line}"$'\n'
+                done <<< "$text"
+                [[ $_t_n -gt 0 ]] || continue
+                eval "${_p}_name[$_n]=text; ${_p}_conf[$_n]=100"
+                eval "${_p}_fields[$_n]=\"\${_t_out%\$'\\n'}\""
+                _n=$((_n + 1))
+                continue
+            fi
+            _CLEAN_TEXT_CACHE=""; _CLEAN_TEXT_DONE=0
+            _WINNER_NAME=""; _WINNER_CONF=0
+            output=""
+            run_auto_strategies
+            if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then
+                local _m_pre="$output"
+                output=$(deduplicate_output "$output")
+                [[ -z "$output" && -n "$_m_pre" ]] && output="$_m_pre"
+            fi
+            [[ -n "$output" ]] || continue
+            local _m_fields="" _m_line
+            while IFS= read -r _m_line; do
+                [[ -z "$_m_line" ]] && continue
+                strip_strat_prefix "$_m_line"
+                _m_fields+="$_STRIPPED_LINE"$'\n'
+            done <<< "$output"
+            eval "${_p}_name[$_n]=\"\${_WINNER_NAME:-}\"; ${_p}_conf[$_n]=\"\${_WINNER_CONF:-0}\""
+            eval "${_p}_fields[$_n]=\"\${_m_fields%\$'\\n'}\""
+            _n=$((_n + 1))
+        done
+        eval "${_p}_n=$_n"
+    }
+
+    local _whole_text="$text"
+    local -a blocks_saved=("${blocks[@]}") istext_saved=("${block_istext[@]}")
+    local -a split_name=() split_conf=() split_fields=() split_n=0
+    local -a whole_name=() whole_conf=() whole_fields=() whole_n=0
+    local -a group_text_saved=() group_name_saved=() group_istext_saved=()
+    local _gi_saved=$gi
+
+    _multi_extract_into split
+    group_text_saved=("${group_text[@]}")
+    group_name_saved=("${group_name[@]}")
+    group_istext_saved=("${group_istext[@]:-}")
+
+    # CANDIDATE 1b: the same split with the shape tolerance turned off, so two
+    # adjacent blocks re-form only when their rows are the SAME width.
+    local -a strict_name=() strict_conf=() strict_fields=() strict_n=0
+    _multi_group_blocks 0
+    local _strict_gi=$gi
+    if [[ $_strict_gi -ne $_gi_saved ]]; then
+        _multi_extract_into strict
+    fi
+    blocks=("${blocks_saved[@]}"); block_istext=("${istext_saved[@]}")
+    group_text=("${group_text_saved[@]}")
+    group_name=("${group_name_saved[@]}")
+    group_istext=("${group_istext_saved[@]}")
+    gi=$_gi_saved
+
+    # The rival candidate: no split at all.
+    gi=0
+    group_text=("$_whole_text"); group_name=(""); group_istext=(0)
+    _multi_extract_into whole
+    gi=$_gi_saved
+
+    # Namespace each dataset's field names before concatenating, so the
+    # `entryN.` prefixes the ragged-row check groups on cannot collide between
+    # datasets (every dataset restarts at entry1).
+    _multi_ns () { printf '%s\n' "$2" | sed "s/^/d$1_/"; }
+    # CANDIDATE 3: a one-line `#` comment folded in as the following block's
+    # HEADER, instead of kept as its own `text` dataset. The reviewer on
+    # aureport: "set 2 is the headers for set 3". This was twice implemented as
+    # an unconditional rule and twice reverted, because prepending the
+    # de-commented line let a parser slice rows against a legend that does not
+    # actually name the columns, shifting every value one place. So the fold is
+    # both GUARDED (field counts must agree) and SCORED (it still has to beat
+    # the plain split). Where the input is nothing BUT legend + table candidate
+    # 2 already covers it — the whole-input parse reads the legend as a header
+    # by itself; candidate 3 is what keeps that available on a COMPOUND input,
+    # where taking the whole input would lose the other sections.
+    local -a hdr_name=() hdr_conf=() hdr_fields=() hdr_n=0
+    local _have_hdr=0 _hj
+    local -a _hblocks=() _histext=()
+    for ((_hj = 0; _hj < ${#blocks_saved[@]}; _hj++)); do
+        if [[ "${istext_saved[$_hj]}" -eq 1 && $((_hj + 1)) -lt ${#blocks_saved[@]} &&               "${istext_saved[$_hj+1]}" -eq 0 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]]; then
+            local _cb="${blocks_saved[$_hj]}"
+            _cb="${_cb#"${_cb%%[![:space:]]*}"}"; _cb="${_cb#\#}"
+            _cb="${_cb#"${_cb%%[![:space:]]*}"}"
+            # Field counts must agree, or the fold mislabels every value:
+            # aureport's `# date time acct host term exe success event` names 8
+            # columns for 9-field rows, so every name would land one place off.
+            local _hn _rn
+            _hn=$(printf '%s\n' "$_cb" | awk '{ print NF }')
+            _rn=$(printf '%s\n' "${blocks_saved[$_hj+1]}" | awk 'NF { c[NF]++ } END { best=0; m=0; for (k in c) if (c[k] > best || (c[k] == best && k+0 < m)) { best=c[k]; m=k+0 } print m+0 }')
+            # One exception, and only one: a legend is allowed to omit a leading
+            # ROW ORDINAL, because that column is generated rather than named
+            # (`1.`/`2.` down aureport's first column). Only when EVERY row
+            # starts with one, and it gets an explicit name rather than a blank.
+            if [[ "${_hn:-0}" -gt 1 && $((_rn - _hn)) -eq 1 ]] &&
+               printf '%s\n' "${blocks_saved[$_hj+1]}" |
+                 awk 'NF && $1 !~ /^[0-9]+[.)]?$/ { bad = 1 } END { exit (bad ? 1 : 0) }'; then
+                _cb="num $_cb"
+                _hn=$((_hn + 1))
+            fi
+            if [[ -n "${_cb//[[:space:]]/}" && "${_hn:-0}" -gt 1 && "${_hn:-0}" -eq "${_rn:-0}" ]]; then
+                blocks_saved[$_hj+1]="${_cb}"$'\n'"${blocks_saved[$_hj+1]}"
+                _have_hdr=1
+                continue
+            fi
+        fi
+        _hblocks+=("${blocks_saved[$_hj]}"); _histext+=("${istext_saved[$_hj]}")
+    done
+    if [[ $_have_hdr -eq 1 ]]; then
+        blocks=("${_hblocks[@]}"); block_istext=("${_histext[@]}")
+        _multi_group_blocks
+        _multi_extract_into hdr
+        gi=$_gi_saved
+    fi
+
+    local _cat_split="" _cat_whole="" _cat_hdr="" _q
+    for ((_q = 0; _q < split_n; _q++)); do _cat_split+="$(_multi_ns "$_q" "${split_fields[$_q]}")"$'\n'; done
+    for ((_q = 0; _q < whole_n; _q++)); do _cat_whole+="$(_multi_ns "$_q" "${whole_fields[$_q]}")"$'\n'; done
+    for ((_q = 0; _q < hdr_n;   _q++)); do _cat_hdr+="$(_multi_ns "$_q" "${hdr_fields[$_q]}")"$'\n'; done
+    local _cat_strict=""
+    for ((_q = 0; _q < strict_n; _q++)); do _cat_strict+="$(_multi_ns "$_q" "${strict_fields[$_q]}")"$'\n'; done
+    local _sc_split=0 _sc_whole=0 _sc_hdr=-1 _sc_strict=-1
+    _score_parse "$_whole_text" "$_cat_split" "$split_n"; _sc_split=$_SCORE
+    _score_parse "$_whole_text" "$_cat_whole" "$whole_n"; _sc_whole=$_SCORE
+    if [[ $hdr_n -gt 0 ]]; then
+        _score_parse "$_whole_text" "$_cat_hdr" "$hdr_n"; _sc_hdr=$_SCORE
+    fi
+    if [[ $strict_n -gt 0 ]]; then
+        _score_parse "$_whole_text" "$_cat_strict" "$strict_n"; _sc_strict=$_SCORE
+    fi
+    _log_debug "multi: candidate scores — split($split_n)=$_sc_split strict($strict_n)=$_sc_strict whole($whole_n)=$_sc_whole hdr($hdr_n)=$_sc_hdr"
+
+    # The boundary rules PROPOSED this split; the score only VETOES it when the
+    # whole-input parse is MATERIALLY better — more than _MULTI_VETO_MARGIN
+    # (2%) ahead. A near-tie keeps the split, because the rules that produced it
+    # (a rule line, a comment run, a count preamble) are themselves evidence
+    # about the input, and because a margin of a few points out of 10000 is
+    # noise in a heuristic score, not a finding. kubectl describe clears the
+    # margin by 600; cargo bench differs by 18.
+    local -a win_name=() win_conf=() win_fields=()
+    local win_n=0
+    local _MULTI_VETO_MARGIN=200
+    # The strict grouping and the header fold are both REFINEMENTS of the split,
+    # so they compete for the split slot first, and the winner of that then
+    # faces the whole-input veto. Each only needs to TIE: given equal coverage
+    # and tidiness, not welding two differently-shaped blocks together, and
+    # naming a column from a header the input supplied, are the better parses.
+    if [[ $strict_n -gt 0 && $_sc_strict -ge $_sc_split ]]; then
+        split_name=("${strict_name[@]}"); split_conf=("${strict_conf[@]}")
+        split_fields=("${strict_fields[@]}"); split_n=$strict_n; _sc_split=$_sc_strict
+        _log_debug "multi: strict grouping wins the split slot"
+    fi
+    if [[ $hdr_n -gt 0 && $_sc_hdr -ge $_sc_split ]]; then
+        split_name=("${hdr_name[@]}"); split_conf=("${hdr_conf[@]}")
+        split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
+        _log_debug "multi: header fold wins the split slot"
+    fi
+    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN ]]; then
+        win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
+        win_fields=("${split_fields[@]}"); win_n=$split_n
+    elif [[ $whole_n -gt 0 ]]; then
+        win_name=("${whole_name[@]}"); win_conf=("${whole_conf[@]}")
+        win_fields=("${whole_fields[@]}"); win_n=$whole_n
+    else
+        win_name=("${split_name[@]:-}"); win_conf=("${split_conf[@]:-}")
+        win_fields=("${split_fields[@]:-}"); win_n=$split_n
+    fi
+
+    # Emit the winner.
     local i ds=0
-    for ((i = 0; i <= gi; i++)); do
-        text="${group_text[$i]}"
-        # A comment/legend run is emitted VERBATIM as a `text` dataset — one
-        # `lineN` field per line. Forcing a parser on it would invent columns
-        # out of prose; dropping it would lose context the reader wants.
-        if [[ "${group_istext[$i]:-0}" -eq 1 ]]; then
-            local _t_out="" _t_line _t_n=0
-            while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
-                [[ -z "${_t_line//[[:space:]]/}" ]] && continue
-                _t_n=$((_t_n + 1))
-                _t_out+="line${_t_n} ${_t_line}"$'\n'
-            done <<< "$text"
-            [[ $_t_n -gt 0 ]] || continue
-            ds=$((ds + 1))
-            printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "text" "100"
-            _t_out="${_t_out%$'\n'}"
-            case "$_OPT_format" in
-                json)        format_json "$_t_out" ;;
-                json-nested) format_json_nested "$_t_out" ;;
-                csv)         format_csv "$_t_out" ;;
-                tsv)         format_tsv "$_t_out" ;;
-                plain)       format_plain "$_t_out" ;;
-                yaml)        format_yaml "$_t_out" ;;
-                xml)         format_xml "$_t_out" ;;
-                *)           format_plain "$_t_out" ;;
-            esac
-            continue
-        fi
-        _CLEAN_TEXT_CACHE=""
-        _CLEAN_TEXT_DONE=0
-        _WINNER_NAME=""
-        _WINNER_CONF=0
-        output=""
-        run_auto_strategies
-        if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then
-            local _m_pre="$output"
-            output=$(deduplicate_output "$output")
-            [[ -z "$output" && -n "$_m_pre" ]] && output="$_m_pre"
-        fi
-        [[ -n "$output" ]] || continue
+    for ((i = 0; i < win_n; i++)); do
         ds=$((ds + 1))
-        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}"
-        local _m_fields="" _m_line
-        while IFS= read -r _m_line; do
-            [[ -z "$_m_line" ]] && continue
-            strip_strat_prefix "$_m_line"
-            _m_fields+="$_STRIPPED_LINE"$'\n'
-        done <<< "$output"
-        _m_fields="${_m_fields%$'\n'}"
+        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${win_name[$i]}" "${win_conf[$i]}"
+        local _m_fields="${win_fields[$i]}"
         case "$_OPT_format" in
             json)        format_json "$_m_fields" ;;
             json-nested) format_json_nested "$_m_fields" ;;

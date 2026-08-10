@@ -30,6 +30,32 @@ fi
 ## Assertion functions
 ##
 
+# A failed assertion is recorded in a FILE as well as returned, because the
+# return value alone does not survive the way run_test invokes a test. run_test
+# runs it as `( set -e; "$func" ) || result=$?`, and a command on the left of
+# `||` has `set -e` SUPPRESSED for its whole body (POSIX: -e does not apply to
+# any command in a `&&`/`||` list). So a test whose first assertion fails keeps
+# running and exits with the status of its LAST command — which is usually 0,
+# and the test then reported PASS with "ASSERT FAILED" printed right above it.
+# The file crosses the subshell boundary that a variable cannot.
+_ASSERT_FAIL_LOG=""
+_assert_failed () {
+    printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $1"
+    [[ -n "$_ASSERT_FAIL_LOG" ]] && printf 'x' >> "$_ASSERT_FAIL_LOG"
+    return 1
+}
+
+# Deliberately exercising an assertion's FAILURE path — helpers testing helpers
+# — must not mark the surrounding test failed. Runs the assertion with
+# recording suppressed and yields its return status.
+expect_assert_failure () {
+    local _saved="$_ASSERT_FAIL_LOG" _rc=0
+    _ASSERT_FAIL_LOG=""
+    "$@" >/dev/null 2>&1 || _rc=$?
+    _ASSERT_FAIL_LOG="$_saved"
+    return "$_rc"
+}
+
 assert_eq () {
     local expected="$1"
     local actual="$2"
@@ -37,7 +63,7 @@ assert_eq () {
     if [[ "$expected" == "$actual" ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    expected: '$expected'"
         echo "    actual:   '$actual'"
         return 1
@@ -51,7 +77,7 @@ assert_contains () {
     if [[ "$haystack" == *"$needle"* ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    looking for: '$needle'"
         echo "    in:          '$haystack'"
         return 1
@@ -65,7 +91,7 @@ assert_not_contains () {
     if [[ "$haystack" != *"$needle"* ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    should not find: '$needle'"
         echo "    in:              '$haystack'"
         return 1
@@ -78,7 +104,7 @@ assert_exit_zero () {
     if [[ "$code" -eq 0 ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    exit code: $code"
         return 1
     fi
@@ -90,7 +116,7 @@ assert_exit_nonzero () {
     if [[ "$code" -ne 0 ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    exit code: $code (expected non-zero)"
         return 1
     fi
@@ -105,7 +131,7 @@ assert_line_count () {
     if [[ "$actual" -eq "$expected" ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    expected lines: $expected"
         echo "    actual lines:   $actual"
         return 1
@@ -119,7 +145,7 @@ assert_match () {
     if [[ "$actual" =~ $pattern ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    pattern: '$pattern'"
         echo "    actual:  '$actual'"
         return 1
@@ -135,7 +161,7 @@ assert_line_count_ge () {
     if [[ "$actual" -ge "$min" ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    minimum expected: $min"
         echo "    actual lines:     $actual"
         return 1
@@ -151,7 +177,7 @@ assert_line_count_le () {
     if [[ "$actual" -le "$max" ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    maximum expected: $max"
         echo "    actual lines:     $actual"
         return 1
@@ -166,7 +192,7 @@ assert_json_valid () {
         if echo "$text" | jq . >/dev/null 2>&1; then
             return 0
         fi
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    jq validation failed"
         echo "    text: '${text:0:80}'"
         return 1
@@ -182,7 +208,7 @@ assert_json_valid () {
     case "$trimmed" in
         '{'*'}'|'['*']') return 0 ;;
     esac
-    printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+    _assert_failed "$msg"
     echo "    text: '${text:0:80}'"
     return 1
 }
@@ -198,7 +224,7 @@ assert_output_empty () {
     if [[ -z "$trimmed" ]]; then
         return 0
     else
-        printf '%b\n' "  ${RED}ASSERT FAILED${NC}: $msg"
+        _assert_failed "$msg"
         echo "    output: '${text:0:80}'"
         return 1
     fi
@@ -226,9 +252,14 @@ run_test () {
 
     # `|| result=$?` instead of bare `( ... ); result=$?` so a
     # failing test subshell can't trip the caller's `set -e` before
-    # we record the result.
+    # we record the result. That form also disables the subshell's own
+    # `set -e`, so the assertion log — not the exit status alone — is what
+    # decides the verdict (see _assert_failed).
+    _ASSERT_FAIL_LOG=$(mktemp)
     local result=0
     ( set -e; "$func" ) || result=$?
+    [[ -s "$_ASSERT_FAIL_LOG" ]] && result=1
+    rm -f "$_ASSERT_FAIL_LOG"; _ASSERT_FAIL_LOG=""
 
     if [[ $result -eq 0 ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))

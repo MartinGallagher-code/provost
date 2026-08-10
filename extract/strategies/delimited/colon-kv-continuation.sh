@@ -2,6 +2,7 @@
 ## Name: colon-kv-continuation
 ## Description: aligned `Key: value` list where an indented follow-on line continues the previous value (localectl status) -> key/value rows — hint-routed
 ## Version: 1.0
+## Priority: 99
 ## Sample: samples/colon-kv-continuation/basic.txt
 
 # `localectl status` (and the other `*ctl status` dumps) print a right-aligned

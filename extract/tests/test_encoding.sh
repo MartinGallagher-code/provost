@@ -82,9 +82,39 @@ test_utf8_json_format () {
 }
 
 ################################################################################
+## ASCII-art gutter (multi-byte art characters)
+##
+## `cilium status` draws a hexagon down the left margin out of `/`, `\`, `_`
+## and `¯` (U+00AF, two bytes in UTF-8) with its real output to the right, on
+## the same lines. The art is not a column.
+################################################################################
+
+test_art_gutter_stripped () {
+    local tmpfile output
+    tmpfile=$(mktemp)
+    printf '    /\xc2\xaf\xc2\xaf\\\n /\xc2\xaf\xc2\xaf\\__/\xc2\xaf\xc2\xaf\\    Cilium:      OK\n \\__/\xc2\xaf\xc2\xaf\\__/    Operator:    OK\n    \\__/       ClusterMesh: disabled\n' > "$tmpfile"
+    output=$(run_mfe -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$output" "Cilium" "the content beside the art survives"
+    assert_not_contains "$output" "__/" "the art itself is gone from the keys"
+}
+
+# ...but an ordinary indented left margin is NOT art and must be left alone.
+test_indent_is_not_art_gutter () {
+    local tmpfile output
+    tmpfile=$(mktemp)
+    printf 'Conditions:\n  Type      Status\n  Available True\n  Ready     True\n' > "$tmpfile"
+    output=$(run_mfe -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$output" "Available" "an indented block parses as before"
+}
+
+################################################################################
 ## Run all tests
 ################################################################################
 
+run_test "encoding: ASCII-art gutter stripped" test_art_gutter_stripped
+run_test "encoding: plain indent is not art" test_indent_is_not_art_gutter
 run_test "encoding: UTF-8 multi-byte in colons input" test_utf8_colons
 run_test "encoding: CSV with UTF-8 BOM stripping" test_csv_utf8_bom
 run_test "encoding: mixed ASCII/UTF-8 in equals" test_utf8_equals

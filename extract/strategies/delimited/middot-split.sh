@@ -2,6 +2,7 @@
 ## Name: middot-split
 ## Description: lines split on a ` · ` middle-dot separator (navi cheatsheets) -> key/value rows — hint-routed
 ## Version: 1.0
+## Priority: 99
 ## Sample: samples/middot-split/basic.txt
 
 # `navi` lists cheatsheet entries as `tag · description`, using a middle dot

@@ -45,7 +45,11 @@ validate_strategy () {
         _v_errors=$((_v_errors + 1))
     fi
 
-    if [[ "$_META_PRIORITY" != "99" ]]; then
+    # 99 is the DEFAULT priority as well as a legal one to declare, so
+    # `_META_PRIORITY == 99` cannot tell a missing header from a deliberate
+    # one — it reported "Missing ## Priority:" about files that plainly have
+    # the line. Ask the file.
+    if grep -qE '^##[[:space:]]*Priority:[[:space:]]*[0-9]+' "$filepath"; then
         echo "PASS: Has ## Priority: header ($_META_PRIORITY)"
     else
         echo "FAIL: Missing ## Priority: header (defaulting to 99)"

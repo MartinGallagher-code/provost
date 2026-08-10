@@ -71,6 +71,7 @@ source "$SCRIPT_DIR/lib/_discovery.sh"
 source "$SCRIPT_DIR/lib/_interactive.sh"
 source "$SCRIPT_DIR/lib/_validate.sh"
 source "$SCRIPT_DIR/lib/_autotune.sh"
+source "$SCRIPT_DIR/lib/_score.sh"
 source "$SCRIPT_DIR/lib/_dispatch.sh"
 
 # ENV-143: shared pager helper.  Tolerate missing file (partial dev checkout).

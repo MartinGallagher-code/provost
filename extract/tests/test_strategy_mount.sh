@@ -14,7 +14,9 @@ test_mount_basic () {
     assert_contains "$output" "entry1.mount_point /" "first mount point"
     assert_contains "$output" "entry1.fstype ext4" "first fstype"
     assert_contains "$output" "entry1.options rw,relatime" "first options"
-    assert_contains "$output" "entry2.fstype tmpfs" "second fstype"
+    # tmpfs is the THIRD row of the sample (sda1, proc, tmpfs, sdb1); this
+    # asserted entry2 and never failed, because the harness swallowed it.
+    assert_contains "$output" "entry3.fstype tmpfs" "third fstype"
     assert_contains "$output" "total_entries 4" "counts all mounts"
 }
 test_mount_detects () {

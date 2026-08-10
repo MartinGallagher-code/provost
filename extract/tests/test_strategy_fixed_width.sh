@@ -14,7 +14,8 @@ echo "========================================"
 test_fw_basic () {
     local output
     output=$(run_mfe -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
-    assert_contains "$output" "row1.Name Task_Alpha" "should extract row1 Name"
+    # `-r` is RAW: values keep their spaces rather than being encoded as `_`.
+    assert_contains "$output" "row1.Name Task Alpha" "should extract row1 Name"
     assert_contains "$output" "row1.Status Active" "should extract row1 Status"
     assert_contains "$output" "row1.Priority High" "should extract row1 Priority"
     assert_contains "$output" "row1.Count 42" "should extract row1 Count"
@@ -23,9 +24,9 @@ test_fw_basic () {
 test_fw_multi_word_values () {
     local output
     output=$(run_mfe -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
-    assert_contains "$output" "row1.Name Task_Alpha" "should handle multi-word name in row1"
-    assert_contains "$output" "row2.Name Task_Beta" "should handle multi-word name in row2"
-    assert_contains "$output" "row3.Name Task_Gamma" "should handle multi-word name in row3"
+    assert_contains "$output" "row1.Name Task Alpha" "should handle multi-word name in row1"
+    assert_contains "$output" "row2.Name Task Beta" "should handle multi-word name in row2"
+    assert_contains "$output" "row3.Name Task Gamma" "should handle multi-word name in row3"
     assert_contains "$output" "row3.Status Complete" "should extract row3 Status"
     assert_contains "$output" "row3.Count 99" "should extract row3 Count"
 }

@@ -273,9 +273,10 @@ test_assert_json_valid_rejects_bad_json () {
     # Valid JSON should pass
     assert_json_valid '{"key": "value"}'
 
-    # Invalid JSON should fail
+    # Invalid JSON should fail. Wrapped so this deliberate failure is not
+    # recorded as a failure OF THIS TEST -- see expect_assert_failure.
     local rc=0
-    assert_json_valid '{garbage}' >/dev/null 2>&1 || rc=$?
+    expect_assert_failure assert_json_valid '{garbage}' || rc=$?
     assert_eq "1" "$rc" "invalid JSON should fail with jq validation"
 }
 

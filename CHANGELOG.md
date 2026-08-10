@@ -1,5 +1,226 @@
 # glean — Changelog
 
+## 2026-08-10 — a column NAME counts as survival; two more scored candidates
+
+Round 18 asked for aureport's `# date time acct …` legend to become the header
+of the table under it — a fix attempted twice before as an unconditional rule
+and reverted twice, because a legend that does not really name the columns
+shifts every value one place. Scoring makes it safe to attempt, but only after
+fixing what the score was measuring.
+
+- **`_score_parse` now counts field NAMES, not just values** (`extract/lib/_score.sh`,
+  mirrored in `tests/corpus/coverage.sh`). `entry1.acct alice` keeps *both*
+  `acct` and `alice`; counting only the value ranked promoting a header word to
+  a column name BELOW dumping that header out as prose, which is backwards, and
+  made the header fold unwinnable by construction. Names the engine invents
+  (`lineN`, `total_entries`, the `A`/`B`/`C` placeholders of an unnamed table)
+  are skipped rather than credited.
+- **Candidate 3 — the header fold** (`extract/lib/_dispatch.sh`). A one-line
+  `#` legend directly above a data block is folded in as that block's header
+  and scored against the plain split. Guarded on field counts agreeing, with a
+  single exception: a legend may omit a leading ROW ORDINAL, because that
+  column is generated rather than named — and only when every row starts with
+  one, and it is given the explicit name `num`. aureport now yields
+  `num/date/time/acct/host/term/exe/success/event` instead of `A`…`I`.
+  aureport-login's legend is two names short of its rows, so it stays prose.
+- **Candidate 1b — strict grouping.** Block grouping's shape tolerance is now a
+  parameter, and both settings compete. Tolerance 1 keeps a record stream
+  together when one record carries an extra field; it also welded `iostat`'s
+  6-column avg-cpu block onto its 5-column Device table and labelled the Device
+  header with avg-cpu's column names. Tolerance 0 keeps those apart but
+  shatters the ragged record stream. Neither is right in general, so the score
+  picks. Both refinements compete for the split slot and only need to TIE, then
+  the winner faces the whole-input veto as before.
+- **The test harness was reporting PASS for tests whose assertions failed**
+  (`extract/tests/helpers.sh`). `run_test` invokes each test as
+  `( set -e; "$func" ) || result=$?`, and a command on the left of `||` has
+  `set -e` suppressed for its whole body — so a test whose first assertion
+  failed kept running and exited with the status of its last command. Failures
+  are now recorded in a file that crosses the subshell boundary. This is how
+  the iostat mis-grouping above went unnoticed: its assertion had been failing
+  in a "passing" test.
+- **ASCII-art gutter strip** (`extract/lib/_helpers.sh`, in the shared input
+  preprocessing so default and `--multi` both get it). `cilium status` draws a
+  hexagon down the left margin out of `/`, `\`, `_` and `¯` (U+00AF) with its
+  real output beside it on the same lines, and the kv parser was reading the
+  key as `/¯¯\__/¯¯\    Cilium`. A leading run of art characters separated from
+  the content by a column gap is stripped and the art-only lines dropped.
+  Gated hard, because a left margin is usually meaningful: the run must contain
+  a `/`, `\` or `¯` (spaces and underscores alone are indentation), 2+ lines
+  must carry art AND content, 3+ lines must be involved. Byte-oriented
+  (`LC_ALL=C` with the U+00AF bytes written out) rather than relying on the
+  locale awk or grep runs under. Swept over all 3,705 corpus inputs: it fires
+  on exactly one, cilium-status.
+- **Three more round-18 data-loss marks.** `R-version` 1.1 keeps
+  `Running under: <os>`, which `sessionInfo()` prints under the Platform line
+  and 1.0 dropped — the reviewer's "lost the Running Under entry".
+  `btrfs-filesystem-show` 1.1 carries the `Label:`/`uuid:` header and the
+  `Total devices N FS bytes used …` summary down onto each device row; 1.0
+  emitted bare devid rows, so a two-filesystem capture came out as three
+  anonymous devices with no way to tell which filesystem each belonged to.
+  Both goldens regenerated. Coverage on the marked inputs, before -> after:
+  biosdecode 9% -> 98%, btrfs-filesystem-show 36% -> 88%, cilium-status -> 94%,
+  aureport -> 85%. (The "before" figures are from the pre-field-name scorer, so
+  part of each rise is the measure being fixed; the recovered content is
+  visible directly in the parses.) Still open: arp-scan 52% and clpeak-run 78%
+  — see HANDOFF.
+- `extract/tests/test_multi_mode.sh` 11 -> 13 checks, covering the fold, the
+  ordinal exception, and the under-naming legend that must not fold;
+  `test_encoding.sh` 4 -> 6, covering the art gutter and the indented block
+  that must not be mistaken for one.
+
+**Note on the art strip's first cut**, since it is the kind of bug worth not
+repeating: `grep -c` exits 1 when the count is zero, and `envoy-extract` runs
+under `set -eo pipefail`, so the unguarded count killed the engine outright on
+every input WITHOUT art — the opposite of the intended no-op. Both counts are
+now `|| true`. The sed delete address also had to move from `/…/d` to `\%…%d`,
+because the pattern itself contains `/`, and the backslash pre-check is built
+from a variable rather than a `*'\'*` glob, which does not mean what it looks
+like. That bug cost git-log-graph and lspci-tv their goldens; it was caught
+only because the harness had just been taught to fail honestly.
+
+**Nine stale test expectations, cleared.** These were failing all along and
+being reported as PASS — they are the harness fix's real dividend, and every
+one was a test that had drifted from correct engine behaviour, not a bug:
+`validate` claimed "Missing `## Priority:` header" about two files that have
+the line (99 is both the default and a legal declared value, so comparing the
+parsed value could never tell them apart — the check now asks the file, and
+colon-kv-continuation / middot-split get their explicit `## Priority: 99`);
+the strategy-listing and search tests named `http-headers`, `warc-headers` and
+`docker-stats`, none of which still exist (live strategies stand in, and the
+search test now checks both halves of AND rather than one); `mount` asserted
+tmpfs at entry2 when the sample puts it third; `toml` and `fixed-width`
+asserted the underscore-encoded form of values they read back with `-r`, which
+is RAW; `colons` had a fixture with a single pair, which the strategy
+legitimately declines; and `exposition-format` asserted one opaque `labels`
+blob where the strategy now emits a column per label.
+
+## 2026-08-07 — --multi decides boundaries by SCORING, not by guessing
+
+Three experiments this week failed the same way: the splitter chose boundaries
+BEFORE detection, so it could not tell a cut that helps from one that pre-empts
+a better parse. Splitting `kubectl describe` at its `Conditions:` header
+destroyed `describe-report`; NOT splitting `iostat -x` kept only the Device
+table. A splitter deciding up front cannot separate those two. **A splitter that
+scores the finished parses can** — the signal is simply invisible until both
+parses exist:
+
+|                  | whole | split |
+|------------------|------:|------:|
+| kubectl describe | 100%  |  94%  |
+| iostat -x        |  82%  |  99%  |
+
+- **New `extract/lib/_score.sh`.** Scores a candidate parse on two terms, since
+  neither works alone. COVERAGE — the fraction of the input's significant tokens
+  surviving into some output cell — catches dropped sections and shredded
+  values, but alone is gameable (echoing every line as one opaque column scores
+  100%). TIDINESS — the fraction of cells free of a structural defect (unsplit
+  column boundary, separator row kept as data, `key: value` left inside a cell,
+  ragged row) — is what stops that. These are the checks
+  `tests/corpus/prescreen.py` applies to review output, now scoring inside the
+  engine. Tokens are compared with underscores split as whitespace, because the
+  engine encodes a space inside a value as `_`.
+- **`run_multi_mode` is now a search.** Extraction is separated from emission,
+  the whole input always competes against the proposed split, and only the
+  winner is printed. The boundary rules PROPOSE; the score VETOES only when the
+  whole-input parse is MATERIALLY better (>2%) — a near-tie keeps the split,
+  because the rules that produced it are evidence too and a few points out of
+  10000 is noise, not a finding. kubectl clears the margin by 600; cargo-bench
+  differs by 18.
+- Every case the reviewer ruled on now resolves correctly *and for the right
+  reason*: kubectl describe 1, iostat-x 3, proc-slabinfo 3, 7z-benchmark 3,
+  artillery-report 3, cargo-bench 3, cargo-test-summary 3, atlantis-status 3.
+- **New `tests/corpus/coverage.sh`** turns the same measure into a review
+  signal, ranking the corpus by how much of each input survives its parse so
+  lossy parses surface by themselves. Validated against the reviewer's own
+  "you lost information" marks — every one of them ranks at the bottom, in
+  order: biosdecode 9% ("lost a large chunk"), R-sessioninfo 27% ("lost the
+  Running Under entry"), btrfs-filesystem-show 36% ("lost data"), clpeak-run
+  45% ("lost Global memory bandwidth"), arp-scan 52% ("lost the first two
+  lines"), against cinebench-r23 84% and apachebench 100% which were agreed.
+  iostat-x sits at 62% single-dataset, which is precisely why `--multi` splits
+  it. Documented as a signal, NOT a gate:
+  measured against the reviewer's marks the lossy group scored 13–68% and the
+  agreed group 59–100% — separated on average, overlapping in the middle,
+  because many parses legitimately drop chrome and units.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (9 -> 11), one per
+  direction of the veto. Corpus gate 3463/0/242 unchanged, extract 63/63,
+  smoke 65/0, melt 10/0.
+
+## 2026-08-07 — --multi: a count preamble is its own dataset
+
+- The reviewer on cargo-test-summary — *"'running 44 tests' is a separate
+  take"* — and on atlantis-status — *"'Ran plan for 2 projects' should be a
+  separate data set"*. Both were landing as a ragged first row of the table
+  below them. A leading COUNT PREAMBLE now splits off.
+- Two conditions must hold together, so an ordinary header row is never
+  mistaken for one: (a) the line announces a count — >=3 tokens, at least one a
+  bare integer and two purely alphabetic — AND is PROSE, i.e. single-spaced,
+  since a column-aligned header is separated by 2+ spaces; (b) every line below
+  shares one lead signature (first token, digits collapsed to `#`) that differs
+  from the first line's — `test`/`test`/`test` under `running`, `#.`/`#.` under
+  `Ran`. A real table's data rows lead with varied names, so a header fails (b)
+  too. The first cut lacked the prose test and split `TOP 3 PODS   STATUS` off
+  its rows; that case is now a regression test.
+- cargo-bench, cargo-test-summary and atlantis-status each yield the preamble,
+  the rows, and the trailing summary as three datasets.
+- 2 new checks in `extract/tests/test_multi_mode.sh` (7 -> 9). Corpus gate
+  3463/0/242 unchanged, extract 63/63, smoke 65/0, melt 10/0.
+- **Measured but not changed:** the cilium-status ASCII lineart the reviewer
+  asked to strip. Only 3 corpus inputs carry a lineart prefix (cilium-status,
+  weather-wttr, figlet-banner); stripping would help the first two and risks
+  the third, which is pure art. The strip also needs multibyte-safe handling
+  (`¯` is U+00AF) to meet the repo's portability bar, so it is left for a
+  focused change rather than rushed in alongside the splitter work.
+
+## 2026-08-07 — --multi: a rule line is a boundary, never a data row
+
+- Round-18 marks on the multi-dataset workbook (entries 1-40): 19 agree,
+  8 "split OK but formatting off", 12 wrong-split. Recorded in
+  `docs/review-marks-2026-08-07-round18-multi.tsv`; the 19 appended to the
+  validated set (398 -> 409).
+- **Rule lines now split.** A line whose content is only rule characters
+  (`--------`, `========`, and ruled two-column separators like
+  `------  |  ------`, since pipes and spaces are ignored) ends its block and is
+  dropped. The reviewer on 7z-benchmark: *"a dividing line should never be part
+  of a row; it indicates that summarization is happening below, which would
+  indicate a third data set"* — and on artillery-report, *"rows should not
+  contain just -------'s"*. Both now behave: 7z-benchmark yields banner / the
+  per-dict table / the Avr+Tot summary, and artillery-report's `Summary report`
+  block no longer carries two rule rows. 255 corpus inputs contain a rule line,
+  so the reach is wide.
+- 1 new check in `extract/tests/test_multi_mode.sh` (6 -> 7). Corpus gate
+  3463/0/242 unchanged (single-dataset), extract 63/63, smoke 65/0, melt 10/0.
+- **The workbook renderer** (now committed at `tests/corpus/make_multi_doc.js`)
+  gained the reviewer's requested third verdict — "SPLIT OK, FORMATTING OFF" —
+  which separates a boundary problem from a parser problem, and stamps each
+  entry with any mark already given so a re-issue never asks twice.
+- **Tried and reverted:** using a one-line `#` comment as the following table's
+  HEADER (the reviewer's "set 2 is the headers for set 3" on aureport).
+  Prepending the de-commented line made aureport WORSE — `vertical-line` then
+  sliced rows at the header's character positions and shredded every value —
+  and aureport-login did not trigger at all, its header naming 5 columns where
+  the data has 7. Header-to-column correspondence is not a token-count match;
+  it needs the column parsers to align names to detected boundaries.
+
+## 2026-08-07 — survey: which corpus inputs hold multiple datasets
+
+- Swept the corpus under `--multi` to find inputs that split into more than one
+  dataset. **412 of 3705 (11%)** do.
+  `docs/multi-dataset-first100-2026-08-07.tsv` lists the alphabetically first
+  100 with their dataset count and the strategy+confidence of each part;
+  `docs/multi-dataset-scan-2026-08-07.tsv` holds the complete scan.
+- Distribution: 274 split in two, 84 in three, 33 in four, 11 in five, 9 in six
+  and 1 in seven (`git-log-signed`). **109 of the 412 (26%) involve a `text`
+  dataset** — a comment/legend run kept verbatim rather than force-parsed, the
+  outcome added the same day. `cmb-kv-comment-color` and
+  `cmb-hashbang-comment-csv-color` alternate comment and data six ways, and the
+  `crontab`/`dmidecode`/`collectl` families each separate banner from data.
+- Notable: `decode-dimms` splits six ways across three different strategies;
+  the `dig` family separates its header, answer and footer sections; `amdgpu-top`
+  (long marked honest-⏳ because either choice dropped half the data) now yields
+  both of its tables.
+
 ## 2026-08-07 — --multi: section-header splitting tried and reverted (finding recorded)
 
 - Implemented "a bare `Header:` over an indented body opens a sub-block" so

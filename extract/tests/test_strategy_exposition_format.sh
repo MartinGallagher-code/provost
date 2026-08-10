@@ -19,7 +19,10 @@ test_ef_prometheus_basic () {
     output=$(run_mfe -r -s exposition-format "$SAMPLES_DIR/prometheus/basic.txt")
     assert_contains "$output" "metric1.name http_requests_total" "should extract first metric name"
     assert_contains "$output" "metric1.value 1027" "should extract first metric value"
-    assert_contains "$output" 'metric1.labels method="post",code="200"' "should extract labels"
+    # Labels are one column each (`label_method`, `label_code`), not one
+    # opaque `labels` blob — this assertion predates that change.
+    assert_contains "$output" "metric1.label_method post" "should extract the method label"
+    assert_contains "$output" "metric1.label_code 200" "should extract the code label"
     assert_contains "$output" "metric2.name http_requests_total" "should extract second metric name"
     assert_contains "$output" "metric2.value 3" "should extract second metric value"
     assert_contains "$output" "metric3.name process_cpu_seconds_total" "should extract bare metric name"

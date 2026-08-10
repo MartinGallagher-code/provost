@@ -474,6 +474,39 @@ preprocess_input_text () {
             printf '%s' "$_in"
         fi
     }
+    # ASCII-ART GUTTER. Some tools print a logo down the left margin and their
+    # real output to the right of it, on the same lines — `cilium status` draws
+    # a hexagon out of `/`, `\`, `_` and `¯` (U+00AF) beside `Cilium: OK`. The
+    # art is not a column: it made the kv parser read the key as
+    # `/¯¯\__/¯¯\    Cilium`. Strip a LEADING run of art characters when it is
+    # separated from the content by a column gap (2+ spaces), and drop the
+    # art-only lines with it.
+    #
+    # Gated hard, because a left margin is usually meaningful: the run must
+    # contain a `/`, `\` or `¯` (a run of only spaces and underscores is
+    # indentation, not a logo), 2+ lines must carry art AND content, and 3+
+    # lines must be involved in total. Byte-oriented (LC_ALL=C with the U+00AF
+    # bytes written out) so the multibyte glyph is matched exactly rather than
+    # depending on the locale awk or grep happens to run under.
+    # `grep -c` exits 1 when the count is zero and the engine runs under
+    # `set -e`, so every count below is guarded — an unguarded one killed the
+    # engine outright on any input with no art.
+    local _art_bs='\'
+    if [[ "$text" == *$'\302\257'* || "$text" == *"$_art_bs"* ]]; then
+        local _art_set=" /${_art_bs}_"$'\302\257' _art_re _art_only_re _art_n=0 _art_only=0
+        _art_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*  +[^ ]"
+        _art_only_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*$"
+        _art_n=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_re" || true)
+        _art_only=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_only_re" || true)
+        if [[ ${_art_n:-0} -ge 2 && $((${_art_n:-0} + ${_art_only:-0})) -ge 3 ]]; then
+            # `\%…%d` for the delete address: the pattern itself contains `/`,
+            # so the usual `/…/d` form would end the address mid-regex.
+            text="$(printf '%s' "$text" | LC_ALL=C sed -E \
+                -e "\\%${_art_only_re}%d" \
+                -e "s%^([${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*)  +%%")"
+        fi
+    fi
+
     # Interspersed `== section ==` banner lines (apptainer inspect's
     # `== labels ==` / `== runscript ==`) are pure section decoration — drop a
     # line delimited by EXACTLY-two-equals runs (`== word ==`). Longer runs
