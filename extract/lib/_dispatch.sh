@@ -746,13 +746,20 @@ run_multi_mode () {
     # from the first line's — `test`/`test`/`test` under `running`, `#.`/`#.`
     # under `Ran`. A real table's data rows lead with varied names, so a header
     # over them fails (b) as well.
+    # A digit RUN collapses to a single `#`, not one `#` per digit: otherwise
+    # `192.168.1.1` and `192.168.1.10` — the same shape, one octet a character
+    # longer — come out as different signatures and no table of addresses ever
+    # looks uniform.
     _multi_lead_sig () {
         local t="${1#"${1%%[![:space:]]*}"}"
         t="${t%%[[:space:]]*}"
-        local o="" i c
+        local o="" i c prev=""
         for ((i = 0; i < ${#t}; i++)); do
             c="${t:i:1}"
-            case "$c" in [0-9]) o+="#" ;; *) o+="$c" ;; esac
+            case "$c" in
+                [0-9]) [[ "$prev" == "#" ]] || o+="#"; prev="#" ;;
+                *)     o+="$c"; prev="$c" ;;
+            esac
         done
         printf '%s' "$o"
     }
@@ -794,6 +801,17 @@ run_multi_mode () {
         fi
     }
     # Peel a count preamble off the front of a block before pushing it.
+    #
+    # NOT generalised to an N-line prose run, though that is the obvious next
+    # step and it was tried: on arp-scan it peels `Interface: …` and `Starting
+    # arp-scan 1.9.7 with 256 hosts` correctly, and then the host table STOPS
+    # PARSING PROPERLY, because the `arp-scan` columnar spec detects on the
+    # literal string `arp-scan` — which lives in the preamble that was just
+    # peeled off. The table falls back to aligned-columns with A/B/C/D headings
+    # and `Netgear Inc.` split across two cells. The score prefers it anyway
+    # (7097 vs 6842: two recovered lines outweigh the damage), so the score is
+    # not the guard here. The real fix is to let per-block detection see the
+    # whole input as context, which is a bigger change than a boundary rule.
     _multi_push_outer () {
         local b="${1%$'\n'}"
         [[ -z "${b//[[:space:]]/}" ]] && return 0

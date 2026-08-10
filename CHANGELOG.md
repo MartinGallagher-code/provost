@@ -1,5 +1,25 @@
 # glean — Changelog
 
+## 2026-08-10 — lead signatures collapse digit runs; why arp-scan stays open
+
+- **`_multi_lead_sig` collapses a digit RUN to a single `#`** instead of one
+  `#` per digit (`extract/lib/_dispatch.sh`). Per-digit, `10.0.0.1` and
+  `10.0.0.100` are different signatures, so no table of addresses ever looked
+  uniform and the count-preamble rule could not fire above one. New check in
+  `test_multi_mode.sh` (13 -> 14).
+- **arp-scan's two dropped header lines stay dropped, and the reason is worth
+  recording.** Generalising the count-preamble peel to an N-line prose run
+  does peel `Interface: eth0, type: …` and `Starting arp-scan 1.9.7 with 256
+  hosts` correctly — and then the host table STOPS PARSING PROPERLY, because
+  the `arp-scan` columnar spec detects on the literal string `arp-scan`, which
+  lives in the preamble that was just peeled off. The table falls back to
+  `aligned-columns` with A/B/C/D headings and `Netgear Inc.` split across two
+  cells. The score is no guard here: it prefers the peeled parse 7097 to 6842,
+  because two recovered lines outweigh the damage. So the generalisation is
+  NOT shipped; the peel stays one line and count-gated. The real fix is to let
+  per-block detection see the whole input as context, which is a bigger change
+  than a boundary rule and wants its own pass.
+
 ## 2026-08-10 — a column NAME counts as survival; two more scored candidates
 
 Round 18 asked for aureport's `# date time acct …` legend to become the header

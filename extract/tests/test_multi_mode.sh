@@ -201,6 +201,24 @@ EOF
     assert_eq "2" "$n" "count preamble splits from the rows below it"
 }
 
+# The lead signature collapses a digit RUN to one `#`. Per-digit, an address
+# table never looks uniform — `10.0.0.1` and `10.0.0.100` differ — so the rows
+# below a preamble failed the same-shape test purely on octet width.
+test_multi_preamble_over_varied_width_numbers () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+Scanning 3 hosts
+10.0.0.1     up
+10.0.0.10    up
+10.0.0.100   up
+EOF
+    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "2" "$n" "rows differing only in digit count still count as one shape"
+}
+
 test_multi_header_is_not_a_preamble () {
     local tmpfile out n
     tmpfile=$(mktemp)
@@ -259,6 +277,7 @@ run_test "scoring vetoes a losing split"        test_multi_scoring_vetoes_a_losi
 run_test "scoring keeps a winning split"        test_multi_scoring_keeps_a_winning_split
 run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
 run_test "aligned header is not a preamble"     test_multi_header_is_not_a_preamble
+run_test "digit runs collapse in the lead sig"  test_multi_preamble_over_varied_width_numbers
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
