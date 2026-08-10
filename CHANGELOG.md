@@ -51,10 +51,32 @@ fixing what the score was measuring.
   (`LC_ALL=C` with the U+00AF bytes written out) rather than relying on the
   locale awk or grep runs under. Swept over all 3,705 corpus inputs: it fires
   on exactly one, cilium-status.
+- **Three more round-18 data-loss marks.** `R-version` 1.1 keeps
+  `Running under: <os>`, which `sessionInfo()` prints under the Platform line
+  and 1.0 dropped — the reviewer's "lost the Running Under entry".
+  `btrfs-filesystem-show` 1.1 carries the `Label:`/`uuid:` header and the
+  `Total devices N FS bytes used …` summary down onto each device row; 1.0
+  emitted bare devid rows, so a two-filesystem capture came out as three
+  anonymous devices with no way to tell which filesystem each belonged to.
+  Both goldens regenerated. Coverage on the marked inputs, before -> after:
+  biosdecode 9% -> 98%, btrfs-filesystem-show 36% -> 88%, cilium-status -> 94%,
+  aureport -> 85%. (The "before" figures are from the pre-field-name scorer, so
+  part of each rise is the measure being fixed; the recovered content is
+  visible directly in the parses.) Still open: arp-scan 52% and clpeak-run 78%
+  — see HANDOFF.
 - `extract/tests/test_multi_mode.sh` 11 -> 13 checks, covering the fold, the
   ordinal exception, and the under-naming legend that must not fold;
   `test_encoding.sh` 4 -> 6, covering the art gutter and the indented block
   that must not be mistaken for one.
+
+**Note on the art strip's first cut**, since it is the kind of bug worth not
+repeating: `grep -c` exits 1 when the count is zero, and `envoy-extract` runs
+under `set -eo pipefail`, so the unguarded count killed the engine outright on
+every input WITHOUT art — the opposite of the intended no-op. It surfaced as
+eleven unrelated strategy tests going empty at once. Both counts are now
+`|| true`. The sed delete address also had to move from `/…/d` to `\%…%d`,
+because the pattern itself contains `/`. Both were caught only because the
+harness had just been taught to fail honestly.
 
 ## 2026-08-07 — --multi decides boundaries by SCORING, not by guessing
 

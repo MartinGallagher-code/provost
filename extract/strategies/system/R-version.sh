@@ -1,13 +1,18 @@
 #!/bin/bash
 ## Name: R-version
 ## Description: Extract version fields from `R --version` banner
-## Version: 1.0
+## Version: 1.1
 ## Priority: 20
 ## Sample: samples/R-version/basic.txt
 
 # `R --version` opens with 'R version 4.3.2 (2023-10-31) -- "Eye Holes"' and a
 # "Platform: <triple> (...)" line, followed by license text. One wide key/value
 # record: product, version, date, nickname, platform.
+#
+# v1.1 also keeps `Running under: <os>`, which `sessionInfo()` prints under the
+# Platform line and v1.0 dropped on the floor — the reviewer's "lost the
+# Running Under entry" on R-sessioninfo. Emitted empty for `R --version`
+# proper, which has no such line.
 
 strategy_detect () {
     local text="$1"
@@ -27,7 +32,7 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
-    local result="" ver="" date="" nick="" plat=""
+    local result="" ver="" date="" nick="" plat="" running=""
     if [[ "$text" =~ R[[:space:]]version[[:space:]]([0-9][0-9A-Za-z.+-]*) ]]; then
         ver="${BASH_REMATCH[1]}"
     fi
@@ -44,7 +49,14 @@ strategy_extract () {
     result+="entry1.version ${ver}"$'\n'
     result+="entry1.date ${date}"$'\n'
     result+="entry1.nickname ${nick}"$'\n'
+    # `Running under: Ubuntu 24.04 LTS` — a whole line, not one token, so it is
+    # matched line-wise rather than with the token pattern used for Platform.
+    if [[ "$text" =~ Running[[:space:]]under:[[:space:]]*([^$'\n']+) ]]; then
+        running="${BASH_REMATCH[1]}"
+        running="${running%"${running##*[![:space:]]}"}"
+    fi
     result+="entry1.platform ${plat}"$'\n'
+    result+="entry1.running_under ${running}"$'\n'
     result+="total_entries 1"$'\n'
     echo "$result"
 }

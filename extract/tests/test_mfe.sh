@@ -40,8 +40,12 @@ test_list_strategies () {
     assert_contains "$output" "json" "should list json strategy"
     assert_contains "$output" "vertical-line" "should list vertical-line strategy"
     assert_contains "$output" "csv" "should list csv strategy"
-    assert_contains "$output" "http-headers" "should list http-headers strategy"
-    assert_contains "$output" "warc-headers" "should list warc-headers strategy"
+    # http-headers / warc-headers used to be listed here; they no longer exist
+    # as strategies. The point of the check is BREADTH — that the listing
+    # reaches past the first directory it walks — so two live strategies from
+    # other trees stand in for them.
+    assert_contains "$output" "har" "should list har strategy"
+    assert_contains "$output" "yaml" "should list yaml strategy"
     assert_contains "$output" "aligned-columns" "should list aligned-columns strategy"
     assert_contains "$output" "equals" "should list equals strategy"
 }

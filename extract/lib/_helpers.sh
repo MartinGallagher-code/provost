@@ -488,16 +488,22 @@ preprocess_input_text () {
     # lines must be involved in total. Byte-oriented (LC_ALL=C with the U+00AF
     # bytes written out) so the multibyte glyph is matched exactly rather than
     # depending on the locale awk or grep happens to run under.
-    if [[ "$text" == *$'\302\257'* || "$text" == *'/'*'\'* || "$text" == *'\_'* ]]; then
-        local _art_set=$' /\\\\_\302\257' _art_re _art_only_re _art_n _art_only
-        _art_re="^[${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*  +[^ ]"
-        _art_only_re="^[${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*$"
-        _art_n=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_re")
-        _art_only=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_only_re")
-        if [[ ${_art_n:-0} -ge 2 && $((_art_n + _art_only)) -ge 3 ]]; then
+    # `grep -c` exits 1 when the count is zero and the engine runs under
+    # `set -e`, so every count below is guarded — an unguarded one killed the
+    # engine outright on any input with no art.
+    local _art_bs='\'
+    if [[ "$text" == *$'\302\257'* || "$text" == *"$_art_bs"* ]]; then
+        local _art_set=" /${_art_bs}_"$'\302\257' _art_re _art_only_re _art_n=0 _art_only=0
+        _art_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*  +[^ ]"
+        _art_only_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*$"
+        _art_n=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_re" || true)
+        _art_only=$(printf '%s\n' "$text" | LC_ALL=C grep -cE "$_art_only_re" || true)
+        if [[ ${_art_n:-0} -ge 2 && $((${_art_n:-0} + ${_art_only:-0})) -ge 3 ]]; then
+            # `\%…%d` for the delete address: the pattern itself contains `/`,
+            # so the usual `/…/d` form would end the address mid-regex.
             text="$(printf '%s' "$text" | LC_ALL=C sed -E \
-                -e "/${_art_only_re}/d" \
-                -e "s#^([${_art_set}]*[/\\\\"$'\302\257'"][${_art_set}]*)  +##")"
+                -e "\\%${_art_only_re}%d" \
+                -e "s%^([${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*)  +%%")"
         fi
     fi
 
