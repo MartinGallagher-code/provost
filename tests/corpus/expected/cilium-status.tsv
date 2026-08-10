@@ -1,9 +1,9 @@
 n	key	value	total_entries
-1	/¯¯\__/¯¯\    Cilium	OK	15
-2	\__/¯¯\__/    Operator	OK	15
-3	/¯¯\__/¯¯\    Envoy DaemonSet	OK	15
-4	\__/¯¯\__/    Hubble Relay	OK	15
-5	\__/       ClusterMesh	disabled	15
+1	Cilium	OK	15
+2	Operator	OK	15
+3	Envoy DaemonSet	OK	15
+4	Hubble Relay	OK	15
+5	ClusterMesh	disabled	15
 6	DaemonSet              cilium             Desired	5, Ready: 5/5, Available: 5/5	15
 7	DaemonSet              cilium-envoy       Desired	5, Ready: 5/5, Available: 5/5	15
 8	Deployment             cilium-operator    Desired	2, Ready: 2/2, Available: 2/2	15
