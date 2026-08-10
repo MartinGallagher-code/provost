@@ -39,7 +39,9 @@ test_colons_skips_non_fields () {
     # Input with URLs (colons in value) and numeric-starting lines
     local tmpfile
     tmpfile=$(mktemp)
-    printf "Server: Apache\n123: bad key\nhttp://example.com\n" > "$tmpfile"
+    # TWO real pairs: `colons` needs more than one to claim an input, so a
+    # fixture with a single pair proves nothing about skipping the rest.
+    printf "Server: Apache\nPort: 8080\n123: bad key\nhttp://example.com\n" > "$tmpfile"
     local output
     output=$(run_mfe -r -s colons "$tmpfile")
     rm -f "$tmpfile"

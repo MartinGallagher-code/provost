@@ -72,11 +72,28 @@ fixing what the score was measuring.
 **Note on the art strip's first cut**, since it is the kind of bug worth not
 repeating: `grep -c` exits 1 when the count is zero, and `envoy-extract` runs
 under `set -eo pipefail`, so the unguarded count killed the engine outright on
-every input WITHOUT art — the opposite of the intended no-op. It surfaced as
-eleven unrelated strategy tests going empty at once. Both counts are now
-`|| true`. The sed delete address also had to move from `/…/d` to `\%…%d`,
-because the pattern itself contains `/`. Both were caught only because the
-harness had just been taught to fail honestly.
+every input WITHOUT art — the opposite of the intended no-op. Both counts are
+now `|| true`. The sed delete address also had to move from `/…/d` to `\%…%d`,
+because the pattern itself contains `/`, and the backslash pre-check is built
+from a variable rather than a `*'\'*` glob, which does not mean what it looks
+like. That bug cost git-log-graph and lspci-tv their goldens; it was caught
+only because the harness had just been taught to fail honestly.
+
+**Nine stale test expectations, cleared.** These were failing all along and
+being reported as PASS — they are the harness fix's real dividend, and every
+one was a test that had drifted from correct engine behaviour, not a bug:
+`validate` claimed "Missing `## Priority:` header" about two files that have
+the line (99 is both the default and a legal declared value, so comparing the
+parsed value could never tell them apart — the check now asks the file, and
+colon-kv-continuation / middot-split get their explicit `## Priority: 99`);
+the strategy-listing and search tests named `http-headers`, `warc-headers` and
+`docker-stats`, none of which still exist (live strategies stand in, and the
+search test now checks both halves of AND rather than one); `mount` asserted
+tmpfs at entry2 when the sample puts it third; `toml` and `fixed-width`
+asserted the underscore-encoded form of values they read back with `-r`, which
+is RAW; `colons` had a fixture with a single pair, which the strategy
+legitimately declines; and `exposition-format` asserted one opaque `labels`
+blob where the strategy now emits a column per label.
 
 ## 2026-08-07 — --multi decides boundaries by SCORING, not by guessing
 

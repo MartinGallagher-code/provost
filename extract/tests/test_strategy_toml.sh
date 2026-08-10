@@ -14,7 +14,8 @@ echo "========================================"
 test_toml_basic () {
     local output
     output=$(run_mfe -r -s toml "$SAMPLES_DIR/toml/basic.toml")
-    assert_contains "$output" "title My_Project" "should extract title"
+    # `-r` is RAW: values keep their spaces rather than being encoded as `_`.
+    assert_contains "$output" "title My Project" "should extract title"
     assert_contains "$output" "database.host localhost" "should extract database.host"
     assert_contains "$output" "database.port 5432" "should extract database.port"
 }
