@@ -2,7 +2,19 @@ const fs = require('fs');
 const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
         WidthType, ShadingType, HeadingLevel, PageBreak } = require('docx');
 const IN = process.argv[2], OUT = process.argv[3];
-const entries = JSON.parse(fs.readFileSync(IN, 'utf8'));
+// C0 CONTROL BYTES MUST NOT REACH THE XML. They are legal in JSON as ,
+// and .docx is a zip of XML — but XML 1.0 forbids them outright, escaped or
+// not, so ONE ANSI colour code anywhere in a raw corpus input produces a file
+// Word silently refuses to open. That shipped once. The builder rewrites them
+// to caret notation, and this repeats the guard at the point of XML generation
+// so no hand-made or older JSON can reintroduce it.
+const scrub = (s) => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,
+  (c) => c === '\x7f' ? '^?' : '^' + String.fromCharCode(c.charCodeAt(0) + 64));
+const deepScrub = (x) => typeof x === 'string' ? scrub(x)
+  : Array.isArray(x) ? x.map(deepScrub)
+  : (x && typeof x === 'object') ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, deepScrub(v)]))
+  : x;
+const entries = deepScrub(JSON.parse(fs.readFileSync(IN, 'utf8')));
 const MONO = 'Courier New', CONTENT_W = 9026;
 const mono = (t) => new Paragraph({ spacing:{before:0,after:0},
   children:[new TextRun({ text: t===''?' ':t, font:MONO, size:14 })] });

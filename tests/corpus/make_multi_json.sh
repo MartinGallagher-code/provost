@@ -58,7 +58,27 @@ done
 
 _json_str () {
     # JSON-escape stdin as one string literal (no trailing newline).
-    python3 -c 'import json,sys; sys.stdout.write(json.dumps(sys.stdin.read()))'
+    #
+    # C0 CONTROL BYTES ARE REWRITTEN TO CARET NOTATION FIRST. They are legal in
+    # JSON as , and the workbook renderer passes them straight through —
+    # but XML 1.0 forbids them outright, ESCAPED OR NOT, so a single ANSI colour
+    # code anywhere in a raw corpus input yields a .docx that Word refuses to
+    # open. Caret notation also happens to be what a reviewer wants to see:
+    # `^[[0;32m` says "this input carries colour codes", which is part of what
+    # the parse has to cope with.
+    python3 -c '
+import json, sys
+s = sys.stdin.read()
+out = []
+for ch in s:
+    o = ord(ch)
+    if ch in "\t\n" or o >= 32:
+        out.append(ch)
+    elif o < 32:
+        out.append("^" + chr(o + 64))
+    else:
+        out.append("^?")
+sys.stdout.write(json.dumps("".join(out)))'
 }
 
 # --- scan phase: find the inputs that split, in parallel, a batch at a time --
