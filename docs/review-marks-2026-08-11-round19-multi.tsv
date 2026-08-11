@@ -1,0 +1,29 @@
+# Round-19: marks on the FRESH multi-dataset 100 workbook (entries 1-26).
+# mark: OK | FormatOff (split right, a piece parsed badly) | Horrible (wrong split)
+name	mark	note
+7z-benchmark	FormatOff=x	Dataset 2: Header should include Compressing: Dict, speed Kib/s, Usage %, R/U MIPS, Rating, and Decompressing: Speed Kib/s Usage%, R/U MIPS, and Rating. The pipe character is NEVER a header. Dataset 3: There are supposed to be two lines: Avr: and Tot, with the same headers as above.
+7z	OK=x	
+R-sessioninfo	FormatOff=x	“Attached base packages” should not be he column headers It is a statement. The following elements should be one row each (space(s) delimited)
+R-version	FormatOff=x	Dataset 2 is a series of line-long statements, not multiple fields.
+age-keygen	FormatOff=x	Dataset 1: key/value. Keys = Created, and public key
+ansible-galaxy-collection-list	Horrible=x	Collection and Version are headers for what is now Dataset 3. Dataset 1 should contain the first line of the file, which is doesn’t right now.
+ansible-galaxy-list	FormatOff=x	Dataset 1 has “line1” as the first line, but it should actually contain the text of  the first line, instead.
+apachebench	FormatOff=x	You missed the “median” column separation for dataset 2
+arp-scan	Horrible=x	Missing the first line (should be an additional dataset), Dataset 2 should not be parsed into columns
+arping	FormatOff=x	You lost the first line of the file
+artillery-report	FormatOff=x	Dataset 1 and Dataset 2  should not be separated into columns
+atlantis-status	Horrible=x	Dataset 1 should not be separated into columns. Dataset 2 should be three columns: A, dir, workspace. Dataset 3 is missing text.
+aureport-login	FormatOff=x	Dataset 2 is not needed. The date, time, aith, host, and term are column names for what is not dataset 3.
+aureport	OK=x	
+autocannon-run	FormatOff=x	Dataset2: the Stat row contains the column headers for the Latency row.
+aws-autoscaling-describe-auto-scaling-groups	Horrible=x	Dataset 1 has the headers for what is not dataset 2. The pipes are delimiters, and should not appear in the output.
+aws-ec2-describe-instances	Horrible=x	Same as #16
+aws-ec2-describe-snapshots	Horrible=x	Same as #17
+aws-ec2-describe-subnets	Horrible=x	Same as #18
+aws-ec2-describe-vpcs	Horrible=x	Same as #19
+aws-ecs-describe-services	Horrible=x	Same as #20
+aws-elbv2-describe-load-balancers	Horrible=x	Same as #21
+aws-lambda-list-functions	Horrible=x	Same as #22
+aws-rds-describe-db-instances	Horrible=x	Same as #23
+aws-route53-list-hosted-zones	Horrible=x	same as #24
+aws-s3api-list-buckets	Horrible=x	Same as #25
