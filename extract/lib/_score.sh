@@ -102,6 +102,17 @@ _score_parse () {
             }
 
             # -- tidiness defects, one charge per cell --
+            # A VERBATIM cell is exempt. A `text` dataset is prose the engine
+            # deliberately did not parse, so charging it for holding a colon or
+            # a double space punishes precisely the decision we want: atlantis
+            # keeps `Plan: 2 to add, 0 to change, 0 to destroy.` intact and was
+            # docked for it, which put the correct split (7857) below a whole
+            # parse (10000) that shredded the same sentence into one column per
+            # word — and shredding, the score cannot see at all.
+            vname = fname
+            sub(/^d[0-9]+_/, "", vname)
+            sub(/^entry[0-9]+\./, "", vname)
+            verbatim = (vname == "text")
             bad = 0
             # (a) an unsplit column boundary: `a   b` still inside one cell
             if (val ~ /[^ ]  +[^ ]/) bad = 1
@@ -120,6 +131,7 @@ _score_parse () {
             #     an ASCII box outscores the clean one, because the frame lines
             #     it keeps count as recovered content.
             if (val ~ /^[|]+$/) bad = 1
+            if (verbatim) bad = 0
             if (bad) nbad++
 
             n = split(val, b, /[ \t_]+/)

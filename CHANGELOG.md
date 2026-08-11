@@ -1,5 +1,31 @@
 # glean — Changelog
 
+## 2026-08-11 — a verbatim cell is exempt from tidiness charges
+
+- **`_score.sh` no longer charges structural defects against a `text` cell.**
+  A `text` dataset is prose the engine deliberately did NOT parse, so docking
+  it for containing a colon or a double space penalises exactly the decision we
+  want: atlantis-status keeps `Plan: 2 to add, 0 to change, 0 to destroy.`
+  intact and was charged for it. Measured across 83 inputs: 0 changed. It earns
+  its place by stopping the scorer fighting the prose fix rather than by moving
+  anything today.
+
+**The prose cluster is NOT fixed, and the attempt was reverted.** Seven marks
+say "should not be separated into columns". Detecting prose from surface
+features — punctuation, spacing, varying token counts — before extraction
+turned R-version's structured parse into three verbatim lines and turned
+atlantis's `dir:`/`workspace:` records into text. That is the
+decide-before-detection mistake this whole scoring architecture exists to
+retire, and it recurred here.
+
+The blocker is that **the score cannot see shredding**: `Ran Plan for 2
+projects:` sliced into five columns `A`..`E` scores a perfect 10000, every
+token present and no defect fired. Until one-word-per-column is measurably
+worse than keeping the sentence, the score will keep choosing it and any
+pre-extraction rule will misfire on inputs that parse well. Three clusters now
+sit behind this same cause — the prose marks, arp-scan, and the ASCII boxes.
+Reweighting coverage against tidiness is the deliberate fix; see HANDOFF.
+
 ## 2026-08-11 — the header fold generalises; three more scorer corrections
 
 The round-19/20 marks kept saying the same sentence — "X are headers for what
