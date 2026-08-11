@@ -1,5 +1,66 @@
 # glean — Changelog
 
+## 2026-08-10 — the round-18 granularity cluster
+
+Five inputs the reviewer marked for granularity or lost sections. Two of them
+were losing content outright, not just mis-shaping it.
+
+- **clpeak-run 45% -> 100% coverage.** `nested-colon-kv` 1.1 accepts a header
+  that carries NO colon, when the line below it is MORE INDENTED. clpeak labels
+  its measurement groups `Global memory bandwidth (GBPS)` and
+  `Single-precision compute (GFLOPS)` with no punctuation, and without them the
+  parse is `float`/`float2`/`float4` twice over with nothing to say which is
+  bandwidth and which is compute — the reviewer's "lost Global memory
+  bandwidth". Only when the label is ITSELF indented: a colon-less line at the
+  left margin is a banner (`VULKANINFO`, or the `Computer` that roots
+  fwupdmgr's tree), and promoting it would stamp one constant value onto every
+  row. Verified byte-identical output on all 13 tools already routed to this
+  strategy; the fwupdmgr regression that guard prevents was caught that way.
+- **New `subject-field-value`** (hint-routed, p46). `<subject> <field>:` label
+  lines with the value on the NEXT line. `apk info -a` repeats the package name
+  inside every key (`busybox-1.36.1-r5 description`, `… webpage`, …) — a value
+  identical on every row is a COLUMN, so it becomes one. The subject is only
+  factored out when every label shares a leading token AND that token looks
+  like an identifier (carries a digit or `-`/`.`/`_`); a shared plain word is
+  English, not a subject, or a cheat sheet whose entries all begin `To find …`
+  would have `To` promoted to a column.
+- **cheat-sheet stops losing a command.** Same shape once a leading `#` is
+  stripped, so the same strategy handles it: `# To find files by name:` over
+  `find . -name '*.log'` becomes field/value. The previous parse shredded the
+  words across `aligned-columns` headings and kept only ONE of the two
+  commands.
+- **New `super-header-table`** (hint-routed, p45). `amdgpu-top` heads its
+  counters with two header rows — a group row spanning several columns each,
+  then the column names — so `Used` and `Total` each appear twice meaning
+  different things. Neither header row is a record and no row parser could see
+  that, so all seven lines came out verbatim as `text-lines`. Now
+  group/metric/value rows. Group assignment is by NEAREST column start, not by
+  containment: a group label sits roughly, not exactly, over its first column
+  (`VRAM (MiB)` starts at 36 above a `Used` at 35), and both containment and
+  nearest-centre mis-assign real columns here. The rest of the input is kept
+  too — `Device Name:` becomes a group-less row and the `Sensors` table takes
+  its bare label as its group — because a partial parse would have traded one
+  kind of loss for another: `text-lines` at least preserved every line.
+- **bundle-outdated 1.1 keeps all five columns.** `Requested` and `Groups` were
+  dropped because they cannot be read by splitting on whitespace: `Requested`
+  holds `= 1.16.2` and `~> 6.4` (two tokens) and is EMPTY for a gem with no
+  constraint, while `Groups` holds `development, test`. The table is
+  fixed-width, so the header's column start offsets slice it.
+- Corpus manifest: `amdgpu-top` moves from `>=12c` (written for the wide
+  reading) to `>=5c`, and now has a golden — it is tidy for the first time, so
+  it moves from the not-yet-covered set into the gate.
+- **Refound the documented gotcha the hard way again**: `local h="$1" n=${#h}`
+  evaluates `${#h}` BEFORE `h` is assigned, so `n` is 0 and the loop never
+  runs. Split declarations.
+
+Not fixed, deliberately: **cargo-audit** parses correctly in default mode
+(`embedded-table`, all five columns) — only `--multi` mis-columns its four
+prose preamble lines, and that is a shaping problem, not lost content. The fix
+worth trying is marking an all-prose block as `text`, gated on the lines'
+token counts VARYING (a table's are uniform), but that changes `--multi`
+corpus-wide and there is no gate for `--multi`, so it does not belong at the
+end of a batch this size.
+
 ## 2026-08-10 — lead signatures collapse digit runs; why arp-scan stays open
 
 - **`_multi_lead_sig` collapses a digit RUN to a single `#`** instead of one

@@ -1,15 +1,20 @@
 #!/bin/bash
 ## Name: bundle-outdated
 ## Description: Extract outdated gems from `bundle outdated` output (skips fetch preamble + header)
-## Version: 1.0
+## Version: 1.1
 ## Priority: 12
 ## Sample: samples/bundle-outdated/basic.txt
 
 # `bundle outdated` prints a "Fetching gem metadata..." / "Resolving
 # dependencies..." preamble, then a column header
 # ("Gem  Current  Latest  Requested  Groups"), then one row per outdated gem.
-# The preamble and header are noise; only the gem rows are data. Each gem becomes
-# a record with its name and its current/latest versions.
+# The preamble and header are noise; only the gem rows are data.
+#
+# v1.1 keeps ALL five columns, not just name/current/latest. `Requested` and
+# `Groups` were dropped because they cannot be read by splitting on whitespace:
+# `Requested` holds `= 1.16.2` and `~> 6.4` (two tokens), is EMPTY for a gem
+# with no constraint, and `Groups` holds `development, test`. The table is
+# fixed-width, so the header's column start positions are what slices it.
 
 strategy_detect () {
     local text="$1"
@@ -35,18 +40,49 @@ strategy_detect () {
     return 1
 }
 
+# Column start offsets of a fixed-width header, into _BO_POS / _BO_NAME.
+_bo_header_cols () {
+    # Split declarations: `local h="$1" n=${#h}` evaluates ${#h} BEFORE h is
+    # assigned, so n comes out 0 and the loop never runs.
+    local h="$1"
+    local i=0 n=${#h} c prev=' '
+    _BO_POS=(); _BO_NAME=()
+    for ((i = 0; i < n; i++)); do
+        c="${h:i:1}"
+        if [[ "$c" != ' ' && "$prev" == ' ' ]]; then
+            _BO_POS+=("$i")
+            _BO_NAME+=("$(printf '%s' "${h:i}" | awk '{ print tolower($1) }')")
+        fi
+        prev="$c"
+    done
+}
+
 strategy_extract () {
     local text="$1"
-    local result="" entry=0 line name current latest
+    local result="" entry=0 line
+    local -a _BO_POS=() _BO_NAME=()
     while IFS= read -r line; do
-        [[ "$line" == Gem*Current*Latest* ]] && continue
+        if [[ "$line" == Gem*Current*Latest* ]]; then
+            _bo_header_cols "$line"
+            continue
+        fi
         [[ "$line" =~ ^[A-Za-z0-9._-]+[[:space:]]+[0-9][^[:space:]]*[[:space:]]+[0-9][^[:space:]]* ]] || continue
-        # First three whitespace-separated tokens: name, current, latest.
-        read -r name current latest _ <<< "$line"
+        [[ ${#_BO_POS[@]} -ge 3 ]] || continue
         entry=$((entry + 1))
-        result+="entry${entry}.name ${name}"$'\n'
-        result+="entry${entry}.current ${current}"$'\n'
-        result+="entry${entry}.latest ${latest}"$'\n'
+        local ci start len cell
+        for ((ci = 0; ci < ${#_BO_POS[@]}; ci++)); do
+            start="${_BO_POS[$ci]}"
+            if [[ $((ci + 1)) -lt ${#_BO_POS[@]} ]]; then
+                len=$(( ${_BO_POS[$((ci + 1))]} - start ))
+                cell="${line:start:len}"
+            else
+                # Last column runs to end of line: `development, test`.
+                cell="${line:start}"
+            fi
+            cell="${cell#"${cell%%[![:space:]]*}"}"
+            cell="${cell%"${cell##*[![:space:]]}"}"
+            result+="entry${entry}.${_BO_NAME[$ci]} ${cell}"$'\n'
+        done
     done <<< "$text"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
