@@ -167,7 +167,12 @@ for f in "${hits[@]+"${hits[@]}"}"; do
                 ci=$((ci + 1))
                 [[ $ci -eq 1 ]] || printf ','
                 printf '%s' "$(printf '%s' "$fld" | _json_str)"
-            done < <(printf '%s' "$trow" | tr '\t' '\n')
+            # `printf '%s\n'`, NOT `printf '%s'`: without the terminating
+            # newline `read` returns non-zero on the final field and the loop
+            # body never runs for it, so EVERY table silently lost its LAST
+            # COLUMN. That shipped, and the reviewer duly marked half a dozen
+            # tools as "missing data" that were parsing perfectly.
+            done < <(printf '%s\n' "$trow" | tr '\t' '\n')
             printf ']'
         done <<< "$tidy"
         printf ']}'

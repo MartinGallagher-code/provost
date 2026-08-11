@@ -1,0 +1,33 @@
+# Round-20: marks on the fresh multi-dataset 100 workbook (entries 27-50).
+# mark: OK | FormatOff (split right, a piece parsed badly) | Horrible (wrong split)
+#
+# CAUTION: the workbook these were marked on was missing the LAST COLUMN of
+# every table -- a dropped-final-field bug in make_multi_json.sh, not a parse
+# fault. Every 'missing data' note below marked PHANTOM=1 is that bug: the
+# column named in the note is present in the real parse. Re-judge on a
+# corrected workbook before acting on those.
+name	mark	phantom	note
+biosdecode	FormatOff=x	0	Dataset1 should have a value, rather then just line1
+blackbox-probe	Horrible=x	1	Dataset 3 should have the value, not just line1. Missing line2 from dataset 1. Dataset2 should   be key/value separated by space.
+blender-benchmark	OK=x	0	
+bpftrace	FormatOff=x	0	dataset1 should not be separated into coulumns.
+bq-ls	Horrible=x	0	Should be one dataset. The first line: tableId and type, is headers  for what is not the second dataset.
+btrfs-filesystem-show	Horrible=x	0	Should be one dataset.
+btrfs-inspect-super	FormatOff=x	1	Missing data from the first line in dataset 1
+btrfs-qgroup-show	Horrible=x	0	Should me one dataset. What is now dataset 1 contains column headers for what is now dataset 2
+bundle-outdated	OK=x	0	
+cargo-audit	FormatOff=x	1	Dataset 1, line one should be a row, not column headers. Dataset3 is missing data.
+cargo-bench	FormatOff=x	1	Dataset 1 should not be separated into columns. Dataset 3 is missing data.
+cargo-machete	Horrible=x	0	horrible! Just horrible!
+cargo-nextest-run	Horrible=x	0	The first row of dataset 1 should be a separate dataset with one column. Get rid of the square brackets.
+cargo-test-summary	FormatOff=x	1	Dataset 1 should be a single column. Dataset 3 is missing information
+cassandra-nodetool-tpstats	FormatOff=x	0	You lost the “latencies waiting in queue…” line, which should be a separate dataset with one column.
+checkov-summary	FormatOff=x	1	Dataset 1 is missing data. Dataset 2 should have Check as a column value, and the next three “tokens” as column values. There are not column headers.
+cloc-summary	Horrible=x	0	The second line of dataset 1 is headers for dataset 2
+clpeak-run	FormatOff=x	1	Missing Clock frequency from dataset 1.
+cmb-banner-comment-box	FormatOff=x	0	Dataset 2 should have actual text, not just line1. On dataset 3, the first  line should be column headers.
+cmb-banner-indented-table	OK=x	0	
+cmb-build-log-color-table	OK=x	0	
+cmb-clear-screen-table	OK=x	0	
+cmb-comment-color-rows	FormatOff=x	0	dataset 2 should have text, not just line1.
+cmb-comment-header-box	FormatOff=x	0	datsset 1 should have test, not just line. Dataset 2: row 1 is actually column headers.
