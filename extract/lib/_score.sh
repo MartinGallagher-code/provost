@@ -44,10 +44,17 @@ _score_parse () {
     _SCORE=$(awk -v nds="$_nds" '
         # Trim leading/trailing non-alphanumerics; keep the core token so
         # `03/01/2024,` and `03/01/2024` compare equal.
+        #
+        # CASE-FOLDED, because a parser that normalises a column name is not
+        # losing it: bq-ls reads the header `tableId Type` and emits `tableid`
+        # and `type`, and comparing case-sensitively scored that as two tokens
+        # DROPPED — enough to put the correct whole-input parse (8333) below a
+        # split that shredded the table (9545). The question the measure asks
+        # is "did this token survive", and case is not part of that.
         function norm(s) {
             gsub(/^[^A-Za-z0-9]+/, "", s)
             gsub(/[^A-Za-z0-9]+$/, "", s)
-            return s
+            return tolower(s)
         }
         function significant(t) { return (t != "" && t ~ /[A-Za-z0-9]/) }
         # Split on underscore as well as whitespace: the engine encodes a space

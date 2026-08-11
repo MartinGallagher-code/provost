@@ -1002,23 +1002,31 @@ run_multi_mode () {
     # `entryN.` prefixes the ragged-row check groups on cannot collide between
     # datasets (every dataset restarts at entry1).
     _multi_ns () { printf '%s\n' "$2" | sed "s/^/d$1_/"; }
-    # CANDIDATE 3: a one-line `#` comment folded in as the following block's
-    # HEADER, instead of kept as its own `text` dataset. The reviewer on
-    # aureport: "set 2 is the headers for set 3". This was twice implemented as
-    # an unconditional rule and twice reverted, because prepending the
-    # de-commented line let a parser slice rows against a legend that does not
-    # actually name the columns, shifting every value one place. So the fold is
-    # both GUARDED (field counts must agree) and SCORED (it still has to beat
-    # the plain split). Where the input is nothing BUT legend + table candidate
-    # 2 already covers it — the whole-input parse reads the legend as a header
-    # by itself; candidate 3 is what keeps that available on a COMPOUND input,
-    # where taking the whole input would lose the other sections.
+    # CANDIDATE 3: a ONE-LINE block folded in as the following block's HEADER,
+    # instead of standing as a dataset of its own. The reviewer on aureport:
+    # "set 2 is the headers for set 3"; and again on bq-ls, cloc-summary,
+    # btrfs-qgroup-show, aureport-login, ansible-galaxy-collection-list, all
+    # the same sentence. A RULE LINE between a header and its rows is what
+    # separates them — `--------- ---------` reads as a boundary — so the
+    # header ends up alone and the table below comes out `A`/`B`/`C`.
+    #
+    # This was twice implemented as an unconditional rule and twice reverted,
+    # because prepending a line that does not actually name the columns shifts
+    # every value one place. So the fold is both GUARDED (field counts must
+    # agree) and SCORED (it still has to beat the plain split). Where the input
+    # is nothing BUT header + table candidate 2 already covers it — the
+    # whole-input parse reads the header by itself; candidate 3 is what keeps
+    # that available on a COMPOUND input, where taking the whole input would
+    # lose the other sections.
     local -a hdr_name=() hdr_conf=() hdr_fields=() hdr_n=0
     local _have_hdr=0 _hj
     local -a _hblocks=() _histext=()
     for ((_hj = 0; _hj < ${#blocks_saved[@]}; _hj++)); do
-        if [[ "${istext_saved[$_hj]}" -eq 1 && $((_hj + 1)) -lt ${#blocks_saved[@]} &&               "${istext_saved[$_hj+1]}" -eq 0 ]] &&
-           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]]; then
+        # Any single-line block is a header candidate, `#`-commented or not,
+        # provided the block below it holds at least two rows to be a header TO.
+        if [[ $((_hj + 1)) -lt ${#blocks_saved[@]} && "${istext_saved[$_hj+1]}" -eq 0 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj+1]}" | grep -c .)" -ge 2 ]]; then
             local _cb="${blocks_saved[$_hj]}"
             _cb="${_cb#"${_cb%%[![:space:]]*}"}"; _cb="${_cb#\#}"
             _cb="${_cb#"${_cb%%[![:space:]]*}"}"
@@ -1095,7 +1103,30 @@ run_multi_mode () {
         split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
         _log_debug "multi: header fold wins the split slot"
     fi
-    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN ]]; then
+    # EXACT TIE, AND EVERY PIECE OF THE SPLIT TOO SMALL TO HAVE BEEN CHECKED:
+    # take the whole. A split can reach a perfect score by CHEATING the
+    # ragged-row check — that check needs three entries to call a shape, so
+    # shattering a record stream into pieces of one or two entries each escapes
+    # it completely. apk-info-a did exactly that, tying 10000 with the clean
+    # single-dataset parse and taking it on the keep-the-split rule.
+    #
+    # Broken on CONFIDENCE, which the score itself ignores. Every strategy
+    # reports how sure it was, and a hint-routed or bespoke match is far
+    # stronger evidence than a generic fallback — so when two segmentations are
+    # indistinguishable by coverage and tidiness, the one the engine was surer
+    # of is the better answer. apk-info-a: whole is its own strategy at 95, the
+    # split is pkg-config/text-lines/aligned-columns averaging 64. The
+    # under-naming legend goes the other way and keeps its split, 85 to 70,
+    # which is what stops this rule from resurrecting the mislabelled parse
+    # that the score cannot see is wrong.
+    local _tie_favours_whole=0
+    if [[ $_sc_whole -eq $_sc_split && $whole_n -gt 0 && $whole_n -lt $split_n ]]; then
+        local _q2 _cs=0 _cw=0
+        for ((_q2 = 0; _q2 < split_n; _q2++)); do _cs=$((_cs + ${split_conf[$_q2]:-0})); done
+        for ((_q2 = 0; _q2 < whole_n; _q2++)); do _cw=$((_cw + ${whole_conf[$_q2]:-0})); done
+        [[ $((_cw * split_n)) -gt $((_cs * whole_n)) ]] && _tie_favours_whole=1
+    fi
+    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN && $_tie_favours_whole -eq 0 ]]; then
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
         win_fields=("${split_fields[@]}"); win_n=$split_n
     elif [[ $whole_n -gt 0 ]]; then

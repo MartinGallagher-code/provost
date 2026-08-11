@@ -1,5 +1,39 @@
 # glean — Changelog
 
+## 2026-08-11 — the header fold generalises; three more scorer corrections
+
+The round-19/20 marks kept saying the same sentence — "X are headers for what
+is now dataset N" — about bq-ls, cloc-summary, btrfs-qgroup-show,
+ansible-galaxy-collection-list, aureport-login and more. One cause: a RULE LINE
+between a header and its rows reads as a dataset boundary, so the header ends
+up stranded and the table below comes out `A`/`B`/`C`.
+
+- **Candidate 3 folds ANY single-line block**, not just a `#`-commented legend,
+  when the block below holds two or more rows and the field counts agree (the
+  row-ordinal exception still applies). `extract/lib/_dispatch.sh`.
+- **The scorer compares tokens CASE-FOLDED.** bq-ls reads the header `tableId
+  Type` and emits `tableid`/`type`; comparing case-sensitively scored that as
+  two tokens DROPPED, putting the correct whole-input parse at 8333 below a
+  split that shredded the table at 9545. Normalising a column name is not
+  losing it.
+- **An exact tie is broken on CONFIDENCE.** Case-folding created ties at the
+  10000 ceiling, and "a tie keeps the split" then handed apk-info-a to a
+  shredded four-dataset parse. Every strategy reports how sure it was, and a
+  hint-routed match is stronger evidence than a generic fallback: apk-info-a is
+  whole-95 against split-64, while the under-naming legend goes the other way,
+  split-85 against whole-70, which is what stops this rule from resurrecting
+  the mislabelled parse the score cannot see is wrong. A plain "fewer datasets
+  wins" was tried first and did resurrect it — the guard test caught it.
+
+Measured over 83 inputs (every box-table candidate plus every reviewer-ruled
+case): 6 changed, none for the worse. ansible-galaxy-collection-list matches
+the reviewer's note exactly. cmb-comment-color-rows is the one mixed result —
+it stops shredding the leading comment and names its columns, but welds an
+INTERIOR comment line in as a bogus data row, which is now the open issue there.
+
+Corpus gate 3464/0/241 with no deleted goldens, extract 63/63, multi 15/15,
+smoke 65/0, melt 10/0.
+
 ## 2026-08-11 — a `text` dataset is one COLUMN, not one column per line
 
 - **`--multi`'s verbatim text datasets emit `entryN.text` rows** instead of
