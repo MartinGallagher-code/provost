@@ -1,5 +1,53 @@
 # glean — Changelog
 
+## 2026-08-11 — a cell that is only a delimiter is a DEFECT
+
+Round 19's biggest cluster was eleven AWS `table` outputs marked at once, all
+with the same note: *"The pipes are delimiters, and should not appear in the
+output"*, and *"Dataset 1 has the headers for what is now dataset 2"*.
+
+The surprise was that **default mode was already right** — `psql-table` reads
+those boxes cleanly. The whole fault was in `--multi`: the `+---+---+` rules
+are boundary lines, so the box was split apart before any strategy saw it, and
+the shredded result then OUTSCORED the clean one, **9705 to 9333**. The frame
+lines it kept counted as recovered content, and nothing charged the cells that
+were literally just `|`.
+
+- **New tidiness defect in `extract/lib/_score.sh`**: a cell whose whole value
+  is delimiter characters. That is the reviewer's rule stated directly, and it
+  is what the score was missing — the split fell to 7058 and the clean parse
+  won. This is the SECOND time the score has preferred a destructive parse
+  because keeping decoration outweighed wrecking a table (arp-scan was the
+  first), which says coverage-dominates-tidiness is systematically too generous
+  to parses that retain frame junk.
+- Measured over the 46 corpus inputs with that box shape plus every
+  reviewer-ruled `--multi` case, 68 in all: **23 changed, all improvements, no
+  regressions.** The 11 marked AWS tools go from 2 datasets to 1 with real
+  column names and no pipes; 12 more (mysql/mariadb family, incus-list,
+  osqueryi-query, neo4j-cypher-shell, patronictl, triton-model-repository)
+  keep their dataset count but swap `aligned-columns` — which emitted `|` as
+  its own cell and split `10.0.3.10 (eth0)` across two columns — for
+  `psql-table`.
+- **`boxed-table` 1.1** learns the pipe box as well as the space-aligned one:
+  interior pipes are the split when present, a single-cell row is the table's
+  caption (`ListBuckets`), kept in a `table` column. It now detects the pipe
+  box rather than needing a per-tool hint — fenced `|…|` lines, `+---+` rules,
+  at least one interior pipe, which a psql-style table (no fence) does not
+  match. In practice `psql-table` at priority 35 still claims these first, so
+  the strategy is dormant for the AWS family; it matters for boxes psql-table
+  does not take.
+- Round-19 marks recorded in `docs/review-marks-2026-08-11-round19-multi.tsv`:
+  26 verdicts, 14 Horrible, 10 FormatOff, 2 OK.
+- `test_multi_mode.sh` 14 -> 15. Corpus gate 3464/0/241 unchanged (the score
+  runs only under `--multi`, and `psql-table` still claims these boxes first in
+  default mode), extract 63/63, smoke 65/0, melt 10/0.
+
+Still open from round 19: prose being columnised (#3, #4, #9, #11, #12 — "a
+series of line-long statements, not multiple fields"), a header row not applied
+to its table (#6, #13, #15), first-line loss (#7, #10), 7z-benchmark's
+Compressing/Decompressing super-header (#1), and apachebench's missed median
+column (#8).
+
 ## 2026-08-11 — the multi-dataset workbook builder is a committed tool
 
 - **New `tests/corpus/make_multi_json.sh`.** Builds the review workbook's input

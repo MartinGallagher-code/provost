@@ -105,6 +105,14 @@ _score_parse () {
             # (c) a `key: value` pair left sitting inside one cell (not a bare
             #     time `12:30` and not a `scheme://` URL)
             if (val ~ /^[^ ].*: [^ ]/ && val !~ /^[0-9][0-9]?:[0-9][0-9]/ && val !~ /:\/\//) bad = 1
+            # (d) a cell that is nothing but a DELIMITER. `|` between two
+            #     columns is punctuation, and a parse that emits it as its own
+            #     cell has read the frame as data — the reviewer, on eleven AWS
+            #     `table` outputs at once: "the pipes are delimiters, and should
+            #     not appear in the output". Without this the shredded parse of
+            #     an ASCII box outscores the clean one, because the frame lines
+            #     it keeps count as recovered content.
+            if (val ~ /^[|]+$/) bad = 1
             if (bad) nbad++
 
             n = split(val, b, /[ \t_]+/)

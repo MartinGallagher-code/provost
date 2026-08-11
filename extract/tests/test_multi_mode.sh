@@ -161,6 +161,31 @@ EOF
     assert_contains "$out" "kmalloc-8192" "the table itself still parses"
 }
 
+# An ASCII box drawn with `+---+` rules and `|` fences is ONE table, not three
+# datasets. The rules look like boundaries, so the split shreds it — and the
+# shredded parse used to WIN, because the frame lines it kept counted as
+# recovered content while nothing charged the cells that were just `|`.
+test_multi_pipe_box_stays_one_table () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+--------------------------------------------------
+|                  ListBuckets                   |
++----------------------------+-------------------+
+|            Name            |   CreationDate    |
++----------------------------+-------------------+
+|  acme-prod-assets          |  2024-03-11T08:14Z |
+|  acme-prod-logs            |  2024-03-11T08:15Z |
+|  acme-terraform-state      |  2023-11-02T19:41Z |
+EOF
+    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "1" "$n" "an ASCII box is one table, not a split"
+    assert_contains "$out" "acme-prod-assets" "the rows survive"
+    assert_not_contains "$out" ".A |" "a cell that is only a delimiter never survives"
+}
+
 # A rule line (`------`) is a boundary, never a data row: 7z-benchmark rules off
 # its per-dict rows from the Avr/Tot summary below, which is a separate dataset.
 _multi_rule_input () {
@@ -279,6 +304,7 @@ run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
 run_test "aligned header is not a preamble"     test_multi_header_is_not_a_preamble
 run_test "digit runs collapse in the lead sig"  test_multi_preamble_over_varied_width_numbers
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
+run_test "an ASCII pipe box stays one table"    test_multi_pipe_box_stays_one_table
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one
