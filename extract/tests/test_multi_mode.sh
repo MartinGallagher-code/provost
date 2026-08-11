@@ -186,6 +186,38 @@ EOF
     assert_not_contains "$out" ".A |" "a cell that is only a delimiter never survives"
 }
 
+# A comment run whose every line is `# key: value` is a kv block that happens
+# to be commented out, not prose. age-keygen writes its metadata that way.
+test_multi_commented_kv_is_parsed () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# created: 2026-07-10T06:00:00Z
+# public key: age1abc123def456
+AGE-SECRET-KEY-1QQQQQQQQQQQQQQQ
+EOF
+    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "entry1.key created" "a commented kv run parses as key/value"
+    assert_contains "$out" "entry2.value age1abc123def456" "and keeps its values"
+}
+
+# ...but a comment run that is NOT all `key: value` stays verbatim prose.
+test_multi_mixed_comment_run_stays_text () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# slabinfo - version: 2.1
+# see the live counters
+kmalloc-8192          128    128   8192
+kmalloc-1024         2048   2048   1024
+dentry              48210  48312    192
+EOF
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "entry1.text # slabinfo" "a mixed comment run is still kept verbatim"
+}
+
 # A rule line (`------`) is a boundary, never a data row: 7z-benchmark rules off
 # its per-dict rows from the Avr/Tot summary below, which is a separate dataset.
 _multi_rule_input () {
@@ -305,6 +337,8 @@ run_test "aligned header is not a preamble"     test_multi_header_is_not_a_pream
 run_test "digit runs collapse in the lead sig"  test_multi_preamble_over_varied_width_numbers
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
 run_test "an ASCII pipe box stays one table"    test_multi_pipe_box_stays_one_table
+run_test "commented kv run parses as kv"        test_multi_commented_kv_is_parsed
+run_test "mixed comment run stays verbatim"     test_multi_mixed_comment_run_stays_text
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one

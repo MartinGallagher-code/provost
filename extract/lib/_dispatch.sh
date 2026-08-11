@@ -930,13 +930,36 @@ run_multi_mode () {
                 # every other dataset does, to a `text` column with a row per
                 # line, which is also the only shape that stays readable when
                 # the run is long.
-                local _t_out="" _t_line _t_n=0
+                # A comment run whose every line is `# key: value` is not prose
+                # at all — it is a kv block that happens to be commented out.
+                # `age-keygen` writes its metadata that way: "Dataset 1:
+                # key/value. Keys = Created, and public key". Kept verbatim it
+                # loses the structure the reviewer can see plainly.
+                local _t_out="" _t_line _t_n=0 _kv_out="" _kv_n=0 _kv_all=1 _kv_k _kv_v
                 while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
                     [[ -z "${_t_line//[[:space:]]/}" ]] && continue
                     _t_n=$((_t_n + 1))
                     _t_out+="entry${_t_n}.text ${_t_line}"$'\n'
+                    local _kv_s="${_t_line#"${_t_line%%[![:space:]]*}"}"
+                    _kv_s="${_kv_s#\#}"
+                    _kv_s="${_kv_s#"${_kv_s%%[![:space:]]*}"}"
+                    if [[ "$_kv_s" =~ ^([A-Za-z][A-Za-z0-9_\ -]*):\ +(.+)$ ]]; then
+                        _kv_k="${BASH_REMATCH[1]}"; _kv_v="${BASH_REMATCH[2]}"
+                        _kv_n=$((_kv_n + 1))
+                        _kv_out+="entry${_kv_n}.key ${_kv_k}"$'\n'
+                        _kv_out+="entry${_kv_n}.value ${_kv_v}"$'\n'
+                    else
+                        _kv_all=0
+                    fi
                 done <<< "$text"
                 [[ $_t_n -gt 0 ]] || continue
+                if [[ $_kv_all -eq 1 && $_kv_n -ge 2 ]]; then
+                    _kv_out+="total_entries ${_kv_n}"$'\n'
+                    eval "${_p}_name[$_n]=commented-kv; ${_p}_conf[$_n]=90"
+                    eval "${_p}_fields[$_n]=\"\${_kv_out%\$'\\n'}\""
+                    _n=$((_n + 1))
+                    continue
+                fi
                 _t_out+="total_entries ${_t_n}"$'\n'
                 eval "${_p}_name[$_n]=text; ${_p}_conf[$_n]=100"
                 eval "${_p}_fields[$_n]=\"\${_t_out%\$'\\n'}\""
@@ -1124,7 +1147,20 @@ run_multi_mode () {
         local _q2 _cs=0 _cw=0
         for ((_q2 = 0; _q2 < split_n; _q2++)); do _cs=$((_cs + ${split_conf[$_q2]:-0})); done
         for ((_q2 = 0; _q2 < whole_n; _q2++)); do _cw=$((_cw + ${whole_conf[$_q2]:-0})); done
-        [[ $((_cw * split_n)) -gt $((_cs * whole_n)) ]] && _tie_favours_whole=1
+        # Higher mean confidence wins. On an EXACT confidence tie as well,
+        # fewer datasets wins — but only if that confidence is high, because
+        # equal-and-weak means neither parse is understood and the split's
+        # boundaries are still the better evidence. The two cases sit either
+        # side of the line: btrfs-filesystem-show ties at 88, the same bespoke
+        # strategy reading either the whole input or one filesystem block, and
+        # the reviewer wants it merged; checkov-summary ties at 35, generic
+        # `colons` on both halves, and its summary line and its finding record
+        # are genuinely two things.
+        if [[ $((_cw * split_n)) -gt $((_cs * whole_n)) ]]; then
+            _tie_favours_whole=1
+        elif [[ $((_cw * split_n)) -eq $((_cs * whole_n)) && $((_cw / whole_n)) -ge 80 ]]; then
+            _tie_favours_whole=1
+        fi
     fi
     if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN && $_tie_favours_whole -eq 0 ]]; then
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")

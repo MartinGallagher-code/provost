@@ -1,5 +1,29 @@
 # glean — Changelog
 
+## 2026-08-11 — two more round-19/20 marks, and a confidence FLOOR on the tie
+
+- **btrfs-filesystem-show is one dataset** ("Should be one dataset"). It was
+  losing an EXACT tie — the same bespoke strategy at the same confidence (88)
+  reading either the whole input or one filesystem block. Fewer datasets now
+  wins an exact confidence tie, but only above a confidence FLOOR of 80: the
+  first cut without the floor merged checkov-summary too, where both halves are
+  generic `colons` at 35 and the summary line and the finding record are
+  genuinely two things. Equal-and-weak means neither parse is understood, and
+  the split's boundaries are still the better evidence. Caught by the
+  blast-radius diff, not by a test.
+- **A commented kv run parses as key/value** (`extract/lib/_dispatch.sh`). A
+  comment run whose every line is `# key: value` is a kv block that happens to
+  be commented out, not prose — `age-keygen` writes its metadata that way, and
+  the reviewer asked for "key/value. Keys = Created, and public key". A run
+  that is NOT uniformly `key: value` still stays verbatim, which is the new
+  negative test.
+- `test_multi_mode.sh` 15 -> 17. Measured over 83 inputs: exactly the two
+  intended changes, nothing else. Corpus gate 3464/0/241 with no deleted
+  goldens, extract 63/63, smoke 65/0, melt 10/0.
+
+Round 19/20 now stands at 26 of 50 marks resolved, 7 that were a workbook
+rendering bug rather than parse faults, and 7 confirmed OK.
+
 ## 2026-08-11 — a verbatim cell is exempt from tidiness charges
 
 - **`_score.sh` no longer charges structural defects against a `text` cell.**
