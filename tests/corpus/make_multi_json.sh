@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+# tests/corpus/make_multi_json.sh — build the review workbook's input JSON.
+#
+# Walks the corpus for inputs that split into MORE THAN ONE dataset under
+# `glean --multi`, and emits, for each, the raw input plus every dataset melted
+# to a real table — which is what the workbook renders. The first version of
+# this was a scratch file that shipped strategy NAMES instead of tables,
+# because a per-dataset melt in its own shell timed out; melt.sh is sourced
+# ONCE here and called in-process, which is what makes the full run finish.
+#
+#   make_multi_json.sh -o FILE [-n N] [--marks F]...
+#
+#   -n N       stop after N multi-dataset inputs (default 100; 0 = all)
+#   --marks F  a review-marks TSV whose verdicts get stamped onto the entries
+#              so a re-issued workbook never asks for a mark twice. Repeatable.
+#
+# Output feeds tests/corpus/make_multi_doc.js.
+set -u
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/../.." && pwd)"
+ENGINE="$ROOT/extract/envoy-extract"
+IN="$HERE/inputs"
+
+out=""; want=100
+marks_files=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output) out="${2:?-o needs a path}"; shift 2 ;;
+        -n)          want="${2:?-n needs a number}"; shift 2 ;;
+        --marks)     marks_files+=("${2:?--marks needs a path}"); shift 2 ;;
+        -h|--help)   sed -n '2,18p' "${BASH_SOURCE[0]}"; exit 0 ;;
+        *) echo "unknown option: $1" >&2; exit 2 ;;
+    esac
+done
+[[ -n "$out" ]] || { echo "make_multi_json.sh: -o FILE is required" >&2; exit 2; }
+
+# shellcheck source=/dev/null
+source "$ROOT/transform/melt.sh"
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/glean-multijson.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+
+# Prior marks: name -> "verdict<TAB>note", so a re-issue can stamp them.
+: > "$WORK/marks.tsv"
+for mf in "${marks_files[@]+"${marks_files[@]}"}"; do
+    [[ -f "$mf" ]] || continue
+    awk -F'\t' 'NF >= 2 && $1 !~ /^#/ && $1 != "name" { print }' "$mf" >> "$WORK/marks.tsv"
+done
+
+_json_str () {
+    # JSON-escape stdin as one string literal (no trailing newline).
+    python3 -c 'import json,sys; sys.stdout.write(json.dumps(sys.stdin.read()))'
+}
+
+emitted=0
+first=1
+{
+printf '[\n'
+for f in "$IN"/*.txt; do
+    [[ $want -gt 0 && $emitted -ge $want ]] && break
+    name="$(basename "$f" .txt)"
+    wide="$(timeout 60 bash "$ENGINE" --multi -f tsv --max-strategies 1 "$f" 2>/dev/null)" || continue
+    nds="$(printf '%s\n' "$wide" | grep -c '^__DATASET__')"
+    [[ "${nds:-0}" -gt 1 ]] || continue
+
+    emitted=$((emitted + 1))
+    [[ $first -eq 1 ]] || printf ',\n'
+    first=0
+
+    printf '{"rank":%d,"name":%s,"n":%d,' "$emitted" "$(printf '%s' "$name" | _json_str)" "$nds"
+
+    # Raw input, capped so one huge input cannot swamp the document.
+    printf '"input":['
+    ln=0
+    while IFS= read -r line; do
+        ln=$((ln + 1))
+        [[ $ln -gt 40 ]] && { printf ',%s' "$(printf '%s' "… (input truncated)" | _json_str)"; break; }
+        [[ $ln -eq 1 ]] || printf ','
+        printf '%s' "$(printf '%s' "$line" | _json_str)"
+    done < "$f"
+    printf '],'
+
+    # Each dataset: its separator line carries index/strategy/confidence, and
+    # the wide block after it melts to the table the reviewer actually reads.
+    printf '"datasets":['
+    di=0
+    cur=""; strat=""; conf=""
+    _flush_ds () {
+        [[ -n "$strat" ]] || return 0
+        di=$((di + 1))
+        [[ $di -eq 1 ]] || printf ','
+        printf '{"strategy":%s,"conf":%s,"table":[' \
+            "$(printf '%s' "$strat" | _json_str)" "${conf:-0}"
+        local tidy rowi=0
+        tidy="$(_core_melt_tidy "${cur%$'\n'}" 2>/dev/null || true)"
+        while IFS= read -r trow; do
+            [[ -n "$trow" ]] || continue
+            rowi=$((rowi + 1))
+            [[ $rowi -gt 60 ]] && break
+            [[ $rowi -eq 1 ]] || printf ','
+            printf '['
+            local ci=0 fld
+            while IFS= read -r fld; do
+                ci=$((ci + 1))
+                [[ $ci -eq 1 ]] || printf ','
+                printf '%s' "$(printf '%s' "$fld" | _json_str)"
+            done < <(printf '%s' "$trow" | tr '\t' '\n')
+            printf ']'
+        done <<< "$tidy"
+        printf ']}'
+        cur=""
+    }
+    while IFS= read -r line; do
+        if [[ "$line" == __DATASET__* ]]; then
+            _flush_ds
+            strat="$(printf '%s' "$line" | cut -f3)"
+            conf="$(printf '%s' "$line" | cut -f4)"
+            [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+            continue
+        fi
+        cur+="$line"$'\n'
+    done <<< "$wide"
+    _flush_ds
+    printf '],'
+
+    prior="$(awk -F'\t' -v n="$name" '$1 == n { print $2 "\t" $3; exit }' "$WORK/marks.tsv")"
+    if [[ -n "$prior" ]]; then
+        pv="${prior%%$'\t'*}"; pn="${prior#*$'\t'}"
+        # Marks are recorded as `OK=x` / `FormatOff=x` / `Horrible=x`.
+        pv="${pv%%=*}"
+        printf '"prior":%s,"priornote":%s' \
+            "$(printf '%s' "$pv" | _json_str)" "$(printf '%s' "$pn" | _json_str)"
+    else
+        printf '"prior":null,"priornote":null'
+    fi
+    printf '}'
+done
+printf '\n]\n'
+} > "$out"
+
+echo "wrote $out — $emitted multi-dataset inputs"

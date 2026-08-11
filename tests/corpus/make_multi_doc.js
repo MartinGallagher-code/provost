@@ -41,7 +41,10 @@ for (const e of entries) {
       children:[new TextRun({ text:`${e.rank}. ${e.name}`, bold:true, size:24 })] }),
     new Paragraph({ spacing:{after:80},
       children:[new TextRun({ text:`splits into ${e.n} datasets`, size:18, color:'8A5A00' }),
-        ...(e.prior ? [new TextRun({ text:`   ·   you already marked this: ${e.prior==='agree'?'AGREE':'DISAGREE'}${e.priornote?' — '+e.priornote:''}`, size:18, color:'B03060', bold:true })] : [])] }),
+        // Show the verdict AS GIVEN: collapsing everything that is not `agree`
+        // to DISAGREE loses the FormatOff/Horrible distinction, which is the
+        // whole point of having three verdicts.
+        ...(e.prior ? [new TextRun({ text:`   ·   you already marked this: ${String(e.prior).toUpperCase()}${e.priornote?' — '+e.priornote:''}`, size:18, color:'B03060', bold:true })] : [])] }),
     label('INPUT (raw)'));
   for (const l of e.input) children.push(mono(l));
   e.datasets.forEach((d,i) => {

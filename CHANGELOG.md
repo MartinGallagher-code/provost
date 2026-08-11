@@ -1,5 +1,21 @@
 # glean — Changelog
 
+## 2026-08-11 — the multi-dataset workbook builder is a committed tool
+
+- **New `tests/corpus/make_multi_json.sh`.** Builds the review workbook's input
+  JSON: every corpus input that splits into more than one dataset under
+  `--multi`, with the raw input and each dataset MELTED TO A REAL TABLE. The
+  first version of this was a scratch file that shipped strategy NAMES instead
+  of tables — "that's not very useful, I don't have the output tables" —
+  because a per-dataset melt in its own shell timed out. `transform/melt.sh` is
+  sourced ONCE here and called in-process, which is what makes a full run
+  finish. `--marks` stamps verdicts already given onto the entries, repeatable,
+  so a re-issued workbook never asks for the same mark twice.
+- **`make_multi_doc.js` shows a prior verdict AS GIVEN.** It was collapsing
+  everything that is not `agree` to "DISAGREE", which erased the
+  `FormatOff`/`Horrible` distinction — the whole point of the third verdict the
+  reviewer asked for.
+
 ## 2026-08-10 — the round-18 granularity cluster
 
 Five inputs the reviewer marked for granularity or lost sections. Two of them
