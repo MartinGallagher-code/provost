@@ -2890,7 +2890,7 @@ turbostat-core	text	-	9
 powermetrics-summary	text	-	4
 nvidia-smi-pmon-full	text	-	12
 cxlstat	text	-	7
-amdgpu-top	text	-	12
+amdgpu-top	text	-	5
 storcli-show	text	-	14
 megacli-pdlist	text	-	7
 sar-p-disk	text	-	10
