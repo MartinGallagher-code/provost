@@ -1,5 +1,27 @@
 # glean — Changelog
 
+## 2026-08-11 — a `text` dataset is one COLUMN, not one column per line
+
+- **`--multi`'s verbatim text datasets emit `entryN.text` rows** instead of
+  flat `lineN` fields (`extract/lib/_dispatch.sh`). Flat scalars melt to an
+  N-column single-row table, so a three-line comment run rendered as three
+  columns headed `line1 line2 line3` and the reviewer saw the NAME where the
+  text should be — marked six separate times ("should have the value, not just
+  line1"). One row per line is how every other dataset melts, and it is the
+  only shape that survives a long run. `test_multi_mode.sh` assertions and
+  `docs/0003-multi-dataset.md` updated to the new shape; `_score.sh` skips
+  `text` alongside `lineN` as an engine-invented name.
+- **The review workbook was hiding the LAST COLUMN of every table**
+  (`tests/corpus/make_multi_json.sh`). `printf '%s' "$row" | while read` drops
+  the final field, because without a terminating newline `read` returns
+  non-zero and the loop body never runs for it. Seven round-20 marks were that
+  bug, not parse faults — each named exactly the hidden column (clpeak's
+  `Clock_frequency`, blackbox-probe's `line2`, four `value` columns, one
+  `File`). They are flagged `phantom=1` in the marks file so nobody acts on
+  them. The eighth "lost" mark, cassandra-nodetool-tpstats, is real.
+- Round-19 and round-20 marks recorded (50 verdicts total across
+  `docs/review-marks-2026-08-11-round19-multi.tsv` and `-round20-multi.tsv`).
+
 ## 2026-08-11 — a cell that is only a delimiter is a DEFECT
 
 Round 19's biggest cluster was eleven AWS `table` outputs marked at once, all
