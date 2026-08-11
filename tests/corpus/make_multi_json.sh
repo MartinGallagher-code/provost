@@ -15,6 +15,14 @@
 #              so a re-issued workbook never asks for a mark twice. Repeatable.
 #
 # Output feeds tests/corpus/make_multi_doc.js.
+#
+# WHY THIS IS BATCHED AND PARALLEL. A `--multi` call costs ~4s against ~0.1s
+# for an ordinary parse, because it extracts FOUR candidate segmentations and
+# each one re-runs detection over every strategy. Only about one corpus input
+# in nine actually splits, so finding 100 means calling it on ~900 inputs —
+# over an hour serially. The scan therefore runs a batch of inputs at a time
+# through xargs -P, alphabetically, and stops as soon as enough have been
+# found, so no more of the corpus is scanned than the answer needs.
 set -u
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -53,16 +61,50 @@ _json_str () {
     python3 -c 'import json,sys; sys.stdout.write(json.dumps(sys.stdin.read()))'
 }
 
+# --- scan phase: find the inputs that split, in parallel, a batch at a time --
+JOBS="${GLEAN_CORPUS_JOBS:-$(nproc 2>/dev/null || echo 4)}"
+BATCH="${GLEAN_MULTI_BATCH:-300}"
+mkdir -p "$WORK/wide"
+
+_scan_one () {
+    local f="$1" name
+    name="$(basename "$f" .txt)"
+    timeout 60 bash "$ENGINE" --multi -f tsv --max-strategies 1 "$f" 2>/dev/null \
+        > "$WORK/wide/$name.wide" || true
+    if [[ "$(grep -c '^__DATASET__' "$WORK/wide/$name.wide" 2>/dev/null || echo 0)" -le 1 ]]; then
+        rm -f "$WORK/wide/$name.wide"
+    fi
+}
+export -f _scan_one
+export ENGINE WORK
+
+all=()
+while IFS= read -r f; do all+=("$f"); done < <(ls "$IN"/*.txt | sort)
+total=${#all[@]}
+hits=(); off=0
+while [[ $off -lt $total ]]; do
+    if [[ $want -gt 0 && ${#hits[@]} -ge $want ]]; then break; fi
+    printf '%s\n' "${all[@]:$off:$BATCH}" \
+        | xargs -P "$JOBS" -I{} bash -c '_scan_one "$@"' _ {} 2>/dev/null
+    off=$((off + BATCH))
+    hits=()
+    for f in "${all[@]:0:$off}"; do
+        n="$(basename "$f" .txt)"
+        [[ -f "$WORK/wide/$n.wide" ]] && hits+=("$f")
+    done
+    echo "  scanned $off/$total inputs — ${#hits[@]} split into multiple datasets" >&2
+done
+
+# --- emit phase: melt each hit in-process (cheap next to the scan) -----------
 emitted=0
 first=1
 {
 printf '[\n'
-for f in "$IN"/*.txt; do
+for f in "${hits[@]+"${hits[@]}"}"; do
     [[ $want -gt 0 && $emitted -ge $want ]] && break
     name="$(basename "$f" .txt)"
-    wide="$(timeout 60 bash "$ENGINE" --multi -f tsv --max-strategies 1 "$f" 2>/dev/null)" || continue
+    wide="$(cat "$WORK/wide/$name.wide")"
     nds="$(printf '%s\n' "$wide" | grep -c '^__DATASET__')"
-    [[ "${nds:-0}" -gt 1 ]] || continue
 
     emitted=$((emitted + 1))
     [[ $first -eq 1 ]] || printf ',\n'
