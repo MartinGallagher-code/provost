@@ -106,7 +106,7 @@ test_multi_comment_legend_becomes_header () {
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "a legend that names the columns folds into its table"
     assert_contains "$out" "entry1.name kmalloc-8192" "the legend's words become column names"
-    assert_not_contains "$out" "line1 # name" "the legend is not also kept as prose"
+    assert_not_contains "$out" "entry1.text # name" "the legend is not also kept as prose"
 }
 
 # ...but only when it actually names the columns. A legend two names short of
@@ -122,7 +122,7 @@ test_multi_undernaming_legend_not_folded () {
 EOF
     out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
-    assert_contains "$out" "line1 # date" "a legend two names short is kept as prose, not guessed at"
+    assert_contains "$out" "entry1.text # date" "a legend two names short is kept as prose, not guessed at"
     assert_not_contains "$out" "entry1.date 1" "and never labels the rows it does not match"
 }
 
@@ -157,7 +157,7 @@ dentry              48210  48312    192
 EOF
     out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
-    assert_contains "$out" "line1 # slabinfo" "comment run kept verbatim under a lineN field"
+    assert_contains "$out" "entry1.text # slabinfo" "comment run kept verbatim, one row per line"
     assert_contains "$out" "kmalloc-8192" "the table itself still parses"
 }
 

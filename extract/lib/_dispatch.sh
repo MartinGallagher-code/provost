@@ -922,13 +922,22 @@ run_multi_mode () {
         for ((_i = 0; _i <= gi; _i++)); do
             text="${group_text[$_i]}"
             if [[ "${group_istext[$_i]:-0}" -eq 1 ]]; then
+                # ONE ROW PER LINE, not one COLUMN per line. Flat `lineN`
+                # fields melt to an N-column single-row table, so a three-line
+                # comment run rendered as three columns headed `line1 line2
+                # line3` — the reviewer, six times over: "should have the
+                # value, not just line1". Entry-prefixed records melt the way
+                # every other dataset does, to a `text` column with a row per
+                # line, which is also the only shape that stays readable when
+                # the run is long.
                 local _t_out="" _t_line _t_n=0
                 while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
                     [[ -z "${_t_line//[[:space:]]/}" ]] && continue
                     _t_n=$((_t_n + 1))
-                    _t_out+="line${_t_n} ${_t_line}"$'\n'
+                    _t_out+="entry${_t_n}.text ${_t_line}"$'\n'
                 done <<< "$text"
                 [[ $_t_n -gt 0 ]] || continue
+                _t_out+="total_entries ${_t_n}"$'\n'
                 eval "${_p}_name[$_n]=text; ${_p}_conf[$_n]=100"
                 eval "${_p}_fields[$_n]=\"\${_t_out%\$'\\n'}\""
                 _n=$((_n + 1))

@@ -131,7 +131,7 @@ _score_parse () {
             nm = fname
             sub(/^d[0-9]+_/, "", nm)
             sub(/^entry[0-9]+\./, "", nm)
-            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm !~ /^[A-Z][A-Z]?$/) {
+            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm != "text" && nm !~ /^[A-Z][A-Z]?$/) {
                 n = split(nm, k, /[ \t_.]+/)
                 for (i = 1; i <= n; i++) {
                     t = norm(k[i])
