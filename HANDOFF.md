@@ -1,5 +1,48 @@
 # Handoff — glean
 
+## Where we actually stand: **23 PASS / 12 PARTIAL / 15 FAIL on 50 unseen inputs**
+
+`tests/benchmark/` is new and is the first honest answer to "how well would we do
+on any given new output". Fifty tool outputs with no hint row, no strategy, no
+golden, no prior review — 14 from public documentation and sample data, 36
+captured live. Run in default mode and rated against criteria fixed in writing
+BEFORE the first input was executed. Full analysis:
+`docs/benchmark-2026-08-12-generalisation.md`.
+
+**Roughly seven in ten unseen inputs come out usable; three in ten come out
+wrong.** That is materially worse than the corpus number, and the gap is the
+point: every corpus entry has been reviewed and often had a parser written for
+it, so the corpus measures work done, not generalisation. There is deliberately
+NO gate on the benchmark — a gate would invite fitting the engine to those 50
+files, which destroys the only property that makes them useful. Re-run
+`bash tests/benchmark/run.sh` and read the diff.
+
+The 27 defects are 9 problems, four of which account for 15. **In priority
+order:**
+
+1. **Truncation (4)** — a strategy detects with high confidence, claims the whole
+   input, and emits a fraction of it, silently. `git log --stat` 40 lines in / 3
+   out; `java -XshowSettings` 24 / 2; `apt-cache policy` 14 / 4. **This is the
+   cheapest large win in the engine right now**: it needs no new parsing logic,
+   only a check the engine already has the numbers for — a parse dramatically
+   smaller than its input. It is also a THIRD engine limitation alongside the two
+   the scoring work named, and it does not require either of them resolved first.
+2. **Blank-column collapse (2)** — `lsblk -f`, `lsof`. Where a header names N
+   columns but rows leave several empty, values are assigned to the FIRST names
+   rather than their own, so sizes land under `FSTYPE` and mountpoints under
+   `LABEL`. The most insidious defect on the list because the output looks
+   perfectly tidy. Fix: split on the header's character offsets, not on a count
+   of whitespace-separated fields.
+3. **Banner line dropped (3)**, **box-drawing rules unrecognised (3)**,
+   **detail line dropped (3)**, then group-header, csv-on-date, dropped-unit (2
+   each). `--multi` already rescues 3 of the 15 failures and never made one worse,
+   which argues for segmentation sitting closer to the default than it does.
+
+Gotcha found while building the harness, worth knowing before writing another
+one: **`--emit-meta` writes its banner to stderr**, not into the field stream.
+Reading it off stdout yields an empty strategy for every input and reports the
+whole run as parsed by "none".
+
 ## Status: **--multi is a scored search over four candidate segmentations** (extract/lib/_score.sh: coverage + tidiness). The candidates are the rule-proposed split, the same split with block-grouping's shape tolerance off, that split with a `#` legend folded in as the following block's header, and the whole input unsplit. The two refinements compete for the split slot and need only TIE; the winner then faces the whole-input veto (vetoed only when whole is >2% better). Coverage now counts field NAMES as well as values — a header word promoted to a column name survived, and not counting it ranked naming a column below dumping the header as prose. All reviewer-ruled cases resolve correctly: kubectl 1, iostat-x 3, proc-slabinfo 1 (legend folds in, columns named), 7z 3, artillery 3, cargo-bench 3, cargo-test-summary 3, atlantis 3; aureport now yields `num/date/time/acct/host/term/exe/success/event`. tests/corpus/coverage.sh ranks the corpus by how much of each input survives its parse (a review SIGNAL, not a gate). Validated 409.
 
 **Test harness was lying and is now fixed** (`extract/tests/helpers.sh`): `run_test` ran each test as `( set -e; "$func" ) || result=$?`, and a command on the left of `||` has `set -e` suppressed for its whole body, so a test whose assertion failed kept running and reported PASS. Assertion failures are now recorded in a file that crosses the subshell boundary; `expect_assert_failure` is the escape hatch for helpers that test helpers. The iostat mis-grouping this release fixes had been failing inside a "passing" test, and **nine further stale expectations** surfaced and were cleared — see CHANGELOG. Treat that as the standing lesson: before this, a green extract suite did not mean what it said.

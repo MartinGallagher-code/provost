@@ -1,0 +1,5 @@
+      ### We want to skip this header ###
+          col1       col2
+          foo        1
+          bar        2
+      ### We want to skip this footer ###

@@ -1,5 +1,48 @@
 # glean — Changelog
 
+## 2026-08-12 — a held-out benchmark: 50 inputs the engine has never seen
+
+The corpus answers "did this change break something that used to work". It
+cannot answer the question that decides whether glean is useful: **what happens
+the first time it meets an output nobody wrote a parser for?** Every corpus
+entry has been reviewed, argued over, and in many cases had a hint row or a
+strategy written for it, so the corpus score measures work done, not
+generalisation.
+
+- **New: `tests/benchmark/`** — 50 tool outputs with no hint row, no strategy,
+  no golden, no prior review. 14 from public documentation and sample data
+  (tokei, scc, `rclone about`, `borg list` in both forms, three nmap scans, a
+  decorated ASCII table, a quoted CSV, `/etc/hosts`, an INI file, an ARP table);
+  36 captured live, chosen for shape variety. `run.sh` re-runs them all in
+  default and `--multi` mode; `ratings.tsv` carries the per-input verdict and
+  reason; `make_doc_json.sh` + `make_doc.js` build a markable .docx and
+  `make_page.py` a browsable HTML page.
+- **Deliberately NOT a gate.** A pass/fail gate would invite fitting the engine
+  to these 50 files, and the moment that happens they stop measuring
+  generalisation. Re-run and read the diff.
+- **Result: 23 PASS / 12 PARTIAL / 15 FAIL.** Roughly seven in ten unseen inputs
+  come out usable, three in ten come out wrong — materially worse than the
+  corpus suggests, which is the point of having measured it.
+- **The 27 defects cluster into 9 problems**, four of which account for 15:
+  truncation (4), banner-line dropped (3), box-drawing rules unrecognised (3),
+  detail line dropped (3). Full analysis in
+  `docs/benchmark-2026-08-12-generalisation.md`.
+- **Two named for fixing first.** *Truncation* is silent and catastrophic —
+  `git log --stat` 40 lines in / 3 out, `java -XshowSettings` 24 / 2,
+  `apt-cache policy` 14 / 4 — and would be caught by a check the engine has all
+  the numbers for already: a parse dramatically smaller than its input.
+  *Blank-column collapse* (`lsblk -f`, `lsof`) is the more insidious, because
+  the output looks perfectly tidy while values sit under the wrong names; it
+  needs the header's character offsets rather than a field count.
+- **A third engine limitation, alongside the two the scoring work named.**
+  Nothing measures a parse against the SIZE of its input. That is the cheapest
+  large win available and needs neither of the other two resolved first.
+- `--multi` rescues 3 of the 15 failures and never made one worse.
+
+Also fixed while building this: `--emit-meta` writes its banner to **stderr**,
+not into the field stream. Both new builders read it off stdout at first, which
+silently reported all fifty inputs as parsed by strategy "none".
+
 ## 2026-08-11 — two more round-19/20 marks, and a confidence FLOOR on the tie
 
 - **btrfs-filesystem-show is one dataset** ("Should be one dataset"). It was

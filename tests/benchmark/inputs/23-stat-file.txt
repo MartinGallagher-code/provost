@@ -1,0 +1,8 @@
+  File: /etc/hostname
+  Size: 3         	Blocks: 8          IO Block: 4096   regular file
+Device: 254,0	Inode: 151336      Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2026-08-12 20:23:55.128064292 +0000
+Modify: 2026-08-12 20:11:01.656018314 +0000
+Change: 2026-08-12 20:11:01.656018314 +0000
+ Birth: 1970-01-01 00:00:00.000000000 +0000

@@ -1,0 +1,6 @@
+Filesystem       Inodes  IUsed    IFree IUse% Mounted on
+tmpfs           2057625      2  2057623    1% /dev/shm
+tmpfs           2057625     11  2057614    1% /sys/fs/cgroup
+/dev/vda       16777216 241432 16535784    2% /
+/dev/vdc           4128     13     4115    1% /opt/claude-code
+/dev/vdd           4096     12     4084    1% /opt/env-runner

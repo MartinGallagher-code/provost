@@ -1,0 +1,4 @@
+  4   8  81 /etc/hosts
+  1   1   3 /etc/hostname
+ 13  18 400 /etc/os-release
+ 18  27 484 total

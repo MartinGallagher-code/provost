@@ -1,0 +1,10 @@
+foo = fiz
+bar = buz
+
+[section1]
+fruit = apple
+color = blue
+
+[section2]
+fruit = pear
+color = green

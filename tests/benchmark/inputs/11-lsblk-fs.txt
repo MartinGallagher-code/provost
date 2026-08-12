@@ -1,0 +1,8 @@
+NAME  FSTYPE FSVER LABEL UUID FSAVAIL FSUSE% MOUNTPOINTS
+zram0                                        
+vda                             29.4G     3% /
+vdb                                 0   100% /opt/rclone
+vdc                             25.1M    90% /opt/claude-code
+vdd                             15.5M    63% /opt/env-runner
+vde                                 0   100% /mnt/skills/public
+vdf                                 0   100% /mnt/skills/examples
