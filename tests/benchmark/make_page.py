@@ -255,7 +255,7 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
 
 <div class="wrap">
 <header class="top">
-  <p class="eyebrow">glean · held-out benchmark · 12 august 2026</p>
+  <p class="eyebrow">glean · held-out benchmark · 12–13 august 2026</p>
   <h1>Fifty outputs it had never seen</h1>
   <p class="dek">Tool output with no hint row, no strategy, no golden and no prior
   review, run through <code>glean</code> in default mode. The corpus measures whether
@@ -277,15 +277,17 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
 
 <section class="prose">
   <h2>The short answer</h2>
-  <p>Roughly seven in ten unseen inputs come out usable; three in ten come out
-  wrong. That is materially worse than the corpus score suggests, and the gap is
-  the reason for running this at all — every corpus entry has been looked at,
-  argued over, and in many cases had a parser written for it, so the corpus
-  measures how much work has been done rather than how well the engine
-  generalises.</p>
-  <p>Put practically: <strong>a clean aligned table or key/value output will
-  almost certainly be right. Anything carrying decoration, a two-row header,
-  empty columns, or more than one kind of content in it is a coin flip.</strong></p>
+  <p><strong>When these fifty inputs were genuinely unseen (12 August), the score
+  was 23 pass / 12 partial / 15 fail</strong> — roughly seven in ten usable, three in
+  ten wrong, materially worse than the corpus score suggests. That 23/12/15
+  remains the only honest generalisation number this set ever produced.</p>
+  <p>The fix round on 13 August then worked all nine defect clusters — a
+  truncation guard, character-offset column assignment, Unicode rule handling,
+  keep-everything changes to the fallback parsers, and four narrow strategies.
+  The tallies above are the current state. <strong>But the moment the engine was
+  tuned against these files they stopped measuring generalisation</strong>; from here
+  on this set measures regression, and the next generalisation number needs a
+  fresh fifty.</p>
 </section>
 
 <section class="prose">
@@ -298,10 +300,11 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
   than convenience: aligned tables with and without headers, colon and equals
   key/value, JSON, TSV, hierarchies, box drawings, two-row headers, multi-record
   logs.</p>
-  <p>There is deliberately no pass/fail gate on this set. A gate would invite
-  fitting the engine to these fifty files, and the moment that happens they stop
-  measuring generalisation and start measuring memorisation — which is exactly
-  what makes the corpus number unable to answer this question.</p>
+  <p>There was deliberately no pass/fail gate on this set — a gate invites
+  fitting the engine to the files. The fix round then did exactly that, with
+  eyes open: the price of clearing the defects is that these fifty now measure
+  memorisation, which is why the 23/12/15 measured before any tuning is the
+  number to quote for generalisation.</p>
 </section>
 
 <section class="prose">
@@ -341,7 +344,29 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
 </section>
 
 <section class="prose">
-  <h2>The two worth fixing first</h2>
+  <h2>What the fixes were (13 August)</h2>
+  <p><strong>Truncation</strong> got a guard: a strategy whose parse is much smaller
+  than its input and blind to most of its lines loses its claim, and the next
+  parser runs — <code>git log --stat</code> went from 3 fields kept to all 40
+  lines kept. <strong>Blank-column collapse</strong> got character-offset
+  assignment: where data rows are sparser than the header, values are placed by
+  the header label&#8217;s printed span — <code>lsblk</code> sizes now sit under
+  FSAVAIL, <code>lsof</code> paths under NAME. Both mechanisms withdraw on weak
+  evidence rather than guess. The rest: box-drawing rules read as separators
+  (tokei, scc), fallback parsers keep what they cannot parse instead of dropping
+  it (curl/gcc/openssl banners, locale&#8217;s empty values, cipher names),
+  weekday commas stopped reading as CSV (borg), and uname, /proc/net/dev, stat
+  and <code>ps f</code> got narrow parsers for their fixed shapes.</p>
+  <p>The blast radius mattered as much as the fixes: 173 corpus goldens were
+  regenerated, and the recurring finding was goldens that had been faithfully
+  recording defects — conntrack&#8217;s golden dropped protocol and state from
+  every row; a fixture literally named <code>tbl-empty-label-col</code> held
+  sizes under LABEL. Six tools newly reach a tidy golden. The corpus gate closed
+  at 3470 passed, 0 failed, zero deleted goldens.</p>
+</section>
+
+<section class="prose">
+  <h2>What the original run said to fix first</h2>
   <p><strong>Truncation is the most damaging</strong>, because it is silent.
   <code>git log --stat</code> goes in at 40 lines and comes out at 3.
   <code>java -XshowSettings</code> goes in at 24 and comes out at 2.
