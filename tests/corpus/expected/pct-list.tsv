@@ -1,4 +1,4 @@
-n	VMID	Status	Lock	total_entries
+n	VMID	Status	Name	total_entries
 1	200	running	web-ct	3
 2	201	running	db-ct	3
 3	202	stopped	backup-ct	3

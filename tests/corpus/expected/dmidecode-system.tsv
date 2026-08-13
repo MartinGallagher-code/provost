@@ -1,2 +1,2 @@
-Manufacturer	Product_Name	Version	Serial_Number	UUID	Wake-up_Type	SKU_Number	Family	Option_1	Status
-Dell Inc.	OptiPlex 7070	Not Specified	7ABCDE2	4c4c4544-0037-4210-8043-c6c04f445632	Power Switch	07A2	OptiPlex	J6H1:1-2 = Password Clear	No errors detected
+line1	line2	line3	line4	line5	Manufacturer	Product_Name	Version	Serial_Number	UUID	Wake-up_Type	SKU_Number	Family	line6	line7	Option_1	line8	line9	Status
+# dmidecode 3.3	Getting SMBIOS data from sysfs.	SMBIOS 3.2.1 present.	Handle 0x0001, DMI type 1, 27 bytes	System Information	Dell Inc.	OptiPlex 7070	Not Specified	7ABCDE2	4c4c4544-0037-4210-8043-c6c04f445632	Power Switch	07A2	OptiPlex	Handle 0x000C, DMI type 12, 5 bytes	System Configuration Options	J6H1:1-2 = Password Clear	Handle 0x0025, DMI type 32, 20 bytes	System Boot Information	No errors detected

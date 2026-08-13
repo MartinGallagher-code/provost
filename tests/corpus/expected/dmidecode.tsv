@@ -1,2 +1,2 @@
-Manufacturer	Product_Name	Serial_Number	UUID
-Dell Inc.	PowerEdge R740	ABC1234	4c4c4544-0043-4210
+line1	line2	Manufacturer	Product_Name	Serial_Number	UUID
+Handle 0x0001, DMI type 1, 27 bytes	System Information	Dell Inc.	PowerEdge R740	ABC1234	4c4c4544-0043-4210

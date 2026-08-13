@@ -1,5 +1,98 @@
 # glean — Changelog
 
+## 2026-08-13 — "fix it all": the benchmark's nine defect clusters, worked
+
+The 2026-08-12 held-out benchmark scored 23 PASS / 12 PARTIAL / 15 FAIL and
+clustered the 27 defects into nine problems. This round worked them all. The
+benchmark set now re-scores **40 PASS / 9 PARTIAL / 1 FAIL** — and, having
+been tuned against, it is now a REGRESSION set, not a generalisation measure;
+the next generalisation number needs fresh inputs (`tests/benchmark/ratings.tsv`
+says so at the top).
+
+Engine changes, in blast-radius order:
+
+- **Truncation guard** (`extract/lib/_discovery.sh`). A strategy whose parse is
+  much smaller than its input (fields × 3 < non-blank lines) AND blind to most
+  of it (<50% of input lines have >half their tokens survive) loses its claim,
+  exactly as if it had produced nothing; the next strategy in priority order
+  runs. Hint-routed strategies, `-s`, `--replay`, and the structured-grammar
+  parsers (json/yaml/xml/toml — authoritative about their own formats, and
+  legitimately compressive) are exempt. The exemption was learned the hard way:
+  the first cut left caddy-adapt (nested JSON, one leaf value) with EMPTY
+  output. Fixes: git-log-stat 40-lines-in/3-out, java -XshowSettings 24/2,
+  apt-cache policy 14/4 — all now keep everything.
+- **Offset assignment for sparse tables** (`aligned-columns.sh`). When data
+  rows carry fewer tokens than the header names columns, values are assigned by
+  the header's CHARACTER SPANS (max overlap; nearest span for right-aligned
+  numerics; everything past the last header start joins the last column), not
+  by counting tokens. Withdraws unless >=80% of tokens overlap a span AND >=60%
+  land exactly on a span edge — the edge gate is what keeps prose that merely
+  overlaps (deno-lint error lines under a line mistaken for a header) out.
+  Fixes lsblk -f and lsof (values under the right names at last), chrony
+  sources, and the corpus tbl-empty-*/tbl-sparse-* fixtures whose goldens had
+  been ENCODING the collapse defect.
+- **Unicode rule lines normalise to ASCII** (`_helpers.sh` preprocess): a line
+  wholly of ─ ━ ═ becomes a dash rule, so tokei/scc tables parse; corners and
+  junctions are different code points, so real box frames stay for the box
+  strategies.
+- **`colons` keeps colon-less lines** as line<N> instead of dropping them —
+  curl's version banner, gcc's closing version line, openssl's banner. A first
+  colon INSIDE parentheses no longer splits a banner into a 36-char key. Pure
+  rules stay dropped.
+- **`equals` keeps empty values** as `""` — `locale`'s LANG= is set-but-empty,
+  which is a different fact from absent.
+- **`clean_text` date fix**: the replacement now keeps its leading space —
+  `built on: Mon Jan 26 …` no longer welds to `MonJan_26_…`.
+- **`csv` detect ignores weekday commas** (`Mon, 2016-02-15`) — borg-list no
+  longer reads as 2-field CSV split inside its timestamps.
+- **`inline-kv` keeps unlabeled tokens** as letter columns — openssl ciphers
+  keeps each cipher's NAME and TLS version.
+- **`_tech_kv_colon` skips equals-pairs** whose value contains colons — npm's
+  noproxy list no longer manufactures a garbage key.
+- **Trailing prepositions weld into the previous header name** (both the
+  offset path and the tokenized path): `Mounted on` → `Mounted_on`.
+- **`indented-hierarchy` `|`-in-key crash fixed** (three loops): a key holding
+  a literal `|` shattered the path list and crashed an arithmetic test under
+  `set -u`.
+- New strategies: **`uname`** (canonical uname -a field order), **`proc-net-dev`**
+  (/proc/net/dev's fixed 16-counter format, rx_*/tx_* names), **`stat-file`**
+  (stat's multi-kv lines, access_mode/access_time disambiguated); new
+  **`ps-forest`** columnar-specs row (tree-drawing CMD absorbs `\_` prefixes);
+  **`tar-listing` keeps its time column** (was `~time`, dropped); **`ulimit`
+  emits the parenthesised unit**; **nmap/nmap-sn keep** MAC+vendor, Not shown,
+  Service Info, and the done-summary.
+
+What the blast-radius pass itself caught and fixed, second wave:
+
+- The truncation guard's first cut left nested-JSON caddy-adapt EMPTY —
+  hence the structured-grammar exemption above, plus dot-splitting the
+  guard's seen-set so folded field names vouch for their source lines.
+- The offset path claimed multi-word-header tables (doctl's `Spec Name`,
+  nerdctl's `MEM USAGE / LIMIT`, spark's three `Tasks` columns) and shredded
+  the labels — hence the duplicate-name and two-span-token withdrawals.
+- The `|`-in-key crash fix made indented-hierarchy "succeed" with garbage on
+  /proc/net/dev where the crash had been accidentally protective —
+  detection now declines a `|` in the first two lines, deliberately.
+- fixed-width sliced values mid-word when a tool's own separator rule is
+  narrower than its data (heroku-addons) — boundaries are now soft: a column
+  ends at the rule's grid unless a word straddles the cut, in which case it
+  keeps the word and the next column starts after it. heroku now parses
+  better than its old golden, which had kept the rule as a data row.
+
+Corpus goldens: 173 regenerated after triage + spot-checks — the recurring
+finding was goldens that had been faithfully recording DEFECTS
+(tbl-empty-label-col held sizes under LABEL; tbl-sparse-metrics had node4's
+`net 200` under `cpu`; useradd-defaults silently lacked its EXPIRE row;
+conntrack dropped protocol and state from every row; timewarrior's second
+row was shifted three columns left). **Six tools newly reach a tidy golden**
+(bpftrace-histogram, haproxy-vv, lspci-tv, mtr-wide-report, nslookup_mx,
+parted-print-all): 3464 -> 3470 covered. Three manifest rows updated where
+the old shape had counted a `─` rule line as a data row (heroku-addons,
+pscale-branch-list, pscale-database-list). Strategy goldens
+nmap/nmap-sn/ulimit regenerated (additions only). Suites: extract, multi
+17/17, smoke 65/0, melt 10/0 green; corpus gate at 0 failed with ZERO
+deleted goldens.
+
 ## 2026-08-12 — a held-out benchmark: 50 inputs the engine has never seen
 
 The corpus answers "did this change break something that used to work". It

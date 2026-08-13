@@ -1495,6 +1495,153 @@ strategy_extract () {
         fi
     fi
 
+    # OFFSET ASSIGNMENT for SPARSE tables. When data rows carry FEWER tokens
+    # than the header names columns, whitespace tokenization assigns the
+    # surviving values to the FIRST header names rather than their own:
+    # `lsblk -f` (five of eight columns empty on every row) put sizes under
+    # FSTYPE and mountpoints under LABEL, and `lsof` put USER under TID — and
+    # nothing in the output betrays the error, which is what makes this the
+    # most insidious defect the held-out benchmark found. The header's
+    # CHARACTER OFFSETS say which column a value belongs to; use them.
+    #
+    # Each data token goes to the header token whose printed span it overlaps
+    # most (nearest span when a right-aligned value pokes out); everything at
+    # or past the last header's start joins the last column, which is where
+    # free-text tails (lsof's NAME) live. The whole parse is buffered and
+    # WITHDRAWN unless >=80% of data tokens actually overlap a header span —
+    # a table that is not genuinely offset-aligned falls through to the
+    # tokenized path below exactly as before.
+    if [[ "$mode" == HDR && ${#lines[@]} -ge 3 ]]; then
+        local _oa_h=(); read -ra _oa_h <<< "${lines[0]}"
+        if [[ ${#_oa_h[@]} -ge 4 ]]; then
+            # Modal data-row token count, and raggedness.
+            local _oa_cnt=() _oa_i _oa_t _oa_mod=0 _oa_ba _oa_bb _oa_bk _oa_best=0
+            for ((_oa_i = 1; _oa_i < ${#lines[@]}; _oa_i++)); do
+                _oa_t=(); read -ra _oa_t <<< "${lines[$_oa_i]}"
+                _oa_cnt+=("${#_oa_t[@]}")
+            done
+            for _oa_ba in "${_oa_cnt[@]}"; do
+                _oa_bk=0; for _oa_bb in "${_oa_cnt[@]}"; do [[ "$_oa_bb" -eq "$_oa_ba" ]] && _oa_bk=$((_oa_bk + 1)); done
+                [[ $_oa_bk -gt $_oa_best ]] && { _oa_best=$_oa_bk; _oa_mod=$_oa_ba; }
+            done
+            if [[ $_oa_mod -lt ${#_oa_h[@]} && $_oa_mod -ge 1 ]]; then
+                local _oa_out
+                _oa_out=$(printf '%s\n' "${lines[@]}" | awk '
+                    NR == 1 {
+                        # Header token spans (1-based columns).
+                        len = length($0); st = 0; nh = 0
+                        for (i = 1; i <= len + 1; i++) {
+                            c = (i <= len) ? substr($0, i, 1) : " "
+                            if (c != " " && c != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                nh++; hs[nh] = st; he[nh] = i - 1
+                                nm = substr($0, st, i - st)
+                                gsub(/\./, "_", nm)
+                                hn[nh] = nm
+                                st = 0
+                            }
+                        }
+                        # A trailing preposition is the tail of a two-word
+                        # label (`Mounted on`), not a column of its own —
+                        # weld it onto its neighbour so the last value gets
+                        # the full name instead of a truncated one.
+                        pl = tolower(hn[nh])
+                        if (nh >= 3 && pl ~ /^(on|by|in|at|of|to)$/) {
+                            hn[nh - 1] = hn[nh - 1] "_" hn[nh]
+                            he[nh - 1] = he[nh]
+                            nh--
+                        }
+                        # DUPLICATE header token names are the signature of
+                        # multi-word labels tokenized apart: doctl repeats ID
+                        # (`Active Deployment ID` / `In Progress Deployment
+                        # ID`), spark repeats Tasks three times. Per-token
+                        # spans are meaningless there — the duplicate names
+                        # collide in the melt and each label loses half of
+                        # itself — so the whole path withdraws.
+                        for (i = 1; i <= nh; i++)
+                            for (j = i + 1; j <= nh; j++)
+                                if (hn[i] == hn[j]) { dupname = 1 }
+                        next
+                    }
+                    {
+                        row++
+                        len = length($0); st = 0
+                        for (c = 1; c <= nh; c++) cells[c] = ""
+                        for (i = 1; i <= len + 1; i++) {
+                            ch = (i <= len) ? substr($0, i, 1) : " "
+                            if (ch != " " && ch != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                s = st; e = i - 1; st = 0
+                                tok = substr($0, s, e - s + 1)
+                                if (s >= hs[nh]) { col = nh; ov = 1 }
+                                else {
+                                    col = 0; ov = 0; nspan = 0
+                                    for (c = 1; c <= nh; c++) {
+                                        lo = (s > hs[c]) ? s : hs[c]
+                                        hi = (e < he[c]) ? e : he[c]
+                                        o = hi - lo + 1
+                                        if (o > 0) nspan++
+                                        if (o > ov) { ov = o; col = c }
+                                    }
+                                    # A token stretching across TWO header
+                                    # token spans is a value sitting under a
+                                    # multi-word label (`starfish-api` under
+                                    # `Spec Name`) — count them; too many and
+                                    # the table is not per-token aligned.
+                                    if (nspan >= 2) nwide++
+                                    if (col == 0) {
+                                        # no overlap: nearest span by gap
+                                        bd = -1
+                                        for (c = 1; c <= nh; c++) {
+                                            d = (e < hs[c]) ? hs[c] - e : s - he[c]
+                                            if (bd < 0 || d < bd) { bd = d; col = c }
+                                        }
+                                    }
+                                }
+                                ntok++
+                                if (ov > 0) nhit++
+                                # Edge alignment: a genuinely offset-aligned
+                                # table puts each value START at its header
+                                # label start (left-aligned columns) or its
+                                # END at the label end (right-aligned
+                                # numerics). Prose that merely OVERLAPS spans
+                                # (deno error lines under a first line
+                                # mistaken for a header) has almost no edge
+                                # hits, and that difference is the gate.
+                                # NOTE: this comment sits inside a single-
+                                # quoted awk program — no apostrophes.
+                                for (c2 = 1; c2 <= nh; c2++)
+                                    if (s == hs[c2] || e == he[c2]) { nedge++; break }
+                                cells[col] = (cells[col] == "") ? tok : cells[col] " " tok
+                            }
+                        }
+                        for (c = 1; c <= nh; c++)
+                            if (cells[c] != "")
+                                buf = buf "entry" row "." hn[c] " " cells[c] "\n"
+                    }
+                    END {
+                        # Withdraw unless the rows really sit under the header:
+                        # >=80% of tokens overlap a header span AND >=60% land
+                        # exactly on a span edge (left- or right-aligned) AND
+                        # the header names are per-token meaningful — no
+                        # duplicate names, and <10% of tokens spanning two
+                        # labels (multi-word-label tables belong to the
+                        # positional grid / seg-split paths, not this one).
+                        if (row == 0 || ntok == 0 || nhit * 5 < ntok * 4) exit 0
+                        if (nedge * 10 < ntok * 6) exit 0
+                        if (dupname) exit 0
+                        if (nwide * 10 > ntok) exit 0
+                        printf "%s", buf
+                        printf "total_entries %d\n", row
+                    }
+                ')
+                if [[ -n "$_oa_out" ]]; then
+                    echo "$_oa_out"; return 0
+                fi
+            fi
+        fi
+    fi
+
     # Header names: the header line's tokens (HDR/HDR2), or synthetic c1..cN (HL).
     local headers=() startidx=0 i
     case "$mode" in
@@ -1583,6 +1730,35 @@ strategy_extract () {
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
+
+    # A TRAILING PREPOSITION in the header is the tail of a two-word label,
+    # not a column: df's `Mounted on` tokenizes as two names, the data rows
+    # run one token short, and the last real value landed under `Mounted`
+    # with `on` forever empty — silently truncating the label. When the data
+    # rows are exactly one short and the last header token is such a word,
+    # weld it onto its neighbour (`Mounted_on`).
+    if [[ ( "$mode" == HDR || "$mode" == HDR2 ) && ${#headers[@]} -ge 3 ]]; then
+        local _tp_last="${headers[$(( ${#headers[@]} - 1 ))]}"
+        local _tp_lc="${_tp_last,,}"
+        case "$_tp_lc" in
+            on|by|in|at|of|to)
+                local _tp_cnt=() _tp_i _tp_t _tp_mod=0 _tp_a _tp_b _tp_k _tp_best=0
+                for ((_tp_i = startidx; _tp_i < ${#lines[@]}; _tp_i++)); do
+                    _tp_t=(); read -ra _tp_t <<< "${lines[$_tp_i]}"
+                    _tp_cnt+=("${#_tp_t[@]}")
+                done
+                for _tp_a in "${_tp_cnt[@]}"; do
+                    _tp_k=0; for _tp_b in "${_tp_cnt[@]}"; do [[ "$_tp_b" -eq "$_tp_a" ]] && _tp_k=$((_tp_k + 1)); done
+                    [[ $_tp_k -gt $_tp_best ]] && { _tp_best=$_tp_k; _tp_mod=$_tp_a; }
+                done
+                if [[ $_tp_mod -eq $(( ${#headers[@]} - 1 )) ]]; then
+                    headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
+                    unset 'headers[$(( ${#headers[@]} - 1 ))]'
+                    headers=("${headers[@]}")
+                fi
+                ;;
+        esac
+    fi
 
     # SCAFFOLD SPLIT: headerless RAGGED rows sharing >=2 function words
     # (`? (ip) at MAC [ether] on eth0` / `? (ip) at <incomplete> on eth0`,

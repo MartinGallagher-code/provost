@@ -112,13 +112,37 @@ strategy_extract () {
 
     # Collapse spaces around colons and extract "key: value" lines
     # Skip lines where the "key" portion is too long (>50 chars) or empty
-    local result=""
+    #
+    # A line WITHOUT a colon is kept as a numbered line field rather than
+    # dropped. `colons` is the last-resort fallback, and the lines it used to
+    # discard were routinely the most important in the input — curl's first
+    # line (its version and entire library list), gcc's closing `gcc version
+    # 13.3.0 (…)`, openssl's banner. Pure separator rules are still chrome.
+    local result="" _nc_n=0
     while IFS= read -r line; do
         # Skip empty lines
         [[ -z "$line" ]] && continue
 
-        # Must contain a colon
-        [[ "$line" != *":"* ]] && continue
+        # A first colon that sits INSIDE parentheses is punctuation, not a kv
+        # separator: openssl's banner `OpenSSL 3.0.13 … (Library: OpenSSL …)`
+        # is one statement, and splitting it at that colon manufactured a
+        # 36-character field name. Such a line is a banner — route it to the
+        # line<N> keeper below with the genuinely colon-less lines.
+        local _nc_pre="${line%%:*}" _nc_banner=0
+        if [[ "$line" == *":"* && "$_nc_pre" == *"("* && "$_nc_pre" != *")"* ]]; then
+            _nc_banner=1
+        fi
+
+        # Keep a colon-less line as line<N> (trimmed); drop bare rules.
+        if [[ "$line" != *":"* || $_nc_banner -eq 1 ]]; then
+            local _nc="${line#"${line%%[![:space:]]*}"}"
+            _nc="${_nc%"${_nc##*[![:space:]]}"}"
+            [[ -z "$_nc" ]] && continue
+            [[ "$_nc" =~ ^[-=~*+_]{3,}$ ]] && continue
+            _nc_n=$((_nc_n + 1))
+            result+="line${_nc_n} ${_nc}"$'\n'
+            continue
+        fi
 
         # Extract key (everything before first colon) and value (everything after)
         local key value

@@ -1,2 +1,2 @@
-Socket_Designation	Configuration	Operational_Mode	Installed_Size	Maximum_Size	Error_Correction_Type	System_Type	Associativity
-L1 Cache	Enabled, Not Socketed, Level 1	Write Back	1280 kB	1280 kB	Parity	Unified	12-way Set-associative
+line1	Socket_Designation	Configuration	Operational_Mode	Installed_Size	Maximum_Size	Error_Correction_Type	System_Type	Associativity
+Cache Information	L1 Cache	Enabled, Not Socketed, Level 1	Write Back	1280 kB	1280 kB	Parity	Unified	12-way Set-associative

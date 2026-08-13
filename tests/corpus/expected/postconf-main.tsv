@@ -1,2 +1,2 @@
-myhostname	mydomain	inet_interfaces	mynetworks	message_size_limit
-mail.example.com	example.com	all	127.0.0.0/8 10.0.0.0/8	26214400
+myhostname	mydomain	inet_interfaces	mynetworks	relayhost	message_size_limit
+mail.example.com	example.com	all	127.0.0.0/8 10.0.0.0/8	""	26214400

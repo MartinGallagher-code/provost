@@ -68,7 +68,30 @@ _strat_fw_find_columns () {
         positions+="${col_start}:${i}"
     fi
 
-    echo "$positions"
+    # A column OWNS the gap up to the next column's start: a dash run only
+    # marks where a column begins, and slicing at the run's own END truncates
+    # any value wider than its run (heroku's `heroku-postgresql:standard-0`
+    # under a 24-dash run lost its tail into the next column). The last
+    # column runs to end-of-line.
+    local stretched="" seg next_start
+    local -a segs=()
+    local IFS='|'
+    read -ra segs <<< "$positions"
+    local si
+    for ((si = 0; si < ${#segs[@]}; si++)); do
+        seg="${segs[$si]}"
+        [[ -z "$seg" ]] && continue
+        if [[ $((si + 1)) -lt ${#segs[@]} ]]; then
+            next_start="${segs[$((si + 1))]%%:*}"
+            seg="${seg%%:*}:$((next_start - 1))"
+        else
+            seg="${seg%%:*}:100000"
+        fi
+        [[ -n "$stretched" ]] && stretched+="|"
+        stretched+="$seg"
+    done
+
+    echo "$stretched"
 }
 
 strategy_extract () {
@@ -159,19 +182,31 @@ strategy_extract () {
         [[ -z "$line" ]] && continue
         row_num=$((row_num + 1))
 
+        # SOFT boundaries with a per-row cursor. A tool's separator rule can be
+        # NARROWER than its own data (heroku-addons' 24-dash Plan run under a
+        # 28-char plan name), and slicing hard at the rule's grid cut values
+        # mid-word and bled their tails into the next column. Instead: a
+        # column ends where the rule says — unless a word is straddling the
+        # cut, in which case the column keeps the whole word and the next
+        # column starts after it.
+        local _fw_cursor=0 _fw_len=${#line}
         for ((ci=0; ci<num_cols; ci++)); do
             local cs=${starts_arr[$ci]}
             local ce=${ends_arr[$ci]}
             local hdr="${headers_arr[$ci]}"
             local val
 
+            [[ $cs -lt $_fw_cursor ]] && cs=$_fw_cursor
             if [[ $ci -eq $((num_cols - 1)) ]]; then
-                # Last column: take from start to end of line
-                val="${line:$cs}"
+                ce=$_fw_len
             else
-                local clen=$((ce - cs))
-                val="${line:$cs:$clen}"
+                # extend through a straddling word
+                while [[ $ce -lt $_fw_len && "${line:$ce:1}" != " " && "${line:$((ce - 1)):1}" != " " ]]; do
+                    ce=$((ce + 1))
+                done
             fi
+            val="${line:$cs:$((ce - cs))}"
+            _fw_cursor=$ce
 
             # Trim edges; spaces inside the value are preserved (the engine keeps
             # everything after the first space as the value).

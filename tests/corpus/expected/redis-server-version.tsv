@@ -1,2 +1,2 @@
-n	v	sha	malloc	bits	total_entries
-1	7.4.0	00000000:0	jemalloc-5.3.0	64	1
+n	A	B	v	sha	malloc	bits	total_entries
+1	Redis	server	7.4.0	00000000:0	jemalloc-5.3.0	64	1

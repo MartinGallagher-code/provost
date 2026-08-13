@@ -1,8 +1,8 @@
-n	UID	PID	PPID	C	STIME	TTY	TIME	CMD	total_entries
-1	root	1	0	0	Jul06	?	00:00:04	/sbin/init	7
-2	root	842	1	0	Jul06	?	00:00:00	/lib/systemd/systemd-journald	7
-3	root	901	1	0	Jul06	?	00:00:01	/usr/sbin/sshd_-D	7
-4	root	12043	901	0	10:22	?	00:00:00	\__sshd:_alice_[priv]	7
-5	alice	12089	12043	0	10:22	?	00:00:00	\__sshd:_alice@pts/0	7
-6	alice	12090	12089	0	10:22	pts/0	00:00:00	\__-bash	7
-7	alice	12250	12090	0	10:25	pts/0	00:00:00	\__ps_-ef_--forest	7
+n	uid	pid	ppid	c	stime	tty	stat	time	cmd	total_entries
+1	root	1	0	0	Jul06	?	00:00:04	/sbin/init		7
+2	root	842	1	0	Jul06	?	00:00:00	/lib/systemd/systemd-journald		7
+3	root	901	1	0	Jul06	?	00:00:01	/usr/sbin/sshd	-D	7
+4	root	12043	901	0	10:22	?	00:00:00	\_	sshd: alice [priv]	7
+5	alice	12089	12043	0	10:22	?	00:00:00	\_	sshd: alice@pts/0	7
+6	alice	12090	12089	0	10:22	pts/0	00:00:00	\_	-bash	7
+7	alice	12250	12090	0	10:25	pts/0	00:00:00	\_	ps -ef --forest	7

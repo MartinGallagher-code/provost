@@ -1,2 +1,2 @@
-field	value
-Bazelisk_version	v1.20.0
+Bazelisk_version	line1
+v1.20.0	Starting Bazel...

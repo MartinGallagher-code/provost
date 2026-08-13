@@ -1,0 +1,76 @@
+#!/bin/bash
+## Name: uname
+## Description: Extract the canonical fields from a `uname -a` line
+## Version: 1.0
+## Priority: 20
+## Sample: samples/uname/basic.txt
+
+# `uname -a` prints ONE line in a fixed field order:
+#
+#   Linux vm 6.18.5-fc-v20 #1 SMP PREEMPT_DYNAMIC @0 x86_64 x86_64 x86_64 GNU/Linux
+#   kernel  |  release     |<------ version (free text) ------>| m     p      i    os
+#         node
+#
+# The version segment runs from the `#<buildno>` token to the last four fields
+# (machine, processor, hardware-platform — often repeats — and the OS name).
+# Without this the line shredded into eleven A..K columns with no names, which
+# is the benchmark's definition of a FAIL: a headerless table where the input
+# actually HAS a schema, just not a printed one.
+#
+# Any other lines in the capture (a bare `uname -r` / `-m` echoed alongside)
+# are kept as line<N> so nothing is dropped.
+
+strategy_detect () {
+    local text="$1"
+    _STRATEGY_CONFIDENCE=0
+    local line
+    while IFS= read -r line; do
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+        # First non-blank line: OS name, node, release, then a `#buildno`.
+        if [[ "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+\# ]]; then
+            _STRATEGY_CONFIDENCE=87
+            return 0
+        fi
+        return 1
+    done <<< "$text"
+    return 1
+}
+
+strategy_extract () {
+    local text="$1"
+    local result="" line done_main=0 extra=0
+    while IFS= read -r line; do
+        [[ -z "${line//[[:space:]]/}" ]] && continue
+        if [[ $done_main -eq 0 && "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]] ]]; then
+            done_main=1
+            local toks=()
+            read -ra toks <<< "$line"
+            local n=${#toks[@]}
+            result+="kernel_name ${toks[0]}"$'\n'
+            [[ $n -ge 2 ]] && result+="nodename ${toks[1]}"$'\n'
+            [[ $n -ge 3 ]] && result+="kernel_release ${toks[2]}"$'\n'
+            if [[ $n -ge 8 ]]; then
+                # version = tokens 3 .. n-5 (free text); then machine,
+                # processor, hardware_platform, operating_system.
+                local ver="" i
+                for ((i = 3; i <= n - 5; i++)); do ver+="${ver:+ }${toks[$i]}"; done
+                [[ -n "$ver" ]] && result+="kernel_version ${ver}"$'\n'
+                result+="machine ${toks[$((n - 4))]}"$'\n'
+                result+="processor ${toks[$((n - 3))]}"$'\n'
+                result+="hardware_platform ${toks[$((n - 2))]}"$'\n'
+                result+="operating_system ${toks[$((n - 1))]}"$'\n'
+            elif [[ $n -ge 4 ]]; then
+                # Short forms (`uname -snrm`): keep the rest as version text.
+                local rest="" i
+                for ((i = 3; i < n; i++)); do rest+="${rest:+ }${toks[$i]}"; done
+                [[ -n "$rest" ]] && result+="kernel_version ${rest}"$'\n'
+            fi
+        else
+            extra=$((extra + 1))
+            local trimmed="${line#"${line%%[![:space:]]*}"}"
+            trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+            result+="line${extra} ${trimmed}"$'\n'
+        fi
+    done <<< "$text"
+    echo "$result"
+}

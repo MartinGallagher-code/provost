@@ -50,6 +50,14 @@ _tech_kv_colon () {
     while IFS= read -r _tkc_line; do
         [[ -z "$_tkc_line" ]] && continue
         [[ "$_tkc_line" != *":"* ]] && continue
+        # A line whose ` = ` sits BEFORE its first colon is an equals pair
+        # whose VALUE happens to contain colons (npm's `noproxy =
+        # ["…,::1,…]`) — splitting it here manufactured a garbage key out of
+        # half the value. The equals pass owns it.
+        if [[ "$_tkc_line" == *" = "* ]]; then
+            local _tkc_eq="${_tkc_line%% = *}"
+            [[ "$_tkc_eq" != *":"* ]] && continue
+        fi
         _tech_strip_leading "$_tkc_line"
         _tkc_line="$_TECH_STRIPPED"
         _tkc_key="${_tkc_line%%:*}"

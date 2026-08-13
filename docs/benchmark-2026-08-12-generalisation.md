@@ -168,3 +168,19 @@ bash tests/benchmark/run.sh /tmp/bench-out
 Prints a per-input summary line (strategy, confidence, input lines, output
 lines, `--multi` dataset count) and leaves `.def`, `.meta` and `.multi` files
 for every input. Nothing is asserted; read the diff.
+
+## Postscript, 2026-08-13: the clusters were worked — and this set is retired as a generalisation measure
+
+A "fix it all" round worked all nine clusters (CHANGELOG 2026-08-13): the
+truncation guard, offset assignment for sparse tables, Unicode rule
+normalisation, keep-everything changes to `colons`/`equals`/`inline-kv`, the
+weekday-comma CSV guard, and four narrow strategies (`uname`, `proc-net-dev`,
+`stat-file`, the `ps-forest` spec). The set re-scores **40 PASS / 9 PARTIAL /
+1 FAIL**.
+
+That number is a statement about these fifty files, no longer about
+generalisation — the engine has now been tuned against them, which is
+precisely the memorisation trap this document warned about. They remain
+valuable as a regression set (`run.sh` still works unchanged). The next
+honest generalisation measurement requires a fresh set of inputs collected
+the same way: chosen before ever being run, rated against the same criteria.

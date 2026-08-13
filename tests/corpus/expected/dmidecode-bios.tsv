@@ -1,2 +1,2 @@
-Vendor	Version	Release_Date	Address	Runtime_Size	ROM_Size	Characteristics	BIOS_Revision	Firmware_Revision
-Dell Inc.	1.11.0	06/23/2021	0xF0000	64 kB	32 MB	PCI is supported; BIOS is upgradeable; BIOS shadowing is allowed; Boot from CD is supported; Selectable boot is supported; ACPI is supported; UEFI is supported	1.11	108.15
+line1	line2	line3	line4	line5	Vendor	Version	Release_Date	Address	Runtime_Size	ROM_Size	Characteristics	BIOS_Revision	Firmware_Revision
+# dmidecode 3.3	Getting SMBIOS data from sysfs.	SMBIOS 3.2.1 present.	Handle 0x0000, DMI type 0, 26 bytes	BIOS Information	Dell Inc.	1.11.0	06/23/2021	0xF0000	64 kB	32 MB	PCI is supported; BIOS is upgradeable; BIOS shadowing is allowed; Boot from CD is supported; Selectable boot is supported; ACPI is supported; UEFI is supported	1.11	108.15

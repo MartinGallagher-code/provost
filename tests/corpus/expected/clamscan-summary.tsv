@@ -1,2 +1,2 @@
-Known_viruses	Engine_version	Scanned_directories	Scanned_files	Infected_files	Data_scanned	Data_read	Time	Start_Date	End_Date
-8654321	1.0.5	1245	48213	2	3125.44 MB	2890.11 MB (ratio_1.08:1)	245.812 sec (4_m_5_s)	2024:03:07 02:00:01	2024:03:07 02:04:07
+line1	Known_viruses	Engine_version	Scanned_directories	Scanned_files	Infected_files	Data_scanned	Data_read	Time	Start_Date	End_Date
+----------- SCAN SUMMARY -----------	8654321	1.0.5	1245	48213	2	3125.44 MB	2890.11 MB (ratio_1.08:1)	245.812 sec (4_m_5_s)	2024:03:07 02:00:01	2024:03:07 02:04:07

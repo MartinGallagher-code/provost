@@ -1,2 +1,2 @@
-Checking_object_directories	Checking_objects
-100% (256/256), done.	100% (88201/88201), done.
+Checking_object_directories	Checking_objects	line1	line2
+100% (256/256), done.	100% (88201/88201), done.	dangling commit a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6	dangling blob e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0

@@ -2188,7 +2188,7 @@ vercel-projects-ls	table	4	5
 netlify-sites-list	text	-	2
 netlify-deploy-list	table	3	7
 heroku-apps	text	-	2
-heroku-addons	table	8	6
+heroku-addons	table	7	5
 heroku-ps	text	-	2
 heroku-releases	table	5	3
 heroku-pg-info	kv	-	4
@@ -2264,8 +2264,8 @@ mysql-show-status-global	table	8	4
 mariadb-show-status	table	8	4
 pt-diskstats	table	3	18
 pt-mysql-summary	text	-	2
-pscale-database-list	table	5	8
-pscale-branch-list	table	5	8
+pscale-database-list	table	4	8
+pscale-branch-list	table	4	8
 neon-branches-list	table	3	7
 supabase-db-migrations-list	table	4	5
 neon-projects-list	table	3	7

@@ -1,4 +1,4 @@
-n	Filesystem	Size	Used	Avail	Use%	Mounted	total_entries
+n	Filesystem	Size	Used	Avail	Use%	Mounted_on	total_entries
 1	/dev/sda1	98G	45G	48G	49%	/	5
 2	/dev/sda2	196G	120G	66G	65%	/home	5
 3	tmpfs	7.8G	1.2M	7.8G	1%	/run	5

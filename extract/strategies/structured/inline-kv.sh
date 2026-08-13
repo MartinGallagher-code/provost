@@ -163,8 +163,18 @@ strategy_extract () {
                 continue
             fi
         fi
+        # An UNLABELED token between the pairs is still the row's data — for
+        # `openssl ciphers -v` the two leading tokens are the cipher's NAME
+        # and TLS version, i.e. the entire point of the output, and dropping
+        # what the pair-harvest didn't match lost them. Same treatment the
+        # colon flavor above already gives: positional letter columns.
+        local _eletters=(A B C D E F G H I J K L M) _eli=0
         for t in "${toks[@]}"; do
-            [[ "$t" =~ ^([A-Za-z_][A-Za-z0-9_-]*)=(.*)$ ]] || continue
+            if [[ ! "$t" =~ ^([A-Za-z_][A-Za-z0-9_-]*)=(.*)$ ]]; then
+                result+="entry${entry}.${_eletters[$_eli]:-Z} ${t}"$'\n'
+                _eli=$((_eli + 1))
+                continue
+            fi
             local k="${BASH_REMATCH[1]//./_}" v="${BASH_REMATCH[2]}"
             # A value the tokenizer protected as one fully-quoted span carries
             # field-encoding quotes, not data — strip the matching outer pair

@@ -36,14 +36,22 @@ strategy_extract () {
         # Match: <description> (<unit>, -X) <value>   OR   <description> (-X) <value>
         if [[ "$line" =~ $re ]]; then
             local desc="${BASH_REMATCH[1]}"
+            local unit="${BASH_REMATCH[2]}"
             local flag="${BASH_REMATCH[3]}"
             local value="${BASH_REMATCH[4]}"
             # Normalize description -> resource (spaces to underscores, trim)
             desc="${desc#"${desc%%[![:space:]]*}"}"
             desc="${desc%"${desc##*[![:space:]]}"}"
             local resource="${desc}"
+            # The parenthesised unit (`blocks`, `kbytes`, `512 bytes`) is what
+            # makes the value interpretable — `8192` without it doesn't say
+            # whether it is bytes or kilobytes. Trim the `, ` that separated
+            # it from the flag; a bare `(-X)` group has no unit and emits none.
+            unit="${unit%"${unit##*[![:space:],]}"}"
+            unit="${unit#"${unit%%[![:space:]]*}"}"
             entry=$((entry + 1))
             result+="entry${entry}.resource ${resource}"$'\n'
+            [[ -n "$unit" ]] && result+="entry${entry}.unit ${unit}"$'\n'
             result+="entry${entry}.flag ${flag}"$'\n'
             result+="entry${entry}.value ${value}"$'\n'
         fi

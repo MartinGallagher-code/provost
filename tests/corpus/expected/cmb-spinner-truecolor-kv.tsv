@@ -1,2 +1,2 @@
-Host	Protocol	Channels	Uptime
-broker-01.msg.svc	AMQP 0.9.1	42	9d 4h
+line1	line2	line3	Host	Protocol	Channels	Uptime
+⣾ connecting	⣷ connecting	✔ connected	broker-01.msg.svc	AMQP 0.9.1	42	9d 4h

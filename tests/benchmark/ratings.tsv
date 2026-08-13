@@ -1,71 +1,72 @@
-## Held-out generalisation benchmark — ratings, 2026-08-12.
+## Held-out benchmark — ratings.
 ##
-## Rating criteria were fixed IN WRITING BEFORE any input was run, so that a
-## disappointing result could not be reclassified into a better one:
+## HISTORY. Rated 2026-08-12 on criteria fixed in writing BEFORE any input was
+## run: 23 PASS / 12 PARTIAL / 15 FAIL. The 2026-08-13 "fix it all" round then
+## worked the defect clusters; the ratings below are the CURRENT state:
+## 40 PASS / 9 PARTIAL / 1 FAIL.
 ##
-##   PASS     every piece of information in the input is present in the output
-##            AND correctly structured: columns carry real names where the
-##            input supplies them, values sit under the right column, prose is
-##            not sliced one-column-per-word, nothing is dropped.
-##   PARTIAL  structure is broadly right but something is lost or mis-shaped:
-##            a header not applied, a line dropped, a value split or merged.
-##   FAIL     the output MISREPRESENTS the input: values under the wrong column
-##            names, a table shredded, or a substantial part missing.
+## >>> THESE 50 INPUTS ARE NO LONGER UNSEEN. <<<
+## The engine has now been tuned against them, so this file measures
+## regression, not generalisation — exactly the memorisation trap the README
+## warns about. The next generalisation number needs a FRESH set of inputs
+## nobody has parsed yet. Do not quote the tally below as a generalisation
+## score.
 ##
-## Judged on DEFAULT mode — what `glean` does with no flags. The `multi` column
-## records whether `--multi` does better, worse, or the same.
+##   PASS     everything present AND correctly structured
+##   PARTIAL  broadly right; something lost or mis-shaped
+##   FAIL     the output misrepresents the input
 ##
-## This is a self-assessment by the same agent that wrote the engine. It is a
-## screen, not a verdict; the human review rounds remain the real measure.
+## Judged on DEFAULT mode; `multi` records whether --multi differs.
+## Self-assessment by the agent that wrote the engine: a screen, not a verdict.
 ##
 ## name	rating	multi	cluster	note
-01-tokei	FAIL	same	box-rules	heavy/light rule lines not recognised as separators; whole table falls to text-lines, header never applied, rules kept as data rows
-02-scc	FAIL	same	box-rules	as 01; the three Estimated-* summary lines and the Processed byte count also land as opaque rows
+01-tokei	PASS	same	box-rules	FIXED 08-13: Unicode rule lines normalise to ASCII rules, header applies; `|- JSON` sub-rows stay one cell, `(Total)` rows offset-assign to the right columns
+02-scc	PARTIAL	same	box-rules	FIXED table 08-13 (was FAIL): all rows named; remaining: `C Header` two-word language shifts one row, and the three Estimated-* summary lines shred across the table columns
 04-rclone-about	PASS	same	-	clean key/value
-05-borg-list-archives	FAIL	same	csv-on-date	`Mon, 2016-02-15` makes the lines look like 2-field CSV at confidence 90; split lands INSIDE the timestamp, welding the archive name to the weekday
-06-borg-list-files	FAIL	same	csv-on-date	as 05; mode/owner/size/path all end up inside two comma-split cells
-07-nmap-ping-sweep	PARTIAL	same	dropped-line	host/ip/latency correct for all three hosts; MAC address + vendor dropped, as is the `Nmap done:` summary
-08-nmap-service-scan	PARTIAL	same	dropped-line	port table exact, including versions with embedded spaces and parentheses; MAC, `Service Info:` and `Not shown:` dropped
-09-nmap-filtered-ports	PARTIAL	same	dropped-line	as 08, including the filtered port with no VERSION cell
-10-lscpu-extended	PASS	same	-	all six columns named from the header, including `L1d:L1i:L2:L3`
-11-lsblk-fs	FAIL	same	blank-column	5 of 8 columns are empty for every row; the remaining values are assigned to the FIRST names rather than their own, so sizes appear under FSTYPE and mountpoints under LABEL
-12-df-inodes	PARTIAL	same	two-word-header	values all correct; the two-word header `Mounted on` is truncated to `Mounted`
-13-free-wide	PASS	same	-	both rows, and the short Swap row stays short instead of being padded
-14-findmnt-df	PASS	same	-	all ten rows, seven columns, duplicate tmpfs row preserved
-15-ps-custom	PASS	same	-	39 rows, `%CPU`/`%MEM` names kept, COMMAND column not split on its slashes
-16-vmstat-wide	PARTIAL	same	group-header	all 18 columns named and correct; the group header (`--procs--`, `memory`, `swap`, `io`, `system`, `cpu`) is discarded, so `free` and `cache` lose the fact that they are memory figures
-17-locale-settings	PARTIAL	same	empty-value	12 of 15 rows correct; `LANG=`, `LANGUAGE=` and `LC_ALL=` vanish entirely rather than appearing with an empty value — a set variable and an unset one become indistinguishable
-18-uname-all	FAIL	same	no-header	the `uname -a` line is shredded into eleven A..K columns with no names
-19-ulimit-all	PARTIAL	same	dropped-unit	all 17 limits with resource/flag/value; the unit in each parenthesis (`blocks`, `kbytes`, `512 bytes`) is dropped, so `8192` loses whether it is bytes or kilobytes
-20-getent-passwd	PASS	same	-	seven colon fields per row; A..G names are honest — the input supplies no header
-21-du-depth	PASS	same	-	size/path pairs, tab-delimited, all 11 rows
-22-file-types	PASS	same	-	name/value; the long ELF description with its commas and `BuildID[sha1]=` stays in one cell, which is right
-23-stat-file	PARTIAL	same	multi-kv-line	eight keys captured, but three lines carry several `key: value` pairs and only the first is split, so `Blocks`, `IO Block`, `Inode`, `Links`, `Uid` and `Gid` stay buried in a value; the two different `Access:` keys collide
-24-pip-list-columns	PASS	same	-	38 packages, header applied, dashes rule discarded
-25-npm-config-list	FAIL	better	truncation	default keeps 2 of 12 lines and emits one field whose NAME is an entire noproxy list; --multi keeps everything but reads the `;` comment block as prose
+05-borg-list-archives	PARTIAL	same	csv-on-date	FIXED 08-13 (was FAIL): weekday commas no longer read as CSV separators; now honest A-D positional columns, `Mon,` keeps its comma
+06-borg-list-files	PARTIAL	same	csv-on-date	as 05: mode/owner/size/weekday/date/time/path each in own column, nothing lost
+07-nmap-ping-sweep	PASS	same	dropped-line	FIXED 08-13: per-host mac + vendor kept, `Nmap done:` summary kept
+08-nmap-service-scan	PASS	same	dropped-line	FIXED 08-13: not_shown, mac_address, mac_vendor, service_info, hosts_up all kept
+09-nmap-filtered-ports	PASS	same	dropped-line	as 08, filtered port still has no VERSION cell, correctly
+10-lscpu-extended	PASS	same	-	all six columns named from the header
+11-lsblk-fs	PASS	same	blank-column	FIXED 08-13: offset assignment — sizes under FSAVAIL, percentages under FSUSE%, paths under MOUNTPOINTS
+12-df-inodes	PASS	same	two-word-header	FIXED 08-13: trailing preposition welds — `Mounted_on`
+13-free-wide	PASS	same	-	short Swap row stays short
+14-findmnt-df	PASS	same	-	all ten rows, seven columns
+15-ps-custom	PASS	same	-	39 rows, `%CPU`/`%MEM` names kept
+16-vmstat-wide	PARTIAL	same	group-header	all 18 columns named and correct; the `--procs--`/`memory` group row is still discarded — deliberate: prefixing unique names would rename every vmstat column, and the reviewer ruled the current shape right
+17-locale-settings	PASS	same	empty-value	FIXED 08-13: `LANG=` now emits `LANG ""` — set-but-empty is distinguishable from absent
+18-uname-all	PASS	same	no-header	FIXED 08-13: new `uname` strategy — kernel_name/nodename/kernel_release/kernel_version/machine/processor/hardware_platform/operating_system; stray lines kept as lineN
+19-ulimit-all	PASS	same	dropped-unit	FIXED 08-13: the parenthesised unit is its own field — 8192 is now `kbytes`
+20-getent-passwd	PASS	same	-	seven colon fields; A..G honest, no header supplied
+21-du-depth	PASS	same	-	size/path pairs
+22-file-types	PASS	same	-	name/value, long ELF description one cell
+23-stat-file	PASS	same	multi-kv-line	FIXED 08-13: new `stat-file` strategy — every pair split, access_mode/access_time disambiguated, uid/gid unwrapped, file type named
+24-pip-list-columns	PASS	same	-	38 packages, header applied
+25-npm-config-list	PARTIAL	better	truncation	FIXED worst 08-13 (was FAIL): the garbage key manufactured from half the noproxy value is gone (equals lines no longer colon-split); remaining: the `; "env" config` comment line drops and comment keys carry a `;_` prefix
 26-node-versions	PASS	same	-	JSON, 27 keys
-27-git-log-stat	FAIL	better	truncation	40 lines in, 3 out — one file's diffstat survives and both commits, both messages and the rest of the diffstat are gone. --multi finds 11 datasets and loses nothing, but the segmentation is noisy
+27-git-log-stat	PARTIAL	better	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects the 3-field claim; now verbatim text-lines with NOTHING lost. --multi still segments it better (git-log + diffstat tables)
 28-git-count-objects	PASS	same	-	eight colon pairs
-29-dpkg-list	PASS	same	-	12 packages with status/name/version/arch/description; the `+++-===` rule and the four-line legend are correctly treated as decoration
-30-openssl-ciphers	FAIL	same	kv-harvest	the inline-kv strategy harvests `Kx=`/`Au=`/`Enc=`/`Mac=` and DISCARDS the rest of each line — so every cipher loses its name and its TLS version, which is the entire point of the output
-31-openssl-version	FAIL	same	banner	the first line becomes a field NAME ending in `(Library` with the rest as its value; `built on: Mon Jan 26 12:31:31 2026 UTC` is corrupted to `MonJan_26_12_31_31_2026`
-32-sysctl-net	PASS	same	-	dotted keys kept whole, multi-word values kept whole
-33-env-vars	PASS	same	-	18 pairs, values containing `=` and `/` intact
-34-lsof-summary	FAIL	same	blank-column	same defect as 11 and far more damaging: TID and TASKCMD are empty for every row, so USER lands under TID, FD under TASKCMD, and the NAME path is smeared across FD/TYPE/DEVICE/SIZE-OFF
-35-mount-list	PASS	same	-	device/mount_point/fstype/options, option lists kept whole
+29-dpkg-list	PASS	same	-	12 packages, legend correctly dropped as decoration
+30-openssl-ciphers	PASS	same	kv-harvest	FIXED 08-13: unlabeled tokens keep letter columns — cipher name (A) and TLS version (B) restored
+31-openssl-version	PARTIAL	same	banner	FIXED worst 08-13 (was FAIL): banner kept as line1 (paren-colon no longer splits it), `built on` date no longer welds to the weekday; remaining: clean_text underscores inside the banner parens
+32-sysctl-net	PASS	same	-	dotted keys whole
+33-env-vars	PASS	same	-	18 pairs
+34-lsof-summary	PASS	same	blank-column	FIXED 08-13: offset assignment — USER under USER, FD under FD, pathname joined into NAME
+35-mount-list	PASS	same	-	device/mount_point/fstype/options
 36-go-env	PASS	same	-	18 pairs
-37-table-with-header-footer	FAIL	better	box-rules	default shreds the `###` header and footer one word per column and never applies `col1 col2`; --multi gets this exactly right — three datasets, the middle one a clean two-column table
-38-homes-csv	PASS	same	-	quoted header with spaces after commas, nine columns
-39-etc-hosts	PASS	same	-	ragged rows preserved as ragged; no header to apply
-40-example-ini	PASS	same	-	section/key/value, top-level keys carried with an empty section
-41-arp-table	PASS	same	-	`Flags Mask` merged into one name, which matches the data (Mask is always empty)
-42-java-properties	FAIL	same	truncation	24 lines in, 2 out. The indented-hierarchy strategy claims the input and emits almost nothing; every `java.*` property is lost
-43-gcc-verbose	PARTIAL	same	banner	four of six lines correct; the leading `OFFLOAD_TARGET_DEFAULT=1` and the trailing `gcc version 13.3.0 (...)` — the single most useful line — are dropped for having no `key:`
+37-table-with-header-footer	FAIL	better	box-rules	default still shreds the `###` banners one word per column; --multi returns three datasets with a clean two-column table in the middle. A default-mode "fix" would mean deleting the banner text, which is the defect class this round eliminated — segmentation is the right answer here
+38-homes-csv	PASS	same	-	quoted header, nine columns
+39-etc-hosts	PASS	same	-	ragged rows preserved
+40-example-ini	PASS	same	-	section/key/value
+41-arp-table	PASS	same	-	`Flags Mask` merged matches the data
+42-java-properties	PARTIAL	same	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects indented-hierarchy's 2-line claim (and its `|`-in-key crash is fixed); now verbatim text-lines, all 24 lines present. Structure (key = value under Property settings:) still unparsed
+43-gcc-verbose	PASS	same	banner	FIXED 08-13: `OFFLOAD_TARGET_DEFAULT=1` and `gcc version 13.3.0 (…)` kept as line1/line2
 44-python-sysconfig	PASS	same	-	eight path pairs
-45-wc-multi	PASS	same	-	four rows, four columns; A..D is honest since wc prints no header, and the `total` row stays a row as wc prints it
-46-ps-forest	PARTIAL	same	merged-column	nothing lost, but 9 header columns collapse to 6: `C STIME TTY` becomes one cell and `TIME CMD` another, because the tree-drawing prefix disturbs the alignment
-47-apt-policy	FAIL	same	truncation	14 lines in, 4 out; every `release`/`origin` detail line and the dpkg-status entry are dropped, and the surviving URLs are split at `http:`
-48-curl-version	PARTIAL	same	banner	three of four lines correct; the version banner line — curl's version and its entire library list — is dropped for having no `key:`
-49-tar-verbose	PARTIAL	same	dropped-unit	permissions/owner/size/date/path all correct, but the time `20:11` is silently dropped from the timestamp
-50-ss-summary	FAIL	same	group-header	/proc/net/dev's two-row header defeats it: `lo:` is welded to its first value, and 16 counters collapse into 2 cells whose names are the remaining header words run together
-51-proc-meminfo	PASS	same	-	16 pairs, `Active(anon)`-style keys kept whole, `kB` unit kept with the value
+45-wc-multi	PASS	same	-	four rows; `total` row stays a row, as wc prints it
+46-ps-forest	PASS	same	merged-column	FIXED 08-13: `ps-forest` columnar spec — 8 named columns, cmd absorbs the `\_` tree prefixes intact
+47-apt-policy	PARTIAL	same	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects the 4-field claim; all 13 detail lines now present with full URLs/release strings. The `Package files:` title is misread as a two-column header
+48-curl-version	PASS	same	banner	FIXED 08-13: the version banner is line1; Release-Date/Protocols/Features named
+49-tar-verbose	PASS	same	dropped-unit	FIXED 08-13: `time` is a field, not dropped chrome
+50-ss-summary	PASS	same	group-header	FIXED 08-13: new `proc-net-dev` strategy — interface + 16 named rx_*/tx_* counters per row
+51-proc-meminfo	PASS	same	-	16 pairs, `kB` kept with the value

@@ -1,2 +1,2 @@
-GROUP	HOME	INACTIVE	SHELL	SKEL
-100	/home	-1	/bin/bash	/etc/skel
+GROUP	HOME	INACTIVE	EXPIRE	SHELL	SKEL
+100	/home	-1	""	/bin/bash	/etc/skel

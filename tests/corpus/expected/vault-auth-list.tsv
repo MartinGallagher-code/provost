@@ -1,6 +1,6 @@
 n	Path	Type	Accessor	Description
-1	appr	appr	auth_app	n/a
-2	gith	gith	auth_git	n/a
-3	kube	kube	auth_kub	n/a
-4	ldap	ldap	auth_lda	n/a
-5	toke	toke	auth_tok	token based credentials
+1	approle/	approle	auth_approle_3c2a1b09	n/a
+2	github/	github	auth_github_7f1e2d33	n/a
+3	kubernetes/	kubernetes	auth_kubernetes_9a8b7c6d	n/a
+4	ldap/	ldap	auth_ldap_1122aabb	n/a
+5	token/	token	auth_token_00ff11ee	token based credentials

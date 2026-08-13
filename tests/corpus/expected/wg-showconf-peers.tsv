@@ -1,4 +1,4 @@
-n	Endpoint_=_203.0.113.20	PublicKey	AllowedIPs	Endpoint	PersistentKeepalive	Endpoint_=_203.0.113.21	Endpoint_=_203.0.113.22
-1	51820	abc123abc123abc123abc123abc123abc123abc1	10.0.0.2/32	203.0.113.20:51820	25		
-2		def456def456def456def456def456def456def4	10.0.0.3/32	203.0.113.21:51820	25	51820	
-3		789ghi789ghi789ghi789ghi789ghi789ghi789g	10.0.0.4/32	203.0.113.22:51820	25		51820
+n	PublicKey	AllowedIPs	Endpoint	PersistentKeepalive
+1	abc123abc123abc123abc123abc123abc123abc1	10.0.0.2/32	203.0.113.20:51820	25
+2	def456def456def456def456def456def456def4	10.0.0.3/32	203.0.113.21:51820	25
+3	789ghi789ghi789ghi789ghi789ghi789ghi789g	10.0.0.4/32	203.0.113.22:51820	25

@@ -1,2 +1,2 @@
-Platform	Running_under
-x86_64-pc-linux-gnu	Ubuntu 24.04 LTS
+line1	Platform	Running_under	line2
+R version 4.4.1 (2024-06-14)	x86_64-pc-linux-gnu	Ubuntu 24.04 LTS	[1] stats     graphics  grDevices utils     datasets  methods   base

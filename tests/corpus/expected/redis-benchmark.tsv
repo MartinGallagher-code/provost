@@ -1,2 +1,11 @@
-field	value
-======_SET_======.keep_alive	1
+n	======	SET	total_entries
+1	completed_in_1.20_seconds	requests	10
+2	clients	parallel	10
+3	payload	bytes	10
+4	1	alive:	10
+5	(usec)	percentiles	10
+6	50.000%	412.00	10
+7	95.000%	882.00	10
+8	99.000%	1204.00	10
+9	100.000%	2210.00	10
+10	per_second	requests	10

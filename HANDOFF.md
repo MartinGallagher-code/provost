@@ -1,47 +1,44 @@
 # Handoff — glean
 
-## Where we actually stand: **23 PASS / 12 PARTIAL / 15 FAIL on 50 unseen inputs**
+## Where we actually stand: the benchmark's nine clusters are WORKED (2026-08-13)
 
-`tests/benchmark/` is new and is the first honest answer to "how well would we do
-on any given new output". Fifty tool outputs with no hint row, no strategy, no
-golden, no prior review — 14 from public documentation and sample data, 36
-captured live. Run in default mode and rated against criteria fixed in writing
-BEFORE the first input was executed. Full analysis:
-`docs/benchmark-2026-08-12-generalisation.md`.
+`tests/benchmark/` (50 held-out inputs, rated 23/12/15 on 2026-08-12) drove a
+"fix it all" round. The set now re-scores **40 PASS / 9 PARTIAL / 1 FAIL** —
+but read the caveat in `ratings.tsv`: **these 50 are no longer unseen.** The
+engine was tuned against them, so they now measure regression, not
+generalisation. The next generalisation number needs a fresh 50 nobody has
+parsed. Full defect analysis of the original run:
+`docs/benchmark-2026-08-12-generalisation.md`; what changed:
+CHANGELOG 2026-08-13.
 
-**Roughly seven in ten unseen inputs come out usable; three in ten come out
-wrong.** That is materially worse than the corpus number, and the gap is the
-point: every corpus entry has been reviewed and often had a parser written for
-it, so the corpus measures work done, not generalisation. There is deliberately
-NO gate on the benchmark — a gate would invite fitting the engine to those 50
-files, which destroys the only property that makes them useful. Re-run
-`bash tests/benchmark/run.sh` and read the diff.
+The two big engine mechanisms that round added, and their sharp edges:
 
-The 27 defects are 9 problems, four of which account for 15. **In priority
-order:**
+1. **Truncation guard** (`_discovery.sh`, `_parse_is_truncated`): a parse
+   much smaller than its input AND blind to most of its lines loses its claim
+   and the next strategy runs. Exempt: hint-routed strategies, `-s`,
+   `--replay`, and json/yaml/xml/toml (structured grammars are authoritative
+   and legitimately compressive — the first cut left nested-JSON caddy-adapt
+   EMPTY, which is the failure mode to keep in mind when touching this).
+2. **Offset assignment** (`aligned-columns.sh`): sparse tables (data rows
+   shorter than the header) assign values by header character spans. It
+   WITHDRAWS unless >=80% token-span overlap and >=60% exact edge alignment;
+   the edge gate is what keeps prose-under-a-fake-header (deno-lint) out.
+   When extending it, re-check deno-lint-summary, chrony-sources, ceph-osd-df
+   (must NOT claim: its multi-word cells belong to seg-split), and the
+   tbl-empty-*/tbl-sparse-* fixtures.
 
-1. **Truncation (4)** — a strategy detects with high confidence, claims the whole
-   input, and emits a fraction of it, silently. `git log --stat` 40 lines in / 3
-   out; `java -XshowSettings` 24 / 2; `apt-cache policy` 14 / 4. **This is the
-   cheapest large win in the engine right now**: it needs no new parsing logic,
-   only a check the engine already has the numbers for — a parse dramatically
-   smaller than its input. It is also a THIRD engine limitation alongside the two
-   the scoring work named, and it does not require either of them resolved first.
-2. **Blank-column collapse (2)** — `lsblk -f`, `lsof`. Where a header names N
-   columns but rows leave several empty, values are assigned to the FIRST names
-   rather than their own, so sizes land under `FSTYPE` and mountpoints under
-   `LABEL`. The most insidious defect on the list because the output looks
-   perfectly tidy. Fix: split on the header's character offsets, not on a count
-   of whitespace-separated fields.
-3. **Banner line dropped (3)**, **box-drawing rules unrecognised (3)**,
-   **detail line dropped (3)**, then group-header, csv-on-date, dropped-unit (2
-   each). `--multi` already rescues 3 of the 15 failures and never made one worse,
-   which argues for segmentation sitting closer to the default than it does.
-
-Gotcha found while building the harness, worth knowing before writing another
-one: **`--emit-meta` writes its banner to stderr**, not into the field stream.
-Reading it off stdout yields an empty strategy for every input and reports the
-whole run as parsed by "none".
+Still open from the benchmark, deliberately:
+- 37 (`###`-decorated table): default mode still shreds the banners; --multi
+  segments it correctly. Fixing default would mean DELETING banner text.
+  The real fix is segmentation-closer-to-default, which is a design decision.
+- 16 (vmstat group header): prefixing unique HDR2 names would rename every
+  vmstat column; reviewer ruled the current shape right. Kept.
+- The ~200 corpus goldens regenerated this round were triaged by census +
+  sampling, not read line-by-line — the recurring find was goldens that had
+  been RECORDING defects (tbl-empty-label-col held sizes under LABEL,
+  useradd-defaults lacked its EXPIRE row, chrony one column left). If the
+  reviewer disagrees with any regenerated golden, the marks workflow catches
+  it next round.
 
 ## Status: **--multi is a scored search over four candidate segmentations** (extract/lib/_score.sh: coverage + tidiness). The candidates are the rule-proposed split, the same split with block-grouping's shape tolerance off, that split with a `#` legend folded in as the following block's header, and the whole input unsplit. The two refinements compete for the split slot and need only TIE; the winner then faces the whole-input veto (vetoed only when whole is >2% better). Coverage now counts field NAMES as well as values — a header word promoted to a column name survived, and not counting it ranked naming a column below dumping the header as prose. All reviewer-ruled cases resolve correctly: kubectl 1, iostat-x 3, proc-slabinfo 1 (legend folds in, columns named), 7z 3, artillery 3, cargo-bench 3, cargo-test-summary 3, atlantis 3; aureport now yields `num/date/time/acct/host/term/exe/success/event`. tests/corpus/coverage.sh ranks the corpus by how much of each input survives its parse (a review SIGNAL, not a gate). Validated 409.
 

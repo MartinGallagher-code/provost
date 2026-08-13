@@ -1,0 +1,13 @@
+n	A	B	C	total_entries
+1	HAProxy	version	2.6.12-1ppa1~jammy_2023/04/17_-_https://haproxy.org/	12
+2	Status:	long-term	supported_branch_-_will_stop_receiving_fixes_around_Q2_2027.	12
+3	Build	options	:	12
+4	TARGET	=	linux-glibc	12
+5	CPU	=	generic	12
+6	CC	=	cc	12
+7	CFLAGS	=	-O2_-g_-fwrapv	12
+8	OPTIONS	=	USE_PCRE2=1_USE_OPENSSL=1_USE_LUA=1_USE_SYSTEMD=1	12
+9	Default	settings	:	12
+10	bufsize	=	16384	12
+11	maxrewrite	=	1024	12
+12	maxpollevents	=	200	12
