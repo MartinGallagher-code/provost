@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2026-08-14 — diagnose PyPI `invalid-publisher`; correct trusted-publisher docs
+
+The first run of `release.yml` failed at the publish step: the OIDC token
+exchange was refused with `invalid-publisher`. Root cause: the PyPI trusted
+publisher was registered against repo `glean` (as the workflow header
+instructed at the time, pre-rename), but the repo has since been renamed, so
+the token's `repository` claim is now `MartinGallagher-code/provost` and no
+publisher matches. The fix is a one-time manual update on PyPI (owner
+`MartinGallagher-code`, repo `provost`, workflow `release.yml`, environment
+`pypi`); no workflow logic change is needed.
+
+- `.github/workflows/release.yml` — setup comment now names repo `provost`
+  and explains the `invalid-publisher` failure mode after a repo rename.
+- `HANDOFF.md` — repo-rename status updated (rename has happened); publish
+  step marked blocked on the PyPI publisher update, with the exact settings
+  and re-run instructions.
+- `analyze/tests/test_mda.sh`, `extract/tests/test_interface.sh` — fix the
+  two version-string tests broken on main since the v2.0.0 bump: both
+  hardcoded `1.2.1`. They now derive the expectation from the top-level
+  `VERSION` file (the single source of truth per `lib/envoy_version.sh`),
+  so version bumps can't break them again. A repo-wide sweep found no other
+  hardcoded version expectations in shell tests. Both suites green locally
+  (analyze 32/32 in test_mda.sh; extract 63/63 test files).
+
 ## 2026-08-14 — glean is now provost; PyPI + Read the Docs readiness; v2.0.0
 
 The tool, package, and every user-facing name changed from **glean** to

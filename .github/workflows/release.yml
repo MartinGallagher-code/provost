@@ -4,8 +4,12 @@
 
 # Publish provost to PyPI via Trusted Publishing (OIDC — no API token).
 # One-time setup on https://pypi.org/manage/account/publishing/:
-#   project: provost, owner: MartinGallagher-code, repo: glean (until the GitHub repo itself is renamed),
+#   project: provost, owner: MartinGallagher-code, repo: provost,
 #   workflow: release.yml, environment: pypi
+# The GitHub repo has been renamed glean -> provost; a publisher still
+# registered against repo "glean" fails the OIDC exchange with
+# `invalid-publisher` (PyPI matches the token's repository claim, which is
+# now MartinGallagher-code/provost). Update the publisher on PyPI to match.
 # Then publishing a GitHub release (or dispatching this workflow) uploads the
 # sdist + wheel built from the tagged commit.
 name: Release to PyPI

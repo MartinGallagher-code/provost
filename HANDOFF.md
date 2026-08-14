@@ -12,12 +12,20 @@
   `docs/`, new `docs/index.md` + `docs/usage.md`; `mkdocs build --strict`
   clean. Create the RTD project pointing at this repo and it builds as-is.
 - NOT renamed: fixture data that merely records the word "glean" (corpus
-  inputs/goldens, extract samples), the `envoy-*` internals, and GitHub URLs
-  (repo is still `MartinGallagher-code/glean` — rename it on GitHub whenever;
-  redirects keep the remotes working, then sweep URLs in a follow-up).
+  inputs/goldens, extract samples) and the `envoy-*` internals. The GitHub
+  repo itself **has now been renamed** to `MartinGallagher-code/provost`
+  (redirects keep old remotes working; sweep any remaining `glean` URLs in a
+  follow-up).
 - To publish: `git tag v2.0.0` + GitHub release triggers `release.yml`
-  (Trusted Publishing; ensure the PyPI project's publisher is configured for
-  workflow `release.yml` in this repo).
+  (Trusted Publishing). **Blocked until a one-time manual fix on PyPI**: the
+  trusted publisher was registered against repo `glean`, and the first
+  release run failed the OIDC exchange with `invalid-publisher` because the
+  token now says `repository: MartinGallagher-code/provost`. On
+  https://pypi.org/manage/project/provost/settings/publishing/ update (or
+  re-add) the publisher to: owner `MartinGallagher-code`, repo `provost`,
+  workflow `release.yml`, environment `pypi` — then re-run the release
+  workflow (workflow_dispatch works; no need to re-publish the GitHub
+  release).
 
 ## Where we actually stand: the benchmark's nine clusters are WORKED (2026-08-13)
 
