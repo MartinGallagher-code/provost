@@ -141,9 +141,12 @@ test_piped_csv_format () {
 ################################################################################
 
 test_version_string () {
-    local output
+    local output expected
+    # The top-level VERSION file is the single source of truth (lib/envoy_version.sh);
+    # derive the expectation from it so version bumps can't break this test.
+    expected="$(head -n1 "$SCRIPT_DIR/../../VERSION" | tr -d '[:space:]')"
     output=$(run_mfe --version)
-    assert_contains "$output" "1.2.1" "version should be 1.2.1"
+    assert_contains "$output" "$expected" "version should be $expected"
 }
 
 test_help_shows_commands () {

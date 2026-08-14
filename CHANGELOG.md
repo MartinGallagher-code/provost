@@ -16,11 +16,13 @@ publisher matches. The fix is a one-time manual update on PyPI (owner
 - `HANDOFF.md` — repo-rename status updated (rename has happened); publish
   step marked blocked on the PyPI publisher update, with the exact settings
   and re-run instructions.
-- `analyze/tests/test_mda.sh` — fix `version string is current`, broken on
-  main since the v2.0.0 bump: it hardcoded `v1.2.1`. It now derives the
-  expectation from the top-level `VERSION` file (the single source of truth
-  per `lib/envoy_version.sh`), so version bumps can't break it again.
-  Analyze suite: all green locally (32/32 in test_mda.sh).
+- `analyze/tests/test_mda.sh`, `extract/tests/test_interface.sh` — fix the
+  two version-string tests broken on main since the v2.0.0 bump: both
+  hardcoded `1.2.1`. They now derive the expectation from the top-level
+  `VERSION` file (the single source of truth per `lib/envoy_version.sh`),
+  so version bumps can't break them again. A repo-wide sweep found no other
+  hardcoded version expectations in shell tests. Both suites green locally
+  (analyze 32/32 in test_mda.sh; extract 63/63 test files).
 
 ## 2026-08-14 — glean is now provost; PyPI + Read the Docs readiness; v2.0.0
 
