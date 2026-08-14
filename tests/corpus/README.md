@@ -1,7 +1,7 @@
 # Common-tool tidy corpus
 
 A curated corpus of **common Linux tool outputs** plus a batch harness, used to
-drive glean toward its design goal: turn any tool output into tidy data with a
+drive provost toward its design goal: turn any tool output into tidy data with a
 **minimum of strategies** — ideally only the generic format parsers plus
 declarative hint rows, no per-tool parser code.
 
@@ -30,11 +30,11 @@ bash tests/corpus/run.sh --update-golden # re-freeze goldens for the covered too
 `run.sh` runs each input through the extract engine in **`--generic`** mode (only
 the fundamental parsers) — and, for the report/coverage views, **full** mode too
 — then melts the result and checks it against the manifest. The `--generic`
-column is the one that matters: it measures how well glean tidies each tool
+column is the one that matters: it measures how well provost tidies each tool
 *without a bespoke strategy*.
 
 **Speed:** inputs are processed in parallel (a job pool sized to the CPU count,
-override with `GLEAN_CORPUS_JOBS=N`), and each engine call uses `--emit-meta` so
+override with `PROVOST_CORPUS_JOBS=N`), and each engine call uses `--emit-meta` so
 the wide output and the winning-strategy meta come from one invocation; full mode
 is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
 ~18s, `--golden` ~2.5s (was ~2 min).

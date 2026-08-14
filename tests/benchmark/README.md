@@ -2,7 +2,7 @@
 
 `tests/corpus/` answers *did this change break something that used to work*.
 This answers a different and harsher question: **what happens the first time
-glean meets an output nobody wrote a parser for?**
+provost meets an output nobody wrote a parser for?**
 
 Every corpus entry has been looked at, argued over, and in many cases had a hint
 row or a strategy written for it. The corpus score therefore measures how much

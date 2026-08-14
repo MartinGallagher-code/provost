@@ -39,9 +39,9 @@ function outputBlock(rows){
 const children = [];
 children.push(
   new Paragraph({ heading:HeadingLevel.HEADING_1,
-    children:[new TextRun({ text:'glean — inputs that hold MULTIPLE datasets', bold:true, size:32 })] }),
+    children:[new TextRun({ text:'provost — inputs that hold MULTIPLE datasets', bold:true, size:32 })] }),
   new Paragraph({ spacing:{after:120},
-    children:[new TextRun({ text:`The first ${entries.length} corpus inputs (alphabetical) that split into more than one dataset under 'glean --multi'. 412 of 3,705 inputs do.`, size:20, italics:true })] }),
+    children:[new TextRun({ text:`The first ${entries.length} corpus inputs (alphabetical) that split into more than one dataset under 'provost --multi'. 412 of 3,705 inputs do.`, size:20, italics:true })] }),
   label('What you are looking at'),
   new Paragraph({ spacing:{after:60}, children:[new TextRun({ text:'Each entry shows the raw input, then EVERY dataset --multi splits it into, in order, each as its own table with the strategy that won it and its confidence.', size:20 })] }),
   new Paragraph({ spacing:{after:60}, children:[new TextRun({ text:"A 'text' dataset is a comment or legend run kept VERBATIM (one lineN field per line) rather than forced through a parser.", size:20 })] }),
@@ -75,5 +75,5 @@ for (const e of entries) {
       children:[new TextRun({ text:'   [ ] DISAGREE — wrong split (too many pieces, too few, or a boundary in the wrong place)', size:20 })] }),
     new Paragraph({ spacing:{after:160}, children:[new TextRun({ text:'Notes:', size:20 })] }));
 }
-Packer.toBuffer(new Document({ creator:'glean', title:'glean — multi-dataset inputs', sections:[{children}] }))
+Packer.toBuffer(new Document({ creator:'provost', title:'provost — multi-dataset inputs', sections:[{children}] }))
   .then(b => { fs.writeFileSync(OUT,b); console.log(`wrote ${OUT} — ${entries.length} entries, ${(b.length/1e6).toFixed(2)} MB`); });

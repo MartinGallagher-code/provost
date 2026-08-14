@@ -1,14 +1,14 @@
-# Project Instructions — glean
+# Project Instructions — provost
 
-`glean` turns command output into data: capture a command's output, auto-detect
+`provost` turns command output into data: capture a command's output, auto-detect
 its format, and present it as a tidy, git-backed dataset. Single entry point:
-[`glean`](glean). Design rationale: [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
+[`provost`](provost). Design rationale: [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
 
 ## Repository layout
 
 | Path | What it is | Edit here? |
 |---|---|---|
-| `glean` | the tool (all first-party logic) | **yes** |
+| `provost` | the tool (all first-party logic) | **yes** |
 | `extract/` | extract engine + strategies | **yes** |
 | `analyze/` | analyze engine | **yes** |
 | `transform/` | tidy-melt transform | **yes** |
@@ -30,7 +30,7 @@ if it's ever needed. Any future re-integration with Envoy will be a deliberate,
 manual merge — not a routine sync.
 
 > The `envoy-*` names and `envoy_*.sh` libs inside these trees are retained as-is
-> (renaming them is a large, separate change) — they are simply glean's internals now.
+> (renaming them is a large, separate change) — they are simply provost's internals now.
 
 ## Documentation
 
@@ -41,15 +41,15 @@ preserving can also go in `CHANGELOG.md`.
 
 ## Testing (CI-enforced — see `.github/workflows/ci.yml`)
 
-When you change `glean` or a first-party test, run and keep green:
+When you change `provost` or a first-party test, run and keep green:
 
 ```bash
 bash tests/smoke.sh                 # end-to-end (58 checks)
 bash transform/tests/test_melt.sh   # transform unit test (10 checks)
 ```
 
-When you change `src/glean_data/` (the PyPI launcher) or `pyproject.toml`, run
-`python -m pytest` — 100% line+branch coverage of `glean_data` is enforced
+When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
+`python -m pytest` — 100% line+branch coverage of `provost_data` is enforced
 (`--cov-fail-under=100`, CI `python-package` job).
 
 When you change the `extract/` or `transform/` trees (e.g. add an extract
@@ -76,8 +76,8 @@ bespoke strategy — and validate hint rows with `tests/corpus/run.sh --golden`.
 
 - First-party code is Bash; keep it POSIX-ish and **mawk-safe** (no gawk-only
   awk features) so it runs anywhere — CI covers this.
-- glean's user-facing env vars are all `GLEAN_*`; keep it that way.
-- glean must run correctly when invoked via `GLEAN_ROOT` — the smoke test guards this.
+- provost's user-facing env vars are all `PROVOST_*`; keep it that way.
+- provost must run correctly when invoked via `PROVOST_ROOT` — the smoke test guards this.
 
 ## Git practices (READ THIS — avoids the mistakes we kept making)
 

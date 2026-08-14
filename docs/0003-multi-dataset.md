@@ -1,7 +1,7 @@
 # 0003 — Multi-dataset extraction (`--multi`)
 
-**Status: engine mode shipped (2026-08-04); glean capture adoption shipped
-(2026-08-07) — `glean --multi` / `GLEAN_MULTI=1`.**
+**Status: engine mode shipped (2026-08-04); provost capture adoption shipped
+(2026-08-07) — `provost --multi` / `PROVOST_MULTI=1`.**
 
 ## The problem
 
@@ -55,7 +55,7 @@ re-forming, separator format, flag conflicts).
 
 ## The capture adoption (2026-08-07)
 
-`glean --multi` (also `glean run --multi`, or `GLEAN_MULTI=1`) files every
+`provost --multi` (also `provost run --multi`, or `PROVOST_MULTI=1`) files every
 dataset an input holds. The rationale, in the reviewer's words: *"one input may
 have different types of data — some that fits well as key/value (possibly with
 different delimiters), some that fits well into a table, and some that is just
@@ -71,7 +71,7 @@ changed. Per capture:
   differ in shape land in `NAME` and `NAME.v2` — the store's existing rule does
   the disambiguation, no special naming needed.
 - **One capture, N datasets.** Row ids (#N) run consecutively across them and
-  each row gets its own provenance line, so `glean source N` still returns the
+  each row gets its own provenance line, so `provost source N` still returns the
   whole original input. There is one `output.txt`, one commit, one tag.
 - `meta.tsv` keeps its existing keys (`strategy`, `confidence`, `dataset`
   become comma-joined) and adds `datasets` (how many) and `dataset_rows`
@@ -82,7 +82,7 @@ changed. Per capture:
   capture falls back to the single path, so an unmatched input still reaches
   the `unsorted` triage queue.
 
-`iostat -x` under `glean --multi` files three datasets — the uname banner, the
+`iostat -x` under `provost --multi` files three datasets — the uname banner, the
 avg-cpu kv block, and the Device table — where the default capture keeps only
 the table. Covered by 7 checks in `tests/smoke.sh` (65 passing).
 

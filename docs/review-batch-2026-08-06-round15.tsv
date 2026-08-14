@@ -3,7 +3,7 @@
 # drawn from the 2,550 not-yet-reviewed passing entries after excluding the
 # cumulative VALIDATED set (349) and every mark from rounds 1-3 and 8-14.
 # Rendered with the fixed workbook renderer (every output a real Word table).
-# Sent as glean_corpus_review_15_next100.docx. Marks -> review-marks-<date>-round15.tsv.
+# Sent as provost_corpus_review_15_next100.docx. Marks -> review-marks-<date>-round15.tsv.
 rank	name	risk	why
 1	ip-rule-list	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells
 2	ip-rule-show	5	all columns unnamed (A/B/C); dot-leaders / trailing colons kept in cells

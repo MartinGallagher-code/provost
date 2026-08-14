@@ -36,7 +36,7 @@
 #                                          ss `users:(("sshd",…))` → `sshd`
 #
 # On a match the engine REPORTS the matched tool name (via `_STRATEGY_REPORT_NAME`,
-# set in `strategy_detect`), not "columnar-specs" — so `glean` names the dataset
+# set in `strategy_detect`), not "columnar-specs" — so `provost` names the dataset
 # per-tool (mount -> dataset `mount`, not `columnar-specs`) and different tools
 # don't collide into one dataset. The tidy output (melted by tool) is identical to
 # the retired bespokes — verified byte-for-byte at migration time.

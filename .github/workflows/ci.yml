@@ -1,8 +1,8 @@
 name: CI
 
-# NOTE: paths here are relative to the repo root. This file lives under glean/ in
+# NOTE: paths here are relative to the repo root. This file lives under provost/ in
 # the upstream Envoy repo (where GitHub ignores it — only root .github/ runs) and
-# becomes active once glean is extracted to its own repository.
+# becomes active once provost is extracted to its own repository.
 
 on:
   push:
@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: glean doctor
-        run: bash glean doctor || true
+      - name: provost doctor
+        run: bash provost doctor || true
       - name: smoke test
         run: bash tests/smoke.sh
 
@@ -59,17 +59,17 @@ jobs:
       - name: build sdist + wheel
         run: python -m build
       - run: python -m twine check dist/*
-      - name: install the wheel and run glean from it
+      - name: install the wheel and run provost from it
         run: |
           python -m pip install dist/*.whl
-          glean --version
-          glean doctor
-          printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n' | GLEAN_HOME="$RUNNER_TEMP/gleanhome" glean
+          provost --version
+          provost doctor
+          printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n' | PROVOST_HOME="$RUNNER_TEMP/provosthome" provost
           for i in $(seq 20); do
-            GLEAN_HOME="$RUNNER_TEMP/gleanhome" glean ls | grep -q aligned-columns && break
+            PROVOST_HOME="$RUNNER_TEMP/provosthome" provost ls | grep -q aligned-columns && break
             sleep 1
           done
-          GLEAN_HOME="$RUNNER_TEMP/gleanhome" glean ls | grep aligned-columns
+          PROVOST_HOME="$RUNNER_TEMP/provosthome" provost ls | grep aligned-columns
 
   reuse:
     name: REUSE licensing lint

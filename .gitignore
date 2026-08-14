@@ -1,6 +1,6 @@
-# glean runtime store (created on first capture; default ./.glean or ~/.glean)
-.glean/
-GLEAN_WORKSPACE/
+# provost runtime store (created on first capture; default ./.provost or ~/.provost)
+.provost/
+PROVOST_WORKSPACE/
 
 # Local backup snapshots
 *.bak
@@ -23,3 +23,4 @@ build/
 node_modules/
 package.json
 package-lock.json
+site/

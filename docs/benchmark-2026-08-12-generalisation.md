@@ -1,19 +1,19 @@
 # Held-out generalisation benchmark — 50 unseen inputs
 
 **2026-08-12.** Fifty tool outputs the engine has never been tuned against, run
-through `glean` in its default mode and rated against criteria written down
+through `provost` in its default mode and rated against criteria written down
 before the first input was executed.
 
 Everything here lives in the repo: inputs in
-[`tests/benchmark/inputs/`](../tests/benchmark/inputs), the runner in
-[`tests/benchmark/run.sh`](../tests/benchmark/run.sh), the per-input ratings and
-notes in [`tests/benchmark/ratings.tsv`](../tests/benchmark/ratings.tsv).
+[`tests/benchmark/inputs/`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/inputs), the runner in
+[`tests/benchmark/run.sh`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/run.sh), the per-input ratings and
+notes in [`tests/benchmark/ratings.tsv`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/ratings.tsv).
 
 ## Why this exists, and why it is not a gate
 
 `tests/corpus/` answers "did this change break something that used to work".
 It cannot answer the question that actually matters for a tool like this:
-**what happens the first time glean meets an output nobody wrote a parser for?**
+**what happens the first time provost meets an output nobody wrote a parser for?**
 Every corpus entry has been looked at, argued over, and in many cases had a hint
 row or a strategy written for it. The corpus score is therefore a measure of
 how much work has been done, not of how well the engine generalises.
@@ -44,7 +44,7 @@ disappointing result could not be quietly reclassified into a better one.
 | **PARTIAL** | structure is broadly right but something is lost or mis-shaped: a header not applied, a line dropped, a value split or merged |
 | **FAIL** | the output **misrepresents** the input: values under the wrong column names, a table shredded, or a substantial part missing |
 
-Judged on default mode — what `glean` does with no flags — with `--multi` noted
+Judged on default mode — what `provost` does with no flags — with `--multi` noted
 where it differs.
 
 One caveat that should stay attached to every number below: **this is a

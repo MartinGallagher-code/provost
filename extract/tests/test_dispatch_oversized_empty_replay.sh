@@ -32,7 +32,7 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Resolve the engine relative to this test dir (tests/.. == the engine root),
 # not via a hardcoded "EnvoyExtract" directory name — so the suite runs unchanged
-# when the tree is vendored elsewhere (e.g. glean/lib/extract/). Matches helpers.sh.
+# when the tree is vendored elsewhere (e.g. provost/lib/extract/). Matches helpers.sh.
 ENGINE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 EE="$ENGINE_ROOT/envoy-extract"
 DISPATCH="$ENGINE_ROOT/lib/_dispatch.sh"

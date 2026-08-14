@@ -1,7 +1,7 @@
 # Round-9 review batch: the 150 riskiest entries that PASS the structural
 # pre-screen, ordered most-likely-to-be-wrong first (prescreen.py risk()).
 # Excludes the 258 cumulative VALIDATED entries and the 11 round-8 marks.
-# Sent as glean_review_round9_top150.{docx,txt}. Marks come back as
+# Sent as provost_review_round9_top150.{docx,txt}. Marks come back as
 # docs/review-marks-<date>-round9.tsv.
 rank	name	risk	verdict	content_cols	why
 1	gum-format-preview	7	looks-fine	1	all columns unnamed (A/B/C); single content column; dot-leaders / trailing colons kept in cells

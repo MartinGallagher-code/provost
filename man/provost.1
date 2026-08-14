@@ -1,19 +1,19 @@
-.TH GLEAN 1 "2026-07-05" "glean 0.7.0-proto" "User Commands"
+.TH PROVOST 1 "2026-07-05" "provost 2.0.0" "User Commands"
 .SH NAME
-glean \- turn command output into data
+provost \- turn command output into data
 .SH SYNOPSIS
-.B glean run
+.B provost run
 [\fB--\fR] \fIcommand\fR [\fIargs...\fR]
 .br
 .I command
 |
-.B glean
+.B provost
 [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
 .br
-.B glean
+.B provost
 \fIsubcommand\fR [\fIargs...\fR]
 .SH DESCRIPTION
-.B glean
+.B provost
 captures a command's output, auto-detects its format (via a library of 200+
 extract strategies), and presents it as a tidy, one-row-per-record dataset in a
 git-backed store. Every capture is a commit; every dataset row carries a
@@ -25,21 +25,21 @@ Execute a command, capture its combined output as a commit, auto-detect the
 format, and file it into a typed dataset.
 .TP
 .I command
-| \fBglean\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
+| \fBprovost\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
 Inject piped/stdin (or a FILE argument) the same way as
 .BR run .
 By default the capture runs in a detached background process and the prompt
 returns at once; results appear in
-.B glean log
-shortly after. \fB--sync\fR/\fB--wait\fR (or \fBGLEAN_ASYNC=0\fR) forces the
+.B provost log
+shortly after. \fB--sync\fR/\fB--wait\fR (or \fBPROVOST_ASYNC=0\fR) forces the
 foreground path, which prints the resulting dataset and \fI#N\fR range.
-\fB--plugin-dir\fR \fIDIR\fR (or \fBGLEAN_PLUGIN_DIR\fR) adds an extra strategy
+\fB--plugin-dir\fR \fIDIR\fR (or \fBPROVOST_PLUGIN_DIR\fR) adds an extra strategy
 directory to detection, so a wrapping project's strategies compete without
 being symlinked into \fI~/.mfe/strategies\fR.
 A leading run of \fB#%\fR lines on injected input is a metadata prologue:
 it is peeled off before detection (it cannot corrupt a parse), stored with the
 capture as \fIcontext.txt\fR, and shown verbatim by
-.BR "glean source" .
+.BR "provost source" .
 .TP
 .B source \fI#N\fR
 Show the original captured input behind dataset row \fI#N\fR.
@@ -85,56 +85,56 @@ Statistics on a dataset (\fB--all\fR for every analysis).
 .TP
 .B triage
 Show the low-confidence / unmatched bucket, raw input decoded to text
-(\fBglean source #N\fR for the exact original bytes).
+(\fBprovost source #N\fR for the exact original bytes).
 .TP
 .B doctor
 Check the extract/analyze engines and the store.
 .SH STORE
 By default captures go to a global git store at
-.BR $GLEAN_HOME ", or " ~/.glean
+.BR $PROVOST_HOME ", or " ~/.provost
 if unset, so you can capture from any directory. Point
-.B GLEAN_HOME
+.B PROVOST_HOME
 at a shared, group-writable directory to collaborate; a lock serialises
 concurrent writers. A controlled directory (see
 .BR control )
 overrides the global store while you are inside it.
 .SH ENVIRONMENT
 .TP
-.B GLEAN_HOME
-Global store directory (default: ~/.glean).
+.B PROVOST_HOME
+Global store directory (default: ~/.provost).
 .TP
-.B GLEAN_WORKSPACE
-Explicit store override (wins over GLEAN_HOME).
+.B PROVOST_WORKSPACE
+Explicit store override (wins over PROVOST_HOME).
 .TP
-.B GLEAN_MIN_CONFIDENCE
+.B PROVOST_MIN_CONFIDENCE
 Commit threshold 0\-100 (default: 50).
 .TP
-.B GLEAN_PLUGIN_DIR
+.B PROVOST_PLUGIN_DIR
 Extra strategy directory for detection (same as \fB--plugin-dir\fR on
 inject/run).
 .TP
-.B GLEAN_ASYNC
+.B PROVOST_ASYNC
 Background capture (default 1). Set 0 (or pass \fB--sync\fR/\fB--wait\fR) for the
 foreground path.
 .TP
-.B GLEAN_MAX_INPUT
+.B PROVOST_MAX_INPUT
 Maximum input bytes (default: 10485760).
 .TP
-.B GLEAN_LOCK_TIMEOUT
+.B PROVOST_LOCK_TIMEOUT
 Seconds to wait for the store lock (default: 30).
 .TP
-.B GLEAN_RECONCILE_OVERLAP
+.B PROVOST_RECONCILE_OVERLAP
 Percent column overlap to union (vs split a variant) on schema drift (default: 60).
 .SH EXAMPLES
 .nf
-free -m | glean                 # capture + auto-detect + file
-glean run df -h                 # capture a command as a commit
-glean ls                        # list datasets
-glean show df                   # present as a tidy table
-glean source 5                  # original input behind row #5
-glean stats df                  # statistics on the dataset
-glean export ~/store.bundle     # portable export
+free -m | provost                 # capture + auto-detect + file
+provost run df -h                 # capture a command as a commit
+provost ls                        # list datasets
+provost show df                   # present as a tidy table
+provost source 5                  # original input behind row #5
+provost stats df                  # statistics on the dataset
+provost export ~/store.bundle     # portable export
 .fi
 .SH SEE ALSO
-The glean prototype is documented in
-.IR docs/proposals/0001-glean-rename-and-simplification.md .
+The provost prototype is documented in
+.IR docs/proposals/0001-provost-rename-and-simplification.md .

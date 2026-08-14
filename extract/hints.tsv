@@ -1,4 +1,4 @@
-# glean extract — declarative tool hints
+# provost extract — declarative tool hints
 #
 # One row routes a recognized tool's output to an existing strategy, replacing
 # a per-tool parser script. Consulted by the engine before strategy

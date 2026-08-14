@@ -7,7 +7,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "glean-data"
+name = "provost"
 dynamic = ["version"]
 description = "Turn command output into data: capture, auto-detect the format, present as a tidy git-backed dataset"
 readme = "README.md"
@@ -30,11 +30,13 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/MartinGallagher-code/glean"
+Documentation = "https://provost.readthedocs.io"
 Repository = "https://github.com/MartinGallagher-code/glean"
 Changelog = "https://github.com/MartinGallagher-code/glean/blob/main/CHANGELOG.md"
+Issues = "https://github.com/MartinGallagher-code/glean/issues"
 
 [project.scripts]
-glean = "glean_data:main"
+provost = "provost_data:main"
 
 # The top-level VERSION file is the single source of truth for the version.
 [tool.hatch.version]
@@ -42,35 +44,35 @@ source = "regex"
 path = "VERSION"
 pattern = '^\s*(?P<version>\S+)\s*$'
 
-# The wheel carries the Bash tree under glean_data/_bundle; the launcher execs
+# The wheel carries the Bash tree under provost_data/_bundle; the launcher execs
 # it in place, exactly like a git-checkout install. Runtime subpaths are listed
 # individually because hatchling's exclude patterns do not apply to
 # force-include — this is how test/sample/dev trees stay out of the wheel. A
 # new runtime subdir under extract/ or analyze/ must be added here.
 [tool.hatch.build.targets.wheel]
-packages = ["src/glean_data"]
+packages = ["src/provost_data"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"glean" = "glean_data/_bundle/glean"
-"VERSION" = "glean_data/_bundle/VERSION"
-"extract/envoy-extract" = "glean_data/_bundle/extract/envoy-extract"
-"extract/hints.tsv" = "glean_data/_bundle/extract/hints.tsv"
-"extract/lib" = "glean_data/_bundle/extract/lib"
-"extract/strategies" = "glean_data/_bundle/extract/strategies"
-"extract/README.md" = "glean_data/_bundle/extract/README.md"
-"analyze/envoy-analyze" = "glean_data/_bundle/analyze/envoy-analyze"
-"analyze/lib" = "glean_data/_bundle/analyze/lib"
-"analyze/profiles" = "glean_data/_bundle/analyze/profiles"
-"analyze/schemas" = "glean_data/_bundle/analyze/schemas"
-"transform/melt.sh" = "glean_data/_bundle/transform/melt.sh"
-"lib" = "glean_data/_bundle/lib"
-"completions" = "glean_data/_bundle/completions"
-"man" = "glean_data/_bundle/man"
+"provost" = "provost_data/_bundle/provost"
+"VERSION" = "provost_data/_bundle/VERSION"
+"extract/envoy-extract" = "provost_data/_bundle/extract/envoy-extract"
+"extract/hints.tsv" = "provost_data/_bundle/extract/hints.tsv"
+"extract/lib" = "provost_data/_bundle/extract/lib"
+"extract/strategies" = "provost_data/_bundle/extract/strategies"
+"extract/README.md" = "provost_data/_bundle/extract/README.md"
+"analyze/envoy-analyze" = "provost_data/_bundle/analyze/envoy-analyze"
+"analyze/lib" = "provost_data/_bundle/analyze/lib"
+"analyze/profiles" = "provost_data/_bundle/analyze/profiles"
+"analyze/schemas" = "provost_data/_bundle/analyze/schemas"
+"transform/melt.sh" = "provost_data/_bundle/transform/melt.sh"
+"lib" = "provost_data/_bundle/lib"
+"completions" = "provost_data/_bundle/completions"
+"man" = "provost_data/_bundle/man"
 
 [tool.hatch.build.targets.sdist]
 include = [
     "src",
-    "glean",
+    "provost",
     "VERSION",
     "extract",
     "analyze",
@@ -89,11 +91,11 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests/python"]
 pythonpath = ["src"]
-addopts = "--cov=glean_data --cov-branch --cov-report=term-missing --cov-fail-under=100"
+addopts = "--cov=provost_data --cov-branch --cov-report=term-missing --cov-fail-under=100"
 
 [tool.coverage.run]
 branch = true
-source = ["glean_data"]
+source = ["provost_data"]
 
 [tool.coverage.report]
 fail_under = 100

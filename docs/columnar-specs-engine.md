@@ -12,8 +12,8 @@ tabular text output into `entryN.field value` records. One engine, many tools.
 
 ## Dataset identity — the engine reports the matched tool name
 
-`glean` names a dataset after the **reporting strategy**. To keep each migrated
-tool its own dataset (so `mount | glean` → dataset `mount`, not `columnar-specs`,
+`provost` names a dataset after the **reporting strategy**. To keep each migrated
+tool its own dataset (so `mount | provost` → dataset `mount`, not `columnar-specs`,
 and two different tools never collide into one dataset), `strategy_detect` sets
 the global `_STRATEGY_REPORT_NAME` to the matched spec's tool name. The engine
 (`extract/lib/_discovery.sh`) uses it for the dispatch winner, the `matched`
@@ -25,7 +25,7 @@ globals would not propagate).
 
 > `free` intentionally stays bespoke: it is the smoke suite's canonical
 > end-to-end example (reconciliation, provenance, variants), and migrating it —
-> though byte-identical on its sample — perturbs those `glean`-level tests.
+> though byte-identical on its sample — perturbs those `provost`-level tests.
 
 ## Why it exists
 

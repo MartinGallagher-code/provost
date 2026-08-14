@@ -1,0 +1,35 @@
+# MkDocs configuration — built by Read the Docs (see .readthedocs.yaml) and
+# locally with `pip install -r docs/requirements.txt && mkdocs build --strict`.
+site_name: provost
+site_description: "Turn command output into data: capture, auto-detect the format, present as a tidy git-backed dataset"
+site_url: https://provost.readthedocs.io
+repo_url: https://github.com/MartinGallagher-code/glean
+repo_name: MartinGallagher-code/glean
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Design:
+      - Rename and simplification: 0001-rename-and-simplification.md
+      - Tidy-first and nameless columns: 0002-tidy-first-and-nameless-columns.md
+      - Multi-dataset capture: 0003-multi-dataset.md
+      - The columnar-specs engine: columnar-specs-engine.md
+  - Benchmark:
+      - 50 held-out inputs: benchmark-2026-08-12-generalisation.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - fenced_code
+
+# The docs/ tree also carries review-round TSV worksheets that are working
+# artefacts of the corpus review process, not documentation pages; keep them
+# out of the built site.
+exclude_docs: |
+  review-*.tsv
+  review-*.txt
+  review-*.md
+  0002-review-fix-plan.md

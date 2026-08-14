@@ -90,7 +90,7 @@ const children = [];
 children.push(
   new Paragraph({
     heading: HeadingLevel.HEADING_1,
-    children: [new TextRun({ text: 'glean corpus — entries the pre-screen judged FINE', bold: true, size: 32 })],
+    children: [new TextRun({ text: 'provost corpus — entries the pre-screen judged FINE', bold: true, size: 32 })],
   }),
   new Paragraph({
     spacing: { after: 120 },
@@ -138,8 +138,8 @@ for (const e of entries) {
 }
 
 const doc = new Document({
-  creator: 'glean prescreen',
-  title: 'glean corpus — entries the pre-screen judged fine',
+  creator: 'provost prescreen',
+  title: 'provost corpus — entries the pre-screen judged fine',
   description: 'Risk-ranked verification set for the round-8 corpus pre-screen',
   sections: [{ children }],
 });

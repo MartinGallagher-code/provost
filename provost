@@ -1,45 +1,51 @@
 #!/usr/bin/env bash
 #
-# glean — turn command output into data.
+# provost — turn command output into data.
 #
 # PROTOTYPE (proposal 0001). Implements the product's one path — capture a
 # command's output, auto-detect its format, present it as a tidy, one-row-per-
 # record dataset — on a git-backed store:
 #
-#     glean run <cmd>        execute a binary, capture its output as a commit
-#     cmd | glean            inject stdin the same way
-#     glean source <N>       show the original source data behind dataset row #N
-#     glean log / restore    list captures / bring a capture's commit back up
-#     glean ls / show        list datasets / present one as a tidy table
-#     glean stats            (pending) statistics on a dataset
+#     provost run <cmd>        execute a binary, capture its output as a commit
+#     cmd | provost            inject stdin the same way
+#     provost source <N>       show the original source data behind dataset row #N
+#     provost log / restore    list captures / bring a capture's commit back up
+#     provost ls / show        list datasets / present one as a tidy table
+#     provost stats            (pending) statistics on a dataset
 #
-# The extract engine (all strategies) is bundled in this repo at glean/extract/.
+# The extract engine (all strategies) is bundled in this repo at provost/extract/.
 #
 # STORE MODEL (Stage A): the workspace is a git repo. By default captures go to
-# a GLOBAL store (~/.glean, override with GLEAN_HOME) so you can capture from any
+# a GLOBAL store (~/.provost, override with PROVOST_HOME) so you can capture from any
 # directory. Every dataset row carries a globally-unique visible index (#N);
-# `glean source N` maps it back to the exact captured input that produced it.
-# The store may be shared by multiple users (point GLEAN_HOME at a shared,
+# `provost source N` maps it back to the exact captured input that produced it.
+# The store may be shared by multiple users (point PROVOST_HOME at a shared,
 # group-writable dir); a mkdir-based lock serialises concurrent writers.
 #
 set -euo pipefail
 
-GLEAN_VERSION="0.7.0-proto"
+# The top-level VERSION file is the single source of truth (pyproject reads
+# it too, so `provost --version` and the wheel can never disagree); the
+# literal is only a fallback for a stripped-down copy shipped without it.
+PROVOST_VERSION="0.0.0-unknown"
+if [[ -f "${BASH_SOURCE[0]%/*}/VERSION" ]]; then
+    read -r PROVOST_VERSION < "${BASH_SOURCE[0]%/*}/VERSION" || true
+fi
 
 # ---------------------------------------------------------------------------
-# Config (env-overridable; GLEAN_* is the post-rename namespace)
+# Config (env-overridable; PROVOST_* is the post-rename namespace)
 # ---------------------------------------------------------------------------
 # Workspace resolution:
-#   1. $GLEAN_WORKSPACE explicit override (used by tests / one-off stores)
-#   2. else the global store: $GLEAN_HOME, or ~/.glean
+#   1. $PROVOST_WORKSPACE explicit override (used by tests / one-off stores)
+#   2. else the global store: $PROVOST_HOME, or ~/.provost
 # (Stage B will insert "a controlled directory found by walking up from CWD"
 #  between these two.)
-_default_home () { printf '%s\n' "${GLEAN_HOME:-$HOME/.glean}"; }
+_default_home () { printf '%s\n' "${PROVOST_HOME:-$HOME/.provost}"; }
 
-# The real directory of this script, following symlinks — so glean finds its
+# The real directory of this script, following symlinks — so provost finds its
 # bundled extract/analyze/transform trees even when invoked via a symlink on
 # PATH (e.g. after install.sh). Computed once; used by all path resolvers.
-_glean_root () {
+_provost_root () {
     local src="${BASH_SOURCE[0]}" d
     if command -v readlink >/dev/null 2>&1; then
         src="$(readlink -f "$src" 2>/dev/null || echo "$src")"
@@ -50,43 +56,43 @@ _glean_root () {
     done
     cd -P "$(dirname "$src")" && pwd
 }
-GLEAN_ROOT="$(_glean_root)"
+PROVOST_ROOT="$(_provost_root)"
 
-# A controlled directory holds its instance at <dir>/.glean with a CONTROLLED
+# A controlled directory holds its instance at <dir>/.provost with a CONTROLLED
 # marker (which the global store lacks). Walk up from $start to find one.
 _find_controlling_dir () {
     local here="$1"
     here="$(cd "$here" 2>/dev/null && pwd)" || return 1
     while [[ -n "$here" && "$here" != "/" ]]; do
-        [[ -f "$here/.glean/CONTROLLED" ]] && { printf '%s\n' "$here"; return 0; }
+        [[ -f "$here/.provost/CONTROLLED" ]] && { printf '%s\n' "$here"; return 0; }
         here="$(dirname "$here")"
     done
-    [[ -f "/.glean/CONTROLLED" ]] && { printf '/\n'; return 0; }
+    [[ -f "/.provost/CONTROLLED" ]] && { printf '/\n'; return 0; }
     return 1
 }
 
 # Resolve the active store:
-#   1. $GLEAN_WORKSPACE explicit override
+#   1. $PROVOST_WORKSPACE explicit override
 #   2. a controlled directory found by walking up from CWD
-#   3. the global store ($GLEAN_HOME / ~/.glean)
-GLEAN_WORKSPACE_EXPLICIT="${GLEAN_WORKSPACE:+1}"
-if [[ -n "$GLEAN_WORKSPACE_EXPLICIT" ]]; then
-    GLEAN_STORE_KIND="explicit override"
+#   3. the global store ($PROVOST_HOME / ~/.provost)
+PROVOST_WORKSPACE_EXPLICIT="${PROVOST_WORKSPACE:+1}"
+if [[ -n "$PROVOST_WORKSPACE_EXPLICIT" ]]; then
+    PROVOST_STORE_KIND="explicit override"
 else
     _ctl="$(_find_controlling_dir "$PWD" 2>/dev/null || true)"
     if [[ -n "$_ctl" ]]; then
-        GLEAN_WORKSPACE="$_ctl/.glean"; GLEAN_STORE_KIND="controlled: $_ctl"
+        PROVOST_WORKSPACE="$_ctl/.provost"; PROVOST_STORE_KIND="controlled: $_ctl"
     else
-        GLEAN_WORKSPACE="$(_default_home)"; GLEAN_STORE_KIND="global"
+        PROVOST_WORKSPACE="$(_default_home)"; PROVOST_STORE_KIND="global"
     fi
     unset _ctl
 fi
-GLEAN_MIN_CONFIDENCE="${GLEAN_MIN_CONFIDENCE:-50}"
-GLEAN_MAX_INPUT="${GLEAN_MAX_INPUT:-10485760}"   # 10 MiB
-GLEAN_TEMP_DIR="${TMPDIR:-/tmp}"
-GLEAN_LOCK_TIMEOUT="${GLEAN_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
-GLEAN_RECONCILE_OVERLAP="${GLEAN_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
-GLEAN_MULTI="${GLEAN_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
+PROVOST_MIN_CONFIDENCE="${PROVOST_MIN_CONFIDENCE:-50}"
+PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
+PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
+PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
+PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
+PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -94,18 +100,18 @@ GLEAN_MULTI="${GLEAN_MULTI:-0}"                  # 1 = file every dataset an inp
 _is_tty () { [[ -t 2 ]]; }
 if _is_tty; then C_OK=$'\033[32m'; C_DIM=$'\033[2m'; C_ERR=$'\033[31m'; C_RST=$'\033[0m'
 else C_OK=""; C_DIM=""; C_ERR=""; C_RST=""; fi
-info () { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s\n' "$*" >&2; }
-ok ()   { [[ "${GLEAN_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
+info () { [[ "${PROVOST_QUIET:-0}" -eq 1 ]] || printf '%s\n' "$*" >&2; }
+ok ()   { [[ "${PROVOST_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
 die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
 
 # ---------------------------------------------------------------------------
-# Locate the extract engine. It is bundled in this repo at glean/extract/ with
-# its shared libs at glean/lib/ (the engine's ../lib). GLEAN_HOME can override.
+# Locate the extract engine. It is bundled in this repo at provost/extract/ with
+# its shared libs at provost/lib/ (the engine's ../lib). PROVOST_HOME can override.
 # ---------------------------------------------------------------------------
 _find_engine () {
-    local script_dir="$GLEAN_ROOT"
+    local script_dir="$PROVOST_ROOT"
     local candidates=(
-        "${GLEAN_HOME:-}/extract/envoy-extract"
+        "${PROVOST_HOME:-}/extract/envoy-extract"
         "$script_dir/extract/envoy-extract"       # bundled (canonical)
     )
     local c
@@ -115,11 +121,11 @@ _find_engine () {
     return 1
 }
 
-# Locate the analyze engine (bundled at glean/analyze/). GLEAN_HOME can override.
+# Locate the analyze engine (bundled at provost/analyze/). PROVOST_HOME can override.
 _find_analyze () {
-    local script_dir="$GLEAN_ROOT"
+    local script_dir="$PROVOST_ROOT"
     local candidates=(
-        "${GLEAN_HOME:-}/analyze/envoy-analyze"
+        "${PROVOST_HOME:-}/analyze/envoy-analyze"
         "$script_dir/analyze/envoy-analyze"       # bundled (canonical)
     )
     local c
@@ -131,13 +137,13 @@ _find_analyze () {
 
 # ---------------------------------------------------------------------------
 # Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
-# (`_core_union_header`, `_core_align_rows`) live in glean/transform/melt.sh.
+# (`_core_union_header`, `_core_align_rows`) live in provost/transform/melt.sh.
 # Source it now.
 # ---------------------------------------------------------------------------
 _source_transform () {
-    local script_dir="$GLEAN_ROOT"
+    local script_dir="$PROVOST_ROOT"
     local candidates=(
-        "${GLEAN_HOME:-}/transform/melt.sh"
+        "${PROVOST_HOME:-}/transform/melt.sh"
         "$script_dir/transform/melt.sh"           # bundled (canonical)
     )
     local c
@@ -148,47 +154,47 @@ _source_transform () {
 }
 _source_transform
 
-_ds_dir ()  { printf '%s/datasets\n' "$GLEAN_WORKSPACE"; }
-_cap_dir () { printf '%s/captures\n' "$GLEAN_WORKSPACE"; }
-_prov_file ()  { printf '%s/provenance.tsv\n' "$GLEAN_WORKSPACE"; }
-_rowid_file () { printf '%s/.next_row_id\n' "$GLEAN_WORKSPACE"; }
+_ds_dir ()  { printf '%s/datasets\n' "$PROVOST_WORKSPACE"; }
+_cap_dir () { printf '%s/captures\n' "$PROVOST_WORKSPACE"; }
+_prov_file ()  { printf '%s/provenance.tsv\n' "$PROVOST_WORKSPACE"; }
+_rowid_file () { printf '%s/.next_row_id\n' "$PROVOST_WORKSPACE"; }
 
 # git wrapper — pinned identity + no signing, so commits work in any environment.
-_git () { git -C "$GLEAN_WORKSPACE" -c user.name=glean -c user.email=glean@localhost -c commit.gpgsign=false "$@"; }
+_git () { git -C "$PROVOST_WORKSPACE" -c user.name=provost -c user.email=provost@localhost -c commit.gpgsign=false "$@"; }
 
-# --- store lock (a shared GLEAN_HOME may have concurrent writers) ----------
-# mkdir is atomic across processes/users; spin up to GLEAN_LOCK_TIMEOUT seconds.
+# --- store lock (a shared PROVOST_HOME may have concurrent writers) ----------
+# mkdir is atomic across processes/users; spin up to PROVOST_LOCK_TIMEOUT seconds.
 # Record $BASHPID (this process), NOT $$: a detached async ingest runs in a
-# subshell where $$ is still the already-exited parent glean, and the stale-lock
+# subshell where $$ is still the already-exited parent provost, and the stale-lock
 # breaker would then see a "dead" owner and steal a live lock mid-write.
 _lock () {
-    local lock="$GLEAN_WORKSPACE/.lock" waited=0 pid
+    local lock="$PROVOST_WORKSPACE/.lock" waited=0 pid
     while ! mkdir "$lock" 2>/dev/null; do
         pid="$(cat "$lock/pid" 2>/dev/null || echo)"
         if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
             rm -rf "$lock" 2>/dev/null; continue   # break a stale lock
         fi
         waited=$((waited + 1))
-        [[ $waited -ge $((GLEAN_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${GLEAN_LOCK_TIMEOUT}s): $lock"
+        [[ $waited -ge $((PROVOST_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${PROVOST_LOCK_TIMEOUT}s): $lock"
         sleep 0.2
     done
     echo "$BASHPID" > "$lock/pid"
 }
-_unlock () { rm -rf "$GLEAN_WORKSPACE/.lock" 2>/dev/null || true; }
+_unlock () { rm -rf "$PROVOST_WORKSPACE/.lock" 2>/dev/null || true; }
 
 # The workspace is a git repo: every capture is one commit (tagged capture-NNNN),
-# so a run can be brought back up later with `glean restore`. Initialization is
+# so a run can be brought back up later with `provost restore`. Initialization is
 # serialised with double-checked locking so concurrent first-writers to a shared
 # store don't race on `git init`.
 _ensure_workspace () {
     mkdir -p "$(_ds_dir)" "$(_cap_dir)"
-    if [[ ! -d "$GLEAN_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
+    if [[ ! -d "$PROVOST_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
         _lock
-        if [[ ! -d "$GLEAN_WORKSPACE/.git" ]]; then
+        if [[ ! -d "$PROVOST_WORKSPACE/.git" ]]; then
             _git init -q
-            printf 'glean workspace (store model %s)\n' "$GLEAN_VERSION" > "$GLEAN_WORKSPACE/.gleanrc"
+            printf 'provost workspace (store model %s)\n' "$PROVOST_VERSION" > "$PROVOST_WORKSPACE/.provostrc"
             _git add -A >/dev/null 2>&1 || true
-            _git commit -q -m "glean: init workspace" >/dev/null 2>&1 || true
+            _git commit -q -m "provost: init workspace" >/dev/null 2>&1 || true
             _git branch -M main >/dev/null 2>&1 || true
         fi
         [[ -f "$(_rowid_file)" ]] || echo 1 > "$(_rowid_file)"
@@ -219,7 +225,7 @@ _col_overlap () {
 # Append tidy TSV (header+rows) to a dataset file. Store rule:
 #   new dataset            → write header + rows;
 #   header matches         → append data rows;
-#   header differs, overlap ≥ GLEAN_RECONCILE_OVERLAP% → RECONCILE: union the
+#   header differs, overlap ≥ PROVOST_RECONCILE_OVERLAP% → RECONCILE: union the
 #                            columns, blank-fill both sides, rewrite in place;
 #   overlap below threshold → split into a numbered variant (.v2, .v3, …).
 # Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
@@ -236,7 +242,7 @@ _store_append () {
             printf '%s\n' "$tsv" | tail -n +2 >> "$base"
         else
             local overlap; overlap="$(printf '%s\n%s\n' "$old_header" "$new_header" | _col_overlap)"
-            if [[ "$overlap" -ge "$GLEAN_RECONCILE_OVERLAP" ]]; then
+            if [[ "$overlap" -ge "$PROVOST_RECONCILE_OVERLAP" ]]; then
                 # Reconcile into the base dataset: union header, realign both sides
                 # (imported transform helpers).
                 local unified tmp; unified="$(_core_union_header "$old_header" "$new_header")"
@@ -271,16 +277,16 @@ _store_append () {
 _ingest () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
     local engine; engine="$(_find_engine)" \
-        || die "extract engine not found (expected at $GLEAN_ROOT/extract/envoy-extract; set GLEAN_HOME to override)."
+        || die "extract engine not found (expected at $PROVOST_ROOT/extract/envoy-extract; set PROVOST_HOME to override)."
 
-    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
     # shellcheck disable=SC2064
     trap "rm -rf '$tmp'" RETURN
 
     # A metadata prologue — a leading run of '#%' lines, as prepended by
     # wrappers like deframe — is capture context, not data: peel it off before
     # detection so it can never corrupt a parse. The prologue is recorded with
-    # the capture (context.txt) and 'glean source' still shows the input
+    # the capture (context.txt) and 'provost source' still shows the input
     # verbatim; a '#%' line after the first data line is data, not context.
     local ctxf="$tmp/context.txt" body="$in"
     if [[ "$(head -c 2 "$in" 2>/dev/null)" == '#%' ]]; then
@@ -291,27 +297,27 @@ _ingest () {
     fi
 
     local metaf="$tmp/meta.txt" wide meta strategy conf
-    # Extra strategy dir (deframe et al.): --plugin-dir / $GLEAN_PLUGIN_DIR is
+    # Extra strategy dir (deframe et al.): --plugin-dir / $PROVOST_PLUGIN_DIR is
     # forwarded to the engine, which already searches it alongside its own
     # strategies/ and the ~/.mfe/strategies user dir.
     local eargs=()
-    if [[ -n "${GLEAN_PLUGIN_DIR:-}" ]]; then
-        eargs+=(--plugin-dir "$GLEAN_PLUGIN_DIR")
+    if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
+        eargs+=(--plugin-dir "$PROVOST_PLUGIN_DIR")
     fi
 
     # The datasets this capture will file. A normal capture yields exactly one;
-    # --multi (GLEAN_MULTI=1) can yield several, because some reports genuinely
+    # --multi (PROVOST_MULTI=1) can yield several, because some reports genuinely
     # hold more than one table (iostat -x: a uname banner, an avg-cpu kv block
     # and a Device table). Everything downstream — row ids, provenance, the
     # commit — loops over these, so the single-dataset case is just N=1.
     local -a ds_name=() ds_strategy=() ds_conf=() ds_content=()
     local content dsname reason=""
 
-    if [[ "${GLEAN_MULTI:-0}" -eq 1 ]]; then
+    if [[ "${PROVOST_MULTI:-0}" -eq 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
         # surviving dataset behind a `__DATASET__ n strategy confidence` line.
         local multi_out="$tmp/multi.txt"
-        env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+        env -u GIT_DIR bash "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
             ${eargs[@]+"${eargs[@]}"} --multi -f tsv --max-strategies 1 "$body" \
             >"$multi_out" 2>"$metaf" || true
         awk -F'\t' -v dir="$tmp" '
@@ -337,7 +343,7 @@ _ingest () {
     if [[ ${#ds_content[@]} -eq 0 ]]; then
         # Single-dataset path — also the fallback when --multi found nothing
         # worth filing, so an unmatched input still reaches the triage queue.
-        wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$GLEAN_MAX_INPUT" \
+        wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
                 ${eargs[@]+"${eargs[@]}"} \
                 --emit-meta -f tsv --max-strategies 1 "$body" 2>"$metaf")" || true
         meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
@@ -419,8 +425,8 @@ _ingest () {
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
         fi
-        if [[ -n "${GLEAN_PLUGIN_DIR:-}" ]]; then
-            printf 'plugin_dir\t%s\n' "$GLEAN_PLUGIN_DIR"
+        if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
+            printf 'plugin_dir\t%s\n' "$PROVOST_PLUGIN_DIR"
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
     } > "$capd/meta.tsv"
@@ -428,9 +434,9 @@ _ingest () {
 
     # In a controlled directory, snapshot the directory's contents as commit
     # context so the capture is tied to what the tree looked like at the time.
-    if [[ "${GLEAN_STORE_KIND:-}" == controlled:* ]]; then
+    if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
         # Subshell so a set -e abort inside can't escape past the guard.
-        ( _snapshot_context "$(dirname "$GLEAN_WORKSPACE")" "$GLEAN_WORKSPACE" ) >/dev/null 2>&1 || true
+        ( _snapshot_context "$(dirname "$PROVOST_WORKSPACE")" "$PROVOST_WORKSPACE" ) >/dev/null 2>&1 || true
     fi
     _git add -A >/dev/null 2>&1 || true
     local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
@@ -456,7 +462,7 @@ _ingest () {
 
 # Fire-and-forget ingest: spool the input and run _ingest in a detached child so
 # the shell prompt returns immediately. This is the DEFAULT for inject/run;
-# --sync/--wait (or GLEAN_ASYNC=0) forces the foreground path that prints the
+# --sync/--wait (or PROVOST_ASYNC=0) forces the foreground path that prints the
 # resulting dataset + #N range instead of returning at once.
 # The spool lives OUTSIDE the workspace (so it is never swept into a git commit,
 # and survives the parent's tmp cleanup); the child ingests it, and on success
@@ -465,7 +471,7 @@ _ingest () {
 # same _lock as any writer, so concurrent async captures stay consistent.
 _ingest_async () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
-    local spool; spool="$(mktemp -d "$GLEAN_TEMP_DIR/glean-async.XXXXXX")"
+    local spool; spool="$(mktemp -d "$PROVOST_TEMP_DIR/provost-async.XXXXXX")"
     cp "$in" "$spool/in.txt"
     (
         trap '' HUP                                   # survive the shell exiting
@@ -475,20 +481,20 @@ _ingest_async () {
         fi                                            # keep spool+log on failure
     ) </dev/null >/dev/null 2>&1 &
     disown 2>/dev/null || true
-    info "queued (async, pid $!) — capturing in the background; see 'glean log' shortly."
+    info "queued (async, pid $!) — capturing in the background; see 'provost log' shortly."
 }
 
 # ---------------------------------------------------------------------------
 # Default verb: inject (pipe or file)
 # ---------------------------------------------------------------------------
 cmd_inject () {
-    local file="" threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-1}"
+    local file="" threshold="$PROVOST_MIN_CONFIDENCE" async="${PROVOST_ASYNC:-1}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -q|--silent) GLEAN_QUIET=1; shift ;;
+            -q|--silent) PROVOST_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
-            --plugin-dir) GLEAN_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
-            --multi) GLEAN_MULTI=1; shift ;;
+            --plugin-dir) PROVOST_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
+            --multi) PROVOST_MULTI=1; shift ;;
             --async) async=1; shift ;;
             --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
@@ -496,12 +502,12 @@ cmd_inject () {
             *) file="$1"; shift ;;
         esac
     done
-    if [[ -n "${GLEAN_PLUGIN_DIR:-}" && ! -d "$GLEAN_PLUGIN_DIR" ]]; then
-        die "plugin strategy dir not found: $GLEAN_PLUGIN_DIR"
+    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
+        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
     fi
 
     _ensure_workspace
-    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
     # shellcheck disable=SC2064
     trap "rm -rf '$tmp'" EXIT INT TERM
     local in="$tmp/in.txt"
@@ -509,11 +515,11 @@ cmd_inject () {
         [[ -f "$file" ]] || die "no such file: $file"
         tr -d '\r' < "$file" > "$in"
     else
-        head -c "$((GLEAN_MAX_INPUT + 1))" | tr -d '\r' > "$in"
+        head -c "$((PROVOST_MAX_INPUT + 1))" | tr -d '\r' > "$in"
     fi
-    [[ -s "$in" ]] || die "no input to glean (empty)."
-    [[ "$(wc -c < "$in")" -le "$GLEAN_MAX_INPUT" ]] \
-        || die "input too large (max $GLEAN_MAX_INPUT bytes; raise GLEAN_MAX_INPUT)."
+    [[ -s "$in" ]] || die "no input to provost (empty)."
+    [[ "$(wc -c < "$in")" -le "$PROVOST_MAX_INPUT" ]] \
+        || die "input too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT)."
 
     if [[ "$async" -eq 1 ]]; then _ingest_async "$in" "$threshold" "inject" "" ""
     else _ingest "$in" "$threshold" "inject" "" ""; fi
@@ -523,13 +529,13 @@ cmd_inject () {
 # run — execute a command, capture its output as a commit, and ingest it.
 # ---------------------------------------------------------------------------
 cmd_run () {
-    local threshold="$GLEAN_MIN_CONFIDENCE" async="${GLEAN_ASYNC:-1}"
+    local threshold="$PROVOST_MIN_CONFIDENCE" async="${PROVOST_ASYNC:-1}"
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -q|--silent) GLEAN_QUIET=1; shift ;;
+            -q|--silent) PROVOST_QUIET=1; shift ;;
             --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
-            --plugin-dir) GLEAN_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
-            --multi) GLEAN_MULTI=1; shift ;;
+            --plugin-dir) PROVOST_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
+            --multi) PROVOST_MULTI=1; shift ;;
             --async) async=1; shift ;;
             --sync|--wait) async=0; shift ;;
             -h|--help) cmd_help; return 0 ;;
@@ -538,13 +544,13 @@ cmd_run () {
             *) break ;;
         esac
     done
-    [[ $# -gt 0 ]] || die "usage: glean run [--] <command> [args...]"
-    if [[ -n "${GLEAN_PLUGIN_DIR:-}" && ! -d "$GLEAN_PLUGIN_DIR" ]]; then
-        die "plugin strategy dir not found: $GLEAN_PLUGIN_DIR"
+    [[ $# -gt 0 ]] || die "usage: provost run [--] <command> [args...]"
+    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
+        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
     fi
 
     _ensure_workspace
-    local tmp; tmp="$(mktemp -d "$GLEAN_TEMP_DIR/glean.XXXXXX")"
+    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
     # shellcheck disable=SC2064
     trap "rm -rf '$tmp'" EXIT INT TERM
     local in="$tmp/in.txt" rc=0
@@ -577,12 +583,12 @@ cmd_log () {
         local cmd; cmd=$(awk -F'\t' '$1=="command"{print $2}' "$d/meta.tsv")
         printf '%-6s %-20s %-7s %-14s %-12s %s\n' "$id" "$ts" "$src" "$strat" "$ds" "$cmd"
     done
-    [[ $any -eq 1 ]] || info "no captures yet — run 'glean run <cmd>' or pipe into 'glean'."
+    [[ $any -eq 1 ]] || info "no captures yet — run 'provost run <cmd>' or pipe into 'provost'."
 }
 
 cmd_restore () {
     _ensure_workspace
-    local target="${1:?usage: glean restore <capture-id|latest>}"
+    local target="${1:?usage: provost restore <capture-id|latest>}"
     if [[ "$target" == "latest" ]]; then
         _git checkout -q main 2>/dev/null \
             && ok "restored workspace to latest (main)." \
@@ -591,11 +597,11 @@ cmd_restore () {
     fi
     [[ "$target" == capture-* ]] || target="capture-$target"
     _git rev-parse -q --verify "refs/tags/$target" >/dev/null 2>&1 \
-        || die "no such capture: ${target#capture-} (see 'glean log')."
+        || die "no such capture: ${target#capture-} (see 'provost log')."
     # Bring that capture's committed tree back up (detached).
     _git checkout -q "$target" 2>/dev/null \
         || die "checkout failed for $target."
-    ok "brought up ${target#capture-} (detached). Return with: glean restore latest"
+    ok "brought up ${target#capture-} (detached). Return with: provost restore latest"
     local capd; capd="$(_cap_dir)/${target#capture-}"
     [[ -f "$capd/meta.tsv" ]] && { echo; sed 's/\t/: /' "$capd/meta.tsv"; }
 }
@@ -606,7 +612,7 @@ cmd_restore () {
 _registry () { printf '%s/instances.tsv\n' "$(_default_home)"; }
 
 # Snapshot the controlled directory's contents as commit context: a manifest of
-# path/size/mtime/sha for each file (excluding the .glean instance and .git).
+# path/size/mtime/sha for each file (excluding the .provost instance and .git).
 _snapshot_context () {
     local dir="$1" ws="$2" mani="$ws/context/manifest.tsv" f sz mt sha
     mkdir -p "$ws/context"
@@ -618,7 +624,7 @@ _snapshot_context () {
             sha=$(sha1sum "$f" 2>/dev/null | cut -d' ' -f1)
         else sha="(skipped)"; fi
         printf '%s\t%s\t%s\t%s\n' "${f#"$dir"/}" "$sz" "$mt" "$sha" >> "$mani"
-    done < <(find "$dir" -type f -not -path '*/.glean/*' -not -path '*/.git/*' 2>/dev/null | sort)
+    done < <(find "$dir" -type f -not -path '*/.provost/*' -not -path '*/.git/*' 2>/dev/null | sort)
     local n; n=$(( $(wc -l < "$mani") - 1 ))
     printf '%s\n' "$n"
 }
@@ -626,18 +632,18 @@ _snapshot_context () {
 cmd_control () {
     local dir="${1:-$PWD}"
     dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
-    local ws="$dir/.glean"
+    local ws="$dir/.provost"
     if [[ -f "$ws/CONTROLLED" ]]; then info "already controlled: $dir"; return 0; fi
     # Point this invocation's store at the new instance and initialise it.
-    GLEAN_WORKSPACE="$ws"; GLEAN_STORE_KIND="controlled: $dir"; GLEAN_WORKSPACE_EXPLICIT=1
+    PROVOST_WORKSPACE="$ws"; PROVOST_STORE_KIND="controlled: $dir"; PROVOST_WORKSPACE_EXPLICIT=1
     _ensure_workspace
     printf '%s\n' "$dir" > "$ws/CONTROLLED"
     local n; n="$(_snapshot_context "$dir" "$ws")"
     _lock
     _git add -A >/dev/null 2>&1 || true
-    _git commit -q -m "glean: control $dir (context: $n file(s))" >/dev/null 2>&1 || true
+    _git commit -q -m "provost: control $dir (context: $n file(s))" >/dev/null 2>&1 || true
     _unlock
-    # Register in the global store so `glean instances` (run anywhere) sees it.
+    # Register in the global store so `provost instances` (run anywhere) sees it.
     mkdir -p "$(_default_home)"
     [[ -f "$(_registry)" ]] || printf 'directory\tcontrolled_at\n' > "$(_registry)"
     grep -qxF "$dir	$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(_registry)" 2>/dev/null || \
@@ -648,24 +654,24 @@ cmd_control () {
 cmd_uncontrol () {
     local dir="${1:-$PWD}"
     dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
-    [[ -f "$dir/.glean/CONTROLLED" ]] || die "not a controlled directory: $dir"
-    rm -f "$dir/.glean/CONTROLLED"
+    [[ -f "$dir/.provost/CONTROLLED" ]] || die "not a controlled directory: $dir"
+    rm -f "$dir/.provost/CONTROLLED"
     if [[ -f "$(_registry)" ]]; then
         grep -v "^$dir	" "$(_registry)" > "$(_registry).tmp" 2>/dev/null && mv "$(_registry).tmp" "$(_registry)" || true
     fi
-    ok "released '$dir' (its .glean data is kept; captures here revert to the global store)."
+    ok "released '$dir' (its .provost data is kept; captures here revert to the global store)."
 }
 
 cmd_instances () {
     local reg; reg="$(_registry)"
-    [[ -f "$reg" ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    [[ -f "$reg" ]] || { info "no controlled directories yet — 'provost control <dir>'."; return 0; }
     local n; n=$(( $(wc -l < "$reg") - 1 )); [[ $n -lt 0 ]] && n=0
-    [[ $n -gt 0 ]] || { info "no controlled directories yet — 'glean control <dir>'."; return 0; }
+    [[ $n -gt 0 ]] || { info "no controlled directories yet — 'provost control <dir>'."; return 0; }
     printf '%-40s %-20s %s\n' "DIRECTORY" "CONTROLLED_AT" "ACTIVE" >&2
     local d t
     while IFS=$'\t' read -r d t; do
         [[ "$d" == "directory" ]] && continue
-        printf '%-40s %-20s %s\n' "$d" "$t" "$([[ -f "$d/.glean/CONTROLLED" ]] && echo yes || echo released)"
+        printf '%-40s %-20s %s\n' "$d" "$t" "$([[ -f "$d/.provost/CONTROLLED" ]] && echo yes || echo released)"
     done < "$reg"
 }
 
@@ -675,7 +681,7 @@ cmd_instances () {
 cmd_export () {
     _ensure_workspace
     local out="${1:-}"
-    if [[ -z "$out" ]]; then out="$PWD/glean-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
+    if [[ -z "$out" ]]; then out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
     _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
     _lock
     local rc=0
@@ -683,23 +689,23 @@ cmd_export () {
     _unlock
     [[ $rc -eq 0 && -f "$out" ]] || die "export failed."
     local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
-    ok "exported store → $out ($sz bytes). Import elsewhere with: glean import $out <dest>"
+    ok "exported store → $out ($sz bytes). Import elsewhere with: provost import $out <dest>"
 }
 
 cmd_import () {
-    local file="${1:?usage: glean import <file.bundle> [<dest-dir>]}"
+    local file="${1:?usage: provost import <file.bundle> [<dest-dir>]}"
     [[ -f "$file" ]] || die "no such export file: $file"
     local dest="${2:-}"
-    [[ -z "$dest" ]] && dest="$PWD/glean-import-$(basename "$file" .bundle)"
+    [[ -z "$dest" ]] && dest="$PWD/provost-import-$(basename "$file" .bundle)"
     [[ -e "$dest" ]] && die "destination already exists: $dest"
-    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid glean export bundle: $file"
+    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
     git clone -q "$file" "$dest" >/dev/null 2>&1 || die "import (clone) failed."
     git -C "$dest" checkout -q main >/dev/null 2>&1 || git -C "$dest" checkout -q master >/dev/null 2>&1 || true
     local nds ncap
     nds=$(find "$dest/datasets" -name '*.tsv' 2>/dev/null | wc -l | tr -d ' ')
     ncap=$(find "$dest/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
     ok "imported → $dest ($nds dataset(s), $ncap capture(s))."
-    info "browse it with: GLEAN_WORKSPACE='$dest' glean ls   (or show/log/source/restore)"
+    info "browse it with: PROVOST_WORKSPACE='$dest' provost ls   (or show/log/source/restore)"
 }
 
 # ---------------------------------------------------------------------------
@@ -707,13 +713,13 @@ cmd_import () {
 # ---------------------------------------------------------------------------
 cmd_source () {
     _ensure_workspace
-    local n="${1:?usage: glean source <#N>}"
+    local n="${1:?usage: provost source <#N>}"
     n="${n#\#}"                                   # tolerate a leading '#'
     [[ "$n" =~ ^[0-9]+$ ]] || die "row index must be a number (got '$n')."
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || die "no provenance yet — capture something first."
     local line; line="$(awk -F'\t' -v n="$n" '$1==n {print; exit}' "$prov")"
-    [[ -n "$line" ]] || die "no row #$n (see 'glean ls' / 'glean show <dataset>')."
+    [[ -n "$line" ]] || die "no row #$n (see 'provost ls' / 'provost show <dataset>')."
     local ds cap; ds="$(printf '%s' "$line" | cut -f2)"; cap="$(printf '%s' "$line" | cut -f3)"
     local capd; capd="$(_cap_dir)/$cap"
 
@@ -725,7 +731,7 @@ cmd_source () {
         echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$cap" "$C_RST"
         cat "$capd/output.txt"
     else
-        die "capture $cap has no stored output (workspace may be detached — try 'glean restore latest')."
+        die "capture $cap has no stored output (workspace may be detached — try 'provost restore latest')."
     fi
 }
 
@@ -733,11 +739,11 @@ cmd_source () {
 # stats — statistics on a dataset (the bundled analyze engine).
 # ---------------------------------------------------------------------------
 cmd_stats () {
-    local name="${1:?usage: glean stats <dataset> [analyze-args...]}"; shift || true
+    local name="${1:?usage: provost stats <dataset> [analyze-args...]}"; shift || true
     local f; f="$(_ds_dir)/$name.tsv"
-    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
     local analyze; analyze="$(_find_analyze)" \
-        || die "analyze engine not found (expected at $GLEAN_ROOT/analyze/envoy-analyze)."
+        || die "analyze engine not found (expected at $PROVOST_ROOT/analyze/envoy-analyze)."
     # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
     # straight through (e.g. --all, a numbered analysis list, --format json).
     ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 env -u GIT_DIR bash "$analyze" "$f" "$@"
@@ -748,7 +754,7 @@ cmd_stats () {
 # ---------------------------------------------------------------------------
 cmd_ls () {
     local dir; dir="$(_ds_dir)"
-    [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'glean'."; return 0; }
+    [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'provost'."; return 0; }
     shopt -s nullglob
     local f name rows any=0
     printf '%-24s %8s\n' "DATASET" "ROWS" >&2
@@ -757,13 +763,13 @@ cmd_ls () {
         rows=$(( $(wc -l < "$f") - 1 )); [[ $rows -lt 0 ]] && rows=0
         printf '%-24s %8d\n' "$name" "$rows"
     done
-    [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'glean'."
+    [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'provost'."
 }
 
 # The 'unsorted' dataset holds each held-back capture as a single base64-encoded
 # 'raw' column (see _ingest). Decode it back to text for display, escaping any
 # embedded tabs/newlines so each captured input stays on one line of the table.
-# 'glean source #N' remains the way back to the exact original bytes.
+# 'provost source #N' remains the way back to the exact original bytes.
 _decode_unsorted_tsv () {
     local f="$1" n b64 decoded
     printf '#\traw\n'
@@ -776,9 +782,9 @@ _decode_unsorted_tsv () {
 }
 
 cmd_show () {
-    local name="${1:?usage: glean show NAME}"
+    local name="${1:?usage: provost show NAME}"
     local f; f="$(_ds_dir)/$name.tsv"
-    [[ -f "$f" ]] || die "no such dataset: $name (try 'glean ls')."
+    [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
     if [[ "$name" == "unsorted" ]]; then
         if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
         else _decode_unsorted_tsv "$f"; fi
@@ -789,19 +795,19 @@ cmd_show () {
 cmd_triage () {
     local f; f="$(_ds_dir)/unsorted.tsv"
     [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
-    info "unsorted rows (low-confidence / no-match), raw input decoded ('glean source #N' for exact bytes):"
+    info "unsorted rows (low-confidence / no-match), raw input decoded ('provost source #N' for exact bytes):"
     if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
     else _decode_unsorted_tsv "$f"; fi
 }
 
 # ---------------------------------------------------------------------------
 # rm — delete one or more datasets, provenance-aware, tracked as a commit.
-#   glean rm [-f|--yes] [--no-purge] <dataset> [<dataset>...]
+#   provost rm [-f|--yes] [--no-purge] <dataset> [<dataset>...]
 # Removes each dataset file (only the named dataset — variants like NAME.v2 are
 # their own datasets, remove them by name), prunes the matching rows from
 # provenance.tsv, and — BY DEFAULT — purges the captures/<id>/ dirs that fed the
 # removed dataset(s) too (--no-purge / --keep-captures keeps them). The deletion
-# is committed, so the git history (and 'glean restore') still holds the
+# is committed, so the git history (and 'provost restore') still holds the
 # pre-deletion state. Row indices (#N) are never reused.
 # ---------------------------------------------------------------------------
 cmd_rm () {
@@ -818,7 +824,7 @@ cmd_rm () {
             *)                       names+=("$1"); shift ;;
         esac
     done
-    [[ ${#names[@]} -gt 0 ]] || die "usage: glean rm [-f] [--no-purge] <dataset> [<dataset>...]"
+    [[ ${#names[@]} -gt 0 ]] || die "usage: provost rm [-f] [--no-purge] <dataset> [<dataset>...]"
 
     local dir; dir="$(_ds_dir)"
     # Validate every name up front — refuse the whole operation if any is missing.
@@ -826,7 +832,7 @@ cmd_rm () {
     for n in "${names[@]}"; do
         [[ -f "$dir/$n.tsv" ]] || missing+=("$n")
     done
-    [[ ${#missing[@]} -eq 0 ]] || die "no such dataset: ${missing[*]} (try 'glean ls')."
+    [[ ${#missing[@]} -eq 0 ]] || die "no such dataset: ${missing[*]} (try 'provost ls')."
 
     # Confirm (unless -f), reporting how many rows go with the datasets.
     local total=0 rows
@@ -894,9 +900,9 @@ cmd_rm () {
     trap - RETURN
 
     if [[ $purge -eq 1 ]]; then
-        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s). History kept — 'glean log'/'restore' still reach the pre-deletion state."
+        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s). History kept — 'provost log'/'restore' still reach the pre-deletion state."
     else
-        ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'glean source #N' still resolves surviving rows."
+        ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'provost source #N' still resolves surviving rows."
     fi
 }
 
@@ -905,12 +911,12 @@ cmd_doctor () {
     if engine="$(_find_engine)"; then
         printf '%s ok%s extract engine: %s\n' "$C_OK" "$C_RST" "$engine"
         # The bundled engine is the canonical one. If we resolved a different one
-        # (a $GLEAN_HOME/extract/ override), warn — a stale copy there silently
+        # (a $PROVOST_HOME/extract/ override), warn — a stale copy there silently
         # shadows the bundled engine and can misclassify inputs.
-        if [[ "$engine" != "$GLEAN_ROOT/extract/envoy-extract" ]]; then
-            printf '   %swarning%s using an engine from GLEAN_HOME, not the bundled one\n' "$C_ERR" "$C_RST"
-            printf '            bundled: %s\n' "$GLEAN_ROOT/extract/envoy-extract"
-            printf '            if this is a stale copy, remove it or unset GLEAN_HOME.\n'
+        if [[ "$engine" != "$PROVOST_ROOT/extract/envoy-extract" ]]; then
+            printf '   %swarning%s using an engine from PROVOST_HOME, not the bundled one\n' "$C_ERR" "$C_RST"
+            printf '            bundled: %s\n' "$PROVOST_ROOT/extract/envoy-extract"
+            printf '            if this is a stale copy, remove it or unset PROVOST_HOME.\n'
         fi
     else
         printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
@@ -920,70 +926,70 @@ cmd_doctor () {
         printf '%s ok%s analyze engine: %s\n' "$C_OK" "$C_RST" "$analyze"
         command -v gawk >/dev/null 2>&1 || printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "$(awk --version 2>/dev/null | head -1 || echo awk)"
     else
-        printf '   analyze engine not found (expected at %s/analyze/)\n' "$GLEAN_ROOT"
+        printf '   analyze engine not found (expected at %s/analyze/)\n' "$PROVOST_ROOT"
     fi
-    printf '   store: %s (%s)' "$GLEAN_WORKSPACE" "${GLEAN_STORE_KIND:-global}"
-    [[ -d "$GLEAN_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
+    printf '   store: %s (%s)' "$PROVOST_WORKSPACE" "${PROVOST_STORE_KIND:-global}"
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
     if [[ -f "$(_rowid_file)" ]]; then
         printf '   next row index: #%s\n' "$(cat "$(_rowid_file)")"
     fi
-    printf '   min-confidence: %s\n' "$GLEAN_MIN_CONFIDENCE"
+    printf '   min-confidence: %s\n' "$PROVOST_MIN_CONFIDENCE"
 }
 
 cmd_help () {
     cat >&2 <<EOF
-glean $GLEAN_VERSION — turn command output into data
+provost $PROVOST_VERSION — turn command output into data
 
 USAGE
-    glean run [--] <cmd> [args...]                capture a command's output as a
+    provost run [--] <cmd> [args...]                capture a command's output as a
                                                  commit, auto-detect + file it
-    cmd | glean [--silent] [--min-confidence N]   inject stdin into a typed dataset —
+    cmd | provost [--silent] [--min-confidence N]   inject stdin into a typed dataset —
                 [--sync] [--plugin-dir DIR]        captures in the BACKGROUND by default;
                 [--multi]                          --sync/--wait to file it in the foreground;
                                                  --plugin-dir adds an extra strategy dir;
                                                  --multi files EVERY dataset the input
                                                  holds (a kv block and a table and a
                                                  banner) instead of one winner
-    glean [FILE]                                  inject a file instead of stdin
-    glean source <#N>                             show the original source behind row #N
-    glean control [<dir>]                         make <dir> its own capture instance
-    glean uncontrol [<dir>]                        release a controlled directory
-    glean instances                               list controlled directories
-    glean export [<file>]                         bundle the store into a portable file
-    glean import <file> [<dest>]                   reconstitute a bundle elsewhere to browse
-    glean log                                     list captures (the git history)
-    glean restore <id|latest>                     bring a capture's commit back up
-    glean ls                                      list datasets
-    glean show NAME                               present a dataset (leading #N = row index)
-    glean rm [-f] [--no-purge] NAME...            delete dataset(s) + their captures (--no-purge keeps captures)
-    glean stats NAME [analyze-args]               statistics on a dataset (--all for everything)
-    glean triage                                  show low-confidence / unmatched bucket (raw input decoded)
-    glean doctor                                  check engine + store
-    glean help
+    provost [FILE]                                  inject a file instead of stdin
+    provost source <#N>                             show the original source behind row #N
+    provost control [<dir>]                         make <dir> its own capture instance
+    provost uncontrol [<dir>]                        release a controlled directory
+    provost instances                               list controlled directories
+    provost export [<file>]                         bundle the store into a portable file
+    provost import <file> [<dest>]                   reconstitute a bundle elsewhere to browse
+    provost log                                     list captures (the git history)
+    provost restore <id|latest>                     bring a capture's commit back up
+    provost ls                                      list datasets
+    provost show NAME                               present a dataset (leading #N = row index)
+    provost rm [-f] [--no-purge] NAME...            delete dataset(s) + their captures (--no-purge keeps captures)
+    provost stats NAME [analyze-args]               statistics on a dataset (--all for everything)
+    provost triage                                  show low-confidence / unmatched bucket (raw input decoded)
+    provost doctor                                  check engine + store
+    provost help
 
 STORE (global by default, or a controlled directory)
     Captures go to a GLOBAL git store so you can capture from any directory:
-      \$GLEAN_HOME, or ~/.glean if unset. Point GLEAN_HOME at a shared,
+      \$PROVOST_HOME, or ~/.provost if unset. Point PROVOST_HOME at a shared,
       group-writable dir to collaborate; a lock serialises concurrent writers.
-    'glean control <dir>' makes <dir> its own instance (<dir>/.glean): captures
+    'provost control <dir>' makes <dir> its own instance (<dir>/.provost): captures
     run inside it (or a subdir) route there, and each commit snapshots the
-    directory's contents as context. Resolution: GLEAN_WORKSPACE override, else
+    directory's contents as context. Resolution: PROVOST_WORKSPACE override, else
     the nearest controlled dir walking up from CWD, else the global store.
     Every capture is one commit tagged capture-<id> ('log' / 'restore'). Every
-    dataset row has a globally-unique visible index #N; 'glean source N' maps it
+    dataset row has a globally-unique visible index #N; 'provost source N' maps it
     back to the exact captured input that produced it.
 
 ENV
-    GLEAN_HOME            global store dir (default: ~/.glean)
-    GLEAN_WORKSPACE       explicit store override (wins over GLEAN_HOME)
-    GLEAN_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
-    GLEAN_PLUGIN_DIR      extra strategy dir for detection (same as --plugin-dir
+    PROVOST_HOME            global store dir (default: ~/.provost)
+    PROVOST_WORKSPACE       explicit store override (wins over PROVOST_HOME)
+    PROVOST_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
+    PROVOST_PLUGIN_DIR      extra strategy dir for detection (same as --plugin-dir
                           on inject/run; for wrappers like deframe — no
                           ~/.mfe/strategies symlink needed)
-    GLEAN_ASYNC          background capture (default 1; set 0 or use --sync for foreground)
-    GLEAN_MULTI           file every dataset an input holds (default 0; same as --multi)
-    GLEAN_MAX_INPUT       max input bytes (default: 10485760)
-    GLEAN_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
+    PROVOST_ASYNC          background capture (default 1; set 0 or use --sync for foreground)
+    PROVOST_MULTI           file every dataset an input holds (default 0; same as --multi)
+    PROVOST_MAX_INPUT       max input bytes (default: 10485760)
+    PROVOST_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
 
 MULTIPLE DATASETS PER INPUT (--multi)
     Some reports hold more than one kind of data — a key/value block, a table,
@@ -993,19 +999,19 @@ MULTIPLE DATASETS PER INPUT (--multi)
     can even use different delimiters), and files each as its own dataset under
     ONE capture. Datasets are named by their winning strategy, so two parts that
     parse the same way but differ in shape land in NAME and NAME.v2. Row indices
-    (#N) run consecutively across them and 'glean source N' still returns the
-    whole original input. 'glean log' shows the comma-joined list; the capture's
+    (#N) run consecutively across them and 'provost source N' still returns the
+    whole original input. 'provost log' shows the comma-joined list; the capture's
     meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
 
 METADATA PROLOGUE
     A leading run of '#%' lines on injected input is treated as capture context,
     not data: it is peeled off before format detection (so it cannot corrupt a
     parse), stored with the capture (context.txt), and shown verbatim by
-    'glean source'. Wrappers can prepend context unconditionally.
+    'provost source'. Wrappers can prepend context unconditionally.
 
 Not yet in this prototype (proposal 0001): schema reconciliation (a differing
 column set currently splits a dataset into a numbered variant, e.g. free.v2).
-See docs/proposals/0001-glean-rename-and-simplification.md.
+See docs/proposals/0001-provost-rename-and-simplification.md.
 EOF
 }
 
@@ -1031,7 +1037,7 @@ main () {
         triage)        shift; cmd_triage "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
         help|-h|--help) cmd_help ;;
-        -V|--version)  printf 'glean %s\n' "$GLEAN_VERSION" ;;
+        -V|--version)  printf 'provost %s\n' "$PROVOST_VERSION" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         *)             cmd_inject "$@" ;;          # default verb
     esac

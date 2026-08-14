@@ -1,4 +1,23 @@
-# Handoff — glean
+# Handoff — provost
+
+## 2026-08-14: the tool is now **provost** (was glean), v2.0.0, PyPI- and RTD-ready
+
+- Command `provost`, env vars `PROVOST_*`, store `~/.provost` / `./.provost`,
+  marker `.provostrc`. No compat aliases — clean break at a major version.
+- PyPI distribution name **`provost`** (owner holds it; import package stays
+  `provost_data`). `provost --version` reads the top-level VERSION file, so
+  CLI and wheel cannot disagree. sdist+wheel built, `twine check` PASSED,
+  clean-venv install verified end-to-end (capture → ls).
+- Read the Docs: `.readthedocs.yaml` + `mkdocs.yml` (readthedocs theme) over
+  `docs/`, new `docs/index.md` + `docs/usage.md`; `mkdocs build --strict`
+  clean. Create the RTD project pointing at this repo and it builds as-is.
+- NOT renamed: fixture data that merely records the word "glean" (corpus
+  inputs/goldens, extract samples), the `envoy-*` internals, and GitHub URLs
+  (repo is still `MartinGallagher-code/glean` — rename it on GitHub whenever;
+  redirects keep the remotes working, then sweep URLs in a follow-up).
+- To publish: `git tag v2.0.0` + GitHub release triggers `release.yml`
+  (Trusted Publishing; ensure the PyPI project's publisher is configured for
+  workflow `release.yml` in this repo).
 
 ## Where we actually stand: the benchmark's nine clusters are WORKED (2026-08-13)
 
@@ -298,7 +317,7 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 >   parser change. **Next:** those 5 shapes are the outstanding parser work.
 >
 > **Prior context — 2026-07-30 corpus review pre-screen.** Round 8's review workbook
-> (`glean_corpus_review_8.docx`, supplied by the reviewer) is **in sync with
+> (`provost_corpus_review_8.docx`, supplied by the reviewer) is **in sync with
 > the corpus but entirely unmarked** — 3,706 entries, 258 pre-stamped
 > `VALIDATED` (exactly `docs/review-validated-cumulative.txt`), 3,447 blank
 > forms, zero ticked boxes. Verified: its tidy blocks match
@@ -330,7 +349,7 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 >   covers the pre-screen output only, not the full 3,706-entry form.
 
 > **2026-07-24 — pip-only install + pure-ASCII bundle.**
-> - Install is now `pip install glean-data` only; `install.sh` deleted and
+> - Install is now `pip install provost-data` only; `install.sh` deleted and
 >   its references removed from `README.md`, `pyproject.toml` (sdist),
 >   `tests/smoke.sh` (symlink-launcher test dropped), `CLAUDE.md`, and
 >   `analyze/completions/HANDOFF.md`.
@@ -344,25 +363,25 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 >   changes, rerun `bash ../shared_tools/scripts/merge.sh bundle.txt .`.
 
 > **2026-07-23 — deframe integration fixes.**
-> - `glean [inject|run] --plugin-dir DIR` / `GLEAN_PLUGIN_DIR`: forwarded to
+> - `provost [inject|run] --plugin-dir DIR` / `PROVOST_PLUGIN_DIR`: forwarded to
 >   the engine's `--plugin-dir` so external strategies (deframe) compete in
 >   detection without the `~/.mfe/strategies` symlink; validated up front,
 >   recorded in `meta.tsv` as `plugin_dir`.
 > - `#%` metadata prologue: leading `#%` lines are peeled in `_ingest`
 >   before detection (can't corrupt generic parsers), stored as
 >   `captures/<id>/context.txt` + `context` meta key; `output.txt` /
->   `glean source` stay verbatim; mid-file `#%` lines are data.
+>   `provost source` stay verbatim; mid-file `#%` lines are data.
 > - Smoke 49 → 59 checks (plugin + prologue coverage). Docs: help, man,
 >   completion, README ("Integrating from another tool" + badges).
 
 > **2026-07-23 — pip-installable + PyPI-ready + REUSE.**
-> - `pip install glean-data` installs the `glean` command: hatchling wheel
->   bundles the whole Bash tree under `glean_data/_bundle/` (runtime paths
+> - `pip install provost-data` installs the `provost` command: hatchling wheel
+>   bundles the whole Bash tree under `provost_data/_bundle/` (runtime paths
 >   only — force-include list in `pyproject.toml`; hatchling `exclude` does
 >   NOT apply to force-include, so a new runtime subdir under `extract/` or
 >   `analyze/` must be added to that list). Python launcher in
->   `src/glean_data/` execs the bundled script via bash; version is dynamic
->   from `VERSION`. PyPI name `glean-data` (`glean` + `glean-cli` are taken).
+>   `src/provost_data/` execs the bundled script via bash; version is dynamic
+>   from `VERSION`. PyPI name `provost-data` (`provost` + `provost-cli` are taken).
 > - Tests: `tests/python/test_launcher.py`, 100% line+branch coverage
 >   enforced (`--cov-fail-under=100`, wired into pyproject + CI
 >   `python-package` job, which also builds, twine-checks, installs the
@@ -371,7 +390,7 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 >   `LICENSES/GPL-3.0-only.txt`; `reuse lint` compliant; `reuse` CI job.
 > - Release: `.github/workflows/release.yml` → PyPI Trusted Publishing on
 >   GitHub release. **Next step for a human**: register the trusted
->   publisher on pypi.org (project `glean-data`, repo
+>   publisher on pypi.org (project `provost-data`, repo
 >   `MartinGallagher-code/glean`, workflow `release.yml`, environment
 >   `pypi`) — details in the workflow header — then publish a release.
 
@@ -421,7 +440,7 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 > fragile chart-axis heuristic; amdgpu-top is two independent tables that
 > can't share one tidy dataset). aptitude-search left on its text-lines
 > hint (tool-specific fixed-width prefix). Review doc regenerated as
-> `glean_corpus_review_7.docx` (258 VALIDATED).
+> `provost_corpus_review_7.docx` (258 VALIDATED).
 
 > **2026-07-15 — reviewer round R1 (column fidelity).** The user filled the
 > 3,706-page review workbook for the `a*` pages (195 reviewed: 140 OK /
@@ -806,14 +825,14 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 > `ulimit` — kept as quality keepers here). Corpus goldens regenerated under
 > the merged engine.
 
-`glean` is the single-binary tool proposed in
+`provost` is the single-binary tool proposed in
 [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md)
 to replace the three-binary `envoy-*` suite. It lives in its own repository and
 is **fully self-contained**: the entry point resolves its engines from its own
-directory (`GLEAN_ROOT`), so it runs with no external dependencies.
+directory (`PROVOST_ROOT`), so it runs with no external dependencies.
 
 > **2026-07-06 — cut from Envoy.** The `extract/`, `analyze/`, `transform/`, and
-> `lib/` trees are first-party glean code, maintained in this repo directly.
+> `lib/` trees are first-party provost code, maintained in this repo directly.
 > Edit them in place. Any future re-integration with Envoy is a deliberate
 > manual merge, not a routine sync.
 
@@ -859,7 +878,7 @@ around that:
    outputs containing a PORT table; `bundle-outdated`/`semanage-boolean` (p12)
    run before the grabby `pkg-config`.
 6. **Dead weight removed**: orphaned analyze `browse`/`dashboard`/`mdx`/
-   `help_overlay` tests (surfaces glean doesn't ship — the raw
+   `help_overlay` tests (surfaces provost doesn't ship — the raw
    `analyze/tests/run_tests.sh` is now green and CI runs it unfiltered), and
    7 unreferenced `lib/envoy_*.sh` helpers (`common`, `format`, `humanize`,
    `spinner`, `status`, `tasklist`, `exit_codes`).
@@ -884,19 +903,19 @@ the git-core verbs `run` / `log` / `restore` / `source` / `export` / `import` /
 `control`:
 
 ```bash
-free -m        | ./glean            # captures in the BACKGROUND by default (async)
-free -m        | ./glean --sync     # foreground: prints the resulting dataset + #N
-docker stats   | ./glean
-./glean run df -h                   # capture a command's output AS A COMMIT
-./glean ls                          # list datasets
-./glean show free                   # present a dataset as a tidy table
-./glean stats free                  # statistics via the analyze engine
-./glean source 5                    # the original input behind row #5
-./glean triage                      # low-confidence / unmatched bucket (raw input decoded)
-./glean show unsorted               # same bucket as a table; base64 raw decoded to text
-./glean rm free                     # delete a dataset + its captures (purge is default)
-./glean rm -f --no-purge free       # delete the dataset but keep the source captures
-./glean doctor                      # engine + store check
+free -m        | ./provost            # captures in the BACKGROUND by default (async)
+free -m        | ./provost --sync     # foreground: prints the resulting dataset + #N
+docker stats   | ./provost
+./provost run df -h                   # capture a command's output AS A COMMIT
+./provost ls                          # list datasets
+./provost show free                   # present a dataset as a tidy table
+./provost stats free                  # statistics via the analyze engine
+./provost source 5                    # the original input behind row #5
+./provost triage                      # low-confidence / unmatched bucket (raw input decoded)
+./provost show unsorted               # same bucket as a table; base64 raw decoded to text
+./provost rm free                     # delete a dataset + its captures (purge is default)
+./provost rm -f --no-purge free       # delete the dataset but keep the source captures
+./provost doctor                      # engine + store check
 ```
 
 ## Architecture
@@ -917,31 +936,31 @@ The tidy melt (`_core_melt_tidy`) and schema-union helpers (`_core_union_header`
 Unit test: `bash transform/tests/test_melt.sh`.
 
 ### Git core
-The store is a **git repo** (`$GLEAN_WORKSPACE`). Every capture is one commit,
+The store is a **git repo** (`$PROVOST_WORKSPACE`). Every capture is one commit,
 tagged `capture-<id>`; each writes `captures/<id>/{meta.tsv,output.txt}` alongside
-the dataset change. `glean log` lists captures; `glean restore <id|latest>` brings
+the dataset change. `provost log` lists captures; `provost restore <id|latest>` brings
 one back up. This is a simplified linear-history model (proposal 0001 §7).
 
 ### Store model
-- **Global by default** — `$GLEAN_HOME` or `~/.glean`; capture from anywhere.
-  `GLEAN_WORKSPACE` explicit override wins (tests use it).
+- **Global by default** — `$PROVOST_HOME` or `~/.provost`; capture from anywhere.
+  `PROVOST_WORKSPACE` explicit override wins (tests use it).
 - **Per-row provenance** — every dataset row has a globally-unique visible `#N`
-  index; `glean source <#N>` returns the exact captured input that produced it.
+  index; `provost source <#N>` returns the exact captured input that produced it.
 - **Multi-user** — `mkdir` store lock + double-checked `git init`; verified under
   8-way concurrency.
-- **Controlled dirs** — `glean control [<dir>]` makes `<dir>` its own instance;
+- **Controlled dirs** — `provost control [<dir>]` makes `<dir>` its own instance;
   resolution walks up from CWD (override → controlled → global).
-- **Export / import** — `glean export` writes a portable `git bundle`;
-  `glean import` reconstitutes it elsewhere with provenance intact.
+- **Export / import** — `provost export` writes a portable `git bundle`;
+  `provost import` reconstitutes it elsewhere with provenance intact.
 
 ### Analyze (`analyze/`)
-`glean stats <dataset> [args]` runs the analyze engine over a dataset's TSV.
+`provost stats <dataset> [args]` runs the analyze engine over a dataset's TSV.
 The `browse`/`dashboard`/`pipeline` surfaces are intentionally absent, and
 their orphaned tests were deleted — the raw analyze suite runs green.
 
 ### Schema reconciliation
 `_store_append` unions a differing-column same-type capture into the base dataset
-when column overlap ≥ `GLEAN_RECONCILE_OVERLAP` (default 60%), blank-filling both
+when column overlap ≥ `PROVOST_RECONCILE_OVERLAP` (default 60%), blank-filling both
 sides; below the threshold it splits to a numbered variant (`free.v2`).
 
 ## Next steps
@@ -970,7 +989,7 @@ sides; below the threshold it splits to a numbered variant (`free.v2`).
    (pkg-config header smells, lastb vs lastlog, aligned-columns footer
    legends).
 3. Optional: rename the internal `envoy-*` binaries / `envoy_*.sh` libs to
-   `glean`-native names (large, internals-only).
+   `provost`-native names (large, internals-only).
 
 Done since the refactor landed: golden-quality audit (restored 13 more
 bespokes, promoted bracket-log to generic), traceroute6 timeout hops
@@ -1014,7 +1033,7 @@ records — fio disk-stats/run-status/io-depths/latency-dist).
 Coverage is now **2126 / 2151** (✅ 1934 / ✅ʰ 58 / ✅ᵇ 134); golden regression
 1980 pass / 0 fail / 0 deleted; holdout 68/68.
 
-fio is now fully handled: of its 12 output modes glean tidies 9 (json, bw-log,
+fio is now fully handled: of its 12 output modes provost tidies 9 (json, bw-log,
 iops-log, terse-v3/v5, disk-stats, io-depths, run-status, latency-dist) and
 treats 3 as loose text (normal-full / multijob / status-line are nested reports,
 not single datasets).
@@ -1088,8 +1107,8 @@ bash tests/corpus/run.sh --coverage # regenerates COVERAGE.md
 bash tests/corpus/holdout/run.sh    # generalization check on unseen output
 ```
 
-`smoke.sh` is hermetic — it clears the caller's `GLEAN_*` env (notably
-`GLEAN_HOME`) so a stale `~/.glean/extract` engine can't shadow the bundled one
-and skew classification. If a real `glean` run misclassifies, check
-`glean doctor`: it warns when the extract engine came from a `GLEAN_HOME`
+`smoke.sh` is hermetic — it clears the caller's `PROVOST_*` env (notably
+`PROVOST_HOME`) so a stale `~/.provost/extract` engine can't shadow the bundled one
+and skew classification. If a real `provost` run misclassifies, check
+`provost doctor`: it warns when the extract engine came from a `PROVOST_HOME`
 override rather than the bundled tree.

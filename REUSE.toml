@@ -8,7 +8,7 @@
 # byte-exact golden comparisons. `precedence = "closest"` means any file that
 # does carry its own SPDX header keeps it.
 version = 1
-SPDX-PackageName = "glean"
+SPDX-PackageName = "provost"
 SPDX-PackageSupplier = "Martin Gallagher <martinjgallagher@icloud.com>"
 SPDX-PackageDownloadLocation = "https://github.com/MartinGallagher-code/glean"
 

@@ -63,7 +63,7 @@ extract goldens, which is how we proved it touched *only* labels and nothing els
 ## 3. Nameless columns: `A,B,C` over `c1,c2,c3`
 
 When a source genuinely has no column names (e.g. `aa-unconfined`, `ssh-keygen -l`,
-`pacman -Qm`), glean must still label the columns it split out. It used to emit
+`pacman -Qm`), provost must still label the columns it split out. It used to emit
 `c1,c2,c3…`. It now emits `A,B,C…,Z,AA,BB,CC…` (repeated-letter convention past 26).
 
 The information content is identical. The difference is affordance:
@@ -104,7 +104,7 @@ regressions.**
 **Read this honestly.** The 233-tool flip is *largely a labeling artifact*: the scorer
 defined "meaningful" as "the label isn't `cN`," so renaming `cN`→`A` mechanically
 reclassifies those columns without changing a single value. What the flip actually
-reveals is that the metric was really measuring *"does glean emit an apologetic
+reveals is that the metric was really measuring *"does provost emit an apologetic
 placeholder,"* not *"are these columns semantically named."* Removing the placeholder
 makes the metric go green — which is a fair signal that the placeholder was the thing
 making the output *look* unfinished, but **not** a claim that 233 tools gained semantic

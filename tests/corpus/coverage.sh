@@ -82,8 +82,8 @@ _coverage_of () {
     ' "$1" "$2"
 }
 
-JOBS="${GLEAN_CORPUS_JOBS:-$(nproc 2>/dev/null || echo 4)}"
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/glean-coverage.XXXXXX")"
+JOBS="${PROVOST_CORPUS_JOBS:-$(nproc 2>/dev/null || echo 4)}"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/provost-coverage.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 _one () {

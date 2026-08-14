@@ -1,6 +1,6 @@
-# bash completion for glean — source this file, or drop it in
+# bash completion for provost — source this file, or drop it in
 # /etc/bash_completion.d/ (the installer does this).
-_glean_complete () {
+_provost_complete () {
     local cur prev words cword
     _init_completion 2>/dev/null || {
         cur="${COMP_WORDS[COMP_CWORD]}"; prev="${COMP_WORDS[COMP_CWORD-1]}"
@@ -8,7 +8,7 @@ _glean_complete () {
     }
 
     local verbs="run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help"
-    local ws="${GLEAN_WORKSPACE:-${GLEAN_HOME:-$HOME/.glean}}"
+    local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb.
     if [[ $cword -eq 1 ]]; then
@@ -40,4 +40,4 @@ _glean_complete () {
         *) COMPREPLY=() ;;
     esac
 }
-complete -F _glean_complete glean
+complete -F _provost_complete provost

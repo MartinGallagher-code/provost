@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-# Publish glean-data to PyPI via Trusted Publishing (OIDC — no API token).
+# Publish provost to PyPI via Trusted Publishing (OIDC — no API token).
 # One-time setup on https://pypi.org/manage/account/publishing/:
-#   project: glean-data, owner: MartinGallagher-code, repo: glean,
+#   project: provost, owner: MartinGallagher-code, repo: glean (until the GitHub repo itself is renamed),
 #   workflow: release.yml, environment: pypi
 # Then publishing a GitHub release (or dispatching this workflow) uploads the
 # sdist + wheel built from the tagged commit.
@@ -30,8 +30,8 @@ jobs:
       - name: smoke-test the wheel
         run: |
           python -m pip install dist/*.whl
-          glean --version
-          glean doctor
+          provost --version
+          provost doctor
       - uses: actions/upload-artifact@v4
         with:
           name: dist
