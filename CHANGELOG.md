@@ -1,4 +1,37 @@
-# glean — Changelog
+# provost — Changelog
+
+## 2026-08-14 — glean is now provost; PyPI + Read the Docs readiness; v2.0.0
+
+The tool, package, and every user-facing name changed from **glean** to
+**provost**. This is a breaking release (new command name, new env-var
+namespace, new store directory), so the version jumps to **2.0.0**.
+
+- **Renamed**: the `glean` entry point is `provost`; `src/glean_data` is
+  `src/provost_data`; completions and man page follow. Env vars are
+  `PROVOST_*` (was `GLEAN_*`), the store dir is `~/.provost` / `./.provost`
+  (was `.glean`), the workspace marker `.provostrc`. No compatibility aliases:
+  a clean break at a major version.
+- **Not renamed, deliberately**: captured fixture data (corpus inputs/goldens,
+  extract samples) that merely contains the word "glean" as recorded
+  observation — rewriting observations to match a rename would falsify them.
+  The `envoy-*` engine internals keep their names as before. GitHub repo URLs
+  still say `MartinGallagher-code/glean` until the repository itself is
+  renamed on GitHub (redirects make that safe to do at any time).
+- **PyPI**: distribution name is **`provost`** (the owner holds the name; the
+  launcher package import stays `provost_data`). `provost --version` now reads
+  the top-level VERSION file — the single source of truth pyproject already
+  used — so the CLI and the wheel can never disagree (they did: the script
+  hardcoded `0.7.0-proto`). Built and verified: sdist + wheel, `twine check`
+  PASSED, clean-venv install runs `provost 2.0.0` and captures. New
+  project.urls (Documentation / Repository / Changelog / Issues).
+- **Read the Docs**: `.readthedocs.yaml` (v2, mkdocs) + `mkdocs.yml`
+  (readthedocs theme) over `docs/`, with new `docs/index.md` (landing) and
+  `docs/usage.md` (full subcommand/flag/env reference). Review-round TSV
+  worksheets are excluded from the built site. `mkdocs build --strict` clean.
+  Point the RTD project at this repo and it builds as-is.
+- `man/provost.1` version string corrected; `bundle.txt` regenerated.
+- Suites after the rename: pytest 8/8 (100% line+branch on provost_data),
+  smoke 65/0, melt 10/0.
 
 ## 2026-08-13 — "fix it all": the benchmark's nine defect clusters, worked
 
@@ -96,7 +129,7 @@ deleted goldens.
 ## 2026-08-12 — a held-out benchmark: 50 inputs the engine has never seen
 
 The corpus answers "did this change break something that used to work". It
-cannot answer the question that decides whether glean is useful: **what happens
+cannot answer the question that decides whether provost is useful: **what happens
 the first time it meets an output nobody wrote a parser for?** Every corpus
 entry has been reviewed, argued over, and in many cases had a hint row or a
 strategy written for it, so the corpus score measures work done, not
@@ -649,9 +682,9 @@ parses exist:
   melt 10/0. Files: `extract/lib/_dispatch.sh`, `extract/tests/test_multi_mode.sh`,
   `docs/0003-multi-dataset.md`.
 
-## 2026-08-07 — multi-dataset capture (`glean --multi`)
+## 2026-08-07 — multi-dataset capture (`provost --multi`)
 
-- **`glean --multi` / `glean run --multi` / `GLEAN_MULTI=1`** files EVERY
+- **`provost --multi` / `provost run --multi` / `PROVOST_MULTI=1`** files EVERY
   dataset an input holds, instead of letting one winner drop the rest. The
   reviewer's framing: one input may carry key/value data (possibly with
   different delimiters), tabular data, and text best left unparsed — all at
@@ -664,7 +697,7 @@ parses exist:
   of one input that parse the same way but differ in shape land in `NAME` and
   `NAME.v2` with no special naming.
 - One capture, N datasets: row ids run consecutively across them, each row gets
-  its own provenance line, and `glean source N` still returns the whole
+  its own provenance line, and `provost source N` still returns the whole
   original input. `meta.tsv` gains `datasets` + `dataset_rows`; `strategy`,
   `confidence` and `dataset` become comma-joined.
 - A below-threshold dataset is dropped (a fragment of an input whose other
@@ -672,7 +705,7 @@ parses exist:
   path so unmatched input still reaches `unsorted`.
 - `iostat -x` → 3 datasets (uname banner, avg-cpu kv, Device table) where the
   default keeps only the table. 7 new smoke checks (58 → 65, 0 failed); melt
-  10/0. Files: `glean`, `tests/smoke.sh`, `docs/0003-multi-dataset.md`.
+  10/0. Files: `provost`, `tests/smoke.sh`, `docs/0003-multi-dataset.md`.
 
 ## 2026-08-06 — round-16 sweep: 13 more kv dumps routed (per the reviewer's brief)
 
@@ -918,7 +951,7 @@ answered (one acknowledged-open); this prepares round 13.
   passing entries (excludes the cumulative VALIDATED set and every mark from
   rounds 1–3/8–12). All 50 sit at risk 5; a large git-list cluster
   (git-tag/-log/-ls-files/-describe…) and several ip-* families dominate.
-  Rendered as `glean_corpus_review_13_next50.docx` (all 50 entries + verdict
+  Rendered as `provost_corpus_review_13_next50.docx` (all 50 entries + verdict
   boxes verified present). Marks come back as
   `docs/review-marks-<date>-round13.tsv`. No parser or snapshot changes.
 
@@ -973,7 +1006,7 @@ marks are answered; this prepares round 12.
   that pass the structural pre-screen, drawn from the 2,725 not-yet-reviewed
   passing entries (excludes the cumulative VALIDATED set and every mark from
   rounds 1–3/8–11). All 30 sit at risk 5 — the round-11 batch consumed the
-  risk-6 tier. Rendered as `glean_corpus_review_12_next30.docx` (all 30
+  risk-6 tier. Rendered as `provost_corpus_review_12_next30.docx` (all 30
   entries + verdict boxes verified present). Marks come back as
   `docs/review-marks-<date>-round12.tsv`. No parser or snapshot changes.
 
@@ -1031,7 +1064,7 @@ review round now that every prior mark is answered.
 - **`docs/review-batch-2026-08-04-round11.tsv`** — the 20 riskiest entries
   that pass the structural pre-screen, drawn from the 2,745 not-yet-reviewed
   passing entries (excludes the cumulative VALIDATED set and every mark from
-  rounds 1–3/8–10). Rendered as `glean_corpus_review_11_worst20.docx` (all 20
+  rounds 1–3/8–10). Rendered as `provost_corpus_review_11_worst20.docx` (all 20
   entries verified present; input/output blocks from the refreshed snapshots).
   Marks come back as `docs/review-marks-<date>-round11.tsv`.
 
@@ -1053,7 +1086,7 @@ key/value in the same input with a table" — is now an engine mode.
   `iostat -x` → 3 datasets (uname banner, avg-cpu, Device) — nothing dropped.
   Conflicts with `--batch`/`--stream`/`--chain`/`--replay`/`--strategy`/
   `--interactive`.
-- **Deliberately NOT adopted in the glean capture pipeline** — one dataset per
+- **Deliberately NOT adopted in the provost capture pipeline** — one dataset per
   capture is a core invariant (meta.tsv, show/export, melt, the corpus
   harness). Adoption is scoped as its own change in
   `docs/0003-multi-dataset.md` (dataset-N siblings, `show <id>:<n>`, a
@@ -1554,7 +1587,7 @@ welded into one cell with an empty neighbour — the numeric snap fix).
 - **`docs/review-batch-round9.tsv` (NEW)** — records which entries went out for
   round-9 review: the 150 highest-`risk()` entries that still **pass** the
   structural pre-screen, worst-first, excluding the 258 cumulative `VALIDATED`
-  and the 11 round-8 marks. Sent as `glean_review_round9_top150.docx` (for
+  and the 11 round-8 marks. Sent as `provost_review_round9_top150.docx` (for
   markup, same format as round 8) and `.txt` (plain, for constrained upload
   paths). The workbooks themselves are not committed — only the manifest, as
   with previous rounds.
@@ -1777,7 +1810,7 @@ disagreed with 10 of the first 11 `looks-fine` calls. Root causes and response:
 
 ## 2026-07-24 — pip-only install; bundle.txt is now pure printable ASCII
 
-- **Install via `pip install glean-data` only.** Removed `install.sh` (the
+- **Install via `pip install provost-data` only.** Removed `install.sh` (the
   git-checkout symlink installer). Updated `README.md` (single install
   method), `pyproject.toml` (dropped `install.sh` from the sdist),
   `tests/smoke.sh` (removed the symlink-launcher test), `CLAUDE.md`, and
@@ -1801,9 +1834,9 @@ disagreed with 10 of the first 11 `looks-fine` calls. Root causes and response:
 
 ## 2026-07-23 — deframe integration: --plugin-dir + '#%' metadata prologue
 
-Two fixes surfaced by deframe (an external project piping into glean):
+Two fixes surfaced by deframe (an external project piping into provost):
 
-- **`--plugin-dir DIR` on inject/run (+ `GLEAN_PLUGIN_DIR`)**: forwarded to
+- **`--plugin-dir DIR` on inject/run (+ `PROVOST_PLUGIN_DIR`)**: forwarded to
   the extract engine's existing `--plugin-dir`, so a wrapper's strategies
   compete in detection first-class — previously they could only reach the
   engine via an auto-maintained symlink into its `~/.mfe/strategies` user
@@ -1815,7 +1848,7 @@ Two fixes surfaced by deframe (an external project piping into glean):
   wrapper could only prepend context when its own header-aware strategy won
   the parse, and otherwise had to smuggle context through its run manifest),
   stores it as `captures/<id>/context.txt` (+ `context` key in `meta.tsv`),
-  and keeps `output.txt` verbatim so `glean source` shows the exact original
+  and keeps `output.txt` verbatim so `provost source` shows the exact original
   input, header included. A `#%` line after the first data line is data and
   passes through untouched.
 - Smoke test grew 49 → 59 checks: plugin strategy wins via flag and via env
@@ -1824,28 +1857,28 @@ Two fixes surfaced by deframe (an external project piping into glean):
   mid-file `#%` not peeled. Docs: help text, man page, bash completion,
   README (badges + "Integrating from another tool" section), CLAUDE.md
   test-count refresh.
-- Files: `glean`, `tests/smoke.sh`, `man/glean.1`, `completions/glean.bash`,
+- Files: `provost`, `tests/smoke.sh`, `man/provost.1`, `completions/provost.bash`,
   `README.md`, `CLAUDE.md`, `CHANGELOG.md`, `HANDOFF.md`.
 
-## 2026-07-23 — pip-installable package (PyPI: `glean-data`) + 100% launcher coverage + REUSE compliance
+## 2026-07-23 — pip-installable package (PyPI: `provost-data`) + 100% launcher coverage + REUSE compliance
 
-- **PyPI packaging**: `pip install glean-data` now installs the `glean`
+- **PyPI packaging**: `pip install provost-data` now installs the `provost`
   command. `pyproject.toml` (hatchling) builds a wheel that carries the whole
-  Bash tree under `glean_data/_bundle/` (entry point + extract/analyze/
+  Bash tree under `provost_data/_bundle/` (entry point + extract/analyze/
   transform engines + lib/completions/man, runtime paths only — test/sample
   trees stay out via explicit force-include, since hatchling's `exclude` does
   not apply to force-included paths). A ~25-line Python launcher
-  (`src/glean_data/__init__.py`, console script `glean`) execs the bundled
-  script via bash, so an installed glean behaves byte-for-byte like a
-  git-checkout install (`GLEAN_ROOT` self-resolution included). The name
-  `glean` was taken on PyPI (Mozilla's Glean SDK), hence `glean-data`; the
-  command is still `glean`. Version is dynamic from the top-level `VERSION`
+  (`src/provost_data/__init__.py`, console script `provost`) execs the bundled
+  script via bash, so an installed provost behaves byte-for-byte like a
+  git-checkout install (`PROVOST_ROOT` self-resolution included). The name
+  `provost` was taken on PyPI (Mozilla's Provost SDK), hence `provost-data`; the
+  command is still `provost`. Version is dynamic from the top-level `VERSION`
   file (single source of truth). Verified end-to-end: wheel installed into a
-  clean venv → `glean doctor` finds both bundled engines, stdin capture →
+  clean venv → `provost doctor` finds both bundled engines, stdin capture →
   dataset works, `twine check` passes on sdist + wheel.
 - **100% test coverage** on the new Python code: `tests/python/
   test_launcher.py` (8 tests) with `pytest --cov` — 100% line *and branch*
-  coverage of `glean_data`, enforced by `--cov-fail-under=100` in
+  coverage of `provost_data`, enforced by `--cov-fail-under=100` in
   `pyproject.toml` and by the new `python-package` CI job (which also builds
   the distributions, twine-checks them, installs the wheel, and runs a real
   capture through it).
@@ -1859,7 +1892,7 @@ Two fixes surfaced by deframe (an external project piping into glean):
   wheel to PyPI via Trusted Publishing (OIDC, no token) on GitHub release,
   after rebuilding, twine-checking, and smoke-testing the wheel. One-time
   PyPI-side setup is documented in the workflow header.
-- Files: `pyproject.toml`, `src/glean_data/{__init__,__main__}.py`,
+- Files: `pyproject.toml`, `src/provost_data/{__init__,__main__}.py`,
   `tests/python/test_launcher.py`, `REUSE.toml`, `LICENSES/GPL-3.0-only.txt`,
   `.github/workflows/{ci,release}.yml`, `README.md`, `.gitignore`,
   `CHANGELOG.md`, `HANDOFF.md`.
@@ -1878,7 +1911,7 @@ Two fixes surfaced by deframe (an external project piping into glean):
 asciichart-series-frame are a box-drawn series with only y-axis SCALE labels —
 no per-point values exist in the text, so there is no tidy data to emit.
 amdgpu-top is TWO independent tables (GRBM/VRAM + Sensors) with different
-columns; glean emits one dataset per input, and a partial parse would silently
+columns; provost emits one dataset per input, and a partial parse would silently
 drop half the data — less honest than ⏳. Both documented rather than
 fake-tidied.
 
@@ -3713,7 +3746,7 @@ files, strategy code roughly halved):
   bespokes that beat the generic stay.
 - The unused config-file format parsers (`ini`, `hcl`, `properties`,
   `crontab`, `dockerfile`, `systemd-unit`, `nginx-conf`) were deleted: no
-  corpus input needs them (glean's domain is command output) and `ini` was
+  corpus input needs them (provost's domain is command output) and `ini` was
   grabby enough to hijack `dbmate-status`/`sbt-dependencytree`.
 
 **Detection-order fixes** (full mode):
@@ -3728,7 +3761,7 @@ files, strategy code roughly halved):
 
 **Cleanup:**
 - Deleted the orphaned analyze `test_browse_*`/`test_dashboard_*`/
-  `test_help_overlay.sh`/`test_mdx.sh` (surfaces glean doesn't ship). The raw
+  `test_help_overlay.sh`/`test_mdx.sh` (surfaces provost doesn't ship). The raw
   `analyze/tests/run_tests.sh` is green now; CI runs it unfiltered.
 - Deleted 7 unreferenced shared libs: `lib/envoy_{common,format,humanize,spinner,status,tasklist}.sh`,
   `lib/exit_codes.sh`.
@@ -3782,7 +3815,7 @@ Gate: extract suite + smoke 49/49 + melt 8/8 green; corpus golden unaffected
 (generic-mode, excludes bespokes). Strategy count: ~374 → ~361 distinct.
 
 ## 2026-07-09 — Nameless columns: spreadsheet-style A,B,C… (was c1,c2,c3)
-Renamed the placeholder labels glean emits for genuinely-nameless columns from
+Renamed the placeholder labels provost emits for genuinely-nameless columns from
 `c1,c2,c3…` to the spreadsheet convention `A,B,C…,Z,AA,BB,CC…`. `c1` reads as an
 apologetic internal placeholder ("we failed to name this"); `A` is the universal
 positional-column convention every spreadsheet user already understands as
@@ -3819,13 +3852,13 @@ earlier commits). Fixes:
 - Verified: extract **213/213 (exit 0)**, golden 978/0, smoke 49/49, melt 8/8.
 
 ## 2026-07-09 — columnar-specs: report the matched tool name (per-tool datasets)
-Fixed a latent issue affecting every columnar-migrated tool: `glean` names a
+Fixed a latent issue affecting every columnar-migrated tool: `provost` names a
 dataset after the winning *strategy*, so all migrated tools collapsed to a single
 `columnar-specs` dataset (and different tools would reconcile/collide into it).
 Now `strategy_detect` sets `_STRATEGY_REPORT_NAME` to the matched tool name and
 the engine (`extract/lib/_discovery.sh`) uses it for the dispatch winner, the
-`matched` list, and the `STRAT-<name>` label — so `mount | glean` → dataset
-`mount`, `iostat -d | glean` → `iostat-d`, etc. Cleared before each strategy's
+`matched` list, and the `STRAT-<name>` label — so `mount | provost` → dataset
+`mount`, `iostat -d | provost` → `iostat-d`, etc. Cleared before each strategy's
 detect so a name never leaks; set in `strategy_detect` (parent shell) because
 `strategy_extract` runs in a command-substitution subshell.
 - Files: `extract/strategies/delimited/columnar-specs.sh`,
@@ -3842,7 +3875,7 @@ strategy's `## Sample`):
   detect, `~time` drop, `path@rest`), `beegfs` (`target` prefix, `~node_id`).
 - `tar`/`dpkg-c` generic goldens regenerated as **improvements** (old `c1..c6`
   incl. the time token → now named `permissions/owner/size/date/path`).
-- **`free` NOT migrated** (reverted): it exposed that the `glean` tool names a
+- **`free` NOT migrated** (reverted): it exposed that the `provost` tool names a
   dataset after the winning *strategy*, so every columnar-migrated tool would
   create a `columnar-specs` dataset instead of one named for the tool — the
   smoke suite guards this via `free`. This is a latent property of the whole
@@ -4040,7 +4073,7 @@ stale "prune" step isn't chased again. No code changes.
   stanza into one tidy row per interface — `index, name, flags, mtu, qdisc, state,
   group, qlen, mac, inet, inet6`. Previously `indented-hierarchy` transposed the
   whole thing into a single mangled wide row. (Bespoke, so it improves real
-  full-mode `glean`; the `--generic` corpus goldens are unaffected.)
+  full-mode `provost`; the `--generic` corpus goldens are unaffected.)
 - **`vertical-line` declines `label: value` blocks that merely carry a `===`/`---`
   banner** → routed to `colons`. Fixes `aureport --summary` and
   `duplicity collection-status` (were shredded into positional columns off the
@@ -4081,7 +4114,7 @@ Working the documented parse-wrong tail; the clean, verified wins in this batch:
 
 Verified: extract 213/213, smoke 49/49, melt 8/8, corpus golden 980/0.
 (The corpus goldens are `--generic`-mode; the `sqlite-output`/`jmap-histo` wins
-improve real full-mode `glean` but are not reflected in generic goldens — only the
+improve real full-mode `provost` but are not reflected in generic goldens — only the
 `equals` Technique change touched a generic golden.)
 
 ## 2026-07-09 — aligned-columns: gate positional to multi-word tables; regen corpus goldens
@@ -4178,44 +4211,44 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
 - Verified: extract suite 214/214, smoke 49/49, melt 8/8.
 
 ## 2026-07-07 — flip defaults: async capture + rm --purge are now on by default
-- **Async is the default** for inject/`run`: a bare `cmd | glean` now spools and
+- **Async is the default** for inject/`run`: a bare `cmd | provost` now spools and
   captures in a detached background process, returning the prompt at once
   (`queued (async …)`) instead of printing the resulting dataset. Use
-  `--sync`/`--wait` (or `GLEAN_ASYNC=0`) for the foreground path that prints the
+  `--sync`/`--wait` (or `PROVOST_ASYNC=0`) for the foreground path that prints the
   dataset + `#N` range — this is what scripts that read the result inline should
-  use. (Implementation flip: `cmd_inject`/`cmd_run` default `${GLEAN_ASYNC:-1}`.)
-- **`glean rm` purges captures by default**: deleting a dataset now also drops the
+  use. (Implementation flip: `cmd_inject`/`cmd_run` default `${PROVOST_ASYNC:-1}`.)
+- **`provost rm` purges captures by default**: deleting a dataset now also drops the
   `captures/<id>/` dirs that fed it (and their tags), not just the dataset file +
   provenance rows. `--no-purge`/`--keep-captures` retains the source captures. The
-  deletion is still committed, so `glean log`/`restore` reach the pre-deletion
+  deletion is still committed, so `provost log`/`restore` reach the pre-deletion
   state regardless.
-- Docs/plumbing: help text, `man/glean.1`, and `completions/glean.bash` updated
+- Docs/plumbing: help text, `man/provost.1`, and `completions/provost.bash` updated
   for both flips (`--sync`, `--no-purge`/`--keep-captures`). Tests: `tests/smoke.sh`
-  pins `GLEAN_ASYNC=0` for its synchronous assertions, adds checks that the bare
+  pins `PROVOST_ASYNC=0` for its synchronous assertions, adds checks that the bare
   default is async and `--sync` forces foreground, and updates the rm checks to the
   purge-by-default behavior (49 checks, all green). Melt 8/8; extract unaffected.
 
 ## 2026-07-07 — opt-in async capture + a concurrency-lock fix it exposed
-- **Feature:** `--async` (and `GLEAN_ASYNC=1`) on inject/`run`. The input is
+- **Feature:** `--async` (and `PROVOST_ASYNC=1`) on inject/`run`. The input is
   spooled and the extract→classify→commit runs in a **detached background
   process**, so the shell prompt returns immediately (~0.03s vs ~0.35s). Results
-  appear in `glean log` shortly after; use `--sync`/`--wait` to force the
-  foreground path (or when `GLEAN_ASYNC=1` is the default). The spool lives
+  appear in `provost log` shortly after; use `--sync`/`--wait` to force the
+  foreground path (or when `PROVOST_ASYNC=1` is the default). The spool lives
   outside the workspace (never committed) and self-removes on success; on failure
   it is kept, with a `log.txt`, for inspection. Store serialisation is unchanged —
   the background child takes the same lock as any writer.
 - **Bug fix (found while testing async):** `_lock` recorded `$$` as the lock
   owner, but a detached ingest runs in a subshell where `$$` is still the
-  already-exited parent glean. The stale-lock breaker then saw a "dead" owner and
+  already-exited parent provost. The stale-lock breaker then saw a "dead" owner and
   could steal a live lock mid-write, producing **duplicate row indices**. `_lock`
   now records `$BASHPID` (the real current process). This also hardens the
   existing parallel-`run` path.
-- Files: `glean` (`_ingest_async`; `--async`/`--sync` on `cmd_inject`/`cmd_run`;
-  `_lock` → `$BASHPID`; help + ENV docs), `completions/glean.bash`, `man/glean.1`,
+- Files: `provost` (`_ingest_async`; `--async`/`--sync` on `cmd_inject`/`cmd_run`;
+  `_lock` → `$BASHPID`; help + ENV docs), `completions/provost.bash`, `man/provost.1`,
   `tests/smoke.sh` (+3 async checks incl. a duplicate-index concurrency guard).
 
 ## 2026-07-07 — extract engine ~40% faster per invocation (mktemp hoist)
-- **Perf:** piping into `glean` was ~0.6s wall per capture; the extract engine
+- **Perf:** piping into `provost` was ~0.6s wall per capture; the extract engine
   was ~0.5s of that (git commit is ~0.01s). The auto-detect loop spawned a fresh
   `mktemp` subprocess for **every** strategy it sourced (dozens per run, ~60 for a
   typical input) just to capture source-time stderr. Hoisted that to a **single**
@@ -4228,48 +4261,48 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
 
 ## 2026-07-07 — hermetic smoke test + doctor warns on a shadowing engine
 - **Bug:** `bash tests/smoke.sh` could fail with the `free` sample classified as
-  `dmsetup-table` (or any other type) on a machine whose `GLEAN_HOME` (e.g.
-  `~/.glean`) contained a stale `extract/envoy-extract`. `_find_engine` resolves
-  `$GLEAN_HOME/extract/…` *before* the bundled engine, so an old copy there
+  `dmsetup-table` (or any other type) on a machine whose `PROVOST_HOME` (e.g.
+  `~/.provost`) contained a stale `extract/envoy-extract`. `_find_engine` resolves
+  `$PROVOST_HOME/extract/…` *before* the bundled engine, so an old copy there
   silently shadows the repo's engine — and the smoke test, which only set
-  `GLEAN_WORKSPACE`, inherited it. (PR CI was green; this only bit local runs.)
-- **Fix:** `tests/smoke.sh` is now hermetic — it clears every `GLEAN_*` knob the
-  caller's shell may carry (`GLEAN_HOME`, `GLEAN_MIN_CONFIDENCE`,
-  `GLEAN_RECONCILE_OVERLAP`, `GLEAN_QUIET`, `GLEAN_MAX_INPUT`) so it always
+  `PROVOST_WORKSPACE`, inherited it. (PR CI was green; this only bit local runs.)
+- **Fix:** `tests/smoke.sh` is now hermetic — it clears every `PROVOST_*` knob the
+  caller's shell may carry (`PROVOST_HOME`, `PROVOST_MIN_CONFIDENCE`,
+  `PROVOST_RECONCILE_OVERLAP`, `PROVOST_QUIET`, `PROVOST_MAX_INPUT`) so it always
   exercises the bundled trees.
-- **Diagnostic:** `glean doctor` now warns when the resolved extract engine is a
-  `GLEAN_HOME` override rather than the bundled one, and points at the bundled
+- **Diagnostic:** `provost doctor` now warns when the resolved extract engine is a
+  `PROVOST_HOME` override rather than the bundled one, and points at the bundled
   path — so a shadowing/stale engine diagnoses itself.
-- Files: `tests/smoke.sh` (unset block), `glean` (`cmd_doctor` warning).
+- Files: `tests/smoke.sh` (unset block), `provost` (`cmd_doctor` warning).
 
-## 2026-07-07 — `glean rm` deletes datasets (provenance-aware, committed)
-- New verb `glean rm [-f|--yes] [--purge] <dataset>...` (aliases `delete`/`drop`).
+## 2026-07-07 — `provost rm` deletes datasets (provenance-aware, committed)
+- New verb `provost rm [-f|--yes] [--purge] <dataset>...` (aliases `delete`/`drop`).
   Previously there was no way to remove a dataset short of hand-deleting files
   from the store. `rm` now:
   - removes each named dataset file (only the named dataset — variants like
     `NAME.v2` are their own datasets, removed by name);
-  - prunes the matching rows from `provenance.tsv` so `glean source #N` no longer
+  - prunes the matching rows from `provenance.tsv` so `provost source #N` no longer
     points at a vanished dataset;
   - with `--purge`, also drops the `captures/<id>/` dirs (and their `capture-<id>`
     tags) that fed the removed dataset(s), identified by each capture's own meta
     `dataset` field;
-  - commits the deletion, so the git history — and `glean log` / `glean restore`
+  - commits the deletion, so the git history — and `provost log` / `provost restore`
     — still reach the pre-deletion state. Row indices (`#N`) are never reused.
   Prompts for confirmation unless `-f`/`--yes`; validates all names up front and
   refuses the whole operation if any is missing.
-- Files: `glean` (new `cmd_rm`; dispatch `rm|delete|drop`; help entry),
+- Files: `provost` (new `cmd_rm`; dispatch `rm|delete|drop`; help entry),
   `tests/smoke.sh` (8 new checks: refuse-missing, delete, file removal,
   provenance prune, sibling rows kept, capture kept without purge, capture
   purged with `--purge`, deletion committed).
 
 ## 2026-07-07 — `show unsorted` / `triage` render decoded raw input
 - The `unsorted` dataset stores each held-back capture as a single base64-encoded
-  `raw` column (so arbitrary bytes survive the TSV). Previously `glean show
-  unsorted` and `glean triage` printed those base64 blobs verbatim — unreadable.
+  `raw` column (so arbitrary bytes survive the TSV). Previously `provost show
+  unsorted` and `provost triage` printed those base64 blobs verbatim — unreadable.
   They now decode each row back to text for display, escaping any embedded
-  tabs/newlines (`\t`/`\n`) so one capture stays one table row. `glean source #N`
+  tabs/newlines (`\t`/`\n`) so one capture stays one table row. `provost source #N`
   is unchanged and remains the way back to the exact original bytes.
-- Files: `glean` (new `_decode_unsorted_tsv` helper; `cmd_show` special-cases the
+- Files: `provost` (new `_decode_unsorted_tsv` helper; `cmd_show` special-cases the
   `unsorted` dataset; `cmd_triage` reuses the decoder), `tests/smoke.sh` (three
   new checks: show/triage decode the raw input and no longer emit the base64 blob).
 
@@ -4331,7 +4364,7 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   `aureport`, `rc-status`, `ssh-keyscan`, `fossil status`, `mix deps`.
   Tool-specific parsers that overlap `json`/`yaml`/`csv`/`key-value` are set to a
   low `## Priority` so their specific detect wins over the structural fallback.
-- **Manifest reconciliations** where glean's canonical long-melt is the honest
+- **Manifest reconciliations** where provost's canonical long-melt is the honest
   tidy shape: the `key/value` snapshot tools `dmsetup info`, `dumpe2fs -h`,
   `hdparm -I`, `tune2fs -l`, `cryptsetup luksDump` use `kv/-/4` (n·key·value·total,
   like `lscpu`); `vmstat -d`/`proc-net-dev` mincols trimmed to the true width.
@@ -4561,7 +4594,7 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
 - Files: `extract/strategies/delimited/aligned-columns.sh`, `tests/corpus/*`.
 
 ## 2026-07-06 — cut the cord to Envoy: extract/analyze/transform/lib are now first-party
-- glean is now a **fully standalone** project with no live tie to Envoy. The
+- provost is now a **fully standalone** project with no live tie to Envoy. The
   `extract/`, `analyze/`, `transform/`, and `lib/` trees — originally imported
   from the Envoy suite — are now maintained here directly as first-party code.
   Extract strategies and engine changes are made in place, without regard to
@@ -4572,11 +4605,11 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   import points are preserved in git history and in this log (extract from
   `EnvoyExtract` @ `81bcb18`, analyze from `EnvoyAnalyze` @ `533bec8`, transform
   from `EnvoyCapture` @ `8639a6ef`).
-- **`glean`:** removed the sibling-Envoy runtime fallbacks — `_find_engine` and
+- **`provost`:** removed the sibling-Envoy runtime fallbacks — `_find_engine` and
   `_find_analyze` no longer walk up looking for `EnvoyExtract/`/`EnvoyAnalyze/` or
   a `command -v envoy-*` on PATH, and `_source_transform` no longer falls back to
   a sibling `EnvoyCapture/lib/_core.sh`. The engines resolve only from this tree
-  (`GLEAN_ROOT/extract`, `/analyze`, `/transform`) with a `GLEAN_HOME` override.
+  (`PROVOST_ROOT/extract`, `/analyze`, `/transform`) with a `PROVOST_HOME` override.
   Reworded the "not found" errors and `doctor` note that pointed at the deleted
   sync scripts to point at the expected in-repo paths.
 - **Docs flipped from "vendored, do not hand-edit" to first-party:** rewrote the
@@ -4587,14 +4620,14 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
 - Historical CHANGELOG and `docs/0001` entries that describe the earlier vendored
   model are left intact (dated record).
 - Verified green: smoke 33/33, transform 8/8, extract suite, analyze suite.
-- Files: `glean`, `transform/melt.sh`, `CLAUDE.md`, `README.md`, `HANDOFF.md`,
+- Files: `provost`, `transform/melt.sh`, `CLAUDE.md`, `README.md`, `HANDOFF.md`,
   `extract/README.md`, `install.sh`, `tests/smoke.sh`; removed `tools/sync-*.sh`,
   `extract/VENDOR.json`, `analyze/VENDOR.json`.
 
 ## 2026-07-06 — drop Phase-5 framing (out of scope for the standalone repo)
 - Phase 5 of proposal 0001 was "retire Envoy" — hard-cut the `Envoy*` trees in
   place in the monorepo. The standalone-repo split (2026-07-05) superseded that:
-  `glean`'s vendored `extract/`/`analyze/`/`transform/`/`lib/` trees are already
+  `provost`'s vendored `extract/`/`analyze/`/`transform/`/`lib/` trees are already
   canonical here, and removing the upstream `Envoy*` trees is now a task in the
   Envoy monorepo, not this repo. Removed the stale "until the Phase-5 hard cut" /
   "retired at the Phase-5 cut" caveats that framed pending in-repo work.
@@ -4602,26 +4635,26 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   section; clarified the vendored trees are canonical here.
 - `docs/0001-rename-and-simplification.md`: marked Phase 5 superseded by the split;
   reworded the Phase-2 re-sync caveat.
-- `glean`, `tools/sync-{extract,analyze,melt}.sh`, `extract/README.md`: reworded
+- `provost`, `tools/sync-{extract,analyze,melt}.sh`, `extract/README.md`: reworded
   engine/transform-locator and sync-script comments to describe the trees as
   canonical and the sync scripts as upstream re-vendoring (not "retired at Phase 5").
 - Regenerated the `note` text in `extract/VENDOR.json` and `analyze/VENDOR.json`
   to match the updated sync scripts.
 - Historical CHANGELOG entries below that mention Phase 5 are left intact (dated
   record). Verified green: smoke 33/33, transform 8/8.
-- Files: `HANDOFF.md`, `docs/0001-rename-and-simplification.md`, `glean`,
+- Files: `HANDOFF.md`, `docs/0001-rename-and-simplification.md`, `provost`,
   `tools/sync-extract.sh`, `tools/sync-analyze.sh`, `tools/sync-melt.sh`,
   `extract/README.md`, `extract/VENDOR.json`, `analyze/VENDOR.json`.
 
-## 2026-07-05 — extracted to standalone repository (glean split from envoy)
-- glean is now its own repository. The self-contained `glean/` tree was extracted
-  from `MartinGallagher-code/envoy` via `git subtree split --prefix=glean` (history
-  preserved: 15 glean commits replayed to repo root) and merged onto the existing
+## 2026-07-05 — extracted to standalone repository (provost split from envoy)
+- provost is now its own repository. The self-contained `provost/` tree was extracted
+  from `MartinGallagher-code/envoy` via `git subtree split --prefix=provost` (history
+  preserved: 15 provost commits replayed to repo root) and merged onto the existing
   repo (LICENSE retained; the stub README replaced by the tree's real README).
 - **Restored the `extract/strategies/build/` directory (16 strategies + HANDOFF).**
   These files were silently dropped when the tree was committed to envoy: envoy's
   root `.gitignore` has a `build/` rule (for Python build artifacts) that matched
-  `glean/extract/strategies/build/`, so the 16 build-tool strategies (`cargo-tree`,
+  `provost/extract/strategies/build/`, so the 16 build-tool strategies (`cargo-tree`,
   `cobertura`, `compiler-diagnostics`, `coverage`, `github-actions`, `go-mod-graph`,
   `gradle-output`, `junit-xml`, `make-stats`, `maven-output`, `npm-list`, `pip-list`,
   `sanitizer`, `test-results`, `test-summary`, `valgrind`) were never tracked even
@@ -4631,14 +4664,14 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   the rest of the vendored tree's goldens. Strategy count is now the recorded 205.
 - **Added a root `VERSION` file (`1.2.1`).** The vendored extract engine resolves
   the canonical suite version by walking up for a `VERSION` file (`lib/envoy_version.sh`);
-  envoy's lived at the repo root, outside `glean/`, so the subtree split left it
+  envoy's lived at the repo root, outside `provost/`, so the subtree split left it
   behind and `--version` reported `0.0.0+unknown`. Restored at the extraction-point
   version so `extract/tests/test_interface.sh` passes.
-- Added a `.gitignore` for the standalone repo (runtime `.glean/` store, backups,
+- Added a `.gitignore` for the standalone repo (runtime `.provost/` store, backups,
   Python cache). Deliberately omits a bare `build/` rule — that pattern is exactly
   what dropped the build strategies upstream.
 - Verified green standalone (no sibling Envoy present): extract 219/219 test files,
-  smoke 33/33, transform 8/8, analyze engine suite 0 failures, `glean doctor` ok.
+  smoke 33/33, transform 8/8, analyze engine suite 0 failures, `provost doctor` ok.
 - Note for future re-syncs: `tools/sync-extract.sh` pointed at an envoy checkout
   will re-copy `strategies/build/` to disk, but envoy's `build/` gitignore rule
   means a plain `git add` there still won't track them — fix envoy's `.gitignore`
@@ -4648,19 +4681,19 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
 ## 2026-07-05 — standalone repo scaffolding: CLAUDE.md + CI workflow
 - Added `CLAUDE.md` (project instructions for the standalone repo: layout, the
   "don't hand-edit vendored trees, re-sync from upstream" rule, doc + testing
-  conventions, mawk-safety + symlink + `GLEAN_*` invariants).
+  conventions, mawk-safety + symlink + `PROVOST_*` invariants).
 - Added `.github/workflows/ci.yml` — inert in the upstream Envoy repo (GitHub
-  only runs root `.github/`), active once glean is its own repo. Jobs: `smoke`
+  only runs root `.github/`), active once provost is its own repo. Jobs: `smoke`
   (tests/smoke.sh), `transform` (transform/tests/test_melt.sh), `extract-suite`
   (extract/tests/run_tests.sh), `analyze-engine` (engine tests on gawk, excluding
   the un-vendored browse/dashboard tests), and `docs` (require the core docs).
-  Paths are glean-root-relative. Validated: YAML parses (5 jobs), docs check
+  Paths are provost-root-relative. Validated: YAML parses (5 jobs), docs check
   passes, the analyze loop runs (only the known mawk-sensitive `test_correctness`
   fails locally — the CI job installs gawk for exactly that).
-- Files: `glean/CLAUDE.md`, `glean/.github/workflows/ci.yml`.
+- Files: `provost/CLAUDE.md`, `provost/.github/workflows/ci.yml`.
 
 ## 2026-07-05 — prep for extraction to a standalone repository (revised Phase 5)
-- Decision: rather than hard-cutting the `Envoy*` trees in place, glean is
+- Decision: rather than hard-cutting the `Envoy*` trees in place, provost is
   extracted into its own repo; Envoy stays intact as upstream. Made the tree
   self-documenting/standalone-ready:
   - Copied the design doc into the tree (`docs/0001-rename-and-simplification.md`)
@@ -4670,57 +4703,57 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
     `extract/`/`analyze/`/`transform/`/`lib/` are canonical; `tools/sync-*.sh`
     require an Envoy checkout via `ENVOY_EXTRACT_SRC`/`ENVOY_ANALYZE_SRC`/
     `ENVOY_CAPTURE_SRC` (they error with that hint otherwise); extraction recipe
-    (`git subtree split --prefix=glean`).
-- Verified: `glean/` copied out of the envoy tree (no sibling `Envoy*`) runs
+    (`git subtree split --prefix=provost`).
+- Verified: `provost/` copied out of the envoy tree (no sibling `Envoy*`) runs
   fully — `doctor` resolves both engines, smoke 33/33, melt unit test 8/8; sync
   scripts fail helpfully standalone and work with the env overrides.
-- Files: `glean/docs/0001-rename-and-simplification.md`, `glean/README.md`,
-  `glean/HANDOFF.md`.
+- Files: `provost/docs/0001-rename-and-simplification.md`, `provost/README.md`,
+  `provost/HANDOFF.md`.
 
 ## 2026-07-05 — Phase 4: user-facing surface (README, completion, man, installer)
-- Added the glean-native rename-plane deliverables: `README.md` (one-tool story +
-  command/env reference), `completions/glean.bash` (verb + dataset/capture/path
-  completion), `man/glean.1` (renders clean), and `install.sh` (puts `glean` on
+- Added the provost-native rename-plane deliverables: `README.md` (one-tool story +
+  command/env reference), `completions/provost.bash` (verb + dataset/capture/path
+  completion), `man/provost.1` (renders clean), and `install.sh` (puts `provost` on
   PATH + drops the completion and man page; supports `--uninstall`; installs in
   place, nothing copied out of tree).
-- Fixed a symlink-safety bug surfaced by the installer: glean resolved its
+- Fixed a symlink-safety bug surfaced by the installer: provost resolved its
   vendored `extract/`/`analyze/`/`transform/` from `dirname(BASH_SOURCE)`, which
   is the *symlink* path when run via a PATH launcher, so it failed with
   "transform module not found". Now resolves the real script dir once
-  (`GLEAN_ROOT`, readlink-aware) and all three resolvers use it. Verified `glean`
+  (`PROVOST_ROOT`, readlink-aware) and all three resolvers use it. Verified `provost`
   runs correctly via the installed symlink.
-- Confirmed glean's own env surface is entirely `GLEAN_*`. Smoke → 33 checks
+- Confirmed provost's own env surface is entirely `PROVOST_*`. Smoke → 33 checks
   (adds an install+symlink-launcher guard); all pass.
-- Files: `glean/README.md`, `glean/completions/glean.bash`, `glean/man/glean.1`,
-  `glean/install.sh`, `glean/glean`, `glean/tests/smoke.sh`.
+- Files: `provost/README.md`, `provost/completions/provost.bash`, `provost/man/provost.1`,
+  `provost/install.sh`, `provost/provost`, `provost/tests/smoke.sh`.
 
 ## 2026-07-05 — import the melt/transform from source (was hand-copied)
 - The extract-output transform — the tidy melt (`_core_melt_tidy`) plus the
   schema-union helpers (`_core_union_header`, `_core_align_rows`) — is now
   **imported from EnvoyCapture's `lib/_core.sh`** and vendored to
-  `glean/transform/melt.sh` by new `tools/sync-melt.sh`, instead of the earlier
-  hand-copied awk in `glean/glean`. `glean` sources the module and calls the
+  `provost/transform/melt.sh` by new `tools/sync-melt.sh`, instead of the earlier
+  hand-copied awk in `provost/provost`. `provost` sources the module and calls the
   canonical `_core_*` functions; the three hand-written duplicates
   (`_melt_tidy`/`_union_header`/`_align_rows`) are removed (`_col_overlap`, which
-  is glean-specific, stays). A sibling-EnvoyCapture fallback keeps glean working
-  before a sync. Added a transform unit test (`glean/transform/tests/test_melt.sh`,
+  is provost-specific, stays). A sibling-EnvoyCapture fallback keeps provost working
+  before a sync. Added a transform unit test (`provost/transform/tests/test_melt.sh`,
   8 checks) adapted from EnvoyCapture's tidy-melt integration assertions. Smoke
   still 32/32. Version 0.6 → 0.7-proto.
-- Files: `glean/glean`, `glean/transform/melt.sh` (vendored),
-  `glean/transform/tests/test_melt.sh`, `glean/tools/sync-melt.sh`.
+- Files: `provost/provost`, `provost/transform/melt.sh` (vendored),
+  `provost/transform/tests/test_melt.sh`, `provost/tools/sync-melt.sh`.
 
 ## 2026-07-05 — re-vendor extract engine: +3 everyday-command strategies
-- Re-synced `glean/extract/` from upstream after adding `df`, `ps-aux`, and
-  `mount` strategies (catalog 202 → 205). glean now auto-detects these common
+- Re-synced `provost/extract/` from upstream after adding `df`, `ps-aux`, and
+  `mount` strategies (catalog 202 → 205). provost now auto-detects these common
   inputs: `df -h` (previously `unsorted` at conf 30 → now `df` at 92), `ps aux`
   (`ps-aux`, 90), and `mount` (90) — each producing a tidy one-row-per-record
-  dataset with `#N` provenance. Verified end-to-end via `glean run`.
-- Files: `glean/extract/**` (re-vendored), `glean/extract/VENDOR.json`.
+  dataset with `#N` provenance. Verified end-to-end via `provost run`.
+- Files: `provost/extract/**` (re-vendored), `provost/extract/VENDOR.json`.
 
 ## 2026-07-05 — schema reconciliation (union columns vs the .v2 split)
 - `_store_append` now reconciles a same-typed capture whose column set differs
   from the existing dataset instead of always splitting to a variant. If the
-  column overlap (Jaccard) ≥ `GLEAN_RECONCILE_OVERLAP` (default 60%), the two are
+  column overlap (Jaccard) ≥ `PROVOST_RECONCILE_OVERLAP` (default 60%), the two are
   **unioned**: the dataset's header grows to the union of columns, existing rows
   are blank-filled for new columns, and incoming rows are blank-filled for
   missing ones — so same-typed rows (and their `#N` indices) stay in one table
@@ -4729,16 +4762,16 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   `_align_rows`. Verified both branches (default unions the trimmed `free`;
   threshold 99 forces the `.v2` split). Smoke → 32 checks; all pass. Version
   0.5 → 0.6-proto.
-- Files: `glean/glean`, `glean/tests/smoke.sh`.
+- Files: `provost/provost`, `provost/tests/smoke.sh`.
 
-## 2026-07-05 — stats: vendor the analyze engine, wire `glean stats`
-- Vendored the analyze engine from `EnvoyAnalyze/` into `glean/analyze/` (entry
+## 2026-07-05 — stats: vendor the analyze engine, wire `provost stats`
+- Vendored the analyze engine from `EnvoyAnalyze/` into `provost/analyze/` (entry
   point + `lib/` + `profiles/` + tests + samples) via new
-  `glean/tools/sync-analyze.sh`; it reuses the already-vendored shared libs at
-  `glean/lib/` (same `../lib` mechanism as the extract engine). The big
+  `provost/tools/sync-analyze.sh`; it reuses the already-vendored shared libs at
+  `provost/lib/` (same `../lib` mechanism as the extract engine). The big
   `pipeline/` dir and the `browse`/`dashboard` tools are intentionally NOT
-  vendored — glean only needs the analyze engine.
-- New `glean stats <dataset> [analyze-args...]` runs the vendored engine over a
+  vendored — provost only needs the analyze engine.
+- New `provost stats <dataset> [analyze-args...]` runs the vendored engine over a
   dataset's TSV (default = key findings; pass `--all`, a numbered analysis list,
   `--format json`, etc.). `doctor` now reports the analyze engine and warns if
   `gawk` is absent (this box has `mawk`; core analyses still work).
@@ -4749,25 +4782,25 @@ improve real full-mode `glean` but are not reflected in generic goldens — only
   browse-backed tests `test_help_overlay`/`test_mdx`, since those tools aren't
   vendored). The single remaining failure, `test_correctness`, **also fails
   upstream** in this `mawk` environment — an environment issue, not a vendoring
-  regression. `glean stats` itself is verified end-to-end via the smoke test
+  regression. `provost stats` itself is verified end-to-end via the smoke test
   (29 checks; all pass).
-- Files: `glean/analyze/**` (vendored), `glean/tools/sync-analyze.sh`,
-  `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+- Files: `provost/analyze/**` (vendored), `provost/tools/sync-analyze.sh`,
+  `provost/provost`, `provost/tests/smoke.sh`, `provost/HANDOFF.md`.
 - **Remaining:** schema reconciliation (union columns vs the `.v2` variant split).
 
 ## 2026-07-05 — Store model Stages B + C: controlled dirs + export/import
 Completes the git-core directive.
-- **Stage B — controlled directories.** `glean control [<dir>]` marks a directory
-  as its own capture instance (`<dir>/.glean` with a `CONTROLLED` marker).
-  Store resolution now walks up from CWD: `GLEAN_WORKSPACE` override → nearest
+- **Stage B — controlled directories.** `provost control [<dir>]` marks a directory
+  as its own capture instance (`<dir>/.provost` with a `CONTROLLED` marker).
+  Store resolution now walks up from CWD: `PROVOST_WORKSPACE` override → nearest
   controlled dir → global store. Captures run inside a controlled dir (or a
   subdir) route to its instance, and each capture commit **snapshots the
   directory's contents as context** (`context/manifest.tsv`: path/size/mtime/sha1,
-  excluding `.glean`/`.git`). `glean instances` lists controlled dirs (from a
-  registry in the global store); `glean uncontrol` releases one (data kept).
-- **Stage C — export / import.** `glean export [<file>]` bundles the whole store
+  excluding `.provost`/`.git`). `provost instances` lists controlled dirs (from a
+  registry in the global store); `provost uncontrol` releases one (data kept).
+- **Stage C — export / import.** `provost export [<file>]` bundles the whole store
   (all datasets + capture commits + tags) into a portable `git bundle`;
-  `glean import <file> [<dest>]` reconstitutes it elsewhere. Verified: after a
+  `provost import <file> [<dest>]` reconstitutes it elsewhere. Verified: after a
   move, the imported store's datasets, capture log, and per-row `#N → source`
   provenance are all browsable.
 - Fixed a `set -e` escape: the controlled-dir context snapshot in `_ingest` ran
@@ -4775,43 +4808,43 @@ Completes the git-core directive.
   the guard; now wrapped in a subshell.
 - Smoke test → 27 checks (adds control/subdir-routing/context/instances +
   export/import round-trip); all pass. Version 0.4 → 0.5-proto.
-- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`,
-  `glean/CHANGELOG.md`.
+- Files: `provost/provost`, `provost/tests/smoke.sh`, `provost/HANDOFF.md`,
+  `provost/CHANGELOG.md`.
 - **Still deferred:** `stats` (vendor envoy-analyze) and schema reconciliation.
 
 ## 2026-07-04 — Store model Stage A: global store + per-row provenance
 Implements the fuller "git core" directive (row→source traceability, global
 store, multi-user).
-- **Global store by default:** captures go to `$GLEAN_HOME` (or `~/.glean`) so you
-  can capture from any directory without being in a workspace. `GLEAN_WORKSPACE`
+- **Global store by default:** captures go to `$PROVOST_HOME` (or `~/.provost`) so you
+  can capture from any directory without being in a workspace. `PROVOST_WORKSPACE`
   is an explicit override (wins; used by tests). `doctor` reports which store and
   the next row index.
 - **Per-row provenance with a visible `#N` index:** every dataset row gets a
   globally-unique index as its first column (shown by `show`). New
-  `glean source <#N>` maps a row back to the exact captured input that produced
+  `provost source <#N>` maps a row back to the exact captured input that produced
   it (prints the capture meta + stored `output.txt`). Provenance recorded in
   `provenance.tsv` (`#` → dataset → capture); a monotonic counter in
   `.next_row_id`.
 - **Multi-user safe:** a `mkdir`-based store lock (stale-PID break, configurable
-  `GLEAN_LOCK_TIMEOUT`) serialises concurrent writers; `git init` uses
+  `PROVOST_LOCK_TIMEOUT`) serialises concurrent writers; `git init` uses
   double-checked locking so parallel first-writers to a shared store don't race.
   Verified: 8 concurrent captures into a fresh shared store → 8 distinct indices,
   0 duplicates, git fsck clean.
 - `_ingest` now assigns `#N`, writes provenance, and commits under the lock; both
   `run` and pipe-`inject` go through it. Smoke test → 17 checks (adds `#N`,
   `source`, concurrency); all pass. Version 0.3 → 0.4-proto.
-- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+- Files: `provost/provost`, `provost/tests/smoke.sh`, `provost/HANDOFF.md`.
 - **Still pending (proposal Stages B/C + analyze):** controlled directories,
   export/import, `stats`, schema reconciliation.
 
 ## 2026-07-04 — Phase-3: git core — capture-as-commit + restore
 - The workspace is now a **git repo**: every capture is one commit tagged
   `capture-<id>`, replacing the flat-TSV-only store. Added verbs:
-  - `glean run [--] <cmd>` — execute a binary, capture combined stdout+stderr,
+  - `provost run [--] <cmd>` — execute a binary, capture combined stdout+stderr,
     auto-detect + file it, and commit the capture (records `captures/<id>/meta.tsv`
     + `output.txt`).
-  - `glean log` — list captures (id, timestamp, source, strategy, dataset, command).
-  - `glean restore <id|latest>` — check a capture's committed tree back out
+  - `provost log` — list captures (id, timestamp, source, strategy, dataset, command).
+  - `provost restore <id|latest>` — check a capture's committed tree back out
     (detached) to bring that run back up; `latest` returns to `main`.
 - Refactored the extract→classify→melt→store core into a shared `_ingest` used by
   both `run` and pipe-`inject`; both now commit. `doctor` reports git-backed.
@@ -4821,7 +4854,7 @@ store, multi-user).
 - Smoke test extended to 11 checks incl. run→log→restore→restore-latest; all pass.
 - Still deferred to Phase-3 cont.: `stats` (vendor envoy-analyze) and schema
   reconciliation (union columns vs `.v2` split).
-- Files: `glean/glean`, `glean/tests/smoke.sh`, `glean/HANDOFF.md`.
+- Files: `provost/provost`, `provost/tests/smoke.sh`, `provost/HANDOFF.md`.
 
 ## 2026-07-04 — Phase-2 fix: relayout to extract/ + lib/, vendor missing deps
 - The first Phase-2 vendor (below) under-copied: the cross-suite shared libs
@@ -4830,45 +4863,45 @@ store, multi-user).
   `new_strategy.sh`/`review_strategy.sh`) — all green upstream but failing
   vendored. Also, nesting the engine at `lib/extract/` put its `../lib` at the
   confusing `lib/lib`.
-- Fix: moved the vendored engine to `glean/extract/` and the shared libs to
-  `glean/lib/` (the engine's `../lib`), mirroring the upstream engine-dir +
+- Fix: moved the vendored engine to `provost/extract/` and the shared libs to
+  `provost/lib/` (the engine's `../lib`), mirroring the upstream engine-dir +
   sibling-`lib/` layout so the suite resolves paths unchanged. `sync-extract.sh`
   now also vendors `tools/` and the repo-root `lib/*.sh`. All 4 previously-failing
-  files pass in the new location (21/21, 8/8, 13/13, 21/21). `glean` `_find_engine`
+  files pass in the new location (21/21, 8/8, 13/13, 21/21). `provost` `_find_engine`
   updated to `extract/envoy-extract`. **Full vendored suite now genuinely green:
   216/216 test files passed, 1103 assertions, 0 failed (exit 0)** — correcting an
   earlier premature "green" claim that was based on a partial run (the full run
   had in fact exited 1 with the 13 failures above).
-- Files: `glean/extract/**` (relocated + `tools/`), `glean/lib/*.sh` (shared),
-  `glean/tools/sync-extract.sh`, `glean/extract/README.md`, `glean/glean`,
-  `glean/HANDOFF.md`.
+- Files: `provost/extract/**` (relocated + `tools/`), `provost/lib/*.sh` (shared),
+  `provost/tools/sync-extract.sh`, `provost/extract/README.md`, `provost/provost`,
+  `provost/HANDOFF.md`.
 
 ## 2026-07-04 — Phase-2: vendor the extract engine into lib/extract/
 - Vendored the full extract engine (entry point + `lib/` + all 202 strategies +
-  tests + samples; ~1,145 files) from `EnvoyExtract/` into `glean/lib/extract/`
+  tests + samples; ~1,145 files) from `EnvoyExtract/` into `provost/lib/extract/`
   so the tree is self-contained and runnable without the sibling project.
 - Added `tools/sync-extract.sh` — refreshes the vendored copy from `EnvoyExtract/`
   (source of truth until the Phase-5 hard cut) and writes `lib/extract/VENDOR.json`
   (source git SHA, timestamp, component list, strategy/file counts) so drift is
   visible. Supports `--runtime-only`. Added `lib/extract/README.md` (do-not-edit +
   how-to-sync note).
-- `glean` `_find_engine` now resolves the vendored copy first; the
+- `provost` `_find_engine` now resolves the vendored copy first; the
   sibling-`EnvoyExtract/` walk-up is demoted to a transition fallback.
 - Confirmed the strategy/engine suite passes in the new location
-  (`bash glean/lib/extract/tests/run_tests.sh`) and `glean/tests/smoke.sh` still
+  (`bash provost/lib/extract/tests/run_tests.sh`) and `provost/tests/smoke.sh` still
   passes against the vendored engine.
-- Files: `glean/lib/extract/**` (vendored), `glean/tools/sync-extract.sh`,
-  `glean/lib/extract/README.md`, `glean/glean`, `glean/HANDOFF.md`.
+- Files: `provost/lib/extract/**` (vendored), `provost/tools/sync-extract.sh`,
+  `provost/lib/extract/README.md`, `provost/provost`, `provost/HANDOFF.md`.
 
 ## 2026-07-04 — Phase-1 prototype
-- New `glean/` tree (proposal 0001): single-binary `glean` implementing the
-  product's one path — `cmd | glean` auto-detects format via the real extract
+- New `provost/` tree (proposal 0001): single-binary `provost` implementing the
+  product's one path — `cmd | provost` auto-detects format via the real extract
   engine (`--emit-meta`, all 198 strategies), melts to one row per record, and
   files it into a per-type dataset. Verbs: default inject, `ls`, `show`,
   `triage`, `doctor`, `help`.
-- Minimal flat-TSV store under `$GLEAN_WORKSPACE` (default `./.glean`); differing
+- Minimal flat-TSV store under `$PROVOST_WORKSPACE` (default `./.provost`); differing
   headers split to numbered variants (git store + schema reconciliation deferred
   to Phase 3). Engine resolved via sibling `EnvoyExtract/` fallback until Phase 2
-  copies it under `glean/lib/extract/`.
-- Files: `glean/glean`, `glean/HANDOFF.md`, `glean/CHANGELOG.md`,
-  `glean/tests/smoke.sh`.
+  copies it under `provost/lib/extract/`.
+- Files: `provost/provost`, `provost/HANDOFF.md`, `provost/CHANGELOG.md`,
+  `provost/tests/smoke.sh`.

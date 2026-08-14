@@ -1,7 +1,7 @@
 # Confidence set: 100 LEAST-risky entries (risk 0 in the structural
 # pre-screen AND golden-covered), strided alphabetically across the corpus,
 # excluding everything already validated or marked in rounds 1-3/8-13.
-# Sent as glean_corpus_least_risky_100.docx for a confirm-these-are-fine pass.
+# Sent as provost_corpus_least_risky_100.docx for a confirm-these-are-fine pass.
 # On the reviewer's OK, these names are appended to
 # docs/review-validated-cumulative.txt (marked reviewed).
 #

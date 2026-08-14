@@ -27,7 +27,7 @@ done
 # shellcheck source=/dev/null
 source "$ROOT/transform/melt.sh"
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/glean-benchjson.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/provost-benchjson.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 _json_str () {

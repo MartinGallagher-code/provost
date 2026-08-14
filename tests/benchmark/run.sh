@@ -5,7 +5,7 @@
 ## Every input under inputs/ is a tool output the engine has NEVER been tuned
 ## against — no hint row, no strategy, no golden. The corpus under
 ## tests/corpus/ measures regression; this measures generalisation, which is a
-## different and harsher question: what happens the first time glean meets an
+## different and harsher question: what happens the first time provost meets an
 ## output nobody wrote a parser for?
 ##
 ## There is deliberately no pass/fail gate here. A gate would invite fitting
@@ -19,7 +19,7 @@
 ##   bash tests/benchmark/run.sh [outdir]      # default: a fresh mktemp dir
 ##
 ## Writes, per input NAME:
-##   NAME.def     default single-dataset extract (what `glean` does bare)
+##   NAME.def     default single-dataset extract (what `provost` does bare)
 ##   NAME.meta    the strategy that claimed it, and its confidence
 ##   NAME.multi   the --multi segmentation
 ################################################################################

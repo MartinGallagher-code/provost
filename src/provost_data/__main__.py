@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-3.0-only
 
-"""Make ``python -m glean_data`` behave like the ``glean`` command."""
+"""Make ``python -m provost_data`` behave like the ``provost`` command."""
 
 import sys
 
-from glean_data import main
+from provost_data import main
 
 if __name__ == "__main__":
     sys.exit(main())

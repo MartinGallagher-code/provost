@@ -662,7 +662,7 @@ run_output_mode () {
 # followed by that group's fields in the -f format. Groups whose extraction
 # yields nothing are skipped. Errors/logging stay on stderr as usual.
 #
-# NOT wired into the glean capture pipeline: a capture stores ONE dataset by
+# NOT wired into the provost capture pipeline: a capture stores ONE dataset by
 # invariant (meta.tsv, captures/<id>/). Adopting multi-dataset captures is a
 # deliberate follow-up (see docs/0003-multi-dataset.md).
 # ---------------------------------------------------------------------------

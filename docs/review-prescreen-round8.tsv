@@ -983,7 +983,7 @@ git-tag	looks-fine	good	1	n / A / total_entries
 git-tag-list	looks-fine	good	1	n / A / total_entries
 git-version-verbose	looks-fine	good	4	cpu / built_from_commit / sizeof-long / sizeof-size_t
 git-worktree-list	looks-fine	strong	3	n / A / B / C / total_entries
-git-worktree-list-porcelain	looks-fine	good	2	n / worktree / /home/user/glean / total_entries
+git-worktree-list-porcelain	looks-fine	good	2	n / worktree / /home/user/provost / total_entries
 gitconfig-aliases	looks-fine	strong	3	n / section / key / value / total_entries
 gitconfig-multiline	looks-fine	strong	3	n / section / key / value / total_entries
 gitlab-runner-list	looks-fine	strong	4	n / A / B / C / D / total_entries

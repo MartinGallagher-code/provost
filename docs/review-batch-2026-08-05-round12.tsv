@@ -2,7 +2,7 @@
 # pre-screen, ordered most-likely-to-be-wrong first (prescreen.py risk()),
 # drawn from the 2,725 not-yet-reviewed passing entries after excluding the
 # cumulative VALIDATED set and every mark from rounds 1-3 and 8-11.
-# Sent as glean_corpus_review_12_next30.docx. Marks come back as
+# Sent as provost_corpus_review_12_next30.docx. Marks come back as
 # docs/review-marks-<date>-round12.tsv.
 rank	name	risk	why
 1	code-version	5	all columns unnamed (A/B/C); single content column

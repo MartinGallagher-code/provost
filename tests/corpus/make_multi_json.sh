@@ -2,7 +2,7 @@
 # tests/corpus/make_multi_json.sh — build the review workbook's input JSON.
 #
 # Walks the corpus for inputs that split into MORE THAN ONE dataset under
-# `glean --multi`, and emits, for each, the raw input plus every dataset melted
+# `provost --multi`, and emits, for each, the raw input plus every dataset melted
 # to a real table — which is what the workbook renders. The first version of
 # this was a scratch file that shipped strategy NAMES instead of tables,
 # because a per-dataset melt in its own shell timed out; melt.sh is sourced
@@ -46,7 +46,7 @@ done
 # shellcheck source=/dev/null
 source "$ROOT/transform/melt.sh"
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/glean-multijson.XXXXXX")"
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/provost-multijson.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 
 # Prior marks: name -> "verdict<TAB>note", so a re-issue can stamp them.
@@ -82,8 +82,8 @@ sys.stdout.write(json.dumps("".join(out)))'
 }
 
 # --- scan phase: find the inputs that split, in parallel, a batch at a time --
-JOBS="${GLEAN_CORPUS_JOBS:-$(nproc 2>/dev/null || echo 4)}"
-BATCH="${GLEAN_MULTI_BATCH:-300}"
+JOBS="${PROVOST_CORPUS_JOBS:-$(nproc 2>/dev/null || echo 4)}"
+BATCH="${PROVOST_MULTI_BATCH:-300}"
 mkdir -p "$WORK/wide"
 
 _scan_one () {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# glean/transform/melt.sh — the extract-output transform (tidy melt + schema-union
-# helpers). First-party glean code; edit it here.
+# provost/transform/melt.sh — the extract-output transform (tidy melt + schema-union
+# helpers). First-party provost code; edit it here.
 #
 # Functions: _core_melt_tidy, _core_union_header, _core_align_rows.
 # Originally imported from EnvoyCapture/lib/_core.sh

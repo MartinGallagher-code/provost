@@ -6,7 +6,7 @@
 ## Sample: samples/git-worktree-list-porcelain/basic.txt
 
 # Porcelain output is blank-line-separated blocks:
-#   worktree /home/user/glean
+#   worktree /home/user/provost
 #   HEAD a1b2c3d4...
 #   branch refs/heads/main     (or `detached`)
 # One record per worktree block.

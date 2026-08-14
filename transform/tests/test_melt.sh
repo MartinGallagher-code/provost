@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Unit test for the imported transform module (glean/transform/melt.sh):
+# Unit test for the imported transform module (provost/transform/melt.sh):
 # _core_melt_tidy, _core_union_header, _core_align_rows. Mirrors the tidy-melt
 # assertions from EnvoyCapture tests/test_run.sh, exercised directly on the
 # functions rather than through the capture pipeline.

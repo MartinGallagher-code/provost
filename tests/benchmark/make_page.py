@@ -255,10 +255,10 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
 
 <div class="wrap">
 <header class="top">
-  <p class="eyebrow">glean · held-out benchmark · 12–13 august 2026</p>
+  <p class="eyebrow">provost · held-out benchmark · 12–13 august 2026</p>
   <h1>Fifty outputs it had never seen</h1>
   <p class="dek">Tool output with no hint row, no strategy, no golden and no prior
-  review, run through <code>glean</code> in default mode. The corpus measures whether
+  review, run through <code>provost</code> in default mode. The corpus measures whether
   known inputs still work. This measures whether unknown ones ever did.</p>
 </header>
 
@@ -394,7 +394,7 @@ footer{{border-top:1px solid var(--rule);margin-top:52px;padding-top:22px;
 
 <section>
   <h2>All fifty</h2>
-  <p class="h2sub prose">Input on the left, what glean made of it on the right.
+  <p class="h2sub prose">Input on the left, what provost made of it on the right.
   Long inputs and tables are clipped here; the full text is in the review
   document.</p>
   <div class="filter">

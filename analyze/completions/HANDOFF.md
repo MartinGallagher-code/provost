@@ -8,10 +8,10 @@ Bash completion scripts for `envoy-analyze` and `envoy-browse` (per ENV-062). So
 - `envoy-browse.bash` — completion for the interactive browser launcher
 
 ## Install
-Completions are installed automatically when you run `pip install glean-data` and are placed in the bash completion directory. To test interactively:
+Completions are installed automatically when you run `pip install provost-data` and are placed in the bash completion directory. To test interactively:
 
 ```
-source glean/completions/glean.bash
+source provost/completions/provost.bash
 ```
 
 ## Recent Changes
