@@ -1,2 +1,2 @@
-Last_full_backup_date	Number_of_contained_backup_sets	Total_number_of_contained_volumes
-Mon Jul  1 02:00:00 2026	4	88
+line1	Last_full_backup_date	line2	Number_of_contained_backup_sets	Total_number_of_contained_volumes
+Local and Remote metadata are synchronized, no sync needed.	Mon Jul  1 02:00:00 2026	Collection Status	4	88

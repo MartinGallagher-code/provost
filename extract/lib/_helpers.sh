@@ -134,7 +134,10 @@ clean_text () {
         if [[ "$_line" == *":"* ]]; then
             while [[ "$_line" =~ $_date_re ]]; do
                 local _dm="${BASH_REMATCH[0]}"
-                local _dr="${BASH_REMATCH[1]}_${BASH_REMATCH[2]}_${BASH_REMATCH[3]}_${BASH_REMATCH[4]}_${BASH_REMATCH[5]}_${BASH_REMATCH[6]}"
+                # The match includes its LEADING SPACE — the replacement must
+                # keep it, or the underscored date welds onto the preceding
+                # word (`built on: Mon Jan 26 …` became `MonJan_26_…`).
+                local _dr=" ${BASH_REMATCH[1]}_${BASH_REMATCH[2]}_${BASH_REMATCH[3]}_${BASH_REMATCH[4]}_${BASH_REMATCH[5]}_${BASH_REMATCH[6]}"
                 _line="${_line/$_dm/$_dr}"
             done
         fi
@@ -319,6 +322,21 @@ preprocess_input_text () {
     if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342\201\237'* \
           || "$text" == *$'\343\200\200'* ]]; then
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
+    fi
+
+    # Normalise UNICODE RULE LINES to ASCII dashes. tokei and scc draw their
+    # separators with box-drawing horizontals (─ U+2500, ━ U+2501, ═ U+2550),
+    # and every rule-line test downstream keys on `[=-]` — so the header never
+    # applied and the whole table fell through to verbatim lines. Only a line
+    # consisting WHOLLY of these characters (plus whitespace) is rewritten;
+    # a real box frame's corners and junctions (┌ ├ ┼ ┤ …) are different code
+    # points, so bordered tables keep their frames for the box strategies.
+    # LC_ALL=C: the address is a BYTE class (e2/94/95/80/81/90), and the
+    # line-anchored full match means every byte on the line must be one of
+    # them — a corner byte anywhere disqualifies the line. Gated on the lead
+    # sequences being present, a no-op otherwise.
+    if [[ "$text" == *$'\342\224\200'* || "$text" == *$'\342\224\201'* || "$text" == *$'\342\225\220'* ]]; then
+        text="$(printf '%s' "$text" | LC_ALL=C sed $'/^[ \t]*[\342\224\225\200\201\220 \t]\\{1,\\}$/ { s/\342\224\200/-/g; s/\342\224\201/-/g; s/\342\225\220/-/g; }')"
     fi
 
     # Delete ZERO-WIDTH SPACE (U+200B) — invisible in the terminal, so it can only

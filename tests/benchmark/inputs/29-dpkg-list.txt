@@ -1,0 +1,18 @@
+Desired=Unknown/Install/Remove/Purge/Hold
+| Status=Not/Inst/Conf-files/Unpacked/halF-conf/Half-inst/trig-aWait/Trig-pend
+|/ Err?=(none)/Reinst-required (Status,Err: uppercase=bad)
+||/ Name                                 Version                               Architecture Description
++++-====================================-=====================================-============-================================================================================
+ii  adduser                              3.137ubuntu1                          all          add and remove users and groups
+ii  adwaita-icon-theme                   46.0-1                                all          default icon theme of GNOME
+ii  age                                  1.1.1-1ubuntu0.24.04.3                amd64        simple, modern and secure encryption tool
+ii  apt                                  2.8.3                                 amd64        commandline package manager
+ii  apt-transport-https                  2.8.3                                 all          transitional package for https support
+ii  at-spi2-common                       2.52.0-1build1                        all          Assistive Technology Service Provider Interface (common files)
+ii  autoconf                             2.71-3                                all          automatic configure script builder
+ii  automake                             1:1.16.5-1.3ubuntu1                   all          Tool for generating GNU Standards-compliant Makefiles
+ii  autotools-dev                        20220109.1                            all          Update infrastructure for config.{guess,sub} files
+ii  base-files                           13ubuntu10.4                          amd64        Debian base system miscellaneous files
+ii  base-passwd                          3.6.3build1                           amd64        Debian base system master password and group files
+ii  bash                                 5.2.21-2ubuntu4                       amd64        GNU Bourne Again SHell
+ii  bc                                   1.07.1-3ubuntu4                       amd64        GNU bc arbitrary precision calculator language

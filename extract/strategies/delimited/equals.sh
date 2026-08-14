@@ -138,8 +138,14 @@ strategy_extract () {
         while [[ "$value" == " "* ]]; do value="${value# }"; done
         while [[ "$value" == *" " ]]; do value="${value% }"; done
 
-        # Skip if value is empty
-        [[ -z "$value" ]] && continue
+        # An EMPTY value is still a statement: `locale` prints `LANG=` for a
+        # variable that is set-but-empty, and dropping the line makes that
+        # indistinguishable from the variable not existing at all — the three
+        # lines a reader most wants to check were the three that vanished.
+        # The field stream cannot hold a valueless line (the melt would read
+        # the next line as this one's value), so emptiness is written as `""`,
+        # the same spelling `go env` itself uses.
+        [[ -z "$value" ]] && value='""'
 
         result+="${key} ${value}"$'\n'
     done <<< "$text"

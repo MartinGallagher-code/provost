@@ -1,0 +1,40 @@
+commit cca2d5fd9620aeafb098c0f86b77bc1e647bae5e
+Author: Claude <noreply@anthropic.com>
+Date:   Wed Aug 12 19:55:32 2026 +0000
+
+    docs: record why the cassandra caption peel was reverted
+    
+    The lost "Latencies waiting in queue" line can be recovered by peeling a
+    single-spaced caption off the top of a block whose next line is column
+    aligned -- and the non-obvious second half is that the caption must be pushed
+    as an explicit text block, because a caption detects as no strategy and
+    grouping's 'a nameless block joins the open group' rule puts it straight back
+    into the table above.
+    
+    Reverted anyway: the rule fires corpus-wide and pre-empts strategies that
+    understand a whole block. clpeak-run lost its section names, undoing today's
+    45%->100% fix, and amdgpu-top's single grouped dataset shattered into three.
+    One mark fixed against two regressions and five unverified changes.
+    
+    It needs to know whether a bespoke strategy already claims the block, which is
+    detection information a boundary rule does not have -- the same root problem
+    as arp-scan.
+    
+    Co-Authored-By: Claude <noreply@anthropic.com>
+    Claude-Session: https://claude.ai/code/session_REDACTED
+
+ HANDOFF.md | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+commit 468e203c1b9c1798b540c01a84acb6f8e269599b
+Author: Claude <noreply@anthropic.com>
+Date:   Tue Aug 11 19:59:35 2026 +0000
+
+    extract: merge on an exact tie only above a confidence floor; parse commented kv
+    
+    Two more round-19/20 marks.
+    
+    btrfs-filesystem-show was losing an EXACT tie -- the same bespoke strategy at
+    the same confidence, 88, reading either the whole input or one filesystem
+    block -- so 'should be one dataset' came out as two. Fewer datasets now wins
+    an exact confidence tie, but only above a floor of 80. Without the floor the

@@ -1,0 +1,4 @@
+n	map	bucket	count	total_entries
+1	usecs	[1]	12	3
+2	usecs	[2, 4)	234	3
+3	usecs	[4, 8)	1024	3

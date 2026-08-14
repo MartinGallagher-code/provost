@@ -1,2 +1,2 @@
-field	value
-Total_time	0.882 [sec]
+line1	line2	Total_time
+# 20 sender and receiver processes per group	# 10 groups == 400 processes run	0.882 [sec]

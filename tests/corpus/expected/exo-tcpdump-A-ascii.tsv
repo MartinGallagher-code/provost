@@ -1,2 +1,2 @@
-Host	User-Agent	Accept	Content-Type	Content-Length	Connection
-example.com	curl/8.5.0	*/*	text/html	1256	keep-alive
+line1	line2	Host	User-Agent	Accept	line3	line4	Content-Type	Content-Length	Connection
+E...4.@.@..............P..q.......6............	GET / HTTP/1.1	example.com	curl/8.5.0	*/*	E..d..@.9..............P........q..............	HTTP/1.1 200 OK	text/html	1256	keep-alive

@@ -1,5 +1,5 @@
 n	pool	alloc	free	read	write
-1	tank	4.20	3.30	5.4	1.2M
-2	data	820	1.20	1.1	256K
-3	backup	6.10	900	128	2.4M
-4	rpool	45.2	60.8	64	12K
+1	tank	4.20T	3.30T	5.4M	1.2M
+2	data	820G	1.20T	1.1M	256K
+3	backup	6.10T	900G	128K	2.4M
+4	rpool	45.2G	60.8G	64K	12K

@@ -1,2 +1,15 @@
-n	3.19.1_(9b53102964)	#_OS	mail_location_=_maildir
-2	/etc/dovecot/dovecot.conf	Linux 6.1.0-18-amd64 x86_64 Debian 12	~/Maildir
+n	A	B	C	total_entries
+1	2.3.19.1	(9b53102964):	/etc/dovecot/dovecot.conf	14
+2	mail_location	=	maildir:~/Maildir	14
+3	mail_privileged_group	=	mail	14
+4	managesieve_notify_capability	=	mailto	14
+5	namespace	inbox	{	14
+6	inbox	=	yes	14
+7	location	=		14
+8	}			14
+9	passdb	{		14
+10	driver	=	pam	14
+11	}			14
+12	protocols	=	imap_pop3_lmtp_sieve	14
+13	ssl	=	required	14
+14	ssl_cert	=	</etc/dovecot/private/dovecot.pem	14

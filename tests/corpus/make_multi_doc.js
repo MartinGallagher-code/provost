@@ -2,7 +2,19 @@ const fs = require('fs');
 const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
         WidthType, ShadingType, HeadingLevel, PageBreak } = require('docx');
 const IN = process.argv[2], OUT = process.argv[3];
-const entries = JSON.parse(fs.readFileSync(IN, 'utf8'));
+// C0 CONTROL BYTES MUST NOT REACH THE XML. They are legal in JSON as ,
+// and .docx is a zip of XML — but XML 1.0 forbids them outright, escaped or
+// not, so ONE ANSI colour code anywhere in a raw corpus input produces a file
+// Word silently refuses to open. That shipped once. The builder rewrites them
+// to caret notation, and this repeats the guard at the point of XML generation
+// so no hand-made or older JSON can reintroduce it.
+const scrub = (s) => s.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,
+  (c) => c === '\x7f' ? '^?' : '^' + String.fromCharCode(c.charCodeAt(0) + 64));
+const deepScrub = (x) => typeof x === 'string' ? scrub(x)
+  : Array.isArray(x) ? x.map(deepScrub)
+  : (x && typeof x === 'object') ? Object.fromEntries(Object.entries(x).map(([k, v]) => [k, deepScrub(v)]))
+  : x;
+const entries = deepScrub(JSON.parse(fs.readFileSync(IN, 'utf8')));
 const MONO = 'Courier New', CONTENT_W = 9026;
 const mono = (t) => new Paragraph({ spacing:{before:0,after:0},
   children:[new TextRun({ text: t===''?' ':t, font:MONO, size:14 })] });
@@ -41,7 +53,10 @@ for (const e of entries) {
       children:[new TextRun({ text:`${e.rank}. ${e.name}`, bold:true, size:24 })] }),
     new Paragraph({ spacing:{after:80},
       children:[new TextRun({ text:`splits into ${e.n} datasets`, size:18, color:'8A5A00' }),
-        ...(e.prior ? [new TextRun({ text:`   ·   you already marked this: ${e.prior==='agree'?'AGREE':'DISAGREE'}${e.priornote?' — '+e.priornote:''}`, size:18, color:'B03060', bold:true })] : [])] }),
+        // Show the verdict AS GIVEN: collapsing everything that is not `agree`
+        // to DISAGREE loses the FormatOff/Horrible distinction, which is the
+        // whole point of having three verdicts.
+        ...(e.prior ? [new TextRun({ text:`   ·   you already marked this: ${String(e.prior).toUpperCase()}${e.priornote?' — '+e.priornote:''}`, size:18, color:'B03060', bold:true })] : [])] }),
     label('INPUT (raw)'));
   for (const l of e.input) children.push(mono(l));
   e.datasets.forEach((d,i) => {

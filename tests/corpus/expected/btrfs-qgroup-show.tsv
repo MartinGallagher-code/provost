@@ -1,5 +1,5 @@
-n	qgroupid	rfer	excl
-1	0/5	0KiB	0KiB
-2	0/256	4TiB	.1GiB
-3	0/257	.4Gi	2GiB
-4	0/258	44Gi	44GiB
+n	qgroupid	rfer
+1	0/5          16.00KiB	16.00KiB
+2	0/256         1.44TiB	642.1GiB
+3	0/257         318.4GiB	91.2GiB
+4	0/258         12.44GiB	12.44GiB

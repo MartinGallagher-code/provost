@@ -44,10 +44,17 @@ _score_parse () {
     _SCORE=$(awk -v nds="$_nds" '
         # Trim leading/trailing non-alphanumerics; keep the core token so
         # `03/01/2024,` and `03/01/2024` compare equal.
+        #
+        # CASE-FOLDED, because a parser that normalises a column name is not
+        # losing it: bq-ls reads the header `tableId Type` and emits `tableid`
+        # and `type`, and comparing case-sensitively scored that as two tokens
+        # DROPPED — enough to put the correct whole-input parse (8333) below a
+        # split that shredded the table (9545). The question the measure asks
+        # is "did this token survive", and case is not part of that.
         function norm(s) {
             gsub(/^[^A-Za-z0-9]+/, "", s)
             gsub(/[^A-Za-z0-9]+$/, "", s)
-            return s
+            return tolower(s)
         }
         function significant(t) { return (t != "" && t ~ /[A-Za-z0-9]/) }
         # Split on underscore as well as whitespace: the engine encodes a space
@@ -95,6 +102,17 @@ _score_parse () {
             }
 
             # -- tidiness defects, one charge per cell --
+            # A VERBATIM cell is exempt. A `text` dataset is prose the engine
+            # deliberately did not parse, so charging it for holding a colon or
+            # a double space punishes precisely the decision we want: atlantis
+            # keeps `Plan: 2 to add, 0 to change, 0 to destroy.` intact and was
+            # docked for it, which put the correct split (7857) below a whole
+            # parse (10000) that shredded the same sentence into one column per
+            # word — and shredding, the score cannot see at all.
+            vname = fname
+            sub(/^d[0-9]+_/, "", vname)
+            sub(/^entry[0-9]+\./, "", vname)
+            verbatim = (vname == "text")
             bad = 0
             # (a) an unsplit column boundary: `a   b` still inside one cell
             if (val ~ /[^ ]  +[^ ]/) bad = 1
@@ -105,6 +123,15 @@ _score_parse () {
             # (c) a `key: value` pair left sitting inside one cell (not a bare
             #     time `12:30` and not a `scheme://` URL)
             if (val ~ /^[^ ].*: [^ ]/ && val !~ /^[0-9][0-9]?:[0-9][0-9]/ && val !~ /:\/\//) bad = 1
+            # (d) a cell that is nothing but a DELIMITER. `|` between two
+            #     columns is punctuation, and a parse that emits it as its own
+            #     cell has read the frame as data — the reviewer, on eleven AWS
+            #     `table` outputs at once: "the pipes are delimiters, and should
+            #     not appear in the output". Without this the shredded parse of
+            #     an ASCII box outscores the clean one, because the frame lines
+            #     it keeps count as recovered content.
+            if (val ~ /^[|]+$/) bad = 1
+            if (verbatim) bad = 0
             if (bad) nbad++
 
             n = split(val, b, /[ \t_]+/)
@@ -123,7 +150,7 @@ _score_parse () {
             nm = fname
             sub(/^d[0-9]+_/, "", nm)
             sub(/^entry[0-9]+\./, "", nm)
-            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm !~ /^[A-Z][A-Z]?$/) {
+            if (nm !~ /^line[0-9]+$/ && nm != "total_entries" && nm != "text" && nm !~ /^[A-Z][A-Z]?$/) {
                 n = split(nm, k, /[ \t_.]+/)
                 for (i = 1; i <= n; i++) {
                     t = norm(k[i])

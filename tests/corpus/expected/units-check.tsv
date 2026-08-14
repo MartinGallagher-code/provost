@@ -1,2 +1,2 @@
-You_have	You_want
-5 furlongs	meters
+You_have	You_want	line1	line2
+5 furlongs	meters	* 1005.84	/ 0.00099419

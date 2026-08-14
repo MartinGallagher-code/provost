@@ -1,0 +1,5 @@
+Total:   17 GiB
+Used:    7.444 GiB
+Free:    1.315 GiB
+Trashed: 100.000 MiB
+Other:   8.241 GiB

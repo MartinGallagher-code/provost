@@ -1,6 +1,6 @@
 n	Key	Value
-1	acc	a1b2c3d4
-2	dis	token
-3	pol	[default web-read]
+1	accessor	a1b2c3d4
+2	display_name	token
+3	policies	[default web-read]
 4	ttl	767h59m
-5	ren	true
+5	renewable	true

@@ -1,2 +1,2 @@
-Constant	Algorithm	Decimal_Digits	Total_Computation_Time	CPU_Utilization	Multi-core_Efficiency
-Pi	Chudnovsky (1988)	1,000,000,000	88.201 seconds	788.44 %	98.55 %
+line1	Constant	Algorithm	Decimal_Digits	Total_Computation_Time	CPU_Utilization	Multi-core_Efficiency
+y-cruncher v0.8.3 Build 9541	Pi	Chudnovsky (1988)	1,000,000,000	88.201 seconds	788.44 %	98.55 %

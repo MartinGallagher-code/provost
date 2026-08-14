@@ -1,4 +1,4 @@
-n	Filesystem	Type	Inodes	IUsed	IFree	IUse%	1K-blocks	Used	Avail	Use%	File	Mounted	total_entries
+n	Filesystem	Type	Inodes	IUsed	IFree	IUse%	1K-blocks	Used	Avail	Use%	File	Mounted_on	total_entries
 1	/dev/sda2	ext4	6553600	284102	6269498	5%	51475068	8934200	39918884	19%	-	/	5
 2	/dev/sda1	vfat	0	0	0	-	523248	5824	517424	2%	-	/boot/efi	5
 3	/dev/sdb1	xfs	10485760	120340	10365420	2%	209612800	84000000	125612800	41%	-	/srv/data	5

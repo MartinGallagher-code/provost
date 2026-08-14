@@ -427,7 +427,11 @@ _run_hint_strategy () {
     _STRATEGY_CONFIDENCE=95
     _STRATEGY_REPORT_NAME="$_HINT_TOOL"
     local _had_output_before="$strategies_matched" _rhs_rc=0
+    # A hint row is explicit routing knowledge: the truncation guard must not
+    # second-guess it, or hints stop being usable as an override.
+    _TG_EXEMPT=1
     _extract_and_store "$_HINT_STRATEGY" "${_META_VERSION:-0}" || _rhs_rc=$?
+    _TG_EXEMPT=0
     # No _strat_* helper sweep here: the cached loader re-defines a file's own
     # functions on every load, so helpers cannot go stale — and the old
     # `< <(declare -F)` sweep was a fork per strategy per input.
@@ -605,6 +609,86 @@ _detect_strategy () {
     return 0
 }
 
+# TRUNCATION GUARD. A strategy that detects confidently, claims the whole
+# input, and then emits a fraction of it is the worst failure mode the engine
+# has: the loss is silent, and the held-out benchmark showed it three times in
+# fifty inputs (git log --stat 40 lines in / 3 fields out, java -XshowSettings
+# 24 / 2, apt-cache policy 14 / 4). The parse LOOKS fine — it is just missing
+# most of the input.
+#
+# The tell is cheap to compute and needs no new parsing logic: the parse is
+# much SMALLER than its input, and most input lines left no trace in it. Both
+# conditions matter. Small-but-covering is legitimate (a wide table emits many
+# fields per line, a summary strategy condenses); large-but-partial is the
+# aligned-table norm (headers and rules drop). Only small AND blind is
+# rejected — the claim is withdrawn and the next strategy in priority order
+# gets its turn, exactly as if this one had produced nothing.
+#
+# Hint-routed strategies are exempt (_TG_EXEMPT): a hint row is explicit
+# routing knowledge, and second-guessing it here would make hints unreliable
+# as an override. `-s NAME` is exempt for the same reason.
+#
+# Returns 0 (truncated — reject) only when all gates agree; 1 otherwise.
+_parse_is_truncated () {
+    local _res="$1" _m="$2" _strat="${3:-}"
+    [[ "${_TG_EXEMPT:-0}" -eq 1 ]] && return 1
+    [[ -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && return 1
+    # A structured-grammar parser is AUTHORITATIVE about its own format: JSON
+    # and YAML legitimately compress (a brace/bracket line carries no data,
+    # a nested path folds many lines into one field), and rejecting the only
+    # strategy that understands the format leaves EMPTY output — strictly
+    # worse than anything it could have been protecting against. caddy-adapt
+    # (nested JSON, one leaf) went from parsed to nothing that way.
+    case "$_strat" in
+        json|yaml|xml|toml) return 1 ;;
+    esac
+    # Non-blank input lines, cached per input (reset in run_auto_strategies).
+    if [[ -z "${_TG_NB_LINES:-}" ]]; then
+        _TG_NB_LINES=$(printf '%s\n' "$text" | grep -c '[^ \t]' || true)
+    fi
+    # Too small to call, or the parse is not small relative to the input.
+    [[ "$_TG_NB_LINES" -ge 8 ]] || return 1
+    [[ $((_m * 3)) -lt "$_TG_NB_LINES" ]] || return 1
+    # Line coverage: an input line is COVERED when more than half its tokens
+    # appear somewhere in the parse (names count — a header word promoted to a
+    # column name survived). Tokens compare case-folded with edge punctuation
+    # stripped, split on underscore as well as whitespace because the engine
+    # encodes value-internal spaces as `_` — the same normalisation the parse
+    # scorer uses, for the same symmetry reasons.
+    local _cov
+    _cov=$(awk '
+        function norm(s) {
+            gsub(/^[^A-Za-z0-9]+/, "", s)
+            gsub(/[^A-Za-z0-9]+$/, "", s)
+            return tolower(s)
+        }
+        NR == FNR {
+            # Output side splits on DOTS as well: a folded field name
+            # (`apps.http.servers.srv0`) still vouches for the input lines
+            # that carried each component. The input side keeps dots so a
+            # literal dotted value must survive whole to count.
+            n = split($0, a, /[ \t_.]+/)
+            for (i = 1; i <= n; i++) { t = norm(a[i]); if (t != "") seen[t] = 1 }
+            next
+        }
+        {
+            n = split($0, a, /[ \t_]+/)
+            sig = 0; hit = 0
+            for (i = 1; i <= n; i++) {
+                t = norm(a[i])
+                if (t != "") { sig++; if (t in seen) hit++ }
+            }
+            if (sig == 0) next
+            nl++
+            if (hit * 2 > sig) cov++
+        }
+        END { if (nl == 0) print 100; else printf "%d\n", (cov * 100) / nl }
+    ' <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    [[ "$_cov" =~ ^[0-9]+$ ]] || return 1
+    _TG_LAST_COVERAGE="$_cov"
+    [[ "$_cov" -lt 50 ]]
+}
+
 # Run strategy extraction and store results.
 # Returns: 0 to continue loop, 2 to break (early exit)
 # Modifies globals: output (via store), strategies_matched, matched_strategies,
@@ -627,6 +711,13 @@ _extract_and_store () {
         echo "[profile] Strategy '$strategy_name': ${_prof_elapsed}s" >&2
     fi
     if [[ -n "$result" ]]; then
+        _count_lines "$result"
+        if _parse_is_truncated "$result" "$_LINE_COUNT" "$strategy_name"; then
+            _log_debug "Strategy '$strategy_name': truncation guard rejected claim ($_LINE_COUNT fields from $_TG_NB_LINES lines, ${_TG_LAST_COVERAGE}% line coverage)"
+            [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
+            near_miss_strategies+="${strategy_name}(truncated)"
+            return 0
+        fi
         # A strategy may report a more specific name than its file name — the
         # data-driven `columnar-specs` engine reports the matched TOOL name so
         # each tool keeps its own dataset identity instead of collapsing to
@@ -642,7 +733,7 @@ _extract_and_store () {
         fi
         [[ -n "$matched_strategies" ]] && matched_strategies+=","
         matched_strategies+="${report_name}@${strategy_version:-0}"
-        _count_lines "$result"
+        # _LINE_COUNT still holds this result's count from the guard above.
         total_fields=$((total_fields + _LINE_COUNT))
         _log_debug "Strategy '$strategy_name': extracted $_LINE_COUNT fields"
         if [[ $_OPT_first_match -eq 1 ]]; then
@@ -675,6 +766,10 @@ run_auto_strategies () {
     strategies_tried=0
     strategies_matched=0
     total_fields=0
+    # Truncation-guard per-input cache: the non-blank line count is a property
+    # of THIS input, and batch mode reuses the process across inputs.
+    _TG_NB_LINES=""
+    _TG_LAST_COVERAGE=""
 
     # Collect strategy directories
     local strategy_dirs=("$STRATEGIES_DIR")

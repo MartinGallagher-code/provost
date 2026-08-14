@@ -1,0 +1,4 @@
+Linux vm 6.18.5-fc-v20 #1 SMP PREEMPT_DYNAMIC @0 x86_64 x86_64 x86_64 GNU/Linux
+
+6.18.5-fc-v20
+x86_64

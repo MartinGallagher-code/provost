@@ -47,6 +47,11 @@ _COLUMNAR_SPECS=(
   $'lsmem\tRANGE;REMOVABLE;BLOCK\tRANGE\tws\t-1\t5\trange,size,state,removable,block'
   $'ss-tulnp\tState;Local;Process\tRecv-Q\tws\t5\t5\tstate,recv_q,send_q,local,peer,process@between@users:(("@"\t0'
   $'smartctl-attributes\tATTRIBUTE_NAME;RAW_VALUE;WHEN_FAILED\tATTRIBUTE_NAME\tws\t-1\t10\tid,attribute_name,flag,value,worst,thresh,type,updated,when_failed,raw_value'
+  # `ps -ef f` / `ps ef --forest`: the tree-drawing `\_` prefixes make CMD a
+  # multi-token cell, which pushed the generic parser into a 6-segment split
+  # that welded C/STIME/TTY into one column. The header fixes 8 columns; CMD
+  # absorbs the tree.
+  $'ps-forest\tre:^UID +PID +PPID +C STIME TTY\tC STIME TTY\tws\t7\t8\tuid,pid,ppid,c,stime,tty,stat,time,cmd@rest'
   $'mount\tre:^[^[:space:]]+ on .* type \t-\tws\t-1\t6\tdevice,~on,mount_point,~type,fstype,options@unwrap'
   $'iostat-d\ttps;kB_read/s\tDevice\tws\t-1\t6\tdevice,tps,kb_read_s,kb_wrtn_s,kb_read,kb_wrtn'
   $'rabbitmqctl-list-queues\tListing queues for vhost\tListing queues for vhost\tws\t-1\t3\tname,messages,consumers'
@@ -79,7 +84,7 @@ _COLUMNAR_SPECS=(
   $'git-remote\t(fetch);(push)\t-\tws\t-1\t3\tremote,url,direction@unwrap'
   $'w-sessions\tLOGIN@;JCPU;PCPU;WHAT\tTTY\tws\t-1\t8\tuser,tty,from,login,idle,jcpu,pcpu,what@rest'
   $'dpkg-list\tDesired=Unknown\t+++-\tws\t-1\t5\tstatus,name,version,arch,description@rest'
-  $'tar-listing\tre:^[-dlbcps][-rwxsStT]{9} +[^ ]+/[^ ]+ +[0-9]+ +[0-9]{4}-[0-9]{2}-[0-9]{2} \t-\tws\t-1\t6\tpermissions,owner,size,date,~time,path@rest'
+  $'tar-listing\tre:^[-dlbcps][-rwxsStT]{9} +[^ ]+/[^ ]+ +[0-9]+ +[0-9]{4}-[0-9]{2}-[0-9]{2} \t-\tws\t-1\t6\tpermissions,owner,size,date,time,path@rest'
   $'beegfs\tBeeGFS Storage Targets;TargetID\t=========\tws\t-1\t5\ttarget_id,~node_id,state,capacity,free_space\t0\t^[0-9]\ttarget'
 )
 

@@ -1,5 +1,311 @@
 # glean — Changelog
 
+## 2026-08-13 — "fix it all": the benchmark's nine defect clusters, worked
+
+The 2026-08-12 held-out benchmark scored 23 PASS / 12 PARTIAL / 15 FAIL and
+clustered the 27 defects into nine problems. This round worked them all. The
+benchmark set now re-scores **40 PASS / 9 PARTIAL / 1 FAIL** — and, having
+been tuned against, it is now a REGRESSION set, not a generalisation measure;
+the next generalisation number needs fresh inputs (`tests/benchmark/ratings.tsv`
+says so at the top).
+
+Engine changes, in blast-radius order:
+
+- **Truncation guard** (`extract/lib/_discovery.sh`). A strategy whose parse is
+  much smaller than its input (fields × 3 < non-blank lines) AND blind to most
+  of it (<50% of input lines have >half their tokens survive) loses its claim,
+  exactly as if it had produced nothing; the next strategy in priority order
+  runs. Hint-routed strategies, `-s`, `--replay`, and the structured-grammar
+  parsers (json/yaml/xml/toml — authoritative about their own formats, and
+  legitimately compressive) are exempt. The exemption was learned the hard way:
+  the first cut left caddy-adapt (nested JSON, one leaf value) with EMPTY
+  output. Fixes: git-log-stat 40-lines-in/3-out, java -XshowSettings 24/2,
+  apt-cache policy 14/4 — all now keep everything.
+- **Offset assignment for sparse tables** (`aligned-columns.sh`). When data
+  rows carry fewer tokens than the header names columns, values are assigned by
+  the header's CHARACTER SPANS (max overlap; nearest span for right-aligned
+  numerics; everything past the last header start joins the last column), not
+  by counting tokens. Withdraws unless >=80% of tokens overlap a span AND >=60%
+  land exactly on a span edge — the edge gate is what keeps prose that merely
+  overlaps (deno-lint error lines under a line mistaken for a header) out.
+  Fixes lsblk -f and lsof (values under the right names at last), chrony
+  sources, and the corpus tbl-empty-*/tbl-sparse-* fixtures whose goldens had
+  been ENCODING the collapse defect.
+- **Unicode rule lines normalise to ASCII** (`_helpers.sh` preprocess): a line
+  wholly of ─ ━ ═ becomes a dash rule, so tokei/scc tables parse; corners and
+  junctions are different code points, so real box frames stay for the box
+  strategies.
+- **`colons` keeps colon-less lines** as line<N> instead of dropping them —
+  curl's version banner, gcc's closing version line, openssl's banner. A first
+  colon INSIDE parentheses no longer splits a banner into a 36-char key. Pure
+  rules stay dropped.
+- **`equals` keeps empty values** as `""` — `locale`'s LANG= is set-but-empty,
+  which is a different fact from absent.
+- **`clean_text` date fix**: the replacement now keeps its leading space —
+  `built on: Mon Jan 26 …` no longer welds to `MonJan_26_…`.
+- **`csv` detect ignores weekday commas** (`Mon, 2016-02-15`) — borg-list no
+  longer reads as 2-field CSV split inside its timestamps.
+- **`inline-kv` keeps unlabeled tokens** as letter columns — openssl ciphers
+  keeps each cipher's NAME and TLS version.
+- **`_tech_kv_colon` skips equals-pairs** whose value contains colons — npm's
+  noproxy list no longer manufactures a garbage key.
+- **Trailing prepositions weld into the previous header name** (both the
+  offset path and the tokenized path): `Mounted on` → `Mounted_on`.
+- **`indented-hierarchy` `|`-in-key crash fixed** (three loops): a key holding
+  a literal `|` shattered the path list and crashed an arithmetic test under
+  `set -u`.
+- New strategies: **`uname`** (canonical uname -a field order), **`proc-net-dev`**
+  (/proc/net/dev's fixed 16-counter format, rx_*/tx_* names), **`stat-file`**
+  (stat's multi-kv lines, access_mode/access_time disambiguated); new
+  **`ps-forest`** columnar-specs row (tree-drawing CMD absorbs `\_` prefixes);
+  **`tar-listing` keeps its time column** (was `~time`, dropped); **`ulimit`
+  emits the parenthesised unit**; **nmap/nmap-sn keep** MAC+vendor, Not shown,
+  Service Info, and the done-summary.
+
+What the blast-radius pass itself caught and fixed, second wave:
+
+- The truncation guard's first cut left nested-JSON caddy-adapt EMPTY —
+  hence the structured-grammar exemption above, plus dot-splitting the
+  guard's seen-set so folded field names vouch for their source lines.
+- The offset path claimed multi-word-header tables (doctl's `Spec Name`,
+  nerdctl's `MEM USAGE / LIMIT`, spark's three `Tasks` columns) and shredded
+  the labels — hence the duplicate-name and two-span-token withdrawals.
+- The `|`-in-key crash fix made indented-hierarchy "succeed" with garbage on
+  /proc/net/dev where the crash had been accidentally protective —
+  detection now declines a `|` in the first two lines, deliberately.
+- fixed-width sliced values mid-word when a tool's own separator rule is
+  narrower than its data (heroku-addons) — boundaries are now soft: a column
+  ends at the rule's grid unless a word straddles the cut, in which case it
+  keeps the word and the next column starts after it. heroku now parses
+  better than its old golden, which had kept the rule as a data row.
+
+Corpus goldens: 173 regenerated after triage + spot-checks — the recurring
+finding was goldens that had been faithfully recording DEFECTS
+(tbl-empty-label-col held sizes under LABEL; tbl-sparse-metrics had node4's
+`net 200` under `cpu`; useradd-defaults silently lacked its EXPIRE row;
+conntrack dropped protocol and state from every row; timewarrior's second
+row was shifted three columns left). **Six tools newly reach a tidy golden**
+(bpftrace-histogram, haproxy-vv, lspci-tv, mtr-wide-report, nslookup_mx,
+parted-print-all): 3464 -> 3470 covered. Three manifest rows updated where
+the old shape had counted a `─` rule line as a data row (heroku-addons,
+pscale-branch-list, pscale-database-list). Strategy goldens
+nmap/nmap-sn/ulimit regenerated (additions only). Suites: extract, multi
+17/17, smoke 65/0, melt 10/0 green; corpus gate at 0 failed with ZERO
+deleted goldens.
+
+## 2026-08-12 — a held-out benchmark: 50 inputs the engine has never seen
+
+The corpus answers "did this change break something that used to work". It
+cannot answer the question that decides whether glean is useful: **what happens
+the first time it meets an output nobody wrote a parser for?** Every corpus
+entry has been reviewed, argued over, and in many cases had a hint row or a
+strategy written for it, so the corpus score measures work done, not
+generalisation.
+
+- **New: `tests/benchmark/`** — 50 tool outputs with no hint row, no strategy,
+  no golden, no prior review. 14 from public documentation and sample data
+  (tokei, scc, `rclone about`, `borg list` in both forms, three nmap scans, a
+  decorated ASCII table, a quoted CSV, `/etc/hosts`, an INI file, an ARP table);
+  36 captured live, chosen for shape variety. `run.sh` re-runs them all in
+  default and `--multi` mode; `ratings.tsv` carries the per-input verdict and
+  reason; `make_doc_json.sh` + `make_doc.js` build a markable .docx and
+  `make_page.py` a browsable HTML page.
+- **Deliberately NOT a gate.** A pass/fail gate would invite fitting the engine
+  to these 50 files, and the moment that happens they stop measuring
+  generalisation. Re-run and read the diff.
+- **Result: 23 PASS / 12 PARTIAL / 15 FAIL.** Roughly seven in ten unseen inputs
+  come out usable, three in ten come out wrong — materially worse than the
+  corpus suggests, which is the point of having measured it.
+- **The 27 defects cluster into 9 problems**, four of which account for 15:
+  truncation (4), banner-line dropped (3), box-drawing rules unrecognised (3),
+  detail line dropped (3). Full analysis in
+  `docs/benchmark-2026-08-12-generalisation.md`.
+- **Two named for fixing first.** *Truncation* is silent and catastrophic —
+  `git log --stat` 40 lines in / 3 out, `java -XshowSettings` 24 / 2,
+  `apt-cache policy` 14 / 4 — and would be caught by a check the engine has all
+  the numbers for already: a parse dramatically smaller than its input.
+  *Blank-column collapse* (`lsblk -f`, `lsof`) is the more insidious, because
+  the output looks perfectly tidy while values sit under the wrong names; it
+  needs the header's character offsets rather than a field count.
+- **A third engine limitation, alongside the two the scoring work named.**
+  Nothing measures a parse against the SIZE of its input. That is the cheapest
+  large win available and needs neither of the other two resolved first.
+- `--multi` rescues 3 of the 15 failures and never made one worse.
+
+Also fixed while building this: `--emit-meta` writes its banner to **stderr**,
+not into the field stream. Both new builders read it off stdout at first, which
+silently reported all fifty inputs as parsed by strategy "none".
+
+## 2026-08-11 — two more round-19/20 marks, and a confidence FLOOR on the tie
+
+- **btrfs-filesystem-show is one dataset** ("Should be one dataset"). It was
+  losing an EXACT tie — the same bespoke strategy at the same confidence (88)
+  reading either the whole input or one filesystem block. Fewer datasets now
+  wins an exact confidence tie, but only above a confidence FLOOR of 80: the
+  first cut without the floor merged checkov-summary too, where both halves are
+  generic `colons` at 35 and the summary line and the finding record are
+  genuinely two things. Equal-and-weak means neither parse is understood, and
+  the split's boundaries are still the better evidence. Caught by the
+  blast-radius diff, not by a test.
+- **A commented kv run parses as key/value** (`extract/lib/_dispatch.sh`). A
+  comment run whose every line is `# key: value` is a kv block that happens to
+  be commented out, not prose — `age-keygen` writes its metadata that way, and
+  the reviewer asked for "key/value. Keys = Created, and public key". A run
+  that is NOT uniformly `key: value` still stays verbatim, which is the new
+  negative test.
+- `test_multi_mode.sh` 15 -> 17. Measured over 83 inputs: exactly the two
+  intended changes, nothing else. Corpus gate 3464/0/241 with no deleted
+  goldens, extract 63/63, smoke 65/0, melt 10/0.
+
+Round 19/20 now stands at 26 of 50 marks resolved, 7 that were a workbook
+rendering bug rather than parse faults, and 7 confirmed OK.
+
+## 2026-08-11 — a verbatim cell is exempt from tidiness charges
+
+- **`_score.sh` no longer charges structural defects against a `text` cell.**
+  A `text` dataset is prose the engine deliberately did NOT parse, so docking
+  it for containing a colon or a double space penalises exactly the decision we
+  want: atlantis-status keeps `Plan: 2 to add, 0 to change, 0 to destroy.`
+  intact and was charged for it. Measured across 83 inputs: 0 changed. It earns
+  its place by stopping the scorer fighting the prose fix rather than by moving
+  anything today.
+
+**The prose cluster is NOT fixed, and the attempt was reverted.** Seven marks
+say "should not be separated into columns". Detecting prose from surface
+features — punctuation, spacing, varying token counts — before extraction
+turned R-version's structured parse into three verbatim lines and turned
+atlantis's `dir:`/`workspace:` records into text. That is the
+decide-before-detection mistake this whole scoring architecture exists to
+retire, and it recurred here.
+
+The blocker is that **the score cannot see shredding**: `Ran Plan for 2
+projects:` sliced into five columns `A`..`E` scores a perfect 10000, every
+token present and no defect fired. Until one-word-per-column is measurably
+worse than keeping the sentence, the score will keep choosing it and any
+pre-extraction rule will misfire on inputs that parse well. Three clusters now
+sit behind this same cause — the prose marks, arp-scan, and the ASCII boxes.
+Reweighting coverage against tidiness is the deliberate fix; see HANDOFF.
+
+## 2026-08-11 — the header fold generalises; three more scorer corrections
+
+The round-19/20 marks kept saying the same sentence — "X are headers for what
+is now dataset N" — about bq-ls, cloc-summary, btrfs-qgroup-show,
+ansible-galaxy-collection-list, aureport-login and more. One cause: a RULE LINE
+between a header and its rows reads as a dataset boundary, so the header ends
+up stranded and the table below comes out `A`/`B`/`C`.
+
+- **Candidate 3 folds ANY single-line block**, not just a `#`-commented legend,
+  when the block below holds two or more rows and the field counts agree (the
+  row-ordinal exception still applies). `extract/lib/_dispatch.sh`.
+- **The scorer compares tokens CASE-FOLDED.** bq-ls reads the header `tableId
+  Type` and emits `tableid`/`type`; comparing case-sensitively scored that as
+  two tokens DROPPED, putting the correct whole-input parse at 8333 below a
+  split that shredded the table at 9545. Normalising a column name is not
+  losing it.
+- **An exact tie is broken on CONFIDENCE.** Case-folding created ties at the
+  10000 ceiling, and "a tie keeps the split" then handed apk-info-a to a
+  shredded four-dataset parse. Every strategy reports how sure it was, and a
+  hint-routed match is stronger evidence than a generic fallback: apk-info-a is
+  whole-95 against split-64, while the under-naming legend goes the other way,
+  split-85 against whole-70, which is what stops this rule from resurrecting
+  the mislabelled parse the score cannot see is wrong. A plain "fewer datasets
+  wins" was tried first and did resurrect it — the guard test caught it.
+
+Measured over 83 inputs (every box-table candidate plus every reviewer-ruled
+case): 6 changed, none for the worse. ansible-galaxy-collection-list matches
+the reviewer's note exactly. cmb-comment-color-rows is the one mixed result —
+it stops shredding the leading comment and names its columns, but welds an
+INTERIOR comment line in as a bogus data row, which is now the open issue there.
+
+Corpus gate 3464/0/241 with no deleted goldens, extract 63/63, multi 15/15,
+smoke 65/0, melt 10/0.
+
+## 2026-08-11 — a `text` dataset is one COLUMN, not one column per line
+
+- **`--multi`'s verbatim text datasets emit `entryN.text` rows** instead of
+  flat `lineN` fields (`extract/lib/_dispatch.sh`). Flat scalars melt to an
+  N-column single-row table, so a three-line comment run rendered as three
+  columns headed `line1 line2 line3` and the reviewer saw the NAME where the
+  text should be — marked six separate times ("should have the value, not just
+  line1"). One row per line is how every other dataset melts, and it is the
+  only shape that survives a long run. `test_multi_mode.sh` assertions and
+  `docs/0003-multi-dataset.md` updated to the new shape; `_score.sh` skips
+  `text` alongside `lineN` as an engine-invented name.
+- **The review workbook was hiding the LAST COLUMN of every table**
+  (`tests/corpus/make_multi_json.sh`). `printf '%s' "$row" | while read` drops
+  the final field, because without a terminating newline `read` returns
+  non-zero and the loop body never runs for it. Seven round-20 marks were that
+  bug, not parse faults — each named exactly the hidden column (clpeak's
+  `Clock_frequency`, blackbox-probe's `line2`, four `value` columns, one
+  `File`). They are flagged `phantom=1` in the marks file so nobody acts on
+  them. The eighth "lost" mark, cassandra-nodetool-tpstats, is real.
+- Round-19 and round-20 marks recorded (50 verdicts total across
+  `docs/review-marks-2026-08-11-round19-multi.tsv` and `-round20-multi.tsv`).
+
+## 2026-08-11 — a cell that is only a delimiter is a DEFECT
+
+Round 19's biggest cluster was eleven AWS `table` outputs marked at once, all
+with the same note: *"The pipes are delimiters, and should not appear in the
+output"*, and *"Dataset 1 has the headers for what is now dataset 2"*.
+
+The surprise was that **default mode was already right** — `psql-table` reads
+those boxes cleanly. The whole fault was in `--multi`: the `+---+---+` rules
+are boundary lines, so the box was split apart before any strategy saw it, and
+the shredded result then OUTSCORED the clean one, **9705 to 9333**. The frame
+lines it kept counted as recovered content, and nothing charged the cells that
+were literally just `|`.
+
+- **New tidiness defect in `extract/lib/_score.sh`**: a cell whose whole value
+  is delimiter characters. That is the reviewer's rule stated directly, and it
+  is what the score was missing — the split fell to 7058 and the clean parse
+  won. This is the SECOND time the score has preferred a destructive parse
+  because keeping decoration outweighed wrecking a table (arp-scan was the
+  first), which says coverage-dominates-tidiness is systematically too generous
+  to parses that retain frame junk.
+- Measured over the 46 corpus inputs with that box shape plus every
+  reviewer-ruled `--multi` case, 68 in all: **23 changed, all improvements, no
+  regressions.** The 11 marked AWS tools go from 2 datasets to 1 with real
+  column names and no pipes; 12 more (mysql/mariadb family, incus-list,
+  osqueryi-query, neo4j-cypher-shell, patronictl, triton-model-repository)
+  keep their dataset count but swap `aligned-columns` — which emitted `|` as
+  its own cell and split `10.0.3.10 (eth0)` across two columns — for
+  `psql-table`.
+- **`boxed-table` 1.1** learns the pipe box as well as the space-aligned one:
+  interior pipes are the split when present, a single-cell row is the table's
+  caption (`ListBuckets`), kept in a `table` column. It now detects the pipe
+  box rather than needing a per-tool hint — fenced `|…|` lines, `+---+` rules,
+  at least one interior pipe, which a psql-style table (no fence) does not
+  match. In practice `psql-table` at priority 35 still claims these first, so
+  the strategy is dormant for the AWS family; it matters for boxes psql-table
+  does not take.
+- Round-19 marks recorded in `docs/review-marks-2026-08-11-round19-multi.tsv`:
+  26 verdicts, 14 Horrible, 10 FormatOff, 2 OK.
+- `test_multi_mode.sh` 14 -> 15. Corpus gate 3464/0/241 unchanged (the score
+  runs only under `--multi`, and `psql-table` still claims these boxes first in
+  default mode), extract 63/63, smoke 65/0, melt 10/0.
+
+Still open from round 19: prose being columnised (#3, #4, #9, #11, #12 — "a
+series of line-long statements, not multiple fields"), a header row not applied
+to its table (#6, #13, #15), first-line loss (#7, #10), 7z-benchmark's
+Compressing/Decompressing super-header (#1), and apachebench's missed median
+column (#8).
+
+## 2026-08-11 — the multi-dataset workbook builder is a committed tool
+
+- **New `tests/corpus/make_multi_json.sh`.** Builds the review workbook's input
+  JSON: every corpus input that splits into more than one dataset under
+  `--multi`, with the raw input and each dataset MELTED TO A REAL TABLE. The
+  first version of this was a scratch file that shipped strategy NAMES instead
+  of tables — "that's not very useful, I don't have the output tables" —
+  because a per-dataset melt in its own shell timed out. `transform/melt.sh` is
+  sourced ONCE here and called in-process, which is what makes a full run
+  finish. `--marks` stamps verdicts already given onto the entries, repeatable,
+  so a re-issued workbook never asks for the same mark twice.
+- **`make_multi_doc.js` shows a prior verdict AS GIVEN.** It was collapsing
+  everything that is not `agree` to "DISAGREE", which erased the
+  `FormatOff`/`Horrible` distinction — the whole point of the third verdict the
+  reviewer asked for.
+
 ## 2026-08-10 — the round-18 granularity cluster
 
 Five inputs the reviewer marked for granularity or lost sections. Two of them

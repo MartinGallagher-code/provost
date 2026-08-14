@@ -1,0 +1,14 @@
+Starting Nmap 7.98 ( https://nmap.org ) at 2025-12-04 14:23 AEDT
+Nmap scan report for router.home (192.168.1.1)
+Host is up (0.0012s  latency).
+MAC Address: A4:91:B1:2C:5D:8E  (TP-Link Technologies)
+
+Nmap scan report for 192.168.1.15
+Host is up (0.045s latency).
+MAC Address: B8:27:EB:A3:F2:1C (Raspberry Pi Foundation)
+
+Nmap scan report for 192.168.1.10
+Host is up (0.0045s latency).
+MAC Address: 3C:5A:B4:77:21:9C (Dell Inc.)
+
+Nmap done: 256 IP addresses (3 hosts up) scanned in 3.29 seconds

@@ -1,5 +1,5 @@
-n	Host	cpu	mem	total_entries
-1	node1	45	120	4
-2	node2	78	90	4
-3	node3	30	85	4
-4	node4	200		4
+n	Host	cpu	net	mem	disk	total_entries
+1	node1	45	120			4
+2	node2			78	90	4
+3	node3	30			85	4
+4	node4		200			4

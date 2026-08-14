@@ -1,2 +1,2 @@
-Last_full_backup_date	Connecting_with_backend	Archive_dir	Number_of_contained_backup_sets	Total_number_of_contained_volumes	Chain_start_time	Chain_end_time
-Wed Jul  1 02:00:14 2026	BackendWrapper (LocalBackend)	/home/martin/.cache/duplicity/d41d8cd	5	12	Wed Jul  1 02:00:14 2026	Sun Jul  5 02:00:11 2026
+Last_full_backup_date	line1	Connecting_with_backend	Archive_dir	Number_of_contained_backup_sets	Total_number_of_contained_volumes	Chain_start_time	Chain_end_time
+Wed Jul  1 02:00:14 2026	Collection Status	BackendWrapper (LocalBackend)	/home/martin/.cache/duplicity/d41d8cd	5	12	Wed Jul  1 02:00:14 2026	Sun Jul  5 02:00:11 2026

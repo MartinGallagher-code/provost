@@ -1,2 +1,2 @@
-n	brand_id_=_0x00_(0)	vendor_id	processor_type	family	model	stepping_id	extended_family	extended_model	(family_synth)	(model_synth)	brand_id	process_local_APIC_physical_ID	cpu_count	CLFLUSH_line_size	brand_index	brand
-1	unknown	"GenuineIntel"	primary_processor_(0)	0x6_(6)	0xe_(14)	0xa_(10)	0x0_(0)	0x9_(9)	0x6_(6)	0x9e_(158)	0x00_(0):_unknown	0x0_(0)	0x10_(16)	0x8_(8)	0x0_(0)	"Intel(R)_Core(TM)_i7-8700_CPU_@_3.20GHz"
+n	vendor_id	processor_type	family	model	stepping_id	extended_family	extended_model	(family_synth)	(model_synth)	brand_id	process_local_APIC_physical_ID	cpu_count	CLFLUSH_line_size	brand_index	brand
+1	"GenuineIntel"	primary_processor_(0)	0x6_(6)	0xe_(14)	0xa_(10)	0x0_(0)	0x9_(9)	0x6_(6)	0x9e_(158)	0x00_(0):_unknown	0x0_(0)	0x10_(16)	0x8_(8)	0x0_(0)	"Intel(R)_Core(TM)_i7-8700_CPU_@_3.20GHz"

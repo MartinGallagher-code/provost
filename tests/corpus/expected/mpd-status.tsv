@@ -1,2 +1,2 @@
-volume	[playing]_#4/12_1	bitrate
-70%   repeat: off   random: on	24/3:41 (38%)	320 kbps
+volume	line1	[playing]_#4/12_1	bitrate
+70%   repeat: off   random: on	Artist - Track Title	24/3:41 (38%)	320 kbps

@@ -1,22 +1,27 @@
 entry1.resource core file size
+entry1.unit blocks
 entry1.flag c
 entry1.value 0
 entry2.resource data seg size
+entry2.unit kbytes
 entry2.flag d
 entry2.value unlimited
 entry3.resource scheduling priority
 entry3.flag e
 entry3.value 0
 entry4.resource file size
+entry4.unit blocks
 entry4.flag f
 entry4.value unlimited
 entry5.resource max locked memory
+entry5.unit kbytes
 entry5.flag l
 entry5.value 65536
 entry6.resource open files
 entry6.flag n
 entry6.value 1024
 entry7.resource pipe size
+entry7.unit 512 bytes
 entry7.flag p
 entry7.value 8
 entry8.resource max user processes

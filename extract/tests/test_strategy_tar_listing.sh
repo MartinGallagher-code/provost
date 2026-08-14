@@ -17,6 +17,7 @@ test_tar_listing_basic () {
     assert_contains "$output" "entry1.permissions drwxr-xr-x" "should extract first entry permissions"
     assert_contains "$output" "entry1.owner user/group" "should extract first entry owner"
     assert_contains "$output" "entry2.size 1234" "should extract second entry size"
+    assert_contains "$output" "entry1.time " "should keep the timestamp's time component"
     assert_contains "$output" "entry2.path myproject/README.md" "should extract second entry path"
     assert_contains "$output" "total_entries 7" "should count total entries"
 }

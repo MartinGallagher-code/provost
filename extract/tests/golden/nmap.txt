@@ -1,6 +1,7 @@
 host example.com
 ip 93.184.216.34
 latency 0.023s
+not_shown 997 filtered ports
 port1.port 22/tcp
 port1.state open
 port1.service ssh

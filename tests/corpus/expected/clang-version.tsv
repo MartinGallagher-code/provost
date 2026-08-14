@@ -1,2 +1,2 @@
-Target	Thread_model	InstalledDir
-x86_64-pc-linux-gnu	posix	/usr/bin
+line1	Target	Thread_model	InstalledDir
+Ubuntu clang version 16.0.6 (++20230710042047+7cbf1a259152-1~exp1~20230710162136.105)	x86_64-pc-linux-gnu	posix	/usr/bin

@@ -1,5 +1,45 @@
 # Handoff — glean
 
+## Where we actually stand: the benchmark's nine clusters are WORKED (2026-08-13)
+
+`tests/benchmark/` (50 held-out inputs, rated 23/12/15 on 2026-08-12) drove a
+"fix it all" round. The set now re-scores **40 PASS / 9 PARTIAL / 1 FAIL** —
+but read the caveat in `ratings.tsv`: **these 50 are no longer unseen.** The
+engine was tuned against them, so they now measure regression, not
+generalisation. The next generalisation number needs a fresh 50 nobody has
+parsed. Full defect analysis of the original run:
+`docs/benchmark-2026-08-12-generalisation.md`; what changed:
+CHANGELOG 2026-08-13.
+
+The two big engine mechanisms that round added, and their sharp edges:
+
+1. **Truncation guard** (`_discovery.sh`, `_parse_is_truncated`): a parse
+   much smaller than its input AND blind to most of its lines loses its claim
+   and the next strategy runs. Exempt: hint-routed strategies, `-s`,
+   `--replay`, and json/yaml/xml/toml (structured grammars are authoritative
+   and legitimately compressive — the first cut left nested-JSON caddy-adapt
+   EMPTY, which is the failure mode to keep in mind when touching this).
+2. **Offset assignment** (`aligned-columns.sh`): sparse tables (data rows
+   shorter than the header) assign values by header character spans. It
+   WITHDRAWS unless >=80% token-span overlap and >=60% exact edge alignment;
+   the edge gate is what keeps prose-under-a-fake-header (deno-lint) out.
+   When extending it, re-check deno-lint-summary, chrony-sources, ceph-osd-df
+   (must NOT claim: its multi-word cells belong to seg-split), and the
+   tbl-empty-*/tbl-sparse-* fixtures.
+
+Still open from the benchmark, deliberately:
+- 37 (`###`-decorated table): default mode still shreds the banners; --multi
+  segments it correctly. Fixing default would mean DELETING banner text.
+  The real fix is segmentation-closer-to-default, which is a design decision.
+- 16 (vmstat group header): prefixing unique HDR2 names would rename every
+  vmstat column; reviewer ruled the current shape right. Kept.
+- The ~200 corpus goldens regenerated this round were triaged by census +
+  sampling, not read line-by-line — the recurring find was goldens that had
+  been RECORDING defects (tbl-empty-label-col held sizes under LABEL,
+  useradd-defaults lacked its EXPIRE row, chrony one column left). If the
+  reviewer disagrees with any regenerated golden, the marks workflow catches
+  it next round.
+
 ## Status: **--multi is a scored search over four candidate segmentations** (extract/lib/_score.sh: coverage + tidiness). The candidates are the rule-proposed split, the same split with block-grouping's shape tolerance off, that split with a `#` legend folded in as the following block's header, and the whole input unsplit. The two refinements compete for the split slot and need only TIE; the winner then faces the whole-input veto (vetoed only when whole is >2% better). Coverage now counts field NAMES as well as values — a header word promoted to a column name survived, and not counting it ranked naming a column below dumping the header as prose. All reviewer-ruled cases resolve correctly: kubectl 1, iostat-x 3, proc-slabinfo 1 (legend folds in, columns named), 7z 3, artillery 3, cargo-bench 3, cargo-test-summary 3, atlantis 3; aureport now yields `num/date/time/acct/host/term/exe/success/event`. tests/corpus/coverage.sh ranks the corpus by how much of each input survives its parse (a review SIGNAL, not a gate). Validated 409.
 
 **Test harness was lying and is now fixed** (`extract/tests/helpers.sh`): `run_test` ran each test as `( set -e; "$func" ) || result=$?`, and a command on the left of `||` has `set -e` suppressed for its whole body, so a test whose assertion failed kept running and reported PASS. Assertion failures are now recorded in a file that crosses the subshell boundary; `expect_assert_failure` is the escape hatch for helpers that test helpers. The iostat mis-grouping this release fixes had been failing inside a "passing" test, and **nine further stale expectations** surfaced and were cleared — see CHANGELOG. Treat that as the standing lesson: before this, a green extract suite did not mean what it said.
@@ -7,6 +47,18 @@
 **ASCII-art gutter strip landed** (`extract/lib/_helpers.sh`): cilium-status's hexagon logo is no longer part of its keys. Byte-oriented so the U+00AF glyph is matched exactly; fires on exactly 1 of 3,705 corpus inputs.
 
 **Round 18 is now worked through.** Data loss cleared: biosdecode (9% -> 98%), clpeak-run (45% -> 100%), btrfs-filesystem-show (36% -> 88%), cilium-status, R-sessioninfo, cheat-sheet (was losing one of its two commands), amdgpu-top (was seven verbatim lines). Granularity cleared: apk-info-a (package name factored out of every key), bundle-outdated (all five columns, not three), aureport (named columns). Two new hint-routed strategies: `subject-field-value` (p46) and `super-header-table` (p45).
+
+**Round 19 (26 marks on the fresh workbook) is part-worked.** DONE: the eleven AWS `table` outputs, fixed in the SCORER rather than a parser — default mode was already right and the shredded `--multi` split was simply outscoring it, 9705 to 9333, because nothing charged cells that were only `|`. A delimiter-only cell is now a tidiness defect; 23 of 68 measured inputs improved, none regressed. OPEN, in rough order of cluster size: prose being columnised (#3 R-sessioninfo, #4 R-version, #9 arp-scan, #11 artillery-report, #12 atlantis-status — "a series of line-long statements, not multiple fields"); a header row not applied to its table (#6 ansible-galaxy-collection-list, #13 aureport-login, #15 autocannon-run); first-line loss (#7 ansible-galaxy-list, #10 arping); 7z-benchmark's Compressing/Decompressing super-header (#1); apachebench's missed median column (#8).
+
+**The score has now twice preferred a destructive parse** — arp-scan, and these ASCII boxes — both times because recovering a couple of decoration lines outweighed wrecking a table. Coverage dominating tidiness is systematically too generous to parses that keep frame junk. Reweighting is a better next move than more parsers.
+
+**cassandra-nodetool-tpstats (#41, a genuinely lost line) was attempted and reverted.** The caption `Latencies waiting in queue (micros) per dropped message types` sits in the same block as the table below it, and the table parser takes the NEXT line as its header and drops the caption. Peeling it works — and note the second half of the trick, which is not obvious: a caption detects as no strategy, and grouping's "a nameless block joins the open group" rule puts it straight back into the table above, so it has to be pushed as an explicit `text` block to survive.
+
+It was reverted because the boundary rule fires corpus-wide and PRE-EMPTS strategies that understand a whole block: clpeak-run lost its section names (clpeak-run 95 -> block-records 60, undoing today's 45%->100% fix) and amdgpu-top's single grouped dataset shattered into three. One mark fixed against two regressions, plus five more changes unverified. The rule needs to know whether a bespoke strategy already claims the block, which is detection information a boundary rule does not have — the same root problem as arp-scan. Do NOT retry it as a pre-extraction rule.
+
+**THE PROSE CLUSTER IS BLOCKED, AND ON A KNOWN CAUSE.** Seven marks say "should not be separated into columns" (#3 R-sessioninfo, #4 R-version, #9 arp-scan, #11 artillery-report, #12 atlantis-status, #30 bpftrace, #37 cargo-bench). Detecting prose from SURFACE FEATURES before extraction was tried and reverted: it turned R-version's structured parse into three verbatim lines and atlantis's `dir:`/`workspace:` records into text. That is the decide-before-detection mistake the scoring architecture exists to retire, and it will misfire again on any input that parses well.
+
+The real blocker: **the score cannot see shredding.** `Ran Plan for 2 projects:` sliced into five columns A..E scores a PERFECT 10000 — every token present, no defect fires — so the score picks it over keeping the sentence. Three separate clusters now sit behind this: the prose marks, arp-scan, and the ASCII boxes (the last fixed only by a targeted delimiter-cell defect). Do the reweighting deliberately — give tidiness real weight against coverage, and add a defect for one-word-per-column shredding — before attempting the prose cluster again. What IS in place: a verbatim `text` cell is exempt from tidiness charges (atlantis was docked for keeping `Plan: 2 to add, 0 to change, 0 to destroy.` intact), measured at 0 of 83 changed, so the scorer will not fight the eventual fix.
 
 **Two known gaps in the test harness itself**, both worth fixing before trusting a green run further:
 1. **Hint-only strategies have vacuous goldens.** `verify_strategy_outputs.sh` drives each strategy with `-s NAME`, but `-s` still runs `strategy_detect` — which a hint-only strategy defines as "always return 1". So every such strategy (nested-colon-kv, subject-field-value, super-header-table, and ~12 others) records an EMPTY golden and has no regression protection from that harness. They are covered by the corpus gate, which does honour hint routing under `--generic`, so this is a second line of defence rather than none. The fix is to let an explicit `--strategy` override detection — the explicit request IS the detection, exactly as a hint row is.

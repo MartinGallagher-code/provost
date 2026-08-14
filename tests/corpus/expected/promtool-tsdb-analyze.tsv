@@ -1,2 +1,2 @@
-Block_ID	Duration	Series	Label_names	Postings_(unique_label_pairs)	Postings_entries_(total_label_pairs)
-01HTQ8ZK9M4X2N7VBWEC3P6Y5A	2h0m0s	184320	47	9182	1204553
+Block_ID	Duration	Series	Label_names	Postings_(unique_label_pairs)	Postings_entries_(total_label_pairs)	line1	line2	line3	line4
+01HTQ8ZK9M4X2N7VBWEC3P6Y5A	2h0m0s	184320	47	9182	1204553	94213 __name__=node_cpu_seconds_total	33017 job=node-exporter	28844 mode=idle	19502 cpu=0

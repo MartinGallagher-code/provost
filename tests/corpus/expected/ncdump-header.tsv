@@ -1,2 +1,10 @@
-field	value
-netcdf	climate1.temperature units = "K" ;
+n	A	total_entries
+1	netcdf climate {	9
+2	dimensions:	9
+3	time = UNLIMITED ; // (365 currently)	9
+4	lat = 180 ;	9
+5	lon = 360 ;	9
+6	variables:	9
+7	float temperature(time, lat, lon) ;	9
+8	temperature:units = "K" ;	9
+9	}	9

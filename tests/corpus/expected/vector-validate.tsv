@@ -1,2 +1,9 @@
-n	√	Health	total_entries
-1	Val	idated	1
+n	Validating	config	/etc/vector/vector_toml	total_entries
+1	√	Loaded	/etc/vector/vector.toml	8
+2	√	Component	"in_syslog"_(source:_syslog)	8
+3	√	Component	"parse_json"_(transform:_remap)	8
+4	√	Component	"out_loki"_(sink:_loki)	8
+5	√	Component	"out_s3"_(sink:_aws_s3)	8
+6	√	Health	check_"out_loki"_succeeded	8
+7	√	Health	check_"out_s3"_succeeded	8
+8	Validated			8

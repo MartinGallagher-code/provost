@@ -1,0 +1,14 @@
+Package files:
+ 100 /var/lib/dpkg/status
+     release a=now
+ 500 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages
+     release v=24.04,o=Ubuntu,a=noble-security,n=noble,l=Ubuntu,c=multiverse,b=amd64
+     origin security.ubuntu.com
+ 500 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages
+     release v=24.04,o=Ubuntu,a=noble-security,n=noble,l=Ubuntu,c=restricted,b=amd64
+     origin security.ubuntu.com
+ 500 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages
+     release v=24.04,o=Ubuntu,a=noble-security,n=noble,l=Ubuntu,c=universe,b=amd64
+     origin security.ubuntu.com
+ 500 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages
+     release v=24.04,o=Ubuntu,a=noble-security,n=noble,l=Ubuntu,c=main,b=amd64

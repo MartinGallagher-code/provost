@@ -106,7 +106,7 @@ test_multi_comment_legend_becomes_header () {
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "a legend that names the columns folds into its table"
     assert_contains "$out" "entry1.name kmalloc-8192" "the legend's words become column names"
-    assert_not_contains "$out" "line1 # name" "the legend is not also kept as prose"
+    assert_not_contains "$out" "entry1.text # name" "the legend is not also kept as prose"
 }
 
 # ...but only when it actually names the columns. A legend two names short of
@@ -122,7 +122,7 @@ test_multi_undernaming_legend_not_folded () {
 EOF
     out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
-    assert_contains "$out" "line1 # date" "a legend two names short is kept as prose, not guessed at"
+    assert_contains "$out" "entry1.text # date" "a legend two names short is kept as prose, not guessed at"
     assert_not_contains "$out" "entry1.date 1" "and never labels the rows it does not match"
 }
 
@@ -157,8 +157,65 @@ dentry              48210  48312    192
 EOF
     out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
-    assert_contains "$out" "line1 # slabinfo" "comment run kept verbatim under a lineN field"
+    assert_contains "$out" "entry1.text # slabinfo" "comment run kept verbatim, one row per line"
     assert_contains "$out" "kmalloc-8192" "the table itself still parses"
+}
+
+# An ASCII box drawn with `+---+` rules and `|` fences is ONE table, not three
+# datasets. The rules look like boundaries, so the split shreds it — and the
+# shredded parse used to WIN, because the frame lines it kept counted as
+# recovered content while nothing charged the cells that were just `|`.
+test_multi_pipe_box_stays_one_table () {
+    local tmpfile out n
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+--------------------------------------------------
+|                  ListBuckets                   |
++----------------------------+-------------------+
+|            Name            |   CreationDate    |
++----------------------------+-------------------+
+|  acme-prod-assets          |  2024-03-11T08:14Z |
+|  acme-prod-logs            |  2024-03-11T08:15Z |
+|  acme-terraform-state      |  2023-11-02T19:41Z |
+EOF
+    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "1" "$n" "an ASCII box is one table, not a split"
+    assert_contains "$out" "acme-prod-assets" "the rows survive"
+    assert_not_contains "$out" ".A |" "a cell that is only a delimiter never survives"
+}
+
+# A comment run whose every line is `# key: value` is a kv block that happens
+# to be commented out, not prose. age-keygen writes its metadata that way.
+test_multi_commented_kv_is_parsed () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# created: 2026-07-10T06:00:00Z
+# public key: age1abc123def456
+AGE-SECRET-KEY-1QQQQQQQQQQQQQQQ
+EOF
+    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "entry1.key created" "a commented kv run parses as key/value"
+    assert_contains "$out" "entry2.value age1abc123def456" "and keeps its values"
+}
+
+# ...but a comment run that is NOT all `key: value` stays verbatim prose.
+test_multi_mixed_comment_run_stays_text () {
+    local tmpfile out
+    tmpfile=$(mktemp)
+    cat > "$tmpfile" <<'EOF'
+# slabinfo - version: 2.1
+# see the live counters
+kmalloc-8192          128    128   8192
+kmalloc-1024         2048   2048   1024
+dentry              48210  48312    192
+EOF
+    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    assert_contains "$out" "entry1.text # slabinfo" "a mixed comment run is still kept verbatim"
 }
 
 # A rule line (`------`) is a boundary, never a data row: 7z-benchmark rules off
@@ -279,6 +336,9 @@ run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
 run_test "aligned header is not a preamble"     test_multi_header_is_not_a_preamble
 run_test "digit runs collapse in the lead sig"  test_multi_preamble_over_varied_width_numbers
 run_test "rule line splits, and is dropped"     test_multi_rule_line_splits
+run_test "an ASCII pipe box stays one table"    test_multi_pipe_box_stays_one_table
+run_test "commented kv run parses as kv"        test_multi_commented_kv_is_parsed
+run_test "mixed comment run stays verbatim"     test_multi_mixed_comment_run_stays_text
 run_test "iostat-like input yields 3 datasets"  test_multi_iostat_three_datasets
 run_test "separator line format"                test_multi_separator_format
 run_test "record stream stays one dataset"      test_multi_record_stream_stays_one

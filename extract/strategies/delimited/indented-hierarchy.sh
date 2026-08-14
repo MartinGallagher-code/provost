@@ -27,6 +27,19 @@ strategy_detect () {
     # Must contain colons
     [[ "$text" == *":"* ]] || return 1
 
+    # A `|` in either of the first two lines is a TABLE header with piped
+    # group separators (/proc/net/dev's `Inter-|  Receive | Transmit`), not a
+    # hierarchy. Before the |-in-key fragment guards this shape crashed the
+    # strategy mid-extract, and the crash was accidentally protective — the
+    # decline makes it deliberate, so the aligned-table parsers claim it.
+    local _ihd_seen=0 _ihd_l
+    while IFS= read -r _ihd_l; do
+        [[ -z "${_ihd_l//[[:space:]]/}" ]] && continue
+        [[ "$_ihd_l" == *"|"* ]] && return 1
+        _ihd_seen=$((_ihd_seen + 1))
+        [[ $_ihd_seen -ge 2 ]] && break
+    done <<< "$text"
+
     return 0
 }
 
@@ -64,6 +77,16 @@ strategy_extract () {
 
         [[ -z "$trimmed" ]] && continue
 
+        # A candidate key containing a literal `|` is not a hierarchy key —
+        # it is table chrome (/proc/net/dev's `Inter-|  Receive  | Transmit`
+        # group header). The `|` also shatters the |-delimited path list, so
+        # before the fragment guards below this shape CRASHED the strategy,
+        # and the crash was accidentally protective: with it fixed, the
+        # strategy "succeeded" here with garbage. Skip such lines outright.
+        if [[ "${trimmed%%:*}" == *"|"* ]]; then
+            continue
+        fi
+
         # Check if this is a key: value line or a bare heading
         if [[ "$trimmed" == *":"* ]]; then
             local key="${trimmed%%:*}"
@@ -94,6 +117,8 @@ strategy_extract () {
                     [[ -z "$e" ]] && continue
                     local elevel="${e%%:*}"
                     local ekey="${e#*:}"
+                    # Same |-in-key guard as the two pruning loops below.
+                    [[ "$elevel" == *[!0-9]* ]] && continue
                     if [[ $elevel -lt $indent ]]; then
                         if [[ -n "$path" ]]; then
                             path+="."
@@ -119,6 +144,12 @@ strategy_extract () {
                 for e in "${entries[@]}"; do
                     [[ -z "$e" ]] && continue
                     local elevel="${e%%:*}"
+                    # A key containing a literal `|` shatters the |-delimited
+                    # path list into fragments with no `indent:` prefix (java's
+                    # nonProxyHosts=a|b|c did exactly this); a non-numeric
+                    # "level" in an arithmetic test is an unbound-variable
+                    # crash under set -u, so drop such fragments.
+                    [[ "$elevel" == *[!0-9]* ]] && continue
                     if [[ $elevel -lt $indent ]]; then
                         if [[ -n "$new_path_keys" ]]; then
                             new_path_keys+="|"
@@ -150,6 +181,8 @@ strategy_extract () {
             for e in "${entries[@]}"; do
                 [[ -z "$e" ]] && continue
                 local elevel="${e%%:*}"
+                # Same |-in-key guard as above.
+                [[ "$elevel" == *[!0-9]* ]] && continue
                 if [[ $elevel -lt $indent ]]; then
                     if [[ -n "$new_path_keys" ]]; then
                         new_path_keys+="|"

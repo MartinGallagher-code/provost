@@ -1,2 +1,2 @@
-EEE_status	Tx_LPI	Supported_EEE_link_modes	Advertised_EEE_link_modes
-enabled - active	0 (us)	100baseT/Full	100baseT/Full
+EEE_status	Tx_LPI	Supported_EEE_link_modes	line1	Advertised_EEE_link_modes
+enabled - active	0 (us)	100baseT/Full	1000baseT/Full	100baseT/Full

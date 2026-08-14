@@ -96,7 +96,7 @@ of the table nor a table of its own.
 A maximal run of `#`-led lines now splits its block into
 `[before][comments][after]`, and a comment group never merges with the data on
 either side. Such a group is emitted **verbatim** as a `text` dataset — one
-`lineN` field per line, confidence 100 — rather than force-fitted to a parser
+`text` column with one ROW per line, confidence 100 — rather than force-fitted to a parser
 that would invent columns out of prose, and rather than dropped. This is the
 reviewer's "some data that is just left unparsed (headers or comments)" case as
 a first-class outcome.

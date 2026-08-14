@@ -1,0 +1,72 @@
+## Held-out benchmark — ratings.
+##
+## HISTORY. Rated 2026-08-12 on criteria fixed in writing BEFORE any input was
+## run: 23 PASS / 12 PARTIAL / 15 FAIL. The 2026-08-13 "fix it all" round then
+## worked the defect clusters; the ratings below are the CURRENT state:
+## 40 PASS / 9 PARTIAL / 1 FAIL.
+##
+## >>> THESE 50 INPUTS ARE NO LONGER UNSEEN. <<<
+## The engine has now been tuned against them, so this file measures
+## regression, not generalisation — exactly the memorisation trap the README
+## warns about. The next generalisation number needs a FRESH set of inputs
+## nobody has parsed yet. Do not quote the tally below as a generalisation
+## score.
+##
+##   PASS     everything present AND correctly structured
+##   PARTIAL  broadly right; something lost or mis-shaped
+##   FAIL     the output misrepresents the input
+##
+## Judged on DEFAULT mode; `multi` records whether --multi differs.
+## Self-assessment by the agent that wrote the engine: a screen, not a verdict.
+##
+## name	rating	multi	cluster	note
+01-tokei	PASS	same	box-rules	FIXED 08-13: Unicode rule lines normalise to ASCII rules, header applies; `|- JSON` sub-rows stay one cell, `(Total)` rows offset-assign to the right columns
+02-scc	PARTIAL	same	box-rules	FIXED table 08-13 (was FAIL): all rows named; remaining: `C Header` two-word language shifts one row, and the three Estimated-* summary lines shred across the table columns
+04-rclone-about	PASS	same	-	clean key/value
+05-borg-list-archives	PARTIAL	same	csv-on-date	FIXED 08-13 (was FAIL): weekday commas no longer read as CSV separators; now honest A-D positional columns, `Mon,` keeps its comma
+06-borg-list-files	PARTIAL	same	csv-on-date	as 05: mode/owner/size/weekday/date/time/path each in own column, nothing lost
+07-nmap-ping-sweep	PASS	same	dropped-line	FIXED 08-13: per-host mac + vendor kept, `Nmap done:` summary kept
+08-nmap-service-scan	PASS	same	dropped-line	FIXED 08-13: not_shown, mac_address, mac_vendor, service_info, hosts_up all kept
+09-nmap-filtered-ports	PASS	same	dropped-line	as 08, filtered port still has no VERSION cell, correctly
+10-lscpu-extended	PASS	same	-	all six columns named from the header
+11-lsblk-fs	PASS	same	blank-column	FIXED 08-13: offset assignment — sizes under FSAVAIL, percentages under FSUSE%, paths under MOUNTPOINTS
+12-df-inodes	PASS	same	two-word-header	FIXED 08-13: trailing preposition welds — `Mounted_on`
+13-free-wide	PASS	same	-	short Swap row stays short
+14-findmnt-df	PASS	same	-	all ten rows, seven columns
+15-ps-custom	PASS	same	-	39 rows, `%CPU`/`%MEM` names kept
+16-vmstat-wide	PARTIAL	same	group-header	all 18 columns named and correct; the `--procs--`/`memory` group row is still discarded — deliberate: prefixing unique names would rename every vmstat column, and the reviewer ruled the current shape right
+17-locale-settings	PASS	same	empty-value	FIXED 08-13: `LANG=` now emits `LANG ""` — set-but-empty is distinguishable from absent
+18-uname-all	PASS	same	no-header	FIXED 08-13: new `uname` strategy — kernel_name/nodename/kernel_release/kernel_version/machine/processor/hardware_platform/operating_system; stray lines kept as lineN
+19-ulimit-all	PASS	same	dropped-unit	FIXED 08-13: the parenthesised unit is its own field — 8192 is now `kbytes`
+20-getent-passwd	PASS	same	-	seven colon fields; A..G honest, no header supplied
+21-du-depth	PASS	same	-	size/path pairs
+22-file-types	PASS	same	-	name/value, long ELF description one cell
+23-stat-file	PASS	same	multi-kv-line	FIXED 08-13: new `stat-file` strategy — every pair split, access_mode/access_time disambiguated, uid/gid unwrapped, file type named
+24-pip-list-columns	PASS	same	-	38 packages, header applied
+25-npm-config-list	PARTIAL	better	truncation	FIXED worst 08-13 (was FAIL): the garbage key manufactured from half the noproxy value is gone (equals lines no longer colon-split); remaining: the `; "env" config` comment line drops and comment keys carry a `;_` prefix
+26-node-versions	PASS	same	-	JSON, 27 keys
+27-git-log-stat	PARTIAL	better	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects the 3-field claim; now verbatim text-lines with NOTHING lost. --multi still segments it better (git-log + diffstat tables)
+28-git-count-objects	PASS	same	-	eight colon pairs
+29-dpkg-list	PASS	same	-	12 packages, legend correctly dropped as decoration
+30-openssl-ciphers	PASS	same	kv-harvest	FIXED 08-13: unlabeled tokens keep letter columns — cipher name (A) and TLS version (B) restored
+31-openssl-version	PARTIAL	same	banner	FIXED worst 08-13 (was FAIL): banner kept as line1 (paren-colon no longer splits it), `built on` date no longer welds to the weekday; remaining: clean_text underscores inside the banner parens
+32-sysctl-net	PASS	same	-	dotted keys whole
+33-env-vars	PASS	same	-	18 pairs
+34-lsof-summary	PASS	same	blank-column	FIXED 08-13: offset assignment — USER under USER, FD under FD, pathname joined into NAME
+35-mount-list	PASS	same	-	device/mount_point/fstype/options
+36-go-env	PASS	same	-	18 pairs
+37-table-with-header-footer	FAIL	better	box-rules	default still shreds the `###` banners one word per column; --multi returns three datasets with a clean two-column table in the middle. A default-mode "fix" would mean deleting the banner text, which is the defect class this round eliminated — segmentation is the right answer here
+38-homes-csv	PASS	same	-	quoted header, nine columns
+39-etc-hosts	PASS	same	-	ragged rows preserved
+40-example-ini	PASS	same	-	section/key/value
+41-arp-table	PASS	same	-	`Flags Mask` merged matches the data
+42-java-properties	PARTIAL	same	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects indented-hierarchy's 2-line claim (and its `|`-in-key crash is fixed); now verbatim text-lines, all 24 lines present. Structure (key = value under Property settings:) still unparsed
+43-gcc-verbose	PASS	same	banner	FIXED 08-13: `OFFLOAD_TARGET_DEFAULT=1` and `gcc version 13.3.0 (…)` kept as line1/line2
+44-python-sysconfig	PASS	same	-	eight path pairs
+45-wc-multi	PASS	same	-	four rows; `total` row stays a row, as wc prints it
+46-ps-forest	PASS	same	merged-column	FIXED 08-13: `ps-forest` columnar spec — 8 named columns, cmd absorbs the `\_` tree prefixes intact
+47-apt-policy	PARTIAL	same	truncation	FIXED worst 08-13 (was FAIL): truncation guard rejects the 4-field claim; all 13 detail lines now present with full URLs/release strings. The `Package files:` title is misread as a two-column header
+48-curl-version	PASS	same	banner	FIXED 08-13: the version banner is line1; Release-Date/Protocols/Features named
+49-tar-verbose	PASS	same	dropped-unit	FIXED 08-13: `time` is a field, not dropped chrome
+50-ss-summary	PASS	same	group-header	FIXED 08-13: new `proc-net-dev` strategy — interface + 16 named rx_*/tx_* counters per row
+51-proc-meminfo	PASS	same	-	16 pairs, `kB` kept with the value

@@ -115,6 +115,16 @@ strategy_detect () {
         # repeated `[N,NNN kB]` tags).
         local _sep="${_line//(*)/}"
         _csv_strip_thousands "$_sep"; _sep="$_CSV_NOTH"
+        # A comma after a WEEKDAY abbreviation is date punctuation, not a
+        # field separator: borg prints `Monday    Mon, 2016-02-15 19:15:11`
+        # and that lone consistent comma made a two-column aligned table
+        # detect as 2-field CSV at 90 — with the split landing INSIDE the
+        # timestamp. Strip them for counting only; extract never runs when
+        # detection declines.
+        local _wd
+        for _wd in Mon Tue Wed Thu Fri Sat Sun; do
+            _sep="${_sep//"$_wd, "/$_wd }"
+        done
         # Count only commas OUTSIDE quoted fields: a quoted value's embedded
         # commas ("1,234,567.89", "go,api,server") are data, not separators.
         # Without this, quoted CSV fails the consistency check below and falls

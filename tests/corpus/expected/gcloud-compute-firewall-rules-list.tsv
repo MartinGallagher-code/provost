@@ -1,4 +1,4 @@
-n	NAME	NETWORK	DIRECTION	PRIORITY	ALLOW	DENY	total_entries
+n	NAME	NETWORK	DIRECTION	PRIORITY	ALLOW	DISABLED	total_entries
 1	allow-internal	default	INGRESS	1000	tcp,udp,icmp	False	6
 2	allow-ssh	default	INGRESS	1000	tcp:22	False	6
 3	allow-http	prod-vpc	INGRESS	1000	tcp:80,tcp:443	False	6

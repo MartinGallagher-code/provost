@@ -1,4 +1,4 @@
-n	NAME	MAJ:MIN	LABEL	SIZE	total_entries
+n	NAME	MAJ:MIN	SIZE	TYPE	total_entries
 1	sda	8:0	500G	disk	3
 2	sda1	8:1	512M	part	3
 3	nvme0n1	259:0	1T	disk	3

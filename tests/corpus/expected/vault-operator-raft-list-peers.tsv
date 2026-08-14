@@ -1,4 +1,4 @@
 n	Node	Address	State	Voter
-1	vaul	10.0.1.	leade	true
-2	vaul	10.0.1.	follo	true
-3	vaul	10.0.1.	follo	true
+1	vault-0	10.0.1.10:8201	leader	true
+2	vault-1	10.0.1.11:8201	follower	true
+3	vault-2	10.0.1.12:8201	follower	true

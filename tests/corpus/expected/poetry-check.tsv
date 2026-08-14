@@ -1,2 +1,2 @@
-Warning	Warning	Error
-[tool.poetry.dependencies] section is deprecated, use [project.dependencies]	Declared README file 'README.rst' does not exist	Group "test" is declared but has no dependencies
+Warning	Warning	Error	line1
+[tool.poetry.dependencies] section is deprecated, use [project.dependencies]	Declared README file 'README.rst' does not exist	Group "test" is declared but has no dependencies	All set!

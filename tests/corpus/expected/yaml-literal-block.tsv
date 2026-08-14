@@ -1,2 +1,2 @@
-description	version	enabled	replicas	command	timeout
-|	"2.1.0"	true	3	|	30
+description	line1	line2	line3	version	enabled	replicas	command	line4	line5	timeout
+|	Multi-line description of the service that	spans several lines and should be treated as	one single value, not three separate records.	"2.1.0"	true	3	|	#!/bin/sh	exec /app/server --port 8080 --workers 4	30

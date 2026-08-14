@@ -922,13 +922,45 @@ run_multi_mode () {
         for ((_i = 0; _i <= gi; _i++)); do
             text="${group_text[$_i]}"
             if [[ "${group_istext[$_i]:-0}" -eq 1 ]]; then
-                local _t_out="" _t_line _t_n=0
+                # ONE ROW PER LINE, not one COLUMN per line. Flat `lineN`
+                # fields melt to an N-column single-row table, so a three-line
+                # comment run rendered as three columns headed `line1 line2
+                # line3` — the reviewer, six times over: "should have the
+                # value, not just line1". Entry-prefixed records melt the way
+                # every other dataset does, to a `text` column with a row per
+                # line, which is also the only shape that stays readable when
+                # the run is long.
+                # A comment run whose every line is `# key: value` is not prose
+                # at all — it is a kv block that happens to be commented out.
+                # `age-keygen` writes its metadata that way: "Dataset 1:
+                # key/value. Keys = Created, and public key". Kept verbatim it
+                # loses the structure the reviewer can see plainly.
+                local _t_out="" _t_line _t_n=0 _kv_out="" _kv_n=0 _kv_all=1 _kv_k _kv_v
                 while IFS= read -r _t_line || [[ -n "$_t_line" ]]; do
                     [[ -z "${_t_line//[[:space:]]/}" ]] && continue
                     _t_n=$((_t_n + 1))
-                    _t_out+="line${_t_n} ${_t_line}"$'\n'
+                    _t_out+="entry${_t_n}.text ${_t_line}"$'\n'
+                    local _kv_s="${_t_line#"${_t_line%%[![:space:]]*}"}"
+                    _kv_s="${_kv_s#\#}"
+                    _kv_s="${_kv_s#"${_kv_s%%[![:space:]]*}"}"
+                    if [[ "$_kv_s" =~ ^([A-Za-z][A-Za-z0-9_\ -]*):\ +(.+)$ ]]; then
+                        _kv_k="${BASH_REMATCH[1]}"; _kv_v="${BASH_REMATCH[2]}"
+                        _kv_n=$((_kv_n + 1))
+                        _kv_out+="entry${_kv_n}.key ${_kv_k}"$'\n'
+                        _kv_out+="entry${_kv_n}.value ${_kv_v}"$'\n'
+                    else
+                        _kv_all=0
+                    fi
                 done <<< "$text"
                 [[ $_t_n -gt 0 ]] || continue
+                if [[ $_kv_all -eq 1 && $_kv_n -ge 2 ]]; then
+                    _kv_out+="total_entries ${_kv_n}"$'\n'
+                    eval "${_p}_name[$_n]=commented-kv; ${_p}_conf[$_n]=90"
+                    eval "${_p}_fields[$_n]=\"\${_kv_out%\$'\\n'}\""
+                    _n=$((_n + 1))
+                    continue
+                fi
+                _t_out+="total_entries ${_t_n}"$'\n'
                 eval "${_p}_name[$_n]=text; ${_p}_conf[$_n]=100"
                 eval "${_p}_fields[$_n]=\"\${_t_out%\$'\\n'}\""
                 _n=$((_n + 1))
@@ -993,23 +1025,31 @@ run_multi_mode () {
     # `entryN.` prefixes the ragged-row check groups on cannot collide between
     # datasets (every dataset restarts at entry1).
     _multi_ns () { printf '%s\n' "$2" | sed "s/^/d$1_/"; }
-    # CANDIDATE 3: a one-line `#` comment folded in as the following block's
-    # HEADER, instead of kept as its own `text` dataset. The reviewer on
-    # aureport: "set 2 is the headers for set 3". This was twice implemented as
-    # an unconditional rule and twice reverted, because prepending the
-    # de-commented line let a parser slice rows against a legend that does not
-    # actually name the columns, shifting every value one place. So the fold is
-    # both GUARDED (field counts must agree) and SCORED (it still has to beat
-    # the plain split). Where the input is nothing BUT legend + table candidate
-    # 2 already covers it — the whole-input parse reads the legend as a header
-    # by itself; candidate 3 is what keeps that available on a COMPOUND input,
-    # where taking the whole input would lose the other sections.
+    # CANDIDATE 3: a ONE-LINE block folded in as the following block's HEADER,
+    # instead of standing as a dataset of its own. The reviewer on aureport:
+    # "set 2 is the headers for set 3"; and again on bq-ls, cloc-summary,
+    # btrfs-qgroup-show, aureport-login, ansible-galaxy-collection-list, all
+    # the same sentence. A RULE LINE between a header and its rows is what
+    # separates them — `--------- ---------` reads as a boundary — so the
+    # header ends up alone and the table below comes out `A`/`B`/`C`.
+    #
+    # This was twice implemented as an unconditional rule and twice reverted,
+    # because prepending a line that does not actually name the columns shifts
+    # every value one place. So the fold is both GUARDED (field counts must
+    # agree) and SCORED (it still has to beat the plain split). Where the input
+    # is nothing BUT header + table candidate 2 already covers it — the
+    # whole-input parse reads the header by itself; candidate 3 is what keeps
+    # that available on a COMPOUND input, where taking the whole input would
+    # lose the other sections.
     local -a hdr_name=() hdr_conf=() hdr_fields=() hdr_n=0
     local _have_hdr=0 _hj
     local -a _hblocks=() _histext=()
     for ((_hj = 0; _hj < ${#blocks_saved[@]}; _hj++)); do
-        if [[ "${istext_saved[$_hj]}" -eq 1 && $((_hj + 1)) -lt ${#blocks_saved[@]} &&               "${istext_saved[$_hj+1]}" -eq 0 ]] &&
-           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]]; then
+        # Any single-line block is a header candidate, `#`-commented or not,
+        # provided the block below it holds at least two rows to be a header TO.
+        if [[ $((_hj + 1)) -lt ${#blocks_saved[@]} && "${istext_saved[$_hj+1]}" -eq 0 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj]}" | grep -c .)" -eq 1 ]] &&
+           [[ "$(printf '%s\n' "${blocks_saved[$_hj+1]}" | grep -c .)" -ge 2 ]]; then
             local _cb="${blocks_saved[$_hj]}"
             _cb="${_cb#"${_cb%%[![:space:]]*}"}"; _cb="${_cb#\#}"
             _cb="${_cb#"${_cb%%[![:space:]]*}"}"
@@ -1086,7 +1126,43 @@ run_multi_mode () {
         split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
         _log_debug "multi: header fold wins the split slot"
     fi
-    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN ]]; then
+    # EXACT TIE, AND EVERY PIECE OF THE SPLIT TOO SMALL TO HAVE BEEN CHECKED:
+    # take the whole. A split can reach a perfect score by CHEATING the
+    # ragged-row check — that check needs three entries to call a shape, so
+    # shattering a record stream into pieces of one or two entries each escapes
+    # it completely. apk-info-a did exactly that, tying 10000 with the clean
+    # single-dataset parse and taking it on the keep-the-split rule.
+    #
+    # Broken on CONFIDENCE, which the score itself ignores. Every strategy
+    # reports how sure it was, and a hint-routed or bespoke match is far
+    # stronger evidence than a generic fallback — so when two segmentations are
+    # indistinguishable by coverage and tidiness, the one the engine was surer
+    # of is the better answer. apk-info-a: whole is its own strategy at 95, the
+    # split is pkg-config/text-lines/aligned-columns averaging 64. The
+    # under-naming legend goes the other way and keeps its split, 85 to 70,
+    # which is what stops this rule from resurrecting the mislabelled parse
+    # that the score cannot see is wrong.
+    local _tie_favours_whole=0
+    if [[ $_sc_whole -eq $_sc_split && $whole_n -gt 0 && $whole_n -lt $split_n ]]; then
+        local _q2 _cs=0 _cw=0
+        for ((_q2 = 0; _q2 < split_n; _q2++)); do _cs=$((_cs + ${split_conf[$_q2]:-0})); done
+        for ((_q2 = 0; _q2 < whole_n; _q2++)); do _cw=$((_cw + ${whole_conf[$_q2]:-0})); done
+        # Higher mean confidence wins. On an EXACT confidence tie as well,
+        # fewer datasets wins — but only if that confidence is high, because
+        # equal-and-weak means neither parse is understood and the split's
+        # boundaries are still the better evidence. The two cases sit either
+        # side of the line: btrfs-filesystem-show ties at 88, the same bespoke
+        # strategy reading either the whole input or one filesystem block, and
+        # the reviewer wants it merged; checkov-summary ties at 35, generic
+        # `colons` on both halves, and its summary line and its finding record
+        # are genuinely two things.
+        if [[ $((_cw * split_n)) -gt $((_cs * whole_n)) ]]; then
+            _tie_favours_whole=1
+        elif [[ $((_cw * split_n)) -eq $((_cs * whole_n)) && $((_cw / whole_n)) -ge 80 ]]; then
+            _tie_favours_whole=1
+        fi
+    fi
+    if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN && $_tie_favours_whole -eq 0 ]]; then
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
         win_fields=("${split_fields[@]}"); win_n=$split_n
     elif [[ $whole_n -gt 0 ]]; then

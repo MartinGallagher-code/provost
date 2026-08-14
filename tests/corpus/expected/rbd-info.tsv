@@ -1,2 +1,2 @@
-snapshot_count	id	block_name_prefix	format	features
-2	3a9f2b1c8d7e	rbd_data.3a9f2b1c8d7e	2	layering, exclusive-lock, object-map, fast-diff, deep-flatten
+line1	line2	snapshot_count	id	block_name_prefix	format	features
+size 64 GiB in 16384 objects	order 22 (4_MiB_objects)	2	3a9f2b1c8d7e	rbd_data.3a9f2b1c8d7e	2	layering, exclusive-lock, object-map, fast-diff, deep-flatten

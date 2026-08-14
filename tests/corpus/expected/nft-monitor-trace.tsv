@@ -1,2 +1,2 @@
-trace_id_5f2a_inet_filter_input_packet	trace_id_b731_inet_filter_input_packet	trace_id_c009_inet_nat_postrouting_packet
-iif "eth0" ip saddr 203.0.113.9 ip daddr 10.0.0.5 tcp dport 22	iif "eth0" ip saddr 198.51.100.4 tcp dport 8080	oif "eth0" ip saddr 10.0.0.7 (verdict_masquerade)
+trace_id_5f2a_inet_filter_input_packet	line1	trace_id_b731_inet_filter_input_packet	line2	line3	trace_id_c009_inet_nat_postrouting_packet
+iif "eth0" ip saddr 203.0.113.9 ip daddr 10.0.0.5 tcp dport 22	trace id 5f2a inet filter input rule ct state established,related accept (verdict_accept)	iif "eth0" ip saddr 198.51.100.4 tcp dport 8080	trace id b731 inet filter input rule tcp dport { 22, 80, 443 } accept (no_match)	trace id b731 inet filter input verdict drop	oif "eth0" ip saddr 10.0.0.7 (verdict_masquerade)
