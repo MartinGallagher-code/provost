@@ -1,5 +1,20 @@
 # Handoff — provost
 
+## 2026-08-18: `--version` brought in line with the rest of the provost suite
+
+`provost --version` was a bare `provost 2.0.0` — every sibling tool
+(binnacle, design_of_experiments, iperf_orchestrator, matrix_orchestrator,
+meridian_commander, phone_a_friend) prints a five-line GNU-style block
+(version / copyright / license / free-software / no-warranty), and those
+tools' own copyright/license lines were also inconsistent with each other
+(some said "Martin Gallagher", some "NO WARRANTY" in caps, differing
+license-line wording). All seven were normalized to the same layout, name
+"Martin J. Gallagher" everywhere, lowercase "no warranty"; provost's license
+line correctly says `GPL-3.0-only` (its real SPDX license) rather than the
+`-or-later` the other tools use. Only `provost` (this repo) needed a code
+change here — see CHANGELOG. Smoke suite (65/65) green after the change.
+Next: nothing outstanding from this change.
+
 ## 2026-08-14: the tool is now **provost** (was glean), v2.0.0, PyPI- and RTD-ready
 
 - Command `provost`, env vars `PROVOST_*`, store `~/.provost` / `./.provost`,

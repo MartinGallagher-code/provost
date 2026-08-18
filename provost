@@ -1037,7 +1037,7 @@ main () {
         triage)        shift; cmd_triage "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
         help|-h|--help) cmd_help ;;
-        -V|--version)  printf 'provost %s\n' "$PROVOST_VERSION" ;;
+        -V|--version)  printf 'provost %s\nCopyright (C) 2026 Martin J. Gallagher\nLicense: GPL-3.0-only <https://www.gnu.org/licenses/gpl-3.0.html>\nThis is free software: you are free to change and redistribute it.\nThere is no warranty, to the extent permitted by law.\n' "$PROVOST_VERSION" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
         *)             cmd_inject "$@" ;;          # default verb
     esac
