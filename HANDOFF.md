@@ -1,5 +1,26 @@
 # Handoff — provost
 
+## 2026-08-18: fixed — BOM-prefixed JSON piped into provost was failing to parse
+
+User report: "provost is failing to parse a simple json file that is pipe
+in." Root cause found and fixed: a leading UTF-8 BOM (as commonly written by
+Windows tools — PowerShell `Out-File`, Notepad's "UTF-8" encoding) defeated
+the exact-prefix `{`/`[` checks in the `json`, `json-array`, and `jsonl`
+strategies' `strategy_detect`, so BOM'd JSON silently fell through to the
+`unsorted` dataset as raw undecoded bytes instead of a tidy table. Fixed by
+stripping the BOM in each of those three `strategy_detect` functions before
+the prefix check — mirroring the BOM-strip `csv.sh` already had. See
+CHANGELOG 2026-08-18 for the byte-level verification. All required suites
+green: smoke 65/65, melt 10/10, extract 63/63 test files.
+
+Next steps: no other JSON edge case surfaced in a broad sweep (nested/
+ragged/unicode/no-jq-on-PATH/pretty-vs-compact/scalar-arrays/empty
+objects-arrays all already worked correctly pre-fix) — this looks like a
+complete fix for the reported symptom, not a partial one. If the user's
+original failing file differs from a plain BOM case, get the actual file
+(or `xxd`/`od -c` of its first ~16 bytes) to confirm before assuming this
+was the only cause.
+
 ## 2026-08-18: `--version` brought in line with the rest of the provost suite
 
 `provost --version` was a bare `provost 2.0.0` — every sibling tool

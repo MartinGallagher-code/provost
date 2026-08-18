@@ -1,5 +1,36 @@
 # provost — Changelog
 
+## 2026-08-18 — fix: BOM-prefixed JSON piped in was falling through to 'unsorted'
+
+Reported bug: "provost is failing to parse a simple json file that is pipe
+in." Reproduced with a UTF-8 BOM (`EF BB BF`) at the start of the piped
+JSON — a common byte sequence in JSON exported by Windows tools (PowerShell
+`ConvertTo-Json | Out-File`, Notepad's "UTF-8" encoding). Root cause: the
+`json`, `json-array`, and `jsonl` strategies' `strategy_detect` functions do
+exact-prefix checks (`"$trimmed" == "{"* `, etc.) that only trim ASCII
+whitespace, so a leading BOM hid the opening `{`/`[` and every JSON strategy
+declined — the capture then landed in the `unsorted` dataset as raw,
+undecoded bytes instead of a tidy table. `csv.sh` already had this exact
+fix (BOM-stripping before its own byte-exact checks); the three JSON
+strategies were simply missing the same guard. `jq` itself tolerates a
+leading BOM fine, so only detection needed the fix, not extraction.
+
+- `extract/strategies/structured/json.sh` — `strategy_detect` strips a
+  leading UTF-8 BOM before the existing whitespace trim.
+- `extract/strategies/structured/json-array.sh` — same fix in
+  `strategy_detect`, before the leading-`[` check.
+- `extract/strategies/structured/jsonl.sh` — same fix in `strategy_detect`,
+  before the per-line `{...}` shape check.
+- Verified: BOM-prefixed object, array-of-objects, and NDJSON inputs all now
+  parse into their normal tidy datasets (`json`/`json-array`/`jsonl`), byte-
+  checked to confirm no BOM bytes leak into field names or values. Also
+  swept a wide range of non-BOM JSON shapes (nested objects/arrays, ragged
+  records, unicode, `\r\n` line endings, no jq on `PATH`, pretty vs compact,
+  scalar arrays, empty arrays/objects) — all pre-existing behavior,
+  unaffected by this change. `tests/smoke.sh` 65/65,
+  `transform/tests/test_melt.sh` 10/10, `extract/tests/run_tests.sh` 63/63
+  test files (all green, no regressions).
+
 ## 2026-08-18 — `--version` now prints copyright/license/warranty, matching the rest of the provost-suite tools
 
 `provost -V`/`--version` printed just `provost <version>` — the only tool in
