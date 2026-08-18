@@ -31,6 +31,33 @@ leading BOM fine, so only detection needed the fix, not extraction.
   `transform/tests/test_melt.sh` 10/10, `extract/tests/run_tests.sh` 63/63
   test files (all green, no regressions).
 
+## 2026-08-18 — `--version` now prints copyright/license/warranty, matching the rest of the provost-suite tools
+
+`provost -V`/`--version` printed just `provost <version>` — the only tool in
+the provost suite (binnacle, design_of_experiments, iperf_orchestrator,
+matrix_orchestrator, meridian_commander, phone_a_friend) with no copyright
+notice at all. It now prints the same five-line GNU-style block every other
+suite tool uses:
+
+```
+provost 2.0.0
+Copyright (C) 2026 Martin J. Gallagher
+License: GPL-3.0-only <https://www.gnu.org/licenses/gpl-3.0.html>
+This is free software: you are free to change and redistribute it.
+There is no warranty, to the extent permitted by law.
+```
+
+The license line says `GPL-3.0-only` (not `-or-later` like the other suite
+tools) because that's provost's actual SPDX license (`REUSE.toml`,
+`pyproject.toml`) — copying the other tools' line verbatim would have
+mis-stated it.
+
+- `provost` — the `-V|--version` case arm now emits the full block instead of
+  a bare version line.
+
+Smoke suite re-run green (65/65) after the change; no other first-party
+Bash/tests reference the old one-line `--version` output.
+
 ## 2026-08-14 — diagnose PyPI `invalid-publisher`; correct trusted-publisher docs
 
 The first run of `release.yml` failed at the publish step: the OIDC token
