@@ -11,6 +11,12 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE_REASON="input starts with { or ["
     # Apply if input looks like JSON (starts with { or [, possibly with leading whitespace)
     local trimmed="$text"
+    # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
+    # Windows tools (PowerShell's Out-File, Notepad's "UTF-8" encoding). Left
+    # in place it hides the leading '{'/'[' from the checks below and the
+    # file falls through to 'unsorted' instead of being recognized as JSON.
+    local bom; bom=$(printf '\xef\xbb\xbf')
+    trimmed="${trimmed#"$bom"}"
     while [[ "$trimmed" == " "* || "$trimmed" == $'\t'* || "$trimmed" == $'\n'* ]]; do
         trimmed="${trimmed#?}"
     done
