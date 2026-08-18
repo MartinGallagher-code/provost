@@ -17,6 +17,11 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
 
+    # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
+    # Windows tools — so it doesn't hide the first line's leading '{'.
+    local bom; bom=$(printf '\xef\xbb\xbf')
+    text="${text#"$bom"}"
+
     # Must have 2+ lines, each looking like a JSON object
     local line_count=0
     while IFS= read -r _line; do

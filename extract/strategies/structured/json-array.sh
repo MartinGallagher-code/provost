@@ -21,6 +21,10 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+    # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
+    # Windows tools — so it doesn't hide the leading '[' from the check below.
+    local bom; bom=$(printf '\xef\xbb\xbf')
+    text="${text#"$bom"}"
     # Structural: first non-space char is '[', the next non-space char is '{'
     # (an array of OBJECTS — not a bracketed log line, not "[PHP Modules]",
     # not a Haskell tuple list), and at least one "key": field exists.
