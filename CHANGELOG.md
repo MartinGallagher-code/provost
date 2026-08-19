@@ -1,5 +1,14 @@
 # provost — Changelog
 
+## 2026-08-19 — release v2.0.1: ship the BOM fix to PyPI
+
+The 2026-08-18 BOM-detection fix (below) landed on `main` but PyPI still
+served 2.0.0, built before that fix — so `pip install provost` users kept
+hitting the original bug. Bumped `VERSION` to `2.0.1` and cut a release
+(tag `v2.0.1` + `release.yml`) so the fix actually reaches `pip install
+provost`. No code changes beyond the version bump; the fix itself is the
+2026-08-18 entry.
+
 ## 2026-08-18 — fix: BOM-prefixed JSON piped in was falling through to 'unsorted'
 
 Reported bug: "provost is failing to parse a simple json file that is pipe

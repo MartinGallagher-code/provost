@@ -1,5 +1,13 @@
 # Handoff — provost
 
+## 2026-08-19: released v2.0.1 — the BOM fix is now on PyPI
+
+The 2026-08-18 BOM fix merged to `main` but PyPI still served 2.0.0 (built
+before the fix), so `pip install provost` users were unaffected by it.
+Bumped `VERSION` to `2.0.1`, tagged `v2.0.1`, and triggered `release.yml` to
+publish. `pip install provost` now gets the fix. No further action needed
+unless a fresh regression turns up.
+
 ## 2026-08-18: fixed — BOM-prefixed JSON piped into provost was failing to parse
 
 User report: "provost is failing to parse a simple json file that is pipe
