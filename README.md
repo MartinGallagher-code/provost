@@ -110,6 +110,13 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
   first data line is data and passes through untouched — so context no longer
   has to travel out-of-band in a run manifest.
 
+The store itself is plain files (TSV datasets, per-capture `meta.tsv` +
+`output.txt`, `provenance.tsv`), so other tools can browse it read-only without
+provost installed. [Meridian Commander](https://github.com/MartinGallagher-code/meridian_commander)
+ships a **Provost data** plug-in that does exactly that: datasets as scrollable
+tables, the capture log, and each row's original input via its `#N` provenance
+index — including stores on remote (SFTP/SSH) hosts.
+
 ## Environment
 
 | Variable | Default | Meaning |
