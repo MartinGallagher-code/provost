@@ -1,5 +1,16 @@
 # provost — Changelog
 
+## 2026-08-19 — docs: point at the Meridian Commander store browser
+
+Meridian Commander (same author) grew a **Provost data** plug-in — a
+read-only TUI browser for a provost store: datasets as scrollable tables,
+the capture log, and each row's original captured input via its `#N`
+provenance index, over local and SFTP/SSH filesystems alike. It reads the
+store's plain files directly (no provost needed on the browsing side), which
+the README now documents at the end of "Integrating from another tool" as
+the store-consumer counterpart to the existing wrapper hooks. No code
+changes in this repo. Files: `README.md`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-08-19 — release v2.0.1: ship the BOM fix to PyPI
 
 The 2026-08-18 BOM-detection fix (below) landed on `main` but PyPI still

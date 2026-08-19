@@ -1,5 +1,18 @@
 # Handoff — provost
 
+## 2026-08-19: a TUI browser for the store now exists (in Meridian Commander)
+
+Meridian Commander's new **Provost data** plug-in browses a provost store
+read-only — datasets as tables, the capture log, row → source provenance —
+by reading the store's plain files (`datasets/*.tsv`, `captures/<id>/`,
+`provenance.tsv`, found via `.provostrc`/`CONTROLLED`) through its own
+filesystem layer, locally or over SFTP/SSH. This repo only gained a README
+pointer (end of "Integrating from another tool"); the plug-in itself lives
+in `meridian_commander/plugins/provost_browser.py` over there. Implication
+for future changes here: the store's on-disk layout and those marker files
+are now read by an external tool, so renaming/moving them should update that
+plug-in in the same breath. Next steps: none in this repo.
+
 ## 2026-08-19: released v2.0.1 — the BOM fix is now on PyPI
 
 The 2026-08-18 BOM fix merged to `main` but PyPI still served 2.0.0 (built
