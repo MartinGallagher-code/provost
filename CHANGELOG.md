@@ -1,5 +1,16 @@
 # provost — Changelog
 
+## 2026-08-19 — regenerate bundle.txt (tree changed since the last bundle)
+
+The tree gained the mx/binnacle strategies (#63) and the Meridian Commander
+browser docs (#64) since `bundle.txt` was last generated, so it was rerun per
+the standing instruction (`bash ../shared_tools/scripts/merge.sh bundle.txt .`
+from the repo root): 12,212 entries, pure printable ASCII, 0 skipped —
+generated after this entry was written, so the bundle carries the current
+docs. Verified as before: `split.sh` expanded it with all checksums OK and a
+`diff -r` against the working tree came back byte-identical, and it carries 0
+`node_modules` sections. Files: `bundle.txt`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-08-19 — generic csv.sh: tolerate a leading `#`-comment header (matrix.csv, haproxy, Prometheus)
 
 While building the mx/binnacle strategies below, found `csv.sh` couldn't
