@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2026-08-19 — new strategy: go-test (`go test -v` output)
+
+A sample fixture (`extract/samples/go-test/basic.txt`) had been curated
+previously but no strategy was ever written for it, so `go test -v` output
+fell through to the generic `indented-hierarchy` catch-all at low confidence
+(65), collapsing a whole run into 1 row / 4 fields. Added
+`extract/strategies/build/go-test.sh`: detects on the `=== RUN` /
+`--- PASS|FAIL|SKIP:` marker pair, extracts one row per test result
+(`test`, `status`, `duration`), broadcasting the package summary
+(`overall_result`, `package`, `package_result`, `package_duration`,
+`coverage_pct`) across every row.
+
+- `extract/strategies/build/go-test.sh` — new strategy, priority 20.
+- `extract/tests/golden/go-test.txt` — golden output frozen from the
+  existing sample.
+- Verified against both the existing sample and a fresh table-driven-test
+  sample (parent + subtest rows, no coverage line): correct row counts (5
+  and 7), no collisions with any other strategy. Self-validation 241
+  total/193 pass (was 240/192, +1 each, nothing else moved).
+  `tests/smoke.sh` 65/65, `transform/tests/test_melt.sh` 10/10,
+  `extract/tests/run_tests.sh` 63/63 test files (218 golden matched, 0
+  failed, 23 pre-existing skips), `tests/corpus/run.sh --golden` 3470
+  passed/0 failed (unchanged from baseline — no corpus collision).
+
 ## 2026-08-19 — release v2.0.1: ship the BOM fix to PyPI
 
 The 2026-08-18 BOM-detection fix (below) landed on `main` but PyPI still

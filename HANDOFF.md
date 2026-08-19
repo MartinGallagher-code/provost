@@ -1,5 +1,31 @@
 # Handoff — provost
 
+## 2026-08-19: added the go-test strategy (`go test -v` output)
+
+User asked provost to parse `go test -v` output; it was landing in the
+generic `indented-hierarchy` catch-all (1 row / 4 fields instead of a row
+per test). A sample fixture already existed
+(`extract/samples/go-test/basic.txt`) but no strategy did. Added
+`extract/strategies/build/go-test.sh` (priority 20, detects on `=== RUN` +
+`--- PASS|FAIL|SKIP:`), one row per test (test/status/duration), package
+summary broadcast as constant columns. Golden frozen, full suite green
+(smoke/melt/extract/corpus), self-validation +1/+1 with nothing else
+disturbed. See CHANGELOG 2026-08-19 for verification detail.
+
+Next: currently mid-task on a much larger ask — building/verifying
+provost strategies for every output format of two sibling tools,
+`matrix_orchestrator` (`mx`) and `binnacle` (8 diagnostic tools:
+why-slow/agree/logtriage/netmesh/reachable/resolve/during/skew). Both
+repos are cloned read-only at `/workspace/martingallagher-code/{matrix_orchestrator,binnacle}`.
+Surveyed both repos for literal example output (README/docs/tests) — mx
+has ~6 distinct output shapes (gen/summarize/check/doctor/hints, matrix.csv),
+binnacle's 8 tools each have a documented VERDICT/CRITICAL/WARN/ok report
+format plus several report variants and a shared CSV export header
+(`host,ts,rule_id,severity,title,detail,fix` for most). Triage in progress:
+testing each literal example against provost's current strategies before
+deciding what needs a hint row vs. a bespoke strategy, per CLAUDE.md's
+stated priority order. Not yet committed.
+
 ## 2026-08-19: released v2.0.1 — the BOM fix is now on PyPI
 
 The 2026-08-18 BOM fix merged to `main` but PyPI still served 2.0.0 (built
