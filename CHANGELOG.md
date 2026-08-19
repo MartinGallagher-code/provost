@@ -1,5 +1,190 @@
 # provost — Changelog
 
+## 2026-08-19 — generic csv.sh: tolerate a leading `#`-comment header (matrix.csv, haproxy, Prometheus)
+
+While building the mx/binnacle strategies below, found `csv.sh` couldn't
+handle a common convention: CSV emitted with `#`-prefixed metadata before
+the real header (`mx gen`'s `matrix.csv`: `# tx_size=64 port=5300` etc.
+before the real `src\dst,host1,host2` header) or with the header ITSELF
+behind a `#` (haproxy's `# pxname,svname,...` convention). Both fell
+through to the generic `text-lines`/`indented-hierarchy` catch-alls.
+
+- `extract/strategies/structured/csv.sh` — new `_strat_csv_strip_comments`
+  (called from both `strategy_detect` and `strategy_extract`) discards a
+  leading run of `#`-lines that don't match the following data rows' comma
+  shape (prose metadata), but leaves a `#`-line untouched when it DOES
+  match (haproxy's header convention — the existing field-name sanitizer
+  still turns `# pxname` into `#_pxname` downstream, unchanged). No-op
+  (zero extra work) unless the input actually starts with `#`.
+  Prometheus's `# HELP` / `# TYPE` exposition-format comment lines are
+  deliberately left untouched rather than stripped — the metric lines that
+  follow (`name{label="v",...} value`) have just enough incidental comma
+  consistency (from the label list) to otherwise get wrongly claimed as
+  CSV once the protecting `#` lines are gone; the existing prometheus
+  strategy needs them to stay as the first line so csv's original
+  first-line-must-have-commas guard keeps declining.
+- Getting this right took three iterations, all corpus-regression-tested
+  before landing: v1 (unconditionally strip all leading `#` lines) broke
+  haproxy (lost its `#`-prefixed header). v2 (compare comma shape to keep
+  vs discard, plus brace-stripping in the main per-line comma-consistency
+  scan to stop node-exporter's label-syntax commas from miscounting as
+  separators) fixed node-exporter but broke logcli-query/logcli-series —
+  their brace-wrapped commas were exactly what let a prior (accidental but
+  golden-frozen) CSV-shaped parse work; stripping braces broke that. Final
+  version drops the brace-stripping entirely (scoped to a Prometheus-
+  specific comment guard instead, see above) and compares RAW comma counts
+  (not paren/thousands-adjusted) for the header-vs-data shape check, since
+  a thousands-separator false-positive (`...,88,412,...` misread as one
+  grouped number) was undercounting haproxy-stat-socket's data row by
+  exactly one comma against the exact-match check.
+- Verified: `tests/corpus/run.sh --golden` 3470/3470 passed, 0 failed
+  (identical to the pre-change baseline — no regressions anywhere in the
+  corpus); `matrix.csv` now detects as `csv` (conf 90) instead of
+  `text-lines` (conf 55); haproxy-stat/haproxy-stat-socket unaffected
+  (still correctly `#_pxname`-headed); node-exporter and logcli-query/
+  logcli-series unaffected (still their pre-existing correct strategies).
+
+## 2026-08-19 — new strategy: mx-summarize + mx-check (`mx summarize` / `mx check` output)
+
+Added two strategies for the sibling `matrix_orchestrator` (`mx`) tool's
+report commands, both of which previously fell through to generic
+`text-lines` (one raw line per row, no real fields).
+
+- `extract/strategies/network/mx-summarize.sh` — `mx summarize`'s stats
+  block (REQUESTS/DELIVERED/REPLIES/TARGET/TOTAL/LOSS/RTT). Single-record
+  strategy (one row; no `entryN.*`) since the metric set is fixed, not a
+  repeating list. Detects on the `mx summarize --` header line plus a
+  `  REQUESTS` line.
+- `extract/strategies/network/mx-check.sh` — `mx check`'s per-host
+  packet-rate table. One row per host (`host`, `packets_per_sec`,
+  `out_wire`, `in_wire`), broadcasting the matrix summary line's fields
+  (`matrix_file`, `host_count`, `flow_count`, `tx_size`, `rx_size`,
+  `port`, `fleet_offered`). Detects on the `matrix <file>: N hosts, N
+  flows` first line plus the `host`/`packets/s` table header.
+- Samples + goldens frozen for both
+  (`extract/samples/{mx-summarize,mx-check}/basic.txt`,
+  `extract/tests/golden/{mx-summarize,mx-check}.txt`). Both verified via
+  `bash -n`, forced `--strategy`, auto-detection, and
+  `validate-strategies` PASS at threshold 75.
+
+## 2026-08-19 — new strategy: binnacle-logtriage (`logtriage` ranked-template output)
+
+Added `extract/strategies/misc/binnacle-logtriage.sh` for binnacle's
+`logtriage` tool, which clusters a log file into templates and ranks the
+ones that matter. Detects on the `logtriage --` header line plus a `  #N
+score N.N` ranked-entry line. Extracts one row per `#N` entry (`rank`,
+`score`, `is_new`, `severity`, `count`, `template`, `first_seen`,
+`last_seen`, `burst` — the last two of which are legitimately absent on
+some entries, handled without breaking extraction), broadcasting `source`,
+`total_lines`, `total_templates` from the header. The sparkline bar-chart
+and "not seen before..." lines are intentionally not parsed — out of
+scope. Sample + golden frozen
+(`extract/samples/binnacle-logtriage/basic.txt`,
+`extract/tests/golden/binnacle-logtriage.txt`). Verified: 3 rows extracted
+correctly including the two entries missing optional fields;
+auto-detection confirmed via `--first-match`; `validate-strategies` PASS
+(confidence 90 vs threshold 75).
+
+## 2026-08-19 — new strategy: binnacle-severity-report (why-slow / resolve / during / skew)
+
+Four sibling binnacle diagnostic tools (`why-slow`, `resolve`, `during`,
+`skew`) all emit the exact same report shape: a header line, a `VERDICT`
+paragraph, a list of `CRITICAL`/`WARN`/`INFO`/`ok`/`skipped` findings, then
+tool-specific detail sections (EVIDENCE/RESOLVERS/NAMES/TIMELINE/SHARES)
+and a `WHAT TO DO NEXT` list. One strategy,
+`extract/strategies/system/binnacle-severity-report.sh`, covers all four —
+previously each fell through to generic catch-alls with no real structure.
+
+- Detects on a `  VERDICT ` line plus at least one `  (CRITICAL|WARN|INFO|
+  ok|skipped) ` line (confidence 85).
+- Extracts one row per finding (`severity`, `title`, `detail` — split on
+  the first run of 2+ spaces after the severity token, matching
+  smartctl-selftest.sh's column-alignment technique; a wrapped
+  continuation line with no severity token gets appended to the prior
+  finding's detail), broadcasting `tool`, `context` (the header line
+  split on ` -- `), and `verdict` (the VERDICT paragraph, joined) across
+  every row. Stops at the first tool-specific ALL-CAPS section header or
+  `WHAT TO DO NEXT` — those sections are out of scope.
+- Sample fixtures for all four tools under
+  `extract/samples/binnacle-severity-report/` (`basic.txt` = why-slow, the
+  declared sample, plus `resolve.txt`/`during.txt`/`skew.txt`). Golden
+  frozen from `basic.txt`.
+- Verified against all four tools' real report text (not just the
+  declared sample): why-slow (5 findings), resolve (3, including a WARN
+  whose detail only appears via a wrapped continuation line with no
+  double-space run in the first line), during (4, including an `ok` line
+  with a `(+3)` suffix), skew (2, including a wrapped CRITICAL detail) —
+  all extract correctly and auto-detect as `binnacle-severity-report`
+  over the generic catch-alls. `validate-strategies` PASS.
+
+## 2026-08-19 — new strategy: binnacle-reachable (`reachable` server-list output)
+
+Added `extract/strategies/network/binnacle-reachable.sh` for binnacle's
+`reachable` tool, which rewrites a server-list file in place: a reachable
+host stays as a bare (optionally trailing-commented) line, an unreachable
+one gets commented out and tagged `#[unreachable] <reason> - <date>`.
+Detects on the literal `#[unreachable]` marker string (confidence 85).
+Extracts one row per host line — both reachable and unreachable — with
+`host`, `reachable` (0/1), and (unreachable only) `reason` / `checked_date`,
+or (reachable only, when present) a trailing inline `note`. Plain
+`#`-prefixed lines carrying no `#[unreachable]` tag (section headers/human
+comments) are skipped. Sample + golden frozen
+(`extract/samples/binnacle-reachable/basic.txt`,
+`extract/tests/golden/binnacle-reachable.txt`). Files:
+`extract/strategies/network/binnacle-reachable.sh`,
+`extract/samples/binnacle-reachable/basic.txt`,
+`extract/tests/golden/binnacle-reachable.txt`.
+
+## 2026-08-19 — new strategy: binnacle-agree (`agree` fleet-comparison output)
+
+Added `extract/strategies/misc/binnacle-agree.sh` for binnacle's `agree` tool,
+which runs the same command across many hosts and buckets them into GROUP
+blocks by identical output. Detects on the `agree -- N hosts, N groups, N
+agree` header line plus an indented `  GROUP N` marker line (confidence 90).
+Extracts one row per GROUP block (`group`, `host_count`, `status`, `digest`,
+`hosts`, `baseline`, `detail` — the last holding the unreachable reason or
+joined diff lines, order-independent of whether that content appears before
+or after the `hosts:` line), broadcasting `total_hosts`, `total_groups`,
+`agree_count`, and `command` (parsed from the header/command lines) across
+every row. Parsing stops at the `WHAT TO DO NEXT` section — that prose is out
+of scope.
+
+- `extract/strategies/misc/binnacle-agree.sh` — new strategy, priority 22.
+- `extract/samples/binnacle-agree/basic.txt` — sample fixture.
+- `extract/tests/golden/binnacle-agree.txt` — golden output frozen from the
+  sample.
+- Verified: `bash -n` clean; `--strategy binnacle-agree` on the sample yields
+  3 rows with correct fields plus all 4 broadcast fields; auto-detection
+  (`--first-match`, no `--strategy`) selects `binnacle-agree` (p22, c90)
+  correctly over the generic catch-alls (`text-lines`, `indented-hierarchy`,
+  `block-records`) that also match at lower confidence;
+  `validate-strategies -s binnacle-agree` PASS (threshold 75);
+  `verify_strategy_outputs.sh --strategy binnacle-agree` matches the frozen
+  golden.
+
+## 2026-08-19 — new strategy: binnacle-netmesh (`netmesh summarize` output)
+
+Added `extract/strategies/network/binnacle-netmesh.sh` for binnacle's
+`netmesh summarize` mesh-latency report. Detects on the `netmesh summarize
+--` header line plus a `WORST PAIRS` section header (confidence 90).
+Extracts one row per worst-pair line (`src`, `dst`, `p50`, `p99`, `jitter`,
+`loss_pct`, optional `loss_detail`), broadcasting summary-block fields
+(`host_count`, `pair_count`, `span`, `baseline_p50`, `baseline_worst_p50`,
+`jitter_median`, `jitter_worst`, `loss_overall_pct`) across every row.
+Parsing stops at the `ASYMMETRY` / second `PATH MTU` / `WHAT TO DO NEXT`
+section headers — those prose sections are out of scope.
+
+- `extract/strategies/network/binnacle-netmesh.sh` — new strategy, priority 20.
+- `extract/samples/binnacle-netmesh/basic.txt` — sample fixture.
+- `extract/tests/golden/binnacle-netmesh.txt` — golden output frozen from
+  the sample.
+- Verified: `bash -n` clean; `--strategy binnacle-netmesh` on the sample
+  yields 3 rows with correct fields plus all 8 broadcast fields;
+  auto-detection (no `--strategy`) selects `binnacle-netmesh` (p20, c90)
+  correctly; `validate-strategies -s binnacle-netmesh` PASS (threshold 75);
+  `verify_strategy_outputs.sh --strategy binnacle-netmesh` matches the
+  frozen golden.
+
 ## 2026-08-19 — new strategy: go-test (`go test -v` output)
 
 A sample fixture (`extract/samples/go-test/basic.txt`) had been curated

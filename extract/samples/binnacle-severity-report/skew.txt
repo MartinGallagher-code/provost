@@ -1,0 +1,19 @@
+skew -- node07, 3 sources, chronyd, from /etc/chrony.conf
+
+  VERDICT   No time source is reachable from this box. The daemon is
+            running and has nothing to steer towards, so the clock
+            drifts and nothing on the box reports a fault.
+
+  CRITICAL  no source answered         all 3 configured sources unreachable:
+                                       10.0.0.1 10.0.0.2 10.0.0.3
+  WARN      the clock is wrong         4m 12s behind the 0 sources that answered
+
+  SOURCES
+    10.0.0.1                 no answer  (no reply)
+    10.0.0.2                 no answer  (no reply)
+    10.0.0.3                 no answer  (no reply)
+
+  WHAT TO DO NEXT
+    * Nothing is correcting this clock, whatever the daemon's status says.
+      Check egress on UDP 123 first -- it is the usual cause, and a
+      firewall added for something else is the usual reason.

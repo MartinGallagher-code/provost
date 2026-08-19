@@ -1,0 +1,12 @@
+# production web tier
+web01
+# db07  #[unreachable] pings but ssh does not answer - 2026-08-15
+cache02  # the slow one
+
+# odds and ends
+# auth01  #[unreachable] ssh refused your key - 2026-08-15
+# ghost  #[unreachable] name does not resolve - 2026-08-15
+noicmp   # ICMP blocked here by policy
+# node01  #[unreachable] no route to host - 2026-08-15
+node02
+# node03  #[unreachable] no route to host - 2026-08-15

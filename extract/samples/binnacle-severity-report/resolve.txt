@@ -1,0 +1,30 @@
+resolve -- node07, 3 resolvers, 1 name, from /etc/resolv.conf
+
+  VERDICT   A configured resolver is dead and the others are covering for
+            it. Everything still works, and every lookup pays a timeout to
+            find that out.
+
+  CRITICAL  a resolver not answering    1 of 3 resolvers did not answer:
+                                        10.0.0.53 -- including the first one tried
+  WARN      getaddrinfo is the slow part getaddrinfo took 5002ms where the
+                                        fastest resolver answered in 2ms
+  ok        resolvers disagree, a name does not resolve, tcp 53 blocked
+
+  RESOLVERS
+    10.0.0.53              no answer  (timed out after 2.0s) <- tried first
+    10.0.0.54                 1.9ms  NOERROR
+    10.0.0.55                 2.1ms  NOERROR
+                           search example.com  ndots:1
+
+  NAMES
+    db01.example.com       10.0.0.54          10.0.0.7
+    db01.example.com       10.0.0.55          10.0.0.7
+    db01.example.com       getaddrinfo        10.0.0.7  (5002ms)
+
+  WHAT TO DO NEXT
+    * Resolution still works, which is exactly why this survives for months.
+      The dead server is first in the list, so every lookup on this box
+      waits 5 seconds for it before asking the one that works. That is your
+      latency, and no query against the working server will ever show it.
+      Remove it from /etc/resolv.conf, or fix it -- and if that file is
+      generated, fix whatever generates it.

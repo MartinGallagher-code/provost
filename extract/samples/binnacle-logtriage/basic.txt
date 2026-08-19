@@ -1,0 +1,24 @@
+logtriage -- /var/log/syslog, 2.1M lines, 1,847 templates, 04:00 -> 16:22
+             baseline: everything before 10:11, buckets 30s
+
+  #1  score 8.4   NEW   sev=error   1,204x   ▁▁▁▁▁▁▁▁▁▂▄██▇▅▃▂▁▁▁
+      kernel: EXT4-fs error (device <PATH>): ext4_find_entry:<NUM>: inode #<NUM>
+      first 14:21:06   last 16:22:41   burst 41x
+      not seen before 14:21:06; 1,204 since
+
+  #2  score 6.9   NEW   sev=crit    3x       ▁▁▁▁▁▁▁▁▁▁▁▁█▁▁▁▁▁▁▁
+      kernel: Out of memory: Killed process <NUM> (java) total-vm:<NUM>kB
+      first 14:22:58   last 14:24:10
+
+  #3  score 3.1         sev=error   88,204x  ▄▅▄▄▅▄▅▄▄▅▄▅▄▄▅▄▅▄▄▅
+      sshd: Failed password for invalid user <STR> from <IP> port <NUM> ssh2
+      first 04:00:02   last 16:22:58
+
+  WHAT TO DO NEXT
+    * #1 and #2 start within 2 minutes of each other. Read them as one
+      event rather than two: the filesystem started erroring, and the
+      process blocked on it got killed. Start at the device, not at java.
+      Earliest is at 14:21:06 -- start there.
+    * #3 is 88,204 lines and steady across the whole window, so it is
+      background, not your problem -- it is only listed because of its
+      volume.

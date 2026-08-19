@@ -1,0 +1,9 @@
+mx summarize -- last 60s, 12 hosts, 132 flows, 64 bytes out -> 64 bytes back
+
+  REQUESTS       2.640 Mpps       2.75 Gbps wire       1.35 Gbps payload
+  DELIVERED      2.601 Mpps    98.52% of what was sent
+  REPLIES        2.598 Mpps       2.71 Gbps wire       1.33 Gbps payload
+  TARGET         2.640 Mpps   100.0% achieved
+  TOTAL          5.238 Mpps       5.46 Gbps wire, both directions
+  LOSS               1.59%   round trip (1.48% forward, 0.11% on the way back)
+  RTT       avg 240us over all flows; worst flow p50 190us  p99 4.1ms  max 31ms

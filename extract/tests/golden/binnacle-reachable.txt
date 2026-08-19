@@ -1,0 +1,31 @@
+entry1.host web01
+entry1.reachable 1
+entry2.host db07
+entry2.reachable 0
+entry2.reason pings but ssh does not answer
+entry2.checked_date 2026-08-15
+entry3.host cache02
+entry3.reachable 1
+entry3.note the slow one
+entry4.host auth01
+entry4.reachable 0
+entry4.reason ssh refused your key
+entry4.checked_date 2026-08-15
+entry5.host ghost
+entry5.reachable 0
+entry5.reason name does not resolve
+entry5.checked_date 2026-08-15
+entry6.host noicmp
+entry6.reachable 1
+entry6.note ICMP blocked here by policy
+entry7.host node01
+entry7.reachable 0
+entry7.reason no route to host
+entry7.checked_date 2026-08-15
+entry8.host node02
+entry8.reachable 1
+entry9.host node03
+entry9.reachable 0
+entry9.reason no route to host
+entry9.checked_date 2026-08-15
+total_entries 9

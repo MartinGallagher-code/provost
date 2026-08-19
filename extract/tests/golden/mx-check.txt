@@ -1,0 +1,20 @@
+entry1.host 10.0.0.10
+entry1.packets_per_sec 80.0 kpps
+entry1.out_wire 83.2 Mbps
+entry1.in_wire 83.2 Mbps
+entry2.host 10.0.0.11
+entry2.packets_per_sec 80.0 kpps
+entry2.out_wire 83.2 Mbps
+entry2.in_wire 83.2 Mbps
+entry3.host 10.0.0.12
+entry3.packets_per_sec 80.0 kpps
+entry3.out_wire 83.2 Mbps
+entry3.in_wire 83.2 Mbps
+matrix_file matrix.csv
+host_count 3
+flow_count 6
+tx_size 64 bytes
+rx_size 64 bytes
+port 5300
+fleet_offered fleet offered: 120.0 kpps requests + the same rate in replies
+total_entries 3

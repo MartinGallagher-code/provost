@@ -1,0 +1,26 @@
+entry1.group 1
+entry1.host_count 47
+entry1.status ok
+entry1.digest ab12cd34ef56
+entry1.hosts node01 node02 node03 node04 node05 ... (+42, --show-hosts)
+entry1.baseline 1
+entry1.detail openssl-3.0.13-1.el9.x86_64
+entry2.group 2
+entry2.host_count 2
+entry2.status ok
+entry2.digest 77aa11bb22cc
+entry2.hosts node31 node47
+entry2.baseline 0
+entry2.detail --- baseline | +++ group 2 | -openssl-3.0.13-1.el9.x86_64 | +openssl-3.0.2-2.el9.x86_64
+entry3.group 3
+entry3.host_count 1
+entry3.status unreachable
+entry3.digest 
+entry3.hosts node09
+entry3.baseline 0
+entry3.detail ssh: connect to host node09 port 22: Connection timed out
+total_hosts 50
+total_groups 3
+agree_count 47
+command rpm -q openssl
+total_entries 3

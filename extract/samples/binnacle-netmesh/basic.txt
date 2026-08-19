@@ -1,0 +1,28 @@
+netmesh summarize -- 5 hosts, 20 measured pairs, reports span 30s
+
+  BASELINE   p50 214us across all pairs   worst pair p50 1.9ms
+  JITTER     median 11us                  worst pair 640us
+  LOSS       0.31% overall  (0.31% forward, 0.00% on the way back)
+  PATH MTU   9000 on 18 of 20 pairs; 2 pairs lower; 1 BLACKHOLE
+
+  WORST PAIRS (of 20, ranked by p99)
+    web03 -> db01   p50 1.9ms  p99 8.4ms  jitter 640us  loss 0.9% (fwd 0.9%)
+    web03 -> db02   p50 1.8ms  p99 7.9ms  jitter 610us  loss 0.8% (fwd 0.8%)
+    db01  -> web03  p50 220us  p99 400us  jitter 14us   loss 0.0%
+
+  ASYMMETRY
+    web03 -> db01 is 1.7ms slower than db01 -> web03 (8.0x)
+      -- the return path is fine, so look at web03's egress queueing
+
+  PATH MTU
+    web03 -> db01  BLACKHOLE above 1500 bytes: small packets get through,
+      large ones vanish and nothing reports back.
+      Applications hang on big transfers and work fine on small ones.
+
+  WHAT TO DO NEXT
+    Every slow pair starts at web03, so this is web03's egress or its first
+    hop, not the fabric.  Traffic *into* web03 is fine, which narrows it further.
+      netmesh paths --compare web03:db01 web01:db01
+    If the paths come back clean, the network is not the bottleneck:
+      mx run --for 60           (packets per second)
+      iperf_orchestrator.sh all (TCP bandwidth)

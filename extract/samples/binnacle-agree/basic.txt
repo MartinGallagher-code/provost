@@ -1,0 +1,24 @@
+agree -- 50 hosts, 3 groups, 47 agree      [normalized: trim, mask-times]
+        rpm -q openssl                     11.4s, 32 jobs
+
+  GROUP 1   47 hosts   ok        d=ab12cd34ef56              <- baseline
+    openssl-3.0.13-1.el9.x86_64
+    hosts: node01 node02 node03 node04 node05 ... (+42, --show-hosts)
+
+  GROUP 2    2 hosts   ok        d=77aa11bb22cc
+    hosts: node31 node47
+    --- baseline
+    +++ group 2
+    -openssl-3.0.13-1.el9.x86_64
+    +openssl-3.0.2-2.el9.x86_64
+
+  GROUP 3    1 host    unreachable
+    hosts: node09
+    ssh: connect to host node09 port 22: Connection timed out
+
+  WHAT TO DO NEXT
+    * node31 and node47 differ from the other 47. If this is a CVE check,
+      those are your two:
+      agree -H node31,node47 -- <the fix>
+    * node09 never answered. That is not "fine because it produced no
+      output" -- it is unknown. Fix it or take it out of the list.

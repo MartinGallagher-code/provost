@@ -1,0 +1,23 @@
+during -- node07, 60s window, 60 samples, wrapping benchmark.sh
+
+  VERDICT   Something else was running inside the benchmark window, so the
+            result measures both.  Fix that before reading the bottleneck
+            below.
+
+  WARN      something else ran     backup took 71% CPU in 18% of the samples
+  INFO      what limited the run   io for 68% of the run (waiting on storage)
+  INFO      warmup in the average  steady only from 9s, so 15% of the samples are warmup
+  ok        cpu clock fell, hypervisor took time, storage throttled (+3)
+
+  TIMELINE  (60 samples, 1.0s apart)
+    cpu  ..::=++**###########**###########**#########**####
+    core :::==++**##################################**#####
+    io   ..::==++*#########################################
+    bound .....IIIIIIIIIIIIIIIIIIIIIIIIIIIICCCIIIIIIIIIIIII
+    C cpu  1 one core  I io  M mem  N net  T throttled  S stolen  . not bound
+              ^ steady from here
+
+  SHARES
+    io             68%   waiting on storage
+    cpu             7%   at the CPU's ceiling
+    not bound      25%   not at any ceiling

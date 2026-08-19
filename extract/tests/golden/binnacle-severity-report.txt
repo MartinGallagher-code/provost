@@ -1,0 +1,19 @@
+entry1.severity CRITICAL
+entry1.title memory exhausted
+entry1.detail MemAvailable 412 MB of 62.7 GB (0.6%)
+entry2.severity CRITICAL
+entry2.title swap thrashing
+entry2.detail 14.2k pg/s in, 9.8k out (~55 MB/s)
+entry3.severity WARN
+entry3.title cpu saturated
+entry3.detail load 34.1 over 16 cores, 61% in system time
+entry4.severity ok
+entry4.title no steal, no I/O errors, disks < 60% busy, no OOM kills this boot
+entry4.detail 
+entry5.severity skipped
+entry5.title per-process I/O (needs root)
+entry5.detail 
+tool why-slow
+context node07, 2.0s sample, Linux 6.1.0-18, 16 cores, container: no
+verdict This box is memory-starved and swapping. Everything else you see is a consequence of that.
+total_entries 5
