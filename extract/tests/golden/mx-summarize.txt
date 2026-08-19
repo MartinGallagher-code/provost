@@ -1,0 +1,23 @@
+window last 60s
+host_count 12
+flow_count 132
+tx_size 64 bytes
+rx_size 64 bytes
+requests_pps 2.640 Mpps
+requests_wire 2.75 Gbps wire
+requests_payload 1.35 Gbps payload
+delivered_pps 2.601 Mpps
+delivered_pct 98.52% of what was sent
+replies_pps 2.598 Mpps
+replies_wire 2.71 Gbps wire
+replies_payload 1.33 Gbps payload
+target_pps 2.640 Mpps
+target_pct 100.0% achieved
+total_pps 5.238 Mpps
+total_wire 5.46 Gbps wire, both directions
+loss_pct 1.59%
+loss_detail round trip (1.48% forward, 0.11% on the way back)
+rtt_avg 240us
+rtt_worst_p50 190us
+rtt_worst_p99 4.1ms
+rtt_worst_max 31ms

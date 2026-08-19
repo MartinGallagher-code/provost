@@ -1,0 +1,23 @@
+why-slow -- node07, 2.0s sample, Linux 6.1.0-18, 16 cores, container: no
+
+  VERDICT   This box is memory-starved and swapping. Everything else you
+            see is a consequence of that.
+
+  CRITICAL  memory exhausted     MemAvailable 412 MB of 62.7 GB (0.6%)
+  CRITICAL  swap thrashing       14.2k pg/s in, 9.8k out (~55 MB/s)
+  WARN      cpu saturated        load 34.1 over 16 cores, 61% in system time
+  ok        no steal, no I/O errors, disks < 60% busy, no OOM kills this boot
+  skipped   per-process I/O (needs root)
+
+  EVIDENCE
+    top rss    java(1842) 48.1G   postgres(991) 6.2G   node(2210) 1.1G
+    pressure   cpu some 41%  io some 12%  mem some 88%  mem full 61%  (avg10)
+    disks      sda  22% busy  1.1k IOPS  await 3.1ms
+
+  WHAT TO DO NEXT
+    * java (pid 1842) holds 48.1 GB of 62.7 GB. Cap it and the rest of this
+      report goes away: `systemd-run --scope -p MemoryMax=32G ...` on the
+      next restart, or set -Xmx directly.
+    * While it swaps, nothing you tune elsewhere will help -- the CPU number
+      above is queueing on page faults, not on work.
+    * Confirm after: why-slow --interval 10

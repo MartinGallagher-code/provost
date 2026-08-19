@@ -1,0 +1,29 @@
+entry1.src web03
+entry1.dst db01
+entry1.p50 1.9ms
+entry1.p99 8.4ms
+entry1.jitter 640us
+entry1.loss_pct 0.9
+entry1.loss_detail fwd 0.9%
+entry2.src web03
+entry2.dst db02
+entry2.p50 1.8ms
+entry2.p99 7.9ms
+entry2.jitter 610us
+entry2.loss_pct 0.8
+entry2.loss_detail fwd 0.8%
+entry3.src db01
+entry3.dst web03
+entry3.p50 220us
+entry3.p99 400us
+entry3.jitter 14us
+entry3.loss_pct 0.0
+host_count 5
+pair_count 20
+span 30s
+baseline_p50 214us
+baseline_worst_p50 1.9ms
+jitter_median 11us
+jitter_worst 640us
+loss_overall_pct 0.31
+total_entries 3

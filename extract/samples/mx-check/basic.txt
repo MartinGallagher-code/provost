@@ -1,0 +1,13 @@
+matrix matrix.csv: 3 hosts, 6 flows, 64 bytes out -> 64 bytes back, port 5300
+
+  host                        packets/s     out (wire)      in (wire)
+  10.0.0.10                   80.0 kpps      83.2 Mbps      83.2 Mbps
+  10.0.0.11                   80.0 kpps      83.2 Mbps      83.2 Mbps
+  10.0.0.12                   80.0 kpps      83.2 Mbps      83.2 Mbps
+
+  fleet offered: 120.0 kpps requests + the same rate in replies
+  no caps given -- pass --nic-gbps and/or --nic-mpps to check them
+
+  note: one agent worker process sustains roughly 200k packets/sec of
+        request+reply. `--workers auto` (the default) runs one per
+        core, so a host's own ceiling is about 200k x cores.

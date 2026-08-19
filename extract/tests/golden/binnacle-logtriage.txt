@@ -1,0 +1,31 @@
+entry1.rank 1
+entry1.score 8.4
+entry1.is_new 1
+entry1.severity error
+entry1.count 1,204
+entry1.template kernel: EXT4-fs error (device <PATH>): ext4_find_entry:<NUM>: inode #<NUM>
+entry1.first_seen 14:21:06
+entry1.last_seen 16:22:41
+entry1.burst 41
+entry2.rank 2
+entry2.score 6.9
+entry2.is_new 1
+entry2.severity crit
+entry2.count 3
+entry2.template kernel: Out of memory: Killed process <NUM> (java) total-vm:<NUM>kB
+entry2.first_seen 14:22:58
+entry2.last_seen 14:24:10
+entry2.burst 
+entry3.rank 3
+entry3.score 3.1
+entry3.is_new 0
+entry3.severity error
+entry3.count 88,204
+entry3.template sshd: Failed password for invalid user <STR> from <IP> port <NUM> ssh2
+entry3.first_seen 04:00:02
+entry3.last_seen 16:22:58
+entry3.burst 
+source /var/log/syslog
+total_lines 2.1M
+total_templates 1,847
+total_entries 3

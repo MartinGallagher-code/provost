@@ -1,5 +1,58 @@
 # Handoff — provost
 
+## 2026-08-19: matrix_orchestrator + binnacle output coverage — DONE
+
+User asked for two things: parse `go test -v` output, then make sure
+provost can parse *all* output from two sibling tools, `matrix_orchestrator`
+(`mx`) and `binnacle` (8 diagnostic tools). Both repos cloned read-only at
+`/workspace/martingallagher-code/{matrix_orchestrator,binnacle}`. Surveyed
+both for real/literal example output (README/docs/tests — binnacle has a
+"What it looks like" example per tool in `docs/tools/*.md`; mx's examples
+came from actually running the installed CLI locally). Asked the user
+scope ("full sweep now" vs. highest-value slice vs. pick-per-tool) given
+the size that turned up — they chose full sweep.
+
+**7 new strategies, 1 generic-parser fix, all done and verified:**
+
+- `extract/strategies/build/go-test.sh` — `go test -v` (the original ask).
+- `extract/strategies/system/binnacle-severity-report.sh` — covers 4 of
+  binnacle's 8 tools at once (why-slow/resolve/during/skew all share one
+  VERDICT/CRITICAL/WARN/ok report shape).
+- `extract/strategies/misc/binnacle-agree.sh` — `agree` (GROUP blocks).
+- `extract/strategies/network/binnacle-netmesh.sh` — `netmesh summarize`
+  (WORST PAIRS table).
+- `extract/strategies/misc/binnacle-logtriage.sh` — `logtriage` (ranked
+  `#N` template entries).
+- `extract/strategies/network/binnacle-reachable.sh` — `reachable`
+  (rewritten server-list file, `#[unreachable]` tags).
+- `extract/strategies/network/mx-summarize.sh` + `mx-check.sh` — `mx`'s
+  two stats-report commands.
+- `extract/strategies/structured/csv.sh` — generic fix: tolerate a
+  leading `#`-comment header (covers `mx gen`'s `matrix.csv`, haproxy's
+  `#`-prefixed header convention, and correctly still declines Prometheus
+  exposition format). See its own CHANGELOG entry for the three-iteration
+  story — the naive version broke 4 existing corpus tools before landing
+  clean.
+
+All 7 strategies: built by parallel subagents (each independent, no git),
+verified against real/documented sample text — both forced `--strategy`
+and unassisted auto-detection — plus `validate-strategies` PASS and a
+frozen golden per strategy. The csv.sh fix and each new strategy were then
+checked against the full `tests/corpus/run.sh --golden` (3470/3470,
+matching the pre-change baseline exactly) and `extract/tests/run_tests.sh`
+(all green) before anything was committed — see CHANGELOG 2026-08-19 for
+the detailed per-strategy writeups.
+
+**Not covered, by explicit design choice per the strategy prompts, not an
+oversight:** the EVIDENCE/RESOLVERS/NAMES/TIMELINE/SHARES sub-sections and
+`WHAT TO DO NEXT` prose blocks inside the binnacle reports; `mx doctor`,
+`mx hints`, `mx status`/`start`/`stop`/`run` (no literal output samples
+existed anywhere in the mx repo for these — only substring test
+assertions, confirmed by survey); binnacle's `--csv` export flag's own
+output format (not surveyed). If any of these turn out to matter, they're
+the natural next slice — same pattern (real sample → strategy → golden →
+corpus-regression-checked).
+
 ## 2026-08-19: a TUI browser for the store now exists (in Meridian Commander)
 
 Meridian Commander's new **Provost data** plug-in browses a provost store

@@ -72,10 +72,79 @@ _csv_strip_thousands () {
     _CSV_NOTH="$out"
 }
 
+# RAW comma count of one line (quote-aware split, no paren/thousands
+# adjustment) — used only to compare a candidate '#'-header line's shape
+# against the data rows below it. Deliberately not run through the
+# consistency scan's paren/thousands stripping: those exist to tolerate
+# noisy DATA rows over a run of many lines, but would make an unrelated
+# line with an incidental "NN,NNN"-shaped pair (e.g. two adjacent plain
+# numeric fields) look like a false match against the header here.
+_strat_csv_raw_commas () {
+    _strat_csv_split "$1"
+    printf '%s' "$(( ${#_CSV_FIELDS[@]} - 1 ))"
+}
+
+# Strip a leading run of '#'-prefixed comment/metadata lines — a common
+# convention for CSV emitted by tools that annotate the file before the real
+# header (e.g. `# generated-by ...`, `# tx_size=64 port=5300`). Only lines at
+# the very start of the input are stripped; a '#' appearing once real rows
+# have begun is left alone (it is data, not a header comment).
+#
+# haproxy's own CSV convention instead puts the REAL header row itself behind
+# a leading '#' (`# pxname,svname,qcur,...`) — that line has the same shape
+# (comma count) as the data rows that follow, unlike genuine prose metadata,
+# so it is left untouched (kept as the header, '#' and all — the existing
+# field-name sanitizer downstream turns it into `#_pxname` as it always has)
+# rather than discarded.
+#
+# No-op (and no _strat_csv_split/shape-comma work at all) unless the input
+# actually starts with '#' — every other CSV input takes the pre-existing
+# path with zero extra global-state churn from the scan below.
+_strat_csv_strip_comments () {
+    local text="$1"
+    [[ "$text" == \#* ]] || { printf '%s' "$text"; return; }
+
+    local out="" started=0 line
+    local first_data=""
+    while IFS= read -r line; do
+        [[ "$line" == \#* || -z "$line" ]] && continue
+        first_data="$line"
+        break
+    done <<< "$text"
+    local data_commas=-1
+    [[ -n "$first_data" ]] && data_commas=$(_strat_csv_raw_commas "$first_data")
+
+    while IFS= read -r line; do
+        # Prometheus's own `# HELP ...` / `# TYPE ...` exposition-format
+        # comment convention is left alone rather than stripped: the metric
+        # lines that follow (`name{label="v",...} value`) have a uniform-
+        # enough comma count (from the label list) to otherwise pass the
+        # consistency scan below and get wrongly claimed as CSV — the
+        # untouched '# HELP'/'# TYPE' line, like any other non-CSV-shaped
+        # leading line, is what makes strategy_detect correctly decline.
+        if [[ $started -eq 0 && "$line" =~ ^\#[[:space:]]*(HELP|TYPE)[[:space:]] ]]; then
+            started=1
+            out+="${line}"$'\n'
+            continue
+        fi
+        if [[ $started -eq 0 && "$line" == \#* ]]; then
+            if [[ $data_commas -ge 1 && "$(_strat_csv_raw_commas "$line")" -eq $data_commas ]]; then
+                out+="${line}"$'\n'
+                started=1
+            fi
+            continue
+        fi
+        started=1
+        out+="${line}"$'\n'
+    done <<< "$text"
+    printf '%s' "$out"
+}
+
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
+    text="$(_strat_csv_strip_comments "$text")"
 
     # TAB-dominant input is tsv's: `aws … --output text` emits TAB fields
     # whose VALUES contain commas ("my-logs, prod"). When every non-blank
@@ -172,6 +241,7 @@ strategy_extract () {
     local bom
     bom=$(printf '\xef\xbb\xbf')
     text="${text#"$bom"}"
+    text="$(_strat_csv_strip_comments "$text")"
 
     # Pre-process: join multi-line quoted fields. A line whose RFC-4180 parse
     # ends inside an OPEN quoted field continues on the next physical line.
