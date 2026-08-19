@@ -1,5 +1,21 @@
 # Handoff — provost
 
+## 2026-08-19: bundle.txt regenerated — current with #63 and #64
+
+`bundle.txt` had fallen behind the tree (the mx/binnacle strategies and the
+Meridian Commander browser docs landed after the last regen), so it was rerun
+the standing way — `bash ../shared_tools/scripts/merge.sh bundle.txt .` from
+the repo root (shared_tools now clones to `/workspace/shared_tools`; adjust
+the path to wherever it lives). 12,212 entries, round-trip verified with
+`split.sh` (all checksums OK, `diff -r` byte-identical), 0 `node_modules`
+sections. Three practical notes for next time: write the CHANGELOG/HANDOFF
+entries BEFORE regenerating, so the bundle carries them (regenerating after a
+doc edit leaves the bundle one step behind the tree); the run takes ~6 minutes on this
+tree (the delimiter derivation scans all content first), so give it a generous
+timeout; and its `bundle.txt.tmp.*` working files are transient — never commit
+them, they vanish when the run finishes. Next steps: none; rerun after the
+next tree change.
+
 ## 2026-08-19: matrix_orchestrator + binnacle output coverage — DONE
 
 User asked for two things: parse `go test -v` output, then make sure
