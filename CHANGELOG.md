@@ -1,5 +1,38 @@
 # provost — Changelog
 
+## 2026-08-20 — regenerate bundle.txt (stale since the four-tool coverage merge)
+
+`bundle.txt` was last regenerated in #65, which landed just BEFORE the
+four-tool output-coverage work (#66). Diffing the bundle's file list against
+`git ls-files` showed it short by exactly the 36 files that PR added — the
+nine new strategies, their samples and their goldens. Rerun per the standing
+instruction (`bash ../shared_tools/scripts/merge.sh bundle.txt .` from the
+repo root).
+
+- 12,248 entries (was 12,212), 1320 escaped, 24 base64, 0 skipped, 198,932
+  lines; `file` reports plain `ASCII text` and a byte-class scan confirms
+  nothing outside tab/newline/printable-ASCII.
+- Round-trip verified as before: `split.sh` expanded it with **12,248 /
+  12,248 checksums OK, 0 errors**, and `diff -r` of the expansion against the
+  working tree came back byte-identical.
+- **`merge.sh` bundles the WORKING TREE, not `git ls-files`** — so it happily
+  swept up local test detritus (`.coverage`, `.pytest_cache/`, and three
+  `__pycache__/*.pyc` files) left behind by a `python -m pytest` run earlier
+  in the session. All are gitignored, so `git status` looked clean and
+  nothing flagged it; the first regeneration attempt carried all 8 into the
+  bundle, four of them base64-encoded binaries. Caught only by explicitly
+  diffing the bundle's file list against `git ls-files`. Cleaned and
+  regenerated; base64 sections dropped 28 -> 24 accordingly. **Regenerate
+  from a clean tree, and verify parity rather than assuming it** — the check
+  is recorded in HANDOFF.
+- Still carries **0** `===FILE: node_modules/...===` sections. (The 44
+  textual `node_modules` matches are the string appearing inside
+  `.gitignore`, earlier changelog prose, and npm/yarn corpus fixtures that
+  legitimately contain it — not bundled files. Worth noting because a bare
+  `grep -c node_modules` looks alarming and is the wrong check; grep for
+  `^===FILE.*node_modules` instead.)
+- Files: `bundle.txt`, `CHANGELOG.md`, `HANDOFF.md`.
+
 ## 2026-08-20 — three more doehelper strategies: `doe-power`, `doe-status`, `doe-optimize`
 
 Second pass over `doe`'s remaining reports. The first pass had left these to

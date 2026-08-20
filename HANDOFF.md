@@ -1,5 +1,40 @@
 # Handoff — provost
 
+## 2026-08-20: bundle.txt regenerated — current with #66
+
+#65 regenerated `bundle.txt` immediately before #66 landed, so the bundle was
+short by exactly the 36 files #66 added. Rerun and verified: 12,248 entries,
+12,248/12,248 checksums OK on the `split.sh` round-trip, `diff -r` of the
+expansion byte-identical against the working tree, pure printable ASCII, 0
+`node_modules` file sections.
+
+**Two traps worth knowing before the next regeneration:**
+
+1. **`merge.sh` bundles the working tree, NOT `git ls-files`.** My first
+   attempt swept in `.coverage`, `.pytest_cache/` and three `__pycache__/*.pyc`
+   files left by an earlier `python -m pytest` run — all gitignored, so
+   `git status` was clean and nothing warned me; four of them landed as
+   base64 binary sections. Regenerate from a clean tree (`git clean -Xdn`
+   first to see what's there), and verify parity rather than assuming it:
+   ```bash
+   diff <(grep '^===FILE' bundle.txt | sed 's/^===FILE[^:]*: //; s/===$//' | sort) \
+        <(git ls-files | grep -v '^bundle.txt$' | sort)
+   ```
+   That check is what caught it, and it is cheap enough to run every time —
+   or to wire into CI, which would make this whole class of problem
+   self-reporting.
+
+2. **`grep -c node_modules` is the WRONG staleness/cleanliness check** and
+   looks alarming for no reason: it currently returns 44 while the number of
+   actually-bundled `node_modules` files is 0. The 44 are the string
+   appearing inside `.gitignore`, changelog prose, and npm/yarn corpus
+   fixtures. Grep for `^===FILE.*node_modules` instead.
+
+Also worth noting: the bundle goes stale on *every* merge that adds files, and
+the two most recent regenerations have both been "regenerate, then immediately
+merge something else". Regenerating as the last step before merge (or the CI
+check above) would break that cycle.
+
 ## 2026-08-20: four-tool output coverage (iperf / mx / binnacle / doehelper) — DONE
 
 User asked provost to parse **all** output — commands *and* file artifacts —
