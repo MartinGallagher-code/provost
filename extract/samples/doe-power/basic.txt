@@ -1,0 +1,12 @@
+Estimated sigma from residuals: 2.0647
+
+=== Power Analysis ===
+  Runs: 12, df_error: 7
+  Sigma (sqrt residual MS): 2.0647   (residual MS = 4.2628)
+  Alpha: 0.05   |   delta: 4.1293   |   target power: 0.8
+
+  Factor                   Levels  Power @ delta   MDE @ target
+  ------------------------ ------ -------------- --------------
+  temperature                   2          0.986         2.7561
+  pressure                      2          0.986         2.7561
+  catalyst                      3          0.819         4.0331

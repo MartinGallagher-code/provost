@@ -1,0 +1,17 @@
+entry1.mbps 3360.00
+entry1.source 10.0.0.10
+entry1.target 10.0.0.12
+entry2.mbps 9200.00
+entry2.source 10.0.0.11
+entry2.target 10.0.0.10
+entry3.mbps 9440.00
+entry3.source 10.0.0.10
+entry3.target 10.0.0.11
+n_directions 3
+n_errored 0
+min_mbps 3360.00
+p50_mbps 9200.00
+mean_mbps 7333.33
+p95_mbps 9440.00
+max_mbps 9440.00
+total_entries 3
