@@ -1,0 +1,21 @@
+iperf2 full-mesh throughput (Mbps)
+Run at:   2026-08-20 13:40:59 +0000
+Mode:     parallel    Duration: 10s    Port: 5001    Parallel: 1    Hosts: 3
+Rows = source (sender), Columns = target (receiver)
+Each cell = total bytes (source -> target) * 8 / run wall-time = time-averaged
+  directional throughput. Accounts for concurrent flows summing in the same direction.
+Diagonal '-' = no self-test;  '-(N)' = N attempts, none successful
+
+          | 10.0.0.10 10.0.0.11 10.0.0.12
+----------+------------------------------
+10.0.0.10 |         -   9440.00   3360.00 
+10.0.0.11 |   9200.00         -         - 
+10.0.0.12 |         -         -         - 
+
+Per-host incoming bandwidth (total Mbps received, sorted high to low):
+  10.0.0.11    9440.00 Mbps ( 1.180 GB/s)  ########################################
+  10.0.0.10    9200.00 Mbps ( 1.150 GB/s)  ######################################
+  10.0.0.12    3360.00 Mbps ( 0.420 GB/s)  ##############
+
+Fleet aggregate bandwidth (sum of all directional flows): 22000.00 Mbps  (2.750 GB/s)
+  mean per-host throughput: 7333.33 Mbps (0.917 GB/s)   [3 flow(s) measured across 3 host(s)]

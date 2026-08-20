@@ -2,7 +2,7 @@
 ## Name: binnacle-severity-report
 ## Description: Extract findings (severity/title/detail) from binnacle-suite diagnostic reports (why-slow, resolve, during, skew, ...)
 ## Version: 1.0
-## Priority: 22
+## Priority: 12
 ## Sample: samples/binnacle-severity-report/basic.txt
 
 # The binnacle sibling tools (why-slow, resolve, during, skew, ...) share one
@@ -44,7 +44,12 @@ strategy_detect () {
     _is_json "$text" && return 1
     [[ "$text" =~ $_bsr_re_verdict ]] || return 1
     [[ "$text" =~ $_bsr_re_sev ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    # Above csv's 90: a healthy-box report is mostly prose, and its `ok` line
+    # lists the passing checks comma-separated across wrapped lines, which is
+    # regular enough for the generic comma-consistency scan to claim the whole
+    # report as CSV. Requiring BOTH a VERDICT block and a severity-label line
+    # is far more specific than that heuristic, so this wins the tie.
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

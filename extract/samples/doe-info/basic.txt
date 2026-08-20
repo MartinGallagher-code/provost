@@ -1,0 +1,28 @@
+Plan      : My Experiment
+Desc      : Short description of what you're testing
+Operation : full_factorial
+Factors   : temperature, pressure, catalyst
+Base runs : 12
+Blocks    : 1
+Total runs: 12
+Responses : yield [maximize] (%), cost [minimize] ($)
+
+run_id       block_id     temperature  pressure     catalyst     
+-----------------------------------------------------------------
+1            1            200          5            B            
+2            1            100          1            A            
+3            1            200          1            B            
+4            1            200          5            A            
+5            1            100          5            A            
+6            1            100          5            B            
+7            1            200          5            C            
+8            1            100          1            B            
+9            1            100          5            C            
+10           1            100          1            C            
+11           1            200          1            C            
+12           1            200          1            A            
+
+Design Evaluation Metrics:
+  D-efficiency: 90.4%
+  A-efficiency: 10.6667
+  G-efficiency: 88.9%

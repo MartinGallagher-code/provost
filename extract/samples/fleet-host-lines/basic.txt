@@ -1,0 +1,9 @@
+[netmesh] local checks
+  python           3.11.15
+  path-MTU probing supported (IP_MTU_DISCOVER accepted)
+  agent file       /workspace/martingallagher-code/binnacle/binnacle/netmesh.py
+
+[netmesh] remote checks on 2 hosts
+  web01  [Errno 2] No such file or directory: 'ssh'
+  db01   [Errno 2] No such file or directory: 'ssh'
+[netmesh] FAILED on 2/2 hosts: web01 db01

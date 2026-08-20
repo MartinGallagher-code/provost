@@ -1,5 +1,155 @@
 # provost — Changelog
 
+## 2026-08-20 — fix: a HEALTHY-box binnacle report was being claimed by generic `csv`
+
+Found by running the real tools rather than trusting their docs: `why-slow`
+on a box with nothing wrong emits a report whose `ok` line lists the passing
+checks comma-separated across wrapped lines, plus an EVIDENCE block of
+comma-rich prose. That is regular enough for generic `csv` to claim the whole
+report — so the healthy-box variant landed as an 18-row `csv` table of prose
+fragments instead of a severity report, while the docs' unhealthy-box samples
+were unaffected. Only real output exposed it.
+
+Root cause was NOT confidence. The engine picks the first strategy in
+**priority** order that produces output (`extract/lib/_discovery.sh` — the
+`_WINNER_NAME` assignment records confidence but never ranks by it), so
+`csv` at priority 14 beat `binnacle-severity-report` at 22 regardless of
+their 90-vs-85 confidences. Bumping confidence alone changed nothing;
+priority is the lever.
+
+- `extract/strategies/system/binnacle-severity-report.sh` — priority 22 -> 12
+  (ahead of csv's 14), confidence 85 -> 92. Requiring BOTH a `VERDICT` block
+  and a severity-label line is far more specific than csv's comma-consistency
+  heuristic, so it deserves to win the tie on both counts.
+- `extract/samples/binnacle-severity-report/healthy-box.txt` — the real
+  healthy-box capture added as a permanent regression sample, so this
+  variant is covered going forward.
+- Verified against real captured output from all four tools that share this
+  format (`why-slow`, `resolve`, `skew`, `during`, each run for real in this
+  container): all four now detect `binnacle-severity-report` at 92, healthy
+  and unhealthy variants alike. Corpus 3470/0, unchanged.
+
+## 2026-08-20 — new strategies: `doe-analyze` + `doe-info` (doehelper reports)
+
+`doe` (the `doehelper` DOE tool) has 24 subcommands; its two most
+data-shaped reports had no parser and fell to the generic `block-records`
+catch-all at confidence 60.
+
+- `extract/strategies/scientific/doe-analyze.sh` — `doe analyze`'s
+  statistical report. One row per Main Effects row and per ANOVA row across
+  every response variable, keyed by `section` / `response` / `term`, with
+  the numeric columns each section carries (`effect`/`std_error`/
+  `pct_contribution`; `df`/`ss`/`ms`/`f`/`p_value`). Label parsing is
+  column-aware rather than whitespace-split, because the ANOVA `Source`
+  column legitimately contains spaces — `Error (Lenth PSE)`,
+  `Whole-Plot Error`, `Lack of Fit`, `Pure Error`, `{factor} (whole-plot)`
+  would all be truncated at the first space by a naive split. Blank `F`/
+  `p-value` cells (legitimate on Error/Total/Pure Error rows), `—`
+  placeholders and `✱`/`*` significance markers are all handled.
+- `extract/strategies/scientific/doe-info.sh` — `doe info` /
+  `doe generate --dry-run`. `block-records` was capturing the plan header
+  and efficiency metrics but **silently dropping the entire design matrix**
+  — the actual experiment runs, which are the point of the command. Now one
+  row per run (`run_id`, `block_id`, one column per factor), sliced by the
+  matrix's uniform ljust column width so a value containing a space stays in
+  its own column, with the plan header (`plan`/`operation`/`factors`/...)
+  and the D/A/G-efficiency metrics broadcast across every row.
+- Both verified against real output captured by running a complete DOE
+  session end-to-end (scaffold -> generate -> 12 real runs -> analyze), not
+  against documentation. Worth noting: the first `doe analyze` capture was
+  silently truncated at 92 of 164 lines by a `tee | head` SIGPIPE, which
+  cost the analyze strategy its `cost`-response Error/Total rows until the
+  sample was recaptured — the committed sample is the full 164-line report
+  and yields 18 rows, not 16.
+- Samples + goldens frozen for both. Corpus 3470/0.
+
+## 2026-08-20 — new `fleet-host-lines` strategy: the shared mx/netmesh fleet shape
+
+`mx` and `netmesh` render every fleet-wide command through one shared
+renderer, so a single strategy covers roughly a dozen subcommands across the
+two tools (`status`, `start`, `stop`, `clean`, `collect`, `logs`, `doctor`,
+`run`). The shape is `[tool] <label>` section headers, indented two-column
+`  <host>  <payload>` lines padded to the widest hostname, and an optional
+`[tool] FAILED on N/M hosts: <names>` footer. Previously these landed in
+`bracket-log` (80) or `aligned-columns` (53-60).
+
+- `extract/strategies/network/fleet-host-lines.sh` — priority 41 (below
+  `bracket-log` 48 and `aligned-columns` 55 so it wins these inputs, above
+  the more specific strategies that should keep precedence). One row per
+  indented line (`section`, `name`, `value`), broadcasting `tool` and the
+  FAILED footer's counts/hosts. Detection requires a bracketed lowercase
+  tool tag, at least two indented lines, at least one 2+-space column gap,
+  AND that every bracketed tag names the same tool — a second, different tag
+  means it is a general bracketed log, which is `bracket-log`'s job.
+- Verified against real captured output from all four of `mx status`,
+  `mx doctor`, `netmesh status`, `netmesh doctor`. Corpus 3470/0, plus a
+  direct false-positive scan of `strategy_detect` against 4107 corpus and
+  sample files: zero hits outside its own samples.
+
+## 2026-08-20 — two new strategies: `iperf-orchestrator` pivot + summary reports
+
+`iperf-orchestrator`'s two report commands were unparsed; both are now tidy.
+
+- `extract/strategies/network/iperf-pivot.sh` (new, priority 21, confidence 88)
+  — `make-pivot`'s ASCII full-mesh throughput matrix. One entry per MEASURED
+  cell: `entryN.source`, `entryN.target`, `entryN.mbps`. Cells reading `-`
+  (no self-test / never measured) and `-(N)` (N attempts, none successful) are
+  skipped rather than emitted with an empty value, so `total_entries` is the
+  measured-direction count. Column position is tracked by index, so a skipped
+  cell never shifts the remaining targets. Broadcast from the preamble:
+  `run_at`, `mode`, `duration_s` (the `10s` form with the unit stripped),
+  `port`, `parallel`, `n_hosts`; from the trailing Fleet line (when present)
+  `fleet_mbps`, `fleet_gbps`. The per-host bar-chart section and the prose
+  preamble sentences are deliberately out of scope.
+- `extract/strategies/network/iperf-summary.sh` (new, priority 21, confidence
+  88) — `results-summary`'s "Slowest N" list: `entryN.mbps`, `entryN.source`,
+  `entryN.target`, with `n_directions`, `n_errored`, `min_mbps`, `p50_mbps`,
+  `mean_mbps`, `p95_mbps`, `max_mbps` broadcast. The `What next:` prose bullets
+  are out of scope (a blank line closes the list, and the entry pattern needs a
+  leading number, so the wrapped advice text cannot be mistaken for a row).
+- Detects are deliberately narrow, since both formats are otherwise
+  generic-looking text: `iperf-pivot` needs the exact first line
+  `iperf2 full-mesh throughput (Mbps)` AND the
+  `Rows = source (sender), Columns = target (receiver)` legend; `iperf-summary`
+  needs a first line matching `^Throughput summary across N measured directions`
+  AND a `Slowest ` section header.
+- `extract/samples/iperf-pivot/basic.txt`, `extract/samples/iperf-summary/basic.txt`
+  — captured samples; `extract/tests/golden/iperf-{pivot,summary}.txt` frozen.
+- Verified: both samples extract 3 entries each (hand-checked against the
+  matrix's 3 non-`-` cells and the 3 listed slowest directions) and auto-detect
+  their own strategy at 88; `validate-strategies -s <name>` PASS at threshold
+  75; `tests/corpus/run.sh --golden` 3470 passed, 0 failed, 235 not-yet-covered
+  of 3705 — the unchanged baseline.
+
+## 2026-08-20 — new `gnu-version` strategy: GNU-style `--version` banners
+
+Every tool in the author's suite (`provost`, `mx`, `doe`, `iperf-orchestrator`,
+`why-slow`) prints the same 5-line GNU-style `--version` block, and provost
+parsed none of it — the banner fell through to `unsorted` at confidence 35.
+
+- `extract/strategies/misc/gnu-version.sh` (new, priority 22, confidence 85) —
+  one wide key/value record (no `entryN.*`): `tool`, `version`, `copyright`,
+  `license`, `license_url`, `warranty`, `author`. Written to the GNU coreutils
+  convention rather than to this suite, so it also reads real GNU banners:
+  three first-line shapes are recognised (`provost 2.0.1`,
+  `grep (GNU grep) 3.11`, `GNU bash, version 5.2.21(1)-release (…)`) and the
+  license id is taken from either the SPDX form (`License: GPL-3.0-only <url>`)
+  or the FSF form (`License GPLv3+: GNU GPL version 3 or later <url>.`).
+  Trailing `Written by …` (including the multi-line form GNU sed prints) and
+  `Packaged by …` lines are handled; `Packaged by` is ignored, not captured.
+- Detect requires ALL THREE of a parseable `<program> <version>` first line, a
+  `Copyright (C)` line, and a `License` line. A bare "name 1.2.3" line is far
+  too common to detect on alone; the three-way gate is what keeps this off the
+  corpus (`python3 --version`, a lone version banner, and `pip show`-style
+  License-only output all correctly decline).
+- `extract/samples/gnu-version/{basic,mx,doe,iperf,whyslow}.txt` — captured
+  samples; `basic.txt` is the declared `## Sample:`.
+- `extract/tests/golden/gnu-version.txt` — golden frozen.
+- Verified: all 5 samples extract correctly and auto-detect `gnu-version` (85);
+  `validate-strategies -s gnu-version` PASS at threshold 75;
+  `tests/corpus/run.sh --golden` 3470 passed, 0 failed (unchanged baseline —
+  no corpus input carries both a `Copyright (C)` and a `License` line).
+
 ## 2026-08-19 — generic csv.sh: tolerate a leading `#`-comment header (matrix.csv, haproxy, Prometheus)
 
 While building the mx/binnacle strategies below, found `csv.sh` couldn't

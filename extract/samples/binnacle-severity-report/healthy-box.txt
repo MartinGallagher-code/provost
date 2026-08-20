@@ -1,0 +1,25 @@
+why-slow -- vm, 2.0s sample, Linux 6.18.5-fc-v20, 4 cores
+
+  VERDICT   This box is not slow. If something feels slow, the problem is
+            off-box: DNS, a dependency, or the network.
+
+  ok        a kernel limit was actually hit, accept queue overflowing,
+            connection tracking table filling, cpu saturated, disk at its
+            limit, disk hardware errors (+15)
+
+  EVIDENCE
+    top rss    claude(512) 625M  environment-man(497) 44M  why-slow(12980) 13M
+    top cpu    claude(512) 7%
+    disks      vda  0% busy  0 IOPS  await 0.0ms
+    memory     15.0G available of 15.7G (95.3%)
+    limits     fds 0%  tasks 0%  conntrack 0%  ports 0%  arp 0%  (of ceiling)
+
+  WHAT TO DO NEXT
+    Nothing here is wrong. Load 0.24 over 4 cores, no pressure, no swapping,
+    disks quiet. If it still feels slow the problem is not on this box --
+    look at DNS, a dependency it calls, or the network between them.
+
+    resolve <the name it looks up> (is it DNS?)
+    netmesh check <this host> <the peer> (is it the network?)
+    logtriage /var/log/syslog (what changed?)
+

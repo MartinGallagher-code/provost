@@ -1,0 +1,18 @@
+entry1.source 10.0.0.10
+entry1.target 10.0.0.11
+entry1.mbps 9440.00
+entry2.source 10.0.0.10
+entry2.target 10.0.0.12
+entry2.mbps 3360.00
+entry3.source 10.0.0.11
+entry3.target 10.0.0.10
+entry3.mbps 9200.00
+run_at 2026-08-20 13:40:59 +0000
+mode parallel
+duration_s 10
+port 5001
+parallel 1
+n_hosts 3
+fleet_mbps 22000.00
+fleet_gbps 2.750
+total_entries 3

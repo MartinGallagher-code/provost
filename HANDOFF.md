@@ -1,5 +1,121 @@
 # Handoff — provost
 
+## 2026-08-20: four-tool output coverage (iperf / mx / binnacle / doehelper) — DONE
+
+User asked provost to parse **all** output — commands *and* file artifacts —
+from four sibling tools: `iperf_orchestrator`, `matrix_orchestrator` (`mx`),
+the eight `binnacle` tools, and `doehelper` (`doe`). All four repos are
+cloned read-only under `/workspace/martingallagher-code/`.
+
+**Method that mattered:** rather than trusting the repos' docs, I `pip
+install -e`'d all four and ran them for real in this container — including a
+complete DOE session end-to-end (scaffold -> generate -> 12 real runs ->
+analyze) and a synthetic iperf run built from realistic log fixtures. Three
+separate source-level surveys of the repos confirmed the docs are drifted or
+absent in many places (iperf's README documents a 16-column results CSV that
+is really 19; two artifacts it documents are never written at all; doe has
+essentially zero captured output anywhere). **Real output found a bug the
+documentation samples could not** — see the healthy-box entry in CHANGELOG.
+
+**Already covered, verified against real captures, no new code needed:**
+every CSV/TSV artifact across all four tools (binnacle's shared
+`host,ts,rule_id,...` diagnostic CSV, `reachable`/`logtriage`/`netmesh`/`mx`
+report + grid CSVs, `doe export-data` in both CSV and TSV, iperf's real
+19-column `iperf_results.csv`), every `--json` output, and — only because of
+the `#`-comment CSV fix landed the day before — `mx`'s `matrix.csv`,
+`netmesh`'s `mesh.csv`, and `iperf`'s `--grid` plan file.
+
+**Six new strategies this round** (each with a real captured sample + frozen
+golden): `gnu-version`, `doe-analyze`, `doe-info`, `iperf-pivot`,
+`iperf-summary`, `fleet-host-lines`. Plus the `binnacle-severity-report`
+priority fix. Details per strategy in CHANGELOG 2026-08-20.
+
+`gnu-version` is the widest win: all five tools (provost included) print the
+same 5-line GNU `--version` banner, and it previously parsed as nothing at
+all (`unsorted`, confidence 35). It is written generically, so real GNU
+tools (`grep`, `sed`, `ls`, `tar`, `make`, `bash`) parse too, while
+`python3 --version` correctly declines.
+
+**Verification:** smoke 65/65, melt 10/10, extract suite 63/63 test files,
+corpus `--golden` 3470/0 (the baseline, unchanged), self-validation 254
+total / 206 pass — exactly +6/+6 over the pre-round 248/200, nothing else
+disturbed.
+
+**Known remaining gaps, deliberate:** five secondary `doe` reports
+(`status`, `optimize`, `power`, `suggest`, and the `--multi`/`--steepest`
+optimize variants) still land in the generic `block-records` catch-all at
+confidence 60. Unlike `doe info` — which was silently dropping its whole
+design matrix and so had to be fixed — these are key/value-shaped and
+`block-records` does capture their content, so they were left alone rather
+than growing the strategy count for marginal gain. Also unparsed by design:
+prose blocks (`WHAT TO DO NEXT`, `mx hints`' cheatsheet, binnacle's
+EVIDENCE/RESOLVERS/TIMELINE sub-sections) and the two "hybrid" doe CSV
+exports (`achieved_power_*.csv`, `cross_validation_*.csv`) whose
+`__summary__` sentinel rows mix long and wide layouts in one file. Any of
+these is a clean next slice — same pattern: capture real output, write the
+strategy, freeze a golden, corpus-regression it.
+
+**Process note for whoever runs the next multi-agent round:** do NOT have
+each subagent run `tests/corpus/run.sh` independently. Seven concurrent
+corpus sweeps on this 4-core box drove load to ~30 and turned a ~4-minute
+check into ~50 minutes; one agent killed another's run trying to clean up.
+Have agents skip it and run ONE consolidated corpus check serially at the
+end, which is what finally produced the 3470/0 above.
+
+## 2026-08-20: `iperf-pivot` + `iperf-summary` strategies — DONE
+
+`iperf-orchestrator`'s two report commands now have bespoke strategies, both
+under `extract/strategies/network/` at priority 21 / confidence 88:
+
+- `iperf-pivot.sh` — `make-pivot`'s ASCII throughput matrix. One row per
+  measured `(source, target)` cell (`entryN.source/target/mbps`); `-` and
+  `-(N)` cells are SKIPPED, so `total_entries` counts measured directions
+  only. Broadcast: `run_at`, `mode`, `duration_s`, `port`, `parallel`,
+  `n_hosts`, plus `fleet_mbps`/`fleet_gbps` from the trailing Fleet line.
+  The per-host bar chart and preamble prose are out of scope.
+- `iperf-summary.sh` — `results-summary`'s "Slowest N" list
+  (`entryN.mbps/source/target`) with `n_directions`, `n_errored`, `min_mbps`,
+  `p50_mbps`, `mean_mbps`, `p95_mbps`, `max_mbps` broadcast. `What next:`
+  prose is out of scope.
+
+Samples: `extract/samples/iperf-{pivot,summary}/basic.txt`; goldens frozen in
+`extract/tests/golden/iperf-{pivot,summary}.txt`.
+
+Verified: 3 entries each (hand-checked), auto-detect picks each strategy at 88,
+`validate-strategies` PASS at 75, corpus golden 3470 passed / 0 failed
+(unchanged baseline).
+
+Possible next step: neither strategy reads the pivot's per-host incoming
+bandwidth bar chart or the `mean per-host throughput` half of the Fleet block —
+both were scoped out. If a second dataset per input is ever wanted, that is
+where to start.
+
+## 2026-08-20: `gnu-version` strategy — DONE
+
+`extract/strategies/misc/gnu-version.sh` (new, priority 22, confidence 85)
+parses the GNU-style `--version` banner that every tool in the suite prints
+(`provost`, `mx`, `doe`, `iperf-orchestrator`, `why-slow`), which previously
+fell through to `unsorted` at 35. One wide record: `tool`, `version`,
+`copyright`, `license`, `license_url`, `warranty`, `author`. Written to the
+GNU coreutils convention, not to this suite, so `grep`/`sed`/`ls`/`tar`/
+`bash`/`make --version` parse too; `python3 --version` (no copyright/license)
+correctly declines.
+
+Samples in `extract/samples/gnu-version/` (5 files, `basic.txt` declared),
+golden in `extract/tests/golden/gnu-version.txt`.
+
+Verified: 5/5 samples auto-detect `gnu-version` at 85 and extract correctly,
+`validate-strategies -s gnu-version` PASS, corpus golden regression
+3470 passed / 0 failed (unchanged).
+
+Next step if anyone wants it: `gnu-version` sits at 85, below the generic
+`pkg-config` strategy at 88, so for real GNU banners with a `name: value`-ish
+shape (`ls`, `sed`, `tar`, `make`, `bash`) `pkg-config` still takes the primary
+slot and `gnu-version`'s fields are merged in alongside it. Bumping
+`gnu-version` to 89 would give those the clean single-record parse; it is
+corpus-safe (no corpus input matches `gnu-version` at all) but was left alone
+as an out-of-scope behavior change.
+
 ## 2026-08-19: matrix_orchestrator + binnacle output coverage — DONE
 
 User asked for two things: parse `go test -v` output, then make sure

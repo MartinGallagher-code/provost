@@ -1,0 +1,12 @@
+[mx] local checks
+  python      3.11.15
+  ssh         MISSING
+  scp         MISSING
+  matrix      matrix.csv: 3 hosts, 6 flows, 64 -> 64 bytes, port 5300
+
+[mx] checking hosts (ssh + python + fd limit) on 3 hosts
+  10.0.0.10  [Errno 2] No such file or directory: 'ssh'
+  10.0.0.11  [Errno 2] No such file or directory: 'ssh'
+  10.0.0.12  [Errno 2] No such file or directory: 'ssh'
+[mx] FAILED on 3/3 hosts: 10.0.0.10 10.0.0.11 10.0.0.12
+[mx] fix ssh/python on those hosts first: key-based ssh must work non-interactively (ssh-copy-id) and `python3` must exist.

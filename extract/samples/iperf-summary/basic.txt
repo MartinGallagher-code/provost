@@ -1,0 +1,17 @@
+Throughput summary across 3 measured directions (0 errored/missing)
+  min:       3360.00 Mbps
+  P50:       9200.00 Mbps
+  mean:      7333.33 Mbps
+  P95:       9440.00 Mbps
+  max:       9440.00 Mbps
+
+Slowest 5 (source -> target):
+     3360.00  10.0.0.10 -> 10.0.0.12
+     9200.00  10.0.0.11 -> 10.0.0.10
+     9440.00  10.0.0.10 -> 10.0.0.11
+
+What next:
+  - the slowest direction (10.0.0.10 -> 10.0.0.12 at 3360 Mbps) runs below
+    half the median (9200 Mbps) -- typically a bad link, duplex mismatch, or
+    negotiated speed. Isolate it: put just those two hosts in the list and
+    `iperf-orchestrator run sequential-pair`.
