@@ -90,3 +90,13 @@ jobs:
             [ -f "$f" ] || { echo "missing $f"; missing=1; }
           done
           exit $missing
+
+  bundle:
+    name: bundle.txt current
+    runs-on: ubuntu-latest
+    steps:
+      # Needs the git index, not just a worktree: the check compares the
+      # bundle's file list against `git ls-files`.
+      - uses: actions/checkout@v4
+      - name: bundle.txt lists exactly the tracked files
+        run: bash tests/check-bundle-current.sh
