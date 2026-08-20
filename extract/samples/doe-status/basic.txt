@@ -1,0 +1,22 @@
+Experiment: My Experiment
+Design: full_factorial | 12 runs | 3 factors | 2 responses
+
+Progress: 12/12 complete  [####################]  100%
+
+All runs complete!
+
+Completed runs:
+  Run 1: temperature=100, pressure=1, catalyst=C
+  Run 2: temperature=100, pressure=1, catalyst=A
+  Run 3: temperature=200, pressure=5, catalyst=B
+  Run 4: temperature=100, pressure=1, catalyst=B
+  Run 5: temperature=100, pressure=5, catalyst=B
+  Run 6: temperature=200, pressure=5, catalyst=C
+  Run 7: temperature=200, pressure=5, catalyst=A
+  Run 8: temperature=200, pressure=1, catalyst=B
+  Run 9: temperature=100, pressure=5, catalyst=A
+  Run 10: temperature=200, pressure=1, catalyst=C
+  Run 11: temperature=200, pressure=1, catalyst=A
+  Run 12: temperature=100, pressure=5, catalyst=C
+
+Analyze results with: doe analyze --config <config>

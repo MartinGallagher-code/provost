@@ -1,0 +1,27 @@
+Experiment: My Experiment
+Design: full_factorial | 12 runs | 3 factors | 2 responses
+
+Progress: 10/12 complete  [################....]  83%
+
+Completed runs:
+  Run 1: temperature=100, pressure=1, catalyst=C
+  Run 2: temperature=100, pressure=1, catalyst=A
+  Run 3: temperature=200, pressure=5, catalyst=B
+  Run 4: temperature=100, pressure=1, catalyst=B
+  Run 6: temperature=200, pressure=5, catalyst=C
+  Run 7: temperature=200, pressure=5, catalyst=A
+  Run 8: temperature=200, pressure=1, catalyst=B
+  Run 10: temperature=200, pressure=1, catalyst=C
+  Run 11: temperature=200, pressure=1, catalyst=A
+  Run 12: temperature=100, pressure=5, catalyst=C
+
+Pending runs:
+  Run 5: temperature=100, pressure=5, catalyst=B
+  Run 9: temperature=100, pressure=5, catalyst=A
+
+Next run to complete: Run 5
+  temperature = 100 C
+  pressure = 5 atm
+  catalyst = B
+
+Record results with: doe record --config <config> --run 5

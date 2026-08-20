@@ -41,13 +41,22 @@ corpus `--golden` 3470/0 (the baseline, unchanged), self-validation 254
 total / 206 pass — exactly +6/+6 over the pre-round 248/200, nothing else
 disturbed.
 
-**Known remaining gaps, deliberate:** five secondary `doe` reports
-(`status`, `optimize`, `power`, `suggest`, and the `--multi`/`--steepest`
-optimize variants) still land in the generic `block-records` catch-all at
-confidence 60. Unlike `doe info` — which was silently dropping its whole
-design matrix and so had to be fixed — these are key/value-shaped and
-`block-records` does capture their content, so they were left alone rather
-than growing the strategy count for marginal gain. Also unparsed by design:
+**Correction, second pass:** an earlier version of this entry claimed the
+five secondary `doe` reports could stay on `block-records` because it
+"captures their content". That was asserted from their general shape, not
+checked — and on inspection it held for only ONE of them. `doe power` was
+dropping its entire per-factor table, `doe status` was turning twelve runs
+into twelve columns of a single row, and `doe optimize` was doing the same to
+every RSM coefficient. All three now have strategies (`doe-power`,
+`doe-status`, `doe-optimize`; CHANGELOG 2026-08-20). Only `doe suggest`
+genuinely loses nothing and stays on `block-records`. Worth remembering as a
+general lesson: "the generic catch-all handles it" is a claim to verify by
+looking at the emitted table, not to infer from the input's shape.
+
+**Known remaining gaps, deliberate:** `doe suggest` (above — no data lost),
+`doe optimize`'s `--multi` / `--steepest` variants (not captured; they need
+flags this session's sample config did not exercise). Also unparsed by
+design:
 prose blocks (`WHAT TO DO NEXT`, `mx hints`' cheatsheet, binnacle's
 EVIDENCE/RESOLVERS/TIMELINE sub-sections) and the two "hybrid" doe CSV
 exports (`achieved_power_*.csv`, `cross_validation_*.csv`) whose

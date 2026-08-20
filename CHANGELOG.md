@@ -1,5 +1,54 @@
 # provost — Changelog
 
+## 2026-08-20 — three more doehelper strategies: `doe-power`, `doe-status`, `doe-optimize`
+
+Second pass over `doe`'s remaining reports. The first pass had left these to
+the generic `block-records` catch-all on the grounds that it "captured their
+content"; checking each one properly showed that was true only of
+`doe suggest`. The other three were losing or mangling real data, in the same
+way `doe info` was:
+
+- `doe power` — the entire per-factor table (`Factor` / `Levels` /
+  `Power @ delta` / `MDE @ target`) was **dropped**; `block-records` kept
+  only the key/value preamble above it. Now one row per factor, with the
+  preamble (`runs`, `df_error`, `sigma`, `residual_ms`, `alpha`, `delta`,
+  `target_power`) broadcast. Detection keys on the `=== Power Analysis ===`
+  banner, which only standalone `doe power` emits — `doe analyze`'s embedded
+  copy is headed `=== Achieved Power: <response> ===` and stays with
+  `doe-analyze`, so the two never contend.
+- `doe status` — the twelve runs became twelve **columns** of one row, plus a
+  duplicate set of mangled `Run_N:_temperature` columns. Now one row per run
+  with `run_id` / `status`, and each run's `name=value` factor settings split
+  into their own columns. Handles the partial-progress shape too
+  (`Completed runs:` + `Pending runs:` sections), and skips the
+  `Next run to complete:` block, which repeats a run already listed and would
+  otherwise double-count.
+- `doe optimize` — each RSM coefficient became its own column. Now one row
+  per coefficient and per factor-importance entry, discriminated by a
+  `section` column and keyed by `response` + `model` (the same shape
+  `doe-analyze` uses for its Main Effects / ANOVA mix), with each model's
+  R²/Adj-R² broadcast. The narrative blocks (Best observed run, Curvature
+  analysis, Predicted/Surface optimum, Model quality) are deliberately not
+  parsed — prose, not a table.
+- Files: `extract/strategies/scientific/doe-{power,status,optimize}.sh`,
+  samples under `extract/samples/doe-{power,status,optimize}/` (including
+  `doe-status/partial.txt`, the 10-complete/2-pending variant), goldens in
+  `extract/tests/golden/`.
+- Two bugs caught while testing, both from the report's own formatting: the
+  `RSM Model (...)` line has NO leading indent (an anchored `^[[:space:]]+`
+  silently matched nothing, leaving `model` empty on every row), and `R²`'s
+  superscript is two UTF-8 bytes, so a single-`.` regex under-matched and
+  dropped every fit statistic. The fit line is now matched positionally on
+  its two `= <number>` values rather than by its labels, which sidesteps the
+  multi-byte character entirely.
+- **`doe suggest` deliberately left on `block-records`**: unlike the three
+  above it loses nothing — all three of its real fields (`operation`,
+  `estimated_runs`, `min_resolution`) are captured correctly. Its second row
+  is cosmetic noise from the JSON config sketch it prints, which is not worth
+  a bespoke strategy.
+- Verified: all three PASS `validate-strategies` at 88 and win auto-detection
+  on their own samples; corpus `--golden` 3470/0, unchanged.
+
 ## 2026-08-20 — fix: a HEALTHY-box binnacle report was being claimed by generic `csv`
 
 Found by running the real tools rather than trusting their docs: `why-slow`
