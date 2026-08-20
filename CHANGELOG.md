@@ -1,5 +1,54 @@
 # provost — Changelog
 
+## 2026-08-20 — CI: bundle.txt staleness and junk are now self-reporting
+
+Both bundle failure modes were invisible to every existing check, and both
+had actually bitten within the previous few hours:
+
+- **Staleness.** `bundle.txt` goes out of date on every merge that adds a
+  file. Three regenerations in a row were each invalidated by the next merge
+  (#65 by #66, #66's by #67). Nothing reported it — you had to notice.
+- **Junk.** `merge.sh` bundles the WORKING TREE, not `git ls-files`, so it
+  silently swept `.coverage`, `.pytest_cache/` and three `__pycache__/*.pyc`
+  files (left by a `python -m pytest` run) into the bundle, four of them as
+  base64 binaries. All are gitignored, so `git status` was clean and nothing
+  flagged it.
+
+A **third** mode turned up while building the check, and is the reason it does
+more than compare file lists:
+
+- **Stale content.** A tracked file EDITED after the bundle is generated
+  leaves the file list matching perfectly while the bytes differ. The
+  first version of this check — file lists only — passed a bundle whose
+  `CHANGELOG.md` and `HANDOFF.md` were both out of date, which is precisely
+  the everyday case (edit a doc, forget to regenerate) and would have given
+  false confidence. Caught because `split.sh` + `diff -r` disagreed with the
+  check that had just said "current".
+
+- `tests/check-bundle-current.sh` — compares the bundle's `===FILE*:` section
+  paths against `git ls-files`, AND compares the sha256 each `===META:` line
+  records against the file's actual hash. Fails on any difference, reporting
+  the three cases separately (`STALE — tracked but NOT in the bundle` /
+  `JUNK — in the bundle but NOT tracked by git` / `STALE CONTENT — bundled
+  copy differs from the working tree`) with the offending paths and the exact
+  fix, `git clean -Xdf` included. The content check needs no bundle expansion
+  — merge.sh already records a per-entry sha256.
+- `.github/workflows/ci.yml` — new `bundle` job ("bundle.txt current") runs
+  it. Uses `actions/checkout@v4` for the git index, which the check needs.
+- All three failure modes were verified by reproducing them in a scratch copy
+  of the repo, not just by watching the check pass: adding a tracked file
+  produced the STALE report naming it; regenerating with pytest detritus
+  present produced the JUNK report naming each file; editing `README.md`
+  after bundling produced the STALE CONTENT report. The check also caught its
+  OWN addition (`tests/check-bundle-current.sh` tracked but not yet bundled),
+  then its own later edit — both fixed by following its own printed
+  instructions, which is as good an end-to-end test as it will ever get.
+- Bundle regenerated to include the new script: 12,249 entries, 12,249/12,249
+  checksums OK on the `split.sh` round-trip, `diff -r` byte-identical, pure
+  printable ASCII.
+- Note `grep -c node_modules` remains the WRONG cleanliness check (44 textual
+  matches, 0 actual bundled files); this check supersedes it.
+
 ## 2026-08-20 — regenerate bundle.txt (stale since the four-tool coverage merge)
 
 `bundle.txt` was last regenerated in #65, which landed just BEFORE the

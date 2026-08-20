@@ -1,5 +1,36 @@
 # Handoff — provost
 
+## 2026-08-20: bundle drift is now CI-enforced — the manual checks below are obsolete
+
+The entry below records two bundle traps and recommends running a parity
+check by hand. That check is now a CI job, so it no longer relies on anyone
+remembering: `tests/check-bundle-current.sh`, wired into
+`.github/workflows/ci.yml` as the `bundle` job. It fails the build on any of
+three drifts, naming the offending paths and printing the fix:
+
+- **stale list** — a merge added files and the bundle was not rerun;
+- **junk** — `merge.sh` swept up untracked build artifacts, since it bundles
+  the working tree rather than the index;
+- **stale content** — a tracked file was EDITED after bundling, so the file
+  list still matches and only the bytes differ. This is the everyday case
+  (edit a doc, forget to regenerate) and a file-list comparison misses it
+  entirely; the check compares the sha256 that `merge.sh` records in each
+  `===META:` line against the file's real hash.
+
+**What this means in practice:** you no longer need to remember to regenerate
+the bundle. CI will tell you, by name, the moment it drifts. When it does:
+
+```bash
+git clean -Xdn                                       # review gitignored junk
+git clean -Xdf                                       # remove it
+bash ../shared_tools/scripts/merge.sh bundle.txt .   # regenerate
+bash tests/check-bundle-current.sh                   # confirm
+```
+
+The `git clean` step is not optional ceremony — skipping it is exactly how
+`.coverage` / `.pytest_cache/` / `__pycache__` ended up inside the bundle
+once already.
+
 ## 2026-08-20: bundle.txt regenerated — current with #66
 
 #65 regenerated `bundle.txt` immediately before #66 landed, so the bundle was
