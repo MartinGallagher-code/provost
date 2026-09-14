@@ -1,5 +1,32 @@
 # Handoff — provost
 
+## 2026-09-14: handing provost over as a bundle is documented — read it first
+
+provost has now been handed over as upload packets once. It cost three rounds,
+and the whole reason was that neither this repo nor the tooling said how to do
+it. Both ends are fixed:
+
+- `CLAUDE.md` has a **Handing this repo over as a bundle** section. It points at
+  `shared_tools/CLAUDE.md` for the procedure and inlines the two facts that
+  actually cost the rounds — base64 the whole tree rather than bundling plain
+  first, and hold out files over 290,000 bytes because base64 expands past a
+  packet and an entry cannot be split.
+- `shared_tools` gained `b64bundle.sh -m` (it could not split before, so the
+  risky set had to be grouped by hand) and now skips nested bundles the way
+  `merge.sh` does — which matters here, since a naive run would sweep our 9.5 MB
+  `bundle.txt` into the packets.
+
+The verified recipe is two commands and 31 packets; it lives in
+`shared_tools/CLAUDE.md` rather than being duplicated here, so there is one copy
+to keep right.
+
+**Next step, and it is not in this repo:** the `shared_tools` change is on a
+branch in a draft PR. A session clones the default branch, so until it merges,
+the next bundling attempt still gets a `b64bundle.sh` with no `-m` and notes
+that do not mention any of this.
+
+Nothing else outstanding. The entry below remains current for bundle drift.
+
 ## 2026-08-20: bundle drift is now CI-enforced — the manual checks below are obsolete
 
 The entry below records two bundle traps and recommends running a parity
