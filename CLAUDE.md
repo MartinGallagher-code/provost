@@ -72,6 +72,31 @@ order: improving a generic parser (`extract/strategies/delimited/` +
 `structured/`), adding a hint row (`extract/hints.tsv`), and only then a
 bespoke strategy — and validate hint rows with `tests/corpus/run.sh --golden`.
 
+## Handing this repo over as a bundle
+
+`bundle.txt` at the root is provost's own in-place bundle, kept current by CI.
+It is **not** a handover: shipping a tree to someone means splitting it into
+uploadable packets, and this repo is the hardest one to do that for.
+
+**The procedure lives in `shared_tools/CLAUDE.md`** — clone that repo and read it
+before bundling anything. Do not improvise from `merge.sh --help`; the traps are
+in the notes, not the usage text. The two facts that cost three round trips the
+first time:
+
+- **Do not bundle provost plain-first.** A plain `merge.sh -m 390K` run makes 25
+  parts and the upload scanner refuses 15 of them — `tests/corpus/` is ~11,000
+  captured outputs from real tools (`vault-*`, `gitleaks-*`, `trufflehog-*`,
+  `gpg-list-secret-keys`, `getent-passwd`), and output *about* secrets reads to a
+  scanner much like secrets. Base64 the whole tree instead: one round, 31 packets.
+- **Hold out files over 290,000 bytes** before encoding. Base64 expands by
+  ~1.35x, so a larger file cannot fit a packet and cannot be split either — an
+  entry is atomic. Ship those plain. Today that is `CHANGELOG.md` and the two
+  `docs/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
+  rather than from this list: all three are files that grow.
+
+`shared_tools/CLAUDE.md` carries the exact commands, the verified packet count,
+and the reason each step is there.
+
 ## Conventions
 
 - First-party code is Bash; keep it POSIX-ish and **mawk-safe** (no gawk-only

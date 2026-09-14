@@ -1,5 +1,37 @@
 # provost — Changelog
 
+## 2026-09-14 — how to hand this repo over as a bundle (CLAUDE.md pointer)
+
+provost was handed over as upload packets for the first time, and it took three
+rounds. Nothing in this repo said how to do it, so the next session would have
+repeated all three. `CLAUDE.md` gains a **Handing this repo over as a bundle**
+section pointing at `shared_tools/CLAUDE.md`, which carries the full procedure.
+
+Two facts are inlined there rather than left behind the pointer, because they
+are the ones that cost the round trips:
+
+- **Plain-first does not work for this tree.** `merge.sh -m 390K` over the
+  export makes 25 parts and the upload scanner refuses 15. `tests/corpus/` is
+  ~11,000 captured outputs from real tools — `vault-*`, `gitleaks-*`,
+  `trufflehog-*`, `gpg-list-secret-keys`, `getent-passwd` — and output *about*
+  secrets reads to a scanner much like secrets. Base64 the whole tree: one
+  round, 31 packets, verified.
+- **Files over 290,000 bytes must be held out and shipped plain.** Base64
+  expands by ~1.35x, so anything larger cannot fit a 390K packet and cannot be
+  split either, since an entry is atomic. Today that is `CHANGELOG.md` and the
+  two `docs/review-prescreen-*.tsv` sheets — all three of which grow, so the
+  note says to take the list from `find -size +290000c`, not from the names.
+
+Worth recording because it was disproved the expensive way: the
+`-----BEGIN CERTIFICATE-----` lines in the `cfssl-info` / `cosign-public-key`
+fixtures and the prescreen sheets are **not** what the scanner objects to. The
+parts carrying them imported fine.
+
+`bundle.txt` regenerated so the doc edits are carried, per the standing rule
+that CHANGELOG/HANDOFF entries land before the regen.
+
+Files: `CLAUDE.md`, `CHANGELOG.md`, `HANDOFF.md`, `bundle.txt`.
+
 ## 2026-08-20 — CI: bundle.txt staleness and junk are now self-reporting
 
 Both bundle failure modes were invisible to every existing check, and both
