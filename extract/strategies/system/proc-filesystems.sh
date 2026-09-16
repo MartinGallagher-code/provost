@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-filesystems
 ## Description: Extract supported filesystem types from /proc/filesystems
 ## Version: 1.0

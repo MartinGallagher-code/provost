@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: colon-pairs
 ## Description: Inline "Label: value  Label: value" status lines (mysqladmin status, memcached/redis one-liners)
 ## Version: 1.0

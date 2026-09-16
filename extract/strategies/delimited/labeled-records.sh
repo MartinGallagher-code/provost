@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: labeled-records
 ## Description: One record per "label: prose" line (file, and similar per-line labelled output)
 ## Version: 1.0

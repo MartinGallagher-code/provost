@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dbmate-status
 ## Description: Extract migrations from `dbmate status` output ([X]/[ ] lines; skips Applied/Pending footer)
 ## Version: 1.0

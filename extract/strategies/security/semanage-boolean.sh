@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: semanage-boolean
 ## Description: Extract SELinux booleans from `semanage boolean -l` output (name, state, description)
 ## Version: 1.0

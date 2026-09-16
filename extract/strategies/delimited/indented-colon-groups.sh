@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: indented-colon-groups
 ## Description: `header:` lines over indented members (cargo install/machete, hwinfo --short) -> group/value rows
 ## Version: 1.2

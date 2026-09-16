@@ -49,5 +49,5 @@ serialises concurrent writers, so the store may be shared.
 
 ## License
 
-GPL-3.0-only. Source, issues, and changelog live in the
-[repository](https://github.com/MartinGallagher-code/glean).
+GPL-3.0-or-later. Source, issues, and changelog live in the
+[repository](https://github.com/MartinGallagher-code/provost).

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: version-line
 ## Description: single-line version banner (hugo version, tempo/loki `NAME, version X (branch: B, …)`) -> name/version + named columns
 ## Version: 1.1

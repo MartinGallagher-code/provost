@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: doe-power
 ## Description: Extract the per-factor power table from `doe power` output (doehelper), one row per factor
 ## Version: 1.0

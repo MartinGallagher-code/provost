@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: restic
 ## Description: Extract snapshots from `restic snapshots` output (skips header rule + count footer)
 ## Version: 1.0

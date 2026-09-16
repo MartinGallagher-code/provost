@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: rocm-smi-concise
 ## Description: Extract the GPU concise-info table from rocm-smi (skips banners)
 ## Version: 1.0

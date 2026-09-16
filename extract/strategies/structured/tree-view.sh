@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: tree-view
 ## Description: Tree-structured output (tree, pstree, npm ls) — one row per node
 ## Version: 1.1

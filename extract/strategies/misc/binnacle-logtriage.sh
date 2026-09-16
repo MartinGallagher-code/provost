@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: binnacle-logtriage
 ## Description: Extract ranked template entries from binnacle's `logtriage` output (score, severity, count, template text, first/last seen, burst; source file + totals broadcast)
 ## Version: 1.0

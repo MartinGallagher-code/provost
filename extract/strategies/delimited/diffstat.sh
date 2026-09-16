@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: diffstat
 ## Description: diffstat blocks (path | N +++--- per file, files-changed summary) — git diff/stash/show --stat
 ## Version: 1.0

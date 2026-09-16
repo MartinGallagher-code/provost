@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: text-lines
 ## Description: Absolute last resort — each non-blank line becomes a one-column record (whole line)
 ## Version: 1.0

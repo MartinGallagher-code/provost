@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: jj-log
 ## Description: Extract changes from a Jujutsu `jj log` graph
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: doe-analyze
 ## Description: Extract Main Effects and ANOVA rows per response variable from `doe analyze` (doehelper) statistical reports
 ## Version: 1.0

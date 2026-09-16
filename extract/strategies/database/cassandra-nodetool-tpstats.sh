@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: cassandra-nodetool-tpstats
 ## Description: Extract thread-pool rows from `nodetool tpstats`
 ## Version: 1.0

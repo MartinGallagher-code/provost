@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: smartctl-selftest
 ## Description: Extract the SMART self-test log table from smartctl -l selftest output
 ## Version: 1.0

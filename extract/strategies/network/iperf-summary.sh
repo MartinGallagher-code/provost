@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: iperf-summary
 ## Description: Extract the slowest-direction list and throughput stats from `iperf-orchestrator results-summary` output
 ## Version: 1.0

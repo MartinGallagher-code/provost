@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: section-kv
 ## Description: `key: value` pairs where a bare `Header:` line becomes the key for the plain lines beneath it (nslookup -type=mx) -> key/value records
 ## Version: 1.0

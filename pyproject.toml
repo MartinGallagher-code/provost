@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2026 Martin Gallagher
-#
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 [build-system]
 requires = ["hatchling"]
@@ -11,10 +10,11 @@ name = "provost"
 dynamic = ["version"]
 description = "Turn command output into data: capture, auto-detect the format, present as a tidy git-backed dataset"
 readme = "README.md"
-license = "GPL-3.0-only"
+license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 requires-python = ">=3.8"
-authors = [{ name = "Martin Gallagher" }]
+authors = [{ name = "Martin J. Gallagher" }]
+maintainers = [{ name = "Martin J. Gallagher" }]
 keywords = ["cli", "capture", "dataset", "tsv", "tidy-data", "command-output"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -29,11 +29,11 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/MartinGallagher-code/glean"
+Homepage = "https://github.com/MartinGallagher-code/provost"
 Documentation = "https://provost.readthedocs.io"
-Repository = "https://github.com/MartinGallagher-code/glean"
-Changelog = "https://github.com/MartinGallagher-code/glean/blob/main/CHANGELOG.md"
-Issues = "https://github.com/MartinGallagher-code/glean/issues"
+Repository = "https://github.com/MartinGallagher-code/provost"
+Changelog = "https://github.com/MartinGallagher-code/provost/blob/main/CHANGELOG.md"
+Issues = "https://github.com/MartinGallagher-code/provost/issues"
 
 [project.scripts]
 provost = "provost_data:main"

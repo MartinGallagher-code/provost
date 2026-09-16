@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: first-word-kv
 ## Description: Each line's FIRST token is the key, the rest is the value (git blame --porcelain, cat-file, git log) — hint-routed
 ## Version: 1.0

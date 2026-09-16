@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: binnacle-netmesh
 ## Description: Extract the worst-pairs latency table and summary stats from `netmesh summarize` (binnacle) output
 ## Version: 1.0

@@ -1,5 +1,34 @@
 # Handoff — provost
 
+## 2026-09-16: provost is GPL-3.0-or-later, like the rest of the suite
+
+provost was the odd one out: **GPL-3.0-only** where binnacle,
+design_of_experiments, iperf_orchestrator, matrix_orchestrator,
+meridian_commander, phone_a_friend, testing-orchestrator,
+datacenter_visualization, zoom-browser and shared_tools are all
+**GPL-3.0-or-later**. Nothing recorded why, and the 2026-08-18 entry below
+asserts the difference was deliberate without giving a reason — so it is now
+`-or-later` everywhere, and that entry should be read as history, not as the
+present state.
+
+What changed here: `pyproject.toml`, `REUSE.toml`,
+`LICENSES/GPL-3.0-only.txt` → `LICENSES/GPL-3.0-or-later.txt`, the README
+badge, `docs/index.md`, `.github/workflows/release.yml`, the
+`src/provost_data/` headers, and the `provost --version` block. The holder is
+`Martin J. Gallagher` everywhere (some files dropped the middle initial), and
+every first-party source file now carries the suite's two-line SPDX header.
+The stale `MartinGallagher-code/glean` URLs are now `.../provost`.
+
+`GPL-3.0-only` survives on purpose in
+`extract/strategies/misc/gnu-version.sh` and its sample/golden: there it is a
+*sample of another program's banner*, not a statement about this repo.
+
+Verified: smoke 65/65, melt 10/10, extract 63/63 files, analyze 8/8,
+`pytest` 8 passed at 100% coverage, `reuse lint` clean, `bundle.txt`
+regenerated and `tests/check-bundle-current.sh` green.
+
+Next: nothing outstanding.
+
 ## 2026-09-14: handing provost over as a bundle is documented — read it first
 
 provost has now been handed over as upload packets once. It cost three rounds,
@@ -737,12 +766,13 @@ Open: clpeak-run still loses its `Global memory bandwidth (GBPS)` / `Single-prec
 >   enforced (`--cov-fail-under=100`, wired into pyproject + CI
 >   `python-package` job, which also builds, twine-checks, installs the
 >   wheel, and pushes a capture through it).
-> - REUSE (spec 3.3): `REUSE.toml` bulk-declares GPL-3.0-only,
->   `LICENSES/GPL-3.0-only.txt`; `reuse lint` compliant; `reuse` CI job.
+> - REUSE (spec 3.3): `REUSE.toml` bulk-declares GPL-3.0-or-later,
+>   `LICENSES/GPL-3.0-or-later.txt`; `reuse lint` compliant; `reuse` CI job.
+>   (Was GPL-3.0-only until 2026-09-16 — see the entry at the top.)
 > - Release: `.github/workflows/release.yml` → PyPI Trusted Publishing on
 >   GitHub release. **Next step for a human**: register the trusted
 >   publisher on pypi.org (project `provost-data`, repo
->   `MartinGallagher-code/glean`, workflow `release.yml`, environment
+>   `MartinGallagher-code/provost`, workflow `release.yml`, environment
 >   `pypi`) — details in the workflow header — then publish a release.
 
 > **2026-07-19 — R5b list-explode + R7 charts (all rounds now landed).**

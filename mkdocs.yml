@@ -1,10 +1,13 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 # MkDocs configuration — built by Read the Docs (see .readthedocs.yaml) and
 # locally with `pip install -r docs/requirements.txt && mkdocs build --strict`.
 site_name: provost
 site_description: "Turn command output into data: capture, auto-detect the format, present as a tidy git-backed dataset"
 site_url: https://provost.readthedocs.io
-repo_url: https://github.com/MartinGallagher-code/glean
-repo_name: MartinGallagher-code/glean
+repo_url: https://github.com/MartinGallagher-code/provost
+repo_name: MartinGallagher-code/provost
+copyright: "Copyright &copy; 2026 Martin J. Gallagher — GPL-3.0-or-later"
 
 theme:
   name: readthedocs

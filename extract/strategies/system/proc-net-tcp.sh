@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-net-tcp
 ## Description: Extract TCP socket table rows from /proc/net/tcp
 ## Version: 1.0

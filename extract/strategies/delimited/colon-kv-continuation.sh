@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: colon-kv-continuation
 ## Description: aligned `Key: value` list where an indented follow-on line continues the previous value (localectl status) -> key/value rows — hint-routed
 ## Version: 1.0

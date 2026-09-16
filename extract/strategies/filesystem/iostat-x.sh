@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: iostat-x
 ## Description: Extract per-device extended I/O stats from `iostat -x` output
 ## Version: 1.0

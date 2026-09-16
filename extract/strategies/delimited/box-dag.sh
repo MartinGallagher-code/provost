@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: box-dag
 ## Description: ASCII-boxed pipeline DAG (dvc dag) -> one row per stage, in graph order
 ## Version: 1.0

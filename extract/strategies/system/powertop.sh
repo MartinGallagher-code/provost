@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: powertop
 ## Description: powertop tunable/usage table → one tidy row per process (usage, events, category, description)
 ## Version: 1.0

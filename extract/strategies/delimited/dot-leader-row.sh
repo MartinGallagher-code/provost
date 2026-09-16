@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dot-leader-row
 ## Description: rows padded with a run of filler dots, result in trailing [brackets] (pytest, dbt) -> left fields + result columns — hint-routed
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: sysstat
 ## Description: sysstat tools (mpstat, sar, pidstat) — banner + timestamped table
 ## Version: 1.0

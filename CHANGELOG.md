@@ -1,5 +1,39 @@
 # provost — Changelog
 
+## 2026-09-16 — one licence notice across the whole suite (GPL-3.0-or-later)
+
+provost was the only repository in the suite licensed **GPL-3.0-only**; every
+other one is **GPL-3.0-or-later**, and nothing recorded a reason for the
+difference. It is now `GPL-3.0-or-later` like the rest — `pyproject.toml`,
+`REUSE.toml`, `LICENSES/` (the `GPL-3.0-only.txt` text is replaced by
+`GPL-3.0-or-later.txt`), the README badge, `docs/index.md`, the release
+workflow, the `src/provost_data/` headers, and `provost --version`.
+
+The one place `GPL-3.0-only` deliberately remains is
+`extract/strategies/misc/gnu-version.sh` with its sample and golden: that
+string is *input data* about some other program's banner, not this repo's
+licence.
+
+Two other inconsistencies went with it:
+
+- The holder is `Martin J. Gallagher` everywhere (several files said
+  "Martin Gallagher", without the middle initial).
+- First-party source files carry the two-line SPDX header
+  (`SPDX-License-Identifier`, then `SPDX-FileCopyrightText`) that the rest of
+  the suite uses — the entry point, `extract/`, `analyze/`, `transform/`,
+  `lib/`, `src/` and the first-party tests. The `extract/strategies/*.sh`
+  metadata is read from the first 15 lines and still is: the deepest `##`
+  header line is 5, so two more lines above it changes nothing.
+
+The stale `MartinGallagher-code/glean` URLs (the repo's pre-rename name) are
+now `MartinGallagher-code/provost`, which also fixes the REUSE and CI badges.
+
+`bundle.txt` regenerated; `reuse lint` passes. Files: `LICENSE`,
+`LICENSES/`, `REUSE.toml`, `README.md`, `pyproject.toml`, `mkdocs.yml`,
+`docs/index.md`, `.github/workflows/release.yml`, `provost`, and the SPDX
+header of every first-party source file.
+
+
 ## 2026-09-14 — how to hand this repo over as a bundle (CLAUDE.md pointer)
 
 provost was handed over as upload packets for the first time, and it took three

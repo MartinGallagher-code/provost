@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: sbt-dependencytree
 ## Description: Extract dependencies from `sbt dependencyTree` output
 ## Version: 1.0

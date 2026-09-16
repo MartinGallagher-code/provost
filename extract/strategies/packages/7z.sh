@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: 7z
 ## Description: Extract file entries from `7z l` archive listings (skips header rule + totals footer)
 ## Version: 1.0

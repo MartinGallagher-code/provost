@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2026 Martin Gallagher
-#
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 """Unit tests for the provost_data launcher — run via `python -m pytest`.
 

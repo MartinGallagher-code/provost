@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: describe-report
 ## Description: kubectl-describe style reports — aligned kv + continuations + `Section:` dashed tables -> section rows with kv carried
 ## Version: 1.0

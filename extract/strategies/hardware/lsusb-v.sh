@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: lsusb-v
 ## Description: Extract descriptor fields from `lsusb -v` into one wide record
 ## Version: 1.0

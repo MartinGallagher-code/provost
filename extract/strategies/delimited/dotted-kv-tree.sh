@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dotted-kv-tree
 ## Description: cgget/cgroup dotted `key: value` lines with stat sub-blocks and packed pair values -> key/subkey/value rows
 ## Version: 1.0

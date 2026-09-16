@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: vault-status
 ## Description: Extract the aligned Key/Value snapshot from `vault status` output
 ## Version: 1.0

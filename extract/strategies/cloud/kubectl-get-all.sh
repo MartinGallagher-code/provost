@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: kubectl-get-all
 ## Description: Parse `kubectl get all` multi-section output — one record per resource kind
 ## Version: 1.0

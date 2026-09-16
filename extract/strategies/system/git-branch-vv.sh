@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-branch-vv
 ## Description: Extract branch rows from `git branch -vv`
 ## Version: 1.0

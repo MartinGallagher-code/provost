@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: two-space-kv
 ## Description: aligned two-column rows split at the FIRST 2+ space run — key may hold single spaces (testssl summary) -> key/value rows — hint-routed
 ## Version: 1.0

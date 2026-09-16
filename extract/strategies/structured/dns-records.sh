@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dns-records
 ## Description: BIND-style resource-record lines (name ttl class type rdata) — dig/drill answers, zone dumps
 ## Version: 1.0

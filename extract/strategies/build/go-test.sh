@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: go-test
 ## Description: Extract per-test results from `go test -v` output (test name, status, duration; package summary broadcast)
 ## Version: 1.0

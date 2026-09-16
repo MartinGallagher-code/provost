@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: plan-actions
 ## Description: terraform plan `# resource will be ACTION` comment lines -> resource/action rows
 ## Version: 1.0

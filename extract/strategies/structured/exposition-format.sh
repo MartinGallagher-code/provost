@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: exposition-format
 ## Description: Extract metrics from Prometheus/OpenMetrics exposition format (# TYPE, # HELP, # UNIT, labels)
 ## Version: 1.0

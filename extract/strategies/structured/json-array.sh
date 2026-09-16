@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: json-array
 ## Description: Top-level JSON array of objects — one record per element (az/gcloud/aws list, docker inspect); nested objects flattened with dotted keys
 ## Version: 1.1

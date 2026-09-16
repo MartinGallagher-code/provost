@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-log
 ## Description: Extract fields from git log output (full and oneline formats)
 ## Version: 1.0

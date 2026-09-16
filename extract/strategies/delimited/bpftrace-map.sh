@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: bpftrace-map
 ## Description: bpftrace `@map[key1, key2]: count` histogram output -> map/key1/key2/value columns
 ## Version: 1.0

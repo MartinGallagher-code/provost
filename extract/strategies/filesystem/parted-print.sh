@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: parted-print
 ## Description: Extract partition table (number/start/end/size/fs/name) from `parted print`
 ## Version: 1.0

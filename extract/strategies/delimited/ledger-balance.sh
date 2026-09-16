@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: ledger-balance
 ## Description: Right-aligned `AMOUNT  account` balance reports (hledger/ledger/beancount bal) -> amount/account rows
 ## Version: 1.0

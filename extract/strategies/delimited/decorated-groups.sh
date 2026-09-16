@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: decorated-groups
 ## Description: changesets-style identical emoji/decoration lead + `Header:` groups -> group + comma-joined members
 ## Version: 1.0

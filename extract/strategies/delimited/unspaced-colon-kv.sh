@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: unspaced-colon-kv
 ## Description: `Label:value` lines where the colon is a delimiter with no space after it (HammerDB TPC-C, Vuser logs) -> label/value rows
 ## Version: 1.0

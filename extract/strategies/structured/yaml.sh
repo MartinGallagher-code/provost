@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: yaml
 ## Description: Extract key/value pairs from YAML, flattening nested keys with dot notation
 ## Version: 1.1

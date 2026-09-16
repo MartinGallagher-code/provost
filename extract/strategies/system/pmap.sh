@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pmap
 ## Description: Extract memory mapping rows from `pmap <pid>` output
 ## Version: 1.0

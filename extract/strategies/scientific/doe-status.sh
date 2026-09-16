@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: doe-status
 ## Description: Extract per-run progress from `doe status` output (doehelper), one row per experiment run
 ## Version: 1.0

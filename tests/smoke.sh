@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Phase-1 smoke test: inject → ls → show end-to-end in a throwaway workspace.
 set -euo pipefail
 

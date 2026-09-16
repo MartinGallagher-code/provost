@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: elixir-version
 ## Description: Extract version fields from `elixir --version` banner
 ## Version: 1.0

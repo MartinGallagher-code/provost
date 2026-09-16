@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Generate synthetic datasets and the hand-calculated answers that
 ``test_known_values_extended.sh`` asserts against (ENV-124).
 

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: php-modules
 ## Description: Extract module names from `php -m` output (skips [PHP Modules]/[Zend Modules] section headers)
 ## Version: 1.0

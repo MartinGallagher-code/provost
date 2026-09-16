@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: gpg-card-status
 ## Description: `gpg --card-status` dotted "Field ....: value" snapshot
 ## Version: 1.0

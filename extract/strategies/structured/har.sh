@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: har
 ## Description: Extract request/response fields from HTTP Archive (HAR) files
 ## Version: 1.0

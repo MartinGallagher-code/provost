@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: rfkill-list
 ## Description: Extract radio devices and block states from `rfkill list` output
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: iotop
 ## Description: Extract per-process records from iotop output (tid, prio, user, io rates, command)
 ## Version: 1.0

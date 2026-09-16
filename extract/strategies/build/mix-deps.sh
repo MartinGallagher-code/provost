@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: mix-deps
 ## Description: Extract dependencies from Elixir `mix deps` output
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: user-groups
 ## Description: `groups` output — "user : group1 group2 …" → one row per membership
 ## Version: 1.0

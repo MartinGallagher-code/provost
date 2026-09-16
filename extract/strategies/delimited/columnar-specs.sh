@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: columnar-specs
 ## Description: Data-driven columnar parser — one spec per tool (detect + column map) instead of a bespoke strategy each
 ## Version: 1.1

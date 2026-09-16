@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-pagetypeinfo
 ## Description: Extract per-zone/migrate-type free-page counts from /proc/pagetypeinfo
 ## Version: 1.0

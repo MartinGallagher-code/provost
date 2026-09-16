@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pkg-repo-columns
 ## Description: `repo name version [status]` package rows with an optional bracketed status (pacman -Sl) -> repo/name/version/status rows — hint-routed
 ## Version: 1.0

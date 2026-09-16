@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: systemd-cgls
 ## Description: Extract control-group nodes from `systemd-cgls` tree output
 ## Version: 1.0

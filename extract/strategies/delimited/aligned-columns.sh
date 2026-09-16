@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: aligned-columns
 ## Description: Extract fields from whitespace-aligned columnar output (ps, df, mount, etc.)
 ## Version: 3.1

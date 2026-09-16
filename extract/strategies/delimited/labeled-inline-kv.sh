@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: labeled-inline-kv
 ## Description: Labeled inline key=value records — "name: k=v, k=v, ..." (fio disk-stats/run-status/io-depths, ip -s)
 ## Version: 1.0

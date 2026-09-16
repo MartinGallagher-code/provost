@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: iperf3-intervals
 ## Description: Extract per-interval rows from `iperf3 -c` client output
 ## Version: 1.0

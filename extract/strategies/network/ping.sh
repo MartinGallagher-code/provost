@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: ping
 ## Description: Extract per-reply records from ping output (seq, ttl, time, from)
 ## Version: 1.0

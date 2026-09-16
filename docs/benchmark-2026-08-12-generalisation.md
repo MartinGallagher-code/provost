@@ -5,9 +5,9 @@ through `provost` in its default mode and rated against criteria written down
 before the first input was executed.
 
 Everything here lives in the repo: inputs in
-[`tests/benchmark/inputs/`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/inputs), the runner in
-[`tests/benchmark/run.sh`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/run.sh), the per-input ratings and
-notes in [`tests/benchmark/ratings.tsv`](https://github.com/MartinGallagher-code/glean/blob/main/tests/benchmark/ratings.tsv).
+[`tests/benchmark/inputs/`](https://github.com/MartinGallagher-code/provost/blob/main/tests/benchmark/inputs), the runner in
+[`tests/benchmark/run.sh`](https://github.com/MartinGallagher-code/provost/blob/main/tests/benchmark/run.sh), the per-input ratings and
+notes in [`tests/benchmark/ratings.tsv`](https://github.com/MartinGallagher-code/provost/blob/main/tests/benchmark/ratings.tsv).
 
 ## Why this exists, and why it is not a gate
 

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: multipath-ll
 ## Description: Extract per-path rows from `multipath -ll` topology output
 ## Version: 1.0

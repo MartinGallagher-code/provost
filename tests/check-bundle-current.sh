@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # CI: bundle.txt must be a faithful snapshot of the tracked tree.
 #
 # Two failure modes, both invisible to `git status` and both of which have

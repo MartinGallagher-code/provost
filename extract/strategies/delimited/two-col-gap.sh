@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: two-col-gap
 ## Description: Two-column tables split by a 2+-space gap where the last column is free text
 ## Version: 1.0

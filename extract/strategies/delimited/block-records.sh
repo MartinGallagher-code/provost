@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: block-records
 ## Description: Split input on blank lines into records, extract key:value and key=value fields
 ## Version: 1.0

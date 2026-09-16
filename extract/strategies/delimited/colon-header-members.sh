@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: colon-header-members
 ## Description: bare `Header:` at col 0 over indented members, plus `Header: value` lines (ethtool -T) -> key/value rows — hint-routed
 ## Version: 1.0

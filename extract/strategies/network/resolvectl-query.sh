@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: resolvectl-query
 ## Description: Parse `resolvectl query` answer into one wide record (name/addresses/link)
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: headline-kv-blocks
 ## Description: blank-separated blocks opening with a `name  range` headline over `Key: value` lines (npm audit) -> name + headline/kv/detail columns
 ## Version: 1.0

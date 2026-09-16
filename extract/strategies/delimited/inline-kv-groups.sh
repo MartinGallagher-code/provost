@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: inline-kv-groups
 ## Description: inline `k: v` header (btrfs fi show's Label/uuid) over indented prose-kv members -> header pairs carried onto per-member rows
 ## Version: 1.0

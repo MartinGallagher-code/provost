@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: path-line-content
 ## Description: `path:LINE:content` match lines (grep -n) -> file/line/content rows
 ## Version: 1.0

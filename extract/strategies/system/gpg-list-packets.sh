@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: gpg-list-packets
 ## Description: Extract packet fields from `gpg --list-packets` into one wide record
 ## Version: 1.0

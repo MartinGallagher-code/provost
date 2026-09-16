@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: fleet-host-lines
 ## Description: Extract per-host/per-check rows from fleet-orchestrator output ([tool] section headers + indented two-column host lines, e.g. mx/netmesh status|doctor|run)
 ## Version: 1.0

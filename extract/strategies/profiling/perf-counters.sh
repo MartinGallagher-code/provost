@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: perf-counters
 ## Description: `perf stat` counter table → one tidy row per counter (count, event)
 ## Version: 1.0

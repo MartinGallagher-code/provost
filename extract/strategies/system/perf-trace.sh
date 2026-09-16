@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: perf-trace
 ## Description: perf trace -s syscall summary table → one tidy row per syscall
 ## Version: 1.0

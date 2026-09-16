@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: arping
 ## Description: Extract ARP reply records from `arping` output (skips banner + stats footer)
 ## Version: 1.0

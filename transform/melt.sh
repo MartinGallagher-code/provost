@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # provost/transform/melt.sh — the extract-output transform (tidy melt + schema-union
 # helpers). First-party provost code; edit it here.
 #

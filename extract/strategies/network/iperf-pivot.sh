@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: iperf-pivot
 ## Description: Extract the full-mesh throughput matrix from `iperf-orchestrator make-pivot` output (one row per measured source -> target cell)
 ## Version: 1.0

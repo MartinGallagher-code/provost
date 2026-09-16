@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: double-colon-fields
 ## Description: envoy admin `a::b::c::d` records -> one positional column per `::` field
 ## Version: 1.0

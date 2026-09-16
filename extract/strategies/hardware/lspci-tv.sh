@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: lspci-tv
 ## Description: Extract PCI device tree lines from lspci -tv output (one record per device)
 ## Version: 1.0

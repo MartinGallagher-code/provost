@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: first-colon-kv
 ## Description: split each line on its FIRST colon — no space required (redis cluster info, rg --count, redis keys) -> key/value rows — hint-routed
 ## Version: 1.0

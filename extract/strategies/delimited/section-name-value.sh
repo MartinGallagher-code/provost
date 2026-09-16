@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: section-name-value
 ## Description: `Section:` headers over `name value` rows (pnpm list) -> section/name/value rows — hint-routed
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: protobuf-text
 ## Description: Extract field/value pairs from Protocol Buffers text format output
 ## Version: 1.0

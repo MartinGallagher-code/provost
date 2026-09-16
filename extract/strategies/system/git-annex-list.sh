@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-annex-list
 ## Description: Extract per-file location tracking from `git annex list`
 ## Version: 1.0

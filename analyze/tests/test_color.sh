@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # ENV-065: ANSI colour in plain output with NO_COLOR and --color support
 set -uo pipefail
 

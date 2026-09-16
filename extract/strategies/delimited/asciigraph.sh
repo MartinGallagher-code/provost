@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: asciigraph
 ## Description: Line charts (asciigraph) — recover the axis labels + series values from the plot's footer, dropping the graphics
 ## Version: 1.0

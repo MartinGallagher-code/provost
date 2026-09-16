@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: keytool-list
 ## Description: Extract keystore entries from `keytool -list`
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: line-records
 ## Description: Last-resort — each line is a record of whitespace-separated fields (value lists, single-line field dumps)
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: systemd-analyze-critical-chain
 ## Description: Extract the boot critical chain from `systemd-analyze critical-chain`
 ## Version: 1.0

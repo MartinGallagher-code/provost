@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """tests/benchmark/make_page.py — render the held-out benchmark as one HTML page.
 
     python3 tests/benchmark/make_page.py bench.json out.html

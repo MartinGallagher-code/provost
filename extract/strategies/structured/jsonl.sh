@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: jsonl
 ## Description: Extract key/value pairs from JSON Lines (one JSON object per line)
 ## Version: 1.1

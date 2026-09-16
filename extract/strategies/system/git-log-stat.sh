@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-log-stat
 ## Description: Extract per-file diffstat lines from `git log --stat`
 ## Version: 1.0

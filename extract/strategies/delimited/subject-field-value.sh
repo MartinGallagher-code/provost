@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: subject-field-value
 ## Description: `<subject> <field>:` label lines with the value on the NEXT line -> subject/field/value rows — hint-routed
 ## Version: 1.0

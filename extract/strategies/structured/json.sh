@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: json
 ## Description: Extract key/value pairs from JSON input, flattening nested objects with dot notation
 ## Version: 1.0

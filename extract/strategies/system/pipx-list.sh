@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pipx-list
 ## Description: `pipx list` — one record per installed package (name, version)
 ## Version: 1.0

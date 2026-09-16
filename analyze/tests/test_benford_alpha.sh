@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # ENV-067: --benford-alpha flag selects chi-squared critical value
 set -uo pipefail
 

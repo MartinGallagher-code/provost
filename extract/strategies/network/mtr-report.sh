@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: mtr-report
 ## Description: Extract per-hop path statistics from an mtr report
 ## Version: 1.0

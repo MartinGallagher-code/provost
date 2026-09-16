@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: indented-hierarchy
 ## Description: Indentation-based hierarchical data, flattened with dot notation
 ## Version: 1.0

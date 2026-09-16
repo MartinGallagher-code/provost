@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dash-labeled-stats
 ## Description: `NAME - k: v, k: v, …` stat records (go-ycsb READ/UPDATE lines) -> name + one column per key
 ## Version: 1.0

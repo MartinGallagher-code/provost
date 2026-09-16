@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-worktree-list-porcelain
 ## Description: Extract worktrees from `git worktree list --porcelain`
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nested-colon-kv
 ## Description: indent-nested `Header:` sections over `key: value` / `key = value` / bare members (sslyze, tailscale netcheck, vulkaninfo, fwupdmgr trees) -> section/key/value rows — hint-routed
 ## Version: 1.1
