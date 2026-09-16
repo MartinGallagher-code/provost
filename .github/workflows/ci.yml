@@ -4,14 +4,31 @@ name: CI
 # the upstream Envoy repo (where GitHub ignores it — only root .github/ runs) and
 # becomes active once provost is extracted to its own repository.
 
+# Cost control (this repo is private, so Actions minutes are billed):
+#
+#   * `push` is limited to main. A bare `push:` alongside `pull_request:`
+#     ran the whole 8-job workflow TWICE for every commit on a PR branch --
+#     once for each event, on the same SHA. Every other repo in the suite
+#     already filtered this way; this one did not, and it is the private one.
+#   * `concurrency` cancels a run that a newer push has already superseded,
+#     so three commits in a row cost one run rather than three.
+#   * every job below carries `timeout-minutes`. Without one a hung job runs
+#     to GitHub's 6-hour default: run #602 did exactly that, burning about
+#     six hours across seven jobs before it was cancelled.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:
     name: smoke (end-to-end)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: provost doctor
@@ -22,6 +39,7 @@ jobs:
   transform:
     name: transform unit test
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - run: bash transform/tests/test_melt.sh
@@ -29,6 +47,7 @@ jobs:
   extract-suite:
     name: extract strategy + engine suite
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - run: bash extract/tests/run_tests.sh
@@ -36,6 +55,7 @@ jobs:
   analyze-engine:
     name: analyze engine suite
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: use gawk (the analyze engine prefers it; Ubuntu defaults to mawk)
@@ -48,6 +68,7 @@ jobs:
   python-package:
     name: python package (pip / PyPI)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -74,6 +95,7 @@ jobs:
   reuse:
     name: REUSE licensing lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: fsfe/reuse-action@v5
@@ -81,6 +103,7 @@ jobs:
   docs:
     name: docs present
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - name: require CHANGELOG + HANDOFF + README
@@ -94,6 +117,7 @@ jobs:
   bundle:
     name: bundle.txt current
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       # Needs the git index, not just a worktree: the check compares the
       # bundle's file list against `git ls-files`.

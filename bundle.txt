@@ -2,21 +2,38 @@
 # esc-delim: AO
 # bundle entries: 12249
 ===FILE-ESC: .github/workflows/ci.yml===
-===META: mode=644 sha256=a237bf8702e9dd5235fc844c60e6fa37ff78de714c19edc769377cca25f4cd9d===
+===META: mode=644 sha256=c878d98efb72415d1ae5c149ff29133f942040f1320175b20bdd62737a7739dc===
 name: CI
 
 # NOTE: paths here are relative to the repo root. This file lives under provost/ in
 # the upstream Envoy repo (where GitHub ignores it AOe28094AO only root .github/ runs) and
 # becomes active once provost is extracted to its own repository.
 
+# Cost control (this repo is private, so Actions minutes are billed):
+#
+#   * `push` is limited to main. A bare `push:` alongside `pull_request:`
+#     ran the whole 8-job workflow TWICE for every commit on a PR branch --
+#     once for each event, on the same SHA. Every other repo in the suite
+#     already filtered this way; this one did not, and it is the private one.
+#   * `concurrency` cancels a run that a newer push has already superseded,
+#     so three commits in a row cost one run rather than three.
+#   * every job below carries `timeout-minutes`. Without one a hung job runs
+#     to GitHub's 6-hour default: run #602 did exactly that, burning about
+#     six hours across seven jobs before it was cancelled.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:
     name: smoke (end-to-end)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: provost doctor
@@ -27,6 +44,7 @@ jobs:
   transform:
     name: transform unit test
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - run: bash transform/tests/test_melt.sh
@@ -34,6 +52,7 @@ jobs:
   extract-suite:
     name: extract strategy + engine suite
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - run: bash extract/tests/run_tests.sh
@@ -41,6 +60,7 @@ jobs:
   analyze-engine:
     name: analyze engine suite
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: use gawk (the analyze engine prefers it; Ubuntu defaults to mawk)
@@ -53,6 +73,7 @@ jobs:
   python-package:
     name: python package (pip / PyPI)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -79,6 +100,7 @@ jobs:
   reuse:
     name: REUSE licensing lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: fsfe/reuse-action@v5
@@ -86,6 +108,7 @@ jobs:
   docs:
     name: docs present
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - name: require CHANGELOG + HANDOFF + README
@@ -99,6 +122,7 @@ jobs:
   bundle:
     name: bundle.txt current
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       # Needs the git index, not just a worktree: the check compares the
       # bundle's file list against `git ls-files`.
@@ -107,7 +131,7 @@ jobs:
         run: bash tests/check-bundle-current.sh
 ===END===
 ===FILE-ESC: .github/workflows/release.yml===
-===META: mode=644 sha256=8d9fd17ff0efc9a429e2fb5fba2ef210a2c2b6f4f60553bc5d0e209daa9dc835===
+===META: mode=644 sha256=ce462fe9fb68661e1dad44a962e40b3ca1790dc11fcda22487353d3940a22fc7===
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
@@ -132,6 +156,7 @@ jobs:
   build:
     name: build sdist + wheel
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -154,6 +179,7 @@ jobs:
     name: publish to PyPI
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: pypi
     permissions:
       id-token: write
