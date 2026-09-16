@@ -8785,7 +8785,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 ===END===
 ===FILE-ESC: README.md===
-===META: mode=644 sha256=541a56494423a9f3c6122bf11c28406d9057cb1e42dbef0d85c65bb27d39fbac===
+===META: mode=644 sha256=ca26b822901b900de57a8c3538ca075c91fdba4e46a96e456832c54aa9305606===
 # provost
 
 [![CI](https://github.com/MartinGallagher-code/provost/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/provost/actions/workflows/ci.yml)
@@ -8941,10 +8941,11 @@ PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 
-Full text: [LICENSE](LICENSE) AOe28094AO SPDX identifier `GPL-3.0-or-later`. This
-repository follows the [REUSE Specification](https://reuse.software/): source
-files carry SPDX copyright and licence headers, and the licence text lives in
-[`LICENSES/`](LICENSES).
+Full text: the `LICENSE` file at the repository root, or
+<https://www.gnu.org/licenses/gpl-3.0.html> AOe28094AO SPDX identifier
+`GPL-3.0-or-later`. This repository follows the
+[REUSE Specification](https://reuse.software/): source files carry SPDX
+copyright and licence headers, and the licence text lives in `LICENSES/`.
 ===END===
 ===FILE: REUSE.toml===
 ===META: mode=644 sha256=8376eb191e7130b733e502827d362a01cf42fb801b627580b21c7fb5978c4cea===
