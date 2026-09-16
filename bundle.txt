@@ -2,7 +2,7 @@
 # esc-delim: AO
 # bundle entries: 12249
 ===FILE-ESC: .github/workflows/ci.yml===
-===META: mode=644 sha256=c878d98efb72415d1ae5c149ff29133f942040f1320175b20bdd62737a7739dc===
+===META: mode=644 sha256=6ffaabd32972e607feeebd256af926e0f4136f1a0904598f7c12854dcb6af61c===
 name: CI
 
 # NOTE: paths here are relative to the repo root. This file lives under provost/ in
@@ -41,13 +41,33 @@ jobs:
       - name: smoke test
         run: bash tests/smoke.sh
 
-  transform:
-    name: transform unit test
+  quick-checks:
+    # These four finish in 5-21 seconds each. Run as separate jobs they cost
+    # four billable minutes, because GitHub rounds EVERY job up to a whole
+    # minute -- so ~39 seconds of work was billed as 4 minutes. As one job
+    # they cost one. The trade is that they report as a single check rather
+    # than four; a failing step still fails the job and names itself in the
+    # log.
+    name: quick checks (docs, transform, bundle, REUSE)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
+      # Needs the git index, not just a worktree: the bundle check compares
+      # the bundle's file list against `git ls-files`.
       - uses: actions/checkout@v4
-      - run: bash transform/tests/test_melt.sh
+      - name: require CHANGELOG + HANDOFF + README
+        run: |
+          missing=0
+          for f in CHANGELOG.md HANDOFF.md README.md CLAUDE.md; do
+            [ -f "$f" ] || { echo "missing $f"; missing=1; }
+          done
+          exit $missing
+      - name: transform unit test
+        run: bash transform/tests/test_melt.sh
+      - name: bundle.txt lists exactly the tracked files
+        run: bash tests/check-bundle-current.sh
+      - name: REUSE licensing lint
+        uses: fsfe/reuse-action@v5
 
   extract-suite:
     name: extract strategy + engine suite
@@ -97,38 +117,6 @@ jobs:
           done
           PROVOST_HOME="$RUNNER_TEMP/provosthome" provost ls | grep aligned-columns
 
-  reuse:
-    name: REUSE licensing lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: fsfe/reuse-action@v5
-
-  docs:
-    name: docs present
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-      - name: require CHANGELOG + HANDOFF + README
-        run: |
-          missing=0
-          for f in CHANGELOG.md HANDOFF.md README.md CLAUDE.md; do
-            [ -f "$f" ] || { echo "missing $f"; missing=1; }
-          done
-          exit $missing
-
-  bundle:
-    name: bundle.txt current
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      # Needs the git index, not just a worktree: the check compares the
-      # bundle's file list against `git ls-files`.
-      - uses: actions/checkout@v4
-      - name: bundle.txt lists exactly the tracked files
-        run: bash tests/check-bundle-current.sh
 ===END===
 ===FILE-ESC: .github/workflows/release.yml===
 ===META: mode=644 sha256=ce462fe9fb68661e1dad44a962e40b3ca1790dc11fcda22487353d3940a22fc7===
