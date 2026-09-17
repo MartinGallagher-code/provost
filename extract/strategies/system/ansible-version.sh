@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: ansible-version
 ## Description: `ansible --version` banner (version + config/path/python key=value block)
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pidstat-r
 ## Description: pidstat -r per-process memory stats → one tidy row per process
 ## Version: 1.0

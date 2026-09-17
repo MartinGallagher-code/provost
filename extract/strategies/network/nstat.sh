@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nstat
 ## Description: Extract kernel network counters from `nstat` output
 ## Version: 1.0

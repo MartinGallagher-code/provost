@@ -4,14 +4,31 @@ name: CI
 # the upstream Envoy repo (where GitHub ignores it — only root .github/ runs) and
 # becomes active once provost is extracted to its own repository.
 
+# Cost control (this repo is private, so Actions minutes are billed):
+#
+#   * `push` is limited to main. A bare `push:` alongside `pull_request:`
+#     ran the whole 8-job workflow TWICE for every commit on a PR branch --
+#     once for each event, on the same SHA. Every other repo in the suite
+#     already filtered this way; this one did not, and it is the private one.
+#   * `concurrency` cancels a run that a newer push has already superseded,
+#     so three commits in a row cost one run rather than three.
+#   * every job below carries `timeout-minutes`. Without one a hung job runs
+#     to GitHub's 6-hour default: run #602 did exactly that, burning about
+#     six hours across seven jobs before it was cancelled.
 on:
   push:
+    branches: [main]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   smoke:
     name: smoke (end-to-end)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: provost doctor
@@ -19,16 +36,42 @@ jobs:
       - name: smoke test
         run: bash tests/smoke.sh
 
-  transform:
-    name: transform unit test
+  quick-checks:
+    # These four finish in 5-21 seconds each. Run as separate jobs they cost
+    # four billable minutes, because GitHub rounds EVERY job up to a whole
+    # minute -- so ~39 seconds of work was billed as 4 minutes. As one job
+    # they cost one. The trade is that they report as a single check rather
+    # than four; a failing step still fails the job and names itself in the
+    # log.
+    name: quick checks (docs, transform, bundle, REUSE)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
+      # Needs the git index, not just a worktree: the bundle check compares
+      # the bundle's file list against `git ls-files`.
       - uses: actions/checkout@v4
-      - run: bash transform/tests/test_melt.sh
+      - name: require CHANGELOG + HANDOFF + README
+        run: |
+          missing=0
+          for f in CHANGELOG.md HANDOFF.md README.md CLAUDE.md; do
+            [ -f "$f" ] || { echo "missing $f"; missing=1; }
+          done
+          exit $missing
+      - name: transform unit test
+        run: bash transform/tests/test_melt.sh
+      - name: bundle.txt lists exactly the tracked files
+        run: bash tests/check-bundle-current.sh
+      - name: REUSE licensing lint
+        uses: fsfe/reuse-action@v5
 
   extract-suite:
     name: extract strategy + engine suite
     runs-on: ubuntu-latest
+    # This job's duration varies almost 2x with runner speed: 8m55s on run
+    # 35118668686, 16m45s on 35141355456. 35 minutes is ~2x the slowest
+    # observed, so a slow runner cannot fail the build, while still capping a
+    # hang at 35 minutes rather than GitHub's 6-hour default.
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - run: bash extract/tests/run_tests.sh
@@ -36,6 +79,7 @@ jobs:
   analyze-engine:
     name: analyze engine suite
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: use gawk (the analyze engine prefers it; Ubuntu defaults to mawk)
@@ -48,6 +92,7 @@ jobs:
   python-package:
     name: python package (pip / PyPI)
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -71,32 +116,3 @@ jobs:
           done
           PROVOST_HOME="$RUNNER_TEMP/provosthome" provost ls | grep aligned-columns
 
-  reuse:
-    name: REUSE licensing lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: fsfe/reuse-action@v5
-
-  docs:
-    name: docs present
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: require CHANGELOG + HANDOFF + README
-        run: |
-          missing=0
-          for f in CHANGELOG.md HANDOFF.md README.md CLAUDE.md; do
-            [ -f "$f" ] || { echo "missing $f"; missing=1; }
-          done
-          exit $missing
-
-  bundle:
-    name: bundle.txt current
-    runs-on: ubuntu-latest
-    steps:
-      # Needs the git index, not just a worktree: the check compares the
-      # bundle's file list against `git ls-files`.
-      - uses: actions/checkout@v4
-      - name: bundle.txt lists exactly the tracked files
-        run: bash tests/check-bundle-current.sh

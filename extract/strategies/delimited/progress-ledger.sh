@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: progress-ledger
 ## Description: dbt-style `HH:MM:SS  N of M OP subject ..... [STATUS]` progress lines -> time/seq/operation/subject/status
 ## Version: 1.0

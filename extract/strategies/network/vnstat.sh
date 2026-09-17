@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: vnstat
 ## Description: Extract monthly traffic totals from `vnstat` output
 ## Version: 1.0

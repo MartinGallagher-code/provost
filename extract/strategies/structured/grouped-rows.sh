@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: grouped-rows
 ## Description: Group-header lines over indented tabular rows — the group keys carried down onto each leaf row
 ## Version: 1.0

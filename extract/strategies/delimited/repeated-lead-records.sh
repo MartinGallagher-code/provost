@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: repeated-lead-records
 ## Description: Every line opens with the SAME token (keepalived's VRRP_Instance(VI_1), bluetoothctl's Device) -> label/value records
 ## Version: 1.0

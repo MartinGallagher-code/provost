@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pidstat-u
 ## Description: pidstat -u per-process CPU stats → one tidy row per process
 ## Version: 1.0

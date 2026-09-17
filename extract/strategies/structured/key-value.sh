@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: key-value
 ## Description: Generic aligned "Label:   value" listings (lscpu, hwinfo, tool --status output) as a two-column key/value table
 ## Version: 1.0

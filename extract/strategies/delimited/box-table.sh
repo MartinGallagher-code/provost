@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: box-table
 ## Description: Unicode box-drawing tables (│ cells, ─┼╭ borders) — mysql/psql unicode, rich, tabulate, duckdb, gum, pdm, glow, many modern CLIs
 ## Version: 2.0

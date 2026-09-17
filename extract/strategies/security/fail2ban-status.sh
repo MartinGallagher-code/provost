@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: fail2ban-status
 ## Description: Extract jail status from fail2ban-client status output
 ## Version: 1.0

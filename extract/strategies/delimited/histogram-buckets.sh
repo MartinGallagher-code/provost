@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: histogram-buckets
 ## Description: `@map:` sections of `[bucket) count |@@@ bar|` histogram rows (bpftrace) -> map/bucket/count rows — hint-routed
 ## Version: 1.0

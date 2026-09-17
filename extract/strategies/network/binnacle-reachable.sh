@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: binnacle-reachable
 ## Description: Extract host reachability rows from `reachable` (binnacle) server-list output
 ## Version: 1.0

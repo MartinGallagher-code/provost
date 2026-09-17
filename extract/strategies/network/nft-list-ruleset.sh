@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nft-list-ruleset
 ## Description: Extract firewall rules from `nft list ruleset` nested table/chain output
 ## Version: 1.0

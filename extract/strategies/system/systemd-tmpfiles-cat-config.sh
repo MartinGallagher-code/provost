@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: systemd-tmpfiles-cat-config
 ## Description: Parse `systemd-tmpfiles --cat-config` lines (type path mode user group age arg)
 ## Version: 1.0

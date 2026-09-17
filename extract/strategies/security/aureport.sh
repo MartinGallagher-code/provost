@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: aureport
 ## Description: Extract audit events from `aureport` summary output (skips title + column header)
 ## Version: 1.0

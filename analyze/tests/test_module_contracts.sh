@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # ENV-066: enforce that every lib/*.sh module declares the globals it touches
 # in a `## Reads:` / `## Writes:` header block. The registry in _globals.sh
 # remains authoritative; this static check keeps the headers and the registry

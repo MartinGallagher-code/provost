@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: colon-fields
 ## Description: Colon-delimited records (/etc/passwd, /etc/group, getent, fstab-ish) → one row per line
 ## Version: 1.0

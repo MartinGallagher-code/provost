@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ################################################################################
 ## Tests for ENV-164 — float_cmp delegates to awk; no integer overflow,
 ##                     no scientific-notation rejection

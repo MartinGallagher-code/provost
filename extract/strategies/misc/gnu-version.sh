@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: gnu-version
 ## Description: Extract tool/version/copyright/license fields from a GNU-style `--version` banner
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: kv-pairs
 ## Description: Inline key=value records — each line is a set of key=value pairs (a table row)
 ## Version: 1.0

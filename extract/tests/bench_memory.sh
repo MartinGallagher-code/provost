@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ################################################################################
 ## Benchmark: envoy-extract memory profile on large inputs (ENV-042)
 ##

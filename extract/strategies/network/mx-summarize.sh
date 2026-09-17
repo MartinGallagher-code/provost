@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: mx-summarize
 ## Description: Extract the fixed metric block from `mx summarize` output (one row of requests/delivered/replies/target/total/loss/rtt fields)
 ## Version: 1.0

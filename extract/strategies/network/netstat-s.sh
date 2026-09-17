@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: netstat-s
 ## Description: Extract per-protocol counters from `netstat -s` grouped statistics
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: systemd-analyze-security
 ## Description: Parse `systemd-analyze security` setting table (NAME DESCRIPTION EXPOSURE)
 ## Version: 1.0

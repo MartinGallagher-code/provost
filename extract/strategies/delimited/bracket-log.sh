@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: bracket-log
 ## Description: Log lines prefixed with a [bracketed] timestamp/tag (dmesg, kernel ring buffer, many app logs); traceback continuations absorbed as detail
 ## Version: 1.1

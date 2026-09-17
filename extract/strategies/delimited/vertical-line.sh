@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: vertical-line
 ## Description: Extract data from tables with separator lines (---, ===, etc.)
 ## Version: 1.0

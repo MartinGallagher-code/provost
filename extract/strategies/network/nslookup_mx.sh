@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nslookup_mx
 ## Description: Extract MX records from `nslookup -type=mx` output
 ## Version: 1.0

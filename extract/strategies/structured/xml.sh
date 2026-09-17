@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: xml
 ## Description: Extract element text content and attribute key/value pairs from XML/HTML
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: psql-expanded
 ## Description: psql \x expanded output — one record per -[ RECORD N ] block of key | value lines
 ## Version: 1.0

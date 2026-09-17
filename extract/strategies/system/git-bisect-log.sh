@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-bisect-log
 ## Description: Extract bisect actions from `git bisect log`
 ## Version: 1.0

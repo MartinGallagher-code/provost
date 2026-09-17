@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pipe-cells
 ## Description: Monitor rows like `PRC | sys 1.42s | user 3.18s |` — a row label plus pipe-separated key/value cells (atop)
 ## Version: 1.0

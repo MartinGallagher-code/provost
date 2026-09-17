@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: boxed-table
 ## Description: an ASCII `+---+` box holding an aligned table, first box row = headers (likwid-topology) -> one row per box line — hint-routed
 ## Version: 1.1

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: middot-split
 ## Description: lines split on a ` · ` middle-dot separator (navi cheatsheets) -> key/value rows — hint-routed
 ## Version: 1.0

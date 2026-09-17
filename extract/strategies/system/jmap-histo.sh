@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: jmap-histo
 ## Description: jmap -histo class histogram → one tidy row per class
 ## Version: 1.0

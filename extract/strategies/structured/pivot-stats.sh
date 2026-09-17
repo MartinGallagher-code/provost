@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pivot-stats
 ## Description: Per-record labeled counter pivots (ip -s link RX:/TX: sub-tables) — one wide row per record
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: zypper-packages
 ## Description: Parse `zypper packages` box table (S | Repository | Name | Version | Arch)
 ## Version: 1.0

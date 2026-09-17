@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: mariadb-innodb-status
 ## Description: Extract stable InnoDB metrics from SHOW ENGINE INNODB STATUS
 ## Version: 1.0

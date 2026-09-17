@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dot-leader-kv
 ## Description: `label: ......... value` / `label ........: value` reports where dot leaders separate key from value
 ## Version: 1.2

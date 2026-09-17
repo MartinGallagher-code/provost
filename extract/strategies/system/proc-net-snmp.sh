@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-net-snmp
 ## Description: Extract per-protocol SNMP counters from /proc/net/snmp
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: super-header-table
 ## Description: monitoring snapshots whose columns carry a GROUP header row above the column names (amdgpu-top) -> group/metric/value rows — hint-routed
 ## Version: 1.0

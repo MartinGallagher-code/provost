@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: count-percent-label
 ## Description: `N (P%) description` alignment/mapping summaries (bowtie2, HISAT2, STAR) -> count/percent/label rows
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ################################################################################
 ## Tests for: filter-aware computation skip preserves output byte-identically
 ## (ENV-126).

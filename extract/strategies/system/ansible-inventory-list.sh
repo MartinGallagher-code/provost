@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: ansible-inventory-list
 ## Description: Extract hosts from `ansible-inventory --list` JSON (keys under _meta.hostvars)
 ## Version: 1.0

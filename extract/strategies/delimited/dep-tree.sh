@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dep-tree
 ## Description: pipdeptree/pipenv-graph dependency trees -> ancestor-path columns + required/installed
 ## Version: 1.0

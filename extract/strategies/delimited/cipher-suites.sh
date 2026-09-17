@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: cipher-suites
 ## Description: sslscan cipher listing (`Accepted  TLSv1.2  256 bits  NAME`) -> status/protocol/bits/cipher rows
 ## Version: 1.0

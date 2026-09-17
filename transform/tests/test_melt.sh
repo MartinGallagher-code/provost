@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Unit test for the imported transform module (provost/transform/melt.sh):
 # _core_melt_tidy, _core_union_header, _core_align_rows. Mirrors the tidy-melt
 # assertions from EnvoyCapture tests/test_run.sh, exercised directly on the

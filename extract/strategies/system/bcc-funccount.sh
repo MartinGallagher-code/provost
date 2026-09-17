@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: bcc-funccount
 ## Description: bcc funccount FUNC/COUNT table → one tidy row per function
 ## Version: 1.0

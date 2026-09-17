@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: process-progress-rows
 ## Description: `[id] process > NAME (TAG) [PCT%] N of M` pipeline rows (nextflow) -> id/process/tag/percent/done/total rows — hint-routed
 ## Version: 1.0

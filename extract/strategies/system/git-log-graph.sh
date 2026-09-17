@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: git-log-graph
 ## Description: Extract commits from `git log --graph --oneline`
 ## Version: 1.0

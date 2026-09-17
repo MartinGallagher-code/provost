@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: numeric-lead-records
 ## Description: `PID command args...` process listings (pgrep -a, ps h) -> id/value rows
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: alias-list
 ## Description: Shell `alias name='command'` listings — name/command columns, quotes and the `alias ` keyword stripped
 ## Version: 1.0

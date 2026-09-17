@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: line-pairs
 ## Description: etcdctl get --prefix alternating key-line/value-line pairs -> key/value rows
 ## Version: 1.0

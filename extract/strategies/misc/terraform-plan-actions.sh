@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: terraform-plan-actions
 ## Description: Extract per-resource action lines from `terraform plan` ("# <resource> will be <action>")
 ## Version: 1.0

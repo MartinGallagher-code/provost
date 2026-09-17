@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: result-blocks
 ## Description: tfsec `Result N` blocks (`[rule][SEVERITY]` + message + file:lines) -> rule/severity/message/location rows
 ## Version: 1.0

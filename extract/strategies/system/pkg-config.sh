@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pkg-config
 ## Description: Extract packages from `pkg-config --list-all` output
 ## Version: 1.0

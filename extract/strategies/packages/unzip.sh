@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: unzip
 ## Description: Extract file entries from `unzip -l` listings (skips banner/header + rule + totals footer)
 ## Version: 1.0

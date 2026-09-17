@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-slabinfo
 ## Description: Extract per-cache stats from /proc/slabinfo output
 ## Version: 1.0

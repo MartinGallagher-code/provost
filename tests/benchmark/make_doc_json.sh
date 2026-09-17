@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # tests/benchmark/make_doc_json.sh — build the benchmark workbook's input JSON.
 #
 # For every held-out benchmark input: the raw text, the DEFAULT parse melted to

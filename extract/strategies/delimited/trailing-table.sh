@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: trailing-table
 ## Description: an aligned header+rows table after a preamble block (parted -l) -> one row per table line, named columns — hint-routed
 ## Version: 1.0

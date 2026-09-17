@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: psql-table
 ## Description: Pipe-delimited box tables with a ---+--- separator (psql, mysql \G-less output)
 ## Version: 1.0

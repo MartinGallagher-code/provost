@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: quoted-fields
 ## Description: Space-delimited records with quoted/bracketed field grouping (access logs, quoted crontabs, audit logs)
 ## Version: 1.0

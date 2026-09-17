@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: banner-sections-kv
 ## Description: `---=== SECTION ===---` banners over tab/colon key:value pairs (decode-dimms) -> group/key/value rows
 ## Version: 1.0

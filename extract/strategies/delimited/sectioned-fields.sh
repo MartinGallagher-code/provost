@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: sectioned-fields
 ## Description: colon-terminated section headers over indented `NAME value [k: v, k: v]` rows (sdparm --all mode pages) -> group + name/value + decomposed bracket columns
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: arrow-info-records
 ## Description: yarn-why `=> Found …` + `info …` + indented bullets -> label/value rows, label carried onto bullets
 ## Version: 1.0

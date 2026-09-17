@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: fossil-timeline
 ## Description: Extract checkins from a Fossil `fossil timeline`
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: checking-groups
 ## Description: `Checking FILE` over indented `LEVEL: message` results (promtool check) -> file/level/message rows
 ## Version: 1.0

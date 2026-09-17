@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: inline-kv
 ## Description: Space-separated key=value pairs on a line (id, KEY=v KEY=v ...)
 ## Version: 1.0

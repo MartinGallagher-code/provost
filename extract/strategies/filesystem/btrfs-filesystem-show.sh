@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: btrfs-filesystem-show
 ## Description: Extract per-device rows from `btrfs filesystem show` output
 ## Version: 1.1

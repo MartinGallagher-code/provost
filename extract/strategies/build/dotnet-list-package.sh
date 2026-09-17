@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: dotnet-list-package
 ## Description: Extract package references from `dotnet list package` output
 ## Version: 1.0

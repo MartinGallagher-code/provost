@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nmap-sn
 ## Description: Extract discovered hosts (host/ip/latency) from `nmap -sn` output
 ## Version: 1.1

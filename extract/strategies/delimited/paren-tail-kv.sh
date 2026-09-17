@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: paren-tail-kv
 ## Description: `name (value)` lines — key outside the parens, value inside (gem list) -> key/value rows
 ## Version: 1.0

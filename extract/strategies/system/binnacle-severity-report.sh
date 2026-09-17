@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: binnacle-severity-report
 ## Description: Extract findings (severity/title/detail) from binnacle-suite diagnostic reports (why-slow, resolve, during, skew, ...)
 ## Version: 1.0

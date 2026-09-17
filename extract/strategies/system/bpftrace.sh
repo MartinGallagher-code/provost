@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: bpftrace
 ## Description: bpftrace @map[key]: count output → one tidy row per key
 ## Version: 1.0

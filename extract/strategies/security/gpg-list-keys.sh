@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: gpg-list-keys
 ## Description: Extract a single key snapshot from `gpg --list-keys`
 ## Version: 1.0

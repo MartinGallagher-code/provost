@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pv-records
 ## Description: `PV <dev> VG <vg> <fmt> [<size info>]` physical-volume lines (pvscan) -> pv/vg/format/size rows — hint-routed
 ## Version: 1.0

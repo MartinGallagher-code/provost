@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: go-list
 ## Description: Extract module paths from `go list -m all` output (main module + dependencies)
 ## Version: 1.0

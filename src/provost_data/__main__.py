@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2026 Martin Gallagher
-#
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 """Make ``python -m provost_data`` behave like the ``provost`` command."""
 

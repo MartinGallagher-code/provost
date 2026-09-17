@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: pipe-table
 ## Description: GitHub-flavored markdown tables (| a | b | with a |---|---| rule) — BenchmarkDotNet, doc-gen CLIs
 ## Version: 1.0

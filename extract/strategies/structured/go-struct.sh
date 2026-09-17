@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: go-struct
 ## Description: Go struct dumps — {Key:value Key:value ...} banners (helm/kustomize/kubectl version)
 ## Version: 1.0

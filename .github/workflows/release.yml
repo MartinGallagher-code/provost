@@ -1,6 +1,5 @@
-# SPDX-FileCopyrightText: 2026 Martin Gallagher
-#
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 # Publish provost to PyPI via Trusted Publishing (OIDC — no API token).
 # One-time setup on https://pypi.org/manage/account/publishing/:
@@ -23,6 +22,7 @@ jobs:
   build:
     name: build sdist + wheel
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -45,6 +45,7 @@ jobs:
     name: publish to PyPI
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: pypi
     permissions:
       id-token: write

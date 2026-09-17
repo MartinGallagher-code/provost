@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: tcpdump-summary
 ## Description: Extract packet summaries from `tcpdump` line-summary output
 ## Version: 1.0

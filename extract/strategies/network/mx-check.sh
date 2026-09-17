@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: mx-check
 ## Description: Extract the per-host offered-load table from `mx check` output (one row per host, matrix/fleet summary broadcast)
 ## Version: 1.0

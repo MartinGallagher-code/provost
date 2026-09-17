@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: ip-neigh-record
 ## Description: `ADDR dev IF lladdr MAC [flags] STATE` neighbour lines (ip -6 neigh) -> address/dev/lladdr/state rows — hint-routed
 ## Version: 1.0

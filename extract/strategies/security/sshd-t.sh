@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: sshd-t
 ## Description: Extract effective sshd config from `sshd -T` (lowercase `key value` per line)
 ## Version: 1.0

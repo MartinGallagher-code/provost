@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: nodetool-compactionstats
 ## Description: Extract active compaction rows from `nodetool compactionstats`
 ## Version: 1.0

@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: proc-schedstat
 ## Description: Extract per-CPU scheduler statistics from /proc/schedstat
 ## Version: 1.0

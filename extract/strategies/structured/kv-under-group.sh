@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: kv-under-group
 ## Description: Grouped kv records — indented key/value runs under repeated group labels (ethtool queues, nvme namespaces, blkid -o full)
 ## Version: 1.0

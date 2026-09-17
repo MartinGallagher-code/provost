@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: grouped-list
 ## Description: Single-token group labels over indented single-token members (asdf list: tool over its versions)
 ## Version: 1.0

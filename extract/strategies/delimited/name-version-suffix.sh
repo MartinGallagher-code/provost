@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: name-version-suffix
 ## Description: `name-VERSION` package tokens — split at the first `-` before a digit (rpm -qa, nix-env -q) -> name/version rows — hint-routed
 ## Version: 1.0

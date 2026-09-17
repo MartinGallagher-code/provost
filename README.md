@@ -1,9 +1,9 @@
 # provost
 
-[![CI](https://github.com/MartinGallagher-code/glean/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/glean/actions/workflows/ci.yml)
+[![CI](https://github.com/MartinGallagher-code/provost/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/provost/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/provost)](https://pypi.org/project/provost/)
-[![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-blue.svg)](LICENSE)
-[![REUSE status](https://api.reuse.software/badge/github.com/MartinGallagher-code/glean)](https://api.reuse.software/info/github.com/MartinGallagher-code/glean)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
+[![REUSE status](https://api.reuse.software/badge/github.com/MartinGallagher-code/provost)](https://api.reuse.software/info/github.com/MartinGallagher-code/provost)
 
 **Turn command output into data.** Run a command, and provost captures its
 output, auto-detects the format, and files it as a tidy, one-row-per-record
@@ -136,3 +136,25 @@ bash provost/tests/smoke.sh              # end-to-end (58 checks)
 bash provost/transform/tests/test_melt.sh  # transform unit tests (10 checks)
 python -m pytest                       # PyPI launcher (100% coverage enforced)
 ```
+
+## License
+
+Copyright (C) 2026 Martin J. Gallagher
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+Full text: the `LICENSE` file at the repository root, or
+<https://www.gnu.org/licenses/gpl-3.0.html> — SPDX identifier
+`GPL-3.0-or-later`. This repository follows the
+[REUSE Specification](https://reuse.software/): source files carry SPDX
+copyright and licence headers, and the licence text lives in `LICENSES/`.

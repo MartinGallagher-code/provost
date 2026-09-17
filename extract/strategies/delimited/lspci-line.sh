@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: lspci-line
 ## Description: `SLOT class: description` PCI device lines (lspci, lspci -nn) -> slot/class/description rows — hint-routed
 ## Version: 1.0

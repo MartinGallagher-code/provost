@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: top-batch
 ## Description: Extract process rows from `top -b -n1` (batch mode) output
 ## Version: 1.0

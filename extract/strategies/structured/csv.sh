@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 ## Name: csv
 ## Description: Extract field names and values from CSV files (comma-delimited with header row)
 ## Version: 2.0
