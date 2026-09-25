@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2026-09-25 — ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
+
+- **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with
+  `--max-strategies 1` / `--first-match`, a detector whose ceiling
+  (`## Confidence-Max`, else its largest literal) cannot beat the best so far
+  is skipped; if the top candidate then extracts nothing the pass is redone
+  unpruned. Corpus: 0 differences vs unpruned in full and `--generic` mode.
+  `## Confidence-Max` added to aligned-columns (69), colons (60), equals (75),
+  line-records (55).
+- **Documents under ranking**: a JSON/XML document is sampled for the ordinary
+  detectors while `_FR_DOC_STRATEGIES` (json, json-array, jsonl, xml, har,
+  yaml, toml) see it whole. 10 MB JSON: 146 s → 12 s. The 168 document-shaped
+  corpus inputs give identical output with a forced 8+4-line sample.
+- **equals** awk fast path computes the calibrated confidence.
+- **clean_text hang** (`extract/lib/_helpers.sh`): the paren/date
+  substitutions quoted neither pattern nor replacement, so glob characters
+  acted as patterns and, under bash 5.2's patsub_replacement, `&` re-inserted
+  the match — `K=(x&y z)` grew for minutes (pre-existing on main).
+- Tests: `extract/tests/test_rank.sh` (+2: pruned redo, pruning exact),
+  `extract/tests/test_big_input_paths.sh` (documents flagged and sampled;
+  whole-document grammar detection preserved).
+
+provost --sync, 10 MB: ps 22 s, CSV 15 s, JSON 12 s, syslog 11 s, KEY=VALUE 7 s.
+
 ## 2026-09-25 — very large inputs: bounded detection sample, file lane, awk twins
 
 A 10 MB capture took minutes (ps table ~282 s, KEY=VALUE ~281 s in the

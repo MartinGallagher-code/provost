@@ -191,12 +191,46 @@ test_sample_not_taken () {
         "head + tail covering every line: no sample"
     assert_eq "$(_sample_of "$t" _FR_SAMPLE_BYTES=-1 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
         "_FR_SAMPLE_BYTES=-1 disables sampling"
-    assert_eq "$(_sample_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
-        "a JSON document is never cut"
-    assert_eq "$(_sample_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
-        "an XML document is never cut"
+    # A JSON / XML document IS sampled for the ordinary detectors, but flagged
+    # as a document so the grammar strategies (_FR_DOC_STRATEGIES) see it whole.
+    assert_eq "$(_doc_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+        "a JSON document is sampled and flagged as a document"
+    assert_eq "$(_doc_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+        "an XML document is sampled and flagged as a document"
+    assert_eq "$(_doc_of "$(printf 'a b\n1 2\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|0" \
+        "a table is sampled and not flagged"
     assert_eq "$(_sample_of "$(printf 'x%.0s' $(seq 1 100))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD_BYTES=10)" "0|" \
         "no whole line fits the head budget: no sample"
+}
+
+_doc_of () {  # TEXT [ENV...] -> prints "<sampled>|<document>"
+    local t="$1"; shift
+    env "$@" bash -c '
+        set -o pipefail
+        source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
+        text="$2"; _detect_sample_build
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+}
+
+# A big JSON array or XML document picks the same winner, with the same
+# output, whether or not the ordinary detectors screen a (tiny) sample: the
+# document grammars still parse the whole, uncut document.
+test_sample_documents_whole () {
+    local j="$BIG_TMP/doc.json" x="$BIG_TMP/doc.xml" f n
+    { printf '[\n'; local i; for ((i = 1; i < 400; i++)); do printf '  {"id": %d, "name": "n%d", "ok": true},\n' "$i" "$i"; done
+      printf '  {"id": 400, "name": "n400", "ok": false}\n]\n'; } > "$j"
+    { printf '<?xml version="1.0"?>\n<items>\n'; local i; for ((i = 1; i <= 400; i++)); do printf '  <item id="%d">v%d</item>\n' "$i" "$i"; done
+      printf '</items>\n'; } > "$x"
+    for f in "$j" "$x"; do
+        n="${f##*/}"
+        _big_run "$BIG_TMP/$n.whole" _FR_SAMPLE_BYTES=-1 -- "$f"
+        _big_run "$BIG_TMP/$n.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 -- "$f"
+        if ! cmp -s "$BIG_TMP/$n.whole" "$BIG_TMP/$n.samp"; then
+            _assert_failed "$n: sampled detection differs from whole-document detection"
+            diff "$BIG_TMP/$n.whole" "$BIG_TMP/$n.samp" | head -5
+        fi
+        assert_contains "$(cat "$BIG_TMP/$n.whole")" "__EXTRACT_META__" "$n: meta line present"
+    done
 }
 
 # A strategy that ACCEPTS the sample but REJECTS the full text must fall
@@ -281,6 +315,7 @@ run_test "routes: ' = ' table decline" test_routes_eq_table
 run_test "sample: head + tail whole lines" test_sample_head_tail
 run_test "sample: byte caps" test_sample_byte_caps
 run_test "sample: when not taken" test_sample_not_taken
+run_test "sample: documents keep whole-document grammar detection" test_sample_documents_whole
 run_test "sample: accept-then-reject falls through" test_sample_confirm_rejects
 run_test "sample: confidence is the full-text one" test_sample_confidence_is_full_text
 run_test "hints: prefilters are conservative" test_hint_prefilters_sound

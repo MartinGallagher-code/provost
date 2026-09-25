@@ -117,6 +117,34 @@ test_rank_confidence_beats_priority () {
     assert_eq "rank-early" "$(_winner --rank priority --plugin-dir "$pd" "$TMPDIR_R/cb.txt")" "priority ranking prefers the earlier strategy"
 }
 
+# PRUNING (exact): with --max-strategies 1 a detector whose confidence ceiling
+# cannot beat the best so far is skipped. If the top candidate then extracts
+# nothing, the pass is redone unpruned — `adb shell getprop` output looks like
+# JSON (json scores 85) but json extracts nothing; colons (ceiling 60) was
+# pruned and must still win.
+test_rank_pruned_top_failure_redoes () {
+    local f="$TMPDIR_R/getprop.txt"
+    printf '%s\n' '[ro.product.model]: [Pixel 8]' '[ro.product.brand]: [google]' \
+        '[ro.build.version.release]: [14]' '[ro.build.version.sdk]: [34]' \
+        '[dalvik.vm.heapsize]: [512m]' > "$f"
+    assert_eq "$(_winner "$f")" "colons" "pruned run falls back to colons"
+    assert_eq "$(_EAS_NOPRUNE=1 _winner "$f")" "colons" "unpruned run agrees"
+}
+
+# Pruning never changes a winner (the corpus proves it at scale; this pins a
+# few shapes).
+test_rank_pruning_is_exact () {
+    local f n=0
+    for f in "$SCRIPT_DIR/../samples/aligned-columns/basic.txt" \
+             "$SCRIPT_DIR/../samples/csv/"*.csv \
+             "$SCRIPT_DIR/../samples/json/"*; do
+        [[ -f "$f" ]] || continue
+        n=$((n + 1))
+        assert_eq "$(_winner "$f")" "$(_EAS_NOPRUNE=1 _winner "$f")" "same winner: ${f##*/}"
+    done
+    [[ $n -gt 0 ]] || _assert_failed "no samples found"
+}
+
 run_test "rank: default is confidence" test_rank_default_is_confidence
 run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
 run_test "rank: MFE_RANK env override" test_rank_env_override
@@ -124,6 +152,8 @@ run_test "rank: invalid --rank value rejected" test_rank_invalid_value
 run_test "rank: empty top candidate falls through" test_rank_empty_top_candidate_falls_through
 run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priority_then_name
 run_test "rank: confidence beats priority (and --rank priority restores it)" test_rank_confidence_beats_priority
+run_test "rank: pruned top candidate failure redoes unpruned" test_rank_pruned_top_failure_redoes
+run_test "rank: pruning is exact" test_rank_pruning_is_exact
 
 rm -rf "$TMPDIR_R"
 print_summary

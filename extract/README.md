@@ -63,12 +63,17 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 ### Very large inputs
 
 Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
-(the first 120 / last 40 whole lines, byte-capped; JSON/XML documents are
-never cut), and a strategy that accepts the sample is re-run on the full text,
+(the first 120 / last 40 whole lines, byte-capped), and a strategy that
+accepts the sample is re-run on the full text,
 which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
 detector must never ACCEPT a sample it would reject in full — it cannot, the
 full text re-decides — but it can falsely REJECT when its evidence lies only
-in the middle of a huge input; prefer evidence the head carries.
+in the middle of a huge input; prefer evidence the head carries. A JSON/XML
+document (first non-blank byte `{`, `[` or `<`) is still sampled for the
+ordinary detectors, but the document grammars listed in `_FR_DOC_STRATEGIES`
+(json, json-array, jsonl, xml, har, yaml, toml) always see it whole — cutting a
+document makes it invalid. A plugin that parses whole documents belongs in that
+list.
 
 Above `_FR_BIG_BYTES` the hot generic parsers (`aligned-columns`, `csv`,
 `syslog`, `equals`, `json-array`) and the engine's own passes switch to awk
@@ -104,6 +109,19 @@ non-empty wins, and confidence is only compared to thresholds. `--strategy` and
 groups blocks by the same ranking (`_multi_detect_name` in lib/_dispatch.sh:
 highest-confidence detector, ties by priority then name); being detect-only it
 cannot fall through an empty extract, which the per-group extract then does.
+
+**Pruning (exact).** With `--max-strategies 1` / `--first-match` (how provost
+calls the engine), a detector whose confidence CEILING cannot beat the best
+candidate found so far is skipped without being sourced. The ceiling is the
+strategy's `## Confidence-Max: N` header, else the largest literal it assigns
+to `_STRATEGY_CONFIDENCE` (and 50); a computed assignment without the header
+makes the ceiling 100 — never pruned — so **a strategy that computes its
+confidence must declare `## Confidence-Max`** or it forfeits the speed-up. If
+the top candidate then extracts nothing, the whole pass is redone unpruned, so
+the winner is always exactly the unpruned ranking (`_EAS_NOPRUNE=1` forces the
+unpruned pass; `tests/test_rank.sh` pins it, and the corpus was checked
+byte-for-byte in full and `--generic` mode).
+
 
 ## Confidence rubric
 

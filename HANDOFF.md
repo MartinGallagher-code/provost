@@ -34,7 +34,8 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
 
 ## Next steps
 
-1. **Decide on two repo-weight items** (deletions were held for the owner):
+1. **Two repo-weight items** (deletions held for the owner, who plans to
+   delete `bundle.txt` themselves):
    `bundle.txt` (9.5 MB, a whole-tree copy committed on every change — could be
    built on demand or attached to releases instead, dropping
    `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
@@ -44,7 +45,8 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    32 KB and re-confirms the winner on the full text; the hot generic parsers
    and the engine's own passes have byte-identical awk twins; a big result
    stays in a file to the end; provost melts that file directly. 10 MB now
-   takes 6.5–18 s end to end (was minutes). Knobs `_FR_SAMPLE_BYTES`,
+   takes 7–22 s end to end (was minutes); JSON/XML documents are sampled for
+   ordinary detectors while the document grammars see them whole. Knobs `_FR_SAMPLE_BYTES`,
    `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
    `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
    a ratio-threshold detector can decide differently on the sample than on
@@ -54,9 +56,14 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
    loop is slow on big inputs — give it an awk twin, proven over the corpus
    with `_FR_BIG_BYTES=0`.
-3. **Confidence doesn't rank candidates** (priority does). Ranking by
-   confidence would flip 43% of corpus winners because `line-records` always
-   reports 80; calibrating strategy confidences is the prerequisite.
+3. **Confidence ranks candidates** (2026-09-25): confidences follow the
+   rubric in `extract/README.md`; every detector runs and the best confidence
+   wins (ties: priority, name), with exact ceiling pruning so a strong early
+   candidate skips the detectors that cannot beat it. `--rank priority` keeps
+   the old first-match order. Open: bespoke strategies sit at a uniform 92
+   without a per-detector signature audit; `run_explain_mode` still lists
+   matches in name order; `docs/0003-multi-dataset.md` still describes
+   priority-order winners.
 4. Old stores keep a `total_entries` column in existing datasets; new rows
    blank-fill it. A one-off migration could drop it if that matters.
 5. The `envoy-*` / `ENVOY_*` / `MFE_*` internal names remain (a large rename,

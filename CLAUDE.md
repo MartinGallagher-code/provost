@@ -45,7 +45,7 @@ When you change `provost` or a first-party test, run and keep green:
 
 ```bash
 bash tests/smoke.sh                 # end-to-end (197 checks)
-bash transform/tests/test_melt.sh   # transform unit test (42 checks)
+bash transform/tests/test_melt.sh   # transform unit test (54 checks)
 ```
 
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
