@@ -1,5 +1,5 @@
-n	v	key._id	name	key.email	unique	key.created_at	key.org_id	key.status	total_entries
-1	2	1	_id_						4
-2	2		email_1	1	true				4
-3	2		created_at_-1			-1			4
-4	2		org_id_1_status_1				1	1	4
+n	v	key._id	name	key.email	unique	key.created_at	key.org_id	key.status
+1	2	1	_id_					
+2	2		email_1	1	true			
+3	2		created_at_-1			-1		
+4	2		org_id_1_status_1				1	1

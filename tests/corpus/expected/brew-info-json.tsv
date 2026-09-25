@@ -1,2 +1,2 @@
-n	name	full_name	tap	desc	license	installed_version	total_entries
-1	ripgrep	ripgrep	homebrew/core	Search_tool_like_grep_and_The_Silver_Searcher	MIT	14.1.0	1
+n	name	full_name	tap	desc	license	installed_version
+1	ripgrep	ripgrep	homebrew/core	Search tool like grep and The Silver Searcher	MIT	14.1.0

@@ -1,5 +1,5 @@
-n	A	total_entries
-1	Requests      [total, rate]       88201, 882.01	4
-2	Duration      [total, attack]     100s, 100s	4
-3	Latencies     [mean, p95, p99]    42ms, 128ms, 412ms	4
-4	Success       [ratio]             99.95%	4
+n	A
+1	Requests      [total, rate]       88201, 882.01
+2	Duration      [total, attack]     100s, 100s
+3	Latencies     [mean, p95, p99]    42ms, 128ms, 412ms
+4	Success       [ratio]             99.95%

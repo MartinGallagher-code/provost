@@ -1,5 +1,5 @@
-n	id	event	ts	total_entries
-1	1	login	2026-07-11T08:00:01	4
-2	2	page_view	2026-07-11T08:00:05	4
-3	3	add_to_cart	2026-07-11T08:01:12	4
-4	4	checkout	2026-07-11T08:03:44	4
+n	id	event	ts
+1	1	login	2026-07-11T08:00:01
+2	2	page_view	2026-07-11T08:00:05
+3	3	add_to_cart	2026-07-11T08:01:12
+4	4	checkout	2026-07-11T08:03:44

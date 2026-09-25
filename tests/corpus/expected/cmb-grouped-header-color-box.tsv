@@ -1,4 +1,4 @@
-n	IFACE	pkts	bytes	total_entries
-1	eth0	9982	4.2M	3
-2	eth1	501	118K	3
-3	lo	42	3.1K	3
+n	IFACE	pkts	bytes
+1	eth0	9982	4.2M
+2	eth1	501	118K
+3	lo	42	3.1K

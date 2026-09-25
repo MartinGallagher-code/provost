@@ -1,4 +1,4 @@
-n	A	B	C	D	total_entries
-1	tests/test_auth.py::test_login	PASSED	[	33%]	3
-2	tests/test_auth.py::test_logout	FAILED	[	66%]	3
-3	tests/test_db.py::test_connect	PASSED	[100%]		3
+n	A	B	C	D
+1	tests/test_auth.py::test_login	PASSED	[	33%]
+2	tests/test_auth.py::test_logout	FAILED	[	66%]
+3	tests/test_db.py::test_connect	PASSED	[100%]	

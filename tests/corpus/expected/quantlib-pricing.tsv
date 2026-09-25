@@ -1,4 +1,4 @@
-n	Instrument	NPV	Delta	Gamma	Vega	total_entries
-1	EuroCall	12.3456	0.6234	0.0123	1.24e-2	3
-2	EuroPut	3.2109	-0.3766	0.0123	1.24e-2	3
-3	Barrier	0.9871	0.1234	4.56e-3	8.90e-3	3
+n	Instrument	NPV	Delta	Gamma	Vega
+1	EuroCall	12.3456	0.6234	0.0123	1.24e-2
+2	EuroPut	3.2109	-0.3766	0.0123	1.24e-2
+3	Barrier	0.9871	0.1234	4.56e-3	8.90e-3

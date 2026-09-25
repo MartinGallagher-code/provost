@@ -1,5 +1,5 @@
-n	id	process	tag	percent	done	total	total_entries
-1	a1/2b3c4d	FASTQC	sample_01	100%	8	8	4
-2	e5/f6a7b8	TRIM	sample_01	100%	8	8	4
-3	c9/d0e1f2	ALIGN	sample_03	87%	7	8	4
-4	3a/4b5c6d	MULTIQC		0%	0	1	4
+n	id	process	tag	percent	done	total
+1	a1/2b3c4d	FASTQC	sample_01	100%	8	8
+2	e5/f6a7b8	TRIM	sample_01	100%	8	8
+3	c9/d0e1f2	ALIGN	sample_03	87%	7	8
+4	3a/4b5c6d	MULTIQC		0%	0	1

@@ -1,5 +1,5 @@
-n	timestamp	message	total_entries
-1	4%	Building CXX object CMakeFiles/app.dir/main.cpp.o	4
-2	50%	Building CXX object CMakeFiles/app.dir/util.cpp.o	4
-3	100%	Linking CXX executable app	4
-4	100%	Built target app	4
+n	timestamp	message
+1	4%	Building CXX object CMakeFiles/app.dir/main.cpp.o
+2	50%	Building CXX object CMakeFiles/app.dir/util.cpp.o
+3	100%	Linking CXX executable app
+4	100%	Built target app

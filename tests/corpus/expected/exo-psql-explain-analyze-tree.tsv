@@ -1,13 +1,13 @@
-n	QUERY	PLAN	total_entries
-1	Gather  (cost=1000.00..18412.44 rows=8821 width=244) (actual t	ime=0.412..44.218 rows=8814 loops=1)	12
-2	Workers Planned: 2		12
-3	Workers Launched: 2		12
-4	->  Parallel Seq Scan on orders o  (cost=0.00..16530.34 rows	=3675 width=244) (actual time=0.088..38.114 rows=2938 loops=3)	12
-5	Filter: ((status)::text = 'shipped'::text)		12
-6	Rows Removed by Filter: 118221		12
-7	->  Hash Join  (cost=214.00..1882.14 rows=4410 width=88) (ac	tual time=1.204..12.882 rows=4408 loops=3)	12
-8	Hash Cond: (o.customer_id = c.id)		12
-9	->  Index Scan using idx_cust on customers c  (cost=0.	42..88.10 rows=2210 width=44) (actual time=0.021..2.114 rows=2208 loops=3)	12
-10	Planning Time: 0.882 ms		12
-11	Execution Time: 45.114 ms		12
-12	(11 rows)		12
+n	QUERY	PLAN
+1	Gather  (cost=1000.00..18412.44 rows=8821 width=244) (actual t	ime=0.412..44.218 rows=8814 loops=1)
+2	Workers Planned: 2	
+3	Workers Launched: 2	
+4	->  Parallel Seq Scan on orders o  (cost=0.00..16530.34 rows	=3675 width=244) (actual time=0.088..38.114 rows=2938 loops=3)
+5	Filter: ((status)::text = 'shipped'::text)	
+6	Rows Removed by Filter: 118221	
+7	->  Hash Join  (cost=214.00..1882.14 rows=4410 width=88) (ac	tual time=1.204..12.882 rows=4408 loops=3)
+8	Hash Cond: (o.customer_id = c.id)	
+9	->  Index Scan using idx_cust on customers c  (cost=0.	42..88.10 rows=2210 width=44) (actual time=0.021..2.114 rows=2208 loops=3)
+10	Planning Time: 0.882 ms	
+11	Execution Time: 45.114 ms	
+12	(11 rows)	

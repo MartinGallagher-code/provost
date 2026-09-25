@@ -1,9 +1,9 @@
-n	name	ttl	class	type	value	total_entries
-1	.	84392	IN	NS	a.root-servers.net.	8
-2	.	84392	IN	NS	b.root-servers.net.	8
-3	.	84392	IN	NS	c.root-servers.net.	8
-4	com.	172800	IN	NS	a.gtld-servers.net.	8
-5	com.	172800	IN	NS	b.gtld-servers.net.	8
-6	example.com.	172800	IN	NS	a.iana-servers.net.	8
-7	example.com.	172800	IN	NS	b.iana-servers.net.	8
-8	example.com.	86400	IN	A	93.184.216.34	8
+n	name	ttl	class	type	value
+1	.	84392	IN	NS	a.root-servers.net.
+2	.	84392	IN	NS	b.root-servers.net.
+3	.	84392	IN	NS	c.root-servers.net.
+4	com.	172800	IN	NS	a.gtld-servers.net.
+5	com.	172800	IN	NS	b.gtld-servers.net.
+6	example.com.	172800	IN	NS	a.iana-servers.net.
+7	example.com.	172800	IN	NS	b.iana-servers.net.
+8	example.com.	86400	IN	A	93.184.216.34

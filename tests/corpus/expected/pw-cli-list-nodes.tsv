@@ -1,7 +1,7 @@
-n	A	B	C	total_entries
-1	id	34,	type_PipeWire:Interface:Node/3	6
-2	node.name	=	"alsa_output.pci-0000_00_1f.3"	6
-3	media.class	=	"Audio/Sink"	6
-4	id	48,	type_PipeWire:Interface:Node/3	6
-5	node.name	=	"alsa_input.usb-Blue_Yeti"	6
-6	media.class	=	"Audio/Source"	6
+n	A	B	C
+1	id	34,	type PipeWire:Interface:Node/3
+2	node.name	=	"alsa_output.pci-0000_00_1f.3"
+3	media.class	=	"Audio/Sink"
+4	id	48,	type PipeWire:Interface:Node/3
+5	node.name	=	"alsa_input.usb-Blue_Yeti"
+6	media.class	=	"Audio/Source"

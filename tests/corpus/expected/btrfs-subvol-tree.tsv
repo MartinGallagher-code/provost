@@ -1,10 +1,10 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	ID	256	gen	45120	top	level	5	path	@	9
-2	ID	257	gen	45118	top	level	5	path	@home	9
-3	ID	258	gen	45001	top	level	256	path	@/var/lib/machines	9
-4	ID	259	gen	44980	top	level	256	path	@/var/lib/portables	9
-5	ID	312	gen	45090	top	level	257	path	@home/user/.snapshots	9
-6	ID	313	gen	45090	top	level	312	path	@home/user/.snapshots/1/snapshot	9
-7	ID	314	gen	45095	top	level	312	path	@home/user/.snapshots/2/snapshot	9
-8	ID	401	gen	45100	top	level	256	path	@/.snapshots	9
-9	ID	402	gen	45100	top	level	401	path	@/.snapshots/1/snapshot	9
+n	A	B	C	D	E	F	G	H	I
+1	ID	256	gen	45120	top	level	5	path	@
+2	ID	257	gen	45118	top	level	5	path	@home
+3	ID	258	gen	45001	top	level	256	path	@/var/lib/machines
+4	ID	259	gen	44980	top	level	256	path	@/var/lib/portables
+5	ID	312	gen	45090	top	level	257	path	@home/user/.snapshots
+6	ID	313	gen	45090	top	level	312	path	@home/user/.snapshots/1/snapshot
+7	ID	314	gen	45095	top	level	312	path	@home/user/.snapshots/2/snapshot
+8	ID	401	gen	45100	top	level	256	path	@/.snapshots
+9	ID	402	gen	45100	top	level	401	path	@/.snapshots/1/snapshot

@@ -1,9 +1,9 @@
-n	CPU0	CPU1	CPU2	CPU3	total_entries
-1	0:	42	0	0_0_IO-APIC_2-edge_timer	8
-2	1:	9	0	0_0_IO-APIC_1-edge_i8042	8
-3	8:	1	0	0_0_IO-APIC_8-edge_rtc0	8
-4	9:	0	0	0_0_IO-APIC_9-fasteoi_acpi	8
-5	16:	30124	28903	0_0_IO-APIC_16-fasteoi_ehci_hcd	8
-6	120:	402103	398201	390102_385023_PCI-MSI_524288-edge_eth0	8
-7	NMI:	12	14	11_10_Non-maskable_interrupts	8
-8	LOC:	1204103	1198203	1190345_1185023_Local_timer_interrupts	8
+n	CPU0	CPU1	CPU2	CPU3
+1	0:	42	0	0 0 IO-APIC 2-edge timer
+2	1:	9	0	0 0 IO-APIC 1-edge i8042
+3	8:	1	0	0 0 IO-APIC 8-edge rtc0
+4	9:	0	0	0 0 IO-APIC 9-fasteoi acpi
+5	16:	30124	28903	0 0 IO-APIC 16-fasteoi ehci_hcd
+6	120:	402103	398201	390102 385023 PCI-MSI 524288-edge eth0
+7	NMI:	12	14	11 10 Non-maskable interrupts
+8	LOC:	1204103	1198203	1190345 1185023 Local timer interrupts

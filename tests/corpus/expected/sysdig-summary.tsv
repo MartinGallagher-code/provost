@@ -1,5 +1,5 @@
-n	A	B	C	D	E	total_entries
-1	------	Top	processes	by	CPU	4
-2	44.20%	postgres				4
-3	28.10%	dockerd				4
-4	12.40%	nginx				4
+n	A	B	C	D	E
+1	------	Top	processes	by	CPU
+2	44.20%	postgres			
+3	28.10%	dockerd			
+4	12.40%	nginx			

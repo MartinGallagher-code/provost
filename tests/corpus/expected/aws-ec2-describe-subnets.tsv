@@ -1,7 +1,7 @@
-n	SubnetId	VpcId	CidrBlock	AZ	FreeIps	State	total_entries
-1	subnet-0a1b2c3d4e5f	vpc-0abc12	10.0.1.0/24	us-east-1a	248	available	6
-2	subnet-0f6e5d4c3b2a	vpc-0abc12	10.0.2.0/24	us-east-1b	251	available	6
-3	subnet-01234abcd567	vpc-0abc12	10.0.3.0/24	us-east-1c	200	available	6
-4	subnet-09876fedc543	vpc-0abc12	10.0.4.0/24	us-east-1d	254	available	6
-5	subnet-0aabbccddeef	vpc-0def34	10.1.1.0/24	us-east-1a	120	available	6
-6	subnet-0112233445566	vpc-0def34	10.1.2.0/24	us-east-1b	59	available	6
+n	SubnetId	VpcId	CidrBlock	AZ	FreeIps	State
+1	subnet-0a1b2c3d4e5f	vpc-0abc12	10.0.1.0/24	us-east-1a	248	available
+2	subnet-0f6e5d4c3b2a	vpc-0abc12	10.0.2.0/24	us-east-1b	251	available
+3	subnet-01234abcd567	vpc-0abc12	10.0.3.0/24	us-east-1c	200	available
+4	subnet-09876fedc543	vpc-0abc12	10.0.4.0/24	us-east-1d	254	available
+5	subnet-0aabbccddeef	vpc-0def34	10.1.1.0/24	us-east-1a	120	available
+6	subnet-0112233445566	vpc-0def34	10.1.2.0/24	us-east-1b	59	available

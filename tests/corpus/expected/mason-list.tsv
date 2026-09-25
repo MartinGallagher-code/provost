@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	●	lua-language-server	3.9.3	4
-2	●	rust-analyzer	2024-06-24	4
-3	●	pyright	1.1.369	4
-4	○	gopls	(not_installed)	4
+n	A	B	C
+1	●	lua-language-server	3.9.3
+2	●	rust-analyzer	2024-06-24
+3	●	pyright	1.1.369
+4	○	gopls	(not installed)

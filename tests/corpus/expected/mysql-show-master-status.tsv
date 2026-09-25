@@ -1,2 +1,2 @@
-n	File	Position	Executed_Gtid_Set	total_entries
-1	mysql-bin.001842	482019334	8f7e6d5c-4b3a-2019-8877-665544332211:1-48210	1
+n	File	Position	Executed_Gtid_Set
+1	mysql-bin.001842	482019334	8f7e6d5c-4b3a-2019-8877-665544332211:1-48210

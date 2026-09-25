@@ -1,2 +1,2 @@
 Subsystem	Control	Status	Latency	Interrupt	Region_0	Capabilities
-ASUSTeK Computer Inc. Ethernet Controller I225-V	I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping-	Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort-	0, Cache Line Size: 64 bytes	pin A routed to IRQ 18	Memory at 6001200000 (32-bit,_non-prefetchable) [size=1M]	[40] Power Management version 3
+ASUSTeK Computer Inc. Ethernet Controller I225-V	I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping-	Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort-	0, Cache Line Size: 64 bytes	pin A routed to IRQ 18	Memory at 6001200000 (32-bit, non-prefetchable) [size=1M]	[40] Power Management version 3

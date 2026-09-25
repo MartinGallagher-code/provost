@@ -1,13 +1,13 @@
-n	key	value	total_entries
-1	Certificate		12
-2	Data		12
-3	Version	3 (0x2)	12
-4	Serial Number	0a:1b:2c:3d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9	12
-5	Signature Algorithm	sha256WithRSAEncryption	12
-6	Issuer	C=US, O=Let's Encrypt, CN=R3 Validity	12
-7	Not Before	Jun  1 00:00:00 2026 GMT	12
-8	Not After	Aug 30 23:59:59 2026 GMT	12
-9	Subject	CN=example.com	12
-10	Subject Public Key Info		12
-11	Public Key Algorithm	rsaEncryption	12
-12	Public-Key	(2048 bit)	12
+n	key	value
+1	Certificate	
+2	Data	
+3	Version	3 (0x2)
+4	Serial Number	0a:1b:2c:3d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9
+5	Signature Algorithm	sha256WithRSAEncryption
+6	Issuer	C=US, O=Let's Encrypt, CN=R3 Validity
+7	Not Before	Jun  1 00:00:00 2026 GMT
+8	Not After	Aug 30 23:59:59 2026 GMT
+9	Subject	CN=example.com
+10	Subject Public Key Info	
+11	Public Key Algorithm	rsaEncryption
+12	Public-Key	(2048 bit)

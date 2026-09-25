@@ -1,4 +1,4 @@
-n	ticket	summary	status	total_entries
-1	1042	Login page throws 500 after the DB migration	open	3
-2	1043	Timeout on export	closed	3
-3	1044	User reports: - slow search - broken filter	open	3
+n	ticket	summary	status
+1	1042	Login page throws 500 after the DB migration	open
+2	1043	Timeout on export	closed
+3	1044	User reports: - slow search - broken filter	open

@@ -1,6 +1,6 @@
-n	REGION	LOCATION	FLAG	total_entries
-1	us-east-1	N. Virginia	🇺🇸	5
-2	eu-west-1	Ireland	🇮🇪	5
-3	ap-northeast-1	Tokyo	🇯🇵	5
-4	sa-east-1	São Paulo	🇧🇷	5
-5	eu-central-1	Frankfurt	🇩🇪	5
+n	REGION	LOCATION	FLAG
+1	us-east-1	N. Virginia	🇺🇸
+2	eu-west-1	Ireland	🇮🇪
+3	ap-northeast-1	Tokyo	🇯🇵
+4	sa-east-1	São Paulo	🇧🇷
+5	eu-central-1	Frankfurt	🇩🇪

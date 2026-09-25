@@ -1,4 +1,4 @@
-n	id	addr	name	age	idle	flags	db	cmd	total_entries
-1	812	10.0.1.4:51022		1204	0	N	0	get	3
-2	813	10.0.1.4:51024	worker	88	12	N	0	set	3
-3	820	10.0.1.9:33012		9012	1	S	0	subscribe	3
+n	id	addr	name	age	idle	flags	db	cmd
+1	812	10.0.1.4:51022		1204	0	N	0	get
+2	813	10.0.1.4:51024	worker	88	12	N	0	set
+3	820	10.0.1.9:33012		9012	1	S	0	subscribe

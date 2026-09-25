@@ -1,5 +1,5 @@
-n	A	total_entries
-1	Synthesizing...	4
-2	dist/prod.k8s.yaml	4
-3	dist/staging.k8s.yaml	4
-4	Done.	4
+n	A
+1	Synthesizing...
+2	dist/prod.k8s.yaml
+3	dist/staging.k8s.yaml
+4	Done.

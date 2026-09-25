@@ -1,3 +1,3 @@
 n	dn	cn	gidNumber	member	description	dn:_cn	member:_uid
-1	cn=admins,ou=groups,dc=example,dc=com	admins	5000	uid=jdoe	System_administrators	admins,ou=groups,dc=example,dc=com	jdoe
-2	cn=devs,ou=groups,dc=example,dc=com	devs	5001	uid=asmith	Developers_team	devs,ou=groups,dc=example,dc=com	asmith
+1	cn=admins,ou=groups,dc=example,dc=com	admins	5000	uid=jdoe	System administrators	admins,ou=groups,dc=example,dc=com	jdoe
+2	cn=devs,ou=groups,dc=example,dc=com	devs	5001	uid=asmith	Developers team	devs,ou=groups,dc=example,dc=com	asmith

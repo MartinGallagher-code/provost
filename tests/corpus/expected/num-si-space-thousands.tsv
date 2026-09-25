@@ -1,5 +1,5 @@
-n	Interface	RxBytes	TxBytes	Packets	total_entries
-1	eth0	1 234 567	23 456 789	1 048 576	4
-2	eth1	12 345	234 567	98 765	4
-3	wlan0	9 876 543	1 234 567	654 321	4
-4	lo	1 000	1 000	2 000	4
+n	Interface	RxBytes	TxBytes	Packets
+1	eth0	1 234 567	23 456 789	1 048 576
+2	eth1	12 345	234 567	98 765
+3	wlan0	9 876 543	1 234 567	654 321
+4	lo	1 000	1 000	2 000

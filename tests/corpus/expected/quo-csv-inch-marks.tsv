@@ -1,4 +1,4 @@
-n	product	size	qty	total_entries
-1	Pipe	3/4"	100	3
-2	Bolt	1-1/2"	250	3
-3	Washer	5/16"	500	3
+n	product	size	qty
+1	Pipe	3/4"	100
+2	Bolt	1-1/2"	250
+3	Washer	5/16"	500

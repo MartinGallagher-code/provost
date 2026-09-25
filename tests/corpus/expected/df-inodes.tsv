@@ -1,4 +1,4 @@
-n	Filesystem	Inodes	IUsed	IFree	IUse%	Mounted_on	total_entries
-1	/dev/sda2	6553600	412881	6140719	7%	/	3
-2	/dev/nvme0n1p1	12582912	88201	12494711	1%	/data	3
-3	tmpfs	4091234	92	4091142	1%	/run	3
+n	Filesystem	Inodes	IUsed	IFree	IUse%	Mounted_on
+1	/dev/sda2	6553600	412881	6140719	7%	/
+2	/dev/nvme0n1p1	12582912	88201	12494711	1%	/data
+3	tmpfs	4091234	92	4091142	1%	/run

@@ -1,2 +1,2 @@
-n	driver	CPUs_which_run_at_the_same_hardware_frequency	hardware_limits	available_cpufreq_governors	current_policy
-0	acpi-cpufreq	0	2.20 GHz - 4.70 GHz	conservative ondemand performance schedutil	frequency should be within 2.20 GHz and 4.70 GHz.
+analyzing_CPU_0.driver	analyzing_CPU_0.CPUs_which_run_at_the_same_hardware_frequency	analyzing_CPU_0.hardware_limits	analyzing_CPU_0.available_cpufreq_governors	analyzing_CPU_0.current_policy
+acpi-cpufreq	0	2.20 GHz - 4.70 GHz	conservative ondemand performance schedutil	frequency should be within 2.20 GHz and 4.70 GHz.

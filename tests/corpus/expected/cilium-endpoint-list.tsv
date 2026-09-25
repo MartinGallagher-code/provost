@@ -1,5 +1,5 @@
-n	ENDPOINT	IDENTITY	POLICY(ingress)	POLICY(egress)	IPv4	STATUS	total_entries
-1	1123	4	Disabled	Disabled	10.244.1.144	ready	4
-2	2987	12345	Enabled	Disabled	10.244.1.12	ready	4
-3	3456	23456	Enabled	Enabled	10.244.1.51	ready	4
-4	4001	15000	Disabled	Disabled	10.244.1.77	ready	4
+n	ENDPOINT	IDENTITY	POLICY(ingress)	POLICY(egress)	IPv4	STATUS
+1	1123	4	Disabled	Disabled	10.244.1.144	ready
+2	2987	12345	Enabled	Disabled	10.244.1.12	ready
+3	3456	23456	Enabled	Enabled	10.244.1.51	ready
+4	4001	15000	Disabled	Disabled	10.244.1.77	ready

@@ -1,7 +1,7 @@
-n	SUITE	RESULT	COUNT	total_entries
-1	parser	✅	128	6
-2	network	✅	64	6
-3	auth	❌	3	6
-4	cache	✅	42	6
-5	ui	🟡	7	6
-6	e2e	❌	11	6
+n	SUITE	RESULT	COUNT
+1	parser	✅	128
+2	network	✅	64
+3	auth	❌	3
+4	cache	✅	42
+5	ui	🟡	7
+6	e2e	❌	11

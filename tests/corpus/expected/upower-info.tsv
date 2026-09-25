@@ -1,24 +1,24 @@
-n	key	value	total_entries
-1	native-path	BAT0	23
-2	vendor	LGC	23
-3	model	5B10W13930	23
-4	serial	1234	23
-5	power supply	yes	23
-6	updated	Mon 06 Jul 2026 09:14:52 AM UTC (34 seconds ago)	23
-7	has history	yes	23
-8	has statistics	yes battery	23
-9	present	yes	23
-10	rechargeable	yes	23
-11	state	discharging	23
-12	warning-level	none	23
-13	energy	42.117 Wh	23
-14	energy-empty	0 Wh	23
-15	energy-full	51.234 Wh	23
-16	energy-full-design	57.0 Wh	23
-17	energy-rate	9.812 W	23
-18	voltage	11.523 V	23
-19	charge-cycles	142	23
-20	time to empty	4.3 hours	23
-21	percentage	82%	23
-22	capacity	89.885%	23
-23	technology	lithium-ion	23
+n	key	value
+1	native-path	BAT0
+2	vendor	LGC
+3	model	5B10W13930
+4	serial	1234
+5	power supply	yes
+6	updated	Mon 06 Jul 2026 09:14:52 AM UTC (34 seconds ago)
+7	has history	yes
+8	has statistics	yes battery
+9	present	yes
+10	rechargeable	yes
+11	state	discharging
+12	warning-level	none
+13	energy	42.117 Wh
+14	energy-empty	0 Wh
+15	energy-full	51.234 Wh
+16	energy-full-design	57.0 Wh
+17	energy-rate	9.812 W
+18	voltage	11.523 V
+19	charge-cycles	142
+20	time to empty	4.3 hours
+21	percentage	82%
+22	capacity	89.885%
+23	technology	lithium-ion

@@ -1,7 +1,7 @@
-n	depth	parent	name	total_entries
-1	1	my-app@1.0.0 /home/user/projects/my-app	express@4.18.2	6
-2	1	my-app@1.0.0 /home/user/projects/my-app	lodash@4.17.21	6
-3	1	my-app@1.0.0 /home/user/projects/my-app	chalk@5.3.0	6
-4	1	my-app@1.0.0 /home/user/projects/my-app	axios@1.4.0	6
-5	1	my-app@1.0.0 /home/user/projects/my-app	react@18.2.0	6
-6	1	my-app@1.0.0 /home/user/projects/my-app	typescript@5.1.6	6
+n	depth	parent	name
+1	1	my-app@1.0.0 /home/user/projects/my-app	express@4.18.2
+2	1	my-app@1.0.0 /home/user/projects/my-app	lodash@4.17.21
+3	1	my-app@1.0.0 /home/user/projects/my-app	chalk@5.3.0
+4	1	my-app@1.0.0 /home/user/projects/my-app	axios@1.4.0
+5	1	my-app@1.0.0 /home/user/projects/my-app	react@18.2.0
+6	1	my-app@1.0.0 /home/user/projects/my-app	typescript@5.1.6

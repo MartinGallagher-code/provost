@@ -1,7 +1,7 @@
-n	Schema	Name	Type	Owner	Table	total_entries
-1	public	customers_pkey	index	appuser	customers	6
-2	public	idx_orders_created_at	index	appuser	orders	6
-3	public	idx_orders_customer	index	appuser	orders	6
-4	public	orders_pkey	index	appuser	orders	6
-5	public	products_pkey	index	appuser	products	6
-6	public	users_email_key	index	appuser	users	6
+n	Schema	Name	Type	Owner	Table
+1	public	customers_pkey	index	appuser	customers
+2	public	idx_orders_created_at	index	appuser	orders
+3	public	idx_orders_customer	index	appuser	orders
+4	public	orders_pkey	index	appuser	orders
+5	public	products_pkey	index	appuser	products
+6	public	users_email_key	index	appuser	users

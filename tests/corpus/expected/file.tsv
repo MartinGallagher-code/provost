@@ -1,6 +1,6 @@
-n	name	value	total_entries
-1	archive.tar.gz	gzip compressed data, from Unix, original size modulo 2^32 102400	5
-2	report.csv	CSV text	5
-3	photo.jpg	JPEG image data, JFIF standard 1.01, resolution (DPI), density 72x72	5
-4	script.sh	Bourne-Again shell script, ASCII text executable	5
-5	libutil.so.1	ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked	5
+n	name	value
+1	archive.tar.gz	gzip compressed data, from Unix, original size modulo 2^32 102400
+2	report.csv	CSV text
+3	photo.jpg	JPEG image data, JFIF standard 1.01, resolution (DPI), density 72x72
+4	script.sh	Bourne-Again shell script, ASCII text executable
+5	libutil.so.1	ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked

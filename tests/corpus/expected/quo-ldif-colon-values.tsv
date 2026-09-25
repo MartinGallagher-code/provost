@@ -1,3 +1,3 @@
 n	dn	cn	mail	description	dn:_cn
-1	cn=John_Smith,ou=People,dc=example,dc=com	John_Smith	john@example.com	Lead_engineer,_on-call:_09:00-17:00	John_Smith,ou=People,dc=example,dc=com
-2	cn=Jane_Doe,ou=People,dc=example,dc=com	Jane_Doe	jane@example.com	Manager,_team:_platform	Jane_Doe,ou=People,dc=example,dc=com
+1	cn=John Smith,ou=People,dc=example,dc=com	John Smith	john@example.com	Lead engineer, on-call: 09:00-17:00	John Smith,ou=People,dc=example,dc=com
+2	cn=Jane Doe,ou=People,dc=example,dc=com	Jane Doe	jane@example.com	Manager, team: platform	Jane Doe,ou=People,dc=example,dc=com

@@ -1,4 +1,4 @@
 n	timestamp	hostname	process	pid	message
-1	Jul_06_10_15_01	host	systemd	1	Started Daily apt download activities.
-2	Jul_06_10_15_03	host	sshd	812	Accepted publickey for alice from 192.168.1.10 port 51900
-3	Jul_06_10_16_00	host	kernel		usb 1-1: new high-speed USB device number 3
+1	Jul 06 10:15:01	host	systemd	1	Started Daily apt download activities.
+2	Jul 06 10:15:03	host	sshd	812	Accepted publickey for alice from 192.168.1.10 port 51900
+3	Jul 06 10:16:00	host	kernel		usb 1-1: new high-speed USB device number 3

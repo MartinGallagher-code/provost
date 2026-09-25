@@ -1,4 +1,4 @@
-n	field	type	min	max	mean	total_entries
-1	latency	Integer	2	881	46.51	3
-2	bytes	Integer	120	88201	14609.11	3
-3	status	Unicode	200	504		3
+n	field	type	min	max	mean
+1	latency	Integer	2	881	46.51
+2	bytes	Integer	120	88201	14609.11
+3	status	Unicode	200	504	

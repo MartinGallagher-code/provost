@@ -1,12 +1,12 @@
-n	A	total_entries
-1	# Percona Toolkit MySQL Summary Report #######################	11
-2	System time | 2026-07-10 18:22:04 UTC	11
-3	# Instances ##################################################	11
-4	Port  Data Directory             Nice OOM Socket	11
-5	===== ========================== ==== === ======	11
-6	3306 /var/lib/mysql             0    0   /var/run/mysqld/mysqld.sock	11
-7	# Processlist ################################################	11
-8	Command                        COUNT(*) Working SUM(Time) MAX(Time)	11
-9	------------------------------ -------- ------- --------- ---------	11
-10	Query                                 6       6        42        18	11
-11	Sleep                                78       0      8420       600	11
+n	A
+1	# Percona Toolkit MySQL Summary Report #######################
+2	System time | 2026-07-10 18:22:04 UTC
+3	# Instances ##################################################
+4	Port  Data Directory             Nice OOM Socket
+5	===== ========================== ==== === ======
+6	3306 /var/lib/mysql             0    0   /var/run/mysqld/mysqld.sock
+7	# Processlist ################################################
+8	Command                        COUNT(*) Working SUM(Time) MAX(Time)
+9	------------------------------ -------- ------- --------- ---------
+10	Query                                 6       6        42        18
+11	Sleep                                78       0      8420       600

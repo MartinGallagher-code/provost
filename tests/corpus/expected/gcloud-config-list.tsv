@@ -1,6 +1,6 @@
-n	section	key	value	total_entries
-1	compute	region	us-central1	5
-2	compute	zone	us-central1-a	5
-3	core	account	alice@example.com	5
-4	core	disable_usage_reporting	True	5
-5	core	project	my-project-1234	5
+n	section	key	value
+1	compute	region	us-central1
+2	compute	zone	us-central1-a
+3	core	account	alice@example.com
+4	core	disable_usage_reporting	True
+5	core	project	my-project-1234

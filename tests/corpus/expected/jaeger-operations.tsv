@@ -1,6 +1,6 @@
-n	name	spanKind	total_entries
-1	HTTP_GET_/checkout	server	5
-2	HTTP_POST_/v1/orders	server	5
-3	SELECT_orders	client	5
-4	redis_GET_cart	client	5
-5	publish_order.created	producer	5
+n	name	spanKind
+1	HTTP GET /checkout	server
+2	HTTP POST /v1/orders	server
+3	SELECT orders	client
+4	redis GET cart	client
+5	publish order.created	producer

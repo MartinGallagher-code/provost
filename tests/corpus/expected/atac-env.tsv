@@ -1,4 +1,4 @@
-n	section	key	value	total_entries
-1	prod	base_url	https://api.example.com	3
-2	prod	token	{{PROD_TOKEN}}	3
-3	staging	base_url	https://staging.example.com	3
+n	section	key	value
+1	prod	base_url	https://api.example.com
+2	prod	token	{{PROD_TOKEN}}
+3	staging	base_url	https://staging.example.com

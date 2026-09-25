@@ -1,4 +1,4 @@
-n	Variable	Value	scope	total_entries
-1	max_conns	512	global	3
-2	wait_timeout	28800	session	3
-3	tx_isolation	REPEATABLE-READ	session	3
+n	Variable	Value	scope
+1	max_conns	512	global
+2	wait_timeout	28800	session
+3	tx_isolation	REPEATABLE-READ	session

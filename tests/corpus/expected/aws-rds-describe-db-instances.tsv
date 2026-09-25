@@ -1,6 +1,6 @@
-n	DBInstanceIdentifier	Engine	Class	Status	StorageGB	MultiAZ	total_entries
-1	prod-orders	postgres	db.r6g.xlarge	available	500	True	5
-2	prod-users	mysql	db.m6g.large	available	200	True	5
-3	staging-orders	postgres	db.t3.medium	available	100	False	5
-4	analytics-warehouse	aurora	db.r6g.2xlarge	available	1000	True	5
-5	legacy-billing	mariadb	db.t3.small	stopped	50	False	5
+n	DBInstanceIdentifier	Engine	Class	Status	StorageGB	MultiAZ
+1	prod-orders	postgres	db.r6g.xlarge	available	500	True
+2	prod-users	mysql	db.m6g.large	available	200	True
+3	staging-orders	postgres	db.t3.medium	available	100	False
+4	analytics-warehouse	aurora	db.r6g.2xlarge	available	1000	True
+5	legacy-billing	mariadb	db.t3.small	stopped	50	False

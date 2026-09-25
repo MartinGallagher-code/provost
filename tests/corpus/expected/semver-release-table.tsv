@@ -1,4 +1,4 @@
-n	component	version	released	total_entries
-1	api	1.2.3-rc1+build.5	2026-01-05	3
-2	worker	2.0.0-alpha.2	2026-02-11	3
-3	cli	0.9.10+20260311	2026-03-11	3
+n	component	version	released
+1	api	1.2.3-rc1+build.5	2026-01-05
+2	worker	2.0.0-alpha.2	2026-02-11
+3	cli	0.9.10+20260311	2026-03-11

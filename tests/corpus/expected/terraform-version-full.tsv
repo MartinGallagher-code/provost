@@ -1,5 +1,5 @@
-n	A	total_entries
-1	Terraform v1.9.0	4
-2	on linux_amd64	4
-3	+ provider registry.terraform.io/hashicorp/aws v5.55.0	4
-4	+ provider registry.terraform.io/hashicorp/random v3.6.2	4
+n	A
+1	Terraform v1.9.0
+2	on linux_amd64
+3	+ provider registry.terraform.io/hashicorp/aws v5.55.0
+4	+ provider registry.terraform.io/hashicorp/random v3.6.2

@@ -1,10 +1,10 @@
-n	NAME	SIZE	TYPE	FSTYPE	MOUNTPOINT	total_entries
-1	nvme0n1	476.9G	disk			9
-2	├─nvme0n1p1	512M	part	vfat	/boot/efi	9
-3	├─nvme0n1p2	1G	part	ext4	/boot	9
-4	└─nvme0n1p3	475.4G	part	LVM2_member		9
-5	├─sys-root	60G	lvm	ext4	/	9
-6	├─sys-var	40G	lvm	ext4	/var	9
-7	└─sys-home	375G	lvm	btrfs	/home	9
-8	nvme1n1	931.5G	disk			9
-9	└─nvme1n1p1	931.5G	part	zfs_member		9
+n	NAME	SIZE	TYPE	FSTYPE	MOUNTPOINT
+1	nvme0n1	476.9G	disk		
+2	├─nvme0n1p1	512M	part	vfat	/boot/efi
+3	├─nvme0n1p2	1G	part	ext4	/boot
+4	└─nvme0n1p3	475.4G	part	LVM2_member	
+5	├─sys-root	60G	lvm	ext4	/
+6	├─sys-var	40G	lvm	ext4	/var
+7	└─sys-home	375G	lvm	btrfs	/home
+8	nvme1n1	931.5G	disk		
+9	└─nvme1n1p1	931.5G	part	zfs_member	

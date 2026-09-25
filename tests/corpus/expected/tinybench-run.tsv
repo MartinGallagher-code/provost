@@ -1,3 +1,3 @@
-n	(index)	Task_Name	ops/sec	Average_Time_(ns)	Margin	Samples	total_entries
-1	0	'parse small'	'4,025,102'	248.4402100	'±0.44%'	4025102	2
-2	1	'parse large'	'83,027'	12044.1042100	'±1.20%'	83027	2
+n	(index)	Task_Name	ops/sec	Average_Time_(ns)	Margin	Samples
+1	0	'parse small'	'4,025,102'	248.4402100	'±0.44%'	4025102
+2	1	'parse large'	'83,027'	12044.1042100	'±1.20%'	83027

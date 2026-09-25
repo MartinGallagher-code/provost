@@ -1,10 +1,10 @@
-n	key	value	total_entries
-1	http.codes.200	120488	9
-2	http.request_rate	12024/sec	9
-3	http.requests	120488	9
-4	min	2	9
-5	max	212	9
-6	mean	12.4	9
-7	p95	44	9
-8	p99	88	9
-9	vusers.completed	12000	9
+n	key	value
+1	http.codes.200	120488
+2	http.request_rate	12024/sec
+3	http.requests	120488
+4	min	2
+5	max	212
+6	mean	12.4
+7	p95	44
+8	p99	88
+9	vusers.completed	12000

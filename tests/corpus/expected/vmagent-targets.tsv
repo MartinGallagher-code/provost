@@ -1,5 +1,5 @@
-n	name	10_0_1_5_9100_metrics_up_job	instance	10_0_1_6_9100_metrics_up_job	10_0_2_4_8080_metrics_down_job	10_0_2_5_8080_metrics_up_job	total_entries
-1	http	"node"	"10.0.1.5"}    2.1s ago      12.4ms				4
-2	http		"10.0.1.6"}    1.8s ago      9.9ms	"node"			4
-3	http		"10.0.2.4"}     3.0s ago      0ms               connection refused		"api"		4
-4	http		"10.0.2.5"}     0.9s ago      18.7ms			"api"	4
+n	name	10_0_1_5_9100_metrics_up_job	instance	10_0_1_6_9100_metrics_up_job	10_0_2_4_8080_metrics_down_job	10_0_2_5_8080_metrics_up_job
+1	http	"node"	"10.0.1.5"}    2.1s ago      12.4ms			
+2	http		"10.0.1.6"}    1.8s ago      9.9ms	"node"		
+3	http		"10.0.2.4"}     3.0s ago      0ms               connection refused		"api"	
+4	http		"10.0.2.5"}     0.9s ago      18.7ms			"api"

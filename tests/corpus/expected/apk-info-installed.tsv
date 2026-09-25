@@ -1,5 +1,5 @@
-n	name	version	total_entries
-1	busybox	1.36.1-r15	4
-2	musl	1.2.5-r0	4
-3	ca-certificates	20240226-r0	4
-4	openssl	3.3.0-r2	4
+n	name	version
+1	busybox	1.36.1-r15
+2	musl	1.2.5-r0
+3	ca-certificates	20240226-r0
+4	openssl	3.3.0-r2

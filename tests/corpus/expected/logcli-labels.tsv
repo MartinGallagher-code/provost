@@ -1,10 +1,10 @@
-n	A	total_entries
-1	app	9
-2	cluster	9
-3	container	9
-4	env	9
-5	instance	9
-6	job	9
-7	level	9
-8	namespace	9
-9	pod	9
+n	A
+1	app
+2	cluster
+3	container
+4	env
+5	instance
+6	job
+7	level
+8	namespace
+9	pod

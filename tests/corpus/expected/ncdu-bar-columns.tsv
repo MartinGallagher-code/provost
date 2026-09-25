@@ -1,7 +1,7 @@
-n	A	B	C	D	E	total_entries
-1	---	/home/user	----------------------------------------------------------------			6
-2	4.2	GiB	[##########]	/Downloads		6
-3	2.1	GiB	[#####	]	/Videos	6
-4	842.0	MiB	[##	]	/.cache	6
-5	511.4	MiB	[#	]	/Projects	6
-6	96.2	MiB	[	]	/Documents	6
+n	A	B	C	D	E
+1	---	/home/user	----------------------------------------------------------------		
+2	4.2	GiB	[##########]	/Downloads	
+3	2.1	GiB	[#####	]	/Videos
+4	842.0	MiB	[##	]	/.cache
+5	511.4	MiB	[#	]	/Projects
+6	96.2	MiB	[	]	/Documents

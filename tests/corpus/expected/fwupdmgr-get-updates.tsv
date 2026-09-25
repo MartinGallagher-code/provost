@@ -1,4 +1,4 @@
-n	section	key	value	total_entries
-1	Thunderbolt Controller	Device ID	362301da643102b9f38477387e2193e57abaa590	3
-2	Thunderbolt Controller	Current version	45.00	3
-3	Thunderbolt Controller	New version	50.00	3
+n	section	key	value
+1	Thunderbolt Controller	Device ID	362301da643102b9f38477387e2193e57abaa590
+2	Thunderbolt Controller	Current version	45.00
+3	Thunderbolt Controller	New version	50.00

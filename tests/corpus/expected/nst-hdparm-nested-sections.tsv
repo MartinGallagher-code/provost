@@ -1,11 +1,11 @@
-n	key	value	total_entries
-1	/dev/sda	ATA device, with non-removable media	16383
-2	Model Number	Samsung SSD 870 EVO 1TB	16383
-3	Serial Number	S5Y2NJ0R	16383
-4	Firmware Revision	SVT01B6Q	16383
-5	Standards		16383
-6	Used	ATA-8-ACS	16383
-7	Supported	11 10 9 8	16383
-8	Configuration	Logical	16383
-9			16383
-10	max	current cylinders	16383
+n	key	value
+1	/dev/sda	ATA device, with non-removable media
+2	Model Number	Samsung SSD 870 EVO 1TB
+3	Serial Number	S5Y2NJ0R
+4	Firmware Revision	SVT01B6Q
+5	Standards	
+6	Used	ATA-8-ACS
+7	Supported	11 10 9 8
+8	Configuration	Logical  max current cylinders 16383 16383 heads  16 16 sectors/track 63 63
+9	Commands/features	
+10	Enabled Supported	* SMART feature set * Security Mode feature set

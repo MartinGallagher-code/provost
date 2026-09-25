@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	enabled	alice	readwrite	4
-2	enabled	bob	readonly	4
-3	disabled	carol	diagnostics	4
-4	enabled	svc-backup	backup-policy	4
+n	A	B	C
+1	enabled	alice	readwrite
+2	enabled	bob	readonly
+3	disabled	carol	diagnostics
+4	enabled	svc-backup	backup-policy

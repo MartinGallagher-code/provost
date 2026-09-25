@@ -1,5 +1,5 @@
-n	NAME	PARENT	PRODUCTION	READY	STATE	CREATED_AT	total_entries
-1	main	-	true	true	ready	2 months ago	4
-2	add-index	main	false	true	ready	3 days ago	4
-3	refactor-fk	main	false	false	ready	6 hours ago	4
-4	hotfix-42	main	false	true	ready	1 hour ago	4
+n	NAME	PARENT	PRODUCTION	READY	STATE	CREATED_AT
+1	main	-	true	true	ready	2 months ago
+2	add-index	main	false	true	ready	3 days ago
+3	refactor-fk	main	false	false	ready	6 hours ago
+4	hotfix-42	main	false	true	ready	1 hour ago

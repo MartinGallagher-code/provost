@@ -1,3 +1,3 @@
-n	type	name	fields.name	fields.type	total_entries
-1	record	Event	id	long	2
-2	record	Event	kind	string	2
+n	type	name	fields.name	fields.type
+1	record	Event	id	long
+2	record	Event	kind	string

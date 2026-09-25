@@ -1,8 +1,8 @@
-n	A	B	C	total_entries
-1	127.0.0.1	localhost		7
-2	::1	localhost	ip6-localhost_ip6-loopback	7
-3	192.168.1.10	server01.lan	server01	7
-4	192.168.1.11	server02.lan	server02	7
-5	192.168.1.20	nas.lan	nas	7
-6	10.0.0.5	db-primary.internal	db-primary	7
-7	203.0.113.7	gateway.example.com	gateway	7
+n	A	B	C
+1	127.0.0.1	localhost	
+2	::1	localhost	ip6-localhost ip6-loopback
+3	192.168.1.10	server01.lan	server01
+4	192.168.1.11	server02.lan	server02
+5	192.168.1.20	nas.lan	nas
+6	10.0.0.5	db-primary.internal	db-primary
+7	203.0.113.7	gateway.example.com	gateway

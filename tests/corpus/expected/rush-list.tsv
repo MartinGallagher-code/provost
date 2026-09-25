@@ -1,5 +1,5 @@
-n	Project	Path	Version	total_entries
-1	@acme/core	packages/core	1.4.0	4
-2	@acme/utils	packages/utils	1.4.0	4
-3	@acme/api	services/api	2.1.3	4
-4	@acme/web	apps/web	3.0.1	4
+n	Project	Path	Version
+1	@acme/core	packages/core	1.4.0
+2	@acme/utils	packages/utils	1.4.0
+3	@acme/api	services/api	2.1.3
+4	@acme/web	apps/web	3.0.1

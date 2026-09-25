@@ -1,4 +1,4 @@
-n	bytes	from	icmp_seq	ttl	time	total_entries
-1	64	93.184.216.34	1	56	11.4 ms	3
-2	64	93.184.216.34	2	56	12.1 ms	3
-3	64	93.184.216.34	3	56	11.8 ms	3
+n	bytes	from	icmp_seq	ttl	time
+1	64	93.184.216.34	1	56	11.4 ms
+2	64	93.184.216.34	2	56	12.1 ms
+3	64	93.184.216.34	3	56	11.8 ms

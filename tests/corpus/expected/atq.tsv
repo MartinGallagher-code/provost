@@ -1,7 +1,7 @@
-n	A	B	B_B	B_C	total_entries
-1	9	Wed Jul  9 04:00:00 2026	a	martin	6
-2	10	Thu Jul 10 22:30:00 2026	a	root	6
-3	11	Fri Jul 11 08:15:00 2026	a	martin	6
-4	12	Sat Jul 12 12:00:00 2026	b	deploy	6
-5	13	Mon Jul 14 06:00:00 2026	a	backup	6
-6	14	Tue Jul 15 18:45:00 2026	a	martin	6
+n	A	B	B_B	B_C
+1	9	Wed Jul  9 04:00:00 2026	a	martin
+2	10	Thu Jul 10 22:30:00 2026	a	root
+3	11	Fri Jul 11 08:15:00 2026	a	martin
+4	12	Sat Jul 12 12:00:00 2026	b	deploy
+5	13	Mon Jul 14 06:00:00 2026	a	backup
+6	14	Tue Jul 15 18:45:00 2026	a	martin

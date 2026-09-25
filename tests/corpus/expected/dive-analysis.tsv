@@ -1,7 +1,7 @@
-n	Image	Details	total_entries
-1	Total	Image_size:_212_MB	6
-2	Potential	wasted_space:_12_MB	6
-3	Image	efficiency_score:_94%	6
-4	Layers		6
-5	44	MB_FROM_debian:12-slim	6
-6	12	MB_RUN_apt-get_install_-y_curl	6
+n	Image	Details
+1	Total	Image size: 212 MB
+2	Potential	wasted space: 12 MB
+3	Image	efficiency score: 94%
+4	Layers	
+5	44	MB FROM debian:12-slim
+6	12	MB RUN apt-get install -y curl

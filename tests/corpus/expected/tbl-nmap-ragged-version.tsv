@@ -1,5 +1,5 @@
-n	PORT	STATE	SERVICE	VERSION	total_entries
-1	22	open	ssh	OpenSSH 8.9	4
-2	80	open	http	nginx 1.24.0	4
-3	443	open	https		4
-4	3306	filtered	mysql		4
+n	PORT	STATE	SERVICE	VERSION
+1	22	open	ssh	OpenSSH 8.9
+2	80	open	http	nginx 1.24.0
+3	443	open	https	
+4	3306	filtered	mysql	

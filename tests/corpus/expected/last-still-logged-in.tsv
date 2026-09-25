@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	H	I	J	total_entries
-1	mgallag	pts/0	192.168.1.10	Fri	Jul	11	09:14	still	logged	in	5
-2	mgallag	pts/1	192.168.1.10	Fri	Jul	11	08:02	-	08:59	(00:57)	5
-3	reboot	system	boot	6.8.0-40-generic	Fri	Jul	11	07:55	still	running	5
-4	root	tty1	Thu	Jul	10	22:31	-	23:04	(00:33)		5
-5	backup	pts/2	10.0.0.9	Thu	Jul	10	02:00	-	crash	(05:12)	5
+n	A	B	C	D	E	F	G	H	I	J
+1	mgallag	pts/0	192.168.1.10	Fri	Jul	11	09:14	still	logged	in
+2	mgallag	pts/1	192.168.1.10	Fri	Jul	11	08:02	-	08:59	(00:57)
+3	reboot	system	boot	6.8.0-40-generic	Fri	Jul	11	07:55	still	running
+4	root	tty1	Thu	Jul	10	22:31	-	23:04	(00:33)	
+5	backup	pts/2	10.0.0.9	Thu	Jul	10	02:00	-	crash	(05:12)

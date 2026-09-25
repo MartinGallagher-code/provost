@@ -1,4 +1,4 @@
-n	NAME	BACKUP	STATUS	STARTED	COMPLETED	ERRORS	WARNINGS	total_entries
-1	daily-full-20260710-restore	daily-full	Completed	2026-07-10	10:00:00	+0000	UTC_2026-07-10_10:04:18_+0000_UTC_0_2	3
-2	hourly-db-20260710-restore	hourly-db	Completed	2026-07-10	12:30:00	+0000	UTC_2026-07-10_12:31:02_+0000_UTC_0_0	3
-3	weekly-arch-restore-prod	weekly-arch	PartiallyFailed	2026-07-09	22:00:00	+0000	UTC_2026-07-09_22:14:55_+0000_UTC_3_5	3
+n	NAME	BACKUP	STATUS	STARTED	COMPLETED	ERRORS	WARNINGS
+1	daily-full-20260710-restore	daily-full	Completed	2026-07-10	10:00:00	+0000	UTC 2026-07-10 10:04:18 +0000 UTC 0 2
+2	hourly-db-20260710-restore	hourly-db	Completed	2026-07-10	12:30:00	+0000	UTC 2026-07-10 12:31:02 +0000 UTC 0 0
+3	weekly-arch-restore-prod	weekly-arch	PartiallyFailed	2026-07-09	22:00:00	+0000	UTC 2026-07-09 22:14:55 +0000 UTC 3 5

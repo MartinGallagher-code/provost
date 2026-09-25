@@ -1,5 +1,5 @@
-n	name	version	total_entries
-1	nix	2.18.2	4
-2	git	2.45.2	4
-3	firefox	127.0.1	4
-4	ripgrep	14.1.0	4
+n	name	version
+1	nix	2.18.2
+2	git	2.45.2
+3	firefox	127.0.1
+4	ripgrep	14.1.0

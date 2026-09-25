@@ -1,4 +1,4 @@
-n	NAME	COMMENT	total_entries
-1	www.example.com	primary apex	3
-2	example.com	apex redirect	3
-3	cdn.example.com	asset delivery	3
+n	NAME	COMMENT
+1	www.example.com	primary apex
+2	example.com	apex redirect
+3	cdn.example.com	asset delivery

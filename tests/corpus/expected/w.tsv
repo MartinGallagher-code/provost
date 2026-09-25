@@ -1,4 +1,4 @@
-n	user	tty	from	login	idle	jcpu	pcpu	what	total_entries
-1	alice	pts/0	10.0.4.12	09:14	0.00s	0.42s	0.03s	w	3
-2	alice	pts/1	10.0.4.12	11:02	1:23m	0.11s	0.11s	-bash	3
-3	bob	pts/2	192.168.1.55	13:47	12:04	2.31s	1.88s	vim report.md	3
+n	user	tty	from	login	idle	jcpu	pcpu	what
+1	alice	pts/0	10.0.4.12	09:14	0.00s	0.42s	0.03s	w
+2	alice	pts/1	10.0.4.12	11:02	1:23m	0.11s	0.11s	-bash
+3	bob	pts/2	192.168.1.55	13:47	12:04	2.31s	1.88s	vim report.md

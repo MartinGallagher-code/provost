@@ -1,4 +1,4 @@
-n	depth	name	total_entries
-1	0	systemd(1) sshd(812) sshd(30122) bash(30140)	3
-2	3	dockerd(1044) containerd(1120)	3
-3	3	cron(640)	3
+n	depth	name
+1	0	systemd(1) sshd(812) sshd(30122) bash(30140)
+2	3	dockerd(1044) containerd(1120)
+3	3	cron(640)

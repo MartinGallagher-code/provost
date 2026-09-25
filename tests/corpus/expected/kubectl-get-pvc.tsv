@@ -1,6 +1,6 @@
-n	NAME	STATUS	VOLUME	CAPACITY	ACCESS_MODES	STORAGECLASS	AGE	total_entries
-1	data-postgres-0	Bound	pvc-3f8a1c2d-4b5e-6789-abcd-1234567890ab	20Gi	RWO	standard	21d	5
-2	data-redis-0	Bound	pvc-9e8d7c6b-5a4f-3210-fedc-0987654321ba	5Gi	RWO	standard	21d	5
-3	uploads-pvc	Bound	pvc-1a2b3c4d-5e6f-7890-1234-567890abcdef	100Gi	RWX	nfs	10d	5
-4	prometheus-db-0	Bound	pvc-abcdef12-3456-7890-abcd-ef1234567890	50Gi	RWO	fast-ssd	7d	5
-5	grafana-storage	Bound	pvc-11223344-5566-7788-99aa-bbccddeeff00	10Gi	RWO	standard	7d	5
+n	NAME	STATUS	VOLUME	CAPACITY	ACCESS_MODES	STORAGECLASS	AGE
+1	data-postgres-0	Bound	pvc-3f8a1c2d-4b5e-6789-abcd-1234567890ab	20Gi	RWO	standard	21d
+2	data-redis-0	Bound	pvc-9e8d7c6b-5a4f-3210-fedc-0987654321ba	5Gi	RWO	standard	21d
+3	uploads-pvc	Bound	pvc-1a2b3c4d-5e6f-7890-1234-567890abcdef	100Gi	RWX	nfs	10d
+4	prometheus-db-0	Bound	pvc-abcdef12-3456-7890-abcd-ef1234567890	50Gi	RWO	fast-ssd	7d
+5	grafana-storage	Bound	pvc-11223344-5566-7788-99aa-bbccddeeff00	10Gi	RWO	standard	7d

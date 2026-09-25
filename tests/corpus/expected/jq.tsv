@@ -1,7 +1,7 @@
-n	A	B	C	D	total_entries
-1	svc-01	web	running	2	6
-2	svc-02	api	running	4	6
-3	svc-03	db	degraded	1	6
-4	svc-04	cache	running	2	6
-5	svc-05	queue	stopped	0	6
-6	svc-06	worker	running	3	6
+n	A	B	C	D
+1	svc-01	web	running	2
+2	svc-02	api	running	4
+3	svc-03	db	degraded	1
+4	svc-04	cache	running	2
+5	svc-05	queue	stopped	0
+6	svc-06	worker	running	3

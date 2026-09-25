@@ -1,4 +1,4 @@
-n	Filesystem	Used	Avail	Use%	Size	Mounted_on	total_entries
-1	/dev/mapper/vg-root	98G 45G	48G	49% /			3
-2	tmpfs	1.2M	7.8G	1%	7.8G	/run	3
-3	/dev/sda1	120M	392M	24%	512M	/boot	3
+n	Filesystem	Used	Avail	Use%	Size	Mounted_on
+1	/dev/mapper/vg-root	98G 45G	48G	49% /		
+2	tmpfs	1.2M	7.8G	1%	7.8G	/run
+3	/dev/sda1	120M	392M	24%	512M	/boot

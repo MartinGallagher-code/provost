@@ -1,19 +1,19 @@
-n	key	value	total_entries
-1	/dev/sda	ATA device, with non-removable media	Logical  Sector size
-2	Model Number	Samsung SSD 860 EVO 500GB	Logical  Sector size
-3	Serial Number	S3Z1NB0K123456A	Logical  Sector size
-4	Firmware Revision	RVT02B6Q	Logical  Sector size
-5	Transport	Serial, ATA8-AST, SATA 1.0a, SATA II Extensions, SATA Rev 3.0	Logical  Sector size
-6	Standards		Logical  Sector size
-7	Used	unknown (minor revision code 0x005e)	Logical  Sector size
-8	Supported	11 10 9 8 7 6 5	Logical  Sector size
-9	Likely used	11	Logical  Sector size
-10	Configuration	Logical	Logical  Sector size
-11		max	Logical  Sector size
-12	current cylinders	16383	Logical  Sector size
-13	16383 heads		Logical  Sector size
-14	16	16 sectors/track	Logical  Sector size
-15	63	63	Logical  Sector size
-16	CHS current addressable sectors	16514064	Logical  Sector size
-17	LBA    user addressable sectors	268435455	Logical  Sector size
-18	LBA48  user addressable sectors	976773168	Logical  Sector size
+n	key	value
+1	/dev/sda	ATA device, with non-removable media
+2	Model Number	Samsung SSD 860 EVO 500GB
+3	Serial Number	S3Z1NB0K123456A
+4	Firmware Revision	RVT02B6Q
+5	Transport	Serial, ATA8-AST, SATA 1.0a, SATA II Extensions, SATA Rev 3.0
+6	Standards	
+7	Used	unknown (minor revision code 0x005e)
+8	Supported	11 10 9 8 7 6 5
+9	Likely used	11
+10	Configuration	Logical  max current cylinders 16383 16383 heads  16 16 sectors/track 63 63
+11	CHS current addressable sectors	16514064
+12	LBA    user addressable sectors	268435455
+13	LBA48  user addressable sectors	976773168
+14	Logical  Sector size	512 bytes
+15	Physical Sector size	512 bytes
+16	device size with M = 1024*1024	476940 MBytes
+17	device size with M = 1000*1000	500107 MBytes (500 GB)
+18	Nominal Media Rotation Rate	Solid State Device

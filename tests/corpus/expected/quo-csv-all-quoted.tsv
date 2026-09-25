@@ -1,4 +1,4 @@
-n	region	hosts	note	total_entries
-1	us-east-1	12	primary, active	3
-2	eu-west-2	7	standby, drained	3
-3	ap-south-1	5	primary, active	3
+n	region	hosts	note
+1	us-east-1	12	primary, active
+2	eu-west-2	7	standby, drained
+3	ap-south-1	5	primary, active

@@ -1,5 +1,5 @@
-n	NODE	NAMESPACE	POD	CPU_REQUESTS	CPU_LIMITS	MEMORY_REQUESTS	MEMORY_LIMITS	total_entries
-1	k3s-agent-1	default	web-6f9c8-abc12	100m (5%)	500m (25%)	128Mi (3%)	256Mi (6%)	4
-2	k3s-agent-1	default	api-7a1d8-xy12	250m (12%)	1000m (50%)	512Mi (13%)	1Gi (26%)	4
-3	k3s-agent-2	monitoring	prometheus-0	500m (25%)	1000m (50%)	2Gi (52%)	4Gi (100%)	4
-4	k3s-agent-2	kube-system	coredns-abc	100m (5%)	0m (0%)	70Mi (1%)	170Mi (4%)	4
+n	NODE	NAMESPACE	POD	CPU_REQUESTS	CPU_LIMITS	MEMORY_REQUESTS	MEMORY_LIMITS
+1	k3s-agent-1	default	web-6f9c8-abc12	100m (5%)	500m (25%)	128Mi (3%)	256Mi (6%)
+2	k3s-agent-1	default	api-7a1d8-xy12	250m (12%)	1000m (50%)	512Mi (13%)	1Gi (26%)
+3	k3s-agent-2	monitoring	prometheus-0	500m (25%)	1000m (50%)	2Gi (52%)	4Gi (100%)
+4	k3s-agent-2	kube-system	coredns-abc	100m (5%)	0m (0%)	70Mi (1%)	170Mi (4%)

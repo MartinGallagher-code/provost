@@ -1,8 +1,8 @@
-n	A	B	C	D	total_entries
-1	core				7
-2	core-test				7
-3	util				7
-4	util-test				7
-5	server				7
-6	server-test				7
-7	Projects	loaded	from	'/home/dev/proj/.bloop'	7
+n	A	B	C	D
+1	core			
+2	core-test			
+3	util			
+4	util-test			
+5	server			
+6	server-test			
+7	Projects	loaded	from	'/home/dev/proj/.bloop'

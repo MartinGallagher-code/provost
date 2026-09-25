@@ -1,4 +1,4 @@
-n	schema	table_name	rows	total_entries
-1	public	accounts	12044	3
-2	public	ledger	908812	3
-3	analytics	events	44120933	3
+n	schema	table_name	rows
+1	public	accounts	12044
+2	public	ledger	908812
+3	analytics	events	44120933

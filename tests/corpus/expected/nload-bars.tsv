@@ -1,3 +1,3 @@
-n	Device	eth0	total_entries
-1	Incoming	12.44_MBit/s_||||||||||||||||||||||||||||||........_Avg_8.10_Max_22.4	2
-2	Outgoing	3.10_MBit/s_||||||||||.........................._Avg_2.40_Max_9.8	2
+n	Device	eth0
+1	Incoming	12.44 MBit/s ||||||||||||||||||||||||||||||........ Avg 8.10 Max 22.4
+2	Outgoing	3.10 MBit/s ||||||||||.......................... Avg 2.40 Max 9.8

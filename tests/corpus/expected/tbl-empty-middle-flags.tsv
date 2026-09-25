@@ -1,5 +1,5 @@
-n	NAME	STATE	PID	total_entries
-1	worker-1	running	1234	4
-2	worker-2	running	1235	4
-3	worker-3	stopped	-	4
-4	scheduler	running	1240	4
+n	NAME	STATE	PID
+1	worker-1	running	1234
+2	worker-2	running	1235
+3	worker-3	stopped	-
+4	scheduler	running	1240

@@ -1,15 +1,15 @@
-n	A	B	C	total_entries
-1	2.3.19.1	(9b53102964):	/etc/dovecot/dovecot.conf	14
-2	mail_location	=	maildir:~/Maildir	14
-3	mail_privileged_group	=	mail	14
-4	managesieve_notify_capability	=	mailto	14
-5	namespace	inbox	{	14
-6	inbox	=	yes	14
-7	location	=		14
-8	}			14
-9	passdb	{		14
-10	driver	=	pam	14
-11	}			14
-12	protocols	=	imap_pop3_lmtp_sieve	14
-13	ssl	=	required	14
-14	ssl_cert	=	</etc/dovecot/private/dovecot.pem	14
+n	A	B	C
+1	2.3.19.1	(9b53102964):	/etc/dovecot/dovecot.conf
+2	mail_location	=	maildir:~/Maildir
+3	mail_privileged_group	=	mail
+4	managesieve_notify_capability	=	mailto
+5	namespace	inbox	{
+6	inbox	=	yes
+7	location	=	
+8	}		
+9	passdb	{	
+10	driver	=	pam
+11	}		
+12	protocols	=	imap pop3 lmtp sieve
+13	ssl	=	required
+14	ssl_cert	=	</etc/dovecot/private/dovecot.pem

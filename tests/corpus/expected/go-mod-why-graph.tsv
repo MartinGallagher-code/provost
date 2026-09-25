@@ -1,10 +1,10 @@
-n	A	B	total_entries
-1	#	golang.org/x/text/language	9
-2	github.com/myorg/app		9
-3	github.com/myorg/app/internal/i18n		9
-4	golang.org/x/text/language		9
-5	#	golang.org/x/net/http2	9
-6	github.com/myorg/app		9
-7	github.com/myorg/app/internal/server		9
-8	google.golang.org/grpc		9
-9	golang.org/x/net/http2		9
+n	A	B
+1	#	golang.org/x/text/language
+2	github.com/myorg/app	
+3	github.com/myorg/app/internal/i18n	
+4	golang.org/x/text/language	
+5	#	golang.org/x/net/http2
+6	github.com/myorg/app	
+7	github.com/myorg/app/internal/server	
+8	google.golang.org/grpc	
+9	golang.org/x/net/http2	

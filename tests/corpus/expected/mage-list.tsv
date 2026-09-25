@@ -1,4 +1,4 @@
-n	A	B	C	D	total_entries
-1	build	compiles	the	binary	3
-2	test	runs	the	tests	3
-3	clean	removes	build	artifacts	3
+n	A	B	C	D
+1	build	compiles	the	binary
+2	test	runs	the	tests
+3	clean	removes	build	artifacts

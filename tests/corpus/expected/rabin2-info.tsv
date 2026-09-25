@@ -1,7 +1,7 @@
-n	A	B	C	total_entries
-1	format	elf64		6
-2	bintype	elf		6
-3	class	ELF64		6
-4	lang	c		6
-5	machine	AMD	x86-64	6
-6	stripped	false		6
+n	A	B	C
+1	format	elf64	
+2	bintype	elf	
+3	class	ELF64	
+4	lang	c	
+5	machine	AMD	x86-64
+6	stripped	false	

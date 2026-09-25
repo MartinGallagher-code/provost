@@ -1,5 +1,5 @@
-n	id	title	prio	state	total_entries
-1	101	Login fails	🔴 P1	open	4
-2	102	typo in ヘルプ	🟢 P4	closed	4
-3	103	缓存穿透	🟠 P2	open	4
-4	104	slow query	🟡 P3	wip	4
+n	id	title	prio	state
+1	101	Login fails	🔴 P1	open
+2	102	typo in ヘルプ	🟢 P4	closed
+3	103	缓存穿透	🟠 P2	open
+4	104	slow query	🟡 P3	wip

@@ -1,7 +1,7 @@
-n	NAME	PROPERTY	VALUE	SOURCE	total_entries
-1	tank	size	16.4T	-	6
-2	tank	capacity	26%	-	6
-3	tank	health	ONLINE	-	6
-4	tank	fragmentation	8%	-	6
-5	tank	free	12.1T	-	6
-6	tank	ashift	12	local	6
+n	NAME	PROPERTY	VALUE	SOURCE
+1	tank	size	16.4T	-
+2	tank	capacity	26%	-
+3	tank	health	ONLINE	-
+4	tank	fragmentation	8%	-
+5	tank	free	12.1T	-
+6	tank	ashift	12	local

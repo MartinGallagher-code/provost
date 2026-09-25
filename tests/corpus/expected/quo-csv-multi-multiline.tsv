@@ -1,4 +1,4 @@
-n	id	body	author	total_entries
-1	1	line one line two line three	alice	3
-2	2	single	bob	3
-3	3	first second	carol	3
+n	id	body	author
+1	1	line one line two line three	alice
+2	2	single	bob
+3	3	first second	carol

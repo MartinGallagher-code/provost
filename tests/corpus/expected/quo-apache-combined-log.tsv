@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	10.0.0.1	-	-	11/Jul/2026:09:15:42 +0000	GET /index.html HTTP/1.1	200	5120	https://ref.example.com/a?b=1,2	Mozilla/5.0 (X11; Linux) Gecko	3
-2	10.0.0.2	-	alice	11/Jul/2026:09:15:43 +0000	POST /api/login HTTP/1.1	302	0	-	curl/8.1.2	3
-3	10.0.0.3	-	-	11/Jul/2026:09:15:44 +0000	GET /search?q=a,b,c HTTP/1.1	200	8421	-	Mozilla/5.0 (Windows NT 10.0), Chrome/120	3
+n	A	B	C	D	E	F	G	H	I
+1	10.0.0.1	-	-	11/Jul/2026:09:15:42 +0000	GET /index.html HTTP/1.1	200	5120	https://ref.example.com/a?b=1,2	Mozilla/5.0 (X11; Linux) Gecko
+2	10.0.0.2	-	alice	11/Jul/2026:09:15:43 +0000	POST /api/login HTTP/1.1	302	0	-	curl/8.1.2
+3	10.0.0.3	-	-	11/Jul/2026:09:15:44 +0000	GET /search?q=a,b,c HTTP/1.1	200	8421	-	Mozilla/5.0 (Windows NT 10.0), Chrome/120

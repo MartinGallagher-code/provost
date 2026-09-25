@@ -1,6 +1,6 @@
-n	id	attribute_name	flag	value	worst	thresh	type	updated	when_failed	raw_value	total_entries
-1	5	Reallocated_Sector_Ct	0x0033	100	100	010	Pre-fail	Always	-	0	5
-2	9	Power_On_Hours	0x0032	099	099	000	Old_age	Always	-	2210	5
-3	12	Power_Cycle_Count	0x0032	099	099	000	Old_age	Always	-	88	5
-4	177	Wear_Leveling_Count	0x0013	098	098	000	Pre-fail	Always	-	41	5
-5	241	Total_LBAs_Written	0x0032	099	099	000	Old_age	Always	-	12849302104	5
+n	id	attribute_name	flag	value	worst	thresh	type	updated	when_failed	raw_value
+1	5	Reallocated_Sector_Ct	0x0033	100	100	010	Pre-fail	Always	-	0
+2	9	Power_On_Hours	0x0032	099	099	000	Old_age	Always	-	2210
+3	12	Power_Cycle_Count	0x0032	099	099	000	Old_age	Always	-	88
+4	177	Wear_Leveling_Count	0x0013	098	098	000	Pre-fail	Always	-	41
+5	241	Total_LBAs_Written	0x0032	099	099	000	Old_age	Always	-	12849302104

@@ -1,4 +1,4 @@
-n	NAME	ENFORCEMENT	TOTAL-VIOLATIONS	AGE	total_entries
-1	require-labels	deny	4	18d	3
-2	disallow-latest-tag	deny	0	18d	3
-3	container-limits	warn	7	9d	3
+n	NAME	ENFORCEMENT	TOTAL-VIOLATIONS	AGE
+1	require-labels	deny	4	18d
+2	disallow-latest-tag	deny	0	18d
+3	container-limits	warn	7	9d

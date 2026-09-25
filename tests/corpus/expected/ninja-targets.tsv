@@ -1,7 +1,7 @@
-n	name	value	total_entries
-1	build/libcore.a	phony	6
-2	build/myapp	phony	6
-3	build/tests/unit_test	phony	6
-4	build/CMakeFiles/rebuild_cache.util	phony	6
-5	all	phony	6
-6	clean	phony	6
+n	name	value
+1	build/libcore.a	phony
+2	build/myapp	phony
+3	build/tests/unit_test	phony
+4	build/CMakeFiles/rebuild_cache.util	phony
+5	all	phony
+6	clean	phony

@@ -1,8 +1,8 @@
-n	A	B	C	D	total_entries
-1	Available	tasks:			7
-2	-	dev			7
-3	deno	run	--watch	main.ts	7
-4	-	test			7
-5	deno	test			7
-6	-	fmt			7
-7	deno	fmt			7
+n	A	B	C	D
+1	Available	tasks:		
+2	-	dev		
+3	deno	run	--watch	main.ts
+4	-	test		
+5	deno	test		
+6	-	fmt		
+7	deno	fmt		

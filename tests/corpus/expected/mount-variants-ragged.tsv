@@ -1,7 +1,7 @@
-n	device	mount_point	fstype	options	total_entries
-1	sysfs	/sys	sysfs	rw,nosuid,nodev,noexec,relatime	6
-2	/dev/sda1	/	ext4	rw,relatime	6
-3	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime	6
-4	/dev/sdb1	/mnt/data	xfs	rw,relatime,attr2,inode64	6
-5	tmpfs	/run	tmpfs	rw,nosuid,nodev,size=1608560k,mode=755	6
-6	/dev/sdc	/media/usb	vfat	rw,nosuid,nodev,relatime,uid=1000	6
+n	device	mount_point	fstype	options
+1	sysfs	/sys	sysfs	rw,nosuid,nodev,noexec,relatime
+2	/dev/sda1	/	ext4	rw,relatime
+3	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime
+4	/dev/sdb1	/mnt/data	xfs	rw,relatime,attr2,inode64
+5	tmpfs	/run	tmpfs	rw,nosuid,nodev,size=1608560k,mode=755
+6	/dev/sdc	/media/usb	vfat	rw,nosuid,nodev,relatime,uid=1000

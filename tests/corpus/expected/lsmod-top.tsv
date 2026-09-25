@@ -1,4 +1,4 @@
-n	Module	Size	Used_by	total_entries
-1	nvidia	62914560	240	3
-2	ext4	1048576	3	3
-3	xhci_pci	24576	0	3
+n	Module	Size	Used_by
+1	nvidia	62914560	240
+2	ext4	1048576	3
+3	xhci_pci	24576	0

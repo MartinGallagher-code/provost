@@ -1,6 +1,6 @@
-n	database	user	cl_active	cl_waiting	sv_active	sv_idle	sv_used	maxwait	pool_mode	total_entries
-1	app_prod	appuser	24	0	8	4	2	0	transaction	5
-2	app_stage	appuser	6	0	2	3	1	0	transaction	5
-3	analytics	reporter	11	2	5	0	0	3	session	5
-4	billing	billsvc	3	0	1	4	0	0	transaction	5
-5	pgbouncer	pgbouncer	1	0	0	0	0	0	statement	5
+n	database	user	cl_active	cl_waiting	sv_active	sv_idle	sv_used	maxwait	pool_mode
+1	app_prod	appuser	24	0	8	4	2	0	transaction
+2	app_stage	appuser	6	0	2	3	1	0	transaction
+3	analytics	reporter	11	2	5	0	0	3	session
+4	billing	billsvc	3	0	1	4	0	0	transaction
+5	pgbouncer	pgbouncer	1	0	0	0	0	0	statement

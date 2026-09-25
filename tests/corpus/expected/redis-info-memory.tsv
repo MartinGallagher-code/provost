@@ -1,24 +1,24 @@
-n	A	B	total_entries
-1	#	Memory	23
-2	used_memory:1048576		23
-3	used_memory_human:1.00M		23
-4	used_memory_rss:2306048		23
-5	used_memory_rss_human:2.20M		23
-6	used_memory_peak:1310720		23
-7	used_memory_peak_human:1.25M		23
-8	used_memory_peak_perc:80.00%		23
-9	used_memory_overhead:876544		23
-10	used_memory_startup:865920		23
-11	used_memory_dataset:172032		23
-12	used_memory_dataset_perc:94.16%		23
-13	allocator_allocated:1362544		23
-14	allocator_active:1712128		23
-15	allocator_resident:4837376		23
-16	total_system_memory:16776515584		23
-17	total_system_memory_human:15.62G		23
-18	used_memory_lua:31744		23
-19	maxmemory:4294967296		23
-20	maxmemory_human:4.00G		23
-21	maxmemory_policy:allkeys-lru		23
-22	mem_fragmentation_ratio:2.20		23
-23	mem_allocator:jemalloc-5.2.1		23
+n	A	B
+1	#	Memory
+2	used_memory:1048576	
+3	used_memory_human:1.00M	
+4	used_memory_rss:2306048	
+5	used_memory_rss_human:2.20M	
+6	used_memory_peak:1310720	
+7	used_memory_peak_human:1.25M	
+8	used_memory_peak_perc:80.00%	
+9	used_memory_overhead:876544	
+10	used_memory_startup:865920	
+11	used_memory_dataset:172032	
+12	used_memory_dataset_perc:94.16%	
+13	allocator_allocated:1362544	
+14	allocator_active:1712128	
+15	allocator_resident:4837376	
+16	total_system_memory:16776515584	
+17	total_system_memory_human:15.62G	
+18	used_memory_lua:31744	
+19	maxmemory:4294967296	
+20	maxmemory_human:4.00G	
+21	maxmemory_policy:allkeys-lru	
+22	mem_fragmentation_ratio:2.20	
+23	mem_allocator:jemalloc-5.2.1	

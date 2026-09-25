@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	total_entries
-1	Nim	Compiler	Version	2.0.4	[Linux:	amd64]	3
-2	Compiled	at	2026-06-30				3
-3	Copyright	(c)	2006-2026	by	Andreas	Rumpf	3
+n	A	B	C	D	E	F
+1	Nim	Compiler	Version	2.0.4	[Linux:	amd64]
+2	Compiled	at	2026-06-30			
+3	Copyright	(c)	2006-2026	by	Andreas	Rumpf

@@ -1,4 +1,4 @@
-n	level	msg	dur	path	table	rows	port	total_entries
-1	info	request done, 200 OK	12ms	/api				3
-2	warn	slow query: 1.2s			users	4210		3
-3	error	failed to bind: address in use					8080	3
+n	level	msg	dur	path	table	rows	port
+1	info	request done, 200 OK	12ms	/api			
+2	warn	slow query: 1.2s			users	4210	
+3	error	failed to bind: address in use					8080

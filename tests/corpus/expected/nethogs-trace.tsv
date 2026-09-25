@@ -1,3 +1,3 @@
-n	PID	USER	PROGRAM	DEV	SENT	RECEIVED	total_entries
-1	812	root	/usr/sbin/sshd	eth0	12.4	88.2	2
-2	1204	alice	/usr/bin/firefox	eth0	440.2	8821.0	2
+n	PID	USER	PROGRAM	DEV	SENT	RECEIVED
+1	812	root	/usr/sbin/sshd	eth0	12.4	88.2
+2	1204	alice	/usr/bin/firefox	eth0	440.2	8821.0

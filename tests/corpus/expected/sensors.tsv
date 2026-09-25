@@ -1,2 +1,2 @@
 line1	Adapter	Package_id_0	Core_0	Core_1
-coretemp-isa-0000	ISA adapter	+42.0°C  (high_=_+80.0°C,_crit_=_+100.0°C)	+40.0°C  (high_=_+80.0°C,_crit_=_+100.0°C)	+41.0°C  (high_=_+80.0°C,_crit_=_+100.0°C)
+coretemp-isa-0000	ISA adapter	+42.0°C  (high = +80.0°C, crit = +100.0°C)	+40.0°C  (high = +80.0°C, crit = +100.0°C)	+41.0°C  (high = +80.0°C, crit = +100.0°C)

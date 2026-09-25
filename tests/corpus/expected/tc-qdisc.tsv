@@ -1,4 +1,4 @@
-n	A	total_entries
-1	qdisc fq_codel 0: dev eth0 root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64	3
-2	qdisc noqueue 0: dev lo root refcnt 2	3
-3	qdisc mq 0: dev wlan0 root	3
+n	A
+1	qdisc fq_codel 0: dev eth0 root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5ms interval 100ms memory_limit 32Mb ecn drop_batch 64
+2	qdisc noqueue 0: dev lo root refcnt 2
+3	qdisc mq 0: dev wlan0 root

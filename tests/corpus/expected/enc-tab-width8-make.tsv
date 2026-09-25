@@ -1,5 +1,5 @@
-n	target	deps	total_entries
-1	all	build test	4
-2	build	compile link	4
-3	test	build	4
-4	clean	-	4
+n	target	deps
+1	all	build test
+2	build	compile link
+3	test	build
+4	clean	-

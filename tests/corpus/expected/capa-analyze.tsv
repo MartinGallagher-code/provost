@@ -1,6 +1,6 @@
-n	CAPABILITY	NAMESPACE	MATCHES	total_entries
-1	create process	host-interaction/process	3	5
-2	read and write files	host-interaction/file	7	5
-3	encrypt data using RC4	data-manipulation/encryption	1	5
-4	communicate over HTTP	communication/http	2	5
-5	resolve DNS	communication/dns	1	5
+n	CAPABILITY	NAMESPACE	MATCHES
+1	create process	host-interaction/process	3
+2	read and write files	host-interaction/file	7
+3	encrypt data using RC4	data-manipulation/encryption	1
+4	communicate over HTTP	communication/http	2
+5	resolve DNS	communication/dns	1

@@ -1,6 +1,6 @@
-n	Package	Version	Depends	Built	total_entries
-1	ggplot2	3.5.1	R (>= 3.5.0)	4.4.1	5
-2	dplyr	1.1.4	R (>= 3.5.0)	4.4.1	5
-3	data.table	1.15.4	R (>= 3.1.0)	4.4.1	5
-4	tidyr	1.3.1	R (>= 3.4.0)	4.4.1	5
-5	Rcpp	1.0.12	R (>= 3.0.0)	4.4.0	5
+n	Package	Version	Depends	Built
+1	ggplot2	3.5.1	R (>= 3.5.0)	4.4.1
+2	dplyr	1.1.4	R (>= 3.5.0)	4.4.1
+3	data.table	1.15.4	R (>= 3.1.0)	4.4.1
+4	tidyr	1.3.1	R (>= 3.4.0)	4.4.1
+5	Rcpp	1.0.12	R (>= 3.0.0)	4.4.0

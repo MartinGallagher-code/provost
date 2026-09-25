@@ -1,6 +1,6 @@
-n	NAME	HOST	STATUS	REFRESHED	AGE	VERSION	total_entries
-1	mon.ceph01	ceph01	running (3w)	5m ago	3w	18.2.2	5
-2	mgr.ceph01.abcdef	ceph01	running (3w)	5m ago	3w	18.2.2	5
-3	osd.0	ceph01	running (3w)	5m ago	3w	18.2.2	5
-4	osd.1	ceph02	running (3w)	5m ago	3w	18.2.2	5
-5	mds.cephfs.ceph03.xyz	ceph03	running (2w)	5m ago	2w	18.2.2	5
+n	NAME	HOST	STATUS	REFRESHED	AGE	VERSION
+1	mon.ceph01	ceph01	running (3w)	5m ago	3w	18.2.2
+2	mgr.ceph01.abcdef	ceph01	running (3w)	5m ago	3w	18.2.2
+3	osd.0	ceph01	running (3w)	5m ago	3w	18.2.2
+4	osd.1	ceph02	running (3w)	5m ago	3w	18.2.2
+5	mds.cephfs.ceph03.xyz	ceph03	running (2w)	5m ago	2w	18.2.2

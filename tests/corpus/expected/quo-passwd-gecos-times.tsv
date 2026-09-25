@@ -1,5 +1,5 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	root	x	0	0	root	/root	/bin/bash			4
-2	oncall	x	1001	1001	Oncall 09	00-17	00,Room 4,x231	/home/oncall	/bin/bash	4
-3	backup	x	34	34	backup 02	30 daily	/var/backups	/usr/sbin/nologin		4
-4	deploy	x	1002	1002	Deploy Bot,,,	/home/deploy	/bin/sh			4
+n	A	B	C	D	E	F	G	H	I
+1	root	x	0	0	root	/root	/bin/bash		
+2	oncall	x	1001	1001	Oncall 09	00-17	00,Room 4,x231	/home/oncall	/bin/bash
+3	backup	x	34	34	backup 02	30 daily	/var/backups	/usr/sbin/nologin	
+4	deploy	x	1002	1002	Deploy Bot,,,	/home/deploy	/bin/sh		

@@ -1,4 +1,4 @@
-n	Module	Size	Used_by	total_entries
-1	nvidia	56705024	126	3
-2	xfs	2093056	1	3
-3	ext4	962560	2	3
+n	Module	Size	Used_by
+1	nvidia	56705024	126
+2	xfs	2093056	1
+3	ext4	962560	2

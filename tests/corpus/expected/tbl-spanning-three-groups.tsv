@@ -1,4 +1,4 @@
-n	Iface	Ingress_pkts	Ingress_bytes	Egress_pkts	Egress_bytes	rx	tx	total_entries
-1	eth0	123456	98765432	234567	187654321	0	2	3
-2	eth1	45678	34567890	56789	45678901	1	0	3
-3	lo	1234	1234567	1234	1234567	0	0	3
+n	Iface	Ingress_pkts	Ingress_bytes	Egress_pkts	Egress_bytes	rx	tx
+1	eth0	123456	98765432	234567	187654321	0	2
+2	eth1	45678	34567890	56789	45678901	1	0
+3	lo	1234	1234567	1234	1234567	0	0

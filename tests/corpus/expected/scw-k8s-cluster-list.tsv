@@ -1,4 +1,4 @@
-n	ID	NAME	STATUS	VERSION	REGION	CNI	NODES	total_entries
-1	c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f	prod-cluster	ready	1.30.2	fr-par	cilium	6	3
-2	d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f60	staging-k8s	ready	1.30.2	fr-par	cilium	2	3
-3	e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6071	dev-k8s	pool_required	1.29.4	nl-ams	calico	0	3
+n	ID	NAME	STATUS	VERSION	REGION	CNI	NODES
+1	c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f	prod-cluster	ready	1.30.2	fr-par	cilium	6
+2	d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f60	staging-k8s	ready	1.30.2	fr-par	cilium	2
+3	e3f4a5b6-c7d8-4e9f-0a1b-2c3d4e5f6071	dev-k8s	pool_required	1.29.4	nl-ams	calico	0

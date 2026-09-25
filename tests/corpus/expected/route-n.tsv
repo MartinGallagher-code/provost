@@ -1,5 +1,5 @@
-n	Destination	Gateway	Genmask	Flags	Metric	Ref	Use	Iface	total_entries
-1	0.0.0.0	192.168.1.1	0.0.0.0	UG	100	0	0	eth0	4
-2	10.0.0.0	192.168.1.1	255.255.255.0	UG	100	0	0	eth0	4
-3	169.254.0.0	0.0.0.0	255.255.0.0	U	1000	0	0	eth0	4
-4	192.168.1.0	0.0.0.0	255.255.255.0	U	100	0	0	eth0	4
+n	Destination	Gateway	Genmask	Flags	Metric	Ref	Use	Iface
+1	0.0.0.0	192.168.1.1	0.0.0.0	UG	100	0	0	eth0
+2	10.0.0.0	192.168.1.1	255.255.255.0	UG	100	0	0	eth0
+3	169.254.0.0	0.0.0.0	255.255.0.0	U	1000	0	0	eth0
+4	192.168.1.0	0.0.0.0	255.255.255.0	U	100	0	0	eth0

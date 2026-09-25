@@ -1,4 +1,4 @@
-n	amount	account	total	total_entries
-1	$8,821.00	assets:bank:checking	0	3
-2	$1,204.00	expenses:food	0	3
-3	-$10,025.00	income:salary	0	3
+n	amount	account	total
+1	$8,821.00	assets:bank:checking	0
+2	$1,204.00	expenses:food	0
+3	-$10,025.00	income:salary	0

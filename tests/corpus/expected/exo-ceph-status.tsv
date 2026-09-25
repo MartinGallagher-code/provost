@@ -1,5 +1,5 @@
 n	id	health	mon	mgr	osd	pools	objects	usage	pgs	client
 1	8f2a1b09-3c19-44aa-9b3c-0242ac110002	HEALTH_WARN								
-2			3_daemons,_quorum_a,b,c_(age_3w)	a(active,_since_3w),_standbys:_b	12_osds:_12_up_(since_2d),_12_in_(since_2w)					
-3						4_pools,_320_pgs	2.14M_objects,_8.1_TiB	16_TiB_used,_8.0_TiB_/_24_TiB_avail	318_active+clean	
-4										12_MiB/s_rd,_44_MiB/s_wr,_812_op/s_rd,_1.2k_op/s_wr
+2			3 daemons, quorum a,b,c (age 3w)	a(active, since 3w), standbys: b	12 osds: 12 up (since 2d), 12 in (since 2w)					
+3						4 pools, 320 pgs	2.14M objects, 8.1 TiB	16 TiB used, 8.0 TiB / 24 TiB avail	318 active+clean	
+4										12 MiB/s rd, 44 MiB/s wr, 812 op/s rd, 1.2k op/s wr

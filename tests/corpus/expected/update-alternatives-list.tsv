@@ -1,5 +1,5 @@
-n	editor	-	auto	mode	total_entries
-1	link	best	version	is_/usr/bin/vim.basic	4
-2	link	editor	is	/usr/bin/vim.basic	4
-3	/usr/bin/nano	-	priority	40	4
-4	/usr/bin/vim.basic	-	priority	30	4
+n	editor	-	auto	mode
+1	link	best	version	is /usr/bin/vim.basic
+2	link	editor	is	/usr/bin/vim.basic
+3	/usr/bin/nano	-	priority	40
+4	/usr/bin/vim.basic	-	priority	30

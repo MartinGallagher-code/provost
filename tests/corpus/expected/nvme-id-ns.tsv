@@ -1,22 +1,22 @@
-n	key	value	total_entries
-1	nsze	0x74706db0	21
-2	ncap	0x74706db0	21
-3	nuse	0x74706db0	21
-4	nsfeat	0x2	21
-5	nlbaf	0	21
-6	flbas	0	21
-7	mc	0	21
-8	dpc	0	21
-9	dps	0	21
-10	nmic	0	21
-11	rescap	0	21
-12	fpi	0x80	21
-13	dlfeat	1	21
-14	nawun	0	21
-15	nawupf	0	21
-16	nacwu	0	21
-17	nvmcap	1000204886016	21
-18	noiob	0	21
-19	npwg	0	21
-20	npwa	0	21
-21	lbaf  0	ms:0   lbads:9  rp:0 (in use)	21
+n	key	value
+1	nsze	0x74706db0
+2	ncap	0x74706db0
+3	nuse	0x74706db0
+4	nsfeat	0x2
+5	nlbaf	0
+6	flbas	0
+7	mc	0
+8	dpc	0
+9	dps	0
+10	nmic	0
+11	rescap	0
+12	fpi	0x80
+13	dlfeat	1
+14	nawun	0
+15	nawupf	0
+16	nacwu	0
+17	nvmcap	1000204886016
+18	noiob	0
+19	npwg	0
+20	npwa	0
+21	lbaf  0	ms:0   lbads:9  rp:0 (in use)

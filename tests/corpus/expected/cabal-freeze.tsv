@@ -1,7 +1,7 @@
-n	A	B	C	total_entries
-1	constraints:	aeson	==2.1.2.1,	6
-2	base	==4.16.4.0,		6
-3	bytestring	==0.11.4.0,		6
-4	containers	==0.6.5.1,		6
-5	text	==2.0.2,		6
-6	vector	==0.13.1.0		6
+n	A	B	C
+1	constraints:	aeson	==2.1.2.1,
+2	base	==4.16.4.0,	
+3	bytestring	==0.11.4.0,	
+4	containers	==0.6.5.1,	
+5	text	==2.0.2,	
+6	vector	==0.13.1.0	

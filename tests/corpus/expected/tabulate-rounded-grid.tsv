@@ -1,4 +1,4 @@
-n	package	version	downloads	total_entries
-1	requests	2.31.0	4820011	3
-2	numpy	1.26.4	3910887	3
-3	pandas	2.2.1	2044190	3
+n	package	version	downloads
+1	requests	2.31.0	4820011
+2	numpy	1.26.4	3910887
+3	pandas	2.2.1	2044190

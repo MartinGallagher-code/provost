@@ -1,11 +1,11 @@
-n	A	total_entries
-1	Performance counter stats for 'system wide':	10
-2	448,201      cache-references          #    0.442 M/sec                    (66.61%)	10
-3	42,018      cache-misses              #    9.375 % of all cache refs      (66.62%)	10
-4	8,201,442,110      cycles                    #    3.102 GHz                       (66.70%)	10
-5	4,120,882,004      instructions              #    0.50  insn per cycle           (83.35%)	10
-6	802,144,201      branches                  #  303.221 M/sec                    (83.33%)	10
-7	12,044,882      branch-misses             #    1.50% of all branches          (66.65%)	10
-8	2.640882015 seconds time elapsed	10
-9	41.220144000 seconds user	10
-10	8.104220000 seconds sys	10
+n	A
+1	Performance counter stats for 'system wide':
+2	448,201      cache-references          #    0.442 M/sec                    (66.61%)
+3	42,018      cache-misses              #    9.375 % of all cache refs      (66.62%)
+4	8,201,442,110      cycles                    #    3.102 GHz                       (66.70%)
+5	4,120,882,004      instructions              #    0.50  insn per cycle           (83.35%)
+6	802,144,201      branches                  #  303.221 M/sec                    (83.33%)
+7	12,044,882      branch-misses             #    1.50% of all branches          (66.65%)
+8	2.640882015 seconds time elapsed
+9	41.220144000 seconds user
+10	8.104220000 seconds sys

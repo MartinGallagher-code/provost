@@ -1,4 +1,4 @@
-n	COMPONENT	KIND	EVENTS_IN	EVENTS_OUT	ERRORS	total_entries
-1	file_source	source	8821004	8821004	0	3
-2	remap_transform	transform	8821004	8820011	993	3
-3	loki_sink	sink	8820011	8820011	0	3
+n	COMPONENT	KIND	EVENTS_IN	EVENTS_OUT	ERRORS
+1	file_source	source	8821004	8821004	0
+2	remap_transform	transform	8821004	8820011	993
+3	loki_sink	sink	8820011	8820011	0

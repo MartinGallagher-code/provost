@@ -1,4 +1,4 @@
-n	ID	Time	Host	Label	Paths	Files	Size	Tags	total_entries
-1	8a1f3c2e	2026-07-10 03:00:11	nas01	daily	/home/alice	88214	412.4 GiB		3
-2	3c2d1e0f	2026-07-09 03:00:08	nas01	daily	/home/alice	88102	411.9 GiB		3
-3	aabbccdd	2026-07-03 03:00:09	nas01	weekly	/home/alice	87441	409.2 GiB	keep	3
+n	ID	Time	Host	Label	Paths	Files	Size	Tags
+1	8a1f3c2e	2026-07-10 03:00:11	nas01	daily	/home/alice	88214	412.4 GiB	
+2	3c2d1e0f	2026-07-09 03:00:08	nas01	daily	/home/alice	88102	411.9 GiB	
+3	aabbccdd	2026-07-03 03:00:09	nas01	weekly	/home/alice	87441	409.2 GiB	keep

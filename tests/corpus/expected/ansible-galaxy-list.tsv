@@ -1,4 +1,4 @@
-n	A	B	total_entries
-1	community.general	8.6.0	3
-2	ansible.posix	1.5.4	3
-3	community.docker	3.10.2	3
+n	A	B
+1	community.general	8.6.0
+2	ansible.posix	1.5.4
+3	community.docker	3.10.2

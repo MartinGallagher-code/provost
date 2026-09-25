@@ -1,5 +1,5 @@
-n	UID	USER	LINGER	total_entries
-1	0	root	no	4
-2	1000	alice	yes	4
-3	1001	bob	no	4
-4	1002	carol	no	4
+n	UID	USER	LINGER
+1	0	root	no
+2	1000	alice	yes
+3	1001	bob	no
+4	1002	carol	no

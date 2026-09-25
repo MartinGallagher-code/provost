@@ -1,5 +1,5 @@
-n	METHOD	URL	total_entries
-1	GET	https://app.example.com/	4
-2	GET	https://app.example.com/login	4
-3	POST	https://app.example.com/api/auth	4
-4	GET	https://app.example.com/dashboard	4
+n	METHOD	URL
+1	GET	https://app.example.com/
+2	GET	https://app.example.com/login
+3	POST	https://app.example.com/api/auth
+4	GET	https://app.example.com/dashboard

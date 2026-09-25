@@ -1,8 +1,8 @@
-n	name	description	setting	total_entries
-1	application_name	Sets the application name to be reported in statistics.		7
-2	autovacuum	Starts the autovacuum subprocess.	on	7
-3	checkpoint_timeout	Sets the maximum time between automatic WAL checkpoints.	5min	7
-4	max_connections	Sets the maximum number of concurrent connections.	100	7
-5	shared_buffers	Sets the number of shared memory buffers used by the server.	128MB	7
-6	timezone	Sets the time zone for displaying and interpreting timestamps.	Etc/UTC	7
-7	work_mem	Sets the maximum memory to be used for query workspaces.	4MB	7
+n	name	description	setting
+1	application_name	Sets the application name to be reported in statistics.	
+2	autovacuum	Starts the autovacuum subprocess.	on
+3	checkpoint_timeout	Sets the maximum time between automatic WAL checkpoints.	5min
+4	max_connections	Sets the maximum number of concurrent connections.	100
+5	shared_buffers	Sets the number of shared memory buffers used by the server.	128MB
+6	timezone	Sets the time zone for displaying and interpreting timestamps.	Etc/UTC
+7	work_mem	Sets the maximum memory to be used for query workspaces.	4MB

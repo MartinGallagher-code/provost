@@ -1,33 +1,33 @@
-n	key	value	total_entries
-1	Client		32
-2	Version	26.1.4	32
-3	Context	default	32
-4	Debug Mode	false	32
-5	Server		32
-6	Containers	12	32
-7	Running	6	32
-8	Paused	0	32
-9	Stopped	6	32
-10	Images	41	32
-11	Server Version	26.1.4	32
-12	Storage Driver	overlay2	32
-13	Backing Filesystem	extfs	32
-14	Supports d_type	true	32
-15	Logging Driver	json-file	32
-16	Cgroup Driver	systemd	32
-17	Cgroup Version	2	32
-18	Plugins		32
-19	Volume	local	32
-20	Network	bridge host ipvlan macvlan null overlay	32
-21	Swarm	inactive	32
-22	Runtimes	io.containerd.runc.v2 runc	32
-23	Default Runtime	runc	32
-24	Kernel Version	6.8.0-40-generic	32
-25	Operating System	Ubuntu 24.04.1 LTS	32
-26	OSType	linux	32
-27	Architecture	x86_64	32
-28	CPUs	8	32
-29	Total Memory	7.766GiB	32
-30	Name	build-01	32
-31	Docker Root Dir	/var/lib/docker	32
-32	Live Restore Enabled	false	32
+n	key	value
+1	Client	
+2	Version	26.1.4
+3	Context	default
+4	Debug Mode	false
+5	Server	
+6	Containers	12
+7	Running	6
+8	Paused	0
+9	Stopped	6
+10	Images	41
+11	Server Version	26.1.4
+12	Storage Driver	overlay2
+13	Backing Filesystem	extfs
+14	Supports d_type	true
+15	Logging Driver	json-file
+16	Cgroup Driver	systemd
+17	Cgroup Version	2
+18	Plugins	
+19	Volume	local
+20	Network	bridge host ipvlan macvlan null overlay
+21	Swarm	inactive
+22	Runtimes	io.containerd.runc.v2 runc
+23	Default Runtime	runc
+24	Kernel Version	6.8.0-40-generic
+25	Operating System	Ubuntu 24.04.1 LTS
+26	OSType	linux
+27	Architecture	x86_64
+28	CPUs	8
+29	Total Memory	7.766GiB
+30	Name	build-01
+31	Docker Root Dir	/var/lib/docker
+32	Live Restore Enabled	false

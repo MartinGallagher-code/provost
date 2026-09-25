@@ -1,7 +1,7 @@
-n	MaxDataDiskCount	MemoryInMb	Name	NumberOfCores	OsDiskSizeInMb	ResourceDiskSizeInMb	total_entries
-1	2	2048	Standard_B1ms	1	1047552	4096	6
-2	4	4096	Standard_B2s	2	1047552	8192	6
-3	4	8192	Standard_D2s_v5	2	1047552	0	6
-4	8	16384	Standard_D4s_v5	4	1047552	0	6
-5	16	32768	Standard_D8s_v5	8	1047552	0	6
-6	32	65536	Standard_E16s_v5	16	1047552	0	6
+n	MaxDataDiskCount	MemoryInMb	Name	NumberOfCores	OsDiskSizeInMb	ResourceDiskSizeInMb
+1	2	2048	Standard_B1ms	1	1047552	4096
+2	4	4096	Standard_B2s	2	1047552	8192
+3	4	8192	Standard_D2s_v5	2	1047552	0
+4	8	16384	Standard_D4s_v5	4	1047552	0
+5	16	32768	Standard_D8s_v5	8	1047552	0
+6	32	65536	Standard_E16s_v5	16	1047552	0

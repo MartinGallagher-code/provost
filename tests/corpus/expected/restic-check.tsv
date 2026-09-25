@@ -1,8 +1,8 @@
-n	A	total_entries
-1	using temporary cache in /tmp/restic-check-cache-2841	7
-2	create exclusive lock for repository	7
-3	load indexes	7
-4	check all packs	7
-5	check snapshots, trees and blobs	7
-6	[0:42] 100.00%  214 / 214 snapshots	7
-7	no errors were found	7
+n	A
+1	using temporary cache in /tmp/restic-check-cache-2841
+2	create exclusive lock for repository
+3	load indexes
+4	check all packs
+5	check snapshots, trees and blobs
+6	[0:42] 100.00%  214 / 214 snapshots
+7	no errors were found

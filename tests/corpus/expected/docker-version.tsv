@@ -1,27 +1,27 @@
-n	key	value	total_entries
-1	Client	Docker Engine - Community	26
-2	Version	24.0.7	26
-3	API version	1.43	26
-4	Go version	go1.20.10	26
-5	Git commit	afdd53b	26
-6	Built	Thu Oct 26 09:07:41 2023	26
-7	OS/Arch	linux/amd64	26
-8	Context	default	26
-9	Server	Docker Engine - Community	26
-10	Engine		26
-11	Version	24.0.7	26
-12	API version	1.43 (minimum version 1.12)	26
-13	Go version	go1.20.10	26
-14	Git commit	311b9ff	26
-15	Built	Thu Oct 26 09:07:41 2023	26
-16	OS/Arch	linux/amd64	26
-17	Experimental	false	26
-18	containerd		26
-19	Version	1.6.24	26
-20	GitCommit	61f9fd88f79f081d64d6fa3bb1a0dc71ec870523	26
-21	runc		26
-22	Version	1.1.9	26
-23	GitCommit	v1.1.9-0-gccaecfc	26
-24	docker-init		26
-25	Version	0.19.0	26
-26	GitCommit	de40ad0	26
+n	key	value
+1	Client	Docker Engine - Community
+2	Version	24.0.7
+3	API version	1.43
+4	Go version	go1.20.10
+5	Git commit	afdd53b
+6	Built	Thu Oct 26 09:07:41 2023
+7	OS/Arch	linux/amd64
+8	Context	default
+9	Server	Docker Engine - Community
+10	Engine	
+11	Version	24.0.7
+12	API version	1.43 (minimum version 1.12)
+13	Go version	go1.20.10
+14	Git commit	311b9ff
+15	Built	Thu Oct 26 09:07:41 2023
+16	OS/Arch	linux/amd64
+17	Experimental	false
+18	containerd	
+19	Version	1.6.24
+20	GitCommit	61f9fd88f79f081d64d6fa3bb1a0dc71ec870523
+21	runc	
+22	Version	1.1.9
+23	GitCommit	v1.1.9-0-gccaecfc
+24	docker-init	
+25	Version	0.19.0
+26	GitCommit	de40ad0

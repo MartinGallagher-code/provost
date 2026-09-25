@@ -1,9 +1,9 @@
-n	A	total_entries
-1	admin.api	8
-2	admin.api.load	8
-3	caddy.adapters.caddyfile	8
-4	caddy.logging.encoders.console	8
-5	http.handlers.reverse_proxy	8
-6	http.handlers.file_server	8
-7	tls.issuance.acme	8
-8	dns.providers.cloudflare	8
+n	A
+1	admin.api
+2	admin.api.load
+3	caddy.adapters.caddyfile
+4	caddy.logging.encoders.console
+5	http.handlers.reverse_proxy
+6	http.handlers.file_server
+7	tls.issuance.acme
+8	dns.providers.cloudflare

@@ -1,4 +1,4 @@
-n	type	name	last_updated	total_entries
-1	Listener	ingress_http	2026-07-10T08:14:22Z	3
-2	Cluster	service_backend	2026-07-10T08:14:20Z	3
-3	RouteConfiguration	local_route	2026-07-10T08:14:22Z	3
+n	type	name	last_updated
+1	Listener	ingress_http	2026-07-10T08:14:22Z
+2	Cluster	service_backend	2026-07-10T08:14:20Z
+3	RouteConfiguration	local_route	2026-07-10T08:14:22Z

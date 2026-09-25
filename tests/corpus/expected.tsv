@@ -442,7 +442,7 @@ gpg-card-status	kv	-	6
 lynis-report	kv	-	5
 rkhunter-summary	kv	-	4
 nvme-smart-log	kv	-	2
-hdparm-i	kv	-	4
+hdparm-i	kv	-	3
 sdparm-inquiry	kv	-	4
 biosdecode	kv	-	4
 dmidecode-system	kv	-	6
@@ -934,7 +934,7 @@ perf-sched	table	6	4
 perf-trace	table	6	6
 bpftrace-l	table	8	1
 bcc-funccount	table	6	1
-proc-status	kv	-	4
+proc-status	kv	-	3
 proc-limits	table	8	2
 lslocks	table	6	7
 lsns	table	6	4

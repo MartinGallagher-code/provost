@@ -1,5 +1,5 @@
-n	ITEM	QTY	PRICE	total_entries
-1	قلم	٥	١٠	4
-2	دفتر	٣	٢٥	4
-3	Pen	7	15	4
-4	ممحاة	١٢	٥	4
+n	ITEM	QTY	PRICE
+1	قلم	٥	١٠
+2	دفتر	٣	٢٥
+3	Pen	7	15
+4	ممحاة	١٢	٥

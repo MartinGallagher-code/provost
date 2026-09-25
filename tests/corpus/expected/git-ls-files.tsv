@@ -1,9 +1,9 @@
-n	A	total_entries
-1	.gitignore	8
-2	README.md	8
-3	src/app.py	8
-4	src/client.py	8
-5	config/settings.yml	8
-6	tests/test_app.py	8
-7	tests/test_client.py	8
-8	docs/usage.md	8
+n	A
+1	.gitignore
+2	README.md
+3	src/app.py
+4	src/client.py
+5	config/settings.yml
+6	tests/test_app.py
+7	tests/test_client.py
+8	docs/usage.md

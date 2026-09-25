@@ -1,4 +1,4 @@
-n	name	transferred	deleted	total_entries
-1	./src/	44 files, 12.4 MB	2 files	3
-2	./assets/	128 files, 88.1 MB	0 files	3
-3	./config/	3 files, 12 KB	0 files	3
+n	name	transferred	deleted
+1	./src/	44 files, 12.4 MB	2 files
+2	./assets/	128 files, 88.1 MB	0 files
+3	./config/	3 files, 12 KB	0 files

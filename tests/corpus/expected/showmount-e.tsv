@@ -1,5 +1,5 @@
-n	Export	list	total_entries
-1	/srv/nfs/data	192.168.1.0/24	4
-2	/srv/nfs/home	10.0.0.0/8,172.16.0.0/12	4
-3	/srv/backup	192.168.2.15	4
-4	/export/media	(everyone)	4
+n	Export	list
+1	/srv/nfs/data	192.168.1.0/24
+2	/srv/nfs/home	10.0.0.0/8,172.16.0.0/12
+3	/srv/backup	192.168.2.15
+4	/export/media	(everyone)

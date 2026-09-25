@@ -1,4 +1,4 @@
-n	datname	owner	size	total_entries
-1	orders	app	4210 MB	3
-2	analytics	etl	88 GB	3
-3	sessions	app	512 MB	3
+n	datname	owner	size
+1	orders	app	4210 MB
+2	analytics	etl	88 GB
+3	sessions	app	512 MB

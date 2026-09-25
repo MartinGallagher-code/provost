@@ -1,5 +1,5 @@
-n	Time	CPU	%usr	%sys	%idle	total_entries
-1	10:00:01	all	12.3	4.5	83.2	4
-2	10:10:01	all	15.6	5.1	79.3	4
-3	10:20:01	all	9.8	3.4	86.8	4
-4	Average:	all	12.6	4.3	83.1	4
+n	Time	CPU	%usr	%sys	%idle
+1	10:00:01	all	12.3	4.5	83.2
+2	10:10:01	all	15.6	5.1	79.3
+3	10:20:01	all	9.8	3.4	86.8
+4	Average:	all	12.6	4.3	83.1

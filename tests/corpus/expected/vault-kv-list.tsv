@@ -1,6 +1,6 @@
-n	Keys	total_entries
-1	billing/	5
-2	frontend/	5
-3	mailer/	5
-4	db-credentials	5
-5	stripe-key	5
+n	Keys
+1	billing/
+2	frontend/
+3	mailer/
+4	db-credentials
+5	stripe-key

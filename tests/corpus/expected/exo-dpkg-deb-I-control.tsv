@@ -1,17 +1,17 @@
-n	new_Debian_package	version_2_0_	total_entries
-1	size 1284412 bytes: control archive=2210 bytes.		16
-2	882 bytes	18 lines      control	16
-3	1104 bytes	14 lines      md5sums	16
-4	221 bytes	8 lines   *  postinst             #!/bin/sh	16
-5	Package: htop		16
-6	Version: 3.3.0-4build1		16
-7	Architecture: amd64		16
-8	Maintainer: Debian APT Team <deity@lists.debian.org>		16
-9	Installed-Size: 244		16
-10	Depends: libc6 (>= 2.34)	libncursesw6 (>= 6)	16
-11	Section: utils		16
-12	Priority: optional		16
-13	Homepage: https://htop.dev/		16
-14	Description: interactive processes viewer		16
-15	Htop is an ncursed-based process viewer similar to top	but it	16
-16	allows one to scroll the list vertically and horizontally.		16
+n	new_Debian_package	version_2_0_
+1	size 1284412 bytes: control archive=2210 bytes.	
+2	882 bytes	18 lines      control
+3	1104 bytes	14 lines      md5sums
+4	221 bytes	8 lines   *  postinst             #!/bin/sh
+5	Package: htop	
+6	Version: 3.3.0-4build1	
+7	Architecture: amd64	
+8	Maintainer: Debian APT Team <deity@lists.debian.org>	
+9	Installed-Size: 244	
+10	Depends: libc6 (>= 2.34)	libncursesw6 (>= 6)
+11	Section: utils	
+12	Priority: optional	
+13	Homepage: https://htop.dev/	
+14	Description: interactive processes viewer	
+15	Htop is an ncursed-based process viewer similar to top	but it
+16	allows one to scroll the list vertically and horizontally.	

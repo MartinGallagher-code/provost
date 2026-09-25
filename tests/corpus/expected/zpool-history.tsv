@@ -1,6 +1,6 @@
-n	History	for	'tank':	total_entries
-1	2026-05-02.09:14:07	zpool	create_-o_ashift=12_tank_raidz2_sda_sdb_sdc_sdd	5
-2	2026-05-02.09:15:33	zfs	create_tank/home	5
-3	2026-05-11.22:41:18	zfs	snapshot_tank/home@daily-2026-05-11	5
-4	2026-06-01.03:00:04	zpool	scrub_tank	5
-5	2026-06-18.14:52:39	zfs	set_compression=lz4_tank/backups	5
+n	History	for	'tank':
+1	2026-05-02.09:14:07	zpool	create -o ashift=12 tank raidz2 sda sdb sdc sdd
+2	2026-05-02.09:15:33	zfs	create tank/home
+3	2026-05-11.22:41:18	zfs	snapshot tank/home@daily-2026-05-11
+4	2026-06-01.03:00:04	zpool	scrub tank
+5	2026-06-18.14:52:39	zfs	set compression=lz4 tank/backups

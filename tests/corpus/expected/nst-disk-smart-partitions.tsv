@@ -1,6 +1,6 @@
-n	device	model	serial	capacity	group	Name	Size	Used	Mount	total_entries
-1	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda1	512M	108M	/boot/efi	5
-2	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda2	2.0G	1.4G	/boot	5
-3	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda3	920G	612G	/	5
-4	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda4	60G	12G	/home	5
-5	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda5	16G	0	[SWAP]	5
+n	device	model	serial	capacity	group	Name	Size	Used	Mount
+1	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda1	512M	108M	/boot/efi
+2	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda2	2.0G	1.4G	/boot
+3	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda3	920G	612G	/
+4	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda4	60G	12G	/home
+5	/dev/sda	Samsung	S5Y2NJ0R	1.0	Partitions	sda5	16G	0	[SWAP]

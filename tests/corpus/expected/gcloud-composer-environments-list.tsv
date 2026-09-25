@@ -1,2 +1,2 @@
-n	NAME	LOCATION	STATE	total_entries
-1	data-airflow	europe-west1	RUNNING	1
+n	NAME	LOCATION	STATE
+1	data-airflow	europe-west1	RUNNING

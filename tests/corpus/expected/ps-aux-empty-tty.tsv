@@ -1,6 +1,6 @@
-n	USER	PID	%CPU	%MEM	VSZ	RSS	TTY	STAT	START	TIME	COMMAND	total_entries
-1	root	1	0.0	0.1	167884	11540	?	Ss	Jun10	0:42	/sbin/init	5
-2	root	412	0.0	0.0	0	0	?	I<	Jun10	0:00	[kworker/0:1H]	5
-3	mgallag	2033	1.2	3.4	812440	68120	pts/0	Sl+	09:14	0:03	vim_notes.md	5
-4	mgallag	2101	0.0	0.1	12984	4020	pts/1	R+	09:22	0:00	ps_aux	5
-5	postgres	1188	0.3	2.1	402100	42880	?	Ss	Jun10	5:11	postgres:_checkpointer	5
+n	USER	PID	%CPU	%MEM	VSZ	RSS	TTY	STAT	START	TIME	COMMAND
+1	root	1	0.0	0.1	167884	11540	?	Ss	Jun10	0:42	/sbin/init
+2	root	412	0.0	0.0	0	0	?	I<	Jun10	0:00	[kworker/0:1H]
+3	mgallag	2033	1.2	3.4	812440	68120	pts/0	Sl+	09:14	0:03	vim notes.md
+4	mgallag	2101	0.0	0.1	12984	4020	pts/1	R+	09:22	0:00	ps aux
+5	postgres	1188	0.3	2.1	402100	42880	?	Ss	Jun10	5:11	postgres: checkpointer

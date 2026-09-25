@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	ns-blue	(id:	0)	4
-2	ns-green	(id:	1)	4
-3	red			4
-4	ns-mgmt	(id:	2)	4
+n	A	B	C
+1	ns-blue	(id:	0)
+2	ns-green	(id:	1)
+3	red		
+4	ns-mgmt	(id:	2)

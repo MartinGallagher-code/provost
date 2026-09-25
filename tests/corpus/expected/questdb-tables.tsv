@@ -1,3 +1,3 @@
-n	id	name	designatedTimestamp	partitionBy	rowCount	total_entries
-1	1	trades	ts	DAY	88201004	2
-2	2	quotes	ts	HOUR	412839120	2
+n	id	name	designatedTimestamp	partitionBy	rowCount
+1	1	trades	ts	DAY	88201004
+2	2	quotes	ts	HOUR	412839120

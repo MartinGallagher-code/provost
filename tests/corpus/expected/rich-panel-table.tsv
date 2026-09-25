@@ -1,4 +1,4 @@
-n	name	size	age	verified	total_entries
-1	daily-0711	4.2 GB	2h	✓	3
-2	daily-0710	4.1 GB	26h	✓	3
-3	weekly-w28	28.9 GB	3d	✗	3
+n	name	size	age	verified
+1	daily-0711	4.2 GB	2h	✓
+2	daily-0710	4.1 GB	26h	✓
+3	weekly-w28	28.9 GB	3d	✗

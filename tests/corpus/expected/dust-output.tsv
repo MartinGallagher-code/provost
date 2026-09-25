@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	4.2G	┌──	datasets	4
-2	1.8G	├──	models	4
-3	612M	├──	logs	4
-4	6.7G	┌─┴	project	4
+n	A	B	C
+1	4.2G	┌──	datasets
+2	1.8G	├──	models
+3	612M	├──	logs
+4	6.7G	┌─┴	project

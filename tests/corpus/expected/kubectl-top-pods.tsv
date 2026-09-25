@@ -1,4 +1,4 @@
-n	NAME	CPU(cores)	MEMORY(bytes)	total_entries
-1	web-frontend-7d9f8c6b5c-2xk4p	12m	128Mi	3
-2	api-server-6c8d4f9b7d-hk3wz	45m	256Mi	3
-3	cache-redis-0	3m	64Mi	3
+n	NAME	CPU(cores)	MEMORY(bytes)
+1	web-frontend-7d9f8c6b5c-2xk4p	12m	128Mi
+2	api-server-6c8d4f9b7d-hk3wz	45m	256Mi
+3	cache-redis-0	3m	64Mi

@@ -1,10 +1,10 @@
-n	key	value	total_entries
-1	Results		9
-2	Op rate	48,210 op/s  [WRITE: 48,210 op/s]	9
-3	Partition rate	48,210 pk/s  [WRITE: 48,210 pk/s]	9
-4	Row rate	48,210 row/s [WRITE: 48,210 row/s]	9
-5	Latency mean	1.2 ms [WRITE: 1.2 ms]	9
-6	Latency 99th percentile	8.8 ms [WRITE: 8.8 ms]	9
-7	Latency max	212.4 ms [WRITE: 212.4 ms]	9
-8	Total operations	2,892,600 [WRITE: 2,892,600]	9
-9	Total errors	0 [WRITE: 0]	9
+n	key	value
+1	Results	
+2	Op rate	48,210 op/s  [WRITE: 48,210 op/s]
+3	Partition rate	48,210 pk/s  [WRITE: 48,210 pk/s]
+4	Row rate	48,210 row/s [WRITE: 48,210 row/s]
+5	Latency mean	1.2 ms [WRITE: 1.2 ms]
+6	Latency 99th percentile	8.8 ms [WRITE: 8.8 ms]
+7	Latency max	212.4 ms [WRITE: 212.4 ms]
+8	Total operations	2,892,600 [WRITE: 2,892,600]
+9	Total errors	0 [WRITE: 0]

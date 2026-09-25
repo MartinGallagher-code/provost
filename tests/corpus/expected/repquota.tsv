@@ -1,6 +1,6 @@
-n	User	used	soft	hard	total_entries
-1	root	12043	0	0	5
-2	daemon	8	0	0	5
-3	alice	1523	0	0	5
-4	bob	2011	0	0	5
-5	carol	98	0	0	5
+n	User	used	soft	hard
+1	root	12043	0	0
+2	daemon	8	0	0
+3	alice	1523	0	0
+4	bob	2011	0	0
+5	carol	98	0	0

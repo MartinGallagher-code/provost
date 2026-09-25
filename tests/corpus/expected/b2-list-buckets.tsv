@@ -1,5 +1,5 @@
-n	A	B	C	total_entries
-1	9a1b2c3d4e5f60718293a4b5	allPrivate	acme-app-uploads	4
-2	1f2e3d4c5b6a79808172a3b4	allPublic	acme-static-assets	4
-3	abcdef0123456789fedcba98	allPrivate	acme-backups-daily	4
-4	0123456789abcdeffedcba01	allPrivate	acme-db-snapshots	4
+n	A	B	C
+1	9a1b2c3d4e5f60718293a4b5	allPrivate	acme-app-uploads
+2	1f2e3d4c5b6a79808172a3b4	allPublic	acme-static-assets
+3	abcdef0123456789fedcba98	allPrivate	acme-backups-daily
+4	0123456789abcdeffedcba01	allPrivate	acme-db-snapshots

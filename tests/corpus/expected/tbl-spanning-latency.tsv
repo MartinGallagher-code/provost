@@ -1,4 +1,4 @@
-n	Endpoint	min	avg	max	Requests	total_entries
-1	/api/users	1.2	4.5	12.3	45678	3
-2	/api/orders	2.1	8.9	34.5	23456	3
-3	/api/health	0.3	0.8	2.1	123456	3
+n	Endpoint	min	avg	max	Requests
+1	/api/users	1.2	4.5	12.3	45678
+2	/api/orders	2.1	8.9	34.5	23456
+3	/api/health	0.3	0.8	2.1	123456

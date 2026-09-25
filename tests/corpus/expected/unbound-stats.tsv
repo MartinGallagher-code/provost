@@ -1,2 +1,2 @@
-n	num.queries	num.queries_ip_ratelimited	total.num.queries	total.num.cachehits	total.num.cachemiss	total.requestlist.avg	total.recursion.time.avg	time.up	mem.cache.rrset	mem.cache.message
-0	123456	0	234567	198765	35802	1.23	0.084215	604800.123456	1048576	524288
+thread0.num.queries	thread0.num.queries_ip_ratelimited	total.num.queries	total.num.cachehits	total.num.cachemiss	total.requestlist.avg	total.recursion.time.avg	time.up	mem.cache.rrset	mem.cache.message
+123456	0	234567	198765	35802	1.23	0.084215	604800.123456	1048576	524288

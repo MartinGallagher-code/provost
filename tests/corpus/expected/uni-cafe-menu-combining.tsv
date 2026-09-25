@@ -1,5 +1,5 @@
-n	ITEM	PRICE	STOCK	total_entries
-1	café au lait	3.50	yes	4
-2	café noir	2.80	yes	4
-3	crème brûlée	6.00	no	4
-4	thé vert	3.00	yes	4
+n	ITEM	PRICE	STOCK
+1	café au lait	3.50	yes
+2	café noir	2.80	yes
+3	crème brûlée	6.00	no
+4	thé vert	3.00	yes

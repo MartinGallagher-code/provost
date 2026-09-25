@@ -1,9 +1,9 @@
-n	A	total_entries
-1	3des-cbc	8
-2	aes128-cbc	8
-3	aes192-cbc	8
-4	aes256-cbc	8
-5	aes128-ctr	8
-6	aes192-ctr	8
-7	aes256-ctr	8
-8	chacha20-poly1305@openssh.com	8
+n	A
+1	3des-cbc
+2	aes128-cbc
+3	aes192-cbc
+4	aes256-cbc
+5	aes128-ctr
+6	aes192-ctr
+7	aes256-ctr
+8	chacha20-poly1305@openssh.com

@@ -1,5 +1,5 @@
-n	NodeName	Arch	CoresPerSocket	CPUAlloc	CPUTot	CPULoad	RealMemory	AllocMem	FreeMem	State	Gres	total_entries
-1	gpu01	x86_64	32									4
-2				64	64	44.20						4
-3							515000	412000	88201			4
-4										ALLOCATED	gpu:a100:8	4
+n	NodeName	Arch	CoresPerSocket	CPUAlloc	CPUTot	CPULoad	RealMemory	AllocMem	FreeMem	State	Gres
+1	gpu01	x86_64	32								
+2				64	64	44.20					
+3							515000	412000	88201		
+4										ALLOCATED	gpu:a100:8

@@ -1,4 +1,4 @@
-n	Name	Value	Unit	total_entries
-1	temperature	45.2	C	3
-2	humidity	60.5	%	3
-3	pressure	1013.2	hPa	3
+n	Name	Value	Unit
+1	temperature	45.2	C
+2	humidity	60.5	%
+3	pressure	1013.2	hPa

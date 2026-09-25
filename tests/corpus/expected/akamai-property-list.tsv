@@ -1,4 +1,4 @@
-n	Property_Name	Property_ID	Latest	Staging	Production	Group	total_entries
-1	www.example.com	prp_412093	14	13	13	Web Delivery	3
-2	api.example.com	prp_412188	8	8	7	API Acceleration	3
-3	downloads.example.com	prp_413044	22	22	22	Large File Delivery	3
+n	Property_Name	Property_ID	Latest	Staging	Production	Group
+1	www.example.com	prp_412093	14	13	13	Web Delivery
+2	api.example.com	prp_412188	8	8	7	API Acceleration
+3	downloads.example.com	prp_413044	22	22	22	Large File Delivery

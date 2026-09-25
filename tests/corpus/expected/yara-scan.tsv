@@ -1,4 +1,4 @@
-n	RULE	FILE	TAGS	total_entries
-1	Suspicious_UPX	/opt/samples/packed.bin	packer	3
-2	Webshell_PHP	/opt/samples/shell.php	webshell	3
-3	Cobalt_Beacon	/opt/samples/beacon.dll	c2,apt	3
+n	RULE	FILE	TAGS
+1	Suspicious_UPX	/opt/samples/packed.bin	packer
+2	Webshell_PHP	/opt/samples/shell.php	webshell
+3	Cobalt_Beacon	/opt/samples/beacon.dll	c2,apt

@@ -1,9 +1,9 @@
-n	depth	parent	name	value	total_entries
-1	1	project/ - 2026-07-01	src/ -	2026-07-05	8
-2	2	src/ -	main.py 4.2K	2026-07-05	8
-3	2	src/ -	utils.py 1.8K	2026-07-03	8
-4	2	src/ -	models/ -	2026-07-04	8
-5	2	src/ -	user.py 2.1K	2026-07-04	8
-6	2	src/ -	order.py 3.3K	2026-07-04	8
-7	1	project/ - 2026-07-01	README.md 900	2026-07-01	8
-8	1	project/ - 2026-07-01	setup.py 1.1K	2026-07-02	8
+n	depth	parent	name	value
+1	1	project/ - 2026-07-01	src/ -	2026-07-05
+2	2	src/ -	main.py 4.2K	2026-07-05
+3	2	src/ -	utils.py 1.8K	2026-07-03
+4	2	src/ -	models/ -	2026-07-04
+5	2	src/ -	user.py 2.1K	2026-07-04
+6	2	src/ -	order.py 3.3K	2026-07-04
+7	1	project/ - 2026-07-01	README.md 900	2026-07-01
+8	1	project/ - 2026-07-01	setup.py 1.1K	2026-07-02

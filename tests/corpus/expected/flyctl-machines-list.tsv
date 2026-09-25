@@ -1,3 +1,3 @@
-n	id	name	state	region	image	cpu_kind	cpus	memory_mb	created	total_entries
-1	148ed2ef1c3489	acme-api-01	started	iad	registry.fly.io/acme-api:deployment-01J	shared	1	512	2026-07-10T08:14:22Z	2
-2	3d8f11ab904782	acme-api-02	started	lhr	registry.fly.io/acme-api:deployment-01J	shared	1	512	2026-07-10T08:14:25Z	2
+n	id	name	state	region	image	cpu_kind	cpus	memory_mb	created
+1	148ed2ef1c3489	acme-api-01	started	iad	registry.fly.io/acme-api:deployment-01J	shared	1	512	2026-07-10T08:14:22Z
+2	3d8f11ab904782	acme-api-02	started	lhr	registry.fly.io/acme-api:deployment-01J	shared	1	512	2026-07-10T08:14:25Z

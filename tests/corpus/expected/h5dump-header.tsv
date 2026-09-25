@@ -1,9 +1,9 @@
-n	A	total_entries
-1	HDF5 "data.h5" {	8
-2	GROUP "/" {	8
-3	DATASET "temperature" {	8
-4	DATATYPE  H5T_IEEE_F64LE	8
-5	DATASPACE  SIMPLE { ( 1024, 768 ) / ( 1024, 768 ) }	8
-6	}	8
-7	}	8
-8	}	8
+n	A
+1	HDF5 "data.h5" {
+2	GROUP "/" {
+3	DATASET "temperature" {
+4	DATATYPE  H5T_IEEE_F64LE
+5	DATASPACE  SIMPLE { ( 1024, 768 ) / ( 1024, 768 ) }
+6	}
+7	}
+8	}

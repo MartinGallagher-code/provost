@@ -1,5 +1,5 @@
-n	A	total_entries
-1	2026/07/11 10:14:02 Syncing keys for file secrets.enc.yaml	4
-2	2026/07/11 10:14:02 Adding kms arn:aws:kms:us-east-1:000000000000:key/fake-key	4
-3	2026/07/11 10:14:02 Group 0: 2 data keys, 1 age recipient	4
-4	File secrets.enc.yaml updated: 3 keys synced, 0 removed	4
+n	A
+1	2026/07/11 10:14:02 Syncing keys for file secrets.enc.yaml
+2	2026/07/11 10:14:02 Adding kms arn:aws:kms:us-east-1:000000000000:key/fake-key
+3	2026/07/11 10:14:02 Group 0: 2 data keys, 1 age recipient
+4	File secrets.enc.yaml updated: 3 keys synced, 0 removed

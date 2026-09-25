@@ -1,2 +1,2 @@
-n	section	PV_Name	VG_Name	PV_Size	Allocatable	PE_Size	Total_PE	Free_PE	Allocated_PE	PV_UUID	total_entries
-1	Physical_volume	/dev/sda3	vg0	465.76 GiB / not usable 3.00 MiB	yes	4.00 MiB	119234	42435	76799	9zYxWv-8Ut7-Srq6-5Pon-4Mlk-3Jih-gFedCb	1
+n	section	PV_Name	VG_Name	PV_Size	Allocatable	PE_Size	Total_PE	Free_PE	Allocated_PE	PV_UUID
+1	Physical volume	/dev/sda3	vg0	465.76 GiB / not usable 3.00 MiB	yes	4.00 MiB	119234	42435	76799	9zYxWv-8Ut7-Srq6-5Pon-4Mlk-3Jih-gFedCb

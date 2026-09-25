@@ -1,6 +1,6 @@
-n	Usage	Events/s	Category	Description	total_entries
-1	45.2 ms/s	142.1	Process	/usr/lib/postgresql/postgres	5
-2	12.8 ms/s	88.4	Process	nginx: worker process	5
-3	8.1 ms/s	54.2	Interrupt	[12] eth0-rx	5
-4	3.4 ms/s	21.0	Timer	hrtimer_wakeup	5
-5	1.2 ms/s	9.8	kWork	intel_pstate_update_util	5
+n	Usage	Events/s	Category	Description
+1	45.2 ms/s	142.1	Process	/usr/lib/postgresql/postgres
+2	12.8 ms/s	88.4	Process	nginx: worker process
+3	8.1 ms/s	54.2	Interrupt	[12] eth0-rx
+4	3.4 ms/s	21.0	Timer	hrtimer_wakeup
+5	1.2 ms/s	9.8	kWork	intel_pstate_update_util

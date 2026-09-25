@@ -1,7 +1,7 @@
-n	file	level	message	total_entries
-1	prometheus.yml	SUCCESS	4 rule files found	6
-2	prometheus.yml	SUCCESS	prometheus.yml is valid prometheus config file syntax	6
-3	rules/node.yml	SUCCESS	12 rules found	6
-4	rules/api.yml	SUCCESS	8 rules found	6
-5	rules/slo.yml	SUCCESS	5 rules found	6
-6	rules/blackbox.yml	SUCCESS	3 rules found	6
+n	file	level	message
+1	prometheus.yml	SUCCESS	4 rule files found
+2	prometheus.yml	SUCCESS	prometheus.yml is valid prometheus config file syntax
+3	rules/node.yml	SUCCESS	12 rules found
+4	rules/api.yml	SUCCESS	8 rules found
+5	rules/slo.yml	SUCCESS	5 rules found
+6	rules/blackbox.yml	SUCCESS	3 rules found

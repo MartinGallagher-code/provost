@@ -1,6 +1,6 @@
-n	A	B	C	total_entries
-1	app:	go1.22.5		5
-2	path	example.com/app		5
-3	mod	example.com/app	(devel)	5
-4	dep	github.com/gin-gonic/gin	v1.10.0	5
-5	build	-compiler=gc		5
+n	A	B	C
+1	app:	go1.22.5	
+2	path	example.com/app	
+3	mod	example.com/app	(devel)
+4	dep	github.com/gin-gonic/gin	v1.10.0
+5	build	-compiler=gc	

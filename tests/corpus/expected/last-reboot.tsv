@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	H	I	J	K	total_entries
-1	reboot	system	boot	6.8.0-45-generic	Thu	Jul	10	08:00	still	running		3
-2	reboot	system	boot	6.8.0-45-generic	Wed	Jul	9	08:00	-	22:00	(14:00)	3
-3	reboot	system	boot	6.8.0-44-generic	Tue	Jul	8	08:00	-	22:00	(14:00)	3
+n	A	B	C	D	E	F	G	H	I	J	K
+1	reboot	system	boot	6.8.0-45-generic	Thu	Jul	10	08:00	still	running	
+2	reboot	system	boot	6.8.0-45-generic	Wed	Jul	9	08:00	-	22:00	(14:00)
+3	reboot	system	boot	6.8.0-44-generic	Tue	Jul	8	08:00	-	22:00	(14:00)

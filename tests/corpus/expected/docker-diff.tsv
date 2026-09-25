@@ -1,13 +1,13 @@
-n	A	B	total_entries
-1	C	/etc	12
-2	C	/etc/nginx	12
-3	A	/etc/nginx/conf.d/custom.conf	12
-4	C	/var	12
-5	C	/var/cache	12
-6	A	/var/cache/nginx	12
-7	A	/var/cache/nginx/client_temp	12
-8	C	/run	12
-9	A	/run/nginx.pid	12
-10	C	/tmp	12
-11	A	/tmp/build.log	12
-12	D	/usr/share/nginx/html/index.html	12
+n	A	B
+1	C	/etc
+2	C	/etc/nginx
+3	A	/etc/nginx/conf.d/custom.conf
+4	C	/var
+5	C	/var/cache
+6	A	/var/cache/nginx
+7	A	/var/cache/nginx/client_temp
+8	C	/run
+9	A	/run/nginx.pid
+10	C	/tmp
+11	A	/tmp/build.log
+12	D	/usr/share/nginx/html/index.html

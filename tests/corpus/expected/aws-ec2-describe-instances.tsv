@@ -1,7 +1,7 @@
-n	InstanceId	Type	State	PrivateIp	PublicIp	AZ	total_entries
-1	i-0abc123def4567890	t3.micro	running	10.0.1.24	54.210.12.34	us-east-1a	6
-2	i-0def456abc7890123	t3.large	running	10.0.2.51	54.88.100.7	us-east-1b	6
-3	i-0aaa111bbb2223334	m5.xlarge	stopped	10.0.1.90	-	us-east-1a	6
-4	i-0ccc999ddd8887776	c6g.2xlarge	running	10.0.3.12	3.221.44.9	us-east-1c	6
-5	i-0eee222fff4445556	t3.medium	running	10.0.2.77	18.204.55.180	us-east-1b	6
-6	i-0111aaa222bbb3334	r5.large	pending	10.0.4.5	-	us-east-1d	6
+n	InstanceId	Type	State	PrivateIp	PublicIp	AZ
+1	i-0abc123def4567890	t3.micro	running	10.0.1.24	54.210.12.34	us-east-1a
+2	i-0def456abc7890123	t3.large	running	10.0.2.51	54.88.100.7	us-east-1b
+3	i-0aaa111bbb2223334	m5.xlarge	stopped	10.0.1.90	-	us-east-1a
+4	i-0ccc999ddd8887776	c6g.2xlarge	running	10.0.3.12	3.221.44.9	us-east-1c
+5	i-0eee222fff4445556	t3.medium	running	10.0.2.77	18.204.55.180	us-east-1b
+6	i-0111aaa222bbb3334	r5.large	pending	10.0.4.5	-	us-east-1d

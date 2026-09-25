@@ -1,5 +1,5 @@
-n	application	namespace	status	instances	requests_s	errors_pct	latency_ms	total_entries
-1	frontend	default	ok	4	184.2	0.2	42	4
-2	api-gateway	default	warning	3	158.0	1.9	540	4
-3	payments	data	critical	2	44.1	8.8	1420	4
-4	cart-service	default	ok	5	90.1	0.1	210	4
+n	application	namespace	status	instances	requests_s	errors_pct	latency_ms
+1	frontend	default	ok	4	184.2	0.2	42
+2	api-gateway	default	warning	3	158.0	1.9	540
+3	payments	data	critical	2	44.1	8.8	1420
+4	cart-service	default	ok	5	90.1	0.1	210

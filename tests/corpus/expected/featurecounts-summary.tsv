@@ -1,6 +1,6 @@
-n	Status	sample_01_bam	sample_02_bam	sample_03_bam	total_entries
-1	Assigned	24118203	22984110	25330441	5
-2	Unassigned_Unmapped	411203	389442	402118	5
-3	Unassigned_MultiMapping	1820441	1744009	1901220	5
-4	Unassigned_NoFeatures	2211043	2109887	2288109	5
-5	Unassigned_Ambiguity	488210	461200	501339	5
+n	Status	sample_01_bam	sample_02_bam	sample_03_bam
+1	Assigned	24118203	22984110	25330441
+2	Unassigned_Unmapped	411203	389442	402118
+3	Unassigned_MultiMapping	1820441	1744009	1901220
+4	Unassigned_NoFeatures	2211043	2109887	2288109
+5	Unassigned_Ambiguity	488210	461200	501339

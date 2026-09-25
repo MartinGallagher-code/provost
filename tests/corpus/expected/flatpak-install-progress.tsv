@@ -1,5 +1,5 @@
-n	A	B	C	D	E	F	G	total_entries
-1	Installing	1/4…	org.gimp.GIMP	[██████████]	100%	212.4	MB	4
-2	Installing	2/4…	org.blender.Blender	[██████░░░░]	64%	388.1	MB	4
-3	Installing	3/4…	com.spotify.Client	[██░░░░░░░░]	21%	144.9	MB	4
-4	Installing	4/4…	org.mozilla.firefox	[█░░░░░░░░░]	8%	96.2	MB	4
+n	A	B	C	D	E	F	G
+1	Installing	1/4…	org.gimp.GIMP	[██████████]	100%	212.4	MB
+2	Installing	2/4…	org.blender.Blender	[██████░░░░]	64%	388.1	MB
+3	Installing	3/4…	com.spotify.Client	[██░░░░░░░░]	21%	144.9	MB
+4	Installing	4/4…	org.mozilla.firefox	[█░░░░░░░░░]	8%	96.2	MB

@@ -1,5 +1,5 @@
-n	NAME	CIDR	SELECTOR	total_entries
-1	default-ipv4-ippool	10.244.0.0/16	all()	4
-2	pool-zone-a	10.245.0.0/18	all()	4
-3	pool-zone-b	10.245.64.0/18	all()	4
-4	vpn-pool	10.246.0.0/24	all()	4
+n	NAME	CIDR	SELECTOR
+1	default-ipv4-ippool	10.244.0.0/16	all()
+2	pool-zone-a	10.245.0.0/18	all()
+3	pool-zone-b	10.245.64.0/18	all()
+4	vpn-pool	10.246.0.0/24	all()

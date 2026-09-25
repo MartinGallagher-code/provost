@@ -1,4 +1,4 @@
-n	key	value	total_entries
-1	base	/opt/conda	3
-2	ml	*  /opt/conda/envs/ml	3
-3	web	/opt/conda/envs/web	3
+n	key	value
+1	base	/opt/conda
+2	ml	*  /opt/conda/envs/ml
+3	web	/opt/conda/envs/web

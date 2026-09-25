@@ -1,6 +1,6 @@
-n	KEY	VALUE	total_entries
-1	aws:region	us-west-2	5
-2	project:dbInstanceClass	db.t3.medium	5
-3	project:environment	production	5
-4	project:instanceCount	3	5
-5	project:vpcCidr	10.0.0.0/16	5
+n	KEY	VALUE
+1	aws:region	us-west-2
+2	project:dbInstanceClass	db.t3.medium
+3	project:environment	production
+4	project:instanceCount	3
+5	project:vpcCidr	10.0.0.0/16

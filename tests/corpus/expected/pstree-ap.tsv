@@ -1,14 +1,14 @@
-n	systemd	1_--switched-root_--system_--deserialize_31	total_entries
-1	├─ModemManager	842	13
-2	│   ├─{ModemManager}	851	13
-3	│   └─{ModemManager}	903	13
-4	├─NetworkManager	861	13
-5	│   ├─{NetworkManager}	889	13
-6	│   └─{NetworkManager}	910	13
-7	├─sshd	1123 -D	13
-8	│   └─sshd	4820	13
-9	│       └─sshd	4835	13
-10	│           └─bash	4836	13
-11	│               └─pstree	5210 -ap	13
-12	├─systemd-journald	401	13
-13	└─systemd-logind	845	13
+n	systemd	1_--switched-root_--system_--deserialize_31
+1	├─ModemManager	842
+2	│   ├─{ModemManager}	851
+3	│   └─{ModemManager}	903
+4	├─NetworkManager	861
+5	│   ├─{NetworkManager}	889
+6	│   └─{NetworkManager}	910
+7	├─sshd	1123 -D
+8	│   └─sshd	4820
+9	│       └─sshd	4835
+10	│           └─bash	4836
+11	│               └─pstree	5210 -ap
+12	├─systemd-journald	401
+13	└─systemd-logind	845

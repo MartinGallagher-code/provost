@@ -1,3 +1,3 @@
-n	name	version	total_entries
-1	django	5.0.6	2
-2	celery	5.4.0	2
+n	name	version
+1	django	5.0.6
+2	celery	5.4.0

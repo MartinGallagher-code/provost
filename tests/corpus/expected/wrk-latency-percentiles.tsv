@@ -1,5 +1,5 @@
-n	percentile	latency	requests	total_entries
-1	50%	1.23ms	123456	4
-2	90%	4.56ms	98765	4
-3	99%	12.34ms	1234	4
-4	99.99%	123.45ms	5	4
+n	percentile	latency	requests
+1	50%	1.23ms	123456
+2	90%	4.56ms	98765
+3	99%	12.34ms	1234
+4	99.99%	123.45ms	5

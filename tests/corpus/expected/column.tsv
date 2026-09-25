@@ -1,7 +1,7 @@
-n	NAME	STATE	PID	UPTIME	total_entries
-1	nginx	running	1203	12d	6
-2	postgres	running	1450	12d	6
-3	redis	running	1502	9d	6
-4	worker	stopped	-	-	6
-5	cron	running	890	30d	6
-6	sshd	running	712	30d	6
+n	NAME	STATE	PID	UPTIME
+1	nginx	running	1203	12d
+2	postgres	running	1450	12d
+3	redis	running	1502	9d
+4	worker	stopped	-	-
+5	cron	running	890	30d
+6	sshd	running	712	30d

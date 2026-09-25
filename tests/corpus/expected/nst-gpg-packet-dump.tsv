@@ -1,13 +1,13 @@
-n	A	total_entries
-1	# off=0 ctb=99 tag=6 hlen=3 plen=525	12
-2	:public key packet:	12
-3	version 4, algo 1, created 1710000000, expires 0	12
-4	pkey[0]: [2048 bits]	12
-5	pkey[1]: [17 bits]	12
-6	keyid: A1B2C3D4E5F60718	12
-7	# off=528 ctb=b4 tag=13 hlen=2 plen=32	12
-8	:user ID packet: "Alice <alice@example.com>"	12
-9	# off=562 ctb=89 tag=2 hlen=3 plen=284	12
-10	:signature packet: algo 1, keyid A1B2C3D4E5F60718	12
-11	version 4, created 1710000100, md5len 0, sigclass 0x13	12
-12	digest algo 8, begin of digest a4 c3	12
+n	A
+1	# off=0 ctb=99 tag=6 hlen=3 plen=525
+2	:public key packet:
+3	version 4, algo 1, created 1710000000, expires 0
+4	pkey[0]: [2048 bits]
+5	pkey[1]: [17 bits]
+6	keyid: A1B2C3D4E5F60718
+7	# off=528 ctb=b4 tag=13 hlen=2 plen=32
+8	:user ID packet: "Alice <alice@example.com>"
+9	# off=562 ctb=89 tag=2 hlen=3 plen=284
+10	:signature packet: algo 1, keyid A1B2C3D4E5F60718
+11	version 4, created 1710000100, md5len 0, sigclass 0x13
+12	digest algo 8, begin of digest a4 c3

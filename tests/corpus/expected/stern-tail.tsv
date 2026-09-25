@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	total_entries
-1	api-abc123	api	Starting	server	on	:8080	3
-2	web-def456	web	Request	GET	/health	200	3
-3	api-abc123	api	Connected	to	database		3
+n	A	B	C	D	E	F
+1	api-abc123	api	Starting	server	on	:8080
+2	web-def456	web	Request	GET	/health	200
+3	api-abc123	api	Connected	to	database	

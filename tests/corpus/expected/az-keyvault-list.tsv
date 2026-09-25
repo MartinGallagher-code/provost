@@ -1,5 +1,5 @@
-n	id	name	location	resourceGroup	type	total_entries
-1	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/prod-rg/providers/Microsoft.KeyVault/vaults/prod-kv	prod-kv	eastus	prod-rg	Microsoft.KeyVault/vaults	4
-2	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/staging-rg/providers/Microsoft.KeyVault/vaults/staging-kv	staging-kv	eastus	staging-rg	Microsoft.KeyVault/vaults	4
-3	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/dev-rg/providers/Microsoft.KeyVault/vaults/dev-kv	dev-kv	westus2	dev-rg	Microsoft.KeyVault/vaults	4
-4	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/shared-rg/providers/Microsoft.KeyVault/vaults/shared-kv	shared-kv	centralus	shared-rg	Microsoft.KeyVault/vaults	4
+n	id	name	location	resourceGroup	type
+1	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/prod-rg/providers/Microsoft.KeyVault/vaults/prod-kv	prod-kv	eastus	prod-rg	Microsoft.KeyVault/vaults
+2	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/staging-rg/providers/Microsoft.KeyVault/vaults/staging-kv	staging-kv	eastus	staging-rg	Microsoft.KeyVault/vaults
+3	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/dev-rg/providers/Microsoft.KeyVault/vaults/dev-kv	dev-kv	westus2	dev-rg	Microsoft.KeyVault/vaults
+4	/subscriptions/12345678-1234-1234-1234-123456789abc/resourceGroups/shared-rg/providers/Microsoft.KeyVault/vaults/shared-kv	shared-kv	centralus	shared-rg	Microsoft.KeyVault/vaults

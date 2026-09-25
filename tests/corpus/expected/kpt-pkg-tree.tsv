@@ -1,6 +1,6 @@
-n	depth	parent	name	total_entries
-1	1	PKG: wordpress	[Kptfile] Kptfile wordpress	5
-2	1	PKG: wordpress	[service.yaml] Service wordpress	5
-3	1	PKG: wordpress	[deployment.yaml] Deployment wordpress	5
-4	1	PKG: wordpress	PKG: mysql	5
-5	2	PKG: mysql	[service.yaml] Service wordpress-mysql	5
+n	depth	parent	name
+1	1	PKG: wordpress	[Kptfile] Kptfile wordpress
+2	1	PKG: wordpress	[service.yaml] Service wordpress
+3	1	PKG: wordpress	[deployment.yaml] Deployment wordpress
+4	1	PKG: wordpress	PKG: mysql
+5	2	PKG: mysql	[service.yaml] Service wordpress-mysql

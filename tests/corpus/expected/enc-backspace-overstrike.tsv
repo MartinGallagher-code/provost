@@ -1,5 +1,5 @@
-n	NNAAMMEE	SSIIZZEE	TTYYPPEE	total_entries
-1	kernel	12M	elf	4
-2	initrd	48M	cpio	4
-3	config	88K	text	4
-4	map	2M	text	4
+n	NNAAMMEE	SSIIZZEE	TTYYPPEE
+1	kernel	12M	elf
+2	initrd	48M	cpio
+3	config	88K	text
+4	map	2M	text

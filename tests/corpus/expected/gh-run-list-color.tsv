@@ -1,5 +1,5 @@
-n	A	B	C	D	E	total_entries
-1	✓	CI	main	push	3m12s	4
-2	✗	Release	v2.1.0	tag	1m40s	4
-3	✓	Lint	main	push	45s	4
-4	●	Deploy	main	workflow	running	4
+n	A	B	C	D	E
+1	✓	CI	main	push	3m12s
+2	✗	Release	v2.1.0	tag	1m40s
+3	✓	Lint	main	push	45s
+4	●	Deploy	main	workflow	running

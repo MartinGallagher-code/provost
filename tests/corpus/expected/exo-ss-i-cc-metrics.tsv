@@ -1,5 +1,5 @@
-n	State	Recv-Q	Send-Q	Local	Address:Port	Peer	total_entries
-1	ESTAB	0	0	10.0.0.5:51234	93.184.216.34:443		4
-2	cubic	wscale:7,7	rto:212	rtt:11.375/5.5	pmtu:1500_rcvmss:1400_advmss:1460_cwnd:10_bytes_sent:5182_bytes_acked:5183_bytes_received:22114_segs_out:44_segs_in:38_data_segs_out:12_send_9.84Mbps_lastsnd:120_lastrcv:88_pacing_rate_19.6Mbps_delivery_rate_8.2Mbps_delivered:12_rcv_space:14480_minrtt:9.813	mss:1400	4
-3	ESTAB	36	0	10.0.0.5:22	10.0.0.9:60122		4
-4	bbr	wscale:7,7	rto:236	rtt:35.5/2.25	cwnd:14_ssthresh:12_bytes_sent:118442_bytes_acked:118442_send_4.57Mbps_pacing_rate_5.1Mbps_delivery_rate_3.9Mbps_busy:2210ms_rcv_space:14600_minrtt:31.2	mss:1448	4
+n	State	Recv-Q	Send-Q	Local	Address:Port	Peer
+1	ESTAB	0	0	10.0.0.5:51234	93.184.216.34:443	
+2	cubic	wscale:7,7	rto:212	rtt:11.375/5.5	pmtu:1500 rcvmss:1400 advmss:1460 cwnd:10 bytes_sent:5182 bytes_acked:5183 bytes_received:22114 segs_out:44 segs_in:38 data_segs_out:12 send 9.84Mbps lastsnd:120 lastrcv:88 pacing_rate 19.6Mbps delivery_rate 8.2Mbps delivered:12 rcv_space:14480 minrtt:9.813	mss:1400
+3	ESTAB	36	0	10.0.0.5:22	10.0.0.9:60122	
+4	bbr	wscale:7,7	rto:236	rtt:35.5/2.25	cwnd:14 ssthresh:12 bytes_sent:118442 bytes_acked:118442 send 4.57Mbps pacing_rate 5.1Mbps delivery_rate 3.9Mbps busy:2210ms rcv_space:14600 minrtt:31.2	mss:1448

@@ -1,5 +1,5 @@
-n	depth	parent	name	total_entries
-1	1	app@1.0.0 /home/dev/app	express@4.19.2	4
-2	1	app@1.0.0 /home/dev/app	pino@9.2.0	4
-3	1	app@1.0.0 /home/dev/app	UNMET DEPENDENCY zod@^3.23.0	4
-4	1	app@1.0.0 /home/dev/app	typescript@5.4.5	4
+n	depth	parent	name
+1	1	app@1.0.0 /home/dev/app	express@4.19.2
+2	1	app@1.0.0 /home/dev/app	pino@9.2.0
+3	1	app@1.0.0 /home/dev/app	UNMET DEPENDENCY zod@^3.23.0
+4	1	app@1.0.0 /home/dev/app	typescript@5.4.5

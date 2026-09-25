@@ -1,4 +1,4 @@
-n	svc	port	notes	total_entries
-1	api	8080	"uses commas, colons: and | pipes; freely"	3
-2	worker	0	"no port; internal only"	3
-3	cache	6379	"redis://host:6379, db=0"	3
+n	svc	port	notes
+1	api	8080	"uses commas, colons: and | pipes; freely"
+2	worker	0	"no port; internal only"
+3	cache	6379	"redis://host:6379, db=0"

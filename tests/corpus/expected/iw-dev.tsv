@@ -1,9 +1,9 @@
-n	A	B	C	D	E	F	G	H	I	J	total_entries
-1	phy#0										8
-2	Interface	wlan0									8
-3	ifindex	3									8
-4	wdev	0x1									8
-5	addr	b8:27:eb:44:9f:12									8
-6	type	managed									8
-7	channel	36	(5180	MHz),	width:	80	MHz,	center1:	5210	MHz	8
-8	txpower	22.00	dBm								8
+n	A	B	C	D	E	F	G	H	I	J
+1	phy#0									
+2	Interface	wlan0								
+3	ifindex	3								
+4	wdev	0x1								
+5	addr	b8:27:eb:44:9f:12								
+6	type	managed								
+7	channel	36	(5180	MHz),	width:	80	MHz,	center1:	5210	MHz
+8	txpower	22.00	dBm							

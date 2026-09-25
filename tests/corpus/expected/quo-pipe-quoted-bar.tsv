@@ -1,4 +1,4 @@
-n	key	value	note	total_entries
-1	regex	"a|b|c"	alternation	3
-2	path	"/usr/bin"	plain	3
-3	alt	"x|y"	two options	3
+n	key	value	note
+1	regex	"a|b|c"	alternation
+2	path	"/usr/bin"	plain
+3	alt	"x|y"	two options

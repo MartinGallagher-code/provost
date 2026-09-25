@@ -1,4 +1,4 @@
-n	POOL	MEMBERS	HEALTH	total_entries
-1	web	╭──────┬──────╮	ok	3
-2	api	single: node-x	drain	3
-3	db	single: node-y	down	3
+n	POOL	MEMBERS	HEALTH
+1	web	╭──────┬──────╮	ok
+2	api	single: node-x	drain
+3	db	single: node-y	down

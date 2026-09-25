@@ -1,5 +1,5 @@
-n	section	name	value	total_entries
-1	Available recipes	build	compile the project	4
-2	Available recipes	test	run the test suite	4
-3	Available recipes	deploy env	deploy to an environment	4
-4	Available recipes	lint	run linters	4
+n	section	name	value
+1	Available recipes	build	compile the project
+2	Available recipes	test	run the test suite
+3	Available recipes	deploy env	deploy to an environment
+4	Available recipes	lint	run linters

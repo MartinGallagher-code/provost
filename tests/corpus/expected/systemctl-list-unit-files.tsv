@@ -1,7 +1,7 @@
-n	UNIT_FILE	STATE	PRESET	total_entries
-1	cron.service	enabled	enabled	6
-2	dbus.service	static	-	6
-3	getty@.service	enabled	enabled	6
-4	nginx.service	enabled	enabled	6
-5	ssh.service	enabled	enabled	6
-6	systemd-timesyncd.service	disabled	enabled	6
+n	UNIT_FILE	STATE	PRESET
+1	cron.service	enabled	enabled
+2	dbus.service	static	-
+3	getty@.service	enabled	enabled
+4	nginx.service	enabled	enabled
+5	ssh.service	enabled	enabled
+6	systemd-timesyncd.service	disabled	enabled

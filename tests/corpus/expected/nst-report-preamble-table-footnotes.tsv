@@ -1,5 +1,5 @@
-n	Service	Uptime%	Incidents	total_entries
-1	api-gateway	99.98	1	4
-2	auth	99.87†	3	4
-3	billing	99.95	2	4
-4	search	99.99	0	4
+n	Service	Uptime%	Incidents
+1	api-gateway	99.98	1
+2	auth	99.87†	3
+3	billing	99.95	2
+4	search	99.99	0

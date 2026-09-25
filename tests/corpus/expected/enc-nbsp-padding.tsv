@@ -1,5 +1,5 @@
-n	COMMAND	PID	USER	FD	total_entries
-1	nginx	812	root	5u	4
-2	sshd	640	root	3u	4
-3	postgres	910	pgsql	7u	4
-4	redis	733	redis	4u	4
+n	COMMAND	PID	USER	FD
+1	nginx	812	root	5u
+2	sshd	640	root	3u
+3	postgres	910	pgsql	7u
+4	redis	733	redis	4u

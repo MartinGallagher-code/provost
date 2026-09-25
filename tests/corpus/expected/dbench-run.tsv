@@ -1,5 +1,5 @@
-n	A	total_entries
-1	dbench version 4.00 - Copyright Andrew Tridgell 1999-2004	4
-2	Running for 60 seconds with load 'client.txt' and 8 procs	4
-3	8      120488   482.10 MB/sec  execute  60 sec	4
-4	Throughput 482.104 MB/sec  8 clients  8 procs  max_latency=12.448 ms	4
+n	A
+1	dbench version 4.00 - Copyright Andrew Tridgell 1999-2004
+2	Running for 60 seconds with load 'client.txt' and 8 procs
+3	8      120488   482.10 MB/sec  execute  60 sec
+4	Throughput 482.104 MB/sec  8 clients  8 procs  max_latency=12.448 ms

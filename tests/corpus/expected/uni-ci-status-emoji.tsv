@@ -1,6 +1,6 @@
-n	STAGE	STATUS	DURATION	total_entries
-1	build	✅ passed	2m14s	5
-2	test	❌ failed	5m02s	5
-3	lint	✅ passed	0m31s	5
-4	deploy	⏳ running	1m00s	5
-5	notify	⚠️ skipped	0m00s	5
+n	STAGE	STATUS	DURATION
+1	build	✅ passed	2m14s
+2	test	❌ failed	5m02s
+3	lint	✅ passed	0m31s
+4	deploy	⏳ running	1m00s
+5	notify	⚠️ skipped	0m00s

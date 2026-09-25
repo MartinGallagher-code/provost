@@ -1,4 +1,4 @@
-n	invoice_no	amount_due	status	total_entries
-1	INV-2026-001	1200.00	paid	3
-2	INV-2026-002	450.75	overdue	3
-3	INV-2026-003	90.00	draft	3
+n	invoice_no	amount_due	status
+1	INV-2026-001	1200.00	paid
+2	INV-2026-002	450.75	overdue
+3	INV-2026-003	90.00	draft

@@ -1,4 +1,4 @@
-n	A	B	C	D	total_entries
-1	deno	1.40.2	(release,	x86_64-unknown-linux-gnu)	3
-2	v8	12.1.285.6			3
-3	typescript	5.3.3			3
+n	A	B	C	D
+1	deno	1.40.2	(release,	x86_64-unknown-linux-gnu)
+2	v8	12.1.285.6		
+3	typescript	5.3.3		

@@ -1,5 +1,5 @@
-n	SESSION	UID	USER	SEAT	TTY	total_entries
-1	1	1000	alice	seat0	tty2	4
-2	7	1001	bob	pts/0		4
-3	12	0	root	pts/1		4
-4	15	1002	carol	seat1	tty3	4
+n	SESSION	UID	USER	SEAT	TTY
+1	1	1000	alice	seat0	tty2
+2	7	1001	bob	pts/0	
+3	12	0	root	pts/1	
+4	15	1002	carol	seat1	tty3

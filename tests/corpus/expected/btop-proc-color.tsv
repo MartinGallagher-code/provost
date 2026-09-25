@@ -1,5 +1,5 @@
-n	PID	Program	User	Cpu%	Mem	total_entries
-1	1042	chrome	user	42.1	1.2G	4
-2	880	node	user	18.7	512M	4
-3	512	postgres	postgres	3.4	256M	4
-4	221	systemd	root	0.1	12M	4
+n	PID	Program	User	Cpu%	Mem
+1	1042	chrome	user	42.1	1.2G
+2	880	node	user	18.7	512M
+3	512	postgres	postgres	3.4	256M
+4	221	systemd	root	0.1	12M

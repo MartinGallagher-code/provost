@@ -1,2 +1,2 @@
 NAME	LAST_DEPLOYED	NAMESPACE	STATUS	REVISION	CHART	APP_VERSION	DESCRIPTION	TEST_SUITE	line1	line2
-ingress-nginx	Fri Jun_12_09_14_22_2026	ingress-nginx	deployed	3	ingress-nginx-4.10.1	1.10.1	Upgrade complete	None	The ingress-nginx controller has been installed.	It may take a few minutes for the LoadBalancer IP to be available.
+ingress-nginx	Fri Jun 12 09:14:22 2026	ingress-nginx	deployed	3	ingress-nginx-4.10.1	1.10.1	Upgrade complete	None	The ingress-nginx controller has been installed.	It may take a few minutes for the LoadBalancer IP to be available.

@@ -1,8 +1,8 @@
-n	A	total_entries
-1	web-01/cpu-0/cpu-idle	7
-2	web-01/cpu-0/cpu-user	7
-3	web-01/memory/memory-free	7
-4	web-01/memory/memory-used	7
-5	web-01/interface-eth0/if_octets	7
-6	web-01/df-root/df_complex-free	7
-7	web-01/load/load	7
+n	A
+1	web-01/cpu-0/cpu-idle
+2	web-01/cpu-0/cpu-user
+3	web-01/memory/memory-free
+4	web-01/memory/memory-used
+5	web-01/interface-eth0/if_octets
+6	web-01/df-root/df_complex-free
+7	web-01/load/load

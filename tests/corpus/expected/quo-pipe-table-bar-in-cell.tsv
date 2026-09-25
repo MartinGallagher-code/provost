@@ -1,4 +1,4 @@
-n	name	expression	result	total_entries
-1	or	a | b	7	3
-2	concat	s1 || s2	ab	3
-3	plain	x + y	5	3
+n	name	expression	result
+1	or	a | b	7
+2	concat	s1 || s2	ab
+3	plain	x + y	5

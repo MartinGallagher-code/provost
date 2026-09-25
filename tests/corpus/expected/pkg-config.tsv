@@ -1,7 +1,7 @@
-n	A	total_entries
-1	zlib                       zlib - zlib compression library	6
-2	openssl                    OpenSSL - Secure Sockets Layer and cryptography libraries	6
-3	libcurl                    libcurl - Library to transfer files with ftp, http, etc.	6
-4	glib-2.0                   GLib - C Utility Library	6
-5	libxml-2.0                 libXML - libXML library version2.	6
-6	ncurses                    ncurses library	6
+n	A
+1	zlib                       zlib - zlib compression library
+2	openssl                    OpenSSL - Secure Sockets Layer and cryptography libraries
+3	libcurl                    libcurl - Library to transfer files with ftp, http, etc.
+4	glib-2.0                   GLib - C Utility Library
+5	libxml-2.0                 libXML - libXML library version2.
+6	ncurses                    ncurses library

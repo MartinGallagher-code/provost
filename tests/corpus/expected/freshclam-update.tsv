@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	H	total_entries
-1	ClamAV	update	process	started	at	Sat	Jul	11_10:30:02_2026	5
-2	daily.cvd	database	is	up-to-date	(version:	27412,	sigs:	2058931)	5
-3	main.cvd	database	is	up-to-date	(version:	62,	sigs:	6647427)	5
-4	bytecode.cvd	database	is	up-to-date	(version:	335,	sigs:	86)	5
-5	Total	signatures:	8706444						5
+n	A	B	C	D	E	F	G	H
+1	ClamAV	update	process	started	at	Sat	Jul	11 10:30:02 2026
+2	daily.cvd	database	is	up-to-date	(version:	27412,	sigs:	2058931)
+3	main.cvd	database	is	up-to-date	(version:	62,	sigs:	6647427)
+4	bytecode.cvd	database	is	up-to-date	(version:	335,	sigs:	86)
+5	Total	signatures:	8706444					

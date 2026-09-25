@@ -1,3 +1,3 @@
-n	UID	USER	PROC	PWD-LOCK	LAST-LOGIN	GECOS	total_entries
-1	0	root	88	Jul10/06:00	root		2
-2	1000	deploy	12	Jul10/07:00	Deploy	User	2
+n	UID	USER	PROC	PWD-LOCK	LAST-LOGIN	GECOS
+1	0	root	88	Jul10/06:00	root	
+2	1000	deploy	12	Jul10/07:00	Deploy	User

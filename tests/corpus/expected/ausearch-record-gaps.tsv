@@ -1,5 +1,5 @@
-n	type=USER_AUTH	msg=audit(1752220872_113:441):	pid=812	uid=0	auid=1000	ses=3	msg='op=PAM:authentication	acct="mgallag"	exe="/usr/sbin/sshd"	total_entries
-1	time->Fri Jul	11 09:02:47 2026								4
-2	type=USER_LOGI	N msg=audit(1752220967.882:449)	: pid=81	5 uid=	0 auid=100	0 ses=	3 msg='op=login acct="mgall	ag" exe="/usr/s	bin/sshd" res=failed'	4
-3	----									4
-4	type=ANOM_ABEN	D msg=audit(1752221003.017:452)	: pid=22	01 uid	=1000 auid	=1000	ses=3 sig=11 res=1			4
+n	type=USER_AUTH	msg=audit(1752220872_113:441):	pid=812	uid=0	auid=1000	ses=3	msg='op=PAM:authentication	acct="mgallag"	exe="/usr/sbin/sshd"
+1	time->Fri Jul	11 09:02:47 2026							
+2	type=USER_LOGI	N msg=audit(1752220967.882:449)	: pid=81	5 uid=	0 auid=100	0 ses=	3 msg='op=login acct="mgall	ag" exe="/usr/s	bin/sshd" res=failed'
+3	----								
+4	type=ANOM_ABEN	D msg=audit(1752221003.017:452)	: pid=22	01 uid	=1000 auid	=1000	ses=3 sig=11 res=1		

@@ -1,5 +1,5 @@
-n	key	value	total_entries
-1	system	capture_1	4
-2	system	capture_2	4
-3	system	playback_1	4
-4	firefox	output_FL	4
+n	key	value
+1	system	capture_1
+2	system	capture_2
+3	system	playback_1
+4	firefox	output_FL

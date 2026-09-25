@@ -1,3 +1,3 @@
-n	ID	NAME	PUBLIC-IPV4	REGION	STATUS	SIZE	total_entries
-1	398471023	web-fra1-01	159.89.10.4	fra1	active	s-2vcpu-4gb	2
-2	398471055	db-fra1-01	159.89.10.9	fra1	active	s-4vcpu-8gb	2
+n	ID	NAME	PUBLIC-IPV4	REGION	STATUS	SIZE
+1	398471023	web-fra1-01	159.89.10.4	fra1	active	s-2vcpu-4gb
+2	398471055	db-fra1-01	159.89.10.9	fra1	active	s-4vcpu-8gb

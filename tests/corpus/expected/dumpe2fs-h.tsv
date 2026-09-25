@@ -1,45 +1,45 @@
-n	key	value	total_entries
-1	Filesystem volume name	<none>	44
-2	Last mounted on	/	44
-3	Filesystem UUID	8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d	44
-4	Filesystem magic number	0xEF53	44
-5	Filesystem revision #	1 (dynamic)	44
-6	Filesystem features	has_journal ext_attr resize_inode dir_index filetype extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum	44
-7	Filesystem flags	signed_directory_hash	44
-8	Default mount options	user_xattr acl	44
-9	Filesystem state	clean	44
-10	Errors behavior	Continue	44
-11	Filesystem OS type	Linux	44
-12	Inode count	3276800	44
-13	Block count	13107200	44
-14	Reserved block count	655360	44
-15	Free blocks	9123456	44
-16	Free inodes	3200123	44
-17	First block	0	44
-18	Block size	4096	44
-19	Fragment size	4096	44
-20	Reserved GDT blocks	1024	44
-21	Blocks per group	32768	44
-22	Fragments per group	32768	44
-23	Inodes per group	8192	44
-24	Inode blocks per group	512	44
-25	Flex block group size	16	44
-26	Filesystem created	Sun Dec 15 09:00:00 2024	44
-27	Last mount time	Tue Jul  1 08:00:00 2026	44
-28	Last write time	Tue Jul  1 08:00:00 2026	44
-29	Mount count	88	44
-30	Maximum mount count	-1	44
-31	Last checked	Sun Dec 15 09:00:00 2024	44
-32	Check interval	0 (<none>)	44
-33	Reserved blocks uid	0 (user root)	44
-34	Reserved blocks gid	0 (group root)	44
-35	First inode	11	44
-36	Inode size	256	44
-37	Required extra isize	32	44
-38	Desired extra isize	32	44
-39	Journal inode	8	44
-40	Default directory hash	half_md4	44
-41	Directory Hash Seed	9f8e7d6c-5b4a-3c2d-1e0f-a9b8c7d6e5f4	44
-42	Journal backup	inode blocks	44
-43	Checksum type	crc32c	44
-44	Checksum	0x1122aabb	44
+n	key	value
+1	Filesystem volume name	<none>
+2	Last mounted on	/
+3	Filesystem UUID	8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d
+4	Filesystem magic number	0xEF53
+5	Filesystem revision #	1 (dynamic)
+6	Filesystem features	has_journal ext_attr resize_inode dir_index filetype extent 64bit flex_bg sparse_super large_file huge_file dir_nlink extra_isize metadata_csum
+7	Filesystem flags	signed_directory_hash
+8	Default mount options	user_xattr acl
+9	Filesystem state	clean
+10	Errors behavior	Continue
+11	Filesystem OS type	Linux
+12	Inode count	3276800
+13	Block count	13107200
+14	Reserved block count	655360
+15	Free blocks	9123456
+16	Free inodes	3200123
+17	First block	0
+18	Block size	4096
+19	Fragment size	4096
+20	Reserved GDT blocks	1024
+21	Blocks per group	32768
+22	Fragments per group	32768
+23	Inodes per group	8192
+24	Inode blocks per group	512
+25	Flex block group size	16
+26	Filesystem created	Sun Dec 15 09:00:00 2024
+27	Last mount time	Tue Jul  1 08:00:00 2026
+28	Last write time	Tue Jul  1 08:00:00 2026
+29	Mount count	88
+30	Maximum mount count	-1
+31	Last checked	Sun Dec 15 09:00:00 2024
+32	Check interval	0 (<none>)
+33	Reserved blocks uid	0 (user root)
+34	Reserved blocks gid	0 (group root)
+35	First inode	11
+36	Inode size	256
+37	Required extra isize	32
+38	Desired extra isize	32
+39	Journal inode	8
+40	Default directory hash	half_md4
+41	Directory Hash Seed	9f8e7d6c-5b4a-3c2d-1e0f-a9b8c7d6e5f4
+42	Journal backup	inode blocks
+43	Checksum type	crc32c
+44	Checksum	0x1122aabb

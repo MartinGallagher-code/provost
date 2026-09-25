@@ -1,3 +1,3 @@
-n	Services	to	be	total_entries
-1	systemctl	restart	nginx.service	2
-2	systemctl	restart	postgresql@16-main.service	2
+n	Services	to	be
+1	systemctl	restart	nginx.service
+2	systemctl	restart	postgresql@16-main.service

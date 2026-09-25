@@ -1,6 +1,6 @@
-n	TARGET	SOURCE	FSTYPE	OPTIONS	total_entries
-1	/	/dev/sda1	ext4	rw,relatime	5
-2	├─/boot/efi	/dev/nvme0n1p1	vfat	rw,relatime,fmask=0022	5
-3	├─/home	/dev/sdb1	xfs	rw,relatime,attr2,inode64	5
-4	├─/var	/dev/sda3	ext4	rw,relatime	5
-5	└─/tmp	tmpfs	tmpfs	rw,nosuid,nodev,size=2097152k	5
+n	TARGET	SOURCE	FSTYPE	OPTIONS
+1	/	/dev/sda1	ext4	rw,relatime
+2	├─/boot/efi	/dev/nvme0n1p1	vfat	rw,relatime,fmask=0022
+3	├─/home	/dev/sdb1	xfs	rw,relatime,attr2,inode64
+4	├─/var	/dev/sda3	ext4	rw,relatime
+5	└─/tmp	tmpfs	tmpfs	rw,nosuid,nodev,size=2097152k

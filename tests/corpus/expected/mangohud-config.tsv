@@ -1,5 +1,5 @@
-n	key	value	total_entries
-1	fps_limit	144	4
-2	gpu_stats	true	4
-3	cpu_stats	true	4
-4	frame_timing	1	4
+n	key	value
+1	fps_limit	144
+2	gpu_stats	true
+3	cpu_stats	true
+4	frame_timing	1

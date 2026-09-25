@@ -1,4 +1,4 @@
-n	timestamp	message	total_entries
-1	1/44	Compiling src/main.cc	3
-2	22/44	Compiling src/parser.cc	3
-3	44/44	Linking app	3
+n	timestamp	message
+1	1/44	Compiling src/main.cc
+2	22/44	Compiling src/parser.cc
+3	44/44	Linking app

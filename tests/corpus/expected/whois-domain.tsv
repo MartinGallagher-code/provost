@@ -1,7 +1,7 @@
-n	key	value	total_entries
-1	Domain Name	EXAMPLE.COM	6
-2	Registrar	Example Registrar, Inc.	6
-3	Creation Date	1995-08-14T04:00:00Z	6
-4	Registry Expiry Date	2026-08-13T04:00:00Z	6
-5	Name Server	A.IANA-SERVERS.NET	6
-6	Name Server	B.IANA-SERVERS.NET	6
+n	key	value
+1	Domain Name	EXAMPLE.COM
+2	Registrar	Example Registrar, Inc.
+3	Creation Date	1995-08-14T04:00:00Z
+4	Registry Expiry Date	2026-08-13T04:00:00Z
+5	Name Server	A.IANA-SERVERS.NET
+6	Name Server	B.IANA-SERVERS.NET

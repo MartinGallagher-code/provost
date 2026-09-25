@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	H	I	J	total_entries
-1	alice	pts/0	192.168.1.10	Mon	Jul	6	10:01	still	logged	in	3
-2	bob	pts/1	192.168.1.11	Mon	Jul	6	09:45	-	09:58	(00:13)	3
-3	reboot	system	boot	6.1.0-18-amd64	Mon	Jul	6	09:00	still	running	3
+n	A	B	C	D	E	F	G	H	I	J
+1	alice	pts/0	192.168.1.10	Mon	Jul	6	10:01	still	logged	in
+2	bob	pts/1	192.168.1.11	Mon	Jul	6	09:45	-	09:58	(00:13)
+3	reboot	system	boot	6.1.0-18-amd64	Mon	Jul	6	09:00	still	running

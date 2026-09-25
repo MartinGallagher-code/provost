@@ -1,4 +1,4 @@
-n	host	cpu_pct	mem_mb	total_entries
-1	web-01	12.4	2048	3
-2	web-02	47.9	3120	3
-3	db-primary	88.1	15872	3
+n	host	cpu_pct	mem_mb
+1	web-01	12.4	2048
+2	web-02	47.9	3120
+3	db-primary	88.1	15872

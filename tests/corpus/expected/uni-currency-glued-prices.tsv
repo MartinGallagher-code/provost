@@ -1,6 +1,6 @@
-n	SKU	NAME	PRICE	total_entries
-1	1001	Coffee	€3.50	5
-2	1002	Tea	£2.80	5
-3	1003	Rice	¥1200	5
-4	1004	Spice	₹250	5
-5	1005	Book	$12.99	5
+n	SKU	NAME	PRICE
+1	1001	Coffee	€3.50
+2	1002	Tea	£2.80
+3	1003	Rice	¥1200
+4	1004	Spice	₹250
+5	1005	Book	$12.99

@@ -1,5 +1,5 @@
-n	ID	AUTHOR	PAPERS	total_entries
-1	a1	Erdős	1525	4
-2	a2	Poincaré	500	4
-3	a3	Schrödinger	218	4
-4	a4	Curie	341	4
+n	ID	AUTHOR	PAPERS
+1	a1	Erdős	1525
+2	a2	Poincaré	500
+3	a3	Schrödinger	218
+4	a4	Curie	341

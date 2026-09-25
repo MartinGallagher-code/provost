@@ -1,3 +1,3 @@
-n	field	count	sum	mean	min	max	total_entries
-1	latency	88201	4102839	46.51	2	881	2
-2	bytes	88201	1288490188	14609.11	120	88201	2
+n	field	count	sum	mean	min	max
+1	latency	88201	4102839	46.51	2	881
+2	bytes	88201	1288490188	14609.11	120	88201

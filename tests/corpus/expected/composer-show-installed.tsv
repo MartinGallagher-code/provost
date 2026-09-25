@@ -1,4 +1,4 @@
-n	A	total_entries
-1	monolog/monolog                    3.6.0   Logging for PHP	3
-2	symfony/console                    7.1.1   Eases the creation of CLI commands	3
-3	guzzlehttp/guzzle                  7.8.1   Guzzle HTTP client library	3
+n	A
+1	monolog/monolog                    3.6.0   Logging for PHP
+2	symfony/console                    7.1.1   Eases the creation of CLI commands
+3	guzzlehttp/guzzle                  7.8.1   Guzzle HTTP client library

@@ -1,4 +1,4 @@
 n	Platform	Python_version	Current_installation_scheme	stdlib	platstdlib	purelib	platlib	include	platinclude	scripts	data	ABIFLAGS	AR	ARFLAGS	CC	CXX	LDSHARED	prefix	exec_prefix
 1	"linux-x86_64"	"3.11"	"posix_prefix"																
 2				"/usr/lib/python3.11"	"/usr/lib/python3.11"	"/usr/lib/python3.11/site-packages"	"/usr/lib/python3.11/site-packages"	"/usr/include/python3.11"	"/usr/include/python3.11"	"/usr/bin"	"/usr"								
-3												""	"ar"	"rcs"	"gcc_-pthread"	"g++_-pthread"	"gcc_-pthread_-shared"	"/usr"	"/usr"
+3												""	"ar"	"rcs"	"gcc -pthread"	"g++ -pthread"	"gcc -pthread -shared"	"/usr"	"/usr"

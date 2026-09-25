@@ -1,3 +1,3 @@
-n	Id	Name	total_entries
-1	abc123	feature-flags	2
-2	def456	rate-limits	2
+n	Id	Name
+1	abc123	feature-flags
+2	def456	rate-limits

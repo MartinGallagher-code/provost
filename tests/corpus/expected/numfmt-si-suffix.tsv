@@ -1,4 +1,4 @@
-n	metric	bytes	human	total_entries
-1	ingress	1500000000	1.5G	3
-2	egress	900000000	900M	3
-3	cache	4096	4.0Ki	3
+n	metric	bytes	human
+1	ingress	1500000000	1.5G
+2	egress	900000000	900M
+3	cache	4096	4.0Ki

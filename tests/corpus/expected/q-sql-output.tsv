@@ -1,4 +1,4 @@
-n	region	total	total_entries
-1	eu-west-1	881204	3
-2	us-east-2	1509322	3
-3	ap-south-1	774210	3
+n	region	total
+1	eu-west-1	881204
+2	us-east-2	1509322
+3	ap-south-1	774210

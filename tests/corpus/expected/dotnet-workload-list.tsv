@@ -1,5 +1,5 @@
-n	Installed	Manifest	Version	Installation	Workload	total_entries
-1	android	34.0.113	/8.0.100	SDK 8.0.400		4
-2	ios	17.5.809	5/8.0.100	SDK 8.0.400		4
-3	maui-andr	8.0.72/8	.0.100	SDK 8.0.400	oid	4
-4	wasm-tool	8.0.7/8.	0.100	SDK 8.0.400	s	4
+n	Installed	Manifest	Version	Installation	Workload
+1	android	34.0.113	/8.0.100	SDK 8.0.400	
+2	ios	17.5.809	5/8.0.100	SDK 8.0.400	
+3	maui-andr	8.0.72/8	.0.100	SDK 8.0.400	oid
+4	wasm-tool	8.0.7/8.	0.100	SDK 8.0.400	s

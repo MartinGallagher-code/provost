@@ -1,4 +1,4 @@
-n	A	B	C	total_entries
-1	web	running	(virtualbox)	3
-2	db	running	(virtualbox)	3
-3	cache	poweroff	(virtualbox)	3
+n	A	B	C
+1	web	running	(virtualbox)
+2	db	running	(virtualbox)
+3	cache	poweroff	(virtualbox)

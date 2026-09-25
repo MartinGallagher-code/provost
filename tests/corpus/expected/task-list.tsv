@@ -1,5 +1,5 @@
-n	key	value	total_entries
-1	task	Available tasks for this project:	4
-2	build	Build the binary	4
-3	test	Run tests	4
-4	docker	Build docker image	4
+n	key	value
+1	task	Available tasks for this project:
+2	build	Build the binary
+3	test	Run tests
+4	docker	Build docker image

@@ -1,7 +1,7 @@
-n	A	total_entries
-1	INFO  10:22:01 HaplotypeCaller - Initializing engine	6
-2	INFO  10:22:03 HaplotypeCaller - Done initializing engine	6
-3	INFO  10:25:44 ProgressMeter -       1:15000000    3.7    120000   32432.4	6
-4	INFO  10:29:12 ProgressMeter -       2:48000000    7.2    248000   34444.4	6
-5	INFO  10:33:50 HaplotypeCaller - Shutting down engine	6
-6	INFO  10:33:50 HaplotypeCaller - Total runtime 709.11 secs, variants called: 41288	6
+n	A
+1	INFO  10:22:01 HaplotypeCaller - Initializing engine
+2	INFO  10:22:03 HaplotypeCaller - Done initializing engine
+3	INFO  10:25:44 ProgressMeter -       1:15000000    3.7    120000   32432.4
+4	INFO  10:29:12 ProgressMeter -       2:48000000    7.2    248000   34444.4
+5	INFO  10:33:50 HaplotypeCaller - Shutting down engine
+6	INFO  10:33:50 HaplotypeCaller - Total runtime 709.11 secs, variants called: 41288

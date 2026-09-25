@@ -1,6 +1,6 @@
-n	Process	RSS	VSZ	Time	total_entries
-1	postgres	3.5GiB	12.1GiB	2h34m	5
-2	redis	512MiB	1.2GiB	1d2h	5
-3	nginx	45.2MiB	256MiB	14m3s	5
-4	node	1.1GiB	4.8GiB	5h12m	5
-5	java	2.7GiB	9.9GiB	30m	5
+n	Process	RSS	VSZ	Time
+1	postgres	3.5GiB	12.1GiB	2h34m
+2	redis	512MiB	1.2GiB	1d2h
+3	nginx	45.2MiB	256MiB	14m3s
+4	node	1.1GiB	4.8GiB	5h12m
+5	java	2.7GiB	9.9GiB	30m

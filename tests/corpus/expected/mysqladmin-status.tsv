@@ -1,2 +1,2 @@
-n	Uptime	Threads	Questions	Slow_queries	Opens	Flush_tables	Open_tables	Queries_per_second_avg	total_entries
-1	58234	3	129483	2	187	3	158	2.223	1
+n	Uptime	Threads	Questions	Slow_queries	Opens	Flush_tables	Open_tables	Queries_per_second_avg
+1	58234	3	129483	2	187	3	158	2.223

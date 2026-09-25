@@ -1,6 +1,6 @@
-n	NAME	COMPLETIONS	DURATION	AGE	total_entries
-1	db-migrate-28194720	1/1	34s	41d	5
-2	cache-warm-28201440	1/1	1m12s	28d	5
-3	report-export-28210080	0/1	5m3s	3h	5
-4	image-gc-28194001	3/3	2m41s	63d	5
-5	backup-nightly-28210320	1/1	4m18s	12h	5
+n	NAME	COMPLETIONS	DURATION	AGE
+1	db-migrate-28194720	1/1	34s	41d
+2	cache-warm-28201440	1/1	1m12s	28d
+3	report-export-28210080	0/1	5m3s	3h
+4	image-gc-28194001	3/3	2m41s	63d
+5	backup-nightly-28210320	1/1	4m18s	12h

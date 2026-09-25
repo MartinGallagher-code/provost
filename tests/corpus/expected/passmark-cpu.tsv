@@ -1,8 +1,8 @@
-n	key	value	total_entries
-1	CPU Mark	48210	7
-2	Integer Math	120488 MOps/Sec	7
-3	Floating Point Math	88201 MOps/Sec	7
-4	Prime Numbers	4821 Million Primes/Sec	7
-5	Compression	412100 KB/Sec	7
-6	Encryption	12044 MB/Sec	7
-7	Single Threaded	3588 MOps/Sec	7
+n	key	value
+1	CPU Mark	48210
+2	Integer Math	120488 MOps/Sec
+3	Floating Point Math	88201 MOps/Sec
+4	Prime Numbers	4821 Million Primes/Sec
+5	Compression	412100 KB/Sec
+6	Encryption	12044 MB/Sec
+7	Single Threaded	3588 MOps/Sec

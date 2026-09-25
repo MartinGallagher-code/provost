@@ -1,5 +1,5 @@
-n	run_id	status	start_time	metrics_rmse	metrics_r2	params_max_depth	total_entries
-1	7a1c9e2f4b8d6a0e3c5f7b9d1a2e4c6f	FINISHED	2026-07-09 10:12:00	0.4210	0.8814	8	4
-2	b3d5f7091a2c4e6b8d0f2a4c6e8b0d2f	FINISHED	2026-07-09 11:03:44	0.4055	0.8902	12	4
-3	c5f709112a3c5e7b9d1f3a5c7e9b1d3f	FAILED	2026-07-09 11:44:19	NaN	NaN	16	4
-4	d7091a223b4c6e8f0a2d4c6e8b0d2f4a	RUNNING	2026-07-09 12:20:05	NaN	NaN	10	4
+n	run_id	status	start_time	metrics_rmse	metrics_r2	params_max_depth
+1	7a1c9e2f4b8d6a0e3c5f7b9d1a2e4c6f	FINISHED	2026-07-09 10:12:00	0.4210	0.8814	8
+2	b3d5f7091a2c4e6b8d0f2a4c6e8b0d2f	FINISHED	2026-07-09 11:03:44	0.4055	0.8902	12
+3	c5f709112a3c5e7b9d1f3a5c7e9b1d3f	FAILED	2026-07-09 11:44:19	NaN	NaN	16
+4	d7091a223b4c6e8f0a2d4c6e8b0d2f4a	RUNNING	2026-07-09 12:20:05	NaN	NaN	10

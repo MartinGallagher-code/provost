@@ -1,3 +1,3 @@
-n	Name	State	IPv4	Image	total_entries
-1	primary	Running	10.0.4.2	Ubuntu 24.04 LTS	2
-2	builder	Stopped	--	Ubuntu 22.04 LTS	2
+n	Name	State	IPv4	Image
+1	primary	Running	10.0.4.2	Ubuntu 24.04 LTS
+2	builder	Stopped	--	Ubuntu 22.04 LTS

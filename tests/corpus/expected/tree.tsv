@@ -1,9 +1,9 @@
-n	depth	parent	name	total_entries
-1	1	.	data	8
-2	2	data	raw.csv	8
-3	2	data	clean.csv	8
-4	1	.	src	8
-5	2	src	main.sh	8
-6	2	src	util.sh	8
-7	1	.	README.md	8
-8	1	.	LICENSE	8
+n	depth	parent	name
+1	1	.	data
+2	2	data	raw.csv
+3	2	data	clean.csv
+4	1	.	src
+5	2	src	main.sh
+6	2	src	util.sh
+7	1	.	README.md
+8	1	.	LICENSE

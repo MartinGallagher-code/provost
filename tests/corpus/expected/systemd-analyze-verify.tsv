@@ -1,5 +1,5 @@
-n	name	value	total_entries
-1	/etc/systemd/system/webapp.service	9: Unknown key name 'Enviroment' in section 'Service', ignoring.	4
-2	/etc/systemd/system/webapp.service	14: Executable path is not absolute: node server.js	4
-3	/etc/systemd/system/cache-warm.service	Command ExecStart= is not executable: /opt/warm.sh	4
-4	webapp.service	Unit configuration has fatal error, unit will not be started.	4
+n	name	value
+1	/etc/systemd/system/webapp.service	9: Unknown key name 'Enviroment' in section 'Service', ignoring.
+2	/etc/systemd/system/webapp.service	14: Executable path is not absolute: node server.js
+3	/etc/systemd/system/cache-warm.service	Command ExecStart= is not executable: /opt/warm.sh
+4	webapp.service	Unit configuration has fatal error, unit will not be started.

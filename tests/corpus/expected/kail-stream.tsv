@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	total_entries
-1	default/api-7a1d8-xy12[api]:	2026-07-10T14:30:01Z	INFO	handler	request_id=9af3	path=/v1/orders	status=200	3
-2	default/api-7a1d8-xy12[api]:	2026-07-10T14:30:02Z	WARN	db	slow	query	took=812ms	3
-3	default/worker-3b2c-zz98[worker]:	2026-07-10T14:30:03Z	INFO	job	processed	queue=emails	count=14	3
+n	A	B	C	D	E	F	G
+1	default/api-7a1d8-xy12[api]:	2026-07-10T14:30:01Z	INFO	handler	request_id=9af3	path=/v1/orders	status=200
+2	default/api-7a1d8-xy12[api]:	2026-07-10T14:30:02Z	WARN	db	slow	query	took=812ms
+3	default/worker-3b2c-zz98[worker]:	2026-07-10T14:30:03Z	INFO	job	processed	queue=emails	count=14

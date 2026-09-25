@@ -1,7 +1,7 @@
-n	PID	USER	PR	NI	VIRT	RES	%CPU	%MEM	COMMAND	total_entries
-1	1234	root	20	0	123456	12345	5.3	0.8	systemd	6
-2	2345	www	20	0	234567	23456	12.1	1.5	nginx	6
-3	3456	mysql	20	0	987654	87654	25.7	6.2	mysqld	6
-4	4567	postg	20	0	345678	34567	8.9	2.3	postgres	6
-5	5678	redis	20	0	45678	4567	2.1	0.3	redis-server	6
-6	6789	user	20	0	567890	56789	15.4	4.1	chrome	6
+n	PID	USER	PR	NI	VIRT	RES	%CPU	%MEM	COMMAND
+1	1234	root	20	0	123456	12345	5.3	0.8	systemd
+2	2345	www	20	0	234567	23456	12.1	1.5	nginx
+3	3456	mysql	20	0	987654	87654	25.7	6.2	mysqld
+4	4567	postg	20	0	345678	34567	8.9	2.3	postgres
+5	5678	redis	20	0	45678	4567	2.1	0.3	redis-server
+6	6789	user	20	0	567890	56789	15.4	4.1	chrome

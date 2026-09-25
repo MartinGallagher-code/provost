@@ -1,5 +1,5 @@
-n	lscpu.field	lscpu.data	total_entries
-1	Architecture:	x86_64	4
-2	CPU(s):	16	4
-3	Model name:	AMD Ryzen 7 5800X 8-Core Processor	4
-4	Thread(s) per core:	2	4
+n	lscpu.field	lscpu.data
+1	Architecture:	x86_64
+2	CPU(s):	16
+3	Model name:	AMD Ryzen 7 5800X 8-Core Processor
+4	Thread(s) per core:	2

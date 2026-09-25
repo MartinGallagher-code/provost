@@ -1,9 +1,9 @@
-n	A	B	total_entries
-1	linux	usr/lib/modules/6.6.10-arch1-1/vmlinuz	8
-2	linux	usr/lib/modules/6.6.10-arch1-1/modules.dep	8
-3	linux	usr/lib/modules/6.6.10-arch1-1/kernel/	8
-4	bash	usr/bin/bash	8
-5	bash	usr/share/man/man1/bash.1.gz	8
-6	git	usr/bin/git	8
-7	git	usr/lib/git-core/git-add	8
-8	git	usr/share/doc/git/RelNotes.txt	8
+n	A	B
+1	linux	usr/lib/modules/6.6.10-arch1-1/vmlinuz
+2	linux	usr/lib/modules/6.6.10-arch1-1/modules.dep
+3	linux	usr/lib/modules/6.6.10-arch1-1/kernel/
+4	bash	usr/bin/bash
+5	bash	usr/share/man/man1/bash.1.gz
+6	git	usr/bin/git
+7	git	usr/lib/git-core/git-add
+8	git	usr/share/doc/git/RelNotes.txt

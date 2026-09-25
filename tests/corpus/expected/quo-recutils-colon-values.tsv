@@ -1,3 +1,3 @@
 n	Name	Schedule	Note
-1	Acme_API	09:00-17:00	rate_limit:_100/min,_burst:_20
-2	Globex	24/7	no_auth;_open:_true
+1	Acme API	09:00-17:00	rate limit: 100/min, burst: 20
+2	Globex	24/7	no auth; open: true

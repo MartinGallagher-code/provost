@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	H	total_entries
-1	parse/small	time:	[412.1	ns	414.2	ns	416.8	ns]	3
-2	change:	[-5.83%	-4.20%	-2.10%]					3
-3	parse/large	time:	[12.10	µs	12.20	µs	12.31	µs]	3
+n	A	B	C	D	E	F	G	H
+1	parse/small	time:	[412.1	ns	414.2	ns	416.8	ns]
+2	change:	[-5.83%	-4.20%	-2.10%]				
+3	parse/large	time:	[12.10	µs	12.20	µs	12.31	µs]

@@ -1,4 +1,4 @@
-n	A	total_entries
-1	Sam, I detected a few issues in this Redis instance memory implants:	3
-2	* Peak memory: allocator is 1.42x the peak.	3
-3	* High fragmentation: fragmentation ratio 1.52.	3
+n	A
+1	Sam, I detected a few issues in this Redis instance memory implants:
+2	* Peak memory: allocator is 1.42x the peak.
+3	* High fragmentation: fragmentation ratio 1.52.

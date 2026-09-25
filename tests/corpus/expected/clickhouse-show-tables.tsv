@@ -1,7 +1,7 @@
-n	A	total_entries
-1	events	6
-2	events_local	6
-3	metrics	6
-4	metrics_agg	6
-5	sessions	6
-6	users	6
+n	A
+1	events
+2	events_local
+3	metrics
+4	metrics_agg
+5	sessions
+6	users

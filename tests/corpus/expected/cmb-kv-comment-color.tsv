@@ -1,7 +1,7 @@
-n	runtime	facts	total_entries
-1	version	=_1.29.4	6
-2	#	build_metadata	6
-3	commit	=_deadbeef	6
-4	go_version	=_go1.22.3	6
-5	#	limits	6
-6	max_procs	=_32	6
+n	runtime	facts
+1	version	= 1.29.4
+2	#	build metadata
+3	commit	= deadbeef
+4	go_version	= go1.22.3
+5	#	limits
+6	max_procs	= 32

@@ -1,5 +1,5 @@
-n	QTY	UNIT	VALUE	total_entries
-1	area	m²	1024	4
-2	volume	m³	64	4
-3	accel	m·s⁻²	9.81	4
-4	freq	s⁻¹	440	4
+n	QTY	UNIT	VALUE
+1	area	m²	1024
+2	volume	m³	64
+3	accel	m·s⁻²	9.81
+4	freq	s⁻¹	440

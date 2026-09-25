@@ -1,5 +1,5 @@
-n	perms	links	owner	group	size	month	day	time	name	total_entries
-1	-rw-r--r--	1	用户	组	4096	Jul	11	10:24	报告.txt	4
-2	drwxr-xr-x	2	root	root	8192	Jul	10	09:00	文档目录	4
-3	-rwxr-xr-x	1	用户	组	128	Jun	30	23:59	脚本.sh	4
-4	lrwxrwxrwx	1	root	root	12	Jul	01	00:00	链接	4
+n	perms	links	owner	group	size	month	day	time	name
+1	-rw-r--r--	1	用户	组	4096	Jul	11	10:24	报告.txt
+2	drwxr-xr-x	2	root	root	8192	Jul	10	09:00	文档目录
+3	-rwxr-xr-x	1	用户	组	128	Jun	30	23:59	脚本.sh
+4	lrwxrwxrwx	1	root	root	12	Jul	01	00:00	链接

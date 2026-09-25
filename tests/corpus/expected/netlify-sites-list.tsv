@@ -1,10 +1,10 @@
-n	Name:	acme-marketing	total_entries
-1	Site ID:	9f2a1b3c-4d5e-6f70-8192-a3b4c5d6e7f8	9
-2	Site URL:	https://acme-marketing.netlify.app	9
-3	Repo URL:	https://github.com/acme/marketing	9
-4	Account:	Acme Corp	9
-5	Name:	acme-docs	9
-6	Site ID:	1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809	9
-7	Site URL:	https://acme-docs.netlify.app	9
-8	Repo URL:	https://github.com/acme/docs	9
-9	Account:	Acme Corp	9
+n	Name:	acme-marketing
+1	Site ID:	9f2a1b3c-4d5e-6f70-8192-a3b4c5d6e7f8
+2	Site URL:	https://acme-marketing.netlify.app
+3	Repo URL:	https://github.com/acme/marketing
+4	Account:	Acme Corp
+5	Name:	acme-docs
+6	Site ID:	1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809
+7	Site URL:	https://acme-docs.netlify.app
+8	Repo URL:	https://github.com/acme/docs
+9	Account:	Acme Corp

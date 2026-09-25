@@ -1,3 +1,3 @@
-n	depth	parent	name	total_entries
-1	1	📦 Supply Chain Security Related artifacts for an image: ghcr.io/example/api:v2	🔐 Signatures for an image tag: ghcr.io/example/api:sha256-abc.sig	2
-2	0	🔐 Signatures for an image tag: ghcr.io/example/api:sha256-abc.sig	🍒 sha256:def456	2
+n	depth	parent	name
+1	1	📦 Supply Chain Security Related artifacts for an image: ghcr.io/example/api:v2	🔐 Signatures for an image tag: ghcr.io/example/api:sha256-abc.sig
+2	0	🔐 Signatures for an image tag: ghcr.io/example/api:sha256-abc.sig	🍒 sha256:def456

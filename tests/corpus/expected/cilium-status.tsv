@@ -1,16 +1,16 @@
-n	key	value	total_entries
-1	Cilium	OK	15
-2	Operator	OK	15
-3	Envoy DaemonSet	OK	15
-4	Hubble Relay	OK	15
-5	ClusterMesh	disabled	15
-6	DaemonSet              cilium             Desired	5, Ready: 5/5, Available: 5/5	15
-7	DaemonSet              cilium-envoy       Desired	5, Ready: 5/5, Available: 5/5	15
-8	Deployment             cilium-operator    Desired	2, Ready: 2/2, Available: 2/2	15
-9	Deployment             hubble-relay       Desired	1, Ready: 1/1, Available: 1/1	15
-10	Containers	cilium             Running: 5	15
-11	cilium-operator    Running	2	15
-12	Cluster Pods	142/142 managed by Cilium	15
-13	Helm chart version	1.15.5	15
-14	Image versions         cilium             quay.io/cilium/cilium	v1.15.5: 5	15
-15	cilium-operator    quay.io/cilium/operator-generic	v1.15.5: 2	15
+n	key	value
+1	Cilium	OK
+2	Operator	OK
+3	Envoy DaemonSet	OK
+4	Hubble Relay	OK
+5	ClusterMesh	disabled
+6	DaemonSet              cilium             Desired	5, Ready: 5/5, Available: 5/5
+7	DaemonSet              cilium-envoy       Desired	5, Ready: 5/5, Available: 5/5
+8	Deployment             cilium-operator    Desired	2, Ready: 2/2, Available: 2/2
+9	Deployment             hubble-relay       Desired	1, Ready: 1/1, Available: 1/1
+10	Containers	cilium             Running: 5
+11	cilium-operator    Running	2
+12	Cluster Pods	142/142 managed by Cilium
+13	Helm chart version	1.15.5
+14	Image versions         cilium             quay.io/cilium/cilium	v1.15.5: 5
+15	cilium-operator    quay.io/cilium/operator-generic	v1.15.5: 2

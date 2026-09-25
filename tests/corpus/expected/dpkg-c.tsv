@@ -1,8 +1,8 @@
-n	permissions	owner	size	date	time	path	total_entries
-1	-rw-r--r--	root/root	213	2024-02-11	14:02	./usr/share/doc/hello/README	7
-2	drwxr-xr-x	root/root	0	2024-02-11	14:02	./usr/bin/dir	7
-3	-rwxr-xr-x	root/root	27112	2024-02-11	14:02	./usr/bin/hello	7
-4	-rw-r--r--	root/root	1210	2024-02-11	14:02	./usr/share/man/man1/hello.1.gz	7
-5	-rw-r--r--	root/root	582	2024-02-11	14:02	./usr/share/doc/hello/copyright	7
-6	drwxr-xr-x	root/root	0	2024-02-11	14:02	./usr/share/info/dir	7
-7	-rw-r--r--	root/root	3540	2024-02-11	14:02	./usr/share/info/hello.info.gz	7
+n	permissions	owner	size	date	time	path
+1	-rw-r--r--	root/root	213	2024-02-11	14:02	./usr/share/doc/hello/README
+2	drwxr-xr-x	root/root	0	2024-02-11	14:02	./usr/bin/dir
+3	-rwxr-xr-x	root/root	27112	2024-02-11	14:02	./usr/bin/hello
+4	-rw-r--r--	root/root	1210	2024-02-11	14:02	./usr/share/man/man1/hello.1.gz
+5	-rw-r--r--	root/root	582	2024-02-11	14:02	./usr/share/doc/hello/copyright
+6	drwxr-xr-x	root/root	0	2024-02-11	14:02	./usr/share/info/dir
+7	-rw-r--r--	root/root	3540	2024-02-11	14:02	./usr/share/info/hello.info.gz

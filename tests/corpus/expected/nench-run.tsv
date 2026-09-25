@@ -1,3 +1,3 @@
 n	CPU	ioping	min/avg/max/mdev
-2	AES-encrypting_500_MB		
-3		sequential_read_speed	44.2_us_/_88.4_us_/_412.1_us_/_22.1_us
+2	AES-encrypting 500 MB		
+3		sequential read speed	44.2 us / 88.4 us / 412.1 us / 22.1 us

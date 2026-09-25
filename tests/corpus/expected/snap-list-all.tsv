@@ -1,4 +1,4 @@
-n	Name	Version	Rev	Tracking	Publisher	Notes	total_entries
-1	core22	20240408	1380	latest/stable	canonical✓	base	3
-2	firefox	127.0.1	4321	latest/stable	mozilla✓	-	3
-3	snapd	2.63	21465	latest/stable	canonical✓	snapd	3
+n	Name	Version	Rev	Tracking	Publisher	Notes
+1	core22	20240408	1380	latest/stable	canonical✓	base
+2	firefox	127.0.1	4321	latest/stable	mozilla✓	-
+3	snapd	2.63	21465	latest/stable	canonical✓	snapd

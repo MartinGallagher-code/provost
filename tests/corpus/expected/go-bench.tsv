@@ -1,9 +1,9 @@
-n	goos:	linux	total_entries
-1	goarch:	amd64	8
-2	pkg:	example.com/parser	8
-3	cpu:	Intel(R)_Xeon(R)_Gold_6248_CPU_@_2.50GHz	8
-4	BenchmarkParseSmall-8	4821021_248.4_ns/op_128_B/op_4_allocs/op	8
-5	BenchmarkParseLarge-8	120488_12044.0_ns/op_10248_B/op_88_allocs/op	8
-6	BenchmarkEncode-8	1204882_1002.1_ns/op_2048_B/op_12_allocs/op	8
-7	PASS		8
-8	ok	example.com/parser_8.821s	8
+n	goos:	linux
+1	goarch:	amd64
+2	pkg:	example.com/parser
+3	cpu:	Intel(R) Xeon(R) Gold 6248 CPU @ 2.50GHz
+4	BenchmarkParseSmall-8	4821021 248.4 ns/op 128 B/op 4 allocs/op
+5	BenchmarkParseLarge-8	120488 12044.0 ns/op 10248 B/op 88 allocs/op
+6	BenchmarkEncode-8	1204882 1002.1 ns/op 2048 B/op 12 allocs/op
+7	PASS	
+8	ok	example.com/parser 8.821s

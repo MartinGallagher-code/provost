@@ -1,14 +1,14 @@
-n	A	B	C	total_entries
-1	rails	(7.0.4)		13
-2	actioncable	(=	7.0.4)	13
-3	actionpack	(=	7.0.4)	13
-4	actionview	(=	7.0.4)	13
-5	activesupport	(=	7.0.4)	13
-6	activesupport	(=	7.0.4)	13
-7	nio4r	(~>	2.0)	13
-8	activerecord	(=	7.0.4)	13
-9	activemodel	(=	7.0.4)	13
-10	activesupport	(=	7.0.4)	13
-11	railties	(=	7.0.4)	13
-12	thor	(~>	1.0)	13
-13	method_source			13
+n	A	B	C
+1	rails	(7.0.4)	
+2	actioncable	(=	7.0.4)
+3	actionpack	(=	7.0.4)
+4	actionview	(=	7.0.4)
+5	activesupport	(=	7.0.4)
+6	activesupport	(=	7.0.4)
+7	nio4r	(~>	2.0)
+8	activerecord	(=	7.0.4)
+9	activemodel	(=	7.0.4)
+10	activesupport	(=	7.0.4)
+11	railties	(=	7.0.4)
+12	thor	(~>	1.0)
+13	method_source		

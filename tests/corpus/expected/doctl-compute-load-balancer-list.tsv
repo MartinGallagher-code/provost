@@ -1,3 +1,3 @@
-n	ID	IP	Name	Status	Created	At	Region	Size	Droplet	total_entries
-1	f1e2d3c4-b5a6-4978-8869-5a4b3c2d1e0f	159.203.44.12	prod-lb-01	active	2026-01-12T10:04:33Z	nyc3	lb-small	[412093881	412094552]	2
-2	a2b3c4d5-e6f7-4809-9a1b-6c5d4e3f2a1b	159.65.201.88	staging-lb	active	2026-04-30T15:22:47Z	sfo3	lb-small	[501228734]		2
+n	ID	IP	Name	Status	Created	At	Region	Size	Droplet
+1	f1e2d3c4-b5a6-4978-8869-5a4b3c2d1e0f	159.203.44.12	prod-lb-01	active	2026-01-12T10:04:33Z	nyc3	lb-small	[412093881	412094552]
+2	a2b3c4d5-e6f7-4809-9a1b-6c5d4e3f2a1b	159.65.201.88	staging-lb	active	2026-04-30T15:22:47Z	sfo3	lb-small	[501228734]	

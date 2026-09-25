@@ -1,20 +1,20 @@
-n	key	value	total_entries
-1	SELinux status	enabled	19
-2	SELinuxfs mount	/sys/fs/selinux	19
-3	SELinux root directory	/etc/selinux	19
-4	Loaded policy name	targeted	19
-5	Current mode	enforcing	19
-6	Mode from config file	enforcing	19
-7	Policy MLS status	enabled	19
-8	Policy deny_unknown status	allowed	19
-9	Memory protection checking	actual (secure)	19
-10	Max kernel policy version	33	19
-11	Process contexts		19
-12	Current context	unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023	19
-13	Init context	system_u:system_r:init_t:s0	19
-14	/usr/sbin/sshd                  system_u	system_r:sshd_t:s0-s0:c0.c1023	19
-15	File contexts		19
-16	Controlling terminal	unconfined_u:object_r:user_devpts_t:s0	19
-17	/etc/passwd                     system_u	object_r:passwd_file_t:s0	19
-18	/etc/shadow                     system_u	object_r:shadow_t:s0	19
-19	/bin/bash                       system_u	object_r:shell_exec_t:s0	19
+n	key	value
+1	SELinux status	enabled
+2	SELinuxfs mount	/sys/fs/selinux
+3	SELinux root directory	/etc/selinux
+4	Loaded policy name	targeted
+5	Current mode	enforcing
+6	Mode from config file	enforcing
+7	Policy MLS status	enabled
+8	Policy deny_unknown status	allowed
+9	Memory protection checking	actual (secure)
+10	Max kernel policy version	33
+11	Process contexts	
+12	Current context	unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+13	Init context	system_u:system_r:init_t:s0
+14	/usr/sbin/sshd                  system_u	system_r:sshd_t:s0-s0:c0.c1023
+15	File contexts	
+16	Controlling terminal	unconfined_u:object_r:user_devpts_t:s0
+17	/etc/passwd                     system_u	object_r:passwd_file_t:s0
+18	/etc/shadow                     system_u	object_r:shadow_t:s0
+19	/bin/bash                       system_u	object_r:shell_exec_t:s0

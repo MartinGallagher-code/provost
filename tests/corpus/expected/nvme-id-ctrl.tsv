@@ -1,16 +1,16 @@
-n	key	value	total_entries
-1	vid	0x1e0f	15
-2	ssvid	0x1e0f	15
-3	sn	Z1B0A0YZ2340	15
-4	mn	KIOXIA KXG60ZNV1T02	15
-5	fr	AGGA4104	15
-6	rab	6	15
-7	ieee	8ce38e	15
-8	cmic	0	15
-9	mdts	7	15
-10	cntlid	0x1	15
-11	ver	0x10400	15
-12	oacs	0x17	15
-13	acl	3	15
-14	aerl	3	15
-15	nn	1	15
+n	key	value
+1	vid	0x1e0f
+2	ssvid	0x1e0f
+3	sn	Z1B0A0YZ2340
+4	mn	KIOXIA KXG60ZNV1T02
+5	fr	AGGA4104
+6	rab	6
+7	ieee	8ce38e
+8	cmic	0
+9	mdts	7
+10	cntlid	0x1
+11	ver	0x10400
+12	oacs	0x17
+13	acl	3
+14	aerl	3
+15	nn	1

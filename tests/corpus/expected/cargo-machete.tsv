@@ -1,5 +1,5 @@
-n	name	path	value	total_entries
-1	mycrate	/home/dev/proj/mycrate/Cargo.toml	chrono	4
-2	mycrate	/home/dev/proj/mycrate/Cargo.toml	lazy_static	4
-3	mycrate	/home/dev/proj/mycrate/Cargo.toml	regex	4
-4	api-server	/home/dev/proj/api-server/Cargo.toml	futures	4
+n	name	path	value
+1	mycrate	/home/dev/proj/mycrate/Cargo.toml	chrono
+2	mycrate	/home/dev/proj/mycrate/Cargo.toml	lazy_static
+3	mycrate	/home/dev/proj/mycrate/Cargo.toml	regex
+4	api-server	/home/dev/proj/api-server/Cargo.toml	futures

@@ -1,6 +1,6 @@
-n	NAME	SIZE	TYPE	MOUNTPOINT	total_entries
-1	sda	500G	disk		5
-2	sda1	512M	part	/boot	5
-3	sda2	499.5G	part	/	5
-4	nvme0n1	1T	disk		5
-5	nvme0n1p1	1T	part	/data	5
+n	NAME	SIZE	TYPE	MOUNTPOINT
+1	sda	500G	disk	
+2	sda1	512M	part	/boot
+3	sda2	499.5G	part	/
+4	nvme0n1	1T	disk	
+5	nvme0n1p1	1T	part	/data

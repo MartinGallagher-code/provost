@@ -1,6 +1,6 @@
-n	Name	Version	License	total_entries
-1	monolog/monolog	2.9.1	MIT	5
-2	psr/log	3.0.0	MIT	5
-3	symfony/console	6.3.4	MIT	5
-4	guzzlehttp/guzzle	7.8.0	MIT	5
-5	nikic/php-parser	4.18.0	BSD-3-Clause	5
+n	Name	Version	License
+1	monolog/monolog	2.9.1	MIT
+2	psr/log	3.0.0	MIT
+3	symfony/console	6.3.4	MIT
+4	guzzlehttp/guzzle	7.8.0	MIT
+5	nikic/php-parser	4.18.0	BSD-3-Clause

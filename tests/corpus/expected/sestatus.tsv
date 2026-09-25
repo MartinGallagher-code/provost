@@ -1,10 +1,10 @@
-n	key	value	total_entries
-1	SELinux status	enabled	9
-2	SELinuxfs mount	/sys/fs/selinux	9
-3	SELinux root directory	/etc/selinux	9
-4	Loaded policy name	targeted	9
-5	Current mode	enforcing	9
-6	Mode from config file	enforcing	9
-7	Policy MLS status	enabled	9
-8	Policy deny_unknown status	allowed	9
-9	Max kernel policy version	33	9
+n	key	value
+1	SELinux status	enabled
+2	SELinuxfs mount	/sys/fs/selinux
+3	SELinux root directory	/etc/selinux
+4	Loaded policy name	targeted
+5	Current mode	enforcing
+6	Mode from config file	enforcing
+7	Policy MLS status	enabled
+8	Policy deny_unknown status	allowed
+9	Max kernel policy version	33

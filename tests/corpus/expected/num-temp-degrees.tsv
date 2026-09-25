@@ -1,6 +1,6 @@
-n	Sensor	Temp	Signal	Load	total_entries
-1	cpu	42°C	-	25%	5
-2	gpu	58°C	-	71%	5
-3	wifi	39°C	-67dBm	12%	5
-4	ambient	21°C	-	-	5
-5	battery	33°C	-	88%	5
+n	Sensor	Temp	Signal	Load
+1	cpu	42°C	-	25%
+2	gpu	58°C	-	71%
+3	wifi	39°C	-67dBm	12%
+4	ambient	21°C	-	-
+5	battery	33°C	-	88%

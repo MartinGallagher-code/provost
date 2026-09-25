@@ -1,16 +1,16 @@
-n	key	value	total_entries
-1	.NET SDK		15
-2	Version	8.0.100	15
-3	Commit	57efcf1350	15
-4	Workload version	8.0.100-manifests.9f7c3e0f	15
-5	Runtime Environment		15
-6	OS Name	ubuntu	15
-7	OS Version	22.04	15
-8	OS Platform	Linux	15
-9	RID	linux-x64	15
-10	Base Path	/usr/share/dotnet/sdk/8.0.100/	15
-11	Host		15
-12	Version	8.0.0	15
-13	Architecture	x64	15
-14	Commit	5535e31a71	15
-15	.NET SDKs installed	6.0.417 [/usr/share/dotnet/sdk] 7.0.404 [/usr/share/dotnet/sdk] 8.0.100 [/usr/share/dotnet/sdk]	15
+n	key	value
+1	.NET SDK	
+2	Version	8.0.100
+3	Commit	57efcf1350
+4	Workload version	8.0.100-manifests.9f7c3e0f
+5	Runtime Environment	
+6	OS Name	ubuntu
+7	OS Version	22.04
+8	OS Platform	Linux
+9	RID	linux-x64
+10	Base Path	/usr/share/dotnet/sdk/8.0.100/
+11	Host	
+12	Version	8.0.0
+13	Architecture	x64
+14	Commit	5535e31a71
+15	.NET SDKs installed	6.0.417 [/usr/share/dotnet/sdk] 7.0.404 [/usr/share/dotnet/sdk] 8.0.100 [/usr/share/dotnet/sdk]

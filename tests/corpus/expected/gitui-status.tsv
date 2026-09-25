@@ -1,6 +1,6 @@
-n	On	branch	main	total_entries
-1	Changes:			5
-2	M	src/main.rs		5
-3	M	README.md		5
-4	?	notes.txt		5
-5	2	staged,	1_unstaged,_1_untracked	5
+n	On	branch	main
+1	Changes:		
+2	M	src/main.rs	
+3	M	README.md	
+4	?	notes.txt	
+5	2	staged,	1 unstaged, 1 untracked

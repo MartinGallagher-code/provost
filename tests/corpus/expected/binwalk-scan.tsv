@@ -1,5 +1,5 @@
-n	DECIMAL	HEXADECIMAL	DESCRIPTION	total_entries
-1	0	0x0	uImage header, header size: 64 bytes	4
-2	64	0x40	LZMA compressed data	4
-3	1310720	0x140000	Squashfs filesystem, little endian, version 4.0	4
-4	3407872	0x340000	JFFS2 filesystem, little endian	4
+n	DECIMAL	HEXADECIMAL	DESCRIPTION
+1	0	0x0	uImage header, header size: 64 bytes
+2	64	0x40	LZMA compressed data
+3	1310720	0x140000	Squashfs filesystem, little endian, version 4.0
+4	3407872	0x340000	JFFS2 filesystem, little endian

@@ -1,5 +1,5 @@
-n	test	rps	avg_latency_ms	min_latency_ms	p50_latency_ms	p95_latency_ms	p99_latency_ms	max_latency_ms	total_entries
-1	PING_INLINE	148810.20	0.412	0.088	0.401	0.882	1.204	2.210	4
-2	SET	120488.10	0.482	0.104	0.472	0.921	1.288	2.410	4
-3	GET	135221.44	0.441	0.096	0.432	0.888	1.104	2.108	4
-4	INCR	142010.88	0.421	0.090	0.412	0.844	1.088	2.044	4
+n	test	rps	avg_latency_ms	min_latency_ms	p50_latency_ms	p95_latency_ms	p99_latency_ms	max_latency_ms
+1	PING_INLINE	148810.20	0.412	0.088	0.401	0.882	1.204	2.210
+2	SET	120488.10	0.482	0.104	0.472	0.921	1.288	2.410
+3	GET	135221.44	0.441	0.096	0.432	0.888	1.104	2.108
+4	INCR	142010.88	0.421	0.090	0.412	0.844	1.088	2.044

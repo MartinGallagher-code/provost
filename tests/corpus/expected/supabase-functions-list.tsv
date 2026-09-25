@@ -1,4 +1,4 @@
-n	ID	NAME	SLUG	STATUS	VERSION	UPDATED_AT_(UTC)	total_entries
-1	9f2a1b3c4d5e6f70	send-email	send-email	ACTIVE	12	2026-07-09 18:22:14	3
-2	1a2b3c4d5e6f7081	stripe-webhook	stripe-webhook	ACTIVE	8	2026-07-05 11:03:47	3
-3	2b3c4d5e6f708192	image-resize	image-resize	ACTIVE	3	2026-06-20 09:41:02	3
+n	ID	NAME	SLUG	STATUS	VERSION	UPDATED_AT_(UTC)
+1	9f2a1b3c4d5e6f70	send-email	send-email	ACTIVE	12	2026-07-09 18:22:14
+2	1a2b3c4d5e6f7081	stripe-webhook	stripe-webhook	ACTIVE	8	2026-07-05 11:03:47
+3	2b3c4d5e6f708192	image-resize	image-resize	ACTIVE	3	2026-06-20 09:41:02

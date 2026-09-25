@@ -1,5 +1,5 @@
-n	NAME	STARTED	DURATION	STATUS	total_entries
-1	build-image-run-9x2kf	2 hours ago	1m4s	Succeeded	4
-2	unit-tests-run-4jm81	2 hours ago	3m12s	Succeeded	4
-3	lint-run-8kd22	2 hours ago	45s	Succeeded	4
-4	deploy-run-7qp2z	4 minutes ago	---	Running	4
+n	NAME	STARTED	DURATION	STATUS
+1	build-image-run-9x2kf	2 hours ago	1m4s	Succeeded
+2	unit-tests-run-4jm81	2 hours ago	3m12s	Succeeded
+3	lint-run-8kd22	2 hours ago	45s	Succeeded
+4	deploy-run-7qp2z	4 minutes ago	---	Running

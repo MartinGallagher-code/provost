@@ -1,7 +1,7 @@
-n	key	value	total_entries
-1	train.py		6
-2	changed deps		6
-3	modified	data/train.csv	6
-4	model.pkl		6
-5	changed outs		6
-6	not in cache	model.pkl	6
+n	key	value
+1	train.py	
+2	changed deps	
+3	modified	data/train.csv
+4	model.pkl	
+5	changed outs	
+6	not in cache	model.pkl

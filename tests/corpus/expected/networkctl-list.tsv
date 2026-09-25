@@ -1,6 +1,6 @@
-n	IDX	LINK	TYPE	OPERATIONAL	SETUP	total_entries
-1	1	lo	loopback	carrier	unmanaged	5
-2	2	eth0	ether	routable	configured	5
-3	3	wlan0	wlan	routable	configured	5
-4	4	docker0	bridge	no-carrier	unmanaged	5
-5	5	br-1a2b3c4d5e6f	bridge	routable	configured	5
+n	IDX	LINK	TYPE	OPERATIONAL	SETUP
+1	1	lo	loopback	carrier	unmanaged
+2	2	eth0	ether	routable	configured
+3	3	wlan0	wlan	routable	configured
+4	4	docker0	bridge	no-carrier	unmanaged
+5	5	br-1a2b3c4d5e6f	bridge	routable	configured
