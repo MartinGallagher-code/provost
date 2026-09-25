@@ -235,6 +235,7 @@ envoy_envoyrc_parse() {
 ################################################################################
 
 envoy_envoyrc_load() {
+    [[ "${ENVOY_NO_RC:-0}" == 1 ]] && return 0
     _ENVOY_ENVOYRC_COUNT=0
     _ENVOY_ENVOYRC_SOURCES=""
 
