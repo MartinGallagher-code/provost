@@ -30,8 +30,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line blocks=0 members=0 inblock=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_brg_open_re ]]; then
             [[ $inblock -eq 1 ]] && return 1     # nested blocks: not this shape
             inblock=1; blocks=$((blocks + 1)); continue
@@ -43,7 +44,7 @@ strategy_detect () {
         [[ $inblock -eq 0 ]] && return 1          # content outside any block
         [[ "$line" == [' 	']* ]] || return 1      # members are indented
         members=$((members + 1))
-    done <<< "$text"
+    done
     [[ $inblock -eq 0 ]] || return 1              # unclosed block
     [[ $blocks -ge 2 && $members -ge $blocks ]] || return 1
     _STRATEGY_CONFIDENCE=84
@@ -57,7 +58,7 @@ strategy_extract () {
     # All-kv? Every member a tight single-token k=v (after `;`-strip).
     local allkv=1
     while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_brg_open_re ]] && continue
         [[ "${line//[[:space:]]/}" == "}" ]] && continue
         body="${line#"${line%%[![:space:]]*}"}"; body="${body%"${body##*[![:space:]]}"}"
@@ -65,8 +66,9 @@ strategy_extract () {
         [[ "$body" =~ ^[A-Za-z_][A-Za-z0-9_.-]*=[^=[:space:]]+$ ]] || { allkv=0; break; }
     done <<< "$text"
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_brg_open_re ]]; then
             group="${BASH_REMATCH[1]}"
             group="${group%"${group##*[![:space:]]}"}"
@@ -84,7 +86,8 @@ strategy_extract () {
         else
             result+="entry${entry}.value ${body}"$'\n'
         fi
-    done <<< "$text"
+    done
+    line=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

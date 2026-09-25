@@ -62,8 +62,9 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
 
     local nonblank=0 first_sc=0 dense=1 _l sc
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         _strat_ssv_split "$_l"; sc=$_SSV_N
         [[ $sc -lt 2 ]] && return 1
@@ -78,7 +79,7 @@ strategy_detect () {
         fi
         [[ $sc -lt 4 ]] && dense=0
         [[ $nonblank -ge 40 ]] && break
-    done <<< "$text"
+    done
 
     [[ $nonblank -ge 1 ]] || return 1
     # a single low-density line is not enough signal (a lone prose line with
@@ -94,10 +95,11 @@ strategy_extract () {
     # Field names: the first row if it carries non-numeric labels, else synthetic.
     local header="" _nb=0
     local _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         _nb=$((_nb + 1)); [[ -z "$header" ]] && header="$_l"
-    done <<< "$text"
+    done
 
     local hcells; _strat_ssv_split "$header"; hcells=("${_SSV_CELLS[@]}")
     # A single line is always one record (no header can exist without data); a
@@ -123,8 +125,9 @@ strategy_extract () {
     fi
 
     local result="" rec=0 row=0 line
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         row=$((row + 1))
         [[ $row -eq 1 && $_headerless -eq 0 ]] && continue
         local values; _strat_ssv_split "$line"; values=("${_SSV_CELLS[@]}")
@@ -136,7 +139,7 @@ strategy_extract () {
             [[ -z "$name" || -z "$v" ]] && continue
             result+="entry${rec}.${name} ${v}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $rec -gt 0 ]] && result+="total_entries ${rec}"$'\n'
     echo "$result"
 }

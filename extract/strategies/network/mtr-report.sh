@@ -21,10 +21,11 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local has_header=0 has_hop=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == HOST:* || "$line" == *"HOST:"*"Loss%"* ]] && has_header=1
         _mtr_is_hop "$line" && has_hop=1
-    done <<< "$text"
+    done
     if [[ $has_header -eq 1 && $has_hop -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=88
         return 0
@@ -36,12 +37,13 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _mtr_is_hop "$line" || continue
         local trimmed="${line#"${line%%[![:space:]]*}"}"
         local hop="${trimmed%%.*}"
         local after="${trimmed#*|-- }"
-        read -ra _a <<< "$after"
+        { _fr_tok "$after"; _a=("${_FR_TOK[@]}"); }
         # _a: host loss snt last avg best wrst stdev
         local host="${_a[0]}" loss="${_a[1]}" snt="${_a[2]}"
         local last="${_a[3]}" avg="${_a[4]}"
@@ -52,7 +54,7 @@ strategy_extract () {
         result+="entry${entry}.snt ${snt}"$'\n'
         result+="entry${entry}.last ${last}"$'\n'
         result+="entry${entry}.avg ${avg}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -29,10 +29,13 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local line hits=0
-    while IFS= read -r line; do
+    # PREFILTER (exact): acceptance below requires ` changed` in the text.
+    [[ "$text" == *" changed"* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^commit[[:space:]][0-9a-f]{7,} ]] && return 1
         _diffstat_file_line "$line" && hits=$((hits + 1))
-    done <<< "$text"
+    done
     if [[ $hits -ge 2 && "$text" == *" changed"* ]]; then
         _STRATEGY_CONFIDENCE=88
         return 0

@@ -53,7 +53,8 @@ strategy_detect () {
     # regex (a lowercase bare word then ']' then a space).
 
     local tags=0 indented=0 gapped=0 tool="" line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         line="${line%$'\r'}"
         if [[ "$line" =~ $_fhl_re_tag ]]; then
             # Every bracketed tag must name the same tool; a log with mixed or
@@ -68,7 +69,7 @@ strategy_detect () {
             indented=$((indented + 1))
             [[ "$line" =~ $_fhl_re_gap ]] && gapped=$((gapped + 1))
         fi
-    done <<< "$text"
+    done
 
     # Both halves of the shape are required: a bracketed tool tag AND indented
     # two-column body lines. Indented lines alone are ordinary aligned columns.
@@ -86,7 +87,8 @@ strategy_extract () {
     local failed_count="" total_count="" failed_hosts=""
     local line
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         line="${line%$'\r'}"
 
         if [[ "$line" =~ $_fhl_re_tag ]]; then
@@ -124,7 +126,7 @@ strategy_extract () {
         result+="${p}section ${section}"$'\n'
         result+="${p}name ${name}"$'\n'
         result+="${p}value ${value}"$'\n'
-    done <<< "$text"
+    done
 
     [[ -n "$tool" ]] && result+="tool ${tool}"$'\n'
     if [[ -n "$failed_count" ]]; then

@@ -23,7 +23,7 @@ _lr_body () {
     local text="$1"
     if [[ "$text" == '# /'* ]]; then
         local _rest="${text#*$'\n'}"
-        [[ -n "${_rest//[[:space:]]/}" ]] && { printf '%s' "$_rest"; return; }
+        [[ "${_rest}" == *[![:space:]]* ]] && { printf '%s' "$_rest"; return; }
     fi
     # A UNIFORM leading `+` on every line is target-list decoration (earthly
     # ls prints `+base`, `+build`, …) — the reviewer's "remove the + signs".
@@ -31,16 +31,18 @@ _lr_body () {
     # (git branch), and both must stay data.
     local _ul_ok=1 _ul_l _ul_n=0
     while IFS= read -r _ul_l; do
-        [[ -z "${_ul_l//[[:space:]]/}" ]] && continue
+        [[ "${_ul_l}" != *[![:space:]]* ]] && continue
         _ul_n=$((_ul_n + 1))
         [[ "$_ul_l" == +[!+]* ]] || { _ul_ok=0; break; }
     done <<< "$text"
     if [[ $_ul_ok -eq 1 && $_ul_n -ge 2 ]]; then
         local _ul_out=""
-        while IFS= read -r _ul_l; do
-            [[ -z "${_ul_l//[[:space:]]/}" ]] && { _ul_out+="$_ul_l"$'\n'; continue; }
+        _fr_lines "$text"
+        for _ul_l in "${_FR_LINES[@]}"; do
+            [[ "${_ul_l}" != *[![:space:]]* ]] && { _ul_out+="$_ul_l"$'\n'; continue; }
             _ul_out+="${_ul_l#+}"$'\n'
-        done <<< "$text"
+        done
+        _ul_l=""
         printf '%s' "${_ul_out%$'\n'}"
         return
     fi
@@ -64,8 +66,9 @@ strategy_detect () {
     # word tokens here.
     local _kvb_ok=1 _kvb_multi=0 _kvb_l _kvb_tpl="" _kvb_tpl_same=1 _kvb_n=0 _kvb_colons=0
     local -A _kvb_seen=()
-    while IFS= read -r _kvb_l; do
-        [[ -z "${_kvb_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _kvb_l in "${_FR_LINES[@]}"; do
+        [[ "${_kvb_l}" != *[![:space:]]* ]] && continue
         _kvb_n=$((_kvb_n + 1))
         if [[ ! "$_kvb_l" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
             _kvb_ok=0; break
@@ -83,7 +86,7 @@ strategy_detect () {
         if [[ -z "$_kvb_tpl" ]]; then _kvb_tpl="$_kvbt"
         elif [[ "$_kvbt" != "$_kvb_tpl" ]]; then _kvb_tpl_same=0
         fi
-    done <<< "$text"
+    done
     # Only defer when `colons` will actually ACCEPT the block: its detection
     # needs >=40% of lines to carry a letter-led simple label (parens, Greek,
     # digit-led ranges all fail its charset). Deferring a block colons then
@@ -95,14 +98,15 @@ strategy_detect () {
     fi
 
     local counts=() idx=0 hasnum=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
-        local _tk; _tk=(); read -ra _tk <<< "$_l"
+        local _tk; _tk=(); { _fr_tok "$_l"; _tk=("${_FR_TOK[@]}"); }
         counts+=("${#_tk[@]}")
         [[ "$_l" =~ [0-9] ]] && hasnum=1
         [[ $idx -ge 60 ]] && break
-    done <<< "$text"
+    done
 
     local n=${#counts[@]}
     [[ $n -lt 1 ]] && return 1
@@ -142,7 +146,7 @@ strategy_extract () {
     # Split them into columns instead of emitting one opaque cell.
     local _cs_ok=1 _cs_first=-1 _cs_n=0
     while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         _cs_n=$((_cs_n + 1))
         # URLs (`https://host:port`) and bare time lists keep their colons:
         # require no `//` and an alpha-led first field.
@@ -153,8 +157,9 @@ strategy_extract () {
         [[ ${#_cs_only} -ne $_cs_first ]] && { _cs_ok=0; break; }
     done <<< "$text"
     if [[ $_cs_ok -eq 1 && $_cs_n -ge 2 && $_cs_first -ge 2 ]]; then
-        while IFS= read -r _l; do
-            [[ -z "${_l//[[:space:]]/}" ]] && continue
+        _fr_lines "$text"
+        for _l in "${_FR_LINES[@]}"; do
+            [[ "${_l}" != *[![:space:]]* ]] && continue
             entry=$((entry + 1))
             local _cs_i=0 _cs_part
             while [[ "$_l" == *:* ]]; do
@@ -164,21 +169,24 @@ strategy_extract () {
             done
             _cs_i=$((_cs_i + 1))
             [[ -n "$_l" ]] && result+="entry${entry}.$(_col_letter $_cs_i) ${_l}"$'\n'
-        done <<< "$text"
+        done
+        _l=""
         [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
         echo "$result"
         return 0
     fi
 
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
-        local _tk; _tk=(); read -ra _tk <<< "$_l"
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
+        local _tk; _tk=(); { _fr_tok "$_l"; _tk=("${_FR_TOK[@]}"); }
         entry=$((entry + 1))
         local i
         for ((i = 0; i < ${#_tk[@]}; i++)); do
             result+="entry${entry}.$(_col_letter $((i + 1))) ${_tk[$i]}"$'\n'
         done
-    done <<< "$text"
+    done
+    _l=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

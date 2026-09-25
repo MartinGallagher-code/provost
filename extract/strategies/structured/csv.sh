@@ -117,7 +117,8 @@ _strat_csv_strip_comments () {
     local data_commas=-1
     [[ -n "$first_data" ]] && data_commas=$(_strat_csv_raw_commas "$first_data")
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Prometheus's own `# HELP ...` / `# TYPE ...` exposition-format
         # comment convention is left alone rather than stripped: the metric
         # lines that follow (`name{label="v",...} value`) have a uniform-
@@ -139,7 +140,8 @@ _strat_csv_strip_comments () {
         fi
         started=1
         out+="${line}"$'\n'
-    done <<< "$text"
+    done
+    line=""
     printf '%s' "$out"
 }
 
@@ -147,15 +149,22 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
-    text="$(_strat_csv_strip_comments "$text")"
+    # (no leading `#`: the helper just echoes the text back, so the capture
+    # is the text minus trailing newlines — computed here without the fork)
+    if [[ "$text" == \#* ]]; then
+        text="$(_strat_csv_strip_comments "$text")"
+    else
+        text="${text%"${text##*[!$'\n']}"}"
+    fi
 
     # TAB-dominant input is tsv's: `aws … --output text` emits TAB fields
     # whose VALUES contain commas ("my-logs, prod"). When every non-blank
     # line carries tabs and the tab count is uniform and >= the comma
     # count, the tabs are the real delimiter — decline so tsv claims it.
     local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0
-    while IFS= read -r _td_l; do
-        [[ -z "${_td_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _td_l in "${_FR_LINES[@]}"; do
+        [[ "${_td_l}" != *[![:space:]]* ]] && continue
         _td_n=$((_td_n + 1))
         local _td_only="${_td_l//[!$'\t']/}"
         _td_tabs=${#_td_only}
@@ -164,7 +173,7 @@ strategy_detect () {
         [[ $_td_first -lt 0 ]] && _td_first=$_td_tabs
         [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; break; }
         [[ $_td_n -ge 10 ]] && break
-    done <<< "$text"
+    done
     if [[ $_td_n -ge 2 && $_td_uniform -eq 1 && $_td_first -ge 1 \
           && $_td_first -ge $_td_commas ]]; then
         return 1
@@ -175,7 +184,8 @@ strategy_detect () {
     local header_commas=0
     local with_commas=0
     local matching=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         # Ignore commas inside parenthesised groups — those are not CSV field
         # separators (`mount` options `(rw,nosuid,nodev)`). And ignore
@@ -222,7 +232,7 @@ strategy_detect () {
         fi
         line_count=$((line_count + 1))
         [[ $line_count -ge 5 ]] && break
-    done <<< "$text"
+    done
     [[ $line_count -lt 2 ]] && return 1
 
     # Real CSV: most lines should have commas (allow at most 1 without)
@@ -242,9 +252,16 @@ strategy_extract () {
 
     # Strip UTF-8 BOM if present (EF BB BF)
     local bom
-    bom=$(printf '\xef\xbb\xbf')
-    text="${text#"$bom"}"
-    text="$(_strat_csv_strip_comments "$text")"
+    bom=$'\xef\xbb\xbf'
+    # (prefix test first: a non-matching `#"$bom"` scans every prefix — quadratic)
+    if [[ "$text" == "$bom"* ]]; then text="${text#"$bom"}"; fi
+    # (no leading `#`: the helper just echoes the text back, so the capture
+    # is the text minus trailing newlines — computed here without the fork)
+    if [[ "$text" == \#* ]]; then
+        text="$(_strat_csv_strip_comments "$text")"
+    else
+        text="${text%"${text##*[!$'\n']}"}"
+    fi
 
     # Pre-process: join multi-line quoted fields. A line whose RFC-4180 parse
     # ends inside an OPEN quoted field continues on the next physical line.
@@ -252,7 +269,8 @@ strategy_extract () {
     # — `3/4",100` is a complete row, not a continuation.)
     local processed=""
     local pending=""
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ -n "$pending" ]]; then
             pending+=" ${line}"
             _strat_csv_split "$pending"
@@ -268,16 +286,19 @@ strategy_extract () {
                 processed+="${line}"$'\n'
             fi
         fi
-    done <<< "$text"
+    done
+    line=""
     if [[ -n "$pending" ]]; then
         processed+="${pending}"$'\n'
     fi
     # Remove empty lines
     local _cleaned=""
-    while IFS= read -r _line; do
+    _fr_lines "$processed"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         _cleaned+="$_line"$'\n'
-    done <<< "$processed"
+    done
+    _line=""
     text="$_cleaned"
 
     # Parse header row for field names
@@ -317,11 +338,12 @@ strategy_extract () {
     # no value shapes anywhere) keep their header.
     if [[ $_headerless -eq 0 && ${#headers[@]} -ge 2 ]]; then
         local _dr2="" _dri=0 _drl
-        while IFS= read -r _drl; do
+        _fr_lines "$text"
+        for _drl in "${_FR_LINES[@]}"; do
             [[ -z "$_drl" ]] && continue
             _dri=$((_dri + 1))
             [[ $_dri -eq 2 ]] && { _dr2="$_drl"; break; }
-        done <<< "$text"
+        done
         if [[ -n "$_dr2" ]]; then
             _strat_csv_split "$_dr2"
             local _drv=("${_CSV_FIELDS[@]}")
@@ -369,7 +391,8 @@ strategy_extract () {
     local result=""
     local row_num=0
     local rec=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         row_num=$((row_num + 1))
         [[ $row_num -eq 1 && $_headerless -eq 0 ]] && continue  # skip header (unless headerless)
         [[ -z "$line" ]] && continue
@@ -403,7 +426,8 @@ strategy_extract () {
             [[ -z "$value" ]] && continue
             result+="entry${rec}.${name} ${value}"$'\n'
         done
-    done <<< "$text"
+    done
+    line=""
 
     [[ $rec -gt 0 ]] && result+="total_entries ${rec}"$'\n'
     echo "$result"

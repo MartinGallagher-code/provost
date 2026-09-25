@@ -24,13 +24,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line saw_report=0 saw_up=0 saw_ports=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _nmapsn_is_report "$line" && saw_report=1
         [[ "$line" == "Host is up"* ]] && saw_up=1
         # A PORT table means a full scan, not a -sn ping sweep — that input
         # belongs to the nmap strategy.
         [[ "$line" == "PORT"*"STATE"* ]] && saw_ports=1
-    done <<< "$text"
+    done
     if [[ $saw_report -eq 1 && $saw_up -eq 1 && $saw_ports -eq 0 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0

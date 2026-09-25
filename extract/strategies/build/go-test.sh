@@ -26,7 +26,8 @@ strategy_extract () {
     local re_coverage='^coverage:[[:space:]]+([0-9.]+)%[[:space:]]+of[[:space:]]+statements'
     local re_package='^(ok|FAIL)[[:space:]]+([^[:space:]]+)[[:space:]]+([0-9.]+s)([[:space:]]|$)'
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ $re_result ]]; then
             n=$((n + 1))
             local p="entry${n}."
@@ -42,7 +43,7 @@ strategy_extract () {
         elif [[ "$line" == "PASS" || "$line" == "FAIL" ]]; then
             overall_result="$line"
         fi
-    done <<< "$text"
+    done
 
     [[ -n "$overall_result" ]] && result+="overall_result ${overall_result}"$'\n'
     [[ -n "$package" ]] && result+="package ${package}"$'\n'

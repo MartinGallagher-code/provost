@@ -39,12 +39,13 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line rest
     local -a t=()
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == "["* ]] || continue                          # interval/summary rows
         [[ "$line" == *sender* || "$line" == *receiver* ]] && continue   # skip summary
         rest="${line#*]}"                                          # drop "[  5]" stream id
-        read -ra t <<< "$rest"
+        { _fr_tok "$rest"; t=("${_FR_TOK[@]}"); }
         [[ "${t[1]}" == "sec" ]] || continue                       # data rows only
         [[ ${#t[@]} -ge 9 ]] || continue
         entry=$((entry + 1))
@@ -56,7 +57,7 @@ strategy_extract () {
         result+="entry${entry}.retr $(_iperf3_sanitize "${t[6]}")"$'\n'
         result+="entry${entry}.cwnd $(_iperf3_sanitize "${t[7]}")"$'\n'
         result+="entry${entry}.cwnd_unit $(_iperf3_sanitize "${t[8]}")"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -46,8 +46,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line rows=0 rule=0 total=0 body=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         body="${line#"${line%%[![:space:]]*}"}"
         body="${body%"${body##*[![:space:]]}"}"
         if [[ "$body" =~ ^-{4,}$ ]]; then
@@ -66,7 +67,7 @@ strategy_detect () {
             continue
         fi
         return 1
-    done <<< "$text"
+    done
     # >=2 balance rows and at most one grand total; the rule is optional but
     # a total without a rule is not this shape.
     [[ $rows -ge 2 && $total -le 1 ]] || return 1
@@ -81,8 +82,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 rule=0 body=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         body="${line#"${line%%[![:space:]]*}"}"
         body="${body%"${body##*[![:space:]]}"}"
         if [[ "$body" =~ ^-{4,}$ ]]; then rule=1; continue; fi
@@ -95,7 +97,7 @@ strategy_extract () {
         if [[ $rule -eq 1 && "$body" =~ $_lb_amount_re ]]; then
             result+="total ${body}"$'\n'
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

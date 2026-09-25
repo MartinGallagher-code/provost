@@ -49,7 +49,7 @@ _sf_parse_member () {
     brk="${brk%\]*}"
     # Collapse the pre-bracket run into whitespace-separated tokens.
     pre="${pre%"${pre##*[![:space:]]}"}"
-    local -a tok=(); read -ra tok <<< "$pre"
+    local -a tok=(); { _fr_tok "$pre"; tok=("${_FR_TOK[@]}"); }
     [[ ${#tok[@]} -ge 1 ]] || return 1
     _SF_NAME="${tok[0]}"
     if [[ ${#tok[@]} -ge 2 ]]; then
@@ -59,7 +59,7 @@ _sf_parse_member () {
     # Split the bracket on `, ` into `key: value` pairs.
     local IFS_SAVE="$IFS" part
     local -a parts=()
-    IFS=',' read -ra parts <<< "$brk"
+    { IFS=',' _fr_tok "$brk"; parts=("${_FR_TOK[@]}"); }
     IFS="$IFS_SAVE"
     for part in "${parts[@]}"; do
         part="${part#"${part%%[![:space:]]*}"}"
@@ -80,8 +80,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line headers=0 members=0 active=0 pre_noise=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_sf_hdr_re && "$line" != *": "* ]]; then
             headers=$((headers + 1)); active=1; continue
         fi
@@ -94,7 +95,7 @@ strategy_detect () {
         # rejects — this shape is headers + bracketed fields only.
         [[ $active -eq 1 ]] && return 1
         pre_noise=$((pre_noise + 1))
-    done <<< "$text"
+    done
     [[ $headers -ge 1 && $members -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=80
     return 0
@@ -103,8 +104,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 group=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_sf_hdr_re && "$line" != *": "* ]]; then
             group="${line%:*}"
             group="${group%"${group##*[![:space:]]}"}"
@@ -123,7 +125,7 @@ strategy_extract () {
                 result+="entry${entry}.${_SF_BK[$i]} ${_SF_BV[$i]}"$'\n'
             done
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

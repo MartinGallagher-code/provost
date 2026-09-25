@@ -18,8 +18,9 @@ strategy_detect () {
     # Windows tools (PowerShell's Out-File, Notepad's "UTF-8" encoding). Left
     # in place it hides the leading '{'/'[' from the checks below and the
     # file falls through to 'unsorted' instead of being recognized as JSON.
-    local bom; bom=$(printf '\xef\xbb\xbf')
-    trimmed="${trimmed#"$bom"}"
+    local bom; bom=$'\xef\xbb\xbf'
+    # (prefix test first: a non-matching `#"$bom"` scans every prefix — quadratic)
+    if [[ "$trimmed" == "$bom"* ]]; then trimmed="${trimmed#"$bom"}"; fi
     while [[ "$trimmed" == " "* || "$trimmed" == $'\t'* || "$trimmed" == $'\n'* ]]; do
         trimmed="${trimmed#?}"
     done
@@ -68,7 +69,8 @@ _strat_json_extract_fallback () {
     # Simple fallback: extract "key": value patterns with bash
     # Limitations: processes line-by-line, so multi-line JSON strings are broken.
     # This won't handle deeply nested structures as well as jq
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         # Match patterns like "key": "value" or "key": 123 or "key": true
         local remaining="$_line"
@@ -106,5 +108,5 @@ _strat_json_extract_fallback () {
             fi
             [[ -n "$key" && -n "$value" ]] && echo "$key $value"
         done
-    done <<< "$text"
+    done
 }

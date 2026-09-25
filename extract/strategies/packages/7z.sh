@@ -22,13 +22,14 @@ strategy_detect () {
     [[ "$text" == *"Attr"* && "$text" == *"Compressed"* && "$text" == *"Name"* ]] || return 1
     # Must have a dashed rule line.
     local line stripped
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         stripped="${line//[- ]/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
             _STRATEGY_CONFIDENCE=86
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -36,7 +37,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 in_data=0 line stripped
     local -a t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         stripped="${line//[- ]/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
             if [[ $in_data -eq 0 ]]; then in_data=1; else in_data=0; fi
@@ -44,7 +46,7 @@ strategy_extract () {
         fi
         [[ $in_data -eq 1 ]] || continue
         [[ -z "$line" ]] && continue
-        read -ra t <<< "$line"
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         [[ ${#t[@]} -ge 6 ]] || continue
         local name="" i
         for ((i=5; i<${#t[@]}; i++)); do name+="${t[i]}_"; done
@@ -56,7 +58,7 @@ strategy_extract () {
         result+="entry${entry}.size ${t[3]}"$'\n'
         result+="entry${entry}.compressed ${t[4]}"$'\n'
         result+="entry${entry}.name ${name}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

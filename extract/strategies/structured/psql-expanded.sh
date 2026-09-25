@@ -27,18 +27,20 @@ strategy_detect () {
     # Require at least one `key | value` body line so a stray marker in a log
     # can't trigger a whole-file parse.
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\| ]]; then
             _STRATEGY_CONFIDENCE=90
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1" result="" line key val entry=0 fields=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # `-[ RECORD N ]---+---` opens the next record.
         if [[ "$line" == *"-[ RECORD"* ]]; then
             entry=$((entry + 1))
@@ -52,7 +54,7 @@ strategy_extract () {
         val="${val//$'\t'/_}"
         result+="entry${entry}.${key} ${val}"$'\n'
         fields=$((fields + 1))
-    done <<< "$text"
+    done
     [[ $fields -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

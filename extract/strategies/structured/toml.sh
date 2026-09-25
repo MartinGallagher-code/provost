@@ -53,9 +53,11 @@ strategy_detect () {
         fi
         # Accept if we have key = "value" at top level AND [section] somewhere
         local section_count=0
-        while IFS= read -r _line; do
+        _fr_lines "$text"
+        for _line in "${_FR_LINES[@]}"; do
             [[ "$_line" == "["* ]] && section_count=$((section_count + 1))
-        done <<< "$text"
+        done
+        _line=""
         [[ $section_count -ge 1 ]] && return 0
     fi
 
@@ -70,7 +72,8 @@ strategy_extract () {
     # Track array table counts using pipe-delimited "name:count" pairs
     local array_table_counts=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Skip empty lines
         [[ -z "$line" ]] && continue
 
@@ -145,7 +148,7 @@ strategy_extract () {
                 result+="${key} ${value}"$'\n'
             fi
         fi
-    done <<< "$text"
+    done
 
     echo "$result"
 }

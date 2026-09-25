@@ -61,54 +61,71 @@ read_strategy_metadata () {
     _META_CACHE_DEP[$filepath]="$_META_DEPRECATED"
 }
 
-# Strategy function cache: the FIRST source of a file diffs the defined
-# function set before/after and snapshots the source of every function the
-# file contributed — strategy_detect, strategy_extract, AND its helpers
-# (`_strat_*`, `_et_*`, `_dl_*`, …, which detect/extract call by name).
-# Later loads replay that snapshot with one fork-free `eval`, so a batch of
-# N inputs reads + parses each strategy file once instead of N times.
-# SAFETY: helper names are unique per file (verified across all 185
-# strategies — the per-file-prefix convention holds), and top-level
-# assignments (regex constants) persist as globals from the first source.
-declare -A _STRAT_FN_STATE=()
-declare -A _STRAT_FN_DEFS=()
+# Strategy loader. Every load is a plain `source` of the file: it re-defines
+# the file's strategy_detect / strategy_extract AND its helpers (`_strat_*`,
+# `_ac_*`, …), so helpers can never go stale, and a strategy file's top level
+# holds only constant assignments (regex/table constants), so re-running it
+# is idempotent.
+#
+# PERF (measured): sourcing all ~257 strategy files costs ~0.1s in total.
+# The loader used to snapshot each file's functions on first load — two
+# `$(declare -F)` command substitutions + a `declare -f` capture per file
+# (three forks), plus a `while read … <<< "$(declare -F)"` diff whose
+# here-string is a PIPE that bash reads ONE BYTE PER read(2) and whose size
+# grows with every strategy loaded (quadratic). That snapshot was ~95% of a
+# single-file run's wall time (df -h: ~7.4s of ~7.8s; 1.5M read syscalls)
+# while saving ~0.04s per re-load in batch mode (eval vs source parse cost).
+# A failed source is memoised, so a broken file is not retried per input.
+#
+# Re-loads (batch mode runs the whole list once PER INPUT; --multi once per
+# block; a hint target loads twice) stay cheap without the snapshot: the
+# SECOND load of a file pins its strategy_detect / strategy_extract under
+# unique names (two one-time `declare -f` captures) and every later load just
+# re-points strategy_detect / strategy_extract at them with two one-line
+# trampolines — no re-parse. The file's helpers and constants persist from
+# its first source (helper names are unique per file — the per-file-prefix
+# convention — so nothing else redefines them).
+declare -A _STRAT_FN_STATE=()     # file -> 1 (sourced once) | pinned | bad
+declare -A _STRAT_TRAMP=()        # file -> trampoline definitions
+_STRAT_PIN_SEQ=0
 
 # _source_strategy_cached FILE [ERRFILE] — make FILE's strategy_detect /
 # strategy_extract (and its helper functions) current. Returns 1 if the
-# file failed to source.
+# file failed to source (remembered for the life of the process).
 _source_strategy_cached () {
     local f="$1" errf="${2:-/dev/null}"
     local st="${_STRAT_FN_STATE[$f]:-}"
-    if [[ -z "$st" ]]; then
-        local _pre_fns _post_fns _fn _names=""
-        _pre_fns="$(declare -F)"
-        unset -f strategy_detect strategy_extract 2>/dev/null
-        if ! source "$f" 2>"$errf"; then
-            _STRAT_FN_STATE[$f]="bad"
-            return 1
-        fi
-        _post_fns="$(declare -F)"
-        while IFS=' ' read -r _ _ _fn; do
-            [[ -z "$_fn" ]] && continue
-            if [[ "$_fn" == strategy_detect || "$_fn" == strategy_extract ]]; then
-                _names+="$_fn "
-            elif [[ $'\n'"$_pre_fns"$'\n' != *$'\n'"declare -f $_fn"$'\n'* ]]; then
-                _names+="$_fn "
-            fi
-        done <<< "$_post_fns"
-        if [[ -n "$_names" ]]; then
-            # shellcheck disable=SC2086
-            _STRAT_FN_DEFS[$f]="$(declare -f $_names 2>/dev/null)"
-        else
-            _STRAT_FN_DEFS[$f]=""
-        fi
-        _STRAT_FN_STATE[$f]="ok"
-        return 0
-    fi
     [[ "$st" == "bad" ]] && return 1
     unset -f strategy_detect strategy_extract 2>/dev/null
-    [[ -n "${_STRAT_FN_DEFS[$f]}" ]] && eval "${_STRAT_FN_DEFS[$f]}"
+    if [[ "$st" == "pinned" ]]; then
+        eval "${_STRAT_TRAMP[$f]}"
+        return 0
+    fi
+    if ! source "$f" 2>"$errf"; then
+        _STRAT_FN_STATE[$f]="bad"
+        return 1
+    fi
+    if [[ -z "$st" ]]; then
+        _STRAT_FN_STATE[$f]=1
+    else
+        _strat_pin "$f"
+    fi
     return 0
+}
+
+# _strat_pin FILE — copy the just-sourced strategy_detect / strategy_extract to
+# __stratN_detect / __stratN_extract and record trampolines that call them.
+_strat_pin () {
+    local f="$1" _fn _def _tramp="" _id
+    _STRAT_PIN_SEQ=$((_STRAT_PIN_SEQ + 1)); _id=$_STRAT_PIN_SEQ
+    for _fn in strategy_detect strategy_extract; do
+        declare -F "$_fn" >/dev/null || continue
+        _def="$(declare -f "$_fn")"
+        eval "__strat${_id}_${_fn#strategy_}${_def#"$_fn"}"
+        _tramp+="$_fn () { __strat${_id}_${_fn#strategy_} \"\$@\"; }"$'\n'
+    done
+    _STRAT_TRAMP[$f]="$_tramp"
+    _STRAT_FN_STATE[$f]="pinned"
 }
 
 # A strategy is "generic" iff it lives in one of the format-level categories.
@@ -122,6 +139,19 @@ _is_generic_strategy_file () {
         delimited|structured) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+# _collect_strategy_dirs — the strategy search path in the global array
+# _STRATEGY_DIRS, in precedence order (a later directory wins a name clash in
+# build_strategy_list): the bundled tree, then the per-user ~/.mfe/strategies
+# (when it exists), then --plugin-dir (when set and it exists). The single
+# definition of the search path — every caller used to spell it out inline.
+_collect_strategy_dirs () {
+    _STRATEGY_DIRS=("$STRATEGIES_DIR")
+    local _user_dir="${HOME:-/nonexistent}/.mfe/strategies"
+    [[ -d "$_user_dir" ]] && _STRATEGY_DIRS+=("$_user_dir")
+    [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && _STRATEGY_DIRS+=("$_OPT_plugin_dir")
+    return 0
 }
 
 # Build a priority-sorted list of strategy files from all strategy directories.
@@ -151,19 +181,24 @@ build_strategy_list () {
             fi
             read_strategy_metadata "$sf"
             local _padded="000${_META_PRIORITY}"
-            list+="${_padded: -3}|${_META_VERSION}|${sf}"$'\n'
+            list+="${_padded: -3}|${_META_VERSION}|${sf}|${sname}"$'\n'
         done
     done
 
-    # Sort by priority (numeric), then by filename
-    echo "${list%$'\n'}" | sort -t'|' -k1,1n -k3,3
+    # Sort by priority (numeric), then — the explicit tie-break — by strategy
+    # NAME in plain byte order (LC_ALL=C), then by path. Ties used to fall to
+    # the full file PATH under the caller's locale, so the category folder a
+    # file sat in (and a collating locale like en_US.UTF-8) decided which of
+    # two equal-priority strategies ran first. Names are unique (a name clash
+    # across directories is resolved above, by precedence), so this order is
+    # total and independent of directory layout and locale. Measured on the
+    # corpus before adopting: 0 of 3705 winners change, full or --generic.
+    echo "${list%$'\n'}" | LC_ALL=C sort -t'|' -k1,1n -k4,4 -k3,3 | cut -d'|' -f1-3
 }
 
 list_strategies () {
-    local strategy_dirs=("$STRATEGIES_DIR")
-    local user_dir="${HOME:-/nonexistent}/.mfe/strategies"
-    [[ -d "$user_dir" ]] && strategy_dirs+=("$user_dir")
-    [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     local sorted_list
     sorted_list=$(build_strategy_list "${strategy_dirs[@]}")
@@ -190,10 +225,8 @@ list_strategies () {
 # Sets _SEARCH_MATCH_COUNT to number of matches. Returns 0 if any match, 1 if none.
 search_strategies () {
     local -a keywords=("$@")
-    local strategy_dirs=("$STRATEGIES_DIR")
-    local user_dir="${HOME:-/nonexistent}/.mfe/strategies"
-    [[ -d "$user_dir" ]] && strategy_dirs+=("$user_dir")
-    [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     local sorted_list
     sorted_list=$(build_strategy_list "${strategy_dirs[@]}")
@@ -264,7 +297,8 @@ find_strategy_file () {
     local name="$1"
     _FOUND_STRATEGY_FILE=""
     local sdir sf
-    for sdir in "$STRATEGIES_DIR" "${HOME:-/nonexistent}/.mfe/strategies" "${_OPT_plugin_dir:-}"; do
+    _collect_strategy_dirs
+    for sdir in "${_STRATEGY_DIRS[@]}"; do
         [[ -d "$sdir" ]] || continue
         # Check flat directory first, then one level of subdirectories
         if [[ -f "$sdir/${name}.sh" ]]; then
@@ -775,9 +809,8 @@ run_auto_strategies () {
     _TG_LAST_COVERAGE=""
 
     # Collect strategy directories
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "$_OPT_plugin_dir" && -d "$_OPT_plugin_dir" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     _resolve_strategy_list "${strategy_dirs[@]}"
     if [[ -z "$_SORTED_STRATEGIES" ]]; then
@@ -905,9 +938,8 @@ run_explain_mode () {
         exit 1
     fi
 
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "$_OPT_plugin_dir" && -d "$_OPT_plugin_dir" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     _resolve_strategy_list "${strategy_dirs[@]}"
     if [[ -z "$_SORTED_STRATEGIES" ]]; then

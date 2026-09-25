@@ -32,13 +32,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_pl_re ]] || return 1
         # The op+subject body must OPEN with an ALL-CAPS token.
         [[ "${BASH_REMATCH[3]}" =~ ^[A-Z]+([[:space:]]|$) ]] || return 1
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=84
     return 0
@@ -47,12 +48,13 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_pl_re ]] || continue
         local body="${BASH_REMATCH[3]}" t="${BASH_REMATCH[1]}" seq="${BASH_REMATCH[2]}" status="${BASH_REMATCH[4]}"
         # Operation = the leading run of ALL-CAPS tokens; subject = the rest.
-        local -a tok=(); read -ra tok <<< "$body"
+        local -a tok=(); { _fr_tok "$body"; tok=("${_FR_TOK[@]}"); }
         local op="" i=0
         for ((i = 0; i < ${#tok[@]}; i++)); do
             [[ "${tok[$i]}" =~ ^[A-Z]+$ ]] || break
@@ -65,7 +67,7 @@ strategy_extract () {
         [[ -n "$op" ]] && result+="entry${entry}.operation ${op}"$'\n'
         [[ -n "$subject" ]] && result+="entry${entry}.subject ${subject}"$'\n'
         result+="entry${entry}.status ${status}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

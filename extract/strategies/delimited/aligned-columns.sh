@@ -12,6 +12,32 @@
 # (a multi-word cell like "Best Rate MB/s" is ONE segment; only a >=2-space gap
 # starts a new one).
 _ac_seg () {
+    _ac_seg_v "$1"
+    printf '%s' "$_AC_SEG"
+}
+
+# _ac_seg_v LINE — _ac_seg's count in the global _AC_SEG, fork-free and without
+# a per-character loop (`${l:i:1}` rescans the string from the start in a
+# multibyte locale, so the scan was quadratic per line). After the leading
+# whitespace trim the line starts on a non-space; a segment ends only at a run
+# of >=2 SPACES (tabs and single spaces stay inside a cell), and a trailing run
+# starts no new segment — so the count is 1 + the number of interior >=2-space
+# runs. Lines carrying the \001 marker byte take the reference scan.
+_ac_seg_v () {
+    local l="$1" t u
+    l="${l#"${l%%[![:space:]]*}"}"
+    if [[ -z "$l" ]]; then _AC_SEG=0; return 0; fi
+    if [[ "$l" == *$'\001'* ]]; then _ac_seg_scan "$l"; return 0; fi
+    l="${l%"${l##*[! ]}"}"                  # trailing spaces start no segment
+    t="${l//  /$'\001'}"                    # each space PAIR -> one marker
+    t="${t//$'\001' /$'\001'}"              # an odd run's leftover space
+    while [[ "$t" == *$'\001\001'* ]]; do t="${t//$'\001\001'/$'\001'}"; done
+    u="${t//[!$'\001']/}"
+    _AC_SEG=$(( ${#u} + 1 ))
+}
+
+# Reference character scan (the original _ac_seg body); sets _AC_SEG.
+_ac_seg_scan () {
     local l="$1" n=0 i=0 L
     l="${l#"${l%%[![:space:]]*}"}"; L=${#l}
     while (( i < L )); do
@@ -20,17 +46,91 @@ _ac_seg () {
         ((n++))
         while (( i < L )) && ! { [[ "${l:i:1}" == " " ]] && [[ "${l:i+1:1}" == " " ]]; }; do ((i++)); done
     done
-    printf '%s' "$n"
+    _AC_SEG=$n
 }
 
 # Is the token a value (number/size/%/time/version — anything starting with a
 # digit)? A header label never does.
 _ac_is_value () { [[ "$1" =~ ^[0-9] ]]; }
 
+# _ac_stream_lines STREAM — _FR_LINES holds the lines a `while IFS= read -r l`
+# loop reads from a stream carrying exactly STREAM: newline-terminated lines
+# only (a final unterminated segment is never iterated), and none at all for
+# an empty stream. Lets a helper's output be captured in one bulk read instead
+# of consumed byte-by-byte from a pipe.
+_ac_stream_lines () {
+    if [[ "$1" != *$'\n'* ]]; then
+        _FR_LINES=(); _FR_LINES_OK=0
+        return 0
+    fi
+    _fr_lines "${1%$'\n'*}"
+}
+
+# ---------------------------------------------------------------------------
+# VALUE-SPACE ENCODING — the ONE place this strategy decides how a value's
+# inner spaces are written: tokens a row carries beyond the last header
+# column are absorbed into that column, joined by this string (a space: values
+# keep their spaces). Both emitters — the awk fast path (_ac_emit_rows) and the
+# bash phrase-merge loop in strategy_extract — use it.
+_AC_VALUE_JOIN=" "
+# ---------------------------------------------------------------------------
+
+# _ac_emit_rows HEADERS_TAB_JOINED < rows — the tokenized emitter's fast path:
+# for each row (1 row = 1 entry) split on runs of space/tab (bash's default
+# IFS; rows are single lines), emit `entry<N>.<header_i> <token_i>` for every
+# column the row reaches, the last column absorbing any surplus tokens joined
+# by _AC_VALUE_JOIN. Byte-for-byte the output of the bash emission loop in
+# strategy_extract when no phrase merge applies. mawk-safe.
+_ac_emit_rows () {
+    # (strings go in through ENVIRON: `awk -v` would expand backslash escapes)
+    _AC_HDRS="$1" _AC_VJOIN="$_AC_VALUE_JOIN" awk '
+    BEGIN { nh = split(ENVIRON["_AC_HDRS"], H, "\t"); vjoin = ENVIRON["_AC_VJOIN"] }
+    {
+        line = $0
+        sub(/^[ \t]+/, "", line); sub(/[ \t]+$/, "", line)
+        n = split(line, t, /[ \t]+/)
+        entry++
+        for (i = 1; i <= nh && i <= n; i++) {
+            v = t[i]
+            if (i == nh) for (j = nh + 1; j <= n; j++) v = v vjoin t[j]
+            printf "entry%d.%s %s\n", entry, H[i], v
+        }
+    }'
+}
+
+# _ac_join_tab CELL… — the cells TAB-joined in _AC_JOINED; the fork-free form
+# of `$(IFS=$'\t'; printf '%s' "${arr[*]}")` (cells never hold a newline).
+_ac_join_tab () {
+    local IFS=$'\t'
+    _AC_JOINED="$*"
+}
+
 # Echo the block with leading preamble removed: an `ls -l` "total <n>" line, or
 # short banner/preamble lines with <2 columns (e.g. `apt list`'s "Listing…"),
 # but only when a real (>=2 column) table follows.
 _ac_body () {
+    _ac_body_v "$1"
+    printf '%s' "$_AC_BODY"
+}
+
+# _ac_body_v TEXT — _ac_body's result in the global _AC_BODY, exactly as
+# `$(_ac_body TEXT)` captured it (trailing newlines stripped). A pure function
+# of TEXT, memoised: detect + shape + extract used to recompute it five times
+# per input, each in a forked subshell.
+_AC_BODY_KEY=""
+_AC_BODY_OK=0
+_ac_body_v () {
+    if [[ $_AC_BODY_OK -eq 1 && "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
+    local _out
+    _ac_body_compute "$1"
+    _out="$_AC_BODY_RAW"
+    _AC_BODY="${_out%"${_out##*[!$'\n']}"}"
+    _AC_BODY_KEY="$1"
+    _AC_BODY_OK=1
+}
+
+# The _ac_body computation proper; leaves its printed form in _AC_BODY_RAW.
+_ac_body_compute () {
     local text="$1" _l _tk out="" started=0 has_table=0
 
     # AUDIT-REPORT chrome (aureport family): `====` rule lines are never
@@ -41,7 +141,7 @@ _ac_body () {
     # melt's `n` column already carries that) — strip them.
     if [[ "$text" == *$'\n'====* ]]; then
         local _ar_lines=() _ar_i
-        while IFS= read -r _l; do _ar_lines+=("$_l"); done <<< "$text"
+        _fr_lines "$text"; _ar_lines=("${_FR_LINES[@]}")
         # drop rules + the title above the first rule
         local _ar_out=() _ar_hash=-1 _ar_hashes=0
         for ((_ar_i = 0; _ar_i < ${#_ar_lines[@]}; _ar_i++)); do
@@ -50,7 +150,7 @@ _ac_body () {
                 # title directly above the FIRST rule (<=2 tokens, no colon)
                 if [[ ${#_ar_out[@]} -ge 1 ]]; then
                     local _ar_last="${_ar_out[$(( ${#_ar_out[@]} - 1 ))]}"
-                    local _ar_lt=(); read -ra _ar_lt <<< "$_ar_last"
+                    local _ar_lt=(); _fr_tok "$_ar_last"; _ar_lt=("${_FR_TOK[@]}")
                     [[ ${#_ar_lt[@]} -le 2 && ! "$_ar_last" == *:* && "$_ar_last" =~ ^[A-Z] ]] && unset '_ar_out[$(( ${#_ar_out[@]} - 1 ))]'
                     _ar_out=("${_ar_out[@]}")
                 fi
@@ -66,14 +166,14 @@ _ac_body () {
         # sequential `N.` first tokens on every line after the header
         local _ar_seq=1 _ar_want=1 _ar_started=0
         for ((_ar_i = _ar_hash >= 0 ? _ar_hash + 1 : 1; _ar_i < ${#_ar_out[@]}; _ar_i++)); do
-            [[ -z "${_ar_out[$_ar_i]//[[:space:]]/}" ]] && continue
-            _tk=(); read -ra _tk <<< "${_ar_out[$_ar_i]}"
+            [[ "${_ar_out[$_ar_i]}" != *[![:space:]]* ]] && continue
+            _fr_tok "${_ar_out[$_ar_i]}"; _tk=("${_FR_TOK[@]}")
             [[ "${_tk[0]:-}" == "${_ar_want}." ]] || { _ar_seq=0; break; }
             _ar_want=$((_ar_want + 1)); _ar_started=1
         done
         if [[ $_ar_seq -eq 1 && $_ar_started -eq 1 && $_ar_want -ge 3 ]]; then
             for ((_ar_i = _ar_hash >= 0 ? _ar_hash + 1 : 1; _ar_i < ${#_ar_out[@]}; _ar_i++)); do
-                [[ -z "${_ar_out[$_ar_i]//[[:space:]]/}" ]] && continue
+                [[ "${_ar_out[$_ar_i]}" != *[![:space:]]* ]] && continue
                 local _ar_rest="${_ar_out[$_ar_i]#*.}"
                 _ar_rest="${_ar_rest# }"
                 _ar_out[$_ar_i]="$_ar_rest"
@@ -82,11 +182,12 @@ _ac_body () {
         text="$(printf '%s\n' "${_ar_out[@]}")"
     fi
 
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
-        _tk=(); read -ra _tk <<< "$_l"
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
+        _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
         [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
-    done <<< "$text"
+    done
 
     # The modal (most common) token count of the block — used to spot leading
     # banner lines that are much wider than the table that follows (`w`'s
@@ -96,11 +197,11 @@ _ac_body () {
     local _modal=0
     if [[ $has_table -eq 1 ]]; then
         local _mc=() _mn=0
-        while IFS= read -r _l; do
-            [[ -z "${_l//[[:space:]]/}" ]] && continue
-            _tk=(); read -ra _tk <<< "$_l"
+        for _l in "${_FR_LINES[@]}"; do
+            [[ "${_l}" != *[![:space:]]* ]] && continue
+            _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
             _mc+=("${#_tk[@]}"); _mn=$((_mn + 1)); [[ $_mn -ge 40 ]] && break
-        done <<< "$text"
+        done
         local _a _b _k _best=0
         for _a in "${_mc[@]}"; do
             _k=0; for _b in "${_mc[@]}"; do [[ "$_b" -eq "$_a" ]] && _k=$((_k + 1)); done
@@ -117,14 +218,14 @@ _ac_body () {
     # is chrome, not data. Identified by lookahead here, dropped in the loop.
     local _title="" _prev="" _seenfirst=0
     if [[ $has_table -eq 1 ]]; then
-        while IFS= read -r _l; do
+        for _l in "${_FR_LINES[@]}"; do
             if [[ $_seenfirst -eq 0 ]]; then
-                [[ -z "${_l//[[:space:]]/}" ]] && continue
+                [[ "${_l}" != *[![:space:]]* ]] && continue
                 _seenfirst=1; _prev="$_l"; continue
             fi
-            [[ -z "${_l//[[:space:]]/}" && "$_prev" =~ :[[:space:]]*$ ]] && _title="$_prev"
+            [[ "${_l}" != *[![:space:]]* && "$_prev" =~ :[[:space:]]*$ ]] && _title="$_prev"
             break
-        done <<< "$text"
+        done
     fi
 
     # A title banner in front of a FIXED-WIDTH table (STREAM's "STREAM version
@@ -137,21 +238,22 @@ _ac_body () {
     local _fwbanner=""
     if [[ $has_table -eq 1 ]]; then
         local _fl=() _fx
-        while IFS= read -r _fx; do
-            [[ -z "${_fx//[[:space:]]/}" ]] && continue
+        for _fx in "${_FR_LINES[@]}"; do
+            [[ "${_fx}" != *[![:space:]]* ]] && continue
             [[ "$_fx" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
             _fl+=("$_fx"); [[ ${#_fl[@]} -ge 3 ]] && break
-        done <<< "$text"
+        done
         if [[ ${#_fl[@]} -ge 3 ]]; then
             local _b0="${_fl[0]}" _h1="${_fl[1]}" _d2="${_fl[2]}"
-            local _b0seg; _b0seg="$(_ac_seg "$_b0")"
+            local _b0seg; _ac_seg_v "$_b0"; _b0seg="$_AC_SEG"
             if [[ ( $_b0seg -lt 2 || "$_b0" == *-----* ) && ! "$_b0" =~ ^[[:space:]]*[{[\<] ]]; then
                 # header all-label AND genuinely multi-COLUMN (>=2 two-space
                 # segments)? A kv line ("Revision a1b2c3d4", "Author: Name") has
                 # one segment and must never count as a fixed-width header.
-                local _hlab=1 _ht; _ht=(); read -ra _ht <<< "$_h1"
+                local _hlab=1 _ht; _ht=(); _fr_tok "$_h1"; _ht=("${_FR_TOK[@]}")
                 [[ ${#_ht[@]} -ge 2 ]] || _hlab=0
-                [[ "$(_ac_seg "$_h1")" -ge 2 ]] || _hlab=0
+                _ac_seg_v "$_h1"
+                [[ "$_AC_SEG" -ge 2 ]] || _hlab=0
                 # every header token must be a real label: contains a letter and
                 # is not a value ("========================" in mpirun's decorated
                 # "==== JOB MAP ====" row is neither).
@@ -160,7 +262,7 @@ _ac_body () {
                     if _ac_is_value "$_t" || [[ ! "$_t" =~ [A-Za-z] ]]; then _hlab=0; break; fi
                 done
                 # data numeric?
-                local _dnum=0 _dt; _dt=(); read -ra _dt <<< "$_d2"
+                local _dnum=0 _dt; _dt=(); _fr_tok "$_d2"; _dt=("${_FR_TOK[@]}")
                 for _t in "${_dt[@]}"; do _ac_is_value "$_t" && { _dnum=1; break; }; done
                 # header and first data row must start at the SAME column — else
                 # the header has no column for a data-row label ("Read (MB/s)"
@@ -178,20 +280,23 @@ _ac_body () {
     # tokens are unique (nvidia-smi dmon's `# gpu sm mem …` over its units row
     # `# Idx % % …`); otherwise keep the last (conda's header is last).
     local held=() banner_budget=2
-    while IFS= read -r _l; do
+    # Kept lines accumulate in an ARRAY and are joined once at the end: a
+    # per-line `out+=` re-copies the whole string each time (quadratic).
+    local _outl=()
+    for _l in "${_FR_LINES[@]}"; do
         # Drop a pure separator rule up top so a LEADING rule (STREAM /
         # pytest-benchmark bracket their header in rules) doesn't flip `started`
         # and get mistaken for the first table line.
         [[ "$_l" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
-        if [[ $started -eq 0 && -n "${_l//[[:space:]]/}" ]]; then
-            _tk=(); read -ra _tk <<< "$_l"
+        if [[ $started -eq 0 && "${_l}" == *[![:space:]]* ]]; then
+            _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
             [[ -n "$_fwbanner" && "$_l" == "$_fwbanner" ]] && { _fwbanner=""; continue; }
             [[ -n "$_title" && "$_l" == "$_title" ]] && { _title=""; continue; }
             if [[ "$_l" =~ ^[[:space:]]*# ]]; then
                 # Strip the leading `#` (and one following space) — a candidate header.
                 local _h="${_l#"${_l%%[!#[:space:]]*}"}"
-                [[ -n "${_h//[[:space:]]/}" ]] && held+=("$_h")
+                [[ "${_h}" == *[![:space:]]* ]] && held+=("$_h")
                 continue
             fi
             # A short word-like preamble line (e.g. `apt list`'s "Listing…") before
@@ -219,11 +324,12 @@ _ac_body () {
                        || "$_bt" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_bt" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && { _bv=1; break; }
                 done
                 if [[ $_bv -eq 1 ]]; then
-                    while IFS= read -r _bl2; do
-                        [[ -z "${_bl2//[[:space:]]/}" || "$_bl2" == "$_l" ]] && continue
-                        _bt2=(); read -ra _bt2 <<< "$_bl2"
+                    _fr_lines "$text"
+                    for _bl2 in "${_FR_LINES[@]}"; do
+                        [[ "${_bl2}" != *[![:space:]]* || "$_bl2" == "$_l" ]] && continue
+                        _fr_tok "$_bl2"; _bt2=("${_FR_TOK[@]}")
                         [[ "${_bt2[0]:-}" == "${_tk[0]}" ]] && { _bsame=1; break; }
-                    done <<< "$text"
+                    done
                     if [[ $_bsame -eq 0 ]]; then
                         banner_budget=$((banner_budget - 1))
                         continue
@@ -237,19 +343,20 @@ _ac_body () {
             if [[ ${#held[@]} -gt 0 ]]; then
                 local _pick="" _c _ct _u _t2
                 for _c in "${held[@]}"; do
-                    _ct=(); read -ra _ct <<< "$_c"
+                    _fr_tok "$_c"; _ct=("${_FR_TOK[@]}")
                     [[ ${#_ct[@]} -ne ${#_tk[@]} ]] && continue
                     _u=1; local -A _seen_tok=()
                     for _t2 in "${_ct[@]}"; do [[ -n "${_seen_tok[$_t2]:-}" ]] && { _u=0; break; }; _seen_tok[$_t2]=1; done
                     [[ $_u -eq 1 ]] && { _pick="$_c"; break; }
                 done
                 [[ -z "$_pick" ]] && _pick="${held[${#held[@]}-1]}"
-                [[ -n "$_pick" ]] && out+="$_pick"$'\n'
+                [[ -n "$_pick" ]] && _outl+=("$_pick")
             fi
             started=1
         fi
-        out+="$_l"$'\n'
-    done <<< "$text"
+        _outl+=("$_l")
+    done
+    [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
 
     # Drop a trailing summary line like "4 sessions listed." / "5 loaded units
     # listed." so it isn't counted as a data row.
@@ -259,7 +366,7 @@ _ac_body () {
           && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]]; then
         out="${body%$'\n'*}"$'\n'
     fi
-    printf '%s' "$out"
+    _AC_BODY_RAW="$out"
 }
 
 # Analyse a block as a whitespace-columnar table. Prints "<mode> <ncols>":
@@ -275,7 +382,37 @@ _ac_body () {
 # header, while `who`/`mount` (no numeric columns) stay headerless. Headerless
 # needs >=3 consistent columns so it can't swallow 2-column key/value input.
 _ac_shape () {
-    local text; text="$(_ac_body "$1")"
+    _ac_shape_v "$1" || return 1
+    printf '%s\n' "$_AC_SHAPE"
+}
+
+# _ac_shape_v TEXT — _ac_shape's verdict in the global _AC_SHAPE ("<mode> <n>")
+# with the same return status; no fork. A pure function of TEXT, memoised so
+# detect and extract (same input) analyse the block once.
+_AC_SHAPE_KEY=""
+_AC_SHAPE_OK=0
+_AC_SHAPE_RC=1
+_ac_shape_v () {
+    if [[ $_AC_SHAPE_OK -eq 1 && "$1" == "$_AC_SHAPE_KEY" ]]; then
+        _AC_SHAPE="$_AC_SHAPE_MEMO"
+        return $_AC_SHAPE_RC
+    fi
+    _AC_SHAPE_OUT=""
+    local _rc=0
+    _ac_shape_compute "$1" || _rc=$?
+    [[ $_rc -ne 0 ]] && _AC_SHAPE_OUT=""
+    _AC_SHAPE="$_AC_SHAPE_OUT"
+    _AC_SHAPE_MEMO="$_AC_SHAPE_OUT"
+    _AC_SHAPE_RC=$_rc
+    _AC_SHAPE_KEY="$1"
+    _AC_SHAPE_OK=1
+    return $_rc
+}
+
+# The _ac_shape analysis proper: sets _AC_SHAPE_OUT and returns 0, or
+# returns 1 (not a columnar table).
+_ac_shape_compute () {
+    local text; _ac_body_v "$1"; text="$_AC_BODY"
     local counts=() dcount=() idx=0 _line first_line=""
     # Track whether this block is dominantly a single-record COLON-KV
     # description (dpkg/apt `Package: foo` / `Status: install ok installed` /
@@ -289,11 +426,12 @@ _ac_shape () {
     local _kvm_tpl="" _kvm_tpl_same=1
     local -A _kv_seen=() _kvm_seen=()
     local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
         [[ $idx -eq 1 ]] && first_line="$_line"
-        local _tk; _tk=(); read -ra _tk <<< "$_line"
+        local _tk; _tk=(); _fr_tok "$_line"; _tk=("${_FR_TOK[@]}")
         counts+=("${#_tk[@]}")
         local d=0 t
         for t in "${_tk[@]}"; do [[ "$t" =~ [0-9] ]] && d=$((d + 1)); done
@@ -321,7 +459,7 @@ _ac_shape () {
             fi
         fi
         [[ $idx -ge 40 ]] && break
-    done <<< "$text"
+    done
     # Also require ROW 1 ITSELF to be a colon-kv label line. Without this, a
     # real table whose first COLUMN happens to be colon-suffixed labels
     # (/proc/interrupts-style `HI:  TIMER:  NET_TX:  …` per-row counter names
@@ -360,8 +498,9 @@ _ac_shape () {
     local _mixed_ok=1 _mixed_multi=0 _mx_line _mx_tpl="" _mx_tpl_same=1 _mx_colons=0 _mx_n=0
     local -A _mx_seen=()
     if [[ $idx -ge 2 ]]; then
-        while IFS= read -r _mx_line; do
-            [[ -z "${_mx_line//[[:space:]]/}" ]] && continue
+        _fr_lines "$text"
+        for _mx_line in "${_FR_LINES[@]}"; do
+            [[ "${_mx_line}" != *[![:space:]]* ]] && continue
             if [[ ! "$_mx_line" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
                 _mixed_ok=0; break
             fi
@@ -383,7 +522,7 @@ _ac_shape () {
             if [[ -z "$_mx_tpl" ]]; then _mx_tpl="$_mxt"
             elif [[ "$_mxt" != "$_mx_tpl" ]]; then _mx_tpl_same=0
             fi
-        done <<< "$text"
+        done
         # Only defer when `colons` will actually ACCEPT the block (>=40% of
         # labels letter-led simple charset) — else no parser takes it at all.
         if [[ $_mixed_ok -eq 1 && $_mixed_multi -eq 1 && $_mx_n -ge 1 \
@@ -401,7 +540,7 @@ _ac_shape () {
     # more columns, and numeric data starts on row 3 — vmstat, some sar layouts.
     if [[ $nlines -ge 3 && ${dcount[0]} -eq 0 && ${dcount[1]} -eq 0 \
           && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
-        printf 'HDR2 %s\n' "${counts[1]}"
+        _AC_SHAPE_OUT="HDR2 ${counts[1]}"
         return 0
     fi
     # Same shape, but the FIELD row's labels carry digits (`p50`, `BW(MB/s)`,
@@ -411,18 +550,19 @@ _ac_shape () {
     if [[ $nlines -ge 3 && ${dcount[0]} -eq 0 && ${dcount[1]} -gt 0 \
           && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
         local _h2v=0 _h3v=0 _h2t _h2i=0 _h2l="" _h3l=""
-        while IFS= read -r _h2t; do
-            [[ -z "${_h2t//[[:space:]]/}" ]] && continue
+        _fr_lines "$text"
+        for _h2t in "${_FR_LINES[@]}"; do
+            [[ "${_h2t}" != *[![:space:]]* ]] && continue
             _h2i=$((_h2i + 1))
             [[ $_h2i -eq 2 ]] && _h2l="$_h2t"
             [[ $_h2i -eq 3 ]] && { _h3l="$_h2t"; break; }
-        done <<< "$text"
-        local _h2arr=(); read -ra _h2arr <<< "$_h2l"
+        done
+        local _h2arr=(); _fr_tok "$_h2l"; _h2arr=("${_FR_TOK[@]}")
         for _h2t in "${_h2arr[@]}"; do
             [[ "$_h2t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_h2t" =~ ^[0-9]{1,2}:[0-9]{2} \
                || "$_h2t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_h2t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && _h2v=$((_h2v + 1))
         done
-        local _h3arr=(); read -ra _h3arr <<< "$_h3l"
+        local _h3arr=(); _fr_tok "$_h3l"; _h3arr=("${_FR_TOK[@]}")
         for _h2t in "${_h3arr[@]}"; do
             [[ "$_h2t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_h2t" =~ ^[0-9]{1,2}:[0-9]{2} \
                || "$_h2t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_h2t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && _h3v=$((_h3v + 1))
@@ -432,7 +572,7 @@ _ac_shape () {
         # on its `====`), and row 2 a real FIELD row — no lone-punctuation
         # tokens (an ` X : Y   Z : W ` kv line fails on its bare `:`).
         local _h1ok=1 _h1arr=()
-        read -ra _h1arr <<< "$first_line"
+        _fr_tok "$first_line"; _h1arr=("${_FR_TOK[@]}")
         for _h2t in "${_h1arr[@]}"; do
             [[ "$_h2t" =~ [A-Za-z0-9] ]] || { _h1ok=0; break; }
         done
@@ -441,7 +581,7 @@ _ac_shape () {
             [[ "$_h2t" =~ ^[\|#/%+:=-]+$ ]] && { _h2ok=0; break; }
         done
         if [[ $_h1ok -eq 1 && $_h2ok -eq 1 && $_h2v -eq 0 && $_h3v -ge 1 ]]; then
-            printf 'HDR2 %s\n' "${counts[1]}"
+            _AC_SHAPE_OUT="HDR2 ${counts[1]}"
             return 0
         fi
     fi
@@ -456,7 +596,7 @@ _ac_shape () {
     # ALL-CAPS needs a letter: a purely numeric first row (`redis-cli --latency
     # -history`'s "1751880000 2") has no lowercase but is data, not a header.
     local caps0=0; [[ ! "$first_line" =~ [a-z] && "$first_line" =~ [A-Z] ]] && caps0=1
-    local v0=0 _t _t1arr; _t1arr=(); read -ra _t1arr <<< "$first_line"
+    local v0=0 _t _t1arr; _t1arr=(); _fr_tok "$first_line"; _t1arr=("${_FR_TOK[@]}")
     for _t in "${_t1arr[@]}"; do
         # value token = a number, optionally with a trailing unit (8.421s, 942ms,
         # 7.8Gi, 39%), or a time / IP / date. `1K-blocks` is NOT one (the hyphen),
@@ -476,11 +616,13 @@ _ac_shape () {
     local moren=0 maxd=0 vrows=0 i
     local _dl _dt _dtk
     i=0
-    while IFS= read -r _dl; do
-        [[ -z "${_dl//[[:space:]]/}" ]] && continue
+    # (the block text IS $(_ac_body "$1"), so its lines are _fr_lines "$text")
+    _fr_lines "$text"
+    for _dl in "${_FR_LINES[@]}"; do
+        [[ "${_dl}" != *[![:space:]]* ]] && continue
         i=$((i + 1))
         [[ $i -eq 1 ]] && continue
-        _dtk=(); read -ra _dtk <<< "$_dl"
+        _fr_tok "$_dl"; _dtk=("${_FR_TOK[@]}")
         for _dt in "${_dtk[@]}"; do
             if [[ "$_dt" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_dt" =~ ^[0-9]{1,2}:[0-9]{2} \
                  || "$_dt" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_dt" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]]; then
@@ -488,7 +630,7 @@ _ac_shape () {
             fi
         done
         [[ $i -ge 40 ]] && break
-    done <<< "$(_ac_body "$1")"
+    done
     for ((i = 1; i < nlines; i++)); do
         [[ ${dcount[$i]} -gt ${dcount[0]} ]] && moren=$((moren + 1))
         [[ ${dcount[$i]} -gt $maxd ]] && maxd=${dcount[$i]}
@@ -568,7 +710,7 @@ _ac_shape () {
     if [[ $caps0 -eq 1 || ( $v0 -eq 0 && ${dcount[0]} -eq 0 && $labelly -eq 1 && $maxd -gt 0 ) \
           || ( $v0 -eq 0 && $labelly -eq 1 && $vrows -gt 0 && $vrows -eq $((nlines - 1)) ) \
           || ( $v0 -eq 0 && $labelly -eq 1 && $(( moren * 2 )) -gt $((nlines - 1)) ) ]]; then
-        printf 'HDR %s\n' "${counts[0]}"
+        _AC_SHAPE_OUT="HDR ${counts[0]}"
         return 0
     fi
 
@@ -595,19 +737,20 @@ _ac_shape () {
         # lowercase name grid (sqlite .tables) has neither and stays data.
         if [[ $wordy -eq 1 && $styled -eq 0 ]]; then
             local _dc_all=1 _dc_hit _dc_tk _dc_l _dc_i=0
-            while IFS= read -r _dc_l; do
-                [[ -z "${_dc_l//[[:space:]]/}" ]] && continue
+            _fr_lines "$text"
+            for _dc_l in "${_FR_LINES[@]}"; do
+                [[ "${_dc_l}" != *[![:space:]]* ]] && continue
                 _dc_i=$((_dc_i + 1))
                 [[ $_dc_i -eq 1 ]] && continue          # skip the header row
                 _dc_hit=0
-                local _dc_arr=(); read -ra _dc_arr <<< "$_dc_l"
+                local _dc_arr=(); _fr_tok "$_dc_l"; _dc_arr=("${_FR_TOK[@]}")
                 for _dc_tk in "${_dc_arr[@]}"; do
                     [[ "$_dc_tk" =~ ^[A-Z][a-z] ]] && { _dc_hit=1; break; }
                     [[ "$_dc_tk" != *[[:ascii:]]* ]] && { _dc_hit=1; break; }
                 done
                 [[ $_dc_hit -eq 0 ]] && { _dc_all=0; break; }
                 [[ $_dc_i -ge 40 ]] && break
-            done <<< "$text"
+            done
             [[ $_dc_all -eq 1 ]] && styled=1
         fi
         # And the data under it must be TABLE-shaped: a modal column count
@@ -632,15 +775,16 @@ _ac_shape () {
         fi
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
-            while IFS= read -r _line; do
-                [[ -z "${_line//[[:space:]]/}" ]] && continue
+            _fr_lines "$text"
+            for _line in "${_FR_LINES[@]}"; do
+                [[ "${_line}" != *[![:space:]]* ]] && continue
                 idx2=$((idx2 + 1)); [[ $idx2 -eq 2 ]] && { second_line="$_line"; break; }
-            done <<< "$text"
-            local overlap=0 _t2 _t2arr; _t2arr=(); read -ra _t2arr <<< "$second_line"
+            done
+            local overlap=0 _t2 _t2arr; _t2arr=(); _fr_tok "$second_line"; _t2arr=("${_FR_TOK[@]}")
             for _t in "${_t1arr[@]}"; do
                 for _t2 in "${_t2arr[@]}"; do [[ "$_t" == "$_t2" ]] && { overlap=1; break 2; }; done
             done
-            [[ $overlap -eq 0 ]] && { printf 'HDR %s\n' "${counts[0]}"; return 0; }
+            [[ $overlap -eq 0 ]] && { _AC_SHAPE_OUT="HDR ${counts[0]}"; return 0; }
         fi
     fi
 
@@ -657,19 +801,20 @@ _ac_shape () {
         # punctuation (paths, module@version, timestamps) — `go mod graph`,
         # redis latency history. Prose and `Key value` snapshots don't qualify.
         local vlike=0 tot=0 _ln
-        while IFS= read -r _ln; do
-            [[ -z "${_ln//[[:space:]]/}" ]] && continue
-            _t1arr=(); read -ra _t1arr <<< "$_ln"
+        _fr_lines "$text"
+        for _ln in "${_FR_LINES[@]}"; do
+            [[ "${_ln}" != *[![:space:]]* ]] && continue
+            _t1arr=(); _fr_tok "$_ln"; _t1arr=("${_FR_TOK[@]}")
             for _t in "${_t1arr[@]}"; do
                 tot=$((tot + 1))
                 [[ "$_t" =~ ^[0-9][0-9.,:%-]*$ || "$_t" == */* || "$_t" == *@* || "$_t" == *:* ]] && vlike=$((vlike + 1))
             done
-        done <<< "$text"
-        [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge 75 ]] && { printf 'HL 2\n'; return 0; }
+        done
+        [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge 75 ]] && { _AC_SHAPE_OUT="HL 2"; return 0; }
     fi
     [[ $mode -lt 3 ]] && return 1
     [[ $(( best * 100 / ${#counts[@]} )) -lt 60 ]] && return 1
-    printf 'HL %s\n' "$mode"
+    _AC_SHAPE_OUT="HL $mode"
     return 0
 }
 
@@ -682,11 +827,12 @@ strategy_detect () {
     # aligned-columns would split it into a bogus middle column and mangle any
     # value with inner spaces. The equals parser tidies these to one field per key.
     local _eq=0 _et=0 _el
-    while IFS= read -r _el; do
-        [[ -z "${_el//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _el in "${_FR_LINES[@]}"; do
+        [[ "${_el}" != *[![:space:]]* ]] && continue
         _et=$((_et + 1))
         [[ "$_el" == *" = "* ]] && _eq=$((_eq + 1))
-    done <<< "$text"
+    done
     [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
 
     # Decline pure key/value blocks — `label : value` / `label: value` (e.g.
@@ -698,23 +844,20 @@ strategy_detect () {
     # table — so only decline when the block is RAGGED (no dominant column count),
     # which is what a genuine key/value block looks like.
     local _nb=0 _kv=0 _cl _cc=() _ct
-    while IFS= read -r _cl; do
-        [[ -z "${_cl//[[:space:]]/}" ]] && continue
+    for _cl in "${_FR_LINES[@]}"; do
+        [[ "${_cl}" != *[![:space:]]* ]] && continue
         _nb=$((_nb + 1))
         if [[ "$_cl" =~ ^[[:space:]]*[A-Za-z][^:=]*:[[:space:]] \
               || "$_cl" =~ ^[[:space:]]*[A-Za-z][A-Za-z0-9_]*= ]]; then
             _kv=$((_kv + 1))
         fi
-        _ct=(); read -ra _ct <<< "$_cl"; _cc+=("${#_ct[@]}")
-    done <<< "$text"
+        _fr_tok "$_cl"; _cc+=("${#_FR_TOK[@]}")
+    done
     if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
         # Modal column count: a strong, consistent ≥3-column shape means a table,
         # not a kv block — keep it with aligned-columns.
-        local _m=0 _best=0 _a _b _k
-        for _a in "${_cc[@]}"; do
-            _k=0; for _b in "${_cc[@]}"; do [[ "$_b" -eq "$_a" ]] && _k=$((_k + 1)); done
-            [[ $_k -gt $_best ]] && { _best=$_k; _m=$_a; }
-        done
+        local _m=0 _best=0
+        _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
     fi
 
@@ -723,16 +866,17 @@ strategy_detect () {
     # output (ps, df, ss, iostat, netstat, top, lsblk, systemctl, mount, who,
     # vmstat, ls -l …) without a per-tool rule. Confidence scales with column
     # consistency so a clean table outranks the key/value parsers.
-    local shape; shape="$(_ac_shape "$text")" || return 1
+    local shape; _ac_shape_v "$text" || return 1; shape="$_AC_SHAPE"
     local mode="${shape%% *}" n_h="${shape##* }"
     local hdr_lines=1
     case "$mode" in HL) hdr_lines=0 ;; HDR) hdr_lines=1 ;; HDR2) hdr_lines=2 ;; esac
 
     local idx=0 data_rows=0 consistent=0 header_caps=1 _line
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _ac_body_v "$text"; _fr_lines "$_AC_BODY"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
-        local _tk; _tk=(); read -ra _tk <<< "$_line"
+        local _tk; _tk=(); _fr_tok "$_line"; _tk=("${_FR_TOK[@]}")
         local n=${#_tk[@]}
         if [[ $idx -le $hdr_lines ]]; then
             if [[ $idx -eq $hdr_lines ]]; then
@@ -744,7 +888,7 @@ strategy_detect () {
         [[ $n -ge 2 ]] && data_rows=$((data_rows + 1))
         [[ $n -ge $((n_h - 1)) ]] && consistent=$((consistent + 1))
         [[ $idx -ge 40 ]] && break
-    done <<< "$(_ac_body "$text")"
+    done
     [[ "$mode" == HL ]] && header_caps=0
 
     [[ $data_rows -lt 1 ]] && return 1
@@ -1077,11 +1221,8 @@ _ac_grid_mb () (
         _mb_spans "${rows[$r2]}"
         counts+=("${#_MB_TOK[@]}")
     done
-    local modal=0; local best=0; local a; local b; local k
-    for a in "${counts[@]}"; do
-        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k+1)); done
-        [[ $k -gt $best ]] && { best=$k; modal=$a; }
-    done
+    local modal=0; local best=0
+    _fr_modal ${counts[@]+"${counts[@]}"}; modal=$_FR_MODE; best=$_FR_MODE_N
     (( modal > nc && best >= 2 )) || exit 1
     local refts=(); local refte=()
     for ((r2=1; r2<${#rows[@]}; r2++)); do
@@ -1129,7 +1270,7 @@ _ac_grid_mb () (
 
 strategy_extract () {
     local text="$1"
-    local shape; shape="$(_ac_shape "$text")" || { echo ""; return 0; }
+    local shape; _ac_shape_v "$text" || { echo ""; return 0; }; shape="$_AC_SHAPE"
     local mode="${shape%% *}" ncols="${shape##* }"
 
     # Collect non-blank lines (after dropping any `total <n>` preamble).
@@ -1139,14 +1280,14 @@ strategy_extract () {
     # "LOAD = …" lines after a blank). A table that resumes after the blank
     # (faillock's per-user sections) keeps collecting.
     local _raw=() lines=() _l _li
-    while IFS= read -r _l; do _raw+=("$_l"); done <<< "$(_ac_body "$text")"
+    _ac_body_v "$text"; _fr_lines "$_AC_BODY"; _raw=("${_FR_LINES[@]}")
     for ((_li = 0; _li < ${#_raw[@]}; _li++)); do
         _l="${_raw[$_li]}"
-        if [[ -z "${_l//[[:space:]]/}" ]]; then
+        if [[ "${_l}" != *[![:space:]]* ]]; then
             if [[ ( "$mode" == HDR && ${#lines[@]} -ge 2 ) || ( "$mode" == HDR2 && ${#lines[@]} -ge 3 ) ]]; then
                 local _peek="" _pi
                 for ((_pi = _li + 1; _pi < ${#_raw[@]}; _pi++)); do
-                    [[ -n "${_raw[$_pi]//[[:space:]]/}" ]] && { _peek="${_raw[$_pi]}"; break; }
+                    [[ "${_raw[$_pi]}" == *[![:space:]]* ]] && { _peek="${_raw[$_pi]}"; break; }
                 done
                 [[ "$_peek" == *" = "* ]] && break
             fi
@@ -1170,7 +1311,7 @@ strategy_extract () {
     #     column, or have long values (paths, service names).
     if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 ]]; then
         local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
-        local _fharr=(); read -ra _fharr <<< "${lines[$_fhidx]}"
+        local _fharr; _fr_tok "${lines[$_fhidx]}"; _fharr=("${_FR_TOK[@]}")
         local _fhnorm="${_fharr[*]}"
         local _fhind="${lines[$_fhidx]%%[![:space:]]*}"
         # repeat-drop only for a real label row: >=3 tokens (a 2-token log line
@@ -1188,7 +1329,7 @@ strategy_extract () {
             local _frep=0 _ftot=0 _fj _fjarr
             for ((_fj = _fhidx + 1; _fj < ${#lines[@]}; _fj++)); do
                 _ftot=$((_ftot + 1))
-                _fjarr=(); read -ra _fjarr <<< "${lines[$_fj]}"
+                _fr_tok "${lines[$_fj]}"; _fjarr=("${_FR_TOK[@]}")
                 [[ "${_fjarr[*]}" == "$_fhnorm" ]] && _frep=$((_frep + 1))
             done
             [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
@@ -1196,7 +1337,7 @@ strategy_extract () {
         local _fout=() _fi _farr _fnorm _fdind _ft _ftok
         for ((_fi = 0; _fi < ${#lines[@]}; _fi++)); do
             if [[ $_fi -gt $_fhidx ]]; then
-                _farr=(); read -ra _farr <<< "${lines[$_fi]}"
+                _fr_tok "${lines[$_fi]}"; _farr=("${_FR_TOK[@]}")
                 _fnorm="${_farr[*]}"
                 [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] && continue
                 if [[ $_fi -eq $((_fhidx + 1)) && ${#_farr[@]} -lt ${#_fharr[@]} \
@@ -1231,9 +1372,9 @@ strategy_extract () {
         local _mw=() _mi _mt1 _mt2
         for ((_mi = 0; _mi < ${#lines[@]}; _mi++)); do
             if [[ $_mi -gt 0 && $((_mi + 1)) -lt ${#lines[@]} ]]; then
-                _mt1=(); read -ra _mt1 <<< "${lines[$_mi]}"
+                _fr_tok "${lines[$_mi]}"; _mt1=("${_FR_TOK[@]}")
                 if [[ ${#_mt1[@]} -eq 1 ]]; then
-                    _mt2=(); read -ra _mt2 <<< "${lines[$((_mi + 1))]}"
+                    _fr_tok "${lines[$((_mi + 1))]}"; _mt2=("${_FR_TOK[@]}")
                     # merged pair must land on a full row: ncols tokens, or one
                     # short of it (a multi-word header label like `Mounted on`
                     # makes ncols one higher than any data row)
@@ -1255,26 +1396,24 @@ strategy_extract () {
     # `80, 443`) survive. Everything else keeps whitespace tokenization.
     if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
         local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
-        local hd; hd="$(printf '%s\n' "${lines[@]:$hidx}")"
+        # (printf -v + trailing-newline strip == the old `$(printf …)` capture)
+        local hd; printf -v hd '%s\n' "${lines[@]:$hidx}"; hd="${hd%"${hd##*[!$'\n']}"}"
         # Positional assignment only helps when a data cell is multi-word (docker
         # "2 hours ago", helm's timestamp) — i.e. data rows carry MORE whitespace
         # tokens than the header has labels. When every cell is a single token
         # (df, lsblk, ss, elasticsearch), the header's 2-space segmentation can
         # UNDER-count columns (single-spaced labels like df's "Used Avail Use%"),
         # so positional would cram them; whitespace tokenization is correct there.
-        local _htok _harr; _harr=(); read -ra _harr <<< "${lines[$hidx]}"; _htok=${#_harr[@]}
+        local _htok _harr; _fr_tok "${lines[$hidx]}"; _harr=("${_FR_TOK[@]}"); _htok=${#_harr[@]}
         local _maxd=0 _dli _darr _dcnt=()
         for ((_dli = hidx + 1; _dli < ${#lines[@]}; _dli++)); do
-            _darr=(); read -ra _darr <<< "${lines[$_dli]}"
+            _fr_tok "${lines[$_dli]}"; _darr=("${_FR_TOK[@]}")
             [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
             _dcnt+=("${#_darr[@]}")
         done
         # Modal data-row token count.
-        local _moded=0 _mda _mdb _mdk _mdbest=0
-        for _mda in "${_dcnt[@]}"; do
-            _mdk=0; for _mdb in "${_dcnt[@]}"; do [[ "$_mdb" -eq "$_mda" ]] && _mdk=$((_mdk + 1)); done
-            [[ $_mdk -gt $_mdbest ]] && { _mdbest=$_mdk; _moded=$_mda; }
-        done
+        local _moded=0 _mdbest=0
+        _fr_modal ${_dcnt[@]+"${_dcnt[@]}"}; _moded=$_FR_MODE; _mdbest=$_FR_MODE_N
         # In an ALL-TEXT table (no digits anywhere) the reverse mismatch also
         # wants positional assignment: a header with MORE tokens than the data
         # rows means multi-word labels (`Service Name`), which 2-space
@@ -1287,9 +1426,10 @@ strategy_extract () {
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
         elif [[ $_htok -gt $_maxd ]]; then
-            if [[ ! "$(printf '%s\n' "${lines[@]}")" =~ [0-9] ]]; then _use_pos=1
+            local _alljoin; printf -v _alljoin '%s\n' "${lines[@]}"
+            if [[ ! "$_alljoin" =~ [0-9] ]]; then _use_pos=1
             else
-                local _hseg; _hseg="$(_ac_seg "${lines[$hidx]}")"
+                local _hseg; _ac_seg_v "${lines[$hidx]}"; _hseg="$_AC_SEG"
                 [[ $_hseg -ge 2 && $_hseg -eq $_moded ]] && _use_pos=1
             fi
         else
@@ -1302,16 +1442,13 @@ strategy_extract () {
             # header (pam-tally2, ip6tables — their own 2-space runs mark MORE
             # columns than the header shows) is telling us the single-spaced
             # header under-segments, and tokenization is the right reading.
-            local _hsegq; _hsegq="$(_ac_seg "${lines[$hidx]}")"
+            local _hsegq; _ac_seg_v "${lines[$hidx]}"; _hsegq="$_AC_SEG"
             if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
-                local _dsegc=() _dsi _dsa _dsb _dsk _dsbest=0 _dsmod=0
+                local _dsegc=() _dsi _dsbest=0 _dsmod=0
                 for ((_dsi = hidx + 1; _dsi < ${#lines[@]}; _dsi++)); do
-                    _dsegc+=("$(_ac_seg "${lines[$_dsi]}")")
+                    _ac_seg_v "${lines[$_dsi]}"; _dsegc+=("$_AC_SEG")
                 done
-                for _dsa in "${_dsegc[@]}"; do
-                    _dsk=0; for _dsb in "${_dsegc[@]}"; do [[ "$_dsb" -eq "$_dsa" ]] && _dsk=$((_dsk + 1)); done
-                    [[ $_dsk -gt $_dsbest ]] && { _dsbest=$_dsk; _dsmod=$_dsa; }
-                done
+                _fr_modal ${_dsegc[@]+"${_dsegc[@]}"}; _dsmod=$_FR_MODE; _dsbest=$_FR_MODE_N
                 [[ $_dsmod -eq $_hsegq ]] && _use_pos=1
             fi
         fi
@@ -1338,9 +1475,12 @@ strategy_extract () {
         if [[ $_use_pos -eq 1 ]] && { [[ -n "$_mb_grid" ]] || [[ "$(printf '%s' "$hd" | _ac_aligned)" == "1" ]]; }; then
             local gridrows=() _g
             if [[ -n "$_mb_grid" ]]; then
-                while IFS= read -r _g; do gridrows+=("$_g"); done <<< "$_mb_grid"
+                _fr_lines "$_mb_grid"; gridrows=("${_FR_LINES[@]}")
             else
-                while IFS= read -r _g; do gridrows+=("$_g"); done < <(printf '%s' "$hd" | _ac_assign)
+                # Captured whole (bulk read) instead of read line-by-line from a
+                # process-substitution pipe (one read(2) per byte).
+                _g="$(printf '%s' "$hd" | _ac_assign; printf .)"
+                _ac_stream_lines "${_g%.}"; gridrows=(${_FR_LINES[@]+"${_FR_LINES[@]}"})
             fi
             if [[ ${#gridrows[@]} -ge 2 ]]; then
                 # Tab-SAFE cell split: `IFS=$'\t' read -ra` treats TAB as IFS
@@ -1372,7 +1512,7 @@ strategy_extract () {
                     if [[ $_wnc -ge 2 ]]; then
                         local _wi _wfilled=0 _wlastfill=0 _wfirstfill=0
                         for ((_wi = 0; _wi < _wnc; _wi++)); do
-                            [[ -n "${_wc[$_wi]//[[:space:]]/}" ]] || continue
+                            [[ "${_wc[$_wi]}" == *[![:space:]]* ]] || continue
                             _wfilled=$((_wfilled + 1))
                             [[ $_wi -eq $((_wnc - 1)) ]] && _wlastfill=1
                             [[ $_wi -eq 0 ]] && _wfirstfill=1
@@ -1385,14 +1525,14 @@ strategy_extract () {
                         local _wprev=() _wpi=$(( ${#_wj[@]} - 1 ))
                         _ac_cells "${_wj[$_wpi]}"; _wprev=("${_AC_CELLS[@]}")
                         _wprev[$((${#_wprev[@]} - 1))]="${_wprev[$((${#_wprev[@]} - 1))]:+${_wprev[$((${#_wprev[@]} - 1))]} }${_wc[$((_wnc - 1))]}"
-                        _wj[$_wpi]="$(IFS=$'\t'; printf '%s' "${_wprev[*]}")"
+                        _ac_join_tab "${_wprev[@]}"; _wj[$_wpi]="$_AC_JOINED"
                         continue
                     fi
                     if [[ $_wonly_first -eq 1 && $((_wr + 1)) -lt ${#gridrows[@]} ]]; then
                         local _wnext=(); _ac_cells "${gridrows[$((_wr + 1))]}"; _wnext=("${_AC_CELLS[@]}")
-                        if [[ ${#_wnext[@]} -ge 2 && -z "${_wnext[0]//[[:space:]]/}" ]]; then
+                        if [[ ${#_wnext[@]} -ge 2 && "${_wnext[0]}" != *[![:space:]]* ]]; then
                             _wnext[0]="${_wc[0]}"
-                            gridrows[$((_wr + 1))]="$(IFS=$'\t'; printf '%s' "${_wnext[*]}")"
+                            _ac_join_tab "${_wnext[@]}"; gridrows[$((_wr + 1))]="$_AC_JOINED"
                             continue
                         fi
                     fi
@@ -1409,22 +1549,24 @@ strategy_extract () {
                 for ((i = 0; i < ${#headers[@]}; i++)); do
                     local h="${headers[$i]//./_}"; h="${h// /_}"
                     while [[ "$h" == *__* ]]; do h="${h//__/_}"; done
-                    h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && h="$(_col_letter $((i + 1)))"
+                    h="${h#_}"; h="${h%_}"; [[ -z "$h" ]] && { _fr_col_letter $((i + 1)); h="$_FR_LETTER"; }
                     headers[$i]="$h"
                 done
+                local _resl=()
                 for ((li = 1; li < ${#gridrows[@]}; li++)); do
                     local values; _ac_cells "${gridrows[$li]}"; values=("${_AC_CELLS[@]}")
                     local nonempty=0 v
-                    for v in "${values[@]}"; do [[ -n "${v//[[:space:]]/}" ]] && { nonempty=1; break; }; done
+                    for v in "${values[@]}"; do [[ "${v}" == *[![:space:]]* ]] && { nonempty=1; break; }; done
                     [[ $nonempty -eq 0 ]] && continue
                     entry=$((entry + 1))
                     for ((i = 0; i < ${#headers[@]}; i++)); do
                         local name="${headers[$i]}" value="${values[$i]:-}"
                         [[ -z "$value" ]] && continue
-                        result+="entry${entry}.${name} ${value}"$'\n'
+                        _resl+=("entry${entry}.${name} ${value}")
                     done
                 done
-                [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+                [[ $entry -gt 0 ]] && _resl+=("total_entries ${entry}")
+                [[ ${#_resl[@]} -gt 0 ]] && printf -v result '%s\n' "${_resl[@]}"
                 echo "$result"; return 0
             fi
         fi
@@ -1446,8 +1588,8 @@ strategy_extract () {
     if [[ "$mode" == HDR ]] && [[ ${#lines[@]} -ge 2 ]]; then
         local _sS="" _sok=1 _si _sarr _ss _sw _shw=0 _sdw=()
         for ((_si = 0; _si < ${#lines[@]}; _si++)); do
-            _ss="$(_ac_seg "${lines[$_si]}")"
-            _sarr=(); read -ra _sarr <<< "${lines[$_si]}"; _sw=${#_sarr[@]}
+            _ac_seg_v "${lines[$_si]}"; _ss="$_AC_SEG"
+            _fr_tok "${lines[$_si]}"; _sarr=("${_FR_TOK[@]}"); _sw=${#_sarr[@]}
             [[ $_si -eq 0 ]] && _shw=$_sw || _sdw+=("$_sw")
             [[ -z "$_sS" ]] && _sS="$_ss"
             [[ "$_ss" -ne "$_sS" ]] && { _sok=0; break; }
@@ -1460,39 +1602,38 @@ strategy_extract () {
         # header label happens to be single-spaced (ps -ef's "C STIME TTY" — three
         # narrow columns, not one multi-word cell). That equality is the guard that
         # keeps single-space-delimited fixed tables on tokenization.
-        local _smod=0 _sa _sb _sk _sbest=0
-        for _sa in "${_sdw[@]}"; do
-            _sk=0; for _sb in "${_sdw[@]}"; do [[ "$_sb" -eq "$_sa" ]] && _sk=$((_sk + 1)); done
-            [[ $_sk -gt $_sbest ]] && { _sbest=$_sk; _smod=$_sa; }
-        done
+        local _smod=0 _sbest=0
+        _fr_modal ${_sdw[@]+"${_sdw[@]}"}; _smod=$_FR_MODE; _sbest=$_FR_MODE_N
         if [[ $_sok -eq 1 && $_sS -ge 2 && $_smod -gt $_shw ]]; then
             # mode==HDR guarantees a header row: split it on the same >=2-space
             # boundaries and use its cells as column names ("RAW USE" -> RAW_USE).
             local _sgrid=() _sg
-            while IFS= read -r _sg; do _sgrid+=("$_sg"); done < <(printf '%s\n' "${lines[@]}" | _ac_split)
+            _sg="$(printf '%s\n' "${lines[@]}" | _ac_split; printf .)"
+            _ac_stream_lines "${_sg%.}"; _sgrid=(${_FR_LINES[@]+"${_FR_LINES[@]}"})
             local _sheaders=() _sstart=1
-            IFS=$'\t' read -ra _sheaders <<< "${_sgrid[0]}"
+            IFS=$'\t' _fr_tok "${_sgrid[0]}"; _sheaders=("${_FR_TOK[@]}")
             for ((_si = 0; _si < ${#_sheaders[@]}; _si++)); do
                 local _sh="${_sheaders[$_si]//./_}"; _sh="${_sh// /_}"
                 while [[ "$_sh" == *__* ]]; do _sh="${_sh//__/_}"; done
-                _sh="${_sh#_}"; _sh="${_sh%_}"; [[ -z "$_sh" ]] && _sh="$(_col_letter $((_si + 1)))"
+                _sh="${_sh#_}"; _sh="${_sh%_}"; [[ -z "$_sh" ]] && { _fr_col_letter $((_si + 1)); _sh="$_FR_LETTER"; }
                 _sheaders[$_si]="$_sh"
             done
-            local _sresult="" _sentry=0 _sli
+            local _sresult="" _sentry=0 _sli _sresl=()
             for ((_sli = _sstart; _sli < ${#_sgrid[@]}; _sli++)); do
-                local _svals=(); IFS=$'\t' read -ra _svals <<< "${_sgrid[$_sli]}"
+                local _svals=(); IFS=$'\t' _fr_tok "${_sgrid[$_sli]}"; _svals=("${_FR_TOK[@]}")
                 local _sne=0 _sv
-                for _sv in "${_svals[@]}"; do [[ -n "${_sv//[[:space:]]/}" ]] && { _sne=1; break; }; done
+                for _sv in "${_svals[@]}"; do [[ "${_sv}" == *[![:space:]]* ]] && { _sne=1; break; }; done
                 [[ $_sne -eq 0 ]] && continue
                 _sentry=$((_sentry + 1))
                 for ((_si = 0; _si < ${#_sheaders[@]}; _si++)); do
                     local _sname="${_sheaders[$_si]}" _sval="${_svals[$_si]:-}"
                     [[ -z "$_sval" ]] && continue
-                    _sresult+="entry${_sentry}.${_sname} ${_sval}"$'\n'
+                    _sresl+=("entry${_sentry}.${_sname} ${_sval}")
                 done
             done
             if [[ $_sentry -gt 0 ]]; then
-                _sresult+="total_entries ${_sentry}"$'\n'
+                _sresl+=("total_entries ${_sentry}")
+                printf -v _sresult '%s\n' "${_sresl[@]}"
                 echo "$_sresult"; return 0
             fi
         fi
@@ -1515,18 +1656,15 @@ strategy_extract () {
     # a table that is not genuinely offset-aligned falls through to the
     # tokenized path below exactly as before.
     if [[ "$mode" == HDR && ${#lines[@]} -ge 3 ]]; then
-        local _oa_h=(); read -ra _oa_h <<< "${lines[0]}"
+        local _oa_h; _fr_tok "${lines[0]}"; _oa_h=("${_FR_TOK[@]}")
         if [[ ${#_oa_h[@]} -ge 4 ]]; then
             # Modal data-row token count, and raggedness.
             local _oa_cnt=() _oa_i _oa_t _oa_mod=0 _oa_ba _oa_bb _oa_bk _oa_best=0
             for ((_oa_i = 1; _oa_i < ${#lines[@]}; _oa_i++)); do
-                _oa_t=(); read -ra _oa_t <<< "${lines[$_oa_i]}"
+                _fr_tok "${lines[$_oa_i]}"; _oa_t=("${_FR_TOK[@]}")
                 _oa_cnt+=("${#_oa_t[@]}")
             done
-            for _oa_ba in "${_oa_cnt[@]}"; do
-                _oa_bk=0; for _oa_bb in "${_oa_cnt[@]}"; do [[ "$_oa_bb" -eq "$_oa_ba" ]] && _oa_bk=$((_oa_bk + 1)); done
-                [[ $_oa_bk -gt $_oa_best ]] && { _oa_best=$_oa_bk; _oa_mod=$_oa_ba; }
-            done
+            _fr_modal ${_oa_cnt[@]+"${_oa_cnt[@]}"}; _oa_mod=$_FR_MODE; _oa_best=$_FR_MODE_N
             if [[ $_oa_mod -lt ${#_oa_h[@]} && $_oa_mod -ge 1 ]]; then
                 local _oa_out
                 _oa_out=$(printf '%s\n' "${lines[@]}" | awk '
@@ -1648,9 +1786,9 @@ strategy_extract () {
     # Header names: the header line's tokens (HDR/HDR2), or synthetic c1..cN (HL).
     local headers=() startidx=0 i
     case "$mode" in
-        HDR)  read -ra headers <<< "${lines[0]}"; startidx=1 ;;
-        HDR2) read -ra headers <<< "${lines[1]}"; startidx=2 ;;
-        HL)   for ((i = 1; i <= ncols; i++)); do headers+=("$(_col_letter "$i")"); done; startidx=0 ;;
+        HDR)  _fr_tok "${lines[0]}"; headers=("${_FR_TOK[@]}"); startidx=1 ;;
+        HDR2) _fr_tok "${lines[1]}"; headers=("${_FR_TOK[@]}"); startidx=2 ;;
+        HL)   for ((i = 1; i <= ncols; i++)); do _fr_col_letter "$i"; headers+=("$_FR_LETTER"); done; startidx=0 ;;
     esac
     # HDR2 group-prefixing: when the field row repeats names under different
     # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
@@ -1747,13 +1885,10 @@ strategy_extract () {
             on|by|in|at|of|to)
                 local _tp_cnt=() _tp_i _tp_t _tp_mod=0 _tp_a _tp_b _tp_k _tp_best=0
                 for ((_tp_i = startidx; _tp_i < ${#lines[@]}; _tp_i++)); do
-                    _tp_t=(); read -ra _tp_t <<< "${lines[$_tp_i]}"
+                    _fr_tok "${lines[$_tp_i]}"; _tp_t=("${_FR_TOK[@]}")
                     _tp_cnt+=("${#_tp_t[@]}")
                 done
-                for _tp_a in "${_tp_cnt[@]}"; do
-                    _tp_k=0; for _tp_b in "${_tp_cnt[@]}"; do [[ "$_tp_b" -eq "$_tp_a" ]] && _tp_k=$((_tp_k + 1)); done
-                    [[ $_tp_k -gt $_tp_best ]] && { _tp_best=$_tp_k; _tp_mod=$_tp_a; }
-                done
+                _fr_modal ${_tp_cnt[@]+"${_tp_cnt[@]}"}; _tp_mod=$_FR_MODE; _tp_best=$_FR_MODE_N
                 if [[ $_tp_mod -eq $(( ${#headers[@]} - 1 )) ]]; then
                     headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
                     unset 'headers[$(( ${#headers[@]} - 1 ))]'
@@ -1776,13 +1911,13 @@ strategy_extract () {
     if [[ "$mode" == HL && ${#lines[@]} -ge 2 ]]; then
         local _sc_r _sc_tk _sc_w0=-1 _sc_ragged=0
         for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
-            _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+            _fr_tok "${lines[$_sc_r]}"; _sc_tk=("${_FR_TOK[@]}")
             [[ $_sc_w0 -lt 0 ]] && _sc_w0=${#_sc_tk[@]}
             [[ ${#_sc_tk[@]} -ne $_sc_w0 ]] && _sc_ragged=1
         done
         if [[ $_sc_ragged -eq 1 ]]; then
             local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_t _sc_i
-            _sc_tk=(); read -ra _sc_tk <<< "${lines[$startidx]}"
+            _fr_tok "${lines[$startidx]}"; _sc_tk=("${_FR_TOK[@]}")
             for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
                 case "${_sc_tk[$_sc_i]}" in
                     at|on|from|via|dev|to|of|by|for)
@@ -1801,7 +1936,7 @@ strategy_extract () {
                 # same prefix width
                 local _sc_rows=()
                 for ((_sc_r = startidx; _sc_r < ${#lines[@]} && _sc_ok == 1; _sc_r++)); do
-                    _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+                    _fr_tok "${lines[$_sc_r]}"; _sc_tk=("${_FR_TOK[@]}")
                     local _sc_found=() _sc_fpre=-1
                     for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
                         case "${_sc_tk[$_sc_i]}" in
@@ -1815,10 +1950,11 @@ strategy_extract () {
                 if [[ $_sc_ok -eq 1 ]]; then
                     local _sc_res="" _sc_e=0
                     for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
-                        _sc_tk=(); read -ra _sc_tk <<< "${lines[$_sc_r]}"
+                        _fr_tok "${lines[$_sc_r]}"; _sc_tk=("${_FR_TOK[@]}")
                         _sc_e=$((_sc_e + 1))
                         for ((_sc_i = 0; _sc_i < _sc_pre; _sc_i++)); do
-                            _sc_res+="entry${_sc_e}.$(_col_letter $((_sc_i + 1))) ${_sc_tk[$_sc_i]}"$'\n'
+                            _fr_col_letter $((_sc_i + 1))
+                            _sc_res+="entry${_sc_e}.${_FR_LETTER} ${_sc_tk[$_sc_i]}"$'\n'
                         done
                         local _sc_name="" _sc_val=""
                         for ((_sc_i = _sc_pre; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
@@ -1859,7 +1995,7 @@ strategy_extract () {
         _pm_c=$(( ${#headers[@]} - 1 ))
         _pm_ok=1; _pm_first=""
         for ((_pm_l = startidx; _pm_l < ${#lines[@]}; _pm_l++)); do
-            _pm_vals=(); read -ra _pm_vals <<< "${lines[$_pm_l]}"
+            _fr_tok "${lines[$_pm_l]}"; _pm_vals=("${_FR_TOK[@]}")
             [[ ${#_pm_vals[@]} -eq ${#headers[@]} ]] || { _pm_ok=0; break; }
             local _pm_pair="${_pm_vals[$((_pm_c - 1))]} ${_pm_vals[$_pm_c]}"
             [[ "${_pm_vals[$((_pm_c - 1))]}" =~ ^[a-z]+$ && "${_pm_vals[$_pm_c]}" =~ ^[a-z]+$ ]] || { _pm_ok=0; break; }
@@ -1871,9 +2007,26 @@ strategy_extract () {
 
     # Emit each data line as an indexed group (entry<N>.<field>) so the tidy melt
     # renders one row per line with shared columns.
-    local result="" entry=0 li
+    # Emitted pairs accumulate in an array (joined once below — a per-field
+    # `result+=` re-copies the whole string: quadratic on big tables). The
+    # letter name of a phrase-merged column is only computed when it is used.
+    local result="" entry=0 li _resl=()
+    # FAST PATH (no phrase merge in effect — the common case): one awk pass
+    # emits exactly what the bash loop below would (see _ac_emit_rows).
+    if [[ " ${_pm_join[*]:-} " != *" 1 "* && ${#headers[@]} -ge 1 ]]; then
+        entry=$(( ${#lines[@]} - startidx ))
+        if [[ $entry -gt 0 ]]; then
+            local _hjoin _pairs
+            _ac_join_tab "${headers[@]}"; _hjoin="$_AC_JOINED"
+            _pairs="$(printf '%s\n' "${lines[@]:$startidx}" | _ac_emit_rows "$_hjoin")"
+            [[ -n "$_pairs" ]] && result="$_pairs"$'\n'
+            result+="total_entries ${entry}"$'\n'
+        fi
+        echo "$result"
+        return 0
+    fi
     for ((li = startidx; li < ${#lines[@]}; li++)); do
-        local values; values=(); read -ra values <<< "${lines[$li]}"
+        local values; _fr_tok "${lines[$li]}"; values=("${_FR_TOK[@]}")
         # Apply the phrase merges (right-to-left so indices stay valid).
         if [[ ${#_pm_join[@]} -gt 0 && ${#values[@]} -eq ${#headers[@]} ]]; then
             for ((i = ${#headers[@]} - 1; i >= 1; i--)); do
@@ -1891,19 +2044,25 @@ strategy_extract () {
             done
         fi
         for ((i = 0; i < _ncols; i++)); do
-            local name; name="$(_col_letter $((i + 1)))"
-            [[ ${#_pm_join[@]} -eq 0 || $_ncols -eq ${#headers[@]} ]] && name="${headers[$i]}"
+            local name
+            if [[ ${#_pm_join[@]} -eq 0 || $_ncols -eq ${#headers[@]} ]]; then
+                name="${headers[$i]}"
+            else
+                _fr_col_letter $((i + 1)); name="$_FR_LETTER"
+            fi
             local value="${values[$i]:-}"
             [[ -z "$value" ]] && continue
-            # Last column absorbs any extra trailing tokens.
+            # Last column absorbs any extra trailing tokens (joined per the
+            # VALUE-SPACE ENCODING setting, _AC_VALUE_JOIN).
             if [[ $i -eq $((_ncols - 1)) && ${#values[@]} -gt $_ncols ]]; then
                 local j
-                for ((j = i + 1; j < ${#values[@]}; j++)); do value+=" ${values[$j]}"; done
+                for ((j = i + 1; j < ${#values[@]}; j++)); do value+="${_AC_VALUE_JOIN}${values[$j]}"; done
             fi
-            result+="entry${entry}.${name} ${value}"$'\n'
+            _resl+=("entry${entry}.${name} ${value}")
         done
     done
 
-    [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
+    [[ $entry -gt 0 ]] && _resl+=("total_entries ${entry}")
+    [[ ${#_resl[@]} -gt 0 ]] && printf -v result '%s\n' "${_resl[@]}"
     echo "$result"
 }

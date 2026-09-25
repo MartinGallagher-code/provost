@@ -49,8 +49,9 @@ strategy_detect () {
     [[ "$text" == *'":'* ]] && return 1
 
     local nonblank=0 structs=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         [[ $nonblank -gt 5 ]] && return 1   # a banner, not a document
         # optional `pkg.Type` prefix, then {...} spanning the rest of the line
@@ -61,7 +62,7 @@ strategy_detect () {
         nf="$(_gostruct_fields " $body" | grep -c .)"
         [[ "$nf" -ge 2 ]] || return 1
         structs=$((structs + 1))
-    done <<< "$text"
+    done
 
     [[ $structs -ge 1 ]] || return 1
     _STRATEGY_CONFIDENCE=85
@@ -73,10 +74,11 @@ strategy_extract () {
     # Count struct lines first: one struct is a kv snapshot (plain `key value`
     # pairs -> one wide row); several are records (entry<N>.<key> groups).
     local lines=() _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         lines+=("$_l")
-    done <<< "$text"
+    done
 
     local result="" entry=0 li kv k v
     for ((li = 0; li < ${#lines[@]}; li++)); do

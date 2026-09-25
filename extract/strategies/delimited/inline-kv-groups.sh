@@ -69,7 +69,7 @@ _ikg_parse_header () {
 _ikg_parse_member () {
     local body="$1"
     _IKG_MK=(); _IKG_MV=()
-    local -a tok=(); read -ra tok <<< "$body"
+    local -a tok=(); { _fr_tok "$body"; tok=("${_FR_TOK[@]}"); }
     [[ ${#tok[@]} -ge 2 ]] || return 1
     local key="" t
     for t in "${tok[@]}"; do
@@ -90,8 +90,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line headers=0 members=0 active=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" != [' '$'\t']* ]]; then
             _ikg_parse_header "$line" || return 1
             headers=$((headers + 1)); active=1
@@ -102,7 +103,7 @@ strategy_detect () {
         body="${body%"${body##*[![:space:]]}"}"
         _ikg_parse_member "$body" || return 1
         members=$((members + 1))
-    done <<< "$text"
+    done
     # >=2 headers (a repeating record shape, not one report) each carrying
     # members, >=1 member per header on average.
     [[ $headers -ge 2 && $members -ge $headers ]] || return 1
@@ -114,8 +115,9 @@ strategy_extract () {
     local text="$1"
     local line result="" entry=0
     local -a hk=() hv=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" != [' '$'\t']* ]]; then
             if _ikg_parse_header "$line"; then
                 hk=("${_IKG_HK[@]}"); hv=("${_IKG_HV[@]}")
@@ -134,7 +136,7 @@ strategy_extract () {
         for i in "${!_IKG_MK[@]}"; do
             result+="entry${entry}.${_IKG_MK[$i]} ${_IKG_MV[$i]}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

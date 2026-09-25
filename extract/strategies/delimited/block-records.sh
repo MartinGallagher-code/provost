@@ -21,9 +21,11 @@ strategy_detect () {
 
     # Must have at least one blank line separating blocks
     local blank_count=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && blank_count=$((blank_count + 1))
-    done <<< "$text"
+    done
+    _line=""
     [[ $blank_count -lt 1 ]] && return 1
 
     # Must have key: value or key=value patterns
@@ -36,7 +38,8 @@ strategy_detect () {
 
     # Condition (b): same field name appears in 2+ blocks (repeated-blocks criterion)
     local _unique_names="" _total=0 _unique=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         if [[ "$_line" =~ ^[\ ]*([A-Za-z][A-Za-z0-9_\ -]*): ]]; then
             local _name="${BASH_REMATCH[1]}"
             while [[ "$_name" == " "* ]]; do _name="${_name# }"; done
@@ -47,12 +50,14 @@ strategy_detect () {
                 *) _unique=$((_unique + 1)); _unique_names="${_unique_names}|${_name}" ;;
             esac
         fi
-    done <<< "$text"
+    done
+    _line=""
     [[ $_total -gt $_unique && $_unique -ge 1 ]] && return 0
 
     # Also check for equals-delimited fields (key=value) from repeated-blocks patterns
     _unique_names="" _total=0 _unique=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         if [[ "$_line" =~ ^[\ ]*([A-Za-z][A-Za-z0-9_\ -]*)= ]]; then
             local _name="${BASH_REMATCH[1]}"
             while [[ "$_name" == " "* ]]; do _name="${_name# }"; done
@@ -63,7 +68,8 @@ strategy_detect () {
                 *) _unique=$((_unique + 1)); _unique_names="${_unique_names}|${_name}" ;;
             esac
         fi
-    done <<< "$text"
+    done
+    _line=""
     [[ $_total -gt $_unique && $_unique -ge 1 ]] && return 0
 
     return 1

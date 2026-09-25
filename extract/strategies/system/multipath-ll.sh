@@ -15,11 +15,12 @@ strategy_detect () {
     # `multipath -ll` is distinctive: a map line ending `dm-N ...`, a
     # `size=... features=... hwhandler=... wp=rw` line, and `policy='...'` groups.
     local has_wp=0 has_policy=0 has_hwhandler=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"wp=rw"* || "$line" == *"wp=ro"* ]] && has_wp=1
         [[ "$line" == *"policy='"* ]] && has_policy=1
         [[ "$line" == *"hwhandler='"* ]] && has_hwhandler=1
-    done <<< "$text"
+    done
     if [[ $has_wp -eq 1 && $has_policy -eq 1 && $has_hwhandler -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=88
         return 0
@@ -31,10 +32,11 @@ strategy_extract () {
     local text="$1"
     local result=""
     local entry=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Strip the leading tree drawing chars (spaces, |, `, -, +).
         local stripped="${line#"${line%%[!| \`+-]*}"}"
-        read -ra f <<< "$stripped"
+        { _fr_tok "$stripped"; f=("${_FR_TOK[@]}"); }
         # A leaf path row starts with an H:C:I:L tuple, e.g. `6:0:0:0 sdc 8:32 active ready running`
         [[ ${#f[@]} -ge 6 ]] || continue
         [[ "${f[0]}" =~ ^[0-9]+:[0-9]+:[0-9]+:[0-9]+$ ]] || continue
@@ -46,7 +48,7 @@ strategy_extract () {
         result+="entry${entry}.dm_status ${f[3]}"$'\n'
         result+="entry${entry}.path_status ${f[4]}"$'\n'
         result+="entry${entry}.online ${f[5]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

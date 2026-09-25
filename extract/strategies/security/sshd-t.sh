@@ -34,8 +34,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local line key nb=0 hits=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         key="${line%%[[:space:]]*}"
         # Every non-blank line must be a lowercase-alnum directive key followed by
         # a value. This immediately rejects df-h ("/dev/sda1 ...", "Filesystem ...").
@@ -43,7 +44,7 @@ strategy_detect () {
         [[ "$line" == *[[:space:]]* ]] || return 1
         [[ "$_sshdt_known" == *" $key "* ]] && hits=$((hits + 1))
         nb=$((nb + 1))
-    done <<< "$text"
+    done
     if [[ $nb -ge 6 && $hits -ge 3 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -54,15 +55,16 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line key value
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         key="${line%%[[:space:]]*}"
         [[ "$key" =~ ^[a-z][a-z0-9]*$ ]] || continue
         value="${line#"$key"}"
         value="$(_sshdt_sanitize_val "$value")"
         entry=1
         result+="entry1.${key} ${value}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"
 }

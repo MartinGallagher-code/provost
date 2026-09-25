@@ -27,7 +27,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line s
     local re='^([^[:space:]]+)[[:space:]]+(@[0-9].*)$'
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         s="$line"
         # Strip box-drawing glyphs: │ ├ └ ─
@@ -44,7 +45,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.A ${unit}"$'\n'
         result+="entry${entry}.B ${timing}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

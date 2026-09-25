@@ -39,8 +39,9 @@ strategy_detect () {
 
     local nonblank=0 bracketed=0 _l
     local first_br=-1 runs_ok=1 in_run=0
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         # leading (optional ws) '[', some content, ']', then a space + message
         if [[ "$_l" =~ ^[[:space:]]*\[[^]]+\][[:space:]]+[^[:space:]] ]]; then
@@ -55,7 +56,7 @@ strategy_detect () {
             fi
         fi
         [[ $nonblank -ge 40 ]] && break
-    done <<< "$text"
+    done
 
     [[ $nonblank -lt 2 ]] && return 1
     if [[ $(( bracketed * 100 / nonblank )) -ge 80 ]]; then
@@ -81,8 +82,9 @@ strategy_extract () {
         fi
         detail=""
     }
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         if [[ ! "$_l" =~ ^[[:space:]]*\[[^]]+\][[:space:]]+[^[:space:]] ]]; then
             # A BARE `[tag]` line (no message) is an empty log line — chrome,
             # not a continuation; skip it (mvn's lone `[INFO]` spacers).
@@ -107,7 +109,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.timestamp ${ts}"$'\n'
         [[ -n "$msg" ]] && result+="entry${entry}.message ${msg}"$'\n'
-    done <<< "$text"
+    done
     _bl_flush
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'

@@ -17,18 +17,20 @@ strategy_detect () {
 
     # Decline `+---+` box tables — psql-table's box parser owns those.
     local _bxl
-    while IFS= read -r _bxl; do
+    _fr_lines "$text"
+    for _bxl in "${_FR_LINES[@]}"; do
         [[ "$_bxl" == *"+"* && "$_bxl" == *"---"* ]] || continue
         [[ "$_bxl" =~ ^[[:space:]]*[-+[:space:]]+$ ]] && return 1
-    done <<< "$text"
+    done
 
     # Must have a separator line of dashes with gaps (scan line by line)
     local _det_line
-    while IFS= read -r _det_line; do
+    _fr_lines "$text"
+    for _det_line in "${_FR_LINES[@]}"; do
         if [[ "$_det_line" =~ ^[-]+(\ +[-]+)+ ]]; then
             return 0
         fi
-    done <<< "$text"
+    done
 
     return 1
 }
@@ -79,7 +81,7 @@ _strat_fw_find_columns () {
     local stretched="" seg next_start
     local -a segs=()
     local IFS='|'
-    read -ra segs <<< "$positions"
+    { _fr_tok "$positions"; segs=("${_FR_TOK[@]}"); }
     local si
     for ((si = 0; si < ${#segs[@]}; si++)); do
         seg="${segs[$si]}"
@@ -132,7 +134,7 @@ strategy_extract () {
     local old_ifs="$IFS"
     IFS='|'
     local pos_entries
-    read -ra pos_entries <<< "$col_positions"
+    { _fr_tok "$col_positions"; pos_entries=("${_FR_TOK[@]}"); }
     IFS="$old_ifs"
 
     local p
@@ -150,8 +152,8 @@ strategy_extract () {
     local ci=0
     local starts_arr
     local ends_arr
-    read -ra starts_arr <<< "$col_starts"
-    read -ra ends_arr <<< "$col_ends"
+    { _fr_tok "$col_starts"; starts_arr=("${_FR_TOK[@]}"); }
+    { _fr_tok "$col_ends"; ends_arr=("${_FR_TOK[@]}"); }
 
     for ((ci=0; ci<num_cols; ci++)); do
         local cs=${starts_arr[$ci]}
@@ -169,12 +171,13 @@ strategy_extract () {
     done
 
     local headers_arr
-    read -ra headers_arr <<< "$headers"
+    { _fr_tok "$headers"; headers_arr=("${_FR_TOK[@]}"); }
 
     # Extract data rows (lines after separator)
     local row_num=0
     local past_sep=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $past_sep -eq 0 ]]; then
             if [[ "$line" =~ ^[-]+(\ +[-]+)+ ]]; then
                 past_sep=1
@@ -219,7 +222,8 @@ strategy_extract () {
 
             result+="row${row_num}.${hdr} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
+    line=""
 
     echo "$result"
 }

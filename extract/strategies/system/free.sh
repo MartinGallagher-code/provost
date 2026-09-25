@@ -15,14 +15,15 @@ strategy_detect () {
     _is_json "$1" && return 1
     # Look for header with "total" and "used", followed by "Mem:" or "Swap:" line
     local has_header=0 has_mem_swap=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == *"total"* && "$line" == *"used"* ]]; then
             has_header=1
         fi
         if [[ "$line" == "Mem:"* || "$line" == "Swap:"* ]]; then
             has_mem_swap=1
         fi
-    done <<< "$text"
+    done
     if [[ $has_header -eq 1 && $has_mem_swap -eq 1 ]]; then
         return 0
     fi
@@ -44,14 +45,15 @@ strategy_extract () {
     local idx=0
     local line
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         # Header row: contains the column labels but no leading "Region:" tag.
         # (`buff/cache` is sanitised to `buff_cache` so it is a valid field name;
         # the older `buffers`/`cached` split header is carried through verbatim.)
         if [[ $header_seen -eq 0 && "$line" == *"total"* && "$line" == *"used"* && "$line" != *:* ]]; then
-            read -ra _h <<< "$line"
+            { _fr_tok "$line"; _h=("${_FR_TOK[@]}"); }
             cols=()
             local c
             for c in "${_h[@]}"; do
@@ -68,7 +70,7 @@ strategy_extract () {
             label="${label// /}"
             [[ -z "$label" ]] && continue
             local after="${line#*:}"
-            read -ra _v <<< "$after"
+            { _fr_tok "$after"; _v=("${_FR_TOK[@]}"); }
             [[ ${#_v[@]} -eq 0 ]] && continue
 
             idx=$((idx + 1))
@@ -80,7 +82,7 @@ strategy_extract () {
             done
             continue
         fi
-    done <<< "$text"
+    done
 
     [[ $idx -gt 0 ]] && result+="total_entries ${idx}"$'\n'
     echo "$result"

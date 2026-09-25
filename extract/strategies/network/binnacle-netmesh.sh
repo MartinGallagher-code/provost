@@ -46,7 +46,8 @@ strategy_extract () {
     local loss_overall_pct=""
     local state=0   # 0 = before WORST PAIRS table, 1 = inside it, 2 = stopped
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $state -eq 0 ]]; then
             if [[ "$line" =~ $_netmesh_re_header ]]; then
                 host_count="${BASH_REMATCH[1]}"
@@ -84,7 +85,7 @@ strategy_extract () {
             [[ -n "${BASH_REMATCH[8]}" ]] && result+="${p}loss_detail ${BASH_REMATCH[8]}"$'\n'
         fi
         # state 2: past the table, ignore everything else.
-    done <<< "$text"
+    done
 
     [[ -n "$host_count" ]] && result+="host_count ${host_count}"$'\n'
     [[ -n "$pair_count" ]] && result+="pair_count ${pair_count}"$'\n'

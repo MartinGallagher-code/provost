@@ -19,7 +19,10 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # Distinctive: the vagrant header columns plus a dashed rule line.
     local line has_header=0 has_rule=0 rows=0
-    while IFS= read -r line; do
+    # PREFILTER (exact): the required header line contains `directory`.
+    [[ "$text" == *directory* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == *id*name*provider*state*directory* ]]; then
             has_header=1
             continue
@@ -32,7 +35,7 @@ strategy_detect () {
         if [[ "$line" =~ ^[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+/[^[:space:]]+[[:space:]]*$ ]]; then
             rows=$((rows + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $has_header -eq 1 && $has_rule -eq 1 && $rows -ge 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -43,7 +46,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line id name provider state directory
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+/[^[:space:]]+[[:space:]]*$ ]] || continue
         read -r id name provider state directory _ <<< "$line"
         entry=$((entry + 1))
@@ -52,7 +56,7 @@ strategy_extract () {
         result+="entry${entry}.provider ${provider}"$'\n'
         result+="entry${entry}.state ${state}"$'\n'
         result+="entry${entry}.directory ${directory}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

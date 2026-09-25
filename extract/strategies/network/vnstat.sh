@@ -18,7 +18,7 @@
 # Collapse a whitespace-separated segment into a single underscore token.
 _vnstat_val () {
     local -a t=()
-    read -ra t <<< "$1"
+    { _fr_tok "$1"; t=("${_FR_TOK[@]}"); }
     local out="" x
     for x in "${t[@]}"; do out="${out:+${out}_}${x}"; done
     printf '%s' "${out:-NONE}"
@@ -27,7 +27,7 @@ _vnstat_val () {
 # Is the first token a YYYY-MM month stamp?
 _vnstat_is_month () {
     local -a t=()
-    read -ra t <<< "$1"
+    { _fr_tok "$1"; t=("${_FR_TOK[@]}"); }
     case "${t[0]}" in
         [0-9][0-9][0-9][0-9]-[0-9][0-9]) return 0 ;;
         *) return 1 ;;
@@ -45,16 +45,17 @@ strategy_extract () {
     local text="$1"
     local result="" line n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         _vnstat_is_month "$line" || continue
 
         local -a segs=()
-        IFS='|' read -ra segs <<< "$line"
+        { IFS='|' _fr_tok "$line"; segs=("${_FR_TOK[@]}"); }
         [[ ${#segs[@]} -lt 4 ]] && continue
 
         local -a m=()
-        read -ra m <<< "${segs[0]}"
+        { _fr_tok "${segs[0]}"; m=("${_FR_TOK[@]}"); }
         local month="${m[0]}"
         # rx is the rest of segment 0 after the month stamp.
         local rx=""; local i
@@ -66,7 +67,7 @@ strategy_extract () {
         result+="entry${n}.tx $(_vnstat_val "${segs[1]}")"$'\n'
         result+="entry${n}.total $(_vnstat_val "${segs[2]}")"$'\n'
         result+="entry${n}.rate $(_vnstat_val "${segs[3]}")"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

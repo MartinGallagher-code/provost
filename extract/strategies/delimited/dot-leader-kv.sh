@@ -31,9 +31,11 @@ _dl_match () {
     local line="$1"
     local _re_a='^[[:space:]]*([^:]+):[[:space:]]*\.\.\.+[[:space:]]*(.+)$'
     local _re_b='^[[:space:]]*([^:]*[^.:[:space:]])[[:space:]]*\.+[[:space:]]*:[[:space:]]*(.+)$'
-    if [[ "$line" =~ $_re_a ]]; then
+    # (glob guards: form A needs a `...` run; form B a dot run followed by
+    # optional whitespace then `:` — without them the regex cannot match)
+    if [[ "$line" == *...* && "$line" =~ $_re_a ]]; then
         _DL_FORM=A
-    elif [[ "$line" =~ $_re_b ]]; then
+    elif [[ ( "$line" == *.:* || "$line" == *.[[:space:]]*:* ) && "$line" =~ $_re_b ]]; then
         _DL_FORM=B
     else
         return 1
@@ -57,7 +59,7 @@ _dl_match () {
 _dl_match_c () {
     local line="$1"
     local _re='^[[:space:]]*([^.:]+)\.{4,}(.+)$'
-    [[ "$line" =~ $_re ]] || return 1
+    [[ "$line" == *....* && "$line" =~ $_re ]] || return 1
     _DL_KEY="${BASH_REMATCH[1]}"
     _DL_VAL="${BASH_REMATCH[2]}"
     while [[ "$_DL_KEY" == *" " ]]; do _DL_KEY="${_DL_KEY% }"; done
@@ -88,8 +90,9 @@ strategy_detect () {
     local line hits=0 form_b=0 c_hits=0 nonblank=0
     local -A seen_keys=()
     local repeated=0 key
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -n "${line//[[:space:]]/}" ]] && nonblank=$((nonblank + 1))
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" == *[![:space:]]* ]] && nonblank=$((nonblank + 1))
         if ! _dl_match "$line"; then
             _dl_match_c "$line" && c_hits=$((c_hits + 1))
             continue
@@ -100,7 +103,7 @@ strategy_detect () {
         while [[ "$key" == *"." || "$key" == *" " ]]; do key="${key%[. ]}"; done
         [[ -n "${seen_keys[$key]:-}" ]] && repeated=1
         seen_keys[$key]=1
-    done <<< "$text"
+    done
     # Form C stands alone: the whole block must be colonless dot-leader lines.
     if [[ $hits -eq 0 && $c_hits -ge 3 && $c_hits -eq $nonblank ]]; then
         _STRATEGY_CONFIDENCE=86
@@ -132,18 +135,21 @@ strategy_extract () {
     done <<< "$text"
 
     if [[ $any_ab -eq 0 ]]; then
-        while IFS= read -r line || [[ -n "$line" ]]; do
+        _fr_lines "$text"
+        for line in "${_FR_LINES[@]}"; do
             _dl_match_c "$line" || continue
             entry=$((entry + 1))
             result+="entry${entry}.key ${_DL_KEY}"$'\n'
             result+="entry${entry}.value ${_DL_VAL}"$'\n'
-        done <<< "$text"
+        done
+        line=""
         [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
         echo "$result"
         return 0
     fi
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if ! _dl_match "$line"; then
             [[ $form_b -eq 1 ]] || continue
             _dl_match_plain "$line" || continue
@@ -156,7 +162,8 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'
         result+="entry${entry}.value ${_DL_VAL}"$'\n'
-    done <<< "$text"
+    done
+    line=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

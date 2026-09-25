@@ -32,10 +32,11 @@ strategy_extract () {
     local text="$1"
     local result="" line n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         # Packet lines begin with an HH:MM:SS timestamp.
         case "${f[0]}" in
             [0-9][0-9]:[0-9][0-9]:[0-9][0-9]*) ;;
@@ -59,7 +60,7 @@ strategy_extract () {
         result+="entry${n}.dst ${dst:-NONE}"$'\n'
         result+="entry${n}.flags ${flags}"$'\n'
         result+="entry${n}.length ${length}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

@@ -36,8 +36,9 @@
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 header=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" == [!$' \t']* ]]; then
             # Unindented. `key: value` (value present) → a pair; bare `key:` →
             # a section header carried onto the indented members below.
@@ -62,7 +63,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.key ${header}"$'\n'
         result+="entry${entry}.value ${m}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

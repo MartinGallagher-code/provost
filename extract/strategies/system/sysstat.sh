@@ -11,9 +11,10 @@
 strategy_detect () {
     local text="$1"; _STRATEGY_CONFIDENCE=0
     local line first_seen=0 banner_ok=0 time_ok=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Skip blank / whitespace-only lines.
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ $first_seen -eq 0 ]]; then
             first_seen=1
             # The first non-blank line must be a sysstat banner: begins with a
@@ -28,7 +29,7 @@ strategy_detect () {
         if [[ "$line" =~ ^[0-9][0-9]:[0-9][0-9]:[0-9][0-9] ]]; then
             time_ok=1
         fi
-    done <<< "$text"
+    done
 
     if [[ $banner_ok -eq 1 && $time_ok -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=88
@@ -42,8 +43,9 @@ strategy_extract () {
     local line first_seen=0 got_header=0
     local -a cols=()
 
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
 
         # First non-blank line is the banner — skip it.
         if [[ $first_seen -eq 0 ]]; then
@@ -52,7 +54,7 @@ strategy_extract () {
         fi
 
         local -a toks=()
-        read -ra toks <<< "$line"
+        { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         [[ ${#toks[@]} -eq 0 ]] && continue
 
         # Leading HH:MM:SS timestamp (optionally followed by AM/PM) is the time.
@@ -86,7 +88,7 @@ strategy_extract () {
             result+="entry${entry}.${col} ${toks[$i]}"$'\n'
             ci=$((ci + 1))
         done
-    done <<< "$text"
+    done
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

@@ -28,7 +28,8 @@ strategy_extract () {
     local text="$1"
     local result="" line n=0 section=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         case "$line" in
             "Character devices:") section="character"; continue ;;
@@ -36,7 +37,7 @@ strategy_extract () {
         esac
 
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 2 ]] && continue
         [[ "${f[0]}" == *[!0-9]* ]] && continue      # major must be numeric
 
@@ -44,7 +45,7 @@ strategy_extract () {
         result+="entry${n}.type ${section}"$'\n'
         result+="entry${n}.major ${f[0]}"$'\n'
         result+="entry${n}.name ${f[1]}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

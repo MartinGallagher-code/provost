@@ -41,7 +41,8 @@ strategy_extract () {
     # Track repeated field counts (pipe-delimited "name:count" pairs)
     local repeated_counts=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Skip empty lines
         [[ -z "$line" ]] && continue
 
@@ -163,7 +164,7 @@ strategy_extract () {
                 result+="${key} ${value}"$'\n'
             fi
         fi
-    done <<< "$text"
+    done
 
     echo "$result"
 }

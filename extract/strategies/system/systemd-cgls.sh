@@ -27,7 +27,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line s
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         # Skip the "Control group /:" header (root description line).
         [[ "$line" == "Control group"* ]] && continue
@@ -42,7 +43,7 @@ strategy_extract () {
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.A ${s}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

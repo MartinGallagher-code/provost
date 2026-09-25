@@ -21,28 +21,30 @@ strategy_detect () {
     # lines below the FIRST separator (the data region) — if most are `label: value`,
     # defer.
     local seen_sep=0 nb=0 kv=0 _l
-    while IFS= read -r _l; do
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
         if [[ $seen_sep -eq 0 ]]; then
             [[ "$_l" =~ ^[-=]{3,} ]] && seen_sep=1
             continue
         fi
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         [[ "$_l" =~ ^[[:space:]]*[A-Za-z][^:]*:[[:space:]] ]] && kv=$((kv + 1))
-    done <<< "$text"
+    done
     [[ $nb -ge 2 && $(( kv * 100 / nb )) -ge 60 ]] && return 1
 
     # Audit-report shape (aureport): a `# col col …` header line adjacent to
     # a `===` rule. aligned-columns strips that chrome and reads the real
     # header; splitting on the rule here would shred it.
     local _prev="" _cur
-    while IFS= read -r _cur; do
+    _fr_lines "$text"
+    for _cur in "${_FR_LINES[@]}"; do
         if [[ "$_cur" == "# "* && "$_prev" =~ ^[-=]{3,} ]] || \
            [[ "$_cur" =~ ^[-=]{3,} && "$_prev" == "# "* ]]; then
             return 1
         fi
         _prev="$_cur"
-    done <<< "$text"
+    done
     return 0
 }
 
@@ -126,7 +128,8 @@ strategy_extract () {
     # Get data lines (everything after the separator, skip blank lines)
     local data_lines=""
     _line_num=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         _line_num=$((_line_num + 1))
         [[ $_line_num -le $separator_line_num ]] && continue
         [[ -z "$_line" ]] && continue
@@ -135,7 +138,8 @@ strategy_extract () {
         else
             data_lines+=$'\n'"$_line"
         fi
-    done <<< "$text"
+    done
+    _line=""
     [[ -z "$data_lines" ]] && return
 
     # For each data row, extract values using computed column boundaries and emit
@@ -143,7 +147,8 @@ strategy_extract () {
     # per data line instead of welding every cell into one wide record.
     local result=""
     local entry=0
-    while IFS= read -r row; do
+    _fr_lines "$data_lines"
+    for row in "${_FR_LINES[@]}"; do
         [[ -z "$row" ]] && continue
         entry=$((entry + 1))
 
@@ -166,7 +171,7 @@ strategy_extract () {
             name="${name//./_}"   # '.' would break the tidy melt's group key split
             result+="entry${entry}.${name} ${value}"$'\n'
         done
-    done <<< "$data_lines"
+    done
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

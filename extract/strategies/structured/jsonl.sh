@@ -22,14 +22,19 @@ strategy_detect () {
 
     # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
     # Windows tools — so it doesn't hide the first line's leading '{'.
-    local bom; bom=$(printf '\xef\xbb\xbf')
-    text="${text#"$bom"}"
+    local bom; bom=$'\xef\xbb\xbf'
+    # (prefix test first: a non-matching `#"$bom"` scans every prefix — quadratic)
+    if [[ "$text" == "$bom"* ]]; then text="${text#"$bom"}"; fi
 
     # Must have 2+ lines, each looking like a JSON object
     local line_count=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -n "$_line" ]] && line_count=$((line_count + 1))
-    done <<< "$text"
+        # only `>= 2` matters below — stop counting there
+        [[ $line_count -ge 2 ]] && break
+    done
+    _line=""
     [[ $line_count -lt 2 ]] && return 1
 
     # Check first 3 non-empty lines are JSON objects
@@ -66,13 +71,14 @@ strategy_extract () {
                 to_entries[] | "\(.key) \(.value)"
             ' 2>/dev/null)
             if [[ -n "$fields" ]]; then
-                while IFS= read -r field_line; do
+                _fr_lines "$fields"
+                for field_line in "${_FR_LINES[@]}"; do
                     [[ -z "$field_line" ]] && continue
-                    read -ra _arr <<< "$field_line"
+                    { _fr_tok "$field_line"; _arr=("${_FR_TOK[@]}"); }
                     local fname="${_arr[0]}"
                     local fval="${field_line#"$fname" }"
                     result+="line${line_num}.${fname} ${fval}"$'\n'
-                done <<< "$fields"
+                done
             fi
         else
             # Fallback: simple extraction of "key": value patterns

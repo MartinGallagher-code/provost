@@ -30,13 +30,14 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local toks
-    while IFS= read -r line; do
-        toks=(); read -ra toks <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        toks=(); { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         _bcc_funccount_is_row "${#toks[@]}" "${toks[1]:-}" "${toks[0]:-}" || continue
         entry=$((entry + 1))
         result+="entry${entry}.func ${toks[0]}"$'\n'
         result+="entry${entry}.count ${toks[1]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

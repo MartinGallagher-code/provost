@@ -50,7 +50,8 @@ strategy_extract () {
     local text="$1"
     local result="" line key val
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Only "field<TAB>value" data lines carry a tab.
         [[ "$line" == *$'\t'* ]] || continue
         # Skip section banners and the "# decode-dimms version" comment banner
@@ -64,7 +65,7 @@ strategy_extract () {
         val="$(_dimms_val "$val")"
         [[ -z "$val" ]] && continue
         result+="entry1.${key} ${val}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries 1"$'\n'
     printf '%s' "$result"

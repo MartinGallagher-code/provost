@@ -83,7 +83,7 @@ strategy_extract () {
         fi
 
         if [[ "$expect" == "template" ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "${line}" != *[![:space:]]* ]] && continue
             local template="$line"
             # Trim leading/trailing whitespace.
             template="${template#"${template%%[![:space:]]*}"}"
@@ -94,7 +94,7 @@ strategy_extract () {
         fi
 
         if [[ "$expect" == "firstlast" ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "${line}" != *[![:space:]]* ]] && continue
             if [[ "$line" =~ $re_firstlast ]]; then
                 result+="entry${n}.first_seen ${BASH_REMATCH[1]}"$'\n'
                 result+="entry${n}.last_seen ${BASH_REMATCH[2]}"$'\n'

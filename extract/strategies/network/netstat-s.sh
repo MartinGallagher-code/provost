@@ -40,7 +40,8 @@ strategy_detect () {
     # Signature: a bare protocol group header (`Ip:`, `Tcp:`, ...) at column 0
     # AND an indented `<number> <description>` counter line under it.
     local has_group=0 has_counter=0 line t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         case "$line" in
             # Only genuine netstat -s protocol groups — not any "word:" line (which
             # would wrongly grab `apt-cache policy`'s "curl:" package header).
@@ -51,7 +52,7 @@ strategy_detect () {
         case "$t" in
             [0-9]*" "*) has_counter=1 ;;
         esac
-    done <<< "$text"
+    done
     [[ $has_group -eq 1 && $has_counter -eq 1 ]] && return 0
     return 1
 }
@@ -61,7 +62,8 @@ strategy_extract () {
     local result="" line t proto="" field val
     local count=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         # Protocol group header: unindented `<Name>:` with no value.
@@ -101,7 +103,7 @@ strategy_extract () {
         [[ -z "$field" || -z "$val" ]] && continue
         count=$((count + 1))
         result+="entry1.${proto:+${proto}_}${field} ${val}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $count -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"

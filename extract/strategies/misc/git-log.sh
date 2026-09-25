@@ -22,7 +22,8 @@ strategy_detect () {
         # tab-delimited (`git for-each-ref` "<hash> commit\t<ref>"), and the message
         # must not be a `git lfs ls-files` "* <path>" status marker.
         local match_count=0
-        while IFS= read -r _line; do
+        _fr_lines "$text"
+        for _line in "${_FR_LINES[@]}"; do
             if [[ "$_line" =~ ^[0-9a-f]{7,}\  ]]; then
                 local _h="${_line%%[[:space:]]*}" _rest="${_line#* }"
                 if [[ "$_h" =~ [a-f] && "$_line" != *$'\t'* && "$_rest" != "* "* && "$_rest" != "- "* ]]; then
@@ -30,7 +31,7 @@ strategy_detect () {
                 fi
             fi
             [[ $match_count -ge 2 ]] && return 0
-        done <<< "$text"
+        done
     fi
     return 1
 }
@@ -56,7 +57,8 @@ _strat_git_log_extract_full () {
     local current_message=""
     local in_message=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^commit\ ([0-9a-f]{40}) ]]; then
             # Emit previous commit if we have one
             if [[ -n "$current_hash" ]]; then
@@ -100,7 +102,7 @@ _strat_git_log_extract_full () {
                 current_message="${trimmed//$'\t'/_}"
             fi
         fi
-    done <<< "$text"
+    done
 
     # Emit last commit
     if [[ -n "$current_hash" ]]; then
@@ -133,7 +135,8 @@ _strat_git_log_extract_oneline () {
     local result=""
     local commit_num=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         if ! [[ "$line" =~ ^[0-9a-f]{7,}\  ]]; then
             continue
@@ -145,7 +148,7 @@ _strat_git_log_extract_oneline () {
         message="${message//$'\t'/_}"
         result+="${prefix}.hash ${hash}"$'\n'
         result+="${prefix}.message ${message}"$'\n'
-    done <<< "$text"
+    done
 
     echo "$result"
 }

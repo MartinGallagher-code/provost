@@ -15,7 +15,8 @@ strategy_detect () {
     # lscpu -p: "#"-comment preamble then rows like "0,0,0,0,,0,0,0,0"
     # (the empty 5th field / double comma is distinctive).
     local rows=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
         # A CPU row starts with an integer, is comma-separated, and contains
@@ -23,7 +24,7 @@ strategy_detect () {
         if [[ "$line" =~ ^[0-9]+, ]] && [[ "$line" == *",,"* ]]; then
             rows=$((rows + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $rows -ge 2 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -36,12 +37,13 @@ strategy_extract () {
     local result=""
     local entry=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
         [[ "$line" =~ ^[0-9]+, ]] || continue
 
-        IFS=',' read -ra c <<< "$line"
+        { IFS=',' _fr_tok "$line"; c=("${_FR_TOK[@]}"); }
         # c[0]=cpu c[1]=core c[2]=socket c[3]=node c[4]=(empty) c[5]=L1d c[6]=L1i c[7]=L2 c[8]=L3
         [[ ${#c[@]} -ge 9 ]] || continue
 
@@ -54,7 +56,7 @@ strategy_extract () {
         result+="entry${entry}.l1i ${c[6]}"$'\n'
         result+="entry${entry}.l2 ${c[7]}"$'\n'
         result+="entry${entry}.l3 ${c[8]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

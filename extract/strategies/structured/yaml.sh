@@ -29,8 +29,9 @@ strategy_detect () {
     # colon-bearing line (e.g. `free` with its `Mem:`/`Swap:` rows, or `sensors`
     # with an `Adapter:` line), which it would otherwise collapse to one record.
     local nonblank=0 yamlish=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         # A key must start with a LETTER, matching the overall gate above — a
         # purely-numeric label before the colon (`/proc/interrupts`' IRQ rows:
@@ -41,7 +42,7 @@ strategy_detect () {
            || [[ "$_l" == "---"* ]]; then
             yamlish=$((yamlish + 1))
         fi
-    done <<< "$text"
+    done
     [[ $nonblank -eq 0 ]] && return 1
     [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] && return 0
     return 1
@@ -65,7 +66,8 @@ strategy_extract () {
     local block_min_indent=0
     local block_val=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Handle block scalar accumulation
         if [[ $in_block -eq 1 ]]; then
             # Empty lines are part of the block (literal style preserves them)
@@ -207,7 +209,7 @@ strategy_extract () {
         fi
 
         prev_depth=$depth
-    done <<< "$text"
+    done
 
     # Emit any remaining block scalar
     if [[ $in_block -eq 1 && -n "$block_val" ]]; then

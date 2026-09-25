@@ -32,10 +32,11 @@ strategy_extract () {
     local result="" line n=0
     declare -A HDR=()
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 2 ]] && continue
         [[ "${f[0]}" == *: ]] || continue
 
@@ -45,7 +46,7 @@ strategy_extract () {
             local -a hcols=()
             # a value line with no header line before it is not snmp data
             [[ -n "${HDR[$label]:-}" ]] || continue
-            read -ra hcols <<< "${HDR[$label]}"
+            { _fr_tok "${HDR[$label]}"; hcols=("${_FR_TOK[@]}"); }
             n=$((n + 1))
             result+="entry${n}.proto ${label}"$'\n'
             local i
@@ -57,7 +58,7 @@ strategy_extract () {
             # header line: remember its column names for this protocol
             HDR[$label]="${f[*]:1}"
         fi
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

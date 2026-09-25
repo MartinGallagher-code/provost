@@ -17,11 +17,12 @@ strategy_detect () {
 
     # Must have lines with increasing indentation (2+ space-indented lines)
     local indented_count=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         if [[ "$_line" == "  "* ]]; then
             indented_count=$((indented_count + 1))
         fi
-    done <<< "$text"
+    done
     [[ $indented_count -lt 2 ]] && return 1
 
     # Must have a non-indented line followed by indented lines
@@ -36,12 +37,13 @@ strategy_detect () {
     # strategy mid-extract, and the crash was accidentally protective — the
     # decline makes it deliberate, so the aligned-table parsers claim it.
     local _ihd_seen=0 _ihd_l
-    while IFS= read -r _ihd_l; do
-        [[ -z "${_ihd_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _ihd_l in "${_FR_LINES[@]}"; do
+        [[ "${_ihd_l}" != *[![:space:]]* ]] && continue
         [[ "$_ihd_l" == *"|"* ]] && return 1
         _ihd_seen=$((_ihd_seen + 1))
         [[ $_ihd_seen -ge 2 ]] && break
-    done <<< "$text"
+    done
 
     return 0
 }
@@ -68,7 +70,8 @@ strategy_extract () {
     local path_keys=""  # pipe-delimited: "level:key|level:key|..."
     local prev_indent=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         local indent
@@ -113,7 +116,7 @@ strategy_extract () {
                 local old_ifs="$IFS"
                 IFS='|'
                 local entries
-                read -ra entries <<< "$path_keys"
+                { _fr_tok "$path_keys"; entries=("${_FR_TOK[@]}"); }
                 IFS="$old_ifs"
                 local e
                 for e in "${entries[@]}"; do
@@ -141,7 +144,7 @@ strategy_extract () {
                 local old_ifs="$IFS"
                 IFS='|'
                 local entries
-                read -ra entries <<< "$path_keys"
+                { _fr_tok "$path_keys"; entries=("${_FR_TOK[@]}"); }
                 IFS="$old_ifs"
                 local e
                 for e in "${entries[@]}"; do
@@ -178,7 +181,7 @@ strategy_extract () {
             local old_ifs="$IFS"
             IFS='|'
             local entries
-            read -ra entries <<< "$path_keys"
+            { _fr_tok "$path_keys"; entries=("${_FR_TOK[@]}"); }
             IFS="$old_ifs"
             local e
             for e in "${entries[@]}"; do
@@ -201,7 +204,7 @@ strategy_extract () {
         fi
 
         prev_indent=$indent
-    done <<< "$text"
+    done
 
     echo "$result"
 }

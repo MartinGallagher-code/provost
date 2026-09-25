@@ -85,10 +85,20 @@ _clean_value () {
 # Count non-empty lines in $1. Result in _LINE_COUNT.
 _count_lines () {
     _LINE_COUNT=0
-    local _cl_line
-    while IFS= read -r _cl_line; do
+    # BIG input: one awk pass (a bash walk costs ~µs per line; the fork only
+    # pays off on large text — see _FR_BIG_BYTES).
+    if (( ${#1} > _FR_BIG_BYTES )); then
+        _LINE_COUNT=$(printf '%s\n' "$1" | awk '$0 != "" { n++ } END { print n + 0 }')
+        return 0
+    fi
+    # (mapfile + array walk: same lines as `while read … <<< "$1"`, without a
+    # read builtin call per line)
+    local _cl_line _cl_all
+    mapfile -t _cl_all <<< "$1"
+    for _cl_line in "${_cl_all[@]}"; do
         [[ -n "$_cl_line" ]] && _LINE_COUNT=$((_LINE_COUNT + 1))
-    done <<< "$1"
+    done
+    return 0
 }
 
 # Parse a "name value" line into _FIELD_NAME and _FIELD_VALUE globals.
@@ -580,4 +590,140 @@ preprocess_input_text () {
             fi
             ;;
     esac
+}
+
+################################################################################
+## FAST LINE / TOKEN HELPERS (perf)
+##
+## bash reads a here-string that fits in a pipe buffer ONE BYTE PER read(2):
+## a `while IFS= read -r l; do …; done <<< "$text"` loop costs a syscall per
+## input byte, and a per-line `read -ra arr <<< "$line"` adds a pipe per call
+## on top. Command substitution (`x="$(helper …)"`) forks. In the hot generic
+## parsers those three idioms were most of the run time. The helpers below
+## give the same line / token / name views without any of that; each one is
+## an output-identical replacement for the idiom named in its comment.
+################################################################################
+
+# Size (in characters) above which the whole-output passes — store,
+# _count_lines, deduplicate_output's record build, the prefix strip and
+# format_tsv — hand the text to ONE mawk-safe awk pass instead of a bash
+# per-line walk. Both paths are output-identical; below the threshold the
+# fork is not worth it. Overridable (export _FR_BIG_BYTES=0 forces the awk
+# paths — how their equivalence is tested).
+_FR_BIG_BYTES="${_FR_BIG_BYTES:-32768}"
+
+# _fr_lines TEXT — the global array _FR_LINES holds, element for element, the
+# lines that `while IFS= read -r l; do …; done <<< "$TEXT"` iterates (the
+# here-string's appended newline terminates the last line; embedded empty
+# lines are kept). Memoised on the text itself: the dispatcher hands every
+# detector the same input, so the split is paid once per input. A
+# `for l in "${_FR_LINES[@]}"` loop expands its word list up front, so calling
+# _fr_lines again inside the loop body is safe; index-based loops that call
+# other helpers must copy the array first.
+_FR_LINES=()
+_FR_LINES_KEY=""
+_FR_LINES_OK=0
+_fr_lines () {
+    if [[ $_FR_LINES_OK -eq 1 && "$1" == "$_FR_LINES_KEY" ]]; then
+        return 0
+    fi
+    mapfile -t _FR_LINES <<< "$1"
+    _FR_LINES_KEY="$1"
+    _FR_LINES_OK=1
+}
+
+# _fr_tok STRING — the global array _FR_TOK holds exactly the words
+# `read -ra arr <<< "$STRING"` would store: read takes the FIRST line of the
+# here-string and splits it on the CURRENT $IFS (an `IFS=x _fr_tok …` prefix or
+# a caller's `local IFS` applies just as it would to read), leading/trailing
+# IFS whitespace dropped, no backslash processing — and, via noglob for the
+# split only, no pathname expansion. Pure expansion: no here-string pipe, no
+# fork (read's here-string is a pipe it drains one byte per syscall).
+_fr_tok () {
+    if [[ "$1" == *$'\n'* ]]; then
+        # multi-line argument: read would only see the first line
+        local _fr_l="${1%%$'\n'*}"
+        _fr_tok "$_fr_l"
+        return 0
+    fi
+    if [[ $- == *f* ]]; then
+        # shellcheck disable=SC2206
+        _FR_TOK=($1)
+    else
+        set -f
+        # shellcheck disable=SC2206
+        _FR_TOK=($1)
+        set +f
+    fi
+}
+
+# _fr_modal N… — the modal value of a list of integers in _FR_MODE and its
+# count in _FR_MODE_N (0 and 0 for an empty list); ties go to the value that
+# occurs FIRST. Output-identical to the nested idiom
+#     for a in "${c[@]}"; do k=0; for b in "${c[@]}"; do
+#         [[ "$b" -eq "$a" ]] && k=$((k + 1)); done
+#         [[ $k -gt $best ]] && { best=$k; mode=$a; }; done
+# in O(n) instead of O(n²) — that idiom runs over EVERY data row in several
+# parsers (3.5k rows = 12M comparisons, per parser). Values must be canonical
+# non-negative integers (token / cell / segment counts), so string equality of
+# the keys is numeric equality.
+_fr_modal () {
+    local -A _fm_c=()
+    local _fm_v
+    for _fm_v in "$@"; do _fm_c[$_fm_v]=$(( ${_fm_c[$_fm_v]:-0} + 1 )); done
+    _FR_MODE=0; _FR_MODE_N=0
+    for _fm_v in "$@"; do
+        if (( ${_fm_c[$_fm_v]} > _FR_MODE_N )); then
+            _FR_MODE_N=${_fm_c[$_fm_v]}; _FR_MODE=$_fm_v
+        fi
+    done
+    return 0
+}
+
+# _fr_strip_prefix_lines TEXT — _FR_STRIPPED = TEXT's non-empty lines, each
+# through strip_strat_prefix, newline-joined with no trailing newline: exactly
+# what `while IFS= read -r l; do [[ -z $l ]] && continue; strip_strat_prefix
+# "$l"; x+="$_STRIPPED_LINE"$'\n'; done <<< "$TEXT"; x="${x%$'\n'}"` builds,
+# in linear time (that `x+=` re-copies the growing string per line).
+_fr_strip_prefix_lines () {
+    if (( ${#1} > _FR_BIG_BYTES )); then
+        # awk twin of the loop below (sentinel keeps the trailing newline so
+        # exactly one is dropped, as the loop's `%$'\n'` does)
+        _FR_STRIPPED="$(printf '%s\n' "$1" | awk '$0 != "" {
+            s = $0
+            if (substr(s, 1, 6) == "STRAT-") { i = index(s, "\t"); if (i) s = substr(s, i + 1) }
+            print s
+        }'; printf .)"
+        _FR_STRIPPED="${_FR_STRIPPED%.}"
+        _FR_STRIPPED="${_FR_STRIPPED%$'\n'}"
+        return 0
+    fi
+    local _fsp_all _fsp_l
+    local -a _fsp_out=()
+    mapfile -t _fsp_all <<< "$1"
+    for _fsp_l in "${_fsp_all[@]}"; do
+        [[ -z "$_fsp_l" ]] && continue
+        strip_strat_prefix "$_fsp_l"
+        _fsp_out+=("$_STRIPPED_LINE")
+    done
+    _FR_STRIPPED=""
+    if [[ ${#_fsp_out[@]} -gt 0 ]]; then
+        printf -v _FR_STRIPPED '%s\n' "${_fsp_out[@]}"
+        _FR_STRIPPED="${_FR_STRIPPED%$'\n'}"
+    fi
+}
+
+# _fr_col_letter N — _col_letter's spreadsheet label (1->A … 26->Z, 27->AA)
+# in the global _FR_LETTER instead of on stdout, so naming a column costs no
+# command-substitution fork (`$(_col_letter …)` forks twice per call).
+_FR_ABC=ABCDEFGHIJKLMNOPQRSTUVWXYZ
+_fr_col_letter () {
+    if (( $1 < 1 )); then
+        _FR_LETTER="$(_col_letter "$1")"
+        return 0
+    fi
+    local _fr_rem=$(( ($1 - 1) % 26 )) _fr_reps=$(( ($1 - 1) / 26 + 1 )) _fr_k
+    local _fr_ch="${_FR_ABC:_fr_rem:1}"
+    _FR_LETTER=""
+    for (( _fr_k = 0; _fr_k < _fr_reps; _fr_k++ )); do _FR_LETTER+="$_fr_ch"; done
 }

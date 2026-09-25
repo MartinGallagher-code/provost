@@ -38,8 +38,9 @@
 # must be `Key: value`.
 _hkb_qualifies () {
     local block="$1" first="" line n=0 kv=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$block"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         if [[ $n -eq 1 ]]; then
             first="$line"
@@ -49,7 +50,7 @@ _hkb_qualifies () {
         else
             [[ "$line" =~ ^[A-Za-z][A-Za-z0-9_\ -]*:\ [^[:space:]] ]] && kv=$((kv + 1))
         fi
-    done <<< "$block"
+    done
     [[ $n -ge 2 && $kv -ge 1 ]]
 }
 
@@ -58,16 +59,26 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     # Split into blank-separated blocks.
     local line block="" q=0 nq=0 order=""
+    # (a block's lines collect in an array and are joined once when it closes
+    # — `block+=` per line re-copied the growing block: quadratic)
+    local -a _hkb_cur=()
     _hkb_blocks=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ -z "${line//[[:space:]]/}" ]]; then
-            [[ -n "$block" ]] && _hkb_blocks+=("${block%$'\n'}")
-            block=""
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        if [[ "${line}" != *[![:space:]]* ]]; then
+            if [[ ${#_hkb_cur[@]} -gt 0 ]]; then
+                printf -v block '%s\n' "${_hkb_cur[@]}"
+                _hkb_blocks+=("${block%$'\n'}")
+            fi
+            _hkb_cur=(); block=""
             continue
         fi
-        block+="$line"$'\n'
-    done <<< "$text"
-    [[ -n "$block" ]] && _hkb_blocks+=("${block%$'\n'}")
+        _hkb_cur+=("$line")
+    done
+    if [[ ${#_hkb_cur[@]} -gt 0 ]]; then
+        printf -v block '%s\n' "${_hkb_cur[@]}"
+        _hkb_blocks+=("${block%$'\n'}")
+    fi
 
     local b i=0 total=${#_hkb_blocks[@]}
     [[ $total -ge 2 ]] || return 1
@@ -91,14 +102,16 @@ strategy_extract () {
     # Re-split blocks (detect and extract run in separate passes).
     local line block="" result="" entry=0
     local -a blocks=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ -z "${line//[[:space:]]/}" ]]; then
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        if [[ "${line}" != *[![:space:]]* ]]; then
             [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
             block=""
             continue
         fi
         block+="$line"$'\n'
-    done <<< "$text"
+    done
+    line=""
     [[ -n "$block" ]] && blocks+=("${block%$'\n'}")
 
     local b
@@ -107,7 +120,7 @@ strategy_extract () {
         entry=$((entry + 1))
         local n=0 pos=0 detail="" col
         while IFS= read -r line; do
-            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "${line}" != *[![:space:]]* ]] && continue
             n=$((n + 1))
             if [[ $n -eq 1 ]]; then
                 # headline: name + positional fields, split on 2+-space runs

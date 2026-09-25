@@ -218,12 +218,7 @@ run_batch_mode () {
             _bo_name="${_bo_name%.txt}"
             local _bo_fields=""
             if [[ -n "$output" ]]; then
-                while IFS= read -r _bl; do
-                    [[ -z "$_bl" ]] && continue
-                    strip_strat_prefix "$_bl"
-                    _bo_fields+="$_STRIPPED_LINE"$'\n'
-                done <<< "$output"
-                _bo_fields="${_bo_fields%$'\n'}"
+                _fr_strip_prefix_lines "$output"; _bo_fields="$_FR_STRIPPED"
             fi
             {
                 if [[ -n "$_bo_fields" ]]; then
@@ -609,12 +604,7 @@ run_output_mode () {
         esac
     elif [[ $_OPT_format_explicit -eq 1 ]]; then
         local all_fields=""
-        while IFS= read -r _aline; do
-            [[ -z "$_aline" ]] && continue
-            strip_strat_prefix "$_aline"
-            all_fields+="$_STRIPPED_LINE"$'\n'
-        done <<< "$output"
-        all_fields="${all_fields%$'\n'}"
+        _fr_strip_prefix_lines "$output"; all_fields="$_FR_STRIPPED"
         case "$_OPT_format" in
             json)        format_json "$all_fields" ;;
             json-nested) format_json_nested "$all_fields" ;;
@@ -699,9 +689,8 @@ _multi_detect_name () {
 run_multi_mode () {
     # Resolve the strategy list once for the detect-only pass (the per-group
     # run_auto_strategies calls resolve again from cache — cheap).
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "$_OPT_plugin_dir" && -d "$_OPT_plugin_dir" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
     _resolve_strategy_list "${strategy_dirs[@]}"
     if [[ -z "$_SORTED_STRATEGIES" ]]; then
         _log_error "No strategies found."

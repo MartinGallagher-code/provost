@@ -16,12 +16,13 @@ strategy_detect () {
     # e.g. "core file size          (blocks, -c) 0" or "open files (-n) 1024".
     local re='\(([a-zA-Z0-9, ]*)-[a-zA-Z]\) +[^ ]+$'
     local hits=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         if [[ "$line" =~ $re ]]; then
             hits=$((hits + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $hits -ge 2 ]]; then
         _STRATEGY_CONFIDENCE=88
         return 0
@@ -34,7 +35,8 @@ strategy_extract () {
     local result=""
     local entry=0
     local re='^(.*[^ ]) +\(([a-zA-Z0-9, ]*)-([a-zA-Z])\) +([^ ]+)$'
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         # Match: <description> (<unit>, -X) <value>   OR   <description> (-X) <value>
         if [[ "$line" =~ $re ]]; then
@@ -58,7 +60,7 @@ strategy_extract () {
             result+="entry${entry}.flag ${flag}"$'\n'
             result+="entry${entry}.value ${value}"$'\n'
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

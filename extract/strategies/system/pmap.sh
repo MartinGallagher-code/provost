@@ -15,14 +15,15 @@ strategy_detect () {
     # whose first token is a hex address and second a size like "148K", and a
     # trailing "total <N>" footer. df-h.txt has none of these.
     local line first="" nmap=0 total=0 n=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         if [[ $n -eq 1 ]]; then
             [[ "$line" =~ ^[0-9]+: ]] || return 1
             continue
         fi
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         if [[ "${f[0]}" == "total" ]]; then
             total=1
             continue
@@ -30,7 +31,7 @@ strategy_detect () {
         if [[ "${f[0]}" =~ ^[0-9a-f]+$ && "${f[1]}" =~ ^[0-9]+K?$ ]]; then
             nmap=$((nmap + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $nmap -ge 2 && $total -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -41,11 +42,12 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line n=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         [[ $n -eq 1 ]] && continue                 # skip PID/command banner
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ "${f[0]}" == "total" ]] && continue     # skip footer
         # mapping row: address kbytes mode mapping...  (rss column, if present,
         # sits between kbytes and mode; guard by locating the mode token).
@@ -72,7 +74,7 @@ strategy_extract () {
         result+="entry${entry}.kbytes ${kbytes}"$'\n'
         result+="entry${entry}.mode ${mode}"$'\n'
         result+="entry${entry}.mapping ${mapping}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

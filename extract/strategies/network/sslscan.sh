@@ -24,14 +24,15 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Cipher rows: "Preferred|Accepted  <proto>  <bits> bits  <cipher>"
         case "$line" in
             Preferred[[:space:]]*|Accepted[[:space:]]*) : ;;
             *) continue ;;
         esac
 
-        read -ra _arr <<< "$line"
+        { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
         # status proto bits "bits" cipher
         [[ ${#_arr[@]} -lt 5 ]] && continue
 
@@ -41,7 +42,7 @@ strategy_extract () {
         result+="${p}protocol ${_arr[1]}"$'\n'
         result+="${p}bits ${_arr[2]}"$'\n'
         result+="${p}cipher ${_arr[4]}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

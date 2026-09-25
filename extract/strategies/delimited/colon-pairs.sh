@@ -17,6 +17,17 @@
 # whitespace token after the colon, and any remaining words before the next
 # colon belong to the NEXT label ("2  Opens" -> value 2, next label Opens).
 
+# _cp_pairs_on_line_v LINE — the same count in _CP_NPAIRS, without the
+# command-substitution fork per line.
+_cp_pairs_on_line_v () {
+    local l="$1" n=0
+    while [[ "$l" == *": "* ]]; do
+        n=$((n + 1))
+        l="${l#*: }"
+    done
+    _CP_NPAIRS=$n
+}
+
 _cp_pairs_on_line () {
     # Count ": " pairs that look like "word: token"
     local l="$1" n=0
@@ -32,15 +43,17 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local line lines=0 good=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         lines=$((lines + 1))
         [[ $lines -gt 4 ]] && return 1        # a STATUS one-liner block, not a document
         # Need >=4 inline pairs on the line, and the line must not START with
         # indentation (yaml/colons documents) nor contain " = " (kv blocks).
         [[ "$line" == [[:space:]]* || "$line" == *" = "* ]] && return 1
-        [[ "$(_cp_pairs_on_line "$line")" -ge 4 ]] && good=$((good + 1))
-    done <<< "$text"
+        _cp_pairs_on_line_v "$line"
+        [[ "$_CP_NPAIRS" -ge 4 ]] && good=$((good + 1))
+    done
     if [[ $good -ge 1 && $good -eq $lines ]]; then
         _STRATEGY_CONFIDENCE=85
         return 0
@@ -50,8 +63,9 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1" result="" line entry=0 fields=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" != *": "* ]] && continue
         entry=$((entry + 1))
         # Walk "label: value rest..." — value is the first token after the
@@ -75,7 +89,7 @@ strategy_extract () {
                 break
             fi
         done
-    done <<< "$text"
+    done
     [[ $fields -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

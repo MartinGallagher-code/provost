@@ -43,8 +43,9 @@ strategy_extract () {
     local text="$1" line s
     local -a keys vals
     local n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         [[ -z "$s" ]] && continue
@@ -61,7 +62,7 @@ strategy_extract () {
                 vals[n-1]="$s"
             fi
         fi
-    done <<< "$text"
+    done
     # Two or more records: a lone pair is better left to the generic parsers.
     [[ $n -ge 2 ]] || return 0
     local result="" i

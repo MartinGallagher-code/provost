@@ -28,12 +28,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == *[$' \t']* ]] && return 1
         [[ "$line" == *"::"*"::"* ]] || return 1
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=82
     return 0
@@ -42,8 +43,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         entry=$((entry + 1))
         local rest="$line" i=0 part col
         while :; do
@@ -57,7 +59,7 @@ strategy_extract () {
             [[ -n "$part" ]] && result+="entry${entry}.${col} ${part}"$'\n'
             [[ -z "$rest" ]] && break
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

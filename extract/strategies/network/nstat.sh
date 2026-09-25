@@ -18,11 +18,12 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=86
     # First non-empty line must be exactly `#kernel`.
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#kernel" ]] && return 0
         return 1
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -30,19 +31,20 @@ strategy_extract () {
     local text="$1"
     local result="" line n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#kernel"* ]] && continue
 
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 2 ]] && continue
 
         n=$((n + 1))
         result+="entry${n}.metric ${f[0]}"$'\n'
         result+="entry${n}.value ${f[1]}"$'\n'
         result+="entry${n}.rate ${f[2]:-NONE}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

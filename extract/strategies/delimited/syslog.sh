@@ -17,11 +17,12 @@ strategy_detect () {
     # status's log tail) is not a syslog capture and belongs to other
     # parsers.
     local line total=0 hits=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         total=$((total + 1))
         [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] && hits=$((hits + 1))
-    done <<< "$text"
+    done
     [[ $total -gt 0 && $((hits * 100 / total)) -ge 50 ]]
 }
 
@@ -30,7 +31,8 @@ strategy_extract () {
     local result=""
     local line_num=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         # Only process lines matching syslog format
         [[ "$line" =~ ^[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] || continue
@@ -44,7 +46,7 @@ strategy_extract () {
         result+="${prefix}.timestamp ${timestamp}"$'\n'
 
         # Extract hostname (word after timestamp)
-        read -ra _arr <<< "$line"
+        { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
         local hostname="${_arr[3]}"
         result+="${prefix}.hostname ${hostname}"$'\n'
 
@@ -71,7 +73,7 @@ strategy_extract () {
             result+="${prefix}.message ${message}"$'\n'
         fi
 
-    done <<< "$text"
+    done
 
     echo "$result"
 }
@@ -88,7 +90,7 @@ _strat_syslog_get_message () {
     local line="$1"
     # Message is everything after the 5th field's colon/bracket
     # Remove timestamp (3 fields), hostname (1 field), process[pid]: (1 field)
-    read -ra _arr <<< "$line"
+    { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
     # Reconstruct message from field 5 onwards
     local msg=""
     local i

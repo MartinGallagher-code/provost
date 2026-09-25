@@ -26,7 +26,8 @@ strategy_detect () {
     # Distinctive: bundler's fetch preamble plus the Current/Latest header.
     [[ "$text" == *"Fetching gem metadata"* ]] || return 1
     local line has_header=0 rows=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == Gem*Current*Latest* ]]; then
             has_header=1
             continue
@@ -35,7 +36,7 @@ strategy_detect () {
         if [[ "$line" =~ ^[A-Za-z0-9._-]+[[:space:]]+[0-9][^[:space:]]*[[:space:]]+[0-9][^[:space:]]* ]]; then
             rows=$((rows + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $has_header -eq 1 && $rows -ge 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -64,7 +65,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local -a _BO_POS=() _BO_NAME=()
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == Gem*Current*Latest* ]]; then
             _bo_header_cols "$line"
             continue
@@ -86,7 +88,7 @@ strategy_extract () {
             cell="${cell%"${cell##*[![:space:]]}"}"
             result+="entry${entry}.${_BO_NAME[$ci]} ${cell}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

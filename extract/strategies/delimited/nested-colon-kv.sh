@@ -50,12 +50,13 @@ strategy_extract () {
     local -a st_ind=() st_name=()
     # Pre-normalise every line to (indent, text) so the loop can look ahead.
     local -a li_ind=() li_s=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Tree glyphs -> spaces, preserving width so indent still nests.
         local norm="${line//│/ }"
         norm="${norm//├/ }"; norm="${norm//└/ }"; norm="${norm//─/ }"
-        [[ -z "${norm//[[:space:]]/}" ]] && continue
+        [[ "${norm}" != *[![:space:]]* ]] && continue
         # Indent = leading whitespace width (tabs count as one step of 8).
         local lead="${norm%%[![:space:]]*}"
         local indent=0 ch
@@ -69,7 +70,7 @@ strategy_extract () {
         s0="${s0#\* }"; s0="${s0#- }"
         [[ -z "$s0" ]] && continue
         li_ind+=("$indent"); li_s+=("$s0")
-    done <<< "$text"
+    done
 
     local li ln=${#li_s[@]}
     for ((li = 0; li < ln; li++)); do

@@ -15,14 +15,15 @@ strategy_detect () {
     # fossil status: "repository:" / "checkout:" kv headers plus file-change
     # lines with verbs like EDITED / ADDED / DELETED.
     local has_repo=0 has_checkout=0 has_change=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         case "$line" in
             "repository:"*) has_repo=1 ;;
             "checkout:"*)   has_checkout=1 ;;
             EDITED\ *|ADDED\ *|DELETED\ *|MISSING\ *|RENAMED\ *|UPDATED\ *|CONFLICT\ *|EXTRA\ *)
                 has_change=1 ;;
         esac
-    done <<< "$text"
+    done
     if [[ $has_repo -eq 1 && $has_checkout -eq 1 && $has_change -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -35,7 +36,8 @@ strategy_extract () {
     local result=""
     local entry=0
     local line cleaned
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Emit one record per non-blank status line (skip blanks only).
         [[ -z "$line" ]] && continue
         case "$line" in
@@ -55,7 +57,7 @@ strategy_extract () {
 
         entry=$((entry + 1))
         result+="entry${entry}.line ${cleaned}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -16,7 +16,8 @@ strategy_detect () {
     # systemctl status output contains "Loaded:" and "Active:" lines
     local has_loaded=0
     local has_active=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         local trimmed="$line"
         while [[ "$trimmed" == " "* ]]; do trimmed="${trimmed# }"; done
         [[ "$trimmed" == "Loaded:"* ]] && has_loaded=1
@@ -24,7 +25,7 @@ strategy_detect () {
         if [[ $has_loaded -eq 1 && $has_active -eq 1 ]]; then
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -59,7 +60,8 @@ strategy_extract () {
     done <<< "$text"
 
     # Extract key: value fields
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local trimmed="$line"
         while [[ "$trimmed" == " "* ]]; do trimmed="${trimmed# }"; done
@@ -104,7 +106,8 @@ strategy_extract () {
                 result+="cgroup ${val}"$'\n'
                 ;;
         esac
-    done <<< "$text"
+    done
+    line=""
 
     echo "$result"
 }

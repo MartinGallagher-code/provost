@@ -80,8 +80,9 @@ _pt_split_bare () {
 _pt_bare_shape () {
     local text="$1" _line lines=0 want=-1 _c
     _PT_BARE_COLS=0
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         [[ "$_line" == "|"* || "$_line" == *"|" ]] && return 1
         [[ "$_line" == *"---+---"* ]] && return 1
@@ -94,7 +95,7 @@ _pt_bare_shape () {
         if [[ $want -lt 0 ]]; then want=${#_PT_CELLS[@]}
         elif [[ ${#_PT_CELLS[@]} -ne $want ]]; then return 1; fi
         lines=$((lines + 1))
-    done <<< "$text"
+    done
     [[ $lines -ge 3 ]] || return 1
     _PT_BARE_COLS=$want
     return 0
@@ -119,12 +120,16 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _STRATEGY_CONFIDENCE_REASON="markdown pipe table (| a | b | rows + |---| rule)"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
+    # PREFILTER (exact): both dialects need `|` — a markdown row is `|…|` and a
+    # bare row must split into >=2 `|` cells — so no `|` means no table.
+    [[ "$text" == *"|"* ]] || return 1
     local _line _saw_rule=0 _saw_row=0
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         if _pt_is_rule "$_line" && [[ "$_line" == *"|"* ]]; then _saw_rule=1
         elif _pt_is_row "$_line"; then _saw_row=1; fi
-    done <<< "$text"
+    done
     if [[ $_saw_rule -eq 1 && $_saw_row -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -144,8 +149,9 @@ strategy_detect () {
 _pt_extract_bare () {
     local text="$1" result="" entry=0 _line
     local col_names=() have_header=0 _c name i val first=1
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         _pt_split_bare "$_line"
         if [[ $first -eq 1 ]]; then
@@ -176,7 +182,7 @@ _pt_extract_bare () {
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }
@@ -195,21 +201,21 @@ strategy_extract () {
     fi
     # modal cell count across non-rule pipe rows
     local counts=()
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         _pt_is_row "$_line" || continue
         _pt_is_rule "$_line" && continue
         _pt_split "$_line"; counts+=("${#_PT_CELLS[@]}")
-    done <<< "$text"
-    [[ ${#counts[@]} -lt 2 ]] && return
-    local modal=0 best=0 a b k
-    for a in "${counts[@]}"; do
-        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k + 1)); done
-        [[ $k -gt $best ]] && { best=$k; modal=$a; }
     done
+    _line=""
+    [[ ${#counts[@]} -lt 2 ]] && return
+    local modal=0 best=0
+    _fr_modal "${counts[@]}"; modal=$_FR_MODE; best=$_FR_MODE_N
     [[ $modal -lt 1 ]] && return
 
     local col_names=() num_cols=0 have_header=0 _c name i val
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         _pt_is_row "$_line" || continue
         _pt_is_rule "$_line" && continue
         _pt_split "$_line"
@@ -230,7 +236,8 @@ strategy_extract () {
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
+    _line=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

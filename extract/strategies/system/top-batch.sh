@@ -37,9 +37,10 @@ strategy_extract () {
     local result="" entry=0 line in_table=0 i
     local -a t=()
     local -a fields=(pid user pr ni virt res shr s cpu mem time command)
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        read -ra t <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         if [[ "${t[0]}" == "PID" ]]; then         # process-table header
             in_table=1
             continue
@@ -50,7 +51,7 @@ strategy_extract () {
         for ((i=0; i<${#fields[@]}; i++)); do
             result+="entry${entry}.${fields[$i]} $(_top_batch_sanitize "${t[$i]}")"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -21,9 +21,10 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _fossiltl_is_entry "$line" && has=1
-    done <<< "$text"
+    done
     if [[ $has -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -34,7 +35,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line timev hash rest message user
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _fossiltl_is_entry "$line" || continue
         timev="${line%%[[:space:]]*}"
         hash="${line#*[}"
@@ -54,7 +56,7 @@ strategy_extract () {
         result+="entry${entry}.hash ${hash}"$'\n'
         result+="entry${entry}.message ${message}"$'\n'
         result+="entry${entry}.user ${user}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

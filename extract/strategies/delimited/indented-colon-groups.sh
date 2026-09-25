@@ -43,14 +43,15 @@ _icg_scan_hind () {
     local text="$1" line body counts=""
     _ICG_HIND=0
     local -A _hc=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         body="${line#"${line%%[![:space:]]*}"}"
         body="${body%"${body##*[![:space:]]}"}"
         [[ "$body" == [A-Za-z0-9]* && "$body" == *: && "${body%:}" != *": "* ]] || continue
         _icg_indent "$line"
         _hc[$_ICG_IND]=$(( ${_hc[$_ICG_IND]:-0} + 1 ))
-    done <<< "$text"
+    done
     local best=0 k
     for k in "${!_hc[@]}"; do
         if [[ ${_hc[$k]} -gt $best || ( ${_hc[$k]} -eq $best && $k -lt ${_ICG_HIND} ) ]]; then
@@ -71,7 +72,7 @@ _icg_indent () {
 _icg_classify () {
     local l="$1"
     _ICG_KIND=N; _ICG_BODY=""
-    [[ -z "${l//[[:space:]]/}" ]] && return
+    [[ "${l}" != *[![:space:]]* ]] && return
     _icg_indent "$l"
     local body="${l#"${l%%[![:space:]]*}"}"    # lstrip
     body="${body%"${body##*[![:space:]]}"}"    # rstrip
@@ -98,18 +99,24 @@ _icg_classify () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
+    # PREFILTER (exact): acceptance needs >=2 group headers, and a header line
+    # ends in `:` (only whitespace after it) — no such colon, no header.
+    local _icg_hre=$':[[:space:]]*(\n|$)'
+    [[ "$text" =~ $_icg_hre ]] || return 1
     _icg_scan_hind "$text"
     local line groups=0 members=0
     local order=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _icg_classify "$line"
         case "$_ICG_KIND" in
             G) order+="G"; groups=$((groups + 1)) ;;
             M) order+="M"; members=$((members + 1)) ;;
             N) order+="N" ;;
         esac
-    done <<< "$text"
+    done
+    line=""
     # Need real grouping: >=2 headers and at least one member each.
     [[ $groups -ge 2 && $members -ge $groups ]] || return 1
     # Multi-token members brought two shapes this strategy must NOT eat:
@@ -123,14 +130,16 @@ strategy_detect () {
     #     LOOKS same-width only because the dashes align — it is a kv list
     #     and extract splits it properly.
     local _m_eq=0 _m_dash=0 _m_counts=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _icg_classify "$line"
         [[ "$_ICG_KIND" == M ]] || continue
         [[ "$_ICG_BODY" == *" = "* ]] && _m_eq=1
         [[ "$_ICG_BODY" == *" - "* ]] && _m_dash=$((_m_dash + 1))
-        local -a _mt=(); read -ra _mt <<< "$_ICG_BODY"
+        local -a _mt=(); { _fr_tok "$_ICG_BODY"; _mt=("${_FR_TOK[@]}"); }
         _m_counts+="${#_mt[@]} "
-    done <<< "$text"
+    done
+    line=""
     [[ $_m_eq -eq 1 ]] && return 1
     if [[ $_m_dash -lt $members ]]; then
         local _c _best=0
@@ -187,13 +196,15 @@ strategy_extract () {
     local dash=0 eqsplit=0
     if [[ $split -eq 0 ]]; then
         local _dm=0 _mm=0 _em=0
-        while IFS= read -r line || [[ -n "$line" ]]; do
+        _fr_lines "$text"
+        for line in "${_FR_LINES[@]}"; do
             _icg_classify "$line"
             [[ "$_ICG_KIND" == M ]] || continue
             _mm=$((_mm + 1))
             [[ "$_ICG_BODY" == *" - "* ]] && _dm=$((_dm + 1))
             [[ "$_ICG_BODY" =~ ^[A-Za-z_][A-Za-z0-9_.-]*=[^=[:space:]].*$ && "$_ICG_BODY" != *" "* ]] && _em=$((_em + 1))
-        done <<< "$text"
+        done
+        line=""
         [[ $_mm -gt 0 && $_dm -eq $_mm ]] && dash=1
         # Every member a tight `k=v` (perl -V's osname=linux) -> key | value,
         # the reviewer's "three columns: platform, osname, linux".
@@ -201,7 +212,8 @@ strategy_extract () {
     fi
 
     local result="" entry=0 gname="" gpath="" group=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _icg_classify "$line"
         case "$_ICG_KIND" in
             G)
@@ -232,7 +244,8 @@ strategy_extract () {
                 fi
                 ;;
         esac
-    done <<< "$text"
+    done
+    line=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

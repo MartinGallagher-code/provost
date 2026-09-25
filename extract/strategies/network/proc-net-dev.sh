@@ -34,8 +34,9 @@ strategy_extract () {
     local names=(rx_bytes rx_packets rx_errs rx_drop rx_fifo rx_frame rx_compressed rx_multicast \
                  tx_bytes tx_packets tx_errs tx_drop tx_fifo tx_colls tx_carrier tx_compressed)
     local result="" entry=0 line
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Header rows carry the `|` chrome; data rows never do.
         [[ "$line" == *"|"* ]] && continue
         [[ "$line" == *:* ]] || continue
@@ -43,7 +44,7 @@ strategy_extract () {
         iface="${iface#"${iface%%[![:space:]]*}"}"
         local rest="${line#*:}"
         local vals=()
-        read -ra vals <<< "$rest"
+        { _fr_tok "$rest"; vals=("${_FR_TOK[@]}"); }
         [[ ${#vals[@]} -ge 1 ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.interface ${iface}"$'\n'
@@ -51,7 +52,7 @@ strategy_extract () {
         for ((i = 0; i < ${#vals[@]} && i < ${#names[@]}; i++)); do
             result+="entry${entry}.${names[$i]} ${vals[$i]}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

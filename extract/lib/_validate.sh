@@ -192,9 +192,8 @@ validate_strategy () {
 # Validate all strategies in all strategy directories.
 # Prints a summary report. Returns 0 if all pass, 1 if any fail.
 validate_all_strategies () {
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     local sorted_list
     sorted_list=$(build_strategy_list "${strategy_dirs[@]}")
@@ -243,9 +242,8 @@ self_validate_strategies () {
     local threshold="${_OPT_self_validate_threshold:-75}"
     local filter="${_OPT_self_validate_strategy:-}"
 
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
 
     local sorted_list
     sorted_list=$(build_strategy_list "${strategy_dirs[@]}")

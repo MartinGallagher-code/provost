@@ -55,11 +55,12 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=86
     # Distinctive signature: a top-border line and a bar-delimited data line.
     local has_border=0 has_bar=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == "$_CH_TL"* ]] && has_border=1
         [[ "$line" == "$_CH_BAR"* ]] && has_bar=1
         [[ $has_border -eq 1 && $has_bar -eq 1 ]] && return 0
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -69,7 +70,8 @@ strategy_extract () {
     local -a cols=()
     local ncols=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         # Header: top border line carries the column names.
@@ -115,7 +117,7 @@ strategy_extract () {
                 rest2="${rest2#*|}"
             done
         fi
-    done <<< "$text"
+    done
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"

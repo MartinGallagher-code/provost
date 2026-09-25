@@ -35,8 +35,9 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1" result="" n=0 line key val
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == *"="* ]] || continue
         key="$(_hv_key "${line%%=*}")"
         [[ -n "$key" ]] || continue
@@ -45,7 +46,7 @@ strategy_extract () {
         val="${val%"${val##*[![:space:]]}"}"
         n=$((n + 1))
         result+="entry1.${key} $(_hv_san "$val")"$'\n'
-    done <<< "$text"
+    done
     [[ $n -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"
 }

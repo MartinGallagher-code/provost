@@ -21,10 +21,11 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=86
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Distinctive signature: NUMA bind settings.
         [[ "$line" == "nodebind:"* || "$line" == "membind:"* ]] && return 0
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -40,11 +41,12 @@ _numa_sanitise () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *": "* ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.value $(_numa_sanitise "$line")"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

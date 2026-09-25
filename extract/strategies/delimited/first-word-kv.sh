@@ -39,12 +39,13 @@
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Strip a leading bullet / comment marker.
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s#- }"; s="${s#\* }"
-        [[ -z "${s//[[:space:]]/}" ]] && continue
+        [[ "${s}" != *[![:space:]]* ]] && continue
         # A line with no alphanumeric character is a separator / progress rule
         # (pyperf's `.....................`), not a key-bearing record — skip it.
         [[ "$s" == *[[:alnum:]]* ]] || continue
@@ -65,7 +66,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'
         [[ -n "$val" ]] && result+="entry${entry}.value ${val}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

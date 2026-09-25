@@ -48,7 +48,7 @@ _ikv_split () {
 _ikv_body () {
     local text="$1" _l all=1 inner
     while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         if [[ "$_l" =~ ^\[(.+)\]$ ]]; then
             inner="${BASH_REMATCH[1]}"
             [[ "$inner" == *" "* ]] || { all=0; break; }
@@ -59,12 +59,38 @@ _ikv_body () {
         fi
     done <<< "$text"
     if [[ $all -eq 1 ]]; then
-        while IFS= read -r _l; do
+        _fr_lines "$text"
+        for _l in "${_FR_LINES[@]}"; do
             if [[ "$_l" =~ ^\[(.+)\]$ ]]; then printf '%s\n' "${BASH_REMATCH[1]}"
             else printf '%s\n' "$_l"; fi
-        done <<< "$text"
+        done
+        _l=""
     else
         printf '%s\n' "$text"
+    fi
+}
+
+# _ikv_body_v TEXT — `$(_ikv_body TEXT)` in _IKV_BODY without the fork. The
+# common case (no gauge unwrap) is TEXT minus trailing newlines — exactly what
+# the command substitution captured; the rare unwrap case keeps the original.
+_ikv_body_v () {
+    local text="$1" _l all=1 inner
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
+        if [[ "$_l" =~ ^\[(.+)\]$ ]]; then
+            inner="${BASH_REMATCH[1]}"
+            [[ "$inner" == *" "* ]] || { all=0; break; }
+            case "$inner" in '"'*|'{'*|'['*) all=0 ;; esac
+            [[ $all -eq 0 ]] && break
+        else
+            all=0; break
+        fi
+    done
+    if [[ $all -eq 1 ]]; then
+        _IKV_BODY="$(_ikv_body "$text")"
+    else
+        _IKV_BODY="${text%"${text##*[!$'\n']}"}"
     fi
 }
 
@@ -78,13 +104,14 @@ _ikv_colon_tok () {
 
 strategy_detect () {
     local text="$1"
-    text="$(_ikv_body "$text")"
+    _ikv_body_v "$text"; text="$_IKV_BODY"
     _STRATEGY_CONFIDENCE=0
 
     local nonblank=0 kvlines=0 clines=0 _l
     local clabels="" cuniform=1
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         local toks; toks=()
         _ikv_split "$_l"; toks=("${_IKV_TOKS[@]}")
@@ -107,7 +134,7 @@ strategy_detect () {
             [[ "$clab" != "$clabels" ]] && cuniform=0
         fi
         [[ $nonblank -ge 40 ]] && break
-    done <<< "$text"
+    done
 
     # Every non-blank line must be inline-kv (so we don't claim prose that
     # happens to contain one `a=b`).
@@ -124,10 +151,11 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
-    text="$(_ikv_body "$text")"
+    _ikv_body_v "$text"; text="$_IKV_BODY"
     local result="" entry=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         local toks; toks=()
         _ikv_split "$_l"; toks=("${_IKV_TOKS[@]}")
         entry=$((entry + 1))
@@ -190,7 +218,7 @@ strategy_extract () {
             fi
             result+="entry${entry}.${k} ${v}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

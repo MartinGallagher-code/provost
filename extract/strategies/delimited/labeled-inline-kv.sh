@@ -37,7 +37,7 @@ _lik_kvpart () {
     set -- $rest
     IFS="$_oi"
     for part in "$@"; do
-        [[ -z "${part//[[:space:]]/}" ]] && continue
+        [[ "${part}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         [[ "$part" == *=* ]] || { ok=0; break; }
     done
@@ -56,12 +56,13 @@ strategy_detect () {
     # stats (read/write):`). This keeps it off `key: value` snapshots (nmcli,
     # mdadm --examine) that merely contain one stray `label: k=v, k=v` line.
     local nonblank=0 records=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         _lik_kvpart "$_l" >/dev/null && records=$((records + 1))
         [[ $nonblank -ge 40 ]] && break
-    done <<< "$text"
+    done
 
     [[ $records -ge 1 && $records -ge $((nonblank - 1)) ]] || return 1
     _STRATEGY_CONFIDENCE=82
@@ -78,8 +79,9 @@ _lik_sanitize () {
 
 strategy_extract () {
     local text="$1" result="" entry=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         local kv; kv="$(_lik_kvpart "$_l")" || continue
         local label="${_l%%:*}"
         label="${label#"${label%%[![:space:]]*}"}"; label="${label%"${label##*[![:space:]]}"}"
@@ -101,7 +103,7 @@ strategy_extract () {
             [[ -z "$key" || -z "$val" ]] && continue
             result+="entry${entry}.${key} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

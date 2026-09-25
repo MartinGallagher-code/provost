@@ -20,19 +20,21 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[[:space:]]*#[[:space:]].*[[:space:]]will[[:space:]]be[[:space:]] ]]; then
             _STRATEGY_CONFIDENCE=86
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^[[:space:]]*#[[:space:]].*[[:space:]]will[[:space:]]be[[:space:]] ]] || continue
         local body="$line"
         while [[ "$body" == " "* ]]; do body="${body# }"; done
@@ -42,7 +44,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.resource ${resource}"$'\n'
         result+="entry${entry}.action ${action}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

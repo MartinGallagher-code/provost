@@ -34,8 +34,9 @@ _lspci_re='^([^:]+):[[:space:]](.+)$'
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # An indented line means a verbose dump (lspci -vvv/-k: capability and
         # driver sub-lines under each device) — a different shape. Bail so the
         # hint falls through to that tool's own handling.
@@ -57,7 +58,7 @@ strategy_extract () {
         result+="entry${entry}.slot ${slot}"$'\n'
         result+="entry${entry}.class ${class}"$'\n'
         [[ -n "$desc" ]] && result+="entry${entry}.description ${desc}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

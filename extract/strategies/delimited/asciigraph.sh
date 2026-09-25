@@ -25,7 +25,7 @@
 # _AG_LABEL and the _AG_VALS array.
 _ag_series () {
     local line="$1"
-    local -a t=(); read -ra t <<< "$line"
+    local -a t=(); { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
     [[ ${#t[@]} -ge 4 ]] || return 1
     local i nums=0
     for ((i = 1; i < ${#t[@]}; i++)); do
@@ -49,10 +49,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line plot=0 series=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    # PREFILTER (exact): acceptance needs >=2 plot lines, and a plot line is
+    # one carrying `┤` or `┼` — neither glyph anywhere means no plot line.
+    [[ "$text" == *$'\342\224\244'* || "$text" == *$'\342\224\274'* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _ag_is_plot "$line" && plot=$((plot + 1))
         _ag_series "$line" && series=1
-    done <<< "$text"
+    done
     # >=2 plot lines AND a numeric series footer — the asciigraph signature.
     [[ $plot -ge 2 && $series -eq 1 ]] || return 1
     _STRATEGY_CONFIDENCE=80
@@ -62,7 +66,7 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local -a lines=(); local line
-    while IFS= read -r line || [[ -n "$line" ]]; do lines+=("$line"); done <<< "$text"
+    _fr_lines "$text"; lines+=("${_FR_LINES[@]}"); line=""
 
     # Find the LAST series line; the nearest non-blank, non-plot line above it is
     # the x-axis label row.
@@ -76,12 +80,12 @@ strategy_extract () {
 
     local aidx=-1
     for ((i = sidx - 1; i >= 0; i--)); do
-        [[ -z "${lines[$i]//[[:space:]]/}" ]] && continue
+        [[ "${lines[$i]}" != *[![:space:]]* ]] && continue
         _ag_is_plot "${lines[$i]}" && break
         aidx=$i; break
     done
     local -a axis=()
-    [[ $aidx -ge 0 ]] && read -ra axis <<< "${lines[$aidx]}"
+    [[ $aidx -ge 0 ]] && { _fr_tok "${lines[$aidx]}"; axis=("${_FR_TOK[@]}"); }
 
     local result="" entry=0 k
     for ((k = 0; k < ${#vals[@]}; k++)); do

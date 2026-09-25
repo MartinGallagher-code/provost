@@ -26,8 +26,9 @@
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Every record must carry the separator; a line without it means this
         # isn't a clean two-column list — bail to auto-detection.
         [[ "$line" != *" · "* ]] && return 0
@@ -37,7 +38,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'
         [[ -n "$val" ]] && result+="entry${entry}.value ${val}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 2 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

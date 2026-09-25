@@ -30,8 +30,9 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local toks
-    while IFS= read -r line; do
-        toks=(); read -ra toks <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        toks=(); { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         [[ ${#toks[@]} -ge 9 ]] || continue
         _pidstat_r_is_row "${toks[0]}" || continue
         local cmd="${toks[*]:8}"
@@ -45,7 +46,7 @@ strategy_extract () {
         result+="entry${entry}.rss ${toks[6]}"$'\n'
         result+="entry${entry}.pct_mem ${toks[7]}"$'\n'
         result+="entry${entry}.command ${cmd}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

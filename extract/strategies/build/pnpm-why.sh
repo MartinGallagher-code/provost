@@ -28,8 +28,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line s
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Skip section headers ("dependencies:", "devDependencies:").
         [[ "$line" == *: && "$line" != *" "* ]] && continue
         # Skip the project banner: "<name>@<ver> <path>".
@@ -41,7 +42,7 @@ strategy_extract () {
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.A ${s}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

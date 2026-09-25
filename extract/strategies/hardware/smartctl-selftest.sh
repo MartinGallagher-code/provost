@@ -24,7 +24,8 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Data rows start with a "# N" test-number marker.
         [[ "$line" =~ ^#[[:space:]]*[0-9]+ ]] || continue
 
@@ -60,7 +61,7 @@ strategy_extract () {
         result+="${p}remaining ${cols[3]}"$'\n'
         result+="${p}lifetime ${cols[4]}"$'\n'
         result+="${p}lba ${cols[5]}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

@@ -23,12 +23,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _gpg_is_pub "$line"; then
             _STRATEGY_CONFIDENCE=88
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -37,9 +38,10 @@ strategy_extract () {
     local result="" entry=0
     local keyid="" created="" uid=""
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $entry -eq 0 ]] && _gpg_is_pub "$line"; then
-            read -ra _a <<< "$line"
+            { _fr_tok "$line"; _a=("${_FR_TOK[@]}"); }
             local algo_key="${_a[1]}"
             keyid="${algo_key#*/}"
             created="${_a[2]}"
@@ -50,7 +52,7 @@ strategy_extract () {
             # drop leading [validity] marker if present
             [[ "$uid" == \[*\]* ]] && uid="${uid#*] }"
         fi
-    done <<< "$text"
+    done
     if [[ $entry -eq 1 ]]; then
         result+="entry1.type pub"$'\n'
         result+="entry1.keyid ${keyid}"$'\n'

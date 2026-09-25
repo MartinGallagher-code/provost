@@ -24,14 +24,15 @@ strategy_detect () {
     # Signature: a device header `<id>: <name>: <type>` AND both a
     # "Soft blocked:" and a "Hard blocked:" indented line.
     local has_header=0 has_soft=0 has_hard=0 line t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"
         case "$t" in
             [0-9]*": "*": "*) has_header=1 ;;
             "Soft blocked:"*) has_soft=1 ;;
             "Hard blocked:"*) has_hard=1 ;;
         esac
-    done <<< "$text"
+    done
     [[ $has_header -eq 1 && $has_soft -eq 1 && $has_hard -eq 1 ]] && return 0
     return 1
 }
@@ -51,7 +52,8 @@ strategy_extract () {
         result+="entry${n}.hard ${hard:-unknown}"$'\n'
     }
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"
         [[ -z "$t" ]] && continue
 
@@ -67,7 +69,7 @@ strategy_extract () {
             "Soft blocked:"*) soft="${t#*: }" ;;
             "Hard blocked:"*) hard="${t#*: }" ;;
         esac
-    done <<< "$text"
+    done
     _rfkill_flush
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'

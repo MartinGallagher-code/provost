@@ -96,7 +96,7 @@ _COLUMNAR_SPECS=(
 # emit it, some don't, and migration must match byte-for-byte.
 _cs_parse () {
     local IFS=$'\t'; local -a p=()
-    read -ra p <<< "$1"
+    { _fr_tok "$1"; p=("${_FR_TOK[@]}"); }
     _CS_NAME="${p[0]}"; _CS_DETECT="${p[1]}"; _CS_HDR="${p[2]}"
     _CS_DELIM="${p[3]}"; _CS_ABSORB="${p[4]}"; _CS_MINREQ="${p[5]}"; _CS_COLS="${p[6]}"
     _CS_TOTAL="${p[7]:-1}"
@@ -126,21 +126,22 @@ _cs_row_overflow () {
     local text="$1"
     [[ "$_CS_DELIM" == "ws" ]] || return 1
     [[ "${_CS_ABSORB:--1}" -ge 0 ]] && return 1
-    local -a cols=(); IFS=',' read -ra cols <<< "$_CS_COLS"
+    local -a cols=(); { IFS=',' _fr_tok "$_CS_COLS"; cols=("${_FR_TOK[@]}"); }
     local ncols=${#cols[@]} _ci
     [[ $ncols -le 1 ]] && return 1                 # @line / single-col: never overflows
     for ((_ci=0; _ci<ncols; _ci++)); do [[ "${cols[$_ci]}" == *"@rest" ]] && return 1; done
     local _l past=0 wide=0 seen=0
     [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         if [[ $past -eq 0 ]]; then [[ "$_l" == *"$_CS_HDR"* ]] && past=1; continue; fi
         [[ -n "$_CS_ROWRE" && ! "$_l" =~ $_CS_ROWRE ]] && continue
-        local -a _tk=(); read -ra _tk <<< "$_l"
+        local -a _tk=(); { _fr_tok "$_l"; _tk=("${_FR_TOK[@]}"); }
         [[ ${#_tk[@]} -lt "${_CS_MINREQ:-$ncols}" ]] && continue
         seen=$((seen + 1))
         [[ ${#_tk[@]} -gt $ncols ]] && wide=$((wide + 1))
-    done <<< "$text"
+    done
     # Decline only when the OVERWHELMING majority of accepted rows are wider than
     # the layout — a lone ragged row shouldn't lose the spec its normal input.
     [[ $seen -ge 2 && $((wide * 100 / seen)) -ge 80 ]]
@@ -150,12 +151,23 @@ _cs_row_overflow () {
 # substring anywhere; a `re:PATTERN` token requires >=1 line to match the regex.
 _cs_matches () {
     local text="$1" det="$2" IFS=';' tok
-    local -a toks=(); read -ra toks <<< "$det"
+    local -a toks=(); { _fr_tok "$det"; toks=("${_FR_TOK[@]}"); }
     for tok in "${toks[@]}"; do
         [[ -z "$tok" ]] && continue
         if [[ "$tok" == re:* ]]; then
             local pat="${tok#re:}" _l hit=0
-            while IFS= read -r _l; do [[ "$_l" =~ $pat ]] && { hit=1; break; }; done <<< "$text"
+            # PREFILTER (exact): a line matching PAT is a substring of the text,
+            # so the text matches PAT with its line anchors dropped (in a
+            # whole-text match `.`/`[^…]` may also span lines — only ever MORE
+            # matches). Applied only when the pattern's sole anchors are a
+            # leading `^` / trailing `$`; a miss means no line can match.
+            local _cs_up="${pat#^}"
+            [[ "$_cs_up" == *'$' && "$_cs_up" != *'\$' ]] && _cs_up="${_cs_up%'$'}"
+            local _cs_q="${_cs_up//\[^/}"
+            if [[ "$_cs_q" != *[\^\$]* && "$_cs_up" != *'\['* ]]; then
+                [[ "$text" =~ $_cs_up ]] || return 1
+            fi
+            _fr_lines "$text"; for _l in "${_FR_LINES[@]}"; do [[ "$_l" =~ $pat ]] && { hit=1; break; }; done
             [[ $hit -eq 1 ]] || return 1
         else
             [[ "$text" == *"$tok"* ]] || return 1
@@ -197,7 +209,7 @@ _CS_OUT=""; _CS_SKIP=0
 _cs_apply () {  # $1=raw value, $2=colspec (name@…)
     local raw="$1" spec="$2"; _CS_SKIP=0; _CS_OUT="$raw"
     [[ "$spec" != *"@"* ]] && return          # plain column: always emit raw
-    local IFS='@'; local -a c=(); read -ra c <<< "$spec"
+    local IFS='@'; local -a c=(); { _fr_tok "$spec"; c=("${_FR_TOK[@]}"); }
     local xform="${c[1]:-}"
     case "$xform" in
         opt) [[ -z "$raw" ]] && _CS_SKIP=1 ;;
@@ -227,7 +239,7 @@ strategy_extract () {
         [[ -z "$spec" ]] && { echo ""; return 0; }
     fi
     _cs_parse "$spec"
-    local -a cols=(); IFS=',' read -ra cols <<< "$_CS_COLS"
+    local -a cols=(); { IFS=',' _fr_tok "$_CS_COLS"; cols=("${_FR_TOK[@]}"); }
     local ncols=${#cols[@]}
     local minreq="${_CS_MINREQ:-$ncols}"
     # index of the terminal @rest column (soaks remaining tokens, space-joined), or -1
@@ -240,8 +252,9 @@ strategy_extract () {
 
     local result="" entry=0 line past=0 _cs_hdr_line=""
     [[ -z "$_CS_HDR" || "$_CS_HDR" == "-" ]] && past=1
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ $past -eq 0 ]]; then
             [[ "$line" == *"$_CS_HDR"* ]] && { past=1; _cs_hdr_line="$line"; }
             continue
@@ -260,10 +273,10 @@ strategy_extract () {
         local -a tok=()
         if [[ "$_CS_DELIM" == "pipe" ]]; then
             [[ "$line" == *"|"* ]] || continue
-            local IFSbak="$IFS"; IFS='|'; read -ra tok <<< "$line"; IFS="$IFSbak"
+            local IFSbak="$IFS"; IFS='|'; { _fr_tok "$line"; tok=("${_FR_TOK[@]}"); }; IFS="$IFSbak"
             local i; for ((i=0; i<${#tok[@]}; i++)); do tok[$i]="$(_cs_trim "${tok[$i]}")"; done
         else
-            read -ra tok <<< "$line"
+            { _fr_tok "$line"; tok=("${_FR_TOK[@]}"); }
         fi
         [[ ${#tok[@]} -lt $minreq ]] && continue
 
@@ -303,7 +316,7 @@ strategy_extract () {
             fname="${cols[$i]%%@*}"
             result+="${_CS_PREFIX}${entry}.${fname} ${_CS_OUT}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 && "${_CS_TOTAL:-1}" != "0" ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

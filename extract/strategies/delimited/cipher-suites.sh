@@ -32,9 +32,10 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ $_cs_line_re ]] && n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 3 ]] || return 1
     _STRATEGY_CONFIDENCE=84
     return 0
@@ -43,14 +44,15 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ $_cs_line_re ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.status ${BASH_REMATCH[1]}"$'\n'
         result+="entry${entry}.protocol ${BASH_REMATCH[2]}"$'\n'
         result+="entry${entry}.bits ${BASH_REMATCH[4]}"$'\n'
         result+="entry${entry}.cipher ${BASH_REMATCH[5]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

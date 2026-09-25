@@ -32,8 +32,9 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local toks
-    while IFS= read -r line; do
-        toks=(); read -ra toks <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        toks=(); { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         _perf_trace_is_row "${#toks[@]}" "${toks[1]:-}" || continue
         entry=$((entry + 1))
         result+="entry${entry}.syscall ${toks[0]}"$'\n'
@@ -44,7 +45,7 @@ strategy_extract () {
         result+="entry${entry}.avg_msec ${toks[5]}"$'\n'
         result+="entry${entry}.max_msec ${toks[6]}"$'\n'
         result+="entry${entry}.stddev_pct ${toks[7]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

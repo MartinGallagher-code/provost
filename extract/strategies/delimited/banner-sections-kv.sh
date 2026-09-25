@@ -72,11 +72,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line banners=0 pairs=0 other=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    # PREFILTER (exact): acceptance needs a banner line, which opens `-…===`.
+    [[ "$text" == *-===* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bsk_banner_re ]]; then banners=$((banners + 1)); continue; fi
         if _bsk_pair "$line"; then pairs=$((pairs + 1)); else other=$((other + 1)); fi
-    done <<< "$text"
+    done
     # Need real banner sectioning over kv pairs, and almost nothing loose
     # (only a title-style decoration line or two).
     [[ $banners -ge 1 && $pairs -ge 3 && $other -le 2 ]] || return 1
@@ -87,8 +90,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 group=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bsk_banner_re ]]; then
             group="${BASH_REMATCH[1]}"
             continue
@@ -98,7 +102,7 @@ strategy_extract () {
         result+="entry${entry}.group ${group}"$'\n'
         result+="entry${entry}.key ${_BSK_KEY}"$'\n'
         result+="entry${entry}.value ${_BSK_VAL}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

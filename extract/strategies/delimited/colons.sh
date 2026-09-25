@@ -40,12 +40,13 @@ strategy_detect () {
     local _kv=0 _nb=0 _l
     local _line_re="^[[:space:]]*[A-Za-z][A-Za-z0-9_ -]*:([[:space:]]|$)"
     local _bline_re="^[[:space:]]*\[[A-Za-z][A-Za-z0-9._-]*\]:([[:space:]]|$)"
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         [[ "${_l#"${_l%%[![:space:]]*}"}" == "#"* ]] && continue
         _nb=$((_nb + 1))
         [[ "$_l" =~ $_line_re || "$_l" =~ $_bline_re ]] && _kv=$((_kv + 1))
-    done <<< "$text"
+    done
     [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]]
 }
 
@@ -60,12 +61,13 @@ strategy_extract () {
     # stripped below. Detected once here (not per line) so a stray `- foo`
     # diff/hexdump line elsewhere never loses its dash.
     local _dash_bullets=1 _db_l _db_n=0
-    while IFS= read -r _db_l; do
-        [[ -z "${_db_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _db_l in "${_FR_LINES[@]}"; do
+        [[ "${_db_l}" != *[![:space:]]* ]] && continue
         _db_n=$((_db_n + 1))
         local _db_s="${_db_l#"${_db_l%%[![:space:]]*}"}"
         [[ "$_db_s" == "- "* ]] || { _dash_bullets=0; break; }
-    done <<< "$text"
+    done
     [[ $_db_n -ge 2 ]] || _dash_bullets=0
 
     # FOLD indented list blocks into their bare header. A `Key:` line with no
@@ -89,7 +91,8 @@ strategy_extract () {
             _f_hdr=""; _f_items=""; _f_count=0
         fi
     }
-    while IFS= read -r _f_l; do
+    _fr_lines "$text"
+    for _f_l in "${_FR_LINES[@]}"; do
         if [[ -n "$_f_hdr" ]]; then
             local _f_ind="${_f_l%%[![:space:]]*}"
             local _f_body="${_f_l#"$_f_ind"}"
@@ -109,7 +112,7 @@ strategy_extract () {
             continue
         fi
         _fold+="$_f_l"$'\n'
-    done <<< "$text"
+    done
     _colons_flush_fold
     text="${_fold%$'\n'}"
 
@@ -122,7 +125,8 @@ strategy_extract () {
     # line (its version and entire library list), gcc's closing `gcc version
     # 13.3.0 (…)`, openssl's banner. Pure separator rules are still chrome.
     local result="" _nc_n=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Skip empty lines
         [[ -z "$line" ]] && continue
 
@@ -214,7 +218,7 @@ strategy_extract () {
         [[ -z "$value" ]] && continue
 
         result+="${key} ${value}"$'\n'
-    done <<< "$text"
+    done
 
     # clean_text protected dates/parenthesised spans with sentinels; put the
     # original spaces and colons back into the values.

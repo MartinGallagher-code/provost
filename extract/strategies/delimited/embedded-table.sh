@@ -92,17 +92,15 @@ _et_scan () {
     local text="$1"
     local -a _lines=()
     local _l
-    while IFS= read -r _l; do _lines+=("$_l"); done <<< "$text"
+    _fr_lines "$text"; _lines+=("${_FR_LINES[@]}"); _l=""
     _ET_START=-1; _ET_LEN=0; _ET_COLS=0
+    # (a non-blank count used to be computed here and never read — dropped)
     local i j n=${#_lines[@]} nonblank=0
     for ((i = 0; i < n; i++)); do
-        [[ -n "${_lines[$i]//[[:space:]]/}" ]] && nonblank=$((nonblank + 1))
-    done
-    for ((i = 0; i < n; i++)); do
         _l="${_lines[$i]}"
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         [[ "$_l" =~ [0-9] ]] && continue
-        local -a hk=(); read -ra hk <<< "$_l"
+        local -a hk=(); { _fr_tok "$_l"; hk=("${_FR_TOK[@]}"); }
         [[ ${#hk[@]} -lt 3 ]] && continue
         local t ok=1
         # a label: alphanumeric-bearing, starts alnum-or-bracket (a diff
@@ -118,8 +116,8 @@ _et_scan () {
         # of input, or a NARROWER line (a title, kv or section label — fewer
         # tokens). A same-or-wider data row directly above means this "header"
         # is really a row inside a bigger table (prlimit's all-caps rows).
-        if [[ $i -gt 0 && -n "${_lines[$((i - 1))]//[[:space:]]/}" ]]; then
-            local -a pv=(); read -ra pv <<< "${_lines[$((i - 1))]}"
+        if [[ $i -gt 0 && "${_lines[$((i - 1))]}" == *[![:space:]]* ]]; then
+            local -a pv=(); { _fr_tok "${_lines[$((i - 1))]}"; pv=("${_FR_TOK[@]}"); }
             if [[ ${#pv[@]} -ge ${#hk[@]} ]]; then
                 # …unless that wider line is banner chrome, not a data row: a
                 # data row's tokens all lead with alphanumerics, a `=== SECTION
@@ -134,8 +132,8 @@ _et_scan () {
         local rows=0
         for ((j = i + 1; j < n; j++)); do
             local dl="${_lines[$j]}"
-            [[ -z "${dl//[[:space:]]/}" ]] && break
-            local -a dk=(); read -ra dk <<< "$dl"
+            [[ "${dl}" != *[![:space:]]* ]] && break
+            local -a dk=(); { _fr_tok "$dl"; dk=("${_FR_TOK[@]}"); }
             # A row with fewer tokens than the header is admitted ONLY when its
             # tokens positionally align to distinct header columns — a blank
             # interior cell (bundle-outdated's sidekiq), not a prose footnote.
@@ -157,8 +155,8 @@ _et_scan () {
         # after (a digit-free data row like `worker stopped - -`) means the
         # window TRUNCATED a bigger table — that table isn't ours.
         local nxt=$((i + rows + 1))
-        if [[ $nxt -lt $n && -n "${_lines[$nxt]//[[:space:]]/}" ]]; then
-            local -a nk=(); read -ra nk <<< "${_lines[$nxt]}"
+        if [[ $nxt -lt $n && "${_lines[$nxt]}" == *[![:space:]]* ]]; then
+            local -a nk=(); { _fr_tok "${_lines[$nxt]}"; nk=("${_FR_TOK[@]}"); }
             [[ ${#nk[@]} -ge ${#hk[@]} ]] && continue
         fi
         # >=3 rows keeps prose from reading as a table — but a header line that
@@ -170,7 +168,7 @@ _et_scan () {
         if [[ $rows -ge 1 && $rows -lt 3 ]]; then
             local reps=0 r2
             for ((r2 = 0; r2 < n; r2++)); do
-                local -a rk2=(); read -ra rk2 <<< "${_lines[$r2]}"
+                local -a rk2=(); { _fr_tok "${_lines[$r2]}"; rk2=("${_FR_TOK[@]}"); }
                 [[ "${rk2[*]}" == "${hk[*]}" ]] && reps=$((reps + 1))
             done
             [[ $reps -ge 2 ]] && need=1
@@ -192,10 +190,10 @@ _et_policy () {
     local text="$1"
     local -a _lines=()
     local _l i
-    while IFS= read -r _l; do _lines+=("$_l"); done <<< "$text"
+    _fr_lines "$text"; _lines+=("${_FR_LINES[@]}"); _l=""
     local n=${#_lines[@]} nonblank=0
     for ((i = 0; i < n; i++)); do
-        [[ -n "${_lines[$i]//[[:space:]]/}" ]] && nonblank=$((nonblank + 1))
+        [[ "${_lines[$i]}" == *[![:space:]]* ]] && nonblank=$((nonblank + 1))
     done
     # Embedded means real chrome around it: >=2 non-blank lines OUTSIDE.
     [[ $(( nonblank - _ET_LEN - 1 )) -ge 2 ]] || return 1
@@ -207,13 +205,13 @@ _et_policy () {
     # block-records) — table AND fields — and taking only the table would LOSE
     # the fields. Prose and footnotes, by contrast, no parser can use.
     local _pr=0
-    local -a _hk2=(); read -ra _hk2 <<< "${_lines[$_ET_START]}"
+    local -a _hk2=(); { _fr_tok "${_lines[$_ET_START]}"; _hk2=("${_FR_TOK[@]}"); }
     local _hnorm="${_hk2[*]}"
     for ((i = 0; i < n; i++)); do
         [[ $i -ge $_ET_START && $i -le $((_ET_START + _ET_LEN)) ]] && continue
         _l="${_lines[$i]}"
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
-        local -a pk=(); read -ra pk <<< "$_l"
+        [[ "${_l}" != *[![:space:]]* ]] && continue
+        local -a pk=(); { _fr_tok "$_l"; pk=("${_FR_TOK[@]}"); }
         # A chrome line token-identical to the window's header is a SECTION
         # repeat — this is a multi-section table (faillock's per-user blocks,
         # ps/top page reprints) that aligned-columns' resume logic already
@@ -264,7 +262,7 @@ strategy_extract () {
     _et_scan "$text" || { echo ""; return 0; }
     local -a _lines=()
     local _l
-    while IFS= read -r _l; do _lines+=("$_l"); done <<< "$text"
+    _fr_lines "$text"; _lines+=("${_FR_LINES[@]}"); _l=""
 
     # Column boundaries from the header's printed token positions, split at the
     # MIDPOINT of each inter-label gap (the vertical-line treatment) — so a
@@ -303,15 +301,15 @@ strategy_extract () {
     local j
     for ((j = _ET_START + 1; j <= _ET_START + _ET_LEN; j++)); do row_idx+=("$j"); done
     local _hnorm k
-    { local -a _hk3=(); read -ra _hk3 <<< "$hline"; _hnorm="${_hk3[*]}"; }
+    { local -a _hk3=(); { _fr_tok "$hline"; _hk3=("${_FR_TOK[@]}"); }; _hnorm="${_hk3[*]}"; }
     for ((k = 0; k < ${#_lines[@]}; k++)); do
         [[ $k -eq $_ET_START ]] && continue
-        local -a _sk=(); read -ra _sk <<< "${_lines[$k]}"
+        local -a _sk=(); { _fr_tok "${_lines[$k]}"; _sk=("${_FR_TOK[@]}"); }
         [[ "${_sk[*]}" == "$_hnorm" ]] || continue
         for ((j = k + 1; j < ${#_lines[@]}; j++)); do
             local dl="${_lines[$j]}"
-            [[ -z "${dl//[[:space:]]/}" ]] && break
-            local -a dk2=(); read -ra dk2 <<< "$dl"
+            [[ "${dl}" != *[![:space:]]* ]] && break
+            local -a dk2=(); { _fr_tok "$dl"; dk2=("${_FR_TOK[@]}"); }
             if [[ ${#dk2[@]} -lt $ncols ]]; then
                 _et_row_aligns "$hline" "$dl" || break
             fi

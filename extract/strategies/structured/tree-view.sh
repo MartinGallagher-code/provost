@@ -52,11 +52,12 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
 
     local line nonblank=0 nodes=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         _tv_is_node "$line" && nodes=$((nodes + 1))
-    done <<< "$text"
+    done
 
     # Need a few real branch lines, and a strong majority of the non-blank lines
     # must carry a marker (root + trailing summary lines are the only allowance).
@@ -69,9 +70,10 @@ strategy_detect () {
     # its branch marker with `N.`. When most node lines match `^ *NN.|--`,
     # this is a numbered report → decline so aligned-columns reads the columns.
     local _hop=0 _hl
-    while IFS= read -r _hl; do
+    _fr_lines "$text"
+    for _hl in "${_FR_LINES[@]}"; do
         [[ "$_hl" =~ ^[[:space:]]*[0-9]+\.\|?[[:space:]]*[|\\+]?-- ]] && _hop=$((_hop + 1))
-    done <<< "$text"
+    done
     (( _hop * 2 >= nodes )) && return 1
 
     # Decline columnar tables that merely use tree chars in their first column
@@ -79,7 +81,7 @@ strategy_detect () {
     # like an ALL-CAPS column header, this belongs to aligned-columns, not here.
     local first; first="$(printf '%s\n' "$text" | sed -n '/[^[:space:]]/{p;q}')"
     if ! _tv_is_node "$first"; then
-        local _ft; _ft=(); read -ra _ft <<< "$first"
+        local _ft; _ft=(); { _fr_tok "$first"; _ft=("${_FR_TOK[@]}"); }
         local _up=0 _t
         for _t in "${_ft[@]}"; do [[ "$_t" =~ ^[A-Z][A-Z0-9_/-]*$ ]] && _up=$((_up + 1)); done
         [[ ${#_ft[@]} -ge 2 && $_up -ge 2 ]] && return 1
@@ -155,7 +157,7 @@ _tv_name () {
     while [[ "$s" == '+'* || "$s" == '`'* || "$s" == '-'* ]]; do s="${s#?}"; done
     # collapse + trim via word-splitting
     local -a parts
-    read -r -a parts <<< "$s"
+    { _fr_tok "$s"; parts=("${_FR_TOK[@]}"); }
     printf '%s' "${parts[*]}"
 }
 
@@ -180,8 +182,9 @@ strategy_extract () {
         _stack[0]="$_root"
     fi
 
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _tv_is_node "$line" || continue
 
         d="$(_tv_depth "$line")"
@@ -193,7 +196,7 @@ strategy_extract () {
             _raw="${BASH_REMATCH[1]}"; _val="${BASH_REMATCH[2]}"
         fi
         # collapse the (value-stripped) label to the clean name
-        local _np; read -r -a _np <<< "$_raw"; nm="${_np[*]}"
+        local _np; { _fr_tok "$_raw"; _np=("${_FR_TOK[@]}"); }; nm="${_np[*]}"
         [[ -z "$nm" ]] && continue
 
         # parent = the name recorded at the level just above this node.
@@ -208,7 +211,7 @@ strategy_extract () {
         [[ -n "$_parent" ]] && result+="entry${entry}.parent ${_parent}"$'\n'
         result+="entry${entry}.name ${nm}"$'\n'
         [[ -n "$_val" ]] && result+="entry${entry}.value ${_val}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

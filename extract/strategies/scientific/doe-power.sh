@@ -54,7 +54,8 @@ strategy_extract () {
     local result="" line n=0 in_table=0
     local runs="" df_error="" sigma="" residual_ms="" alpha="" delta="" target_power="" est_sigma=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Header/preamble — collected before (and regardless of) the table.
         if [[ "$line" =~ $_doep_re_est ]]; then
             est_sigma="${BASH_REMATCH[1]}"; continue
@@ -83,7 +84,7 @@ strategy_extract () {
         fi
         if [[ $in_table -eq 1 ]]; then
             # Blank line, or a trailing `Note:` line, ends the table.
-            [[ -z "${line//[[:space:]]/}" ]] && { in_table=0; continue; }
+            [[ "${line}" != *[![:space:]]* ]] && { in_table=0; continue; }
             if [[ "$line" =~ $_doep_re_row ]]; then
                 n=$((n + 1))
                 local p="entry${n}."
@@ -97,7 +98,7 @@ strategy_extract () {
             fi
             continue
         fi
-    done <<< "$text"
+    done
 
     [[ -n "$runs" ]]         && result+="runs ${runs}"$'\n'
     [[ -n "$df_error" ]]     && result+="df_error ${df_error}"$'\n'

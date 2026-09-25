@@ -28,14 +28,15 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line heads=0 results=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_cg_head_re ]]; then heads=$((heads + 1))
         elif [[ "$line" =~ $_cg_res_re ]]; then
             [[ $heads -eq 0 ]] && return 1
             results=$((results + 1))
         else return 1; fi
-    done <<< "$text"
+    done
     [[ $heads -ge 2 && $results -ge $heads ]] || return 1
     _STRATEGY_CONFIDENCE=86
     return 0
@@ -45,7 +46,7 @@ strategy_extract () {
     local text="$1"
     local line file="" result="" entry=0
     while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_cg_head_re ]]; then
             file="${BASH_REMATCH[1]}"
             continue

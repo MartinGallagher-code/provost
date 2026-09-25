@@ -31,8 +31,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         if [[ $((n % 2)) -eq 1 ]]; then
             # Key position: a /rooted, space-free path.
@@ -42,7 +43,7 @@ strategy_detect () {
             # key-shaped lines in a row is a plain path list (dpkg -L).
             [[ "$line" =~ ^/[^[:space:]]+$ ]] && return 1
         fi
-    done <<< "$text"
+    done
     [[ $n -ge 4 && $((n % 2)) -eq 0 ]] || return 1
     _STRATEGY_CONFIDENCE=82
     return 0
@@ -51,8 +52,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 key=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local v="$line"
         v="${v#"${v%%[![:space:]]*}"}"
         v="${v%"${v##*[![:space:]]}"}"
@@ -64,7 +66,7 @@ strategy_extract () {
             result+="entry${entry}.value ${v}"$'\n'
             key=""
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

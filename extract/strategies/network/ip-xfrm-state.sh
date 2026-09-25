@@ -19,10 +19,11 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line saw_sa=0 saw_proto=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _xfrm_is_sa "$line" && saw_sa=1
         [[ "$line" =~ ^[[:space:]]+proto\ (esp|ah|comp)\  ]] && saw_proto=1
-    done <<< "$text"
+    done
     if [[ $saw_sa -eq 1 && $saw_proto -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -34,19 +35,20 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local -a srcs=() dsts=() protos=()
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _xfrm_is_sa "$line"; then
-            read -ra _s <<< "$line"
+            { _fr_tok "$line"; _s=("${_FR_TOK[@]}"); }
             # _s[0]=src _s[1]=<srcval> _s[2]=dst _s[3]=<dstval>
             entry=$((entry + 1))
             srcs[$entry]="${_s[1]:-}"
             dsts[$entry]="${_s[3]:-}"
             protos[$entry]=""
         elif [[ "$line" =~ ^[[:space:]]+proto\  && $entry -ge 1 ]]; then
-            read -ra _p <<< "$line"
+            { _fr_tok "$line"; _p=("${_FR_TOK[@]}"); }
             protos[$entry]="${_p[1]:-}"
         fi
-    done <<< "$text"
+    done
     local i
     for ((i = 1; i <= entry; i++)); do
         local src="${srcs[$i]}" dst="${dsts[$i]}" proto="${protos[$i]}"

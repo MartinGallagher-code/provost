@@ -54,13 +54,14 @@ strategy_detect () {
     [[ "$text" =~ ^matrix[[:space:]]+[^[:space:]]+:.*hosts.*flows ]] || return 1
 
     local has_hdr=0 line t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"
         if [[ "$t" == "host"[[:space:]]* && "$t" == *"packets/s"* ]]; then
             has_hdr=1
             break
         fi
-    done <<< "$text"
+    done
     [[ $has_hdr -eq 1 ]] || return 1
     return 0
 }
@@ -73,7 +74,8 @@ strategy_extract () {
 
     local matrix_file="" host_count="" flow_count="" tx_size="" rx_size="" port="" fleet_offered=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $first -eq 1 ]]; then
             first=0
             if [[ "$line" =~ $re_header ]]; then
@@ -87,7 +89,7 @@ strategy_extract () {
             continue
         fi
 
-        [[ -z "${line//[[:space:]]/}" ]] && { in_table=0; continue; }
+        [[ "${line}" != *[![:space:]]* ]] && { in_table=0; continue; }
         local t="${line#"${line%%[![:space:]]*}"}"
 
         # Header row of the per-host table: enter table mode.
@@ -117,7 +119,7 @@ strategy_extract () {
                 fleet_offered="$t"
                 ;;
         esac
-    done <<< "$text"
+    done
 
     [[ -n "$matrix_file" ]] && result+="matrix_file ${matrix_file}"$'\n'
     [[ -n "$host_count" ]] && result+="host_count ${host_count}"$'\n'

@@ -31,18 +31,19 @@ strategy_extract () {
     local result="" line n=0 idx=0
     local -a ifaces=()
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         idx=$((idx + 1))
 
         if [[ $idx -eq 1 ]]; then
-            read -ra ifaces <<< "$line"
+            { _fr_tok "$line"; ifaces=("${_FR_TOK[@]}"); }
             continue
         fi
         [[ $idx -eq 2 ]] && continue   # KB/s in / KB/s out sub-header
 
         local -a vals=()
-        read -ra vals <<< "$line"
+        { _fr_tok "$line"; vals=("${_FR_TOK[@]}"); }
         local ni=${#ifaces[@]}
         [[ $ni -eq 0 ]] && continue
         [[ ${#vals[@]} -lt $((2 * ni)) ]] && continue
@@ -54,7 +55,7 @@ strategy_extract () {
             result+="entry${n}.${nm}_in ${vals[$((2*k))]}"$'\n'
             result+="entry${n}.${nm}_out ${vals[$((2*k+1))]}"$'\n'
         done
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

@@ -35,8 +35,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line lead="" first=1 headers=0 members=0 seen_hdr=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # The decoration must LEAD the line — an indented line has an empty
         # first token, which must never count as a shared decoration (that
         # ate every indented `header:` family: ceph status, clang targets).
@@ -56,7 +57,7 @@ strategy_detect () {
             members=$((members + 1))
         fi
         first=0
-    done <<< "$text"
+    done
     [[ $headers -ge 1 && $members -ge 1 ]] || return 1
     _STRATEGY_CONFIDENCE=84
     return 0
@@ -72,8 +73,9 @@ strategy_extract () {
         result+="entry${entry}.members ${members}"$'\n'
         group=""; members=""
     }
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local tok="${line%%[[:space:]]*}"
         local body="${line#"$tok"}"
         body="${body#"${body%%[![:space:]]*}"}"
@@ -86,7 +88,7 @@ strategy_extract () {
             [[ -n "$members" ]] && members+=", "
             members+="$body"
         fi
-    done <<< "$text"
+    done
     _dg_flush
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

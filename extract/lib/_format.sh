@@ -104,28 +104,49 @@ format_csv () {
 # Format extracted fields as TSV (horizontal: header row + data row).
 format_tsv () {
     local input="$1"
-    local names="" values=""
-    local first=1
-
-    while IFS= read -r line; do
+    # PERF: names/values collected in arrays and TAB-joined once (per-field
+    # `names+=`/`values+=` re-copied both growing strings: quadratic).
+    local _ft_all
+    local -a _ft_names=() _ft_values=()
+    if (( ${#input} > _FR_BIG_BYTES )); then
+        # BIG: the same two rows from one awk pass (name = up to the first
+        # space, value = after it; a space-less line is both, as in
+        # _parse_field_line)
+        printf '%s\n' "$input" | awk '
+            $0 != "" { n++; L[n] = $0 }
+            END {
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
+                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
+                    printf "%s%s", (i > 1 ? "\t" : ""), nm
+                }
+                printf "\n"
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
+                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
+                    printf "%s%s", (i > 1 ? "\t" : ""), v
+                }
+                printf "\n"
+            }'
+        line=""
+        return 0
+    fi
+    mapfile -t _ft_all <<< "$input"
+    for line in "${_ft_all[@]}"; do
         [[ -z "$line" ]] && continue
         _parse_field_line "$line"
-        if [[ $first -eq 1 ]]; then
-            first=0
-        else
-            names+=$'\t'
-            values+=$'\t'
-        fi
         # A raw TAB inside a cell would shear the row (more fields than the
         # header) and the tidy melt would misattribute every later cell. In a
         # VALUE it becomes one space (values keep their spaces); a NAME is
         # sanitised like any other whitespace in a name, to `_`.
-        names+="${_FIELD_NAME//$'\t'/_}"
-        values+="${_FIELD_VALUE//$'\t'/ }"
-    done <<< "$input"
+        _ft_names+=("${_FIELD_NAME//$'	'/_}")
+        _ft_values+=("${_FIELD_VALUE//$'	'/ }")
+    done
+    line=""
 
-    echo "$names"
-    echo "$values"
+    local IFS=$'\t'
+    echo "${_ft_names[*]}"
+    echo "${_ft_values[*]}"
 }
 
 # Format extracted fields as plain key-value pairs.

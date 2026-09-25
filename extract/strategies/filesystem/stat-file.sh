@@ -38,7 +38,7 @@ strategy_extract () {
     local text="$1"
     local result="" line
     while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local body="${line#"${line%%[![:space:]]*}"}"
         case "$body" in
             "File: "*)

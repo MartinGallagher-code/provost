@@ -19,9 +19,10 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has_cmd=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitbisect_is_cmd "$line" && has_cmd=1
-    done <<< "$text"
+    done
     if [[ $has_cmd -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=86
         return 0
@@ -32,7 +33,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line rest action ref
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitbisect_is_cmd "$line" || continue
         rest="${line#git bisect }"
         action="${rest%%[[:space:]]*}"
@@ -45,7 +47,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.action ${action}"$'\n'
         result+="entry${entry}.ref ${ref}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -18,19 +18,21 @@ strategy_detect () {
     # NB: no _is_json guard here — dbmate rows start with "[", which the naive
     # leading-bracket JSON check would misread as a JSON array.
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^\[[X\ ]\][[:space:]] ]]; then
             _STRATEGY_CONFIDENCE=86
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^\[[X\ ]\][[:space:]] ]] || continue
         local flag="${line:1:1}" name status
         name="${line:4}"
@@ -39,7 +41,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.status ${status}"$'\n'
         result+="entry${entry}.name ${name}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

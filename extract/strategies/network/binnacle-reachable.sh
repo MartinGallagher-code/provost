@@ -37,9 +37,10 @@ strategy_extract () {
     local text="$1"
     local result="" n=0 line
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Skip blank lines.
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
 
         if [[ "$line" == *'#[unreachable]'* ]]; then
             [[ "$line" =~ $_brch_re_unreachable ]] || continue
@@ -76,7 +77,7 @@ strategy_extract () {
         result+="${p}host ${host}"$'\n'
         result+="${p}reachable 1"$'\n'
         [[ -n "$note" ]] && result+="${p}note ${note}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

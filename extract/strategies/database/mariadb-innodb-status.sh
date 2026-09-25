@@ -33,7 +33,8 @@ strategy_extract () {
         fields=$((fields + 1))
     }
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         case "$line" in
             "History list length "*)
                 _emit history_list_length "${line##* }" ;;
@@ -51,7 +52,7 @@ strategy_extract () {
         if [[ "$line" =~ ^RW-excl[[:space:]]spins[[:space:]][0-9]+,[[:space:]]rounds[[:space:]]([0-9]+) ]]; then
             _emit rw_excl_rounds "${BASH_REMATCH[1]}"
         fi
-    done <<< "$text"
+    done
 
     [[ $fields -gt 0 ]] && result+="total_entries 1"$'\n'
     printf '%s' "$result"

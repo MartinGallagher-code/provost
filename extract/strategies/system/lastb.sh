@@ -24,12 +24,18 @@ strategy_detect () {
     # aligned-columns, not lastb (which has no header).
     case "$text" in Username[[:space:]]*) return 1 ;; esac
     local line
-    while IFS= read -r line; do
+    # PREFILTER (exact): a login line carries a whitespace-delimited weekday.
+    [[ "$text" == *[[:space:]]Mon[[:space:]]* || "$text" == *[[:space:]]Tue[[:space:]]* \
+       || "$text" == *[[:space:]]Wed[[:space:]]* || "$text" == *[[:space:]]Thu[[:space:]]* \
+       || "$text" == *[[:space:]]Fri[[:space:]]* || "$text" == *[[:space:]]Sat[[:space:]]* \
+       || "$text" == *[[:space:]]Sun[[:space:]]* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _lastb_is_login "$line"; then
             _STRATEGY_CONFIDENCE=88
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -37,9 +43,10 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _lastb_is_login "$line" || continue
-        read -ra _a <<< "$line"
+        { _fr_tok "$line"; _a=("${_FR_TOK[@]}"); }
         local user="${_a[0]}" terminal="${_a[1]}" host="${_a[2]}"
         # The remainder is "<weekday date time> - <time>  (dur)".
         local rest="${line#*"$host"}"
@@ -57,7 +64,7 @@ strategy_extract () {
         result+="entry${entry}.host ${host}"$'\n'
         result+="entry${entry}.when ${when}"$'\n'
         [[ -n "$duration" ]] && result+="entry${entry}.duration ${duration}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

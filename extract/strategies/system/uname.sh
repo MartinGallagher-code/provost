@@ -27,27 +27,29 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # First non-blank line: OS name, node, release, then a `#buildno`.
         if [[ "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+\# ]]; then
             _STRATEGY_CONFIDENCE=87
             return 0
         fi
         return 1
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" line done_main=0 extra=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ $done_main -eq 0 && "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]] ]]; then
             done_main=1
             local toks=()
-            read -ra toks <<< "$line"
+            { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
             local n=${#toks[@]}
             result+="kernel_name ${toks[0]}"$'\n'
             [[ $n -ge 2 ]] && result+="nodename ${toks[1]}"$'\n'
@@ -96,6 +98,6 @@ strategy_extract () {
             trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
             result+="line${extra} ${trimmed}"$'\n'
         fi
-    done <<< "$text"
+    done
     echo "$result"
 }

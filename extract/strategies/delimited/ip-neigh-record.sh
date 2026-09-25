@@ -35,8 +35,9 @@ _ipn_state_re=' ([A-Z][A-Z_]+)[[:space:]]*$'
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         local addr="${s%%[[:space:]]*}"
@@ -50,7 +51,7 @@ strategy_extract () {
         result+="entry${entry}.dev ${dev}"$'\n'
         result+="entry${entry}.lladdr ${lladdr}"$'\n'
         result+="entry${entry}.state ${state}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 1 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

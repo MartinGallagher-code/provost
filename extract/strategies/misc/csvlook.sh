@@ -31,7 +31,7 @@ _csvlook_cells () {
     while [[ "$line" == *" " ]]; do line="${line% }"; done
     [[ "$line" == *"|" ]] && line="${line%|}"
     local old_ifs="$IFS"; IFS='|'
-    read -ra _CELLS <<< "$line"
+    { _fr_tok "$line"; _CELLS=("${_FR_TOK[@]}"); }
     IFS="$old_ifs"
     local i c
     for ((i=0; i<${#_CELLS[@]}; i++)); do
@@ -49,13 +49,14 @@ strategy_detect () {
     # Must contain pipe rows and a dashed separator row.
     [[ "$text" == *"|"* ]] || return 1
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"|"* ]] || continue
         if _csvlook_is_sep "$line"; then
             _STRATEGY_CONFIDENCE=86
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -64,7 +65,8 @@ strategy_extract () {
     local result="" entry=0 line
     local -a _CELLS headers
     local have_header=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"|"* ]] || continue
         # Separator row: cells are all dashes.
         if _csvlook_is_sep "$line"; then continue; fi
@@ -83,7 +85,7 @@ strategy_extract () {
             [[ -z "$name" ]] && continue
             result+="entry${entry}.${name} ${value}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -36,7 +36,8 @@ strategy_detect () {
     # (a bare _is_json check treats the opening [section] as a JSON array).
     case "${text#"${text%%[![:space:]]*}"}" in '{'*) return 1 ;; esac
     local _line l inner k _seen="|" _sec=0 _kv=0 _dup=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         l="$_line"
         while [[ "$l" == " "* || "$l" == $'\t'* ]]; do l="${l#?}"; done
         while [[ "$l" == *" " || "$l" == *$'\t' ]]; do l="${l%?}"; done
@@ -61,7 +62,7 @@ strategy_detect () {
                 *) _kv=$((_kv + 1)) ;;
             esac
         fi
-    done <<< "$text"
+    done
     [[ $_sec -ge 2 && $_dup -eq 0 && $_kv -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="multi-section INI ([section] + key=value), distinct section names"
@@ -70,7 +71,8 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1" result="" entry=0 _line l inner k value section=""
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         l="$_line"
         while [[ "$l" == " "* || "$l" == $'\t'* ]]; do l="${l#?}"; done
         while [[ "$l" == *" " || "$l" == *$'\t' ]]; do l="${l%?}"; done
@@ -96,7 +98,7 @@ strategy_extract () {
         result+="entry${entry}.section ${section}"$'\n'
         result+="entry${entry}.key ${k}"$'\n'
         [[ -n "$value" ]] && result+="entry${entry}.value ${value}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -40,7 +40,8 @@ strategy_extract () {
     local text="$1"
     local line result="" entry=0 in_table=0
     local -a headers=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         if [[ $in_table -eq 0 ]]; then
@@ -68,7 +69,7 @@ strategy_extract () {
             [[ $i -lt ${#_TT_FIELDS[@]} ]] || break
             result+="entry${entry}.${col} ${_TT_FIELDS[i]}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -ge 2 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

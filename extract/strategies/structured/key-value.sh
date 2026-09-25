@@ -27,7 +27,8 @@ strategy_detect () {
 
     local nonempty=0 kv=0 aligned=0 spacey=0 listmark=0
     local line t key after
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"   # strip leading whitespace
         [[ -z "$t" ]] && continue
         nonempty=$((nonempty + 1))
@@ -45,11 +46,11 @@ strategy_detect () {
         after="${t#*:}"
         # Aligned value column (2+ spaces after the colon) or a bare section
         # header (nothing after the colon) — the hallmark of tool display output.
-        if [[ "$after" == "  "* || -z "${after//[[:space:]]/}" ]]; then
+        if [[ "$after" == "  "* || "${after}" != *[![:space:]]* ]]; then
             aligned=$((aligned + 1))
         fi
         [[ "$key" == *" "* ]] && spacey=$((spacey + 1))
-    done <<< "$text"
+    done
 
     [[ $listmark -gt 0 ]] && return 1
     [[ $kv -lt 5 ]] && return 1
@@ -89,7 +90,8 @@ strategy_extract () {
         [[ "$1" =~ ^[A-Za-z][^:]*:([[:space:]]|$) ]]
     }
     local _await_val=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"   # strip leading whitespace
         [[ -z "$t" ]] && { _await_val=0; continue; }   # blank ends a value block
 
@@ -125,7 +127,7 @@ strategy_extract () {
                 V[$n]="$cont"
             fi
         fi
-    done <<< "$text"
+    done
 
     # NOTE: bare section-header labels (aide-check's `Summary:`, lscpu's
     # `Caches (sum of all):`) are still emitted as empty-value rows. Dropping

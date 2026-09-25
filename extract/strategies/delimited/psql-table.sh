@@ -27,7 +27,8 @@ strategy_detect () {
     # separator carries a '|' column delimiter, and that at least one row below
     # does too. Only then is this a genuine pipe box table.
     local _prev="" _line _sep_hdr="" _saw_data=0 _hit_sep=0
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         if [[ $_hit_sep -eq 0 ]]; then
             if _psql_is_separator "$_line"; then
                 [[ "$_prev" == *"|"* ]] || { _prev="$_line"; continue; }
@@ -37,7 +38,7 @@ strategy_detect () {
             [[ "$_line" == *"|"* ]] && { _saw_data=1; break; }
         fi
         _prev="$_line"
-    done <<< "$text"
+    done
 
     if [[ $_hit_sep -eq 1 && $_saw_data -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=88
@@ -96,25 +97,25 @@ strategy_extract () {
     # (`aws --output table`'s "DescribeInstances") and the `(N rows)` footer /
     # blanks / rules fall outside it and are dropped.
     local counts=() _n
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ "$_line" == *"|"* ]] || continue
         _psql_is_separator "$_line" && continue
         _psql_split "$_line"
         counts+=("${#_PSQL_CELLS[@]}")
-    done <<< "$text"
+    done
+    _line=""
     [[ ${#counts[@]} -lt 2 ]] && return
 
-    local modal=0 best=0 a b k
-    for a in "${counts[@]}"; do
-        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k + 1)); done
-        [[ $k -gt $best ]] && { best=$k; modal=$a; }
-    done
+    local modal=0 best=0
+    _fr_modal "${counts[@]}"; modal=$_FR_MODE; best=$_FR_MODE_N
     [[ $modal -lt 1 ]] && return
 
     # First modal-width row is the header; the rest (modal width, non-continuation)
     # are data. A psql wrapped-cell continuation line has an empty first cell.
     local col_names=() num_cols=0 have_header=0 _c name i val
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ "$_line" == *"|"* ]] || continue
         _psql_is_separator "$_line" && continue
         _psql_split "$_line"
@@ -139,7 +140,8 @@ strategy_extract () {
             [[ -z "$val" ]] && continue
             result+="entry${entry}.${col_names[$i]} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
+    _line=""
 
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

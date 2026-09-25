@@ -26,8 +26,9 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0
     local in_table=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
 
         # Skip the Total/Current summary lines.
         [[ "$line" == *"DISK READ"*"|"* ]] && continue
@@ -41,7 +42,7 @@ strategy_extract () {
         [[ $in_table -eq 0 ]] && continue
 
         local v
-        read -ra v <<< "$line"
+        { _fr_tok "$line"; v=("${_FR_TOK[@]}"); }
         [[ ${#v[@]} -lt 11 ]] && continue
         [[ "${v[0]}" =~ ^[0-9]+$ ]] || continue
 
@@ -58,7 +59,7 @@ strategy_extract () {
         result+="entry${entry}.swapin ${v[7]} ${v[8]}"$'\n'
         result+="entry${entry}.io ${v[9]} ${v[10]}"$'\n'
         result+="entry${entry}.command ${command}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

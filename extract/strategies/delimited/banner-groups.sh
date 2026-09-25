@@ -42,8 +42,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line banners=0 members=0 first=1 last_kind=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bg_banner_re ]]; then
             banners=$((banners + 1)); first=0; last_kind=B
             continue
@@ -60,7 +61,7 @@ strategy_detect () {
         # with real fields; welding them into group|value would lose them.
         [[ "$line" =~ ^[[:space:]]*[A-Za-z][A-Za-z0-9\ _-]*:[[:space:]] ]] && return 1
         members=$((members + 1)); last_kind=M
-    done <<< "$text"
+    done
     [[ $banners -ge 2 && $members -ge $banners ]] || return 1
     _STRATEGY_CONFIDENCE=83
     return 0
@@ -69,8 +70,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 group=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bg_banner_re ]]; then
             group="${BASH_REMATCH[1]}"
             continue
@@ -82,7 +84,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.group ${group}"$'\n'
         result+="entry${entry}.value ${body}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }
