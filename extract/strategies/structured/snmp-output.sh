@@ -26,7 +26,7 @@ strategy_detect () {
             snmp=$((snmp + 1))
         fi
     done
-    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=86; return 0; }
+    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     return 1
 }
 

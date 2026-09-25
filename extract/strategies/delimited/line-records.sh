@@ -115,7 +115,9 @@ strategy_detect () {
         # single line: needs >=2 fields AND a number, so pure prose (e.g. "no
         # extractable content here") isn't carved into columns.
         [[ ${counts[0]} -ge 2 && $hasnum -eq 1 ]] || return 1
-        _STRATEGY_CONFIDENCE=80
+        # Catch-all tier (extract/README.md "Confidence rubric"): one line is
+        # the weakest record evidence there is — just above text-lines.
+        _STRATEGY_CONFIDENCE=51
         return 0
     fi
 
@@ -131,7 +133,18 @@ strategy_detect () {
     done
     [[ $mode -ge 1 ]] || return 1
     [[ $(( best * 100 / n )) -ge 60 ]] || return 1
-    _STRATEGY_CONFIDENCE=80
+    # Catch-all tier (extract/README.md "Confidence rubric"): 50..55, scaled by
+    # the share of lines at the modal column count (60% -> 50, 100% -> 55).
+    # At or below every structural parser that also claims the input (a tie
+    # at 55 goes to the other parser on priority), and at or above text-lines
+    # (a tie at 50 goes to line-records on priority). A modal count of ONE
+    # token per line is a bare list: it has line structure and nothing else —
+    # exactly text-lines' evidence — so it scores the floor, 50.
+    if [[ $mode -eq 1 ]]; then
+        _STRATEGY_CONFIDENCE=50
+    else
+        _STRATEGY_CONFIDENCE=$(( 50 + (best * 100 / n - 60) * 5 / 40 ))
+    fi
     return 0
 }
 

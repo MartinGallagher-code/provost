@@ -29,7 +29,7 @@ strategy_detect () {
         _jjlog_is_node "$line" && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

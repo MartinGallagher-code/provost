@@ -127,7 +127,7 @@ strategy_detect () {
     # tab-structured plain lines. Loose pre-header members / kv-pair members /
     # tab-less members already bailed above.
     [[ $loose -eq 0 && $kv_before -ge 1 && $sections -ge 1 && $members_here -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=70
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

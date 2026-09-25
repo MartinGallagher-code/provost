@@ -40,7 +40,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

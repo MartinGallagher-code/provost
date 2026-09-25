@@ -138,7 +138,7 @@ strategy_detect () {
     done
     # The dotted-kv signature: >=2 dotted kv lines, or a stat block.
     [[ $((kv + hdr)) -ge 2 && $((kv + mem)) -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

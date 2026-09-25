@@ -81,7 +81,7 @@ strategy_detect () {
     # >=1 member per group on average — the asdf signature, nothing looser.
     [[ $bad -eq 1 || $any -eq 0 ]] && return 1
     [[ $groups -ge 2 && $members -ge $groups ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

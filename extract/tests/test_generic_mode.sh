@@ -206,17 +206,18 @@ test_generic_with_sort () {
 }
 
 # ---------------------------------------------------------------------------
-# --generic with --min-confidence 95 — only json/csv/yaml (high-confidence) run
+# --generic with --min-confidence 85 — only the grammar tier (json/csv/yaml…, 85) runs
 # ---------------------------------------------------------------------------
 
 test_generic_with_min_confidence () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf '{"x": 1}\n' > "$tmpfile"
-    # At confidence 95, only json (c95) should match; colons (c35) should not
-    output=$(run_mfe --generic --min-confidence 95 -f plain "$tmpfile")
+    # At confidence 85, only json (c85, grammar tier) should match; colons
+    # (general-structure tier, 55..60) should not
+    output=$(run_mfe --generic --min-confidence 85 -f plain "$tmpfile")
     rm -f "$tmpfile"
-    assert_contains "$output" "x" "--generic --min-confidence 95 should extract JSON fields"
+    assert_contains "$output" "x" "--generic --min-confidence 85 should extract JSON fields"
 }
 
 # ---------------------------------------------------------------------------

@@ -65,7 +65,7 @@ strategy_detect () {
     done
 
     [[ $records -ge 1 && $records -ge $((nonblank - 1)) ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

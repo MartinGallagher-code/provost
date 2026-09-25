@@ -27,7 +27,7 @@ strategy_detect () {
         _gitloggraph_is_commit "$line" && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1

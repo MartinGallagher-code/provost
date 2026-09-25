@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=70
+    _STRATEGY_CONFIDENCE=80
     # Apply if input contains a separator line (--- or === repeated)
     [[ "$text" =~ (^|$'\n')[-=]{3,} ]] || return 1
 

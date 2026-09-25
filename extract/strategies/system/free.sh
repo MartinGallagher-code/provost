@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     # Reject JSON
     _is_json "$1" && return 1
     # Look for header with "total" and "used", followed by "Mem:" or "Swap:" line

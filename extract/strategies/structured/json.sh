@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=95
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="input starts with { or ["
     # Apply if input looks like JSON (starts with { or [, possibly with leading whitespace)
     local trimmed="$text"

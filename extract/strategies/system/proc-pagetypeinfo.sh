@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *", type"* ]] || return 1
     [[ "$text" == *"Free pages count"* ]] || return 1
     return 0

@@ -52,7 +52,7 @@ _ch_value () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # Distinctive signature: a top-border line and a bar-delimited data line.
     local has_border=0 has_bar=0 line
     _fr_lines "$text"

@@ -178,7 +178,7 @@ strategy_detect () {
         [[ $_mk -gt $_mbest ]] && { _mbest=$_mk; _modal=$_ma; }
     done
     [[ $(( _mbest * 100 )) -ge $(( leaves * 70 )) ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="group headers over indented tabular rows"
     return 0
 }

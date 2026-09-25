@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=35
+    _STRATEGY_CONFIDENCE=0
     # NOTE: no repeated-top-key guard here. `colons` is the last-resort fallback
     # (priority 60) — a dedicated record strategy (e.g. block-records, p40) always
     # outranks it for real multi-record input, so the guard is unnecessary. It
@@ -47,7 +47,16 @@ strategy_detect () {
         _nb=$((_nb + 1))
         [[ "$_l" =~ $_line_re || "$_l" =~ $_bline_re ]] && _kv=$((_kv + 1))
     done
-    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]]
+    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]] || return 1
+    # General-structure tier (extract/README.md "Confidence rubric"): 55..60,
+    # scaled by the share of `label: value` lines (40% -> 55, 100% -> 60).
+    # Above the catch-alls (line-records <= 55 loses the tie on priority,
+    # text-lines 50), at or below a real table (aligned-columns >= 60, which
+    # wins the tie on priority). It used to be a flat 35 — under provost's
+    # filing threshold — but under confidence ranking that would rank colons
+    # below text-lines and hand every colon block to a catch-all.
+    _STRATEGY_CONFIDENCE=$(( 55 + (_kv * 100 / _nb - 40) * 5 / 60 ))
+    return 0
 }
 
 strategy_extract () {

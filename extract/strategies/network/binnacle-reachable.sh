@@ -29,7 +29,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _is_json "$text" && return 1
     [[ "$text" == *'#[unreachable]'* ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

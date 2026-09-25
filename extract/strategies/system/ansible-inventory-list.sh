@@ -24,7 +24,7 @@ strategy_detect () {
     esac
     [[ "$text" == *'"_meta"'* ]] || return 1
     [[ "$text" == *'"hostvars"'* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

@@ -189,7 +189,7 @@ strategy_detect () {
             # parser wins instead.
             _cs_row_overflow "$text" && continue
             _CS_MATCHED="$spec"
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=85
             # Report the matched TOOL name (not the shared "columnar-specs") so
             # the engine names the dataset per-tool. Runs in the parent shell
             # (unlike strategy_extract, which is a command-substitution subshell).

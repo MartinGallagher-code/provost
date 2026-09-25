@@ -147,7 +147,7 @@ _strat_csv_strip_comments () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
     # (no leading `#`: the helper just echoes the text back, so the capture
     # is the text minus trailing newlines — computed here without the fork)

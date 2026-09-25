@@ -23,7 +23,7 @@ _tcpdump_flags () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"tcpdump: verbose output suppressed"* ]] && return 0
     return 1
 }

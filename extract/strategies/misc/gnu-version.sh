@@ -12,8 +12,8 @@
 # "Copyright (C) <year> <holder>" line, a "License ..." line, then boilerplate
 # ("This is free software...", "There is NO WARRANTY...") and optional trailers
 # ("Written by ...", "Packaged by ..."). Generic parsers see five unrelated
-# prose lines and fall through to `unsorted` at confidence 35, losing the
-# schema the banner actually has.
+# prose lines and fall through to a weak catch-all parse, losing the schema
+# the banner actually has.
 #
 # One wide key/value record (no entryN.*): tool, version, copyright, license,
 # license_url, warranty, author.
@@ -140,7 +140,7 @@ strategy_detect () {
     [[ "$text" =~ $re_copy ]] || return 1
     [[ "$text" =~ $re_lic ]] || return 1
 
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

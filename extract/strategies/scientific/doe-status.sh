@@ -29,7 +29,7 @@ strategy_detect () {
     [[ "$text" == "Experiment:"* || "$text" == *$'\nExperiment:'* ]] || return 1
     [[ "$text" == *$'\nDesign:'* ]] || return 1
     [[ "$text" == *"Progress:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe status header (Experiment/Design/Progress) present"
     return 0
 }

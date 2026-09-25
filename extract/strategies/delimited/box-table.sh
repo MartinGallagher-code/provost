@@ -132,7 +132,7 @@ strategy_detect () {
         elif _box_is_row "$_line"; then _saw_cell=1; fi
     done
     if [[ $_saw_rule -eq 1 && $_saw_cell -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1

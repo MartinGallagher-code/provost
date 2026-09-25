@@ -29,7 +29,7 @@ strategy_detect () {
     [[ "$text" == *loadavg* ]] || return 1
     [[ "$text" == *swpd* ]]    || return 1
     [[ "$text" == *"1 min"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

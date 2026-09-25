@@ -34,7 +34,7 @@ _netstat_s_slug () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Signature: a bare protocol group header (`Ip:`, `Tcp:`, ...) at column 0

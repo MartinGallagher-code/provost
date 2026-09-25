@@ -43,7 +43,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == "=== Optimization: "* || "$text" == *$'\n=== Optimization: '* ]] || return 1
     [[ "$text" == *"RSM Model"* || "$text" == *"Factor importance:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe optimize block (=== Optimization: ... ===) with RSM/importance data"
     return 0
 }

@@ -69,6 +69,9 @@
 # _OPT_min_confidence    integer     default 0   -- skip strategies below this confidence
 # _OPT_first_match       bool (0/1)  default 0  -- stop after first strategy produces output
 # _OPT_max_strategies    integer     default 0   -- limit strategies that produce output (0=no limit)
+# _OPT_rank              string      default "confidence" (env MFE_RANK) -- candidate order:
+#                                    confidence = run every detector, try best confidence first;
+#                                    priority   = first detecting strategy in priority order
 # _OPT_delimiter         string      default ""  -- custom delimiter (e.g. "=>", "::")
 # _OPT_rename            string      default ""  -- "old=new,..." field rename spec
 # _OPT_aggregate         bool (0/1)  default 0  -- compute count/min/max/sum/avg for numerics

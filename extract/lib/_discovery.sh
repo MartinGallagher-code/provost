@@ -854,6 +854,20 @@ run_auto_strategies () {
     _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || _src_tmpf=""
     umask "$_old_umask"
 
+    # RANKING (--rank confidence, the default). Phase 1 runs EVERY eligible
+    # detector and records each match as a candidate; phase 2 tries the
+    # candidates best-first — highest confidence, ties by priority, then by
+    # strategy name (LC_ALL=C) — extracting until the strategy cap is hit. A
+    # candidate that extracts nothing (or trips the truncation guard) simply
+    # yields to the next one, so the winner always has output. Confidence is
+    # therefore a RANKING signal, calibrated per the "Confidence rubric" in
+    # extract/README.md. `--rank priority` keeps the historical single pass:
+    # the first strategy in priority order whose detect passes and whose
+    # extract produces output. --strategy / --replay pin their own set and
+    # always use the single pass.
+    local _eas_rank=1 _eas_cands="" _ck _pk
+    [[ "${_OPT_rank:-confidence}" == priority || -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && _eas_rank=0
+
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
 
@@ -920,12 +934,53 @@ run_auto_strategies () {
             continue
         fi
 
+        if [[ $_eas_rank -eq 1 ]]; then
+            # Sort key: (100 - confidence) ASC, priority ASC, name ASC — all
+            # fixed-width so one plain LC_ALL=C sort orders the three keys.
+            _ck="000$((100 - _STRATEGY_CONFIDENCE))"
+            _pk="000${_priority}"
+            _eas_cands+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            unset _arr 2>/dev/null
+            continue
+        fi
+
         _eas_rc=0
         _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
         unset -f strategy_detect strategy_extract 2>/dev/null
         unset _arr 2>/dev/null
         if [[ $_eas_rc -eq 2 ]]; then break; fi
     done <<< "$_SORTED_STRATEGIES"
+
+    if [[ $_eas_rank -eq 1 && -n "$_eas_cands" ]]; then
+        # One sort fork per input is the only process the ranking adds.
+        _eas_cands="$(printf '%s' "$_eas_cands" | LC_ALL=C sort -t'|' -k1,1 -k2,2 -k3,3)"
+        if [[ $_OPT_debug -eq 1 ]]; then
+            local _dbg_c="" _dbg_l
+            while IFS='|' read -r _ck _pk _dbg_l _; do
+                _dbg_c+="${_dbg_c:+, }${_dbg_l}(c$((100 - 10#$_ck)))"
+            done <<< "$_eas_cands"
+            _log_debug "Ranked candidates: $_dbg_c"
+        fi
+        while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
+            [[ -z "$strategy_file" ]] && continue
+            strategy_priority="$((10#$_pk))"
+            _source_strategy_cached "$strategy_file" /dev/null || continue
+            # Re-run detect: it restores the per-strategy state extract reads
+            # (report name, detect-time globals) and the confidence itself.
+            # Only the candidates actually tried pay it — normally just one.
+            if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
+                unset -f strategy_detect strategy_extract 2>/dev/null
+                unset _arr 2>/dev/null
+                continue
+            fi
+            _eas_rc=0
+            _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            unset _arr 2>/dev/null
+            if [[ $_eas_rc -eq 2 ]]; then break; fi
+        done <<< "$_eas_cands"
+    fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0
 }

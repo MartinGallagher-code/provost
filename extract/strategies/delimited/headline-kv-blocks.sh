@@ -93,7 +93,7 @@ strategy_detect () {
         fi
     done
     [[ $q -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=74
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

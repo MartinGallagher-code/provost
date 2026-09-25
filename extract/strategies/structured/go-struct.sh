@@ -65,7 +65,7 @@ strategy_detect () {
     done
 
     [[ $structs -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

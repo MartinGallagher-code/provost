@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=80
+    _STRATEGY_CONFIDENCE=85
 
     # Accept if input looks like XML with elements (opening + closing tags)
     if [[ "$text" == *"<"[a-zA-Z]* && "$text" == *"</"[a-zA-Z]* ]]; then

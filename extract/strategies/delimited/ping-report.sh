@@ -32,7 +32,7 @@ strategy_detect () {
         [[ $nb -ge 60 ]] && break
     done
     [[ $replies -ge 2 && $(( replies * 100 / nb )) -ge 40 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

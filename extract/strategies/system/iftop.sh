@@ -14,7 +14,7 @@ strategy_detect () {
     # Distinctive signature: iftop's cumulative-rate table and totals.
     if [[ "$text" == *"Total send and receive rate"* ]] \
        || { [[ "$text" == *"cumulative"* ]] && [[ "$text" == *"=>"* ]] && [[ "$text" == *"<="* ]]; }; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

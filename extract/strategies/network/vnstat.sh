@@ -36,7 +36,7 @@ _vnstat_is_month () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"avg. rate"* && "$text" == *"estimated"* ]] && return 0
     return 1
 }

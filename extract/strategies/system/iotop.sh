@@ -16,7 +16,7 @@ strategy_detect () {
     if [[ "$text" == *"Total DISK READ"* ]] \
        && [[ "$text" == *"TID"* ]] \
        && [[ "$text" == *"DISK WRITE"* ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

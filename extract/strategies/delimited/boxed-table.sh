@@ -155,6 +155,6 @@ strategy_detect () {
         if [[ "$s" =~ ^[-+]{4,}$ ]]; then nrule=$((nrule + 1)); fi
     done
     [[ $npipe -ge 3 && $nrule -ge 2 && $ninner -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }

@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     # Detect full git log format: "commit <40-char hex>"
     if [[ "$text" =~ ^commit\ [0-9a-f]{40} ]]; then
         return 0

@@ -59,7 +59,7 @@ strategy_detect () {
         first=0
     done
     [[ $headers -ge 1 && $members -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

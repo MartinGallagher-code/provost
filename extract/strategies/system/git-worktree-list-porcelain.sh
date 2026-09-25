@@ -24,7 +24,7 @@ strategy_detect () {
         [[ "$line" =~ ^HEAD[[:space:]][0-9a-f]+ ]] && has_head=1
     done
     if [[ $has_wt -eq 1 && $has_head -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

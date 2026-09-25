@@ -24,7 +24,7 @@ _iostatx_field () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # Require the avg-cpu block AND an extended Device header (aqu-sz + rrqm/s).
     [[ "$text" == *"avg-cpu:"* ]] || return 1
     # `aqu-sz` alone (without `rrqm/s`) is a reduced extended-mode column set

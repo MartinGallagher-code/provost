@@ -20,7 +20,7 @@ strategy_detect () {
     # Distinctive: the "Control group" header plus cgroup slice/scope nodes.
     [[ "$text" == *"Control group"* ]] || return 1
     [[ "$text" == *".slice"* || "$text" == *".scope"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

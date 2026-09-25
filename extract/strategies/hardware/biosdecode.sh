@@ -54,7 +54,7 @@ strategy_detect () {
     [[ "$text" == *"# biosdecode "* ]] || \
         { [[ "$text" == *"SMBIOS "*" present."* ]] && [[ "$text" == *"Structure Table "* ]]; } || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

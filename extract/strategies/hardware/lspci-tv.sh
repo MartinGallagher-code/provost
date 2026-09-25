@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # lspci -tv tree: a root bus like "-[0000:00]-" (HEX bus address, no spaces)
     # plus branch glyphs (+- \-). The hex requirement rejects psql `\x` record

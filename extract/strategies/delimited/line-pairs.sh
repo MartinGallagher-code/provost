@@ -45,7 +45,7 @@ strategy_detect () {
         fi
     done
     [[ $n -ge 4 && $((n % 2)) -eq 0 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

@@ -30,7 +30,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\| ]]; then
-            _STRATEGY_CONFIDENCE=90
+            _STRATEGY_CONFIDENCE=80
             return 0
         fi
     done

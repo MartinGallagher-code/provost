@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"Self-test log"* ]] \
        || { [[ "$text" == *"Test_Description"* ]] && [[ "$text" == *"LBA_of_first_error"* ]]; }; then

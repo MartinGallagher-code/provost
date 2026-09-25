@@ -94,7 +94,10 @@ strategy_detect () {
 
     # Otherwise: >=2 non-blank lines — one row per line, single column. Runs only
     # when every more-specific parser (incl. line-records) has declined.
-    _STRATEGY_CONFIDENCE=55
+    # Confidence 50 (catch-all tier, see extract/README.md "Confidence rubric"):
+    # the lowest any detector reports, so under confidence ranking it is tried
+    # LAST, yet it still clears provost's default commit threshold (50).
+    _STRATEGY_CONFIDENCE=50
     return 0
 }
 

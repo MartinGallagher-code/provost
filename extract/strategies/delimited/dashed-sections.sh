@@ -37,7 +37,7 @@ strategy_detect () {
         if [[ $saw_banner -eq 1 && "$t" == *"  "* && -n "${t%%  *}" ]]; then
             body=$((body + 1))
             if [[ $body -ge 2 ]]; then
-                _STRATEGY_CONFIDENCE=82
+                _STRATEGY_CONFIDENCE=80
                 return 0
             fi
         fi

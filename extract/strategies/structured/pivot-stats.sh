@@ -75,7 +75,7 @@ strategy_detect () {
     done
     # >=2 pivot pairs and at least one unindented record header
     [[ $pivots -ge 2 && $records -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="labeled counter pivots (header line + value line) under record headers"
     return 0
 }

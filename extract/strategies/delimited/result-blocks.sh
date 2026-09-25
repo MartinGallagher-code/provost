@@ -45,7 +45,7 @@ strategy_detect () {
         fi
     done
     [[ $blocks -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

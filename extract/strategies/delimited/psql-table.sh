@@ -41,7 +41,7 @@ strategy_detect () {
     done
 
     if [[ $_hit_sep -eq 1 && $_saw_data -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1

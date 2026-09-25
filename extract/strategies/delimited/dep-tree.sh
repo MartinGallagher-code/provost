@@ -44,7 +44,7 @@ strategy_detect () {
         fi
     done
     [[ $roots -ge 1 && $members -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

@@ -22,7 +22,7 @@ strategy_detect () {
     [[ "$text" == *"Status=Up/Down"* ]]     || return 1
     [[ "$text" == *"Host ID"* ]]            || return 1
     [[ "$text" == *"-- "*"Address"* ]]      || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

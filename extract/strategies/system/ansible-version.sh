@@ -52,7 +52,7 @@ strategy_detect () {
     # Distinctive banner: "ansible [core X.Y.Z]" as the first non-blank line.
     [[ "$first" =~ ^ansible[[:space:]]+\[core[[:space:]] ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

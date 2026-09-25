@@ -18,7 +18,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
 
     # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
     # Windows tools — so it doesn't hide the first line's leading '{'.

@@ -24,7 +24,7 @@ strategy_detect () {
         fi
     done
     if [[ $hits -ge 2 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

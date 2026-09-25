@@ -48,7 +48,7 @@ strategy_detect () {
         if [[ "$line" =~ $_iperfsum_re_slowest_hdr ]]; then found=1; break; fi
     done
     [[ $found -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

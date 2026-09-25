@@ -21,7 +21,7 @@ _ifstat_name () { printf '%s' "$1" | tr -c 'A-Za-z0-9_' '_' | sed 's/_\{1,\}/_/g
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"KB/s in"* && "$text" == *"KB/s out"* ]] && return 0
     return 1
 }

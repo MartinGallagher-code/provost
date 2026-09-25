@@ -50,7 +50,7 @@ strategy_detect () {
     [[ $dotted -ge 4 ]] || return 1
     [[ "$text" == *"Application ID"* ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

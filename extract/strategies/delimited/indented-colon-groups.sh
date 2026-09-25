@@ -158,7 +158,7 @@ strategy_detect () {
     # Every group must be followed by a member somewhere before the next group.
     [[ "$core" == G* ]] || return 1
     case "$core" in *GG*) return 1 ;; esac     # a header with no members of its own
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

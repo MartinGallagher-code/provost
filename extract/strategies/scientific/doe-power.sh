@@ -38,7 +38,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"=== Power Analysis ==="* ]] || return 1
     [[ "$text" == *"Power @ delta"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe power banner + per-factor power table header"
     return 0
 }

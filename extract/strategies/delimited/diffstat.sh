@@ -37,7 +37,7 @@ strategy_detect () {
         _diffstat_file_line "$line" && hits=$((hits + 1))
     done
     if [[ $hits -ge 2 && "$text" == *" changed"* ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1

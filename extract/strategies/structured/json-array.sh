@@ -38,7 +38,7 @@ strategy_detect () {
     t="${t#"${t%%[![:space:]]*}"}"
     [[ "$t" == '{'* ]] || return 1
     [[ "$text" =~ \"[A-Za-z_][A-Za-z0-9_.-]*\"[[:space:]]*: ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=85
     return 0
 }
 

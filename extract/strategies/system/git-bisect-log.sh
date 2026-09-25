@@ -24,7 +24,7 @@ strategy_detect () {
         _gitbisect_is_cmd "$line" && has_cmd=1
     done
     if [[ $has_cmd -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

@@ -17,7 +17,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local reh='(^|
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+[A-Za-z]'
     local rev='(^|

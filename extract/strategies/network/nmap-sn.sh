@@ -33,7 +33,7 @@ strategy_detect () {
         [[ "$line" == "PORT"*"STATE"* ]] && saw_ports=1
     done
     if [[ $saw_report -eq 1 && $saw_up -eq 1 && $saw_ports -eq 0 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

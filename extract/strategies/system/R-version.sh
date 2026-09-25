@@ -28,7 +28,7 @@ strategy_detect () {
         first="$line"; break
     done
     if [[ "$first" == "R version "* && "$text" == *"Platform:"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

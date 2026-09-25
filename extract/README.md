@@ -43,10 +43,11 @@ fails (rather than skips) when either is missing.
 
 ## Writing a strategy: keep detection cheap
 
-Detection runs every strategy's `strategy_detect`, in priority order, until one
-produces output — so a slow detector taxes every capture. Equal priorities are
-ordered by strategy name (byte order), never by the category folder. Use the
-fast helpers from `lib/_helpers.sh` instead of the slow idioms:
+Detection runs EVERY eligible strategy's `strategy_detect` on every capture
+(see "Candidate ranking" below) — so a slow detector taxes every capture, not
+just the ones it wins. Equal priorities are ordered by strategy name (byte
+order), never by the category folder. Use the fast helpers from
+`lib/_helpers.sh` instead of the slow idioms:
 
 - `_fr_lines "$text"; for l in "${_FR_LINES[@]}"` rather than
   `while IFS= read -r l … done <<< "$text"` (a here-string is read one byte
@@ -61,3 +62,62 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).
+
+## Candidate ranking
+
+`run_auto_strategies` (lib/_discovery.sh) picks the winner in two phases:
+
+1. **Detect.** A `hints.tsv` row, when one matches, is still tried first. Then
+   every eligible strategy's `strategy_detect` runs (deprecated, `--generic`
+   and `--min-confidence` filters apply), and each one that fires becomes a
+   candidate carrying its `_STRATEGY_CONFIDENCE`.
+2. **Extract, best first.** Candidates are sorted by confidence (high first),
+   then priority (low number first), then strategy name (byte order,
+   `LC_ALL=C`), and tried in that order: detect is re-run to restore the
+   strategy's detect-time state, then extract. A candidate whose extract is
+   empty, or that trips the truncation guard, yields to the next one, so the
+   winner always has output. `--max-strategies N` / `--first-match` stop after
+   N / 1 candidates produced output.
+
+`--rank priority` (or `MFE_RANK=priority`) restores the historical single pass:
+the first strategy in priority order whose detect passes and whose extract is
+non-empty wins, and confidence is only compared to thresholds. `--strategy` and
+`--replay` pin their own strategy set and always use that single pass. `--multi`
+groups blocks by the same ranking (`_multi_detect_name` in lib/_dispatch.sh:
+highest-confidence detector, ties by priority then name); being detect-only it
+cannot fall through an empty extract, which the per-group extract then does.
+
+## Confidence rubric
+
+Confidence is a **ranking** signal: it says how conclusive a detector's
+evidence is, on one scale shared by every strategy. Priority is the
+tie-breaker, i.e. *specificity* — when two strategies have equally conclusive
+evidence, the more specific one (lower priority number) wins. Set
+`_STRATEGY_CONFIDENCE` in `strategy_detect` by tier:
+
+| Tier | Confidence | What earns it | Strategies |
+|---|---|---|---|
+| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | every per-tool strategy outside `delimited/` + `structured/`, unless demoted below |
+| Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit here too (`pkg-config`, `git-log-graph`: 80) |
+| General structure | **55–69**, scaled | a shape any tabular or kv output has | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
+| Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
+
+Rules that keep the tiers honest:
+
+- A score must be **evidence-based**: scale it by a measured share (lines that
+  match, column consistency) when the detector already computes one, and never
+  hand out a constant above the tier the evidence supports.
+- **Nothing below 50 on a winning parse.** Under ranking a sub-50 score ranks
+  below `text-lines`, which then claims (and files) the input anyway — so a
+  "stay under provost's threshold" score only hands the input to a worse parse.
+  (`colons` and weak `equals` were a flat 35 for that reason before ranking.)
+- `aligned-columns` never drops below 60 on a table it detects: a header with
+  consistent columns beats every catch-all and loose kv shape, and loses to any
+  format-specific syntax.
+- Ties are resolved by priority, so within a tier keep the priority order
+  meaningful (more specific = lower number).
+- Calibrate against the corpus: the confidence-ranked winner must pass the
+  manifest tidy check, and match the golden unless demonstrably better, on the
+  full and the `--generic` candidate sets (`tests/corpus/run.sh --golden`).
+  Holdout and benchmark inputs are held-out checks — never fit on them.

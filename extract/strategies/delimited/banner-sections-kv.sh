@@ -83,7 +83,7 @@ strategy_detect () {
     # Need real banner sectioning over kv pairs, and almost nothing loose
     # (only a title-style decoration line or two).
     [[ $banners -ge 1 && $pairs -ge 3 && $other -le 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

@@ -22,7 +22,7 @@ strategy_detect () {
         [[ "$_l" =~ ^[[:space:]]+package[[:space:]]+[^[:space:]]+[[:space:]] ]] && { saw_pkg=1; break; }
     done
     [[ $saw_pkg -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

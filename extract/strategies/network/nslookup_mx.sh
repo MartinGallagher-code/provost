@@ -17,7 +17,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do

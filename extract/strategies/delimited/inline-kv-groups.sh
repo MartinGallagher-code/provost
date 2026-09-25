@@ -107,7 +107,7 @@ strategy_detect () {
     # >=2 headers (a repeating record shape, not one report) each carrying
     # members, >=1 member per header on average.
     [[ $headers -ge 2 && $members -ge $headers ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

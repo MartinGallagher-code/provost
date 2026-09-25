@@ -47,7 +47,7 @@ strategy_detect () {
     done
     [[ $inblock -eq 0 ]] || return 1              # unclosed block
     [[ $blocks -ge 2 && $members -ge $blocks ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

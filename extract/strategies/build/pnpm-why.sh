@@ -19,7 +19,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # A "dependencies:" section drawn with box tree glyphs.
     if [[ "$text" == *"dependencies:"* && ( "$text" == *"├"* || "$text" == *"└"* ) ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

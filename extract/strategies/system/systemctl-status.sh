@@ -11,7 +11,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # systemctl status output contains "Loaded:" and "Active:" lines
     local has_loaded=0

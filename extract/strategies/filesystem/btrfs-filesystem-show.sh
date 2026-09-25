@@ -32,7 +32,7 @@ strategy_detect () {
         [[ "$line" == *"devid"* && "$line" == *"path "* ]] && has_devid=1
     done
     if [[ $has_label -eq 1 && $has_total -eq 1 && $has_devid -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

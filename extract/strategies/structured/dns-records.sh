@@ -37,14 +37,14 @@ strategy_detect () {
         if _dnsrr_line "$line"; then
             hits=$((hits + 1))
             if [[ $hits -ge 2 ]]; then
-                _STRATEGY_CONFIDENCE=90
+                _STRATEGY_CONFIDENCE=85
                 return 0
             fi
         fi
     done
     # A single RR line still counts when a dig/drill section marker confirms it.
     if [[ $hits -ge 1 && "$text" == *";; ANSWER SECTION"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=85
         return 0
     fi
     return 1

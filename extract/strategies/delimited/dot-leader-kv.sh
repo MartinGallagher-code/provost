@@ -106,7 +106,7 @@ strategy_detect () {
     done
     # Form C stands alone: the whole block must be colonless dot-leader lines.
     if [[ $hits -eq 0 && $c_hits -ge 3 && $c_hits -eq $nonblank ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     [[ $hits -ge 3 ]] || return 1
@@ -115,7 +115,7 @@ strategy_detect () {
     # mode, and a record parser keeps that grouping where flattening would lose
     # it. Only form B can reach such blocks, so leave them to the record parsers.
     [[ $form_b -eq 1 && $repeated -eq 1 ]] && return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

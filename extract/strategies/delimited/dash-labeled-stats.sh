@@ -64,7 +64,7 @@ strategy_detect () {
         _dls_parse "$line" && records=$((records + 1))
     done
     [[ $records -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=76
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

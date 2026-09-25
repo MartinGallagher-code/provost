@@ -28,7 +28,7 @@ strategy_detect () {
     if [[ "$text" =~ (^|$'\n')[[:space:]]*File:[[:space:]] ]] \
        && [[ "$text" == *"Size:"*"Blocks:"* ]] \
        && [[ "$text" == *"Inode:"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

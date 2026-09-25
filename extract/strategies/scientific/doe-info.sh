@@ -25,7 +25,7 @@ strategy_detect () {
     [[ "$text" == "Plan      :"* || "$text" == *$'\nPlan      :'* ]] || return 1
     [[ "$text" == *$'\nOperation :'* ]] || return 1
     [[ "$text" == *$'\nTotal runs:'* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe info plan header (Plan/Operation/Total runs) present"
     return 0
 }

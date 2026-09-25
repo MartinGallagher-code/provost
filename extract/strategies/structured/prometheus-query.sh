@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     _is_json "$text" && return 1
     # Prometheus text output has lines like: metric_name{label="value"} 123.45
     local prom_count=0

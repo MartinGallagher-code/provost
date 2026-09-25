@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     # Contains "Nmap scan report" or "PORT  STATE  SERVICE" header
     [[ "$text" == *"Nmap scan report"* ]] && return 0
     [[ "$text" =~ PORT[[:space:]]+STATE[[:space:]]+SERVICE ]] && return 0

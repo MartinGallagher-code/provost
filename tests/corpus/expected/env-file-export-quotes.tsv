@@ -1,2 +1,2 @@
-n	export	MOTD="Welcome	to	prod:
-1	export	JAVA_OPTS="-Xms512m	-Xmx2g	-Dfoo=bar"
+export_DB_HOST	export_MOTD	export_JAVA_OPTS
+"db.internal, replica"	"Welcome to prod: do not break things"	"-Xms512m -Xmx2g -Dfoo=bar"

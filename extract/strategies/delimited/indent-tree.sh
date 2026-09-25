@@ -68,7 +68,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 4 && ${#widths[@]} -ge 3 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

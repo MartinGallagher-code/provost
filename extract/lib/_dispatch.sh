@@ -662,11 +662,20 @@ run_output_mode () {
 
 # Detect-only winner for "$1" -> _MULTI_DET (strategy name). Returns 1 if no
 # strategy detects. Mirrors run_auto_strategies' filters (generic dirs,
-# deprecation, _should_run_strategy) without extracting.
+# deprecation, _should_run_strategy, --min-confidence) without extracting,
+# and its candidate order: under --rank confidence (the default) every
+# detector runs and the highest confidence wins (ties: priority, then name —
+# the list is already in that order, so the first strict maximum is kept);
+# under --rank priority the first detecting strategy wins. The name only
+# GROUPS blocks — each group is then extracted by run_auto_strategies, which
+# falls through an empty extract; detect-only cannot, so a block whose top
+# candidate would extract nothing still groups under that name.
 _multi_detect_name () {
     local btext="$1"
     _MULTI_DET=""
-    local _priority strategy_version strategy_file strategy_name
+    local _priority strategy_version strategy_file strategy_name _md_best=-1
+    local _md_rank=1
+    [[ "${_OPT_rank:-confidence}" == priority ]] && _md_rank=0
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
         strategy_name="${strategy_file##*/}"
@@ -677,13 +686,19 @@ _multi_detect_name () {
         _source_strategy_cached "$strategy_file" /dev/null || continue
         _STRATEGY_CONFIDENCE=50
         if strategy_detect "$btext" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" >/dev/null 2>&1; then
-            _MULTI_DET="$strategy_name"
-            unset -f strategy_detect strategy_extract 2>/dev/null
-            return 0
+            if [[ $_md_rank -eq 0 ]]; then
+                _MULTI_DET="$strategy_name"
+                unset -f strategy_detect strategy_extract 2>/dev/null
+                return 0
+            fi
+            if [[ $_STRATEGY_CONFIDENCE -ge ${_OPT_min_confidence:-0} && $_STRATEGY_CONFIDENCE -gt $_md_best ]]; then
+                _md_best=$_STRATEGY_CONFIDENCE
+                _MULTI_DET="$strategy_name"
+            fi
         fi
         unset -f strategy_detect strategy_extract 2>/dev/null
     done <<< "$_SORTED_STRATEGIES"
-    return 1
+    [[ -n "$_MULTI_DET" ]]
 }
 
 run_multi_mode () {

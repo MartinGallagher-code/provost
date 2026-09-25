@@ -11,7 +11,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # fail2ban-client status output contains "Number of jail" and "Jail list"
     # fail2ban-client status <jail> contains "Currently banned" and "Total banned"

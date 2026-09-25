@@ -36,7 +36,7 @@ strategy_detect () {
     [[ "$text" == *"Keystore type"* ]] || return 1
     [[ "$text" == *"PrivateKeyEntry"* || "$text" == *"trustedCertEntry"* \
        || "$text" == *"SecretKeyEntry"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

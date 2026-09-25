@@ -21,7 +21,7 @@ strategy_detect () {
     # would be mis-flagged as a JSON array. The "[info] ... +-" signature below
     # is specific enough on its own.
     if [[ "$text" == *"[info]"* && "$text" == *"+-"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

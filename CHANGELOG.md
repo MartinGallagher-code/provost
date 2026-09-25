@@ -1,5 +1,53 @@
 # provost — Changelog
 
+## 2026-09-25 — format detection ranks candidates by calibrated confidence
+
+The extract engine used to take the first strategy in priority order whose
+detector fired and whose extract was non-empty; confidence was only compared
+to provost's commit threshold (50). Pure confidence ranking on the old numbers
+would have flipped ~43% of corpus winners (line-records at a flat 80 beat
+aligned-columns' 40–75; text-lines 55; 112 bespoke strategies at a constant
+86). Confidences are now calibrated on one rubric and detection ranks by them.
+
+**Ranking (`extract/lib/_discovery.sh` `run_auto_strategies`,
+`extract/lib/_dispatch.sh` `_multi_detect_name`, `extract/envoy-extract`,
+`extract/lib/_globals.sh`)**
+- Hints first (unchanged); then EVERY eligible detector runs, and the
+  candidates are tried by confidence desc, priority asc, name (`LC_ALL=C`),
+  re-running detect before extract; an empty or truncated extract falls
+  through to the next candidate.
+- `--rank priority|confidence` (default confidence; `MFE_RANK` env) keeps the
+  old single pass for comparison. `--strategy` / `--replay` are unchanged.
+- `--multi` groups blocks by the same ranking (highest-confidence detector).
+
+**Calibration (`extract/strategies/**`, rubric in `extract/README.md`
+"Confidence rubric")**
+- Bespoke strong signature 92 (was 82–90); weak-signature bespoke
+  `pkg-config`, `git-log-graph` 80. Grammar tier 85 (`json` 95, `yaml`/`csv`/
+  `tsv`/`jsonl`/`har`/`dns-records` 90, …) incl. strict dialects that must
+  outrank their grammar (`quoted-fields`, `columnar-specs`, `colon-pairs`,
+  `kv-pairs`). Other format-specific generics 80 (were 60–90).
+- Evidence-scaled general structure / catch-alls: `aligned-columns` 60–69
+  (its 40–75 score mapped), `colons` 55–60 by `label: value` share (was 35),
+  `numeric-lead-records` 60, weak `equals` 50–55 by assignment share (was 35;
+  strong `equals` stays 75), `line-records` 50–55 by modal-column share (50 for
+  one-token lists, 51 for one line; was 80), `text-lines` 50 (was 55).
+- Tests: new `extract/tests/test_rank.sh`; `test_generic_mode.sh`
+  (`--min-confidence 85`) and `test_strategy_equals.sh` (lone `=` is 50..55)
+  follow the rubric.
+
+**Measured.** Corpus winners, confidence vs priority: full mode 4 flips
+(`gpg-card-status`, `ip6tables-l` go from not-tidy to tidy via their bespoke
+parsers; `lscpu-parse` moves csv → its bespoke parser, both tidy;
+`openssl-x509-dates` as below), `--generic` 2 flips —
+`env-file-export-quotes` and `openssl-x509-dates` now parse as `equals`
+KEY=VALUE records instead of aligned-columns splitting `notAfter=Sep` into
+columns (goldens to regenerate). Coverage 3587 → 3588 (gpg-card-status now
+tidy via its bespoke strategy), zero tidy→not-tidy; holdout 78/80 unchanged;
+benchmark: no winner or parse changes. 212 corpus inputs whose winner was
+colons/equals at 35 now clear provost's threshold (they pass the tidy check).
+Detection costs ~+13–15% CPU per capture (every detector runs).
+
 ## 2026-09-25 — assessment fixes: data integrity, security, parsing, speed
 
 A full review found silent data loss in the capture path, several ways a

@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="key: value pattern with indented sub-keys"
 
     # Must have YAML key pattern: lines starting with word chars followed by colon

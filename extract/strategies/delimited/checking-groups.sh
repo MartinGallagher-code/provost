@@ -38,7 +38,7 @@ strategy_detect () {
         else return 1; fi
     done
     [[ $heads -ge 2 && $results -ge $heads ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

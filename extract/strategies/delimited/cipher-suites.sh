@@ -37,7 +37,7 @@ strategy_detect () {
         [[ "$line" =~ $_cs_line_re ]] && n=$((n + 1))
     done
     [[ $n -ge 3 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

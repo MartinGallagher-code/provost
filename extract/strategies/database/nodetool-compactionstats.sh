@@ -23,7 +23,7 @@ strategy_detect () {
     [[ "$text" == *"pending tasks:"* ]] || return 1
     [[ "$text" == *"compaction type"* ]] || return 1
     [[ "$text" == *"progress"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

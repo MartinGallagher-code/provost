@@ -30,7 +30,7 @@ strategy_detect () {
     [[ "$text" == *"Pool Name"* ]]        || return 1
     [[ "$text" == *"Completed"* ]]        || return 1
     [[ "$text" == *"All time blocked"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

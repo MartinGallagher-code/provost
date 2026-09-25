@@ -253,7 +253,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     _et_scan "$text" || return 1
     _et_policy "$text" || return 1
-    _STRATEGY_CONFIDENCE=76
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

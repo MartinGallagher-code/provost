@@ -26,7 +26,7 @@ strategy_detect () {
         _gitannex_is_file "$line" && has_file=1
     done
     if [[ $has_file -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

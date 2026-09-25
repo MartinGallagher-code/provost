@@ -81,7 +81,11 @@ test_equals_confidence_prose_stays_low () {
     printf 'The build finished in 3 minutes.\nSet VERBOSE=1 to see more output.\nNo errors were reported by the linker.\nSee the manual for details.\n' > "$tmp"
     conf="$(_equals_conf "$tmp")"
     rm -f "$tmp"
-    [[ "$conf" -lt 50 ]] || _assert_failed "prose with one assignment must stay below 50 (got $conf)"
+    # Confidence rubric (extract/README.md): a lone `=` is catch-all-level
+    # evidence — at most 55, far below a real KEY=VALUE block (75). (It used to
+    # be held under 50, but under confidence ranking text-lines at 50 would
+    # then claim — and file — the input anyway.)
+    [[ "$conf" -ge 50 && "$conf" -le 55 ]] || _assert_failed "prose with one assignment must score catch-all-level 50..55 (got $conf)"
 }
 
 test_equals_value_spaces_kept () {
@@ -101,6 +105,6 @@ run_test "equals: JSON format output" test_equals_json_format
 
 run_test "equals: KEY=VALUE block confidence >= 70" test_equals_confidence_env_block
 run_test "equals: git config --list confidence >= 70" test_equals_confidence_git_config
-run_test "equals: prose with a lone '=' stays below 50" test_equals_confidence_prose_stays_low
+run_test "equals: prose with a lone '=' scores catch-all-level (50..55)" test_equals_confidence_prose_stays_low
 run_test "equals: values keep spaces" test_equals_value_spaces_kept
 print_summary

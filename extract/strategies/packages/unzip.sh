@@ -24,7 +24,7 @@ strategy_detect () {
     for line in "${_FR_LINES[@]}"; do
         stripped="${line//[- ]/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done

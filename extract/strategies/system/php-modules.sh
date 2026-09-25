@@ -22,7 +22,7 @@ strategy_detect () {
     # specific enough on its own.
     # Distinctive: the "[PHP Modules]" section header.
     [[ "$text" == *"[PHP Modules]"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

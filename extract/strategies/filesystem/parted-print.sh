@@ -27,7 +27,7 @@ strategy_detect () {
         _parted_is_header_row "$line" && saw_hdr=1
     done
     if [[ $saw_disk -eq 1 && $saw_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

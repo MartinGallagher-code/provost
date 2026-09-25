@@ -85,7 +85,7 @@ strategy_detect () {
     # a single low-density line is not enough signal (a lone prose line with
     # two semicolons); the dense band keeps single-line acceptance (fio terse)
     [[ $dense -eq 0 && $nonblank -lt 2 ]] && return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

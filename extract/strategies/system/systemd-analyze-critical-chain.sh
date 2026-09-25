@@ -19,7 +19,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # Distinctive: units with an "@time" activation stamp (e.g. ".target @14s").
     [[ "$text" == *".target @"* || "$text" == *".service @"* || "$text" == *".socket @"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

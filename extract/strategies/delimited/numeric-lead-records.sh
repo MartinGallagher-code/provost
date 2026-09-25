@@ -38,7 +38,10 @@ strategy_detect () {
         case "$ids" in *"|${BASH_REMATCH[1]}|"*) ;; *) ids+="|${BASH_REMATCH[1]}|"; distinct=$((distinct + 1)) ;; esac
     done
     [[ $nb -ge 3 && $distinct -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    # General-structure tier (extract/README.md "Confidence rubric"): a
+    # numeric first token is a shape, not a syntax — a real column-aligned
+    # table over the same lines (aligned-columns >= 60) wins the tie.
+    _STRATEGY_CONFIDENCE=60
     return 0
 }
 

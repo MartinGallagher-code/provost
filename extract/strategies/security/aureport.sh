@@ -28,7 +28,7 @@ strategy_detect () {
         fi
     done
     if [[ $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

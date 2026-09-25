@@ -18,7 +18,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Overall exposure level"* ]] || return 1
     [[ "$text" == *"EXPOSURE"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

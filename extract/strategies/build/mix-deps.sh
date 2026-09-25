@@ -25,7 +25,7 @@ strategy_detect () {
         [[ "$line" =~ ^\*[[:space:]]+[A-Za-z0-9_.-]+[[:space:]] ]] && deps=$((deps + 1))
     done
     [[ $deps -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

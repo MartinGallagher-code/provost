@@ -899,8 +899,13 @@ strategy_detect () {
     [[ $header_caps -eq 1 ]] && conf=$((conf + 5))  # ALL-CAPS header (ps/df/ss style)
     [[ "$mode" == HL ]] && conf=$((conf - 10))      # headerless is a weaker signal
     [[ $conf -gt 75 ]] && conf=75
-    [[ $conf -lt 1 ]] && conf=1
-    _STRATEGY_CONFIDENCE=$conf
+    [[ $conf -lt 40 ]] && conf=40
+    # General-structure tier (extract/README.md "Confidence rubric"): the raw
+    # 40..75 evidence score maps onto 60..69. A header + consistent columns is
+    # stronger evidence than any catch-all or loose kv shape (<= 60), and
+    # weaker than a format-specific syntax (>= 70) — the parsers that used to
+    # outrank it by priority now outrank it by confidence too.
+    _STRATEGY_CONFIDENCE=$(( 60 + (conf - 40) * 9 / 35 ))
     return 0
 }
 

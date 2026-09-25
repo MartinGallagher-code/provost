@@ -43,7 +43,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     _al_is_alias_list "$text" || return 1
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

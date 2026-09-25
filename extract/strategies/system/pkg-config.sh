@@ -83,7 +83,7 @@ strategy_detect () {
         local _m=0 _best=0
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge 60 ]] && return 1
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1

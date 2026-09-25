@@ -75,7 +75,7 @@ strategy_detect () {
     # integers before a path are a size listing (gsutil du, zoxide query -l),
     # not a ledger, and their existing 2-col parses were already right.
     [[ "$text" == *'$'* || "$text" == *'€'* || "$text" == *'£'* ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

@@ -101,7 +101,7 @@ strategy_detect () {
     [[ $n -ge 2 ]] || return 1
     # near-constant field count (ragged tails allowed, prose is far wider)
     [[ $((maxf - minf)) -le 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="space-delimited records, quoted/bracketed fields, constant field count"
     return 0
 }

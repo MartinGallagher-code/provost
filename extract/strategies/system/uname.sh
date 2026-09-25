@@ -32,7 +32,7 @@ strategy_detect () {
         [[ "${line}" != *[![:space:]]* ]] && continue
         # First non-blank line: OS name, node, release, then a `#buildno`.
         if [[ "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+\# ]]; then
-            _STRATEGY_CONFIDENCE=87
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
         return 1

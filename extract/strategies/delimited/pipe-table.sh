@@ -131,7 +131,7 @@ strategy_detect () {
         elif _pt_is_row "$_line"; then _saw_row=1; fi
     done
     if [[ $_saw_rule -eq 1 && $_saw_row -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=85
         return 0
     fi
     # No markdown rule — try the bare ` a | b | c ` dialect (strict shape check).

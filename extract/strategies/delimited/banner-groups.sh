@@ -63,7 +63,7 @@ strategy_detect () {
         members=$((members + 1)); last_kind=M
     done
     [[ $banners -ge 2 && $members -ge $banners ]] || return 1
-    _STRATEGY_CONFIDENCE=83
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

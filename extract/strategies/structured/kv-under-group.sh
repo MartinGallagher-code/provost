@@ -213,7 +213,7 @@ strategy_detect () {
     [[ $rep -ge 2 ]] || return 1
     # the shape must dominate the block
     [[ $(( classified * 100 / n )) -ge 80 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

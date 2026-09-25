@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     _is_json "$text" && return 1
     # Grafana alert list (CLI output) has columns like ID, TITLE, STATE, HEALTH
     local first_line=""

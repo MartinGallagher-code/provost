@@ -29,7 +29,7 @@ strategy_detect () {
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=86; return 0; }
+        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=92; return 0; }
     done
     return 1
 }

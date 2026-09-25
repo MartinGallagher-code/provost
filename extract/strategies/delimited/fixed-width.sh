@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=65
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON-like input
     _is_json "$1" && return 1

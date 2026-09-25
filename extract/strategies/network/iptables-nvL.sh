@@ -23,7 +23,7 @@ strategy_detect () {
     [[ "$text" == *"Chain "* ]] || return 1
     # The pkts/bytes/target column header is unique to -nvL (verbose) listings.
     [[ "$text" == *"pkts"*"bytes"*"target"*"prot"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

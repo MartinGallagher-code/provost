@@ -50,13 +50,13 @@ strategy_detect () {
     if [[ "$only" == *", version "* ]]; then
         local _vb_rest="${only#*, version }"
         local _vb_ver="${_vb_rest%% *}"
-        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=72; return 0; }
+        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     fi
     local -a tok=(); { _fr_tok "$only"; tok=("${_FR_TOK[@]}"); }
     [[ ${#tok[@]} -ge 3 ]] || return 1
     [[ "${tok[0]}" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]] || return 1
     [[ "${tok[1]}" =~ $_vl_ver_re ]] || return 1
-    _STRATEGY_CONFIDENCE=72
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

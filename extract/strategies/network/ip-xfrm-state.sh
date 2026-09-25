@@ -25,7 +25,7 @@ strategy_detect () {
         [[ "$line" =~ ^[[:space:]]+proto\ (esp|ah|comp)\  ]] && saw_proto=1
     done
     if [[ $saw_sa -eq 1 && $saw_proto -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

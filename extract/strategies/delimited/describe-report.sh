@@ -66,7 +66,7 @@ strategy_detect () {
     done
     # The full describe shape: several aligned kv pairs AND >=1 dashed table.
     [[ $kv -ge 3 && $sections -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

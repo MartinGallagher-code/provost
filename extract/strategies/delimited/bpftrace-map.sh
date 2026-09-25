@@ -44,7 +44,7 @@ strategy_detect () {
         return 1
     done
     [[ $maps -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

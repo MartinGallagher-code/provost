@@ -27,7 +27,7 @@ strategy_detect () {
         _gitlogstat_is_file "$line" && has_stat=1
     done
     if [[ $has_commit -eq 1 && $has_stat -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

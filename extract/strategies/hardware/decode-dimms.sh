@@ -42,7 +42,7 @@ strategy_detect () {
     # Distinctive: the decode-dimms banner or the SPD EEPROM section title.
     [[ "$text" == *"decode-dimms"* || "$text" == *"SPD EEPROM Information"* ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

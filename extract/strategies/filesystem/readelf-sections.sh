@@ -19,7 +19,7 @@ strategy_detect () {
         if [[ "$line" == *"[Nr]"* && "$line" == *"Name"* \
               && "$line" == *"Type"* && "$line" == *"Address"* \
               && "$line" == *"Offset"* ]]; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done

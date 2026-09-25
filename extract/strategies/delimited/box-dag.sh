@@ -54,7 +54,7 @@ strategy_detect () {
     done
     # A DAG: >=2 one-cell boxes (each its own border pair), single-column only.
     [[ $mcol -eq 0 && $contents -ge 2 && $borders -ge 4 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

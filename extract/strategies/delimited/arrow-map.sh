@@ -37,7 +37,7 @@ strategy_detect () {
         else return 1; fi
     done
     [[ $nb -ge 2 && $arrows -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

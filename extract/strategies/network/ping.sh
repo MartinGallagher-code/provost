@@ -17,7 +17,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == *"bytes from "* && "$line" == *"icmp_seq="* ]]; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done

@@ -103,7 +103,7 @@ strategy_detect () {
     [[ $spacey -ge 1 ]] || return 1
     # Majority colon-suffixed keys is a `Label: value` block — colons' shape.
     [[ $((colonish * 2)) -ge $lines ]] && return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

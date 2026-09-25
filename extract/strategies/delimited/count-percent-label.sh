@@ -76,7 +76,7 @@ strategy_detect () {
 
     # >=2 `N (P%)` lines is the discriminator; a plain counted list has none.
     [[ $nb -ge 3 && $paren -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

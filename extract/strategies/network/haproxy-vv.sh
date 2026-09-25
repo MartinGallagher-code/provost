@@ -29,7 +29,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"HAProxy version"* ]] || return 1
     [[ "$text" == *"="* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

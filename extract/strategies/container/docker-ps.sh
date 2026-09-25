@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     # First non-empty line is the `docker ps` header: starts with CONTAINER and
     # carries the ps-specific COMMAND column. Requiring COMMAND avoids hijacking
     # `docker stats` (CONTAINER … CPU %/MEM …) and `buildah containers`

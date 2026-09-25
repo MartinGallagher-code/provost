@@ -25,7 +25,7 @@ strategy_detect () {
         esac
     done
     if [[ $has_repo -eq 1 && $has_checkout -eq 1 && $has_change -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

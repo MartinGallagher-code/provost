@@ -22,7 +22,7 @@ strategy_detect () {
     [[ "$text" == *"Datacenter:"* ]] || return 1
     [[ "$text" == *"Address"*"Rack"*"Status"*"State"* ]] || return 1
     [[ "$text" == *"Token"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

@@ -46,7 +46,7 @@ _fhl_re_firstcol='^([^[:space:]]([^[:space:]]|[[:space:]][^[:space:]])*)'
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=92
 
     # No _is_json guard: it only tests the first character, and this format's
     # own header line starts with '['. A real JSON array never matches the tag

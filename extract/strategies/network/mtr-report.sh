@@ -27,7 +27,7 @@ strategy_detect () {
         _mtr_is_hop "$line" && has_hop=1
     done
     if [[ $has_header -eq 1 && $has_hop -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

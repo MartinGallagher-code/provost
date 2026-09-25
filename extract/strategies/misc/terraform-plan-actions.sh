@@ -23,7 +23,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[[:space:]]*#[[:space:]].*[[:space:]]will[[:space:]]be[[:space:]] ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done

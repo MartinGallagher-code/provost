@@ -37,7 +37,7 @@ strategy_detect () {
     [[ $nb -eq 0 ]] && return 1
     # Require the leading "# <module>" header that opens go mod why output.
     if [[ $ok -eq 1 && "$first" == "# "* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

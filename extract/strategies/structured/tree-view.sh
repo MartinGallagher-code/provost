@@ -87,7 +87,7 @@ strategy_detect () {
         [[ ${#_ft[@]} -ge 2 && $_up -ge 2 ]] && return 1
     fi
 
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

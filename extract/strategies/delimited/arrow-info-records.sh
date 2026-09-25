@@ -47,7 +47,7 @@ strategy_detect () {
         [[ "$line" =~ ^[A-Za-z]+[[:space:]] ]] || return 1
     done
     [[ $first -eq 0 && $bullets -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
