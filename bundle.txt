@@ -1,6 +1,6 @@
 # bundle format v3 (merge.sh) -- expand with split.sh
 # esc-delim: AO
-# bundle entries: 12145
+# bundle entries: 12146
 ===FILE: .github/workflows/ci.yml===
 ===META: mode=664 sha256=a811304b39fe2cf1652ef1f7d0b71fe9e5bcbb872e8779f9310f901fb9c9bafe===
 name: CI
@@ -247,8 +247,90 @@ python:
     - requirements: docs/requirements.txt
 ===END===
 ===FILE-ESC: CHANGELOG.md===
-===META: mode=664 sha256=82cb434a0eb16a8cf9fb3637fdbb89c5f8cf1cc690c35a6a7b4347ede83aafdb===
+===META: mode=664 sha256=dbe68eb3122c6676ea048c49ea73e73b7cd239613913a630860fe76c3fed0583===
 # provost AOe28094AO Changelog
+
+## 2026-09-25 AOe28094AO very large inputs: bounded detection sample, file lane, awk twins
+
+A 10 MB capture took minutes (ps table ~282 s, KEY=VALUE ~281 s in the
+engine alone; 1 MB inputs 6AOe28093AO94 s end to end). Now (4-core box, `provost
+--sync FILE`, fresh store): 10 MB in 6.5AOe28093AO18 s, 1 MB in 1.3AOe28093AO2.4 s, 100 KB in
+0.4AOe28093AO1.2 s AOe28094AO every dataset byte-identical to before.
+
+| `provost --sync` | 100 KB before AOe28692AO after | 1 MB before AOe28692AO after | 10 MB after (engine alone) |
+|---|---|---|---|
+| ps table   | 4.0 s AOe28692AO 1.2 s | 38.4 s AOe28692AO 2.4 s | 18.1 s (14.0 s) |
+| CSV        | 4.0 s AOe28692AO 0.6 s | 44.4 s AOe28692AO 1.6 s | 13.6 s (8.6 s) |
+| JSON array | 0.9 s AOe28692AO 0.4 s |  6.2 s AOe28692AO 1.3 s | 11.3 s (9.6 s) |
+| syslog     | 7.7 s AOe28692AO 0.7 s | 93.8 s AOe28692AO 1.3 s |  8.8 s (6.6 s) |
+| KEY=VALUE  | 7.5 s AOe28692AO 0.7 s | 68.0 s AOe28692AO 1.4 s |  6.5 s (5.9 s) |
+
+**Detection (`extract/lib/_discovery.sh`)**
+- Above 32 KB (`_FR_SAMPLE_BYTES`) every detector screens a bounded SAMPLE AOe28094AO
+  the first 120 / last 40 whole lines, 16 KB / 4 KB caps; JSON/XML documents
+  are never cut AOe28094AO and a strategy that accepts it is re-run on the FULL text,
+  which alone decides acceptance, confidence and any detectAOe28692AOextract state.
+  The sample applies to every detector's input, so it is independent of how
+  the winner is picked (priority now, a confidence ranking later).
+- Hint rows on a big input: one pass finds which hint literals occur (a
+  `contains` pattern, or a literal every match of a `regex` row must hold,
+  or the first atom of an anchored regex); rows that cannot match skip their
+  full-text regex. Exact by construction (tests + corpus).
+- `clean_text`'s cache is keyed on its input.
+
+**Engine passes (`extract/lib/_helpers.sh`, `_postprocess.sh`, `_format.sh`,
+`_dispatch.sh`, `extract/envoy-extract`)**
+- FILE LANE (`_FR_LANE_BYTES`, 64 KB): a big result goes from
+  `strategy_extract` to a file and stays there AOe28094AO count, truncation guard,
+  store, dedup, prefix strip and TSV formatting run file to file with the
+  same awk programs as their variable twins (plain `-f tsv` runs only; any
+  other option set gets `output` back byte for byte).
+- Preprocessing answers its ~20 "text contains X" gates in one pass;
+  `== banner ==` drops and the output's has-content check no longer walk the
+  text in bash.
+
+**Generic strategies AOe28094AO awk twins above `_FR_BIG_BYTES`, byte-identical**
+- `aligned-columns`: detect's two whole-text loops in one pass; the body's
+  line walk hands the rest to awk once the table starts; extract runs file to
+  file (`_ac_extract_big`: collection, header repeats / units row, first-cell
+  wraps, positional / segment / offset decisions, emission) and hands back to
+  the bash loops only for the positional grid, non-ASCII blocks, segment
+  split, scaffold split and phrase merges. Early-exit loops index the line
+  array instead of expanding all of it.
+- `csv` (join + emit; detect decides on a whole-line prefix when it can),
+  `syslog` (detect + extract, including the bash loop's `set -u` abort on a
+  short line), `equals` (detect, pin/cfg/kv modes with `clean_text` and
+  `restore_text_values` folded in; glob/`&` paren spans fall back to bash),
+  `json-array` (reads the input as one record AOe28094AO the per-line rebuild was
+  quadratic), `nslookup_mx` / `clickhouse-processlist` (whole-text tests).
+
+**Transform + provost (`transform/melt.sh`, `provost`)**
+- `_core_melt_tidy_file FILE [capid]` == `_core_melt_tidy "$(cat FILE)"`;
+  provost melts the engine's output file directly. The melt keys cells by
+  position instead of an (id, field) string pair (mawk string hashing
+  collapses past ~1M keys: 12 s AOe28692AO 4.8 s for a 10 MB CSV).
+
+**Proofs** (scratch runs; all LC_ALL=C)
+- Corpus, 3,705 inputs, batch `--max-strategies 1`, full and `--generic`:
+  identical winner meta and wide output to the pre-change engine AOe28094AO as shipped;
+  with every awk twin and the lane forced (`_FR_BIG_BYTES=0
+  _FR_LANE_BYTES=0`); and with sampling forced at 20+8 and 40+15 lines.
+- Sampling forced at a deliberately tiny 8+4 lines (374 corpus inputs are
+  longer than that): 45 winners change (46 `--generic`), all from an earlier
+  strategy rejecting a sample that cut off its evidence (dig's ANSWER
+  section, kubectl-describe sections, psql tables); extraction output is
+  identical whenever the winner is (0 wide diffs). The default 120+40-line
+  sample holds every corpus input whole.
+- 360 synthetic big inputs (corpus tools, header once, body replicated to
+  60 KB): sampled winner == full-detection winner for 359; the one flip
+  (`deno-info`: pkg-config 88 AOe28692AO colons 35) is a ratio knife-edge AOe28094AO pkg-config
+  declines when one token count covers >=60% of lines, and the sample's
+  period cut lands at exactly 60%. This is the residual risk of sampling:
+  ratio-threshold detectors can decide differently on a sample.
+- `extract/tests/test_big_input_paths.sh` (new, 23 tests): each route vs the
+  bash route on generated inputs, the sample's shape, accept-then-reject
+  fall-through, full-text confidence, hint prefilter soundness.
+  `transform/tests/test_melt.sh`: +12 file-vs-string melt checks (54).
 
 ## 2026-09-25 AOe28094AO format detection ranks candidates by calibrated confidence
 
@@ -6099,7 +6181,7 @@ problem we hit. Follow these rules and they don't recur:
    before committing.
 ===END===
 ===FILE-ESC: HANDOFF.md===
-===META: mode=664 sha256=34e29592b5984d198d72b4a29b1e9b4ee0975089e8c4bc129d90ce8641b6b9f6===
+===META: mode=664 sha256=9e071d3fb4b1115e7d65efecded9ab0668e08b97fef8b55c2302438ef6f4b926===
 # Handoff AOe28094AO provost
 
 The history that used to live here (2026-07 AOe28692AO 2026-09-16, ~100 KB) is in git:
@@ -6131,7 +6213,7 @@ Behaviour worth knowing:
 - Engines run with `ENVOY_NO_RC=1`; the `.envoyrc` layer is off under provost.
 
 Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
-(42), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
+(54), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
 (mawk and gawk), `tests/corpus/run.sh --golden`, `python -m pytest`.
 
 ## Next steps
@@ -6142,10 +6224,20 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
    94% byte-identical to `expected/`; `tests/corpus/review-snapshot.sh` now
    regenerates it, so it can be gitignored).
-2. **Large inputs are still slow**: a 10 MB table takes ~4.7 min, all in bash
-   detection (~245 detectors AOc397AO the full text). Next lever: detect on a bounded
-   head/tail sample, or engine-level required-token headers AOe28094AO only with a
-   corpus run proving winners don't change.
+2. **Large inputs** (2026-09-25): detection screens a bounded sample above
+   32 KB and re-confirms the winner on the full text; the hot generic parsers
+   and the engine's own passes have byte-identical awk twins; a big result
+   stays in a file to the end; provost melts that file directly. 10 MB now
+   takes 6.5AOe28093AO18 s end to end (was minutes). Knobs `_FR_SAMPLE_BYTES`,
+   `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
+   `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
+   a ratio-threshold detector can decide differently on the sample than on
+   the full text (1 of 360 synthetic inputs). Remaining time at 10 MB is
+   mostly bash copying the text (each full-string expansion ~0.15 s),
+   aligned-columns' full-text detect (~4 s), dedup + TSV (~4 s) and the melt
+   (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
+   loop is slow on big inputs AOe28094AO give it an awk twin, proven over the corpus
+   with `_FR_BIG_BYTES=0`.
 3. **Confidence doesn't rank candidates** (priority does). Ranking by
    confidence would flip 43% of corpus winners because `line-records` always
    reports 80; calibrating strategy confidences is the prerequisite.
@@ -30224,7 +30316,7 @@ parse), stored with the capture (`context.txt`), and shown verbatim by
 `provost source`. Wrappers can prepend context unconditionally.
 ===END===
 ===FILE-ESC: extract/README.md===
-===META: mode=664 sha256=848c6d6112b79abe3b9d210de64f45e32130b10d7d3608b0d9e25f68792100ab===
+===META: mode=664 sha256=7401350cddc540e66d9bc6211320ba02cdf965156c7edeee050a30fb4ced1d9b===
 # provost/extract AOe28094AO the extract engine
 
 This directory holds provost's extract engine + all strategies. `provost` runs it
@@ -30286,6 +30378,24 @@ order), never by the category folder. Use the fast helpers from
 When acceptance needs a literal the input must contain, test the whole text for
 it first (`[[ "$text" == *LIT* ]] || return 1`) AOe28094AO see the `PREFILTER (exact)`
 comments in e.g. `strategies/delimited/box-table.sh`.
+
+### Very large inputs
+
+Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
+(the first 120 / last 40 whole lines, byte-capped; JSON/XML documents are
+never cut), and a strategy that accepts the sample is re-run on the full text,
+which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
+detector must never ACCEPT a sample it would reject in full AOe28094AO it cannot, the
+full text re-decides AOe28094AO but it can falsely REJECT when its evidence lies only
+in the middle of a huge input; prefer evidence the head carries.
+
+Above `_FR_BIG_BYTES` the hot generic parsers (`aligned-columns`, `csv`,
+`syslog`, `equals`, `json-array`) and the engine's own passes switch to awk
+twins that are byte-identical to their bash loops, and above `_FR_LANE_BYTES`
+the result stays in a file to the end (the FILE LANE). Setting a knob to 0
+forces its route on any input AOe28094AO `tests/test_big_input_paths.sh` and the
+corpus proofs compare every route with the plain bash one. A new twin must
+follow the same rule: same bytes, proven by forcing it over the corpus.
 
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).
@@ -30350,7 +30460,7 @@ Rules that keep the tiers honest:
   Holdout and benchmark inputs are held-out checks AOe28094AO never fit on them.
 ===END===
 ===FILE-ESC: extract/envoy-extract===
-===META: mode=775 sha256=ca29a966cc6898ad7642367db67b8aa8d26f83a7d916db5bd0d4b1e9d884dc86===
+===META: mode=775 sha256=cd49a94c962229cad4884579285b3e9fea4b3a1033148b6061dfb7efa59a5ebc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -31194,6 +31304,10 @@ fi
 if [[ -n "$_OPT_chain" ]]; then
     run_chain_strategies
 else
+    # A very large input's result may stay in the file lane to the end (see
+    # _xl_begin / _xl_can_keep) AOe28094AO only in the plain -f tsv configuration.
+    _XL_KEEP=0
+    _xl_can_keep && _XL_KEEP=1
     run_auto_strategies
 fi
 # Clear any in-place progress line so the field-table output below starts
@@ -31208,14 +31322,15 @@ if [[ $_OPT_emit_meta -eq 1 ]]; then
 fi
 
 ########################################
-## POST-PROCESSING
+## POST-PROCESSING + OUTPUT
 ##
-run_postprocess
-
-########################################
-## OUTPUT
-##
-run_output_mode
+if [[ -n "${_XL_OUT:-}" ]]; then
+    # kept file-lane result: the same two stages, file to file
+    _xl_finalize
+else
+    run_postprocess
+    run_output_mode
+fi
 ===END===
 ===FILE-ESC: extract/hints.tsv===
 ===META: mode=664 sha256=07752f2285770dfa171df541b0593699d9cf0ff06c35e665608cc15eb3db1881===
@@ -31436,7 +31551,7 @@ run_auto_tune () {
 }
 ===END===
 ===FILE-ESC: extract/lib/_discovery.sh===
-===META: mode=664 sha256=0b0d2323b51b13323e2ab2a4ce2ea9b7e64429a3ab5253e1b420c88d3d85a421===
+===META: mode=664 sha256=ac5676339638ac376a0e12232bf0ee76042ec8dc94f1c73fb41168ca81807599===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -31850,6 +31965,216 @@ run_chain_strategies () {
 # TOOL name (via _STRATEGY_REPORT_NAME), so the dataset keeps its tool identity
 # without a bespoke parser script.
 
+# _hint_required_literal ERE AOe28094AO a LITERAL string every match of the bash ERE
+# must contain, in _HRL ("" when none can be proven). Conservative by
+# construction: only top-level literal characters that are not optional
+# (no `*`, `?` or `{AOe280a6AO}` after them) join a run, a `+` ends the run after its
+# character, and anything else AOe28094AO a bracket, group, `.`, anchor, `\w`-style
+# escape AOe28094AO ends the run. A top-level `|`, a non-ASCII byte, or anything the
+# scan does not understand yields "" (no prefilter). The longest run wins.
+_HRL_PRINTABLE=' !"#$%&'"'"'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+_hint_required_literal () {
+    local p="$1" n=${#1} i=0 c d run="" best="" lit depth j
+    _HRL=""
+    while (( i < n )); do
+        c="${p:i:1}"
+        [[ "$_HRL_PRINTABLE" == *"$c"* ]] || return 0
+        lit=""
+        case "$c" in
+            '\')
+                d="${p:i+1:1}"
+                [[ -n "$d" && "$_HRL_PRINTABLE" == *"$d"* ]] || return 0
+                if [[ "$d" == [0-9A-Za-z] ]]; then lit=""; else lit="$d"; fi
+                i=$((i + 2)) ;;
+            '[')
+                j=$((i + 1))
+                [[ "${p:j:1}" == '^' ]] && j=$((j + 1))
+                [[ "${p:j:1}" == ']' ]] && j=$((j + 1))
+                while (( j < n )); do
+                    if [[ "${p:j:2}" == '[:' || "${p:j:2}" == '[=' || "${p:j:2}" == '[.' ]]; then
+                        d="${p:j+1:1}"; j=$((j + 2))
+                        while (( j < n )) && [[ "${p:j:2}" != "$d]" ]]; do j=$((j + 1)); done
+                        (( j < n )) || return 0
+                        j=$((j + 2)); continue
+                    fi
+                    [[ "${p:j:1}" == ']' ]] && break
+                    j=$((j + 1))
+                done
+                (( j < n )) || return 0
+                i=$((j + 1)) ;;
+            '(')
+                depth=1; j=$((i + 1))
+                while (( j < n && depth > 0 )); do
+                    case "${p:j:1}" in
+                        '\') j=$((j + 2)); continue ;;
+                        '(') depth=$((depth + 1)) ;;
+                        ')') depth=$((depth - 1)) ;;
+                        '[') return 0 ;;          # keep the group scan simple
+                    esac
+                    j=$((j + 1))
+                done
+                (( depth == 0 )) || return 0
+                i=$j ;;
+            '.'|'^'|'$') i=$((i + 1)) ;;
+            '|'|')'|'*'|'+'|'?'|'{') return 0 ;;
+            *) lit="$c"; i=$((i + 1)) ;;
+        esac
+        # quantifier after the atom
+        d="${p:i:1}"
+        case "$d" in
+            '*'|'?'|'{')
+                if [[ "$d" == '{' ]]; then
+                    # `X{m,AOe280a6AO}` with m >= 1: X repeated m times is required
+                    local _hm="${p:i+1}" _hk
+                    _hm="${_hm%%[!0-9]*}"
+                    j=$i
+                    while (( i < n )) && [[ "${p:i:1}" != '}' ]]; do i=$((i + 1)); done
+                    (( i < n )) || return 0
+                    i=$((i + 1))
+                    [[ "${p:i:1}" == [*+?{] ]] && return 0
+                    if [[ -n "$lit" && -n "$_hm" ]] && (( 10#$_hm >= 1 && 10#$_hm <= 16 )); then
+                        for ((_hk = 0; _hk < 10#$_hm; _hk++)); do run+="$lit"; done
+                    fi
+                    (( ${#run} > ${#best} )) && best="$run"
+                    run=""
+                    continue
+                fi
+                lit=""
+                i=$((i + 1))
+                [[ "${p:i:1}" == [*+?{] ]] && return 0
+                (( ${#run} > ${#best} )) && best="$run"
+                run=""
+                continue ;;
+            '+')
+                i=$((i + 1))
+                [[ "${p:i:1}" == [*+?{] ]] && return 0
+                run+="$lit"
+                (( ${#run} > ${#best} )) && best="$run"
+                run=""
+                continue ;;
+        esac
+        if [[ -n "$lit" ]]; then
+            run+="$lit"
+        else
+            (( ${#run} > ${#best} )) && best="$run"
+            run=""
+        fi
+    done
+    (( ${#run} > ${#best} )) && best="$run"
+    _HRL="$best"
+    return 0
+}
+
+# _hint_first_atom ERE AOe28094AO for a `^`-anchored ERE whose first atom is required
+# (a literal, an escaped character or a bracket expression, not followed by
+# `*`, `?` or a `{0AOe280a6AO}` bound), _HFA is `^ATOM`: a regex the input's FIRST
+# CHARACTER must match for the ERE to match at all (bash `=~` without
+# REG_NEWLINE anchors `^` at the start of the string only). "" otherwise.
+_hint_first_atom () {
+    local p="$1" a="" q j
+    _HFA=""
+    [[ "$p" == '^'* ]] || return 0
+    # a top-level `|` makes the anchor apply to one branch only: no claim
+    if [[ "$p" == *'|'* ]]; then
+        local _i=0 _d=0 _c
+        while (( _i < ${#p} )); do
+            _c="${p:_i:1}"
+            case "$_c" in
+                '\') _i=$((_i + 2)); continue ;;
+                '[') _i=$((_i + 1))
+                     [[ "${p:_i:1}" == '^' ]] && _i=$((_i + 1))
+                     [[ "${p:_i:1}" == ']' ]] && _i=$((_i + 1))
+                     while (( _i < ${#p} )) && [[ "${p:_i:1}" != ']' ]]; do
+                         [[ "${p:_i:2}" == '[:' || "${p:_i:2}" == '[=' || "${p:_i:2}" == '[.' ]] && return 0
+                         _i=$((_i + 1))
+                     done ;;
+                '(') _d=$((_d + 1)) ;;
+                ')') _d=$((_d - 1)) ;;
+                '|') [[ $_d -eq 0 ]] && return 0 ;;
+            esac
+            _i=$((_i + 1))
+        done
+    fi
+    p="${p:1}"
+    case "${p:0:1}" in
+        '\')
+            [[ "${p:1:1}" == [A-Za-z0-9] || -z "${p:1:1}" ]] && return 0
+            a="${p:0:2}" ;;
+        '[')
+            j=1
+            [[ "${p:j:1}" == '^' ]] && j=$((j + 1))
+            [[ "${p:j:1}" == ']' ]] && j=$((j + 1))
+            while (( j < ${#p} )); do
+                if [[ "${p:j:2}" == '[:' || "${p:j:2}" == '[=' || "${p:j:2}" == '[.' ]]; then
+                    q="${p:j+1:1}"; j=$((j + 2))
+                    while (( j < ${#p} )) && [[ "${p:j:2}" != "$q]" ]]; do j=$((j + 1)); done
+                    (( j < ${#p} )) || return 0
+                    j=$((j + 2)); continue
+                fi
+                [[ "${p:j:1}" == ']' ]] && break
+                j=$((j + 1))
+            done
+            (( j < ${#p} )) || return 0
+            a="${p:0:j+1}" ;;
+        [A-Za-z0-9\ \#:/,=@%_-]) a="${p:0:1}" ;;
+        *) return 0 ;;
+    esac
+    q="${p:${#a}:1}"
+    case "$q" in
+        '*'|'?') return 0 ;;
+        '{') [[ "${p:${#a}+1:1}" == [1-9] ]] || return 0 ;;
+    esac
+    _HFA="^$a"
+}
+
+# _hint_presence TEXT AOe28094AO for a BIG input, one awk pass decides which hint
+# LITERALS (a `contains` pattern, or a regex's _hint_required_literal) occur
+# anywhere in TEXT: _HINT_ABSENT[literal]=1 for each one that does not. A
+# `contains` row is then answered from the map, and a regex row whose
+# required literal is absent cannot match, so its full-text bash regex is
+# skipped; every other row runs exactly as before. (Literals hold no newline,
+# so "occurs in the text" is "occurs in some line".) ~100 full-text scans of
+# a 10 MB input cost ~7 s; this pass costs one.
+declare -A _HINT_ABSENT=()
+declare -A _HINT_REQLIT=()
+declare -A _HINT_FIRSTATOM=()
+_HINT_REQLIT_OK=0
+_HINT_PRESENCE_OK=0
+_hint_presence () {
+    _HINT_ABSENT=()
+    local tool mtype pattern strategy _rest _lits="" _l
+    _HINT_FIRSTCHAR="${1:0:1}"
+    if [[ $_HINT_REQLIT_OK -eq 0 ]]; then
+        while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
+            [[ "$mtype" == regex && -n "$pattern" ]] || continue
+            _hint_required_literal "$pattern"
+            _HINT_REQLIT[$pattern]="$_HRL"
+            _hint_first_atom "$pattern"
+            _HINT_FIRSTATOM[$pattern]="$_HFA"
+        done < "$HINTS_FILE"
+        _HINT_REQLIT_OK=1
+    fi
+    local -A _seen=()
+    while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
+        [[ -z "$tool" || "$tool" == \#* || -z "$pattern" || -z "$strategy" ]] && continue
+        case "$mtype" in
+            contains) _l="$pattern" ;;
+            regex)    _l="${_HINT_REQLIT[$pattern]:-}" ;;
+            *)        continue ;;
+        esac
+        [[ -n "$_l" && "$_l" != *$'\001'* && -z "${_seen[$_l]:-}" ]] || continue
+        _seen[$_l]=1
+        _lits+="$_l"$'\n'
+    done < "$HINTS_FILE"
+    [[ -n "$_lits" ]] || return 0
+    local _absent
+    _absent="$(_fr_absent_literals "$1" "${_lits%$'\n'}")" || return 0
+    local -a _al=()
+    [[ -n "$_absent" ]] && mapfile -t _al <<< "$_absent"
+    for _l in ${_al[@]+"${_al[@]}"}; do _HINT_ABSENT[$_l]=1; done
+    _HINT_PRESENCE_OK=1
+}
+
 # Match the input against hints.tsv.
 # Sets _HINT_TOOL and _HINT_STRATEGY on a match. Returns 0 on match, 1 otherwise.
 _match_hint () {
@@ -31861,14 +32186,34 @@ _match_hint () {
     while IFS= read -r _mh_line; do
         [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; break; }
     done <<< "$text"
+    # BIG input: decide literal presence for every row in one pass (exact AOe28094AO
+    # see _hint_presence); small inputs keep the per-row full-text tests.
+    _HINT_PRESENCE_OK=0
+    if (( ${#text} > _FR_BIG_BYTES )); then _hint_presence "$text"; fi
     local tool mtype pattern strategy _rest
     while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
         [[ -z "$tool" || "$tool" == \#* ]] && continue
         [[ -z "$pattern" || -z "$strategy" ]] && continue
         case "$mtype" in
             prefix)   [[ "$_mh_first" == "$pattern"* ]] || continue ;;
-            contains) [[ "$text" == *"$pattern"* ]] || continue ;;
-            regex)    [[ "$text" =~ $pattern ]] || continue ;;
+            contains)
+                if [[ $_HINT_PRESENCE_OK -eq 1 && "$pattern" != *$'\001'* ]]; then
+                    [[ -z "${_HINT_ABSENT[$pattern]:-}" ]] || continue
+                else
+                    [[ "$text" == *"$pattern"* ]] || continue
+                fi ;;
+            regex)
+                if [[ $_HINT_PRESENCE_OK -eq 1 && -n "${_HINT_REQLIT[$pattern]:-}" ]] \
+                   && [[ -n "${_HINT_ABSENT[${_HINT_REQLIT[$pattern]}]:-}" ]]; then
+                    continue
+                fi
+                # an anchored pattern whose first atom rejects the first
+                # character cannot match anywhere
+                if [[ $_HINT_PRESENCE_OK -eq 1 && -n "${_HINT_FIRSTATOM[$pattern]:-}" ]]; then
+                    local _hfa_re="${_HINT_FIRSTATOM[$pattern]}"
+                    [[ "$_HINT_FIRSTCHAR" =~ $_hfa_re ]] || continue
+                fi
+                [[ "$text" =~ $pattern ]] || continue ;;
             *)        continue ;;
         esac
         _HINT_TOOL="$tool"
@@ -32041,6 +32386,152 @@ _should_run_strategy () {
     return 0
 }
 
+# ---------------------------------------------------------------------------
+# BOUNDED DETECTION SAMPLE (perf, very large inputs).
+#
+# Detection used to hand every detector the WHOLE input, and most detectors
+# walk it line by line in bash: a 10 MB table spent ~240 s just rejecting
+# ~245 strategies before the winner ran. Above _FR_SAMPLE_BYTES the detectors
+# instead see a SAMPLE AOe28094AO the first _FR_SAMPLE_HEAD lines (at most
+# _FR_SAMPLE_HEAD_BYTES) plus the last _FR_SAMPLE_TAIL lines (at most
+# _FR_SAMPLE_TAIL_BYTES) AOe28094AO whole lines only, newline-joined exactly as
+# `$(AOe280a6AO)` would hand them over. A strategy that ACCEPTS the sample is then
+# re-run on the full text (_detect_strategy), so the confidence that is
+# reported and compared to the threshold is always the full-text one, and a
+# strategy the full text rejects falls through to the next candidate exactly
+# as before. Sampling can therefore only change a winner by making an earlier
+# strategy REJECT a sample it would have accepted in full; the corpus proofs
+# (see tests/test_detect_sample.sh + CHANGELOG) measure that.
+#
+# Never sampled (the full text is used):
+#   * inputs at or below _FR_SAMPLE_BYTES (every corpus input AOe28094AO they top out
+#     near 2 KB AOe28094AO so ordinary captures are untouched);
+#   * for the DOCUMENT-GRAMMAR strategies (_FR_DOC_STRATEGIES: json,
+#     json-array, jsonl, xml, har, yaml, toml; a plugin strategy that parses
+#     whole documents adds its name there) when the first non-blank byte is
+#     `{`, `[` or `<`: cutting a document in the middle turns a valid one into
+#     an invalid one. Every OTHER detector screens the sample of such an input
+#     too (and is re-confirmed on the full text): under confidence ranking the
+#     ~135 tool-specific detectors all run, and walking a 10 MB JSON document
+#     in bash cost them ~74 s together;
+#   * inputs where head + tail would already cover every line, or where the
+#     head budget cannot hold even one whole line.
+# Knobs (internal, like _FR_BIG_BYTES): export _FR_SAMPLE_BYTES=0 samples
+# every input (how the equivalence proofs force it), =-1 disables sampling.
+# The sample applies to EVERY detector's input, so it is independent of how
+# the winner is chosen (priority order today, confidence ranking tomorrow):
+# whatever the selection, a candidate's confidence is its full-text one.
+# ---------------------------------------------------------------------------
+_FR_SAMPLE_BYTES="${_FR_SAMPLE_BYTES:-32768}"
+_FR_SAMPLE_HEAD="${_FR_SAMPLE_HEAD:-120}"
+_FR_SAMPLE_TAIL="${_FR_SAMPLE_TAIL:-40}"
+_FR_SAMPLE_HEAD_BYTES="${_FR_SAMPLE_HEAD_BYTES:-16384}"
+_FR_SAMPLE_TAIL_BYTES="${_FR_SAMPLE_TAIL_BYTES:-4096}"
+_FR_DOC_STRATEGIES="${_FR_DOC_STRATEGIES:- json json-array jsonl xml har yaml toml }"
+_DET_SAMPLED=0
+_DET_DOC=0
+_DET_TEXT=""
+
+# _detect_sample_build AOe28094AO set _DET_TEXT (what the detectors see) and
+# _DET_SAMPLED (1 when it is a proper sample of $text) for the current input.
+_detect_sample_build () {
+    _DET_SAMPLED=0
+    _DET_DOC=0
+    _DET_TEXT=""
+    [[ "$_FR_SAMPLE_BYTES" =~ ^[0-9]+$ ]] || return 0
+    (( ${#text} > _FR_SAMPLE_BYTES )) || return 0
+    local _lead="${text#"${text%%[![:space:]]*}"}"
+    case "${_lead:0:1}" in
+        '') return 0 ;;
+        '{'|'['|'<') _DET_DOC=1 ;;
+    esac
+    local _s
+    _s="$(cat <<< "$text" | awk -v H="$_FR_SAMPLE_HEAD" -v T="$_FR_SAMPLE_TAIL" \
+            -v HB="$_FR_SAMPLE_HEAD_BYTES" -v TB="$_FR_SAMPLE_TAIL_BYTES" '
+        # head: a contiguous run of whole lines from line 1 within H lines/HB bytes
+        !hstop {
+            if (NR <= H && hb + length($0) + 1 <= HB) { hd[NR] = $0; hb += length($0) + 1; nh = NR; next }
+            hstop = 1
+        }
+        # tail: a ring of the last T lines
+        T > 0 { rg[NR % T] = $0 }
+        END {
+            if (nh == 0) exit 0                   # no whole line fits: do not sample
+            # tail lines, walking back from the end within T lines / TB bytes
+            nt = 0; tb = 0
+            for (i = NR; i > nh && nt < T; i--) {
+                l = rg[i % T]
+                if (tb + length(l) + 1 > TB) break
+                tb += length(l) + 1; nt++
+            }
+            if (nh + nt >= NR) exit 0             # head + tail cover it all
+            printf "S"
+            for (i = 1; i <= nh; i++) printf "\n%s", hd[i]
+            for (i = NR - nt + 1; i <= NR; i++) printf "\n%s", rg[i % T]
+        }')" || return 0
+    [[ "$_s" == S$'\n'* ]] || return 0
+    _s="${_s#S$'\n'}"
+    # $(...) semantics: the detectors used to see text without trailing newlines
+    _s="${_s%"${_s##*[!$'\n']}"}"
+    [[ -n "$_s" ]] || return 0
+    _DET_TEXT="$_s"
+    _DET_SAMPLED=1
+}
+
+# ---------------------------------------------------------------------------
+# FILE LANE (perf, very large inputs).
+#
+# Every expansion of a big bash variable costs time proportional to its size
+# (bash copies and quote-scans the string: ~15 ns/byte AOe28094AO a 27 MB `output`
+# costs ~0.4 s per mention), and the result of a 10 MB capture used to make a
+# dozen such trips: `$(strategy_extract AOe280a6AO)`, _count_lines, the truncation
+# guard, store, dedup, the prefix strip and the formatter each took the text
+# as an argument and handed a new copy back. Above _FR_LANE_BYTES the result
+# instead goes to a FILE and stays there: strategy_extract writes it, and the
+# count, the truncation guard and store read it; store appends to a lane
+# output file in place of the `output` variable. Every step runs the same awk
+# program as its BIG-variable twin, so the bytes are identical.
+#
+# At the end of run_auto_strategies the lane output is copied back into
+# `output` (byte for byte) unless the caller set _XL_KEEP=1 AOe28094AO only the plain
+# single-file `-f tsv` path does (see _xl_can_keep / _xl_finalize), where dedup,
+# the prefix strip and the TSV formatter then run file to file too.
+# Knob: export _FR_LANE_BYTES=0 routes every input through the lane (how its
+# equivalence is proven over the corpus); -1 disables it.
+# ---------------------------------------------------------------------------
+_FR_LANE_BYTES="${_FR_LANE_BYTES:-65536}"
+_XL_OUT=""
+_XL_DIR=""
+_XL_KEEP=0
+
+# _xl_begin AOe28094AO open the lane for the current input when it is big enough
+# (its files live in the private scratch directory, see _fr_scratch).
+_xl_begin () {
+    _XL_OUT=""
+    [[ "$_FR_LANE_BYTES" =~ ^[0-9]+$ ]] || return 0
+    (( ${#text} > _FR_LANE_BYTES )) || return 0
+    _fr_scratch || return 0
+    _XL_DIR="$_FR_SCRATCH"
+    _XL_OUT="$_XL_DIR/lane.output"
+    : > "$_XL_OUT"
+}
+
+# _xl_materialize AOe28094AO copy the lane output into `output` (exactly: it is a run
+# of newline-terminated lines, as the variable form would have been) and
+# close the lane.
+_xl_materialize () {
+    [[ -n "$_XL_OUT" ]] || return 0
+    local _xm
+    _xm="$(cat "$_XL_OUT"; printf .)"
+    output+="${_xm%.}"
+    _XL_OUT=""
+}
+
+# _xl_has_content FILE AOe28094AO does FILE hold a non-empty line?
+_xl_has_content () {
+    awk 'length($0) { f = 1; exit } END { exit !f }' "$1"
+}
+
 # Run strategy detection phase.
 # Returns: 0 if strategy detected (or replay/no-detect), 1 if should skip
 # Sets: _STRATEGY_CONFIDENCE (via strategy_detect)
@@ -32059,6 +32550,25 @@ _detect_strategy () {
     # Cleared before each detect so a per-tool report name set by one strategy
     # (columnar-specs) never leaks to the next strategy's dispatch record.
     _STRATEGY_REPORT_NAME=""
+    local _det_screen="${_DET_SAMPLED:-0}"
+    if [[ "$_det_screen" -eq 1 && "${_DET_DOC:-0}" -eq 1 ]]; then
+        # A document-shaped input: grammar strategies see it whole.
+        if [[ "$_FR_DOC_STRATEGIES" == *" $strategy_name "* ]]; then
+            _det_screen=0
+        fi
+    fi
+    if [[ "$_det_screen" -eq 1 ]]; then
+        # Large input: screen on the bounded sample, then confirm on the full
+        # text (see _detect_sample_build) AOe28094AO the full-text run decides and sets
+        # the confidence (and any detectAOe28692AOextract state) exactly as before.
+        if ! strategy_detect "$_DET_TEXT" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
+            _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable (sample)"
+            return 1
+        fi
+        _STRATEGY_CONFIDENCE=50
+        _STRATEGY_CONFIDENCE_REASON=""
+        _STRATEGY_REPORT_NAME=""
+    fi
     if ! strategy_detect "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
         _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable"
         return 1
@@ -32106,7 +32616,7 @@ _detect_strategy () {
 #
 # Returns 0 (truncated AOe28094AO reject) only when all gates agree; 1 otherwise.
 _parse_is_truncated () {
-    local _res="$1" _m="$2" _strat="${3:-}"
+    local _res="$1" _m="$2" _strat="${3:-}" _resf="${4:-}"
     [[ "${_TG_EXEMPT:-0}" -eq 1 ]] && return 1
     [[ -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && return 1
     # A structured-grammar parser is AUTHORITATIVE about its own format: JSON
@@ -32120,7 +32630,7 @@ _parse_is_truncated () {
     esac
     # Non-blank input lines, cached per input (reset in run_auto_strategies).
     if [[ -z "${_TG_NB_LINES:-}" ]]; then
-        _TG_NB_LINES=$(printf '%s\n' "$text" | grep -c '[^ \t]' || true)
+        _TG_NB_LINES=$(cat <<< "$text" | grep -c '[^ \t]' || true)
     fi
     # Too small to call, or the parse is not small relative to the input.
     [[ "$_TG_NB_LINES" -ge 8 ]] || return 1
@@ -32132,7 +32642,7 @@ _parse_is_truncated () {
     # encodes value-internal spaces as `_` AOe28094AO the same normalisation the parse
     # scorer uses, for the same symmetry reasons.
     local _cov
-    _cov=$(awk '
+    local _tg_prog='
         function norm(s) {
             gsub(/^[^A-Za-z0-9]+/, "", s)
             gsub(/[^A-Za-z0-9]+$/, "", s)
@@ -32159,7 +32669,13 @@ _parse_is_truncated () {
             if (hit * 2 > sig) cov++
         }
         END { if (nl == 0) print 100; else printf "%d\n", (cov * 100) / nl }
-    ' <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    '
+    if [[ -n "$_resf" ]]; then
+        # file lane: the result is already a file
+        _cov=$(awk "$_tg_prog" "$_resf" <(printf '%s\n' "$text"))
+    else
+        _cov=$(awk "$_tg_prog" <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    fi
     [[ "$_cov" =~ ^[0-9]+$ ]] || return 1
     _TG_LAST_COVERAGE="$_cov"
     [[ "$_cov" -lt 50 ]]
@@ -32177,8 +32693,17 @@ _extract_and_store () {
         return 0
     fi
     [[ $_OPT_profile -eq 1 ]] && local _prof_start=$SECONDS
-    local result _ext_rc=0
-    result=$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}") || _ext_rc=$?
+    local result _ext_rc=0 _xl_res=""
+    if [[ -n "${_XL_OUT:-}" ]]; then
+        # FILE LANE: the result goes to a file (a `( AOe280a6AO )` subshell with -e
+        # cleared, exactly as the `$( AOe280a6AO )` form runs it) and stays there.
+        _xl_res="$_XL_DIR/lane.result"
+        ( set +e; strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" ) > "$_xl_res" || _ext_rc=$?
+        result=""
+        _xl_has_content "$_xl_res" && result=1
+    else
+        result=$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}") || _ext_rc=$?
+    fi
     if [[ $_ext_rc -ne 0 ]]; then
         _log_debug "Strategy '$strategy_name': strategy_extract exited with code $_ext_rc"
     fi
@@ -32187,8 +32712,12 @@ _extract_and_store () {
         echo "[profile] Strategy '$strategy_name': ${_prof_elapsed}s" >&2
     fi
     if [[ -n "$result" ]]; then
-        _count_lines "$result"
-        if _parse_is_truncated "$result" "$_LINE_COUNT" "$strategy_name"; then
+        if [[ -n "$_xl_res" ]]; then
+            _LINE_COUNT=$(awk '$0 != "" { n++ } END { print n + 0 }' "$_xl_res")
+        else
+            _count_lines "$result"
+        fi
+        if _parse_is_truncated "$result" "$_LINE_COUNT" "$strategy_name" "$_xl_res"; then
             _log_debug "Strategy '$strategy_name': truncation guard rejected claim ($_LINE_COUNT fields from $_TG_NB_LINES lines, ${_TG_LAST_COVERAGE}% line coverage)"
             [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
             near_miss_strategies+="${strategy_name}(truncated)"
@@ -32199,7 +32728,11 @@ _extract_and_store () {
         # each tool keeps its own dataset identity instead of collapsing to
         # `columnar-specs`. Falls back to the file's strategy name.
         local report_name="${_STRATEGY_REPORT_NAME:-$strategy_name}"
-        store "$result" "STRAT-${report_name}"
+        if [[ -n "$_xl_res" ]]; then
+            _store_file "$_xl_res" "STRAT-${report_name}"
+        else
+            store "$result" "STRAT-${report_name}"
+        fi
         strategies_matched=$((strategies_matched + 1))
         # ENV-200: record the first strategy that produced output (the dispatch
         # winner) + its confidence, for the opt-in --emit-meta line.
@@ -32230,7 +32763,51 @@ _extract_and_store () {
 
 # Run auto-detect or single-strategy extraction.
 # Sets globals: output, matched_strategies, near_miss_strategies, strategies_tried, etc.
+# A file-lane run (see _xl_begin) leaves its output in `output` like any other
+# run, unless the caller asked to keep it in the lane file (_XL_KEEP=1).
+# CONFIDENCE CEILINGS (perf, with --rank confidence). A strategy's ceiling is
+# the highest _STRATEGY_CONFIDENCE its detect can ever set: its
+# `## Confidence-Max: N` header when it computes a score, else the largest
+# literal it assigns (and 50, the default _detect_strategy starts from). A
+# computed assignment without the header makes the ceiling 100 AOe28094AO never pruned.
+# Plugin strategies are scanned the same way. Cached per file per process.
+declare -gA _CEIL_CACHE=()
+_strategy_ceiling () {
+    local f="$1"
+    if [[ -z "${_CEIL_CACHE[$f]+x}" ]]; then
+        _CEIL_CACHE[$f]="$(awk '
+            /^## Confidence-Max:/ { hdr = $3 + 0; have = 1 }
+            {
+                line = $0; sub(/^[ \t]+/, "", line)
+                if (line ~ /^#/) next
+                while ((i = index(line, "_STRATEGY_CONFIDENCE=")) > 0) {
+                    rest = substr(line, i + 21)
+                    if (match(rest, /^[0-9]+/)) {
+                        v = substr(rest, 1, RLENGTH) + 0; if (v > mx) mx = v
+                    } else computed = 1
+                    line = rest
+                }
+            }
+            END {
+                if (have) { print hdr; exit }
+                if (computed) { print 100; exit }
+                print (mx > 50 ? mx : 50)
+            }' "$f" 2>/dev/null)"
+        [[ "${_CEIL_CACHE[$f]}" =~ ^[0-9]+$ ]] || _CEIL_CACHE[$f]=100
+    fi
+    _CEIL="${_CEIL_CACHE[$f]}"
+}
+
 run_auto_strategies () {
+    local _ras_rc=0
+    _run_auto_strategies_body || _ras_rc=$?
+    if [[ -n "${_XL_OUT:-}" && "${_XL_KEEP:-0}" -ne 1 ]]; then
+        _xl_materialize
+    fi
+    return $_ras_rc
+}
+
+_run_auto_strategies_body () {
     if [[ ! -d "$STRATEGIES_DIR" ]]; then
         _log_error "Strategies directory not found: $STRATEGIES_DIR"
         exit 1
@@ -32246,6 +32823,13 @@ run_auto_strategies () {
     # of THIS input, and batch mode reuses the process across inputs.
     _TG_NB_LINES=""
     _TG_LAST_COVERAGE=""
+    # Bounded detection sample for very large inputs (per input: batch mode
+    # reuses the process). Pinned/replayed runs skip detection-by-sample.
+    _DET_SAMPLED=0; _DET_TEXT=""
+    if [[ -z "$_OPT_strategy" && -z "$_OPT_replay" ]]; then
+        _detect_sample_build
+    fi
+    _xl_begin
 
     # Collect strategy directories
     _collect_strategy_dirs
@@ -32306,6 +32890,21 @@ run_auto_strategies () {
     # always use the single pass.
     local _eas_rank=1 _eas_cands="" _ck _pk
     [[ "${_OPT_rank:-confidence}" == priority || -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && _eas_rank=0
+    # PRUNING (exact). When only the single best candidate is wanted
+    # (--max-strategies 1 / --first-match, which is how provost calls the
+    # engine), a detector whose CEILING (see _strategy_ceiling) cannot beat the
+    # best confidence seen so far is skipped without being sourced: the loop
+    # walks priority order, so a later strategy that merely TIES the best
+    # loses the tie anyway. If the top candidate then fails to extract, the
+    # whole pass is redone without pruning (_EAS_NOPRUNE), so the result is
+    # always exactly the unpruned ranking. This is what keeps a 10 MB JSON
+    # document fast: once json-array scores 85, no generic parser (<= 80)
+    # walks the text.
+    local _eas_prune=0 _eas_pruned=0 _eas_best=-1
+    if [[ $_eas_rank -eq 1 && "${_EAS_NOPRUNE:-0}" -ne 1 ]] \
+       && [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
+        _eas_prune=1
+    fi
 
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
@@ -32324,6 +32923,14 @@ run_auto_strategies () {
         fi
 
         _should_run_strategy "$strategy_name" || continue
+
+        if [[ $_eas_prune -eq 1 && $_eas_best -ge 0 ]]; then
+            _strategy_ceiling "$strategy_file"
+            if (( _CEIL <= _eas_best )); then
+                _eas_pruned=$((_eas_pruned + 1))
+                continue
+            fi
+        fi
 
         # Check for deprecated strategy
         read_strategy_metadata "$strategy_file"
@@ -32379,6 +32986,7 @@ run_auto_strategies () {
             _ck="000$((100 - _STRATEGY_CONFIDENCE))"
             _pk="000${_priority}"
             _eas_cands+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+            (( _STRATEGY_CONFIDENCE > _eas_best )) && _eas_best=$_STRATEGY_CONFIDENCE
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             continue
@@ -32401,6 +33009,7 @@ run_auto_strategies () {
             done <<< "$_eas_cands"
             _log_debug "Ranked candidates: $_dbg_c"
         fi
+        local _eas_redo=0
         while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
             [[ -z "$strategy_file" ]] && continue
             strategy_priority="$((10#$_pk))"
@@ -32418,7 +33027,17 @@ run_auto_strategies () {
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             if [[ $_eas_rc -eq 2 ]]; then break; fi
+            # The top candidate yielded nothing. With detectors pruned, one of
+            # them might outrank whatever comes next: redo the pass unpruned.
+            if [[ $_eas_pruned -gt 0 ]]; then _eas_redo=1; break; fi
         done <<< "$_eas_cands"
+        if [[ $_eas_redo -eq 1 ]]; then
+            [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
+            _log_debug "Top candidate failed after pruning $_eas_pruned detector(s): redoing unpruned"
+            local _eas_rrc=0
+            _EAS_NOPRUNE=1 _run_auto_strategies_body || _eas_rrc=$?
+            return $_eas_rrc
+        fi
     fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0
@@ -32518,7 +33137,7 @@ run_explain_mode () {
 }
 ===END===
 ===FILE-ESC: extract/lib/_dispatch.sh===
-===META: mode=664 sha256=580f922b638a8262253598260fa5d4d8d98ec7a1ee8b79851076e7a9f9825997===
+===META: mode=664 sha256=a471e585dd1e2d0550d4d474de769b142a52a31fbd5c278bcb4ae931c3932cc0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -32926,6 +33545,57 @@ _batch_emit_summary () {
     echo "$_sum_json"
 }
 
+# _xl_can_keep AOe28094AO may the single-file run keep a file-lane result in its file
+# (see _xl_begin) through post-processing and output? Only in the plain
+# configuration provost uses (`-f tsv`, no field selection, no rename /
+# pattern / exclude / aggregate / sort / count / names / raw / cmdline /
+# interactive / quiet / verbose / auto-tune), where _xl_finalize is exactly
+# run_postprocess + run_output_mode. Anything else takes the variable path.
+_xl_can_keep () {
+    [[ "$_OPT_format" == tsv && $_OPT_format_explicit -eq 1 ]] || return 1
+    [[ $_OPT_auto_tune -eq 0 && -z "$_OPT_chain" && $_OPT_multi -eq 0 ]] || return 1
+    [[ -z "$_OPT_rename" && -z "$_OPT_field_pattern" && ${#_OPT_exclude_fields[@]} -eq 0 ]] || return 1
+    [[ $_OPT_aggregate -eq 0 && $_OPT_verbose -eq 0 && $_OPT_raw -eq 0 && -z "${fields:-}" ]] || return 1
+    [[ $_OPT_cmdline -eq 0 && $_OPT_count -eq 0 && $_OPT_names -eq 0 && $_OPT_sort -eq 0 ]] || return 1
+    [[ $_OPT_interactive -eq 0 && $_OPT_quiet -eq 0 ]] || return 1
+    return 0
+}
+
+# _xl_finalize AOe28094AO run_postprocess + run_output_mode for a kept file-lane
+# result, file to file: dedup (_dedup_pipe), the prefix strip (_fr_strip_awk)
+# and the TSV formatter (_format_tsv_awk) are the very filters the BIG
+# variable paths run, so the output is byte-identical.
+_xl_finalize () {
+    local _f="$_XL_OUT"
+    _XL_OUT=""
+    # --- run_postprocess (auto-tune is off in this configuration) ---
+    if [[ $_OPT_no_dedup -eq 0 ]] && _xl_has_content "$_f"; then
+        _dedup_pipe < "$_f" > "$_XL_DIR/lane.dedup"
+        if _xl_has_content "$_XL_DIR/lane.dedup"; then
+            _f="$_XL_DIR/lane.dedup"
+        else
+            _log_debug "Deduplication produced empty output; using raw output"
+        fi
+    fi
+    if [[ $_OPT_verbose -eq 1 || $_OPT_debug -eq 1 ]]; then
+        _log_info "Strategies: ${strategies_tried:-0} tried, ${strategies_matched:-0} matched, ${total_fields:-0} fields extracted"
+    fi
+    # --- run_output_mode (-f tsv, all fields) ---
+    if ! _xl_has_content "$_f"; then
+        output=""            # the no-fields exits, exactly as run_output_mode takes them
+        run_output_mode
+        return 0
+    fi
+    if [[ -n "$_OPT_output" ]]; then
+        if ! exec > "$_OPT_output"; then
+            _log_error "Cannot open output file: $_OPT_output (check path and permissions)"
+            exit 1
+        fi
+    fi
+    _fr_strip_awk < "$_f" | _format_tsv_awk
+    _output_tty_summary
+}
+
 # Post-processing pipeline: dedup, rename, aggregate, verbose summary.
 # Reads/modifies: output, _OPT_*, matched_strategies, near_miss_strategies, etc.
 run_postprocess () {
@@ -32990,7 +33660,11 @@ run_postprocess () {
 run_output_mode () {
     # Exit if no output was produced
     local _has_content=0
-    if [[ -n "$output" ]]; then
+    if [[ -n "$output" && "${output:0:1}" != $'\n' ]]; then
+        # (first line non-empty: the answer without feeding the whole output
+        # through a here-string AOe28094AO seconds on a 10 MB capture)
+        _has_content=1
+    elif [[ -n "$output" ]]; then
         while IFS= read -r _oline; do
             if [[ -n "$_oline" ]]; then _has_content=1; break; fi
         done <<< "$output"
@@ -33139,7 +33813,11 @@ run_output_mode () {
         display "$output"
     fi
 
-    # One-line extraction summary on TTY (informational, not part of data output)
+    _output_tty_summary
+}
+
+# One-line extraction summary on TTY (informational, not part of data output)
+_output_tty_summary () {
     if [[ -t 2 ]] && [[ $_OPT_quiet -eq 0 ]] && [[ $_OPT_count -eq 0 ]] && [[ $_OPT_names -eq 0 ]]; then
         local _sum_fields="${total_fields:-0}"
         local _sum_strats="${strategies_matched:-0}"
@@ -33722,8 +34400,8 @@ run_multi_mode () {
     return 0
 }
 ===END===
-===FILE: extract/lib/_format.sh===
-===META: mode=664 sha256=c14789c996d84217af5b36727001ba6502205dbf22c4c7c8e5e796f630e9408b===
+===FILE-ESC: extract/lib/_format.sh===
+===META: mode=664 sha256=1d7eb34bcd32e35259138ae7411f7c03e7feec9d2dcaf8d5e4b498400435f597===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -33838,22 +34516,7 @@ format_tsv () {
         # BIG: the same two rows from one awk pass (name = up to the first
         # space, value = after it; a space-less line is both, as in
         # _parse_field_line)
-        printf '%s\n' "$input" | awk '
-            $0 != "" { n++; L[n] = $0 }
-            END {
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
-                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
-                    printf "%s%s", (i > 1 ? "\t" : ""), nm
-                }
-                printf "\n"
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
-                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
-                    printf "%s%s", (i > 1 ? "\t" : ""), v
-                }
-                printf "\n"
-            }'
+        printf '%s\n' "$input" | _format_tsv_awk
         line=""
         return 0
     fi
@@ -33873,6 +34536,27 @@ format_tsv () {
     local IFS=$'\t'
     echo "${_ft_names[*]}"
     echo "${_ft_values[*]}"
+}
+
+# _format_tsv_awk < field-lines AOe28094AO format_tsv's BIG path as a stdin filter
+# (the file lane feeds it a file directly).
+_format_tsv_awk () {
+        awk '
+            $0 != "" { n++; L[n] = $0 }
+            END {
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
+                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
+                    printf "%s%s", (i > 1 ? "\t" : ""), nm
+                }
+                printf "\n"
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
+                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
+                    printf "%s%s", (i > 1 ? "\t" : ""), v
+                }
+                printf "\n"
+            }'
 }
 
 # Format extracted fields as plain key-value pairs.
@@ -34372,7 +35056,7 @@ format_xml () {
 # _NTH_RESULT        string  -- _interactive.sh: _interactive_get_nth() result
 ===END===
 ===FILE-ESC: extract/lib/_helpers.sh===
-===META: mode=664 sha256=f1a5855671f0897be66ad9ab7a762ab8e8168fba39608a9df5e39dd12e0a2124===
+===META: mode=664 sha256=d37743c8486f8006d34d865d91c4650b15ef6fd71ea35293423836528ba8e9c7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -34502,8 +35186,10 @@ _CT_CO=$'\x1f'
 clean_text () {
     local input="$1"
 
-    # Return cached result if available
-    if [[ $_CLEAN_TEXT_DONE -eq 1 ]]; then
+    # Return cached result if available AOe28094AO for THIS input only (keyed on the
+    # text, so a detector handed the bounded detection sample can never leave
+    # a sample-derived result behind for the full-text extract).
+    if [[ $_CLEAN_TEXT_DONE -eq 1 && "$input" == "${_CLEAN_TEXT_KEY-}" ]]; then
         _CLEAN_TEXT_RESULT="$_CLEAN_TEXT_CACHE"
         return
     fi
@@ -34541,6 +35227,7 @@ clean_text () {
     result="${result%$'\n'}"
 
     _CLEAN_TEXT_CACHE="$result"
+    _CLEAN_TEXT_KEY="$input"
     _CLEAN_TEXT_DONE=1
     _CLEAN_TEXT_RESULT="$result"
 }
@@ -34658,8 +35345,43 @@ _list_explode () {
 #   fullwidth digit/colon mapping, ANSI/OSC strip, BEL/BS strip,
 #   `== section ==` banner drop, and the leading-chrome strip (_lc_strip).
 # ---------------------------------------------------------------------------
+# Gate presence for preprocess_input_text: every normalisation step below is
+# gated on "the text contains LITERAL". On a BIG text those ~20 full-text
+# pattern scans cost seconds (bash pattern matching is ~10 ns/byte), so one
+# awk pass answers them all up front (_pp_presence), and _pp_in reads the
+# answer AOe28094AO exactly the substring test it replaces. A step that REWRITES the
+# text clears _PP_OK, and every later gate falls back to the direct test.
+_PP_LITS=$'\r\n\013\n\014\n\302\205\n\342\200\250\n\342\200\251\n\302\240\n\342\200\n\342\201\237\n\343\200\200\n\342\224\200\n\342\224\201\n\342\225\220\n\342\200\213\n\357\274\n\033[0m\033[\n\033\n\007\n\010\n%]\n\302\257\n\\\n== '
+_PP_OK=0
+declare -A _PP_PRESENT=()
+_pp_presence () {
+    _PP_OK=0
+    _PP_PRESENT=()
+    (( ${#text} > _FR_BIG_BYTES )) || return 0
+    local _pp_found _pp_l
+    _pp_found="$(_fr_absent_literals "$text" "$_PP_LITS")" || return 0
+    local -a _pp_lits=() _pp_abs=()
+    local -A _pp_isabs=()
+    mapfile -t _pp_lits <<< "$_PP_LITS"
+    [[ -n "$_pp_found" ]] && mapfile -t _pp_abs <<< "$_pp_found"
+    for _pp_l in ${_pp_abs[@]+"${_pp_abs[@]}"}; do _pp_isabs[$_pp_l]=1; done
+    for _pp_l in "${_pp_lits[@]}"; do
+        [[ -n "${_pp_isabs[$_pp_l]:-}" ]] || _PP_PRESENT[$_pp_l]=1
+    done
+    _PP_OK=1
+}
+# _pp_in LITERAL AOe28094AO does $text contain LITERAL? (from _pp_presence when valid)
+_pp_in () {
+    if [[ $_PP_OK -eq 1 ]]; then
+        [[ -n "${_PP_PRESENT[$1]:-}" ]]
+    else
+        [[ "$text" == *"$1"* ]]
+    fi
+}
+
 preprocess_input_text () {
     local local_vt_to _banner_out _bl _lc_first
+    _pp_presence
     # Normalise alternate line terminators to \n so record splitting AOe28094AO which keys on
     # \n throughout AOe28094AO sees every logical line. Covers Windows CRLF, bare-CR (classic
     # Mac), vertical-tab / form-feed page breaks, and the Unicode line separators
@@ -34674,8 +35396,9 @@ preprocess_input_text () {
     # and becomes a SPACE, keeping the row whole. Only in a \n-less capture (VT as
     # the sole line separator AOe28094AO the adversarial breaker this block was built for)
     # does VT map to \n.
-    if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
-          || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
+    if _pp_in $'\r' || _pp_in $'\013' || _pp_in $'\014' \
+          || _pp_in $'\302\205' || _pp_in $'\342\200\250' || _pp_in $'\342\200\251'; then
+        _PP_OK=0
         local_vt_to=$'\n'
         [[ "$text" == *$'\n'* ]] && local_vt_to=' '
         text="$(printf '%s' "$text" | sed 's/\r$//')"
@@ -34731,8 +35454,9 @@ preprocess_input_text () {
     # space (U+3000) CJK tables pad with. Gated on such a byte being present; the
     # U+2028/29 line separators were already mapped to \n above, and curly quotes
     # (U+2018-201D) fall outside the mapped ranges.
-    if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342\201\237'* \
-          || "$text" == *$'\343\200\200'* ]]; then
+    if _pp_in $'\302\240' || _pp_in $'\342\200' || _pp_in $'\342\201\237' \
+          || _pp_in $'\343\200\200'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
     fi
 
@@ -34747,7 +35471,8 @@ preprocess_input_text () {
     # line-anchored full match means every byte on the line must be one of
     # them AOe28094AO a corner byte anywhere disqualifies the line. Gated on the lead
     # sequences being present, a no-op otherwise.
-    if [[ "$text" == *$'\342\224\200'* || "$text" == *$'\342\224\201'* || "$text" == *$'\342\225\220'* ]]; then
+    if _pp_in $'\342\224\200' || _pp_in $'\342\224\201' || _pp_in $'\342\225\220'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'/^[ \t]*[\342\224\225\200\201\220 \t]\\{1,\\}$/ { s/\342\224\200/-/g; s/\342\224\201/-/g; s/\342\225\220/-/g; }')"
     fi
 
@@ -34756,7 +35481,8 @@ preprocess_input_text () {
     # compares unequal to its plain form and pollutes the melted field name. Only
     # ZWSP is dropped; ZWNJ/ZWJ (U+200C/D) are orthographically REAL (Farsi
     # half-space, emoji family joins) and stay. Gated on the byte pair.
-    if [[ "$text" == *$'\342\200\213'* ]]; then
+    if _pp_in $'\342\200\213'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\342\200\213//g')"
     fi
 
@@ -34764,7 +35490,8 @@ preprocess_input_text () {
     # colon (U+FF1A) to their ASCII forms so numeric-contrast header detection and
     # `key: value` splitting see them the way a reader does. Gated on the FF-block
     # lead bytes being present.
-    if [[ "$text" == *$'\357\274'* ]]; then
+    if _pp_in $'\357\274'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\357\274\220/0/g; s/\357\274\221/1/g; s/\357\274\222/2/g; s/\357\274\223/3/g; s/\357\274\224/4/g; s/\357\274\225/5/g; s/\357\274\226/6/g; s/\357\274\227/7/g; s/\357\274\230/8/g; s/\357\274\231/9/g; s/\357\274\232/:/g')"
     fi
 
@@ -34778,7 +35505,8 @@ preprocess_input_text () {
     # protects the counter-shapes AOe28094AO a space-aligned table whose one cell is
     # recolored mid-value (`ESC[33m10ESC[0mESC[36m01ESC[0m` inside "1001"),
     # gauge bars, and box tables all carry real space runs and pass untouched.
-    if [[ "$text" == *$'\033[0m\033['* ]]; then
+    if _pp_in $'\033[0m\033['; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | awk '
             BEGIN { esc = sprintf("%c", 27) }
             {
@@ -34801,7 +35529,8 @@ preprocess_input_text () {
     # true no-op AOe28094AO no subprocess AOe28094AO for the overwhelming majority of inputs that carry
     # none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
     # OSC form (ESC ] AOe280a6AO BEL) and bare two-byte escapes.
-    if [[ "$text" == *$'\033'* ]]; then
+    if _pp_in $'\033'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
     fi
 
@@ -34810,7 +35539,8 @@ preprocess_input_text () {
     # Runs AFTER the ANSI strip: BEL terminates an OSC sequence, so deleting it
     # first would orphan `ESC]AOe280a6AOBEL` sequences the OSC rule needs intact. Gated on
     # presence, a no-op otherwise.
-    if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
+    if _pp_in $'\007' || _pp_in $'\010'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | tr -d '\007\010')"
     fi
 
@@ -34828,7 +35558,8 @@ preprocess_input_text () {
     # is gated on a `%]` byte pair AOe28094AO the progress-percent tail AOe28094AO so ordinary
     # input never pays the awk pass. The interior-\r flavor of the same redraw
     # is handled at the line-terminator step above.
-    if [[ "$text" == *'%]'* ]]; then
+    if _pp_in '%]'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | awk '
             {
                 line = $0; weld = 0
@@ -34922,7 +35653,7 @@ preprocess_input_text () {
     # `set -e`, so every count below is guarded AOe28094AO an unguarded one killed the
     # engine outright on any input with no art.
     local _art_bs='\'
-    if [[ "$text" == *$'\302\257'* || "$text" == *"$_art_bs"* ]]; then
+    if _pp_in $'\302\257' || _pp_in "$_art_bs"; then
         local _art_set=" /${_art_bs}_"$'\302\257' _art_re _art_only_re _art_n=0 _art_only=0
         _art_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*  +[^ ]"
         _art_only_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*$"
@@ -34931,6 +35662,7 @@ preprocess_input_text () {
         if [[ ${_art_n:-0} -ge 2 && $((${_art_n:-0} + ${_art_only:-0})) -ge 3 ]]; then
             # `\%AOe280a6AO%d` for the delete address: the pattern itself contains `/`,
             # so the usual `/AOe280a6AO/d` form would end the address mid-regex.
+            _PP_OK=0
             text="$(printf '%s' "$text" | LC_ALL=C sed -E \
                 -e "\\%${_art_only_re}%d" \
                 -e "s%^([${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*)  +%%")"
@@ -34943,7 +35675,17 @@ preprocess_input_text () {
     # (`=== SET ===`, `====== JOB MAP ======`) are GROUP-LABEL banners that the
     # embedded-table / kv-under-group parsers legitimately consume, so the
     # exact-`==` shape is the discriminator. Gated on the byte pair.
-    if [[ "$text" == *'== '* ]]; then
+    if _pp_in '== '; then
+        _PP_OK=0
+        if (( ${#text} > _FR_BIG_BYTES )); then
+            # BIG: the loop below in one awk pass (the sentinel keeps every
+            # trailing newline, so exactly one is dropped, as below)
+            _banner_out="$(cat <<< "$text" | awk '
+                !/^[ \t\n\v\f\r]*==[ \t\n\v\f\r]+[A-Za-z0-9][^=]*[ \t\n\v\f\r]+==[ \t\n\v\f\r]*$/'; printf .)"
+            _banner_out="${_banner_out%.}"
+            text="${_banner_out%$'\n'}"
+            _banner_out=""
+        else
         _banner_out=""
         while IFS= read -r _bl; do
             if [[ "$_bl" =~ ^[[:space:]]*==[[:space:]]+[A-Za-z0-9][^=]*[[:space:]]+==[[:space:]]*$ ]]; then
@@ -34952,6 +35694,7 @@ preprocess_input_text () {
             _banner_out+="$_bl"$'\n'
         done <<< "$text"
         text="${_banner_out%$'\n'}"
+        fi
     fi
 
     case "$text" in
@@ -35007,6 +35750,57 @@ _fr_lines () {
     _FR_LINES_OK=1
 }
 
+# _fr_absent_literals TEXT LITERALS AOe28094AO print each of the newline-separated
+# LITERALS that does NOT occur in TEXT (byte-exact, LC_ALL=C). Literals hold
+# no newline, so this is also "occurs in no line". The text is read in \001-
+# separated records AOe28094AO for ordinary text ONE record, so one index() scan per
+# literal (~100 literals over 10 MB in ~0.1 s) instead of one per line.
+_fr_absent_literals () {
+    # (RS = \001 always: no literal holds a \001 or a newline, so none can
+    # span a record boundary and "occurs in some record" is exact either way)
+    _FAL="$2" LC_ALL=C awk -v RS=$'\001' '
+        BEGIN { n = split(ENVIRON["_FAL"], P, "\n"); left = n }
+        {
+            for (k = 1; k <= n; k++)
+                if (!(k in F) && index($0, P[k])) { F[k] = 1; if (--left == 0) exit }
+        }
+        END { for (k = 1; k <= n; k++) if (!(k in F)) print P[k] }' <<< "$1"
+}
+
+# _fr_scratch AOe28094AO make sure _FR_SCRATCH names a private (umask 077) scratch
+# directory for big-input file passes, created on first use and removed when
+# the (sub)shell that created it exits. A strategy's extract runs in a
+# subshell: a directory made there is that subshell's, one inherited from the
+# engine is shared (file names carry $BASHPID where that matters).
+_FR_SCRATCH=""
+_fr_scratch () {
+    [[ -n "$_FR_SCRATCH" && -d "$_FR_SCRATCH" ]] && return 0
+    local _fs_um; _fs_um=$(umask); umask 077
+    _FR_SCRATCH=$(mktemp -d "${TMPDIR:-/tmp}/envoy-extract.XXXXXX") || { umask "$_fs_um"; _FR_SCRATCH=""; return 1; }
+    umask "$_fs_um"
+    trap '_fr_scratch_cleanup' EXIT
+    return 0
+}
+_fr_scratch_cleanup () {
+    [[ -n "${_FR_SCRATCH:-}" && -d "$_FR_SCRATCH" ]] && rm -rf "$_FR_SCRATCH"
+    _FR_SCRATCH=""
+    return 0
+}
+
+# _fr_split_out OUT AOe28094AO _FR_OUT holds exactly the lines `mapfile -t` reads from a
+# stream carrying OUT (a command's full output, captured with a sentinel so
+# no trailing newline is lost). `mapfile < <(cmd)` reads its pipe ONE BYTE
+# per read(2) AOe28094AO 0.2 s per MB AOe28094AO while a captured string splits in
+# milliseconds (the here-string is seekable).
+_fr_split_out () {
+    if [[ -z "$1" ]]; then _FR_OUT=(); return 0; fi
+    if [[ "${1: -1}" == $'\n' ]]; then
+        mapfile -t _FR_OUT <<< "${1:0:${#1}-1}"
+    else
+        mapfile -t _FR_OUT <<< "$1"
+    fi
+}
+
 # _fr_tok STRING AOe28094AO the global array _FR_TOK holds exactly the words
 # `read -ra arr <<< "$STRING"` would store: read takes the FIRST line of the
 # here-string and splits it on the CURRENT $IFS (an `IFS=x _fr_tok AOe280a6AO` prefix or
@@ -35055,6 +35849,16 @@ _fr_modal () {
     return 0
 }
 
+# _fr_strip_awk < lines AOe28094AO the prefix strip as a stdin filter: each non-empty
+# line, minus a leading `STRAT-AOe280a6AO<TAB>` label (strip_strat_prefix).
+_fr_strip_awk () {
+    awk '$0 != "" {
+        s = $0
+        if (substr(s, 1, 6) == "STRAT-") { i = index(s, "\t"); if (i) s = substr(s, i + 1) }
+        print s
+    }'
+}
+
 # _fr_strip_prefix_lines TEXT AOe28094AO _FR_STRIPPED = TEXT's non-empty lines, each
 # through strip_strat_prefix, newline-joined with no trailing newline: exactly
 # what `while IFS= read -r l; do [[ -z $l ]] && continue; strip_strat_prefix
@@ -35064,11 +35868,7 @@ _fr_strip_prefix_lines () {
     if (( ${#1} > _FR_BIG_BYTES )); then
         # awk twin of the loop below (sentinel keeps the trailing newline so
         # exactly one is dropped, as the loop's `%$'\n'` does)
-        _FR_STRIPPED="$(printf '%s\n' "$1" | awk '$0 != "" {
-            s = $0
-            if (substr(s, 1, 6) == "STRAT-") { i = index(s, "\t"); if (i) s = substr(s, i + 1) }
-            print s
-        }'; printf .)"
+        _FR_STRIPPED="$(printf '%s\n' "$1" | _fr_strip_awk; printf .)"
         _FR_STRIPPED="${_FR_STRIPPED%.}"
         _FR_STRIPPED="${_FR_STRIPPED%$'\n'}"
         return 0
@@ -35295,7 +36095,7 @@ _log_info  () { echo "[info] $*" >&2; }
 _log_debug () { [[ ${_OPT_debug:-0} -eq 1 ]] && echo "[debug] $*" >&2; return 0; }
 ===END===
 ===FILE-ESC: extract/lib/_postprocess.sh===
-===META: mode=664 sha256=5e0ebb8d39d8577b1e332d9a230e4f8b448f0ce492edaa3d25bc210105adcac9===
+===META: mode=664 sha256=2a64ea745d624acd596190e894c1fdcff8da60ea250a90bf04050ae8a6e68e70===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -35318,11 +36118,16 @@ store () {
     # string every time, which made storing a big table quadratic.
     local _n=0 _st_all _st_joined
     local -a _st_out=()
+    if [[ -n "${_XL_OUT:-}" ]]; then
+        # FILE LANE (very large input, see _xl_begin): append to the lane's
+        # output file instead of the `output` variable AOe28094AO same lines.
+        printf '%s\n' "$input" | _store_awk "$label" >> "$_XL_OUT"
+        _sline=""
+        return 0
+    fi
     if (( ${#input} > _FR_BIG_BYTES )); then
         # BIG result: the same numbering in one awk pass (see _FR_BIG_BYTES)
-        _st_joined="$(printf '%s\n' "$input" | _ST_LABEL="$label" awk '
-            BEGIN { l = ENVIRON["_ST_LABEL"] }
-            $0 != "" { n++; printf "%s:%d\t%s\n", l, n, $0 }'; printf .)"
+        _st_joined="$(printf '%s\n' "$input" | _store_awk "$label"; printf .)"
         output+="${_st_joined%.}"
         _sline=""
         return 0
@@ -35338,6 +36143,32 @@ store () {
         printf -v _st_joined '%s\n' "${_st_out[@]}"
         output+="$_st_joined"
     fi
+}
+
+# _store_awk LABEL < lines AOe28094AO store()'s numbering as a stdin filter: every
+# non-empty line becomes `LABEL:<n><TAB>line` (n counts non-empty lines).
+_store_awk () {
+    _ST_LABEL="$1" awk '
+        BEGIN { l = ENVIRON["_ST_LABEL"] }
+        $0 != "" { n++; printf "%s:%d\t%s\n", l, n, $0 }'
+}
+
+# _store_file FILE LABEL AOe28094AO store() for a result held in FILE (the file lane):
+# the same labelled lines, appended to the lane's output file.
+_store_file () {
+    _store_awk "$2" < "$1" >> "$_XL_OUT"
+}
+
+# _dedup_pipe < output-lines AOe28094AO deduplicate_output's pipeline as a stdin
+# filter (both the BIG-variable path and the file lane run exactly this).
+_dedup_pipe () {
+    awk '$0 != "" {
+            n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+            printf "%s\001%d\001%s\n", f, n, $0
+        }' \
+        | sort -t$'\x01' -k1,1 -u \
+        | sort -t$'\x01' -k2,2 -n \
+        | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
 }
 
 # Deduplicate output across strategies.
@@ -35359,14 +36190,7 @@ deduplicate_output () {
     local -a _dd_out=()
     if (( ${#input} > _FR_BIG_BYTES )); then
         # BIG output: build the same SOH records in one awk pass
-        printf '%s\n' "$input" \
-            | awk '$0 != "" {
-                n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
-                printf "%s\001%d\001%s\n", f, n, $0
-            }' \
-            | sort -t$'\x01' -k1,1 -u \
-            | sort -t$'\x01' -k2,2 -n \
-            | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
+        printf '%s\n' "$input" | _dedup_pipe
         return
     fi
     mapfile -t _dd_all <<< "$input"
@@ -41473,7 +42297,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/database/clickhouse-processlist.sh===
-===META: mode=664 sha256=f4e4ae2dd2adb43ad09ab81b1bb3d1f208e08c6d7d6fcd68075a4f3af0324777===
+===META: mode=664 sha256=c2135775b23f7eb3277f3e4c5c4f09047aeff539dfde34aa6f6d5c1eaf6e6a17===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41530,13 +42354,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=92
     # Distinctive signature: a top-border line and a bar-delimited data line.
-    local has_border=0 has_bar=0 line
-    _fr_lines "$text"
-    for line in "${_FR_LINES[@]}"; do
-        [[ "$line" == "$_CH_TL"* ]] && has_border=1
-        [[ "$line" == "$_CH_BAR"* ]] && has_bar=1
-        [[ $has_border -eq 1 && $has_bar -eq 1 ]] && return 0
-    done
+    # (some line starts with X iff the text starts with X or holds "\nX" AOe28094AO
+    # whole-text tests instead of a walk over every line)
+    local has_border=0 has_bar=0
+    [[ "$text" == "$_CH_TL"* || "$text" == *$'\n'"$_CH_TL"* ]] && has_border=1
+    [[ $has_border -eq 1 ]] || return 1
+    [[ "$text" == "$_CH_BAR"* || "$text" == *$'\n'"$_CH_BAR"* ]] && has_bar=1
+    [[ $has_bar -eq 1 ]] && return 0
     return 1
 }
 
@@ -41905,7 +42729,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/aligned-columns.sh===
-===META: mode=664 sha256=b4c74a950b5efa482a7bb0ca359d1734e78d09fb8fee1d2d79eb8923a2722aed===
+===META: mode=664 sha256=2e0ed81e9f7ddc7f853587aad81d7e81bf55ded2a0317e90f27967291cde6d9b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41914,6 +42738,7 @@ strategy_extract () {
 ## Description: Extract fields from whitespace-aligned columnar output (ps, df, mount, etc.)
 ## Version: 3.1
 ## Priority: 55
+## Confidence-Max: 69
 ## Sample: samples/aligned-columns/basic.txt
 
 # Count a line's 2-space-gap segments AOe28094AO the columns a fixed-width header defines
@@ -42031,8 +42856,18 @@ _ac_body_v () {
     if [[ $_AC_BODY_OK -eq 1 && "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
     local _out
     _ac_body_compute "$1"
+    if (( ${#_AC_BODY_RAW} > _FR_BIG_BYTES )); then
+        # (count the trailing newlines from the end instead of the
+        # `${x##*[!$'\n']}` suffix scan, which walks the whole big string)
+        local _tn=0
+        while (( _tn < ${#_AC_BODY_RAW} )) && [[ "${_AC_BODY_RAW: -$((_tn + 1)):1}" == $'\n' ]]; do
+            _tn=$((_tn + 1))
+        done
+        _AC_BODY="${_AC_BODY_RAW:0:$(( ${#_AC_BODY_RAW} - _tn ))}"
+    else
     _out="$_AC_BODY_RAW"
     _AC_BODY="${_out%"${_out##*[!$'\n']}"}"
+    fi
     _AC_BODY_KEY="$1"
     _AC_BODY_OK=1
 }
@@ -42091,7 +42926,7 @@ _ac_body_compute () {
     fi
 
     _fr_lines "$text"
-    for _l in "${_FR_LINES[@]}"; do
+    local _fri196; for ((_fri196 = 0; _fri196 < ${#_FR_LINES[@]}; _fri196++)); do _l="${_FR_LINES[$_fri196]}"
         [[ "${_l}" != *[![:space:]]* ]] && continue
         _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
         [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
@@ -42105,7 +42940,7 @@ _ac_body_compute () {
     local _modal=0
     if [[ $has_table -eq 1 ]]; then
         local _mc=() _mn=0
-        for _l in "${_FR_LINES[@]}"; do
+        local _fri210; for ((_fri210 = 0; _fri210 < ${#_FR_LINES[@]}; _fri210++)); do _l="${_FR_LINES[$_fri210]}"
             [[ "${_l}" != *[![:space:]]* ]] && continue
             _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
             _mc+=("${#_tk[@]}"); _mn=$((_mn + 1)); [[ $_mn -ge 40 ]] && break
@@ -42126,7 +42961,7 @@ _ac_body_compute () {
     # is chrome, not data. Identified by lookahead here, dropped in the loop.
     local _title="" _prev="" _seenfirst=0
     if [[ $has_table -eq 1 ]]; then
-        for _l in "${_FR_LINES[@]}"; do
+        local _fri231; for ((_fri231 = 0; _fri231 < ${#_FR_LINES[@]}; _fri231++)); do _l="${_FR_LINES[$_fri231]}"
             if [[ $_seenfirst -eq 0 ]]; then
                 [[ "${_l}" != *[![:space:]]* ]] && continue
                 _seenfirst=1; _prev="$_l"; continue
@@ -42146,7 +42981,7 @@ _ac_body_compute () {
     local _fwbanner=""
     if [[ $has_table -eq 1 ]]; then
         local _fl=() _fx
-        for _fx in "${_FR_LINES[@]}"; do
+        local _fri251; for ((_fri251 = 0; _fri251 < ${#_FR_LINES[@]}; _fri251++)); do _fx="${_FR_LINES[$_fri251]}"
             [[ "${_fx}" != *[![:space:]]* ]] && continue
             [[ "$_fx" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
             _fl+=("$_fx"); [[ ${#_fl[@]} -ge 3 ]] && break
@@ -42191,7 +43026,18 @@ _ac_body_compute () {
     # Kept lines accumulate in an ARRAY and are joined once at the end: a
     # per-line `out+=` re-copies the whole string each time (quadratic).
     local _outl=()
-    for _l in "${_FR_LINES[@]}"; do
+    # BIG block: once `started` is set, a line's only fate is the rule-drop
+    # test below AOe28094AO so the loop stops there and ONE awk pass applies that test
+    # to the rest (same lines kept, same order).
+    # (Indexed, not `for _l in "${_FR_LINES[@]}"`: that expands the whole
+    # array up front even when the loop stops early. The one _fr_lines call
+    # inside AOe28094AO the banner check AOe28094AO passes this same text, so _FR_LINES stays.)
+    local _acb_big=0 _acb_n _acb_i _acx_o="" _acb_tail="" _acb_owns=0
+    (( ${#text} > _FR_BIG_BYTES )) && _acb_big=1
+    _acb_n=${#_FR_LINES[@]}
+    for ((_acb_i = 0; _acb_i < _acb_n; _acb_i++)); do
+        _l="${_FR_LINES[$_acb_i]}"
+        [[ $_acb_big -eq 1 && $started -eq 1 ]] && break
         # Drop a pure separator rule up top so a LEADING rule (STREAM /
         # pytest-benchmark bracket their header in rules) doesn't flip `started`
         # and get mistaken for the first table line.
@@ -42233,7 +43079,7 @@ _ac_body_compute () {
                 done
                 if [[ $_bv -eq 1 ]]; then
                     _fr_lines "$text"
-                    for _bl2 in "${_FR_LINES[@]}"; do
+                    local _fri349; for ((_fri349 = 0; _fri349 < ${#_FR_LINES[@]}; _fri349++)); do _bl2="${_FR_LINES[$_fri349]}"
                         [[ "${_bl2}" != *[![:space:]]* || "$_bl2" == "$_l" ]] && continue
                         _fr_tok "$_bl2"; _bt2=("${_FR_TOK[@]}")
                         [[ "${_bt2[0]:-}" == "${_tk[0]}" ]] && { _bsame=1; break; }
@@ -42264,16 +43110,38 @@ _ac_body_compute () {
         fi
         _outl+=("$_l")
     done
-    [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
+    if [[ $_acb_big -eq 1 && $_acb_i -lt $_acb_n ]]; then
+        # the rest of the lines (index _acb_i on), rule-dropped, as a string
+        # of newline-terminated lines AOe28094AO and the trailing-summary-line drop
+        # below, decided here when the rest keeps any line (its last kept
+        # line is then the block's last line)
+        _acb_tail="$(cat <<< "$text" | awk -v k="$_acb_i" -v pre="${#_outl[@]}" '
+            NR <= k { next }
+            /^[ \t\n\v\f\r]*[=-]+([ \t\n\v\f\r]+[=-]+)*[ \t\n\v\f\r]*$/ { next }
+            { if (have) print held; held = $0; have = 1; nk++ }
+            END {
+                # last byte: 1 when this pass kept a line (it owns the drop), else 0
+                if (!have) { printf "0"; exit }
+                if (!(pre + nk >= 2 && held ~ /^[ \t\n\v\f\r]*[0-9]+[ \t\n\v\f\r]+([A-Za-z]+[ \t\n\v\f\r]+)*(listed|shown|found)\.?[ \t\n\v\f\r]*$/)) print held
+                printf "1"
+            }')"
+        _acb_owns="${_acb_tail: -1}"
+        _acb_tail="${_acb_tail%?}"
+    fi
 
     # Drop a trailing summary line like "4 sessions listed." / "5 loaded units
-    # listed." so it isn't counted as a data row.
-    local body="${out%$'\n'}" last
-    last="${body##*$'\n'}"
-    if [[ "$body" == *$'\n'* \
+    # listed." so it isn't counted as a data row. (`body` is the kept lines
+    # newline-joined, so its last line is the last kept line and "body has a
+    # newline" is "more than one kept line" AOe28094AO read off the array rather than
+    # rescanning the joined string.)
+    local _acb_k=${#_outl[@]} last=""
+    [[ $_acb_k -gt 0 ]] && last="${_outl[$((_acb_k - 1))]}"
+    if [[ $_acb_owns -ne 1 && $_acb_k -ge 2 \
           && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]]; then
-        out="${body%$'\n'*}"$'\n'
+        unset '_outl[$((_acb_k - 1))]'
     fi
+    [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
+    out+="$_acb_tail"
     _AC_BODY_RAW="$out"
 }
 
@@ -42335,7 +43203,7 @@ _ac_shape_compute () {
     local -A _kv_seen=() _kvm_seen=()
     local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
     _fr_lines "$text"
-    for _line in "${_FR_LINES[@]}"; do
+    local _fri473; for ((_fri473 = 0; _fri473 < ${#_FR_LINES[@]}; _fri473++)); do _line="${_FR_LINES[$_fri473]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
         [[ $idx -eq 1 ]] && first_line="$_line"
@@ -42407,7 +43275,7 @@ _ac_shape_compute () {
     local -A _mx_seen=()
     if [[ $idx -ge 2 ]]; then
         _fr_lines "$text"
-        for _mx_line in "${_FR_LINES[@]}"; do
+        local _fri545; for ((_fri545 = 0; _fri545 < ${#_FR_LINES[@]}; _fri545++)); do _mx_line="${_FR_LINES[$_fri545]}"
             [[ "${_mx_line}" != *[![:space:]]* ]] && continue
             if [[ ! "$_mx_line" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
                 _mixed_ok=0; break
@@ -42459,7 +43327,7 @@ _ac_shape_compute () {
           && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
         local _h2v=0 _h3v=0 _h2t _h2i=0 _h2l="" _h3l=""
         _fr_lines "$text"
-        for _h2t in "${_FR_LINES[@]}"; do
+        local _fri597; for ((_fri597 = 0; _fri597 < ${#_FR_LINES[@]}; _fri597++)); do _h2t="${_FR_LINES[$_fri597]}"
             [[ "${_h2t}" != *[![:space:]]* ]] && continue
             _h2i=$((_h2i + 1))
             [[ $_h2i -eq 2 ]] && _h2l="$_h2t"
@@ -42526,7 +43394,7 @@ _ac_shape_compute () {
     i=0
     # (the block text IS $(_ac_body "$1"), so its lines are _fr_lines "$text")
     _fr_lines "$text"
-    for _dl in "${_FR_LINES[@]}"; do
+    local _fri664; for ((_fri664 = 0; _fri664 < ${#_FR_LINES[@]}; _fri664++)); do _dl="${_FR_LINES[$_fri664]}"
         [[ "${_dl}" != *[![:space:]]* ]] && continue
         i=$((i + 1))
         [[ $i -eq 1 ]] && continue
@@ -42646,7 +43514,7 @@ _ac_shape_compute () {
         if [[ $wordy -eq 1 && $styled -eq 0 ]]; then
             local _dc_all=1 _dc_hit _dc_tk _dc_l _dc_i=0
             _fr_lines "$text"
-            for _dc_l in "${_FR_LINES[@]}"; do
+            local _fri784; for ((_fri784 = 0; _fri784 < ${#_FR_LINES[@]}; _fri784++)); do _dc_l="${_FR_LINES[$_fri784]}"
                 [[ "${_dc_l}" != *[![:space:]]* ]] && continue
                 _dc_i=$((_dc_i + 1))
                 [[ $_dc_i -eq 1 ]] && continue          # skip the header row
@@ -42684,7 +43552,7 @@ _ac_shape_compute () {
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
             _fr_lines "$text"
-            for _line in "${_FR_LINES[@]}"; do
+            local _fri822; for ((_fri822 = 0; _fri822 < ${#_FR_LINES[@]}; _fri822++)); do _line="${_FR_LINES[$_fri822]}"
                 [[ "${_line}" != *[![:space:]]* ]] && continue
                 idx2=$((idx2 + 1)); [[ $idx2 -eq 2 ]] && { second_line="$_line"; break; }
             done
@@ -42735,6 +43603,30 @@ strategy_detect () {
     # aligned-columns would split it into a bogus middle column and mangle any
     # value with inner spaces. The equals parser tidies these to one field per key.
     local _eq=0 _et=0 _el
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: this loop and the kv-decline loop below in ONE awk pass
+        # (non-blank lines, ` = ` lines, kv-shaped lines, and the modal
+        # token count with _fr_modal's first-occurrence tie-break).
+        local _nb=0 _kv=0 _m=0 _best=0
+        read -r _et _eq _kv _m _best < <(cat <<< "$text" | awk '
+            /[^ \t\n\v\f\r]/ {
+                et++
+                if (index($0, " = ")) eq++
+                if ($0 ~ /^[ \t\n\v\f\r]*[A-Za-z][^:=]*:[ \t\n\v\f\r]/ \
+                    || $0 ~ /^[ \t\n\v\f\r]*[A-Za-z][A-Za-z0-9_]*=/) kv++
+                if (!(NF in C)) ord[++no] = NF
+                C[NF]++
+            }
+            END {
+                for (i = 1; i <= no; i++) if (C[ord[i]] > best) { best = C[ord[i]]; mode = ord[i] }
+                printf "%d %d %d %d %d\n", et, eq, kv, mode, best
+            }')
+        [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
+        _nb=$_et
+        if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
+            [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
+        fi
+    else
     _fr_lines "$text"
     for _el in "${_FR_LINES[@]}"; do
         [[ "${_el}" != *[![:space:]]* ]] && continue
@@ -42768,6 +43660,7 @@ strategy_detect () {
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
     fi
+    fi
 
     # Structural detection: a header row (or a headerless block) of columns with
     # a consistent count. Recognises the whole class of whitespace-columnar tool
@@ -42781,7 +43674,7 @@ strategy_detect () {
 
     local idx=0 data_rows=0 consistent=0 header_caps=1 _line
     _ac_body_v "$text"; _fr_lines "$_AC_BODY"
-    for _line in "${_FR_LINES[@]}"; do
+    local _fri944; for ((_fri944 = 0; _fri944 < ${#_FR_LINES[@]}; _fri944++)); do _line="${_FR_LINES[$_fri944]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
         local _tk; _tk=(); _fr_tok "$_line"; _tk=("${_FR_TOK[@]}")
@@ -43181,6 +44074,498 @@ _ac_grid_mb () (
     exit 0
 )
 
+# ---------------------------------------------------------------------------
+# BIG-TABLE TWINS (perf). strategy_extract walks its `lines` array many times
+# (token counts, 2-space segment counts, header-repeat and wrap checks); in
+# bash each walk costs ~50 AOc2b5AOs per line, so a 100k-row table spent most of a
+# minute in them. Above _FR_BIG_BYTES (the body's size) each walk below is
+# done by one awk pass with byte-identical results: tokens split exactly as
+# _fr_tok's default IFS does (awk's default field splitting), segments are
+# _ac_seg_v's count (1 + the interior runs of >=2 spaces), and modal values
+# break ties toward the value seen first, as _fr_modal does.
+# ---------------------------------------------------------------------------
+_AC_AWK_SEG='
+function seg(l) {
+    sub(/^[ \t\n\v\f\r]+/, "", l)
+    if (l == "") return 0
+    sub(/ +$/, "", l)
+    return gsub(/  +/, "&", l) + 1
+}'
+
+# _ac_group_prefix AOe28094AO strategy_extract's HDR2 group-prefixing step, on the
+# CALLER's `headers`, `lines` (rows 0 and 1 only) and `mode` (bash dynamic
+# scope), so the bash path and the big-table path share it.
+_ac_group_prefix () {
+    # HDR2 group-prefixing: when the field row repeats names under different
+    # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
+    # duplicates would COLLIDE in the wide record and the melt silently drops
+    # the earlier group's columns. Disambiguate positionally: each duplicated
+    # header token (except the first, key column) gets the group label whose
+    # printed CENTER is nearest AOe28094AO `CPU_Req`, `Memory_Req`. Unique names stay
+    # untouched, so single-group two-line headers (vmstat) are unaffected.
+    if [[ "$mode" == HDR2 && ${#headers[@]} -ge 3 ]]; then
+        local _gpdup=0 _gpi _gpj
+        for ((_gpi = 1; _gpi < ${#headers[@]} && _gpdup == 0; _gpi++)); do
+            for ((_gpj = _gpi + 1; _gpj < ${#headers[@]}; _gpj++)); do
+                [[ "${headers[$_gpi]}" == "${headers[$_gpj]}" ]] && { _gpdup=1; break; }
+            done
+        done
+        if [[ $_gpdup -eq 1 ]]; then
+            # token centers of a raw line -> _GP_CENTERS / _GP_TOKS
+            _gp_scan () {
+                local _s="$1"
+                local _i _c _st=-1 _n=${#_s}
+                _GP_CENTERS=(); _GP_TOKS=()
+                for ((_i = 0; _i <= _n; _i++)); do
+                    _c="${_s:$_i:1}"
+                    if [[ "$_c" != " " && "$_c" != "	" && $_i -lt $_n ]]; then
+                        [[ $_st -lt 0 ]] && _st=$_i
+                    elif [[ $_st -ge 0 ]]; then
+                        _GP_TOKS+=("${_s:$_st:$((_i - _st))}")
+                        _GP_CENTERS+=($(( (_st + _i - 1) / 2 )))
+                        _st=-1
+                    fi
+                done
+            }
+            _gp_scan "${lines[0]}"
+            local _gpg_toks=("${_GP_TOKS[@]}") _gpg_cent=("${_GP_CENTERS[@]}")
+            # The group row's tokens become NAME PREFIXES AOe28094AO sanitize each
+            # (vmstat -d's `------------reads------------` AOe28692AO `reads`), and bail
+            # out entirely when the row is banner chrome rather than labels
+            # (goose's `=== PER REQUEST METRICS ===`: punctuation-only edge
+            # tokens mark a banner, whose words would make junk prefixes).
+            local _gpk _gpsan=1
+            if [[ ! "${_gpg_toks[0]}" =~ [A-Za-z0-9] \
+                  || ! "${_gpg_toks[$(( ${#_gpg_toks[@]} - 1 ))]}" =~ [A-Za-z0-9] ]]; then
+                _gpsan=0
+            fi
+            for ((_gpk = 0; _gpk < ${#_gpg_toks[@]}; _gpk++)); do
+                local _gpt="${_gpg_toks[$_gpk]}"
+                _gpt="${_gpt##+(-)}"; _gpt="${_gpt%%+(-)}"
+                while [[ "$_gpt" == -* ]]; do _gpt="${_gpt#-}"; done
+                while [[ "$_gpt" == *- ]]; do _gpt="${_gpt%-}"; done
+                [[ -z "$_gpt" ]] && { _gpsan=0; break; }
+                _gpg_toks[$_gpk]="$_gpt"
+            done
+            _gp_scan "${lines[1]}"
+            local _gph_cent=("${_GP_CENTERS[@]}")
+            if [[ $_gpsan -eq 1 && ${#_gpg_toks[@]} -ge 2 && ${#_gph_cent[@]} -eq ${#headers[@]} ]]; then
+                # Mark duplicates on the ORIGINAL names first AOe28094AO renaming inside
+                # the same pass would hide a later twin (`Req` at index 4 stops
+                # matching once index 1 became `CPU_Req`) and leave the second
+                # group's columns bare and still colliding with any third.
+                local _gpdups=()
+                for ((_gpi = 0; _gpi < ${#headers[@]}; _gpi++)); do _gpdups[$_gpi]=0; done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    for ((_gpj = 1; _gpj < ${#headers[@]}; _gpj++)); do
+                        [[ $_gpj -ne $_gpi && "${headers[$_gpj]}" == "${headers[$_gpi]}" ]] && { _gpdups[$_gpi]=1; break; }
+                    done
+                done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    [[ ${_gpdups[$_gpi]} -eq 0 ]] && continue
+                    local _gpbest=0 _gpbd=999999 _gpdist
+                    for ((_gpj = 0; _gpj < ${#_gpg_toks[@]}; _gpj++)); do
+                        _gpdist=$(( ${_gph_cent[$_gpi]} - ${_gpg_cent[$_gpj]} ))
+                        [[ $_gpdist -lt 0 ]] && _gpdist=$(( -_gpdist ))
+                        [[ $_gpdist -lt $_gpbd ]] && { _gpbd=$_gpdist; _gpbest=$_gpj; }
+                    done
+                    headers[$_gpi]="${_gpg_toks[$_gpbest]}_${headers[$_gpi]}"
+                done
+            fi
+        fi
+    fi
+}
+
+# The OFFSET-ASSIGNMENT pass of strategy_extract (see the comment there),
+# shared by the bash path and the big-table path.
+_AC_AWK_OFFSET='
+                    NR == 1 {
+                        # Header token spans (1-based columns).
+                        len = length($0); st = 0; nh = 0
+                        for (i = 1; i <= len + 1; i++) {
+                            c = (i <= len) ? substr($0, i, 1) : " "
+                            if (c != " " && c != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                nh++; hs[nh] = st; he[nh] = i - 1
+                                nm = substr($0, st, i - st)
+                                gsub(/\./, "_", nm)
+                                hn[nh] = nm
+                                st = 0
+                            }
+                        }
+                        # A trailing preposition is the tail of a two-word
+                        # label (`Mounted on`), not a column of its own AOe28094AO
+                        # weld it onto its neighbour so the last value gets
+                        # the full name instead of a truncated one.
+                        pl = tolower(hn[nh])
+                        if (nh >= 3 && pl ~ /^(on|by|in|at|of|to)$/) {
+                            hn[nh - 1] = hn[nh - 1] "_" hn[nh]
+                            he[nh - 1] = he[nh]
+                            nh--
+                        }
+                        # DUPLICATE header token names are the signature of
+                        # multi-word labels tokenized apart: doctl repeats ID
+                        # (`Active Deployment ID` / `In Progress Deployment
+                        # ID`), spark repeats Tasks three times. Per-token
+                        # spans are meaningless there AOe28094AO the duplicate names
+                        # collide in the melt and each label loses half of
+                        # itself AOe28094AO so the whole path withdraws.
+                        for (i = 1; i <= nh; i++)
+                            for (j = i + 1; j <= nh; j++)
+                                if (hn[i] == hn[j]) { dupname = 1 }
+                        next
+                    }
+                    {
+                        row++
+                        len = length($0); st = 0
+                        for (c = 1; c <= nh; c++) cells[c] = ""
+                        for (i = 1; i <= len + 1; i++) {
+                            ch = (i <= len) ? substr($0, i, 1) : " "
+                            if (ch != " " && ch != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                s = st; e = i - 1; st = 0
+                                tok = substr($0, s, e - s + 1)
+                                if (s >= hs[nh]) { col = nh; ov = 1 }
+                                else {
+                                    col = 0; ov = 0; nspan = 0
+                                    for (c = 1; c <= nh; c++) {
+                                        lo = (s > hs[c]) ? s : hs[c]
+                                        hi = (e < he[c]) ? e : he[c]
+                                        o = hi - lo + 1
+                                        if (o > 0) nspan++
+                                        if (o > ov) { ov = o; col = c }
+                                    }
+                                    # A token stretching across TWO header
+                                    # token spans is a value sitting under a
+                                    # multi-word label (`starfish-api` under
+                                    # `Spec Name`) AOe28094AO count them; too many and
+                                    # the table is not per-token aligned.
+                                    if (nspan >= 2) nwide++
+                                    if (col == 0) {
+                                        # no overlap: nearest span by gap
+                                        bd = -1
+                                        for (c = 1; c <= nh; c++) {
+                                            d = (e < hs[c]) ? hs[c] - e : s - he[c]
+                                            if (bd < 0 || d < bd) { bd = d; col = c }
+                                        }
+                                    }
+                                }
+                                ntok++
+                                if (ov > 0) nhit++
+                                # Edge alignment: a genuinely offset-aligned
+                                # table puts each value START at its header
+                                # label start (left-aligned columns) or its
+                                # END at the label end (right-aligned
+                                # numerics). Prose that merely OVERLAPS spans
+                                # (deno error lines under a first line
+                                # mistaken for a header) has almost no edge
+                                # hits, and that difference is the gate.
+                                # NOTE: this comment sits inside a single-
+                                # quoted awk program AOe28094AO no apostrophes.
+                                for (c2 = 1; c2 <= nh; c2++)
+                                    if (s == hs[c2] || e == he[c2]) { nedge++; break }
+                                cells[col] = (cells[col] == "") ? tok : cells[col] " " tok
+                            }
+                        }
+                        for (c = 1; c <= nh; c++)
+                            if (cells[c] != "")
+                                buf = buf "entry" row "." hn[c] " " cells[c] "\n"
+                    }
+                    END {
+                        # Withdraw unless the rows really sit under the header:
+                        # >=80% of tokens overlap a header span AND >=60% land
+                        # exactly on a span edge (left- or right-aligned) AND
+                        # the header names are per-token meaningful AOe28094AO no
+                        # duplicate names, and <10% of tokens spanning two
+                        # labels (multi-word-label tables belong to the
+                        # positional grid / seg-split paths, not this one).
+                        if (row == 0 || ntok == 0 || nhit * 5 < ntok * 4) exit 0
+                        if (nedge * 10 < ntok * 6) exit 0
+                        if (dupname) exit 0
+                        if (nwide * 10 > ntok) exit 0
+                        printf "%s", buf
+                        printf "total_entries %d\n", row
+                    }
+'
+
+# _ac_lines_stats FROM AOe28094AO aggregates over lines[FROM..] (the caller's `lines`):
+#   _ACS_N      rows
+#   _ACS_TMAX   largest token count
+#   _ACS_TMOD   modal token count, _ACS_TMODN its count
+#   _ACS_SMOD   modal segment count, _ACS_SMODN its count
+#   _ACS_DIGIT  1 when any row holds a digit
+#   _ACS_SSAME  1 when every row has the same segment count (_ACS_SFIRST)
+#   _ACS_TFIRST token count of the first row; _ACS_TRAG 1 when any differs
+# (When _ACX_F names a file AOe28094AO the big-table path AOe28094AO the rows are read from it
+# instead, and results are memoised per FROM until _ACX_STATS_KEY is reset.)
+_ACX_F=""
+_ACX_STATS_KEY=""
+declare -A _ACX_STATS=()
+_ac_lines_stats () {
+    local _from="$1"
+    _ACS_N=0 _ACS_TMAX=0 _ACS_TMOD=0 _ACS_TMODN=0 _ACS_SMOD=0 _ACS_SMODN=0
+    _ACS_DIGIT=0 _ACS_SSAME=1 _ACS_SFIRST=0 _ACS_TFIRST=0 _ACS_TRAG=0
+    local _stats
+    if [[ -n "$_ACX_F" ]]; then
+        if [[ "$_ACX_STATS_KEY" != "$_ACX_F" ]]; then _ACX_STATS=(); _ACX_STATS_KEY="$_ACX_F"; fi
+        if [[ -z "${_ACX_STATS[$_from]:-}" ]]; then
+            _ACX_STATS[$_from]=$(awk -v f="$_from" 'NR > f' "$_ACX_F" | _ac_lines_stats_awk)
+        fi
+        _stats="${_ACX_STATS[$_from]}"
+    else
+        (( _from < ${#lines[@]} )) || return 0
+        _stats=$(printf '%s\n' "${lines[@]:_from}" | _ac_lines_stats_awk)
+    fi
+    read -r _ACS_N _ACS_TMAX _ACS_TMOD _ACS_TMODN _ACS_SMOD _ACS_SMODN _ACS_DIGIT \
+            _ACS_SSAME _ACS_SFIRST _ACS_TFIRST _ACS_TRAG <<< "$_stats"
+}
+_ac_lines_stats_awk () {
+    awk "$_AC_AWK_SEG"'
+        {
+            n++; t = NF; g = seg($0)
+            if (t > tmax) tmax = t
+            if (!(t in TC)) tord[++nt] = t
+            TC[t]++
+            if (!(g in SC)) sord[++ns] = g
+            SC[g]++
+            if (!dig && $0 ~ /[0-9]/) dig = 1
+            if (n == 1) { sfirst = g; tfirst = t } else { if (g != sfirst) sdiff = 1; if (t != tfirst) trag = 1 }
+        }
+        END {
+            for (i = 1; i <= nt; i++) if (TC[tord[i]] > tb) { tb = TC[tord[i]]; tm = tord[i] }
+            for (i = 1; i <= ns; i++) if (SC[sord[i]] > sb) { sb = SC[sord[i]]; sm = sord[i] }
+            printf "%d %d %d %d %d %d %d %d %d %d %d\n", n, tmax, tm, tb, sm, sb, dig, !sdiff, sfirst, tfirst, trag
+        }'
+}
+
+# ---------------------------------------------------------------------------
+# _ac_extract_big MODE NCOLS AOe28094AO strategy_extract for a BIG block, file to file.
+# Mirrors strategy_extract step for step on the table held in a scratch file
+# (only a few leading rows ever enter bash): collect the non-blank rows,
+# drop header repeats / the units row, merge first-cell wraps, then the
+# positional / segment / offset / header decisions from awk aggregates, and
+# emit through _ac_emit_rows. Every decision is the bash path's, computed the
+# same way (see the BIG-TABLE TWINS note). Paths that stay bash-only AOe28094AO the
+# positional grid, non-ASCII blocks, the segment split, the headerless
+# scaffold split and phrase merges AOe28094AO return 3 with the rows collected so far
+# in _ACX_F, and strategy_extract carries on from there with its own loops.
+# Returns 0 with the result printed otherwise.
+# ---------------------------------------------------------------------------
+_ac_extract_big () {
+    local mode="$1" ncols="$2" p="$_FR_SCRATCH/ac.$BASHPID"
+    local cur="$p.rows0" n H=()
+    _ACX_F=""
+    printf '%s\n' "$_AC_BODY" > "$p.body"
+
+    # --- collect non-blank rows (footer-legend stop, as the bash loop) ---
+    local need=0
+    case "$mode" in HDR) need=2 ;; HDR2) need=3 ;; esac
+    awk -v need="$need" '
+        $0 !~ /[^ \t\n\v\f\r]/ { if (need > 0 && kept >= need) armed = 1; next }
+        { if (armed && index($0, " = ")) exit; armed = 0; kept++; print }' "$p.body" > "$cur"
+    rm -f "$p.body"
+    _acx_rows () { n=$(awk 'END { print NR }' "$cur"); H=(); mapfile -t -n 4 H < "$cur"; }
+    _acx_rows
+
+    # --- table chrome: header repeats + the units row ---
+    if [[ ( "$mode" == HDR || "$mode" == HDR2 ) && $n -ge 3 ]]; then
+        local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
+        local _fharr; _fr_tok "${H[$_fhidx]}"; _fharr=("${_FR_TOK[@]}")
+        local _fhnorm="${_fharr[*]}"
+        local _fhind="${H[$_fhidx]%%[![:space:]]*}"
+        local _acx_norm='{ s = ""; for (k = 1; k <= NF; k++) s = (k > 1) ? s " " $k : $k }'
+        local _fhdrfree=1
+        if [[ ${#_fharr[@]} -lt 3 ]]; then
+            _fhdrfree=0
+        elif [[ "${H[$_fhidx]}" =~ [0-9] ]]; then
+            local _frep=0 _ftot=0
+            read -r _frep _ftot < <(_ACX_H="$_fhnorm" awk -v hidx="$_fhidx" "$_acx_norm"'
+                NR - 1 > hidx { tot++; if (s == ENVIRON["_ACX_H"]) rep++ }
+                END { printf "%d %d\n", rep, tot }' "$cur")
+            [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
+        fi
+        local _fi _farr _fnorm _fdind _ft _ftok _acx_dropu=0
+        _fi=$((_fhidx + 1))
+        _fr_tok "${H[$_fi]}"; _farr=("${_FR_TOK[@]}")
+        _fnorm="${_farr[*]}"
+        if ! [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] \
+           && [[ ${#_farr[@]} -lt ${#_fharr[@]} && ${#_farr[@]} -ge 2 && ! "${H[$_fi]}" =~ [0-9] ]]; then
+            _fdind="${H[$_fi]%%[![:space:]]*}"
+            if [[ ${#_fdind} -gt ${#_fhind} ]]; then
+                _ft=1
+                for _ftok in "${_farr[@]}"; do
+                    [[ ${#_ftok} -gt 6 ]] && { _ft=0; break; }
+                    if [[ "$_ftok" == "("*")" ]]; then continue; fi
+                    [[ "$_ftok" == *[A-Z]* && "$_ftok" == *[a-z]* ]] || { _ft=0; break; }
+                done
+                [[ $_ft -eq 1 ]] && _acx_dropu=1
+            fi
+        fi
+        _ACX_H="$_fhnorm" awk -v hidx="$_fhidx" -v free="$_fhdrfree" -v dropu="$_acx_dropu" "$_acx_norm"'
+            {
+                i = NR - 1
+                if (i > hidx) {
+                    if (free && s == ENVIRON["_ACX_H"]) next
+                    if (i == hidx + 1 && dropu) next
+                }
+                print
+            }' "$cur" > "$p.rows1"
+        cur="$p.rows1"; _acx_rows
+    fi
+
+    # --- first-cell wraps ---
+    if [[ "$mode" == HDR && $ncols -ge 4 && $n -ge 3 ]]; then
+        awk -v ncols="$ncols" '
+            { L[NR] = $0; T[NR] = NF }
+            END {
+                for (i = 1; i <= NR; i++) {
+                    if (i > 1 && i < NR && T[i] == 1) {
+                        m = 1 + T[i + 1]
+                        c = substr(L[i + 1], 1, 1)
+                        if (m >= ncols - 1 && m <= ncols && (c == " " || c == "\t")) {
+                            k = split(L[i], a); r = a[1]
+                            k = split(L[i + 1], b)
+                            for (j = 1; j <= k; j++) r = r " " b[j]
+                            print r
+                            i++
+                            continue
+                        }
+                    }
+                    print L[i]
+                }
+            }' "$cur" > "$p.rows2"
+        cur="$p.rows2"; _acx_rows
+    fi
+    _ACX_F="$cur"
+    _ACX_STATS_KEY=""     # _ac_lines_stats reads $_ACX_F from here on
+
+    # --- positional decision (HDR/HDR2) ---
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
+        local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
+        local _htok; _fr_tok "${H[$hidx]}"; _htok=${#_FR_TOK[@]}
+        _ac_lines_stats $((hidx + 1))
+        local _maxd=$_ACS_TMAX _moded=$_ACS_TMOD
+        local _use_pos=0
+        if [[ $_maxd -gt $_htok ]]; then _use_pos=1
+        elif [[ $_htok -gt $_maxd ]]; then
+            _ac_lines_stats 0
+            if [[ $_ACS_DIGIT -eq 0 ]]; then _use_pos=1
+            else
+                _ac_seg_v "${H[$hidx]}"
+                [[ $_AC_SEG -ge 2 && $_AC_SEG -eq $_moded ]] && _use_pos=1
+            fi
+        else
+            local _hsegq; _ac_seg_v "${H[$hidx]}"; _hsegq="$_AC_SEG"
+            if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
+                _ac_lines_stats $((hidx + 1))
+                [[ $_ACS_SMOD -eq $_hsegq ]] && _use_pos=1
+            fi
+        fi
+        if [[ $_use_pos -eq 1 ]]; then
+            # a non-ASCII block (the mb grid) or a cleanly aligned one (the
+            # positional grid) takes the bash path
+            awk -v h="$hidx" 'NR > h' "$cur" | LC_ALL=C grep -q $'[\x80-\xff]' && return 3
+            [[ "$(awk -v h="$hidx" 'NR > h' "$cur" | _ac_aligned)" == "1" ]] && return 3
+        fi
+    fi
+
+    # --- segment-split fallback (HDR): bash path when it fires ---
+    if [[ "$mode" == HDR && $n -ge 2 ]]; then
+        _ac_lines_stats 0
+        local _sok=$_ACS_SSAME _sS=$_ACS_SFIRST _shw=$_ACS_TFIRST
+        _ac_lines_stats 1
+        [[ $_sok -eq 1 && $_sS -ge 2 && $_ACS_TMOD -gt $_shw ]] && return 3
+    fi
+
+    # --- offset assignment for sparse tables (HDR) ---
+    if [[ "$mode" == HDR && $n -ge 3 ]]; then
+        local _oa_h; _fr_tok "${H[0]}"; _oa_h=("${_FR_TOK[@]}")
+        if [[ ${#_oa_h[@]} -ge 4 ]]; then
+            _ac_lines_stats 1
+            if [[ $_ACS_TMOD -lt ${#_oa_h[@]} && $_ACS_TMOD -ge 1 ]]; then
+                local _oa_out
+                _oa_out=$(awk "$_AC_AWK_OFFSET" "$cur")
+                if [[ -n "$_oa_out" ]]; then
+                    echo "$_oa_out"; return 0
+                fi
+            fi
+        fi
+    fi
+
+    # --- header names ---
+    local headers=() startidx=0 i lines=("${H[@]:0:2}")
+    case "$mode" in
+        HDR)  _fr_tok "${H[0]}"; headers=("${_FR_TOK[@]}"); startidx=1 ;;
+        HDR2) _fr_tok "${H[1]}"; headers=("${_FR_TOK[@]}"); startidx=2 ;;
+        HL)   for ((i = 1; i <= ncols; i++)); do _fr_col_letter "$i"; headers+=("$_FR_LETTER"); done; startidx=0 ;;
+    esac
+    _ac_group_prefix
+    for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
+
+    # --- trailing preposition weld ---
+    if [[ ( "$mode" == HDR || "$mode" == HDR2 ) && ${#headers[@]} -ge 3 ]]; then
+        local _tp_last="${headers[$(( ${#headers[@]} - 1 ))]}"
+        local _tp_lc="${_tp_last,,}"
+        case "$_tp_lc" in
+            on|by|in|at|of|to)
+                _ac_lines_stats "$startidx"
+                if [[ $_ACS_TMOD -eq $(( ${#headers[@]} - 1 )) ]]; then
+                    headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
+                    unset 'headers[$(( ${#headers[@]} - 1 ))]'
+                    headers=("${headers[@]}")
+                fi
+                ;;
+        esac
+    fi
+
+    # --- headerless scaffold split: bash path when its first-row test passes ---
+    if [[ "$mode" == HL && $n -ge 2 ]]; then
+        _ac_lines_stats "$startidx"
+        if [[ $_ACS_TRAG -eq 1 ]]; then
+            local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_tk _sc_i _sc_a _sc_b
+            _fr_tok "${H[$startidx]}"; _sc_tk=("${_FR_TOK[@]}")
+            for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
+                case "${_sc_tk[$_sc_i]}" in
+                    at|on|from|via|dev|to|of|by|for)
+                        [[ ${#_sc_seq[@]} -eq 0 ]] && _sc_pre=$_sc_i
+                        _sc_seq+=("${_sc_tk[$_sc_i]}") ;;
+                esac
+            done
+            for ((_sc_a = 0; _sc_a < ${#_sc_seq[@]} && _sc_ok == 1; _sc_a++)); do
+                for ((_sc_b = _sc_a + 1; _sc_b < ${#_sc_seq[@]}; _sc_b++)); do
+                    [[ "${_sc_seq[$_sc_a]}" == "${_sc_seq[$_sc_b]}" ]] && { _sc_ok=0; break; }
+                done
+            done
+            [[ $_sc_ok -eq 1 && ${#_sc_seq[@]} -ge 2 && $_sc_pre -ge 1 ]] && return 3
+        fi
+    fi
+
+    # --- headerless phrase merge: bash path when it applies ---
+    if [[ "$mode" == HL && ${#headers[@]} -ge 3 && $n -ge 2 ]]; then
+        local _pm_ok
+        _pm_ok=$(awk -v s="$startidx" -v nh="${#headers[@]}" '
+            NR <= s { next }
+            {
+                if (NF != nh || $(nh - 1) !~ /^[a-z]+$/ || $nh !~ /^[a-z]+$/) { bad = 1; exit }
+                pr = $(nh - 1) " " $nh
+                if (!seen) { first = pr; seen = 1 } else if (pr != first) { bad = 1; exit }
+            }
+            END { print bad ? 0 : 1 }' "$cur")
+        [[ "$_pm_ok" == 1 ]] && return 3
+    fi
+
+    # --- emit (the fast path: no phrase merge) ---
+    [[ ${#headers[@]} -ge 1 ]] || return 3
+    local entry=$(( n - startidx ))
+    if [[ $entry -gt 0 ]]; then
+        local _hjoin
+        _ac_join_tab "${headers[@]}"; _hjoin="$_AC_JOINED"
+        awk -v s="$startidx" 'NR > s' "$cur" | _ac_emit_rows "$_hjoin"
+        printf 'total_entries %d\n' "$entry"
+    fi
+    return 0
+}
+
 strategy_extract () {
     local text="$1"
     local shape; _ac_shape_v "$text" || { echo ""; return 0; }; shape="$_AC_SHAPE"
@@ -43193,7 +44578,35 @@ strategy_extract () {
     # "LOAD = AOe280a6AO" lines after a blank). A table that resumes after the blank
     # (faillock's per-user sections) keeps collecting.
     local _raw=() lines=() _l _li
-    _ac_body_v "$text"; _fr_lines "$_AC_BODY"; _raw=("${_FR_LINES[@]}")
+    local _acx_big=0 _acx_o="" _acx_pre=0
+    _ACX_F=""
+    _ac_body_v "$text"
+    (( ${#_AC_BODY} > _FR_BIG_BYTES )) && _acx_big=1
+    if [[ $_acx_big -eq 1 ]] && _fr_scratch; then
+        # BIG block: the file-to-file path; it hands back (rc 3) only for the
+        # bash-only paths, with the collected rows in _ACX_F.
+        local _acx_rc=0
+        _ac_extract_big "$mode" "$ncols" || _acx_rc=$?
+        if [[ $_acx_rc -ne 3 ]]; then _ACX_F=""; return $_acx_rc; fi
+        mapfile -t lines < "$_ACX_F"
+        _ACX_F=""; _acx_pre=1
+    fi
+    if [[ $_acx_pre -eq 1 ]]; then
+        :   # rows already collected, chrome dropped, wraps merged
+    elif [[ $_acx_big -eq 1 ]]; then
+        # BIG: the collection loop below in one awk pass (a blank line after
+        # enough kept rows arms the footer check; the next non-blank line
+        # ends the table when it is a `KEY = AOe280a6AO` legend).
+        local _acx_need=0
+        case "$mode" in HDR) _acx_need=2 ;; HDR2) _acx_need=3 ;; esac
+        _acx_o="$(printf '%s\n' "$_AC_BODY" | awk -v need="$_acx_need" '
+            $0 !~ /[^ \t\n\v\f\r]/ { if (need > 0 && kept >= need) armed = 1; next }
+            { if (armed && index($0, " = ")) exit; armed = 0; kept++; print }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+        lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+    else
+    _fr_lines "$_AC_BODY"; _raw=("${_FR_LINES[@]}")
+    fi
+    [[ $_acx_pre -eq 1 ]] && _raw=()
     for ((_li = 0; _li < ${#_raw[@]}; _li++)); do
         _l="${_raw[$_li]}"
         if [[ "${_l}" != *[![:space:]]* ]]; then
@@ -43222,7 +44635,7 @@ strategy_extract () {
     #     indent (its first column is blank), and EVERY token short (AOe289a4AO6 chars)
     #     the way unit labels are. Real data rows carry digits, fill the first
     #     column, or have long values (paths, service names).
-    if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 ]]; then
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 && $_acx_pre -eq 0 ]]; then
         local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
         local _fharr; _fr_tok "${lines[$_fhidx]}"; _fharr=("${_FR_TOK[@]}")
         local _fhnorm="${_fharr[*]}"
@@ -43236,19 +44649,64 @@ strategy_extract () {
         # a block dominated by one legitimately repeated log line (entr), where
         # the repeats ARE the data and must survive.
         local _fhdrfree=1
+        # (BIG: the token-normalised form of every row, one awk pass AOe28094AO the
+        # `${arr[*]}` join of _fr_tok's words is the row's fields joined by
+        # one space)
+        local _acx_norm='{ s = ""; for (k = 1; k <= NF; k++) s = (k > 1) ? s " " $k : $k }'
         if [[ ${#_fharr[@]} -lt 3 ]]; then
             _fhdrfree=0
         elif [[ "${lines[$_fhidx]}" =~ [0-9] ]]; then
             local _frep=0 _ftot=0 _fj _fjarr
+            if [[ $_acx_big -eq 1 ]]; then
+                read -r _frep _ftot < <(printf '%s\n' "${lines[@]:$((_fhidx + 1))}" \
+                    | _ACX_H="$_fhnorm" awk "$_acx_norm"' { tot++; if (s == ENVIRON["_ACX_H"]) rep++ }
+                        END { printf "%d %d\n", rep, tot }')
+                [[ $((_fhidx + 1)) -ge ${#lines[@]} ]] && { _frep=0; _ftot=0; }
+            else
             for ((_fj = _fhidx + 1; _fj < ${#lines[@]}; _fj++)); do
                 _ftot=$((_ftot + 1))
                 _fr_tok "${lines[$_fj]}"; _fjarr=("${_FR_TOK[@]}")
                 [[ "${_fjarr[*]}" == "$_fhnorm" ]] && _frep=$((_frep + 1))
             done
+            fi
             [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
         fi
         local _fout=() _fi _farr _fnorm _fdind _ft _ftok
-        for ((_fi = 0; _fi < ${#lines[@]}; _fi++)); do
+        local _acx_n=${#lines[@]}
+        if [[ $_acx_big -eq 1 ]]; then
+            # BIG: decide the one units-row candidate (row _fhidx+1) here,
+            # then let one awk pass drop header repeats (and that row).
+            local _acx_dropu=0
+            _fi=$((_fhidx + 1))
+            _fr_tok "${lines[$_fi]}"; _farr=("${_FR_TOK[@]}")
+            _fnorm="${_farr[*]}"
+            if ! [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] \
+               && [[ ${#_farr[@]} -lt ${#_fharr[@]} && ${#_farr[@]} -ge 2 && ! "${lines[$_fi]}" =~ [0-9] ]]; then
+                _fdind="${lines[$_fi]%%[![:space:]]*}"
+                if [[ ${#_fdind} -gt ${#_fhind} ]]; then
+                    _ft=1
+                    for _ftok in "${_farr[@]}"; do
+                        [[ ${#_ftok} -gt 6 ]] && { _ft=0; break; }
+                        if [[ "$_ftok" == "("*")" ]]; then continue; fi
+                        [[ "$_ftok" == *[A-Z]* && "$_ftok" == *[a-z]* ]] || { _ft=0; break; }
+                    done
+                    [[ $_ft -eq 1 ]] && _acx_dropu=1
+                fi
+            fi
+            _acx_o="$(printf '%s\n' "${lines[@]}" \
+                | _ACX_H="$_fhnorm" awk -v hidx="$_fhidx" -v free="$_fhdrfree" -v dropu="$_acx_dropu" "$_acx_norm"'
+                    {
+                        i = NR - 1
+                        if (i > hidx) {
+                            if (free && s == ENVIRON["_ACX_H"]) next
+                            if (i == hidx + 1 && dropu) next
+                        }
+                        print
+                    }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+            lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+            _acx_n=0
+        fi
+        for ((_fi = 0; _fi < _acx_n; _fi++)); do
             if [[ $_fi -gt $_fhidx ]]; then
                 _fr_tok "${lines[$_fi]}"; _farr=("${_FR_TOK[@]}")
                 _fnorm="${_farr[*]}"
@@ -43273,7 +44731,7 @@ strategy_extract () {
             fi
             _fout+=("${lines[$_fi]}")
         done
-        lines=("${_fout[@]}")
+        [[ $_acx_big -eq 1 ]] || lines=("${_fout[@]}")
     fi
 
     # FIRST-CELL WRAP: a data row that is a LONE token, followed by an INDENTED
@@ -43281,7 +44739,32 @@ strategy_extract () {
     # its own line (df's `/dev/mapper/vg-root` over an indented `98G 45G AOe280a6AO`) AOe28094AO
     # merge the pair into one row. Gated on a headed table with >=4 columns so
     # narrow key/value layouts never pair-merge.
-    if [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 ]]; then
+    if [[ $_acx_pre -eq 1 ]]; then
+        :
+    elif [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 && $_acx_big -eq 1 ]]; then
+        # BIG: the pair-merge loop below in one awk pass (all rows buffered
+        # for the one-row lookahead)
+        _acx_o="$(printf '%s\n' "${lines[@]}" | awk -v ncols="$ncols" '
+            { L[NR] = $0; T[NR] = NF }
+            END {
+                for (i = 1; i <= NR; i++) {
+                    if (i > 1 && i < NR && T[i] == 1) {
+                        m = 1 + T[i + 1]
+                        c = substr(L[i + 1], 1, 1)
+                        if (m >= ncols - 1 && m <= ncols && (c == " " || c == "\t")) {
+                            n = split(L[i], a); r = a[1]
+                            n = split(L[i + 1], b)
+                            for (k = 1; k <= n; k++) r = r " " b[k]
+                            print r
+                            i++
+                            continue
+                        }
+                    }
+                    print L[i]
+                }
+            }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+        lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+    elif [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 ]]; then
         local _mw=() _mi _mt1 _mt2
         for ((_mi = 0; _mi < ${#lines[@]}; _mi++)); do
             if [[ $_mi -gt 0 && $((_mi + 1)) -lt ${#lines[@]} ]]; then
@@ -43310,7 +44793,16 @@ strategy_extract () {
     if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
         local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
         # (printf -v + trailing-newline strip == the old `$(printf AOe280a6AO)` capture)
-        local hd; printf -v hd '%s\n' "${lines[@]:$hidx}"; hd="${hd%"${hd##*[!$'\n']}"}"
+        local hd; printf -v hd '%s\n' "${lines[@]:$hidx}"
+        if [[ $_acx_big -eq 1 ]]; then
+            # (trailing newlines counted from the end: the `##*[!AOe280a6AO]` suffix
+            # scan walks the whole big string)
+            local _hdn=0
+            while (( _hdn < ${#hd} )) && [[ "${hd: -$((_hdn + 1)):1}" == $'\n' ]]; do _hdn=$((_hdn + 1)); done
+            hd="${hd:0:$(( ${#hd} - _hdn ))}"
+        else
+            hd="${hd%"${hd##*[!$'\n']}"}"
+        fi
         # Positional assignment only helps when a data cell is multi-word (docker
         # "2 hours ago", helm's timestamp) AOe28094AO i.e. data rows carry MORE whitespace
         # tokens than the header has labels. When every cell is a single token
@@ -43319,14 +44811,19 @@ strategy_extract () {
         # so positional would cram them; whitespace tokenization is correct there.
         local _htok _harr; _fr_tok "${lines[$hidx]}"; _harr=("${_FR_TOK[@]}"); _htok=${#_harr[@]}
         local _maxd=0 _dli _darr _dcnt=()
+        # Modal data-row token count.
+        local _moded=0 _mdbest=0
+        if [[ $_acx_big -eq 1 ]]; then
+            _ac_lines_stats $((hidx + 1))
+            _maxd=$_ACS_TMAX; _moded=$_ACS_TMOD; _mdbest=$_ACS_TMODN
+        else
         for ((_dli = hidx + 1; _dli < ${#lines[@]}; _dli++)); do
             _fr_tok "${lines[$_dli]}"; _darr=("${_FR_TOK[@]}")
             [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
             _dcnt+=("${#_darr[@]}")
         done
-        # Modal data-row token count.
-        local _moded=0 _mdbest=0
         _fr_modal ${_dcnt[@]+"${_dcnt[@]}"}; _moded=$_FR_MODE; _mdbest=$_FR_MODE_N
+        fi
         # In an ALL-TEXT table (no digits anywhere) the reverse mismatch also
         # wants positional assignment: a header with MORE tokens than the data
         # rows means multi-word labels (`Service Name`), which 2-space
@@ -43339,8 +44836,15 @@ strategy_extract () {
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
         elif [[ $_htok -gt $_maxd ]]; then
-            local _alljoin; printf -v _alljoin '%s\n' "${lines[@]}"
-            if [[ ! "$_alljoin" =~ [0-9] ]]; then _use_pos=1
+            local _alljoin _acx_nodig=0
+            if [[ $_acx_big -eq 1 ]]; then
+                # any digit in ANY row (header rows included): lines[0..]
+                _ac_lines_stats 0; [[ $_ACS_DIGIT -eq 0 ]] && _acx_nodig=1
+            else
+                printf -v _alljoin '%s\n' "${lines[@]}"
+                [[ ! "$_alljoin" =~ [0-9] ]] && _acx_nodig=1
+            fi
+            if [[ $_acx_nodig -eq 1 ]]; then _use_pos=1
             else
                 local _hseg; _ac_seg_v "${lines[$hidx]}"; _hseg="$_AC_SEG"
                 [[ $_hseg -ge 2 && $_hseg -eq $_moded ]] && _use_pos=1
@@ -43358,10 +44862,14 @@ strategy_extract () {
             local _hsegq; _ac_seg_v "${lines[$hidx]}"; _hsegq="$_AC_SEG"
             if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
                 local _dsegc=() _dsi _dsbest=0 _dsmod=0
+                if [[ $_acx_big -eq 1 ]]; then
+                    _ac_lines_stats $((hidx + 1)); _dsmod=$_ACS_SMOD; _dsbest=$_ACS_SMODN
+                else
                 for ((_dsi = hidx + 1; _dsi < ${#lines[@]}; _dsi++)); do
                     _ac_seg_v "${lines[$_dsi]}"; _dsegc+=("$_AC_SEG")
                 done
                 _fr_modal ${_dsegc[@]+"${_dsegc[@]}"}; _dsmod=$_FR_MODE; _dsbest=$_FR_MODE_N
+                fi
                 [[ $_dsmod -eq $_hsegq ]] && _use_pos=1
             fi
         fi
@@ -43500,7 +45008,17 @@ strategy_extract () {
     # are deliberately excluded AOe28094AO there is no header to say the field is one cell.
     if [[ "$mode" == HDR ]] && [[ ${#lines[@]} -ge 2 ]]; then
         local _sS="" _sok=1 _si _sarr _ss _sw _shw=0 _sdw=()
-        for ((_si = 0; _si < ${#lines[@]}; _si++)); do
+        local _smod=0 _sbest=0 _acx_sn=${#lines[@]}
+        if [[ $_acx_big -eq 1 ]]; then
+            # BIG: same verdicts from two awk aggregates (every row's
+            # segment count equal to row 0's; modal data-row token count)
+            _ac_lines_stats 0
+            _sok=$_ACS_SSAME; _sS=$_ACS_SFIRST; _shw=$_ACS_TFIRST
+            _ac_lines_stats 1
+            _smod=$_ACS_TMOD; _sbest=$_ACS_TMODN
+            _acx_sn=0
+        fi
+        for ((_si = 0; _si < _acx_sn; _si++)); do
             _ac_seg_v "${lines[$_si]}"; _ss="$_AC_SEG"
             _fr_tok "${lines[$_si]}"; _sarr=("${_FR_TOK[@]}"); _sw=${#_sarr[@]}
             [[ $_si -eq 0 ]] && _shw=$_sw || _sdw+=("$_sw")
@@ -43515,8 +45033,9 @@ strategy_extract () {
         # header label happens to be single-spaced (ps -ef's "C STIME TTY" AOe28094AO three
         # narrow columns, not one multi-word cell). That equality is the guard that
         # keeps single-space-delimited fixed tables on tokenization.
-        local _smod=0 _sbest=0
+        if [[ $_acx_big -eq 0 ]]; then
         _fr_modal ${_sdw[@]+"${_sdw[@]}"}; _smod=$_FR_MODE; _sbest=$_FR_MODE_N
+        fi
         if [[ $_sok -eq 1 && $_sS -ge 2 && $_smod -gt $_shw ]]; then
             # mode==HDR guarantees a header row: split it on the same >=2-space
             # boundaries and use its cells as column names ("RAW USE" -> RAW_USE).
@@ -43573,122 +45092,18 @@ strategy_extract () {
         if [[ ${#_oa_h[@]} -ge 4 ]]; then
             # Modal data-row token count, and raggedness.
             local _oa_cnt=() _oa_i _oa_t _oa_mod=0 _oa_ba _oa_bb _oa_bk _oa_best=0
+            if [[ $_acx_big -eq 1 ]]; then
+                _ac_lines_stats 1; _oa_mod=$_ACS_TMOD; _oa_best=$_ACS_TMODN
+            else
             for ((_oa_i = 1; _oa_i < ${#lines[@]}; _oa_i++)); do
                 _fr_tok "${lines[$_oa_i]}"; _oa_t=("${_FR_TOK[@]}")
                 _oa_cnt+=("${#_oa_t[@]}")
             done
             _fr_modal ${_oa_cnt[@]+"${_oa_cnt[@]}"}; _oa_mod=$_FR_MODE; _oa_best=$_FR_MODE_N
+            fi
             if [[ $_oa_mod -lt ${#_oa_h[@]} && $_oa_mod -ge 1 ]]; then
                 local _oa_out
-                _oa_out=$(printf '%s\n' "${lines[@]}" | awk '
-                    NR == 1 {
-                        # Header token spans (1-based columns).
-                        len = length($0); st = 0; nh = 0
-                        for (i = 1; i <= len + 1; i++) {
-                            c = (i <= len) ? substr($0, i, 1) : " "
-                            if (c != " " && c != "\t") { if (st == 0) st = i }
-                            else if (st > 0) {
-                                nh++; hs[nh] = st; he[nh] = i - 1
-                                nm = substr($0, st, i - st)
-                                gsub(/\./, "_", nm)
-                                hn[nh] = nm
-                                st = 0
-                            }
-                        }
-                        # A trailing preposition is the tail of a two-word
-                        # label (`Mounted on`), not a column of its own AOe28094AO
-                        # weld it onto its neighbour so the last value gets
-                        # the full name instead of a truncated one.
-                        pl = tolower(hn[nh])
-                        if (nh >= 3 && pl ~ /^(on|by|in|at|of|to)$/) {
-                            hn[nh - 1] = hn[nh - 1] "_" hn[nh]
-                            he[nh - 1] = he[nh]
-                            nh--
-                        }
-                        # DUPLICATE header token names are the signature of
-                        # multi-word labels tokenized apart: doctl repeats ID
-                        # (`Active Deployment ID` / `In Progress Deployment
-                        # ID`), spark repeats Tasks three times. Per-token
-                        # spans are meaningless there AOe28094AO the duplicate names
-                        # collide in the melt and each label loses half of
-                        # itself AOe28094AO so the whole path withdraws.
-                        for (i = 1; i <= nh; i++)
-                            for (j = i + 1; j <= nh; j++)
-                                if (hn[i] == hn[j]) { dupname = 1 }
-                        next
-                    }
-                    {
-                        row++
-                        len = length($0); st = 0
-                        for (c = 1; c <= nh; c++) cells[c] = ""
-                        for (i = 1; i <= len + 1; i++) {
-                            ch = (i <= len) ? substr($0, i, 1) : " "
-                            if (ch != " " && ch != "\t") { if (st == 0) st = i }
-                            else if (st > 0) {
-                                s = st; e = i - 1; st = 0
-                                tok = substr($0, s, e - s + 1)
-                                if (s >= hs[nh]) { col = nh; ov = 1 }
-                                else {
-                                    col = 0; ov = 0; nspan = 0
-                                    for (c = 1; c <= nh; c++) {
-                                        lo = (s > hs[c]) ? s : hs[c]
-                                        hi = (e < he[c]) ? e : he[c]
-                                        o = hi - lo + 1
-                                        if (o > 0) nspan++
-                                        if (o > ov) { ov = o; col = c }
-                                    }
-                                    # A token stretching across TWO header
-                                    # token spans is a value sitting under a
-                                    # multi-word label (`starfish-api` under
-                                    # `Spec Name`) AOe28094AO count them; too many and
-                                    # the table is not per-token aligned.
-                                    if (nspan >= 2) nwide++
-                                    if (col == 0) {
-                                        # no overlap: nearest span by gap
-                                        bd = -1
-                                        for (c = 1; c <= nh; c++) {
-                                            d = (e < hs[c]) ? hs[c] - e : s - he[c]
-                                            if (bd < 0 || d < bd) { bd = d; col = c }
-                                        }
-                                    }
-                                }
-                                ntok++
-                                if (ov > 0) nhit++
-                                # Edge alignment: a genuinely offset-aligned
-                                # table puts each value START at its header
-                                # label start (left-aligned columns) or its
-                                # END at the label end (right-aligned
-                                # numerics). Prose that merely OVERLAPS spans
-                                # (deno error lines under a first line
-                                # mistaken for a header) has almost no edge
-                                # hits, and that difference is the gate.
-                                # NOTE: this comment sits inside a single-
-                                # quoted awk program AOe28094AO no apostrophes.
-                                for (c2 = 1; c2 <= nh; c2++)
-                                    if (s == hs[c2] || e == he[c2]) { nedge++; break }
-                                cells[col] = (cells[col] == "") ? tok : cells[col] " " tok
-                            }
-                        }
-                        for (c = 1; c <= nh; c++)
-                            if (cells[c] != "")
-                                buf = buf "entry" row "." hn[c] " " cells[c] "\n"
-                    }
-                    END {
-                        # Withdraw unless the rows really sit under the header:
-                        # >=80% of tokens overlap a header span AND >=60% land
-                        # exactly on a span edge (left- or right-aligned) AND
-                        # the header names are per-token meaningful AOe28094AO no
-                        # duplicate names, and <10% of tokens spanning two
-                        # labels (multi-word-label tables belong to the
-                        # positional grid / seg-split paths, not this one).
-                        if (row == 0 || ntok == 0 || nhit * 5 < ntok * 4) exit 0
-                        if (nedge * 10 < ntok * 6) exit 0
-                        if (dupname) exit 0
-                        if (nwide * 10 > ntok) exit 0
-                        printf "%s", buf
-                        printf "total_entries %d\n", row
-                    }
-                ')
+                _oa_out=$(printf '%s\n' "${lines[@]}" | awk "$_AC_AWK_OFFSET")
                 if [[ -n "$_oa_out" ]]; then
                     echo "$_oa_out"; return 0
                 fi
@@ -43703,84 +45118,7 @@ strategy_extract () {
         HDR2) _fr_tok "${lines[1]}"; headers=("${_FR_TOK[@]}"); startidx=2 ;;
         HL)   for ((i = 1; i <= ncols; i++)); do _fr_col_letter "$i"; headers+=("$_FR_LETTER"); done; startidx=0 ;;
     esac
-    # HDR2 group-prefixing: when the field row repeats names under different
-    # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
-    # duplicates would COLLIDE in the wide record and the melt silently drops
-    # the earlier group's columns. Disambiguate positionally: each duplicated
-    # header token (except the first, key column) gets the group label whose
-    # printed CENTER is nearest AOe28094AO `CPU_Req`, `Memory_Req`. Unique names stay
-    # untouched, so single-group two-line headers (vmstat) are unaffected.
-    if [[ "$mode" == HDR2 && ${#headers[@]} -ge 3 ]]; then
-        local _gpdup=0 _gpi _gpj
-        for ((_gpi = 1; _gpi < ${#headers[@]} && _gpdup == 0; _gpi++)); do
-            for ((_gpj = _gpi + 1; _gpj < ${#headers[@]}; _gpj++)); do
-                [[ "${headers[$_gpi]}" == "${headers[$_gpj]}" ]] && { _gpdup=1; break; }
-            done
-        done
-        if [[ $_gpdup -eq 1 ]]; then
-            # token centers of a raw line -> _GP_CENTERS / _GP_TOKS
-            _gp_scan () {
-                local _s="$1"
-                local _i _c _st=-1 _n=${#_s}
-                _GP_CENTERS=(); _GP_TOKS=()
-                for ((_i = 0; _i <= _n; _i++)); do
-                    _c="${_s:$_i:1}"
-                    if [[ "$_c" != " " && "$_c" != "	" && $_i -lt $_n ]]; then
-                        [[ $_st -lt 0 ]] && _st=$_i
-                    elif [[ $_st -ge 0 ]]; then
-                        _GP_TOKS+=("${_s:$_st:$((_i - _st))}")
-                        _GP_CENTERS+=($(( (_st + _i - 1) / 2 )))
-                        _st=-1
-                    fi
-                done
-            }
-            _gp_scan "${lines[0]}"
-            local _gpg_toks=("${_GP_TOKS[@]}") _gpg_cent=("${_GP_CENTERS[@]}")
-            # The group row's tokens become NAME PREFIXES AOe28094AO sanitize each
-            # (vmstat -d's `------------reads------------` AOe28692AO `reads`), and bail
-            # out entirely when the row is banner chrome rather than labels
-            # (goose's `=== PER REQUEST METRICS ===`: punctuation-only edge
-            # tokens mark a banner, whose words would make junk prefixes).
-            local _gpk _gpsan=1
-            if [[ ! "${_gpg_toks[0]}" =~ [A-Za-z0-9] \
-                  || ! "${_gpg_toks[$(( ${#_gpg_toks[@]} - 1 ))]}" =~ [A-Za-z0-9] ]]; then
-                _gpsan=0
-            fi
-            for ((_gpk = 0; _gpk < ${#_gpg_toks[@]}; _gpk++)); do
-                local _gpt="${_gpg_toks[$_gpk]}"
-                _gpt="${_gpt##+(-)}"; _gpt="${_gpt%%+(-)}"
-                while [[ "$_gpt" == -* ]]; do _gpt="${_gpt#-}"; done
-                while [[ "$_gpt" == *- ]]; do _gpt="${_gpt%-}"; done
-                [[ -z "$_gpt" ]] && { _gpsan=0; break; }
-                _gpg_toks[$_gpk]="$_gpt"
-            done
-            _gp_scan "${lines[1]}"
-            local _gph_cent=("${_GP_CENTERS[@]}")
-            if [[ $_gpsan -eq 1 && ${#_gpg_toks[@]} -ge 2 && ${#_gph_cent[@]} -eq ${#headers[@]} ]]; then
-                # Mark duplicates on the ORIGINAL names first AOe28094AO renaming inside
-                # the same pass would hide a later twin (`Req` at index 4 stops
-                # matching once index 1 became `CPU_Req`) and leave the second
-                # group's columns bare and still colliding with any third.
-                local _gpdups=()
-                for ((_gpi = 0; _gpi < ${#headers[@]}; _gpi++)); do _gpdups[$_gpi]=0; done
-                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
-                    for ((_gpj = 1; _gpj < ${#headers[@]}; _gpj++)); do
-                        [[ $_gpj -ne $_gpi && "${headers[$_gpj]}" == "${headers[$_gpi]}" ]] && { _gpdups[$_gpi]=1; break; }
-                    done
-                done
-                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
-                    [[ ${_gpdups[$_gpi]} -eq 0 ]] && continue
-                    local _gpbest=0 _gpbd=999999 _gpdist
-                    for ((_gpj = 0; _gpj < ${#_gpg_toks[@]}; _gpj++)); do
-                        _gpdist=$(( ${_gph_cent[$_gpi]} - ${_gpg_cent[$_gpj]} ))
-                        [[ $_gpdist -lt 0 ]] && _gpdist=$(( -_gpdist ))
-                        [[ $_gpdist -lt $_gpbd ]] && { _gpbd=$_gpdist; _gpbest=$_gpj; }
-                    done
-                    headers[$_gpi]="${_gpg_toks[$_gpbest]}_${headers[$_gpi]}"
-                done
-            fi
-        fi
-    fi
+    _ac_group_prefix
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
@@ -43797,11 +45135,15 @@ strategy_extract () {
         case "$_tp_lc" in
             on|by|in|at|of|to)
                 local _tp_cnt=() _tp_i _tp_t _tp_mod=0 _tp_a _tp_b _tp_k _tp_best=0
+                if [[ $_acx_big -eq 1 ]]; then
+                    _ac_lines_stats "$startidx"; _tp_mod=$_ACS_TMOD; _tp_best=$_ACS_TMODN
+                else
                 for ((_tp_i = startidx; _tp_i < ${#lines[@]}; _tp_i++)); do
                     _fr_tok "${lines[$_tp_i]}"; _tp_t=("${_FR_TOK[@]}")
                     _tp_cnt+=("${#_tp_t[@]}")
                 done
                 _fr_modal ${_tp_cnt[@]+"${_tp_cnt[@]}"}; _tp_mod=$_FR_MODE; _tp_best=$_FR_MODE_N
+                fi
                 if [[ $_tp_mod -eq $(( ${#headers[@]} - 1 )) ]]; then
                     headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
                     unset 'headers[$(( ${#headers[@]} - 1 ))]'
@@ -43823,11 +45165,15 @@ strategy_extract () {
     # (word sets differ per row) never enter.
     if [[ "$mode" == HL && ${#lines[@]} -ge 2 ]]; then
         local _sc_r _sc_tk _sc_w0=-1 _sc_ragged=0
+        if [[ $_acx_big -eq 1 ]]; then
+            _ac_lines_stats "$startidx"; _sc_ragged=$_ACS_TRAG
+        else
         for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
             _fr_tok "${lines[$_sc_r]}"; _sc_tk=("${_FR_TOK[@]}")
             [[ $_sc_w0 -lt 0 ]] && _sc_w0=${#_sc_tk[@]}
             [[ ${#_sc_tk[@]} -ne $_sc_w0 ]] && _sc_ragged=1
         done
+        fi
         if [[ $_sc_ragged -eq 1 ]]; then
             local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_t _sc_i
             _fr_tok "${lines[$startidx]}"; _sc_tk=("${_FR_TOK[@]}")
@@ -45742,7 +47088,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/colons.sh===
-===META: mode=664 sha256=3ddd6f342c2a0bd8ef7b1d1b0ba3a50f55ea84b47a26df61194d1f8653bae794===
+===META: mode=664 sha256=eb3632f1cdd0bd3b0b7f4421d82f6218cce1f760e8c004c993b9fd46d7f55c3e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -45751,6 +47097,7 @@ strategy_extract () {
 ## Description: Extract field:value pairs from colon-delimited data
 ## Version: 1.1
 ## Priority: 60
+## Confidence-Max: 60
 ## Sample: samples/colons/basic.txt
 
 strategy_detect () {
@@ -47960,7 +49307,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/equals.sh===
-===META: mode=664 sha256=dd967f6a75531159516d8a27ee1ece242523094afd5373c6f49c748e172c9f42===
+===META: mode=664 sha256=dc3fb36e376e83dfaa77d062c05322c43f3a4b2faa3caab17978a11a96aafa7e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -47969,6 +49316,7 @@ strategy_extract () {
 ## Description: Extract field=value pairs from equals-delimited data
 ## Version: 1.2
 ## Priority: 65
+## Confidence-Max: 75
 ## Sample: samples/equals/basic.txt
 
 strategy_detect () {
@@ -47993,6 +49341,45 @@ strategy_detect () {
     # confidence ranking a sub-50 score ranks below text-lines, which then
     # claims (and files) the input anyway.
     local _cf_line _cf_nb=0 _cf_ok=0 _cf_any=0
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: both loops below in one awk pass (see _FR_BIG_BYTES).
+        # The {0,63}-bounded keys are checked by length AOe28094AO mawk-safe, no
+        # interval expressions. Prints "<non-blank> <kv-lines> <any-form
+        # lines> <any-hit>".
+        local _cf_hit=0
+        read -r _cf_nb _cf_ok _cf_any _cf_hit < <(cat <<< "$text" | awk '
+            function keyok(t, re,    i, k) {
+                i = index(t, "="); if (!i) return 0
+                k = substr(t, 1, i - 1)
+                if (k !~ re || length(k) > 64) return 0
+                return substr(t, i + 1, 1) != "="
+            }
+            {
+                # the four line forms the detection loop accepts
+                if ($0 ~ /^[A-Za-z][A-Za-z0-9_. -]*=[^=]/ \
+                    || $0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/ \
+                    || $0 ~ /^[+-][A-Za-z][A-Za-z0-9_.]*=[^=]/ \
+                    || $0 ~ /^[A-Za-z][A-Za-z0-9_().: -]* = [^=]/) { hit = 1; nany++ }
+                if ($0 !~ /[^ \t\n\v\f\r]/) next
+                nb++
+                t = $0; ok = keyok(t, "^[A-Za-z_][A-Za-z0-9_.-]*$")
+                if (!ok && t ~ /^export[ \t\n\v\f\r]+/) {
+                    sub(/^export[ \t\n\v\f\r]+/, "", t)
+                    ok = keyok(t, "^[A-Za-z_][A-Za-z0-9_.-]*$")
+                }
+                if (!ok && $0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/) ok = 1
+                if (!ok && $0 ~ /^[+-]/) ok = keyok(substr($0, 2), "^[A-Za-z_][A-Za-z0-9_.]*$")
+                if (ok) nok++
+            }
+            END { printf "%d %d %d %d\n", nb, nok, nany, hit }')
+        [[ $_cf_nb -gt 0 ]] && _STRATEGY_CONFIDENCE=$(( 50 + _cf_any * 5 / _cf_nb ))
+        if [[ $_cf_nb -ge 2 && $(( _cf_ok * 100 )) -ge $(( _cf_nb * 90 )) ]]; then
+            _STRATEGY_CONFIDENCE=75
+            _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
+        fi
+        [[ $_cf_hit -eq 1 ]]
+        return
+    fi
     local _cf_kv='^(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_.-]{0,63}=([^=]|$)'
     local _cf_pin='^[A-Za-z0-9_.-]+==[^=[:space:]]+$'
     local _cf_sig='^[+-][A-Za-z_][A-Za-z0-9_.]{0,63}=([^=]|$)'
@@ -48043,8 +49430,95 @@ strategy_detect () {
     return 1
 }
 
+# _strat_equals_extract_awk TEXT AOe28094AO strategy_extract for a BIG input in awk
+# passes, byte-identical: the pin / cfg block modes, and the general loop with
+# clean_text's date / paren protection and restore_text_values folded in per
+# line. Returns 3 (nothing printed) when a line needs bash-only semantics AOe28094AO a
+# paren span holding a glob / `&` byte (clean_text substitutes it as a
+# PATTERN) or an over-long non-ASCII key (${#key} counts characters) AOe28094AO and
+# the caller runs the bash loops instead.
+_strat_equals_extract_awk () {
+    local _m _o
+    _m="$(cat <<< "$1" | awk '
+        $0 !~ /[^ \t\n\v\f\r]/ { next }
+        {
+            nb++
+            if ($0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/) pin++
+            if ($0 ~ /^[A-Za-z_][^ \t\n\v\f\r=]*(=[^ \t\n\v\f\r]*)?$/) {
+                tight++
+                if (index($0, "=")) haseq = 1; else bare++
+            }
+        }
+        END {
+            if (nb >= 2 && pin == nb) print "pin"
+            else if (nb >= 2 && tight == nb && haseq && bare >= 1) print "cfg"
+            else print "kv"
+        }')"
+    if [[ "$_m" == pin ]]; then
+        cat <<< "$1" | awk '
+            $0 !~ /[^ \t\n\v\f\r]/ { next }
+            { e++; i = index($0, "==")
+              printf "entry%d.package %s\nentry%d.version %s\n", e, substr($0, 1, i - 1), e, substr($0, i + 2) }
+            END { if (e > 0) printf "total_entries %d\n", e }'
+        return 0
+    fi
+    if [[ "$_m" == cfg ]]; then
+        cat <<< "$1" | awk '
+            $0 !~ /[^ \t\n\v\f\r]/ { next }
+            { e++; i = index($0, "=")
+              if (i) { k = substr($0, 1, i - 1); v = substr($0, i + 1) } else { k = $0; v = "true" }
+              printf "entry%d.key %s\nentry%d.value %s\n", e, k, e, v }
+            END { if (e > 0) printf "total_entries %d\n", e }'
+        return 0
+    fi
+    _o="$(cat <<< "$1" | awk '
+        BEGIN { SP = sprintf("%c", 30); CO = sprintf("%c", 31) }
+        {
+            line = $0
+            # clean_text: protect " Mon DD HH:MM:SS YYYY" dates and "(AOe280a6AO " spans
+            if (index(line, ":")) {
+                while (match(line, / [A-Za-z][A-Za-z][A-Za-z] [0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    r = " " substr(m, 2, 3) SP substr(m, 6, 2) SP substr(m, 9, 2) CO substr(m, 12, 2) CO substr(m, 15, 2) SP substr(m, 18, 4)
+                    line = substr(line, 1, RSTART - 1) r substr(line, RSTART + RLENGTH)
+                }
+            }
+            if (index(line, "(")) {
+                while (match(line, /[(][^) ]*[ ]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    if (m ~ /[][*?\\&+@!]/) { bail = 1; exit 3 }
+                    line = substr(line, 1, RSTART - 1) substr(m, 1, length(m) - 1) SP substr(line, RSTART + RLENGTH)
+                }
+            }
+            if (line == "" || !index(line, "=")) next
+            if (index(line, "==") || index(line, "+=") || index(line, "!=")) next
+            s = line
+            sub(/^ +/, "", s)
+            if (substr(s, 1, 2) == "* ") s = substr(s, 3)
+            i = index(s, "="); key = substr(s, 1, i - 1); val = substr(s, i + 1)
+            if (key == "") next
+            if (length(key) > 50) { if (key ~ /[^ -~]/) { bail = 1; exit 3 }; next }
+            if (key ~ /^[0-9]/) next
+            gsub(/ /, "_", key); sub(/^_/, "", key); sub(/_$/, "", key)
+            sub(/^ +/, "", val); sub(/ +$/, "", val)
+            if (val == "") val = "\"\""
+            # restore_text_values: sentinels -> "_" in the name, back to
+            # space / colon in the value
+            gsub(SP, "_", key); gsub(CO, "_", key)
+            gsub(SP, " ", val); gsub(CO, ":", val)
+            print key " " val
+        }')" || return 3
+    printf '%s\n' "$_o"
+    return 0
+}
+
 strategy_extract () {
     local text="$1"
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        local _eqx_rc=0
+        _strat_equals_extract_awk "$text" || _eqx_rc=$?
+        [[ $_eqx_rc -eq 3 ]] || return $_eqx_rc
+    fi
 
     # Two uniform-block modes, decided over the RAW text before cleaning:
     #   pins AOe28094AO EVERY non-blank line is `name==version` (pip freeze, rye
@@ -50039,7 +51513,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/line-records.sh===
-===META: mode=664 sha256=e47421401cd4042bcc27caa74225768f39a7afd93d8c248dce50c1126b73022d===
+===META: mode=664 sha256=c635dcf07ca4eb8159117c7eacc72118c4e3280a12e3cff5484fc4e816e2a3b6===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50048,6 +51522,7 @@ strategy_extract () {
 ## Description: Last-resort AOe28094AO each line is a record of whitespace-separated fields (value lists, single-line field dumps)
 ## Version: 1.0
 ## Priority: 96
+## Confidence-Max: 55
 ## Sample: samples/line-records/basic.txt
 
 # The catch-all for tabular-ish output nothing more specific claims: a single
@@ -53186,7 +54661,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/syslog.sh===
-===META: mode=664 sha256=6b0867e0d6f49f16cc11d4f3ef5ae1700567cc7af193876be1fe0872e76f05e0===
+===META: mode=664 sha256=d79f3dc23ab50f47d6dd3b8275472092153cbe2ce03983c1ec97846dfa981d9b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53206,6 +54681,16 @@ strategy_detect () {
     # status's log tail) is not a syslog capture and belongs to other
     # parsers.
     local line total=0 hits=0
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: the same count in one awk pass (see _FR_BIG_BYTES)
+        cat <<< "$text" | awk '
+            /[^ \t\n\v\f\r]/ {
+                total++
+                if ($0 ~ /^[ \t\n\v\f\r]*[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] /) hits++
+            }
+            END { exit !(total > 0 && int(hits * 100 / total) >= 50) }'
+        return
+    fi
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         [[ "${line}" != *[![:space:]]* ]] && continue
@@ -53219,6 +54704,41 @@ strategy_extract () {
     local text="$1"
     local result=""
     local line_num=0
+
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: the loop below in one awk pass, byte-identical output
+        # (tokens split on blank runs as _fr_tok's default IFS does). A
+        # matching line with fewer than 5 tokens makes the bash loop abort
+        # under `set -u` (`${_arr[4]}` unbound) with NO output and status 1 AOe28094AO
+        # the awk twin reports that the same way.
+        local _sl_out
+        _sl_out="$(cat <<< "$text" | awk '
+            $0 == "" { next }
+            $0 !~ /^[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] / { next }
+            {
+                ln++; p = "line" ln
+                printf "%s.timestamp %s\n", p, substr($0, 1, 15)
+                s = $0; sub(/[ \t\n]+$/, "", s)
+                n = split(s, a, /[ \t\n]+/)
+                if (n < 5) { failed = 1; exit 1 }
+                printf "%s.hostname %s\n", p, a[4]
+                pp = a[5]; proc = pp
+                i = index(proc, "["); if (i) proc = substr(proc, 1, i - 1)
+                sub(/:$/, "", proc)
+                pid = ""
+                i = index(pp, "[")
+                if (i && index(substr(pp, i + 1), "]")) {
+                    pid = substr(pp, i + 1); pid = substr(pid, 1, index(pid, "]") - 1)
+                }
+                printf "%s.process %s\n", p, proc
+                if (pid != "") printf "%s.pid %s\n", p, pid
+                msg = ""
+                for (k = 6; k <= n; k++) msg = (msg == "") ? a[k] : msg " " a[k]
+                if (msg != "") printf "%s.message %s\n", p, msg
+            }')" || return 1
+        printf '%s\n' "$_sl_out"
+        return 0
+    fi
 
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
@@ -57999,8 +59519,8 @@ strategy_extract () {
     echo "$result"
 }
 ===END===
-===FILE: extract/strategies/network/nslookup_mx.sh===
-===META: mode=664 sha256=d52c1989f0448a92fc3ab2eca9d618cc94d65c7319aac55541ce750bc2594a8f===
+===FILE-ESC: extract/strategies/network/nslookup_mx.sh===
+===META: mode=664 sha256=5c2c50ee61cd1cd12aa65642b148f51a890ba763f135369f493ed7a07495dcca===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58021,11 +59541,9 @@ strategy_extract () {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=92
-    local line
-    _fr_lines "$text"
-    for line in "${_FR_LINES[@]}"; do
-        [[ "$line" == *"mail exchanger = "* ]] && return 0
-    done
+    # (a line holds the literal iff the text does AOe28094AO it has no newline AOe28094AO so
+    # one whole-text test instead of a walk over every line)
+    [[ "$text" == *"mail exchanger = "* ]] && return 0
     return 1
 }
 
@@ -60607,7 +62125,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/csv.sh===
-===META: mode=664 sha256=819e649079d5ffe4233508fa780b6583d616b46489637f77f13d552b40812ea4===
+===META: mode=664 sha256=4598a4597ee0b1f7f80a23fa0441492b11bdc7ef91c9514e436034a1e56836db===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60655,6 +62173,86 @@ _strat_csv_split () {
     done
     _CSV_FIELDS+=("$field")
     _CSV_OPEN=$in_quotes
+}
+
+# mawk-safe twin of _strat_csv_split (byte-level: only the ASCII bytes `"`,
+# `,` and space are structural, so a multibyte character is copied through
+# exactly as the bash character loop copies it). Fills F[1..n], sets OPEN,
+# returns n. A line with no `"` splits on every comma AOe28094AO the state machine
+# can never enter a quoted field there, so that is the same result.
+_STRAT_CSV_AWK_SPLIT='
+function csvsplit(line,    n, i, L, c, field, inq, ats) {
+    if (index(line, "\"") == 0) { OPEN = 0; return split(line, F, ",") }
+    n = 0; field = ""; inq = 0; ats = 1; L = length(line)
+    for (i = 1; i <= L; i++) {
+        c = substr(line, i, 1)
+        if (inq) {
+            if (c == "\"") {
+                if (substr(line, i + 1, 1) == "\"") { field = field "\""; i++ }
+                else inq = 0
+            } else field = field c
+        } else if (c == "\"" && ats) { inq = 1; ats = 0 }
+        else if (c == ",") { F[++n] = field; field = ""; ats = 1 }
+        else { field = field c; if (c != " ") ats = 0 }
+    }
+    F[++n] = field; OPEN = inq
+    return n
+}'
+
+# _strat_csv_join_awk TEXT AOe28094AO the multi-line-join + empty-line-drop pass of
+# strategy_extract in one awk (BIG inputs, see _FR_BIG_BYTES): _CSV_CLEANED
+# holds exactly the `_cleaned` string the bash loops build (each kept record
+# newline-terminated).
+_strat_csv_join_awk () {
+    _CSV_CLEANED="$(cat <<< "$1" | awk "$_STRAT_CSV_AWK_SPLIT"'
+    function out(s) { if (s != "") print s }
+    {
+        line = $0
+        if (pending != "") {
+            pending = pending " " line
+            csvsplit(pending)
+            if (!OPEN) { out(pending); pending = "" }
+        } else {
+            csvsplit(line)
+            if (OPEN) pending = line; else out(line)
+        }
+    }
+    END { if (pending != "") out(pending) }'; printf .)"
+    _CSV_CLEANED="${_CSV_CLEANED%.}"
+}
+
+# _strat_csv_emit_awk HEADERLESS < cleaned-text AOe28094AO the row-emission loop of
+# strategy_extract in one awk (BIG inputs). Header names arrive already
+# trimmed, \034-joined, via ENVIRON; output is byte-identical to the bash
+# loop's `result` (sans the trailing newlines $(AOe280a6AO) drops anyway).
+_strat_csv_emit_awk () {
+    _CSV_HL="$1" awk "$_STRAT_CSV_AWK_SPLIT"'
+    BEGIN {
+        nh = split(ENVIRON["_CSV_HDRS"], H, "\034")
+        if (ENVIRON["_CSV_HDRS"] == "") nh = 0
+        for (j = 1; j <= nh; j++) {
+            nm = H[j]
+            gsub(/ /, "_", nm); gsub(/"/, "", nm)
+            sub(/^_/, "", nm); sub(/_$/, "", nm)
+            gsub(/\./, "_", nm)
+            N[j] = nm
+        }
+        hl = ENVIRON["_CSV_HL"] + 0
+    }
+    {
+        row++
+        if (row == 1 && !hl) next
+        if ($0 == "") next
+        n = csvsplit($0)
+        rec++
+        for (j = 1; j <= nh; j++) {
+            v = (j <= n) ? F[j] : ""
+            sub(/^[ \t]+/, "", v); sub(/[ \t]+$/, "", v)
+            if (N[j] == "" || v == "") continue
+            printf "entry%d.%s %s\n", rec, N[j], v
+        }
+    }
+    END { if (rec > 0) printf "total_entries %d\n", rec }'
 }
 
 # Drop THOUSANDS-SEPARATOR commas AOe28094AO a digit immediately before the comma and
@@ -60759,6 +62357,28 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
+    # BIG input: both checks below look at no more than the first 10
+    # non-blank / 5 non-empty lines, and trailing newlines never reach them
+    # (blank lines are skipped). Decide on a whole-line prefix of the text
+    # when that prefix holds enough lines to reach every loop's end; the full
+    # text only when it does not.
+    if (( ${#text} > _FR_BIG_BYTES )) && [[ "$text" != \#* ]]; then
+        local _cd_pre="${text:0:65536}" _cd_rc
+        if [[ "$_cd_pre" == *$'\n'* ]]; then
+            _cd_pre="${_cd_pre%$'\n'*}"
+            _CSV_DET_DONE=0
+            _strat_csv_detect_body "$_cd_pre" 1 && _cd_rc=0 || _cd_rc=$?
+            [[ $_CSV_DET_DONE -eq 1 ]] && return $_cd_rc
+        fi
+    fi
+    _strat_csv_detect_body "$text" 0
+}
+
+# The detection proper. With PREFIX=1 the text is a whole-line prefix of the
+# input: _CSV_DET_DONE is set to 1 only when every decision was reached
+# before the prefix ran out (so the full text would decide the same way).
+_strat_csv_detect_body () {
+    local text="$1" _cd_prefix="${2:-0}"
     # (no leading `#`: the helper just echoes the text back, so the capture
     # is the text minus trailing newlines AOe28094AO computed here without the fork)
     if [[ "$text" == \#* ]]; then
@@ -60771,7 +62391,7 @@ strategy_detect () {
     # whose VALUES contain commas ("my-logs, prod"). When every non-blank
     # line carries tabs and the tab count is uniform and >= the comma
     # count, the tabs are the real delimiter AOe28094AO decline so tsv claims it.
-    local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0
+    local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0 _td_brk=0
     _fr_lines "$text"
     for _td_l in "${_FR_LINES[@]}"; do
         [[ "${_td_l}" != *[![:space:]]* ]] && continue
@@ -60781,16 +62401,19 @@ strategy_detect () {
         local _td_conly="${_td_l//[!,]/}"
         [[ ${#_td_conly} -gt $_td_commas ]] && _td_commas=${#_td_conly}
         [[ $_td_first -lt 0 ]] && _td_first=$_td_tabs
-        [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; break; }
-        [[ $_td_n -ge 10 ]] && break
+        [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; _td_brk=1; break; }
+        [[ $_td_n -ge 10 ]] && { _td_brk=1; break; }
     done
+    # (prefix run: a loop that ran out of lines might have seen more)
+    [[ $_cd_prefix -eq 1 && $_td_brk -eq 0 ]] && return 1
+    _CSV_DET_DONE=1
     if [[ $_td_n -ge 2 && $_td_uniform -eq 1 && $_td_first -ge 1 \
           && $_td_first -ge $_td_commas ]]; then
         return 1
     fi
 
     # Check first 5 non-empty lines for CSV characteristics
-    local line_count=0
+    local line_count=0 _cm_brk=0
     local header_commas=0
     local with_commas=0
     local matching=0
@@ -60841,8 +62464,9 @@ strategy_detect () {
             fi
         fi
         line_count=$((line_count + 1))
-        [[ $line_count -ge 5 ]] && break
+        [[ $line_count -ge 5 ]] && { _cm_brk=1; break; }
     done
+    [[ $_cd_prefix -eq 1 && $_cm_brk -eq 0 ]] && { _CSV_DET_DONE=0; return 1; }
     [[ $line_count -lt 2 ]] && return 1
 
     # Real CSV: most lines should have commas (allow at most 1 without)
@@ -60879,7 +62503,15 @@ strategy_extract () {
     # AOe28094AO `3/4",100` is a complete row, not a continuation.)
     local processed=""
     local pending=""
-    _fr_lines "$text"
+    local _csv_big=0
+    (( ${#text} > _FR_BIG_BYTES )) && _csv_big=1
+    if [[ $_csv_big -eq 1 ]]; then
+        # BIG input: the join + empty-line pass below, in one awk
+        _strat_csv_join_awk "$text"
+        _FR_LINES=(); _FR_LINES_OK=0
+    else
+        _fr_lines "$text"
+    fi
     for line in "${_FR_LINES[@]}"; do
         if [[ -n "$pending" ]]; then
             pending+=" ${line}"
@@ -60903,24 +62535,23 @@ strategy_extract () {
     fi
     # Remove empty lines
     local _cleaned=""
-    _fr_lines "$processed"
-    for _line in "${_FR_LINES[@]}"; do
-        [[ -z "$_line" ]] && continue
-        _cleaned+="$_line"$'\n'
-    done
+    if [[ $_csv_big -eq 1 ]]; then
+        _cleaned="$_CSV_CLEANED"; _CSV_CLEANED=""
+    else
+        _fr_lines "$processed"
+        for _line in "${_FR_LINES[@]}"; do
+            [[ -z "$_line" ]] && continue
+            _cleaned+="$_line"$'\n'
+        done
+    fi
     _line=""
     text="$_cleaned"
 
     # Parse header row for field names
     local header=""
-    local _first=1
-    while IFS= read -r _line; do
-        if [[ $_first -eq 1 ]]; then
-            header="$_line"
-            _first=0
-            break
-        fi
-    done <<< "$text"
+    # (the first line of `text` AOe28094AO the read-loop form re-read a here-string of
+    # the whole input just to take line 1)
+    header="${text%%$'\n'*}"
 
     # Split header quote-aware too AOe28094AO `"Last, First",Dept` is two columns, and a
     # naive IFS=',' split would misalign every data row against it.
@@ -60948,12 +62579,11 @@ strategy_extract () {
     # no value shapes anywhere) keep their header.
     if [[ $_headerless -eq 0 && ${#headers[@]} -ge 2 ]]; then
         local _dr2="" _dri=0 _drl
-        _fr_lines "$text"
-        for _drl in "${_FR_LINES[@]}"; do
-            [[ -z "$_drl" ]] && continue
-            _dri=$((_dri + 1))
-            [[ $_dri -eq 2 ]] && { _dr2="$_drl"; break; }
-        done
+        # `text` holds only non-empty, newline-terminated lines, so the second
+        # non-empty line is simply line 2.
+        if [[ "$text" == *$'\n'?* ]]; then
+            _dr2="${text#*$'\n'}"; _dr2="${_dr2%%$'\n'*}"
+        fi
         if [[ -n "$_dr2" ]]; then
             _strat_csv_split "$_dr2"
             local _drv=("${_CSV_FIELDS[@]}")
@@ -61001,6 +62631,16 @@ strategy_extract () {
     local result=""
     local row_num=0
     local rec=0
+    if [[ $_csv_big -eq 1 ]]; then
+        local _csv_hdrs _csv_h
+        printf -v _csv_hdrs '%s\034' "${headers[@]}"
+        _csv_hdrs="${_csv_hdrs%$'\034'}"
+        # a \034 inside a header name would mis-split: keep the bash loop
+        if [[ "${headers[*]}" != *$'\034'* ]]; then
+            cat <<< "$text" | _CSV_HDRS="$_csv_hdrs" _strat_csv_emit_awk "$_headerless"
+            return 0
+        fi
+    fi
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         row_num=$((row_num + 1))
@@ -62242,7 +63882,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/json-array.sh===
-===META: mode=664 sha256=ee787456aea3f6d4ded02aa56fa5c1040f340bdcf7be30e7a20353c4c1a90f1e===
+===META: mode=664 sha256=0343220f9ee3e63c9427e471191b9b73c4235abf71fb4803207986a4c1f9a002===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62292,7 +63932,13 @@ strategy_extract () {
     # pretty-printed objects (one field per line) and compact one-object-per-
     # line arrays (`[{"a":1,"b":2},{...}]`, the shape rclone/shellcheck/most
     # `--format json` tools emit).
-    printf '%s' "$1" | awk '
+    # PERF: the input is read as ONE record (RS = \001) when it holds no
+    # \001 byte AOe28094AO the line-by-line `buf = buf $0 "\n"` rebuild re-copies the
+    # growing buffer per line (quadratic: 1 MB took seconds, 10 MB minutes).
+    # `buf` is byte-identical either way (the whole text, newline-terminated).
+    local _ja_whole=1 _ja_rs=$'\001'
+    [[ "$1" == *$'\001'* ]] && { _ja_whole=0; _ja_rs=$'\n'; }
+    printf '%s' "$1" | awk -v WHOLE="$_ja_whole" -v RS="$_ja_rs" '
         # Index of the char closing the {...} or [...] opened at "start".
         function findmatch(s, start,   i,n,c,instr,esc,d) {
             n=length(s); d=0; instr=0; esc=0
@@ -62385,7 +64031,10 @@ strategy_extract () {
                 print "entry" e "." pfx idx " " clean(val)
             }
         }
-        { buf = buf $0 "\n" }
+        {
+            if (WHOLE) { buf = $0; if (substr(buf, length(buf)) != "\n") buf = buf "\n" }
+            else buf = buf $0 "\n"
+        }
         END {
             s=buf; n=length(s); instr=0; esc=0; ad=0; od=0; e=0; i=1
             while (i<=n) {
@@ -75991,6 +77640,298 @@ run_test "batch-summary: files_processed lists successful files"       test_batc
 
 print_summary
 ===END===
+===FILE-ESC: extract/tests/test_big_input_paths.sh===
+===META: mode=664 sha256=f365c244e87c74b8f4d0e015ed83a17fa3f9d4a17861f8abda29b444c24db569===
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
+################################################################################
+## Big-input fast paths: bounded detection sample, file lane, awk twins
+##
+## Very large inputs take different ROUTES through the engine (see
+## lib/_discovery.sh: BOUNDED DETECTION SAMPLE and FILE LANE, and the
+## _FR_BIG_BYTES awk twins in lib/ and the generic strategies). Every route
+## must produce the same bytes as the plain bash route. The knobs force a
+## route on small inputs, so each test runs one input both ways and demands
+## identical stdout + winner meta:
+##   bash route:  _FR_BIG_BYTES=huge  _FR_LANE_BYTES=-1  _FR_SAMPLE_BYTES=-1
+##   awk route:   _FR_BIG_BYTES=0
+##   lane route:  _FR_BIG_BYTES=0     _FR_LANE_BYTES=0   + sampling forced
+## (The same comparison over all ~3,700 corpus inputs is the CHANGELOG proof.)
+################################################################################
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/helpers.sh"
+
+echo ""
+echo "========================================"
+echo "Big-input fast paths (sample / lane / awk twins)"
+echo "========================================"
+
+BIG_TMP="$(mktemp -d)"
+trap 'rm -rf "$BIG_TMP"' EXIT
+
+# _big_run OUT ENV... -- ARGS... : run the engine with ENV, stdout+meta to OUT
+_big_run () {
+    local out="$1"; shift
+    local -a envs=()
+    while [[ $# -gt 0 && "$1" != -- ]]; do envs+=("$1"); shift; done
+    shift
+    env "${envs[@]}" bash "$MFE_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$@" \
+        > "$out" 2> "$out.err" || true
+    grep '^__EXTRACT_META__' "$out.err" >> "$out" || true
+}
+
+# _big_same NAME FILE [extra engine args] AOe28094AO bash route vs every fast route
+_big_same () {
+    local name="$1" f="$2"; shift 2
+    local b="$BIG_TMP/$name.bash" x
+    _big_run "$b" _FR_BIG_BYTES=999999999 _FR_LANE_BYTES=-1 _FR_SAMPLE_BYTES=-1 -- "$@" "$f"
+    for x in awk lane; do
+        case "$x" in
+            awk)    _big_run "$BIG_TMP/$name.$x" _FR_BIG_BYTES=0 _FR_LANE_BYTES=-1 _FR_SAMPLE_BYTES=-1 -- "$@" "$f" ;;
+            lane)   _big_run "$BIG_TMP/$name.$x" _FR_BIG_BYTES=0 _FR_LANE_BYTES=0 _FR_SAMPLE_BYTES=0 \
+                        _FR_SAMPLE_HEAD=6 _FR_SAMPLE_TAIL=3 -- "$@" "$f" ;;
+        esac
+        if ! cmp -s "$b" "$BIG_TMP/$name.$x"; then
+            _assert_failed "$name: $x route differs from the bash route"
+            diff "$b" "$BIG_TMP/$name.$x" | head -5
+        fi
+    done
+    # the bash route must have found something to compare
+    assert_contains "$(cat "$b")" "__EXTRACT_META__" "$name: meta line present"
+}
+
+# --- generated inputs (each exercises one twin; kept small so the bash route
+#     stays quick) -------------------------------------------------------------
+_gen () {
+    local f="$BIG_TMP/$1.txt"
+    case "$1" in
+        ps)
+            printf 'USER         PID %%CPU %%MEM    VSZ   RSS TTY      STAT START   TIME COMMAND\n'
+            local i; for ((i = 1; i <= 60; i++)); do
+                printf '%-10s %6d %4.1f %4.1f %6d %5d %-8s %-4s %5s %6s %s\n' \
+                    root "$i" 0.$((i % 10)) 1.$((i % 7)) $((i * 1000)) $((i * 10)) '?' Ss 09:0$((i % 10)) 0:0$((i % 10)) \
+                    "/usr/bin/app --flag $i"
+            done ;;
+        df)
+            printf 'Filesystem     1K-blocks    Used Available Use%% Mounted on\n'
+            local i; for ((i = 1; i <= 30; i++)); do
+                printf '/dev/mapper/vg-root%d\n' "$i"
+                printf '                98G    45G       48G  49%% /mnt/%d\n' "$i"
+                printf 'tmpfs           %d       0      %d   0%% /run/%d\n' $((i * 100)) $((i * 100)) "$i"
+            done
+            printf '4 filesystems listed.\n' ;;
+        units)
+            printf 'SENSOR     TEMP    FAN     VOLT\n'
+            printf '           (C)     (RPM)   (V)\n'
+            local i; for ((i = 1; i <= 40; i++)); do printf 'cpu%-6d  %d.5    %d    1.%d\n' "$i" $((40 + i)) $((900 + i)) "$i"; done
+            printf 'SENSOR     TEMP    FAN     VOLT\n'
+            printf 'gpu0       55.0    1200    1.1\n' ;;
+        headerless)
+            local i; for ((i = 1; i <= 50; i++)); do printf 'host%d  up  %d  ok  not confined\n' "$i" $((i * 3)); done ;;
+        csv)
+            printf '\xef\xbb\xbfname,"Last, First",notes,amount\n'
+            local i; for ((i = 1; i <= 40; i++)); do
+                printf '%d,"Doe, J%d","he said ""hi""",3/4"\n' "$i" "$i"
+                printf 'x%d,"multi\nline, here",  spaced  ,"1,234"\n' "$i"
+                printf '\n'
+            done ;;
+        csvnum)
+            local i; for ((i = 1; i <= 60; i++)); do printf '%d,%d.5,%d\n' "$i" "$i" $((i * 3)); done ;;
+        syslog)
+            local i; for ((i = 1; i <= 40; i++)); do
+                printf 'Sep  %d 10:0%d:00 host kernel: [ 12.3] usb 1-1: new device  \n' $((i % 9 + 1)) $((i % 10))
+                printf 'Oct 12 11:11:11 h2 CRON[%d]: (root) CMD (x  y)\n' "$i"
+                printf 'Nov 01 00:00:00 h4 proc[1][2]x: a\tb   c\n'
+                printf 'Jan 02 03:04:05 h6 p]x[: m\n'
+            done ;;
+        syslog_short)
+            local i; for ((i = 1; i <= 40; i++)); do
+                printf 'Oct 12 11:11:11 h2 CRON[%d]: ok\n' "$i"
+                printf 'Dec 31 23:59:59 h5\n'
+            done ;;
+        kv)
+            local i; for ((i = 1; i <= 40; i++)); do
+                printf 'KEY_%d=value %d\n  * bullet_%d = spaced value  \nexport EXP_%d=/usr/bin\n' "$i" "$i" "$i" "$i"
+                printf 'DATE_%d=built on: Mon Jan 26 12:30:45 2024 ok\nPAREN_%d=(some thing here) x\nEMPTY_%d=\n' "$i" "$i" "$i"
+                printf '9digit_%d=x\nKEY(ctx)_%d = value\n+SIG_%d=1\n' "$i" "$i" "$i"
+            done ;;
+        kvglob)
+            local i; for ((i = 1; i <= 40; i++)); do printf 'K%d=(a*b c) d\nL%d=(x&y z) w\n' "$i" "$i"; done ;;
+        pins)
+            local i; for ((i = 1; i <= 40; i++)); do printf 'pkg%d==1.%d.0\n' "$i" "$i"; done ;;
+        cfg)
+            local i; for ((i = 1; i <= 40; i++)); do printf 'feat%d="x"\nflag%d\n' "$i" "$i"; done ;;
+        json)
+            printf '[\n'
+            local i; for ((i = 1; i <= 40; i++)); do
+                printf '  {"id": %d, "name": "n%d", "tags": ["a", "b"], "meta": {"k": "v %d"}}%s\n' "$i" "$i" "$i" "$([[ $i -lt 40 ]] && echo ,)"
+            done
+            printf ']\n' ;;
+        banners)
+            printf 'USER  PID  CMD\n'
+            local i; for ((i = 1; i <= 30; i++)); do printf 'u%d  %d  cmd%d\n' "$i" "$i" "$i"; done
+            printf '== section two ==\n'
+            for ((i = 1; i <= 30; i++)); do printf 'v%d  %d  cmd%d\n' "$i" "$i" "$i"; done ;;
+        crlf)
+            local i; printf 'NAME  SIZE  STATE\r\n'
+            for ((i = 1; i <= 40; i++)); do printf 'disk%d  %dG  \033[32mok\033[0m\r\n' "$i" "$i"; done ;;
+        eqtable)
+            local i; for ((i = 1; i <= 40; i++)); do printf 'opt%d = value %d\n' "$i" "$i"; done ;;
+    esac > "$f"
+    printf '%s\n' "$f"
+}
+
+test_routes_ps ()           { _big_same ps "$(_gen ps)"; }
+test_routes_df_wrap ()      { _big_same df "$(_gen df)"; }
+test_routes_units_repeat () { _big_same units "$(_gen units)"; }
+test_routes_headerless ()   { _big_same headerless "$(_gen headerless)"; }
+test_routes_csv_quoted ()   { _big_same csv "$(_gen csv)"; }
+test_routes_csv_numeric ()  { _big_same csvnum "$(_gen csvnum)"; }
+test_routes_syslog ()       { _big_same syslog "$(_gen syslog)"; }
+test_routes_syslog_short () { _big_same syslog_short "$(_gen syslog_short)"; }
+test_routes_equals ()       { _big_same kv "$(_gen kv)" -s equals; }
+test_routes_equals_glob ()  { _big_same kvglob "$(_gen kvglob)" -s equals; }
+test_routes_equals_pins ()  { _big_same pins "$(_gen pins)"; }
+test_routes_equals_cfg ()   { _big_same cfg "$(_gen cfg)"; }
+test_routes_json_array ()   { _big_same json "$(_gen json)"; }
+test_routes_banners ()      { _big_same banners "$(_gen banners)"; }
+test_routes_crlf_ansi ()    { _big_same crlf "$(_gen crlf)"; }
+test_routes_eq_table ()     { _big_same eqtable "$(_gen eqtable)"; }
+
+# --- the detection sample itself ---------------------------------------------
+_sample_of () {  # TEXT [ENV...] -> prints "<sampled> <sample>"
+    local t="$1"; shift
+    env "$@" bash -c '
+        set -o pipefail
+        source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
+        text="$2"; _detect_sample_build
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_TEXT"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+}
+
+test_sample_head_tail () {
+    local t out
+    t="$(printf 'L%d\n' $(seq 1 50))"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)"
+    assert_eq "$out" "1|$(printf 'L1\nL2\nL3\nL49\nL50')" "head 3 + tail 2 whole lines"
+}
+
+test_sample_byte_caps () {
+    local t out
+    t="$(printf 'line-%03d\n' $(seq 1 50))"          # 9 bytes per line with its newline
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=100 _FR_SAMPLE_TAIL=100 \
+             _FR_SAMPLE_HEAD_BYTES=27 _FR_SAMPLE_TAIL_BYTES=18)"
+    assert_eq "$out" "1|$(printf 'line-001\nline-002\nline-003\nline-049\nline-050')" \
+        "byte caps keep whole lines only"
+}
+
+test_sample_not_taken () {
+    local t
+    t="$(printf 'L%d\n' $(seq 1 50))"
+    assert_eq "$(_sample_of "$t")" "0|" "small input: no sample (default threshold)"
+    assert_eq "$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=40 _FR_SAMPLE_TAIL=10)" "0|" \
+        "head + tail covering every line: no sample"
+    assert_eq "$(_sample_of "$t" _FR_SAMPLE_BYTES=-1 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
+        "_FR_SAMPLE_BYTES=-1 disables sampling"
+    assert_eq "$(_sample_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
+        "a JSON document is never cut"
+    assert_eq "$(_sample_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
+        "an XML document is never cut"
+    assert_eq "$(_sample_of "$(printf 'x%.0s' $(seq 1 100))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD_BYTES=10)" "0|" \
+        "no whole line fits the head budget: no sample"
+}
+
+# A strategy that ACCEPTS the sample but REJECTS the full text must fall
+# through exactly as before: syslog lines only at the head and tail, a
+# non-syslog majority in between.
+test_sample_confirm_rejects () {
+    local f="$BIG_TMP/sandwich.txt" a b
+    {
+        local i
+        for ((i = 1; i <= 5; i++)); do printf 'Oct 12 11:11:11 h2 CRON[%d]: job %d\n' "$i" "$i"; done
+        for ((i = 1; i <= 60; i++)); do printf 'plain line %d with words\n' "$i"; done
+        for ((i = 1; i <= 3; i++)); do printf 'Oct 12 11:11:11 h2 CRON[%d]: job %d\n' "$i" "$i"; done
+    } > "$f"
+    _big_run "$BIG_TMP/sw.full" _FR_SAMPLE_BYTES=-1 -- "$f"
+    _big_run "$BIG_TMP/sw.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=3 -- "$f"
+    a="$(cat "$BIG_TMP/sw.full")"; b="$(cat "$BIG_TMP/sw.samp")"
+    assert_eq "$b" "$a" "sample-accept / full-reject falls through to the same winner"
+    assert_not_contains "$b" $'__EXTRACT_META__\tsyslog' "syslog must not win on its sample"
+}
+
+# The reported confidence is the FULL-text one: equals is 75 only when >=90%
+# of lines are KEY=VALUE; the sample is 100%, the full text is not.
+test_sample_confidence_is_full_text () {
+    local f="$BIG_TMP/eqconf.txt" a b
+    {
+        local i
+        for ((i = 1; i <= 6; i++)); do printf 'K%d=v%d\n' "$i" "$i"; done
+        for ((i = 1; i <= 20; i++)); do printf 'K%d=v%d\nfree text %d here\n' "$i" "$i" "$i"; done
+        for ((i = 1; i <= 3; i++)); do printf 'T%d=v%d\n' "$i" "$i"; done
+    } > "$f"
+    _big_run "$BIG_TMP/ec.full" _FR_SAMPLE_BYTES=-1 -- -s equals "$f"
+    _big_run "$BIG_TMP/ec.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=6 _FR_SAMPLE_TAIL=3 -- "$f"
+    a="$(grep __EXTRACT_META__ "$BIG_TMP/ec.full")"
+    _big_run "$BIG_TMP/ec.full2" _FR_SAMPLE_BYTES=-1 -- "$f"
+    b="$(grep __EXTRACT_META__ "$BIG_TMP/ec.samp")"
+    assert_eq "$b" "$(grep __EXTRACT_META__ "$BIG_TMP/ec.full2")" "sampled winner + confidence == full-text run"
+    assert_not_contains "$a" $'\t75' "full-text equals confidence is not the sample's 75"
+}
+
+# --- hint prefilters (exactness of the literal / first-atom reasoning) --------
+test_hint_prefilters_sound () {
+    local r
+    r="$(bash -c '
+        source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
+        _hint_required_literal "RX: +bytes"; printf "%s|" "$_HRL"
+        _hint_required_literal "^BSS +SIGNAL +FREQ"; printf "%s|" "$_HRL"
+        _hint_required_literal "a|bcdef"; printf "%s|" "$_HRL"
+        _hint_required_literal "ab*cd"; printf "%s|" "$_HRL"
+        _hint_required_literal "x(abc)?yz"; printf "%s|" "$_HRL"
+        _hint_first_atom "^[ipvc][ A]{3}"; printf "%s|" "$_HFA"
+        _hint_first_atom "^a|b"; printf "%s|" "$_HFA"
+        _hint_first_atom "^ *UNIT"; printf "%s|" "$_HFA"
+        _hint_first_atom "^\\.{5,}"; printf "%s" "$_HFA"
+    ' _ "$(dirname "$MFE_SCRIPT")")"
+    assert_eq "$r" 'bytes|SIGNAL ||cd|yz|^[ipvc]|||^\.' "required literals / first atoms are conservative"
+}
+
+# A big input still honours its hint row through the presence prefilter.
+test_hint_routing_big () {
+    local f="$BIG_TMP/hint.txt"
+    { printf 'avg-cpu:  %%user   %%nice %%system\n           1.00    0.00    2.00\n\n'
+      printf 'Device  r/s  w/s\n'; local i; for ((i = 1; i <= 40; i++)); do printf 'sd%d  %d.0  %d.0\n' "$i" "$i" "$i"; done; } > "$f"
+    _big_same hintbig "$f"
+}
+
+run_test "routes: ps table" test_routes_ps
+run_test "routes: df first-cell wrap + summary line" test_routes_df_wrap
+run_test "routes: units row + header repeat" test_routes_units_repeat
+run_test "routes: headerless table (phrase merge)" test_routes_headerless
+run_test "routes: csv quoted/multi-line/BOM" test_routes_csv_quoted
+run_test "routes: csv numeric headerless" test_routes_csv_numeric
+run_test "routes: syslog" test_routes_syslog
+run_test "routes: syslog short lines (bash abort parity)" test_routes_syslog_short
+run_test "routes: equals kv + clean_text" test_routes_equals
+run_test "routes: equals glob/& paren (bash fallback)" test_routes_equals_glob
+run_test "routes: equals pins" test_routes_equals_pins
+run_test "routes: equals cfg" test_routes_equals_cfg
+run_test "routes: json array" test_routes_json_array
+run_test "routes: == banners" test_routes_banners
+run_test "routes: CRLF + ANSI" test_routes_crlf_ansi
+run_test "routes: ' = ' table decline" test_routes_eq_table
+run_test "sample: head + tail whole lines" test_sample_head_tail
+run_test "sample: byte caps" test_sample_byte_caps
+run_test "sample: when not taken" test_sample_not_taken
+run_test "sample: accept-then-reject falls through" test_sample_confirm_rejects
+run_test "sample: confidence is the full-text one" test_sample_confidence_is_full_text
+run_test "hints: prefilters are conservative" test_hint_prefilters_sound
+run_test "hints: big input keeps its hint route" test_hint_routing_big
+
+print_summary
+===END===
 ===FILE: extract/tests/test_chain_dataflow.sh===
 ===META: mode=664 sha256=9ebce7525613793633d59f7a8fe38223897a118e593a598091a1b3b759519998===
 #!/bin/bash
@@ -86938,7 +88879,7 @@ exclude_docs: |
   archive/
 ===END===
 ===FILE-ESC: provost===
-===META: mode=775 sha256=a4c1ffc1ea808c88842479fbb319350a3baeb0a4d38863839bb39bd5f1087fed===
+===META: mode=775 sha256=2cf4a07fb6b86ed73effd00a0b5e47c95282b6db82b40e61c70abf190bd5ac21===
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -87688,7 +89629,7 @@ _ingest () {
             # a fragment of an input whose other parts did match, and the whole
             # input is stored with the capture either way.
             if [[ -n "$dstrat" && -s "$tmp/ds.$i.wide" ]] && (( dconf >= threshold )); then
-                _core_melt_tidy "$(cat "$tmp/ds.$i.wide")" > "$tmp/ds.$i.tsv"
+                _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
                 if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
                 ds_name+=("${name:+$name.}$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
                 ds_file+=("$tmp/ds.$i.tsv")
@@ -87723,7 +89664,7 @@ _ingest () {
             if _valid_name "$strategy"; then dsname="$strategy"
             else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
             [[ -n "$name" ]] && dsname="$name"
-            _core_melt_tidy "$(cat "$tmp/wide.tsv")" > "$content"
+            _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
         fi
         ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
         ds_file=("$content")
@@ -199380,7 +201321,7 @@ echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]
 ===END===
 ===FILE-ESC: transform/melt.sh===
-===META: mode=664 sha256=a4f782640d9a69327b4fdcf141290257b08bd448baffee9385e6004c5cd1bd4d===
+===META: mode=664 sha256=2185d7410c25f8fd4410db4815ea824c96a38093912a04c1278d435234e26dce===
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -199388,7 +201329,8 @@ echo "smoke: $pass passed, $fail failed"
 # provost/transform/melt.sh AOe28094AO the extract-output transform (tidy melt + schema-union
 # helpers). First-party provost code; edit it here.
 #
-# Functions: _core_melt_tidy, _core_union_header, _core_align_rows.
+# Functions: _core_melt_tidy (+ _core_melt_tidy_file), _core_union_header,
+# _core_align_rows.
 # Originally imported from EnvoyCapture/lib/_core.sh
 # @ 8639a6ef54fe5867aba8bee81171c5abd344adb3 (2026-07-05); maintained locally since.
 #
@@ -199475,7 +201417,26 @@ _core_align_rows () {
 # of a lone variable. Multi-column snapshots keep their wide layout.
 _core_melt_tidy () {
     local tsv="$1" capid="${2:-}"
-    printf '%s\n' "$tsv" | _MELT_CAP="$capid" _MELT_RECS="$_CORE_MELT_RECORD_PREFIXES" \
+    printf '%s\n' "$tsv" | _core_melt_tidy_stream "$capid"
+}
+
+# _core_melt_tidy_file FILE [capid] AOe28094AO exactly `_core_melt_tidy "$(cat FILE)"
+# [capid]`, without pulling the file through a bash variable (for a 10 MB
+# extract, the `$(cat)` capture plus the `printf` back out cost more than the
+# melt itself). The pre-pass reproduces what that round trip does to the
+# bytes: trailing newlines dropped, one newline added (so an empty or
+# newline-only file is ONE empty line).
+_core_melt_tidy_file () {
+    awk '{ if ($0 == "") { pend++; next }
+           for (; pend > 0; pend--) print ""
+           print; seen = 1 }
+         END { if (!seen) print "" }' "$1" | _core_melt_tidy_stream "${2:-}"
+}
+
+# The melt proper, as a stdin filter (shared by both entry points above).
+_core_melt_tidy_stream () {
+    local capid="${1:-}"
+    _MELT_CAP="$capid" _MELT_RECS="$_CORE_MELT_RECORD_PREFIXES" \
         awk -F'\t' -v OFS='\t' '
         # Stable, O(n log n) bottom-up merge sort of IX[1..n] by the numeric
         # sort key KY[1..n] (kept in step with IX; both position-indexed, so
@@ -199502,8 +201463,10 @@ _core_melt_tidy () {
           nr = split(ENVIRON["_MELT_RECS"], rl, " "); for (i = 1; i <= nr; i++) REC[rl[i]] = 1
         }
         { L[NR] = $0 }
-        NR == 1 { nf = NF; for (i = 1; i <= NF; i++) H[i] = $i }
-        NR == 2 { for (i = 1; i <= nf; i++) V[i] = $i }
+        # (split(), not a per-field copy loop: the same cells, but mawk keeps
+        # a split() array as a flat vector AOe28094AO a 10 MB capture is ~1M columns)
+        NR == 1 { nf = split($0, H, "\t") }
+        NR == 2 { split($0, V, "\t") }
         END {
           if (NR != 2) { for (r = 1; r <= NR; r++) print L[r]; exit }  # only header+1row is meltable
           # total_entries: the engine record count (a bare integer) AOe28094AO metadata.
@@ -199555,12 +201518,17 @@ _core_melt_tidy () {
           }
 
           nid = 0; nfld = 0; nsc = 0
+          # Cells are keyed by POSITION (record ordinal x field ordinal), not
+          # by an (id, field) string pair: mawk string-key hashing degrades
+          # badly past ~1M keys, and a 10 MB capture has that many cells
+          # (12 s for one melt). Same cells, same first-appearance orders.
+          for (i = 1; i <= nf; i++)
+            if (KIND[i] == mode) { f = FLD[i]; if (!(f in seenf)) { seenf[f] = ++nfld; FLDS[nfld] = f } }
           for (i = 1; i <= nf; i++) {
             if (KIND[i] == mode) {
-              id = ID[i]; f = FLD[i]
-              CELL[id, f] = V[i]
-              if (!(id in seenid)) { seenid[id] = 1; IX[++nid] = id; KY[nid] = NUM[i] }
-              if (!(f in seenf)) { seenf[f] = 1; FLDS[++nfld] = f }
+              id = ID[i]
+              if (!(id in seenid)) { seenid[id] = ++nid; IX[nid] = id; KY[nid] = NUM[i] }
+              CELL[(seenid[id] - 1) * nfld + seenf[FLD[i]]] = V[i]
             }
           }
           # In a melted table total_entries is dropped only when it IS the record
@@ -199597,14 +201565,15 @@ _core_melt_tidy () {
           pre = (cap != "" ? cap OFS : "")
           for (a = 1; a <= nid; a++) {
             id = IX[a]; row = pre id
-            for (k = 1; k <= nfld; k++) { key = id SUBSEP FLDS[k]; row = row OFS ((key in CELL) ? CELL[key] : "") }
+            base = (seenid[id] - 1) * nfld
+            for (k = 1; k <= nfld; k++) { key = base + k; row = row OFS ((key in CELL) ? CELL[key] : "") }
             print row sc
           }
         }'
 }
 ===END===
 ===FILE-ESC: transform/tests/test_melt.sh===
-===META: mode=664 sha256=f5d2fdef353232d71b8593c5828f9ba69f74216f7bb401f17f024d02fea8f645===
+===META: mode=664 sha256=f7b61c559585604f650743180436c12bc4f2274c12f55c387a70d80d6bf38c85===
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -199751,6 +201720,25 @@ same   "align: backslash names still match by name" \
 same   "align: a repeated source name maps to its first column" \
        $'1' "$(printf '1\t2\n' | _core_align_rows $'a\ta' 'a')"
 same   "union: empty old header yields the new one" $'a\tb' "$(_core_union_header '' $'a\tb')"
+
+# 8. _core_melt_tidy_file FILE == _core_melt_tidy "$(cat FILE)" byte for byte
+#    (provost melts the engine's output file directly), including the
+#    trailing-newline and empty-file shapes the $(cat) round trip normalises.
+_mt_dir="$(mktemp -d)"
+_mt_n=0
+for _mt_in in $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2\n' \
+              $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2' \
+              $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2\n\n\n' \
+              $'a\tb\n\n1\t2\n' $'\n\nentry1.a\nv\n' '' $'\n' $'\n\n\n' \
+              $'python3.path\tpython3.version\n/usr/bin/python3\t3.12.1\n' \
+              $'total_entries\n3\n' $'distrobox\n1.7.2.1\n' $'x\n'; do
+    _mt_n=$((_mt_n + 1))
+    printf '%s' "$_mt_in" > "$_mt_dir/w"
+    same "melt file == melt \$(cat) (#$_mt_n)" \
+         "$(_core_melt_tidy "$(cat "$_mt_dir/w")" 'cap-1'; echo .)" \
+         "$(_core_melt_tidy_file "$_mt_dir/w" 'cap-1'; echo .)"
+done
+rm -rf "$_mt_dir"
 
 echo "melt: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]
