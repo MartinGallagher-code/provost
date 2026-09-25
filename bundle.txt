@@ -197922,7 +197922,7 @@ done
 echo "review snapshot: $(find "$out" -name '*.tsv' | wc -l) files in $out"
 ===END===
 ===FILE-ESC: tests/corpus/run.sh===
-===META: mode=775 sha256=dbb796215b29981c6636f43b8ee11ed99a56f5dcafc65732e3c9a1943c2e2698===
+===META: mode=775 sha256=7178cd8a08ebbefe7dd456df1d9e35bea139aedaeaf1acb11ffeb79ad13dd541===
 #!/usr/bin/env bash
 # tests/corpus/run.sh AOe28094AO batch tidy-coverage harness for common tool outputs.
 #
@@ -197952,6 +197952,11 @@ echo "review snapshot: $(find "$out" -name '*.tsv' | wc -l) files in $out"
 # winning-strategy meta (stderr) come from ONE call. Full mode is only run for the
 # report/coverage views that need it.
 set -u
+# Goldens are frozen byte-for-byte, and a few parsers (tree glyphs, check
+# marks) measure widths in characters under a UTF-8 locale but in bytes under
+# C. Pin the locale so the gate means the same thing on every machine and CI
+# runner; the goldens were generated under C.
+export LC_ALL=C
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
