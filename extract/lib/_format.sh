@@ -112,22 +112,7 @@ format_tsv () {
         # BIG: the same two rows from one awk pass (name = up to the first
         # space, value = after it; a space-less line is both, as in
         # _parse_field_line)
-        printf '%s\n' "$input" | awk '
-            $0 != "" { n++; L[n] = $0 }
-            END {
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
-                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
-                    printf "%s%s", (i > 1 ? "\t" : ""), nm
-                }
-                printf "\n"
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
-                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
-                    printf "%s%s", (i > 1 ? "\t" : ""), v
-                }
-                printf "\n"
-            }'
+        printf '%s\n' "$input" | _format_tsv_awk
         line=""
         return 0
     fi
@@ -147,6 +132,27 @@ format_tsv () {
     local IFS=$'\t'
     echo "${_ft_names[*]}"
     echo "${_ft_values[*]}"
+}
+
+# _format_tsv_awk < field-lines — format_tsv's BIG path as a stdin filter
+# (the file lane feeds it a file directly).
+_format_tsv_awk () {
+        awk '
+            $0 != "" { n++; L[n] = $0 }
+            END {
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
+                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
+                    printf "%s%s", (i > 1 ? "\t" : ""), nm
+                }
+                printf "\n"
+                for (i = 1; i <= n; i++) {
+                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
+                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
+                    printf "%s%s", (i > 1 ? "\t" : ""), v
+                }
+                printf "\n"
+            }'
 }
 
 # Format extracted fields as plain key-value pairs.

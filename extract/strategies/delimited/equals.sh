@@ -21,6 +21,42 @@ strategy_detect () {
     # confidence changes here — WHICH strategy wins is decided by priority, so
     # this cannot take an input away from a higher-priority strategy.
     local _cf_line _cf_nb=0 _cf_ok=0
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: both loops below in one awk pass (see _FR_BIG_BYTES).
+        # The {0,63}-bounded keys are checked by length — mawk-safe, no
+        # interval expressions. Prints "<non-blank> <kv-lines> <any-hit>".
+        local _cf_any=0
+        read -r _cf_nb _cf_ok _cf_any < <(cat <<< "$text" | awk '
+            function keyok(t, re,    i, k) {
+                i = index(t, "="); if (!i) return 0
+                k = substr(t, 1, i - 1)
+                if (k !~ re || length(k) > 64) return 0
+                return substr(t, i + 1, 1) != "="
+            }
+            {
+                if (!hit && ($0 ~ /^[A-Za-z][A-Za-z0-9_. -]*=[^=]/ \
+                    || $0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/ \
+                    || $0 ~ /^[+-][A-Za-z][A-Za-z0-9_.]*=[^=]/ \
+                    || $0 ~ /^[A-Za-z][A-Za-z0-9_().: -]* = [^=]/)) hit = 1
+                if ($0 !~ /[^ \t\n\v\f\r]/) next
+                nb++
+                t = $0; ok = keyok(t, "^[A-Za-z_][A-Za-z0-9_.-]*$")
+                if (!ok && t ~ /^export[ \t\n\v\f\r]+/) {
+                    sub(/^export[ \t\n\v\f\r]+/, "", t)
+                    ok = keyok(t, "^[A-Za-z_][A-Za-z0-9_.-]*$")
+                }
+                if (!ok && $0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/) ok = 1
+                if (!ok && $0 ~ /^[+-]/) ok = keyok(substr($0, 2), "^[A-Za-z_][A-Za-z0-9_.]*$")
+                if (ok) nok++
+            }
+            END { printf "%d %d %d\n", nb, nok, hit }')
+        if [[ $_cf_nb -ge 2 && $(( _cf_ok * 100 )) -ge $(( _cf_nb * 90 )) ]]; then
+            _STRATEGY_CONFIDENCE=75
+            _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
+        fi
+        [[ $_cf_any -eq 1 ]]
+        return
+    fi
     local _cf_kv='^(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_.-]{0,63}=([^=]|$)'
     local _cf_pin='^[A-Za-z0-9_.-]+==[^=[:space:]]+$'
     local _cf_sig='^[+-][A-Za-z_][A-Za-z0-9_.]{0,63}=([^=]|$)'
@@ -63,8 +99,95 @@ strategy_detect () {
     return 1
 }
 
+# _strat_equals_extract_awk TEXT — strategy_extract for a BIG input in awk
+# passes, byte-identical: the pin / cfg block modes, and the general loop with
+# clean_text's date / paren protection and restore_text_values folded in per
+# line. Returns 3 (nothing printed) when a line needs bash-only semantics — a
+# paren span holding a glob / `&` byte (clean_text substitutes it as a
+# PATTERN) or an over-long non-ASCII key (${#key} counts characters) — and
+# the caller runs the bash loops instead.
+_strat_equals_extract_awk () {
+    local _m _o
+    _m="$(cat <<< "$1" | awk '
+        $0 !~ /[^ \t\n\v\f\r]/ { next }
+        {
+            nb++
+            if ($0 ~ /^[A-Za-z0-9_.-]+==[^= \t\n\v\f\r]+$/) pin++
+            if ($0 ~ /^[A-Za-z_][^ \t\n\v\f\r=]*(=[^ \t\n\v\f\r]*)?$/) {
+                tight++
+                if (index($0, "=")) haseq = 1; else bare++
+            }
+        }
+        END {
+            if (nb >= 2 && pin == nb) print "pin"
+            else if (nb >= 2 && tight == nb && haseq && bare >= 1) print "cfg"
+            else print "kv"
+        }')"
+    if [[ "$_m" == pin ]]; then
+        cat <<< "$1" | awk '
+            $0 !~ /[^ \t\n\v\f\r]/ { next }
+            { e++; i = index($0, "==")
+              printf "entry%d.package %s\nentry%d.version %s\n", e, substr($0, 1, i - 1), e, substr($0, i + 2) }
+            END { if (e > 0) printf "total_entries %d\n", e }'
+        return 0
+    fi
+    if [[ "$_m" == cfg ]]; then
+        cat <<< "$1" | awk '
+            $0 !~ /[^ \t\n\v\f\r]/ { next }
+            { e++; i = index($0, "=")
+              if (i) { k = substr($0, 1, i - 1); v = substr($0, i + 1) } else { k = $0; v = "true" }
+              printf "entry%d.key %s\nentry%d.value %s\n", e, k, e, v }
+            END { if (e > 0) printf "total_entries %d\n", e }'
+        return 0
+    fi
+    _o="$(cat <<< "$1" | awk '
+        BEGIN { SP = sprintf("%c", 30); CO = sprintf("%c", 31) }
+        {
+            line = $0
+            # clean_text: protect " Mon DD HH:MM:SS YYYY" dates and "(… " spans
+            if (index(line, ":")) {
+                while (match(line, / [A-Za-z][A-Za-z][A-Za-z] [0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    r = " " substr(m, 2, 3) SP substr(m, 6, 2) SP substr(m, 9, 2) CO substr(m, 12, 2) CO substr(m, 15, 2) SP substr(m, 18, 4)
+                    line = substr(line, 1, RSTART - 1) r substr(line, RSTART + RLENGTH)
+                }
+            }
+            if (index(line, "(")) {
+                while (match(line, /[(][^) ]*[ ]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    if (m ~ /[][*?\\&+@!]/) { bail = 1; exit 3 }
+                    line = substr(line, 1, RSTART - 1) substr(m, 1, length(m) - 1) SP substr(line, RSTART + RLENGTH)
+                }
+            }
+            if (line == "" || !index(line, "=")) next
+            if (index(line, "==") || index(line, "+=") || index(line, "!=")) next
+            s = line
+            sub(/^ +/, "", s)
+            if (substr(s, 1, 2) == "* ") s = substr(s, 3)
+            i = index(s, "="); key = substr(s, 1, i - 1); val = substr(s, i + 1)
+            if (key == "") next
+            if (length(key) > 50) { if (key ~ /[^ -~]/) { bail = 1; exit 3 }; next }
+            if (key ~ /^[0-9]/) next
+            gsub(/ /, "_", key); sub(/^_/, "", key); sub(/_$/, "", key)
+            sub(/^ +/, "", val); sub(/ +$/, "", val)
+            if (val == "") val = "\"\""
+            # restore_text_values: sentinels -> "_" in the name, back to
+            # space / colon in the value
+            gsub(SP, "_", key); gsub(CO, "_", key)
+            gsub(SP, " ", val); gsub(CO, ":", val)
+            print key " " val
+        }')" || return 3
+    printf '%s\n' "$_o"
+    return 0
+}
+
 strategy_extract () {
     local text="$1"
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        local _eqx_rc=0
+        _strat_equals_extract_awk "$text" || _eqx_rc=$?
+        [[ $_eqx_rc -eq 3 ]] || return $_eqx_rc
+    fi
 
     # Two uniform-block modes, decided over the RAW text before cleaning:
     #   pins — EVERY non-blank line is `name==version` (pip freeze, rye

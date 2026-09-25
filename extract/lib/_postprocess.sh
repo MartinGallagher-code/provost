@@ -20,11 +20,16 @@ store () {
     # string every time, which made storing a big table quadratic.
     local _n=0 _st_all _st_joined
     local -a _st_out=()
+    if [[ -n "${_XL_OUT:-}" ]]; then
+        # FILE LANE (very large input, see _xl_begin): append to the lane's
+        # output file instead of the `output` variable — same lines.
+        printf '%s\n' "$input" | _store_awk "$label" >> "$_XL_OUT"
+        _sline=""
+        return 0
+    fi
     if (( ${#input} > _FR_BIG_BYTES )); then
         # BIG result: the same numbering in one awk pass (see _FR_BIG_BYTES)
-        _st_joined="$(printf '%s\n' "$input" | _ST_LABEL="$label" awk '
-            BEGIN { l = ENVIRON["_ST_LABEL"] }
-            $0 != "" { n++; printf "%s:%d\t%s\n", l, n, $0 }'; printf .)"
+        _st_joined="$(printf '%s\n' "$input" | _store_awk "$label"; printf .)"
         output+="${_st_joined%.}"
         _sline=""
         return 0
@@ -40,6 +45,32 @@ store () {
         printf -v _st_joined '%s\n' "${_st_out[@]}"
         output+="$_st_joined"
     fi
+}
+
+# _store_awk LABEL < lines — store()'s numbering as a stdin filter: every
+# non-empty line becomes `LABEL:<n><TAB>line` (n counts non-empty lines).
+_store_awk () {
+    _ST_LABEL="$1" awk '
+        BEGIN { l = ENVIRON["_ST_LABEL"] }
+        $0 != "" { n++; printf "%s:%d\t%s\n", l, n, $0 }'
+}
+
+# _store_file FILE LABEL — store() for a result held in FILE (the file lane):
+# the same labelled lines, appended to the lane's output file.
+_store_file () {
+    _store_awk "$2" < "$1" >> "$_XL_OUT"
+}
+
+# _dedup_pipe < output-lines — deduplicate_output's pipeline as a stdin
+# filter (both the BIG-variable path and the file lane run exactly this).
+_dedup_pipe () {
+    awk '$0 != "" {
+            n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+            printf "%s\001%d\001%s\n", f, n, $0
+        }' \
+        | sort -t$'\x01' -k1,1 -u \
+        | sort -t$'\x01' -k2,2 -n \
+        | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
 }
 
 # Deduplicate output across strategies.
@@ -61,14 +92,7 @@ deduplicate_output () {
     local -a _dd_out=()
     if (( ${#input} > _FR_BIG_BYTES )); then
         # BIG output: build the same SOH records in one awk pass
-        printf '%s\n' "$input" \
-            | awk '$0 != "" {
-                n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
-                printf "%s\001%d\001%s\n", f, n, $0
-            }' \
-            | sort -t$'\x01' -k1,1 -u \
-            | sort -t$'\x01' -k2,2 -n \
-            | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
+        printf '%s\n' "$input" | _dedup_pipe
         return
     fi
     mapfile -t _dd_all <<< "$input"

@@ -747,7 +747,7 @@ _ingest () {
             # a fragment of an input whose other parts did match, and the whole
             # input is stored with the capture either way.
             if [[ -n "$dstrat" && -s "$tmp/ds.$i.wide" ]] && (( dconf >= threshold )); then
-                _core_melt_tidy "$(cat "$tmp/ds.$i.wide")" > "$tmp/ds.$i.tsv"
+                _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
                 if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
                 ds_name+=("${name:+$name.}$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
                 ds_file+=("$tmp/ds.$i.tsv")
@@ -782,7 +782,7 @@ _ingest () {
             if _valid_name "$strategy"; then dsname="$strategy"
             else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
             [[ -n "$name" ]] && dsname="$name"
-            _core_melt_tidy "$(cat "$tmp/wide.tsv")" > "$content"
+            _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
         fi
         ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
         ds_file=("$content")

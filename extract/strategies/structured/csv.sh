@@ -47,6 +47,86 @@ _strat_csv_split () {
     _CSV_OPEN=$in_quotes
 }
 
+# mawk-safe twin of _strat_csv_split (byte-level: only the ASCII bytes `"`,
+# `,` and space are structural, so a multibyte character is copied through
+# exactly as the bash character loop copies it). Fills F[1..n], sets OPEN,
+# returns n. A line with no `"` splits on every comma — the state machine
+# can never enter a quoted field there, so that is the same result.
+_STRAT_CSV_AWK_SPLIT='
+function csvsplit(line,    n, i, L, c, field, inq, ats) {
+    if (index(line, "\"") == 0) { OPEN = 0; return split(line, F, ",") }
+    n = 0; field = ""; inq = 0; ats = 1; L = length(line)
+    for (i = 1; i <= L; i++) {
+        c = substr(line, i, 1)
+        if (inq) {
+            if (c == "\"") {
+                if (substr(line, i + 1, 1) == "\"") { field = field "\""; i++ }
+                else inq = 0
+            } else field = field c
+        } else if (c == "\"" && ats) { inq = 1; ats = 0 }
+        else if (c == ",") { F[++n] = field; field = ""; ats = 1 }
+        else { field = field c; if (c != " ") ats = 0 }
+    }
+    F[++n] = field; OPEN = inq
+    return n
+}'
+
+# _strat_csv_join_awk TEXT — the multi-line-join + empty-line-drop pass of
+# strategy_extract in one awk (BIG inputs, see _FR_BIG_BYTES): _CSV_CLEANED
+# holds exactly the `_cleaned` string the bash loops build (each kept record
+# newline-terminated).
+_strat_csv_join_awk () {
+    _CSV_CLEANED="$(cat <<< "$1" | awk "$_STRAT_CSV_AWK_SPLIT"'
+    function out(s) { if (s != "") print s }
+    {
+        line = $0
+        if (pending != "") {
+            pending = pending " " line
+            csvsplit(pending)
+            if (!OPEN) { out(pending); pending = "" }
+        } else {
+            csvsplit(line)
+            if (OPEN) pending = line; else out(line)
+        }
+    }
+    END { if (pending != "") out(pending) }'; printf .)"
+    _CSV_CLEANED="${_CSV_CLEANED%.}"
+}
+
+# _strat_csv_emit_awk HEADERLESS < cleaned-text — the row-emission loop of
+# strategy_extract in one awk (BIG inputs). Header names arrive already
+# trimmed, \034-joined, via ENVIRON; output is byte-identical to the bash
+# loop's `result` (sans the trailing newlines $(…) drops anyway).
+_strat_csv_emit_awk () {
+    _CSV_HL="$1" awk "$_STRAT_CSV_AWK_SPLIT"'
+    BEGIN {
+        nh = split(ENVIRON["_CSV_HDRS"], H, "\034")
+        if (ENVIRON["_CSV_HDRS"] == "") nh = 0
+        for (j = 1; j <= nh; j++) {
+            nm = H[j]
+            gsub(/ /, "_", nm); gsub(/"/, "", nm)
+            sub(/^_/, "", nm); sub(/_$/, "", nm)
+            gsub(/\./, "_", nm)
+            N[j] = nm
+        }
+        hl = ENVIRON["_CSV_HL"] + 0
+    }
+    {
+        row++
+        if (row == 1 && !hl) next
+        if ($0 == "") next
+        n = csvsplit($0)
+        rec++
+        for (j = 1; j <= nh; j++) {
+            v = (j <= n) ? F[j] : ""
+            sub(/^[ \t]+/, "", v); sub(/[ \t]+$/, "", v)
+            if (N[j] == "" || v == "") continue
+            printf "entry%d.%s %s\n", rec, N[j], v
+        }
+    }
+    END { if (rec > 0) printf "total_entries %d\n", rec }'
+}
+
 # Drop THOUSANDS-SEPARATOR commas — a digit immediately before the comma and
 # EXACTLY THREE digits immediately after (not a 4th) — from comma-counting
 # only. The "exactly three, not a fourth" requirement is what makes this
@@ -149,6 +229,28 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=90
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
+    # BIG input: both checks below look at no more than the first 10
+    # non-blank / 5 non-empty lines, and trailing newlines never reach them
+    # (blank lines are skipped). Decide on a whole-line prefix of the text
+    # when that prefix holds enough lines to reach every loop's end; the full
+    # text only when it does not.
+    if (( ${#text} > _FR_BIG_BYTES )) && [[ "$text" != \#* ]]; then
+        local _cd_pre="${text:0:65536}" _cd_rc
+        if [[ "$_cd_pre" == *$'\n'* ]]; then
+            _cd_pre="${_cd_pre%$'\n'*}"
+            _CSV_DET_DONE=0
+            _strat_csv_detect_body "$_cd_pre" 1 && _cd_rc=0 || _cd_rc=$?
+            [[ $_CSV_DET_DONE -eq 1 ]] && return $_cd_rc
+        fi
+    fi
+    _strat_csv_detect_body "$text" 0
+}
+
+# The detection proper. With PREFIX=1 the text is a whole-line prefix of the
+# input: _CSV_DET_DONE is set to 1 only when every decision was reached
+# before the prefix ran out (so the full text would decide the same way).
+_strat_csv_detect_body () {
+    local text="$1" _cd_prefix="${2:-0}"
     # (no leading `#`: the helper just echoes the text back, so the capture
     # is the text minus trailing newlines — computed here without the fork)
     if [[ "$text" == \#* ]]; then
@@ -161,7 +263,7 @@ strategy_detect () {
     # whose VALUES contain commas ("my-logs, prod"). When every non-blank
     # line carries tabs and the tab count is uniform and >= the comma
     # count, the tabs are the real delimiter — decline so tsv claims it.
-    local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0
+    local _td_l _td_n=0 _td_first=-1 _td_uniform=1 _td_tabs _td_commas=0 _td_brk=0
     _fr_lines "$text"
     for _td_l in "${_FR_LINES[@]}"; do
         [[ "${_td_l}" != *[![:space:]]* ]] && continue
@@ -171,16 +273,19 @@ strategy_detect () {
         local _td_conly="${_td_l//[!,]/}"
         [[ ${#_td_conly} -gt $_td_commas ]] && _td_commas=${#_td_conly}
         [[ $_td_first -lt 0 ]] && _td_first=$_td_tabs
-        [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; break; }
-        [[ $_td_n -ge 10 ]] && break
+        [[ $_td_tabs -ne $_td_first || $_td_tabs -eq 0 ]] && { _td_uniform=0; _td_brk=1; break; }
+        [[ $_td_n -ge 10 ]] && { _td_brk=1; break; }
     done
+    # (prefix run: a loop that ran out of lines might have seen more)
+    [[ $_cd_prefix -eq 1 && $_td_brk -eq 0 ]] && return 1
+    _CSV_DET_DONE=1
     if [[ $_td_n -ge 2 && $_td_uniform -eq 1 && $_td_first -ge 1 \
           && $_td_first -ge $_td_commas ]]; then
         return 1
     fi
 
     # Check first 5 non-empty lines for CSV characteristics
-    local line_count=0
+    local line_count=0 _cm_brk=0
     local header_commas=0
     local with_commas=0
     local matching=0
@@ -231,8 +336,9 @@ strategy_detect () {
             fi
         fi
         line_count=$((line_count + 1))
-        [[ $line_count -ge 5 ]] && break
+        [[ $line_count -ge 5 ]] && { _cm_brk=1; break; }
     done
+    [[ $_cd_prefix -eq 1 && $_cm_brk -eq 0 ]] && { _CSV_DET_DONE=0; return 1; }
     [[ $line_count -lt 2 ]] && return 1
 
     # Real CSV: most lines should have commas (allow at most 1 without)
@@ -269,7 +375,15 @@ strategy_extract () {
     # — `3/4",100` is a complete row, not a continuation.)
     local processed=""
     local pending=""
-    _fr_lines "$text"
+    local _csv_big=0
+    (( ${#text} > _FR_BIG_BYTES )) && _csv_big=1
+    if [[ $_csv_big -eq 1 ]]; then
+        # BIG input: the join + empty-line pass below, in one awk
+        _strat_csv_join_awk "$text"
+        _FR_LINES=(); _FR_LINES_OK=0
+    else
+        _fr_lines "$text"
+    fi
     for line in "${_FR_LINES[@]}"; do
         if [[ -n "$pending" ]]; then
             pending+=" ${line}"
@@ -293,24 +407,23 @@ strategy_extract () {
     fi
     # Remove empty lines
     local _cleaned=""
-    _fr_lines "$processed"
-    for _line in "${_FR_LINES[@]}"; do
-        [[ -z "$_line" ]] && continue
-        _cleaned+="$_line"$'\n'
-    done
+    if [[ $_csv_big -eq 1 ]]; then
+        _cleaned="$_CSV_CLEANED"; _CSV_CLEANED=""
+    else
+        _fr_lines "$processed"
+        for _line in "${_FR_LINES[@]}"; do
+            [[ -z "$_line" ]] && continue
+            _cleaned+="$_line"$'\n'
+        done
+    fi
     _line=""
     text="$_cleaned"
 
     # Parse header row for field names
     local header=""
-    local _first=1
-    while IFS= read -r _line; do
-        if [[ $_first -eq 1 ]]; then
-            header="$_line"
-            _first=0
-            break
-        fi
-    done <<< "$text"
+    # (the first line of `text` — the read-loop form re-read a here-string of
+    # the whole input just to take line 1)
+    header="${text%%$'\n'*}"
 
     # Split header quote-aware too — `"Last, First",Dept` is two columns, and a
     # naive IFS=',' split would misalign every data row against it.
@@ -338,12 +451,11 @@ strategy_extract () {
     # no value shapes anywhere) keep their header.
     if [[ $_headerless -eq 0 && ${#headers[@]} -ge 2 ]]; then
         local _dr2="" _dri=0 _drl
-        _fr_lines "$text"
-        for _drl in "${_FR_LINES[@]}"; do
-            [[ -z "$_drl" ]] && continue
-            _dri=$((_dri + 1))
-            [[ $_dri -eq 2 ]] && { _dr2="$_drl"; break; }
-        done
+        # `text` holds only non-empty, newline-terminated lines, so the second
+        # non-empty line is simply line 2.
+        if [[ "$text" == *$'\n'?* ]]; then
+            _dr2="${text#*$'\n'}"; _dr2="${_dr2%%$'\n'*}"
+        fi
         if [[ -n "$_dr2" ]]; then
             _strat_csv_split "$_dr2"
             local _drv=("${_CSV_FIELDS[@]}")
@@ -391,6 +503,16 @@ strategy_extract () {
     local result=""
     local row_num=0
     local rec=0
+    if [[ $_csv_big -eq 1 ]]; then
+        local _csv_hdrs _csv_h
+        printf -v _csv_hdrs '%s\034' "${headers[@]}"
+        _csv_hdrs="${_csv_hdrs%$'\034'}"
+        # a \034 inside a header name would mis-split: keep the bash loop
+        if [[ "${headers[*]}" != *$'\034'* ]]; then
+            cat <<< "$text" | _CSV_HDRS="$_csv_hdrs" _strat_csv_emit_awk "$_headerless"
+            return 0
+        fi
+    fi
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         row_num=$((row_num + 1))

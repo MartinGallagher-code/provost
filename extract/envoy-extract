@@ -827,6 +827,10 @@ fi
 if [[ -n "$_OPT_chain" ]]; then
     run_chain_strategies
 else
+    # A very large input's result may stay in the file lane to the end (see
+    # _xl_begin / _xl_can_keep) — only in the plain -f tsv configuration.
+    _XL_KEEP=0
+    _xl_can_keep && _XL_KEEP=1
     run_auto_strategies
 fi
 # Clear any in-place progress line so the field-table output below starts
@@ -841,11 +845,12 @@ if [[ $_OPT_emit_meta -eq 1 ]]; then
 fi
 
 ########################################
-## POST-PROCESSING
+## POST-PROCESSING + OUTPUT
 ##
-run_postprocess
-
-########################################
-## OUTPUT
-##
-run_output_mode
+if [[ -n "${_XL_OUT:-}" ]]; then
+    # kept file-lane result: the same two stages, file to file
+    _xl_finalize
+else
+    run_postprocess
+    run_output_mode
+fi

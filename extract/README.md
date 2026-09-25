@@ -59,5 +59,23 @@ When acceptance needs a literal the input must contain, test the whole text for
 it first (`[[ "$text" == *LIT* ]] || return 1`) — see the `PREFILTER (exact)`
 comments in e.g. `strategies/delimited/box-table.sh`.
 
+### Very large inputs
+
+Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
+(the first 120 / last 40 whole lines, byte-capped; JSON/XML documents are
+never cut), and a strategy that accepts the sample is re-run on the full text,
+which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
+detector must never ACCEPT a sample it would reject in full — it cannot, the
+full text re-decides — but it can falsely REJECT when its evidence lies only
+in the middle of a huge input; prefer evidence the head carries.
+
+Above `_FR_BIG_BYTES` the hot generic parsers (`aligned-columns`, `csv`,
+`syslog`, `equals`, `json-array`) and the engine's own passes switch to awk
+twins that are byte-identical to their bash loops, and above `_FR_LANE_BYTES`
+the result stays in a file to the end (the FILE LANE). Setting a knob to 0
+forces its route on any input — `tests/test_big_input_paths.sh` and the
+corpus proofs compare every route with the plain bash one. A new twin must
+follow the same rule: same bytes, proven by forcing it over the corpus.
+
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).

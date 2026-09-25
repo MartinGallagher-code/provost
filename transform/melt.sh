@@ -5,7 +5,8 @@
 # provost/transform/melt.sh — the extract-output transform (tidy melt + schema-union
 # helpers). First-party provost code; edit it here.
 #
-# Functions: _core_melt_tidy, _core_union_header, _core_align_rows.
+# Functions: _core_melt_tidy (+ _core_melt_tidy_file), _core_union_header,
+# _core_align_rows.
 # Originally imported from EnvoyCapture/lib/_core.sh
 # @ 8639a6ef54fe5867aba8bee81171c5abd344adb3 (2026-07-05); maintained locally since.
 #
@@ -92,7 +93,26 @@ _core_align_rows () {
 # of a lone variable. Multi-column snapshots keep their wide layout.
 _core_melt_tidy () {
     local tsv="$1" capid="${2:-}"
-    printf '%s\n' "$tsv" | _MELT_CAP="$capid" _MELT_RECS="$_CORE_MELT_RECORD_PREFIXES" \
+    printf '%s\n' "$tsv" | _core_melt_tidy_stream "$capid"
+}
+
+# _core_melt_tidy_file FILE [capid] — exactly `_core_melt_tidy "$(cat FILE)"
+# [capid]`, without pulling the file through a bash variable (for a 10 MB
+# extract, the `$(cat)` capture plus the `printf` back out cost more than the
+# melt itself). The pre-pass reproduces what that round trip does to the
+# bytes: trailing newlines dropped, one newline added (so an empty or
+# newline-only file is ONE empty line).
+_core_melt_tidy_file () {
+    awk '{ if ($0 == "") { pend++; next }
+           for (; pend > 0; pend--) print ""
+           print; seen = 1 }
+         END { if (!seen) print "" }' "$1" | _core_melt_tidy_stream "${2:-}"
+}
+
+# The melt proper, as a stdin filter (shared by both entry points above).
+_core_melt_tidy_stream () {
+    local capid="${1:-}"
+    _MELT_CAP="$capid" _MELT_RECS="$_CORE_MELT_RECORD_PREFIXES" \
         awk -F'\t' -v OFS='\t' '
         # Stable, O(n log n) bottom-up merge sort of IX[1..n] by the numeric
         # sort key KY[1..n] (kept in step with IX; both position-indexed, so
@@ -119,8 +139,10 @@ _core_melt_tidy () {
           nr = split(ENVIRON["_MELT_RECS"], rl, " "); for (i = 1; i <= nr; i++) REC[rl[i]] = 1
         }
         { L[NR] = $0 }
-        NR == 1 { nf = NF; for (i = 1; i <= NF; i++) H[i] = $i }
-        NR == 2 { for (i = 1; i <= nf; i++) V[i] = $i }
+        # (split(), not a per-field copy loop: the same cells, but mawk keeps
+        # a split() array as a flat vector — a 10 MB capture is ~1M columns)
+        NR == 1 { nf = split($0, H, "\t") }
+        NR == 2 { split($0, V, "\t") }
         END {
           if (NR != 2) { for (r = 1; r <= NR; r++) print L[r]; exit }  # only header+1row is meltable
           # total_entries: the engine record count (a bare integer) — metadata.
@@ -172,12 +194,17 @@ _core_melt_tidy () {
           }
 
           nid = 0; nfld = 0; nsc = 0
+          # Cells are keyed by POSITION (record ordinal x field ordinal), not
+          # by an (id, field) string pair: mawk string-key hashing degrades
+          # badly past ~1M keys, and a 10 MB capture has that many cells
+          # (12 s for one melt). Same cells, same first-appearance orders.
+          for (i = 1; i <= nf; i++)
+            if (KIND[i] == mode) { f = FLD[i]; if (!(f in seenf)) { seenf[f] = ++nfld; FLDS[nfld] = f } }
           for (i = 1; i <= nf; i++) {
             if (KIND[i] == mode) {
-              id = ID[i]; f = FLD[i]
-              CELL[id, f] = V[i]
-              if (!(id in seenid)) { seenid[id] = 1; IX[++nid] = id; KY[nid] = NUM[i] }
-              if (!(f in seenf)) { seenf[f] = 1; FLDS[++nfld] = f }
+              id = ID[i]
+              if (!(id in seenid)) { seenid[id] = ++nid; IX[nid] = id; KY[nid] = NUM[i] }
+              CELL[(seenid[id] - 1) * nfld + seenf[FLD[i]]] = V[i]
             }
           }
           # In a melted table total_entries is dropped only when it IS the record
@@ -214,7 +241,8 @@ _core_melt_tidy () {
           pre = (cap != "" ? cap OFS : "")
           for (a = 1; a <= nid; a++) {
             id = IX[a]; row = pre id
-            for (k = 1; k <= nfld; k++) { key = id SUBSEP FLDS[k]; row = row OFS ((key in CELL) ? CELL[key] : "") }
+            base = (seenid[id] - 1) * nfld
+            for (k = 1; k <= nfld; k++) { key = base + k; row = row OFS ((key in CELL) ? CELL[key] : "") }
             print row sc
           }
         }'

@@ -145,5 +145,24 @@ same   "align: a repeated source name maps to its first column" \
        $'1' "$(printf '1\t2\n' | _core_align_rows $'a\ta' 'a')"
 same   "union: empty old header yields the new one" $'a\tb' "$(_core_union_header '' $'a\tb')"
 
+# 8. _core_melt_tidy_file FILE == _core_melt_tidy "$(cat FILE)" byte for byte
+#    (provost melts the engine's output file directly), including the
+#    trailing-newline and empty-file shapes the $(cat) round trip normalises.
+_mt_dir="$(mktemp -d)"
+_mt_n=0
+for _mt_in in $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2\n' \
+              $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2' \
+              $'entry1.name\tentry2.name\ttotal_entries\na\tb\t2\n\n\n' \
+              $'a\tb\n\n1\t2\n' $'\n\nentry1.a\nv\n' '' $'\n' $'\n\n\n' \
+              $'python3.path\tpython3.version\n/usr/bin/python3\t3.12.1\n' \
+              $'total_entries\n3\n' $'distrobox\n1.7.2.1\n' $'x\n'; do
+    _mt_n=$((_mt_n + 1))
+    printf '%s' "$_mt_in" > "$_mt_dir/w"
+    same "melt file == melt \$(cat) (#$_mt_n)" \
+         "$(_core_melt_tidy "$(cat "$_mt_dir/w")" 'cap-1'; echo .)" \
+         "$(_core_melt_tidy_file "$_mt_dir/w" 'cap-1'; echo .)"
+done
+rm -rf "$_mt_dir"
+
 echo "melt: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]
