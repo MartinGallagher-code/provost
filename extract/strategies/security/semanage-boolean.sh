@@ -44,10 +44,10 @@ strategy_extract () {
         state="${state%%[[:space:]]*}"
         # Description follows the closing paren.
         desc="${line#*\)}"
-        # Trim leading/trailing whitespace, collapse spaces to underscores.
+        # Trim leading/trailing whitespace; inner spaces are kept (the field
+        # stream carries everything after the first space as the value).
         desc="${desc#"${desc%%[![:space:]]*}"}"
         desc="${desc%"${desc##*[![:space:]]}"}"
-        desc="${desc//[[:space:]]/_}"
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         result+="entry${entry}.state ${state}"$'\n'

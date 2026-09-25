@@ -205,10 +205,10 @@ strategy_extract () {
         key="${key#_}"
         key="${key%_}"
 
-        # Trim edges of value; spaces inside the value are preserved (the engine
+        # Trim edges of value (spaces AND tabs — `inactive time:<TAB>1520 ms`);
+        # spaces inside the value are preserved (the engine
         # keeps everything after the first space as the value).
-        while [[ "$value" == " "* ]]; do value="${value# }"; done
-        while [[ "$value" == *" " ]]; do value="${value% }"; done
+        _trim "$value"; value="$_TRIMMED"
 
         # Skip if value is empty
         [[ -z "$value" ]] && continue
@@ -216,5 +216,8 @@ strategy_extract () {
         result+="${key} ${value}"$'\n'
     done <<< "$text"
 
-    echo "$result"
+    # clean_text protected dates/parenthesised spans with sentinels; put the
+    # original spaces and colons back into the values.
+    restore_text_values "$result"
+    echo "$_RESTORED_TEXT"
 }

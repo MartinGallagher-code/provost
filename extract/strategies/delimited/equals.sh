@@ -11,6 +11,30 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=35
+    # CONFIDENCE REFLECTS EVIDENCE. A lone `=` somewhere in prose is weak
+    # evidence (35, below provost's default filing threshold of 50); a block
+    # where (nearly) EVERY non-blank line is a tight `KEY=VALUE` with a sane
+    # key — env/printenv, systemctl show, git config --list, locale, .env files
+    # — is the format itself, and must be able to file (75). Pins
+    # (`name==1.2.3`) and signed env-diff lines count as valid too. Needs >=2
+    # lines so a single stray assignment in free text stays weak. Only the
+    # confidence changes here — WHICH strategy wins is decided by priority, so
+    # this cannot take an input away from a higher-priority strategy.
+    local _cf_line _cf_nb=0 _cf_ok=0
+    local _cf_kv='^(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_.-]{0,63}=([^=]|$)'
+    local _cf_pin='^[A-Za-z0-9_.-]+==[^=[:space:]]+$'
+    local _cf_sig='^[+-][A-Za-z_][A-Za-z0-9_.]{0,63}=([^=]|$)'
+    while IFS= read -r _cf_line; do
+        [[ -z "${_cf_line//[[:space:]]/}" ]] && continue
+        _cf_nb=$((_cf_nb + 1))
+        if [[ "$_cf_line" =~ $_cf_kv || "$_cf_line" =~ $_cf_pin || "$_cf_line" =~ $_cf_sig ]]; then
+            _cf_ok=$((_cf_ok + 1))
+        fi
+    done <<< "$text"
+    if [[ $_cf_nb -ge 2 && $(( _cf_ok * 100 )) -ge $(( _cf_nb * 90 )) ]]; then
+        _STRATEGY_CONFIDENCE=75
+        _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
+    fi
     # Apply if input contains lines with equals signs that look like assignments
     # Skip lines that look like code (==, +=, !=)
     # Use while-read so ^ anchors match per-line (not start of entire string)
@@ -153,5 +177,8 @@ strategy_extract () {
         result+="${key} ${value}"$'\n'
     done <<< "$text"
 
-    echo "$result"
+    # clean_text protected dates/parenthesised spans with sentinels; put the
+    # original spaces and colons back into the values.
+    restore_text_values "$result"
+    echo "$_RESTORED_TEXT"
 }

@@ -1,10 +1,17 @@
-entry1.Name Alice
-entry1.Score 95
-entry1.Grade A
-entry2.Name Bob
-entry2.Score 87
-entry2.Grade B
-entry3.Name Charlie
-entry3.Score 72
-entry3.Grade C
-total_entries 3
+entry1.Benchmark BM_memcpy/32
+entry1.Time 11 ns
+entry1.CPU 11 ns
+entry1.Iterations 79545455
+entry2.Benchmark BM_memcpy/32k
+entry2.Time 2181 ns
+entry2.CPU 2185 ns
+entry2.Iterations 324074
+entry3.Benchmark BM_memcpy/32
+entry3.Time 12 ns
+entry3.CPU 12 ns
+entry3.Iterations 54687500
+entry4.Benchmark BM_memcpy/32k
+entry4.Time 1834 ns
+entry4.CPU 1837 ns
+entry4.Iterations 357143
+total_entries 4

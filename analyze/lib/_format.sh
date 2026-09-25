@@ -325,7 +325,7 @@ HTMLHEAD
                             local ecell
                             ecell=$(html_escape "$cell")
                             # Color-code anomaly items
-                            if [[ "$kind" == "anomaly" ]] && echo "$cell" | grep -qiE 'outlier|anomal'; then
+                            if [[ "$kind" == "anomaly" ]] && echo "$cell" | grep -iE 'outlier|anomal' >/dev/null; then
                                 printf '<td class="anomaly">%s</td>' "$ecell"
                             else
                                 printf '<td>%s</td>' "$ecell"

@@ -78,12 +78,10 @@ strategy_extract () {
 
 _strat_syslog_get_timestamp () {
     local line="$1"
-    # Extract "Mon DD HH:MM:SS" and replace spaces/colons with underscores
-    read -ra _arr <<< "$line"
-    local ts="${_arr[0]}_${_arr[1]}_${_arr[2]}"
-    # Replace colons with underscores in timestamp
-    ts="${ts//:/_}"
-    echo "$ts"
+    # The caller only passes lines that open with the fixed-width 15-char
+    # "Mon DD HH:MM:SS" stamp; emit it verbatim (a value keeps its spaces and
+    # colons — the field stream splits on the FIRST space only).
+    echo "${line:0:15}"
 }
 
 _strat_syslog_get_message () {

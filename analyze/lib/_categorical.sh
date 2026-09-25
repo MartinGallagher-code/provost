@@ -165,7 +165,7 @@ run_group_summaries () {
         total_groups=$(printf "%s\n" "$group_lines" | wc -l | tr -d ' ')
         if [[ "$total_groups" -gt "$MAX_GROUPS" ]]; then
             echo "Warning: column '${COL_NAMES[$((i-1))]}' has $total_groups groups but only showing top MAX_GROUPS=$MAX_GROUPS" >&2
-            group_lines=$(printf "%s\n" "$group_lines" | head -n "$MAX_GROUPS")
+            group_lines=$(printf "%s\n" "$group_lines" | awk -v n="$MAX_GROUPS" 'NR <= n')  # awk reads all input: no SIGPIPE under pipefail
         fi
 
         if [[ -n "$group_lines" ]]; then

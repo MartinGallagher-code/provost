@@ -1,0 +1,9 @@
+entry1.name ll
+entry1.command ls -alF
+entry2.name gs
+entry2.command git status
+entry3.name k
+entry3.command kubectl
+entry4.name ..
+entry4.command cd ..
+total_entries 4

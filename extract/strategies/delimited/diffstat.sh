@@ -47,11 +47,12 @@ strategy_extract () {
         if _diffstat_file_line "$line"; then
             file="${BASH_REMATCH[1]}"
             changes="${BASH_REMATCH[2]}"
+            changes="${changes%"${changes##*[![:space:]]}"}"
             graph="${BASH_REMATCH[3]}"
             graph="${graph#"${graph%%[![:space:]]*}"}"
             entry=$((entry + 1))
             result+="entry${entry}.file ${file}"$'\n'
-            result+="entry${entry}.changes ${changes// /_}"$'\n'
+            result+="entry${entry}.changes ${changes}"$'\n'
             [[ -n "$graph" ]] && result+="entry${entry}.graph ${graph}"$'\n'
             continue
         fi

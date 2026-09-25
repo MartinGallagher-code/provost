@@ -1,0 +1,13 @@
+entry1.id 1843
+entry1.value /usr/sbin/mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock
+entry2.id 2044
+entry2.value /usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main
+entry3.id 2891
+entry3.value /usr/bin/redis-server 127.0.0.1:6379
+entry4.id 3310
+entry4.value /usr/share/elasticsearch/jdk/bin/java -Xms1g -Xmx1g -jar elasticsearch.jar
+entry5.id 9021
+entry5.value php-fpm: pool www
+entry6.id 774
+entry6.value /usr/bin/containerd
+total_entries 6

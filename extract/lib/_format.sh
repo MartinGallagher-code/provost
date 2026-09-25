@@ -15,18 +15,27 @@ display () {
     local input="$1"
 
     # Combine header and data, then columnize in a single pass
-    local _numbered="" _n=0
+    # Columns are TAB-separated: a value may carry spaces (the field stream's
+    # name ends at the FIRST space), so whitespace columnising would shred it.
+    local _numbered="" _n=0 _did _dfield
     while IFS= read -r _dline; do
         [[ -z "$_dline" ]] && continue
         _n=$((_n + 1))
-        _numbered+="${_n}	${_dline}"$'\n'
+        _did=""; _dfield="$_dline"
+        if [[ "$_dline" == *$'\t'* ]]; then
+            _did="${_dline%%$'\t'*}"; _dfield="${_dline#*$'\t'}"
+        fi
+        if [[ "$_dfield" == *" "* ]]; then
+            _dfield="${_dfield%% *}"$'\t'"${_dfield#* }"
+        fi
+        _numbered+="${_n}"$'\t'"${_did}"$'\t'"${_dfield}"$'\n'
     done <<< "$input"
     local combined
     combined=$(printf "%s\n%s\n%s" \
-        "# ID Name Value" \
-        "- -- ---- -----" \
+        "#"$'\t'"ID"$'\t'"Name"$'\t'"Value" \
+        "-"$'\t'"--"$'\t'"----"$'\t'"-----" \
         "${_numbered%$'\n'}")
-    echo "$combined" | column -t
+    echo "$combined" | column -t -s $'\t'
 }
 
 # Escape a string for JSON output (handles all special characters).
@@ -107,8 +116,12 @@ format_tsv () {
             names+=$'\t'
             values+=$'\t'
         fi
-        names+="$_FIELD_NAME"
-        values+="$_FIELD_VALUE"
+        # A raw TAB inside a cell would shear the row (more fields than the
+        # header) and the tidy melt would misattribute every later cell. In a
+        # VALUE it becomes one space (values keep their spaces); a NAME is
+        # sanitised like any other whitespace in a name, to `_`.
+        names+="${_FIELD_NAME//$'\t'/_}"
+        values+="${_FIELD_VALUE//$'\t'/ }"
     done <<< "$input"
 
     echo "$names"

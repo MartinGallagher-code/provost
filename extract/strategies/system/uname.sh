@@ -52,7 +52,29 @@ strategy_extract () {
             result+="kernel_name ${toks[0]}"$'\n'
             [[ $n -ge 2 ]] && result+="nodename ${toks[1]}"$'\n'
             [[ $n -ge 3 ]] && result+="kernel_release ${toks[2]}"$'\n'
-            if [[ $n -ge 8 ]]; then
+            # The machine / processor / hardware-platform fields are only
+            # printed when known — GNU uname omits an `unknown` processor and
+            # platform (Debian: `… Debian 6.1.76-1 x86_64 GNU/Linux`), so the
+            # tail is 2-4 tokens, not always 4. Count the architecture-shaped
+            # tokens in front of the OS name instead of assuming four.
+            local _arch_re='^(x86_64|amd64|i[3-6]86|athlon|aarch64|arm64|armv[0-9][0-9a-z]*|ppc64(le)?|ppc|s390x?|riscv(32|64)|mips[0-9a-z]*|sparc(64)?|loongarch64|ia64|alpha|unknown)$'
+            local _na=0 _k
+            for ((_k = n - 2; _k >= 4 && _na < 3; _k--)); do
+                [[ "${toks[$_k]}" =~ $_arch_re ]] || break
+                _na=$((_na + 1))
+            done
+            if [[ $n -ge 6 && $_na -ge 1 ]]; then
+                # version = tokens 3 .. before the arch tail (free text); then
+                # machine[, processor[, hardware_platform]], operating_system.
+                local ver="" i _first=$((n - 1 - _na))
+                for ((i = 3; i < _first; i++)); do ver+="${ver:+ }${toks[$i]}"; done
+                [[ -n "$ver" ]] && result+="kernel_version ${ver}"$'\n'
+                local -a _an=(machine processor hardware_platform)
+                for ((i = 0; i < _na; i++)); do
+                    result+="${_an[$i]} ${toks[$((_first + i))]}"$'\n'
+                done
+                result+="operating_system ${toks[$((n - 1))]}"$'\n'
+            elif [[ $n -ge 8 ]]; then
                 # version = tokens 3 .. n-5 (free text); then machine,
                 # processor, hardware_platform, operating_system.
                 local ver="" i

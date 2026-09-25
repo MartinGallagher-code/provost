@@ -53,36 +53,6 @@ _has_repeated_top_keys () {
     [[ "$_n" -ge 2 ]]
 }
 
-# Strategy helper: extract a value from text by grep pattern.
-# Usage: _extract_value "$text" "grep_pattern" "field_name"
-# Appends "field_name value" to $result if found.
-# NOTE: Spaces in extracted values are replaced with underscores to ensure
-# single-token values in the "field_name value" output format. Strategy authors
-# should be aware of this normalization when extracting multi-word values.
-_extract_value () {
-    local _ev_text="$1" _ev_pattern="$2" _ev_field="$3"
-    local _ev_line _ev_value
-    while IFS= read -r _ev_line; do
-        if [[ "$_ev_line" == *"$_ev_pattern"* ]]; then
-            # Extract value: everything after last colon or equals, trimmed
-            _ev_value="${_ev_line##*: }"
-            if [[ "$_ev_value" == "$_ev_line" ]]; then
-                _ev_value="${_ev_line##*=}"
-            fi
-            # Trim whitespace
-            while [[ "$_ev_value" == " "* ]]; do _ev_value="${_ev_value# }"; done
-            while [[ "$_ev_value" == *" " ]]; do _ev_value="${_ev_value% }"; done
-            # Replace spaces with underscores
-            _ev_value="${_ev_value// /_}"
-            if [[ -n "$_ev_value" ]]; then
-                result+="${_ev_field} ${_ev_value}"$'\n'
-            fi
-            return 0
-        fi
-    done <<< "$_ev_text"
-    return 1
-}
-
 # Trim leading and trailing whitespace (spaces and tabs) from $1. Result in _TRIMMED.
 _trim () {
     _TRIMMED="$1"
@@ -90,10 +60,26 @@ _trim () {
     while [[ "$_TRIMMED" == *[' '$'\t'] ]]; do _TRIMMED="${_TRIMMED%[' '$'\t']}"; done
 }
 
-# Trim + replace spaces with underscores. Result in _CLEANED.
+# THE FIELD STREAM. Strategies emit one `name value` line per field: the NAME
+# runs to the first space and the VALUE is everything after it, verbatim —
+# _parse_field_line, the formatters (`-f tsv/json/csv/…`) and the tidy melt all
+# split on that FIRST space only. So a value may carry spaces and must be
+# emitted as-is; only NAMES need sanitising (a space in a name would move the
+# split point). Use _clean_field for names and _clean_value for values.
+
+# NAME sanitiser: trim + replace spaces with underscores. Result in _CLEANED.
 _clean_field () {
     _trim "$1"
     _CLEANED="${_TRIMMED// /_}"
+}
+
+# VALUE sanitiser: trim the edges and keep every inner space exactly. A tab,
+# CR or newline inside a value becomes one space — the field stream is
+# line-based and the tidy output is TSV, so those are the only characters a
+# value cannot carry. Result in _CLEANED.
+_clean_value () {
+    _trim "$1"
+    _CLEANED="${_TRIMMED//[$'\t\r\n']/ }"
 }
 
 # Count non-empty lines in $1. Result in _LINE_COUNT.
@@ -111,10 +97,23 @@ _parse_field_line () {
     _FIELD_VALUE="${1#* }"
 }
 
+# Sentinels clean_text uses to PROTECT a span without rewriting it: a space
+# inside a ctime-style date or inside parentheses becomes _CT_SP, and a date's
+# time colons become _CT_CO. Neither is a space, a colon or [[:space:]], so the
+# key/value splitting the text feeds sees each protected span as one token with
+# no delimiter in it — the same decisions the old `_` rewrite produced — while
+# restore_text_values puts the original characters back into the VALUES
+# afterwards. (The old rewrite was one-way: `Jan 26 12:30:45 2024` came out as
+# `Jan_26_12_30_45_2024` and `(Ubuntu 13.3.0)` as `(Ubuntu_13.3.0)`.)
+_CT_SP=$'\x1e'
+_CT_CO=$'\x1f'
+
 # Clean and normalize text for extraction.
 # Consolidates date-fix and parentheses-fix that were previously duplicated
 # in every strategy. Result in _CLEAN_TEXT_RESULT (no subshell needed).
 # Caching: after first call, returns cached result from _CLEAN_TEXT_CACHE.
+# A strategy that calls this MUST pass its field stream through
+# restore_text_values before emitting it.
 clean_text () {
     local input="$1"
 
@@ -125,9 +124,9 @@ clean_text () {
     fi
 
     # Pure-bash replacements (no sed forks)
-    # Date pattern: " Mon 01 12:30:45 2024" -> "Mon_01_12_30_45_2024"
+    # Date pattern: " Mon 01 12:30:45 2024" -> one protected token
     local _date_re=' ([A-Za-z]{3}) ([0-9]{2}) ([0-9]{2}):([0-9]{2}):([0-9]{2}) ([0-9]{4})'
-    # Paren pattern: spaces inside () -> underscores
+    # Paren pattern: spaces inside () -> protected (_CT_SP)
     local _paren_re
     _paren_re='[(][^) ]*[ ]'
 
@@ -140,7 +139,7 @@ clean_text () {
                 # The match includes its LEADING SPACE — the replacement must
                 # keep it, or the underscored date welds onto the preceding
                 # word (`built on: Mon Jan 26 …` became `MonJan_26_…`).
-                local _dr=" ${BASH_REMATCH[1]}_${BASH_REMATCH[2]}_${BASH_REMATCH[3]}_${BASH_REMATCH[4]}_${BASH_REMATCH[5]}_${BASH_REMATCH[6]}"
+                local _dr=" ${BASH_REMATCH[1]}${_CT_SP}${BASH_REMATCH[2]}${_CT_SP}${BASH_REMATCH[3]}${_CT_CO}${BASH_REMATCH[4]}${_CT_CO}${BASH_REMATCH[5]}${_CT_SP}${BASH_REMATCH[6]}"
                 _line="${_line/$_dm/$_dr}"
             done
         fi
@@ -148,7 +147,7 @@ clean_text () {
         if [[ "$_line" == *"("* ]]; then
             while [[ "$_line" =~ $_paren_re ]]; do
                 local _pm="${BASH_REMATCH[0]}"
-                local _pr="${_pm% }_"
+                local _pr="${_pm% }${_CT_SP}"
                 _line="${_line/$_pm/$_pr}"
             done
         fi
@@ -159,6 +158,31 @@ clean_text () {
     _CLEAN_TEXT_CACHE="$result"
     _CLEAN_TEXT_DONE=1
     _CLEAN_TEXT_RESULT="$result"
+}
+
+# restore_text_values <field-stream> — undo clean_text's protection in a
+# `name value` field stream. In a VALUE the sentinels become the original space
+# and colon again; in a NAME (which must stay one token) both become `_`, the
+# spelling names have always had. Result in _RESTORED_TEXT.
+restore_text_values () {
+    _RESTORED_TEXT="$1"
+    [[ "$_RESTORED_TEXT" == *[$_CT_SP$_CT_CO]* ]] || return 0
+    local _rt_out="" _rt_line _rt_name _rt_val
+    while IFS= read -r _rt_line || [[ -n "$_rt_line" ]]; do
+        _rt_name="${_rt_line%% *}"
+        _rt_name="${_rt_name//[$_CT_SP$_CT_CO]/_}"
+        if [[ "$_rt_line" == *" "* ]]; then
+            _rt_val="${_rt_line#* }"
+            _rt_val="${_rt_val//$_CT_SP/ }"
+            _rt_val="${_rt_val//$_CT_CO/:}"
+            _rt_out+="${_rt_name} ${_rt_val}"$'\n'
+        else
+            _rt_out+="${_rt_name}"$'\n'
+        fi
+    done <<< "$1"
+    # keep the input's trailing-newline shape
+    [[ "$1" == *$'\n' ]] || _rt_out="${_rt_out%$'\n'}"
+    _RESTORED_TEXT="$_rt_out"
 }
 
 # _col_letter <1-based index> — spreadsheet-style label for a nameless column:

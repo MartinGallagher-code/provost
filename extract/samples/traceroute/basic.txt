@@ -1,5 +1,0 @@
-traceroute to example.com (93.184.216.34), 30 hops max, 60 byte packets
- 1  gateway (192.168.1.1)  1.234 ms  1.456 ms  1.678 ms
- 2  10.0.0.1 (10.0.0.1)  5.123 ms  5.456 ms  5.789 ms
- 3  * * *
- 4  core-rtr.isp.net (203.0.113.1)  15.234 ms  15.567 ms  15.890 ms

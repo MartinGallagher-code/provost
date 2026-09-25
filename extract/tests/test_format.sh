@@ -151,4 +151,18 @@ run_test "yaml_needs_quote: underscore not quoted" test_yaml_no_quote_underscore
 run_test "format_yaml: booleans are quoted" test_yaml_output_booleans
 run_test "format_yaml: plain strings unquoted" test_yaml_output_plain_string
 
+# format_tsv: a value keeps its spaces; a raw TAB in a value becomes ONE space
+# (it used to be written through, giving the data row more fields than the
+# header, and the tidy melt then misattributed every later cell).
+test_tsv_value_spaces_and_tabs () {
+    local out hdr row nh nr
+    out="$(format_tsv "$(printf 'a John Smith\nb x\ty\nc 3\n')")"
+    hdr="$(printf '%s\n' "$out" | sed -n 1p)"; row="$(printf '%s\n' "$out" | sed -n 2p)"
+    nh="$(printf '%s\n' "$hdr" | awk -F'\t' '{print NF}')"
+    nr="$(printf '%s\n' "$row" | awk -F'\t' '{print NF}')"
+    assert_eq "$nh" "$nr" "data row has exactly as many fields as the header"
+    assert_eq "John Smith"$'\t'"x y"$'\t'"3" "$row" "spaces kept, tab in value -> one space"
+}
+run_test "format_tsv: value spaces kept, tabs become spaces" test_tsv_value_spaces_and_tabs
+
 print_summary

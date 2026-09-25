@@ -11,7 +11,7 @@
 ## Usage: new_strategy.sh --name NAME --category CATEGORY --sample FILE
 ##        new_strategy.sh --help
 ##
-## Developed by SageCor Solutions, Annapolis Junction, MD
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher. GPL-3.0-or-later.
 ################################################################################
 
 set -eo pipefail
@@ -212,8 +212,9 @@ strategy_extract () {
 
     # TODO: Implement extraction logic.
     #
+    # Use _clean_field for field NAMES and _clean_value for VALUES (a value
+    # keeps its inner spaces: the name ends at the first space).
     # Output format: one "fieldname value" pair per line on stdout.
-    # Use _clean_field for normalizing field names.
     # Prefix helper functions with _strat_${func_prefix}_ to avoid conflicts.
     #
     # Example:
@@ -223,7 +224,7 @@ strategy_extract () {
     #         local key="\${line%%: *}"
     #         local val="\${line#*: }"
     #         _clean_field "\$key"; key="\$_CLEANED"
-    #         _clean_field "\$val"; val="\$_CLEANED"
+    #         _clean_value "\$val"; val="\$_CLEANED"
     #         [[ -z "\$key" || -z "\$val" ]] && continue
     #         result+="\${key} \${val}"\$'\\n'
     #     fi

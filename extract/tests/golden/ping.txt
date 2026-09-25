@@ -1,1 +1,13 @@
-
+entry1.seq 1
+entry1.ttl 56
+entry1.time 11.4
+entry1.from 93.184.216.34
+entry2.seq 2
+entry2.ttl 56
+entry2.time 12.1
+entry2.from 93.184.216.34
+entry3.seq 3
+entry3.ttl 56
+entry3.time 11.8
+entry3.from 93.184.216.34
+total_entries 3

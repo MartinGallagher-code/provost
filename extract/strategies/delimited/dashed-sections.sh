@@ -54,7 +54,7 @@ strategy_extract () {
         if [[ "$t" =~ ^---\ ([A-Za-z][A-Za-z0-9\ ]*)\ ---$ ]]; then
             entry=$((entry + 1))
             key="${BASH_REMATCH[1]}"
-            result+="entry${entry}.section ${key// /_}"$'\n'
+            result+="entry${entry}.section ${key}"$'\n'
             fields=$((fields + 1))
             continue
         fi

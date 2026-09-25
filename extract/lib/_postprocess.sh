@@ -120,11 +120,12 @@ aggregate_output () {
             rest = $0
         }
 
-        # Split into name and value
-        n = split(rest, parts, " ")
-        if (n < 2) next
-        name = parts[1]
-        value = parts[2]
+        # Split into name and value at the FIRST space: the value is the
+        # whole remainder (it may carry spaces — `12 KB` is not the number 12)
+        sp = index(rest, " ")
+        if (sp < 2) next
+        name = substr(rest, 1, sp - 1)
+        value = substr(rest, sp + 1)
 
         # Check if value is numeric
         if (value + 0 == value && value != "") {

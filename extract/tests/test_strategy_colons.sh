@@ -52,9 +52,27 @@ test_colons_skips_non_fields () {
     assert_not_contains "$output" "123" "should skip numeric-key lines"
 }
 
+# VALUES KEEP THEIR SPACES. clean_text protects a ctime date and a
+# parenthesised span so the key/value split cannot cut through them — it used
+# to do that by rewriting them to `Mon_Jan_26_12_30_45_2024` / `(Ubuntu_13.3.0)`
+# and never undoing it. The protection is now reversible.
+test_colons_values_keep_spaces () {
+    local tmp output
+    tmp="$(mktemp)"
+    printf 'Built on: Mon Jan 26 12:30:45 2024\nCompiler: gcc (Ubuntu 13.3.0-6ubuntu2) 13.3.0\nOwner: John Smith\ngcc version 13.3.0 (Ubuntu 13.3.0)\n' > "$tmp"
+    output=$(run_mfe -s colons -f plain "$tmp")
+    rm -f "$tmp"
+    assert_contains "$output" "Built_on Mon Jan 26 12:30:45 2024" "date keeps its spaces and colons"
+    assert_contains "$output" "Compiler gcc (Ubuntu 13.3.0-6ubuntu2) 13.3.0" "parenthesised span keeps its spaces"
+    assert_contains "$output" "Owner John Smith" "plain value keeps its space"
+    assert_contains "$output" "line1 gcc version 13.3.0 (Ubuntu 13.3.0)" "colon-less line kept verbatim"
+    assert_not_contains "$output" "Jan_26" "no underscore invented in a date"
+}
+
 run_test "colons: basic extraction" test_colons_basic
 run_test "colons: field selection" test_colons_field_selection
 run_test "colons: JSON format output" test_colons_json_format
 run_test "colons: skips non-field lines" test_colons_skips_non_fields
 
+run_test "colons: values keep spaces (dates, parentheses)" test_colons_values_keep_spaces
 print_summary

@@ -1,0 +1,11 @@
+entry1.key data_received
+entry1.value 12 MB  1.2 MB/s
+entry2.key http_req_duration
+entry2.value avg=42ms  p(95)=128ms
+entry3.key http_reqs
+entry3.value 88201  882/s
+entry4.key iterations
+entry4.value 88201  882/s
+entry5.key vus
+entry5.value 100
+total_entries 5

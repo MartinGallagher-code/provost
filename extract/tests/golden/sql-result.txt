@@ -1,9 +1,0 @@
-row1.id 1
-row1.username alice
-row1.score 95
-row2.id 2
-row2.username bob
-row2.score 87
-row3.id 3
-row3.username charlie
-row3.score 92

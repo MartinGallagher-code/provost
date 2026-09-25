@@ -273,7 +273,8 @@
 
 # _STRIPPED_LINE     string  -- _helpers.sh: strip_strat_prefix() result
 # _TRIMMED           string  -- _helpers.sh: _trim() result
-# _CLEANED           string  -- _helpers.sh: _clean_field() result
+# _CLEANED           string  -- _helpers.sh: _clean_field() (name) / _clean_value() result
+# _RESTORED_TEXT     string  -- _helpers.sh: restore_text_values() result
 # _LINE_COUNT        integer -- _helpers.sh: _count_lines() result
 # _FIELD_NAME        string  -- _helpers.sh: _parse_field_line() name half
 # _FIELD_VALUE       string  -- _helpers.sh: _parse_field_line() value half

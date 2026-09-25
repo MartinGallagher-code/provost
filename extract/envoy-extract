@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-##                         Multi-Format Extractor
+##                 Multi-Format Extractor — provost's extract engine
 ################################################################################
-## Version 4.2
-## Developed by SageCor Solutions, Annapolis Junction, MD
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher.
+## License: GPL-3.0-or-later. Version: see the top-level VERSION file.
 ################################################################################
 ##
 ## Description: Use various strategies to extract field names and values from

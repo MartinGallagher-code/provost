@@ -1,0 +1,22 @@
+http_requests_total.help The total number of HTTP requests.
+http_requests_total.type counter
+metric1.name http_requests_total
+metric1.value 1027
+metric1.label_method post
+metric1.label_code 200
+metric2.name http_requests_total
+metric2.value 3
+metric2.label_method post
+metric2.label_code 400
+process_cpu_seconds_total.help Total user and system CPU time spent in seconds.
+process_cpu_seconds_total.type counter
+metric3.name process_cpu_seconds_total
+metric3.value 0.52
+go_goroutines.help Number of goroutines that currently exist.
+go_goroutines.type gauge
+metric4.name go_goroutines
+metric4.value 33
+node_memory_MemTotal_bytes.help Total memory in bytes.
+node_memory_MemTotal_bytes.type gauge
+metric5.name node_memory_MemTotal_bytes
+metric5.value 1.6777216e+10

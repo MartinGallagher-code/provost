@@ -26,7 +26,7 @@ strategy_detect () {
 
 strategy_extract () {
     printf '%s\n' "$1" | awk -F'|' '
-        function trim(s){ gsub(/^[ \t]+/,"",s); gsub(/[ \t]+$/,"",s); gsub(/[ \t]+/,"_",s); return s }
+        function trim(s){ gsub(/^[ \t]+/,"",s); gsub(/[ \t]+$/,"",s); return s }
         {
             if ($0 !~ /\|/) next                       # only table rows
             if ($0 ~ /Repository/) next                # header

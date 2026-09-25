@@ -13,8 +13,20 @@
 ##           Global user defaults.
 ##   2.  ~/.envoyrc
 ##           Legacy / convenience location, same format.
-##   3.  .envoyrc walked upward from $PWD to / (or $HOME)
-##           Per-project overrides, mirroring the .capturerc walk.
+##   3.  .envoyrc walked upward from $PWD, never past $HOME
+##           Per-project overrides, mirroring the .capturerc walk. When $PWD
+##           is outside $HOME only $PWD/.envoyrc itself is considered.
+##
+## SECURITY. A .envoyrc can sit in any checkout the user cds into, so the
+## loader treats every file as untrusted input:
+##   - ENVOY_NO_RC=1 disables the whole layer (provost sets it).
+##   - Only keys with a tool prefix — ENVOY_, MFE_, PROVOST_ — are exported;
+##     anything else is skipped with a warning. On top of that a hard deny
+##     list (LD_*, BASH_ENV, ENV, PATH, IFS, PS4, SHELLOPTS, BASHOPTS, …) can
+##     never be set, even if the allow list is ever widened. (LD_PRELOAD from
+##     a .envoyrc in an untrusted checkout used to reach child processes.)
+##   - A file not owned by the current user, or writable by group or others,
+##     is skipped.
 ##
 ## Already-set environment variables ALWAYS win — the loader uses
 ## ${VAR:-default} semantics by skipping any KEY whose env var is
@@ -50,8 +62,9 @@
 ## Format
 ## ------
 ##   - One `KEY=VALUE` per line.
-##   - Keys must match `^[A-Z_][A-Z0-9_]*$` (POSIX env-var convention).
-##     Anything else is rejected to avoid shell-injection vectors.
+##   - Keys must match `^[A-Z_][A-Z0-9_]*$` (POSIX env-var convention) AND
+##     carry an allowed prefix (ENVOY_, MFE_, PROVOST_) AND not be on the
+##     deny list. Anything else is rejected (see SECURITY above).
 ##   - VALUE may optionally be wrapped in single or double quotes;
 ##     the wrapping characters are stripped.  No backtick / `$(…)`
 ##     expansion happens — the file is parsed, not sourced.
@@ -62,6 +75,7 @@
 ## Reads (env / globals)
 ## ---------------------
 ##   XDG_CONFIG_HOME, HOME, PWD     Standard.
+##   ENVOY_NO_RC=1                  Skip loading entirely.
 ##   ENVOY_ENVOYRC_DEBUG=1          When set, emit a one-line trace per
 ##                                  loaded file to stderr.
 ##
@@ -105,15 +119,26 @@ envoy_envoyrc_files() {
     # 2. Legacy / convenience location.
     [[ -f "$HOME/.envoyrc" ]] && out+=("$HOME/.envoyrc")
 
-    # 3. Walk upward from $PWD looking for .envoyrc.  Stop at $HOME or /.
+    # 3. Walk upward from $PWD looking for .envoyrc — never past $HOME.
+    #    Outside $HOME (a checkout under /tmp, /srv, …) there is no trusted
+    #    boundary to stop at, so only $PWD/.envoyrc itself is considered;
+    #    walking on to / would pick up files in shared, world-writable
+    #    parents like /tmp.
     local d="$PWD"
     local -a walk=()
+    local home="${HOME%/}"
+    local under_home=0
+    if [[ -n "$home" && ( "$d" == "$home" || "$d" == "$home"/* ) ]]; then
+        under_home=1
+    fi
     while [[ -n "$d" && "$d" != "/" ]]; do
         if [[ -f "$d/.envoyrc" ]]; then
             walk+=("$d/.envoyrc")
         fi
+        # Outside $HOME: $PWD only.
+        [[ $under_home -eq 1 ]] || break
         # Stop at $HOME — its .envoyrc is already covered by step 2 above.
-        [[ "$d" == "$HOME" ]] && break
+        [[ "$d" == "$home" ]] && break
         local parent
         parent="$(dirname -- "$d")"
         [[ "$parent" == "$d" ]] && break
@@ -158,10 +183,48 @@ envoy_envoyrc_files() {
 ## lines are skipped with a warning to stderr; they don't fail the load.
 ################################################################################
 
+# envoy_envoyrc_key_allowed KEY — 0 when a config file may set KEY.
+# Allow list: the suite's own prefixes. Deny list: variables that change how
+# the dynamic linker, the shell or child processes behave — refused even if a
+# future allow-list entry would match them.
+envoy_envoyrc_key_allowed() {
+    local key="$1"
+    case "$key" in
+        LD_*|BASH_ENV|ENV|PATH|IFS|PS4|SHELLOPTS|BASHOPTS|CDPATH|GLOBIGNORE \
+        |BASH_FUNC_*|PROMPT_COMMAND|HOME|SHELL|TMPDIR|PYTHONPATH|PYTHONSTARTUP \
+        |PERL5LIB|PERL5OPT|RUBYOPT|NODE_OPTIONS|GIT_*|DYLD_*|LOCPATH|GCONV_PATH \
+        |MALLOC_*|HOSTALIASES|RESOLV_HOST_CONF|NLSPATH)
+            return 1 ;;
+    esac
+    case "$key" in
+        ENVOY_*|MFE_*|PROVOST_*) return 0 ;;
+    esac
+    return 1
+}
+
+# envoy_envoyrc_file_trusted FILE — 0 when FILE is owned by the current user
+# and not writable by group or others. Anything else could have been planted
+# (a shared checkout, a world-writable parent) and is skipped.
+envoy_envoyrc_file_trusted() {
+    local file="$1" perms
+    [[ -O "$file" ]] || return 1
+    # %a = octal permission bits (GNU stat); BSD/macOS stat uses -f %Lp.
+    perms="$(stat -c '%a' -- "$file" 2>/dev/null || stat -f '%Lp' -- "$file" 2>/dev/null)" || return 1
+    [[ "$perms" =~ ^[0-7]+$ ]] || return 1
+    # group-write (020) or other-write (002) -> untrusted
+    (( (8#$perms & 8#022) == 0 )) || return 1
+    return 0
+}
+
 envoy_envoyrc_parse() {
     local file="$1"
     local shell_protect="${2:-0}"
     [[ -r "$file" ]] || return 1
+    if ! envoy_envoyrc_file_trusted "$file"; then
+        printf 'envoy: warning: %s: not owned by you or writable by others (skipped)\n' \
+            "$file" >&2
+        return 1
+    fi
 
     local lineno=0 line key value
     while IFS= read -r line || [[ -n "$line" ]]; do
@@ -189,6 +252,13 @@ envoy_envoyrc_parse() {
         # `KEY=$(rm -rf /)` by ensuring the key is a plain POSIX name.
         if ! [[ "$key" =~ ^[A-Z_][A-Z0-9_]*$ ]]; then
             printf 'envoy: warning: %s:%d: invalid key %q (must match [A-Z_][A-Z0-9_]*)\n' \
+                "$file" "$lineno" "$key" >&2
+            continue
+        fi
+
+        # Allow / deny list (see SECURITY in the header).
+        if ! envoy_envoyrc_key_allowed "$key"; then
+            printf 'envoy: warning: %s:%d: key %s not allowed in a config file (only ENVOY_*, MFE_*, PROVOST_*; skipped)\n' \
                 "$file" "$lineno" "$key" >&2
             continue
         fi
@@ -235,9 +305,11 @@ envoy_envoyrc_parse() {
 ################################################################################
 
 envoy_envoyrc_load() {
-    [[ "${ENVOY_NO_RC:-0}" == 1 ]] && return 0
     _ENVOY_ENVOYRC_COUNT=0
     _ENVOY_ENVOYRC_SOURCES=""
+
+    # Opt-out: provost sets this so no .envoyrc is ever consulted.
+    [[ "${ENVOY_NO_RC:-0}" == "1" ]] && return 0
 
     # Snapshot the shell env at load time.  Anything already set here
     # is "from the shell" and outranks every config file in the chain.

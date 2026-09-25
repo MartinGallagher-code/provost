@@ -1,0 +1,4 @@
+TEST RESULT : System achieved 482100 NOPM from 1204882 TPM
+Vuser 1:RAMPUP complete
+Vuser 1:Test complete, Taking end AWR snapshot.
+Vuser 1:482100 NOPM 1204882 TPM

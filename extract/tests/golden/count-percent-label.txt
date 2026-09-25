@@ -1,0 +1,25 @@
+entry1.count 1000000
+entry1.percent -
+entry1.label reads; of these:
+entry2.count 1000000
+entry2.percent 100.00%
+entry2.label were paired; of these:
+entry3.count 45231
+entry3.percent 4.52%
+entry3.label aligned concordantly 0 times
+entry4.count 889012
+entry4.percent 88.90%
+entry4.label aligned concordantly exactly 1 time
+entry5.count 65757
+entry5.percent 6.58%
+entry5.label aligned concordantly >1 times
+entry6.count 45231
+entry6.percent -
+entry6.label pairs aligned concordantly 0 times; of these:
+entry7.count 12044
+entry7.percent 26.63%
+entry7.label aligned discordantly 1 time
+entry8.count -
+entry8.percent 98.14%
+entry8.label overall alignment rate
+total_entries 8

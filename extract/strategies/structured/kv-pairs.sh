@@ -77,7 +77,6 @@ strategy_extract () {
                 eq = index(toks[i], "=")
                 k = substr(toks[i], 1, eq - 1)
                 v = substr(toks[i], eq + 1)
-                gsub(/ /, "_", v)
                 printf "entry%d.%s %s\n", n, k, v
             }
         }

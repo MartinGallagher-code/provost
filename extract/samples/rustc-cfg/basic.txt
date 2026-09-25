@@ -1,8 +1,0 @@
-debug_assertions
-panic="unwind"
-target_arch="x86_64"
-target_endian="little"
-target_env="gnu"
-target_family="unix"
-target_os="linux"
-target_pointer_width="64"

@@ -1,8 +1,0 @@
-LINK CHASSIS ID        SYSTEM NAME CAPS      PORT ID  PORT DESCRIPTION
-eth0 00:11:22:33:44:01 core-sw01   ..b.r.... Gi1/0/12 Uplink to core
-eth1 00:11:22:33:44:02 core-sw02   ..b.r.... Gi1/0/13 Uplink to core
-eth2 aa:bb:cc:dd:ee:10 access-sw05 ..b...... 24       Office floor 2
-eth3 aa:bb:cc:dd:ee:11 access-sw06 ..b...... 25       Office floor 3
-
-Capability Flags:
-o - Other; r - Repeater; b - Bridge; w - WLAN Access Point; R - Router; s - Station

@@ -1,4 +1,0 @@
-origin	git@github.com:acme/widget.git (fetch)
-origin	git@github.com:acme/widget.git (push)
-upstream	https://github.com/upstream/widget.git (fetch)
-upstream	https://github.com/upstream/widget.git (push)

@@ -14,8 +14,6 @@
 ## isn't available.  No external deps beyond bash 4.0+ and POSIX `less`.
 ##
 ## Public API:
-##   envoy_pager_parse_args [args...]    Strip --no-pager from argv into
-##                                        $_ENVOY_PAGER_REMAINING (array).
 ##   envoy_pager_disable                  Force-disable the pager (e.g. once a
 ##                                        --json caller is detected).
 ##   envoy_pager_active                   Returns 0 if a pager run is wanted.
@@ -30,7 +28,6 @@
 ##
 ## Writes (globals):
 ##   _ENVOY_PAGER_DISABLED       0/1
-##   _ENVOY_PAGER_REMAINING[@]   argv with --no-pager stripped
 ##
 ## ENV-143 design notes:
 ##   - Default pager is `less -FRX`:
@@ -52,29 +49,6 @@
 _ENVOY_PAGER_LOADED=1
 
 _ENVOY_PAGER_DISABLED="${_ENVOY_PAGER_DISABLED:-0}"
-_ENVOY_PAGER_REMAINING=()
-
-################################################################################
-## envoy_pager_parse_args [args...]
-##
-## Walks argv and strips `--no-pager` from it.  Remaining args land in the
-## $_ENVOY_PAGER_REMAINING array so callers can `set -- "${_ENVOY_PAGER_REMAINING[@]}"`.
-## When `--no-pager` is seen, sets $_ENVOY_PAGER_DISABLED=1.
-##
-## Idempotent — safe to call multiple times.
-################################################################################
-
-envoy_pager_parse_args() {
-    _ENVOY_PAGER_REMAINING=()
-    local arg
-    for arg in "$@"; do
-        if [[ "$arg" == "--no-pager" ]]; then
-            _ENVOY_PAGER_DISABLED=1
-            continue
-        fi
-        _ENVOY_PAGER_REMAINING+=("$arg")
-    done
-}
 
 ################################################################################
 ## envoy_pager_disable

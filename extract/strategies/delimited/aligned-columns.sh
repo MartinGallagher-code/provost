@@ -1898,7 +1898,7 @@ strategy_extract () {
             # Last column absorbs any extra trailing tokens.
             if [[ $i -eq $((_ncols - 1)) && ${#values[@]} -gt $_ncols ]]; then
                 local j
-                for ((j = i + 1; j < ${#values[@]}; j++)); do value+="_${values[$j]}"; done
+                for ((j = i + 1; j < ${#values[@]}; j++)); do value+=" ${values[$j]}"; done
             fi
             result+="entry${entry}.${name} ${value}"$'\n'
         done

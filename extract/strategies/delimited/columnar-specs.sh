@@ -271,7 +271,7 @@ strategy_extract () {
         local -a vals=()
         if [[ "$_CS_DELIM" == "ws" && $rest_idx -ge 0 ]]; then
             # @rest column: takes every remaining token from its slot, joined with
-            # single spaces (verbatim internal spacing, unlike absorb's `_`). It is
+            # single spaces (the same join absorb uses). It is
             # terminal — no columns follow it.
             local i; for ((i=0; i<rest_idx; i++)); do vals+=("${tok[$i]:-}"); done
             local r="${tok[$rest_idx]:-}" k
@@ -282,7 +282,7 @@ strategy_extract () {
             for ((i=0; i<ncols; i++)); do
                 if [[ $i -eq $_CS_ABSORB ]]; then
                     local j v="${tok[$ti]}"; ti=$((ti+1))
-                    for ((j=0; j<extra; j++)); do v="${v}_${tok[$ti]}"; ti=$((ti+1)); done
+                    for ((j=0; j<extra; j++)); do v="${v} ${tok[$ti]}"; ti=$((ti+1)); done
                     vals+=("$v")
                 else
                     vals+=("${tok[$ti]:-}"); ti=$((ti+1))

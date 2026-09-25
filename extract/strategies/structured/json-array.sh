@@ -62,7 +62,7 @@ strategy_extract () {
         function clean(v) {
             gsub(/^[ \t\r\n]+/,"",v); gsub(/[ \t\r\n,]+$/,"",v)
             if (substr(v,1,1)=="\"") { v=substr(v,2); sub(/"$/,"",v) }
-            gsub(/[ \t\r\n]+/,"_",v)
+            gsub(/[\t\r\n]/," ",v)   # a value keeps its inner spaces
             return v
         }
         # Emit "key": value pairs of the object (obj includes its outer

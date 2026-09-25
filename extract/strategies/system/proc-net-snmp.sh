@@ -43,6 +43,8 @@ strategy_extract () {
         if [[ "$first" == -* || "$first" == [0-9]* ]]; then
             # value line: pair with stored header for this protocol
             local -a hcols=()
+            # a value line with no header line before it is not snmp data
+            [[ -n "${HDR[$label]:-}" ]] || continue
             read -ra hcols <<< "${HDR[$label]}"
             n=$((n + 1))
             result+="entry${n}.proto ${label}"$'\n'

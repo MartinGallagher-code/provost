@@ -533,7 +533,7 @@ _run_custom_delimiter () {
             key="${line%%"$_OPT_delimiter"*}"
             value="${line#*"$_OPT_delimiter"}"
             _clean_field "$key"; key="$_CLEANED"
-            _clean_field "$value"; value="$_CLEANED"
+            _clean_value "$value"; value="$_CLEANED"
             [[ -z "$key" || -z "$value" ]] && continue
             delim_result+="${key} ${value}"$'\n'
         fi

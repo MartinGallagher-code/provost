@@ -1,6 +1,0 @@
-     tableId        Type
- --------------- ---------
-  daily_events    TABLE
-  user_profiles   TABLE
-  session_facts   VIEW
-  revenue_agg     TABLE

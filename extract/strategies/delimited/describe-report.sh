@@ -124,7 +124,7 @@ strategy_extract () {
             state=""
             if [[ "$line" =~ ^([A-Za-z][A-Za-z0-9_\ .-]*):$ ]]; then
                 _dr_flush_kv
-                section="${BASH_REMATCH[1]// /_}"
+                section="${BASH_REMATCH[1]}"   # a VALUE (entryN.section): spaces kept
                 state="want_header"
             elif [[ "$line" =~ ^([A-Za-z][A-Za-z0-9_\ .-]*):[[:space:]]+(.*)$ ]]; then
                 _dr_flush_kv

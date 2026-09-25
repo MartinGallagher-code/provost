@@ -1,0 +1,8 @@
+title My Page Title
+h1 Welcome
+p This is a paragraph.
+span Version 2.0
+div 42
+meta.charset utf-8
+span.class info
+div.id count
