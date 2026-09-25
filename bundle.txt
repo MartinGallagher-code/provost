@@ -1,6 +1,6 @@
 # bundle format v3 (merge.sh) -- expand with split.sh
 # esc-delim: AO
-# bundle entries: 12144
+# bundle entries: 12145
 ===FILE: .github/workflows/ci.yml===
 ===META: mode=664 sha256=a811304b39fe2cf1652ef1f7d0b71fe9e5bcbb872e8779f9310f901fb9c9bafe===
 name: CI
@@ -247,8 +247,56 @@ python:
     - requirements: docs/requirements.txt
 ===END===
 ===FILE-ESC: CHANGELOG.md===
-===META: mode=664 sha256=a9252d2bbed88a0af23e07445611f2d2a93991cdf075a00078a920946acf4d66===
+===META: mode=664 sha256=82cb434a0eb16a8cf9fb3637fdbb89c5f8cf1cc690c35a6a7b4347ede83aafdb===
 # provost AOe28094AO Changelog
+
+## 2026-09-25 AOe28094AO format detection ranks candidates by calibrated confidence
+
+The extract engine used to take the first strategy in priority order whose
+detector fired and whose extract was non-empty; confidence was only compared
+to provost's commit threshold (50). Pure confidence ranking on the old numbers
+would have flipped ~43% of corpus winners (line-records at a flat 80 beat
+aligned-columns' 40AOe28093AO75; text-lines 55; 112 bespoke strategies at a constant
+86). Confidences are now calibrated on one rubric and detection ranks by them.
+
+**Ranking (`extract/lib/_discovery.sh` `run_auto_strategies`,
+`extract/lib/_dispatch.sh` `_multi_detect_name`, `extract/envoy-extract`,
+`extract/lib/_globals.sh`)**
+- Hints first (unchanged); then EVERY eligible detector runs, and the
+  candidates are tried by confidence desc, priority asc, name (`LC_ALL=C`),
+  re-running detect before extract; an empty or truncated extract falls
+  through to the next candidate.
+- `--rank priority|confidence` (default confidence; `MFE_RANK` env) keeps the
+  old single pass for comparison. `--strategy` / `--replay` are unchanged.
+- `--multi` groups blocks by the same ranking (highest-confidence detector).
+
+**Calibration (`extract/strategies/**`, rubric in `extract/README.md`
+"Confidence rubric")**
+- Bespoke strong signature 92 (was 82AOe28093AO90); weak-signature bespoke
+  `pkg-config`, `git-log-graph` 80. Grammar tier 85 (`json` 95, `yaml`/`csv`/
+  `tsv`/`jsonl`/`har`/`dns-records` 90, AOe280a6AO) incl. strict dialects that must
+  outrank their grammar (`quoted-fields`, `columnar-specs`, `colon-pairs`,
+  `kv-pairs`). Other format-specific generics 80 (were 60AOe28093AO90).
+- Evidence-scaled general structure / catch-alls: `aligned-columns` 60AOe28093AO69
+  (its 40AOe28093AO75 score mapped), `colons` 55AOe28093AO60 by `label: value` share (was 35),
+  `numeric-lead-records` 60, weak `equals` 50AOe28093AO55 by assignment share (was 35;
+  strong `equals` stays 75), `line-records` 50AOe28093AO55 by modal-column share (50 for
+  one-token lists, 51 for one line; was 80), `text-lines` 50 (was 55).
+- Tests: new `extract/tests/test_rank.sh`; `test_generic_mode.sh`
+  (`--min-confidence 85`) and `test_strategy_equals.sh` (lone `=` is 50..55)
+  follow the rubric.
+
+**Measured.** Corpus winners, confidence vs priority: full mode 4 flips
+(`gpg-card-status`, `ip6tables-l` go from not-tidy to tidy via their bespoke
+parsers; `lscpu-parse` moves csv AOe28692AO its bespoke parser, both tidy;
+`openssl-x509-dates` as below), `--generic` 2 flips AOe28094AO
+`env-file-export-quotes` and `openssl-x509-dates` now parse as `equals`
+KEY=VALUE records instead of aligned-columns splitting `notAfter=Sep` into
+columns (goldens to regenerate). Coverage 3587 AOe28692AO 3588 (gpg-card-status now
+tidy via its bespoke strategy), zero tidyAOe28692AOnot-tidy; holdout 78/80 unchanged;
+benchmark: no winner or parse changes. 212 corpus inputs whose winner was
+colons/equals at 35 now clear provost's threshold (they pass the tidy check).
+Detection costs ~+13AOe28093AO15% CPU per capture (every detector runs).
 
 ## 2026-09-25 AOe28094AO assessment fixes: data integrity, security, parsing, speed
 
@@ -30176,7 +30224,7 @@ parse), stored with the capture (`context.txt`), and shown verbatim by
 `provost source`. Wrappers can prepend context unconditionally.
 ===END===
 ===FILE-ESC: extract/README.md===
-===META: mode=664 sha256=e4fcac4c7b9e55c9afb3e157a992b6fc4818cd60119a5f94a78f216124747ae8===
+===META: mode=664 sha256=848c6d6112b79abe3b9d210de64f45e32130b10d7d3608b0d9e25f68792100ab===
 # provost/extract AOe28094AO the extract engine
 
 This directory holds provost's extract engine + all strategies. `provost` runs it
@@ -30222,10 +30270,11 @@ fails (rather than skips) when either is missing.
 
 ## Writing a strategy: keep detection cheap
 
-Detection runs every strategy's `strategy_detect`, in priority order, until one
-produces output AOe28094AO so a slow detector taxes every capture. Equal priorities are
-ordered by strategy name (byte order), never by the category folder. Use the
-fast helpers from `lib/_helpers.sh` instead of the slow idioms:
+Detection runs EVERY eligible strategy's `strategy_detect` on every capture
+(see "Candidate ranking" below) AOe28094AO so a slow detector taxes every capture, not
+just the ones it wins. Equal priorities are ordered by strategy name (byte
+order), never by the category folder. Use the fast helpers from
+`lib/_helpers.sh` instead of the slow idioms:
 
 - `_fr_lines "$text"; for l in "${_FR_LINES[@]}"` rather than
   `while IFS= read -r l AOe280a6AO done <<< "$text"` (a here-string is read one byte
@@ -30240,9 +30289,68 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).
+
+## Candidate ranking
+
+`run_auto_strategies` (lib/_discovery.sh) picks the winner in two phases:
+
+1. **Detect.** A `hints.tsv` row, when one matches, is still tried first. Then
+   every eligible strategy's `strategy_detect` runs (deprecated, `--generic`
+   and `--min-confidence` filters apply), and each one that fires becomes a
+   candidate carrying its `_STRATEGY_CONFIDENCE`.
+2. **Extract, best first.** Candidates are sorted by confidence (high first),
+   then priority (low number first), then strategy name (byte order,
+   `LC_ALL=C`), and tried in that order: detect is re-run to restore the
+   strategy's detect-time state, then extract. A candidate whose extract is
+   empty, or that trips the truncation guard, yields to the next one, so the
+   winner always has output. `--max-strategies N` / `--first-match` stop after
+   N / 1 candidates produced output.
+
+`--rank priority` (or `MFE_RANK=priority`) restores the historical single pass:
+the first strategy in priority order whose detect passes and whose extract is
+non-empty wins, and confidence is only compared to thresholds. `--strategy` and
+`--replay` pin their own strategy set and always use that single pass. `--multi`
+groups blocks by the same ranking (`_multi_detect_name` in lib/_dispatch.sh:
+highest-confidence detector, ties by priority then name); being detect-only it
+cannot fall through an empty extract, which the per-group extract then does.
+
+## Confidence rubric
+
+Confidence is a **ranking** signal: it says how conclusive a detector's
+evidence is, on one scale shared by every strategy. Priority is the
+tie-breaker, i.e. *specificity* AOe28094AO when two strategies have equally conclusive
+evidence, the more specific one (lower priority number) wins. Set
+`_STRATEGY_CONFIDENCE` in `strategy_detect` by tier:
+
+| Tier | Confidence | What earns it | Strategies |
+|---|---|---|---|
+| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | every per-tool strategy outside `delimited/` + `structured/`, unless demoted below |
+| Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
+| Format-specific generic | **70AOe28093AO85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records AOe280a6AO) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when AOe289a5AO 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit here too (`pkg-config`, `git-log-graph`: 80) |
+| General structure | **55AOe28093AO69**, scaled | a shape any tabular or kv output has | `aligned-columns` 60AOe28093AO69 (the 40AOe28093AO75 header/consistency score mapped linearly); `colons` 55AOe28093AO60 by the share of `label: value` lines (40% AOe28692AO 55, 100% AOe28692AO 60); `numeric-lead-records` 60 |
+| Catch-all | **AOe289a4AO 60 (50AOe28093AO55)**, scaled | line structure only | `equals` (weak) 50AOe28093AO55 by the share of assignment lines; `line-records` 50AOe28093AO55 by the share of lines at the modal token count (60% AOe28692AO 50, 100% AOe28692AO 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** AOe28094AO ranks last, still clears provost's default commit threshold (50) |
+
+Rules that keep the tiers honest:
+
+- A score must be **evidence-based**: scale it by a measured share (lines that
+  match, column consistency) when the detector already computes one, and never
+  hand out a constant above the tier the evidence supports.
+- **Nothing below 50 on a winning parse.** Under ranking a sub-50 score ranks
+  below `text-lines`, which then claims (and files) the input anyway AOe28094AO so a
+  "stay under provost's threshold" score only hands the input to a worse parse.
+  (`colons` and weak `equals` were a flat 35 for that reason before ranking.)
+- `aligned-columns` never drops below 60 on a table it detects: a header with
+  consistent columns beats every catch-all and loose kv shape, and loses to any
+  format-specific syntax.
+- Ties are resolved by priority, so within a tier keep the priority order
+  meaningful (more specific = lower number).
+- Calibrate against the corpus: the confidence-ranked winner must pass the
+  manifest tidy check, and match the golden unless demonstrably better, on the
+  full and the `--generic` candidate sets (`tests/corpus/run.sh --golden`).
+  Holdout and benchmark inputs are held-out checks AOe28094AO never fit on them.
 ===END===
 ===FILE-ESC: extract/envoy-extract===
-===META: mode=775 sha256=2c9252c952976eb374510af9937c114818e33ae1305d42e6b5c35fb9107dcbb3===
+===META: mode=775 sha256=ca29a966cc6898ad7642367db67b8aa8d26f83a7d916db5bd0d4b1e9d884dc86===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -30420,6 +30528,10 @@ Filtering & Selection:
   --min-confidence N      Skip strategies with confidence below N (0-100)
   --first-match           Stop after first strategy produces output
   --max-strategies N      Limit number of strategies that produce output
+  --rank MODE             Candidate order: confidence (default; every detector
+                          runs, highest confidence tried first) or priority
+                          (first detecting strategy in priority order wins).
+                          Env: MFE_RANK
   --delimiter DELIM       Set custom field delimiter for output (overrides strategy default)
                           Examples: '=>', '::', '|', ' -> '
   --field-pattern REGEX   Only include fields whose names match REGEX
@@ -30514,6 +30626,7 @@ _OPT_sort=0
 _OPT_min_confidence=0
 _OPT_first_match=0
 _OPT_max_strategies=0
+_OPT_rank="${MFE_RANK:-confidence}"
 _OPT_delimiter=""
 _OPT_rename=""
 _OPT_aggregate=0
@@ -30615,6 +30728,11 @@ while [[ $# -gt 0 ]]; do
             [[ $# -lt 2 ]] && _log_error "--max-strategies requires an argument" && exit 1
             [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--max-strategies requires a number"; exit 1; }
             _OPT_max_strategies="$2"; shift 2 ;;
+        --rank)
+            [[ $# -lt 2 ]] && _log_error "--rank requires an argument" && exit 1
+            _OPT_rank="$2"; shift 2 ;;
+        --rank=*)
+            _OPT_rank="${1#*=}"; shift ;;
         --delimiter)
             [[ $# -lt 2 ]] && _log_error "--delimiter requires an argument" && exit 1
             _OPT_delimiter="$2"; shift 2 ;;
@@ -30706,6 +30824,10 @@ case "$_OPT_format" in
 esac
 
 # Flag conflict validation
+case "$_OPT_rank" in
+    confidence|priority) ;;
+    *) _log_error "--rank must be 'confidence' or 'priority' (got '$_OPT_rank')"; exit 1 ;;
+esac
 if [[ $_OPT_stream -eq 1 && -n "$_OPT_chain" ]]; then
     _log_error "--stream and --chain cannot be used together"; exit 1
 fi
@@ -31314,7 +31436,7 @@ run_auto_tune () {
 }
 ===END===
 ===FILE-ESC: extract/lib/_discovery.sh===
-===META: mode=664 sha256=c27ae2f50babfcae3dc9baa801328e151f54546d53cb6c7491e28094070fa4c9===
+===META: mode=664 sha256=0b0d2323b51b13323e2ab2a4ce2ea9b7e64429a3ab5253e1b420c88d3d85a421===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -32171,6 +32293,20 @@ run_auto_strategies () {
     _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || _src_tmpf=""
     umask "$_old_umask"
 
+    # RANKING (--rank confidence, the default). Phase 1 runs EVERY eligible
+    # detector and records each match as a candidate; phase 2 tries the
+    # candidates best-first AOe28094AO highest confidence, ties by priority, then by
+    # strategy name (LC_ALL=C) AOe28094AO extracting until the strategy cap is hit. A
+    # candidate that extracts nothing (or trips the truncation guard) simply
+    # yields to the next one, so the winner always has output. Confidence is
+    # therefore a RANKING signal, calibrated per the "Confidence rubric" in
+    # extract/README.md. `--rank priority` keeps the historical single pass:
+    # the first strategy in priority order whose detect passes and whose
+    # extract produces output. --strategy / --replay pin their own set and
+    # always use the single pass.
+    local _eas_rank=1 _eas_cands="" _ck _pk
+    [[ "${_OPT_rank:-confidence}" == priority || -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && _eas_rank=0
+
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
 
@@ -32237,12 +32373,53 @@ run_auto_strategies () {
             continue
         fi
 
+        if [[ $_eas_rank -eq 1 ]]; then
+            # Sort key: (100 - confidence) ASC, priority ASC, name ASC AOe28094AO all
+            # fixed-width so one plain LC_ALL=C sort orders the three keys.
+            _ck="000$((100 - _STRATEGY_CONFIDENCE))"
+            _pk="000${_priority}"
+            _eas_cands+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            unset _arr 2>/dev/null
+            continue
+        fi
+
         _eas_rc=0
         _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
         unset -f strategy_detect strategy_extract 2>/dev/null
         unset _arr 2>/dev/null
         if [[ $_eas_rc -eq 2 ]]; then break; fi
     done <<< "$_SORTED_STRATEGIES"
+
+    if [[ $_eas_rank -eq 1 && -n "$_eas_cands" ]]; then
+        # One sort fork per input is the only process the ranking adds.
+        _eas_cands="$(printf '%s' "$_eas_cands" | LC_ALL=C sort -t'|' -k1,1 -k2,2 -k3,3)"
+        if [[ $_OPT_debug -eq 1 ]]; then
+            local _dbg_c="" _dbg_l
+            while IFS='|' read -r _ck _pk _dbg_l _; do
+                _dbg_c+="${_dbg_c:+, }${_dbg_l}(c$((100 - 10#$_ck)))"
+            done <<< "$_eas_cands"
+            _log_debug "Ranked candidates: $_dbg_c"
+        fi
+        while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
+            [[ -z "$strategy_file" ]] && continue
+            strategy_priority="$((10#$_pk))"
+            _source_strategy_cached "$strategy_file" /dev/null || continue
+            # Re-run detect: it restores the per-strategy state extract reads
+            # (report name, detect-time globals) and the confidence itself.
+            # Only the candidates actually tried pay it AOe28094AO normally just one.
+            if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
+                unset -f strategy_detect strategy_extract 2>/dev/null
+                unset _arr 2>/dev/null
+                continue
+            fi
+            _eas_rc=0
+            _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            unset _arr 2>/dev/null
+            if [[ $_eas_rc -eq 2 ]]; then break; fi
+        done <<< "$_eas_cands"
+    fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0
 }
@@ -32341,7 +32518,7 @@ run_explain_mode () {
 }
 ===END===
 ===FILE-ESC: extract/lib/_dispatch.sh===
-===META: mode=664 sha256=64b693c89320c7e961e5052026948754121c6b11c74ff8d957f82812a78676aa===
+===META: mode=664 sha256=580f922b638a8262253598260fa5d4d8d98ec7a1ee8b79851076e7a9f9825997===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -33006,11 +33183,20 @@ run_output_mode () {
 
 # Detect-only winner for "$1" -> _MULTI_DET (strategy name). Returns 1 if no
 # strategy detects. Mirrors run_auto_strategies' filters (generic dirs,
-# deprecation, _should_run_strategy) without extracting.
+# deprecation, _should_run_strategy, --min-confidence) without extracting,
+# and its candidate order: under --rank confidence (the default) every
+# detector runs and the highest confidence wins (ties: priority, then name AOe28094AO
+# the list is already in that order, so the first strict maximum is kept);
+# under --rank priority the first detecting strategy wins. The name only
+# GROUPS blocks AOe28094AO each group is then extracted by run_auto_strategies, which
+# falls through an empty extract; detect-only cannot, so a block whose top
+# candidate would extract nothing still groups under that name.
 _multi_detect_name () {
     local btext="$1"
     _MULTI_DET=""
-    local _priority strategy_version strategy_file strategy_name
+    local _priority strategy_version strategy_file strategy_name _md_best=-1
+    local _md_rank=1
+    [[ "${_OPT_rank:-confidence}" == priority ]] && _md_rank=0
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
         strategy_name="${strategy_file##*/}"
@@ -33021,13 +33207,19 @@ _multi_detect_name () {
         _source_strategy_cached "$strategy_file" /dev/null || continue
         _STRATEGY_CONFIDENCE=50
         if strategy_detect "$btext" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" >/dev/null 2>&1; then
-            _MULTI_DET="$strategy_name"
-            unset -f strategy_detect strategy_extract 2>/dev/null
-            return 0
+            if [[ $_md_rank -eq 0 ]]; then
+                _MULTI_DET="$strategy_name"
+                unset -f strategy_detect strategy_extract 2>/dev/null
+                return 0
+            fi
+            if [[ $_STRATEGY_CONFIDENCE -ge ${_OPT_min_confidence:-0} && $_STRATEGY_CONFIDENCE -gt $_md_best ]]; then
+                _md_best=$_STRATEGY_CONFIDENCE
+                _MULTI_DET="$strategy_name"
+            fi
         fi
         unset -f strategy_detect strategy_extract 2>/dev/null
     done <<< "$_SORTED_STRATEGIES"
-    return 1
+    [[ -n "$_MULTI_DET" ]]
 }
 
 run_multi_mode () {
@@ -33886,7 +34078,7 @@ format_xml () {
 }
 ===END===
 ===FILE-ESC: extract/lib/_globals.sh===
-===META: mode=664 sha256=5d9d39dcbec62225e3c3cbe1a77cd40fe2e213621eb0d2bf78f3995f40e49812===
+===META: mode=664 sha256=9eb2abb52b524c0f90943ab401dd54065f33cd39ff5979111071f93212a9a4b7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -33958,6 +34150,9 @@ format_xml () {
 # _OPT_min_confidence    integer     default 0   -- skip strategies below this confidence
 # _OPT_first_match       bool (0/1)  default 0  -- stop after first strategy produces output
 # _OPT_max_strategies    integer     default 0   -- limit strategies that produce output (0=no limit)
+# _OPT_rank              string      default "confidence" (env MFE_RANK) -- candidate order:
+#                                    confidence = run every detector, try best confidence first;
+#                                    priority   = first detecting strategy in priority order
 # _OPT_delimiter         string      default ""  -- custom delimiter (e.g. "=>", "::")
 # _OPT_rename            string      default ""  -- "old=new,..." field rename spec
 # _OPT_aggregate         bool (0/1)  default 0  -- compute count/min/max/sum/avg for numerics
@@ -40610,7 +40805,7 @@ i | openSUSE-Update | glibc  | 2.37-3.1     | x86_64
 i | packman         | ffmpeg | 6.0-1.1      | x86_64
 ===END===
 ===FILE: extract/strategies/build/dotnet-list-package.sh===
-===META: mode=664 sha256=65ff5549951f8b2b196ed8cbd2d6cc475e7da75ce5512b9a91d5c9042973e73d===
+===META: mode=664 sha256=44c27b5e6bc9cee11dfaeed35d50e846d3e7003761edb266c2ebe0206daf17f1===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40630,7 +40825,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     if [[ "$text" == *"Top-level Package"* && "$text" == *"Resolved"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -40663,7 +40858,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/build/go-list.sh===
-===META: mode=664 sha256=228f77c818e8a548ab2073783de04c5ddb4b5692b7869086b1f511290539ee7e===
+===META: mode=664 sha256=455c15caa6371e739372b999cf8f52a0ca8bc3e828780dd47ed6a759ff9afe1d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40702,7 +40897,7 @@ strategy_detect () {
         fi
     done
     if [[ $versioned -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -40723,7 +40918,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/build/go-mod-why.sh===
-===META: mode=664 sha256=4f75f11636fa0bc202def27b7dd9a2780000a07b0582df1e66b3370a23deb368===
+===META: mode=664 sha256=609194231631b997df3817597fb70ec9db8e832999f1d1adaae7071fc90a33f7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40763,7 +40958,7 @@ strategy_detect () {
     [[ $nb -eq 0 ]] && return 1
     # Require the leading "# <module>" header that opens go mod why output.
     if [[ $ok -eq 1 && "$first" == "# "* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -40788,7 +40983,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/build/go-test.sh===
-===META: mode=775 sha256=e9b9aabd71e62d5d1cd197a382b7236c556b3b3661287e955c13fc7ae48cf7c1===
+===META: mode=775 sha256=988f8f0b38e7a44c77c7461a7a69a35a209a23dee3b826c3948a17284b618eff===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40801,7 +40996,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *$'\n=== RUN'* || "$text" == "=== RUN"* ]] || return 1
     [[ "$text" =~ (^|$'\n')[[:space:]]*---[[:space:]](PASS|FAIL|SKIP): ]] || return 1
     return 0
@@ -40846,7 +41041,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/build/mix-deps.sh===
-===META: mode=664 sha256=5a093db2a0cc40b106cd72b54776b9c26d0f5a4104ade2be96f2340da8263941===
+===META: mode=664 sha256=58477a7366dbe545786e17c82bc69c7889624465d1a2e1cf48b35de08dc7c48a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40874,7 +41069,7 @@ strategy_detect () {
         [[ "$line" =~ ^\*[[:space:]]+[A-Za-z0-9_.-]+[[:space:]] ]] && deps=$((deps + 1))
     done
     [[ $deps -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -40894,7 +41089,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/build/pnpm-why.sh===
-===META: mode=664 sha256=599aa8b21dddb4d4bb442961ab8985cc77b4e85e4442fdb77f3c06dbb0f6633c===
+===META: mode=664 sha256=7dbbdf6f8c83b2d1d2aad99c38d8a3276e2c51593da5586078b00e204983c8db===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40916,7 +41111,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # A "dependencies:" section drawn with box tree glyphs.
     if [[ "$text" == *"dependencies:"* && ( "$text" == *"AOe2949cAO"* || "$text" == *"AOe29494AO"* ) ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -40945,7 +41140,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/build/sbt-dependencytree.sh===
-===META: mode=664 sha256=7da901e75062253ad765f82b0946e81ca3bc7ae09f18279e4f0afe824e0390fd===
+===META: mode=664 sha256=75f9b8f746cb0609d28c45f5a1b6d7eb738c579be2d0aa199327d7cee66027c1===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -40969,7 +41164,7 @@ strategy_detect () {
     # would be mis-flagged as a JSON array. The "[info] ... +-" signature below
     # is specific enough on its own.
     if [[ "$text" == *"[info]"* && "$text" == *"+-"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -40995,7 +41190,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/cloud/kubectl-get-all.sh===
-===META: mode=664 sha256=a64e02e7b42a1c9b6bc7c25857098df63092a1aaafd4df0b20384aba956eccde===
+===META: mode=664 sha256=7424096c623a821aabfff2b3137a7d2efb59c231bbd491ad39f5a8377d8b713a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41022,7 +41217,7 @@ strategy_detect () {
     [[ "$text" == *"pod/"* ]] || return 1
     [[ "$text" == *"service/"* ]] || return 1
     [[ "$text" == *"NAME"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41053,7 +41248,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/container/docker-ps.sh===
-===META: mode=664 sha256=b9530d24010dfd70615f39c93c350957f7f1501b95fc818e784723e5c6213585===
+===META: mode=664 sha256=d34b04083117489ed519b26bc172456b4e9afee92a900da2c4a15428ef0b8828===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41066,7 +41261,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     # First non-empty line is the `docker ps` header: starts with CONTAINER and
     # carries the ps-specific COMMAND column. Requiring COMMAND avoids hijacking
     # `docker stats` (CONTAINER AOe280a6AO CPU %/MEM AOe280a6AO) and `buildah containers`
@@ -41214,7 +41409,7 @@ _strat_docker_ps_normalize_col () {
 }
 ===END===
 ===FILE: extract/strategies/database/cassandra-nodetool-tpstats.sh===
-===META: mode=664 sha256=2516a72f32b22b6e487776fb3932d5b4a91453af3df7f73a6d80021f29160255===
+===META: mode=664 sha256=0482f828ad8d9a64abf40c4327f4c1e040d516db41cba5b597b22d3d307e43e2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41247,7 +41442,7 @@ strategy_detect () {
     [[ "$text" == *"Pool Name"* ]]        || return 1
     [[ "$text" == *"Completed"* ]]        || return 1
     [[ "$text" == *"All time blocked"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41278,7 +41473,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/database/clickhouse-processlist.sh===
-===META: mode=664 sha256=edbe3d43744a3aeb93b86aa49389f226ab56b779a7ab66fe8e3b3a9d27477a42===
+===META: mode=664 sha256=f4e4ae2dd2adb43ad09ab81b1bb3d1f208e08c6d7d6fcd68075a4f3af0324777===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41333,7 +41528,7 @@ _ch_value () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # Distinctive signature: a top-border line and a bar-delimited data line.
     local has_border=0 has_bar=0 line
     _fr_lines "$text"
@@ -41405,7 +41600,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/database/mariadb-innodb-status.sh===
-===META: mode=664 sha256=90fefd7181661bfe538e55d430431cbe85b9eba9dc6c3788fa8597e57811fd47===
+===META: mode=664 sha256=8f7c7daa8c38590191a7dea01ac8b27b5a20886ade22ef3ab916b549f1771c39===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41428,7 +41623,7 @@ strategy_detect () {
     [[ "$text" == *"INNODB MONITOR OUTPUT"* ]] || return 1
     [[ "$text" == *"TRANSACTIONS"* ]] || return 1
     [[ "$text" == *"History list length"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41467,7 +41662,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/database/nodetool-compactionstats.sh===
-===META: mode=664 sha256=4c3e6ea97467c7d6e66d290609f1c754af0f1b16cf22765139b737a594080155===
+===META: mode=664 sha256=2282e8a71d8ab7fe9fcec584bf00e33bcca29f21026e796f1bfce95fc31ecda4===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41493,7 +41688,7 @@ strategy_detect () {
     [[ "$text" == *"pending tasks:"* ]] || return 1
     [[ "$text" == *"compaction type"* ]] || return 1
     [[ "$text" == *"progress"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41521,7 +41716,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/database/nodetool-ring.sh===
-===META: mode=664 sha256=3b715362e71490c884ecc10a31552c587fb9adb1559f0612ffaf055c854e175d===
+===META: mode=664 sha256=53e1089398937db5ed0bb2717cdf7ddf468a5948c10b9773f32f99d776a834e3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41546,7 +41741,7 @@ strategy_detect () {
     [[ "$text" == *"Datacenter:"* ]] || return 1
     [[ "$text" == *"Address"*"Rack"*"Status"*"State"* ]] || return 1
     [[ "$text" == *"Token"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41573,7 +41768,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/database/nodetool-status.sh===
-===META: mode=664 sha256=b71cdbd8d4d03a9eff6ca471a429b3c00f8a5ea46f0293370d1160e1f69c3fa1===
+===META: mode=664 sha256=e54dbf72a51b58cd30c09e51d416d7339cd5145beb90f318a1415e8d86561412===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41598,7 +41793,7 @@ strategy_detect () {
     [[ "$text" == *"Status=Up/Down"* ]]     || return 1
     [[ "$text" == *"Host ID"* ]]            || return 1
     [[ "$text" == *"-- "*"Address"* ]]      || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -41625,7 +41820,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/alias-list.sh===
-===META: mode=664 sha256=d2632ef36230f43bc70de8d9ae2d62af8531e606264a0b71306e045ab9bbc9fa===
+===META: mode=664 sha256=bfb9f22ab56bcde29dbb352aa9db70dbbc56405341f9392d853d7fe5d9ef3fa7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -41671,7 +41866,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     _al_is_alias_list "$text" || return 1
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -41710,7 +41905,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/aligned-columns.sh===
-===META: mode=664 sha256=2caa92c4edd01b0d6939e56828c9c431aadf120fc5c34c8a8e84aa4c14bb9413===
+===META: mode=664 sha256=b4c74a950b5efa482a7bb0ca359d1734e78d09fb8fee1d2d79eb8923a2722aed===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -42612,8 +42807,13 @@ strategy_detect () {
     [[ $header_caps -eq 1 ]] && conf=$((conf + 5))  # ALL-CAPS header (ps/df/ss style)
     [[ "$mode" == HL ]] && conf=$((conf - 10))      # headerless is a weaker signal
     [[ $conf -gt 75 ]] && conf=75
-    [[ $conf -lt 1 ]] && conf=1
-    _STRATEGY_CONFIDENCE=$conf
+    [[ $conf -lt 40 ]] && conf=40
+    # General-structure tier (extract/README.md "Confidence rubric"): the raw
+    # 40..75 evidence score maps onto 60..69. A header + consistent columns is
+    # stronger evidence than any catch-all or loose kv shape (<= 60), and
+    # weaker than a format-specific syntax (>= 70) AOe28094AO the parsers that used to
+    # outrank it by priority now outrank it by confidence too.
+    _STRATEGY_CONFIDENCE=$(( 60 + (conf - 40) * 9 / 35 ))
     return 0
 }
 
@@ -43781,7 +43981,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/arrow-info-records.sh===
-===META: mode=664 sha256=3a109cc9408aaa7144c7f3d87153b946ced1a9c2a80bdb2bc4e67cdf48def30c===
+===META: mode=664 sha256=bc0a807eab295bd4fece2819546f65cd61fb3c22b80fce43c22dfee697f77c68===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -43831,7 +44031,7 @@ strategy_detect () {
         [[ "$line" =~ ^[A-Za-z]+[[:space:]] ]] || return 1
     done
     [[ $first -eq 0 && $bullets -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -43867,7 +44067,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/arrow-map.sh===
-===META: mode=664 sha256=18bc1d96e68394342ddf87952218d5a5a184fca2c89a901fa0e58223e91986d3===
+===META: mode=664 sha256=731d40dfb3a73e2fc5f43bf7bd3ee5dda40d2e1f9b5976e636bb1da10d3b1895===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -43907,7 +44107,7 @@ strategy_detect () {
         else return 1; fi
     done
     [[ $nb -ge 2 && $arrows -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -44036,7 +44236,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/banner-groups.sh===
-===META: mode=664 sha256=56b09d59cd8ad58bc8d803f9786ff40e9b25849b0eee6443dbbf782ef7a9fb0e===
+===META: mode=664 sha256=f812174e0ac142d038dfc4f81f0993fc0d867181d0150c788ac0fe9029071391===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44102,7 +44302,7 @@ strategy_detect () {
         members=$((members + 1)); last_kind=M
     done
     [[ $banners -ge 2 && $members -ge $banners ]] || return 1
-    _STRATEGY_CONFIDENCE=83
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -44129,7 +44329,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/banner-sections-kv.sh===
-===META: mode=664 sha256=e1aa7c73163ce6c1e30a2f054ffb9b5e8d54e55eb5185f78d7ec956cf1527898===
+===META: mode=664 sha256=ac16c9c51078d2fdc22e21c1fe27296193b1a5e639824a220248a9e9fbe80eb5===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44215,7 +44415,7 @@ strategy_detect () {
     # Need real banner sectioning over kv pairs, and almost nothing loose
     # (only a title-style decoration line or two).
     [[ $banners -ge 1 && $pairs -ge 3 && $other -le 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -44240,7 +44440,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/delimited/block-records.sh===
-===META: mode=664 sha256=7ea36261f2bccb367838f5b1c03dab837b98c3aa5d1d7a52c7a1f22bbb1e196b===
+===META: mode=664 sha256=0098110e4fd5b8cb0a32f2e643ecb4f8967e63cd41998ac33700fa1228f7ad1c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44257,7 +44457,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=60
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON-like input
     _is_json "$1" && return 1
@@ -44340,7 +44540,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/box-dag.sh===
-===META: mode=664 sha256=da9beb2053bf9e515ed87ede615bd950d28fb629b83229c49d7802fe705f12c6===
+===META: mode=664 sha256=2da3f5494935474a2649e65a4e41b85966047f4f1b698b5a1c3bf6af2d24e1e2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44397,7 +44597,7 @@ strategy_detect () {
     done
     # A DAG: >=2 one-cell boxes (each its own border pair), single-column only.
     [[ $mcol -eq 0 && $contents -ge 2 && $borders -ge 4 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -44419,7 +44619,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/box-table.sh===
-===META: mode=664 sha256=44cae67ec13b5e8eb6290189253177364822cccd82e4a611b5bc5578936b6bbd===
+===META: mode=664 sha256=bf9f87303857a191726f5c93a5aeb7819b134603c24d57ea914b94cad70ec75d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44554,7 +44754,7 @@ strategy_detect () {
         elif _box_is_row "$_line"; then _saw_cell=1; fi
     done
     if [[ $_saw_rule -eq 1 && $_saw_cell -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -44618,7 +44818,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/boxed-table.sh===
-===META: mode=664 sha256=2aaafff81b1ea814c6508013f24aa1c6505156bb03cc6fb140829479344174ae===
+===META: mode=664 sha256=efc6bccafd57c16b89643f4c6edc362aa31b0923c8056d84e9e4d946b48b57e0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44776,12 +44976,12 @@ strategy_detect () {
         if [[ "$s" =~ ^[-+]{4,}$ ]]; then nrule=$((nrule + 1)); fi
     done
     [[ $npipe -ge 3 && $nrule -ge 2 && $ninner -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/bpftrace-map.sh===
-===META: mode=664 sha256=7cfccb716314f240cf6c8c0483a956b5e53feb2416b334d571553426fa44c3f7===
+===META: mode=664 sha256=4bfb8c390acc3a4730957fff93022b6a154839545f656b3fae0994f4d3cb38ab===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44828,7 +45028,7 @@ strategy_detect () {
         return 1
     done
     [[ $maps -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -44856,7 +45056,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/delimited/brace-groups.sh===
-===META: mode=664 sha256=0f2a82d5a446e2068c69ea2c09fcc992544cd6629da8592a5199967ec072b4bd===
+===META: mode=664 sha256=574826fff5d06c53cc7d51065fa681b51c8f1016f52197c191a0d64d5f3655f0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -44906,7 +45106,7 @@ strategy_detect () {
     done
     [[ $inblock -eq 0 ]] || return 1              # unclosed block
     [[ $blocks -ge 2 && $members -ge $blocks ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -45072,7 +45272,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/checking-groups.sh===
-===META: mode=664 sha256=55edd7683a7a3875bd872a6e3b7e4ff5cba89b10ee09d6a0abafde28f2e7edc2===
+===META: mode=664 sha256=d42dcfe7f5a8a8cf5bdfef9d8c4302d2a74d1e6833233d05d74dbe354f43b2d3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -45113,7 +45313,7 @@ strategy_detect () {
         else return 1; fi
     done
     [[ $heads -ge 2 && $results -ge $heads ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -45138,7 +45338,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/cipher-suites.sh===
-===META: mode=664 sha256=4bbb8f7237c0024030259a0eb0ed8ca81fbafbf404f258382a20d7b8b40f42a4===
+===META: mode=664 sha256=13793970934525638c65e06511b5a7bb6d8170c9b8efc250491942ad405b4e16===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -45178,7 +45378,7 @@ strategy_detect () {
         [[ "$line" =~ $_cs_line_re ]] && n=$((n + 1))
     done
     [[ $n -ge 3 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -45542,7 +45742,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/colons.sh===
-===META: mode=664 sha256=4d59f0b374eff2fae4b6ba45cc4ad044528c4ea2ea01836d7d49bb049b51a889===
+===META: mode=664 sha256=3ddd6f342c2a0bd8ef7b1d1b0ba3a50f55ea84b47a26df61194d1f8653bae794===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -45555,7 +45755,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=35
+    _STRATEGY_CONFIDENCE=0
     # NOTE: no repeated-top-key guard here. `colons` is the last-resort fallback
     # (priority 60) AOe28094AO a dedicated record strategy (e.g. block-records, p40) always
     # outranks it for real multi-record input, so the guard is unnecessary. It
@@ -45592,7 +45792,16 @@ strategy_detect () {
         _nb=$((_nb + 1))
         [[ "$_l" =~ $_line_re || "$_l" =~ $_bline_re ]] && _kv=$((_kv + 1))
     done
-    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]]
+    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]] || return 1
+    # General-structure tier (extract/README.md "Confidence rubric"): 55..60,
+    # scaled by the share of `label: value` lines (40% -> 55, 100% -> 60).
+    # Above the catch-alls (line-records <= 55 loses the tie on priority,
+    # text-lines 50), at or below a real table (aligned-columns >= 60, which
+    # wins the tie on priority). It used to be a flat 35 AOe28094AO under provost's
+    # filing threshold AOe28094AO but under confidence ranking that would rank colons
+    # below text-lines and hand every colon block to a catch-all.
+    _STRATEGY_CONFIDENCE=$(( 55 + (_kv * 100 / _nb - 40) * 5 / 60 ))
+    return 0
 }
 
 strategy_extract () {
@@ -45772,7 +45981,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/columnar-specs.sh===
-===META: mode=664 sha256=4458dfc2a3e8ed38d8d643ddeed0ff37f8e28b90f2d260ca39b6ef45aa831cd7===
+===META: mode=664 sha256=5764d08c86c2941687e84efc0402df5ff5c3ec666ff3a615df688d77605a014c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -45964,7 +46173,7 @@ strategy_detect () {
             # parser wins instead.
             _cs_row_overflow "$text" && continue
             _CS_MATCHED="$spec"
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=85
             # Report the matched TOOL name (not the shared "columnar-specs") so
             # the engine names the dataset per-tool. Runs in the parent shell
             # (unlike strategy_extract, which is a command-substitution subshell).
@@ -46097,7 +46306,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/count-percent-label.sh===
-===META: mode=664 sha256=f3162e1bf261a5af158e9418f024e1aa5aeaa56926336100fabd34f503a4b435===
+===META: mode=664 sha256=4a1e59b4d44c157fdafa1e3dbaec9cfc82e35a1145080d30e5cbea65c9d61d8d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46176,7 +46385,7 @@ strategy_detect () {
 
     # >=2 `N (P%)` lines is the discriminator; a plain counted list has none.
     [[ $nb -ge 3 && $paren -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -46197,7 +46406,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/dash-labeled-stats.sh===
-===META: mode=664 sha256=6ecc629519b672fe46afa4fcf45dd74dcaf79b366e96571d999f007b84c03cee===
+===META: mode=664 sha256=1c1e0cbf8919c300cbdcd6fb097dd3d6023c57d440986861ba52c40464eb3edd===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46264,7 +46473,7 @@ strategy_detect () {
         _dls_parse "$line" && records=$((records + 1))
     done
     [[ $records -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=76
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -46287,7 +46496,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/dashed-sections.sh===
-===META: mode=664 sha256=db2c15b3b1225ff5633a4051725f0e6660f38a0ed9ee0a73b87e798dfddde6e4===
+===META: mode=664 sha256=a534a7f34b8d028b7595e1aab4a9a50e4b813c16f2b4491c5d1c52468ba36220===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46327,7 +46536,7 @@ strategy_detect () {
         if [[ $saw_banner -eq 1 && "$t" == *"  "* && -n "${t%%  *}" ]]; then
             body=$((body + 1))
             if [[ $body -ge 2 ]]; then
-                _STRATEGY_CONFIDENCE=82
+                _STRATEGY_CONFIDENCE=80
                 return 0
             fi
         fi
@@ -46374,7 +46583,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/decorated-groups.sh===
-===META: mode=664 sha256=2e913ee8468364db74fa8cc3ed925b56af8b27f7d07b5bcb7ecc3dd63e25e7a8===
+===META: mode=664 sha256=f21e6d7b2e98e8995ba4d5f7186f41b9f1e5c7fb6f2ca5e29bfeeea438c7289c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46436,7 +46645,7 @@ strategy_detect () {
         first=0
     done
     [[ $headers -ge 1 && $members -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -46472,7 +46681,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/dep-tree.sh===
-===META: mode=664 sha256=dc4562f6d7f8da482f224c4a120a3cf639250353c6ab25a2dace41a3ee5a7bbb===
+===META: mode=664 sha256=df7ea38e030b5bbe821b0363db0e40883289c26eb719d13740e359b9245dfe70===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46519,7 +46728,7 @@ strategy_detect () {
         fi
     done
     [[ $roots -ge 1 && $members -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -46578,7 +46787,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/describe-report.sh===
-===META: mode=664 sha256=5479f9710e33e8bf4648630c50cc4f523e6605d72e3193eea86b911e6d7268c8===
+===META: mode=664 sha256=83eb43bda5a1caf5943b5ad4df80758d31c5f14ed23c34b5c6ae6d7de89ba09b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46647,7 +46856,7 @@ strategy_detect () {
     done
     # The full describe shape: several aligned kv pairs AND >=1 dashed table.
     [[ $kv -ge 3 && $sections -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -46771,7 +46980,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/diffstat.sh===
-===META: mode=664 sha256=96771b572a7b25cd28e2a156a6fad8d0b2149a30b17e871df1a5220eb09f3965===
+===META: mode=664 sha256=285e37f20e49a546cb6f34a9089bc90fa60164615740f366c7538c909befdc42===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46811,7 +47020,7 @@ strategy_detect () {
         _diffstat_file_line "$line" && hits=$((hits + 1))
     done
     if [[ $hits -ge 2 && "$text" == *" changed"* ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -46845,7 +47054,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/dot-leader-kv.sh===
-===META: mode=664 sha256=77b25610dd558b23508a12b86cd6db5967ee6e3ae7e7ddb1bd7c185c16f3a55e===
+===META: mode=664 sha256=cffce7bfe7097810ed7784bd71a1858e7ce1ef1084d5d74639f4afac7fbfddf0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -46954,7 +47163,7 @@ strategy_detect () {
     done
     # Form C stands alone: the whole block must be colonless dot-leader lines.
     if [[ $hits -eq 0 && $c_hits -ge 3 && $c_hits -eq $nonblank ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     [[ $hits -ge 3 ]] || return 1
@@ -46963,7 +47172,7 @@ strategy_detect () {
     # mode, and a record parser keeps that grouping where flattening would lose
     # it. Only form B can reach such blocks, so leave them to the record parsers.
     [[ $form_b -eq 1 && $repeated -eq 1 ]] && return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -47095,7 +47304,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/dotted-kv-tree.sh===
-===META: mode=664 sha256=2e9da6491d0db6e5e0c0c7e63562c9a9abddd9db5a72dbefe08bb138117bfc9e===
+===META: mode=664 sha256=3acd6011599d874efd39a89568d28a697ef41a40d7a19e83d13865148653029d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -47236,7 +47445,7 @@ strategy_detect () {
     done
     # The dotted-kv signature: >=2 dotted kv lines, or a stat block.
     [[ $((kv + hdr)) -ge 2 && $((kv + mem)) -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -47310,7 +47519,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/double-colon-fields.sh===
-===META: mode=664 sha256=18b6e8c1327841e90908b71e8a051dcce995a9a13d393bed6b85dd7d7fea3d2a===
+===META: mode=664 sha256=07d1d401c8dc888bbc999abe107aced23ad8f2d72d30afa838de4134763b1f7c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -47349,7 +47558,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -47378,7 +47587,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/embedded-table.sh===
-===META: mode=664 sha256=fc1a7aa3031b49ca7027ceb415d3dd2ba51e365eafe120474204689be7a84cc0===
+===META: mode=664 sha256=baea9a01a4fdf66abdc8a7d909a8cac9698be10bd9d050e32df059a6bdac49bb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -47634,7 +47843,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     _et_scan "$text" || return 1
     _et_policy "$text" || return 1
-    _STRATEGY_CONFIDENCE=76
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -47751,7 +47960,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/equals.sh===
-===META: mode=664 sha256=b50daacf3d110e319d36c699ee70bf73f4746848a74889effeeab2296fd73dde===
+===META: mode=664 sha256=dd967f6a75531159516d8a27ee1ece242523094afd5373c6f49c748e172c9f42===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -47764,27 +47973,44 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=35
-    # CONFIDENCE REFLECTS EVIDENCE. A lone `=` somewhere in prose is weak
-    # evidence (35, below provost's default filing threshold of 50); a block
-    # where (nearly) EVERY non-blank line is a tight `KEY=VALUE` with a sane
-    # key AOe28094AO env/printenv, systemctl show, git config --list, locale, .env files
-    # AOe28094AO is the format itself, and must be able to file (75). Pins
+    _STRATEGY_CONFIDENCE=0
+    # CONFIDENCE REFLECTS EVIDENCE (extract/README.md "Confidence rubric").
+    # A block where (nearly) EVERY non-blank line is a tight `KEY=VALUE` with a
+    # sane key AOe28094AO env/printenv, systemctl show, git config --list, locale, .env
+    # files AOe28094AO is the format itself: format-specific tier (75). Pins
     # (`name==1.2.3`) and signed env-diff lines count as valid too. Needs >=2
-    # lines so a single stray assignment in free text stays weak. Only the
-    # confidence changes here AOe28094AO WHICH strategy wins is decided by priority, so
-    # this cannot take an input away from a higher-priority strategy.
-    local _cf_line _cf_nb=0 _cf_ok=0
+    # lines so a single stray assignment in free text stays weak.
+    # Anything weaker scores 50..55, scaled by the share of lines that are
+    # assignments in ANY form the detector accepts (tight, pin, signed, or
+    # space-padded `key = value` AOe28094AO sysctl, postconf): a lone `=` in four lines
+    # of prose scores 51, a whole `key = value` file 55. An `=` can sit
+    # anywhere in a line, so it is weaker evidence than a line-LEADING
+    # `label:` (colons, 55..60, wins a tie on priority); it still ties or
+    # beats the catch-alls (text-lines 50, line-records <= 55 AOe28094AO equals wins
+    # both ties on priority) and stays below a real table (aligned-columns
+    # >= 60). It
+    # used to be a flat 35 AOe28094AO under provost's filing threshold AOe28094AO but under
+    # confidence ranking a sub-50 score ranks below text-lines, which then
+    # claims (and files) the input anyway.
+    local _cf_line _cf_nb=0 _cf_ok=0 _cf_any=0
     local _cf_kv='^(export[[:space:]]+)?[A-Za-z_][A-Za-z0-9_.-]{0,63}=([^=]|$)'
     local _cf_pin='^[A-Za-z0-9_.-]+==[^=[:space:]]+$'
     local _cf_sig='^[+-][A-Za-z_][A-Za-z0-9_.]{0,63}=([^=]|$)'
+    # The four line forms the detection loop below accepts.
+    local _cf_a1='^[A-Za-z][A-Za-z0-9_.\ -]*=[^=]' _cf_a2='^[+-][A-Za-z][A-Za-z0-9_.]*=[^=]'
+    local _cf_a3='^[A-Za-z][A-Za-z0-9_().:\ -]*\ =\ [^=]'
     while IFS= read -r _cf_line; do
         [[ -z "${_cf_line//[[:space:]]/}" ]] && continue
         _cf_nb=$((_cf_nb + 1))
         if [[ "$_cf_line" =~ $_cf_kv || "$_cf_line" =~ $_cf_pin || "$_cf_line" =~ $_cf_sig ]]; then
             _cf_ok=$((_cf_ok + 1))
         fi
+        if [[ "$_cf_line" =~ $_cf_a1 || "$_cf_line" =~ $_cf_pin || "$_cf_line" =~ $_cf_a2 \
+              || "$_cf_line" =~ $_cf_a3 ]]; then
+            _cf_any=$((_cf_any + 1))
+        fi
     done <<< "$text"
+    [[ $_cf_nb -gt 0 ]] && _STRATEGY_CONFIDENCE=$(( 50 + _cf_any * 5 / _cf_nb ))
     if [[ $_cf_nb -ge 2 && $(( _cf_ok * 100 )) -ge $(( _cf_nb * 90 )) ]]; then
         _STRATEGY_CONFIDENCE=75
         _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
@@ -47938,7 +48164,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/first-colon-kv.sh===
-===META: mode=664 sha256=00c47ed659bfba76ab2fc30e00f4f3e6141f74142ff099c25de06f82e83e813e===
+===META: mode=664 sha256=aa840d03848e71931193ab62a5c4f2dcd070f1c03260f16f7984d417a1308635===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48009,7 +48235,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 ===END===
@@ -48099,7 +48325,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/fixed-width.sh===
-===META: mode=664 sha256=dfb57384d0c21b530af65f6286edbce133f8e06c0d74233c552584f9149fe0ed===
+===META: mode=664 sha256=91ef1011750a7e6224b934283136d21a60d0687d67af7338a43b181ba40641cc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48112,7 +48338,7 @@ strategy_detect () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=65
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON-like input
     _is_json "$1" && return 1
@@ -48331,7 +48557,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/grouped-list.sh===
-===META: mode=664 sha256=87aa93927870fd7636e0eabf074df37ce6bf54c8a4dce9e394a2984274a5c226===
+===META: mode=664 sha256=77aa163d241f44c824d2dbe1b2429282e2830c826b1f64d519354791eea4b74a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48415,7 +48641,7 @@ strategy_detect () {
     # >=1 member per group on average AOe28094AO the asdf signature, nothing looser.
     [[ $bad -eq 1 || $any -eq 0 ]] && return 1
     [[ $groups -ge 2 && $members -ge $groups ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -48442,7 +48668,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/headline-kv-blocks.sh===
-===META: mode=664 sha256=ee079e25141b52538a1bcb57cc0ac02a2b49572bc85cea88578ca9e645e6008f===
+===META: mode=664 sha256=d13768e580838242a46c6287384f29996bd8645a6930fa2015a9fd505889dbb7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48538,7 +48764,7 @@ strategy_detect () {
         fi
     done
     [[ $q -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=74
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -48678,7 +48904,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/indent-tree.sh===
-===META: mode=664 sha256=e1fdd6e61b2497892f0c53c4e86b1424f4d8edbba055447709b15e25efefa992===
+===META: mode=664 sha256=fcd662e2c763254fc94723687fa0d7a5d85e36d900f94fe21fa919b08f83bb0b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48749,7 +48975,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 4 && ${#widths[@]} -ge 3 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -48781,7 +49007,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/indented-colon-groups.sh===
-===META: mode=664 sha256=9edc23653ccab8ce27deece5120ae93a2a9c2d5742ffcf145ad1a697d1099f91===
+===META: mode=664 sha256=6ac164557b2489e213f2c115b22c27188da5b47c127cb81c4a073b4b4320beab===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -48942,7 +49168,7 @@ strategy_detect () {
     # Every group must be followed by a member somewhere before the next group.
     [[ "$core" == G* ]] || return 1
     case "$core" in *GG*) return 1 ;; esac     # a header with no members of its own
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -49035,7 +49261,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/indented-hierarchy.sh===
-===META: mode=664 sha256=9c9ca05a3a640b260547693adaead31af300b7e6afaa7e1938499cd2cf058f37===
+===META: mode=664 sha256=b96b483e65494e9a4cefa21f5ebbf4682b83335a6e931bb3c333226127ce329a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49048,7 +49274,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=65
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON-like input
     _is_json "$1" && return 1
@@ -49248,7 +49474,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/inline-kv-groups.sh===
-===META: mode=664 sha256=f9cfdc3a649bec9173a183c71f8b8eb959e97598937b6e210b55b89c0357920d===
+===META: mode=664 sha256=3864135535b554dd1bdc32ed38c9b22aec37ebb38162341071364685a3ba4d28===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49358,7 +49584,7 @@ strategy_detect () {
     # >=2 headers (a repeating record shape, not one report) each carrying
     # members, >=1 member per header on average.
     [[ $headers -ge 2 && $members -ge $headers ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -49460,7 +49686,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/labeled-inline-kv.sh===
-===META: mode=664 sha256=4d943d9524501e38dbfea448199d7c5551c802f5c97a45e9c13c35f16d0b8ebc===
+===META: mode=664 sha256=275b3591d2ac59a0f30396518b8f8d257f2a0ab7c08e1c0cd1ab1da668c805eb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49528,7 +49754,7 @@ strategy_detect () {
     done
 
     [[ $records -ge 1 && $records -ge $((nonblank - 1)) ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -49632,7 +49858,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/ledger-balance.sh===
-===META: mode=664 sha256=c13a589f5d0490577e3afd475095b3d72069dc31cd45138af6749eca0863eaa4===
+===META: mode=664 sha256=311071bd08ccb327239681c8e9826de252510ef173ee41a594c2a3e677c4f291===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49710,7 +49936,7 @@ strategy_detect () {
     # integers before a path are a size listing (gsutil du, zoxide query -l),
     # not a ledger, and their existing 2-col parses were already right.
     [[ "$text" == *'$'* || "$text" == *'AOe282acAO'* || "$text" == *'AOc2a3AO'* ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -49738,7 +49964,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/line-pairs.sh===
-===META: mode=664 sha256=0a863c47a969b595f3ddaaad50514c0f7538beead148cf74894507f80966da08===
+===META: mode=664 sha256=509e5274d51c4dde9ea2eba0b9464905d8e6ba0a9352670848a28ef36cc63ad8===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49786,7 +50012,7 @@ strategy_detect () {
         fi
     done
     [[ $n -ge 4 && $((n % 2)) -eq 0 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -49813,7 +50039,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/line-records.sh===
-===META: mode=664 sha256=00191a948f5fc274d26c58bacef841f06e4fa6a7f0df8bab185e47cc84e1a316===
+===META: mode=664 sha256=e47421401cd4042bcc27caa74225768f39a7afd93d8c248dce50c1126b73022d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -49931,7 +50157,9 @@ strategy_detect () {
         # single line: needs >=2 fields AND a number, so pure prose (e.g. "no
         # extractable content here") isn't carved into columns.
         [[ ${counts[0]} -ge 2 && $hasnum -eq 1 ]] || return 1
-        _STRATEGY_CONFIDENCE=80
+        # Catch-all tier (extract/README.md "Confidence rubric"): one line is
+        # the weakest record evidence there is AOe28094AO just above text-lines.
+        _STRATEGY_CONFIDENCE=51
         return 0
     fi
 
@@ -49947,7 +50175,18 @@ strategy_detect () {
     done
     [[ $mode -ge 1 ]] || return 1
     [[ $(( best * 100 / n )) -ge 60 ]] || return 1
-    _STRATEGY_CONFIDENCE=80
+    # Catch-all tier (extract/README.md "Confidence rubric"): 50..55, scaled by
+    # the share of lines at the modal column count (60% -> 50, 100% -> 55).
+    # At or below every structural parser that also claims the input (a tie
+    # at 55 goes to the other parser on priority), and at or above text-lines
+    # (a tie at 50 goes to line-records on priority). A modal count of ONE
+    # token per line is a bare list: it has line structure and nothing else AOe28094AO
+    # exactly text-lines' evidence AOe28094AO so it scores the floor, 50.
+    if [[ $mode -eq 1 ]]; then
+        _STRATEGY_CONFIDENCE=50
+    else
+        _STRATEGY_CONFIDENCE=$(( 50 + (best * 100 / n - 60) * 5 / 40 ))
+    fi
     return 0
 }
 
@@ -50135,7 +50374,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/multi-bracket-log.sh===
-===META: mode=664 sha256=2932df8435c6054fed03d878acbab935cee71c283e20fa3c1b4bbfc92c863dee===
+===META: mode=664 sha256=b66f6788f0b79316738349558d29a53222517fe7644fba570d0fee4725604fd8===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50177,7 +50416,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -50421,7 +50660,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/numeric-lead-records.sh===
-===META: mode=664 sha256=ccc9de4ecc1815b501da811d387a6aa100801d5d974c3640233d6a7d6581a5b2===
+===META: mode=664 sha256=2c81756ff86e2a574fcd1c46ed689e457d65f88b2067ece63efc7dbbac62a71c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50462,7 +50701,10 @@ strategy_detect () {
         case "$ids" in *"|${BASH_REMATCH[1]}|"*) ;; *) ids+="|${BASH_REMATCH[1]}|"; distinct=$((distinct + 1)) ;; esac
     done
     [[ $nb -ge 3 && $distinct -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    # General-structure tier (extract/README.md "Confidence rubric"): a
+    # numeric first token is a shape, not a syntax AOe28094AO a real column-aligned
+    # table over the same lines (aligned-columns >= 60) wins the tie.
+    _STRATEGY_CONFIDENCE=60
     return 0
 }
 
@@ -50545,7 +50787,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/path-line-content.sh===
-===META: mode=664 sha256=1862b710ab7d7ab7b102348d715cad46487d820104d9ed03346d273cc4411941===
+===META: mode=664 sha256=827554ab8be5105cd21b86edd9239dc6aa5e7361144f969c85f2e77ded3be896===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50588,7 +50830,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -50612,7 +50854,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/ping-report.sh===
-===META: mode=664 sha256=a9a23cd5e33c6f73304dd4f7694768163ef65eb8962f9fd852e7197e0041b171===
+===META: mode=664 sha256=9ec5af7df2427637edb6d503b6745003f6f9276fc17bc25f32317739884be0a3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50647,7 +50889,7 @@ strategy_detect () {
         [[ $nb -ge 60 ]] && break
     done
     [[ $replies -ge 2 && $(( replies * 100 / nb )) -ge 40 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -50777,7 +51019,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/pipe-table.sh===
-===META: mode=664 sha256=bc2dd32ced06f29b7c6c602583831615c5103e60240a2c8b2e997c3eba4885e8===
+===META: mode=664 sha256=0052f36aec0199a51e3cd624b73a5f2d8c01d878a04af69bb77680c419d6aa80===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -50911,7 +51153,7 @@ strategy_detect () {
         elif _pt_is_row "$_line"; then _saw_row=1; fi
     done
     if [[ $_saw_rule -eq 1 && $_saw_row -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=85
         return 0
     fi
     # No markdown rule AOe28094AO try the bare ` a | b | c ` dialect (strict shape check).
@@ -51102,7 +51344,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/plan-actions.sh===
-===META: mode=664 sha256=65db6af5c41facbaa70078ee1c69907b2ef169ef4df7ae4bc29e4623b1188652===
+===META: mode=664 sha256=33b067d15948e92a5d22f4c0ed2dce0fac297f6e48b3d24a7bc36d509c9ead46===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -51142,7 +51384,7 @@ strategy_detect () {
         [[ "$line" =~ $_pa_re ]] && n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -51293,7 +51535,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/progress-ledger.sh===
-===META: mode=664 sha256=63151f14bca8004bbd8d7295e98e91d695fca3ececeb49d0d97f986deb7a88cc===
+===META: mode=664 sha256=0503f157a7ac5e18f895910b8cad9dde5d6bd4868fb394a9ce930621a5058c1f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -51337,7 +51579,7 @@ strategy_detect () {
         n=$((n + 1))
     done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -51369,7 +51611,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/psql-table.sh===
-===META: mode=664 sha256=c138d0ee5af11c621906c1dab04392a6e599d991fcdc61fa7078a326992cb569===
+===META: mode=664 sha256=cf0db3588f42413166f997ba11762a88b036f9fce4ee299425028f3e5cf4a2da===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -51413,7 +51655,7 @@ strategy_detect () {
     done
 
     if [[ $_hit_sep -eq 1 && $_saw_data -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -51575,7 +51817,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/quoted-fields.sh===
-===META: mode=664 sha256=cec48cfc1b3807f96ab8755865d1f9b3b37bfd55a263ee33c7ad3d531350d6ae===
+===META: mode=664 sha256=e9ca6acf029b01dc9a7f22e30efca3c6facfe1566457491b1b643f15739cfb61===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -51679,7 +51921,7 @@ strategy_detect () {
     [[ $n -ge 2 ]] || return 1
     # near-constant field count (ragged tails allowed, prose is far wider)
     [[ $((maxf - minf)) -le 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="space-delimited records, quoted/bracketed fields, constant field count"
     return 0
 }
@@ -51841,7 +52083,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/result-blocks.sh===
-===META: mode=664 sha256=b883a4b1e97828ba941a96ff78177f8a19de4108cda1891d1e8288c0d24b5619===
+===META: mode=664 sha256=c44fe025cc37b9642581ceb6326f232b1d19f62f59644e5d5db5303ffe6185ec===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -51889,7 +52131,7 @@ strategy_detect () {
         fi
     done
     [[ $blocks -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -52094,7 +52336,7 @@ Vuser 1:Test complete, Taking end AWR snapshot.
 Vuser 1:482100 NOPM 1204882 TPM
 ===END===
 ===FILE-ESC: extract/strategies/delimited/section-kv.sh===
-===META: mode=664 sha256=d14565f53780d1277cadc50af2a1130fe76953d343d920787ac126901832b376===
+===META: mode=664 sha256=1b834e19f7c0d81e04b69cbb5befb3e9287d8751c2409fb758f99203ccdeda3d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -52224,7 +52466,7 @@ strategy_detect () {
     # tab-structured plain lines. Loose pre-header members / kv-pair members /
     # tab-less members already bailed above.
     [[ $loose -eq 0 && $kv_before -ge 1 && $sections -ge 1 && $members_here -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=70
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -52472,7 +52714,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/semicolon-values.sh===
-===META: mode=664 sha256=f74244f2d9a67fa55069fa56c31c6d6644c178933138760887153755530363e9===
+===META: mode=664 sha256=23801d696ea207f1ffef627e3845cbf68d7d815a72db05d6463c3dee9830ce8f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -52560,7 +52802,7 @@ strategy_detect () {
     # a single low-density line is not enough signal (a lone prose line with
     # two semicolons); the dense band keeps single-line acceptance (fio terse)
     [[ $dense -eq 0 && $nonblank -lt 2 ]] && return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -53061,7 +53303,7 @@ _strat_syslog_get_message () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/text-lines.sh===
-===META: mode=664 sha256=504f4f87e1e9991dd4e6a1cf2bcce8b1f5e628d4e4ebb94fcc20ef553049daf5===
+===META: mode=664 sha256=e2bdad434e52d995d576f684eae23edc85dd45376920a7ae491bc3f88a3df1ed===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53158,7 +53400,10 @@ strategy_detect () {
 
     # Otherwise: >=2 non-blank lines AOe28094AO one row per line, single column. Runs only
     # when every more-specific parser (incl. line-records) has declined.
-    _STRATEGY_CONFIDENCE=55
+    # Confidence 50 (catch-all tier, see extract/README.md "Confidence rubric"):
+    # the lowest any detector reports, so under confidence ranking it is tried
+    # LAST, yet it still clears provost's default commit threshold (50).
+    _STRATEGY_CONFIDENCE=50
     return 0
 }
 
@@ -53265,7 +53510,7 @@ strategy_detect () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/two-col-gap.sh===
-===META: mode=664 sha256=3dcbfec7957045ef1d711252f22e519086a10dd6e474d57ca5a3f573953373dd===
+===META: mode=664 sha256=cc4184ecc7d7153f62d7fe99a8fc74e40dca1ea900120aee43301ad1928da474===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53371,7 +53616,7 @@ strategy_detect () {
     [[ $spacey -ge 1 ]] || return 1
     # Majority colon-suffixed keys is a `Label: value` block AOe28094AO colons' shape.
     [[ $((colonish * 2)) -ge $lines ]] && return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -53609,7 +53854,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/version-line.sh===
-===META: mode=664 sha256=bcddc0d6495dd4f75e2ada6944eac60cee52e140c8879d430fa05626c3c57c67===
+===META: mode=664 sha256=95ef6345a3ece796287414ca5b92869a8a153b913e92ff1db0a5ddf8dd3bbf4e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53662,13 +53907,13 @@ strategy_detect () {
     if [[ "$only" == *", version "* ]]; then
         local _vb_rest="${only#*, version }"
         local _vb_ver="${_vb_rest%% *}"
-        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=72; return 0; }
+        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     fi
     local -a tok=(); { _fr_tok "$only"; tok=("${_FR_TOK[@]}"); }
     [[ ${#tok[@]} -ge 3 ]] || return 1
     [[ "${tok[0]}" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]] || return 1
     [[ "${tok[1]}" =~ $_vl_ver_re ]] || return 1
-    _STRATEGY_CONFIDENCE=72
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -53736,7 +53981,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/delimited/vertical-line.sh===
-===META: mode=664 sha256=00dbdfbdcfad12964c282b42c3fa41a6ea183e89648c87b0dd52e927a2076825===
+===META: mode=664 sha256=37661c8aa18a8c0773b9e6ebf329e736431cbdb7902607dce369bacae6104a76===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53749,7 +53994,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=70
+    _STRATEGY_CONFIDENCE=80
     # Apply if input contains a separator line (--- or === repeated)
     [[ "$text" =~ (^|$'\n')[-=]{3,} ]] || return 1
 
@@ -53932,7 +54177,7 @@ strategy_extract () {
 - All strategies: priority 15, confidence 85, version 1.0
 ===END===
 ===FILE-ESC: extract/strategies/filesystem/btrfs-filesystem-show.sh===
-===META: mode=664 sha256=99e5f8e0110c5426adb6d2e011b28ce91e182f62dbbd2f3db932318c183dd80d===
+===META: mode=664 sha256=7fbec6681bc758642919bca5a89ab7a65d9e7afb82b068f1556ca30abce1a17e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -53967,7 +54212,7 @@ strategy_detect () {
         [[ "$line" == *"devid"* && "$line" == *"path "* ]] && has_devid=1
     done
     if [[ $has_label -eq 1 && $has_total -eq 1 && $has_devid -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -54037,7 +54282,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/filesystem/fdisk.sh===
-===META: mode=664 sha256=900e4a9cfc3b5ca2f8e395683eb9143909455467ab23b6663be7a2e5d02c64c5===
+===META: mode=664 sha256=8b30c809a17dca10816c6f3968dfd42cfc74370bc716c10f2b548284c69ab182===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54064,7 +54309,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_disk -eq 1 && $has_header -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -54124,7 +54369,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/filesystem/iostat-x.sh===
-===META: mode=664 sha256=4cb218cb0a4250470bd9a3800bbf11a66cc7155b5797d3b77e22ba4dc8dbe0fb===
+===META: mode=664 sha256=677a35ed4bc9d2b1ef3abe320d58aa44a13acef5aedfa836a754940cbaa53757===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54151,7 +54396,7 @@ _iostatx_field () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # Require the avg-cpu block AND an extended Device header (aqu-sz + rrqm/s).
     [[ "$text" == *"avg-cpu:"* ]] || return 1
     # `aqu-sz` alone (without `rrqm/s`) is a reduced extended-mode column set
@@ -54203,7 +54448,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/filesystem/parted-print.sh===
-===META: mode=664 sha256=5b2b3ed20c0be3c97d8f0dba34688c88ddbd34a35118099e37c5ba66c22e0c10===
+===META: mode=664 sha256=66cac9399e1df9a88e0395457b402a7efcfd16b96d86561c32c3378d2f37c7fb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54233,7 +54478,7 @@ strategy_detect () {
         _parted_is_header_row "$line" && saw_hdr=1
     done
     if [[ $saw_disk -eq 1 && $saw_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -54274,7 +54519,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/filesystem/readelf-sections.sh===
-===META: mode=664 sha256=8cb7494efd87298e1fd6fe6d8b7217224900f65880d20bf35d7803f08fb83145===
+===META: mode=664 sha256=5e3977a4502f54a85b713373c12418c5dd32a233193e4d43a260b66707c7f012===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54296,7 +54541,7 @@ strategy_detect () {
         if [[ "$line" == *"[Nr]"* && "$line" == *"Name"* \
               && "$line" == *"Type"* && "$line" == *"Address"* \
               && "$line" == *"Offset"* ]]; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -54351,7 +54596,7 @@ Change: 2026-08-12 20:11:01.656018314 +0000
  Birth: 1970-01-01 00:00:00.000000000 +0000
 ===END===
 ===FILE-ESC: extract/strategies/filesystem/stat-file.sh===
-===META: mode=664 sha256=f5443d9e3e90e4375d07be1b2e50a242544c0e86c0f800a37e7f619daad9aa91===
+===META: mode=664 sha256=055aac81139ad28b8687cd2b6916b1435ae15c6a716dc694368bed6ebce331dd===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54382,7 +54627,7 @@ strategy_detect () {
     if [[ "$text" =~ (^|$'\n')[[:space:]]*File:[[:space:]] ]] \
        && [[ "$text" == *"Size:"*"Blocks:"* ]] \
        && [[ "$text" == *"Inode:"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -54459,7 +54704,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/filesystem/xfs-info.sh===
-===META: mode=664 sha256=b68a4eb365d206282f91218fa56e97b77d63d9f71d48b626c8d836afd921f0bb===
+===META: mode=664 sha256=9802827aa9fa4afe7dc84b3a3bc184e65ba969f7918752e76db93954a11bc537===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54506,7 +54751,7 @@ strategy_detect () {
     [[ "$text" == *"meta-data"* ]] || return 1
     [[ "$text" == *"isize="* ]]    || return 1
     [[ "$text" == *"agcount="* ]]  || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -54546,7 +54791,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/filesystem/zpool-status.sh===
-===META: mode=664 sha256=bff09536656915619382bf7def07a0a799050b82eea8b1d85705c5b078a516a3===
+===META: mode=664 sha256=fb7b3460a44e5502229fdd526f5d915b3b6c560b42362cf4130c6b208ed74195===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54575,7 +54820,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_pool -eq 1 && $has_config -eq 1 && $has_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -54628,7 +54873,7 @@ strategy_extract () {
   - `hwloc.sh` AOe28094AO Hardware topology from lstopo text output
 ===END===
 ===FILE-ESC: extract/strategies/hardware/biosdecode.sh===
-===META: mode=664 sha256=fdfa7832620c475b8c933d5142ee08b5b8ddb686f02cf3de6e2721a266afaba0===
+===META: mode=664 sha256=f3a2b8e69214e9d7bff440e0c94e37e4422379426446dfc9d5e4ddd136724cba===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54685,7 +54930,7 @@ strategy_detect () {
     [[ "$text" == *"# biosdecode "* ]] || \
         { [[ "$text" == *"SMBIOS "*" present."* ]] && [[ "$text" == *"Structure Table "* ]]; } || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -54739,7 +54984,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/hardware/decode-dimms.sh===
-===META: mode=664 sha256=b60e62e8de46250c9156dcacce57fb35fcec94a718fbdbea1596786926dc0f33===
+===META: mode=664 sha256=54bc02f056c55f296cfb3977247787c18d643cc69823a21cc6fb407f8c069267===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54784,7 +55029,7 @@ strategy_detect () {
     # Distinctive: the decode-dimms banner or the SPD EEPROM section title.
     [[ "$text" == *"decode-dimms"* || "$text" == *"SPD EEPROM Information"* ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -54814,7 +55059,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/hardware/lspci-tv.sh===
-===META: mode=664 sha256=0bf96c9f0dc6f984c1badcd13563ec42fef3a57751ee26cfe234152d4d9dd586===
+===META: mode=664 sha256=73e2770f13c742eb276c4b66a7eb3930564722c0d864c52f84005b4883a141d5===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54827,7 +55072,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # lspci -tv tree: a root bus like "-[0000:00]-" (HEX bus address, no spaces)
     # plus branch glyphs (+- \-). The hex requirement rejects psql `\x` record
@@ -54857,7 +55102,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/hardware/lsusb-v.sh===
-===META: mode=664 sha256=c75ddcafba7af64e02a7603e63cde3ea25cb23d20d2765aff2775220cafc3e95===
+===META: mode=664 sha256=90399cdc321f803686f0a97975bd3d3a193e4e6263820523bacacddf9a73fed2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54897,7 +55142,7 @@ strategy_detect () {
     [[ "$text" == *"Device Descriptor:"* ]] || return 1
     [[ "$text" == *"bLength"* ]] || return 1
     [[ "$text" == *"idVendor"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -54924,7 +55169,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/hardware/rocm-smi-concise.sh===
-===META: mode=664 sha256=49caae643870438da15e50c21e566bdcc0e870d759ac11ad1dab47f2634fcaf1===
+===META: mode=664 sha256=cedb9d7a64dbd11bc85773a2800ba4677cde66dce967df2c0d16739a5d10e7e5===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54937,7 +55182,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"ROCm System Management Interface"* ]] \
        || { [[ "$text" == *"AvgPwr"* ]] && [[ "$text" == *"SCLK"* ]] && [[ "$text" == *"PwrCap"* ]]; }; then
@@ -54984,7 +55229,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/hardware/smartctl-selftest.sh===
-===META: mode=664 sha256=dc08806d3ea1f926ed77cd7111214013bf8ccc0b68eb18ef7959bbbd81ef31ea===
+===META: mode=664 sha256=a6cf8917891787f0fb28de9e0696240be0c41085054e391f64ccfe5887aa4046===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -54997,7 +55242,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"Self-test log"* ]] \
        || { [[ "$text" == *"Test_Description"* ]] && [[ "$text" == *"LBA_of_first_error"* ]]; }; then
@@ -55072,7 +55317,7 @@ strategy_extract () {
 - Files: `mpi-profile.sh`, `mpi-ranklog.sh`, `mpi-display-map.sh`, `darshan.sh`
 ===END===
 ===FILE: extract/strategies/misc/binnacle-agree.sh===
-===META: mode=664 sha256=0a1ea5fd71d66b98b95fd918278f75d4f227ad8087da1f7b5afce1ec3e699172===
+===META: mode=664 sha256=58c006ab6c4fbc3837bb4645f15f733de2b6e7ecff2ebd0979abf09520b4d914===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55101,7 +55346,7 @@ strategy_detect () {
     [[ "$text" =~ $re_header ]] || return 1
     [[ "$text" =~ $re_group ]] || return 1
 
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -55220,7 +55465,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/misc/binnacle-logtriage.sh===
-===META: mode=664 sha256=46e369983035a3f0c643895f5873472dfbf31a79365832ed05812fda683fb655===
+===META: mode=664 sha256=e57856d99fb8b4f0a15c437176508d68f37698010563d620b447ae877af299d2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55242,7 +55487,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == "logtriage --"* ]] || return 1
     local re_rank='(^|'$'\n'')[[:space:]]*#[0-9]+[[:space:]]+score[[:space:]]+[0-9]+(\.[0-9]+)?'
@@ -55336,7 +55581,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/misc/csvlook.sh===
-===META: mode=664 sha256=271074b48a749f80ee29dfeb2ca74a35f410504e3bdebcd4c2e01f5df2bcd3f6===
+===META: mode=664 sha256=4e8ef7beccdbbb6bd0bd77bcf72a88a31bdca56c170efb4773e518018a79c9d2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55392,7 +55637,7 @@ strategy_detect () {
     for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"|"* ]] || continue
         if _csvlook_is_sep "$line"; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -55430,7 +55675,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/misc/git-log.sh===
-===META: mode=664 sha256=63b44d3f130faff3850cf4da0d9548b2179b5b064e36d5f8dd593d3b8756fb86===
+===META: mode=664 sha256=e022bfc03879806e0cf3016e88ae0536a12ccdd73e83f8261ff5e91d7ec5522a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55443,7 +55688,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     # Detect full git log format: "commit <40-char hex>"
     if [[ "$text" =~ ^commit\ [0-9a-f]{40} ]]; then
         return 0
@@ -55587,7 +55832,7 @@ _strat_git_log_extract_oneline () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/misc/gnu-version.sh===
-===META: mode=664 sha256=27248b5983773bd2d8a5dbe60ecc8d919c700c51ee40d16461dd4bdadc4c9b9f===
+===META: mode=664 sha256=66ccec160381de68723032773bc399569ed94bd59ff2c3c2bb12c02e9562b6ad===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55602,8 +55847,8 @@ _strat_git_log_extract_oneline () {
 # "Copyright (C) <year> <holder>" line, a "License ..." line, then boilerplate
 # ("This is free software...", "There is NO WARRANTY...") and optional trailers
 # ("Written by ...", "Packaged by ..."). Generic parsers see five unrelated
-# prose lines and fall through to `unsorted` at confidence 35, losing the
-# schema the banner actually has.
+# prose lines and fall through to a weak catch-all parse, losing the schema
+# the banner actually has.
 #
 # One wide key/value record (no entryN.*): tool, version, copyright, license,
 # license_url, warranty, author.
@@ -55730,7 +55975,7 @@ strategy_detect () {
     [[ "$text" =~ $re_copy ]] || return 1
     [[ "$text" =~ $re_lic ]] || return 1
 
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -55798,7 +56043,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/misc/restic.sh===
-===META: mode=664 sha256=f64afe12abb4cc37b867bd2c441d039259e61db34638984cd79c213118e1a6a7===
+===META: mode=664 sha256=64b1bc6a3d01dd7b43c921075bb7985227a48c4388e8caa6ad47616c4a967710===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55825,7 +56070,7 @@ strategy_detect () {
     for line in "${_FR_LINES[@]}"; do
         stripped="${line//-/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -55860,7 +56105,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/misc/terraform-plan-actions.sh===
-===META: mode=664 sha256=a5cb853070ca89111e5f296560b0f4668f077bbbe55cab4f22d44e6b589719a2===
+===META: mode=664 sha256=7ed7703b47a6789453d4d59ed4fb3e91444693b07939c722493800b2bc54dd7a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55886,7 +56131,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[[:space:]]*#[[:space:]].*[[:space:]]will[[:space:]]be[[:space:]] ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -55913,7 +56158,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/arping.sh===
-===META: mode=664 sha256=d6d37462346dd0c3d39ce2aaa4b69e6c1cdd934fb6d19a778d284d048bfb7797===
+===META: mode=664 sha256=d00f2b19144fa6a79cbcb01d8df0dc5142b91783f7de49717803d1e50fcb525a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -55943,7 +56188,7 @@ strategy_detect () {
         fi
     done
     if [[ $replies -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -55974,7 +56219,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/binnacle-netmesh.sh===
-===META: mode=664 sha256=4ae85a3e331618a53faa7575cc5348b1b3c62b3f05a4b10a6a72dd03632ac58e===
+===META: mode=664 sha256=ad778bae37092112f6278d449e3f6b3434f25cb0275884af9df80438eb1a3d05===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56009,7 +56254,7 @@ strategy_detect () {
     _is_json "$text" && return 1
     [[ "$text" =~ (^|$'\n')netmesh[[:space:]]+summarize[[:space:]]+-- ]] || return 1
     [[ "$text" =~ $_netmesh_re_worst_hdr ]] || return 1
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56077,7 +56322,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/binnacle-reachable.sh===
-===META: mode=664 sha256=37d2ce4969233d5d0b6018c3008e231f53db99f87152f050a54a791e06e32475===
+===META: mode=664 sha256=806cbdd6eca8d73f09b9c984d3867df25d5f98fd66e3db884b400d4002b72d0e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56109,7 +56354,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _is_json "$text" && return 1
     [[ "$text" == *'#[unreachable]'* ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56164,7 +56409,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/fleet-host-lines.sh===
-===META: mode=664 sha256=6406df607bd4abff98a0b92138a0c5e766dcc861abb488dd241feabcc09b5e95===
+===META: mode=664 sha256=7d8ddaa7d499460c52c3cfe1b6faa8e243e82e77821992cd939039923a0fa335===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56213,7 +56458,7 @@ _fhl_re_firstcol='^([^[:space:]]([^[:space:]]|[[:space:]][^[:space:]])*)'
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=92
 
     # No _is_json guard: it only tests the first character, and this format's
     # own header line starts with '['. A real JSON array never matches the tag
@@ -56306,7 +56551,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/haproxy-vv.sh===
-===META: mode=664 sha256=2d0236982776d8ac8b2871c4804ea95846b2904f3b10d0274b4f9077f739d62d===
+===META: mode=664 sha256=7926ecc9512e165df313323786c4fc8f3812a165a14fa553fdf4f150ccce9124===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56338,7 +56583,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"HAProxy version"* ]] || return 1
     [[ "$text" == *"="* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56361,7 +56606,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/ifstat.sh===
-===META: mode=664 sha256=26d40bd4fc573a37e78b86086e71d411147c45b157c24100d31cdd683349a9fc===
+===META: mode=664 sha256=5d70eb99abf18072eac9c33f18363cac74a61a80f36d2db7f621cf300138dfbb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56385,7 +56630,7 @@ _ifstat_name () { printf '%s' "$1" | tr -c 'A-Za-z0-9_' '_' | sed 's/_\{1,\}/_/g
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"KB/s in"* && "$text" == *"KB/s out"* ]] && return 0
     return 1
 }
@@ -56426,7 +56671,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/ip-maddr.sh===
-===META: mode=664 sha256=b320228fc14444192f7caa58274caf53baa641fd387d41308beba8ec8eca4abf===
+===META: mode=664 sha256=560816019f3245a885a64124cc0a9a21031e0f43248e67a81fb9ae05df5f8228===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56449,7 +56694,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Signature: an interface header `<num>:<ws><name>` (exactly two tokens, the
@@ -56526,7 +56771,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/ip-xfrm-state.sh===
-===META: mode=664 sha256=e1e043f0b266806ea189473458d885b64e6706a1c7f873ab3df3863de8cec50b===
+===META: mode=664 sha256=36614450b0142caa6345b0cea86c4ee6551dfefd76c830e5985e53bdec8279c0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56554,7 +56799,7 @@ strategy_detect () {
         [[ "$line" =~ ^[[:space:]]+proto\ (esp|ah|comp)\  ]] && saw_proto=1
     done
     if [[ $saw_sa -eq 1 && $saw_proto -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -56590,7 +56835,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/iperf-pivot.sh===
-===META: mode=664 sha256=1f550e35502b8c62b265e84fafc74c53e6a4e44d51564879d344b920147a2670===
+===META: mode=664 sha256=db8086efb1f2ac72f7914f3dceb390af3aa504fb7b11176b093f0f9118bae76a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56655,7 +56900,7 @@ strategy_detect () {
     first="${first%$'\r'}"
     [[ "$first" == "$_iperfpiv_title" ]] || return 1
     [[ "$text" == *"$_iperfpiv_rowscols"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56740,7 +56985,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/iperf-summary.sh===
-===META: mode=664 sha256=4c1fa7fb827218fba154e7885484a10f191146def9e769c8e98bc5c9ee5623c1===
+===META: mode=664 sha256=d5e0f1a1a698a2238afd139d727d93032f852a8135dd9f92c8dc721170325924===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56791,7 +57036,7 @@ strategy_detect () {
         if [[ "$line" =~ $_iperfsum_re_slowest_hdr ]]; then found=1; break; fi
     done
     [[ $found -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56853,7 +57098,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/iperf3-intervals.sh===
-===META: mode=664 sha256=02a5a45978cfe11a0b6c3598e1aa332353838841b5638494029bb4d54ef42db0===
+===META: mode=664 sha256=3f335f994c8e976639949f48036132d5d1af608df8edbccb708485016da52d9b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56887,7 +57132,7 @@ strategy_detect () {
     [[ "$text" == *Bitrate* ]]  || return 1
     [[ "$text" == *Interval* ]] || return 1
     [[ "$text" == *Transfer* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56919,7 +57164,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/iptables-nat.sh===
-===META: mode=664 sha256=9ad3164d9d1ca0c921878f7f2c5d45e63d2f7436b8ee71d9aa414f3285f9fda4===
+===META: mode=664 sha256=23cc3d02cbb4471d874d69e921164a9daa0b959b197ae6ce52ef93c02ab63368===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56943,7 +57188,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Chain "* ]] || return 1
     [[ "$text" == *"target"*"prot"*"opt"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -56967,7 +57212,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/iptables-nvL.sh===
-===META: mode=664 sha256=22f76571220cb75d76e40dacfa73ca74d0f4c4168f50d39cf9d771d638da7704===
+===META: mode=664 sha256=c298cb0c3eae1afb1c6241390fe942d8cb6a0c772dfd73499147ef8e6def9cc1===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -56993,7 +57238,7 @@ strategy_detect () {
     [[ "$text" == *"Chain "* ]] || return 1
     # The pkts/bytes/target column header is unique to -nvL (verbose) listings.
     [[ "$text" == *"pkts"*"bytes"*"target"*"prot"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -57028,7 +57273,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/iwlist-scan.sh===
-===META: mode=664 sha256=2c2dbab3aafedab09e327738f12f1b92ffdab97b06d58f584632803c9b10e6bd===
+===META: mode=664 sha256=7f91ac9b78b4c9c8eb123615eb526a82627cd74f848048e8ed19acd2263522d3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57053,7 +57298,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if _iwlist_is_cell "$line"; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -57096,7 +57341,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/masscan.sh===
-===META: mode=664 sha256=b2d37dd2c2bfaa6ade8fc397f460a929fb17f7d3693dcc3c9618aa5c4f03ac4c===
+===META: mode=664 sha256=8645fe837aa54bf25760f1680e8c8b0ee0f556927bfbcc7b087416a5f4ffe17a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57116,7 +57361,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Discovered open port"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -57138,7 +57383,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/mtr-report.sh===
-===META: mode=664 sha256=33764fdd42f0b5c2e5354eec45095104f4d62adafd35da4aa2e44effe424d9e0===
+===META: mode=664 sha256=63c51ec9aa5b4e14cfd660ee833be0d51ca6f308a91478fa7ff41f4f544e2c84===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57168,7 +57413,7 @@ strategy_detect () {
         _mtr_is_hop "$line" && has_hop=1
     done
     if [[ $has_header -eq 1 && $has_hop -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -57201,7 +57446,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/mx-check.sh===
-===META: mode=664 sha256=d881b07eb68a81861ef68d04231d9e010ac8c24eef7fef398d54f1ced58f768a===
+===META: mode=664 sha256=0ce51c18fe175f8a48e56907581e7c3b9c64db9bdf61c02276aa90d8e63ba745===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57252,7 +57497,7 @@ _mxchk_split_wide () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     [[ "$text" =~ ^matrix[[:space:]]+[^[:space:]]+:.*hosts.*flows ]] || return 1
@@ -57337,7 +57582,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/mx-summarize.sh===
-===META: mode=664 sha256=a43ca3fd2c6b531dd5d6a9dddcc4d5410ca44a09dbbceb50cf3bf33c31f5f3fb===
+===META: mode=664 sha256=8f90c8ad8993cce34a10791ace7a2d2b78072b63311ac6826e9bdaea335f2ef6===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57387,7 +57632,7 @@ _mxsum_split_wide () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     [[ "$text" == "mx summarize --"* ]] || return 1
@@ -57473,7 +57718,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/netstat-s.sh===
-===META: mode=664 sha256=1482628ba3a1c830972a6c36a2a988ebb58f78cec407557093ebb9a1ac851e5f===
+===META: mode=664 sha256=a67c0d1daf12d247e371b0baa773490e9dae70c5041022bc1c7773aa37b836db===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57510,7 +57755,7 @@ _netstat_s_slug () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Signature: a bare protocol group header (`Ip:`, `Tcp:`, ...) at column 0
@@ -57586,7 +57831,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/nft-list-ruleset.sh===
-===META: mode=664 sha256=b6a6c8a9e818402bfba768e2a2dc314907d68e80600045dd02b9d26f4300fb4e===
+===META: mode=664 sha256=0c8e87208429856a84971278e35e56dfdaec7103712e9a30ff6ed0111aef4313===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57611,7 +57856,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Distinctive signature: a `table <family> <name> {` opener AND a
@@ -57659,7 +57904,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/network/nmap-sn.sh===
-===META: mode=664 sha256=fc51d370ae1696efd67c066dbe69d340e470972404b92b2c66b71bff526a580b===
+===META: mode=664 sha256=aa774ede023ad2b57979ab66548772fca768d4188b48afa16f67657adef4778e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57695,7 +57940,7 @@ strategy_detect () {
         [[ "$line" == "PORT"*"STATE"* ]] && saw_ports=1
     done
     if [[ $saw_report -eq 1 && $saw_up -eq 1 && $saw_ports -eq 0 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -57755,7 +58000,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/nslookup_mx.sh===
-===META: mode=664 sha256=82b90c12d4e672be1dc2239f73a25e28998b4a167cb3d605e0e6ac6b3c6b03d2===
+===META: mode=664 sha256=d52c1989f0448a92fc3ab2eca9d618cc94d65c7319aac55541ce750bc2594a8f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57775,7 +58020,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
@@ -57810,7 +58055,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/nstat.sh===
-===META: mode=664 sha256=ac82cabf8b2a93125a9c8bb9df22b37b73b0bee042884006d3b6944328ce8639===
+===META: mode=664 sha256=bfe9e008d64ff3d0fa68c585623a004f5601c0e11fcf555dc37c2372c5c890e8===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57828,7 +58073,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # First non-empty line must be exactly `#kernel`.
     local line
     _fr_lines "$text"
@@ -57864,7 +58109,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/ping.sh===
-===META: mode=664 sha256=2529cdecb006c2bebcc9cb1361adeea38feb9687b5c2c0afdd239ab74a853044===
+===META: mode=664 sha256=07a7a74849ecd1f211682c0803f591e0bb1934e7c41135901e3f238bf47dcee8===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57884,7 +58129,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == *"bytes from "* && "$line" == *"icmp_seq="* ]]; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -57923,7 +58168,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/proc-net-dev.sh===
-===META: mode=664 sha256=b4cd13a8de41f0999c102dc69f26a76b41db29a197272cf5885ba2d4a19be74a===
+===META: mode=664 sha256=0510f48cb08cb5ac0815df2eb56feca766d6ed39b58a9b059aa01b2b13e7df4d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -57949,7 +58194,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     if [[ "$text" == *"Inter-|"*"Receive"* && "$text" == *"face |bytes"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -57984,7 +58229,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/resolvectl-query.sh===
-===META: mode=664 sha256=16fbd6cfc1cae3b1fb801e75736d5d1cdc28ce677b586b90380b2d7c28eff61e===
+===META: mode=664 sha256=8faa36de99d376d505b7b84797422f717b2adccd5c1fd8962a874d10d429c1bb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58008,7 +58253,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"-- link:"* ]] || return 1
     [[ "$text" == *"Information acquired via protocol"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -58039,7 +58284,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/rfkill-list.sh===
-===META: mode=664 sha256=6291637db121f11196082f910ed24eef2c0e509da546d0c43982a500b72c5a4c===
+===META: mode=664 sha256=97b3bce910710dcd2ebc3c29847539f530b986742cee2d569c986c20081b46f7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58060,7 +58305,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Signature: a device header `<id>: <name>: <type>` AND both a
@@ -58128,7 +58373,7 @@ Inter-|   Receive                                                |  Transmit
   eth0: 2508640   11935    0   19    0     0          0         0 83080011   12517    0    0    0     0       0          0
 ===END===
 ===FILE: extract/strategies/network/ssh-keyscan.sh===
-===META: mode=664 sha256=79970b3f70799ae301588dcdeae5d950b5c52d4bc0f9d7e0c196cb4b1514b7aa===
+===META: mode=664 sha256=fe76b89b2d6d7db4747e7a8b93319936112d9e8ccd6dd6589cd6cfcd1eedee51===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58160,7 +58405,7 @@ strategy_detect () {
         esac
     done
     if [[ $n -ge 2 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -58193,7 +58438,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/sslscan.sh===
-===META: mode=664 sha256=4e948275d5e656c08d719d7e8bdba96ee7ae9f10f0f9589f53023a6da27204cd===
+===META: mode=664 sha256=c8d00c2628e7c25191e55012373cb30919c12dcfbb561ae1723ce70ab4c8e7ef===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58206,7 +58451,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"Supported Server Cipher"* ]] \
        || { [[ "$text" == *"Accepted"* ]] && [[ "$text" == *"bits"* ]] && [[ "$text" == *"TLS"* ]]; }; then
@@ -58245,7 +58490,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/tcpdump-summary.sh===
-===META: mode=664 sha256=a686386fc2d7a1b63e6144265b2e4065bd743eb8e2ff2c1db5a448c5417ef4f3===
+===META: mode=664 sha256=d38028b3f54373e26280fa08b842f5ae9044f6d86c7b8964c76afb6a8c219c5d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58271,7 +58516,7 @@ _tcpdump_flags () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"tcpdump: verbose output suppressed"* ]] && return 0
     return 1
 }
@@ -58315,7 +58560,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/network/vnstat.sh===
-===META: mode=664 sha256=f1113a15e7bb20af6ed36e3a4a26a12b787793acc2bdf5c6157ea1fd8760d28f===
+===META: mode=664 sha256=c7ac290181c799eb560b02e8fec42e62f12638578323b3f4c77fb029636fd52e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58354,7 +58599,7 @@ _vnstat_is_month () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"avg. rate"* && "$text" == *"estimated"* ]] && return 0
     return 1
 }
@@ -58392,7 +58637,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/packages/7z.sh===
-===META: mode=664 sha256=1f36443b3a0d726a5b8bcc3ba50a7939c44b895098143348a0c7a3e03622cf60===
+===META: mode=664 sha256=0384a02a714040e8980e3b19e621098e20faffe80a2f553e996ca109aa783210===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58421,7 +58666,7 @@ strategy_detect () {
     for line in "${_FR_LINES[@]}"; do
         stripped="${line//[- ]/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -58459,7 +58704,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/packages/bundle-outdated.sh===
-===META: mode=664 sha256=8276413bb6707b7e2ae5a36271f36c89753271f5d1e542b070b08c73d0ff9705===
+===META: mode=664 sha256=47a2586b1e0aeac035f72355a15f976d146361c80269a2393248999da55c7b32===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58500,7 +58745,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_header -eq 1 && $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -58556,7 +58801,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/packages/dbmate-status.sh===
-===META: mode=664 sha256=69a42a79fbd07e5e41dc72c2aa24477bcab9bf752eb69a062ddc8354bd7b3eac===
+===META: mode=664 sha256=c596b065d3f6dae077c134dfdefaacb9ce5ab00e5d4aabdca0da28d5163300c0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58580,7 +58825,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^\[[X\ ]\][[:space:]] ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -58606,7 +58851,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/packages/flatpak-remotes.sh===
-===META: mode=664 sha256=f05bd3b0ee2b6a74028096328dc1a0345502c638a8ddec3584cedbfc79d1cb0d===
+===META: mode=664 sha256=3f5af893431081ca193533540fff203c2c909fc25dd460352ae4060e65961cc3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58632,7 +58877,7 @@ strategy_detect () {
         first="$line"; break
     done
     if [[ "$first" == Name*Options* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -58660,7 +58905,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/packages/liquibase-status.sh===
-===META: mode=664 sha256=19e72ab75152fe85d396d1381f5c86745a7bda59585d2b54a1f24968237c1db3===
+===META: mode=664 sha256=9910ebcc73f4215ccb6806d24f4efe5c4d64763eccd5901d91cb9660ccd98798===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58688,7 +58933,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" != *"["* && "$line" =~ ^[[:space:]]*[^[:space:]:/]*/[^[:space:]]*::[^[:space:]:]+::[^[:space:]:]+ ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -58717,7 +58962,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/packages/unzip.sh===
-===META: mode=664 sha256=6e886079615698f4dd5d9fc9df8a482ca74f201f2acece55260013ced1dfb51f===
+===META: mode=664 sha256=9a70c5d028f2139f0a287ca845797a270d5a7d41a5e4040acf7e714c442ff3e4===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58744,7 +58989,7 @@ strategy_detect () {
     for line in "${_FR_LINES[@]}"; do
         stripped="${line//[- ]/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -58804,7 +59049,7 @@ strategy_extract () {
   - `ltrace-summary.sh` AOe28094AO ltrace summary
 ===END===
 ===FILE-ESC: extract/strategies/profiling/perf-counters.sh===
-===META: mode=664 sha256=7c94264e6761b220a15ca38f6f89d7549fd7847ff7eefa1382dee06d1e9d8061===
+===META: mode=664 sha256=93ec9577dc943ac913d1553bba9c0bae2b0608ded282ddd2be95ad9a725f12d3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58836,7 +59081,7 @@ strategy_detect () {
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=86; return 0; }
+        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=92; return 0; }
     done
     return 1
 }
@@ -58866,7 +59111,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/scientific/doe-analyze.sh===
-===META: mode=664 sha256=49569843fcf85db8e4cf1219047bfe4e4842f72459dfdff656d6edb8928b6653===
+===META: mode=664 sha256=1539abf654a61ecd20a057d2dab9ff283be03b489aeca7f0476cdfea62d8b3a2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -58879,7 +59124,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
 
     # Both markers must be present: the report is a sequence of
     # "=== Section Name: <response> ===" blocks and these two are the
@@ -59121,7 +59366,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/scientific/doe-info.sh===
-===META: mode=775 sha256=1b37ed483b2880ac5a9b16ba0ff0619432b8b2e94518868be4f99b58ac749a53===
+===META: mode=775 sha256=bb29209dfb47a7e13643f13723e28f2983ba7ddaa2690e2232557a69fdc47d20===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59149,7 +59394,7 @@ strategy_detect () {
     [[ "$text" == "Plan      :"* || "$text" == *$'\nPlan      :'* ]] || return 1
     [[ "$text" == *$'\nOperation :'* ]] || return 1
     [[ "$text" == *$'\nTotal runs:'* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe info plan header (Plan/Operation/Total runs) present"
     return 0
 }
@@ -59245,7 +59490,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/scientific/doe-optimize.sh===
-===META: mode=775 sha256=78a62347adc6a535345a33db2844bc5fe47770d87c8c43f768337f1518f0b933===
+===META: mode=775 sha256=9e8192a1a63727097f3d693a54bfb03333122d6d65750ab8ad06f0c0ca6f7a87===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59291,7 +59536,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == "=== Optimization: "* || "$text" == *$'\n=== Optimization: '* ]] || return 1
     [[ "$text" == *"RSM Model"* || "$text" == *"Factor importance:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe optimize block (=== Optimization: ... ===) with RSM/importance data"
     return 0
 }
@@ -59378,7 +59623,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/scientific/doe-power.sh===
-===META: mode=775 sha256=dd94dcebe7f92aa34b593f46dfc90055a073654084e9908448f8870ad4a917c5===
+===META: mode=775 sha256=d7d83d474771f59e25dfd30353261babf8e6a9fd060238b968f84de4313fc793===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59419,7 +59664,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"=== Power Analysis ==="* ]] || return 1
     [[ "$text" == *"Power @ delta"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe power banner + per-factor power table header"
     return 0
 }
@@ -59494,7 +59739,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/scientific/doe-status.sh===
-===META: mode=775 sha256=7accb9f57291ae58809629d6ac4038e617e4c29393acd7982c82a0132d534579===
+===META: mode=775 sha256=4e08bc39c851321eddbac89c402627d2072ca41518649f3b0c11c7f421f5090b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59526,7 +59771,7 @@ strategy_detect () {
     [[ "$text" == "Experiment:"* || "$text" == *$'\nExperiment:'* ]] || return 1
     [[ "$text" == *$'\nDesign:'* ]] || return 1
     [[ "$text" == *"Progress:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe status header (Experiment/Design/Progress) present"
     return 0
 }
@@ -59608,7 +59853,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/aureport.sh===
-===META: mode=664 sha256=56bee2c80b1638be72fde3697cb3c396fc1692da05d06ef745e716cc0a4dcda5===
+===META: mode=664 sha256=189f12d60893c343d32c7b541a9d7ec77418df58d67f48103766924ded75e709===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59639,7 +59884,7 @@ strategy_detect () {
         fi
     done
     if [[ $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -59670,7 +59915,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/fail2ban-status.sh===
-===META: mode=664 sha256=05829107439dd7b2d691d584bead04649d57063e3104eab04af3964b2d0888f3===
+===META: mode=664 sha256=ee8e55f3631372fd1ec3d0304ba08ce78271e4ea40211508c27854fa9382df05===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59684,7 +59929,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # fail2ban-client status output contains "Number of jail" and "Jail list"
     # fail2ban-client status <jail> contains "Currently banned" and "Total banned"
@@ -59755,7 +60000,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/gpg-card-status.sh===
-===META: mode=664 sha256=e4b672b7e7d9030738ef68f954189386ef67fcb235721fdc4484e38dd4188cf9===
+===META: mode=664 sha256=916bba485301dabe576d90a0d50675d1f66530ee0a309238d111b4c7c87992b2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59808,7 +60053,7 @@ strategy_detect () {
     [[ $dotted -ge 4 ]] || return 1
     [[ "$text" == *"Application ID"* ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -59834,7 +60079,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/gpg-list-keys.sh===
-===META: mode=664 sha256=237d12713828a43b455357b6e6831b7e5e904db2867aa51f141fb51148da498e===
+===META: mode=664 sha256=69fd4a6113135f4ce9d2dab312fcc4f07917f326a26dc9a138b4d3c553459559===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59863,7 +60108,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if _gpg_is_pub "$line"; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -59901,7 +60146,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/keytool-list.sh===
-===META: mode=664 sha256=f033bfa8ff8f9d936fa3887a54ae2d7606e45e280ed8b0932d2b0eb6df47a62e===
+===META: mode=664 sha256=01a2ec7284fb3949a7d1876cd221706ae9c98e0aa85c58f6fbf7a03218953041===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59940,7 +60185,7 @@ strategy_detect () {
     [[ "$text" == *"Keystore type"* ]] || return 1
     [[ "$text" == *"PrivateKeyEntry"* || "$text" == *"trustedCertEntry"* \
        || "$text" == *"SecretKeyEntry"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -59971,7 +60216,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/nmap.sh===
-===META: mode=664 sha256=b4e8a918d5f42ed4d275bf8b1bd433b19d4fb64dd78e0bcde248c150347bd3b4===
+===META: mode=664 sha256=1cd5f9cb5012c5b73a0fd2b315ccd6eba5b2e8cbcba59c89a41d59fb95cad309===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -59984,7 +60229,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     # Contains "Nmap scan report" or "PORT  STATE  SERVICE" header
     [[ "$text" == *"Nmap scan report"* ]] && return 0
     [[ "$text" =~ PORT[[:space:]]+STATE[[:space:]]+SERVICE ]] && return 0
@@ -60109,7 +60354,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/semanage-boolean.sh===
-===META: mode=664 sha256=bc599abd0f50f905fab3c914fbc1ee74acaf20b19ff5e1a0e8d08aabfab4995a===
+===META: mode=664 sha256=900f58d021b6bd37f41c503dfb526834e29cdbecc1eedb542c068eec46422be2===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60139,7 +60384,7 @@ strategy_detect () {
         fi
     done
     if [[ $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -60172,7 +60417,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/security/sshd-t.sh===
-===META: mode=664 sha256=b124e75ea86146e5a94b969b337021453b1fea0d373a0b7267b31efdff9e9b4b===
+===META: mode=664 sha256=60519c0144367405472fb303ee3ef9647f07529fc9b4fd55ff5d24190dd1e198===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60221,7 +60466,7 @@ strategy_detect () {
         nb=$((nb + 1))
     done
     if [[ $nb -ge 6 && $hits -ge 3 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -60245,7 +60490,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/security/systemd-analyze-security.sh===
-===META: mode=664 sha256=e4e4dcb7a6eee8993e98ff1f6ad83b8befecb26f762e2ac40991f2064f1612ad===
+===META: mode=664 sha256=597fadee99293f27a311bc92025bd54648160a3fbd06ef59923e7a987acbc717===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60266,7 +60511,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Overall exposure level"* ]] || return 1
     [[ "$text" == *"EXPOSURE"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -60294,7 +60539,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/security/vault-status.sh===
-===META: mode=664 sha256=34433de69811c0fe9af55ad6c9d7755d56007ff536f1f1b46520129c00452b5d===
+===META: mode=664 sha256=c64fae244bdc24f10de62f2394d140ff0381874e8d0f20fa54c0040e936d0131===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60324,7 +60569,7 @@ strategy_detect () {
         esac
     done
     if [[ $hdr -eq 1 && $sep -eq 1 && $seal -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -60362,7 +60607,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/csv.sh===
-===META: mode=664 sha256=281b46e3e6d2ae48eb9dd265965d50e291fdadd91f3e6fcfa715f79f4d7709ca===
+===META: mode=664 sha256=819e649079d5ffe4233508fa780b6583d616b46489637f77f13d552b40812ea4===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60512,7 +60757,7 @@ _strat_csv_strip_comments () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="consistent comma count across lines"
     # (no leading `#`: the helper just echoes the text back, so the capture
     # is the text minus trailing newlines AOe28094AO computed here without the fork)
@@ -60799,7 +61044,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/dns-records.sh===
-===META: mode=664 sha256=19dbd0c6a9d420cc1ef244c35df9659aa90d56dbfc19aefacd7fa6de9a1883db===
+===META: mode=664 sha256=91541347a3c3378387d824bd86001a1bb3a23ba8810a1f407c7553cb172ea025===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60839,14 +61084,14 @@ strategy_detect () {
         if _dnsrr_line "$line"; then
             hits=$((hits + 1))
             if [[ $hits -ge 2 ]]; then
-                _STRATEGY_CONFIDENCE=90
+                _STRATEGY_CONFIDENCE=85
                 return 0
             fi
         fi
     done
     # A single RR line still counts when a dig/drill section marker confirms it.
     if [[ $hits -ge 1 && "$text" == *";; ANSWER SECTION"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=85
         return 0
     fi
     return 1
@@ -60891,7 +61136,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/exposition-format.sh===
-===META: mode=664 sha256=f8f184a6941eaa9be846ff5c7d63d3017e956aea1de7f3499b2573281097eed9===
+===META: mode=664 sha256=bc2902c02e1a9e0a0b362fd967ff216bca165bc98f9dd3d84bf2685338d71dc7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -60909,7 +61154,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON
     _is_json "$1" && return 1
@@ -61049,7 +61294,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/go-struct.sh===
-===META: mode=664 sha256=34547cef90423f7ef6ee9f5cb534df10ee4e8c93f44ce250927aeada60a688e3===
+===META: mode=664 sha256=e7172a02a91e880260ec66e9473e3e10834a7493198b4f507ea8712876459c44===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -61117,7 +61362,7 @@ strategy_detect () {
     done
 
     [[ $structs -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -61149,7 +61394,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/structured/grafana-alerts.sh===
-===META: mode=664 sha256=43e1e8ed324f3d37402f54abf01e952d485b039dfd985255afaa36d9c183fc85===
+===META: mode=664 sha256=d1f702eb08ab839ccf23745216411fed818099eaf6232442ccd59c960a6f07fd===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -61162,7 +61407,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     _is_json "$text" && return 1
     # Grafana alert list (CLI output) has columns like ID, TITLE, STATE, HEALTH
     local first_line=""
@@ -61258,7 +61503,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/grouped-rows.sh===
-===META: mode=664 sha256=90f5c63dd39605f69e27ae5b13393e50847b1613232d5be4899c09e676b87a44===
+===META: mode=664 sha256=53263be7e418844ec25c5fec3aa2b6a192c64becda8f30ca04a3da662df4484a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -61439,7 +61684,7 @@ strategy_detect () {
         [[ $_mk -gt $_mbest ]] && { _mbest=$_mk; _modal=$_ma; }
     done
     [[ $(( _mbest * 100 )) -ge $(( leaves * 70 )) ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="group headers over indented tabular rows"
     return 0
 }
@@ -61516,7 +61761,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/structured/har.sh===
-===META: mode=664 sha256=f88758763474634251022c749eaa3228cf37d30f73010665d64282dffddc8fa1===
+===META: mode=664 sha256=dd563978dd028ac3f9b9b2421bcf3a191f016afca8b59768d57a8baf96b0093d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -61529,7 +61774,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
 
     # Must be JSON
     _is_json "$1" || return 1
@@ -61997,7 +62242,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/json-array.sh===
-===META: mode=664 sha256=07755a9d02414b64f90e8f345ff954b4f7dbfbd69a3006ca923da3c0c54d64e1===
+===META: mode=664 sha256=ee787456aea3f6d4ded02aa56fa5c1040f340bdcf7be30e7a20353c4c1a90f1e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62038,7 +62283,7 @@ strategy_detect () {
     t="${t#"${t%%[![:space:]]*}"}"
     [[ "$t" == '{'* ]] || return 1
     [[ "$text" =~ \"[A-Za-z_][A-Za-z0-9_.-]*\"[[:space:]]*: ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=85
     return 0
 }
 
@@ -62166,7 +62411,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/json.sh===
-===META: mode=664 sha256=d327a959984e53c617d3a03a9484d0498cc88e3b174766724aaa7cd911c4b266===
+===META: mode=664 sha256=453e4daeffd1097f14b83a6e5a2bdda34a1da089c6555af77cefa7b131c69a7b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62179,7 +62424,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=95
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="input starts with { or ["
     # Apply if input looks like JSON (starts with { or [, possibly with leading whitespace)
     local trimmed="$text"
@@ -62281,7 +62526,7 @@ _strat_json_extract_fallback () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/jsonl.sh===
-===META: mode=664 sha256=524575c9b61dbc5d1347d7d689b3074ff61062241694c6cfcef91c0e1a5c46d0===
+===META: mode=664 sha256=06bff1dbb8bac888543227bd241562fc7af680aaf500c07708eb371b4e134293===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62302,7 +62547,7 @@ _strat_json_extract_fallback () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
 
     # Strip a UTF-8 BOM (EF BB BF) if present AOe28094AO common in JSON exported from
     # Windows tools AOe28094AO so it doesn't hide the first line's leading '{'.
@@ -62645,7 +62890,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/kv-under-group.sh===
-===META: mode=664 sha256=dfa57caa2586d1b27b6a3584165cd6ad880fe4f23f064c38f18e906f161485c5===
+===META: mode=664 sha256=74682d2b811c6d037da5f3561fdc3bdb9ec42b6a4462aebfe63fa10bec01f0dc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62861,7 +63106,7 @@ strategy_detect () {
     [[ $rep -ge 2 ]] || return 1
     # the shape must dominate the block
     [[ $(( classified * 100 / n )) -ge 80 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -62908,7 +63153,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/pivot-stats.sh===
-===META: mode=664 sha256=c70b24a88df783482d459304181588058520acb447ba5901bede95c79f5e5ea6===
+===META: mode=664 sha256=4ffb85303721b7cd5b97df4bfd8e0885439c25feeaf2be604597b999744bcc11===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -62986,7 +63231,7 @@ strategy_detect () {
     done
     # >=2 pivot pairs and at least one unindented record header
     [[ $pivots -ge 2 && $records -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="labeled counter pivots (header line + value line) under record headers"
     return 0
 }
@@ -63043,7 +63288,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/prometheus-query.sh===
-===META: mode=664 sha256=2e348344dc2a4ec5b6da0a353298c352137d9104ceddc67810513bdf22e49fa0===
+===META: mode=664 sha256=6340e02585bce227a63d52428d4df56ed6cff960de35bd22751e9b42ea329718===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -63056,7 +63301,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     _is_json "$text" && return 1
     # Prometheus text output has lines like: metric_name{label="value"} 123.45
     local prom_count=0
@@ -63370,7 +63615,7 @@ _strat_pb_set_count () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/psql-expanded.sh===
-===META: mode=664 sha256=d99998a7586544f27edaf6a860fadbedf1c55f613f6e12fc769b6854b762f7c6===
+===META: mode=664 sha256=a3835435d8e2fe7ed75d618c159f8ed1d9da5a1dfa97c5e946715cdc2728250c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -63403,7 +63648,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\| ]]; then
-            _STRATEGY_CONFIDENCE=90
+            _STRATEGY_CONFIDENCE=80
             return 0
         fi
     done
@@ -63433,7 +63678,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/snmp-output.sh===
-===META: mode=664 sha256=670797728e6d1550268ba7f426285d62acfaa81d9fafe2d3dc12cb7b4cedae04===
+===META: mode=664 sha256=fd35b3737cf7bdb672b6292df33d9fa0a94603b77cd1579ef43b38a687a4d119===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -63462,7 +63707,7 @@ strategy_detect () {
             snmp=$((snmp + 1))
         fi
     done
-    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=86; return 0; }
+    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     return 1
 }
 
@@ -63699,7 +63944,7 @@ _strat_toml_set_array_count () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/tree-view.sh===
-===META: mode=664 sha256=400bad9e6ef5e9d2082d1c8badf9eb0e1e8ea70cd943c886a22de413d3dbbe21===
+===META: mode=664 sha256=dce1871a963d1f038d06ededf23aecb02510015622ffcddf3e11af1f2ceb1f32===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -63789,7 +64034,7 @@ strategy_detect () {
         [[ ${#_ft[@]} -ge 2 && $_up -ge 2 ]] && return 1
     fi
 
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -63920,7 +64165,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/tsv.sh===
-===META: mode=664 sha256=1ef498b3d4169da70166b3275ed7a3b4fb81c0c342a65223c2a550facf95e6ef===
+===META: mode=664 sha256=c58116873bf15f353a05599968c725f3732f6b8a1f77a2193060d06e73ac1f3e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -63933,7 +64178,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
 
     # Must have at least 2 lines
     local line_count=0
@@ -64283,7 +64528,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/structured/xml.sh===
-===META: mode=664 sha256=33379bc9b758b6d2be4679a10ac24dde3d1ae29f32b6055ef9520c3f66d9722e===
+===META: mode=664 sha256=b8b7675ab8cf9ba6d3a92407d9f89319f93f018545a5cb28631712f2eb4da097===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -64301,7 +64546,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=80
+    _STRATEGY_CONFIDENCE=85
 
     # Accept if input looks like XML with elements (opening + closing tags)
     if [[ "$text" == *"<"[a-zA-Z]* && "$text" == *"</"[a-zA-Z]* ]]; then
@@ -64388,7 +64633,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/structured/yaml.sh===
-===META: mode=664 sha256=caf294064bc07bddc0a83a6801185d8b4c56cdd8e1dc203d2639953f985ed18e===
+===META: mode=664 sha256=3aabb3be8c822eb42cde9a5447c987993c33e779e46c5e96fa2a1d31e4cbe0f7===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -64401,7 +64646,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="key: value pattern with indented sub-keys"
 
     # Must have YAML key pattern: lines starting with word chars followed by colon
@@ -64774,7 +65019,7 @@ _strat_yaml_build_key () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/R-version.sh===
-===META: mode=664 sha256=64c53bd9ac3058d361239efb2e1b49c231195652a7046fe994e7431e00ae16d3===
+===META: mode=664 sha256=808f0b3abbc4a3d83d4ea77f80a8bb0a2a2fb7d1b08c9630e2b36b101b080f39===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -64805,7 +65050,7 @@ strategy_detect () {
         first="$line"; break
     done
     if [[ "$first" == "R version "* && "$text" == *"Platform:"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -64843,7 +65088,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/ansible-inventory-list.sh===
-===META: mode=664 sha256=a5d75ec0c2cfcce9e78ee44b523da99ea4a7c342f2035295a717025babbc8b2f===
+===META: mode=664 sha256=d1244b7069d71b338486e7cfa931d371b4f7597f2558e9d1c9673d8ddb8e7de0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -64870,7 +65115,7 @@ strategy_detect () {
     esac
     [[ "$text" == *'"_meta"'* ]] || return 1
     [[ "$text" == *'"hostvars"'* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -64907,7 +65152,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/ansible-version.sh===
-===META: mode=664 sha256=ed7e1280d1f6531a71118521ca50b46a9116dc521a41ac695c4354a92555441a===
+===META: mode=664 sha256=b6721940c2e5d40ed5346ad4878027610aa1e77fbdf3a1f11b349b36117efe66===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -64962,7 +65207,7 @@ strategy_detect () {
     # Distinctive banner: "ansible [core X.Y.Z]" as the first non-blank line.
     [[ "$first" =~ ^ansible[[:space:]]+\[core[[:space:]] ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -65001,7 +65246,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/bcc-funccount.sh===
-===META: mode=664 sha256=2aa90905f3720bfe64b96a738dced5ad9e15e3cb0787bdc867875550379f22aa===
+===META: mode=664 sha256=ccdf5c2d6ca814199cfde07cddc2d28702f353b38fd9809c3dec18d1d34c109a===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65026,7 +65271,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Tracing"* && "$text" == *"FUNC"* && "$text" == *"COUNT"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -65208,7 +65453,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/bpftrace.sh===
-===META: mode=664 sha256=8bd803e025bb47b5afb5285293d72e3ac0e9e58884597fe7e35d59bdbee38e04===
+===META: mode=664 sha256=efd46311b6d9aee9e8abc7308f0fc79db62ce662fd1efc9b5d008238e084cb2e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65231,7 +65476,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == "@"* && "$line" == *"]:"* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -65259,7 +65504,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/elixir-version.sh===
-===META: mode=664 sha256=75bb6155436449cea89f44f5387a6d688f0604fc44ccb5bc13a8c4532a365137===
+===META: mode=664 sha256=d4684db9bfb18755ea1cb64b5f4e7baa9cd556fcb01e53b3875cfe7357d08e1f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65279,7 +65524,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     if [[ "$text" == *"Elixir "* && "$text" == *"Erlang/OTP"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65306,7 +65551,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/fossil-status.sh===
-===META: mode=664 sha256=42dd7393d2b5b0ccc440e9a9ed8cd2c40a674dc4bee4392860d688f8b59b4fcf===
+===META: mode=664 sha256=33ac8f5d6b7c9161eab64f463710050bfe2891f2f14e63f4caacda420a517c19===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65334,7 +65579,7 @@ strategy_detect () {
         esac
     done
     if [[ $has_repo -eq 1 && $has_checkout -eq 1 && $has_change -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65372,7 +65617,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/fossil-timeline.sh===
-===META: mode=664 sha256=79c4c1c8b236d6c07ebb4f1cd009b8de86ce987d9109f0aff9aef07ceb74898f===
+===META: mode=664 sha256=c005b3f72ea1a2ce0a338fc431800c36c22d6266f5531e4bb08bbbe9a2bfbd09===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65401,7 +65646,7 @@ strategy_detect () {
         _fossiltl_is_entry "$line" && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65437,7 +65682,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/free.sh===
-===META: mode=664 sha256=dafcdc91da6ba43da4f7340f114d861c30337c3e85a7c2d9b4c218db596d6453===
+===META: mode=664 sha256=3b4b48af498ce01f7c1a5a4593cc476b00ed29fc7c1cf654085801e1190de8da===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65450,7 +65695,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     # Reject JSON
     _is_json "$1" && return 1
     # Look for header with "total" and "used", followed by "Mem:" or "Swap:" line
@@ -65529,7 +65774,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-annex-list.sh===
-===META: mode=664 sha256=e6a45874ce173a13395dba8f659fbe5a852d3287bff2ce08708f88732baff6a6===
+===META: mode=664 sha256=62a265f3e684abfd2dd19437c48b76e1ea421e957df0527747f204c010116421===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65558,7 +65803,7 @@ strategy_detect () {
         _gitannex_is_file "$line" && has_file=1
     done
     if [[ $has_file -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65584,7 +65829,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-bisect-log.sh===
-===META: mode=664 sha256=f664fb61a2f29f8e5b20287bb2dfe7838e7e62ed2d860a0d293115ed5b549d0b===
+===META: mode=664 sha256=f2e03d38ca144a187461a9e77653762d3ec8a5aff06254d9ae11e43267097e47===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65611,7 +65856,7 @@ strategy_detect () {
         _gitbisect_is_cmd "$line" && has_cmd=1
     done
     if [[ $has_cmd -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65640,7 +65885,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-branch-vv.sh===
-===META: mode=664 sha256=5f5f88acd7537c772b94f30ba77a98887a9f4ca065c07788c625828b61e9abf5===
+===META: mode=664 sha256=dc424d1fbeb61585ae42630155af957726e9acad1b169c1179eb22e54c9e3f06===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65675,7 +65920,7 @@ strategy_detect () {
         fi
     done
     [[ $hit -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -65710,7 +65955,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-log-graph.sh===
-===META: mode=664 sha256=ca0529ac67cd0620ff957937a1112a49da09fe5f3f4dcd0dccc9d2f89edb39b2===
+===META: mode=664 sha256=174daf57db4dde3f3b7230a5cb08469d15e96f94a274a5c1047b8f40b8059dbe===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65740,7 +65985,7 @@ strategy_detect () {
         _gitloggraph_is_commit "$line" && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -65768,7 +66013,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-log-stat.sh===
-===META: mode=664 sha256=594a7a713e506414f9d5fd79f27672e8785ea684421133e063e7a3a28db3ba1d===
+===META: mode=664 sha256=d0fa118555ca7d850ccf83d4d8259a5d3dc388b2bcef6510c163c30e7af8d94b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65798,7 +66043,7 @@ strategy_detect () {
         _gitlogstat_is_file "$line" && has_stat=1
     done
     if [[ $has_commit -eq 1 && $has_stat -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65827,7 +66072,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/git-worktree-list-porcelain.sh===
-===META: mode=664 sha256=876d02f684780fb87960ece29ff959f6b1b9c77883cc37eeac287ffb8a6571c6===
+===META: mode=664 sha256=dd5b688ca35830e9fd2bd8d5310ef2cb28e1149ae414e0b1d334f073064d23e5===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65854,7 +66099,7 @@ strategy_detect () {
         [[ "$line" =~ ^HEAD[[:space:]][0-9a-f]+ ]] && has_head=1
     done
     if [[ $has_wt -eq 1 && $has_head -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -65897,7 +66142,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/gpg-list-packets.sh===
-===META: mode=664 sha256=080a1dd043ec3e65d9a280ab45526d5fcaf8650168836299cde151433bfd2c09===
+===META: mode=664 sha256=9600f378d060d98479bf29e5948a7c345531b9d5b708f21794f4b27a0b39a990===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65936,7 +66181,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"ctb="*"tag="* ]] || return 1
     [[ "$text" == *":public key packet:"* || "$text" == *":signature packet:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -65966,7 +66211,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/iftop.sh===
-===META: mode=664 sha256=2ca941dfca240a349bc1a1cbf891bb995fc3b4e5dfcad2f54471ff35f508da9e===
+===META: mode=664 sha256=40b8b132a4bd940abb6e1d275fb77d94bc882b3dd78328f4f2034a2ad4e0f56e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -65983,7 +66228,7 @@ strategy_detect () {
     # Distinctive signature: iftop's cumulative-rate table and totals.
     if [[ "$text" == *"Total send and receive rate"* ]] \
        || { [[ "$text" == *"cumulative"* ]] && [[ "$text" == *"=>"* ]] && [[ "$text" == *"<="* ]]; }; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66034,7 +66279,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/iotop.sh===
-===META: mode=664 sha256=d689d56bcbcc701e8bef7cfb110b45772171466e6467958323e955cb77162980===
+===META: mode=664 sha256=0a5a523a9057541bd70a5e0b3dedf42d7109b61100a63f0c21b98d9813f38ec0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66053,7 +66298,7 @@ strategy_detect () {
     if [[ "$text" == *"Total DISK READ"* ]] \
        && [[ "$text" == *"TID"* ]] \
        && [[ "$text" == *"DISK WRITE"* ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66102,7 +66347,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/jj-log.sh===
-===META: mode=664 sha256=d8af998c4a05d800d77d4986f030797299e9387c99fbcd2df6af6ea0c0d46fd1===
+===META: mode=664 sha256=4ae329faa25b44a1f83e7784297b275e7502eee40c94471b7f7fb796de1622e0===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66134,7 +66379,7 @@ strategy_detect () {
         _jjlog_is_node "$line" && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66162,7 +66407,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/jmap-histo.sh===
-===META: mode=664 sha256=d1d357f317261d6cb429e20f9d5eb329d9a7a21f9a054eb82e22de58096becb7===
+===META: mode=664 sha256=a84040b3678897a9ce595bc5c5b61931fcb702a195858a504a1d984e75726502===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66186,7 +66431,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"#instances"* && "$text" == *"#bytes"* && "$text" == *"class name"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66212,7 +66457,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/lastb.sh===
-===META: mode=664 sha256=43067e4f156a466f7e5b1c1cd66453a3bed3cb457c6c2ca9473d39be95dcd418===
+===META: mode=664 sha256=1b15734f1252185b6be4f73f3c53982016ca63825eeb917b621425f33d1cf202===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66247,7 +66492,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if _lastb_is_login "$line"; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
     done
@@ -66285,7 +66530,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/loginctl-list-seats.sh===
-===META: mode=664 sha256=2bd679af372ab94686ce9a422fcf4a8be4f91c8eda99cd5c3c8c8c97293ef577===
+===META: mode=664 sha256=3089deb56e06ea7783edb4eaeac1adae50e77ff4611504ca1804889702b43982===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66305,7 +66550,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"SEAT"* ]] || return 1
     [[ "$text" == *"seats listed"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66324,7 +66569,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/lscpu-parse.sh===
-===META: mode=664 sha256=e012c3de13c2cdd9dbe1706a49fcb9ff59a7c914cb58b6b2a008a5d62eb6e9b4===
+===META: mode=664 sha256=f0688853c89b4de0500ac434462056eba8e45e9ec830efa10c2557866ea2d3f4===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66353,7 +66598,7 @@ strategy_detect () {
         fi
     done
     if [[ $rows -ge 2 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66389,7 +66634,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/multipath-ll.sh===
-===META: mode=664 sha256=0107dc83ce99f97cde22ab2adb338d7f8ea731c7a2ba135bd29ec957fba8c4d9===
+===META: mode=664 sha256=5739141d3b439dc937db723bc8b21c30693fab8239eb067a423566294d27dadc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66414,7 +66659,7 @@ strategy_detect () {
         [[ "$line" == *"hwhandler='"* ]] && has_hwhandler=1
     done
     if [[ $has_wp -eq 1 && $has_policy -eq 1 && $has_hwhandler -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66446,7 +66691,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/numactl-show.sh===
-===META: mode=664 sha256=ad7bb5133e786c878a5750105d33df1d15c70c5e77cd5c4c16384d83818ddcf7===
+===META: mode=664 sha256=64f1ae1d2a2565374bc9bd9cf45bf3292a7a397b42d234a3337a5a7c4aaaa657===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66468,7 +66713,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
@@ -66501,7 +66746,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/numastat.sh===
-===META: mode=664 sha256=899ce476321aca9138a14f7059b39a2d66d82e3a1a1465f9fc862c3e5192994f===
+===META: mode=664 sha256=6eebf48ae979477a5b9627928c56a0de3c8df190e42cb041c4ea369b484d745f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66534,7 +66779,7 @@ strategy_detect () {
         fi
     done <<< "$text"
     if [[ $ok -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -66564,7 +66809,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/pcp-pmstat.sh===
-===META: mode=664 sha256=f043b920e245da359b7f5cae972e2d5c0626b85b510b32835d51f9f5c72a7915===
+===META: mode=664 sha256=2d51da834d9a988e4b8c0577c97a6a2fccc82b76df263e6994a9204e842a4d8f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66596,7 +66841,7 @@ strategy_detect () {
     [[ "$text" == *loadavg* ]] || return 1
     [[ "$text" == *swpd* ]]    || return 1
     [[ "$text" == *"1 min"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66622,7 +66867,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/perf-trace.sh===
-===META: mode=664 sha256=f9fb2ac6033541ec7a833401952651311fe95ab0bd9cc521ce90c5cf0bd60c26===
+===META: mode=664 sha256=134d06fd6b17c3981d3df537dd4e8941fb43a76fc5003c68a346b2b716e3df83===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66649,7 +66894,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Summary of events:"* && "$text" == *"stddev"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66676,7 +66921,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/php-modules.sh===
-===META: mode=664 sha256=1652e5ff9e3afd15754cd3c0a774584b2fcc917b62f2a126eb1bdc1219580e29===
+===META: mode=664 sha256=502ded6daa29d4f73e4babc70bd7db8a56e8e00447d18f8dc479c17f5ce542b5===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66701,7 +66946,7 @@ strategy_detect () {
     # specific enough on its own.
     # Distinctive: the "[PHP Modules]" section header.
     [[ "$text" == *"[PHP Modules]"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66727,7 +66972,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/pidstat-r.sh===
-===META: mode=664 sha256=22092b08738f43de546b099c0913c045604d604aa4d38916a778cf2c6c2bfe7d===
+===META: mode=664 sha256=bfe650fea5edd566732cc48944bc5a95e993c003bc188903dfca3f6097131417===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66752,7 +66997,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"minflt/s"* && "$text" == *"majflt/s"* && "$text" == *"%MEM"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66782,7 +67027,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/pidstat-u.sh===
-===META: mode=664 sha256=77952190e3909bdc5b14bc0b2e2329e96e1bffdd5d2e4bb05200738ef5878315===
+===META: mode=664 sha256=67c96dce5bb56a2f403fb7c7cfafcefb2e22bd463a03d653f18b76f1e121be38===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66806,7 +67051,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"%usr"* && "$text" == *"%guest"* && "$text" == *"%wait"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66837,7 +67082,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/pidstat-w.sh===
-===META: mode=664 sha256=67b8bd793ac0f880e5faec22b2376981a76543010520dac893ae297ea5f2384f===
+===META: mode=664 sha256=43e61c2df3874c375bbdd6cdb4585ef2c671dbaab7e72574d40e3f8fd4b5d8da===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66861,7 +67106,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"cswch/s"* && "$text" == *"nvcswch/s"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66888,7 +67133,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/pipx-list.sh===
-===META: mode=664 sha256=35fe65b5f737d4de5f3f23ce9b731f4340cd20fedaa34fd9da11f73167735dea===
+===META: mode=664 sha256=67ea052e1b072d2e09ef108c537b9f925e1252598b0bda56a496df401c16a2e1===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -66913,7 +67158,7 @@ strategy_detect () {
         [[ "$_l" =~ ^[[:space:]]+package[[:space:]]+[^[:space:]]+[[:space:]] ]] && { saw_pkg=1; break; }
     done
     [[ $saw_pkg -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -66932,7 +67177,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/pkg-config.sh===
-===META: mode=664 sha256=f6af731a2e96586969f2d7d1c59901655cefb52471a7689bb79e42e3ce46b92e===
+===META: mode=664 sha256=da5d4a7792e340c53c11a92c2520d3915330d1c38fb87f4530daf74d5185f106===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67018,7 +67263,7 @@ strategy_detect () {
         local _m=0 _best=0
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge 60 ]] && return 1
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -67044,7 +67289,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/pmap.sh===
-===META: mode=664 sha256=464bd079d6e637cdd59be56a55fdc9ea13db5d68f58cd9cca8fc78ecaa19613b===
+===META: mode=664 sha256=2d2d6b53190c3ab607258518a7d98bca962f1aa0160a1bdeba54b8b9f701efcf===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67080,7 +67325,7 @@ strategy_detect () {
         fi
     done
     if [[ $nmap -ge 2 && $total -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -67127,7 +67372,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/powertop.sh===
-===META: mode=664 sha256=6a280d53fb014e965cfe1fe6c0dfd42f00bacf5e90ba4ad9b50f03373329ccf0===
+===META: mode=664 sha256=4146d86d5cff6f86209cfebd47dcb2cc837c6f865319799584ded62ad88bbc4d===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67161,7 +67406,7 @@ strategy_detect () {
         fi
     done
     if [[ $seen_hdr -eq 1 && $seen_row -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -67201,7 +67446,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-devices.sh===
-===META: mode=664 sha256=060d9e377d4ec71928b925138bf82f9dfe3a1f626c45737f5d25356badec1115===
+===META: mode=664 sha256=7689c4a26131802d1f76a125e1db5cd74ef1006a1175580b6bc4d3ef5f12b427===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67222,7 +67467,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"Character devices:"* ]] || return 1
     [[ "$text" == *"Block devices:"* ]] || return 1
     return 0
@@ -67256,7 +67501,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-filesystems.sh===
-===META: mode=664 sha256=6b9ce1ffa52b45fde80aa6bf0a046e6df1dfd55e701937fc08134a4843e27599===
+===META: mode=664 sha256=d006448ce45d8e1544469595eff6f2b9f0fc4ef57c3c85bf2188e3710208defa===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67275,7 +67520,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"nodev"$'\t'* ]] || return 1
     return 0
 }
@@ -67309,7 +67554,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-net-snmp.sh===
-===META: mode=664 sha256=9645575cad0e787e03364a4153a4dcf44af5779c7ec9b2bdda4830871177d0e1===
+===META: mode=664 sha256=d213fd6c806d788770822d95b1c843ca7b16b3d301e2ff811cfd032ee19c20be===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67329,7 +67574,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local reh='(^|
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+[A-Za-z]'
     local rev='(^|
@@ -67377,7 +67622,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-net-tcp.sh===
-===META: mode=664 sha256=ba394fde5cf4b408612a56e443366ee4e68ed803f39229a2989454ca75fb290e===
+===META: mode=664 sha256=33dfe396144ac1abd56881b3a8b3ca8f2480211741074d1814add731a428aba3===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67395,7 +67640,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"local_address"* ]] || return 1
     [[ "$text" == *"rem_address"* ]] || return 1
     [[ "$text" == *"tx_queue"* ]] || return 1
@@ -67433,7 +67678,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-pagetypeinfo.sh===
-===META: mode=664 sha256=dea188c2588cf1abd636f7c4a661ebebac4803087c144699a70bae20a7e5539c===
+===META: mode=664 sha256=481dfe8606b3c24c12f7cddf55bef1ae343b49538d500775e3bb42cff7efee66===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67451,7 +67696,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *", type"* ]] || return 1
     [[ "$text" == *"Free pages count"* ]] || return 1
     return 0
@@ -67486,7 +67731,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-schedstat.sh===
-===META: mode=664 sha256=b74e993ee1d902adfc8d26fe484c08d12b39587b4da5fd7c3d5d5f68f22bf146===
+===META: mode=664 sha256=a4048647325eaed01ab3af068483a252f2b2ea1a499d75241107db7747316c17===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67504,7 +67749,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"timestamp "* ]] || return 1
     [[ "$text" == *"domain0 "* ]] || return 1
     [[ "$text" == *"cpu0 "* ]] || return 1
@@ -67538,7 +67783,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/proc-slabinfo.sh===
-===META: mode=664 sha256=950c3485d80a7cac4caf1d6a9380e0f1a3ac51cb136cad0e7e1dab1fc4bb996a===
+===META: mode=664 sha256=956683dcf181c512c06c94d1975534f09644c981a055671175d80cf6293b3b39===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67558,7 +67803,7 @@ strategy_extract () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"slabinfo - version:"* ]] && return 0
     return 1
 }
@@ -67591,7 +67836,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/rc-status.sh===
-===META: mode=664 sha256=cd14ca867aebb8e4f0fd8aa1bbfc8f3217fe4989160b095c9425a5a786aad767===
+===META: mode=664 sha256=c2fe31f0841fb9037641ba2f9ea5d68a4e33e1327efb5f1d12dea8ae4f8cf35c===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67618,7 +67863,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_runlevel -eq 1 && $svc -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -67663,7 +67908,7 @@ Linux vm 6.18.5-fc-v20 #1 SMP PREEMPT_DYNAMIC @0 x86_64 x86_64 x86_64 GNU/Linux
 x86_64
 ===END===
 ===FILE: extract/strategies/system/swift-version.sh===
-===META: mode=664 sha256=e0987137780edbfd78a4cad70ebb44c15ceca289fed9b01e556e66c051b5cfb3===
+===META: mode=664 sha256=c550e2d02c5fd35bb15b2b313120909158486324128f100ee839291187128c6e===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67683,7 +67928,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     if [[ "$text" == *"Swift version"* && "$text" == *"Target:"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -67714,7 +67959,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/sysstat.sh===
-===META: mode=664 sha256=311efd73eba0b928ce355a261696af2a051923bbeaf046305d8b537c054182b8===
+===META: mode=664 sha256=294226b5063c82e5721aa9898921b7b203f2f3ba5a6ef626e756ffb4762c022f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67749,7 +67994,7 @@ strategy_detect () {
     done
 
     if [[ $banner_ok -eq 1 && $time_ok -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -67822,7 +68067,7 @@ _strat_sysstat_sanitize () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/systemctl-status.sh===
-===META: mode=664 sha256=b3bc5bfaf8b7116c7dd5c4c986cc3f74c033a2fb8f7511235ad1bf5467851536===
+===META: mode=664 sha256=189132b37d369d64a32de4c375fd2c864609779a49e2d14a882dab75ef763d3b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67836,7 +68081,7 @@ _strat_sysstat_sanitize () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # systemctl status output contains "Loaded:" and "Active:" lines
     local has_loaded=0
@@ -67938,7 +68183,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/systemd-analyze-critical-chain.sh===
-===META: mode=664 sha256=674db99b74ec7399647682e0307d8cd42858c2c1eaa63df612b267c5d46e133c===
+===META: mode=664 sha256=05ceb5d82ab1b8e4914be44c1e507bc2698220843e0b62961cfcc0439f620d71===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -67960,7 +68205,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # Distinctive: units with an "@time" activation stamp (e.g. ".target @14s").
     [[ "$text" == *".target @"* || "$text" == *".service @"* || "$text" == *".socket @"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -67992,7 +68237,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/systemd-cgls.sh===
-===META: mode=664 sha256=660b2e3c9744a7e32d5ffabf71a39367db1897d983da4d5ce57bca1f9f22ff7d===
+===META: mode=664 sha256=e4d98a387b3a16c8f27378f3e25bc2309e55cc79e46bec0f2284f9f759d93982===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68015,7 +68260,7 @@ strategy_detect () {
     # Distinctive: the "Control group" header plus cgroup slice/scope nodes.
     [[ "$text" == *"Control group"* ]] || return 1
     [[ "$text" == *".slice"* || "$text" == *".scope"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -68044,7 +68289,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/systemd-tmpfiles-cat-config.sh===
-===META: mode=664 sha256=28b212af03145ea8857228bd456c47e4c0b4a5894431478f622c71f1dd3e5605===
+===META: mode=664 sha256=1dd97c5659fb78f69ebf4c5b4522ec55c9e5d1cec4c7828d6cd466c62e296399===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68065,7 +68310,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"tmpfiles.d"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -68094,7 +68339,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/top-batch.sh===
-===META: mode=664 sha256=425d1ba098b187c3c9b1989c954a76713924056cf79602f29963837e48506639===
+===META: mode=664 sha256=f380db3416f8e252b1ed42935b6d02871af55a9fe0ea5117107d1b26c6e30d67===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68125,7 +68370,7 @@ strategy_detect () {
     [[ "$text" == *"top - "* ]] || return 1
     [[ "$text" == *"Tasks:"* ]] || return 1
     [[ "$text" == *"%Cpu"* ]]   || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -68154,7 +68399,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/ulimit.sh===
-===META: mode=664 sha256=8bbff7ddaac9ae44088c17fcd7b4bce15fe8669a6529387d81097c3ff422579d===
+===META: mode=664 sha256=14dc759a638948071d238a286eae1a0f0f8d746b0238b6f97f714dd168ac128f===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68181,7 +68426,7 @@ strategy_detect () {
         fi
     done
     if [[ $hits -ge 2 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -68223,7 +68468,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/uname.sh===
-===META: mode=664 sha256=d205d49c8d64a3fec85b078e9c0f61b9c498cded91bb1995885d8a0f17311c4a===
+===META: mode=664 sha256=300bb8f2eaa43b262c5c1b82e68221eedf4d2e4acc553608020bd31ede3b45dc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68258,7 +68503,7 @@ strategy_detect () {
         [[ "${line}" != *[![:space:]]* ]] && continue
         # First non-blank line: OS name, node, release, then a `#buildno`.
         if [[ "$line" =~ ^(Linux|Darwin|FreeBSD|OpenBSD|NetBSD|SunOS|AIX)[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+\# ]]; then
-            _STRATEGY_CONFIDENCE=87
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
         return 1
@@ -68329,7 +68574,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE-ESC: extract/strategies/system/user-groups.sh===
-===META: mode=664 sha256=79497eca77185174efe94f5e30731cec22aa4283a52852eb8ce145f788564add===
+===META: mode=664 sha256=1cc82034e07fa1074721e98e89353b8b398aadeb235123810cbd6386184ee260===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68358,7 +68603,7 @@ strategy_detect () {
     done
     [[ $nonblank -eq 1 ]] || return 1
     [[ "$first" =~ ^[a-zA-Z0-9_.-]+[[:space:]]+:[[:space:]]+[a-zA-Z] ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -68386,7 +68631,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/vagrant-global-status.sh===
-===META: mode=664 sha256=3df7b7cb3ed69da29c0557e94861ccea7ffc5c6ddae70de5d3cf2679424da11d===
+===META: mode=664 sha256=27cdeba0222877561567e0ec9b8ea99c80e246a01daaed47cb243109f6c6746b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68426,7 +68671,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_header -eq 1 && $has_rule -eq 1 && $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -68451,7 +68696,7 @@ strategy_extract () {
 }
 ===END===
 ===FILE: extract/strategies/system/zypper-packages.sh===
-===META: mode=664 sha256=c37201941da6fe071f26b63a57753cdf2d2304937e5ac566351a6ce87a7d8bed===
+===META: mode=664 sha256=3b764c2b65944e417de5bdaba1b2b2a2425947a58cc5029e65f4239feacee6dc===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -68474,7 +68719,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"| Repository"* ]] || return 1
     [[ "$text" == *"| Arch"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -78231,7 +78476,7 @@ run_test "format_tsv: value spaces kept, tabs become spaces" test_tsv_value_spac
 print_summary
 ===END===
 ===FILE-ESC: extract/tests/test_generic_mode.sh===
-===META: mode=664 sha256=42586c6ea6da00d7e6f88dbe1890c66f45c4a507fba779911d22eae87b4df9cd===
+===META: mode=664 sha256=5bd1d40b70a00a0fbda03f42dc3d897cf6cc3b7ed8fd5b97effe953c6e831dbb===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -78440,17 +78685,18 @@ test_generic_with_sort () {
 }
 
 # ---------------------------------------------------------------------------
-# --generic with --min-confidence 95 AOe28094AO only json/csv/yaml (high-confidence) run
+# --generic with --min-confidence 85 AOe28094AO only the grammar tier (json/csv/yamlAOe280a6AO, 85) runs
 # ---------------------------------------------------------------------------
 
 test_generic_with_min_confidence () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf '{"x": 1}\n' > "$tmpfile"
-    # At confidence 95, only json (c95) should match; colons (c35) should not
-    output=$(run_mfe --generic --min-confidence 95 -f plain "$tmpfile")
+    # At confidence 85, only json (c85, grammar tier) should match; colons
+    # (general-structure tier, 55..60) should not
+    output=$(run_mfe --generic --min-confidence 85 -f plain "$tmpfile")
     rm -f "$tmpfile"
-    assert_contains "$output" "x" "--generic --min-confidence 95 should extract JSON fields"
+    assert_contains "$output" "x" "--generic --min-confidence 85 should extract JSON fields"
 }
 
 # ---------------------------------------------------------------------------
@@ -81360,6 +81606,138 @@ fi
 echo "All tests passed."
 echo "========================================"
 ===END===
+===FILE-ESC: extract/tests/test_rank.sh===
+===META: mode=664 sha256=1b622acad464482932634392d06d88b312194a8948317f7486f143341ee2df4d===
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
+################################################################################
+## Candidate ranking tests (--rank confidence|priority, MFE_RANK)
+##
+## Under --rank confidence (the default) every eligible detector runs and the
+## candidates are tried highest-confidence first (ties: priority, then name);
+## a candidate that extracts nothing yields to the next. --rank priority keeps
+## the historical order: the first strategy in priority order whose detect
+## passes and whose extract produces output. See extract/README.md
+## "Confidence rubric".
+################################################################################
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/helpers.sh"
+
+echo ""
+echo "========================================"
+echo "Candidate Ranking Tests"
+echo "========================================"
+
+TMPDIR_R="$(mktemp -d "${TMPDIR:-/tmp}/rank_tests.XXXXXX")"
+
+# _winner ARGS... FILE AOe28094AO the --emit-meta winner name.
+_winner () {
+    run_mfe --emit-meta -f tsv --max-strategies 1 "$@" 2>&1 >/dev/null \
+        | awk -F'\t' '/^__EXTRACT_META__/ { print $2 }'
+}
+
+# _plugin DIR NAME PRIORITY CONF MARKER EMIT AOe28094AO a plugin strategy that detects
+# MARKER at confidence CONF and extracts EMIT (empty EMIT = extracts nothing).
+_plugin () {
+    local dir="$1" name="$2" prio="$3" conf="$4" marker="$5" emit="$6"
+    mkdir -p "$dir"
+    cat > "$dir/${name}.sh" <<STRAT
+#!/bin/bash
+## Name: ${name}
+## Description: rank test plugin ${name}
+## Version: 1.0
+## Priority: ${prio}
+
+strategy_detect () {
+    _STRATEGY_CONFIDENCE=${conf}
+    [[ "\$1" == *'${marker}'* ]]
+}
+
+strategy_extract () {
+    [[ -n '${emit}' ]] && echo '${emit}'
+    return 0
+}
+STRAT
+}
+
+# openssl x509 -dates: aligned-columns (priority 55) detects it, but the
+# whole block is KEY=VALUE AOe28094AO equals (priority 65, confidence 75) outranks the
+# table reading (60..69) by confidence.
+_dates_fixture () {
+    printf 'notBefore=Jul  1 00:00:00 2026 GMT\nnotAfter=Sep 29 00:00:00 2026 GMT\n' > "$TMPDIR_R/dates.txt"
+}
+
+test_rank_default_is_confidence () {
+    _dates_fixture
+    assert_eq "equals" "$(_winner "$TMPDIR_R/dates.txt")" "default ranking picks the highest-confidence candidate"
+}
+
+test_rank_priority_flag () {
+    _dates_fixture
+    assert_eq "aligned-columns" "$(_winner --rank priority "$TMPDIR_R/dates.txt")" "--rank priority keeps the first-by-priority winner"
+    assert_eq "equals" "$(_winner --rank=confidence "$TMPDIR_R/dates.txt")" "--rank=confidence form is accepted"
+}
+
+test_rank_env_override () {
+    _dates_fixture
+    local w
+    w="$(MFE_RANK=priority bash "$MFE_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$TMPDIR_R/dates.txt" 2>&1 >/dev/null \
+        | awk -F'\t' '/^__EXTRACT_META__/ { print $2 }')"
+    assert_eq "aligned-columns" "$w" "MFE_RANK=priority selects priority order"
+}
+
+test_rank_invalid_value () {
+    _dates_fixture
+    local rc=0
+    run_mfe --rank bogus -f tsv "$TMPDIR_R/dates.txt" >/dev/null 2>&1 || rc=$?
+    assert_exit_nonzero "$rc" "--rank bogus is rejected"
+}
+
+# The top-ranked candidate extracts NOTHING: the next candidate must win, so
+# ranking never trades a working parse for an empty one.
+test_rank_empty_top_candidate_falls_through () {
+    local pd="$TMPDIR_R/empty"
+    _plugin "$pd" rank-empty 1 99 RANKMARK ""
+    _plugin "$pd" rank-full 90 98 RANKMARK "rank_key rank_val"
+    printf 'RANKMARK one\nRANKMARK two\n' > "$TMPDIR_R/empty.txt"
+    assert_eq "rank-full" "$(_winner --plugin-dir "$pd" "$TMPDIR_R/empty.txt")" "an empty top candidate yields to the next"
+}
+
+# Equal confidence: priority breaks the tie, then the strategy name.
+test_rank_tie_breaks_on_priority_then_name () {
+    local pd="$TMPDIR_R/tie"
+    _plugin "$pd" rank-b 5 97 TIEMARK "b_key b"
+    _plugin "$pd" rank-a 5 97 TIEMARK "a_key a"
+    _plugin "$pd" rank-c 90 97 TIEMARK "c_key c"
+    printf 'TIEMARK x\nTIEMARK y\n' > "$TMPDIR_R/tie.txt"
+    assert_eq "rank-a" "$(_winner --plugin-dir "$pd" "$TMPDIR_R/tie.txt")" "tie: lower priority number, then name (LC_ALL=C)"
+}
+
+# A LOWER-priority strategy with higher confidence wins by default, and loses
+# under --rank priority.
+test_rank_confidence_beats_priority () {
+    local pd="$TMPDIR_R/cb"
+    _plugin "$pd" rank-early 2 60 CBMARK "early_key e"
+    _plugin "$pd" rank-late 90 98 CBMARK "late_key l"
+    printf 'CBMARK x\nCBMARK y\n' > "$TMPDIR_R/cb.txt"
+    assert_eq "rank-late" "$(_winner --plugin-dir "$pd" "$TMPDIR_R/cb.txt")" "confidence ranking prefers the stronger evidence"
+    assert_eq "rank-early" "$(_winner --rank priority --plugin-dir "$pd" "$TMPDIR_R/cb.txt")" "priority ranking prefers the earlier strategy"
+}
+
+run_test "rank: default is confidence" test_rank_default_is_confidence
+run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
+run_test "rank: MFE_RANK env override" test_rank_env_override
+run_test "rank: invalid --rank value rejected" test_rank_invalid_value
+run_test "rank: empty top candidate falls through" test_rank_empty_top_candidate_falls_through
+run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priority_then_name
+run_test "rank: confidence beats priority (and --rank priority restores it)" test_rank_confidence_beats_priority
+
+rm -rf "$TMPDIR_R"
+print_summary
+===END===
 ===FILE-ESC: extract/tests/test_replay.sh===
 ===META: mode=664 sha256=9d2165b53371d54794f96cc208f489757c8838979884a7f072ee6ae6ef151117===
 #!/bin/bash
@@ -82334,8 +82712,8 @@ run_test "docker-ps: not applicable for JSON" test_docker_ps_not_applicable_for_
 
 print_summary
 ===END===
-===FILE: extract/tests/test_strategy_equals.sh===
-===META: mode=664 sha256=9e0285eaae108d262ddeba5f7d2b10ecf2bc6afb860c09dc095080b7bb5b2b6c===
+===FILE-ESC: extract/tests/test_strategy_equals.sh===
+===META: mode=664 sha256=3f7b5ea819744234009b70cadb275fdae6e2a884e3d3dcf5b0c541ebb49d2619===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -82419,7 +82797,11 @@ test_equals_confidence_prose_stays_low () {
     printf 'The build finished in 3 minutes.\nSet VERBOSE=1 to see more output.\nNo errors were reported by the linker.\nSee the manual for details.\n' > "$tmp"
     conf="$(_equals_conf "$tmp")"
     rm -f "$tmp"
-    [[ "$conf" -lt 50 ]] || _assert_failed "prose with one assignment must stay below 50 (got $conf)"
+    # Confidence rubric (extract/README.md): a lone `=` is catch-all-level
+    # evidence AOe28094AO at most 55, far below a real KEY=VALUE block (75). (It used to
+    # be held under 50, but under confidence ranking text-lines at 50 would
+    # then claim AOe28094AO and file AOe28094AO the input anyway.)
+    [[ "$conf" -ge 50 && "$conf" -le 55 ]] || _assert_failed "prose with one assignment must score catch-all-level 50..55 (got $conf)"
 }
 
 test_equals_value_spaces_kept () {
@@ -82439,7 +82821,7 @@ run_test "equals: JSON format output" test_equals_json_format
 
 run_test "equals: KEY=VALUE block confidence >= 70" test_equals_confidence_env_block
 run_test "equals: git config --list confidence >= 70" test_equals_confidence_git_config
-run_test "equals: prose with a lone '=' stays below 50" test_equals_confidence_prose_stays_low
+run_test "equals: prose with a lone '=' scores catch-all-level (50..55)" test_equals_confidence_prose_stays_low
 run_test "equals: values keep spaces" test_equals_value_spaces_kept
 print_summary
 ===END===
@@ -105241,9 +105623,9 @@ n	restarting:	app_py
 /home/deploy/project	development	postgres://localhost/dev	vi
 ===END===
 ===FILE: tests/corpus/expected/env-file-export-quotes.tsv===
-===META: mode=664 sha256=2ae7bd9cb8d63f3076baaaff5dafeec2886a9cb981b7ec5413f846507935e7c3===
-n	export	MOTD="Welcome	to	prod:
-1	export	JAVA_OPTS="-Xms512m	-Xmx2g	-Dfoo=bar"
+===META: mode=664 sha256=672459e99d0dd245fd2d2370c824c89d9a0c857fe9e92269a52a2fa2c83bd3f4===
+export_DB_HOST	export_MOTD	export_JAVA_OPTS
+"db.internal, replica"	"Welcome to prod: do not break things"	"-Xms512m -Xmx2g -Dfoo=bar"
 ===END===
 ===FILE: tests/corpus/expected/env.tsv===
 ===META: mode=664 sha256=cf6168780eb0a88267425e631d676f055320c2d3af2691b081cc85e12e99ea92===
@@ -115986,10 +116368,9 @@ line1	built_on	platform
 OpenSSL 3.2.1 30 Jan 2024 (Library: OpenSSL 3.2.1 30 Jan 2024)	Tue Jan 30 12:00:00 2024 UTC	linux-x86_64
 ===END===
 ===FILE: tests/corpus/expected/openssl-x509-dates.tsv===
-===META: mode=664 sha256=f76d3065932009deb4fba2ff3e02c74284ca74442687b8dab332a740a89d4b1f===
-n	A	B	C	D	E
-1	notBefore=Jul	1	00:00:00	2026	GMT
-2	notAfter=Sep	29	00:00:00	2026	GMT
+===META: mode=664 sha256=495a04d674a043c22b437680360c05f20bd2ada30a52d7bf332a7543ad5e9f2c===
+notBefore	notAfter
+Jul  1 00:00:00 2026 GMT	Sep 29 00:00:00 2026 GMT
 ===END===
 ===FILE: tests/corpus/expected/openssl-x509-subject-commas.tsv===
 ===META: mode=664 sha256=51083cf726b885d2126f067874976218bce23fbeb906440e56c6e6ab1fa9973c===
