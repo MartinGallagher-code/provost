@@ -152,7 +152,11 @@ clean_text () {
                 # keep it, or the underscored date welds onto the preceding
                 # word (`built on: Mon Jan 26 …` became `MonJan_26_…`).
                 local _dr=" ${BASH_REMATCH[1]}${_CT_SP}${BASH_REMATCH[2]}${_CT_SP}${BASH_REMATCH[3]}${_CT_CO}${BASH_REMATCH[4]}${_CT_CO}${BASH_REMATCH[5]}${_CT_SP}${BASH_REMATCH[6]}"
-                _line="${_line/$_dm/$_dr}"
+                # Quoted pattern AND replacement: unquoted, glob characters in
+                # the text act as a pattern and (bash >= 5.2, patsub_replacement)
+                # an `&` in the replacement re-inserts the match — a line like
+                # `K=(x&y z)` then grew forever.
+                _line="${_line/"$_dm"/"$_dr"}"
             done
         fi
         # Parentheses space normalization (only lines with parens)
@@ -160,7 +164,7 @@ clean_text () {
             while [[ "$_line" =~ $_paren_re ]]; do
                 local _pm="${BASH_REMATCH[0]}"
                 local _pr="${_pm% }${_CT_SP}"
-                _line="${_line/$_pm/$_pr}"
+                _line="${_line/"$_pm"/"$_pr"}"
             done
         fi
         result+="$_line"$'\n'
