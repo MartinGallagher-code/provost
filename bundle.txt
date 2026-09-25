@@ -247,8 +247,32 @@ python:
     - requirements: docs/requirements.txt
 ===END===
 ===FILE-ESC: CHANGELOG.md===
-===META: mode=664 sha256=dbe68eb3122c6676ea048c49ea73e73b7cd239613913a630860fe76c3fed0583===
+===META: mode=664 sha256=2cd6a87fa614d0ac84c31cab5358ae8c4bffe28e165ab8bf5a25610ffbd7341e===
 # provost AOe28094AO Changelog
+
+## 2026-09-25 AOe28094AO ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
+
+- **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with
+  `--max-strategies 1` / `--first-match`, a detector whose ceiling
+  (`## Confidence-Max`, else its largest literal) cannot beat the best so far
+  is skipped; if the top candidate then extracts nothing the pass is redone
+  unpruned. Corpus: 0 differences vs unpruned in full and `--generic` mode.
+  `## Confidence-Max` added to aligned-columns (69), colons (60), equals (75),
+  line-records (55).
+- **Documents under ranking**: a JSON/XML document is sampled for the ordinary
+  detectors while `_FR_DOC_STRATEGIES` (json, json-array, jsonl, xml, har,
+  yaml, toml) see it whole. 10 MB JSON: 146 s AOe28692AO 12 s. The 168 document-shaped
+  corpus inputs give identical output with a forced 8+4-line sample.
+- **equals** awk fast path computes the calibrated confidence.
+- **clean_text hang** (`extract/lib/_helpers.sh`): the paren/date
+  substitutions quoted neither pattern nor replacement, so glob characters
+  acted as patterns and, under bash 5.2's patsub_replacement, `&` re-inserted
+  the match AOe28094AO `K=(x&y z)` grew for minutes (pre-existing on main).
+- Tests: `extract/tests/test_rank.sh` (+2: pruned redo, pruning exact),
+  `extract/tests/test_big_input_paths.sh` (documents flagged and sampled;
+  whole-document grammar detection preserved).
+
+provost --sync, 10 MB: ps 22 s, CSV 15 s, JSON 12 s, syslog 11 s, KEY=VALUE 7 s.
 
 ## 2026-09-25 AOe28094AO very large inputs: bounded detection sample, file lane, awk twins
 
@@ -6031,7 +6055,7 @@ store, multi-user).
   `provost/tests/smoke.sh`.
 ===END===
 ===FILE-ESC: CLAUDE.md===
-===META: mode=664 sha256=f61d1815c89f49042aa04598bda25ed1d99b10074d9094276d00f0884a99837e===
+===META: mode=664 sha256=4b4abc0984f561f9cd8c100a9a3f0ddfe8bcc527cc866c856346dbeac4918b90===
 # Project Instructions AOe28094AO provost
 
 `provost` turns command output into data: capture a command's output, auto-detect
@@ -6079,7 +6103,7 @@ When you change `provost` or a first-party test, run and keep green:
 
 ```bash
 bash tests/smoke.sh                 # end-to-end (197 checks)
-bash transform/tests/test_melt.sh   # transform unit test (42 checks)
+bash transform/tests/test_melt.sh   # transform unit test (54 checks)
 ```
 
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
@@ -6181,7 +6205,7 @@ problem we hit. Follow these rules and they don't recur:
    before committing.
 ===END===
 ===FILE-ESC: HANDOFF.md===
-===META: mode=664 sha256=9e071d3fb4b1115e7d65efecded9ab0668e08b97fef8b55c2302438ef6f4b926===
+===META: mode=664 sha256=c691e0410a7b16914078dce7ba3aa7d4448d6aed6332e7862eec8bce5ada7380===
 # Handoff AOe28094AO provost
 
 The history that used to live here (2026-07 AOe28692AO 2026-09-16, ~100 KB) is in git:
@@ -6218,7 +6242,8 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
 
 ## Next steps
 
-1. **Decide on two repo-weight items** (deletions were held for the owner):
+1. **Two repo-weight items** (deletions held for the owner, who plans to
+   delete `bundle.txt` themselves):
    `bundle.txt` (9.5 MB, a whole-tree copy committed on every change AOe28094AO could be
    built on demand or attached to releases instead, dropping
    `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
@@ -6228,7 +6253,8 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    32 KB and re-confirms the winner on the full text; the hot generic parsers
    and the engine's own passes have byte-identical awk twins; a big result
    stays in a file to the end; provost melts that file directly. 10 MB now
-   takes 6.5AOe28093AO18 s end to end (was minutes). Knobs `_FR_SAMPLE_BYTES`,
+   takes 7AOe28093AO22 s end to end (was minutes); JSON/XML documents are sampled for
+   ordinary detectors while the document grammars see them whole. Knobs `_FR_SAMPLE_BYTES`,
    `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
    `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
    a ratio-threshold detector can decide differently on the sample than on
@@ -6238,9 +6264,14 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
    loop is slow on big inputs AOe28094AO give it an awk twin, proven over the corpus
    with `_FR_BIG_BYTES=0`.
-3. **Confidence doesn't rank candidates** (priority does). Ranking by
-   confidence would flip 43% of corpus winners because `line-records` always
-   reports 80; calibrating strategy confidences is the prerequisite.
+3. **Confidence ranks candidates** (2026-09-25): confidences follow the
+   rubric in `extract/README.md`; every detector runs and the best confidence
+   wins (ties: priority, name), with exact ceiling pruning so a strong early
+   candidate skips the detectors that cannot beat it. `--rank priority` keeps
+   the old first-match order. Open: bespoke strategies sit at a uniform 92
+   without a per-detector signature audit; `run_explain_mode` still lists
+   matches in name order; `docs/0003-multi-dataset.md` still describes
+   priority-order winners.
 4. Old stores keep a `total_entries` column in existing datasets; new rows
    blank-fill it. A one-off migration could drop it if that matters.
 5. The `envoy-*` / `ENVOY_*` / `MFE_*` internal names remain (a large rename,
@@ -30316,7 +30347,7 @@ parse), stored with the capture (`context.txt`), and shown verbatim by
 `provost source`. Wrappers can prepend context unconditionally.
 ===END===
 ===FILE-ESC: extract/README.md===
-===META: mode=664 sha256=7401350cddc540e66d9bc6211320ba02cdf965156c7edeee050a30fb4ced1d9b===
+===META: mode=664 sha256=fadc7d1a5c47b8f5d7c5f3c7d55aafc3d569a810741d0979e3c50e3cad64193c===
 # provost/extract AOe28094AO the extract engine
 
 This directory holds provost's extract engine + all strategies. `provost` runs it
@@ -30382,12 +30413,17 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 ### Very large inputs
 
 Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
-(the first 120 / last 40 whole lines, byte-capped; JSON/XML documents are
-never cut), and a strategy that accepts the sample is re-run on the full text,
+(the first 120 / last 40 whole lines, byte-capped), and a strategy that
+accepts the sample is re-run on the full text,
 which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
 detector must never ACCEPT a sample it would reject in full AOe28094AO it cannot, the
 full text re-decides AOe28094AO but it can falsely REJECT when its evidence lies only
-in the middle of a huge input; prefer evidence the head carries.
+in the middle of a huge input; prefer evidence the head carries. A JSON/XML
+document (first non-blank byte `{`, `[` or `<`) is still sampled for the
+ordinary detectors, but the document grammars listed in `_FR_DOC_STRATEGIES`
+(json, json-array, jsonl, xml, har, yaml, toml) always see it whole AOe28094AO cutting a
+document makes it invalid. A plugin that parses whole documents belongs in that
+list.
 
 Above `_FR_BIG_BYTES` the hot generic parsers (`aligned-columns`, `csv`,
 `syslog`, `equals`, `json-array`) and the engine's own passes switch to awk
@@ -30423,6 +30459,19 @@ non-empty wins, and confidence is only compared to thresholds. `--strategy` and
 groups blocks by the same ranking (`_multi_detect_name` in lib/_dispatch.sh:
 highest-confidence detector, ties by priority then name); being detect-only it
 cannot fall through an empty extract, which the per-group extract then does.
+
+**Pruning (exact).** With `--max-strategies 1` / `--first-match` (how provost
+calls the engine), a detector whose confidence CEILING cannot beat the best
+candidate found so far is skipped without being sourced. The ceiling is the
+strategy's `## Confidence-Max: N` header, else the largest literal it assigns
+to `_STRATEGY_CONFIDENCE` (and 50); a computed assignment without the header
+makes the ceiling 100 AOe28094AO never pruned AOe28094AO so **a strategy that computes its
+confidence must declare `## Confidence-Max`** or it forfeits the speed-up. If
+the top candidate then extracts nothing, the whole pass is redone unpruned, so
+the winner is always exactly the unpruned ranking (`_EAS_NOPRUNE=1` forces the
+unpruned pass; `tests/test_rank.sh` pins it, and the corpus was checked
+byte-for-byte in full and `--generic` mode).
+
 
 ## Confidence rubric
 
@@ -35056,7 +35105,7 @@ format_xml () {
 # _NTH_RESULT        string  -- _interactive.sh: _interactive_get_nth() result
 ===END===
 ===FILE-ESC: extract/lib/_helpers.sh===
-===META: mode=664 sha256=d37743c8486f8006d34d865d91c4650b15ef6fd71ea35293423836528ba8e9c7===
+===META: mode=664 sha256=13e7fc5df855ef1ce2bb488bbbdb769119f41ceb52abfbac0763a26abd9f10dd===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -35211,7 +35260,11 @@ clean_text () {
                 # keep it, or the underscored date welds onto the preceding
                 # word (`built on: Mon Jan 26 AOe280a6AO` became `MonJan_26_AOe280a6AO`).
                 local _dr=" ${BASH_REMATCH[1]}${_CT_SP}${BASH_REMATCH[2]}${_CT_SP}${BASH_REMATCH[3]}${_CT_CO}${BASH_REMATCH[4]}${_CT_CO}${BASH_REMATCH[5]}${_CT_SP}${BASH_REMATCH[6]}"
-                _line="${_line/$_dm/$_dr}"
+                # Quoted pattern AND replacement: unquoted, glob characters in
+                # the text act as a pattern and (bash >= 5.2, patsub_replacement)
+                # an `&` in the replacement re-inserts the match AOe28094AO a line like
+                # `K=(x&y z)` then grew forever.
+                _line="${_line/"$_dm"/"$_dr"}"
             done
         fi
         # Parentheses space normalization (only lines with parens)
@@ -35219,7 +35272,7 @@ clean_text () {
             while [[ "$_line" =~ $_paren_re ]]; do
                 local _pm="${BASH_REMATCH[0]}"
                 local _pr="${_pm% }${_CT_SP}"
-                _line="${_line/$_pm/$_pr}"
+                _line="${_line/"$_pm"/"$_pr"}"
             done
         fi
         result+="$_line"$'\n'
@@ -77641,7 +77694,7 @@ run_test "batch-summary: files_processed lists successful files"       test_batc
 print_summary
 ===END===
 ===FILE-ESC: extract/tests/test_big_input_paths.sh===
-===META: mode=664 sha256=f365c244e87c74b8f4d0e015ed83a17fa3f9d4a17861f8abda29b444c24db569===
+===META: mode=664 sha256=7c9bc4f76de64f4d11323de5c92652fe2341b281cef346ab1d28245a8be5bc0b===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -77835,12 +77888,46 @@ test_sample_not_taken () {
         "head + tail covering every line: no sample"
     assert_eq "$(_sample_of "$t" _FR_SAMPLE_BYTES=-1 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
         "_FR_SAMPLE_BYTES=-1 disables sampling"
-    assert_eq "$(_sample_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
-        "a JSON document is never cut"
-    assert_eq "$(_sample_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "0|" \
-        "an XML document is never cut"
+    # A JSON / XML document IS sampled for the ordinary detectors, but flagged
+    # as a document so the grammar strategies (_FR_DOC_STRATEGIES) see it whole.
+    assert_eq "$(_doc_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+        "a JSON document is sampled and flagged as a document"
+    assert_eq "$(_doc_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+        "an XML document is sampled and flagged as a document"
+    assert_eq "$(_doc_of "$(printf 'a b\n1 2\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|0" \
+        "a table is sampled and not flagged"
     assert_eq "$(_sample_of "$(printf 'x%.0s' $(seq 1 100))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD_BYTES=10)" "0|" \
         "no whole line fits the head budget: no sample"
+}
+
+_doc_of () {  # TEXT [ENV...] -> prints "<sampled>|<document>"
+    local t="$1"; shift
+    env "$@" bash -c '
+        set -o pipefail
+        source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
+        text="$2"; _detect_sample_build
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+}
+
+# A big JSON array or XML document picks the same winner, with the same
+# output, whether or not the ordinary detectors screen a (tiny) sample: the
+# document grammars still parse the whole, uncut document.
+test_sample_documents_whole () {
+    local j="$BIG_TMP/doc.json" x="$BIG_TMP/doc.xml" f n
+    { printf '[\n'; local i; for ((i = 1; i < 400; i++)); do printf '  {"id": %d, "name": "n%d", "ok": true},\n' "$i" "$i"; done
+      printf '  {"id": 400, "name": "n400", "ok": false}\n]\n'; } > "$j"
+    { printf '<?xml version="1.0"?>\n<items>\n'; local i; for ((i = 1; i <= 400; i++)); do printf '  <item id="%d">v%d</item>\n' "$i" "$i"; done
+      printf '</items>\n'; } > "$x"
+    for f in "$j" "$x"; do
+        n="${f##*/}"
+        _big_run "$BIG_TMP/$n.whole" _FR_SAMPLE_BYTES=-1 -- "$f"
+        _big_run "$BIG_TMP/$n.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 -- "$f"
+        if ! cmp -s "$BIG_TMP/$n.whole" "$BIG_TMP/$n.samp"; then
+            _assert_failed "$n: sampled detection differs from whole-document detection"
+            diff "$BIG_TMP/$n.whole" "$BIG_TMP/$n.samp" | head -5
+        fi
+        assert_contains "$(cat "$BIG_TMP/$n.whole")" "__EXTRACT_META__" "$n: meta line present"
+    done
 }
 
 # A strategy that ACCEPTS the sample but REJECTS the full text must fall
@@ -77925,6 +78012,7 @@ run_test "routes: ' = ' table decline" test_routes_eq_table
 run_test "sample: head + tail whole lines" test_sample_head_tail
 run_test "sample: byte caps" test_sample_byte_caps
 run_test "sample: when not taken" test_sample_not_taken
+run_test "sample: documents keep whole-document grammar detection" test_sample_documents_whole
 run_test "sample: accept-then-reject falls through" test_sample_confirm_rejects
 run_test "sample: confidence is the full-text one" test_sample_confidence_is_full_text
 run_test "hints: prefilters are conservative" test_hint_prefilters_sound
@@ -83548,7 +83636,7 @@ echo "All tests passed."
 echo "========================================"
 ===END===
 ===FILE-ESC: extract/tests/test_rank.sh===
-===META: mode=664 sha256=1b622acad464482932634392d06d88b312194a8948317f7486f143341ee2df4d===
+===META: mode=664 sha256=72ab16b2348e5ce7056b09f8d2d8528fed848de739af78c7acff6921b08bec05===
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
@@ -83668,6 +83756,34 @@ test_rank_confidence_beats_priority () {
     assert_eq "rank-early" "$(_winner --rank priority --plugin-dir "$pd" "$TMPDIR_R/cb.txt")" "priority ranking prefers the earlier strategy"
 }
 
+# PRUNING (exact): with --max-strategies 1 a detector whose confidence ceiling
+# cannot beat the best so far is skipped. If the top candidate then extracts
+# nothing, the pass is redone unpruned AOe28094AO `adb shell getprop` output looks like
+# JSON (json scores 85) but json extracts nothing; colons (ceiling 60) was
+# pruned and must still win.
+test_rank_pruned_top_failure_redoes () {
+    local f="$TMPDIR_R/getprop.txt"
+    printf '%s\n' '[ro.product.model]: [Pixel 8]' '[ro.product.brand]: [google]' \
+        '[ro.build.version.release]: [14]' '[ro.build.version.sdk]: [34]' \
+        '[dalvik.vm.heapsize]: [512m]' > "$f"
+    assert_eq "$(_winner "$f")" "colons" "pruned run falls back to colons"
+    assert_eq "$(_EAS_NOPRUNE=1 _winner "$f")" "colons" "unpruned run agrees"
+}
+
+# Pruning never changes a winner (the corpus proves it at scale; this pins a
+# few shapes).
+test_rank_pruning_is_exact () {
+    local f n=0
+    for f in "$SCRIPT_DIR/../samples/aligned-columns/basic.txt" \
+             "$SCRIPT_DIR/../samples/csv/"*.csv \
+             "$SCRIPT_DIR/../samples/json/"*; do
+        [[ -f "$f" ]] || continue
+        n=$((n + 1))
+        assert_eq "$(_winner "$f")" "$(_EAS_NOPRUNE=1 _winner "$f")" "same winner: ${f##*/}"
+    done
+    [[ $n -gt 0 ]] || _assert_failed "no samples found"
+}
+
 run_test "rank: default is confidence" test_rank_default_is_confidence
 run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
 run_test "rank: MFE_RANK env override" test_rank_env_override
@@ -83675,6 +83791,8 @@ run_test "rank: invalid --rank value rejected" test_rank_invalid_value
 run_test "rank: empty top candidate falls through" test_rank_empty_top_candidate_falls_through
 run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priority_then_name
 run_test "rank: confidence beats priority (and --rank priority restores it)" test_rank_confidence_beats_priority
+run_test "rank: pruned top candidate failure redoes unpruned" test_rank_pruned_top_failure_redoes
+run_test "rank: pruning is exact" test_rank_pruning_is_exact
 
 rm -rf "$TMPDIR_R"
 print_summary
