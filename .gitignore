@@ -24,3 +24,6 @@ node_modules/
 package.json
 package-lock.json
 site/
+
+# Agent worktrees
+.claude/worktrees/

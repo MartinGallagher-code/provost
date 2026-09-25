@@ -1,9 +1,5 @@
 name: CI
 
-# NOTE: paths here are relative to the repo root. This file lives under provost/ in
-# the upstream Envoy repo (where GitHub ignores it — only root .github/ runs) and
-# becomes active once provost is extracted to its own repository.
-
 # Cost control (this repo is private, so Actions minutes are billed):
 #
 #   * `push` is limited to main. A bare `push:` alongside `pull_request:`
@@ -43,7 +39,7 @@ jobs:
     # they cost one. The trade is that they report as a single check rather
     # than four; a failing step still fails the job and names itself in the
     # log.
-    name: quick checks (docs, transform, bundle, REUSE)
+    name: quick checks (docs, transform, corpus, bundle, REUSE)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -59,6 +55,11 @@ jobs:
           exit $missing
       - name: transform unit test
         run: bash transform/tests/test_melt.sh
+      # ~3,500 frozen tidy outputs of real tools. It runs in seconds (job pool,
+      # --generic only) and is the only thing that catches a parser change
+      # silently re-shaping another tool's output.
+      - name: corpus goldens (tidy output of ~3,500 real tools)
+        run: bash tests/corpus/run.sh --golden
       - name: bundle.txt lists exactly the tracked files
         run: bash tests/check-bundle-current.sh
       - name: REUSE licensing lint
@@ -82,12 +83,18 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: use gawk (the analyze engine prefers it; Ubuntu defaults to mawk)
+      # Ubuntu's default awk is mawk, which is what most users have, so the
+      # suite runs under mawk first; then again under gawk.
+      - name: run engine tests (mawk)
+        run: |
+          awk -W version 2>&1 | head -1
+          bash analyze/tests/run_tests.sh
+      - name: install gawk
         run: |
           sudo apt-get update -qq && sudo apt-get install -y gawk
           sudo update-alternatives --set awk /usr/bin/gawk
-      - name: run engine tests
-        run: ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh
+      - name: run engine tests (gawk)
+        run: bash analyze/tests/run_tests.sh
 
   python-package:
     name: python package (pip / PyPI)

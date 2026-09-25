@@ -91,7 +91,7 @@ first time:
 - **Hold out files over 290,000 bytes** before encoding. Base64 expands by
   ~1.35x, so a larger file cannot fit a packet and cannot be split either — an
   entry is atomic. Ship those plain. Today that is `CHANGELOG.md` and the two
-  `docs/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
+  `docs/archive/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
   rather than from this list: all three are files that grow.
 
 `shared_tools/CLAUDE.md` carries the exact commands, the verified packet count,
