@@ -1,5 +1,81 @@
 # provost — Changelog
 
+## 2026-09-25 — assessment fixes: data integrity, security, parsing, speed
+
+A full review found silent data loss in the capture path, several ways a
+shared store or an untrusted directory could run code, parser bugs that
+corrupted values, and detection too slow for real inputs. All of it is fixed.
+
+**Capture path and store (`provost`, `tests/smoke.sh`, `man/provost.1`,
+`completions/provost.bash`)**
+- Captures over ~3,000 rows died silently with exit 141 (pipefail + `printf |
+  head` on multi-MB variables), leaving a stale lock. The path now works on
+  files; a 50,000-row CSV captures correctly.
+- Capture ids come from a monotonic `.next_capture_id` (migrated for old
+  stores), so `rm`/`restore` can no longer make a new capture overwrite an old
+  one. Captures and `rm` are refused while a restored capture is checked out.
+- The store has a `.gitignore` (lock, failure log, registry); a committed
+  `.lock` is untracked. git failures exit non-zero instead of printing "ok".
+- Controlled-directory snapshots run (a `local` expansion bug skipped them).
+- `rm` handles `--multi` captures and purges only captures nobody uses;
+  restore/export/control/uncontrol lock; the lock can't be stolen from another
+  user's live process and is broken atomically.
+- Dataset names and capture ids are validated (`rm -f ../../x` deleted files
+  outside the store); numeric settings are validated before arithmetic (they
+  allowed command injection); engines and `melt.sh` load only from the install
+  dir, never the store; a store whose `.git/config` others can write is refused
+  if it sets keys that make git run programs.
+- `provost run CMD` files into a dataset named after the command (through
+  sudo/env/timeout/… wrappers); `--name` overrides. The README's
+  `provost show df` is finally true.
+- Background capture only at an interactive terminal; scripts are synchronous.
+  Background failures are logged, warned about, and listed by
+  `provost log --failed`.
+- `run` honours `PROVOST_MAX_INPUT`; paths with spaces/quotes work; help goes
+  to stdout; usage errors exit 2 with "did you mean"; per-command `--help`.
+
+**Transform (`transform/melt.sh`, `transform/tests/test_melt.sh`)**
+- Digit-suffixed names (`python3.path`, `eth0.mtu`) are no longer taken for
+  record counters; only the engine's record prefixes melt to `n`, and an
+  eth0/eth1 family becomes rows with a `key` column.
+- The O(n²) sort is gone (20k records: 60s → 0.5s).
+- `total_entries` (the engine's record count) is no longer repeated on every
+  row. Existing datasets that have the column keep it; new rows blank-fill it.
+
+**Extract/analyze engines (`extract/`, `analyze/`, `lib/`)**
+- Values keep their spaces (`y, z` was `y,_z`; dates, syslog stamps, symlink
+  arrows were mangled); `format_tsv` no longer shears rows on a tab in a value.
+- TSV keeps empty cells (a blank cell shifted the rest of the row left).
+- `equals` scores by evidence, so `env`-style output files instead of always
+  falling below the threshold.
+- `.envoyrc`: provost disables it (`ENVOY_NO_RC=1`); otherwise only
+  `ENVOY_`/`MFE_`/`PROVOST_` keys, a hard deny list (`LD_PRELOAD` reached child
+  processes), no walk past `$HOME`, and untrusted files skipped.
+- Detection is ~10× faster with byte-identical output (`df -h` 3.6s → 0.33s,
+  `ps aux` 7.2s → 0.7s, 3.5k lines 272s → 11s; the extract suite 7m → 2m):
+  the strategy loader read `declare -F` one byte per syscall; strategies now
+  use shared fast helpers; aligned-columns emits in one awk pass; quadratic
+  string appends are linear. Equal priorities tie-break by strategy name, not
+  folder. Ranking by confidence was measured and rejected (43% of corpus
+  winners would flip).
+- The strategy verifier fails on a missing sample/golden and compares in
+  order; the 19 strategies without samples have them; orphan fixtures and the
+  69 per-directory `HANDOFF.md` files (wrong counts) are gone; the SageCor
+  "Version 4.2" banner is replaced by provost's own version and licence; the
+  analyze suite passes under mawk, runs every file, and lost its pipefail
+  flakes.
+
+**Tests, CI, repo**
+- smoke 65 → 197 checks, melt 10 → 42, new `extract/tests/test_envoyrc.sh`.
+- CI runs the corpus goldens (they guarded nothing before) and the analyze
+  suite under mawk as well as gawk.
+- Corpus goldens are regenerated for the intended output changes above
+  (value spaces, tab/TSV fixes, digit keys, `total_entries`); the manifest's
+  minimum column counts drop by one where `total_entries` was counted.
+- Review worksheets moved to `docs/archive/`; `tests/corpus/review-snapshot.sh`
+  regenerates the review snapshot; README, `docs/usage.md`, `docs/index.md`
+  and CLAUDE.md match the new behaviour; HANDOFF.md is rewritten short.
+
 ## 2026-09-16 — one licence notice across the whole suite (GPL-3.0-or-later)
 
 provost was the only repository in the suite licensed **GPL-3.0-only**; every
