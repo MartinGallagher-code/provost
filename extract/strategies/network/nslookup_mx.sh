@@ -18,11 +18,9 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=92
-    local line
-    _fr_lines "$text"
-    for line in "${_FR_LINES[@]}"; do
-        [[ "$line" == *"mail exchanger = "* ]] && return 0
-    done
+    # (a line holds the literal iff the text does — it has no newline — so
+    # one whole-text test instead of a walk over every line)
+    [[ "$text" == *"mail exchanger = "* ]] && return 0
     return 1
 }
 

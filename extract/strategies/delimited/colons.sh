@@ -6,6 +6,7 @@
 ## Description: Extract field:value pairs from colon-delimited data
 ## Version: 1.1
 ## Priority: 60
+## Confidence-Max: 60
 ## Sample: samples/colons/basic.txt
 
 strategy_detect () {

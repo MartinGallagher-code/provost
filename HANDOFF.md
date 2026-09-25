@@ -29,7 +29,7 @@ Behaviour worth knowing:
 - Engines run with `ENVOY_NO_RC=1`; the `.envoyrc` layer is off under provost.
 
 Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
-(42), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
+(54), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
 (mawk and gawk), `tests/corpus/run.sh --golden`, `python -m pytest`.
 
 ## Next steps
@@ -40,10 +40,20 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
    94% byte-identical to `expected/`; `tests/corpus/review-snapshot.sh` now
    regenerates it, so it can be gitignored).
-2. **Large inputs are still slow**: a 10 MB table takes ~4.7 min, all in bash
-   detection (~245 detectors × the full text). Next lever: detect on a bounded
-   head/tail sample, or engine-level required-token headers — only with a
-   corpus run proving winners don't change.
+2. **Large inputs** (2026-09-25): detection screens a bounded sample above
+   32 KB and re-confirms the winner on the full text; the hot generic parsers
+   and the engine's own passes have byte-identical awk twins; a big result
+   stays in a file to the end; provost melts that file directly. 10 MB now
+   takes 6.5–18 s end to end (was minutes). Knobs `_FR_SAMPLE_BYTES`,
+   `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
+   `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
+   a ratio-threshold detector can decide differently on the sample than on
+   the full text (1 of 360 synthetic inputs). Remaining time at 10 MB is
+   mostly bash copying the text (each full-string expansion ~0.15 s),
+   aligned-columns' full-text detect (~4 s), dedup + TSV (~4 s) and the melt
+   (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
+   loop is slow on big inputs — give it an awk twin, proven over the corpus
+   with `_FR_BIG_BYTES=0`.
 3. **Confidence doesn't rank candidates** (priority does). Ranking by
    confidence would flip 43% of corpus winners because `line-records` always
    reports 80; calibrating strategy confidences is the prerequisite.

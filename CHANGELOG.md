@@ -1,5 +1,87 @@
 # provost — Changelog
 
+## 2026-09-25 — very large inputs: bounded detection sample, file lane, awk twins
+
+A 10 MB capture took minutes (ps table ~282 s, KEY=VALUE ~281 s in the
+engine alone; 1 MB inputs 6–94 s end to end). Now (4-core box, `provost
+--sync FILE`, fresh store): 10 MB in 6.5–18 s, 1 MB in 1.3–2.4 s, 100 KB in
+0.4–1.2 s — every dataset byte-identical to before.
+
+| `provost --sync` | 100 KB before → after | 1 MB before → after | 10 MB after (engine alone) |
+|---|---|---|---|
+| ps table   | 4.0 s → 1.2 s | 38.4 s → 2.4 s | 18.1 s (14.0 s) |
+| CSV        | 4.0 s → 0.6 s | 44.4 s → 1.6 s | 13.6 s (8.6 s) |
+| JSON array | 0.9 s → 0.4 s |  6.2 s → 1.3 s | 11.3 s (9.6 s) |
+| syslog     | 7.7 s → 0.7 s | 93.8 s → 1.3 s |  8.8 s (6.6 s) |
+| KEY=VALUE  | 7.5 s → 0.7 s | 68.0 s → 1.4 s |  6.5 s (5.9 s) |
+
+**Detection (`extract/lib/_discovery.sh`)**
+- Above 32 KB (`_FR_SAMPLE_BYTES`) every detector screens a bounded SAMPLE —
+  the first 120 / last 40 whole lines, 16 KB / 4 KB caps; JSON/XML documents
+  are never cut — and a strategy that accepts it is re-run on the FULL text,
+  which alone decides acceptance, confidence and any detect→extract state.
+  The sample applies to every detector's input, so it is independent of how
+  the winner is picked (priority now, a confidence ranking later).
+- Hint rows on a big input: one pass finds which hint literals occur (a
+  `contains` pattern, or a literal every match of a `regex` row must hold,
+  or the first atom of an anchored regex); rows that cannot match skip their
+  full-text regex. Exact by construction (tests + corpus).
+- `clean_text`'s cache is keyed on its input.
+
+**Engine passes (`extract/lib/_helpers.sh`, `_postprocess.sh`, `_format.sh`,
+`_dispatch.sh`, `extract/envoy-extract`)**
+- FILE LANE (`_FR_LANE_BYTES`, 64 KB): a big result goes from
+  `strategy_extract` to a file and stays there — count, truncation guard,
+  store, dedup, prefix strip and TSV formatting run file to file with the
+  same awk programs as their variable twins (plain `-f tsv` runs only; any
+  other option set gets `output` back byte for byte).
+- Preprocessing answers its ~20 "text contains X" gates in one pass;
+  `== banner ==` drops and the output's has-content check no longer walk the
+  text in bash.
+
+**Generic strategies — awk twins above `_FR_BIG_BYTES`, byte-identical**
+- `aligned-columns`: detect's two whole-text loops in one pass; the body's
+  line walk hands the rest to awk once the table starts; extract runs file to
+  file (`_ac_extract_big`: collection, header repeats / units row, first-cell
+  wraps, positional / segment / offset decisions, emission) and hands back to
+  the bash loops only for the positional grid, non-ASCII blocks, segment
+  split, scaffold split and phrase merges. Early-exit loops index the line
+  array instead of expanding all of it.
+- `csv` (join + emit; detect decides on a whole-line prefix when it can),
+  `syslog` (detect + extract, including the bash loop's `set -u` abort on a
+  short line), `equals` (detect, pin/cfg/kv modes with `clean_text` and
+  `restore_text_values` folded in; glob/`&` paren spans fall back to bash),
+  `json-array` (reads the input as one record — the per-line rebuild was
+  quadratic), `nslookup_mx` / `clickhouse-processlist` (whole-text tests).
+
+**Transform + provost (`transform/melt.sh`, `provost`)**
+- `_core_melt_tidy_file FILE [capid]` == `_core_melt_tidy "$(cat FILE)"`;
+  provost melts the engine's output file directly. The melt keys cells by
+  position instead of an (id, field) string pair (mawk string hashing
+  collapses past ~1M keys: 12 s → 4.8 s for a 10 MB CSV).
+
+**Proofs** (scratch runs; all LC_ALL=C)
+- Corpus, 3,705 inputs, batch `--max-strategies 1`, full and `--generic`:
+  identical winner meta and wide output to the pre-change engine — as shipped;
+  with every awk twin and the lane forced (`_FR_BIG_BYTES=0
+  _FR_LANE_BYTES=0`); and with sampling forced at 20+8 and 40+15 lines.
+- Sampling forced at a deliberately tiny 8+4 lines (374 corpus inputs are
+  longer than that): 45 winners change (46 `--generic`), all from an earlier
+  strategy rejecting a sample that cut off its evidence (dig's ANSWER
+  section, kubectl-describe sections, psql tables); extraction output is
+  identical whenever the winner is (0 wide diffs). The default 120+40-line
+  sample holds every corpus input whole.
+- 360 synthetic big inputs (corpus tools, header once, body replicated to
+  60 KB): sampled winner == full-detection winner for 359; the one flip
+  (`deno-info`: pkg-config 88 → colons 35) is a ratio knife-edge — pkg-config
+  declines when one token count covers >=60% of lines, and the sample's
+  period cut lands at exactly 60%. This is the residual risk of sampling:
+  ratio-threshold detectors can decide differently on a sample.
+- `extract/tests/test_big_input_paths.sh` (new, 23 tests): each route vs the
+  bash route on generated inputs, the sample's shape, accept-then-reject
+  fall-through, full-text confidence, hint prefilter soundness.
+  `transform/tests/test_melt.sh`: +12 file-vs-string melt checks (54).
+
 ## 2026-09-25 — format detection ranks candidates by calibrated confidence
 
 The extract engine used to take the first strategy in priority order whose

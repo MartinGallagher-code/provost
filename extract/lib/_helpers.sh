@@ -127,8 +127,10 @@ _CT_CO=$'\x1f'
 clean_text () {
     local input="$1"
 
-    # Return cached result if available
-    if [[ $_CLEAN_TEXT_DONE -eq 1 ]]; then
+    # Return cached result if available — for THIS input only (keyed on the
+    # text, so a detector handed the bounded detection sample can never leave
+    # a sample-derived result behind for the full-text extract).
+    if [[ $_CLEAN_TEXT_DONE -eq 1 && "$input" == "${_CLEAN_TEXT_KEY-}" ]]; then
         _CLEAN_TEXT_RESULT="$_CLEAN_TEXT_CACHE"
         return
     fi
@@ -166,6 +168,7 @@ clean_text () {
     result="${result%$'\n'}"
 
     _CLEAN_TEXT_CACHE="$result"
+    _CLEAN_TEXT_KEY="$input"
     _CLEAN_TEXT_DONE=1
     _CLEAN_TEXT_RESULT="$result"
 }
@@ -283,8 +286,43 @@ _list_explode () {
 #   fullwidth digit/colon mapping, ANSI/OSC strip, BEL/BS strip,
 #   `== section ==` banner drop, and the leading-chrome strip (_lc_strip).
 # ---------------------------------------------------------------------------
+# Gate presence for preprocess_input_text: every normalisation step below is
+# gated on "the text contains LITERAL". On a BIG text those ~20 full-text
+# pattern scans cost seconds (bash pattern matching is ~10 ns/byte), so one
+# awk pass answers them all up front (_pp_presence), and _pp_in reads the
+# answer — exactly the substring test it replaces. A step that REWRITES the
+# text clears _PP_OK, and every later gate falls back to the direct test.
+_PP_LITS=$'\r\n\013\n\014\n\302\205\n\342\200\250\n\342\200\251\n\302\240\n\342\200\n\342\201\237\n\343\200\200\n\342\224\200\n\342\224\201\n\342\225\220\n\342\200\213\n\357\274\n\033[0m\033[\n\033\n\007\n\010\n%]\n\302\257\n\\\n== '
+_PP_OK=0
+declare -A _PP_PRESENT=()
+_pp_presence () {
+    _PP_OK=0
+    _PP_PRESENT=()
+    (( ${#text} > _FR_BIG_BYTES )) || return 0
+    local _pp_found _pp_l
+    _pp_found="$(_fr_absent_literals "$text" "$_PP_LITS")" || return 0
+    local -a _pp_lits=() _pp_abs=()
+    local -A _pp_isabs=()
+    mapfile -t _pp_lits <<< "$_PP_LITS"
+    [[ -n "$_pp_found" ]] && mapfile -t _pp_abs <<< "$_pp_found"
+    for _pp_l in ${_pp_abs[@]+"${_pp_abs[@]}"}; do _pp_isabs[$_pp_l]=1; done
+    for _pp_l in "${_pp_lits[@]}"; do
+        [[ -n "${_pp_isabs[$_pp_l]:-}" ]] || _PP_PRESENT[$_pp_l]=1
+    done
+    _PP_OK=1
+}
+# _pp_in LITERAL — does $text contain LITERAL? (from _pp_presence when valid)
+_pp_in () {
+    if [[ $_PP_OK -eq 1 ]]; then
+        [[ -n "${_PP_PRESENT[$1]:-}" ]]
+    else
+        [[ "$text" == *"$1"* ]]
+    fi
+}
+
 preprocess_input_text () {
     local local_vt_to _banner_out _bl _lc_first
+    _pp_presence
     # Normalise alternate line terminators to \n so record splitting — which keys on
     # \n throughout — sees every logical line. Covers Windows CRLF, bare-CR (classic
     # Mac), vertical-tab / form-feed page breaks, and the Unicode line separators
@@ -299,8 +337,9 @@ preprocess_input_text () {
     # and becomes a SPACE, keeping the row whole. Only in a \n-less capture (VT as
     # the sole line separator — the adversarial breaker this block was built for)
     # does VT map to \n.
-    if [[ "$text" == *$'\r'* || "$text" == *$'\013'* || "$text" == *$'\014'* \
-          || "$text" == *$'\302\205'* || "$text" == *$'\342\200\250'* || "$text" == *$'\342\200\251'* ]]; then
+    if _pp_in $'\r' || _pp_in $'\013' || _pp_in $'\014' \
+          || _pp_in $'\302\205' || _pp_in $'\342\200\250' || _pp_in $'\342\200\251'; then
+        _PP_OK=0
         local_vt_to=$'\n'
         [[ "$text" == *$'\n'* ]] && local_vt_to=' '
         text="$(printf '%s' "$text" | sed 's/\r$//')"
@@ -356,8 +395,9 @@ preprocess_input_text () {
     # space (U+3000) CJK tables pad with. Gated on such a byte being present; the
     # U+2028/29 line separators were already mapped to \n above, and curly quotes
     # (U+2018-201D) fall outside the mapped ranges.
-    if [[ "$text" == *$'\302\240'* || "$text" == *$'\342\200'* || "$text" == *$'\342\201\237'* \
-          || "$text" == *$'\343\200\200'* ]]; then
+    if _pp_in $'\302\240' || _pp_in $'\342\200' || _pp_in $'\342\201\237' \
+          || _pp_in $'\343\200\200'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\302\240/ /g; s/\342\200[\200-\212]/ /g; s/\342\200\257/ /g; s/\342\201\237/ /g; s/\343\200\200/ /g')"
     fi
 
@@ -372,7 +412,8 @@ preprocess_input_text () {
     # line-anchored full match means every byte on the line must be one of
     # them — a corner byte anywhere disqualifies the line. Gated on the lead
     # sequences being present, a no-op otherwise.
-    if [[ "$text" == *$'\342\224\200'* || "$text" == *$'\342\224\201'* || "$text" == *$'\342\225\220'* ]]; then
+    if _pp_in $'\342\224\200' || _pp_in $'\342\224\201' || _pp_in $'\342\225\220'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'/^[ \t]*[\342\224\225\200\201\220 \t]\\{1,\\}$/ { s/\342\224\200/-/g; s/\342\224\201/-/g; s/\342\225\220/-/g; }')"
     fi
 
@@ -381,7 +422,8 @@ preprocess_input_text () {
     # compares unequal to its plain form and pollutes the melted field name. Only
     # ZWSP is dropped; ZWNJ/ZWJ (U+200C/D) are orthographically REAL (Farsi
     # half-space, emoji family joins) and stay. Gated on the byte pair.
-    if [[ "$text" == *$'\342\200\213'* ]]; then
+    if _pp_in $'\342\200\213'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\342\200\213//g')"
     fi
 
@@ -389,7 +431,8 @@ preprocess_input_text () {
     # colon (U+FF1A) to their ASCII forms so numeric-contrast header detection and
     # `key: value` splitting see them the way a reader does. Gated on the FF-block
     # lead bytes being present.
-    if [[ "$text" == *$'\357\274'* ]]; then
+    if _pp_in $'\357\274'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | LC_ALL=C sed $'s/\357\274\220/0/g; s/\357\274\221/1/g; s/\357\274\222/2/g; s/\357\274\223/3/g; s/\357\274\224/4/g; s/\357\274\225/5/g; s/\357\274\226/6/g; s/\357\274\227/7/g; s/\357\274\230/8/g; s/\357\274\231/9/g; s/\357\274\232/:/g')"
     fi
 
@@ -403,7 +446,8 @@ preprocess_input_text () {
     # protects the counter-shapes — a space-aligned table whose one cell is
     # recolored mid-value (`ESC[33m10ESC[0mESC[36m01ESC[0m` inside "1001"),
     # gauge bars, and box tables all carry real space runs and pass untouched.
-    if [[ "$text" == *$'\033[0m\033['* ]]; then
+    if _pp_in $'\033[0m\033['; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | awk '
             BEGIN { esc = sprintf("%c", 27) }
             {
@@ -426,7 +470,8 @@ preprocess_input_text () {
     # true no-op — no subprocess — for the overwhelming majority of inputs that carry
     # none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
     # OSC form (ESC ] … BEL) and bare two-byte escapes.
-    if [[ "$text" == *$'\033'* ]]; then
+    if _pp_in $'\033'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
     fi
 
@@ -435,7 +480,8 @@ preprocess_input_text () {
     # Runs AFTER the ANSI strip: BEL terminates an OSC sequence, so deleting it
     # first would orphan `ESC]…BEL` sequences the OSC rule needs intact. Gated on
     # presence, a no-op otherwise.
-    if [[ "$text" == *$'\007'* || "$text" == *$'\010'* ]]; then
+    if _pp_in $'\007' || _pp_in $'\010'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | tr -d '\007\010')"
     fi
 
@@ -453,7 +499,8 @@ preprocess_input_text () {
     # is gated on a `%]` byte pair — the progress-percent tail — so ordinary
     # input never pays the awk pass. The interior-\r flavor of the same redraw
     # is handled at the line-terminator step above.
-    if [[ "$text" == *'%]'* ]]; then
+    if _pp_in '%]'; then
+        _PP_OK=0
         text="$(printf '%s' "$text" | awk '
             {
                 line = $0; weld = 0
@@ -547,7 +594,7 @@ preprocess_input_text () {
     # `set -e`, so every count below is guarded — an unguarded one killed the
     # engine outright on any input with no art.
     local _art_bs='\'
-    if [[ "$text" == *$'\302\257'* || "$text" == *"$_art_bs"* ]]; then
+    if _pp_in $'\302\257' || _pp_in "$_art_bs"; then
         local _art_set=" /${_art_bs}_"$'\302\257' _art_re _art_only_re _art_n=0 _art_only=0
         _art_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*  +[^ ]"
         _art_only_re="^[${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*$"
@@ -556,6 +603,7 @@ preprocess_input_text () {
         if [[ ${_art_n:-0} -ge 2 && $((${_art_n:-0} + ${_art_only:-0})) -ge 3 ]]; then
             # `\%…%d` for the delete address: the pattern itself contains `/`,
             # so the usual `/…/d` form would end the address mid-regex.
+            _PP_OK=0
             text="$(printf '%s' "$text" | LC_ALL=C sed -E \
                 -e "\\%${_art_only_re}%d" \
                 -e "s%^([${_art_set}]*[/${_art_bs}"$'\302\257'"][${_art_set}]*)  +%%")"
@@ -568,7 +616,17 @@ preprocess_input_text () {
     # (`=== SET ===`, `====== JOB MAP ======`) are GROUP-LABEL banners that the
     # embedded-table / kv-under-group parsers legitimately consume, so the
     # exact-`==` shape is the discriminator. Gated on the byte pair.
-    if [[ "$text" == *'== '* ]]; then
+    if _pp_in '== '; then
+        _PP_OK=0
+        if (( ${#text} > _FR_BIG_BYTES )); then
+            # BIG: the loop below in one awk pass (the sentinel keeps every
+            # trailing newline, so exactly one is dropped, as below)
+            _banner_out="$(cat <<< "$text" | awk '
+                !/^[ \t\n\v\f\r]*==[ \t\n\v\f\r]+[A-Za-z0-9][^=]*[ \t\n\v\f\r]+==[ \t\n\v\f\r]*$/'; printf .)"
+            _banner_out="${_banner_out%.}"
+            text="${_banner_out%$'\n'}"
+            _banner_out=""
+        else
         _banner_out=""
         while IFS= read -r _bl; do
             if [[ "$_bl" =~ ^[[:space:]]*==[[:space:]]+[A-Za-z0-9][^=]*[[:space:]]+==[[:space:]]*$ ]]; then
@@ -577,6 +635,7 @@ preprocess_input_text () {
             _banner_out+="$_bl"$'\n'
         done <<< "$text"
         text="${_banner_out%$'\n'}"
+        fi
     fi
 
     case "$text" in
@@ -632,6 +691,57 @@ _fr_lines () {
     _FR_LINES_OK=1
 }
 
+# _fr_absent_literals TEXT LITERALS — print each of the newline-separated
+# LITERALS that does NOT occur in TEXT (byte-exact, LC_ALL=C). Literals hold
+# no newline, so this is also "occurs in no line". The text is read in \001-
+# separated records — for ordinary text ONE record, so one index() scan per
+# literal (~100 literals over 10 MB in ~0.1 s) instead of one per line.
+_fr_absent_literals () {
+    # (RS = \001 always: no literal holds a \001 or a newline, so none can
+    # span a record boundary and "occurs in some record" is exact either way)
+    _FAL="$2" LC_ALL=C awk -v RS=$'\001' '
+        BEGIN { n = split(ENVIRON["_FAL"], P, "\n"); left = n }
+        {
+            for (k = 1; k <= n; k++)
+                if (!(k in F) && index($0, P[k])) { F[k] = 1; if (--left == 0) exit }
+        }
+        END { for (k = 1; k <= n; k++) if (!(k in F)) print P[k] }' <<< "$1"
+}
+
+# _fr_scratch — make sure _FR_SCRATCH names a private (umask 077) scratch
+# directory for big-input file passes, created on first use and removed when
+# the (sub)shell that created it exits. A strategy's extract runs in a
+# subshell: a directory made there is that subshell's, one inherited from the
+# engine is shared (file names carry $BASHPID where that matters).
+_FR_SCRATCH=""
+_fr_scratch () {
+    [[ -n "$_FR_SCRATCH" && -d "$_FR_SCRATCH" ]] && return 0
+    local _fs_um; _fs_um=$(umask); umask 077
+    _FR_SCRATCH=$(mktemp -d "${TMPDIR:-/tmp}/envoy-extract.XXXXXX") || { umask "$_fs_um"; _FR_SCRATCH=""; return 1; }
+    umask "$_fs_um"
+    trap '_fr_scratch_cleanup' EXIT
+    return 0
+}
+_fr_scratch_cleanup () {
+    [[ -n "${_FR_SCRATCH:-}" && -d "$_FR_SCRATCH" ]] && rm -rf "$_FR_SCRATCH"
+    _FR_SCRATCH=""
+    return 0
+}
+
+# _fr_split_out OUT — _FR_OUT holds exactly the lines `mapfile -t` reads from a
+# stream carrying OUT (a command's full output, captured with a sentinel so
+# no trailing newline is lost). `mapfile < <(cmd)` reads its pipe ONE BYTE
+# per read(2) — 0.2 s per MB — while a captured string splits in
+# milliseconds (the here-string is seekable).
+_fr_split_out () {
+    if [[ -z "$1" ]]; then _FR_OUT=(); return 0; fi
+    if [[ "${1: -1}" == $'\n' ]]; then
+        mapfile -t _FR_OUT <<< "${1:0:${#1}-1}"
+    else
+        mapfile -t _FR_OUT <<< "$1"
+    fi
+}
+
 # _fr_tok STRING — the global array _FR_TOK holds exactly the words
 # `read -ra arr <<< "$STRING"` would store: read takes the FIRST line of the
 # here-string and splits it on the CURRENT $IFS (an `IFS=x _fr_tok …` prefix or
@@ -680,6 +790,16 @@ _fr_modal () {
     return 0
 }
 
+# _fr_strip_awk < lines — the prefix strip as a stdin filter: each non-empty
+# line, minus a leading `STRAT-…<TAB>` label (strip_strat_prefix).
+_fr_strip_awk () {
+    awk '$0 != "" {
+        s = $0
+        if (substr(s, 1, 6) == "STRAT-") { i = index(s, "\t"); if (i) s = substr(s, i + 1) }
+        print s
+    }'
+}
+
 # _fr_strip_prefix_lines TEXT — _FR_STRIPPED = TEXT's non-empty lines, each
 # through strip_strat_prefix, newline-joined with no trailing newline: exactly
 # what `while IFS= read -r l; do [[ -z $l ]] && continue; strip_strat_prefix
@@ -689,11 +809,7 @@ _fr_strip_prefix_lines () {
     if (( ${#1} > _FR_BIG_BYTES )); then
         # awk twin of the loop below (sentinel keeps the trailing newline so
         # exactly one is dropped, as the loop's `%$'\n'` does)
-        _FR_STRIPPED="$(printf '%s\n' "$1" | awk '$0 != "" {
-            s = $0
-            if (substr(s, 1, 6) == "STRAT-") { i = index(s, "\t"); if (i) s = substr(s, i + 1) }
-            print s
-        }'; printf .)"
+        _FR_STRIPPED="$(printf '%s\n' "$1" | _fr_strip_awk; printf .)"
         _FR_STRIPPED="${_FR_STRIPPED%.}"
         _FR_STRIPPED="${_FR_STRIPPED%$'\n'}"
         return 0

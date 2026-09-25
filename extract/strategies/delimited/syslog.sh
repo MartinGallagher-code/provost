@@ -17,6 +17,16 @@ strategy_detect () {
     # status's log tail) is not a syslog capture and belongs to other
     # parsers.
     local line total=0 hits=0
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: the same count in one awk pass (see _FR_BIG_BYTES)
+        cat <<< "$text" | awk '
+            /[^ \t\n\v\f\r]/ {
+                total++
+                if ($0 ~ /^[ \t\n\v\f\r]*[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] /) hits++
+            }
+            END { exit !(total > 0 && int(hits * 100 / total) >= 50) }'
+        return
+    fi
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         [[ "${line}" != *[![:space:]]* ]] && continue
@@ -30,6 +40,41 @@ strategy_extract () {
     local text="$1"
     local result=""
     local line_num=0
+
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: the loop below in one awk pass, byte-identical output
+        # (tokens split on blank runs as _fr_tok's default IFS does). A
+        # matching line with fewer than 5 tokens makes the bash loop abort
+        # under `set -u` (`${_arr[4]}` unbound) with NO output and status 1 —
+        # the awk twin reports that the same way.
+        local _sl_out
+        _sl_out="$(cat <<< "$text" | awk '
+            $0 == "" { next }
+            $0 !~ /^[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] / { next }
+            {
+                ln++; p = "line" ln
+                printf "%s.timestamp %s\n", p, substr($0, 1, 15)
+                s = $0; sub(/[ \t\n]+$/, "", s)
+                n = split(s, a, /[ \t\n]+/)
+                if (n < 5) { failed = 1; exit 1 }
+                printf "%s.hostname %s\n", p, a[4]
+                pp = a[5]; proc = pp
+                i = index(proc, "["); if (i) proc = substr(proc, 1, i - 1)
+                sub(/:$/, "", proc)
+                pid = ""
+                i = index(pp, "[")
+                if (i && index(substr(pp, i + 1), "]")) {
+                    pid = substr(pp, i + 1); pid = substr(pid, 1, index(pid, "]") - 1)
+                }
+                printf "%s.process %s\n", p, proc
+                if (pid != "") printf "%s.pid %s\n", p, pid
+                msg = ""
+                for (k = 6; k <= n; k++) msg = (msg == "") ? a[k] : msg " " a[k]
+                if (msg != "") printf "%s.message %s\n", p, msg
+            }')" || return 1
+        printf '%s\n' "$_sl_out"
+        return 0
+    fi
 
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do

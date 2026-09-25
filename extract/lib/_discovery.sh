@@ -411,6 +411,216 @@ run_chain_strategies () {
 # TOOL name (via _STRATEGY_REPORT_NAME), so the dataset keeps its tool identity
 # without a bespoke parser script.
 
+# _hint_required_literal ERE — a LITERAL string every match of the bash ERE
+# must contain, in _HRL ("" when none can be proven). Conservative by
+# construction: only top-level literal characters that are not optional
+# (no `*`, `?` or `{…}` after them) join a run, a `+` ends the run after its
+# character, and anything else — a bracket, group, `.`, anchor, `\w`-style
+# escape — ends the run. A top-level `|`, a non-ASCII byte, or anything the
+# scan does not understand yields "" (no prefilter). The longest run wins.
+_HRL_PRINTABLE=' !"#$%&'"'"'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~'
+_hint_required_literal () {
+    local p="$1" n=${#1} i=0 c d run="" best="" lit depth j
+    _HRL=""
+    while (( i < n )); do
+        c="${p:i:1}"
+        [[ "$_HRL_PRINTABLE" == *"$c"* ]] || return 0
+        lit=""
+        case "$c" in
+            '\')
+                d="${p:i+1:1}"
+                [[ -n "$d" && "$_HRL_PRINTABLE" == *"$d"* ]] || return 0
+                if [[ "$d" == [0-9A-Za-z] ]]; then lit=""; else lit="$d"; fi
+                i=$((i + 2)) ;;
+            '[')
+                j=$((i + 1))
+                [[ "${p:j:1}" == '^' ]] && j=$((j + 1))
+                [[ "${p:j:1}" == ']' ]] && j=$((j + 1))
+                while (( j < n )); do
+                    if [[ "${p:j:2}" == '[:' || "${p:j:2}" == '[=' || "${p:j:2}" == '[.' ]]; then
+                        d="${p:j+1:1}"; j=$((j + 2))
+                        while (( j < n )) && [[ "${p:j:2}" != "$d]" ]]; do j=$((j + 1)); done
+                        (( j < n )) || return 0
+                        j=$((j + 2)); continue
+                    fi
+                    [[ "${p:j:1}" == ']' ]] && break
+                    j=$((j + 1))
+                done
+                (( j < n )) || return 0
+                i=$((j + 1)) ;;
+            '(')
+                depth=1; j=$((i + 1))
+                while (( j < n && depth > 0 )); do
+                    case "${p:j:1}" in
+                        '\') j=$((j + 2)); continue ;;
+                        '(') depth=$((depth + 1)) ;;
+                        ')') depth=$((depth - 1)) ;;
+                        '[') return 0 ;;          # keep the group scan simple
+                    esac
+                    j=$((j + 1))
+                done
+                (( depth == 0 )) || return 0
+                i=$j ;;
+            '.'|'^'|'$') i=$((i + 1)) ;;
+            '|'|')'|'*'|'+'|'?'|'{') return 0 ;;
+            *) lit="$c"; i=$((i + 1)) ;;
+        esac
+        # quantifier after the atom
+        d="${p:i:1}"
+        case "$d" in
+            '*'|'?'|'{')
+                if [[ "$d" == '{' ]]; then
+                    # `X{m,…}` with m >= 1: X repeated m times is required
+                    local _hm="${p:i+1}" _hk
+                    _hm="${_hm%%[!0-9]*}"
+                    j=$i
+                    while (( i < n )) && [[ "${p:i:1}" != '}' ]]; do i=$((i + 1)); done
+                    (( i < n )) || return 0
+                    i=$((i + 1))
+                    [[ "${p:i:1}" == [*+?{] ]] && return 0
+                    if [[ -n "$lit" && -n "$_hm" ]] && (( 10#$_hm >= 1 && 10#$_hm <= 16 )); then
+                        for ((_hk = 0; _hk < 10#$_hm; _hk++)); do run+="$lit"; done
+                    fi
+                    (( ${#run} > ${#best} )) && best="$run"
+                    run=""
+                    continue
+                fi
+                lit=""
+                i=$((i + 1))
+                [[ "${p:i:1}" == [*+?{] ]] && return 0
+                (( ${#run} > ${#best} )) && best="$run"
+                run=""
+                continue ;;
+            '+')
+                i=$((i + 1))
+                [[ "${p:i:1}" == [*+?{] ]] && return 0
+                run+="$lit"
+                (( ${#run} > ${#best} )) && best="$run"
+                run=""
+                continue ;;
+        esac
+        if [[ -n "$lit" ]]; then
+            run+="$lit"
+        else
+            (( ${#run} > ${#best} )) && best="$run"
+            run=""
+        fi
+    done
+    (( ${#run} > ${#best} )) && best="$run"
+    _HRL="$best"
+    return 0
+}
+
+# _hint_first_atom ERE — for a `^`-anchored ERE whose first atom is required
+# (a literal, an escaped character or a bracket expression, not followed by
+# `*`, `?` or a `{0…}` bound), _HFA is `^ATOM`: a regex the input's FIRST
+# CHARACTER must match for the ERE to match at all (bash `=~` without
+# REG_NEWLINE anchors `^` at the start of the string only). "" otherwise.
+_hint_first_atom () {
+    local p="$1" a="" q j
+    _HFA=""
+    [[ "$p" == '^'* ]] || return 0
+    # a top-level `|` makes the anchor apply to one branch only: no claim
+    if [[ "$p" == *'|'* ]]; then
+        local _i=0 _d=0 _c
+        while (( _i < ${#p} )); do
+            _c="${p:_i:1}"
+            case "$_c" in
+                '\') _i=$((_i + 2)); continue ;;
+                '[') _i=$((_i + 1))
+                     [[ "${p:_i:1}" == '^' ]] && _i=$((_i + 1))
+                     [[ "${p:_i:1}" == ']' ]] && _i=$((_i + 1))
+                     while (( _i < ${#p} )) && [[ "${p:_i:1}" != ']' ]]; do
+                         [[ "${p:_i:2}" == '[:' || "${p:_i:2}" == '[=' || "${p:_i:2}" == '[.' ]] && return 0
+                         _i=$((_i + 1))
+                     done ;;
+                '(') _d=$((_d + 1)) ;;
+                ')') _d=$((_d - 1)) ;;
+                '|') [[ $_d -eq 0 ]] && return 0 ;;
+            esac
+            _i=$((_i + 1))
+        done
+    fi
+    p="${p:1}"
+    case "${p:0:1}" in
+        '\')
+            [[ "${p:1:1}" == [A-Za-z0-9] || -z "${p:1:1}" ]] && return 0
+            a="${p:0:2}" ;;
+        '[')
+            j=1
+            [[ "${p:j:1}" == '^' ]] && j=$((j + 1))
+            [[ "${p:j:1}" == ']' ]] && j=$((j + 1))
+            while (( j < ${#p} )); do
+                if [[ "${p:j:2}" == '[:' || "${p:j:2}" == '[=' || "${p:j:2}" == '[.' ]]; then
+                    q="${p:j+1:1}"; j=$((j + 2))
+                    while (( j < ${#p} )) && [[ "${p:j:2}" != "$q]" ]]; do j=$((j + 1)); done
+                    (( j < ${#p} )) || return 0
+                    j=$((j + 2)); continue
+                fi
+                [[ "${p:j:1}" == ']' ]] && break
+                j=$((j + 1))
+            done
+            (( j < ${#p} )) || return 0
+            a="${p:0:j+1}" ;;
+        [A-Za-z0-9\ \#:/,=@%_-]) a="${p:0:1}" ;;
+        *) return 0 ;;
+    esac
+    q="${p:${#a}:1}"
+    case "$q" in
+        '*'|'?') return 0 ;;
+        '{') [[ "${p:${#a}+1:1}" == [1-9] ]] || return 0 ;;
+    esac
+    _HFA="^$a"
+}
+
+# _hint_presence TEXT — for a BIG input, one awk pass decides which hint
+# LITERALS (a `contains` pattern, or a regex's _hint_required_literal) occur
+# anywhere in TEXT: _HINT_ABSENT[literal]=1 for each one that does not. A
+# `contains` row is then answered from the map, and a regex row whose
+# required literal is absent cannot match, so its full-text bash regex is
+# skipped; every other row runs exactly as before. (Literals hold no newline,
+# so "occurs in the text" is "occurs in some line".) ~100 full-text scans of
+# a 10 MB input cost ~7 s; this pass costs one.
+declare -A _HINT_ABSENT=()
+declare -A _HINT_REQLIT=()
+declare -A _HINT_FIRSTATOM=()
+_HINT_REQLIT_OK=0
+_HINT_PRESENCE_OK=0
+_hint_presence () {
+    _HINT_ABSENT=()
+    local tool mtype pattern strategy _rest _lits="" _l
+    _HINT_FIRSTCHAR="${1:0:1}"
+    if [[ $_HINT_REQLIT_OK -eq 0 ]]; then
+        while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
+            [[ "$mtype" == regex && -n "$pattern" ]] || continue
+            _hint_required_literal "$pattern"
+            _HINT_REQLIT[$pattern]="$_HRL"
+            _hint_first_atom "$pattern"
+            _HINT_FIRSTATOM[$pattern]="$_HFA"
+        done < "$HINTS_FILE"
+        _HINT_REQLIT_OK=1
+    fi
+    local -A _seen=()
+    while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
+        [[ -z "$tool" || "$tool" == \#* || -z "$pattern" || -z "$strategy" ]] && continue
+        case "$mtype" in
+            contains) _l="$pattern" ;;
+            regex)    _l="${_HINT_REQLIT[$pattern]:-}" ;;
+            *)        continue ;;
+        esac
+        [[ -n "$_l" && "$_l" != *$'\001'* && -z "${_seen[$_l]:-}" ]] || continue
+        _seen[$_l]=1
+        _lits+="$_l"$'\n'
+    done < "$HINTS_FILE"
+    [[ -n "$_lits" ]] || return 0
+    local _absent
+    _absent="$(_fr_absent_literals "$1" "${_lits%$'\n'}")" || return 0
+    local -a _al=()
+    [[ -n "$_absent" ]] && mapfile -t _al <<< "$_absent"
+    for _l in ${_al[@]+"${_al[@]}"}; do _HINT_ABSENT[$_l]=1; done
+    _HINT_PRESENCE_OK=1
+}
+
 # Match the input against hints.tsv.
 # Sets _HINT_TOOL and _HINT_STRATEGY on a match. Returns 0 on match, 1 otherwise.
 _match_hint () {
@@ -422,14 +632,34 @@ _match_hint () {
     while IFS= read -r _mh_line; do
         [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; break; }
     done <<< "$text"
+    # BIG input: decide literal presence for every row in one pass (exact —
+    # see _hint_presence); small inputs keep the per-row full-text tests.
+    _HINT_PRESENCE_OK=0
+    if (( ${#text} > _FR_BIG_BYTES )); then _hint_presence "$text"; fi
     local tool mtype pattern strategy _rest
     while IFS=$'\t' read -r tool mtype pattern strategy _rest; do
         [[ -z "$tool" || "$tool" == \#* ]] && continue
         [[ -z "$pattern" || -z "$strategy" ]] && continue
         case "$mtype" in
             prefix)   [[ "$_mh_first" == "$pattern"* ]] || continue ;;
-            contains) [[ "$text" == *"$pattern"* ]] || continue ;;
-            regex)    [[ "$text" =~ $pattern ]] || continue ;;
+            contains)
+                if [[ $_HINT_PRESENCE_OK -eq 1 && "$pattern" != *$'\001'* ]]; then
+                    [[ -z "${_HINT_ABSENT[$pattern]:-}" ]] || continue
+                else
+                    [[ "$text" == *"$pattern"* ]] || continue
+                fi ;;
+            regex)
+                if [[ $_HINT_PRESENCE_OK -eq 1 && -n "${_HINT_REQLIT[$pattern]:-}" ]] \
+                   && [[ -n "${_HINT_ABSENT[${_HINT_REQLIT[$pattern]}]:-}" ]]; then
+                    continue
+                fi
+                # an anchored pattern whose first atom rejects the first
+                # character cannot match anywhere
+                if [[ $_HINT_PRESENCE_OK -eq 1 && -n "${_HINT_FIRSTATOM[$pattern]:-}" ]]; then
+                    local _hfa_re="${_HINT_FIRSTATOM[$pattern]}"
+                    [[ "$_HINT_FIRSTCHAR" =~ $_hfa_re ]] || continue
+                fi
+                [[ "$text" =~ $pattern ]] || continue ;;
             *)        continue ;;
         esac
         _HINT_TOOL="$tool"
@@ -602,6 +832,152 @@ _should_run_strategy () {
     return 0
 }
 
+# ---------------------------------------------------------------------------
+# BOUNDED DETECTION SAMPLE (perf, very large inputs).
+#
+# Detection used to hand every detector the WHOLE input, and most detectors
+# walk it line by line in bash: a 10 MB table spent ~240 s just rejecting
+# ~245 strategies before the winner ran. Above _FR_SAMPLE_BYTES the detectors
+# instead see a SAMPLE — the first _FR_SAMPLE_HEAD lines (at most
+# _FR_SAMPLE_HEAD_BYTES) plus the last _FR_SAMPLE_TAIL lines (at most
+# _FR_SAMPLE_TAIL_BYTES) — whole lines only, newline-joined exactly as
+# `$(…)` would hand them over. A strategy that ACCEPTS the sample is then
+# re-run on the full text (_detect_strategy), so the confidence that is
+# reported and compared to the threshold is always the full-text one, and a
+# strategy the full text rejects falls through to the next candidate exactly
+# as before. Sampling can therefore only change a winner by making an earlier
+# strategy REJECT a sample it would have accepted in full; the corpus proofs
+# (see tests/test_detect_sample.sh + CHANGELOG) measure that.
+#
+# Never sampled (the full text is used):
+#   * inputs at or below _FR_SAMPLE_BYTES (every corpus input — they top out
+#     near 2 KB — so ordinary captures are untouched);
+#   * for the DOCUMENT-GRAMMAR strategies (_FR_DOC_STRATEGIES: json,
+#     json-array, jsonl, xml, har, yaml, toml; a plugin strategy that parses
+#     whole documents adds its name there) when the first non-blank byte is
+#     `{`, `[` or `<`: cutting a document in the middle turns a valid one into
+#     an invalid one. Every OTHER detector screens the sample of such an input
+#     too (and is re-confirmed on the full text): under confidence ranking the
+#     ~135 tool-specific detectors all run, and walking a 10 MB JSON document
+#     in bash cost them ~74 s together;
+#   * inputs where head + tail would already cover every line, or where the
+#     head budget cannot hold even one whole line.
+# Knobs (internal, like _FR_BIG_BYTES): export _FR_SAMPLE_BYTES=0 samples
+# every input (how the equivalence proofs force it), =-1 disables sampling.
+# The sample applies to EVERY detector's input, so it is independent of how
+# the winner is chosen (priority order today, confidence ranking tomorrow):
+# whatever the selection, a candidate's confidence is its full-text one.
+# ---------------------------------------------------------------------------
+_FR_SAMPLE_BYTES="${_FR_SAMPLE_BYTES:-32768}"
+_FR_SAMPLE_HEAD="${_FR_SAMPLE_HEAD:-120}"
+_FR_SAMPLE_TAIL="${_FR_SAMPLE_TAIL:-40}"
+_FR_SAMPLE_HEAD_BYTES="${_FR_SAMPLE_HEAD_BYTES:-16384}"
+_FR_SAMPLE_TAIL_BYTES="${_FR_SAMPLE_TAIL_BYTES:-4096}"
+_FR_DOC_STRATEGIES="${_FR_DOC_STRATEGIES:- json json-array jsonl xml har yaml toml }"
+_DET_SAMPLED=0
+_DET_DOC=0
+_DET_TEXT=""
+
+# _detect_sample_build — set _DET_TEXT (what the detectors see) and
+# _DET_SAMPLED (1 when it is a proper sample of $text) for the current input.
+_detect_sample_build () {
+    _DET_SAMPLED=0
+    _DET_DOC=0
+    _DET_TEXT=""
+    [[ "$_FR_SAMPLE_BYTES" =~ ^[0-9]+$ ]] || return 0
+    (( ${#text} > _FR_SAMPLE_BYTES )) || return 0
+    local _lead="${text#"${text%%[![:space:]]*}"}"
+    case "${_lead:0:1}" in
+        '') return 0 ;;
+        '{'|'['|'<') _DET_DOC=1 ;;
+    esac
+    local _s
+    _s="$(cat <<< "$text" | awk -v H="$_FR_SAMPLE_HEAD" -v T="$_FR_SAMPLE_TAIL" \
+            -v HB="$_FR_SAMPLE_HEAD_BYTES" -v TB="$_FR_SAMPLE_TAIL_BYTES" '
+        # head: a contiguous run of whole lines from line 1 within H lines/HB bytes
+        !hstop {
+            if (NR <= H && hb + length($0) + 1 <= HB) { hd[NR] = $0; hb += length($0) + 1; nh = NR; next }
+            hstop = 1
+        }
+        # tail: a ring of the last T lines
+        T > 0 { rg[NR % T] = $0 }
+        END {
+            if (nh == 0) exit 0                   # no whole line fits: do not sample
+            # tail lines, walking back from the end within T lines / TB bytes
+            nt = 0; tb = 0
+            for (i = NR; i > nh && nt < T; i--) {
+                l = rg[i % T]
+                if (tb + length(l) + 1 > TB) break
+                tb += length(l) + 1; nt++
+            }
+            if (nh + nt >= NR) exit 0             # head + tail cover it all
+            printf "S"
+            for (i = 1; i <= nh; i++) printf "\n%s", hd[i]
+            for (i = NR - nt + 1; i <= NR; i++) printf "\n%s", rg[i % T]
+        }')" || return 0
+    [[ "$_s" == S$'\n'* ]] || return 0
+    _s="${_s#S$'\n'}"
+    # $(...) semantics: the detectors used to see text without trailing newlines
+    _s="${_s%"${_s##*[!$'\n']}"}"
+    [[ -n "$_s" ]] || return 0
+    _DET_TEXT="$_s"
+    _DET_SAMPLED=1
+}
+
+# ---------------------------------------------------------------------------
+# FILE LANE (perf, very large inputs).
+#
+# Every expansion of a big bash variable costs time proportional to its size
+# (bash copies and quote-scans the string: ~15 ns/byte — a 27 MB `output`
+# costs ~0.4 s per mention), and the result of a 10 MB capture used to make a
+# dozen such trips: `$(strategy_extract …)`, _count_lines, the truncation
+# guard, store, dedup, the prefix strip and the formatter each took the text
+# as an argument and handed a new copy back. Above _FR_LANE_BYTES the result
+# instead goes to a FILE and stays there: strategy_extract writes it, and the
+# count, the truncation guard and store read it; store appends to a lane
+# output file in place of the `output` variable. Every step runs the same awk
+# program as its BIG-variable twin, so the bytes are identical.
+#
+# At the end of run_auto_strategies the lane output is copied back into
+# `output` (byte for byte) unless the caller set _XL_KEEP=1 — only the plain
+# single-file `-f tsv` path does (see _xl_can_keep / _xl_finalize), where dedup,
+# the prefix strip and the TSV formatter then run file to file too.
+# Knob: export _FR_LANE_BYTES=0 routes every input through the lane (how its
+# equivalence is proven over the corpus); -1 disables it.
+# ---------------------------------------------------------------------------
+_FR_LANE_BYTES="${_FR_LANE_BYTES:-65536}"
+_XL_OUT=""
+_XL_DIR=""
+_XL_KEEP=0
+
+# _xl_begin — open the lane for the current input when it is big enough
+# (its files live in the private scratch directory, see _fr_scratch).
+_xl_begin () {
+    _XL_OUT=""
+    [[ "$_FR_LANE_BYTES" =~ ^[0-9]+$ ]] || return 0
+    (( ${#text} > _FR_LANE_BYTES )) || return 0
+    _fr_scratch || return 0
+    _XL_DIR="$_FR_SCRATCH"
+    _XL_OUT="$_XL_DIR/lane.output"
+    : > "$_XL_OUT"
+}
+
+# _xl_materialize — copy the lane output into `output` (exactly: it is a run
+# of newline-terminated lines, as the variable form would have been) and
+# close the lane.
+_xl_materialize () {
+    [[ -n "$_XL_OUT" ]] || return 0
+    local _xm
+    _xm="$(cat "$_XL_OUT"; printf .)"
+    output+="${_xm%.}"
+    _XL_OUT=""
+}
+
+# _xl_has_content FILE — does FILE hold a non-empty line?
+_xl_has_content () {
+    awk 'length($0) { f = 1; exit } END { exit !f }' "$1"
+}
+
 # Run strategy detection phase.
 # Returns: 0 if strategy detected (or replay/no-detect), 1 if should skip
 # Sets: _STRATEGY_CONFIDENCE (via strategy_detect)
@@ -620,6 +996,25 @@ _detect_strategy () {
     # Cleared before each detect so a per-tool report name set by one strategy
     # (columnar-specs) never leaks to the next strategy's dispatch record.
     _STRATEGY_REPORT_NAME=""
+    local _det_screen="${_DET_SAMPLED:-0}"
+    if [[ "$_det_screen" -eq 1 && "${_DET_DOC:-0}" -eq 1 ]]; then
+        # A document-shaped input: grammar strategies see it whole.
+        if [[ "$_FR_DOC_STRATEGIES" == *" $strategy_name "* ]]; then
+            _det_screen=0
+        fi
+    fi
+    if [[ "$_det_screen" -eq 1 ]]; then
+        # Large input: screen on the bounded sample, then confirm on the full
+        # text (see _detect_sample_build) — the full-text run decides and sets
+        # the confidence (and any detect→extract state) exactly as before.
+        if ! strategy_detect "$_DET_TEXT" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
+            _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable (sample)"
+            return 1
+        fi
+        _STRATEGY_CONFIDENCE=50
+        _STRATEGY_CONFIDENCE_REASON=""
+        _STRATEGY_REPORT_NAME=""
+    fi
     if ! strategy_detect "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
         _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable"
         return 1
@@ -667,7 +1062,7 @@ _detect_strategy () {
 #
 # Returns 0 (truncated — reject) only when all gates agree; 1 otherwise.
 _parse_is_truncated () {
-    local _res="$1" _m="$2" _strat="${3:-}"
+    local _res="$1" _m="$2" _strat="${3:-}" _resf="${4:-}"
     [[ "${_TG_EXEMPT:-0}" -eq 1 ]] && return 1
     [[ -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && return 1
     # A structured-grammar parser is AUTHORITATIVE about its own format: JSON
@@ -681,7 +1076,7 @@ _parse_is_truncated () {
     esac
     # Non-blank input lines, cached per input (reset in run_auto_strategies).
     if [[ -z "${_TG_NB_LINES:-}" ]]; then
-        _TG_NB_LINES=$(printf '%s\n' "$text" | grep -c '[^ \t]' || true)
+        _TG_NB_LINES=$(cat <<< "$text" | grep -c '[^ \t]' || true)
     fi
     # Too small to call, or the parse is not small relative to the input.
     [[ "$_TG_NB_LINES" -ge 8 ]] || return 1
@@ -693,7 +1088,7 @@ _parse_is_truncated () {
     # encodes value-internal spaces as `_` — the same normalisation the parse
     # scorer uses, for the same symmetry reasons.
     local _cov
-    _cov=$(awk '
+    local _tg_prog='
         function norm(s) {
             gsub(/^[^A-Za-z0-9]+/, "", s)
             gsub(/[^A-Za-z0-9]+$/, "", s)
@@ -720,7 +1115,13 @@ _parse_is_truncated () {
             if (hit * 2 > sig) cov++
         }
         END { if (nl == 0) print 100; else printf "%d\n", (cov * 100) / nl }
-    ' <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    '
+    if [[ -n "$_resf" ]]; then
+        # file lane: the result is already a file
+        _cov=$(awk "$_tg_prog" "$_resf" <(printf '%s\n' "$text"))
+    else
+        _cov=$(awk "$_tg_prog" <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    fi
     [[ "$_cov" =~ ^[0-9]+$ ]] || return 1
     _TG_LAST_COVERAGE="$_cov"
     [[ "$_cov" -lt 50 ]]
@@ -738,8 +1139,17 @@ _extract_and_store () {
         return 0
     fi
     [[ $_OPT_profile -eq 1 ]] && local _prof_start=$SECONDS
-    local result _ext_rc=0
-    result=$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}") || _ext_rc=$?
+    local result _ext_rc=0 _xl_res=""
+    if [[ -n "${_XL_OUT:-}" ]]; then
+        # FILE LANE: the result goes to a file (a `( … )` subshell with -e
+        # cleared, exactly as the `$( … )` form runs it) and stays there.
+        _xl_res="$_XL_DIR/lane.result"
+        ( set +e; strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" ) > "$_xl_res" || _ext_rc=$?
+        result=""
+        _xl_has_content "$_xl_res" && result=1
+    else
+        result=$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}") || _ext_rc=$?
+    fi
     if [[ $_ext_rc -ne 0 ]]; then
         _log_debug "Strategy '$strategy_name': strategy_extract exited with code $_ext_rc"
     fi
@@ -748,8 +1158,12 @@ _extract_and_store () {
         echo "[profile] Strategy '$strategy_name': ${_prof_elapsed}s" >&2
     fi
     if [[ -n "$result" ]]; then
-        _count_lines "$result"
-        if _parse_is_truncated "$result" "$_LINE_COUNT" "$strategy_name"; then
+        if [[ -n "$_xl_res" ]]; then
+            _LINE_COUNT=$(awk '$0 != "" { n++ } END { print n + 0 }' "$_xl_res")
+        else
+            _count_lines "$result"
+        fi
+        if _parse_is_truncated "$result" "$_LINE_COUNT" "$strategy_name" "$_xl_res"; then
             _log_debug "Strategy '$strategy_name': truncation guard rejected claim ($_LINE_COUNT fields from $_TG_NB_LINES lines, ${_TG_LAST_COVERAGE}% line coverage)"
             [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
             near_miss_strategies+="${strategy_name}(truncated)"
@@ -760,7 +1174,11 @@ _extract_and_store () {
         # each tool keeps its own dataset identity instead of collapsing to
         # `columnar-specs`. Falls back to the file's strategy name.
         local report_name="${_STRATEGY_REPORT_NAME:-$strategy_name}"
-        store "$result" "STRAT-${report_name}"
+        if [[ -n "$_xl_res" ]]; then
+            _store_file "$_xl_res" "STRAT-${report_name}"
+        else
+            store "$result" "STRAT-${report_name}"
+        fi
         strategies_matched=$((strategies_matched + 1))
         # ENV-200: record the first strategy that produced output (the dispatch
         # winner) + its confidence, for the opt-in --emit-meta line.
@@ -791,7 +1209,51 @@ _extract_and_store () {
 
 # Run auto-detect or single-strategy extraction.
 # Sets globals: output, matched_strategies, near_miss_strategies, strategies_tried, etc.
+# A file-lane run (see _xl_begin) leaves its output in `output` like any other
+# run, unless the caller asked to keep it in the lane file (_XL_KEEP=1).
+# CONFIDENCE CEILINGS (perf, with --rank confidence). A strategy's ceiling is
+# the highest _STRATEGY_CONFIDENCE its detect can ever set: its
+# `## Confidence-Max: N` header when it computes a score, else the largest
+# literal it assigns (and 50, the default _detect_strategy starts from). A
+# computed assignment without the header makes the ceiling 100 — never pruned.
+# Plugin strategies are scanned the same way. Cached per file per process.
+declare -gA _CEIL_CACHE=()
+_strategy_ceiling () {
+    local f="$1"
+    if [[ -z "${_CEIL_CACHE[$f]+x}" ]]; then
+        _CEIL_CACHE[$f]="$(awk '
+            /^## Confidence-Max:/ { hdr = $3 + 0; have = 1 }
+            {
+                line = $0; sub(/^[ \t]+/, "", line)
+                if (line ~ /^#/) next
+                while ((i = index(line, "_STRATEGY_CONFIDENCE=")) > 0) {
+                    rest = substr(line, i + 21)
+                    if (match(rest, /^[0-9]+/)) {
+                        v = substr(rest, 1, RLENGTH) + 0; if (v > mx) mx = v
+                    } else computed = 1
+                    line = rest
+                }
+            }
+            END {
+                if (have) { print hdr; exit }
+                if (computed) { print 100; exit }
+                print (mx > 50 ? mx : 50)
+            }' "$f" 2>/dev/null)"
+        [[ "${_CEIL_CACHE[$f]}" =~ ^[0-9]+$ ]] || _CEIL_CACHE[$f]=100
+    fi
+    _CEIL="${_CEIL_CACHE[$f]}"
+}
+
 run_auto_strategies () {
+    local _ras_rc=0
+    _run_auto_strategies_body || _ras_rc=$?
+    if [[ -n "${_XL_OUT:-}" && "${_XL_KEEP:-0}" -ne 1 ]]; then
+        _xl_materialize
+    fi
+    return $_ras_rc
+}
+
+_run_auto_strategies_body () {
     if [[ ! -d "$STRATEGIES_DIR" ]]; then
         _log_error "Strategies directory not found: $STRATEGIES_DIR"
         exit 1
@@ -807,6 +1269,13 @@ run_auto_strategies () {
     # of THIS input, and batch mode reuses the process across inputs.
     _TG_NB_LINES=""
     _TG_LAST_COVERAGE=""
+    # Bounded detection sample for very large inputs (per input: batch mode
+    # reuses the process). Pinned/replayed runs skip detection-by-sample.
+    _DET_SAMPLED=0; _DET_TEXT=""
+    if [[ -z "$_OPT_strategy" && -z "$_OPT_replay" ]]; then
+        _detect_sample_build
+    fi
+    _xl_begin
 
     # Collect strategy directories
     _collect_strategy_dirs
@@ -867,6 +1336,21 @@ run_auto_strategies () {
     # always use the single pass.
     local _eas_rank=1 _eas_cands="" _ck _pk
     [[ "${_OPT_rank:-confidence}" == priority || -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && _eas_rank=0
+    # PRUNING (exact). When only the single best candidate is wanted
+    # (--max-strategies 1 / --first-match, which is how provost calls the
+    # engine), a detector whose CEILING (see _strategy_ceiling) cannot beat the
+    # best confidence seen so far is skipped without being sourced: the loop
+    # walks priority order, so a later strategy that merely TIES the best
+    # loses the tie anyway. If the top candidate then fails to extract, the
+    # whole pass is redone without pruning (_EAS_NOPRUNE), so the result is
+    # always exactly the unpruned ranking. This is what keeps a 10 MB JSON
+    # document fast: once json-array scores 85, no generic parser (<= 80)
+    # walks the text.
+    local _eas_prune=0 _eas_pruned=0 _eas_best=-1
+    if [[ $_eas_rank -eq 1 && "${_EAS_NOPRUNE:-0}" -ne 1 ]] \
+       && [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
+        _eas_prune=1
+    fi
 
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
@@ -885,6 +1369,14 @@ run_auto_strategies () {
         fi
 
         _should_run_strategy "$strategy_name" || continue
+
+        if [[ $_eas_prune -eq 1 && $_eas_best -ge 0 ]]; then
+            _strategy_ceiling "$strategy_file"
+            if (( _CEIL <= _eas_best )); then
+                _eas_pruned=$((_eas_pruned + 1))
+                continue
+            fi
+        fi
 
         # Check for deprecated strategy
         read_strategy_metadata "$strategy_file"
@@ -940,6 +1432,7 @@ run_auto_strategies () {
             _ck="000$((100 - _STRATEGY_CONFIDENCE))"
             _pk="000${_priority}"
             _eas_cands+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+            (( _STRATEGY_CONFIDENCE > _eas_best )) && _eas_best=$_STRATEGY_CONFIDENCE
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             continue
@@ -962,6 +1455,7 @@ run_auto_strategies () {
             done <<< "$_eas_cands"
             _log_debug "Ranked candidates: $_dbg_c"
         fi
+        local _eas_redo=0
         while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
             [[ -z "$strategy_file" ]] && continue
             strategy_priority="$((10#$_pk))"
@@ -979,7 +1473,17 @@ run_auto_strategies () {
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             if [[ $_eas_rc -eq 2 ]]; then break; fi
+            # The top candidate yielded nothing. With detectors pruned, one of
+            # them might outrank whatever comes next: redo the pass unpruned.
+            if [[ $_eas_pruned -gt 0 ]]; then _eas_redo=1; break; fi
         done <<< "$_eas_cands"
+        if [[ $_eas_redo -eq 1 ]]; then
+            [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
+            _log_debug "Top candidate failed after pruning $_eas_pruned detector(s): redoing unpruned"
+            local _eas_rrc=0
+            _EAS_NOPRUNE=1 _run_auto_strategies_body || _eas_rrc=$?
+            return $_eas_rrc
+        fi
     fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0

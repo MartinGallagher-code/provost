@@ -6,6 +6,7 @@
 ## Description: Last-resort — each line is a record of whitespace-separated fields (value lists, single-line field dumps)
 ## Version: 1.0
 ## Priority: 96
+## Confidence-Max: 55
 ## Sample: samples/line-records/basic.txt
 
 # The catch-all for tabular-ish output nothing more specific claims: a single

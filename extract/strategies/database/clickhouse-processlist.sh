@@ -54,13 +54,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=92
     # Distinctive signature: a top-border line and a bar-delimited data line.
-    local has_border=0 has_bar=0 line
-    _fr_lines "$text"
-    for line in "${_FR_LINES[@]}"; do
-        [[ "$line" == "$_CH_TL"* ]] && has_border=1
-        [[ "$line" == "$_CH_BAR"* ]] && has_bar=1
-        [[ $has_border -eq 1 && $has_bar -eq 1 ]] && return 0
-    done
+    # (some line starts with X iff the text starts with X or holds "\nX" —
+    # whole-text tests instead of a walk over every line)
+    local has_border=0 has_bar=0
+    [[ "$text" == "$_CH_TL"* || "$text" == *$'\n'"$_CH_TL"* ]] && has_border=1
+    [[ $has_border -eq 1 ]] || return 1
+    [[ "$text" == "$_CH_BAR"* || "$text" == *$'\n'"$_CH_BAR"* ]] && has_bar=1
+    [[ $has_bar -eq 1 ]] && return 0
     return 1
 }
 

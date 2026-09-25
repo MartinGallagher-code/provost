@@ -6,6 +6,7 @@
 ## Description: Extract fields from whitespace-aligned columnar output (ps, df, mount, etc.)
 ## Version: 3.1
 ## Priority: 55
+## Confidence-Max: 69
 ## Sample: samples/aligned-columns/basic.txt
 
 # Count a line's 2-space-gap segments — the columns a fixed-width header defines
@@ -123,8 +124,18 @@ _ac_body_v () {
     if [[ $_AC_BODY_OK -eq 1 && "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
     local _out
     _ac_body_compute "$1"
+    if (( ${#_AC_BODY_RAW} > _FR_BIG_BYTES )); then
+        # (count the trailing newlines from the end instead of the
+        # `${x##*[!$'\n']}` suffix scan, which walks the whole big string)
+        local _tn=0
+        while (( _tn < ${#_AC_BODY_RAW} )) && [[ "${_AC_BODY_RAW: -$((_tn + 1)):1}" == $'\n' ]]; do
+            _tn=$((_tn + 1))
+        done
+        _AC_BODY="${_AC_BODY_RAW:0:$(( ${#_AC_BODY_RAW} - _tn ))}"
+    else
     _out="$_AC_BODY_RAW"
     _AC_BODY="${_out%"${_out##*[!$'\n']}"}"
+    fi
     _AC_BODY_KEY="$1"
     _AC_BODY_OK=1
 }
@@ -183,7 +194,7 @@ _ac_body_compute () {
     fi
 
     _fr_lines "$text"
-    for _l in "${_FR_LINES[@]}"; do
+    local _fri196; for ((_fri196 = 0; _fri196 < ${#_FR_LINES[@]}; _fri196++)); do _l="${_FR_LINES[$_fri196]}"
         [[ "${_l}" != *[![:space:]]* ]] && continue
         _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
         [[ ${#_tk[@]} -ge 2 ]] && { has_table=1; break; }
@@ -197,7 +208,7 @@ _ac_body_compute () {
     local _modal=0
     if [[ $has_table -eq 1 ]]; then
         local _mc=() _mn=0
-        for _l in "${_FR_LINES[@]}"; do
+        local _fri210; for ((_fri210 = 0; _fri210 < ${#_FR_LINES[@]}; _fri210++)); do _l="${_FR_LINES[$_fri210]}"
             [[ "${_l}" != *[![:space:]]* ]] && continue
             _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
             _mc+=("${#_tk[@]}"); _mn=$((_mn + 1)); [[ $_mn -ge 40 ]] && break
@@ -218,7 +229,7 @@ _ac_body_compute () {
     # is chrome, not data. Identified by lookahead here, dropped in the loop.
     local _title="" _prev="" _seenfirst=0
     if [[ $has_table -eq 1 ]]; then
-        for _l in "${_FR_LINES[@]}"; do
+        local _fri231; for ((_fri231 = 0; _fri231 < ${#_FR_LINES[@]}; _fri231++)); do _l="${_FR_LINES[$_fri231]}"
             if [[ $_seenfirst -eq 0 ]]; then
                 [[ "${_l}" != *[![:space:]]* ]] && continue
                 _seenfirst=1; _prev="$_l"; continue
@@ -238,7 +249,7 @@ _ac_body_compute () {
     local _fwbanner=""
     if [[ $has_table -eq 1 ]]; then
         local _fl=() _fx
-        for _fx in "${_FR_LINES[@]}"; do
+        local _fri251; for ((_fri251 = 0; _fri251 < ${#_FR_LINES[@]}; _fri251++)); do _fx="${_FR_LINES[$_fri251]}"
             [[ "${_fx}" != *[![:space:]]* ]] && continue
             [[ "$_fx" =~ ^[[:space:]]*[=-]+([[:space:]]+[=-]+)*[[:space:]]*$ ]] && continue
             _fl+=("$_fx"); [[ ${#_fl[@]} -ge 3 ]] && break
@@ -283,7 +294,18 @@ _ac_body_compute () {
     # Kept lines accumulate in an ARRAY and are joined once at the end: a
     # per-line `out+=` re-copies the whole string each time (quadratic).
     local _outl=()
-    for _l in "${_FR_LINES[@]}"; do
+    # BIG block: once `started` is set, a line's only fate is the rule-drop
+    # test below — so the loop stops there and ONE awk pass applies that test
+    # to the rest (same lines kept, same order).
+    # (Indexed, not `for _l in "${_FR_LINES[@]}"`: that expands the whole
+    # array up front even when the loop stops early. The one _fr_lines call
+    # inside — the banner check — passes this same text, so _FR_LINES stays.)
+    local _acb_big=0 _acb_n _acb_i _acx_o="" _acb_tail="" _acb_owns=0
+    (( ${#text} > _FR_BIG_BYTES )) && _acb_big=1
+    _acb_n=${#_FR_LINES[@]}
+    for ((_acb_i = 0; _acb_i < _acb_n; _acb_i++)); do
+        _l="${_FR_LINES[$_acb_i]}"
+        [[ $_acb_big -eq 1 && $started -eq 1 ]] && break
         # Drop a pure separator rule up top so a LEADING rule (STREAM /
         # pytest-benchmark bracket their header in rules) doesn't flip `started`
         # and get mistaken for the first table line.
@@ -325,7 +347,7 @@ _ac_body_compute () {
                 done
                 if [[ $_bv -eq 1 ]]; then
                     _fr_lines "$text"
-                    for _bl2 in "${_FR_LINES[@]}"; do
+                    local _fri349; for ((_fri349 = 0; _fri349 < ${#_FR_LINES[@]}; _fri349++)); do _bl2="${_FR_LINES[$_fri349]}"
                         [[ "${_bl2}" != *[![:space:]]* || "$_bl2" == "$_l" ]] && continue
                         _fr_tok "$_bl2"; _bt2=("${_FR_TOK[@]}")
                         [[ "${_bt2[0]:-}" == "${_tk[0]}" ]] && { _bsame=1; break; }
@@ -356,16 +378,38 @@ _ac_body_compute () {
         fi
         _outl+=("$_l")
     done
-    [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
+    if [[ $_acb_big -eq 1 && $_acb_i -lt $_acb_n ]]; then
+        # the rest of the lines (index _acb_i on), rule-dropped, as a string
+        # of newline-terminated lines — and the trailing-summary-line drop
+        # below, decided here when the rest keeps any line (its last kept
+        # line is then the block's last line)
+        _acb_tail="$(cat <<< "$text" | awk -v k="$_acb_i" -v pre="${#_outl[@]}" '
+            NR <= k { next }
+            /^[ \t\n\v\f\r]*[=-]+([ \t\n\v\f\r]+[=-]+)*[ \t\n\v\f\r]*$/ { next }
+            { if (have) print held; held = $0; have = 1; nk++ }
+            END {
+                # last byte: 1 when this pass kept a line (it owns the drop), else 0
+                if (!have) { printf "0"; exit }
+                if (!(pre + nk >= 2 && held ~ /^[ \t\n\v\f\r]*[0-9]+[ \t\n\v\f\r]+([A-Za-z]+[ \t\n\v\f\r]+)*(listed|shown|found)\.?[ \t\n\v\f\r]*$/)) print held
+                printf "1"
+            }')"
+        _acb_owns="${_acb_tail: -1}"
+        _acb_tail="${_acb_tail%?}"
+    fi
 
     # Drop a trailing summary line like "4 sessions listed." / "5 loaded units
-    # listed." so it isn't counted as a data row.
-    local body="${out%$'\n'}" last
-    last="${body##*$'\n'}"
-    if [[ "$body" == *$'\n'* \
+    # listed." so it isn't counted as a data row. (`body` is the kept lines
+    # newline-joined, so its last line is the last kept line and "body has a
+    # newline" is "more than one kept line" — read off the array rather than
+    # rescanning the joined string.)
+    local _acb_k=${#_outl[@]} last=""
+    [[ $_acb_k -gt 0 ]] && last="${_outl[$((_acb_k - 1))]}"
+    if [[ $_acb_owns -ne 1 && $_acb_k -ge 2 \
           && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]]; then
-        out="${body%$'\n'*}"$'\n'
+        unset '_outl[$((_acb_k - 1))]'
     fi
+    [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
+    out+="$_acb_tail"
     _AC_BODY_RAW="$out"
 }
 
@@ -427,7 +471,7 @@ _ac_shape_compute () {
     local -A _kv_seen=() _kvm_seen=()
     local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
     _fr_lines "$text"
-    for _line in "${_FR_LINES[@]}"; do
+    local _fri473; for ((_fri473 = 0; _fri473 < ${#_FR_LINES[@]}; _fri473++)); do _line="${_FR_LINES[$_fri473]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
         [[ $idx -eq 1 ]] && first_line="$_line"
@@ -499,7 +543,7 @@ _ac_shape_compute () {
     local -A _mx_seen=()
     if [[ $idx -ge 2 ]]; then
         _fr_lines "$text"
-        for _mx_line in "${_FR_LINES[@]}"; do
+        local _fri545; for ((_fri545 = 0; _fri545 < ${#_FR_LINES[@]}; _fri545++)); do _mx_line="${_FR_LINES[$_fri545]}"
             [[ "${_mx_line}" != *[![:space:]]* ]] && continue
             if [[ ! "$_mx_line" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
                 _mixed_ok=0; break
@@ -551,7 +595,7 @@ _ac_shape_compute () {
           && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
         local _h2v=0 _h3v=0 _h2t _h2i=0 _h2l="" _h3l=""
         _fr_lines "$text"
-        for _h2t in "${_FR_LINES[@]}"; do
+        local _fri597; for ((_fri597 = 0; _fri597 < ${#_FR_LINES[@]}; _fri597++)); do _h2t="${_FR_LINES[$_fri597]}"
             [[ "${_h2t}" != *[![:space:]]* ]] && continue
             _h2i=$((_h2i + 1))
             [[ $_h2i -eq 2 ]] && _h2l="$_h2t"
@@ -618,7 +662,7 @@ _ac_shape_compute () {
     i=0
     # (the block text IS $(_ac_body "$1"), so its lines are _fr_lines "$text")
     _fr_lines "$text"
-    for _dl in "${_FR_LINES[@]}"; do
+    local _fri664; for ((_fri664 = 0; _fri664 < ${#_FR_LINES[@]}; _fri664++)); do _dl="${_FR_LINES[$_fri664]}"
         [[ "${_dl}" != *[![:space:]]* ]] && continue
         i=$((i + 1))
         [[ $i -eq 1 ]] && continue
@@ -738,7 +782,7 @@ _ac_shape_compute () {
         if [[ $wordy -eq 1 && $styled -eq 0 ]]; then
             local _dc_all=1 _dc_hit _dc_tk _dc_l _dc_i=0
             _fr_lines "$text"
-            for _dc_l in "${_FR_LINES[@]}"; do
+            local _fri784; for ((_fri784 = 0; _fri784 < ${#_FR_LINES[@]}; _fri784++)); do _dc_l="${_FR_LINES[$_fri784]}"
                 [[ "${_dc_l}" != *[![:space:]]* ]] && continue
                 _dc_i=$((_dc_i + 1))
                 [[ $_dc_i -eq 1 ]] && continue          # skip the header row
@@ -776,7 +820,7 @@ _ac_shape_compute () {
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
             _fr_lines "$text"
-            for _line in "${_FR_LINES[@]}"; do
+            local _fri822; for ((_fri822 = 0; _fri822 < ${#_FR_LINES[@]}; _fri822++)); do _line="${_FR_LINES[$_fri822]}"
                 [[ "${_line}" != *[![:space:]]* ]] && continue
                 idx2=$((idx2 + 1)); [[ $idx2 -eq 2 ]] && { second_line="$_line"; break; }
             done
@@ -827,6 +871,30 @@ strategy_detect () {
     # aligned-columns would split it into a bogus middle column and mangle any
     # value with inner spaces. The equals parser tidies these to one field per key.
     local _eq=0 _et=0 _el
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: this loop and the kv-decline loop below in ONE awk pass
+        # (non-blank lines, ` = ` lines, kv-shaped lines, and the modal
+        # token count with _fr_modal's first-occurrence tie-break).
+        local _nb=0 _kv=0 _m=0 _best=0
+        read -r _et _eq _kv _m _best < <(cat <<< "$text" | awk '
+            /[^ \t\n\v\f\r]/ {
+                et++
+                if (index($0, " = ")) eq++
+                if ($0 ~ /^[ \t\n\v\f\r]*[A-Za-z][^:=]*:[ \t\n\v\f\r]/ \
+                    || $0 ~ /^[ \t\n\v\f\r]*[A-Za-z][A-Za-z0-9_]*=/) kv++
+                if (!(NF in C)) ord[++no] = NF
+                C[NF]++
+            }
+            END {
+                for (i = 1; i <= no; i++) if (C[ord[i]] > best) { best = C[ord[i]]; mode = ord[i] }
+                printf "%d %d %d %d %d\n", et, eq, kv, mode, best
+            }')
+        [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
+        _nb=$_et
+        if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
+            [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
+        fi
+    else
     _fr_lines "$text"
     for _el in "${_FR_LINES[@]}"; do
         [[ "${_el}" != *[![:space:]]* ]] && continue
@@ -860,6 +928,7 @@ strategy_detect () {
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
         [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
     fi
+    fi
 
     # Structural detection: a header row (or a headerless block) of columns with
     # a consistent count. Recognises the whole class of whitespace-columnar tool
@@ -873,7 +942,7 @@ strategy_detect () {
 
     local idx=0 data_rows=0 consistent=0 header_caps=1 _line
     _ac_body_v "$text"; _fr_lines "$_AC_BODY"
-    for _line in "${_FR_LINES[@]}"; do
+    local _fri944; for ((_fri944 = 0; _fri944 < ${#_FR_LINES[@]}; _fri944++)); do _line="${_FR_LINES[$_fri944]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
         local _tk; _tk=(); _fr_tok "$_line"; _tk=("${_FR_TOK[@]}")
@@ -1273,6 +1342,498 @@ _ac_grid_mb () (
     exit 0
 )
 
+# ---------------------------------------------------------------------------
+# BIG-TABLE TWINS (perf). strategy_extract walks its `lines` array many times
+# (token counts, 2-space segment counts, header-repeat and wrap checks); in
+# bash each walk costs ~50 µs per line, so a 100k-row table spent most of a
+# minute in them. Above _FR_BIG_BYTES (the body's size) each walk below is
+# done by one awk pass with byte-identical results: tokens split exactly as
+# _fr_tok's default IFS does (awk's default field splitting), segments are
+# _ac_seg_v's count (1 + the interior runs of >=2 spaces), and modal values
+# break ties toward the value seen first, as _fr_modal does.
+# ---------------------------------------------------------------------------
+_AC_AWK_SEG='
+function seg(l) {
+    sub(/^[ \t\n\v\f\r]+/, "", l)
+    if (l == "") return 0
+    sub(/ +$/, "", l)
+    return gsub(/  +/, "&", l) + 1
+}'
+
+# _ac_group_prefix — strategy_extract's HDR2 group-prefixing step, on the
+# CALLER's `headers`, `lines` (rows 0 and 1 only) and `mode` (bash dynamic
+# scope), so the bash path and the big-table path share it.
+_ac_group_prefix () {
+    # HDR2 group-prefixing: when the field row repeats names under different
+    # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
+    # duplicates would COLLIDE in the wide record and the melt silently drops
+    # the earlier group's columns. Disambiguate positionally: each duplicated
+    # header token (except the first, key column) gets the group label whose
+    # printed CENTER is nearest — `CPU_Req`, `Memory_Req`. Unique names stay
+    # untouched, so single-group two-line headers (vmstat) are unaffected.
+    if [[ "$mode" == HDR2 && ${#headers[@]} -ge 3 ]]; then
+        local _gpdup=0 _gpi _gpj
+        for ((_gpi = 1; _gpi < ${#headers[@]} && _gpdup == 0; _gpi++)); do
+            for ((_gpj = _gpi + 1; _gpj < ${#headers[@]}; _gpj++)); do
+                [[ "${headers[$_gpi]}" == "${headers[$_gpj]}" ]] && { _gpdup=1; break; }
+            done
+        done
+        if [[ $_gpdup -eq 1 ]]; then
+            # token centers of a raw line -> _GP_CENTERS / _GP_TOKS
+            _gp_scan () {
+                local _s="$1"
+                local _i _c _st=-1 _n=${#_s}
+                _GP_CENTERS=(); _GP_TOKS=()
+                for ((_i = 0; _i <= _n; _i++)); do
+                    _c="${_s:$_i:1}"
+                    if [[ "$_c" != " " && "$_c" != "	" && $_i -lt $_n ]]; then
+                        [[ $_st -lt 0 ]] && _st=$_i
+                    elif [[ $_st -ge 0 ]]; then
+                        _GP_TOKS+=("${_s:$_st:$((_i - _st))}")
+                        _GP_CENTERS+=($(( (_st + _i - 1) / 2 )))
+                        _st=-1
+                    fi
+                done
+            }
+            _gp_scan "${lines[0]}"
+            local _gpg_toks=("${_GP_TOKS[@]}") _gpg_cent=("${_GP_CENTERS[@]}")
+            # The group row's tokens become NAME PREFIXES — sanitize each
+            # (vmstat -d's `------------reads------------` → `reads`), and bail
+            # out entirely when the row is banner chrome rather than labels
+            # (goose's `=== PER REQUEST METRICS ===`: punctuation-only edge
+            # tokens mark a banner, whose words would make junk prefixes).
+            local _gpk _gpsan=1
+            if [[ ! "${_gpg_toks[0]}" =~ [A-Za-z0-9] \
+                  || ! "${_gpg_toks[$(( ${#_gpg_toks[@]} - 1 ))]}" =~ [A-Za-z0-9] ]]; then
+                _gpsan=0
+            fi
+            for ((_gpk = 0; _gpk < ${#_gpg_toks[@]}; _gpk++)); do
+                local _gpt="${_gpg_toks[$_gpk]}"
+                _gpt="${_gpt##+(-)}"; _gpt="${_gpt%%+(-)}"
+                while [[ "$_gpt" == -* ]]; do _gpt="${_gpt#-}"; done
+                while [[ "$_gpt" == *- ]]; do _gpt="${_gpt%-}"; done
+                [[ -z "$_gpt" ]] && { _gpsan=0; break; }
+                _gpg_toks[$_gpk]="$_gpt"
+            done
+            _gp_scan "${lines[1]}"
+            local _gph_cent=("${_GP_CENTERS[@]}")
+            if [[ $_gpsan -eq 1 && ${#_gpg_toks[@]} -ge 2 && ${#_gph_cent[@]} -eq ${#headers[@]} ]]; then
+                # Mark duplicates on the ORIGINAL names first — renaming inside
+                # the same pass would hide a later twin (`Req` at index 4 stops
+                # matching once index 1 became `CPU_Req`) and leave the second
+                # group's columns bare and still colliding with any third.
+                local _gpdups=()
+                for ((_gpi = 0; _gpi < ${#headers[@]}; _gpi++)); do _gpdups[$_gpi]=0; done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    for ((_gpj = 1; _gpj < ${#headers[@]}; _gpj++)); do
+                        [[ $_gpj -ne $_gpi && "${headers[$_gpj]}" == "${headers[$_gpi]}" ]] && { _gpdups[$_gpi]=1; break; }
+                    done
+                done
+                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
+                    [[ ${_gpdups[$_gpi]} -eq 0 ]] && continue
+                    local _gpbest=0 _gpbd=999999 _gpdist
+                    for ((_gpj = 0; _gpj < ${#_gpg_toks[@]}; _gpj++)); do
+                        _gpdist=$(( ${_gph_cent[$_gpi]} - ${_gpg_cent[$_gpj]} ))
+                        [[ $_gpdist -lt 0 ]] && _gpdist=$(( -_gpdist ))
+                        [[ $_gpdist -lt $_gpbd ]] && { _gpbd=$_gpdist; _gpbest=$_gpj; }
+                    done
+                    headers[$_gpi]="${_gpg_toks[$_gpbest]}_${headers[$_gpi]}"
+                done
+            fi
+        fi
+    fi
+}
+
+# The OFFSET-ASSIGNMENT pass of strategy_extract (see the comment there),
+# shared by the bash path and the big-table path.
+_AC_AWK_OFFSET='
+                    NR == 1 {
+                        # Header token spans (1-based columns).
+                        len = length($0); st = 0; nh = 0
+                        for (i = 1; i <= len + 1; i++) {
+                            c = (i <= len) ? substr($0, i, 1) : " "
+                            if (c != " " && c != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                nh++; hs[nh] = st; he[nh] = i - 1
+                                nm = substr($0, st, i - st)
+                                gsub(/\./, "_", nm)
+                                hn[nh] = nm
+                                st = 0
+                            }
+                        }
+                        # A trailing preposition is the tail of a two-word
+                        # label (`Mounted on`), not a column of its own —
+                        # weld it onto its neighbour so the last value gets
+                        # the full name instead of a truncated one.
+                        pl = tolower(hn[nh])
+                        if (nh >= 3 && pl ~ /^(on|by|in|at|of|to)$/) {
+                            hn[nh - 1] = hn[nh - 1] "_" hn[nh]
+                            he[nh - 1] = he[nh]
+                            nh--
+                        }
+                        # DUPLICATE header token names are the signature of
+                        # multi-word labels tokenized apart: doctl repeats ID
+                        # (`Active Deployment ID` / `In Progress Deployment
+                        # ID`), spark repeats Tasks three times. Per-token
+                        # spans are meaningless there — the duplicate names
+                        # collide in the melt and each label loses half of
+                        # itself — so the whole path withdraws.
+                        for (i = 1; i <= nh; i++)
+                            for (j = i + 1; j <= nh; j++)
+                                if (hn[i] == hn[j]) { dupname = 1 }
+                        next
+                    }
+                    {
+                        row++
+                        len = length($0); st = 0
+                        for (c = 1; c <= nh; c++) cells[c] = ""
+                        for (i = 1; i <= len + 1; i++) {
+                            ch = (i <= len) ? substr($0, i, 1) : " "
+                            if (ch != " " && ch != "\t") { if (st == 0) st = i }
+                            else if (st > 0) {
+                                s = st; e = i - 1; st = 0
+                                tok = substr($0, s, e - s + 1)
+                                if (s >= hs[nh]) { col = nh; ov = 1 }
+                                else {
+                                    col = 0; ov = 0; nspan = 0
+                                    for (c = 1; c <= nh; c++) {
+                                        lo = (s > hs[c]) ? s : hs[c]
+                                        hi = (e < he[c]) ? e : he[c]
+                                        o = hi - lo + 1
+                                        if (o > 0) nspan++
+                                        if (o > ov) { ov = o; col = c }
+                                    }
+                                    # A token stretching across TWO header
+                                    # token spans is a value sitting under a
+                                    # multi-word label (`starfish-api` under
+                                    # `Spec Name`) — count them; too many and
+                                    # the table is not per-token aligned.
+                                    if (nspan >= 2) nwide++
+                                    if (col == 0) {
+                                        # no overlap: nearest span by gap
+                                        bd = -1
+                                        for (c = 1; c <= nh; c++) {
+                                            d = (e < hs[c]) ? hs[c] - e : s - he[c]
+                                            if (bd < 0 || d < bd) { bd = d; col = c }
+                                        }
+                                    }
+                                }
+                                ntok++
+                                if (ov > 0) nhit++
+                                # Edge alignment: a genuinely offset-aligned
+                                # table puts each value START at its header
+                                # label start (left-aligned columns) or its
+                                # END at the label end (right-aligned
+                                # numerics). Prose that merely OVERLAPS spans
+                                # (deno error lines under a first line
+                                # mistaken for a header) has almost no edge
+                                # hits, and that difference is the gate.
+                                # NOTE: this comment sits inside a single-
+                                # quoted awk program — no apostrophes.
+                                for (c2 = 1; c2 <= nh; c2++)
+                                    if (s == hs[c2] || e == he[c2]) { nedge++; break }
+                                cells[col] = (cells[col] == "") ? tok : cells[col] " " tok
+                            }
+                        }
+                        for (c = 1; c <= nh; c++)
+                            if (cells[c] != "")
+                                buf = buf "entry" row "." hn[c] " " cells[c] "\n"
+                    }
+                    END {
+                        # Withdraw unless the rows really sit under the header:
+                        # >=80% of tokens overlap a header span AND >=60% land
+                        # exactly on a span edge (left- or right-aligned) AND
+                        # the header names are per-token meaningful — no
+                        # duplicate names, and <10% of tokens spanning two
+                        # labels (multi-word-label tables belong to the
+                        # positional grid / seg-split paths, not this one).
+                        if (row == 0 || ntok == 0 || nhit * 5 < ntok * 4) exit 0
+                        if (nedge * 10 < ntok * 6) exit 0
+                        if (dupname) exit 0
+                        if (nwide * 10 > ntok) exit 0
+                        printf "%s", buf
+                        printf "total_entries %d\n", row
+                    }
+'
+
+# _ac_lines_stats FROM — aggregates over lines[FROM..] (the caller's `lines`):
+#   _ACS_N      rows
+#   _ACS_TMAX   largest token count
+#   _ACS_TMOD   modal token count, _ACS_TMODN its count
+#   _ACS_SMOD   modal segment count, _ACS_SMODN its count
+#   _ACS_DIGIT  1 when any row holds a digit
+#   _ACS_SSAME  1 when every row has the same segment count (_ACS_SFIRST)
+#   _ACS_TFIRST token count of the first row; _ACS_TRAG 1 when any differs
+# (When _ACX_F names a file — the big-table path — the rows are read from it
+# instead, and results are memoised per FROM until _ACX_STATS_KEY is reset.)
+_ACX_F=""
+_ACX_STATS_KEY=""
+declare -A _ACX_STATS=()
+_ac_lines_stats () {
+    local _from="$1"
+    _ACS_N=0 _ACS_TMAX=0 _ACS_TMOD=0 _ACS_TMODN=0 _ACS_SMOD=0 _ACS_SMODN=0
+    _ACS_DIGIT=0 _ACS_SSAME=1 _ACS_SFIRST=0 _ACS_TFIRST=0 _ACS_TRAG=0
+    local _stats
+    if [[ -n "$_ACX_F" ]]; then
+        if [[ "$_ACX_STATS_KEY" != "$_ACX_F" ]]; then _ACX_STATS=(); _ACX_STATS_KEY="$_ACX_F"; fi
+        if [[ -z "${_ACX_STATS[$_from]:-}" ]]; then
+            _ACX_STATS[$_from]=$(awk -v f="$_from" 'NR > f' "$_ACX_F" | _ac_lines_stats_awk)
+        fi
+        _stats="${_ACX_STATS[$_from]}"
+    else
+        (( _from < ${#lines[@]} )) || return 0
+        _stats=$(printf '%s\n' "${lines[@]:_from}" | _ac_lines_stats_awk)
+    fi
+    read -r _ACS_N _ACS_TMAX _ACS_TMOD _ACS_TMODN _ACS_SMOD _ACS_SMODN _ACS_DIGIT \
+            _ACS_SSAME _ACS_SFIRST _ACS_TFIRST _ACS_TRAG <<< "$_stats"
+}
+_ac_lines_stats_awk () {
+    awk "$_AC_AWK_SEG"'
+        {
+            n++; t = NF; g = seg($0)
+            if (t > tmax) tmax = t
+            if (!(t in TC)) tord[++nt] = t
+            TC[t]++
+            if (!(g in SC)) sord[++ns] = g
+            SC[g]++
+            if (!dig && $0 ~ /[0-9]/) dig = 1
+            if (n == 1) { sfirst = g; tfirst = t } else { if (g != sfirst) sdiff = 1; if (t != tfirst) trag = 1 }
+        }
+        END {
+            for (i = 1; i <= nt; i++) if (TC[tord[i]] > tb) { tb = TC[tord[i]]; tm = tord[i] }
+            for (i = 1; i <= ns; i++) if (SC[sord[i]] > sb) { sb = SC[sord[i]]; sm = sord[i] }
+            printf "%d %d %d %d %d %d %d %d %d %d %d\n", n, tmax, tm, tb, sm, sb, dig, !sdiff, sfirst, tfirst, trag
+        }'
+}
+
+# ---------------------------------------------------------------------------
+# _ac_extract_big MODE NCOLS — strategy_extract for a BIG block, file to file.
+# Mirrors strategy_extract step for step on the table held in a scratch file
+# (only a few leading rows ever enter bash): collect the non-blank rows,
+# drop header repeats / the units row, merge first-cell wraps, then the
+# positional / segment / offset / header decisions from awk aggregates, and
+# emit through _ac_emit_rows. Every decision is the bash path's, computed the
+# same way (see the BIG-TABLE TWINS note). Paths that stay bash-only — the
+# positional grid, non-ASCII blocks, the segment split, the headerless
+# scaffold split and phrase merges — return 3 with the rows collected so far
+# in _ACX_F, and strategy_extract carries on from there with its own loops.
+# Returns 0 with the result printed otherwise.
+# ---------------------------------------------------------------------------
+_ac_extract_big () {
+    local mode="$1" ncols="$2" p="$_FR_SCRATCH/ac.$BASHPID"
+    local cur="$p.rows0" n H=()
+    _ACX_F=""
+    printf '%s\n' "$_AC_BODY" > "$p.body"
+
+    # --- collect non-blank rows (footer-legend stop, as the bash loop) ---
+    local need=0
+    case "$mode" in HDR) need=2 ;; HDR2) need=3 ;; esac
+    awk -v need="$need" '
+        $0 !~ /[^ \t\n\v\f\r]/ { if (need > 0 && kept >= need) armed = 1; next }
+        { if (armed && index($0, " = ")) exit; armed = 0; kept++; print }' "$p.body" > "$cur"
+    rm -f "$p.body"
+    _acx_rows () { n=$(awk 'END { print NR }' "$cur"); H=(); mapfile -t -n 4 H < "$cur"; }
+    _acx_rows
+
+    # --- table chrome: header repeats + the units row ---
+    if [[ ( "$mode" == HDR || "$mode" == HDR2 ) && $n -ge 3 ]]; then
+        local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
+        local _fharr; _fr_tok "${H[$_fhidx]}"; _fharr=("${_FR_TOK[@]}")
+        local _fhnorm="${_fharr[*]}"
+        local _fhind="${H[$_fhidx]%%[![:space:]]*}"
+        local _acx_norm='{ s = ""; for (k = 1; k <= NF; k++) s = (k > 1) ? s " " $k : $k }'
+        local _fhdrfree=1
+        if [[ ${#_fharr[@]} -lt 3 ]]; then
+            _fhdrfree=0
+        elif [[ "${H[$_fhidx]}" =~ [0-9] ]]; then
+            local _frep=0 _ftot=0
+            read -r _frep _ftot < <(_ACX_H="$_fhnorm" awk -v hidx="$_fhidx" "$_acx_norm"'
+                NR - 1 > hidx { tot++; if (s == ENVIRON["_ACX_H"]) rep++ }
+                END { printf "%d %d\n", rep, tot }' "$cur")
+            [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
+        fi
+        local _fi _farr _fnorm _fdind _ft _ftok _acx_dropu=0
+        _fi=$((_fhidx + 1))
+        _fr_tok "${H[$_fi]}"; _farr=("${_FR_TOK[@]}")
+        _fnorm="${_farr[*]}"
+        if ! [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] \
+           && [[ ${#_farr[@]} -lt ${#_fharr[@]} && ${#_farr[@]} -ge 2 && ! "${H[$_fi]}" =~ [0-9] ]]; then
+            _fdind="${H[$_fi]%%[![:space:]]*}"
+            if [[ ${#_fdind} -gt ${#_fhind} ]]; then
+                _ft=1
+                for _ftok in "${_farr[@]}"; do
+                    [[ ${#_ftok} -gt 6 ]] && { _ft=0; break; }
+                    if [[ "$_ftok" == "("*")" ]]; then continue; fi
+                    [[ "$_ftok" == *[A-Z]* && "$_ftok" == *[a-z]* ]] || { _ft=0; break; }
+                done
+                [[ $_ft -eq 1 ]] && _acx_dropu=1
+            fi
+        fi
+        _ACX_H="$_fhnorm" awk -v hidx="$_fhidx" -v free="$_fhdrfree" -v dropu="$_acx_dropu" "$_acx_norm"'
+            {
+                i = NR - 1
+                if (i > hidx) {
+                    if (free && s == ENVIRON["_ACX_H"]) next
+                    if (i == hidx + 1 && dropu) next
+                }
+                print
+            }' "$cur" > "$p.rows1"
+        cur="$p.rows1"; _acx_rows
+    fi
+
+    # --- first-cell wraps ---
+    if [[ "$mode" == HDR && $ncols -ge 4 && $n -ge 3 ]]; then
+        awk -v ncols="$ncols" '
+            { L[NR] = $0; T[NR] = NF }
+            END {
+                for (i = 1; i <= NR; i++) {
+                    if (i > 1 && i < NR && T[i] == 1) {
+                        m = 1 + T[i + 1]
+                        c = substr(L[i + 1], 1, 1)
+                        if (m >= ncols - 1 && m <= ncols && (c == " " || c == "\t")) {
+                            k = split(L[i], a); r = a[1]
+                            k = split(L[i + 1], b)
+                            for (j = 1; j <= k; j++) r = r " " b[j]
+                            print r
+                            i++
+                            continue
+                        }
+                    }
+                    print L[i]
+                }
+            }' "$cur" > "$p.rows2"
+        cur="$p.rows2"; _acx_rows
+    fi
+    _ACX_F="$cur"
+    _ACX_STATS_KEY=""     # _ac_lines_stats reads $_ACX_F from here on
+
+    # --- positional decision (HDR/HDR2) ---
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
+        local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
+        local _htok; _fr_tok "${H[$hidx]}"; _htok=${#_FR_TOK[@]}
+        _ac_lines_stats $((hidx + 1))
+        local _maxd=$_ACS_TMAX _moded=$_ACS_TMOD
+        local _use_pos=0
+        if [[ $_maxd -gt $_htok ]]; then _use_pos=1
+        elif [[ $_htok -gt $_maxd ]]; then
+            _ac_lines_stats 0
+            if [[ $_ACS_DIGIT -eq 0 ]]; then _use_pos=1
+            else
+                _ac_seg_v "${H[$hidx]}"
+                [[ $_AC_SEG -ge 2 && $_AC_SEG -eq $_moded ]] && _use_pos=1
+            fi
+        else
+            local _hsegq; _ac_seg_v "${H[$hidx]}"; _hsegq="$_AC_SEG"
+            if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
+                _ac_lines_stats $((hidx + 1))
+                [[ $_ACS_SMOD -eq $_hsegq ]] && _use_pos=1
+            fi
+        fi
+        if [[ $_use_pos -eq 1 ]]; then
+            # a non-ASCII block (the mb grid) or a cleanly aligned one (the
+            # positional grid) takes the bash path
+            awk -v h="$hidx" 'NR > h' "$cur" | LC_ALL=C grep -q $'[\x80-\xff]' && return 3
+            [[ "$(awk -v h="$hidx" 'NR > h' "$cur" | _ac_aligned)" == "1" ]] && return 3
+        fi
+    fi
+
+    # --- segment-split fallback (HDR): bash path when it fires ---
+    if [[ "$mode" == HDR && $n -ge 2 ]]; then
+        _ac_lines_stats 0
+        local _sok=$_ACS_SSAME _sS=$_ACS_SFIRST _shw=$_ACS_TFIRST
+        _ac_lines_stats 1
+        [[ $_sok -eq 1 && $_sS -ge 2 && $_ACS_TMOD -gt $_shw ]] && return 3
+    fi
+
+    # --- offset assignment for sparse tables (HDR) ---
+    if [[ "$mode" == HDR && $n -ge 3 ]]; then
+        local _oa_h; _fr_tok "${H[0]}"; _oa_h=("${_FR_TOK[@]}")
+        if [[ ${#_oa_h[@]} -ge 4 ]]; then
+            _ac_lines_stats 1
+            if [[ $_ACS_TMOD -lt ${#_oa_h[@]} && $_ACS_TMOD -ge 1 ]]; then
+                local _oa_out
+                _oa_out=$(awk "$_AC_AWK_OFFSET" "$cur")
+                if [[ -n "$_oa_out" ]]; then
+                    echo "$_oa_out"; return 0
+                fi
+            fi
+        fi
+    fi
+
+    # --- header names ---
+    local headers=() startidx=0 i lines=("${H[@]:0:2}")
+    case "$mode" in
+        HDR)  _fr_tok "${H[0]}"; headers=("${_FR_TOK[@]}"); startidx=1 ;;
+        HDR2) _fr_tok "${H[1]}"; headers=("${_FR_TOK[@]}"); startidx=2 ;;
+        HL)   for ((i = 1; i <= ncols; i++)); do _fr_col_letter "$i"; headers+=("$_FR_LETTER"); done; startidx=0 ;;
+    esac
+    _ac_group_prefix
+    for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
+
+    # --- trailing preposition weld ---
+    if [[ ( "$mode" == HDR || "$mode" == HDR2 ) && ${#headers[@]} -ge 3 ]]; then
+        local _tp_last="${headers[$(( ${#headers[@]} - 1 ))]}"
+        local _tp_lc="${_tp_last,,}"
+        case "$_tp_lc" in
+            on|by|in|at|of|to)
+                _ac_lines_stats "$startidx"
+                if [[ $_ACS_TMOD -eq $(( ${#headers[@]} - 1 )) ]]; then
+                    headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
+                    unset 'headers[$(( ${#headers[@]} - 1 ))]'
+                    headers=("${headers[@]}")
+                fi
+                ;;
+        esac
+    fi
+
+    # --- headerless scaffold split: bash path when its first-row test passes ---
+    if [[ "$mode" == HL && $n -ge 2 ]]; then
+        _ac_lines_stats "$startidx"
+        if [[ $_ACS_TRAG -eq 1 ]]; then
+            local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_tk _sc_i _sc_a _sc_b
+            _fr_tok "${H[$startidx]}"; _sc_tk=("${_FR_TOK[@]}")
+            for ((_sc_i = 0; _sc_i < ${#_sc_tk[@]}; _sc_i++)); do
+                case "${_sc_tk[$_sc_i]}" in
+                    at|on|from|via|dev|to|of|by|for)
+                        [[ ${#_sc_seq[@]} -eq 0 ]] && _sc_pre=$_sc_i
+                        _sc_seq+=("${_sc_tk[$_sc_i]}") ;;
+                esac
+            done
+            for ((_sc_a = 0; _sc_a < ${#_sc_seq[@]} && _sc_ok == 1; _sc_a++)); do
+                for ((_sc_b = _sc_a + 1; _sc_b < ${#_sc_seq[@]}; _sc_b++)); do
+                    [[ "${_sc_seq[$_sc_a]}" == "${_sc_seq[$_sc_b]}" ]] && { _sc_ok=0; break; }
+                done
+            done
+            [[ $_sc_ok -eq 1 && ${#_sc_seq[@]} -ge 2 && $_sc_pre -ge 1 ]] && return 3
+        fi
+    fi
+
+    # --- headerless phrase merge: bash path when it applies ---
+    if [[ "$mode" == HL && ${#headers[@]} -ge 3 && $n -ge 2 ]]; then
+        local _pm_ok
+        _pm_ok=$(awk -v s="$startidx" -v nh="${#headers[@]}" '
+            NR <= s { next }
+            {
+                if (NF != nh || $(nh - 1) !~ /^[a-z]+$/ || $nh !~ /^[a-z]+$/) { bad = 1; exit }
+                pr = $(nh - 1) " " $nh
+                if (!seen) { first = pr; seen = 1 } else if (pr != first) { bad = 1; exit }
+            }
+            END { print bad ? 0 : 1 }' "$cur")
+        [[ "$_pm_ok" == 1 ]] && return 3
+    fi
+
+    # --- emit (the fast path: no phrase merge) ---
+    [[ ${#headers[@]} -ge 1 ]] || return 3
+    local entry=$(( n - startidx ))
+    if [[ $entry -gt 0 ]]; then
+        local _hjoin
+        _ac_join_tab "${headers[@]}"; _hjoin="$_AC_JOINED"
+        awk -v s="$startidx" 'NR > s' "$cur" | _ac_emit_rows "$_hjoin"
+        printf 'total_entries %d\n' "$entry"
+    fi
+    return 0
+}
+
 strategy_extract () {
     local text="$1"
     local shape; _ac_shape_v "$text" || { echo ""; return 0; }; shape="$_AC_SHAPE"
@@ -1285,7 +1846,35 @@ strategy_extract () {
     # "LOAD = …" lines after a blank). A table that resumes after the blank
     # (faillock's per-user sections) keeps collecting.
     local _raw=() lines=() _l _li
-    _ac_body_v "$text"; _fr_lines "$_AC_BODY"; _raw=("${_FR_LINES[@]}")
+    local _acx_big=0 _acx_o="" _acx_pre=0
+    _ACX_F=""
+    _ac_body_v "$text"
+    (( ${#_AC_BODY} > _FR_BIG_BYTES )) && _acx_big=1
+    if [[ $_acx_big -eq 1 ]] && _fr_scratch; then
+        # BIG block: the file-to-file path; it hands back (rc 3) only for the
+        # bash-only paths, with the collected rows in _ACX_F.
+        local _acx_rc=0
+        _ac_extract_big "$mode" "$ncols" || _acx_rc=$?
+        if [[ $_acx_rc -ne 3 ]]; then _ACX_F=""; return $_acx_rc; fi
+        mapfile -t lines < "$_ACX_F"
+        _ACX_F=""; _acx_pre=1
+    fi
+    if [[ $_acx_pre -eq 1 ]]; then
+        :   # rows already collected, chrome dropped, wraps merged
+    elif [[ $_acx_big -eq 1 ]]; then
+        # BIG: the collection loop below in one awk pass (a blank line after
+        # enough kept rows arms the footer check; the next non-blank line
+        # ends the table when it is a `KEY = …` legend).
+        local _acx_need=0
+        case "$mode" in HDR) _acx_need=2 ;; HDR2) _acx_need=3 ;; esac
+        _acx_o="$(printf '%s\n' "$_AC_BODY" | awk -v need="$_acx_need" '
+            $0 !~ /[^ \t\n\v\f\r]/ { if (need > 0 && kept >= need) armed = 1; next }
+            { if (armed && index($0, " = ")) exit; armed = 0; kept++; print }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+        lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+    else
+    _fr_lines "$_AC_BODY"; _raw=("${_FR_LINES[@]}")
+    fi
+    [[ $_acx_pre -eq 1 ]] && _raw=()
     for ((_li = 0; _li < ${#_raw[@]}; _li++)); do
         _l="${_raw[$_li]}"
         if [[ "${_l}" != *[![:space:]]* ]]; then
@@ -1314,7 +1903,7 @@ strategy_extract () {
     #     indent (its first column is blank), and EVERY token short (≤6 chars)
     #     the way unit labels are. Real data rows carry digits, fill the first
     #     column, or have long values (paths, service names).
-    if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 ]]; then
+    if [[ "$mode" == HDR || "$mode" == HDR2 ]] && [[ ${#lines[@]} -ge 3 && $_acx_pre -eq 0 ]]; then
         local _fhidx=0; [[ "$mode" == HDR2 ]] && _fhidx=1
         local _fharr; _fr_tok "${lines[$_fhidx]}"; _fharr=("${_FR_TOK[@]}")
         local _fhnorm="${_fharr[*]}"
@@ -1328,19 +1917,64 @@ strategy_extract () {
         # a block dominated by one legitimately repeated log line (entr), where
         # the repeats ARE the data and must survive.
         local _fhdrfree=1
+        # (BIG: the token-normalised form of every row, one awk pass — the
+        # `${arr[*]}` join of _fr_tok's words is the row's fields joined by
+        # one space)
+        local _acx_norm='{ s = ""; for (k = 1; k <= NF; k++) s = (k > 1) ? s " " $k : $k }'
         if [[ ${#_fharr[@]} -lt 3 ]]; then
             _fhdrfree=0
         elif [[ "${lines[$_fhidx]}" =~ [0-9] ]]; then
             local _frep=0 _ftot=0 _fj _fjarr
+            if [[ $_acx_big -eq 1 ]]; then
+                read -r _frep _ftot < <(printf '%s\n' "${lines[@]:$((_fhidx + 1))}" \
+                    | _ACX_H="$_fhnorm" awk "$_acx_norm"' { tot++; if (s == ENVIRON["_ACX_H"]) rep++ }
+                        END { printf "%d %d\n", rep, tot }')
+                [[ $((_fhidx + 1)) -ge ${#lines[@]} ]] && { _frep=0; _ftot=0; }
+            else
             for ((_fj = _fhidx + 1; _fj < ${#lines[@]}; _fj++)); do
                 _ftot=$((_ftot + 1))
                 _fr_tok "${lines[$_fj]}"; _fjarr=("${_FR_TOK[@]}")
                 [[ "${_fjarr[*]}" == "$_fhnorm" ]] && _frep=$((_frep + 1))
             done
+            fi
             [[ $_frep -eq 0 || $_ftot -eq 0 || $((_frep * 4)) -gt $_ftot ]] && _fhdrfree=0
         fi
         local _fout=() _fi _farr _fnorm _fdind _ft _ftok
-        for ((_fi = 0; _fi < ${#lines[@]}; _fi++)); do
+        local _acx_n=${#lines[@]}
+        if [[ $_acx_big -eq 1 ]]; then
+            # BIG: decide the one units-row candidate (row _fhidx+1) here,
+            # then let one awk pass drop header repeats (and that row).
+            local _acx_dropu=0
+            _fi=$((_fhidx + 1))
+            _fr_tok "${lines[$_fi]}"; _farr=("${_FR_TOK[@]}")
+            _fnorm="${_farr[*]}"
+            if ! [[ $_fhdrfree -eq 1 && "$_fnorm" == "$_fhnorm" ]] \
+               && [[ ${#_farr[@]} -lt ${#_fharr[@]} && ${#_farr[@]} -ge 2 && ! "${lines[$_fi]}" =~ [0-9] ]]; then
+                _fdind="${lines[$_fi]%%[![:space:]]*}"
+                if [[ ${#_fdind} -gt ${#_fhind} ]]; then
+                    _ft=1
+                    for _ftok in "${_farr[@]}"; do
+                        [[ ${#_ftok} -gt 6 ]] && { _ft=0; break; }
+                        if [[ "$_ftok" == "("*")" ]]; then continue; fi
+                        [[ "$_ftok" == *[A-Z]* && "$_ftok" == *[a-z]* ]] || { _ft=0; break; }
+                    done
+                    [[ $_ft -eq 1 ]] && _acx_dropu=1
+                fi
+            fi
+            _acx_o="$(printf '%s\n' "${lines[@]}" \
+                | _ACX_H="$_fhnorm" awk -v hidx="$_fhidx" -v free="$_fhdrfree" -v dropu="$_acx_dropu" "$_acx_norm"'
+                    {
+                        i = NR - 1
+                        if (i > hidx) {
+                            if (free && s == ENVIRON["_ACX_H"]) next
+                            if (i == hidx + 1 && dropu) next
+                        }
+                        print
+                    }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+            lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+            _acx_n=0
+        fi
+        for ((_fi = 0; _fi < _acx_n; _fi++)); do
             if [[ $_fi -gt $_fhidx ]]; then
                 _fr_tok "${lines[$_fi]}"; _farr=("${_FR_TOK[@]}")
                 _fnorm="${_farr[*]}"
@@ -1365,7 +1999,7 @@ strategy_extract () {
             fi
             _fout+=("${lines[$_fi]}")
         done
-        lines=("${_fout[@]}")
+        [[ $_acx_big -eq 1 ]] || lines=("${_fout[@]}")
     fi
 
     # FIRST-CELL WRAP: a data row that is a LONE token, followed by an INDENTED
@@ -1373,7 +2007,32 @@ strategy_extract () {
     # its own line (df's `/dev/mapper/vg-root` over an indented `98G 45G …`) —
     # merge the pair into one row. Gated on a headed table with >=4 columns so
     # narrow key/value layouts never pair-merge.
-    if [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 ]]; then
+    if [[ $_acx_pre -eq 1 ]]; then
+        :
+    elif [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 && $_acx_big -eq 1 ]]; then
+        # BIG: the pair-merge loop below in one awk pass (all rows buffered
+        # for the one-row lookahead)
+        _acx_o="$(printf '%s\n' "${lines[@]}" | awk -v ncols="$ncols" '
+            { L[NR] = $0; T[NR] = NF }
+            END {
+                for (i = 1; i <= NR; i++) {
+                    if (i > 1 && i < NR && T[i] == 1) {
+                        m = 1 + T[i + 1]
+                        c = substr(L[i + 1], 1, 1)
+                        if (m >= ncols - 1 && m <= ncols && (c == " " || c == "\t")) {
+                            n = split(L[i], a); r = a[1]
+                            n = split(L[i + 1], b)
+                            for (k = 1; k <= n; k++) r = r " " b[k]
+                            print r
+                            i++
+                            continue
+                        }
+                    }
+                    print L[i]
+                }
+            }'; printf .)"; _fr_split_out "${_acx_o%.}"; _acx_o=""
+        lines=(${_FR_OUT[@]+"${_FR_OUT[@]}"}); _FR_OUT=()
+    elif [[ "$mode" == HDR && $ncols -ge 4 && ${#lines[@]} -ge 3 ]]; then
         local _mw=() _mi _mt1 _mt2
         for ((_mi = 0; _mi < ${#lines[@]}; _mi++)); do
             if [[ $_mi -gt 0 && $((_mi + 1)) -lt ${#lines[@]} ]]; then
@@ -1402,7 +2061,16 @@ strategy_extract () {
     if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
         local hidx=0; [[ "$mode" == HDR2 ]] && hidx=1
         # (printf -v + trailing-newline strip == the old `$(printf …)` capture)
-        local hd; printf -v hd '%s\n' "${lines[@]:$hidx}"; hd="${hd%"${hd##*[!$'\n']}"}"
+        local hd; printf -v hd '%s\n' "${lines[@]:$hidx}"
+        if [[ $_acx_big -eq 1 ]]; then
+            # (trailing newlines counted from the end: the `##*[!…]` suffix
+            # scan walks the whole big string)
+            local _hdn=0
+            while (( _hdn < ${#hd} )) && [[ "${hd: -$((_hdn + 1)):1}" == $'\n' ]]; do _hdn=$((_hdn + 1)); done
+            hd="${hd:0:$(( ${#hd} - _hdn ))}"
+        else
+            hd="${hd%"${hd##*[!$'\n']}"}"
+        fi
         # Positional assignment only helps when a data cell is multi-word (docker
         # "2 hours ago", helm's timestamp) — i.e. data rows carry MORE whitespace
         # tokens than the header has labels. When every cell is a single token
@@ -1411,14 +2079,19 @@ strategy_extract () {
         # so positional would cram them; whitespace tokenization is correct there.
         local _htok _harr; _fr_tok "${lines[$hidx]}"; _harr=("${_FR_TOK[@]}"); _htok=${#_harr[@]}
         local _maxd=0 _dli _darr _dcnt=()
+        # Modal data-row token count.
+        local _moded=0 _mdbest=0
+        if [[ $_acx_big -eq 1 ]]; then
+            _ac_lines_stats $((hidx + 1))
+            _maxd=$_ACS_TMAX; _moded=$_ACS_TMOD; _mdbest=$_ACS_TMODN
+        else
         for ((_dli = hidx + 1; _dli < ${#lines[@]}; _dli++)); do
             _fr_tok "${lines[$_dli]}"; _darr=("${_FR_TOK[@]}")
             [[ ${#_darr[@]} -gt $_maxd ]] && _maxd=${#_darr[@]}
             _dcnt+=("${#_darr[@]}")
         done
-        # Modal data-row token count.
-        local _moded=0 _mdbest=0
         _fr_modal ${_dcnt[@]+"${_dcnt[@]}"}; _moded=$_FR_MODE; _mdbest=$_FR_MODE_N
+        fi
         # In an ALL-TEXT table (no digits anywhere) the reverse mismatch also
         # wants positional assignment: a header with MORE tokens than the data
         # rows means multi-word labels (`Service Name`), which 2-space
@@ -1431,8 +2104,15 @@ strategy_extract () {
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
         elif [[ $_htok -gt $_maxd ]]; then
-            local _alljoin; printf -v _alljoin '%s\n' "${lines[@]}"
-            if [[ ! "$_alljoin" =~ [0-9] ]]; then _use_pos=1
+            local _alljoin _acx_nodig=0
+            if [[ $_acx_big -eq 1 ]]; then
+                # any digit in ANY row (header rows included): lines[0..]
+                _ac_lines_stats 0; [[ $_ACS_DIGIT -eq 0 ]] && _acx_nodig=1
+            else
+                printf -v _alljoin '%s\n' "${lines[@]}"
+                [[ ! "$_alljoin" =~ [0-9] ]] && _acx_nodig=1
+            fi
+            if [[ $_acx_nodig -eq 1 ]]; then _use_pos=1
             else
                 local _hseg; _ac_seg_v "${lines[$hidx]}"; _hseg="$_AC_SEG"
                 [[ $_hseg -ge 2 && $_hseg -eq $_moded ]] && _use_pos=1
@@ -1450,10 +2130,14 @@ strategy_extract () {
             local _hsegq; _ac_seg_v "${lines[$hidx]}"; _hsegq="$_AC_SEG"
             if [[ $_hsegq -ge 2 && $_hsegq -lt $_htok ]]; then
                 local _dsegc=() _dsi _dsbest=0 _dsmod=0
+                if [[ $_acx_big -eq 1 ]]; then
+                    _ac_lines_stats $((hidx + 1)); _dsmod=$_ACS_SMOD; _dsbest=$_ACS_SMODN
+                else
                 for ((_dsi = hidx + 1; _dsi < ${#lines[@]}; _dsi++)); do
                     _ac_seg_v "${lines[$_dsi]}"; _dsegc+=("$_AC_SEG")
                 done
                 _fr_modal ${_dsegc[@]+"${_dsegc[@]}"}; _dsmod=$_FR_MODE; _dsbest=$_FR_MODE_N
+                fi
                 [[ $_dsmod -eq $_hsegq ]] && _use_pos=1
             fi
         fi
@@ -1592,7 +2276,17 @@ strategy_extract () {
     # are deliberately excluded — there is no header to say the field is one cell.
     if [[ "$mode" == HDR ]] && [[ ${#lines[@]} -ge 2 ]]; then
         local _sS="" _sok=1 _si _sarr _ss _sw _shw=0 _sdw=()
-        for ((_si = 0; _si < ${#lines[@]}; _si++)); do
+        local _smod=0 _sbest=0 _acx_sn=${#lines[@]}
+        if [[ $_acx_big -eq 1 ]]; then
+            # BIG: same verdicts from two awk aggregates (every row's
+            # segment count equal to row 0's; modal data-row token count)
+            _ac_lines_stats 0
+            _sok=$_ACS_SSAME; _sS=$_ACS_SFIRST; _shw=$_ACS_TFIRST
+            _ac_lines_stats 1
+            _smod=$_ACS_TMOD; _sbest=$_ACS_TMODN
+            _acx_sn=0
+        fi
+        for ((_si = 0; _si < _acx_sn; _si++)); do
             _ac_seg_v "${lines[$_si]}"; _ss="$_AC_SEG"
             _fr_tok "${lines[$_si]}"; _sarr=("${_FR_TOK[@]}"); _sw=${#_sarr[@]}
             [[ $_si -eq 0 ]] && _shw=$_sw || _sdw+=("$_sw")
@@ -1607,8 +2301,9 @@ strategy_extract () {
         # header label happens to be single-spaced (ps -ef's "C STIME TTY" — three
         # narrow columns, not one multi-word cell). That equality is the guard that
         # keeps single-space-delimited fixed tables on tokenization.
-        local _smod=0 _sbest=0
+        if [[ $_acx_big -eq 0 ]]; then
         _fr_modal ${_sdw[@]+"${_sdw[@]}"}; _smod=$_FR_MODE; _sbest=$_FR_MODE_N
+        fi
         if [[ $_sok -eq 1 && $_sS -ge 2 && $_smod -gt $_shw ]]; then
             # mode==HDR guarantees a header row: split it on the same >=2-space
             # boundaries and use its cells as column names ("RAW USE" -> RAW_USE).
@@ -1665,122 +2360,18 @@ strategy_extract () {
         if [[ ${#_oa_h[@]} -ge 4 ]]; then
             # Modal data-row token count, and raggedness.
             local _oa_cnt=() _oa_i _oa_t _oa_mod=0 _oa_ba _oa_bb _oa_bk _oa_best=0
+            if [[ $_acx_big -eq 1 ]]; then
+                _ac_lines_stats 1; _oa_mod=$_ACS_TMOD; _oa_best=$_ACS_TMODN
+            else
             for ((_oa_i = 1; _oa_i < ${#lines[@]}; _oa_i++)); do
                 _fr_tok "${lines[$_oa_i]}"; _oa_t=("${_FR_TOK[@]}")
                 _oa_cnt+=("${#_oa_t[@]}")
             done
             _fr_modal ${_oa_cnt[@]+"${_oa_cnt[@]}"}; _oa_mod=$_FR_MODE; _oa_best=$_FR_MODE_N
+            fi
             if [[ $_oa_mod -lt ${#_oa_h[@]} && $_oa_mod -ge 1 ]]; then
                 local _oa_out
-                _oa_out=$(printf '%s\n' "${lines[@]}" | awk '
-                    NR == 1 {
-                        # Header token spans (1-based columns).
-                        len = length($0); st = 0; nh = 0
-                        for (i = 1; i <= len + 1; i++) {
-                            c = (i <= len) ? substr($0, i, 1) : " "
-                            if (c != " " && c != "\t") { if (st == 0) st = i }
-                            else if (st > 0) {
-                                nh++; hs[nh] = st; he[nh] = i - 1
-                                nm = substr($0, st, i - st)
-                                gsub(/\./, "_", nm)
-                                hn[nh] = nm
-                                st = 0
-                            }
-                        }
-                        # A trailing preposition is the tail of a two-word
-                        # label (`Mounted on`), not a column of its own —
-                        # weld it onto its neighbour so the last value gets
-                        # the full name instead of a truncated one.
-                        pl = tolower(hn[nh])
-                        if (nh >= 3 && pl ~ /^(on|by|in|at|of|to)$/) {
-                            hn[nh - 1] = hn[nh - 1] "_" hn[nh]
-                            he[nh - 1] = he[nh]
-                            nh--
-                        }
-                        # DUPLICATE header token names are the signature of
-                        # multi-word labels tokenized apart: doctl repeats ID
-                        # (`Active Deployment ID` / `In Progress Deployment
-                        # ID`), spark repeats Tasks three times. Per-token
-                        # spans are meaningless there — the duplicate names
-                        # collide in the melt and each label loses half of
-                        # itself — so the whole path withdraws.
-                        for (i = 1; i <= nh; i++)
-                            for (j = i + 1; j <= nh; j++)
-                                if (hn[i] == hn[j]) { dupname = 1 }
-                        next
-                    }
-                    {
-                        row++
-                        len = length($0); st = 0
-                        for (c = 1; c <= nh; c++) cells[c] = ""
-                        for (i = 1; i <= len + 1; i++) {
-                            ch = (i <= len) ? substr($0, i, 1) : " "
-                            if (ch != " " && ch != "\t") { if (st == 0) st = i }
-                            else if (st > 0) {
-                                s = st; e = i - 1; st = 0
-                                tok = substr($0, s, e - s + 1)
-                                if (s >= hs[nh]) { col = nh; ov = 1 }
-                                else {
-                                    col = 0; ov = 0; nspan = 0
-                                    for (c = 1; c <= nh; c++) {
-                                        lo = (s > hs[c]) ? s : hs[c]
-                                        hi = (e < he[c]) ? e : he[c]
-                                        o = hi - lo + 1
-                                        if (o > 0) nspan++
-                                        if (o > ov) { ov = o; col = c }
-                                    }
-                                    # A token stretching across TWO header
-                                    # token spans is a value sitting under a
-                                    # multi-word label (`starfish-api` under
-                                    # `Spec Name`) — count them; too many and
-                                    # the table is not per-token aligned.
-                                    if (nspan >= 2) nwide++
-                                    if (col == 0) {
-                                        # no overlap: nearest span by gap
-                                        bd = -1
-                                        for (c = 1; c <= nh; c++) {
-                                            d = (e < hs[c]) ? hs[c] - e : s - he[c]
-                                            if (bd < 0 || d < bd) { bd = d; col = c }
-                                        }
-                                    }
-                                }
-                                ntok++
-                                if (ov > 0) nhit++
-                                # Edge alignment: a genuinely offset-aligned
-                                # table puts each value START at its header
-                                # label start (left-aligned columns) or its
-                                # END at the label end (right-aligned
-                                # numerics). Prose that merely OVERLAPS spans
-                                # (deno error lines under a first line
-                                # mistaken for a header) has almost no edge
-                                # hits, and that difference is the gate.
-                                # NOTE: this comment sits inside a single-
-                                # quoted awk program — no apostrophes.
-                                for (c2 = 1; c2 <= nh; c2++)
-                                    if (s == hs[c2] || e == he[c2]) { nedge++; break }
-                                cells[col] = (cells[col] == "") ? tok : cells[col] " " tok
-                            }
-                        }
-                        for (c = 1; c <= nh; c++)
-                            if (cells[c] != "")
-                                buf = buf "entry" row "." hn[c] " " cells[c] "\n"
-                    }
-                    END {
-                        # Withdraw unless the rows really sit under the header:
-                        # >=80% of tokens overlap a header span AND >=60% land
-                        # exactly on a span edge (left- or right-aligned) AND
-                        # the header names are per-token meaningful — no
-                        # duplicate names, and <10% of tokens spanning two
-                        # labels (multi-word-label tables belong to the
-                        # positional grid / seg-split paths, not this one).
-                        if (row == 0 || ntok == 0 || nhit * 5 < ntok * 4) exit 0
-                        if (nedge * 10 < ntok * 6) exit 0
-                        if (dupname) exit 0
-                        if (nwide * 10 > ntok) exit 0
-                        printf "%s", buf
-                        printf "total_entries %d\n", row
-                    }
-                ')
+                _oa_out=$(printf '%s\n' "${lines[@]}" | awk "$_AC_AWK_OFFSET")
                 if [[ -n "$_oa_out" ]]; then
                     echo "$_oa_out"; return 0
                 fi
@@ -1795,84 +2386,7 @@ strategy_extract () {
         HDR2) _fr_tok "${lines[1]}"; headers=("${_FR_TOK[@]}"); startidx=2 ;;
         HL)   for ((i = 1; i <= ncols; i++)); do _fr_col_letter "$i"; headers+=("$_FR_LETTER"); done; startidx=0 ;;
     esac
-    # HDR2 group-prefixing: when the field row repeats names under different
-    # group labels (`Pod  Req Lim Use  Req Lim Use` under `CPU  Memory`), the
-    # duplicates would COLLIDE in the wide record and the melt silently drops
-    # the earlier group's columns. Disambiguate positionally: each duplicated
-    # header token (except the first, key column) gets the group label whose
-    # printed CENTER is nearest — `CPU_Req`, `Memory_Req`. Unique names stay
-    # untouched, so single-group two-line headers (vmstat) are unaffected.
-    if [[ "$mode" == HDR2 && ${#headers[@]} -ge 3 ]]; then
-        local _gpdup=0 _gpi _gpj
-        for ((_gpi = 1; _gpi < ${#headers[@]} && _gpdup == 0; _gpi++)); do
-            for ((_gpj = _gpi + 1; _gpj < ${#headers[@]}; _gpj++)); do
-                [[ "${headers[$_gpi]}" == "${headers[$_gpj]}" ]] && { _gpdup=1; break; }
-            done
-        done
-        if [[ $_gpdup -eq 1 ]]; then
-            # token centers of a raw line -> _GP_CENTERS / _GP_TOKS
-            _gp_scan () {
-                local _s="$1"
-                local _i _c _st=-1 _n=${#_s}
-                _GP_CENTERS=(); _GP_TOKS=()
-                for ((_i = 0; _i <= _n; _i++)); do
-                    _c="${_s:$_i:1}"
-                    if [[ "$_c" != " " && "$_c" != "	" && $_i -lt $_n ]]; then
-                        [[ $_st -lt 0 ]] && _st=$_i
-                    elif [[ $_st -ge 0 ]]; then
-                        _GP_TOKS+=("${_s:$_st:$((_i - _st))}")
-                        _GP_CENTERS+=($(( (_st + _i - 1) / 2 )))
-                        _st=-1
-                    fi
-                done
-            }
-            _gp_scan "${lines[0]}"
-            local _gpg_toks=("${_GP_TOKS[@]}") _gpg_cent=("${_GP_CENTERS[@]}")
-            # The group row's tokens become NAME PREFIXES — sanitize each
-            # (vmstat -d's `------------reads------------` → `reads`), and bail
-            # out entirely when the row is banner chrome rather than labels
-            # (goose's `=== PER REQUEST METRICS ===`: punctuation-only edge
-            # tokens mark a banner, whose words would make junk prefixes).
-            local _gpk _gpsan=1
-            if [[ ! "${_gpg_toks[0]}" =~ [A-Za-z0-9] \
-                  || ! "${_gpg_toks[$(( ${#_gpg_toks[@]} - 1 ))]}" =~ [A-Za-z0-9] ]]; then
-                _gpsan=0
-            fi
-            for ((_gpk = 0; _gpk < ${#_gpg_toks[@]}; _gpk++)); do
-                local _gpt="${_gpg_toks[$_gpk]}"
-                _gpt="${_gpt##+(-)}"; _gpt="${_gpt%%+(-)}"
-                while [[ "$_gpt" == -* ]]; do _gpt="${_gpt#-}"; done
-                while [[ "$_gpt" == *- ]]; do _gpt="${_gpt%-}"; done
-                [[ -z "$_gpt" ]] && { _gpsan=0; break; }
-                _gpg_toks[$_gpk]="$_gpt"
-            done
-            _gp_scan "${lines[1]}"
-            local _gph_cent=("${_GP_CENTERS[@]}")
-            if [[ $_gpsan -eq 1 && ${#_gpg_toks[@]} -ge 2 && ${#_gph_cent[@]} -eq ${#headers[@]} ]]; then
-                # Mark duplicates on the ORIGINAL names first — renaming inside
-                # the same pass would hide a later twin (`Req` at index 4 stops
-                # matching once index 1 became `CPU_Req`) and leave the second
-                # group's columns bare and still colliding with any third.
-                local _gpdups=()
-                for ((_gpi = 0; _gpi < ${#headers[@]}; _gpi++)); do _gpdups[$_gpi]=0; done
-                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
-                    for ((_gpj = 1; _gpj < ${#headers[@]}; _gpj++)); do
-                        [[ $_gpj -ne $_gpi && "${headers[$_gpj]}" == "${headers[$_gpi]}" ]] && { _gpdups[$_gpi]=1; break; }
-                    done
-                done
-                for ((_gpi = 1; _gpi < ${#headers[@]}; _gpi++)); do
-                    [[ ${_gpdups[$_gpi]} -eq 0 ]] && continue
-                    local _gpbest=0 _gpbd=999999 _gpdist
-                    for ((_gpj = 0; _gpj < ${#_gpg_toks[@]}; _gpj++)); do
-                        _gpdist=$(( ${_gph_cent[$_gpi]} - ${_gpg_cent[$_gpj]} ))
-                        [[ $_gpdist -lt 0 ]] && _gpdist=$(( -_gpdist ))
-                        [[ $_gpdist -lt $_gpbd ]] && { _gpbd=$_gpdist; _gpbest=$_gpj; }
-                    done
-                    headers[$_gpi]="${_gpg_toks[$_gpbest]}_${headers[$_gpi]}"
-                done
-            fi
-        fi
-    fi
+    _ac_group_prefix
     # Field names must not contain '.' (the tidy melt splits entry<N>.<field> on
     # the first dot).
     for ((i = 0; i < ${#headers[@]}; i++)); do headers[$i]="${headers[$i]//./_}"; done
@@ -1889,11 +2403,15 @@ strategy_extract () {
         case "$_tp_lc" in
             on|by|in|at|of|to)
                 local _tp_cnt=() _tp_i _tp_t _tp_mod=0 _tp_a _tp_b _tp_k _tp_best=0
+                if [[ $_acx_big -eq 1 ]]; then
+                    _ac_lines_stats "$startidx"; _tp_mod=$_ACS_TMOD; _tp_best=$_ACS_TMODN
+                else
                 for ((_tp_i = startidx; _tp_i < ${#lines[@]}; _tp_i++)); do
                     _fr_tok "${lines[$_tp_i]}"; _tp_t=("${_FR_TOK[@]}")
                     _tp_cnt+=("${#_tp_t[@]}")
                 done
                 _fr_modal ${_tp_cnt[@]+"${_tp_cnt[@]}"}; _tp_mod=$_FR_MODE; _tp_best=$_FR_MODE_N
+                fi
                 if [[ $_tp_mod -eq $(( ${#headers[@]} - 1 )) ]]; then
                     headers[$(( ${#headers[@]} - 2 ))]="${headers[$(( ${#headers[@]} - 2 ))]}_${_tp_last}"
                     unset 'headers[$(( ${#headers[@]} - 1 ))]'
@@ -1915,11 +2433,15 @@ strategy_extract () {
     # (word sets differ per row) never enter.
     if [[ "$mode" == HL && ${#lines[@]} -ge 2 ]]; then
         local _sc_r _sc_tk _sc_w0=-1 _sc_ragged=0
+        if [[ $_acx_big -eq 1 ]]; then
+            _ac_lines_stats "$startidx"; _sc_ragged=$_ACS_TRAG
+        else
         for ((_sc_r = startidx; _sc_r < ${#lines[@]}; _sc_r++)); do
             _fr_tok "${lines[$_sc_r]}"; _sc_tk=("${_FR_TOK[@]}")
             [[ $_sc_w0 -lt 0 ]] && _sc_w0=${#_sc_tk[@]}
             [[ ${#_sc_tk[@]} -ne $_sc_w0 ]] && _sc_ragged=1
         done
+        fi
         if [[ $_sc_ragged -eq 1 ]]; then
             local _sc_seq=() _sc_pre=-1 _sc_ok=1 _sc_t _sc_i
             _fr_tok "${lines[$startidx]}"; _sc_tk=("${_FR_TOK[@]}")
