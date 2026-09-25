@@ -10,8 +10,8 @@ output, auto-detects the format, and files it as a tidy, one-row-per-record
 dataset in a git-backed store — every capture a commit, every row traceable to
 its source.
 
-> Prototype (proposal 0001) — the simplified successor to the three-binary
-> Envoy suite, as one tool. See
+> Beta. provost is the simplified, single-tool successor to the three-binary
+> Envoy suite — see
 > [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
 
 ## Install
@@ -29,8 +29,8 @@ engines — and a thin Python launcher execs it in place. Requires bash and git.
 ```bash
 provost doctor                   # check engines + store
 
-free -m | provost                # capture stdin → auto-detect → tidy dataset
-provost run df -h                # capture a command's output as a commit
+free -m | provost                # capture stdin → auto-detect → tidy dataset 'free'
+provost run df -h                # capture a command's output → dataset 'df'
 provost ls                       # list datasets
 provost show df                  # present a dataset (leading #N = row index)
 provost source 5                 # the original input behind row #5
@@ -43,9 +43,13 @@ provost stats df                 # statistics on the dataset
 run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →  git-backed store
 ```
 
-- **Auto-capture format** — ~29 generic format parsers (plus a declarative
-  hints table and a tail of bespoke strategies) recognise JSON, tables,
-  logs, and system-tool output (`df`, `ps aux`, `free`, `mount`, `docker`, …).
+- **Auto-capture format** — ~110 generic format parsers (delimited and
+  structured), a declarative hints table, and ~145 tool-specific strategies
+  recognise JSON, tables, logs, and system-tool output (`df`, `ps aux`,
+  `free`, `mount`, `docker`, …).
+- **Named datasets** — `provost run CMD` files into a dataset named after the
+  command (looking through `sudo`, `env`, `timeout`, …); piped input is named
+  after the parser that recognised it; `--name NAME` overrides either.
 - **Present a dataset** — a wide `entry<N>.field` extract is melted to one row
   per record; same-typed captures reconcile into one table.
 - **Git core** — the store is a git repo; every capture is a commit tagged
@@ -62,23 +66,26 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 
 | Command | Purpose |
 |---|---|
-| `provost run [--] <cmd>` | capture a command's output as a commit |
+| `provost run [--] <cmd>` | capture a command's output as a commit, into dataset `<cmd>` |
 | `<cmd> \| provost` / `provost [FILE]` | inject stdin / a file |
+| `… --name NAME` | file into dataset `NAME` (inject/run) |
+| `… --sync` / `--async` | foreground / background capture (default: background only at a terminal) |
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
 | `provost source <#N>` | original source behind a dataset row |
 | `provost control [<dir>]` / `uncontrol` / `instances` | per-directory capture instances |
 | `provost export [<file>]` / `import <file> [<dest>]` | portable store bundle |
-| `provost log` / `restore <id\|latest>` | capture history / bring one back up |
+| `provost log [--failed]` / `restore <id\|latest>` | capture history (or failed background captures) / bring one back up |
 | `provost ls` / `show <name>` / `stats <name>` | datasets |
 | `provost triage` | low-confidence / unmatched bucket |
 | `provost doctor` | engine + store check |
+| `provost help` / `<command> --help` | usage |
 
 ## Layout
 
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, ~40 generic + ~130 bespoke strategies, hints.tsv
+├── extract/            # extract engine, 257 strategies (~110 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries
@@ -125,17 +132,26 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_WORKSPACE` | — | explicit store override (wins) |
 | `PROVOST_MIN_CONFIDENCE` | `50` | commit threshold (0–100) |
 | `PROVOST_PLUGIN_DIR` | — | extra strategy dir for detection (same as `--plugin-dir`) |
-| `PROVOST_MAX_INPUT` | `10485760` | max input bytes |
+| `PROVOST_ASYNC` | unset | `1` always background, `0` always foreground; unset = background only at a terminal |
+| `PROVOST_MULTI` | `0` | file every dataset an input holds (same as `--multi`) |
+| `PROVOST_MAX_INPUT` | `10485760` | max input bytes (inject and `run`) |
 | `PROVOST_LOCK_TIMEOUT` | `30` | seconds to wait for the store lock |
+| `PROVOST_LOCK_MAX_AGE` | `3600` | seconds after which a lock is presumed stale |
 | `PROVOST_RECONCILE_OVERLAP` | `60` | % column overlap to union vs split a variant |
+| `PROVOST_QUIET` | `0` | `1` suppresses progress/ok messages (same as `--silent`) |
 
 ## Tests
 
 ```bash
-bash provost/tests/smoke.sh              # end-to-end (58 checks)
-bash provost/transform/tests/test_melt.sh  # transform unit tests (10 checks)
-python -m pytest                       # PyPI launcher (100% coverage enforced)
+bash tests/smoke.sh                  # end-to-end
+bash transform/tests/test_melt.sh    # transform unit tests
+bash extract/tests/run_tests.sh      # extract strategies + engine
+bash analyze/tests/run_tests.sh      # analyze engine
+bash tests/corpus/run.sh --golden    # tidy output of ~3,500 real tools vs goldens
+python -m pytest                     # PyPI launcher (100% coverage enforced)
 ```
+
+All six run in CI (`.github/workflows/ci.yml`).
 
 ## License
 
