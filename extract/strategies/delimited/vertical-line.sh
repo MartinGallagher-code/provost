@@ -31,7 +31,7 @@ strategy_detect () {
         nb=$((nb + 1))
         [[ "$_l" =~ ^[[:space:]]*[A-Za-z][^:]*:[[:space:]] ]] && kv=$((kv + 1))
     done
-    [[ $nb -ge 2 && $(( kv * 100 / nb )) -ge 60 ]] && return 1
+    [[ $nb -ge 2 && $(( kv * 100 / nb )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
 
     # A header (the non-blank line above the first separator) that repeats a
     # column name is a GROUPED header (`zpool iostat`: `read write read write`

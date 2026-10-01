@@ -68,16 +68,40 @@ accepts the sample is re-run on the full text,
 which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
 detector must never ACCEPT a sample it would reject in full — it cannot, the
 full text re-decides — but it can falsely REJECT when its evidence lies only
-in the middle of a huge input; prefer evidence the head carries. A JSON/XML
-document (first non-blank byte `{`, `[` or `<`) is still sampled for the
+in the middle of a huge input; prefer evidence the head carries.
+
+A detector that decides on a SHARE of the lines it sees ("≥ 40% of lines are
+`label: value`", "decline when one token count covers ≥ 60% of lines") can
+also land on the wrong side of its threshold on the sample. While a detector
+screens the sample the engine sets `_FR_SLACK` to `_FR_SAMPLE_SLACK` (15
+percentage points; 0 for the full-text run), and every whole-text share
+threshold widens by it in the ACCEPTING direction:
+
+```bash
+[[ $(( kv * 100 / nb )) -ge $(( 40 - ${_FR_SLACK:-0} )) ]] || return 1   # needed to accept
+[[ $(( kv * 100 / nb )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1   # reason to decline
+```
+
+The screen only gets looser, never the decision: the full-text run still
+decides, so slack can cost a full-text detect but never adds a wrong winner.
+`_FR_DET_SAMPLE` is 1 during the same screen, for a check that only means
+something on the whole text (proc-net-snmp's header/value pairing skips it on
+the sample). A share over a fixed head window (the first 40 / 60 lines) needs
+no slack — the sample's head is the full text's head. A new share-threshold
+detector must follow the rule (`tests/test_big_input_paths.sh` reproduces the
+false reject it prevents).
+
+A JSON/XML document (first non-blank byte `{`, `[` or `<`) is still sampled for the
 ordinary detectors, but the document grammars listed in `_FR_DOC_STRATEGIES`
 (json, json-array, jsonl, xml, har, yaml, toml) always see it whole — cutting a
 document makes it invalid. A plugin that parses whole documents belongs in that
 list.
 
 Above `_FR_BIG_BYTES` the hot generic parsers (`aligned-columns`, `csv`,
-`syslog`, `equals`, `json-array`) and the engine's own passes switch to awk
-twins that are byte-identical to their bash loops, and above `_FR_LANE_BYTES`
+`syslog`, `equals`, `colons`, `block-records`, `json-array`) and the engine's
+own passes switch to awk twins that are byte-identical to their bash loops
+(a twin returns 3 to hand an input it cannot match exactly back to the bash
+loop), and above `_FR_LANE_BYTES`
 the result stays in a file to the end (the FILE LANE). Setting a knob to 0
 forces its route on any input — `tests/test_big_input_paths.sh` and the
 corpus proofs compare every route with the plain bash one. A new twin must

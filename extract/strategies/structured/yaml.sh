@@ -44,7 +44,7 @@ strategy_detect () {
         fi
     done
     [[ $nonblank -eq 0 ]] && return 1
-    [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] || return 1
+    [[ $(( yamlish * 100 / nonblank )) -ge $(( 80 - ${_FR_SLACK:-0} )) ]] || return 1
 
     # YAML grammar: a PLAIN (unquoted) scalar may not contain `: ` and a line
     # may not be TAB-indented. When most `key: value` lines break that, the
@@ -79,7 +79,7 @@ strategy_detect () {
         done
         [[ $_yflat -eq 1 ]] && return 1
     fi
-    [[ $_ydup -eq 1 && $_yk -ge 2 && $(( _ybad * 100 / _yk )) -ge 50 ]] && return 1
+    [[ $_ydup -eq 1 && $_yk -ge 2 && $(( _ybad * 100 / _yk )) -ge $(( 50 + ${_FR_SLACK:-0} )) ]] && return 1
     return 0
 }
 

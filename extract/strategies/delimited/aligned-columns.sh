@@ -118,11 +118,28 @@ _ac_body () {
 # `$(_ac_body TEXT)` captured it (trailing newlines stripped). A pure function
 # of TEXT, memoised: detect + shape + extract used to recompute it five times
 # per input, each in a forked subshell.
-_AC_BODY_KEY=""
-_AC_BODY_OK=0
+# TWO slots: on a big input detection alternates between the bounded sample
+# and the full text (the sample screen, then the full-text confirm — twice,
+# since the extract phase re-runs detect), and a single slot recomputed the
+# full text's body each time (~2 s per 10 MB). A length check first spares the
+# string compare (~0.3 s per 10 MB) when the keys plainly differ.
+# (Initialised only once: the loader re-sources this file between the detect
+# and extract phases, and a plain assignment here wiped the memo each time.
+# The key is the full text, so a memo outliving one input is still exact.)
+: "${_AC_BODY_KEY=}" "${_AC_BODY_OK:=0}" "${_AC_BODY=}"
+: "${_AC_BODY_KEY2=}" "${_AC_BODY2=}" "${_AC_BODY_OK2:=0}"
 _ac_body_v () {
-    if [[ $_AC_BODY_OK -eq 1 && "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
+    if [[ $_AC_BODY_OK -eq 1 ]] && (( ${#1} == ${#_AC_BODY_KEY} )) && [[ "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
     local _out
+    if [[ $_AC_BODY_OK2 -eq 1 ]] && (( ${#1} == ${#_AC_BODY_KEY2} )) && [[ "$1" == "$_AC_BODY_KEY2" ]]; then
+        # hit in the second slot: swap it to the front
+        _out="$_AC_BODY"; _AC_BODY="$_AC_BODY2"; _AC_BODY2="$_out"
+        _out="$_AC_BODY_KEY"; _AC_BODY_KEY="$_AC_BODY_KEY2"; _AC_BODY_KEY2="$_out"
+        return 0
+    fi
+    if [[ $_AC_BODY_OK -eq 1 ]]; then
+        _AC_BODY_KEY2="$_AC_BODY_KEY"; _AC_BODY2="$_AC_BODY"; _AC_BODY_OK2=1
+    fi
     _ac_body_compute "$1"
     if (( ${#_AC_BODY_RAW} > _FR_BIG_BYTES )); then
         # (count the trailing newlines from the end instead of the
@@ -682,22 +699,37 @@ _ac_shape () {
 # _ac_shape_v TEXT — _ac_shape's verdict in the global _AC_SHAPE ("<mode> <n>")
 # with the same return status; no fork. A pure function of TEXT, memoised so
 # detect and extract (same input) analyse the block once.
-_AC_SHAPE_KEY=""
-_AC_SHAPE_OK=0
-_AC_SHAPE_RC=1
+# (Two slots, as _ac_body_v.)
+: "${_AC_SHAPE_KEY=}" "${_AC_SHAPE_SLK:=0}" "${_AC_SHAPE_OK:=0}" "${_AC_SHAPE_RC:=1}" "${_AC_SHAPE_MEMO=}"
+: "${_AC_SHAPE_KEY2=}" "${_AC_SHAPE_SLK2:=0}" "${_AC_SHAPE_OK2:=0}" "${_AC_SHAPE_RC2:=1}" "${_AC_SHAPE_MEMO2=}"
 _ac_shape_v () {
-    if [[ $_AC_SHAPE_OK -eq 1 && "$1" == "$_AC_SHAPE_KEY" ]]; then
+    _AC_SHAPE_FRESH=0
+    if [[ $_AC_SHAPE_OK -eq 1 && "${_FR_SLACK:-0}" == "$_AC_SHAPE_SLK" ]] \
+       && (( ${#1} == ${#_AC_SHAPE_KEY} )) && [[ "$1" == "$_AC_SHAPE_KEY" ]]; then
         _AC_SHAPE="$_AC_SHAPE_MEMO"
         return $_AC_SHAPE_RC
     fi
+    if [[ $_AC_SHAPE_OK2 -eq 1 && "${_FR_SLACK:-0}" == "$_AC_SHAPE_SLK2" ]] \
+       && (( ${#1} == ${#_AC_SHAPE_KEY2} )) && [[ "$1" == "$_AC_SHAPE_KEY2" ]]; then
+        _AC_SHAPE="$_AC_SHAPE_MEMO2"
+        return $_AC_SHAPE_RC2
+    fi
+    if [[ $_AC_SHAPE_OK -eq 1 ]]; then
+        _AC_SHAPE_KEY2="$_AC_SHAPE_KEY"; _AC_SHAPE_SLK2="$_AC_SHAPE_SLK"
+        _AC_SHAPE_RC2=$_AC_SHAPE_RC; _AC_SHAPE_MEMO2="$_AC_SHAPE_MEMO"; _AC_SHAPE_OK2=1
+    fi
     _AC_SHAPE_OUT=""
     local _rc=0
+    # (computed here: _AC_BODY is TEXT's body and _FR_LINES its lines on
+    # return — _ac_detect relies on that instead of re-checking both memos)
+    _AC_SHAPE_FRESH=1
     _ac_shape_compute "$1" || _rc=$?
     [[ $_rc -ne 0 ]] && _AC_SHAPE_OUT=""
     _AC_SHAPE="$_AC_SHAPE_OUT"
     _AC_SHAPE_MEMO="$_AC_SHAPE_OUT"
     _AC_SHAPE_RC=$_rc
     _AC_SHAPE_KEY="$1"
+    _AC_SHAPE_SLK="${_FR_SLACK:-0}"   # (a sample screen's verdict is its own)
     _AC_SHAPE_OK=1
     return $_rc
 }
@@ -719,7 +751,11 @@ _ac_shape_compute () {
     local _kvm_tpl="" _kvm_tpl_same=1
     local -A _kv_seen=() _kvm_seen=()
     local _kvm_re='^[[:space:]]*([A-Za-z][A-Za-z0-9_()-]*([ ][A-Za-z0-9_()-]+)+):([[:space:]]|$)'
-    _fr_lines "$text"
+    # _FR_LINES now holds the lines of `text` for the rest of this function
+    # (nothing below splits another text), so the later `_fr_lines "$text"`
+    # calls are skipped: each was a memo hit, but the hit compares the whole
+    # text (~0.3 s on 10 MB, seven times).
+    _fr_lines "$text"; local _acs_fl=1
     local _fri473; for ((_fri473 = 0; _fri473 < ${#_FR_LINES[@]}; _fri473++)); do _line="${_FR_LINES[$_fri473]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
@@ -791,7 +827,7 @@ _ac_shape_compute () {
     local _mixed_ok=1 _mixed_multi=0 _mx_line _mx_tpl="" _mx_tpl_same=1 _mx_colons=0 _mx_n=0
     local -A _mx_seen=()
     if [[ $idx -ge 2 ]]; then
-        _fr_lines "$text"
+        [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
         local _fri545; for ((_fri545 = 0; _fri545 < ${#_FR_LINES[@]}; _fri545++)); do _mx_line="${_FR_LINES[$_fri545]}"
             [[ "${_mx_line}" != *[![:space:]]* ]] && continue
             if [[ ! "$_mx_line" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
@@ -819,7 +855,7 @@ _ac_shape_compute () {
         # Only defer when `colons` will actually ACCEPT the block (>=40% of
         # labels letter-led simple charset) — else no parser takes it at all.
         if [[ $_mixed_ok -eq 1 && $_mixed_multi -eq 1 && $_mx_n -ge 1 \
-              && $(( _mx_colons * 100 / _mx_n )) -ge 40 \
+              && $(( _mx_colons * 100 / _mx_n )) -ge $(( 40 + ${_FR_SLACK:-0} )) \
               && ! ( $_mx_tpl_same -eq 1 && "$_mx_tpl" == *"#"* ) ]]; then
             return 1
         fi
@@ -863,7 +899,7 @@ _ac_shape_compute () {
     if [[ $nlines -ge 3 && ${dcount[0]} -eq 0 && ${dcount[1]} -gt 0 \
           && ${dcount[2]} -gt 0 && ${counts[1]} -gt ${counts[0]} ]]; then
         local _h2v=0 _h3v=0 _h2t _h2i=0 _h2l="" _h3l=""
-        _fr_lines "$text"
+        [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
         local _fri597; for ((_fri597 = 0; _fri597 < ${#_FR_LINES[@]}; _fri597++)); do _h2t="${_FR_LINES[$_fri597]}"
             [[ "${_h2t}" != *[![:space:]]* ]] && continue
             _h2i=$((_h2i + 1))
@@ -930,7 +966,7 @@ _ac_shape_compute () {
     local _dl _dt _dtk
     i=0
     # (the block text IS $(_ac_body "$1"), so its lines are _fr_lines "$text")
-    _fr_lines "$text"
+    [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
     local _fri664; for ((_fri664 = 0; _fri664 < ${#_FR_LINES[@]}; _fri664++)); do _dl="${_FR_LINES[$_fri664]}"
         [[ "${_dl}" != *[![:space:]]* ]] && continue
         i=$((i + 1))
@@ -1103,7 +1139,7 @@ _ac_shape_compute () {
         # lowercase name grid (sqlite .tables) has neither and stays data.
         if [[ $wordy -eq 1 && $styled -eq 0 ]]; then
             local _dc_all=1 _dc_hit _dc_tk _dc_l _dc_i=0
-            _fr_lines "$text"
+            [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
             local _fri784; for ((_fri784 = 0; _fri784 < ${#_FR_LINES[@]}; _fri784++)); do _dc_l="${_FR_LINES[$_fri784]}"
                 [[ "${_dc_l}" != *[![:space:]]* ]] && continue
                 _dc_i=$((_dc_i + 1))
@@ -1141,7 +1177,7 @@ _ac_shape_compute () {
         fi
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
-            _fr_lines "$text"
+            [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
             local _fri822; for ((_fri822 = 0; _fri822 < ${#_FR_LINES[@]}; _fri822++)); do _line="${_FR_LINES[$_fri822]}"
                 [[ "${_line}" != *[![:space:]]* ]] && continue
                 idx2=$((idx2 + 1)); [[ $idx2 -eq 2 ]] && { second_line="$_line"; break; }
@@ -1167,7 +1203,7 @@ _ac_shape_compute () {
         # punctuation (paths, module@version, timestamps) — `go mod graph`,
         # redis latency history. Prose and `Key value` snapshots don't qualify.
         local vlike=0 tot=0 _ln
-        _fr_lines "$text"
+        [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
         for _ln in "${_FR_LINES[@]}"; do
             [[ "${_ln}" != *[![:space:]]* ]] && continue
             _t1arr=(); _fr_tok "$_ln"; _t1arr=("${_FR_TOK[@]}")
@@ -1176,7 +1212,7 @@ _ac_shape_compute () {
                 [[ "$_t" =~ ^[0-9][0-9.,:%-]*$ || "$_t" == */* || "$_t" == *@* || "$_t" == *:* ]] && vlike=$((vlike + 1))
             done
         done
-        [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge 75 ]] && { _AC_SHAPE_OUT="HL 2"; return 0; }
+        [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge $(( 75 - ${_FR_SLACK:-0} )) ]] && { _AC_SHAPE_OUT="HL 2"; return 0; }
     fi
     [[ $mode -lt 3 ]] && return 1
     [[ $(( best * 100 / ${#counts[@]} )) -lt 60 ]] && return 1
@@ -1184,7 +1220,29 @@ _ac_shape_compute () {
     return 0
 }
 
+# A BIG text's verdict is memoised (a pure function of the text and the
+# sample slack): the extract phase re-runs detect on the same 10 MB text,
+# and recomputing it cost ~2 s. Initialised once (see _AC_BODY_KEY).
+: "${_AC_DET_KEY=}" "${_AC_DET_SLK:=0}" "${_AC_DET_RC:=1}" "${_AC_DET_CONF:=0}" "${_AC_DET_OK:=0}"
 strategy_detect () {
+    local text="$1"
+    _STRATEGY_CONFIDENCE=0
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        if [[ $_AC_DET_OK -eq 1 && "${_FR_SLACK:-0}" == "$_AC_DET_SLK" ]] \
+           && (( ${#text} == ${#_AC_DET_KEY} )) && [[ "$text" == "$_AC_DET_KEY" ]]; then
+            _STRATEGY_CONFIDENCE=$_AC_DET_CONF
+            return $_AC_DET_RC
+        fi
+        local _acd_rc=0
+        _ac_detect "$text" || _acd_rc=$?
+        _AC_DET_KEY="$text"; _AC_DET_SLK="${_FR_SLACK:-0}"
+        _AC_DET_RC=$_acd_rc; _AC_DET_CONF=$_STRATEGY_CONFIDENCE; _AC_DET_OK=1
+        return $_acd_rc
+    fi
+    _ac_detect "$text"
+}
+
+_ac_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
 
@@ -1211,10 +1269,10 @@ strategy_detect () {
                 for (i = 1; i <= no; i++) if (C[ord[i]] > best) { best = C[ord[i]]; mode = ord[i] }
                 printf "%d %d %d %d %d\n", et, eq, kv, mode, best
             }')
-        [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
+        [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge $(( 80 + ${_FR_SLACK:-0} )) ]] && return 1
         _nb=$_et
-        if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
-            [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
+        if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge $(( 80 + ${_FR_SLACK:-0} )) ]]; then
+            [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge $(( 60 - ${_FR_SLACK:-0} )) ]] || return 1
         fi
     else
     _fr_lines "$text"
@@ -1223,7 +1281,7 @@ strategy_detect () {
         _et=$((_et + 1))
         [[ "$_el" == *" = "* ]] && _eq=$((_eq + 1))
     done
-    [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge 80 ]] && return 1
+    [[ $_et -ge 2 && $(( _eq * 100 / _et )) -ge $(( 80 + ${_FR_SLACK:-0} )) ]] && return 1
 
     # Decline pure key/value blocks — `label : value` / `label: value` (e.g.
     # `pacman -Qi`, `rpm -qi`) or `Key=Value` (e.g. `systemctl show`). These are
@@ -1243,12 +1301,12 @@ strategy_detect () {
         fi
         _fr_tok "$_cl"; _cc+=("${#_FR_TOK[@]}")
     done
-    if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge 80 ]]; then
+    if [[ $_nb -ge 2 && $(( _kv * 100 / _nb )) -ge $(( 80 + ${_FR_SLACK:-0} )) ]]; then
         # Modal column count: a strong, consistent ≥3-column shape means a table,
         # not a kv block — keep it with aligned-columns.
         local _m=0 _best=0
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
-        [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge 60 ]] || return 1
+        [[ $_m -ge 3 && $(( _best * 100 / _nb )) -ge $(( 60 - ${_FR_SLACK:-0} )) ]] || return 1
     fi
     fi
 
@@ -1263,7 +1321,7 @@ strategy_detect () {
     case "$mode" in HL) hdr_lines=0 ;; HDR) hdr_lines=1 ;; HDR2) hdr_lines=2 ;; esac
 
     local idx=0 data_rows=0 consistent=0 header_caps=1 _line
-    _ac_body_v "$text"; _fr_lines "$_AC_BODY"
+    [[ ${_AC_SHAPE_FRESH:-0} -eq 1 ]] || { _ac_body_v "$text"; _fr_lines "$_AC_BODY"; }
     local _fri944; for ((_fri944 = 0; _fri944 < ${#_FR_LINES[@]}; _fri944++)); do _line="${_FR_LINES[$_fri944]}"
         [[ "${_line}" != *[![:space:]]* ]] && continue
         idx=$((idx + 1))
@@ -1923,7 +1981,7 @@ _ac_lines_stats () {
     if [[ -n "$_ACX_F" ]]; then
         if [[ "$_ACX_STATS_KEY" != "$_ACX_F" ]]; then _ACX_STATS=(); _ACX_STATS_KEY="$_ACX_F"; fi
         if [[ -z "${_ACX_STATS[$_from]:-}" ]]; then
-            _ACX_STATS[$_from]=$(awk -v f="$_from" 'NR > f' "$_ACX_F" | _ac_lines_stats_awk)
+            _ACX_STATS[$_from]=$(_ac_lines_stats_awk "$_from" "$_ACX_F")
         fi
         _stats="${_ACX_STATS[$_from]}"
     else
@@ -1933,8 +1991,11 @@ _ac_lines_stats () {
     read -r _ACS_N _ACS_TMAX _ACS_TMOD _ACS_TMODN _ACS_SMOD _ACS_SMODN _ACS_DIGIT \
             _ACS_SSAME _ACS_SFIRST _ACS_TFIRST _ACS_TRAG <<< "$_stats"
 }
+# _ac_lines_stats_awk [SKIP FILE] — the stats of stdin, or of FILE's lines
+# after the first SKIP (one pass, no `awk 'NR > SKIP' FILE |` in front).
 _ac_lines_stats_awk () {
-    awk "$_AC_AWK_SEG"'
+    awk -v skip="${1:-0}" "$_AC_AWK_SEG"'
+        NR <= skip { next }
         {
             n++; t = NF; g = seg($0)
             if (t > tmax) tmax = t
@@ -1949,7 +2010,7 @@ _ac_lines_stats_awk () {
             for (i = 1; i <= nt; i++) if (TC[tord[i]] > tb) { tb = TC[tord[i]]; tm = tord[i] }
             for (i = 1; i <= ns; i++) if (SC[sord[i]] > sb) { sb = SC[sord[i]]; sm = sord[i] }
             printf "%d %d %d %d %d %d %d %d %d %d %d\n", n, tmax, tm, tb, sm, sb, dig, !sdiff, sfirst, tfirst, trag
-        }'
+        }' ${2:+"$2"}
 }
 
 # ---------------------------------------------------------------------------

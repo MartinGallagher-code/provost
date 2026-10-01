@@ -161,7 +161,7 @@ strategy_detect () {
     done
     # >=2 groups, >=3 leaves, and most leaves sit deeper than a group
     [[ $groups -ge 2 && $leaves -ge 3 ]] || return 1
-    [[ $((leaf_after_group * 3)) -ge $((leaves * 2)) ]] || return 1
+    [[ $((leaf_after_group * 300)) -ge $((leaves * (200 - 3 * ${_FR_SLACK:-0}))) ]] || return 1
     # a grouped TABLE has more rows than group headers — a kv hierarchy where
     # most lines parse as "groups" (homectl, pgbackrest) is not this shape
     [[ $leaves -ge $groups ]] || return 1
@@ -177,7 +177,7 @@ strategy_detect () {
         _mk=$(( ${_mtally[$((_ma - 1))]:-0} + ${_mtally[$_ma]:-0} + ${_mtally[$((_ma + 1))]:-0} ))
         [[ $_mk -gt $_mbest ]] && { _mbest=$_mk; _modal=$_ma; }
     done
-    [[ $(( _mbest * 100 )) -ge $(( leaves * 70 )) ]] || return 1
+    [[ $(( _mbest * 100 )) -ge $(( leaves * (70 - ${_FR_SLACK:-0}) )) ]] || return 1
     _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="group headers over indented tabular rows"
     return 0

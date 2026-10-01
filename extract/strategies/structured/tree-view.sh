@@ -62,7 +62,7 @@ strategy_detect () {
     # Need a few real branch lines, and a strong majority of the non-blank lines
     # must carry a marker (root + trailing summary lines are the only allowance).
     [[ $nodes -lt 2 ]] && return 1
-    (( nodes * 10 < nonblank * 6 )) && return 1
+    (( nodes * 100 < nonblank * (60 - ${_FR_SLACK:-0}) )) && return 1
 
     # NUMBERED-HOP decline: `mtr` / `traceroute` draw `1.|-- host …` — the
     # `|--` is a hop-number connector, not tree indentation, and every line
@@ -74,7 +74,7 @@ strategy_detect () {
     for _hl in "${_FR_LINES[@]}"; do
         [[ "$_hl" =~ ^[[:space:]]*[0-9]+\.\|?[[:space:]]*[|\\+]?-- ]] && _hop=$((_hop + 1))
     done
-    (( _hop * 2 >= nodes )) && return 1
+    (( _hop * 100 >= nodes * (50 + ${_FR_SLACK:-0}) )) && return 1
 
     # Decline columnar tables that merely use tree chars in their first column
     # (e.g. findmnt): if the first non-blank line is not itself a node and looks

@@ -1,5 +1,84 @@
 # provost — Changelog
 
+## 2026-10-01 — large inputs: no sample false-rejects, colons / block-records twins, faster ps / CSV
+
+**Sample false-rejects (`extract/lib/_discovery.sh` + share-threshold detectors).**
+A detector that decides on a SHARE of lines could reject the detection sample
+while accepting the full text (360 synthetic big inputs: 1 flip — deno-info,
+pkg-config's modal-count share was exactly 60% on the sample, 59% in full).
+While a detector screens the sample the engine now sets `_FR_SLACK`
+(`_FR_SAMPLE_SLACK`, 15 points; 0 for the full-text run) and `_FR_DET_SAMPLE=1`,
+and every whole-text share threshold widens by the slack in the accepting
+direction (`-ge $(( T - ${_FR_SLACK:-0} ))` to accept, `+` to decline). The
+full-text run still alone decides, so this can only add full-text detects,
+never a wrong winner. Thresholds touched (detector logic only — no confidence
+values, no ranking/pruning change): `system/pkg-config.sh`,
+`delimited/{aligned-columns (strategy_detect/_ac_detect kv + ` = ` declines,
+_ac_shape_compute mixed-label defer + 2-column value share), line-records,
+text-lines (kv-block defer), vertical-line, columnar-specs (`_cs_row_overflow`),
+unspaced-colon-kv, colons, two-col-gap, syslog (bash + awk), repeated-lead-records}.sh`,
+`structured/{kv-under-group, tree-view, yaml, grouped-rows, key-value}.sh`.
+Shares over a fixed head window (first 40/60 lines) are unchanged — the
+sample's head is the full text's.
+- Synthetic big inputs (360, header once + body repeated): sampled-vs-full
+  winner flips 1 → **0**.
+- Corpus with sampling forced tiny (`_FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8
+  _FR_SAMPLE_TAIL=4`) vs unsampled: winner changes 45 → **39** (full), 46 →
+  **39** (`--generic`); no input flips that did not before (the rest is
+  evidence that only sits mid-input).
+
+**proc-net-snmp** (`system/proc-net-snmp.sh`, `strategy_detect` +
+`_strat_pns_paired`): now also requires the header/value line pairing its
+extract needs. Any colon dump with one word value and one numeric value passed
+its two regexes, ranked first at 92, extracted nothing, and forced an unpruned
+re-ranking — on a big blank-line-records input that was two full bash extracts
+plus a second detection pass. It declines exactly when its extract would be
+empty (a bare `:` label still defers to the extract as before), so ranked
+winners are unchanged; skipped on the sample (`_FR_DET_SAMPLE`).
+
+**Awk twins above `_FR_BIG_BYTES`** (byte-identical; return 3 hands an input
+they cannot match exactly back to the bash loop):
+- `colons` extract (`_strat_colons_extract_awk`: clean_text protection, dash
+  bullets, list folds, kv loop, restore_text_values) and detect.
+- `block-records` extract (`_strat_blockrec_extract_awk`: blank-line blocks,
+  `_tech_kv_colon` + `_tech_kv_equals` per block) and detect's blank/kv screen.
+- 1 MB blank-line records 294 s → 3 s, 100 KB 14 s → 2 s, 10 MB now 11–14 s;
+  `-s colons` 1 MB 9.6 s → 0.7 s (engine, loaded box).
+
+**Speed, ps / CSV (same bytes):**
+- aligned-columns: the extract phase re-runs detect, the loader re-sources the
+  strategy file between phases, and sample and full text alternate — so its
+  body/shape memos (one slot, reset on every source) recomputed the 10 MB body
+  each time. Two-slot memos initialised once, a memoised big-text verdict,
+  no repeated `_fr_lines` memo compares inside `_ac_shape_compute`, and
+  `_ac_lines_stats_awk` reads its file directly.
+- dedup (`lib/_postprocess.sh` `_dedup_pipe`): a streaming seen-set replaces
+  the two-sort pipeline (kept for input holding a SOH byte); on the file lane,
+  when field parts group into `name.` runs, the set is per run.
+- `_format_tsv_awk` streams the header row; `_fr_absent_literals` (hint and
+  preprocess literal presence) checks a 64 KB prefix, then one `grep -F`;
+  `_match_hint` / the sample build no longer copy the whole text for a first
+  line / first byte.
+- melt (`transform/melt.sh`): field order collected in the classification
+  pass, record prefix classified once per run, row base looked up once per
+  record — 4.6 → 2.9 s CPU on the 10 MB ps capture.
+
+`provost --sync`, 10 MB, base vs new interleaved on a shared 4-core box (load
+17–22, so absolute times are inflated): ps wall 36.3 → 25.4 s, CPU 26.0 →
+17.5 s (−33%); CSV wall 25.4 → 19.4 s, CPU 17.3 → 13.1 s (−24%); JSON CPU
+−8%, syslog −17%, KEY=VALUE ±0. Scaled to the 2026-09-25 idle figures: ps
+≈ 15 s, CSV ≈ 12 s.
+
+Proofs: corpus batch output byte-identical to main in full and `--generic`,
+default and with the awk/lane routes forced (`_FR_BIG_BYTES=0
+_FR_LANE_BYTES=0`); `tests/corpus/run.sh --golden` 3471/0, also with the
+routes forced; synthetic full-detection output identical to main.
+Tests (`extract/tests/test_big_input_paths.sh`, +8): colons / block-records
+route equality (bash vs awk vs lane) and raw extract bytes, the share-threshold
+false reject reproduced (`_FR_SAMPLE_SLACK=0`) and fixed, slack never reaching
+full-text detection, streaming/windowed dedup == sort pipeline, big-text
+absent literals == per-literal scan.
+
 ## 2026-10-01 — bespoke confidence audit: sub-tiers + 12 tightened detectors
 
 Calibration had set all 146 bespoke strategies to a flat 92 (pkg-config and

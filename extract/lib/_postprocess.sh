@@ -61,13 +61,55 @@ _store_file () {
     _store_awk "$2" < "$1" >> "$_XL_OUT"
 }
 
-# _dedup_pipe < output-lines — deduplicate_output's pipeline as a stdin
-# filter (both the BIG-variable path and the file lane run exactly this).
+# _dedup_pipe [FILE] — deduplicate_output's pipeline as a filter on FILE (or
+# stdin); both the BIG-variable path and the file lane run exactly this.
+#
+# The sort pipeline (decorate with SOH-separated field part + line number,
+# `sort -u` on the field part, `sort -n` back into input order, undecorate)
+# keeps the FIRST line of each distinct field part, in input order — which
+# is what one streaming awk pass with a seen-set does, without sorting a big
+# result twice. A line that itself holds a SOH byte would shift the sort's
+# fields, so then (and only then) the sort pipeline runs exactly as before.
+# Reading stdin, the caller says whether a SOH occurs in _DD_SOH (0 none,
+# 1 some — the variable path tests its string); unset, the sort pipeline runs.
 _dedup_pipe () {
+    local _dd_soh="${_DD_SOH:-}"
+    if [[ -n "${1:-}" ]]; then
+        _dd_soh=0
+        LC_ALL=C grep -q $'\001' "$1" && _dd_soh=1
+    fi
+    if [[ "$_dd_soh" == 0 ]]; then
+        # A FILE whose lines' field parts group into runs by their `name.`
+        # prefix (every record's fields together — `entry7.*` — the shape
+        # every record strategy emits) needs the seen-set only within a run:
+        # equal field parts share their prefix, so they can only meet inside
+        # one run. A cheap first pass checks that no prefix comes back after
+        # its run ended; then the set is cleared at each run boundary (a big
+        # result's ~1M distinct lines in one mawk hash cost ~2 s; small sets
+        # cost a fraction). Otherwise, or on stdin, one set for everything.
+        if [[ -n "${1:-}" ]] && awk '$0 != "" {
+                f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+                j = index(f, "."); p = j ? substr(f, 1, j) : ""
+                if (n++ == 0 || p != pp) { if (p in R) exit 1; R[p]; pp = p }
+            }' "$1"; then
+            awk '$0 != "" {
+                    f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+                    j = index(f, "."); p = j ? substr(f, 1, j) : ""
+                    if (n++ == 0 || p != pp) { split("", seen); pp = p }
+                    if (!(f in seen)) { seen[f]; print }
+                }' "$1"
+            return
+        fi
+        awk '$0 != "" {
+                f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+                if (!(f in seen)) { seen[f]; print }
+            }' ${1:+"$1"}
+        return
+    fi
     awk '$0 != "" {
             n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
             printf "%s\001%d\001%s\n", f, n, $0
-        }' \
+        }' ${1:+"$1"} \
         | sort -t$'\x01' -k1,1 -u \
         | sort -t$'\x01' -k2,2 -n \
         | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
@@ -92,6 +134,8 @@ deduplicate_output () {
     local -a _dd_out=()
     if (( ${#input} > _FR_BIG_BYTES )); then
         # BIG output: build the same SOH records in one awk pass
+        local _DD_SOH=0
+        [[ "$input" == *$'\001'* ]] && _DD_SOH=1
         printf '%s\n' "$input" | _dedup_pipe
         return
     fi
