@@ -11,7 +11,8 @@
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=92
-    # Detect full git log format: "commit <40-char hex>"
+    # Detect full git log format: "commit <40-char hex>" (the strong signature;
+    # the oneline branch below scores lower)
     if [[ "$text" =~ ^commit\ [0-9a-f]{40} ]]; then
         return 0
     fi
@@ -30,7 +31,16 @@ strategy_detect () {
                     match_count=$((match_count + 1))
                 fi
             fi
-            [[ $match_count -ge 2 ]] && return 0
+            if [[ $match_count -ge 2 ]]; then
+                # The oneline shape ("<hex> <text>") is a weak signature: nm
+                # symbol tables, /proc/keys, redis CLUSTER NODES and b2 bucket
+                # lists all lead with a hex token. Rank it in the general-
+                # structure tier, so a consistent table (aligned-columns >= 65)
+                # wins those, while a real `git log --oneline` (ragged messages:
+                # no consistent columns) still beats the catch-alls.
+                _STRATEGY_CONFIDENCE=64
+                return 0
+            fi
         done
     fi
     return 1

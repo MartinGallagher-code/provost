@@ -17,7 +17,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     [[ "$text" == *"slabinfo - version:"* ]] && return 0
     return 1
 }

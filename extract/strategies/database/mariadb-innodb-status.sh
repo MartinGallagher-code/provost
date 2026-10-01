@@ -20,7 +20,7 @@ strategy_detect () {
     [[ "$text" == *"INNODB MONITOR OUTPUT"* ]] || return 1
     [[ "$text" == *"TRANSACTIONS"* ]] || return 1
     [[ "$text" == *"History list length"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

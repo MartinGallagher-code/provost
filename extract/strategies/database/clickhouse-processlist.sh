@@ -59,6 +59,12 @@ strategy_detect () {
     local has_border=0 has_bar=0
     [[ "$text" == "$_CH_TL"* || "$text" == *$'\n'"$_CH_TL"* ]] && has_border=1
     [[ $has_border -eq 1 ]] || return 1
+    # ClickHouse's Pretty formats write the column NAMES into the top border
+    # ("┌─user────┬─query_id───…"). A plain box table (duckdb, mysql, rich,
+    # gum, …) has a bare "┌────┬────┐" border and a separate header row — that
+    # is box-table's, so require a name right after the opening "┌─".
+    [[ "$text" == "$_CH_TL$_CH_DASH"[!"$_CH_DASH$_CH_TD$_CH_TR"]* \
+       || "$text" == *$'\n'"$_CH_TL$_CH_DASH"[!"$_CH_DASH$_CH_TD$_CH_TR"]* ]] || return 1
     [[ "$text" == "$_CH_BAR"* || "$text" == *$'\n'"$_CH_BAR"* ]] && has_bar=1
     [[ $has_bar -eq 1 ]] && return 0
     return 1

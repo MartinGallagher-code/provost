@@ -24,7 +24,25 @@ strategy_detect () {
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+-?[0-9]'
     [[ "$text" =~ $reh ]] || return 1
     [[ "$text" =~ $rev ]] || return 1
-    return 0
+    # The two prefilters above hold for any "Key: word" + "Key: 3" text (every
+    # colon key/value dump). The real signature is the PAIR: a "Proto: Col1
+    # Col2 ..." header line followed by a "Proto: 1 2 ..." value line with the
+    # same protocol label and the same token count (3+ tokens) — exactly what
+    # extract pairs up, so detect no longer fires on inputs it yields nothing for.
+    local -A _hdr=()
+    local line lbl
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "$line" =~ ^([A-Za-z][A-Za-z0-9]*):[[:space:]] ]] || continue
+        lbl="${BASH_REMATCH[1]}"
+        _fr_tok "$line"
+        [[ ${#_FR_TOK[@]} -ge 3 ]] || continue
+        case "${_FR_TOK[1]}" in
+            [0-9]*|-[0-9]*) [[ "${_hdr[$lbl]:-}" == "${#_FR_TOK[@]}" ]] && return 0 ;;
+            [A-Za-z]*) _hdr[$lbl]="${#_FR_TOK[@]}" ;;
+        esac
+    done
+    return 1
 }
 
 strategy_extract () {

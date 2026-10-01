@@ -17,9 +17,16 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
-    # A "dependencies:" section drawn with box tree glyphs.
-    if [[ "$text" == *"dependencies:"* && ( "$text" == *"├"* || "$text" == *"└"* ) ]]; then
-        _STRATEGY_CONFIDENCE=92
+    # A "dependencies:" section drawn with box tree glyphs. The section header
+    # must open its line ("dependencies:", "devDependencies:",
+    # "optionalDependencies:") — a mid-line "unused dependencies:" (cargo udeps)
+    # is not pnpm's. 88: `pnpm list --depth N` draws the same shape.
+    local _nl=$'\n'
+    if [[ "$text" == dependencies:* || "$text" == *"${_nl}dependencies:"* \
+          || "$text" == devDependencies:* || "$text" == *"${_nl}devDependencies:"* \
+          || "$text" == optionalDependencies:* || "$text" == *"${_nl}optionalDependencies:"* ]] \
+       && [[ "$text" == *"├"* || "$text" == *"└"* ]]; then
+        _STRATEGY_CONFIDENCE=88
         return 0
     fi
     return 1

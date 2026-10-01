@@ -32,7 +32,7 @@ strategy_detect () {
     _is_json "$text" && return 1
     [[ "$text" =~ (^|$'\n')netmesh[[:space:]]+summarize[[:space:]]+-- ]] || return 1
     [[ "$text" =~ $_netmesh_re_worst_hdr ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

@@ -32,7 +32,7 @@ strategy_detect () {
     done
 
     if [[ $banner_ok -eq 1 && $time_ok -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=88
         return 0
     fi
     return 1

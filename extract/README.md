@@ -133,11 +133,62 @@ evidence, the more specific one (lower priority number) wins. Set
 
 | Tier | Confidence | What earns it | Strategies |
 |---|---|---|---|
-| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | every per-tool strategy outside `delimited/` + `structured/`, unless demoted below |
+| Bespoke, unmistakable | **95** | two or more anchors only that tool prints: an exact banner or title line plus its own header/fields (`INNODB MONITOR OUTPUT` + `History list length`, `Device Descriptor:` + `bLength` + `idVendor`, a zpool `pool:`/`config:` + `NAME STATE READ WRITE CKSUM`) | 38 per-tool strategies — see "Bespoke sub-tiers" below |
+| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (94 strategies) |
+| Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
-| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit here too (`pkg-config`, `git-log-graph`: 80) |
-| General structure | **55–69**, scaled | a shape any tabular or kv output has | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79) |
+| General structure | **55–69**, scaled | a shape any tabular or kv output has (also `git-log`'s oneline branch, 64: a leading hex token) | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
 | Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
+
+### Bespoke sub-tiers
+
+Audited per detector on 2026-10-01 against the corpus. For each one the audit
+counted how many inputs it fires on and how many of those it parses tidily
+(manifest check), and read what its signature actually requires:
+
+- **95, unmistakable** (38): `ansible-version`, `binnacle-agree`,
+  `binnacle-logtriage`, `binnacle-netmesh`, `btrfs-filesystem-show`,
+  `bundle-outdated`, `cassandra-nodetool-tpstats`, `doe-analyze`, `doe-info`,
+  `doe-power`, `go-test`, `gpg-list-packets`, `iperf-pivot`, `iperf-summary`,
+  `iwlist-scan`, `jmap-histo`, `keytool-list`, `lsusb-v`,
+  `mariadb-innodb-status`, `mix-deps`, `multipath-ll`, `mx-check`,
+  `mx-summarize`, `nft-list-ruleset`, `nodetool-status`, `perf-counters`,
+  `proc-devices`, `proc-net-dev`, `proc-net-tcp`, `proc-slabinfo`,
+  `resolvectl-query`, `semanage-boolean`, `systemd-analyze-security`,
+  `tcpdump-summary`, `top-batch`, `vault-status`, `xfs-info`, `zpool-status`.
+- **92, strong** (94): every other per-tool strategy. Its literal or layout is
+  the tool's own, even when a closely related tool shares it (`proc-net-tcp`
+  also reads `/proc/net/udp`; `iptables-nat` reads any `iptables -L`).
+- **88, distinctive but shared** (12): `bcc-funccount`, `bpftrace`, `csvlook`
+  (a markdown table has the same rule line), `fleet-host-lines` (a shape shared
+  by several orchestrators), `flatpak-remotes`, `git-annex-list`,
+  `git-log-graph`, `iperf3-intervals` (common column words), `lastb` (`last`
+  prints the same login lines), `pnpm-why` (`pnpm list --depth` draws the same
+  tree), `sslscan` (one alternative is just `Accepted` + `bits` + `TLS`),
+  `sysstat` (the `(N CPU)` banner heads every sysstat tool, whose own
+  strategies outrank it).
+- **≤ 80, weak** — shape heuristics, not tool literals: `user-groups` 80 (any
+  lone `name : words` line), `pkg-config` 79 (a name + prose line list; it
+  yields to every format-specific generic parser at 80), and `git-log`'s
+  oneline branch 64 (its full `commit <sha>` form stays 92).
+
+When a detector misfires, **tighten its signature before lowering its
+score**. The audit tightened 12 detectors so they stop firing on other tools'
+output: `clickhouse-processlist` (column names in the top border — a plain
+`┌───┬───┐` box is `box-table`'s; it fired on 55 inputs, 45 of them other
+tools' box tables), `proc-net-snmp` (a `Proto:` header line paired with a
+same-label value line of equal width, which is what extract needs — it fired on
+137 inputs and extracted from 1), `git-log-graph` (a 7+ hex SHA after the `*`
+node), `pkg-config` (an all-identifier column header separated only by column
+gaps), `lastb` (no `still logged in` / `system boot`; a closing `(HH:MM)`),
+`pnpm-why` (`dependencies:` must open a line), `fossil-timeline` (a bracketed
+hex check-in hash), `dbmate-status` (a numeric migration version after the
+checkbox), `terraform-plan-actions` (a dotted resource address before `will
+be`), `sbt-dependencytree` (`+-` on an `[info]` line), `systemd-tmpfiles-cat-config`
+(a `# /…/tmpfiles.d/….conf` header), `pipx-list` (`, installed using`).
+Where an extract helper is shared with detect, tighten the detector only —
+extraction keeps its tolerance.
 
 Rules that keep the tiers honest:
 

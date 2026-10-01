@@ -29,10 +29,19 @@ strategy_detect () {
        || "$text" == *[[:space:]]Wed[[:space:]]* || "$text" == *[[:space:]]Thu[[:space:]]* \
        || "$text" == *[[:space:]]Fri[[:space:]]* || "$text" == *[[:space:]]Sat[[:space:]]* \
        || "$text" == *[[:space:]]Sun[[:space:]]* ]] || return 1
+    # `last` (wtmp) prints the same login lines, but a FAILED login (btmp) never
+    # has an open session or a reboot pseudo-entry — those mark `last` output,
+    # which this parser cannot shape (aligned-columns tidies it).
+    [[ "$text" == *"still logged in"* || "$text" == *"still running"* \
+       || "$text" == *"system boot"* ]] && return 1
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        if _lastb_is_login "$line"; then
-            _STRATEGY_CONFIDENCE=92
+        # A btmp entry always closes with its "(HH:MM)" duration — required, so
+        # a table that merely holds "<name> <word> <IPv4> <weekday>" cells
+        # (smbstatus shares: "projects 812 10.0.1.4 Thu Jul 10 …") declines.
+        if _lastb_is_login "$line" && [[ "$line" =~ \([0-9+:]+\)[[:space:]]*$ ]]; then
+            # 88: distinctive, but `last` prints the same line shape.
+            _STRATEGY_CONFIDENCE=88
             return 0
         fi
     done

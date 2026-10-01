@@ -23,7 +23,7 @@ strategy_detect () {
         first="$line"; break
     done
     if [[ "$first" == Name*Options* ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=88
         return 0
     fi
     return 1

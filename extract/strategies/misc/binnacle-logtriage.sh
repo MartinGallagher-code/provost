@@ -19,7 +19,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == "logtriage --"* ]] || return 1
     local re_rank='(^|'$'\n'')[[:space:]]*#[0-9]+[[:space:]]+score[[:space:]]+[0-9]+(\.[0-9]+)?'

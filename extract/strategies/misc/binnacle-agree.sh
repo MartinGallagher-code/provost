@@ -26,7 +26,7 @@ strategy_detect () {
     [[ "$text" =~ $re_header ]] || return 1
     [[ "$text" =~ $re_group ]] || return 1
 
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     [[ "$text" == *$'\n=== RUN'* || "$text" == "=== RUN"* ]] || return 1
     [[ "$text" =~ (^|$'\n')[[:space:]]*---[[:space:]](PASS|FAIL|SKIP): ]] || return 1
     return 0

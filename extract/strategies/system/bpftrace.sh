@@ -20,7 +20,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == "@"* && "$line" == *"]:"* ]]; then
-            _STRATEGY_CONFIDENCE=92
+            _STRATEGY_CONFIDENCE=88
             return 0
         fi
     done
