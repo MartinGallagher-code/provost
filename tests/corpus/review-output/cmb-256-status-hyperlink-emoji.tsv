@@ -1,5 +1,0 @@
-n	STATE	NAME	REGION	TIER	LINK	total_entries
-1	● up	edge-1 🌐	nyc	pro	8;;https://x/edge-1open8;;	4
-2	● up	edge-2 🌐	sfo	pro	8;;https://x/edge-2open8;;	4
-3	● down	edge-3 🌐	ams	free	8;;https://x/edge-3open8;;	4
-4	● warn	edge-4 🌐	sin	pro	8;;https://x/edge-4open8;;	4

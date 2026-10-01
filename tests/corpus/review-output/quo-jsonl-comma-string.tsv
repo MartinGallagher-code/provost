@@ -1,4 +1,0 @@
-n	ts	msg	level
-1	12:00:01	a, b, c	info
-2	12:00:02	key: value, more	warn
-3	12:00:03	done	info

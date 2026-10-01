@@ -1,2 +1,0 @@
-subject	issuer	notBefore	notAfter
-C = US, ST = California, O = Example, Inc., CN = example.com	C = US, O = Let's Encrypt, CN = R3	Jun  1 00:00:00 2026 GMT	Sep  1 00:00:00 2026 GMT

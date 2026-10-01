@@ -1,2 +1,0 @@
-NIC_statistics.rx_packets	NIC_statistics.tx_packets	NIC_statistics.rx_bytes	NIC_statistics.tx_bytes	NIC_statistics.rx_errors	NIC_statistics.tx_errors	NIC_statistics.rx_dropped	NIC_statistics.tx_dropped	NIC_statistics.multicast	NIC_statistics.collisions
-1284531	984210	1839472103	742118094	0	0	12	0	8432	0

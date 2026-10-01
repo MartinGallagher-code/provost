@@ -1,5 +1,0 @@
-n	QUEUE	DEPTH	CONSUMERS	RATE	total_entries
-1	orders	1204	8	320/s	4
-2	billing	12	2	5/s	4
-3	email	0	4	0/s	4
-4	audit	88	1	12/s	4

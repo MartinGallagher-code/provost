@@ -1,2 +1,0 @@
-Name	Exec	Icon	Type	Categories	Name	Exec	Icon	Categories	Name	Exec	Icon	Categories
-Firefox	/usr/bin/firefox %u	firefox	Application	Network;WebBrowser;	GIMP	/usr/bin/gimp %U	gimp	Graphics;	VLC	/usr/bin/vlc %U	vlc	AudioVideo;Player;

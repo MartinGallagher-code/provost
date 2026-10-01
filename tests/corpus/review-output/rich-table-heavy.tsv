@@ -1,4 +1,0 @@
-n	service	replicas	status	updated	total_entries
-1	api	4	Running	2m ago	3
-2	worker	2	Running	15m ago	3
-3	scheduler	1	Pending	40s ago	3

@@ -1,2 +1,0 @@
-Prot_LocalAddress	IP_Virtual_Server_version_1.2.1.->_RemoteAddress	TCP__10.0.1.100	IP_Virtual_Server_version_1.2.1.->_10.0.2.1	IP_Virtual_Server_version_1.2.1.->_10.0.2.2
-Port Scheduler Flags	Port           Forward Weight ActiveConn	80 rr	80                  Masq    1      412	80                  Masq    1      388

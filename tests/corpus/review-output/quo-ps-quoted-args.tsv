@@ -1,4 +1,0 @@
-n	PID	CMD	total_entries
-1	1201	/usr/bin/python_app.py_--name_"my_service"_--tags_a,b,c	3
-2	1202	bash_-c_'echo_hello;_sleep_5'	3
-3	1203	/usr/sbin/sshd_-D_-o_"LogLevel_VERBOSE"	3

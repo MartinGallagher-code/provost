@@ -1,2 +1,0 @@
-;_int_xdp_drop(struct_xdp_md_*ctx).0	;_void_*data_end_=_(void_*)(long)ctx->data_end;.1	;_void_*data_end_=_(void_*)(long)ctx->data_end;.2	;_struct_ethhdr_*eth_=_data;.3	;_struct_ethhdr_*eth_=_data;.4	;_if_(eth_+_1_>_data_end).5	;_if_(eth_+_1_>_data_end).6	;_if_(eth_+_1_>_data_end).7	;_if_(eth_+_1_>_data_end).8	;_if_(eth_+_1_>_data_end).9
-(b7) r0 = 1	(61) r2 = *(u32 *)(r1 +4)	(61) r3 = *(u32 *)(r1 +0)	(bf) r4 = r3	(07) r4 += 14	(2d) if r4 > r2 goto pc+8	(71) r5 = *(u8 *)(r3 +12)	(55) if r5 != 0x8 goto pc+6	(b7) r0 = 2	(95) exit

@@ -1,5 +1,0 @@
-n	/etc/cron_d/certbot:	renew	SSL	certs	total_entries
-1	0	*/12	*	*_*_root_test_-x_/usr/bin/certbot_&&_certbot_-q_renew	4
-2	#	spread	load	across_the_hour	4
-3	17	5	*	*_*_root_/usr/lib/sysstat/debian-sa1_1_1	4
-4	47	6	*	*_7_root_/usr/local/bin/weekly-report.sh	4

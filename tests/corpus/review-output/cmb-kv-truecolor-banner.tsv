@@ -1,2 +1,0 @@
-DATABASE_URL	REDIS_URL	LOG_LEVEL	MAX_CONNS	TLS_ENABLED
-postgres://db:5432/app	redis://cache:6379	info	128	true

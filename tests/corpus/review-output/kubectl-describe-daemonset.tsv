@@ -1,4 +1,0 @@
-n	section	Type	Reason	Age	From	Message	Name	Namespace	Selector	Node-Selector	Labels	Desired_Number_of_Nodes_Scheduled	Current_Number_of_Nodes_Scheduled	Number_of_Nodes_Scheduled_with_Up-to-date_Pods	total_entries
-1	Events	Normal	SuccessfulCreate	9m	daemonset-controller	Created pod: fluent-bit-x8k2p on node ip-10-0-3-14.ec2.internal to satisfy the desired state of one agent per schedulable node in the cluster	fluent-bit	logging	app=fluent-bit	<none>	app=fluent-bit; k8s-app=fluent-bit-logging	6	6	6	3
-2	Events	Warning	FailedDaemonPod	7m	daemonset-controller	Found failed daemon pod logging/fluent-bit-q9v1z on node ip-10-0-3-88, will try to kill it and reschedule a replacement on the same node	fluent-bit	logging	app=fluent-bit	<none>	app=fluent-bit; k8s-app=fluent-bit-logging	6	6	6	3
-3	Events	Normal	SuccessfulDelete	7m	daemonset-controller	Deleted pod: fluent-bit-q9v1z	fluent-bit	logging	app=fluent-bit	<none>	app=fluent-bit; k8s-app=fluent-bit-logging	6	6	6	3

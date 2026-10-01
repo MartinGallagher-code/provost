@@ -1,5 +1,0 @@
-n	service	spans	errors	p50_ms	p99_ms	total_entries
-1	frontend	184203	412	42	880	4
-2	api-gateway	158022	1204	28	540	4
-3	cart-service	90118	33	12	210	4
-4	payments	44102	882	88	1420	4

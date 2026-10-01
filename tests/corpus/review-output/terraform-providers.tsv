@@ -1,5 +1,0 @@
-n	depth	parent	name	total_entries
-1	1	Providers required by configuration:	provider[registry.terraform.io/hashicorp/aws] ~> 5.0	4
-2	1	Providers required by configuration:	provider[registry.terraform.io/hashicorp/random]	4
-3	1	Providers required by configuration:	module.vpc	4
-4	2	module.vpc	provider[registry.terraform.io/hashicorp/aws] >= 4.0	4

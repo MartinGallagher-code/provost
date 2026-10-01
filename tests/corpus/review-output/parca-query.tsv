@@ -1,5 +1,0 @@
-n	name	labels	samples	value_sum	unit	total_entries
-1	runtime.gopark	{job="api",pid="4412"}	18422	0.0	count	4
-2	runtime.mallocgc	{job="api",pid="4412"}	9021	1.2e+08	bytes	4
-3	net/http.(*conn).serve	{job="api",pid="4412"}	4410	0.0	count	4
-4	database/sql.(*DB).query	{job="api",pid="4412"}	3308	0.0	count	4

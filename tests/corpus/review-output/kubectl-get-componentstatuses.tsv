@@ -1,5 +1,0 @@
-n	NAME	STATUS	MESSAGE	total_entries
-1	scheduler	Healthy	ok	4
-2	controller-manager	Healthy	ok	4
-3	etcd-0	Healthy	{"health":"true","reason":""}	4
-4	etcd-1	Healthy	{"health":"true","reason":""}	4

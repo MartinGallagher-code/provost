@@ -1,4 +1,0 @@
-n	Deploy_ID	State	Context	Deployed_At	Branch	total_entries
-1	66a1f2b3c4d5e6f708192a3b	ready	production	2026-07-09T18:22:14	main	3
-2	66a0e1d2c3b4a5968778695a	ready	deploy-pr	2026-07-09T14:05:41	feat/login	3
-3	669fd0c1b2a3948576859401	error	deploy-pr	2026-07-08T22:11:09	fix/nav	3

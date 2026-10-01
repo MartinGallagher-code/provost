@@ -1,6 +1,0 @@
-n	Symbol	Offset	Size	total_entries
-1	_start	000010e0	0000002f	5
-2	main	00001120	000000a4	5
-3	printf	DEADBEEF	CAFEBABE	5
-4	malloc	00001200	0000012c	5
-5	free	000012f0	00000038	5

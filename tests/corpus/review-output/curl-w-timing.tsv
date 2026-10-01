@@ -1,2 +1,0 @@
-time_namelookup	time_connect	time_appconnect	time_pretransfer	time_starttransfer	time_total	http_code	size_download
-0.004212	0.018904	0.061203	0.061344	0.142981	0.148820	200	48213

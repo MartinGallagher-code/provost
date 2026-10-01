@@ -1,4 +1,0 @@
-n	database	tableName	isTemporary	total_entries
-1	default	events	false	3
-2	default	sessions	false	3
-3	analytics	pageviews	false	3

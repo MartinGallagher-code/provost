@@ -1,5 +1,0 @@
-n	column_name	column_type	min	max	mean	count	null_pct	total_entries
-1	order_id	BIGINT	1	920184	460092.5	920184	0.0	4
-2	amount	DECIMAL	0.99	4820.00	128.44	920184	0.0	4
-3	status	VARCHAR	cancelled	shipped		920184	0.0	4
-4	created_at	TIMESTAMP	2024-01..	2026-07..		920184	0.12	4

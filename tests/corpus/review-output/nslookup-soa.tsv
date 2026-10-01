@@ -1,8 +1,0 @@
-n	A	B	C	D	total_entries
-1	example.com				7
-2	origin	=	ns1.example.com		7
-3	mail	addr	=	hostmaster.example.com	7
-4	serial	=	2026071001		7
-5	refresh	=	7200		7
-6	retry	=	3600		7
-7	expire	=	1209600		7

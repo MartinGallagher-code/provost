@@ -1,4 +1,0 @@
-n	TARGET	SOURCE	FSTYPE	OPTIONS	total_entries
-1	/	/dev/sda2	ext4	rw,relatime	3
-2	/boot/efi	/dev/sda1	vfat	rw,relatime	3
-3	/data	/dev/nvme0n1p1	xfs	rw,noatime	3

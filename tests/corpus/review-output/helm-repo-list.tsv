@@ -1,7 +1,0 @@
-n	NAME	URL	total_entries
-1	stable	https://charts.helm.sh/stable	6
-2	bitnami	https://charts.bitnami.com/bitnami	6
-3	ingress-nginx	https://kubernetes.github.io/ingress-nginx	6
-4	prometheus	https://prometheus-community.github.io/helm-charts	6
-5	grafana	https://grafana.github.io/helm-charts	6
-6	jetstack	https://charts.jetstack.io	6

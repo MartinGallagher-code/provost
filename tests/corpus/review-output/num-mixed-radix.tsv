@@ -1,5 +1,0 @@
-n	name	dec	hex	oct	bin	total_entries
-1	val0	10	0xA	0o12	0b1010	4
-2	val1	255	0xFF	0o377	0b11111111	4
-3	val2	4096	0x1000	0o10000	0b1000000000000	4
-4	val3	0	0x0	0o0	0b0	4

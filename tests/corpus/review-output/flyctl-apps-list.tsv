@@ -1,5 +1,0 @@
-n	NAME	OWNER	STATUS	LATEST_DEPLOY	total_entries
-1	acme-api	acme-corp	deployed	2026-07-10T08:14:22Z	4
-2	acme-web	acme-corp	deployed	2026-07-09T22:03:11Z	4
-3	acme-pg	acme-corp	deployed	2026-06-14T10:44:57Z	4
-4	acme-redis	acme-corp	suspended	2026-05-02T09:12:03Z	4

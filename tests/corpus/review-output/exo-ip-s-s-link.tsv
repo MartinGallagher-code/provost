@@ -1,3 +1,0 @@
-n	name	mtu	qdisc	state	mode	group	qlen	rx_bytes	rx_packets	rx_errors	rx_dropped	rx_overrun	rx_mcast	tx_bytes	tx_packets	tx_errors	tx_dropped	tx_carrier	tx_collsns	total_entries
-1	eth0	1500	mq	UP	DEFAULT	default	1000	98123441	882134	0	12	0	4410	41882290	331028	0	0	0	0	2
-2	wg0	1420	noqueue	UNKNOWN	DEFAULT	default	1000	221004	1882	0	0	0	0	198221	1744	0	9	0	0	2

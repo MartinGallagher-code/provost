@@ -1,8 +1,0 @@
-n	group	value	total_entries
-1	upstream backend	least_conn	7
-2	upstream backend	server 10.0.0.11:8080 weight=3	7
-3	upstream backend	server 10.0.0.12:8080	7
-4	upstream backend	server 10.0.0.13:8080 backup	7
-5	upstream cache	server 10.0.0.21:6379 max_fails=2 fail_timeout=30s	7
-6	upstream cache	server 10.0.0.22:6379	7
-7	upstream static	server cdn1.internal:80	7

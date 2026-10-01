@@ -1,7 +1,0 @@
-n	Starting	repository	check	total_entries
-1	Starting	repository	index_check	6
-2	Completed	repository	check,_no_problems_found.	6
-3	Starting	archive	consistency_check...	6
-4	Analyzing	archive	nas-2026-07-10_(1/4)	6
-5	Analyzing	archive	nas-2026-07-03_(2/4)	6
-6	Archive	consistency	check_complete,_no_problems_found.	6

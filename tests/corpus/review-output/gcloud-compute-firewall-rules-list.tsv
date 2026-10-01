@@ -1,7 +1,0 @@
-n	NAME	NETWORK	DIRECTION	PRIORITY	ALLOW	DENY	total_entries
-1	allow-internal	default	INGRESS	1000	tcp,udp,icmp	False	6
-2	allow-ssh	default	INGRESS	1000	tcp:22	False	6
-3	allow-http	prod-vpc	INGRESS	1000	tcp:80,tcp:443	False	6
-4	allow-health-check	prod-vpc	INGRESS	900	tcp:8080	False	6
-5	allow-rdp	mgmt-vpc	INGRESS	1000	tcp:3389	False	6
-6	default-allow-icmp	default	INGRESS	65534	icmp	False	6

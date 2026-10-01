@@ -1,5 +1,0 @@
-n	TASK	PROGRESS	ETA	WORKER	total_entries
-1	ingest	████████████░░░░ 75%	00:42	w-01	4
-2	transform	██████░░░░░░░░░░ 38%	03:11	w-02	4
-3	export	███████████████░ 96%	00:05	w-03	4
-4	validate	██░░░░░░░░░░░░░░ 12%	09:57	w-01	4

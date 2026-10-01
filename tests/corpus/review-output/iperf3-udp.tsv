@@ -1,7 +1,0 @@
-n	timestamp	message	total_entries
-1	ID	Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams	6
-2	5	0.00-1.00   sec  1.19 MBytes  9.98 Mbits/sec  0.041 ms  0/861 (0%)	6
-3	5	1.00-2.00   sec  1.19 MBytes  10.0 Mbits/sec  0.033 ms  0/862 (0%)	6
-4	5	2.00-3.00   sec  1.19 MBytes  9.99 Mbits/sec  0.038 ms  2/861 (0.23%)	6
-5	5	0.00-10.00  sec  11.9 MBytes  9.99 Mbits/sec  0.037 ms  2/8612 (0.023%)	6
-6	5	Sent 8612 datagrams	6

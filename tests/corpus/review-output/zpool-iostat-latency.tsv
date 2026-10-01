@@ -1,6 +1,0 @@
-n	pool	alloc	free	read	write
-1	tank	18.2T	25.8T	44us	88us
-2	raidz2	18.2T	25.8T	44us	88us
-3	nvme0n1	-	-	18us	22us
-4	nvme1n1	-	-	20us	30us
-5	----------------------------	-----	-----	-----	-----

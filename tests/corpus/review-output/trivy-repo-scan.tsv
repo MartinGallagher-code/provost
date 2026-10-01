@@ -1,4 +1,0 @@
-n	LIBRARY	VULNERABILITY	SEVERITY	FIXED-VERSION	total_entries
-1	golang.org/x/net	CVE-2023-39325	HIGH	0.17.0	3
-2	github.com/gin-gonic	CVE-2023-26125	MEDIUM	1.9.1	3
-3	google.golang.org/grpc	CVE-2023-44487	HIGH	1.58.3	3

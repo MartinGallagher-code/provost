@@ -1,6 +1,0 @@
-n	A	total_entries
-1	Component      init  ready  live  metrics	5
-2	api             ok            ok	5
-3	worker          ok    ok     ok       ok	5
-4	scheduler       ok            ok	5
-5	gateway         ok    ok             ok	5

@@ -1,9 +1,0 @@
-n	A	B	C	D	total_entries
-1	[INFO]	Scanning	source	tree...	8
-2	[INFO]	Compiled	214	modules	8
-3	[FAIL]	2	modules	had_warnings	8
-4	MODULE	WARNINGS	ERRORS	TIME	8
-5	core	3	0	4.2s	8
-6	api	0	0	2.1s	8
-7	ui	11	2	8.8s	8
-8	cli	0	0	1.0s	8

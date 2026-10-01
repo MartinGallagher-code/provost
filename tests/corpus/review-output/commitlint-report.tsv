@@ -1,5 +1,0 @@
-n	A	total_entries
-1	⧗   input: fixed stuff	4
-2	✖   subject may not be empty [subject-empty]	4
-3	✖   type may not be empty [type-empty]	4
-4	✖   found 2 problems, 0 warnings	4

@@ -1,2 +1,0 @@
-image	file_format	virtual_size	disk_size	cluster_size	Format_specific_information.compat	Format_specific_information.lazy_refcounts
-disk.qcow2	qcow2	40 GiB (42949672960 bytes)	12.4 GiB	65536	1.1	false

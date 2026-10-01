@@ -1,6 +1,0 @@
-n	DEVICE	TYPE	STATE	CONNECTION	total_entries
-1	eth0	ethernet	connected	Wired connection 1	5
-2	wlan0	wifi	disconnected	--	5
-3	docker0	bridge	connected	docker0	5
-4	lo	loopback	unmanaged	--	5
-5	tun0	tun	connected	vpn-corp	5

@@ -1,7 +1,0 @@
-n	type	user	database	state	addr	port	total_entries
-1	C	appuser	app_prod	active	192.168.1.20	51234	6
-2	C	appuser	app_prod	idle	192.168.1.20	51236	6
-3	C	reporter	analytics	active	192.168.1.44	40122	6
-4	C	reporter	analytics	waiting	192.168.1.44	40130	6
-5	C	billsvc	billing	active	192.168.1.60	33445	6
-6	C	appuser	app_stage	idle	192.168.1.20	51999	6

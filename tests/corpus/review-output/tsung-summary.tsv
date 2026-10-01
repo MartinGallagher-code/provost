@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	G	total_entries
-1	connect	12.44ms	8.21ms	1204/s	1102/s	10.2ms	120488	4
-2	page	44.10ms	28.44ms	602/s	588/s	42.1ms	60244	4
-3	request	12.10ms	8.44ms	1204/s	1102/s	10.4ms	120488	4
-4	session	88.20ms	44.10ms	120/s	110/s	72.4ms	12000	4

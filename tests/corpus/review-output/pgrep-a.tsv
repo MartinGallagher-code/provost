@@ -1,7 +1,0 @@
-n	id	value	total_entries
-1	1843	/usr/sbin/mysqld --datadir=/var/lib/mysql --socket=/run/mysqld/mysqld.sock	6
-2	2044	/usr/lib/postgresql/15/bin/postgres -D /var/lib/postgresql/15/main	6
-3	2891	/usr/bin/redis-server 127.0.0.1:6379	6
-4	3310	/usr/share/elasticsearch/jdk/bin/java -Xms1g -Xmx1g -jar elasticsearch.jar	6
-5	9021	php-fpm: pool www	6
-6	774	/usr/bin/containerd	6

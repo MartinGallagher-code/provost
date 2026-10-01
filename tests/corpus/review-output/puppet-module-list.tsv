@@ -1,4 +1,0 @@
-n	depth	parent	name	total_entries
-1	1	/etc/puppetlabs/code/modules	puppetlabs-stdlib (v9.6.0)	3
-2	1	/etc/puppetlabs/code/modules	puppetlabs-apt (v9.4.0)	3
-3	1	/etc/puppetlabs/code/modules	puppet-nginx (v5.0.0)	3

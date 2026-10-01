@@ -1,4 +1,0 @@
-n	NAME	PROVISIONED	USED	total_entries
-1	vm-disk-01	50 GiB	22 GiB	3
-2	vm-disk-02	100 GiB	48 GiB	3
-3	<TOTAL>	150 GiB	70 GiB	3

@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	total_entries
-1	●	api-gw-6f8	1/1	Running	0	45m	4
-2	●	auth-svc-2b1	1/1	Running	1	45m	4
-3	●	billing-9c4	0/1	Pending	0	2m	4
-4	●	notify-7a2	0/1	Error	3	9m	4

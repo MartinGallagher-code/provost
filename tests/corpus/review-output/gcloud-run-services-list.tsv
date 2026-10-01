@@ -1,6 +1,0 @@
-n	SERVICE	REGION	URL	LAST_DEPLOYED_BY	total_entries
-1	api	us-central1	https://api-xk29fj3q-uc.a.run.app	deploy@my-project.iam.gserviceaccount.com	5
-2	web	us-central1	https://web-xk29fj3q-uc.a.run.app	deploy@my-project.iam.gserviceaccount.com	5
-3	worker	us-central1	https://worker-xk29fj3q-uc.a.run.app	ci-runner@my-project.iam.gserviceaccount.com	5
-4	image-proxy	us-west1	https://image-proxy-mm81ka0z-uw.a.run.app	deploy@my-project.iam.gserviceaccount.com	5
-5	auth	us-central1	https://auth-xk29fj3q-uc.a.run.app	martinjgallagher@icloud.com	5

@@ -1,5 +1,0 @@
-n	HOST	LATENCY(24h)	P99	LOSS	total_entries
-1	api-1	▁▂▃▅▂▁▂▇▃▂	142ms	0.1%	4
-2	api-2	▁▁▂▁▁▃▁▁▂▁	88ms	0.0%	4
-3	api-3	▃▅▇█▇▅▃▂▁▂	311ms	1.4%	4
-4	api-4	▂▂▁▂▃▂▁▂▁▁	97ms	0.0%	4

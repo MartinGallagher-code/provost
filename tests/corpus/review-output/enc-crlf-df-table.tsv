@@ -1,5 +1,0 @@
-n	Filesystem	Size	Used	Avail	Use%	Mountpoint	total_entries
-1	/dev/sda1	118G	58G	54G	52%	/	4
-2	/dev/sda2	460G	210G	227G	49%	/home	4
-3	tmpfs	7.9G	1.2M	7.9G	1%	/run	4
-4	/dev/nvme0n1p1	511M	28M	483M	6%	/boot/efi	4

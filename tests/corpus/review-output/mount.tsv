@@ -1,5 +1,0 @@
-n	device	mount_point	fstype	options	total_entries
-1	/dev/sda1	/	ext4	rw,relatime	4
-2	proc	/proc	proc	rw,nosuid,nodev,noexec,relatime	4
-3	tmpfs	/dev/shm	tmpfs	rw,nosuid,nodev	4
-4	/dev/sdb1	/data	xfs	rw,relatime,attr2	4

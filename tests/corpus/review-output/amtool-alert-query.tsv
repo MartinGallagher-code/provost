@@ -1,3 +1,0 @@
-n	Alertname	Starts_At	Summary	total_entries
-1	HighCPU	2026-07-10 06:00:00 UTC	CPU above 90% on node-1	2
-2	DiskFilling	2026-07-10 05:41:00 UTC	Disk /data 88% full on node-3	2

@@ -1,7 +1,0 @@
-n	PID	PPID	USER	PRI	NI	%CPU	%MEM	RSS	STAT	COMMAND	total_entries
-1	1843	1	mysql	19	0	24.3	8.1	662104	Ssl	mysqld	6
-2	9021	8990	www-data	19	0	12.7	3.4	278320	S	php-fpm	6
-3	2044	1	postgres	19	0	4.8	6.7	548016	Ss	postgres	6
-4	3310	1	elastic	19	0	3.1	12.4	1012440	Sl	java	6
-5	2891	1	redis	19	0	1.9	0.6	52104	Ssl	redis-server	6
-6	774	1	root	19	0	0.4	0.2	18220	Ss	containerd	6

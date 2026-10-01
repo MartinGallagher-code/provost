@@ -1,2 +1,0 @@
-openssl.Depends	openssl.Depends	libc6.Depends	libc6.Depends	libssl3.Depends	libssl3.Depends	libgcc-s1.Depends	libgcc-s1.Depends	debconf.Depends
-libc6 (>= 2.34)	libssl3 (>= 3.0.0)	libgcc-s1	libcrypt1 (>= 1:4.1.0)	libc6 (>= 2.34)	debconf (>= 0.5) | debconf-2.0	gcc-12-base (= 12.2.0-14)	libc6 (>= 2.2.5)	perl-base (>= 5.20.1-3)

@@ -1,3 +1,0 @@
-n	POD	CID	NAME	CPU	%	MEM	USAGE	/	total_entries
-1	web-pod	a1b2c3d4	web	2.10%	128MB	/	4GB	3.20%	2
-2	db-pod	e5f6a7b8	db	8.44%	1.2GB	/	8GB	15.00%	2

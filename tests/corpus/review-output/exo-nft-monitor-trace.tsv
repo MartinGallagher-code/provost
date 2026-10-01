@@ -1,2 +1,0 @@
-trace_id_3f2a1b09_inet_filter_input_packet	trace_id_7c88de41_inet_filter_input_packet
-iif "eth0" ether saddr 52:54:00:aa:bb:cc ether daddr 52:54:00:a1:b2:c3 ip saddr 10.0.0.9 ip daddr 10.0.0.5 ip protocol tcp tcp dport 22 tcp flags == syn	iif "eth0" ip saddr 45.9.148.2 ip daddr 10.0.0.5 ip protocol tcp tcp dport 3389 tcp flags == syn

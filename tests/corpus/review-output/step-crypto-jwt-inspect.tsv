@@ -1,2 +1,0 @@
-header.alg	header.kid	header.typ	payload.iss	payload.sub	payload.aud	payload.exp	payload.iat	signature
-ES256	fake-kid-0f9a2c	JWT	https://auth.example.internal	svc-billing	api.example.internal	1783036800	1783033200	AAAA-fake-signature-BBBB

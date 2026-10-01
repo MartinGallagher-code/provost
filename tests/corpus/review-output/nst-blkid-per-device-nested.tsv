@@ -1,4 +1,0 @@
-n	name	UUID	TYPE	LABEL	total_entries
-1	/dev/sda1	1234-ABCD	vfat	EFI	3
-2	/dev/sda2	aa11-bb22-cc33	ext4	boot	3
-3	/dev/sda3	dd44-ee55-ff66	LVM2_member		3

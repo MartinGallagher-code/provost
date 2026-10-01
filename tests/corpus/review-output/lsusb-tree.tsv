@@ -1,5 +1,0 @@
-n	A	total_entries
-1	/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 10000M	4
-2	|__ Port 2: Dev 3, If 0, Class=Mass Storage, Driver=usb-storage, 5000M	4
-3	/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/12p, 480M	4
-4	|__ Port 3: Dev 4, If 0, Class=Human Interface Device, Driver=usbhid, 12M	4

@@ -1,7 +1,0 @@
-n	Field	Value	total_entries
-1	Subject	CN=example.com	6
-2	Issuer	Let's Encrypt R3	6
-3	Serial	03:a1:b2:c3:d4	6
-4	Not Before	Jul 1 00:00:00 2026 GMT	6
-5	Not After	Sep 29 23:59:59 2026 GMT	6
-6	Key Algorithm	RSA 2048	6

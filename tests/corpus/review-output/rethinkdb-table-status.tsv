@@ -1,3 +1,0 @@
-n	db	name	id	status.all_replicas_ready	status.ready_for_outdated_reads	status.ready_for_reads	status.ready_for_writes	shards.primary_replicas.0	shards.replicas.0	shards.replicas.1	total_entries
-1	blog	posts	8f7e6d5c-4b3a-2019-8877-665544332211	true	true	true	true	server_a	server_a	server_b	2
-2	blog	posts	8f7e6d5c-4b3a-2019-8877-665544332211	true	true	true	true	server_b	server_a	server_b	2

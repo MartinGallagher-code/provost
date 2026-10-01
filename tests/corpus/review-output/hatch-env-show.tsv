@@ -1,3 +1,0 @@
-n	Name	Type	Dependencies	total_entries
-1	default	virtual	pytest	2
-2	docs	virtual	mkdocs	2

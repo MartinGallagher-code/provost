@@ -1,7 +1,0 @@
-n	remote	refid	st	t	when	poll	reach	delay	offset	jitter	total_entries
-1	*ntp1.example.co	10.0.0.1	2	u	45	64	377	0.512	-0.045	0.123	6
-2	+ntp2.example.co	10.0.0.2	2	u	38	64	377	12.401	1.203	2.456	6
-3	-ntp3.example.co	10.0.0.3	3	u	50	64	377	24.100	-3.400	1.100	6
-4	+ntp4.example.co	10.0.0.4	2	u	41	64	377	8.223	0.512	0.890	6
-5	ntp5.example.co	.INIT.	16	u	-	1024	0	0.000	0.000	0.000	6
-6	pool.ntp.org	.POOL.	16	p	-	256	0	0.000	0.000	0.000	6

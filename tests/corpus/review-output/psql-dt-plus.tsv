@@ -1,7 +1,0 @@
-n	Schema	Name	Type	Owner	Persistence	Access_method	Size	total_entries
-1	public	customers	table	appuser	permanent	heap	4360 kB	6
-2	public	invoices	table	appuser	permanent	heap	2208 kB	6
-3	public	orders	table	appuser	permanent	heap	16 MB	6
-4	public	products	table	appuser	permanent	heap	800 kB	6
-5	public	sessions	table	appuser	unlogged	heap	1240 kB	6
-6	public	users	table	appuser	permanent	heap	2568 kB	6

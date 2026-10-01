@@ -1,4 +1,0 @@
-n	suite	passed	failed	total_entries
-1	unit	412	0	3
-2	integration	88	2	3
-3	e2e	34	1	3

@@ -1,5 +1,0 @@
-n	Name	#	reqs	fails	req/s	fail/s	total_entries
-1	GET	0	120488	(0%)	12024.4	0.0	4
-2	GET	12	60244	(0.02%)	6012.2	1.2	4
-3	POST	0	12000	(0%)	1200.0	0.0	4
-4	Aggregated	(0.01%)	12	19236.6	1.2		4

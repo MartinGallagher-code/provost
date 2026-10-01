@@ -1,6 +1,0 @@
-n	NAME	DESCRIPTION	DOCKER_ENDPOINT	total_entries
-1	default *	Current DOCKER_HOST based configuration	unix:///var/run/docker.sock	5
-2	desktop-linux	Docker Desktop	unix:///home/user/.docker/desktop/docker.sock	5
-3	prod-swarm	Production swarm cluster	tcp://10.0.4.12:2376	5
-4	staging	Staging remote engine	ssh://deploy@staging.example.com	5
-5	remote-tls	Remote engine over TLS	tcp://192.168.50.10:2376	5

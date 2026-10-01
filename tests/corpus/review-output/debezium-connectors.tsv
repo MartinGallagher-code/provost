@@ -1,3 +1,0 @@
-n	name	type	state	total_entries
-1	pg-orders-cdc	source	RUNNING	2
-2	mysql-users-cdc	source	PAUSED	2

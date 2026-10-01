@@ -1,5 +1,0 @@
-n	Id	User	Host	db	Command	Time	State	Info	total_entries
-1	5	event_scheduler	localhost	NULL	Daemon	8123	Waiting on empty queue	NULL	4
-2	42	appuser	10.0.0.5:51234	appdb	Query	0	starting	SHOW PROCESSLIST	4
-3	43	appuser	10.0.0.7:44120	appdb	Sleep	120		NULL	4
-4	51	root	localhost	NULL	Query	2	executing	SELECT SLEEP(5)	4

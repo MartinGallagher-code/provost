@@ -1,9 +1,0 @@
-n	A	B	C	D	total_entries
-1	JobID|JobName|Partition|Account|AllocCPUS|State|ExitCode|Elapsed|MaxRSS				8
-2	441201|align.sh|compute|genlab|48|COMPLETED|0	0|02	14	33|	8
-3	441201.batch|batch||genlab|48|COMPLETED|0	0|02	14	33|41214856K	8
-4	441201.0|bwa|||48|COMPLETED|0	0|01	58	12|38221004K	8
-5	441202|gatk_hc|highmem|genlab|16|FAILED|1	0|00	44	18|	8
-6	441202.batch|batch||genlab|16|FAILED|1	0|00	44	18|118442112K	8
-7	441203|assemble|compute|genlab|96|RUNNING|0	0|03	12	44|	8
-8	441204|qc.sh|debug|genlab|4|TIMEOUT|0	1|01	00	05|221004K	8

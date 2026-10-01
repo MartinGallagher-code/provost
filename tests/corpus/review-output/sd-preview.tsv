@@ -1,3 +1,0 @@
-n	A	B	total_entries
-1	-	old_function_name(x)	2
-2	+	new_function_name(x)	2

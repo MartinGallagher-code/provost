@@ -1,5 +1,0 @@
-n	ID	名前	STATUS	OWNER	COST	total_entries
-1	1	サービスＡ	🟢 ok	André	€120	4
-2	2	缓存	🔴 down	张伟	¥8000	4
-3	3	proxy	🟡 warn	Björn	£45	4
-4	4	웹	✅ ok	John	$99	4

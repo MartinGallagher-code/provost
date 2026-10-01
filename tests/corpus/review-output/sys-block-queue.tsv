@@ -1,2 +1,0 @@
-rotational	nr_requests	scheduler	read_ahead_kb	max_sectors_kb
-0	256	[none] mq-deadline kyber	128	1280

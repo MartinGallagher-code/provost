@@ -1,4 +1,0 @@
-n	table	column	type	total_entries
-1	orders	id	BIGINT	3
-2	orders	total	DECIMAL	3
-3	customers	email	VARCHAR	3

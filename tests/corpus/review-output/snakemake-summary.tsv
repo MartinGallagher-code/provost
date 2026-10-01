@@ -1,7 +1,0 @@
-n	job	count	min_threads	max_threads
-1	all	1	1	1
-2	align	8	4	4
-3	sort	8	1	1
-4	markdup	8	2	2
-5	call_variants	1	8	8
-6	total	26	1	8

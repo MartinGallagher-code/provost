@@ -1,2 +1,0 @@
-+DIRENV_DIR	+NODE_ENV	+DATABASE_URL	-EDITOR
-/home/deploy/project	development	postgres://localhost/dev	vi

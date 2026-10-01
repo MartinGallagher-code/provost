@@ -1,4 +1,0 @@
-n	entity_id	state	last_changed	total_entries
-1	sensor.living_temp	21.4	2026-07-10T06:00:00	3
-2	light.kitchen	on	2026-07-10T05:44:00	3
-3	binary_sensor.door	off	2026-07-10T04:12:00	3

@@ -1,5 +1,0 @@
-n	ID	NAME	QUERY	OPS/S	total_entries
-1	str-01	Checkout Latency	service=frontend operation="/checkout"	184.2	4
-2	str-02	Order Errors	service=orders error=true	12.4	4
-3	str-03	Cart Throughput	service=cart-service	902.1	4
-4	str-04	Payment p99	service=payments	44.8	4

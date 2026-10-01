@@ -1,5 +1,0 @@
-n	timestamp	message	total_entries
-1	##########........	| idealTree:build: react@18.2.0	4
-2	##############....	\ reify:webpack: http fetch GET 200 2841ms	4
-3	################..	/ reify:typescript: timing metavuln	4
-4	##################	- reify:esbuild: done 1284 packages	4

@@ -1,4 +1,0 @@
-n	read	write	job1	job2	job3
-1	IOPS=123k, BW=482MiB/s (505MB/s)(28.2GiB/60001msec)		(groupid=0, jobs=1): err= 0: pid=8821	(groupid=0, jobs=1): err= 0: pid=8822	(groupid=0, jobs=1): err= 0: pid=8823
-2	IOPS=118k, BW=461MiB/s (483MB/s)(27.0GiB/60001msec)		(groupid=0, jobs=1): err= 0: pid=8821	(groupid=0, jobs=1): err= 0: pid=8822	(groupid=0, jobs=1): err= 0: pid=8823
-3		IOPS=88.2k, BW=344MiB/s (361MB/s)(20.2GiB/60002msec)	(groupid=0, jobs=1): err= 0: pid=8821	(groupid=0, jobs=1): err= 0: pid=8822	(groupid=0, jobs=1): err= 0: pid=8823

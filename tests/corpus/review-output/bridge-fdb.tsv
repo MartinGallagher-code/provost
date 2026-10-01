@@ -1,7 +1,0 @@
-n	A	B	C	D	E	F	total_entries
-1	33	33	00	00	00	01 dev eth0 self permanent	6
-2	01	00	5e	00	00	01 dev eth0 self permanent	6
-3	b8	27	eb	12	34	56 dev eth0 master br0	6
-4	aa	bb	cc	dd	ee	01 dev eth0 vlan 10 master br0	6
-5	de	ad	be	ef	00	02 dev vnet0 master br0 permanent	6
-6	00	16	3e	aa	bb	cc dev vnet1 master br0 static	6

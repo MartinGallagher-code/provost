@@ -1,7 +1,0 @@
-n	name	value	label.instance	label.job
-1	node_memory_MemAvailable_bytes	=> 8531423232 @[1751879662.113]	10.0.1.12:9100	node
-2	node_memory_MemAvailable_bytes	=> 6122840064 @[1751879662.113]	10.0.1.13:9100	node
-3	node_memory_MemAvailable_bytes	=> 9214881792 @[1751879662.113]	10.0.1.14:9100	node
-4	node_memory_MemAvailable_bytes	=> 4021339136 @[1751879662.113]	10.0.1.15:9100	node
-5	node_memory_MemAvailable_bytes	=> 7331028992 @[1751879662.113]	10.0.1.16:9100	node
-6	node_memory_MemAvailable_bytes	=> 5210488832 @[1751879662.113]	10.0.1.17:9100	node

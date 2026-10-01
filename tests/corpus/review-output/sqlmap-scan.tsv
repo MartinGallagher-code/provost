@@ -1,2 +1,0 @@
-Parameter	Type	Title	Payload	back-end_DBMS	current_database
-id (GET)	boolean-based blind	AND boolean-based blind - WHERE or HAVING clause	id=1 AND 4218=4218	MySQL >= 5.6	appdb

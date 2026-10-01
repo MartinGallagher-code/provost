@@ -1,4 +1,0 @@
-n	name	value	total_entries
-1	src/app.py	10:5:  F401  os imported but unused	3
-2	src/app.py	22:1:  E302  expected 2 blank lines	3
-3	src/db.py	8:12:  W291  trailing whitespace	3

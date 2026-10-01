@@ -1,3 +1,0 @@
-n	ID	NAME	STATE	PUBLIC_IP	TYPE	total_entries
-1	a1b2c3d4	web-1	running	51.15.10.4	DEV1-M	2
-2	e5f6g7h8	db-1	running	51.15.10.9	GP1-S	2

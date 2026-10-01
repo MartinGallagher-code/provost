@@ -1,2 +1,0 @@
-format_version	values.root_module.resources.0.address	values.root_module.resources.0.type	values.root_module.resources.0.values.instance_type	values.root_module.resources.0.values.tags.Name	values.root_module.resources.0.values.tags.Env	values.root_module.resources.0.values.ebs_block_device.0.device_name	values.root_module.resources.0.values.ebs_block_device.0.volume_size
-1.0	aws_instance.web	aws_instance	t3.micro	web	prod	/dev/sdb	20

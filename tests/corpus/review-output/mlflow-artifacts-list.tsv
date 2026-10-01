@@ -1,7 +1,0 @@
-n	path	is_dir	file_size	total_entries
-1	model	True	-	6
-2	conda.yaml	False	412	6
-3	requirements.txt	False	288	6
-4	MLmodel	False	561	6
-5	input_example.json	False	1024	6
-6	feature_importance.png	False	38210	6

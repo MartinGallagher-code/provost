@@ -1,5 +1,0 @@
-n	A	B	C	total_entries
-1	PASS	Basic Statistics	sample_R1.fastq.gz	4
-2	PASS	Per base sequence quality	sample_R1.fastq.gz	4
-3	WARN	Per base sequence content	sample_R1.fastq.gz	4
-4	FAIL	Overrepresented sequences	sample_R1.fastq.gz	4

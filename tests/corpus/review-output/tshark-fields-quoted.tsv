@@ -1,3 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	1717236000.123	10.0.0.1	10.0.0.2	GET /a?b=1,c=2 HTTP/1.1	200 OK	2
-2	1717236001.456	10.0.0.3	10.0.0.2	POST /login HTTP/1.1	302 Found	2

@@ -1,2 +1,0 @@
-type	msg	acct	exe	res
-USER_LOGIN	audit(1717236000.123:456)	"alice, admin"	"/usr/sbin/sshd"	success

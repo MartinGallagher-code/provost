@@ -1,2 +1,0 @@
-net.netfilter.nf_conntrack_count	net.netfilter.nf_conntrack_max	net.netfilter.nf_conntrack_buckets
-12847	262144	65536

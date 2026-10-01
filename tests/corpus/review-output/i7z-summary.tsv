@@ -1,9 +1,0 @@
-n	A	total_entries
-1	Cpu speed from cpuinfo 3600.00Mhz	8
-2	True Frequency (without accounting Turbo) 3600 MHz	8
-3	Socket [0] - [physical cores=8, logical cores=16]	8
-4	Max Frequency of state Turbo   4712.31 MHz	8
-5	Max TURBO Multiplier (if Enabled) is 47x	8
-6	Real Current Frequency 4501.22 MHz [3600.00 x 1.25]	8
-7	Core [0]: Actual Freq 4680.11 Mhz  C0% 88.2  Halt(C1)% 5.1  C3 % 0  C6 % 6.7	8
-8	Core [1]: Actual Freq 1201.44 Mhz  C0% 3.4   Halt(C1)% 1.2  C3 % 0  C6 % 95.4	8

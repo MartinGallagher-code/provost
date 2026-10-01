@@ -1,4 +1,0 @@
-n	name	pattern	action	total_entries
-1	http	^GET|POST$	allow	3
-2	smtp	HELO|EHLO	log	3
-3	raw	a|b|c	drop	3

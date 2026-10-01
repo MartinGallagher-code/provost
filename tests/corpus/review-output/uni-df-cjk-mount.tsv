@@ -1,5 +1,0 @@
-n	Filesystem	Size	Used	Avail	Use%	Mounted_on	total_entries
-1	/dev/sda1	50G	20G	30G	40%	/挂载点/数据	4
-2	/dev/sdb1	100G	80G	20G	80%	/备份	4
-3	tmpfs	2G	0	2G	0%	/临时	4
-4	/dev/sdc1	1T	500G	500G	50%	/home	4

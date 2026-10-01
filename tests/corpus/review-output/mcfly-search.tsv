@@ -1,4 +1,0 @@
-n	A	total_entries
-1	★ git commit -m "fix bug"	3
-2	git push origin main	3
-3	kubectl get pods -n prod	3

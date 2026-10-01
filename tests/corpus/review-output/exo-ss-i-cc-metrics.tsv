@@ -1,5 +1,0 @@
-n	State	Recv-Q	Send-Q	Local	Address:Port	Peer	total_entries
-1	ESTAB	0	0	10.0.0.5:51234	93.184.216.34:443		4
-2	cubic	wscale:7,7	rto:212	rtt:11.375/5.5	pmtu:1500_rcvmss:1400_advmss:1460_cwnd:10_bytes_sent:5182_bytes_acked:5183_bytes_received:22114_segs_out:44_segs_in:38_data_segs_out:12_send_9.84Mbps_lastsnd:120_lastrcv:88_pacing_rate_19.6Mbps_delivery_rate_8.2Mbps_delivered:12_rcv_space:14480_minrtt:9.813	mss:1400	4
-3	ESTAB	36	0	10.0.0.5:22	10.0.0.9:60122		4
-4	bbr	wscale:7,7	rto:236	rtt:35.5/2.25	cwnd:14_ssthresh:12_bytes_sent:118442_bytes_acked:118442_send_4.57Mbps_pacing_rate_5.1Mbps_delivery_rate_3.9Mbps_busy:2210ms_rcv_space:14600_minrtt:31.2	mss:1448	4

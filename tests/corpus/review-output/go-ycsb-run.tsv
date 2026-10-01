@@ -1,3 +1,0 @@
-n	name	Takes(s)	Count	OPS	Avg(us)	P99(us)	total_entries
-1	READ	48.8	800482	16398.4	921	2210	2
-2	UPDATE	48.8	199518	4088.2	1204	3210	2

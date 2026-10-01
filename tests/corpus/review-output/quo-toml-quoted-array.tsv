@@ -1,2 +1,0 @@
-server.name	server.tags	server.motd	server.ratio
-edge, primary	["a,b", "c:d", "e|f"]	welcome; enjoy your stay	16:9

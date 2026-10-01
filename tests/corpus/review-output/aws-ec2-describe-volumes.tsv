@@ -1,7 +1,0 @@
-n	VolumeId	Size	State	Type	AZ	AttachedTo	total_entries
-1	vol-0a1b2c3d4e5f6a7b	100	in-use	gp3	us-east-1a	i-0abc123def4567890	6
-2	vol-0f6e5d4c3b2a1908	8	in-use	gp2	us-east-1b	i-0def456abc7890123	6
-3	vol-01234abcd5678ef9	500	in-use	io2	us-east-1a	i-0aaa111bbb2223334	6
-4	vol-09876fedc5432ba1	50	available	gp3	us-east-1c	-	6
-5	vol-0aabbccddeeff001	200	in-use	st1	us-east-1b	i-0eee222fff4445556	6
-6	vol-0112233445566778	16	creating	gp3	us-east-1d	-	6

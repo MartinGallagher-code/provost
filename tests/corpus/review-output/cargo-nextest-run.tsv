@@ -1,2 +1,0 @@
-n	SLOW	[	1_502s]	myapp	db::tests::migration_roundtrip	total_entries
-1	Summary	[	1.633s]	128 t	ests run: 127 passed, 1 failed, 3 skipped	1

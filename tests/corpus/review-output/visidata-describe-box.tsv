@@ -1,4 +1,0 @@
-n	column	nulls	distinct	mean	stdev	total_entries
-1	age	12	74	38.4	11.2	3
-2	income	0	9821	62100.0	24880.5	3
-3	tenure_yrs	3	41	5.8	3.1	3

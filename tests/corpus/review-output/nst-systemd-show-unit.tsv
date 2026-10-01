@@ -1,2 +1,0 @@
-Id	Names	Description	LoadState	ActiveState	SubState	MainPID	ExecMainStartTimestamp	MemoryCurrent	CPUUsageNSec	Restart
-nginx.service	nginx.service	A high performance web server	loaded	active	running	1201	Sat 2026-07-11 01:02:03 UTC	48234496	1240009887	on-failure

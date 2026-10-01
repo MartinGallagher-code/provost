@@ -1,4 +1,0 @@
-n	TIME	EVENT	KEY	SUMMARY	total_entries
-1	07/11/2026 09:12:44	1420	passwd_changes	root opened /etc/passwd	3
-2	07/11/2026 09:13:01	1425	passwd_changes	root modified /etc/shadow	3
-3	07/11/2026 10:02:18	1471	passwd_changes	admin opened /etc/passwd	3

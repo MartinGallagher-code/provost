@@ -1,4 +1,0 @@
-n	APP	COMPONENT	TYPE	TRAITS	PHASE	HEALTHY	STATUS	CREATED-TIME	total_entries
-1	frontend	web	webservice	ingress	running	true	2026-06-20	10:00:00	3
-2	backend	api	webservice	scaler	running	true	2026-06-20	10:02:00	3
-3	cron-job	batch	worker	cpuscaler	workflowSuspending	false	suspend	2026-07-01_09:00:00	3

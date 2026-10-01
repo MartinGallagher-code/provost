@@ -1,4 +1,0 @@
-n	GPU	Temp_(Sensor_edge)_(C)	Temp_(Sensor_junction)_(C)	Temp_(Sensor_memory)_(C)	total_entries
-1	0	48.0	51.0	54.0	3
-2	1	45.0	47.0	50.0	3
-3	2	52.0	56.0	58.0	3

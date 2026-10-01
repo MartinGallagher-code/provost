@@ -1,5 +1,0 @@
-n	label	value	total_entries
-1	Found	"lodash@4.17.21"	4
-2	info	Reasons this module exists	4
-3	info	"webpack#loader-utils" depends on it	4
-4	info	Hoisted from "webpack#loader-utils#lodash"	4

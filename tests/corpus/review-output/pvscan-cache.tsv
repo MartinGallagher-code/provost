@@ -1,5 +1,0 @@
-n	A	total_entries
-1	PV /dev/sda2   VG vg0             lvm2 [<931.51 GiB / 128.00 GiB free]	4
-2	PV /dev/sdb1   VG vg0             lvm2 [<931.51 GiB / 0    free]	4
-3	PV /dev/sdc1   VG vg0             lvm2 [<931.51 GiB / 1.87 TiB free]	4
-4	Total: 3 [<2.73 TiB] / in use: 3 [<2.73 TiB] / in no VG: 0 [0]	4

@@ -1,3 +1,0 @@
-n	PID	USER	GPU	MEM	GPU-MEM	COMMAND	total_entries
-1	30144	alice	0	84%	8201MiB	python train.py	2
-2	30201	bob	1	91%	12044MiB	python serve.py	2

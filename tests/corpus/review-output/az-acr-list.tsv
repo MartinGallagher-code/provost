@@ -1,5 +1,0 @@
-n	name	resourceGroup	location	loginServer	adminUserEnabled	provisioningState	total_entries
-1	prodregistry	prod-rg	eastus	prodregistry.azurecr.io	true	Succeeded	4
-2	stagingregistry	staging-rg	eastus	stagingregistry.azurecr.io	false	Succeeded	4
-3	devregistry	dev-rg	westus2	devregistry.azurecr.io	true	Succeeded	4
-4	sharedregistry	shared-rg	centralus	sharedregistry.azurecr.io	false	Succeeded	4

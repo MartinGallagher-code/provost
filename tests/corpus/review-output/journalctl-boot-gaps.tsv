@@ -1,6 +1,0 @@
-n	timestamp	hostname	process	message	pid
-1	Jul_11_07_55_00	dev-box	kernel	Linux version 6.8.0-40-generic	
-2	Jul_11_07_55_00	dev-box	kernel	Command line: BOOT_IMAGE=/vmlinuz root=UUID=7f3c	
-3	Jul_11_07_55_01	dev-box	systemd	Reached target Basic System.	1
-4	Jul_11_07_55_03	dev-box	systemd		1
-5	Jul_11_07_55_04	dev-box	NetworkManager	<info> device (eth0): carrier acquired	640

@@ -1,7 +1,0 @@
-n	node0	node1	total_entries
-1	numa_hit	15872341_14093822	6
-2	numa_miss	0_83214	6
-3	numa_foreign	83214_0	6
-4	interleave_hit	8192_8190	6
-5	local_node	15872341_14010608	6
-6	other_node	0_83214	6

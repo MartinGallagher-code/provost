@@ -1,5 +1,0 @@
-n	Container	CPU	MEM	total_entries
-1	web-frontend	▏████░░░░░▏	41%_▏███░░░░░░▏_210MiB	4
-2	api-backend	▏███████░░░▏	72%_▏██████░░░▏_512MiB	4
-3	db-primary	▏██░░░░░░░░▏	18%_▏████████░▏_1.4GiB	4
-4	cache-redis	▏█░░░░░░░░░▏	6%_▏█░░░░░░░░░▏_64MiB	4

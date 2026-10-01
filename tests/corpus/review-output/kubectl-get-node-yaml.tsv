@@ -1,2 +1,0 @@
-apiVersion	kind	metadata.name	spec.podCIDR	status.capacity.cpu	status.capacity.memory	status.capacity.pods
-v1	Node	worker-1	10.244.1.0/24	"8"	32946260Ki	"110"

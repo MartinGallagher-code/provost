@@ -1,4 +1,0 @@
-n	timestamp	message	total_entries
-1	0:12	45.20%  1204 files  3.421 GiB / 7.600 GiB  ETA 0:15  [========>       ]	3
-2	0:31	78.10%  2890 files  5.940 GiB / 7.600 GiB  ETA 0:08  [=============>  ]	3
-3	0:44	100.00% 3712 files  7.600 GiB / 7.600 GiB  ETA 0:00  [===============]	3

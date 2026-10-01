@@ -1,5 +1,0 @@
-n	A	C	total_entries
-1	tests/test_auth.py	test_login	4
-2	tests/test_auth.py	test_logout	4
-3	tests/test_db.py	test_connect	4
-4	tests/test_db.py	test_query	4

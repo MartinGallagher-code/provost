@@ -1,5 +1,0 @@
-n	ID	CLASS	WEIGHT	TYPE	NAME	total_entries
-1	-1	12.0	root	default		4
-2	-3	4.0	host	node1		4
-3	0	ssd	1.0	osd.0	up	4
-4	1	ssd	1.0	osd.1	up	4

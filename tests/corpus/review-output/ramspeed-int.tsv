@@ -1,6 +1,0 @@
-n	key	value	total_entries
-1	INTEGER   Copy	12048.44 MB/s	5
-2	INTEGER   Scale	11882.10 MB/s	5
-3	INTEGER   Add	13210.88 MB/s	5
-4	INTEGER   Triad	13044.21 MB/s	5
-5	INTEGER   AVERAGE	12546.41 MB/s	5

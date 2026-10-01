@@ -1,4 +1,0 @@
-n	Repository	Name	Version	Description	Architecture	Licenses
-1	extra	htop	3.2.2-1	Interactive_process_viewer	x86_64	GPL2
-2	extra	tmux	3.3a-3	Terminal_multiplexer	x86_64	ISC
-3	core	bash	5.1.016-1	GNU_Bourne_Again_shell	x86_64	GPL

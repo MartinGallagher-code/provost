@@ -1,3 +1,0 @@
-n	sudo:x:27:deploy	alice	total_entries
-1	docker:x:999:deploy		2
-2	adm:x:4:syslog	deploy	2

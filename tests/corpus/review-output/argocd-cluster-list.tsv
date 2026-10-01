@@ -1,4 +1,0 @@
-n	SERVER	NAME	VERSION	STATUS	MESSAGE	total_entries
-1	https://kubernetes.default.svc	in-cluster	1.30	Successful		3
-2	https://10.20.0.10	staging	1.29	Successful		3
-3	https://10.30.0.10	prod-eu	1.30	Failed	the server has asked for the client to provide credentials	3

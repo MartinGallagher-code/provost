@@ -1,7 +1,0 @@
-n	section	key	value	total_entries
-1	s3remote	type	s3	6
-2	s3remote	provider	AWS	6
-3	s3remote	region	us-east-1	6
-4	s3remote	storage_class	STANDARD_IA	6
-5	gdrive	type	drive	6
-6	gdrive	scope	drive	6

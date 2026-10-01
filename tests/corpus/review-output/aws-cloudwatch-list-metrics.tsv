@@ -1,7 +1,0 @@
-n	Namespace	MetricName	Dimension	DimensionValue	total_entries
-1	AWS/EC2	CPUUtilization	InstanceId	i-0abc123def4567890	6
-2	AWS/EC2	NetworkIn	InstanceId	i-0def456abc7890123	6
-3	AWS/RDS	DatabaseConnections	DBInstanceIdentifier	prod-orders	6
-4	AWS/Lambda	Invocations	FunctionName	orders-create	6
-5	AWS/Lambda	Errors	FunctionName	orders-webhook	6
-6	AWS/ApplicationELB	RequestCount	LoadBalancer	prod-web-alb	6

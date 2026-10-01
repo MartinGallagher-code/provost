@@ -1,4 +1,0 @@
-n	NAME	MESHED	SUCCESS	RPS	LATENCY_P50	LATENCY_P95	LATENCY_P99	TCP_CONN	total_entries
-1	web	1/1	100.00%	2.4rps	3ms	18ms	42ms	6	3
-2	api	2/2	99.82%	8.1rps	5ms	31ms	88ms	14	3
-3	worker	1/1	100.00%	0.5rps	1ms	4ms	9ms	2	3

@@ -1,5 +1,0 @@
-n	JOB	UNIT	TYPE	STATE	total_entries
-1	12	apt-daily.service	start	waiting	4
-2	27	nginx.service	start	running	4
-3	33	logrotate.service	start	waiting	4
-4	41	man-db.service	start	running	4

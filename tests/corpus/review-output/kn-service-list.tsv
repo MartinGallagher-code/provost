@@ -1,4 +1,0 @@
-n	NAME	URL	LATEST	AGE	CONDITIONS	READY	REASON	total_entries
-1	hello	http://hello.default.example.com	hello-00003	12d	3 OK / 3	True		3
-2	echo	http://echo.default.example.com	echo-00007	8d	3 OK / 3	True		3
-3	resizer	http://resizer.default.example.com	resizer-00002	3d	2 OK / 3	False	RevisionMissing	3

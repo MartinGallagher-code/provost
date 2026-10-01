@@ -1,5 +1,0 @@
-n	A	total_entries
-1	//src:app	4
-2	//src:parser	4
-3	//src:engine	4
-4	@com_google_absl//absl/strings:strings	4

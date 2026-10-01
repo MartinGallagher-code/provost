@@ -1,8 +1,0 @@
-n	key	value	total_entries
-1	database page size	4096	7
-2	write format	1	7
-3	page count	20481	7
-4	freelist count	12	7
-5	schema cookie	88	7
-6	schema format	4	7
-7	text encoding	1 (utf8)	7

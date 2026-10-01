@@ -1,5 +1,0 @@
-n	A	B	total_entries
-1	--theme="Dracula"		4
-2	--style="numbers,changes,header"		4
-3	--italic-text=always		4
-4	--map-syntax	"*.conf:INI"	4

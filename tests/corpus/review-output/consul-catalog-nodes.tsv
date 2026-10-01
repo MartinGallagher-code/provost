@@ -1,4 +1,0 @@
-n	Node	ID	Address	DC	total_entries
-1	node1	a1b2c3d4	10.0.1.1	dc1	3
-2	node2	e5f6g7h8	10.0.1.2	dc1	3
-3	node3	i9j0k1l2	10.0.1.3	dc1	3

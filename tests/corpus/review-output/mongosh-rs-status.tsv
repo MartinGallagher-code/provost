@@ -1,2 +1,0 @@
-set	date	myState	term	syncSourceHost	syncSourceId	heartbeatIntervalMillis	majorityVoteCount	writeMajorityCount	votingMembersCount	writableVotingMembersCount	members	{_id	{_id	{_id	ok
-'rs0',	ISODate("2023-06-15T12:00:00.000Z"),	1,	Long("5"),	'',	-1,	Long("2000"),	2,	2,	3,	3,	[	0, name: '10.0.0.1:27017', health: 1, state: 1, stateStr: 'PRIMARY', uptime: 864000 },	1, name: '10.0.0.2:27017', health: 1, state: 2, stateStr: 'SECONDARY', uptime: 863900 },	2, name: '10.0.0.3:27017', health: 1, state: 2, stateStr: 'SECONDARY', uptime: 863850 }	1

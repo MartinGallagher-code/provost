@@ -1,2 +1,0 @@
-Name	Version	Summary	License	Requires
-requests	2.31.0	Python HTTP for Humans.	Apache 2.0	certifi, urllib3

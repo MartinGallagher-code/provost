@@ -1,2 +1,0 @@
-n	Name	Enabled	Max_energy_range	Energy	Constraint_0.Name	Constraint_0.Power_limit	Constraint_0.Time_window	Constraint_0.Max_power	Constraint_1.Name	Constraint_1.Power_limit	Constraint_1.Time_window	Constraint_1.Max_power	Zone_0	Constraint_1.Enabled	Constraint_1.Max_energy_range	Constraint_1.Energy
-0	package-0	1	262143 uJ	184521 uJ	long_term	15000000 uW	27983872 us	15000000 uW	core	44000000 uW	2440 us	64000000 uW	0	0	262143 uJ	71204 uJ

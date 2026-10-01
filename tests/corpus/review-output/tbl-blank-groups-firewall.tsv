@@ -1,5 +1,0 @@
-n	Chain	Target	Prot	Source	Destination	total_entries
-1	ACCEPT	all	tcp	0.0.0.0/0	0.0.0.0/0	4
-2	DROP	all	tcp	10.0.0.0/8	0.0.0.0/0	4
-3	ACCEPT	all	udp	0.0.0.0/0	0.0.0.0/0	4
-4	REJECT	all	udp	192.168.0.0/16	0.0.0.0/0	4

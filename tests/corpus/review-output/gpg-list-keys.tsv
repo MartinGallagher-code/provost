@@ -1,5 +1,0 @@
-n	/home/alice/_gnupg/pubring_kbx	total_entries
-1	pub   rsa4096/3AA5C34371567BD2 2026-01-15 [SC]	4
-2	D8692123C4065DEA5E0F3AB5249B39D24F25E3B6	4
-3	uid   [ultimate] Alice Example <alice@example.com>	4
-4	sub   rsa4096/42B317FD4BA89E7A 2026-01-15 [E]	4

@@ -1,9 +1,0 @@
-n	A	total_entries
-1	>>> solve(Eq(x**2 - 5*x + 6, 0), x)	8
-2	[2, 3]	8
-3	>>> solve(Eq(sin(x), 0), x)	8
-4	[0, pi]	8
-5	>>> integrate(x**2, x)	8
-6	x**3/3	8
-7	>>> diff(cos(x), x)	8
-8	-sin(x)	8

@@ -1,4 +1,0 @@
-n	BGP_neighbor_is_10_0_0_2	remote_AS_65002	total_entries
-1	BGP state = Established	up for 2d04h	3
-2	Total number of neighbors 2		3
-3	Prefixes received 412	sent 88	3

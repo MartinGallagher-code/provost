@@ -1,3 +1,0 @@
-n	HASH_JOIN	total_entries
-1	Join Type: INNER	2
-2	Conditions: a.id=b.id	2

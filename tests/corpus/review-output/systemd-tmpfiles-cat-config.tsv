@@ -1,8 +1,0 @@
-n	A	B	C	D	E	F	G	total_entries
-1	d	/run/user	0755	root	root	~10d	-	7
-2	F!	/run/utmp	0664	root	utmp	-	-	7
-3	d	/var/log/journal	2755	root	systemd-journal	-	-	7
-4	z	/var/log/journal/%m	2755	root	systemd-journal	-	-	7
-5	#	/usr/lib/tmpfiles.d/tmp.conf						7
-6	q	/tmp	1777	root	root	10d	-	7
-7	q	/var/tmp	1777	root	root	30d	-	7

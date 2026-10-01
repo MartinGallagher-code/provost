@@ -1,7 +1,0 @@
-n	A	B	C	total_entries
-1	gpu01			6
-2	state	=	free	6
-3	np	=	64	6
-4	properties	=	a100,gpu	6
-5	ntype	=	cluster	6
-6	status	=	opsys=linux,uname=Linux,physmem=515000kb	6

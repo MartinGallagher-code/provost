@@ -1,8 +1,0 @@
-n	key	value	total_entries
-1	Session	hashcat	7
-2	Status	Running	7
-3	Hash.Mode	22000 (WPA-PBKDF2-PMKID+EAPOL)	7
-4	Speed.#1	412.3 kH/s	7
-5	Recovered	1/8 (12.50%) Digests	7
-6	Progress	1024000/402710400 (0.25%)	7
-7	Time.Estimated	Sat Jul 11 14:02:19 2026	7

@@ -1,5 +1,0 @@
-n	HOP	HOST	LOSS%	SNT	AVG	total_entries
-1	1	fw01.corp	0.0	10	0.4	4
-2	2	core-rtr	0.0	10	1.8	4
-3	3	ae-1.r02.lax	0.0	10	10.6	4
-4	4	example.com	0.0	10	11.8	4

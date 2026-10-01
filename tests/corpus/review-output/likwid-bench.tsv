@@ -1,9 +1,0 @@
-n	key	value	total_entries
-1	Cycles	24821004210	8
-2	CPU Clock	2814210044	8
-3	Time	8.821044e+00 sec	8
-4	Iterations	1204882	8
-5	Iterations per thread	150610	8
-6	Size (Byte)	2147483648	8
-7	MFlops/s	82044.10	8
-8	MByte/s	24821.44	8

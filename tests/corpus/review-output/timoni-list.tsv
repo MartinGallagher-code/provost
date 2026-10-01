@@ -1,3 +1,0 @@
-n	NAME	NAMESPACE	MODULE	VERSION	LAST_APPLIED	total_entries
-1	redis	prod	oci://ghcr.io/redis	7.2.5	2026-07-08	2
-2	podinfo	prod	oci://ghcr.io/podinfo	6.6.2	2026-07-09	2

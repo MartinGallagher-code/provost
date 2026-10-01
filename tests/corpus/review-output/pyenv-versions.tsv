@@ -1,5 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	system					4
-2	3.11.9					4
-3	*	3.12.4	(set	by	/home/deploy/.pyenv/version)	4
-4	3.13.0b3					4

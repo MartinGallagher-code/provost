@@ -1,5 +1,0 @@
-n	calls	badcalls	badclnt	badauth	xdrcall	total_entries
-1	8821004	12	0	12	0	4
-2	Server	nfs	v4:			4
-3	null	compound				4
-4	44	8820960				4

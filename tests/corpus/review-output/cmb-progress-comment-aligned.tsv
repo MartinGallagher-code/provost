@@ -1,9 +1,0 @@
-n	A	B	C	D	total_entries
-1	#	poller	cycle	4412	8
-2	SENSOR	READING	TREND		8
-3	#	thermal	group		8
-4	cpu_pkg	████████░░	78°C	up	8
-5	gpu	█████░░░░░	54°C	flat	8
-6	#	power	group		8
-7	psu_load	███░░░░░░░	31%	down	8
-8	fan_duty	██████░░░░	61%	up	8

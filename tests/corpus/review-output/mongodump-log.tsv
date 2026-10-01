@@ -1,4 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	2026-07-10T06:00:00	writing	orders.transactions	to	dump/	3
-2	2026-07-10T06:00:12	done	dumping	orders.transactions	(4821730_documents)	3
-3	2026-07-10T06:00:12	writing	orders.customers	to	dump/	3

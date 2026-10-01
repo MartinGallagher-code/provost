@@ -1,6 +1,0 @@
-n	key	value	subkey	total_entries
-1	cpu.max	max 100000		5
-2	cpu.weight	100		5
-3	cpu.stat	8821004000	usage_usec	5
-4	cpu.stat	4102839000	user_usec	5
-5	cpu.stat	4718165000	system_usec	5

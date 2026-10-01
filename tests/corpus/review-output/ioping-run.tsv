@@ -1,8 +1,0 @@
-n	A	total_entries
-1	4 KiB <<< /dev/sda1 (block device 1.82 TiB): request=1 time=482.1 us	7
-2	4 KiB <<< /dev/sda1 (block device 1.82 TiB): request=2 time=421.0 us	7
-3	4 KiB <<< /dev/sda1 (block device 1.82 TiB): request=3 time=498.4 us	7
-4	4 KiB <<< /dev/sda1 (block device 1.82 TiB): request=4 time=444.2 us	7
-5	--- /dev/sda1 (block device 1.82 TiB) ioping statistics ---	7
-6	4 requests completed in 1.85 ms, 16 KiB read, 2.16 k iops, 8.44 MiB/s	7
-7	min/avg/max/mdev = 421.0 us / 461.4 us / 498.4 us / 30.1 us	7

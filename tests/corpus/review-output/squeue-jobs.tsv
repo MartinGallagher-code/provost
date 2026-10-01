@@ -1,4 +1,0 @@
-n	JOBID	PARTITION	NAME	USER	ST	TIME	NODES	NODELIST	total_entries
-1	4421	gpu	train.py	alice	R	2:14:00	2	gpu[01-02]	3
-2	4422	gpu	eval.py	bob	R	0:41:00	1	gpu03	3
-3	4423	cpu	sim.sh	carol	PD	0:00	4	(Resources)	3

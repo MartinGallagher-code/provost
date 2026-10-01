@@ -1,4 +1,0 @@
-n	endpoint	calls	avg_ms	total_entries
-1	/login	88210	42.1	3
-2	/search	442190	88.7	3
-3	/checkout	12044	210.5	3

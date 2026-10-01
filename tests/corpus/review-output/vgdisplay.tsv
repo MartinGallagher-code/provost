@@ -1,2 +1,0 @@
-n	section	VG_Name	System_ID	Format	Metadata_Areas	Metadata_Sequence_No	VG_Access	VG_Status	MAX_LV	Cur_LV	Open_LV	Max_PV	Cur_PV	Act_PV	VG_Size	PE_Size	Total_PE	Alloc_PE_/_Size	Free	VG_UUID	total_entries
-1	Volume_group	vg0		lvm2	1	3	read/write	resizable	0	2	2	0	1	1	<465.76 GiB	4.00 MiB	119234	76799 / <300.00 GiB	PE / Size       42435 / 165.76 GiB	aB3cD4-eF5g-H6iJ-7kLm-8nOp-9qRs-TuVwX0	1

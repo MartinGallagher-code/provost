@@ -1,4 +1,0 @@
-n	JOB_ID	SUBMISSION_ID	STATUS	START_TIME	ENTRYPOINT	total_entries
-1	01000000	raysubmit_7Ud2kQ9xTz	SUCCEEDED	2026-07-08 14:02:11	python train.py	3
-2	02000000	raysubmit_pLm4Nb1cQw	RUNNING	2026-07-09 09:15:44	python tune.py	3
-3	03000000	raysubmit_Xy8Vt2Rd0e	FAILED	2026-07-09 11:40:02	python eval.py	3

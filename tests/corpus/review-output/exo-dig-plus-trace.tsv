@@ -1,9 +1,0 @@
-n	name	ttl	class	type	value	total_entries
-1	.	480507	IN	NS	a.root-servers.net.	8
-2	.	480507	IN	NS	b.root-servers.net.	8
-3	com.	172800	IN	NS	a.gtld-servers.net.	8
-4	com.	172800	IN	NS	b.gtld-servers.net.	8
-5	com.	86400	IN	DS	19718 13 2 8ACBB0CD28F41250A80A491389424D341522D946B0DA0C0291F2D3D7 71D7805A	8
-6	example.com.	172800	IN	NS	a.iana-servers.net.	8
-7	example.com.	172800	IN	NS	b.iana-servers.net.	8
-8	www.example.com.	300	IN	A	93.184.216.34	8

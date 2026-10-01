@@ -1,5 +1,0 @@
-n	ALERT	STATE	LABELS	VALUE	ACTIVE_SINCE	total_entries
-1	HostHighCpu	firing	severity=warning,instance=web-01	0.94	2026-07-10T09:02:11Z	4
-2	BurnRateFast	firing	severity=critical,service=api	14.2	2026-07-10T08:55:03Z	4
-3	DiskWillFill	pending	severity=warning,host=web-02	0.88	2026-07-10T09:11:40Z	4
-4	TargetDown	firing	severity=critical,job=api	1	2026-07-10T08:40:00Z	4

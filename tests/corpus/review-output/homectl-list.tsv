@@ -1,4 +1,0 @@
-n	NAME	UID	GID	STATE	REALNAME	HOME	SHELL	total_entries
-1	alice	60001	60001	active	Alice Nyugen	/home/alice	/bin/bash	3
-2	bob	60002	60002	inactive	Bob Turner	/home/bob	/bin/zsh	3
-3	carol	60003	60003	active	Carol Danvers	/home/carol	/usr/bin/fish	3

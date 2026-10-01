@@ -1,7 +1,0 @@
-n	TIME	PID	UID	GID	SIG	COREFILE	EXE	SIZE	total_entries
-1	Mon	2026-06-29	14:02:11	UTC	8842	1000	1000	SIGSEGV_present_/usr/bin/gnome-shell_3.4M	6
-2	Tue	2026-06-30	09:41:53	UTC	2119	0	0	SIGABRT_present_/usr/sbin/mysqld_12.8M	6
-3	Wed	2026-07-01	21:18:07	UTC	5573	1000	1000	SIGSEGV_missing_/usr/bin/firefox_-	6
-4	Thu	2026-07-02	11:55:44	UTC	9021	113	118	SIGABRT_present_/usr/bin/pipewire_842.0K	6
-5	Sat	2026-07-04	03:30:22	UTC	4410	0	0	SIGSEGV_present_/usr/lib/systemd/systemd_1.9M	6
-6	Sun	2026-07-05	17:09:38	UTC	12734	1000	1000	SIGTRAP_present_/usr/bin/code_28.4M	6

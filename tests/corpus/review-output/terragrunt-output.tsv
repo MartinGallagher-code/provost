@@ -1,2 +1,0 @@
-alb_dns_name	cluster_name	database_port	kms_key_arn	private_subnets
-"app-alb-1234567890.us-west-2.elb.amazonaws.com"	"prod-eks"	5432	"arn:aws:kms:us-west-2:111122223333:key/abcd-1234-ef56"	"subnet-0a1b,subnet-2c3d,subnet-4e5f"

@@ -1,2 +1,0 @@
-PortRange	CpuAffinity	MemNodes	IpBlock	WorkHours
-1024-65535	0-3	0,2-4	192.168.1.0/24	08:00-17:00

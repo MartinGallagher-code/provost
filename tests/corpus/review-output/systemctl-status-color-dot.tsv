@@ -1,5 +1,0 @@
-n	A	B	C	D	total_entries
-1	●	nginx.service	active	(running)	4
-2	●	sshd.service	active	(running)	4
-3	●	mysql.service	failed	(Result:_exit-code)	4
-4	○	cups.service	inactive	(dead)	4

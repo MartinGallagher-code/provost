@@ -1,9 +1,0 @@
-n	A	total_entries
-1	aws_instance.web[0]	8
-2	aws_instance.web[1]	8
-3	aws_security_group.allow_http	8
-4	aws_s3_bucket.assets	8
-5	aws_iam_role.app	8
-6	module.vpc.aws_vpc.this[0]	8
-7	module.vpc.aws_subnet.public[0]	8
-8	module.vpc.aws_subnet.public[1]	8

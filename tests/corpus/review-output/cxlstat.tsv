@@ -1,4 +1,0 @@
-n	Device	BW(GB/s)	IOPS(k)	rd(ns)	wr(ns)	total_entries
-1	cxl0.0	9.20	144.05	204	412	3
-2	cxl0.1	8.88	138.90	210	420	3
-3	cxl1.0	10.44	163.10	198	402	3

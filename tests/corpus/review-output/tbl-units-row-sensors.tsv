@@ -1,4 +1,0 @@
-n	Sensor	Temp	Fan	Voltage	total_entries
-1	cpu0	45.2	1200	1.234	3
-2	cpu1	47.8	1200	1.235	3
-3	gpu	62.1	2400	0.987	3

@@ -1,4 +1,0 @@
-n	NAME	READY	UP-TO-DATE	AVAILABLE	AGE	total_entries
-1	web	3/3	3	3	12d	3
-2	api	2/2	2	2	5d	3
-3	redis	1/1	1	1	3d	3

@@ -1,5 +1,0 @@
-n	PID	EXE	PORT	PROTOCOL	SERVICE	LANGUAGE	total_entries
-1	4412	/app/api-server	8080	http	api-gateway	go	4
-2	5531	/usr/bin/python3	5000	http	inventory	python	4
-3	6620	/app/cart	8081	grpc	cart-service	go	4
-4	7714	/usr/lib/jvm/java	9090	http	reports	java	4

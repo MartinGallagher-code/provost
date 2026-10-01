@@ -1,5 +1,0 @@
-n	Name	Version	Rev	Tracking	Publisher	Notes	total_entries
-1	core20	20230622	1974	latest/stable	canonical✓	base	4
-2	firefox	115.0.2-1	2800	latest/stable	mozilla✓	-	4
-3	snapd	2.59.5	19457	latest/stable	canonical✓	snapd	4
-4	lxd	5.0.2-838e1b2	24322	5.0/stable	canonical✓	-	4

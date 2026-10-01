@@ -1,6 +1,0 @@
-n	PORT	STATE	SERVICE	SCRIPT-RESULT	total_entries
-1	80/tcp	open	http	http-csrf: no CSRF vulnerabilities found	5
-2	80/tcp	open	http	http-dombased-xss: couldn't find any DOM XSS	5
-3	443/tcp	open	https	ssl-heartbleed: NOT VULNERABLE	5
-4	443/tcp	open	https	ssl-poodle: NOT VULNERABLE	5
-5	443/tcp	open	https	http-slowloris-check: LIKELY VULNERABLE	5

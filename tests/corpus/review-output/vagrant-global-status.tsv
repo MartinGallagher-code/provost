@@ -1,9 +1,0 @@
-n	id	name	provider	state	directory	total_entries
-1	a1b2c	3d  defaul	t virtualbo	x running	/home/user/projects/web	8
-2	e4f5a	6b  db	virtualbo	x powerof	f /home/user/projects/db	8
-3	0f9e8	d7  cache	docker	running	/home/user/projects/cache	8
-4	2c3d4	e5  worker	libvirt	paused	/home/user/projects/worker	8
-5	The a	bove shows	informatio	n about a	ll known Vagrant environments	8
-6	on th	is machine	. This data	is cache	d and may not be completely	8
-7	up-to	-date. To	interact wi	th any of	the machines, run this	8
-8	comma	nd in a di	rectory whe	re a Vagr	ant machine is running.	8

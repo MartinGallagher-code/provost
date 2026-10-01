@@ -1,4 +1,0 @@
-n	timestamp	message	detail	total_entries
-1	2026-07-11 04:20:01	INFO worker started pid=4412		3
-2	2026-07-11 04:20:05	ERROR task failed id=t-5521	Traceback (most recent call last):; File "/app/worker.py", line 88, in run; result = handler(payload); File "/app/handlers.py", line 33, in handler; return data["key"]; KeyError: 'key'	3
-3	2026-07-11 04:20:06	INFO worker retry id=t-5521 attempt=2		3

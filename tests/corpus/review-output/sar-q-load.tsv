@@ -1,6 +1,0 @@
-n	Linux	5_15_0-91-generic	(ci-runner-14)	07/11/2026	_x86_64_	(16	CPU)	total_entries
-1	12:00:01	AM	runq-sz	plist-sz	ldavg-1	ldavg-5	ldavg-15_blocked	5
-2	12:10:01	AM	2	844	1.20	1.10	0.98_0	5
-3	12:20:01	AM	5	902	3.44	2.80	1.90_1	5
-4	12:30:01	AM	8	988	7.10	5.20	3.11_3	5
-5	Average:	5	911	3.91	3.03	2.00	1	5

@@ -1,3 +1,0 @@
-n	NAME	STATE	SCHEDULE	total_entries
-1	nightly-backup	ENABLED	cron(0 1 * * ? *)	2
-2	hourly-sync	ENABLED	rate(1 hour)	2

@@ -1,6 +1,0 @@
-n	repo_id	repo_name	total_entries
-1	appstream	Rocky Linux 9 - AppStream	5
-2	baseos	Rocky Linux 9 - BaseOS	5
-3	crb	Rocky Linux 9 - CRB	5
-4	epel	Extra Packages for Enterprise Linux 9 - x86_64	5
-5	extras	Rocky Linux 9 - Extras	5

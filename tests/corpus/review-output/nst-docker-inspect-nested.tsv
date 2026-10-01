@@ -1,2 +1,0 @@
-n	Id	Name	State.Status	State.Running	State.Health.Status	State.Health.FailingStreak	State.Health.Log.1.Start	State.Health.Log.1.ExitCode	State.Health.Log.2.Start	State.Health.Log.2.ExitCode	Mounts.1.Source	Mounts.1.Destination	Mounts.1.RW	total_entries
-1	a1b2c3d4e5f6	/web	running	true	healthy	0	2026-07-11T05:00:00Z	0	2026-07-11T05:00:30Z	0	/data	/var/lib/data	true	1

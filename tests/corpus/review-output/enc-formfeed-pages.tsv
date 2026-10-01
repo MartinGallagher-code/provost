@@ -1,7 +1,0 @@
-n	DEVICE	READ	WRITE	UTIL	total_entries
-1	sda	120MB	88MB	44%	6
-2	sdb	90MB	40MB	31%	6
-3	sdc	15MB	9MB	6%	6
-4	sdd	210MB	150MB	77%	6
-5	sde	5MB	2MB	2%	6
-6	sdf	33MB	28MB	19%	6

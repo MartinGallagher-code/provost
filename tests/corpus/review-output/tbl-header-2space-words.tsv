@@ -1,4 +1,0 @@
-n	Node	Last	Seen	Status	total_entries
-1	node-a	2	minutes	ago_healthy	3
-2	node-b	5	minutes	ago_degraded	3
-3	node-c	1	hour	ago_healthy	3

@@ -1,5 +1,0 @@
-n	NAMESPACE	NAME	READY	STATUS	RESTARTS	AGE	total_entries
-1	kube-system	coredns-5d78c9-abc12	1/1	Running	0	214d	4
-2	kube-system	kube-proxy-9x2mn	1/1	Running	3	214d	4
-3	prod	api-7f9c6b5d4-2xkzq	2/2	Running	0	6d	4
-4	prod	worker-5b8d7c6f9-qq2vx	1/1	Running	4	32d	4

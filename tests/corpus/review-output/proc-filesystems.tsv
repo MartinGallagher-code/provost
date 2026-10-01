@@ -1,7 +1,0 @@
-n	nodev	sysfs	total_entries
-1	nodev	tmpfs	6
-2	nodev	proc	6
-3	nodev	cgroup2	6
-4	ext4		6
-5	xfs		6
-6	vfat		6

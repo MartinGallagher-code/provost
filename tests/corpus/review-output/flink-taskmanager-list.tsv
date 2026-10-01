@@ -1,4 +1,0 @@
-n	taskmanagers.id	taskmanagers.path	taskmanagers.dataPort	taskmanagers.slotsNumber	taskmanagers.freeSlots	taskmanagers.cpuCores	total_entries
-1	10.0.3.10:6122-a1b2c3	akka.tcp://flink@10.0.3.10:6122/user/taskmanager	39871	4	1	8	3
-2	10.0.3.11:6122-d4e5f6	akka.tcp://flink@10.0.3.11:6122/user/taskmanager	41220	4	0	8	3
-3	10.0.3.12:6122-778899	akka.tcp://flink@10.0.3.12:6122/user/taskmanager	44510	4	3	8	3

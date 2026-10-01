@@ -1,6 +1,0 @@
-n	Region	Range	Perms	total_entries
-1	text	0x400000-0x452000	r-x	5
-2	data	0x652000-0x654000	rw-	5
-3	heap	0x1a2b000-0x1a5c000	rw-	5
-4	stack	0x7ffe0000-0x7fffe000	rw-	5
-5	vdso	0xffffffffff600000-...	r-x	5

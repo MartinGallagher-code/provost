@@ -1,4 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	.	IN	forward	1.1.1.1	9.9.9.9	3
-2	example.internal.	IN	forward	10.0.0.53		3
-3	corp.lan.	IN	forward	10.0.0.53	10.0.0.54	3

@@ -1,2 +1,0 @@
-NTP_packets_received	NTP_packets_dropped	Command_packets_received	Command_packets_dropped	Client_log_records_dropped	NTS-KE_connections_accepted	NTS-KE_connections_dropped	Authenticated_NTP_packets	Interleaved_NTP_packets
-1234567	12	8901	0	3	45	1	1200000	34

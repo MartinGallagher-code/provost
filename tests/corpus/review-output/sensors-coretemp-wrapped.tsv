@@ -1,3 +1,0 @@
-n	Adapter	Tctl	Tccd1	Tccd2	vddgfx	fan1	edge	power1	fan1:______________0_RPM__(min	edge:__________+40.0°C__(crit	(emergency	power1:_________12.00_W__(cap
-1	PCI_adapter	+42.4°C	+39.2°C	+40.0°C								
-2	PCI_adapter				850.00_mV	0_RPM__(min_=____0_RPM,_max_=_3200_RPM)	+40.0°C__(crit_=_+100.0°C,_hyst_=_-273.1°C)	12.00_W__(cap_=_155.00_W)	0_RPM,_max_=_3200_RPM)	+100.0°C,_hyst_=_-273.1°C)	+105.0°C)	155.00_W)

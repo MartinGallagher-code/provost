@@ -1,4 +1,0 @@
-n	eth0	/	hourly	total_entries
-1	hour	rx	|_tx_|_total	3
-2	06:00	1.20	GiB_|_412_MiB_|_1.60_GiB	3
-3	05:00	880	MiB_|_340_MiB_|_1.20_GiB	3

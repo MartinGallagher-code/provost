@@ -1,5 +1,0 @@
-n	metric	type	tags	value	total_entries
-1	ci.pipeline.duration	gauge	repo:web,branch:main	412.3	4
-2	ci.job.duration	gauge	repo:web,job:build	188.1	4
-3	ci.job.duration	gauge	repo:web,job:test	224.2	4
-4	ci.pipeline.status	count	repo:web,status:success	1	4

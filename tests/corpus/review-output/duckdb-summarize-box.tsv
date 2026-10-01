@@ -1,5 +1,0 @@
-n	column_name	min	max	mean	count	total_entries
-1	varchar	varchar	varchar	double	int64	4
-2	amount	0.50	9999.00	214.77	100000	4
-3	quantity	1	500	12.40	100000	4
-4	discount_pct	0.0	0.75	0.08	100000	4

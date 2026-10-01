@@ -1,7 +1,0 @@
-n	SnapshotId	VolumeId	State	Progress	StartTime	Size	total_entries
-1	snap-0a1b2c3d4e5f6a7	vol-0a1b2c3d4e5f6a7b	completed	100%	2026-07-01T02:00Z	100	6
-2	snap-0f6e5d4c3b2a190	vol-0f6e5d4c3b2a1908	completed	100%	2026-07-02T02:00Z	8	6
-3	snap-01234abcd5678ef	vol-01234abcd5678ef9	pending	47%	2026-07-07T02:00Z	500	6
-4	snap-09876fedc5432ba	vol-09876fedc5432ba1	completed	100%	2026-06-30T02:00Z	50	6
-5	snap-0aabbccddeeff00	vol-0aabbccddeeff001	completed	100%	2026-07-05T02:00Z	200	6
-6	snap-0112233445566778	vol-0112233445566778	error	0%	2026-07-06T02:00Z	16	6

@@ -1,4 +1,0 @@
-n	Pool	Name	Active	Pending	Completed	Dropped	total_entries
-1	Large	messages	n/a	0	412	0	3
-2	Small	messages	n/a	2	48210934	18	3
-3	Gossip	messages	n/a	0	1204831	0	3

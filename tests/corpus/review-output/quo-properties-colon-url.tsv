@@ -1,2 +1,0 @@
-jdbc.url	log.pattern	service.endpoint	cache.ttl
-jdbc:postgresql://db:5432/app	%d{HH:mm:ss} %-5level %msg%n	http://localhost:8080/health	30

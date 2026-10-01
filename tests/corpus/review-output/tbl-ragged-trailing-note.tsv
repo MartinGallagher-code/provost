@@ -1,5 +1,0 @@
-n	CHECK	STATUS	DURATION	total_entries
-1	dns-lookup	PASS	0.12s	4
-2	tls-cert	WARN	0.45s expires in 14 days	4
-3	http-get	PASS	0.08s	4
-4	disk-space	FAIL	0.01s 93% used on /var	4

@@ -1,2 +1,0 @@
-Triggered	Pod	Restarts	Action
-KubePodCrashLooping	api-abc123 (prod)	12	Sent Slack notification to #alerts

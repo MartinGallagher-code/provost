@@ -1,4 +1,0 @@
-n	A	total_entries
-1	Dockerfile:3 DL3008 warning: Pin versions in apt get install	3
-2	Dockerfile:7 DL3059 info: Multiple consecutive RUN instructions	3
-3	Dockerfile:12 DL4006 warning: Set SHELL option -o pipefail	3

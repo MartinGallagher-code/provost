@@ -1,6 +1,0 @@
-n	node	cpu	mem	pods	total_entries
-1	node-a	42%	61%	18	5
-2	node-b	77%	55%	24	5
-3	node-c	12%	33%	9	5
-4	node-d	90%	88%	31	5
-5	node-e	5%	20%	3	5

@@ -1,5 +1,0 @@
-n	Pin	Direction	State	Mask	total_entries
-1	GPIO0	in	0b1010	0xFF	4
-2	GPIO1	out	0b0001	0x0F	4
-3	GPIO2	in	0b1111	0xAA	4
-4	GPIO3	out	0b0000	0x55	4

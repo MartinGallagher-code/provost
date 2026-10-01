@@ -1,7 +1,0 @@
-n	RELRO	Full_RELRO	total_entries
-1	Stack	Canary found	6
-2	NX	NX enabled	6
-3	PIE	PIE enabled	6
-4	RPATH	No RPATH	6
-5	RUNPATH	No RUNPATH	6
-6	Fortify	Yes	6

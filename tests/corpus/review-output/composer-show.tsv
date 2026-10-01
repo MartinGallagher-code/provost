@@ -1,6 +1,0 @@
-n	A	total_entries
-1	monolog/monolog       3.5.0   Sends your logs to files, sockets, inboxes, databases and various web services	5
-2	psr/log               3.0.0   Common interface for logging libraries	5
-3	symfony/console       6.4.2   Eases the creation of beautiful and testable command line interfaces	5
-4	symfony/polyfill-mbstring 1.28.0 Symfony polyfill for the Mbstring extension	5
-5	guzzlehttp/guzzle     7.8.1   Guzzle is a PHP HTTP client library	5

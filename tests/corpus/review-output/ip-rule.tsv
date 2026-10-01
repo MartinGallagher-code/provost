@@ -1,7 +1,0 @@
-n	key	value	total_entries
-1	0	from all lookup local	6
-2	100	from 10.0.0.0/8 lookup 100	6
-3	32764	from 192.168.1.0/24 iif eth0 lookup 200	6
-4	32765	from all fwmark 0x1 lookup vpn	6
-5	32766	from all lookup main	6
-6	32767	from all lookup default	6

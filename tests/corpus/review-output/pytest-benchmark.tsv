@@ -1,4 +1,0 @@
-n	Name	(time	in	us)	Min	Max	Mean	StdDev	Median	IQR	total_entries
-1	test_parse_small	12.4210	28.8821	14.4821	1.2044	14.1042	0.8210	12;4	69.0510	4821	3
-2	test_parse_medium	44.2100	88.2010	48.8210	4.4210	47.1044	2.1044	8;2	20.4830	1204	3
-3	test_parse_large	412.100	882.4421	448.2100	44.2101	441.0442	21.0442	4;1	2.2311	212	3

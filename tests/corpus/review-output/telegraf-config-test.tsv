@@ -1,4 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	2026-07-10T06:00:00Z	I!	Loaded	inputs:	cpu_mem_disk_net	3
-2	2026-07-10T06:00:00Z	I!	Loaded	outputs:	influxdb	3
-3	2026-07-10T06:00:00Z	I!	Tags	enabled:	host=web01	3

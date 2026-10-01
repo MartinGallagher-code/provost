@@ -1,9 +1,0 @@
-n	A	B	C	D	total_entries
-1	|--	base-files			8
-2	|--	debianutils	(>=	5.6-0.1)	8
-3	|--	libc6	(>=	2.34)	8
-4	|	|--	libgcc-s1		8
-5	|	|	`--	gcc-12-base	8
-6	|	`--	libcrypt1	(>=_1:4.1.0)	8
-7	`--	libtinfo6	(>=	6)	8
-8	`--	libc6	(>=	2.34)	8

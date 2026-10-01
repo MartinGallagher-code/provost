@@ -1,7 +1,0 @@
-n	health	status	index	uuid	pri	rep	docs_count	docs_deleted	store_size	pri_store_size	total_entries
-1	green	open	logs-2026.07.01	Rt3kQp9xToKf1aBcD2eFgH	5	1	1204853	12094	2.4gb	1.2gb	6
-2	green	open	logs-2026.07.02	Zx8mLp2vQwEr4dCbA1kJhG	5	1	1183920	9821	2.3gb	1.1gb	6
-3	yellow	open	metrics-2026.07	Yh5nWq7rTyUi3fEdC9bMkL	3	1	452019	1204	834.2mb	417.1mb	6
-4	green	open	.kibana_1	Kj9pMn4bVcXz2aSdF8gHtR	1	0	142	3	412.5kb	412.5kb	6
-5	red	open	orders-2026	Qw2eRt6yUi0oP5aSdFgHjK	5	1	982034	41029	1.8gb	920.4mb	6
-6	green	open	users	Mn7bVc3xZq1wErTy4uIoPa	3	1	204518	912	512.9mb	256.4mb	6

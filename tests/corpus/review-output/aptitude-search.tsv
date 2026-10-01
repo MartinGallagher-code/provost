@@ -1,8 +1,0 @@
-n	A	total_entries
-1	i   curl                            - command line tool for transferring data with URL syntax	7
-2	i A libcurl4                        - easy-to-use client-side URL transfer library	7
-3	p   curl-dbgsym                     - debug symbols for curl	7
-4	v   httpie                          - user-friendly cURL replacement	7
-5	i   wget                            - retrieves files from the web	7
-6	i A libssl3                         - Secure Sockets Layer toolkit - shared libraries	7
-7	p   aria2                           - High speed download utility	7

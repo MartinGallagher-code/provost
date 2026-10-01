@@ -1,5 +1,0 @@
-n	zone	type	ttl	total_entries
-1	a	A	300	4
-2	mx	MX	3600	4
-3	txt	TXT	600	4
-4	ns	NS	86400	4

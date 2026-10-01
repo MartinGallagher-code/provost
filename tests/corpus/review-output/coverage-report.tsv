@@ -1,4 +1,0 @@
-n	Name	Stmts	Miss	Branch	Cover	total_entries
-1	src/app.py	412	22	88	94%	3
-2	src/util.py	120	4	44	96%	3
-3	TOTAL	532	26	132	95%	3

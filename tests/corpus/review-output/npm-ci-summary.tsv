@@ -1,7 +1,0 @@
-n	A	total_entries
-1	npm warn deprecated inflight@1.0.6: This module is not supported	6
-2	npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported	6
-3	added 1284 packages, and audited 1285 packages in 14s	6
-4	142 packages are looking for funding	6
-5	run `npm fund` for details	6
-6	found 0 vulnerabilities	6

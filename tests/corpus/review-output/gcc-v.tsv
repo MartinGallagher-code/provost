@@ -1,2 +1,0 @@
-Target	Configured_with	Thread_model	Supported_LTO_compression_algorithms
-x86_64-linux-gnu	../src/configure -v --with-pkgversion='Ubuntu 11.4.0-1ubuntu1~22.04' --enable-languages=c,c++,fortran	posix	zlib zstd

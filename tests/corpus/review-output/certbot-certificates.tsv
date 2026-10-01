@@ -1,2 +1,0 @@
-Found_the_following_certs.Certificate_Name	Found_the_following_certs.Domains	Found_the_following_certs.Expiry_Date	Found_the_following_certs.Certificate_Path
-example.com	example.com www.example.com	2026-09-28 11:59:00+00:00 (VALID: 79 days)	/etc/letsencrypt/live/example.com/fullchain.pem

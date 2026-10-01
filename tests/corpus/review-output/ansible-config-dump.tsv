@@ -1,2 +1,0 @@
-ACTION_WARNINGS(default)	CACHE_PLUGIN(default)	DEFAULT_FORKS(default)	DEFAULT_HOST_LIST(/etc/ansible/ansible.cfg)	DEFAULT_ROLES_PATH(env:_ANSIBLE_ROLES_PATH)	DEFAULT_TIMEOUT(default)	HOST_KEY_CHECKING(default)
-True	memory	5	['/etc/ansible/hosts']	['/opt/ansible/roles']	10	False

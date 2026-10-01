@@ -1,2 +1,0 @@
-n	cookie	duration	table	n_packets	n_bytes	priority	actions	total_entries
-1	0x0	88201.442s	0	482100	44210882	0	drop	1

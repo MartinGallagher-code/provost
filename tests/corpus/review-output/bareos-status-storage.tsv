@@ -1,6 +1,0 @@
-n	key	value	total_entries
-1	Device status	Device "FileStorage" (/var/lib/bareos/storage) is not open.	5
-2	Device "TapeDrive0" (/dev/nst0) is mounted with		5
-3	Volume	Full-0042	5
-4	Pool	Full	5
-5	Media type	LTO-8 ====	5

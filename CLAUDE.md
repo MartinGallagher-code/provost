@@ -81,9 +81,11 @@ bespoke strategy — and validate hint rows with `tests/corpus/run.sh --golden`.
 
 ## Handing this repo over as a bundle
 
-`bundle.txt` at the root is provost's own in-place bundle, kept current by CI.
-It is **not** a handover: shipping a tree to someone means splitting it into
-uploadable packets, and this repo is the hardest one to do that for.
+There is no committed bundle any more (the 9.5 MB `bundle.txt` that CI kept in
+sync was removed on 2026-10-01 — it rewrote ~10 MB on every commit). Build one
+on demand from a clean export when you need it. Shipping a tree to someone
+means splitting it into uploadable packets, and this repo is the hardest one
+to do that for.
 
 **The procedure lives in `shared_tools/CLAUDE.md`** — clone that repo and read it
 before bundling anything. Do not improvise from `merge.sh --help`; the traps are

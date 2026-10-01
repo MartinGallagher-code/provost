@@ -1,4 +1,0 @@
-n	key	value	total_entries
-1	parse_small	Mean +- std dev: 14.4 us +- 1.2 us	3
-2	parse_large	Mean +- std dev: 448 us +- 44 us	3
-3	encode	Mean +- std dev: 88.2 us +- 8.2 us	3

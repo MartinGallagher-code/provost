@@ -1,5 +1,0 @@
-n	10.5.0.2		info	notice	total_entries
-1	kern	Linux version 6.6.32-talos	[2026-07-10T14:02:11.334Z]		4
-2	kern	enabling cgroup2 memory controller		[2026-07-10T14:02:12.011Z]	4
-3	user	[talos] task startAllServices (1/1)	[2026-07-10T14:02:14.882Z]		4
-4	user	[talos] service "kubelet" phase running	[2026-07-10T14:02:15.440Z]		4

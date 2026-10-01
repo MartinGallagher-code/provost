@@ -1,4 +1,0 @@
-n	POD	NAMESPACE	RESTARTS	total_entries
-1	api-7f9	default	0	3
-2	cache-2a1	default	3	3
-3	web-88c	frontend	1	3

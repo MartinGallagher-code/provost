@@ -1,8 +1,0 @@
-n	System	Benchmarks	Index	Values	BASELINE	RESULT	INDEX	total_entries
-1	Dhrystone	2	using	register	variables	116700.0	48210044.2_4131.1	7
-2	Double-Precision	Whetstone	55.0	12048.4	2190.6			7
-3	Execl	Throughput	43.0	8821.0	2051.4			7
-4	File	Copy	1024	bufsize	2000	maxblocks	3960.0_1204882.0_3042.6	7
-5	Pipe	Throughput	12440.0	4821004.0	3875.4			7
-6	Process	Creation	126.0	44210.0	3508.7			7
-7	System	Benchmarks	Index	Score	3210.4			7

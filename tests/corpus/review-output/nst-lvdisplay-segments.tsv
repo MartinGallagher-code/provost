@@ -1,3 +1,0 @@
-n	section	LV_Path	LV_Name	VG_Name	LV_Size	Current_LE	Logical_extents_0_to_63999:	Type__linear	Physical_volume_/dev/sdb1	Physical_extents_0_to_63999	Logical_extents_64000_to_127999:	Physical_volume_/dev/sdc1	total_entries
-1	Logical_volume	/dev/vg0/data	data	vg0	500.00 GiB	128000							2
-2	Segments												2

@@ -1,7 +1,0 @@
-n	arch	x86	total_entries
-1	bits	64	6
-2	os	linux	6
-3	type	DYN (PIE)	6
-4	canary	true	6
-5	nx	true	6
-6	pic	true	6

@@ -1,6 +1,0 @@
-n	Filesystem	Type	Inodes	IUsed	IFree	IUse%	1K-blocks	Used	Avail	Use%	File	Mounted	total_entries
-1	/dev/sda2	ext4	6553600	284102	6269498	5%	51475068	8934200	39918884	19%	-	/	5
-2	/dev/sda1	vfat	0	0	0	-	523248	5824	517424	2%	-	/boot/efi	5
-3	/dev/sdb1	xfs	10485760	120340	10365420	2%	209612800	84000000	125612800	41%	-	/srv/data	5
-4	tmpfs	tmpfs	2035712	842	2034870	1%	1628560	1720	1626840	1%	-	/run	5
-5	/dev/mapper/vg-home	ext4	3276800	90120	3186680	3%	25668096	5120000	20548096	20%	-	/home	5

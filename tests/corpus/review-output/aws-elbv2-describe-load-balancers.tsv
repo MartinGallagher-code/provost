@@ -1,6 +1,0 @@
-n	LoadBalancerName	Type	Scheme	State	DNSName	total_entries
-1	prod-web-alb	application	internet-facing	active	prod-web-alb-1234.elb.amazonaws.com	5
-2	prod-internal-alb	application	internal	active	prod-internal-alb-56.elb.amazonaws.com	5
-3	orders-nlb	network	internal	active	orders-nlb-abcd.elb.amazonaws.com	5
-4	staging-alb	application	internet-facing	active	staging-alb-7788.elb.amazonaws.com	5
-5	legacy-clb	classic	internet-facing	provisioning	legacy-clb-9900.elb.amazonaws.com	5

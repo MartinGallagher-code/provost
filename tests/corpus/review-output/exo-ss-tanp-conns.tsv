@@ -1,8 +1,0 @@
-n	state	recv_q	send_q	local	peer	process
-1	LISTEN	0	128	0.0.0.0:22	0.0.0.0:*	sshd
-2	LISTEN	0	511	127.0.0.1:6379	0.0.0.0:*	redis-server
-3	ESTAB	0	0	10.0.0.5:51234	93.184.216.34:443	chrome
-4	ESTAB	36	0	10.0.0.5:22	10.0.0.9:60122	sshd
-5	TIME-WAIT	0	0	10.0.0.5:44120	151.101.1.140:80	
-6	CLOSE-WAIT	1	0	10.0.0.5:38812	10.0.0.3:5432	python3
-7	LISTEN	0	4096	*:9100	*:*	node_exporter

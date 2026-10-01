@@ -1,4 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	1,234,567,890	cycles	#	3.456	GHz	3
-2	987,654,321	instructions	#	0.80	insn_per_cycle	3
-3	1.24e+06	cache-misses	#	2.34	%	3

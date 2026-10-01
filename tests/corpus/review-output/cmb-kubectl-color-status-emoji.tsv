@@ -1,6 +1,0 @@
-n	NAME	READY	STATUS	RESTARTS	AGE	total_entries
-1	api-7f9c-xk2	1/1	Running 🟢	0	14d	5
-2	web-5d8-p4z	2/2	Running 🟢	1	3d	5
-3	job-init-q9	0/1	Pending 🟡	0	2m	5
-4	cache-a1-lm	0/1	CrashLoop 🔴	7	1h	5
-5	proxy-88-tt	1/1	Running 🟢	0	21d	5

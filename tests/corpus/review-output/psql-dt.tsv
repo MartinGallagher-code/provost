@@ -1,6 +1,0 @@
-n	Schema	Name	Type	Owner	total_entries
-1	public	customers	table	appuser	5
-2	public	orders	table	appuser	5
-3	public	products	table	appuser	5
-4	public	sessions	table	appuser	5
-5	public	users	table	appuser	5

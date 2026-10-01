@@ -1,5 +1,0 @@
-n	UNIT	LOAD	ACTIVE	SUB	DESCRIPTION	total_entries
-1	●	docker.service	loaded	failed	failed_Docker_Application_Container_Engine	4
-2	●	mysql.service	loaded	failed	failed_MySQL_Community_Server	4
-3	●	openvpn@client.service	loaded	failed	failed_OpenVPN_connection_to_client	4
-4	●	fail2ban.service	loaded	failed	failed_Fail2Ban_Service	4

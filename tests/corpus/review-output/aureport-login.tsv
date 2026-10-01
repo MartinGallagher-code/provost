@@ -1,5 +1,0 @@
-n	#	date	time	auth	host	term	total_entries
-1	1	07/11/2026	08:02:11	root	yes	10.0.1.4_pts/0	4
-2	2	07/11/2026	08:44:03	alice	yes	10.0.1.9_pts/1	4
-3	3	07/11/2026	09:15:52	bob	no	203.0.113.7_ssh	4
-4	4	07/11/2026	09:16:04	bob	no	203.0.113.7_ssh	4

@@ -1,4 +1,0 @@
-n	Filesystem	Inodes	IUsed	IFree	IUse%	Mounted	total_entries
-1	/dev/sda1	6553600	210400	6343200	4%	/	3
-2	tmpfs	1018000	120	1017880	1%	/dev/shm	3
-3	/dev/sdb1	32768000	512000	32256000	2%	/data	3

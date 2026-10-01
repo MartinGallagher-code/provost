@@ -1,5 +1,0 @@
-n	timestamp	message	total_entries
-1	twitter	user123: 44 posts	4
-2	download	./user123/001.jpg	4
-3	download	./user123/002.jpg	4
-4	download	Total: 44 files	4

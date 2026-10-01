@@ -1,2 +1,0 @@
-status	instance	job	scrapePool	scrapeUrl	health	lastScrape	lastScrapeDuration
-success	10.0.1.12:9100	node	node	http://10.0.1.12:9100/metrics	up	2026-07-07T09:14:22.113Z	0.012482

@@ -1,9 +1,0 @@
-n	last	10s	40s	cumulative	2s	total_entries
-1	80Kb	9	8	45Kb    12.4MB		8
-2	98Kb	1	1	76Kb     2.1MB		8
-3	88Kb	4	5	01Kb     6.8MB		8
-4	76Kb			80Kb     1.0MB		8
-5	------	-----	----	----------------------	----	8
-6	.46Mb	1	1	.34Mb		8
-7	274Kb			256Kb		8
-8	.73Mb	1	1	.59Mb		8

@@ -1,5 +1,0 @@
-n	NETWORK_ID	NAME	DRIVER	SCOPE	total_entries
-1	3f8a1c2d9e4b	bridge	bridge	local	4
-2	7b6c5d4e3f2a	host	host	local	4
-3	1a2b3c4d5e6f	none	null	local	4
-4	9e8d7c6b5a4f	app_backend	bridge	local	4

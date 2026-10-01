@@ -1,2 +1,0 @@
-Name	Namespace	Priority	Node	Labels	Status	IP
-web-5b7d9c6f8-abcde	prod	0	gke-node-1/10.128.0.5	app=web	Running	10.12.1.34

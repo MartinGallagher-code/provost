@@ -1,2 +1,0 @@
-Request	Labels	Range
-{"method":"GET","path":"/api"}	{"env":"prod","team":"core"}	{"from":"12:00","to":"13:00"}

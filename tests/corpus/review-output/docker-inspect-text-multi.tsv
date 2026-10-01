@@ -1,3 +1,0 @@
-n	Id	Name	Image	State	IPAddress	RestartCount
-1	3f2a1b0c9d8e	/web	nginx:1.25	running	172.17.0.2	0
-2	7e6d5c4b3a29	/db	postgres:15	running	172.17.0.3	1

@@ -1,5 +1,0 @@
-n	NAME	VALUE	total_entries
-1	DATABASE_URL	postgresql://...:5432/railway	4
-2	REDIS_URL	redis://...:6379	4
-3	NODE_ENV	production	4
-4	PORT	8080	4

@@ -1,6 +1,0 @@
-n	Tool	Ratio	Speed	total_entries
-1	gzip	2.74	38 MB/s	5
-2	zstd-3	3.11	420 MB/s *	5
-3	zstd-19	3.98	12 MB/s	5
-4	lz4	2.10	780 MB/s	5
-5	xz-9	4.42	3.1 MB/s **	5

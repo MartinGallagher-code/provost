@@ -1,6 +1,0 @@
-n	Device	Start	End	Sectors	Size	Type	total_entries
-1	/dev/sda1	2048	1050623	1048576	512M	EFI-System	5
-2	/dev/sda2	1050624	3147775	2097152	1G	Linux-filesystem	5
-3	/dev/sda3	3147776	99614719	96466944	46G	Linux-filesystem	5
-4	/dev/sda4	99614720	792723455	693108736	331G	Linux-filesystem	5
-5	/dev/sda5	792723456	976773119	184049664	87.8G	Linux-swap	5

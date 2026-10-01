@@ -1,4 +1,0 @@
-n	UNIT	LOAD	ACTIVE	SUB	total_entries
-1	nginx.service	loaded	active	running	3
-2	mysql.service	loaded	failed	failed	3
-3	cron.service	loaded	active	running	3

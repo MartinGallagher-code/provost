@@ -1,4 +1,0 @@
-n	A	B	C	total_entries
-1	main	src/main.c	12	3
-2	parse	src/parser.c	44	3
-3	Config	include/config.h	8	3

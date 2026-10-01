@@ -1,2 +1,0 @@
-DATABASE_URL	APP_NAME	GREETING	SECRET_KEY
-"postgres://user:p@ss@localhost:5432/db?sslmode=require"	"My App, Inc."	"hello world = welcome"	'a=b,c=d'

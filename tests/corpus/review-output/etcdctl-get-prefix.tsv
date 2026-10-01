@@ -1,5 +1,0 @@
-n	key	value	total_entries
-1	/config/service/api/replicas	3	4
-2	/config/service/api/timeout	30s	4
-3	/config/service/worker/replicas	8	4
-4	/config/service/worker/queue	default	4

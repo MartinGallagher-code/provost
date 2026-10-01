@@ -1,2 +1,0 @@
-Package	Version	Priority	Section	Origin	Maintainer	Installed-Size	Depends	Recommends	Suggests	Homepage	Download-Size	APT-Sources	Description
-htop	3.0.5-7build2	optional	utils	Ubuntu	Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>	234 kB	libc6 (>= 2.34), libncursesw6 (>= 6), libtinfo6 (>= 6)	lsof	strace	https://htop.dev	82.4 kB	http://archive.ubuntu.com/ubuntu jammy/main amd64 Packages	interactive processes viewer

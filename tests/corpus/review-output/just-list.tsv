@@ -1,6 +1,0 @@
-n	A	total_entries
-1	Available recipes:	5
-2	build          # compile the project	5
-3	test           # run the test suite	5
-4	deploy env     # deploy to an environment	5
-5	lint           # run linters	5

@@ -1,3 +1,0 @@
-n	NAME	MIN_AVAILABLE	MAX_UNAVAILABLE	ALLOWED_DISRUPTIONS	AGE	total_entries
-1	api-pdb	2	N/A	1	90d	2
-2	web-pdb	N/A	1	1	90d	2

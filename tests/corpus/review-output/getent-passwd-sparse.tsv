@@ -1,7 +1,0 @@
-n	A	B	C	D	E	F	G	total_entries
-1	root	x	0	0	root	/root	/bin/bash	6
-2	daemon	x	1	1	daemon	/usr/sbin	/usr/sbin/nologin	6
-3	sync	x	4	65534	sync	/bin	/bin/sync	6
-4	mgallag	x	1000	1000	Martin Gallagher,,,	/home/mgallag	/bin/zsh	6
-5	sshd	x	110	65534		/run/sshd	/usr/sbin/nologin	6
-6	postgres	x	111	117	PostgreSQL administrator,,,	/var/lib/postgresql	/bin/bash	6

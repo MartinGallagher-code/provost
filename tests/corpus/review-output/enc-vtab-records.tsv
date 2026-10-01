@@ -1,5 +1,0 @@
-n	sensor	value	unit	total_entries
-1	cpu	61	C	4
-2	gpu	72	C	4
-3	board	38	C	4
-4	inlet	24	C	4

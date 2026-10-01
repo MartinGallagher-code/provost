@@ -1,5 +1,0 @@
-n	status	name	version	arch	description	total_entries
-1	ii	bash	5.1-6ubuntu1	amd64	GNU Bourne Again SHell	4
-2	ii	coreutils	8.32-4.1ubuntu1	amd64	GNU core utilities	4
-3	ii	curl	7.81.0-1ubuntu1	amd64	command line tool for transferring data with URL syntax	4
-4	ii	vim	2:8.2.3458-2	amd64	Vi IMproved - enhanced vi editor	4

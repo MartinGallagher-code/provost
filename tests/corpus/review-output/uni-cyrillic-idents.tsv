@@ -1,5 +1,0 @@
-n	MODULE	FUNC	LINE	total_entries
-1	обработка	старт	42	4
-2	сеть	connect	108	4
-3	база	query	77	4
-4	main	init	1	4

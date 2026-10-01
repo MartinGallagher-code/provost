@@ -1,4 +1,0 @@
-n	web:web_00_______________________RUNNING___pid_8821	uptime_2:14:08	total_entries
-1	web:web_01                       RUNNING   pid 8822	uptime 2:14:08	3
-2	worker:celery                    RUNNING   pid 8830	uptime 2:13:44	3
-3	scheduler                        STOPPED   Jul 10 04:00 AM		3

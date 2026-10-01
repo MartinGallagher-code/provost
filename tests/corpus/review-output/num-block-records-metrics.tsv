@@ -1,4 +1,0 @@
-n	host	cpu	mem	load
-1	web01	45%	3.5GiB	1,23
-2	web02	78%	7.2GiB	2,71
-3	db01	12%	12.1GiB	0,42

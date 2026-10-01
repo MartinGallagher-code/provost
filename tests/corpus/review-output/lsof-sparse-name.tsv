@@ -1,6 +1,0 @@
-n	COMMAND	PID	USER	FD	TYPE	DEVICE	SIZE/OFF	NODE	NAME	total_entries
-1	sshd	812	root	3u	IPv4	18442	0t0	TCP	*:ssh_(LISTEN)	5
-2	nginx	1201	root	6u	IPv4	20101	0t0	TCP	*:http_(LISTEN)	5
-3	redis	1188	redis	5u	IPv6	21344	0t0	TCP	localhost:6379_(LISTEN)	5
-4	bash	2033	mgallag	cwd	DIR	8,3	4096	131074	/home/mgallag	5
-5	python3	2201	mgallag	4r	REG	8,3	10240	262145	/home/mgallag/data.csv	5

@@ -1,6 +1,0 @@
-n	PID	RSS	VSZ	CMD	total_entries
-1	1	1 234	12 456	init	5
-2	842	45 678 900	123 456 789	postgres	5
-3	1337	9 999	88 888	sshd	5
-4	2048	1 000 000	2 000 000	java	5
-5	4096	512	4 096	cron	5

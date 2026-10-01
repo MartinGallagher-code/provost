@@ -1,2 +1,0 @@
-Jan_16_02	ValueError	Jan_16_02	Jan_16_02
-11:04 worker-2 celery[3390]: Task pipeline.process[abc-123] raised unexpected:	payload missing required field 'id'	11:05 worker-2 celery[3390]: Task pipeline.process[abc-123] retrying in 30s	11:35 worker-2 celery[3390]: Task pipeline.process[abc-123] succeeded in 1.204s

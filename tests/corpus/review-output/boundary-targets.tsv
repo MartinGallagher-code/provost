@@ -1,3 +1,0 @@
-n	ID	Name	Type	Scope	total_entries
-1	ttcp_a1b2c3d4	prod-ssh	tcp	prod	2
-2	ttcp_e5f6g7h8	prod-rdp	tcp	prod	2

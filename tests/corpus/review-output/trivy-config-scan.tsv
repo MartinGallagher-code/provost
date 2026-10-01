@@ -1,4 +1,0 @@
-n	MISCONFIG	TYPE	SEVERITY	CHECK	total_entries
-1	AVD-KSV-0012	Kubernetes	MEDIUM	Runs as root user	3
-2	AVD-KSV-0014	Kubernetes	HIGH	Root filesystem not read-only	3
-3	AVD-KSV-0020	Kubernetes	LOW	Runs with low group ID	3

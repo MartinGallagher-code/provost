@@ -1,4 +1,0 @@
-n	ip	protocol	icmp	accept	total_entries
-1	tcp	dport 22	accept		3
-2	tcp	dport {	80,	443 } accept	3
-3	counter	packets		1240 bytes 98230 drop	3

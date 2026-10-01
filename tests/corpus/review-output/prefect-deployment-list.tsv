@@ -1,5 +1,0 @@
-n	NAME	SCHEDULE	WORK_POOL	STATUS	total_entries
-1	etl-daily/production	0 2 * * *	kubernetes	READY	4
-2	scoring/hourly	0 * * * *	process-pool	READY	4
-3	backfill/manual	None	kubernetes	READY	4
-4	report/weekly	0 6 * * 1	process-pool	PAUSED	4

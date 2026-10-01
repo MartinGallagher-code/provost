@@ -1,2 +1,0 @@
-Name	Type	Revision	Header	Size_in_memory	References	Number_of_entries
-blocklist	hash:ip	4	family inet hashsize 1024 maxelem 65536	296	1	3

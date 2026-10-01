@@ -1,6 +1,0 @@
-n	Name	Owner	Encoding	Collate	Ctype	Size	Tablespace	Description	Access_privileges	total_entries
-1	analytics	appuser	UTF8	C	C	128 MB	pg_default			5
-2	appdb	appuser	UTF8	C	C	512 MB	pg_default	primary application database		5
-3	postgres	postgres	UTF8	C	C	8553 kB	pg_default	default administrative connection database		5
-4	template0	postgres	UTF8	C	C	8393 kB	pg_default	unmodifiable empty database	=c/postgres postgres=CTc/postgres	5
-5	template1	postgres	UTF8	C	C	8393 kB	pg_default	default template for new databases	=c/postgres postgres=CTc/postgres	5

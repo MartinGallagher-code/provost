@@ -1,3 +1,0 @@
-n	database	user	cl_active	cl_waiting	sv_active	sv_idle	total_entries
-1	orders	app_rw	24	0	8	4	2
-2	metrics	app_ro	6	0	2	6	2

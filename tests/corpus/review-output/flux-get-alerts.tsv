@@ -1,4 +1,0 @@
-n	NAME	SUSPENDED	READY	MESSAGE	total_entries
-1	slack-notifier	False	True	Alert is ready	3
-2	on-call-page	False	True	Alert is ready	3
-3	audit-webhook	True	Unknown	Reconciliation is suspended	3

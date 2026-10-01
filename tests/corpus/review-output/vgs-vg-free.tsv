@@ -1,6 +1,0 @@
-n	VG	#PV	#LV	#SN	Attr	VSize	VFree	Free	total_entries
-1	vg_sys	1	4	0	wz--n-	58.00g	0.00g	0.00g	5
-2	vg_data	4	6	2	wz--n-	900.00g	350.00g	350.00g	5
-3	vg_backup	2	3	1	wz--n-	400.00g	120.50g	120.50g	5
-4	vg_vm	3	8	0	wz--n-	750.00g	40.00g	40.00g	5
-5	vg_scratch	1	1	0	wz--n-	250.00g	250.00g	250.00g	5

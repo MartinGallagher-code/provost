@@ -1,2 +1,0 @@
-kernel.hostname	kernel.ostype	kernel.pid_max	net.ipv4.ip_forward	net.ipv4.tcp_syncookies	net.core.somaxconn	vm.swappiness	fs.file-max
-webhost01	Linux	4194304	1	1	4096	60	9223372036854775807

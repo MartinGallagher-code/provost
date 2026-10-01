@@ -1,6 +1,0 @@
-n	location	name
-1	packages/core	@acme/core
-2	packages/ui	@acme/ui
-3	packages/api-client	@acme/api-client
-4	apps/web	@acme/web
-5	apps/admin	@acme/admin
