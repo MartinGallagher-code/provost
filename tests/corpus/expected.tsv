@@ -1423,7 +1423,7 @@ hdparm-I	kv	-	2
 smartctl-scan	kv	-	2
 lsscsi-size	table	3	3
 parted-print-all	table	2	2
-cryptsetup-status	table	7	2
+cryptsetup-status	kv	-	6
 vgs-report	table	2	6
 pvs-report	table	3	6
 lvs-report	table	3	5
@@ -1450,9 +1450,9 @@ ffprobe-format	kv	-	2
 mediainfo-summary	kv	-	2
 exiftool-image	kv	-	2
 pactl-list-sinks	kv	-	2
-pw-cli-list-nodes	table	6	2
+pw-cli-list-nodes	table	2	2
 aplay-list	kv	-	2
-v4l2-ctl-list-devices	table	6	2
+v4l2-ctl-list-devices	table	3	2
 sensors-output	table	2	2
 i2cdetect-output	text	-	2
 bluetoothctl-devices	table	3	2
@@ -1530,7 +1530,7 @@ esptool-flash-id	kv	-	2
 dmesg-boot	text	-	2
 qm-list	table	3	6
 pct-list	table	3	3
-promtool-check-rules	table	4	2
+promtool-check-rules	table	2	2
 amtool-alert-query	table	2	3
 alertmanager-silences	table	2	3
 grafana-cli-plugins-ls	text	-	2
@@ -1768,7 +1768,7 @@ yt-dlp-download	text	-	2
 gallery-dl-log	text	-	2
 nvidia-container-cli-info	kv	-	2
 wandb-sweep-status	kv	-	2
-pytest-cov-report	table	2	4
+pytest-cov-report	table	3	4
 coverage-report	table	3	5
 mutmut-results	kv	-	2
 stryker-summary	kv	-	2
@@ -1970,7 +1970,7 @@ apt-cache-depends	text	-	2
 dnf-module-list	table	2	4
 dnf-repoquery-provides	text	-	1
 ceph-status	kv	-	2
-ceph-osd-tree	table	5	5
+ceph-osd-tree	table	4	5
 ceph-df	text	-	2
 gluster-volume-status	table	2	4
 gluster-peer-status	kv	-	2
@@ -2163,7 +2163,7 @@ doctl-apps-list	table	3	10
 doctl-volume-list	table	3	8
 doctl-registry-repository-list	table	3	6
 doctl-vpcs-list	text	-	2
-doctl-compute-snapshot-list	table	3	10
+doctl-compute-snapshot-list	table	3	9
 doctl-compute-load-balancer-list	table	2	10
 doctl-compute-reserved-ip-list	table	3	6
 linode-nodebalancers-list	table	3	6
@@ -2683,7 +2683,7 @@ kustomize-cfg-count	table	4	3
 linkerd-edges	table	3	6
 linkerd-stat-deploy	table	3	9
 nerdctl-network-ls	table	4	5
-nerdctl-stats	table	3	13
+nerdctl-stats	table	3	9
 popeye-report	table	5	5
 stern-multi	table	5	13
 talosctl-dmesg	table	4	5
@@ -2939,7 +2939,7 @@ npm-outdated-sparse	table	4	6
 gem-outdated-sparse	table	5	3
 ip-neigh-sparse-dev	table	6	3
 getent-group-sparse	table	6	4
-lvs-report-sparse	table	5	13
+lvs-report-sparse	table	5	9
 pvs-report-ragged	table	4	6
 vgs-report-sparse	table	3	7
 smartctl-scan-devices	table	4	2
@@ -3010,7 +3010,7 @@ bazel-query-graph	table	9	2
 systemd-cgls-full	table	15	4
 lsblk-tree	table	11	6
 findmnt-tree	table	11	5
-apt-rdepends-openssl	table	14	3
+apt-rdepends-openssl	table	9	3
 snap-connections-all	table	10	5
 nix-tree-hello	table	9	4
 guix-graph-emacs	table	12	3
@@ -3042,7 +3042,7 @@ pip-tree-text	table	10	5
 go-mod-why-graph	table	9	3
 lsblk-nvme-tree	table	9	6
 findmnt-submounts	table	6	5
-apt-rdepends-reverse	table	12	2
+apt-rdepends-reverse	table	8	2
 nix-store-tree	table	9	4
 brew-uses-tree	table	10	4
 conda-tree	table	11	4
@@ -3461,7 +3461,7 @@ tbl-ps-page-repeat	table	5	11
 tbl-sar-interval-repeat	table	4	8
 tbl-watch-diskio-repeat	table	4	6
 tbl-df-total-footer	table	5	6
-tbl-du-sum-footer	table	4	2
+tbl-du-sum-footer	table	5	2
 tbl-netstat-total-line	table	4	5
 tbl-portfolio-total-row	table	5	5
 tbl-blank-separator-disks	table	4	4
@@ -3550,7 +3550,7 @@ nst-openssl-x509-text	kv	-	2
 nst-gpg-packet-dump	kv	-	2
 nst-tree-node-attrs	table	8	3
 nst-du-tree-sizes-dates	table	7	3
-nst-lsblk-tree-attrs	table	7	4
+nst-lsblk-tree-attrs	table	8	4
 nst-sales-by-region-subtotals	table	8	3
 nst-du-by-category-subtotal	table	9	2
 nst-quota-grouped-subtotal	table	7	3
@@ -3669,7 +3669,7 @@ exo-perf-report-tree	text	-	2
 exo-perf-script-samples	text	-	2
 exo-bpftrace-hist	text	-	2
 exo-bpftrace-map-count	table	8	2
-exo-strace-c-summary	table	6	5
+exo-strace-c-summary	table	7	5
 exo-systemd-analyze-blame	table	10	2
 exo-systemd-critical-chain	text	-	2
 exo-journalctl-export	kv	-	2

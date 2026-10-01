@@ -24,12 +24,37 @@ strategy_detect () {
     done
 
     # Must have a separator line of dashes with gaps (scan line by line)
-    local _det_line
+    # A header (the non-blank line just above the rule) that repeats a
+    # column name is a GROUPED header — `zpool iostat`'s `read write read
+    # write` under `operations  bandwidth` — and this parser keys cells by
+    # header name, so the second `read` silently overwrote the first
+    # (operations lost). Decline: aligned-columns' two-line-header path
+    # qualifies the names (operations_read, bandwidth_read) and keeps them all.
+    local _det_line _det_prev=""
     _fr_lines "$text"
     for _det_line in "${_FR_LINES[@]}"; do
         if [[ "$_det_line" =~ ^[-]+(\ +[-]+)+ ]]; then
+            if [[ -n "$_det_prev" ]]; then
+                # (names as extract derives them: the header sliced at the
+                # rule's dash runs — `min threads` / `max threads` are two
+                # distinct cells, not a repeated `threads`)
+                local -A _det_seen=()
+                local _det_p _det_cs _det_ce _det_h _det_pos
+                _det_pos="$(_strat_fw_find_columns "$_det_line")"
+                local IFS='|'
+                for _det_p in $_det_pos; do
+                    _det_cs="${_det_p%%:*}"; _det_ce="${_det_p##*:}"
+                    _det_h="${_det_prev:$_det_cs:$((_det_ce - _det_cs))}"
+                    _det_h="${_det_h#"${_det_h%%[![:space:]]*}"}"
+                    _det_h="${_det_h%"${_det_h##*[![:space:]]}"}"
+                    [[ "$_det_h" == *[A-Za-z0-9]* ]] || continue
+                    [[ -n "${_det_seen[$_det_h]:-}" ]] && return 1
+                    _det_seen[$_det_h]=1
+                done
+            fi
             return 0
         fi
+        [[ "${_det_line}" == *[![:space:]]* ]] && _det_prev="$_det_line"
     done
 
     return 1
@@ -186,6 +211,9 @@ strategy_extract () {
         fi
 
         [[ -z "$line" ]] && continue
+        # A later dash rule (strace -c's rule above its `total` row, a
+        # closing rule) is table chrome, never a data row.
+        [[ "$line" =~ ^[[:space:]]*--+([[:space:]]+--+)*[[:space:]]*$ ]] && continue
         row_num=$((row_num + 1))
 
         # SOFT boundaries with a per-row cursor. A tool's separator rule can be

@@ -1,5 +1,99 @@
 # provost — Changelog
 
+## 2026-10-01 — corpus gap-closing round: coverage 3588 → 3646 / 3705 (58 of 117 ⏳ closed)
+
+Format-level fixes only (plus 2 structural hint rows and 1 new generic parser);
+every changed golden was reviewed and is an improvement (see below).
+
+- **New generic parser `group-children`** (`extract/strategies/delimited/`,
+  priority 42, confidence 80, sample + 2 goldens): unindented group lines over
+  ONE level of indented children. LONG mode (every child `Label: value` under
+  one shared label — apt-rdepends) emits one row per child with the group
+  carried; WIDE mode (child keys distinct within a group, shared across groups —
+  ssh_config `Host` blocks, `ip addr` inet/inet6, pw-cli properties, lspci -k)
+  emits one row per group. Strict detection (>= 2 groups, single indent level,
+  no orphan children); defers to grouped-rows / indented-colon-groups by priority.
+- **aligned-columns** (`_ac_body_compute` / `_ac_shape_compute` /
+  `_ac_group_prefix`; every change is in the bash pre-pass shared by both
+  routes, and the awk tail mirrors the two that touch it):
+  interior `# comment` lines dropped in a file that opens with `#`
+  (`##` banners kept); a leading prose `# …` banner is not taken as the header
+  when the first real line is itself a >= 3-label header, and among several
+  commented candidates the widest label-only one that fits wins (crontab's
+  `# m h dom mon dow command`); shell ` \` line continuations joined; a
+  single-token wrapped last cell (lsof `(ESTABLISHED)`) joined back; a short
+  leading chrome block (build log / figlet / ASCII art) before a blank line
+  dropped when the last block is an unmistakable table; repeated `… Page N`
+  page banners dropped; a one-segment `title:` directly above a >= 3-column
+  header dropped (pueue); a count footer (`3 requests, 3 succeeded`) whose
+  number is the row count dropped (only when no row opens with a digit);
+  header promotion accepts ledger amounts `(1,200.00)` as values, year column
+  labels (`Metric 2023 2024 2025`) and whole bracketed unit tokens after a label
+  (`Mean [ms]`), and refuses a row 1 whose words recur in row 2; HDR2 needs a
+  real value in row 3; a header with repeated tokens takes the segment split
+  (hyperfine, docker/podman/nerdctl stats, doctl); HDR2 group prefixes fall back
+  to even ORDER partition when nearest-centre assignment collides (zpool iostat -l).
+- **Engine pre-pass** (`extract/lib/_helpers.sh`): OSC 8 hyperlinks terminated
+  by ESC-backslash are stripped whole (cells no longer carry `8;;URL`); a CR
+  redraw whose segment opens with ESC[K is recognised; leading `-- ` SQL
+  comment lines before a JSON document are dropped (surreal).
+- **csv**: declines colon-delimited records (uniform field-colon count > commas,
+  clock colons excluded — getent), lines that are all `k=v` tokens (decimal
+  commas), a 2-field "CSV" with a comma-less line, and drops interior comma-free
+  `#` comments after leading ones. **yaml**: declines TAB-indented key lines and
+  flat blocks with a repeated top-level key; list items that open a mapping
+  (`- apiVersion: v1`) now nest their keys under `<list>.N.` (kubectl/kustomize/
+  helm/podman YAML). **fixed-width / vertical-line**: decline a header whose
+  column names repeat (zpool iostat's grouped read/write — was silently
+  overwriting); fixed-width drops later dash rules; vertical-line declines a
+  value-led "header" over a gapped underline and a clean single-word header
+  whose midpoint cuts slice values in >= half the rows. **pipe-table**: a data
+  row's trailing `|` is an empty last cell (sacct -p). **psql-table**: an
+  indented row opening with `|` has a blank first cell. **box-table**: more SQL
+  type keywords (int64, uint32, float64 …) for the duckdb type row.
+  **labeled-inline-kv**: a label containing `=` or a digit:digit first colon is
+  not a label. **kv-pairs**: a comma-joined `=`-less piece continues the
+  previous value (ovs `priority=100,ip`). **line-records / text-lines**: a lone
+  label over >= 3 value lines is a headed single column. **indented-hierarchy**:
+  declines when the indented lines are a uniform >= 3-column table.
+  **colon-fields**: the shared-first-field (ARN) decline no longer fires on
+  records with prose fields (gpg --with-colons). **columnar-specs**: w-sessions
+  minreq 7 (empty WHAT), dpkg-list minreq 4 (rc rows without description).
+- **Hints** (`extract/hints.tsv`): tightened 3 misfiring rows — nft-list-tables
+  (`^table (ip|ip6|inet|arp|bridge|netdev) `, was eating clickhouse `table …`
+  headers), fwupdmgr-get-devices (`Device ID: <40 hex>`, was eating MegaCli's
+  `Enclosure Device ID:`), smartctl-health (health line not followed by an
+  `ID#` attribute table); added lsblk-tree (`NAME MAJ:MIN` + tree glyphs) and
+  powertop-devices (`Usage  Device name`), both → aligned-columns.
+- **Manifest** (`tests/corpus/expected.tsv`) corrections, each a count the
+  input cannot meet or a totals row by the corpus convention: exo-strace-c-summary
+  6→7 rows, pytest-cov-report 2→3, tbl-du-sum-footer 4→5 (TOTAL rows);
+  lvs-report-sparse mincols 13→9 (4 columns empty in every row);
+  v4l2-ctl-list-devices 6→3, promtool-check-rules 4→2, pw-cli-list-nodes 6→2,
+  apt-rdepends-openssl 14→9, apt-rdepends-reverse 12→8, ceph-osd-tree 5→4,
+  nst-lsblk-tree-attrs 7→8 (counts of the actual records);
+  doctl-compute-snapshot-list mincols 10→9, nerdctl-stats 13→9 (header column
+  counts — the old numbers were the bogus tokenized parse); cryptsetup-status
+  table→kv (single-device snapshot, like systemctl status).
+- Files: extract/strategies/delimited/{aligned-columns,box-table,colon-fields,
+  columnar-specs,fixed-width,group-children (new),indented-hierarchy,
+  labeled-inline-kv,line-records,pipe-table,psql-table,text-lines,
+  vertical-line}.sh, extract/strategies/structured/{csv,kv-pairs,yaml}.sh,
+  extract/lib/_helpers.sh, extract/hints.tsv, extract/samples/group-children/,
+  extract/tests/golden/group-children{,@long.txt}.txt, extract/README.md (counts),
+  tests/corpus/expected.tsv. Goldens under tests/corpus/expected/ are NOT
+  regenerated here: 58 new goldens are due (the newly tidy tools) and 64
+  existing goldens change — all reviewed as improvements (OSC 8 junk removed,
+  interior comments dropped, docker/podman/nerdctl stats and doctl/frr/vtysh/
+  spark/huggingface headers correctly segmented, YAML list items nested, zpool
+  iostat operations columns no longer overwritten, duplicate-key one-row kv
+  parses replaced by one row per record, …).
+- Validation: `run.sh --golden` 3407 passed / 64 changed (all reviewed) / 0
+  other; the forced awk routes (`_FR_BIG_BYTES=0 _FR_LANE_BYTES=0`) give the
+  identical result; holdout 78/80 (unchanged); benchmark .def/.meta identical,
+  3 .multi files lose a junk secondary dataset (dpkg-list gains a real one);
+  extract suite 66/66, smoke 197/197, melt 54/54.
+
 ## 2026-09-25 — ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
 
 - **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with

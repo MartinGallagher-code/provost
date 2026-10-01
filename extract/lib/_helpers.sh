@@ -366,6 +366,10 @@ preprocess_input_text () {
                     n = split(line, seg, "\r")
                     if (n >= 2) {
                         a = seg[1]; b = seg[n]
+                        # an erase-in-line (ESC[K / ESC[2K) right after the
+                        # CR is part of the redraw, not of the label: compare
+                        # the segments without it
+                        sub(/^\033\[[0-9]*K/, "", a); sub(/^\033\[[0-9]*K/, "", b)
                         m = length(a); if (length(b) < m) m = length(b)
                         p = 0
                         while (p < m && substr(a, p + 1, 1) == substr(b, p + 1, 1)) p++
@@ -473,10 +477,13 @@ preprocess_input_text () {
     # split or pollute a data cell. Gated on an ESC byte being present, so it is a
     # true no-op — no subprocess — for the overwhelming majority of inputs that carry
     # none. Matches the ECMA-48 CSI form (ESC [ params intermediates final) plus the
-    # OSC form (ESC ] … BEL) and bare two-byte escapes.
+    # OSC form — terminated by BEL or by the String Terminator ESC-backslash
+    # (OSC 8 hyperlinks: `ESC]8;;URL ESC\ text ESC]8;; ESC\` keeps just
+    # `text`; with only the BEL form, the bare-escape rule ate `ESC]` and left
+    # `8;;URL` welded into the cell) — and bare two-byte escapes.
     if _pp_in $'\033'; then
         _PP_OK=0
-        text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
+        text="$(printf '%s' "$text" | sed $'s/\033\\[[0-9;?]*[ -/]*[@-~]//g; s/\033\\][^\007\033]*\033\\\\//g; s/\033\\][^\007]*\007//g; s/\033[@-Z\\\\-_]//g')"
     fi
 
     # Strip terminal-bell and backspace control bytes (BEL \a, BS \b) — decoration
@@ -550,9 +557,16 @@ preprocess_input_text () {
     #   * `NAME ********…` banner rules (ansible's `PLAY RECAP ****`).
     _lc_strip () {
         local _in="$1" _out="" _body="" _l _lead=1 _n=0
-        local _drop_warn=1
+        local _drop_warn=1 _drop_sqlc=0 _sqlc_seen=0
         while IFS= read -r _l; do
             _n=$((_n + 1))
+            # `-- Query 1 (…)` SQL-comment banners directly above a JSON
+            # document (surreal sql) — dropped only when the first other
+            # non-blank line opens the document with `[` or `{`.
+            if [[ $_sqlc_seen -eq 0 && -n "${_l//[[:space:]]/}" && "$_l" != "-- "* ]]; then
+                _sqlc_seen=1
+                [[ $_n -gt 1 && "$_l" =~ ^[[:space:]]*[\[{] ]] && _drop_sqlc=1
+            fi
             [[ $_n -le 1 ]] && continue
             [[ "$_l" =~ ^(WARNING|ERROR|NOTICE): ]] && _drop_warn=0
         done <<< "$_in"
@@ -561,6 +575,7 @@ preprocess_input_text () {
             if [[ $_lead -eq 1 ]]; then
                 if [[ -z "${_l//[[:space:]]/}" ]]; then :
                 elif [[ "$_l" =~ ^\$\ [A-Za-z] ]]; then continue
+                elif [[ $_drop_sqlc -eq 1 && "$_l" == "-- "* ]]; then continue
                 elif [[ $_drop_warn -eq 1 && "$_l" =~ ^(WARNING|ERROR|NOTICE): ]]; then continue
                 elif [[ "$_l" =~ \*{6,}[[:space:]]*$ && "$_l" =~ ^[A-Z] ]]; then continue
                 elif [[ "$_l" =~ ^[A-Z][a-z]+([[:space:]]+[a-z]+){2,}$ ]] && \
@@ -643,7 +658,7 @@ preprocess_input_text () {
     fi
 
     case "$text" in
-        '$ '*|WARNING:*|ERROR:*|NOTICE:*|*'******'*|List\ *|Ran\ *)
+        '$ '*|WARNING:*|ERROR:*|NOTICE:*|*'******'*|List\ *|Ran\ *|'-- '*)
             text="$(_lc_strip "$text")" ;;
         [A-Z]*)
             # prose-title first line — cheap pre-check before the full pass

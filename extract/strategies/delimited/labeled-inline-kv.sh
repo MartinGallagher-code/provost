@@ -27,6 +27,13 @@
 _lik_kvpart () {
     local line="$1"
     [[ "$line" == *:* ]] || return 1
+    # A label holding `=` is not a label: the first colon then sits INSIDE a
+    # value (`ts=00:00 cpu=45% load=1,23` — a time, with a decimal comma
+    # later), so the line is plain inline k=v, not `label: k=v, …`.
+    [[ "${line%%:*}" == *=* ]] && return 1
+    # ...and a first colon flanked by digits is a clock time
+    # (`2026-07-10T09:12:04Z {app=…}`), not a label separator.
+    [[ "$line" =~ ^[^:]*[0-9]:[0-9] ]] && return 1
     local rest="${line#*:}"
     rest="${rest#"${rest%%[![:space:]]*}"}"
     [[ "$rest" == *=* ]] || return 1

@@ -44,13 +44,28 @@ strategy_detect () {
         fi
         # split on commas and/or whitespace; every token must be key=value and
         # there must be at least two (a single pair per line is another strategy).
+        # A comma-joined piece WITHOUT `=` inside one whitespace token
+        # continues the previous value (ovs-ofctl's `priority=100,ip`: the
+        # match field list, not a new pair).
         _pairs=0; _ok=1
-        local _oldifs="$IFS"; IFS=$', \t'
+        local _oldifs="$IFS"; IFS=$' \t'
         # shellcheck disable=SC2086
         set -- $_line
         IFS="$_oldifs"
-        for _tok in "$@"; do
-            if [[ "$_tok" =~ $_KVP_TOKEN_RE ]]; then _pairs=$((_pairs + 1)); else _ok=0; break; fi
+        local _wtok _pc _pi
+        for _wtok in "$@"; do
+            _pi=0
+            local _oldifs2="$IFS"; IFS=','
+            # shellcheck disable=SC2086
+            set -f; local _pcs=($_wtok); set +f
+            IFS="$_oldifs2"
+            for _pc in "${_pcs[@]}"; do
+                _pi=$((_pi + 1))
+                [[ -z "$_pc" ]] && continue
+                if [[ "$_pc" =~ $_KVP_TOKEN_RE ]]; then _pairs=$((_pairs + 1))
+                elif [[ $_pi -gt 1 && $_pairs -gt 0 ]]; then :
+                else _ok=0; break 2; fi
+            done
         done
         [[ "$_ok" -eq 1 && "$_pairs" -ge 2 ]] && _records=$((_records + 1))
     done
@@ -63,29 +78,33 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     printf '%s\n' "$text" | awk '
-        function is_all_kv(s,   a, i, n, p) {
-            n = split(s, a, /[ \t,]+/); p = 0
-            for (i = 1; i <= n; i++) {
-                if (a[i] == "") continue
-                if (a[i] ~ /^[A-Za-z_][A-Za-z0-9_.:-]*=/) p++
-                else return 0
+        # pairs of one line -> K[1..np] / V[1..np]; 0 when a piece is not kv
+        # (a comma-joined `=`-less piece continues the previous value)
+        function pairs(s,   w, nw, i, pc, npc, j) {
+            np = 0
+            nw = split(s, w, /[ \t]+/)
+            for (i = 1; i <= nw; i++) {
+                if (w[i] == "") continue
+                npc = split(w[i], pc, /,/)
+                for (j = 1; j <= npc; j++) {
+                    if (pc[j] == "") continue
+                    if (pc[j] ~ /^[A-Za-z_][A-Za-z0-9_.:-]*=/) {
+                        np++; eq = index(pc[j], "=")
+                        K[np] = substr(pc[j], 1, eq - 1); V[np] = substr(pc[j], eq + 1)
+                    } else if (j > 1 && np > 0) {
+                        V[np] = V[np] "," pc[j]
+                    } else return 0
+                }
             }
-            return (p >= 2) ? p : 0
+            return (np >= 2) ? np : 0
         }
         {
             line = $0
             gsub(/^[ \t]+|[ \t]+$/, "", line)
             if (line == "") next
-            if (!is_all_kv(line)) next
+            if (!pairs(line)) next
             n++
-            m = split(line, toks, /[ \t,]+/)
-            for (i = 1; i <= m; i++) {
-                if (toks[i] == "") continue
-                eq = index(toks[i], "=")
-                k = substr(toks[i], 1, eq - 1)
-                v = substr(toks[i], eq + 1)
-                printf "entry%d.%s %s\n", n, k, v
-            }
+            for (i = 1; i <= np; i++) printf "entry%d.%s %s\n", n, K[i], V[i]
         }
         END { if (n > 0) printf "total_entries %d\n", n }
     '

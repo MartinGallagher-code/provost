@@ -85,8 +85,8 @@ _COLUMNAR_SPECS=(
   $'turbostat\tBzy_MHz\t-\tws\t-1\t10\tCore,CPU,Avg_MHz,Busy_pct,Bzy_MHz,TSC_MHz,IRQ,PkgTmp,PkgWatt,RAMWatt\t1\t^[0-9]'
   $'traceroute\ttraceroute to\thops max\tws\t-1\t4\thop,host,~ip,rtt1@opt,~m1,rtt2@opt,~m2,rtt3@opt,~m3'
   $'git-remote\t(fetch);(push)\t-\tws\t-1\t3\tremote,url,direction@unwrap'
-  $'w-sessions\tLOGIN@;JCPU;PCPU;WHAT\tTTY\tws\t-1\t8\tuser,tty,from,login,idle,jcpu,pcpu,what@rest'
-  $'dpkg-list\tDesired=Unknown\t+++-\tws\t-1\t5\tstatus,name,version,arch,description@rest'
+  $'w-sessions\tLOGIN@;JCPU;PCPU;WHAT\tTTY\tws\t-1\t7\tuser,tty,from,login,idle,jcpu,pcpu,what@rest'
+  $'dpkg-list\tDesired=Unknown\t+++-\tws\t-1\t4\tstatus,name,version,arch,description@rest'
   $'tar-listing\tre:^[-dlbcps][-rwxsStT]{9} +[^ ]+/[^ ]+ +[0-9]+ +[0-9]{4}-[0-9]{2}-[0-9]{2} \t-\tws\t-1\t6\tpermissions,owner,size,date,time,path@rest'
   $'beegfs\tBeeGFS Storage Targets;TargetID\t=========\tws\t-1\t5\ttarget_id,~node_id,state,capacity,free_space\t0\t^[0-9]\ttarget'
 )

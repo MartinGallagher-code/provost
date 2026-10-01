@@ -44,8 +44,43 @@ strategy_detect () {
         fi
     done
     [[ $nonblank -eq 0 ]] && return 1
-    [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] && return 0
-    return 1
+    [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] || return 1
+
+    # YAML grammar: a PLAIN (unquoted) scalar may not contain `: ` and a line
+    # may not be TAB-indented. When most `key: value` lines break that, the
+    # text is not YAML but a line format that happens to open with a label —
+    # compiler diagnostics (`warning: unused import: `std::io`  src/main.rs:3`),
+    # tab-separated `Key: v<TAB>Key: v` records (kafka-topics --describe).
+    # Kept narrow: a TAB-indented key line is never YAML; `: ` inside plain
+    # values only counts when a top-level key also REPEATS (one diagnostic
+    # per line), so a lax-but-unique `Key: a | B: c` status block stays.
+    local _yk=0 _ybad=0 _ytab=0 _yv _ykey _ydup=0
+    local -A _yseen=()
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "$_l" =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_.-]*):[[:space:]]+(.*)$ ]] || continue
+        _yk=$((_yk + 1))
+        _ykey="${BASH_REMATCH[1]}"; _yv="${BASH_REMATCH[2]}"
+        [[ "$_l" == $'\t'* ]] && _ytab=$((_ytab + 1))
+        if [[ "$_l" != [[:space:]]* ]]; then
+            [[ -n "${_yseen[$_ykey]:-}" ]] && _ydup=1
+            _yseen[$_ykey]=1
+        fi
+        case "$_yv" in \"*|\'*|\{*|\[*|\|*|\>*|\&*|\!*) continue ;; esac
+        [[ "$_yv" == *": "* || "$_yv" == *$':\t'* ]] && _ybad=$((_ybad + 1))
+    done
+    [[ $_ytab -ge 1 ]] && return 1
+    # A FLAT block (no indented line at all) whose top-level key repeats is
+    # not a mapping — duplicate keys are invalid YAML — but a list of
+    # `label: text` records (`warning: …` / `error: …` diagnostics).
+    if [[ $_ydup -eq 1 ]]; then
+        local _yflat=1
+        for _l in "${_FR_LINES[@]}"; do
+            [[ "$_l" == [[:space:]]*[![:space:]]* ]] && { _yflat=0; break; }
+        done
+        [[ $_yflat -eq 1 ]] && return 1
+    fi
+    [[ $_ydup -eq 1 && $_yk -ge 2 && $(( _ybad * 100 / _yk )) -ge 50 ]] && return 1
+    return 0
 }
 
 strategy_extract () {
@@ -58,6 +93,9 @@ strategy_extract () {
     # Array index tracking: stack of counters per depth
     local array_counters=""
     local prev_depth=-1
+
+    # Compact-list heads: depth -> the bare `key:` at that depth
+    local -A _ym_base=()
 
     # Block scalar state
     local in_block=0
@@ -142,6 +180,36 @@ strategy_extract () {
             fi
         fi
 
+        # A list item that OPENS A MAPPING (`- apiVersion: v1`, followed by
+        # its sibling keys indented under the item) is element N of the list:
+        # its keys belong under `<list>.N.`, not one scalar `<list>.N
+        # apiVersion: v1` with the siblings flattened onto the bare list key
+        # (every element's `kind` colliding as `items.kind`). Covers both the
+        # compact style (dash at the parent key's own indent — kubectl `items:`)
+        # and the nested one (dash indented under it).
+        if [[ $is_array -eq 1 && "$array_value" =~ ^([a-zA-Z][a-zA-Z0-9_-]*):([[:space:]]+(.*))?$ \
+              && "$array_value" != *": |"* && "$array_value" != *": >"* ]]; then
+            local _ym_k="${BASH_REMATCH[1]}" _ym_v="${BASH_REMATCH[3]:-}"
+            _strat_yaml_get_counter "$depth"
+            local _ym_n="$_YAML_COUNTER"
+            _strat_yaml_set_counter "$depth" $((_ym_n + 1))
+            if [[ -n "${_ym_base[$depth]:-}" ]]; then
+                # compact: the list key lives at this same depth
+                _strat_yaml_set_stack "$depth" "${_ym_base[$depth]}.${_ym_n}"
+            else
+                _strat_yaml_set_stack "$depth" "${_ym_n}"
+            fi
+            _strat_yaml_set_stack "$((depth + 1))" "$_ym_k"
+            _strat_yaml_reset_counters_above "$((depth + 1))"
+            while [[ "$_ym_v" == *" " || "$_ym_v" == *"	" ]]; do _ym_v="${_ym_v%?}"; done
+            if [[ -n "$_ym_v" ]]; then
+                _strat_yaml_build_key "$((depth + 2))"
+                result+="${_YAML_KEY// /_} ${_ym_v}"$'\n'
+            fi
+            prev_depth=$depth
+            continue
+        fi
+
         if [[ $is_array -eq 1 ]]; then
             # Array entry: use parent key with numeric index
             local counter
@@ -181,6 +249,10 @@ strategy_extract () {
 
         # Update the key stack: trim stack to current depth
         _strat_yaml_set_stack "$depth" "$key"
+        # (a bare `key:` may head a compact list; any key line resets it)
+        local _ymd
+        for _ymd in "${!_ym_base[@]}"; do [[ $_ymd -ge $depth ]] && unset "_ym_base[$_ymd]"; done
+        [[ -z "$value" ]] && _ym_base[$depth]="$key"
 
         # Reset array counters for deeper levels when we move to a new key
         _strat_yaml_reset_counters_above "$depth"
