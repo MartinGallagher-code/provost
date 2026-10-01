@@ -21,7 +21,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"#instances"* && "$text" == *"#bytes"* && "$text" == *"class name"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

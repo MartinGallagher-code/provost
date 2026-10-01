@@ -22,7 +22,7 @@ strategy_detect () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if _iwlist_is_cell "$line"; then
-            _STRATEGY_CONFIDENCE=92
+            _STRATEGY_CONFIDENCE=95
             return 0
         fi
     done

@@ -20,7 +20,10 @@ strategy_detect () {
     # NB: no _is_json guard — sbt's "[info]"-prefixed lines start with '[' and
     # would be mis-flagged as a JSON array. The "[info] ... +-" signature below
     # is specific enough on its own.
-    if [[ "$text" == *"[info]"* && "$text" == *"+-"* ]]; then
+    # The "+-" branch must sit on an "[info]" line ("[info]   +-org:lib:1.0"),
+    # not merely somewhere in a log that also has an ASCII table.
+    local _re_branch='(^|'$'\n'')\[info\][[:space:]]+[|[:space:]]*\+-'
+    if [[ "$text" == *"[info]"* && "$text" == *"+-"* && "$text" =~ $_re_branch ]]; then
         _STRATEGY_CONFIDENCE=92
         return 0
     fi

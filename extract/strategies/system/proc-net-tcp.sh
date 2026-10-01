@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     [[ "$text" == *"local_address"* ]] || return 1
     [[ "$text" == *"rem_address"* ]] || return 1
     [[ "$text" == *"tx_queue"* ]] || return 1

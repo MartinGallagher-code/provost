@@ -1,5 +1,44 @@
 # provost — Changelog
 
+## 2026-10-01 — bespoke confidence audit: sub-tiers + 12 tightened detectors
+
+Calibration had set all 146 bespoke strategies to a flat 92 (pkg-config and
+git-log-graph 80) without auditing each detector. Each one is now scored on
+its signature, measured on the corpus: how many inputs it fires on, and on how
+many of those its parse is tidy.
+
+- **Sub-tiers** (`extract/README.md` › Confidence rubric › Bespoke sub-tiers):
+  95 unmistakable (38: multiple tool-only anchors), 92 strong (94: the
+  default), 88 distinctive but shared (12: e.g. `lastb`/`last`, `csvlook`/
+  markdown, the sysstat banner), ≤ 80 weak shape heuristics (`user-groups` 80,
+  `pkg-config` 79, `git-log`'s oneline branch 64; the `commit <sha>` form stays
+  92). Every score is a literal, so pruning ceilings stay exact.
+- **Tightened detectors** (detect only; the extract code is unchanged):
+  `database/clickhouse-processlist` (column names in the top border; it fired
+  on 55 inputs, and on 45 of them it beat `box-table` on another tool's box
+  table), `system/proc-net-snmp` (a same-label header + value line pair; it fired on
+  137 inputs and extracted from 1), `system/git-log-graph` (7+ hex SHA, now
+  88), `system/pkg-config` (rejects an all-identifier, gap-separated column
+  header), `system/lastb` (no `still logged in`/`system boot`, needs a closing
+  `(HH:MM)`), `build/pnpm-why` (line-initial `dependencies:`),
+  `system/fossil-timeline` (bracketed hex hash), `packages/dbmate-status`
+  (numeric migration version), `misc/terraform-plan-actions` (dotted resource
+  address), `build/sbt-dependencytree` (`+-` on an `[info]` line),
+  `system/systemd-tmpfiles-cat-config` (`# /…/tmpfiles.d/….conf` header),
+  `system/pipx-list` (`, installed using`); `misc/git-log` scores its oneline branch 64.
+- **Corpus, full mode:** 76 winners change: 58 now pass that failed, 16 are
+  neutral (all but 2 now also match the generic golden), and 2 now fail
+  (`duckdb-describe`, `pnpm-audit`), where the over-broad
+  `clickhouse-processlist` had happened to be right. `duckdb-describe`'s
+  manifest row (4 rows) counts the header as a data row, and `box-table`'s
+  3-row parse is the correct one. Bespoke misfires (wins with an untidy parse):
+  76 → 16, and the 16 left are each tool's own output. `--generic`
+  winners and goldens are unchanged. Coverage 3588 → 3586 (those two).
+  Holdout 78/80 and benchmark data are unchanged; only the benchmark meta
+  confidences differ.
+- Files: 61 strategy files under `extract/strategies/` (confidence literals
+  and the 13 detectors above), `extract/README.md`.
+
 ## 2026-10-01 — corpus gap-closing round: coverage 3588 → 3646 / 3705 (58 of 117 ⏳ closed)
 
 Format-level fixes only (plus 2 structural hint rows and 1 new generic parser);

@@ -18,6 +18,10 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"tmpfiles.d"* ]] || return 1
+    # --cat-config heads each file with a "# /path/tmpfiles.d/<name>.conf"
+    # comment line; the bare word "tmpfiles.d" appears in any systemd log.
+    local _re_hdr='(^|'$'\n'')#[[:space:]]+/[^[:space:]]*tmpfiles\.d/[^[:space:]]+\.conf'
+    [[ "$text" =~ $_re_hdr ]] || return 1
     _STRATEGY_CONFIDENCE=92
     return 0
 }

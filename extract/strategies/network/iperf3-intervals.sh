@@ -31,7 +31,7 @@ strategy_detect () {
     [[ "$text" == *Bitrate* ]]  || return 1
     [[ "$text" == *Interval* ]] || return 1
     [[ "$text" == *Transfer* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=88
     return 0
 }
 

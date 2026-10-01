@@ -20,7 +20,9 @@ strategy_detect () {
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        if [[ "$line" =~ ^\[[X\ ]\][[:space:]] ]]; then
+        # "[X] <version>_<name>": dbmate migration files lead with a numeric
+        # version. A bare "[ ] " / "[X] " checkbox is any markdown task list.
+        if [[ "$line" =~ ^\[[X\ ]\][[:space:]]+[0-9]+_ ]]; then
             _STRATEGY_CONFIDENCE=92
             return 0
         fi

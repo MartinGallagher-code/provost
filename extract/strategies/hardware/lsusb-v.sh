@@ -37,7 +37,7 @@ strategy_detect () {
     [[ "$text" == *"Device Descriptor:"* ]] || return 1
     [[ "$text" == *"bLength"* ]] || return 1
     [[ "$text" == *"idVendor"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

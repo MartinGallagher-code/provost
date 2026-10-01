@@ -21,7 +21,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"-- link:"* ]] || return 1
     [[ "$text" == *"Information acquired via protocol"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

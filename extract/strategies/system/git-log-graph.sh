@@ -24,10 +24,14 @@ strategy_detect () {
     local line has=0
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        _gitloggraph_is_commit "$line" && has=1
+        # Detect needs a real abbreviated SHA (7+ hex) after the `*` node:
+        # the extract helper's looser `[0-9a-f]+` also matches bullet lists
+        # ("  * db (0.13.1)" — `db` is hex) and `*` cells in tables (ss -s,
+        # consul intention list, samtools idxstats).
+        [[ "$line" =~ ^[|/\\\*[:space:]]*\*[[:space:]]+[0-9a-f]{7,40}[[:space:]] ]] && has=1
     done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=80
+        _STRATEGY_CONFIDENCE=88
         return 0
     fi
     return 1

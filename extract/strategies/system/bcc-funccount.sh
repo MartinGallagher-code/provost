@@ -22,7 +22,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Tracing"* && "$text" == *"FUNC"* && "$text" == *"COUNT"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=88
     return 0
 }
 

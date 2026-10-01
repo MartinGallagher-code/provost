@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=88
     _is_json "$text" && return 1
     if [[ "$text" == *"Supported Server Cipher"* ]] \
        || { [[ "$text" == *"Accepted"* ]] && [[ "$text" == *"bits"* ]] && [[ "$text" == *"TLS"* ]]; }; then

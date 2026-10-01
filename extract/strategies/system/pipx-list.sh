@@ -19,7 +19,9 @@ strategy_detect () {
     local saw_pkg=0 _l
     _fr_lines "$text"
     for _l in "${_FR_LINES[@]}"; do
-        [[ "$_l" =~ ^[[:space:]]+package[[:space:]]+[^[:space:]]+[[:space:]] ]] && { saw_pkg=1; break; }
+        # "   package black 24.3.0, installed using Python 3.11.4" — the
+        # "installed using" tail is pipx's; an indented "package foo" alone is not.
+        [[ "$_l" =~ ^[[:space:]]+package[[:space:]]+[^[:space:]]+[[:space:]] && "$_l" == *", installed using "* ]] && { saw_pkg=1; break; }
     done
     [[ $saw_pkg -eq 1 ]] || return 1
     _STRATEGY_CONFIDENCE=92

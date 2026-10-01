@@ -1185,7 +1185,7 @@ yq-eval-front	kv	-	2
 mlr-stats	table	2	6
 xsv-stats	text	-	2
 csvkit-csvstat	kv	-	2
-duckdb-describe	table	4	2
+duckdb-describe	table	3	2
 dolt-status	text	-	2
 parquet-tools-schema	text	-	2
 avro-tools-getschema	text	-	2

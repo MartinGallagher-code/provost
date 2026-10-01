@@ -62,7 +62,7 @@ strategy_detect () {
     first="${first%$'\r'}"
     [[ "$first" == "$_iperfpiv_title" ]] || return 1
     [[ "$text" == *"$_iperfpiv_rowscols"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

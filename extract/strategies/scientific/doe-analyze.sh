@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
 
     # Both markers must be present: the report is a sequence of
     # "=== Section Name: <response> ===" blocks and these two are the

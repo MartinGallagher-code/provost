@@ -36,7 +36,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"ctb="*"tag="* ]] || return 1
     [[ "$text" == *":public key packet:"* || "$text" == *":signature packet:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

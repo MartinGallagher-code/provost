@@ -1,0 +1,4 @@
+n	column_name	column_type	null
+1	id	BIGINT	NO
+2	name	VARCHAR	YES
+3	price	DECIMAL	YES

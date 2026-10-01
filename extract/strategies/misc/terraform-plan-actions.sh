@@ -22,7 +22,10 @@ strategy_detect () {
     local line
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        if [[ "$line" =~ ^[[:space:]]*#[[:space:]].*[[:space:]]will[[:space:]]be[[:space:]] ]]; then
+        # "# <resource address> will be …": the address is one dotted token
+        # (aws_instance.web, module.vpc.aws_subnet.a[0]) — not any comment that
+        # happens to say "will be".
+        if [[ "$line" =~ ^[[:space:]]*#[[:space:]]+[^[:space:]]+\.[^[:space:]]+[[:space:]]will[[:space:]]be[[:space:]] ]]; then
             _STRATEGY_CONFIDENCE=92
             return 0
         fi
