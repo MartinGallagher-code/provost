@@ -1553,7 +1553,9 @@ run_explain_mode () {
             [[ $_STRATEGY_CONFIDENCE -lt 0 ]] && _STRATEGY_CONFIDENCE=0
             [[ $_STRATEGY_CONFIDENCE -gt 100 ]] && _STRATEGY_CONFIDENCE=100
             local reason="${_STRATEGY_CONFIDENCE_REASON:-detected}"
-            match_lines="${match_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_STRATEGY_CONFIDENCE" "$reason")"$'\n'
+            # Sort key first (confidence, priority, name) — the order ranked
+            # detection tries the candidates in; cut off before printing.
+            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_STRATEGY_CONFIDENCE" "$reason")"$'\n'
             matched=$((matched + 1))
         else
             miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' 'not applicable')"$'\n'
@@ -1570,9 +1572,12 @@ run_explain_mode () {
     printf '%-7s  %-30s  %4s  %4s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "REASON"
     printf '%-7s  %-30s  %4s  %4s  %s\n' "------" "--------" "---" "----" "------"
 
-    # Matches first (sorted by confidence desc), then misses
+    # Matches first, in RANK order — confidence desc, then priority, then
+    # strategy name (LC_ALL=C), exactly as ranked detection tries them (the
+    # first whose extract yields output wins; a hints.tsv row, if one
+    # matches, is tried before all of them) — then misses.
     if [[ -n "$match_lines" ]]; then
-        printf '%s' "$match_lines" | sort -t'(' -k1,1r
+        printf '%s' "$match_lines" | LC_ALL=C sort -t'|' -k1,1nr -k2,2n -k3,3 | cut -d'|' -f4-
     fi
     if [[ -n "$miss_lines" ]]; then
         printf '%s' "$miss_lines"

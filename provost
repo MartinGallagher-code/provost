@@ -514,11 +514,47 @@ _scan_max_capture_num () {
 # Idempotent store upkeep for stores made by an older provost: add the
 # .gitignore, untrack a committed .lock (and other runtime files), and seed the
 # monotonic capture counter. Only when writable and on the capture branch.
+# Store format, recorded (and committed) in .store_format. 2 = datasets carry
+# no `total_entries` column (melt stopped emitting the engine's record count
+# on 2026-09-25; datasets written before then still had it).
+_STORE_FORMAT=2
+_store_format_file () { printf '%s/.store_format\n' "$PROVOST_WORKSPACE"; }
+_store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$f" || echo 1; }
+
+# Format 1 -> 2: drop the `total_entries` column from every dataset that has
+# one. It is the engine's per-capture record count, not a variable; in a
+# reconciled dataset new rows already blank-fill it. Only a column whose cells
+# are all integers or empty is dropped — anything else is real data under
+# that name and stays.
+_migrate_drop_total_entries () {
+    local f tmp
+    for f in "$(_ds_dir)"/*.tsv; do
+        [[ -f "$f" ]] || continue
+        tmp="$f.mig.$$"
+        if awk -F'\t' -v OFS='\t' '
+            NR == 1 { for (i = 1; i <= NF; i++) if ($i == "total_entries") c = i
+                      if (!c) exit 3 }
+            { L[NR] = $0; if (NR > 1 && $c != "" && $c !~ /^[0-9]+$/) exit 3 }
+            END {
+                if (!c) exit 3
+                for (r = 1; r <= NR; r++) {
+                    n = split(L[r], F, "\t"); out = ""; k = 0
+                    for (i = 1; i <= n; i++) if (i != c) { out = out (k++ ? OFS : "") F[i] }
+                    print out
+                }
+            }' "$f" > "$tmp"; then
+            mv "$tmp" "$f"
+        else
+            rm -f "$tmp"
+        fi
+    done
+}
+
 _migrate_store () {
     local ws="$PROVOST_WORKSPACE" first=""
     [[ -d "$ws/.git" && -w "$ws" ]] || return 0
     [[ -f "$ws/.gitignore" ]] && { IFS= read -r first < "$ws/.gitignore" || true; }
-    [[ "$first" == "$_GITIGNORE_MARK" && -f "$(_capid_file)" ]] && return 0
+    [[ "$first" == "$_GITIGNORE_MARK" && -f "$(_capid_file)" && "$(_store_format)" -ge $_STORE_FORMAT ]] && return 0
     _git symbolic-ref -q HEAD >/dev/null 2>&1 || return 0      # restored/detached: later
     _lock
     IFS= read -r first < "$ws/.gitignore" 2>/dev/null || first=""
@@ -530,7 +566,11 @@ _migrate_store () {
     if [[ ! -f "$(_capid_file)" ]]; then
         echo "$(( $(_scan_max_capture_num) + 1 ))" > "$(_capid_file)"
     fi
-    _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter)"
+    if (( $(_store_format) < 2 )); then
+        _migrate_drop_total_entries
+    fi
+    echo "$_STORE_FORMAT" > "$(_store_format_file)"
+    _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter, store format $_STORE_FORMAT)"
     _unlock
 }
 
@@ -551,6 +591,7 @@ _ensure_workspace () {
             _write_gitignore
             printf 'provost workspace (store model %s)\n' "$PROVOST_VERSION" > "$PROVOST_WORKSPACE/.provostrc"
             [[ -f "$(_capid_file)" ]] || echo 1 > "$(_capid_file)"
+            echo "$_STORE_FORMAT" > "$(_store_format_file)"
         fi
         [[ -f "$(_rowid_file)" ]] || echo 1 > "$(_rowid_file)"
         _commit "provost: init workspace"

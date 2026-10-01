@@ -1,5 +1,21 @@
 # provost — Changelog
 
+## 2026-10-01 — repo diet and follow-up cleanups
+
+- **Removed** `bundle.txt` (9.5 MB whole-tree copy rewritten on every commit)
+  with `tests/check-bundle-current.sh` and its CI step; bundles are built on
+  demand (CLAUDE.md). **Removed** `tests/corpus/review-output/` (3,709 files,
+  15 MB, 94% duplicate of `expected/`); `tests/corpus/review-snapshot.sh`
+  regenerates it and `prescreen.py` says so. Both are gitignored.
+- **`--explain`** lists matches in rank order (confidence, priority, name) —
+  its first MATCH is the strategy ranked detection tries first
+  (`extract/lib/_discovery.sh`; test in `extract/tests/test_rank.sh`).
+- **Store format 2** (`provost`): a store records `.store_format`; on the next
+  write an older store's datasets drop the `total_entries` record-count column
+  (only when every cell is an integer or empty), committed as store
+  maintenance. New stores start at format 2. Smoke 197 → 203 checks.
+- `docs/0003-multi-dataset.md` describes confidence-ranked winners.
+
 ## 2026-09-25 — ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
 
 - **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with

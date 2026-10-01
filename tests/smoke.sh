@@ -602,5 +602,23 @@ check "refusal names the offending key" "filter.evil.clean" "$vet_out"
 printf 'a,b\n1,2\n' | PROVOST_WORKSPACE="$VWS" "$PROVOST" --sync >/dev/null 2>&1 || true
 check "no capture runs git in a refused store" "no" "$([[ -e "$T/pwned-filter" ]] && echo yes || echo no)"
 
+# Store format 2: an old store's datasets lose the engine's `total_entries`
+# record-count column on the next write (reads never rewrite the store); a non-integer column of that name is data
+# and stays; new stores start at format 2.
+MWS="$(mktemp -d)/.migrate"
+printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
+check "new store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
+mds="$(ls "$MWS/datasets" | head -1)"
+awk -F'\t' -v OFS='\t' 'NR==1{print $0, "total_entries"; next} {print $0, 2}' "$MWS/datasets/$mds" > "$MWS/x" && mv "$MWS/x" "$MWS/datasets/$mds"
+printf 'a\ttotal_entries\nx\tnot-a-count\n' > "$MWS/datasets/keep.tsv"
+rm -f "$MWS/.store_format"
+tgit "$MWS" add -A >/dev/null 2>&1; tgit "$MWS" commit -qm "simulate an old store" >/dev/null 2>&1
+printf 'k=v\nj=w\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1   # the next write migrates
+check_not "migration drops the record-count column" "total_entries" "$(head -1 "$MWS/datasets/$mds")"
+check "migration keeps the dataset's rows" "sdb1" "$(cat "$MWS/datasets/$mds")"
+check "a non-count total_entries column is kept" "total_entries" "$(head -1 "$MWS/datasets/keep.tsv")"
+check "migrated store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "migration is committed" "store format 2" "$(tgit "$MWS" log --format=%s)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

@@ -28,19 +28,14 @@ Behaviour worth knowing:
   make git run programs.
 - Engines run with `ENVOY_NO_RC=1`; the `.envoyrc` layer is off under provost.
 
-Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
+Suites (all CI-enforced): `tests/smoke.sh` (203), `transform/tests/test_melt.sh`
 (54), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
 (mawk and gawk), `tests/corpus/run.sh --golden`, `python -m pytest`.
 
 ## Next steps
 
-1. **Two repo-weight items** (deletions held for the owner, who plans to
-   delete `bundle.txt` themselves):
-   `bundle.txt` (9.5 MB, a whole-tree copy committed on every change — could be
-   built on demand or attached to releases instead, dropping
-   `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
-   94% byte-identical to `expected/`; `tests/corpus/review-snapshot.sh` now
-   regenerates it, so it can be gitignored).
+1. **Repo weight** (2026-10-01): `bundle.txt` and the committed corpus
+   review snapshot are gone (build/regenerate on demand; both gitignored).
 2. **Large inputs** (2026-09-25): detection screens a bounded sample above
    32 KB and re-confirms the winner on the full text; the hot generic parsers
    and the engine's own passes have byte-identical awk twins; a big result
@@ -61,10 +56,9 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    wins (ties: priority, name), with exact ceiling pruning so a strong early
    candidate skips the detectors that cannot beat it. `--rank priority` keeps
    the old first-match order. Open: bespoke strategies sit at a uniform 92
-   without a per-detector signature audit; `run_explain_mode` still lists
-   matches in name order; `docs/0003-multi-dataset.md` still describes
-   priority-order winners.
-4. Old stores keep a `total_entries` column in existing datasets; new rows
-   blank-fill it. A one-off migration could drop it if that matters.
+   without a per-detector signature audit; `--explain` lists matches in rank
+   order.
+4. Old stores migrate to store format 2 on their next write (`total_entries`
+   column dropped from datasets).
 5. The `envoy-*` / `ENVOY_*` / `MFE_*` internal names remain (a large rename,
    deliberately separate).

@@ -5,8 +5,11 @@
 
 ## The problem
 
-The extract engine's model is one winner per input: strategies compete in
-priority order and the first to produce output defines *the* dataset. That is
+The extract engine's model is one winner per input: every eligible strategy's
+detector runs, candidates are ranked by calibrated confidence (ties: priority,
+then name — see "Candidate ranking" in `extract/README.md`), and the best one
+that produces output defines *the* dataset. (Before 2026-09-25 the first
+strategy in priority order won; `--rank priority` keeps that.) That is
 right for most captures, but some reports genuinely hold **several datasets**:
 
 - `iostat -x` prints an **avg-cpu kv block** *and* a **Device table**. The
@@ -26,9 +29,12 @@ outputs — for instance a key/value in the same input with a table."*
 `--replay`, `--strategy`, `--interactive`):
 
 1. **Split** the preprocessed input on blank-line boundaries into blocks.
-2. **Detect-only pass** per block over the priority-sorted strategy list
-   (same filters as auto-detection: `--generic` dirs, deprecation) — each
-   block gets a would-be winner name, or none.
+2. **Detect-only pass** per block over the strategy list (same filters as
+   auto-detection: `--generic` dirs, deprecation, `--min-confidence`) — each
+   block gets a would-be winner name, or none: the highest-confidence
+   detector (ties: priority, then name), or under `--rank priority` the first
+   by priority. Being detect-only, it cannot fall through an empty extract;
+   the per-group extract does that.
 3. **Group** consecutive blocks that share BOTH the winner name AND shape
    (modal token count ±1). Name alone is too coarse — iostat's avg-cpu block
    and Device table both detect `aligned-columns`, but at 6–7 vs 16 tokens
