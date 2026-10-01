@@ -1,0 +1,5 @@
+n	ts	event	count
+1	09:00	login	420
+2	09:05	error	12
+3	09:10	login	388
+4	09:15	logout	201

@@ -1,0 +1,4 @@
+n	column_name	min	max	mean	count
+1	amount	0.50	9999.00	214.77	100000
+2	quantity	1	500	12.40	100000
+3	discount_pct	0.0	0.75	0.08	100000

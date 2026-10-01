@@ -33,7 +33,7 @@ dbmate-status	contains	Applied: 	dbmate-status
 decode-dimms	contains	---=== 	banner-sections-kv
 dmsetup-table	regex	^[a-zA-Z0-9_-]+: [0-9]+ [0-9]+ (linear|striped|thin|cache|crypt|mirror|raid|snapshot|error|zero)	line-records
 docker-buildx-ls	prefix	NAME/NODE	aligned-columns
-fwupdmgr-get-devices	contains	Device ID:	nested-colon-kv
+fwupdmgr-get-devices	regex	Device ID: +[0-9a-f]{40}	nested-colon-kv
 getcap	regex	^/[^[:space:]]+ +[a-z0-9_,+]*cap_[a-z_,+]+[=+]	line-records
 getconf	prefix	PAGE_SIZE	line-records
 git-config-list-show-origin	prefix	file:/	line-records
@@ -48,7 +48,7 @@ kotlinc-version	prefix	info: kotlinc-jvm 	line-records
 lscpu-extended	prefix	CPU NODE SOCKET CORE	aligned-columns
 lsusb-t	prefix	/:  Bus	text-lines
 mii-tool	regex	^[a-z0-9]+: (negotiated|no link|link ok|10base|100base|1000base)	labeled-records
-nft-list-tables	regex	^table [^{]+$	line-records
+nft-list-tables	regex	^table (ip|ip6|inet|arp|bridge|netdev) [^{]+$	line-records
 nslookup_mx	contains	mail exchanger = 	section-kv
 nvidia-smi-topo	contains	CPU Affinity	aligned-columns
 pacman-ql	regex	^[a-z][a-z0-9@._+-]* /(usr|etc|var|opt|bin|lib)	line-records
@@ -60,7 +60,7 @@ proc-locks	regex	^1: (POSIX|FLOCK|OFDLCK)	line-records
 proc-mounts	prefix	proc /proc proc 	aligned-columns
 proc-self-mountinfo	regex	^[0-9]+ [0-9]+ [0-9]+:[0-9]+ / /	aligned-columns
 promtool-query	regex	^[A-Za-z_0-9:]+\{[^}]*\} => 	prometheus-query
-smartctl-health	contains	overall-health self-assessment	block-records
+smartctl-health	regex	overall-health self-assessment test result:[^#]*$	block-records
 systemctl-list-units	regex	^ *UNIT +LOAD +ACTIVE	aligned-columns
 tc-filter-show	prefix	filter parent 	text-lines
 tc-qdisc	prefix	qdisc 	text-lines
@@ -123,3 +123,5 @@ whois_domain	prefix	Domain Name:	nested-colon-kv
 udevadm-info	regex	^P: /devices/	nested-colon-kv
 nmcli-device-show	regex	^GENERAL\.DEVICE:	first-word-kv
 clpeak-run	contains	memory bandwidth (GBPS)	nested-colon-kv
+lsblk-tree	regex	^ *NAME +MAJ:MIN .*(├─|└─)	aligned-columns
+powertop-devices	regex	^Usage +Device name	aligned-columns

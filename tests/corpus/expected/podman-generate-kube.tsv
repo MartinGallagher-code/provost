@@ -1,2 +1,2 @@
-apiVersion	kind	metadata.name	metadata.labels.app	spec.0	spec.containers.image	spec.containers.0
-v1	Pod	web-pod	web	name: web	docker.io/library/nginx:1.27	containerPort: 80
+apiVersion	kind	metadata.name	metadata.labels.app	spec.containers.0.name	spec.containers.0.image	spec.containers.0.ports.0.containerPort
+v1	Pod	web-pod	web	web	docker.io/library/nginx:1.27	80

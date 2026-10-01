@@ -1,2 +1,6 @@
-go	go	go	go	go
-finding module for package github.com/acme/common	downloading github.com/acme/common v1.4.2	added github.com/acme/common v1.4.2 to ./api/go.mod	updated ./worker/go.mod: github.com/acme/common v1.4.1 => v1.4.2	synced 3 modules in workspace: ./api ./worker ./cli
+n	name	value
+1	go	finding module for package github.com/acme/common
+2	go	downloading github.com/acme/common v1.4.2
+3	go	added github.com/acme/common v1.4.2 to ./api/go.mod
+4	go	updated ./worker/go.mod: github.com/acme/common v1.4.1 => v1.4.2
+5	go	synced 3 modules in workspace: ./api ./worker ./cli

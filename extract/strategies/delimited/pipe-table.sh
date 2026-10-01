@@ -84,7 +84,12 @@ _pt_bare_shape () {
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
-        [[ "$_line" == "|"* || "$_line" == *"|" ]] && return 1
+        [[ "$_line" == "|"* ]] && return 1
+        # A trailing `|` on a DATA row is an empty last cell (`sacct -p`'s
+        # `…|02:14:33|` with no MaxRSS) — still the header's cell count, so
+        # the count check below decides. Only the header may not end in one
+        # (with no leading bar, a bar-terminated header is no table shape).
+        [[ $want -lt 0 && "$_line" == *"|" ]] && return 1
         [[ "$_line" == *"---+---"* ]] && return 1
         _pt_split_bare "$_line"
         [[ ${#_PT_CELLS[@]} -lt 2 ]] && return 1

@@ -1,2 +1,5 @@
-Ncat	Ncat	Ncat	Ncat
-Version 7.94 ( https://nmap.org/ncat )	Listening on 0.0.0.0:8080	Connection from 10.0.1.4:51022.	Connection from 10.0.1.5:51044.
+n	name	value
+1	Ncat	Version 7.94 ( https://nmap.org/ncat )
+2	Ncat	Listening on 0.0.0.0:8080
+3	Ncat	Connection from 10.0.1.4:51022.
+4	Ncat	Connection from 10.0.1.5:51044.

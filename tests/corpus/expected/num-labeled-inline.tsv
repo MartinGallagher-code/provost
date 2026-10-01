@@ -1,0 +1,5 @@
+n	ts	cpu	mem	load	net
+1	00:00	45%	3.2GiB	1,23	1.2Gbps
+2	00:05	78%	7.1GiB	2,71	980Mbps
+3	00:10	12%	1.1GiB	0,42	45Mbps
+4	00:15	95%	9.9GiB	5,00	2.5Gbps

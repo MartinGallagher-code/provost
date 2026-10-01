@@ -1,0 +1,4 @@
+n	group	value
+1	HD Webcam C920 (usb-0000:00:14.0-1)	/dev/video0
+2	HD Webcam C920 (usb-0000:00:14.0-1)	/dev/video1
+3	Integrated Camera (usb-0000:00:14.0-6)	/dev/video2

@@ -1,2 +1,2 @@
-image.pullPolicy	image.repository	image.tag	ingress.enabled	ingress.hosts.0	ingress.hosts._.paths.0	replicaCount	resources.limits.cpu	resources.limits.memory	resources.requests.cpu	resources.requests.memory	service.port	service.type
-IfNotPresent	nginx	"1.25"	true	host: web.example.com	/	3	500m	256Mi	100m	128Mi	80	ClusterIP
+image.pullPolicy	image.repository	image.tag	ingress.enabled	ingress.hosts.0.host	ingress.hosts.0.paths.0	replicaCount	resources.limits.cpu	resources.limits.memory	resources.requests.cpu	resources.requests.memory	service.port	service.type
+IfNotPresent	nginx	"1.25"	true	web.example.com	/	3	500m	256Mi	100m	128Mi	80	ClusterIP

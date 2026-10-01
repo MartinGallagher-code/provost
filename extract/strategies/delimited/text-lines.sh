@@ -101,9 +101,35 @@ strategy_detect () {
     return 0
 }
 
+# SINGLE-COLUMN HEADER: a one-column list whose first line is a lone label
+# (`NAME`, `FILE`, `Packages` — letters only, ALL-CAPS or Titlecase) over >= 3
+# lines that are all values (each opens lowercase, with a digit, `/` or `.`)
+# is a headed column, not a list whose first item is the word. Sets
+# _SCH_NAME (the column name) or leaves it empty. Shared shape with
+# text-lines / line-records.
+_sch_detect () {
+    local _sl _sn=0 _sfirst=""
+    _SCH_NAME=""
+    _fr_lines "$1"
+    for _sl in "${_FR_LINES[@]}"; do
+        [[ "${_sl}" != *[![:space:]]* ]] && continue
+        _sl="${_sl#"${_sl%%[![:space:]]*}"}"; _sl="${_sl%"${_sl##*[![:space:]]}"}"
+        _sn=$((_sn + 1))
+        if [[ $_sn -eq 1 ]]; then
+            [[ "$_sl" =~ ^[A-Z][A-Za-z_]{2,}$ ]] || return 1
+            [[ "$_sl" =~ ^[A-Z_]+$ || "$_sl" =~ ^[A-Z][a-z_]+$ ]] || return 1
+            _sfirst="$_sl"; continue
+        fi
+        [[ "$_sl" =~ ^[a-z0-9/.] ]] || return 1
+    done
+    [[ $_sn -ge 4 ]] || return 1
+    _SCH_NAME="$_sfirst"
+}
+
 strategy_extract () {
     local text="$1"
-    local result="" entry=0 _l
+    local result="" entry=0 _l _col="A" _skip=0
+    if _sch_detect "$text"; then _col="$_SCH_NAME"; _skip=1; fi
     _fr_lines "$text"
     for _l in "${_FR_LINES[@]}"; do
         # Trim surrounding whitespace but keep the line's own spaces.
@@ -111,8 +137,9 @@ strategy_extract () {
         v="${v#"${v%%[![:space:]]*}"}"
         v="${v%"${v##*[![:space:]]}"}"
         [[ -z "$v" ]] && continue
+        [[ $_skip -eq 1 ]] && { _skip=0; continue; }
         entry=$((entry + 1))
-        result+="entry${entry}.A ${v}"$'\n'
+        result+="entry${entry}.${_col} ${v}"$'\n'
     done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

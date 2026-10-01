@@ -1,0 +1,4 @@
+n	Enclosure_Device_ID	Slot_Number	Media_Type	PD_Type	Raw_Size	Firmware_state	Inquiry_Data
+2	252	0	Solid State Device	SATA	3.492 TB [0x1bf244b0 Sectors]	Online, Spun Up	SAMSUNG MZ7LH3T8  1234
+3	252	1	Solid State Device	SATA	3.492 TB [0x1bf244b0 Sectors]	Online, Spun Up	SAMSUNG MZ7LH3T8  5678
+4	252	2	Hard Disk Device	SAS	7.276 TB [0x37e48960 Sectors]	Rebuild	SEAGATE ST8000NM  9012

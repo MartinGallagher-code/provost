@@ -3,11 +3,5 @@ n	A	B	C	D	E
 2	18.42%	postgres	postgres	[.]	heap_getnext
 3	11.09%	postgres	libc-2.31.so	[.]	__memmove_avx
 4	7.55%	postgres	postgres	[.]	ExecScan
-5	#	Samples:	4K	of	event 'instructions'
-6	#	Event	count	(approx.):	24019887711
-7	#				
-8	#	Overhead	Command	Shared	Object Symbol
-9	#	........	.......	................	..................
-10	#				
-11	22.10%	postgres	postgres	[.]	slot_deform_tuple
-12	9.87%	postgres	[kernel.kallsyms]	[k]	copy_user_generic
+5	22.10%	postgres	postgres	[.]	slot_deform_tuple
+6	9.87%	postgres	[kernel.kallsyms]	[k]	copy_user_generic

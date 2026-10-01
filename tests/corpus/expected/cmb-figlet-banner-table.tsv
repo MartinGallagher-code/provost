@@ -1,0 +1,4 @@
+n	DATABASE	OWNER	ENCODING	CONNS
+1	postgres	postgres	UTF8	4
+2	app_prod	appuser	UTF8	88
+3	app_stage	appuser	UTF8	12

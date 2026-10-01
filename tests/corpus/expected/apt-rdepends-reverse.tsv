@@ -1,0 +1,9 @@
+n	group	Reverse_Depends
+1	zlib1g	libpng16-16 (>= 1.6.2-1)
+2	zlib1g	dpkg (>= 1.17.0)
+3	zlib1g	libxml2 (>= 2.7.4)
+4	libpng16-16	libgd3
+5	libpng16-16	libfreetype6
+6	libxml2	libxslt1.1
+7	libxml2	python3-lxml
+8	libgd3	php8.1-gd

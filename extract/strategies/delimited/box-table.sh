@@ -177,6 +177,8 @@ strategy_extract () {
                 case "${_tc%%(*}" in
                     varchar|char|text|string|blob|bytea|uuid|json|jsonb|xml|bool|boolean|bit \
                     |int|integer|tinyint|smallint|bigint|hugeint|int2|int4|int8|serial \
+                    |int16|int32|int64|int128|uint8|uint16|uint32|uint64|utinyint|usmallint|uinteger|ubigint \
+                    |float32|float64 \
                     |float|float4|float8|double|real|decimal|numeric|number \
                     |date|time|timestamp|timestamptz|datetime|interval|enum|array|map|struct) : ;;
                     *) _allty=0; break ;;

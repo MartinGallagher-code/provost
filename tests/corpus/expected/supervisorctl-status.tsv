@@ -1,0 +1,5 @@
+n	A	B	C	D	E	F
+1	web:web_00	RUNNING	pid	8821,	uptime	2:14:08
+2	web:web_01	RUNNING	pid	8822,	uptime	2:14:08
+3	worker:celery	RUNNING	pid	8830,	uptime	2:13:44
+4	scheduler	STOPPED	Jul	10	04:00	AM

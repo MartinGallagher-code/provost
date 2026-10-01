@@ -64,9 +64,14 @@ _psql_split () {
     # Strip outer '|' borders only for a FULL box row (both ends piped, e.g.
     # `| a | b |` from mysql / aws --output table). A psql row has no leading '|',
     # so its trailing '|' denotes a genuine empty last column and must be kept.
-    local _lead=0
-    [[ "$row" == "|"* ]] && { row="${row#|}"; _lead=1; }
-    [[ $_lead -eq 1 && "$row" == *"|" ]] && row="${row%|}"
+    # A row that only OPENS with '|' (after the trim) is a psql row whose FIRST
+    # cell is blank — hugo's `                   | EN` header over its
+    # `Pages | 442` rows — so that bar is a separator, not a border.
+    if [[ "$row" == "|"*"|" && ${#row} -ge 2 ]]; then
+        row="${row#|}"; row="${row%|}"
+    elif [[ "$row" == "|"* && "$1" != [[:space:]]* ]]; then
+        row="${row#|}"
+    fi
     # Split on '|' EXCEPT a backslash-escaped '\|' — SQL result cells legitimately
     # contain literal bars (regex alternations, `s1 || s2` concat expressions) and
     # psql-style renderers escape them as '\|'. A naive split shreds such a row

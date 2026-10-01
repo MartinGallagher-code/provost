@@ -1,0 +1,6 @@
+n	LV	VG	Attr	LSize	Data%	Meta%	Pool	Origin
+1	root	vg0	-wi-ao----	200.00g				
+2	swap	vg0	-wi-ao----	8.00g				
+3	thinpool	vg0	twi-aotz--	400.00g	42.10	18.55		
+4	data	vg0	Vwi-aotz--	100.00g	88.20		thinpool	
+5	snap	vg0	Vwi-a-tz--	100.00g	12.40		thinpool	data

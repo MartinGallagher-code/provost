@@ -1,2 +1,5 @@
-field	value
-Summary	412.4 wakeups/second, 88.2 GPU ops/seconds, 44.1 VFS ops/sec
+n	A
+1	Summary: 412.4 wakeups/second, 88.2 GPU ops/seconds, 44.1 VFS ops/sec
+2	Power est.       Usage     Events/s   Category   Description
+3	12.4 W         88.2%      412.4      Device     Display backlight
+4	4.2 W          2.1%       88.2      Process    /usr/bin/firefox

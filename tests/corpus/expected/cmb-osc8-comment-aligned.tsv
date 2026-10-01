@@ -1,0 +1,5 @@
+n	PACKAGE	VERSION	UPSTREAM
+1	nginx	1.25.4	nginx.org
+2	openssl	3.2.1	openssl.org
+3	curl	8.6.0	curl.se
+4	zlib	1.3.1	zlib.net

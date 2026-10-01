@@ -1,0 +1,4 @@
+n	Host	HostName	User	Port	IdentityFile
+1	web1	203.0.113.10	deploy	22	~/.ssh/id_web
+2	web2	203.0.113.11	deploy	22	~/.ssh/id_web
+3	bastion	198.51.100.5	admin	2222	~/.ssh/id_bastion

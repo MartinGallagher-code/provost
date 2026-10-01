@@ -1,0 +1,7 @@
+entry1.group openssl
+entry1.Depends libc6 (>= 2.34)
+entry2.group openssl
+entry2.Depends libssl3 (>= 3.0.0)
+entry3.group libc6
+entry3.Depends libgcc-s1
+total_entries 3

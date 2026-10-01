@@ -1,0 +1,5 @@
+n	SENSOR	READING	TREND
+1	cpu_pkg	████████░░ 78°C	up
+2	gpu	█████░░░░░ 54°C	flat
+3	psu_load	███░░░░░░░ 31%	down
+4	fan_duty	██████░░░░ 61%	up

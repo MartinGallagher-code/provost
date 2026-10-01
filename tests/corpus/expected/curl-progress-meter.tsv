@@ -1,4 +1,6 @@
-n	%	Total	Received	Xferd	Average	Speed	Time	Current
-1	0	1256M	1256M	0	10.2M	0	--:--:--	11.1M
-2	0	842M	531M	0	8940k	0	0:00:36	9012k
-3	0	92.6M	92.6M	0	14.4M	0	--:--:--	15.1M
+n	A	B	C	D	E	F	G	H	I	J	K	L
+1	%	Total	%	Received	%	Xferd	Average	Speed	Time	Time	Time	Current
+2	Dload	Upload	Total	Spent	Left	Speed						
+3	100	1256M	100	1256M	0	0	10.2M	0	0:02:03	0:02:03	--:--:--	11.1M
+4	63	842M	63	531M	0	0	8940k	0	0:01:36	0:01:00	0:00:36	9012k
+5	100	92.6M	100	92.6M	0	0	14.4M	0	0:00:06	0:00:06	--:--:--	15.1M

@@ -25,7 +25,7 @@ strategy.
 |---|---|
 | `envoy-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 257 format-detection strategies, in 15 category dirs (111 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 258 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,7 +33,7 @@ strategy.
 
 ## Strategy count
 
-257 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 86, system 57,
+258 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 87, system 57,
 network 31, structured 25, security 10, filesystem 8, build 7, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true

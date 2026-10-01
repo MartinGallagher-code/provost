@@ -1,2 +1,3 @@
-n	pid	2210's	current	affinity	mask:	ff
-1	pid	2210's	current	affinity	list:	0-7
+n	A	B	C	D	E	F
+1	pid	2210's	current	affinity	mask:	ff
+2	pid	2210's	current	affinity	list:	0-7

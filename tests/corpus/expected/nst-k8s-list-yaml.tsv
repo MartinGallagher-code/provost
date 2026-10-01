@@ -1,0 +1,4 @@
+n	apiVersion	kind	items.apiVersion	items.kind	items.metadata.name	items.metadata.namespace	items.status.phase
+1	v1	List	v1	Pod	web-1	prod	Running
+2	v1	List	v1	Pod	web-2	prod	Pending
+3	v1	List	v1	Pod	db-1	data	Running

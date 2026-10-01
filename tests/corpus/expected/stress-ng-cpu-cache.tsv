@@ -1,2 +1,5 @@
-stress-ng	stress-ng	stress-ng	stress-ng
-info:  [1284] dispatching hogs: 8 cache	info:  [1284] cache: default cache size: 30720K	metrc: [1284] stressor       bogo ops     bogo ops/s	metrc: [1284] cache            482100        48172.83
+n	name	value
+1	stress-ng	info:  [1284] dispatching hogs: 8 cache
+2	stress-ng	info:  [1284] cache: default cache size: 30720K
+3	stress-ng	metrc: [1284] stressor       bogo ops     bogo ops/s
+4	stress-ng	metrc: [1284] cache            482100        48172.83
