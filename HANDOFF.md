@@ -43,21 +43,25 @@ Suites (all CI-enforced): `tests/smoke.sh` (203), `transform/tests/test_melt.sh`
    takes 7–22 s end to end (was minutes); JSON/XML documents are sampled for
    ordinary detectors while the document grammars see them whole. Knobs `_FR_SAMPLE_BYTES`,
    `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
-   `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
-   a ratio-threshold detector can decide differently on the sample than on
-   the full text (1 of 360 synthetic inputs). Remaining time at 10 MB is
-   mostly bash copying the text (each full-string expansion ~0.15 s),
-   aligned-columns' full-text detect (~4 s), dedup + TSV (~4 s) and the melt
-   (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
+   `extract/tests/test_big_input_paths.sh` compares routes. Share-threshold
+   detectors get `_FR_SAMPLE_SLACK` (15 points) while screening the sample,
+   so sampled-vs-full winner flips on 360 synthetic big inputs are 0
+   (2026-10-01). Remaining risk: evidence that lies only in the MIDDLE of a
+   huge input (39 corpus inputs flip under a forced 8+4-line sample).
+   colons and block-records have awk twins; 10 MB ps/CSV CPU fell 33%/24%. A strategy whose extract is still a bash line
    loop is slow on big inputs — give it an awk twin, proven over the corpus
    with `_FR_BIG_BYTES=0`.
 3. **Confidence ranks candidates** (2026-09-25): confidences follow the
    rubric in `extract/README.md`; every detector runs and the best confidence
    wins (ties: priority, name), with exact ceiling pruning so a strong early
    candidate skips the detectors that cannot beat it. `--rank priority` keeps
-   the old first-match order. Open: bespoke strategies sit at a uniform 92
-   without a per-detector signature audit; `--explain` lists matches in rank
-   order.
+   the old first-match order. Bespoke strategies are tiered by signature
+   strength (95/92/88/<=80, 2026-10-01; twelve weak detectors tightened).
+   `--explain` lists matches in rank order. Open: pnpm-audit (a key/value
+   box with a title row) lost to box-table; clickhouse-describe-table and
+   clickhouse-system-mutations need box-table to stop promoting the first
+   data row; 59 corpus tools are still not tidy (tests/corpus/COVERAGE.md;
+   `_tech_kv_colon` dropping `http(s)://` values blocks brew/flatpak info).
 4. Old stores migrate to store format 2 on their next write (`total_entries`
    column dropped from datasets).
 5. The `envoy-*` / `ENVOY_*` / `MFE_*` internal names remain (a large rename,
