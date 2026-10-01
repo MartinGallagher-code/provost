@@ -1,5 +1,5 @@
-n	A	B	C	D	E	total_entries
-1	Found	matching	entries	(listing	UUIDs):	4
-2	108e9186e8c5677afake0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2					4
-3	24296fb24b8ad77bfake1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3					4
-4	7a5c3e1b9d8f6afake2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5					4
+n	A	B	C	D	E
+1	Found	matching	entries	(listing	UUIDs):
+2	108e9186e8c5677afake0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2				
+3	24296fb24b8ad77bfake1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3				
+4	7a5c3e1b9d8f6afake2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5				

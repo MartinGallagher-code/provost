@@ -1,6 +1,6 @@
-n	A	B	C	total_entries
-1	job=varlogs	(2	targets)	5
-2	/var/log/syslog	-	ready	5
-3	/var/log/auth.log	-	ready	5
-4	job=containers	(1	target)	5
-5	/var/lib/docker/containers/*.log	-	ready	5
+n	A	B	C
+1	job=varlogs	(2	targets)
+2	/var/log/syslog	-	ready
+3	/var/log/auth.log	-	ready
+4	job=containers	(1	target)
+5	/var/lib/docker/containers/*.log	-	ready

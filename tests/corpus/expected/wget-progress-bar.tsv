@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	total_entries
-1	debian-12.4.0-amd64.iso	100%[===================>]	1.42G	11.3MB/s	in	2m1s	3
-2	ubuntu-22.04.3-live.iso	63%[===========>	]	2.98G	14.1MB/s	eta_3m12s	3
-3	alpine-3.18-standard.iso	100%[===================>]	56.00M	9.8MB/s	in	6.0s	3
+n	A	B	C	D	E	F
+1	debian-12.4.0-amd64.iso	100%[===================>]	1.42G	11.3MB/s	in	2m1s
+2	ubuntu-22.04.3-live.iso	63%[===========>	]	2.98G	14.1MB/s	eta 3m12s
+3	alpine-3.18-standard.iso	100%[===================>]	56.00M	9.8MB/s	in	6.0s

@@ -14,7 +14,7 @@
 #     provost source <N>       show the original source data behind dataset row #N
 #     provost log / restore    list captures / bring a capture's commit back up
 #     provost ls / show        list datasets / present one as a tidy table
-#     provost stats            (pending) statistics on a dataset
+#     provost stats            statistics on a dataset
 #
 # The extract engine (all strategies) is bundled in this repo at provost/extract/.
 #
@@ -24,6 +24,11 @@
 # `provost source N` maps it back to the exact captured input that produced it.
 # The store may be shared by multiple users (point PROVOST_HOME at a shared,
 # group-writable dir); a mkdir-based lock serialises concurrent writers.
+#
+# CODE vs DATA: executable code (the extract/analyze engines, the transform
+# module) is loaded ONLY from provost's own install dir ($PROVOST_ROOT, the
+# directory this script really lives in) — never from the data store, which a
+# shared store's other members can write to.
 #
 set -euo pipefail
 
@@ -38,12 +43,14 @@ fi
 # ---------------------------------------------------------------------------
 # Config (env-overridable; PROVOST_* is the post-rename namespace)
 # ---------------------------------------------------------------------------
+# Make a path absolute (relative to $PWD) without requiring it to exist.
+_abspath () { case "$1" in /*) printf '%s\n' "$1" ;; *) printf '%s/%s\n' "$PWD" "$1" ;; esac; }
+
 # Workspace resolution:
 #   1. $PROVOST_WORKSPACE explicit override (used by tests / one-off stores)
-#   2. else the global store: $PROVOST_HOME, or ~/.provost
-# (Stage B will insert "a controlled directory found by walking up from CWD"
-#  between these two.)
-_default_home () { printf '%s\n' "${PROVOST_HOME:-$HOME/.provost}"; }
+#   2. a controlled directory found by walking up from CWD
+#   3. else the global store: $PROVOST_HOME, or ~/.provost
+_default_home () { _abspath "${PROVOST_HOME:-$HOME/.provost}"; }
 
 # The real directory of this script, following symlinks — so provost finds its
 # bundled extract/analyze/transform trees even when invoked via a symlink on
@@ -74,12 +81,9 @@ _find_controlling_dir () {
     return 1
 }
 
-# Resolve the active store:
-#   1. $PROVOST_WORKSPACE explicit override
-#   2. a controlled directory found by walking up from CWD
-#   3. the global store ($PROVOST_HOME / ~/.provost)
 PROVOST_WORKSPACE_EXPLICIT="${PROVOST_WORKSPACE:+1}"
 if [[ -n "$PROVOST_WORKSPACE_EXPLICIT" ]]; then
+    PROVOST_WORKSPACE="$(_abspath "$PROVOST_WORKSPACE")"
     PROVOST_STORE_KIND="explicit override"
 else
     _ctl="$(_find_controlling_dir "$PWD" 2>/dev/null || true)"
@@ -94,8 +98,11 @@ PROVOST_MIN_CONFIDENCE="${PROVOST_MIN_CONFIDENCE:-50}"
 PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
+PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
+PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
+PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
 # ---------------------------------------------------------------------------
 # Tiny UI helpers
@@ -103,113 +110,472 @@ PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an
 _is_tty () { [[ -t 2 ]]; }
 if _is_tty; then C_OK=$'\033[32m'; C_DIM=$'\033[2m'; C_ERR=$'\033[31m'; C_RST=$'\033[0m'
 else C_OK=""; C_DIM=""; C_ERR=""; C_RST=""; fi
-info () { [[ "${PROVOST_QUIET:-0}" -eq 1 ]] || printf '%s\n' "$*" >&2; }
-ok ()   { [[ "${PROVOST_QUIET:-0}" -eq 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
+info () { [[ "$PROVOST_QUIET" == 1 ]] || printf '%s\n' "$*" >&2; }
+ok ()   { [[ "$PROVOST_QUIET" == 1 ]] || printf '%s ok%s %s\n' "$C_OK" "$C_RST" "$*" >&2; }
+warn () { printf '%swarning%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; }
 die ()  { printf '%serror%s %s\n' "$C_ERR" "$C_RST" "$*" >&2; exit 1; }
+# A usage error: the command line itself is wrong. stderr, exit 2.
+usage_die () { printf 'provost: %s\n' "$*" >&2; exit 2; }
 
 # ---------------------------------------------------------------------------
-# Locate the extract engine. It is bundled in this repo at provost/extract/ with
-# its shared libs at provost/lib/ (the engine's ../lib). PROVOST_HOME can override.
+# Validation — every user-controlled value that reaches arithmetic, a path, or
+# a git ref is checked first. Bash evaluates arithmetic operands recursively
+# (`x='a[$(cmd)]'; (( x ))` runs cmd), so numeric settings MUST be validated
+# before they are ever compared or computed with.
+# ---------------------------------------------------------------------------
+# Locale-proof character classes ([A-Z] ranges are collation-dependent).
+_ALNUM='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+_NAME_RE="^[${_ALNUM}][${_ALNUM}._-]*\$"
+
+# _validate_uint LABEL VALUE MIN [MAX] — whole number in range, else exit 2.
+_validate_uint () {
+    local label="$1" v="$2" lo="$3" hi="${4:-}"
+    [[ "$v" =~ ^[0-9]{1,12}$ ]] || usage_die "$label must be a whole number (got '$v')."
+    v=$((10#$v))
+    (( v >= lo )) || usage_die "$label must be at least $lo (got $v)."
+    if [[ -n "$hi" ]] && (( v > hi )); then usage_die "$label must be at most $hi (got $v)."; fi
+}
+# Normalise a validated number (drop leading zeros so later $(( )) never
+# reads it as octal).
+_norm_uint () { printf '%d' "$((10#$1))"; }
+
+_validate_settings () {
+    _validate_uint PROVOST_MIN_CONFIDENCE    "$PROVOST_MIN_CONFIDENCE"    0 101
+    _validate_uint PROVOST_RECONCILE_OVERLAP "$PROVOST_RECONCILE_OVERLAP" 0 101
+    _validate_uint PROVOST_LOCK_TIMEOUT      "$PROVOST_LOCK_TIMEOUT"      0 86400
+    _validate_uint PROVOST_LOCK_MAX_AGE      "$PROVOST_LOCK_MAX_AGE"      1
+    _validate_uint PROVOST_MAX_INPUT         "$PROVOST_MAX_INPUT"         1
+    # (validated above, so these arithmetic reads are safe)
+    PROVOST_MIN_CONFIDENCE=$((10#$PROVOST_MIN_CONFIDENCE))
+    PROVOST_RECONCILE_OVERLAP=$((10#$PROVOST_RECONCILE_OVERLAP))
+    PROVOST_LOCK_TIMEOUT=$((10#$PROVOST_LOCK_TIMEOUT))
+    PROVOST_LOCK_MAX_AGE=$((10#$PROVOST_LOCK_MAX_AGE))
+    PROVOST_MAX_INPUT=$((10#$PROVOST_MAX_INPUT))
+    [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
+    [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
+    case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
+}
+
+# A dataset name is one path component: [A-Za-z0-9][A-Za-z0-9._-]*, no "..".
+_valid_name () { [[ "$1" =~ $_NAME_RE && "$1" != *..* ]]; }
+_require_name () { _valid_name "$1" || usage_die "invalid dataset name '$1' (allowed: letters, digits, '.', '_', '-'; must start with a letter or digit; no '..')."; }
+_valid_capid () { [[ "$1" =~ ^c[0-9]{1,12}$ ]]; }
+
+# Turn an arbitrary word (a command's basename) into a valid dataset name.
+# Prints nothing when nothing usable is left.
+_sanitize_name () {
+    local s="$1"
+    s="${s//[!${_ALNUM}._-]/-}"
+    while [[ "$s" == *..* ]]; do s="${s//../.}"; done
+    s="${s#"${s%%["${_ALNUM}"]*}"}"          # must start with a letter/digit
+    s="${s:0:64}"
+    printf '%s' "$s"
+}
+
+# ---------------------------------------------------------------------------
+# Process-wide cleanup: temp dirs we created and store locks we hold are
+# released on ANY exit (normal, die, or signal) — a `die` inside the critical
+# section can never leave the store locked.
+# ---------------------------------------------------------------------------
+_TMPDIRS=()
+_LOCKS_HELD=()      # lock dir paths held by this process
+_LOCKS_OWNER=()     # the owner record we wrote into each
+_cleanup () {
+    local i d
+    for i in ${_LOCKS_HELD[@]+"${!_LOCKS_HELD[@]}"}; do
+        _release_lock_dir "${_LOCKS_HELD[i]}" "${_LOCKS_OWNER[i]}"
+    done
+    _LOCKS_HELD=(); _LOCKS_OWNER=()
+    for d in ${_TMPDIRS[@]+"${_TMPDIRS[@]}"}; do rm -rf "$d" 2>/dev/null || true; done
+    _TMPDIRS=()
+}
+trap _cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# _mktempd PREFIX — make a registered temp dir; result in $_MKTEMPD. (Not via
+# $(...): the registration must happen in THIS shell.)
+_mktempd () {
+    _MKTEMPD="$(mktemp -d "$PROVOST_TEMP_DIR/$1.XXXXXX")" \
+        || die "cannot create a temp dir in $PROVOST_TEMP_DIR (set TMPDIR)."
+    _TMPDIRS+=("$_MKTEMPD")
+}
+
+# ---------------------------------------------------------------------------
+# Locate the engines + transform — ONLY inside provost's install dir. The data
+# store is never searched: a group-writable shared store would otherwise let
+# any member plant code that runs as whoever captures next.
 # ---------------------------------------------------------------------------
 _find_engine () {
-    local script_dir="$PROVOST_ROOT"
-    local candidates=(
-        "${PROVOST_HOME:-}/extract/envoy-extract"
-        "$script_dir/extract/envoy-extract"       # bundled (canonical)
-    )
-    local c
-    for c in "${candidates[@]}"; do
-        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
-    done
+    local c="$PROVOST_ROOT/extract/envoy-extract"
+    [[ -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
+    return 1
+}
+_find_analyze () {
+    local c="$PROVOST_ROOT/analyze/envoy-analyze"
+    [[ -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
     return 1
 }
 
-# Locate the analyze engine (bundled at provost/analyze/). PROVOST_HOME can override.
-_find_analyze () {
-    local script_dir="$PROVOST_ROOT"
-    local candidates=(
-        "${PROVOST_HOME:-}/analyze/envoy-analyze"
-        "$script_dir/analyze/envoy-analyze"       # bundled (canonical)
-    )
-    local c
-    for c in "${candidates[@]}"; do
-        [[ -n "$c" && -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
-    done
-    return 1
-}
+# Run a bundled engine: no GIT_DIR leaking in, and the engine's legacy .envoyrc
+# config layer switched off (ENVOY_NO_RC=1) so a .envoyrc in the CWD, $HOME or
+# any parent cannot reconfigure a capture behind provost's back.
+_run_engine () { env -u GIT_DIR ENVOY_NO_RC=1 bash "$@"; }
 
 # ---------------------------------------------------------------------------
 # Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
 # (`_core_union_header`, `_core_align_rows`) live in provost/transform/melt.sh.
-# Source it now.
 # ---------------------------------------------------------------------------
-_source_transform () {
-    local script_dir="$PROVOST_ROOT"
-    local candidates=(
-        "${PROVOST_HOME:-}/transform/melt.sh"
-        "$script_dir/transform/melt.sh"           # bundled (canonical)
-    )
-    local c
-    for c in "${candidates[@]}"; do
-        [[ -n "$c" && -r "$c" ]] && { source "$c"; return 0; }
-    done
-    die "transform module not found (expected at $script_dir/transform/melt.sh)."
-}
-_source_transform
+if [[ -r "$PROVOST_ROOT/transform/melt.sh" ]]; then
+    # shellcheck source=transform/melt.sh
+    source "$PROVOST_ROOT/transform/melt.sh"
+else
+    die "transform module not found (expected at $PROVOST_ROOT/transform/melt.sh)."
+fi
 
 _ds_dir ()  { printf '%s/datasets\n' "$PROVOST_WORKSPACE"; }
 _cap_dir () { printf '%s/captures\n' "$PROVOST_WORKSPACE"; }
 _prov_file ()  { printf '%s/provenance.tsv\n' "$PROVOST_WORKSPACE"; }
 _rowid_file () { printf '%s/.next_row_id\n' "$PROVOST_WORKSPACE"; }
+_capid_file () { printf '%s/.next_capture_id\n' "$PROVOST_WORKSPACE"; }
+_faillog ()    { printf '%s/.async-failures.log\n' "$PROVOST_WORKSPACE"; }
+_failseen ()   { printf '%s/.async-failures.seen\n' "$PROVOST_WORKSPACE"; }
 
-# git wrapper — pinned identity + no signing, so commits work in any environment.
-_git () { git -C "$PROVOST_WORKSPACE" -c user.name=provost -c user.email=provost@localhost -c commit.gpgsign=false "$@"; }
+# git wrapper:
+#   * pinned identity + no signing, so commits work in any environment;
+#   * safe.directory=<store>, so a shared store owned by another user works
+#     instead of tripping git's dubious-ownership check;
+#   * hooks and fsmonitor disabled — with safe.directory lifted, a store's own
+#     .git/config or hooks (writable by the store's other members) must not be
+#     able to run code as us;
+#   * the caller's GIT_DIR/GIT_WORK_TREE/GIT_INDEX_FILE can't redirect us.
+_WS_REAL=""; _WS_REAL_FOR=""
+
+# Lifting safe.directory hands the store's own .git/config the trust git would
+# otherwise withhold, and hooks are not the only way a config runs code: filter
+# drivers (filter.*.clean/smudge), diff/merge drivers, core.pager,
+# core.sshCommand, include.path and friends all do. So when the store's git dir
+# could have been written by someone else — .git or .git/config not owned by
+# us, or the config group/world-writable — every key in it must be one git
+# itself writes (or `provost import`'s clone does). Anything else: refuse.
+_perm_bits () { stat -c %a "$1" 2>/dev/null || stat -f %Lp "$1" 2>/dev/null || true; }
+_owner_uid () { stat -c %u "$1" 2>/dev/null || stat -f %u "$1" 2>/dev/null || true; }
+_vet_store_config () {
+    local gd="$PROVOST_WORKSPACE/.git" cfg me p bad
+    cfg="$gd/config"
+    [[ -f "$cfg" ]] || return 0
+    me="$(id -u 2>/dev/null || echo)"
+    p="$(_perm_bits "$cfg")"
+    if [[ -n "$me" && "$(_owner_uid "$gd")" == "$me" && "$(_owner_uid "$cfg")" == "$me" \
+          && "$p" =~ ^[0-7]*[0-7][0145][0145]$ ]]; then
+        return 0                                   # ours alone: git's own trust applies
+    fi
+    bad="$(env -u GIT_CONFIG_PARAMETERS -u GIT_CONFIG_COUNT \
+             git config --file "$cfg" --no-includes --name-only --list 2>/dev/null \
+           | LC_ALL=C awk '{ k = tolower($0) }
+               k ~ /^core\.(repositoryformatversion|filemode|bare|logallrefupdates|sharedrepository|ignorecase|precomposeunicode|symlinks)$/ { next }
+               k ~ /^extensions\.objectformat$/ || k ~ /^init\.defaultbranch$/ { next }
+               k ~ /^user\.(name|email)$/ || k ~ /^gc\.[a-z]+$/ { next }
+               k ~ /^remote\.origin\.(url|fetch)$/ || k ~ /^branch\.(main|master)\.(remote|merge)$/ { next }
+               { print $0 }')"
+    [[ -z "$bad" ]] && return 0
+    die "refusing to use the store at $PROVOST_WORKSPACE: its .git/config is writable by others and sets ${bad//$'\n'/, } — settings that can make git run programs. Remove them (git config --file $(printf '%q' "$cfg") --unset <key>) if you trust them to be harmless."
+}
+
+_git () {
+    if [[ "$_WS_REAL_FOR" != "$PROVOST_WORKSPACE" ]]; then
+        _vet_store_config
+        if _WS_REAL="$(cd -P -- "$PROVOST_WORKSPACE" 2>/dev/null && pwd)"; then
+            _WS_REAL_FOR="$PROVOST_WORKSPACE"
+        else
+            _WS_REAL="$PROVOST_WORKSPACE"
+        fi
+    fi
+    env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
+        -u GIT_COMMON_DIR -u GIT_NAMESPACE \
+        git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
+        -c core.hooksPath=/dev/null -c core.fsmonitor=false \
+        -c user.name=provost -c user.email=provost@localhost \
+        -c commit.gpgsign=false -c tag.gpgSign=false "$@"
+}
+
+# Stage everything and commit. Prints git's own error and exits non-zero if
+# git fails — provost never reports "ok" for a capture git did not record.
+_commit () {
+    local msg="$1" out rc=0
+    out="$(_git add -A 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "git add failed in $PROVOST_WORKSPACE — nothing was committed."; }
+    _git diff --cached --quiet >/dev/null 2>&1 || rc=$?
+    [[ $rc -eq 0 ]] && return 0                    # nothing staged: nothing to do
+    out="$(_git commit -q -m "$msg" 2>&1)" || {
+        printf 'git: %s\n' "$out" >&2
+        die "git commit failed in $PROVOST_WORKSPACE — nothing was committed (the files stay in the store and go into the next successful commit)."
+    }
+}
+
+# The branch captures are committed on: main (or master in a store created by
+# an older git without our rename).
+_main_branch () {
+    if _git show-ref -q --verify refs/heads/main 2>/dev/null; then echo main
+    elif _git show-ref -q --verify refs/heads/master 2>/dev/null; then echo master
+    else echo main; fi
+}
+
+# Refuse to write while the store is on a restored capture (detached HEAD) or
+# some other branch: a commit there would be orphaned or land off-history.
+_require_on_branch () {
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || return 0
+    local head main
+    head="$(_git symbolic-ref -q --short HEAD 2>/dev/null)" \
+        || die "store is on a restored capture (detached HEAD) — new captures would be lost. Return with: provost restore latest"
+    main="$(_main_branch)"
+    [[ "$head" == "$main" ]] \
+        || die "store is on branch '$head', not '$main' — refusing to write. Return with: provost restore latest"
+}
 
 # --- store lock (a shared PROVOST_HOME may have concurrent writers) ----------
-# mkdir is atomic across processes/users; spin up to PROVOST_LOCK_TIMEOUT seconds.
-# Record $BASHPID (this process), NOT $$: a detached async ingest runs in a
-# subshell where $$ is still the already-exited parent provost, and the stale-lock
-# breaker would then see a "dead" owner and steal a live lock mid-write.
-_lock () {
-    local lock="$PROVOST_WORKSPACE/.lock" waited=0 pid
-    while ! mkdir "$lock" 2>/dev/null; do
-        pid="$(cat "$lock/pid" 2>/dev/null || echo)"
-        if [[ -n "$pid" ]] && ! kill -0 "$pid" 2>/dev/null; then
-            rm -rf "$lock" 2>/dev/null; continue   # break a stale lock
+# mkdir is atomic across processes/users; spin up to PROVOST_LOCK_TIMEOUT
+# seconds. The lock records "host<TAB>pid<TAB>uid<TAB>epoch" (owner file).
+# A lock is STALE only if:
+#   * it is older than PROVOST_LOCK_MAX_AGE seconds (any host), or
+#   * it was taken on THIS host (and pid namespace) and its pid definitely no
+#     longer exists (ESRCH — NOT EPERM: another user's live process is alive).
+# Breaking is serialised by a second mkdir mutex (.lock.break) and done by an
+# atomic rename, after re-checking staleness under that mutex — so two
+# breakers can never delete each other's (or a newcomer's) fresh lock.
+# $BASHPID (this process), NOT $$: a detached async ingest runs in a subshell
+# where $$ is still the already-exited parent provost.
+_LOCK_HOST=""
+_lock_host_init () {
+    if [[ -z "$_LOCK_HOST" ]]; then
+        local h ns=""
+        h="${HOSTNAME:-}"; [[ -n "$h" ]] || h="$(uname -n 2>/dev/null || echo unknown)"
+        ns="$(readlink /proc/self/ns/pid 2>/dev/null || true)"
+        _LOCK_HOST="$h${ns:+/$ns}"
+    fi
+}
+# mtime in epoch seconds; prints nothing if the path is gone.
+_mtime () { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null || true; }
+# Age in seconds of a path; -1 if it is gone (never "old").
+_age () { local m; m="$(_mtime "$1")"; [[ "$m" =~ ^[0-9]+$ ]] || { echo -1; return 0; }; echo $(( $(date +%s) - m )); }
+# 0 only when the pid definitely does not exist on this host.
+_pid_gone () {
+    local pid="$1" err
+    [[ "$pid" =~ ^[0-9]{1,10}$ ]] || return 1
+    if [[ -d /proc/self ]]; then [[ ! -d "/proc/$pid" ]]; return; fi
+    err="$(LC_ALL=C kill -0 "$pid" 2>&1)" && return 1       # alive and ours
+    [[ "$err" == *"No such process"* ]]                     # ESRCH; EPERM = alive
+}
+# 0 = the lock is stale. Sets $_STALE_SEEN to the owner record it judged, so a
+# breaker can verify it removed THAT lock and not a newcomer's.
+_lock_stale () {
+    local lock="$1" owner="" host="" pid="" t="" now age
+    _STALE_SEEN=""
+    [[ -d "$lock" ]] || return 1
+    now="$(date +%s)"
+    owner="$(cat "$lock/owner" 2>/dev/null || true)"
+    if [[ -z "$owner" ]]; then
+        age="$(_age "$lock")"
+        if [[ -f "$lock/pid" ]]; then               # a lock from an older provost
+            pid="$(cat "$lock/pid" 2>/dev/null || true)"
+            _STALE_SEEN="legacy:$pid"
+            (( age > PROVOST_LOCK_MAX_AGE )) && return 0
+            _pid_gone "$pid" && return 0
+            return 1
         fi
-        waited=$((waited + 1))
-        [[ $waited -ge $((PROVOST_LOCK_TIMEOUT * 5)) ]] && die "store is locked (waited ${PROVOST_LOCK_TIMEOUT}s): $lock"
+        # mkdir'd but no owner yet: a holder is between mkdir and writing it —
+        # or died right there. Give it a minute.
+        _STALE_SEEN="none"
+        (( age > 60 )) && return 0
+        return 1
+    fi
+    _STALE_SEEN="$owner"
+    IFS=$'\t' read -r host pid _ t <<< "$owner" || true
+    if [[ "$t" =~ ^[0-9]{1,12}$ ]] && (( now - t > PROVOST_LOCK_MAX_AGE )); then return 0; fi
+    _lock_host_init
+    [[ "$host" == "$_LOCK_HOST" ]] && _pid_gone "$pid" && return 0
+    return 1
+}
+_lock_break () {  # 0 = we removed a stale lock
+    local lock="$1" brk="$1.break" rc=1 aside seen got
+    if ! mkdir "$brk" 2>/dev/null; then
+        # Another process is breaking it. Clear an abandoned break mutex.
+        if (( $(_age "$brk") > 60 )); then rmdir "$brk" 2>/dev/null || true; fi
+        return 1
+    fi
+    if _lock_stale "$lock"; then
+        seen="$_STALE_SEEN"
+        aside="$lock.stale.$BASHPID.$RANDOM"
+        if mv "$lock" "$aside" 2>/dev/null; then
+            # Verify we moved the lock we judged (not one created meanwhile).
+            got="$(cat "$aside/owner" 2>/dev/null || true)"
+            if [[ -z "$got" ]]; then
+                if [[ -f "$aside/pid" ]]; then got="legacy:$(cat "$aside/pid" 2>/dev/null || true)"; else got="none"; fi
+            fi
+            if [[ "$got" == "$seen" ]]; then
+                rm -rf "$aside" 2>/dev/null || true; rc=0
+            else
+                mv "$aside" "$lock" 2>/dev/null || true     # not ours to break: put it back
+            fi
+        fi
+    fi
+    rmdir "$brk" 2>/dev/null || true
+    return $rc
+}
+# _lock [STORE-DIR] (default: the active store)
+_lock () {
+    local dir="${1:-$PROVOST_WORKSPACE}" lock tries=0 max owner i
+    lock="$dir/.lock"
+    for i in ${_LOCKS_HELD[@]+"${!_LOCKS_HELD[@]}"}; do
+        [[ "${_LOCKS_HELD[i]}" == "$lock" ]] && return 0
+    done
+    max=$((PROVOST_LOCK_TIMEOUT * 5))
+    mkdir -p "$dir" 2>/dev/null || true
+    while ! mkdir "$lock" 2>/dev/null; do
+        [[ -d "$dir" ]] || die "cannot create the store directory: $dir"
+        if _lock_stale "$lock" && _lock_break "$lock"; then continue; fi
+        tries=$((tries + 1))
+        if (( tries > max )); then
+            owner="$(cat "$lock/owner" 2>/dev/null || cat "$lock/pid" 2>/dev/null || echo unknown)"
+            die "store is locked (waited ${PROVOST_LOCK_TIMEOUT}s): $lock — held by ${owner//$'\t'/ }. If that holder is gone, remove the lock dir."
+        fi
         sleep 0.2
     done
-    echo "$BASHPID" > "$lock/pid"
+    _lock_host_init
+    local mypid="$BASHPID" myuid; myuid="$(id -u 2>/dev/null || echo "?")"
+    printf -v owner "%s\t%s\t%s\t%s" "$_LOCK_HOST" "$mypid" "$myuid" "$(date +%s)"
+    printf '%s\n' "$owner" > "$lock/owner.tmp" && mv "$lock/owner.tmp" "$lock/owner"
+    _LOCKS_HELD+=("$lock"); _LOCKS_OWNER+=("$owner")
 }
-_unlock () { rm -rf "$PROVOST_WORKSPACE/.lock" 2>/dev/null || true; }
+# Remove a lock dir only if it still carries OUR owner record.
+_release_lock_dir () {
+    local lock="$1" mine="$2" cur
+    cur="$(cat "$lock/owner" 2>/dev/null || true)"
+    [[ "$cur" == "$mine" ]] && rm -rf "$lock" 2>/dev/null
+    return 0
+}
+_unlock () {
+    local lock="${1:-$PROVOST_WORKSPACE}/.lock" i keep_l=() keep_o=()
+    for i in ${_LOCKS_HELD[@]+"${!_LOCKS_HELD[@]}"}; do
+        if [[ "${_LOCKS_HELD[i]}" == "$lock" ]]; then
+            _release_lock_dir "$lock" "${_LOCKS_OWNER[i]}"
+        else
+            keep_l+=("${_LOCKS_HELD[i]}"); keep_o+=("${_LOCKS_OWNER[i]}")
+        fi
+    done
+    _LOCKS_HELD=(${keep_l[@]+"${keep_l[@]}"}); _LOCKS_OWNER=(${keep_o[@]+"${keep_o[@]}"})
+}
+
+# ---------------------------------------------------------------------------
+# Store initialisation + migrations
+# ---------------------------------------------------------------------------
+# Runtime files that must never be committed (lock, async failure log, temp
+# files, the machine-local instance registry). The first line is a version
+# marker: a store whose .gitignore lacks it is migrated.
+_GITIGNORE_MARK="# provost store .gitignore v1 — runtime files, never committed"
+_write_gitignore () {
+    cat > "$PROVOST_WORKSPACE/.gitignore" <<EOF
+$_GITIGNORE_MARK
+/.lock
+/.lock.*
+/.async-failures.log
+/.async-failures.seen
+/instances.tsv
+/instances.tsv.*
+/datasets/.recon.*
+/datasets/.stage.*
+/datasets/.rm.*
+/datasets/.rmprov.*
+/captures/*/.meta.tmp
+/context/*.tmp
+EOF
+}
+
+# Highest capture number ever used in this store: capture dirs, capture tags
+# and capture commit subjects (the latter survive an 'rm' purge).
+_scan_max_capture_num () {
+    local d n max=0
+    for d in "$(_cap_dir)"/c*/; do
+        [[ -d "$d" ]] || continue
+        d="${d%/}"; n="${d##*/c}"
+        [[ "$n" =~ ^[0-9]{1,12}$ ]] && (( 10#$n > max )) && max=$((10#$n))
+    done
+    n="$( { _git tag -l 'capture-c*' 2>/dev/null || true
+            _git log --all --format=%s 2>/dev/null || true; } \
+          | awk '{ s = $0
+                   if (s ~ /^capture-c[0-9]+$/) { sub(/^capture-c/, "", s) }
+                   else if (s ~ /^capture c[0-9]+:/) { sub(/^capture c/, "", s); sub(/:.*/, "", s) }
+                   else next
+                   if (s + 0 > m) m = s + 0 }
+                 END { print m + 0 }')"
+    [[ "$n" =~ ^[0-9]+$ ]] && (( n > max )) && max=$n
+    printf '%s\n' "$max"
+}
+
+# Idempotent store upkeep for stores made by an older provost: add the
+# .gitignore, untrack a committed .lock (and other runtime files), and seed the
+# monotonic capture counter. Only when writable and on the capture branch.
+_migrate_store () {
+    local ws="$PROVOST_WORKSPACE" first=""
+    [[ -d "$ws/.git" && -w "$ws" ]] || return 0
+    [[ -f "$ws/.gitignore" ]] && { IFS= read -r first < "$ws/.gitignore" || true; }
+    [[ "$first" == "$_GITIGNORE_MARK" && -f "$(_capid_file)" ]] && return 0
+    _git symbolic-ref -q HEAD >/dev/null 2>&1 || return 0      # restored/detached: later
+    _lock
+    IFS= read -r first < "$ws/.gitignore" 2>/dev/null || first=""
+    if [[ "$first" != "$_GITIGNORE_MARK" ]]; then
+        _write_gitignore
+        _git rm -r -q --cached --ignore-unmatch -- .lock instances.tsv \
+            .async-failures.log .async-failures.seen >/dev/null 2>&1 || true
+    fi
+    if [[ ! -f "$(_capid_file)" ]]; then
+        echo "$(( $(_scan_max_capture_num) + 1 ))" > "$(_capid_file)"
+    fi
+    _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter)"
+    _unlock
+}
 
 # The workspace is a git repo: every capture is one commit (tagged capture-NNNN),
 # so a run can be brought back up later with `provost restore`. Initialization is
 # serialised with double-checked locking so concurrent first-writers to a shared
 # store don't race on `git init`.
 _ensure_workspace () {
-    mkdir -p "$(_ds_dir)" "$(_cap_dir)"
+    _vet_store_config
+    mkdir -p "$(_ds_dir)" "$(_cap_dir)" 2>/dev/null \
+        || die "cannot create the store at $PROVOST_WORKSPACE"
     if [[ ! -d "$PROVOST_WORKSPACE/.git" || ! -f "$(_rowid_file)" ]]; then
         _lock
         if [[ ! -d "$PROVOST_WORKSPACE/.git" ]]; then
-            _git init -q
+            local out
+            out="$(_git init -q 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "git init failed in $PROVOST_WORKSPACE"; }
+            _git symbolic-ref HEAD refs/heads/main >/dev/null 2>&1 || true
+            _write_gitignore
             printf 'provost workspace (store model %s)\n' "$PROVOST_VERSION" > "$PROVOST_WORKSPACE/.provostrc"
-            _git add -A >/dev/null 2>&1 || true
-            _git commit -q -m "provost: init workspace" >/dev/null 2>&1 || true
-            _git branch -M main >/dev/null 2>&1 || true
+            [[ -f "$(_capid_file)" ]] || echo 1 > "$(_capid_file)"
         fi
         [[ -f "$(_rowid_file)" ]] || echo 1 > "$(_rowid_file)"
+        _commit "provost: init workspace"
         _unlock
     fi
+    _migrate_store
 }
 
-# Zero-padded next capture id from the count of existing capture dirs.
+# Allocate the next capture id from the monotonic counter (under the lock).
+# Ids are never reused — not after an 'rm' purge, not after a 'restore'.
+# Result in $_CAPID.
 _next_capture_id () {
-    local dir n; dir="$(_cap_dir)"
-    n=$(find "$dir" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
-    printf 'c%04d\n' "$((n + 1))"
+    local f n; f="$(_capid_file)"
+    n="$(cat "$f" 2>/dev/null || true)"
+    if [[ ! "$n" =~ ^[0-9]{1,12}$ ]] || (( 10#$n < 1 )); then
+        n=$(( $(_scan_max_capture_num) + 1 ))
+    fi
+    n=$((10#$n))
+    # Belt and braces: never land on an id that is already on disk or tagged.
+    while [[ -e "$(_cap_dir)/$(printf 'c%04d' "$n")" ]] \
+          || _git rev-parse -q --verify "refs/tags/capture-$(printf 'c%04d' "$n")" >/dev/null 2>&1; do
+        n=$((n + 1))
+    done
+    echo "$((n + 1))" > "$f"
+    _CAPID="$(printf 'c%04d' "$n")"
 }
 
 # Column overlap (Jaccard, as an integer percent) between two tab-separated
@@ -222,84 +588,128 @@ _col_overlap () {
               if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
 }
 
-# (Header union + row alignment come from the imported transform module:
-# _core_union_header "$old" "$new"  and  _core_align_rows "$src" "$tgt" < rows.)
-
-# Append tidy TSV (header+rows) to a dataset file. Store rule:
+# Append a tidy TSV FILE (header+rows) to a dataset. Store rule:
 #   new dataset            → write header + rows;
 #   header matches         → append data rows;
 #   header differs, overlap ≥ PROVOST_RECONCILE_OVERLAP% → RECONCILE: union the
 #                            columns, blank-fill both sides, rewrite in place;
 #   overlap below threshold → split into a numbered variant (.v2, .v3, …).
-# Echoes "<final-dataset-name>\t<row-count>" (single line) on stdout.
+# Sets $_SA_TARGET to the final dataset name. Works on files throughout — a
+# large capture is never echoed through a pipe or held in a variable.
 _store_append () {
-    local name="$1" tsv="$2" dir; dir="$(_ds_dir)"
-    local base="$dir/$name.tsv" target="$name" file="$dir/$name.tsv"
-    local new_header; new_header="$(printf '%s\n' "$tsv" | head -1)"
+    local name="$1" src="$2" dir; dir="$(_ds_dir)"
+    local base="$dir/$name.tsv" target="$name" file new_header="" old_header="" line=""
+    IFS= read -r new_header < "$src" || true
 
     if [[ ! -f "$base" ]]; then
-        printf '%s\n' "$tsv" > "$base"
+        cp "$src" "$base"
     else
-        local old_header; old_header="$(head -1 "$base")"
+        IFS= read -r old_header < "$base" || true
         if [[ "$old_header" == "$new_header" ]]; then
-            printf '%s\n' "$tsv" | tail -n +2 >> "$base"
+            tail -n +2 "$src" >> "$base"
         else
             local overlap; overlap="$(printf '%s\n%s\n' "$old_header" "$new_header" | _col_overlap)"
-            if [[ "$overlap" -ge "$PROVOST_RECONCILE_OVERLAP" ]]; then
-                # Reconcile into the base dataset: union header, realign both sides
-                # (imported transform helpers).
+            [[ "$overlap" =~ ^[0-9]+$ ]] || overlap=0
+            if (( overlap >= PROVOST_RECONCILE_OVERLAP )); then
+                # Reconcile into the base dataset: union header, realign both sides.
                 local unified tmp; unified="$(_core_union_header "$old_header" "$new_header")"
                 tmp="$(mktemp "$dir/.recon.XXXXXX")"
-                {
+                if {
                     printf '%s\n' "$unified"
-                    tail -n +2 "$base"                | _core_align_rows "$old_header" "$unified"
-                    printf '%s\n' "$tsv" | tail -n +2 | _core_align_rows "$new_header" "$unified"
-                } > "$tmp" && mv "$tmp" "$base" || { rm -f "$tmp"; return 1; }
+                    tail -n +2 "$base" | _core_align_rows "$old_header" "$unified"
+                    tail -n +2 "$src"  | _core_align_rows "$new_header" "$unified"
+                } > "$tmp"; then
+                    mv "$tmp" "$base"
+                else
+                    rm -f "$tmp"; return 1
+                fi
             else
                 # Genuinely different shape → variant file.
                 local v=2
-                while [[ -f "$dir/$name.v$v.tsv" ]] && \
-                      [[ "$(head -1 "$dir/$name.v$v.tsv")" != "$new_header" ]]; do
+                while [[ -f "$dir/$name.v$v.tsv" ]]; do
+                    line=""; IFS= read -r line < "$dir/$name.v$v.tsv" || true
+                    [[ "$line" == "$new_header" ]] && break
                     v=$((v+1))
                 done
                 target="$name.v$v"; file="$dir/$target.tsv"
-                if [[ -f "$file" ]]; then printf '%s\n' "$tsv" | tail -n +2 >> "$file"
-                else printf '%s\n' "$tsv" > "$file"; fi
+                if [[ -f "$file" ]]; then tail -n +2 "$src" >> "$file"
+                else cp "$src" "$file"; fi
             fi
         fi
     fi
-    local rows; rows=$(( $(wc -l < "$file") - 1 )); [[ $rows -lt 0 ]] && rows=0
-    printf '%s\t%s\n' "$target" "$rows"
+    _SA_TARGET="$target"
+}
+
+# Render argv as ONE line of shell: plain words bare, others single-quoted,
+# and anything holding a control character (tab, newline, ...) in $'...' form
+# via printf %q — so the result never contains a raw tab or newline.
+_shell_quote () {
+    local a out="" q sq="'\\''"
+    for a in "$@"; do
+        if [[ -n "$a" && "$a" =~ ^[${_ALNUM}_./=:,+@%^-]+$ ]]; then q="$a"
+        elif [[ "$a" == *[[:cntrl:]]* ]]; then printf -v q '%q' "$a"
+        else q="'${a//\'/$sq}'"; fi
+        out="${out:+$out }$q"
+    done
+    printf '%s' "$out"
+}
+
+# One-line, tab/newline-free rendering of a value for a meta.tsv field.
+_meta_safe () { local s="$1"; s="${s//$'\t'/\\t}"; s="${s//$'\n'/\\n}"; printf '%s' "$s"; }
+
+# Snapshot a controlled directory's contents as commit context: a manifest of
+# path/size/mtime/sha for each file (excluding the .provost instance and .git).
+_snapshot_context () {
+    local dir="$1" ws="$2" f sz mt sha
+    local mani="$ws/context/manifest.tsv"
+    mkdir -p "$ws/context"
+    {
+        printf 'path\tsize\tmtime\tsha1\n'
+        while IFS= read -r -d '' f; do
+            sz="$(stat -c '%s' "$f" 2>/dev/null || echo 0)"
+            mt="$(stat -c '%Y' "$f" 2>/dev/null || echo 0)"
+            sha="(skipped)"
+            if [[ "$sz" =~ ^[0-9]+$ ]] && (( sz <= 1048576 )) && command -v sha1sum >/dev/null 2>&1; then
+                sha="$(sha1sum 2>/dev/null < "$f")" || sha="(unreadable)"
+                sha="${sha%% *}"
+            fi
+            printf '%s\t%s\t%s\t%s\n' "$(_meta_safe "${f#"$dir"/}")" "$sz" "$mt" "$sha"
+        done < <(find "$dir" -type f -not -path '*/.provost/*' -not -path '*/.git/*' -print0 2>/dev/null)
+    } > "$mani.tmp"
+    # sort the rows (header stays first) for a stable manifest
+    { IFS= read -r f; printf '%s\n' "$f"; LC_ALL=C sort; } < "$mani.tmp" > "$mani"
+    rm -f "$mani.tmp"
+    local n=0; n=$(( $(wc -l < "$mani") - 1 ))
+    printf '%s\n' "$n"
 }
 
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
-#   $5 rc ("" for inject)
+#   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
 # Extracts → classifies → melts → assigns a global #N to each row → stores →
 # records provenance (#N → capture) → commits, all under the store lock.
 _ingest () {
-    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}" name="${6:-}"
     local engine; engine="$(_find_engine)" \
-        || die "extract engine not found (expected at $PROVOST_ROOT/extract/envoy-extract; set PROVOST_HOME to override)."
+        || die "extract engine not found (expected at $PROVOST_ROOT/extract/envoy-extract)."
 
-    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
-    # shellcheck disable=SC2064
-    trap "rm -rf '$tmp'" RETURN
+    _mktempd provost; local tmp="$_MKTEMPD"
 
     # A metadata prologue — a leading run of '#%' lines, as prepended by
     # wrappers like deframe — is capture context, not data: peel it off before
     # detection so it can never corrupt a parse. The prologue is recorded with
     # the capture (context.txt) and 'provost source' still shows the input
     # verbatim; a '#%' line after the first data line is data, not context.
-    local ctxf="$tmp/context.txt" body="$in"
-    if [[ "$(head -c 2 "$in" 2>/dev/null)" == '#%' ]]; then
+    local ctxf="$tmp/context.txt" body="$in" first2=""
+    first2="$(head -c 2 "$in" 2>/dev/null || true)"
+    if [[ "$first2" == '#%' ]]; then
         body="$tmp/body.txt"
-        awk -v ctx="$ctxf" \
-            '!started && /^#%/ { print > ctx; next } { started=1; print }' \
+        CTX="$ctxf" awk \
+            '!started && /^#%/ { print > (ENVIRON["CTX"]); next } { started=1; print }' \
             "$in" > "$body"
     fi
 
-    local metaf="$tmp/meta.txt" wide meta strategy conf
+    local metaf="$tmp/meta.txt" strategy="" conf=""
     # Extra strategy dir (deframe et al.): --plugin-dir / $PROVOST_PLUGIN_DIR is
     # forwarded to the engine, which already searches it alongside its own
     # strategies/ and the ~/.mfe/strategies user dir.
@@ -308,103 +718,119 @@ _ingest () {
         eargs+=(--plugin-dir "$PROVOST_PLUGIN_DIR")
     fi
 
-    # The datasets this capture will file. A normal capture yields exactly one;
-    # --multi (PROVOST_MULTI=1) can yield several, because some reports genuinely
-    # hold more than one table (iostat -x: a uname banner, an avg-cpu kv block
-    # and a Device table). Everything downstream — row ids, provenance, the
-    # commit — loops over these, so the single-dataset case is just N=1.
-    local -a ds_name=() ds_strategy=() ds_conf=() ds_content=()
-    local content dsname reason=""
+    # The datasets this capture will file, each as a content FILE (header +
+    # rows). A normal capture yields exactly one; --multi (PROVOST_MULTI=1) can
+    # yield several, because some reports genuinely hold more than one table
+    # (iostat -x: a uname banner, an avg-cpu kv block and a Device table).
+    # Everything downstream — row ids, provenance, the commit — loops over
+    # these, so the single-dataset case is just N=1.
+    local -a ds_name=() ds_strategy=() ds_conf=() ds_file=()
+    local reason=""
 
-    if [[ "${PROVOST_MULTI:-0}" -eq 1 ]]; then
+    if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
         # surviving dataset behind a `__DATASET__ n strategy confidence` line.
         local multi_out="$tmp/multi.txt"
-        env -u GIT_DIR bash "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+        _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
             ${eargs[@]+"${eargs[@]}"} --multi -f tsv --max-strategies 1 "$body" \
             >"$multi_out" 2>"$metaf" || true
-        awk -F'\t' -v dir="$tmp" '
-            /^__DATASET__/ { n = $2; printf "%s\t%s\n", $3, $4 > (dir "/ds." n ".meta"); next }
-            n != "" { print > (dir "/ds." n ".wide") }
+        DIR="$tmp" awk -F'\t' '
+            /^__DATASET__/ { n = ($2 ~ /^[0-9]+$/) ? $2 : ""; if (n != "") printf "%s\t%s\n", $3, $4 > (ENVIRON["DIR"] "/ds." n ".meta"); next }
+            n != "" { print > (ENVIRON["DIR"] "/ds." n ".wide") }
         ' "$multi_out" 2>/dev/null || true
-        local i=1 dstrat dconf dwide
+        local i=1 dstrat dconf
         while [[ -f "$tmp/ds.$i.meta" ]]; do
+            dstrat=""; dconf=""
             IFS=$'\t' read -r dstrat dconf < "$tmp/ds.$i.meta" || true
-            dwide="$(cat "$tmp/ds.$i.wide" 2>/dev/null || true)"
-            [[ "$dconf" =~ ^[0-9]+$ ]] || dconf=0
+            [[ "$dconf" =~ ^[0-9]{1,9}$ ]] || dconf=0
             # A dataset below the threshold is dropped rather than queued: it is
             # a fragment of an input whose other parts did match, and the whole
             # input is stored with the capture either way.
-            if [[ -n "$dstrat" && -n "$dwide" && "$dconf" -ge "$threshold" ]]; then
-                ds_name+=("$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
-                ds_content+=("$(_core_melt_tidy "$dwide")")
+            if [[ -n "$dstrat" && -s "$tmp/ds.$i.wide" ]] && (( dconf >= threshold )); then
+                _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
+                if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
+                ds_name+=("${name:+$name.}$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
+                ds_file+=("$tmp/ds.$i.tsv")
             fi
             i=$((i + 1))
         done
     fi
 
-    if [[ ${#ds_content[@]} -eq 0 ]]; then
+    if [[ ${#ds_file[@]} -eq 0 ]]; then
         # Single-dataset path — also the fallback when --multi found nothing
         # worth filing, so an unmatched input still reaches the triage queue.
-        wide="$(env -u GIT_DIR bash "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
-                ${eargs[@]+"${eargs[@]}"} \
-                --emit-meta -f tsv --max-strategies 1 "$body" 2>"$metaf")" || true
-        meta="$(grep '^__EXTRACT_META__' "$metaf" 2>/dev/null | tail -1 || true)"
-        strategy="$(printf '%s' "$meta" | awk -F'\t' '{print $2}')"
-        conf="$(printf '%s' "$meta" | awk -F'\t' '{print $3}')"
-        [[ "$conf" =~ ^[0-9]+$ ]] || conf=0
+        _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+            ${eargs[@]+"${eargs[@]}"} \
+            --emit-meta -f tsv --max-strategies 1 "$body" >"$tmp/wide.tsv" 2>"$metaf" || true
+        IFS=$'\t' read -r strategy conf < <(awk -F'\t' \
+            '/^__EXTRACT_META__/ { s = $2; c = $3 } END { printf "%s\t%s\n", s, c }' "$metaf" 2>/dev/null) || true
+        [[ "$conf" =~ ^[0-9]{1,9}$ ]] || conf=0
 
         # Build the content to file (header + data rows), pre-#-index, for both
         # the matched and the held-back (unsorted) paths.
-        if [[ -z "$strategy" || -z "$wide" ]]; then reason="no-match"
-        elif [[ "$conf" -lt "$threshold" ]]; then reason="low-confidence ($conf<$threshold)"; fi
+        if [[ -z "$strategy" || ! -s "$tmp/wide.tsv" ]] || ! grep -q . "$tmp/wide.tsv"; then reason="no-match"
+        elif (( conf < threshold )); then reason="low-confidence ($conf<$threshold)"; fi
+        local dsname content="$tmp/content.tsv"
         if [[ -n "$reason" ]]; then
             dsname="unsorted"; strategy="${strategy:-none}"
-            content="$(printf 'raw\n%s' "$(base64 -w0 < "$in" 2>/dev/null || base64 < "$in" | tr -d '\n')")"
+            {
+                printf 'raw\n'
+                if ! base64 -w0 < "$in" 2>/dev/null; then base64 < "$in" | tr -d '\n'; fi
+                printf '\n'
+            } > "$content"
         else
-            dsname="$strategy"
-            content="$(_core_melt_tidy "$wide")"
+            if _valid_name "$strategy"; then dsname="$strategy"
+            else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
+            [[ -n "$name" ]] && dsname="$name"
+            _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
         fi
         ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
-        ds_content=("$content")
+        ds_file=("$content")
     fi
 
     # --- critical section: assign #N, append, provenance, commit -----------
     _lock
-    # shellcheck disable=SC2064
-    trap "_unlock; rm -rf '$tmp'" RETURN
+    _require_on_branch
 
-    local startid nrows fields id capd ts final
-    id="$(_next_capture_id)"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
+    local id capd ts
+    _next_capture_id; id="$_CAPID"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
     ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     cp "$in" "$capd/output.txt"
     if [[ -s "$ctxf" ]]; then cp "$ctxf" "$capd/context.txt"; fi
-    [[ -f "$(_prov_file)" ]] || printf '#\tdataset\tcapture\n' > "$(_prov_file)"
+    local prov; prov="$(_prov_file)"
+    [[ -f "$prov" ]] || printf '#\tdataset\tcapture\n' > "$prov"
 
     # File each dataset in turn: allocate its own #N range, store it, and record
     # a provenance line per row. Row ids run consecutively across the datasets
     # of one capture, so every row still maps back to this one input.
-    local nextid firstid totalrows=0 idcontent result k i
-    nextid="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"; firstid="$nextid"
+    local nextid firstid startid nrows nf totalrows=0 fields=0 k final
+    nextid="$(cat "$(_rowid_file)" 2>/dev/null || true)"
+    [[ "$nextid" =~ ^[0-9]{1,15}$ ]] || die "corrupt row counter in $(_rowid_file): '$nextid'"
+    nextid=$((10#$nextid)); firstid="$nextid"
     local -a out_names=() out_ranges=()
-    for (( k=0; k<${#ds_content[@]}; k++ )); do
-        content="${ds_content[k]}"
+    for (( k=0; k<${#ds_file[@]}; k++ )); do
         startid="$nextid"
-        nrows=$(( $(printf '%s\n' "$content" | grep -c .) - 1 )); [[ $nrows -lt 0 ]] && nrows=0
+        # Prepend the visible, globally-unique '#' index to the header + each
+        # row (blank lines dropped), counting rows and header fields as we go.
+        CNTF="$tmp/cnt" awk -F'\t' -v s="$startid" '
+            length($0) == 0 { next }
+            !h { h = 1; nf = NF + 1; print "#\t" $0; next }
+            { print (s + n) "\t" $0; n++ }
+            END { print n + 0, nf + 0 > (ENVIRON["CNTF"]) }' "${ds_file[k]}" > "$tmp/id.tsv"
+        read -r nrows nf < "$tmp/cnt"
+        [[ $k -eq 0 ]] && fields="$nf"
 
-        # Prepend a visible, globally-unique '#' index to the header + each row.
-        idcontent="$(printf '%s\n' "$content" | awk -F'\t' -v OFS='\t' -v s="$startid" '
-            NR==1 { print "#", $0; next } { print (s + NR - 2), $0 }')"
-        fields=$(printf '%s\n' "$idcontent" | head -1 | awk -F'\t' '{print NF}')
-
-        result="$(_store_append "${ds_name[k]}" "$idcontent")"
-        final="${result%%$'\t'*}"
+        _store_append "${ds_name[k]}" "$tmp/id.tsv"
+        final="$_SA_TARGET"
         out_names+=("$final")
-        out_ranges+=("$([[ $nrows -gt 0 ]] && echo "#${startid}..$((startid+nrows-1))" || echo none)")
+        if (( nrows > 0 )); then out_ranges+=("#${startid}..$((startid+nrows-1))"); else out_ranges+=("none"); fi
 
-        for (( i=0; i<nrows; i++ )); do
-            printf '%s\t%s\t%s\n' "$((startid+i))" "$final" "$id" >> "$(_prov_file)"
-        done
+        # One provenance line per row (#N → dataset, capture), in one awk.
+        if (( nrows > 0 )); then
+            PDS="$final" PID="$id" awk -v s="$startid" -v n="$nrows" 'BEGIN {
+                ds = ENVIRON["PDS"]; id = ENVIRON["PID"]
+                for (i = 0; i < n; i++) printf "%d\t%s\t%s\n", s + i, ds, id }' >> "$prov"
+        fi
         nextid=$((startid + nrows)); totalrows=$((totalrows + nrows))
     done
     echo "$nextid" > "$(_rowid_file)"
@@ -420,16 +846,16 @@ _ingest () {
     done
     {
         printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
-        printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$cmd"
-        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$all_strats"
+        printf 'source\t%s\n' "$source";    printf 'command\t%s\n' "$(_meta_safe "$cmd")"
+        printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$(_meta_safe "$all_strats")"
         printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
-        printf 'row_ids\t%s\n' "$([[ $totalrows -gt 0 ]] && echo "$firstid-$((nextid-1))" || echo none)"
+        printf 'row_ids\t%s\n' "$( (( totalrows > 0 )) && echo "$firstid-$((nextid-1))" || echo none)"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
         fi
         if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
-            printf 'plugin_dir\t%s\n' "$PROVOST_PLUGIN_DIR"
+            printf 'plugin_dir\t%s\n' "$(_meta_safe "$PROVOST_PLUGIN_DIR")"
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
     } > "$capd/meta.tsv"
@@ -438,19 +864,17 @@ _ingest () {
     # In a controlled directory, snapshot the directory's contents as commit
     # context so the capture is tied to what the tree looked like at the time.
     if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
-        # Subshell so a set -e abort inside can't escape past the guard.
-        ( _snapshot_context "$(dirname "$PROVOST_WORKSPACE")" "$PROVOST_WORKSPACE" ) >/dev/null 2>&1 || true
+        _snapshot_context "$(dirname "$PROVOST_WORKSPACE")" "$PROVOST_WORKSPACE" >/dev/null \
+            || warn "could not snapshot the controlled directory's context."
     fi
-    _git add -A >/dev/null 2>&1 || true
     local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
     [[ -n "$cmd" ]] && msg="$msg [$cmd]"
-    _git commit -q -m "$msg" >/dev/null 2>&1 || true
-    _git tag -f "capture-$id" >/dev/null 2>&1 || true
+    _commit "$msg"
+    local out
+    out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
     _unlock
-    # shellcheck disable=SC2064
-    trap "rm -rf '$tmp'" RETURN
 
-    local idrange="#${startid}..$((startid+nrows-1))"; [[ $nrows -eq 0 ]] && idrange="(no rows)"
+    local idrange="#${startid}..$((startid+nrows-1))"; (( nrows == 0 )) && idrange="(no rows)"
     if [[ -n "$reason" ]]; then
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
     elif [[ ${#out_names[@]} -gt 1 ]]; then
@@ -461,109 +885,359 @@ _ingest () {
     else
         ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf) — $((fields-1)) field(s)."
     fi
+    rm -rf "$tmp"
 }
 
-# Fire-and-forget ingest: spool the input and run _ingest in a detached child so
-# the shell prompt returns immediately. This is the DEFAULT for inject/run;
-# --sync/--wait (or PROVOST_ASYNC=0) forces the foreground path that prints the
-# resulting dataset + #N range instead of returning at once.
-# The spool lives OUTSIDE the workspace (so it is never swept into a git commit,
-# and survives the parent's tmp cleanup); the child ingests it, and on success
-# removes the spool. On failure the spool — including log.txt — is kept so the
-# error is inspectable. Store serialisation is unchanged: the child takes the
-# same _lock as any writer, so concurrent async captures stay consistent.
+# Background ingest: spool the input and run _ingest in a detached child so the
+# prompt returns immediately. Used only when interactive (stderr is a TTY) or
+# forced with --async / PROVOST_ASYNC=1; scripts get the synchronous path.
+# The spool lives OUTSIDE the workspace (never swept into a commit). On success
+# the child removes it. On failure it is kept (input + full log, so the capture
+# can be retried) and a one-line record is appended to the store's
+# .async-failures.log — every later provost invocation warns about it until
+# it is seen with 'provost log --failed' or 'provost doctor'.
 _ingest_async () {
-    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}"
-    local spool; spool="$(mktemp -d "$PROVOST_TEMP_DIR/provost-async.XXXXXX")"
-    cp "$in" "$spool/in.txt"
+    local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}" name="${6:-}"
+    local spool
+    spool="$(mktemp -d "$PROVOST_TEMP_DIR/provost-async.XXXXXX")" \
+        || die "cannot create a spool dir in $PROVOST_TEMP_DIR (set TMPDIR)."
+    cp "$in" "$spool/in.txt" || { rm -rf "$spool"; die "cannot spool the input to $spool"; }
     (
         trap '' HUP                                   # survive the shell exiting
-        if _ingest "$spool/in.txt" "$threshold" "$source" "$cmd" "$rc" \
-               >"$spool/log.txt" 2>&1; then
+        _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()  # nothing of the parent's
+        trap _cleanup EXIT
+        set +e
+        ( set -e; trap _cleanup EXIT; _ingest "$spool/in.txt" "$threshold" "$source" "$cmd" "$rc" "$name" ) \
+            >"$spool/log.txt" 2>&1
+        irc=$?
+        if [[ $irc -eq 0 ]]; then
             rm -rf "$spool"
-        fi                                            # keep spool+log on failure
+        else
+            last="$(awk 'NF { l = $0 } END { print l }' "$spool/log.txt" 2>/dev/null)"
+            last="${last//$'\033'\[[0-9]m/}"; last="${last//$'\033'\[[0-9][0-9]m/}"
+            printf '%s\t%s\t%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$source" \
+                "$(_meta_safe "${cmd:-(stdin)}")" "$(_meta_safe "$spool")" \
+                "$(_meta_safe "rc=$irc: ${last:-no output}")" >> "$(_faillog)" 2>/dev/null
+        fi
+        exit 0
     ) </dev/null >/dev/null 2>&1 &
     disown 2>/dev/null || true
     info "queued (async, pid $!) — capturing in the background; see 'provost log' shortly."
+}
+
+# Decide foreground vs background: --async / --sync win, then PROVOST_ASYNC
+# (1 / 0), else background only when interactive (stderr is a terminal).
+_want_async () {
+    case "$1" in
+        1) return 0 ;; 0) return 1 ;;
+    esac
+    case "$PROVOST_ASYNC" in
+        1) return 0 ;; 0) return 1 ;;
+    esac
+    _is_tty
+}
+
+# Unacknowledged background failures → one warning line on stderr.
+_warn_failures () {
+    local log seen=0 n
+    log="$(_faillog)"
+    [[ -s "$log" ]] || return 0
+    n="$(wc -l < "$log")"; n="${n//[!0-9]/}"
+    seen="$(cat "$(_failseen)" 2>/dev/null || echo 0)"
+    [[ "$seen" =~ ^[0-9]{1,12}$ ]] || seen=0
+    if (( n > seen )); then
+        warn "$((n - seen)) background capture(s) failed — see 'provost log --failed'."
+    fi
+}
+# Print the failure log and mark every entry seen.
+_show_failures () {
+    local log n; log="$(_faillog)"
+    if [[ ! -s "$log" ]]; then info "no failed background captures."; return 0; fi
+    printf '%-20s %-7s %-24s %s\n' "WHEN" "SOURCE" "COMMAND" "ERROR (input + full log kept in SPOOL)" >&2
+    awk -F'\t' '{ printf "%-20s %-7s %-24s %s\n      spool: %s\n", $1, $2, $3, $5, $4 }' "$log"
+    n="$(wc -l < "$log")"; n="${n//[!0-9]/}"
+    printf '%s\n' "$n" > "$(_failseen)" 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# Dataset naming for `run`: the command's basename, looking through common
+# wrappers (sudo, doas, env, nice, ionice, nohup, time, command, exec, stdbuf,
+# timeout) and their options. `xargs` is NOT a wrapper. Prints a valid dataset
+# name, or nothing.
+# ---------------------------------------------------------------------------
+_run_name () {
+    local -a a=("$@") sp=()
+    local i=0 n=$# w
+    while (( i < n )); do
+        w="${a[i]##*/}"
+        case "$w" in
+            sudo)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -u|-g|-h|-p|-C|-D|-r|-t|-U|-T|--user|--group|--host|--prompt|--close-from|--chdir|--role|--type|--other-user|--command-timeout) i=$((i+2)) ;;
+                    -*|*=*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            doas)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -u|-C) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            env)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -u|--unset|-C|--chdir) i=$((i+2)) ;;
+                    -S|--split-string)
+                        read -r -a sp <<< "${a[i+1]:-}" || true
+                        a=(${sp[@]+"${sp[@]}"} "${a[@]:i+2}"); n=${#a[@]}; i=0; continue 2 ;;
+                    --split-string=*|-S?*)
+                        w="${a[i]#--split-string=}"; [[ "$w" == "${a[i]}" ]] && w="${a[i]#-S}"
+                        read -r -a sp <<< "$w" || true
+                        a=(${sp[@]+"${sp[@]}"} "${a[@]:i+1}"); n=${#a[@]}; i=0; continue 2 ;;
+                    -*|*=*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            nice)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -n|--adjustment) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            ionice)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -c|-n|-p|-P|-u|--class|--classdata|--pid|--pgid|--uid) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            nohup)
+                i=$((i+1)); [[ "${a[i]:-}" == "--" ]] && i=$((i+1)) ;;
+            time)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -f|-o|--format|--output) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            command)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            exec)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -a) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            stdbuf)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -i|-o|-e) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done ;;
+            timeout)
+                i=$((i+1))
+                while (( i < n )); do case "${a[i]}" in
+                    --) i=$((i+1)); break ;;
+                    -s|-k|--signal|--kill-after) i=$((i+2)) ;;
+                    -*) i=$((i+1)) ;;
+                    *) break ;;
+                esac; done
+                i=$((i+1)) ;;                          # the DURATION
+            *)
+                w="$(_sanitize_name "$w")"
+                [[ "$w" == unsorted ]] && w="unsorted-cmd"   # never the triage bucket
+                printf '%s' "$w"; return 0 ;;
+        esac
+    done
+    return 0
+}
+
+# ---------------------------------------------------------------------------
+# Per-command usage (help to STDOUT, exit 0; usage errors to stderr, exit 2)
+# ---------------------------------------------------------------------------
+_usage_text () {
+    case "$1" in
+        run) cat <<'EOF'
+usage: provost run [options] [--] <command> [args...]
+  Execute a command, capture its combined stdout+stderr as a commit,
+  auto-detect the format and file it as a dataset named after the command
+  (sudo/env/nice/timeout/... wrappers are looked through): 'provost run df -h'
+  files into dataset 'df'. Exits with the command's own exit status.
+options:
+  --name NAME             file into dataset NAME instead
+  --min-confidence N      commit threshold 0-101 (default: $PROVOST_MIN_CONFIDENCE)
+  --plugin-dir DIR        extra extract strategy directory
+  --multi                 file every dataset the output holds (as NAME.<strategy>)
+  --sync, --wait          capture in the foreground (default when not interactive)
+  --async                 capture in the background (default when interactive)
+  -q, --silent            no progress output
+EOF
+            ;;
+        inject) cat <<'EOF'
+usage: cmd | provost [options]      or      provost [options] FILE
+  Inject stdin (or FILE) into a typed dataset named after the winning extract
+  strategy (e.g. 'csv', 'free', 'aligned-columns'), or NAME with --name.
+options:
+  --name NAME             file into dataset NAME instead of the strategy's name
+  --min-confidence N      commit threshold 0-101 (default: $PROVOST_MIN_CONFIDENCE)
+  --plugin-dir DIR        extra extract strategy directory
+  --multi                 file every dataset the input holds
+  --sync, --wait          capture in the foreground (default when not interactive)
+  --async                 capture in the background (default when interactive)
+  -q, --silent            no progress output
+EOF
+            ;;
+        source) echo "usage: provost source <#N>    show the original captured input behind row #N" ;;
+        control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
+        uncontrol) echo "usage: provost uncontrol [<dir>]    release a controlled directory (its data is kept)" ;;
+        instances) echo "usage: provost instances    list controlled directories" ;;
+        export) echo "usage: provost export [<file>]    bundle the whole store into a portable git bundle" ;;
+        import) echo "usage: provost import <file.bundle> [<dest-dir>]    reconstitute a bundle to browse" ;;
+        log) cat <<'EOF'
+usage: provost log [--failed]
+  List captures (the git history). --failed lists background captures that
+  failed (and marks them seen, silencing the startup warning).
+EOF
+            ;;
+        restore) echo "usage: provost restore <capture-id|latest>    bring a capture's commit back up (detached); 'latest' returns" ;;
+        ls) echo "usage: provost ls    list datasets" ;;
+        show) echo "usage: provost show NAME    present a dataset as a table (leading #N = row index)" ;;
+        rm) echo "usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used" ;;
+        stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
+        triage) echo "usage: provost triage    show the low-confidence / unmatched bucket, raw input decoded" ;;
+        doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
+        *) return 1 ;;
+    esac
+}
+_cmd_help () { _usage_text "$1" | sed "s/\\\$PROVOST_MIN_CONFIDENCE/$PROVOST_MIN_CONFIDENCE/"; exit 0; }
+_cmd_usage_die () { local u; u="$(_usage_text "$1")"; printf '%s\n' "${u%%$'\n'*}" >&2; exit 2; }
+
+# Parse the options shared by inject and run. Sets: _O_THRESHOLD _O_ASYNC _O_NAME
+# and leaves the remaining args in _O_REST.
+_parse_capture_opts () {
+    local verb="$1"; shift
+    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_REST=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -q|--silent) PROVOST_QUIET=1; shift ;;
+            --min-confidence)
+                [[ $# -ge 2 ]] || usage_die "--min-confidence needs a number."
+                _validate_uint --min-confidence "$2" 0 101; _O_THRESHOLD="$(_norm_uint "$2")"; shift 2 ;;
+            --min-confidence=*)
+                _validate_uint --min-confidence "${1#*=}" 0 101; _O_THRESHOLD="$(_norm_uint "${1#*=}")"; shift ;;
+            --plugin-dir)
+                [[ $# -ge 2 ]] || usage_die "--plugin-dir needs a directory."
+                PROVOST_PLUGIN_DIR="$2"; shift 2 ;;
+            --name)
+                [[ $# -ge 2 ]] || usage_die "--name needs a dataset name."
+                _O_NAME="$2"; shift 2 ;;
+            --name=*) _O_NAME="${1#*=}"; shift ;;
+            --multi) PROVOST_MULTI=1; shift ;;
+            --async) _O_ASYNC=1; shift ;;
+            --sync|--wait) _O_ASYNC=0; shift ;;
+            -h|--help) _cmd_help "$verb" ;;
+            --) shift; _O_REST=("$@"); return 0 ;;
+            -?*) usage_die "unknown option for '$verb': $1 (see 'provost $verb --help')." ;;
+            *) _O_REST=("$@"); return 0 ;;
+        esac
+    done
+    return 0
+}
+_check_capture_opts () {
+    if [[ -n "$_O_NAME" ]]; then
+        _require_name "$_O_NAME"
+        [[ "$_O_NAME" == unsorted ]] && usage_die "'unsorted' is reserved for the triage bucket; pick another --name."
+    fi
+    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
+        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
+    fi
+    return 0
 }
 
 # ---------------------------------------------------------------------------
 # Default verb: inject (pipe or file)
 # ---------------------------------------------------------------------------
 cmd_inject () {
-    local file="" threshold="$PROVOST_MIN_CONFIDENCE" async="${PROVOST_ASYNC:-1}"
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -q|--silent) PROVOST_QUIET=1; shift ;;
-            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
-            --plugin-dir) PROVOST_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
-            --multi) PROVOST_MULTI=1; shift ;;
-            --async) async=1; shift ;;
-            --sync|--wait) async=0; shift ;;
-            -h|--help) cmd_help; return 0 ;;
-            -*) die "unknown option: $1" ;;
-            *) file="$1"; shift ;;
-        esac
-    done
-    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
-        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
+    _parse_capture_opts inject "$@"
+    local file=""
+    [[ ${#_O_REST[@]} -le 1 ]] || usage_die "inject takes at most one FILE (got: ${_O_REST[*]})."
+    [[ ${#_O_REST[@]} -eq 1 ]] && file="${_O_REST[0]}"
+    _check_capture_opts
+    if [[ -z "$file" && -t 0 ]]; then
+        usage_die "no input — pipe data into provost (cmd | provost) or give a FILE; see 'provost help'."
     fi
+    if [[ -n "$file" ]]; then [[ -f "$file" ]] || die "no such file: $file"; fi
 
     _ensure_workspace
-    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
-    # shellcheck disable=SC2064
-    trap "rm -rf '$tmp'" EXIT INT TERM
-    local in="$tmp/in.txt"
+    _require_on_branch
+    _mktempd provost; local tmp="$_MKTEMPD"
+    local in="$tmp/in.txt" size
     if [[ -n "$file" ]]; then
-        [[ -f "$file" ]] || die "no such file: $file"
-        tr -d '\r' < "$file" > "$in"
+        head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" | tr -d '\r' > "$in"
     else
         head -c "$((PROVOST_MAX_INPUT + 1))" | tr -d '\r' > "$in"
     fi
     [[ -s "$in" ]] || die "no input to provost (empty)."
-    [[ "$(wc -c < "$in")" -le "$PROVOST_MAX_INPUT" ]] \
+    size="$(wc -c < "$in")"; size="${size//[!0-9]/}"
+    (( size <= PROVOST_MAX_INPUT )) \
         || die "input too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT)."
 
-    if [[ "$async" -eq 1 ]]; then _ingest_async "$in" "$threshold" "inject" "" ""
-    else _ingest "$in" "$threshold" "inject" "" ""; fi
+    if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"
+    else _ingest "$in" "$_O_THRESHOLD" "inject" "" "" "$_O_NAME"; fi
 }
 
 # ---------------------------------------------------------------------------
 # run — execute a command, capture its output as a commit, and ingest it.
 # ---------------------------------------------------------------------------
 cmd_run () {
-    local threshold="$PROVOST_MIN_CONFIDENCE" async="${PROVOST_ASYNC:-1}"
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -q|--silent) PROVOST_QUIET=1; shift ;;
-            --min-confidence) threshold="${2:?--min-confidence needs a number}"; shift 2 ;;
-            --plugin-dir) PROVOST_PLUGIN_DIR="${2:?--plugin-dir needs a directory}"; shift 2 ;;
-            --multi) PROVOST_MULTI=1; shift ;;
-            --async) async=1; shift ;;
-            --sync|--wait) async=0; shift ;;
-            -h|--help) cmd_help; return 0 ;;
-            --) shift; break ;;
-            -*) die "unknown option: $1" ;;
-            *) break ;;
-        esac
-    done
-    [[ $# -gt 0 ]] || die "usage: provost run [--] <command> [args...]"
-    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
-        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
-    fi
+    _parse_capture_opts run "$@"
+    set -- ${_O_REST[@]+"${_O_REST[@]}"}
+    [[ $# -gt 0 ]] || { _cmd_usage_die run; }
+    _check_capture_opts
+    command -v -- "$1" >/dev/null 2>&1 || { printf 'provost: command not found: %s\n' "$1" >&2; exit 127; }
 
     _ensure_workspace
-    local tmp; tmp="$(mktemp -d "$PROVOST_TEMP_DIR/provost.XXXXXX")"
-    # shellcheck disable=SC2064
-    trap "rm -rf '$tmp'" EXIT INT TERM
-    local in="$tmp/in.txt" rc=0
-    # Capture combined stdout+stderr (the thing you'd otherwise eyeball).
-    "$@" > "$in" 2>&1 || rc=$?
-    tr -d '\r' < "$in" > "$in.clean" && mv "$in.clean" "$in"
-    local cmd="$*"
+    _require_on_branch
+    _mktempd provost; local tmp="$_MKTEMPD"
+    local in="$tmp/in.txt" rc=0 size
+    # Capture combined stdout+stderr (the thing you'd otherwise eyeball),
+    # bounded by PROVOST_MAX_INPUT exactly as inject is.
+    local -a st=()
+    set +e
+    "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
+    st=("${PIPESTATUS[@]}")
+    set -e
+    rc="${st[0]}"
+    size="$(wc -c < "$in.raw")"; size="${size//[!0-9]/}"
+    if (( size > PROVOST_MAX_INPUT )); then
+        die "command output too large (more than $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT) — nothing captured."
+    fi
+    tr -d '\r' < "$in.raw" > "$in"; rm -f "$in.raw"
+    # The command as a shell-quoted, TSV-safe string (printf %q never emits a
+    # raw tab or newline), so meta.tsv and 'provost log' show it faithfully.
+    local cmd; cmd="$(_shell_quote "$@")"
     [[ -s "$in" ]] || { info "command produced no output (rc=$rc) — nothing captured."; return "$rc"; }
-    if [[ "$async" -eq 1 ]]; then _ingest_async "$in" "$threshold" "run" "$cmd" "$rc"
-    else _ingest "$in" "$threshold" "run" "$cmd" "$rc"; fi
+    local name="$_O_NAME"
+    [[ -n "$name" ]] || name="$(_run_name "$@")"
+    if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
+    else _ingest "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
     return "$rc"
 }
 
@@ -571,42 +1245,70 @@ cmd_run () {
 # log / restore — the git core: list captures, bring one back up.
 # ---------------------------------------------------------------------------
 cmd_log () {
-    _ensure_workspace
-    shopt -s nullglob
-    local d id ts src strat ds rc any=0
-    printf '%-6s %-20s %-7s %-14s %-12s %s\n' "ID" "WHEN" "SOURCE" "STRATEGY" "DATASET" "COMMAND" >&2
-    for d in $(printf '%s\n' "$(_cap_dir)"/*/ | sort); do
-        [[ -f "$d/meta.tsv" ]] || continue
-        any=1
-        id=$(awk -F'\t' '$1=="id"{print $2}' "$d/meta.tsv")
-        ts=$(awk -F'\t' '$1=="ts"{print $2}' "$d/meta.tsv")
-        src=$(awk -F'\t' '$1=="source"{print $2}' "$d/meta.tsv")
-        strat=$(awk -F'\t' '$1=="strategy"{print $2}' "$d/meta.tsv")
-        ds=$(awk -F'\t' '$1=="dataset"{print $2}' "$d/meta.tsv")
-        local cmd; cmd=$(awk -F'\t' '$1=="command"{print $2}' "$d/meta.tsv")
-        printf '%-6s %-20s %-7s %-14s %-12s %s\n' "$id" "$ts" "$src" "$strat" "$ds" "$cmd"
+    local failed=0
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --failed) failed=1; shift ;;
+            -h|--help) _cmd_help log ;;
+            *) usage_die "unknown argument for 'log': $1 (see 'provost log --help')." ;;
+        esac
     done
-    [[ $any -eq 1 ]] || info "no captures yet — run 'provost run <cmd>' or pipe into 'provost'."
+    if [[ $failed -eq 1 ]]; then _show_failures; return 0; fi
+    local capdir; capdir="$(_cap_dir)"
+    local d b keys=() files=() k
+    shopt -s nullglob
+    for d in "$capdir"/c*/; do
+        [[ -f "${d}meta.tsv" ]] || continue
+        b="${d%/}"; b="${b##*/}"
+        if [[ "$b" =~ ^c([0-9]{1,12})$ ]]; then keys+=("$((10#${BASH_REMATCH[1]}))"$'\t'"$b"); fi
+    done
+    shopt -u nullglob
+    if [[ ${#keys[@]} -eq 0 ]]; then
+        info "no captures yet — run 'provost run <cmd>' or pipe into 'provost'."; return 0
+    fi
+    # Numeric order (c10000 after c9999), each dir's real name kept.
+    while IFS=$'\t' read -r k b; do
+        files+=("$capdir/$b/meta.tsv")
+    done < <(printf '%s\n' "${keys[@]}" | sort -n -k1,1)
+    printf '%-6s %-20s %-7s %-14s %-12s %s\n' "ID" "WHEN" "SOURCE" "STRATEGY" "DATASET" "COMMAND" >&2
+    # One awk over every meta.tsv (not six per capture).
+    awk -F'\t' '
+        function emit() {
+            if (!have) return
+            printf "%-6s %-20s %-7s %-14s %-12s %s\n", v["id"], v["ts"], v["source"], v["strategy"], v["dataset"], v["command"]
+            split("", v); have = 0
+        }
+        FNR == 1 { emit() }
+        { k = $1; val = substr($0, length(k) + 2); v[k] = val; have = 1 }
+        END { emit() }' "${files[@]}"
 }
 
 cmd_restore () {
+    [[ $# -ge 1 ]] || _cmd_usage_die restore
+    case "$1" in -h|--help) _cmd_help restore ;; esac
+    [[ $# -eq 1 ]] || _cmd_usage_die restore
     _ensure_workspace
-    local target="${1:?usage: provost restore <capture-id|latest>}"
+    local target="$1" out main
     if [[ "$target" == "latest" ]]; then
-        _git checkout -q main 2>/dev/null \
-            && ok "restored workspace to latest (main)." \
-            || die "could not return to latest."
+        main="$(_main_branch)"
+        _lock
+        out="$(_git checkout -q "$main" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "could not return to latest ($main)."; }
+        _unlock
+        ok "restored workspace to latest ($main)."
         return 0
     fi
-    [[ "$target" == capture-* ]] || target="capture-$target"
-    _git rev-parse -q --verify "refs/tags/$target" >/dev/null 2>&1 \
-        || die "no such capture: ${target#capture-} (see 'provost log')."
+    target="${target#capture-}"
+    [[ "$target" =~ ^[0-9]{1,12}$ ]] && target="$(printf 'c%04d' "$((10#$target))")"
+    _valid_capid "$target" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
+    _git rev-parse -q --verify "refs/tags/capture-$target" >/dev/null 2>&1 \
+        || die "no such capture: $target (see 'provost log')."
     # Bring that capture's committed tree back up (detached).
-    _git checkout -q "$target" 2>/dev/null \
-        || die "checkout failed for $target."
-    ok "brought up ${target#capture-} (detached). Return with: provost restore latest"
-    local capd; capd="$(_cap_dir)/${target#capture-}"
-    [[ -f "$capd/meta.tsv" ]] && { echo; sed 's/\t/: /' "$capd/meta.tsv"; }
+    _lock
+    out="$(_git checkout -q "capture-$target" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "checkout failed for capture-$target."; }
+    _unlock
+    ok "brought up $target (detached; new captures are refused until you return). Return with: provost restore latest"
+    local capd; capd="$(_cap_dir)/$target"
+    if [[ -f "$capd/meta.tsv" ]]; then echo; sed 's/\t/: /' "$capd/meta.tsv"; fi
 }
 
 # ---------------------------------------------------------------------------
@@ -614,62 +1316,78 @@ cmd_restore () {
 # ---------------------------------------------------------------------------
 _registry () { printf '%s/instances.tsv\n' "$(_default_home)"; }
 
-# Snapshot the controlled directory's contents as commit context: a manifest of
-# path/size/mtime/sha for each file (excluding the .provost instance and .git).
-_snapshot_context () {
-    local dir="$1" ws="$2" mani="$ws/context/manifest.tsv" f sz mt sha
-    mkdir -p "$ws/context"
-    printf 'path\tsize\tmtime\tsha1\n' > "$mani"
-    while IFS= read -r f; do
-        sz=$(stat -c '%s' "$f" 2>/dev/null || echo 0)
-        mt=$(stat -c '%Y' "$f" 2>/dev/null || echo 0)
-        if [[ "$sz" -le 1048576 ]] && command -v sha1sum >/dev/null 2>&1; then
-            sha=$(sha1sum "$f" 2>/dev/null | cut -d' ' -f1)
-        else sha="(skipped)"; fi
-        printf '%s\t%s\t%s\t%s\n' "${f#"$dir"/}" "$sz" "$mt" "$sha" >> "$mani"
-    done < <(find "$dir" -type f -not -path '*/.provost/*' -not -path '*/.git/*' 2>/dev/null | sort)
-    local n; n=$(( $(wc -l < "$mani") - 1 ))
-    printf '%s\n' "$n"
+# Add DIR to the global registry once (dedup on the directory column),
+# under the global store's lock.
+_registry_add () {
+    local dir="$1" reg home; reg="$(_registry)"; home="$(_default_home)"
+    mkdir -p "$home"
+    _lock "$home"
+    [[ -f "$reg" ]] || printf 'directory\tcontrolled_at\n' > "$reg"
+    if ! D="$dir" awk -F'\t' '$1 == ENVIRON["D"] { f = 1 } END { exit !f }' "$reg" 2>/dev/null; then
+        printf '%s\t%s\n' "$dir" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$reg"
+    fi
+    _unlock "$home"
+}
+_registry_remove () {
+    local dir="$1" reg home; reg="$(_registry)"; home="$(_default_home)"
+    [[ -f "$reg" ]] || return 0
+    _lock "$home"
+    local tmpf="$reg.tmp.$$.$RANDOM"
+    if D="$dir" awk -F'\t' '$1 != ENVIRON["D"]' "$reg" > "$tmpf"; then
+        mv "$tmpf" "$reg"
+    else
+        rm -f "$tmpf"
+    fi
+    _unlock "$home"
 }
 
 cmd_control () {
+    case "${1:-}" in -h|--help) _cmd_help control ;; esac
+    [[ $# -le 1 ]] || _cmd_usage_die control
     local dir="${1:-$PWD}"
     dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
     local ws="$dir/.provost"
-    if [[ -f "$ws/CONTROLLED" ]]; then info "already controlled: $dir"; return 0; fi
+    if [[ -f "$ws/CONTROLLED" ]]; then _registry_add "$dir"; info "already controlled: $dir"; return 0; fi
     # Point this invocation's store at the new instance and initialise it.
     PROVOST_WORKSPACE="$ws"; PROVOST_STORE_KIND="controlled: $dir"; PROVOST_WORKSPACE_EXPLICIT=1
     _ensure_workspace
+    _require_on_branch
+    _lock
     printf '%s\n' "$dir" > "$ws/CONTROLLED"
     local n; n="$(_snapshot_context "$dir" "$ws")"
-    _lock
-    _git add -A >/dev/null 2>&1 || true
-    _git commit -q -m "provost: control $dir (context: $n file(s))" >/dev/null 2>&1 || true
+    _commit "provost: control $dir (context: $n file(s))"
     _unlock
     # Register in the global store so `provost instances` (run anywhere) sees it.
-    mkdir -p "$(_default_home)"
-    [[ -f "$(_registry)" ]] || printf 'directory\tcontrolled_at\n' > "$(_registry)"
-    grep -qxF "$dir	$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$(_registry)" 2>/dev/null || \
-        printf '%s\t%s\n' "$dir" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$(_registry)"
+    _registry_add "$dir"
     ok "controlling '$dir' — captures run here now route to $ws (context: $n file(s))."
 }
 
 cmd_uncontrol () {
+    case "${1:-}" in -h|--help) _cmd_help uncontrol ;; esac
+    [[ $# -le 1 ]] || _cmd_usage_die uncontrol
     local dir="${1:-$PWD}"
     dir="$(cd "$dir" 2>/dev/null && pwd)" || die "no such directory: ${1:-$PWD}"
     [[ -f "$dir/.provost/CONTROLLED" ]] || die "not a controlled directory: $dir"
+    local saved="$PROVOST_WORKSPACE"
+    PROVOST_WORKSPACE="$dir/.provost"
+    _lock
     rm -f "$dir/.provost/CONTROLLED"
-    if [[ -f "$(_registry)" ]]; then
-        grep -v "^$dir	" "$(_registry)" > "$(_registry).tmp" 2>/dev/null && mv "$(_registry).tmp" "$(_registry)" || true
+    if _git symbolic-ref -q HEAD >/dev/null 2>&1; then
+        _commit "provost: uncontrol $dir"
     fi
+    _unlock
+    PROVOST_WORKSPACE="$saved"
+    _registry_remove "$dir"
     ok "released '$dir' (its .provost data is kept; captures here revert to the global store)."
 }
 
 cmd_instances () {
+    case "${1:-}" in -h|--help) _cmd_help instances ;; esac
+    [[ $# -eq 0 ]] || _cmd_usage_die instances
     local reg; reg="$(_registry)"
     [[ -f "$reg" ]] || { info "no controlled directories yet — 'provost control <dir>'."; return 0; }
-    local n; n=$(( $(wc -l < "$reg") - 1 )); [[ $n -lt 0 ]] && n=0
-    [[ $n -gt 0 ]] || { info "no controlled directories yet — 'provost control <dir>'."; return 0; }
+    local n; n=$(( $(wc -l < "$reg") - 1 )); (( n < 0 )) && n=0
+    (( n > 0 )) || { info "no controlled directories yet — 'provost control <dir>'."; return 0; }
     printf '%-40s %-20s %s\n' "DIRECTORY" "CONTROLLED_AT" "ACTIVE" >&2
     local d t
     while IFS=$'\t' read -r d t; do
@@ -682,48 +1400,59 @@ cmd_instances () {
 # export / import — a portable bundle of the whole store (datasets + commits).
 # ---------------------------------------------------------------------------
 cmd_export () {
+    case "${1:-}" in -h|--help) _cmd_help export ;; esac
+    [[ $# -le 1 ]] || _cmd_usage_die export
     _ensure_workspace
-    local out="${1:-}"
+    local out="${1:-}" gout
     if [[ -z "$out" ]]; then out="$PWD/provost-export-$(date -u +%Y%m%dT%H%M%SZ).bundle"; fi
     _git rev-parse HEAD >/dev/null 2>&1 || die "nothing to export — store has no commits yet."
     _lock
-    local rc=0
-    _git bundle create "$out" --all >/dev/null 2>&1 || rc=$?
+    gout="$(_git bundle create "$(_abspath "$out")" --all 2>&1)" || { printf 'git: %s\n' "$gout" >&2; die "export failed."; }
     _unlock
-    [[ $rc -eq 0 && -f "$out" ]] || die "export failed."
+    [[ -f "$out" ]] || die "export failed."
     local sz; sz=$(stat -c '%s' "$out" 2>/dev/null || echo '?')
-    ok "exported store → $out ($sz bytes). Import elsewhere with: provost import $out <dest>"
+    ok "exported store → $out ($sz bytes). Import elsewhere with: provost import $(printf '%q' "$out") <dest>"
 }
 
 cmd_import () {
-    local file="${1:?usage: provost import <file.bundle> [<dest-dir>]}"
+    case "${1:-}" in -h|--help) _cmd_help import ;; esac
+    [[ $# -ge 1 && $# -le 2 ]] || _cmd_usage_die import
+    local file="$1" out
     [[ -f "$file" ]] || die "no such export file: $file"
     local dest="${2:-}"
     [[ -z "$dest" ]] && dest="$PWD/provost-import-$(basename "$file" .bundle)"
-    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    dest="$(_abspath "$dest")"
     git bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
-    git clone -q "$file" "$dest" >/dev/null 2>&1 || die "import (clone) failed."
+    # mkdir is the atomic claim on the destination (two concurrent imports to
+    # the same place cannot both win); the clone then fills the empty dir.
+    [[ -e "$dest" ]] && die "destination already exists: $dest"
+    mkdir "$dest" 2>/dev/null || die "destination already exists (or cannot be created): $dest"
+    if ! out="$(git clone -q "$file" "$dest" 2>&1)"; then
+        rm -rf "$dest"; printf 'git: %s\n' "$out" >&2; die "import (clone) failed."
+    fi
     git -C "$dest" checkout -q main >/dev/null 2>&1 || git -C "$dest" checkout -q master >/dev/null 2>&1 || true
     local nds ncap
     nds=$(find "$dest/datasets" -name '*.tsv' 2>/dev/null | wc -l | tr -d ' ')
     ncap=$(find "$dest/captures" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
     ok "imported → $dest ($nds dataset(s), $ncap capture(s))."
-    info "browse it with: PROVOST_WORKSPACE='$dest' provost ls   (or show/log/source/restore)"
+    info "browse it with: PROVOST_WORKSPACE=$(printf '%q' "$dest") provost ls   (or show/log/source/restore)"
 }
 
 # ---------------------------------------------------------------------------
 # source — given a dataset row's #N index, show the original captured input.
 # ---------------------------------------------------------------------------
 cmd_source () {
-    _ensure_workspace
-    local n="${1:?usage: provost source <#N>}"
-    n="${n#\#}"                                   # tolerate a leading '#'
-    [[ "$n" =~ ^[0-9]+$ ]] || die "row index must be a number (got '$n')."
+    [[ $# -ge 1 ]] || _cmd_usage_die source
+    case "$1" in -h|--help) _cmd_help source ;; esac
+    [[ $# -eq 1 ]] || _cmd_usage_die source
+    local n="${1#\#}"                             # tolerate a leading '#'
+    [[ "$n" =~ ^[0-9]{1,15}$ ]] || usage_die "row index must be a number (got '$1')."
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || die "no provenance yet — capture something first."
-    local line; line="$(awk -F'\t' -v n="$n" '$1==n {print; exit}' "$prov")"
-    [[ -n "$line" ]] || die "no row #$n (see 'provost ls' / 'provost show <dataset>')."
-    local ds cap; ds="$(printf '%s' "$line" | cut -f2)"; cap="$(printf '%s' "$line" | cut -f3)"
+    local ds="" cap=""
+    IFS=$'\t' read -r ds cap < <(awk -F'\t' -v n="$n" 'NR > 1 && $1 == n { print $2 "\t" $3; exit }' "$prov") || true
+    [[ -n "$cap" ]] || die "no row #$n (see 'provost ls' / 'provost show <dataset>')."
+    _valid_capid "$cap" || die "provenance for row #$n names an invalid capture id — the store may be corrupt."
     local capd; capd="$(_cap_dir)/$cap"
 
     info "row #$n — dataset '$ds', from capture $cap"
@@ -742,20 +1471,25 @@ cmd_source () {
 # stats — statistics on a dataset (the bundled analyze engine).
 # ---------------------------------------------------------------------------
 cmd_stats () {
-    local name="${1:?usage: provost stats <dataset> [analyze-args...]}"; shift || true
+    [[ $# -ge 1 ]] || _cmd_usage_die stats
+    case "$1" in -h|--help) _cmd_help stats ;; esac
+    local name="$1"; shift
+    _require_name "$name"
     local f; f="$(_ds_dir)/$name.tsv"
     [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
     local analyze; analyze="$(_find_analyze)" \
         || die "analyze engine not found (expected at $PROVOST_ROOT/analyze/envoy-analyze)."
     # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
     # straight through (e.g. --all, a numbered analysis list, --format json).
-    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 env -u GIT_DIR bash "$analyze" "$f" "$@"
+    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 _run_engine "$analyze" "$f" "$@"
 }
 
 # ---------------------------------------------------------------------------
 # ls / show / triage / doctor
 # ---------------------------------------------------------------------------
 cmd_ls () {
+    case "${1:-}" in -h|--help) _cmd_help ls ;; esac
+    [[ $# -eq 0 ]] || _cmd_usage_die ls
     local dir; dir="$(_ds_dir)"
     [[ -d "$dir" ]] || { info "no datasets yet — pipe something into 'provost'."; return 0; }
     shopt -s nullglob
@@ -763,44 +1497,70 @@ cmd_ls () {
     printf '%-24s %8s\n' "DATASET" "ROWS" >&2
     for f in "$dir"/*.tsv; do
         any=1; name="$(basename "$f" .tsv)"
-        rows=$(( $(wc -l < "$f") - 1 )); [[ $rows -lt 0 ]] && rows=0
+        rows=$(( $(wc -l < "$f") - 1 )); (( rows < 0 )) && rows=0
         printf '%-24s %8d\n' "$name" "$rows"
     done
+    shopt -u nullglob
     [[ $any -eq 1 ]] || info "no datasets yet — pipe something into 'provost'."
 }
 
 # The 'unsorted' dataset holds each held-back capture as a single base64-encoded
-# 'raw' column (see _ingest). Decode it back to text for display, escaping any
-# embedded tabs/newlines so each captured input stays on one line of the table.
+# 'raw' column (see _ingest). Decode it back to text for display — in ONE awk
+# (mawk-safe; LC_ALL=C so %c emits single bytes), not a base64 process per row —
+# escaping embedded tabs/newlines so each captured input stays on one line.
+# A value that is not valid base64 is shown as-is.
 # 'provost source #N' remains the way back to the exact original bytes.
 _decode_unsorted_tsv () {
-    local f="$1" n b64 decoded
-    printf '#\traw\n'
-    tail -n +2 "$f" | while IFS=$'\t' read -r n b64; do
-        decoded="$(printf '%s' "$b64" | base64 -d 2>/dev/null || printf '%s' "$b64")"
-        decoded="${decoded//$'\t'/\\t}"
-        decoded="${decoded//$'\n'/\\n}"
-        printf '%s\t%s\n' "$n" "$decoded"
-    done
+    LC_ALL=C awk -F'\t' '
+        BEGIN {
+            b = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+            for (i = 1; i <= 64; i++) val[substr(b, i, 1)] = i - 1
+            for (i = 1; i < 256; i++) ch[i] = sprintf("%c", i)
+            ch[9] = "\\t"; ch[10] = "\\n"; ch[13] = "\\r"
+            print "#\traw"
+        }
+        NR == 1 { next }
+        {
+            s = $2
+            if (s ~ /[^A-Za-z0-9+\/=]/) { print $1 "\t" s; next }
+            printf "%s\t", $1
+            out = ""; acc = 0; bits = 0; n = length(s); cnt = 0
+            for (i = 1; i <= n; i++) {
+                c = substr(s, i, 1)
+                if (!(c in val)) continue
+                acc = acc * 64 + val[c]; bits += 6
+                if (bits >= 8) {
+                    bits -= 8; p = 2 ^ bits
+                    byte = int(acc / p); acc -= byte * p
+                    if (byte > 0) { out = out ch[byte]; cnt++ }
+                    if (cnt >= 4096) { printf "%s", out; out = ""; cnt = 0 }
+                }
+            }
+            printf "%s\n", out
+        }' "$1"
 }
 
+_table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else cat; fi; }
+
 cmd_show () {
-    local name="${1:?usage: provost show NAME}"
+    [[ $# -ge 1 ]] || _cmd_usage_die show
+    case "$1" in -h|--help) _cmd_help show ;; esac
+    [[ $# -eq 1 ]] || _cmd_usage_die show
+    local name="$1"
+    _require_name "$name"
     local f; f="$(_ds_dir)/$name.tsv"
     [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
-    if [[ "$name" == "unsorted" ]]; then
-        if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
-        else _decode_unsorted_tsv "$f"; fi
-    elif command -v column >/dev/null 2>&1; then column -t -s $'\t' "$f"
-    else cat "$f"; fi
+    if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _table
+    else _table < "$f"; fi
 }
 
 cmd_triage () {
+    case "${1:-}" in -h|--help) _cmd_help triage ;; esac
+    [[ $# -eq 0 ]] || _cmd_usage_die triage
     local f; f="$(_ds_dir)/unsorted.tsv"
     [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
     info "unsorted rows (low-confidence / no-match), raw input decoded ('provost source #N' for exact bytes):"
-    if command -v column >/dev/null 2>&1; then _decode_unsorted_tsv "$f" | column -t -s $'\t'
-    else _decode_unsorted_tsv "$f"; fi
+    _decode_unsorted_tsv "$f" | _table
 }
 
 # ---------------------------------------------------------------------------
@@ -808,30 +1568,35 @@ cmd_triage () {
 #   provost rm [-f|--yes] [--no-purge] <dataset> [<dataset>...]
 # Removes each dataset file (only the named dataset — variants like NAME.v2 are
 # their own datasets, remove them by name), prunes the matching rows from
-# provenance.tsv, and — BY DEFAULT — purges the captures/<id>/ dirs that fed the
-# removed dataset(s) too (--no-purge / --keep-captures keeps them). The deletion
-# is committed, so the git history (and 'provost restore') still holds the
-# pre-deletion state. Row indices (#N) are never reused.
+# provenance.tsv, and — BY DEFAULT — purges each captures/<id>/ dir that fed
+# ONLY removed dataset(s) (a --multi capture that also fed a surviving dataset
+# is kept, and its meta.tsv updated to drop the removed names). --no-purge /
+# --keep-captures keeps every capture. The deletion is committed, so the git
+# history (and 'provost restore') still holds the pre-deletion state. Row
+# indices (#N) and capture ids are never reused.
 # ---------------------------------------------------------------------------
 cmd_rm () {
-    _ensure_workspace
     local yes=0 purge=1 names=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -f|--yes|--force)        yes=1; shift ;;
             --purge)                 purge=1; shift ;;
             --no-purge|--keep-captures) purge=0; shift ;;
-            -h|--help)               cmd_help; return 0 ;;
+            -h|--help)               _cmd_help rm ;;
             --)                      shift; while [[ $# -gt 0 ]]; do names+=("$1"); shift; done ;;
-            -*)                      die "unknown option: $1" ;;
+            -?*)                     usage_die "unknown option for 'rm': $1 (see 'provost rm --help')." ;;
             *)                       names+=("$1"); shift ;;
         esac
     done
-    [[ ${#names[@]} -gt 0 ]] || die "usage: provost rm [-f] [--no-purge] <dataset> [<dataset>...]"
+    [[ ${#names[@]} -gt 0 ]] || _cmd_usage_die rm
+    local n
+    for n in "${names[@]}"; do _require_name "$n"; done
+    _ensure_workspace
+    _require_on_branch
 
     local dir; dir="$(_ds_dir)"
     # Validate every name up front — refuse the whole operation if any is missing.
-    local n missing=()
+    local missing=()
     for n in "${names[@]}"; do
         [[ -f "$dir/$n.tsv" ]] || missing+=("$n")
     done
@@ -840,13 +1605,13 @@ cmd_rm () {
     # Confirm (unless -f), reporting how many rows go with the datasets.
     local total=0 rows
     for n in "${names[@]}"; do
-        rows=$(( $(wc -l < "$dir/$n.tsv") - 1 )); [[ $rows -lt 0 ]] && rows=0
+        rows=$(( $(wc -l < "$dir/$n.tsv") - 1 )); (( rows < 0 )) && rows=0
         total=$((total + rows))
     done
     if [[ $yes -ne 1 ]]; then
         printf 'About to delete %d dataset(s), %d row(s): %s\n' "${#names[@]}" "$total" "${names[*]}" >&2
         if [[ $purge -eq 1 ]]; then
-            printf 'Also purging the captures that fed them — originals removed (--no-purge to keep them).\n' >&2
+            printf 'Also purging the captures that fed only them — originals removed (--no-purge to keep them).\n' >&2
         else
             printf 'Keeping the source captures (--no-purge).\n' >&2
         fi
@@ -856,12 +1621,10 @@ cmd_rm () {
     fi
 
     _lock
-    # shellcheck disable=SC2064
-    trap "_unlock" RETURN
+    _require_on_branch
 
-    # A one-name-per-line file drives the awk/loop membership tests.
-    local tmp; tmp="$(mktemp "$dir/.rm.XXXXXX")"
-    printf '%s\n' "${names[@]}" > "$tmp"
+    # The removed names, newline-joined, drive the awk membership tests.
+    local rmset; rmset="$(printf '%s\n' "${names[@]}")"
 
     # Drop the dataset files.
     for n in "${names[@]}"; do rm -f "$dir/$n.tsv"; done
@@ -870,129 +1633,226 @@ cmd_rm () {
     local prov ptmp; prov="$(_prov_file)"
     if [[ -f "$prov" ]]; then
         ptmp="$(mktemp "$dir/.rmprov.XXXXXX")"
-        awk -F'\t' '
-            NR==FNR { del[$0]=1; next }
-            FNR==1  { print; next }
-            !($2 in del) { print }
-        ' "$tmp" "$prov" > "$ptmp" && mv "$ptmp" "$prov" || { rm -f "$ptmp"; }
+        if RMSET="$rmset" awk -F'\t' '
+                BEGIN { n = split(ENVIRON["RMSET"], r, "\n"); for (i = 1; i <= n; i++) del[r[i]] = 1 }
+                FNR == 1 { print; next }
+                !($2 in del) { print }' "$prov" > "$ptmp"; then
+            mv "$ptmp" "$prov"
+        else
+            rm -f "$ptmp"; die "could not prune provenance.tsv — nothing committed."
+        fi
     fi
 
-    # --purge: remove the capture dirs (and their tags) that fed a removed
-    # dataset, identified by each capture's own meta 'dataset' field.
-    local purged=0 d cid cds
+    # --purge: a capture goes only when NONE of the datasets it fed survive
+    # (a --multi capture's meta 'dataset' is a comma-joined list). A capture
+    # that still feeds a surviving dataset stays, with the removed names
+    # dropped from its meta.tsv.
+    local purged=0 updated=0 d cid cds part survivors any_removed
+    local -a parts=()
     if [[ $purge -eq 1 ]]; then
-        for d in "$(_cap_dir)"/*/; do
+        shopt -s nullglob
+        for d in "$(_cap_dir)"/c*/; do
             [[ -f "$d/meta.tsv" ]] || continue
-            cds=$(awk -F'\t' '$1=="dataset"{print $2}' "$d/meta.tsv")
-            if grep -qxF "$cds" "$tmp"; then
-                cid=$(awk -F'\t' '$1=="id"{print $2}' "$d/meta.tsv")
+            cds="$(awk -F'\t' '$1 == "dataset" { print substr($0, 9); exit }' "$d/meta.tsv")"
+            IFS=',' read -r -a parts <<< "$cds" || true
+            survivors=0; any_removed=0
+            for part in ${parts[@]+"${parts[@]}"}; do
+                if grep -qxF -- "$part" <<< "$rmset"; then any_removed=1
+                elif _valid_name "$part" && [[ -f "$dir/$part.tsv" ]]; then survivors=$((survivors + 1)); fi
+            done
+            [[ $any_removed -eq 1 ]] || continue
+            cid="$(awk -F'\t' '$1 == "id" { print $2; exit }' "$d/meta.tsv")"
+            if [[ $survivors -eq 0 ]]; then
                 rm -rf "$d"
-                [[ -n "$cid" ]] && _git tag -d "capture-$cid" >/dev/null 2>&1 || true
+                if _valid_capid "$cid"; then _git tag -d "capture-$cid" >/dev/null 2>&1 || true; fi
                 purged=$((purged + 1))
+            else
+                RMSET="$rmset" awk -F'\t' -v OFS='\t' '
+                    BEGIN { n = split(ENVIRON["RMSET"], r, "\n"); for (i = 1; i <= n; i++) del[r[i]] = 1 }
+                    { key[NR] = $1; val[NR] = substr($0, length($1) + 2); if ($1 == "dataset") dl = val[NR] }
+                    END {
+                        nd = split(dl, dn, ","); removed = ""; kept = 0
+                        for (i = 1; i <= nd; i++) if (dn[i] in del) { drop[i] = 1; removed = removed (removed == "" ? "" : ",") dn[i] } else kept++
+                        for (ln = 1; ln <= NR; ln++) {
+                            k = key[ln]; v = val[ln]
+                            if (k == "dataset" || k == "strategy" || k == "confidence") {
+                                m = split(v, p, ","); v = ""
+                                for (i = 1; i <= m; i++) if (!(i in drop)) v = v (v == "" ? "" : ",") p[i]
+                            } else if (k == "dataset_rows") {
+                                m = split(v, p, ","); v = ""
+                                for (i = 1; i <= m; i++) { nm = p[i]; sub(/:.*/, "", nm); if (!(nm in del)) v = v (v == "" ? "" : ",") p[i] }
+                            } else if (k == "datasets") v = kept
+                            print k, v
+                        }
+                        print "removed_datasets", removed
+                    }' "$d/meta.tsv" > "$d/.meta.tmp" \
+                    || { rm -f "$d/.meta.tmp"; die "could not update $d/meta.tsv — nothing committed."; }
+                mv "$d/.meta.tmp" "$d/meta.tsv"
+                updated=$((updated + 1))
             fi
         done
+        shopt -u nullglob
     fi
-    rm -f "$tmp"
 
-    _git add -A >/dev/null 2>&1 || true
     local msg="rm: deleted ${#names[@]} dataset(s) [${names[*]}], pruned $total row(s)"
     [[ $purge -eq 1 ]] && msg="$msg, purged $purged capture(s)"
-    _git commit -q -m "$msg" >/dev/null 2>&1 || true
+    (( updated > 0 )) && msg="$msg, updated $updated shared capture(s)"
+    _commit "$msg"
     _unlock
-    # shellcheck disable=SC2064
-    trap - RETURN
 
+    local extra=""
+    (( updated > 0 )) && extra=" $updated capture(s) kept because they also feed a surviving dataset."
     if [[ $purge -eq 1 ]]; then
-        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s). History kept — 'provost log'/'restore' still reach the pre-deletion state."
+        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s).$extra History kept — 'provost log'/'restore' still reach the pre-deletion state."
     else
         ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'provost source #N' still resolves surviving rows."
     fi
 }
 
 cmd_doctor () {
-    local engine
+    case "${1:-}" in -h|--help) _cmd_help doctor ;; esac
+    local engine rc=0
     if engine="$(_find_engine)"; then
         printf '%s ok%s extract engine: %s\n' "$C_OK" "$C_RST" "$engine"
-        # The bundled engine is the canonical one. If we resolved a different one
-        # (a $PROVOST_HOME/extract/ override), warn — a stale copy there silently
-        # shadows the bundled engine and can misclassify inputs.
-        if [[ "$engine" != "$PROVOST_ROOT/extract/envoy-extract" ]]; then
-            printf '   %swarning%s using an engine from PROVOST_HOME, not the bundled one\n' "$C_ERR" "$C_RST"
-            printf '            bundled: %s\n' "$PROVOST_ROOT/extract/envoy-extract"
-            printf '            if this is a stale copy, remove it or unset PROVOST_HOME.\n'
-        fi
     else
-        printf '%serror%s extract engine not found\n' "$C_ERR" "$C_RST"; return 1
+        printf '%serror%s extract engine not found (expected at %s/extract/)\n' "$C_ERR" "$C_RST" "$PROVOST_ROOT"; rc=1
     fi
-    local analyze
+    local analyze awkv=""
     if analyze="$(_find_analyze)"; then
         printf '%s ok%s analyze engine: %s\n' "$C_OK" "$C_RST" "$analyze"
-        command -v gawk >/dev/null 2>&1 || printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "$(awk --version 2>/dev/null | head -1 || echo awk)"
+        if ! command -v gawk >/dev/null 2>&1; then
+            awkv="$(awk --version 2>/dev/null || awk -W version 2>/dev/null || echo awk)"
+            printf '   note: gawk not found; analyze uses %s (some analyses may degrade)\n' "${awkv%%$'\n'*}"
+        fi
     else
         printf '   analyze engine not found (expected at %s/analyze/)\n' "$PROVOST_ROOT"
     fi
+    # Engine/transform copies inside a store are never used (code comes only
+    # from the install dir) — say so, so nobody expects an override to work.
+    local sub
+    for sub in extract analyze transform; do
+        if [[ -e "$PROVOST_WORKSPACE/$sub" || -e "$(_default_home)/$sub" ]]; then
+            printf '   %snote%s a %s/ tree inside the store is IGNORED — code loads only from %s\n' "$C_ERR" "$C_RST" "$sub" "$PROVOST_ROOT"
+        fi
+    done
     printf '   store: %s (%s)' "$PROVOST_WORKSPACE" "${PROVOST_STORE_KIND:-global}"
     [[ -d "$PROVOST_WORKSPACE/.git" ]] && printf ' [git-backed]'; printf '\n'
+    if [[ -d "$PROVOST_WORKSPACE/.git" ]]; then
+        local head
+        if head="$(_git symbolic-ref -q --short HEAD 2>/dev/null)"; then
+            printf '   branch: %s\n' "$head"
+        else
+            printf '   %swarning%s store is on a restored capture (detached) — captures are refused; provost restore latest\n' "$C_ERR" "$C_RST"
+        fi
+    fi
     if [[ -f "$(_rowid_file)" ]]; then
         printf '   next row index: #%s\n' "$(cat "$(_rowid_file)")"
     fi
+    if [[ -f "$(_capid_file)" ]]; then
+        local nc; nc="$(cat "$(_capid_file)" 2>/dev/null || true)"
+        if [[ "$nc" =~ ^[0-9]{1,12}$ ]]; then printf '   next capture id: c%04d\n' "$((10#$nc))"
+        else printf '   %swarning%s capture counter is corrupt: %s\n' "$C_ERR" "$C_RST" "$nc"; fi
+    fi
+    if [[ -d "$PROVOST_WORKSPACE/.lock" ]]; then
+        printf '   note: store lock held by: %s\n' "$(tr '\t' ' ' < "$PROVOST_WORKSPACE/.lock/owner" 2>/dev/null || echo unknown)"
+    fi
     printf '   min-confidence: %s\n' "$PROVOST_MIN_CONFIDENCE"
+    if [[ -s "$(_faillog)" ]]; then
+        printf '   %swarning%s failed background captures:\n' "$C_ERR" "$C_RST"
+        _show_failures 2>/dev/null | sed 's/^/     /'
+    else
+        printf '   failed background captures: none\n'
+    fi
+    return $rc
 }
 
 cmd_help () {
-    cat >&2 <<EOF
+    cat <<EOF
 provost $PROVOST_VERSION — turn command output into data
 
 USAGE
-    provost run [--] <cmd> [args...]                capture a command's output as a
-                                                 commit, auto-detect + file it
-    cmd | provost [--silent] [--min-confidence N]   inject stdin into a typed dataset —
-                [--sync] [--plugin-dir DIR]        captures in the BACKGROUND by default;
-                [--multi]                          --sync/--wait to file it in the foreground;
-                                                 --plugin-dir adds an extra strategy dir;
-                                                 --multi files EVERY dataset the input
-                                                 holds (a kv block and a table and a
-                                                 banner) instead of one winner
-    provost [FILE]                                  inject a file instead of stdin
+    provost run [opts] [--] <cmd> [args...]         run a command, capture its output as a
+                                                 commit, auto-detect + file it as dataset
+                                                 <cmd> (wrappers like sudo/env/timeout are
+                                                 looked through; --name NAME overrides)
+    cmd | provost [opts]                            inject stdin into a typed dataset named
+                                                 after the winning parser (--name NAME
+                                                 overrides)
+    provost [opts] FILE                             inject a file instead of stdin
+      capture opts: --name NAME  --min-confidence N  --plugin-dir DIR  --multi
+                    --sync|--wait  --async  -q|--silent
     provost source <#N>                             show the original source behind row #N
     provost control [<dir>]                         make <dir> its own capture instance
-    provost uncontrol [<dir>]                        release a controlled directory
+    provost uncontrol [<dir>]                       release a controlled directory
     provost instances                               list controlled directories
     provost export [<file>]                         bundle the store into a portable file
-    provost import <file> [<dest>]                   reconstitute a bundle elsewhere to browse
-    provost log                                     list captures (the git history)
+    provost import <file> [<dest>]                  reconstitute a bundle elsewhere to browse
+    provost log [--failed]                          list captures (--failed: failed background ones)
     provost restore <id|latest>                     bring a capture's commit back up
     provost ls                                      list datasets
     provost show NAME                               present a dataset (leading #N = row index)
-    provost rm [-f] [--no-purge] NAME...            delete dataset(s) + their captures (--no-purge keeps captures)
+    provost rm [-f] [--no-purge] NAME...            delete dataset(s) + captures only they used
     provost stats NAME [analyze-args]               statistics on a dataset (--all for everything)
     provost triage                                  show low-confidence / unmatched bucket (raw input decoded)
-    provost doctor                                  check engine + store
-    provost help
+    provost doctor                                  check engines + store, list failed captures
+    provost help | <command> --help                 this text / one command's usage
+
+    Example:  provost run df -h;  provost show df
+
+FOREGROUND / BACKGROUND
+    From an interactive terminal a capture runs in the BACKGROUND and the
+    prompt returns at once; from a script or pipeline (stderr not a terminal)
+    it runs in the FOREGROUND, so 'cmd | provost; provost show x' is race-free.
+    --async / --sync (or PROVOST_ASYNC=1/0) force either. A failed background
+    capture is logged in the store: every later provost command warns until
+    you look at it with 'provost log --failed' or 'provost doctor'.
+
+DATASET NAMES
+    'provost run CMD ...' files into a dataset named after CMD's basename
+    (sudo, doas, env, nice, ionice, nohup, time, command, exec, stdbuf and
+    timeout are skipped, with their options). An injected input is named after
+    the winning parser (e.g. csv, free, aligned-columns). --name NAME sets it
+    explicitly. Names: letters, digits, '.', '_', '-' (starting with a letter
+    or digit, no '..'). Inputs that match nothing, or match below
+    --min-confidence, go to the 'unsorted' triage bucket. A same-named capture
+    with a different column set RECONCILES (columns unioned) when the overlap
+    is at least PROVOST_RECONCILE_OVERLAP%, else it splits into NAME.v2, ...
 
 STORE (global by default, or a controlled directory)
     Captures go to a GLOBAL git store so you can capture from any directory:
       \$PROVOST_HOME, or ~/.provost if unset. Point PROVOST_HOME at a shared,
       group-writable dir to collaborate; a lock serialises concurrent writers.
+      Only DATA lives in the store: provost's engines always load from its own
+      install dir ($PROVOST_ROOT), never from the store.
     'provost control <dir>' makes <dir> its own instance (<dir>/.provost): captures
     run inside it (or a subdir) route there, and each commit snapshots the
     directory's contents as context. Resolution: PROVOST_WORKSPACE override, else
     the nearest controlled dir walking up from CWD, else the global store.
-    Every capture is one commit tagged capture-<id> ('log' / 'restore'). Every
-    dataset row has a globally-unique visible index #N; 'provost source N' maps it
-    back to the exact captured input that produced it.
+    Every capture is one commit tagged capture-<id> ('log' / 'restore'); capture
+    ids and row indices are never reused. Every dataset row has a globally-unique
+    visible index #N; 'provost source N' maps it back to the exact captured input.
+    After 'provost restore <id>' the store is read-only until 'provost restore latest'.
 
 ENV
-    PROVOST_HOME            global store dir (default: ~/.provost)
-    PROVOST_WORKSPACE       explicit store override (wins over PROVOST_HOME)
-    PROVOST_MIN_CONFIDENCE  commit threshold 0-100 (default: 50)
-    PROVOST_PLUGIN_DIR      extra strategy dir for detection (same as --plugin-dir
-                          on inject/run; for wrappers like deframe — no
-                          ~/.mfe/strategies symlink needed)
-    PROVOST_ASYNC          background capture (default 1; set 0 or use --sync for foreground)
-    PROVOST_MULTI           file every dataset an input holds (default 0; same as --multi)
-    PROVOST_MAX_INPUT       max input bytes (default: 10485760)
-    PROVOST_LOCK_TIMEOUT    seconds to wait for the store lock (default: 30)
+    PROVOST_HOME              global store dir (default: ~/.provost)
+    PROVOST_WORKSPACE         explicit store override (wins over PROVOST_HOME)
+    PROVOST_MIN_CONFIDENCE    commit threshold 0-100 (default: 50; 101 holds every
+                              capture back for triage)
+    PROVOST_PLUGIN_DIR        extra strategy dir for detection (same as --plugin-dir
+                              on inject/run; for wrappers like deframe — no
+                              ~/.mfe/strategies symlink needed)
+    PROVOST_ASYNC             1 = always background, 0 = always foreground,
+                              unset/auto = background only when interactive
+    PROVOST_MULTI             file every dataset an input holds (default 0; same as --multi)
+    PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
+    PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
+    PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
+                              its owner can't be checked, e.g. another host (default: 3600)
+    PROVOST_RECONCILE_OVERLAP % column overlap needed to reconcile a changed schema into
+                              the same dataset instead of a NAME.vN variant (default: 60)
+    PROVOST_QUIET             1 = suppress progress/ok messages (same as --silent)
+    TMPDIR                    where temp and background spool dirs go (default: /tmp)
+    Numeric settings must be whole numbers; anything else is refused (exit 2).
 
 MULTIPLE DATASETS PER INPUT (--multi)
     Some reports hold more than one kind of data — a key/value block, a table,
@@ -1000,10 +1860,11 @@ MULTIPLE DATASETS PER INPUT (--multi)
     capture keeps whichever the engine ranks first and drops the rest; --multi
     splits the input, parses each part on its own terms (a kv block and a table
     can even use different delimiters), and files each as its own dataset under
-    ONE capture. Datasets are named by their winning strategy, so two parts that
-    parse the same way but differ in shape land in NAME and NAME.v2. Row indices
-    (#N) run consecutively across them and 'provost source N' still returns the
-    whole original input. 'provost log' shows the comma-joined list; the capture's
+    ONE capture. Datasets are named by their winning strategy (prefixed NAME.
+    for 'run' or --name, e.g. iostat.aligned-columns), so two parts that parse
+    the same way but differ in shape land in X and X.v2. Row indices (#N) run
+    consecutively across them and 'provost source N' still returns the whole
+    original input. 'provost log' shows the comma-joined list; the capture's
     meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
 
 METADATA PROLOGUE
@@ -1012,10 +1873,33 @@ METADATA PROLOGUE
     parse), stored with the capture (context.txt), and shown verbatim by
     'provost source'. Wrappers can prepend context unconditionally.
 
-Not yet in this prototype (proposal 0001): schema reconciliation (a differing
-column set currently splits a dataset into a numbered variant, e.g. free.v2).
-See docs/proposals/0001-provost-rename-and-simplification.md.
+See docs/0001-rename-and-simplification.md for the design.
 EOF
+}
+
+# "did you mean" for a mistyped subcommand (edit distance ≤ 2, or a prefix).
+_suggest_verb () {
+    W="$1" awk 'function lev(a, b,    la, lb, i, j, d, c, x, y, z) {
+            la = length(a); lb = length(b)
+            for (i = 0; i <= la; i++) d[i, 0] = i
+            for (j = 0; j <= lb; j++) d[0, j] = j
+            for (i = 1; i <= la; i++) for (j = 1; j <= lb; j++) {
+                c = (substr(a, i, 1) == substr(b, j, 1)) ? 0 : 1
+                x = d[i-1, j] + 1; y = d[i, j-1] + 1; z = d[i-1, j-1] + c
+                d[i, j] = (x < y ? (x < z ? x : z) : (y < z ? y : z))
+            }
+            return d[la, lb]
+        }
+        BEGIN {
+            w = ENVIRON["W"]; n = split("run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help", v, " ")
+            best = ""; bd = 3
+            for (i = 1; i <= n; i++) {
+                dist = lev(w, v[i])
+                if (length(w) >= 2 && index(v[i], w) == 1 && dist > 1) dist = 1
+                if (dist < bd) { bd = dist; best = v[i] }
+            }
+            if (best != "" && bd < length(w)) print best
+        }'
 }
 
 # ---------------------------------------------------------------------------
@@ -1023,6 +1907,23 @@ EOF
 # ---------------------------------------------------------------------------
 main () {
     local verb="${1:-}"
+    case "$verb" in
+        help|-h|--help)
+            if [[ $# -ge 2 ]] && _usage_text "$2" >/dev/null 2>&1; then _cmd_help "$2"; fi
+            cmd_help; exit 0 ;;
+        -V|--version)
+            printf 'provost %s\nCopyright (C) 2026 Martin J. Gallagher\nLicense: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>\nThis is free software: you are free to change and redistribute it.\nThere is no warranty, to the extent permitted by law.\n' "$PROVOST_VERSION"
+            exit 0 ;;
+    esac
+    _validate_settings
+    _vet_store_config
+    # Bare 'provost' on a terminal: there is nothing piped in — show help
+    # instead of silently waiting on stdin.
+    if [[ $# -eq 0 && -t 0 ]]; then cmd_help; exit 0; fi
+    case "$verb" in
+        doctor|log) ;;                            # these show the failures themselves
+        *) _warn_failures ;;
+    esac
     case "$verb" in
         run)           shift; cmd_run "$@" ;;
         source|src)    shift; cmd_source "$@" ;;
@@ -1039,10 +1940,18 @@ main () {
         stats)         shift; cmd_stats "$@" ;;
         triage)        shift; cmd_triage "$@" ;;
         doctor)        shift; cmd_doctor "$@" ;;
-        help|-h|--help) cmd_help ;;
-        -V|--version)  printf 'provost %s\nCopyright (C) 2026 Martin J. Gallagher\nLicense: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>\nThis is free software: you are free to change and redistribute it.\nThere is no warranty, to the extent permitted by law.\n' "$PROVOST_VERSION" ;;
         inject)        shift; cmd_inject "$@" ;;   # explicit alias
-        *)             cmd_inject "$@" ;;          # default verb
+        ""|-*)         cmd_inject "$@" ;;          # default verb (options only)
+        *)
+            # A lone word: a FILE to inject if it exists (or looks like a path),
+            # otherwise a mistyped subcommand.
+            if [[ -e "$verb" || "$verb" == */* ]]; then cmd_inject "$@"; return; fi
+            local s; s="$(_suggest_verb "$verb")"
+            if [[ -n "$s" ]]; then
+                usage_die "unknown command '$verb' (did you mean '$s'?)"
+            fi
+            usage_die "unknown command '$verb' (and no such file) — see 'provost help'."
+            ;;
     esac
 }
 main "$@"

@@ -1,2 +1,2 @@
 line1	line2	line3	Hostname	Kernel	Uptime	CPU	Memory	Load_average
-╔══════════════════════════════╗	║   nodeinfo  build 2026.07     ║	╚══════════════════════════════╝	prod-web-03	6.8.0-41-generic	14 days, 3:22	AMD EPYC 7543 (32_cores)	48.2 GiB / 128 GiB	1.42 1.31 1.20
+╔══════════════════════════════╗	║   nodeinfo  build 2026.07     ║	╚══════════════════════════════╝	prod-web-03	6.8.0-41-generic	14 days, 3:22	AMD EPYC 7543 (32 cores)	48.2 GiB / 128 GiB	1.42 1.31 1.20

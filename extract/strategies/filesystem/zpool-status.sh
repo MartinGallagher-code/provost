@@ -15,7 +15,8 @@ strategy_detect () {
     # `zpool status` has a distinctive `pool:` header, a `config:` line, and a
     # device table whose header is exactly `NAME STATE READ WRITE CKSUM`.
     local has_pool=0 has_config=0 has_hdr=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"pool:"* ]] && has_pool=1
         [[ "$line" == "config:"* ]] && has_config=1
         if [[ "$line" == *"NAME"* && "$line" == *"STATE"* \
@@ -23,9 +24,9 @@ strategy_detect () {
               && "$line" == *"CKSUM"* ]]; then
             has_hdr=1
         fi
-    done <<< "$text"
+    done
     if [[ $has_pool -eq 1 && $has_config -eq 1 && $has_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -36,7 +37,8 @@ strategy_extract () {
     local result=""
     local entry=0
     local in_table=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # The `NAME STATE READ WRITE CKSUM` header opens the device table.
         if [[ "$line" == *"NAME"* && "$line" == *"STATE"* \
               && "$line" == *"READ"* && "$line" == *"WRITE"* \
@@ -48,7 +50,7 @@ strategy_extract () {
         # A blank line ends the table (before the trailing `errors:` block).
         [[ -z "${line// }" ]] && break
 
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         # Each device row is: name state read write cksum
         [[ ${#f[@]} -ge 5 ]] || continue
 
@@ -58,7 +60,7 @@ strategy_extract () {
         result+="entry${entry}.read ${f[2]}"$'\n'
         result+="entry${entry}.write ${f[3]}"$'\n'
         result+="entry${entry}.cksum ${f[4]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

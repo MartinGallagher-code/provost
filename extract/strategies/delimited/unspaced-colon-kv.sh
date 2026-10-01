@@ -98,8 +98,9 @@ strategy_detect () {
     # A clock is 1-2 digits, a colon, then EXACTLY two more digits — the trailing
     # `[^0-9]` matters: without it `Vuser 1:482100` reads as the time `1:48`.
     local _clock_re='(^|[^0-9:])[0-9][0-9]?:[0-9][0-9]([^0-9]|$)'
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Indented -> YAML / nested config, not this.
         [[ "$line" == [[:space:]]* ]] && return 1
         [[ "$line" == *"://"* ]] && return 1
@@ -114,7 +115,7 @@ strategy_detect () {
             *"|${_UCK_LABEL}|"*) ;;
             *) labels+="|${_UCK_LABEL}|" ;;
         esac
-    done <<< "$text"
+    done
 
     [[ $nb -ge 2 ]] || return 1
     # Majority unspaced, and more than one distinct label.
@@ -128,13 +129,14 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _uck_split "$line" || continue
         entry=$((entry + 1))
         result+="entry${entry}.label ${_UCK_LABEL}"$'\n'
         result+="entry${entry}.value ${_UCK_VALUE}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

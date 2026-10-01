@@ -1,4 +1,4 @@
-n	NAME	SHORTNAMES	APIVERSION	NAMESPACED	KIND	total_entries
-1	bindings	v1	true	Binding		3
-2	componentstatuses	cs	v1	false	ComponentStatus	3
-3	configmaps	cm	v1	true	ConfigMap	3
+n	NAME	SHORTNAMES	APIVERSION	NAMESPACED	KIND
+1	bindings	v1	true	Binding	
+2	componentstatuses	cs	v1	false	ComponentStatus
+3	configmaps	cm	v1	true	ConfigMap

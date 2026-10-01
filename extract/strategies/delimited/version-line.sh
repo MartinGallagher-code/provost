@@ -39,33 +39,35 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line only="" n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         n=$((n + 1)); only="$line"
         [[ $n -gt 1 ]] && return 1
-    done <<< "$text"
+    done
     [[ $n -eq 1 ]] || return 1
     # Form B: `NAME, version X …` — name may be multi-word (ghc).
     if [[ "$only" == *", version "* ]]; then
         local _vb_rest="${only#*, version }"
         local _vb_ver="${_vb_rest%% *}"
-        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=72; return 0; }
+        [[ "$_vb_ver" =~ $_vl_ver_re ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     fi
-    local -a tok=(); read -ra tok <<< "$only"
+    local -a tok=(); { _fr_tok "$only"; tok=("${_FR_TOK[@]}"); }
     [[ ${#tok[@]} -ge 3 ]] || return 1
     [[ "${tok[0]}" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]] || return 1
     [[ "${tok[1]}" =~ $_vl_ver_re ]] || return 1
-    _STRATEGY_CONFIDENCE=72
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line only=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         only="$line"
-    done <<< "$text"
+    done
     local result=""
 
     # Form B: `NAME, version X ( k: v, k: v )` — paren pairs become named
@@ -81,7 +83,7 @@ strategy_extract () {
                 # Split the paren body on `, ` into `k: v` pairs.
                 local body="${BASH_REMATCH[1]}" part k v
                 local -a parts=()
-                IFS=',' read -ra parts <<< "$body"
+                { IFS=',' _fr_tok "$body"; parts=("${_FR_TOK[@]}"); }
                 for part in "${parts[@]}"; do
                     part="${part#"${part%%[![:space:]]*}"}"
                     part="${part%"${part##*[![:space:]]}"}"
@@ -103,7 +105,7 @@ strategy_extract () {
         fi
     fi
 
-    local -a tok=(); read -ra tok <<< "$only"
+    local -a tok=(); { _fr_tok "$only"; tok=("${_FR_TOK[@]}"); }
     result+="name ${tok[0]}"$'\n'
     result+="version ${tok[1]}"$'\n'
     local i pos=0 t col

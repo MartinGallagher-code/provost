@@ -27,6 +27,11 @@
 # winning-strategy meta (stderr) come from ONE call. Full mode is only run for the
 # report/coverage views that need it.
 set -u
+# Goldens are frozen byte-for-byte, and a few parsers (tree glyphs, check
+# marks) measure widths in characters under a UTF-8 locale but in bytes under
+# C. Pin the locale so the gate means the same thing on every machine and CI
+# runner; the goldens were generated under C.
+export LC_ALL=C
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"

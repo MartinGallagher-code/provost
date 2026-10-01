@@ -1,3 +1,3 @@
-n	NAME	WORKER_COUNT	STATUS	ZONE	total_entries
-1	analytics	4	RUNNING	europe-west1-b	2
-2	etl-batch	8	STOPPED	europe-west1-b	2
+n	NAME	WORKER_COUNT	STATUS	ZONE
+1	analytics	4	RUNNING	europe-west1-b
+2	etl-batch	8	STOPPED	europe-west1-b

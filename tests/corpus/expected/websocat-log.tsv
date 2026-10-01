@@ -1,4 +1,4 @@
-n	timestamp	message	total_entries
-1	INFO	Connected to wss://events.example.com	3
-2	INFO	{"event":"heartbeat","ts":1751880000}	3
-3	INFO	{"event":"update","id":442}	3
+n	timestamp	message
+1	INFO	Connected to wss://events.example.com
+2	INFO	{"event":"heartbeat","ts":1751880000}
+3	INFO	{"event":"update","id":442}

@@ -22,20 +22,21 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     # Distinctive signature: a `table <family> <name> {` opener AND a
     # `chain <name> {` opener AND an nft `type ... hook ...` line.
     local has_table=0 has_chain=0 has_hook=0 line t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"      # strip leading whitespace
         case "$t" in
             "table "*"{"*) has_table=1 ;;
             "chain "*"{"*) has_chain=1 ;;
             "type "*" hook "*) has_hook=1 ;;
         esac
-    done <<< "$text"
+    done
     [[ $has_table -eq 1 && $has_chain -eq 1 && $has_hook -eq 1 ]] && return 0
     return 1
 }
@@ -45,7 +46,8 @@ strategy_extract () {
     local result="" line t n=0
     local in_chain=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         t="${line#"${line%%[![:space:]]*}"}"      # strip leading whitespace
         [[ -z "$t" ]] && continue
 
@@ -61,7 +63,7 @@ strategy_extract () {
         # Whatever remains inside a chain block is a rule statement.
         n=$((n + 1))
         result+="entry${n}.rule ${t}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

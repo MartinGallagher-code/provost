@@ -1,7 +1,7 @@
-n	Variable_name	Value	total_entries
-1	autocommit	ON	6
-2	character_set_server	utf8mb4	6
-3	innodb_buffer_pool_size	134217728	6
-4	max_connections	151	6
-5	version	8.0.34	6
-6	wait_timeout	28800	6
+n	Variable_name	Value
+1	autocommit	ON
+2	character_set_server	utf8mb4
+3	innodb_buffer_pool_size	134217728
+4	max_connections	151
+5	version	8.0.34
+6	wait_timeout	28800

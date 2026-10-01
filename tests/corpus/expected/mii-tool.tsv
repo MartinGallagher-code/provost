@@ -1,5 +1,5 @@
-n	name	value	total_entries
-1	eth0	negotiated 1000baseT-FD flow-control, link ok	4
-2	eth1	negotiated 100baseTx-FD, link ok	4
-3	eth2	no link	4
-4	wlan0	negotiated 100baseTx-HD, link ok	4
+n	name	value
+1	eth0	negotiated 1000baseT-FD flow-control, link ok
+2	eth1	negotiated 100baseTx-FD, link ok
+3	eth2	no link
+4	wlan0	negotiated 100baseTx-HD, link ok

@@ -1,4 +1,4 @@
-n	NAME	READY	STATUS	RESTARTS	AGE	total_entries
-1	web-5b7d9c6f8-abcde	1/1	Running	0	12d	3
-2	api-6c8f7d5b9-xyz12	1/1	Running	2	5d	3
-3	worker-7d9e8f6c1-lmn34	0/1	Pending	0	3m	3
+n	NAME	READY	STATUS	RESTARTS	AGE
+1	web-5b7d9c6f8-abcde	1/1	Running	0	12d
+2	api-6c8f7d5b9-xyz12	1/1	Running	2	5d
+3	worker-7d9e8f6c1-lmn34	0/1	Pending	0	3m

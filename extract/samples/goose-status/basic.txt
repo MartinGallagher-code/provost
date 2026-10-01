@@ -1,7 +1,0 @@
-    Applied At                  Migration
-    =======================================
-    2026-01-10 12:00:00 +0000   00001_create_users.sql
-    2026-01-12 09:30:00 +0000   00002_create_orders.sql
-    2026-02-01 16:45:00 +0000   00003_add_email_index.sql
-    Pending                     00004_add_audit_log.sql
-    Pending                     00005_add_soft_delete.sql

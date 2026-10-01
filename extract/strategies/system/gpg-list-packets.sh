@@ -36,14 +36,15 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"ctb="*"tag="* ]] || return 1
     [[ "$text" == *":public key packet:"* || "$text" == *":signature packet:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" line rest key val san count fields=0
     declare -A seen=()
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Only TAB-indented detail lines carry keyword/value pairs.
         [[ "$line" == $'\t'* ]] || continue
         rest="${line#"${line%%[![:space:]]*}"}"    # ltrim (drops leading tab)
@@ -59,7 +60,7 @@ strategy_extract () {
         [[ $count -gt 1 ]] && san="${san}_${count}"
         result+="entry1.${san} $(_gpglp_san "$val")"$'\n'
         fields=$((fields + 1))
-    done <<< "$text"
+    done
     [[ $fields -gt 0 ]] && result+="total_entries 1"$'\n'
     printf '%s' "$result"
 }

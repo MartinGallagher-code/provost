@@ -1,6 +1,6 @@
-n	NAME	CAPACITY	ACCESS	RECLAIM	STATUS	CLAIM	STORAGECLASS	AGE	total_entries
-1	pvc-3a1f8b2c-4d5e-6f70-8192-a3b4c5d6e7f8	8Gi	RWO	Delete	Bound	default/postgres-data	gp3	41d	5
-2	pvc-9c8b7a6d-5e4f-3210-9182-b7c6d5e4f3a2	20Gi	RWO	Delete	Bound	monitoring/prometheus-data	gp3	28d	5
-3	pvc-1122aabb-ccdd-eeff-0011-223344556677	5Gi	RWX	Retain	Bound	default/shared-uploads	efs-sc	63d	5
-4	pvc-77665544-3322-1100-ffee-ddccbbaa9988	100Gi	RWO	Delete	Available		gp3	3h	5
-5	pvc-0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0	50Gi	RWO	Retain	Released	monitoring/grafana-storage	gp2	12d	5
+n	NAME	CAPACITY	ACCESS	RECLAIM	STATUS	CLAIM	STORAGECLASS	AGE
+1	pvc-3a1f8b2c-4d5e-6f70-8192-a3b4c5d6e7f8	8Gi	RWO	Delete	Bound	default/postgres-data	gp3	41d
+2	pvc-9c8b7a6d-5e4f-3210-9182-b7c6d5e4f3a2	20Gi	RWO	Delete	Bound	monitoring/prometheus-data	gp3	28d
+3	pvc-1122aabb-ccdd-eeff-0011-223344556677	5Gi	RWX	Retain	Bound	default/shared-uploads	efs-sc	63d
+4	pvc-77665544-3322-1100-ffee-ddccbbaa9988	100Gi	RWO	Delete	Available		gp3	3h
+5	pvc-0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0	50Gi	RWO	Retain	Released	monitoring/grafana-storage	gp2	12d

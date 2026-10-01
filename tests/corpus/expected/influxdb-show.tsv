@@ -1,5 +1,5 @@
-n	name	total_entries
-1	_internal	4
-2	telegraf	4
-3	metrics	4
-4	sensors	4
+n	name
+1	_internal
+2	telegraf
+3	metrics
+4	sensors

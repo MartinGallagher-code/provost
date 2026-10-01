@@ -1,4 +1,4 @@
-n	Zone	Type	Active	Algorithm	Bits	total_entries
-1	example.com	KSK	1	ECDSAP256SHA256	256	3
-2	example.com	ZSK	1	ECDSAP256SHA256	256	3
-3	example.net	CSK	1	ED25519	256	3
+n	Zone	Type	Active	Algorithm	Bits
+1	example.com	KSK	1	ECDSAP256SHA256	256
+2	example.com	ZSK	1	ECDSAP256SHA256	256
+3	example.net	CSK	1	ED25519	256

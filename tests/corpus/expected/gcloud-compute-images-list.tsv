@@ -1,6 +1,6 @@
-n	NAME	PROJECT	FAMILY	STATUS	total_entries
-1	debian-12-bookworm-v20260601	debian-cloud	debian-12	READY	5
-2	ubuntu-2404-noble-amd64-v20260528	ubuntu-os-cloud	ubuntu-2404-lts	READY	5
-3	rocky-linux-9-optimized-v20260515	rocky-linux-cloud	rocky-linux-9	READY	5
-4	cos-113-lts-v20260610	cos-cloud	cos-113-lts	READY	5
-5	golden-web-v3	my-project	web-images	READY	5
+n	NAME	PROJECT	FAMILY	STATUS
+1	debian-12-bookworm-v20260601	debian-cloud	debian-12	READY
+2	ubuntu-2404-noble-amd64-v20260528	ubuntu-os-cloud	ubuntu-2404-lts	READY
+3	rocky-linux-9-optimized-v20260515	rocky-linux-cloud	rocky-linux-9	READY
+4	cos-113-lts-v20260610	cos-cloud	cos-113-lts	READY
+5	golden-web-v3	my-project	web-images	READY

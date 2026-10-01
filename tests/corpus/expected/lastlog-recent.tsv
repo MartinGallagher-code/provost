@@ -1,4 +1,4 @@
-n	Username	Port	From	Latest	total_entries
-1	root	pts/0	10.1.2.3	Thu Jul 10 06:00:00 +0000 2026	3
-2	deploy	pts/1	10.1.2.99	Thu Jul 10 07:02:00 +0000 2026	3
-3	backup			**Never logged in**	3
+n	Username	Port	From	Latest
+1	root	pts/0	10.1.2.3	Thu Jul 10 06:00:00 +0000 2026
+2	deploy	pts/1	10.1.2.99	Thu Jul 10 07:02:00 +0000 2026
+3	backup			**Never logged in**

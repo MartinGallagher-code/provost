@@ -1,18 +1,18 @@
-n	A	total_entries
-1	# module.vpc.aws_vpc.this:	17
-2	resource "aws_vpc" "this" {	17
-3	arn                              = "arn:aws:ec2:eu-west-1:987654321098:vpc/vpc-0abc1234def567890"	17
-4	cidr_block                       = "10.20.0.0/16"	17
-5	default_network_acl_id           = "acl-0123456789abcdef0"	17
-6	default_route_table_id           = "rtb-0fedcba9876543210"	17
-7	dhcp_options_id                  = "dopt-0a1b2c3d4e5f60718"	17
-8	enable_dns_hostnames             = true	17
-9	enable_dns_support               = true	17
-10	id                               = "vpc-0abc1234def567890"	17
-11	instance_tenancy                 = "default"	17
-12	main_route_table_id              = "rtb-0fedcba9876543210"	17
-13	tags_all                         = {	17
-14	"Environment" = "staging"	17
-15	"ManagedBy"   = "terraform"	17
-16	}	17
-17	}	17
+n	A
+1	# module.vpc.aws_vpc.this:
+2	resource "aws_vpc" "this" {
+3	arn                              = "arn:aws:ec2:eu-west-1:987654321098:vpc/vpc-0abc1234def567890"
+4	cidr_block                       = "10.20.0.0/16"
+5	default_network_acl_id           = "acl-0123456789abcdef0"
+6	default_route_table_id           = "rtb-0fedcba9876543210"
+7	dhcp_options_id                  = "dopt-0a1b2c3d4e5f60718"
+8	enable_dns_hostnames             = true
+9	enable_dns_support               = true
+10	id                               = "vpc-0abc1234def567890"
+11	instance_tenancy                 = "default"
+12	main_route_table_id              = "rtb-0fedcba9876543210"
+13	tags_all                         = {
+14	"Environment" = "staging"
+15	"ManagedBy"   = "terraform"
+16	}
+17	}

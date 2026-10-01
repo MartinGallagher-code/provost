@@ -1,0 +1,15 @@
+file report.csv
+size 20480
+blocks 40
+io_block 4096
+type regular file
+device 801h/2049d
+inode 1443527
+links 1
+access_mode 0644/-rw-r--r--
+uid 1000/martin
+gid 1000/martin
+access_time 2026-07-06 09:14:22.512340118 +0100
+modify_time 2026-07-05 21:03:47.884210553 +0100
+change_time 2026-07-05 21:03:47.884210553 +0100
+birth_time 2026-07-01 08:55:10.100000000 +0100

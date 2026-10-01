@@ -1,6 +1,6 @@
-n	ID	Type	Priority	Status	Submit_Date	total_entries
-1	api	service	50	running	2026-06-14T09:32:11Z	5
-2	batch-etl	batch	40	dead	2026-06-13T22:05:47Z	5
-3	cache	service	70	running	2026-06-14T08:10:03Z	5
-4	web	service	50	running	2026-06-14T09:31:58Z	5
-5	worker	system	50	running	2026-06-12T14:20:19Z	5
+n	ID	Type	Priority	Status	Submit_Date
+1	api	service	50	running	2026-06-14T09:32:11Z
+2	batch-etl	batch	40	dead	2026-06-13T22:05:47Z
+3	cache	service	70	running	2026-06-14T08:10:03Z
+4	web	service	50	running	2026-06-14T09:31:58Z
+5	worker	system	50	running	2026-06-12T14:20:19Z

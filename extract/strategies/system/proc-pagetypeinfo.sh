@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *", type"* ]] || return 1
     [[ "$text" == *"Free pages count"* ]] || return 1
     return 0
@@ -30,7 +30,7 @@ strategy_extract () {
         [[ "$line" == Node*", zone"*", type"* ]] || continue
 
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         # f: Node <node>, zone <zone>, type <type> <order0> ... <order10>
         [[ ${#f[@]} -lt 17 ]] && continue
 

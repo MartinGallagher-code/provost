@@ -1,7 +1,7 @@
-n	Repository	Name	Category	Severity	Interactive	Status	Summary	total_entries
-1	openSUSE-Update	openSUSE-2024-101	security	important	---	needed	Security update for openssl	6
-2	openSUSE-Update	openSUSE-2024-102	recommended	moderate	---	needed	Recommended update for glibc	6
-3	openSUSE-Update	openSUSE-2024-103	security	critical	reboot	needed	Security update for kernel	6
-4	openSUSE-Update	openSUSE-2024-104	optional	low	---	not-needed	Optional update for vim	6
-5	openSUSE-Update	openSUSE-2024-105	security	important	---	applied	Security update for curl	6
-6	openSUSE-Update	openSUSE-2024-106	recommended	moderate	---	needed	Recommended update for systemd	6
+n	Repository	Name	Category	Severity	Interactive	Status	Summary
+1	openSUSE-Update	openSUSE-2024-101	security	important	---	needed	Security update for openssl
+2	openSUSE-Update	openSUSE-2024-102	recommended	moderate	---	needed	Recommended update for glibc
+3	openSUSE-Update	openSUSE-2024-103	security	critical	reboot	needed	Security update for kernel
+4	openSUSE-Update	openSUSE-2024-104	optional	low	---	not-needed	Optional update for vim
+5	openSUSE-Update	openSUSE-2024-105	security	important	---	applied	Security update for curl
+6	openSUSE-Update	openSUSE-2024-106	recommended	moderate	---	needed	Recommended update for systemd

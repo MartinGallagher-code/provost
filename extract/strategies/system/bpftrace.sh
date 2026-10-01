@@ -17,19 +17,21 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == "@"* && "$line" == *"]:"* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == "@"* && "$line" == *"]:"* ]] || continue
         # key = text between the first '[' and its matching ']'
         local inside="${line#*[}"
@@ -40,7 +42,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.key ${key}"$'\n'
         result+="entry${entry}.count ${count}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

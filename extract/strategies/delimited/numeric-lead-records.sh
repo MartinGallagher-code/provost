@@ -23,8 +23,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line nb=0 ids="" distinct=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == [' 	']* ]] && return 1
         [[ "$line" == *'	'* ]] && return 1
         [[ "$line" == *'  '* ]] && return 1
@@ -35,21 +36,25 @@ strategy_detect () {
         [[ "${BASH_REMATCH[2]}" == [/A-Za-z[]* ]] || return 1
         nb=$((nb + 1))
         case "$ids" in *"|${BASH_REMATCH[1]}|"*) ;; *) ids+="|${BASH_REMATCH[1]}|"; distinct=$((distinct + 1)) ;; esac
-    done <<< "$text"
+    done
     [[ $nb -ge 3 && $distinct -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    # General-structure tier (extract/README.md "Confidence rubric"): a
+    # numeric first token is a shape, not a syntax — a real column-aligned
+    # table over the same lines (aligned-columns >= 60) wins the tie.
+    _STRATEGY_CONFIDENCE=60
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^([0-9]+)\ (.+)$ ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.id ${BASH_REMATCH[1]}"$'\n'
         result+="entry${entry}.value ${BASH_REMATCH[2]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

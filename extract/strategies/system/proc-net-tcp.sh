@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"local_address"* ]] || return 1
     [[ "$text" == *"rem_address"* ]] || return 1
     [[ "$text" == *"tx_queue"* ]] || return 1
@@ -27,14 +27,15 @@ strategy_extract () {
     local result="" line n=0
     local names="sl local_address rem_address st tx_queue rx_queue tr tm_when retrnsmt uid timeout inode"
     local -a hn=()
-    read -ra hn <<< "$names"
+    { _fr_tok "$names"; hn=("${_FR_TOK[@]}"); }
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == *"local_address"* ]] && continue   # header
 
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 12 ]] && continue
         [[ "${f[0]}" == *: ]] || continue                # data rows are "N:"
 
@@ -45,7 +46,7 @@ strategy_extract () {
             local col="${hn[$i]:-col$i}"
             result+="entry${n}.${col} ${f[$i]}"$'\n'
         done
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

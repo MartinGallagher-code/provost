@@ -1,5 +1,5 @@
-n	key	value	total_entries
-1	1337	/var/www/html	4
-2	1204	/home/alice/project	4
-3	987	/	4
-4	420	/usr/lib/systemd	4
+n	key	value
+1	1337	/var/www/html
+2	1204	/home/alice/project
+3	987	/
+4	420	/usr/lib/systemd

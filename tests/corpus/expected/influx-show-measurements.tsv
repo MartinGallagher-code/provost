@@ -1,6 +1,6 @@
-n	name	total_entries
-1	cpu	5
-2	disk	5
-3	mem	5
-4	net	5
-5	processes	5
+n	name
+1	cpu
+2	disk
+3	mem
+4	net
+5	processes

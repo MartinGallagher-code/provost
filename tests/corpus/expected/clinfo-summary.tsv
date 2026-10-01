@@ -1,6 +1,6 @@
-n	A	total_entries
-1	Number of platforms                               1	5
-2	Platform Name                                   AMD Accelerated Parallel Processing	5
-3	Platform Version                                OpenCL 2.1 AMD-APP	5
-4	Number of devices                                 1	5
-5	Device Name                                     gfx1031	5
+n	A
+1	Number of platforms                               1
+2	Platform Name                                   AMD Accelerated Parallel Processing
+3	Platform Version                                OpenCL 2.1 AMD-APP
+4	Number of devices                                 1
+5	Device Name                                     gfx1031

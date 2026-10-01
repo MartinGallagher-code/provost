@@ -21,11 +21,12 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has_file=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitannex_is_file "$line" && has_file=1
-    done <<< "$text"
+    done
     if [[ $has_file -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -34,7 +35,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line status path
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitannex_is_file "$line" || continue
         status="${line%%[[:space:]]*}"
         path="${line#*[[:space:]]}"
@@ -44,7 +46,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.flags ${status}"$'\n'
         result+="entry${entry}.path ${path}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -1,3 +1,3 @@
-n	REF	TYPE	DIGEST	SIZE	PLATFORMS	total_entries
-1	docker.io/library/redis:7.2	application/vnd.oci...	sha256:aabb11	45.2 MiB	linux/amd64	2
-2	docker.io/library/nginx:1.27	application/vnd.oci...	sha256:ccdd22	67.8 MiB	linux/amd64	2
+n	REF	TYPE	DIGEST	SIZE	PLATFORMS
+1	docker.io/library/redis:7.2	application/vnd.oci...	sha256:aabb11	45.2 MiB	linux/amd64
+2	docker.io/library/nginx:1.27	application/vnd.oci...	sha256:ccdd22	67.8 MiB	linux/amd64

@@ -1,6 +1,6 @@
-n	NAME	USED	total_entries
-1	tank	4.31T	5
-2	tank/home	1.87T	5
-3	tank/home/alice	642G	5
-4	tank/backups	1.24T	5
-5	tank/vm	598G	5
+n	NAME	USED
+1	tank	4.31T
+2	tank/home	1.87T
+3	tank/home/alice	642G
+4	tank/backups	1.24T
+5	tank/vm	598G

@@ -1,9 +1,9 @@
-n	A	total_entries
-1	/lib64/ld-linux-x86-64.so.2	8
-2	libc.so.6	8
-3	GLIBC_2.2.5	8
-4	Hello, world!	8
-5	__cxa_finalize	8
-6	usage: %s [options] file	8
-7	Version 1.4.2 build 8891	8
-8	Copyright (c) 2024 Example Corp	8
+n	A
+1	/lib64/ld-linux-x86-64.so.2
+2	libc.so.6
+3	GLIBC_2.2.5
+4	Hello, world!
+5	__cxa_finalize
+6	usage: %s [options] file
+7	Version 1.4.2 build 8891
+8	Copyright (c) 2024 Example Corp

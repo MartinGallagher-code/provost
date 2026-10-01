@@ -1,4 +1,4 @@
-n	column_name	column_type	null	total_entries
-1	user_id	BIGINT	NO	3
-2	email	VARCHAR	NO	3
-3	created_at	TIMESTAMP	YES	3
+n	column_name	column_type	null
+1	user_id	BIGINT	NO
+2	email	VARCHAR	NO
+3	created_at	TIMESTAMP	YES

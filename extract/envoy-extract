@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-##                         Multi-Format Extractor
+##                 Multi-Format Extractor — provost's extract engine
 ################################################################################
-## Version 4.2
-## Developed by SageCor Solutions, Annapolis Junction, MD
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher.
+## License: GPL-3.0-or-later. Version: see the top-level VERSION file.
 ################################################################################
 ##
 ## Description: Use various strategies to extract field names and values from
@@ -175,6 +175,10 @@ Filtering & Selection:
   --min-confidence N      Skip strategies with confidence below N (0-100)
   --first-match           Stop after first strategy produces output
   --max-strategies N      Limit number of strategies that produce output
+  --rank MODE             Candidate order: confidence (default; every detector
+                          runs, highest confidence tried first) or priority
+                          (first detecting strategy in priority order wins).
+                          Env: MFE_RANK
   --delimiter DELIM       Set custom field delimiter for output (overrides strategy default)
                           Examples: '=>', '::', '|', ' -> '
   --field-pattern REGEX   Only include fields whose names match REGEX
@@ -269,6 +273,7 @@ _OPT_sort=0
 _OPT_min_confidence=0
 _OPT_first_match=0
 _OPT_max_strategies=0
+_OPT_rank="${MFE_RANK:-confidence}"
 _OPT_delimiter=""
 _OPT_rename=""
 _OPT_aggregate=0
@@ -370,6 +375,11 @@ while [[ $# -gt 0 ]]; do
             [[ $# -lt 2 ]] && _log_error "--max-strategies requires an argument" && exit 1
             [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--max-strategies requires a number"; exit 1; }
             _OPT_max_strategies="$2"; shift 2 ;;
+        --rank)
+            [[ $# -lt 2 ]] && _log_error "--rank requires an argument" && exit 1
+            _OPT_rank="$2"; shift 2 ;;
+        --rank=*)
+            _OPT_rank="${1#*=}"; shift ;;
         --delimiter)
             [[ $# -lt 2 ]] && _log_error "--delimiter requires an argument" && exit 1
             _OPT_delimiter="$2"; shift 2 ;;
@@ -461,6 +471,10 @@ case "$_OPT_format" in
 esac
 
 # Flag conflict validation
+case "$_OPT_rank" in
+    confidence|priority) ;;
+    *) _log_error "--rank must be 'confidence' or 'priority' (got '$_OPT_rank')"; exit 1 ;;
+esac
 if [[ $_OPT_stream -eq 1 && -n "$_OPT_chain" ]]; then
     _log_error "--stream and --chain cannot be used together"; exit 1
 fi
@@ -827,6 +841,10 @@ fi
 if [[ -n "$_OPT_chain" ]]; then
     run_chain_strategies
 else
+    # A very large input's result may stay in the file lane to the end (see
+    # _xl_begin / _xl_can_keep) — only in the plain -f tsv configuration.
+    _XL_KEEP=0
+    _xl_can_keep && _XL_KEEP=1
     run_auto_strategies
 fi
 # Clear any in-place progress line so the field-table output below starts
@@ -841,11 +859,12 @@ if [[ $_OPT_emit_meta -eq 1 ]]; then
 fi
 
 ########################################
-## POST-PROCESSING
+## POST-PROCESSING + OUTPUT
 ##
-run_postprocess
-
-########################################
-## OUTPUT
-##
-run_output_mode
+if [[ -n "${_XL_OUT:-}" ]]; then
+    # kept file-lane result: the same two stages, file to file
+    _xl_finalize
+else
+    run_postprocess
+    run_output_mode
+fi

@@ -33,7 +33,7 @@ _ps_is_pivot_header () {
     [[ "$t" =~ ^([A-Za-z][A-Za-z0-9_]*):[[:space:]]+(.+)$ ]] || return 1
     local _lab="${BASH_REMATCH[1]}" _rest="${BASH_REMATCH[2]}"
     local _nm=() _n
-    read -ra _nm <<< "$_rest"
+    { _fr_tok "$_rest"; _nm=("${_FR_TOK[@]}"); }
     [[ ${#_nm[@]} -ge 2 ]] || return 1
     for _n in "${_nm[@]}"; do
         [[ "$_n" =~ ^[A-Za-z][A-Za-z0-9_/-]*$ ]] || return 1
@@ -48,7 +48,7 @@ _ps_is_values () {
     local t="$1" want="$2"
     _PS_VALS=()
     local _v=() _x
-    read -ra _v <<< "$t"
+    { _fr_tok "$t"; _v=("${_FR_TOK[@]}"); }
     [[ ${#_v[@]} -eq $want ]] || return 1
     for _x in "${_v[@]}"; do
         [[ "$_x" =~ ^-?[0-9]+([.][0-9]+)?[KMGTkmgt]?$ ]] || return 1
@@ -62,8 +62,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local _l _prev_hdr=0 _prev_n=0 pivots=0 records=0
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         local t="${_l#"${_l%%[![:space:]]*}"}"
         if [[ $_prev_hdr -eq 1 ]] && _ps_is_values "$t" "$_prev_n"; then
             pivots=$((pivots + 1)); _prev_hdr=0; continue
@@ -71,10 +72,10 @@ strategy_detect () {
         _prev_hdr=0
         if _ps_is_pivot_header "$t"; then _prev_hdr=1; _prev_n=${#_PS_NAMES[@]}; continue; fi
         [[ "$_l" =~ ^[^[:space:]] ]] && records=$((records + 1))
-    done <<< "$text"
+    done
     # >=2 pivot pairs and at least one unindented record header
     [[ $pivots -ge 2 && $records -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=80
     _STRATEGY_CONFIDENCE_REASON="labeled counter pivots (header line + value line) under record headers"
     return 0
 }
@@ -82,8 +83,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1" result="" entry=0
     local _l pend_label="" pend_names=()
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         local t="${_l#"${_l%%[![:space:]]*}"}"
         # pending pivot: does this line carry the values?
         if [[ -n "$pend_label" ]] && _ps_is_values "$t" "${#pend_names[@]}"; then
@@ -110,7 +112,7 @@ strategy_extract () {
             # generic `word value` pairs in the rest (mtu 1500, state UP …);
             # <FLAG,LISTS> and bare tokens are skipped
             local _rt=() _ri
-            read -ra _rt <<< "$_rest"
+            { _fr_tok "$_rest"; _rt=("${_FR_TOK[@]}"); }
             for ((_ri = 0; _ri + 1 < ${#_rt[@]}; _ri++)); do
                 local _k="${_rt[$_ri]}" _v="${_rt[$((_ri + 1))]}"
                 if [[ "$_k" =~ ^[a-z][a-z_]*$ && ! "$_v" =~ ^[\<] && "$_v" != *:* ]]; then
@@ -124,7 +126,7 @@ strategy_extract () {
         if [[ $entry -gt 0 ]] && _ps_is_pivot_header "$t"; then
             pend_label="$_PS_LABEL"; pend_names=("${_PS_NAMES[@]}")
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

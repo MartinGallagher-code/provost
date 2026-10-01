@@ -1,7 +1,7 @@
-n	group	A	B	C	D	E	F	total_entries
-1	web	web:web_00	RUNNING	pid	1201,	uptime	4:12:33	6
-2	web	web:web_01	RUNNING	pid	1202,	uptime	4:12:33	6
-3	worker	worker:w_00	RUNNING	pid	1350,	uptime	2:00:11	6
-4	worker	worker:w_01	FATAL	Exited	too	quickly		6
-5	worker	worker:w_02	STARTING					6
-6		scheduler	STOPPED	Not	started			6
+n	group	A	B	C	D	E	F
+1	web	web:web_00	RUNNING	pid	1201,	uptime	4:12:33
+2	web	web:web_01	RUNNING	pid	1202,	uptime	4:12:33
+3	worker	worker:w_00	RUNNING	pid	1350,	uptime	2:00:11
+4	worker	worker:w_01	FATAL	Exited	too	quickly	
+5	worker	worker:w_02	STARTING				
+6		scheduler	STOPPED	Not	started		

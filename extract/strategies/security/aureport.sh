@@ -21,13 +21,14 @@ strategy_detect () {
     # Distinctive: the aureport column header plus numbered event rows.
     [[ "$text" =~ (^|$'\n')#[[:space:]]+date[[:space:]]+time ]] || return 1
     local line rows=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^[0-9]+\.[[:space:]] ]]; then
             rows=$((rows + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $rows -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -37,7 +38,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line rest
     local date time acct host term exe success event
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^[0-9]+\.[[:space:]] ]] || continue
         # Drop the leading "N." record number, keep the eight columns.
         rest="${line#*.}"
@@ -51,7 +53,7 @@ strategy_extract () {
         result+="entry${entry}.exe ${exe}"$'\n'
         result+="entry${entry}.success ${success}"$'\n'
         result+="entry${entry}.event ${event}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

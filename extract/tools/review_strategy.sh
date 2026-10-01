@@ -12,7 +12,7 @@
 ## Usage: review_strategy.sh STRATEGY_NAME [OPTIONS]
 ##        review_strategy.sh --help
 ##
-## Developed by SageCor Solutions, Annapolis Junction, MD
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher. GPL-3.0-or-later.
 ################################################################################
 
 set -eo pipefail

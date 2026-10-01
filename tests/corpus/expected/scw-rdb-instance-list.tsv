@@ -1,4 +1,4 @@
-n	ID	NAME	STATUS	ENGINE	ENDPOINT	REGION	NODE_TYPE	total_entries
-1	9f2a1b3c-4d5e-6f70-8192-a3b4c5d6e7f8	prod-pg	ready	PostgreSQL-15	51.159.20.4:5432	fr-par	DB-DEV-M	3
-2	1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809	analytics-pg	ready	PostgreSQL-15	51.159.20.88:5432	fr-par	DB-GP-S	3
-3	2b3c4d5e-6f70-8192-a3b4-c5d6e7f8091a	legacy-mysql	ready	MySQL-8	51.159.44.7:3306	nl-ams	DB-DEV-S	3
+n	ID	NAME	STATUS	ENGINE	ENDPOINT	REGION	NODE_TYPE
+1	9f2a1b3c-4d5e-6f70-8192-a3b4c5d6e7f8	prod-pg	ready	PostgreSQL-15	51.159.20.4:5432	fr-par	DB-DEV-M
+2	1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809	analytics-pg	ready	PostgreSQL-15	51.159.20.88:5432	fr-par	DB-GP-S
+3	2b3c4d5e-6f70-8192-a3b4-c5d6e7f8091a	legacy-mysql	ready	MySQL-8	51.159.44.7:3306	nl-ams	DB-DEV-S

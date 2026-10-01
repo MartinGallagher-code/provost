@@ -1,4 +1,4 @@
-n	artikel	preis	lager	total_entries
-1	Schraube	1.234,56	12; nachbestellen	3
-2	Mutter	0,25	800	3
-3	Bolzen	2,50	5; kritisch	3
+n	artikel	preis	lager
+1	Schraube	1.234,56	12; nachbestellen
+2	Mutter	0,25	800
+3	Bolzen	2,50	5; kritisch

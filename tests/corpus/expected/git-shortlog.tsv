@@ -1,6 +1,6 @@
-n	A	B	total_entries
-1	    42	Jane Developer	5
-2	    37	Sam Maintainer	5
-3	    19	Alex Contributor	5
-4	     8	Pat Reviewer	5
-5	     3	Chris Newcomer	5
+n	A	B
+1	    42	Jane Developer
+2	    37	Sam Maintainer
+3	    19	Alex Contributor
+4	     8	Pat Reviewer
+5	     3	Chris Newcomer

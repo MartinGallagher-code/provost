@@ -1,15 +1,15 @@
-n	group	key	value	total_entries
-1	Configuration	Redundancy mode	triple	14
-2	Configuration	Storage engine	ssd-2	14
-3	Configuration	Coordinators	3	14
-4	Configuration	Usable Regions	1	14
-5	Cluster	FoundationDB processes	9	14
-6	Cluster	Zones	3	14
-7	Cluster	Machines	3	14
-8	Cluster	Memory availability	8.0 GB per process	14
-9	Cluster	Fault Tolerance	2 machines	14
-10	Cluster	Server time	2026-07-10 18:04:22	14
-11	Data	Replication health	Healthy	14
-12	Data	Moving data	0.000 GB	14
-13	Data	Sum of key-value sizes	412 GB	14
-14	Data	Disk space used	1.204 TB	14
+n	group	key	value
+1	Configuration	Redundancy mode	triple
+2	Configuration	Storage engine	ssd-2
+3	Configuration	Coordinators	3
+4	Configuration	Usable Regions	1
+5	Cluster	FoundationDB processes	9
+6	Cluster	Zones	3
+7	Cluster	Machines	3
+8	Cluster	Memory availability	8.0 GB per process
+9	Cluster	Fault Tolerance	2 machines
+10	Cluster	Server time	2026-07-10 18:04:22
+11	Data	Replication health	Healthy
+12	Data	Moving data	0.000 GB
+13	Data	Sum of key-value sizes	412 GB
+14	Data	Disk space used	1.204 TB

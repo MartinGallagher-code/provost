@@ -1,5 +1,5 @@
-n	A	B	C	D	E	F	total_entries
-1	gpiochip0	-	32	lines:			4
-2	line	0:	"ID_SDA"	unused	input	active-high	4
-3	line	1:	"ID_SCL"	unused	input	active-high	4
-4	line	17:	"GPIO17"	"led"	output	active-high	4
+n	A	B	C	D	E	F
+1	gpiochip0	-	32	lines:		
+2	line	0:	"ID_SDA"	unused	input	active-high
+3	line	1:	"ID_SCL"	unused	input	active-high
+4	line	17:	"GPIO17"	"led"	output	active-high

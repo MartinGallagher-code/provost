@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=80
+    _STRATEGY_CONFIDENCE=85
 
     # Accept if input looks like XML with elements (opening + closing tags)
     if [[ "$text" == *"<"[a-zA-Z]* && "$text" == *"</"[a-zA-Z]* ]]; then
@@ -39,7 +39,8 @@ strategy_extract () {
     local elem_matches
     elem_matches=$(echo "$text" | grep -oE '<[a-zA-Z][a-zA-Z0-9_-]*[^>]*>[^<]+</[a-zA-Z][a-zA-Z0-9_-]*>' 2>/dev/null) || true
 
-    while IFS= read -r match; do
+    _fr_lines "$elem_matches"
+    for match in "${_FR_LINES[@]}"; do
         [[ -z "$match" ]] && continue
 
         local tagname="${match#<}"
@@ -59,13 +60,14 @@ strategy_extract () {
         [[ -z "$tagname" ]] && continue
 
         result+="${tagname} ${clean_content}"$'\n'
-    done <<< "$elem_matches"
+    done
 
     # --- Pass 2: tag attribute key/value pairs ---
     local attr_tags
     attr_tags=$(echo "$text" | grep -oE '<[a-zA-Z][a-zA-Z0-9_-]*[^>]*>' 2>/dev/null) || true
 
-    while IFS= read -r tag; do
+    _fr_lines "$attr_tags"
+    for tag in "${_FR_LINES[@]}"; do
         [[ -z "$tag" ]] && continue
 
         # Skip XML declarations and comments
@@ -81,7 +83,8 @@ strategy_extract () {
         local attrs
         attrs=$(echo "$tag" | grep -oE '[a-zA-Z][a-zA-Z0-9_-]*="[^"]*"' 2>/dev/null) || true
 
-        while IFS= read -r attr; do
+        _fr_lines "$attrs"
+        for attr in "${_FR_LINES[@]}"; do
             [[ -z "$attr" ]] && continue
 
             local attr_name="${attr%%=*}"
@@ -92,8 +95,8 @@ strategy_extract () {
             [[ -z "$attr_value" ]] && continue
 
             result+="${tagname}.${attr_name} ${attr_value}"$'\n'
-        done <<< "$attrs"
-    done <<< "$attr_tags"
+        done
+    done
 
     echo "$result"
 }

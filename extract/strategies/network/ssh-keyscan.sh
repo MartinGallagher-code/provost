@@ -14,19 +14,22 @@ strategy_detect () {
     _is_json "$text" && return 1
     # ssh-keyscan lines: "<host> <keytype> <base64>", with "#"-comment lines.
     local n=0 line kt
-    while IFS= read -r line; do
+    # PREFILTER (exact): every accepted key type contains `ssh-` or `ecdsa-`.
+    [[ "$text" == *ssh-* || "$text" == *ecdsa-* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -ge 3 ]] || continue
         kt="${f[1]}"
         case "$kt" in
             ssh-rsa|ssh-dss|ssh-ed25519|ecdsa-sha2-*|sk-ssh-ed25519@*|sk-ecdsa-*)
                 n=$((n + 1)) ;;
         esac
-    done <<< "$text"
+    done
     if [[ $n -ge 2 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -37,10 +40,11 @@ strategy_extract () {
     local result=""
     local entry=0
     local line host keytype
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -ge 3 ]] || continue
         keytype="${f[1]}"
         case "$keytype" in
@@ -52,7 +56,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.host ${host}"$'\n'
         result+="entry${entry}.keytype ${keytype}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

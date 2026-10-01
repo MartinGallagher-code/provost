@@ -17,7 +17,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     local reh='(^|
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+[A-Za-z]'
     local rev='(^|
@@ -32,10 +32,11 @@ strategy_extract () {
     local result="" line n=0
     declare -A HDR=()
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 2 ]] && continue
         [[ "${f[0]}" == *: ]] || continue
 
@@ -43,7 +44,9 @@ strategy_extract () {
         if [[ "$first" == -* || "$first" == [0-9]* ]]; then
             # value line: pair with stored header for this protocol
             local -a hcols=()
-            read -ra hcols <<< "${HDR[$label]}"
+            # a value line with no header line before it is not snmp data
+            [[ -n "${HDR[$label]:-}" ]] || continue
+            { _fr_tok "${HDR[$label]}"; hcols=("${_FR_TOK[@]}"); }
             n=$((n + 1))
             result+="entry${n}.proto ${label}"$'\n'
             local i
@@ -55,7 +58,7 @@ strategy_extract () {
             # header line: remember its column names for this protocol
             HDR[$label]="${f[*]:1}"
         fi
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

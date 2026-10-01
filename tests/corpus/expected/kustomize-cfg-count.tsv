@@ -1,5 +1,5 @@
-n	KIND	COUNT	total_entries
-1	Deployment	3	4
-2	Service	4	4
-3	ConfigMap	2	4
-4	Ingress	1	4
+n	KIND	COUNT
+1	Deployment	3
+2	Service	4
+3	ConfigMap	2
+4	Ingress	1

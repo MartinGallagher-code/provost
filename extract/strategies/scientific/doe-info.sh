@@ -25,7 +25,7 @@ strategy_detect () {
     [[ "$text" == "Plan      :"* || "$text" == *$'\nPlan      :'* ]] || return 1
     [[ "$text" == *$'\nOperation :'* ]] || return 1
     [[ "$text" == *$'\nTotal runs:'* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe info plan header (Plan/Operation/Total runs) present"
     return 0
 }
@@ -55,7 +55,8 @@ strategy_extract () {
     local -a cols=()
     local ncols=0 colw=0 n=0 in_matrix=0 seen_rule=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Plan header — `Key : value` before the matrix.
         if [[ $in_matrix -eq 0 && "$line" =~ $_doei_re_hdr ]]; then
             local k v
@@ -75,7 +76,7 @@ strategy_extract () {
         fi
         # The matrix header names the columns; the rule line under it confirms.
         if [[ $in_matrix -eq 0 && "$line" == run_id* ]]; then
-            read -r -a cols <<< "$line"
+            { _fr_tok "$line"; cols=("${_FR_TOK[@]}"); }
             ncols=${#cols[@]}
             # Uniform ljust width: the header's own span / column count.
             local hdr_len=${#line}
@@ -90,7 +91,7 @@ strategy_extract () {
         fi
         if [[ $in_matrix -eq 1 ]]; then
             # Blank line ends the matrix.
-            [[ -z "${line//[[:space:]]/}" ]] && { in_matrix=0; continue; }
+            [[ "${line}" != *[![:space:]]* ]] && { in_matrix=0; continue; }
             # Slice by the uniform column width so a value containing a space
             # stays in its own column.
             local -a vals=()
@@ -113,7 +114,7 @@ strategy_extract () {
             done
             continue
         fi
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     printf '%s' "$result"

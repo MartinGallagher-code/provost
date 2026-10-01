@@ -1,5 +1,5 @@
-n	db0:keys	expires	avg_ttl	db1:keys	db2:keys	db5:keys	total_entries
-1	184203	12045	3600120				4
-2		52011	86400000	52011			4
-3		0	0		980		4
-4		120	712000			4210	4
+n	db0:keys	expires	avg_ttl	db1:keys	db2:keys	db5:keys
+1	184203	12045	3600120			
+2		52011	86400000	52011		
+3		0	0		980	
+4		120	712000			4210

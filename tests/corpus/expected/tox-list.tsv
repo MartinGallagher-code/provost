@@ -1,4 +1,4 @@
-n	default	environments:	total_entries
-1	py312	->_run_tests_under_3.12	3
-2	lint	->_run_linters	3
-3	docs	->_build_documentation	3
+n	default	environments:
+1	py312	-> run tests under 3.12
+2	lint	-> run linters
+3	docs	-> build documentation

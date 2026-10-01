@@ -1,5 +1,5 @@
-n	TYPE	NAME	CLAIMS	total_entries
-1	JWK	admin@example	default	4
-2	OIDC	google	default	4
-3	ACME	acme	default	4
-4	X5C	x5c-agents	maxTLSCertDuration=24h	4
+n	TYPE	NAME	CLAIMS
+1	JWK	admin@example	default
+2	OIDC	google	default
+3	ACME	acme	default
+4	X5C	x5c-agents	maxTLSCertDuration=24h

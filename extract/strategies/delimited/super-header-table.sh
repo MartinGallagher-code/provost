@@ -97,14 +97,14 @@ strategy_extract () {
         local hdr1=$((hdr2 - 1))
         local -a names=() groups=()
         local nnames
-        read -ra names <<< "${blk[$hdr2]}"
+        { _fr_tok "${blk[$hdr2]}"; names=("${_FR_TOK[@]}"); }
         nnames=${#names[@]}
 
         local label="" have_super=0
         local -a gname=() gpos=()
         if [[ $hdr1 -ge 0 ]] && ! _sht_is_data "${blk[$hdr1]}"; then
             local -a h1=()
-            read -ra h1 <<< "${blk[$hdr1]}"
+            { _fr_tok "${blk[$hdr1]}"; h1=("${_FR_TOK[@]}"); }
             if [[ ${#h1[@]} -gt 1 && ${#h1[@]} -lt $nnames ]]; then
                 have_super=1
             elif [[ ${#h1[@]} -ge 1 && ${#h1[@]} -lt $nnames ]]; then
@@ -122,7 +122,7 @@ strategy_extract () {
             local tmp="$rest" g start=0 idx
             gname=(); gpos=()
             idx=0
-            while [[ -n "${tmp//[[:space:]]/}" ]]; do
+            while [[ "${tmp}" == *[![:space:]]* ]]; do
                 # advance to first non-space
                 while [[ "${tmp:0:1}" == " " ]]; do tmp="${tmp:1}"; idx=$((idx + 1)); done
                 g=""
@@ -182,7 +182,7 @@ strategy_extract () {
             _sht_is_data "${blk[$i]}" || continue
             r=$((r + 1))
             local -a vals=()
-            read -ra vals <<< "${blk[$i]}"
+            { _fr_tok "${blk[$i]}"; vals=("${_FR_TOK[@]}"); }
             [[ ${#vals[@]} -eq $nnames ]] || continue
             local ci2
             for ((ci2 = 0; ci2 < nnames; ci2++)); do
@@ -195,13 +195,14 @@ strategy_extract () {
         done
     }
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ -z "${line//[[:space:]]/}" ]]; then
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        if [[ "${line}" != *[![:space:]]* ]]; then
             _sht_flush; blk=()
             continue
         fi
         blk+=("$line")
-    done <<< "$text"
+    done
     _sht_flush
 
     [[ $entry -ge 2 ]] || return 0

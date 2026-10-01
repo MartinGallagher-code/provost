@@ -1,6 +1,6 @@
-n	A	B	C	D	E	total_entries
-1	hcil     dev  dev_t  dm_st   dev_st  chk_st  next_check					5
-2	1	0	0	0  sda  8	0    active  running ready   XXXXXXXX.. 16/20	5
-3	1	0	1	0  sdb  8	16   active  running ready   XXXXXX.... 12/20	5
-4	2	0	0	0  sdc  8	32   active  running ready   XXXXXXXXX. 18/20	5
-5	2	0	1	0  sdd  8	48   failed   faulty  shaky   X......... 2/20	5
+n	A	B	C	D	E
+1	hcil     dev  dev_t  dm_st   dev_st  chk_st  next_check				
+2	1	0	0	0  sda  8	0    active  running ready   XXXXXXXX.. 16/20
+3	1	0	1	0  sdb  8	16   active  running ready   XXXXXX.... 12/20
+4	2	0	0	0  sdc  8	32   active  running ready   XXXXXXXXX. 18/20
+5	2	0	1	0  sdd  8	48   failed   faulty  shaky   X......... 2/20

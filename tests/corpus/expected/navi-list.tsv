@@ -1,4 +1,4 @@
-n	key	value	total_entries
-1	git	undo last commit	3
-2	docker	remove all stopped containers	3
-3	kubernetes	get pods in all namespaces	3
+n	key	value
+1	git	undo last commit
+2	docker	remove all stopped containers
+3	kubernetes	get pods in all namespaces

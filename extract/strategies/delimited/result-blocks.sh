@@ -35,16 +35,17 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line want_brk=0 blocks=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_rb_hdr_re ]]; then want_brk=1; continue; fi
         if [[ $want_brk -eq 1 ]]; then
             [[ "$line" =~ $_rb_brk_re ]] || return 1
             blocks=$((blocks + 1)); want_brk=0
         fi
-    done <<< "$text"
+    done
     [[ $blocks -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -55,8 +56,9 @@ strategy_extract () {
         [[ $entry -gt 0 && -n "$msg" ]] && result+="entry${entry}.message ${msg}"$'\n'
         msg=""
     }
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_rb_hdr_re ]]; then
             _rb_flush
             entry=$((entry + 1)); in_block=1
@@ -80,7 +82,7 @@ strategy_extract () {
         b="${b%"${b##*[![:space:]]}"}"
         [[ -n "$msg" ]] && msg+=" "
         msg+="$b"
-    done <<< "$text"
+    done
     _rb_flush
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

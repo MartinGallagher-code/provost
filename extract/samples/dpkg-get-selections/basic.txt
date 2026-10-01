@@ -1,7 +1,0 @@
-adduser						install
-apt						install
-base-files					install
-libssl3:amd64					install
-nginx-common					deinstall
-rsyslog						install
-vim-tiny					install

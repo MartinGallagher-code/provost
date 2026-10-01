@@ -1,5 +1,5 @@
-n	label	value	total_entries
-1	TEST RESULT	System achieved 482100 NOPM from 1204882 TPM	4
-2	Vuser 1	RAMPUP complete	4
-3	Vuser 1	Test complete, Taking end AWR snapshot.	4
-4	Vuser 1	482100 NOPM 1204882 TPM	4
+n	label	value
+1	TEST RESULT	System achieved 482100 NOPM from 1204882 TPM
+2	Vuser 1	RAMPUP complete
+3	Vuser 1	Test complete, Taking end AWR snapshot.
+4	Vuser 1	482100 NOPM 1204882 TPM

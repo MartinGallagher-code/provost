@@ -1,8 +1,8 @@
-n	PID	PGID	SID	TTY	TIME	CMD	total_entries
-1	1	1	1	?	00:00:12	systemd	7
-2	774	774	774	?	00:04:41	containerd	7
-3	902	774	774	?	00:00:02	containerd-shim	7
-4	1122	1122	1122	?	00:01:28	systemd-journald	7
-5	1843	1843	1843	?	06:52:07	mysqld	7
-6	2044	2044	2044	?	02:21:22	postgres	7
-7	2051	2044	2044	?	00:44:10	postgres	7
+n	PID	PGID	SID	TTY	TIME	CMD
+1	1	1	1	?	00:00:12	systemd
+2	774	774	774	?	00:04:41	containerd
+3	902	774	774	?	00:00:02	containerd-shim
+4	1122	1122	1122	?	00:01:28	systemd-journald
+5	1843	1843	1843	?	06:52:07	mysqld
+6	2044	2044	2044	?	02:21:22	postgres
+7	2051	2044	2044	?	00:44:10	postgres

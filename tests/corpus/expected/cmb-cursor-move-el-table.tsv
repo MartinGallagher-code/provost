@@ -1,5 +1,5 @@
-n	DISK	READ	WRITE	UTIL	total_entries
-1	nvme0n1	412 MB/s	180 MB/s	62%	4
-2	nvme1n1	88 MB/s	44 MB/s	19%	4
-3	sda	12 MB/s	6 MB/s	4%	4
-4	sdb	0 MB/s	0 MB/s	0%	4
+n	DISK	READ	WRITE	UTIL
+1	nvme0n1	412 MB/s	180 MB/s	62%
+2	nvme1n1	88 MB/s	44 MB/s	19%
+3	sda	12 MB/s	6 MB/s	4%
+4	sdb	0 MB/s	0 MB/s	0%

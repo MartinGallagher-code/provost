@@ -1,7 +1,7 @@
-n	A	B	C	D	E	F	G	total_entries
-1	kernel-5.14.0-362.el9.x86_64	Thu	14	Sep	2023	10:12:11	CEST	6
-2	firefox-115.3.0-1.el9.x86_64	Wed	13	Sep	2023	22:41:52	CEST	6
-3	glibc-2.34-60.el9.x86_64	Mon	04	Sep	2023	08:03:19	CEST	6
-4	systemd-252-14.el9.x86_64	Mon	04	Sep	2023	08:03:17	CEST	6
-5	openssl-3.0.7-24.el9.x86_64	Fri	25	Aug	2023	16:55:40	CEST	6
-6	bash-5.1.8-6.el9.x86_64	Fri	25	Aug	2023	16:55:38	CEST	6
+n	A	B	C	D	E	F	G
+1	kernel-5.14.0-362.el9.x86_64	Thu	14	Sep	2023	10:12:11	CEST
+2	firefox-115.3.0-1.el9.x86_64	Wed	13	Sep	2023	22:41:52	CEST
+3	glibc-2.34-60.el9.x86_64	Mon	04	Sep	2023	08:03:19	CEST
+4	systemd-252-14.el9.x86_64	Mon	04	Sep	2023	08:03:17	CEST
+5	openssl-3.0.7-24.el9.x86_64	Fri	25	Aug	2023	16:55:40	CEST
+6	bash-5.1.8-6.el9.x86_64	Fri	25	Aug	2023	16:55:38	CEST

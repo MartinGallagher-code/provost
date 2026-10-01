@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	total_entries
-1	Transferred:	4.211	GiB	/	12.400	GiB,_34%,_42.100_MiB/s,_ETA_3m18s	5
-2	*	backups/db-2024-01.tar.gz:	88%	/2.100Gi,	12.4Mi/s,	0s	5
-3	*	media/photos-hires.zip:	41%	/5.400Gi,	22.1Mi/s,	3m2s	5
-4	*	logs/app-jan.log:	100%	/820Mi,	9.1Mi/s,	0s	5
-5	*	config/settings.bin:	12%	/1.200Gi,	4.4Mi/s,	4m1s	5
+n	A	B	C	D	E	F
+1	Transferred:	4.211	GiB	/	12.400	GiB, 34%, 42.100 MiB/s, ETA 3m18s
+2	*	backups/db-2024-01.tar.gz:	88%	/2.100Gi,	12.4Mi/s,	0s
+3	*	media/photos-hires.zip:	41%	/5.400Gi,	22.1Mi/s,	3m2s
+4	*	logs/app-jan.log:	100%	/820Mi,	9.1Mi/s,	0s
+5	*	config/settings.bin:	12%	/1.200Gi,	4.4Mi/s,	4m1s

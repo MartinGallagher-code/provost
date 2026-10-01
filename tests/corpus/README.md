@@ -36,8 +36,10 @@ column is the one that matters: it measures how well provost tidies each tool
 **Speed:** inputs are processed in parallel (a job pool sized to the CPU count,
 override with `PROVOST_CORPUS_JOBS=N`), and each engine call uses `--emit-meta` so
 the wide output and the winning-strategy meta come from one invocation; full mode
-is skipped in `--golden`/`--update-golden`. On a 4-core box: report/coverage
-~18s, `--golden` ~2.5s (was ~2 min).
+is skipped in `--golden`/`--update-golden`. On a 4-core box (2026-09-25, after
+the detection speed-up): `--golden` / `--update-golden` ~3 min, full-mode batch
+~3.5 min. (Earlier "~2.5s" figures predate the corpus growing past 3,700
+inputs.)
 
 ## Tested tools & current coverage
 

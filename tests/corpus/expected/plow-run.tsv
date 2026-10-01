@@ -1,12 +1,12 @@
-n	A	total_entries
-1	Benchmarking http://localhost:8080 for 10s using 100 connections	11
-2	Summary:	11
-3	Elapsed        10.021s	11
-4	Count          120488	11
-5	2xx          120488	11
-6	RPS            12024.44	11
-7	Reads          18.44MB/s	11
-8	Writes          1.20MB/s	11
-9	Statistics    Min      Mean     StdDev      Max	11
-10	Latency    2.1ms    12.4ms    8.21ms    212.4ms	11
-11	RPS       11020    12024     882.4     14210	11
+n	A
+1	Benchmarking http://localhost:8080 for 10s using 100 connections
+2	Summary:
+3	Elapsed        10.021s
+4	Count          120488
+5	2xx          120488
+6	RPS            12024.44
+7	Reads          18.44MB/s
+8	Writes          1.20MB/s
+9	Statistics    Min      Mean     StdDev      Max
+10	Latency    2.1ms    12.4ms    8.21ms    212.4ms
+11	RPS       11020    12024     882.4     14210

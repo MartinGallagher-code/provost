@@ -1,7 +1,7 @@
-n	A	B	C	total_entries
-1	a1b2c3d4e5	*	assets/logo.png	6
-2	b2c3d4e5f6	*	assets/hero.psd	6
-3	c3d4e5f6a7	-	data/model.bin	6
-4	d4e5f6a7b8	*	video/intro.mp4	6
-5	e5f6a7b8c9	*	fonts/brand.otf	6
-6	f6a7b8c9d0	-	archive/backup.zip	6
+n	A	B	C
+1	a1b2c3d4e5	*	assets/logo.png
+2	b2c3d4e5f6	*	assets/hero.psd
+3	c3d4e5f6a7	-	data/model.bin
+4	d4e5f6a7b8	*	video/intro.mp4
+5	e5f6a7b8c9	*	fonts/brand.otf
+6	f6a7b8c9d0	-	archive/backup.zip

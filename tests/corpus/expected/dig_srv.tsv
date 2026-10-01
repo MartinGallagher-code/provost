@@ -1,5 +1,5 @@
-n	name	ttl	class	type	value	total_entries
-1	_xmpp-server._tcp.example.com.	3600	IN	SRV	5 0 5269 xmpp1.example.com.	4
-2	_xmpp-server._tcp.example.com.	3600	IN	SRV	10 0 5269 xmpp2.example.com.	4
-3	_xmpp-server._tcp.example.com.	3600	IN	SRV	20 10 5269 xmpp3.example.com.	4
-4	_xmpp-server._tcp.example.com.	3600	IN	SRV	20 20 5269 xmpp4.example.com.	4
+n	name	ttl	class	type	value
+1	_xmpp-server._tcp.example.com.	3600	IN	SRV	5 0 5269 xmpp1.example.com.
+2	_xmpp-server._tcp.example.com.	3600	IN	SRV	10 0 5269 xmpp2.example.com.
+3	_xmpp-server._tcp.example.com.	3600	IN	SRV	20 10 5269 xmpp3.example.com.
+4	_xmpp-server._tcp.example.com.	3600	IN	SRV	20 20 5269 xmpp4.example.com.

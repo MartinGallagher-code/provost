@@ -1,0 +1,6 @@
+kernel_name Linux
+nodename host
+kernel_release 6.1.0-18-amd64
+kernel_version #1 SMP PREEMPT_DYNAMIC Debian 6.1.76-1
+machine x86_64
+operating_system GNU/Linux

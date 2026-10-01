@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"ROCm System Management Interface"* ]] \
        || { [[ "$text" == *"AvgPwr"* ]] && [[ "$text" == *"SCLK"* ]] && [[ "$text" == *"PwrCap"* ]]; }; then
@@ -24,7 +24,8 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         # Skip banner/rule lines and the column header.
         case "$line" in
@@ -34,7 +35,7 @@ strategy_extract () {
         # Data rows begin with the GPU index (a number).
         [[ "$line" =~ ^[0-9] ]] || continue
 
-        read -ra _arr <<< "$line"
+        { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
         [[ ${#_arr[@]} -lt 10 ]] && continue
 
         n=$((n + 1))
@@ -49,7 +50,7 @@ strategy_extract () {
         result+="${p}pwrcap ${_arr[7]}"$'\n'
         result+="${p}vram_pct ${_arr[8]}"$'\n'
         result+="${p}gpu_pct ${_arr[9]}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

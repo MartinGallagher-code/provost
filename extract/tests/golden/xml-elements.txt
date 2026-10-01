@@ -1,5 +1,0 @@
-title My_Page_Title
-h1 Welcome
-p This_is_a_paragraph.
-span Version_2.0
-div 42

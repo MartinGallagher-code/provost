@@ -19,7 +19,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == "logtriage --"* ]] || return 1
     local re_rank='(^|'$'\n'')[[:space:]]*#[0-9]+[[:space:]]+score[[:space:]]+[0-9]+(\.[0-9]+)?'
@@ -83,7 +83,7 @@ strategy_extract () {
         fi
 
         if [[ "$expect" == "template" ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "${line}" != *[![:space:]]* ]] && continue
             local template="$line"
             # Trim leading/trailing whitespace.
             template="${template#"${template%%[![:space:]]*}"}"
@@ -94,7 +94,7 @@ strategy_extract () {
         fi
 
         if [[ "$expect" == "firstlast" ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "${line}" != *[![:space:]]* ]] && continue
             if [[ "$line" =~ $re_firstlast ]]; then
                 result+="entry${n}.first_seen ${BASH_REMATCH[1]}"$'\n'
                 result+="entry${n}.last_seen ${BASH_REMATCH[2]}"$'\n'

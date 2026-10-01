@@ -47,7 +47,7 @@ _mxsum_split_wide () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
 
     [[ "$text" == "mx summarize --"* ]] || return 1
@@ -62,7 +62,8 @@ strategy_extract () {
     local re_header='^mx summarize --[[:space:]]+(.+),[[:space:]]+([0-9]+)[[:space:]]+hosts,[[:space:]]+([0-9]+)[[:space:]]+flows,[[:space:]]+(.+)[[:space:]]+out[[:space:]]+->[[:space:]]+(.+)[[:space:]]+back[[:space:]]*$'
     local re_rtt='avg[[:space:]]+([^[:space:]]+).*p50[[:space:]]+([^[:space:]]+)[[:space:]]+p99[[:space:]]+([^[:space:]]+)[[:space:]]+max[[:space:]]+([^[:space:]]+)'
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $first -eq 1 ]]; then
             first=0
             if [[ "$line" =~ $re_header ]]; then
@@ -75,7 +76,7 @@ strategy_extract () {
             continue
         fi
 
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local t="${line#"${line%%[![:space:]]*}"}"
 
         case "$t" in
@@ -126,7 +127,7 @@ strategy_extract () {
                 fi
                 ;;
         esac
-    done <<< "$text"
+    done
 
     echo "$result"
 }

@@ -1,6 +1,6 @@
-n	A	B	C	total_entries
-1	24	4	src/login.py	5
-2	12	0	templates/login.html	5
-3	31	0	tests/test_login.py	5
-4	6	6	config/loader.py	5
-5	0	18	old/legacy.py	5
+n	A	B	C
+1	24	4	src/login.py
+2	12	0	templates/login.html
+3	31	0	tests/test_login.py
+4	6	6	config/loader.py
+5	0	18	old/legacy.py

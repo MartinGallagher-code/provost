@@ -1,3 +1,3 @@
-n	HOST	LOGIN	PASSWORD	total_entries
-1	example.com	admin	Summer2026!	2
-2	[STATUS]	attack	finished_for_example.com	2
+n	HOST	LOGIN	PASSWORD
+1	example.com	admin	Summer2026!
+2	[STATUS]	attack	finished for example.com

@@ -1,4 +1,4 @@
-n	CONTAINER_ID	IMAGE	COMMAND	CREATED	STATUS	PORTS	NAMES	total_entries
-1	a1b2c3d4e5f6	docker.io/library/nginx:latest	nginx -g daemon o...	2 hours ago	Up 2 hours ago	0.0.0.0:8080->80/tcp	web	3
-2	f6e5d4c3b2a1	docker.io/library/postgres:15	postgres	3 days ago	Up 3 days ago	0.0.0.0:5432->5432/tcp	db	3
-3	9z8y7x6w5v4u	quay.io/prometheus/prometheus	/bin/prometheus -...	1 week ago	Exited (0) 2h ago		monitor	3
+n	CONTAINER_ID	IMAGE	COMMAND	CREATED	STATUS	PORTS	NAMES
+1	a1b2c3d4e5f6	docker.io/library/nginx:latest	nginx -g daemon o...	2 hours ago	Up 2 hours ago	0.0.0.0:8080->80/tcp	web
+2	f6e5d4c3b2a1	docker.io/library/postgres:15	postgres	3 days ago	Up 3 days ago	0.0.0.0:5432->5432/tcp	db
+3	9z8y7x6w5v4u	quay.io/prometheus/prometheus	/bin/prometheus -...	1 week ago	Exited (0) 2h ago		monitor

@@ -1,5 +1,5 @@
-n	Interface	Status	VRF	Addresses	total_entries
-1	eth0	up	default	10.0.0.1/24	4
-2	eth1	up	default	192.0.2.1/30	4
-3	lo	up	default	10.255.0.1/32	4
-4	tunnel0	down	default	-	4
+n	Interface	Status	VRF	Addresses
+1	eth0	up	default	10.0.0.1/24
+2	eth1	up	default	192.0.2.1/30
+3	lo	up	default	10.255.0.1/32
+4	tunnel0	down	default	-

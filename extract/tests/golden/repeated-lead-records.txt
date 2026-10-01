@@ -1,0 +1,10 @@
+entry1.label Device
+entry1.id AA:BB:CC:DD:EE:01
+entry1.value WH-1000XM5
+entry2.label Device
+entry2.id AA:BB:CC:DD:EE:02
+entry2.value Magic Keyboard
+entry3.label Device
+entry3.id AA:BB:CC:DD:EE:03
+entry3.value MX Master 3S
+total_entries 3

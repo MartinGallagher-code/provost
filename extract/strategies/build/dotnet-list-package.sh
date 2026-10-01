@@ -17,7 +17,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     if [[ "$text" == *"Top-level Package"* && "$text" == *"Resolved"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -26,8 +26,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line s pkg req res rest
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Trim leading whitespace, then require the "> " row marker.
         s="${line#"${line%%[![:space:]]*}"}"
         [[ "$s" == "> "* ]] || continue
@@ -43,7 +44,7 @@ strategy_extract () {
         result+="entry${entry}.package ${pkg}"$'\n'
         result+="entry${entry}.requested ${req}"$'\n'
         result+="entry${entry}.resolved ${res}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

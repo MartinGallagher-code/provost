@@ -1,3 +1,3 @@
-n	Netid	Recv-Q	Send-Q	Local-Address	Peer-Address	Process	total_entries
-1	tcp	0	0	10.0.0.1:22	10.0.0.9:5122	users:(("sshd",pid=1234,fd=3))	2
-2	tcp	0	0	10.0.0.1:443	10.0.0.9:5123	users:(("nginx",pid=99,fd=6),("nginx",pid=100,fd=7))	2
+n	Netid	Recv-Q	Send-Q	Local-Address	Peer-Address	Process
+1	tcp	0	0	10.0.0.1:22	10.0.0.9:5122	users:(("sshd",pid=1234,fd=3))
+2	tcp	0	0	10.0.0.1:443	10.0.0.9:5123	users:(("nginx",pid=99,fd=6),("nginx",pid=100,fd=7))

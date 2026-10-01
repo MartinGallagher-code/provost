@@ -23,16 +23,17 @@ strategy_detect () {
     [[ "$text" == *"pending tasks:"* ]] || return 1
     [[ "$text" == *"compaction type"* ]] || return 1
     [[ "$text" == *"progress"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" entry=0 line
     local -a t
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        read -ra t <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         [[ ${#t[@]} -eq 8 ]] || continue
         [[ "${t[7]}" =~ ^[0-9.]+%$ ]] || continue
         entry=$((entry + 1))
@@ -44,7 +45,7 @@ strategy_extract () {
         result+="entry${entry}.total ${t[5]}"$'\n'
         result+="entry${entry}.unit ${t[6]}"$'\n'
         result+="entry${entry}.progress ${t[7]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

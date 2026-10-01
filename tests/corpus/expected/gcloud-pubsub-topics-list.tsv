@@ -1,6 +1,6 @@
-n	name	messageRetentionDuration	kmsKeyName	total_entries
-1	projects/my-project-prod/topics/orders	86400s		5
-2	projects/my-project-prod/topics/payments	604800s		5
-3	projects/my-project-prod/topics/user-events	86400s		5
-4	projects/my-project-prod/topics/audit-log	2592000s	projects/my-project-prod/locations/global/keyRings/pubsub/cryptoKeys/audit	5
-5	projects/my-project-prod/topics/dead-letter	604800s		5
+n	name	messageRetentionDuration	kmsKeyName
+1	projects/my-project-prod/topics/orders	86400s	
+2	projects/my-project-prod/topics/payments	604800s	
+3	projects/my-project-prod/topics/user-events	86400s	
+4	projects/my-project-prod/topics/audit-log	2592000s	projects/my-project-prod/locations/global/keyRings/pubsub/cryptoKeys/audit
+5	projects/my-project-prod/topics/dead-letter	604800s	

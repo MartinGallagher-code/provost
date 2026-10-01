@@ -1,10 +1,10 @@
-n	A	total_entries
-1	interface eth0	9
-2	{	9
-3	AdvSendAdvert on;	9
-4	prefix 2001:db8:1::/64	9
-5	{	9
-6	AdvOnLink on;	9
-7	AdvAutonomous on;	9
-8	};	9
-9	};	9
+n	A
+1	interface eth0
+2	{
+3	AdvSendAdvert on;
+4	prefix 2001:db8:1::/64
+5	{
+6	AdvOnLink on;
+7	AdvAutonomous on;
+8	};
+9	};

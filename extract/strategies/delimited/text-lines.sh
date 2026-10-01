@@ -32,8 +32,9 @@ strategy_detect () {
     # one-cell rows.
     local _kvb_ok=1 _kvb_multi=0 _kvb_l _kvb_tpl="" _kvb_tpl_same=1 _kvb_n=0 _kvb_colons=0
     local -A _kvb_seen=()
-    while IFS= read -r _kvb_l; do
-        [[ -z "${_kvb_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _kvb_l in "${_FR_LINES[@]}"; do
+        [[ "${_kvb_l}" != *[![:space:]]* ]] && continue
         _kvb_n=$((_kvb_n + 1))
         if [[ ! "$_kvb_l" =~ ^[[:space:]]*([^:]+):[[:space:]]+[^[:space:]] ]]; then
             _kvb_ok=0; break
@@ -51,7 +52,7 @@ strategy_detect () {
         if [[ -z "$_kvb_tpl" ]]; then _kvb_tpl="$_kvbt"
         elif [[ "$_kvbt" != "$_kvb_tpl" ]]; then _kvb_tpl_same=0
         fi
-    done <<< "$text"
+    done
     # Only defer when `colons` will actually ACCEPT the block: its detection
     # needs >=40% of lines to carry a letter-led simple label (parens, Greek,
     # digit-led ranges all fail its charset). Deferring a block colons then
@@ -63,13 +64,14 @@ strategy_detect () {
     fi
 
     local nb=0 first="" last="" _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         [[ $nb -eq 1 ]] && first="$_l"
         last="$_l"
         [[ $nb -ge 200 ]] && break
-    done <<< "$text"
+    done
     if [[ "$first" =~ ^[[:space:]]*[\{\[] ]]; then
         local _lt="${last%"${last##*[![:space:]]}"}"
         [[ "$_lt" == *'}' || "$_lt" == *']' || "$_lt" == *','  ]] && return 1
@@ -86,20 +88,24 @@ strategy_detect () {
     if [[ $nb -eq 1 ]]; then
         local trimmed="${first#"${first%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
-        local _tk; _tk=(); read -ra _tk <<< "$trimmed"
+        local _tk; _tk=(); { _fr_tok "$trimmed"; _tk=("${_FR_TOK[@]}"); }
         [[ ${#_tk[@]} -gt 3 || "$trimmed" == *. ]] && return 1
     fi
 
     # Otherwise: >=2 non-blank lines — one row per line, single column. Runs only
     # when every more-specific parser (incl. line-records) has declined.
-    _STRATEGY_CONFIDENCE=55
+    # Confidence 50 (catch-all tier, see extract/README.md "Confidence rubric"):
+    # the lowest any detector reports, so under confidence ranking it is tried
+    # LAST, yet it still clears provost's default commit threshold (50).
+    _STRATEGY_CONFIDENCE=50
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 _l
-    while IFS= read -r _l; do
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
         # Trim surrounding whitespace but keep the line's own spaces.
         local v="$_l"
         v="${v#"${v%%[![:space:]]*}"}"
@@ -107,7 +113,7 @@ strategy_extract () {
         [[ -z "$v" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.A ${v}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

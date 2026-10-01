@@ -1,5 +1,5 @@
-n	USERNAME	FULLNAME	SHELL	total_entries
-1	amelie	Amélie Dupont	/bin/bash	4
-2	andre	André Gide	/bin/zsh	4
-3	bjork	Björk	/bin/sh	4
-4	zoe	Zoë Ball	/bin/bash	4
+n	USERNAME	FULLNAME	SHELL
+1	amelie	Amélie Dupont	/bin/bash
+2	andre	André Gide	/bin/zsh
+3	bjork	Björk	/bin/sh
+4	zoe	Zoë Ball	/bin/bash

@@ -1,4 +1,4 @@
-n	SUITE	PASS	FAIL	SKIP	total_entries
-1	unit	204	0	2	3
-2	integration	88	1	0	3
-3	e2e	41	0	5	3
+n	SUITE	PASS	FAIL	SKIP
+1	unit	204	0	2
+2	integration	88	1	0
+3	e2e	41	0	5

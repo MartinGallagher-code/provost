@@ -12,8 +12,8 @@
 # "Copyright (C) <year> <holder>" line, a "License ..." line, then boilerplate
 # ("This is free software...", "There is NO WARRANTY...") and optional trailers
 # ("Written by ...", "Packaged by ..."). Generic parsers see five unrelated
-# prose lines and fall through to `unsorted` at confidence 35, losing the
-# schema the banner actually has.
+# prose lines and fall through to a weak catch-all parse, losing the schema
+# the banner actually has.
 #
 # One wide key/value record (no entryN.*): tool, version, copyright, license,
 # license_url, warranty, author.
@@ -44,15 +44,32 @@ _gnuver_is_word () {
 }
 
 # First non-blank line of $1, whitespace-trimmed. Echoes "" if none.
+# _gnuver_first_line_v TEXT — `$(_gnuver_first_line TEXT)` in _GNUVER_FIRST,
+# without the fork (the printed line is trimmed, so the capture strips nothing).
+_gnuver_first_line_v () {
+    local line
+    _GNUVER_FIRST=""
+    _fr_lines "$1"
+    for line in "${_FR_LINES[@]}"; do
+        line="${line#"${line%%[![:space:]]*}"}"
+        line="${line%"${line##*[![:space:]]}"}"
+        [[ -z "$line" ]] && continue
+        _GNUVER_FIRST="$line"
+        return 0
+    done
+    return 0
+}
+
 _gnuver_first_line () {
     local line
-    while IFS= read -r line; do
+    _fr_lines "$1"
+    for line in "${_FR_LINES[@]}"; do
         line="${line#"${line%%[![:space:]]*}"}"
         line="${line%"${line##*[![:space:]]}"}"
         [[ -z "$line" ]] && continue
         printf '%s' "$line"
         return 0
-    done <<< "$1"
+    done
     printf ''
 }
 
@@ -92,7 +109,7 @@ _gnuver_parse_head () {
     # "provost 2.0.1" / "GNU Make 4.3" — last token is the version, the words
     # before it are the name (with a leading "GNU" dropped).
     local toks=()
-    read -ra toks <<< "$head"
+    { _fr_tok "$head"; toks=("${_FR_TOK[@]}"); }
     local n=${#toks[@]}
     [[ $n -ge 2 ]] || return 1
     _gnuver_is_version "${toks[$((n - 1))]}" || return 1
@@ -114,7 +131,7 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
 
     local head
-    head="$(_gnuver_first_line "$text")"
+    _gnuver_first_line_v "$text"; head="$_GNUVER_FIRST"
     [[ -n "$head" ]] || return 1
     _gnuver_parse_head "$head" || return 1
 
@@ -123,7 +140,7 @@ strategy_detect () {
     [[ "$text" =~ $re_copy ]] || return 1
     [[ "$text" =~ $re_lic ]] || return 1
 
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -137,10 +154,11 @@ strategy_extract () {
     local re_url='<([^>]*)>'
 
     local head
-    head="$(_gnuver_first_line "$text")"
+    _gnuver_first_line_v "$text"; head="$_GNUVER_FIRST"
     _gnuver_parse_head "$head" || return 1
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         trimmed="${line#"${line%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
 
@@ -175,7 +193,7 @@ strategy_extract () {
             author="${trimmed#Written by }"
             [[ "$author" == *"." ]] || in_author=1
         fi
-    done <<< "$text"
+    done
 
     author="${author%.}"
 

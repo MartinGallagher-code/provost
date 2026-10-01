@@ -1,0 +1,7 @@
+entry1.group cargo-audit v0.20.0
+entry1.value cargo-audit
+entry2.group ripgrep v14.1.0
+entry2.value rg
+entry3.group just v1.29.1
+entry3.value just
+total_entries 3

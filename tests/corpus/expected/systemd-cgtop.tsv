@@ -1,9 +1,9 @@
-n	Control	Group	Tasks	%CPU	Memory	Input/s	total_entries
-1	/	412	38.4	6.2G	-	-	8
-2	/system.slice	198	21.7	2.8G	-	-	8
-3	/system.slice/nginx.service	3	8.2	118.4M	-	-	8
-4	/system.slice/mysql.service	42	6.9	1.4G	-	-	8
-5	/user.slice	156	12.1	2.1G	-	-	8
-6	/user.slice/user-1000.slice	156	12.1	2.1G	-	-	8
-7	/system.slice/docker.service	18	4.3	642.0M	-	-	8
-8	/init.scope	1	0.1	12.8M	-	-	8
+n	Control	Group	Tasks	%CPU	Memory	Input/s
+1	/	412	38.4	6.2G	-	-
+2	/system.slice	198	21.7	2.8G	-	-
+3	/system.slice/nginx.service	3	8.2	118.4M	-	-
+4	/system.slice/mysql.service	42	6.9	1.4G	-	-
+5	/user.slice	156	12.1	2.1G	-	-
+6	/user.slice/user-1000.slice	156	12.1	2.1G	-	-
+7	/system.slice/docker.service	18	4.3	642.0M	-	-
+8	/init.scope	1	0.1	12.8M	-	-

@@ -1,5 +1,5 @@
-n	NAME	SIZELIMIT	OFFSET	AUTOCLEAR	RO	BACK-FILE	DIO	LOG-SEC	total_entries
-1	/dev/loop0	0	0	1	0	/var/lib/snapd/snaps/core.snap	0	512	4
-2	/dev/loop1	0	0	1	0	/var/lib/snapd/snaps/gnome.snap	0	512	4
-3	/dev/loop2	0	0	0	1	/srv/images/disk.img	1	512	4
-4	/dev/loop3	0	0	0	0	/home/user/test.img	0	512	4
+n	NAME	SIZELIMIT	OFFSET	AUTOCLEAR	RO	BACK-FILE	DIO	LOG-SEC
+1	/dev/loop0	0	0	1	0	/var/lib/snapd/snaps/core.snap	0	512
+2	/dev/loop1	0	0	1	0	/var/lib/snapd/snaps/gnome.snap	0	512
+3	/dev/loop2	0	0	0	1	/srv/images/disk.img	1	512
+4	/dev/loop3	0	0	0	0	/home/user/test.img	0	512

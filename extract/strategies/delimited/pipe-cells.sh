@@ -33,13 +33,13 @@ _pc_row () {
     [[ ${#bars} -ge 2 ]] || return 1
     # Every non-empty cell after the label must be a key/value (>=2 tokens).
     local rest="${line#*|}"
-    local -a cells=(); IFS='|' read -ra cells <<< "$rest"
+    local -a cells=(); { IFS='|' _fr_tok "$rest"; cells=("${_FR_TOK[@]}"); }
     # Count key/value cells (>=2 tokens). Empty cells (SWP's gap) and a single
     # lone-value cell (DSK's `sda` device name) are tolerated and skipped; a
     # real 2-/3-column pipe table has only lone-value cells and so scores 0.
     local seen=0 c
     for c in "${cells[@]}"; do
-        local -a tk=(); read -ra tk <<< "$c"
+        local -a tk=(); { _fr_tok "$c"; tk=("${_FR_TOK[@]}"); }
         [[ ${#tk[@]} -ge 2 ]] && seen=$((seen + 1))
     done
     [[ $seen -ge 2 ]]
@@ -49,27 +49,29 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line hits=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _pc_row "$line" && hits=$((hits + 1))
         [[ $hits -ge 3 ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _pc_row "$line" || continue
         local group="${line%%|*}"
         group="${group%"${group##*[![:space:]]}"}"      # rstrip
         group="${group#"${group%%[![:space:]]*}"}"      # lstrip
         local rest="${line#*|}"
-        local IFS='|'; local -a cells=(); read -ra cells <<< "$rest"; unset IFS
+        local IFS='|'; local -a cells=(); { _fr_tok "$rest"; cells=("${_FR_TOK[@]}"); }; unset IFS
         local c
         for c in "${cells[@]}"; do
-            local -a tk=(); read -ra tk <<< "$c"
+            local -a tk=(); { _fr_tok "$c"; tk=("${_FR_TOK[@]}"); }
             [[ ${#tk[@]} -lt 2 ]] && continue
             local key="${tk[0]}" val="${tk[*]:1}"
             entry=$((entry + 1))
@@ -77,7 +79,7 @@ strategy_extract () {
             result+="entry${entry}.key ${key}"$'\n'
             result+="entry${entry}.value ${val}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

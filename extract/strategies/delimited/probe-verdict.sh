@@ -37,15 +37,16 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line lead="" n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_pv_re ]] || return 1
         # Dots glued to the target: the captured target must not end in space.
         [[ "${BASH_REMATCH[2]}" == *" " ]] && return 1
         if [[ -z "$lead" ]]; then lead="${BASH_REMATCH[1]}"
         elif [[ "${BASH_REMATCH[1]}" != "$lead" ]]; then return 1; fi
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 3 ]] || return 1
     _STRATEGY_CONFIDENCE=80
     return 0
@@ -54,8 +55,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 name
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_pv_re ]] || continue
         name="${BASH_REMATCH[2]}"
         # Strip `backquote' quoting chrome.
@@ -64,7 +66,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         result+="entry${entry}.result ${BASH_REMATCH[3]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

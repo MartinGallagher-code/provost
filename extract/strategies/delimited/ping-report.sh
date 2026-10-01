@@ -24,25 +24,27 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local _l nb=0 replies=0
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         _pr_is_reply "$_l" && replies=$((replies + 1))
         [[ $nb -ge 60 ]] && break
-    done <<< "$text"
+    done
     [[ $replies -ge 2 && $(( replies * 100 / nb )) -ge 40 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 _l
-    while IFS= read -r _l; do
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
         _pr_is_reply "$_l" || continue
         entry=$((entry + 1))
         local toks=() t i
-        read -ra toks <<< "$_l"
+        { _fr_tok "$_l"; toks=("${_FR_TOK[@]}"); }
         result+="entry${entry}.bytes ${toks[0]}"$'\n'
         # toks[1]=bytes toks[2]=from toks[3]=<addr>[:]
         local _from="${toks[3]%:}"
@@ -66,7 +68,7 @@ strategy_extract () {
                 result="${result%$'\n'} ${t}"$'\n'
             fi
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

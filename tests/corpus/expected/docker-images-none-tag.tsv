@@ -1,6 +1,6 @@
-n	REPOSITORY	TAG	IMAGE_ID	CREATED	SIZE	total_entries
-1	nginx	1.25	a1b2c3d4e5f6	3 weeks ago	187MB	5
-2	<none>	<none>	998877665544	5 weeks ago	412MB	5
-3	redis	7	112233445566	2 months ago	138MB	5
-4	myapp	latest	aabbccddeeff	4 hours ago	512MB	5
-5	postgres	16	f0e1d2c3b4a5	2 months ago	438MB	5
+n	REPOSITORY	TAG	IMAGE_ID	CREATED	SIZE
+1	nginx	1.25	a1b2c3d4e5f6	3 weeks ago	187MB
+2	<none>	<none>	998877665544	5 weeks ago	412MB
+3	redis	7	112233445566	2 months ago	138MB
+4	myapp	latest	aabbccddeeff	4 hours ago	512MB
+5	postgres	16	f0e1d2c3b4a5	2 months ago	438MB

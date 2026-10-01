@@ -1,10 +1,10 @@
-n	section	key	value	total_entries
-1	Report	UDP	true	9
-2	Report	IPv4	yes, 203.0.113.44:41641	9
-3	Report	IPv6	no	9
-4	Report	MappingVariesByDestIP	false	9
-5	Report	PortMapping	UPnP	9
-6	Report	Nearest DERP	Frankfurt	9
-7	Report > DERP latency	fra	12.4ms  (Frankfurt)	9
-8	Report > DERP latency	ams	18.9ms  (Amsterdam)	9
-9	Report > DERP latency	lhr	21.7ms  (London)	9
+n	section	key	value
+1	Report	UDP	true
+2	Report	IPv4	yes, 203.0.113.44:41641
+3	Report	IPv6	no
+4	Report	MappingVariesByDestIP	false
+5	Report	PortMapping	UPnP
+6	Report	Nearest DERP	Frankfurt
+7	Report > DERP latency	fra	12.4ms  (Frankfurt)
+8	Report > DERP latency	ams	18.9ms  (Amsterdam)
+9	Report > DERP latency	lhr	21.7ms  (London)

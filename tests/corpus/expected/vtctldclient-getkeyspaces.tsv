@@ -1,5 +1,5 @@
-n	NAME	KEYSPACE_TYPE	BASE_KEYSPACE	SNAPSHOT_TIME	DURABILITY_POLICY	total_entries
-1	commerce	NORMAL	-	-	semi_sync	4
-2	customer	NORMAL	-	-	semi_sync	4
-3	lookup	NORMAL	-	-	none	4
-4	corder_v2	SNAPSHOT	commerce	2026-05-01T09:00:00Z	none	4
+n	NAME	KEYSPACE_TYPE	BASE_KEYSPACE	SNAPSHOT_TIME	DURABILITY_POLICY
+1	commerce	NORMAL	-	-	semi_sync
+2	customer	NORMAL	-	-	semi_sync
+3	lookup	NORMAL	-	-	none
+4	corder_v2	SNAPSHOT	commerce	2026-05-01T09:00:00Z	none

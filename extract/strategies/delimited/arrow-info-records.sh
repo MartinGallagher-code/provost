@@ -34,8 +34,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line first=1 bullets=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ $first -eq 1 ]]; then
             [[ "$line" =~ ^=\>[[:space:]]+[A-Za-z]+[[:space:]] ]] || return 1
             first=0; continue
@@ -44,17 +45,18 @@ strategy_detect () {
             bullets=$((bullets + 1)); continue
         fi
         [[ "$line" =~ ^[A-Za-z]+[[:space:]] ]] || return 1
-    done <<< "$text"
+    done
     [[ $first -eq 0 && $bullets -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 label=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ ^=\>[[:space:]]+([A-Za-z]+)[[:space:]]+(.+)$ ]]; then
             label="${BASH_REMATCH[1]}"
             entry=$((entry + 1))
@@ -75,7 +77,7 @@ strategy_extract () {
             result+="entry${entry}.label ${label}"$'\n'
             result+="entry${entry}.value ${BASH_REMATCH[2]}"$'\n'
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

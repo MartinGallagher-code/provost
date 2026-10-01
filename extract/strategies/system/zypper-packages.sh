@@ -20,13 +20,13 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"| Repository"* ]] || return 1
     [[ "$text" == *"| Arch"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     printf '%s\n' "$1" | awk -F'|' '
-        function trim(s){ gsub(/^[ \t]+/,"",s); gsub(/[ \t]+$/,"",s); gsub(/[ \t]+/,"_",s); return s }
+        function trim(s){ gsub(/^[ \t]+/,"",s); gsub(/[ \t]+$/,"",s); return s }
         {
             if ($0 !~ /\|/) next                       # only table rows
             if ($0 ~ /Repository/) next                # header

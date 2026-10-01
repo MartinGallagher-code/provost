@@ -30,7 +30,7 @@ strategy_extract () {
     local text="$1"
     local line result="" entry=0
     while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_ppr_re ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.id ${BASH_REMATCH[1]}"$'\n'

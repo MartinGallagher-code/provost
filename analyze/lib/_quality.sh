@@ -290,7 +290,7 @@ run_noisy_items () {
 Max row length: $max_len" "NOISY" "noisy"
 
     local common_chars chars_body
-    common_chars=$(printf "%s" "${char_lines%$'\n'}" | sort -nr | head -n 5)
+    common_chars=$(printf "%s" "${char_lines%$'\n'}" | sort -nr | awk 'NR <= 5')  # not head: SIGPIPE on sort under pipefail
     chars_body=""
     if [[ -n "$common_chars" ]]; then
         local count ch

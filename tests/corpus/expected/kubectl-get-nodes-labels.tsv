@@ -1,5 +1,5 @@
-n	NAME	STATUS	ROLES	AGE	VERSION	LABELS	total_entries
-1	cp-1	Ready	control-plane	214d	v1.29.4	node-role.kubernetes.io/control-plane=	4
-2	worker-1	Ready	<none>	214d	v1.29.4	topology.kubernetes.io/zone=eu-west-1a	4
-3	worker-2	Ready	<none>	198d	v1.29.4	topology.kubernetes.io/zone=eu-west-1b	4
-4	worker-3	NotReady	<none>	61d	v1.29.4	topology.kubernetes.io/zone=eu-west-1c	4
+n	NAME	STATUS	ROLES	AGE	VERSION	LABELS
+1	cp-1	Ready	control-plane	214d	v1.29.4	node-role.kubernetes.io/control-plane=
+2	worker-1	Ready	<none>	214d	v1.29.4	topology.kubernetes.io/zone=eu-west-1a
+3	worker-2	Ready	<none>	198d	v1.29.4	topology.kubernetes.io/zone=eu-west-1b
+4	worker-3	NotReady	<none>	61d	v1.29.4	topology.kubernetes.io/zone=eu-west-1c

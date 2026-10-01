@@ -1,4 +1,4 @@
-n	Package	Version	total_entries
-1	numpy	1.26.4	3
-2	pandas	2.2.1	3
-3	scipy	1.13.0.dev0+git.20260101	3
+n	Package	Version
+1	numpy	1.26.4
+2	pandas	2.2.1
+3	scipy	1.13.0.dev0+git.20260101

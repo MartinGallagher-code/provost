@@ -1,3 +1,3 @@
-n	VG	#PV	#LV	#SN	Attr	VSize	VFree	MaxLV	MaxPV	total_entries
-1	vg0	3	4	0	wz--n-	<2.73t	1.99t	0	0	2
-2	vg_ssd	1	2	0	wz--n-	931.51g	128.00g	0	0	2
+n	VG	#PV	#LV	#SN	Attr	VSize	VFree	MaxLV	MaxPV
+1	vg0	3	4	0	wz--n-	<2.73t	1.99t	0	0
+2	vg_ssd	1	2	0	wz--n-	931.51g	128.00g	0	0

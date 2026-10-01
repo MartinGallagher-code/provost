@@ -1,9 +1,9 @@
-n	A	total_entries
-1	server {	8
-2	listen 80	8
-3	root /var/www	8
-4	index index.html	8
-5	location / {	8
-6	try_files uri	8
-7	}	8
-8	}	8
+n	A
+1	server {
+2	listen 80
+3	root /var/www
+4	index index.html
+5	location / {
+6	try_files uri
+7	}
+8	}

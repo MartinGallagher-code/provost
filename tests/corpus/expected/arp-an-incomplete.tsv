@@ -1,6 +1,6 @@
-n	A	B	at	on	total_entries
-1	?	(192.168.1.1)	3c:84:6a:11:22:33 [ether]	eth0	5
-2	?	(192.168.1.10)	8c:85:90:aa:bb:cc [ether]	eth0	5
-3	?	(192.168.1.55)	<incomplete>	eth0	5
-4	?	(192.168.1.99)	a0:b1:c2:d3:e4:f5 [ether]	eth0	5
-5	?	(10.0.0.9)	<incomplete>	tun0	5
+n	A	B	at	on
+1	?	(192.168.1.1)	3c:84:6a:11:22:33 [ether]	eth0
+2	?	(192.168.1.10)	8c:85:90:aa:bb:cc [ether]	eth0
+3	?	(192.168.1.55)	<incomplete>	eth0
+4	?	(192.168.1.99)	a0:b1:c2:d3:e4:f5 [ether]	eth0
+5	?	(10.0.0.9)	<incomplete>	tun0

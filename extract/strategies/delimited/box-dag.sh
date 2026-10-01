@@ -37,8 +37,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line borders=0 contents=0 mcol=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bd_border_re ]]; then borders=$((borders + 1)); continue; fi
         if [[ "$line" =~ $_bd_content_re ]]; then
             contents=$((contents + 1))
@@ -50,17 +51,18 @@ strategy_detect () {
         fi
         [[ "$line" =~ $_bd_edge_re ]] && continue
         return 1
-    done <<< "$text"
+    done
     # A DAG: >=2 one-cell boxes (each its own border pair), single-column only.
     [[ $mcol -eq 0 && $contents -ge 2 && $borders -ge 4 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ $_bd_content_re ]] || continue
         local inner="${line#*|}"; inner="${inner%|*}"
         inner="${inner#"${inner%%[![:space:]]*}"}"
@@ -68,7 +70,7 @@ strategy_extract () {
         [[ -n "$inner" ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.stage ${inner}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

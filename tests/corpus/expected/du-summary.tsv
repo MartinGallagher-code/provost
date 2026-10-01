@@ -1,6 +1,6 @@
-n	A	B	total_entries
-1	4.2G	./var/log	5
-2	1.8G	./var/lib/docker	5
-3	612M	./home/deploy	5
-4	44M	./etc	5
-5	6.7G	.	5
+n	A	B
+1	4.2G	./var/log
+2	1.8G	./var/lib/docker
+3	612M	./home/deploy
+4	44M	./etc
+5	6.7G	.

@@ -1,5 +1,5 @@
-n	A	B	total_entries
-1	Found	HOST	4
-2	Found	admin.example.com	4
-3	Found	api.example.com	4
-4	Found	portal.example.com	4
+n	A	B
+1	Found	HOST
+2	Found	admin.example.com
+3	Found	api.example.com
+4	Found	portal.example.com

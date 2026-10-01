@@ -1,11 +1,11 @@
-n	key	value	total_entries
-1	Deployment ID	f8a1b2c3-d4e5-46f7-8a9b-0c1d2e3f4a5b	10
-2	Created on	2026-07-09T18:44:12.882Z	10
-3	Author	deploy@example.com	10
-4	Source	Upload	10
-5	Active	Yes	10
-6	Deployment ID	a1b2c3d4-e5f6-4708-9a1b-2c3d4e5f6a7b	10
-7	Created on	2026-07-07T11:20:03.517Z	10
-8	Author	deploy@example.com	10
-9	Source	Rollback	10
-10	Active	No	10
+n	key	value
+1	Deployment ID	f8a1b2c3-d4e5-46f7-8a9b-0c1d2e3f4a5b
+2	Created on	2026-07-09T18:44:12.882Z
+3	Author	deploy@example.com
+4	Source	Upload
+5	Active	Yes
+6	Deployment ID	a1b2c3d4-e5f6-4708-9a1b-2c3d4e5f6a7b
+7	Created on	2026-07-07T11:20:03.517Z
+8	Author	deploy@example.com
+9	Source	Rollback
+10	Active	No

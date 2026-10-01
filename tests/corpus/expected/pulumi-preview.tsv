@@ -1,5 +1,5 @@
-n	previewing	Type	Name	Plan	D	group	A	B	C	total_entries
-1	update (prod)	+	aws:s3:Bucket	assets	create					4
-2	update (prod)	~	aws:ec2:Instance	web	update					4
-3					create	Resources	+	1	to	4
-4					update	Resources	~	1	to	4
+n	previewing	Type	Name	Plan	D	group	A	B	C
+1	update (prod)	+	aws:s3:Bucket	assets	create				
+2	update (prod)	~	aws:ec2:Instance	web	update				
+3					create	Resources	+	1	to
+4					update	Resources	~	1	to

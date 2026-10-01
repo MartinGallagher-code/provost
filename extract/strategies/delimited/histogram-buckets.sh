@@ -33,8 +33,9 @@ _hb_map='^@([A-Za-z_][A-Za-z0-9_]*):[[:space:]]*$'
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 map=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         if [[ "$s" =~ $_hb_map ]]; then
@@ -46,7 +47,7 @@ strategy_extract () {
         [[ -n "$map" ]] && result+="entry${entry}.map ${map}"$'\n'
         result+="entry${entry}.bucket ${BASH_REMATCH[1]}"$'\n'
         result+="entry${entry}.count ${BASH_REMATCH[2]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 2 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

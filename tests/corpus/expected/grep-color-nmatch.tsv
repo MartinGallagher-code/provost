@@ -1,4 +1,4 @@
-n	file	line	content	total_entries
-1	src/main.py	12	def parse_config(path):	3
-2	src/main.py	48	return parse_json(data)	3
-3	src/utils.py	7	# helper for parseing input	3
+n	file	line	content
+1	src/main.py	12	def parse_config(path):
+2	src/main.py	48	return parse_json(data)
+3	src/utils.py	7	# helper for parseing input

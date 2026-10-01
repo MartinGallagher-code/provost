@@ -29,14 +29,15 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     [[ "$text" == *"HAProxy version"* ]] || return 1
     [[ "$text" == *"="* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" n=0 line key val
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == *"="* ]] || continue
         key="$(_hv_key "${line%%=*}")"
         [[ -n "$key" ]] || continue
@@ -45,7 +46,7 @@ strategy_extract () {
         val="${val%"${val##*[![:space:]]}"}"
         n=$((n + 1))
         result+="entry1.${key} $(_hv_san "$val")"$'\n'
-    done <<< "$text"
+    done
     [[ $n -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"
 }

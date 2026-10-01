@@ -1,6 +1,6 @@
-n	IP_address	HW_type	Flags	HW_address	Mask	Device	total_entries
-1	192.168.1.1	0x1	0x2	00:1a:2b:3c:4d:5e	*	eth0	5
-2	192.168.1.20	0x1	0x2	a4:5e:60:c1:d2:e3	*	eth0	5
-3	192.168.1.35	0x1	0x0	00:00:00:00:00:00	*	eth0	5
-4	10.0.0.138	0x1	0x2	f0:9f:c2:11:22:33	*	wlan0	5
-5	192.168.1.254	0x1	0x2	b8:27:eb:aa:bb:cc	*	eth0	5
+n	IP_address	HW_type	Flags	HW_address	Mask	Device
+1	192.168.1.1	0x1	0x2	00:1a:2b:3c:4d:5e	*	eth0
+2	192.168.1.20	0x1	0x2	a4:5e:60:c1:d2:e3	*	eth0
+3	192.168.1.35	0x1	0x0	00:00:00:00:00:00	*	eth0
+4	10.0.0.138	0x1	0x2	f0:9f:c2:11:22:33	*	wlan0
+5	192.168.1.254	0x1	0x2	b8:27:eb:aa:bb:cc	*	eth0

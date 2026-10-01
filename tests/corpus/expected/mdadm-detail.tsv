@@ -1,5 +1,5 @@
 n	Version	Creation_Time	Raid_Level	Array_Size	Used_Dev_Size	Raid_Devices	Total_Devices	Persistence	Update_Time	State	Active_Devices	Working_Devices	Failed_Devices	Spare_Devices	Layout	Chunk_Size	Name	UUID	Events
-1	1.2	Sat_Mar_14_11:22:07_2026	raid5	5860147200_(5.46_TiB_6.00_TB)	1953382400_(1.82_TiB_2.00_TB)	4	4	Superblock_is_persistent											
-2									Mon_Jul__6_08:41:19_2026	clean	4	4	0	0					
+1	1.2	Sat Mar 14 11:22:07 2026	raid5	5860147200 (5.46 TiB 6.00 TB)	1953382400 (1.82 TiB 2.00 TB)	4	4	Superblock is persistent											
+2									Mon Jul  6 08:41:19 2026	clean	4	4	0	0					
 3															left-symmetric	512K			
-4																	storage:0__(local_to_host_storage)	2f3a4b5c:6d7e8f90:a1b2c3d4:e5f60718	14827
+4																	storage:0  (local to host storage)	2f3a4b5c:6d7e8f90:a1b2c3d4:e5f60718	14827

@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	total_entries
-1	200	listpeers	<ztaddr>	<path>	<latency>	<version>	<role>	5
-2	200	listpeers	8f3c2d1a90	203.0.113.5/9993	14	1.14.0	LEAF	5
-3	200	listpeers	7a1b9e4c22	198.51.100.8/9993	28	1.12.2	LEAF	5
-4	200	listpeers	62e0af7731	-	-1	-	PLANET	5
-5	200	listpeers	91d4c6b8a0	192.0.2.30/9993	9	1.14.0	MOON	5
+n	A	B	C	D	E	F	G
+1	200	listpeers	<ztaddr>	<path>	<latency>	<version>	<role>
+2	200	listpeers	8f3c2d1a90	203.0.113.5/9993	14	1.14.0	LEAF
+3	200	listpeers	7a1b9e4c22	198.51.100.8/9993	28	1.12.2	LEAF
+4	200	listpeers	62e0af7731	-	-1	-	PLANET
+5	200	listpeers	91d4c6b8a0	192.0.2.30/9993	9	1.14.0	MOON

@@ -1,2 +1,2 @@
 Reference_ID	Stratum	Ref_time_(UTC)	System_time	Last_offset	RMS_offset	Frequency	Residual_freq	Skew	Root_delay	Root_dispersion	Update_interval	Leap_status
-C0248F01 (ntp1.example.com)	3	Mon Jul_07_10_00_00_2026	0.000012345 seconds slow of NTP time	+0.000004567 seconds	0.000008901 seconds	12.345 ppm slow	+0.001 ppm	0.234 ppm	0.012345678 seconds	0.000456789 seconds	64.2 seconds	Normal
+C0248F01 (ntp1.example.com)	3	Mon Jul 07 10:00:00 2026	0.000012345 seconds slow of NTP time	+0.000004567 seconds	0.000008901 seconds	12.345 ppm slow	+0.001 ppm	0.234 ppm	0.012345678 seconds	0.000456789 seconds	64.2 seconds	Normal

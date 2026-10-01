@@ -1,5 +1,5 @@
-n	NODE	ROLE	CONDITION	AGE	total_entries
-1	ctrl-01 👑	master	Ready	180d	4
-2	node-a1 🖥️	worker	Ready	42d	4
-3	node-b2 🖥️	worker	DiskPressure	9d	4
-4	node-c3 🖥️	worker	MemoryPressure	1h	4
+n	NODE	ROLE	CONDITION	AGE
+1	ctrl-01 👑	master	Ready	180d
+2	node-a1 🖥️	worker	Ready	42d
+3	node-b2 🖥️	worker	DiskPressure	9d
+4	node-c3 🖥️	worker	MemoryPressure	1h

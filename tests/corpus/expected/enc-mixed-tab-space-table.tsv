@@ -1,5 +1,5 @@
-n	service	__port____state	total_entries
-1	nginx  	80	4
-2	sshd     	22    running	4
-3	postgres	 5432	4
-4	redis   	 6379    running	4
+n	service	__port____state
+1	nginx  	80
+2	sshd     	22    running
+3	postgres	 5432
+4	redis   	 6379    running

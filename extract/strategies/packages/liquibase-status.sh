@@ -22,19 +22,21 @@ strategy_detect () {
     # IPv6 socket rows (ss/netstat `:::80  :::*`).
     [[ "$text" == *"not been applied"* || "$text" == *"changeset"* || "$text" == *"changeSet"* ]] || return 1
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" != *"["* && "$line" =~ ^[[:space:]]*[^[:space:]:/]*/[^[:space:]]*::[^[:space:]:]+::[^[:space:]:]+ ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"::"*"::"* ]] || continue
         local body="$line"
         while [[ "$body" == " "* ]]; do body="${body# }"; done
@@ -46,7 +48,7 @@ strategy_extract () {
         result+="entry${entry}.path ${path}"$'\n'
         result+="entry${entry}.id ${id}"$'\n'
         result+="entry${entry}.author ${author}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

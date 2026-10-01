@@ -1,4 +1,4 @@
-n	DEVICE	TYPE	STATE	CONNECTION	total_entries
-1	eth0	ethernet	connected	Wired connection 1	3
-2	wlan0	wifi	connected	homewifi	3
-3	tun0	tun	connected (externally)	--	3
+n	DEVICE	TYPE	STATE	CONNECTION
+1	eth0	ethernet	connected	Wired connection 1
+2	wlan0	wifi	connected	homewifi
+3	tun0	tun	connected (externally)	--

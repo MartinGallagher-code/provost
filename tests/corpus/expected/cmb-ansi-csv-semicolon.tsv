@@ -1,5 +1,5 @@
-n	sku	name	qty	price	total_entries
-1	A-100	Widget	1200	4.50	4
-2	B-220	Gadget	88	19.99	4
-3	C-330	Sprocket	0	2.10	4
-4	D-440	Cog	45	7.75	4
+n	sku	name	qty	price
+1	A-100	Widget	1200	4.50
+2	B-220	Gadget	88	19.99
+3	C-330	Sprocket	0	2.10
+4	D-440	Cog	45	7.75

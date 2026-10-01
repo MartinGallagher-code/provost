@@ -1,0 +1,5 @@
+                 $8,821.00  assets:bank:checking
+                 $1,204.00  expenses:food
+                -$10,025.00  income:salary
+--------------------
+                        0

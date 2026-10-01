@@ -1,13 +1,13 @@
-n	A	B	C	D	E	total_entries
-1	Samples:	12K	of	event	'cycles'	12
-2	18.42%	postgres	postgres	[.]	heap_getnext	12
-3	11.09%	postgres	libc-2.31.so	[.]	__memmove_avx	12
-4	7.55%	postgres	postgres	[.]	ExecScan	12
-5	#	Samples:	4K	of	event_'instructions'	12
-6	#	Event	count	(approx.):	24019887711	12
-7	#					12
-8	#	Overhead	Command	Shared	Object_Symbol	12
-9	#	........	.......	................	..................	12
-10	#					12
-11	22.10%	postgres	postgres	[.]	slot_deform_tuple	12
-12	9.87%	postgres	[kernel.kallsyms]	[k]	copy_user_generic	12
+n	A	B	C	D	E
+1	Samples:	12K	of	event	'cycles'
+2	18.42%	postgres	postgres	[.]	heap_getnext
+3	11.09%	postgres	libc-2.31.so	[.]	__memmove_avx
+4	7.55%	postgres	postgres	[.]	ExecScan
+5	#	Samples:	4K	of	event 'instructions'
+6	#	Event	count	(approx.):	24019887711
+7	#				
+8	#	Overhead	Command	Shared	Object Symbol
+9	#	........	.......	................	..................
+10	#				
+11	22.10%	postgres	postgres	[.]	slot_deform_tuple
+12	9.87%	postgres	[kernel.kallsyms]	[k]	copy_user_generic

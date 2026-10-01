@@ -1,4 +1,4 @@
-n	NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	total_entries
-1	ingress	kube-system	3	2026-07-01 10:22:11 UTC	deployed	ingress-nginx-4.9.1	3
-2	prometheus	monitoring	7	2026-06-28 08:14:55 UTC	deployed	kube-prom-56.2.0	3
-3	grafana	monitoring	2	2026-06-30 14:05:03 UTC	failed	grafana-7.3.11	3
+n	NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART
+1	ingress	kube-system	3	2026-07-01 10:22:11 UTC	deployed	ingress-nginx-4.9.1
+2	prometheus	monitoring	7	2026-06-28 08:14:55 UTC	deployed	kube-prom-56.2.0
+3	grafana	monitoring	2	2026-06-30 14:05:03 UTC	failed	grafana-7.3.11

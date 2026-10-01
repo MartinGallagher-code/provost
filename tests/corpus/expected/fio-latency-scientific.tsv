@@ -1,4 +1,4 @@
-n	percentile	read_lat_ns	write_lat_ns	total_entries
-1	50.00	1.2345e+04	2.3456e+04	3
-2	99.00	9.8765e+05	1.2340e+06	3
-3	99.99	4.5678e+07	8.9012e+07	3
+n	percentile	read_lat_ns	write_lat_ns
+1	50.00	1.2345e+04	2.3456e+04
+2	99.00	9.8765e+05	1.2340e+06
+3	99.99	4.5678e+07	8.9012e+07

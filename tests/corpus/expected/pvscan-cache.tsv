@@ -1,4 +1,4 @@
-n	pv	vg	format	size	total_entries
-1	/dev/sda2	vg0	lvm2	<931.51 GiB / 128.00 GiB free	3
-2	/dev/sdb1	vg0	lvm2	<931.51 GiB / 0    free	3
-3	/dev/sdc1	vg0	lvm2	<931.51 GiB / 1.87 TiB free	3
+n	pv	vg	format	size
+1	/dev/sda2	vg0	lvm2	<931.51 GiB / 128.00 GiB free
+2	/dev/sdb1	vg0	lvm2	<931.51 GiB / 0    free
+3	/dev/sdc1	vg0	lvm2	<931.51 GiB / 1.87 TiB free

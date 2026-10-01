@@ -31,23 +31,25 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_plc_re ]] || return 1
         [[ "${BASH_REMATCH[1]}" == *[./]* ]] || return 1
         [[ "${BASH_REMATCH[3]}" =~ $_plc_col ]] && return 1
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=75
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_plc_re ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.file ${BASH_REMATCH[1]}"$'\n'
@@ -55,7 +57,7 @@ strategy_extract () {
         local c="${BASH_REMATCH[3]}"
         c="${c#"${c%%[![:space:]]*}"}"
         [[ -n "$c" ]] && result+="entry${entry}.content ${c}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 1 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

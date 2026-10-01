@@ -2,15 +2,15 @@
 
 `provost` turns command output into data: pipe any command's output in, and it
 captures the raw text as a git commit, auto-detects the format against a
-library of 200+ extract strategies, and files the result as a tidy,
+library of 250+ extract strategies, and files the result as a tidy,
 one-row-per-record dataset you can list, show, and analyse.
 
 ```console
-$ df -h | provost
+$ provost run df -h
 $ provost ls
 DATASET            ROWS
-aligned-columns      12
-$ provost show aligned-columns
+df                    7
+$ provost show df
 ```
 
 Every capture is a commit; every dataset row carries a globally-unique index
@@ -45,7 +45,8 @@ Captures go to a **global git store** (`$PROVOST_HOME`, default `~/.provost`)
 so you can capture from any directory. `provost control <dir>` makes a
 directory its own instance: captures run inside it route there, and each
 commit snapshots the directory's contents as context. A mkdir-based lock
-serialises concurrent writers, so the store may be shared.
+serialises concurrent writers, so the store may be shared (see
+[Usage](usage.md) for what a shared store must not contain).
 
 ## License
 

@@ -22,11 +22,14 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has=0
-    while IFS= read -r line; do
+    # PREFILTER (exact): a node line holds `@` and a `20YY-MM-DD<space>` date.
+    [[ "$text" == *@* && "$text" == *20[0-9][0-9]-[0-9][0-9]-[0-9][0-9][[:space:]]* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _jjlog_is_node "$line" && has=1
-    done <<< "$text"
+    done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -36,9 +39,10 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local -a a
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _jjlog_is_node "$line" || continue
-        read -ra a <<< "$line"
+        { _fr_tok "$line"; a=("${_FR_TOK[@]}"); }
         # a[0]=graph glyph, a[1]=change id, a[2]=author, a[3]=date, last=commit id
         local change="${a[1]}" author="${a[2]}" datev="${a[3]}"
         local commit="${a[$((${#a[@]}-1))]}"
@@ -47,7 +51,7 @@ strategy_extract () {
         result+="entry${entry}.author ${author}"$'\n'
         result+="entry${entry}.date ${datev}"$'\n'
         result+="entry${entry}.commit ${commit}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

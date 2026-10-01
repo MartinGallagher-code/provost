@@ -1,4 +1,4 @@
-n	container	entrypoint	total_entries
-1	web	["/bin/sh","-c","nginx -g 'daemon off;'"]	3
-2	worker	["python","app.py","--tags","a,b,c"]	3
-3	cron	["/usr/sbin/crond","-f"]	3
+n	container	entrypoint
+1	web	["/bin/sh","-c","nginx -g 'daemon off;'"]
+2	worker	["python","app.py","--tags","a,b,c"]
+3	cron	["/usr/sbin/crond","-f"]

@@ -1,6 +1,6 @@
-n	Package	Version	Latest	Type	total_entries
-1	pip	23.3.1	24.3.1	wheel	5
-2	requests	2.28.1	2.32.3	wheel	5
-3	numpy	1.24.3	2.2.1	wheel	5
-4	urllib3	1.26.16	2.3.0	wheel	5
-5	setuptools	68.0.0	75.6.0	wheel	5
+n	Package	Version	Latest	Type
+1	pip	23.3.1	24.3.1	wheel
+2	requests	2.28.1	2.32.3	wheel
+3	numpy	1.24.3	2.2.1	wheel
+4	urllib3	1.26.16	2.3.0	wheel
+5	setuptools	68.0.0	75.6.0	wheel

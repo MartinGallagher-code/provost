@@ -1,17 +1,17 @@
-n	key	value	total_entries
-1	pid	1423	16
-2	uptime	884512	16
-3	time	1720257600	16
-4	version	1.6.21	16
-5	pointer_size	64	16
-6	curr_connections	12	16
-7	total_connections	3841	16
-8	cmd_get	928413	16
-9	cmd_set	412095	16
-10	get_hits	811245	16
-11	get_misses	117168	16
-12	bytes_read	48213904	16
-13	bytes_written	91238471	16
-14	curr_items	15234	16
-15	total_items	412095	16
-16	evictions	0	16
+n	key	value
+1	pid	1423
+2	uptime	884512
+3	time	1720257600
+4	version	1.6.21
+5	pointer_size	64
+6	curr_connections	12
+7	total_connections	3841
+8	cmd_get	928413
+9	cmd_set	412095
+10	get_hits	811245
+11	get_misses	117168
+12	bytes_read	48213904
+13	bytes_written	91238471
+14	curr_items	15234
+15	total_items	412095
+16	evictions	0

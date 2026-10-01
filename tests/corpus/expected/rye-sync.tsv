@@ -1,7 +1,7 @@
-n	Reusing	already	existing	virtualenv	total_entries
-1	Generating	production	lockfile:	/home/dev/proj/requirements.lock	6
-2	Generating	dev	lockfile:	/home/dev/proj/requirements-dev.lock	6
-3	Installing	dependencies			6
-4	Resolved	62	packages	in_128ms	6
-5	Installed	58	packages	in_1.42s	6
-6	Done!				6
+n	Reusing	already	existing	virtualenv
+1	Generating	production	lockfile:	/home/dev/proj/requirements.lock
+2	Generating	dev	lockfile:	/home/dev/proj/requirements-dev.lock
+3	Installing	dependencies		
+4	Resolved	62	packages	in 128ms
+5	Installed	58	packages	in 1.42s
+6	Done!			

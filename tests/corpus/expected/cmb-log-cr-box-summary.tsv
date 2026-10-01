@@ -1,4 +1,4 @@
-n	STAGE	COUNT	BYTES	total_entries
-1	downloaded	44	128 MB	3
-2	cached	210	1.2 GB	3
-3	skipped	12	0 B	3
+n	STAGE	COUNT	BYTES
+1	downloaded	44	128 MB
+2	cached	210	1.2 GB
+3	skipped	12	0 B

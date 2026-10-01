@@ -19,12 +19,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _iwlist_is_cell "$line"; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -32,7 +33,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local -a addrs=() essids=() quals=()
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _iwlist_is_cell "$line"; then
             entry=$((entry + 1))
             addrs[$entry]="${line##*Address: }"
@@ -50,7 +52,7 @@ strategy_extract () {
                     quals[$entry]="$q" ;;
             esac
         fi
-    done <<< "$text"
+    done
     local i
     for ((i = 1; i <= entry; i++)); do
         local addr="${addrs[$i]}" essid="${essids[$i]}" qual="${quals[$i]}"

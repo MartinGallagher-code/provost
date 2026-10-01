@@ -1,9 +1,9 @@
-n	A	total_entries
-1	MAIN.uptime                  604800         1.00 Child process uptime	8
-2	MAIN.sess_conn              1049320        17.35 Sessions accepted	8
-3	MAIN.client_req             8765432       144.99 Good client requests received	8
-4	MAIN.cache_hit              6543210       108.21 Cache hits	8
-5	MAIN.cache_miss             1234567        20.41 Cache misses	8
-6	MAIN.backend_conn            456789         7.55 Backend conn. success	8
-7	MAIN.n_object                 34567          .   N struct object	8
-8	MAIN.threads                    200          .   Total number of threads	8
+n	A
+1	MAIN.uptime                  604800         1.00 Child process uptime
+2	MAIN.sess_conn              1049320        17.35 Sessions accepted
+3	MAIN.client_req             8765432       144.99 Good client requests received
+4	MAIN.cache_hit              6543210       108.21 Cache hits
+5	MAIN.cache_miss             1234567        20.41 Cache misses
+6	MAIN.backend_conn            456789         7.55 Backend conn. success
+7	MAIN.n_object                 34567          .   N struct object
+8	MAIN.threads                    200          .   Total number of threads

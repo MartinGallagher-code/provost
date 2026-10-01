@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # lspci -tv tree: a root bus like "-[0000:00]-" (HEX bus address, no spaces)
     # plus branch glyphs (+- \-). The hex requirement rejects psql `\x` record
@@ -27,12 +27,13 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         n=$((n + 1))
         # Single-column: whole tree line is the value (internal spaces preserved).
         result+="entry${n}.A ${line}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

@@ -1,7 +1,7 @@
-n	Task	|	Runtime	ms	Switches	Avg	delay	Max	total_entries
-1	mysqld:(38)	|	1204.882	ms	18422	avg:	s	881.402	6
-2	java:(142)	|	980.114	ms	9021	avg:	s	882.110	6
-3	postgres:2044	|	412.556	ms	3055	avg:	s	880.994	6
-4	kworker/3:2-events	|	88.019	ms	2201	avg:	s	881.775	6
-5	redis-server:2891	|	40.113	ms	904	avg:	s	882.006	6
-6	containerd:774	|	15.884	ms	412	avg:	s	880.501	6
+n	Task	|	Runtime	ms	Switches	Avg	delay	Max
+1	mysqld:(38)	|	1204.882	ms	18422	avg:	s	881.402
+2	java:(142)	|	980.114	ms	9021	avg:	s	882.110
+3	postgres:2044	|	412.556	ms	3055	avg:	s	880.994
+4	kworker/3:2-events	|	88.019	ms	2201	avg:	s	881.775
+5	redis-server:2891	|	40.113	ms	904	avg:	s	882.006
+6	containerd:774	|	15.884	ms	412	avg:	s	880.501

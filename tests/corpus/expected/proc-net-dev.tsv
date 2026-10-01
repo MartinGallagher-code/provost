@@ -1,6 +1,6 @@
-n	face	|bytes	Receive_packets	Receive_errs	Receive_drop	Receive_fifo	frame	|_compressed	multicast|bytes	Transmit_packets	Transmit_errs	Transmit_drop	Transmit_fifo	colls	carrier	Transmit_compressed	total_entries
-1	lo:	1204103	8923	0	0	0	0	0	0	1204103	8923	0	0	0	0	0_0	5
-2	eth0:	892034123	620345	0	2	0	0	0	1203	120345678	402103	0	0	0	0	0_0	5
-3	wlan0:	30124567	201034	0	0	0	0	0	412	8923456	88203	0	0	0	0	0_0	5
-4	docker0:	402103	3021	0	0	0	0	0	0	810234	4021	0	0	0	0	0_0	5
-5	virbr0:	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0_0	5
+n	face	|bytes	Receive_packets	Receive_errs	Receive_drop	Receive_fifo	frame	|_compressed	multicast|bytes	Transmit_packets	Transmit_errs	Transmit_drop	Transmit_fifo	colls	carrier	Transmit_compressed
+1	lo:	1204103	8923	0	0	0	0	0	0	1204103	8923	0	0	0	0	0 0
+2	eth0:	892034123	620345	0	2	0	0	0	1203	120345678	402103	0	0	0	0	0 0
+3	wlan0:	30124567	201034	0	0	0	0	0	412	8923456	88203	0	0	0	0	0 0
+4	docker0:	402103	3021	0	0	0	0	0	0	810234	4021	0	0	0	0	0 0
+5	virbr0:	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0 0

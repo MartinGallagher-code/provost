@@ -1,5 +1,5 @@
-n	POOL	SIZE	FREE	total_entries
-1	tank	10T	4T	4
-2	backup	20T	9T	4
-3	fast	2T	1T	4
-4	cold	40T	30T	4
+n	POOL	SIZE	FREE
+1	tank	10T	4T
+2	backup	20T	9T
+3	fast	2T	1T
+4	cold	40T	30T

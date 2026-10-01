@@ -10,18 +10,19 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     # First non-empty line is the `docker ps` header: starts with CONTAINER and
     # carries the ps-specific COMMAND column. Requiring COMMAND avoids hijacking
     # `docker stats` (CONTAINER … CPU %/MEM …) and `buildah containers`
     # (CONTAINER … BUILDER/IMAGE ID …) — those have no COMMAND column and are
     # tidied fine by the generic aligned-columns parser.
     local first_line=""
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         first_line="$_line"
         break
-    done <<< "$text"
+    done
     [[ "$first_line" == "CONTAINER"* && "$first_line" == *"COMMAND"* ]]
 }
 
@@ -31,11 +32,12 @@ strategy_extract () {
 
     # Get the header line to find column positions
     local header_line=""
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         header_line="$_line"
         break
-    done <<< "$text"
+    done
 
     # Find column start positions from the header
     # Docker ps uses fixed-width columns aligned by header words
@@ -47,7 +49,8 @@ strategy_extract () {
     # Process each data row
     local row_num=0
     local line_num=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         line_num=$((line_num + 1))
         [[ $line_num -eq 1 ]] && continue  # skip header
         [[ -z "$line" ]] && continue
@@ -81,7 +84,7 @@ strategy_extract () {
             col_name=$(_strat_docker_ps_normalize_col "$col_name")
             result+="${prefix}.${col_name} ${val}"$'\n'
         done
-    done <<< "$text"
+    done
 
     echo "$result"
 }
@@ -121,7 +124,7 @@ _strat_docker_ps_parse_columns () {
 
         if [[ $matched -eq 0 ]]; then
             # Single-word header
-            read -ra _arr <<< "$remaining"
+            { _fr_tok "$remaining"; _arr=("${_FR_TOK[@]}"); }
             local word="${_arr[0]}"
             [[ -z "$word" ]] && break
             col_names+=("$word")

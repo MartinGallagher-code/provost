@@ -1,8 +1,8 @@
-n	A	B	C	total_entries
-1	4a3e20	T	main.main	7
-2	4a4180	T	main.parseFlags	7
-3	4c9a00	D	runtime.buildVersion	7
-4	4ca100	B	main.globalCache	7
-5	4a5c40	T	net/http.(*Server).ListenAndServe	7
-6	4b1220	R	runtime.typelink	7
-7	000000	U	syscall.Syscall	7
+n	A	B	C
+1	4a3e20	T	main.main
+2	4a4180	T	main.parseFlags
+3	4c9a00	D	runtime.buildVersion
+4	4ca100	B	main.globalCache
+5	4a5c40	T	net/http.(*Server).ListenAndServe
+6	4b1220	R	runtime.typelink
+7	000000	U	syscall.Syscall

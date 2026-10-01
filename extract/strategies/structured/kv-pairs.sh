@@ -29,12 +29,19 @@ strategy_detect () {
     _is_json "$text" && return 1
 
     local _records=0 _nonempty=0 _line _tok _pairs _ok
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         # trim
         _line="${_line#"${_line%%[![:space:]]*}"}"
         _line="${_line%"${_line##*[![:space:]]}"}"
         [[ -z "$_line" ]] && continue
         _nonempty=$((_nonempty + 1))
+        # (guard: a record's tokens are all KEY=value — no `=` means no record;
+        # lines carrying glob characters keep the original split, whose
+        # pathname expansion could in principle yield `=` tokens)
+        if [[ "$_line" != *=* && "$_line" != *[*?]* && "$_line" != *\[* ]]; then
+            continue
+        fi
         # split on commas and/or whitespace; every token must be key=value and
         # there must be at least two (a single pair per line is another strategy).
         _pairs=0; _ok=1
@@ -46,7 +53,7 @@ strategy_detect () {
             if [[ "$_tok" =~ $_KVP_TOKEN_RE ]]; then _pairs=$((_pairs + 1)); else _ok=0; break; fi
         done
         [[ "$_ok" -eq 1 && "$_pairs" -ge 2 ]] && _records=$((_records + 1))
-    done <<< "$text"
+    done
 
     # Most non-empty lines must be kv records, and there must be at least one.
     [[ $_records -ge 1 && $_records -ge $((_nonempty - _records)) ]] && return 0
@@ -77,7 +84,6 @@ strategy_extract () {
                 eq = index(toks[i], "=")
                 k = substr(toks[i], 1, eq - 1)
                 v = substr(toks[i], eq + 1)
-                gsub(/ /, "_", v)
                 printf "entry%d.%s %s\n", n, k, v
             }
         }

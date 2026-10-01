@@ -1,14 +1,14 @@
-n	key	value	total_entries
-1	P	/devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda	13
-2	N	sda	13
-3	L	0	13
-4	S	disk/by-id/ata-Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456	13
-5	S	disk/by-path/pci-0000:00:17.0-ata-1	13
-6	E	DEVPATH=/devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda	13
-7	E	DEVNAME=/dev/sda	13
-8	E	DEVTYPE=disk	13
-9	E	MAJOR=8	13
-10	E	MINOR=0	13
-11	E	ID_BUS=ata	13
-12	E	ID_MODEL=Samsung_SSD_860_EVO_500GB	13
-13	E	ID_SERIAL=Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456	13
+n	key	value
+1	P	/devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
+2	N	sda
+3	L	0
+4	S	disk/by-id/ata-Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456
+5	S	disk/by-path/pci-0000:00:17.0-ata-1
+6	E	DEVPATH=/devices/pci0000:00/0000:00:17.0/ata1/host0/target0:0:0/0:0:0:0/block/sda
+7	E	DEVNAME=/dev/sda
+8	E	DEVTYPE=disk
+9	E	MAJOR=8
+10	E	MINOR=0
+11	E	ID_BUS=ata
+12	E	ID_MODEL=Samsung_SSD_860_EVO_500GB
+13	E	ID_SERIAL=Samsung_SSD_860_EVO_500GB_S3Z1NB0K123456

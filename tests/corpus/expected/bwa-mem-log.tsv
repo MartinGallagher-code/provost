@@ -1,9 +1,9 @@
-n	timestamp	message	total_entries
-1	M::bwa_idx_load_from_disk	read 0 ALT contigs	8
-2	M::process	read 80000 sequences (12000000 bp)...	8
-3	M::mem_process_seqs	Processed 80000 reads in 34.221 CPU sec, 8.720 real sec	8
-4	M::process	read 80000 sequences (12000000 bp)...	8
-5	M::mem_process_seqs	Processed 80000 reads in 33.980 CPU sec, 8.610 real sec	8
-6	main	Version: 0.7.17-r1188	8
-7	main	CMD: bwa mem -t 4 ref.fa reads_1.fq reads_2.fq	8
-8	main	Real time: 41.552 sec; CPU: 158.204 sec	8
+n	timestamp	message
+1	M::bwa_idx_load_from_disk	read 0 ALT contigs
+2	M::process	read 80000 sequences (12000000 bp)...
+3	M::mem_process_seqs	Processed 80000 reads in 34.221 CPU sec, 8.720 real sec
+4	M::process	read 80000 sequences (12000000 bp)...
+5	M::mem_process_seqs	Processed 80000 reads in 33.980 CPU sec, 8.610 real sec
+6	main	Version: 0.7.17-r1188
+7	main	CMD: bwa mem -t 4 ref.fa reads_1.fq reads_2.fq
+8	main	Real time: 41.552 sec; CPU: 158.204 sec

@@ -1,4 +1,4 @@
-n	timestamp	message	total_entries
-1	IP-	[  ] app-shells/bash-5.2_p26:0	3
-2	IP-	[  ] dev-lang/python-3.12.4:3.12	3
-3	IP-	[  ] sys-apps/portage-3.0.65:0	3
+n	timestamp	message
+1	IP-	[  ] app-shells/bash-5.2_p26:0
+2	IP-	[  ] dev-lang/python-3.12.4:3.12
+3	IP-	[  ] sys-apps/portage-3.0.65:0

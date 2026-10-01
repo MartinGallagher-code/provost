@@ -1,5 +1,5 @@
-n	depth	parent	name	value	total_entries
-1	1	.	Cargo.toml	412	4
-2	1	.	src -		4
-3	2	src -	main.rs	1204	4
-4	1	.	tests -		4
+n	depth	parent	name	value
+1	1	.	Cargo.toml	412
+2	1	.	src -	
+3	2	src -	main.rs	1204
+4	1	.	tests -	

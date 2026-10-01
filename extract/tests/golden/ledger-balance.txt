@@ -1,0 +1,8 @@
+entry1.amount $8,821.00
+entry1.account assets:bank:checking
+entry2.amount $1,204.00
+entry2.account expenses:food
+entry3.amount -$10,025.00
+entry3.account income:salary
+total 0
+total_entries 3

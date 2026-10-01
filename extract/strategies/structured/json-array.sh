@@ -26,8 +26,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     # Strip a UTF-8 BOM (EF BB BF) if present — common in JSON exported from
     # Windows tools — so it doesn't hide the leading '[' from the check below.
-    local bom; bom=$(printf '\xef\xbb\xbf')
-    text="${text#"$bom"}"
+    local bom; bom=$'\xef\xbb\xbf'
+    # (prefix test first: a non-matching `#"$bom"` scans every prefix — quadratic)
+    if [[ "$text" == "$bom"* ]]; then text="${text#"$bom"}"; fi
     # Structural: first non-space char is '[', the next non-space char is '{'
     # (an array of OBJECTS — not a bracketed log line, not "[PHP Modules]",
     # not a Haskell tuple list), and at least one "key": field exists.
@@ -37,7 +38,7 @@ strategy_detect () {
     t="${t#"${t%%[![:space:]]*}"}"
     [[ "$t" == '{'* ]] || return 1
     [[ "$text" =~ \"[A-Za-z_][A-Za-z0-9_.-]*\"[[:space:]]*: ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=85
     return 0
 }
 
@@ -46,7 +47,13 @@ strategy_extract () {
     # pretty-printed objects (one field per line) and compact one-object-per-
     # line arrays (`[{"a":1,"b":2},{...}]`, the shape rclone/shellcheck/most
     # `--format json` tools emit).
-    printf '%s' "$1" | awk '
+    # PERF: the input is read as ONE record (RS = \001) when it holds no
+    # \001 byte — the line-by-line `buf = buf $0 "\n"` rebuild re-copies the
+    # growing buffer per line (quadratic: 1 MB took seconds, 10 MB minutes).
+    # `buf` is byte-identical either way (the whole text, newline-terminated).
+    local _ja_whole=1 _ja_rs=$'\001'
+    [[ "$1" == *$'\001'* ]] && { _ja_whole=0; _ja_rs=$'\n'; }
+    printf '%s' "$1" | awk -v WHOLE="$_ja_whole" -v RS="$_ja_rs" '
         # Index of the char closing the {...} or [...] opened at "start".
         function findmatch(s, start,   i,n,c,instr,esc,d) {
             n=length(s); d=0; instr=0; esc=0
@@ -62,7 +69,7 @@ strategy_extract () {
         function clean(v) {
             gsub(/^[ \t\r\n]+/,"",v); gsub(/[ \t\r\n,]+$/,"",v)
             if (substr(v,1,1)=="\"") { v=substr(v,2); sub(/"$/,"",v) }
-            gsub(/[ \t\r\n]+/,"_",v)
+            gsub(/[\t\r\n]/," ",v)   # a value keeps its inner spaces
             return v
         }
         # Emit "key": value pairs of the object (obj includes its outer
@@ -139,7 +146,10 @@ strategy_extract () {
                 print "entry" e "." pfx idx " " clean(val)
             }
         }
-        { buf = buf $0 "\n" }
+        {
+            if (WHOLE) { buf = $0; if (substr(buf, length(buf)) != "\n") buf = buf "\n" }
+            else buf = buf $0 "\n"
+        }
         END {
             s=buf; n=length(s); instr=0; esc=0; ad=0; od=0; e=0; i=1
             while (i<=n) {

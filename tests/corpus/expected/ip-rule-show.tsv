@@ -1,5 +1,5 @@
-n	key	value	total_entries
-1	0	from all lookup local	4
-2	100	from 10.8.0.0/24 lookup vpn	4
-3	32766	from all lookup main	4
-4	32767	from all lookup default	4
+n	key	value
+1	0	from all lookup local
+2	100	from 10.8.0.0/24 lookup vpn
+3	32766	from all lookup main
+4	32767	from all lookup default

@@ -1,5 +1,5 @@
-n	A	B	total_entries
-1	4102	/home/deploy/project	4
-2	882	/home/deploy/notes	4
-3	441	/var/log	4
-4	44	/etc/nginx	4
+n	A	B
+1	4102	/home/deploy/project
+2	882	/home/deploy/notes
+3	441	/var/log
+4	44	/etc/nginx

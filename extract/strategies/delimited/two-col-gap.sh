@@ -44,8 +44,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _STRATEGY_CONFIDENCE_REASON="2-col gap table (single-token key, free-text value)"
     local _l lines=0 spacey=0 colonish=0 vcounts=()
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         [[ "$_l" == [' 	']* ]] && return 1          # indented => not this shape
         [[ "$_l" == *'	'* ]] && return 1            # tabs => tsv territory
         _tcg_split "$_l" || return 1
@@ -65,10 +66,11 @@ strategy_detect () {
         # are really separate columns; welding them would LOSE structure. Free
         # text varies word to word; grids don't.
         if [[ $lines -ge 2 ]]; then
-            local _vt; _vt=(); read -ra _vt <<< "$_TCG_VAL"
+            local _vt; _vt=(); { _fr_tok "$_TCG_VAL"; _vt=("${_FR_TOK[@]}"); }
             vcounts+=("${#_vt[@]}")
         fi
-    done <<< "$text"
+    done
+    _l=""
     [[ $lines -ge 3 ]] || return 1
     # Modal-share grid test: if one >=2-token count covers >=2/3 of the data
     # rows, this is a grid with at most a ragged straggler (git-worktree-list's
@@ -77,11 +79,8 @@ strategy_detect () {
     # a modal count of 1 (mostly single-token values with a few multi-word
     # stragglers, getent-services style) is not a grid signal at all.
     if [[ ${#vcounts[@]} -ge 3 ]]; then
-        local _a _b _k modal=0 best=0
-        for _a in "${vcounts[@]}"; do
-            _k=0; for _b in "${vcounts[@]}"; do [[ "$_b" -eq "$_a" ]] && _k=$((_k + 1)); done
-            [[ $_k -gt $best ]] && { best=$_k; modal=$_a; }
-        done
+        local modal=0 best=0
+        _fr_modal "${vcounts[@]}"; modal=$_FR_MODE; best=$_FR_MODE_N
         [[ $modal -ge 2 && $((best * 100 / ${#vcounts[@]})) -ge 66 ]] && return 1
         # A multi-token ROW-1 value whose word count EQUALS the modal data count
         # is a single-space-aligned grid whose header names line up over the
@@ -90,11 +89,11 @@ strategy_detect () {
         if [[ $modal -ge 2 ]]; then
             local _h1; _h1=""
             while IFS= read -r _l; do
-                [[ -z "${_l//[[:space:]]/}" ]] && continue
+                [[ "${_l}" != *[![:space:]]* ]] && continue
                 _h1="$_l"; break
             done <<< "$text"
             if _tcg_split "$_h1"; then
-                local _ht; _ht=(); read -ra _ht <<< "$_TCG_VAL"
+                local _ht; _ht=(); { _fr_tok "$_TCG_VAL"; _ht=("${_FR_TOK[@]}"); }
                 [[ ${#_ht[@]} -eq $modal ]] && return 1
             fi
         fi
@@ -104,7 +103,7 @@ strategy_detect () {
     [[ $spacey -ge 1 ]] || return 1
     # Majority colon-suffixed keys is a `Label: value` block — colons' shape.
     [[ $((colonish * 2)) -ge $lines ]] && return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -115,8 +114,9 @@ strategy_extract () {
     # DATA (getent hosts/services style headerless lists); otherwise
     # synthesize A/B.
     local k1="" v1="" have=0 hk="A" hv="B" first=1
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         _tcg_split "$_l" || continue
         if [[ $first -eq 1 ]]; then
             first=0
@@ -128,7 +128,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.${hk} ${_TCG_KEY}"$'\n'
         result+="entry${entry}.${hv} ${_TCG_VAL}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

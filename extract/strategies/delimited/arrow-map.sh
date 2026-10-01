@@ -27,24 +27,26 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line arrows=0 nb=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         if [[ "$line" =~ $_am_arrow_re || "$line" =~ $_am_noaddr_re ]]; then
             arrows=$((arrows + 1))
         elif [[ "$line" =~ $_am_plain_re ]]; then :
         else return 1; fi
-    done <<< "$text"
+    done
     [[ $nb -ge 2 && $arrows -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local n="" t="" a=""
         if [[ "$line" =~ $_am_arrow_re ]]; then
             n="${BASH_REMATCH[1]}"; t="${BASH_REMATCH[2]}"; a="${BASH_REMATCH[3]}"
@@ -57,7 +59,7 @@ strategy_extract () {
         result+="entry${entry}.name ${n}"$'\n'
         [[ -n "$t" ]] && result+="entry${entry}.target ${t}"$'\n'
         [[ -n "$a" ]] && result+="entry${entry}.address ${a}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

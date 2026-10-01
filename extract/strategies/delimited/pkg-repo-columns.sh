@@ -28,8 +28,9 @@
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Collapse leading space, then peel three tokens.
         local s="${line#"${line%%[![:space:]]*}"}"
         local repo="${s%%[[:space:]]*}"; local r1="${s#"$repo"}"
@@ -46,7 +47,7 @@ strategy_extract () {
         result+="entry${entry}.name ${name}"$'\n'
         result+="entry${entry}.version ${ver}"$'\n'
         [[ -n "$rest" ]] && result+="entry${entry}.status ${rest}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 2 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"
@@ -63,11 +64,12 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line n=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ $_prc_line_re ]] || return 1
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=80
     return 0

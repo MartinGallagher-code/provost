@@ -1,7 +1,7 @@
-n	A	total_entries
-1	certifi            2024.2.2   Python package for providing Mozilla's CA Bundle.	6
-2	charset-normalizer 3.3.2      The Real First Universal Charset Detector.	6
-3	click              8.1.7      Composable command line interface toolkit	6
-4	idna               3.6        Internationalized Domain Names in Applications	6
-5	requests           2.31.0     Python HTTP for Humans.	6
-6	urllib3            2.2.1      HTTP library with thread-safe connection pooling.	6
+n	A
+1	certifi            2024.2.2   Python package for providing Mozilla's CA Bundle.
+2	charset-normalizer 3.3.2      The Real First Universal Charset Detector.
+3	click              8.1.7      Composable command line interface toolkit
+4	idna               3.6        Internationalized Domain Names in Applications
+5	requests           2.31.0     Python HTTP for Humans.
+6	urllib3            2.2.1      HTTP library with thread-safe connection pooling.

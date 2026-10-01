@@ -32,8 +32,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line roots=0 members=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_dt_root_re ]]; then
             roots=$((roots + 1))
         elif [[ "$line" =~ $_dt_member_re ]]; then
@@ -41,9 +42,9 @@ strategy_detect () {
         else
             return 1
         fi
-    done <<< "$text"
+    done
     [[ $roots -ge 1 && $members -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -59,8 +60,9 @@ strategy_extract () {
     local -a names=() indents=()
     local depth=0
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_dt_root_re ]]; then
             names=("${BASH_REMATCH[1]}"); indents=(-1); depth=0
             entry=$((entry + 1))
@@ -95,7 +97,7 @@ strategy_extract () {
         done
         result+="entry${entry}.required ${req}"$'\n'
         result+="entry${entry}.installed ${inst}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

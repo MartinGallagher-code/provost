@@ -1,0 +1,17 @@
+entry1.host web01
+entry1.ip 10.0.0.11
+entry1.role frontend
+entry1.owner alice
+entry2.host db01
+entry2.ip 10.0.0.21
+entry2.role 
+entry2.owner bob
+entry3.host cache01
+entry3.ip 
+entry3.role cache
+entry3.owner 
+entry4.host batch01
+entry4.ip 10.0.0.41
+entry4.role worker
+entry4.owner carol
+total_entries 4

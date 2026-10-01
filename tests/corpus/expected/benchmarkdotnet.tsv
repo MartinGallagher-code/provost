@@ -1,4 +1,4 @@
-n	Method	Mean	Error	StdDev	Median	Gen0	Allocated	total_entries
-1	ParseSmall	14.42 us	0.288 us	0.269 us	14.10 us	0.1220	512 B	3
-2	ParseLarge	448.21 us	8.821 us	8.244 us	441.04 us	2.4410	10248 B	3
-3	Encode	88.20 us	1.764 us	1.650 us	87.10 us	0.4880	2048 B	3
+n	Method	Mean	Error	StdDev	Median	Gen0	Allocated
+1	ParseSmall	14.42 us	0.288 us	0.269 us	14.10 us	0.1220	512 B
+2	ParseLarge	448.21 us	8.821 us	8.244 us	441.04 us	2.4410	10248 B
+3	Encode	88.20 us	1.764 us	1.650 us	87.10 us	0.4880	2048 B

@@ -1,4 +1,4 @@
-n	CONTAINER	CPU_%	MEM_USAGE	NET_I/O	total_entries
-1	web-front	2.15%	128MiB / 512MiB	1.2MB / 3.4MB	3
-2	cache-01	0.40%	64MiB / 256MiB	200kB / 512kB	3
-3	db-primary	88.10%	980MiB / 1GiB	12MB / 40MB	3
+n	CONTAINER	CPU_%	MEM_USAGE	NET_I/O
+1	web-front	2.15%	128MiB / 512MiB	1.2MB / 3.4MB
+2	cache-01	0.40%	64MiB / 256MiB	200kB / 512kB
+3	db-primary	88.10%	980MiB / 1GiB	12MB / 40MB

@@ -1,3 +1,3 @@
 n	Timestamp	Driver_Version	CUDA_Version	Attached_GPUs	GPU_00000000	Product_Name	Product_Brand	Display_Mode	Display_Active	Persistence_Mode	Accounting_Mode	Serial_Number	GPU_UUID	Minor_Number	VBIOS_Version	Total	Used	Free	GPU_Current_Temp	GPU_Shutdown_Temp	Power_Draw	Power_Limit	Graphics	Memory
-2	Mon_Jul__7_09:14:22_2026	535.183.01	12.2																					
-3				1	01:00.0	NVIDIA_GeForce_RTX_3080	GeForce	Enabled	Enabled	Disabled	Disabled	N/A	GPU-1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809	0	94.02.42.00.9B	10240_MiB	1024_MiB	9216_MiB	45_C	98_C	32.11_W	320.00_W	210_MHz	405_MHz
+2	Mon Jul  7 09:14:22 2026	535.183.01	12.2																					
+3				1	01:00.0	NVIDIA GeForce RTX 3080	GeForce	Enabled	Enabled	Disabled	Disabled	N/A	GPU-1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809	0	94.02.42.00.9B	10240 MiB	1024 MiB	9216 MiB	45 C	98 C	32.11 W	320.00 W	210 MHz	405 MHz

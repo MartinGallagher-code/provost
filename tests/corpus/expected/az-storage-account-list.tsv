@@ -1,6 +1,6 @@
-n	Name	ResourceGroup	Location	SkuName	Kind	AccessTier	total_entries
-1	prodstorage001	prod-rg	eastus	Standard_LRS	StorageV2	Hot	5
-2	prodlogs002	prod-rg	eastus	Standard_GRS	StorageV2	Cool	5
-3	stagingstore001	staging-rg	eastus	Standard_LRS	StorageV2	Hot	5
-4	archivestore001	backup-rg	westus2	Standard_LRS	StorageV2	Archive	5
-5	diagstore001	shared-rg	centralus	Standard_LRS	StorageV2	Hot	5
+n	Name	ResourceGroup	Location	SkuName	Kind	AccessTier
+1	prodstorage001	prod-rg	eastus	Standard_LRS	StorageV2	Hot
+2	prodlogs002	prod-rg	eastus	Standard_GRS	StorageV2	Cool
+3	stagingstore001	staging-rg	eastus	Standard_LRS	StorageV2	Hot
+4	archivestore001	backup-rg	westus2	Standard_LRS	StorageV2	Archive
+5	diagstore001	shared-rg	centralus	Standard_LRS	StorageV2	Hot

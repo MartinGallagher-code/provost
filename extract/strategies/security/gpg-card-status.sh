@@ -42,14 +42,15 @@ strategy_detect () {
     # Distinctive: the dotted, colon-aligned card fields. Require several
     # dotted labels plus the OpenPGP-card-specific "Application ID" line.
     local line dotted=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ ^[A-Za-z].*\.\.+[[:space:]]*: ]] && dotted=$((dotted + 1))
-    done <<< "$text"
+    done
 
     [[ $dotted -ge 4 ]] || return 1
     [[ "$text" == *"Application ID"* ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -57,7 +58,8 @@ strategy_extract () {
     local text="$1"
     local result="" line key val
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *:* ]] || continue
         key="${line%%:*}"
         val="${line#*:}"
@@ -67,7 +69,7 @@ strategy_extract () {
         [[ -z "$key" ]] && continue
         val="$(_gpgcs_val "$val")"
         result+="entry1.${key} ${val}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries 1"$'\n'
     printf '%s' "$result"

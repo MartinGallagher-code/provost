@@ -43,7 +43,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == "=== Optimization: "* || "$text" == *$'\n=== Optimization: '* ]] || return 1
     [[ "$text" == *"RSM Model"* || "$text" == *"Factor importance:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe optimize block (=== Optimization: ... ===) with RSM/importance data"
     return 0
 }
@@ -54,7 +54,8 @@ strategy_extract () {
     local response="" model="" in_coef=0 in_imp=0
     local -a responses=()
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ $_doeo_re_hdr ]]; then
             response="${BASH_REMATCH[1]}"
             responses+=("$response")
@@ -84,7 +85,7 @@ strategy_extract () {
                 in_coef=0; in_imp=0; continue ;;
         esac
         if [[ $in_coef -eq 1 ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && { in_coef=0; continue; }
+            [[ "${line}" != *[![:space:]]* ]] && { in_coef=0; continue; }
             if [[ "$line" =~ $_doeo_re_coef ]]; then
                 n=$((n + 1))
                 local p="entry${n}."
@@ -99,7 +100,7 @@ strategy_extract () {
             continue
         fi
         if [[ $in_imp -eq 1 ]]; then
-            [[ -z "${line//[[:space:]]/}" ]] && { in_imp=0; continue; }
+            [[ "${line}" != *[![:space:]]* ]] && { in_imp=0; continue; }
             if [[ "$line" =~ $_doeo_re_imp ]]; then
                 n=$((n + 1))
                 local q="entry${n}."
@@ -114,7 +115,7 @@ strategy_extract () {
             fi
             continue
         fi
-    done <<< "$text"
+    done
 
     if [[ ${#responses[@]} -gt 0 ]]; then
         local joined="" r

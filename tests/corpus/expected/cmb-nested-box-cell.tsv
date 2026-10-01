@@ -1,4 +1,4 @@
-n	SERVICE	ENDPOINTS	STATE	total_entries
-1	gateway	┌────────┬─────────┐	up	3
-2	cache	6379/tcp	up	3
-3	worker	none	degraded	3
+n	SERVICE	ENDPOINTS	STATE
+1	gateway	┌────────┬─────────┐	up
+2	cache	6379/tcp	up
+3	worker	none	degraded

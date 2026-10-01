@@ -1,7 +1,7 @@
-n	UID	PID	PPID	C	STIME	TTY	TIME	CMD	total_entries
-1	postgres	4821	4790	0	09:12	?	00:00:04	postgres	6
-2	postgres	4903	4821	0	09:12	?	00:00:00	postgres:_checkpointer	6
-3	postgres	4904	4821	0	09:12	?	00:00:01	postgres:_background_writer	6
-4	postgres	4906	4821	0	09:12	?	00:00:03	postgres:_walwriter	6
-5	postgres	4907	4821	0	09:12	?	00:00:02	postgres:_autovacuum_launcher	6
-6	postgres	5102	4821	0	09:41	?	00:00:00	postgres:_acme_acme_172.19.0.4_idle	6
+n	UID	PID	PPID	C	STIME	TTY	TIME	CMD
+1	postgres	4821	4790	0	09:12	?	00:00:04	postgres
+2	postgres	4903	4821	0	09:12	?	00:00:00	postgres: checkpointer
+3	postgres	4904	4821	0	09:12	?	00:00:01	postgres: background writer
+4	postgres	4906	4821	0	09:12	?	00:00:03	postgres: walwriter
+5	postgres	4907	4821	0	09:12	?	00:00:02	postgres: autovacuum launcher
+6	postgres	5102	4821	0	09:41	?	00:00:00	postgres: acme acme 172.19.0.4 idle

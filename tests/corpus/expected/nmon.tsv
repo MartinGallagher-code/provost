@@ -1,9 +1,9 @@
-n	AAA	progname	nmon	total_entries
-1	AAA	version	16m	8
-2	AAA	host	web-prod-03	8
-3	AAA	date	06-JUL-2026	8
-4	AAA	time	14:32:11	8
-5	CPU_ALL	CPU Total web-prod-03	User%	8
-6	CPU_ALL	T0001	12.4	8
-7	MEM	Memory web-prod-03	Total MB	8
-8	MEM	T0001	16384.0	8
+n	AAA	progname	nmon
+1	AAA	version	16m
+2	AAA	host	web-prod-03
+3	AAA	date	06-JUL-2026
+4	AAA	time	14:32:11
+5	CPU_ALL	CPU Total web-prod-03	User%
+6	CPU_ALL	T0001	12.4
+7	MEM	Memory web-prod-03	Total MB
+8	MEM	T0001	16384.0

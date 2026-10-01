@@ -1,9 +1,0 @@
-entry1.tableid daily_events
-entry1.type TABLE
-entry2.tableid user_profiles
-entry2.type TABLE
-entry3.tableid session_facts
-entry3.type VIEW
-entry4.tableid revenue_agg
-entry4.type TABLE
-total_entries 4

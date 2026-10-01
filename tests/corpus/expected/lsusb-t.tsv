@@ -1,9 +1,9 @@
-n	A	total_entries
-1	/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 10000M	8
-2	|__ Port 2: Dev 2, If 0, Class=Mass Storage, Driver=usb-storage, 5000M	8
-3	/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/12p, 480M	8
-4	|__ Port 3: Dev 4, If 0, Class=Human Interface Device, Driver=usbhid, 12M	8
-5	|__ Port 3: Dev 4, If 1, Class=Human Interface Device, Driver=usbhid, 12M	8
-6	|__ Port 5: Dev 3, If 0, Class=Wireless, Driver=btusb, 12M	8
-7	|__ Port 5: Dev 3, If 1, Class=Wireless, Driver=btusb, 12M	8
-8	|__ Port 7: Dev 5, If 0, Class=Video, Driver=uvcvideo, 480M	8
+n	A
+1	/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/4p, 10000M
+2	|__ Port 2: Dev 2, If 0, Class=Mass Storage, Driver=usb-storage, 5000M
+3	/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/12p, 480M
+4	|__ Port 3: Dev 4, If 0, Class=Human Interface Device, Driver=usbhid, 12M
+5	|__ Port 3: Dev 4, If 1, Class=Human Interface Device, Driver=usbhid, 12M
+6	|__ Port 5: Dev 3, If 0, Class=Wireless, Driver=btusb, 12M
+7	|__ Port 5: Dev 3, If 1, Class=Wireless, Driver=btusb, 12M
+8	|__ Port 7: Dev 5, If 0, Class=Video, Driver=uvcvideo, 480M

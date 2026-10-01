@@ -1,6 +1,6 @@
-n	key	value	total_entries
-1	C copy backwards	4821.2 MB/s	5
-2	C copy	5210.4 MB/s	5
-3	C fill	12048.8 MB/s	5
-4	standard memcpy	8821.0 MB/s	5
-5	standard memset	14210.2 MB/s	5
+n	key	value
+1	C copy backwards	4821.2 MB/s
+2	C copy	5210.4 MB/s
+3	C fill	12048.8 MB/s
+4	standard memcpy	8821.0 MB/s
+5	standard memset	14210.2 MB/s

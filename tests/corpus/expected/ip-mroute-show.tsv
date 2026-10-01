@@ -1,3 +1,3 @@
-n	A	total_entries
-1	(10.0.0.5, 239.1.1.1)          Iif: eth0       Oifs: eth1 eth2	2
-2	(10.0.0.9, 239.1.1.2)          Iif: eth1       Oifs: eth0	2
+n	A
+1	(10.0.0.5, 239.1.1.1)          Iif: eth0       Oifs: eth1 eth2
+2	(10.0.0.9, 239.1.1.2)          Iif: eth1       Oifs: eth0

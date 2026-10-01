@@ -1,4 +1,4 @@
-n	A	B	total_entries
-1	example.com/app	github.com/gin-gonic/gin@v1.10.0	3
-2	example.com/app	github.com/stretchr/testify@v1.9.0	3
-3	github.com/gin-gonic/gin@v1.10.0	github.com/bytedance/sonic@v1.11.6	3
+n	A	B
+1	example.com/app	github.com/gin-gonic/gin@v1.10.0
+2	example.com/app	github.com/stretchr/testify@v1.9.0
+3	github.com/gin-gonic/gin@v1.10.0	github.com/bytedance/sonic@v1.11.6

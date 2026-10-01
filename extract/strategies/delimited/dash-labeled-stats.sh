@@ -32,12 +32,14 @@
 _dls_parse () {
     local l="$1"
     _DLS_NAME=""; _DLS_K=(); _DLS_V=()
+    # (guard: the regex needs ` - `, and >=2 comma parts need a `,`)
+    [[ "$l" == *[[:space:]]-[[:space:]]* && "$l" == *,* ]] || return 1
     [[ "$l" =~ ^([A-Za-z][A-Za-z0-9_]*)[[:space:]]+-[[:space:]]+(.+)$ ]] || return 1
     _DLS_NAME="${BASH_REMATCH[1]}"
     local rest="${BASH_REMATCH[2]}"
     local IFS_SAVE="$IFS" part
     local -a parts=()
-    IFS=',' read -ra parts <<< "$rest"
+    { IFS=',' _fr_tok "$rest"; parts=("${_FR_TOK[@]}"); }
     IFS="$IFS_SAVE"
     [[ ${#parts[@]} -ge 2 ]] || return 1
     for part in "${parts[@]}"; do
@@ -56,20 +58,22 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line records=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _dls_parse "$line" && records=$((records + 1))
-    done <<< "$text"
+    done
     [[ $records -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=76
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _dls_parse "$line" || continue
         entry=$((entry + 1))
         result+="entry${entry}.name ${_DLS_NAME}"$'\n'
@@ -77,7 +81,7 @@ strategy_extract () {
         for i in "${!_DLS_K[@]}"; do
             result+="entry${entry}.${_DLS_K[$i]} ${_DLS_V[$i]}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

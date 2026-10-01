@@ -1,3 +1,3 @@
 n	Name	Version	Release	Summary	License	Requires
-1	zlib-devel	1.2.13	4.fc39	Header_files_for_Zlib_development	zlib	zlib
-2	openssl-devel	3.1.1	2.fc39	Files_for_development_of_OpenSSL_apps	ASL_2.0	openssl-libs
+1	zlib-devel	1.2.13	4.fc39	Header files for Zlib development	zlib	zlib
+2	openssl-devel	3.1.1	2.fc39	Files for development of OpenSSL apps	ASL 2.0	openssl-libs

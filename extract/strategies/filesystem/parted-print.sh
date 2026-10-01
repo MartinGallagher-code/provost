@@ -21,12 +21,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line saw_disk=0 saw_hdr=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == "Disk /dev/"* ]] && saw_disk=1
         _parted_is_header_row "$line" && saw_hdr=1
-    done <<< "$text"
+    done
     if [[ $saw_disk -eq 1 && $saw_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -35,14 +36,15 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line in_table=0 i
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if _parted_is_header_row "$line"; then
             in_table=1
             continue
         fi
         [[ $in_table -eq 1 ]] || continue
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        read -ra _f <<< "$line"
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        { _fr_tok "$line"; _f=("${_FR_TOK[@]}"); }
         # _f[0]=Number _f[1]=Start _f[2]=End _f[3]=Size _f[4]=Filesystem,
         # remaining tokens = Name + Flags.
         [[ "${_f[0]:-}" =~ ^[0-9]+$ ]] || continue
@@ -60,7 +62,7 @@ strategy_extract () {
         result+="entry${entry}.size ${size}"$'\n'
         result+="entry${entry}.fs ${fs}"$'\n'
         result+="entry${entry}.name ${name}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

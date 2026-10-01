@@ -21,7 +21,7 @@ strategy_detect () {
     # would be mis-flagged as a JSON array. The "[info] ... +-" signature below
     # is specific enough on its own.
     if [[ "$text" == *"[info]"* && "$text" == *"+-"* ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -30,8 +30,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line s
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Only dependency lines carry the "+-" marker.
         [[ "$line" != *"+-"* ]] && continue
         s="${line##*+-}"
@@ -40,7 +41,7 @@ strategy_extract () {
         [[ -z "$s" ]] && continue
         entry=$((entry + 1))
         result+="entry${entry}.A ${s}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

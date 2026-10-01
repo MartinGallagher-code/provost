@@ -1,0 +1,5 @@
+host	ip	role	owner
+web01	10.0.0.11	frontend	alice
+db01	10.0.0.21		bob
+cache01		cache	
+batch01	10.0.0.41	worker	carol

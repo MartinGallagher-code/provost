@@ -1,2 +1,2 @@
 Station_40	inactive_time	rx_bytes	rx_packets	tx_bytes	tx_packets	tx_retries	tx_failed	signal	signal_avg	tx_bitrate	rx_bitrate	authorized	authenticated	associated	connected_time
-9f:38:a1:b2:c3 (on_wlan0)		1520 ms		298475632		452817		1048576234		389472		1832		14		-52 dBm		-54 dBm		144.4 MBit/s MCS 15 short GI		120.0 MBit/s MCS 13		yes		yes		yes		48213 seconds
+9f:38:a1:b2:c3 (on wlan0)	1520 ms	298475632	452817	1048576234	389472	1832	14	-52 dBm	-54 dBm	144.4 MBit/s MCS 15 short GI	120.0 MBit/s MCS 13	yes	yes	yes	48213 seconds

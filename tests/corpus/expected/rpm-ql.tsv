@@ -1,11 +1,11 @@
-n	A	total_entries
-1	/etc/skel/.bash_logout	10
-2	/etc/skel/.bash_profile	10
-3	/etc/skel/.bashrc	10
-4	/usr/bin/alias	10
-5	/usr/bin/bash	10
-6	/usr/bin/bashbug	10
-7	/usr/bin/sh	10
-8	/usr/lib/.build-id	10
-9	/usr/share/doc/bash/COPYING	10
-10	/usr/share/man/man1/bash.1.gz	10
+n	A
+1	/etc/skel/.bash_logout
+2	/etc/skel/.bash_profile
+3	/etc/skel/.bashrc
+4	/usr/bin/alias
+5	/usr/bin/bash
+6	/usr/bin/bashbug
+7	/usr/bin/sh
+8	/usr/lib/.build-id
+9	/usr/share/doc/bash/COPYING
+10	/usr/share/man/man1/bash.1.gz

@@ -1,4 +1,4 @@
-n	Project_Name	Project_Domains	Git_Provider	Last_Modified	total_entries
-1	marketing-site	marketing-site.pages.dev	Yes	2 days ago	3
-2	docs-portal	docs.example.com, docs.pages.dev	Yes	6 hours ago	3
-3	status-page	status.pages.dev	No	3 weeks ago	3
+n	Project_Name	Project_Domains	Git_Provider	Last_Modified
+1	marketing-site	marketing-site.pages.dev	Yes	2 days ago
+2	docs-portal	docs.example.com, docs.pages.dev	Yes	6 hours ago
+3	status-page	status.pages.dev	No	3 weeks ago

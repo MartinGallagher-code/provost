@@ -1,6 +1,6 @@
-n	resource	action	total_entries
-1	aws_db_instance.primary	updated in-place	5
-2	aws_instance.app_server	created	5
-3	aws_s3_bucket.artifacts	created	5
-4	aws_security_group.app_sg	created	5
-5	module.vpc.aws_nat_gateway.this	destroyed	5
+n	resource	action
+1	aws_db_instance.primary	updated in-place
+2	aws_instance.app_server	created
+3	aws_s3_bucket.artifacts	created
+4	aws_security_group.app_sg	created
+5	module.vpc.aws_nat_gateway.this	destroyed

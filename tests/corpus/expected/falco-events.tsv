@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	total_entries
-1	06:00:12.100	Warning	Shell	spawned	in	container_(user=root_container=api)	3
-2	06:01:44.200	Notice	Package	management	launched	(command=apt-get)	3
-3	06:02:09.300	Error	Sensitive	file	opened	(file=/etc/shadow)	3
+n	A	B	C	D	E	F
+1	06:00:12.100	Warning	Shell	spawned	in	container (user=root container=api)
+2	06:01:44.200	Notice	Package	management	launched	(command=apt-get)
+3	06:02:09.300	Error	Sensitive	file	opened	(file=/etc/shadow)

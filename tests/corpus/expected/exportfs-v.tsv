@@ -1,5 +1,5 @@
-n	A	B	total_entries
-1	/srv/nfs/data 	192.168.1.0/24(rw,wdelay,root_squash,no_subtree_check,sec=sys,secure,no_all_squash)	4
-2	/srv/nfs/home 	10.0.0.0/8(rw,sync,no_root_squash,no_subtree_check,sec=sys,secure)	4
-3	/srv/backup   	192.168.2.15(ro,sync,root_squash,no_subtree_check,sec=sys,secure)	4
-4	/export/media 	<world>(ro,insecure,all_squash,anonuid=65534,anongid=65534,secure)	4
+n	A	B
+1	/srv/nfs/data 	192.168.1.0/24(rw,wdelay,root_squash,no_subtree_check,sec=sys,secure,no_all_squash)
+2	/srv/nfs/home 	10.0.0.0/8(rw,sync,no_root_squash,no_subtree_check,sec=sys,secure)
+3	/srv/backup   	192.168.2.15(ro,sync,root_squash,no_subtree_check,sec=sys,secure)
+4	/export/media 	<world>(ro,insecure,all_squash,anonuid=65534,anongid=65534,secure)

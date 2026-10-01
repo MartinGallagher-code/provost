@@ -1,15 +1,15 @@
-n	Step	Time	total_entries
-1	5000000	10000.00000	14
-2	Energies	(kJ/mol)	14
-3	Bond	Angle_Proper_Dih._Improper_Dih._LJ-14	14
-4	1.28442e+04	3.31182e+04_4.42104e+04_8.82130e+02_1.18902e+04	14
-5	Coulomb-14	LJ_(SR)_Coulomb_(SR)_Coul._recip._Potential	14
-6	2.21004e+05	-8.82134e+05_-4.42101e+06_3.39124e+03_-5.01283e+06	14
-7	Kinetic	En._Total_Energy_Conserved_En._Temperature_Pres._DC_(bar)	14
-8	8.82130e+05	-4.13070e+06_-4.13051e+06_3.00142e+02_-1.28440e+02	14
-9	Pressure	(bar)_Constr._rmsd	14
-10	1.02114e+00	2.88213e-06	14
-11	Core	t_(s)_Wall_t_(s)_(%)	14
-12	Time:	88213.442_1838.114_4798.0	14
-13	(ns/day)	(hour/ns)	14
-14	Performance:	47.021_0.510	14
+n	Step	Time
+1	5000000	10000.00000
+2	Energies	(kJ/mol)
+3	Bond	Angle Proper Dih. Improper Dih. LJ-14
+4	1.28442e+04	3.31182e+04 4.42104e+04 8.82130e+02 1.18902e+04
+5	Coulomb-14	LJ (SR) Coulomb (SR) Coul. recip. Potential
+6	2.21004e+05	-8.82134e+05 -4.42101e+06 3.39124e+03 -5.01283e+06
+7	Kinetic	En. Total Energy Conserved En. Temperature Pres. DC (bar)
+8	8.82130e+05	-4.13070e+06 -4.13051e+06 3.00142e+02 -1.28440e+02
+9	Pressure	(bar) Constr. rmsd
+10	1.02114e+00	2.88213e-06
+11	Core	t (s) Wall t (s) (%)
+12	Time:	88213.442 1838.114 4798.0
+13	(ns/day)	(hour/ns)
+14	Performance:	47.021 0.510

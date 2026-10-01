@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	H	I	J	K	L	total_entries
-1	+	web-6f9c8-abc12	›	nginx									5
-2	+	web-6f9c8-def34	›	nginx									5
-3	web-6f9c8-abc12	nginx	10.244.1.1	-	-	[10/Jul/2026:14:22:01	+0000]	"GET	/healthz	HTTP/1.1"	200	2	5
-4	web-6f9c8-def34	nginx	10.244.1.1	-	-	[10/Jul/2026:14:22:02	+0000]	"GET	/	HTTP/1.1"	200	612	5
-5	web-6f9c8-abc12	nginx	10.244.2.5	-	-	[10/Jul/2026:14:22:03	+0000]	"POST	/api/login	HTTP/1.1"	302	0	5
+n	A	B	C	D	E	F	G	H	I	J	K	L
+1	+	web-6f9c8-abc12	›	nginx								
+2	+	web-6f9c8-def34	›	nginx								
+3	web-6f9c8-abc12	nginx	10.244.1.1	-	-	[10/Jul/2026:14:22:01	+0000]	"GET	/healthz	HTTP/1.1"	200	2
+4	web-6f9c8-def34	nginx	10.244.1.1	-	-	[10/Jul/2026:14:22:02	+0000]	"GET	/	HTTP/1.1"	200	612
+5	web-6f9c8-abc12	nginx	10.244.2.5	-	-	[10/Jul/2026:14:22:03	+0000]	"POST	/api/login	HTTP/1.1"	302	0

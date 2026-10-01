@@ -1,4 +1,4 @@
-n	Query_20260710_060000_00042_abcde	RUNNING	total_entries
-1	Splits: 412 total	388 done (94.17%)	3
-2	CPU Time: 12.4s total	88.2M rows/s	3
-3	Peak Memory: 1.20GB		3
+n	Query_20260710_060000_00042_abcde	RUNNING
+1	Splits: 412 total	388 done (94.17%)
+2	CPU Time: 12.4s total	88.2M rows/s
+3	Peak Memory: 1.20GB	

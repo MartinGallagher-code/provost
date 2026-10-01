@@ -1,9 +1,9 @@
-n	IMAGE	CREATED	CREATED_BY	SIZE	total_entries
-1	605c77e624dd	2 weeks ago	/bin/sh -c #(nop) CMD ["nginx" "-g" "daemon…	0B	8
-2	<missing>	2 weeks ago	/bin/sh -c #(nop) STOPSIGNAL SIGQUIT	0B	8
-3	<missing>	2 weeks ago	/bin/sh -c #(nop) EXPOSE 80	0B	8
-4	<missing>	2 weeks ago	/bin/sh -c #(nop) ENTRYPOINT ["/docker-entr…	0B	8
-5	<missing>	2 weeks ago	/bin/sh -c #(nop) COPY multi:0dc0e34d541bedd…	4.62kB	8
-6	<missing>	2 weeks ago	/bin/sh -c set -x && addgroup --system -…	61.1MB	8
-7	<missing>	3 weeks ago	/bin/sh -c #(nop) CMD ["bash"]	0B	8
-8	<missing>	3 weeks ago	/bin/sh -c #(nop) ADD file:d34ac1a7f68e40b9d…	80.4MB	8
+n	IMAGE	CREATED	CREATED_BY	SIZE
+1	605c77e624dd	2 weeks ago	/bin/sh -c #(nop) CMD ["nginx" "-g" "daemon…	0B
+2	<missing>	2 weeks ago	/bin/sh -c #(nop) STOPSIGNAL SIGQUIT	0B
+3	<missing>	2 weeks ago	/bin/sh -c #(nop) EXPOSE 80	0B
+4	<missing>	2 weeks ago	/bin/sh -c #(nop) ENTRYPOINT ["/docker-entr…	0B
+5	<missing>	2 weeks ago	/bin/sh -c #(nop) COPY multi:0dc0e34d541bedd…	4.62kB
+6	<missing>	2 weeks ago	/bin/sh -c set -x && addgroup --system -…	61.1MB
+7	<missing>	3 weeks ago	/bin/sh -c #(nop) CMD ["bash"]	0B
+8	<missing>	3 weeks ago	/bin/sh -c #(nop) ADD file:d34ac1a7f68e40b9d…	80.4MB

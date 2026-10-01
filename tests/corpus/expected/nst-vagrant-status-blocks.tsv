@@ -1,8 +1,8 @@
-n	A	total_entries
-1	Current machine states:	7
-2	web         running (virtualbox)	7
-3	db          running (virtualbox)	7
-4	cache       poweroff (virtualbox)	7
-5	lb          not created (virtualbox)	7
-6	This environment represents multiple VMs. The VMs are all listed	7
-7	above with their current state.	7
+n	A
+1	Current machine states:
+2	web         running (virtualbox)
+3	db          running (virtualbox)
+4	cache       poweroff (virtualbox)
+5	lb          not created (virtualbox)
+6	This environment represents multiple VMs. The VMs are all listed
+7	above with their current state.

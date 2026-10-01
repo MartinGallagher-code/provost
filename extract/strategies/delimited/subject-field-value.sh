@@ -46,7 +46,8 @@ strategy_extract () {
     local line
     local -a labels=() values=()
     local pending=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         if [[ -z "$s" ]]; then continue; fi
@@ -62,7 +63,7 @@ strategy_extract () {
             lbl="${lbl#"${lbl%%[![:space:]]*}"}"
             [[ -n "$lbl" ]] && pending="$lbl"
         fi
-    done <<< "$text"
+    done
 
     local n=${#labels[@]}
     [[ $n -ge 2 ]] || return 0

@@ -1,6 +1,6 @@
-n	applied_at	migration	total_entries
-1	2026-01-10_12:00:00_+0000	00001_create_users.sql	5
-2	2026-01-12_09:30:00_+0000	00002_create_orders.sql	5
-3	2026-02-01_16:45:00_+0000	00003_add_email_index.sql	5
-4	Pending	00004_add_audit_log.sql	5
-5	Pending	00005_add_soft_delete.sql	5
+n	applied_at	migration
+1	2026-01-10 12:00:00 +0000	00001_create_users.sql
+2	2026-01-12 09:30:00 +0000	00002_create_orders.sql
+3	2026-02-01 16:45:00 +0000	00003_add_email_index.sql
+4	Pending	00004_add_audit_log.sql
+5	Pending	00005_add_soft_delete.sql

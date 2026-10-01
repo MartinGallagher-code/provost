@@ -1,3 +1,3 @@
-n	NAME	TYPE	CREATION-DATE	total_entries
-1	order-fulfillment	STANDARD	2025-02-18	2
-2	image-thumbnailer	EXPRESS	2025-04-09	2
+n	NAME	TYPE	CREATION-DATE
+1	order-fulfillment	STANDARD	2025-02-18
+2	image-thumbnailer	EXPRESS	2025-04-09

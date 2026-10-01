@@ -1,5 +1,5 @@
-n	section	name	value	total_entries
-1	dependencies	express	4.19.2	4
-2	dependencies	pino	9.2.0	4
-3	devDependencies	typescript	5.4.5	4
-4	devDependencies	vitest	1.6.0	4
+n	section	name	value
+1	dependencies	express	4.19.2
+2	dependencies	pino	9.2.0
+3	devDependencies	typescript	5.4.5
+4	devDependencies	vitest	1.6.0

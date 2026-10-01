@@ -1,7 +1,7 @@
-n	NEXT	LEFT	LAST	PASSED	UNIT	ACTIVATES	total_entries
-1	Mon 2026-07-06 12:00:00 UTC	2h 41min left	Mon 2026-07-06 09:00:12 UTC	18min ago	logrotate.timer	logrotate.service	6
-2	Mon 2026-07-06 18:00:00 UTC	8h left	Sun 2026-07-05 18:00:04 UTC	15h ago	apt-daily.timer	apt-daily.service	6
-3	Tue 2026-07-07 00:00:00 UTC	14h left	Mon 2026-07-06 00:00:08 UTC	9h ago	man-db.timer	man-db.service	6
-4	Tue 2026-07-07 06:24:11 UTC	21h left	Mon 2026-07-06 06:24:11 UTC	3h 5min ago	fstrim.timer	fstrim.service	6
-5	Mon 2026-07-06 10:12:47 UTC	53min left	Mon 2026-07-06 09:12:47 UTC	6min ago	systemd-tmpfiles-clean.timer	systemd-tmpfiles-clean.service	6
-6	Sun 2026-07-12 03:10:00 UTC	5 days left	Sun 2026-07-05 03:10:22 UTC	1 day 6h ago	e2scrub_all.timer	e2scrub_all.service	6
+n	NEXT	LEFT	LAST	PASSED	UNIT	ACTIVATES
+1	Mon 2026-07-06 12:00:00 UTC	2h 41min left	Mon 2026-07-06 09:00:12 UTC	18min ago	logrotate.timer	logrotate.service
+2	Mon 2026-07-06 18:00:00 UTC	8h left	Sun 2026-07-05 18:00:04 UTC	15h ago	apt-daily.timer	apt-daily.service
+3	Tue 2026-07-07 00:00:00 UTC	14h left	Mon 2026-07-06 00:00:08 UTC	9h ago	man-db.timer	man-db.service
+4	Tue 2026-07-07 06:24:11 UTC	21h left	Mon 2026-07-06 06:24:11 UTC	3h 5min ago	fstrim.timer	fstrim.service
+5	Mon 2026-07-06 10:12:47 UTC	53min left	Mon 2026-07-06 09:12:47 UTC	6min ago	systemd-tmpfiles-clean.timer	systemd-tmpfiles-clean.service
+6	Sun 2026-07-12 03:10:00 UTC	5 days left	Sun 2026-07-05 03:10:22 UTC	1 day 6h ago	e2scrub_all.timer	e2scrub_all.service

@@ -1,9 +1,9 @@
-n	Variable_name	Value	total_entries
-1	Threads_connected	84	8
-2	Threads_running	6	8
-3	Questions	482019334	8
-4	Slow_queries	1204	8
-5	Uptime	1820184	8
-6	Innodb_buffer_pool_reads	920184	8
-7	Innodb_rows_read	84820193	8
-8	Bytes_sent	902184331	8
+n	Variable_name	Value
+1	Threads_connected	84
+2	Threads_running	6
+3	Questions	482019334
+4	Slow_queries	1204
+5	Uptime	1820184
+6	Innodb_buffer_pool_reads	920184
+7	Innodb_rows_read	84820193
+8	Bytes_sent	902184331

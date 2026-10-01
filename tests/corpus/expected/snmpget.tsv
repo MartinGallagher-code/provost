@@ -1,5 +1,5 @@
-n	oid	type	value	total_entries
-1	SNMPv2-MIB::sysName.0	STRING	edge-router	4
-2	IF-MIB::ifNumber.0	INTEGER	4	4
-3	HOST-RESOURCES-MIB::hrSystemNumUsers.0	Gauge32	3	4
-4	HOST-RESOURCES-MIB::hrSystemProcesses.0	Gauge32	214	4
+n	oid	type	value
+1	SNMPv2-MIB::sysName.0	STRING	edge-router
+2	IF-MIB::ifNumber.0	INTEGER	4
+3	HOST-RESOURCES-MIB::hrSystemNumUsers.0	Gauge32	3
+4	HOST-RESOURCES-MIB::hrSystemProcesses.0	Gauge32	214

@@ -1,7 +1,7 @@
-n	A	B	total_entries
-1	MAIN.uptime	1284433	6
-2	MAIN.sess_conn	8821004	6
-3	MAIN.cache_hit	7712043	6
-4	MAIN.cache_miss	1108961	6
-5	MAIN.backend_conn	1108961	6
-6	MAIN.n_object	44201	6
+n	A	B
+1	MAIN.uptime	1284433
+2	MAIN.sess_conn	8821004
+3	MAIN.cache_hit	7712043
+4	MAIN.cache_miss	1108961
+5	MAIN.backend_conn	1108961
+6	MAIN.n_object	44201

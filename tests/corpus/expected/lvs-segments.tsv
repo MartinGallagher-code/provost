@@ -1,5 +1,5 @@
-n	LV	VG	Attr	#Str	Type	Size	PE	total_entries
-1	root	vg0	-wi-ao----	1	linear	40.00g	/dev/sda2:0-10239	4
-2	swap	vg0	-wi-ao----	1	linear	8.00g	/dev/sda2:10240-12287	4
-3	data	vg0	-wi-ao----	2	striped	500.00g	/dev/sdb1:0-63999	4
-4	backup	vg0	-wi-a-----	1	linear	200.00g	/dev/sdc1:0-51199	4
+n	LV	VG	Attr	#Str	Type	Size	PE
+1	root	vg0	-wi-ao----	1	linear	40.00g	/dev/sda2:0-10239
+2	swap	vg0	-wi-ao----	1	linear	8.00g	/dev/sda2:10240-12287
+3	data	vg0	-wi-ao----	2	striped	500.00g	/dev/sdb1:0-63999
+4	backup	vg0	-wi-a-----	1	linear	200.00g	/dev/sdc1:0-51199

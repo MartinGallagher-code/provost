@@ -1,8 +1,8 @@
-n	Unit	Testing	rules/tests/api_test_yml	total_entries
-1	SUCCESS			7
-2	Unit	Testing	rules/tests/node_test.yml	7
-3	SUCCESS			7
-4	Unit	Testing	rules/tests/slo_test.yml	7
-5	FAILED:			7
-6	alertname:	HighErrorRate,	time:_5m	7
-7	exp:1	got:0		7
+n	Unit	Testing	rules/tests/api_test_yml
+1	SUCCESS		
+2	Unit	Testing	rules/tests/node_test.yml
+3	SUCCESS		
+4	Unit	Testing	rules/tests/slo_test.yml
+5	FAILED:		
+6	alertname:	HighErrorRate,	time: 5m
+7	exp:1	got:0	

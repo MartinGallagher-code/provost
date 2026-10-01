@@ -70,8 +70,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local _line n=0 minf=0 maxf=0 f
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         _strat_qf_split "$_line"
         f=${#_QF_FIELDS[@]}
@@ -96,19 +97,20 @@ strategy_detect () {
             [[ $f -gt $maxf ]] && maxf=$f
         fi
         [[ $n -ge 30 ]] && break
-    done <<< "$text"
+    done
     [[ $n -ge 2 ]] || return 1
     # near-constant field count (ragged tails allowed, prose is far wider)
     [[ $((maxf - minf)) -le 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=85
     _STRATEGY_CONFIDENCE_REASON="space-delimited records, quoted/bracketed fields, constant field count"
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" entry=0 _line i val
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         _strat_qf_split "$_line"
         [[ ${#_QF_FIELDS[@]} -lt 1 ]] && continue
         entry=$((entry + 1))
@@ -117,7 +119,7 @@ strategy_extract () {
             [[ -z "$val" ]] && continue
             result+="entry${entry}.$(_col_letter $((i + 1))) ${val}"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

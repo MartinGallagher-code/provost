@@ -5,23 +5,26 @@
 ################################################################################
 ## envoy_version.sh — suite-wide version helpers
 ##
-## The top-level VERSION file is the only current-source for the Envoy suite
-## version.  Public CLIs source this helper and call envoy_suite_version rather
+## The top-level VERSION file is the single source of truth for provost's
+## version.  The engines source this helper and call envoy_suite_version rather
 ## than embedding release numbers in each script.
 ################################################################################
 
-# Print the canonical suite version from VERSION.
-# Args: optional starting directory used when ENVOY_HOME is not set.
+# Print provost's version from its top-level VERSION file.
+#
+# The file is resolved RELATIVE TO THE SCRIPT, never by searching arbitrary
+# parents: the engines live one level below the tool root (extract/, analyze/),
+# and the same holds in the wheel, where the tree sits under
+# provost_data/_bundle with VERSION at its root. Order:
+#   1. <start>/VERSION, <start>/../VERSION        (the script's tool root)
+#   2. $PROVOST_HOME/VERSION, $ENVOY_HOME/VERSION (explicit overrides)
+#   3. "0.0.0+unknown"                              (a partial checkout)
+# Args: optional starting directory (or file) — normally the calling script's
+# own directory; defaults to the caller's source file.
 # shellcheck disable=SC2120
 envoy_suite_version () {
     local start="${1:-}"
-    local dir=""
-    local candidate=""
-
-    if [[ -n "${ENVOY_HOME:-}" && -r "${ENVOY_HOME}/VERSION" ]]; then
-        head -n1 "${ENVOY_HOME}/VERSION" | tr -d '[:space:]'
-        return 0
-    fi
+    local dir="" candidate="" root
 
     if [[ -z "$start" ]]; then
         start="${BASH_SOURCE[1]:-${PWD}}"
@@ -32,25 +35,26 @@ envoy_suite_version () {
         dir="$(cd -P "$start" 2>/dev/null && pwd)"
     fi
 
-    while [[ -n "$dir" && "$dir" != "/" ]]; do
-        candidate="$dir/VERSION"
+    for candidate in ${dir:+"$dir/VERSION" "$(dirname "$dir")/VERSION"} \
+                     ${PROVOST_HOME:+"$PROVOST_HOME/VERSION"} \
+                     ${ENVOY_HOME:+"$ENVOY_HOME/VERSION"}; do
         if [[ -r "$candidate" ]]; then
-            head -n1 "$candidate" | tr -d '[:space:]'
-            return 0
+            root="$(head -n1 "$candidate" | tr -d '[:space:]')"
+            if [[ -n "$root" ]]; then
+                printf '%s\n' "$root"
+                return 0
+            fi
         fi
-        dir="$(dirname "$dir")"
     done
-
-    if [[ -r "/VERSION" ]]; then
-        head -n1 "/VERSION" | tr -d '[:space:]'
-        return 0
-    fi
 
     printf '%s\n' "0.0.0+unknown"
 }
 
+# Print the --version banner for one of provost's engines.
 envoy_version_banner () {
     local name="$1"
     local version="${2:-$(envoy_suite_version)}"
-    printf '%s %s — Developed by SageCor Solutions, Annapolis Junction, MD\n' "$name" "$version"
+    printf '%s (provost) %s\n' "$name" "$version"
+    printf 'Copyright (C) 2026 Martin J. Gallagher\n'
+    printf 'License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>\n'
 }

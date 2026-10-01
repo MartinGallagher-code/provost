@@ -1,5 +1,5 @@
-n	A	B	C	D	total_entries
-1	brotli	-q	5	silesia.tar	4
-2	compressed	211957760	->	68812044_bytes_(32.47%)	4
-3	compression	speed:	44.2	MB/s	4
-4	decompression	speed:	412.1	MB/s	4
+n	A	B	C	D
+1	brotli	-q	5	silesia.tar
+2	compressed	211957760	->	68812044 bytes (32.47%)
+3	compression	speed:	44.2	MB/s
+4	decompression	speed:	412.1	MB/s

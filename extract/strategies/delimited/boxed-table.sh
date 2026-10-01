@@ -55,7 +55,7 @@ _bt_split () {
     if [[ "$s" == *"|"* ]]; then
         local IFS='|' cellv
         local -a raw=()
-        read -ra raw <<< "$s"
+        { _fr_tok "$s"; raw=("${_FR_TOK[@]}"); }
         for cellv in "${raw[@]}"; do
             cellv="${cellv#"${cellv%%[![:space:]]*}"}"
             cellv="${cellv%"${cellv##*[![:space:]]}"}"
@@ -74,7 +74,8 @@ strategy_extract () {
     local text="$1"
     local line result="" entry=0 section="" caption=""
     local -a headers=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         [[ -z "$s" ]] && continue
@@ -123,7 +124,7 @@ strategy_extract () {
         if [[ "$s" == *: && "${s%:}" != *:* ]]; then
             section="${s%:}"
         fi
-    done <<< "$text"
+    done
     [[ $entry -ge 2 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"
@@ -140,7 +141,8 @@ strategy_detect () {
     # not match, which is the distinction that keeps 40-odd working parses out
     # of here.
     local line npipe=0 nrule=0 ninner=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         case "$s" in
@@ -151,8 +153,8 @@ strategy_detect () {
                 ;;
         esac
         if [[ "$s" =~ ^[-+]{4,}$ ]]; then nrule=$((nrule + 1)); fi
-    done <<< "$text"
+    done
     [[ $npipe -ge 3 && $nrule -ge 2 && $ninner -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }

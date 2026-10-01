@@ -1,9 +1,9 @@
-n	module	type	total_entries
-1	core_module	static	8
-2	so_module	static	8
-3	watchdog_module	static	8
-4	http_module	static	8
-5	log_config_module	static	8
-6	logio_module	static	8
-7	mpm_event_module	shared	8
-8	authz_core_module	shared	8
+n	module	type
+1	core_module	static
+2	so_module	static
+3	watchdog_module	static
+4	http_module	static
+5	log_config_module	static
+6	logio_module	static
+7	mpm_event_module	shared
+8	authz_core_module	shared

@@ -1,7 +1,7 @@
-n	A	total_entries
-1	docker-desktop	6
-2	minikube	6
-3	prod-cluster	6
-4	staging-cluster	6
-5	dev-cluster	6
-6	gke_myproject_us-central1_main	6
+n	A
+1	docker-desktop
+2	minikube
+3	prod-cluster
+4	staging-cluster
+5	dev-cluster
+6	gke_myproject_us-central1_main

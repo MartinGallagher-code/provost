@@ -1,8 +1,8 @@
-n	A	B	total_entries
-1	port	22	7
-2	addressfamily	any	7
-3	permitrootlogin	no	7
-4	passwordauthentication	no	7
-5	pubkeyauthentication	yes	7
-6	x11forwarding	no	7
-7	maxauthtries	3	7
+n	A	B
+1	port	22
+2	addressfamily	any
+3	permitrootlogin	no
+4	passwordauthentication	no
+5	pubkeyauthentication	yes
+6	x11forwarding	no
+7	maxauthtries	3

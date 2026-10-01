@@ -44,7 +44,7 @@ strategy_detect () {
     [[ "$text" == *"meta-data"* ]] || return 1
     [[ "$text" == *"isize="* ]]    || return 1
     [[ "$text" == *"agcount="* ]]  || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -52,8 +52,9 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line section leading tok key val field
     local -a toks
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         leading=""
         # A section-starting line begins in column 0; the section name is the run
         # of chars before the first '=' or whitespace (continuation lines are
@@ -62,7 +63,7 @@ strategy_extract () {
             leading="${line%%[=[:space:]]*}"
             section="$(_xfsinfo_field "$leading")"
         fi
-        read -ra toks <<< "$line"
+        { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         for tok in "${toks[@]}"; do
             [[ "$tok" == *"="* ]] || continue
             key="${tok%%=*}"
@@ -77,7 +78,7 @@ strategy_extract () {
             entry=1
             result+="entry1.${field} $(_xfsinfo_sanitize_val "$val")"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries 1"$'\n'
     echo "$result"
 }

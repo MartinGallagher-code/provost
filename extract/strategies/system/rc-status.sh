@@ -14,16 +14,17 @@ strategy_detect () {
     _is_json "$text" && return 1
     # OpenRC rc-status: a "Runlevel:" header and "svc   [  started  ]" lines.
     local has_runlevel=0 svc=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         case "$line" in
             "Runlevel:"*) has_runlevel=1 ;;
         esac
         if [[ "$line" == *"[ "*" ]"* ]] && { [[ "$line" == *"started"* ]] || [[ "$line" == *"stopped"* ]] || [[ "$line" == *"crashed"* ]]; }; then
             svc=$((svc + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $has_runlevel -eq 1 && $svc -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -34,7 +35,8 @@ strategy_extract () {
     local result=""
     local entry=0
     local line trimmed service status
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         case "$line" in
             "Runlevel:"*) continue ;;
@@ -54,7 +56,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.service ${service}"$'\n'
         result+="entry${entry}.status ${status}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

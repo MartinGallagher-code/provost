@@ -1,5 +1,5 @@
-n	name	team	region	tier	oncall	total_entries
-1	alice	sre	gold	yes		4
-2	bob	emea	no			4
-3	carol	data	apac	silver		4
-4	dan	sre	amer	gold	yes	4
+n	name	team	region	tier	oncall
+1	alice	sre		gold	yes
+2	bob		emea		no
+3	carol	data	apac	silver	
+4	dan	sre	amer	gold	yes

@@ -1,5 +1,5 @@
-n	username	fullname	active	total_entries
-1	alice	Alice Anders	yes	4
-2	bob	Bob Brown	no	4
-3	carol	Carol Chen	yes	4
-4	dan	Dan Davis	yes	4
+n	username	fullname	active
+1	alice	Alice Anders	yes
+2	bob	Bob Brown	no
+3	carol	Carol Chen	yes
+4	dan	Dan Davis	yes

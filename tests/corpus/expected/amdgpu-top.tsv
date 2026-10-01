@@ -1,17 +1,17 @@
-n	metric	value	group	total_entries
-1	Device Name	AMD Radeon RX 7900 XTX		16
-2	GFX	98	GRBM	16
-3	Comp	44	GRBM	16
-4	Vertex	12	GRBM	16
-5	TA	88	GRBM2	16
-6	TC	90	GRBM2	16
-7	EA	76	GRBM2	16
-8	Used	22018	VRAM (MiB)	16
-9	Total	24560	VRAM (MiB)	16
-10	Used	1204	GTT (MiB)	16
-11	Total	16384	GTT (MiB)	16
-12	Temp(C)	71	Sensors	16
-13	Power(W)	340	Sensors	16
-14	Fan(RPM)	2204	Sensors	16
-15	SCLK(MHz)	2680	Sensors	16
-16	MCLK(MHz)	1249	Sensors	16
+n	metric	value	group
+1	Device Name	AMD Radeon RX 7900 XTX	
+2	GFX	98	GRBM
+3	Comp	44	GRBM
+4	Vertex	12	GRBM
+5	TA	88	GRBM2
+6	TC	90	GRBM2
+7	EA	76	GRBM2
+8	Used	22018	VRAM (MiB)
+9	Total	24560	VRAM (MiB)
+10	Used	1204	GTT (MiB)
+11	Total	16384	GTT (MiB)
+12	Temp(C)	71	Sensors
+13	Power(W)	340	Sensors
+14	Fan(RPM)	2204	Sensors
+15	SCLK(MHz)	2680	Sensors
+16	MCLK(MHz)	1249	Sensors

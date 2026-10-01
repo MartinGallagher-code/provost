@@ -1,35 +1,14 @@
-line1.timestamp Feb_15_09_00_01
-line1.hostname gateway
+line1.timestamp Jan 12 14:23:45
+line1.hostname myhost
 line1.process sshd
-line1.pid 4521
-line1.message Accepted publickey for admin from 10.0.0.5 port 52100 ssh2
-line2.timestamp Feb_15_09_00_02
-line2.hostname gateway
-line2.process sshd
-line2.pid 4521
-line2.message pam_unix(sshd:session): session opened for user admin
-line3.timestamp Feb_15_09_01_15
-line3.hostname gateway
-line3.process sshd
-line3.pid 4580
-line3.message Failed password for invalid user test from 203.0.113.50 port 44322 ssh2
-line4.timestamp Feb_15_09_01_16
-line4.hostname gateway
-line4.process sshd
-line4.pid 4580
-line4.message Connection closed by invalid user test 203.0.113.50 port 44322
-line5.timestamp Feb_15_09_05_00
-line5.hostname gateway
-line5.process sudo
-line5.pid 4600
-line5.message admin : TTY=pts/0 ; PWD=/home/admin ; USER=root ; COMMAND=/bin/systemctl restart nginx
-line6.timestamp Feb_15_09_05_01
-line6.hostname gateway
-line6.process sudo
-line6.pid 4600
-line6.message pam_unix(sudo:session): session opened for user root by admin
-line7.timestamp Feb_15_09_10_30
-line7.hostname gateway
-line7.process sshd
-line7.pid 4650
-line7.message Received disconnect from 10.0.0.5 port 52100:11: disconnected by user
+line1.pid 1234
+line1.message Accepted publickey for user from 10.0.0.1 port 22 ssh2
+line2.timestamp Jan 12 14:24:01
+line2.hostname myhost
+line2.process cron
+line2.pid 5678
+line2.message (root) CMD (/usr/bin/daily-backup)
+line3.timestamp Jan 12 14:25:30
+line3.hostname myhost
+line3.process kernel
+line3.message [12345.678] eth0: link up

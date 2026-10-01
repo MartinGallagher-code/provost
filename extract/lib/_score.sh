@@ -60,10 +60,11 @@ _score_parse () {
             return tolower(s)
         }
         function significant(t) { return (t != "" && t ~ /[A-Za-z0-9]/) }
-        # Split on underscore as well as whitespace: the engine encodes a space
-        # inside a value as `_` (_clean_field), so `Usage_R/U_Rating` must
-        # compare equal to `Usage R/U Rating` in the input. Applied to BOTH
-        # sides, so the comparison stays symmetric.
+        # Split on underscore as well as whitespace: values keep their spaces,
+        # but a field NAME built from a multi-word label is sanitised to `_`
+        # (_clean_field), so `Usage_R/U_Rating` must compare equal to `Usage
+        # R/U Rating` in the input. Applied to BOTH sides, so the comparison
+        # stays symmetric.
 
         # --- pass 1: the input -------------------------------------------------
         NR == FNR {

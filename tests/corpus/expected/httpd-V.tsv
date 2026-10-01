@@ -1,8 +1,8 @@
-n	key	value	total_entries
-1	Server version	Apache/2.4.57 (Debian)	7
-2	Server built	2023-04-13T13:30:00	7
-3	Server's Module Magic Number	20120211:127	7
-4	Server loaded	APR 1.7.2, APR-UTIL 1.6.3	7
-5	Compiled using	APR 1.7.2, APR-UTIL 1.6.3	7
-6	Architecture	64-bit	7
-7	Server MPM	event Server compiled with.... -D APR_HAS_SENDFILE -D APR_HAS_MMAP -D APACHE_MPM_DIR="server/mpm/event" -D HTTPD_ROOT="/etc/apache2" -D SERVER_CONFIG_FILE="/etc/apache2/apache2.conf"	7
+n	key	value
+1	Server version	Apache/2.4.57 (Debian)
+2	Server built	2023-04-13T13:30:00
+3	Server's Module Magic Number	20120211:127
+4	Server loaded	APR 1.7.2, APR-UTIL 1.6.3
+5	Compiled using	APR 1.7.2, APR-UTIL 1.6.3
+6	Architecture	64-bit
+7	Server MPM	event Server compiled with.... -D APR_HAS_SENDFILE -D APR_HAS_MMAP -D APACHE_MPM_DIR="server/mpm/event" -D HTTPD_ROOT="/etc/apache2" -D SERVER_CONFIG_FILE="/etc/apache2/apache2.conf"

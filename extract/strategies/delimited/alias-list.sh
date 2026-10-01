@@ -19,7 +19,8 @@
 # prose that happens to contain the word "alias".
 _al_is_alias_list () {
     local text="$1" line seen=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         # Leading whitespace tolerated (some shells indent), then `alias `.
         local s="$line"
@@ -34,7 +35,7 @@ _al_is_alias_list () {
         [[ -n "$name" ]] || return 1
         [[ "$name" == *" "* ]] && return 1   # a space in the name = not an alias def
         seen=$((seen + 1))
-    done <<< "$text"
+    done
     [[ $seen -ge 1 ]]
 }
 
@@ -42,7 +43,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     _al_is_alias_list "$text" || return 1
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -61,7 +62,8 @@ _al_unquote () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local s="$line"
         while [[ "$s" == " "* || "$s" == $'\t'* ]]; do s="${s#?}"; done
@@ -74,7 +76,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         [[ -n "$cmd" ]] && result+="entry${entry}.command ${cmd}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

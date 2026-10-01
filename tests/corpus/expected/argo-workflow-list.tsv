@@ -1,3 +1,3 @@
-n	NAME	STATUS	AGE	DURATION	total_entries
-1	etl-pipeline-abc	Succeeded	2h	4m	2
-2	train-model-def	Running	10m	---	2
+n	NAME	STATUS	AGE	DURATION
+1	etl-pipeline-abc	Succeeded	2h	4m
+2	train-model-def	Running	10m	---

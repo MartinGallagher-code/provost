@@ -1,7 +1,7 @@
-n	NAME	CREATED_AT	total_entries
-1	alertmanagerconfigs.monitoring.coreos.com	2026-05-12T09:14:22Z	6
-2	certificates.cert-manager.io	2026-04-01T11:02:10Z	6
-3	ippools.crd.projectcalico.org	2026-03-20T08:45:33Z	6
-4	prometheuses.monitoring.coreos.com	2026-05-12T09:14:23Z	6
-5	servicemonitors.monitoring.coreos.com	2026-05-12T09:14:24Z	6
-6	virtualservices.networking.istio.io	2026-06-01T14:30:05Z	6
+n	NAME	CREATED_AT
+1	alertmanagerconfigs.monitoring.coreos.com	2026-05-12T09:14:22Z
+2	certificates.cert-manager.io	2026-04-01T11:02:10Z
+3	ippools.crd.projectcalico.org	2026-03-20T08:45:33Z
+4	prometheuses.monitoring.coreos.com	2026-05-12T09:14:23Z
+5	servicemonitors.monitoring.coreos.com	2026-05-12T09:14:24Z
+6	virtualservices.networking.istio.io	2026-06-01T14:30:05Z

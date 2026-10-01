@@ -26,7 +26,7 @@
 # value (`3084 bytes` keeps its unit; v1.0 kept only `3084`).
 _bios_split () {
     _BIOS_KEY=""; _BIOS_VAL=""
-    local -a t=(); read -ra t <<< "$1"
+    local -a t=(); { _fr_tok "$1"; t=("${_FR_TOK[@]}"); }
     local i n=${#t[@]} tok
     for ((i = 0; i < n; i++)); do
         tok="${t[$i]}"
@@ -54,7 +54,7 @@ strategy_detect () {
     [[ "$text" == *"# biosdecode "* ]] || \
         { [[ "$text" == *"SMBIOS "*" present."* ]] && [[ "$text" == *"Structure Table "* ]]; } || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -62,7 +62,8 @@ strategy_extract () {
     local text="$1"
     local result="" line trimmed section="" n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         trimmed="${line//[[:space:]]/}"
         [[ -z "$trimmed" ]] && continue
 
@@ -99,7 +100,7 @@ strategy_extract () {
         result+="entry${n}.section ${section}"$'\n'
         result+="entry${n}.key ${_BIOS_KEY}"$'\n'
         result+="entry${n}.value ${_BIOS_VAL}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] || return 1
     result+="total_entries ${n}"$'\n'

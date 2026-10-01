@@ -1,4 +1,4 @@
-n	name	interfaces	services	ports	masquerade	total_entries
-1	public (active)	eth0	ssh dhcpv6-client http https	8080/tcp 9090/tcp	no	3
-2	internal	eth1	ssh mdns samba-client			3
-3	dmz	eth2	ssh	443/tcp	yes	3
+n	name	interfaces	services	ports	masquerade
+1	public (active)	eth0	ssh dhcpv6-client http https	8080/tcp 9090/tcp	no
+2	internal	eth1	ssh mdns samba-client		
+3	dmz	eth2	ssh	443/tcp	yes

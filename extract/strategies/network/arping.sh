@@ -19,14 +19,15 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local replies=0 line
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ ^[0-9]+\ bytes\ from\ [0-9A-Fa-f:]+\ \([0-9.]+\):\ index=[0-9]+\ time=[0-9.]+\ msec$ ]]; then
             replies=$((replies + 1))
         fi
-    done <<< "$text"
+    done
     if [[ $replies -ge 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -35,8 +36,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" =~ ^[0-9]+\ bytes\ from\ [0-9A-Fa-f:]+\ \([0-9.]+\):\ index=[0-9]+\ time=[0-9.]+\ msec$ ]] || continue
         local bytes="${line%% bytes*}"
         local rest="${line#* bytes from }"
@@ -50,7 +52,7 @@ strategy_extract () {
         result+="entry${entry}.mac ${mac}"$'\n'
         result+="entry${entry}.time_msec ${t}"$'\n'
         result+="entry${entry}.bytes ${bytes}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

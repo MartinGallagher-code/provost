@@ -1,4 +1,4 @@
-n	name	45_0_C_high	crit	43_0_C_high	47_0_C_high	total_entries
-1	Package id 0	+80.0°C	+100.0°C)			3
-2	Core 0		+100.0°C)	+80.0°C		3
-3	Core 1		+100.0°C)		+80.0°C	3
+n	name	45_0_C_high	crit	43_0_C_high	47_0_C_high
+1	Package id 0	+80.0°C	+100.0°C)		
+2	Core 0		+100.0°C)	+80.0°C	
+3	Core 1		+100.0°C)		+80.0°C

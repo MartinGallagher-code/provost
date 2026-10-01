@@ -1,5 +1,5 @@
-n	Device	Model	Size	Health	total_entries
-1	sda	Samsung 870	500GB	PASSED	4
-2	sdb	Samsung 870	500GB	PASSED	4
-3	nvme0n1	WD Black SN850	1TB	PASSED	4
-4	nvme1n1	WD Black SN850	1TB	WARNING	4
+n	Device	Model	Size	Health
+1	sda	Samsung 870	500GB	PASSED
+2	sdb	Samsung 870	500GB	PASSED
+3	nvme0n1	WD Black SN850	1TB	PASSED
+4	nvme1n1	WD Black SN850	1TB	WARNING

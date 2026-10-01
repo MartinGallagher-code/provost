@@ -1,5 +1,5 @@
-n	destination	next_hop	flag	met	ref	use	iface	total_entries
-1	::1/128	::	U	256	1	0	lo	4
-2	2001:db8:1::/64	::	U	256	1	0	eth0	4
-3	fe80::/64	::	U	256	1	0	eth0	4
-4	::/0	fe80::1	UG	1024	1	0	eth0	4
+n	destination	next_hop	flag	met	ref	use	iface
+1	::1/128	::	U	256	1	0	lo
+2	2001:db8:1::/64	::	U	256	1	0	eth0
+3	fe80::/64	::	U	256	1	0	eth0
+4	::/0	fe80::1	UG	1024	1	0	eth0

@@ -1,9 +1,9 @@
-n	name	setting	unit	total_entries
-1	max_connections	100		8
-2	shared_buffers	16384	8kB	8
-3	work_mem	4096	kB	8
-4	maintenance_work_mem	65536	kB	8
-5	effective_cache_size	524288	8kB	8
-6	wal_buffers	512	8kB	8
-7	checkpoint_completion_target	0.9		8
-8	random_page_cost	4		8
+n	name	setting	unit
+1	max_connections	100	
+2	shared_buffers	16384	8kB
+3	work_mem	4096	kB
+4	maintenance_work_mem	65536	kB
+5	effective_cache_size	524288	8kB
+6	wal_buffers	512	8kB
+7	checkpoint_completion_target	0.9	
+8	random_page_cost	4	

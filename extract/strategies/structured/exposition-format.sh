@@ -15,7 +15,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=80
 
     # Reject JSON
     _is_json "$1" && return 1
@@ -25,7 +25,8 @@ strategy_detect () {
     local _re_data='^[a-zA-Z_][a-zA-Z0-9_]*\{.*\} '
     local _re_bare='^[a-zA-Z_][a-zA-Z0-9_]* [0-9]'
 
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         [[ "$_line" == "# EOF" ]] && found_eof=1
         [[ "$_line" == "# UNIT "* ]] && found_unit=1
@@ -38,7 +39,7 @@ strategy_detect () {
         [[ "$_line" == *"_created "* || "$_line" == *"_created{"* ]] && found_created=1
         # Early exit once we have enough signal
         [[ $found_type -eq 1 && $found_data -eq 1 ]] && return 0
-    done <<< "$text"
+    done
 
     # Accept Prometheus format: # TYPE lines (with or without data)
     [[ $found_type -eq 1 ]] && return 0
@@ -57,7 +58,8 @@ strategy_extract () {
     local result=""
     local metric_num=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         # Skip # EOF marker (OpenMetrics)
@@ -107,10 +109,10 @@ strategy_extract () {
             labels="${after_brace%%\}*}"
             local after_close="${line#*\} }"
             [[ "$after_close" == "$line" ]] && continue
-            read -ra _varr <<< "$after_close"
+            { _fr_tok "$after_close"; _varr=("${_FR_TOK[@]}"); }
             mvalue="${_varr[0]}"
         else
-            read -ra _varr <<< "$line"
+            { _fr_tok "$line"; _varr=("${_FR_TOK[@]}"); }
             [[ ${#_varr[@]} -lt 2 ]] && continue
             mname="${_varr[0]}"
             mvalue="${_varr[1]}"
@@ -147,7 +149,7 @@ strategy_extract () {
             done
         fi
 
-    done <<< "$text"
+    done
 
     echo "$result"
 }

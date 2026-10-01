@@ -1,6 +1,0 @@
-shards disk.indices disk.used disk.avail disk.total disk.percent host      ip        node
-   120        42.3gb    88.2gb    111.8gb      200gb           44 10.0.0.61 10.0.0.61 es-node-1
-   118        41.7gb    86.5gb    113.5gb      200gb           43 10.0.0.62 10.0.0.62 es-node-2
-   122        43.1gb    89.9gb    110.1gb      200gb           44 10.0.0.63 10.0.0.63 es-node-3
-   119        42.0gb    87.4gb    112.6gb      200gb           43 10.0.0.64 10.0.0.64 es-node-4
-     0            0b     2.1gb    197.9gb      200gb            1 10.0.0.65 10.0.0.65 es-node-5

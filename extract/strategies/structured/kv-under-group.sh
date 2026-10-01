@@ -39,7 +39,7 @@
 _kug_leaf () {
     local line="$1"
     _KUG_KEY=""; _KUG_VAL=""
-    local -a tk=(); read -ra tk <<< "$line"
+    local -a tk=(); { _fr_tok "$line"; tk=("${_FR_TOK[@]}"); }
     [[ ${#tk[@]} -lt 2 ]] && return 1
     local k="${tk[0]}"
     if [[ "$k" == *: && "$k" != : ]]; then
@@ -80,17 +80,18 @@ _kug_load () {
     local text="$1"
     _KUG_LINES=(); _KUG_INDS=(); _KUG_BODYS=(); _KUG_KIND=()
     local _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         _KUG_LINES+=("$_l")
         _kug_indent "$_l"
         _KUG_INDS+=("$_KUG_IND")
         _KUG_BODYS+=("${_l#"${_l%%[![:space:]]*}"}")
-    done <<< "$text"
+    done
     local i n=${#_KUG_LINES[@]}
     for ((i = 0; i < n; i++)); do
         local body="${_KUG_BODYS[$i]}"
-        local -a tk=(); read -ra tk <<< "$body"
+        local -a tk=(); { _fr_tok "$body"; tk=("${_FR_TOK[@]}"); }
         local ntk=${#tk[@]}
         local last="${tk[$((ntk - 1))]:-}"
         if [[ $ntk -ge 1 && $ntk -le 4 && "$last" == *: && "$body" =~ [A-Za-z0-9] ]]; then
@@ -124,6 +125,17 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _STRATEGY_CONFIDENCE_REASON="repeated kv keys under group labels (kv carry-down)"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
+    # PREFILTER (exact): the size gate below counts NON-BLANK lines (what
+    # _kug_load keeps); count them first — stopping at 401 — so an input
+    # outside 5..400 lines is declined without classifying every line.
+    local _kug_nb=0 _kug_l
+    _fr_lines "$text"
+    for _kug_l in "${_FR_LINES[@]}"; do
+        [[ "${_kug_l}" != *[![:space:]]* ]] && continue
+        _kug_nb=$((_kug_nb + 1))
+        [[ $_kug_nb -gt 400 ]] && return 1
+    done
+    [[ $_kug_nb -lt 5 ]] && return 1
     _kug_load "$text"
     local n=${#_KUG_LINES[@]} i
     [[ $n -lt 5 || $n -gt 400 ]] && return 1
@@ -153,7 +165,7 @@ strategy_detect () {
                     # a value whose 1st/2nd token ends ':' means the REAL key
                     # was multi-word (`API version: 1.43` → key API, val
                     # `version: 1.43`) — we'd truncate every such key
-                    local -a _vt=(); read -ra _vt <<< "$_KUG_VAL"
+                    local -a _vt=(); { _fr_tok "$_KUG_VAL"; _vt=("${_FR_TOK[@]}"); }
                     [[ "${_vt[0]:-}" == *: || "${_vt[1]:-}" == *: ]] && mangled=$((mangled + 1))
                     if [[ -z "${key_seen_this[$_KUG_KEY]:-}" ]]; then
                         key_seen_this[$_KUG_KEY]=1
@@ -187,7 +199,7 @@ strategy_detect () {
     local bare3=0 bare_tot=0
     for ((i = 0; i < n; i++)); do
         [[ "${_KUG_KIND[$i]}" == "L" ]] || continue
-        local -a bt=(); read -ra bt <<< "${_KUG_BODYS[$i]}"
+        local -a bt=(); { _fr_tok "${_KUG_BODYS[$i]}"; bt=("${_FR_TOK[@]}"); }
         [[ "${bt[0]}" == *: || "${bt[1]:-}" == ":" ]] && continue
         bare_tot=$((bare_tot + 1))
         [[ ${#bt[@]} -ge 3 ]] && bare3=$((bare3 + 1))
@@ -201,7 +213,7 @@ strategy_detect () {
     [[ $rep -ge 2 ]] || return 1
     # the shape must dominate the block
     [[ $(( classified * 100 / n )) -ge 80 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

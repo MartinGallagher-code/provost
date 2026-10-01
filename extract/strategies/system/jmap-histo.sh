@@ -21,7 +21,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"#instances"* && "$text" == *"#bytes"* && "$text" == *"class name"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -29,8 +29,9 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line
     local toks
-    while IFS= read -r line; do
-        toks=(); read -ra toks <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        toks=(); { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         [[ ${#toks[@]} -ge 4 ]] || continue
         _jmap_histo_is_row "${toks[0]}" || continue
         local num="${toks[0]%:}"
@@ -40,7 +41,7 @@ strategy_extract () {
         result+="entry${entry}.instances ${toks[1]}"$'\n'
         result+="entry${entry}.bytes ${toks[2]}"$'\n'
         result+="entry${entry}.class ${class}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

@@ -1,13 +1,13 @@
-n	key	value	total_entries
-1	Name	argocd/guestbook	12
-2	Project	default	12
-3	Server	https://kubernetes.default.svc	12
-4	Namespace	guestbook	12
-5	URL	https://argocd.example.com/applications/guestbook	12
-6	Repo	https://github.com/argoproj/argocd-example-apps.git	12
-7	Target	HEAD	12
-8	Path	guestbook	12
-9	SyncWindow	Sync Allowed	12
-10	Sync Policy	Automated	12
-11	Sync Status	Synced to HEAD (53e28ff)	12
-12	Health Status	Healthy	12
+n	key	value
+1	Name	argocd/guestbook
+2	Project	default
+3	Server	https://kubernetes.default.svc
+4	Namespace	guestbook
+5	URL	https://argocd.example.com/applications/guestbook
+6	Repo	https://github.com/argoproj/argocd-example-apps.git
+7	Target	HEAD
+8	Path	guestbook
+9	SyncWindow	Sync Allowed
+10	Sync Policy	Automated
+11	Sync Status	Synced to HEAD (53e28ff)
+12	Health Status	Healthy

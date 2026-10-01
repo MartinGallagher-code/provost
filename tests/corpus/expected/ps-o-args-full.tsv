@@ -1,3 +1,3 @@
-n	PID	COMMAND	total_entries
-1	1234	/usr/bin/python3_/opt/app/server.py_--config_/etc/app/conf.d/main.yaml_--workers_4	2
-2	5678	postgres:_background_writer_process	2
+n	PID	COMMAND
+1	1234	/usr/bin/python3 /opt/app/server.py --config /etc/app/conf.d/main.yaml --workers 4
+2	5678	postgres: background writer process

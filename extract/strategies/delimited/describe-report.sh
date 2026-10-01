@@ -39,8 +39,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line kv=0 sections=0 in_section=0 expect=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" == [A-Za-z]* ]]; then
             in_section=0
             if [[ "$line" =~ ^[A-Za-z][A-Za-z0-9_\ .-]*:$ ]]; then
@@ -62,10 +63,10 @@ strategy_detect () {
                     expect="" ;;
             esac
         fi
-    done <<< "$text"
+    done
     # The full describe shape: several aligned kv pairs AND >=1 dashed table.
     [[ $kv -ge 3 && $sections -ge 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -117,14 +118,15 @@ strategy_extract () {
         done
     }
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" == [A-Za-z]* ]]; then
             # top level: closes any open section
             state=""
             if [[ "$line" =~ ^([A-Za-z][A-Za-z0-9_\ .-]*):$ ]]; then
                 _dr_flush_kv
-                section="${BASH_REMATCH[1]// /_}"
+                section="${BASH_REMATCH[1]}"   # a VALUE (entryN.section): spaces kept
                 state="want_header"
             elif [[ "$line" =~ ^([A-Za-z][A-Za-z0-9_\ .-]*):[[:space:]]+(.*)$ ]]; then
                 _dr_flush_kv
@@ -180,7 +182,7 @@ strategy_extract () {
                 [[ -n "$cur_key" && -n "$c" ]] && cur_val+="; ${c}"
                 ;;
         esac
-    done <<< "$text"
+    done
     _dr_flush_kv
     result+="$kv_out"
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'

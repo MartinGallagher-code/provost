@@ -1,8 +1,0 @@
-installed plugins:
-grafana-clock-panel @ 2.1.3
-grafana-piechart-panel @ 1.6.4
-grafana-worldmap-panel @ 0.3.3
-alexanderzobnin-zabbix-app @ 4.4.5
-briangann-gauge-panel @ 0.0.9
-
-Restart grafana after installing plugins . <service grafana-server restart>

@@ -1,7 +1,0 @@
-Interface         Plug                     Slot                 Notes
-audio-playback    chromium:audio-playback  :audio-playback      -
-network           chromium:network         :network             -
-home              chromium:home            :home                -
-opengl            chromium:opengl          :opengl              -
-camera            chromium:camera          -                    -
-browser-support   chromium:browser-support :browser-support     -

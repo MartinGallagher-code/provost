@@ -1,5 +1,8 @@
 # bash completion for provost — source this file, or drop it in
 # /etc/bash_completion.d/ (the installer does this).
+# COMPREPLY=( $(compgen ...) ) is the idiomatic completion form; the words
+# compgen emits (verbs, flags, dataset names) contain no whitespace.
+# shellcheck disable=SC2207
 _provost_complete () {
     local cur prev words cword
     _init_completion 2>/dev/null || {
@@ -8,11 +11,15 @@ _provost_complete () {
     }
 
     local verbs="run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help"
+    local capopts="--name --min-confidence --plugin-dir --multi --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
-    # First word: complete the verb.
+    # First word: complete the verb (or a capture option / file for inject).
     if [[ $cword -eq 1 ]]; then
-        COMPREPLY=( $(compgen -W "$verbs" -- "$cur") )
+        case "$cur" in
+            -*) COMPREPLY=( $(compgen -W "$capopts --version" -- "$cur") ) ;;
+            *)  COMPREPLY=( $(compgen -W "$verbs" -- "$cur") ) ;;
+        esac
         return
     fi
 
@@ -29,13 +36,20 @@ _provost_complete () {
         restore)
             local caps
             caps="latest $(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
-            COMPREPLY=( $(compgen -W "$caps" -- "$cur") ) ;;
+            COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
+        log)
+            COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
         control|uncontrol|import|export)
             COMPREPLY=( $(compgen -o default -- "$cur") ) ;;   # paths
         run|inject)
+            case "$prev" in
+                --plugin-dir) COMPREPLY=( $(compgen -d -- "$cur") ); return ;;
+                --name|--min-confidence) COMPREPLY=(); return ;;
+            esac
             case "$cur" in
-                -*) COMPREPLY=( $(compgen -W "--silent --min-confidence --plugin-dir --async --sync --help" -- "$cur") ) ;;
-                *)  COMPREPLY=( $(compgen -c -- "$cur") ) ;;    # a command to run
+                -*) COMPREPLY=( $(compgen -W "$capopts" -- "$cur") ) ;;
+                *)  if [[ "$verb" == run ]]; then COMPREPLY=( $(compgen -c -- "$cur") )   # a command to run
+                    else COMPREPLY=( $(compgen -f -- "$cur") ); fi ;;                    # a file to inject
             esac ;;
         *) COMPREPLY=() ;;
     esac

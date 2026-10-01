@@ -14,7 +14,8 @@ strategy_detect () {
     # Distinctive signature: a "Key   Value" header, a "--- -----" underline,
     # and Vault-specific keys such as "Seal Type". df-h.txt has none of these.
     local line hdr=0 sep=0 seal=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         case "$line" in
             "Key"[[:space:]]*"Value"*) hdr=1 ;;
         esac
@@ -24,9 +25,9 @@ strategy_detect () {
         case "$line" in
             "Seal Type"[[:space:]]*) seal=1 ;;
         esac
-    done <<< "$text"
+    done
     if [[ $hdr -eq 1 && $sep -eq 1 && $seal -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -35,8 +36,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" line n=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Skip the "Key   Value" header and the "--- -----" underline.
         case "$line" in
             "Key"[[:space:]]*"Value"*) continue ;;
@@ -57,7 +59,7 @@ strategy_extract () {
         local field="${key// /_}"
         [[ -n "$field" ]] || continue
         result+="entry1.${field} ${value}"$'\n'
-    done <<< "$text"
+    done
     [[ -n "$result" ]] && result+="total_entries 1"$'\n'
     printf '%s' "$result"
 }

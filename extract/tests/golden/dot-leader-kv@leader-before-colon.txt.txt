@@ -1,0 +1,33 @@
+entry1.key Reader
+entry1.value Yubico YubiKey OTP+FIDO+CCID 00 00
+entry2.key Application ID
+entry2.value D2760001240103040006123456780000
+entry3.key Application type
+entry3.value OpenPGP
+entry4.key Version
+entry4.value 3.4
+entry5.key Manufacturer
+entry5.value Yubico
+entry6.key Serial number
+entry6.value 12345678
+entry7.key Name of cardholder
+entry7.value Martin Gallagher
+entry8.key Language prefs
+entry8.value en
+entry9.key Salutation
+entry9.value Mr.
+entry10.key URL of public key
+entry10.value [not set]
+entry11.key Login data
+entry11.value mgallagher
+entry12.key Signature PIN
+entry12.value not forced
+entry13.key Key attributes
+entry13.value rsa2048 rsa2048 rsa2048
+entry14.key Max. PIN lengths
+entry14.value 127 127 127
+entry15.key PIN retry counter
+entry15.value 3 0 3
+entry16.key Signature counter
+entry16.value 42
+total_entries 16

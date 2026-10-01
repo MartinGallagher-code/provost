@@ -1,4 +1,4 @@
-n	A	B	C	D	E	F	G	total_entries
-1	[22][ssh]	host:	10.0.1.24	login:	admin	password:	admin123	3
-2	[22][ssh]	host:	10.0.1.24	login:	root	password:	toor	3
-3	1	of	1	target	successfully	completed,	2_valid_passwords_found	3
+n	A	B	C	D	E	F	G
+1	[22][ssh]	host:	10.0.1.24	login:	admin	password:	admin123
+2	[22][ssh]	host:	10.0.1.24	login:	root	password:	toor
+3	1	of	1	target	successfully	completed,	2 valid passwords found

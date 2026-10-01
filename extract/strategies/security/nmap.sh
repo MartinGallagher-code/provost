@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     # Contains "Nmap scan report" or "PORT  STATE  SERVICE" header
     [[ "$text" == *"Nmap scan report"* ]] && return 0
     [[ "$text" =~ PORT[[:space:]]+STATE[[:space:]]+SERVICE ]] && return 0
@@ -64,7 +64,7 @@ strategy_extract () {
         if [[ $in_ports -eq 1 ]]; then
             if [[ "$line" =~ ^[0-9]+/ ]]; then
                 port_num=$((port_num + 1))
-                read -ra _arr <<< "$line"
+                { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
                 local port="${_arr[0]}"
                 local state="${_arr[1]}"
                 local service="${_arr[2]}"

@@ -51,7 +51,7 @@ _skv_hdr_re='^[A-Za-z][A-Za-z0-9_ .,#()/-]*:[[:space:]]*$'
 _skv_classify () {
     local l="$1"
     _SKV_KIND="-"
-    [[ -z "${l//[[:space:]]/}" ]] && return
+    [[ "${l}" != *[![:space:]]* ]] && return
     if [[ "$l" =~ $_skv_kv_re ]]; then
         local s="${l#"${l%%[![:space:]]*}"}"       # lstrip
         _SKV_KEY="${s%%:*}"
@@ -84,8 +84,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line active="" nb=0 kv_before=0 sections=0 members_here=0 loose=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         _skv_classify "$line"
         case "$_SKV_KIND" in
@@ -120,21 +121,22 @@ strategy_detect () {
                 [[ "$_skv_ls" == *$'\t'* ]] || return 1
                 ;;
         esac
-    done <<< "$text"
+    done
     # Need the defining shape: >=1 kv pair BEFORE any section (perf-list-style
     # header-first lists have none), then a bare header that carries >=2
     # tab-structured plain lines. Loose pre-header members / kv-pair members /
     # tab-less members already bailed above.
     [[ $loose -eq 0 && $kv_before -ge 1 && $sections -ge 1 && $members_here -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=70
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0 header=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _skv_classify "$line"
         case "$_SKV_KIND" in
             K)
@@ -152,7 +154,7 @@ strategy_extract () {
                 result+="entry${entry}.value ${_SKV_MEM}"$'\n'
                 ;;
         esac
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

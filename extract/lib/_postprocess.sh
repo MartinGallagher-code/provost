@@ -14,13 +14,63 @@ store () {
     local input="$1"
     local label="$2"
 
-    # Number each line and prefix with strategy label (pure bash, no forks)
-    local _n=0
-    while IFS= read -r _sline; do
+    # Number each line and prefix with strategy label (pure bash, no forks).
+    # PERF: the labelled lines are collected in an array and appended to
+    # `output` ONCE — a per-line `output+=` re-copies the whole (growing)
+    # string every time, which made storing a big table quadratic.
+    local _n=0 _st_all _st_joined
+    local -a _st_out=()
+    if [[ -n "${_XL_OUT:-}" ]]; then
+        # FILE LANE (very large input, see _xl_begin): append to the lane's
+        # output file instead of the `output` variable — same lines.
+        printf '%s\n' "$input" | _store_awk "$label" >> "$_XL_OUT"
+        _sline=""
+        return 0
+    fi
+    if (( ${#input} > _FR_BIG_BYTES )); then
+        # BIG result: the same numbering in one awk pass (see _FR_BIG_BYTES)
+        _st_joined="$(printf '%s\n' "$input" | _store_awk "$label"; printf .)"
+        output+="${_st_joined%.}"
+        _sline=""
+        return 0
+    fi
+    mapfile -t _st_all <<< "$input"
+    for _sline in "${_st_all[@]}"; do
         [[ -z "$_sline" ]] && continue
         _n=$((_n + 1))
-        output+="${label}:${_n}	${_sline}"$'\n'
-    done <<< "$input"
+        _st_out+=("${label}:${_n}	${_sline}")
+    done
+    _sline=""
+    if [[ ${#_st_out[@]} -gt 0 ]]; then
+        printf -v _st_joined '%s\n' "${_st_out[@]}"
+        output+="$_st_joined"
+    fi
+}
+
+# _store_awk LABEL < lines — store()'s numbering as a stdin filter: every
+# non-empty line becomes `LABEL:<n><TAB>line` (n counts non-empty lines).
+_store_awk () {
+    _ST_LABEL="$1" awk '
+        BEGIN { l = ENVIRON["_ST_LABEL"] }
+        $0 != "" { n++; printf "%s:%d\t%s\n", l, n, $0 }'
+}
+
+# _store_file FILE LABEL — store() for a result held in FILE (the file lane):
+# the same labelled lines, appended to the lane's output file.
+_store_file () {
+    _store_awk "$2" < "$1" >> "$_XL_OUT"
+}
+
+# _dedup_pipe < output-lines — deduplicate_output's pipeline as a stdin
+# filter (both the BIG-variable path and the file lane run exactly this).
+_dedup_pipe () {
+    awk '$0 != "" {
+            n++; f = $0; i = index(f, "\t"); if (i) f = substr(f, i + 1)
+            printf "%s\001%d\001%s\n", f, n, $0
+        }' \
+        | sort -t$'\x01' -k1,1 -u \
+        | sort -t$'\x01' -k2,2 -n \
+        | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
 }
 
 # Deduplicate output across strategies.
@@ -32,25 +82,37 @@ deduplicate_output () {
     local input="$1"
     [[ -z "$input" ]] && return
 
-    local _n=0 _formatted=""
-    while IFS= read -r _dline; do
-        [[ -z "$_dline" ]] && continue
+    # PERF: records collected in an array and joined once (a per-line
+    # `_formatted+=` is quadratic), and the final field-3 projection is one
+    # sed pass instead of a `while read … | echo` loop that drained the pipe
+    # one byte per read(2). The sed reproduces `IFS=$'\x01' read -r _ _ rest`
+    # exactly: rest = everything after the 2nd SOH, minus one trailing SOH
+    # when that SOH is the rest's only one (bash's trailing-delimiter rule).
+    local _n=0 _formatted="" _dd_all _dd_line
+    local -a _dd_out=()
+    if (( ${#input} > _FR_BIG_BYTES )); then
+        # BIG output: build the same SOH records in one awk pass
+        printf '%s\n' "$input" | _dedup_pipe
+        return
+    fi
+    mapfile -t _dd_all <<< "$input"
+    for _dd_line in "${_dd_all[@]}"; do
+        [[ -z "$_dd_line" ]] && continue
         _n=$((_n + 1))
         local _fpart
-        case "$_dline" in
-            *$'\t'*) _fpart="${_dline#*$'\t'}" ;;
-            *)       _fpart="$_dline" ;;
+        case "$_dd_line" in
+            *$'\t'*) _fpart="${_dd_line#*$'\t'}" ;;
+            *)       _fpart="$_dd_line" ;;
         esac
-        _formatted+="${_fpart}"$'\x01'"${_n}"$'\x01'"${_dline}"$'\n'
-    done <<< "$input"
+        _dd_out+=("${_fpart}"$'\x01'"${_n}"$'\x01'"${_dd_line}")
+    done
+    [[ ${#_dd_out[@]} -gt 0 ]] && printf -v _formatted '%s\n' "${_dd_out[@]}"
 
     # Sort by fieldpart (SOH col 1), dedup, restore order by lineno (SOH col 2)
     printf '%s' "$_formatted" \
         | sort -t$'\x01' -k1,1 -u \
         | sort -t$'\x01' -k2,2 -n \
-        | while IFS=$'\x01' read -r _fpart _lno _orig; do
-            echo "$_orig"
-          done
+        | LC_ALL=C sed $'s/^[^\001]*\001[^\001]*\001//; s/^\\([^\001]*\\)\001$/\\1/'
 }
 
 # Apply field renames to output.
@@ -120,11 +182,12 @@ aggregate_output () {
             rest = $0
         }
 
-        # Split into name and value
-        n = split(rest, parts, " ")
-        if (n < 2) next
-        name = parts[1]
-        value = parts[2]
+        # Split into name and value at the FIRST space: the value is the
+        # whole remainder (it may carry spaces — `12 KB` is not the number 12)
+        sp = index(rest, " ")
+        if (sp < 2) next
+        name = substr(rest, 1, sp - 1)
+        value = substr(rest, sp + 1)
 
         # Check if value is numeric
         if (value + 0 == value && value != "") {

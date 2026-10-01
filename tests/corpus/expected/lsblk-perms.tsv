@@ -1,6 +1,6 @@
-n	NAME	SIZE	OWNER	GROUP	MODE	RM	RO	total_entries
-1	sda	465.8G	root	disk	brw-rw----	0	0	5
-2	├─sda1	1G	root	disk	brw-rw----	0	0	5
-3	└─sda2	464.8G	root	disk	brw-rw----	0	0	5
-4	nvme0n1	931.5G	root	disk	brw-rw----	0	0	5
-5	└─nvme0n1p1	931G	root	disk	brw-rw----	0	0	5
+n	NAME	SIZE	OWNER	GROUP	MODE	RM	RO
+1	sda	465.8G	root	disk	brw-rw----	0	0
+2	├─sda1	1G	root	disk	brw-rw----	0	0
+3	└─sda2	464.8G	root	disk	brw-rw----	0	0
+4	nvme0n1	931.5G	root	disk	brw-rw----	0	0
+5	└─nvme0n1p1	931G	root	disk	brw-rw----	0	0

@@ -1,4 +1,4 @@
-n	ID	NAME	HEALTH	IPV4	IPV6	TYPE	LOCATION	AGE	total_entries
-1	911022	prod-lb	healthy	159.69.44.12	2a01:4f8:1c0::1	lb11	fsn1	124d	3
-2	911455	api-lb	healthy	159.69.44.88	2a01:4f8:1c0::2	lb21	fsn1	88d	3
-3	912091	staging-lb	unhealthy	116.203.100.7	2a01:4f8:c2c::3	lb11	nbg1	14d	3
+n	ID	NAME	HEALTH	IPV4	IPV6	TYPE	LOCATION	AGE
+1	911022	prod-lb	healthy	159.69.44.12	2a01:4f8:1c0::1	lb11	fsn1	124d
+2	911455	api-lb	healthy	159.69.44.88	2a01:4f8:1c0::2	lb21	fsn1	88d
+3	912091	staging-lb	unhealthy	116.203.100.7	2a01:4f8:c2c::3	lb11	nbg1	14d

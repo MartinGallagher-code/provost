@@ -14,14 +14,15 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     # Distinctive: the readelf -S column header with the "[Nr]" index cell.
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" == *"[Nr]"* && "$line" == *"Name"* \
               && "$line" == *"Type"* && "$line" == *"Address"* \
               && "$line" == *"Offset"* ]]; then
-            _STRATEGY_CONFIDENCE=88
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -29,7 +30,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0
     local line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local trimmed="${line#"${line%%[![:space:]]*}"}"
         # Section rows start with a "[ N]" index cell.
@@ -37,7 +39,7 @@ strategy_extract () {
         # Pull the numeric index out of the brackets, keep the remainder.
         local nr="${trimmed#\[}"; nr="${nr%%\]*}"; nr="${nr//[[:space:]]/}"
         local rest="${trimmed#*\]}"
-        read -ra f <<< "$rest"
+        { _fr_tok "$rest"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -ge 4 ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.nr ${nr}"$'\n'
@@ -55,7 +57,7 @@ strategy_extract () {
             result+="entry${entry}.offset ${f[2]}"$'\n'
             result+="entry${entry}.size ${f[3]}"$'\n'
         fi
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

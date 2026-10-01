@@ -1,8 +1,8 @@
-n	section	key	value	total_entries
-1	tox	envlist	py38, py39, py310	7
-2	tox	skipsdist	True	7
-3	testenv	deps	pytest	7
-4	testenv	commands	pytest tests/	7
-5	testenv:lint	deps	flake8	7
-6	testenv:lint	commands	flake8 src/	7
-7	flake8	max-line-length	100	7
+n	section	key	value
+1	tox	envlist	py38, py39, py310
+2	tox	skipsdist	True
+3	testenv	deps	pytest
+4	testenv	commands	pytest tests/
+5	testenv:lint	deps	flake8
+6	testenv:lint	commands	flake8 src/
+7	flake8	max-line-length	100

@@ -1,5 +1,5 @@
-n	A	total_entries
-1	Collecting connection statistics for 5 seconds	4
-2	243 connections in 4.98s; 48.80 connections/user sec, bytes read 0	4
-3	243 connections in 31 real seconds, 1024 bytes read per connection	4
-4	Timing new connections, TLSv1.3, cipher TLS_AES_256_GCM_SHA384	4
+n	A
+1	Collecting connection statistics for 5 seconds
+2	243 connections in 4.98s; 48.80 connections/user sec, bytes read 0
+3	243 connections in 31 real seconds, 1024 bytes read per connection
+4	Timing new connections, TLSv1.3, cipher TLS_AES_256_GCM_SHA384

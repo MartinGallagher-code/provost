@@ -1,5 +1,5 @@
-n	Name	Value	Type	Location	total_entries
-1	profile	<not	set>	None_None	4
-2	access_key	****************ABCD	shared-credentials-file	~/.aws/credentials	4
-3	secret_key	****************WXYZ	shared-credentials-file	~/.aws/credentials	4
-4	region	us-east-1	config-file	~/.aws/config	4
+n	Name	Value	Type	Location
+1	profile	<not	set>	None None
+2	access_key	****************ABCD	shared-credentials-file	~/.aws/credentials
+3	secret_key	****************WXYZ	shared-credentials-file	~/.aws/credentials
+4	region	us-east-1	config-file	~/.aws/config

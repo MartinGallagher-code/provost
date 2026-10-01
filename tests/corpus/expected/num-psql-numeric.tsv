@@ -1,5 +1,5 @@
-n	id	amount	rate	note	total_entries
-1	1	1,234.56	3,14	eu comma	4
-2	2	1'234'567.00	6.022e23	swiss	4
-3	3	(9,999.00)	-0.0	negative	4
-4	4	0xFF	NaN	hex	4
+n	id	amount	rate	note
+1	1	1,234.56	3,14	eu comma
+2	2	1'234'567.00	6.022e23	swiss
+3	3	(9,999.00)	-0.0	negative
+4	4	0xFF	NaN	hex

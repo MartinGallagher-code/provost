@@ -1,23 +1,23 @@
-n	key	value	total_entries
-1	3f2a1b09c88de441a44c1988213aa44210df2210	1 1 3	22
-2	author	Martin Gallagher	22
-3	author-mail	<martin@example.com>	22
-4	author-time	1752225603	22
-5	author-tz	+0000	22
-6	committer	Martin Gallagher	22
-7	committer-mail	<martin@example.com>	22
-8	committer-time	1752225603	22
-9	committer-tz	+0000	22
-10	summary	Add LRU eviction to query cache	22
-11	filename	src/cache.rs	22
-12	use	std::collections::HashMap;	22
-13	3f2a1b09c88de441a44c1988213aa44210df2210	2 2	22
-14	use	std::time::Instant;	22
-15	c19bf2a118a5b2044210df2210338112449ac100	3 3 1	22
-16	author	Alex Kim	22
-17	author-mail	<alex@example.com>	22
-18	author-time	1751002211	22
-19	author-tz	-0700	22
-20	summary	Refactor connection pool	22
-21	filename	src/cache.rs	22
-22	pub	struct QueryCache {	22
+n	key	value
+1	3f2a1b09c88de441a44c1988213aa44210df2210	1 1 3
+2	author	Martin Gallagher
+3	author-mail	<martin@example.com>
+4	author-time	1752225603
+5	author-tz	+0000
+6	committer	Martin Gallagher
+7	committer-mail	<martin@example.com>
+8	committer-time	1752225603
+9	committer-tz	+0000
+10	summary	Add LRU eviction to query cache
+11	filename	src/cache.rs
+12	use	std::collections::HashMap;
+13	3f2a1b09c88de441a44c1988213aa44210df2210	2 2
+14	use	std::time::Instant;
+15	c19bf2a118a5b2044210df2210338112449ac100	3 3 1
+16	author	Alex Kim
+17	author-mail	<alex@example.com>
+18	author-time	1751002211
+19	author-tz	-0700
+20	summary	Refactor connection pool
+21	filename	src/cache.rs
+22	pub	struct QueryCache {

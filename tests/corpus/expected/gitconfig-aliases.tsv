@@ -1,9 +1,9 @@
-n	section	key	value	total_entries
-1	alias	st	status -sb	8
-2	alias	co	checkout	8
-3	alias	graph	log --all --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset \	8
-4	alias	amend	commit --amend --no-edit	8
-5	alias	unstage	reset HEAD --	8
-6	alias	wip	"!f() { git add -A && git commit -m \"wip: $1\"; }; f"	8
-7	commit	gpgsign	true	8
-8	commit	template	~/.gitmessage	8
+n	section	key	value
+1	alias	st	status -sb
+2	alias	co	checkout
+3	alias	graph	log --all --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset \
+4	alias	amend	commit --amend --no-edit
+5	alias	unstage	reset HEAD --
+6	alias	wip	"!f() { git add -A && git commit -m \"wip: $1\"; }; f"
+7	commit	gpgsign	true
+8	commit	template	~/.gitmessage

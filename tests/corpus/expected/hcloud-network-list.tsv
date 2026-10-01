@@ -1,4 +1,4 @@
-n	ID	NAME	IP_RANGE	SERVERS	AGE	total_entries
-1	2044118	prod-net	10.0.0.0/16	6	210d	3
-2	2044552	staging-net	10.1.0.0/16	2	88d	3
-3	2050991	mgmt-net	10.2.0.0/24	1	14d	3
+n	ID	NAME	IP_RANGE	SERVERS	AGE
+1	2044118	prod-net	10.0.0.0/16	6	210d
+2	2044552	staging-net	10.1.0.0/16	2	88d
+3	2050991	mgmt-net	10.2.0.0/24	1	14d

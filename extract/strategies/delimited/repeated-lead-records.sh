@@ -30,7 +30,7 @@ _rlr_split () {
     [[ "$l" =~ ^([^[:space:]]+)\ (.+)$ ]] || return 1
     _RLR_LEAD="${BASH_REMATCH[1]}"
     _RLR_REST="${BASH_REMATCH[2]}"
-    [[ -n "${_RLR_REST//[[:space:]]/}" ]] || return 1
+    [[ "${_RLR_REST}" == *[![:space:]]* ]] || return 1
     return 0
 }
 
@@ -54,8 +54,9 @@ strategy_detect () {
     local line lead="" nb=0 id_ok=1 word_toks=0 all_toks=0
     local _id_re='^[0-9A-Fa-f:.%-]+$'
     local _word_re="^[A-Za-z][A-Za-z.,!?']*$"
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         [[ "$line" == [' 	']* ]] && return 1
         [[ "$line" == *'	'* ]] && return 1
         [[ "$line" == *'  '* ]] && return 1
@@ -76,7 +77,7 @@ strategy_detect () {
             all_toks=$((all_toks + 1))
             [[ "$_w" =~ $_word_re ]] && word_toks=$((word_toks + 1))
         done
-    done <<< "$text"
+    done
     [[ $nb -ge 3 ]] || return 1
     if [[ $id_ok -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=80
@@ -106,7 +107,7 @@ strategy_extract () {
     local with_id=1
     local _id_re='^[0-9A-Fa-f:.%-]+$'
     while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _rlr_split "$line" || continue
         local _tok2="${_RLR_REST%% *}"
         [[ "$_tok2" == "$_RLR_REST" ]] && { with_id=0; break; }  # no 3rd part
@@ -115,8 +116,9 @@ strategy_extract () {
         fi
     done <<< "$text"
 
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _rlr_split "$line" || continue
         entry=$((entry + 1))
         result+="entry${entry}.label ${_RLR_LEAD}"$'\n'
@@ -126,7 +128,8 @@ strategy_extract () {
         else
             result+="entry${entry}.value ${_RLR_REST}"$'\n'
         fi
-    done <<< "$text"
+    done
+    line=""
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

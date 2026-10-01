@@ -26,7 +26,7 @@ strategy_detect () {
     [[ "$text" =~ $re_header ]] || return 1
     [[ "$text" =~ $re_group ]] || return 1
 
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -68,7 +68,8 @@ strategy_extract () {
         detail_lines=()
     }
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ $stop -eq 1 ]] && break
 
         if [[ $found_header -eq 0 && "$line" =~ $re_header ]]; then
@@ -131,7 +132,7 @@ strategy_extract () {
         local dtrim="$line"
         dtrim="${dtrim#"${dtrim%%[![:space:]]*}"}"
         [[ -n "$dtrim" ]] && detail_lines+=("$dtrim")
-    done <<< "$text"
+    done
 
     [[ $in_group -eq 1 ]] && _ba_flush
 

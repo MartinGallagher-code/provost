@@ -1,5 +1,5 @@
-n	BRANCH	AHEAD	BEHIND	LASTCOMMIT	total_entries
-1	main	0	0	3h ago	4
-2	feature/login	4	1	2d ago	4
-3	hotfix/crash	1	0	20m ago	4
-4	release/2.0	12	44	5d ago	4
+n	BRANCH	AHEAD	BEHIND	LASTCOMMIT
+1	main	0	0	3h ago
+2	feature/login	4	1	2d ago
+3	hotfix/crash	1	0	20m ago
+4	release/2.0	12	44	5d ago

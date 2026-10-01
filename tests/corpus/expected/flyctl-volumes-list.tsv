@@ -1,4 +1,4 @@
-n	ID	STATE	NAME	SIZE	REGION	ZONE	ENCRYPTED	ATTACHED_VM	CREATED_AT	total_entries
-1	vol_9f2a1b3c4d5e6f7g	created	pgdata	10GB	iad	7a91	true	148ed2ef1c3489	2026-06-14T10:44:57Z	3
-2	vol_1a2b3c4d5e6f7g8h	created	pgdata	10GB	lhr	0e3f	true	3d8f11ab904782	2026-06-14T10:45:02Z	3
-3	vol_2b3c4d5e6f7g8h9i	created	uploads	50GB	iad	7a91	true		2026-07-01T14:22:19Z	3
+n	ID	STATE	NAME	SIZE	REGION	ZONE	ENCRYPTED	ATTACHED_VM	CREATED_AT
+1	vol_9f2a1b3c4d5e6f7g	created	pgdata	10GB	iad	7a91	true	148ed2ef1c3489	2026-06-14T10:44:57Z
+2	vol_1a2b3c4d5e6f7g8h	created	pgdata	10GB	lhr	0e3f	true	3d8f11ab904782	2026-06-14T10:45:02Z
+3	vol_2b3c4d5e6f7g8h9i	created	uploads	50GB	iad	7a91	true		2026-07-01T14:22:19Z

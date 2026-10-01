@@ -1,4 +1,4 @@
-n	CPU	44_2%	MEM	39_1%	SWAP	total_entries
-1	LOAD	8-core	1.42	1.20	0.98	3
-2	NETWORK	Rx/s	Tx/s			3
-3	eth0	1.20Mb	412Kb			3
+n	CPU	44_2%	MEM	39_1%	SWAP
+1	LOAD	8-core	1.42	1.20	0.98
+2	NETWORK	Rx/s	Tx/s		
+3	eth0	1.20Mb	412Kb		

@@ -1,4 +1,4 @@
-n	name	role	bio	total_entries
-1	alice	lead	builds; ships; iterates	3
-2	bob	dev	writes code; reviews	3
-3	carol	ops	pages; on-call; fixes	3
+n	name	role	bio
+1	alice	lead	builds; ships; iterates
+2	bob	dev	writes code; reviews
+3	carol	ops	pages; on-call; fixes

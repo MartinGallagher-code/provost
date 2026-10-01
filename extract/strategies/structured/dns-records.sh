@@ -28,19 +28,23 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
     local line hits=0
-    while IFS= read -r line; do
+    # PREFILTER (exact): an RR line has a whitespace-delimited IN/CH/HS class.
+    [[ "$text" == *[[:space:]]IN[[:space:]]* || "$text" == *[[:space:]]CH[[:space:]]* \
+       || "$text" == *[[:space:]]HS[[:space:]]* ]] || return 1
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == \;* ]] && continue
         if _dnsrr_line "$line"; then
             hits=$((hits + 1))
             if [[ $hits -ge 2 ]]; then
-                _STRATEGY_CONFIDENCE=90
+                _STRATEGY_CONFIDENCE=85
                 return 0
             fi
         fi
-    done <<< "$text"
+    done
     # A single RR line still counts when a dig/drill section marker confirms it.
     if [[ $hits -ge 1 && "$text" == *";; ANSWER SECTION"* ]]; then
-        _STRATEGY_CONFIDENCE=90
+        _STRATEGY_CONFIDENCE=85
         return 0
     fi
     return 1
@@ -49,7 +53,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1" result="" line entry=0
     local name ttl class type rdata
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == \;* ]] && continue
         _dnsrr_line "$line" || continue
         name="${BASH_REMATCH[1]}"
@@ -78,7 +83,7 @@ strategy_extract () {
             *)
                 result+="entry${entry}.value ${rdata}"$'\n' ;;
         esac
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

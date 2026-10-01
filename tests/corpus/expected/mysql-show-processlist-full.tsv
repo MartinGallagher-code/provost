@@ -1,6 +1,6 @@
-n	Id	User	Host	db	Command	Time	State	Info	total_entries
-1	5	event_scheduler	localhost	NULL	Daemon	88213	Waiting on empty queue	NULL	5
-2	142	appuser	10.0.0.5:51234	appdb	Query	0	starting	SHOW FULL PROCESSLIST	5
-3	145	appuser	10.0.0.7:44120	appdb	Query	12	Sending data	SELECT * FROM orders WHERE customer_id = 4210	5
-4	151	reporting	10.0.2.9:33980	analytics	Query	3312	Copying to tmp table	SELECT region, SUM(total) FROM orders GROUP	5
-5	160	root	localhost	NULL	Sleep	240		NULL	5
+n	Id	User	Host	db	Command	Time	State	Info
+1	5	event_scheduler	localhost	NULL	Daemon	88213	Waiting on empty queue	NULL
+2	142	appuser	10.0.0.5:51234	appdb	Query	0	starting	SHOW FULL PROCESSLIST
+3	145	appuser	10.0.0.7:44120	appdb	Query	12	Sending data	SELECT * FROM orders WHERE customer_id = 4210
+4	151	reporting	10.0.2.9:33980	analytics	Query	3312	Copying to tmp table	SELECT region, SUM(total) FROM orders GROUP
+5	160	root	localhost	NULL	Sleep	240		NULL

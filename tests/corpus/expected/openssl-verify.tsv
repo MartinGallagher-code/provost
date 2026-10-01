@@ -1,5 +1,5 @@
-n	server_crt:	OK	total_entries
-1	depth	=_0,_CN_=_api.example.internal	4
-2	depth	=_1,_CN_=_Example_Intermediate_CA	4
-3	depth	=_2,_CN_=_Example_Root_CA	4
-4	verify	return_code:_0_(ok)	4
+n	server_crt:	OK
+1	depth	= 0, CN = api.example.internal
+2	depth	= 1, CN = Example Intermediate CA
+3	depth	= 2, CN = Example Root CA
+4	verify	return code: 0 (ok)

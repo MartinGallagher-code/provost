@@ -1,7 +1,7 @@
-n	POD	NAME	CPU(cores)	MEMORY(bytes)	total_entries
-1	web-7d9f8c-abcde	nginx	2m	18Mi	6
-2	web-7d9f8c-abcde	app	142m	412Mi	6
-3	prometheus-0	prometheus	881m	3218Mi	6
-4	prometheus-0	config-reloader	1m	9Mi	6
-5	etcd-control-01	etcd	44m	214Mi	6
-6	coredns-5d78c9-klmno	coredns	3m	22Mi	6
+n	POD	NAME	CPU(cores)	MEMORY(bytes)
+1	web-7d9f8c-abcde	nginx	2m	18Mi
+2	web-7d9f8c-abcde	app	142m	412Mi
+3	prometheus-0	prometheus	881m	3218Mi
+4	prometheus-0	config-reloader	1m	9Mi
+5	etcd-control-01	etcd	44m	214Mi
+6	coredns-5d78c9-klmno	coredns	3m	22Mi

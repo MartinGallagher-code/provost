@@ -1,6 +1,6 @@
-n	depth	parent	name	total_entries
-1	1	.	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>	5
-2	2	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>	swift-atomics<https://github.com/apple/swift-atomics.git@1.2.0>	5
-3	2	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>	swift-collections<https://github.com/apple/swift-collections.git@1.1.2>	5
-4	1	.	swift-log<https://github.com/apple/swift-log.git@1.6.1>	5
-5	1	.	swift-argument-parser<https://github.com/apple/swift-argument-parser.git@1.5.0>	5
+n	depth	parent	name
+1	1	.	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>
+2	2	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>	swift-atomics<https://github.com/apple/swift-atomics.git@1.2.0>
+3	2	swift-nio<https://github.com/apple/swift-nio.git@2.68.0>	swift-collections<https://github.com/apple/swift-collections.git@1.1.2>
+4	1	.	swift-log<https://github.com/apple/swift-log.git@1.6.1>
+5	1	.	swift-argument-parser<https://github.com/apple/swift-argument-parser.git@1.5.0>

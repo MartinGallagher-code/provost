@@ -37,14 +37,15 @@ strategy_detect () {
     [[ "$text" == *"Device Descriptor:"* ]] || return 1
     [[ "$text" == *"bLength"* ]] || return 1
     [[ "$text" == *"idVendor"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" line key val san count fields=0
     declare -A seen=()
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Only indented `key value` lines (skip banners like "Device Descriptor:").
         [[ "$line" =~ ^[[:space:]]+([A-Za-z][A-Za-z0-9]*)[[:space:]]+([^[:space:]].*)$ ]] || continue
         key="${BASH_REMATCH[1]}"
@@ -57,7 +58,7 @@ strategy_extract () {
         [[ $count -gt 1 ]] && san="${san}_${count}"
         result+="entry1.${san} $(_lsusbv_san "$val")"$'\n'
         fields=$((fields + 1))
-    done <<< "$text"
+    done
     [[ $fields -gt 0 ]] && result+="total_entries 1"$'\n'
     printf '%s' "$result"
 }

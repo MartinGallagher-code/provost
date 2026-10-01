@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-##                         EnvoyAnalyze
+##                 EnvoyAnalyze — provost's analyze engine
 ################################################################################
-## Version 3.1
-## Developed by SageCor Solutions, Annapolis Junction, MD
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher.
+## License: GPL-3.0-or-later. Version: see the top-level VERSION file.
 ################################################################################
 ##
 ## Description: Generate a mix of useful and throw-away analyses for CSV/TSV
@@ -296,7 +296,11 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -V|--version)
-            echo "envoy-analyze ${VERSION} — Developed by SageCor Solutions, Annapolis Junction, MD"
+            if declare -F envoy_version_banner >/dev/null; then
+                envoy_version_banner "envoy-analyze" "$VERSION"
+            else
+                echo "envoy-analyze (provost) ${VERSION}"
+            fi
             exit 0
             ;;
         -v|--verbose)
@@ -596,8 +600,11 @@ if [[ -n "${categorical_unique_max:-}" ]]; then
     MAX_GROUP_UNIQUE="$categorical_unique_max"
 fi
 
-# ENV-056: detect non-GNU awk and warn. GNU-only features (gensub, asort,
-# array semantics) mean mawk/BSD awk will silently produce empty output.
+# ENV-056 (softened): the analyze engine uses no GNU-only awk features — the
+# full analyze suite passes under both gawk and mawk (mawk is the default awk
+# on Debian/Ubuntu and what CI's mawk checks cover), so neither gets a
+# warning. Only an awk that is NEITHER (busybox, BSD/one-true-awk) is untested
+# and gets a one-line note. Suppress with ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1.
 if [[ "${ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:-0}" != "1" ]]; then
     # Don't pipe `awk --version` through `head -1`: under `set -o
     # pipefail` the closed-stdin SIGPIPE from `head` propagates as the
@@ -608,10 +615,9 @@ if [[ "${ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:-0}" != "1" ]]; then
     # Read the full output and slice the first line in pure bash.
     _awk_version="$(awk --version 2>&1 || true)"
     _awk_version="${_awk_version%%$'\n'*}"
-    if [[ "$_awk_version" != *"GNU Awk"* && "$_awk_version" != *"gawk"* ]]; then
-        echo "envoy-analyze: warning: requires GNU awk (gawk); detected: ${_awk_version:-unknown}" >&2
-        echo "envoy-analyze: warning: some analyses may produce empty or malformed output. See README § AWK Requirements." >&2
-        echo "envoy-analyze: warning: suppress with ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1." >&2
+    if [[ "$_awk_version" != *"GNU Awk"* && "$_awk_version" != *"gawk"* \
+          && "$_awk_version" != *"mawk"* ]]; then
+        echo "envoy-analyze: note: untested awk (${_awk_version:-unknown}); gawk and mawk are supported. Suppress with ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1." >&2
     fi
 fi
 
@@ -1327,23 +1333,23 @@ if [[ -n "$top_n" ]]; then
 
             # Bonus for strong correlations (look for high absolute values)
             if [[ "$kind" == "corr_pairs" ]]; then
-                if echo "$body" | grep -qE '0\.[89][0-9]|1\.00'; then
+                if echo "$body" | grep -E '0\.[89][0-9]|1\.00' >/dev/null; then
                     score=$((score + 20))
-                elif echo "$body" | grep -qE '0\.7[0-9]'; then
+                elif echo "$body" | grep -E '0\.7[0-9]' >/dev/null; then
                     score=$((score + 10))
                 fi
             fi
 
             # Bonus for anomalies/outliers detected
             if [[ "$kind" == "anomaly" ]]; then
-                if echo "$body" | grep -qE '[0-9]+ outlier'; then
+                if echo "$body" | grep -E '[0-9]+ outlier' >/dev/null; then
                     score=$((score + 10))
                 fi
             fi
 
             # Bonus for high skewness/kurtosis
             if [[ "$kind" == "shape" ]]; then
-                if echo "$body" | grep -qiE 'heavy|extreme|skew'; then
+                if echo "$body" | grep -iE 'heavy|extreme|skew' >/dev/null; then
                     score=$((score + 15))
                 fi
             fi

@@ -5,16 +5,15 @@
 # Phase-1 smoke test: inject → ls → show end-to-end in a throwaway workspace.
 set -euo pipefail
 
-# Hermetic: test THIS repo's bundled extract/analyze/transform trees, never a
-# stale engine a developer happens to have in their global store. provost resolves
-# its engine from $PROVOST_HOME first (see _find_engine), so an old ~/.provost/extract
-# would otherwise shadow the bundled one and misclassify inputs. Clear every PROVOST_*
-# knob the caller's shell may carry, then set only what the test needs.
-unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT
-# Capture is async BY DEFAULT now; the bulk of these checks assert on the
-# synchronous "→ dataset" result, so pin the foreground path for determinism
-# (exactly how a script that needs the result inline would invoke provost). The
-# dedicated async block below overrides this with PROVOST_ASYNC=1 / --async.
+# Hermetic: clear every PROVOST_* knob the caller's shell may carry, then set
+# only what the test needs. (provost loads its engines only from its own
+# install dir, never from a store, so a developer's ~/.provost can't shadow the
+# bundled trees — that is asserted below too.)
+unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
+      PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR
+# From a non-interactive caller capture is synchronous by default anyway; pin
+# the foreground path explicitly for determinism. The async blocks below
+# override this with --async / env -u PROVOST_ASYNC.
 export PROVOST_ASYNC=0
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +32,22 @@ check () { # desc, expected-substring, actual
         echo "  FAIL $1"; echo "       want substring: $2"; echo "       got: $3"; fail=$((fail+1))
     fi
 }
+check_not () { # desc, forbidden-substring, actual
+    if grep -qF -- "$2" <<< "$3"; then
+        echo "  FAIL $1"; echo "       must NOT contain: $2"; echo "       got: $3"; fail=$((fail+1))
+    else
+        echo "  ok   $1"; pass=$((pass+1))
+    fi
+}
+# Exit status of a command (stdout/stderr discarded), without tripping set -e.
+rc_of () { local rc=0; "$@" >/dev/null 2>&1 || rc=$?; echo "$rc"; }
+# git on a test store with a throwaway identity (the smoke's own git use).
+tgit () { git -C "$1" -c user.name=smoke -c user.email=smoke@localhost -c commit.gpgsign=false "${@:2}"; }
+# The lock owner "host" string provost writes for this machine.
+LOCK_HOST="${HOSTNAME:-$(uname -n)}"
+_ns="$(readlink /proc/self/ns/pid 2>/dev/null || true)"; LOCK_HOST="$LOCK_HOST${_ns:+/$_ns}"
+# A pid that is certainly gone.
+dead_pid () { sleep 0 & local p=$!; wait "$p" 2>/dev/null || true; echo "$p"; }
 
 free_out="$(printf '              total        used        free      shared  buff/cache   available\nMem:           15943        2456        9876         123        3610       13234\nSwap:           2047           0        2047\n' | "$PROVOST" 2>&1)"
 check "free injects into 'free'" "dataset 'free'" "$free_out"
@@ -63,8 +78,8 @@ check "stats computes a mean over the column" "Mean" "$stats_out"
 # schema reconciliation: a trimmed same-type capture (>=60% column overlap)
 # unions into the base dataset instead of splitting to free.v2
 RWS="$(mktemp -d)/.recon"
-PROVOST_WORKSPACE="$RWS" "$PROVOST" run printf '              total   used   free   shared   buff/cache   available\nMem:  15943   2456   9876   123   3610   13234\n' >/dev/null 2>&1
-PROVOST_WORKSPACE="$RWS" "$PROVOST" run printf '              total   used   free\nMem:  16000   3050   8500\n' >/dev/null 2>&1
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name free printf '              total   used   free   shared   buff/cache   available\nMem:  15943   2456   9876   123   3610   13234\n' >/dev/null 2>&1
+PROVOST_WORKSPACE="$RWS" "$PROVOST" run --name free printf '              total   used   free\nMem:  16000   3050   8500\n' >/dev/null 2>&1
 recon_ls="$(ls "$RWS/datasets" 2>&1)"
 check "trimmed capture reconciles into 'free' (no variant)" "free.tsv" "$recon_ls"
 check "no free.v2 variant was created" "1" "$(ls "$RWS/datasets" | grep -c '^free')"
@@ -78,26 +93,30 @@ PROVOST_WORKSPACE="$UWS" "$PROVOST" --min-confidence 101 <<<'a=1;b=2' >/dev/null
 unsorted_show="$(PROVOST_WORKSPACE="$UWS" "$PROVOST" show unsorted 2>&1)"
 check "show unsorted decodes the raw input (readable)" "a=1;b=2" "$unsorted_show"
 check "show unsorted does not print the base64 blob" "0" \
-    "$(printf '%s' "$unsorted_show" | grep -cF 'YT0xO2I9Mgo=')"
+    "$(grep -cF 'YT0xO2I9Mgo=' <<< "$unsorted_show" || true)"
 unsorted_triage="$(PROVOST_WORKSPACE="$UWS" "$PROVOST" triage 2>&1)"
 check "triage decodes the raw input (readable)" "a=1;b=2" "$unsorted_triage"
+# the one-awk decoder keeps tabs/newlines escaped, one input per line
+PROVOST_WORKSPACE="$UWS" "$PROVOST" --min-confidence 101 <<<$'p\tq\nsecond line' >/dev/null 2>&1
+check "unsorted decode escapes embedded tabs/newlines" 'p\tq\nsecond line' \
+    "$(PROVOST_WORKSPACE="$UWS" "$PROVOST" show unsorted 2>&1)"
 
 # rm: delete a dataset, prune its provenance rows, and (by default) purge the
 # captures that fed it — all committed, with the git history preserved.
 # --no-purge keeps the captures.
 RMWS="$(mktemp -d)/.rm"
-PROVOST_WORKSPACE="$RMWS" "$PROVOST" run printf 'a=1, b=2\n' >/dev/null 2>&1        # -> kv-pairs (capture c0001)
-PROVOST_WORKSPACE="$RMWS" "$PROVOST" run printf '   total used free\nMem: 100 40 60\n' >/dev/null 2>&1  # -> free (c0002)
+PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name kv-pairs printf 'a=1, b=2\n' >/dev/null 2>&1        # capture c0001
+PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name free printf '   total used free\nMem: 100 40 60\n' >/dev/null 2>&1  # c0002
 rm_missing="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" rm -f nope 2>&1 || true)"
 check "rm refuses a missing dataset" "no such dataset: nope" "$rm_missing"
 # --no-purge: dataset + provenance go, but the source capture is kept
 rm_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" rm -f --no-purge kv-pairs 2>&1)"
 check "rm reports the deletion" "deleted kv-pairs" "$rm_out"
-check "rm removes the dataset file" "0" "$(ls "$RMWS/datasets" 2>/dev/null | grep -c '^kv-pairs.tsv$')"
+check "rm removes the dataset file" "0" "$(ls "$RMWS/datasets" 2>/dev/null | grep -c '^kv-pairs.tsv$' || true)"
 check "rm prunes the dataset's provenance rows" "0" \
-    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'kv-pairs')"
+    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'kv-pairs' || true)"
 check "rm keeps other datasets' provenance rows" "1" \
-    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'free')"
+    "$(tail -n +2 "$RMWS/provenance.tsv" | grep -cw 'free' || true)"
 check "rm --no-purge keeps the source capture" "true" \
     "$([[ -d "$RMWS/captures/c0001" ]] && echo true)"
 # default (purge on): also drops the capture dir that fed the removed dataset
@@ -105,15 +124,31 @@ PROVOST_WORKSPACE="$RMWS" "$PROVOST" rm -f free >/dev/null 2>&1
 check "rm purges the source capture dir by default" "true" \
     "$([[ ! -d "$RMWS/captures/c0002" ]] && echo true)"
 check "rm commits the deletion (history preserved)" "rm: deleted" \
-    "$(git -C "$RMWS" log --oneline 2>&1 | head -1)"
+    "$(git -C "$RMWS" log -1 --format=%s 2>&1)"
+# capture ids are monotonic: after the purge of c0002 the next capture is
+# c0003, never a reused c0002 (which would overwrite history/provenance)
+reuse_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name after printf 'x=1, y=2\n' 2>&1)"
+check "capture ids are never reused after an rm purge" "c0003:" "$reuse_out"
 
-# async is the DEFAULT: a bare inject (no --async, PROVOST_ASYNC unset) backgrounds.
+# async is used only when INTERACTIVE: a bare inject from a script (stderr not
+# a terminal, PROVOST_ASYNC unset) now runs in the foreground.
 DEFWS="$(mktemp -d)/.defasync"
-def_out="$(printf 'x=1\n' | env -u PROVOST_ASYNC PROVOST_WORKSPACE="$DEFWS" "$PROVOST" 2>&1)"
-check "async is the default for a bare inject" "queued (async" "$def_out"
+def_out="$(printf 'x=1, y=2\n' | env -u PROVOST_ASYNC PROVOST_WORKSPACE="$DEFWS" "$PROVOST" 2>&1)"
+check "non-interactive bare inject is synchronous" "dataset" "$def_out"
+check_not "non-interactive bare inject does not background" "queued (async" "$def_out"
+# the result is visible to the very next command — no race
+check "sync default: next command sees the capture" "kv-pairs" "$(PROVOST_WORKSPACE="$DEFWS" "$PROVOST" ls 2>&1)"
 # --sync forces the foreground path (prints the resulting dataset inline)
 sync_out="$(printf 'p=1, q=2\n' | env -u PROVOST_ASYNC PROVOST_WORKSPACE="$DEFWS" "$PROVOST" --sync 2>&1)"
 check "--sync forces the foreground path" "dataset" "$sync_out"
+if command -v script >/dev/null 2>&1 && script -qec true /dev/null >/dev/null 2>&1; then
+    tty_out="$(script -qec "printf 'x=1\n' | env -u PROVOST_ASYNC PROVOST_WORKSPACE=$(printf '%q' "$DEFWS") bash $(printf '%q' "$PROVOST")" /dev/null 2>&1 || true)"
+    check "interactive (TTY) inject defaults to background" "queued (async" "$tty_out"
+    tty_help="$(script -qec "env PROVOST_WORKSPACE=$(printf '%q' "$DEFWS") bash $(printf '%q' "$PROVOST")" /dev/null 2>&1 < /dev/null || true)"
+    check "bare 'provost' on a TTY prints help instead of blocking" "turn command output into data" "$tty_help"
+else
+    echo "  skip interactive TTY checks (no usable 'script')"
+fi
 
 # --async: inject returns immediately and the capture lands in the background.
 # Also a concurrency guard — several detached ingests must not collide on row #s
@@ -136,12 +171,35 @@ done
 check "async captures land in the background store" "1" "$async_landed"
 async_dups=$(tail -n +2 "$AWS/provenance.tsv" | cut -f1 | sort | uniq -d | wc -l | tr -d ' ')
 check "no duplicate row indices across async captures" "0" "$async_dups"
+# the spool dirs of successful background captures are cleaned up
+check "async spool dirs removed after success" "0" \
+    "$(grep -rlF "k=v1" "${TMPDIR:-/tmp}"/provost-async.* 2>/dev/null | grep -c . || true)"
+
+# A FAILED background capture must not vanish: it is logged in the store, the
+# next command warns, and 'provost log --failed' shows (and acknowledges) it.
+FWS="$(mktemp -d)/.asyncfail"
+printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$FWS" "$PROVOST" >/dev/null 2>&1   # initialise the store
+mkdir "$FWS/.lock"; printf 'otherhost\t1\t0\t%s\n' "$(date +%s)" > "$FWS/.lock/owner"   # a live foreign lock
+printf 'c=3, d=4\n' | PROVOST_WORKSPACE="$FWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" --async >/dev/null 2>&1
+for _try in $(seq 1 100); do [[ -s "$FWS/.async-failures.log" ]] && break; sleep 0.2; done
+rm -rf "$FWS/.lock"
+check "background failure is recorded in the store's failure log" "store is locked" "$(cat "$FWS/.async-failures.log" 2>&1)"
+warn_out="$(PROVOST_WORKSPACE="$FWS" "$PROVOST" ls 2>&1)"
+check "next invocation warns about the failed background capture" "background capture(s) failed" "$warn_out"
+check "doctor lists failed background captures" "store is locked" "$(PROVOST_WORKSPACE="$FWS" "$PROVOST" doctor 2>&1 || true)"
+failed_out="$(PROVOST_WORKSPACE="$FWS" "$PROVOST" log --failed 2>&1)"
+check "log --failed shows the failure and its kept spool" "spool:" "$failed_out"
+check_not "warning stops once the failure has been seen" "background capture(s) failed" \
+    "$(PROVOST_WORKSPACE="$FWS" "$PROVOST" ls 2>&1)"
+check "failure log is not committed (gitignored)" "0" \
+    "$(git -C "$FWS" ls-files | grep -c 'async-failures' || true)"
 
 # --- git core: run captures a command as a commit; restore brings it back ---
 check "workspace is a git repo" "true" "$([[ -d "$WS/.git" ]] && echo true)"
 
 run_out="$("$PROVOST" run printf 'CONTAINER   COMMAND\nweb  "/entry web"\ndb  "/entry db"\n' 2>&1)"
 check "run captures a command (docker-ps)" "docker-ps" "$run_out"
+check "run names the dataset after the command" "dataset 'printf'" "$run_out"
 
 log_out="$("$PROVOST" log 2>&1)"
 check "log lists the run capture with its command" "printf" "$log_out"
@@ -153,8 +211,13 @@ check "capture is a tagged git commit" "capture-c" "$tags"
 # restore an earlier capture, then return to latest
 restore_out="$("$PROVOST" restore c0001 2>&1)"
 check "restore brings a capture back up" "brought up c0001" "$restore_out"
+# while detached, a capture would be orphaned — refused with a clear hint
+detached_out="$(printf 'z=1, w=2\n' | "$PROVOST" 2>&1 || true)"
+check "capture is refused while a capture is restored (detached)" "provost restore latest" "$detached_out"
+check "the refused capture exits non-zero" "1" "$(printf 'z=1\n' | rc_of "$PROVOST")"
 latest_out="$("$PROVOST" restore latest 2>&1)"
 check "restore latest returns to the tip" "latest" "$latest_out"
+check "restore rejects a malformed capture id" "2" "$(rc_of "$PROVOST" restore ../../etc)"
 
 # --- concurrency: parallel writers to a fresh shared store stay consistent ---
 CWS="$(mktemp -d)/shared"
@@ -164,6 +227,42 @@ dup="$(tail -n +2 "$CWS/provenance.tsv" 2>/dev/null | cut -f1 | sort | uniq -d |
 n="$(tail -n +2 "$CWS/provenance.tsv" 2>/dev/null | wc -l | tr -d ' ')"
 check "6 concurrent captures all recorded" "6" "$n"
 check "no duplicate row indices under concurrency" "0" "$dup"
+check "6 concurrent captures got 6 distinct capture ids" "6" "$(find "$CWS/captures" -mindepth 1 -maxdepth 1 -type d -name 'c*' | wc -l | tr -d ' ')"
+check "the store lock is never committed" "0" "$(git -C "$CWS" ls-files | grep -c '^\.lock' || true)"
+check "the store has a .gitignore for runtime files" ".lock" "$(cat "$CWS/.gitignore" 2>&1)"
+
+# --- store lock: stale-lock rules --------------------------------------------
+LWS="$(mktemp -d)/.lockt"
+printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$LWS" "$PROVOST" >/dev/null 2>&1
+# same host, dead pid → stale → broken
+mkdir "$LWS/.lock"; printf '%s\t%s\t0\t%s\n' "$LOCK_HOST" "$(dead_pid)" "$(date +%s)" > "$LWS/.lock/owner"
+check "a same-host lock whose pid is gone is broken" "0" \
+    "$(printf 'a=2\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# same host, LIVE pid (even one we may not signal) → respected
+sleep 30 & live=$!
+mkdir "$LWS/.lock"; printf '%s\t%s\t0\t%s\n' "$LOCK_HOST" "$live" "$(date +%s)" > "$LWS/.lock/owner"
+lk_out="$(printf 'a=3\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" 2>&1 || true)"
+check "a same-host lock with a live pid is respected" "store is locked" "$lk_out"
+kill "$live" 2>/dev/null || true; wait "$live" 2>/dev/null || true
+rm -rf "$LWS/.lock"
+# another host, fresh → can't check its pid → respected
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t%s\t0\t%s\n' "$(dead_pid)" "$(date +%s)" > "$LWS/.lock/owner"
+check "a fresh lock from another host is respected" "1" \
+    "$(printf 'a=4\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 rc_of "$PROVOST")"
+check "restore takes the store lock too" "store is locked" \
+    "$(PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" restore latest 2>&1 || true)"
+check "export takes the store lock too" "store is locked" \
+    "$(PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=1 "$PROVOST" export "$(mktemp -d)/x.bundle" 2>&1 || true)"
+rm -rf "$LWS/.lock"
+# another host, older than PROVOST_LOCK_MAX_AGE → stale → broken
+mkdir "$LWS/.lock"; printf 'elsewhere.example/pid:[1]\t1\t0\t%s\n' "$(( $(date +%s) - 7200 ))" > "$LWS/.lock/owner"
+check "a lock older than PROVOST_LOCK_MAX_AGE is broken" "0" \
+    "$(printf 'a=5\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+# a legacy (pre-owner-file) lock whose pid is gone is broken
+mkdir "$LWS/.lock"; dead_pid > "$LWS/.lock/pid"
+check "a legacy pid-file lock whose pid is gone is broken" "0" \
+    "$(printf 'a=6\n' | PROVOST_WORKSPACE="$LWS" PROVOST_LOCK_TIMEOUT=2 rc_of "$PROVOST")"
+check "no lock is left behind after captures" "false" "$([[ -e "$LWS/.lock" ]] && echo true || echo false)"
 
 # --- Stage B: controlled directories route captures locally -----------------
 GH="$(mktemp -d)/global"
@@ -172,11 +271,30 @@ ctl_out="$(cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" cont
 check "control marks a directory" "controlling" "$ctl_out"
 # capture from a SUBDIR must route to the project instance, not the global store
 ( cd "$PROJ/sub" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" run printf 'CONTAINER  COMMAND\nweb  "/x"\n' >/dev/null 2>&1 )
-check "capture from subdir lands in the controlled instance" "docker-ps" "$(ls "$PROJ/.provost/datasets" 2>&1)"
-check "capture from subdir did NOT touch the global store" "0" "$(ls "$GH/datasets" 2>/dev/null | grep -c .)"
+check "capture from subdir lands in the controlled instance" "printf" "$(ls "$PROJ/.provost/datasets" 2>&1)"
+check "capture from subdir did NOT touch the global store" "0" "$(find "$GH/datasets" -type f 2>/dev/null | wc -l | tr -d ' ')"
 check "directory context manifest was captured" "file.txt" "$(cat "$PROJ/.provost/context/manifest.tsv" 2>&1)"
+# every capture in a controlled dir refreshes the snapshot (it used to die
+# silently on an unset variable and never run after 'control')
+echo later > "$PROJ/added-later.txt"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "each capture in a controlled dir updates the context snapshot" "added-later.txt" \
+    "$(cat "$PROJ/.provost/context/manifest.tsv" 2>&1)"
+check "the refreshed snapshot is committed with the capture" "added-later.txt" \
+    "$(git -C "$PROJ/.provost" show HEAD:context/manifest.tsv 2>&1)"
 inst_out="$(PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" instances 2>&1)"
 check "instances lists the controlled dir" "$PROJ" "$inst_out"
+# re-controlling a dir the registry already lists does not duplicate it
+rm -f "$PROJ/.provost/CONTROLLED"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1 )
+check "control does not duplicate a registry entry" "1" "$(grep -c "^$PROJ	" "$GH/instances.tsv" || true)"
+# uncontrol matches the directory literally, not as a regex ('a.b' ≠ 'aXb')
+RX="$(mktemp -d)"; mkdir -p "$RX/a.b" "$RX/aXb"
+PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" control "$RX/aXb" >/dev/null 2>&1
+PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" control "$RX/a.b" >/dev/null 2>&1
+PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" uncontrol "$RX/a.b" >/dev/null 2>&1
+check "uncontrol removes only its own directory (fixed-string match)" "$RX/aXb" "$(cat "$GH/instances.tsv")"
+check_not "uncontrol removed the released directory" "$RX/a.b	" "$(cat "$GH/instances.tsv")"
 
 # --- Stage C: export / import round-trip preserves datasets + provenance ----
 BUNDLE="$(mktemp -d)/store.bundle"
@@ -230,9 +348,33 @@ check "plugin parse carries its confidence" "conf 95" "$plug_out"
 plugcap="$(ls "$WS/captures" | sort | tail -1)"
 check "capture meta records the plugin dir" "$PLUG" "$(cat "$WS/captures/$plugcap/meta.tsv")"
 plug_env_out="$(PROVOST_PLUGIN_DIR="$PLUG" "$PROVOST" run --sync -- cat "$FRAMES_IN" 2>&1)"
-check "PROVOST_PLUGIN_DIR reaches 'run' detection too" "dataset 'frames'" "$plug_env_out"
+check "PROVOST_PLUGIN_DIR reaches 'run' detection too" "strategy frames" "$plug_env_out"
 badplug_out="$("$PROVOST" --plugin-dir /nonexistent/nowhere "$FRAMES_IN" 2>&1 || true)"
 check "--plugin-dir validates the directory up front" "plugin strategy dir not found" "$badplug_out"
+
+# The engine's legacy .envoyrc layer is OFF under provost (ENVOY_NO_RC=1): a
+# .envoyrc in the CWD cannot reconfigure a capture. A probe strategy records
+# what the engine process saw.
+PROBE_DIR="$(mktemp -d)/probe"; mkdir -p "$PROBE_DIR"
+cat > "$PROBE_DIR/probe.sh" <<'EOS'
+#!/bin/bash
+## Name: probe
+## Description: smoke-test probe — records the engine's environment
+## Version: 1.0
+## Priority: 10
+strategy_detect () {
+    printf '%s|%s\n' "${ENVOY_NO_RC:-unset}" "${SMOKE_RC_PROBE:-unset}" > "$SMOKE_PROBE_OUT"
+    _STRATEGY_CONFIDENCE=0; return 1
+}
+strategy_extract () { :; }
+EOS
+RCDIR="$(mktemp -d)"; printf 'SMOKE_RC_PROBE=leaked\n' > "$RCDIR/.envoyrc"
+export SMOKE_PROBE_OUT="$RCDIR/probe.out"
+( cd "$RCDIR" && printf 'a=1, b=2\n' | "$PROVOST" --plugin-dir "$PROBE_DIR" >/dev/null 2>&1 ) || true
+check "engines run with ENVOY_NO_RC=1 (.envoyrc not loaded)" "1|unset" "$(cat "$SMOKE_PROBE_OUT" 2>&1)"
+check "the .envoyrc loader honours ENVOY_NO_RC=1" "unset" \
+    "$(cd "$RCDIR" && ENVOY_NO_RC=1 bash -c 'source "$1"; envoy_envoyrc_load; echo "${SMOKE_RC_PROBE:-unset}"' _ "$HERE/../lib/envoy_envoyrc.sh" 2>&1)"
+unset SMOKE_PROBE_OUT
 
 # A leading '#%' prologue is capture context, not data: peeled before
 # detection (generic parsers stay uncorrupted), stored as context.txt, and
@@ -242,13 +384,13 @@ check "'#%' prologue does not corrupt detection (body still 'free')" "dataset 'f
 procap="$(ls "$WS/captures" | sort | tail -1)"
 check "prologue stored with the capture as context.txt" "#% frame: 7" "$(cat "$WS/captures/$procap/context.txt" 2>&1)"
 check "capture meta records the context" "context" "$(cat "$WS/captures/$procap/meta.tsv")"
-prorow="$(printf '%s\n' "$pro_out" | sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' | head -1)"
+prorow="$(sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' <<< "$pro_out")"; prorow="${prorow%%$'\n'*}"
 check "source of a prologue capture is verbatim (header included)" "#% source: deframe" "$("$PROVOST" source "$prorow" 2>&1)"
 
 # '#%' after the first data line is data, not context — nothing is peeled.
 printf 'alias ll='\''ls -alF'\''\n#%% not-a-prologue\n' | "$PROVOST" >/dev/null 2>&1 || true
 midcap="$(ls "$WS/captures" | sort | tail -1)"
-check "mid-file '#%' is data — no context recorded" "0" "$(ls "$WS/captures/$midcap/context.txt" 2>/dev/null | grep -c .)"
+check "mid-file '#%' is data — no context recorded" "0" "$(ls "$WS/captures/$midcap/context.txt" 2>/dev/null | grep -c . || true)"
 
 # --multi: one input that holds several datasets (a banner, a key/value block
 # and a table) files each of them separately under ONE capture, instead of
@@ -266,12 +408,199 @@ check "multi datasets share one capture (one stored input)" "1" \
 # The two same-strategy tables differ in shape, so the store's variant rule
 # keeps them apart rather than welding them together.
 check "same-strategy datasets split into a variant" "aligned-columns.v2" "$multimeta"
-multirow="$(printf '%s\n' "$multi_out" | sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' | head -1)"
+multirow="$(sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' <<< "$multi_out")"; multirow="${multirow%%$'\n'*}"
 check "a multi-capture row still traces back to its input" "original source" \
     "$("$PROVOST" source "$multirow" 2>&1)"
 # Without --multi the same input keeps the one-winner behaviour.
 single_out="$("$PROVOST" --sync "$MULTI_IN" 2>&1)"
 check "default capture is still single-dataset" "→ dataset" "$single_out"
+
+# rm of ONE dataset of a --multi capture keeps the capture (it still feeds the
+# others) and drops the name from its meta; removing the rest then purges it.
+MRM="$(mktemp -d)/.multirm"
+PROVOST_WORKSPACE="$MRM" "$PROVOST" --multi "$MULTI_IN" >/dev/null 2>&1
+mrm_ds="$(awk -F'\t' '$1=="dataset"{print $2}' "$MRM/captures/c0001/meta.tsv")"
+mrm_first="${mrm_ds%%,*}"
+PROVOST_WORKSPACE="$MRM" "$PROVOST" rm -f "$mrm_first" >/dev/null 2>&1
+check "rm of one --multi dataset keeps the shared capture" "true" "$([[ -d "$MRM/captures/c0001" ]] && echo true)"
+check "the shared capture's meta records the removed dataset" "removed_datasets	$mrm_first" \
+    "$(cat "$MRM/captures/c0001/meta.tsv" 2>&1)"
+IFS=',' read -r -a mrm_rest <<< "${mrm_ds#*,}"
+PROVOST_WORKSPACE="$MRM" "$PROVOST" rm -f "${mrm_rest[@]}" >/dev/null 2>&1
+check "rm of the last datasets of a --multi capture purges it" "false" \
+    "$([[ -d "$MRM/captures/c0001" ]] && echo true || echo false)"
+
+# ============================================================================
+# Hardening / regression checks
+# ============================================================================
+
+# Large captures: >~3000 rows used to die silently with exit 141 (SIGPIPE from
+# `printf "$tsv" | head -1` under pipefail).
+BIG="$(mktemp)"; awk 'BEGIN { print "id,name,value"; for (i = 1; i <= 3500; i++) printf "%d,n%d,%d\n", i, i, i * 7 }' > "$BIG"
+BWS="$(mktemp -d)/.big"
+big_rc=0; big_out="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync "$BIG" 2>&1)" || big_rc=$?
+check "a 3500-row capture succeeds (no silent SIGPIPE exit)" "0" "$big_rc"
+check "a 3500-row capture files every row" "#1..3500" "$big_out"
+check "a 3500-row capture records provenance for every row" "3501" "$(wc -l < "$BWS/provenance.tsv" | tr -d ' ')"
+
+# Monotonic capture ids survive an old store without the counter file: the id
+# is seeded from the highest capture ever used (tags / history), not a count.
+MIG="$(mktemp -d)/.mig"
+for i in 1 2 3; do PROVOST_WORKSPACE="$MIG" "$PROVOST" run --name "m$i" printf "k$i=v, x=1\n" >/dev/null 2>&1; done
+PROVOST_WORKSPACE="$MIG" "$PROVOST" rm -f m3 >/dev/null 2>&1           # purges c0003
+# Make it look like a store from an older provost: no .gitignore, no counter,
+# and a committed .lock (the old init committed its own lock).
+rm -f "$MIG/.gitignore" "$MIG/.next_capture_id"
+mkdir "$MIG/.lock"; dead_pid > "$MIG/.lock/pid"
+tgit "$MIG" add -f -A >/dev/null 2>&1; tgit "$MIG" commit -q -m "simulate an old store" >/dev/null 2>&1
+check "setup: the simulated old store tracks .lock" "1" "$(git -C "$MIG" ls-files | grep -c '^\.lock/' || true)"
+mig_out="$(PROVOST_WORKSPACE="$MIG" "$PROVOST" run --name m4 printf 'k4=v, x=1\n' 2>&1)"
+check "migrated store continues capture ids after the max ever used" "c0004:" "$mig_out"
+check "migration untracks a committed .lock" "0" "$(git -C "$MIG" ls-files | grep -c '^\.lock' || true)"
+check "migration adds the store .gitignore" "provost store .gitignore" "$(cat "$MIG/.gitignore" 2>&1)"
+
+# Git failures are reported, never swallowed: no "ok" without a commit.
+GWS="$(mktemp -d)/.gitfail"
+printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$GWS" "$PROVOST" >/dev/null 2>&1
+: > "$GWS/.git/index.lock"                                  # git add will now fail
+gf_rc=0; gf_out="$(printf 'c=3, d=4\n' | PROVOST_WORKSPACE="$GWS" "$PROVOST" 2>&1)" || gf_rc=$?
+rm -f "$GWS/.git/index.lock"
+check "a failed git commit exits non-zero" "1" "$gf_rc"
+check "a failed git commit shows git's own error" "index.lock" "$gf_out"
+check_not "a failed git commit does not report ok" " ok " "$gf_out"
+# A shared store owned by another user works (git safe.directory); needs root
+# to hand the store to another uid.
+if [[ "$(id -u)" == 0 ]]; then
+    chown -R 4242:4242 "$GWS"
+    check "a store owned by another user still captures (safe.directory)" "dataset" \
+        "$(printf 'e=5, f=6\n' | PROVOST_WORKSPACE="$GWS" "$PROVOST" 2>&1)"
+else
+    echo "  skip foreign-owned store check (needs root)"
+fi
+
+# Path traversal: dataset names and capture ids are validated.
+TWS="$(mktemp -d)/deep/.trav"
+printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$TWS" "$PROVOST" >/dev/null 2>&1
+VICTIM="$(dirname "$(dirname "$TWS")")/victim.tsv"; echo keep > "$VICTIM"
+check "rm refuses a path-traversal dataset name (exit 2)" "2" "$(PROVOST_WORKSPACE="$TWS" rc_of "$PROVOST" rm -f ../../victim)"
+check "the traversal target is untouched" "keep" "$(cat "$VICTIM" 2>&1)"
+check "show refuses a path-traversal name" "invalid dataset name" "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" show ../../victim 2>&1 || true)"
+check "stats refuses a path-traversal name" "invalid dataset name" "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" stats ../../victim 2>&1 || true)"
+check "--name refuses a path-traversal name" "invalid dataset name" \
+    "$(printf 'a=1\n' | PROVOST_WORKSPACE="$TWS" "$PROVOST" --name ../../victim 2>&1 || true)"
+printf '99\tkv-pairs\t../../../etc\n' >> "$TWS/provenance.tsv"
+check "source refuses a tampered capture id" "invalid capture id" "$(PROVOST_WORKSPACE="$TWS" "$PROVOST" source 99 2>&1 || true)"
+
+# Code comes only from the install dir: engine/transform files planted in the
+# data store (writable by a shared store's other members) are never run.
+EH="$(mktemp -d)/evilhome"; mkdir -p "$EH/transform" "$EH/extract" "$EH/analyze"
+MARK="$(mktemp -d)/pwned"
+printf 'touch %q\n' "$MARK.transform" > "$EH/transform/melt.sh"
+printf 'touch %q\n' "$MARK.extract" > "$EH/extract/envoy-extract"
+printf 'touch %q\n' "$MARK.analyze" > "$EH/analyze/envoy-analyze"
+ev_out="$(printf 'a=1, b=2\n' | env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" 2>&1)"
+env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" stats kv-pairs >/dev/null 2>&1 || true
+check "a store-planted engine/transform is never executed" "none" \
+    "$(ls "$MARK".* 2>/dev/null || echo none)"
+check "capture still works with the bundled engine" "dataset 'kv-pairs'" "$ev_out"
+
+# Numeric settings are validated before any arithmetic touches them.
+NWS="$(mktemp -d)/.num"; PWN="$(mktemp -d)/pwned"
+check "PROVOST_MIN_CONFIDENCE with code is refused (exit 2)" "2" \
+    "$(PROVOST_WORKSPACE="$NWS" PROVOST_MIN_CONFIDENCE="HOME[\$(touch $PWN)]" rc_of "$PROVOST" ls)"
+check "...and the embedded command never ran" "false" "$([[ -e "$PWN" ]] && echo true || echo false)"
+for v in PROVOST_LOCK_TIMEOUT PROVOST_RECONCILE_OVERLAP PROVOST_MAX_INPUT PROVOST_LOCK_MAX_AGE PROVOST_QUIET; do
+    check "$v must be numeric (exit 2)" "2" "$(rc_of env PROVOST_WORKSPACE="$NWS" "$v=x[\$(touch $PWN)]" "$PROVOST" ls)"
+done
+check "none of the invalid settings executed code" "false" "$([[ -e "$PWN" ]] && echo true || echo false)"
+check "--min-confidence must be numeric (exit 2)" "2" "$(printf 'a=1\n' | PROVOST_WORKSPACE="$NWS" rc_of "$PROVOST" --min-confidence 'x[1]')"
+check "PROVOST_RECONCILE_OVERLAP range is enforced" "at most" \
+    "$(PROVOST_WORKSPACE="$NWS" PROVOST_RECONCILE_OVERLAP=500 "$PROVOST" ls 2>&1 || true)"
+
+# Dataset naming: 'run' names after the command, looking through wrappers.
+NMWS="$(mktemp -d)/.names"
+nm_out="$(PROVOST_WORKSPACE="$NMWS" "$PROVOST" run timeout 5 env A=1 nice -n 1 printf 'a=1, b=2\n' 2>&1)"
+check "run looks through timeout/env/nice to name the dataset" "dataset 'printf'" "$nm_out"
+check "the strategy is still recorded in meta" "strategy	kv-pairs" "$(cat "$NMWS/captures/c0001/meta.tsv")"
+nm_out="$(printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$NMWS" "$PROVOST" run xargs echo 2>&1)"
+check "xargs is not a wrapper" "dataset 'xargs'" "$nm_out"
+nm_out="$(PROVOST_WORKSPACE="$NMWS" "$PROVOST" run --name mine printf 'a=1, b=2\n' 2>&1)"
+check "run --name overrides the dataset name" "dataset 'mine'" "$nm_out"
+nm_out="$(printf 'a=1, b=2\n' | PROVOST_WORKSPACE="$NMWS" "$PROVOST" --name injected 2>&1)"
+check "inject --name overrides the dataset name" "dataset 'injected'" "$nm_out"
+if command -v df >/dev/null 2>&1; then
+    PROVOST_WORKSPACE="$NMWS" "$PROVOST" run df -P >/dev/null 2>&1 || true
+    check "the documented 'provost run df ...; provost show df' works" "Filesystem" \
+        "$(PROVOST_WORKSPACE="$NMWS" "$PROVOST" show df 2>&1)"
+fi
+
+# run honours PROVOST_MAX_INPUT like inject does.
+MX="$(mktemp -d)/.max"
+mx_out="$(PROVOST_WORKSPACE="$MX" PROVOST_MAX_INPUT=10 "$PROVOST" run printf 'a=0123456789abcdef\n' 2>&1 || true)"
+check "run refuses output larger than PROVOST_MAX_INPUT" "too large" "$mx_out"
+check "nothing is captured for oversized run output" "0" "$(find "$MX/captures" -mindepth 1 2>/dev/null | wc -l | tr -d ' ')"
+
+# meta.tsv 'command' is shell-quoted and TSV-safe (tabs/newlines escaped).
+QWS="$(mktemp -d)/.quote"
+PROVOST_WORKSPACE="$QWS" "$PROVOST" run --name q printf 'k=%s, j=%s\n' 'two words' $'tab\there' >/dev/null 2>&1
+qmeta="$QWS/captures/c0001/meta.tsv"
+check "meta.tsv stays two columns per line with tabs in args" "0" "$(awk -F'\t' 'NF != 2' "$qmeta" | grep -c . || true)"
+check "meta command keeps argument boundaries (quoted)" "'two words'" "$(cat "$qmeta")"
+check "meta command escapes a tab" "\$'tab\\there'" "$(cat "$qmeta")"
+check "log shows the quoted command" "'two words'" "$(PROVOST_WORKSPACE="$QWS" "$PROVOST" log 2>/dev/null)"
+
+# Store paths with spaces and quotes.
+SPH="$(mktemp -d)/my st'ore"
+sp_out="$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" run --name sp printf 'a=1, b=2\n' 2>&1)"
+check "a store path with a space and a quote captures" "dataset 'sp'" "$sp_out"
+check "log works in a store path with a space and a quote" "printf" "$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" log 2>&1)"
+check "source works in a store path with a space and a quote" "a=1, b=2" "$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" source 1 2>&1)"
+SPB="$(mktemp -d)/b u'n.bundle"
+env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" export "$SPB" >/dev/null 2>&1
+SPD="$(mktemp -d)/im port'ed"
+spi_out="$(env -u PROVOST_WORKSPACE "$PROVOST" import "$SPB" "$SPD" 2>&1)"
+check "import hint shell-quotes the destination (printf %q)" "PROVOST_WORKSPACE=$(printf '%q' "$SPD")" "$spi_out"
+check "rm works in a store path with a space and a quote" "deleted sp" "$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" rm -f sp 2>&1)"
+
+# Help / CLI polish: help → stdout + exit 0; usage errors → stderr + exit 2.
+help_out="$("$PROVOST" help 2>/dev/null)"
+check "help prints to stdout" "USAGE" "$help_out"
+check "help exits 0" "0" "$(rc_of "$PROVOST" help)"
+check "--help prints to stdout" "USAGE" "$("$PROVOST" --help 2>/dev/null)"
+check "-h prints to stdout" "USAGE" "$("$PROVOST" -h 2>/dev/null)"
+check_not "help no longer claims reconciliation is missing" "Not yet" "$help_out"
+check "help cites the real design doc" "docs/0001-rename-and-simplification.md" "$help_out"
+check "unknown command suggests the right one" "unknown command 'stat' (did you mean 'stats'?)" "$("$PROVOST" stat 2>&1 || true)"
+check "unknown command exits 2" "2" "$(rc_of "$PROVOST" stat)"
+check "'show' with no name is a clean usage error" "usage: provost show" "$("$PROVOST" show 2>&1 || true)"
+check "'show' with no name exits 2" "2" "$(rc_of "$PROVOST" show)"
+check "unknown option exits 2" "2" "$(rc_of "$PROVOST" rm --bogus x)"
+for sub in run rm show stats log restore source; do
+    check "'$sub --help' prints its own usage to stdout" "usage: provost $sub" "$("$PROVOST" "$sub" --help 2>/dev/null)"
+done
+check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sync --help 2>/dev/null)"
+# every user-facing PROVOST_* setting is documented in help and the man page
+MAN="$HERE/../man/provost.1"
+while IFS= read -r v; do
+    case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR) continue ;; esac
+    check "help documents $v" "$v" "$help_out"
+    check "man page documents $v" "$v" "$(cat "$MAN")"
+done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)
+
+# A store whose .git/config others can write must not smuggle in settings that
+# make git run programs (filters, pagers, includes…): safe.directory is lifted.
+T="$(mktemp -d)"
+VWS="$T/vetstore"
+printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n' | PROVOST_WORKSPACE="$VWS" "$PROVOST" --sync >/dev/null 2>&1
+check "own, private store config is trusted" "0" "$(PROVOST_WORKSPACE="$VWS" rc_of "$PROVOST" ls)"
+chmod g+w "$VWS/.git/config"
+check "group-writable config with only git's own keys is still trusted" "0" "$(PROVOST_WORKSPACE="$VWS" rc_of "$PROVOST" ls)"
+git config --file "$VWS/.git/config" filter.evil.clean "touch $T/pwned-filter"
+vet_out="$(PROVOST_WORKSPACE="$VWS" "$PROVOST" ls 2>&1 || true)"
+check "group-writable config with a filter driver is refused" "refusing to use the store" "$vet_out"
+check "refusal names the offending key" "filter.evil.clean" "$vet_out"
+printf 'a,b\n1,2\n' | PROVOST_WORKSPACE="$VWS" "$PROVOST" --sync >/dev/null 2>&1 || true
+check "no capture runs git in a refused store" "no" "$([[ -e "$T/pwned-filter" ]] && echo yes || echo no)"
 
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

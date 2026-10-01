@@ -1,52 +1,87 @@
-.TH PROVOST 1 "2026-07-05" "provost 2.0.0" "User Commands"
+.TH PROVOST 1 "2026-09-25" "provost 2.0.1" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
 .B provost run
-[\fB--\fR] \fIcommand\fR [\fIargs...\fR]
+[\fIoptions\fR] [\fB--\fR] \fIcommand\fR [\fIargs...\fR]
 .br
 .I command
 |
 .B provost
-[\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
+[\fIoptions\fR]
+.br
+.B provost
+[\fIoptions\fR] \fIFILE\fR
 .br
 .B provost
 \fIsubcommand\fR [\fIargs...\fR]
+.br
+.B provost
+\fIsubcommand\fR \fB--help\fR
 .SH DESCRIPTION
 .B provost
 captures a command's output, auto-detects its format (via a library of 200+
 extract strategies), and presents it as a tidy, one-row-per-record dataset in a
 git-backed store. Every capture is a commit; every dataset row carries a
 globally-unique index so it can be traced back to its source.
+.SH CAPTURE OPTIONS
+Accepted by
+.B run
+and by injection (piped stdin or a \fIFILE\fR):
+.TP
+.BI --name " NAME"
+File into dataset \fINAME\fR instead of the default name (see
+.BR "DATASET NAMES" ).
+.TP
+.BI --min-confidence " N"
+Commit threshold 0\-101 (default: \fBPROVOST_MIN_CONFIDENCE\fR, 50). A capture
+the engine is less sure of goes to the \fBunsorted\fR triage bucket.
+.TP
+.BI --plugin-dir " DIR"
+Add an extra strategy directory to detection (or \fBPROVOST_PLUGIN_DIR\fR), so
+a wrapping project's strategies compete without being symlinked into
+\fI~/.mfe/strategies\fR.
+.TP
+.B --multi
+File every dataset the input holds (or \fBPROVOST_MULTI=1\fR).
+.TP
+.BR --sync ", " --wait
+Capture in the foreground and print the resulting dataset and \fI#N\fR range.
+This is the default when stderr is not a terminal (scripts, pipelines).
+.TP
+.B --async
+Capture in a detached background process; the prompt returns at once. This is
+the default when stderr is a terminal.
+.TP
+.BR -q ", " --silent
+No progress output (or \fBPROVOST_QUIET=1\fR).
 .SH SUBCOMMANDS
 .TP
-.B run [--] \fIcommand\fR [args...]
+.B run [\fIoptions\fR] [--] \fIcommand\fR [args...]
 Execute a command, capture its combined output as a commit, auto-detect the
-format, and file it into a typed dataset.
+format, and file it as a dataset named after the command. The output is capped
+at \fBPROVOST_MAX_INPUT\fR bytes, like injection. provost exits with the
+command's own exit status.
 .TP
 .I command
-| \fBprovost\fR [\fB--silent\fR] [\fB--min-confidence\fR \fIN\fR] [\fB--sync\fR] [\fB--plugin-dir\fR \fIDIR\fR]
-Inject piped/stdin (or a FILE argument) the same way as
+| \fBprovost\fR [\fIoptions\fR]
+Inject piped stdin (or a \fIFILE\fR argument) the same way as
 .BR run .
-By default the capture runs in a detached background process and the prompt
-returns at once; results appear in
-.B provost log
-shortly after. \fB--sync\fR/\fB--wait\fR (or \fBPROVOST_ASYNC=0\fR) forces the
-foreground path, which prints the resulting dataset and \fI#N\fR range.
-\fB--plugin-dir\fR \fIDIR\fR (or \fBPROVOST_PLUGIN_DIR\fR) adds an extra strategy
-directory to detection, so a wrapping project's strategies compete without
-being symlinked into \fI~/.mfe/strategies\fR.
 A leading run of \fB#%\fR lines on injected input is a metadata prologue:
 it is peeled off before detection (it cannot corrupt a parse), stored with the
 capture as \fIcontext.txt\fR, and shown verbatim by
 .BR "provost source" .
+Run with no arguments from a terminal (nothing piped in),
+.B provost
+prints its help instead of waiting on stdin.
 .TP
 .B source \fI#N\fR
 Show the original captured input behind dataset row \fI#N\fR.
 .TP
 .B control \fR[\fIdir\fR]
 Make \fIdir\fR (default: cwd) its own capture instance; captures run inside it
-route there, and each commit snapshots the directory's contents as context.
+route there, and every capture's commit snapshots the directory's contents as
+context (\fIcontext/manifest.tsv\fR).
 .TP
 .B uncontrol \fR[\fIdir\fR]
 Release a controlled directory (its data is kept).
@@ -60,11 +95,13 @@ Bundle the whole store (datasets + capture commits) into a portable file.
 .B import \fIfile\fR \fR[\fIdest\fR]
 Reconstitute a bundle elsewhere to browse.
 .TP
-.B log
-List captures (the git history).
+.B log \fR[\fB--failed\fR]
+List captures (the git history). \fB--failed\fR lists background captures that
+failed (and marks them seen).
 .TP
-.B restore \fI#id\fR|latest
-Bring a capture's commit back up; \fBlatest\fR returns to the tip.
+.B restore \fIid\fR|latest
+Bring a capture's commit back up (detached); \fBlatest\fR returns to the tip.
+While a capture is restored, new captures and \fBrm\fR are refused.
 .TP
 .B ls
 List datasets.
@@ -76,9 +113,11 @@ For the \fBunsorted\fR bucket the base64 \fBraw\fR column is decoded to text.
 .B rm [\fB-f\fR|\fB--yes\fR] [\fB--no-purge\fR] \fINAME\fR...
 Delete one or more datasets. Removes each named dataset file, prunes its rows
 from the provenance map, and commits the deletion (the git history and
-\fBrestore\fR still reach the pre-deletion state). By default it also purges the
-captures that fed the removed dataset(s); \fB--no-purge\fR/\fB--keep-captures\fR
-keeps them. Prompts unless \fB-f\fR/\fB--yes\fR. Aliases: \fBdelete\fR, \fBdrop\fR.
+\fBrestore\fR still reach the pre-deletion state). By default it also purges
+each capture that fed only removed dataset(s); a \fB--multi\fR capture that
+still feeds a surviving dataset is kept and its \fImeta.tsv\fR updated.
+\fB--no-purge\fR/\fB--keep-captures\fR keeps every capture. Prompts unless
+\fB-f\fR/\fB--yes\fR. Aliases: \fBdelete\fR, \fBdrop\fR.
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).
@@ -88,17 +127,65 @@ Show the low-confidence / unmatched bucket, raw input decoded to text
 (\fBprovost source #N\fR for the exact original bytes).
 .TP
 .B doctor
-Check the extract/analyze engines and the store.
+Check the extract/analyze engines and the store; lists failed background
+captures.
+.TP
+.B help
+Print help to stdout. \fIsubcommand\fR \fB--help\fR prints that command's usage.
+.SH DATASET NAMES
+.B provost run
+\fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
+through the wrappers \fBsudo\fR, \fBdoas\fR, \fBenv\fR (with its
+\fIVAR\fR=\fIval\fR arguments), \fBnice\fR, \fBionice\fR, \fBnohup\fR,
+\fBtime\fR, \fBcommand\fR, \fBexec\fR, \fBstdbuf\fR and \fBtimeout\fR (with its
+duration) and their options; \fBxargs\fR is not a wrapper. So
+.B provost run sudo df -h
+files into \fBdf\fR. Injected input is named after the winning parser (e.g.
+\fBcsv\fR, \fBfree\fR, \fBaligned-columns\fR). \fB--name\fR overrides both.
+Names consist of letters, digits, \fB.\fR, \fB_\fR and \fB-\fR, start with a
+letter or digit, and never contain \fB..\fR. Unmatched input goes to
+\fBunsorted\fR. With \fB--multi\fR each dataset is named after its strategy,
+prefixed \fINAME\fR\fB.\fR for \fBrun\fR or \fB--name\fR.
+.PP
+A capture whose columns differ from the existing dataset's is reconciled into
+it (columns unioned) when the overlap is at least
+\fBPROVOST_RECONCILE_OVERLAP\fR percent, else it goes to a variant
+\fINAME\fR\fB.v2\fR, \fB.v3\fR, ...
+.SH FOREGROUND AND BACKGROUND
+From an interactive terminal a capture runs in the background; from a script or
+pipeline it runs in the foreground, so
+.B "cmd | provost; provost show x"
+never races. A failed background capture is appended to the store's
+\fI.async-failures.log\fR (its input and full log are kept in the spool
+directory it names); every later provost command prints a one-line warning
+until the failure is seen with \fBprovost log --failed\fR or \fBprovost doctor\fR.
 .SH STORE
 By default captures go to a global git store at
 .BR $PROVOST_HOME ", or " ~/.provost
 if unset, so you can capture from any directory. Point
 .B PROVOST_HOME
 at a shared, group-writable directory to collaborate; a lock serialises
-concurrent writers. A controlled directory (see
+concurrent writers, and a store owned by another user is trusted by provost's
+own git calls. A controlled directory (see
 .BR control )
 overrides the global store while you are inside it.
+.PP
+The store holds only data. The extract/analyze engines and the transform
+module are loaded only from provost's own installation directory, never from
+the store (which a shared store's other members can write to). provost's git
+calls also disable hooks and fsmonitor.
+.PP
+Capture ids and row indices are never reused (not after \fBrm\fR, not after
+\fBrestore\fR). Runtime files (the lock, the failure log, temporary files) are
+listed in the store's \fI.gitignore\fR and never committed; stores created by
+older versions are migrated on the next write.
+.PP
+The store lock records host, pid, uid and time. It is broken as stale only when
+it was taken on this host and its process no longer exists, or when it is older
+than \fBPROVOST_LOCK_MAX_AGE\fR seconds.
 .SH ENVIRONMENT
+Numeric settings must be whole numbers; any other value is refused with exit
+status 2.
 .TP
 .B PROVOST_HOME
 Global store directory (default: ~/.provost).
@@ -107,34 +194,55 @@ Global store directory (default: ~/.provost).
 Explicit store override (wins over PROVOST_HOME).
 .TP
 .B PROVOST_MIN_CONFIDENCE
-Commit threshold 0\-100 (default: 50).
+Commit threshold 0\-100 (default: 50); 101 holds every capture back for triage.
 .TP
 .B PROVOST_PLUGIN_DIR
 Extra strategy directory for detection (same as \fB--plugin-dir\fR on
 inject/run).
 .TP
 .B PROVOST_ASYNC
-Background capture (default 1). Set 0 (or pass \fB--sync\fR/\fB--wait\fR) for the
-foreground path.
+\fB1\fR always captures in the background, \fB0\fR always in the foreground;
+unset or \fBauto\fR (the default) backgrounds only when stderr is a terminal.
+.TP
+.B PROVOST_MULTI
+File every dataset an input holds (default 0; same as \fB--multi\fR).
 .TP
 .B PROVOST_MAX_INPUT
-Maximum input bytes (default: 10485760).
+Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).
 .TP
 .B PROVOST_LOCK_TIMEOUT
 Seconds to wait for the store lock (default: 30).
 .TP
+.B PROVOST_LOCK_MAX_AGE
+Seconds after which a store lock is presumed stale even when its owner cannot be
+checked, e.g. one taken on another host (default: 3600).
+.TP
 .B PROVOST_RECONCILE_OVERLAP
-Percent column overlap to union (vs split a variant) on schema drift (default: 60).
+Percent column overlap needed to reconcile a changed schema into the same
+dataset instead of a \fB.v\fIN\fR variant (default: 60; 0\-101).
+.TP
+.B PROVOST_QUIET
+\fB1\fR suppresses progress and ok messages (same as \fB--silent\fR).
+.TP
+.B TMPDIR
+Where temporary and background spool directories are created (default: /tmp).
+.SH EXIT STATUS
+0 on success; 1 on a runtime error (including a git failure \- provost never
+reports a capture git did not record); 2 on a usage error (unknown command or
+option, invalid dataset name or setting); for \fBrun\fR, the command's own exit
+status once it has been captured; 127 when the command to run is not found.
 .SH EXAMPLES
 .nf
-free -m | provost                 # capture + auto-detect + file
-provost run df -h                 # capture a command as a commit
+free -m | provost                 # capture + auto-detect + file (dataset 'free')
+provost run df -h                 # capture a command as a commit (dataset 'df')
 provost ls                        # list datasets
 provost show df                   # present as a tidy table
 provost source 5                  # original input behind row #5
 provost stats df                  # statistics on the dataset
+provost run --name disks df -h    # file into a dataset of your choosing
+provost log --failed              # background captures that failed
 provost export ~/store.bundle     # portable export
 .fi
 .SH SEE ALSO
-The provost prototype is documented in
-.IR docs/proposals/0001-provost-rename-and-simplification.md .
+The provost design is documented in
+.IR docs/0001-rename-and-simplification.md .

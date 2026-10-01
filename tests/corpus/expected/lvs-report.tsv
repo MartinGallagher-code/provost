@@ -1,4 +1,4 @@
-n	LV	VG	Attr	LSize	total_entries
-1	lv_root	vg0	-wi-ao----	200.00g	3
-2	lv_home	vg0	-wi-ao----	500.00g	3
-3	lv_data	vg_data	-wi-ao----	931.51g	3
+n	LV	VG	Attr	LSize
+1	lv_root	vg0	-wi-ao----	200.00g
+2	lv_home	vg0	-wi-ao----	500.00g
+3	lv_data	vg_data	-wi-ao----	931.51g

@@ -1,4 +1,4 @@
-n	rating	product	review	total_entries
-1	5	Widget	Great, works well. Fast, reliable; would buy again	3
-2	3	Gadget	OK but pricey: costs 2x more, meh	3
-3	1	Gizmo	Broke on day 1, returned it	3
+n	rating	product	review
+1	5	Widget	Great, works well. Fast, reliable; would buy again
+2	3	Gadget	OK but pricey: costs 2x more, meh
+3	1	Gizmo	Broke on day 1, returned it

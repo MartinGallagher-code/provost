@@ -1,21 +1,21 @@
-n	A	B	total_entries
-1	processor	: 0	20
-2	vendor_id	: GenuineIntel	20
-3	cpu family	: 6	20
-4	model	: 85	20
-5	model name	: Intel(R) Xeon(R) Platinum 8175M CPU @ 2.50GHz	20
-6	stepping	: 4	20
-7	microcode	: 0x2006b06	20
-8	cpu MHz	: 2499.998	20
-9	cache size	: 33792 KB	20
-10	physical id	: 0	20
-11	siblings	: 8	20
-12	core id	: 0	20
-13	cpu cores	: 4	20
-14	apicid	: 0	20
-15	fpu	: yes	20
-16	flags	: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat	20
-17	bogomips	: 4999.99	20
-18	clflush size	: 64	20
-19	cache_alignment	: 64	20
-20	address sizes	: 46 bits physical, 48 bits virtual	20
+n	A	B
+1	processor	: 0
+2	vendor_id	: GenuineIntel
+3	cpu family	: 6
+4	model	: 85
+5	model name	: Intel(R) Xeon(R) Platinum 8175M CPU @ 2.50GHz
+6	stepping	: 4
+7	microcode	: 0x2006b06
+8	cpu MHz	: 2499.998
+9	cache size	: 33792 KB
+10	physical id	: 0
+11	siblings	: 8
+12	core id	: 0
+13	cpu cores	: 4
+14	apicid	: 0
+15	fpu	: yes
+16	flags	: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat
+17	bogomips	: 4999.99
+18	clflush size	: 64
+19	cache_alignment	: 64
+20	address sizes	: 46 bits physical, 48 bits virtual

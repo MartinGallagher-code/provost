@@ -1,3 +1,3 @@
 n	Flags	Flags:_rw,relatime,vers	nas01
 1	rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp	4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp	
-2			/export/home_mounted_on_/mnt/home:
+2			/export/home mounted on /mnt/home:

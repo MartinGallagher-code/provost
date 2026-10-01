@@ -1,7 +1,7 @@
-n	A	B	C	D	total_entries
-1	root	x	0		6
-2	adm	x	4	syslog,mgallag	6
-3	sudo	x	27	mgallag	6
-4	docker	x	998	mgallag,ci	6
-5	postgres	x	117		6
-6	mgallag	x	1000		6
+n	A	B	C	D
+1	root	x	0	
+2	adm	x	4	syslog,mgallag
+3	sudo	x	27	mgallag
+4	docker	x	998	mgallag,ci
+5	postgres	x	117	
+6	mgallag	x	1000	

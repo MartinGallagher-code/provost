@@ -1,4 +1,4 @@
-n	-----BEGIN	PUBLIC	KEY-----	total_entries
-1	MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfakepublickeydata0123456789			3
-2	abcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdef==			3
-3	-----END	PUBLIC	KEY-----	3
+n	-----BEGIN	PUBLIC	KEY-----
+1	MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfakepublickeydata0123456789		
+2	abcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdefFAKEabcdef==		
+3	-----END	PUBLIC	KEY-----

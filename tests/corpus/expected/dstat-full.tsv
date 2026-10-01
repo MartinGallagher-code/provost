@@ -1,5 +1,5 @@
-n	usr	sys	idl	wai	stl|	read	writ|	recv	send|	in	out	|	int	csw	total_entries
-1	14	4	81	1	0|	44k	88k	|	920k	440k|	0	0	|1204	3310	4
-2	18	5	75	2	0|	52k	120k	|1.0M	480k	|	0	0	|1330	3620	4
-3	11	3	85	1	0|	30k	64k	|	810k	390k|	0	0	|1102	3010	4
-4	22	6	69	3	0|	88k	240k	|1.4M	620k	|	0	12	|1510	4020	4
+n	usr	sys	idl	wai	stl|	read	writ|	recv	send|	in	out	|	int	csw
+1	14	4	81	1	0|	44k	88k	|	920k	440k|	0	0	|1204	3310
+2	18	5	75	2	0|	52k	120k	|1.0M	480k	|	0	0	|1330	3620
+3	11	3	85	1	0|	30k	64k	|	810k	390k|	0	0	|1102	3010
+4	22	6	69	3	0|	88k	240k	|1.4M	620k	|	0	12	|1510	4020

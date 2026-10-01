@@ -74,7 +74,7 @@ strategy_extract () {
     # Header: "<tool> -- <context>" is the first non-blank line.
     local first_line=""
     while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && continue
         first_line="$line"
         break
     done <<< "$text"
@@ -104,7 +104,7 @@ strategy_extract () {
                 fi
                 ;;
             verdict)
-                if [[ -z "${line//[[:space:]]/}" ]]; then
+                if [[ "${line}" != *[![:space:]]* ]]; then
                     state="findings"
                 else
                     local t
@@ -114,7 +114,7 @@ strategy_extract () {
                 fi
                 ;;
             findings)
-                [[ -z "${line//[[:space:]]/}" ]] && continue
+                [[ "${line}" != *[![:space:]]* ]] && continue
                 if [[ "$line" =~ $re_sev_line ]]; then
                     _bsr_flush_detail
                     n=$((n + 1))

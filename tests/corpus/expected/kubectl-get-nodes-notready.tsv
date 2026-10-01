@@ -1,5 +1,5 @@
-n	NAME	STATUS	ROLES	AGE	VERSION	total_entries
-1	node-a01	Ready	control-plane	88d	v1.29.4	4
-2	node-b02	Ready	<none>	88d	v1.29.4	4
-3	node-c03	NotReady	<none>	17d	v1.29.4	4
-4	node-d04	Ready,SchedulingDisabled	worker	3d	v1.29.6	4
+n	NAME	STATUS	ROLES	AGE	VERSION
+1	node-a01	Ready	control-plane	88d	v1.29.4
+2	node-b02	Ready	<none>	88d	v1.29.4
+3	node-c03	NotReady	<none>	17d	v1.29.4
+4	node-d04	Ready,SchedulingDisabled	worker	3d	v1.29.6

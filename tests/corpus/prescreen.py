@@ -13,16 +13,16 @@ Verdicts
   needs-review     at least one structural defect, named in `detail`
   no-output        no review-output row for this input
 
-Calibration against the reviewer marks in docs/ is printed with --validate.
+Calibration against the reviewer marks in docs/archive/ is printed with --validate.
 The screen only sees *structure*. A parse that is cleanly rectangular but
 split on the wrong boundary reads as fine here, so `looks-fine` means
 "nothing mechanically wrong", not "correct".
 
 Usage:
-  python3 tests/corpus/prescreen.py [-o docs/review-prescreen-round8.tsv]
+  python3 tests/corpus/prescreen.py [-o docs/archive/review-prescreen-round8.tsv]
   python3 tests/corpus/prescreen.py --validate
   python3 tests/corpus/prescreen.py --emit-json /tmp/good.json   # feeds make_review_doc.js
-      [--exclude-marked docs/review-marks-2026-07-30-round8.tsv]
+      [--exclude-marked docs/archive/review-marks-2026-07-30-round8.tsv]
 """
 
 import argparse
@@ -35,7 +35,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT_DIR = os.path.join(ROOT, "tests", "corpus", "review-output")
 IN_DIR = os.path.join(ROOT, "tests", "corpus", "inputs")
-DOCS = os.path.join(ROOT, "docs")
+DOCS = os.path.join(ROOT, "docs", "archive")
 
 # Columns the engine adds; they are not content.
 META_COLS = ("n", "total_entries")

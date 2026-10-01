@@ -1,7 +1,7 @@
-n	NAME	USED	AVAIL	REFER	MOUNTPOINT	total_entries
-1	tank	892G	1.67T	205K	/tank	6
-2	tank/home	412G	1.67T	412G	/tank/home	6
-3	tank/home/martin	118G	1.67T	118G	/tank/home/martin	6
-4	tank/vm	331G	1.67T	331G	/tank/vm	6
-5	tank/backups	149G	1.67T	149G	/tank/backups	6
-6	tank/backups@daily	1.20G	-	148G	-	6
+n	NAME	USED	AVAIL	REFER	MOUNTPOINT
+1	tank	892G	1.67T	205K	/tank
+2	tank/home	412G	1.67T	412G	/tank/home
+3	tank/home/martin	118G	1.67T	118G	/tank/home/martin
+4	tank/vm	331G	1.67T	331G	/tank/vm
+5	tank/backups	149G	1.67T	149G	/tank/backups
+6	tank/backups@daily	1.20G	-	148G	-

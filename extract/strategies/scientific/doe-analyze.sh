@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
 
     # Both markers must be present: the report is a sequence of
     # "=== Section Name: <response> ===" blocks and these two are the
@@ -124,7 +124,7 @@ strategy_extract () {
         [[ -n "$sec" ]] || continue
 
         # A blank line closes the current table block.
-        if [[ -z "${line//[[:space:]]/}" ]]; then
+        if [[ "${line}" != *[![:space:]]* ]]; then
             sec=""
             continue
         fi
@@ -157,7 +157,7 @@ strategy_extract () {
             term="${body%%"  "*}"
             local rest="${body#*"  "}"
             cols=()
-            read -r -a cols <<< "$rest"
+            { _fr_tok "$rest"; cols=("${_FR_TOK[@]}"); }
             if [[ ${#cols[@]} -ge $min_num ]]; then
                 ok=1
                 nums=()
@@ -185,7 +185,7 @@ strategy_extract () {
             # Right-to-left scan: collect up to max_num numeric tokens from the
             # end; everything left of them is the label.
             cols=()
-            read -r -a cols <<< "$body"
+            { _fr_tok "$body"; cols=("${_FR_TOK[@]}"); }
             local last=$(( ${#cols[@]} - 1 )) k
             local -a rev=()
             local nrev=0

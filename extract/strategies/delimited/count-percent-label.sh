@@ -66,30 +66,32 @@ strategy_detect () {
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
 
     local line nb=0 paren=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _cpl_split "$line" || return 1
         nb=$((nb + 1))
         [[ $_CPL_PAREN -eq 1 ]] && paren=$((paren + 1))
-    done <<< "$text"
+    done
 
     # >=2 `N (P%)` lines is the discriminator; a plain counted list has none.
     [[ $nb -ge 3 && $paren -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _cpl_split "$line" || continue
         entry=$((entry + 1))
         result+="entry${entry}.count ${_CPL_COUNT:--}"$'\n'
         result+="entry${entry}.percent ${_CPL_PCT:--}"$'\n'
         result+="entry${entry}.label ${_CPL_LABEL}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

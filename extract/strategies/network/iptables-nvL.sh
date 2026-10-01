@@ -23,20 +23,21 @@ strategy_detect () {
     [[ "$text" == *"Chain "* ]] || return 1
     # The pkts/bytes/target column header is unique to -nvL (verbose) listings.
     [[ "$text" == *"pkts"*"bytes"*"target"*"prot"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" entry=0 line
     local -a t
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         case "$line" in
             Chain\ *) continue ;;              # chain header
             *pkts*bytes*target*) continue ;;   # column header
         esac
-        read -ra t <<< "$line"
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         # Rule rows: pkts bytes target prot opt in out source destination (>=9).
         [[ ${#t[@]} -ge 9 ]] || continue
         [[ "${t[0]}" =~ ^[0-9] ]] || continue   # pkts is numeric
@@ -51,7 +52,7 @@ strategy_extract () {
         result+="entry${entry}.out ${t[6]}"$'\n'
         result+="entry${entry}.source ${t[7]}"$'\n'
         result+="entry${entry}.destination ${t[8]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

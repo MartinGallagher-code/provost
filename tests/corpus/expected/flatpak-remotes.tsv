@@ -1,6 +1,6 @@
-n	Name	Options	total_entries
-1	flathub	system	5
-2	flathub-beta	system	5
-3	gnome-nightly	system	5
-4	kde-nightly	system,no-enumerate	5
-5	elementary	user	5
+n	Name	Options
+1	flathub	system
+2	flathub-beta	system
+3	gnome-nightly	system
+4	kde-nightly	system,no-enumerate
+5	elementary	user

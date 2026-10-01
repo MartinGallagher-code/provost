@@ -22,15 +22,16 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line seen_hdr=0 seen_row=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $seen_hdr -eq 0 ]]; then
             _pt_is_header "$line" && seen_hdr=1
         else
-            [[ -n "${line//[[:space:]]/}" ]] && seen_row=1
+            [[ "${line}" == *[![:space:]]* ]] && seen_row=1
         fi
-    done <<< "$text"
+    done
     if [[ $seen_hdr -eq 1 && $seen_row -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -39,13 +40,14 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line past=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ $past -eq 0 ]]; then
             _pt_is_header "$line" && past=1
             continue
         fi
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        local toks; toks=(); read -ra toks <<< "$line"
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        local toks; toks=(); { _fr_tok "$line"; toks=("${_FR_TOK[@]}"); }
         local n=${#toks[@]}
         # usage(value unit) events category description...  -> need >= 4 tokens
         [[ $n -ge 4 ]] || continue
@@ -63,7 +65,7 @@ strategy_extract () {
         result+="entry${entry}.events ${events}"$'\n'
         result+="entry${entry}.category ${category}"$'\n'
         result+="entry${entry}.description ${desc}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

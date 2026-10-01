@@ -1,4 +1,4 @@
-n	12:	hash	name	pid_map	flags	0x0	total_entries
-1	key	4B	value	8B	max_entries	10240_memlock_90112B	3
-2	13:	array	name	counters	flags	0x0	3
-3	key	4B	value	8B	max_entries	256_memlock_4096B	3
+n	12:	hash	name	pid_map	flags	0x0
+1	key	4B	value	8B	max_entries	10240 memlock 90112B
+2	13:	array	name	counters	flags	0x0
+3	key	4B	value	8B	max_entries	256 memlock 4096B

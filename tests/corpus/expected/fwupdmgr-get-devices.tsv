@@ -1,11 +1,11 @@
-n	section	key	value	total_entries
-1	UEFI dbx	Device ID	362301da643102b9f38477387e2193e57abaa590	10
-2	UEFI dbx	Summary	UEFI revocation database	10
-3	UEFI dbx	Current version	77	10
-4	UEFI dbx	Vendor	UEFI:Linux Foundation	10
-5	System Firmware	Device ID	08d460be0f1f9f128413f816022a6439e0078c58	10
-6	System Firmware	Current version	0.1.13	10
-7	System Firmware	Vendor	Dell Inc. (DMI:Dell Inc.)	10
-8	Samsung SSD 860 EVO 500GB	Device ID	e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b	10
-9	Samsung SSD 860 EVO 500GB	Current version	RVT02B6Q	10
-10	Samsung SSD 860 EVO 500GB	Vendor	Samsung	10
+n	section	key	value
+1	UEFI dbx	Device ID	362301da643102b9f38477387e2193e57abaa590
+2	UEFI dbx	Summary	UEFI revocation database
+3	UEFI dbx	Current version	77
+4	UEFI dbx	Vendor	UEFI:Linux Foundation
+5	System Firmware	Device ID	08d460be0f1f9f128413f816022a6439e0078c58
+6	System Firmware	Current version	0.1.13
+7	System Firmware	Vendor	Dell Inc. (DMI:Dell Inc.)
+8	Samsung SSD 860 EVO 500GB	Device ID	e9c85e57e0a2b0e0f8e77b0d0dfb0d7b0e7c1a2b
+9	Samsung SSD 860 EVO 500GB	Current version	RVT02B6Q
+10	Samsung SSD 860 EVO 500GB	Vendor	Samsung

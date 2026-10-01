@@ -1,4 +1,4 @@
-n	A	B	C	D	E	total_entries
-1	1204	packets	captured			3
-2	1220	packets	received	by	filter	3
-3	16	packets	dropped	by	kernel	3
+n	A	B	C	D	E
+1	1204	packets	captured		
+2	1220	packets	received	by	filter
+3	16	packets	dropped	by	kernel

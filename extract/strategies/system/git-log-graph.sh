@@ -22,11 +22,12 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitloggraph_is_commit "$line" && has=1
-    done <<< "$text"
+    done
     if [[ $has -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -35,7 +36,8 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line rest sha message
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _gitloggraph_is_commit "$line" || continue
         # drop everything up to and including the `*` node marker
         rest="${line#*\*}"
@@ -47,7 +49,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.commit ${sha}"$'\n'
         result+="entry${entry}.message ${message}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

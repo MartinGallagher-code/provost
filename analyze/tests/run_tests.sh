@@ -10,10 +10,9 @@ OVERALL_EXIT=0
 for test_file in "$SCRIPT_DIR"/test_*.sh; do
     [[ -f "$test_file" ]] || continue
     echo "Running $(basename "$test_file")"
-    bash "$test_file"
-    if [[ $? -ne 0 ]]; then
-        OVERALL_EXIT=1
-    fi
+    # `|| …` — under `set -e` a bare failing `bash` aborted the runner at the
+    # first failing file, so every later file silently never ran.
+    bash "$test_file" || OVERALL_EXIT=1
     echo ""
 done
 

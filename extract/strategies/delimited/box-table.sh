@@ -117,14 +117,22 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _STRATEGY_CONFIDENCE_REASON="unicode box-drawing table (│/┃/║ cells + ─/━/═ borders)"
     command -v _is_json >/dev/null 2>&1 && _is_json "$text" && return 1
+    # PREFILTER (exact): acceptance needs a cell row, and _box_is_row demands
+    # one of these vertical dividers on the line — no divider anywhere in the
+    # text means no cell row, so decline without the per-line walk.
+    case "$text" in
+        *│*|*┃*|*║*|*┆*|*┇*|*┊*|*┋*|*╎*|*╏*) ;;
+        *) return 1 ;;
+    esac
     local _line _saw_rule=0 _saw_cell=0
-    while IFS= read -r _line; do
-        [[ -z "${_line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
         if _box_is_rule "$_line"; then _saw_rule=1
         elif _box_is_row "$_line"; then _saw_cell=1; fi
-    done <<< "$text"
+    done
     if [[ $_saw_rule -eq 1 && $_saw_cell -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=80
         return 0
     fi
     return 1
@@ -134,16 +142,15 @@ strategy_extract () {
     local text="$1" result="" entry=0 _line
     # modal cell count across box rows (rules excluded)
     local counts=()
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         _box_is_row "$_line" || continue
         _box_split "$_line"; counts+=("${#_BOX_CELLS[@]}")
-    done <<< "$text"
-    [[ ${#counts[@]} -lt 2 ]] && return
-    local modal=0 best=0 a b k
-    for a in "${counts[@]}"; do
-        k=0; for b in "${counts[@]}"; do [[ "$b" -eq "$a" ]] && k=$((k + 1)); done
-        [[ $k -gt $best ]] && { best=$k; modal=$a; }
     done
+    _line=""
+    [[ ${#counts[@]} -lt 2 ]] && return
+    local modal=0 best=0
+    _fr_modal "${counts[@]}"; modal=$_FR_MODE; best=$_FR_MODE_N
     [[ $modal -lt 1 ]] && return
 
     local col_names=() num_cols=0 have_header=0 _c name i val

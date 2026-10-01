@@ -1,11 +1,11 @@
-n	A	total_entries
-1	table inet filter {	10
-2	chain input {	10
-3	type filter hook input priority filter; policy drop;	10
-4	ct state established,related accept	10
-5	iif "lo" accept	10
-6	tcp dport { 22, 80, 443 } accept	10
-7	ip protocol icmp accept	10
-8	counter packets 12843 bytes 1839221 drop	10
-9	}	10
-10	}	10
+n	A
+1	table inet filter {
+2	chain input {
+3	type filter hook input priority filter; policy drop;
+4	ct state established,related accept
+5	iif "lo" accept
+6	tcp dport { 22, 80, 443 } accept
+7	ip protocol icmp accept
+8	counter packets 12843 bytes 1839221 drop
+9	}
+10	}

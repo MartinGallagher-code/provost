@@ -1,10 +1,10 @@
-n	map	bucket	count	total_entries
-1	bytes	[16, 32)	12	9
-2	bytes	[32, 64)	48	9
-3	bytes	[64, 128)	144	9
-4	bytes	[128, 256)	91	9
-5	bytes	[256, 512)	22	9
-6	bytes	[512, 1K)	4	9
-7	usecs	[1]	882	9
-8	usecs	[2, 4)	441	9
-9	usecs	[4, 8)	118	9
+n	map	bucket	count
+1	bytes	[16, 32)	12
+2	bytes	[32, 64)	48
+3	bytes	[64, 128)	144
+4	bytes	[128, 256)	91
+5	bytes	[256, 512)	22
+6	bytes	[512, 1K)	4
+7	usecs	[1]	882
+8	usecs	[2, 4)	441
+9	usecs	[4, 8)	118

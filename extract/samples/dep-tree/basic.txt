@@ -1,0 +1,10 @@
+tensorflow==2.11.0
+  - absl-py [required: >=1.0.0, installed: 1.3.0]
+  - astunparse [required: >=1.6.0, installed: 1.6.3]
+  - keras [required: >=2.11.0,<2.12, installed: 2.11.0]
+  - numpy [required: >=1.20, installed: 1.24.1]
+  - protobuf [required: >=3.9.2,<3.20, installed: 3.19.6]
+  - grpcio [required: >=1.24.3,<2.0, installed: 1.51.1]
+      - six [required: >=1.5.2, installed: 1.16.0]
+  - h5py [required: >=2.9.0, installed: 3.7.0]
+      - numpy [required: >=1.14.5, installed: 1.24.1]

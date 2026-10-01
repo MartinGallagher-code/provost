@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=85
 
     # Must have at least 2 lines
     local line_count=0
@@ -63,15 +63,42 @@ strategy_detect () {
 # the emitted value — the tidy output is itself TSV, so a literal tab inside a
 # cell would shear every column after it.
 #
-# Empty fields are DROPPED (a run of tabs counts as one separator, leading tabs
-# are stripped) — matching the `IFS=tab read -ra` semantics this replaced. Tools
-# pad with extra tabs for display alignment (ldd's leading tab, proc-cpuinfo's
-# `flags<TAB><TAB>: …`), and preserving those as empty cells would shift every
-# later column's name and orphan values into phantom columns.
+# EMPTY FIELDS. Two kinds of input put two tabs in a row, and they need
+# opposite treatment:
+#  * genuine tab-delimited DATA, where `4<TAB><TAB>6` is a row whose middle
+#    cell is empty — dropping it shifts `6` left under the wrong header and
+#    loses the last column;
+#  * tab-PADDED display output (ldd's leading tab, proc-cpuinfo's
+#    `flags<TAB><TAB>: …`), where the extra tabs are alignment, and keeping
+#    them as cells would shift every later column's name and orphan values
+#    into phantom columns.
+# _TSV_KEEP_EMPTY selects the mode (1 = keep empty cells, 0 = a run of tabs is
+# one separator and leading tabs are stripped). strategy_extract decides it
+# once per input with _strat_tsv_choose_mode.
+_TSV_KEEP_EMPTY=0
 _tsv_split () {
     local line="$1"
     local field="" i c in_q=0 n=${#line}
     _TSV_FIELDS=()
+    if [[ $_TSV_KEEP_EMPTY -eq 1 ]]; then
+        for ((i = 0; i < n; i++)); do
+            c="${line:$i:1}"
+            if [[ $in_q -eq 1 ]]; then
+                if [[ "$c" == '"' ]]; then in_q=0
+                elif [[ "$c" == '	' ]]; then field+=' '
+                else field+="$c"; fi
+            elif [[ "$c" == '"' && -z "$field" ]]; then
+                in_q=1
+            elif [[ "$c" == '	' ]]; then
+                _TSV_FIELDS+=("$field")
+                field=""
+            else
+                field+="$c"
+            fi
+        done
+        _TSV_FIELDS+=("$field")
+        return 0
+    fi
     for ((i = 0; i < n; i++)); do
         c="${line:$i:1}"
         if [[ $in_q -eq 1 ]]; then
@@ -90,8 +117,58 @@ _tsv_split () {
     [[ -n "$field" ]] && _TSV_FIELDS+=("$field")
 }
 
+# Decide _TSV_KEEP_EMPTY for the whole input. Empty cells are KEPT (genuine
+# TSV) unless the input is evidently tab-padded display output:
+#  * some column is empty on EVERY line, header included — a pure padding
+#    column (a leading tab on every line, a doubled tab in the same place
+#    everywhere) carries no data; or
+#  * collapsing tab runs makes MORE lines agree with the header's width than
+#    keeping them does — the column count is only consistent after collapsing
+#    (proc-cpuinfo: `processor<TAB>: 0` vs `flags<TAB><TAB>: …`).
+# Input with no empty cell at all is unaffected either way (fast path).
+_strat_tsv_choose_mode () {
+    local text="$1" l
+    _TSV_KEEP_EMPTY=0
+    local _nl=$'\n'
+    # Fast path: no doubled tab, no leading or trailing tab -> no empty cell.
+    [[ "$text" == *$'\t\t'* || "$text" == $'\t'* || "$text" == *"${_nl}"$'\t'* \
+       || "$text" == *$'\t' || "$text" == *$'\t'"${_nl}"* ]] || return 0
+    local -a keep_n=() coll_n=() nonempty=()
+    local nlines=0 j
+    while IFS= read -r l; do
+        [[ -z "$l" ]] && continue
+        nlines=$((nlines + 1))
+        _TSV_KEEP_EMPTY=1; _tsv_split "$l"
+        keep_n+=("${#_TSV_FIELDS[@]}")
+        for ((j = 0; j < ${#_TSV_FIELDS[@]}; j++)); do
+            [[ -n "${_TSV_FIELDS[$j]}" ]] && nonempty[$j]=1
+        done
+        _TSV_KEEP_EMPTY=0; _tsv_split "$l"
+        coll_n+=("${#_TSV_FIELDS[@]}")
+    done <<< "$text"
+    _TSV_KEEP_EMPTY=0
+    [[ $nlines -ge 1 ]] || return 0
+    # A padding column: empty on every line (header included).
+    local maxw=0
+    for j in "${keep_n[@]}"; do [[ $j -gt $maxw ]] && maxw=$j; done
+    for ((j = 0; j < maxw; j++)); do
+        [[ -n "${nonempty[$j]:-}" ]] || return 0
+    done
+    # Width agreement with the header (line 1) under each mode.
+    local keep_ok=0 coll_ok=0 i
+    for ((i = 0; i < nlines; i++)); do
+        [[ ${keep_n[$i]} -eq ${keep_n[0]} ]] && keep_ok=$((keep_ok + 1))
+        [[ ${coll_n[$i]} -eq ${coll_n[0]} ]] && coll_ok=$((coll_ok + 1))
+    done
+    [[ $coll_ok -gt $keep_ok ]] && return 0
+    _TSV_KEEP_EMPTY=1
+}
+
 strategy_extract () {
     local text="$1"
+
+    # Keep or collapse empty cells (see _tsv_split / _strat_tsv_choose_mode)
+    _strat_tsv_choose_mode "$text"
 
     # Parse header row for field names
     local header=""
@@ -158,6 +235,15 @@ strategy_extract () {
         local _n=${#headers[@]} _i
         headers=()
         for ((_i = 1; _i <= _n; _i++)); do headers+=("$(_col_letter "$_i")"); done
+    fi
+    # Keep-empty mode: an EMPTY header cell over a data column (a matrix's
+    # blank corner — nvidia-smi topo -m's row labels) is a nameless column,
+    # not a column to drop; name it by position like any nameless column.
+    if [[ $_TSV_KEEP_EMPTY -eq 1 ]]; then
+        local _ei
+        for ((_ei = 0; _ei < ${#headers[@]}; _ei++)); do
+            [[ -z "${headers[$_ei]//[[:space:]\"]/}" ]] && headers[$_ei]="$(_col_letter $((_ei + 1)))"
+        done
     fi
 
     # CELL-SPLIT pre-pass. Two shapes hide multiple fields inside ONE tab
@@ -261,7 +347,10 @@ strategy_extract () {
             name="${name//./_}"   # '.' would break the tidy melt's group key split
             value="${value//\"}"
             [[ -z "$name" ]] && continue
-            [[ -z "$value" ]] && continue
+            if [[ -z "$value" ]]; then
+                [[ $_TSV_KEEP_EMPTY -eq 1 ]] && result+="entry${rec}.${name} "$'\n'
+                continue
+            fi
             result+="entry${rec}.${name} ${value}"$'\n'
         done
     done <<< "$text"

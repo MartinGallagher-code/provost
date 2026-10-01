@@ -28,11 +28,8 @@ markdown_extensions:
   - tables
   - fenced_code
 
-# The docs/ tree also carries review-round TSV worksheets that are working
-# artefacts of the corpus review process, not documentation pages; keep them
-# out of the built site.
+# docs/archive/ holds the corpus review-round worksheets (TSV/TXT) and old
+# plans -- working artefacts of the review process, not documentation pages;
+# keep them out of the built site.
 exclude_docs: |
-  review-*.tsv
-  review-*.txt
-  review-*.md
-  0002-review-fix-plan.md
+  archive/

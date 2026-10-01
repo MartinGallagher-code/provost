@@ -1,7 +1,7 @@
-n	group	key	value	total_entries
-1	config	checks	1	6
-2	config	abort_on_errors	0	6
-3	config	profile_dir	"/etc/lvm/profile"	6
-4	devices	dir	"/dev"	6
-5	devices	scan	"/dev"	6
-6	devices	obtain_device_list_from_udev	1	6
+n	group	key	value
+1	config	checks	1
+2	config	abort_on_errors	0
+3	config	profile_dir	"/etc/lvm/profile"
+4	devices	dir	"/dev"
+5	devices	scan	"/dev"
+6	devices	obtain_device_list_from_udev	1

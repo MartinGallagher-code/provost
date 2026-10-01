@@ -1,0 +1,19 @@
+entry1.file prometheus.yml
+entry1.level SUCCESS
+entry1.message 4 rule files found
+entry2.file prometheus.yml
+entry2.level SUCCESS
+entry2.message prometheus.yml is valid prometheus config file syntax
+entry3.file rules/node.yml
+entry3.level SUCCESS
+entry3.message 12 rules found
+entry4.file rules/api.yml
+entry4.level SUCCESS
+entry4.message 8 rules found
+entry5.file rules/slo.yml
+entry5.level SUCCESS
+entry5.message 5 rules found
+entry6.file rules/blackbox.yml
+entry6.level SUCCESS
+entry6.message 3 rules found
+total_entries 6

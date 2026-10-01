@@ -1,7 +1,7 @@
-n	oid	type	value	total_entries
-1	IF-MIB::ifDescr.1	STRING	lo	6
-2	IF-MIB::ifDescr.2	STRING	eth0	6
-3	IF-MIB::ifDescr.3	STRING	eth1	6
-4	IF-MIB::ifOperStatus.2	INTEGER	up(1)	6
-5	IF-MIB::ifOperStatus.3	INTEGER	down(2)	6
-6	IF-MIB::ifSpeed.2	Gauge32	1000000000	6
+n	oid	type	value
+1	IF-MIB::ifDescr.1	STRING	lo
+2	IF-MIB::ifDescr.2	STRING	eth0
+3	IF-MIB::ifDescr.3	STRING	eth1
+4	IF-MIB::ifOperStatus.2	INTEGER	up(1)
+5	IF-MIB::ifOperStatus.3	INTEGER	down(2)
+6	IF-MIB::ifSpeed.2	Gauge32	1000000000

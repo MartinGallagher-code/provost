@@ -1,5 +1,5 @@
-n	Crate	Version	Advisory	Severity	Title	total_entries
-1	time	0.1.44	RUSTSEC-2020-0071	6.2	Potential segfault in time	4
-2	openssl	0.10.45	RUSTSEC-2023-0044	9.8	X509 name constraints	4
-3	smallvec	1.6.1	RUSTSEC-2021-0003	7.5	Buffer overflow in insert_many	4
-4	tokio	1.18.1	RUSTSEC-2023-0001	5.9	reject_remote_clients misconfig	4
+n	Crate	Version	Advisory	Severity	Title
+1	time	0.1.44	RUSTSEC-2020-0071	6.2	Potential segfault in time
+2	openssl	0.10.45	RUSTSEC-2023-0044	9.8	X509 name constraints
+3	smallvec	1.6.1	RUSTSEC-2021-0003	7.5	Buffer overflow in insert_many
+4	tokio	1.18.1	RUSTSEC-2023-0001	5.9	reject_remote_clients misconfig

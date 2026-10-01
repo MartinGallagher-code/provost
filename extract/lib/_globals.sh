@@ -69,6 +69,9 @@
 # _OPT_min_confidence    integer     default 0   -- skip strategies below this confidence
 # _OPT_first_match       bool (0/1)  default 0  -- stop after first strategy produces output
 # _OPT_max_strategies    integer     default 0   -- limit strategies that produce output (0=no limit)
+# _OPT_rank              string      default "confidence" (env MFE_RANK) -- candidate order:
+#                                    confidence = run every detector, try best confidence first;
+#                                    priority   = first detecting strategy in priority order
 # _OPT_delimiter         string      default ""  -- custom delimiter (e.g. "=>", "::")
 # _OPT_rename            string      default ""  -- "old=new,..." field rename spec
 # _OPT_aggregate         bool (0/1)  default 0  -- compute count/min/max/sum/avg for numerics
@@ -273,7 +276,8 @@
 
 # _STRIPPED_LINE     string  -- _helpers.sh: strip_strat_prefix() result
 # _TRIMMED           string  -- _helpers.sh: _trim() result
-# _CLEANED           string  -- _helpers.sh: _clean_field() result
+# _CLEANED           string  -- _helpers.sh: _clean_field() (name) / _clean_value() result
+# _RESTORED_TEXT     string  -- _helpers.sh: restore_text_values() result
 # _LINE_COUNT        integer -- _helpers.sh: _count_lines() result
 # _FIELD_NAME        string  -- _helpers.sh: _parse_field_line() name half
 # _FIELD_VALUE       string  -- _helpers.sh: _parse_field_line() value half

@@ -1,4 +1,4 @@
-n	A	B	total_entries
-1	    42	Alice Smith <alice@example.com>	3
-2	    17	Bob Jones, Jr. <bob@example.com>	3
-3	     3	Carlos Ruiz <carlos@example.com>	3
+n	A	B
+1	    42	Alice Smith <alice@example.com>
+2	    17	Bob Jones, Jr. <bob@example.com>
+3	     3	Carlos Ruiz <carlos@example.com>

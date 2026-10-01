@@ -1,5 +1,5 @@
-n	PAYS	POPULATION	PIB	total_entries
-1	France	67 390 000 2	940	4
-2	Suisse	8 637 000	807	4
-3	Belgique	11 590 000	530	4
-4	Québec	8 501 000	461	4
+n	PAYS	POPULATION	PIB
+1	France	67 390 000 2	940
+2	Suisse	8 637 000	807
+3	Belgique	11 590 000	530
+4	Québec	8 501 000	461

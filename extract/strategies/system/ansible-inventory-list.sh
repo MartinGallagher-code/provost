@@ -24,7 +24,7 @@ strategy_detect () {
     esac
     [[ "$text" == *'"_meta"'* ]] || return 1
     [[ "$text" == *'"hostvars"'* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -52,7 +52,7 @@ strategy_extract () {
     local result="" entry=0 host
     while IFS= read -r host; do
         [[ -z "$host" ]] && continue
-        host="${host//[[:space:]]/_}"
+        host="${host#"${host%%[![:space:]]*}"}"; host="${host%"${host##*[![:space:]]}"}"
         entry=$((entry + 1))
         result+="entry${entry}.hostname ${host}"$'\n'
     done <<< "$(printf '%s\n' "$text" | _ansible_inventory_hosts)"

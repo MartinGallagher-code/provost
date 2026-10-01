@@ -17,34 +17,34 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
-    local line
-    while IFS= read -r line; do
-        [[ "$line" == *"mail exchanger = "* ]] && return 0
-    done <<< "$text"
+    _STRATEGY_CONFIDENCE=92
+    # (a line holds the literal iff the text does — it has no newline — so
+    # one whole-text test instead of a walk over every line)
+    [[ "$text" == *"mail exchanger = "* ]] && return 0
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"mail exchanger = "* ]] || continue
         local domain="${line%%mail exchanger =*}"
         # trim trailing whitespace/tabs from the domain
         domain="${domain%%[[:space:]]}"
         local -a d=()
-        read -ra d <<< "$domain"
+        { _fr_tok "$domain"; d=("${_FR_TOK[@]}"); }
         domain="${d[0]}"
         local rest="${line#*mail exchanger = }"
         local -a r=()
-        read -ra r <<< "$rest"
+        { _fr_tok "$rest"; r=("${_FR_TOK[@]}"); }
         local pref="${r[0]}" exch="${r[1]}"
         entry=$((entry + 1))
         result+="entry${entry}.domain ${domain}"$'\n'
         result+="entry${entry}.preference ${pref}"$'\n'
         result+="entry${entry}.exchange ${exch}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

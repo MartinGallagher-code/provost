@@ -24,7 +24,7 @@ _iostatx_field () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     # Require the avg-cpu block AND an extended Device header (aqu-sz + rrqm/s).
     [[ "$text" == *"avg-cpu:"* ]] || return 1
     # `aqu-sz` alone (without `rrqm/s`) is a reduced extended-mode column set
@@ -32,10 +32,11 @@ strategy_detect () {
     # just not every optional column. `aqu-sz` is distinctive enough on its own
     # to not misfire on a plain `iostat -d` Device table (which never has it).
     local line seen=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == Device* ]] || continue
         [[ "$line" == *"aqu-sz"* ]] && seen=1
-    done <<< "$text"
+    done
     [[ $seen -eq 1 ]] && return 0
     return 1
 }
@@ -46,17 +47,18 @@ strategy_extract () {
     local -a cols=()
     local have_header=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         if [[ $have_header -eq 0 ]]; then
             [[ "$line" == Device* ]] || continue
-            read -ra cols <<< "$line"
+            { _fr_tok "$line"; cols=("${_FR_TOK[@]}"); }
             have_header=1
             continue
         fi
 
         local -a vals=()
-        read -ra vals <<< "$line"
+        { _fr_tok "$line"; vals=("${_FR_TOK[@]}"); }
         [[ ${#vals[@]} -lt 2 ]] && continue
 
         n=$((n + 1))
@@ -67,7 +69,7 @@ strategy_extract () {
             [[ -z "$f" ]] && continue
             result+="entry${n}.${f} ${vals[$i]:-NONE}"$'\n'
         done
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

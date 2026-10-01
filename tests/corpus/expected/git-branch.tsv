@@ -1,6 +1,6 @@
-n	A	B	total_entries
-1	*	main	5
-2	develop		5
-3	feature/login		5
-4	remotes/origin/main		5
-5	remotes/origin/develop		5
+n	A	B
+1	*	main
+2	develop	
+3	feature/login	
+4	remotes/origin/main	
+5	remotes/origin/develop	

@@ -1,5 +1,5 @@
-n	NAME	MAJ:MIN	RM	SIZE	RO	TYPE	MOUNTPOINT	total_entries
-1	sda	8:0	0	100G	0	disk		4
-2	sda1	8:1	0	100G	0	part	/	4
-3	sdb	8:16	0	500G	0	disk		4
-4	sdb1	8:17	0	500G	0	part	/data	4
+n	NAME	MAJ:MIN	RM	SIZE	RO	TYPE	MOUNTPOINT
+1	sda	8:0	0	100G	0	disk	
+2	sda1	8:1	0	100G	0	part	/
+3	sdb	8:16	0	500G	0	disk	
+4	sdb1	8:17	0	500G	0	part	/data

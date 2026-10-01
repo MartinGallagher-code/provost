@@ -1,3 +1,3 @@
-n	type	msg	arch	syscall	success	exit	argc	a0	a1	total_entries
-1	SYSCALL	audit(1751880012.100:4421):	c000003e	59	yes	0				2
-2	EXECVE	audit(1751880012.100:4421):					2	"ls"	"-la"	2
+n	type	msg	arch	syscall	success	exit	argc	a0	a1
+1	SYSCALL	audit(1751880012.100:4421):	c000003e	59	yes	0			
+2	EXECVE	audit(1751880012.100:4421):					2	"ls"	"-la"

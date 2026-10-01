@@ -1,10 +1,10 @@
-n	key	value	total_entries
-1	Name	vg0-root	9
-2	State	ACTIVE	9
-3	Read Ahead	256	9
-4	Tables present	LIVE	9
-5	Open count	1	9
-6	Event number	0	9
-7	Major, minor	253, 1	9
-8	Number of targets	1	9
-9	UUID	LVM-abc123def456ghi789jkl012mno345pqr678stu	9
+n	key	value
+1	Name	vg0-root
+2	State	ACTIVE
+3	Read Ahead	256
+4	Tables present	LIVE
+5	Open count	1
+6	Event number	0
+7	Major, minor	253, 1
+8	Number of targets	1
+9	UUID	LVM-abc123def456ghi789jkl012mno345pqr678stu

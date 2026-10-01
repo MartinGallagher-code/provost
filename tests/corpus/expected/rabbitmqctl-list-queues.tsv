@@ -1,7 +1,7 @@
-n	name	messages	consumers	total_entries
-1	orders.process	1523	4	6
-2	orders.dlq	12	0	6
-3	email.outbound	847	2	6
-4	notifications.push	3391	6	6
-5	analytics.ingest	20418	8	6
-6	reports.generate	5	1	6
+n	name	messages	consumers
+1	orders.process	1523	4
+2	orders.dlq	12	0
+3	email.outbound	847	2
+4	notifications.push	3391	6
+5	analytics.ingest	20418	8
+6	reports.generate	5	1

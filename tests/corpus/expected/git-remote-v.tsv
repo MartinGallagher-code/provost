@@ -1,5 +1,5 @@
-n	remote	url	direction	total_entries
-1	origin	git@github.com:acme/widget.git	fetch	4
-2	origin	git@github.com:acme/widget.git	push	4
-3	upstream	https://github.com/upstream/widget.git	fetch	4
-4	upstream	https://github.com/upstream/widget.git	push	4
+n	remote	url	direction
+1	origin	git@github.com:acme/widget.git	fetch
+2	origin	git@github.com:acme/widget.git	push
+3	upstream	https://github.com/upstream/widget.git	fetch
+4	upstream	https://github.com/upstream/widget.git	push

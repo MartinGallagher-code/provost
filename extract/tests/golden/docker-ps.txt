@@ -1,32 +1,14 @@
-container1.container_id f6a7b8c9d0e1
-container1.image nginx:1.25
-container1.command "/docker-entrypoint.…"
-container1.created 4 hours ago
-container1.status Up 4 hours
+container1.container_id abc123def456
+container1.image nginx:latest
+container1.command "nginx -g…"
+container1.created 2 hours ago
+container1.status Up 2 hours
 container1.ports 0.0.0.0:80->80/tcp
-container1.names web-proxy
-container2.container_id a7b8c9d0e1f2
-container2.image mysql:8.0
-container2.command "docker-entrypoint.s…"
-container2.created 6 hours ago
-container2.status Exited (0) 2 hours ago
-container2.names db-mysql
-container3.container_id b8c9d0e1f2a3
-container3.image node:20-alpine
-container3.command "node server.js"
-container3.created 1 day ago
-container3.status Exited (137) 12 hours ago
-container3.names api-old
-container4.container_id c9d0e1f2a3b4
-container4.image memcached:1.6
-container4.command "docker-entrypoint.s…"
-container4.created 2 days ago
-container4.status Up 2 days
-container4.ports 11211/tcp
-container4.names cache-mem
-container5.container_id d0e1f2a3b4c5
-container5.image busybox
-container5.command "sh -c 'echo done'"
-container5.created 3 days ago
-container5.status Exited (0) 3 days ago
-container5.names setup-init
+container1.names web-server
+container2.container_id def456abc789
+container2.image postgres:15
+container2.command "postgres"
+container2.created 3 hours ago
+container2.status Up 3 hours
+container2.ports 5432/tcp
+container2.names database

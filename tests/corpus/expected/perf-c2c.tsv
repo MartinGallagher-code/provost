@@ -1,8 +1,8 @@
-n	key	value	total_entries
-1	Total records	412083	7
-2	Locked Load/Store Operations	18422	7
-3	Load Operations	201044	7
-4	Loads - uncacheable	12	7
-5	Loads - HITM	3841	7
-6	Store Operations	211039	7
-7	Store - L1 Hit	198220	7
+n	key	value
+1	Total records	412083
+2	Locked Load/Store Operations	18422
+3	Load Operations	201044
+4	Loads - uncacheable	12
+5	Loads - HITM	3841
+6	Store Operations	211039
+7	Store - L1 Hit	198220

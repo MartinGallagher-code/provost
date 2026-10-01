@@ -1,6 +1,6 @@
-n	A	B	C	D	total_entries
-1	nginx/jammy-updates	1.18.0-6ubuntu14.4	amd64	[upgradable_from:_1.18.0-6ubuntu14.1]	5
-2	curl/jammy,now	7.81.0-1ubuntu1.15	amd64	[installed]	5
-3	git/jammy,now	1:2.34.1-1ubuntu1.10	amd64	[installed,automatic]	5
-4	vim/jammy	2:8.2.3995-1ubuntu2	amd64		5
-5	htop/jammy,now	3.0.5-7build2	amd64	[installed]	5
+n	A	B	C	D
+1	nginx/jammy-updates	1.18.0-6ubuntu14.4	amd64	[upgradable from: 1.18.0-6ubuntu14.1]
+2	curl/jammy,now	7.81.0-1ubuntu1.15	amd64	[installed]
+3	git/jammy,now	1:2.34.1-1ubuntu1.10	amd64	[installed,automatic]
+4	vim/jammy	2:8.2.3995-1ubuntu2	amd64	
+5	htop/jammy,now	3.0.5-7build2	amd64	[installed]

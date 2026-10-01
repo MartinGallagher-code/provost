@@ -25,20 +25,22 @@ strategy_detect () {
     # Require at least one canonical branch line: optional `* `, a branch name,
     # a 7-hex short SHA, then a `[upstream]` tracking block.
     local line hit=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ ^(\*[[:space:]]|[[:space:]][[:space:]])[[:space:]]*[^[:space:]]+[[:space:]]+[0-9a-f]{7}[[:space:]]+\[ ]]; then
             hit=1; break
         fi
-    done <<< "$text"
+    done
     [[ $hit -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1" result="" entry=0 line body name sha rest up
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Drop the leading current-branch marker.
         body="$line"
         body="${body#\*}"
@@ -59,7 +61,7 @@ strategy_extract () {
         result+="entry${entry}.name $(_gbvv_san "$name")"$'\n'
         result+="entry${entry}.sha ${sha}"$'\n'
         result+="entry${entry}.upstream $(_gbvv_san "$up")"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     printf '%s' "$result"
 }

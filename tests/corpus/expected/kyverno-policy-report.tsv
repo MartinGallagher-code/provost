@@ -1,3 +1,3 @@
-n	POLICY	RULE	RESOURCE	RESULT	total_entries
-1	require-labels	check-team	Pod/api-abc	pass	2
-2	disallow-latest-tag	validate-image	Pod/web-def	fail	2
+n	POLICY	RULE	RESOURCE	RESULT
+1	require-labels	check-team	Pod/api-abc	pass
+2	disallow-latest-tag	validate-image	Pod/web-def	fail

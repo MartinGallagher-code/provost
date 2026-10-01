@@ -1,6 +1,6 @@
-n	A	total_entries
-1	(1s)  via  v20.14.0  on   main [!]	5
-2	- directory: current path is ~/project	5
-3	- nodejs: v20.14.0 (package.json present)	5
-4	- git_branch: main	5
-5	- git_status: modified files present	5
+n	A
+1	(1s)  via  v20.14.0  on   main [!]
+2	- directory: current path is ~/project
+3	- nodejs: v20.14.0 (package.json present)
+4	- git_branch: main
+5	- git_status: modified files present

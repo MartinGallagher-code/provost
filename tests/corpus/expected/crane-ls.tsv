@@ -1,7 +1,7 @@
-n	A	total_entries
-1	1.27.0	6
-2	1.27.0-alpine	6
-3	1.27.1	6
-4	1.27.1-alpine	6
-5	latest	6
-6	stable	6
+n	A
+1	1.27.0
+2	1.27.0-alpine
+3	1.27.1
+4	1.27.1-alpine
+5	latest
+6	stable

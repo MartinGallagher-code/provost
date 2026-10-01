@@ -1,7 +1,7 @@
-n	depth	name	parent	total_entries
-1	1	myapp 0.1.0 (project app)		6
-2	0	cowboy 2.12.0 (hex package)	myapp 0.1.0 (project app)	6
-3	0	cowlib 2.13.0 (hex package)	cowboy 2.12.0 (hex package)	6
-4	0	ranch 2.1.0 (hex package)	cowlib 2.13.0 (hex package)	6
-5	0	jsx 3.1.0 (hex package)	ranch 2.1.0 (hex package)	6
-6	0	telemetry 1.2.1 (hex package)	jsx 3.1.0 (hex package)	6
+n	depth	name	parent
+1	1	myapp 0.1.0 (project app)	
+2	0	cowboy 2.12.0 (hex package)	myapp 0.1.0 (project app)
+3	0	cowlib 2.13.0 (hex package)	cowboy 2.12.0 (hex package)
+4	0	ranch 2.1.0 (hex package)	cowlib 2.13.0 (hex package)
+5	0	jsx 3.1.0 (hex package)	ranch 2.1.0 (hex package)
+6	0	telemetry 1.2.1 (hex package)	jsx 3.1.0 (hex package)

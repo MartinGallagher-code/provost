@@ -36,7 +36,7 @@ strategy_detect () {
     [[ "$text" == *"Keystore type"* ]] || return 1
     [[ "$text" == *"PrivateKeyEntry"* || "$text" == *"trustedCertEntry"* \
        || "$text" == *"SecretKeyEntry"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -44,9 +44,10 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line typ alias date
     local -a f
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *,* ]] || continue
-        IFS=',' read -ra f <<< "$line"
+        { IFS=',' _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -ge 3 ]] || continue
         typ="$(_kt_trim "${f[2]}")"
         case "$typ" in
@@ -60,7 +61,7 @@ strategy_extract () {
         result+="entry${entry}.alias ${alias}"$'\n'
         result+="entry${entry}.date ${date}"$'\n'
         result+="entry${entry}.type ${typ}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

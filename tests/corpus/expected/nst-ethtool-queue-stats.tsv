@@ -1,5 +1,5 @@
-n	name	group	rx_packets	tx_packets	total_entries
-1	Queue 0	NIC statistics for enp3s0	88213	77120	4
-2	Queue 1	NIC statistics for enp3s0	91002	80441	4
-3	Queue 2	NIC statistics for enp3s0	45129	39887	4
-4	Queue 3	NIC statistics for enp3s0	12009	10552	4
+n	name	group	rx_packets	tx_packets
+1	Queue 0	NIC statistics for enp3s0	88213	77120
+2	Queue 1	NIC statistics for enp3s0	91002	80441
+3	Queue 2	NIC statistics for enp3s0	45129	39887
+4	Queue 3	NIC statistics for enp3s0	12009	10552

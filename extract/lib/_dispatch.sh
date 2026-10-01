@@ -218,12 +218,7 @@ run_batch_mode () {
             _bo_name="${_bo_name%.txt}"
             local _bo_fields=""
             if [[ -n "$output" ]]; then
-                while IFS= read -r _bl; do
-                    [[ -z "$_bl" ]] && continue
-                    strip_strat_prefix "$_bl"
-                    _bo_fields+="$_STRIPPED_LINE"$'\n'
-                done <<< "$output"
-                _bo_fields="${_bo_fields%$'\n'}"
+                _fr_strip_prefix_lines "$output"; _bo_fields="$_FR_STRIPPED"
             fi
             {
                 if [[ -n "$_bo_fields" ]]; then
@@ -410,6 +405,57 @@ _batch_emit_summary () {
     echo "$_sum_json"
 }
 
+# _xl_can_keep — may the single-file run keep a file-lane result in its file
+# (see _xl_begin) through post-processing and output? Only in the plain
+# configuration provost uses (`-f tsv`, no field selection, no rename /
+# pattern / exclude / aggregate / sort / count / names / raw / cmdline /
+# interactive / quiet / verbose / auto-tune), where _xl_finalize is exactly
+# run_postprocess + run_output_mode. Anything else takes the variable path.
+_xl_can_keep () {
+    [[ "$_OPT_format" == tsv && $_OPT_format_explicit -eq 1 ]] || return 1
+    [[ $_OPT_auto_tune -eq 0 && -z "$_OPT_chain" && $_OPT_multi -eq 0 ]] || return 1
+    [[ -z "$_OPT_rename" && -z "$_OPT_field_pattern" && ${#_OPT_exclude_fields[@]} -eq 0 ]] || return 1
+    [[ $_OPT_aggregate -eq 0 && $_OPT_verbose -eq 0 && $_OPT_raw -eq 0 && -z "${fields:-}" ]] || return 1
+    [[ $_OPT_cmdline -eq 0 && $_OPT_count -eq 0 && $_OPT_names -eq 0 && $_OPT_sort -eq 0 ]] || return 1
+    [[ $_OPT_interactive -eq 0 && $_OPT_quiet -eq 0 ]] || return 1
+    return 0
+}
+
+# _xl_finalize — run_postprocess + run_output_mode for a kept file-lane
+# result, file to file: dedup (_dedup_pipe), the prefix strip (_fr_strip_awk)
+# and the TSV formatter (_format_tsv_awk) are the very filters the BIG
+# variable paths run, so the output is byte-identical.
+_xl_finalize () {
+    local _f="$_XL_OUT"
+    _XL_OUT=""
+    # --- run_postprocess (auto-tune is off in this configuration) ---
+    if [[ $_OPT_no_dedup -eq 0 ]] && _xl_has_content "$_f"; then
+        _dedup_pipe < "$_f" > "$_XL_DIR/lane.dedup"
+        if _xl_has_content "$_XL_DIR/lane.dedup"; then
+            _f="$_XL_DIR/lane.dedup"
+        else
+            _log_debug "Deduplication produced empty output; using raw output"
+        fi
+    fi
+    if [[ $_OPT_verbose -eq 1 || $_OPT_debug -eq 1 ]]; then
+        _log_info "Strategies: ${strategies_tried:-0} tried, ${strategies_matched:-0} matched, ${total_fields:-0} fields extracted"
+    fi
+    # --- run_output_mode (-f tsv, all fields) ---
+    if ! _xl_has_content "$_f"; then
+        output=""            # the no-fields exits, exactly as run_output_mode takes them
+        run_output_mode
+        return 0
+    fi
+    if [[ -n "$_OPT_output" ]]; then
+        if ! exec > "$_OPT_output"; then
+            _log_error "Cannot open output file: $_OPT_output (check path and permissions)"
+            exit 1
+        fi
+    fi
+    _fr_strip_awk < "$_f" | _format_tsv_awk
+    _output_tty_summary
+}
+
 # Post-processing pipeline: dedup, rename, aggregate, verbose summary.
 # Reads/modifies: output, _OPT_*, matched_strategies, near_miss_strategies, etc.
 run_postprocess () {
@@ -474,7 +520,11 @@ run_postprocess () {
 run_output_mode () {
     # Exit if no output was produced
     local _has_content=0
-    if [[ -n "$output" ]]; then
+    if [[ -n "$output" && "${output:0:1}" != $'\n' ]]; then
+        # (first line non-empty: the answer without feeding the whole output
+        # through a here-string — seconds on a 10 MB capture)
+        _has_content=1
+    elif [[ -n "$output" ]]; then
         while IFS= read -r _oline; do
             if [[ -n "$_oline" ]]; then _has_content=1; break; fi
         done <<< "$output"
@@ -609,12 +659,7 @@ run_output_mode () {
         esac
     elif [[ $_OPT_format_explicit -eq 1 ]]; then
         local all_fields=""
-        while IFS= read -r _aline; do
-            [[ -z "$_aline" ]] && continue
-            strip_strat_prefix "$_aline"
-            all_fields+="$_STRIPPED_LINE"$'\n'
-        done <<< "$output"
-        all_fields="${all_fields%$'\n'}"
+        _fr_strip_prefix_lines "$output"; all_fields="$_FR_STRIPPED"
         case "$_OPT_format" in
             json)        format_json "$all_fields" ;;
             json-nested) format_json_nested "$all_fields" ;;
@@ -628,7 +673,11 @@ run_output_mode () {
         display "$output"
     fi
 
-    # One-line extraction summary on TTY (informational, not part of data output)
+    _output_tty_summary
+}
+
+# One-line extraction summary on TTY (informational, not part of data output)
+_output_tty_summary () {
     if [[ -t 2 ]] && [[ $_OPT_quiet -eq 0 ]] && [[ $_OPT_count -eq 0 ]] && [[ $_OPT_names -eq 0 ]]; then
         local _sum_fields="${total_fields:-0}"
         local _sum_strats="${strategies_matched:-0}"
@@ -672,11 +721,20 @@ run_output_mode () {
 
 # Detect-only winner for "$1" -> _MULTI_DET (strategy name). Returns 1 if no
 # strategy detects. Mirrors run_auto_strategies' filters (generic dirs,
-# deprecation, _should_run_strategy) without extracting.
+# deprecation, _should_run_strategy, --min-confidence) without extracting,
+# and its candidate order: under --rank confidence (the default) every
+# detector runs and the highest confidence wins (ties: priority, then name —
+# the list is already in that order, so the first strict maximum is kept);
+# under --rank priority the first detecting strategy wins. The name only
+# GROUPS blocks — each group is then extracted by run_auto_strategies, which
+# falls through an empty extract; detect-only cannot, so a block whose top
+# candidate would extract nothing still groups under that name.
 _multi_detect_name () {
     local btext="$1"
     _MULTI_DET=""
-    local _priority strategy_version strategy_file strategy_name
+    local _priority strategy_version strategy_file strategy_name _md_best=-1
+    local _md_rank=1
+    [[ "${_OPT_rank:-confidence}" == priority ]] && _md_rank=0
     while IFS='|' read -r _priority strategy_version strategy_file; do
         [[ -z "$strategy_file" ]] && continue
         strategy_name="${strategy_file##*/}"
@@ -687,21 +745,26 @@ _multi_detect_name () {
         _source_strategy_cached "$strategy_file" /dev/null || continue
         _STRATEGY_CONFIDENCE=50
         if strategy_detect "$btext" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" >/dev/null 2>&1; then
-            _MULTI_DET="$strategy_name"
-            unset -f strategy_detect strategy_extract 2>/dev/null
-            return 0
+            if [[ $_md_rank -eq 0 ]]; then
+                _MULTI_DET="$strategy_name"
+                unset -f strategy_detect strategy_extract 2>/dev/null
+                return 0
+            fi
+            if [[ $_STRATEGY_CONFIDENCE -ge ${_OPT_min_confidence:-0} && $_STRATEGY_CONFIDENCE -gt $_md_best ]]; then
+                _md_best=$_STRATEGY_CONFIDENCE
+                _MULTI_DET="$strategy_name"
+            fi
         fi
         unset -f strategy_detect strategy_extract 2>/dev/null
     done <<< "$_SORTED_STRATEGIES"
-    return 1
+    [[ -n "$_MULTI_DET" ]]
 }
 
 run_multi_mode () {
     # Resolve the strategy list once for the detect-only pass (the per-group
     # run_auto_strategies calls resolve again from cache — cheap).
-    local strategy_dirs=("$STRATEGIES_DIR")
-    [[ -d "${HOME:-/nonexistent}/.mfe/strategies" ]] && strategy_dirs+=("${HOME:-/nonexistent}/.mfe/strategies")
-    [[ -n "$_OPT_plugin_dir" && -d "$_OPT_plugin_dir" ]] && strategy_dirs+=("$_OPT_plugin_dir")
+    _collect_strategy_dirs
+    local strategy_dirs=("${_STRATEGY_DIRS[@]}")
     _resolve_strategy_list "${strategy_dirs[@]}"
     if [[ -z "$_SORTED_STRATEGIES" ]]; then
         _log_error "No strategies found."

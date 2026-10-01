@@ -43,11 +43,12 @@ strategy_detect () {
     [[ "$first" =~ $_iperfsum_re_header ]] || return 1
     # A "Slowest ..." section header must be present.
     local line found=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ $_iperfsum_re_slowest_hdr ]]; then found=1; break; fi
-    done <<< "$text"
+    done
     [[ $found -eq 1 ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -83,7 +84,7 @@ strategy_extract () {
 
         if [[ $state -eq 1 ]]; then
             # A blank line ends the list; the "What next:" prose follows.
-            if [[ -z "${line//[[:space:]]/}" ]]; then
+            if [[ "${line}" != *[![:space:]]* ]]; then
                 state=2
                 continue
             fi

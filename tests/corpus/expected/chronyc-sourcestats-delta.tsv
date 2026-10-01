@@ -1,4 +1,4 @@
-n	Name/IP	Address	NP	NR	Span	Frequency	Skew	Offset	StdDev	total_entries
-1	ntp1.ex	ample.net	17	10	557	+0.012	0.045	-0.512	0.089	3
-2	ntp2.ex	ample.net	20	12	612	-0.034	0.067	+1.234	0.145	3
-3	ntp3.ex	ample.net	14	8	489	+0.101	0.123	-12.045	1.302	3
+n	Name/IP	Address	NP	NR	Span	Frequency	Skew	Offset	StdDev
+1	ntp1.ex	ample.net	17	10	557	+0.012	0.045	-0.512	0.089
+2	ntp2.ex	ample.net	20	12	612	-0.034	0.067	+1.234	0.145
+3	ntp3.ex	ample.net	14	8	489	+0.101	0.123	-12.045	1.302

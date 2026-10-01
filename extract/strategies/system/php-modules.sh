@@ -22,14 +22,15 @@ strategy_detect () {
     # specific enough on its own.
     # Distinctive: the "[PHP Modules]" section header.
     [[ "$text" == *"[PHP Modules]"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Trim surrounding whitespace.
         line="${line#"${line%%[![:space:]]*}"}"
         line="${line%"${line##*[![:space:]]}"}"
@@ -41,7 +42,7 @@ strategy_extract () {
         local v="${line}"
         entry=$((entry + 1))
         result+="entry${entry}.A ${v}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

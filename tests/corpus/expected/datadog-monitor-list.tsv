@@ -1,4 +1,4 @@
-n	id	name	status	type	total_entries
-1	88201	API latency high	OK	metric alert	3
-2	88202	Disk filling	Alert	metric alert	3
-3	88203	Error rate spike	OK	log alert	3
+n	id	name	status	type
+1	88201	API latency high	OK	metric alert
+2	88202	Disk filling	Alert	metric alert
+3	88203	Error rate spike	OK	log alert

@@ -1,5 +1,235 @@
 # provost — Changelog
 
+## 2026-09-25 — ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
+
+- **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with
+  `--max-strategies 1` / `--first-match`, a detector whose ceiling
+  (`## Confidence-Max`, else its largest literal) cannot beat the best so far
+  is skipped; if the top candidate then extracts nothing the pass is redone
+  unpruned. Corpus: 0 differences vs unpruned in full and `--generic` mode.
+  `## Confidence-Max` added to aligned-columns (69), colons (60), equals (75),
+  line-records (55).
+- **Documents under ranking**: a JSON/XML document is sampled for the ordinary
+  detectors while `_FR_DOC_STRATEGIES` (json, json-array, jsonl, xml, har,
+  yaml, toml) see it whole. 10 MB JSON: 146 s → 12 s. The 168 document-shaped
+  corpus inputs give identical output with a forced 8+4-line sample.
+- **equals** awk fast path computes the calibrated confidence.
+- **clean_text hang** (`extract/lib/_helpers.sh`): the paren/date
+  substitutions quoted neither pattern nor replacement, so glob characters
+  acted as patterns and, under bash 5.2's patsub_replacement, `&` re-inserted
+  the match — `K=(x&y z)` grew for minutes (pre-existing on main).
+- Tests: `extract/tests/test_rank.sh` (+2: pruned redo, pruning exact),
+  `extract/tests/test_big_input_paths.sh` (documents flagged and sampled;
+  whole-document grammar detection preserved).
+
+provost --sync, 10 MB: ps 22 s, CSV 15 s, JSON 12 s, syslog 11 s, KEY=VALUE 7 s.
+
+## 2026-09-25 — very large inputs: bounded detection sample, file lane, awk twins
+
+A 10 MB capture took minutes (ps table ~282 s, KEY=VALUE ~281 s in the
+engine alone; 1 MB inputs 6–94 s end to end). Now (4-core box, `provost
+--sync FILE`, fresh store): 10 MB in 6.5–18 s, 1 MB in 1.3–2.4 s, 100 KB in
+0.4–1.2 s — every dataset byte-identical to before.
+
+| `provost --sync` | 100 KB before → after | 1 MB before → after | 10 MB after (engine alone) |
+|---|---|---|---|
+| ps table   | 4.0 s → 1.2 s | 38.4 s → 2.4 s | 18.1 s (14.0 s) |
+| CSV        | 4.0 s → 0.6 s | 44.4 s → 1.6 s | 13.6 s (8.6 s) |
+| JSON array | 0.9 s → 0.4 s |  6.2 s → 1.3 s | 11.3 s (9.6 s) |
+| syslog     | 7.7 s → 0.7 s | 93.8 s → 1.3 s |  8.8 s (6.6 s) |
+| KEY=VALUE  | 7.5 s → 0.7 s | 68.0 s → 1.4 s |  6.5 s (5.9 s) |
+
+**Detection (`extract/lib/_discovery.sh`)**
+- Above 32 KB (`_FR_SAMPLE_BYTES`) every detector screens a bounded SAMPLE —
+  the first 120 / last 40 whole lines, 16 KB / 4 KB caps; JSON/XML documents
+  are never cut — and a strategy that accepts it is re-run on the FULL text,
+  which alone decides acceptance, confidence and any detect→extract state.
+  The sample applies to every detector's input, so it is independent of how
+  the winner is picked (priority now, a confidence ranking later).
+- Hint rows on a big input: one pass finds which hint literals occur (a
+  `contains` pattern, or a literal every match of a `regex` row must hold,
+  or the first atom of an anchored regex); rows that cannot match skip their
+  full-text regex. Exact by construction (tests + corpus).
+- `clean_text`'s cache is keyed on its input.
+
+**Engine passes (`extract/lib/_helpers.sh`, `_postprocess.sh`, `_format.sh`,
+`_dispatch.sh`, `extract/envoy-extract`)**
+- FILE LANE (`_FR_LANE_BYTES`, 64 KB): a big result goes from
+  `strategy_extract` to a file and stays there — count, truncation guard,
+  store, dedup, prefix strip and TSV formatting run file to file with the
+  same awk programs as their variable twins (plain `-f tsv` runs only; any
+  other option set gets `output` back byte for byte).
+- Preprocessing answers its ~20 "text contains X" gates in one pass;
+  `== banner ==` drops and the output's has-content check no longer walk the
+  text in bash.
+
+**Generic strategies — awk twins above `_FR_BIG_BYTES`, byte-identical**
+- `aligned-columns`: detect's two whole-text loops in one pass; the body's
+  line walk hands the rest to awk once the table starts; extract runs file to
+  file (`_ac_extract_big`: collection, header repeats / units row, first-cell
+  wraps, positional / segment / offset decisions, emission) and hands back to
+  the bash loops only for the positional grid, non-ASCII blocks, segment
+  split, scaffold split and phrase merges. Early-exit loops index the line
+  array instead of expanding all of it.
+- `csv` (join + emit; detect decides on a whole-line prefix when it can),
+  `syslog` (detect + extract, including the bash loop's `set -u` abort on a
+  short line), `equals` (detect, pin/cfg/kv modes with `clean_text` and
+  `restore_text_values` folded in; glob/`&` paren spans fall back to bash),
+  `json-array` (reads the input as one record — the per-line rebuild was
+  quadratic), `nslookup_mx` / `clickhouse-processlist` (whole-text tests).
+
+**Transform + provost (`transform/melt.sh`, `provost`)**
+- `_core_melt_tidy_file FILE [capid]` == `_core_melt_tidy "$(cat FILE)"`;
+  provost melts the engine's output file directly. The melt keys cells by
+  position instead of an (id, field) string pair (mawk string hashing
+  collapses past ~1M keys: 12 s → 4.8 s for a 10 MB CSV).
+
+**Proofs** (scratch runs; all LC_ALL=C)
+- Corpus, 3,705 inputs, batch `--max-strategies 1`, full and `--generic`:
+  identical winner meta and wide output to the pre-change engine — as shipped;
+  with every awk twin and the lane forced (`_FR_BIG_BYTES=0
+  _FR_LANE_BYTES=0`); and with sampling forced at 20+8 and 40+15 lines.
+- Sampling forced at a deliberately tiny 8+4 lines (374 corpus inputs are
+  longer than that): 45 winners change (46 `--generic`), all from an earlier
+  strategy rejecting a sample that cut off its evidence (dig's ANSWER
+  section, kubectl-describe sections, psql tables); extraction output is
+  identical whenever the winner is (0 wide diffs). The default 120+40-line
+  sample holds every corpus input whole.
+- 360 synthetic big inputs (corpus tools, header once, body replicated to
+  60 KB): sampled winner == full-detection winner for 359; the one flip
+  (`deno-info`: pkg-config 88 → colons 35) is a ratio knife-edge — pkg-config
+  declines when one token count covers >=60% of lines, and the sample's
+  period cut lands at exactly 60%. This is the residual risk of sampling:
+  ratio-threshold detectors can decide differently on a sample.
+- `extract/tests/test_big_input_paths.sh` (new, 23 tests): each route vs the
+  bash route on generated inputs, the sample's shape, accept-then-reject
+  fall-through, full-text confidence, hint prefilter soundness.
+  `transform/tests/test_melt.sh`: +12 file-vs-string melt checks (54).
+
+## 2026-09-25 — format detection ranks candidates by calibrated confidence
+
+The extract engine used to take the first strategy in priority order whose
+detector fired and whose extract was non-empty; confidence was only compared
+to provost's commit threshold (50). Pure confidence ranking on the old numbers
+would have flipped ~43% of corpus winners (line-records at a flat 80 beat
+aligned-columns' 40–75; text-lines 55; 112 bespoke strategies at a constant
+86). Confidences are now calibrated on one rubric and detection ranks by them.
+
+**Ranking (`extract/lib/_discovery.sh` `run_auto_strategies`,
+`extract/lib/_dispatch.sh` `_multi_detect_name`, `extract/envoy-extract`,
+`extract/lib/_globals.sh`)**
+- Hints first (unchanged); then EVERY eligible detector runs, and the
+  candidates are tried by confidence desc, priority asc, name (`LC_ALL=C`),
+  re-running detect before extract; an empty or truncated extract falls
+  through to the next candidate.
+- `--rank priority|confidence` (default confidence; `MFE_RANK` env) keeps the
+  old single pass for comparison. `--strategy` / `--replay` are unchanged.
+- `--multi` groups blocks by the same ranking (highest-confidence detector).
+
+**Calibration (`extract/strategies/**`, rubric in `extract/README.md`
+"Confidence rubric")**
+- Bespoke strong signature 92 (was 82–90); weak-signature bespoke
+  `pkg-config`, `git-log-graph` 80. Grammar tier 85 (`json` 95, `yaml`/`csv`/
+  `tsv`/`jsonl`/`har`/`dns-records` 90, …) incl. strict dialects that must
+  outrank their grammar (`quoted-fields`, `columnar-specs`, `colon-pairs`,
+  `kv-pairs`). Other format-specific generics 80 (were 60–90).
+- Evidence-scaled general structure / catch-alls: `aligned-columns` 60–69
+  (its 40–75 score mapped), `colons` 55–60 by `label: value` share (was 35),
+  `numeric-lead-records` 60, weak `equals` 50–55 by assignment share (was 35;
+  strong `equals` stays 75), `line-records` 50–55 by modal-column share (50 for
+  one-token lists, 51 for one line; was 80), `text-lines` 50 (was 55).
+- Tests: new `extract/tests/test_rank.sh`; `test_generic_mode.sh`
+  (`--min-confidence 85`) and `test_strategy_equals.sh` (lone `=` is 50..55)
+  follow the rubric.
+
+**Measured.** Corpus winners, confidence vs priority: full mode 4 flips
+(`gpg-card-status`, `ip6tables-l` go from not-tidy to tidy via their bespoke
+parsers; `lscpu-parse` moves csv → its bespoke parser, both tidy;
+`openssl-x509-dates` as below), `--generic` 2 flips —
+`env-file-export-quotes` and `openssl-x509-dates` now parse as `equals`
+KEY=VALUE records instead of aligned-columns splitting `notAfter=Sep` into
+columns (goldens to regenerate). Coverage 3587 → 3588 (gpg-card-status now
+tidy via its bespoke strategy), zero tidy→not-tidy; holdout 78/80 unchanged;
+benchmark: no winner or parse changes. 212 corpus inputs whose winner was
+colons/equals at 35 now clear provost's threshold (they pass the tidy check).
+Detection costs ~+13–15% CPU per capture (every detector runs).
+
+## 2026-09-25 — assessment fixes: data integrity, security, parsing, speed
+
+A full review found silent data loss in the capture path, several ways a
+shared store or an untrusted directory could run code, parser bugs that
+corrupted values, and detection too slow for real inputs. All of it is fixed.
+
+**Capture path and store (`provost`, `tests/smoke.sh`, `man/provost.1`,
+`completions/provost.bash`)**
+- Captures over ~3,000 rows died silently with exit 141 (pipefail + `printf |
+  head` on multi-MB variables), leaving a stale lock. The path now works on
+  files; a 50,000-row CSV captures correctly.
+- Capture ids come from a monotonic `.next_capture_id` (migrated for old
+  stores), so `rm`/`restore` can no longer make a new capture overwrite an old
+  one. Captures and `rm` are refused while a restored capture is checked out.
+- The store has a `.gitignore` (lock, failure log, registry); a committed
+  `.lock` is untracked. git failures exit non-zero instead of printing "ok".
+- Controlled-directory snapshots run (a `local` expansion bug skipped them).
+- `rm` handles `--multi` captures and purges only captures nobody uses;
+  restore/export/control/uncontrol lock; the lock can't be stolen from another
+  user's live process and is broken atomically.
+- Dataset names and capture ids are validated (`rm -f ../../x` deleted files
+  outside the store); numeric settings are validated before arithmetic (they
+  allowed command injection); engines and `melt.sh` load only from the install
+  dir, never the store; a store whose `.git/config` others can write is refused
+  if it sets keys that make git run programs.
+- `provost run CMD` files into a dataset named after the command (through
+  sudo/env/timeout/… wrappers); `--name` overrides. The README's
+  `provost show df` is finally true.
+- Background capture only at an interactive terminal; scripts are synchronous.
+  Background failures are logged, warned about, and listed by
+  `provost log --failed`.
+- `run` honours `PROVOST_MAX_INPUT`; paths with spaces/quotes work; help goes
+  to stdout; usage errors exit 2 with "did you mean"; per-command `--help`.
+
+**Transform (`transform/melt.sh`, `transform/tests/test_melt.sh`)**
+- Digit-suffixed names (`python3.path`, `eth0.mtu`) are no longer taken for
+  record counters; only the engine's record prefixes melt to `n`, and an
+  eth0/eth1 family becomes rows with a `key` column.
+- The O(n²) sort is gone (20k records: 60s → 0.5s).
+- `total_entries` (the engine's record count) is no longer repeated on every
+  row. Existing datasets that have the column keep it; new rows blank-fill it.
+
+**Extract/analyze engines (`extract/`, `analyze/`, `lib/`)**
+- Values keep their spaces (`y, z` was `y,_z`; dates, syslog stamps, symlink
+  arrows were mangled); `format_tsv` no longer shears rows on a tab in a value.
+- TSV keeps empty cells (a blank cell shifted the rest of the row left).
+- `equals` scores by evidence, so `env`-style output files instead of always
+  falling below the threshold.
+- `.envoyrc`: provost disables it (`ENVOY_NO_RC=1`); otherwise only
+  `ENVOY_`/`MFE_`/`PROVOST_` keys, a hard deny list (`LD_PRELOAD` reached child
+  processes), no walk past `$HOME`, and untrusted files skipped.
+- Detection is ~10× faster with byte-identical output (`df -h` 3.6s → 0.33s,
+  `ps aux` 7.2s → 0.7s, 3.5k lines 272s → 11s; the extract suite 7m → 2m):
+  the strategy loader read `declare -F` one byte per syscall; strategies now
+  use shared fast helpers; aligned-columns emits in one awk pass; quadratic
+  string appends are linear. Equal priorities tie-break by strategy name, not
+  folder. Ranking by confidence was measured and rejected (43% of corpus
+  winners would flip).
+- The strategy verifier fails on a missing sample/golden and compares in
+  order; the 19 strategies without samples have them; orphan fixtures and the
+  69 per-directory `HANDOFF.md` files (wrong counts) are gone; the SageCor
+  "Version 4.2" banner is replaced by provost's own version and licence; the
+  analyze suite passes under mawk, runs every file, and lost its pipefail
+  flakes.
+
+**Tests, CI, repo**
+- smoke 65 → 197 checks, melt 10 → 42, new `extract/tests/test_envoyrc.sh`.
+- CI runs the corpus goldens (they guarded nothing before) and the analyze
+  suite under mawk as well as gawk.
+- Corpus goldens are regenerated for the intended output changes above
+  (value spaces, tab/TSV fixes, digit keys, `total_entries`); the manifest's
+  minimum column counts drop by one where `total_entries` was counted.
+- Review worksheets moved to `docs/archive/`; `tests/corpus/review-snapshot.sh`
+  regenerates the review snapshot; README, `docs/usage.md`, `docs/index.md`
+  and CLAUDE.md match the new behaviour; HANDOFF.md is rewritten short.
+
 ## 2026-09-16 — one licence notice across the whole suite (GPL-3.0-or-later)
 
 provost was the only repository in the suite licensed **GPL-3.0-only**; every

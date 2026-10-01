@@ -24,7 +24,7 @@ strategy_detect () {
     [[ "$text" == *"pod/"* ]] || return 1
     [[ "$text" == *"service/"* ]] || return 1
     [[ "$text" == *"NAME"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

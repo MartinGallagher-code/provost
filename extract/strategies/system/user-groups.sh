@@ -18,26 +18,28 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
 
     local nonblank=0 first="" _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nonblank=$((nonblank + 1))
         [[ -z "$first" ]] && first="$_l"
-    done <<< "$text"
+    done
     [[ $nonblank -eq 1 ]] || return 1
     [[ "$first" =~ ^[a-zA-Z0-9_.-]+[[:space:]]+:[[:space:]]+[a-zA-Z] ]] || return 1
-    _STRATEGY_CONFIDENCE=85
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local first="" _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && { continue; }
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && { continue; }
         first="$_l"; break
-    done <<< "$text"
+    done
 
-    local toks; toks=(); read -ra toks <<< "$first"
+    local toks; toks=(); { _fr_tok "$first"; toks=("${_FR_TOK[@]}"); }
     local user="${toks[0]}"
     local result="" entry=0 i seen_sep=0
     for ((i = 1; i < ${#toks[@]}; i++)); do

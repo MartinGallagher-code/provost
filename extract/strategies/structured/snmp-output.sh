@@ -19,13 +19,14 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     _is_json "$text" && return 1
     local snmp=0 _line
-    while IFS= read -r _line; do
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
         [[ -z "$_line" ]] && continue
         if [[ "$_line" =~ ^[^[:space:]]+::[^[:space:]=]+[[:space:]]+=[[:space:]]+[^:]+:[[:space:]] ]]; then
             snmp=$((snmp + 1))
         fi
-    done <<< "$text"
-    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=86; return 0; }
+    done
+    [[ $snmp -ge 1 ]] && { _STRATEGY_CONFIDENCE=80; return 0; }
     return 1
 }
 
@@ -34,7 +35,8 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"::"*" = "*": "* ]] || continue
         local oid="${line%% = *}"
         local rhs="${line#* = }"
@@ -46,7 +48,7 @@ strategy_extract () {
         result+="${p}oid ${oid}"$'\n'
         result+="${p}type ${type}"$'\n'
         result+="${p}value ${val}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

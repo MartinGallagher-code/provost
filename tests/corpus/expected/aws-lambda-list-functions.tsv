@@ -1,7 +1,7 @@
-n	FunctionName	Runtime	Memory	Timeout	LastModified	total_entries
-1	orders-create	nodejs20.x	512	30	2026-06-28T10:14:02Z	6
-2	orders-webhook	python3.12	256	15	2026-07-01T08:41:55Z	6
-3	image-thumbnailer	python3.11	1024	60	2026-05-19T17:22:10Z	6
-4	auth-token-verifier	go1.x	128	10	2026-06-30T12:03:44Z	6
-5	nightly-report	java21	2048	300	2026-07-05T02:00:01Z	6
-6	slack-notifier	nodejs20.x	256	20	2026-07-06T14:37:09Z	6
+n	FunctionName	Runtime	Memory	Timeout	LastModified
+1	orders-create	nodejs20.x	512	30	2026-06-28T10:14:02Z
+2	orders-webhook	python3.12	256	15	2026-07-01T08:41:55Z
+3	image-thumbnailer	python3.11	1024	60	2026-05-19T17:22:10Z
+4	auth-token-verifier	go1.x	128	10	2026-06-30T12:03:44Z
+5	nightly-report	java21	2048	300	2026-07-05T02:00:01Z
+6	slack-notifier	nodejs20.x	256	20	2026-07-06T14:37:09Z

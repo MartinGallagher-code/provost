@@ -11,16 +11,17 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=90
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     # fail2ban-client status output contains "Number of jail" and "Jail list"
     # fail2ban-client status <jail> contains "Currently banned" and "Total banned"
     local has_jail=0
     local has_banned=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == *"Jail list"* || "$line" == *"Number of jail"* ]] && has_jail=1
         [[ "$line" == *"Currently banned"* || "$line" == *"Total banned"* ]] && has_banned=1
-    done <<< "$text"
+    done
     if [[ $has_jail -eq 1 || $has_banned -eq 1 ]]; then
         return 0
     fi
@@ -32,7 +33,8 @@ strategy_extract () {
     local result=""
     local section=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         local trimmed="$line"
         while [[ "$trimmed" == " "* ]]; do trimmed="${trimmed# }"; done
@@ -74,7 +76,7 @@ strategy_extract () {
                 result+="${key} ${val}"$'\n'
             fi
         fi
-    done <<< "$text"
+    done
 
     echo "$result"
 }

@@ -30,7 +30,7 @@ strategy_detect () {
     [[ "$text" == *"Pool Name"* ]]        || return 1
     [[ "$text" == *"Completed"* ]]        || return 1
     [[ "$text" == *"All time blocked"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -38,9 +38,10 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 line ok i
     local -a t
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        read -ra t <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         [[ ${#t[@]} -eq 6 ]] || continue
         ok=1
         for i in 1 2 3 4 5; do
@@ -54,7 +55,7 @@ strategy_extract () {
         result+="entry${entry}.completed ${t[3]}"$'\n'
         result+="entry${entry}.blocked ${t[4]}"$'\n'
         result+="entry${entry}.all_time_blocked ${t[5]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

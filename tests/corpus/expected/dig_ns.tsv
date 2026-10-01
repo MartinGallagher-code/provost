@@ -1,5 +1,5 @@
-n	name	ttl	class	type	value	total_entries
-1	google.com.	21599	IN	NS	ns1.google.com.	4
-2	google.com.	21599	IN	NS	ns2.google.com.	4
-3	google.com.	21599	IN	NS	ns3.google.com.	4
-4	google.com.	21599	IN	NS	ns4.google.com.	4
+n	name	ttl	class	type	value
+1	google.com.	21599	IN	NS	ns1.google.com.
+2	google.com.	21599	IN	NS	ns2.google.com.
+3	google.com.	21599	IN	NS	ns3.google.com.
+4	google.com.	21599	IN	NS	ns4.google.com.

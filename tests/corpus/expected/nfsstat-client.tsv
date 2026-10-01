@@ -1,5 +1,5 @@
-n	calls	retrans	authrefrsh	total_entries
-1	8821404	12	8821404	4
-2	Client	nfs	v4:	4
-3	null	read	write_commit_open	4
-4	0	0%	4102881_46%_2841094_32%_88214_1%_142088_2%	4
+n	calls	retrans	authrefrsh
+1	8821404	12	8821404
+2	Client	nfs	v4:
+3	null	read	write commit open
+4	0	0%	4102881 46% 2841094 32% 88214 1% 142088 2%

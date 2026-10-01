@@ -1,12 +1,12 @@
-n	group	value	total_entries
-1	inputs	cpu	11
-2	inputs	disk	11
-3	inputs	diskio	11
-4	inputs	mem	11
-5	inputs	net	11
-6	inputs	procstat	11
-7	inputs	postgresql	11
-8	outputs	influxdb_v2	11
-9	outputs	prometheus_client	11
-10	processors	regex	11
-11	processors	enum	11
+n	group	value
+1	inputs	cpu
+2	inputs	disk
+3	inputs	diskio
+4	inputs	mem
+5	inputs	net
+6	inputs	procstat
+7	inputs	postgresql
+8	outputs	influxdb_v2
+9	outputs	prometheus_client
+10	processors	regex
+11	processors	enum

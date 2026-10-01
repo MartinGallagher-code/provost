@@ -1,4 +1,4 @@
-n	SENSOR	VALUE	STATE	total_entries
-1	intake	42°C	ok	3
-2	exhaust	71°C	warm	3
-3	ambient	24°C	ok	3
+n	SENSOR	VALUE	STATE
+1	intake	42°C	ok
+2	exhaust	71°C	warm
+3	ambient	24°C	ok

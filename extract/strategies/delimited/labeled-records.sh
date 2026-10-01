@@ -22,14 +22,15 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
 
     local n=0 match=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         n=$((n + 1))
         # single-token label (no space before the colon), then a value starting
         # with a letter (prose, not a number)
         [[ "$_l" =~ ^[[:space:]]*[^[:space:]]+:[[:space:]]+[A-Za-z] ]] && match=$((match + 1))
         [[ $n -ge 40 ]] && break
-    done <<< "$text"
+    done
 
     # Every non-blank line must fit, and we need at least two records.
     [[ $n -ge 2 && $match -eq $n ]] || return 1
@@ -40,8 +41,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         local key="${_l%%:*}" val="${_l#*:}"
         # trim
         key="${key#"${key%%[![:space:]]*}"}"; key="${key%"${key##*[![:space:]]}"}"
@@ -49,7 +51,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.name ${key}"$'\n'
         [[ -n "$val" ]] && result+="entry${entry}.value ${val}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

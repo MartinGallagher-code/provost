@@ -1,4 +1,4 @@
-n	timestamp	message	total_entries
-1	2026-07-10 06:00:00 UTC	5.0MiB db-dump.sql.gz	3
-2	2026-07-10 05:00:00 UTC	0B backups/	3
-3	2026-07-09 22:00:00 UTC	44KiB audit.jsonl	3
+n	timestamp	message
+1	2026-07-10 06:00:00 UTC	5.0MiB db-dump.sql.gz
+2	2026-07-10 05:00:00 UTC	0B backups/
+3	2026-07-09 22:00:00 UTC	44KiB audit.jsonl

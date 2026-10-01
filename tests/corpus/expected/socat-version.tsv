@@ -1,2 +1,2 @@
-n	8.0.0_on_10_Jul_2026_06	socat_by_Gerhard_Rieger_and_contributors.features
-1	00:00	WITH_STDIO WITH_LISTEN WITH_OPENSSL WITH_TCP
+socat_version_1.8.0.0_on_10_Jul_2026_06	socat_by_Gerhard_Rieger_and_contributors.features
+00:00	WITH_STDIO WITH_LISTEN WITH_OPENSSL WITH_TCP

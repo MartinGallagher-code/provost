@@ -1,7 +1,7 @@
-n	A	B	C	total_entries
-1	Total	Requests	8821004	6
-2	Unique	Visitors	128442	6
-3	Valid	Requests	8712043	6
-4	Failed	Requests	108961	6
-5	Log	Size	1.20_GiB	6
-6	Bandwidth	412.44	GiB	6
+n	A	B	C
+1	Total	Requests	8821004
+2	Unique	Visitors	128442
+3	Valid	Requests	8712043
+4	Failed	Requests	108961
+5	Log	Size	1.20 GiB
+6	Bandwidth	412.44	GiB

@@ -1,4 +1,4 @@
-n	from	to	extents	blocks	pct	total_entries
-1	1	1	2011	2011	0.02	3
-2	2	3	4120	10112	0.11	3
-3	4	7	8890	44201	0.48	3
+n	from	to	extents	blocks	pct
+1	1	1	2011	2011	0.02
+2	2	3	4120	10112	0.11
+3	4	7	8890	44201	0.48

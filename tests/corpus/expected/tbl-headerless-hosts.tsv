@@ -1,6 +1,6 @@
-n	A	B	C	total_entries
-1	127.0.0.1	localhost		5
-2	127.0.1.1	myhost.local	myhost	5
-3	192.168.1.10	web01.internal	web01	5
-4	192.168.1.11	db01.internal	db01	5
-5	10.0.0.5	cache01.internal		5
+n	A	B	C
+1	127.0.0.1	localhost	
+2	127.0.1.1	myhost.local	myhost
+3	192.168.1.10	web01.internal	web01
+4	192.168.1.11	db01.internal	db01
+5	10.0.0.5	cache01.internal	

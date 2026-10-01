@@ -72,9 +72,22 @@ test_aligned_columns_not_json () {
 ## Run all tests
 ################################################################################
 
+# Surplus trailing tokens fold into the last column JOINED WITH SPACES — an
+# ls -l symlink is `sh -> busybox`, not `sh_->_busybox`.
+test_aligned_columns_trailing_tokens_keep_spaces () {
+    local tmp output
+    tmp="$(mktemp)"
+    printf 'drwxr-xr-x 2 root root 4096 Jul  6 09:12 bin\n-rw-r--r-- 1 alice users 1024 Jul  5 18:03 notes.txt\nlrwxrwxrwx 1 root root    7 Jul  1 00:00 sh -> busybox\n' > "$tmp"
+    output=$(run_mfe -s aligned-columns -f plain "$tmp")
+    rm -f "$tmp"
+    assert_contains "$output" " sh -> busybox" "symlink target keeps its spaces"
+    assert_not_contains "$output" "sh_->_busybox" "no underscores invented"
+}
+
 run_test "aligned-columns: ps-style extraction" test_aligned_columns_ps
 run_test "aligned-columns: indexed row groups" test_aligned_columns_row_groups
 run_test "aligned-columns: df-style extraction" test_aligned_columns_df
 run_test "aligned-columns: not detected for JSON" test_aligned_columns_not_json
 
+run_test "aligned-columns: trailing tokens joined with spaces" test_aligned_columns_trailing_tokens_keep_spaces
 print_summary

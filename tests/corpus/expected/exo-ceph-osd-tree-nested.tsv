@@ -1,11 +1,11 @@
-n	ID	WEIGHT	TYPE_NAME	CLASS	STATUS	REWEIGHT	PRI-AFF	total_entries
-1	-1	21.83159	root default					10
-2	-3	7.27719	host ceph-node1					10
-3	0	1.81929	osd.0	hdd	up	1.00000	1.00000	10
-4	1	1.81929	osd.1	hdd	up	1.00000	1.00000	10
-5	2	1.81929	osd.2	ssd	up	1.00000	0.90000	10
-6	-5	7.27719	host ceph-node2					10
-7	3	1.81929	osd.3	hdd	up	1.00000	1.00000	10
-8	4	1.81929	osd.4	hdd	down	0	1.00000	10
-9	-7	7.27719	host ceph-node3					10
-10	5	1.81929	osd.5	ssd	up	0.95000	1.00000	10
+n	ID	WEIGHT	TYPE_NAME	CLASS	STATUS	REWEIGHT	PRI-AFF
+1	-1	21.83159	root default				
+2	-3	7.27719	host ceph-node1				
+3	0	1.81929	osd.0	hdd	up	1.00000	1.00000
+4	1	1.81929	osd.1	hdd	up	1.00000	1.00000
+5	2	1.81929	osd.2	ssd	up	1.00000	0.90000
+6	-5	7.27719	host ceph-node2				
+7	3	1.81929	osd.3	hdd	up	1.00000	1.00000
+8	4	1.81929	osd.4	hdd	down	0	1.00000
+9	-7	7.27719	host ceph-node3				
+10	5	1.81929	osd.5	ssd	up	0.95000	1.00000

@@ -1,4 +1,4 @@
-n	id	name	tags	total_entries
-1	1	web	{http,https,edge}	3
-2	2	db	{postgres,primary}	3
-3	3	cache	{redis,"a,b",fast}	3
+n	id	name	tags
+1	1	web	{http,https,edge}
+2	2	db	{postgres,primary}
+3	3	cache	{redis,"a,b",fast}

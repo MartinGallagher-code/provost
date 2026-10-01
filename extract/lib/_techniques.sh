@@ -13,7 +13,7 @@
 ##   _TECH_KEY_VALID  result of _tech_validate_key (0=invalid, 1=valid)
 ##   _TECH_BLOCKS     result of _tech_split_blocks (null-delimited blocks)
 ##
-## Dependencies: _helpers.sh (_clean_field -> $_CLEANED)
+## Dependencies: _helpers.sh (_clean_field / _clean_value -> $_CLEANED)
 ################################################################################
 
 # Strip leading spaces and optional "* " bullet prefix from a string.
@@ -74,7 +74,7 @@ _tech_kv_colon () {
         # Skip URL values (http://, https://, and // protocol-relative URLs)
         [[ "$_tkc_value" == "http://"* || "$_tkc_value" == "https://"* || "$_tkc_value" == "//"* ]] && continue
         _clean_field "$_tkc_key";   _tkc_key="$_CLEANED"
-        _clean_field "$_tkc_value"; _tkc_value="$_CLEANED"
+        _clean_value "$_tkc_value"; _tkc_value="$_CLEANED"
         [[ -z "$_tkc_key" || -z "$_tkc_value" ]] && continue
         if [[ -n "$_tkc_prefix" ]]; then
             echo "${_tkc_prefix}.${_tkc_key} ${_tkc_value}"
@@ -104,7 +104,7 @@ _tech_kv_equals () {
         _tech_validate_key "$_tke_key"
         [[ $_TECH_KEY_VALID -eq 0 ]] && continue
         _clean_field "$_tke_key";   _tke_key="$_CLEANED"
-        _clean_field "$_tke_value"; _tke_value="$_CLEANED"
+        _clean_value "$_tke_value"; _tke_value="$_CLEANED"
         [[ -z "$_tke_key" || -z "$_tke_value" ]] && continue
         if [[ -n "$_tke_prefix" ]]; then
             echo "${_tke_prefix}.${_tke_key} ${_tke_value}"

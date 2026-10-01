@@ -62,7 +62,7 @@ strategy_detect () {
     first="${first%$'\r'}"
     [[ "$first" == "$_iperfpiv_title" ]] || return 1
     [[ "$text" == *"$_iperfpiv_rowscols"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -81,7 +81,7 @@ strategy_extract () {
             if [[ "$line" =~ $_iperfpiv_re_matrix_hdr ]]; then
                 # Column header row; split the target names on whitespace.
                 local hdr="${BASH_REMATCH[1]}"
-                read -r -a targets <<< "$hdr"
+                { _fr_tok "$hdr"; targets=("${_FR_TOK[@]}"); }
                 [[ ${#targets[@]} -eq 0 ]] && continue
                 state=1
                 continue
@@ -100,7 +100,7 @@ strategy_extract () {
 
         if [[ $state -eq 1 ]]; then
             # A blank line ends the matrix.
-            if [[ -z "${line//[[:space:]]/}" ]]; then
+            if [[ "${line}" != *[![:space:]]* ]]; then
                 state=2
                 continue
             fi
@@ -110,7 +110,7 @@ strategy_extract () {
             local source="${BASH_REMATCH[1]}"
             local cells="${BASH_REMATCH[2]}"
             local -a cellv
-            read -r -a cellv <<< "$cells"
+            { _fr_tok "$cells"; cellv=("${_FR_TOK[@]}"); }
             local idx=0 cell
             for cell in ${cellv[@]+"${cellv[@]}"}; do
                 local target="${targets[$idx]:-}"

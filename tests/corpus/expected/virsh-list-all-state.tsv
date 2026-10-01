@@ -1,6 +1,6 @@
-n	Id	Name	State	total_entries
-1	1	web-vm	running	5
-2	2	db-vm	running	5
-3	-	build-vm	shut off	5
-4	-	staging-v	m    shut off	5
-5	4	cache-vm	paused	5
+n	Id	Name	State
+1	1	web-vm	running
+2	2	db-vm	running
+3	-	build-vm	shut off
+4	-	staging-v	m    shut off
+5	4	cache-vm	paused

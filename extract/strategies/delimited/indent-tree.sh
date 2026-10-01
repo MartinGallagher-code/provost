@@ -53,8 +53,9 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     local line n=0 first=1
     local -A widths=()
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local body="${line#"${line%%[![:space:]]*}"}"
         body="${body%"${body##*[![:space:]]}"}"
         [[ "$body" =~ ^[A-Za-z0-9_./-]+$ ]] || return 1
@@ -65,9 +66,9 @@ strategy_detect () {
         _it_width "$line"
         widths[$_IT_W]=1
         n=$((n + 1))
-    done <<< "$text"
+    done
     [[ $n -ge 4 && ${#widths[@]} -ge 3 ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -76,8 +77,9 @@ strategy_extract () {
     local line result="" entry=0
     local -a names=() ws=()
     local depth=-1
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local body="${line#"${line%%[![:space:]]*}"}"
         body="${body%"${body##*[![:space:]]}"}"
         _it_width "$line"
@@ -92,7 +94,7 @@ strategy_extract () {
         result+="entry${entry}.depth ${depth}"$'\n'
         [[ $depth -gt 0 ]] && result+="entry${entry}.parent ${names[$((depth - 1))]}"$'\n'
         result+="entry${entry}.name ${body}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

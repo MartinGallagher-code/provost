@@ -18,12 +18,13 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line has_wt=0 has_head=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" == "worktree "* ]] && has_wt=1
         [[ "$line" =~ ^HEAD[[:space:]][0-9a-f]+ ]] && has_head=1
-    done <<< "$text"
+    done
     if [[ $has_wt -eq 1 && $has_head -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=86
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1

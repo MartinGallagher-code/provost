@@ -37,8 +37,9 @@
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         [[ -z "$s" ]] && continue
@@ -56,7 +57,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.name ${name}"$'\n'
         [[ -n "$ver" ]] && result+="entry${entry}.version ${ver}"$'\n'
-    done <<< "$text"
+    done
     # A single token is a version banner (`jq-1.7.1`), not a list — leave those
     # to their own handling; only fire on an actual list of two or more.
     [[ $entry -ge 2 ]] || return 0

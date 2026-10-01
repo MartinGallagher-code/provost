@@ -1,4 +1,4 @@
-n	timestamp	message	total_entries
-1	INFO	The following dependencies have newer versions:	3
-2	INFO	org.springframework:spring-core ......... 6.1.2 -> 6.1.10	3
-3	INFO	com.fasterxml.jackson.core:jackson ...... 2.17.0 -> 2.17.2	3
+n	timestamp	message
+1	INFO	The following dependencies have newer versions:
+2	INFO	org.springframework:spring-core ......... 6.1.2 -> 6.1.10
+3	INFO	com.fasterxml.jackson.core:jackson ...... 2.17.0 -> 2.17.2

@@ -41,17 +41,18 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
 
     local first="" line trimmed
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         trimmed="${line//[[:space:]]/}"
         [[ -z "$trimmed" ]] && continue
         first="$line"
         break
-    done <<< "$text"
+    done
 
     # Distinctive banner: "ansible [core X.Y.Z]" as the first non-blank line.
     [[ "$first" =~ ^ansible[[:space:]]+\[core[[:space:]] ]] || return 1
 
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -60,7 +61,8 @@ strategy_extract () {
     local result="" line trimmed first="" key val
     local seen_first=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         trimmed="${line//[[:space:]]/}"
         [[ -z "$trimmed" ]] && continue
 
@@ -82,7 +84,7 @@ strategy_extract () {
         [[ -z "$key" ]] && continue
         val="$(_ansver_val "$val")"
         result+="entry1.${key} ${val}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries 1"$'\n'
     printf '%s' "$result"

@@ -1,5 +1,5 @@
-n	ADDRESS	NAME	CORES	MEMORY	NPROCS	STATUS	total_entries
-1	tcp://10.0.1.11:38401	worker-0	4	8.00 GiB	1	running	4
-2	tcp://10.0.1.12:41233	worker-1	4	8.00 GiB	1	running	4
-3	tcp://10.0.1.13:39987	worker-2	8	16.0 GiB	1	running	4
-4	tcp://10.0.1.14:44120	worker-3	8	16.0 GiB	1	paused	4
+n	ADDRESS	NAME	CORES	MEMORY	NPROCS	STATUS
+1	tcp://10.0.1.11:38401	worker-0	4	8.00 GiB	1	running
+2	tcp://10.0.1.12:41233	worker-1	4	8.00 GiB	1	running
+3	tcp://10.0.1.13:39987	worker-2	8	16.0 GiB	1	running
+4	tcp://10.0.1.14:44120	worker-3	8	16.0 GiB	1	paused

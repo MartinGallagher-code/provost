@@ -1,7 +1,7 @@
-n	A	total_entries
-1	new thread, total running : 1	6
-2	new thread, total running : 2	6
-3	new thread, total running : 4	6
-4	482100 ops/sec 1882 MB/sec	6
-5	488210 ops/sec 1908 MB/sec	6
-6	491044 ops/sec 1918 MB/sec	6
+n	A
+1	new thread, total running : 1
+2	new thread, total running : 2
+3	new thread, total running : 4
+4	482100 ops/sec 1882 MB/sec
+5	488210 ops/sec 1908 MB/sec
+6	491044 ops/sec 1918 MB/sec

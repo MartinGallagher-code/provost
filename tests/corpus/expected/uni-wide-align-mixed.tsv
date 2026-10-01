@@ -1,5 +1,5 @@
-n	名前	TYPE	値	total_entries
-1	温度センサー	float	23.5	4
-2	湿度	int	60	4
-3	気圧計	float	1013.2	4
-4	door	bool	open	4
+n	名前	TYPE	値
+1	温度センサー	float	23.5
+2	湿度	int	60
+3	気圧計	float	1013.2
+4	door	bool	open

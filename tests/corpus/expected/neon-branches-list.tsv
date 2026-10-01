@@ -1,4 +1,4 @@
-n	Id	Name	Primary	Default	Created_At	total_entries
-1	br-cool-frog-12345678	main	true	true	2026-05-01T09:00:00Z	3
-2	br-lively-sky-23456789	dev	false	false	2026-06-10T14:22:00Z	3
-3	br-quiet-moon-34567890	preview/pr-8	false	false	2026-07-08T11:04:00Z	3
+n	Id	Name	Primary	Default	Created_At
+1	br-cool-frog-12345678	main	true	true	2026-05-01T09:00:00Z
+2	br-lively-sky-23456789	dev	false	false	2026-06-10T14:22:00Z
+3	br-quiet-moon-34567890	preview/pr-8	false	false	2026-07-08T11:04:00Z

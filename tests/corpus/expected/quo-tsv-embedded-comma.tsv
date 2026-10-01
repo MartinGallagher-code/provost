@@ -1,4 +1,4 @@
-n	name	city	count	total_entries
-1	Smith, John	Denver, CO	42	3
-2	Doe, Jane	Austin, TX	37	3
-3	Ng, Wei	San Jose, CA	29	3
+n	name	city	count
+1	Smith, John	Denver, CO	42
+2	Doe, Jane	Austin, TX	37
+3	Ng, Wei	San Jose, CA	29

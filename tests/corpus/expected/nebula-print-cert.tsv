@@ -1,2 +1,2 @@
-n	Details1.Name	Details1.Ips	Details1.Groups	Details1.Not_before	Details1.Not_after	Details1.Is_CA	Details1.Issuer	Fingerprint
-1	web-server-01	[192.168.100.5/24]	[servers, web]	2026-01-05 09:12:00 +0000 UTC	2027-01-05 09:12:00 +0000 UTC	false	4d1f9b2c8a3e57061928374655a6b7c8	8f2a1c9d3b4e5f6071829304a5b6c7d8
+NebulaCertificate1.Details1.Name	NebulaCertificate1.Details1.Ips	NebulaCertificate1.Details1.Groups	NebulaCertificate1.Details1.Not_before	NebulaCertificate1.Details1.Not_after	NebulaCertificate1.Details1.Is_CA	NebulaCertificate1.Details1.Issuer	NebulaCertificate1.Fingerprint
+web-server-01	[192.168.100.5/24]	[servers, web]	2026-01-05 09:12:00 +0000 UTC	2027-01-05 09:12:00 +0000 UTC	false	4d1f9b2c8a3e57061928374655a6b7c8	8f2a1c9d3b4e5f6071829304a5b6c7d8

@@ -34,7 +34,7 @@ _gl_indent () {
 _gl_classify () {   # $1 = raw line -> _GL_KIND (G|M|X), _GL_VAL, _GL_CUR
     local l="$1"
     _GL_KIND=X; _GL_VAL=""; _GL_CUR=""
-    [[ -z "${l//[[:space:]]/}" ]] && return
+    [[ "${l}" != *[![:space:]]* ]] && return
     _gl_indent "$l"
     local body="${l#"${l%%[![:space:]]*}"}"    # lstrip
     body="${body%"${body##*[![:space:]]}"}"    # rstrip
@@ -66,8 +66,9 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line groups=0 members=0 last_was_group=0 bad=0 any=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         any=1
         _gl_classify "$line"
         case "$_GL_KIND" in
@@ -75,20 +76,21 @@ strategy_detect () {
             M) members=$((members + 1)); last_was_group=0 ;;
             X) bad=1; break ;;
         esac
-    done <<< "$text"
+    done
     # Every non-blank line must classify (no stragglers), with >=2 groups and
     # >=1 member per group on average — the asdf signature, nothing looser.
     [[ $bad -eq 1 || $any -eq 0 ]] && return 1
     [[ $groups -ge 2 && $members -ge $groups ]] || return 1
-    _STRATEGY_CONFIDENCE=78
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 group="" line
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         _gl_classify "$line"
         case "$_GL_KIND" in
             G) group="$_GL_VAL" ;;
@@ -100,7 +102,7 @@ strategy_extract () {
                 [[ -n "$_GL_CUR" ]] && result+="entry${entry}.current true"$'\n'
                 ;;
         esac
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

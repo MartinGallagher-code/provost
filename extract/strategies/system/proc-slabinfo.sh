@@ -17,7 +17,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     [[ "$text" == *"slabinfo - version:"* ]] && return 0
     return 1
 }
@@ -26,13 +26,14 @@ strategy_extract () {
     local text="$1"
     local result="" line n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "slabinfo - version:"* ]] && continue
         [[ "$line" == "#"* ]] && continue
 
         local -a f=()
-        read -ra f <<< "$line"
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
         [[ ${#f[@]} -lt 6 ]] && continue
 
         n=$((n + 1))
@@ -42,7 +43,7 @@ strategy_extract () {
         result+="entry${n}.objsize ${f[3]}"$'\n'
         result+="entry${n}.objperslab ${f[4]}"$'\n'
         result+="entry${n}.pagesperslab ${f[5]}"$'\n'
-    done <<< "$text"
+    done
 
     [[ $n -gt 0 ]] && result+="total_entries ${n}"$'\n'
     echo "$result"

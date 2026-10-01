@@ -1,4 +1,4 @@
-n	country	city	pop_m	total_entries
-1	JP	Tokyo	37.4	3
-2	IN	Delhi	32.9	3
-3	CN	Shanghai	28.5	3
+n	country	city	pop_m
+1	JP	Tokyo	37.4
+2	IN	Delhi	32.9
+3	CN	Shanghai	28.5

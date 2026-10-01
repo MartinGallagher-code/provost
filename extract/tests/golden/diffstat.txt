@@ -8,7 +8,7 @@ entry3.file spec/parser_spec.rb
 entry3.changes 61
 entry3.graph ++++++++++++++++++++++++++++++++++++
 entry4.file assets/logo.png
-entry4.changes Bin_0_->_5120_bytes
+entry4.changes Bin 0 -> 5120 bytes
 files_changed 4
 insertions 103
 deletions 20

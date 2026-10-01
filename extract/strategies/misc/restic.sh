@@ -20,13 +20,14 @@ strategy_detect () {
     [[ "$text" == *"ID"* && "$text" == *"Host"* && "$text" == *"Paths"* ]] || return 1
     [[ "$text" == *"snapshots"* ]] || return 1
     local line stripped
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         stripped="${line//-/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
-            _STRATEGY_CONFIDENCE=86
+            _STRATEGY_CONFIDENCE=92
             return 0
         fi
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -34,7 +35,8 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0 in_data=0 line stripped
     local -a t
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         stripped="${line//-/}"
         if [[ -z "$stripped" && "$line" == *-* ]]; then
             if [[ $in_data -eq 0 ]]; then in_data=1; else in_data=0; fi
@@ -42,7 +44,7 @@ strategy_extract () {
         fi
         [[ $in_data -eq 1 ]] || continue
         [[ -z "$line" ]] && continue
-        read -ra t <<< "$line"
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         [[ ${#t[@]} -ge 6 ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.id ${t[0]}"$'\n'
@@ -51,7 +53,7 @@ strategy_extract () {
         result+="entry${entry}.host ${t[3]}"$'\n'
         result+="entry${entry}.tags ${t[4]}"$'\n'
         result+="entry${entry}.paths ${t[5]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

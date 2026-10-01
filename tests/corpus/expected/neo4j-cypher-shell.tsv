@@ -1,4 +1,4 @@
-n	label	count	total_entries
-1	"Person"	48213	3
-2	"Movie"	9102	3
-3	"Genre"	24	3
+n	label	count
+1	"Person"	48213
+2	"Movie"	9102
+3	"Genre"	24

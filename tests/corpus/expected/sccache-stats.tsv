@@ -1,10 +1,10 @@
-n	A	total_entries
-1	Compile requests                   3204	9
-2	Compile requests executed          3102	9
-3	Cache hits                         2688	9
-4	Cache hits (Rust)                  2688	9
-5	Cache misses                        414	9
-6	Cache misses (Rust)                 414	9
-7	Cache hits rate                  86.65 %	9
-8	Non-cacheable compilations          102	9
-9	Cache location         Local disk: /home/dev/.cache/sccache	9
+n	A
+1	Compile requests                   3204
+2	Compile requests executed          3102
+3	Cache hits                         2688
+4	Cache hits (Rust)                  2688
+5	Cache misses                        414
+6	Cache misses (Rust)                 414
+7	Cache hits rate                  86.65 %
+8	Non-cacheable compilations          102
+9	Cache location         Local disk: /home/dev/.cache/sccache

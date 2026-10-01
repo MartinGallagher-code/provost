@@ -1,7 +1,7 @@
-n	depth	parent	name	total_entries
-1	1	@all:	@ungrouped:	6
-2	1	@all:	@webservers:	6
-3	2	@webservers:	web01.example.com	6
-4	2	@webservers:	web02.example.com	6
-5	1	@all:	@dbservers:	6
-6	2	@dbservers:	db01.example.com	6
+n	depth	parent	name
+1	1	@all:	@ungrouped:
+2	1	@all:	@webservers:
+3	2	@webservers:	web01.example.com
+4	2	@webservers:	web02.example.com
+5	1	@all:	@dbservers:
+6	2	@dbservers:	db01.example.com

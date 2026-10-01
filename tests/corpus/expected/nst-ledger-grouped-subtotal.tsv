@@ -1,10 +1,10 @@
-n	group	A	B	C	total_entries
-1	Assets	Checking	4200.00		9
-2	Assets	Savings	18000.00		9
-3	Assets	Total	Assets	22200.00	9
-4	Liabilities	Credit	Card	-850.00	9
-5	Liabilities	Loan	-12000.00		9
-6	Liabilities	Total	Liab	-12850.00	9
-7	Equity	Opening	-8000.00		9
-8	Equity	Net	Income	-1350.00	9
-9	Equity	Total	Equity	-9350.00	9
+n	group	A	B	C
+1	Assets	Checking	4200.00	
+2	Assets	Savings	18000.00	
+3	Assets	Total	Assets	22200.00
+4	Liabilities	Credit	Card	-850.00
+5	Liabilities	Loan	-12000.00	
+6	Liabilities	Total	Liab	-12850.00
+7	Equity	Opening	-8000.00	
+8	Equity	Net	Income	-1350.00
+9	Equity	Total	Equity	-9350.00

@@ -1,4 +1,4 @@
-n	PID	COMMAND	total_entries
-1	1000	/sbin/init	3
-2	1200	\__/usr/sbin/sshd_-D	3
-3	1201	\__sshd:_root@pts/0	3
+n	PID	COMMAND
+1	1000	/sbin/init
+2	1200	\_ /usr/sbin/sshd -D
+3	1201	\_ sshd: root@pts/0

@@ -1,5 +1,5 @@
-n	Package	Id	Version	Commands	total_entries
-1	dotnet-	ef	8.0.7	dotnet-ef	4
-2	dotnet-	format	5.1.250801	dotnet-format	4
-3	csharpi	er	0.28.2	dotnet-csharpier	4
-4	dotnet-	outdated-	tool 4.6.4	dotnet-outdated	4
+n	Package	Id	Version	Commands
+1	dotnet-	ef	8.0.7	dotnet-ef
+2	dotnet-	format	5.1.250801	dotnet-format
+3	csharpi	er	0.28.2	dotnet-csharpier
+4	dotnet-	outdated-	tool 4.6.4	dotnet-outdated

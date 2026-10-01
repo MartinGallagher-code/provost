@@ -29,7 +29,7 @@ strategy_detect () {
     [[ "$text" == "Experiment:"* || "$text" == *$'\nExperiment:'* ]] || return 1
     [[ "$text" == *$'\nDesign:'* ]] || return 1
     [[ "$text" == *"Progress:"* ]] || return 1
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=92
     _STRATEGY_CONFIDENCE_REASON="doe status header (Experiment/Design/Progress) present"
     return 0
 }
@@ -58,7 +58,8 @@ strategy_extract () {
     local result="" line n=0 state=""
     local experiment="" design="" done_n="" total_n="" pct=""
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         if [[ "$line" =~ $_does_re_exp ]]; then
             experiment="$(_dost_trim "${BASH_REMATCH[1]}")"; continue
         fi
@@ -97,8 +98,8 @@ strategy_extract () {
             continue
         fi
         # A blank line closes the current section.
-        [[ -z "${line//[[:space:]]/}" ]] && state=""
-    done <<< "$text"
+        [[ "${line}" != *[![:space:]]* ]] && state=""
+    done
 
     [[ -n "$experiment" ]] && result+="experiment ${experiment}"$'\n'
     [[ -n "$design" ]]     && result+="design ${design}"$'\n'

@@ -28,8 +28,9 @@ _pvr_re='^PV[[:space:]]+([^[:space:]]+)[[:space:]]+VG[[:space:]]+([^[:space:]]+)
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         local s="${line#"${line%%[![:space:]]*}"}"
         s="${s%"${s##*[![:space:]]}"}"
         [[ "$s" =~ $_pvr_re ]] || continue
@@ -38,7 +39,7 @@ strategy_extract () {
         result+="entry${entry}.vg ${BASH_REMATCH[2]}"$'\n'
         result+="entry${entry}.format ${BASH_REMATCH[3]}"$'\n'
         result+="entry${entry}.size ${BASH_REMATCH[4]}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -ge 1 ]] || return 0
     result+="total_entries ${entry}"$'\n'
     echo "$result"

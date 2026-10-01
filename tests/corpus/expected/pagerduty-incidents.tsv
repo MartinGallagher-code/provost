@@ -1,3 +1,3 @@
-n	ID	TITLE	STATUS	URGENCY	SERVICE	total_entries
-1	PABC123	API latency critical	triggered	high	api-prod	2
-2	PDEF456	Disk space warning	acknowledged	low	db-prod	2
+n	ID	TITLE	STATUS	URGENCY	SERVICE
+1	PABC123	API latency critical	triggered	high	api-prod
+2	PDEF456	Disk space warning	acknowledged	low	db-prod

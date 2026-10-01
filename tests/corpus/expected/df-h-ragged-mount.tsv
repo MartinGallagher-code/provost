@@ -1,7 +1,7 @@
-n	Filesystem	Size	Used	Avail	Use%	Mounted_on	total_entries
-1	udev	7.8G	0	7.8G	0%	/dev	6
-2	/dev/sda3	232G	88G	132G	40%	/	6
-3	tmpfs	1.6G	2.1M	1.6G	1%	/run	6
-4	/dev/sda2	974M	212M	695M	24%	/boot	6
-5	tmpfs	7.8G	18M	7.8G	1%	/dev/shm	6
-6	/dev/sdb1	458G	201G	234G	47%	/mnt/data	6
+n	Filesystem	Size	Used	Avail	Use%	Mounted_on
+1	udev	7.8G	0	7.8G	0%	/dev
+2	/dev/sda3	232G	88G	132G	40%	/
+3	tmpfs	1.6G	2.1M	1.6G	1%	/run
+4	/dev/sda2	974M	212M	695M	24%	/boot
+5	tmpfs	7.8G	18M	7.8G	1%	/dev/shm
+6	/dev/sdb1	458G	201G	234G	47%	/mnt/data

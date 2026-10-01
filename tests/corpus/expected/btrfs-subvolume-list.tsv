@@ -1,7 +1,7 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	ID	256	gen	12043	top	level	5	path	@	6
-2	ID	257	gen	12040	top	level	5	path	@home	6
-3	ID	258	gen	11980	top	level	256	path	@/var/log	6
-4	ID	259	gen	12001	top	level	5	path	@snapshots	6
-5	ID	260	gen	11500	top	level	259	path	@snapshots/2026-07-01	6
-6	ID	261	gen	12043	top	level	256	path	@/var/cache	6
+n	A	B	C	D	E	F	G	H	I
+1	ID	256	gen	12043	top	level	5	path	@
+2	ID	257	gen	12040	top	level	5	path	@home
+3	ID	258	gen	11980	top	level	256	path	@/var/log
+4	ID	259	gen	12001	top	level	5	path	@snapshots
+5	ID	260	gen	11500	top	level	259	path	@snapshots/2026-07-01
+6	ID	261	gen	12043	top	level	256	path	@/var/cache

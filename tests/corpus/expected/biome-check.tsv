@@ -1,5 +1,5 @@
-n	A	total_entries
-1	checked 442 files in 88ms	4
-2	Found 12 errors	4
-3	Found 4 warnings	4
-4	src/app.ts:12:1 lint/suspicious/noExplicitAny	4
+n	A
+1	checked 442 files in 88ms
+2	Found 12 errors
+3	Found 4 warnings
+4	src/app.ts:12:1 lint/suspicious/noExplicitAny

@@ -1,19 +1,19 @@
-n	A	total_entries
-1	# aws_instance.web:	18
-2	resource "aws_instance" "web" {	18
-3	ami                          = "ami-0c55b159cbfafe1f0"	18
-4	arn                          = "arn:aws:ec2:us-east-1:123456789012:instance/i-0a1b2c3d4e5f6g7h8"	18
-5	associate_public_ip_address  = true	18
-6	availability_zone            = "us-east-1a"	18
-7	cpu_core_count               = 2	18
-8	id                           = "i-0a1b2c3d4e5f6g7h8"	18
-9	instance_type                = "t3.medium"	18
-10	private_ip                   = "10.0.1.24"	18
-11	public_ip                    = "54.210.167.99"	18
-12	tags                         = {	18
-13	"Environment" = "production"	18
-14	"Name"        = "web-server"	18
-15	"Team"        = "platform"	18
-16	}	18
-17	user_data                    = "IyEvYmluL2Jhc2gKeXVtIGluc3RhbGwgLXkgbmdpbngK"	18
-18	}	18
+n	A
+1	# aws_instance.web:
+2	resource "aws_instance" "web" {
+3	ami                          = "ami-0c55b159cbfafe1f0"
+4	arn                          = "arn:aws:ec2:us-east-1:123456789012:instance/i-0a1b2c3d4e5f6g7h8"
+5	associate_public_ip_address  = true
+6	availability_zone            = "us-east-1a"
+7	cpu_core_count               = 2
+8	id                           = "i-0a1b2c3d4e5f6g7h8"
+9	instance_type                = "t3.medium"
+10	private_ip                   = "10.0.1.24"
+11	public_ip                    = "54.210.167.99"
+12	tags                         = {
+13	"Environment" = "production"
+14	"Name"        = "web-server"
+15	"Team"        = "platform"
+16	}
+17	user_data                    = "IyEvYmluL2Jhc2gKeXVtIGluc3RhbGwgLXkgbmdpbngK"
+18	}

@@ -1,9 +1,9 @@
-n	A	B	C	total_entries
-1	antivirus_can_scan_system	-->	off	8
-2	auditadm_exec_content	-->	on	8
-3	cluster_can_network_connect	-->	off	8
-4	daemons_dump_core	-->	on	8
-5	git_cgi_enable_homedirs	-->	off	8
-6	httpd_can_network_connect_db	-->	on	8
-7	nfs_export_all_ro	-->	on	8
-8	xserver_object_manager	-->	off	8
+n	A	B	C
+1	antivirus_can_scan_system	-->	off
+2	auditadm_exec_content	-->	on
+3	cluster_can_network_connect	-->	off
+4	daemons_dump_core	-->	on
+5	git_cgi_enable_homedirs	-->	off
+6	httpd_can_network_connect_db	-->	on
+7	nfs_export_all_ro	-->	on
+8	xserver_object_manager	-->	off

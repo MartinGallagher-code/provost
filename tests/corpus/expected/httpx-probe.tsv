@@ -1,5 +1,5 @@
-n	URL	STATUS	TITLE	TECH	total_entries
-1	https://api.example.com	200	API Gateway	nginx,Cloudflare	4
-2	https://app.example.com	200	Example App	React,nginx	4
-3	https://old.example.com	301	-	Apache	4
-4	https://dev.example.com	403	Forbidden	nginx	4
+n	URL	STATUS	TITLE	TECH
+1	https://api.example.com	200	API Gateway	nginx,Cloudflare
+2	https://app.example.com	200	Example App	React,nginx
+3	https://old.example.com	301	-	Apache
+4	https://dev.example.com	403	Forbidden	nginx

@@ -14,7 +14,7 @@ strategy_detect () {
     # Distinctive signature: iftop's cumulative-rate table and totals.
     if [[ "$text" == *"Total send and receive rate"* ]] \
        || { [[ "$text" == *"cumulative"* ]] && [[ "$text" == *"=>"* ]] && [[ "$text" == *"<="* ]]; }; then
-        _STRATEGY_CONFIDENCE=88
+        _STRATEGY_CONFIDENCE=92
         return 0
     fi
     return 1
@@ -24,13 +24,14 @@ strategy_extract () {
     local text="$1"
     local result="" entry=0
     local last_host="" last_peer=""
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         # Skip separator rules and the Total summary lines.
         [[ "$line" == *"Total"* ]] && continue
 
         local v
-        read -ra v <<< "$line"
+        { _fr_tok "$line"; v=("${_FR_TOK[@]}"); }
 
         local direction="" host="" peer="" r2="" r10="" r40="" cum=""
         if [[ "${v[1]:-}" == "=>" ]]; then
@@ -58,7 +59,7 @@ strategy_extract () {
         result+="entry${entry}.last_10s ${r10}"$'\n'
         result+="entry${entry}.last_40s ${r40}"$'\n'
         result+="entry${entry}.cumulative ${cum}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

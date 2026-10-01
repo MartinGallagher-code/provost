@@ -1,5 +1,5 @@
-n	ID	NAME	SIZE	SERVER	LOCATION	AGE	total_entries
-1	88104221	pg-data	100 GB	web-01	fsn1	124d	4
-2	88104755	redis-store	50 GB	web-01	fsn1	124d	4
-3	88120441	media-uploads	250 GB	worker-01	nbg1	42d	4
-4	88130998	backups	500 GB	-	hel1	12d	4
+n	ID	NAME	SIZE	SERVER	LOCATION	AGE
+1	88104221	pg-data	100 GB	web-01	fsn1	124d
+2	88104755	redis-store	50 GB	web-01	fsn1	124d
+3	88120441	media-uploads	250 GB	worker-01	nbg1	42d
+4	88130998	backups	500 GB	-	hel1	12d

@@ -1,8 +1,8 @@
-n	NAME	PROPERTY	VALUE	SOURCE	total_entries
-1	tank	type	filesystem	-	7
-2	tank	used	4.21T	-	7
-3	tank	available	4.85T	-	7
-4	tank	compression	lz4	local	7
-5	tank	mountpoint	/tank	default	7
-6	tank	quota	none	default	7
-7	tank	recordsize	128K	default	7
+n	NAME	PROPERTY	VALUE	SOURCE
+1	tank	type	filesystem	-
+2	tank	used	4.21T	-
+3	tank	available	4.85T	-
+4	tank	compression	lz4	local
+5	tank	mountpoint	/tank	default
+6	tank	quota	none	default
+7	tank	recordsize	128K	default

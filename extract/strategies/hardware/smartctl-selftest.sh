@@ -10,7 +10,7 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     _is_json "$text" && return 1
     if [[ "$text" == *"Self-test log"* ]] \
        || { [[ "$text" == *"Test_Description"* ]] && [[ "$text" == *"LBA_of_first_error"* ]]; }; then
@@ -24,7 +24,8 @@ strategy_extract () {
     local result=""
     local n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         # Data rows start with a "# N" test-number marker.
         [[ "$line" =~ ^#[[:space:]]*[0-9]+ ]] || continue
 
@@ -60,7 +61,7 @@ strategy_extract () {
         result+="${p}remaining ${cols[3]}"$'\n'
         result+="${p}lifetime ${cols[4]}"$'\n'
         result+="${p}lba ${cols[5]}"$'\n'
-    done <<< "$text"
+    done
 
     result+="total_entries ${n}"$'\n'
     echo "$result"

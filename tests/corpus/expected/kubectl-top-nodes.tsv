@@ -1,5 +1,5 @@
-n	NAME	CPU(cores)	CPU%	MEMORY(bytes)	MEMORY%	total_entries
-1	master-1	412m	10%	2145Mi	28%	4
-2	worker-1	1203m	30%	6820Mi	43%	4
-3	worker-2	890m	22%	5410Mi	34%	4
-4	worker-3	1560m	39%	7920Mi	50%	4
+n	NAME	CPU(cores)	CPU%	MEMORY(bytes)	MEMORY%
+1	master-1	412m	10%	2145Mi	28%
+2	worker-1	1203m	30%	6820Mi	43%
+3	worker-2	890m	22%	5410Mi	34%
+4	worker-3	1560m	39%	7920Mi	50%

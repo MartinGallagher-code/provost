@@ -1,6 +1,6 @@
-n	name	host	port	database	force_user	pool_size	pool_mode	total_entries
-1	app_prod	10.0.0.11	5432	app	appuser	50	transaction	5
-2	app_stage	10.0.0.12	5432	app	appuser	20	transaction	5
-3	analytics	10.0.0.21	5432	warehouse	reporter	10	session	5
-4	billing	10.0.0.31	5432	billing		15	transaction	5
-5	pgbouncer		6432	pgbouncer		2	statement	5
+n	name	host	port	database	force_user	pool_size	pool_mode
+1	app_prod	10.0.0.11	5432	app	appuser	50	transaction
+2	app_stage	10.0.0.12	5432	app	appuser	20	transaction
+3	analytics	10.0.0.21	5432	warehouse	reporter	10	session
+4	billing	10.0.0.31	5432	billing		15	transaction
+5	pgbouncer		6432	pgbouncer		2	statement

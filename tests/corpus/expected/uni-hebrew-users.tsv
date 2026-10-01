@@ -1,4 +1,4 @@
-n	UID	NAME	DEPT	total_entries
-1	1001	דוד כהן	הנדסה	3
-2	1002	שרה לוי	שיווק	3
-3	1003	John Smith	eng	3
+n	UID	NAME	DEPT
+1	1001	דוד כהן	הנדסה
+2	1002	שרה לוי	שיווק
+3	1003	John Smith	eng

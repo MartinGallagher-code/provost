@@ -1,4 +1,4 @@
-n	AccessorID	Description	Policies	total_entries
-1	5f2a1c9d-3b4e-5f60-7182-930455a6b7c8	bootstrap token	global-management	3
-2	a1b2c3d4-e5f6-7890-abcd-ef1234567890	web service token	web-read, kv-read	3
-3	9c8b7a6d-5e4f-3210-fedc-ba0987654321	nomad-client integration	node-write	3
+n	AccessorID	Description	Policies
+1	5f2a1c9d-3b4e-5f60-7182-930455a6b7c8	bootstrap token	global-management
+2	a1b2c3d4-e5f6-7890-abcd-ef1234567890	web service token	web-read, kv-read
+3	9c8b7a6d-5e4f-3210-fedc-ba0987654321	nomad-client integration	node-write

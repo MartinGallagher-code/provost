@@ -1,5 +1,5 @@
-n	variable	value	total_entries
-1	offset	-0.512	4
-2	frequency	+12.345	4
-3	sys_jitter	0.089	4
-4	clk_wander	0.006	4
+n	variable	value
+1	offset	-0.512
+2	frequency	+12.345
+3	sys_jitter	0.089
+4	clk_wander	0.006

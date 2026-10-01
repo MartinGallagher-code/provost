@@ -1,6 +1,6 @@
-n	depth	parent	name	total_entries
-1	1	Root project 'monorepo'	Project ':app'	5
-2	1	Root project 'monorepo'	Project ':core'	5
-3	2	Project ':core'	Project ':core:model'	5
-4	1	Root project 'monorepo'	Project ':data'	5
-5	1	Root project 'monorepo'	Project ':feature:login'	5
+n	depth	parent	name
+1	1	Root project 'monorepo'	Project ':app'
+2	1	Root project 'monorepo'	Project ':core'
+3	2	Project ':core'	Project ':core:model'
+4	1	Root project 'monorepo'	Project ':data'
+5	1	Root project 'monorepo'	Project ':feature:login'

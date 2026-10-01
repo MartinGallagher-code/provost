@@ -1,6 +1,6 @@
-n	A	total_entries
-1	default via 192.168.1.1 dev eth0 proto dhcp metric 100	5
-2	10.0.0.0/8 via 192.168.1.1 dev eth0 proto static	5
-3	169.254.0.0/16 dev eth0 scope link metric 1000	5
-4	172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown	5
-5	192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.42 metric 100	5
+n	A
+1	default via 192.168.1.1 dev eth0 proto dhcp metric 100
+2	10.0.0.0/8 via 192.168.1.1 dev eth0 proto static
+3	169.254.0.0/16 dev eth0 scope link metric 1000
+4	172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown
+5	192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.42 metric 100

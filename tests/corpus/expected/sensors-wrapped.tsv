@@ -1,11 +1,11 @@
-n	key	value	total_entries
-1	Adapter	ISA adapter	10
-2	Package id 0	+52.0°C  (high = +80.0°C, crit = +100.0°C)	10
-3	Core 0	+48.0°C  (high = +80.0°C, crit = +100.0°C)	10
-4	Core 1	+50.0°C  (high = +80.0°C, crit = +100.0°C)	10
-5	Core 2	+47.0°C  (high = +80.0°C, crit = +100.0°C)	10
-6	Core 3	+49.0°C  (high = +80.0°C, crit = +100.0°C) nvme-pci-0400	10
-7	Adapter	PCI adapter	10
-8	Composite	+36.9°C  (low  = -273.1°C, high = +84.8°C) (crit = +85.8°C)	10
-9	Sensor 1	+36.9°C  (low  = -273.1°C, high = +65261.8°C)	10
-10	Sensor 2	+40.9°C  (low  = -273.1°C, high = +65261.8°C)	10
+n	key	value
+1	Adapter	ISA adapter
+2	Package id 0	+52.0°C  (high = +80.0°C, crit = +100.0°C)
+3	Core 0	+48.0°C  (high = +80.0°C, crit = +100.0°C)
+4	Core 1	+50.0°C  (high = +80.0°C, crit = +100.0°C)
+5	Core 2	+47.0°C  (high = +80.0°C, crit = +100.0°C)
+6	Core 3	+49.0°C  (high = +80.0°C, crit = +100.0°C) nvme-pci-0400
+7	Adapter	PCI adapter
+8	Composite	+36.9°C  (low  = -273.1°C, high = +84.8°C) (crit = +85.8°C)
+9	Sensor 1	+36.9°C  (low  = -273.1°C, high = +65261.8°C)
+10	Sensor 2	+40.9°C  (low  = -273.1°C, high = +65261.8°C)

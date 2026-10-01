@@ -1,5 +1,5 @@
-n	A	B	C	D	total_entries
-1	nginx	version:	nginx/1.27.0		4
-2	built	by	gcc	13.2.0	4
-3	built	with	OpenSSL	3.2.1	4
-4	configure	arguments:	--prefix=/etc/nginx	--with-http_ssl_module	4
+n	A	B	C	D
+1	nginx	version:	nginx/1.27.0	
+2	built	by	gcc	13.2.0
+3	built	with	OpenSSL	3.2.1
+4	configure	arguments:	--prefix=/etc/nginx	--with-http_ssl_module

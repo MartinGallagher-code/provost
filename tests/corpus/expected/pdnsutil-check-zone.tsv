@@ -1,4 +1,4 @@
-n	Checking	zone	example_com	total_entries
-1	[warning]	example.com:	NS_records_for_zone_missing_glue_for_ns2.example.com	3
-2	[error]	www.example.com:	CNAME_and_other_data_at_same_name	3
-3	Checked	42	records_of_'example.com',_1_errors,_1_warnings.	3
+n	Checking	zone	example_com
+1	[warning]	example.com:	NS records for zone missing glue for ns2.example.com
+2	[error]	www.example.com:	CNAME and other data at same name
+3	Checked	42	records of 'example.com', 1 errors, 1 warnings.

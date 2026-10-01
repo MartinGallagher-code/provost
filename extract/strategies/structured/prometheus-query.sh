@@ -10,11 +10,12 @@
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=88
+    _STRATEGY_CONFIDENCE=80
     _is_json "$text" && return 1
     # Prometheus text output has lines like: metric_name{label="value"} 123.45
     local prom_count=0
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
         [[ "$line" == "#"* ]] && continue
         # Match pattern: name{labels} value — the braces must hold a real
@@ -28,7 +29,7 @@ strategy_detect () {
             prom_count=$((prom_count + 1))
         fi
         [[ $prom_count -ge 3 ]] && return 0
-    done <<< "$text"
+    done
     return 1
 }
 
@@ -37,7 +38,8 @@ strategy_extract () {
     local result=""
     local metric_n=0
 
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ -z "$line" ]] && continue
 
         # Parse HELP and TYPE comments
@@ -90,11 +92,11 @@ strategy_extract () {
             # Simple metric without labels: metric_name value
             metric_n=$((metric_n + 1))
             local prefix="metric${metric_n}"
-            read -ra _arr <<< "$line"
+            { _fr_tok "$line"; _arr=("${_FR_TOK[@]}"); }
             result+="${prefix}.name ${_arr[0]}"$'\n'
             result+="${prefix}.value ${_arr[1]}"$'\n'
         fi
-    done <<< "$text"
+    done
 
     echo "$result"
 }

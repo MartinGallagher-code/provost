@@ -1,6 +1,6 @@
-n	PORT	STATE	SERVICE	VERSION	total_entries
-1	22/tcp	open	ssh	OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)	5
-2	80/tcp	open	http	nginx 1.18.0 (Ubuntu)	5
-3	443/tcp	open	ssl/http	nginx 1.18.0 (Ubuntu)	5
-4	3306/tcp	open	mysql	MySQL 8.0.35-0ubuntu0.22.04.1	5
-5	8080/tcp	open	http	Apache Tomcat 9.0.71	5
+n	PORT	STATE	SERVICE	VERSION
+1	22/tcp	open	ssh	OpenSSH 8.9p1 Ubuntu 3ubuntu0.6 (Ubuntu Linux; protocol 2.0)
+2	80/tcp	open	http	nginx 1.18.0 (Ubuntu)
+3	443/tcp	open	ssl/http	nginx 1.18.0 (Ubuntu)
+4	3306/tcp	open	mysql	MySQL 8.0.35-0ubuntu0.22.04.1
+5	8080/tcp	open	http	Apache Tomcat 9.0.71

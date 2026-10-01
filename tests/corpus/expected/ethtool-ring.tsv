@@ -1,10 +1,10 @@
-n	key	value	total_entries
-1	Ring parameters for eth0		9
-2	Pre-set maximums		9
-3	RX	4096	9
-4	RX Mini	n/a	9
-5	RX Jumbo	n/a	9
-6	TX	4096	9
-7	Current hardware settings		9
-8	RX	512	9
-9	TX	512	9
+n	key	value
+1	Ring parameters for eth0	
+2	Pre-set maximums	
+3	RX	4096
+4	RX Mini	n/a
+5	RX Jumbo	n/a
+6	TX	4096
+7	Current hardware settings	
+8	RX	512
+9	TX	512

@@ -1,4 +1,4 @@
-n	NAME	OWNER	STATUS	PLAN	REGION	total_entries
-1	acme-pg	acme-corp	deployed	development-single	iad	3
-2	analytics-pg	acme-corp	deployed	production-ha	iad	3
-3	staging-pg	acme-corp	suspended	development-single	lhr	3
+n	NAME	OWNER	STATUS	PLAN	REGION
+1	acme-pg	acme-corp	deployed	development-single	iad
+2	analytics-pg	acme-corp	deployed	production-ha	iad
+3	staging-pg	acme-corp	suspended	development-single	lhr

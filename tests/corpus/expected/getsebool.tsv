@@ -1,9 +1,9 @@
-n	A	B	C	total_entries
-1	abrt_anon_write	-->	off	8
-2	antivirus_can_scan_system	-->	off	8
-3	auditadm_exec_content	-->	on	8
-4	authlogin_nsswitch_use_ldap	-->	off	8
-5	cron_can_relabel	-->	off	8
-6	httpd_can_network_connect	-->	on	8
-7	nfs_export_all_rw	-->	on	8
-8	samba_enable_home_dirs	-->	off	8
+n	A	B	C
+1	abrt_anon_write	-->	off
+2	antivirus_can_scan_system	-->	off
+3	auditadm_exec_content	-->	on
+4	authlogin_nsswitch_use_ldap	-->	off
+5	cron_can_relabel	-->	off
+6	httpd_can_network_connect	-->	on
+7	nfs_export_all_rw	-->	on
+8	samba_enable_home_dirs	-->	off

@@ -1,8 +1,8 @@
-n	repo	name	version	status	total_entries
-1	core	linux	6.6.10.arch1-1	[installed]	7
-2	core	bash	5.2.021-1	[installed]	7
-3	core	glibc	2.38-7		7
-4	extra	vim	9.0.2189-1	[installed]	7
-5	extra	git	2.43.0-1		7
-6	extra	htop	3.2.2-4		7
-7	multilib	lib32-glibc	2.38-7		7
+n	repo	name	version	status
+1	core	linux	6.6.10.arch1-1	[installed]
+2	core	bash	5.2.021-1	[installed]
+3	core	glibc	2.38-7	
+4	extra	vim	9.0.2189-1	[installed]
+5	extra	git	2.43.0-1	
+6	extra	htop	3.2.2-4	
+7	multilib	lib32-glibc	2.38-7	

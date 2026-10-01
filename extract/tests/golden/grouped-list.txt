@@ -1,0 +1,11 @@
+entry1.group nodejs
+entry1.value 20.14.0
+entry1.current true
+entry2.group nodejs
+entry2.value 22.4.1
+entry3.group python
+entry3.value 3.11.9
+entry4.group python
+entry4.value 3.12.4
+entry4.current true
+total_entries 4

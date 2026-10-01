@@ -1,2 +1,2 @@
-n	Strms	Blocks	Compressed	Uncompressed	Ratio	Check	Filename	total_entries
-1	1	1	12.4 MiB	88.2 MiB	0.141	CRC64	logs.tar.xz	1
+n	Strms	Blocks	Compressed	Uncompressed	Ratio	Check	Filename
+1	1	1	12.4 MiB	88.2 MiB	0.141	CRC64	logs.tar.xz

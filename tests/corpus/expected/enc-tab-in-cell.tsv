@@ -1,5 +1,5 @@
-n	id	title	status	total_entries
-1	101	fix login bug	open	4
-2	102	add dark mode	closed	4
-3	103	refactor auth module	open	4
-4	104	update docs	merged	4
+n	id	title	status
+1	101	fix login bug	open
+2	102	add dark mode	closed
+3	103	refactor auth module	open
+4	104	update docs	merged

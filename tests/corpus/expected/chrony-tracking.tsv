@@ -1,2 +1,2 @@
 Reference_ID	Stratum	Ref_time_(UTC)	System_time	Last_offset	RMS_offset	Frequency
-C0A80101 (ntp1.example.com)	3	Thu Jul_10_06_00_00_2026	0.000004120 seconds fast	+0.000041200 seconds	0.000088201 seconds	12.442 ppm slow
+C0A80101 (ntp1.example.com)	3	Thu Jul 10 06:00:00 2026	0.000004120 seconds fast	+0.000041200 seconds	0.000088201 seconds	12.442 ppm slow

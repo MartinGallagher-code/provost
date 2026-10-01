@@ -1,5 +1,5 @@
-n	id	name	role	total_entries
-1	1	alice	admin	4
-2	2	bob	developer	4
-3	3	carol	auditor	4
-4	4	dan	viewer	4
+n	id	name	role
+1	1	alice	admin
+2	2	bob	developer
+3	3	carol	auditor
+4	4	dan	viewer

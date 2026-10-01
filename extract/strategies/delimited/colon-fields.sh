@@ -28,13 +28,14 @@ strategy_detect () {
     [[ "$text" == *'{'* || "$text" == *'":'* ]] && return 1
 
     local nb=0 ok=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         nb=$((nb + 1))
         _cf_first_colons "$_l"
         [[ $_CF_N -ge 3 ]] && ok=$((ok + 1))
         [[ $nb -ge 60 ]] && break
-    done <<< "$text"
+    done
 
     [[ $nb -ge 1 && $(( ok * 100 / nb )) -ge 60 ]] || return 1
 
@@ -44,12 +45,13 @@ strategy_detect () {
     # varying record key). Splitting an ARN into arn|aws|service|… is wrong — it
     # is a single value — so let a one-column list parser take it instead.
     local _f1="" _same=1 _seen=0 _l2
-    while IFS= read -r _l2; do
-        [[ -z "${_l2//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l2 in "${_FR_LINES[@]}"; do
+        [[ "${_l2}" != *[![:space:]]* ]] && continue
         local _pre="${_l2%%:*}"
         if [[ $_seen -eq 0 ]]; then _f1="$_pre"; _seen=1
         elif [[ "$_pre" != "$_f1" ]]; then _same=0; break; fi
-    done <<< "$text"
+    done
     [[ $_seen -eq 1 && $_same -eq 1 && $nb -ge 2 ]] && return 1
 
     _STRATEGY_CONFIDENCE=80
@@ -59,8 +61,9 @@ strategy_detect () {
 strategy_extract () {
     local text="$1"
     local result="" entry=0 _l
-    while IFS= read -r _l; do
-        [[ -z "${_l//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* ]] && continue
         entry=$((entry + 1))
         local rest="$_l" i=0 field
         while [[ "$rest" == *:* ]]; do
@@ -71,7 +74,7 @@ strategy_extract () {
         done
         i=$((i + 1))
         result+="entry${entry}.$(_col_letter "$i") ${rest}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

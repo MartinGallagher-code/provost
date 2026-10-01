@@ -1,2 +1,2 @@
-n	name	A	Severity	B	C	detail	total_entries
-1	lodash	<4.17.21	high	Prototype Pollution	https://github.com/advisories/GHSA-xxxx	fix available via `npm audit fix`	1
+n	name	A	Severity	B	C	detail
+1	lodash	<4.17.21	high	Prototype Pollution	https://github.com/advisories/GHSA-xxxx	fix available via `npm audit fix`

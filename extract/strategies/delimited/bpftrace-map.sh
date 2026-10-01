@@ -35,22 +35,24 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line maps=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
         if [[ "$line" =~ $_bm_re ]]; then maps=$((maps + 1)); continue; fi
         # Tolerated chrome: the attach banner or a bare `^C` interrupt.
         [[ "$line" == "Attaching "* || "$line" == *"probe"*"..." || "$line" == "^C" ]] && continue
         return 1
-    done <<< "$text"
+    done
     [[ $maps -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=84
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         [[ "$line" =~ $_bm_re ]] || continue
         local name="${BASH_REMATCH[1]}" keys="${BASH_REMATCH[2]}" val="${BASH_REMATCH[3]}"
         val="${val%"${val##*[![:space:]]}"}"
@@ -64,7 +66,7 @@ strategy_extract () {
         result+="entry${entry}.key1 ${k1}"$'\n'
         [[ -n "$k2" ]] && result+="entry${entry}.key2 ${k2}"$'\n'
         result+="entry${entry}.value ${val}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

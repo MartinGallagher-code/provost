@@ -1,7 +1,7 @@
-n	NS	TYPE	NPROCS	PID	USER	COMMAND	total_entries
-1	4026531835	cgroup	214	1	root	/sbin/init	6
-2	4026531836	pid	214	1	root	/sbin/init	6
-3	4026531837	user	214	1	root	/sbin/init	6
-4	4026532189	mnt	1	1843	mysql	/usr/sbin/mysqld	6
-5	4026532201	net	12	812	root	/usr/bin/dockerd	6
-6	4026532333	uts	3	2044	postgres	postgres	6
+n	NS	TYPE	NPROCS	PID	USER	COMMAND
+1	4026531835	cgroup	214	1	root	/sbin/init
+2	4026531836	pid	214	1	root	/sbin/init
+3	4026531837	user	214	1	root	/sbin/init
+4	4026532189	mnt	1	1843	mysql	/usr/sbin/mysqld
+5	4026532201	net	12	812	root	/usr/bin/dockerd
+6	4026532333	uts	3	2044	postgres	postgres

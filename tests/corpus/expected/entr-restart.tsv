@@ -1,4 +1,4 @@
-n	restarting:	app_py	total_entries
-1	[app]	listening_on_:8080	3
-2	restarting:	app.py	3
-3	[app]	listening_on_:8080	3
+n	restarting:	app_py
+1	[app]	listening on :8080
+2	restarting:	app.py
+3	[app]	listening on :8080

@@ -1,4 +1,4 @@
-n	Cinebench	R23	total_entries
-1	CPU	(Multi_Core)_:_24821_pts	3
-2	CPU	(Single_Core)_:_1882_pts	3
-3	MP	Ratio_:_13.19_x	3
+n	Cinebench	R23
+1	CPU	(Multi Core) : 24821 pts
+2	CPU	(Single Core) : 1882 pts
+3	MP	Ratio : 13.19 x

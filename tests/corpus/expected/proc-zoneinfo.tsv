@@ -1,11 +1,11 @@
-n	Node	0,	zone	total_entries
-1	pages	free	3921	10
-2	min	13		10
-3	low	16		10
-4	high	19		10
-5	spanned	4095		10
-6	present	3998		10
-7	managed	3977		10
-8	nr_free_pages	3921		10
-9	nr_zone_inactive_anon	0		10
-10	nr_zone_active_anon	0		10
+n	Node	0,	zone
+1	pages	free	3921
+2	min	13	
+3	low	16	
+4	high	19	
+5	spanned	4095	
+6	present	3998	
+7	managed	3977	
+8	nr_free_pages	3921	
+9	nr_zone_inactive_anon	0	
+10	nr_zone_active_anon	0	

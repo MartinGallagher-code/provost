@@ -27,22 +27,24 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"Performance counter stats for"* ]] || return 1
     local line
-    while IFS= read -r line; do
-        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=86; return 0; }
-    done <<< "$text"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        _pc_is_counter "$line" && { _STRATEGY_CONFIDENCE=92; return 0; }
+    done
     return 1
 }
 
 strategy_extract () {
     local text="$1"
     local result="" entry=0 line
-    while IFS= read -r line; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _pc_is_counter "$line" || continue
         # Drop the trailing "N seconds time elapsed" wall-clock summary.
         [[ "$line" == *"time elapsed"* ]] && continue
         # Keep only the counter portion, before any "#" annotation.
         local body="${line%%#*}"
-        local toks; toks=(); read -ra toks <<< "$body"
+        local toks; toks=(); { _fr_tok "$body"; toks=("${_FR_TOK[@]}"); }
         local ntok=${#toks[@]}
         [[ $ntok -ge 2 ]] || continue
         local count="${toks[0]}"
@@ -51,7 +53,7 @@ strategy_extract () {
         entry=$((entry + 1))
         result+="entry${entry}.count ${count}"$'\n'
         result+="entry${entry}.event ${event}"$'\n'
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

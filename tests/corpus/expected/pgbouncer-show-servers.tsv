@@ -1,5 +1,5 @@
-n	type	user	database	state	addr	port	local_addr	local_port	connect_time	total_entries
-1	S	app_rw	orders	idle	10.0.5.11	5432	10.0.5.20	52104	2026-07-10 12:00:01	4
-2	S	app_rw	orders	active	10.0.5.11	5432	10.0.5.20	52108	2026-07-10 12:00:02	4
-3	S	app_ro	analytics	idle	10.0.5.12	5432	10.0.5.20	52110	2026-07-10 12:01:44	4
-4	S	app_rw	customer	used	10.0.5.11	5432	10.0.5.20	52120	2026-07-10 12:02:10	4
+n	type	user	database	state	addr	port	local_addr	local_port	connect_time
+1	S	app_rw	orders	idle	10.0.5.11	5432	10.0.5.20	52104	2026-07-10 12:00:01
+2	S	app_rw	orders	active	10.0.5.11	5432	10.0.5.20	52108	2026-07-10 12:00:02
+3	S	app_ro	analytics	idle	10.0.5.12	5432	10.0.5.20	52110	2026-07-10 12:01:44
+4	S	app_rw	customer	used	10.0.5.11	5432	10.0.5.20	52120	2026-07-10 12:02:10

@@ -1,8 +1,8 @@
-n	Directory	listing	(size,	total_entries
-1	/var/log	2.4G	2026-07-11	7
-2	/var/log/nginx	880M	2026-07-11	7
-3	access.log	640M	2026-07-11	7
-4	error.log	240M	2026-07-10	7
-5	/var/log/journal	1.2G	2026-07-11	7
-6	/var/log/apt	40M	2026-07-09	7
-7	history.log	12M	2026-07-09	7
+n	Directory	listing	(size,
+1	/var/log	2.4G	2026-07-11
+2	/var/log/nginx	880M	2026-07-11
+3	access.log	640M	2026-07-11
+4	error.log	240M	2026-07-10
+5	/var/log/journal	1.2G	2026-07-11
+6	/var/log/apt	40M	2026-07-09
+7	history.log	12M	2026-07-09

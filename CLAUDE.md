@@ -44,8 +44,8 @@ preserving can also go in `CHANGELOG.md`.
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (58 checks)
-bash transform/tests/test_melt.sh   # transform unit test (10 checks)
+bash tests/smoke.sh                 # end-to-end (197 checks)
+bash transform/tests/test_melt.sh   # transform unit test (54 checks)
 ```
 
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run
@@ -59,11 +59,18 @@ strategy), run that tree's suite:
 bash extract/tests/run_tests.sh     # strategy + engine suite (CI-enforced)
 ```
 
-When you touch `analyze/`, run its suite the way CI does (it installs `gawk`
-first — see the `analyze-engine` job in `.github/workflows/ci.yml`):
+When you touch `analyze/`, run its suite (CI runs it under mawk, then gawk —
+see the `analyze-engine` job in `.github/workflows/ci.yml`):
 
 ```bash
-ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 bash analyze/tests/run_tests.sh
+bash analyze/tests/run_tests.sh
+```
+
+When a change can alter tidy output (any parser, `_helpers.sh`, `melt.sh`),
+run the corpus gate (CI-enforced) and review every golden it reports:
+
+```bash
+bash tests/corpus/run.sh --golden   # ~3,500 real tools vs frozen tidy output
 ```
 
 Add or update tests to cover any behavior you change. New extract strategies
@@ -91,7 +98,7 @@ first time:
 - **Hold out files over 290,000 bytes** before encoding. Base64 expands by
   ~1.35x, so a larger file cannot fit a packet and cannot be split either — an
   entry is atomic. Ship those plain. Today that is `CHANGELOG.md` and the two
-  `docs/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
+  `docs/archive/review-prescreen-*.tsv` sheets, but take it from `find -size +290000c`
   rather than from this list: all three are files that grow.
 
 `shared_tools/CLAUDE.md` carries the exact commands, the verified packet count,

@@ -1,5 +1,5 @@
-n	FORMULA	NAME	MW	total_entries
-1	H₂O	water	18.02	4
-2	CO₂	carbon	dioxide_44.01	4
-3	C₆H₁₂O₆	glucose	180.16	4
-4	NaCl	salt	58.44	4
+n	FORMULA	NAME	MW
+1	H₂O	water	18.02
+2	CO₂	carbon	dioxide 44.01
+3	C₆H₁₂O₆	glucose	180.16
+4	NaCl	salt	58.44

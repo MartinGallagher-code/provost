@@ -48,7 +48,7 @@
 _dkt_classify () {
     local l="$1"
     _DKT_KIND=X
-    [[ -z "${l//[[:space:]]/}" ]] && { _DKT_KIND=-; return; }
+    [[ "${l}" != *[![:space:]]* ]] && { _DKT_KIND=-; return; }
     if [[ "$l" == [!$' \t']* ]]; then
         # Unindented: needs `dotted.key:` with optional value. The key must be
         # the cgroup CONTROLLER shape — lowercase alpha-led dot-separated
@@ -85,7 +85,7 @@ _dkt_classify () {
 _dkt_pairs () {
     local v="$1"
     _DKT_PK=(); _DKT_PV=()
-    local -a tok=(); read -ra tok <<< "$v"
+    local -a tok=(); { _fr_tok "$v"; tok=("${_FR_TOK[@]}"); }
     local n=${#tok[@]} i
     # k=v run, optionally after ONE bare qualifier word (pressure's `some`).
     local eq=0 qual="" first=0
@@ -122,7 +122,8 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     local line kv=0 hdr=0 mem=0 last=""
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _dkt_classify "$line"
         case "$_DKT_KIND" in
             -) ;;
@@ -134,10 +135,10 @@ strategy_detect () {
                 mem=$((mem + 1)); last=M ;;
             X) return 1 ;;
         esac
-    done <<< "$text"
+    done
     # The dotted-kv signature: >=2 dotted kv lines, or a stat block.
     [[ $((kv + hdr)) -ge 2 && $((kv + mem)) -ge 2 ]] || return 1
-    _STRATEGY_CONFIDENCE=82
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 
@@ -149,11 +150,13 @@ strategy_extract () {
     # The rest are GROUP headers. Track per-header kind by line order.
     local -a kinds=()
     local i=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
         _dkt_classify "$line"
         kinds[$i]="$_DKT_KIND"
         i=$((i + 1))
-    done <<< "$text"
+    done
+    line=""
     local total=$i
 
     i=0

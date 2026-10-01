@@ -1,5 +1,5 @@
-n	A	B	total_entries
-1	Simple mixer control 'Master'	0	4
-2	Simple mixer control 'Headphone'	0	4
-3	Simple mixer control 'Speaker'	0	4
-4	Simple mixer control 'PCM'	0	4
+n	A	B
+1	Simple mixer control 'Master'	0
+2	Simple mixer control 'Headphone'	0
+3	Simple mixer control 'Speaker'	0
+4	Simple mixer control 'PCM'	0

@@ -51,7 +51,7 @@ name <TAB> detect <TAB> header_marker <TAB> delim <TAB> absorb <TAB> minreq <TAB
 | 2 | `detect` | `;`-separated tokens that must **all** be present for this spec to match the input (see *Detection*) |
 | 3 | `header_marker` | skip every line up to **and including** the first line containing this substring (drops preamble + header row). `-` = headerless (start at line 1). Must not be empty. |
 | 4 | `delim` | `ws` (split on whitespace) or `pipe` (split on `|`, trim each cell) |
-| 5 | `absorb` | 0-based index of the column that soaks up overflow tokens (joined with `_`) when a row has more tokens than columns (`ws` only); `-1` = none |
+| 5 | `absorb` | 0-based index of the column that soaks up overflow tokens (joined with single spaces) when a row has more tokens than columns (`ws` only); `-1` = none |
 | 6 | `minreq` | minimum token count for a row to be accepted (lets trailing columns be optional) |
 | 7 | `cols` | comma-separated output column names, each optionally carrying a transform (see *Transforms*) |
 | 8 | `total` | optional; `1` (default) appends a `total_entries N` record, `0` omits it — match whatever the bespoke did |
@@ -110,8 +110,10 @@ tools; it was reverted.
    `ws` rows are split on runs of whitespace.
 4. Rows with fewer than `minreq` tokens are skipped.
 5. `ws` + `absorb ≥ 0` + (tokens > cols): the absorb column soaks the surplus
-   tokens, **joined with `_`** (e.g. goose-status folds a multi-word timestamp
-   `2026-01-10 12:00:00 +0000` → `2026-01-10_12:00:00_+0000`).
+   tokens, **joined with single spaces** (e.g. goose-status folds a multi-word
+   timestamp `2026-01-10 12:00:00 +0000` into one cell). A value keeps its
+   spaces: the field stream splits name from value at the first space only, so
+   an underscore join (the old behaviour) only corrupted the value.
 
 ### Transforms (field 7 column suffixes)
 
@@ -122,7 +124,7 @@ tools; it was reverted.
 | `name@opt` | emit only if the cell is non-empty (optional trailing column) |
 | `name@unwrap` | strip one layer of surrounding `()`/`[]`/`{}`/`""` — e.g. `(rw,relatime)` → `rw,relatime` |
 | `name@between@L@R` | emit the substring between the first `L` and the next `R` (empty ⇒ skip) — e.g. ss `users:(("sshd",…))` → `sshd` |
-| `name@rest` | **terminal** column: soaks every remaining token from its slot, joined with **single spaces** (verbatim internal spacing, unlike `absorb`'s `_`) — e.g. arp-scan's `vendor` = `Raspberry Pi Foundation`. No column may follow it. |
+| `name@rest` | **terminal** column: soaks every remaining token from its slot, joined with **single spaces** (the same join `absorb` uses) — e.g. arp-scan's `vendor` = `Raspberry Pi Foundation`. No column may follow it. |
 | `name@line` | **sole-column** mode: the value is the whole **trimmed** line (no tokenizing) — for single-column list outputs (module lists, cfg dumps). Use `cols` = one `@line` column; `delim`/`absorb`/`minreq` are ignored for the value. Combine with `header_marker` and `rowre` to drop headers / sub-section lines. |
 
 ## Recipe: migrate a bespoke into a spec
@@ -191,7 +193,8 @@ lands — ranked by how many tools each would unlock):
 - **`@default@<val>`** — placeholder for a missing optional column.
 - **mid-row multi-token column** — a fixed-width value with internal spaces that
   is *not* the last column (e.g. nodetool's `145.23 GiB` load); `@rest` only
-  covers the terminal column, `absorb` joins with `_`.
+  covers the terminal column, `absorb` only works when the overflow is the sole
+  variable-width column.
 - **stateful / continuation rows** — values inherited from a previous row
   (`fuser -v`), or mixed record shapes in one output (`aws s3 ls` objects vs
   `PRE` prefixes).

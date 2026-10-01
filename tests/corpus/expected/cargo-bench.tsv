@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	H	total_entries
-1	running	3	tests						5
-2	test	bench_parse_small	...	bench:	248	ns/iter	(+/-	12)	5
-3	test	bench_parse_large	...	bench:	12,044	ns/iter	(+/-	882)	5
-4	test	bench_encode	...	bench:	1,002	ns/iter	(+/-	44)	5
-5	test	result:	ok.	0	passed;	0	failed;	0_ignored;_3_measured	5
+n	A	B	C	D	E	F	G	H
+1	running	3	tests					
+2	test	bench_parse_small	...	bench:	248	ns/iter	(+/-	12)
+3	test	bench_parse_large	...	bench:	12,044	ns/iter	(+/-	882)
+4	test	bench_encode	...	bench:	1,002	ns/iter	(+/-	44)
+5	test	result:	ok.	0	passed;	0	failed;	0 ignored; 3 measured

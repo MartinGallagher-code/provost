@@ -1,6 +1,6 @@
-n	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O	total_entries
-1	class	htb	1:1	root	rate	100Mbit	ceil	100Mbit	burst	1600b	cburst	1600b				5
-2	class	htb	1:10	parent	1:1	prio	0	rate	30Mbit	ceil	100Mbit	burst	15Kb	cburst	1600b	5
-3	class	htb	1:20	parent	1:1	prio	1	rate	20Mbit	ceil	60Mbit	burst	15Kb	cburst	1600b	5
-4	class	htb	1:30	parent	1:1	prio	2	rate	10Mbit	ceil	40Mbit	burst	15Kb	cburst	1600b	5
-5	class	htb	1:40	parent	1:1	prio	3	rate	5Mbit	ceil	20Mbit	burst	15Kb	cburst	1600b	5
+n	A	B	C	D	E	F	G	H	I	J	K	L	M	N	O
+1	class	htb	1:1	root	rate	100Mbit	ceil	100Mbit	burst	1600b	cburst	1600b			
+2	class	htb	1:10	parent	1:1	prio	0	rate	30Mbit	ceil	100Mbit	burst	15Kb	cburst	1600b
+3	class	htb	1:20	parent	1:1	prio	1	rate	20Mbit	ceil	60Mbit	burst	15Kb	cburst	1600b
+4	class	htb	1:30	parent	1:1	prio	2	rate	10Mbit	ceil	40Mbit	burst	15Kb	cburst	1600b
+5	class	htb	1:40	parent	1:1	prio	3	rate	5Mbit	ceil	20Mbit	burst	15Kb	cburst	1600b

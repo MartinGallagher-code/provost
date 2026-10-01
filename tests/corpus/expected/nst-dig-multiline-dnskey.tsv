@@ -1,4 +1,4 @@
-n	name	ttl	class	type	value	total_entries
-1	example.org.	3600	IN	DNSKEY	256 3 8 (	3
-2	example.org.	3600	IN	DNSKEY	257 3 8 (	3
-3	example.org.	3600	IN	RRSIG	DNSKEY 8 2 3600 (	3
+n	name	ttl	class	type	value
+1	example.org.	3600	IN	DNSKEY	256 3 8 (
+2	example.org.	3600	IN	DNSKEY	257 3 8 (
+3	example.org.	3600	IN	RRSIG	DNSKEY 8 2 3600 (

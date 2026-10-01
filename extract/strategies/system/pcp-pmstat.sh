@@ -29,7 +29,7 @@ strategy_detect () {
     [[ "$text" == *loadavg* ]] || return 1
     [[ "$text" == *swpd* ]]    || return 1
     [[ "$text" == *"1 min"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 
@@ -38,9 +38,10 @@ strategy_extract () {
     local result="" entry=0 line i
     local -a t=()
     local -a fields=(loadavg swpd free buff cache si so bi bo in cs us sy id)
-    while IFS= read -r line; do
-        [[ -z "${line//[[:space:]]/}" ]] && continue
-        read -ra t <<< "$line"
+    _fr_lines "$text"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "${line}" != *[![:space:]]* ]] && continue
+        { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
         # data rows: first token is a float (loadavg), header rows are not
         [[ "${t[0]}" =~ ^[0-9]+\.[0-9]+$ ]] || continue
         [[ ${#t[@]} -eq ${#fields[@]} ]] || continue
@@ -48,7 +49,7 @@ strategy_extract () {
         for ((i=0; i<${#fields[@]}; i++)); do
             result+="entry${entry}.${fields[$i]} $(_pcp_sanitize "${t[$i]}")"$'\n'
         done
-    done <<< "$text"
+    done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"
 }

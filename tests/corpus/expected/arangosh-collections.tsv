@@ -1,6 +1,6 @@
-n	name	id	type	status	count	total_entries
-1	users	10021	document	loaded	184203	5
-2	sessions	10022	document	loaded	52011	5
-3	follows	10023	edge	loaded	920184	5
-4	likes	10024	edge	loaded	4820193	5
-5	_graphs	10001	document	loaded	4	5
+n	name	id	type	status	count
+1	users	10021	document	loaded	184203
+2	sessions	10022	document	loaded	52011
+3	follows	10023	edge	loaded	920184
+4	likes	10024	edge	loaded	4820193
+5	_graphs	10001	document	loaded	4

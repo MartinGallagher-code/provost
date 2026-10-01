@@ -1,3 +1,3 @@
-n	ID	LABEL	REGION	TYPE	STATUS	total_entries
-1	49182013	web-eu-1	eu-west	g6-standard-2	running	2
-2	49182088	web-eu-2	eu-west	g6-standard-2	running	2
+n	ID	LABEL	REGION	TYPE	STATUS
+1	49182013	web-eu-1	eu-west	g6-standard-2	running
+2	49182088	web-eu-2	eu-west	g6-standard-2	running

@@ -1,2 +1,2 @@
 Build_label	Build_target	Build_time	Build_timestamp	Build_timestamp_as_int
-6.4.0	bazel-out/k8-opt/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar	Mon Oct_16_16_40_00_2023 (1697474400)	1697474400	1697474400
+6.4.0	bazel-out/k8-opt/bin/src/main/java/com/google/devtools/build/lib/bazel/BazelServer_deploy.jar	Mon Oct 16 16:40:00 2023 (1697474400)	1697474400	1697474400

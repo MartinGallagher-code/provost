@@ -1,5 +1,5 @@
-n	Executor	ID	Address	Cores	Active	Tasks	Failed	Complete	total_entries
-1	driver	10.0.2.4:41029	0	0	0	384.1	0	MiB	4
-2	1	10.0.2.11:38771	4	2	0	1.2	12	GiB	4
-3	2	10.0.2.12:44003	4	3	1	1.2	9	GiB	4
-4	3	10.0.2.13:39120	4	0	0	1.2	15	GiB	4
+n	Executor	ID	Address	Cores	Active	Tasks	Failed	Complete
+1	driver	10.0.2.4:41029	0	0	0	384.1	0	MiB
+2	1	10.0.2.11:38771	4	2	0	1.2	12	GiB
+3	2	10.0.2.12:44003	4	3	1	1.2	9	GiB
+4	3	10.0.2.13:39120	4	0	0	1.2	15	GiB

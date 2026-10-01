@@ -17,7 +17,7 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=0
     [[ "$text" == *"SEAT"* ]] || return 1
     [[ "$text" == *"seats listed"* ]] || return 1
-    _STRATEGY_CONFIDENCE=86
+    _STRATEGY_CONFIDENCE=92
     return 0
 }
 

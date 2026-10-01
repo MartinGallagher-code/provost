@@ -1,6 +1,6 @@
-n	NAME	IMAGE	COMMAND	SERVICE	CREATED	STATUS	PORTS	total_entries
-1	myapp-web-1	nginx:latest	"/docker-entrypoint.…"	web	5	minutes	ago_Up_5_minutes_0.0.0.0:8080->80/tcp	5
-2	myapp-api-1	myorg/api:v1.4	"node	server.js"	api	5	minutes_ago_Up_5_minutes_0.0.0.0:3000->3000/tcp	5
-3	myapp-db-1	postgres:15.3	"docker-entrypoint.s…"	db	5	minutes	ago_Up_5_minutes_(healthy)_5432/tcp	5
-4	myapp-redis-1	redis:7-alpine	"docker-entrypoint.s…"	redis	5	minutes	ago_Up_5_minutes_6379/tcp	5
-5	myapp-worker-1	myorg/worker:v1.4	"celery	-A	app	worke…"	worker_5_minutes_ago_Exited_(0)_2_minutes_ago	5
+n	NAME	IMAGE	COMMAND	SERVICE	CREATED	STATUS	PORTS
+1	myapp-web-1	nginx:latest	"/docker-entrypoint.…"	web	5	minutes	ago Up 5 minutes 0.0.0.0:8080->80/tcp
+2	myapp-api-1	myorg/api:v1.4	"node	server.js"	api	5	minutes ago Up 5 minutes 0.0.0.0:3000->3000/tcp
+3	myapp-db-1	postgres:15.3	"docker-entrypoint.s…"	db	5	minutes	ago Up 5 minutes (healthy) 5432/tcp
+4	myapp-redis-1	redis:7-alpine	"docker-entrypoint.s…"	redis	5	minutes	ago Up 5 minutes 6379/tcp
+5	myapp-worker-1	myorg/worker:v1.4	"celery	-A	app	worke…"	worker 5 minutes ago Exited (0) 2 minutes ago

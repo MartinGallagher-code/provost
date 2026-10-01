@@ -1,6 +1,6 @@
-n	A	total_entries
-1	DevStack	5
-2	StagingStack	5
-3	ProdStack/Network	5
-4	ProdStack/Compute	5
-5	ProdStack/Database	5
+n	A
+1	DevStack
+2	StagingStack
+3	ProdStack/Network
+4	ProdStack/Compute
+5	ProdStack/Database

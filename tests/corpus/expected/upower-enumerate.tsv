@@ -1,6 +1,6 @@
-n	A	total_entries
-1	/org/freedesktop/UPower/devices/line_power_AC	5
-2	/org/freedesktop/UPower/devices/battery_BAT0	5
-3	/org/freedesktop/UPower/devices/DisplayDevice	5
-4	/org/freedesktop/UPower/devices/keyboard_0003o046Dp4023	5
-5	/org/freedesktop/UPower/devices/mouse_0003o046Dp4023	5
+n	A
+1	/org/freedesktop/UPower/devices/line_power_AC
+2	/org/freedesktop/UPower/devices/battery_BAT0
+3	/org/freedesktop/UPower/devices/DisplayDevice
+4	/org/freedesktop/UPower/devices/keyboard_0003o046Dp4023
+5	/org/freedesktop/UPower/devices/mouse_0003o046Dp4023

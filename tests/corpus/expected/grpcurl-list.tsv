@@ -1,5 +1,5 @@
-n	A	total_entries
-1	grpc.health.v1.Health	4
-2	grpc.reflection.v1.ServerReflection	4
-3	orders.v1.OrderService	4
-4	users.v1.UserService	4
+n	A
+1	grpc.health.v1.Health
+2	grpc.reflection.v1.ServerReflection
+3	orders.v1.OrderService
+4	users.v1.UserService

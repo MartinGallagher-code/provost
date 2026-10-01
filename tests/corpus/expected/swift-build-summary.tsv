@@ -1,5 +1,5 @@
-n	Compiling	AcmeCore	Model_swift	total_entries
-1	Compiling	AcmeCore	Client.swift	4
-2	Compiling	AcmeApp	main.swift	4
-3	[42/42]	Linking	AcmeApp	4
-4	Build	complete!	(18.42s)	4
+n	Compiling	AcmeCore	Model_swift
+1	Compiling	AcmeCore	Client.swift
+2	Compiling	AcmeApp	main.swift
+3	[42/42]	Linking	AcmeApp
+4	Build	complete!	(18.42s)

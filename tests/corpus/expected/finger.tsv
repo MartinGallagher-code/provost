@@ -1,6 +1,6 @@
-n	Login	Name	Tty	Idle	Time	Office	total_entries
-1	Jul	Martin	G	*:0	6	09:12	5
-2	2:14	Alice	Brown	pts/1	Jul	11:03	5
-3	12	Bob	Nguyen	pts/2	Jul	08:47	5
-4	1:02	Deploy	Bot	pts/3	Jul	02:00	5
-5	5	Carol	Diaz	pts/4	Jul	09:30	5
+n	Login	Name	Tty	Idle	Time	Office
+1	Jul	Martin	G	*:0	6	09:12
+2	2:14	Alice	Brown	pts/1	Jul	11:03
+3	12	Bob	Nguyen	pts/2	Jul	08:47
+4	1:02	Deploy	Bot	pts/3	Jul	02:00
+5	5	Carol	Diaz	pts/4	Jul	09:30
