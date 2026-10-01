@@ -44,7 +44,7 @@ strategy_detect () {
         fi
     done
     [[ $nonblank -eq 0 ]] && return 1
-    [[ $(( yamlish * 100 / nonblank )) -ge 80 ]] && return 0
+    [[ $(( yamlish * 100 / nonblank )) -ge $(( 80 - ${_FR_SLACK:-0} )) ]] && return 0
     return 1
 }
 

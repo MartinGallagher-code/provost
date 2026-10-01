@@ -430,7 +430,7 @@ _xl_finalize () {
     _XL_OUT=""
     # --- run_postprocess (auto-tune is off in this configuration) ---
     if [[ $_OPT_no_dedup -eq 0 ]] && _xl_has_content "$_f"; then
-        _dedup_pipe < "$_f" > "$_XL_DIR/lane.dedup"
+        _dedup_pipe "$_f" > "$_XL_DIR/lane.dedup"
         if _xl_has_content "$_XL_DIR/lane.dedup"; then
             _f="$_XL_DIR/lane.dedup"
         else

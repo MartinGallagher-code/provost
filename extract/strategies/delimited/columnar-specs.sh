@@ -144,7 +144,7 @@ _cs_row_overflow () {
     done
     # Decline only when the OVERWHELMING majority of accepted rows are wider than
     # the layout — a lone ragged row shouldn't lose the spec its normal input.
-    [[ $seen -ge 2 && $((wide * 100 / seen)) -ge 80 ]]
+    [[ $seen -ge 2 && $((wide * 100 / seen)) -ge $(( 80 + ${_FR_SLACK:-0} )) ]]
 }
 
 # Does the text match this spec's detect tokens (all present)? A plain token is a

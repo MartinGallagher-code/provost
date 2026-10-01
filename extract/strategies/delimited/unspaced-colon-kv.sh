@@ -119,7 +119,7 @@ strategy_detect () {
 
     [[ $nb -ge 2 ]] || return 1
     # Majority unspaced, and more than one distinct label.
-    [[ $(( tight * 100 / nb )) -ge 60 ]] || return 1
+    [[ $(( tight * 100 / nb )) -ge $(( 60 - ${_FR_SLACK:-0} )) ]] || return 1
     local distinct="${labels//[^|]/}"
     [[ $(( ${#distinct} / 2 )) -ge 2 ]] || return 1
     _STRATEGY_CONFIDENCE=80

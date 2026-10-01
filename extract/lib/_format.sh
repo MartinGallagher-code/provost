@@ -137,20 +137,21 @@ format_tsv () {
 # _format_tsv_awk < field-lines — format_tsv's BIG path as a stdin filter
 # (the file lane feeds it a file directly).
 _format_tsv_awk () {
+        # (the header row streams out as the lines arrive; only the values
+        # wait for END)
         awk '
-            $0 != "" { n++; L[n] = $0 }
+            $0 != "" {
+                n++
+                p = index($0, " ")
+                if (p) { nm = substr($0, 1, p - 1); v = substr($0, p + 1) } else { nm = $0; v = $0 }
+                if (index(nm, "\t")) gsub(/\t/, "_", nm)   # a tab in a NAME: sanitised
+                if (index(v, "\t")) gsub(/\t/, " ", v)     # a tab in a VALUE: one space
+                printf "%s%s", (n > 1 ? "\t" : ""), nm
+                V[n] = v
+            }
             END {
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); nm = p ? substr(L[i], 1, p - 1) : L[i]
-                    gsub(/\t/, "_", nm)            # a tab in a NAME: sanitised
-                    printf "%s%s", (i > 1 ? "\t" : ""), nm
-                }
                 printf "\n"
-                for (i = 1; i <= n; i++) {
-                    p = index(L[i], " "); v = p ? substr(L[i], p + 1) : L[i]
-                    gsub(/\t/, " ", v)             # a tab in a VALUE: one space
-                    printf "%s%s", (i > 1 ? "\t" : ""), v
-                }
+                for (i = 1; i <= n; i++) printf "%s%s", (i > 1 ? "\t" : ""), V[i]
                 printf "\n"
             }'
 }

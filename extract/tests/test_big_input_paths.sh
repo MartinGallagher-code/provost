@@ -136,6 +136,30 @@ _gen () {
             for ((i = 1; i <= 40; i++)); do printf 'disk%d  %dG  \033[32mok\033[0m\r\n' "$i" "$i"; done ;;
         eqtable)
             local i; for ((i = 1; i <= 40; i++)); do printf 'opt%d = value %d\n' "$i" "$i"; done ;;
+        share)
+            printf 'libfoo%d Foo library\n' 1 2 3
+            printf 'libbar Bar library for many things\nlibbaz Bazlib\n'
+            local i; for ((i = 1; i <= 20; i++)); do printf 'libm%d Middle library for many things\nlibq%d Quuxlib\n' "$i" "$i"; done
+            printf 'libend%d End library\n' 1 2 3
+            printf 'libzz Last library for many things\nlibyy Yylib\n' ;;
+        colons)
+            local i; for ((i = 1; i <= 25; i++)); do
+                printf 'Name %d: foo  bar \nBuilt on: Mon Jan 26 12:30:%02d 2024 ok\n' "$i" "$i"
+                printf 'Features %d:\n    PCI is supported\n    USB (very nice) here  \n' "$i"
+                printf 'Lone %d:\n      only one item\n' "$i"
+                printf 'Paren (some thing here) %d: x\n[ro.product.m%d]: [Pixel 8]\nURL: //host/%d\n' "$i" "$i" "$i"
+                printf '9lead: x\nkey with   spaces %d  :\tval\t\na:b: c%d\n  * Bullet %d: yes\n' "$i" "$i" "$i"
+                printf 'no colon line %d here\n-----\n   \nEmpty %d:   \nThis is a very long key name that goes on and on beyond fifty: v\n' "$i" "$i"
+            done ;;
+        colons_dash)
+            local i; for ((i = 1; i <= 40; i++)); do printf -- '- Certificate %d: X.509\n  - Size: %d\n' "$i" "$i"; done ;;
+        blockrec)
+            local i; for ((i = 1; i <= 30; i++)); do
+                printf 'Name: pkg%d\n  * Key two :  v%d  \nx = y: z\nURL: http://x/%d\nA=1\nB==2\n9k: no\nC=\t\nD=3\r\n' "$i" "$i" "$i"
+                printf 'Long key that is definitely longer than fifty characters: x\n\n'
+                [[ $((i % 5)) -eq 0 ]] && printf '\n\nonly text %d\n   \n\n' "$i"
+            done
+            printf 'Name: last' ;;
     esac > "$f"
     printf '%s\n' "$f"
 }
@@ -156,6 +180,31 @@ test_routes_json_array ()   { _big_same json "$(_gen json)"; }
 test_routes_banners ()      { _big_same banners "$(_gen banners)"; }
 test_routes_crlf_ansi ()    { _big_same crlf "$(_gen crlf)"; }
 test_routes_eq_table ()     { _big_same eqtable "$(_gen eqtable)"; }
+test_routes_colons ()       { _big_same colons "$(_gen colons)" -s colons; }
+test_routes_colons_dash ()  { _big_same colons_dash "$(_gen colons_dash)" -s colons; }
+test_routes_blockrec ()     { _big_same blockrec "$(_gen blockrec)" -s block-records; }
+
+# The twins' raw strategy_extract stdout (every trailing newline included) is
+# byte-identical to the bash loops', not just the tidy result.
+_raw_extract () {  # STRATEGY-FILE INPUT BIG-BYTES
+    bash -c '
+        source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_techniques.sh"
+        _FR_BIG_BYTES=$4; source "$1/strategies/$2"
+        text="$(cat "$3")"; strategy_extract "$text"' _ "$(dirname "$MFE_SCRIPT")" "$@"
+}
+test_twins_raw_bytes () {
+    local spec st in
+    for spec in delimited/colons.sh:colons delimited/colons.sh:colons_dash delimited/block-records.sh:blockrec; do
+        st="${spec%%:*}"; in="$(_gen "${spec#*:}")"
+        _raw_extract "$st" "$in" 999999999 > "$BIG_TMP/raw.bash"
+        _raw_extract "$st" "$in" 0 > "$BIG_TMP/raw.awk"
+        if ! cmp -s "$BIG_TMP/raw.bash" "$BIG_TMP/raw.awk"; then
+            _assert_failed "$spec: awk twin's raw extract differs from the bash loop"
+            diff "$BIG_TMP/raw.bash" "$BIG_TMP/raw.awk" | head -5
+        fi
+        assert_contains "$(cat "$BIG_TMP/raw.bash")" " " "$spec: raw extract not empty"
+    done
+}
 
 # --- the detection sample itself ---------------------------------------------
 _sample_of () {  # TEXT [ENV...] -> prints "<sampled> <sample>"
@@ -270,6 +319,74 @@ test_sample_confidence_is_full_text () {
     assert_not_contains "$a" $'\t75' "full-text equals confidence is not the sample's 75"
 }
 
+# SAMPLE SLACK: a share-threshold detector must not falsely REJECT its sample.
+# pkg-config declines when one token count covers >= 60% of lines: the 10-line
+# sample (head 5 + tail 5) sits exactly at 60% (6 three-token lines), the full
+# text far below. Without slack the sample screen dropped pkg-config and a
+# catch-all won; with it the sampled run picks the full-text winner.
+test_sample_share_threshold_no_false_reject () {
+    local f full samp noslack
+    f="$(_gen share)"
+    _big_run "$BIG_TMP/sh.full" _FR_SAMPLE_BYTES=-1 -- "$f"
+    _big_run "$BIG_TMP/sh.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 -- "$f"
+    _big_run "$BIG_TMP/sh.noslack" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_SLACK=0 -- "$f"
+    full="$(cat "$BIG_TMP/sh.full")"; samp="$(cat "$BIG_TMP/sh.samp")"; noslack="$(grep __EXTRACT_META__ "$BIG_TMP/sh.noslack")"
+    assert_contains "$full" $'__EXTRACT_META__\tpkg-config' "full text: pkg-config accepts"
+    assert_eq "$samp" "$full" "sampled run == full-text run (no false reject)"
+    # the reproduction: with the slack off, the sample screen rejects
+    assert_not_contains "$noslack" $'\tpkg-config' "slack 0 reproduces the false reject"
+}
+
+# The slack only ever reaches the SAMPLE screen: full-text detection (and so
+# every small input) sees _FR_SLACK=0 whatever _FR_SAMPLE_SLACK says.
+test_sample_slack_full_text_untouched () {
+    local f a b
+    f="$(_gen share)"
+    _big_run "$BIG_TMP/sl.a" _FR_SAMPLE_BYTES=-1 -- "$f"
+    _big_run "$BIG_TMP/sl.b" _FR_SAMPLE_BYTES=-1 _FR_SAMPLE_SLACK=90 _FR_SLACK=90 -- "$f"
+    a="$(cat "$BIG_TMP/sl.a")"; b="$(cat "$BIG_TMP/sl.b")"
+    assert_eq "$b" "$a" "unsampled run ignores the slack knobs"
+}
+
+# The streaming dedup (seen-set) keeps exactly the lines the sort pipeline
+# kept: first of each field part, in input order; a SOH byte routes the input
+# through the sort pipeline itself.
+test_dedup_stream_equals_sort () {
+    local in="$BIG_TMP/dd.txt" soh="$BIG_TMP/dd_soh.txt" runs="$BIG_TMP/dd_runs.txt" back="$BIG_TMP/dd_back.txt" f r
+    printf 'S:1\ta 1\nS:2\tb 2\n\nS:3\ta 1\nT:1\tb 2\nT:2\tc x y\nnolabel z\nU:9\tnolabel z\nS:4\ta 1 \n' > "$in"
+    { cat "$in"; printf 'S:5\tq\001\nS:6\tq\001\nS:7\tr\001s\001t\n'; } > "$soh"
+    # record runs (windowed seen-set) / a prefix that comes back (one set)
+    printf 'S:1\tentry1.a 1\nS:2\tentry1.a 1\nS:3\tentry1.b 2\n\nS:4\tentry2.a 1\nS:5\tentry2.a 1\nS:6\tx 1\nS:7\tx 1\n' > "$runs"
+    { cat "$runs"; printf 'S:8\tentry1.a 1\nS:9\tentry1.c 3\n'; } > "$back"
+    for f in "$in" "$soh" "$runs" "$back"; do
+        r="$(bash -c '
+            source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_postprocess.sh"
+            a="$(_dedup_pipe "$2" | od -c)"                                   # file: streaming / SOH sort
+            b="$(_dedup_pipe < "$2" | od -c)"                                 # stdin, unknown SOH: sort pipeline
+            c="$(_DD_SOH=0; [[ "$(cat "$2")" == *$'"'"'\001'"'"'* ]] && _DD_SOH=1; _DD_SOH=$_DD_SOH _dedup_pipe < "$2" | od -c)"
+            [[ "$a" == "$b" && "$b" == "$c" ]] && echo same || { echo "$a"; echo ---; echo "$b"; echo ---; echo "$c"; }
+        ' _ "$(dirname "$MFE_SCRIPT")" "$f")"
+        assert_eq "$r" "same" "dedup routes agree on ${f##*/}"
+    done
+}
+
+# _fr_absent_literals on a big text (64 KB prefix + one grep -F) answers
+# exactly as the per-literal scan, including a literal that first occurs
+# past the prefix and one that never occurs.
+test_absent_literals_big () {
+    local r
+    r="$(bash -c '
+        source "$1/lib/_helpers.sh"
+        t="$(for ((i = 0; i < 5000; i++)); do printf "row %d alpha beta gamma delta\n" "$i"; done)"
+        t+=$'"'"'\nlate: literal here'"'"'
+        L=$'"'"'alpha\nlate: literal\nnever seen\n\001x\ngamma delta'"'"'
+        a="$(_fr_absent_literals "$t" "$L")"; b="$(_fr_absent_literals_scan "$t" "$L")"
+        c="$(_fr_absent_literals "${t%late*}" "$L")"; d="$(_fr_absent_literals_scan "${t%late*}" "$L")"
+        printf "%s|%s|%s" "$([[ "$a" == "$b" ]] && echo same || echo diff)" "$([[ "$c" == "$d" ]] && echo same || echo diff)" "$(tr "\n\001" ",^" <<< "$a")"
+    ' _ "$(dirname "$MFE_SCRIPT")")"
+    assert_eq "$r" "same|same|never seen,^x," "big-text absent literals == per-literal scan"
+}
+
 # --- hint prefilters (exactness of the literal / first-atom reasoning) --------
 test_hint_prefilters_sound () {
     local r
@@ -312,12 +429,20 @@ run_test "routes: json array" test_routes_json_array
 run_test "routes: == banners" test_routes_banners
 run_test "routes: CRLF + ANSI" test_routes_crlf_ansi
 run_test "routes: ' = ' table decline" test_routes_eq_table
+run_test "routes: colons kv (dates, parens, folds, brackets)" test_routes_colons
+run_test "routes: colons dash bullets" test_routes_colons_dash
+run_test "routes: block-records" test_routes_blockrec
+run_test "twins: raw extract bytes (colons, block-records)" test_twins_raw_bytes
 run_test "sample: head + tail whole lines" test_sample_head_tail
 run_test "sample: byte caps" test_sample_byte_caps
 run_test "sample: when not taken" test_sample_not_taken
 run_test "sample: documents keep whole-document grammar detection" test_sample_documents_whole
 run_test "sample: accept-then-reject falls through" test_sample_confirm_rejects
 run_test "sample: confidence is the full-text one" test_sample_confidence_is_full_text
+run_test "sample: share threshold — no false reject (slack)" test_sample_share_threshold_no_false_reject
+run_test "sample: slack never reaches full-text detection" test_sample_slack_full_text_untouched
+run_test "dedup: streaming seen-set == sort pipeline" test_dedup_stream_equals_sort
+run_test "presence: big-text absent literals exact" test_absent_literals_big
 run_test "hints: prefilters are conservative" test_hint_prefilters_sound
 run_test "hints: big input keeps its hint route" test_hint_routing_big
 

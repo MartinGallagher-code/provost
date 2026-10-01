@@ -19,6 +19,25 @@ strategy_detect () {
     # count/min/max/sum/avg over repeated numeric fields.
     # Apply if input contains lines with colons (but not just URLs or timestamps)
     # Use variable for regex: (^|newline) to match any line start
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        # BIG input: the regex screen and the share count below in one awk
+        # pass. The screen is "some line is a `label:` line" — exactly kv > 0
+        # (a `#` line or a blank one can never match) — so the count decides.
+        local _kv=0 _nb=0
+        read -r _kv _nb < <(cat <<< "$text" | awk '
+            /^[ \t\n\v\f\r]*$/ { next }
+            { t = $0; sub(/^[ \t\n\v\f\r]+/, "", t); if (substr(t, 1, 1) == "#") next }
+            {
+                nb++
+                if ($0 ~ /^[ \t\n\v\f\r]*[A-Za-z][A-Za-z0-9_ -]*:([ \t\n\v\f\r]|$)/ \
+                    || $0 ~ /^[ \t\n\v\f\r]*\[[A-Za-z][A-Za-z0-9._-]*\]:([ \t\n\v\f\r]|$)/) kv++
+            }
+            END { printf "%d %d\n", kv, nb }')
+        [[ $_kv -gt 0 ]] || return 1
+        [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge $(( 40 - ${_FR_SLACK:-0} )) ]] || return 1
+        _STRATEGY_CONFIDENCE=$(( 55 + (_kv * 100 / _nb - 40) * 5 / 60 ))
+        return 0
+    fi
     local _nl=$'\n'
     # A real `key: value` line: optional indent, a label, a colon, then whitespace
     # or end of line. Requiring whitespace after the colon avoids matching colons
@@ -48,7 +67,7 @@ strategy_detect () {
         _nb=$((_nb + 1))
         [[ "$_l" =~ $_line_re || "$_l" =~ $_bline_re ]] && _kv=$((_kv + 1))
     done
-    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge 40 ]] || return 1
+    [[ $_nb -gt 0 && $(( _kv * 100 / _nb )) -ge $(( 40 - ${_FR_SLACK:-0} )) ]] || return 1
     # General-structure tier (extract/README.md "Confidence rubric"): 55..60,
     # scaled by the share of `label: value` lines (40% -> 55, 100% -> 60).
     # Above the catch-alls (line-records <= 55 loses the tie on priority,
@@ -60,8 +79,141 @@ strategy_detect () {
     return 0
 }
 
+# _strat_colons_extract_awk TEXT — strategy_extract for a BIG input in one awk
+# pass, byte-identical to the bash loops below: clean_text's date / paren
+# protection, the uniform dash-bullet test, the indented-list FOLD, the main
+# key/value loop and restore_text_values, in that order. Returns 3 (nothing
+# printed) when a line needs bash-only semantics — a paren span holding a
+# glob / `&` byte, an over-long non-ASCII key (${#key} counts characters) or
+# a non-ASCII bracketed value — and the caller runs the bash loops instead.
+_strat_colons_extract_awk () {
+    local _o
+    _o="$(cat <<< "$1" | awk '
+        BEGIN { SP = sprintf("%c", 30); CO = sprintf("%c", 31); n = 0 }
+        {
+            line = $0
+            # clean_text
+            if (index(line, ":")) {
+                while (match(line, / [A-Za-z][A-Za-z][A-Za-z] [0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] [0-9][0-9][0-9][0-9]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    r = " " substr(m, 2, 3) SP substr(m, 6, 2) SP substr(m, 9, 2) CO substr(m, 12, 2) CO substr(m, 15, 2) SP substr(m, 18, 4)
+                    line = substr(line, 1, RSTART - 1) r substr(line, RSTART + RLENGTH)
+                }
+            }
+            if (index(line, "(")) {
+                while (match(line, /[(][^) ]*[ ]/)) {
+                    m = substr(line, RSTART, RLENGTH)
+                    if (m ~ /[][*?\\&+@!]/) { bail = 1; exit 3 }
+                    line = substr(line, 1, RSTART - 1) substr(m, 1, length(m) - 1) SP substr(line, RSTART + RLENGTH)
+                }
+            }
+            L[++n] = line
+        }
+        END {
+            if (bail) exit 3
+            # (the bash text is the cleaned lines newline-joined, then read
+            # back with a here-string: the same lines)
+            # uniform "- " bullets over every non-blank line (and >= 2 of them)
+            db = 1; dbn = 0
+            for (i = 1; i <= n; i++) {
+                if (L[i] !~ /[^ \t\n\v\f\r]/) continue
+                dbn++
+                s = L[i]; sub(/^[ \t\n\v\f\r]+/, "", s)
+                if (substr(s, 1, 2) != "- ") { db = 0; break }
+            }
+            if (dbn < 2) db = 0
+            # FOLD indented list blocks into their bare header
+            m = 0; hdr = ""; hind = 0; items = ""; cnt = 0
+            for (i = 1; i <= n; i++) {
+                l = L[i]
+                if (hdr != "") {
+                    match(l, /^[ \t\n\v\f\r]*/); ind = RLENGTH; body = substr(l, ind + 1)
+                    if (body != "" && ind > hind && index(body, ": ") == 0 && substr(body, length(body)) != ":") {
+                        sub(/[ \t\n\v\f\r]+$/, "", body)
+                        items = items (items != "" ? "; " : "") body
+                        cnt++
+                        continue
+                    }
+                    F[++m] = (items != "" && cnt >= 2) ? hdr " " items : hdr
+                    hdr = ""; items = ""; cnt = 0
+                }
+                if (l ~ /^[ \t\n\v\f\r]*[A-Za-z][A-Za-z0-9_ -]*:[ \t\n\v\f\r]*$/) {
+                    match(l, /^[ \t\n\v\f\r]*/); hind = RLENGTH
+                    hdr = l
+                    continue
+                }
+                F[++m] = l
+            }
+            if (hdr != "") F[++m] = (items != "" && cnt >= 2) ? hdr " " items : hdr
+            # main loop
+            nc = 0
+            for (i = 1; i <= m; i++) {
+                l = F[i]
+                if (l == "") continue
+                c = index(l, ":")
+                banner = 0
+                if (c) { pre = substr(l, 1, c - 1); if (index(pre, "(") && !index(pre, ")")) banner = 1 }
+                if (!c || banner) {
+                    t = l; sub(/^[ \t\n\v\f\r]+/, "", t); sub(/[ \t\n\v\f\r]+$/, "", t)
+                    if (t == "") continue
+                    if (t ~ /^[-=~*+_][-=~*+_][-=~*+_]+$/) continue
+                    nc++
+                    out("line" nc, t)
+                    continue
+                }
+                s = l
+                if (substr(s, 1, 2) == "* ") s = substr(s, 3)
+                else if (db) {
+                    d = s; sub(/^[ \t\n\v\f\r]+/, "", d)
+                    if (substr(d, 1, 2) == "- ") s = substr(d, 3)
+                }
+                sub(/^ +/, "", s)
+                c = index(s, ":"); key = substr(s, 1, c - 1)
+                j = index(s, ": ")
+                if (j) val = substr(s, j + 2); else val = substr(s, c + 1)
+                if (key ~ /^\[[A-Za-z][A-Za-z0-9._-]*\]$/) {
+                    key = substr(key, 2, length(key) - 2)
+                    sub(/^ +/, "", val); sub(/ +$/, "", val)
+                    if (val ~ /[^\001-\177]/) exit 3
+                    if (val ~ /^\[.*\]$/) val = substr(val, 2, length(val) - 2)
+                }
+                sub(/^[ \t\n\v\f\r]+/, "", key); sub(/[ \t\n\v\f\r]+$/, "", key)
+                if (key == "") continue
+                if (length(key) > 50) { if (key ~ /[^\001-\177]/) exit 3; continue }
+                if (substr(val, 1, 2) == "//") continue
+                if (key ~ /^[0-9]/) continue
+                gsub(/ /, "_", key); gsub(/__+/, "_", key); sub(/^_/, "", key); sub(/_$/, "", key)
+                sub(/^[ \t]+/, "", val); sub(/[ \t]+$/, "", val)
+                if (val == "") continue
+                out(key, val)
+            }
+            # `echo "$_RESTORED_TEXT"`: echo adds a newline, and
+            # restore_text_values (which only rewrites when a sentinel is
+            # present) re-reads its newline-terminated input with a
+            # here-string and so keeps one more
+            printf "\n"
+            if (sent) printf "\n"
+        }
+        # restore_text_values: sentinels -> "_" in the name, back to space /
+        # colon in the value
+        function out(k, v) {
+            if (!sent && (index(k v, SP) || index(k v, CO))) sent = 1
+            gsub(SP, "_", k); gsub(CO, "_", k)
+            gsub(SP, " ", v); gsub(CO, ":", v)
+            print k " " v
+        }' && printf .)" || return 3
+    [[ "$_o" == *. ]] || return 3
+    printf '%s' "${_o%.}"
+    return 0
+}
+
 strategy_extract () {
     local text="$1"
+    if (( ${#text} > _FR_BIG_BYTES )); then
+        local _cox_rc=0
+        _strat_colons_extract_awk "$text" || _cox_rc=$?
+        [[ $_cox_rc -eq 3 ]] || return $_cox_rc
+    fi
 
     # Clean text (dates, parentheses) -- cached by engine after first call
     clean_text "$text"; text="$_CLEAN_TEXT_RESULT"

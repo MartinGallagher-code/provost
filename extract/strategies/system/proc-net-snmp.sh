@@ -24,7 +24,53 @@ strategy_detect () {
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+-?[0-9]'
     [[ "$text" =~ $reh ]] || return 1
     [[ "$text" =~ $rev ]] || return 1
-    return 0
+    # The pairing strategy_extract needs: a value line whose protocol label
+    # had a header line BEFORE it (`Ip: Forwarding …` then `Ip: 2 …`). Any
+    # colon listing with one word value and one numeric value passed the two
+    # regexes above, ranked first at 92 and extracted NOTHING — on a big
+    # `Name: x` / `Size: 3` dump that cost two full bash extracts plus an
+    # unpruned re-ranking. Declining exactly when the extract would be empty
+    # leaves every ranked winner unchanged. (Skipped on the detection sample,
+    # where a pair could lie in the unsampled middle: the full text decides.)
+    [[ "${_FR_DET_SAMPLE:-0}" -eq 1 ]] && return 0
+    _strat_pns_paired "$text"
+}
+
+# _strat_pns_paired TEXT — does a value line follow a header line of the
+# same label (strategy_extract's condition for emitting anything)? A bare
+# `:` label also answers yes: strategy_extract trips over it (an empty
+# array subscript), and how that ends is left to strategy_extract as before.
+_strat_pns_paired () {
+    if (( ${#1} > _FR_BIG_BYTES )); then
+        # BIG input: the same scan in awk (fields split as `read -a` splits)
+        cat <<< "$1" | awk '
+            NF >= 2 && $1 ~ /:$/ {
+                l = substr($1, 1, length($1) - 1)
+                if (l == "") { f = 1; exit }
+                if ($2 ~ /^[-0-9]/) { if (l in H) { f = 1; exit } }
+                else H[l] = 1
+            }
+            END { exit !f }'
+        return
+    fi
+    local line
+    local -A _pns_h=()
+    _fr_lines "$1"
+    for line in "${_FR_LINES[@]}"; do
+        [[ -z "$line" ]] && continue
+        local -a f=()
+        { _fr_tok "$line"; f=("${_FR_TOK[@]}"); }
+        [[ ${#f[@]} -lt 2 ]] && continue
+        [[ "${f[0]}" == *: ]] || continue
+        local label="${f[0]%:}" first="${f[1]}"
+        [[ -n "$label" ]] || return 0
+        if [[ "$first" == -* || "$first" == [0-9]* ]]; then
+            [[ -n "${_pns_h[$label]:-}" ]] && return 0
+        else
+            _pns_h[$label]=1
+        fi
+    done
+    return 1
 }
 
 strategy_extract () {

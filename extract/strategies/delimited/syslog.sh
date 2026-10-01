@@ -19,12 +19,12 @@ strategy_detect () {
     local line total=0 hits=0
     if (( ${#text} > _FR_BIG_BYTES )); then
         # BIG input: the same count in one awk pass (see _FR_BIG_BYTES)
-        cat <<< "$text" | awk '
+        cat <<< "$text" | awk -v T=$(( 50 - ${_FR_SLACK:-0} )) '
             /[^ \t\n\v\f\r]/ {
                 total++
                 if ($0 ~ /^[ \t\n\v\f\r]*[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] /) hits++
             }
-            END { exit !(total > 0 && int(hits * 100 / total) >= 50) }'
+            END { exit !(total > 0 && int(hits * 100 / total) >= T) }'
         return
     fi
     _fr_lines "$text"
@@ -33,7 +33,7 @@ strategy_detect () {
         total=$((total + 1))
         [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] && hits=$((hits + 1))
     done
-    [[ $total -gt 0 && $((hits * 100 / total)) -ge 50 ]]
+    [[ $total -gt 0 && $((hits * 100 / total)) -ge $(( 50 - ${_FR_SLACK:-0} )) ]]
 }
 
 strategy_extract () {

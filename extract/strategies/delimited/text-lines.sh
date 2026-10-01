@@ -58,7 +58,7 @@ strategy_detect () {
     # digit-led ranges all fail its charset). Deferring a block colons then
     # declines would leave NO winner at all (resolvectl's `Link 2 (eth0):`).
     if [[ $_kvb_n -ge 2 && $_kvb_ok -eq 1 && $_kvb_multi -eq 1 \
-          && $(( _kvb_colons * 100 / _kvb_n )) -ge 40 \
+          && $(( _kvb_colons * 100 / _kvb_n )) -ge $(( 40 + ${_FR_SLACK:-0} )) \
           && ! ( $_kvb_tpl_same -eq 1 && "$_kvb_tpl" == *"#"* ) ]]; then
         return 1
     fi

@@ -73,7 +73,7 @@ strategy_detect () {
         lines=$((lines + 1))
     done
     # Mostly colon key/value lines -> decline (let a colon parser split them).
-    [[ $lines -ge 2 && $(( _colon * 100 / lines )) -ge 60 ]] && return 1
+    [[ $lines -ge 2 && $(( _colon * 100 / lines )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
     # A consistent multi-column table (dominant modal column count >=3) is a real
     # aligned table for aligned-columns (az/aws/dnf/chage/es-cat listings), not a
     # pkg-config name/description list — whose description length (and so column
@@ -82,7 +82,7 @@ strategy_detect () {
     if [[ $lines -ge 2 ]]; then
         local _m=0 _best=0
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
-        [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge 60 ]] && return 1
+        [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
         _STRATEGY_CONFIDENCE=80
         return 0
     fi

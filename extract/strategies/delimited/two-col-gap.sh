@@ -81,7 +81,7 @@ strategy_detect () {
     if [[ ${#vcounts[@]} -ge 3 ]]; then
         local modal=0 best=0
         _fr_modal "${vcounts[@]}"; modal=$_FR_MODE; best=$_FR_MODE_N
-        [[ $modal -ge 2 && $((best * 100 / ${#vcounts[@]})) -ge 66 ]] && return 1
+        [[ $modal -ge 2 && $((best * 100 / ${#vcounts[@]})) -ge $(( 66 + ${_FR_SLACK:-0} )) ]] && return 1
         # A multi-token ROW-1 value whose word count EQUALS the modal data count
         # is a single-space-aligned grid whose header names line up over the
         # value words (lsblk's `NAME  SIZE TYPE MOUNTPOINT` over `500G disk …`)

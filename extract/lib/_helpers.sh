@@ -700,7 +700,27 @@ _fr_lines () {
 # no newline, so this is also "occurs in no line". The text is read in \001-
 # separated records — for ordinary text ONE record, so one index() scan per
 # literal (~100 literals over 10 MB in ~0.1 s) instead of one per line.
+#
+# BIG text: a literal found in the first 64 KB occurs (a prefix is a
+# substring), and the rest are first put to ONE `grep -F` over the whole text —
+# no line holds any of them means every one is absent (literals hold no
+# newline). Only when that grep finds something do they get the per-literal
+# scan, which costs a full pass per ABSENT literal (~0.6 s on 10 MB).
 _fr_absent_literals () {
+    if (( ${#1} > 65536 )); then
+        local _fal_rest
+        _fal_rest="$(_fr_absent_literals_scan "${1:0:65536}" "$2")" || return
+        [[ -n "$_fal_rest" ]] || return 0
+        if ! LC_ALL=C grep -qaF -e "$_fal_rest" <<< "$1"; then
+            printf '%s\n' "$_fal_rest"
+            return 0
+        fi
+        _fr_absent_literals_scan "$1" "$_fal_rest"
+        return
+    fi
+    _fr_absent_literals_scan "$1" "$2"
+}
+_fr_absent_literals_scan () {
     # (RS = \001 always: no literal holds a \001 or a newline, so none can
     # span a record boundary and "occurs in some record" is exact either way)
     _FAL="$2" LC_ALL=C awk -v RS=$'\001' '
