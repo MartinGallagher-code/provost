@@ -1,0 +1,20 @@
+test_add (test_u.TestMath.test_add) ... ok
+test_div (test_u.TestMath.test_div) ... FAIL
+test_mul (test_u.TestMath.test_mul) ... skipped 'flaky on CI'
+test_sub (test_u.TestMath.test_sub) ... ok
+test_split (test_u.TestStr.test_split) ... ok
+test_upper (test_u.TestStr.test_upper) ... ok
+
+======================================================================
+FAIL: test_div (test_u.TestMath.test_div)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/dev/project/test_u.py", line 5, in test_div
+    def test_div(self): self.assertEqual(1/1, 2)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1.0 != 2
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+FAILED (failures=1, skipped=1)

@@ -1,0 +1,5 @@
+2	E401	[*] multiple-imports-on-one-line
+2	F401	[*] unused-import
+1	F841	[ ] unused-variable
+Found 5 errors.
+[*] 4 fixable with the `--fix` option (1 hidden fix can be enabled with the `--unsafe-fixes` option).

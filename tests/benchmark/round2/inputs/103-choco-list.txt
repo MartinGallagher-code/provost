@@ -1,0 +1,15 @@
+Chocolatey v2.3.0
+7zip 24.08.0
+7zip.install 24.08.0
+chocolatey 2.3.0
+chocolatey-compatibility.extension 1.0.0
+chocolatey-core.extension 1.4.0
+git 2.46.0
+git.install 2.46.0
+googlechrome 128.0.6613.120
+nodejs-lts 20.17.0
+python 3.12.6
+python312 3.12.6
+vscode 1.93.0
+vscode.install 1.93.0
+13 packages installed.

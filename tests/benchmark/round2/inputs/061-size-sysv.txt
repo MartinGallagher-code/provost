@@ -1,0 +1,34 @@
+/bin/ls  :
+section                size     addr
+.interp                  28      792
+.note.gnu.property       48      824
+.note.gnu.build-id       36      872
+.note.ABI-tag            32      908
+.gnu.hash                80      944
+.dynsym                3072     1024
+.dynstr                1556     4096
+.gnu.version            256     5652
+.gnu.version_r          240     5912
+.rela.dyn              5424     6152
+.rela.plt              2496    11576
+.init                    27    16384
+.plt                   1680    16416
+.plt.got                 64    18096
+.plt.sec               1664    18160
+.text                 82370    19824
+.fini                    13   102196
+.rodata               20847   102400
+.eh_frame_hdr          1516   123248
+.eh_frame              6736   124768
+.init_array               8   139056
+.fini_array               8   139064
+.data.rel.ro           2808   139072
+.dynamic                512   141880
+.got                    968   142392
+.data                   632   143360
+.bss                   4760   144000
+.gnu_debugaltlink        73        0
+.gnu_debuglink           52        0
+Total                138006
+
+

@@ -1,0 +1,24 @@
+55650c48b000-55650c48d000 r--p 00000000 fe:00 151456                     /usr/bin/cat
+55650c48d000-55650c492000 r-xp 00002000 fe:00 151456                     /usr/bin/cat
+55650c492000-55650c494000 r--p 00007000 fe:00 151456                     /usr/bin/cat
+55650c494000-55650c495000 r--p 00008000 fe:00 151456                     /usr/bin/cat
+55650c495000-55650c496000 rw-p 00009000 fe:00 151456                     /usr/bin/cat
+55653317e000-55653319f000 rw-p 00000000 00:00 0                          [heap]
+7f9eb7c00000-7f9eb7c28000 r--p 00000000 fe:00 152035                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7f9eb7c28000-7f9eb7db0000 r-xp 00028000 fe:00 152035                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7f9eb7db0000-7f9eb7dff000 r--p 001b0000 fe:00 152035                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7f9eb7dff000-7f9eb7e03000 r--p 001fe000 fe:00 152035                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7f9eb7e03000-7f9eb7e05000 rw-p 00202000 fe:00 152035                     /usr/lib/x86_64-linux-gnu/libc.so.6
+7f9eb7e05000-7f9eb7e12000 rw-p 00000000 00:00 0 
+7f9eb7f57000-7f9eb7f7c000 rw-p 00000000 00:00 0 
+7f9eb7f85000-7f9eb7f87000 rw-p 00000000 00:00 0 
+7f9eb7f87000-7f9eb7f8b000 r--p 00000000 00:00 0                          [vvar]
+7f9eb7f8b000-7f9eb7f8d000 r--p 00000000 00:00 0                          [vvar_vclock]
+7f9eb7f8d000-7f9eb7f8f000 r-xp 00000000 00:00 0                          [vdso]
+7f9eb7f8f000-7f9eb7f90000 r--p 00000000 fe:00 152017                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7f9eb7f90000-7f9eb7fbb000 r-xp 00001000 fe:00 152017                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7f9eb7fbb000-7f9eb7fc5000 r--p 0002c000 fe:00 152017                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7f9eb7fc5000-7f9eb7fc7000 r--p 00036000 fe:00 152017                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7f9eb7fc7000-7f9eb7fc9000 rw-p 00038000 fe:00 152017                     /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2
+7ffcdfac4000-7ffcdfae6000 rw-p 00000000 00:00 0                          [stack]
+ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]

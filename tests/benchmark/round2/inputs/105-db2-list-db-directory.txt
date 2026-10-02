@@ -1,0 +1,42 @@
+
+ System Database Directory
+
+ Number of entries in the directory = 3
+
+Database 1 entry:
+
+ Database alias                       = SAMPLE
+ Database name                        = SAMPLE
+ Local database directory             = /home/db2inst1
+ Database release level               = 15.00
+ Comment                              =
+ Directory entry type                 = Indirect
+ Catalog database partition number    = 0
+ Alternate server hostname            =
+ Alternate server port number         =
+
+Database 2 entry:
+
+ Database alias                       = SALESDB
+ Database name                        = SALESDB
+ Local database directory             = /db2/data
+ Database release level               = 15.00
+ Comment                              = Sales reporting
+ Directory entry type                 = Indirect
+ Catalog database partition number    = 0
+ Alternate server hostname            =
+ Alternate server port number         =
+
+Database 3 entry:
+
+ Database alias                       = HRREMOTE
+ Database name                        = HRDB
+ Node name                            = HRNODE
+ Database release level               = 15.00
+ Comment                              =
+ Directory entry type                 = Remote
+ Authentication                       = SERVER_ENCRYPT
+ Catalog database partition number    = -1
+ Alternate server hostname            =
+ Alternate server port number         =
+

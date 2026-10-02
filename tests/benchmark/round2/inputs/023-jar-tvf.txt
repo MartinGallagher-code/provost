@@ -1,0 +1,4 @@
+     0 Fri Oct 02 15:58:12 UTC 2026 META-INF/
+    83 Fri Oct 02 15:58:12 UTC 2026 META-INF/MANIFEST.MF
+   411 Fri Oct 02 15:58:10 UTC 2026 com/acme/Hello.class
+   106 Fri Oct 02 15:58:10 UTC 2026 com/acme/Hello.java

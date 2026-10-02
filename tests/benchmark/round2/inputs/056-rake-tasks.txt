@@ -1,0 +1,7 @@
+rake build               # Build the gem into pkg/
+rake clean               # Remove generated files (pkg/, coverage/, tmp/)
+rake db:migrate          # Run pending migrations
+rake db:rollback[steps]  # Roll back the last N migrations (default 1)
+rake db:seed             # Load seed data into the development database
+rake release             # Release v1.4.2 to rubygems.org
+rake test                # Run the unit test suite

@@ -1,0 +1,7 @@
+time=2026-10-02T14:03:11.204Z level=info msg="server started" addr=:8080 version=1.12.3 commit=4f1c2ab
+time=2026-10-02T14:03:12.876Z level=info msg="request completed" method=GET path=/api/v1/users status=200 duration=12.4ms bytes=5321 request_id=7f3c9e1a
+time=2026-10-02T14:03:13.010Z level=warn msg="slow query" query="SELECT * FROM orders WHERE customer_id = $1" duration=812ms rows=1402
+time=2026-10-02T14:03:13.455Z level=info msg="request completed" method=POST path=/api/v1/orders status=201 duration=64.9ms bytes=211 request_id=0b2d44f8
+time=2026-10-02T14:03:15.002Z level=error msg="upstream unavailable" upstream=payments err="dial tcp 10.0.3.14:443: connect: connection refused" retry=3
+time=2026-10-02T14:03:15.990Z level=debug msg="cache stats" hits=10422 misses=318 evictions=0
+time=2026-10-02T14:03:16.120Z level=info msg="request completed" method=GET path=/healthz status=200 duration=0.3ms bytes=2

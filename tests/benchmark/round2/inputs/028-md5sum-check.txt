@@ -1,0 +1,8 @@
+apt/changelog.gz: OK
+bash/copyright: OK
+coreutils/copyright: OK
+tar/copyright: FAILED
+md5sum: nonexistent.txt: No such file or directory
+nonexistent.txt: FAILED open or read
+md5sum: WARNING: 1 listed file could not be read
+md5sum: WARNING: 1 computed checksum did NOT match

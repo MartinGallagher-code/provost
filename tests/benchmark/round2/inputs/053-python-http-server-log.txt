@@ -1,0 +1,11 @@
+Serving HTTP on 127.0.0.1 port 18765 (http://127.0.0.1:18765/) ...
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /app.py HTTP/1.1" 200 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /app.py HTTP/1.1" 200 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] code 404, message File not found
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /missing.html HTTP/1.1" 404 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /test_u.py HTTP/1.1" 200 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /prof.py HTTP/1.1" 200 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] code 404, message File not found
+127.0.0.1 - - [02/Oct/2026 15:56:38] "GET /nope HTTP/1.1" 404 -
+127.0.0.1 - - [02/Oct/2026 15:56:38] "HEAD /demo.zip HTTP/1.1" 200 -

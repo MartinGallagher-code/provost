@@ -1,0 +1,7 @@
+[Thu Oct 01 23:58:02.114321 2026] [mpm_event:notice] [pid 1021:tid 140231884515200] AH00489: Apache/2.4.62 (Ubuntu) configured -- resuming normal operations
+[Thu Oct 01 23:58:02.114389 2026] [core:notice] [pid 1021:tid 140231884515200] AH00094: Command line: '/usr/sbin/apache2'
+[Fri Oct 02 00:12:44.902118 2026] [php:error] [pid 2214:tid 140231700125376] [client 198.51.100.23:51422] PHP Fatal error:  Uncaught Error: Call to undefined function mysql_connect() in /var/www/html/legacy/db.php:12, referer: https://www.example.com/legacy/
+[Fri Oct 02 00:13:01.330872 2026] [authz_core:error] [pid 2215:tid 140231691732672] [client 203.0.113.77:40112] AH01630: client denied by server configuration: /var/www/html/.git/config
+[Fri Oct 02 00:20:17.008431 2026] [proxy:error] [pid 2219:tid 140231683339968] (111)Connection refused: AH00957: http: attempt to connect to 127.0.0.1:8080 (127.0.0.1:8080) failed
+[Fri Oct 02 00:20:17.008502 2026] [proxy_http:error] [pid 2219:tid 140231683339968] [client 198.51.100.40:60218] AH01114: HTTP: failed to make connection to backend: 127.0.0.1
+[Fri Oct 02 03:00:00.512990 2026] [mpm_event:notice] [pid 1021:tid 140231884515200] AH00493: SIGUSR1 received.  Doing graceful restart

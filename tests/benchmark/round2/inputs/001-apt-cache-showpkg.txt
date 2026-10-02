@@ -1,0 +1,45 @@
+Package: coreutils
+Versions: 
+9.4-3ubuntu6.2 (/var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_main_binary-amd64_Packages.lz4)
+ Description Language: 
+                 File: /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_main_binary-amd64_Packages.lz4
+                  MD5: d0d975dec3625409d24be1238cede238
+ Description Language: 
+                 File: /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_main_binary-amd64_Packages.lz4
+                  MD5: d0d975dec3625409d24be1238cede238
+
+9.4-3ubuntu6.1 (/var/lib/dpkg/status)
+ Description Language: 
+                 File: /var/lib/dpkg/status
+                  MD5: 
+
+9.4-3ubuntu6 (/var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_main_binary-amd64_Packages.lz4)
+ Description Language: 
+                 File: /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_main_binary-amd64_Packages.lz4
+                  MD5: d0d975dec3625409d24be1238cede238
+ Description Language: 
+                 File: /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_main_binary-amd64_Packages.lz4
+                  MD5: d0d975dec3625409d24be1238cede238
+
+
+Reverse Depends: 
+  nagios4-cgi,coreutils 4.5.3
+  nagios4-common,coreutils 4.5.3
+  nagios4-cgi,coreutils 4.5.3
+  linux-xilinx-headers-6.8.0-1024,coreutils
+  linux-xilinx-headers-6.8.0-1023,coreutils
+  linux-xilinx-headers-6.8.0-1022,coreutils
+  linux-xilinx-headers-6.8.0-1021,coreutils
+  linux-xilinx-headers-6.8.0-1020,coreutils
+  linux-xilinx-headers-6.8.0-1019,coreutils
+  linux-xilinx-headers-6.8.0-1018,coreutils
+  linux-xilinx-headers-6.8.0-1017,coreutils
+  linux-xilinx-headers-6.8.0-1015,coreutils
+  linux-xilinx-headers-6.8.0-1014,coreutils
+  linux-xilinx-headers-6.8.0-1013,coreutils
+  linux-xilinx-headers-6.8.0-1012,coreutils
+  linux-xilinx-headers-6.8.0-1011,coreutils
+  linux-xilinx-headers-6.8.0-1009,coreutils
+  linux-xilinx-headers-6.8.0-1008,coreutils
+  linux-renesas-headers-6.8.0-1011,coreutils
+  linux-realtime-headers-6.8.1-1015,coreutils

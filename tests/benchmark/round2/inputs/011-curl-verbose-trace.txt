@@ -1,0 +1,17 @@
+*   Trying 127.0.0.1:18765...
+* Connected to 127.0.0.1 (127.0.0.1) port 18765
+> GET /app.py HTTP/1.1
+> Host: 127.0.0.1:18765
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+* HTTP 1.0, assume close after body
+< HTTP/1.0 200 OK
+< Server: SimpleHTTP/0.6 Python/3.11.15
+< Date: Fri, 02 Oct 2026 15:56:38 GMT
+< Content-type: text/x-python
+< Content-Length: 337
+< Last-Modified: Fri, 02 Oct 2026 15:53:33 GMT
+< 
+{ [337 bytes data]
+* Closing connection

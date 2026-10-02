@@ -1,0 +1,40 @@
+Legacy:
+ Name: OpenSSL RSA method
+	Type: Builtin Algorithm
+	OID: rsaEncryption
+	PEM string: RSA
+ Name: rsa
+	Alias for: rsaEncryption
+ Name: OpenSSL PKCS#3 DH method
+	Type: Builtin Algorithm
+	OID: dhKeyAgreement
+	PEM string: DH
+ Name: dsaWithSHA
+	Alias for: dsaEncryption
+ Name: dsaEncryption-old
+	Alias for: dsaEncryption
+ Name: dsaWithSHA1-old
+	Alias for: dsaEncryption
+ Name: dsaWithSHA1
+	Alias for: dsaEncryption
+ Name: OpenSSL DSA method
+	Type: Builtin Algorithm
+	OID: dsaEncryption
+	PEM string: DSA
+ Name: OpenSSL EC algorithm
+	Type: Builtin Algorithm
+	OID: id-ecPublicKey
+	PEM string: EC
+ Name: OpenSSL RSA-PSS method
+	Type: Builtin Algorithm
+	OID: rsassaPss
+	PEM string: RSA-PSS
+ Name: OpenSSL X9.42 DH method
+	Type: Builtin Algorithm
+	OID: X9.42 DH
+	PEM string: X9.42 DH
+ Name: OpenSSL X25519 algorithm
+	Type: Builtin Algorithm
+	OID: X25519
+	PEM string: X25519
+ Name: OpenSSL X448 algorithm

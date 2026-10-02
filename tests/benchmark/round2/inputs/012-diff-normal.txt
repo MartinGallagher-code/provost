@@ -1,0 +1,11 @@
+2,3c2,3
+< port=8080
+< workers=4
+---
+> port=8443
+> workers=8
+5c5,6
+< log=info
+---
+> log=debug
+> tls=on

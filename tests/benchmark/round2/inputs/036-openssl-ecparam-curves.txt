@@ -1,0 +1,30 @@
+  secp112r1 : SECG/WTLS curve over a 112 bit prime field
+  secp112r2 : SECG curve over a 112 bit prime field
+  secp128r1 : SECG curve over a 128 bit prime field
+  secp128r2 : SECG curve over a 128 bit prime field
+  secp160k1 : SECG curve over a 160 bit prime field
+  secp160r1 : SECG curve over a 160 bit prime field
+  secp160r2 : SECG/WTLS curve over a 160 bit prime field
+  secp192k1 : SECG curve over a 192 bit prime field
+  secp224k1 : SECG curve over a 224 bit prime field
+  secp224r1 : NIST/SECG curve over a 224 bit prime field
+  secp256k1 : SECG curve over a 256 bit prime field
+  secp384r1 : NIST/SECG curve over a 384 bit prime field
+  secp521r1 : NIST/SECG curve over a 521 bit prime field
+  prime192v1: NIST/X9.62/SECG curve over a 192 bit prime field
+  prime192v2: X9.62 curve over a 192 bit prime field
+  prime192v3: X9.62 curve over a 192 bit prime field
+  prime239v1: X9.62 curve over a 239 bit prime field
+  prime239v2: X9.62 curve over a 239 bit prime field
+  prime239v3: X9.62 curve over a 239 bit prime field
+  prime256v1: X9.62/SECG curve over a 256 bit prime field
+  sect113r1 : SECG curve over a 113 bit binary field
+  sect113r2 : SECG curve over a 113 bit binary field
+  sect131r1 : SECG/WTLS curve over a 131 bit binary field
+  sect131r2 : SECG curve over a 131 bit binary field
+  sect163k1 : NIST/SECG/WTLS curve over a 163 bit binary field
+  sect163r1 : SECG curve over a 163 bit binary field
+  sect163r2 : NIST/SECG curve over a 163 bit binary field
+  sect193r1 : SECG curve over a 193 bit binary field
+  sect193r2 : SECG curve over a 193 bit binary field
+  sect233k1 : NIST/SECG/WTLS curve over a 233 bit binary field

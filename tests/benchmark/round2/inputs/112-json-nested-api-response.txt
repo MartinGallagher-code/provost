@@ -1,0 +1,29 @@
+{
+  "id": 48213,
+  "number": 1187,
+  "title": "Retry payment capture on read timeout",
+  "state": "open",
+  "draft": false,
+  "user": {
+    "login": "dev-alice",
+    "id": 9001,
+    "type": "User"
+  },
+  "labels": [
+    { "id": 11, "name": "bug", "color": "d73a4a" },
+    { "id": 17, "name": "payments", "color": "0e8a16" }
+  ],
+  "assignees": [],
+  "milestone": null,
+  "created_at": "2026-09-30T08:14:22Z",
+  "updated_at": "2026-10-01T17:02:51Z",
+  "head": { "ref": "fix/retry-capture", "sha": "4f1c2ab9d0e3" },
+  "base": { "ref": "main", "sha": "9a8b7c6d5e4f" },
+  "additions": 142,
+  "deletions": 37,
+  "changed_files": 6,
+  "mergeable": true,
+  "requested_reviewers": [
+    { "login": "dev-bob", "id": 9002, "type": "User" }
+  ]
+}
