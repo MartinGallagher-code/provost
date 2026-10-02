@@ -1,4 +1,0 @@
-n	Interface	RX	bps	TX	total_entries
-1	eth0	12.4MiB	3.10MiB	▁▂▃▅▆▇█▇▆▅▃▂	3
-2	wlan0	842KiB	210KiB	▁▁▂▂▃▃▂▂▁▁▁▁	3
-3	lo	1.2MiB	1.2MiB	▄▄▄▄▄▄▄▄▄▄▄▄	3

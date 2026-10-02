@@ -1,4 +1,0 @@
-n	SEVERITY	CONTROL_NAME	FAILED	ALL	total_entries
-1	Critical	Allowed hostPath	2	44	3
-2	High	Privileged container	4	44	3
-3	Medium	Resources CPU limit	12	44	3

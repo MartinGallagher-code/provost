@@ -1,3 +1,0 @@
-n	__CURSOR	__REALTIME_TIMESTAMP	__MONOTONIC_TIMESTAMP	_BOOT_ID	PRIORITY	SYSLOG_FACILITY	_TRANSPORT	_PID	_COMM	_HOSTNAME	MESSAGE
-1	s=8f2a;i=1a44;b=3c19;m=88213;t=61f2a;x=44aa	1752225603114562	88213114562	3c19bf2a44aa11ee9b3c0242ac110002	6	3	journal	812	sshd	workstation	Accepted_publickey_for_martin_from_10.0.0.9_port_60122_ssh2
-2	s=8f2a;i=1a45;b=3c19;m=88221;t=61f2b;x=44ab	1752225611882301	88221882301	3c19bf2a44aa11ee9b3c0242ac110002	3		stderr	2288	postgres		database_system_was_not_properly_shut_down;_automatic_recovery_in_progress

@@ -1,5 +1,0 @@
-n	Finding	Rule	Secret	File	total_entries
-1	API	key	generic-api-key	FAKE-KEY-..._src/config.py	4
-2	AWS	key	aws-access-token	AKIAFAKE..._deploy/env.sh	4
-3	JWT	jwt	eyJfakeJ...	tests/fixtures.js	4
-4	2	leaks	found	in_staged_changes;_3_findings	4

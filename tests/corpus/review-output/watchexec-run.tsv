@@ -1,5 +1,0 @@
-n	name	value	total_entries
-1	[Running	cargo test]	4
-2	[Completed	exit status 0]	4
-3	[Running	cargo test]	4
-4	[Completed	exit status 1]	4

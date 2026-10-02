@@ -1,5 +1,0 @@
-n	name	command	total_entries
-1	ll	ls -alF	4
-2	gs	git status	4
-3	k	kubectl	4
-4	..	cd ..	4

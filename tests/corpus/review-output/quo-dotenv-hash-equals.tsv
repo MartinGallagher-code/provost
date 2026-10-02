@@ -1,2 +1,0 @@
-DB_URL	SECRET	GREETING	PROMPT	FLAGS
-"postgres://u:p@host:5432/db?ssl=true"	'k=v#notacomment'	"hello world"  # trailing comment	"$ "	-x=1 -y=2

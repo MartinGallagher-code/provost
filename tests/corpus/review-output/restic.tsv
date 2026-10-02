@@ -1,8 +1,0 @@
-n	ID	Time	Host	Tags	Paths	total_entries
-1	a1b2c3	d4  2026-07-01 0	2:00:15  server01	daily	/home	7
-2	e5f6a7	b8  2026-07-02 0	2:00:12  server01	daily	/home	7
-3	192837	46  2026-07-03 0	2:00:18  server01	weekly	/home	7
-4	5a6b7c	8d  2026-07-04 0	2:00:09  server01	daily	/var/www	7
-5	f0e1d2	c3  2026-07-05 0	2:00:22  server01	daily	/home	7
-6	------	----------------	-----------------	------------	-----------------	7
-7	5 snap	shots				7

@@ -1,6 +1,0 @@
-n	Path	Mode	Owner	total_entries
-1	/etc/passwd	0644	root	5
-2	/etc/shadow	0o600	root	5
-3	/usr/bin/sudo	4755	root	5
-4	/tmp	1777	root	5
-5	/root	0700	root	5

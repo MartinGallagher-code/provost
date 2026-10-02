@@ -1,4 +1,0 @@
-n	Name	User	Version	Path	PrivateKey
-1	prod	tidb	v7.5.1	/hom	/home/tidb/.tiup/storage/cluster/prod/ssh/id_rsa
-2	stg-	tidb	v7.5.0	/hom	/home/tidb/.tiup/storage/cluster/stg/ssh/id_rsa
-3	dev-	tidb	v7.4.0	/hom	/home/tidb/.tiup/storage/cluster/dev/ssh/id_rsa

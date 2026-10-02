@@ -1,9 +1,0 @@
-n	Length	Date	Time	Name
-1	18432	2026-06-15	10:30	bin/app
-2	2048	2026-06-15	10:30	config/settings.yaml
-3	512	2026-06-15	10:31	LICENSE
-4	40960	2026-06-15	10:32	lib/libcore.so
-5	1024	2026-06-14	22:00	README.md
-6	131072	2026-06-15	10:33	share/data.bin
-7	---------			-------
-8	194048			6 files

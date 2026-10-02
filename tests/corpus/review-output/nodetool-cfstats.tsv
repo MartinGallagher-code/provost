@@ -1,2 +1,0 @@
-Keyspace	Read_Count	Read_Latency	Write_Count	Write_Latency	Pending_Flushes	Table	SSTable_count	Space_used_(live)	Space_used_(total)	Number_of_partitions_(estimate)	Compression_ratio	Bloom_filter_false_positives	Local_read_count	Local_read_latency	Local_write_count
-ks_orders	4820193	0.184 ms	12048201	0.052 ms	0	orders	12	4820193021	4820193021	920184	0.42	3	4820193	0.181 ms	12048201

@@ -1,3 +1,0 @@
-n	Name	Version	Release	Summary	License	Group
-1	httpd	2.4.57	5.fc39	Apache_HTTP_Server	ASL_2.0	System_Environment/Daemons
-2	mariadb	10.11.5	1.fc39	A_community_developed_branch_of_MySQL	GPLv2	Applications/Databases

@@ -1,4 +1,4 @@
 n	PKG	HOMEPAGE	VERSION
-1	curl	8;;https://curl.securl.se8;;	8.6.0
-2	jq	8;;https://jqlang.orgjqlang.org8;;	1.7.1
-3	ripgrep	8;;https://github.com/bsgithub.com/bs8;;	14.1.0
+1	curl	curl.se	8.6.0
+2	jq	jqlang.org	1.7.1
+3	ripgrep	github.com/bs	14.1.0

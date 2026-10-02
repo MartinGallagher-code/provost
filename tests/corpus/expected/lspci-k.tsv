@@ -1,2 +1,4 @@
-Kernel_driver_in_use	Kernel_modules	Kernel_driver_in_use	Kernel_modules	Kernel_driver_in_use	Kernel_modules
-i915	i915	igc	igc	nvme	nvme
+n	group	Kernel_driver_in_use	Kernel_modules
+1	00:02.0 VGA compatible controller: Intel Corporation AlderLake-S GT1 (rev 0c)	i915	i915
+2	02:00.0 Ethernet controller: Intel Corporation Ethernet Controller I225-V (rev 03)	igc	igc
+3	04:00.0 Non-Volatile memory controller: Samsung NVMe SSD 980 PRO	nvme	nvme

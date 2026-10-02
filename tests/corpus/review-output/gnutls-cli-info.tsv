@@ -1,2 +1,0 @@
-Certificate_type	Description	Session_ID	Options
-X.509	(TLS1.3)-(ECDHE-X25519)-(RSA-PSS-RSAE-SHA256)-(AES-256-GCM)	44:20:1a:bc:99	safe renegotiation,

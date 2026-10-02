@@ -1,5 +1,0 @@
-n	Global:	no	total_entries
-1	Link	2_(eth0):_yes	4
-2	Link	3_(wlan0):_no	4
-3	Link	4_(docker0):_no	4
-4	Link	5_(tun0):_yes	4

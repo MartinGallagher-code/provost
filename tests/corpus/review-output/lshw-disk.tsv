@@ -1,2 +1,0 @@
-description	product	physical_id	bus_info	logical_name	version	serial	size	capabilities	configuration
-NVMe disk	Samsung SSD 970 EVO Plus 1TB	0	nvme@0:1	/dev/nvme0n1	2B2QEXM7	S4EWNX0N123456A	931GiB (1TB)	gpt-1.00 partitioned partitioned:gpt	guid=1a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809 logicalsectorsize=512 sectorsize=512 wwid=eui.002538b111223344

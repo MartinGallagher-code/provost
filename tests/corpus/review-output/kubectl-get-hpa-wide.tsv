@@ -1,3 +1,0 @@
-n	NAME	REFERENCE	TARGETS	MINPODS	MAXPODS	REPLICAS	total_entries
-1	api-hpa	Deployment/api	42%/70%	2	10	4	2
-2	web-hpa	Deployment/web	88%/70%	2	20	12	2

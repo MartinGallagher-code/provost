@@ -1,7 +1,0 @@
-n	name	value	label_receiver	label_transport	label_exporter	label_processor	otelcol_receiver_accepted_spans.help	otelcol_receiver_accepted_spans.type
-1	otelcol_receiver_accepted_spans	184213	otlp	grpc			Number of spans successfully pushed into the pipeline.	counter
-2	otelcol_receiver_refused_spans	12	otlp	grpc			Number of spans successfully pushed into the pipeline.	counter
-3	otelcol_exporter_sent_spans	184201			otlp/jaeger		Number of spans successfully pushed into the pipeline.	counter
-4	otelcol_exporter_send_failed_spans	3			otlp/jaeger		Number of spans successfully pushed into the pipeline.	counter
-5	otelcol_processor_batch_batch_send_size_sum	184201				batch	Number of spans successfully pushed into the pipeline.	counter
-6	otelcol_process_runtime_heap_alloc_bytes	78643200					Number of spans successfully pushed into the pipeline.	counter

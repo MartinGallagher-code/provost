@@ -1,4 +1,0 @@
-n	name	value	total_entries
-1	a1b2c3d|Alice|fix	handle a|b in parser	3
-2	e4f5a6b|Bob|feat	add --filter "x,y,z" flag	3
-3	c7d8e9f|Carol|refactor	split foo() | bar()	3

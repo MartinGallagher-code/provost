@@ -1,4 +1,0 @@
-n	ID	STATUS	NAME	PEER_ADDRS	CLIENT_ADDRS	IS_LEARNER	total_entries
-1	8e9e05c52164694d	started	etcd-0	https://10.0.0.10:2380	https://10.0.0.10:2379	false	3
-2	fd422379c142a44f	started	etcd-1	https://10.0.0.11:2380	https://10.0.0.11:2379	false	3
-3	91bc3c398fb3c146	started	etcd-2	https://10.0.0.12:2380	https://10.0.0.12:2379	false	3

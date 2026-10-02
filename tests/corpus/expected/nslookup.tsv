@@ -1,2 +1,6 @@
-Server	Address	Name	Address
-192.168.1.1	192.168.1.1#53	example.com	93.184.216.34
+n	A	B
+1	Server:	192.168.1.1
+2	Address:	192.168.1.1#53
+3	Non-authoritative answer:	
+4	Name:	example.com
+5	Address: 93.184.216.34	

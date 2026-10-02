@@ -1,0 +1,3 @@
+n	cookie	duration	table	n_packets	n_bytes	priority	actions
+1	0x0	88201.442s	0	1204882	98201442	100,ip	NORMAL
+2	0x0	88201.442s	0	482100	44210882	0	drop

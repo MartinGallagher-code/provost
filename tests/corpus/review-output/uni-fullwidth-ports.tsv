@@ -1,5 +1,0 @@
-n	SERVICE	PORT	STATE	total_entries
-1	http	80	open	4
-2	https	443	open	4
-3	ssh	22	open	4
-4	dns	53	filtered	4

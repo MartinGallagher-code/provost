@@ -1,0 +1,4 @@
+n	group	Soft_blocked	Hard_blocked
+1	0: phy0: Wireless LAN	no	no
+2	1: hci0: Bluetooth	yes	no
+3	2: acpi-wmi: Wireless WAN	yes	yes

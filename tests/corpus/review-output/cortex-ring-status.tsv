@@ -1,5 +1,0 @@
-n	INSTANCE	STATE	ADDRESS	ZONE	TOKENS	OWNERSHIP	total_entries
-1	ingester-0	ACTIVE	10.2.1.10:9095	zone-a	128	33.4%	4
-2	ingester-1	ACTIVE	10.2.1.11:9095	zone-b	128	33.1%	4
-3	ingester-2	ACTIVE	10.2.1.12:9095	zone-c	128	33.5%	4
-4	ingester-3	JOINING	10.2.1.13:9095	zone-a	0	0.0%	4

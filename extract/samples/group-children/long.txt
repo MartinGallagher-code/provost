@@ -1,0 +1,5 @@
+openssl
+  Depends: libc6 (>= 2.34)
+  Depends: libssl3 (>= 3.0.0)
+libc6
+  Depends: libgcc-s1

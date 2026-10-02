@@ -1,4 +1,0 @@
-n	name	mtu	qdisc	state	group	qlen	rx_bytes	rx_packets	rx_errors	rx_dropped	rx_overrun	rx_mcast	tx_bytes	tx_packets	tx_errors	tx_dropped	tx_carrier	tx_collsns	total_entries
-1	lo	65536	noqueue	UNKNOWN	default	1000	1200	20	0	0	0	0	1200	20	0	0	0	0	3
-2	eth0	1500	mq	UP	default	1000	883721049	802134	0	4	0	220	412093847	390218	0	0	0	0	3
-3	docker0	1500	noqueue	DOWN	default		0	0	0	0	0	0	0	0	0	0	0	0	3

@@ -1,6 +1,0 @@
-n	Node	Address	Status	Type	Build	Protocol	DC	Partition	Segment	total_entries
-1	server-1	10.0.1.10:8301	alive	server	1.17.1	2	dc1	default	<all>	5
-2	server-2	10.0.1.11:8301	alive	server	1.17.1	2	dc1	default	<all>	5
-3	server-3	10.0.1.12:8301	alive	server	1.17.1	2	dc1	default	<all>	5
-4	client-1	10.0.2.20:8301	alive	client	1.17.1	2	dc1	default	<default>	5
-5	client-2	10.0.2.21:8301	alive	client	1.17.1	2	dc1	default	<default>	5

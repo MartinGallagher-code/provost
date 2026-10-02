@@ -1,5 +1,0 @@
-n	shards	disk_indices	disk_used	disk_avail	disk_total	disk_percent	host	ip	node	total_entries
-1	142	18.4gb	22.1gb	177.9gb	200gb	11	10.1.0.21	10.1.0.21	es-data-0	4
-2	140	18.1gb	21.7gb	178.3gb	200gb	10	10.1.0.22	10.1.0.22	es-data-1	4
-3	141	18.6gb	22.4gb	177.6gb	200gb	11	10.1.0.23	10.1.0.23	es-data-2	4
-4	6	-	-	-	-	-	-	-	UNASSIGNED	4

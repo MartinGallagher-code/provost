@@ -1,6 +1,0 @@
-n	A	total_entries
-1	Compressor name         Compress. Decompress. Compr. size  Ratio Filename	5
-2	memcpy                  12044 MB/s  12044 MB/s   211957760 100.00 silesia.tar	5
-3	lz4 1.9.4               482 MB/s    2210 MB/s     100880240  47.59 silesia.tar	5
-4	zstd 1.5.5 -1           388 MB/s    1288 MB/s      73115463  34.50 silesia.tar	5
-5	brotli 1.1.0 -5         44 MB/s      412 MB/s      68812044  32.47 silesia.tar	5

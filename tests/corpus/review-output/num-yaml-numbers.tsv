@@ -1,2 +1,0 @@
-version	port	mask	ratio	scientific	timeout	threshold	enabled
-1.0.0-rc.1+build.42	0o644	0xDEADBEEF	3.14	6.022e23	2h34m	1234	0b1010

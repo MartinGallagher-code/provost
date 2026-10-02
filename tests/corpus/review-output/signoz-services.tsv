@@ -1,3 +1,0 @@
-n	Service	P99_Latency	Error_Rate	Ops/s	total_entries
-1	frontend	128ms	0.41%	1204	2
-2	cart-service	88ms	0.12%	882	2

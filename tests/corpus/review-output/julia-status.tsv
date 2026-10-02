@@ -1,5 +1,0 @@
-n	timestamp	message	total_entries
-1	336ed68f	CSV v0.10.14	4
-2	a93c6f00	DataFrames v1.6.1	4
-3	7073ff75	IJulia v1.25.0	4
-4	91a5bcdd	Plots v1.40.4	4

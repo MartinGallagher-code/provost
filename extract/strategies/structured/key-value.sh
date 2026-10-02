@@ -55,7 +55,7 @@ strategy_detect () {
     [[ $listmark -gt 0 ]] && return 1
     [[ $kv -lt 5 ]] && return 1
     # Most non-empty lines must be key:value (wrapped continuations are the rest).
-    (( kv * 2 < nonempty )) && return 1
+    (( kv * 100 < nonempty * (50 - ${_FR_SLACK:-0}) )) && return 1
     # Require BOTH an aligned value column AND several multi-word labels — the
     # signature of human-readable tool dumps (lscpu, hwinfo, `systemctl show`).
     # This deliberately leaves single-word-key formats (/proc/meminfo) and

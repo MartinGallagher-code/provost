@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	drwxr-xr-x	2	root	root	4096	Jul	6	09:12	bin	4
-2	-rw-r--r--	1	alice	users	1024	Jul	5	18:03	notes.txt	4
-3	-rwxr-xr-x	1	alice	users	8192	Jul	4	11:20	run.sh	4
-4	lrwxrwxrwx	1	root	root	7	Jul	1	00:00	sh_->_busybox	4

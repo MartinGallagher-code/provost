@@ -1,6 +1,0 @@
-n	m	h	dom	mon	dow	command	total_entries
-1	0	2	*	*	*	/usr/local/bin/backup.sh_--source_/var/data_--dest_/mnt/backups_\	5
-2	--exclude	'*.tmp'	--compress	--retention	30	>>_/var/log/backup.log_2>&1	5
-3	*/15	*	*	*	*	/usr/bin/curl_-s_https://health.example.com/ping_>>_/var/log/health.log	5
-4	30	4	*	*	0	/usr/local/bin/report.py_--weekly_--email_ops@example.com	5
-5	0	0	1	*	*	/usr/local/bin/rotate-certs.sh_&&_systemctl_reload_nginx	5

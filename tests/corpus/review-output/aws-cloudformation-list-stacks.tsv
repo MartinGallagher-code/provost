@@ -1,7 +1,0 @@
-n	StackName	StackStatus	CreationTime	Description	total_entries
-1	network-prod	CREATE_COMPLETE	2024-02-01T09:00Z	VPC and subnets	6
-2	eks-cluster-prod	UPDATE_COMPLETE	2024-02-03T11:20Z	EKS control plane	6
-3	orders-service	CREATE_COMPLETE	2024-05-22T14:05Z	ECS orders svc	6
-4	monitoring-stack	UPDATE_ROLLBACK_COMPLETE	2024-06-18T07:44Z	CloudWatch alarms	6
-5	data-pipeline	CREATE_IN_PROGRESS	2026-07-07T01:12Z	Glue and Firehose	6
-6	legacy-billing	DELETE_FAILED	2023-08-30T16:33Z	Old billing app	6

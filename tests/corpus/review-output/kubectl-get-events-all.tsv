@@ -1,6 +1,0 @@
-n	NAMESPACE	LAST_SEEN	TYPE	REASON	OBJECT	MESSAGE	total_entries
-1	default	2m14s	Normal	Scheduled	pod/web-6d4cf56db6-8xk2n	Successfully assigned default/web to worker-1	5
-2	default	2m10s	Normal	Pulled	pod/web-6d4cf56db6-8xk2n	Container image "nginx:1.25" already present on machine	5
-3	kube-system	5m3s	Warning	BackOff	pod/coredns-7db6d8ff4d	Back-off restarting failed container	5
-4	monitoring	8m41s	Normal	ScalingReplicaSet	deployment/prometheus	Scaled up replica set prometheus-1 to 2	5
-5	default	12m	Warning	FailedMount	pod/api-5f7b9c8d4-tzp7w	Unable to attach or mount volumes: timed out waiting for the condition	5

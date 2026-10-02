@@ -1,7 +1,8 @@
-n	Starting	repository	check
-1	Starting	repository	index check
-2	Completed	repository	check, no problems found.
-3	Starting	archive	consistency check...
-4	Analyzing	archive	nas-2026-07-10 (1/4)
-5	Analyzing	archive	nas-2026-07-03 (2/4)
-6	Archive	consistency	check complete, no problems found.
+n	A
+1	Starting repository check
+2	Starting repository index check
+3	Completed repository check, no problems found.
+4	Starting archive consistency check...
+5	Analyzing archive nas-2026-07-10 (1/4)
+6	Analyzing archive nas-2026-07-03 (2/4)
+7	Archive consistency check complete, no problems found.

@@ -1,3 +1,0 @@
-n	ServerName	DocumentRoot	Port	ErrorLog	CustomLog
-1	www.example.org	/srv/www/example	80	/var/log/apache2/example-error.log	/var/log/apache2/example-access.log
-2	shop.example.org	/srv/www/shop	443	/var/log/apache2/shop-error.log	/var/log/apache2/shop-access.log

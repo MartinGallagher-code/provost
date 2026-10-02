@@ -1,4 +1,0 @@
-n	HOST	IP	ZONE	total_entries
-1	ＷＥＢ01	10.0.0.1	dmz	3
-2	ＤＢ02	10.0.0.2	internal	3
-3	cache03	10.0.0.3	internal	3

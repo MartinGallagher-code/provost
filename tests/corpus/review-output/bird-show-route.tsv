@@ -1,5 +1,0 @@
-n	A	total_entries
-1	0.0.0.0/0            unicast [kernel1 06:00:00.000] * (10)	4
-2	via 10.0.0.1 on eth0	4
-3	10.0.1.0/24          unicast [bgp1 06:00:00.000] * (100) [AS65002i]	4
-4	via 10.0.0.2 on eth0	4

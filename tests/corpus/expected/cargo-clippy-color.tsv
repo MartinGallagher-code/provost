@@ -1,0 +1,4 @@
+n	name	value
+1	warning	unused import: `std::io`         src/main.rs:3
+2	warning	needless return                  src/lib.rs:42
+3	error	mismatched types                 src/db.rs:88

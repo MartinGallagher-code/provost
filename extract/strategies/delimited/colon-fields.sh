@@ -52,7 +52,10 @@ strategy_detect () {
         if [[ $_seen -eq 0 ]]; then _f1="$_pre"; _seen=1
         elif [[ "$_pre" != "$_f1" ]]; then _same=0; break; fi
     done
-    [[ $_seen -eq 1 && $_same -eq 1 && $nb -ge 2 ]] && return 1
+    # (identifiers are opaque — no whitespace; gpg --with-colons `uid:…:Alice
+    # Smith (work) <…>:` records share their TYPE field, carry prose fields,
+    # and are real per-record colon fields)
+    [[ $_seen -eq 1 && $_same -eq 1 && $nb -ge 2 && "$text" != *[[:alnum:]]" "[[:alnum:]]* ]] && return 1
 
     _STRATEGY_CONFIDENCE=80
     return 0

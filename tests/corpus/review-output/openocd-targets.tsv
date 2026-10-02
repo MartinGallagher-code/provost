@@ -1,2 +1,0 @@
-n	TargetName	Type	Endian	TapName	State	total_entries
-1	0* stm32f4x.cpu	cortex_m	little	stm32f4x.cpu	halted	1

@@ -1,4 +1,0 @@
-n	NAME	READY	STATUS	RESTARTS	total_entries
-1	web-1	1/1	Running	0	3
-2	web-2	1/1	Running	3 (14h ago)	3
-3	db-1	0/1	Pending	0	3

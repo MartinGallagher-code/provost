@@ -1,7 +1,0 @@
-n	A	B	C	D	E	F	G	H	total_entries
-1	NetworkManager 	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6
-2	auditd         	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6
-3	crond          	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6
-4	sshd           	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6
-5	firewalld      	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6
-6	rsyslog        	0:off	1:off	2:on	3:on	4:on	5:on	6:off	6

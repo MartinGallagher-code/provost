@@ -1,7 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	Open	192.168.1.50:22				6
-2	Open	192.168.1.50:80				6
-3	Open	192.168.1.50:443				6
-4	Open	192.168.1.50:8080				6
-5	Scanned	1000	ports	in	1.84s	6
-6	Starting	nmap	on	found	ports	6

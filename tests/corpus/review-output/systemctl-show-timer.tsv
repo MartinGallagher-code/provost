@@ -1,2 +1,0 @@
-Id	NextElapseUSecRealtime	LastTriggerUSec	Result	Persistent	AccuracySec	RandomizedDelayUSec	Unit
-logrotate.timer	Sat 2026-07-11 00:00:00 UTC	Fri 2026-07-10 00:00:14 UTC	success	yes	1h	0	logrotate.service

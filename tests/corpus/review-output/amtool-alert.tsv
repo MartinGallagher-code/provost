@@ -1,6 +1,0 @@
-n	alertname	instance	severity	job	total_entries
-1	"HighCPU"	"web-01:9100"	"warning"	"node"	5
-2	"DiskWillFill"	"web-02:9100"	"critical"	"node"	5
-3	"InstanceDown"	"10.0.1.19:9100"	"critical"	"node"	5
-4	"HighMemory"	"web-03:9100"	"warning"	"node"	5
-5	"TargetScrapeFailed"	"db-01:9187"	"warning"	"postgres"	5

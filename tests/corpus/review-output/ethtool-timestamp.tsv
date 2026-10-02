@@ -1,8 +1,0 @@
-n	key	value	total_entries
-1	Capabilities	hardware-transmit	7
-2	Capabilities	software-transmit	7
-3	Capabilities	hardware-receive	7
-4	Capabilities	software-receive	7
-5	Capabilities	software-system-clock	7
-6	Capabilities	hardware-raw-clock	7
-7	PTP Hardware Clock	0	7

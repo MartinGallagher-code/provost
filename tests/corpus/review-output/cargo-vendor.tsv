@@ -1,7 +1,0 @@
-n	A	B	C	D	E	F	total_entries
-1	Vendoring	anyhow	v1.0.86	(/home/dev/.cargo/registry)	to	vendor/anyhow	6
-2	Vendoring	bytes	v1.6.0	(/home/dev/.cargo/registry)	to	vendor/bytes	6
-3	Vendoring	libc	v0.2.155	(/home/dev/.cargo/registry)	to	vendor/libc	6
-4	Vendoring	serde	v1.0.203	(/home/dev/.cargo/registry)	to	vendor/serde	6
-5	Vendoring	tokio	v1.38.0	(/home/dev/.cargo/registry)	to	vendor/tokio	6
-6	To	use	vendored	sources,	add	this_to_your_.cargo/config.toml:	6

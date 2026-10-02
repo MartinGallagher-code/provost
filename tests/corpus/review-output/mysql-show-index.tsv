@@ -1,7 +1,0 @@
-n	Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Index_type	Null	total_entries
-1	orders	0	PRIMARY	1	id	A	220145	BTREE		6
-2	orders	1	idx_customer	1	customer_id	A	12045	BTREE		6
-3	orders	1	idx_customer	2	created_at	A	198220	BTREE		6
-4	orders	1	idx_status	1	status	A	6	BTREE		6
-5	orders	1	idx_total	1	total	A	88210	BTREE	YES	6
-6	orders	0	uq_order_ref	1	order_ref	A	220145	BTREE		6

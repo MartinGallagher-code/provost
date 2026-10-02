@@ -1,5 +1,0 @@
-n	PID	TTY	TIME	CMD	total_entries
-1	1420	pts/0	00:00:01	bash	4
-2	1998	pts/0	00:00:00	vim	4
-3	2011	pts/0	00:00:12	node	4
-4	2044	pts/0	00:00:00	ps	4

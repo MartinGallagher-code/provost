@@ -1,5 +1,233 @@
 # provost — Changelog
 
+## 2026-10-01 — large inputs: no sample false-rejects, colons / block-records twins, faster ps / CSV
+
+**Sample false-rejects (`extract/lib/_discovery.sh` + share-threshold detectors).**
+A detector that decides on a SHARE of lines could reject the detection sample
+while accepting the full text (360 synthetic big inputs: 1 flip — deno-info,
+pkg-config's modal-count share was exactly 60% on the sample, 59% in full).
+While a detector screens the sample the engine now sets `_FR_SLACK`
+(`_FR_SAMPLE_SLACK`, 15 points; 0 for the full-text run) and `_FR_DET_SAMPLE=1`,
+and every whole-text share threshold widens by the slack in the accepting
+direction (`-ge $(( T - ${_FR_SLACK:-0} ))` to accept, `+` to decline). The
+full-text run still alone decides, so this can only add full-text detects,
+never a wrong winner. Thresholds touched (detector logic only — no confidence
+values, no ranking/pruning change): `system/pkg-config.sh`,
+`delimited/{aligned-columns (strategy_detect/_ac_detect kv + ` = ` declines,
+_ac_shape_compute mixed-label defer + 2-column value share), line-records,
+text-lines (kv-block defer), vertical-line, columnar-specs (`_cs_row_overflow`),
+unspaced-colon-kv, colons, two-col-gap, syslog (bash + awk), repeated-lead-records}.sh`,
+`structured/{kv-under-group, tree-view, yaml, grouped-rows, key-value}.sh`.
+Shares over a fixed head window (first 40/60 lines) are unchanged — the
+sample's head is the full text's.
+- Synthetic big inputs (360, header once + body repeated): sampled-vs-full
+  winner flips 1 → **0**.
+- Corpus with sampling forced tiny (`_FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8
+  _FR_SAMPLE_TAIL=4`) vs unsampled: winner changes 45 → **39** (full), 46 →
+  **39** (`--generic`); no input flips that did not before (the rest is
+  evidence that only sits mid-input).
+
+**proc-net-snmp** (`system/proc-net-snmp.sh`, `strategy_detect` +
+`_strat_pns_paired`): now also requires the header/value line pairing its
+extract needs. Any colon dump with one word value and one numeric value passed
+its two regexes, ranked first at 92, extracted nothing, and forced an unpruned
+re-ranking — on a big blank-line-records input that was two full bash extracts
+plus a second detection pass. It declines exactly when its extract would be
+empty (a bare `:` label still defers to the extract as before), so ranked
+winners are unchanged; skipped on the sample (`_FR_DET_SAMPLE`).
+
+**Awk twins above `_FR_BIG_BYTES`** (byte-identical; return 3 hands an input
+they cannot match exactly back to the bash loop):
+- `colons` extract (`_strat_colons_extract_awk`: clean_text protection, dash
+  bullets, list folds, kv loop, restore_text_values) and detect.
+- `block-records` extract (`_strat_blockrec_extract_awk`: blank-line blocks,
+  `_tech_kv_colon` + `_tech_kv_equals` per block) and detect's blank/kv screen.
+- 1 MB blank-line records 294 s → 3 s, 100 KB 14 s → 2 s, 10 MB now 11–14 s;
+  `-s colons` 1 MB 9.6 s → 0.7 s (engine, loaded box).
+
+**Speed, ps / CSV (same bytes):**
+- aligned-columns: the extract phase re-runs detect, the loader re-sources the
+  strategy file between phases, and sample and full text alternate — so its
+  body/shape memos (one slot, reset on every source) recomputed the 10 MB body
+  each time. Two-slot memos initialised once, a memoised big-text verdict,
+  no repeated `_fr_lines` memo compares inside `_ac_shape_compute`, and
+  `_ac_lines_stats_awk` reads its file directly.
+- dedup (`lib/_postprocess.sh` `_dedup_pipe`): a streaming seen-set replaces
+  the two-sort pipeline (kept for input holding a SOH byte); on the file lane,
+  when field parts group into `name.` runs, the set is per run.
+- `_format_tsv_awk` streams the header row; `_fr_absent_literals` (hint and
+  preprocess literal presence) checks a 64 KB prefix, then one `grep -F`;
+  `_match_hint` / the sample build no longer copy the whole text for a first
+  line / first byte.
+- melt (`transform/melt.sh`): field order collected in the classification
+  pass, record prefix classified once per run, row base looked up once per
+  record — 4.6 → 2.9 s CPU on the 10 MB ps capture.
+
+`provost --sync`, 10 MB, base vs new interleaved on a shared 4-core box (load
+17–22, so absolute times are inflated): ps wall 36.3 → 25.4 s, CPU 26.0 →
+17.5 s (−33%); CSV wall 25.4 → 19.4 s, CPU 17.3 → 13.1 s (−24%); JSON CPU
+−8%, syslog −17%, KEY=VALUE ±0. Scaled to the 2026-09-25 idle figures: ps
+≈ 15 s, CSV ≈ 12 s.
+
+Proofs: corpus batch output byte-identical to main in full and `--generic`,
+default and with the awk/lane routes forced (`_FR_BIG_BYTES=0
+_FR_LANE_BYTES=0`); `tests/corpus/run.sh --golden` 3471/0, also with the
+routes forced; synthetic full-detection output identical to main.
+Tests (`extract/tests/test_big_input_paths.sh`, +8): colons / block-records
+route equality (bash vs awk vs lane) and raw extract bytes, the share-threshold
+false reject reproduced (`_FR_SAMPLE_SLACK=0`) and fixed, slack never reaching
+full-text detection, streaming/windowed dedup == sort pipeline, big-text
+absent literals == per-literal scan.
+
+## 2026-10-01 — bespoke confidence audit: sub-tiers + 12 tightened detectors
+
+Calibration had set all 146 bespoke strategies to a flat 92 (pkg-config and
+git-log-graph 80) without auditing each detector. Each one is now scored on
+its signature, measured on the corpus: how many inputs it fires on, and on how
+many of those its parse is tidy.
+
+- **Sub-tiers** (`extract/README.md` › Confidence rubric › Bespoke sub-tiers):
+  95 unmistakable (38: multiple tool-only anchors), 92 strong (94: the
+  default), 88 distinctive but shared (12: e.g. `lastb`/`last`, `csvlook`/
+  markdown, the sysstat banner), ≤ 80 weak shape heuristics (`user-groups` 80,
+  `pkg-config` 79, `git-log`'s oneline branch 64; the `commit <sha>` form stays
+  92). Every score is a literal, so pruning ceilings stay exact.
+- **Tightened detectors** (detect only; the extract code is unchanged):
+  `database/clickhouse-processlist` (column names in the top border; it fired
+  on 55 inputs, and on 45 of them it beat `box-table` on another tool's box
+  table), `system/proc-net-snmp` (a same-label header + value line pair; it fired on
+  137 inputs and extracted from 1), `system/git-log-graph` (7+ hex SHA, now
+  88), `system/pkg-config` (rejects an all-identifier, gap-separated column
+  header), `system/lastb` (no `still logged in`/`system boot`, needs a closing
+  `(HH:MM)`), `build/pnpm-why` (line-initial `dependencies:`),
+  `system/fossil-timeline` (bracketed hex hash), `packages/dbmate-status`
+  (numeric migration version), `misc/terraform-plan-actions` (dotted resource
+  address), `build/sbt-dependencytree` (`+-` on an `[info]` line),
+  `system/systemd-tmpfiles-cat-config` (`# /…/tmpfiles.d/….conf` header),
+  `system/pipx-list` (`, installed using`); `misc/git-log` scores its oneline branch 64.
+- **Corpus, full mode:** 76 winners change: 58 now pass that failed, 16 are
+  neutral (all but 2 now also match the generic golden), and 2 now fail
+  (`duckdb-describe`, `pnpm-audit`), where the over-broad
+  `clickhouse-processlist` had happened to be right. `duckdb-describe`'s
+  manifest row (4 rows) counts the header as a data row, and `box-table`'s
+  3-row parse is the correct one. Bespoke misfires (wins with an untidy parse):
+  76 → 16, and the 16 left are each tool's own output. `--generic`
+  winners and goldens are unchanged. Coverage 3588 → 3586 (those two).
+  Holdout 78/80 and benchmark data are unchanged; only the benchmark meta
+  confidences differ.
+- Files: 61 strategy files under `extract/strategies/` (confidence literals
+  and the 13 detectors above), `extract/README.md`.
+
+## 2026-10-01 — corpus gap-closing round: coverage 3588 → 3646 / 3705 (58 of 117 ⏳ closed)
+
+Format-level fixes only (plus 2 structural hint rows and 1 new generic parser);
+every changed golden was reviewed and is an improvement (see below).
+
+- **New generic parser `group-children`** (`extract/strategies/delimited/`,
+  priority 42, confidence 80, sample + 2 goldens): unindented group lines over
+  ONE level of indented children. LONG mode (every child `Label: value` under
+  one shared label — apt-rdepends) emits one row per child with the group
+  carried; WIDE mode (child keys distinct within a group, shared across groups —
+  ssh_config `Host` blocks, `ip addr` inet/inet6, pw-cli properties, lspci -k)
+  emits one row per group. Strict detection (>= 2 groups, single indent level,
+  no orphan children); defers to grouped-rows / indented-colon-groups by priority.
+- **aligned-columns** (`_ac_body_compute` / `_ac_shape_compute` /
+  `_ac_group_prefix`; every change is in the bash pre-pass shared by both
+  routes, and the awk tail mirrors the two that touch it):
+  interior `# comment` lines dropped in a file that opens with `#`
+  (`##` banners kept); a leading prose `# …` banner is not taken as the header
+  when the first real line is itself a >= 3-label header, and among several
+  commented candidates the widest label-only one that fits wins (crontab's
+  `# m h dom mon dow command`); shell ` \` line continuations joined; a
+  single-token wrapped last cell (lsof `(ESTABLISHED)`) joined back; a short
+  leading chrome block (build log / figlet / ASCII art) before a blank line
+  dropped when the last block is an unmistakable table; repeated `… Page N`
+  page banners dropped; a one-segment `title:` directly above a >= 3-column
+  header dropped (pueue); a count footer (`3 requests, 3 succeeded`) whose
+  number is the row count dropped (only when no row opens with a digit);
+  header promotion accepts ledger amounts `(1,200.00)` as values, year column
+  labels (`Metric 2023 2024 2025`) and whole bracketed unit tokens after a label
+  (`Mean [ms]`), and refuses a row 1 whose words recur in row 2; HDR2 needs a
+  real value in row 3; a header with repeated tokens takes the segment split
+  (hyperfine, docker/podman/nerdctl stats, doctl); HDR2 group prefixes fall back
+  to even ORDER partition when nearest-centre assignment collides (zpool iostat -l).
+- **Engine pre-pass** (`extract/lib/_helpers.sh`): OSC 8 hyperlinks terminated
+  by ESC-backslash are stripped whole (cells no longer carry `8;;URL`); a CR
+  redraw whose segment opens with ESC[K is recognised; leading `-- ` SQL
+  comment lines before a JSON document are dropped (surreal).
+- **csv**: declines colon-delimited records (uniform field-colon count > commas,
+  clock colons excluded — getent), lines that are all `k=v` tokens (decimal
+  commas), a 2-field "CSV" with a comma-less line, and drops interior comma-free
+  `#` comments after leading ones. **yaml**: declines TAB-indented key lines and
+  flat blocks with a repeated top-level key; list items that open a mapping
+  (`- apiVersion: v1`) now nest their keys under `<list>.N.` (kubectl/kustomize/
+  helm/podman YAML). **fixed-width / vertical-line**: decline a header whose
+  column names repeat (zpool iostat's grouped read/write — was silently
+  overwriting); fixed-width drops later dash rules; vertical-line declines a
+  value-led "header" over a gapped underline and a clean single-word header
+  whose midpoint cuts slice values in >= half the rows. **pipe-table**: a data
+  row's trailing `|` is an empty last cell (sacct -p). **psql-table**: an
+  indented row opening with `|` has a blank first cell. **box-table**: more SQL
+  type keywords (int64, uint32, float64 …) for the duckdb type row.
+  **labeled-inline-kv**: a label containing `=` or a digit:digit first colon is
+  not a label. **kv-pairs**: a comma-joined `=`-less piece continues the
+  previous value (ovs `priority=100,ip`). **line-records / text-lines**: a lone
+  label over >= 3 value lines is a headed single column. **indented-hierarchy**:
+  declines when the indented lines are a uniform >= 3-column table.
+  **colon-fields**: the shared-first-field (ARN) decline no longer fires on
+  records with prose fields (gpg --with-colons). **columnar-specs**: w-sessions
+  minreq 7 (empty WHAT), dpkg-list minreq 4 (rc rows without description).
+- **Hints** (`extract/hints.tsv`): tightened 3 misfiring rows — nft-list-tables
+  (`^table (ip|ip6|inet|arp|bridge|netdev) `, was eating clickhouse `table …`
+  headers), fwupdmgr-get-devices (`Device ID: <40 hex>`, was eating MegaCli's
+  `Enclosure Device ID:`), smartctl-health (health line not followed by an
+  `ID#` attribute table); added lsblk-tree (`NAME MAJ:MIN` + tree glyphs) and
+  powertop-devices (`Usage  Device name`), both → aligned-columns.
+- **Manifest** (`tests/corpus/expected.tsv`) corrections, each a count the
+  input cannot meet or a totals row by the corpus convention: exo-strace-c-summary
+  6→7 rows, pytest-cov-report 2→3, tbl-du-sum-footer 4→5 (TOTAL rows);
+  lvs-report-sparse mincols 13→9 (4 columns empty in every row);
+  v4l2-ctl-list-devices 6→3, promtool-check-rules 4→2, pw-cli-list-nodes 6→2,
+  apt-rdepends-openssl 14→9, apt-rdepends-reverse 12→8, ceph-osd-tree 5→4,
+  nst-lsblk-tree-attrs 7→8 (counts of the actual records);
+  doctl-compute-snapshot-list mincols 10→9, nerdctl-stats 13→9 (header column
+  counts — the old numbers were the bogus tokenized parse); cryptsetup-status
+  table→kv (single-device snapshot, like systemctl status).
+- Files: extract/strategies/delimited/{aligned-columns,box-table,colon-fields,
+  columnar-specs,fixed-width,group-children (new),indented-hierarchy,
+  labeled-inline-kv,line-records,pipe-table,psql-table,text-lines,
+  vertical-line}.sh, extract/strategies/structured/{csv,kv-pairs,yaml}.sh,
+  extract/lib/_helpers.sh, extract/hints.tsv, extract/samples/group-children/,
+  extract/tests/golden/group-children{,@long.txt}.txt, extract/README.md (counts),
+  tests/corpus/expected.tsv. Goldens under tests/corpus/expected/ are NOT
+  regenerated here: 58 new goldens are due (the newly tidy tools) and 64
+  existing goldens change — all reviewed as improvements (OSC 8 junk removed,
+  interior comments dropped, docker/podman/nerdctl stats and doctl/frr/vtysh/
+  spark/huggingface headers correctly segmented, YAML list items nested, zpool
+  iostat operations columns no longer overwritten, duplicate-key one-row kv
+  parses replaced by one row per record, …).
+- Validation: `run.sh --golden` 3407 passed / 64 changed (all reviewed) / 0
+  other; the forced awk routes (`_FR_BIG_BYTES=0 _FR_LANE_BYTES=0`) give the
+  identical result; holdout 78/80 (unchanged); benchmark .def/.meta identical,
+  3 .multi files lose a junk secondary dataset (dpkg-list gains a real one);
+  extract suite 66/66, smoke 197/197, melt 54/54.
+
+## 2026-10-01 — repo diet and follow-up cleanups
+
+- **Removed** `bundle.txt` (9.5 MB whole-tree copy rewritten on every commit)
+  with `tests/check-bundle-current.sh` and its CI step; bundles are built on
+  demand (CLAUDE.md). **Removed** `tests/corpus/review-output/` (3,709 files,
+  15 MB, 94% duplicate of `expected/`); `tests/corpus/review-snapshot.sh`
+  regenerates it and `prescreen.py` says so. Both are gitignored.
+- **`--explain`** lists matches in rank order (confidence, priority, name) —
+  its first MATCH is the strategy ranked detection tries first
+  (`extract/lib/_discovery.sh`; test in `extract/tests/test_rank.sh`).
+- **Store format 2** (`provost`): a store records `.store_format`; on the next
+  write an older store's datasets drop the `total_entries` record-count column
+  (only when every cell is an integer or empty), committed as store
+  maintenance. New stores start at format 2. Smoke 197 → 203 checks.
+- `docs/0003-multi-dataset.md` describes confidence-ranked winners.
+
 ## 2026-09-25 — ranking + large inputs combined: exact pruning, document sampling, a clean_text hang
 
 - **Exact confidence-ceiling pruning** (`extract/lib/_discovery.sh`): with

@@ -1,2 +1,0 @@
-_meta.hostvars.web1.example.com.ansible_host	_meta.hostvars.web2.example.com.ansible_host	_meta.hostvars.db1.example.com.ansible_host	all.children.0	all.children.1	all.children.2	dbservers.hosts.0	webservers.hosts.0	webservers.hosts.1
-10.0.1.11	10.0.1.12	10.0.2.11	ungrouped	webservers	dbservers	db1.example.com	web1.example.com	web2.example.com

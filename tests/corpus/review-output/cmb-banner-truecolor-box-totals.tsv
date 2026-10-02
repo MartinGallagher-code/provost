@@ -1,5 +1,0 @@
-n	SERVICE	HITS	ERRORS	total_entries
-1	auth	12040	4	4
-2	catalog	88210	112	4
-3	checkout	4210	9	4
-4	TOTAL	104460	125	4

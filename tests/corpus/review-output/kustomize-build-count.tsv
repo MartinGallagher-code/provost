@@ -1,5 +1,0 @@
-n	KIND	COUNT	total_entries
-1	Deployment	12	4
-2	Service	12	4
-3	ConfigMap	8	4
-4	Secret	4	4

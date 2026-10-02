@@ -1,3 +1,0 @@
-n	timestamp	message	total_entries
-1	12844.201	mce: CPU0: Core temperature above threshold, cpu clock throttled	2
-2	12845.412	mce: CPU0: Core temperature/speed normal	2

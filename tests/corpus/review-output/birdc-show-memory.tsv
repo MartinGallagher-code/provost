@@ -1,6 +1,0 @@
-n	key	value	total_entries
-1	Routing tables	1824 KB       1902 KB	5
-2	Route attributes	412 KB        480 KB	5
-3	ROA tables	0            16 B	5
-4	Protocols	128 KB        140 KB	5
-5	Total	2364 KB       2538 KB	5

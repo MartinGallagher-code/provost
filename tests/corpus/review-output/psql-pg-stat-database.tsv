@@ -1,6 +1,0 @@
-n	datname	numbackends	xact_commit	xact_rollback	blks_read	blks_hit	deadlocks	total_entries
-1	analytics	4	1204553	120	885210	99231045	2	5
-2	appdb	22	88421905	44210	12045882	998231045	18	5
-3	postgres	1	12045	3	2210	445120	0	5
-4	template0	0	0	0	0	0	0	5
-5	template1	0	120	0	880	42010	0	5

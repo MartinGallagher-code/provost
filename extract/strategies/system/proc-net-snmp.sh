@@ -24,7 +24,46 @@ strategy_detect () {
 )[A-Za-z][A-Za-z0-9]*:[[:space:]]+-?[0-9]'
     [[ "$text" =~ $reh ]] || return 1
     [[ "$text" =~ $rev ]] || return 1
-    return 0
+    # The two prefilters above hold for any "Key: word" + "Key: 3" text (every
+    # colon key/value dump). The real signature is the PAIR: a "Proto: Col1
+    # Col2 ..." header line followed by a "Proto: 1 2 ..." value line with the
+    # same protocol label and the same token count (3+ tokens) — exactly what
+    # extract pairs up, so detect no longer fires on inputs it yields nothing for
+    # (on a big `Name: x` / `Size: 3` dump that used to cost two full bash
+    # extracts plus an unpruned re-ranking). Skipped on the detection sample,
+    # where a pair could lie in the unsampled middle: the full text decides.
+    [[ "${_FR_DET_SAMPLE:-0}" -eq 1 ]] && return 0
+    _strat_pns_paired "$text"
+}
+
+# _strat_pns_paired TEXT — 0 when a "Proto: n n n" value line follows a
+# "Proto: Col Col Col" header line of the same label and token count.
+_strat_pns_paired () {
+    if (( ${#1} > _FR_BIG_BYTES )); then
+        # BIG input: the same scan in awk (fields split as _fr_tok splits)
+        cat <<< "$1" | awk '
+            NF >= 3 && $1 ~ /^[A-Za-z][A-Za-z0-9]*:$/ {
+                l = substr($1, 1, length($1) - 1)
+                if ($2 ~ /^-?[0-9]/) { if ((l in H) && H[l] == NF) { f = 1; exit } }
+                else if ($2 ~ /^[A-Za-z]/) H[l] = NF
+            }
+            END { exit !f }'
+        return
+    fi
+    local -A _hdr=()
+    local line lbl
+    _fr_lines "$1"
+    for line in "${_FR_LINES[@]}"; do
+        [[ "$line" =~ ^([A-Za-z][A-Za-z0-9]*):[[:space:]] ]] || continue
+        lbl="${BASH_REMATCH[1]}"
+        _fr_tok "$line"
+        [[ ${#_FR_TOK[@]} -ge 3 ]] || continue
+        case "${_FR_TOK[1]}" in
+            [0-9]*|-[0-9]*) [[ "${_hdr[$lbl]:-}" == "${#_FR_TOK[@]}" ]] && return 0 ;;
+            [A-Za-z]*) _hdr[$lbl]="${#_FR_TOK[@]}" ;;
+        esac
+    done
+    return 1
 }
 
 strategy_extract () {

@@ -1,2 +1,0 @@
-Package	Status	Priority	Section	Installed-Size	Maintainer	Architecture	Multi-Arch	Source	Version	Depends	Description	Original-Maintainer
-python3	install ok installed	important	python	189	Matthias Klose <doko@example.org>	amd64	allowed	python3-defaults	3.10.6-1~22.04	python3.10 (>=_3.10.6-1~), python3-minimal (=_3.10.6-1~22.04)	interactive high-level object-oriented language (default_python3_version)	Matthias Klose <doko@debian.org>

@@ -1,4 +1,0 @@
-n	code	message	severity	total_entries
-1	E01	disk failure	high	3
-2	E02	link down	medium	3
-3	W07	temp warning	low	3

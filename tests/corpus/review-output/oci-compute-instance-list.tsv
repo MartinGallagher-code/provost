@@ -1,3 +1,0 @@
-n	DISPLAY-NAME	SHAPE	STATE	REGION	total_entries
-1	web-prod-1	VM.Standard.E4	RUNNING	eu-frankfurt-1	2
-2	db-prod-1	VM.Standard.E4	RUNNING	eu-frankfurt-1	2

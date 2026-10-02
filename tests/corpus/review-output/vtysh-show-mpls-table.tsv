@@ -1,4 +1,0 @@
-n	Inbound	Label	Type	Nexthop	Outbound	total_entries
-1	16	eth0	(OSPF)	10.0.0.2	implicit-null	3
-2	17	eth0	(OSPF)	10.0.0.3	18	3
-3	20	LDP	192.0.2.2	implicit-null	eth1	3

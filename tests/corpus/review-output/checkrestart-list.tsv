@@ -1,5 +1,0 @@
-n	A	total_entries
-1	Found 2 processes using old versions of upgraded files	4
-2	(2 distinct programs)	4
-3	812   /usr/sbin/nginx	4
-4	2210  /usr/lib/postgresql/16/bin/postgres	4

@@ -1,5 +1,0 @@
-n	A	total_entries
-1	pool cephfs_data id 1	4
-2	client io 12 MiB/s rd, 4.1 MiB/s wr, 340 op/s rd, 128 op/s wr	4
-3	pool cephfs_metadata id 2	4
-4	client io 1.2 MiB/s rd, 88 KiB/s wr, 210 op/s rd, 34 op/s wr	4

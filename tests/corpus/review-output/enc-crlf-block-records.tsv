@@ -1,4 +1,0 @@
-n	name	ip	role	status
-1	web01	10.0.0.1	frontend	up
-2	db01	10.0.0.2	database	up
-3	cache01	10.0.0.3	cache	degraded

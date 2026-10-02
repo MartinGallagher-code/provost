@@ -1,0 +1,5 @@
+n	status	name	version	arch	description
+1	ii	curl	7.81.0-1ubun..	amd64	command line tool for transferring
+2	rc	libfoo1	1.2.3-1	amd64	
+3	ii	git	1:2.34.1-1u..	amd64	fast, scalable, distributed VCS
+4	un	oldpkg	<none>	<none>	(no description available)

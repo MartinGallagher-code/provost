@@ -1,2 +1,0 @@
-Scheduler	Workers	Cores	Memory	Tasks
-tcp://10.0.1.1:8786	8	64	512.00 GiB	44201 (running: 88, waiting: 44113)

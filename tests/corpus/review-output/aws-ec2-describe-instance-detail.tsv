@@ -1,2 +1,0 @@
-Instance_Id	Instance_Type	State	Private_Dns	Public_Dns	Iam_Instance_Profile	Launch_Time	Availability_Zone	Security_Groups	Block_Devices	Tags
-i-0abcd1234efgh5678	m5.2xlarge	running	ip-10-0-3-142.ec2.internal	ec2-54-160-22-19.compute-1.amazonaws.com	arn:aws:iam::123456789012:instance-profile/app-server-profile-production-us-east-1	2024-02-01T14:22:08+00:00	us-east-1c	sg-0a1b2c3d (app-sg), sg-0e4f5a6b (ssh-restricted),	/dev/xvda (vol-0123456789abcdef0),	Name=app-server-3, Environment=production, Team=backend

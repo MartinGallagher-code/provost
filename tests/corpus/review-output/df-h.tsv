@@ -1,4 +1,0 @@
-n	Filesystem	Size	Used	Avail	Use%	Mounted	total_entries
-1	/dev/sda1	100G	40G	55G	43%	/	3
-2	tmpfs	7.9G	0	7.9G	0%	/dev/shm	3
-3	/dev/sdb1	500G	210G	265G	45%	/data	3

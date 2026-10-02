@@ -1,5 +1,0 @@
-n	cloudName	id	isDefault	name	state	tenantId	total_entries
-1	AzureCloud	12345678-1234-1234-1234-123456789abc	true	Production_Subscription	Enabled	abcdef00-0000-0000-0000-000000000000	4
-2	AzureCloud	23456789-2345-2345-2345-23456789abcd	false	Staging_Subscription	Enabled	abcdef00-0000-0000-0000-000000000000	4
-3	AzureCloud	34567890-3456-3456-3456-3456789abcde	false	Development_Subscription	Enabled	abcdef00-0000-0000-0000-000000000000	4
-4	AzureCloud	45678901-4567-4567-4567-456789abcdef	false	Sandbox_Subscription	Warned	abcdef00-0000-0000-0000-000000000000	4

@@ -1,4 +1,0 @@
-n	Pid:	Program	User	Cpu%	Mem	total_entries
-1	2210	postgres	postgres	8.4	1.2G	3
-2	1044	dockerd	root	2.1	212M	3
-3	812	sshd	root	0.0	12M	3

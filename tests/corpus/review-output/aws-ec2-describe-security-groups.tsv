@@ -1,7 +1,0 @@
-n	GroupId	GroupName	Description	VpcId	OwnerId	total_entries
-1	sg-0a1b2c3d4e5f6a7b	web-tier	HTTP/HTTPS from ALB	vpc-0abc12	123456789012	6
-2	sg-0f6e5d4c3b2a1908	app-tier	App servers	vpc-0abc12	123456789012	6
-3	sg-01234abcd5678ef9	db-tier	RDS Postgres	vpc-0abc12	123456789012	6
-4	sg-09876fedc5432ba1	bastion	SSH from office	vpc-0abc12	123456789012	6
-5	sg-0aabbccddeeff001	default	default VPC SG	vpc-0abc12	123456789012	6
-6	sg-0112233445566778	cache-tier	ElastiCache Redis	vpc-0def34	123456789012	6

@@ -1,7 +1,0 @@
-n	map	key1	value	total_entries
-1	syscalls	read	48213	6
-2	syscalls	write	22140	6
-3	syscalls	openat	3312	6
-4	syscalls	close	3298	6
-5	syscalls	fstat	2104	6
-6	syscalls	mmap	1877	6

@@ -1,9 +1,0 @@
-n	A	total_entries
-1	table inet filter {	8
-2	flowtable ft {	8
-3	hook ingress priority filter	8
-4	devices = { eth0, eth1 }	8
-5	counter	8
-6	flags offload	8
-7	}	8
-8	}	8

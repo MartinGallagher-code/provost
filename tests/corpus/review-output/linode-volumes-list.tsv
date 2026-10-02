@@ -1,4 +1,0 @@
-n	id	label	status	size	region	linode_id	total_entries
-1	1104223	db-volume-1	active	80	us-east	44120938	3
-2	1104987	media-store	active	200	us-east	44120955	3
-3	1120441	backup-eu	active	500	eu-west		3

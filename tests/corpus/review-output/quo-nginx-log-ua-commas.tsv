@@ -1,3 +1,0 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	192.168.1.10	-	-	11/Jul/2026:10:01:00 +0000	GET / HTTP/2.0	200	612	-	Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X), Safari/605.1	2
-2	192.168.1.11	-	-	11/Jul/2026:10:01:01 +0000	GET /a HTTP/2.0	404	153	https://x.io/p?u=1,2,3	Bot/1.0 (+http://bot.io; crawler, indexer)	2

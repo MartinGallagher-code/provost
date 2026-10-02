@@ -1,5 +1,0 @@
-n	LV	VG	Attr	LSize	total_entries
-1	root	vg0	-wi-ao----	46.00g	4
-2	home	vg0	-wi-ao----	300.00g	4
-3	swap	vg0	-wi-ao----	8.00g	4
-4	var	vg0	-wi-ao----	20.00g	4

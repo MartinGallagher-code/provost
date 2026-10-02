@@ -1,3 +1,0 @@
-n	COMMAND	PID	USER	FD	TYPE	NAME	total_entries
-1	firefox	4521	alice	txt	REG	/home/alice/My_Files/cache_01.db	2
-2	Spotify	4600	alice	cwd	DIR	/home/alice/Music,_Local	2

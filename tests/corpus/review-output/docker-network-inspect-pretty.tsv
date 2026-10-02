@@ -1,2 +1,0 @@
-Network	Id	Driver	Scope	Created	Subnet	Gateway	Containers	Options	Labels
-bridge	f2c8d9a1b3e4567890abcdef1234567890abcdef1234567890abcdef1234567	bridge	local	2024-01-10T11:03:22.19283746Z	172.17.0.0/16	172.17.0.1	web-app-7f9c (172.17.0.4/16)	com.docker.network.bridge.default_bridge=true	none

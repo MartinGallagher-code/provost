@@ -1,4 +1,0 @@
-n	Benchmark	Time	CPU	Iterations	total_entries
-1	BM_ParseSmall	248 ns	247 ns	2884210	3
-2	BM_ParseLarge	12044 ns	12010 ns	58221	3
-3	BM_Encode	1002 ns	1000 ns	704882	3

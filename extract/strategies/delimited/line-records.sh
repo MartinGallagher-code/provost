@@ -93,7 +93,7 @@ strategy_detect () {
     # digit-led ranges all fail its charset). Deferring a block colons then
     # declines would leave NO winner at all (resolvectl's `Link 2 (eth0):`).
     if [[ $_kvb_n -ge 2 && $_kvb_ok -eq 1 && $_kvb_multi -eq 1 \
-          && $(( _kvb_colons * 100 / _kvb_n )) -ge 40 \
+          && $(( _kvb_colons * 100 / _kvb_n )) -ge $(( 40 + ${_FR_SLACK:-0} )) \
           && ! ( $_kvb_tpl_same -eq 1 && "$_kvb_tpl" == *"#"* ) ]]; then
         return 1
     fi
@@ -149,6 +149,31 @@ strategy_detect () {
     return 0
 }
 
+# SINGLE-COLUMN HEADER: a one-column list whose first line is a lone label
+# (`NAME`, `FILE`, `Packages` — letters only, ALL-CAPS or Titlecase) over >= 3
+# lines that are all values (each opens lowercase, with a digit, `/` or `.`)
+# is a headed column, not a list whose first item is the word. Sets
+# _SCH_NAME (the column name) or leaves it empty. Shared shape with
+# text-lines / line-records.
+_sch_detect () {
+    local _sl _sn=0 _sfirst=""
+    _SCH_NAME=""
+    _fr_lines "$1"
+    for _sl in "${_FR_LINES[@]}"; do
+        [[ "${_sl}" != *[![:space:]]* ]] && continue
+        _sl="${_sl#"${_sl%%[![:space:]]*}"}"; _sl="${_sl%"${_sl##*[![:space:]]}"}"
+        _sn=$((_sn + 1))
+        if [[ $_sn -eq 1 ]]; then
+            [[ "$_sl" =~ ^[A-Z][A-Za-z_]{2,}$ ]] || return 1
+            [[ "$_sl" =~ ^[A-Z_]+$ || "$_sl" =~ ^[A-Z][a-z_]+$ ]] || return 1
+            _sfirst="$_sl"; continue
+        fi
+        [[ "$_sl" =~ ^[a-z0-9/.] ]] || return 1
+    done
+    [[ $_sn -ge 4 ]] || return 1
+    _SCH_NAME="$_sfirst"
+}
+
 strategy_extract () {
     local text="$1"
     text="$(_lr_body "$text")"
@@ -190,11 +215,21 @@ strategy_extract () {
         return 0
     fi
 
+    local _sch_skip=0 _sch_col=""
+    if _sch_detect "$text"; then _sch_skip=1; _sch_col="$_SCH_NAME"; fi
     _fr_lines "$text"
     for _l in "${_FR_LINES[@]}"; do
         [[ "${_l}" != *[![:space:]]* ]] && continue
-        local _tk; _tk=(); { _fr_tok "$_l"; _tk=("${_FR_TOK[@]}"); }
+        [[ $_sch_skip -eq 1 ]] && { _sch_skip=0; continue; }
         entry=$((entry + 1))
+        if [[ -n "$_sch_col" ]]; then
+            # one header label = ONE column: the whole line is the value
+            # (`/home/user/My Documents/notes.md` stays one cell)
+            local _sv="${_l#"${_l%%[![:space:]]*}"}"; _sv="${_sv%"${_sv##*[![:space:]]}"}"
+            result+="entry${entry}.${_sch_col} ${_sv}"$'\n'
+            continue
+        fi
+        local _tk; _tk=(); { _fr_tok "$_l"; _tk=("${_FR_TOK[@]}"); }
         local i
         for ((i = 0; i < ${#_tk[@]}; i++)); do
             result+="entry${entry}.$(_col_letter $((i + 1))) ${_tk[$i]}"$'\n'

@@ -1,4 +1,0 @@
-n	WHAT	WHERE	MOUNTED	IDLE	TIMEOUT	total_entries
-1	/dev/disk/by-label/data	/mnt/data	yes	600s	mnt-data.automount	3
-2	proc-sys-fs-binfmt_misc	/proc/sys/fs/bfm	no	infinity	proc-sys-fs.automount	3
-3	/dev/sdb1	/srv/backup	yes	120s	srv-backup.automount	3

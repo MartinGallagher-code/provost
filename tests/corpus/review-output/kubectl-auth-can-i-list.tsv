@@ -1,7 +1,0 @@
-n	Resources	Non-Resource_URLs	Resource_Names	Verbs	total_entries
-1	*.*	[]	[]	[*]	6
-2	pods	[]	[]	[get list watch]	6
-3	deployments.apps	[]	[]	[get list watch create update]	6
-4	selfsubjectaccessreviews.authorization.k8s.io	[]	[]	[create]	6
-5		[/api/*]	[]	[get]	6
-6		[/healthz]	[]	[get]	6

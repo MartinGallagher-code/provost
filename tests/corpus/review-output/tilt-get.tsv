@@ -1,7 +1,0 @@
-n	NAME	AGE	total_entries
-1	(Tiltfile)	12m	6
-2	api	12m	6
-3	frontend	11m	6
-4	postgres	12m	6
-5	redis	12m	6
-6	worker	11m	6

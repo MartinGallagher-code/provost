@@ -145,6 +145,13 @@ test_rank_pruning_is_exact () {
     [[ $n -gt 0 ]] || _assert_failed "no samples found"
 }
 
+# --explain lists matches in RANK order: its first MATCH is the winner.
+test_rank_explain_lists_rank_order () {
+    local f="$SCRIPT_DIR/../samples/aligned-columns/basic.txt" first
+    first="$(run_mfe --explain "$f" 2>/dev/null | awk '$1 == "MATCH" { print $2; exit }')"
+    assert_eq "$first" "$(_winner "$f")" "first --explain MATCH is the winner"
+}
+
 run_test "rank: default is confidence" test_rank_default_is_confidence
 run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
 run_test "rank: MFE_RANK env override" test_rank_env_override
@@ -154,6 +161,7 @@ run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priori
 run_test "rank: confidence beats priority (and --rank priority restores it)" test_rank_confidence_beats_priority
 run_test "rank: pruned top candidate failure redoes unpruned" test_rank_pruned_top_failure_redoes
 run_test "rank: pruning is exact" test_rank_pruning_is_exact
+run_test "rank: --explain lists matches in rank order" test_rank_explain_lists_rank_order
 
 rm -rf "$TMPDIR_R"
 print_summary

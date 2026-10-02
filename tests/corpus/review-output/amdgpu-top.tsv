@@ -1,8 +1,0 @@
-n	A	total_entries
-1	Device Name: AMD Radeon RX 7900 XTX	7
-2	GRBM              GRBM2             VRAM (MiB)        GTT (MiB)	7
-3	GFX  Comp  Vertex  TA   TC   EA    Used   Total     Used   Total	7
-4	98    44      12   88   90   76  22018   24560     1204   16384	7
-5	Sensors	7
-6	Temp(C)   Power(W)   Fan(RPM)   SCLK(MHz)   MCLK(MHz)	7
-7	71        340       2204        2680        1249	7

@@ -1,3 +1,0 @@
-n	NAME	TYPE	SIZE	USED	PRIO	total_entries
-1	/dev/sda2	partition	8G	0B	-2	2
-2	/swapfile	file	2G	256M	-3	2

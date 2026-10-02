@@ -1,3 +1,0 @@
-n	jobId	jobName	status	startedAt	total_entries
-1	a1b2c3d4	nightly-etl	RUNNING	2026-07-10T06:00:00	2
-2	e5f6g7h8	thumbnail-gen	SUCCEEDED	2026-07-10T05:00:00	2

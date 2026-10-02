@@ -1,4 +1,0 @@
-n	name	ttl	class	type	value	total_entries
-1	example.com.	300	IN	TXT	v=spf1 include:_spf.google.com ~all	3
-2	example.com.	300	IN	TXT	google-site-verification=abcdef1234567890	3
-3	example.com.	300	IN	TXT	MS=ms12345678	3

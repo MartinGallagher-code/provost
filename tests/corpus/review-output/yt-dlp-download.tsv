@@ -1,5 +1,0 @@
-n	timestamp	message	total_entries
-1	youtube	abc123: Downloading webpage	4
-2	info	abc123: Downloading 1 format(s): 137+251	4
-3	download	100% of 88.20MiB in 00:12 at 7.35MiB/s	4
-4	Merger	Merging formats into "video.mp4"	4

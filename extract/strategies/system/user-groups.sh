@@ -26,7 +26,7 @@ strategy_detect () {
     done
     [[ $nonblank -eq 1 ]] || return 1
     [[ "$first" =~ ^[a-zA-Z0-9_.-]+[[:space:]]+:[[:space:]]+[a-zA-Z] ]] || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=80
     return 0
 }
 

@@ -1,7 +1,0 @@
-n	interface	plug	slot	notes	total_entries
-1	audio-playback	chromium:audio-playback	:audio-playback	-	6
-2	network	chromium:network	:network	-	6
-3	home	chromium:home	:home	-	6
-4	opengl	chromium:opengl	:opengl	-	6
-5	camera	chromium:camera	-	-	6
-6	browser-support	chromium:browser-support	:browser-support	-	6

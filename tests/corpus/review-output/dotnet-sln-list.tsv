@@ -1,6 +1,0 @@
-n	Project(s)	total_entries
-1	src/Acme.Api/Acme.Api.csproj	5
-2	src/Acme.Core/Acme.Core.csproj	5
-3	src/Acme.Data/Acme.Data.csproj	5
-4	tests/Acme.Core.Tests/Acme.Core.Tests.csproj	5
-5	tests/Acme.Api.Tests/Acme.Api.Tests.csproj	5

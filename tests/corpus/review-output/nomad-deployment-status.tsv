@@ -1,4 +1,0 @@
-n	ID	Job_ID	Job_Version	Status	Desired	Placed	total_entries
-1	c81f4a2b	webapp	7	running	3	3	3
-2	d92e5b3c	api	12	successful	2	2	3
-3	e03f6c4d	worker	4	failed	5	3	3

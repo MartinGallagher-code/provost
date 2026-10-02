@@ -28,7 +28,7 @@ strategy_detect () {
     [[ "$text" == *"top - "* ]] || return 1
     [[ "$text" == *"Tasks:"* ]] || return 1
     [[ "$text" == *"%Cpu"* ]]   || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

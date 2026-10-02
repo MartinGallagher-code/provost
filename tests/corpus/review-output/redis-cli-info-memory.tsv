@@ -1,8 +1,0 @@
-n	A	B	total_entries
-1	#	Memory	7
-2	used_memory:2147483648		7
-3	used_memory_human:2.00G		7
-4	used_memory_rss:2415919104		7
-5	maxmemory:4294967296		7
-6	maxmemory_policy:allkeys-lru		7
-7	mem_fragmentation_ratio:1.12		7

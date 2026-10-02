@@ -1,4 +1,0 @@
-n	A	total_entries
-1	src/main.css	3
-2	12:3  ✖  Expected indentation of 2 spaces   indentation	3
-3	44:1  ✖  Unexpected empty block             block-no-empty	3

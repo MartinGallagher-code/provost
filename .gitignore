@@ -27,3 +27,8 @@ site/
 
 # Agent worktrees
 .claude/worktrees/
+
+# Generated on demand, never committed: whole-tree bundles (see CLAUDE.md)
+# and the corpus review snapshot (tests/corpus/review-snapshot.sh).
+bundle.txt
+tests/corpus/review-output/

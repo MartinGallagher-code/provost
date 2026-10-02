@@ -1,3 +1,0 @@
-n	NAME	ROLE	GLUEVERSION	WORKERTYPE	total_entries
-1	crawl-events	glue-role	4.0	G.1X	2
-2	transform-orders	glue-role	4.0	G.2X	2

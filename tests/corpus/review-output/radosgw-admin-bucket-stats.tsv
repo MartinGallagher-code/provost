@@ -1,5 +1,0 @@
-n	bucket	num_objects	size_actual	size_utilized	num_shards	total_entries
-1	media-assets	88214	412.4 GiB	398.1 GiB	11	4
-2	db-backups	1204	1.4 TiB	1.4 TiB	11	4
-3	user-uploads	331902	88.2 GiB	84.9 GiB	11	4
-4	logs	1204882	2.1 TiB	1.9 TiB	23	4

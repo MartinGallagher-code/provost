@@ -1,5 +1,0 @@
-n	pid	usename	application_name	client_addr	state	sent_lsn	replay_lsn	sync_state	total_entries
-1	20481	replica	walreceiver	10.0.0.11	streaming	3A/7C0000F0	3A/7C0000A8	sync	4
-2	20493	replica	walreceiver	10.0.0.12	streaming	3A/7C0000F0	3A/7BFF0120	async	4
-3	20510	replica	standby2	10.0.0.13	streaming	3A/7C0000F0	3A/7BF80000	potential	4
-4	20522	replica	standby3	10.0.0.14	catchup	3A/7C0000F0	3A/7A000000	async	4

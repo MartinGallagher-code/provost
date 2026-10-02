@@ -1,6 +1,0 @@
-n	VpcId	CidrBlock	State	IsDefault	Tenancy	total_entries
-1	vpc-0abc12	10.0.0.0/16	available	False	default	5
-2	vpc-0def34	10.1.0.0/16	available	False	default	5
-3	vpc-0ghi56	172.31.0.0/16	available	True	default	5
-4	vpc-0jkl78	10.2.0.0/16	available	False	dedicated	5
-5	vpc-0mno90	192.168.0.0/16	available	False	default	5

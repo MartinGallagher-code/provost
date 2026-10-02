@@ -1,4 +1,0 @@
-n	DATE	LEVEL	CODE	MSG	MS	total_entries
-1	07-11	ERR	502	upstream timeout	1204	3
-2	07-11	INF	200	ok	12	3
-3	07-11	WRN	429	rate limited	88	3

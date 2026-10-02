@@ -1,2 +1,0 @@
-Running_as_unit	Loaded	Active	Main_PID
-run-r1234.service	loaded (/run/systemd/transient/run-r1234.service; transient)	active (running) since Thu 2026-07-10 06:00:00 UTC	30144 (backup.sh)

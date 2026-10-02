@@ -1,5 +1,0 @@
-n	A	B	C	D	total_entries
-1	api_cluster	10.0.2.1:8080	health_flags	healthy	4
-2	api_cluster	10.0.2.1:8080	weight	1	4
-3	api_cluster	10.0.2.2:8080	health_flags	healthy	4
-4	api_cluster	default_priority	max_connections	1024	4

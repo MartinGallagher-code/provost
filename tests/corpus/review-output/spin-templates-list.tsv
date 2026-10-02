@@ -1,4 +1,0 @@
-n	Name	Description	total_entries
-1	http-rust	HTTP request handler using Rust	3
-2	http-go	HTTP request handler using Go	3
-3	redis-rust	Redis message handler using Rust	3

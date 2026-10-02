@@ -1,5 +1,0 @@
-n	CONTAINER	IMAGE	STATUS	PORTS	total_entries
-1	web-1	8;;https://hub/nginxnginx:1.258;;	Up 3 days	0.0.0.0:80->80	4
-2	db-1	8;;https://hub/pgpostgres:168;;	Up 3 days	5432/tcp	4
-3	cache-1	8;;https://hub/redisredis:7.28;;	Exited (1)	6379/tcp	4
-4	proxy-1	8;;https://hub/envoyenvoy:1.298;;	Restarting	0.0.0.0:8080->8080	4

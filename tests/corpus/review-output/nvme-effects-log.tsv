@@ -1,7 +1,0 @@
-n	Admin	Command	Set	total_entries
-1	ACS0	[Delete	I/O_Submission_Queue_]_00000001	6
-2	ACS1	[Create	I/O_Submission_Queue_]_00000001	6
-3	ACS4	[Delete	I/O_Completion_Queue_]_00000001	6
-4	ACS6	[Identify	]_00000001	6
-5	ACS9	[Set	Features_]_00000009	6
-6	ACS10	[Get	Features_]_00000001	6

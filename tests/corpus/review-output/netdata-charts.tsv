@@ -1,6 +1,0 @@
-n	CHART	UNITS	DIMENSIONS	UPDATE	total_entries
-1	system.cpu	percentage	guest,system,user,iowait,idle	1s	5
-2	system.ram	MiB	free,used,cached,buffers	1s	5
-3	system.net	kilobits/s	received,sent	1s	5
-4	disk.io	KiB/s	reads,writes	1s	5
-5	apps.cpu	percentage	nginx,postgres,telegraf	1s	5

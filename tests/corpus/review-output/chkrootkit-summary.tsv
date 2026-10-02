@@ -1,5 +1,0 @@
-n	name	result	total_entries
-1	ifconfig	not infected	4
-2	ls	not infected	4
-3	sshd	not infected	4
-4	lkm	nothing detected	4

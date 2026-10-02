@@ -1,2 +1,0 @@
-global.resolve_timeout	global.smtp_smarthost	route.receiver	route.group_by	route.group_wait	route.group_interval	route.repeat_interval	receivers.0	receivers.1	receivers.2
-5m	smtp.internal:587	default	[alertname, cluster]	30s	5m	4h	name: default	name: pagerduty-critical	name: slack-warnings

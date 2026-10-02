@@ -1,5 +1,0 @@
-n	CACHE	ENTRIES	HITRATE	EVICTS	total_entries
-1	sessions	12040	0.98	12	4
-2	objects	88210	0.81	4402	4
-3	fragments	4210	0.95	88	4
-4	routes	120	0.42	910	4

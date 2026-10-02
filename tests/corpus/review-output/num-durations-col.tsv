@@ -1,6 +1,0 @@
-n	Job	Elapsed	ISO	total_entries
-1	build	2h34m	PT2H34M	5
-2	test	01:23:45.678	PT1H23M45S	5
-3	deploy	1d2h	P1DT2H	5
-4	lint	14m3s	PT14M3S	5
-5	package	30m	PT30M	5

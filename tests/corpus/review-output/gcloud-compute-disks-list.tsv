@@ -1,6 +1,0 @@
-n	NAME	LOCATION	LOCATION_SCOPE	SIZE_GB	TYPE	STATUS	total_entries
-1	web-1	us-central1-a	zone	10	pd-balanced	READY	5
-2	web-2	us-central1-b	zone	10	pd-balanced	READY	5
-3	db-data	us-central1-a	zone	500	pd-ssd	READY	5
-4	backup-1	us-central1-c	zone	2000	pd-standard	READY	5
-5	cache-1	us-central1-a	zone	50	pd-ssd	READY	5

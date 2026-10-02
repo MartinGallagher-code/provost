@@ -1,8 +1,0 @@
-n	Datacenter:	datacenter1	total_entries
-1	Address	Rack    Status  State    Load        Owns    Token	7
-2	10.0.0.11	rack1   Up      Normal   145.23 GiB  33.5%   -9223372036854775808	7
-3	10.0.0.12	rack1   Up      Normal   152.87 GiB  34.1%   -6148914691236517205	7
-4	10.0.0.13	rack2   Up      Normal   139.44 GiB  32.4%   -3074457345618258602	7
-5	10.0.0.14	rack2   Up      Normal   148.12 GiB  33.9%   1	7
-6	10.0.0.15	rack3   Up      Normal   151.05 GiB  33.0%   3074457345618258602	7
-7	10.0.0.16	rack3   Up      Normal   144.90 GiB  33.1%   6148914691236517205	7

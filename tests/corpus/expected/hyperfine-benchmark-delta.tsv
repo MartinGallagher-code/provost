@@ -1,0 +1,4 @@
+n	Command	Mean_[ms]	Min_[ms]	Max_[ms]	Relative
+1	grep	12.3 ± 0.5	11.8	13.9	1.00
+2	ripgrep	4.5 ± 0.2	4.1	5.2	2.73
+3	ag	45.6 ± 1.2	43.1	49.8	0.27

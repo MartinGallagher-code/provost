@@ -1,2 +1,0 @@
-description	product	vendor	physical_id	bus_info	logical_name	version	serial	width	clock
-NVMe device	Samsung SSD 980 PRO 1TB	Samsung Electronics	0	pci@0000:04:00.0	/dev/nvme0	5B2QGXA7	S6B0NL0T	64 bits	33MHz

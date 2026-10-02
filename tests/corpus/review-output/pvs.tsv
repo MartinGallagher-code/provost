@@ -1,5 +1,0 @@
-n	PV	VG	Fmt	Attr	PSize	PFree	total_entries
-1	/dev/sda3	vg0	lvm2	a--	465.75g	120.00g	4
-2	/dev/sdb1	vg1	lvm2	a--	465.75g	25.00g	4
-3	/dev/sdc1	vg1	lvm2	a--	465.75g	25.00g	4
-4	/dev/sdd1	data	lvm2	a--	931.50g	400.00g	4

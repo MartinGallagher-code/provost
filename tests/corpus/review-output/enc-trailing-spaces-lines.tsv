@@ -1,5 +1,0 @@
-n	IFACE	RX-OK	TX-OK	STATE	total_entries
-1	eth0	881233	712004	up	4
-2	eth1	12	3	down	4
-3	lo	55110	55110	up	4
-4	wg0	4021	3980	up	4

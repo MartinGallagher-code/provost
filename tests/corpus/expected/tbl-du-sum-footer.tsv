@@ -1,0 +1,6 @@
+n	Size	Path
+1	1.2G	./var/log
+2	456M	./var/cache
+3	2.3G	./home/user
+4	12M	./etc
+5	4.0G	TOTAL

@@ -1,7 +1,0 @@
-n	locktype	database	relation	pid	mode	granted	total_entries
-1	relation	16384	16401	20481	AccessShareLock	t	6
-2	relation	16384	16401	20493	RowExclusiveLock	t	6
-3	transactionid			20510	ExclusiveLock	t	6
-4	relation	16384	16410	20522	AccessShareLock	f	6
-5	tuple	16384	16401	20481	ExclusiveLock	t	6
-6	virtualxid			20493	ExclusiveLock	t	6

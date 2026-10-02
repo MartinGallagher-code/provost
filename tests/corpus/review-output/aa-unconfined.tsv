@@ -1,7 +1,0 @@
-n	A	B	C	total_entries
-1	1234	/usr/sbin/dhclient	not confined	6
-2	1567	/usr/sbin/ntpd	not confined	6
-3	2891	/usr/sbin/mysqld	not confined	6
-4	3402	/usr/sbin/cupsd	not confined	6
-5	4110	/usr/sbin/avahi-daemon	not confined	6
-6	5678	/usr/lib/postfix/sbin/master	not confined	6

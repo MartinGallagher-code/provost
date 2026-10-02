@@ -1,2 +1,2 @@
-nvim	.0	.1	.2
-health#nvim#check	OK: Configuration	OK: Runtime	WARNING: Missing provider 'node'
+nvim	0.OK	1.OK	2.WARNING
+health#nvim#check	Configuration	Runtime	Missing provider 'node'

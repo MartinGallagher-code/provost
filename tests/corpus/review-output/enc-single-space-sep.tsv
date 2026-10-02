@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	total_entries
-1	192.168.1.10	gw01	core	router	east		4
-2	192.168.1.11	sw01	access	switch	floor	2	4
-3	192.168.1.12	ap01	wifi	access	point	lobby	4
-4	192.168.1.13	pr01	label	printer	hr	dept	4

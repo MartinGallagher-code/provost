@@ -1,5 +1,5 @@
-n	Executor	ID	Address	Cores	Active	Tasks	Failed	Complete
-1	driver	10.0.2.4:41029	0	0	0	384.1	0	MiB
-2	1	10.0.2.11:38771	4	2	0	1.2	12	GiB
-3	2	10.0.2.12:44003	4	3	1	1.2	9	GiB
-4	3	10.0.2.13:39120	4	0	0	1.2	15	GiB
+n	Executor_ID	Address	Cores	Active_Tasks	Failed_Tasks	Complete_Tasks	RDD_Blocks	Storage_Memory
+1	driver	10.0.2.4:41029	0	0	0	0	0	384.1 MiB
+2	1	10.0.2.11:38771	4	2	0	184	12	1.2 GiB
+3	2	10.0.2.12:44003	4	3	1	177	9	1.2 GiB
+4	3	10.0.2.13:39120	4	0	0	203	15	1.2 GiB

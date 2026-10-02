@@ -1,3 +1,0 @@
-n	name	bw	io	run	total_entries
-1	READ	482MiB/s (505MB/s)	28.2GiB (30.3GB)	60001-60001msec	2
-2	WRITE	344MiB/s (361MB/s)	20.2GiB (21.7GB)	60002-60002msec	2

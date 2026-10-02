@@ -1,7 +1,0 @@
-n	key	value	total_entries
-1	connection.id	homewifi	6
-2	connection.type	802-11-wireless	6
-3	connection.interface-name	wlan0	6
-4	ipv4.method	auto	6
-5	ipv4.dns	1.1.1.1,8.8.8.8	6
-6	802-11-wireless.ssid	homewifi	6

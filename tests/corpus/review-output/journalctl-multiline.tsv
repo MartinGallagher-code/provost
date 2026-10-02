@@ -1,5 +1,0 @@
-n	timestamp	hostname	process	pid	message
-1	Jan_15_09_14_22	app-01	api-server	2201	Received request GET /api/v1/users
-2	Jan_15_09_14_23	app-01	api-server	2201	Unhandled exception processing request:
-3	Jan_15_09_14_24	app-01	api-server	2201	Request completed with status 500
-4	Jan_15_09_14_30	app-01	systemd	1	api-server.service: Main process exited, code=killed, status=9/KILL

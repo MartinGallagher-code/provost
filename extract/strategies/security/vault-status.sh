@@ -27,7 +27,7 @@ strategy_detect () {
         esac
     done
     if [[ $hdr -eq 1 && $sep -eq 1 && $seal -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=95
         return 0
     fi
     return 1

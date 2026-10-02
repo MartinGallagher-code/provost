@@ -1,2 +1,0 @@
-services.web.image	services.web.ports.0	services.web.ports.1	services.web.depends_on.0	services.web.volumes.0	services.web.volumes._.source	services.web.volumes._.target	services.api.image	services.api.environment.DATABASE_URL	services.api.environment.LOG_LEVEL	services.api.depends_on.0	services.db.image	services.db.volumes.0
-nginx:1.23	"80:80"	"443:443"	api	type: bind	./conf	/etc/nginx	myapp:2.1	postgres://db/app	info	db	postgres:15	pgdata:/var/lib/postgresql/data

@@ -23,7 +23,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     if [[ "$text" == *"Inter-|"*"Receive"* && "$text" == *"face |bytes"* ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=95
         return 0
     fi
     return 1

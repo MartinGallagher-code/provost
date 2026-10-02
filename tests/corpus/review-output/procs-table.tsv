@@ -1,4 +1,0 @@
-n	PID	USER	CPU	MEM	COMMAND	total_entries
-1	1	root	0.0	0.1	/sbin/init	3
-2	812	root	0.2	0.3	sshd	3
-3	2210	postgres	8.4	12.0	postgres	3

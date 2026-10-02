@@ -1,4 +1,0 @@
-n	Test	Coverage	Missed	total_entries
-1	parser.c	98.5 %	12	3
-2	lexer.c	87.2 %	45	3
-3	codegen.c	100.0 %	0	3

@@ -1,5 +1,0 @@
-n	Proto	Recv-Q	Send-Q	Local	Address	Foreign	total_entries
-1	tcp	0	0	0.0.0.0:22	812/sshd	LISTEN	4
-2	tcp	0	0	192.168.1.42:52134	3421/firefox	ESTABLISHED	4
-3	tcp6	0	0	:::80	1337/nginx	LISTEN	4
-4	udp	0	0	0.0.0.0:68	0.0.0.0:*	640/dhclient	4

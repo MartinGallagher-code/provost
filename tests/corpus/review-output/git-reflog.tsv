@@ -1,8 +1,0 @@
-n	A	total_entries
-1	2f8a1c9 HEAD@{0}: commit: Add login form validation	7
-2	e4f5a6b HEAD@{1}: commit: Fix crash on empty config	7
-3	0f9e8d7 HEAD@{2}: checkout: moving from feature/login to main	7
-4	a1b2c3d HEAD@{3}: commit (amend): Refactor session handling	7
-5	7c6b5a4 HEAD@{4}: rebase (finish): returning to refs/heads/main	7
-6	b0a9f8e HEAD@{5}: pull: Fast-forward	7
-7	c1d2e3f HEAD@{6}: clone: from github.com:acme/glean.git	7

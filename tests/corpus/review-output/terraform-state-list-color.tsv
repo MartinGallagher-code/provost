@@ -1,5 +1,0 @@
-n	A	total_entries
-1	aws_instance.web	4
-2	aws_s3_bucket.assets	4
-3	aws_security_group.default	4
-4	module.vpc.aws_subnet.public	4

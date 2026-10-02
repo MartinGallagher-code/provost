@@ -1,7 +1,0 @@
-n	name	value	label_method	label_code	label_handler	http_requests_total.help	http_requests_total.type	http_request_duration_seconds.help	http_request_duration_seconds.type
-1	http_requests_total	34821	get	200		Total number of HTTP requests.	counter	Request latency in seconds.	summary
-2	http_requests_total	1204	post	200		Total number of HTTP requests.	counter	Request latency in seconds.	summary
-3	http_requests_total	88	get	404		Total number of HTTP requests.	counter	Request latency in seconds.	summary
-4	http_request_duration_seconds_sum	421.83			/api	Total number of HTTP requests.	counter	Request latency in seconds.	summary
-5	http_request_duration_seconds_count	34899			/api	Total number of HTTP requests.	counter	Request latency in seconds.	summary
-6	process_resident_memory_bytes	52428800				Total number of HTTP requests.	counter	Request latency in seconds.	summary

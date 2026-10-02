@@ -1,5 +1,0 @@
-n	hypertable_name	chunk_name	range_start	range_end	is_compressed	total_bytes	total_entries
-1	metrics	_hyper_1_101_chunk	2026-06-01 00:00:00+00	2026-06-08 00:00:00+00	t	41943040	4
-2	metrics	_hyper_1_102_chunk	2026-06-08 00:00:00+00	2026-06-15 00:00:00+00	t	39845888	4
-3	metrics	_hyper_1_103_chunk	2026-06-15 00:00:00+00	2026-06-22 00:00:00+00	f	88080384	4
-4	conditions	_hyper_2_051_chunk	2026-06-15 00:00:00+00	2026-06-22 00:00:00+00	f	12582912	4

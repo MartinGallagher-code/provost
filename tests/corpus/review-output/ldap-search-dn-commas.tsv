@@ -1,6 +1,0 @@
-n	name	value	total_entries
-1	dn	uid=alice,ou=People,dc=example,dc=com	5
-2	cn	Alice Smith	5
-3	mail	alice@example.com	5
-4	dn	uid=bob,ou=People,dc=example,dc=com	5
-5	cn	Bob Jones	5

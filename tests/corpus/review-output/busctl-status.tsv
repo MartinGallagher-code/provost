@@ -1,2 +1,0 @@
-PID	PPID	TTY	UID	EUID	SUID	FSUID	GID	EGID	Label	Comm	CmdLine
-1	n/a	n/a	0	0	0	0	0	0	unconfined	systemd	/sbin/init

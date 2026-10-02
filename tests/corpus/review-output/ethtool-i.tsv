@@ -1,2 +1,0 @@
-driver	version	firmware-version	bus-info	supports-statistics	supports-test	supports-eeprom-access	supports-register-dump	supports-priv-flags
-e1000e	3.2.6-k	0.13-4	0000:00:19.0	yes	yes	yes	yes	no

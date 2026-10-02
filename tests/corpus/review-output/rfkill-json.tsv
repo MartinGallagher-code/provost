@@ -1,3 +1,0 @@
-n	RFKILL	TYPE	SOFT	HARD	total_entries
-1	0	bluetooth	unblocked	unblocked	2
-2	1	wlan	unblocked	unblocked	2

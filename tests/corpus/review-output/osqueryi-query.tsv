@@ -1,5 +1,0 @@
-n	pid	name	uid	resident_size	total_entries
-1	1	systemd	0	12058624	4
-2	842	sshd	0	8912896	4
-3	1204	nginx	33	20971520	4
-4	1550	postgres	26	134217728	4

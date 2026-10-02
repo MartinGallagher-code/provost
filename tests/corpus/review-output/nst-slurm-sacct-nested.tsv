@@ -1,7 +1,0 @@
-n	JobID	JobName	Partition	State	Elapsed
-1	5521	train.sh	gpu	COMPLETED	02:14:33
-2	5521.batch	batch		COMPLETED	02:14:33
-3	5521.0	python		COMPLETED	02:10:01
-4	5522	eval.sh	gpu	FAILED	00:00:12
-5	5522.batch	batch		FAILED	00:00:12
-6	5522.0	python		CANCELLED	00:00:10

@@ -1,3 +1,0 @@
-n	ID	Name	Engine	Version	Region	Status	total_entries
-1	a1b2c3d4	prod-pg	pg	16	fra1	online	2
-2	e5f6g7h8	prod-redis	redis	7	fra1	online	2

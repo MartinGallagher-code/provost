@@ -1,2 +1,0 @@
-n	Version	Creation_Time	Raid_Level	Array_Size	Raid_Devices	Total_Devices	State	Active_Devices	Working_Devices	Failed_Devices	Spare_Devices
-0	1.2	Mon Jan  6 04:12:10 2025	raid6	46875008 (44.70 GiB 48.00 GB)	6	6	clean	6	6	0	0

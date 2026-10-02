@@ -1,6 +1,0 @@
-n	conda	environments:	total_entries
-1	base	*_/opt/conda	5
-2	ml	/opt/conda/envs/ml	5
-3	webdev	/opt/conda/envs/webdev	5
-4	data-eng	/opt/conda/envs/data-eng	5
-5	py38	/opt/conda/envs/py38	5

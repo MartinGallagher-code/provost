@@ -1,2 +1,0 @@
-SHELL	USER	PATH	PWD	LANG	HOME	TERM	EDITOR
-/bin/bash	martin	/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin	/home/martin	en_GB.UTF-8	/home/martin	xterm-256color	vim

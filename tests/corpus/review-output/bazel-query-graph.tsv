@@ -1,2 +1,0 @@
-digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src	digraph_mygraph_{."//src
-app"	app" -> "//src:lib"	app" -> "//src:cli"	lib" -> "//src:util"	lib" -> "@com_google_absl//absl/strings:strings"	cli" -> "//src:util"	cli" -> "@com_github_gflags_gflags//:gflags"	util" -> "@com_google_absl//absl/base:base"

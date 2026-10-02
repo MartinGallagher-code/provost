@@ -1,2 +1,0 @@
-url_effective	time_namelookup	time_total	http_code	remote_ip
-https://api.example.com:8443/v1/status	0:0.004	0:1.234	200	2001:db8::42

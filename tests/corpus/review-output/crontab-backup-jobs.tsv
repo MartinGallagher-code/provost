@@ -1,5 +1,0 @@
-n	min	hour	dom	mon	dow	command	total_entries
-1	15	3	*	*	*	/opt/scripts/db-dump.sh_--database_appdb_--gzip_\	4
-2	--upload	s3://backups/appdb/	--keep-local	3	>	/var/log/db-dump.log_2>&1	4
-3	0	*/6	*	*	*	/opt/scripts/sync-assets.sh_--bucket_cdn-assets_--prune	4
-4	45	1	*	*	6	/opt/scripts/vacuum.sh_--analyze_--reindex_>>_/var/log/vacuum.log	4

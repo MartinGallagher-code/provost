@@ -1,5 +1,0 @@
-n	Name	Project	Compat	Latest	Kind	Platform	total_entries
-1	serde	1.0.190	1.0.215	1.0.215	Normal	---	4
-2	tokio	1.33.0	1.35.1	1.42.0	Normal	---	4
-3	clap	4.4.6	4.4.18	4.5.23	Normal	---	4
-4	regex	1.10.2	1.10.2	1.11.1	Normal	---	4

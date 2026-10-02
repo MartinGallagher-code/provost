@@ -1,5 +1,0 @@
-n	JobId	Name	StartTime	Type	Level	JobFiles	JobBytes	Status	total_entries
-1	412	BackupCatalog	2026-07-10 03:10:04	B	F	1204	4.12 GB	T	4
-2	411	ClientNas01	2026-07-10 03:00:11	B	I	88214	412.4 GB	T	4
-3	410	ClientWeb02	2026-07-09 03:00:08	B	F	33108	88.1 GB	T	4
-4	409	RestoreFiles	2026-07-08 15:41:22	R	F	142	1.9 GB	T	4

@@ -1,8 +1,0 @@
-n	#subsys_name	hierarchy	num_cgroups	enabled	total_entries
-1	cpuset	0	1	1	7
-2	cpu	0	102	1	7
-3	cpuacct	0	102	1	7
-4	blkio	0	102	1	7
-5	memory	0	135	1	7
-6	devices	0	102	1	7
-7	freezer	0	5	1	7

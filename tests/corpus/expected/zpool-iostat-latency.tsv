@@ -1,0 +1,5 @@
+n	pool	alloc	free	operations_read	operations_write	bandwidth_read	bandwidth_write	total_wait_read	total_wait_write	disk_wait_read	disk_wait_write	syncq_wait_read	syncq_wait_write	asyncq_wait_read	asyncq_wait_write
+1	tank	18.2T	25.8T	120	1.02K	14.4M	188M	1ms	820us	980us	610us	2us	1us	44us	88us
+2	raidz2	18.2T	25.8T	120	1.02K	14.4M	188M	1ms	820us	980us	610us	2us	1us	44us	88us
+3	nvme0n1	-	-	20	170	2.40M	31.3M	920us	580us	900us	560us	1us	1us	18us	22us
+4	nvme1n1	-	-	20	172	2.42M	31.4M	940us	600us	910us	570us	1us	1us	20us	30us

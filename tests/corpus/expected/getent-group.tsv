@@ -1,0 +1,4 @@
+n	A	B	C	D
+1	sudo	x	27	deploy,alice
+2	docker	x	999	deploy
+3	adm	x	4	syslog,deploy

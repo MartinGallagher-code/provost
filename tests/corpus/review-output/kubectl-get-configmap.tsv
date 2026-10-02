@@ -1,6 +1,0 @@
-n	NAME	DATA	AGE	total_entries
-1	kube-root-ca.crt	1	45d	5
-2	app-config	4	12d	5
-3	nginx-config	2	8d	5
-4	feature-flags	7	3d	5
-5	istio-ca-root-cert	1	45d	5

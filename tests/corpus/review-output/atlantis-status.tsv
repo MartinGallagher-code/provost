@@ -1,5 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	Ran	Plan	for	2	projects:	4
-2	1.	dir:	`prod/vpc`	workspace:	`default`	4
-3	2.	dir:	`prod/eks`	workspace:	`default`	4
-4	Plan:	2	to	add,	0_to_change,_0_to_destroy.	4

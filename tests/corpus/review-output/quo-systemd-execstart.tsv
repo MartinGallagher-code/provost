@@ -1,4 +1,0 @@
-n	unit	execstart	total_entries
-1	nginx.service	/usr/sbin/nginx -g 'daemon off; master_process on;'	3
-2	app.service	/opt/app --flags "--a=1 --b=2,3"	3
-3	timer.service	/bin/sh -c 'date; echo done'	3

@@ -1,6 +1,0 @@
-n	Name	Engine	Version	Row_format	Rows	Avg_row_length	Data_length	Index_length	Auto_increment	Collation	total_entries
-1	customers	InnoDB	10	Dynamic	12045	120	1458176	344064	12046	utf8mb4_0900_ai_ci	5
-2	invoices	InnoDB	10	Dynamic	8800	96	851968	196608	8801	utf8mb4_0900_ai_ci	5
-3	orders	InnoDB	10	Dynamic	220145	80	17825792	4194304	220146	utf8mb4_0900_ai_ci	5
-4	products	InnoDB	10	Dynamic	2200	360	802816	81920	2201	utf8mb4_0900_ai_ci	5
-5	sessions	MEMORY	10	Fixed	45120	128	5898240	0	NULL	utf8mb4_0900_ai_ci	5

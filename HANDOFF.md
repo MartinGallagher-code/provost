@@ -28,19 +28,14 @@ Behaviour worth knowing:
   make git run programs.
 - Engines run with `ENVOY_NO_RC=1`; the `.envoyrc` layer is off under provost.
 
-Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
+Suites (all CI-enforced): `tests/smoke.sh` (203), `transform/tests/test_melt.sh`
 (54), `extract/tests/run_tests.sh` (~2 min), `analyze/tests/run_tests.sh`
 (mawk and gawk), `tests/corpus/run.sh --golden`, `python -m pytest`.
 
 ## Next steps
 
-1. **Two repo-weight items** (deletions held for the owner, who plans to
-   delete `bundle.txt` themselves):
-   `bundle.txt` (9.5 MB, a whole-tree copy committed on every change — could be
-   built on demand or attached to releases instead, dropping
-   `tests/check-bundle-current.sh`), and `tests/corpus/review-output/` (15 MB,
-   94% byte-identical to `expected/`; `tests/corpus/review-snapshot.sh` now
-   regenerates it, so it can be gitignored).
+1. **Repo weight** (2026-10-01): `bundle.txt` and the committed corpus
+   review snapshot are gone (build/regenerate on demand; both gitignored).
 2. **Large inputs** (2026-09-25): detection screens a bounded sample above
    32 KB and re-confirms the winner on the full text; the hot generic parsers
    and the engine's own passes have byte-identical awk twins; a big result
@@ -48,23 +43,26 @@ Suites (all CI-enforced): `tests/smoke.sh` (197), `transform/tests/test_melt.sh`
    takes 7–22 s end to end (was minutes); JSON/XML documents are sampled for
    ordinary detectors while the document grammars see them whole. Knobs `_FR_SAMPLE_BYTES`,
    `_FR_BIG_BYTES`, `_FR_LANE_BYTES` (0 forces a route, -1 disables);
-   `extract/tests/test_big_input_paths.sh` compares routes. Residual risk:
-   a ratio-threshold detector can decide differently on the sample than on
-   the full text (1 of 360 synthetic inputs). Remaining time at 10 MB is
-   mostly bash copying the text (each full-string expansion ~0.15 s),
-   aligned-columns' full-text detect (~4 s), dedup + TSV (~4 s) and the melt
-   (~5 s for a 1M-cell table). A strategy whose extract is still a bash line
+   `extract/tests/test_big_input_paths.sh` compares routes. Share-threshold
+   detectors get `_FR_SAMPLE_SLACK` (15 points) while screening the sample,
+   so sampled-vs-full winner flips on 360 synthetic big inputs are 0
+   (2026-10-01). Remaining risk: evidence that lies only in the MIDDLE of a
+   huge input (39 corpus inputs flip under a forced 8+4-line sample).
+   colons and block-records have awk twins; 10 MB ps/CSV CPU fell 33%/24%. A strategy whose extract is still a bash line
    loop is slow on big inputs — give it an awk twin, proven over the corpus
    with `_FR_BIG_BYTES=0`.
 3. **Confidence ranks candidates** (2026-09-25): confidences follow the
    rubric in `extract/README.md`; every detector runs and the best confidence
    wins (ties: priority, name), with exact ceiling pruning so a strong early
    candidate skips the detectors that cannot beat it. `--rank priority` keeps
-   the old first-match order. Open: bespoke strategies sit at a uniform 92
-   without a per-detector signature audit; `run_explain_mode` still lists
-   matches in name order; `docs/0003-multi-dataset.md` still describes
-   priority-order winners.
-4. Old stores keep a `total_entries` column in existing datasets; new rows
-   blank-fill it. A one-off migration could drop it if that matters.
+   the old first-match order. Bespoke strategies are tiered by signature
+   strength (95/92/88/<=80, 2026-10-01; twelve weak detectors tightened).
+   `--explain` lists matches in rank order. Open: pnpm-audit (a key/value
+   box with a title row) lost to box-table; clickhouse-describe-table and
+   clickhouse-system-mutations need box-table to stop promoting the first
+   data row; 59 corpus tools are still not tidy (tests/corpus/COVERAGE.md;
+   `_tech_kv_colon` dropping `http(s)://` values blocks brew/flatpak info).
+4. Old stores migrate to store format 2 on their next write (`total_entries`
+   column dropped from datasets).
 5. The `envoy-*` / `ENVOY_*` / `MFE_*` internal names remain (a large rename,
    deliberately separate).

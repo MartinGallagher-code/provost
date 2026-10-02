@@ -1,2 +1,6 @@
-field	value
-Benchmark	ripgrep 'TODO' src/
+n	Benchmark:	ripgrep	'TODO'	src/
+1	12.1	ms	████▏	3
+2	12.8	ms	██████████████████████████	41
+3	13.5	ms	█████████████████████████████	52
+4	14.2	ms	████████████▏	18
+5	14.9	ms	███▏	4

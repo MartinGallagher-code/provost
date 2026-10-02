@@ -1,0 +1,9 @@
+entry1.Host web1
+entry1.HostName 203.0.113.10
+entry1.User deploy
+entry1.Port 22
+entry2.Host bastion
+entry2.HostName 198.51.100.5
+entry2.User admin
+entry2.Port 2222
+total_entries 2

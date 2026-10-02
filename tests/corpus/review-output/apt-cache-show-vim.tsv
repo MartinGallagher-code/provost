@@ -1,2 +1,0 @@
-Package	Architecture	Version	Priority	Section	Origin	Maintainer	Installed-Size	Provides	Depends	Filename	Size	Description-en	Many_new_features_have_been_added	Description-md5
-vim	amd64	2:8.2.3995-1ubuntu2.15	optional	editors	Ubuntu	Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>	3743	editor	vim-common (=_2:8.2.3995-1ubuntu2.15), vim-runtime (=_2:8.2.3995-1ubuntu2.15), libc6 (>=_2.34)	pool/main/v/vim/vim_8.2.3995-1ubuntu2.15_amd64.deb	1731404	Vi IMproved - enhanced vi editor	multi level undo, syntax	90ba4bab55f7e9b7b0f6f4c1e6c1a1a0

@@ -1,4 +1,0 @@
-n	Tool	Version	Source	total_entries
-1	node	22.4.1	~/.mise.toml	3
-2	python	3.12.4	~/.mise.toml	3
-3	go	1.22.5	~/.tool-versions	3

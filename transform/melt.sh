@@ -154,20 +154,34 @@ _core_melt_tidy_stream () {
           # it must be fixed where the TSV is written.
 
           # Classify each column: record-group (r), digit-suffixed name (k), scalar.
-          nrs = 0; nks = 0
+          # (a record has adjacent columns that share their `<stem><N>`
+          # prefix, so the prefix is classified once per run of it; NUM is
+          # kept for the keyed kind only — a record id IS its number)
+          nrs = 0; nks = 0; pleft = ""
           for (i = 1; i <= nf; i++) {
             h = H[i]; KIND[i] = ""; d = index(h, ".")
             if (d <= 1) continue
             left = substr(h, 1, d - 1)
-            if (!match(left, /[0-9]+$/) || RSTART == 1) continue
-            stem = substr(left, 1, RSTART - 1); num = substr(left, RSTART) + 0
-            FLD[i] = substr(h, d + 1)
-            if (stem in REC) {
-              KIND[i] = "r"; ID[i] = num; NUM[i] = num
-              if (!(stem in seenrs)) { seenrs[stem] = 1; nrs++ }
+            if (left != pleft) {
+              pleft = left
+              pok = match(left, /[0-9]+$/) && RSTART > 1
+              if (pok) {
+                stem = substr(left, 1, RSTART - 1); num = substr(left, RSTART) + 0
+                prec = (stem in REC)
+                if (prec) { if (!(stem in seenrs)) { seenrs[stem] = 1; nrs++ } }
+                else if (!(stem in seenks)) { seenks[stem] = 1; nks++ }
+              }
+            }
+            if (!pok) continue
+            f = FLD[i] = substr(h, d + 1)
+            # (the field names of each kind in first-seen order, collected here
+            # rather than in a second pass over every column)
+            if (prec) {
+              KIND[i] = "r"; ID[i] = num
+              if (!(f in SFR)) { SFR[f] = ++nfr; FLR[nfr] = f }
             } else {
               KIND[i] = "k"; ID[i] = left; NUM[i] = num
-              if (!(stem in seenks)) { seenks[stem] = 1; nks++ }
+              if (!(f in SFK)) { SFK[f] = ++nfk; FLK[nfk] = f }
               # a field shared by two members makes this a repeating family
               if (!((left, FLD[i]) in seenlf)) {
                 seenlf[left, FLD[i]] = 1
@@ -198,19 +212,27 @@ _core_melt_tidy_stream () {
           # by an (id, field) string pair: mawk string-key hashing degrades
           # badly past ~1M keys, and a 10 MB capture has that many cells
           # (12 s for one melt). Same cells, same first-appearance orders.
-          for (i = 1; i <= nf; i++)
-            if (KIND[i] == mode) { f = FLD[i]; if (!(f in seenf)) { seenf[f] = ++nfld; FLDS[nfld] = f } }
+          if (mode == "r") { nfld = nfr; for (k = 1; k <= nfld; k++) { FLDS[k] = FLR[k]; seenf[FLR[k]] = k } }
+          else             { nfld = nfk; for (k = 1; k <= nfld; k++) { FLDS[k] = FLK[k]; seenf[FLK[k]] = k } }
+          # (a record has its cells in adjacent columns: the row base is looked up
+          # once per run of one id, not once per cell)
+          lastid = ""; base = 0
           for (i = 1; i <= nf; i++) {
             if (KIND[i] == mode) {
               id = ID[i]
-              if (!(id in seenid)) { seenid[id] = ++nid; IX[nid] = id; KY[nid] = NUM[i] }
-              CELL[(seenid[id] - 1) * nfld + seenf[FLD[i]]] = V[i]
-            }
+              if (id != lastid || i == 1) {
+                if (!(id in seenid)) { seenid[id] = ++nid; IX[nid] = id; KY[nid] = (mode == "r") ? id : NUM[i] }
+                base = (seenid[id] - 1) * nfld; lastid = id
+              }
+              CELL[base + seenf[FLD[i]]] = V[i]
+            } else NSC[++nnsc] = i
           }
           # In a melted table total_entries is dropped only when it IS the record
           # count; any other value (a cell shifted into that column) is kept.
-          for (i = 1; i <= nf; i++)
-            if (KIND[i] != mode && !((i in DROP) && V[i] + 0 == nid)) SC[++nsc] = i
+          for (c = 1; c <= nnsc; c++) {
+            i = NSC[c]
+            if (!((i in DROP) && V[i] + 0 == nid)) SC[++nsc] = i
+          }
           # Order rows by N. Record ids are unique integers, nearly always a
           # dense 1..N run, so a presence scan over [min,max] is O(n); a sparse
           # or keyed set falls back to the stable merge sort.
@@ -242,7 +264,7 @@ _core_melt_tidy_stream () {
           for (a = 1; a <= nid; a++) {
             id = IX[a]; row = pre id
             base = (seenid[id] - 1) * nfld
-            for (k = 1; k <= nfld; k++) { key = base + k; row = row OFS ((key in CELL) ? CELL[key] : "") }
+            for (k = 1; k <= nfld; k++) row = row OFS CELL[base + k]   # (a missing cell reads "")
             print row sc
           }
         }'

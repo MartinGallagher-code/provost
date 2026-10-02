@@ -1,6 +1,0 @@
-n	UID	PID	PPID	C	STIME	TTY	TIME	CMD	total_entries
-1	root	2451	2430	0	09:12	?	00:00:00	nginx: master process nginx -g daemon off;	5
-2	systemd+	2519	2451	0	09:12	?	00:00:01	nginx: worker process	5
-3	systemd+	2520	2451	0	09:12	?	00:00:00	nginx: worker process	5
-4	systemd+	2521	2451	0	09:12	?	00:00:00	nginx: worker process	5
-5	systemd+	2522	2451	0	09:12	?	00:00:00	nginx: worker process	5

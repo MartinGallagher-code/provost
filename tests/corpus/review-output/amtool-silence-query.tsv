@@ -1,4 +1,0 @@
-n	ID	Matchers	Ends_At	Created_By	Comment	total_entries
-1	a1b2c3d4-0001-4aaa-bbbb-000000000001	alertname=HostHighCpu	2026-07-10 12:00:00 UTC	oncall	cpu maintenance	3
-2	a1b2c3d4-0002-4aaa-bbbb-000000000002	namespace=jobs env=prod	2026-07-10 18:30:00 UTC	jsmith	batch window	3
-3	a1b2c3d4-0003-4aaa-bbbb-000000000003	service=payments	2026-07-11 06:00:00 UTC	dchen	vendor outage	3

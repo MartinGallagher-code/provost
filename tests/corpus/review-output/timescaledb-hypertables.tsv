@@ -1,3 +1,0 @@
-n	hypertable_name	num_dimensions	num_chunks	compression_enabled	total_entries
-1	metrics	1	442	t	2
-2	events	2	88	f	2

@@ -1,5 +1,0 @@
-n	USER	PID	%CPU	%MEM	COMMAND	total_entries
-1	管理员	1234	0.5	1.2	后台守护进程 --verbose	4
-2	root	5678	12.3	4.5	/usr/bin/编译器 build	4
-3	用户	91011	0.0	0.1	监视器	4
-4	daemon	2222	1.1	0.3	worker	4

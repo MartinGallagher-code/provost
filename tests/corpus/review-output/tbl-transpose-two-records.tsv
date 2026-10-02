@@ -1,5 +1,0 @@
-n	Metric	prod	staging	total_entries
-1	requests_total	1234567	45678	4
-2	error_rate	0.02%	0.15%	4
-3	p99_latency	123ms	98ms	4
-4	uptime	99.98%	99.50%	4

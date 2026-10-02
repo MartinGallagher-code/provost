@@ -1,3 +1,0 @@
-n	USER	TTY	FROM	LOGIN@	IDLE	WHAT	total_entries
-1	deploy	pts/0	10.1.2.99	07:00	0.00s	-bash	2
-2	alice	pts/1	10.1.2.50	07:15	2:00	vim	2

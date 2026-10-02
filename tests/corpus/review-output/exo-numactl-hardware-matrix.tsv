@@ -1,9 +1,0 @@
-n	key	value	total_entries
-1	available	2 nodes (0-1)	8
-2	node 0 cpus	0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23	8
-3	node 0 size	128619 MB	8
-4	node 0 free	98221 MB	8
-5	node 1 cpus	24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47	8
-6	node 1 size	128991 MB	8
-7	node 1 free	112003 MB	8
-8	node distances	node   0   1 0:  10  21 1:  21  10	8

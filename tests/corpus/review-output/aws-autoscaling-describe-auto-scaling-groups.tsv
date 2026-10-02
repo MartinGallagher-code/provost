@@ -1,6 +1,0 @@
-n	Name	Min	Max	Desired	Instances	HealthCheck	total_entries
-1	prod-web-asg	3	12	6	6	ELB	5
-2	prod-workers-asg	2	8	4	4	EC2	5
-3	batch-spot-asg	0	50	10	9	EC2	5
-4	staging-web-asg	1	4	2	2	ELB	5
-5	bastion-asg	1	1	1	1	EC2	5

@@ -1,4 +1,0 @@
-n	To	find	files	by	name:	total_entries
-1	find	.	-name	'*.log'		3
-2	#	To	find	files	modified_in_last_day:	3
-3	find	.	-mtime	-1		3

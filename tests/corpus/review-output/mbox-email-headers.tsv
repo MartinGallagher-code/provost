@@ -1,4 +1,0 @@
-n	From	To	Subject	Date	Message-ID
-1	alice@example.com	bob@example.com	Meeting_notes	Mon,_06_Jul_2026_09:12:00_+0000	<a1@example.com>
-2	bob@example.com	alice@example.com	Re:_Meeting_notes	Mon,_06_Jul_2026_10:03:00_+0000	<b2@example.com>
-3	carol@example.com	team@example.com	Release_plan	Tue,_07_Jul_2026_14:22:00_+0000	<c3@example.com>

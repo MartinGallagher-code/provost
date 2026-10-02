@@ -1,2 +1,0 @@
-stress-ng	stress-ng	stress-ng	stress-ng	stress-ng
-info:  [1284] dispatching hogs: 8 cpu	metrc: [1284] stressor       bogo ops real time  usr time  sys time   bogo ops/s	metrc: [1284] cpu               482210    10.01     79.88      0.12      48172.83	metrc: [1284] matrix            120488    10.00     79.44      0.08      12048.80	metrc: [1284] vm                 88201    10.02     78.10      1.44       8802.49

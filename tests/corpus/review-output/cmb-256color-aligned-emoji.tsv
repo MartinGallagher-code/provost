@@ -1,5 +1,0 @@
-n	STATUS	NAME	REGION	SIZE	total_entries
-1	● active	db-primary 🗄️	us-east-1	4 vCPU	4
-2	● active	db-replica 🗄️	us-east-1	4 vCPU	4
-3	● syncing	cache-01 🧊	eu-west-1	2 vCPU	4
-4	● down	worker-9 ⚙️	ap-south-1	8 vCPU	4

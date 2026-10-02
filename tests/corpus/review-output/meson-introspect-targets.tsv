@@ -1,3 +1,0 @@
-n	name	type	filename.1	total_entries
-1	app	executable	/build/app	2
-2	libcore	static_library	/build/libcore.a	2

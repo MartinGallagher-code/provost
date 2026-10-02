@@ -1,5 +1,0 @@
-n	A	total_entries
-1	docker · list all containers	4
-2	docker ps -a	4
-3	git · undo last commit	4
-4	git reset --soft HEAD~1	4

@@ -1,5 +1,0 @@
-n	DETECTOR	VERIFIED	FILE	COMMIT	total_entries
-1	AWS	true	infra/main.tf	a1b2c3d	4
-2	Stripe	true	app/billing.rb	e4f5a6b	4
-3	SlackWebhook	false	docs/setup.md	c7d8e9f	4
-4	Found	3	results,	2_verified	4

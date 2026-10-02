@@ -1,2 +1,0 @@
-kind	metadata.name	data.motd	data.Maintenance_every_Sunday_02	data.banner	kind	metadata.name	type	data.token
-ConfigMap	app-config	|	00 UTC.	>	Secret	app-secret	Opaque	c2VjcmV0dG9rZW4=

@@ -1,8 +1,0 @@
-n	superblock:	bytenr=65536,	device=/dev/sdb1	total_entries
-1	csum_type	0	(crc32c)	7
-2	label	d	ata	7
-3	generation	4	8213	7
-4	root	1	099931009024	7
-5	sectorsize	4	096	7
-6	nodesize	1	6384	7
-7	num_devices	4		7

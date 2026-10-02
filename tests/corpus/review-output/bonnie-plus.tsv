@@ -1,6 +1,0 @@
-n	A	total_entries
-1	Version  2.00       ------Sequential Output------ --Sequential Input- --Random-	5
-2	-Per Chr- --Block-- -Rewrite- -Per Chr- --Block-- --Seeks--	5
-3	Name:Size etc        K/sec %CP  K/sec %CP  K/sec %CP  K/sec %CP  K/sec %CP  /sec %CP	5
-4	node1        16G      882  99  482100  44  221044  22   1204  99  502110  38 1204.4  88	5
-5	Latency               12ms   88ms      44ms      8ms      12ms      412ms	5

@@ -1,4 +1,0 @@
-n	A	total_entries
-1	kern  :info  : [    2.410] EXT4-fs (dm-0): mounted filesystem	3
-2	kern  :warn  : [ 1284.201] TCP: request_sock_TCP: Possible SYN flooding	3
-3	kern  :err   : [ 4102.882] EDAC MC0: 1 CE error on DIMM0	3

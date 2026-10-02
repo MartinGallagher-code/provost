@@ -1,4 +1,0 @@
-n	Version	License	Dependencies
-1	2.42.0	GPL-2.0-only	gettext,_pcre2
-2	1.7	MIT	oniguruma
-3	13.0.0	MIT	pcre2

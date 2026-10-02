@@ -1,2 +1,0 @@
-Host	Host	Host	Host	Host	Host
-10.0.0.1 (gw.lan)	Status: Up	10.0.0.1 (gw.lan)	Ports: 22/open/tcp//ssh///, 53/open/tcp//domain///, 80/open/tcp//http///	Ignored State: closed (997)	10.0.0.5 (workstation)	Status: Up	10.0.0.5 (workstation)	Ports: 22/open/tcp//ssh///, 631/open/tcp//ipp///	Ignored State: closed (998)	10.0.0.6 ()	Status: Up	10.0.0.6 ()	Ports: 3306/filtered/tcp//mysql///, 8080/open/tcp//http-proxy///	Ignored State: closed (998)

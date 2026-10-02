@@ -1,5 +1,0 @@
-n	VG	#PV	#LV	#SN	Attr	VSize	VFree	total_entries
-1	vg0	1	4	0	wz--n-	465.75g	120.00g	4
-2	vg1	2	2	0	wz--n-	931.50g	50.00g	4
-3	data	3	1	0	wz--n-	2.73t	1.20t	4
-4	backup	1	1	0	wz--n-	465.75g	10.00g	4

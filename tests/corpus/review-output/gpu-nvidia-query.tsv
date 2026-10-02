@@ -1,3 +1,0 @@
-n	name	memory_total_[MiB]	memory_used_[MiB]	utilization_gpu_[%]	temperature_gpu	total_entries
-1	NVIDIA GeForce RTX 4090	24564	8201	84	62	2
-2	NVIDIA GeForce RTX 4090	24564	12044	91	68	2

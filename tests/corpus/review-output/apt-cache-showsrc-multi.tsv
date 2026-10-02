@@ -1,3 +1,0 @@
-n	Package	Binary	Version	Maintainer	Build-Depends	Architecture
-1	nginx	nginx-full,_nginx-light,_nginx-common	1.22.1-9	Debian_Nginx_Team_<team@nginx.debian.net>	debhelper-compat,_libpcre3-dev,_zlib1g-dev	any_all
-2	openssh	openssh-server,_openssh-client	1:9.2p1-2	Debian_OpenSSH_Maintainers_<ssh@packages.debian.org>	debhelper-compat,_libssl-dev,_zlib1g-dev	any

@@ -1,7 +1,0 @@
-n	NAME	PROPERTY	VALUE	SOURCE	total_entries
-1	tank	compressratio	1.42x	-	6
-2	tank/home	compressratio	1.08x	-	6
-3	tank/data	compressratio	2.31x	-	6
-4	tank/vm	compressratio	1.67x	-	6
-5	rpool	compressratio	1.15x	-	6
-6	rpool/ROOT/ubuntu	compressratio	1.19x	-	6

@@ -1,8 +1,0 @@
-n	depth	name	parent	total_entries
-1	0	app		7
-2	1	server	app	7
-3	2	handler	server	7
-4	3	logger	handler	7
-5	1	client	app	7
-6	2	cache	client	7
-7	3	pool	cache	7

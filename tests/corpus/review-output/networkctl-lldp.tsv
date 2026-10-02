@@ -1,5 +1,0 @@
-n	link	chassis_id	system_name	caps	port_id	port_description	total_entries
-1	eth0	00:11:22:33:44:01	core-sw01	..b.r....	Gi1/0/12	Uplink_to_core	4
-2	eth1	00:11:22:33:44:02	core-sw02	..b.r....	Gi1/0/13	Uplink_to_core	4
-3	eth2	aa:bb:cc:dd:ee:10	access-sw05	..b......	24	Office_floor_2	4
-4	eth3	aa:bb:cc:dd:ee:11	access-sw06	..b......	25	Office_floor_3	4

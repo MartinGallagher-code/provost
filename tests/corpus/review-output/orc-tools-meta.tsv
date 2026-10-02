@@ -1,2 +1,0 @@
-n	orc_[length	File_Version	Rows	Compression	Compression_size	Type	Stripe_Statistics.Stripe_1	Stripe_Statistics.Stripe_2
-0	148923]	0.12 with ORC_517	120000	ZLIB	262144	struct<id:bigint,name:string,ts:timestamp,amount:double>	rows 100000  min 1  max 100000	rows 20000   min 100001 max 120000

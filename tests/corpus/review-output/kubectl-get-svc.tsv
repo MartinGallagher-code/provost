@@ -1,5 +1,0 @@
-n	NAME	TYPE	CLUSTER-IP	EXTERNAL-IP	PORT(S)	AGE	total_entries
-1	kubernetes	ClusterIP	10.96.0.1	<none>	443/TCP	45d	4
-2	web	LoadBalancer	10.96.120.30	34.120.10.5	80:30080/TCP	12d	4
-3	api	ClusterIP	10.96.55.7	<none>	8080/TCP	5d	4
-4	redis	ClusterIP	10.96.200.14	<none>	6379/TCP	3d	4

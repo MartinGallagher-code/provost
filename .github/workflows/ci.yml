@@ -39,12 +39,10 @@ jobs:
     # they cost one. The trade is that they report as a single check rather
     # than four; a failing step still fails the job and names itself in the
     # log.
-    name: quick checks (docs, transform, bundle, REUSE)
+    name: quick checks (docs, transform, REUSE)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Needs the git index, not just a worktree: the bundle check compares
-      # the bundle's file list against `git ls-files`.
       - uses: actions/checkout@v4
       - name: require CHANGELOG + HANDOFF + README
         run: |
@@ -55,8 +53,6 @@ jobs:
           exit $missing
       - name: transform unit test
         run: bash transform/tests/test_melt.sh
-      - name: bundle.txt lists exactly the tracked files
-        run: bash tests/check-bundle-current.sh
       - name: REUSE licensing lint
         uses: fsfe/reuse-action@v5
 

@@ -1,8 +1,0 @@
-n	key	value	total_entries
-1	Status for the jail	sshd |- Filter	7
-2	|  |- Currently failed	3	7
-3	|  |- Total failed	1287	7
-4	|  `- File list	/var/log/auth.log `- Actions	7
-5	|- Currently banned	4	7
-6	|- Total banned	52	7
-7	`- Banned IP list	192.0.2.14 198.51.100.7 203.0.113.9 203.0.113.44	7

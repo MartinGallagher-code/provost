@@ -1,3 +1,0 @@
-n	Name	Kind	MACAddress	MTUBytes
-1	bond0	bond	02:42:ac:11:00:02	9000
-2	br0	bridge	02:42:ac:11:00:03	1500

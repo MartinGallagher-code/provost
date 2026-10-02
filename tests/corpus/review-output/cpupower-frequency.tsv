@@ -1,2 +1,0 @@
-n	driver	CPUs_which_run_at_the_same_hardware_frequency	CPUs_which_need_to_have_their_frequency_coordinated_by_software	maximum_transition_latency	hardware_limits	available_cpufreq_governors	current_policy	current_CPU_frequency	boost_state_support.Supported	boost_state_support.Active
-0	intel_pstate	0	0	Cannot determine or is not supported.	1.20 GHz - 3.30 GHz	performance powersave	frequency should be within 1.20 GHz and 3.30 GHz.	2.40 GHz (asserted by call to hardware)	yes	yes

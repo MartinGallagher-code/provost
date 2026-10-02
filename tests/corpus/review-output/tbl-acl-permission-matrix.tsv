@@ -1,6 +1,0 @@
-n	A	total_entries
-1	Role         read  write  delete  admin	5
-2	viewer        x	5
-3	editor        x     x	5
-4	publisher     x     x      x	5
-5	owner         x     x      x       x	5

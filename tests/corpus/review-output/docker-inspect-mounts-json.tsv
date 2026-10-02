@@ -1,3 +1,0 @@
-n	Type	Source	Destination	Mode	total_entries
-1	bind	/home/user/My_App	/app	rw,z	2
-2	volume	data-vol	/var/lib/data	rw	2

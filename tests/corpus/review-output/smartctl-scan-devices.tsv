@@ -1,4 +1,0 @@
-n	/dev/sda_-d_scsi_#_/dev/sda	SCSI_device	total_entries
-1	/dev/sdb -d sat # /dev/sdb [SAT]	ATA device	3
-2	/dev/nvme0 -d nvme # /dev/nvme0	NVMe device	3
-3	/dev/sdc # /dev/sdc	no device info	3

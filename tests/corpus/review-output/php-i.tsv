@@ -1,2 +1,0 @@
-PHP_Version	System	Build_Date	Server_API	Configuration_File_(php.ini)_Path	Loaded_Configuration_File	Thread_Safety	Zend_Signal_Handling
-> 8.1.2-1ubuntu2.14	> Linux buildhost 5.15.0-91-generic x86_64	> Nov 24 2023 12:14:32	> Command Line Interface	> /etc/php/8.1/cli	> /etc/php/8.1/cli/php.ini	> disabled	> enabled

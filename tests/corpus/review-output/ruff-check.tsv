@@ -1,4 +1,0 @@
-n	name	value	total_entries
-1	deploy.py	12:1: E402 Module level import not at top of file	3
-2	deploy.py	44:80: E501 Line too long (92 > 88)	3
-3	app.py	8:5: F401 'os' imported but unused	3

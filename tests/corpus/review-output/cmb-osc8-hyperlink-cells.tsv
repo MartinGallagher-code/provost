@@ -1,5 +1,0 @@
-n	ID	TITLE	STATUS	ASSIGNEE	total_entries
-1	#412	8;;https://tr.io/412Fix login redirect8;;	open	alice	4
-2	#418	8;;https://tr.io/418Cache invalidation8;;	open	bob	4
-3	#421	8;;https://tr.io/421Upgrade openssl8;;	closed	carol	4
-4	#430	8;;https://tr.io/430Docs typo8;;	merged	dave	4

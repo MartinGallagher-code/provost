@@ -1,5 +1,0 @@
-n	Name	ResourceGroup	Location	AdministratorLogin	Version	State	total_entries
-1	prod-sql-server	prod-rg	eastus	sqladmin	12.0	Ready	4
-2	staging-sql-srv	staging-rg	eastus	sqladmin	12.0	Ready	4
-3	dev-sql-server	dev-rg	westus2	dbadmin	12.0	Ready	4
-4	analytics-sql-srv	prod-rg	eastus	sqladmin	12.0	Ready	4

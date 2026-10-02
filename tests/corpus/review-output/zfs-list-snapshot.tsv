@@ -1,7 +1,0 @@
-n	NAME	USED	AVAIL	REFER	MOUNTPOINT	total_entries
-1	tank/home@2026-06-01	128M	-	4.20G	-	6
-2	tank/home@2026-07-01	64M	-	4.35G	-	6
-3	tank/data@daily-2026-07-05	1.20G	-	88.40G	-	6
-4	tank/data@daily-2026-07-06	980M	-	88.90G	-	6
-5	rpool/ROOT/ubuntu@pre-upgrade	512M	-	12.10G	-	6
-6	tank/vm/win10@snap-before-patch	2.40G	-	42.00G	-	6

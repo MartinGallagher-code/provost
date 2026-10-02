@@ -26,7 +26,7 @@ strategy_detect () {
         fi
     done
     if [[ $has_pool -eq 1 && $has_config -eq 1 && $has_hdr -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=95
         return 0
     fi
     return 1

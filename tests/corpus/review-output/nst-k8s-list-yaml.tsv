@@ -1,2 +1,0 @@
-apiVersion	kind	.0	items.kind	items.metadata.name	items.metadata.namespace	items.status.phase	.1	items.metadata.name	items.status.phase	.2	items.metadata.name	items.metadata.namespace
-v1	List	apiVersion: v1	Pod	web-1	prod	Running	apiVersion: v1	web-2	Pending	apiVersion: v1	db-1	data

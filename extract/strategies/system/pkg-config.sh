@@ -46,6 +46,17 @@ strategy_detect () {
             [[ "$_ht" =~ ^[A-Z] ]] || { _allcap=0; break; }
         done
         [[ $_allcap -eq 1 ]] && return 1
+        # Lowercase variant: 3+ bare identifier tokens ("pool  slots  used_slots",
+        # "id  message  status  priority") separated ONLY by column gaps (2+
+        # spaces or a tab, never a single space) is a column header. A package
+        # entry's prose description always has single-spaced words.
+        if [[ "$_first" != *[![:space:]]" "[![:space:]]* ]]; then
+            local _allid=1
+            for _ht in "${_htoks[@]}"; do
+                [[ "$_ht" =~ ^[a-z][A-Za-z0-9_]*$ ]] || { _allid=0; break; }
+            done
+            [[ $_allid -eq 1 ]] && return 1
+        fi
     fi
 
     # Distinctive: every line is "<package-name>   <prose description>".
@@ -73,7 +84,7 @@ strategy_detect () {
         lines=$((lines + 1))
     done
     # Mostly colon key/value lines -> decline (let a colon parser split them).
-    [[ $lines -ge 2 && $(( _colon * 100 / lines )) -ge 60 ]] && return 1
+    [[ $lines -ge 2 && $(( _colon * 100 / lines )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
     # A consistent multi-column table (dominant modal column count >=3) is a real
     # aligned table for aligned-columns (az/aws/dnf/chage/es-cat listings), not a
     # pkg-config name/description list — whose description length (and so column
@@ -82,8 +93,10 @@ strategy_detect () {
     if [[ $lines -ge 2 ]]; then
         local _m=0 _best=0
         _fr_modal ${_cc[@]+"${_cc[@]}"}; _m=$_FR_MODE; _best=$_FR_MODE_N
-        [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge 60 ]] && return 1
-        _STRATEGY_CONFIDENCE=80
+        [[ $_m -ge 3 && $(( _best * 100 / lines )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]] && return 1
+        # 79: a shape heuristic, not a tool-unique literal — it yields to any
+        # format-specific generic parser (80) that also claims the input.
+        _STRATEGY_CONFIDENCE=79
         return 0
     fi
     return 1

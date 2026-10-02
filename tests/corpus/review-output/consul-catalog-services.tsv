@@ -1,6 +1,0 @@
-n	consul	server	total_entries
-1	postgres	primary,replica,pgbouncer	5
-2	redis	cache,session	5
-3	web	v1,v2,canary	5
-4	payments	grpc,tls	5
-5	search	elasticsearch,ingest	5

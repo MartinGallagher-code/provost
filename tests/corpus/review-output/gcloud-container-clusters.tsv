@@ -1,5 +1,0 @@
-n	NAME	LOCATION	MASTER_VERSION	MASTER_IP	MACHINE_TYPE	NODE_VERSION	NUM_NODES	STATUS	total_entries
-1	prod-gke	us-central1	1.29.4-gke.1043	34.72.100.10	e2-standard-4	1.29.4-gke.1043	6	RUNNING	4
-2	staging-gke	us-central1	1.29.4-gke.1043	34.72.100.11	e2-standard-2	1.29.4-gke.1043	3	RUNNING	4
-3	dev-gke	us-west1	1.28.9-gke.1000	35.230.50.20	e2-medium	1.28.9-gke.1000	2	RUNNING	4
-4	data-gke	europe-west1	1.29.4-gke.1043	35.240.10.30	n2-standard-8	1.29.4-gke.1043	4	RECONCILING	4

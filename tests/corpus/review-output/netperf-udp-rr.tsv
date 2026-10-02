@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	total_entries
-1	Socket	Size	Request	Resp.	Elapsed	Trans.	4
-2	Send	Recv	Size	Size	Time	Rate	4
-3	bytes	Bytes	bytes	bytes	secs.	per_sec	4
-4	212992	212992	1	1	10.00	18422.14	4

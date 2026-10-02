@@ -44,7 +44,7 @@ strategy_detect () {
     [[ "$text" == *"meta-data"* ]] || return 1
     [[ "$text" == *"isize="* ]]    || return 1
     [[ "$text" == *"agcount="* ]]  || return 1
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     return 0
 }
 

@@ -1,6 +1,0 @@
-n	Name	Owner	total_entries
-1	analytics	appuser	5
-2	app	appuser	5
-3	audit	appuser	5
-4	public	pg_database_owner	5
-5	staging	appuser	5

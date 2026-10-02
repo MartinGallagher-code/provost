@@ -1,0 +1,5 @@
+n	MODULE	WARNINGS	ERRORS	TIME
+1	core	3	0	4.2s
+2	api	0	0	2.1s
+3	ui	11	2	8.8s
+4	cli	0	0	1.0s

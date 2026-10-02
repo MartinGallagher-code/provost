@@ -1,5 +1,0 @@
-n	Interface	MAC	RxErrors	TxDrops	total_entries
-1	eth0	de:ad:be:ef:00:01	1,234	12	4
-2	eth1	ca:fe:ba:be:00:02	0	0	4
-3	eth2	00:1a:2b:3c:4d:5e	9,999	1,024	4
-4	eth3	ff:ff:ff:ff:ff:ff	42	3	4

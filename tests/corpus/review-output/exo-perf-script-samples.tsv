@@ -1,6 +1,0 @@
-n	key	value	total_entries
-1	postgres  3391 [002] 88213.114562	cycles:u:      55f3a1b2c0d1 ExecInterpExpr+0x2a1 (/usr/lib/postgresql/16/bin/postgres)	5
-2	postgres  3391 [002] 88213.114798	cycles:u:      55f3a1b2a110 ExecScan+0x50 (/usr/lib/postgresql/16/bin/postgres)	5
-3	postgres  3391 [002] 88213.115002	cycles:u:      7f8c19a2e441 __memcpy_avx_unaligned+0x1b1 (/usr/lib/x86_64-linux-gnu/libc.so.6)	5
-4	chrome    3391 [005] 88213.115331	cycles:u:      55f2004c8812 v8::internal::Runtime_CompileLazy+0x92 (/opt/google/chrome/chrome)	5
-5	swapper      0 [000] 88213.116004	cycles:      ffffffff81a2c110 native_safe_halt+0x10 ([kernel.kallsyms])	5

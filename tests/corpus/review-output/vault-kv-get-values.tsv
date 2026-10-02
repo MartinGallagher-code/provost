@@ -1,4 +1,0 @@
-n	Key	Value
-1	db_	postgres://u:p@host:5432/db?opt=a,b
-2	mes	hello, world: welcome
-3	tag	prod, critical, on-call

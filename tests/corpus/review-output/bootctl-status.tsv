@@ -1,2 +1,0 @@
-System.Firmware	System.Firmware_Arch	System.Secure_Boot	System.TPM2_Support	System.Boot_into_FW	Current_Boot_Loader.Product	Current_Boot_Loader.Features	Current_Boot_Loader.ESP
-UEFI 2.70 (American Megatrends 5.17)	x64	enabled (user)	yes	supported	systemd-boot 252.5-2	Boot counting; Menu timeout control; TPM2 measurement	/dev/disk/by-partuuid/1b2c3d4e-5f60-7182-93a4-b5c6d7e8f901

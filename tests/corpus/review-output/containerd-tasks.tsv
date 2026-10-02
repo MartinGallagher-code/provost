@@ -1,7 +1,0 @@
-n	TASK	PID	STATUS	total_entries
-1	nginx-web	2451	RUNNING	6
-2	redis-cache	2688	RUNNING	6
-3	postgres-db	2712	RUNNING	6
-4	worker-1	3104	RUNNING	6
-5	batch-job-7	3390	STOPPED	6
-6	sidecar-proxy	3455	PAUSED	6

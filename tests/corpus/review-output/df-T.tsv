@@ -1,5 +1,0 @@
-n	Filesystem	Type	1K-blocks	Used	Available	Use%	Mounted	total_entries
-1	/dev/sda1	ext4	50268928	18342144	29348352	39%	/	4
-2	/dev/sdb1	xfs	976510976	412339712	564171264	43%	/home	4
-3	/dev/nvme0n1p1	vfat	523248	6132	517116	2%	/boot/efi	4
-4	tmpfs	tmpfs	8168960	0	8168960	0%	/dev/shm	4

@@ -1,6 +1,0 @@
-n	Schema	Name	Result_data_type	Argument_data_types	Type	total_entries
-1	public	calc_tax	numeric	amount numeric, rate numeric	func	5
-2	public	current_tenant	integer		func	5
-3	public	normalize_email	text	addr text	func	5
-4	public	order_total	numeric	order_id integer	func	5
-5	public	update_timestamp	trigger		func	5

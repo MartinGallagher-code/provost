@@ -1,2 +1,0 @@
-Package	Status	Priority	Section	Installed-Size	Maintainer	Architecture	Version	Depends	Suggests	Conffiles	Description	Homepage
-openssl	install ok installed	important	utils	1352	Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>	amd64	3.0.2-0ubuntu1.10	libc6 (>=_2.34), libssl3 (>=_3.0.2)	ca-certificates	/etc/ssl/openssl.cnf 3f4b999b4cfa7dbcd0c5b0974e9e59f6	Secure Sockets Layer toolkit - cryptographic utility	https://www.openssl.org/

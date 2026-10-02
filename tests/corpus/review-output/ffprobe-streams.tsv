@@ -1,2 +1,0 @@
-index	codec_name	codec_type	width	height	r_frame_rate	bit_rate	index	codec_name	codec_type	sample_rate	channels	bit_rate
-0	h264	video	1920	1080	30000/1001	4500000	1	aac	audio	48000	2	128000

@@ -1,4 +1,0 @@
-n	State	Recv-Q	Send-Q	Local	Address:Port	Peer	total_entries
-1	ESTAB	0	0	192.168.1.42:22	192.168.1.10:51422	timer:(keepalive,18min,0)	3
-2	ESTAB	0	0	192.168.1.42:52134	93.184.216.34:443	timer:(keepalive,29sec,0)	3
-3	ESTAB	0	52	192.168.1.42:443	10.0.0.5:41288	timer:(on,210ms,0)	3

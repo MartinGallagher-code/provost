@@ -1,6 +1,0 @@
-n	ip	heap_percent	ram_percent	cpu	load_1m	load_5m	load_15m	node_role	master	name	total_entries
-1	10.0.0.10	34	78	5	0.45	0.52	0.60	cdfhilmrstw	*	es-node-1	5
-2	10.0.0.11	41	81	8	0.72	0.65	0.58	cdfhilmrstw	-	es-node-2	5
-3	10.0.0.12	29	75	3	0.31	0.40	0.44	cdfhilmrstw	-	es-node-3	5
-4	10.0.0.13	55	88	12	1.02	0.91	0.83	cdfhilmrstw	-	es-node-4	5
-5	10.0.0.14	22	70	2	0.18	0.22	0.25	cdfhilmrstw	-	es-node-5	5

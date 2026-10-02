@@ -1,6 +1,0 @@
-n	GPU__Name_________________Persistence-M	Bus-Id__________DispA	Volatile_Uncorr_ECC	total_entries
-1	Fan  Temp   Perf          Pwr:Usage/Cap	Memory-Usage	GPU-Util  Compute M.	5
-2	0  NVIDIA A100-SXM4-80GB          On	00000000:07:00.0 Off	0	5
-3	N/A   42C    P0             288W / 400W	40218MiB / 81920MiB	94%      Default	5
-4	1  NVIDIA A100-SXM4-80GB          On	00000000:0A:00.0 Off	0	5
-5	N/A   39C    P0             102W / 400W	1204MiB / 81920MiB	0%      Default	5

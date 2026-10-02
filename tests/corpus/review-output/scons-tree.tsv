@@ -1,8 +1,0 @@
-n	A	total_entries
-1	+-build/myapp	7
-2	+-build/main.o	7
-3	| +-src/main.c	7
-4	| +-include/config.h	7
-5	+-build/util.o	7
-6	| +-src/util.c	7
-7	+-build/libcore.a	7

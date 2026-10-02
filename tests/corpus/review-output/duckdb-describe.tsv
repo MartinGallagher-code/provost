@@ -1,4 +1,0 @@
-n	column_name	column_type	null	total_entries
-1	id	BIGINT	NO	3
-2	name	VARCHAR	YES	3
-3	price	DECIMAL	YES	3

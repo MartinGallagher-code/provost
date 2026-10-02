@@ -1,5 +1,0 @@
-n	A	B	C	D	E	F	G	H	total_entries
-1	pong	from	laptop-work	(100.101.102.5)	via	203.0.113.9:41641	in	24ms	4
-2	pong	from	laptop-work	(100.101.102.5)	via	203.0.113.9:41641	in	22ms	4
-3	pong	from	laptop-work	(100.101.102.5)	via	DERP(fra)	in	41ms	4
-4	pong	from	laptop-work	(100.101.102.5)	via	203.0.113.9:41641	in	23ms	4

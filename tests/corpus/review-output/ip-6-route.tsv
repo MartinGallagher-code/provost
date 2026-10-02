@@ -1,7 +1,0 @@
-n	A	B	C	D	E	F	G	H	I	total_entries
-1	::1	dev	lo	proto	kernel	metric	256	pref	medium	6
-2	2001:db8:1::/64	dev	eth0	proto	kernel	metric	256	pref	medium	6
-3	2001:db8:2::/64	via	2001:db8:1::1	dev	eth0	proto	static	metric	1024_pref_medium	6
-4	fe80::/64	dev	eth0	proto	kernel	metric	256	pref	medium	6
-5	fe80::/64	dev	wlan0	proto	kernel	metric	256	pref	medium	6
-6	default	via	fe80::1	dev	eth0	proto	ra	metric	1024_expires_1798sec_pref_medium	6

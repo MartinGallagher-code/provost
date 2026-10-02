@@ -1,7 +1,0 @@
-n	processing	input_csv	total_entries
-1	processing	input.csv_[done]	6
-2	ts,event,count		6
-3	09:00,login,420		6
-4	09:05,error,12		6
-5	09:10,login,388		6
-6	09:15,logout,201		6

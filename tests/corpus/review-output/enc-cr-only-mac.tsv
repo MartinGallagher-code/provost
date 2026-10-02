@@ -1,5 +1,0 @@
-n	model	cores	ghz	total_entries
-1	epyc	64	2.4	4
-2	xeon	28	3.1	4
-3	ryzen	16	3.8	4
-4	arm	80	3.0	4

@@ -1,4 +1,0 @@
-n	setting	value	source	total_entries
-1	log_level	INFO	env	3
-2	workers	8	config	3
-3	timeout_s	30	default	3

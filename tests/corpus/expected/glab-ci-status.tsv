@@ -1,2 +1,5 @@
-field	value
-Pipeline_#4421_(main)_-_status	success
+n	A	B	C	D
+1	Pipeline	#4421	(main)	- status: success
+2	build	✓	passed	1m20s
+3	test	✓	passed	3m44s
+4	deploy	✓	passed	0m58s

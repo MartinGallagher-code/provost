@@ -204,15 +204,15 @@ strategy_detect () {
         bare_tot=$((bare_tot + 1))
         [[ ${#bt[@]} -ge 3 ]] && bare3=$((bare3 + 1))
     done
-    [[ $bare_tot -ge 3 && $(( bare3 * 100 / bare_tot )) -ge 70 ]] && return 1
+    [[ $bare_tot -ge 3 && $(( bare3 * 100 / bare_tot )) -ge $(( 70 + ${_FR_SLACK:-0} )) ]] && return 1
     # mangled multi-word keys dominate → not safely parseable by this model
-    [[ $leaves_total -gt 0 && $(( mangled * 5 )) -gt $leaves_total ]] && return 1
+    [[ $leaves_total -gt 0 && $(( mangled * 100 )) -gt $(( leaves_total * (20 + ${_FR_SLACK:-0}) )) ]] && return 1
     # >=2 keys repeated under >=2 distinct groups — THE signature.
     local k rep=0
     for k in "${!key_groups[@]}"; do [[ ${key_groups[$k]} -ge 2 ]] && rep=$((rep + 1)); done
     [[ $rep -ge 2 ]] || return 1
     # the shape must dominate the block
-    [[ $(( classified * 100 / n )) -ge 80 ]] || return 1
+    [[ $(( classified * 100 / n )) -ge $(( 80 - ${_FR_SLACK:-0} )) ]] || return 1
     _STRATEGY_CONFIDENCE=80
     return 0
 }

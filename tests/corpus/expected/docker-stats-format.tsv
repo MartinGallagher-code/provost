@@ -1,6 +1,6 @@
-n	NAME	CPU	%	MEM	USAGE	/	LIMIT
-1	web	0.14%	28.4MiB	/	7.77GiB	0.36%	5
-2	db	1.87%	212.6MiB	/	7.77GiB	2.67%	9
-3	cache	0.09%	6.812MiB	/	7.77GiB	0.09%	4
-4	api	3.42%	384.1MiB	/	7.77GiB	4.83%	23
-5	grafana	0.51%	96.33MiB	/	7.77GiB	1.21%	12
+n	NAME	CPU_%	MEM_USAGE_/_LIMIT	MEM_%	PIDS
+1	web	0.14%	28.4MiB / 7.77GiB	0.36%	5
+2	db	1.87%	212.6MiB / 7.77GiB	2.67%	9
+3	cache	0.09%	6.812MiB / 7.77GiB	0.09%	4
+4	api	3.42%	384.1MiB / 7.77GiB	4.83%	23
+5	grafana	0.51%	96.33MiB / 7.77GiB	1.21%	12

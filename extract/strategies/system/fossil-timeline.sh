@@ -23,7 +23,10 @@ strategy_detect () {
     local line has=0
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        _fossiltl_is_entry "$line" && has=1
+        # Detect needs fossil's bracketed hex check-in hash ("10:15:42
+        # [a1b2c3d4e5] …"): the extract helper's "HH:MM:SS [" prefix alone is
+        # every bracket-tagged log line ("12:00:01 [INFO] …").
+        _fossiltl_is_entry "$line" && [[ "$line" =~ ^[0-9]{2}:[0-9]{2}:[0-9]{2}[[:space:]]\[[0-9a-f]{6,40}\][[:space:]] ]] && has=1
     done
     if [[ $has -eq 1 ]]; then
         _STRATEGY_CONFIDENCE=92

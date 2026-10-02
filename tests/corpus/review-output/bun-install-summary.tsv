@@ -1,8 +1,0 @@
-n	A	total_entries
-1	bun install v1.1.21 (a3f2b8c9)	7
-2	+ elysia@1.1.4	7
-3	+ drizzle-orm@0.32.1	7
-4	+ zod@3.23.8	7
-5	+ @types/bun@1.1.6 (dev)	7
-6	142 packages installed [812.00ms]	7
-7	Saved lockfile	7

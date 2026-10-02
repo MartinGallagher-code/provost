@@ -1,7 +1,0 @@
-n	target	prot	opt	source	destination	total_entries
-1	ACCEPT	all	--	::/0	::/0	6
-2	ACCEPT	icmpv6	--	::/0	::/0	6
-3	ACCEPT	tcp	--	::/0	::/0	6
-4	ACCEPT	udp	--	::/0	fe80::/10	6
-5	DROP	all	--	::/0	::/0	6
-6	LOG	tcp	--	2001:db8::/32	::/0	6

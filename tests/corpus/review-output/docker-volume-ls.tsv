@@ -1,5 +1,0 @@
-n	DRIVER	VOLUME_NAME	total_entries
-1	local	web-data	4
-2	local	api-cache	4
-3	local	db-storage	4
-4	local	redis-data	4

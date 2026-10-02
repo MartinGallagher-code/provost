@@ -1,2 +1,0 @@
-Container	Image	State	Created	Started	IPAddress	MacAddress	Ports	Mounts	Env	Cmd	RestartPolicy
-web-app-7f9c	nginx:1.25-alpine	running	2024-01-15T08:22:41.882931043Z	2024-01-15T08:22:42.104882901Z	172.18.0.4	02:42:ac:12:00:04	80/tcp -> 0.0.0.0:8080, 443/tcp -> 0.0.0.0:8443	/var/lib/docker/volumes/web-data/_data -> /usr/share/nginx/html	PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin	nginx -g daemon off;	unless-stopped (max retries: 0)

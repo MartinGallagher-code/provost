@@ -1,7 +1,0 @@
-n	Name	#_Installed_#_Synopsis	total_entries
-1	base	v0.16.3 Full standard library replacement for OCaml	6
-2	cmdliner	1.2.0 Declarative definition of command line interfaces	6
-3	dune	3.14.0 Fast, portable, and opinionated build system	6
-4	ocaml	5.1.1 The OCaml compiler (virtual package)	6
-5	ppxlib	0.32.0 Standard library for ppx rewriters	6
-6	yojson	2.1.2 Yojson is an optimized parsing library for JSON	6

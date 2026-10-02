@@ -1,2 +1,0 @@
-n	uid	gid	groups	total_entries
-1	1000(alice)	1000(alice)	1000(alice),27(sudo),100(users)	1

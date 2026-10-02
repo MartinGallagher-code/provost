@@ -1,2 +1,0 @@
-Link_2_(eth0).Current_Scopes	Link_2_(eth0).Protocols	Current_DNS_Server	Link_2_(eth0).DNS_Servers	Link_2_(eth0).DNS_Domain
-DNS mDNS/IPv4 mDNS/IPv6	+DefaultRoute +LLMNR +mDNS -DNSOverTLS DNSSEC=no/unsupported	192.168.1.1	192.168.1.1 192.168.1.2	lan

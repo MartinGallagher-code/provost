@@ -1,2 +1,0 @@
-Certificate.Data.Version	Certificate.Data.Serial_Number	Certificate.Data.Signature_Algorithm	Certificate.Data.Issuer	Certificate.Data.Validity.Not_Before	Certificate.Data.Validity.Not_After	Certificate.Data.Subject
-3 (0x2)	44201 (0xac99)	ECDSA-SHA256	CN=Example Intermediate CA	Jul 1 00:00:00 2026 UTC	Sep 29 00:00:00 2026 UTC	CN=api.example.com

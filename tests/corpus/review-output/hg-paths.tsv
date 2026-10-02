@@ -1,2 +1,0 @@
-default	default-push	upstream	backup
-https://hg.example.com/widget	ssh://hg@hg.example.com/widget	https://hg.example.com/upstream/widget	/srv/hg/mirrors/widget

@@ -47,7 +47,7 @@ _mxsum_split_wide () {
 
 strategy_detect () {
     local text="$1"
-    _STRATEGY_CONFIDENCE=92
+    _STRATEGY_CONFIDENCE=95
     _is_json "$text" && return 1
 
     [[ "$text" == "mx summarize --"* ]] || return 1

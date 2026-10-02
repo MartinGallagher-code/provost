@@ -1,4 +1,0 @@
-n	REVISION	CHANGE-CAUSE	total_entries
-1	3	kubectl set image deployment/api api=api:2.3.1	3
-2	4	kubectl set image deployment/api api=api:2.4.0	3
-3	5	kubectl set image deployment/api api=api:2.4.1	3

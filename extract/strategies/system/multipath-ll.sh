@@ -22,7 +22,7 @@ strategy_detect () {
         [[ "$line" == *"hwhandler='"* ]] && has_hwhandler=1
     done
     if [[ $has_wp -eq 1 && $has_policy -eq 1 && $has_hwhandler -eq 1 ]]; then
-        _STRATEGY_CONFIDENCE=92
+        _STRATEGY_CONFIDENCE=95
         return 0
     fi
     return 1

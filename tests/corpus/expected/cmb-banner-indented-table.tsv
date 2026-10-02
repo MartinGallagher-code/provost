@@ -1,0 +1,5 @@
+n	JOB	STATE	DURATION
+1	build	success	2m14s
+2	test	success	5m01s
+3	deploy	running	0m48s
+4	notify	pending	--

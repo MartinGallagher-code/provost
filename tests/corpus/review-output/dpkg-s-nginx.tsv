@@ -1,2 +1,0 @@
-Package	Status	Priority	Section	Installed-Size	Maintainer	Architecture	Version	Depends	Description	Homepage
-nginx	install ok installed	optional	httpd	108	Debian Nginx Maintainers <pkg-nginx-maintainers@example.net>	all	1.18.0-6ubuntu14.4	nginx-core (<<_1.18.0-6ubuntu14.4.1~) | nginx-full (<<_1.18.0-6ubuntu14.4.1~)	small, powerful, scalable web/proxy server	https://nginx.net

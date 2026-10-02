@@ -1,0 +1,5 @@
+n	host	role	cpu
+1	web-1	frontend	24
+2	web-2	frontend	31
+3	db-1	postgres	88
+4	db-2	postgres	12

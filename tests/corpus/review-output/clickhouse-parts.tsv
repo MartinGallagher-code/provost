@@ -1,5 +1,0 @@
-n	A	B	C	D	E	total_entries
-1	table	partition	rows	bytes	active	4
-2	events	202607	48217304	4102839120	1	4
-3	events	202606	88201442	9912834100	1	4
-4	sessions	202607	1204882	201448320	1	4

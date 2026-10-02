@@ -1,5 +1,0 @@
-n	﻿NAME	READY	STATUS	AGE	total_entries
-1	api-7f9	1/1	Running	4d	4
-2	web-3c2	1/1	Running	9d	4
-3	db-0	1/1	Running	21d	4
-4	cache-5	0/1	Pending	2m	4

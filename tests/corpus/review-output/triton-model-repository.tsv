@@ -1,4 +1,0 @@
-n	Model	Version	Status	total_entries
-1	bert-base	1	READY	3
-2	resnet50	2	READY	3
-3	yolov8	1	UNAVAILABLE	3

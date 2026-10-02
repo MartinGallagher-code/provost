@@ -1,7 +1,0 @@
-n	lint	level	count	total_entries
-1	clippy::needless_return	warn	14	6
-2	clippy::redundant_clone	warn	6	6
-3	clippy::single_char_pattern	warn	3	6
-4	clippy::too_many_arguments	warn	2	6
-5	clippy::unwrap_used	deny	1	6
-6	warning:	`myapp`	generated_25_warnings	6

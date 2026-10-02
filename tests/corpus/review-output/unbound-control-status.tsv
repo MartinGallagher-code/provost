@@ -1,2 +1,0 @@
-version	verbosity	threads	modules	uptime	options
-1.19.3	1	4	2 [ validator iterator ]	512044 seconds	reuseport control(ssl)

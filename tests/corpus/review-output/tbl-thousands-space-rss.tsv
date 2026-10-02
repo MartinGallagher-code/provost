@@ -1,4 +1,0 @@
-n	Process	PID	RSS	VSZ	total_entries
-1	firefox	2345	1 234 MB	3 456 MB	3
-2	chrome	3456	2 048 MB	5 120 MB	3
-3	code	4567	512 MB	1 024 MB	3

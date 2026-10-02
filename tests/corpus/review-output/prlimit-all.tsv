@@ -1,5 +1,0 @@
-n	RESOURCE	DESCRIPTION	SOFT	HARD	UNITS	total_entries
-1	CPU	CPU	time	unlimited	unlimited_seconds	4
-2	FSIZE	Maximum	file	size	unlimited_unlimited_bytes	4
-3	NOFILE	Max	number	of	open_files_1024_1048576_files	4
-4	NPROC	Max	number	of	processes_63000_63000_processes	4

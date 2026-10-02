@@ -1,2 +1,0 @@
-n	checkpoints_timed	checkpoints_req	checkpoint_write_time	checkpoint_sync_time	buffers_checkpoint	buffers_clean	maxwritten_clean	buffers_backend	buffers_backend_fsync	buffers_alloc	stats_reset	total_entries
-1	8452	33	1204553	8821	4451200	220145	12	88210	0	9982310	2026-06-01 00:00:00.000000+00	1

@@ -1,0 +1,5 @@
+n	FILE
+1	/usr/local/bin/glean
+2	/etc/systemd/system/app.service
+3	/var/log/app/error log.txt
+4	/home/user/My Documents/notes.md

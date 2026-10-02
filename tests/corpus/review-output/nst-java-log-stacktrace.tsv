@@ -1,8 +1,0 @@
-n	A	total_entries
-1	2026-07-11 04:12:09,331 ERROR [http-nio-8080-exec-3] c.e.OrderService - Failed to process order 88213	7
-2	java.lang.NullPointerException: Cannot invoke "Customer.getId()" because "customer" is null	7
-3	at com.example.OrderService.process(OrderService.java:142)	7
-4	at com.example.OrderController.submit(OrderController.java:58)	7
-5	at jdk.internal.reflect.GeneratedMethodAccessor12.invoke(Unknown Source)	7
-6	... 42 more	7
-7	2026-07-11 04:12:10,004 INFO  [http-nio-8080-exec-4] c.e.HealthCheck - status=UP	7

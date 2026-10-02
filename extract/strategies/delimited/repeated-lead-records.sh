@@ -92,7 +92,7 @@ strategy_detect () {
     # it strips the brackets and names the columns; stealing it would keep
     # the brackets as data.
     [[ "$lead" == \[*\] ]] && return 1
-    [[ $all_toks -gt 0 && $(( word_toks * 4 )) -ge $(( all_toks * 3 )) ]] || return 1
+    [[ $all_toks -gt 0 && $(( word_toks * 100 )) -ge $(( all_toks * (75 - ${_FR_SLACK:-0}) )) ]] || return 1
     _STRATEGY_CONFIDENCE=80
     return 0
 }

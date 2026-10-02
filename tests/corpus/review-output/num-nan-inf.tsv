@@ -1,7 +1,0 @@
-n	metric	mean	max	total_entries
-1	latency	12.5	Inf	6
-2	loss	NaN	0.0	6
-3	gain	-0.0	+1e5	6
-4	drift	1.6e-19	-Inf	6
-5	jitter	NaN	NaN	6
-6	skew	-1.5e+3	+0.0	6

@@ -1,2 +1,0 @@
-System_Power	Power_Overload	Power_Interlock	Main_Power_Fault	Power_Control_Fault	Power_Restore_Policy	Last_Power_Event	Chassis_Intrusion	Front-Panel_Lockout	Drive_Fault	Cooling/Fan_Fault
-on	false	inactive	false	false	always-off	none	inactive	inactive	false	false

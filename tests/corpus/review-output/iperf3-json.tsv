@@ -1,2 +1,0 @@
-start.connected.0.socket	start.connected.0.local_host	start.connected.0.remote_host	start.version	end.sum_sent.bytes	end.sum_sent.bits_per_second	end.sum_sent.retransmits	end.sum_received.bytes	end.sum_received.bits_per_second
-5	10.0.0.5	10.0.0.9	iperf 3.16	1181239296	943991424	12	1178943488	942154240

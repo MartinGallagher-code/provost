@@ -1,4 +1,0 @@
-n	metric	p50	p95	p99	total_entries
-1	latency_ms	12	48	120	3
-2	throughput_rps	8400	6100	3200	3
-3	error_rate	0.01	0.08	0.22	3

@@ -1,3 +1,0 @@
-n	NAME	REGION	SIZE	STATUS	total_entries
-1	web-1	lon1	g4s.kube	ACTIVE	2
-2	db-1	lon1	g4m.medium	ACTIVE	2

@@ -1,6 +1,0 @@
-n	Format	Read	Write	Streaming	Compression	total_entries
-1	parquet	✓	✓	✓	✓	5
-2	csv	✓	✓	✓	✗	5
-3	avro	✓	✓	○	✓	5
-4	orc	✓	✗	✗	✓	5
-5	json	✓	✓	⚠	✗	5

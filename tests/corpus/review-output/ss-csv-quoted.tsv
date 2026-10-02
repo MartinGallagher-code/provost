@@ -1,3 +1,0 @@
-n	state	recv_q	send_q	local	peer	process	total_entries
-1	ESTAB	0	0	192.168.1.10:22	10.0.0.5:51234	users:(("sshd",pid=1234,fd=3))	2
-2	LISTEN	0	128	0.0.0.0:80	0.0.0.0:*	users:(("nginx",pid=987,fd=6),("nginx",pid=988,fd=6))	2

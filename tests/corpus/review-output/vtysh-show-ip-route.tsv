@@ -1,4 +1,0 @@
-n	K>*_0_0_0_0/0_[0/100]_via_10_0_0_1	eth0	total_entries
-1	C>* 10.0.0.0/24 is directly connected	eth0	3
-2	O>* 10.0.1.0/24 [110/20] via 10.0.0.2	eth0	3
-3	B>* 10.0.2.0/24 [20/0] via 10.0.0.3	eth0	3

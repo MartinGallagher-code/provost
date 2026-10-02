@@ -1,2 +1,0 @@
-n	result	rule	severity	message	location	total_entries
-1	1	aws-s3-enable-bucket-encryption	HIGH	Bucket does not have encryption enabled	main.tf:14-22	1

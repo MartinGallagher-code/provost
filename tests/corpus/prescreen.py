@@ -4,7 +4,8 @@
 A review aid, not a gate: it triages the corpus so a human reviewer can skip
 the entries that are structurally clean and spend their attention on the rest.
 It reads tests/corpus/review-output/*.tsv (plus inputs/ for a coverage check)
-and writes a TSV verdict per tool.
+and writes a TSV verdict per tool. That directory is generated, not committed:
+run `bash tests/corpus/review-snapshot.sh` first.
 
 Verdicts
   looks-fine       no structural defect found
@@ -360,6 +361,8 @@ def main():
     ap.add_argument("--exclude-marked", metavar="TSV",
                     help="drop tools already ruled on in this marks file (used with --emit-json)")
     args = ap.parse_args()
+    if not os.path.isdir(OUT_DIR):
+        sys.exit("prescreen: %s is missing -- run `bash tests/corpus/review-snapshot.sh` first" % OUT_DIR)
 
     if args.validate:
         validate()

@@ -1,5 +1,0 @@
-n	metric	p50	p99	total_entries
-1	latency_ms	12	340	4
-2	bytes	1024	1048576	4
-3	errors	0	17	4
-4	qps	5300	9100	4

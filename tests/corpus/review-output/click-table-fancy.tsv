@@ -1,4 +1,0 @@
-n	env	replicas	healthy	total_entries
-1	staging	2	yes	3
-2	prod	6	yes	3
-3	canary	1	no	3

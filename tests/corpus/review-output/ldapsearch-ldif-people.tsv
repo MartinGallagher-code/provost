@@ -1,3 +1,0 @@
-n	dn	uid	cn	mail	uidNumber	gidNumber	dn:_uid
-1	uid=jdoe,ou=people,dc=example,dc=com	jdoe	John_Doe	jdoe@example.com	1001	1001	jdoe,ou=people,dc=example,dc=com
-2	uid=asmith,ou=people,dc=example,dc=com	asmith	Alice_Smith	asmith@example.com	1002	1002	asmith,ou=people,dc=example,dc=com

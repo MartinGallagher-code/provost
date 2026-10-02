@@ -1,2 +1,0 @@
-Set-Cookie	Set-Cookie	Set-Cookie
-session=abc123; Path=/; Domain=.example.com; Secure; HttpOnly	prefs="theme=dark; lang=en"; Path=/; Max-Age=86400	id=42; SameSite=Lax

@@ -187,7 +187,7 @@ _strat_csv_strip_comments () {
     local text="$1"
     [[ "$text" == \#* ]] || { printf '%s' "$text"; return; }
 
-    local out="" started=0 line
+    local out="" started=0 line _prom=0
     local first_data=""
     while IFS= read -r line; do
         [[ "$line" == \#* || -z "$line" ]] && continue
@@ -208,7 +208,15 @@ _strat_csv_strip_comments () {
         # leading line, is what makes strategy_detect correctly decline.
         if [[ $started -eq 0 && "$line" =~ ^\#[[:space:]]*(HELP|TYPE)[[:space:]] ]]; then
             started=1
+            _prom=1
             out+="${line}"$'\n'
+            continue
+        fi
+        # An INTERIOR `# …` comment between rows (`# app tier` grouping a
+        # CSV export) — comma-free, in a file that opened with `#` comments
+        # — is annotation, not a record: drop it like the leading ones.
+        if [[ $started -eq 1 && $_prom -eq 0 && $data_commas -ge 1 \
+              && "$line" == \#* && "$line" != *,* ]]; then
             continue
         fi
         if [[ $started -eq 0 && "$line" == \#* ]]; then
@@ -284,6 +292,44 @@ _strat_csv_detect_body () {
         return 1
     fi
 
+    # COLON-delimited records are colon-fields', and `key=value` token lines
+    # are the kv parsers' — in both the commas sit INSIDE a field value:
+    #   getent group:  `sudo:x:27:deploy,alice`   (member list)
+    #   getent passwd: `alice:x:1000:1000:Alice Smith,Room 101,,:/home/alice:…`
+    #   metrics:       `ts=00:00 cpu=45% load=1,23 net=1.2Gbps` (decimal comma)
+    # Colon rule (the TAB rule's twin): every non-blank line (first 10) carries
+    # the SAME count of field colons (digit:digit clock colons excluded), >= 2,
+    # and more of them than commas. kv rule: every non-blank line is >= 2 whitespace-separated
+    # `name=value` tokens and nothing else.
+    local _cc_l _cc_n=0 _cc_first=-1 _cc_uniform=1 _cc_brk=0 _cc_kv=1 _cc_tk
+    _fr_lines "$text"
+    for _cc_l in "${_FR_LINES[@]}"; do
+        [[ "${_cc_l}" != *[![:space:]]* ]] && continue
+        _cc_n=$((_cc_n + 1))
+        # (clock times — `09:12:04`, `+00:00` — are not field colons)
+        local _cc_nt="$_cc_l"
+        while [[ "$_cc_nt" =~ [0-9]:[0-9] ]]; do _cc_nt="${_cc_nt//${BASH_REMATCH[0]}/}"; done
+        local _cc_only="${_cc_nt//[!:]/}" _cc_conly="${_cc_l//[!,]/}"
+        [[ $_cc_first -lt 0 ]] && _cc_first=${#_cc_only}
+        [[ ${#_cc_only} -ne $_cc_first || ${#_cc_only} -le ${#_cc_conly} ]] && _cc_uniform=0
+        if [[ $_cc_kv -eq 1 ]]; then
+            _fr_tok "$_cc_l"
+            [[ ${#_FR_TOK[@]} -ge 2 ]] || _cc_kv=0
+            for _cc_tk in "${_FR_TOK[@]}"; do
+                # (`a=1, b=2` — a token ENDING in a comma — is a real CSV of
+                # k=v cells: the commas separate tokens, not digits)
+                [[ "$_cc_tk" =~ ^[A-Za-z_][A-Za-z0-9_.-]*= && "$_cc_tk" != *, ]] || { _cc_kv=0; break; }
+            done
+        fi
+        [[ $_cc_uniform -eq 0 && $_cc_kv -eq 0 ]] && { _cc_brk=1; break; }
+        [[ $_cc_n -ge 10 ]] && { _cc_brk=1; break; }
+    done
+    [[ $_cd_prefix -eq 1 && $_cc_brk -eq 0 ]] && { _CSV_DET_DONE=0; return 1; }
+    if [[ $_cc_n -ge 2 ]]; then
+        [[ $_cc_uniform -eq 1 && $_cc_first -ge 2 ]] && return 1
+        [[ $_cc_kv -eq 1 ]] && return 1
+    fi
+
     # Check first 5 non-empty lines for CSV characteristics
     local line_count=0 _cm_brk=0
     local header_commas=0
@@ -343,6 +389,11 @@ _strat_csv_detect_body () {
 
     # Real CSV: most lines should have commas (allow at most 1 without)
     [[ $with_commas -lt $((line_count - 1)) ]] && return 1
+    # ...but a TWO-field "CSV" (one comma in the first line) has no slack to
+    # give: a comma-less line there is the tell that the lone comma is prose
+    # punctuation inside a value (`pid 8821, uptime 2:14:08` in supervisorctl,
+    # `# /dev/sda, SCSI device` in smartctl --scan), not a field separator.
+    [[ $header_commas -eq 1 && $with_commas -lt $line_count ]] && return 1
 
     # Of lines with commas, most should have consistent counts
     local threshold=3

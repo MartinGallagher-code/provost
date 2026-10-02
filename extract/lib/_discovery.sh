@@ -628,10 +628,22 @@ _match_hint () {
     _HINT_TOOL="" _HINT_STRATEGY=""
     [[ "${_OPT_no_hints:-0}" -eq 1 ]] && return 1
     [[ -f "${HINTS_FILE:-}" ]] || return 1
-    local _mh_first="" _mh_line
+    local _mh_first="" _mh_line _mh_src="$text" _mh_found=0
+    if (( ${#text} > 65536 )); then
+        # BIG input: look for the first non-blank line among the WHOLE lines
+        # of a 64 KB prefix (the here-string below copies the entire text);
+        # none there — fall back to the full text, so the answer is exact.
+        _mh_src="${text:0:65536}"
+        [[ "$_mh_src" == *$'\n'* ]] && _mh_src="${_mh_src%$'\n'*}" || _mh_src=""
+    fi
     while IFS= read -r _mh_line; do
-        [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; break; }
-    done <<< "$text"
+        [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; _mh_found=1; break; }
+    done <<< "$_mh_src"
+    if [[ $_mh_found -eq 0 && ${#_mh_src} -ne ${#text} ]]; then
+        while IFS= read -r _mh_line; do
+            [[ -n "${_mh_line//[[:space:]]/}" ]] && { _mh_first="$_mh_line"; break; }
+        done <<< "$text"
+    fi
     # BIG input: decide literal presence for every row in one pass (exact —
     # see _hint_presence); small inputs keep the per-row full-text tests.
     _HINT_PRESENCE_OK=0
@@ -874,6 +886,29 @@ _FR_SAMPLE_TAIL="${_FR_SAMPLE_TAIL:-40}"
 _FR_SAMPLE_HEAD_BYTES="${_FR_SAMPLE_HEAD_BYTES:-16384}"
 _FR_SAMPLE_TAIL_BYTES="${_FR_SAMPLE_TAIL_BYTES:-4096}"
 _FR_DOC_STRATEGIES="${_FR_DOC_STRATEGIES:- json json-array jsonl xml har yaml toml }"
+# SAMPLE SLACK. A detector that decides on a SHARE of the lines it sees ("at
+# least 60% of lines are label: value", "decline when one token count covers
+# 60% of lines") can land on the wrong side of its threshold on the sample
+# when the full text sits just on the other side — a false REJECT, which
+# would drop a candidate the full text accepts (pkg-config vs deno-info: the
+# sample's modal share was exactly 60%, the full text's 59%). Loosening the
+# SAMPLE screen can never add a wrong winner, because the full-text run alone
+# decides — it can only cost a full-text detect. So while a detector screens
+# the sample, _FR_SLACK holds _FR_SAMPLE_SLACK percentage points (else it is
+# 0), and every share threshold over the whole text widens by it in the
+# accepting direction:
+#     needed to accept:  [[ $(( a * 100 / n )) -ge $(( 60 - ${_FR_SLACK:-0} )) ]]
+#     reason to decline: [[ $(( a * 100 / n )) -ge $(( 60 + ${_FR_SLACK:-0} )) ]]
+# A share over a fixed head window (the first 40 / 60 lines) needs none — the
+# sample's head is the full text's head. A new share-threshold detector must
+# follow the same rule (extract/README.md "Very large inputs").
+# _FR_DET_SAMPLE is 1 during the same screen, for a detector whose check is
+# only meaningful on the whole text (it may skip it on the sample: the screen
+# can only get looser, the full-text run still decides).
+_FR_SAMPLE_SLACK="${_FR_SAMPLE_SLACK:-15}"
+[[ "$_FR_SAMPLE_SLACK" =~ ^[0-9]+$ ]] || _FR_SAMPLE_SLACK=15
+_FR_SLACK=0
+_FR_DET_SAMPLE=0
 _DET_SAMPLED=0
 _DET_DOC=0
 _DET_TEXT=""
@@ -886,8 +921,11 @@ _detect_sample_build () {
     _DET_TEXT=""
     [[ "$_FR_SAMPLE_BYTES" =~ ^[0-9]+$ ]] || return 0
     (( ${#text} > _FR_SAMPLE_BYTES )) || return 0
-    local _lead="${text#"${text%%[![:space:]]*}"}"
-    case "${_lead:0:1}" in
+    # first non-blank byte (walked, not `${text#"${text%%[![:space:]]*}"}`:
+    # that copies the whole big text to read one character)
+    local _li=0
+    while [[ "${text:_li:1}" == [[:space:]] ]]; do _li=$((_li + 1)); done
+    case "${text:_li:1}" in
         '') return 0 ;;
         '{'|'['|'<') _DET_DOC=1 ;;
     esac
@@ -1007,7 +1045,13 @@ _detect_strategy () {
         # Large input: screen on the bounded sample, then confirm on the full
         # text (see _detect_sample_build) — the full-text run decides and sets
         # the confidence (and any detect→extract state) exactly as before.
-        if ! strategy_detect "$_DET_TEXT" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
+        # _FR_SLACK tells a share-threshold detector it is screening a
+        # sample (see SAMPLE SLACK above); the full-text run below sees 0.
+        local _det_rc=0
+        _FR_SLACK="$_FR_SAMPLE_SLACK"; _FR_DET_SAMPLE=1
+        strategy_detect "$_DET_TEXT" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" || _det_rc=$?
+        _FR_SLACK=0; _FR_DET_SAMPLE=0
+        if [[ $_det_rc -ne 0 ]]; then
             _log_debug "Strategy '$strategy_name' (p${strategy_priority}): not applicable (sample)"
             return 1
         fi
@@ -1553,7 +1597,9 @@ run_explain_mode () {
             [[ $_STRATEGY_CONFIDENCE -lt 0 ]] && _STRATEGY_CONFIDENCE=0
             [[ $_STRATEGY_CONFIDENCE -gt 100 ]] && _STRATEGY_CONFIDENCE=100
             local reason="${_STRATEGY_CONFIDENCE_REASON:-detected}"
-            match_lines="${match_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_STRATEGY_CONFIDENCE" "$reason")"$'\n'
+            # Sort key first (confidence, priority, name) — the order ranked
+            # detection tries the candidates in; cut off before printing.
+            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_STRATEGY_CONFIDENCE" "$reason")"$'\n'
             matched=$((matched + 1))
         else
             miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' 'not applicable')"$'\n'
@@ -1570,9 +1616,12 @@ run_explain_mode () {
     printf '%-7s  %-30s  %4s  %4s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "REASON"
     printf '%-7s  %-30s  %4s  %4s  %s\n' "------" "--------" "---" "----" "------"
 
-    # Matches first (sorted by confidence desc), then misses
+    # Matches first, in RANK order — confidence desc, then priority, then
+    # strategy name (LC_ALL=C), exactly as ranked detection tries them (the
+    # first whose extract yields output wins; a hints.tsv row, if one
+    # matches, is tried before all of them) — then misses.
     if [[ -n "$match_lines" ]]; then
-        printf '%s' "$match_lines" | sort -t'(' -k1,1r
+        printf '%s' "$match_lines" | LC_ALL=C sort -t'|' -k1,1nr -k2,2n -k3,3 | cut -d'|' -f4-
     fi
     if [[ -n "$miss_lines" ]]; then
         printf '%s' "$miss_lines"

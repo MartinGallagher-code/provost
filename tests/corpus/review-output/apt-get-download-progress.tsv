@@ -1,8 +1,0 @@
-n	A	total_entries
-1	Get:1 http://deb.debian.org/debian bookworm/main amd64 libc6 amd64 2.36-9+deb12u4 [1,234 kB]	7
-2	45% [1 libc6 567 kB/1,234 kB 45%] [####################------------------------] 2,341 kB/s 3s	7
-3	Get:2 http://deb.debian.org/debian bookworm/main amd64 libssl3 amd64 3.0.11-1~deb12u2 [2,045 kB]	7
-4	78% [2 libssl3 1,596 kB/2,045 kB 78%] [###################################---------] 2,102 kB/s 1s	7
-5	Get:3 http://deb.debian.org/debian bookworm/main amd64 zlib1g amd64 1:1.2.13.dfsg-1 [92.6 kB]	7
-6	100% [3 zlib1g 92,600 B/92,600 B 100%] [############################################] 1,880 kB/s 0s	7
-7	Fetched 3,371 kB in 2s (1,624 kB/s)	7

@@ -1,2 +1,0 @@
-CC	CFLAGS	LDFLAGS
-gcc	-O2 -Wall -std=c11	-lm -lpthread

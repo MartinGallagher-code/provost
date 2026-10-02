@@ -1,7 +1,0 @@
-n	name	value	label_cpu	label_mode	label_device	label_mountpoint	label_fstype	node_cpu_seconds_total.help	node_cpu_seconds_total.type
-1	node_cpu_seconds_total	194821.35	0	idle				Seconds the CPUs spent in each mode.	counter
-2	node_cpu_seconds_total	4821.11	0	system				Seconds the CPUs spent in each mode.	counter
-3	node_cpu_seconds_total	12043.88	0	user				Seconds the CPUs spent in each mode.	counter
-4	node_filesystem_avail_bytes	12451889152			/dev/sda1	/	ext4	Seconds the CPUs spent in each mode.	counter
-5	node_memory_MemAvailable_bytes	8531423232						Seconds the CPUs spent in each mode.	counter
-6	node_load1	0.42						Seconds the CPUs spent in each mode.	counter

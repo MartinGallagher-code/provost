@@ -1,8 +1,0 @@
-n	Class	Description	H/W	path	Device	total_entries
-1	system	XPS 15 9500				7
-2	bus	0C6WNP	/0			7
-3	memory	64KiB BIOS	/0/	0		7
-4	processor	Intel Core i7-10750H CPU	/0/	1		7
-5	memory	16GiB System Memory	/0/	2		7
-6	network	Ethernet Connection	/0/	100/1f.6	eth0	7
-7	storage	Samsung SSD 970 EVO Plus	/0/	100/1d/0	nvme0	7
