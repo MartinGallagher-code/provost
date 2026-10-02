@@ -1,0 +1,25 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'talk.mov':
+  Metadata:
+    major_brand     : qt
+    minor_version   : 0
+    compatible_brands: qt
+    creation_time   : 2026-09-28T10:14:03.000000Z
+  Duration: 00:12:31.47, start: 0.000000, bitrate: 12404 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080, 12148 kb/s, 29.97 fps, 29.97 tbr, 30k tbn (default)
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 253 kb/s (default)
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> h264 (libx264))
+  Stream #0:1 -> #0:1 (aac (native) -> aac (native))
+Press [q] to stop, [?] for help
+Output #0, mp4, to 'talk-720p.mp4':
+  Stream #0:0(und): Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1280x720, q=2-31, 29.97 fps, 30k tbn (default)
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 128 kb/s (default)
+frame=  612 fps=203 q=28.0 size=    2304KiB time=00:00:20.38 bitrate= 925.9kbits/s speed=6.77x
+frame= 1290 fps=213 q=28.0 size=    5120KiB time=00:00:43.01 bitrate= 975.1kbits/s speed= 7.1x
+frame= 1977 fps=217 q=28.0 size=    7936KiB time=00:01:05.93 bitrate= 986.0kbits/s speed=7.24x
+frame=22511 fps=221 q=-1.0 Lsize=   90512KiB time=00:12:31.40 bitrate= 986.7kbits/s speed=7.37x
+video:77982KiB audio:11744KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: 0.877391%
+[libx264 @ 0x55d1c0a2b2c0] frame I:92    Avg QP:20.31  size: 41201
+[libx264 @ 0x55d1c0a2b2c0] frame P:5839  Avg QP:23.48  size:  7104
+[libx264 @ 0x55d1c0a2b2c0] frame B:16580 Avg QP:26.02  size:  2047
+[aac @ 0x55d1c0a3c780] Qavg: 312.441

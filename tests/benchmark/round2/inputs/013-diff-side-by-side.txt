@@ -1,0 +1,6 @@
+host=web01			host=web01
+port=8080		     |	port=8443
+workers=4		     |	workers=8
+timeout=30			timeout=30
+log=info		     |	log=debug
+			     >	tls=on

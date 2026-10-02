@@ -1,0 +1,18 @@
+npm notice
+npm notice package: @acme/tiny-utils@1.4.2
+npm notice Tarball Contents
+npm notice 29B README.md
+npm notice 37B lib/fmt.js
+npm notice 40B lib/index.js
+npm notice 139B package.json
+npm notice Tarball Details
+npm notice name: @acme/tiny-utils
+npm notice version: 1.4.2
+npm notice filename: acme-tiny-utils-1.4.2.tgz
+npm notice package size: 360 B
+npm notice unpacked size: 245 B
+npm notice shasum: 8173ec7c91023bcf99d849699b6c705376f3c56d
+npm notice integrity: sha512-2os22JMqsl2Fm[...]HEZhZyRR4RYNg==
+npm notice total files: 4
+npm notice
+acme-tiny-utils-1.4.2.tgz

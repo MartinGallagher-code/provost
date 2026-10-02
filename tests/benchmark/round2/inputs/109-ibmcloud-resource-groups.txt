@@ -1,0 +1,7 @@
+Retrieving all resource groups under account 0123456789abcdef0123456789abcdef as user@example.com...
+OK
+Name          ID                                 Default Group   State
+Default       a1b2c3d4e5f60718293a4b5c6d7e8f90   true            ACTIVE
+prod          0f1e2d3c4b5a69788796a5b4c3d2e1f0   false           ACTIVE
+staging       11223344556677889900aabbccddeeff   false           ACTIVE
+sandbox-old   ffeeddccbbaa00998877665544332211   false           SUSPENDED

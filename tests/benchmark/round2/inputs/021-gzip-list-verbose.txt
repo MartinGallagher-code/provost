@@ -1,0 +1,4 @@
+method  crc     date  time           compressed        uncompressed  ratio uncompressed_name
+defla ee2a9136 Oct  2 15:53                5373               12813  58.2% /srv/data/services
+defla 9f6146e6 Oct  2 15:53                1640                3144  48.5% /srv/data/protocols
+                                           7013               15957  56.2% (totals)

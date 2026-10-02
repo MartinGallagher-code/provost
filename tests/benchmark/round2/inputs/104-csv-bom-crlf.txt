@@ -1,0 +1,5 @@
+﻿Invoice No,Date,Customer,Country,Net,VAT,Gross,Paid
+"INV-2026-0912",02/09/2026,"Müller GmbH",DE,"1,250.00",237.50,"1,487.50",Yes
+"INV-2026-0913",05/09/2026,"Smith & Sons, Ltd",GB,980.00,196.00,"1,176.00",No
+"INV-2026-0914",11/09/2026,"Café Lumière",FR,45.90,9.18,55.08,Yes
+"INV-2026-0915",19/09/2026,"OBrien Partners",IE,"12,400.00",0.00,"12,400.00",

@@ -1,0 +1,33 @@
+  1           0 RESUME                   0
+
+  2           2 LOAD_FAST                0 (x)
+              4 LOAD_CONST               1 (2)
+              6 COMPARE_OP               4 (>)
+             12 POP_JUMP_FORWARD_IF_FALSE    25 (to 64)
+
+  3          14 LOAD_CONST               2 (<code object <listcomp> at 0x7fb5399fc1d0, file "<string>", line 3>)
+             16 MAKE_FUNCTION            0
+             18 LOAD_GLOBAL              1 (NULL + range)
+             30 LOAD_FAST                0 (x)
+             32 PRECALL                  1
+             36 CALL                     1
+             46 GET_ITER
+             48 PRECALL                  0
+             52 CALL                     0
+             62 RETURN_VALUE
+
+  4     >>   64 LOAD_CONST               0 (None)
+             66 RETURN_VALUE
+
+Disassembly of <code object <listcomp> at 0x7fb5399fc1d0, file "<string>", line 3>:
+  3           0 RESUME                   0
+              2 BUILD_LIST               0
+              4 LOAD_FAST                0 (.0)
+        >>    6 FOR_ITER                 7 (to 22)
+              8 STORE_FAST               1 (i)
+             10 LOAD_FAST                1 (i)
+             12 LOAD_FAST                1 (i)
+             14 BINARY_OP                5 (*)
+             18 LIST_APPEND              2
+             20 JUMP_BACKWARD            8 (to 6)
+        >>   22 RETURN_VALUE

@@ -1,0 +1,13 @@
+f: /usr/bin/python3
+drwxr-xr-x root root /
+drwxr-xr-x root root usr
+drwxr-xr-x root root bin
+lrwxrwxrwx root root python3 -> /etc/alternatives/python3
+drwxr-xr-x root root   /
+drwxr-xr-x root root   etc
+drwxr-xr-x root root   alternatives
+lrwxrwxrwx root root   python3 -> /usr/bin/python3.11
+drwxr-xr-x root root     /
+drwxr-xr-x root root     usr
+drwxr-xr-x root root     bin
+-rwxr-xr-x root root     python3.11

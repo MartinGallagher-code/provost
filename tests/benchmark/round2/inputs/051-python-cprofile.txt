@@ -1,0 +1,40 @@
+         223320 function calls (223205 primitive calls) in 0.145 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      5/1    0.000    0.000    0.145    0.145 {built-in method builtins.exec}
+        1    0.000    0.000    0.145    0.145 prof.py:1(<module>)
+        1    0.026    0.026    0.141    0.141 prof.py:2(work)
+    20000    0.009    0.000    0.065    0.000 __init__.py:183(dumps)
+    20000    0.017    0.000    0.056    0.000 encoder.py:183(encode)
+    20000    0.009    0.000    0.049    0.000 __init__.py:208(findall)
+    20000    0.035    0.000    0.035    0.000 encoder.py:205(iterencode)
+    20000    0.031    0.000    0.031    0.000 {method 'findall' of 're.Pattern' objects}
+    20006    0.007    0.000    0.010    0.000 __init__.py:272(_compile)
+    60275    0.005    0.000    0.005    0.000 {built-in method builtins.isinstance}
+      5/1    0.000    0.000    0.004    0.004 <frozen importlib._bootstrap>:1165(_find_and_load)
+      5/1    0.000    0.000    0.004    0.004 <frozen importlib._bootstrap>:1120(_find_and_load_unlocked)
+      5/1    0.000    0.000    0.004    0.004 <frozen importlib._bootstrap>:666(_load_unlocked)
+      4/1    0.000    0.000    0.004    0.004 <frozen importlib._bootstrap_external>:934(exec_module)
+     12/2    0.000    0.000    0.004    0.002 <frozen importlib._bootstrap>:233(_call_with_frames_removed)
+        1    0.000    0.000    0.004    0.004 __init__.py:1(<module>)
+        1    0.000    0.000    0.002    0.002 decoder.py:1(<module>)
+        1    0.000    0.000    0.001    0.001 <frozen importlib._bootstrap>:1207(_handle_fromlist)
+        1    0.000    0.000    0.001    0.001 {built-in method builtins.__import__}
+20330/20301    0.001    0.000    0.001    0.000 {built-in method builtins.len}
+    20061    0.001    0.000    0.001    0.000 {method 'join' of 'str' objects}
+        4    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:1007(get_code)
+        6    0.000    0.000    0.001    0.000 __init__.py:225(compile)
+        1    0.000    0.000    0.001    0.001 scanner.py:1(<module>)
+        7    0.000    0.000    0.001    0.000 _compiler.py:740(compile)
+        4    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap_external>:727(_compile_bytecode)
+        4    0.001    0.000    0.001    0.000 {built-in method marshal.loads}
+        7    0.000    0.000    0.001    0.000 _parser.py:979(parse)
+        5    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:566(module_from_spec)
+     14/7    0.000    0.000    0.001    0.000 _parser.py:456(_parse_sub)
+        5    0.000    0.000    0.001    0.000 <frozen importlib._bootstrap>:1054(_find_spec)
+     16/7    0.000    0.000    0.001    0.000 _parser.py:516(_parse)
+        7    0.000    0.000    0.000    0.000 _compiler.py:573(_code)
+        5    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1499(find_spec)
+        5    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap_external>:1467(_get_spec)

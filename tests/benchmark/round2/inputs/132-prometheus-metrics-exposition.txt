@@ -1,0 +1,20 @@
+# HELP apiserver_request_total [STABLE] Counter of apiserver requests broken out for each verb, dry run value, group, version, resource, scope, component, and HTTP response code.
+# TYPE apiserver_request_total counter
+apiserver_request_total{code="200",component="apiserver",dry_run="",group="",resource="pods",scope="namespace",subresource="",verb="LIST",version="v1"} 18342
+apiserver_request_total{code="200",component="apiserver",dry_run="",group="apps",resource="deployments",scope="namespace",subresource="",verb="GET",version="v1"} 9121
+apiserver_request_total{code="404",component="apiserver",dry_run="",group="",resource="configmaps",scope="namespace",subresource="",verb="GET",version="v1"} 57
+apiserver_request_total{code="409",component="apiserver",dry_run="",group="coordination.k8s.io",resource="leases",scope="namespace",subresource="",verb="PUT",version="v1"} 3
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 412
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 4.71859200e+08
+# HELP etcd_request_duration_seconds [ALPHA] Etcd request latency in seconds for each operation and object type.
+# TYPE etcd_request_duration_seconds histogram
+etcd_request_duration_seconds_bucket{operation="get",type="/registry/pods",le="0.005"} 10211
+etcd_request_duration_seconds_bucket{operation="get",type="/registry/pods",le="0.025"} 11874
+etcd_request_duration_seconds_bucket{operation="get",type="/registry/pods",le="0.1"} 11990
+etcd_request_duration_seconds_bucket{operation="get",type="/registry/pods",le="+Inf"} 12003
+etcd_request_duration_seconds_sum{operation="get",type="/registry/pods"} 41.0927
+etcd_request_duration_seconds_count{operation="get",type="/registry/pods"} 12003

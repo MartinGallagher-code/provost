@@ -22,6 +22,7 @@ nav:
       - The columnar-specs engine: columnar-specs-engine.md
   - Benchmark:
       - 50 held-out inputs: benchmark-2026-08-12-generalisation.md
+      - "Round 2: 109 held-out inputs": benchmark-2026-10-02-generalisation-round2.md
 
 markdown_extensions:
   - admonition

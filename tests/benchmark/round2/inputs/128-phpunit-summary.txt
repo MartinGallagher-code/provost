@@ -1,0 +1,28 @@
+PHPUnit 11.3.6 by Sebastian Bergmann and contributors.
+
+Runtime:       PHP 8.3.11
+Configuration: /srv/app/phpunit.xml
+
+...........F.....S......E.......                                  32 / 32 (100%)
+
+Time: 00:01.284, Memory: 24.00 MB
+
+There was 1 error:
+
+1) Tests\Unit\MailerTest::testSendsWithAttachment
+RuntimeException: SMTP connection refused
+
+/srv/app/src/Mail/Mailer.php:88
+/srv/app/tests/Unit/MailerTest.php:41
+
+--
+
+There was 1 failure:
+
+1) Tests\Unit\PriceTest::testRoundsToNearestCent
+Failed asserting that 10.12 is identical to 10.13.
+
+/srv/app/tests/Unit/PriceTest.php:27
+
+ERRORS!
+Tests: 32, Assertions: 71, Errors: 1, Failures: 1, Skipped: 1.

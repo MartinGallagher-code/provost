@@ -1,0 +1,6 @@
+/proc/pressure/cpu:some avg10=94.24 avg60=93.74 avg300=63.20 total=309612667
+/proc/pressure/cpu:full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+/proc/pressure/memory:some avg10=0.00 avg60=0.00 avg300=0.00 total=0
+/proc/pressure/memory:full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+/proc/pressure/io:some avg10=0.77 avg60=1.42 avg300=1.50 total=12262166
+/proc/pressure/io:full avg10=0.00 avg60=0.00 avg300=0.57 total=7798712

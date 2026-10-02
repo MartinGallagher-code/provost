@@ -1,0 +1,5 @@
+app.py:9: error: Incompatible return value type (got "int", expected "str")  [return-value]
+app.py:9: error: Unsupported operand types for + ("int" and "str")  [operator]
+app.py:18: error: "Store" has no attribute "data"  [attr-defined]
+app.py:19: error: Argument 1 to "total" has incompatible type "str"; expected "list[int]"  [arg-type]
+Found 4 errors in 1 file (checked 1 source file)

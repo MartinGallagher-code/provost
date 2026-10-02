@@ -1,5 +1,44 @@
 # provost — Changelog
 
+## 2026-10-02 — generalisation benchmark round 2: 109 unseen inputs (measurement only)
+
+A new held-out round, built because round 1 has been tuned against and now
+measures regression. It has **109 inputs, none in the corpus, holdout or
+round 1**. Novelty was checked both by name (tool-mode stem) and by content
+(`round2/novelty.py`: line-set and word-3-gram Jaccard against all 3,853
+existing inputs; maximum 3-gram score 0.20). 67 inputs were **captured** from
+real commands in the container, read-only and scrubbed. 42 were **reproduced**
+from documented formats for tools the container lacks (Windows/macOS,
+databases, cloud CLIs, k8s, monitoring). Each result was rated on round 1's
+PASS/PARTIAL/FAIL scale, which was fixed in `round2/CRITERIA.md` before the
+first run. **No engine, strategy or hint changes.**
+
+- **Result: 17 PASS / 51 PARTIAL / 41 FAIL** (16% / 47% / 38%; 62% usable).
+  Round 1 at first rating was 46% / 24% / 30%, and the corpus shape gate reports
+  96.7% "tidy". At least six of the FAILs would pass a row/column-count check.
+- **Pattern by shape:** explicit-syntax formats (JSON, YAML, CSV, NDJSON,
+  logfmt, box tables) mostly pass. Whitespace tables fail 10 of 21, all because
+  a cell contains a space and boundaries come from tokens rather than header
+  offsets. Multi-section reports fail 11 of 13: one section is claimed and the
+  rest dropped silently, and the size-based truncation guard does not fire.
+- **`--rank priority` vs the confidence ranking: identical winner and
+  byte-identical output on all 109.** 98 inputs had two or more candidates, but
+  the highest-confidence candidate was also the best-priority one in 108.
+  Confidence ≥ 80 is still wrong 37% of the time.
+- **`--multi`** improved 17 inputs (10 of them default-mode FAILs) and made 7
+  worse.
+- Engine finding, not fixed: `--batch` treats text that ends in three or more
+  newlines as binary (`lib/_dispatch.sh`, size minus `$(<file)` bytes > 2) and
+  skips it. No corpus input is affected today.
+
+Files: `tests/benchmark/round2/{inputs/*.txt, manifest.tsv, CRITERIA.md,
+ratings.tsv, novelty.py}` (new); `tests/benchmark/run.sh` (`--round2`, `-j`,
+`--tidy`; adds a `--rank priority` pass; `.multi` now uses provost's exact
+`--multi -f tsv --max-strategies 1` flags; single-dataset modes go through the
+`--batch --batch-out` fast path with a per-input fallback); `tests/benchmark/README.md`;
+`docs/benchmark-2026-10-02-generalisation-round2.md` (new); `mkdocs.yml`
+(Benchmark nav).
+
 ## 2026-10-01 — large inputs: no sample false-rejects, colons / block-records twins, faster ps / CSV
 
 **Sample false-rejects (`extract/lib/_discovery.sh` + share-threshold detectors).**

@@ -1,0 +1,39 @@
+
+Windows IP Configuration
+
+   Host Name . . . . . . . . . . . . : WS-0142
+   Primary Dns Suffix  . . . . . . . : corp.example.com
+   Node Type . . . . . . . . . . . . : Hybrid
+   IP Routing Enabled. . . . . . . . : No
+   WINS Proxy Enabled. . . . . . . . : No
+   DNS Suffix Search List. . . . . . : corp.example.com
+                                       example.com
+
+Ethernet adapter Ethernet:
+
+   Connection-specific DNS Suffix  . : corp.example.com
+   Description . . . . . . . . . . . : Intel(R) Ethernet Connection (16) I219-LM
+   Physical Address. . . . . . . . . : 00-1A-2B-3C-4D-5E
+   DHCP Enabled. . . . . . . . . . . : Yes
+   Autoconfiguration Enabled . . . . : Yes
+   Link-local IPv6 Address . . . . . : fe80::1c2d:3e4f:5a6b:7c8d%12(Preferred)
+   IPv4 Address. . . . . . . . . . . : 192.0.2.57(Preferred)
+   Subnet Mask . . . . . . . . . . . : 255.255.255.0
+   Lease Obtained. . . . . . . . . . : Thursday, October 1, 2026 8:02:11 AM
+   Lease Expires . . . . . . . . . . : Friday, October 2, 2026 8:02:11 AM
+   Default Gateway . . . . . . . . . : 192.0.2.1
+   DHCP Server . . . . . . . . . . . : 192.0.2.2
+   DHCPv6 IAID . . . . . . . . . . . : 117446443
+   DHCPv6 Client DUID. . . . . . . . : 00-01-00-01-2C-5A-7B-11-00-1A-2B-3C-4D-5E
+   DNS Servers . . . . . . . . . . . : 192.0.2.53
+                                       192.0.2.54
+   NetBIOS over Tcpip. . . . . . . . : Enabled
+
+Wireless LAN adapter Wi-Fi:
+
+   Media State . . . . . . . . . . . : Media disconnected
+   Connection-specific DNS Suffix  . :
+   Description . . . . . . . . . . . : Intel(R) Wi-Fi 6E AX211 160MHz
+   Physical Address. . . . . . . . . : 00-1A-2B-3C-4D-6F
+   DHCP Enabled. . . . . . . . . . . : Yes
+   Autoconfiguration Enabled . . . . : Yes

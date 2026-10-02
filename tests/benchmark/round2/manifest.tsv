@@ -1,0 +1,126 @@
+## Round-2 held-out benchmark — provenance manifest.
+##
+## provenance  captured   = real output, produced by running the command in the
+##                          2026-10-02 build container (read-only invocations;
+##                          inputs 001-067). Scrubbed: container hostname, the
+##                          service account name, scratch paths and CA-bundle
+##                          paths replaced with neutral values (see the doc).
+##             reproduced = faithful reproduction of the tool's documented
+##                          output format, written by hand because the tool or
+##                          platform is not available in the container (Windows,
+##                          macOS, databases, cloud CLIs; inputs 101-142).
+##                          Data values are invented; addresses use the
+##                          RFC 5737 documentation ranges.
+## category / shape: the axes the write-up breaks results down by.
+## source: the command line (captured) or the format reproduced.
+##
+## input	provenance	category	shape	source
+001-apt-cache-showpkg	captured	package-manager	multi-section report	apt-cache showpkg coreutils | head -45
+002-apt-config-dump	captured	package-manager	kv (key "value";)	apt-config dump | head -40
+003-bash-kill-l	captured	shell	grid (n) NAME per cell)	bash: kill -l
+004-bash-set-o	captured	shell	kv (two-column, tab)	bash -c "set -o"
+005-black-diff	captured	test/lint	diff + summary	black --check --diff app.py
+006-bzip2-verbose	captured	text-utils	inline stats lines	bzip2 -v FILE FILE
+007-cargo-list	captured	language-tooling	header + name/description list	cargo --list
+008-cmake-capabilities-json	captured	build	JSON (single line)	cmake -E capabilities
+009-comm-three-column	captured	text-utils	tab-indented columns	comm FILE1 FILE2
+010-composer-config-list	captured	language-tooling	banner + [key] value	composer config --list -g
+011-curl-verbose-trace	captured	network	prefixed trace (* > <)	curl -sv -o /dev/null http://127.0.0.1:PORT/app.py
+012-diff-normal	captured	text-utils	diff (normal)	diff FILE1 FILE2
+013-diff-side-by-side	captured	text-utils	diff (side-by-side)	diff -y -W 60 FILE1 FILE2
+014-factor	captured	text-utils	label: values list	factor 360 97 1001 65536 123456789 1234567
+015-gcc-Q-help-warnings	captured	build	header + option/state table	gcc -Q --help=warnings | head -45
+016-gem-env	captured	language-tooling	nested bullet kv	gem env
+017-go-pprof-top	captured	build	banner + aligned table	go tool pprof -top -nodecount=15
+018-go-test-verbose	captured	test/lint	test log (RUN/PASS/FAIL)	go test -v ./...
+019-gpg-version	captured	crypto	banner + kv with wrapped values	gpg --version
+020-gpgconf-components	captured	crypto	colon-delimited, no header	gpgconf --list-components
+021-gzip-list-verbose	captured	text-utils	aligned table + totals row	gzip -lv FILE FILE
+022-ipcs-limits	captured	system	multi-section kv (=)	ipcs -l
+023-jar-tvf	captured	build	aligned listing with spaced dates	jar tvf hello.jar
+024-ldconfig-verbose	captured	system	tree (dir header + indented entries)	ldconfig -v | head -40
+025-lsipc	captured	system	aligned table, multi-word cells	lsipc
+026-lslogins-list	captured	system	aligned table, empty cells	lslogins
+027-make-help	captured	build	help text (options)	make --help
+028-md5sum-check	captured	crypto	status lines + warnings	md5sum -c LIST
+029-mypy-errors	captured	test/lint	diagnostic lines + summary	mypy app.py
+030-namei-long	captured	system	tree (indented path walk)	namei -l /usr/bin/python3
+031-node-console-table	captured	language-tooling	unicode box table	node -e console.table([...])
+032-node-os-cpus	captured	language-tooling	JS object literal (nested)	node -p "require('os').cpus().slice(0,2)"
+033-npm-pack-dry-run	captured	package-manager	prefixed mixed report	npm pack --dry-run
+034-objdump-disassemble	captured	build	sectioned listing (disassembly)	objdump -d --no-show-raw-insn t.o
+035-od-hex	captured	text-utils	hex dump	od -A x -t x1z
+036-openssl-ecparam-curves	captured	crypto	name : description list	openssl ecparam -list_curves | head -30
+037-openssl-list-pubkey-algos	captured	crypto	indented kv records	openssl list -public-key-algorithms | head -40
+038-perl-config-vars	captured	language-tooling	kv (key='value';)	perl -MConfig -V:osname -V:archname ...
+039-pg-config	captured	database	kv (KEY = value)	pg_config
+040-pg-lsclusters	captured	database	aligned table, two-word headers	pg_lsclusters
+041-php-ini	captured	language-tooling	kv with wrapped list continuation	php --ini
+042-php-ri-mbstring	captured	language-tooling	mixed: kv (=>) + prose + 3-col table	php --ri mbstring
+043-pip-debug	captured	package-manager	mixed kv + nested lists	pip debug --verbose | head -40
+044-proc-net-protocols	captured	system	wide aligned table, ragged names	cat /proc/net/protocols
+045-proc-pressure	captured	system	file:label inline kv	grep . /proc/pressure/{cpu,memory,io}
+046-proc-self-maps	captured	system	aligned table, no header, blank cells	cat /proc/self/maps | head -25
+047-proc-self-sched	captured	system	banner + rule + kv (:)	cat /proc/self/sched | head -30
+048-ps-eo-lstart	captured	system	aligned table, multi-word dates	ps -eo pid,lstart,etime,comm | head -15
+049-pytest-durations	captured	test/lint	mixed report (failures + durations + summary)	pytest --durations=0 -q
+050-python-calendar-month	captured	text-utils	calendar grid	python3 -m calendar 2026 1
+051-python-cprofile	captured	language-tooling	banner + aligned table	python3 -m cProfile -s cumtime prof.py | head -40
+052-python-dis	captured	language-tooling	bytecode listing (sparse columns)	python3 -c "import dis; dis.dis(f)"
+053-python-http-server-log	captured	logs	access log lines	python3 -m http.server (stderr)
+054-python-importtime	captured	language-tooling	pipe-delimited table with prefix	python3 -X importtime -c "import json, argparse"
+055-python-unittest-verbose	captured	test/lint	test log + traceback + summary	python3 -m unittest -v test_u
+056-rake-tasks	captured	build	command # description list	rake -T
+057-readelf-dynamic	captured	build	banner + table with parenthesised type	readelf -d /bin/ls
+058-readelf-program-headers	captured	build	two-line-per-record table + mapping	readelf -l /bin/ls
+059-ruff-statistics	captured	test/lint	tab table + summary	ruff check --statistics
+060-rustc-codegen-help	captured	build	help text (-C opt=val -- desc)	rustc -C help | head -40
+061-size-sysv	captured	build	titled aligned table + total	size -A /bin/ls
+062-stat-filesystem	captured	system	multi-kv per line	stat -f /
+063-strace-syscall-trace	captured	system	syscall trace lines	strace -f -e trace=openat,read,close,fstat cat /etc/hostname
+064-update-alternatives-query	captured	package-manager	kv stanzas with indented lists	update-alternatives --query editor
+065-vim-version	captured	language-tooling	banner + feature grid + kv	vim --version
+066-vmstat-stats	captured	system	value-first kv	vmstat -s
+067-zdump-verbose	captured	system	zone + date = date k=v lines	zdump -v -c 2025,2027 Europe/London America/New_York
+101-apache-error-log	reproduced	logs	bracketed log lines	Apache httpd error_log (2.4 format)
+102-aws-ec2-describe-key-pairs-table	reproduced	cloud	nested ASCII table (aws --output table)	aws ec2 describe-key-pairs --output table
+103-choco-list	reproduced	package-manager	banner + name version list + footer	choco list (Chocolatey v2)
+104-csv-bom-crlf	reproduced	data-format	CSV with BOM, CRLF, quoted thousands	Excel-style CSV export
+105-db2-list-db-directory	reproduced	database	numbered kv blocks (=)	db2 list database directory
+106-diskutil-list	reproduced	storage	sectioned aligned tables	diskutil list (macOS)
+107-ffmpeg-encode-progress	reproduced	monitoring	mixed report + progress lines	ffmpeg -i talk.mov ... (stderr)
+108-gcloud-sql-instances-describe	reproduced	cloud	YAML (nested)	gcloud sql instances describe orders-db
+109-ibmcloud-resource-groups	reproduced	cloud	banner + aligned table	ibmcloud resource groups
+110-iis-w3c-log	reproduced	logs	W3C extended log (#Fields header)	IIS 10 W3C log file
+111-ipconfig-all	reproduced	network	dotted-leader kv sections	ipconfig /all (Windows)
+112-json-nested-api-response	reproduced	data-format	JSON (pretty, nested)	REST API response (GitHub-style PR object)
+113-kubectl-explain-deployment-spec	reproduced	k8s	kv header + field/description blocks	kubectl explain deployment.spec
+114-kubectl-get-raw-readyz-verbose	reproduced	k8s	status-prefixed check list + verdict	kubectl get --raw=/readyz?verbose
+115-log4j-stacktrace-log	reproduced	logs	log lines + stack traces	Log4j2/Logback pattern layout
+116-logfmt-app-log	reproduced	logs	logfmt (key=value lines)	logfmt application log
+117-mainframe-fixed-width-report	reproduced	data-format	fixed-width paged report (ASA carriage control)	COBOL batch print report
+118-maven-surefire-results	reproduced	test/lint	prefixed build log + summary	mvn test (surefire)
+119-mocha-spec	reproduced	test/lint	indented test tree + failures	mocha --reporter spec
+120-mongostat	reproduced	database	aligned table, a|b cells	mongostat
+121-monit-status	reproduced	monitoring	titled kv blocks	monit status
+122-nagios-check-disk	reproduced	monitoring	single line: status + perfdata	check_disk (Nagios plugin)
+123-ndjson-k8s-audit	reproduced	k8s	NDJSON (nested)	Kubernetes audit log (JSON lines)
+124-nyc-coverage-table	reproduced	test/lint	pipe table with rules, indented rows	nyc / istanbul text reporter
+125-openstack-server-list	reproduced	cloud	ASCII box table, empty cells	openstack server list
+126-opkg-list-installed	reproduced	package-manager	name - version lines	opkg list-installed (OpenWrt)
+127-pg-controldata	reproduced	database	kv (:) with apostrophes	pg_controldata
+128-phpunit-summary	reproduced	test/lint	mixed report (progress + failures + summary)	phpunit
+129-pm2-list	reproduced	monitoring	unicode box table	pm2 list
+130-postgres-log-multiline	reproduced	logs	log lines + continuation lines	PostgreSQL server log (stderr, log_line_prefix)
+131-powershell-get-volume	reproduced	storage	PowerShell Format-Table (dash underline)	Get-Volume
+132-prometheus-metrics-exposition	reproduced	monitoring	Prometheus text exposition	kubectl get --raw /metrics (excerpt)
+133-route-print	reproduced	network	multi-section report with tables	route print (Windows)
+134-rspec-documentation	reproduced	test/lint	indented test tree + failures	rspec --format documentation
+135-rst-grid-table	reproduced	data-format	reST grid table (multi-line cells)	reStructuredText grid table
+136-scutil-dns	reproduced	network	numbered kv blocks with sections	scutil --dns (macOS)
+137-sqlcmd-select	reproduced	database	dash-underlined table + rows-affected	sqlcmd -Q "SELECT ..."
+138-sqlplus-select	reproduced	database	prompt + dash-underlined table + footer	SQL*Plus SELECT
+139-tsc-errors	reproduced	build	diagnostic lines + summary table	tsc --noEmit (5.x)
+140-winget-list	reproduced	package-manager	dash-ruled table, truncated cells, ragged	winget list
+141-wmic-logicaldisk	reproduced	storage	fixed-width table, CRLF, trailing spaces	wmic logicaldisk get ...
+142-yaml-list-of-maps	reproduced	data-format	YAML list of maps	inventory-style YAML

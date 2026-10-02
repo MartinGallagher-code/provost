@@ -1,0 +1,12 @@
+[
+  {
+    model: 'Intel(R) Xeon(R) Processor @ 2.10GHz',
+    speed: 0,
+    times: { user: 277600, nice: 0, sys: 120670, idle: 420070, irq: 0 }
+  },
+  {
+    model: 'Intel(R) Xeon(R) Processor @ 2.10GHz',
+    speed: 0,
+    times: { user: 274660, nice: 0, sys: 126250, idle: 417330, irq: 0 }
+  }
+]

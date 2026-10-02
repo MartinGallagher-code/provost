@@ -1,0 +1,33 @@
+...Fs..F                                                                 [100%]
+=================================== FAILURES ===================================
+__________________________________ test_fail ___________________________________
+
+    def test_fail():
+>       assert total([1]) == 2
+E       assert 1 == 2
+E        +  where 1 = total([1])
+
+test_app.py:14: AssertionError
+________________________________ test_param[3] _________________________________
+
+n = 3
+
+    @pytest.mark.parametrize("n", [1,2,3])
+    def test_param(n):
+        time.sleep(0.01*n)
+>       assert n < 3
+E       assert 3 < 3
+
+test_app.py:23: AssertionError
+============================== slowest durations ===============================
+0.31s call     test_app.py::test_slow
+0.12s call     test_app.py::test_medium
+0.04s call     test_app.py::test_param[3]
+0.02s call     test_app.py::test_param[2]
+0.01s call     test_app.py::test_param[1]
+
+(18 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+FAILED test_app.py::test_fail - assert 1 == 2
+FAILED test_app.py::test_param[3] - assert 3 < 3
+2 failed, 5 passed, 1 skipped in 0.52s

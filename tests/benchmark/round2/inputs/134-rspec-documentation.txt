@@ -1,0 +1,40 @@
+
+Invoice
+  #total
+    sums line items
+    applies VAT at the configured rate
+    rounds half-up to two decimals (FAILED - 1)
+  #overdue?
+    is false before the due date
+    is true after the due date
+    is false when paid (PENDING: awaiting payments refactor)
+
+Customer
+  validations
+    requires an email
+    rejects malformed emails
+
+Pending: (Failures listed here are expected and do not affect your suite's status)
+
+  1) Invoice#overdue? is false when paid
+     # awaiting payments refactor
+     # ./spec/models/invoice_spec.rb:41
+
+Failures:
+
+  1) Invoice#total rounds half-up to two decimals
+     Failure/Error: expect(invoice.total).to eq(BigDecimal("10.13"))
+
+       expected: 0.1013e2
+            got: 0.1012e2
+
+       (compared using ==)
+     # ./spec/models/invoice_spec.rb:22:in `block (3 levels) in <top (required)>'
+
+Finished in 0.21437 seconds (files took 1.38 seconds to load)
+8 examples, 1 failure, 1 pending
+
+Failed examples:
+
+rspec ./spec/models/invoice_spec.rb:20 # Invoice#total rounds half-up to two decimals
+

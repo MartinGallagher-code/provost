@@ -1,0 +1,24 @@
+Europe/London     -9223372036854775808 = NULL
+Europe/London     -9223372036854689408 = NULL
+Europe/London     Sun Mar 30 00:59:59 2025 UT = Sun Mar 30 00:59:59 2025 GMT isdst=0 gmtoff=0
+Europe/London     Sun Mar 30 01:00:00 2025 UT = Sun Mar 30 02:00:00 2025 BST isdst=1 gmtoff=3600
+Europe/London     Sun Oct 26 00:59:59 2025 UT = Sun Oct 26 01:59:59 2025 BST isdst=1 gmtoff=3600
+Europe/London     Sun Oct 26 01:00:00 2025 UT = Sun Oct 26 01:00:00 2025 GMT isdst=0 gmtoff=0
+Europe/London     Sun Mar 29 00:59:59 2026 UT = Sun Mar 29 00:59:59 2026 GMT isdst=0 gmtoff=0
+Europe/London     Sun Mar 29 01:00:00 2026 UT = Sun Mar 29 02:00:00 2026 BST isdst=1 gmtoff=3600
+Europe/London     Sun Oct 25 00:59:59 2026 UT = Sun Oct 25 01:59:59 2026 BST isdst=1 gmtoff=3600
+Europe/London     Sun Oct 25 01:00:00 2026 UT = Sun Oct 25 01:00:00 2026 GMT isdst=0 gmtoff=0
+Europe/London     9223372036854689407 = NULL
+Europe/London     9223372036854775807 = NULL
+America/New_York  -9223372036854775808 = NULL
+America/New_York  -9223372036854689408 = NULL
+America/New_York  Sun Mar  9 06:59:59 2025 UT = Sun Mar  9 01:59:59 2025 EST isdst=0 gmtoff=-18000
+America/New_York  Sun Mar  9 07:00:00 2025 UT = Sun Mar  9 03:00:00 2025 EDT isdst=1 gmtoff=-14400
+America/New_York  Sun Nov  2 05:59:59 2025 UT = Sun Nov  2 01:59:59 2025 EDT isdst=1 gmtoff=-14400
+America/New_York  Sun Nov  2 06:00:00 2025 UT = Sun Nov  2 01:00:00 2025 EST isdst=0 gmtoff=-18000
+America/New_York  Sun Mar  8 06:59:59 2026 UT = Sun Mar  8 01:59:59 2026 EST isdst=0 gmtoff=-18000
+America/New_York  Sun Mar  8 07:00:00 2026 UT = Sun Mar  8 03:00:00 2026 EDT isdst=1 gmtoff=-14400
+America/New_York  Sun Nov  1 05:59:59 2026 UT = Sun Nov  1 01:59:59 2026 EDT isdst=1 gmtoff=-14400
+America/New_York  Sun Nov  1 06:00:00 2026 UT = Sun Nov  1 01:00:00 2026 EST isdst=0 gmtoff=-18000
+America/New_York  9223372036854689407 = NULL
+America/New_York  9223372036854775807 = NULL

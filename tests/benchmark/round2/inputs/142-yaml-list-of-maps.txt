@@ -1,0 +1,29 @@
+- name: web01
+  role: frontend
+  ip: 192.0.2.11
+  os: ubuntu-24.04
+  cpus: 4
+  memory_gb: 8
+  tags: [prod, eu-west]
+- name: web02
+  role: frontend
+  ip: 192.0.2.12
+  os: ubuntu-24.04
+  cpus: 4
+  memory_gb: 8
+  tags: [prod, eu-west]
+- name: db01
+  role: database
+  ip: 192.0.2.20
+  os: rocky-9
+  cpus: 16
+  memory_gb: 64
+  tags: [prod, eu-west, pci]
+- name: build01
+  role: ci
+  ip: 192.0.2.30
+  os: debian-12
+  cpus: 32
+  memory_gb: 128
+  tags: []
+  notes: "temporary; decommission after Q4"

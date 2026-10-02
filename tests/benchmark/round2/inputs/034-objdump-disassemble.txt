@@ -1,0 +1,28 @@
+
+t.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <sq>:
+   0:	endbr64
+   4:	imul   %edi,%edi
+   7:	mov    %edi,%eax
+   9:	ret
+
+000000000000000a <sum>:
+   a:	endbr64
+   e:	test   %esi,%esi
+  10:	jle    2f <sum+0x25>
+  12:	mov    %rdi,%rax
+  15:	movslq %esi,%rsi
+  18:	lea    (%rdi,%rsi,4),%rcx
+  1c:	mov    $0x0,%edx
+  21:	add    (%rax),%edx
+  23:	add    $0x4,%rax
+  27:	cmp    %rcx,%rax
+  2a:	jne    21 <sum+0x17>
+  2c:	mov    %edx,%eax
+  2e:	ret
+  2f:	mov    $0x0,%edx
+  34:	jmp    2c <sum+0x22>

@@ -1,0 +1,5 @@
+  File: "/"
+    ID: 24498b8d33d3347e Namelen: 255     Type: ext2/ext3
+Block size: 4096       Fundamental block size: 4096
+Blocks: Total: 66053021   Free: 61717069   Available: 5376179
+Inodes: Total: 16777216   Free: 15321260

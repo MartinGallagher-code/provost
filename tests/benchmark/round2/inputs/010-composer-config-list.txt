@@ -1,0 +1,40 @@
+Composer plugins have been disabled for safety in this non-interactive session.
+Set COMPOSER_ALLOW_SUPERUSER=1 if you want to allow plugins to run as root/super user.
+Do not run Composer as root/super user! See https://getcomposer.org/root for details
+[repositories.packagist.org.type] composer
+[repositories.packagist.org.url] https://repo.packagist.org
+[process-timeout] 300
+[use-include-path] false
+[use-parent-dir] prompt
+[preferred-install] dist
+[audit.abandoned] fail
+[notify-on-install] true
+[github-protocols] [https, ssh]
+[gitlab-protocol] 
+[vendor-dir] vendor (/root/.config/composer/vendor)
+[bin-dir] {$vendor-dir}/bin (/root/.config/composer/vendor/bin)
+[cache-dir] /root/.cache/composer
+[data-dir] /root/.local/share/composer
+[cache-files-dir] {$cache-dir}/files (/root/.cache/composer/files)
+[cache-repo-dir] {$cache-dir}/repo (/root/.cache/composer/repo)
+[cache-vcs-dir] {$cache-dir}/vcs (/root/.cache/composer/vcs)
+[cache-ttl] 15552000
+[cache-files-ttl] 15552000
+[cache-files-maxsize] 300MiB (314572800)
+[cache-read-only] false
+[bin-compat] auto
+[discard-changes] false
+[autoloader-suffix] 
+[sort-packages] false
+[optimize-autoloader] false
+[classmap-authoritative] false
+[apcu-autoloader] false
+[prepend-autoloader] true
+[github-domains] [github.com]
+[bitbucket-expose-hostname] true
+[disable-tls] false
+[secure-http] true
+[cafile] 
+[capath] 
+[github-expose-hostname] true
+[gitlab-domains] [gitlab.com]
