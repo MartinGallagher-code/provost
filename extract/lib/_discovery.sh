@@ -851,9 +851,9 @@ _should_run_strategy () {
 # walk it line by line in bash: a 10 MB table spent ~240 s just rejecting
 # ~245 strategies before the winner ran. Above _FR_SAMPLE_BYTES the detectors
 # instead see a SAMPLE — the first _FR_SAMPLE_HEAD lines (at most
-# _FR_SAMPLE_HEAD_BYTES) plus the last _FR_SAMPLE_TAIL lines (at most
-# _FR_SAMPLE_TAIL_BYTES) — whole lines only, newline-joined exactly as
-# `$(…)` would hand them over. A strategy that ACCEPTS the sample is then
+# _FR_SAMPLE_HEAD_BYTES), MIDDLE WINDOWS, and the last _FR_SAMPLE_TAIL lines
+# (at most _FR_SAMPLE_TAIL_BYTES) — whole lines only, in file order,
+# newline-joined exactly as `$(…)` would hand them over. A strategy that ACCEPTS the sample is then
 # re-run on the full text (_detect_strategy), so the confidence that is
 # reported and compared to the threshold is always the full-text one, and a
 # strategy the full text rejects falls through to the next candidate exactly
@@ -872,8 +872,32 @@ _should_run_strategy () {
 #     too (and is re-confirmed on the full text): under confidence ranking the
 #     ~135 tool-specific detectors all run, and walking a 10 MB JSON document
 #     in bash cost them ~74 s together;
-#   * inputs where head + tail would already cover every line, or where the
-#     head budget cannot hold even one whole line.
+#   * inputs where head + windows + tail would already cover every line, or
+#     where the head budget cannot hold even one whole line.
+# MIDDLE WINDOWS (so evidence that lies only mid-input is not hidden from a
+# detector that needs it): contiguous blocks of whole lines — a header and
+# the rows under it stay together — each at most _FR_SAMPLE_WIN lines /
+# _FR_SAMPLE_WIN_BYTES bytes, never overlapping one another or the tail:
+#   * EVEN windows: _FR_SAMPLE_MID of them, opening at the first line at or
+#     past evenly spaced byte offsets over the body (a representative slice
+#     of a uniform body; keeps share-threshold screens honest);
+#   * NOVEL windows: up to _FR_SAMPLE_NOVEL of them, opening where a line
+#     SHAPE (first non-blank byte class, field-count bucket, indent, which of
+#     : = , | TAB occur) first appears after the head — a section, a table or
+#     a record block that only starts mid-input. A novel window opens up to
+#     _FR_SAMPLE_LEAD lines early (its title / header row) and stretches to
+#     at most 2 x _FR_SAMPLE_WIN lines while new shapes keep coming.
+#   Every junction joins WHOLE records, following the structure the head
+#   shows (group lines over indented children / blank-separated records):
+#   an even window apart from the sample waits for a record start, a window
+#   that runs out of lines finishes the record in hand, and the tail backs up
+#   to its record's start — so a junction never glues one group's line to
+#   another group's children (a duplicate key to group-children).
+#   The sample is a SUPERSET of the head + tail one, so any detector that
+#   counts evidence lines only sees more; a uniform 10 MB body adds the
+#   even windows alone (the shapes are all in the head). One awk pass, no
+#   lines stored but the sample. _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 restores
+#   the head + tail sample.
 # Knobs (internal, like _FR_BIG_BYTES): export _FR_SAMPLE_BYTES=0 samples
 # every input (how the equivalence proofs force it), =-1 disables sampling.
 # The sample applies to EVERY detector's input, so it is independent of how
@@ -885,6 +909,11 @@ _FR_SAMPLE_HEAD="${_FR_SAMPLE_HEAD:-120}"
 _FR_SAMPLE_TAIL="${_FR_SAMPLE_TAIL:-40}"
 _FR_SAMPLE_HEAD_BYTES="${_FR_SAMPLE_HEAD_BYTES:-16384}"
 _FR_SAMPLE_TAIL_BYTES="${_FR_SAMPLE_TAIL_BYTES:-4096}"
+_FR_SAMPLE_MID="${_FR_SAMPLE_MID:-4}"
+_FR_SAMPLE_NOVEL="${_FR_SAMPLE_NOVEL:-4}"
+_FR_SAMPLE_WIN="${_FR_SAMPLE_WIN:-16}"
+_FR_SAMPLE_WIN_BYTES="${_FR_SAMPLE_WIN_BYTES:-2048}"
+_FR_SAMPLE_LEAD="${_FR_SAMPLE_LEAD:-2}"
 _FR_DOC_STRATEGIES="${_FR_DOC_STRATEGIES:- json json-array jsonl xml har yaml toml }"
 # SAMPLE SLACK. A detector that decides on a SHARE of the lines it sees ("at
 # least 60% of lines are label: value", "decline when one token count covers
@@ -931,27 +960,168 @@ _detect_sample_build () {
     esac
     local _s
     _s="$(cat <<< "$text" | awk -v H="$_FR_SAMPLE_HEAD" -v T="$_FR_SAMPLE_TAIL" \
-            -v HB="$_FR_SAMPLE_HEAD_BYTES" -v TB="$_FR_SAMPLE_TAIL_BYTES" '
+            -v HB="$_FR_SAMPLE_HEAD_BYTES" -v TB="$_FR_SAMPLE_TAIL_BYTES" \
+            -v M="$_FR_SAMPLE_MID" -v N="$_FR_SAMPLE_NOVEL" -v L="$_FR_SAMPLE_WIN" \
+            -v WB="$_FR_SAMPLE_WIN_BYTES" -v P="$_FR_SAMPLE_LEAD" -v B="$(( ${#text} + 1 ))" '
+        # line shape (for NOVEL windows), as one number: the class of the
+        # first non-blank byte (lower / upper / digit / which punctuation), a
+        # field-count bucket, indented or not, and which of : = , | TAB occur
+        # (plain regex tests and arithmetic: mawk does them ~2x faster than
+        # index() or building a string key)
+        function shape(   c, n) {
+            if (NF == 0) return 0
+            c = substr($1, 1, 1)
+            if (c ~ /[a-z]/) c = 1; else if (c ~ /[A-Z]/) c = 2; else if (c ~ /[0-9]/) c = 3
+            else c = 4 + index("!\"#$%&()*+,-./;<=>?@[\\]^_`{|}~", c)
+            n = NF; if (n > 8) n = 4; else if (n > 5) n = 3; else if (n > 3) n = 2; else n = (n > 1)
+            return c * 320 + n * 64 + ($0 ~ /^[ \t]/) * 32 + ($0 ~ /:/) * 16 + ($0 ~ /=/) * 8 \
+                   + ($0 ~ /,/) * 4 + ($0 ~ /\|/) * 2 + ($0 ~ /\t/)
+        }
+        function blank(s) { return s !~ /[^ \t\r]/ }
+        function cont(s) { return s ~ /^[ \t]/ && s ~ /[^ \t\r]/ }   # indented, not blank
+        function add(s, n) { nw++; wl[nw] = s; wn[nw] = n; wb += length(s) + 1; wlen++; ls = n }
+        BEGIN { if (P > 3) P = 3; W = (M > 0 || N > 0); R = T + L + 1 }
         # head: a contiguous run of whole lines from line 1 within H lines/HB bytes
         !hstop {
-            if (NR <= H && hb + length($0) + 1 <= HB) { hd[NR] = $0; hb += length($0) + 1; nh = NR; next }
-            hstop = 1
+            if (NR <= H && hb + length($0) + 1 <= HB) {
+                hd[NR] = $0; hb += length($0) + 1; nh = NR
+                if (W) {
+                    if (N > 0) seen[shape()] = 1
+                    # the record structure the junction rules follow, read
+                    # off the head: group lines over indented children
+                    # (hier), records separated by blank lines (blk)
+                    if (blank($0)) { if (nbs) gap = 1 }
+                    else { if (gap) blk = 1; nbs = 1; if (cont($0)) hi = 1; else top = 1 }
+                }
+                next
+            }
+            hstop = 1; hier = hi && top
+            # EVEN windows open at the first line at or past each of M byte
+            # offsets: 0, 1/M, 2/M ... of the way from the end of the head to
+            # the end (the first one continues the head, so a table that
+            # starts there brings more rows)
+            for (k = 1; k <= M; k++) tg[k] = hb + (k - 1) * (B - hb) / M
+            ek = 1; cum = hb; ls = nh
         }
-        # tail: a ring of the last T lines
-        T > 0 { rg[NR % T] = $0 }
+        # middle windows: contiguous runs of whole lines (L lines / WB bytes
+        # each), never overlapping one another; ls = last line sampled
+        nh > 0 && W {
+            took = 0
+            if (cap > 0) {
+                if (wb + length($0) + 1 <= WB) {
+                    add($0, NR); cap--; took = 1
+                    if (N > 0) {
+                        s = shape()
+                        # a shape first met inside a window stretches it (to
+                        # at most 2*L lines) so the block it opens comes too
+                        if (!(s in seen)) {
+                            seen[s] = 1
+                            if (cap < int(L / 2)) cap = int(L / 2)
+                            if (cap > 2 * L - wlen) cap = 2 * L - wlen
+                        }
+                    }
+                    if (cap == 0) ext = 1
+                } else cap = 0
+            } else if (ext) {
+                # a window that ran out of lines finishes the record in hand
+                # (its indented children / up to the blank line ending it),
+                # within 2*L lines and WB bytes: junctions join whole records
+                if (wlen < 2 * L && wb + length($0) + 1 <= WB \
+                    && ((hier && cont($0)) || (blk && !blank(wl[nw])))) {
+                    add($0, NR); took = 1
+                    if (N > 0) seen[shape()] = 1
+                } else ext = 0
+            }
+            if (!took) {
+                st = 0
+                if (ek <= M && cum >= tg[ek]) {
+                    st = 1
+                    while (ek <= M && cum >= tg[ek]) ek++
+                }
+                if (N > 0) {
+                    s = shape()
+                    if (!(s in seen)) {
+                        seen[s] = 1
+                        if (!st && nn < N) { st = 2; nn++ }
+                    }
+                }
+                # an EVEN window apart from the sample so far waits (at most
+                # L lines) for a record start: not a blank line, not an
+                # indented child line of hierarchical text
+                if (st == 1 || (st == 0 && pend)) {
+                    if (NR > ls + 1 && pw < L && (blank($0) || (hier && cont($0)))) { pend = 1; pw++; st = 0 }
+                    else st = 1
+                }
+                if (st && L > 0 && length($0) + 1 <= WB) {
+                    wb = 0; wlen = 0; cap = L; pend = 0; pw = 0
+                    # opening early (lines no window holds yet): a NOVEL
+                    # window takes up to P lines above (title / header row;
+                    # in hierarchical text, back to the group line of an
+                    # indented novel line, else none); an EVEN one goes back
+                    # to a blank line within P lines, so a record starts whole
+                    ld = 0
+                    if (st == 2) {
+                        if (!hier) ld = P
+                        else if (cont($0)) for (k = 1; k <= P; k++)
+                            if (NR - k > ls && !cont(pv[(NR - k) % 4]) && !blank(pv[(NR - k) % 4])) { ld = k; break }
+                    } else for (k = P; k >= 1; k--)
+                        if (NR - k > ls && blank(pv[(NR - k) % 4])) { ld = k; break }
+                    for (k = ld; k >= 1; k--) {
+                        if (NR - k <= ls || cap < 2) continue
+                        if (wb + length(pv[(NR - k) % 4]) + 1 + length($0) + 1 > WB) continue
+                        add(pv[(NR - k) % 4], NR - k); cap--
+                    }
+                    add($0, NR); cap--
+                    if (cap == 0) ext = 1
+                }
+            }
+            pv[NR % 4] = $0
+            cum += length($0) + 1
+        }
+        # tail: a ring of the last T lines (+ L + 1 above them, for the
+        # record-start rule below)
+        T > 0 { rg[NR % R] = $0 }
         END {
             if (nh == 0) exit 0                   # no whole line fits: do not sample
             # tail lines, walking back from the end within T lines / TB bytes
             nt = 0; tb = 0
             for (i = NR; i > nh && nt < T; i--) {
-                l = rg[i % T]
+                l = rg[i % R]
                 if (tb + length(l) + 1 > TB) break
                 tb += length(l) + 1; nt++
             }
-            if (nh + nt >= NR) exit 0             # head + tail cover it all
+            # with windows on, the tail starts a record whole too: back to the
+            # group line above indented children (hier), or to the blank line
+            # above a blank-separated record (blk) — within the ring / bytes
+            ot = nt
+            if (W && nt > 0) {
+                j = NR - nt + 1; want = 0
+                if (hier && cont(rg[j % R])) want = 1
+                else if (blk && !blank(rg[j % R])) want = 2
+                x = tb
+                if (want) for (i = j - 1; i > nh && i > NR - R; i--) {
+                    l = rg[i % R]
+                    if (x + length(l) + 1 > TB) break
+                    x += length(l) + 1
+                    if ((want == 1 && !cont(l) && !blank(l)) || (want == 2 && blank(l))) { nt = NR - i + 1; tb = x; break }
+                }
+            }
+            # window lines the tail already carries are dropped
+            while (nw > 0 && wn[nw] > NR - nt) nw--
+            if (nh + nw + nt >= NR) exit 0        # the sample would be every line
+            # (a blank line a window or the tail added at a junction is left
+            # out when the line before it in the sample is blank already)
             printf "S"
             for (i = 1; i <= nh; i++) printf "\n%s", hd[i]
-            for (i = NR - nt + 1; i <= NR; i++) printf "\n%s", rg[i % T]
+            pb = blank(hd[nh]); pn = nh
+            for (i = 1; i <= nw; i++) {
+                if (pb && wn[i] != pn + 1 && blank(wl[i])) continue
+                printf "\n%s", wl[i]; pb = blank(wl[i]); pn = wn[i]
+            }
+            for (i = NR - nt + 1; i <= NR; i++) {
+                if (pb && i != pn + 1 && i <= NR - ot && blank(rg[i % R])) continue
+                printf "\n%s", rg[i % R]; pb = blank(rg[i % R]); pn = i
+            }
         }')" || return 0
     [[ "$_s" == S$'\n'* ]] || return 0
     _s="${_s#S$'\n'}"

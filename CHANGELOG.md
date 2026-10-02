@@ -1,5 +1,57 @@
 # provost — Changelog
 
+## 2026-10-02 — large inputs: middle windows in the detection sample
+
+**Middle-evidence false rejects (`extract/lib/_discovery.sh`
+`_detect_sample_build` only — no detector, confidence, ranking or pruning
+change).** Above `_FR_SAMPLE_BYTES` the detection sample was the first 120 /
+last 40 lines, so a detector whose only evidence sat in the MIDDLE of a big
+input rejected the sample and a weaker strategy won. The sample now also
+carries MIDDLE WINDOWS — contiguous blocks of whole lines (≤ 16 lines / 2 KB
+each), file order, never overlapping each other or the tail:
+- **even** windows (`_FR_SAMPLE_MID`, 4) at byte offsets 0, ¼, ½, ¾ of the
+  body after the head — a representative slice;
+- **novel** windows (`_FR_SAMPLE_NOVEL`, up to 4) where a line SHAPE first
+  appears after the head (first non-blank byte class, field-count bucket,
+  indent, which of `: = , |` TAB occur — one integer per line, plain regex
+  tests, mawk-safe): a section / table / record block that starts mid-input.
+  A novel window opens up to `_FR_SAMPLE_LEAD` (2) lines early (title /
+  header row) and stretches to ≤ 32 lines while new shapes keep coming;
+- every junction joins WHOLE records, following the structure the head shows
+  (group lines over indented children / blank-separated records): an even
+  window apart from the sample waits ≤ 16 lines for a record start or opens
+  back at a blank line just above; a window that runs out of lines finishes
+  the record in hand (≤ 32 lines); the tail backs up to its record's group
+  line / opening blank line; a blank repeated at a junction is dropped. A
+  first cut without these rules flipped 1 of the 360 synthetic inputs
+  (debconf-show: a junction glued one group's line to another group's
+  children, group-children saw a duplicate key and rejected the sample).
+The sample is a superset of the old one (evidence counts only grow), ≤ ~36 KB;
+a uniform body adds the 4 even windows only (+64 lines). JSON/XML documents
+are unchanged (grammar strategies still see them whole) and the full-text
+re-run still alone decides. `_FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0` restores the
+head + tail sample exactly.
+- Corpus, sampling forced tiny (`_FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8
+  _FR_SAMPLE_TAIL=4`, windows `_FR_SAMPLE_WIN=4`) vs unsampled: winner flips
+  **41 → 0** (full) and **41 → 0** (`--generic`); tidy output byte-identical
+  to unsampled for all 3,705 inputs.
+- Middle-evidence synthetic set (256 corpus tools buried between two ~17 KB
+  blocks of uniform filler of a different shape — prose / heartbeat log —
+  512 inputs of ~35 KB, default settings; 249 full-text winners are the
+  buried tool's, not the filler's): sampled-vs-full flips **46 → 0**. Same
+  tools with ~9 KB filler and sampling forced: **46 → 0**.
+- 360 synthetic big inputs (header once + body repeated): SYN_RESULT.
+- Corpus at default settings, full + `--generic`: byte-identical to main
+  (every corpus input is below 32 KB).
+- Timings: TIMING_RESULT
+- Tests: `extract/tests/test_big_input_paths.sh` — even-window shape / byte
+  cap / tail overlap / full coverage, blank-line record junctions, a novel
+  window carrying a mid-file title + header + rows, and a middle-evidence
+  false reject (describe-report: colons won on the head + tail sample;
+  reproduced with `_FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0`, fixed by the
+  windows); the older sample tests pin the head + tail form. Docs:
+  `extract/README.md` "Very large inputs".
+
 ## 2026-10-01 — large inputs: no sample false-rejects, colons / block-records twins, faster ps / CSV
 
 **Sample false-rejects (`extract/lib/_discovery.sh` + share-threshold detectors).**
