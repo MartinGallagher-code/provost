@@ -12,7 +12,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-MFE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROVOST_EXTRACT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo ""
 echo "========================================"
@@ -27,7 +27,7 @@ test_generic_basic_kv_colon () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 8080\nUser: admin\n' > "$tmpfile"
-    output=$(run_mfe --generic -f plain "$tmpfile")
+    output=$(run_extract --generic -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Host" "--generic should extract Host from colon input"
     assert_contains "$output" "Port" "--generic should extract Port from colon input"
@@ -42,7 +42,7 @@ test_generic_json_input () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf '{"name": "test", "value": 42}\n' > "$tmpfile"
-    output=$(run_mfe --generic -f plain "$tmpfile")
+    output=$(run_extract --generic -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "name" "--generic should extract name from JSON"
     assert_contains "$output" "value" "--generic should extract value from JSON"
@@ -56,7 +56,7 @@ test_generic_yaml_input () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'host: localhost\nport: 8080\n' > "$tmpfile"
-    output=$(run_mfe --generic -f plain "$tmpfile")
+    output=$(run_extract --generic -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "host" "--generic should extract host from YAML"
     assert_contains "$output" "port" "--generic should extract port from YAML"
@@ -70,7 +70,7 @@ test_generic_csv_input () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Name,Age,City\nAlice,30,Portland\n' > "$tmpfile"
-    output=$(run_mfe --generic -f plain "$tmpfile")
+    output=$(run_extract --generic -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Name" "--generic should extract Name from CSV"
     assert_contains "$output" "Age" "--generic should extract Age from CSV"
@@ -85,7 +85,7 @@ test_generic_excludes_format_specific () {
     local tmpfile debug_out
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 8080\n' > "$tmpfile"
-    debug_out=$(run_mfe --generic --debug "$tmpfile" 2>&1)
+    debug_out=$(run_extract --generic --debug "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_not_contains "$debug_out" "Strategy 'ab'" "--generic should exclude ab strategy"
     assert_not_contains "$debug_out" "Strategy 'nginx-conf'" "--generic should exclude nginx-conf strategy"
@@ -100,7 +100,7 @@ test_generic_includes_technique_strategies () {
     local tmpfile debug_out
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 8080\n' > "$tmpfile"
-    debug_out=$(run_mfe --generic --debug "$tmpfile" 2>&1)
+    debug_out=$(run_extract --generic --debug "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$debug_out" "colons" "--generic should include colons strategy in debug"
 }
@@ -114,7 +114,7 @@ test_generic_conflict_strategy () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\n' > "$tmpfile"
     exit_code=0
-    if output=$(run_mfe --generic --strategy colons "$tmpfile" 2>&1); then
+    if output=$(run_extract --generic --strategy colons "$tmpfile" 2>&1); then
         exit_code=0
     else
         exit_code=$?
@@ -133,7 +133,7 @@ test_generic_conflict_chain () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\n' > "$tmpfile"
     exit_code=0
-    if output=$(run_mfe --generic --chain 'colons|json' "$tmpfile" 2>&1); then
+    if output=$(run_extract --generic --chain 'colons|json' "$tmpfile" 2>&1); then
         exit_code=0
     else
         exit_code=$?
@@ -151,7 +151,7 @@ test_generic_with_format_flag () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
-    output=$(run_mfe --generic -f csv "$tmpfile")
+    output=$(run_extract --generic -f csv "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Name" "--generic -f csv should produce CSV with Name"
     assert_contains "$output" "Age" "--generic -f csv should produce CSV with Age"
@@ -165,7 +165,7 @@ test_generic_with_aggregate () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\nScore: 30\n' > "$tmpfile"
-    output=$(run_mfe --generic --aggregate -r "$tmpfile")
+    output=$(run_extract --generic --aggregate -r "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Score_count" "--generic --aggregate should produce count"
     assert_contains "$output" "Score_sum" "--generic --aggregate should produce sum"
@@ -179,7 +179,7 @@ test_generic_with_rename () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Host: localhost\n' > "$tmpfile"
-    output=$(run_mfe --generic --rename 'Host=hostname' -f plain "$tmpfile")
+    output=$(run_extract --generic --rename 'Host=hostname' -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "hostname" "--generic --rename should use new name"
     assert_not_contains "$output" "Host localhost" "--generic --rename should not use old name"
@@ -193,7 +193,7 @@ test_generic_with_sort () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Zebra: last\nAlpha: first\n' > "$tmpfile"
-    output=$(run_mfe --generic --sort -r "$tmpfile")
+    output=$(run_extract --generic --sort -r "$tmpfile")
     rm -f "$tmpfile"
     local alpha_pos zebra_pos
     alpha_pos=$(echo "$output" | grep -n "Alpha" | head -1 | cut -d: -f1)
@@ -215,7 +215,7 @@ test_generic_with_min_confidence () {
     printf '{"x": 1}\n' > "$tmpfile"
     # At confidence 85, only json (c85, grammar tier) should match; colons
     # (general-structure tier, 55..60) should not
-    output=$(run_mfe --generic --min-confidence 85 -f plain "$tmpfile")
+    output=$(run_extract --generic --min-confidence 85 -f plain "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "x" "--generic --min-confidence 85 should extract JSON fields"
 }
@@ -228,7 +228,7 @@ test_generic_with_count () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\nCity: Portland\n' > "$tmpfile"
-    output=$(run_mfe --generic --count "$tmpfile")
+    output=$(run_extract --generic --count "$tmpfile")
     rm -f "$tmpfile"
     # Should output a number >= 1 (exact count may vary due to multi-strategy)
     assert_match "$output" "^[0-9]+$" "--generic --count should output a number"
@@ -242,7 +242,7 @@ test_generic_empty_input_no_crash () {
     local tmpfile exit_code
     tmpfile=$(mktemp)
     printf 'no extractable fields here just plain words\n' > "$tmpfile"
-    run_mfe --generic "$tmpfile" >/dev/null 2>&1
+    run_extract --generic "$tmpfile" >/dev/null 2>&1
     exit_code=$?
     rm -f "$tmpfile"
     assert_exit_zero "$exit_code" "--generic with no-match input should exit 0"
@@ -254,7 +254,7 @@ test_generic_empty_input_no_crash () {
 
 test_generic_list_strategies_shows_G_marker () {
     local output
-    output=$(run_mfe --list-strategies)
+    output=$(run_extract --list-strategies)
     assert_contains "$output" "[G]" "--list-strategies should show [G] marker for generic strategies"
 }
 
@@ -266,8 +266,8 @@ test_technique_kv_colon_basic () {
     local output
     # Source the library directly, then call the function
     output=$(bash -c "
-        source \"$MFE_DIR/lib/_helpers.sh\"
-        source \"$MFE_DIR/lib/_techniques.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_helpers.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_techniques.sh\"
         _tech_kv_colon 'Host: localhost
 Port: 8080' ''
     ")
@@ -282,8 +282,8 @@ Port: 8080' ''
 test_technique_kv_colon_url_skip () {
     local output
     output=$(bash -c "
-        source \"$MFE_DIR/lib/_helpers.sh\"
-        source \"$MFE_DIR/lib/_techniques.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_helpers.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_techniques.sh\"
         _tech_kv_colon 'Link: //example.com/path
 Host: localhost' ''
     ")
@@ -296,8 +296,8 @@ Host: localhost' ''
 test_technique_kv_colon_labelled_url () {
     local output
     output=$(bash -c "
-        source \"$MFE_DIR/lib/_helpers.sh\"
-        source \"$MFE_DIR/lib/_techniques.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_helpers.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_techniques.sh\"
         _tech_kv_colon 'Homepage: https://brew.sh/x
 https://example.com/bare
 From: http://example.org' ''
@@ -314,8 +314,8 @@ From: http://example.org' ''
 test_technique_kv_equals_skip_comparisons () {
     local output
     output=$(bash -c "
-        source \"$MFE_DIR/lib/_helpers.sh\"
-        source \"$MFE_DIR/lib/_techniques.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_helpers.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_techniques.sh\"
         _tech_kv_equals 'x == y
 Name=Alice
 a += b' ''
@@ -331,8 +331,8 @@ a += b' ''
 
 test_technique_validate_key () {
     bash -c "
-        source \"$MFE_DIR/lib/_helpers.sh\"
-        source \"$MFE_DIR/lib/_techniques.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_helpers.sh\"
+        source \"$PROVOST_EXTRACT_DIR/lib/_techniques.sh\"
         _tech_validate_key ''
         [[ \$_TECH_KEY_VALID -eq 0 ]] || exit 1   # empty should be invalid
         _tech_validate_key 'NormalKey'
@@ -354,8 +354,8 @@ test_technique_split_blocks () {
     local tmpscript result
     tmpscript=$(mktemp)
     cat > "$tmpscript" <<SCRIPT
-source "$MFE_DIR/lib/_helpers.sh"
-source "$MFE_DIR/lib/_techniques.sh"
+source "$PROVOST_EXTRACT_DIR/lib/_helpers.sh"
+source "$PROVOST_EXTRACT_DIR/lib/_techniques.sh"
 input=\$'block1_line1\nblock1_line2\n\nblock2_line1\nblock2_line2'
 _tech_split_blocks "\$input"
 count=0

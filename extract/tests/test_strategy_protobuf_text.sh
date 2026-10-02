@@ -16,7 +16,7 @@ echo "========================================"
 
 test_protobuf_text_basic () {
     local output
-    output=$(run_mfe -r -s protobuf-text "$SAMPLES_DIR/protobuf-text/basic.txt")
+    output=$(run_extract -r -s protobuf-text "$SAMPLES_DIR/protobuf-text/basic.txt")
     assert_contains "$output" "name test_service" "should extract name"
     assert_contains "$output" "version 1.0.0" "should extract version"
     assert_contains "$output" "port 8080" "should extract port"
@@ -30,19 +30,19 @@ test_protobuf_text_basic () {
 
 test_protobuf_text_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s protobuf-text "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s protobuf-text "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "protobuf-text should not apply to JSON"
 }
 
 test_protobuf_text_not_detected_for_yaml () {
     local output
-    output=$(run_mfe -d -s protobuf-text "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
+    output=$(run_extract -d -s protobuf-text "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
     assert_contains "$output" "not applicable" "protobuf-text should not apply to YAML"
 }
 
 test_protobuf_text_not_detected_for_colons () {
     local output
-    output=$(run_mfe -d -s protobuf-text "$SAMPLES_DIR/colons/basic.txt" 2>&1)
+    output=$(run_extract -d -s protobuf-text "$SAMPLES_DIR/colons/basic.txt" 2>&1)
     assert_contains "$output" "not applicable" "protobuf-text should not apply to simple colons (no braces)"
 }
 

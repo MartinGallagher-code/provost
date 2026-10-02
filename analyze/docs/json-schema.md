@@ -1,13 +1,13 @@
-# envoy-analyze JSON output schema (v1.0)
+# provost-analyze JSON output schema (v1.0)
 
-`envoy-analyze --format json` returns a single JSON object with a stable envelope. This document is the authoritative reference. See also `schemas/envoy-analyze-output.json` (JSON Schema draft 2020-12).
+`provost-analyze --format json` returns a single JSON object with a stable envelope. This document is the authoritative reference. See also `schemas/provost-analyze-output.json` (JSON Schema draft 2020-12).
 
 ## Envelope
 
 ```json
 {
   "schema_version": "1.0",
-  "envoy_analyze_version": "3.1",
+  "provost_analyze_version": "3.1",
   "items": [ ... ]
 }
 ```
@@ -15,7 +15,7 @@
 | Field                   | Type    | Required | Description                                                                        |
 |-------------------------|---------|----------|------------------------------------------------------------------------------------|
 | `schema_version`        | string  | yes      | The schema version this document targets. Currently `"1.0"`.                       |
-| `envoy_analyze_version` | string  | yes      | The tool version that produced the output (e.g. `"3.1"`).                          |
+| `provost_analyze_version` | string  | yes      | The tool version that produced the output (e.g. `"3.1"`).                          |
 | `items`                 | array   | yes      | One object per analysis item; order matches plain output.                          |
 
 ## Item object
@@ -53,14 +53,14 @@ Current kinds (non-exhaustive): `overview`, `col_types`, `missing`, `missing_ran
 ## Example
 
 ```bash
-envoy-analyze --format json --all samples/trees.csv | jq .
+provost-analyze --format json --all samples/trees.csv | jq .
 ```
 
 ## Validating
 
 ```bash
-envoy-analyze --format json samples/trees.csv | jq 'has("schema_version") and has("items")'
+provost-analyze --format json samples/trees.csv | jq 'has("schema_version") and has("items")'
 # → true
 ```
 
-A sample JSON Schema is in [schemas/envoy-analyze-output.json](../schemas/envoy-analyze-output.json). `tests/test_json_schema.sh` validates multiple sample datasets against the required fields.
+A sample JSON Schema is in [schemas/provost-analyze-output.json](../schemas/provost-analyze-output.json). `tests/test_json_schema.sh` validates multiple sample datasets against the required fields.

@@ -26,7 +26,7 @@ test_chain_colons_to_equals () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Format: KEY=val1\nType: NAME=val2\n' > "$tmpfile"
-    output=$(run_mfe --chain 'colons|equals' -r "$tmpfile")
+    output=$(run_extract --chain 'colons|equals' -r "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "KEY val1" "chain should extract KEY from colons values via equals"
     assert_contains "$output" "NAME val2" "chain should extract NAME from colons values via equals"
@@ -39,7 +39,7 @@ test_chain_with_rename () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\n' > "$tmpfile"
-    output=$(run_mfe --chain 'colons' --rename 'Host=Server' -r "$tmpfile")
+    output=$(run_extract --chain 'colons' --rename 'Host=Server' -r "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Server localhost" "rename should apply to chain output"
     assert_not_contains "$output" "Host localhost" "original name should be replaced"
@@ -51,7 +51,7 @@ test_chain_with_sort () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Zebra: last\nAlpha: first\n' > "$tmpfile"
-    output=$(run_mfe --chain 'colons' --sort -r "$tmpfile")
+    output=$(run_extract --chain 'colons' --sort -r "$tmpfile")
     rm -f "$tmpfile"
     # After sort, Alpha should come before Zebra
     local alpha_pos zebra_pos
@@ -72,7 +72,7 @@ test_chain_with_aggregate () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\nScore: 30\n' > "$tmpfile"
-    output=$(run_mfe --chain 'colons' --aggregate -r "$tmpfile")
+    output=$(run_extract --chain 'colons' --aggregate -r "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Score_count 3" "chain+aggregate should compute count"
     assert_contains "$output" "Score_sum 60" "chain+aggregate should compute sum"
@@ -85,7 +85,7 @@ test_chain_with_count () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\n' > "$tmpfile"
-    output=$(run_mfe --chain 'colons' --count "$tmpfile")
+    output=$(run_extract --chain 'colons' --count "$tmpfile")
     rm -f "$tmpfile"
     assert_eq "$output" "2" "chain+count should count 2 fields"
 }

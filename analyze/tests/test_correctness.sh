@@ -242,7 +242,7 @@ test_cramers_v_warning () {
     # Cramer's V should appear (or not crash)
     local rc=$?
     if [[ "$rc" -ne 0 ]]; then
-        echo "  ASSERT FAILED: envoy-analyze should not crash on biostats.csv"
+        echo "  ASSERT FAILED: provost-analyze should not crash on biostats.csv"
         return 1
     fi
 }
@@ -735,7 +735,7 @@ test_bimodal_skewed_skewness_exact () {
     local skew
     skew=$(echo "$output" | grep -A1 "Distribution shape: skewed" | grep "Skewness:" | awk '{print $2}')
     # Fibonacci-like sequence: heavily right-tailed
-    # Exact value from envoy-analyze: should be a large positive number
+    # Exact value from provost-analyze: should be a large positive number
     if [[ -z "$skew" ]]; then
         echo "  ASSERT FAILED: could not extract skewness for skewed column"
         return 1

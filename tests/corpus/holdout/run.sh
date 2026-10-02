@@ -23,7 +23,7 @@ set -u
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../../.." && pwd)"
-ENGINE="$ROOT/extract/envoy-extract"
+ENGINE="$ROOT/extract/provost-extract"
 HINTS="$ROOT/extract/hints.tsv"
 IN="$HERE/inputs"
 MANIFEST="$HERE/expected.tsv"

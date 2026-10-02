@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Tests for: envoy-extract search subcommand (ENV-016)
+## Tests for: provost-extract search subcommand (ENV-016)
 ################################################################################
 set -o pipefail
 
@@ -14,14 +14,14 @@ echo "=== Search Subcommand Tests (ENV-016) ==="
 
 test_search_finds_json () {
     local out
-    out=$(run_mfe search json 2>&1 || true)
+    out=$(run_extract search json 2>&1 || true)
     assert_contains "$out" "json" "should find json strategies"
     assert_contains "$out" "structured" "should show json's category"
 }
 
 test_search_case_insensitive_default () {
     local out
-    out=$(run_mfe search JSON 2>&1 || true)
+    out=$(run_extract search JSON 2>&1 || true)
     assert_contains "$out" "json" "uppercase JSON should still find json strategy (case-insensitive default)"
 }
 
@@ -30,8 +30,8 @@ test_search_case_sensitive_flag_requires_exact_case () {
     # With --case-sensitive, JSONL should only match strategies whose metadata
     # literally contains the uppercase substring.
     local insensitive_has_jsonl sensitive_has_jsonl
-    insensitive_has_jsonl=$(run_mfe search JSONL 2>&1 || true)
-    sensitive_has_jsonl=$(run_mfe search --case-sensitive JSONL 2>&1 || true)
+    insensitive_has_jsonl=$(run_extract search JSONL 2>&1 || true)
+    sensitive_has_jsonl=$(run_extract search --case-sensitive JSONL 2>&1 || true)
     # Sanity: case-insensitive run finds jsonl
     if ! echo "$insensitive_has_jsonl" | grep -q "^  structured     jsonl "; then
         echo "  ASSERT FAILED: case-insensitive JSONL search should find jsonl strategy"
@@ -49,8 +49,8 @@ test_search_category_narrows_results () {
     local out
     # Search for csv, without category restriction vs with "structured" restriction
     local all_out struct_out
-    all_out=$(run_mfe search csv 2>&1 || true)
-    struct_out=$(run_mfe search --category structured csv 2>&1 || true)
+    all_out=$(run_extract search csv 2>&1 || true)
+    struct_out=$(run_extract search --category structured csv 2>&1 || true)
     # Both should contain the structured/csv strategy
     assert_contains "$struct_out" "csv" "category-filtered search should include csv"
     # Filtered output should have <= lines as unfiltered (narrowed set)
@@ -65,17 +65,17 @@ test_search_multiple_keywords_and_semantics () {
     # Find strategies with both "docker" and "ps" in metadata (AND). This used
     # to look for docker-stats, which no longer exists as a strategy; the
     # property under test is the AND, so a live pair stands in.
-    out=$(run_mfe search docker ps 2>&1 || true)
+    out=$(run_extract search docker ps 2>&1 || true)
     assert_contains "$out" "docker-ps" "AND of docker+ps should find docker-ps"
     # The other half of AND: a second keyword docker-ps does NOT carry must
     # exclude it, or the search is really an OR.
-    out=$(run_mfe search docker toml 2>&1 || true)
+    out=$(run_extract search docker toml 2>&1 || true)
     assert_not_contains "$out" "docker-ps" "AND of docker+toml should exclude docker-ps"
 }
 
 test_search_no_args_lists_all () {
     local out
-    out=$(run_mfe search 2>&1 || true)
+    out=$(run_extract search 2>&1 || true)
     # Should have header + many rows (at least 50)
     local lines
     lines=$(echo "$out" | grep -c "^  ")
@@ -84,13 +84,13 @@ test_search_no_args_lists_all () {
 
 test_search_no_match_exits_1 () {
     local rc=0
-    run_mfe search xyzzy-nonexistent-strategy >/dev/null 2>&1 || rc=$?
+    run_extract search xyzzy-nonexistent-strategy >/dev/null 2>&1 || rc=$?
     [[ "$rc" -eq 1 ]] || { echo "  ASSERT FAILED: no-match should exit 1 (got $rc)"; return 1; }
 }
 
 test_search_match_exits_0 () {
     local rc=0
-    run_mfe search json >/dev/null 2>&1 || rc=$?
+    run_extract search json >/dev/null 2>&1 || rc=$?
     [[ "$rc" -eq 0 ]] || { echo "  ASSERT FAILED: match should exit 0 (got $rc)"; return 1; }
 }
 

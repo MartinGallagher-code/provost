@@ -3,28 +3,28 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Envoy Shared Config Loader — envoy_envoyrc.sh  (ENV-154)
+## provost shared Config Loader — provost_rc.sh  (ENV-154)
 ##
 ## Generalises EnvoyCapture's `.capturerc` layer (ENV-083) to the whole
 ## suite.  Every tool that sources this file picks up suite-wide
 ## defaults from a single hierarchy:
 ##
-##   1.  $XDG_CONFIG_HOME/envoy/config (or ~/.config/envoy/config)
+##   1.  $XDG_CONFIG_HOME/provost/config (or ~/.config/provost/config)
 ##           Global user defaults.
-##   2.  ~/.envoyrc
+##   2.  ~/.provostrc
 ##           Legacy / convenience location, same format.
-##   3.  .envoyrc walked upward from $PWD, never past $HOME
+##   3.  .provostrc walked upward from $PWD, never past $HOME
 ##           Per-project overrides, mirroring the .capturerc walk. When $PWD
-##           is outside $HOME only $PWD/.envoyrc itself is considered.
+##           is outside $HOME only $PWD/.provostrc itself is considered.
 ##
-## SECURITY. A .envoyrc can sit in any checkout the user cds into, so the
+## SECURITY. A .provostrc can sit in any checkout the user cds into, so the
 ## loader treats every file as untrusted input:
-##   - ENVOY_NO_RC=1 disables the whole layer (provost sets it).
-##   - Only keys with a tool prefix — ENVOY_, MFE_, PROVOST_ — are exported;
+##   - PROVOST_NO_RC=1 disables the whole layer (provost sets it).
+##   - Only keys with a tool prefix — PROVOST_ — are exported;
 ##     anything else is skipped with a warning. On top of that a hard deny
 ##     list (LD_*, BASH_ENV, ENV, PATH, IFS, PS4, SHELLOPTS, BASHOPTS, …) can
 ##     never be set, even if the allow list is ever widened. (LD_PRELOAD from
-##     a .envoyrc in an untrusted checkout used to reach child processes.)
+##     a .provostrc in an untrusted checkout used to reach child processes.)
 ##   - A file not owned by the current user, or writable by group or others,
 ##     is skipped.
 ##
@@ -36,24 +36,24 @@
 ##     CLI flag  >  shell env  >  (this file's three sources)  >  default
 ##
 ## Sourcing is OPTIONAL — every tool keeps working without it.  Tools
-## that want the layer source it explicitly and call `envoy_envoyrc_load`
+## that want the layer source it explicitly and call `provost_rc_load`
 ## once at startup, before parsing CLI flags.
 ##
 ## Public API
 ## ----------
-##   envoy_envoyrc_load              Discover + load every config file
+##   provost_rc_load              Discover + load every config file
 ##                                    in the documented order, exporting
 ##                                    keys to the environment.  Skips a
 ##                                    key when its env var is already set.
 ##                                    Returns the count of unique keys
-##                                    loaded via $_ENVOY_ENVOYRC_COUNT.
+##                                    loaded via $_PROVOST_RC_COUNT.
 ##
-##   envoy_envoyrc_files             Echo the list of config files that
+##   provost_rc_files             Echo the list of config files that
 ##                                    *would* be considered, in load order
 ##                                    (one per line).  Useful for
-##                                    `envoy config show`.
+##                                    `provost-extract`.
 ##
-##   envoy_envoyrc_parse FILE        Parse a single config file safely
+##   provost_rc_parse FILE        Parse a single config file safely
 ##                                    (no eval, no $(…) substitution).
 ##                                    Sets keys via `export` only when
 ##                                    they are not already set.
@@ -63,7 +63,7 @@
 ## ------
 ##   - One `KEY=VALUE` per line.
 ##   - Keys must match `^[A-Z_][A-Z0-9_]*$` (POSIX env-var convention) AND
-##     carry an allowed prefix (ENVOY_, MFE_, PROVOST_) AND not be on the
+##     carry an allowed prefix (PROVOST_) AND not be on the
 ##     deny list. Anything else is rejected (see SECURITY above).
 ##   - VALUE may optionally be wrapped in single or double quotes;
 ##     the wrapping characters are stripped.  No backtick / `$(…)`
@@ -75,53 +75,53 @@
 ## Reads (env / globals)
 ## ---------------------
 ##   XDG_CONFIG_HOME, HOME, PWD     Standard.
-##   ENVOY_NO_RC=1                  Skip loading entirely.
-##   ENVOY_ENVOYRC_DEBUG=1          When set, emit a one-line trace per
+##   PROVOST_NO_RC=1                  Skip loading entirely.
+##   PROVOST_RC_DEBUG=1          When set, emit a one-line trace per
 ##                                  loaded file to stderr.
 ##
 ## Writes (globals)
 ## ----------------
-##   _ENVOY_ENVOYRC_COUNT           Count of unique keys exported by the
+##   _PROVOST_RC_COUNT           Count of unique keys exported by the
 ##                                  most recent load.
-##   _ENVOY_ENVOYRC_SOURCES         Space-delimited paths of files that
+##   _PROVOST_RC_SOURCES         Space-delimited paths of files that
 ##                                  contributed at least one key.
 ################################################################################
 
 # Guard against double-sourcing
-[[ -n "${_ENVOY_ENVOYRC_LOADED:-}" ]] && return 0
-_ENVOY_ENVOYRC_LOADED=1
+[[ -n "${_PROVOST_RC_LOADED:-}" ]] && return 0
+_PROVOST_RC_LOADED=1
 
-_ENVOY_ENVOYRC_COUNT=0
-_ENVOY_ENVOYRC_SOURCES=""
+_PROVOST_RC_COUNT=0
+_PROVOST_RC_SOURCES=""
 
 ################################################################################
-## envoy_envoyrc_files
+## provost_rc_files
 ##
 ## Echo (one per line) the list of config files that exist, in
 ## load order — least-specific first, most-specific last.  Used by
-## `envoy_envoyrc_load`, `envoy config show`, and the test harness.
+## `provost_rc_load`, `provost-extract`, and the test harness.
 ##
 ## Order:
-##   $XDG_CONFIG_HOME/envoy/config  (or ~/.config/envoy/config)
-##   ~/.envoyrc
-##   ancestors of $PWD with a .envoyrc, walked from / down to $PWD
-##   $PWD/.envoyrc                  (only listed once even if it
-##                                    coincides with $HOME/.envoyrc)
+##   $XDG_CONFIG_HOME/provost/config  (or ~/.config/provost/config)
+##   ~/.provostrc
+##   ancestors of $PWD with a .provostrc, walked from / down to $PWD
+##   $PWD/.provostrc                  (only listed once even if it
+##                                    coincides with $HOME/.provostrc)
 ################################################################################
 
-envoy_envoyrc_files() {
+provost_rc_files() {
     local xdg="${XDG_CONFIG_HOME:-$HOME/.config}"
     local out=()
 
     # 1. Global XDG config.
-    [[ -f "${xdg}/envoy/config" ]] && out+=("${xdg}/envoy/config")
+    [[ -f "${xdg}/provost/config" ]] && out+=("${xdg}/provost/config")
 
     # 2. Legacy / convenience location.
-    [[ -f "$HOME/.envoyrc" ]] && out+=("$HOME/.envoyrc")
+    [[ -f "$HOME/.provostrc" ]] && out+=("$HOME/.provostrc")
 
-    # 3. Walk upward from $PWD looking for .envoyrc — never past $HOME.
+    # 3. Walk upward from $PWD looking for .provostrc — never past $HOME.
     #    Outside $HOME (a checkout under /tmp, /srv, …) there is no trusted
-    #    boundary to stop at, so only $PWD/.envoyrc itself is considered;
+    #    boundary to stop at, so only $PWD/.provostrc itself is considered;
     #    walking on to / would pick up files in shared, world-writable
     #    parents like /tmp.
     local d="$PWD"
@@ -132,12 +132,12 @@ envoy_envoyrc_files() {
         under_home=1
     fi
     while [[ -n "$d" && "$d" != "/" ]]; do
-        if [[ -f "$d/.envoyrc" ]]; then
-            walk+=("$d/.envoyrc")
+        if [[ -f "$d/.provostrc" ]]; then
+            walk+=("$d/.provostrc")
         fi
         # Outside $HOME: $PWD only.
         [[ $under_home -eq 1 ]] || break
-        # Stop at $HOME — its .envoyrc is already covered by step 2 above.
+        # Stop at $HOME — its .provostrc is already covered by step 2 above.
         [[ "$d" == "$home" ]] && break
         local parent
         parent="$(dirname -- "$d")"
@@ -145,14 +145,14 @@ envoy_envoyrc_files() {
         d="$parent"
     done
     # walk[] is collected $PWD→ancestors; reverse so the most-distant
-    # ancestor loads first and $PWD/.envoyrc loads last (most-specific
+    # ancestor loads first and $PWD/.provostrc loads last (most-specific
     # wins, matching the documented precedence ladder).
     local i
     for ((i=${#walk[@]}-1; i>=0; i--)); do
         out+=("${walk[$i]}")
     done
 
-    # Dedupe — $HOME/.envoyrc may also appear via the upward walk when
+    # Dedupe — $HOME/.provostrc may also appear via the upward walk when
     # $PWD is $HOME or a child.  Print each path once, preserving the
     # first-seen position so load order stays deterministic.
     local p
@@ -165,15 +165,15 @@ envoy_envoyrc_files() {
 }
 
 ################################################################################
-## envoy_envoyrc_parse FILE [SHELL_PROTECT]
+## provost_rc_parse FILE [SHELL_PROTECT]
 ##
 ## Safely parse a single config file.  Exports each KEY=VALUE pair.
 ##
-## When SHELL_PROTECT=1 (the default when called via `envoy_envoyrc_load`),
+## When SHELL_PROTECT=1 (the default when called via `provost_rc_load`),
 ## a key is skipped if it was set in the original shell environment
-## *before* `envoy_envoyrc_load` was invoked — that's the "shell env wins
+## *before* `provost_rc_load` was invoked — that's the "shell env wins
 ## over file" rule.  Subsequent files in the chain CAN override each
-## other, so the most-specific `.envoyrc` legitimately overrides a
+## other, so the most-specific `.provostrc` legitimately overrides a
 ## less-specific one.
 ##
 ## SHELL_PROTECT=0 makes every assignment unconditional (useful when the
@@ -183,11 +183,11 @@ envoy_envoyrc_files() {
 ## lines are skipped with a warning to stderr; they don't fail the load.
 ################################################################################
 
-# envoy_envoyrc_key_allowed KEY — 0 when a config file may set KEY.
+# provost_rc_key_allowed KEY — 0 when a config file may set KEY.
 # Allow list: the suite's own prefixes. Deny list: variables that change how
 # the dynamic linker, the shell or child processes behave — refused even if a
 # future allow-list entry would match them.
-envoy_envoyrc_key_allowed() {
+provost_rc_key_allowed() {
     local key="$1"
     case "$key" in
         LD_*|BASH_ENV|ENV|PATH|IFS|PS4|SHELLOPTS|BASHOPTS|CDPATH|GLOBIGNORE \
@@ -197,15 +197,15 @@ envoy_envoyrc_key_allowed() {
             return 1 ;;
     esac
     case "$key" in
-        ENVOY_*|MFE_*|PROVOST_*) return 0 ;;
+        PROVOST_*) return 0 ;;
     esac
     return 1
 }
 
-# envoy_envoyrc_file_trusted FILE — 0 when FILE is owned by the current user
+# provost_rc_file_trusted FILE — 0 when FILE is owned by the current user
 # and not writable by group or others. Anything else could have been planted
 # (a shared checkout, a world-writable parent) and is skipped.
-envoy_envoyrc_file_trusted() {
+provost_rc_file_trusted() {
     local file="$1" perms
     [[ -O "$file" ]] || return 1
     # %a = octal permission bits (GNU stat); BSD/macOS stat uses -f %Lp.
@@ -216,12 +216,12 @@ envoy_envoyrc_file_trusted() {
     return 0
 }
 
-envoy_envoyrc_parse() {
+provost_rc_parse() {
     local file="$1"
     local shell_protect="${2:-0}"
     [[ -r "$file" ]] || return 1
-    if ! envoy_envoyrc_file_trusted "$file"; then
-        printf 'envoy: warning: %s: not owned by you or writable by others (skipped)\n' \
+    if ! provost_rc_file_trusted "$file"; then
+        printf 'provost: warning: %s: not owned by you or writable by others (skipped)\n' \
             "$file" >&2
         return 1
     fi
@@ -236,7 +236,7 @@ envoy_envoyrc_parse() {
 
         # Reject anything not matching KEY=...
         if [[ "$line" != *=* ]]; then
-            printf 'envoy: warning: %s:%d: not a KEY=VALUE line (skipped)\n' \
+            printf 'provost: warning: %s:%d: not a KEY=VALUE line (skipped)\n' \
                 "$file" "$lineno" >&2
             continue
         fi
@@ -251,14 +251,14 @@ envoy_envoyrc_parse() {
         # Validate key shape.  Refuse `eval`-able shenanigans like
         # `KEY=$(rm -rf /)` by ensuring the key is a plain POSIX name.
         if ! [[ "$key" =~ ^[A-Z_][A-Z0-9_]*$ ]]; then
-            printf 'envoy: warning: %s:%d: invalid key %q (must match [A-Z_][A-Z0-9_]*)\n' \
+            printf 'provost: warning: %s:%d: invalid key %q (must match [A-Z_][A-Z0-9_]*)\n' \
                 "$file" "$lineno" "$key" >&2
             continue
         fi
 
         # Allow / deny list (see SECURITY in the header).
-        if ! envoy_envoyrc_key_allowed "$key"; then
-            printf 'envoy: warning: %s:%d: key %s not allowed in a config file (only ENVOY_*, MFE_*, PROVOST_*; skipped)\n' \
+        if ! provost_rc_key_allowed "$key"; then
+            printf 'provost: warning: %s:%d: key %s not allowed in a config file (only PROVOST_*; skipped)\n' \
                 "$file" "$lineno" "$key" >&2
             continue
         fi
@@ -275,18 +275,18 @@ envoy_envoyrc_parse() {
         fi
 
         # Shell-env-wins-over-file: skip when the key is in the
-        # snapshot we took before `envoy_envoyrc_load` started.  When
+        # snapshot we took before `provost_rc_load` started.  When
         # called standalone (`shell_protect=0`), no such snapshot
         # exists and every assignment goes through.
         if [[ "$shell_protect" == "1" ]] \
-            && [[ -n "${_ENVOY_ENVOYRC_SNAPSHOT[$key]+x}" ]]; then
+            && [[ -n "${_PROVOST_RC_SNAPSHOT[$key]+x}" ]]; then
             continue
         fi
 
         export "$key=$value"
-        _ENVOY_ENVOYRC_COUNT=$((_ENVOY_ENVOYRC_COUNT + 1))
-        if [[ "${ENVOY_ENVOYRC_DEBUG:-0}" == "1" ]]; then
-            printf 'envoy_envoyrc: set %s=%s from %s:%d\n' \
+        _PROVOST_RC_COUNT=$((_PROVOST_RC_COUNT + 1))
+        if [[ "${PROVOST_RC_DEBUG:-0}" == "1" ]]; then
+            printf 'provost_rc: set %s=%s from %s:%d\n' \
                 "$key" "$value" "$file" "$lineno" >&2
         fi
     done < "$file"
@@ -294,7 +294,7 @@ envoy_envoyrc_parse() {
 }
 
 ################################################################################
-## envoy_envoyrc_load
+## provost_rc_load
 ##
 ## Load every config file in the documented order.  Idempotent — keys
 ## already in the environment are preserved.  Updates the count and
@@ -304,33 +304,33 @@ envoy_envoyrc_parse() {
 ## still win.
 ################################################################################
 
-envoy_envoyrc_load() {
-    _ENVOY_ENVOYRC_COUNT=0
-    _ENVOY_ENVOYRC_SOURCES=""
+provost_rc_load() {
+    _PROVOST_RC_COUNT=0
+    _PROVOST_RC_SOURCES=""
 
-    # Opt-out: provost sets this so no .envoyrc is ever consulted.
-    [[ "${ENVOY_NO_RC:-0}" == "1" ]] && return 0
+    # Opt-out: provost sets this so no .provostrc is ever consulted.
+    [[ "${PROVOST_NO_RC:-0}" == "1" ]] && return 0
 
     # Snapshot the shell env at load time.  Anything already set here
     # is "from the shell" and outranks every config file in the chain.
     # Files can still override each other; only the snapshot is sticky.
-    declare -gA _ENVOY_ENVOYRC_SNAPSHOT=()
+    declare -gA _PROVOST_RC_SNAPSHOT=()
     local _ek
     while IFS= read -r _ek; do
         [[ -z "$_ek" ]] && continue
-        _ENVOY_ENVOYRC_SNAPSHOT[$_ek]=1
+        _PROVOST_RC_SNAPSHOT[$_ek]=1
     done < <(compgen -e 2>/dev/null || env | sed -n 's/^\([^=]*\)=.*/\1/p')
 
     local file
     while IFS= read -r file; do
         [[ -z "$file" ]] && continue
-        local before="$_ENVOY_ENVOYRC_COUNT"
-        envoy_envoyrc_parse "$file" 1
-        if (( _ENVOY_ENVOYRC_COUNT > before )); then
-            if [[ -n "$_ENVOY_ENVOYRC_SOURCES" ]]; then
-                _ENVOY_ENVOYRC_SOURCES+=" "
+        local before="$_PROVOST_RC_COUNT"
+        provost_rc_parse "$file" 1
+        if (( _PROVOST_RC_COUNT > before )); then
+            if [[ -n "$_PROVOST_RC_SOURCES" ]]; then
+                _PROVOST_RC_SOURCES+=" "
             fi
-            _ENVOY_ENVOYRC_SOURCES+="$file"
+            _PROVOST_RC_SOURCES+="$file"
         fi
-    done < <(envoy_envoyrc_files)
+    done < <(provost_rc_files)
 }

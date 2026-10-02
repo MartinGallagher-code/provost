@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## CSV preprocessing for envoy-analyze
+## CSV preprocessing for provost-analyze
 ##
 ## Provides RFC 4180-compliant CSV-to-TSV conversion. Handles:
 ##   - Quoted fields with embedded delimiters

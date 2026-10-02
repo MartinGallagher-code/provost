@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Cross-column correlation analyses for envoy-analyze
+## Cross-column correlation analyses for provost-analyze
 ##
 ## Analyses: correlation matrix, strongest pairs, linear regression,
 ## pairwise completeness, outlier co-occurrence, column correlation strength.
@@ -32,7 +32,7 @@ run_correlation_analyses () {
     # ENV-126: skip the whole correlation pipeline (matrix + pairs +
     # regression + pairwise + outlier-cooccurrence + dimension summary)
     # when none of its kinds are kept. The matrix awk is the costliest
-    # single computation in envoy-analyze for wide datasets, so this is
+    # single computation in provost-analyze for wide datasets, so this is
     # the biggest filter-skip win available.
     #
     # Dependency: `run_suggested_drops` (kind=drop_suggest) reads the

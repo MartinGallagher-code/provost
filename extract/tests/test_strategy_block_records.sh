@@ -19,7 +19,7 @@ echo "========================================"
 
 test_br_basic () {
     local output
-    output=$(run_mfe -r -s block-records "$SAMPLES_DIR/blank-line-records/basic.txt")
+    output=$(run_extract -r -s block-records "$SAMPLES_DIR/blank-line-records/basic.txt")
     assert_contains "$output" "record1.Name Server-A" "should extract record1 Name"
     assert_contains "$output" "record1.IP 10.0.0.1" "should extract record1 IP"
     assert_contains "$output" "record1.Status Active" "should extract record1 Status"
@@ -34,7 +34,7 @@ test_br_multiple_records () {
     tmpfile=$(mktemp)
     printf 'Host: alpha\nPort: 8080\n\nHost: beta\nPort: 9090\n\nHost: gamma\nPort: 7070\n\nHost: delta\nPort: 6060\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s block-records "$tmpfile")
+    output=$(run_extract -r -s block-records "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "record1.Host alpha" "should extract record1 Host"
     assert_contains "$output" "record2.Host beta" "should extract record2 Host"
@@ -45,7 +45,7 @@ test_br_multiple_records () {
 
 test_br_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s block-records "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s block-records "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "block-records should not apply to JSON"
 }
 
@@ -53,7 +53,7 @@ test_br_not_detected_for_json () {
 
 test_br_repeated_blocks_sample () {
     local output
-    output=$(run_mfe -r -s block-records "$SAMPLES_DIR/repeated-blocks/basic.txt")
+    output=$(run_extract -r -s block-records "$SAMPLES_DIR/repeated-blocks/basic.txt")
     assert_contains "$output" "record1.Interface eth0" "should extract record1 Interface"
     assert_contains "$output" "record1.Status up" "should extract record1 Status"
     assert_contains "$output" "record1.IP 10.0.0.1" "should extract record1 IP"
@@ -67,7 +67,7 @@ test_br_repeated_field_names () {
     tmpfile=$(mktemp)
     printf 'Name: Alice\nRole: Admin\n\nName: Bob\nRole: User\n\nName: Charlie\nRole: Viewer\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s block-records "$tmpfile")
+    output=$(run_extract -r -s block-records "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "record1.Name Alice" "should extract record1 Name"
     assert_contains "$output" "record2.Name Bob" "should extract record2 Name"
@@ -82,7 +82,7 @@ test_br_mixed_delimiters () {
     tmpfile=$(mktemp)
     printf 'Host: server1\nPort=8080\n\nHost: server2\nPort=9090\n\nHost: server3\nPort=7070\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s block-records "$tmpfile")
+    output=$(run_extract -r -s block-records "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "record1.Host server1" "should extract colon-delimited host"
     assert_contains "$output" "record1.Port 8080" "should extract equals-delimited port"

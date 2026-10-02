@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Threshold alerting for envoy-analyze
+## Threshold alerting for provost-analyze
 ##
 ## Checks column statistics against user-defined thresholds and emits
 ## PASS/FAIL verdicts. Sets threshold_exit_code=1 if any threshold fails.

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Cross-dataset comparison for envoy-analyze
+## Cross-dataset comparison for provost-analyze
 ##
 ## Compares summary statistics across multiple CSV/TSV files, producing
 ## side-by-side tables and rankings.
@@ -80,7 +80,7 @@ _compare_extract_stats () {
 }
 
 # Main entry point for cross-dataset comparison.
-# Called from envoy-analyze when --compare is active.
+# Called from provost-analyze when --compare is active.
 run_cross_dataset_comparison () {
     local nfiles=${#compare_files[@]}
     if [[ $nfiles -lt 2 ]]; then

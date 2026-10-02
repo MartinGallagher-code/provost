@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Benchmark: envoy-analyze on large datasets (ENV-024)
+## Benchmark: provost-analyze on large datasets (ENV-024)
 ##
 ## Generates a synthetic CSV with a mix of numeric, categorical, and sparse
 ## columns, then times a full --all analysis. Produces baselines that can
@@ -16,7 +16,7 @@
 set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MDA_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/envoy-analyze"
+MDA_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/provost-analyze"
 
 SIZES=(10000 100000)
 SEED=1337
@@ -54,7 +54,7 @@ gen_csv () {
     }' > "$path"
 }
 
-echo "Large-dataset benchmark for envoy-analyze (ENV-024)"
+echo "Large-dataset benchmark for provost-analyze (ENV-024)"
 echo "==================================================="
 echo "Seed: $SEED"
 echo ""

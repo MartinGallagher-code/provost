@@ -3,11 +3,11 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Global Variable Registry for envoy-extract
+## Global Variable Registry for provost-extract
 ##
-## DOCUMENTATION ONLY — this file is NOT sourced by envoy-extract or any module.
+## DOCUMENTATION ONLY — this file is NOT sourced by provost-extract or any module.
 ##
-## This file documents every cross-module global used by the envoy-extract engine.
+## This file documents every cross-module global used by the provost-extract engine.
 ## It does NOT set variables — that is done by the owning module.
 ## It is a reference file for developers; it has no runtime effect.
 ## It exists as a single authoritative reference for:
@@ -17,37 +17,37 @@
 ##   - Its type and default value
 ##
 ## Conventions:
-##   _OPT_*         CLI option flags (envoy-extract → all modules)
+##   _OPT_*         CLI option flags (provost-extract → all modules)
 ##   _META_*        Strategy metadata (lib/_discovery.sh)
 ##   _TECH_*        Technique function return values (lib/_techniques.sh)
-##   _STATE_*       Per-run input metadata (envoy-extract)
-##   UPPER_CASE     Script-level constants (envoy-extract, set once at startup)
+##   _STATE_*       Per-run input metadata (provost-extract)
+##   UPPER_CASE     Script-level constants (provost-extract, set once at startup)
 ##   lower_case     Run-time accumulators (lib/_discovery.sh)
 ################################################################################
 
 ################################################################################
 ## SECTION 1: Script-level constants
-## Owner: envoy-extract (set once at startup, never modified)
+## Owner: provost-extract (set once at startup, never modified)
 ################################################################################
 
 # SCRIPT_DIR
 #   Type:    string (absolute path)
 #   Default: computed from BASH_SOURCE[0]
-#   Owner:   envoy-extract
+#   Owner:   provost-extract
 #   Readers: _discovery.sh, _validate.sh
-#   Purpose: Absolute path to the directory containing envoy-extract.
+#   Purpose: Absolute path to the directory containing provost-extract.
 #            Used to resolve lib/ and strategies/ paths.
 
 # STRATEGIES_DIR
 #   Type:    string (absolute path)
 #   Default: "$SCRIPT_DIR/strategies"
-#   Owner:   envoy-extract
+#   Owner:   provost-extract
 #   Readers: _discovery.sh, _validate.sh
 #   Purpose: Path to the built-in strategy directory.
 
 ################################################################################
 ## SECTION 2: CLI option flags (_OPT_*)
-## Owner: envoy-extract option-parsing block (lines ~142-174)
+## Owner: provost-extract option-parsing block (lines ~142-174)
 ## Readers: all lib modules
 ################################################################################
 
@@ -69,7 +69,7 @@
 # _OPT_min_confidence    integer     default 0   -- skip strategies below this confidence
 # _OPT_first_match       bool (0/1)  default 0  -- stop after first strategy produces output
 # _OPT_max_strategies    integer     default 0   -- limit strategies that produce output (0=no limit)
-# _OPT_rank              string      default "confidence" (env MFE_RANK) -- candidate order:
+# _OPT_rank              string      default "confidence" (env PROVOST_RANK) -- candidate order:
 #                                    confidence = run every detector, try best confidence first;
 #                                    priority   = first detecting strategy in priority order
 # _OPT_delimiter         string      default ""  -- custom delimiter (e.g. "=>", "::")
@@ -91,14 +91,14 @@
 
 ################################################################################
 ## SECTION 3: Input metadata (_STATE_*)
-## Owner: envoy-extract input-reading block
+## Owner: provost-extract input-reading block
 ## Readers: _discovery.sh (passed to strategy_detect / strategy_extract)
 ################################################################################
 
 # _STATE_filename
 #   Type:    string
 #   Default: "$file" (or "" for stdin)
-#   Owner:   envoy-extract
+#   Owner:   provost-extract
 #   Readers: _discovery.sh (_detect_strategy, _extract_and_store)
 #   Purpose: Original file path; passed as $2 to strategy_detect/extract
 #            so strategies can use the filename as a detection hint.
@@ -106,20 +106,20 @@
 # _STATE_encoding_hint
 #   Type:    string (e.g. "utf-8" or "")
 #   Default: "" (or "utf-8" for known text extensions)
-#   Owner:   envoy-extract
+#   Owner:   provost-extract
 #   Readers: _discovery.sh
 #   Purpose: Encoding hint derived from file extension; passed as $3 to
 #            strategy_detect/extract for advisory use.
 
 ################################################################################
 ## SECTION 4: Input content cache
-## Owner: envoy-extract input-reading block; _CLEAN_TEXT_* also written by _helpers.sh
+## Owner: provost-extract input-reading block; _CLEAN_TEXT_* also written by _helpers.sh
 ################################################################################
 
 # text
 #   Type:    string
-#   Default: set by envoy-extract input reading block
-#   Owner:   envoy-extract
+#   Default: set by provost-extract input reading block
+#   Owner:   provost-extract
 #   Readers: _discovery.sh (run_auto_strategies, _run_custom_delimiter),
 #            _dispatch.sh (run_stream_mode, run_output_mode hints)
 #   Purpose: Full content of the input file or stdin.
@@ -127,14 +127,14 @@
 # file
 #   Type:    string (path or "")
 #   Default: "" (stdin mode)
-#   Owner:   envoy-extract positional-argument parsing
-#   Readers: envoy-extract, _dispatch.sh (run_output_mode -c, run_stream_mode check)
+#   Owner:   provost-extract positional-argument parsing
+#   Readers: provost-extract, _dispatch.sh (run_output_mode -c, run_stream_mode check)
 #   Purpose: Input file path provided on the command line; "" means stdin.
 
 # fields
 #   Type:    string (comma-separated field numbers or names)
 #   Default: "" (no filter; all fields)
-#   Owner:   envoy-extract positional-argument parsing; overwritten by _interactive.sh
+#   Owner:   provost-extract positional-argument parsing; overwritten by _interactive.sh
 #   Readers: _dispatch.sh (run_output_mode)
 #   Purpose: Field filter specification. Updated by interactive mode.
 
@@ -147,10 +147,10 @@
 
 # _CLEAN_TEXT_DONE
 #   Type:    bool (0/1)
-#   Default: 0 (set in envoy-extract before strategy execution)
+#   Default: 0 (set in provost-extract before strategy execution)
 #   Owner:   _helpers.sh (clean_text sets to 1 on first call)
 #   Readers: _helpers.sh (clean_text)
-#   Purpose: Guards the clean_text cache; reset to 0 by envoy-extract each run.
+#   Purpose: Guards the clean_text cache; reset to 0 by provost-extract each run.
 
 ################################################################################
 ## SECTION 5: Strategy execution accumulators

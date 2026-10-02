@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Data quality and diagnostic analyses for envoy-analyze
+## Data quality and diagnostic analyses for provost-analyze
 ##
 ## Analyses: zero-variance columns, data quality score, suggested drops,
 ## noisy items (duplicates, sample rows, row lengths, common chars).

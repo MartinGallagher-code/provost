@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Interactive field selection for envoy-extract
+## Interactive field selection for provost-extract
 ##
 ## TUI-based field picker with keyboard navigation.
 ## Dependencies: _helpers.sh (strip_strat_prefix)

@@ -16,7 +16,7 @@ echo "========================================"
 
 test_docker_ps_basic () {
     local output
-    output=$(run_mfe -r -s docker-ps "$SAMPLES_DIR/docker-ps/basic.txt")
+    output=$(run_extract -r -s docker-ps "$SAMPLES_DIR/docker-ps/basic.txt")
     assert_contains "$output" "container1.container_id" "should extract container ID field"
     assert_contains "$output" "container1.image" "should extract image field"
     assert_contains "$output" "container1.names" "should extract names field"
@@ -25,7 +25,7 @@ test_docker_ps_basic () {
 
 test_docker_ps_multiple_containers () {
     local output
-    output=$(run_mfe -r -s docker-ps "$SAMPLES_DIR/docker-ps/basic.txt")
+    output=$(run_extract -r -s docker-ps "$SAMPLES_DIR/docker-ps/basic.txt")
     assert_contains "$output" "container2.container_id" "should extract second container ID"
     assert_contains "$output" "container2.image" "should extract second container image"
     assert_contains "$output" "postgres:15" "should extract postgres image"
@@ -38,7 +38,7 @@ test_docker_ps_not_applicable_for_json () {
     tmpfile=$(mktemp)
     printf '{"key": "value", "count": 42}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s docker-ps "$tmpfile" 2>&1)
+    output=$(run_extract -d -s docker-ps "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "docker-ps should not apply to JSON"
 }

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Shared extraction technique functions for envoy-extract
+## Shared extraction technique functions for provost-extract
 ##
 ## Pure-bash utility functions used by generic (technique-tagged) strategies.
 ## Requires bash 4.0+.

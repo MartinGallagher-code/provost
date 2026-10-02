@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Profile management for envoy-analyze
+## Profile management for provost-analyze
 ##
 ## Save and load analysis selection profiles.
 ##

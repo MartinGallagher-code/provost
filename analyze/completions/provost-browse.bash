@@ -1,6 +1,6 @@
-# bash completion for envoy-browse (ENV-062)
+# bash completion for provost-browse (ENV-062)
 
-_envoy_browse_complete () {
+_provost_browse_complete () {
     local cur prev
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -27,4 +27,4 @@ _envoy_browse_complete () {
     return 0
 }
 
-complete -F _envoy_browse_complete envoy-browse
+complete -F _provost_browse_complete provost-browse

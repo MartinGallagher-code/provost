@@ -20,7 +20,7 @@ test_envelope_has_schema_version () {
     local out
     out=$(_produce_json "$SAMPLES_DIR/trees.csv")
     assert_contains "$out" '"schema_version":"1.0"' "schema_version present"
-    assert_contains "$out" '"envoy_analyze_version":' "tool version present"
+    assert_contains "$out" '"provost_analyze_version":' "tool version present"
     assert_contains "$out" '"items":[' "items array present"
 }
 
@@ -70,7 +70,7 @@ test_jq_structural_check () {
 
 test_schema_file_valid_json () {
     local schema
-    schema="$(cd "$SCRIPT_DIR/.." && pwd)/schemas/envoy-analyze-output.json"
+    schema="$(cd "$SCRIPT_DIR/.." && pwd)/schemas/provost-analyze-output.json"
     [[ -f "$schema" ]] || { echo "  ASSERT FAILED: schema file missing: $schema"; return 1; }
     if [[ $_has_jq -eq 1 ]]; then
         jq '.' "$schema" >/dev/null || { echo "  ASSERT FAILED: schema is not valid JSON"; return 1; }
@@ -81,6 +81,6 @@ run_test "ENV-064 envelope has schema_version / version / items" test_envelope_h
 run_test "ENV-064 each item has required keys" test_item_has_required_keys
 run_test "ENV-064 envelope present across multiple samples" test_multiple_samples_envelope
 run_test "ENV-064 jq structural validation" test_jq_structural_check
-run_test "ENV-064 schemas/envoy-analyze-output.json is valid JSON" test_schema_file_valid_json
+run_test "ENV-064 schemas/provost-analyze-output.json is valid JSON" test_schema_file_valid_json
 
 print_summary

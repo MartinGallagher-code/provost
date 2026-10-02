@@ -102,7 +102,7 @@ test_correlation_matrix_header_alignment () {
 
 test_version_string () {
     local output expected
-    # The top-level VERSION file is the single source of truth (lib/envoy_version.sh);
+    # The top-level VERSION file is the single source of truth (lib/provost_version.sh);
     # derive the expectation from it so version bumps can't break this test.
     expected="$(head -n1 "$SCRIPT_DIR/../../VERSION" | tr -d '[:space:]')"
     output=$(run_mda --help 2>&1)

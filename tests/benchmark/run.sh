@@ -45,7 +45,7 @@ set -uo pipefail
 
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd -- "$here/../.." && pwd)
-engine="$root/extract/envoy-extract"
+engine="$root/extract/provost-extract"
 
 set_dir="$here/inputs"
 jobs="${PROVOST_BENCH_JOBS:-$(nproc 2>/dev/null || echo 2)}"
@@ -73,7 +73,7 @@ while IFS= read -r -d '' f; do inputs+=("$f"); done \
 # process per job slot handles a whole chunk of inputs (`--batch --batch-out`
 # writes NAME.wide + NAME.meta), so the strategy tree is sourced JOBS times
 # per mode instead of once per input. Output is byte-identical to a per-input
-# `envoy-extract ... <FILE` call.
+# `provost-extract ... <FILE` call.
 _batch () {   # _batch SUBDIR ENGINE-ARGS...
     local sub="$outdir/.$1" c i; shift
     mkdir -p "$sub"

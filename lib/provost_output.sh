@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Envoy Shared Output Helper — envoy_output.sh  (ENV-152)
+## provost shared Output Helper — provost_output.sh  (ENV-152)
 ##
 ## Atomic file output with --force / parent-dir-creation / `-` stdout
 ## semantics, mirroring the conventions of `curl -o`, `wget -O`, and
@@ -12,7 +12,7 @@
 ##
 ## Public API
 ## ----------
-##   envoy_output_filter FILE [FORCE]
+##   provost_output_filter FILE [FORCE]
 ##       Stdin filter.  Reads stdin and writes it to FILE atomically:
 ##         - FILE = "-" or "/dev/stdout"  -> writes to stdout (passthrough)
 ##         - FILE = "/dev/stderr"         -> writes to stderr (no atomic rename)
@@ -25,15 +25,15 @@
 ##
 ##       Usage:
 ##           if [[ -n "$_opt_output" ]]; then
-##               run_command | envoy_output_filter "$_opt_output" "$_opt_force"
+##               run_command | provost_output_filter "$_opt_output" "$_opt_force"
 ##               rc="${PIPESTATUS[1]}"
 ##           else
 ##               run_command
 ##           fi
 ##
-##   envoy_output_validate FILE [FORCE]
+##   provost_output_validate FILE [FORCE]
 ##       Pre-flight check the same conditions without consuming stdin.
-##       Returns 0 if a subsequent envoy_output_filter would succeed.
+##       Returns 0 if a subsequent provost_output_filter would succeed.
 ##       Useful for failing fast before running expensive computation.
 ##
 ## Conventions
@@ -55,25 +55,25 @@
 ################################################################################
 
 # Guard against double-sourcing
-[[ -n "${_ENVOY_OUTPUT_LOADED:-}" ]] && return 0
-_ENVOY_OUTPUT_LOADED=1
+[[ -n "${_PROVOST_OUTPUT_LOADED:-}" ]] && return 0
+_PROVOST_OUTPUT_LOADED=1
 
 ################################################################################
-## envoy_output_validate FILE [FORCE]
+## provost_output_validate FILE [FORCE]
 ##
-## Returns 0 if a subsequent envoy_output_filter would succeed; non-zero
+## Returns 0 if a subsequent provost_output_filter would succeed; non-zero
 ## with a stderr message otherwise.  Exists so callers can fail fast
 ## before doing expensive computation.
 ##
 ## Pseudo-paths "-", "/dev/stdout", "/dev/stderr" always validate.
 ################################################################################
 
-envoy_output_validate() {
+provost_output_validate() {
     local file="${1:-}"
     local force="${2:-0}"
 
     if [[ -z "$file" ]]; then
-        printf 'envoy: error: --output requires a path\n' >&2
+        printf 'provost: error: --output requires a path\n' >&2
         return 2
     fi
 
@@ -84,7 +84,7 @@ envoy_output_validate() {
     esac
 
     if [[ -e "$file" && "$force" != "1" ]]; then
-        printf 'envoy: error: refusing to overwrite existing file: %s\n' "$file" >&2
+        printf 'provost: error: refusing to overwrite existing file: %s\n' "$file" >&2
         printf '       pass --force to overwrite\n' >&2
         return 1
     fi
@@ -97,7 +97,7 @@ envoy_output_validate() {
         # Try a no-op mkdir -p; it'll fail with the same EACCES / EROFS
         # error the filter would, so the user sees the diagnostic now.
         if ! mkdir -p -- "$dir" 2>/dev/null; then
-            printf 'envoy: error: cannot create parent directory: %s\n' "$dir" >&2
+            printf 'provost: error: cannot create parent directory: %s\n' "$dir" >&2
             return 1
         fi
     fi
@@ -105,7 +105,7 @@ envoy_output_validate() {
 }
 
 ################################################################################
-## envoy_output_filter FILE [FORCE]
+## provost_output_filter FILE [FORCE]
 ##
 ## Stdin -> FILE atomically.
 ##
@@ -119,11 +119,11 @@ envoy_output_validate() {
 ## Everything else goes through `FILE.tmp` -> `mv FILE.tmp FILE`.
 ################################################################################
 
-envoy_output_filter() {
+provost_output_filter() {
     local file="${1:-}"
     local force="${2:-0}"
 
-    envoy_output_validate "$file" "$force" || return $?
+    provost_output_validate "$file" "$force" || return $?
 
     case "$file" in
         -|/dev/stdout)  cat ;;
@@ -138,12 +138,12 @@ envoy_output_filter() {
             # `mv` is a same-filesystem rename (atomic on POSIX).
             tmp="${file}.tmp.$$"
             if ! cat > "$tmp"; then
-                printf 'envoy: error: write failed: %s\n' "$tmp" >&2
+                printf 'provost: error: write failed: %s\n' "$tmp" >&2
                 rm -f -- "$tmp" 2>/dev/null
                 return 1
             fi
             if ! mv -f -- "$tmp" "$file"; then
-                printf 'envoy: error: rename failed: %s -> %s\n' "$tmp" "$file" >&2
+                printf 'provost: error: rename failed: %s -> %s\n' "$tmp" "$file" >&2
                 rm -f -- "$tmp" 2>/dev/null
                 return 1
             fi

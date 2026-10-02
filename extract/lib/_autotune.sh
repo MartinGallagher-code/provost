@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Auto-tune logic for envoy-extract
+## Auto-tune logic for provost-extract
 ##
 ## Two-phase automatic confidence adjustment and best-match ranking.
 ## Reads and modifies globals: output, _OPT_min_confidence, matched_strategies,
@@ -81,7 +81,7 @@ run_auto_tune () {
         done
         if [[ -n "$_at_best_name" && ($_OPT_verbose -eq 1 || $_OPT_debug -eq 1) ]]; then
             _log_info "[auto-tune] Best strategy: $_at_best_name ($_at_best_count fields)"
-            _log_info "[auto-tune] Replay with: mfe --strategy $_at_best_name"
+            _log_info "[auto-tune] Replay with: provost-extract --strategy $_at_best_name"
         fi
     fi
 }

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Malformed Input Tests for Envoy:Explore (envoy-extract)
+## Malformed Input Tests for provost-extract (provost-extract)
 ##
 ## Tests that corrupt, truncated, or structurally invalid inputs are handled
 ## gracefully (no crash, no hang).
@@ -26,7 +26,7 @@ test_truncated_json () {
     tmpfile=$(mktemp)
     printf '{"name": "test", "version": "1.0", "items": [1, 2,' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -s json "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -s json "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # jq returns exit code 5 for truncated JSON; the key is it doesn't hang
     # or crash the whole engine catastrophically. Any exit code is acceptable
@@ -43,7 +43,7 @@ test_csv_mismatched_quotes () {
     tmpfile=$(mktemp)
     printf 'Name,City\n"Alice,"New York\nBob,Boston\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -s csv "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -s csv "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # Should not hang or crash; mismatched quotes may cause partial data
     if [[ $rc -le 1 ]]; then
@@ -64,7 +64,7 @@ test_csv_partial_data () {
     # Second data row has one fewer column than the header (3 commas in header, 2 in short row)
     printf 'Name,Age,City,Country\nAlice,30,Boston,US\nBob,25,Denver\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s csv "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s csv "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "partial CSV should not crash"
     # The full row should still produce all fields
@@ -84,7 +84,7 @@ test_yaml_tab_indentation () {
     # Use tabs instead of spaces for indentation (invalid YAML but common mistake)
     printf 'server:\n\thost: localhost\n\tport: 8080\ndebug: true\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -s yaml "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -s yaml "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # Should not crash; may extract top-level or nothing
     if [[ $rc -le 1 ]]; then
@@ -105,7 +105,7 @@ test_malformed_toml_unclosed () {
     # TOML with unclosed array table bracket and unclosed inline table
     printf '[server]\nhost = "localhost"\nport = 8080\n\n[[items\nname = "broken"\nvalue = {key = "unclosed"\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s toml "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s toml "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # Should not hang or crash
     if [[ $rc -le 1 ]]; then
@@ -126,7 +126,7 @@ test_malformed_toml_partial_extraction () {
     # Valid section header + valid key/value, then a malformed section
     printf '[database]\nhost = "db.example.com"\nport = 5432\n\n[[broken\nname = "item"\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s toml "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s toml "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # The valid [database] section should still produce output
     assert_contains "$output" "host" "should extract host from valid section"
@@ -143,7 +143,7 @@ test_malformed_xml_unclosed () {
     # XML with unclosed tags and mismatched nesting
     printf '<root>\n  <name>Alice\n  <age>30</age>\n  <city>Portland\n</root>\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s xml "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s xml "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # Should not hang or crash
     if [[ $rc -le 1 ]]; then
@@ -164,7 +164,7 @@ test_malformed_xml_partial_extraction () {
     # Mix of well-formed and unclosed tags; the closed tag should still extract
     printf '<data>\n  <name>Bob</name>\n  <email>bob@example.com\n  <age>25</age>\n</data>\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s xml "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s xml "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # Well-formed elements should still be extracted
     assert_contains "$output" "name" "should extract name from well-formed tag"

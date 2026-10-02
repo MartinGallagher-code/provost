@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Benchmark: envoy-extract memory profile on large inputs (ENV-042)
+## Benchmark: provost-extract memory profile on large inputs (ENV-042)
 ##
-## Generates a synthetic large input file and times envoy-extract + captures
+## Generates a synthetic large input file and times provost-extract + captures
 ## peak RSS if /usr/bin/time -v is available. Focuses on streaming mode vs
 ## batch mode (streaming should use less memory).
 ##
@@ -16,7 +16,7 @@
 set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MFE_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/envoy-extract"
+PROVOST_EXTRACT_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/provost-extract"
 
 SIZE="100MB"
 while [[ $# -gt 0 ]]; do
@@ -80,11 +80,11 @@ TIMEFORMAT='%R'
 stream_time=""
 stream_rss=""
 if command -v /usr/bin/time >/dev/null 2>&1; then
-    /usr/bin/time -v -o "$TMP/stream.time" bash "$MFE_SCRIPT" stream --strategy apache-access < "$TMP/big.log" > /dev/null 2>/dev/null || true
+    /usr/bin/time -v -o "$TMP/stream.time" bash "$PROVOST_EXTRACT_SCRIPT" stream --strategy apache-access < "$TMP/big.log" > /dev/null 2>/dev/null || true
     stream_time=$(awk -F': ' '/Elapsed \(wall clock\)/ {print $2}' "$TMP/stream.time")
     stream_rss=$(awk -F': ' '/Maximum resident set size/ {print $2}' "$TMP/stream.time")
 else
-    stream_time=$({ time bash "$MFE_SCRIPT" stream --strategy apache-access < "$TMP/big.log" > /dev/null 2>&1 ; } 2>&1)
+    stream_time=$({ time bash "$PROVOST_EXTRACT_SCRIPT" stream --strategy apache-access < "$TMP/big.log" > /dev/null 2>&1 ; } 2>&1)
 fi
 
 echo "  stream mode time: ${stream_time}"

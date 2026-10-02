@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## envoy_version.sh — suite-wide version helpers
+## provost_version.sh — suite-wide version helpers
 ##
 ## The top-level VERSION file is the single source of truth for provost's
-## version.  The engines source this helper and call envoy_suite_version rather
+## version.  The engines source this helper and call provost_suite_version rather
 ## than embedding release numbers in each script.
 ################################################################################
 
@@ -17,12 +17,12 @@
 # and the same holds in the wheel, where the tree sits under
 # provost_data/_bundle with VERSION at its root. Order:
 #   1. <start>/VERSION, <start>/../VERSION        (the script's tool root)
-#   2. $PROVOST_HOME/VERSION, $ENVOY_HOME/VERSION (explicit overrides)
+#   2. $PROVOST_HOME/VERSION, $PROVOST_ROOT/VERSION (explicit overrides)
 #   3. "0.0.0+unknown"                              (a partial checkout)
 # Args: optional starting directory (or file) — normally the calling script's
 # own directory; defaults to the caller's source file.
 # shellcheck disable=SC2120
-envoy_suite_version () {
+provost_suite_version () {
     local start="${1:-}"
     local dir="" candidate="" root
 
@@ -37,7 +37,7 @@ envoy_suite_version () {
 
     for candidate in ${dir:+"$dir/VERSION" "$(dirname "$dir")/VERSION"} \
                      ${PROVOST_HOME:+"$PROVOST_HOME/VERSION"} \
-                     ${ENVOY_HOME:+"$ENVOY_HOME/VERSION"}; do
+                     ${PROVOST_ROOT:+"$PROVOST_ROOT/VERSION"}; do
         if [[ -r "$candidate" ]]; then
             root="$(head -n1 "$candidate" | tr -d '[:space:]')"
             if [[ -n "$root" ]]; then
@@ -51,9 +51,9 @@ envoy_suite_version () {
 }
 
 # Print the --version banner for one of provost's engines.
-envoy_version_banner () {
+provost_version_banner () {
     local name="$1"
-    local version="${2:-$(envoy_suite_version)}"
+    local version="${2:-$(provost_suite_version)}"
     printf '%s (provost) %s\n' "$name" "$version"
     printf 'Copyright (C) 2026 Martin J. Gallagher\n'
     printf 'License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>\n'

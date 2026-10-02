@@ -16,7 +16,7 @@ echo "========================================"
 
 test_git_log_basic () {
     local output
-    output=$(run_mfe -r -s git-log "$SAMPLES_DIR/git-log/basic.txt")
+    output=$(run_extract -r -s git-log "$SAMPLES_DIR/git-log/basic.txt")
     # 2 commits x 4 fields = 8 fields
     assert_contains "$output" "commit1.hash abc1234567890abcdef1234567890abcdef12345" "should extract commit1 hash"
     assert_contains "$output" "commit1.author" "should extract commit1 author"
@@ -29,7 +29,7 @@ test_git_log_basic () {
 
 test_git_log_author () {
     local output
-    output=$(run_mfe -r -s git-log "$SAMPLES_DIR/git-log/basic.txt")
+    output=$(run_extract -r -s git-log "$SAMPLES_DIR/git-log/basic.txt")
     assert_contains "$output" "commit1.author John Doe <john@example.com>" "should extract full author"
     assert_contains "$output" "commit2.author Jane Smith <jane@example.com>" "should extract second author"
 }
@@ -39,7 +39,7 @@ test_git_log_oneline () {
     tmpfile=$(mktemp)
     printf 'abc1234 Initial commit\ndef5678 Add README\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s git-log "$tmpfile")
+    output=$(run_extract -r -s git-log "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "commit1.hash abc1234" "should extract oneline hash"
     assert_contains "$output" "commit1.message Initial commit" "should extract oneline message"
@@ -51,7 +51,7 @@ test_git_log_not_detected_for_json () {
     tmpfile=$(mktemp)
     printf '{"key": "value", "count": 42}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s git-log "$tmpfile" 2>&1)
+    output=$(run_extract -d -s git-log "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "git-log should not apply to JSON"
 }

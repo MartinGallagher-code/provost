@@ -5,7 +5,7 @@
 ################################################################################
 ## Numeric-column exclusion visibility (ENV-132)
 ##
-## When envoy-analyze classifies a column as numeric (≥80% of values parse
+## When provost-analyze classifies a column as numeric (≥80% of values parse
 ## as numbers, the remaining ≤20% are non-numeric), the mean/std are
 ## computed from the numeric subset only and the rest are silently dropped.
 ## Pre-ENV-132 the user had no way to tell.
@@ -20,7 +20,7 @@
 
 set -u
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ANALYZE="$SCRIPT_DIR/../envoy-analyze"
+ANALYZE="$SCRIPT_DIR/../provost-analyze"
 
 pass=0
 fail=0

@@ -3,9 +3,9 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Tests for ENV-182 — EnvoyExtract dispatch / validate edge cases.
+## Tests for ENV-182 — provost-extract dispatch / validate edge cases.
 ##
-## Sub-bug 1 (envoy-extract:660-666):
+## Sub-bug 1 (provost-extract:660-666):
 ##   Pre-fix: `text=$(head -c $((N+1)))` then `[[ ${#text} -gt N ]]`.
 ##   `$(...)` strips trailing newlines, so an input of exactly N+1
 ##   bytes ending in newline(s) shrank to ≤ N bytes after capture
@@ -23,7 +23,7 @@
 ##
 ## Sub-bug 3 (lib/_dispatch.sh:447):
 ##   Replay command was constructed with single-quote splices:
-##     local cmd="mfe --replay '${matched_strategies}'"
+##     local cmd="provost-extract --replay '${matched_strategies}'"
 ##   A value containing `'` produced a broken / injection-prone
 ##   command that pasted into a shell mis-parses or runs unintended
 ##   code. Fix: shell-quote each piece via `printf '%q'` so the
@@ -34,10 +34,10 @@ set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Resolve the engine relative to this test dir (tests/.. == the engine root),
-# not via a hardcoded "EnvoyExtract" directory name — so the suite runs unchanged
+# not via a hardcoded "provost-extract" directory name — so the suite runs unchanged
 # when the tree is vendored elsewhere (e.g. provost/lib/extract/). Matches helpers.sh.
 ENGINE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-EE="$ENGINE_ROOT/envoy-extract"
+EE="$ENGINE_ROOT/provost-extract"
 DISPATCH="$ENGINE_ROOT/lib/_dispatch.sh"
 
 PASS=0
@@ -94,10 +94,10 @@ else
 fi
 
 # A3: drift — the new staging-into-tempfile path is wired in.
-if grep -qE 'envoy-extract-stage' "$EE" && grep -qE 'wc -c < "\$_raw_stage"' "$EE"; then
-    _pass "drift: envoy-extract uses temp-file staging + wc -c byte cap"
+if grep -qE 'provost-extract-stage' "$EE" && grep -qE 'wc -c < "\$_raw_stage"' "$EE"; then
+    _pass "drift: provost-extract uses temp-file staging + wc -c byte cap"
 else
-    _fail "drift: envoy-extract still uses \${#text}-only oversize check"
+    _fail "drift: provost-extract still uses \${#text}-only oversize check"
 fi
 
 ###############################################################################
@@ -151,7 +151,7 @@ else
 fi
 
 # C2: drift — the legacy single-quote splice is gone.
-if grep -nE "cmd=\"mfe --replay '\\\$\{matched_strategies\}'\"" "$DISPATCH" >/dev/null 2>&1; then
+if grep -nE "cmd=\"provost-extract --replay '\\\$\{matched_strategies\}'\"" "$DISPATCH" >/dev/null 2>&1; then
     _fail "drift: _dispatch.sh still has legacy single-quote splice for replay"
 else
     _pass "drift: legacy single-quote splice removed from _dispatch.sh replay"
@@ -167,14 +167,14 @@ fields="a,b,c"
 _qstrats=$(printf '%q' "$matched_strategies")
 _qfile=$(printf '%q' "$file")
 _qfields=$(printf '%q' "$fields")
-cmd="mfe --replay ${_qstrats} ${_qfile} ${_qfields}"
+cmd="provost-extract --replay ${_qstrats} ${_qfile} ${_qfields}"
 # Round-trip the cmd through bash word-splitting via `eval set --`.
-# After this, $1..$5 contain the parsed argv (mfe / --replay /
+# After this, $1..$5 contain the parsed argv (provost-extract / --replay /
 # strategies / file / fields). The single-quote in $file must
 # survive intact.
 eval "set -- $cmd"
 if [[ "$#" == "5" \
-   && "$1" == "mfe" \
+   && "$1" == "provost-extract" \
    && "$2" == "--replay" \
    && "$3" == "$matched_strategies" \
    && "$4" == "$file" \

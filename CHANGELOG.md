@@ -1,5 +1,43 @@
 # provost — Changelog
 
+## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
+
+The names inherited from the Envoy suite are gone from provost's own code.
+- **Files.** `extract/envoy-extract` → `extract/provost-extract`;
+  `analyze/envoy-analyze` → `analyze/provost-analyze`;
+  `analyze/completions/envoy-{analyze,browse}.bash` → `provost-*.bash`;
+  `analyze/schemas/envoy-analyze-output.json` → `provost-analyze-output.json`;
+  `lib/envoy_{output,pager,progress,suggest,version}.sh` → `lib/provost_*.sh`;
+  `lib/envoy_envoyrc.sh` → `lib/provost_rc.sh`;
+  `extract/tests/test_envoyrc.sh` → `test_provostrc.sh`;
+  `extract/tests/test_mfe.sh` → `test_extract_cli.sh`.
+- **Settings.** `ENVOY_*` → `PROVOST_*` (`ENVOY_HOME` → `PROVOST_ROOT`, the
+  install root provost already used); `MFE_RANK` → `PROVOST_RANK`;
+  `MFE_HINTS_FILE` → `PROVOST_HINTS_FILE`; `MFE_SCRIPT` / `MFE_DIR` →
+  `PROVOST_EXTRACT_SCRIPT` / `PROVOST_EXTRACT_DIR` (tests). Functions
+  `envoy_*` → `provost_*`. The config file is `.provostrc` and
+  `~/.config/provost/config`, and it accepts `PROVOST_*` keys only. The
+  per-user strategies dir is `${XDG_CONFIG_HOME:-~/.config}/provost/strategies`.
+  The replay hint now prints `provost-extract --replay …` instead of the
+  nonexistent `mfe`.
+- **Compatibility, one release.** Both engines map a set legacy variable
+  onto its new name when the new one is unset. This covers `ENVOY_HOME`,
+  `MFE_RANK`, `MFE_HINTS_FILE`, `ENVOY_NO_RC`, `ENVOY_QUIET`, `ENVOY_VERBOSE`,
+  `ENVOY_NO_PAGER`, `ENVOY_NO_PROGRESS` and
+  `ENVOY_ANALYZE_SUPPRESS_AWK_WARNING`. `~/.mfe/strategies` is still read,
+  below the new dir. `.envoyrc` files are no longer read: provost runs its
+  engines with that layer off anyway.
+- **Untouched.** The history in CHANGELOGs and `docs/0001-*` / `docs/archive`
+  is unchanged. `tests/corpus/{inputs,expected}/envoy-*`, `expected.tsv` and
+  `double-colon-fields` are untouched too: they describe the real Envoy
+  proxy's tools.
+- How: a token-level script over every tracked text file. Nothing else
+  changes behaviour. `tests/smoke.sh` now excludes `PROVOST_NO_RC` and
+  `PROVOST_ANALYZE_SUPPRESS_AWK_WARNING` from its "documented in help"
+  check, because provost sets them for its engines; users don't set them.
+  Also updated: `pyproject.toml` force-include paths, CI, the corpus and
+  benchmark scripts, `man/provost.1`, README, CLAUDE.md.
+
 ## 2026-10-02 — large inputs: middle windows in the detection sample
 
 **Middle-evidence false rejects (`extract/lib/_discovery.sh`

@@ -10,7 +10,7 @@ source "$SCRIPT_DIR/helpers.sh"
 ################################################################################
 ## Performance regression tests
 ##
-## Verifies envoy-analyze completes within time limits on generated datasets.
+## Verifies provost-analyze completes within time limits on generated datasets.
 ## Skip with: MDA_SKIP_PERF=1
 ################################################################################
 

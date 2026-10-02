@@ -7,10 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
 echo "========================================"
-echo "EnvoyAnalyze --list-items menu (ENV-191)"
+echo "provost-analyze --list-items menu (ENV-191)"
 echo "========================================"
 
-export ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1
+export PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1
 SAMPLE="$SAMPLES_DIR/anscombe.csv"
 
 test_list_items_shows_menu () {

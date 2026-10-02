@@ -16,13 +16,13 @@ echo "========================================"
 
 test_beegfs_detect () {
     local output
-    output=$(run_mfe -d -s columnar-specs "$SAMPLES_DIR/beegfs/basic.txt" 2>&1)
+    output=$(run_extract -d -s columnar-specs "$SAMPLES_DIR/beegfs/basic.txt" 2>&1)
     assert_contains "$output" "applicable" "should detect beegfs output"
 }
 
 test_beegfs_values () {
     local output
-    output=$(run_mfe -r -s columnar-specs "$SAMPLES_DIR/beegfs/basic.txt")
+    output=$(run_extract -r -s columnar-specs "$SAMPLES_DIR/beegfs/basic.txt")
     assert_contains "$output" "target1.target_id 1" "should extract target 1 ID"
     assert_contains "$output" "target1.state Online" "should extract target 1 state"
     assert_contains "$output" "target1.capacity 500G" "should extract target 1 capacity"
@@ -36,7 +36,7 @@ test_beegfs_not_json () {
     local tmpfile=$(mktemp)
     printf '{"name": "test"}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s columnar-specs "$tmpfile" 2>&1)
+    output=$(run_extract -d -s columnar-specs "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "should not match JSON"
 }

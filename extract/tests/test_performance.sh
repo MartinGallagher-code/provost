@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Performance Tests for Envoy:Explore (envoy-extract)
+## Performance Tests for provost-extract (provost-extract)
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -29,7 +29,7 @@ test_large_colons_input () {
     done
     local start_time=$SECONDS
     local rc=0
-    run_mfe -s colons "$tmpfile" >/dev/null 2>&1 || rc=$?
+    run_extract -s colons "$tmpfile" >/dev/null 2>&1 || rc=$?
     local elapsed=$((SECONDS - start_time))
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "10K lines should complete successfully"
@@ -56,7 +56,7 @@ test_large_json_input () {
     echo "}" >> "$tmpfile"
     local start_time=$SECONDS
     local rc=0
-    run_mfe -s json "$tmpfile" >/dev/null 2>&1 || rc=$?
+    run_extract -s json "$tmpfile" >/dev/null 2>&1 || rc=$?
     local elapsed=$((SECONDS - start_time))
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "1K JSON keys should complete successfully"
@@ -73,7 +73,7 @@ test_large_json_input () {
 test_list_strategies_performance () {
     local start_time=$SECONDS
     local rc=0
-    run_mfe --list-strategies >/dev/null 2>&1 || rc=$?
+    run_extract --list-strategies >/dev/null 2>&1 || rc=$?
     local elapsed=$((SECONDS - start_time))
     assert_exit_zero "$rc" "list-strategies should complete successfully"
     if [[ $elapsed -gt 10 ]]; then
@@ -89,7 +89,7 @@ test_list_strategies_performance () {
 test_single_strategy_fast_path () {
     local start_time=$SECONDS
     local rc=0
-    run_mfe -s colons "$SAMPLES_DIR/colons/basic.txt" >/dev/null 2>&1 || rc=$?
+    run_extract -s colons "$SAMPLES_DIR/colons/basic.txt" >/dev/null 2>&1 || rc=$?
     local elapsed=$((SECONDS - start_time))
     assert_exit_zero "$rc" "single strategy should complete successfully"
     if [[ $elapsed -gt 5 ]]; then

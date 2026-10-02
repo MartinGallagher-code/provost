@@ -12,7 +12,7 @@ echo "Strategy Tests: mount"
 
 test_mount_basic () {
     local output
-    output=$(run_mfe -r -s columnar-specs "$SAMPLES_DIR/mount/basic.txt")
+    output=$(run_extract -r -s columnar-specs "$SAMPLES_DIR/mount/basic.txt")
     assert_contains "$output" "entry1.device /dev/sda1" "first device"
     assert_contains "$output" "entry1.mount_point /" "first mount point"
     assert_contains "$output" "entry1.fstype ext4" "first fstype"
@@ -24,7 +24,7 @@ test_mount_basic () {
 }
 test_mount_detects () {
     local output
-    output=$(run_mfe -d -s columnar-specs "$SAMPLES_DIR/mount/basic.txt" 2>&1)
+    output=$(run_extract -d -s columnar-specs "$SAMPLES_DIR/mount/basic.txt" 2>&1)
     assert_not_contains "$output" "not applicable" "mount must match mount output"
 }
 run_test "mount: basic extraction" test_mount_basic

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Interactive Mode Tests for envoy-extract
+## Interactive Mode Tests for provost-extract
 ##
 ## Tests the -i / --interactive flag.  TTY-requiring tests use `expect` and
 ## are automatically skipped when `expect` is not installed.
@@ -126,27 +126,27 @@ test_set_all_count () {
 
 test_interactive_count_conflict () {
     local output rc=0
-    output=$(run_mfe --interactive --count "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract --interactive --count "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "--interactive and --count should conflict"
     assert_contains "$output" "cannot" "should show conflict error"
 }
 
 test_interactive_names_conflict () {
     local output rc=0
-    output=$(run_mfe --interactive --names "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract --interactive --names "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "--interactive and --names should conflict"
     assert_contains "$output" "cannot" "should show conflict error"
 }
 
 ################################################################################
-## TTY fallback: mfe --interactive without terminal exits gracefully
+## TTY fallback: provost-extract --interactive without terminal exits gracefully
 ################################################################################
 
 test_interactive_no_tty_graceful () {
-    # When run without a controlling terminal, mfe -i should exit (not hang).
+    # When run without a controlling terminal, provost-extract -i should exit (not hang).
     # We use timeout to guard against hanging.
     local rc=0
-    timeout 3 bash "$MFE_SCRIPT" -i -s colons "$SAMPLES_DIR/colons/basic.txt" \
+    timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons "$SAMPLES_DIR/colons/basic.txt" \
         >/dev/null 2>/dev/null || rc=$?
     # Exit code 1 (no output) or 0 (empty selection message) are both acceptable.
     # The critical property is that it exits within 3 seconds (not hung).
@@ -159,21 +159,21 @@ test_interactive_no_tty_graceful () {
 
 test_interactive_quiet_conflict () {
     local output rc=0
-    output=$(run_mfe --interactive --quiet "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract --interactive --quiet "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "--interactive and --quiet should conflict"
     assert_contains "$output" "cannot" "should show conflict error"
 }
 
 test_interactive_stream_conflict () {
     local output rc=0
-    output=$(echo '{}' | run_mfe --interactive --stream -s json 2>&1) || rc=$?
+    output=$(echo '{}' | run_extract --interactive --stream -s json 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "--interactive and --stream should conflict"
     assert_contains "$output" "cannot" "should show conflict error"
 }
 
 test_interactive_batch_conflict () {
     local output rc=0
-    output=$(echo "/dev/null" | run_mfe --interactive --batch 2>&1) || rc=$?
+    output=$(echo "/dev/null" | run_extract --interactive --batch 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "--interactive and --batch should conflict"
     assert_contains "$output" "cannot" "should show conflict error"
 }
@@ -186,7 +186,7 @@ test_interactive_no_tty_fallback_selects_all () {
     # When /dev/tty is unavailable, interactive mode should fall back to
     # selecting all fields and produce output (not just exit silently).
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f json \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f json \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc=$?
     # Should not hang (rc 124 = timeout)
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: --interactive hung (timeout)"; return 1; }
@@ -202,7 +202,7 @@ test_interactive_no_tty_stderr_warning () {
     # diagnostic message: either the "not a terminal" warning from the code,
     # or the shell's own "No such device" error from /dev/tty redirection.
     local stderr_output rc=0
-    stderr_output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons \
+    stderr_output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons \
         "$SAMPLES_DIR/colons/basic.txt" 2>&1 >/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: --interactive hung (timeout)"; return 1; }
     # Accept either our warning or a shell-level /dev/tty error
@@ -224,7 +224,7 @@ test_interactive_with_strategy_no_tty () {
     # Using -i with --strategy should still work in non-TTY (fallback mode).
     # The strategy constraint should be respected: only colons strategy runs.
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f json \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f json \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: hung with -i -s"; return 1; }
     if [[ $rc -eq 0 && -n "$output" ]]; then
@@ -236,7 +236,7 @@ test_interactive_with_strategy_no_tty () {
 test_interactive_with_json_strategy_no_tty () {
     # Interactive + json strategy should produce JSON fields.
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s json -f json \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s json -f json \
         "$SAMPLES_DIR/json/basic.json" 2>/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: hung with -i -s json"; return 1; }
     if [[ $rc -eq 0 && -n "$output" ]]; then
@@ -252,7 +252,7 @@ test_interactive_with_json_strategy_no_tty () {
 test_interactive_format_csv_no_tty () {
     # In non-TTY fallback, --format should still be respected.
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f csv \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f csv \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: hung with -i -f csv"; return 1; }
     if [[ $rc -eq 0 && -n "$output" ]]; then
@@ -265,7 +265,7 @@ test_interactive_format_csv_no_tty () {
 test_interactive_format_yaml_no_tty () {
     # In non-TTY fallback, --format yaml should produce YAML output.
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f yaml \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f yaml \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: hung with -i -f yaml"; return 1; }
     if [[ $rc -eq 0 && -n "$output" ]]; then
@@ -281,14 +281,14 @@ test_interactive_format_yaml_no_tty () {
 
 test_interactive_multiple_files_no_tty () {
     # Interactive mode should work with multiple input files in non-TTY mode.
-    # Note: envoy-extract processes one file at a time; multiple files are
+    # Note: provost-extract processes one file at a time; multiple files are
     # handled by the caller (or batch mode). This tests that -i doesn't break
     # when a single file is specified alongside strategy.
     local output1 rc1=0
-    output1=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f json \
+    output1=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f json \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc1=$?
     local output2 rc2=0
-    output2=$(timeout 3 bash "$MFE_SCRIPT" -i -s json -f json \
+    output2=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s json -f json \
         "$SAMPLES_DIR/json/basic.json" 2>/dev/null) || rc2=$?
 
     [[ $rc1 -ne 124 ]] || { echo "  ASSERT FAILED: first file hung"; return 1; }
@@ -320,7 +320,7 @@ test_interactive_select_single_field () {
     # We run it via the CLI in non-TTY mode (piped), which triggers the
     # fallback to selecting all fields. We verify the output is produced.
     local output rc=0
-    output=$(timeout 3 bash "$MFE_SCRIPT" -i -s colons -f json \
+    output=$(timeout 3 bash "$PROVOST_EXTRACT_SCRIPT" -i -s colons -f json \
         "$SAMPLES_DIR/colons/basic.txt" 2>/dev/null) || rc=$?
     [[ $rc -ne 124 ]] || { echo "  ASSERT FAILED: hung"; return 1; }
     # In non-TTY fallback, all fields should be selected and output produced
@@ -367,7 +367,7 @@ test_interactive_sigint_no_hang () {
     local rc=0
     # Run in background, send SIGINT after a short delay
     timeout 3 bash -c "
-        bash \"$MFE_SCRIPT\" -i -s colons \"$SAMPLES_DIR/colons/basic.txt\" &
+        bash \"$PROVOST_EXTRACT_SCRIPT\" -i -s colons \"$SAMPLES_DIR/colons/basic.txt\" &
         pid=\$!
         sleep 0.3
         kill -INT \$pid 2>/dev/null
@@ -413,7 +413,7 @@ _JSON_SAMPLE="$SAMPLES_DIR/json/basic.json"
 # TTY test: press Enter immediately → all fields returned
 _run_expect_test "
 set timeout 5
-spawn bash $MFE_SCRIPT -i -s colons $_COLONS_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s colons $_COLONS_SAMPLE
 expect {Select fields} {}
 send \"\r\"
 expect eof
@@ -426,7 +426,7 @@ exit 0
 # TTY test: cancel with q → exit 1 (non-zero), no fields
 _run_expect_test "
 set timeout 5
-spawn bash $MFE_SCRIPT -i -s colons $_COLONS_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s colons $_COLONS_SAMPLE
 expect {Select fields} {}
 send \"q\"
 expect eof
@@ -440,7 +440,7 @@ exit 0
 _run_expect_test "
 set timeout 5
 log_file /dev/null
-spawn bash $MFE_SCRIPT -i -s colons -f json $_COLONS_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s colons -f json $_COLONS_SAMPLE
 expect {Select fields} {}
 send \"\r\"
 expect eof
@@ -453,7 +453,7 @@ exit 0
 # TTY test: interactive with json strategy
 _run_expect_test "
 set timeout 5
-spawn bash $MFE_SCRIPT -i -s json $_JSON_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s json $_JSON_SAMPLE
 expect {Select fields} {}
 send \"\r\"
 expect eof
@@ -466,7 +466,7 @@ exit 0
 # TTY test: press 'n' (none) then Enter → no fields selected
 _run_expect_test "
 set timeout 5
-spawn bash $MFE_SCRIPT -i -s colons $_COLONS_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s colons $_COLONS_SAMPLE
 expect {Select fields} {}
 send \"n\"
 after 200
@@ -481,7 +481,7 @@ exit 0
 # TTY test: press 'a' (all) then Enter → all fields selected
 _run_expect_test "
 set timeout 5
-spawn bash $MFE_SCRIPT -i -s colons $_COLONS_SAMPLE
+spawn bash $PROVOST_EXTRACT_SCRIPT -i -s colons $_COLONS_SAMPLE
 expect {Select fields} {}
 send \"a\"
 after 200

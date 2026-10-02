@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Strategy discovery and execution for envoy-extract
+## Strategy discovery and execution for provost-extract
 ##
 ## Find, load, detect, and run extraction strategies.
 ## Dependencies: _log.sh, _helpers.sh (_clean_field, _count_lines),
@@ -143,12 +143,16 @@ _is_generic_strategy_file () {
 
 # _collect_strategy_dirs — the strategy search path in the global array
 # _STRATEGY_DIRS, in precedence order (a later directory wins a name clash in
-# build_strategy_list): the bundled tree, then the per-user ~/.mfe/strategies
-# (when it exists), then --plugin-dir (when set and it exists). The single
-# definition of the search path — every caller used to spell it out inline.
+# build_strategy_list): the bundled tree, then the per-user strategies dir
+# ${XDG_CONFIG_HOME:-~/.config}/provost/strategies (when it exists; the
+# pre-rename ~/.mfe/strategies is still read, below it, for one release), then
+# --plugin-dir (when set and it exists). The single definition of the search
+# path — every caller used to spell it out inline.
 _collect_strategy_dirs () {
     _STRATEGY_DIRS=("$STRATEGIES_DIR")
-    local _user_dir="${HOME:-/nonexistent}/.mfe/strategies"
+    local _legacy_dir="${HOME:-/nonexistent}/.mfe/strategies"
+    local _user_dir="${XDG_CONFIG_HOME:-${HOME:-/nonexistent}/.config}/provost/strategies"
+    [[ -d "$_legacy_dir" ]] && _STRATEGY_DIRS+=("$_legacy_dir")
     [[ -d "$_user_dir" ]] && _STRATEGY_DIRS+=("$_user_dir")
     [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && _STRATEGY_DIRS+=("$_OPT_plugin_dir")
     return 0
@@ -348,10 +352,10 @@ run_chain_strategies () {
         local _chain_version="${_META_VERSION:-0}"
 
         # ENV-160: mktemp + umask 077 instead of the predictable
-        # `${TMPDIR:-/tmp}/_mfe_src_err.$$` (symlink-attack vector).
+        # `${TMPDIR:-/tmp}/provost_src_err.$$` (symlink-attack vector).
         local _old_umask _src_tmpf
         _old_umask=$(umask); umask 077
-        _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || { umask "$_old_umask"; exit 1; }
+        _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/provost_src_err.XXXXXX") || { umask "$_old_umask"; exit 1; }
         umask "$_old_umask"
         if ! source "$_FOUND_STRATEGY_FILE" 2>"$_src_tmpf"; then
             _log_warn "Failed to source chain strategy: $chain_strat"
@@ -1529,8 +1533,8 @@ _run_auto_strategies_body () {
     local _eas_total
     _eas_total=$(printf '%s\n' "$_SORTED_STRATEGIES" | grep -c '^.')
     local _eas_show_progress=0
-    if envoy_progress_active; then
-        if [[ "${ENVOY_PROGRESS_OPT_IN:-0}" == "1" || "$_eas_total" -ge 20 ]]; then
+    if provost_progress_active; then
+        if [[ "${PROVOST_PROGRESS_OPT_IN:-0}" == "1" || "$_eas_total" -ge 20 ]]; then
             _eas_show_progress=1
         fi
     fi
@@ -1543,7 +1547,7 @@ _run_auto_strategies_body () {
     # per invocation). Same symlink-safe umask-077 mktemp as before, just hoisted.
     local _old_umask _src_tmpf
     _old_umask=$(umask); umask 077
-    _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_src_err.XXXXXX") || _src_tmpf=""
+    _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/provost_src_err.XXXXXX") || _src_tmpf=""
     umask "$_old_umask"
 
     # RANKING (--rank confidence, the default). Phase 1 runs EVERY eligible
@@ -1588,7 +1592,7 @@ _run_auto_strategies_body () {
         # so the user sees "what's running" rather than "what just
         # finished". The helper handles TTY vs non-TTY format internally.
         if [[ "$_eas_show_progress" -eq 1 ]]; then
-            envoy_progress_tick "$strategies_tried" "$_eas_total" "$strategy_name"
+            provost_progress_tick "$strategies_tried" "$_eas_total" "$strategy_name"
         fi
 
         _should_run_strategy "$strategy_name" || continue
@@ -1753,10 +1757,10 @@ run_explain_mode () {
         fi
 
         # ENV-160: mktemp + umask 077 instead of the predictable
-        # `${TMPDIR:-/tmp}/_mfe_explain.$$` (symlink-attack vector).
+        # `${TMPDIR:-/tmp}/provost_explain.$$` (symlink-attack vector).
         local _old_umask _src_tmpf
         _old_umask=$(umask); umask 077
-        _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/mfe_explain.XXXXXX") || { umask "$_old_umask"; continue; }
+        _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/provost_explain.XXXXXX") || { umask "$_old_umask"; continue; }
         umask "$_old_umask"
         if ! source "$strategy_file" 2>"$_src_tmpf"; then
             miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'ERR' "$strategy_name" "$strategy_priority" '--' 'source error')"$'\n'

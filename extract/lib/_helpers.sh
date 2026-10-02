@@ -3,14 +3,14 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Helper functions for envoy-extract
+## Helper functions for provost-extract
 ##
 ## Pure-bash utility functions used by strategies and the engine.
 ## Dependencies: none (standalone)
 ################################################################################
 
 # ENV-115: initialise clean_text cache slots at source time so nounset in
-# envoy-extract doesn't trip when a caller (e.g. stream mode) reaches
+# provost-extract doesn't trip when a caller (e.g. stream mode) reaches
 # clean_text() before _dispatch.sh's extract-path init runs.
 _CLEAN_TEXT_CACHE="${_CLEAN_TEXT_CACHE:-}"
 _CLEAN_TEXT_DONE="${_CLEAN_TEXT_DONE:-0}"
@@ -756,7 +756,7 @@ _FR_SCRATCH=""
 _fr_scratch () {
     [[ -n "$_FR_SCRATCH" && -d "$_FR_SCRATCH" ]] && return 0
     local _fs_um; _fs_um=$(umask); umask 077
-    _FR_SCRATCH=$(mktemp -d "${TMPDIR:-/tmp}/envoy-extract.XXXXXX") || { umask "$_fs_um"; _FR_SCRATCH=""; return 1; }
+    _FR_SCRATCH=$(mktemp -d "${TMPDIR:-/tmp}/provost-extract.XXXXXX") || { umask "$_fs_um"; _FR_SCRATCH=""; return 1; }
     umask "$_fs_um"
     trap '_fr_scratch_cleanup' EXIT
     return 0

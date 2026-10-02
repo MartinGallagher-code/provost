@@ -16,7 +16,7 @@ echo "========================================"
 
 test_equals_basic () {
     local output
-    output=$(run_mfe -r -s equals "$SAMPLES_DIR/equals/basic.txt")
+    output=$(run_extract -r -s equals "$SAMPLES_DIR/equals/basic.txt")
     assert_contains "$output" "USER" "should extract USER"
     assert_contains "$output" "jdoe" "should extract value jdoe"
     assert_contains "$output" "HOME" "should extract HOME"
@@ -25,7 +25,7 @@ test_equals_basic () {
 
 test_equals_field_selection () {
     local output
-    output=$(run_mfe -s equals "$SAMPLES_DIR/equals/basic.txt" 1,2)
+    output=$(run_extract -s equals "$SAMPLES_DIR/equals/basic.txt" 1,2)
     assert_contains "$output" "USER" "should contain USER"
     assert_contains "$output" "HOME" "should contain HOME"
 }
@@ -35,7 +35,7 @@ test_equals_skips_comparisons () {
     tmpfile=$(mktemp)
     printf "NAME=test\nif x == y then\na += b\nx != y\n" > "$tmpfile"
     local output
-    output=$(run_mfe -r -s equals "$tmpfile")
+    output=$(run_extract -r -s equals "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "NAME" "should extract NAME"
     assert_not_contains "$output" "==" "should skip comparisons"
@@ -44,7 +44,7 @@ test_equals_skips_comparisons () {
 
 test_equals_json_format () {
     local output
-    output=$(run_mfe -s equals -f json "$SAMPLES_DIR/equals/basic.txt" 1,2)
+    output=$(run_extract -s equals -f json "$SAMPLES_DIR/equals/basic.txt" 1,2)
     assert_contains "$output" '"USER":' "JSON should have USER key"
     assert_contains "$output" '"HOME":' "JSON should have HOME key"
 }
@@ -53,7 +53,7 @@ test_equals_json_format () {
 # show, git config --list) must clear provost's default filing threshold (50);
 # one stray `=` in prose must not.
 _equals_conf () { # <file> -> confidence equals reports
-    run_mfe -s equals --emit-meta -f tsv "$1" 2>&1 >/dev/null \
+    run_extract -s equals --emit-meta -f tsv "$1" 2>&1 >/dev/null \
         | awk -F'\t' '/^__EXTRACT_META__/ { c = $3 } END { print c + 0 }'
 }
 
@@ -92,7 +92,7 @@ test_equals_value_spaces_kept () {
     local tmp output
     tmp="$(mktemp)"
     printf 'NAME=John Smith\nBUILT=Mon Jan 26 12:30:45 2024\n' > "$tmp"
-    output=$(run_mfe -s equals -f plain "$tmp")
+    output=$(run_extract -s equals -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "NAME John Smith" "value keeps its space"
     assert_contains "$output" "BUILT Mon Jan 26 12:30:45 2024" "date value keeps spaces and colons"

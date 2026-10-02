@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
 echo "========================================"
-echo "EnvoyAnalyze v3.1 New Features Tests"
+echo "provost-analyze v3.1 New Features Tests"
 echo "========================================"
 
 ########################################

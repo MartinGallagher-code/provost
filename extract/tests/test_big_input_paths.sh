@@ -34,7 +34,7 @@ _big_run () {
     local -a envs=()
     while [[ $# -gt 0 && "$1" != -- ]]; do envs+=("$1"); shift; done
     shift
-    env "${envs[@]}" bash "$MFE_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$@" \
+    env "${envs[@]}" bash "$PROVOST_EXTRACT_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$@" \
         > "$out" 2> "$out.err" || true
     grep '^__EXTRACT_META__' "$out.err" >> "$out" || true
 }
@@ -190,7 +190,7 @@ _raw_extract () {  # STRATEGY-FILE INPUT BIG-BYTES
     bash -c '
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_techniques.sh"
         _FR_BIG_BYTES=$4; source "$1/strategies/$2"
-        text="$(cat "$3")"; strategy_extract "$text"' _ "$(dirname "$MFE_SCRIPT")" "$@"
+        text="$(cat "$3")"; strategy_extract "$text"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$@"
 }
 test_twins_raw_bytes () {
     local spec st in
@@ -213,7 +213,7 @@ _sample_of () {  # TEXT [ENV...] -> prints "<sampled> <sample>"
         set -o pipefail
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
         text="$2"; _detect_sample_build
-        printf "%s|%s" "$_DET_SAMPLED" "$_DET_TEXT"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_TEXT"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$t"
 }
 
 test_sample_head_tail () {
@@ -336,7 +336,7 @@ _doc_of () {  # TEXT [ENV...] -> prints "<sampled>|<document>"
         set -o pipefail
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
         text="$2"; _detect_sample_build
-        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$t"
 }
 
 # A big JSON array or XML document picks the same winner, with the same
@@ -443,7 +443,7 @@ test_dedup_stream_equals_sort () {
             b="$(_dedup_pipe < "$2" | od -c)"                                 # stdin, unknown SOH: sort pipeline
             c="$(_DD_SOH=0; [[ "$(cat "$2")" == *$'"'"'\001'"'"'* ]] && _DD_SOH=1; _DD_SOH=$_DD_SOH _dedup_pipe < "$2" | od -c)"
             [[ "$a" == "$b" && "$b" == "$c" ]] && echo same || { echo "$a"; echo ---; echo "$b"; echo ---; echo "$c"; }
-        ' _ "$(dirname "$MFE_SCRIPT")" "$f")"
+        ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$f")"
         assert_eq "$r" "same" "dedup routes agree on ${f##*/}"
     done
 }
@@ -461,7 +461,7 @@ test_absent_literals_big () {
         a="$(_fr_absent_literals "$t" "$L")"; b="$(_fr_absent_literals_scan "$t" "$L")"
         c="$(_fr_absent_literals "${t%late*}" "$L")"; d="$(_fr_absent_literals_scan "${t%late*}" "$L")"
         printf "%s|%s|%s" "$([[ "$a" == "$b" ]] && echo same || echo diff)" "$([[ "$c" == "$d" ]] && echo same || echo diff)" "$(tr "\n\001" ",^" <<< "$a")"
-    ' _ "$(dirname "$MFE_SCRIPT")")"
+    ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")")"
     assert_eq "$r" "same|same|never seen,^x," "big-text absent literals == per-literal scan"
 }
 
@@ -479,7 +479,7 @@ test_hint_prefilters_sound () {
         _hint_first_atom "^a|b"; printf "%s|" "$_HFA"
         _hint_first_atom "^ *UNIT"; printf "%s|" "$_HFA"
         _hint_first_atom "^\\.{5,}"; printf "%s" "$_HFA"
-    ' _ "$(dirname "$MFE_SCRIPT")")"
+    ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")")"
     assert_eq "$r" 'bytes|SIGNAL ||cd|yz|^[ipvc]|||^\.' "required literals / first atoms are conservative"
 }
 

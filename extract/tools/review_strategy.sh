@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Strategy Review Tool for EnvoyExtract
+## Strategy Review Tool for provost-extract
 ##
 ## Human spot-check workflow: runs a strategy against its sample file, shows
 ## detected fields and values, and asks the user to confirm/reject each field.
@@ -19,7 +19,7 @@ set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXTRACT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-MFE_SCRIPT="$EXTRACT_DIR/envoy-extract"
+PROVOST_EXTRACT_SCRIPT="$EXTRACT_DIR/provost-extract"
 
 usage () {
     cat <<'EOF'
@@ -101,7 +101,7 @@ done
 if [[ -z "$strategy_file" ]]; then
     echo "error: strategy not found: $opt_strategy" >&2
     echo "Available strategies:" >&2
-    bash "$MFE_SCRIPT" list 2>&1 | head -20 >&2
+    bash "$PROVOST_EXTRACT_SCRIPT" list 2>&1 | head -20 >&2
     exit 1
 fi
 
@@ -143,7 +143,7 @@ echo ""
 echo "Running strategy '$opt_strategy' against sample..."
 extraction_output=""
 extraction_rc=0
-extraction_output=$(bash "$MFE_SCRIPT" -s "$opt_strategy" -r "$opt_sample" 2>/dev/null) || extraction_rc=$?
+extraction_output=$(bash "$PROVOST_EXTRACT_SCRIPT" -s "$opt_strategy" -r "$opt_sample" 2>/dev/null) || extraction_rc=$?
 
 if [[ -z "$extraction_output" ]]; then
     echo "No fields extracted. The strategy did not match or produced no output."

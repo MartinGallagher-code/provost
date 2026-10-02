@@ -16,7 +16,7 @@ echo "========================================"
 
 test_detect () {
     local output
-    output=$(run_mfe -d -s free "$SAMPLES_DIR/free/basic.txt" 2>&1)
+    output=$(run_extract -d -s free "$SAMPLES_DIR/free/basic.txt" 2>&1)
     assert_contains "$output" "detected as applicable" "free should detect free -h output"
 }
 
@@ -25,7 +25,7 @@ test_extract () {
     # capture-side tidy melt turns it into one row per region with shared
     # columns, rather than one wide Mem_*/Swap_* record.
     local output
-    output=$(run_mfe -r -s free "$SAMPLES_DIR/free/basic.txt")
+    output=$(run_extract -r -s free "$SAMPLES_DIR/free/basic.txt")
     assert_contains "$output" "entry1.name Mem" "row 1 is the Mem region"
     assert_contains "$output" "entry1.total 15Gi" "Mem total"
     assert_contains "$output" "entry1.used 8.2Gi" "Mem used"
@@ -42,7 +42,7 @@ test_extract () {
 
 test_field_selection () {
     local output
-    output=$(run_mfe -r -s free "$SAMPLES_DIR/free/basic.txt")
+    output=$(run_extract -r -s free "$SAMPLES_DIR/free/basic.txt")
     assert_contains "$output" "entry1.total" "should have a total field"
     assert_contains "$output" "entry2.free" "should have a Swap free field"
     assert_not_contains "$output" "buffers" "should not have raw buffers field"
@@ -52,7 +52,7 @@ test_field_selection () {
 # fabricated for the Swap region.
 test_swap_has_no_trailing_columns () {
     local output
-    output=$(run_mfe -r -s free "$SAMPLES_DIR/free/basic.txt")
+    output=$(run_extract -r -s free "$SAMPLES_DIR/free/basic.txt")
     assert_not_contains "$output" "entry2.shared" "Swap row must not invent a shared value"
     assert_not_contains "$output" "entry2.available" "Swap row must not invent an available value"
 }

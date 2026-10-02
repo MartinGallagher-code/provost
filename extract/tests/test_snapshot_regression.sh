@@ -3,21 +3,21 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Snapshot Regression Tests for envoy-extract
+## Snapshot Regression Tests for provost-extract
 ##
-## Runs mfe against representative samples and verifies exact output.
+## Runs provost-extract against representative samples and verifies exact output.
 ## This is a safety net for refactoring -- if any output changes unexpectedly,
 ## these tests will catch it.
 ################################################################################
 
 source "$(dirname "${BASH_SOURCE[0]}")/helpers.sh"
 
-# Generate a snapshot: run mfe with raw output (-r) and a specific strategy (-s)
+# Generate a snapshot: run provost-extract with raw output (-r) and a specific strategy (-s)
 # to get deterministic, reproducible output.
 snapshot () {
     local strategy="$1"
     local sample="$2"
-    run_mfe -r -s "$strategy" "$SAMPLES_DIR/$sample" 2>/dev/null
+    run_extract -r -s "$strategy" "$SAMPLES_DIR/$sample" 2>/dev/null
 }
 
 ################################################################################
@@ -124,19 +124,19 @@ test_snapshot_syslog () {
 
 test_snapshot_json_format () {
     local out
-    out=$(run_mfe -s json --format json "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
+    out=$(run_extract -s json --format json "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
     assert_json_valid "$out" "json format should produce valid JSON"
 }
 
 test_snapshot_csv_format () {
     local out
-    out=$(run_mfe -s json --format csv "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
+    out=$(run_extract -s json --format csv "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
     assert_contains "$out" "," "csv format should contain commas"
 }
 
 test_snapshot_yaml_format () {
     local out
-    out=$(run_mfe -s json --format yaml "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
+    out=$(run_extract -s json --format yaml "$SAMPLES_DIR/json/basic.json" 2>/dev/null)
     assert_contains "$out" ": " "yaml format should contain colon-space"
 }
 

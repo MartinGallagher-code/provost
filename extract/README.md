@@ -23,7 +23,7 @@ strategy.
 
 | Path | Purpose |
 |---|---|
-| `envoy-extract` | engine entry point (invoked internally by `provost`) |
+| `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
 | `strategies/` | the 261 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
@@ -161,7 +161,7 @@ values through `_clean_value` (never replace a value's spaces with `_`).
    winner always has output. `--max-strategies N` / `--first-match` stop after
    N / 1 candidates produced output.
 
-`--rank priority` (or `MFE_RANK=priority`) restores the historical single pass:
+`--rank priority` (or `PROVOST_RANK=priority`) restores the historical single pass:
 the first strategy in priority order whose detect passes and whose extract is
 non-empty wins, and confidence is only compared to thresholds. `--strategy` and
 `--replay` pin their own strategy set and always use that single pass. `--multi`

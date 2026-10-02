@@ -16,7 +16,7 @@ echo "========================================"
 
 test_syslog_basic () {
     local output
-    output=$(run_mfe -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
+    output=$(run_extract -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
     # Should have 3 lines worth of fields (14 total: 5+5+4, line3 has no pid)
     assert_contains "$output" "line1.timestamp" "should extract line1 timestamp"
     assert_contains "$output" "line1.timestamp Jan 12 14:23:45" "should have correct timestamp value"
@@ -30,7 +30,7 @@ test_syslog_basic () {
 
 test_syslog_hostname_process () {
     local output
-    output=$(run_mfe -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
+    output=$(run_extract -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
     assert_contains "$output" "line2.hostname myhost" "should extract line2 hostname"
     assert_contains "$output" "line2.process cron" "should extract cron process"
     assert_contains "$output" "line2.pid 5678" "should extract cron pid"
@@ -38,7 +38,7 @@ test_syslog_hostname_process () {
 
 test_syslog_message () {
     local output
-    output=$(run_mfe -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
+    output=$(run_extract -r -s syslog "$SAMPLES_DIR/syslog/basic.txt")
     assert_contains "$output" "line1.message" "should extract message"
     assert_contains "$output" "Accepted publickey" "should extract message"
 }
@@ -48,7 +48,7 @@ test_syslog_not_detected_for_json () {
     tmpfile=$(mktemp)
     printf '{"key": "value", "count": 42}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s syslog "$tmpfile" 2>&1)
+    output=$(run_extract -d -s syslog "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "syslog should not apply to JSON"
 }

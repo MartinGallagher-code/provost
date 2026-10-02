@@ -16,7 +16,7 @@ echo "========================================"
 
 test_json_basic () {
     local output
-    output=$(run_mfe -r -s json "$SAMPLES_DIR/json/basic.json")
+    output=$(run_extract -r -s json "$SAMPLES_DIR/json/basic.json")
     assert_contains "$output" "name" "should extract name"
     assert_contains "$output" "test-project" "should extract value test-project"
     assert_contains "$output" "version" "should extract version"
@@ -29,7 +29,7 @@ test_json_basic () {
 
 test_json_sample1 () {
     local output
-    output=$(run_mfe -r -s json "$SAMPLES_DIR/json/benchmark.json")
+    output=$(run_extract -r -s json "$SAMPLES_DIR/json/benchmark.json")
     assert_contains "$output" "date" "should extract date"
     assert_contains "$output" "num_cpus" "should extract num_cpus"
     assert_contains "$output" "40" "should extract value 40"
@@ -38,7 +38,7 @@ test_json_sample1 () {
 
 test_json_field_selection () {
     local output
-    output=$(run_mfe -s json "$SAMPLES_DIR/json/basic.json" 1,3)
+    output=$(run_extract -s json "$SAMPLES_DIR/json/basic.json" 1,3)
     assert_contains "$output" "name" "should contain field 1"
     assert_contains "$output" "count" "should contain field 3"
     assert_not_contains "$output" "version" "should not contain unselected field"
@@ -49,14 +49,14 @@ test_json_not_detected_for_non_json () {
     tmpfile=$(mktemp)
     printf "Name: value\nKey: data\n" > "$tmpfile"
     local output
-    output=$(run_mfe -d -s json "$tmpfile" 2>&1)
+    output=$(run_extract -d -s json "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "json should not apply to non-JSON"
 }
 
 test_json_stdin () {
     local output
-    output=$(echo '{"color": "blue", "size": 10}' | run_mfe -r -s json)
+    output=$(echo '{"color": "blue", "size": 10}' | run_extract -r -s json)
     assert_contains "$output" "color" "should extract color from stdin"
     assert_contains "$output" "blue" "should extract value blue"
     assert_contains "$output" "size" "should extract size"

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## New Feature Tests for Envoy:Explore (envoy-extract v3.0)
+## New Feature Tests for provost-extract (provost-extract v3.0)
 ##
 ## Tests for priority ordering, confidence filtering, verbose, first-match,
 ## max-strategies, rename, delimiter, aggregate, stream, chain, plugin-dir,
@@ -27,7 +27,7 @@ test_priority_ordering () {
     tmpfile=$(mktemp)
     printf '{"name": "test"}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d "$tmpfile" 2>&1)
+    output=$(run_extract -d "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     # Debug output should show strategy names with priority markers (pNN)
     assert_contains "$output" "[debug]" "debug output should be present"
@@ -46,7 +46,7 @@ test_min_confidence () {
     # Input that matches yaml (confidence 90) and colons (confidence 35)
     printf 'Host: localhost\nPort: 5432\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d --min-confidence 80 "$tmpfile" 2>&1)
+    output=$(run_extract -d --min-confidence 80 "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     # Colons has confidence 35; should be filtered out when threshold is 80
     assert_contains "$output" "below threshold" "should report low-confidence strategy filtered"
@@ -58,7 +58,7 @@ test_min_confidence () {
 
 test_verbose_summary () {
     local output
-    output=$(run_mfe -v -s json "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -v -s json "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "[info]" "verbose should show info messages"
     assert_contains "$output" "Strategies:" "verbose should show strategies summary"
     assert_contains "$output" "matched" "verbose should show match count"
@@ -75,7 +75,7 @@ test_first_match () {
     # Input that matches multiple strategies (colons + equals)
     printf 'Host: localhost\nPort: 5432\nHost=localhost\nPort=5432\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -d --first-match "$tmpfile" 2>&1)
+    output=$(run_extract -r -d --first-match "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "--first-match: stopping" "debug should confirm first-match stop"
     # Only one STRAT- prefix should appear in the output
@@ -94,7 +94,7 @@ test_max_strategies () {
     # Input that matches multiple strategies
     printf 'Host: localhost\nPort: 5432\nHost=localhost\nPort=5432\nDB_NAME=mydb\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -d --max-strategies 1 "$tmpfile" 2>&1)
+    output=$(run_extract -r -d --max-strategies 1 "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "--max-strategies 1 reached" "debug should confirm max-strategies limit"
 }
@@ -108,7 +108,7 @@ test_rename_single () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s colons --rename 'Host=hostname' "$tmpfile")
+    output=$(run_extract -r -s colons --rename 'Host=hostname' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "hostname" "should contain renamed field 'hostname'"
     assert_not_contains "$output" "	Host " "original 'Host' field name should be replaced"
@@ -123,7 +123,7 @@ test_rename_multiple () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\nStatus: active\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s colons --rename 'Host=server,Port=port_number' "$tmpfile")
+    output=$(run_extract -r -s colons --rename 'Host=server,Port=port_number' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "server" "should contain renamed 'server'"
     assert_contains "$output" "port_number" "should contain renamed 'port_number'"
@@ -139,7 +139,7 @@ test_delimiter_arrow () {
     tmpfile=$(mktemp)
     printf 'hostname => web-01\nrole => frontend\nenv => production\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --delimiter '=>' "$tmpfile")
+    output=$(run_extract -r --delimiter '=>' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "hostname" "should extract hostname field"
     assert_contains "$output" "web-01" "should extract value web-01"
@@ -156,7 +156,7 @@ test_delimiter_double_colon () {
     tmpfile=$(mktemp)
     printf 'server::localhost\nport::8080\ndebug::true\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --delimiter '::' "$tmpfile")
+    output=$(run_extract -r --delimiter '::' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "server" "should extract server field"
     assert_contains "$output" "localhost" "should extract value localhost"
@@ -174,7 +174,7 @@ test_aggregate () {
     # Create input with repeated numeric fields across multiple "records"
     printf 'Score: 10\nScore: 20\nScore: 30\nLevel: 5\nLevel: 15\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s colons --aggregate "$tmpfile")
+    output=$(run_extract -r -s colons --aggregate "$tmpfile")
     rm -f "$tmpfile"
     # Aggregation should produce count/min/max/sum/avg lines for repeated numeric fields
     assert_contains "$output" "Score_count" "should show Score_count aggregate"
@@ -190,7 +190,7 @@ test_aggregate () {
 
 test_stream_mode () {
     local output
-    output=$(printf 'Host: web-01\nPort: 8080\n' | run_mfe --stream --strategy colons)
+    output=$(printf 'Host: web-01\nPort: 8080\n' | run_extract --stream --strategy colons)
     # Each line of output should be a JSON object
     assert_contains "$output" "{" "stream output should contain JSON objects"
     assert_contains "$output" "}" "stream output should contain closing braces"
@@ -206,7 +206,7 @@ test_chain () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\nDebug: true\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r --chain 'colons' "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r --chain 'colons' "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "chain with single strategy should not crash"
     assert_contains "$output" "STRAT-chain" "chain output should have STRAT-chain label"
@@ -244,7 +244,7 @@ STRAT
     tmpfile=$(mktemp)
     printf 'CUSTOM_MARKER\ndata here\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" "$tmpfile")
+    output=$(run_extract -r --plugin-dir "$plugin_dir" "$tmpfile")
     rm -f "$tmpfile"
     rm -rf "$plugin_dir"
     assert_contains "$output" "plugin_field" "should discover and run plugin strategy"
@@ -257,7 +257,7 @@ STRAT
 
 test_list_strategies_priority () {
     local output
-    output=$(run_mfe --list-strategies)
+    output=$(run_extract --list-strategies)
     # The list output format includes priority: "  name   vN.N   pNN  description"
     assert_contains "$output" "p" "strategy list should show priority column"
     # json should show p10
@@ -273,7 +273,7 @@ test_jsonl_basic () {
     tmpfile=$(mktemp)
     printf '{"name": "Alice", "age": 30}\n{"name": "Bob", "age": 25}\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s jsonl "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s jsonl "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "JSONL extraction should succeed"
     assert_contains "$output" "name" "should extract name field"
@@ -287,20 +287,20 @@ test_jsonl_basic () {
 
 test_near_miss_feedback () {
     local output rc=0
-    output=$(echo "random text no structure" | run_mfe --min-confidence 100 2>&1) || rc=$?
+    output=$(echo "random text no structure" | run_extract --min-confidence 100 2>&1) || rc=$?
     assert_contains "$output" "No fields extracted" "should show no-extraction message"
 }
 
 test_near_miss_confidence_detail () {
     # Force high confidence threshold so detected strategies are filtered
     local output rc=0
-    output=$(run_mfe --min-confidence 100 "$SAMPLES_DIR/json/benchmark.json" 2>&1) || rc=$?
+    output=$(run_extract --min-confidence 100 "$SAMPLES_DIR/json/benchmark.json" 2>&1) || rc=$?
     assert_contains "$output" "Near-miss" "should show near-miss details"
 }
 
 test_plain_format_without_fields () {
     local output
-    output=$(run_mfe -f plain "$SAMPLES_DIR/json/benchmark.json")
+    output=$(run_extract -f plain "$SAMPLES_DIR/json/benchmark.json")
     # Should contain key-value pairs (no numbered table header)
     assert_contains "$output" "context.date" "should contain field name"
     assert_not_contains "$output" "ID" "should not contain table header"
@@ -308,7 +308,7 @@ test_plain_format_without_fields () {
 
 test_json_format_without_fields () {
     local output
-    output=$(run_mfe -f json "$SAMPLES_DIR/json/benchmark.json")
+    output=$(run_extract -f json "$SAMPLES_DIR/json/benchmark.json")
     # Should be JSON output with braces
     assert_contains "$output" "{" "should start with JSON brace"
     assert_contains "$output" "context.date" "should contain field name"
@@ -316,7 +316,7 @@ test_json_format_without_fields () {
 
 test_early_format_validation () {
     local output rc=0
-    output=$(run_mfe -f bogus 2>&1) || rc=$?
+    output=$(run_extract -f bogus 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should fail immediately with invalid format"
     assert_contains "$output" "Unknown format" "should show format error"
 }

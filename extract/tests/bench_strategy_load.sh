@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Benchmark: strategy-load time for envoy-extract (ENV-017)
+## Benchmark: strategy-load time for provost-extract (ENV-017)
 ##
 ## Measures cold-start time to discover and read metadata for all shipped
 ## strategies. Runs several iterations and reports min, median, max.
@@ -13,11 +13,11 @@
 set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MFE_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/envoy-extract"
+PROVOST_EXTRACT_SCRIPT="$(cd "$SCRIPT_DIR/.." && pwd)/provost-extract"
 ITERATIONS="${1:-10}"
 
-if [[ ! -x "$MFE_SCRIPT" ]]; then
-    echo "ERROR: envoy-extract not found at $MFE_SCRIPT" >&2
+if [[ ! -x "$PROVOST_EXTRACT_SCRIPT" ]]; then
+    echo "ERROR: provost-extract not found at $PROVOST_EXTRACT_SCRIPT" >&2
     exit 2
 fi
 
@@ -30,7 +30,7 @@ TIMEFORMAT='%R'
 samples=()
 
 for i in $(seq 1 "$ITERATIONS"); do
-    t=$({ time bash "$MFE_SCRIPT" list > /dev/null 2>&1 ; } 2>&1)
+    t=$({ time bash "$PROVOST_EXTRACT_SCRIPT" list > /dev/null 2>&1 ; } 2>&1)
     samples+=("$t")
     printf "  run %2d: %s s\n" "$i" "$t"
 done
@@ -43,7 +43,7 @@ mid_idx=$((ITERATIONS / 2 + 1))
 median=$(echo "$sorted" | sed -n "${mid_idx}p")
 
 # Strategy count for context
-strategy_count=$(bash "$MFE_SCRIPT" list 2>/dev/null | grep -c '^  ')
+strategy_count=$(bash "$PROVOST_EXTRACT_SCRIPT" list 2>/dev/null | grep -c '^  ')
 
 echo ""
 echo "Results"

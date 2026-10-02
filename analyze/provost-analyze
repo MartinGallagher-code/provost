@@ -3,21 +3,21 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-##                 EnvoyAnalyze — provost's analyze engine
+##                 provost-analyze — provost's analyze engine
 ################################################################################
 ## Part of provost. Copyright (C) 2026 Martin J. Gallagher.
 ## License: GPL-3.0-or-later. Version: see the top-level VERSION file.
 ################################################################################
 ##
 ## Description: Generate a mix of useful and throw-away analyses for CSV/TSV
-##              datasets. Designed to be exploratory like MFE: run once to see
+##              datasets. Designed to be exploratory like provost-extract: run once to see
 ##              what looks good, then re-run with a selection list or a saved
 ##              profile.
 ##
 ################################################################################
 ##
-## Usage: envoy-analyze [OPTIONS] [FILE] [ANALYSIS-LIST]
-##        cat file | envoy-analyze [OPTIONS] [ANALYSIS-LIST]
+## Usage: provost-analyze [OPTIONS] [FILE] [ANALYSIS-LIST]
+##        cat file | provost-analyze [OPTIONS] [ANALYSIS-LIST]
 ##
 ################################################################################
 
@@ -31,17 +31,29 @@ set -euo pipefail
 # and matches the format every awk script in the suite assumes.
 export LC_NUMERIC=C
 
+# Legacy names: before 2026-10-02 the engine's settings were ENVOY_* / MFE_*.
+# For one release an old name still applies when its PROVOST_* name is unset.
+for _legacy in ENVOY_HOME:PROVOST_ROOT MFE_RANK:PROVOST_RANK \
+        MFE_HINTS_FILE:PROVOST_HINTS_FILE ENVOY_NO_RC:PROVOST_NO_RC \
+        ENVOY_QUIET:PROVOST_QUIET ENVOY_VERBOSE:PROVOST_VERBOSE \
+        ENVOY_NO_PAGER:PROVOST_NO_PAGER ENVOY_NO_PROGRESS:PROVOST_NO_PROGRESS \
+        ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:PROVOST_ANALYZE_SUPPRESS_AWK_WARNING; do
+    _old="${_legacy%%:*}" _new="${_legacy#*:}"
+    if [[ -n "${!_old:-}" && -z "${!_new:-}" ]]; then export "$_new=${!_old}"; fi
+done
+unset _legacy _old _new
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROFILE_DIR_DEFAULT="$SCRIPT_DIR/profiles"
-if [[ -r "$SCRIPT_DIR/../lib/envoy_version.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_version.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_version.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_version.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_version.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_version.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_version.sh"
+    source "${PROVOST_ROOT}/lib/provost_version.sh"
 fi
-if declare -F envoy_suite_version >/dev/null; then
-    VERSION="$(envoy_suite_version "$SCRIPT_DIR")"
+if declare -F provost_suite_version >/dev/null; then
+    VERSION="$(provost_suite_version "$SCRIPT_DIR")"
 else
     VERSION="0.0.0+unknown"
 fi
@@ -55,73 +67,73 @@ SPARK_SAMPLES=24
 ########################################
 ## SOURCE LIBRARIES
 
-# ENV-137: shared typo / suggestion helpers (lib/envoy_suggest.sh at suite
+# ENV-137: shared typo / suggestion helpers (lib/provost_suggest.sh at suite
 # root). Tolerate missing file when running from an in-tree dev checkout
 # without the suite root on disk; the typo path is best-effort.
-if [[ -r "$SCRIPT_DIR/../lib/envoy_suggest.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_suggest.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_suggest.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_suggest.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_suggest.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_suggest.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_suggest.sh"
+    source "${PROVOST_ROOT}/lib/provost_suggest.sh"
 fi
 
 # ENV-143: shared pager helper.  Tolerate missing file (partial dev checkout).
-if [[ -r "$SCRIPT_DIR/../lib/envoy_pager.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_pager.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_pager.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_pager.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_pager.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_pager.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_pager.sh"
+    source "${PROVOST_ROOT}/lib/provost_pager.sh"
 fi
-if ! declare -F envoy_maybe_page >/dev/null; then
-    envoy_maybe_page() { cat; }
-    envoy_pager_disable() { :; }
-    envoy_pager_active() { return 1; }
+if ! declare -F provost_maybe_page >/dev/null; then
+    provost_maybe_page() { cat; }
+    provost_pager_disable() { :; }
+    provost_pager_active() { return 1; }
 fi
 
 # ENV-152: shared output-file helper (atomic write + --force + parent-dir
 # creation + `-` for stdout).  Tolerate missing file: a fallback that just
 # redirects stdout achieves a usable subset.
-if [[ -r "$SCRIPT_DIR/../lib/envoy_output.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_output.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_output.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_output.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_output.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_output.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_output.sh"
+    source "${PROVOST_ROOT}/lib/provost_output.sh"
 fi
-if ! declare -F envoy_output_filter >/dev/null; then
-    envoy_output_filter() { cat > "$1"; }
-    envoy_output_validate() { :; }
+if ! declare -F provost_output_filter >/dev/null; then
+    provost_output_filter() { cat > "$1"; }
+    provost_output_validate() { :; }
 fi
 
 # ENV-135: shared progress helper. Tolerate missing file with no-op shims.
-if [[ -r "$SCRIPT_DIR/../lib/envoy_progress.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_progress.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_progress.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_progress.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_progress.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_progress.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_progress.sh"
+    source "${PROVOST_ROOT}/lib/provost_progress.sh"
 fi
-if ! declare -F envoy_progress_init >/dev/null; then
-    envoy_progress_init() { :; }
-    envoy_progress_active() { return 1; }
-    envoy_progress_tick() { :; }
-    envoy_progress_done() { :; }
+if ! declare -F provost_progress_init >/dev/null; then
+    provost_progress_init() { :; }
+    provost_progress_active() { return 1; }
+    provost_progress_tick() { :; }
+    provost_progress_done() { :; }
 fi
 
-# ENV-154: suite-wide config layer (XDG → ~/.envoyrc → upward-walked).
-# Loaded before flag parsing so .envoyrc-set keys are visible to argv
+# ENV-154: suite-wide config layer (XDG → ~/.provostrc → upward-walked).
+# Loaded before flag parsing so .provostrc-set keys are visible to argv
 # defaults; flags still override via the loader's snapshot semantics.
-if [[ -r "$SCRIPT_DIR/../lib/envoy_envoyrc.sh" ]]; then
+if [[ -r "$SCRIPT_DIR/../lib/provost_rc.sh" ]]; then
     # shellcheck disable=SC1091
-    source "$SCRIPT_DIR/../lib/envoy_envoyrc.sh"
-elif [[ -r "${ENVOY_HOME:-}/lib/envoy_envoyrc.sh" ]]; then
+    source "$SCRIPT_DIR/../lib/provost_rc.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_rc.sh" ]]; then
     # shellcheck disable=SC1091
-    source "${ENVOY_HOME}/lib/envoy_envoyrc.sh"
+    source "${PROVOST_ROOT}/lib/provost_rc.sh"
 fi
-if declare -F envoy_envoyrc_load >/dev/null; then
-    envoy_envoyrc_load
+if declare -F provost_rc_load >/dev/null; then
+    provost_rc_load
 fi
 
 source "$SCRIPT_DIR/lib/_helpers.sh"
@@ -141,10 +153,10 @@ source "$SCRIPT_DIR/lib/_summary.sh"
 
 usage () {
     cat <<USAGE
-EnvoyAnalyze (envoy-analyze) v${VERSION}
+provost-analyze (provost-analyze) v${VERSION}
 
-Usage: envoy-analyze [OPTIONS] [FILE] [ANALYSIS-LIST]
-       cat file | envoy-analyze [OPTIONS] [ANALYSIS-LIST]
+Usage: provost-analyze [OPTIONS] [FILE] [ANALYSIS-LIST]
+       cat file | provost-analyze [OPTIONS] [ANALYSIS-LIST]
 
 Generate basic analyses for CSV/TSV datasets. Outputs a numbered list of
 analyses, including useful items and noisy throw-aways. Re-run with a list of
@@ -153,11 +165,11 @@ analysis numbers to select the "good stuff".
 Options:
   -h, --help            Show this help message
   -V, --version         Show version
-  -v, --verbose         Enable verbose output (sets ENVOY_VERBOSE=1) — ENV-151
-  -q, --quiet           Suppress info / hint output (sets ENVOY_QUIET=1) — ENV-151
+  -v, --verbose         Enable verbose output (sets PROVOST_VERBOSE=1) — ENV-151
+  -q, --quiet           Suppress info / hint output (sets PROVOST_QUIET=1) — ENV-151
   --progress            Emit per-column stderr progress in the stats stage
                         (auto on TTY ≥20 columns; ENV-135)
-  --no-progress         Disable progress (also: ENVOY_NO_PROGRESS=1)
+  --no-progress         Disable progress (also: PROVOST_NO_PROGRESS=1)
                         --verbose and --quiet are mutually exclusive; later flag wins.
   -o, --output FILE     Write output to FILE atomically (ENV-152). "-" or
                         /dev/stdout writes to stdout. Refuses to overwrite
@@ -207,7 +219,7 @@ Options:
   --color WHEN          ANSI colour in plain output: auto (default, TTY-detect),
                         always, or never. NO_COLOR=1 forces never.
   --no-pager            Don't auto-page plain output even on a TTY.
-                        Also honoured: ENVOY_NO_PAGER=1, PAGER="" or PAGER=cat.
+                        Also honoured: PROVOST_NO_PAGER=1, PAGER="" or PAGER=cat.
                         Default pager is 'less -FRX'. (ENV-143)
   --head N              Analyse only the first N data rows (header preserved)
   --sample N            Analyse a uniform-random sample of N data rows
@@ -218,21 +230,21 @@ Arguments:
   ANALYSIS-LIST         Comma-delimited list of analysis numbers to output
 
 Examples:
-  envoy-analyze samples/trees.csv                    Analyze (key findings only, default)
-  envoy-analyze --all samples/trees.csv              Show all analyses
-  envoy-analyze samples/trees.csv 1,3,5              Show specific analyses
-  envoy-analyze --save trees-core samples/trees.csv 1,2,3
-  envoy-analyze --profile trees-core samples/trees.csv
-  envoy-analyze --suggest samples/trees.csv
-  envoy-analyze --compare a.csv b.csv c.csv          Compare datasets
-  envoy-analyze --threshold "Index>0" samples/trees.csv
-  envoy-analyze --mode benchmark samples/trees.csv
-  envoy-analyze --summary samples/trees.csv
+  provost-analyze samples/trees.csv                    Analyze (key findings only, default)
+  provost-analyze --all samples/trees.csv              Show all analyses
+  provost-analyze samples/trees.csv 1,3,5              Show specific analyses
+  provost-analyze --save trees-core samples/trees.csv 1,2,3
+  provost-analyze --profile trees-core samples/trees.csv
+  provost-analyze --suggest samples/trees.csv
+  provost-analyze --compare a.csv b.csv c.csv          Compare datasets
+  provost-analyze --threshold "Index>0" samples/trees.csv
+  provost-analyze --mode benchmark samples/trees.csv
+  provost-analyze --summary samples/trees.csv
 
 Pipeline (stdin piping):
-  envoy-extract --format tsv data.log | envoy-analyze
-  envoy-extract --format tsv data.log | envoy-analyze --all
-  envoy-extract --format tsv data.log | envoy-analyze 1,3,5
+  provost-extract --format tsv data.log | provost-analyze
+  provost-extract --format tsv data.log | provost-analyze --all
+  provost-extract --format tsv data.log | provost-analyze 1,3,5
 USAGE
 }
 
@@ -265,7 +277,7 @@ top_n=""
 # ENV-025: explicit type overrides. Comma-separated column names; case-insensitive match.
 force_numeric_cols=""
 force_categorical_cols=""
-# ENV-132: --strict makes envoy-analyze exit non-zero if any numeric
+# ENV-132: --strict makes provost-analyze exit non-zero if any numeric
 # column has impure rows (any value rejected by the numeric parse). Off by
 # default; intended for CI / scripted consumers that want fail-fast.
 strict_numeric=0
@@ -296,34 +308,34 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         -V|--version)
-            if declare -F envoy_version_banner >/dev/null; then
-                envoy_version_banner "envoy-analyze" "$VERSION"
+            if declare -F provost_version_banner >/dev/null; then
+                provost_version_banner "provost-analyze" "$VERSION"
             else
-                echo "envoy-analyze (provost) ${VERSION}"
+                echo "provost-analyze (provost) ${VERSION}"
             fi
             exit 0
             ;;
         -v|--verbose)
             # ENV-151: enable verbose info output (gates _log_info elsewhere
             # in the suite).  Last-flag-wins against --quiet.
-            ENVOY_VERBOSE=1; export ENVOY_VERBOSE
-            unset ENVOY_QUIET
+            PROVOST_VERBOSE=1; export PROVOST_VERBOSE
+            unset PROVOST_QUIET
             shift
             ;;
         -q|--quiet)
             # ENV-151: suppress info / hint output (errors still print).
-            ENVOY_QUIET=1; export ENVOY_QUIET
-            unset ENVOY_VERBOSE
+            PROVOST_QUIET=1; export PROVOST_QUIET
+            unset PROVOST_VERBOSE
             shift
             ;;
         --progress)
             # ENV-135: opt-in stderr progress (works on non-TTY too).
-            export ENVOY_PROGRESS_OPT_IN=1; unset ENVOY_PROGRESS_DISABLE
+            export PROVOST_PROGRESS_OPT_IN=1; unset PROVOST_PROGRESS_DISABLE
             shift
             ;;
         --no-progress)
-            # ENV-135: explicit suppression. Also: ENVOY_NO_PROGRESS=1.
-            export ENVOY_PROGRESS_DISABLE=1; unset ENVOY_PROGRESS_OPT_IN
+            # ENV-135: explicit suppression. Also: PROVOST_NO_PROGRESS=1.
+            export PROVOST_PROGRESS_DISABLE=1; unset PROVOST_PROGRESS_OPT_IN
             shift
             ;;
         -o|--output)
@@ -396,7 +408,7 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-pager)
             # ENV-143: per-process disable of auto-paging.
-            envoy_pager_disable
+            provost_pager_disable
             shift
             ;;
         --max-corr-cols)
@@ -536,7 +548,7 @@ while [[ $# -gt 0 ]]; do
                 # When stdin is piped and the argument looks like an analysis
                 # list (comma/space-separated numbers), treat it as the list
                 # rather than a filename.  This enables:
-                #   envoy-extract --format tsv file | envoy-analyze 1,3,5
+                #   provost-extract --format tsv file | provost-analyze 1,3,5
                 if ! [[ -t 0 ]] && [[ "$1" =~ ^[0-9][0-9,\ ]*$ ]]; then
                     analysis_list="$1"
                 else
@@ -565,11 +577,11 @@ esac
 # ENV-152: pre-flight the output destination before doing the analysis
 # work.  Fails fast on overwrite-without-force / bad parent dir.
 if [[ -n "$output_file" ]]; then
-    envoy_output_validate "$output_file" "$output_force" || exit 1
+    provost_output_validate "$output_file" "$output_force" || exit 1
     # When writing to a file, the pager would buffer content the user
     # never sees.  Disable it explicitly so `-o file --no-pager` is the
     # implicit pairing.
-    envoy_pager_disable
+    provost_pager_disable
 fi
 
 # ENV-065: resolve final colour decision. NO_COLOR always wins; only plain format
@@ -604,20 +616,20 @@ fi
 # full analyze suite passes under both gawk and mawk (mawk is the default awk
 # on Debian/Ubuntu and what CI's mawk checks cover), so neither gets a
 # warning. Only an awk that is NEITHER (busybox, BSD/one-true-awk) is untested
-# and gets a one-line note. Suppress with ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1.
-if [[ "${ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:-0}" != "1" ]]; then
+# and gets a one-line note. Suppress with PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1.
+if [[ "${PROVOST_ANALYZE_SUPPRESS_AWK_WARNING:-0}" != "1" ]]; then
     # Don't pipe `awk --version` through `head -1`: under `set -o
     # pipefail` the closed-stdin SIGPIPE from `head` propagates as the
     # pipeline's exit status (141), which `set -e` then turns into an
     # abort of the whole script. Race-prone when awk finishes writing
     # AFTER head closes (mawk on busy systems triggers it ~5% of runs;
-    # surfaced via the EnvoyAnalyze test suite, ENV-125 follow-up).
+    # surfaced via the provost-analyze test suite, ENV-125 follow-up).
     # Read the full output and slice the first line in pure bash.
     _awk_version="$(awk --version 2>&1 || true)"
     _awk_version="${_awk_version%%$'\n'*}"
     if [[ "$_awk_version" != *"GNU Awk"* && "$_awk_version" != *"gawk"* \
           && "$_awk_version" != *"mawk"* ]]; then
-        echo "envoy-analyze: note: untested awk (${_awk_version:-unknown}); gawk and mawk are supported. Suppress with ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1." >&2
+        echo "provost-analyze: note: untested awk (${_awk_version:-unknown}); gawk and mawk are supported. Suppress with PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1." >&2
     fi
 fi
 
@@ -663,11 +675,11 @@ if [[ ! -f "$input_file" ]]; then
     # genuine missing-file error. The typo case is much more common in
     # interactive use and the old "File not found" message blamed the
     # filesystem instead of the input.
-    if declare -f _envoy_arg_looks_like_typo >/dev/null 2>&1 \
-       && _envoy_arg_looks_like_typo "$input_file"; then
-        echo "envoy-analyze: error: '$input_file' is not a known option or file" >&2
+    if declare -f _provost_arg_looks_like_typo >/dev/null 2>&1 \
+       && _provost_arg_looks_like_typo "$input_file"; then
+        echo "provost-analyze: error: '$input_file' is not a known option or file" >&2
         echo "  If you meant a file, check the path." >&2
-        echo "  If you meant a flag or subcommand, run 'envoy-analyze --help'." >&2
+        echo "  If you meant a flag or subcommand, run 'provost-analyze --help'." >&2
         exit 2
     fi
     err "File not found: $input_file"
@@ -1066,11 +1078,11 @@ _CORR_PAIR_LINES=""
 # threshold gating decides whether anything actually renders; below
 # 20 columns we skip ticking even if armed because the loop completes
 # faster than a human can read a tick.
-envoy_progress_init
+provost_progress_init
 _ENV135_TOTAL_COLS=$COL_COUNT
 _ENV135_SHOW_PROGRESS=0
-if envoy_progress_active && \
-   { [[ "${ENVOY_PROGRESS_OPT_IN:-0}" == "1" ]] || [[ "$_ENV135_TOTAL_COLS" -ge 20 ]]; }; then
+if provost_progress_active && \
+   { [[ "${PROVOST_PROGRESS_OPT_IN:-0}" == "1" ]] || [[ "$_ENV135_TOTAL_COLS" -ge 20 ]]; }; then
     _ENV135_SHOW_PROGRESS=1
 fi
 
@@ -1083,7 +1095,7 @@ run_cramers_v
 run_quality_score
 run_suggested_drops
 run_noisy_items
-envoy_progress_done
+provost_progress_done
 
 ########################################
 ## CROSS-DATASET COMPARISON
@@ -1373,20 +1385,20 @@ fi
 # formats (json/csv/tsv/markdown/html) bypass it so scripted consumers
 # get clean bytes.
 # ENV-152: when -o FILE is set, route the *structured* output to FILE
-# (atomic rename via envoy_output_filter).  Pager bypass already happened
+# (atomic rename via provost_output_filter).  Pager bypass already happened
 # in pre-flight.  When -o is unset, behaviour is unchanged from ENV-143.
 if [[ -n "$output_file" ]]; then
     format_output "${selected[@]}" \
-        | envoy_output_filter "$output_file" "$output_force" \
+        | provost_output_filter "$output_file" "$output_force" \
         || exit 1
 elif [[ "$output_format" == "plain" ]]; then
-    format_output "${selected[@]}" | envoy_maybe_page
+    format_output "${selected[@]}" | provost_maybe_page
 else
     format_output "${selected[@]}"
 fi
 
 if [[ -z "$analysis_list" && $only_good -eq 0 && "$output_format" == "plain" ]]; then
-    echo "Hint: re-run with a list like 'envoy-analyze $input_file 1,3,5' to select only the good stuff." >&2
+    echo "Hint: re-run with a list like 'provost-analyze $input_file 1,3,5' to select only the good stuff." >&2
     echo "Hint: save a profile with '--save NAME' to reuse selections." >&2
     if [[ -n "$suggested_list" ]]; then
         echo "Hint: suggested list: $suggested_list (use --suggest to print)" >&2
@@ -1406,7 +1418,7 @@ if [[ "${strict_numeric:-0}" == "1" ]]; then
     done
     if (( ${#strict_violations[@]} > 0 )); then
         echo "" >&2
-        echo "envoy-analyze: error: --strict: numeric column(s) had non-numeric rows:" >&2
+        echo "provost-analyze: error: --strict: numeric column(s) had non-numeric rows:" >&2
         for v in "${strict_violations[@]}"; do
             echo "  - $v" >&2
         done

@@ -16,7 +16,7 @@ echo "========================================"
 
 test_vl_basic () {
     local output
-    output=$(run_mfe -r -s vertical-line "$SAMPLES_DIR/vertical-line/basic.txt")
+    output=$(run_extract -r -s vertical-line "$SAMPLES_DIR/vertical-line/basic.txt")
     assert_contains "$output" "Name" "should extract Name column"
     assert_contains "$output" "Alice" "should extract value Alice"
     assert_contains "$output" "Score" "should extract Score column"
@@ -27,7 +27,7 @@ test_vl_basic () {
 
 test_vl_sample2 () {
     local output
-    output=$(run_mfe -r -s vertical-line "$SAMPLES_DIR/vertical-line/benchmark.txt")
+    output=$(run_extract -r -s vertical-line "$SAMPLES_DIR/vertical-line/benchmark.txt")
     assert_contains "$output" "Benchmark" "should extract Benchmark column"
     assert_contains "$output" "BM_memcpy/32" "should extract benchmark name"
     assert_contains "$output" "Time" "should extract Time column"
@@ -38,7 +38,7 @@ test_vl_sample2 () {
 
 test_vl_field_selection () {
     local output
-    output=$(run_mfe -s vertical-line "$SAMPLES_DIR/vertical-line/basic.txt" 1,2)
+    output=$(run_extract -s vertical-line "$SAMPLES_DIR/vertical-line/basic.txt" 1,2)
     assert_contains "$output" "Name" "should contain field 1"
     assert_contains "$output" "Score" "should contain field 2"
 }
@@ -48,7 +48,7 @@ test_vl_equals_separator () {
     tmpfile=$(mktemp)
     printf "Col1  Col2\n========\nAA    BB\nCC    DD\n" > "$tmpfile"
     local output
-    output=$(run_mfe -r -s vertical-line "$tmpfile")
+    output=$(run_extract -r -s vertical-line "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Col1" "should handle === separators"
     assert_contains "$output" "AA" "should extract data"
@@ -56,7 +56,7 @@ test_vl_equals_separator () {
 
 test_vl_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s vertical-line "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s vertical-line "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "vertical-line should not apply to JSON"
 }
 

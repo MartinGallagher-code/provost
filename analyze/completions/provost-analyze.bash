@@ -1,8 +1,8 @@
-# bash completion for envoy-analyze (ENV-062)
-# Install: copy to ~/.local/share/bash-completion/completions/envoy-analyze
+# bash completion for provost-analyze (ENV-062)
+# Install: copy to ~/.local/share/bash-completion/completions/provost-analyze
 #    or:  source this file from your ~/.bashrc
 
-_envoy_analyze_complete () {
+_provost_analyze_complete () {
     local cur prev words cword
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
@@ -44,7 +44,7 @@ _envoy_analyze_complete () {
             if [[ -z "$pdir" ]]; then
                 # Guess default relative to script location (installed or local)
                 local script_dir
-                script_dir="$(command -v envoy-analyze 2>/dev/null)"
+                script_dir="$(command -v provost-analyze 2>/dev/null)"
                 if [[ -n "$script_dir" ]]; then
                     pdir="$(dirname "$(readlink -f "$script_dir")")/profiles"
                 fi
@@ -96,4 +96,4 @@ _envoy_analyze_complete () {
     return 0
 }
 
-complete -F _envoy_analyze_complete envoy-analyze
+complete -F _provost_analyze_complete provost-analyze

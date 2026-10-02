@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Post-processing functions for envoy-extract
+## Post-processing functions for provost-extract
 ##
 ## Accumulate, deduplicate, rename, aggregate, and filter extracted fields.
 ## Dependencies: _helpers.sh (strip_strat_prefix, _clean_field, _count_lines)

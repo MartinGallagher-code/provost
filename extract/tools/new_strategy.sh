@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Strategy Scaffolding Tool for EnvoyExtract
+## Strategy Scaffolding Tool for provost-extract
 ##
 ## Auto-generates a strategy stub from a sample file, with proper headers
 ## and function stubs for strategy_detect() and strategy_extract().
@@ -27,7 +27,7 @@ Strategy Scaffolding Tool (new_strategy.sh)
 
 Usage: new_strategy.sh --name NAME --category CATEGORY --sample FILE [OPTIONS]
 
-Generates a new EnvoyExtract strategy file with proper headers and function
+Generates a new provost-extract strategy file with proper headers and function
 stubs, plus a corresponding sample directory.
 
 Required:
@@ -241,6 +241,6 @@ echo ""
 echo "Next steps:"
 echo "  1. Edit the strategy_detect() function to match your format"
 echo "  2. Edit the strategy_extract() function to extract fields"
-echo "  3. Validate: envoy-extract validate $strategy_file"
-echo "  4. Test: envoy-extract -d -s ${opt_name} $sample_dir/sample1.txt"
+echo "  3. Validate: provost-extract validate $strategy_file"
+echo "  4. Test: provost-extract -d -s ${opt_name} $sample_dir/sample1.txt"
 echo "  5. Add tests: tests/test_strategy_${func_prefix}.sh"
