@@ -63,12 +63,47 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 ### Very large inputs
 
 Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
-(the first 120 / last 40 whole lines, byte-capped), and a strategy that
-accepts the sample is re-run on the full text,
+(the first 120 / last 40 whole lines, byte-capped, plus MIDDLE WINDOWS — see
+below), and a strategy that accepts the sample is re-run on the full text,
 which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
 detector must never ACCEPT a sample it would reject in full — it cannot, the
-full text re-decides — but it can falsely REJECT when its evidence lies only
-in the middle of a huge input; prefer evidence the head carries.
+full text re-decides — but it can falsely REJECT when its evidence is missing
+from the sample; prefer evidence the head carries.
+
+The middle windows exist so that evidence lying only mid-input still reaches
+the detectors. Each is a CONTIGUOUS block of whole lines (at most 16 lines /
+2 KB), in file order, never overlapping another window or the tail, so a
+section title, a header and the rows under it arrive together:
+
+- **even** windows — 4, opening at byte offsets 0, ¼, ½, ¾ of the body
+  after the head (a representative slice of a uniform body; the first one
+  continues the head);
+- **novel** windows — up to 4, opening where a line *shape* first appears
+  after the head (first non-blank byte class, field-count bucket, indent,
+  which of `: = , |` TAB occur): a section, table or record block that only
+  starts mid-input. A novel window opens up to 2 lines early (the title /
+  header just above) and stretches to at most 32 lines while new shapes keep
+  coming.
+- every junction joins whole records, following the structure the head
+  shows — group lines over indented children, or blank-separated records:
+  an even window not touching the sample so far waits (≤ 16 lines) for a
+  record start (not a blank line, not an indented child) or opens back at a
+  blank line just above; a window that runs out of lines finishes the record
+  in hand (its children / up to its closing blank line, ≤ 32 lines); the
+  tail backs up to its record's group line / opening blank line; a blank
+  line repeated at a junction is dropped. (Without this the extra junctions
+  glued one group's line to another group's children — group-children then
+  saw a duplicate key and rejected the sample.)
+
+The sample is a superset of the head + tail one, so an evidence COUNT only
+grows; a uniform body adds the even windows alone (its shapes are all in the
+head). One awk pass builds it; knobs `_FR_SAMPLE_MID`, `_FR_SAMPLE_NOVEL`,
+`_FR_SAMPLE_WIN`, `_FR_SAMPLE_WIN_BYTES`, `_FR_SAMPLE_LEAD` (both counts 0 =
+the head + tail sample). Evidence can still be missed when its lines share
+their shape with the head (or the four novel windows are spent earlier) and
+no even window lands on it — keep such evidence a fallback, not the only
+route. `tests/test_big_input_paths.sh` pins the sample's shape and
+reproduces a middle-evidence false reject the windows fix.
 
 A detector that decides on a SHARE of the lines it sees ("≥ 40% of lines are
 `label: value`", "decline when one token count covers ≥ 60% of lines") can
