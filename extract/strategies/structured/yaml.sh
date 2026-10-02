@@ -46,6 +46,18 @@ strategy_detect () {
     [[ $nonblank -eq 0 ]] && return 1
     [[ $(( yamlish * 100 / nonblank )) -ge $(( 80 - ${_FR_SLACK:-0} )) ]] || return 1
 
+    # The extractor takes `[A-Za-z][A-Za-z0-9_-]*` keys; a DOTTED top-level
+    # key (`logo.png: PNG image data, …`) is skipped there. When most
+    # top-level keys are dotted, the parse would drop most of the input —
+    # that is per-line labelled output (`file`), not a YAML mapping.
+    local _ytop=0 _ydot=0
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "$_l" =~ ^[A-Za-z][A-Za-z0-9_.-]*:([[:space:]]|$) ]] || continue
+        _ytop=$((_ytop + 1))
+        [[ "${_l%%:*}" == *.* ]] && _ydot=$((_ydot + 1))
+    done
+    [[ $_ytop -ge 2 && $(( _ydot * 100 )) -gt $(( (50 + ${_FR_SLACK:-0}) * _ytop )) ]] && return 1
+
     # YAML grammar: a PLAIN (unquoted) scalar may not contain `: ` and a line
     # may not be TAB-indented. When most `key: value` lines break that, the
     # text is not YAML but a line format that happens to open with a label —

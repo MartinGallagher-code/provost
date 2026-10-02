@@ -1,0 +1,25 @@
+entry1.box 1
+entry1.key high
+entry1.value Prototype Pollution
+entry2.box 1
+entry2.key Package
+entry2.value lodash
+entry3.box 1
+entry3.key Vulnerable versions
+entry3.value <4.17.21
+entry4.box 1
+entry4.key Patched versions
+entry4.value >=4.17.21
+entry5.box 2
+entry5.key moderate
+entry5.value Regular Expression Denial of
+entry6.box 2
+entry6.key Package
+entry6.value minimatch
+entry7.box 2
+entry7.key Vulnerable versions
+entry7.value <3.0.5
+entry8.box 2
+entry8.key Patched versions
+entry8.value >=3.0.5
+total_entries 8

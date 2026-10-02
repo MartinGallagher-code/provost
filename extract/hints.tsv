@@ -2,7 +2,9 @@
 #
 # One row routes a recognized tool's output to an existing strategy, replacing
 # a per-tool parser script. Consulted by the engine before strategy
-# auto-detection (disable with --no-hints). First matching row wins.
+# auto-detection (disable with --no-hints). First matching row wins — under
+# --generic, a row whose target is bespoke is passed over, so a bespoke routing
+# row may be followed by a generic row for the same tool (lsusb-v).
 #
 # Format (TAB-separated):
 #   tool <TAB> match-type <TAB> pattern <TAB> strategy
@@ -70,6 +72,7 @@ ufw-status-numbered	regex	\[ *[0-9]+\] [0-9]+/(tcp|udp)	aligned-columns
 vercel-list	regex	Age +Deployment +Status	aligned-columns
 volta-list	contains	User toolchain:	line-records
 vulkaninfo-summary	contains	VULKANINFO	nested-colon-kv
+lsusb-v	contains	Device Descriptor:	lsusb-v
 lsusb-verbose	contains	Device Descriptor:	indented-hierarchy
 numpy-show-config	contains	NOT AVAILABLE	aligned-columns
 ip-stats	regex	RX: +bytes	pivot-stats
@@ -125,3 +128,6 @@ nmcli-device-show	regex	^GENERAL\.DEVICE:	first-word-kv
 clpeak-run	contains	memory bandwidth (GBPS)	nested-colon-kv
 lsblk-tree	regex	^ *NAME +MAJ:MIN .*(├─|└─)	aligned-columns
 powertop-devices	regex	^Usage +Device name	aligned-columns
+bazel-query-graph	prefix	digraph mygraph {	brace-groups
+rsync-itemize	regex	[<>ch.*][fdLDSp][.+?cstpoguaxn]{9} [^ ]	first-word-kv
+smartctl-scan	regex	/dev/[^ ]+ (-d [a-z0-9,+]+ )?# /dev/	first-word-kv

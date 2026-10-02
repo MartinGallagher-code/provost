@@ -1,0 +1,25 @@
+entry1.%-latency 0.00
+entry1.Avg-latency 0.00 us
+entry1.Min-Latency 0.00 us
+entry1.Max-Latency 0.00 us
+entry1.No_of_calls 4
+entry1.Fop FORGET
+entry2.%-latency 18.42
+entry2.Avg-latency 112.30 us
+entry2.Min-Latency 41.00 us
+entry2.Max-Latency 820.00 us
+entry2.No_of_calls 88214
+entry2.Fop WRITE
+entry3.%-latency 41.08
+entry3.Avg-latency 88.10 us
+entry3.Min-Latency 22.00 us
+entry3.Max-Latency 1204.00 us
+entry3.No_of_calls 210442
+entry3.Fop READ
+entry4.%-latency 12.33
+entry4.Avg-latency 142.90 us
+entry4.Min-Latency 60.00 us
+entry4.Max-Latency 980.00 us
+entry4.No_of_calls 33108
+entry4.Fop LOOKUP
+total_entries 4

@@ -39,21 +39,50 @@ _tcg_split () {
     return 0
 }
 
+# A full-line `#` comment (/etc/hosts, crontab-style files) is not a row.
+# Skipped only when at least two other lines remain (_tcg_comments).
+_tcg_is_comment () { [[ "$1" == '#'* ]]; }
+
+# _tcg_offset LINE — byte offset where the value column starts (after the key
+# and its 2+-space gap) -> _TCG_OFF.
+_tcg_offset () {
+    [[ "$1" =~ ^([^[:space:]]+[\ ]{2,}) ]] && _TCG_OFF=${#BASH_REMATCH[1]} || _TCG_OFF=-1
+}
+
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     _STRATEGY_CONFIDENCE_REASON="2-col gap table (single-token key, free-text value)"
     local _l lines=0 spacey=0 colonish=0 vcounts=()
+    # HEADER-ANCHORED gaps: a value may itself hold a 2+-space run
+    # (`hello  world`) when row 1 is a two-label header (`key   value`) and
+    # every data value starts exactly under the header's value label — and
+    # the words after the inner gaps do NOT line up (that would be a grid).
+    local _hoff=-1 _gapped=0 _gapalign=1 _gapoff=-1
     _fr_lines "$text"
     for _l in "${_FR_LINES[@]}"; do
         [[ "${_l}" != *[![:space:]]* ]] && continue
+        _tcg_is_comment "$_l" && continue
         [[ "$_l" == [' 	']* ]] && return 1          # indented => not this shape
         [[ "$_l" == *'	'* ]] && return 1            # tabs => tsv territory
         _tcg_split "$_l" || return 1
+        if [[ $lines -eq 0 ]]; then
+            if [[ "$_TCG_VAL" != *" "* && "$_TCG_KEY" =~ ^[A-Za-z][A-Za-z_-]*$ && "$_TCG_VAL" =~ ^[A-Za-z][A-Za-z_-]*$ ]]; then
+                _tcg_offset "$_l"; _hoff=$_TCG_OFF
+            fi
+        fi
         # The value must be ONE free-text column: a further 2+-space run inside
         # it means this is really a >=3-column aligned grid (zfs list, velero
-        # get, any wide table) — aligned-columns' shape, never ours.
-        [[ "$_TCG_VAL" =~ [\ ]{2,} ]] && return 1
+        # get, any wide table) — aligned-columns' shape, never ours — unless
+        # the header anchors the value column (above).
+        if [[ "$_TCG_VAL" =~ [\ ]{2,} ]]; then
+            [[ $lines -ge 1 && $_hoff -ge 0 ]] || return 1
+            _tcg_offset "$_l"; [[ $_TCG_OFF -eq $_hoff ]] || return 1
+            _gapped=$((_gapped + 1))
+            local _go="${_TCG_VAL%%  *}"; _go=$(( _hoff + ${#_go} ))
+            [[ $_gapoff -lt 0 ]] && _gapoff=$_go
+            [[ $_go -ne $_gapoff ]] && _gapalign=0
+        fi
         lines=$((lines + 1))
         # Free-text evidence must come from a DATA row (line >=2) — a 2-word
         # HEADER cell (`VOLUME NAME`, `CREATED AT`) over single-token values is
@@ -72,6 +101,13 @@ strategy_detect () {
     done
     _l=""
     [[ $lines -ge 3 ]] || return 1
+    # Header-anchored inner gaps: every gapped value aligned under the header
+    # and the inner gaps at differing offsets — free text, not a grid.
+    if [[ $_gapped -ge 1 ]]; then
+        [[ $_gapped -ge 2 && $_gapalign -eq 0 ]] || return 1
+        _STRATEGY_CONFIDENCE=80
+        return 0
+    fi
     # Modal-share grid test: if one >=2-token count covers >=2/3 of the data
     # rows, this is a grid with at most a ragged straggler (git-worktree-list's
     # `(detached HEAD)` row among `sha [branch]` rows) — decline. Genuinely
@@ -90,6 +126,7 @@ strategy_detect () {
             local _h1; _h1=""
             while IFS= read -r _l; do
                 [[ "${_l}" != *[![:space:]]* ]] && continue
+                _tcg_is_comment "$_l" && continue
                 _h1="$_l"; break
             done <<< "$text"
             if _tcg_split "$_h1"; then
@@ -117,6 +154,7 @@ strategy_extract () {
     _fr_lines "$text"
     for _l in "${_FR_LINES[@]}"; do
         [[ "${_l}" != *[![:space:]]* ]] && continue
+        _tcg_is_comment "$_l" && continue
         _tcg_split "$_l" || continue
         if [[ $first -eq 1 ]]; then
             first=0

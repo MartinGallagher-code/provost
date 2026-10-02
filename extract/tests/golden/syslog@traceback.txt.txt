@@ -1,0 +1,10 @@
+line1.timestamp Jan 16 02:11:04
+line1.hostname worker-2
+line1.process celery
+line1.pid 3390
+line1.message Task pipeline.process[abc-123] raised unexpected: Traceback (most recent call last): File "/app/pipeline.py", line 210, in process ValueError: payload missing required field 'id'
+line2.timestamp Jan 16 02:11:05
+line2.hostname worker-2
+line2.process celery
+line2.pid 3390
+line2.message Task pipeline.process[abc-123] retrying in 30s

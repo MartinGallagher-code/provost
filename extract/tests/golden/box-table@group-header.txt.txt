@@ -1,0 +1,11 @@
+entry1.IFACE eth0
+entry1.INGRESS_pkts 10231
+entry1.INGRESS_bytes 8.1M
+entry1.EGRESS_pkts 9982
+entry1.EGRESS_bytes 4.2M
+entry2.IFACE lo
+entry2.INGRESS_pkts 42
+entry2.INGRESS_bytes 3.1K
+entry2.EGRESS_pkts 42
+entry2.EGRESS_bytes 3.1K
+total_entries 2
