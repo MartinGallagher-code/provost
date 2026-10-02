@@ -19,7 +19,7 @@ echo "========================================"
 
 test_ef_prometheus_basic () {
     local output
-    output=$(run_mfe -r -s exposition-format "$SAMPLES_DIR/prometheus/basic.txt")
+    output=$(run_extract -r -s exposition-format "$SAMPLES_DIR/prometheus/basic.txt")
     assert_contains "$output" "metric1.name http_requests_total" "should extract first metric name"
     assert_contains "$output" "metric1.value 1027" "should extract first metric value"
     # Labels are one column each (`label_method`, `label_code`), not one
@@ -37,7 +37,7 @@ test_ef_prometheus_basic () {
 
 test_ef_prometheus_metadata () {
     local output
-    output=$(run_mfe -r -s exposition-format "$SAMPLES_DIR/prometheus/basic.txt")
+    output=$(run_extract -r -s exposition-format "$SAMPLES_DIR/prometheus/basic.txt")
     assert_contains "$output" "http_requests_total.help The total number of HTTP requests." "should extract help text"
     assert_contains "$output" "http_requests_total.type counter" "should extract type"
     assert_contains "$output" "process_cpu_seconds_total.type counter" "should extract cpu type"
@@ -49,7 +49,7 @@ test_ef_prometheus_metadata () {
 
 test_ef_openmetrics_basic () {
     local output
-    output=$(run_mfe -r -s exposition-format "$SAMPLES_DIR/openmetrics/basic.txt")
+    output=$(run_extract -r -s exposition-format "$SAMPLES_DIR/openmetrics/basic.txt")
     assert_contains "$output" "http_requests_total.type counter" "should extract type"
     assert_contains "$output" "http_requests_total.unit requests" "should extract unit"
     assert_contains "$output" "http_requests_total.help Total HTTP requests" "should extract help"
@@ -67,7 +67,7 @@ test_ef_not_detected_for_json () {
     tmpfile=$(mktemp)
     printf '{"key": "value", "count": 42}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s exposition-format "$tmpfile" 2>&1)
+    output=$(run_extract -d -s exposition-format "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "exposition-format should not apply to JSON"
 }
@@ -77,7 +77,7 @@ test_ef_detects_prometheus_format () {
     tmpfile=$(mktemp)
     printf '# TYPE http_requests_total counter\nhttp_requests_total 100\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s exposition-format "$tmpfile")
+    output=$(run_extract -r -s exposition-format "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "http_requests_total.type counter" "should detect and extract Prometheus format"
     assert_contains "$output" "metric1.name http_requests_total" "should extract metric name"
@@ -89,7 +89,7 @@ test_ef_detects_openmetrics_eof () {
     tmpfile=$(mktemp)
     printf '# TYPE requests counter\nrequests_total 42\n# EOF\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s exposition-format "$tmpfile")
+    output=$(run_extract -r -s exposition-format "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "requests.type counter" "should extract type from OpenMetrics"
     assert_contains "$output" "metric1.value 42" "should extract metric value"

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Encoding Tests for Envoy:Explore (envoy-extract)
+## Encoding Tests for provost-extract (provost-extract)
 ##
 ## Tests that multi-byte / non-ASCII characters are handled without crashing
 ## or data loss by the engine and relevant strategies.
@@ -26,7 +26,7 @@ test_utf8_colons () {
     tmpfile=$(mktemp)
     printf 'Name: Ren\xc3\xa9\nCity: Z\xc3\xbcrich\nRole: d\xc3\xa9veloppeur\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s colons "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s colons "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "should not crash on UTF-8 colons input"
     assert_contains "$output" "Name" "should extract Name field"
@@ -43,7 +43,7 @@ test_csv_utf8_bom () {
     # Write UTF-8 BOM (EF BB BF) followed by CSV content
     printf '\xef\xbb\xbfName,Age,City\nAlice,30,Boston\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s csv "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s csv "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "should not crash on BOM CSV"
     assert_contains "$output" "Name" "should strip BOM and extract Name header"
@@ -60,7 +60,7 @@ test_utf8_equals () {
     tmpfile=$(mktemp)
     printf 'Greeting=Caf\xc3\xa9\nTemp=25\xc2\xb0C\nStatus=OK\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r -s equals "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s equals "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "should not crash on UTF-8 equals input"
     assert_contains "$output" "Greeting" "should extract Greeting field"
@@ -77,7 +77,7 @@ test_utf8_json_format () {
     tmpfile=$(mktemp)
     printf 'Server: M\xc3\xbcnchen\nPort: 8080\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -s colons -f json "$tmpfile" 1,2 2>&1) || rc=$?
+    output=$(run_extract -s colons -f json "$tmpfile" 1,2 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "should not crash when formatting UTF-8 as JSON"
     assert_contains "$output" '"Server":' "JSON output should contain Server key"
@@ -96,7 +96,7 @@ test_art_gutter_stripped () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf '    /\xc2\xaf\xc2\xaf\\\n /\xc2\xaf\xc2\xaf\\__/\xc2\xaf\xc2\xaf\\    Cilium:      OK\n \\__/\xc2\xaf\xc2\xaf\\__/    Operator:    OK\n    \\__/       ClusterMesh: disabled\n' > "$tmpfile"
-    output=$(run_mfe -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    output=$(run_extract -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$output" "Cilium" "the content beside the art survives"
     assert_not_contains "$output" "__/" "the art itself is gone from the keys"
@@ -107,7 +107,7 @@ test_indent_is_not_art_gutter () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Conditions:\n  Type      Status\n  Available True\n  Ready     True\n' > "$tmpfile"
-    output=$(run_mfe -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    output=$(run_extract -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$output" "Available" "an indented block parses as before"
 }

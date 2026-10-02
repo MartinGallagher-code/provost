@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Tests for ENV-172 — EnvoyExtract: _quote_arg backslash, JSON key/value
+## Tests for ENV-172 — provost-extract: _quote_arg backslash, JSON key/value
 ##                     escape consistency, --chain/--rename glob expansion,
 ##                     sed-escape gaps in apply_renames.
 ##
@@ -68,14 +68,14 @@ echo "========================================"
 # Section C — --chain glob expansion
 ###############################################################################
 
-# Drop a sentinel `*.sh` file in WORK then run envoy-extract with
+# Drop a sentinel `*.sh` file in WORK then run provost-extract with
 # `--chain '*.sh'`. Pre-fix the loop would have iterated over each
 # matched filename; post-fix the chain list contains the LITERAL
 # `*.sh` (which won't match any real strategy and so produces a
 # clean "strategy not found" path).
 mkdir -p "$WORK/cwd"
 touch "$WORK/cwd/sentinel.sh" "$WORK/cwd/another.sh"
-EX_BIN="$EX_DIR/envoy-extract"
+EX_BIN="$EX_DIR/provost-extract"
 out=$(cd "$WORK/cwd" && bash "$EX_BIN" --chain '*.sh' /dev/null 2>&1) || true
 # Pre-fix the chain would have contained "sentinel.sh" / "another.sh"
 # expansions. Post-fix the chain only contains the literal `*.sh`.

@@ -34,7 +34,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 EXTRACT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-MFE_SCRIPT="$EXTRACT_DIR/envoy-extract"
+PROVOST_EXTRACT_SCRIPT="$EXTRACT_DIR/provost-extract"
 STRATEGIES_DIR="$EXTRACT_DIR/strategies"
 GOLDEN_DIR="$SCRIPT_DIR/golden"
 
@@ -84,7 +84,7 @@ _strategy_index () {
 ## Runs the engine with the strategy and plain format; blank lines dropped,
 ## ORDER KEPT.
 _run_strategy () {
-    bash "$MFE_SCRIPT" --strategy "$1" --format plain "$2" 2>/dev/null | grep -v '^$' || true
+    bash "$PROVOST_EXTRACT_SCRIPT" --strategy "$1" --format plain "$2" 2>/dev/null | grep -v '^$' || true
 }
 
 _fail () { # <label> <message>

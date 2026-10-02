@@ -35,7 +35,7 @@ export LC_ALL=C
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-ENGINE="$ROOT/extract/envoy-extract"
+ENGINE="$ROOT/extract/provost-extract"
 IN="$HERE/inputs"
 EXP="$HERE/expected"
 MANIFEST="$HERE/expected.tsv"

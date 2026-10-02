@@ -1,0 +1,11 @@
+OrderID     CustomerName                   OrderDate               Total
+----------- ------------------------------ ----------------------- ---------------------
+      10248 Vins et alcools Chevalier      2025-07-04 00:00:00.000                440.0000
+      10249 Toms Spezialitäten             2025-07-05 00:00:00.000               1863.4000
+      10250 Hanari Carnes                  2025-07-08 00:00:00.000               1552.6000
+      10251 Victuailles en stock           2025-07-08 00:00:00.000                654.0600
+      10252 Suprêmes délices               2025-07-09 00:00:00.000               3597.9000
+      10253 Hanari Carnes                  2025-07-10 00:00:00.000               1444.8000
+      10254 Chop-suey Chinese              NULL                                   556.6200
+
+(7 rows affected)

@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Dispatch functions for envoy-extract
+## Dispatch functions for provost-extract
 ##
 ## Stream mode, batch mode, post-processing pipeline, and output routing.
-## All functions read/write envoy-extract globals directly (no argument passing).
+## All functions read/write provost-extract globals directly (no argument passing).
 ## Dependencies: _log.sh, _helpers.sh, _postprocess.sh, _format.sh,
 ##               _discovery.sh, _autotune.sh, _interactive.sh
 ################################################################################
@@ -159,10 +159,12 @@ run_batch_mode () {
         # Read content
         text=$(<"$_bfile")
 
-        # Binary detection (below) needs the RAW text; the shared
-        # normalisation pipeline runs right after it.
-        _bbytes=$(printf '%s' "$text" | wc -c)
-        if [[ $((_bsize - _bbytes)) -gt 2 ]]; then
+        # Binary detection: count NUL-free bytes straight from the file (as the
+        # single-file path does). Comparing the size with what `$(<file)` read
+        # also counted the trailing newlines `$(...)` strips, so a text file
+        # ending in 3+ newlines was skipped as binary.
+        _bbytes=$(tr -d '\0' < "$_bfile" | wc -c)
+        if [[ $((_bsize - _bbytes)) -gt 0 ]]; then
             _log_warn "batch: binary file skipped: $_bfile"
             if [[ $_OPT_batch_summary -eq 1 ]]; then
                 _json_escape "$_bfile"
@@ -567,7 +569,7 @@ run_output_mode () {
     if [[ $_OPT_cmdline -eq 1 ]]; then
         local _qstrats _qfile _qfields cmd
         _qstrats=$(printf '%q' "$matched_strategies")
-        cmd="mfe --replay ${_qstrats}"
+        cmd="provost-extract --replay ${_qstrats}"
         if [[ -n "${file:-}" ]]; then
             _qfile=$(printf '%q' "$file")
             cmd+=" ${_qfile}"
@@ -634,7 +636,7 @@ run_output_mode () {
 
     # Smart default: when stdout is piped (not a TTY) and no format was
     # explicitly set, default to JSON instead of display table.
-    # This makes `mfe data.json | jq` work without needing `-f json`.
+    # This makes `provost-extract data.json | jq` work without needing `-f json`.
     if [[ $_OPT_format_explicit -eq 0 ]] && ! [[ -t 1 ]]; then
         _OPT_format_explicit=1
     fi

@@ -16,7 +16,7 @@ echo "========================================"
 
 test_har_basic () {
     local output
-    output=$(run_mfe -r -s har "$SAMPLES_DIR/har/basic.har")
+    output=$(run_extract -r -s har "$SAMPLES_DIR/har/basic.har")
     assert_contains "$output" "log.version 1.2" "should extract log.version"
     assert_contains "$output" "log.creator.name WebInspector" "should extract log.creator.name"
     assert_contains "$output" "log.creator.version 537.36" "should extract log.creator.version"
@@ -30,13 +30,13 @@ test_har_basic () {
 
 test_har_not_detected_for_plain_json () {
     local output
-    output=$(run_mfe -d -s har "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s har "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "har should not apply to plain JSON"
 }
 
 test_har_not_detected_for_yaml () {
     local output
-    output=$(run_mfe -d -s har "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
+    output=$(run_extract -d -s har "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
     assert_contains "$output" "not applicable" "har should not apply to YAML"
 }
 

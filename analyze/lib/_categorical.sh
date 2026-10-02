@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Per-column categorical analyses for envoy-analyze
+## Per-column categorical analyses for provost-analyze
 ##
 ## Analyses: top values, category dominance, group summaries, Cramer's V.
 ##

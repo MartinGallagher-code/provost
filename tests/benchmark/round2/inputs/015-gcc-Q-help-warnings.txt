@@ -1,0 +1,45 @@
+The following options control compiler warning messages:
+  --all-warnings              		-Wall
+  --extra-warnings            		-Wextra
+  -W                          		-Wextra
+  -WNSObject-attribute        		[enabled]
+  -Wabi                       		[disabled]
+  -Wabi-tag                   		[available in C++, ObjC++]
+  -Wabi=                      		
+  -Wabsolute-value            		[disabled]
+  -Waddress                   		[disabled]
+  -Waddress-of-packed-member  		[enabled]
+  -Waggregate-return          		[disabled]
+  -Waggressive-loop-optimizations 	[enabled]
+  -Waliasing                  		[available in Fortran]
+  -Walign-commons             		[available in Fortran]
+  -Waligned-new=[none|global|all] 	[available in C++, ObjC++]
+  -Wall                       		
+  -Walloc-size-larger-than=<bytes> 	9223372036854775807 bytes
+  -Walloc-zero                		[disabled]
+  -Walloca                    		[disabled]
+  -Walloca-larger-than=<number> 	9223372036854775807 bytes
+  -Wampersand                 		[available in Fortran]
+  -Wanalyzer-allocation-size  		[enabled]
+  -Wanalyzer-deref-before-check 	[enabled]
+  -Wanalyzer-double-fclose    		[enabled]
+  -Wanalyzer-double-free      		[enabled]
+  -Wanalyzer-exposure-through-output-file 	[enabled]
+  -Wanalyzer-exposure-through-uninit-copy 	[enabled]
+  -Wanalyzer-fd-access-mode-mismatch 	[enabled]
+  -Wanalyzer-fd-double-close  		[enabled]
+  -Wanalyzer-fd-leak          		[enabled]
+  -Wanalyzer-fd-phase-mismatch 		[enabled]
+  -Wanalyzer-fd-type-mismatch 		[enabled]
+  -Wanalyzer-fd-use-after-close 	[enabled]
+  -Wanalyzer-fd-use-without-check 	[enabled]
+  -Wanalyzer-file-leak        		[enabled]
+  -Wanalyzer-free-of-non-heap 		[enabled]
+  -Wanalyzer-imprecise-fp-arithmetic 	[enabled]
+  -Wanalyzer-infinite-recursion 	[enabled]
+  -Wanalyzer-jump-through-null 		[enabled]
+  -Wanalyzer-malloc-leak      		[enabled]
+  -Wanalyzer-mismatching-deallocation 	[enabled]
+  -Wanalyzer-null-argument    		[enabled]
+  -Wanalyzer-null-dereference 		[enabled]
+  -Wanalyzer-out-of-bounds    		[enabled]

@@ -1,0 +1,5 @@
+Jan 16 02:11:04 worker-2 celery[3390]: Task pipeline.process[abc-123] raised unexpected:
+    Traceback (most recent call last):
+      File "/app/pipeline.py", line 210, in process
+    ValueError: payload missing required field 'id'
+Jan 16 02:11:05 worker-2 celery[3390]: Task pipeline.process[abc-123] retrying in 30s

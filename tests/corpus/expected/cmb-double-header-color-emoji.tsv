@@ -1,0 +1,5 @@
+n	PROC	CURRENT_cpu%_🔥	CURRENT_mem%	PEAK_cpu%	PEAK_mem%_📈
+1	nginx	12.0	3.1	44.0	6.0
+2	postgres	88.0	42.0	99.0	55.0
+3	redis	4.0	1.8	20.0	2.4
+4	worker	60.0	22.0	95.0	40.0

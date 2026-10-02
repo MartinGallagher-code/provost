@@ -1,0 +1,10 @@
+entry1.name serde
+entry1.version 1.0.203
+entry1.description A generic serialization/deserialization framework
+entry2.name serde_json
+entry2.version 1.0.117
+entry2.description A JSON serialization file format
+entry3.name serde_yaml
+entry3.version 0.9.34
+entry3.description YAML data format for Serde
+total_entries 3

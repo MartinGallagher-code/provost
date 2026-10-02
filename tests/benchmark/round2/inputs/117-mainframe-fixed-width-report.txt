@@ -1,0 +1,12 @@
+1REPORT ID: GLR0410          ACME FINANCIAL SERVICES              RUN DATE: 10/02/26   PAGE:     1
+                             GENERAL LEDGER TRIAL BALANCE         RUN TIME: 02:14:07
+0ACCOUNT    DESCRIPTION                    BEGIN BALANCE       DEBITS          CREDITS         END BALANCE
+ ---------- ------------------------------ --------------- --------------- --------------- ---------------
+ 1000-000   CASH - OPERATING                   412,880.12      98,004.50       71,230.00      439,654.62
+ 1010-000   CASH - PAYROLL                      50,000.00           0.00       48,712.33        1,287.67
+ 1200-000   ACCOUNTS RECEIVABLE              1,204,551.90     310,442.00      288,901.15    1,226,092.75
+ 2000-000   ACCOUNTS PAYABLE                  -880,412.44     201,330.10      240,118.00     -919,200.34
+ 3000-000   RETAINED EARNINGS                 -787,019.58           0.00            0.00     -787,019.58
+0                                          --------------- --------------- --------------- ---------------
+ TOTALS                                             0.00     609,776.60      648,961.48      -39,184.88
+0*** OUT OF BALANCE ***

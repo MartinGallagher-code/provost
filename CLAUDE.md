@@ -12,7 +12,7 @@ its format, and present it as a tidy, git-backed dataset. Single entry point:
 | `extract/` | extract engine + strategies | **yes** |
 | `analyze/` | analyze engine | **yes** |
 | `transform/` | tidy-melt transform | **yes** |
-| `lib/` | shared suite libs (`envoy_*.sh`) | **yes** |
+| `lib/` | shared suite libs (`provost_*.sh`) | **yes** |
 | `tests/`, `transform/tests/` | first-party tests | **yes** |
 
 ### Standalone — everything here is first-party, edit it in place
@@ -29,8 +29,12 @@ files have been removed; the original import point is recorded in `CHANGELOG.md`
 if it's ever needed. Any future re-integration with Envoy will be a deliberate,
 manual merge — not a routine sync.
 
-> The `envoy-*` names and `envoy_*.sh` libs inside these trees are retained as-is
-> (renaming them is a large, separate change) — they are simply provost's internals now.
+> The inherited `envoy-*` / `ENVOY_*` / `MFE_*` names were renamed on 2026-10-02:
+> the engines are `extract/provost-extract` and `analyze/provost-analyze`, the libs
+> `lib/provost_*.sh`, and every engine setting is `PROVOST_*`. The engines still
+> honour the old names for one release (see the "Legacy names" block at the top of
+> each). `tests/corpus/*/envoy-*` are captures of the real Envoy proxy's tools:
+> leave those names alone.
 
 ## Documentation
 

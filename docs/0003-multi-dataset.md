@@ -25,7 +25,7 @@ outputs — for instance a key/value in the same input with a table."*
 
 ## The engine mode
 
-`envoy-extract --multi` (conflicts: `--batch`, `--stream`, `--chain`,
+`provost-extract --multi` (conflicts: `--batch`, `--stream`, `--chain`,
 `--replay`, `--strategy`, `--interactive`):
 
 1. **Split** the preprocessed input on blank-line boundaries into blocks.

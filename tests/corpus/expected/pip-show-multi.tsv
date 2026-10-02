@@ -1,4 +1,4 @@
-n	Name	Version	Summary	Author	License
-1	requests	2.31.0	Python HTTP for Humans	Kenneth Reitz	Apache 2.0
-2	numpy	1.25.2	Fundamental package for array computing	Travis Oliphant et al.	BSD
-3	pandas	2.0.3	Powerful data structures for data analysis	The Pandas Development Team	BSD
+n	Name	Version	Summary	Home-page	Author	License
+1	requests	2.31.0	Python HTTP for Humans	https://requests.readthedocs.io	Kenneth Reitz	Apache 2.0
+2	numpy	1.25.2	Fundamental package for array computing	https://numpy.org	Travis Oliphant et al.	BSD
+3	pandas	2.0.3	Powerful data structures for data analysis	https://pandas.pydata.org	The Pandas Development Team	BSD

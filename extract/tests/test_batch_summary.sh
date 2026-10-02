@@ -12,7 +12,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-MFE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROVOST_EXTRACT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo ""
 echo "========================================"
@@ -29,7 +29,7 @@ test_batch_summary_basic () {
     tmp2=$(mktemp --suffix=.json)
     printf '{"host": "server1", "port": "80"}\n' > "$tmp1"
     printf '{"host": "server2", "version": "2.0"}\n' > "$tmp2"
-    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_extract batch --batch-summary 2>/dev/null)
     rm -f "$tmp1" "$tmp2"
     # Should have 3 lines: 2 file records + 1 summary
     assert_line_count "$output" 3 "batch-summary: should produce 3 output lines (2 files + summary)"
@@ -50,7 +50,7 @@ test_batch_summary_total_files () {
     printf '{"a": "1"}\n' > "$tmp1"
     printf '{"b": "2"}\n' > "$tmp2"
     printf '{"c": "3"}\n' > "$tmp3"
-    output=$(printf '%s\n%s\n%s\n' "$tmp1" "$tmp2" "$tmp3" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n%s\n%s\n' "$tmp1" "$tmp2" "$tmp3" | run_extract batch --batch-summary 2>/dev/null)
     rm -f "$tmp1" "$tmp2" "$tmp3"
     summary=$(echo "$output" | tail -1)
     assert_contains "$summary" '"total_files": 3' "batch-summary: total_files should be 3"
@@ -67,7 +67,7 @@ test_batch_summary_common_fields () {
     tmp2=$(mktemp --suffix=.json)
     printf '{"name": "alpha", "version": "1.0", "author": "test"}\n' > "$tmp1"
     printf '{"name": "beta", "version": "2.0", "license": "MIT"}\n' > "$tmp2"
-    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_extract batch --batch-summary 2>/dev/null)
     rm -f "$tmp1" "$tmp2"
     summary=$(echo "$output" | tail -1)
     # "name" and "version" are common to both files
@@ -83,7 +83,7 @@ test_batch_summary_requires_batch () {
     local tmp1 stderr_out exit_code
     tmp1=$(mktemp --suffix=.json)
     printf '{"key": "val"}\n' > "$tmp1"
-    stderr_out=$(run_mfe --batch-summary "$tmp1" 2>&1 >/dev/null || true)
+    stderr_out=$(run_extract --batch-summary "$tmp1" 2>&1 >/dev/null || true)
     rm -f "$tmp1"
     assert_contains "$stderr_out" "requires --batch" "batch-summary: should error without --batch"
 }
@@ -94,7 +94,7 @@ test_batch_summary_requires_batch () {
 
 test_batch_summary_empty_input () {
     local output summary
-    output=$(echo "" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(echo "" | run_extract batch --batch-summary 2>/dev/null)
     summary=$(echo "$output" | tail -1)
     assert_contains "$summary" '"_summary": true' "batch-summary: empty input should still emit summary"
     assert_contains "$summary" '"total_files": 0' "batch-summary: empty input total_files should be 0"
@@ -114,7 +114,7 @@ test_batch_summary_strategies_used () {
     tmp_ini=$(mktemp --suffix=.ini)
     printf '{"host": "server1"}\n' > "$tmp_json"
     printf '[section]\nkey = value\n' > "$tmp_ini"
-    output=$(printf '%s\n%s\n' "$tmp_json" "$tmp_ini" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n%s\n' "$tmp_json" "$tmp_ini" | run_extract batch --batch-summary 2>/dev/null)
     rm -f "$tmp_json" "$tmp_ini"
     summary=$(echo "$output" | tail -1)
     assert_contains "$summary" '"strategies_used":' "batch-summary: should contain strategies_used"
@@ -130,7 +130,7 @@ test_batch_summary_files_failed () {
     local tmp1 output summary
     tmp1=$(mktemp --suffix=.json)
     printf '{"key": "val"}\n' > "$tmp1"
-    output=$(printf '%s\n/nonexistent/missing.json\n' "$tmp1" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n/nonexistent/missing.json\n' "$tmp1" | run_extract batch --batch-summary 2>/dev/null)
     rm -f "$tmp1"
     summary=$(echo "$output" | tail -1)
     assert_contains "$summary" '"total_files": 1' "batch-summary: total_files should be 1 (only successful)"
@@ -147,7 +147,7 @@ test_batch_summary_files_processed () {
     tmp2=$(mktemp --suffix=.json)
     printf '{"a": "1"}\n' > "$tmp1"
     printf '{"b": "2"}\n' > "$tmp2"
-    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_mfe batch --batch-summary 2>/dev/null)
+    output=$(printf '%s\n%s\n' "$tmp1" "$tmp2" | run_extract batch --batch-summary 2>/dev/null)
     summary=$(echo "$output" | tail -1)
     assert_contains "$summary" "$tmp1" "batch-summary: files_processed should include first file"
     assert_contains "$summary" "$tmp2" "batch-summary: files_processed should include second file"

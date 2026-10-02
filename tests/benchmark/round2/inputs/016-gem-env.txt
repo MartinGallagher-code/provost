@@ -1,0 +1,38 @@
+RubyGems Environment:
+  - RUBYGEMS VERSION: 3.5.22
+  - RUBY VERSION: 3.3.6 (2024-11-05 patchlevel 108) [x86_64-linux]
+  - INSTALLATION DIRECTORY: /opt/rbenv/versions/3.3.6/lib/ruby/gems/3.3.0
+  - USER INSTALLATION DIRECTORY: /root/.local/share/gem/ruby/3.3.0
+  - RUBY EXECUTABLE: /opt/rbenv/versions/3.3.6/bin/ruby
+  - GIT EXECUTABLE: /usr/bin/git
+  - EXECUTABLE DIRECTORY: /opt/rbenv/versions/3.3.6/bin
+  - SPEC CACHE DIRECTORY: /root/.cache/gem/specs
+  - SYSTEM CONFIGURATION DIRECTORY: /opt/rbenv/versions/3.3.6/etc
+  - RUBYGEMS PLATFORMS:
+     - ruby
+     - x86_64-linux
+  - GEM PATHS:
+     - /opt/rbenv/versions/3.3.6/lib/ruby/gems/3.3.0
+     - /root/.local/share/gem/ruby/3.3.0
+  - GEM CONFIGURATION:
+     - :update_sources => true
+     - :verbose => true
+     - :backtrace => true
+     - :bulk_threshold => 1000
+  - REMOTE SOURCES:
+     - https://rubygems.org/
+  - SHELL PATH:
+     - /root/.local/bin
+     - /root/.cargo/bin
+     - /usr/local/go/bin
+     - /opt/node22/bin
+     - /opt/maven/bin
+     - /opt/gradle/bin
+     - /opt/rbenv/bin
+     - /root/.bun/bin
+     - /usr/local/sbin
+     - /usr/local/bin
+     - /usr/sbin
+     - /usr/bin
+     - /sbin
+     - /bin

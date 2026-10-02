@@ -1,0 +1,7 @@
+n	A	B	C	D
+1	dbus	[	started	]
+2	sshd	[	started	]
+3	nginx	[	started	]
+4	cron	[	started	]
+5	ntpd	[	stopped	]
+6	haveged	[	started	]

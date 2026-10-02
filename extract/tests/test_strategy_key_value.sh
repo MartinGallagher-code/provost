@@ -16,7 +16,7 @@ echo "========================================"
 
 test_detect () {
     local output
-    output=$(run_mfe -d -s key-value "$SAMPLES_DIR/key-value/basic.txt" 2>&1)
+    output=$(run_extract -d -s key-value "$SAMPLES_DIR/key-value/basic.txt" 2>&1)
     assert_contains "$output" "detected as applicable" "key-value should detect aligned Label: value listings"
 }
 
@@ -24,7 +24,7 @@ test_detect () {
 # capture tidy melt renders a two-column key/value table — one row per property.
 test_extract () {
     local output
-    output=$(run_mfe -r -s key-value "$SAMPLES_DIR/key-value/basic.txt")
+    output=$(run_extract -r -s key-value "$SAMPLES_DIR/key-value/basic.txt")
     assert_contains "$output" "entry1.key Architecture" "first key"
     assert_contains "$output" "entry1.value x86_64" "first value"
     assert_contains "$output" "entry2.key CPU op-mode(s)" "multi-word key preserved"
@@ -35,7 +35,7 @@ test_extract () {
 # Wrapped continuation lines (no colon) fold into the previous value.
 test_wrapped_value () {
     local output
-    output=$(run_mfe -r -s key-value "$SAMPLES_DIR/key-value/basic.txt")
+    output=$(run_extract -r -s key-value "$SAMPLES_DIR/key-value/basic.txt")
     assert_contains "$output" "entry12.value fpu vme de pse" "Flags value starts correctly"
     assert_contains "$output" "clflush mmx fxsr sse sse2" "wrapped continuation folded into the value"
     assert_not_contains "$output" "entry13.key pge" "continuation line must not become its own key"
@@ -51,7 +51,7 @@ test_value_with_colon () {
     printf 'Vendor ID:                 AuthenticAMD\n' >> "$tmp"
     printf 'CPU family:                25\n' >> "$tmp"
     local output
-    output=$(run_mfe -r -s key-value "$tmp")
+    output=$(run_extract -r -s key-value "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "entry1.key Spec rstack overflow" "key stops at first colon"
     assert_contains "$output" "entry1.value Vulnerable: Safe RET, no microcode" "value keeps its inner colon"
@@ -60,13 +60,13 @@ test_value_with_colon () {
 # Must NOT steal compact YAML or JSON (those go to their own strategies).
 test_not_yaml () {
     local output
-    output=$(run_mfe -d -s key-value "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
+    output=$(run_extract -d -s key-value "$SAMPLES_DIR/yaml/basic.yaml" 2>&1)
     assert_contains "$output" "not applicable" "key-value should not match compact YAML"
 }
 
 test_not_json () {
     local output
-    output=$(run_mfe -d -s key-value "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s key-value "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "key-value should not match JSON"
 }
 

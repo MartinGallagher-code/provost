@@ -17,7 +17,7 @@ source transform/melt.sh
 
 for f in tests/corpus/inputs/*.txt; do
     name="$(basename "$f" .txt)"
-    wide="$(bash extract/envoy-extract --generic --emit-meta -f tsv --max-strategies 1 "$f" 2>/dev/null)"
+    wide="$(bash extract/provost-extract --generic --emit-meta -f tsv --max-strategies 1 "$f" 2>/dev/null)"
     _core_melt_tidy "$wide" > "$out/$name.tsv"
 done
 echo "review snapshot: $(find "$out" -name '*.tsv' | wc -l) files in $out"

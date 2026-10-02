@@ -1,6 +1,7 @@
-n	event_id	UUID	C	D
-1	user_id	UInt64		
-2	event_type	LowCardinality(String)		
-3	ts	DateTime64(3)	DEFAULT	now64()
-4	country	FixedString(2)		
-5	payload	String	DEFAULT	'{}'
+n	name	type	default_type	default_expression
+1	event_id	UUID		
+2	user_id	UInt64		
+3	event_type	LowCardinality(String)		
+4	ts	DateTime64(3)	DEFAULT	now64()
+5	country	FixedString(2)		
+6	payload	String	DEFAULT	'{}'

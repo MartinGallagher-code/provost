@@ -1,0 +1,15 @@
+2026-10-02 14:20:01,118 INFO  [main] c.a.o.OrderApplication - Starting OrderApplication v3.4.1 using Java 21.0.4 with PID 7311
+2026-10-02 14:20:04,902 INFO  [main] o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+2026-10-02 14:21:13,447 WARN  [http-nio-8080-exec-3] c.a.o.web.OrderController - Order 10421 has no shipping address; defaulting to billing
+2026-10-02 14:21:15,009 ERROR [http-nio-8080-exec-7] c.a.o.service.PaymentService - Payment capture failed for order 10422
+java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278)
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099)
+	at com.acme.orders.client.PaymentClient.capture(PaymentClient.java:88)
+	at com.acme.orders.service.PaymentService.capture(PaymentService.java:41)
+	... 54 common frames omitted
+Caused by: java.io.IOException: connection reset by peer
+	at java.base/sun.nio.ch.SocketDispatcher.read0(Native Method)
+	... 3 more
+2026-10-02 14:21:15,013 INFO  [http-nio-8080-exec-7] c.a.o.service.RetryScheduler - Scheduled retry 1/5 for order 10422 in 30s
+2026-10-02 14:22:00,000 DEBUG [scheduling-1] c.a.o.jobs.ReconcileJob - Reconciled 118 orders in 412 ms

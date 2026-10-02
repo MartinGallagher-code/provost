@@ -34,7 +34,7 @@ _big_run () {
     local -a envs=()
     while [[ $# -gt 0 && "$1" != -- ]]; do envs+=("$1"); shift; done
     shift
-    env "${envs[@]}" bash "$MFE_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$@" \
+    env "${envs[@]}" bash "$PROVOST_EXTRACT_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$@" \
         > "$out" 2> "$out.err" || true
     grep '^__EXTRACT_META__' "$out.err" >> "$out" || true
 }
@@ -190,7 +190,7 @@ _raw_extract () {  # STRATEGY-FILE INPUT BIG-BYTES
     bash -c '
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_techniques.sh"
         _FR_BIG_BYTES=$4; source "$1/strategies/$2"
-        text="$(cat "$3")"; strategy_extract "$text"' _ "$(dirname "$MFE_SCRIPT")" "$@"
+        text="$(cat "$3")"; strategy_extract "$text"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$@"
 }
 test_twins_raw_bytes () {
     local spec st in
@@ -213,21 +213,21 @@ _sample_of () {  # TEXT [ENV...] -> prints "<sampled> <sample>"
         set -o pipefail
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
         text="$2"; _detect_sample_build
-        printf "%s|%s" "$_DET_SAMPLED" "$_DET_TEXT"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_TEXT"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$t"
 }
 
 test_sample_head_tail () {
     local t out
     t="$(printf 'L%d\n' $(seq 1 50))"
-    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)"
-    assert_eq "$out" "1|$(printf 'L1\nL2\nL3\nL49\nL50')" "head 3 + tail 2 whole lines"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0)"
+    assert_eq "$out" "1|$(printf 'L1\nL2\nL3\nL49\nL50')" "head 3 + tail 2 whole lines (no middle windows)"
 }
 
 test_sample_byte_caps () {
     local t out
     t="$(printf 'line-%03d\n' $(seq 1 50))"          # 9 bytes per line with its newline
     out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=100 _FR_SAMPLE_TAIL=100 \
-             _FR_SAMPLE_HEAD_BYTES=27 _FR_SAMPLE_TAIL_BYTES=18)"
+             _FR_SAMPLE_HEAD_BYTES=27 _FR_SAMPLE_TAIL_BYTES=18 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0)"
     assert_eq "$out" "1|$(printf 'line-001\nline-002\nline-003\nline-049\nline-050')" \
         "byte caps keep whole lines only"
 }
@@ -242,14 +242,92 @@ test_sample_not_taken () {
         "_FR_SAMPLE_BYTES=-1 disables sampling"
     # A JSON / XML document IS sampled for the ordinary detectors, but flagged
     # as a document so the grammar strategies (_FR_DOC_STRATEGIES) see it whole.
-    assert_eq "$(_doc_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+    assert_eq "$(_doc_of "$(printf '[\n{"a": 1},\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_WIN=2)" "1|1" \
         "a JSON document is sampled and flagged as a document"
-    assert_eq "$(_doc_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|1" \
+    assert_eq "$(_doc_of "  <root>$(printf '\n<x/>%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_WIN=2)" "1|1" \
         "an XML document is sampled and flagged as a document"
-    assert_eq "$(_doc_of "$(printf 'a b\n1 2\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2)" "1|0" \
+    assert_eq "$(_doc_of "$(printf 'a b\n1 2\n%.0s' $(seq 1 50))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_WIN=2)" "1|0" \
         "a table is sampled and not flagged"
     assert_eq "$(_sample_of "$(printf 'x%.0s' $(seq 1 100))" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD_BYTES=10)" "0|" \
         "no whole line fits the head budget: no sample"
+}
+
+# MIDDLE WINDOWS. Between head and tail the sample carries contiguous blocks
+# of whole lines: EVEN windows at evenly spaced byte offsets over the body,
+# and NOVEL windows where a line shape first appears (opening up to
+# _FR_SAMPLE_LEAD lines early, stretched while new shapes keep coming) —
+# file order kept, never overlapping, never duplicating the tail.
+test_sample_mid_even_windows () {
+    local t out
+    t="$(printf 'L%02d\n' $(seq 1 50))"              # one shape: even windows only
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 \
+             _FR_SAMPLE_MID=3 _FR_SAMPLE_WIN=2)"
+    assert_eq "$out" "1|$(printf 'L%02d\n' 1 2 3 4 5 20 21 36 37 49 50)" \
+        "3 even windows of 2 lines at 0, 1/3, 2/3 of the body, in file order"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 \
+             _FR_SAMPLE_MID=3 _FR_SAMPLE_WIN=4 _FR_SAMPLE_WIN_BYTES=7)"
+    assert_eq "$out" "1|$(printf 'L01\nL02\nL03\nL04\nL20\nL36\nL49\nL50')" \
+        "window byte cap keeps whole lines only"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=8 \
+             _FR_SAMPLE_MID=2 _FR_SAMPLE_WIN=20)"
+    assert_eq "$(printf '%s' "${out#1|}" | tr '\n' ' ')" "$(printf 'L%02d ' $(seq 1 23) $(seq 28 49))L50" \
+        "a window running into the tail stops before it (no duplicate lines)"
+    # blank-separated records: an even window opens back at the blank line
+    # just above it, and the blank above the tail joins the tail
+    t="$(for i in $(seq 1 12); do printf 'rec%02d\n  a: %d\n\n' "$i" "$i"; done)"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=4 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_MID=2 _FR_SAMPLE_WIN=3)"
+    assert_eq "$(printf '%s' "${out#1|}" | tr '\n' '/')" "rec01/  a: 1//rec02/  a: 2//rec03/  a: 3//rec08/  a: 8//rec12/  a: 12" \
+        "windows end and start, and the tail starts, records whole at blank lines"
+    # group lines over indented children: a window waits for a group line,
+    # finishes the group in hand, and the tail backs up to its group line —
+    # the head + tail sample glued grp02 to grp20's children
+    t="$(for i in $(seq 1 20); do printf '* grp%02d\n  k1: %d\n  k2: x\n' "$i" "$i"; done)"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=4 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_MID=2 _FR_SAMPLE_WIN=2)"
+    assert_eq "$(printf '%s' "${out#1|}" | tr '\n' '/')" \
+        "* grp01/  k1: 1/  k2: x/* grp02/  k1: 2/  k2: x/* grp12/  k1: 12/  k2: x/* grp20/  k1: 20/  k2: x" \
+        "hierarchical text: every junction joins whole groups"
+    t="$(printf 'L%02d\n' $(seq 1 20); printf 'a b %d\n' $(seq 21 30); printf 'L%02d\n' $(seq 31 50))"
+    assert_eq "$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=20 _FR_SAMPLE_TAIL=20 _FR_SAMPLE_MID=0 _FR_SAMPLE_WIN=10)" "0|" \
+        "head + windows + tail covering every line: no sample"
+}
+
+test_sample_novel_window () {
+    local t out
+    t="$(printf 'item %d done\n' $(seq 1 40); printf 'Disks:\nNAME  SIZE  STATE\n'
+         printf 'd%d  %dG  ok\n' 1 1 2 2 3 3 4 4 5 5; printf 'item %d done\n' $(seq 41 80))"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_MID=0 _FR_SAMPLE_WIN=4)"
+    assert_eq "$(printf '%s' "${out#1|}" | tr '\n' '/')" \
+        "item 1 done/item 2 done/item 3 done/item 39 done/item 40 done/Disks:/NAME  SIZE  STATE/d1  1G  ok/d2  2G  ok/item 79 done/item 80 done" \
+        "a block that changes shape mid-file lands in the sample, title + header + rows contiguous"
+    out="$(_sample_of "$t" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=3 _FR_SAMPLE_TAIL=2 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 _FR_SAMPLE_WIN=4)"
+    assert_eq "$(printf '%s' "${out#1|}" | tr '\n' '/')" "item 1 done/item 2 done/item 3 done/item 79 done/item 80 done" \
+        "_FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0: the head + tail sample"
+}
+
+# MIDDLE-EVIDENCE FALSE REJECT. describe-report needs a "Section:" line, a
+# header and a dash row, contiguous; here the only such block (Conditions)
+# sits in the middle and the tail holds bare event rows. The head + tail
+# sample hid it (describe-report rejected the sample, colons won); the middle
+# windows carry it, so the sampled run picks the full-text winner.
+test_sample_mid_evidence_no_false_reject () {
+    local f="$BIG_TMP/describe.txt" full samp old i
+    {
+        printf 'Name:                   web\nNamespace:              prod\n'
+        for ((i = 1; i <= 8; i++)); do printf 'Label%d:                 app=web%d\n' "$i" "$i"; done
+        printf 'Conditions:\n  Type           Status  Reason\n  ----           ------  ------\n'
+        printf '  Available      True    MinimumReplicasAvailable\n  Progressing    True    NewReplicaSetAvailable\n'
+        for ((i = 1; i <= 8; i++)); do printf 'Extra%d:                 value %d\n' "$i" "$i"; done
+        printf 'Events:\n  Type    Reason   Age  From  Message\n  ----    ------   ---  ----  -------\n'
+        for ((i = 1; i <= 6; i++)); do printf '  Normal  Scaled   %dm   ctl   scaled up %d\n' "$i" "$i"; done
+    } > "$f"
+    _big_run "$BIG_TMP/de.full" _FR_SAMPLE_BYTES=-1 -- "$f"
+    _big_run "$BIG_TMP/de.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8 _FR_SAMPLE_TAIL=4 _FR_SAMPLE_WIN=4 -- "$f"
+    _big_run "$BIG_TMP/de.old" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8 _FR_SAMPLE_TAIL=4 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
+    full="$(cat "$BIG_TMP/de.full")"; samp="$(cat "$BIG_TMP/de.samp")"; old="$(grep __EXTRACT_META__ "$BIG_TMP/de.old")"
+    assert_contains "$full" $'__EXTRACT_META__\tdescribe-report' "full text: describe-report wins"
+    assert_eq "$samp" "$full" "sampled run (middle windows) == full-text run"
+    # the reproduction: the old head + tail sample falsely rejected it
+    assert_not_contains "$old" $'\tdescribe-report' "head + tail sample reproduces the false reject"
 }
 
 _doc_of () {  # TEXT [ENV...] -> prints "<sampled>|<document>"
@@ -258,7 +336,7 @@ _doc_of () {  # TEXT [ENV...] -> prints "<sampled>|<document>"
         set -o pipefail
         source "$1/lib/_log.sh"; source "$1/lib/_helpers.sh"; source "$1/lib/_discovery.sh"
         text="$2"; _detect_sample_build
-        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$MFE_SCRIPT")" "$t"
+        printf "%s|%s" "$_DET_SAMPLED" "$_DET_DOC"' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$t"
 }
 
 # A big JSON array or XML document picks the same winner, with the same
@@ -294,7 +372,7 @@ test_sample_confirm_rejects () {
         for ((i = 1; i <= 3; i++)); do printf 'Oct 12 11:11:11 h2 CRON[%d]: job %d\n' "$i" "$i"; done
     } > "$f"
     _big_run "$BIG_TMP/sw.full" _FR_SAMPLE_BYTES=-1 -- "$f"
-    _big_run "$BIG_TMP/sw.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=3 -- "$f"
+    _big_run "$BIG_TMP/sw.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=3 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
     a="$(cat "$BIG_TMP/sw.full")"; b="$(cat "$BIG_TMP/sw.samp")"
     assert_eq "$b" "$a" "sample-accept / full-reject falls through to the same winner"
     assert_not_contains "$b" $'__EXTRACT_META__\tsyslog' "syslog must not win on its sample"
@@ -311,7 +389,7 @@ test_sample_confidence_is_full_text () {
         for ((i = 1; i <= 3; i++)); do printf 'T%d=v%d\n' "$i" "$i"; done
     } > "$f"
     _big_run "$BIG_TMP/ec.full" _FR_SAMPLE_BYTES=-1 -- -s equals "$f"
-    _big_run "$BIG_TMP/ec.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=6 _FR_SAMPLE_TAIL=3 -- "$f"
+    _big_run "$BIG_TMP/ec.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=6 _FR_SAMPLE_TAIL=3 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
     a="$(grep __EXTRACT_META__ "$BIG_TMP/ec.full")"
     _big_run "$BIG_TMP/ec.full2" _FR_SAMPLE_BYTES=-1 -- "$f"
     b="$(grep __EXTRACT_META__ "$BIG_TMP/ec.samp")"
@@ -328,8 +406,8 @@ test_sample_share_threshold_no_false_reject () {
     local f full samp noslack
     f="$(_gen share)"
     _big_run "$BIG_TMP/sh.full" _FR_SAMPLE_BYTES=-1 -- "$f"
-    _big_run "$BIG_TMP/sh.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 -- "$f"
-    _big_run "$BIG_TMP/sh.noslack" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_SLACK=0 -- "$f"
+    _big_run "$BIG_TMP/sh.samp" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
+    _big_run "$BIG_TMP/sh.noslack" _FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=5 _FR_SAMPLE_TAIL=5 _FR_SAMPLE_SLACK=0 _FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0 -- "$f"
     full="$(cat "$BIG_TMP/sh.full")"; samp="$(cat "$BIG_TMP/sh.samp")"; noslack="$(grep __EXTRACT_META__ "$BIG_TMP/sh.noslack")"
     assert_contains "$full" $'__EXTRACT_META__\tpkg-config' "full text: pkg-config accepts"
     assert_eq "$samp" "$full" "sampled run == full-text run (no false reject)"
@@ -365,7 +443,7 @@ test_dedup_stream_equals_sort () {
             b="$(_dedup_pipe < "$2" | od -c)"                                 # stdin, unknown SOH: sort pipeline
             c="$(_DD_SOH=0; [[ "$(cat "$2")" == *$'"'"'\001'"'"'* ]] && _DD_SOH=1; _DD_SOH=$_DD_SOH _dedup_pipe < "$2" | od -c)"
             [[ "$a" == "$b" && "$b" == "$c" ]] && echo same || { echo "$a"; echo ---; echo "$b"; echo ---; echo "$c"; }
-        ' _ "$(dirname "$MFE_SCRIPT")" "$f")"
+        ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")" "$f")"
         assert_eq "$r" "same" "dedup routes agree on ${f##*/}"
     done
 }
@@ -383,7 +461,7 @@ test_absent_literals_big () {
         a="$(_fr_absent_literals "$t" "$L")"; b="$(_fr_absent_literals_scan "$t" "$L")"
         c="$(_fr_absent_literals "${t%late*}" "$L")"; d="$(_fr_absent_literals_scan "${t%late*}" "$L")"
         printf "%s|%s|%s" "$([[ "$a" == "$b" ]] && echo same || echo diff)" "$([[ "$c" == "$d" ]] && echo same || echo diff)" "$(tr "\n\001" ",^" <<< "$a")"
-    ' _ "$(dirname "$MFE_SCRIPT")")"
+    ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")")"
     assert_eq "$r" "same|same|never seen,^x," "big-text absent literals == per-literal scan"
 }
 
@@ -401,7 +479,7 @@ test_hint_prefilters_sound () {
         _hint_first_atom "^a|b"; printf "%s|" "$_HFA"
         _hint_first_atom "^ *UNIT"; printf "%s|" "$_HFA"
         _hint_first_atom "^\\.{5,}"; printf "%s" "$_HFA"
-    ' _ "$(dirname "$MFE_SCRIPT")")"
+    ' _ "$(dirname "$PROVOST_EXTRACT_SCRIPT")")"
     assert_eq "$r" 'bytes|SIGNAL ||cd|yz|^[ipvc]|||^\.' "required literals / first atoms are conservative"
 }
 
@@ -436,6 +514,9 @@ run_test "twins: raw extract bytes (colons, block-records)" test_twins_raw_bytes
 run_test "sample: head + tail whole lines" test_sample_head_tail
 run_test "sample: byte caps" test_sample_byte_caps
 run_test "sample: when not taken" test_sample_not_taken
+run_test "sample: even middle windows (shape, caps, tail)" test_sample_mid_even_windows
+run_test "sample: novel middle window (contiguous block)" test_sample_novel_window
+run_test "sample: middle evidence — no false reject" test_sample_mid_evidence_no_false_reject
 run_test "sample: documents keep whole-document grammar detection" test_sample_documents_whole
 run_test "sample: accept-then-reject falls through" test_sample_confirm_rejects
 run_test "sample: confidence is the full-text one" test_sample_confidence_is_full_text

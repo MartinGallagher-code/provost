@@ -1,4 +1,4 @@
-n	A	B
+n	key	value
 1	>f+++++++++	data/report-q2.parquet
 2	>f.st......	data/archive.tar.gz
 3	cd+++++++++	data/newdir/

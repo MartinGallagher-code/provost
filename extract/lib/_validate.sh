@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Strategy validation for envoy-extract
+## Strategy validation for provost-extract
 ##
 ## Validate strategy files for required functions, metadata headers,
 ## sample paths, naming conventions, and version format.
@@ -252,9 +252,9 @@ self_validate_strategies () {
         return 1
     fi
 
-    # Sample paths in ## Sample: headers are relative to the EnvoyExtract root
+    # Sample paths in ## Sample: headers are relative to the provost-extract root
     # (they already include the "samples/" prefix).
-    local envoy_extract_root="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+    local provost_extract_root="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
     local total=0 pass=0 below=0 no_sample=0 missing_file=0
     local -a _below_lines=()
@@ -291,7 +291,7 @@ self_validate_strategies () {
             continue
         fi
 
-        local sample_path="$envoy_extract_root/$sample"
+        local sample_path="$provost_extract_root/$sample"
         if [[ ! -f "$sample_path" ]]; then
             missing_file=$((missing_file + 1))
             _missing_file_lines+=("$name: $sample")

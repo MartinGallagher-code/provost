@@ -1,4 +1,4 @@
 n	ID	TYPE	NAME	IP	SERVER	DNS	AGE
 1	1804221	ipv4	web-fip	159.69.100.44	web-01	web.example.com	124d
 2	1804755	ipv4	api-fip	159.69.188.71	worker-01	api.example.com	88d
-3	1810441	ipv6	v6-fip	2a01:4f8:1c::1	web-01	42d	
+3	1810441	ipv6	v6-fip	2a01:4f8:1c::1	web-01		42d

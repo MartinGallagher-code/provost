@@ -5,7 +5,7 @@
 ################################################################################
 ## Tests for: empty / header-only stdin handling (ENV-129)
 ##
-## Regression cover: before ENV-129, running `envoy-analyze < /dev/null`
+## Regression cover: before ENV-129, running `provost-analyze < /dev/null`
 ## or any upstream pipeline that produced zero bytes crashed with
 ##   line 701: COL_NAMES[$((col_idx-1))]: unbound variable
 ## because the empty-stdin guard only fired when stdin was a TTY.
@@ -37,7 +37,7 @@ _check_empty_input () {
 }
 
 test_empty_stdin_dev_null () {
-    # envoy-analyze < /dev/null  — the original ticket repro.
+    # provost-analyze < /dev/null  — the original ticket repro.
     local output rc=0
     output=$(bash "$MDA_SCRIPT" < /dev/null 2>&1) || rc=$?
     if [[ $rc -eq 0 ]]; then
@@ -50,7 +50,7 @@ test_empty_stdin_dev_null () {
 }
 
 test_empty_stdin_zero_bytes () {
-    # Zero bytes on a pipe (`printf '' | envoy-analyze`).
+    # Zero bytes on a pipe (`printf '' | provost-analyze`).
     _check_empty_input "zero-byte pipe" "" "Input contained no data"
 }
 

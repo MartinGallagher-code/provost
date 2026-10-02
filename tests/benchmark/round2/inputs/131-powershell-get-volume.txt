@@ -1,0 +1,10 @@
+
+DriveLetter FriendlyName FileSystemType DriveType HealthStatus OperationalStatus SizeRemaining      Size
+----------- ------------ -------------- --------- ------------ ----------------- -------------      ----
+C           OS           NTFS           Fixed     Healthy      OK                    169.87 GB 475.99 GB
+D           Data         NTFS           Fixed     Healthy      OK                    841.22 GB 931.51 GB
+            Recovery     NTFS           Fixed     Healthy      OK                    102.34 MB    750 MB
+E                        Unknown        CD-ROM    Healthy      Unknown                     0 B       0 B
+F           USB STICK    FAT32          Removable Warning      Full Repair Needed     58.1 GB  59.62 GB
+
+

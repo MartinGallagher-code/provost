@@ -1,0 +1,9 @@
+n	name	origin	default_ttl	class	type	value	preference	exchange
+1	@	example.net.	86400	IN	SOA	ns1.example.net. admin.example.net. 2026071102 3600 900 604800 86400		
+2	@	example.net.	86400	IN	NS	ns1.example.net.		
+3	@	example.net.	86400	IN	NS	ns2.example.net.		
+4	@	example.net.	86400	IN	MX		10	mail.example.net.
+5	www	example.net.	86400	IN	A	203.0.113.10		
+6	www	example.net.	86400	IN	AAAA	2001:db8::10		
+7	mail	example.net.	86400	IN	A	203.0.113.20		
+8	ftp	example.net.	86400	IN	CNAME	www.example.net.		

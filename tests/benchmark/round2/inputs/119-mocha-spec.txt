@@ -1,0 +1,40 @@
+
+
+  UserService
+    #create()
+      ✔ creates a user with a hashed password (41ms)
+      ✔ rejects a duplicate email
+      1) trims whitespace from the display name
+    #findByEmail()
+      ✔ returns null for an unknown address
+      ✔ is case-insensitive (112ms)
+  - #delete() soft-deletes the record
+
+  OrderService
+    ✔ computes totals with tax
+    2) applies a percentage discount
+
+
+  5 passing (319ms)
+  1 pending
+  2 failing
+
+  1) UserService
+       #create()
+         trims whitespace from the display name:
+
+      AssertionError: expected ' Ada ' to equal 'Ada'
+      + expected - actual
+
+      - Ada 
+      +Ada
+
+      at Context.<anonymous> (test/user.spec.js:38:31)
+
+  2) OrderService
+       applies a percentage discount:
+     Error: Timeout of 2000ms exceeded. For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves. (/srv/app/test/order.spec.js)
+      at listOnTimeout (node:internal/timers:573:17)
+
+
+

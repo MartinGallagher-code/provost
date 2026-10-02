@@ -25,7 +25,7 @@ test_flags_sort_names () {
     printf 'Zebra: last\nAlpha: first\nMiddle: center\n' > "$tmpfile"
     # --names exits before --sort is applied (names at line 1107, sort at line 1117)
     # so field names should appear in extraction order, not sorted
-    output=$(run_mfe --names -s colons "$tmpfile")
+    output=$(run_extract --names -s colons "$tmpfile")
     rm -f "$tmpfile"
     # Just verify names are present (order depends on pipeline)
     assert_contains "$output" "Zebra" "should output Zebra field name"
@@ -40,7 +40,7 @@ test_flags_sort_count () {
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\nCity: Portland\n' > "$tmpfile"
     # --count exits at line 1097, before --sort at line 1117
-    output=$(run_mfe --sort --count -s colons "$tmpfile")
+    output=$(run_extract --sort --count -s colons "$tmpfile")
     rm -f "$tmpfile"
     # Count should be 3 regardless of sort
     assert_eq "$output" "3" "count should be 3 independent of sort"
@@ -53,7 +53,7 @@ test_flags_rename_sort () {
     tmpfile=$(mktemp)
     printf 'Alpha: first\nBeta: second\n' > "$tmpfile"
     # Rename Alpha to ZZZ_Alpha, then sort: ZZZ_Alpha should appear after Beta
-    output=$(run_mfe --rename 'Alpha=ZZZ_Alpha' --sort -r -s colons "$tmpfile")
+    output=$(run_extract --rename 'Alpha=ZZZ_Alpha' --sort -r -s colons "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "ZZZ_Alpha first" "should have renamed field"
     # In sorted output, Beta should come before ZZZ_Alpha
@@ -73,7 +73,7 @@ test_flags_rename_aggregate () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\nScore: 30\n' > "$tmpfile"
-    output=$(run_mfe --rename 'Score=Points' --aggregate -r -s colons "$tmpfile")
+    output=$(run_extract --rename 'Score=Points' --aggregate -r -s colons "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Points_count 3" "aggregated field should use renamed name"
     assert_contains "$output" "Points_sum 60" "aggregated sum should use renamed name"
@@ -85,7 +85,7 @@ test_flags_rename_names () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
-    output=$(run_mfe --rename 'Name=FullName' --names -s colons "$tmpfile")
+    output=$(run_extract --rename 'Name=FullName' --names -s colons "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "FullName" "names should show renamed field"
     assert_not_contains "$output" "Alice" "names should not show values"
@@ -97,8 +97,8 @@ test_flags_rename_count () {
     local tmpfile output_with output_without
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\nCity: Portland\n' > "$tmpfile"
-    output_with=$(run_mfe --rename 'Name=FullName' --count -s colons "$tmpfile")
-    output_without=$(run_mfe --count -s colons "$tmpfile")
+    output_with=$(run_extract --rename 'Name=FullName' --count -s colons "$tmpfile")
+    output_without=$(run_extract --count -s colons "$tmpfile")
     rm -f "$tmpfile"
     assert_eq "$output_with" "$output_without" "count should be the same with or without rename"
 }
@@ -111,7 +111,7 @@ test_flags_firstmatch_minconfidence () {
     # Create input that matches both yaml (c90, p12) and colons (c35, p60)
     printf 'server:\n  host: localhost\n  port: 8080\n' > "$tmpfile"
     # With min-confidence 80, colons (c35) is filtered out; yaml (c90) matches first
-    output=$(run_mfe --first-match --min-confidence 80 -r "$tmpfile")
+    output=$(run_extract --first-match --min-confidence 80 -r "$tmpfile")
     rm -f "$tmpfile"
     # yaml produces dot-notation fields
     assert_contains "$output" "server.host" "high-confidence yaml should match with first-match"
@@ -124,7 +124,7 @@ test_flags_maxstrategies_nodedup () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\n' > "$tmpfile"
     # With no-dedup, if multiple strategies extract the same fields, both kept
-    output=$(run_mfe --no-dedup -r "$tmpfile")
+    output=$(run_extract --no-dedup -r "$tmpfile")
     rm -f "$tmpfile"
     # Just verify output is non-empty (no-dedup should not cause issues)
     assert_contains "$output" "Host" "no-dedup output should include fields"
@@ -136,7 +136,7 @@ test_flags_aggregate_sort () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\nScore: 30\n' > "$tmpfile"
-    output=$(run_mfe --aggregate --sort -r -s colons "$tmpfile")
+    output=$(run_extract --aggregate --sort -r -s colons "$tmpfile")
     rm -f "$tmpfile"
     # After aggregate: Score_count, Score_min, Score_max, Score_sum, Score_avg
     # After sort: alphabetical order: Score_avg < Score_count < Score_max < Score_min < Score_sum
@@ -159,8 +159,8 @@ test_flags_aggregate_count () {
     local tmpfile count_plain count_agg
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\nLevel: 5\n' > "$tmpfile"
-    count_plain=$(run_mfe --count -s colons "$tmpfile")
-    count_agg=$(run_mfe --aggregate --count -s colons "$tmpfile")
+    count_plain=$(run_extract --count -s colons "$tmpfile")
+    count_agg=$(run_extract --aggregate --count -s colons "$tmpfile")
     rm -f "$tmpfile"
     # Plain: 3 fields (Score, Score, Level) -> after dedup: 2 (Score, Level)
     # Aggregated: Level + Score_count + Score_min + Score_max + Score_sum + Score_avg = 6
@@ -179,7 +179,7 @@ test_flags_quiet_minconfidence_high () {
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe --quiet --min-confidence 100 "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract --quiet --min-confidence 100 "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     # With min-confidence 100, no strategy reaches that threshold
     # --quiet means no stderr messages, exit code 1
@@ -193,7 +193,7 @@ test_flags_verbose_firstmatch () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf '{"name": "test", "value": 42}\n' > "$tmpfile"
-    output=$(run_mfe --verbose --first-match -s json "$tmpfile" 2>&1)
+    output=$(run_extract --verbose --first-match -s json "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "1 matched" "verbose should show 1 matched with first-match"
 }
@@ -205,7 +205,7 @@ test_flags_output_sort () {
     tmpfile=$(mktemp)
     outfile=$(mktemp)
     printf 'Zebra: last\nAlpha: first\n' > "$tmpfile"
-    run_mfe --output "$outfile" --sort -r -s colons "$tmpfile" >/dev/null 2>&1
+    run_extract --output "$outfile" --sort -r -s colons "$tmpfile" >/dev/null 2>&1
     output=$(<"$outfile")
     rm -f "$tmpfile" "$outfile"
     assert_contains "$output" "Alpha first" "output file should contain Alpha"
@@ -218,7 +218,7 @@ test_flags_format_csv_rename () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
-    output=$(run_mfe -f csv --rename 'Name=FullName' -s colons "$tmpfile" 1,2)
+    output=$(run_extract -f csv --rename 'Name=FullName' -s colons "$tmpfile" 1,2)
     rm -f "$tmpfile"
     assert_contains "$output" "FullName" "CSV header should use renamed field name"
 }
@@ -229,7 +229,7 @@ test_flags_format_json_aggregate () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\n' > "$tmpfile"
-    output=$(run_mfe -f json --aggregate -s colons "$tmpfile")
+    output=$(run_extract -f json --aggregate -s colons "$tmpfile")
     rm -f "$tmpfile"
     # JSON output should contain aggregate keys
     assert_contains "$output" "Score_count" "JSON output should have aggregate keys"
@@ -242,7 +242,7 @@ test_flags_stream_rename () {
     # Stream mode processes lines independently and exits before rename pipeline
     # Verify that stream produces output (rename is not applied in stream mode)
     local output
-    output=$(printf 'Host: web\nPort: 80\n' | run_mfe --stream --strategy colons)
+    output=$(printf 'Host: web\nPort: 80\n' | run_extract --stream --strategy colons)
     assert_contains "$output" '"Host"' "stream JSON should output Host field"
     assert_contains "$output" '"Port"' "stream JSON should output Port field"
 }
@@ -253,7 +253,7 @@ test_flags_field_by_name_sort () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'Zebra: last\nAlpha: first\nMiddle: center\n' > "$tmpfile"
-    output=$(run_mfe --sort -r -s colons "$tmpfile" -f Name,Alpha,Zebra)
+    output=$(run_extract --sort -r -s colons "$tmpfile" -f Name,Alpha,Zebra)
     rm -f "$tmpfile"
     # field-by-name with sort should filter AND sort
     # This tests the interaction: sort applies, then field selection filters
@@ -266,8 +266,8 @@ test_flags_nodedup_aggregate () {
     local tmpfile count_dedup count_nodedup
     tmpfile=$(mktemp)
     printf 'Score: 10\nScore: 20\n' > "$tmpfile"
-    count_dedup=$(run_mfe --aggregate --count -s colons "$tmpfile")
-    count_nodedup=$(run_mfe --no-dedup --aggregate --count -s colons "$tmpfile")
+    count_dedup=$(run_extract --aggregate --count -s colons "$tmpfile")
+    count_nodedup=$(run_extract --no-dedup --aggregate --count -s colons "$tmpfile")
     rm -f "$tmpfile"
     # With single strategy, no-dedup shouldn't change anything
     # Both should produce aggregate output
@@ -281,7 +281,7 @@ test_flags_delimiter_multichar () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'hostname|||web-server-01\nrole|||load-balancer\nenv|||staging\n' > "$tmpfile"
-    output=$(run_mfe -r --delimiter '|||' "$tmpfile")
+    output=$(run_extract -r --delimiter '|||' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "hostname" "should extract hostname with ||| delimiter"
     assert_contains "$output" "web-server-01" "should extract value web-server-01"
@@ -297,7 +297,7 @@ test_flags_delimiter_multichar_coloneq () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'server::=apache\nport::=443\nprotocol::=https\n' > "$tmpfile"
-    output=$(run_mfe -r --delimiter '::=' "$tmpfile")
+    output=$(run_extract -r --delimiter '::=' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "server" "should extract server with ::= delimiter"
     assert_contains "$output" "apache" "should extract value apache"
@@ -311,7 +311,7 @@ test_flags_delimiter_multichar_arrow_spaces () {
     local tmpfile output
     tmpfile=$(mktemp)
     printf 'source -> origin\ntarget -> destination\nstatus -> active\n' > "$tmpfile"
-    output=$(run_mfe -r --delimiter ' -> ' "$tmpfile")
+    output=$(run_extract -r --delimiter ' -> ' "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "source" "should extract source with ' -> ' delimiter"
     assert_contains "$output" "origin" "should extract value origin"
@@ -326,7 +326,7 @@ test_flags_output_format_json () {
     tmpfile=$(mktemp)
     outfile=$(mktemp)
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
-    run_mfe --output "$outfile" -f json -s colons "$tmpfile" >/dev/null 2>&1
+    run_extract --output "$outfile" -f json -s colons "$tmpfile" >/dev/null 2>&1
     output=$(<"$outfile")
     rm -f "$tmpfile" "$outfile"
     # Should be valid JSON written to the output file
@@ -344,7 +344,7 @@ test_flags_output_format_csv () {
     tmpfile=$(mktemp)
     outfile=$(mktemp)
     printf 'Host: web01\nPort: 8080\n' > "$tmpfile"
-    run_mfe --output "$outfile" -f csv -s colons "$tmpfile" >/dev/null 2>&1
+    run_extract --output "$outfile" -f csv -s colons "$tmpfile" >/dev/null 2>&1
     output=$(<"$outfile")
     rm -f "$tmpfile" "$outfile"
     # CSV should have header row and data row
@@ -360,7 +360,7 @@ test_flags_output_format_yaml () {
     tmpfile=$(mktemp)
     outfile=$(mktemp)
     printf 'Name: Bob\nCity: Denver\n' > "$tmpfile"
-    run_mfe --output "$outfile" -f yaml -s colons "$tmpfile" >/dev/null 2>&1
+    run_extract --output "$outfile" -f yaml -s colons "$tmpfile" >/dev/null 2>&1
     output=$(<"$outfile")
     rm -f "$tmpfile" "$outfile"
     # YAML should have key: value format
@@ -376,7 +376,7 @@ test_flags_replay_version_mismatch () {
     printf 'Host: localhost\nPort: 8080\n' > "$tmpfile"
     # Run with --replay specifying a version that does not match the installed colons strategy
     rc=0
-    output=$(run_mfe --replay 'colons@999.0' -r "$tmpfile" 2>"${tmpfile}.err") || rc=$?
+    output=$(run_extract --replay 'colons@999.0' -r "$tmpfile" 2>"${tmpfile}.err") || rc=$?
     stderr_output=$(<"${tmpfile}.err")
     rm -f "$tmpfile" "${tmpfile}.err"
     # Should still succeed (exit 0) and produce output

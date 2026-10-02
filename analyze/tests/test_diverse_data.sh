@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Test: Diverse Data — EnvoyAnalyze
+## Test: Diverse Data — provost-analyze
 ##
 ## Covers: negative numbers, scientific notation, missing values, large datasets
 ################################################################################
@@ -108,7 +108,7 @@ test_negative_basic () {
     f=$(create_negative_csv)
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle negative numbers"
+    assert_exit_zero $? "provost-analyze should handle negative numbers"
     assert_contains "$out" "Rows: 10" "should count 10 rows"
     assert_contains "$out" "numeric" "value column should be numeric"
 }
@@ -141,7 +141,7 @@ test_scientific_basic () {
     f=$(create_scientific_csv)
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle scientific notation"
+    assert_exit_zero $? "provost-analyze should handle scientific notation"
     assert_contains "$out" "Rows: 10" "should count 10 rows"
 }
 
@@ -174,7 +174,7 @@ test_missing_basic () {
     f=$(create_missing_csv)
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle files with missing values"
+    assert_exit_zero $? "provost-analyze should handle files with missing values"
     assert_contains "$out" "Rows: 15" "should count 15 rows"
 }
 
@@ -206,7 +206,7 @@ test_missing_numeric_exclusion_warning () {
     err=$(run_mda "$f" 2>&1 1>/dev/null || true)
     # score column has numeric values but also many missing forms
     # Depending on ratio, may or may not trigger the DIAGNOSTIC
-    # The test verifies envoy-analyze runs without error
+    # The test verifies provost-analyze runs without error
     assert_exit_zero 0 "should run without fatal error on missing-heavy data"
 }
 
@@ -219,7 +219,7 @@ test_large_basic () {
     f=$(create_large_csv)
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle 150-row dataset"
+    assert_exit_zero $? "provost-analyze should handle 150-row dataset"
     assert_contains "$out" "Rows: 150" "should count 150 rows"
 }
 
@@ -275,7 +275,7 @@ id,val
 EOF
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle mixed negative + scientific notation"
+    assert_exit_zero $? "provost-analyze should handle mixed negative + scientific notation"
     assert_contains "$out" "val: numeric" "val should be classified as numeric"
 }
 
@@ -291,7 +291,7 @@ id,empty_col,real_val
 EOF
     local out
     out=$(run_mda "$f" 2>/dev/null)
-    assert_exit_zero $? "envoy-analyze should handle column with all missing values"
+    assert_exit_zero $? "provost-analyze should handle column with all missing values"
     assert_contains "$out" "empty_col: 5 missing" "empty_col should have 5 missing"
 }
 
@@ -299,7 +299,7 @@ EOF
 ## Run all tests
 ########################################
 
-echo "=== EnvoyAnalyze: Diverse Data Tests ==="
+echo "=== provost-analyze: Diverse Data Tests ==="
 
 run_test "Negative numbers: basic analysis" test_negative_basic
 run_test "Negative numbers: stats with negatives" test_negative_stats

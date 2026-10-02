@@ -35,7 +35,7 @@ test_block_records_blank_line_input () {
     # Blank-line-separated records with key:value pairs
     printf 'Name: Alice\nAge: 30\nCity: Portland\n\nName: Bob\nAge: 25\nCity: Denver\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s block-records "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s block-records "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "block-records should handle blank-line-separated records"
     assert_contains "$output" "Name" "should extract Name field from blank-line records"
@@ -48,7 +48,7 @@ test_block_records_repeated_block_input () {
     # Repeated blocks with key=value pairs separated by blank lines
     printf 'host=web01\nport=80\nstatus=up\n\nhost=web02\nport=443\nstatus=down\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s block-records "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s block-records "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "block-records should handle repeated block patterns"
     assert_contains "$output" "host" "should extract host field from repeated blocks"
@@ -64,7 +64,7 @@ test_exposition_prometheus_input () {
     # Prometheus exposition format
     printf '# HELP http_requests_total The total number of HTTP requests.\n# TYPE http_requests_total counter\nhttp_requests_total{method="post",code="200"} 1027\nhttp_requests_total{method="get",code="200"} 5023\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s exposition-format "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s exposition-format "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "exposition-format should handle prometheus input"
     assert_contains "$output" "http_requests_total" "should extract prometheus metric name"
@@ -76,7 +76,7 @@ test_exposition_openmetrics_input () {
     # OpenMetrics format with # EOF marker and _created metric
     printf '# TYPE process_cpu_seconds counter\n# UNIT process_cpu_seconds seconds\nprocess_cpu_seconds_total 0.45\nprocess_cpu_seconds_created 1234567890.0\n# EOF\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s exposition-format "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s exposition-format "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "exposition-format should handle openmetrics input"
     assert_contains "$output" "process_cpu_seconds" "should extract openmetrics metric"
@@ -104,7 +104,7 @@ test_xml_elements_input () {
     # XML with element text content
     printf '<config>\n  <server>localhost</server>\n  <port>8080</port>\n  <debug>true</debug>\n</config>\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s xml "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s xml "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "xml should handle element text extraction"
     assert_contains "$output" "server" "should extract server element"
@@ -117,7 +117,7 @@ test_xml_attributes_input () {
     # XML with attributes
     printf '<servers>\n  <server name="web01" port="80" status="active"/>\n  <server name="web02" port="443" status="standby"/>\n</servers>\n' > "$tmpfile"
     rc=0
-    output=$(run_mfe -r -s xml "$tmpfile" 2>/dev/null) || rc=$?
+    output=$(run_extract -r -s xml "$tmpfile" 2>/dev/null) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "xml should handle attribute extraction"
     assert_contains "$output" "name" "should extract name attribute"

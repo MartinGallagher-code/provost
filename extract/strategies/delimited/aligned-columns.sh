@@ -425,6 +425,15 @@ _ac_body_compute () {
                 _ac_seg_v "$_l"; _tt_hs=$_AC_SEG
                 [[ $_tt_ps -eq 1 && $_tt_hs -ge 3 && "$_l" != *:[[:space:]]* ]] && _title="$_prev"
             fi
+            # ...or a one-segment `Label: value` context line directly above
+            # such a header (gluster's `Brick: node1:/bricks/brick1` over its
+            # `%-latency  Avg-latency …` table) — a caption, not a row.
+            if [[ -z "$_title" && "$_prev" =~ ^[A-Za-z][A-Za-z0-9_\ -]*:[[:space:]]+[^[:space:]]+[[:space:]]*$ ]]; then
+                local _tt_ps2 _tt_hs2
+                _ac_seg_v "$_prev"; _tt_ps2=$_AC_SEG
+                _ac_seg_v "$_l"; _tt_hs2=$_AC_SEG
+                [[ $_tt_ps2 -eq 1 && $_tt_hs2 -ge 3 && "$_l" != *:[[:space:]]* && "$_l" != *[0-9][[:space:]]* ]] && _title="$_prev"
+            fi
             break
         done
     fi
@@ -677,6 +686,60 @@ _ac_body_compute () {
     [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
     out+="$_acb_tail"
     _AC_BODY_RAW="$out"
+}
+
+# _ac_tok_spans LINE — byte start / end (exclusive) of each whitespace token
+# into _AC_TS / _AC_TE.
+_ac_tok_spans () {
+    local l="$1" i n=${#1} in=0 c
+    _AC_TS=(); _AC_TE=()
+    for ((i = 0; i < n; i++)); do
+        c="${l:i:1}"
+        if [[ "$c" == [[:space:]] ]]; then
+            [[ $in -eq 1 ]] && { _AC_TE+=("$i"); in=0; }
+        elif [[ $in -eq 0 ]]; then
+            _AC_TS+=("$i"); in=1
+        fi
+    done
+    [[ $in -eq 1 ]] && _AC_TE+=("$n")
+}
+
+# _ac_sparse_grid TEXT — 0 when TEXT (header + rows) is a SPARSE grid: row 1
+# is >= 3 labels each set off by 2+ spaces; every later row (<= 40 checked,
+# >= 2 of them) opens at the header's first column and places each further
+# token under a DISTINCT later header label (starting inside that label's
+# column region — at or after its start, at most one byte past its end), left
+# to right; and at least one row leaves a label empty. Missing cells are what make it ragged — the grid is still exact.
+_ac_sparse_grid () {
+    local _sg_l _sg_i=0 _sg_hs=() _sg_he=() _sg_short=0 _sg_rows=0 _j _k _t _sg_all=()
+    # (its own split: callers keep _FR_LINES)
+    mapfile -t _sg_all <<< "$1"
+    for _sg_l in "${_sg_all[@]}"; do
+        [[ "${_sg_l}" != *[![:space:]]* ]] && continue
+        _sg_i=$((_sg_i + 1))
+        _ac_tok_spans "$_sg_l"
+        if [[ $_sg_i -eq 1 ]]; then
+            _sg_hs=("${_AC_TS[@]}"); _sg_he=("${_AC_TE[@]}")
+            _ac_seg_v "$_sg_l"
+            [[ $_AC_SEG -eq ${#_sg_hs[@]} && ${#_sg_hs[@]} -ge 3 ]] || return 1
+            continue
+        fi
+        [[ ${#_AC_TS[@]} -ge 1 && ${#_AC_TS[@]} -le ${#_sg_hs[@]} ]] || return 1
+        [[ ${_AC_TS[0]} -eq ${_sg_hs[0]} ]] || return 1
+        _k=1
+        for ((_j = 1; _j < ${#_AC_TS[@]}; _j++)); do
+            _t=${_AC_TS[$_j]}
+            # the token must clear the previous column's label
+            while [[ $_k -lt ${#_sg_hs[@]} ]] && (( _t > ${_sg_he[$_k]} )); do _k=$((_k + 1)); done
+            [[ $_k -lt ${#_sg_hs[@]} ]] || return 1
+            (( _t >= ${_sg_hs[$_k]} )) || return 1
+            _k=$((_k + 1))
+        done
+        [[ ${#_AC_TS[@]} -lt ${#_sg_hs[@]} ]] && _sg_short=1
+        _sg_rows=$((_sg_rows + 1))
+        [[ $_sg_i -ge 41 ]] && break
+    done
+    [[ $_sg_rows -ge 2 && $_sg_short -eq 1 ]]
 }
 
 # Analyse a block as a whitespace-columnar table. Prints "<mode> <ncols>":
@@ -1057,6 +1120,10 @@ _ac_shape_compute () {
         # hyperfine's `Mean [ms]`; a leading `[warn]` tag and a bracket SPLIT
         # across tokens, `[Hardware event]`, stay data)
         if [[ $_lbl_seen -eq 1 && "$_t" != "${_t1arr[0]}" && "$_t" =~ ^\[[A-Za-z%/]{1,6}\]$ ]]; then continue; fi
+        # (a short ABBREVIATED label before the row's last token — df's
+        # German `Verf.`, `No. of calls`, `Compr.` — is a label; a final
+        # `word.` closes a sentence and stays prose)
+        if [[ "$_t" =~ ^[A-Za-z]{1,6}\.$ && "$_t" != "${_t1arr[$(( ${#_t1arr[@]} - 1 ))]}" ]]; then continue; fi
         [[ $_lbl_ok -eq 1 && ! "$_t" =~ ^\[ && ! "$_t" =~ \]$ && ! "$_t" =~ \.$ ]] || { labelly=0; break; }
     done
     [[ $_lbl_seen -eq 0 ]] && labelly=0
@@ -1174,6 +1241,10 @@ _ac_shape_compute () {
             # name+description family — positional assignment reunites the
             # description column downstream.
             [[ $(( _db * 100 / (nlines - 1) )) -ge 60 && ${counts[0]} -eq 2 && $_dm -ge 4 ]] && shaped=1
+            # SPARSE MATRIX (`Role  read  write  delete  admin` over `viewer
+            # x` / `editor  x  x`): ragged rows whose every cell sits under
+            # one header label, left to right, at most one cell per label.
+            [[ $shaped -eq 0 && ${counts[0]} -ge 3 && $nlines -ge 3 ]] && _ac_sparse_grid "$text" && shaped=1
         fi
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
@@ -2122,6 +2193,8 @@ _ac_extract_big () {
         local _maxd=$_ACS_TMAX _moded=$_ACS_TMOD
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
+        elif [[ $_htok -ge 3 ]] && _ac_sparse_grid "$(awk -v h="$hidx" 'NR > h && NR <= h + 41' "$cur")"; then
+            _use_pos=1
         elif [[ $_htok -gt $_maxd ]]; then
             _ac_lines_stats 0
             if [[ $_ACS_DIGIT -eq 0 ]]; then _use_pos=1
@@ -2519,6 +2592,10 @@ strategy_extract () {
         # "Used Avail Use%") under-segment and so never match.
         local _use_pos=0
         if [[ $_maxd -gt $_htok ]]; then _use_pos=1
+        elif [[ $_htok -ge 3 ]] && _ac_sparse_grid "$hd"; then
+            # a sparse matrix: cells belong to the label above them, not to
+            # the next free column
+            _use_pos=1
         elif [[ $_htok -gt $_maxd ]]; then
             local _alljoin _acx_nodig=0
             if [[ $_acx_big -eq 1 ]]; then

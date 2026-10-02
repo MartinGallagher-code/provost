@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Global Variable Registry for envoy-analyze (ENV-066)
+## Global Variable Registry for provost-analyze (ENV-066)
 ##
 ## This file documents all global variables used across modules. It is NOT
 ## sourced — it serves as documentation only. The registry pairs with the
@@ -17,14 +17,14 @@
 ## owning module's ## Writes: list. The static check fails otherwise.
 ################################################################################
 
-# --- Constants (owner: envoy-analyze) ---
+# --- Constants (owner: provost-analyze) ---
 # MAX_CORR_COLS=8              # int: max columns in correlation matrix
 # MAX_GROUP_UNIQUE=12          # int: max unique values for grouping
 # MAX_GROUPS=5                 # int: max groups displayed
 # MAX_GROUP_NUM_COLS=4         # int: max numeric columns for group summary
 # SPARK_SAMPLES=24             # int: sparkline sample size
 
-# --- CLI Options (owner: envoy-analyze option parser) ---
+# --- CLI Options (owner: provost-analyze option parser) ---
 # input_file=""                # string: input file path
 # analysis_list=""             # string: comma-delimited analysis numbers
 # profile_name=""              # string: loaded profile name
@@ -41,7 +41,7 @@
 # compare_files=()             # array: --compare paths (owner: option parser; reader: _compare.sh)
 # _STRIP_BOM_RESULT=""         # string: working file path after BOM strip (owner: _csv.sh::strip_bom)
 
-# --- Input Metadata (owner: envoy-analyze) ---
+# --- Input Metadata (owner: provost-analyze) ---
 # delim=""                     # string: detected/forced delimiter
 # delim_name=""                # string: "comma"|"tab"|"semicolon"
 # COL_NAMES=()                 # array: column names from header
@@ -49,7 +49,7 @@
 # ROW_COUNT=0                  # int: number of data rows
 # file_size=""                 # string: file size in bytes
 
-# --- Per-Column Statistics (owner: envoy-analyze column stats loop) ---
+# --- Per-Column Statistics (owner: provost-analyze column stats loop) ---
 # COL_TYPE=()                  # array: "numeric" or "categorical"
 # COL_NUMERIC=()               # array: count of numeric values per column
 # COL_TEXT=()                  # array: count of non-numeric values per column (ENV-132)
@@ -62,13 +62,13 @@
 # COL_UNIQUE=()                # array: unique value count (categorical)
 # COL_MISSING=()               # array: missing value count per column
 
-# --- Column Index Lists (owner: envoy-analyze) ---
+# --- Column Index Lists (owner: provost-analyze) ---
 # NUM_COL_INDEXES=()           # array: 1-indexed column numbers for numeric columns
 # NUM_COL_NAMES=()             # array: names of numeric columns
 # CAT_COL_INDEXES=()           # array: 1-indexed column numbers for categorical columns
 # CAT_COL_NAMES=()             # array: names of categorical columns
 
-# --- Analysis Item Pipeline (owner: envoy-analyze / add_item()) ---
+# --- Analysis Item Pipeline (owner: provost-analyze / add_item()) ---
 # ITEM_TITLES=()               # array: analysis title strings
 # ITEM_BODIES=()               # array: analysis body text
 # ITEM_TAGS=()                 # array: GOOD | NOISY | ADVANCED | DIAGNOSTIC
@@ -94,26 +94,26 @@
 # threshold_specs=()           # array: user-provided threshold specs
 # threshold_exit_code=0        # flag: 1 if any threshold failed
 
-# --- Missing-value awk contract (owner: lib/_helpers.sh, mutated in envoy-analyze) ---
+# --- Missing-value awk contract (owner: lib/_helpers.sh, mutated in provost-analyze) ---
 # AWK_ISMISSING=""             # string: awk function definition for ismissing(v)
 
-# --- ENV-063 sampling (owner: envoy-analyze) ---
+# --- ENV-063 sampling (owner: provost-analyze) ---
 # head_n=""                    # string: --head N value
 # sample_n=""                  # string: --sample N value
 # sample_seed=""               # string: --seed S value
 # SAMPLE_NOTE=""               # string: banner note for dataset-overview
 
-# --- ENV-065 colour (owner: envoy-analyze) ---
+# --- ENV-065 colour (owner: provost-analyze) ---
 # color_when="auto"            # string: --color WHEN
 # COLOR_ENABLED=0              # flag: resolved decision (read by _format.sh)
 
-# --- ENV-067 Benford alpha (owner: envoy-analyze) ---
+# --- ENV-067 Benford alpha (owner: provost-analyze) ---
 # BENFORD_ALPHA="0.05"         # string: significance level
 # BENFORD_CRIT="15.507"        # string: chi-squared df=8 critical value
 
-# --- ENV-064 JSON envelope (owner: envoy-analyze) ---
+# --- ENV-064 JSON envelope (owner: provost-analyze) ---
 # VERSION=""                   # string: tool version, embedded in JSON output
 
-# --- envoy-browse state (owner: envoy-browse) ---
-# Not listed here — envoy-browse is a separate entry point and does not share
-# module globals with envoy-analyze's lib/*.sh.
+# --- provost-browse state (owner: provost-browse) ---
+# Not listed here — provost-browse is a separate entry point and does not share
+# module globals with provost-analyze's lib/*.sh.

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Advanced Deduplication Tests for Envoy:Explore (envoy-extract)
+## Advanced Deduplication Tests for provost-extract (provost-extract)
 ##
 ## Tests that deduplication works correctly when many strategies match the
 ## same input, and with large field counts.
@@ -28,7 +28,7 @@ test_dedup_multi_strategy () {
     tmpfile=$(mktemp)
     printf 'Host: localhost\nPort: 5432\nHost=localhost\nPort=5432\nDebug=true\nDB_HOST=localhost\nDB_PORT=5432\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r "$tmpfile")
+    output=$(run_extract -r "$tmpfile")
     rm -f "$tmpfile"
     # After dedup, each unique "fieldname value" pair should appear only once
     local host_count
@@ -52,7 +52,7 @@ test_dedup_count () {
     printf 'Name: Alice\nAge: 30\nCity: Boston\nRole: admin\nTeam: ops\n' > "$tmpfile"
     printf 'Name=Alice\nAge=30\nCity=Boston\nRole=admin\nTeam=ops\n' >> "$tmpfile"
     local output
-    output=$(run_mfe -r "$tmpfile")
+    output=$(run_extract -r "$tmpfile")
     rm -f "$tmpfile"
     # After dedup, should have exactly 5 unique field/value pairs (not 10)
     local line_count
@@ -80,7 +80,7 @@ test_dedup_large () {
         printf 'Field%03d: Value%03d\n' "$i" "$i" >> "$tmpfile"
     done
     local output rc=0
-    output=$(run_mfe -r -s colons "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r -s colons "$tmpfile" 2>&1) || rc=$?
     rm -f "$tmpfile"
     assert_exit_zero "$rc" "should handle 120+ fields without error"
     # Verify we extracted a large number of fields

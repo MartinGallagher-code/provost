@@ -16,7 +16,7 @@ echo "========================================"
 
 test_nmap_basic () {
     local output
-    output=$(run_mfe -r -s nmap "$SAMPLES_DIR/nmap/basic.txt")
+    output=$(run_extract -r -s nmap "$SAMPLES_DIR/nmap/basic.txt")
     assert_contains "$output" "host example.com" "should extract host"
     assert_contains "$output" "ip 93.184.216.34" "should extract IP"
     assert_contains "$output" "latency 0.023s" "should extract latency"
@@ -24,7 +24,7 @@ test_nmap_basic () {
 
 test_nmap_multiple_ports () {
     local output
-    output=$(run_mfe -r -s nmap "$SAMPLES_DIR/nmap/basic.txt")
+    output=$(run_extract -r -s nmap "$SAMPLES_DIR/nmap/basic.txt")
     assert_contains "$output" "port1.port 22/tcp" "should extract port1 port"
     assert_contains "$output" "port1.state open" "should extract port1 state"
     assert_contains "$output" "port1.service ssh" "should extract port1 service"
@@ -37,7 +37,7 @@ test_nmap_multiple_ports () {
 
 test_nmap_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s nmap "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s nmap "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "nmap should not apply to JSON"
 }
 

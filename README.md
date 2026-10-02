@@ -85,7 +85,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, 257 strategies (~110 generic), hints.tsv
+├── extract/            # extract engine, 261 strategies (~110 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries
@@ -108,7 +108,7 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
 
 - **`--plugin-dir <dir>`** (or `PROVOST_PLUGIN_DIR`): an extra strategy directory
   that competes in format detection for that capture — no symlink into the
-  engine's `~/.mfe/strategies` user dir needed. The winning plugin dir is
+  engine's `~/.config/provost/strategies` user dir needed. The winning plugin dir is
   recorded in the capture's metadata.
 - **`#%` metadata prologue**: a leading run of `#%` lines on injected input is
   capture context, not data. It is peeled off before detection (so it can never

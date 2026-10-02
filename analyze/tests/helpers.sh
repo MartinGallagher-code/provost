@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Test Helpers for EnvoyAnalyze (envoy-analyze)
+## Test Helpers for provost-analyze (provost-analyze)
 ################################################################################
 
-MDA_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/envoy-analyze"
+MDA_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/provost-analyze"
 SAMPLES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/samples"
 
 TESTS_RUN=0
@@ -73,7 +73,7 @@ run_test () {
     TESTS_RUN=$((TESTS_RUN + 1))
 
     # Capture the test subshell's exit code without triggering the
-    # caller's `set -e`. Half of EnvoyAnalyze's test files top with
+    # caller's `set -e`. Half of provost-analyze's test files top with
     # `set -euo pipefail`; a bare `( ... ); result=$?` would let
     # `set -e` fire on a failing subshell BEFORE `result=$?` runs,
     # aborting the entire run. Putting the subshell in an

@@ -207,20 +207,20 @@ _mktempd () {
 # any member plant code that runs as whoever captures next.
 # ---------------------------------------------------------------------------
 _find_engine () {
-    local c="$PROVOST_ROOT/extract/envoy-extract"
+    local c="$PROVOST_ROOT/extract/provost-extract"
     [[ -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
     return 1
 }
 _find_analyze () {
-    local c="$PROVOST_ROOT/analyze/envoy-analyze"
+    local c="$PROVOST_ROOT/analyze/provost-analyze"
     [[ -f "$c" ]] && { printf '%s\n' "$c"; return 0; }
     return 1
 }
 
-# Run a bundled engine: no GIT_DIR leaking in, and the engine's legacy .envoyrc
-# config layer switched off (ENVOY_NO_RC=1) so a .envoyrc in the CWD, $HOME or
+# Run a bundled engine: no GIT_DIR leaking in, and the engine's legacy .provostrc
+# config layer switched off (PROVOST_NO_RC=1) so a .provostrc in the CWD, $HOME or
 # any parent cannot reconfigure a capture behind provost's back.
-_run_engine () { env -u GIT_DIR ENVOY_NO_RC=1 bash "$@"; }
+_run_engine () { env -u GIT_DIR PROVOST_NO_RC=1 bash "$@"; }
 
 # ---------------------------------------------------------------------------
 # Transform layer — the tidy melt (`_core_melt_tidy`) and schema-union helpers
@@ -732,7 +732,7 @@ _snapshot_context () {
 _ingest () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}" name="${6:-}"
     local engine; engine="$(_find_engine)" \
-        || die "extract engine not found (expected at $PROVOST_ROOT/extract/envoy-extract)."
+        || die "extract engine not found (expected at $PROVOST_ROOT/extract/provost-extract)."
 
     _mktempd provost; local tmp="$_MKTEMPD"
 
@@ -753,7 +753,7 @@ _ingest () {
     local metaf="$tmp/meta.txt" strategy="" conf=""
     # Extra strategy dir (deframe et al.): --plugin-dir / $PROVOST_PLUGIN_DIR is
     # forwarded to the engine, which already searches it alongside its own
-    # strategies/ and the ~/.mfe/strategies user dir.
+    # strategies/ and the ~/.config/provost/strategies user dir.
     local eargs=()
     if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
         eargs+=(--plugin-dir "$PROVOST_PLUGIN_DIR")
@@ -1519,10 +1519,10 @@ cmd_stats () {
     local f; f="$(_ds_dir)/$name.tsv"
     [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
     local analyze; analyze="$(_find_analyze)" \
-        || die "analyze engine not found (expected at $PROVOST_ROOT/analyze/envoy-analyze)."
+        || die "analyze engine not found (expected at $PROVOST_ROOT/analyze/provost-analyze)."
     # Datasets are TSV; suppress the gawk-preference banner. Extra args pass
     # straight through (e.g. --all, a numbered analysis list, --format json).
-    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 _run_engine "$analyze" "$f" "$@"
+    PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1 _run_engine "$analyze" "$f" "$@"
 }
 
 # ---------------------------------------------------------------------------
@@ -1881,7 +1881,7 @@ ENV
                               capture back for triage)
     PROVOST_PLUGIN_DIR        extra strategy dir for detection (same as --plugin-dir
                               on inject/run; for wrappers like deframe — no
-                              ~/.mfe/strategies symlink needed)
+                              ~/.config/provost/strategies symlink needed)
     PROVOST_ASYNC             1 = always background, 0 = always foreground,
                               unset/auto = background only when interactive
     PROVOST_MULTI             file every dataset an input holds (default 0; same as --multi)

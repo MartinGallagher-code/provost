@@ -16,7 +16,7 @@ echo "========================================"
 
 test_fw_basic () {
     local output
-    output=$(run_mfe -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
+    output=$(run_extract -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
     # `-r` is RAW: values keep their spaces rather than being encoded as `_`.
     assert_contains "$output" "row1.Name Task Alpha" "should extract row1 Name"
     assert_contains "$output" "row1.Status Active" "should extract row1 Status"
@@ -26,7 +26,7 @@ test_fw_basic () {
 
 test_fw_multi_word_values () {
     local output
-    output=$(run_mfe -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
+    output=$(run_extract -r -s fixed-width "$SAMPLES_DIR/fixed-width/basic.txt")
     assert_contains "$output" "row1.Name Task Alpha" "should handle multi-word name in row1"
     assert_contains "$output" "row2.Name Task Beta" "should handle multi-word name in row2"
     assert_contains "$output" "row3.Name Task Gamma" "should handle multi-word name in row3"
@@ -36,7 +36,7 @@ test_fw_multi_word_values () {
 
 test_fw_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s fixed-width "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s fixed-width "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "fixed-width should not apply to JSON"
 }
 

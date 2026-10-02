@@ -10,7 +10,7 @@
 
 # `nodetool status` prints a Datacenter banner, a "Status=Up/Down" legend, then
 # an aligned table headed `--  Address  Load  Tokens  Owns (effective)  Host ID
-# Rack`. Each data row starts with a 2-char status code (U/D + N/L/J/M) and the
+# Rack` (ScyllaDB omits Rack). Each data row starts with a 2-char status code (U/D + N/L/J/M) and the
 # Load column is "<num> <unit>" (two tokens). Emit ONE record per node row.
 
 _ns_san () { local v="$1"; v="${v//$'\t'/_}"; printf '%s' "$v"; }
@@ -33,7 +33,9 @@ strategy_extract () {
     for line in "${_FR_LINES[@]}"; do
         [[ "${line}" != *[![:space:]]* ]] && continue
         { _fr_tok "$line"; t=("${_FR_TOK[@]}"); }
-        [[ ${#t[@]} -eq 8 ]] || continue
+        # 8 tokens with a Rack column; 7 without (ScyllaDB's `nodetool
+        # status` prints no Rack)
+        [[ ${#t[@]} -eq 8 || ${#t[@]} -eq 7 ]] || continue
         [[ "${t[0]}" =~ ^[UD][NLJM]$ ]] || continue
         entry=$((entry + 1))
         result+="entry${entry}.status ${t[0]}"$'\n'
@@ -42,7 +44,7 @@ strategy_extract () {
         result+="entry${entry}.tokens ${t[4]}"$'\n'
         result+="entry${entry}.owns ${t[5]}"$'\n'
         result+="entry${entry}.host_id ${t[6]}"$'\n'
-        result+="entry${entry}.rack ${t[7]}"$'\n'
+        [[ ${#t[@]} -eq 8 ]] && result+="entry${entry}.rack ${t[7]}"$'\n'
     done
     [[ $entry -gt 0 ]] && result+="total_entries ${entry}"$'\n'
     echo "$result"

@@ -1,0 +1,1 @@
+DISK WARNING - free space: / 3912 MB (8.12% inode=71%); /boot 812 MB (85.4% inode=99%); /var 1204 MB (6.02% inode=88%);| /=44268MB;45784;48327;0;50871 /boot=138MB;855;902;0;950 /var=18771MB;17980;18979;0;19978

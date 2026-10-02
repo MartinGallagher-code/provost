@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Shared extraction technique functions for envoy-extract
+## Shared extraction technique functions for provost-extract
 ##
 ## Pure-bash utility functions used by generic (technique-tagged) strategies.
 ## Requires bash 4.0+.
@@ -45,7 +45,9 @@ _tech_validate_key () {
 # Usage: _tech_kv_colon "$text" "$prefix"
 #   $prefix: dot-prefix for output keys (e.g. "record1" -> "record1.key value")
 #            pass "" for no prefix.
-# Skips: empty lines, keys >50 chars, digit-start keys, URL values (http://, https://).
+# Skips: empty lines, keys >50 chars, digit-start keys, and a bare URL LINE
+# (`https://host/x` splits at the scheme colon into key `https`, value `//…` —
+# a value starting `//`). A labelled URL (`Homepage: https://brew.sh`) is kept.
 _tech_kv_colon () {
     local _tkc_text="$1"
     local _tkc_prefix="$2"
@@ -71,8 +73,9 @@ _tech_kv_colon () {
         fi
         _tech_validate_key "$_tkc_key"
         [[ $_TECH_KEY_VALID -eq 0 ]] && continue
-        # Skip URL values (http://, https://, and // protocol-relative URLs)
-        [[ "$_tkc_value" == "http://"* || "$_tkc_value" == "https://"* || "$_tkc_value" == "//"* ]] && continue
+        # Skip a bare URL line: split at its scheme colon the value starts
+        # with `//`. A value that IS a URL (`Homepage: https://…`) is data.
+        [[ "$_tkc_value" == "//"* ]] && continue
         _clean_field "$_tkc_key";   _tkc_key="$_CLEANED"
         _clean_value "$_tkc_value"; _tkc_value="$_CLEANED"
         [[ -z "$_tkc_key" || -z "$_tkc_value" ]] && continue

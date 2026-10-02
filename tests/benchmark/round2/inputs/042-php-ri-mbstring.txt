@@ -1,0 +1,25 @@
+
+mbstring
+
+Multibyte Support => enabled
+Multibyte string engine => libmbfl
+HTTP input encoding translation => disabled
+libmbfl version => 1.3.2
+
+mbstring extension makes use of "streamable kanji code filter and converter", which is distributed under the GNU Lesser General Public License version 2.1.
+
+Multibyte (japanese) regex support => enabled
+Multibyte regex (oniguruma) version => 6.9.9
+
+Directive => Local Value => Master Value
+mbstring.language => neutral => neutral
+mbstring.detect_order => no value => no value
+mbstring.http_input => no value => no value
+mbstring.http_output => no value => no value
+mbstring.internal_encoding => no value => no value
+mbstring.substitute_character => no value => no value
+mbstring.encoding_translation => Off => Off
+mbstring.http_output_conv_mimetypes => ^(text/|application/xhtml\+xml) => ^(text/|application/xhtml\+xml)
+mbstring.strict_detection => Off => Off
+mbstring.regex_stack_limit => 100000 => 100000
+mbstring.regex_retry_limit => 1000000 => 1000000

@@ -1,0 +1,6 @@
+Caption  Description         DriveType  FileSystem  FreeSpace     Size           VolumeName  
+C:       Local Fixed Disk    3          NTFS        182394724352  511101468672   OS          
+D:       Local Fixed Disk    3          NTFS        903247806464  1000186310656  Data        
+E:       CD-ROM Disc         5                                                               
+Z:       Network Connection  4          NTFS        52613349376   107374182400   shared      
+

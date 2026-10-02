@@ -1,4 +1,5 @@
-n	analytics	events	mutation_42	DELETE_WHERE_ts_<_'2026-01-01'	1	0
-1	analytics	events	mutation_43	UPDATE country = 'US' WHERE...	0	4
-2	analytics	sessions	mutation_11	DELETE WHERE user_id = 0	1	0
-3	staging	raw_logs	mutation_07	MODIFY COLUMN level String	0	12
+n	database	table	mutation_id	command	is_done	parts_to_do
+1	analytics	events	mutation_42	DELETE WHERE ts < '2026-01-01'	1	0
+2	analytics	events	mutation_43	UPDATE country = 'US' WHERE...	0	4
+3	analytics	sessions	mutation_11	DELETE WHERE user_id = 0	1	0
+4	staging	raw_logs	mutation_07	MODIFY COLUMN level String	0	12

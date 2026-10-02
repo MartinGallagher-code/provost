@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Test Helpers for Envoy:Explore
+## Test Helpers for provost-extract
 ##
-## Provides assertion utilities for testing envoy-extract strategies and engine.
+## Provides assertion utilities for testing provost-extract strategies and engine.
 ################################################################################
 
-# Absolute path to the mfe script under test
-MFE_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/envoy-extract"
+# Absolute path to the provost-extract script under test
+PROVOST_EXTRACT_SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/provost-extract"
 SAMPLES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/samples"
 STRATEGIES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/strategies"
 
@@ -234,12 +234,12 @@ assert_output_empty () {
 }
 
 ################################################################################
-## run_mfe
+## run_extract
 ##
-## Run envoy-extract with given arguments.
+## Run provost-extract with given arguments.
 ##
-run_mfe () {
-    bash "$MFE_SCRIPT" "$@"
+run_extract () {
+    bash "$PROVOST_EXTRACT_SCRIPT" "$@"
 }
 
 ################################################################################

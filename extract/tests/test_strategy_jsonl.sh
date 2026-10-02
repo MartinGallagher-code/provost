@@ -23,7 +23,7 @@ test_jsonl_basic () {
     tmpfile=$(mktemp)
     printf '{"host": "web-01", "status": "up"}\n{"host": "web-02", "status": "down"}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s jsonl "$tmpfile")
+    output=$(run_extract -r -s jsonl "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "host" "should extract host field"
     assert_contains "$output" "web-01" "should extract value web-01"
@@ -41,7 +41,7 @@ test_jsonl_multiple_fields () {
     tmpfile=$(mktemp)
     printf '{"name": "Alice", "age": 30, "city": "Boston"}\n{"name": "Bob", "age": 25, "city": "NYC"}\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s jsonl "$tmpfile")
+    output=$(run_extract -r -s jsonl "$tmpfile")
     rm -f "$tmpfile"
     # JSONL strategy prefixes with lineN.fieldname
     assert_contains "$output" "line1.name" "should prefix line1 for first record"
@@ -57,7 +57,7 @@ test_jsonl_multiple_fields () {
 
 test_jsonl_not_for_json_object () {
     local output
-    output=$(run_mfe -d -s jsonl "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s jsonl "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "jsonl should not apply to regular JSON object"
 }
 
@@ -70,7 +70,7 @@ test_jsonl_not_for_plain_text () {
     tmpfile=$(mktemp)
     printf 'This is just plain text.\nNothing JSON about it.\nNo really.\n' > "$tmpfile"
     local output
-    output=$(run_mfe -d -s jsonl "$tmpfile" 2>&1)
+    output=$(run_extract -d -s jsonl "$tmpfile" 2>&1)
     rm -f "$tmpfile"
     assert_contains "$output" "not applicable" "jsonl should not apply to plain text"
 }

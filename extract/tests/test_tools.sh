@@ -3,13 +3,13 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Tests for EnvoyExtract tools (new_strategy.sh, review_strategy.sh)
+## Tests for provost-extract tools (new_strategy.sh, review_strategy.sh)
 ################################################################################
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/helpers.sh"
 
 TOOLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../tools" && pwd)"
-TMPDIR_TEST="${TMPDIR:-/tmp}/envoy_tools_test_$$"
+TMPDIR_TEST="${TMPDIR:-/tmp}/provost_tools_test_$$"
 mkdir -p "$TMPDIR_TEST"
 
 cleanup () {
@@ -155,7 +155,7 @@ test_review_strategy_custom_sample () {
 ## Run tests
 ################################################################################
 
-echo "=== EnvoyExtract Tools Tests ==="
+echo "=== provost-extract Tools Tests ==="
 
 run_test "new_strategy.sh --help" test_new_strategy_help
 run_test "new_strategy.sh missing args" test_new_strategy_missing_args

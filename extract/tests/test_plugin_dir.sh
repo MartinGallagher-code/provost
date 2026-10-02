@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Plugin Directory Tests for envoy-extract
+## Plugin Directory Tests for provost-extract
 ##
 ## Tests that --plugin-dir correctly loads strategy plugins from a custom
 ## directory, including detection, extraction, listing, and edge cases.
@@ -58,7 +58,7 @@ test_plugin_dir_basic_extraction () {
     local tmpfile="$TMPDIR_P/basic_input.txt"
     printf 'PLUGIN_BASIC\nsome data\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" "$tmpfile")
+    output=$(run_extract -r --plugin-dir "$plugin_dir" "$tmpfile")
     assert_contains "$output" "plugin_key" "should extract field from plugin strategy"
     assert_contains "$output" "plugin_val" "should extract value from plugin strategy"
 }
@@ -73,7 +73,7 @@ test_plugin_dir_list_strategies () {
     _create_plugin "$plugin_dir" "list-test-plugin" "LIST_MARKER" "f" "v"
 
     local output
-    output=$(run_mfe --list-strategies --plugin-dir "$plugin_dir")
+    output=$(run_extract --list-strategies --plugin-dir "$plugin_dir")
     assert_contains "$output" "list-test-plugin" "plugin should appear in strategy list"
 }
 
@@ -108,7 +108,7 @@ STRAT
     local tmpfile="$TMPDIR_P/highconf_input.txt"
     printf 'Name: Alice\nAge: 30\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --first-match --plugin-dir "$plugin_dir" "$tmpfile")
+    output=$(run_extract -r --first-match --plugin-dir "$plugin_dir" "$tmpfile")
     # The plugin has higher confidence (95) and lower priority number (5),
     # so it should be preferred with --first-match
     assert_contains "$output" "override_field" "high-confidence plugin should win with --first-match"
@@ -122,7 +122,7 @@ test_plugin_dir_nonexistent () {
     local tmpfile="$TMPDIR_P/nodir_input.txt"
     printf 'Name: test\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe --plugin-dir "/tmp/nonexistent_plugin_dir_$$" "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract --plugin-dir "/tmp/nonexistent_plugin_dir_$$" "$tmpfile" 2>&1) || rc=$?
     # Should not crash; may warn about missing directory but still process
     if [[ $rc -le 1 ]]; then
         return 0
@@ -142,7 +142,7 @@ test_plugin_dir_empty () {
     local tmpfile="$TMPDIR_P/empty_plugins_input.txt"
     printf 'Name: test\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" -s colons "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r --plugin-dir "$plugin_dir" -s colons "$tmpfile" 2>&1) || rc=$?
     # Should still work with built-in strategies
     assert_exit_zero "$rc" "empty plugin dir should not cause errors"
     assert_contains "$output" "Name" "should still extract using built-in strategies"
@@ -161,11 +161,11 @@ test_plugin_dir_multiple_plugins () {
     local tmpfile="$TMPDIR_P/multi_input.txt"
     printf 'ALPHA_MARKER\nALPHA_MARKER line\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" "$tmpfile")
+    output=$(run_extract -r --plugin-dir "$plugin_dir" "$tmpfile")
     assert_contains "$output" "alpha_field" "should use alpha plugin when marker matches"
 
     printf 'BETA_MARKER\nBETA_MARKER line\n' > "$tmpfile"
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" "$tmpfile")
+    output=$(run_extract -r --plugin-dir "$plugin_dir" "$tmpfile")
     assert_contains "$output" "beta_field" "should use beta plugin when marker matches"
 }
 
@@ -182,7 +182,7 @@ test_plugin_dir_explicit_strategy () {
     # Include the marker so detection succeeds when strategy is explicit
     printf 'EXPLICIT_MARKER\nsome data here\n' > "$tmpfile"
     local output rc=0
-    output=$(run_mfe -r --plugin-dir "$plugin_dir" --strategy explicit-plugin "$tmpfile" 2>&1) || rc=$?
+    output=$(run_extract -r --plugin-dir "$plugin_dir" --strategy explicit-plugin "$tmpfile" 2>&1) || rc=$?
     assert_contains "$output" "explicit_field" "explicit --strategy should load plugin by name"
 }
 

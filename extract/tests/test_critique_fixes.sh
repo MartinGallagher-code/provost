@@ -77,7 +77,7 @@ test_xml_escape_global_return () {
 run_test "xml_escape returns via _ESCAPED global" test_xml_escape_global_return
 
 ################################################################################
-## Fix #5: source error guard -- broken strategy doesn't crash mfe
+## Fix #5: source error guard -- broken strategy doesn't crash provost-extract
 ##
 
 test_source_error_guard () {
@@ -109,16 +109,16 @@ strategy_detect () {
 }
 STRAT
 
-    # Run mfe with the plugin dir -- should not crash
+    # Run provost-extract with the plugin dir -- should not crash
     local output rc=0
-    output=$(echo "key: value" | bash "$MFE_SCRIPT" --plugin-dir "$strat_dir" -f plain 2>/dev/null) || rc=$?
+    output=$(echo "key: value" | bash "$PROVOST_EXTRACT_SCRIPT" --plugin-dir "$strat_dir" -f plain 2>/dev/null) || rc=$?
     # Should succeed (good strategy or built-in strategies should still work)
     # The broken strategy should be skipped, not crash the engine
 
     rm -rf "$tmpdir"
 
-    # mfe should not have crashed (exit code 0 if fields extracted)
-    assert_eq "0" "$rc" "mfe should not crash on broken strategy file"
+    # provost-extract should not have crashed (exit code 0 if fields extracted)
+    assert_eq "0" "$rc" "provost-extract should not crash on broken strategy file"
 }
 
 run_test "source error guard: broken strategy skipped, not crashed" test_source_error_guard
@@ -130,7 +130,7 @@ run_test "source error guard: broken strategy skipped, not crashed" test_source_
 test_chain_version_real () {
     # Use -c to export the command line with version info
     local output
-    output=$(echo '{"name": "test"}' | bash "$MFE_SCRIPT" --chain 'json' -c 2>/dev/null) || true
+    output=$(echo '{"name": "test"}' | bash "$PROVOST_EXTRACT_SCRIPT" --chain 'json' -c 2>/dev/null) || true
     # The replay spec should contain json@ followed by the actual version from json.sh
     # json.sh has ## Version: 1.0
     assert_contains "$output" "json@1.0" "chain version should be real metadata version"
@@ -147,7 +147,7 @@ test_ini_false_positive_brackets () {
 some other text that has
 a closing bracket ] somewhere"
     local output rc=0
-    output=$(echo "$input" | bash "$MFE_SCRIPT" -s ini -f plain 2>/dev/null) || rc=$?
+    output=$(echo "$input" | bash "$PROVOST_EXTRACT_SCRIPT" -s ini -f plain 2>/dev/null) || rc=$?
     # This should NOT match as INI (brackets are on different lines, not a section header)
     assert_output_empty "$output" "brackets on different lines should not match as INI"
 }
@@ -225,7 +225,7 @@ strategy_extract () { echo "x y"; }
 STRAT
 
     local output
-    output=$(bash "$MFE_SCRIPT" --validate-strategy "$tmpfile" 2>/dev/null) || true
+    output=$(bash "$PROVOST_EXTRACT_SCRIPT" --validate-strategy "$tmpfile" 2>/dev/null) || true
     rm -f "$tmpfile"
 
     assert_contains "$output" "FAIL" "validation should catch syntax errors"
@@ -254,7 +254,7 @@ strategy_extract () { echo "x y"; }
 STRAT
 
     local output
-    output=$(bash "$MFE_SCRIPT" --validate-strategy "$tmpfile" 2>/dev/null) || true
+    output=$(bash "$PROVOST_EXTRACT_SCRIPT" --validate-strategy "$tmpfile" 2>/dev/null) || true
     rm -f "$tmpfile"
 
     assert_contains "$output" "WARN" "should warn about missing confidence"

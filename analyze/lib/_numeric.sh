@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Per-column numeric analyses for envoy-analyze (optimized: combined single-pass)
+## Per-column numeric analyses for provost-analyze (optimized: combined single-pass)
 ##
 ## Analyses: summary stats, histogram, sparkline, anomaly detection,
 ## distribution shape, CV, mode, normality, precision, trend detection,
@@ -133,10 +133,10 @@ run_numeric_analyses () {
         local col_type="${COL_TYPE[$((i-1))]}"
 
         # ENV-135: per-column progress tick on the slowest stage. The
-        # global gate `_ENV135_SHOW_PROGRESS` is set in envoy-analyze
+        # global gate `_ENV135_SHOW_PROGRESS` is set in provost-analyze
         # right before this is called.
         if [[ "${_ENV135_SHOW_PROGRESS:-0}" == "1" ]]; then
-            envoy_progress_tick "$i" "$COL_COUNT" "stats: $col_name"
+            provost_progress_tick "$i" "$COL_COUNT" "stats: $col_name"
         fi
 
         if [[ "$col_type" != "numeric" ]]; then

@@ -1,5 +1,5 @@
-n	DNSSEC_supported_by_current_servers	Current_Transactions	Total_Transactions	Current_Cache_Size	Cache_Hits	Cache_Misses	Secure	Insecure	Bogus	Indeterminate
-1	yes									
-2		0	148213							
-3				42	98211	12043				
-4							512	40233	0	0
+n	DNSSEC_supported_by_current_servers	title	Current_Transactions	Total_Transactions	Current_Cache_Size	Cache_Hits	Cache_Misses	Secure	Insecure	Bogus	Indeterminate
+1	yes										
+2		Transactions	0	148213							
+3		Cache			42	98211	12043				
+4								512	40233	0	0

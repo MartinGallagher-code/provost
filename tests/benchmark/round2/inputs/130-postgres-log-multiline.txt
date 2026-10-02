@@ -1,0 +1,11 @@
+2026-10-02 14:10:01.214 UTC [41822] LOG:  checkpoint starting: time
+2026-10-02 14:10:04.877 UTC [41822] LOG:  checkpoint complete: wrote 312 buffers (1.9%); 0 WAL file(s) added, 0 removed, 1 recycled; write=3.402 s, sync=0.118 s, total=3.663 s; sync files=41, longest=0.012 s, average=0.003 s; distance=2817 kB, estimate=3120 kB
+2026-10-02 14:11:17.003 UTC [52190] app@orders ERROR:  duplicate key value violates unique constraint "orders_pkey"
+2026-10-02 14:11:17.003 UTC [52190] app@orders DETAIL:  Key (id)=(10421) already exists.
+2026-10-02 14:11:17.003 UTC [52190] app@orders STATEMENT:  INSERT INTO orders (id, customer_id, total)
+	VALUES ($1, $2, $3)
+2026-10-02 14:12:40.551 UTC [52211] app@orders LOG:  duration: 1843.210 ms  statement: SELECT c.name, sum(o.total)
+	  FROM customers c JOIN orders o ON o.customer_id = c.id
+	 GROUP BY c.name ORDER BY 2 DESC LIMIT 20;
+2026-10-02 14:13:02.118 UTC [52230] report@analytics FATAL:  password authentication failed for user "report"
+2026-10-02 14:13:02.118 UTC [52230] report@analytics DETAIL:  Connection matched pg_hba.conf line 98: "host all all 0.0.0.0/0 scram-sha-256"

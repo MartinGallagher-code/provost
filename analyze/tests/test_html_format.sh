@@ -20,7 +20,7 @@ test_html_contains_expected_tags () {
     assert_contains "$output" "<body>" "should contain body tag"
     assert_contains "$output" "</html>" "should close html tag"
     assert_contains "$output" "<style>" "should contain inline CSS"
-    assert_contains "$output" "EnvoyAnalyze Report" "should contain report title"
+    assert_contains "$output" "provost-analyze Report" "should contain report title"
 }
 
 test_html_contains_summary_stats () {

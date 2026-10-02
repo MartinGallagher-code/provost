@@ -1,0 +1,23 @@
+File: calc.test
+Build ID: d6a8315cd70df6c4de15dec3f07b6b5100ca5bc2
+Type: cpu
+Time: 2026-10-02 15:57:19 UTC
+Duration: 2.42s, Total samples = 1.90s (78.52%)
+Showing nodes accounting for 1.90s, 100% of 1.90s total
+Showing top 15 nodes out of 22
+      flat  flat%   sum%        cum   cum%
+     1.78s 93.68% 93.68%      1.85s 97.37%  example.com/calc.Fib
+     0.07s  3.68% 97.37%      0.07s  3.68%  runtime.asyncPreempt
+     0.02s  1.05% 98.42%      0.02s  1.05%  runtime.lock2
+     0.01s  0.53% 98.95%      0.01s  0.53%  internal/runtime/syscall.Syscall6
+     0.01s  0.53% 99.47%      0.01s  0.53%  runtime.casgstatus
+     0.01s  0.53%   100%      0.01s  0.53%  runtime.unlock2
+         0     0%   100%      1.85s 97.37%  example.com/calc.BenchmarkFib
+         0     0%   100%      0.01s  0.53%  internal/runtime/syscall.EpollWait
+         0     0%   100%      0.02s  1.05%  runtime.bgsweep
+         0     0%   100%      0.02s  1.05%  runtime.findRunnable
+         0     0%   100%      0.02s  1.05%  runtime.goschedImpl
+         0     0%   100%      0.02s  1.05%  runtime.gosched_m
+         0     0%   100%      0.02s  1.05%  runtime.lock (inline)
+         0     0%   100%      0.02s  1.05%  runtime.lockWithRank (inline)
+         0     0%   100%      0.03s  1.58%  runtime.mcall

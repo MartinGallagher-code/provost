@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Edge Case Tests for envoy-extract
+## Edge Case Tests for provost-extract
 ##
 ## Tests for input size limits, boundary conditions, and error handling.
 ################################################################################
@@ -21,7 +21,7 @@ test_max_input_size_file_rejected () {
     # Create a file that exceeds a small max-input-size
     printf '%0.s.' {1..200} > "$TMPDIR_E/big.txt"
     local out rc=0
-    out=$(run_mfe --max-input-size 100 "$TMPDIR_E/big.txt" 2>&1) || rc=$?
+    out=$(run_extract --max-input-size 100 "$TMPDIR_E/big.txt" 2>&1) || rc=$?
     assert_contains "$out" "too large" "should report file too large"
     [[ $rc -ne 0 ]] || { echo "expected non-zero exit"; return 1; }
 }
@@ -30,7 +30,7 @@ test_max_input_size_file_accepted () {
     # Create a small file within limits
     echo '{"name": "test"}' > "$TMPDIR_E/small.json"
     local out rc=0
-    out=$(run_mfe --max-input-size 1000 -s json "$TMPDIR_E/small.json" 2>&1) || rc=$?
+    out=$(run_extract --max-input-size 1000 -s json "$TMPDIR_E/small.json" 2>&1) || rc=$?
     # Should succeed without error
     if [[ "$out" == *"too large"* ]]; then
         echo "  unexpected size rejection"
@@ -42,7 +42,7 @@ test_max_input_size_file_accepted () {
 test_max_input_size_stdin_rejected () {
     # Pipe data that exceeds a small max-input-size
     local out rc=0
-    out=$(printf '%0.s.' {1..200} | run_mfe --max-input-size 100 2>&1) || rc=$?
+    out=$(printf '%0.s.' {1..200} | run_extract --max-input-size 100 2>&1) || rc=$?
     assert_contains "$out" "too large" "should report stdin input too large"
     [[ $rc -ne 0 ]] || { echo "expected non-zero exit"; return 1; }
 }
@@ -56,7 +56,7 @@ test_empty_file () {
     tmpfile="$TMPDIR_E/empty.txt"
     : > "$tmpfile"
     local out rc=0
-    out=$(run_mfe "$tmpfile" 2>&1) || rc=$?
+    out=$(run_extract "$tmpfile" 2>&1) || rc=$?
     # Should not crash; exit 0 with a "No fields" message or exit 1 quietly
     if [[ $rc -le 1 ]]; then
         return 0
@@ -75,7 +75,7 @@ test_empty_file_no_spurious_output () {
     tmpfile="$TMPDIR_E/empty2.txt"
     : > "$tmpfile"
     local stdout_out
-    stdout_out=$(run_mfe "$tmpfile" 2>/dev/null) || true
+    stdout_out=$(run_extract "$tmpfile" 2>/dev/null) || true
     # stdout should be empty (no extracted fields)
     assert_output_empty "$stdout_out" "empty file should produce no stdout output"
 }
@@ -89,7 +89,7 @@ test_whitespace_only_file () {
     tmpfile="$TMPDIR_E/whitespace.txt"
     printf '   \n\t\t\n   \n\n' > "$tmpfile"
     local out rc=0
-    out=$(run_mfe "$tmpfile" 2>&1) || rc=$?
+    out=$(run_extract "$tmpfile" 2>&1) || rc=$?
     # Should not crash; whitespace-only input has no extractable fields
     if [[ $rc -le 1 ]]; then
         return 0
@@ -108,7 +108,7 @@ test_whitespace_only_no_spurious_output () {
     tmpfile="$TMPDIR_E/whitespace2.txt"
     printf '   \n\t\n  \n' > "$tmpfile"
     local stdout_out
-    stdout_out=$(run_mfe "$tmpfile" 2>/dev/null) || true
+    stdout_out=$(run_extract "$tmpfile" 2>/dev/null) || true
     assert_output_empty "$stdout_out" "whitespace-only file should produce no stdout output"
 }
 
@@ -128,7 +128,7 @@ test_very_long_line () {
     printf '\n' >> "$tmpfile"
     local out rc=0
     # Use specific strategy to avoid slow auto-discovery on huge input
-    out=$(run_mfe -s colons "$tmpfile" 2>&1) || rc=$?
+    out=$(run_extract -s colons "$tmpfile" 2>&1) || rc=$?
     # Should not crash or hang; exit code 0 or 1 is acceptable
     if [[ $rc -le 1 ]]; then
         return 0
@@ -147,7 +147,7 @@ test_single_field_file () {
     tmpfile="$TMPDIR_E/single.txt"
     printf 'hostname: server01\n' > "$tmpfile"
     local out rc=0
-    out=$(run_mfe -r -s colons "$tmpfile" 2>&1) || rc=$?
+    out=$(run_extract -r -s colons "$tmpfile" 2>&1) || rc=$?
     assert_exit_zero "$rc" "single field file should succeed"
     assert_contains "$out" "hostname" "should extract the single field name"
     assert_contains "$out" "server01" "should extract the single field value"
@@ -162,7 +162,7 @@ test_single_field_count () {
     tmpfile="$TMPDIR_E/single_count.txt"
     printf 'version: 2.0\n' > "$tmpfile"
     local out
-    out=$(run_mfe --count -s colons "$tmpfile")
+    out=$(run_extract --count -s colons "$tmpfile")
     assert_eq "$out" "1" "count for single-field file should be 1"
 }
 

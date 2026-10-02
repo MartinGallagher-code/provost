@@ -16,7 +16,7 @@ echo "========================================"
 
 test_colons_basic () {
     local output
-    output=$(run_mfe -r -s colons "$SAMPLES_DIR/colons/basic.txt")
+    output=$(run_extract -r -s colons "$SAMPLES_DIR/colons/basic.txt")
     assert_contains "$output" "Name" "should extract Name field"
     assert_contains "$output" "Age" "should extract Age field"
     assert_contains "$output" "City" "should extract City field"
@@ -26,14 +26,14 @@ test_colons_basic () {
 
 test_colons_field_selection () {
     local output
-    output=$(run_mfe -s colons "$SAMPLES_DIR/colons/basic.txt" 1)
+    output=$(run_extract -s colons "$SAMPLES_DIR/colons/basic.txt" 1)
     assert_contains "$output" "Name" "should contain selected field"
     assert_contains "$output" "John Doe" "should contain field value"
 }
 
 test_colons_json_format () {
     local output
-    output=$(run_mfe -s colons -f json "$SAMPLES_DIR/colons/basic.txt" 1,2)
+    output=$(run_extract -s colons -f json "$SAMPLES_DIR/colons/basic.txt" 1,2)
     assert_contains "$output" '"Name":' "JSON should have Name key"
     assert_contains "$output" '"Age":' "JSON should have Age key"
 }
@@ -46,7 +46,7 @@ test_colons_skips_non_fields () {
     # fixture with a single pair proves nothing about skipping the rest.
     printf "Server: Apache\nPort: 8080\n123: bad key\nhttp://example.com\n" > "$tmpfile"
     local output
-    output=$(run_mfe -r -s colons "$tmpfile")
+    output=$(run_extract -r -s colons "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Server" "should extract Server"
     assert_not_contains "$output" "123" "should skip numeric-key lines"
@@ -60,7 +60,7 @@ test_colons_values_keep_spaces () {
     local tmp output
     tmp="$(mktemp)"
     printf 'Built on: Mon Jan 26 12:30:45 2024\nCompiler: gcc (Ubuntu 13.3.0-6ubuntu2) 13.3.0\nOwner: John Smith\ngcc version 13.3.0 (Ubuntu 13.3.0)\n' > "$tmp"
-    output=$(run_mfe -s colons -f plain "$tmp")
+    output=$(run_extract -s colons -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "Built_on Mon Jan 26 12:30:45 2024" "date keeps its spaces and colons"
     assert_contains "$output" "Compiler gcc (Ubuntu 13.3.0-6ubuntu2) 13.3.0" "parenthesised span keeps its spaces"

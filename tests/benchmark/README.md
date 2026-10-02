@@ -1,4 +1,4 @@
-# tests/benchmark — 50 inputs the engine has never seen
+# tests/benchmark — inputs the engine has never seen
 
 `tests/corpus/` answers *did this change break something that used to work*.
 This answers a different and harsher question: **what happens the first time
@@ -9,8 +9,15 @@ row or a strategy written for it. The corpus score therefore measures how much
 work has been done, not how well the engine generalises. These fifty inputs have
 no hint row, no strategy, no golden and no prior review.
 
-**Result as of 2026-08-12: 23 PASS / 12 PARTIAL / 15 FAIL.** Analysis in
+**Round 1** (`inputs/`, 50 inputs), first rated 2026-08-12: 23 PASS / 12 PARTIAL /
+15 FAIL. It has since been tuned against, so it is now a regression set. See
 [`docs/benchmark-2026-08-12-generalisation.md`](../../docs/benchmark-2026-08-12-generalisation.md).
+
+**Round 2** (`round2/`, 109 inputs, 2026-10-02): **17 PASS / 51 PARTIAL /
+41 FAIL**, measured before any tuning. 67 inputs are real captures and 42 are
+faithful reproductions of documented formats; `round2/manifest.tsv` records the
+provenance of each. See
+[`docs/benchmark-2026-10-02-generalisation-round2.md`](../../docs/benchmark-2026-10-02-generalisation-round2.md).
 
 ## There is no gate here, on purpose
 
@@ -22,11 +29,18 @@ this question.
 So: re-run and read the diff.
 
 ```bash
-bash tests/benchmark/run.sh /tmp/bench-out
+bash tests/benchmark/run.sh /tmp/bench-out                 # round 1
+bash tests/benchmark/run.sh --round2 /tmp/bench-r2         # round 2 (~4-5 min, 4 cores)
+bash tests/benchmark/run.sh --round2 --tidy /tmp/bench-r2  # + melted .tidy / .multi.tidy
 ```
 
-Prints a summary line per input (strategy, confidence, input lines, output lines,
-`--multi` dataset count) and leaves `.def`, `.meta` and `.multi` files for each.
+Prints a summary line per input: strategy, confidence, input lines, output
+lines, the `--multi` dataset count, and the `--rank priority` winner when it
+differs. For each input it leaves `.def`/`.meta` (default mode), `.prio`/`.prio.meta`
+(`--rank priority`) and `.multi`, which uses the exact flags `provost --multi`
+passes (`-f tsv --max-strategies 1`). Since 2026-10-02, `.multi` matches what
+provost files. Before that it was plain output from every strategy, so the
+`multi` column in round 1's `ratings.tsv` predates the change.
 
 If you fix a defect the ratings call out, update `ratings.tsv` in the same
 commit — the file is the record of what was true when, and a stale rating is
@@ -36,9 +50,14 @@ worse than no rating.
 
 | | |
 |---|---|
-| `inputs/*.txt` | the fifty inputs |
-| `ratings.tsv` | per-input verdict, cluster and reason; criteria at the top |
-| `run.sh` | re-run every input through default and `--multi` mode |
+| `inputs/*.txt` | round 1: the fifty inputs |
+| `ratings.tsv` | round 1: per-input verdict, cluster and reason; criteria at the top |
+| `round2/inputs/*.txt` | round 2: 109 inputs (001-067 captured, 101-142 reproduced) |
+| `round2/manifest.tsv` | round 2: provenance, category, shape and source command per input |
+| `round2/CRITERIA.md` | round 2: the rating rules, fixed before the run |
+| `round2/ratings.tsv` | round 2: winner, confidence, priority winner, rating, `--multi` effect, cluster, reason |
+| `round2/novelty.py` | round 2: name and content near-duplicate check against every existing input |
+| `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |
 | `make_doc.js` | render that JSON as a markable `.docx` |
 | `make_page.py` | render that JSON as a self-contained HTML page |

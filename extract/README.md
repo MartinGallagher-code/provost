@@ -23,9 +23,9 @@ strategy.
 
 | Path | Purpose |
 |---|---|
-| `envoy-extract` | engine entry point (invoked internally by `provost`) |
+| `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 258 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 261 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,8 +33,8 @@ strategy.
 
 ## Strategy count
 
-258 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 87, system 57,
-network 31, structured 25, security 10, filesystem 8, build 7, misc 7,
+261 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 87, system 58,
+network 31, structured 25, security 11, filesystem 8, build 8, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
 when it is counted. Every strategy has a `## Sample:` file under `samples/`
@@ -63,12 +63,47 @@ comments in e.g. `strategies/delimited/box-table.sh`.
 ### Very large inputs
 
 Above `_FR_SAMPLE_BYTES` (32 KB) detectors see a bounded SAMPLE of the input
-(the first 120 / last 40 whole lines, byte-capped), and a strategy that
-accepts the sample is re-run on the full text,
+(the first 120 / last 40 whole lines, byte-capped, plus MIDDLE WINDOWS — see
+below), and a strategy that accepts the sample is re-run on the full text,
 which alone decides acceptance and confidence (`lib/_discovery.sh`). So a
 detector must never ACCEPT a sample it would reject in full — it cannot, the
-full text re-decides — but it can falsely REJECT when its evidence lies only
-in the middle of a huge input; prefer evidence the head carries.
+full text re-decides — but it can falsely REJECT when its evidence is missing
+from the sample; prefer evidence the head carries.
+
+The middle windows exist so that evidence lying only mid-input still reaches
+the detectors. Each is a CONTIGUOUS block of whole lines (at most 16 lines /
+2 KB), in file order, never overlapping another window or the tail, so a
+section title, a header and the rows under it arrive together:
+
+- **even** windows — 4, opening at byte offsets 0, ¼, ½, ¾ of the body
+  after the head (a representative slice of a uniform body; the first one
+  continues the head);
+- **novel** windows — up to 4, opening where a line *shape* first appears
+  after the head (first non-blank byte class, field-count bucket, indent,
+  which of `: = , |` TAB occur): a section, table or record block that only
+  starts mid-input. A novel window opens up to 2 lines early (the title /
+  header just above) and stretches to at most 32 lines while new shapes keep
+  coming.
+- every junction joins whole records, following the structure the head
+  shows — group lines over indented children, or blank-separated records:
+  an even window not touching the sample so far waits (≤ 16 lines) for a
+  record start (not a blank line, not an indented child) or opens back at a
+  blank line just above; a window that runs out of lines finishes the record
+  in hand (its children / up to its closing blank line, ≤ 32 lines); the
+  tail backs up to its record's group line / opening blank line; a blank
+  line repeated at a junction is dropped. (Without this the extra junctions
+  glued one group's line to another group's children — group-children then
+  saw a duplicate key and rejected the sample.)
+
+The sample is a superset of the head + tail one, so an evidence COUNT only
+grows; a uniform body adds the even windows alone (its shapes are all in the
+head). One awk pass builds it; knobs `_FR_SAMPLE_MID`, `_FR_SAMPLE_NOVEL`,
+`_FR_SAMPLE_WIN`, `_FR_SAMPLE_WIN_BYTES`, `_FR_SAMPLE_LEAD` (both counts 0 =
+the head + tail sample). Evidence can still be missed when its lines share
+their shape with the head (or the four novel windows are spent earlier) and
+no even window lands on it — keep such evidence a fallback, not the only
+route. `tests/test_big_input_paths.sh` pins the sample's shape and
+reproduces a middle-evidence false reject the windows fix.
 
 A detector that decides on a SHARE of the lines it sees ("≥ 40% of lines are
 `label: value`", "decline when one token count covers ≥ 60% of lines") can
@@ -126,7 +161,7 @@ values through `_clean_value` (never replace a value's spaces with `_`).
    winner always has output. `--max-strategies N` / `--first-match` stop after
    N / 1 candidates produced output.
 
-`--rank priority` (or `MFE_RANK=priority`) restores the historical single pass:
+`--rank priority` (or `PROVOST_RANK=priority`) restores the historical single pass:
 the first strategy in priority order whose detect passes and whose extract is
 non-empty wins, and confidence is only compared to thresholds. `--strategy` and
 `--replay` pin their own strategy set and always use that single pass. `--multi`
@@ -158,7 +193,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Tier | Confidence | What earns it | Strategies |
 |---|---|---|---|
 | Bespoke, unmistakable | **95** | two or more anchors only that tool prints: an exact banner or title line plus its own header/fields (`INNODB MONITOR OUTPUT` + `History list length`, `Device Descriptor:` + `bLength` + `idVendor`, a zpool `pool:`/`config:` + `NAME STATE READ WRITE CKSUM`) | 38 per-tool strategies — see "Bespoke sub-tiers" below |
-| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (94 strategies) |
+| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
 | Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79) |
@@ -181,7 +216,7 @@ counted how many inputs it fires on and how many of those it parses tidily
   `proc-devices`, `proc-net-dev`, `proc-net-tcp`, `proc-slabinfo`,
   `resolvectl-query`, `semanage-boolean`, `systemd-analyze-security`,
   `tcpdump-summary`, `top-batch`, `vault-status`, `xfs-info`, `zpool-status`.
-- **92, strong** (94): every other per-tool strategy. Its literal or layout is
+- **92, strong** (97): every other per-tool strategy. Its literal or layout is
   the tool's own, even when a closely related tool shares it (`proc-net-tcp`
   also reads `/proc/net/udp`; `iptables-nat` reads any `iptables -L`).
 - **88, distinctive but shared** (12): `bcc-funccount`, `bpftrace`, `csvlook`

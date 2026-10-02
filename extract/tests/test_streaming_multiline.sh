@@ -28,7 +28,7 @@ test_multiline_json_via_record_boundary () {
 }'
     local out
     # Use opening brace at column 0 as the record boundary.
-    out=$(printf '%s\n' "$input" | run_mfe stream --strategy json --record-boundary '^\{$')
+    out=$(printf '%s\n' "$input" | run_extract stream --strategy json --record-boundary '^\{$')
     # Expect 2 JSON-Lines output records
     local count
     count=$(echo "$out" | grep -c '"user"' || echo 0)
@@ -48,7 +48,7 @@ test_multiline_json_without_boundary_emits_something () {
   "user": "alice"
 }'
     local out rc=0
-    out=$(printf '%s\n' "$input" | run_mfe stream --strategy json 2>&1) || rc=$?
+    out=$(printf '%s\n' "$input" | run_extract stream --strategy json 2>&1) || rc=$?
     [[ "$rc" -eq 0 ]] || { echo "  ASSERT FAILED: stream mode should exit 0"; return 1; }
     # Output should contain at least one JSON Lines record (one `{`)
     local lines
@@ -60,7 +60,7 @@ test_multiline_json_without_boundary_emits_something () {
 test_single_record_with_unused_boundary () {
     local input='{"user":"carol","action":"login"}'
     local out
-    out=$(printf '%s\n' "$input" | run_mfe stream --strategy json --record-boundary '^NOT_PRESENT$')
+    out=$(printf '%s\n' "$input" | run_extract stream --strategy json --record-boundary '^NOT_PRESENT$')
     assert_contains "$out" "carol" "single-line record should still be processed"
 }
 
@@ -70,7 +70,7 @@ test_record_flushed_on_eof () {
   "user": "dave"
 }'
     local out
-    out=$(printf '%s\n' "$input" | run_mfe stream --strategy json --record-boundary '^\{$')
+    out=$(printf '%s\n' "$input" | run_extract stream --strategy json --record-boundary '^\{$')
     assert_contains "$out" "dave" "EOF should flush the buffered record"
 }
 

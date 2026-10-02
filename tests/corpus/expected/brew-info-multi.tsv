@@ -1,0 +1,4 @@
+n	Version	Homepage	License	Dependencies
+1	2.42.0	https://git-scm.com	GPL-2.0-only	gettext, pcre2
+2	1.7	https://jqlang.github.io/jq/	MIT	oniguruma
+3	13.0.0	https://github.com/BurntSushi/ripgrep	MIT	pcre2

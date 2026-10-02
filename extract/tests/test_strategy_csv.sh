@@ -16,7 +16,7 @@ echo "========================================"
 
 test_csv_basic () {
     local output
-    output=$(run_mfe -r -s csv "$SAMPLES_DIR/csv/basic.csv")
+    output=$(run_extract -r -s csv "$SAMPLES_DIR/csv/basic.csv")
     assert_contains "$output" "Name" "should extract Name header"
     assert_contains "$output" "John" "should extract value John"
     assert_contains "$output" "Age" "should extract Age header"
@@ -26,7 +26,7 @@ test_csv_basic () {
 
 test_csv_field_selection () {
     local output
-    output=$(run_mfe -s csv "$SAMPLES_DIR/csv/basic.csv" 1,2)
+    output=$(run_extract -s csv "$SAMPLES_DIR/csv/basic.csv" 1,2)
     assert_contains "$output" "Name" "should contain field 1"
     assert_contains "$output" "Age" "should contain field 2"
 }
@@ -36,7 +36,7 @@ test_csv_quoted_fields () {
     tmpfile=$(mktemp)
     printf 'Name,City\n"Smith, John","New York"\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s csv "$tmpfile")
+    output=$(run_extract -r -s csv "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Name" "should extract Name"
     assert_contains "$output" "Smith, John" "should handle quoted commas"
@@ -44,7 +44,7 @@ test_csv_quoted_fields () {
 
 test_csv_not_detected_for_non_csv () {
     local output
-    output=$(run_mfe -d -s csv "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s csv "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "csv should not apply to JSON"
 }
 
@@ -55,7 +55,7 @@ test_csv_trims_whitespace_after_comma () {
     tmpfile=$(mktemp)
     printf 'a=1, b=2, c=3\na=5, b=6, c=7\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s csv "$tmpfile")
+    output=$(run_extract -r -s csv "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "a=1 a=5" "value should be clean"
     assert_contains "$output" "b=2 b=6" "value after ', ' must not gain a leading underscore"
@@ -66,7 +66,7 @@ test_csv_trims_whitespace_after_comma () {
 # tidy melt renders one row per record — not one wide row with duplicate columns.
 test_csv_rows_are_indexed_records () {
     local output
-    output=$(run_mfe -r -s csv "$SAMPLES_DIR/csv/employees.csv")
+    output=$(run_extract -r -s csv "$SAMPLES_DIR/csv/employees.csv")
     assert_contains "$output" "entry1.name Alice Johnson" "row 1 under entry1"
     assert_contains "$output" "entry3.department Engineering" "row 3 keeps its department (no dup-key drop)"
     assert_contains "$output" "entry5.title Junior Developer" "row 5 under entry5"

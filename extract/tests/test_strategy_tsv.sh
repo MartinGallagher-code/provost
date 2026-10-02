@@ -16,7 +16,7 @@ echo "========================================"
 
 test_tsv_basic () {
     local output
-    output=$(run_mfe -r -s tsv "$SAMPLES_DIR/tsv/basic.tsv")
+    output=$(run_extract -r -s tsv "$SAMPLES_DIR/tsv/basic.tsv")
     assert_contains "$output" "Name" "should extract Name header"
     assert_contains "$output" "John" "should extract value John"
     assert_contains "$output" "Age" "should extract Age header"
@@ -27,21 +27,21 @@ test_tsv_basic () {
 
 test_tsv_field_selection () {
     local output
-    output=$(run_mfe -s tsv "$SAMPLES_DIR/tsv/basic.tsv" 1,2)
+    output=$(run_extract -s tsv "$SAMPLES_DIR/tsv/basic.tsv" 1,2)
     assert_contains "$output" "Name" "should contain field 1"
     assert_contains "$output" "Age" "should contain field 2"
 }
 
 test_tsv_multiple_rows () {
     local output
-    output=$(run_mfe -r -s tsv "$SAMPLES_DIR/tsv/basic.tsv")
+    output=$(run_extract -r -s tsv "$SAMPLES_DIR/tsv/basic.tsv")
     assert_contains "$output" "Jane" "should extract second row value Jane"
     assert_contains "$output" "Seattle" "should extract second row value Seattle"
 }
 
 test_tsv_not_detected_for_json () {
     local output
-    output=$(run_mfe -d -s tsv "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s tsv "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "tsv should not apply to JSON"
 }
 
@@ -51,7 +51,7 @@ test_tsv_empty_cell_keeps_columns () {
     local tmp output
     tmp="$(mktemp)"
     printf 'a\tb\tc\n1\t2\t3\n4\t\t6\n' > "$tmp"
-    output=$(run_mfe -r -s tsv -f plain "$tmp")
+    output=$(run_extract -r -s tsv -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "entry2.a 4" "row 2 keeps a=4"
     assert_contains "$output" "entry2.c 6" "row 2 keeps c=6 in column c"
@@ -60,7 +60,7 @@ test_tsv_empty_cell_keeps_columns () {
 
 test_tsv_empty_cells_sample () {
     local output
-    output=$(run_mfe -r -s tsv -f plain "$SAMPLES_DIR/tsv/empty-cells.tsv")
+    output=$(run_extract -r -s tsv -f plain "$SAMPLES_DIR/tsv/empty-cells.tsv")
     assert_contains "$output" "entry2.owner bob" "db01 owner stays under owner"
     assert_not_contains "$output" "entry2.role bob" "bob must not shift into role"
     assert_contains "$output" "entry3.role cache" "cache01 role stays under role"
@@ -73,7 +73,7 @@ test_tsv_tab_padding_collapses () {
     local tmp output
     tmp="$(mktemp)"
     printf 'processor\t: 0\nvendor_id\t: GenuineIntel\nflags\t\t: fpu vme\nbogomips\t: 4800\n' > "$tmp"
-    output=$(run_mfe -r -s tsv -f plain "$tmp")
+    output=$(run_extract -r -s tsv -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "entry3.A flags" "flags row keeps its label in A"
     assert_contains "$output" "entry3.B : fpu vme" "flags value lands in B, not a phantom column"
@@ -85,7 +85,7 @@ test_tsv_value_spaces_kept () {
     local tmp output
     tmp="$(mktemp)"
     printf 'name\tcity\tnote\nJohn Smith\tNew York\tlikes a_b\nJane Doe\tLos Angeles\tx\n' > "$tmp"
-    output=$(run_mfe -r -s tsv -f plain "$tmp")
+    output=$(run_extract -r -s tsv -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" "entry1.name John Smith" "space kept in name value"
     assert_contains "$output" "entry1.city New York" "space kept in city value"

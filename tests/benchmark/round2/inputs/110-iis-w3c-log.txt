@@ -1,0 +1,14 @@
+#Software: Microsoft Internet Information Services 10.0
+#Version: 1.0
+#Date: 2026-10-02 00:00:01
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) cs(Referer) sc-status sc-substatus sc-win32-status time-taken
+2026-10-02 00:00:01 192.0.2.10 GET /default.aspx - 443 - 198.51.100.23 Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36 - 200 0 0 46
+2026-10-02 00:00:03 192.0.2.10 GET /api/orders id=1042&expand=lines 443 CORP\jdoe 198.51.100.23 Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36 https://intranet.example.com/orders 200 0 0 131
+2026-10-02 00:00:07 192.0.2.10 POST /api/orders - 443 CORP\jdoe 198.51.100.23 Mozilla/5.0+(Windows+NT+10.0;+Win64;+x64)+AppleWebKit/537.36 https://intranet.example.com/orders/new 500 0 0 2047
+2026-10-02 00:00:09 192.0.2.10 GET /favicon.ico - 443 - 203.0.113.77 curl/8.9.1 - 404 0 2 0
+2026-10-02 00:00:12 192.0.2.10 GET /health - 80 - 192.0.2.250 ELB-HealthChecker/2.0 - 200 0 0 1
+#Software: Microsoft Internet Information Services 10.0
+#Version: 1.0
+#Date: 2026-10-02 00:15:00
+#Fields: date time s-ip cs-method cs-uri-stem cs-uri-query s-port cs-username c-ip cs(User-Agent) cs(Referer) sc-status sc-substatus sc-win32-status time-taken
+2026-10-02 00:15:00 192.0.2.10 GET /default.aspx - 443 - 198.51.100.40 Mozilla/5.0+(Macintosh;+Intel+Mac+OS+X+14_6) - 304 0 0 15

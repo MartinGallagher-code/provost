@@ -1,0 +1,14 @@
+
+SQL> SELECT employee_id, last_name, job_id, salary, hire_date FROM employees WHERE department_id = 60;
+
+EMPLOYEE_ID LAST_NAME                 JOB_ID         SALARY HIRE_DATE
+----------- ------------------------- ---------- ---------- ---------
+        103 Hunold                    IT_PROG          9000 03-JAN-06
+        104 Ernst                     IT_PROG          6000 21-MAY-07
+        105 Austin                    IT_PROG          4800 25-JUN-05
+        106 Pataballa                 IT_PROG          4800 05-FEB-06
+        107 Lorentz                   IT_PROG          4200 07-FEB-07
+
+5 rows selected.
+
+SQL>

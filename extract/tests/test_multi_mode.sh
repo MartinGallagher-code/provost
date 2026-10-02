@@ -38,7 +38,7 @@ test_multi_iostat_three_datasets () {
     local tmpfile out n
     tmpfile=$(mktemp)
     _multi_iostat_input > "$tmpfile"
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "3" "$n" "three datasets emitted (banner, avg-cpu, Device)"
@@ -52,7 +52,7 @@ test_multi_separator_format () {
     local tmpfile out sep
     tmpfile=$(mktemp)
     _multi_iostat_input > "$tmpfile"
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     # separator: __DATASET__ <TAB> n <TAB> strategy <TAB> confidence
     sep=$(printf '%s\n' "$out" | grep '__DATASET__' | head -1)
@@ -73,7 +73,7 @@ Package: curl
 Version: 8.5.0
 Priority: optional
 EOF
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "blank-separated record stream re-forms into one dataset"
@@ -83,7 +83,7 @@ EOF
 
 test_multi_conflicts_with_batch () {
     local rc=0
-    printf 'x\n' | run_mfe --multi --batch >/dev/null 2>&1 || rc=$?
+    printf 'x\n' | run_extract --multi --batch >/dev/null 2>&1 || rc=$?
     assert_eq "1" "$rc" "--multi and --batch conflict"
 }
 
@@ -104,7 +104,7 @@ test_multi_comment_legend_becomes_header () {
     local tmpfile out n
     tmpfile=$(mktemp)
     _multi_comment_input > "$tmpfile"
-    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "a legend that names the columns folds into its table"
@@ -123,7 +123,7 @@ test_multi_undernaming_legend_not_folded () {
 2 07/11/2026 08:44:03 alice yes 10.0.1.9 pts/1
 3 07/11/2026 09:15:52 bob no 203.0.113.7 ssh
 EOF
-    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$out" "entry1.text # date" "a legend two names short is kept as prose, not guessed at"
     assert_not_contains "$out" "entry1.date 1" "and never labels the rows it does not match"
@@ -141,7 +141,7 @@ test_multi_legend_may_omit_row_ordinal () {
 2. 03/01/2024 09:45:02 alice sshd
 3. 03/02/2024 14:22:17 bob sshd
 EOF
-    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$out" "entry1.num 1." "the unnamed ordinal column gets an explicit name"
     assert_contains "$out" "entry1.date 03/01/2024" "and the legend's names land on the right values"
@@ -158,7 +158,7 @@ kmalloc-8192          128    128   8192
 kmalloc-1024         2048   2048   1024
 dentry              48210  48312    192
 EOF
-    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$out" "entry1.text # slabinfo" "comment run kept verbatim, one row per line"
     assert_contains "$out" "kmalloc-8192" "the table itself still parses"
@@ -181,7 +181,7 @@ test_multi_pipe_box_stays_one_table () {
 |  acme-prod-logs            |  2024-03-11T08:15Z |
 |  acme-terraform-state      |  2023-11-02T19:41Z |
 EOF
-    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "an ASCII box is one table, not a split"
@@ -199,7 +199,7 @@ test_multi_commented_kv_is_parsed () {
 # public key: age1abc123def456
 AGE-SECRET-KEY-1QQQQQQQQQQQQQQQ
 EOF
-    out=$(run_mfe --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$out" "entry1.key created" "a commented kv run parses as key/value"
     assert_contains "$out" "entry2.value age1abc123def456" "and keeps its values"
@@ -216,7 +216,7 @@ kmalloc-8192          128    128   8192
 kmalloc-1024         2048   2048   1024
 dentry              48210  48312    192
 EOF
-    out=$(run_mfe --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f plain --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     assert_contains "$out" "entry1.text # slabinfo" "a mixed comment run is still kept verbatim"
 }
@@ -237,7 +237,7 @@ test_multi_rule_line_splits () {
     local tmpfile out n
     tmpfile=$(mktemp)
     _multi_rule_input > "$tmpfile"
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "2" "$n" "a rule line splits the rows above from the summary below"
@@ -255,7 +255,7 @@ test bench_parse_small ... ok
 test bench_parse_large ... ok
 test bench_encode ... ok
 EOF
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "2" "$n" "count preamble splits from the rows below it"
@@ -273,7 +273,7 @@ Scanning 3 hosts
 10.0.0.10    up
 10.0.0.100   up
 EOF
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "2" "$n" "rows differing only in digit count still count as one shape"
@@ -290,7 +290,7 @@ pod-1   Running
 pod-2   Running
 pod-3   Running
 EOF
-    out=$(run_mfe --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "an aligned header row is not treated as a count preamble"
@@ -313,7 +313,7 @@ Conditions:
   Available      True    MinimumReplicasAvailable
   Progressing    True    NewReplicaSetAvailable
 EOF
-    out=$(run_mfe --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_eq "1" "$n" "a split that loses to the whole-input parse is vetoed"
@@ -325,7 +325,7 @@ test_multi_scoring_keeps_a_winning_split () {
     local tmpfile out n
     tmpfile=$(mktemp)
     _multi_iostat_input > "$tmpfile"
-    out=$(run_mfe --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    out=$(run_extract --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
     rm -f "$tmpfile"
     n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
     assert_contains "$out" "%user" "the avg-cpu block the whole-input parse would drop is kept"

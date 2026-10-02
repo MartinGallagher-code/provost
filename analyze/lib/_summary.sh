@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Summary/verdict output for envoy-analyze
+## Summary/verdict output for provost-analyze
 ##
 ## Synthesizes a natural-language summary from analysis results.
 ##

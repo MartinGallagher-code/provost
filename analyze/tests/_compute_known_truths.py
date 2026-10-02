@@ -112,7 +112,7 @@ def make_categorical(seed: int = 2) -> tuple[list[dict], dict]:
     n = len(rows)
     row_totals = {d: sum(contingency[(d, o)] for o in oses) for d in devices}
     col_totals = {o: sum(contingency[(d, o)] for d in devices) for o in oses}
-    # Match envoy-analyze's awk (lib/_categorical.sh::run_cramers_v): only
+    # Match provost-analyze's awk (lib/_categorical.sh::run_cramers_v): only
     # iterate observed-cell combinations (`for key in joint`), not all
     # row*col combinations. Zero-observation cells are skipped on both
     # sides — keeps the truth table aligned with what the tool reports.

@@ -156,7 +156,7 @@ test_csv_mixed_quoting () {
 }
 
 test_quoted_csv_full_pipeline () {
-    # Run envoy-analyze on our quoted.csv sample and verify it parses correctly
+    # Run provost-analyze on our quoted.csv sample and verify it parses correctly
     local output
     output=$(run_mda "$SAMPLES_DIR/quoted.csv")
     assert_contains "$output" "Rows: 6" "quoted.csv should have 6 data rows"
@@ -165,7 +165,7 @@ test_quoted_csv_full_pipeline () {
 }
 
 test_missing_expanded_forms () {
-    # Run envoy-analyze on missing.csv and verify expanded missing detection
+    # Run provost-analyze on missing.csv and verify expanded missing detection
     local output
     output=$(run_mda "$SAMPLES_DIR/missing.csv")
     assert_contains "$output" "value: 5 missing" "value column should have 5 missing (empty, NaN, null, NULL, .)"

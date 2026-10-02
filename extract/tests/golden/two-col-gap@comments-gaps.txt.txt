@@ -1,0 +1,7 @@
+entry1.A 127.0.0.1
+entry1.B localhost
+entry2.A 10.0.0.5
+entry2.B git.internal git
+entry3.A 10.8.0.1
+entry3.B vpn-gw.internal vpn
+total_entries 3

@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Envoy:Explore Test Runner
+## provost-extract Test Runner
 ##
 ## Runs all test suites and reports combined results.
 ##
@@ -34,7 +34,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "========================================"
-echo "Envoy:Explore Test Suite"
+echo "provost-extract Test Suite"
 echo "========================================"
 
 # Auto-discover all test files

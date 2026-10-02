@@ -1,0 +1,882 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
+################################################################################
+##                 Multi-Format Extractor — provost's extract engine
+################################################################################
+## Part of provost. Copyright (C) 2026 Martin J. Gallagher.
+## License: GPL-3.0-or-later. Version: see the top-level VERSION file.
+################################################################################
+##
+## Description: Use various strategies to extract field names and values from
+##      the supplied file or stdin. Auto-detects data formats (JSON, YAML, CSV,
+##      syslog, benchmark output, etc.) and outputs structured key/value fields.
+##
+################################################################################
+##
+## Usage: provost-extract [COMMAND] [OPTIONS] [FILE] [FIELD-LIST]
+##        cat file | provost-extract [OPTIONS] [FIELD-LIST]
+##
+################################################################################
+##
+## Author: Martin J. Gallagher
+##
+################################################################################
+##
+## See CHANGELOG.md for version history.
+##
+################################################################################
+
+set -eo pipefail
+# ENV-115: nounset catches undefined-variable bugs at first read (typos in
+# side-channel globals, missing defaults, uninitialised state) rather than
+# silently expanding to "". Side-channel init lives at the top of each
+# owning lib module. Strategies see `set -u` too; plugin authors should
+# guard optional reads with `${VAR:-default}`.
+set -o nounset
+
+# Legacy names: before 2026-10-02 the engine's settings were ENVOY_* / MFE_*.
+# For one release an old name still applies when its PROVOST_* name is unset.
+for _legacy in ENVOY_HOME:PROVOST_ROOT MFE_RANK:PROVOST_RANK \
+        MFE_HINTS_FILE:PROVOST_HINTS_FILE ENVOY_NO_RC:PROVOST_NO_RC \
+        ENVOY_QUIET:PROVOST_QUIET ENVOY_VERBOSE:PROVOST_VERBOSE \
+        ENVOY_NO_PAGER:PROVOST_NO_PAGER ENVOY_NO_PROGRESS:PROVOST_NO_PROGRESS \
+        ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:PROVOST_ANALYZE_SUPPRESS_AWK_WARNING; do
+    _old="${_legacy%%:*}" _new="${_legacy#*:}"
+    if [[ -n "${!_old:-}" && -z "${!_new:-}" ]]; then export "$_new=${!_old}"; fi
+done
+unset _legacy _old _new
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STRATEGIES_DIR="$SCRIPT_DIR/strategies"
+# Declarative tool->strategy routing table (see _discovery.sh for the format).
+HINTS_FILE="${PROVOST_HINTS_FILE:-$SCRIPT_DIR/hints.tsv}"
+if [[ -r "$SCRIPT_DIR/../lib/provost_version.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/../lib/provost_version.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_version.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROVOST_ROOT}/lib/provost_version.sh"
+fi
+if declare -F provost_suite_version >/dev/null; then
+    VERSION="$(provost_suite_version "$SCRIPT_DIR")"
+else
+    VERSION="0.0.0+unknown"
+fi
+
+########################################
+## MODULE LOADING
+##
+
+source "$SCRIPT_DIR/lib/_log.sh"
+# ENV-137: shared typo / suggestion helpers (best-effort).
+if [[ -r "$SCRIPT_DIR/../lib/provost_suggest.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/../lib/provost_suggest.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_suggest.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROVOST_ROOT}/lib/provost_suggest.sh"
+fi
+source "$SCRIPT_DIR/lib/_helpers.sh"
+source "$SCRIPT_DIR/lib/_techniques.sh"
+source "$SCRIPT_DIR/lib/_format.sh"
+source "$SCRIPT_DIR/lib/_postprocess.sh"
+source "$SCRIPT_DIR/lib/_discovery.sh"
+source "$SCRIPT_DIR/lib/_interactive.sh"
+source "$SCRIPT_DIR/lib/_validate.sh"
+source "$SCRIPT_DIR/lib/_autotune.sh"
+source "$SCRIPT_DIR/lib/_score.sh"
+source "$SCRIPT_DIR/lib/_dispatch.sh"
+
+# ENV-143: shared pager helper.  Tolerate missing file (partial dev checkout).
+if [[ -r "$SCRIPT_DIR/../lib/provost_pager.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/../lib/provost_pager.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_pager.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROVOST_ROOT}/lib/provost_pager.sh"
+fi
+if ! declare -F provost_maybe_page >/dev/null; then
+    provost_maybe_page() { cat; }
+    provost_pager_disable() { :; }
+    provost_pager_active() { return 1; }
+fi
+
+# ENV-135: shared progress helper. Tolerate a missing file (partial dev
+# checkout) by stubbing no-op shims so callers don't have to defend
+# against the absence.
+if [[ -r "$SCRIPT_DIR/../lib/provost_progress.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/../lib/provost_progress.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_progress.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROVOST_ROOT}/lib/provost_progress.sh"
+fi
+if ! declare -F provost_progress_init >/dev/null; then
+    provost_progress_init() { :; }
+    provost_progress_active() { return 1; }
+    provost_progress_tick() { :; }
+    provost_progress_done() { :; }
+fi
+
+# ENV-154: suite-wide config layer.  Loaded before flag parsing so
+# .provostrc-set keys are visible but flags still win.
+if [[ -r "$SCRIPT_DIR/../lib/provost_rc.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "$SCRIPT_DIR/../lib/provost_rc.sh"
+elif [[ -r "${PROVOST_ROOT:-}/lib/provost_rc.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${PROVOST_ROOT}/lib/provost_rc.sh"
+fi
+if declare -F provost_rc_load >/dev/null; then
+    provost_rc_load
+fi
+
+########################################
+## USAGE
+##
+
+usage () {
+    printf 'Multi-Format Extractor (provost-extract) v%s\n\n' "$VERSION"
+    cat <<'EOF'
+Usage: provost-extract [COMMAND] [OPTIONS] [FILE] [FIELD-LIST]
+       cat file | provost-extract [OPTIONS] [FIELD-LIST]
+
+Auto-detect data formats and extract structured key/value fields.
+Output defaults to JSON when piped, or a numbered table in the terminal.
+
+Commands:
+  extract                 Extract fields from a file or stdin (default)
+  explain                 Show which strategies match and why (dry-run)
+  list                    List available strategies
+  search [KEYWORD ...]    Search strategies by name/description/technique/category
+                          --category <cat>        Limit to one category
+                          --case-sensitive        Match literally (default: insensitive)
+                          Multiple keywords use AND semantics.
+                          No keywords lists all strategies.
+  validate [FILE]         Validate a strategy file, or all strategies
+  validate-strategies     Run each strategy's detect() against its declared
+                          sample file. Reports strategies whose self-confidence
+                          is below the threshold.
+                          --threshold N           Pass/fail cutoff (default 75)
+                          --strategy NAME | -s NAME
+                                                  Validate only this strategy
+  stream                  Stream mode: read stdin line-by-line, output JSON Lines
+  batch                   Batch mode: read file paths from stdin, output JSON Lines
+
+Basic Options:
+  -h, --help              Show this help message
+  -V, --version           Show version number
+  -s, --strategy NAME     Run only the named strategy
+  -f, --format FMT        Output format: json, json-nested, csv, tsv, plain, yaml, xml
+
+Output Control:
+  --count                 Output only the number of fields extracted
+  --names                 Output only field names (no values)
+  --sort                  Sort output fields alphabetically by name
+  -r, --raw               Emit raw extracted fields without formatting
+  --output FILE           Write output to FILE instead of stdout
+  -q, --quiet             Suppress output; exit 0 if fields found, 1 otherwise
+  -i, --interactive       Interactively select which fields to include
+  --progress              Emit per-strategy progress to stderr (auto on
+                          TTY ≥20 strategies; ENV-135)
+  --no-progress           Disable progress (also: PROVOST_NO_PROGRESS=1)
+
+Filtering & Selection:
+  --min-confidence N      Skip strategies with confidence below N (0-100)
+  --first-match           Stop after first strategy produces output
+  --max-strategies N      Limit number of strategies that produce output
+  --rank MODE             Candidate order: confidence (default; every detector
+                          runs, highest confidence tried first) or priority
+                          (first detecting strategy in priority order wins).
+                          Env: PROVOST_RANK
+  --delimiter DELIM       Set custom field delimiter for output (overrides strategy default)
+                          Examples: '=>', '::', '|', ' -> '
+  --field-pattern REGEX   Only include fields whose names match REGEX
+  --exclude-field NAME    Exclude fields with this exact name (repeatable)
+  --rename 'old=new,...'  Rename fields after extraction
+  --no-dedup              Skip deduplication of fields across strategies
+  --aggregate             Compute count/min/max/sum/avg for numeric fields
+  --generic               Use only the generic format strategies (delimited/structured)
+  --no-hints              Skip the declarative hints.tsv tool-routing table
+
+Advanced:
+  -c                      Output a fully-qualified command line for replay
+  --replay SPEC           Replay a previously exported extraction (format: strategy_name@version,
+                          e.g. 'colons@1.0'; use -c to generate a replay spec)
+  --chain 'A|B'           Chain strategies: output of A feeds into B
+  --plugin-dir DIR        Additional strategy directory
+  --auto-tune             Auto-adjust confidence threshold; rank best strategy
+                          (results reported via --verbose or --debug flags)
+  --max-input-size N      Max input size in bytes (default: 50MB)
+  --emit-meta             Print the winning strategy + confidence to stderr as
+                          one line: __EXTRACT_META__<TAB>strategy<TAB>confidence
+  --multi                 MULTI-DATASET mode: split the input on blank-line
+                          boundaries, group consecutive blocks that detect the
+                          same strategy, and emit EACH group as its own dataset
+                          (iostat's avg-cpu kv block AND its Device table).
+                          Datasets are separated on stdout by a line
+                          __DATASET__<TAB>n<TAB>strategy<TAB>confidence
+                          followed by the group's extraction in the -f format.
+
+Debug & Development:
+  -d, --debug             Show strategy matching details and field provenance
+  -v, --verbose           Show extraction summary and per-strategy field counts
+  --profile               Show per-strategy timing on stderr
+
+Arguments:
+  FILE                    Input file to parse (reads stdin if omitted)
+  FIELD-LIST              Comma-delimited list of field numbers or names
+
+Examples:
+  provost-extract config.json                         Extract all fields (auto-detect)
+  provost-extract -s yaml config.yml                  Use a specific strategy
+  provost-extract -f csv data.json                    Output as CSV
+  cat server.log | provost-extract                    Read from stdin
+  provost-extract list                                Show available strategies
+  provost-extract -d mystery-file.txt                 Debug: see which strategies match
+  provost-extract stream -s syslog < app.log          Stream line-by-line as JSON Lines
+  find logs/ -name "*.log" | provost-extract batch    Process multiple files at once
+
+Batch Options:
+  --batch-summary           After batch processing, emit a summary JSON object
+                            with totals, strategy usage, and common fields.
+                            Requires --batch (or batch subcommand).
+  --batch-out DIR           Instead of JSON Lines on stdout, write per-input
+                            files under DIR: <name>.wide (the extraction in the
+                            -f format) and <name>.meta (the --emit-meta line),
+                            where <name> is the input's basename minus a .txt
+                            suffix. One engine process serves many inputs, so
+                            strategies are sourced once, not once per file --
+                            this is the corpus harness fast path. Requires
+                            --batch; a later duplicate basename overwrites.
+
+Pager (ENV-143):
+  --no-pager                Disable auto-paging of `list` and `--validate-all`
+                            output even on a TTY.
+  PROVOST_NO_PAGER=1          Suite-wide pager disable.
+  PAGER                     Override pager command (default: less -FRX).
+EOF
+}
+
+########################################
+## OPTION PARSING
+##
+
+_OPT_help=0
+_OPT_version=0
+_OPT_list=0
+_OPT_strategy=""
+_OPT_format="json"
+_OPT_format_explicit=0
+_OPT_raw=0
+_OPT_debug=0
+_OPT_verbose=0
+_OPT_quiet=0
+# ENV-135: progress indicator. -1 = auto (TTY-gated, threshold-gated),
+# 0 = disabled, 1 = forced on (--progress).
+_OPT_progress=-1
+_OPT_cmdline=0
+_OPT_replay=""
+_OPT_count=0
+_OPT_names=0
+_OPT_sort=0
+_OPT_min_confidence=0
+_OPT_first_match=0
+_OPT_max_strategies=0
+_OPT_rank="${PROVOST_RANK:-confidence}"
+_OPT_delimiter=""
+_OPT_rename=""
+_OPT_aggregate=0
+_OPT_stream=0
+_OPT_chain=""
+_OPT_plugin_dir=""
+_OPT_no_dedup=0
+_OPT_output=""
+_OPT_profile=0
+_OPT_auto_tune=0
+_OPT_interactive=0
+_OPT_max_input_size=52428800
+_OPT_validate_strategy=""
+_OPT_validate_all=0
+_OPT_generic=0
+_OPT_no_hints=0
+_OPT_batch=0
+_OPT_batch_summary=0
+_OPT_batch_out=
+_OPT_explain=0
+_OPT_emit_meta=0
+_OPT_multi=0
+_OPT_field_pattern=""
+_OPT_exclude_fields=()
+
+
+# Subcommand dispatch (backward-compatible: old flags still work)
+_OPT_search=0
+_OPT_search_keywords=()
+_OPT_search_category=""
+_OPT_search_case_sensitive=0
+_OPT_self_validate=0
+_OPT_self_validate_threshold=75
+_OPT_self_validate_strategy=""
+_OPT_record_boundary=""
+_OPT_browse_strategies=0
+case "${1:-}" in
+    list)     _OPT_list=1; shift ;;
+    explain)  _OPT_explain=1; shift ;;
+    validate) if [[ -n "${2:-}" && "${2:0:1}" != "-" ]]; then
+                  _OPT_validate_strategy="$2"; shift 2
+              else
+                  _OPT_validate_all=1; shift
+              fi ;;
+    validate-strategies) _OPT_self_validate=1; shift ;;
+    browse)   _OPT_browse_strategies=1; shift ;;
+    stream)   _OPT_stream=1; shift ;;
+    batch)    _OPT_batch=1; shift ;;
+    extract)  shift ;;
+    search)   _OPT_search=1; shift ;;
+    help)     _OPT_help=1; shift ;;
+esac
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            _OPT_help=1; shift ;;
+        -V|--version)
+            _OPT_version=1; shift ;;
+        -l|--list-strategies)
+            _OPT_list=1; shift ;;
+        -s|--strategy)
+            [[ $# -lt 2 ]] && _log_error "--strategy requires an argument" && exit 1
+            _OPT_strategy="$2"; shift 2 ;;
+        -f|--format)
+            [[ $# -lt 2 ]] && _log_error "--format requires an argument" && exit 1
+            _OPT_format="$2"; _OPT_format_explicit=1; shift 2 ;;
+        -r|--raw)
+            _OPT_raw=1; shift ;;
+        -d|--debug)
+            _OPT_debug=1; shift ;;
+        -v|--verbose)
+            _OPT_verbose=1; shift ;;
+        -q|--quiet)
+            _OPT_quiet=1; shift ;;
+        --progress)
+            # ENV-135: opt-in progress on stderr; works on non-TTY too.
+            _OPT_progress=1; shift ;;
+        --no-progress)
+            _OPT_progress=0; shift ;;
+        -c)
+            _OPT_cmdline=1; shift ;;
+        --replay)
+            [[ $# -lt 2 ]] && _log_error "--replay requires an argument" && exit 1
+            _OPT_replay="$2"; shift 2 ;;
+        --min-confidence)
+            [[ $# -lt 2 ]] && _log_error "--min-confidence requires an argument" && exit 1
+            [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--min-confidence requires a number (0-100)"; exit 1; }
+            _OPT_min_confidence="$2"; shift 2 ;;
+        --count)
+            _OPT_count=1; shift ;;
+        --names)
+            _OPT_names=1; shift ;;
+        --sort)
+            _OPT_sort=1; shift ;;
+        --first-match)
+            _OPT_first_match=1; shift ;;
+        --max-strategies)
+            [[ $# -lt 2 ]] && _log_error "--max-strategies requires an argument" && exit 1
+            [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--max-strategies requires a number"; exit 1; }
+            _OPT_max_strategies="$2"; shift 2 ;;
+        --rank)
+            [[ $# -lt 2 ]] && _log_error "--rank requires an argument" && exit 1
+            _OPT_rank="$2"; shift 2 ;;
+        --rank=*)
+            _OPT_rank="${1#*=}"; shift ;;
+        --delimiter)
+            [[ $# -lt 2 ]] && _log_error "--delimiter requires an argument" && exit 1
+            _OPT_delimiter="$2"; shift 2 ;;
+        --rename)
+            [[ $# -lt 2 ]] && _log_error "--rename requires an argument" && exit 1
+            _OPT_rename="$2"; shift 2 ;;
+        --no-dedup)
+            _OPT_no_dedup=1; shift ;;
+        --output)
+            [[ $# -lt 2 ]] && _log_error "--output requires an argument" && exit 1
+            _OPT_output="$2"; shift 2 ;;
+        --profile)
+            _OPT_profile=1; shift ;;
+        --aggregate)
+            _OPT_aggregate=1; shift ;;
+        --stream)
+            _OPT_stream=1; shift ;;
+        --chain)
+            [[ $# -lt 2 ]] && _log_error "--chain requires an argument" && exit 1
+            _OPT_chain="$2"; shift 2 ;;
+        --plugin-dir)
+            [[ $# -lt 2 ]] && _log_error "--plugin-dir requires an argument" && exit 1
+            _OPT_plugin_dir="$2"; shift 2 ;;
+        --auto-tune)
+            _OPT_auto_tune=1; shift ;;
+        -i|--interactive)
+            _OPT_interactive=1; shift ;;
+        --max-input-size)
+            [[ $# -lt 2 ]] && _log_error "--max-input-size requires an argument" && exit 1
+            [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--max-input-size requires a number (bytes)"; exit 1; }
+            _OPT_max_input_size="$2"; shift 2 ;;
+        --validate-strategy)
+            [[ $# -lt 2 ]] && _log_error "--validate-strategy requires a file argument" && exit 1
+            _OPT_validate_strategy="$2"; shift 2 ;;
+        --validate-all)
+            _OPT_validate_all=1; shift ;;
+        --no-pager)
+            provost_pager_disable; shift ;;
+        --generic)
+            _OPT_generic=1; shift ;;
+        --no-hints)
+            _OPT_no_hints=1; shift ;;
+        --batch)
+            _OPT_batch=1; shift ;;
+        --batch-summary)
+            _OPT_batch_summary=1; shift ;;
+        --batch-out)
+            [[ $# -lt 2 ]] && { _log_error "--batch-out requires a directory argument"; exit 1; }
+            _OPT_batch_out="$2"; shift 2 ;;
+        --explain)
+            _OPT_explain=1; shift ;;
+        --emit-meta)
+            _OPT_emit_meta=1; shift ;;
+        --multi)
+            _OPT_multi=1; shift ;;
+        --field-pattern)
+            [[ $# -lt 2 ]] && _log_error "--field-pattern requires an argument" && exit 1
+            _OPT_field_pattern="$2"; shift 2 ;;
+        --exclude-field)
+            [[ $# -lt 2 ]] && _log_error "--exclude-field requires an argument" && exit 1
+            _OPT_exclude_fields+=("$2"); shift 2 ;;
+        --category)
+            [[ $# -lt 2 ]] && _log_error "--category requires an argument" && exit 1
+            _OPT_search_category="$2"; shift 2 ;;
+        --case-sensitive)
+            _OPT_search_case_sensitive=1; shift ;;
+        --threshold)
+            [[ $# -lt 2 ]] && _log_error "--threshold requires an argument" && exit 1
+            [[ "$2" =~ ^[0-9]+$ ]] || { _log_error "--threshold requires a number (0-100)"; exit 1; }
+            _OPT_self_validate_threshold="$2"; shift 2 ;;
+        --record-boundary)
+            [[ $# -lt 2 ]] && _log_error "--record-boundary requires a regex argument" && exit 1
+            _OPT_record_boundary="$2"; shift 2 ;;
+        --)
+            shift; break ;;
+        -*)
+            _log_error "Unknown option: $1"
+            _log_info "Run 'provost-extract --help' for usage information."
+            exit 1 ;;
+        *)
+            break ;;
+    esac
+done
+
+# Validate format early (before any extraction work)
+case "$_OPT_format" in
+    json|json-nested|csv|tsv|plain|yaml|xml) ;;
+    *) _log_error "Unknown format: $_OPT_format"; exit 1 ;;
+esac
+
+# Flag conflict validation
+case "$_OPT_rank" in
+    confidence|priority) ;;
+    *) _log_error "--rank must be 'confidence' or 'priority' (got '$_OPT_rank')"; exit 1 ;;
+esac
+if [[ $_OPT_stream -eq 1 && -n "$_OPT_chain" ]]; then
+    _log_error "--stream and --chain cannot be used together"; exit 1
+fi
+if [[ $_OPT_count -eq 1 && $_OPT_names -eq 1 ]]; then
+    _log_error "--count and --names cannot be used together"; exit 1
+fi
+if [[ $_OPT_quiet -eq 1 && $_OPT_verbose -eq 1 ]]; then
+    _log_error "--quiet and --verbose cannot be used together"; exit 1
+fi
+if [[ $_OPT_auto_tune -eq 1 && $_OPT_first_match -eq 1 ]]; then
+    _log_error "--auto-tune and --first-match cannot be used together"; exit 1
+fi
+if [[ $_OPT_interactive -eq 1 && $_OPT_quiet -eq 1 ]]; then
+    _log_error "--interactive and --quiet cannot be used together"; exit 1
+fi
+if [[ $_OPT_interactive -eq 1 && $_OPT_stream -eq 1 ]]; then
+    _log_error "--interactive and --stream cannot be used together"; exit 1
+fi
+if [[ $_OPT_interactive -eq 1 && $_OPT_count -eq 1 ]]; then
+    _log_error "--interactive and --count cannot be used together"; exit 1
+fi
+if [[ $_OPT_interactive -eq 1 && $_OPT_names -eq 1 ]]; then
+    _log_error "--interactive and --names cannot be used together"; exit 1
+fi
+if [[ $_OPT_generic -eq 1 && -n "$_OPT_strategy" ]]; then
+    _log_error "--generic and --strategy cannot be used together"; exit 1
+fi
+if [[ $_OPT_generic -eq 1 && -n "$_OPT_chain" ]]; then
+    _log_error "--generic and --chain cannot be used together"; exit 1
+fi
+if [[ $_OPT_batch -eq 1 && $_OPT_stream -eq 1 ]]; then
+    _log_error "--batch and --stream cannot be used together"; exit 1
+fi
+if [[ $_OPT_batch -eq 1 && -n "$_OPT_chain" ]]; then
+    _log_error "--batch and --chain cannot be used together"; exit 1
+fi
+if [[ $_OPT_batch -eq 1 && -n "$_OPT_replay" ]]; then
+    _log_error "--batch and --replay cannot be used together"; exit 1
+fi
+if [[ $_OPT_batch -eq 1 && $_OPT_interactive -eq 1 ]]; then
+    _log_error "--batch and --interactive cannot be used together"; exit 1
+fi
+if [[ $_OPT_batch_summary -eq 1 && $_OPT_batch -eq 0 ]]; then
+    _log_error "--batch-summary requires --batch"; exit 1
+fi
+if [[ -n "$_OPT_batch_out" && $_OPT_batch -eq 0 ]]; then
+    _log_error "--batch-out requires --batch"; exit 1
+fi
+if [[ -n "$_OPT_batch_out" && $_OPT_batch_summary -eq 1 ]]; then
+    _log_error "--batch-out and --batch-summary cannot be used together"; exit 1
+fi
+if [[ $_OPT_multi -eq 1 ]]; then
+    # --multi drives the auto-detection loop per section group; the modes that
+    # pin a strategy set or change the input model conflict with it.
+    [[ $_OPT_batch -eq 1 ]] && { _log_error "--multi and --batch cannot be used together"; exit 1; }
+    [[ $_OPT_stream -eq 1 ]] && { _log_error "--multi and --stream cannot be used together"; exit 1; }
+    [[ -n "$_OPT_chain" ]] && { _log_error "--multi and --chain cannot be used together"; exit 1; }
+    [[ -n "$_OPT_replay" ]] && { _log_error "--multi and --replay cannot be used together"; exit 1; }
+    [[ -n "$_OPT_strategy" ]] && { _log_error "--multi and --strategy cannot be used together"; exit 1; }
+    [[ $_OPT_interactive -eq 1 ]] && { _log_error "--multi and --interactive cannot be used together"; exit 1; }
+fi
+
+# Validate --field-pattern regex (catch invalid regex early)
+if [[ -n "$_OPT_field_pattern" ]]; then
+    _fp_rc=0
+    [[ "test" =~ $_OPT_field_pattern ]] 2>/dev/null || _fp_rc=$?
+    if [[ $_fp_rc -eq 2 ]]; then
+        _log_error "Invalid regex for --field-pattern: $_OPT_field_pattern"
+        exit 1
+    fi
+fi
+
+if [[ $_OPT_version -eq 1 ]]; then
+    provost_version_banner "provost-extract" "$VERSION"
+    exit 0
+fi
+
+if [[ $_OPT_help -eq 1 ]]; then
+    usage
+    exit 0
+fi
+
+if [[ $_OPT_list -eq 1 ]]; then
+    # ENV-143: 198 strategies easily exceed a screen — page in TTY mode.
+    {
+        echo "Available strategies:"
+        list_strategies
+    } | provost_maybe_page
+    exit 0
+fi
+
+if [[ $_OPT_search -eq 1 ]]; then
+    # Remaining positional args after 'search' are the keywords. Empty list lists all.
+    _OPT_search_keywords=("$@")
+    search_strategies "${_OPT_search_keywords[@]}"
+    rc=$?
+    if [[ $rc -ne 0 ]]; then
+        _log_info "No strategies matched."
+    fi
+    exit $rc
+fi
+
+if [[ $_OPT_self_validate -eq 1 ]]; then
+    # The --strategy (or -s) option is reused here to limit to a single strategy name.
+    [[ -n "${_OPT_strategy:-}" ]] && _OPT_self_validate_strategy="$_OPT_strategy"
+    # ENV-143: per-strategy lines accumulate for big repositories — page them.
+    self_validate_strategies | provost_maybe_page
+    exit "${PIPESTATUS[0]}"
+fi
+
+# ENV-043: minimal interactive strategy browser — a REPL over search_strategies
+if [[ $_OPT_browse_strategies -eq 1 ]]; then
+    [[ -t 0 ]] && echo "provost-extract strategy browser"
+    [[ -t 0 ]] && echo "Commands: <keyword> ... to search, 'cat <name>' for category, 'show <name>' for details, 'q' or Ctrl-D to quit"
+    [[ -t 0 ]] && echo ""
+    while :; do
+        [[ -t 0 ]] && printf 'extract> '
+        IFS= read -r _line || break
+        [[ -z "$_line" ]] && continue
+        case "$_line" in
+            q|quit|exit)
+                break
+                ;;
+            show\ *)
+                _repl_name="${_line#show }"
+                _OPT_search_category="" _OPT_search_case_sensitive=0
+                search_strategies "$_repl_name" || true
+                # Also show sample path
+                if find_strategy_file "$_repl_name" 2>/dev/null; then
+                    echo ""
+                    echo "File: $_FOUND_STRATEGY_FILE"
+                    grep -E "^## (Name|Description|Version|Priority|Technique|Sample):" "$_FOUND_STRATEGY_FILE" | sed 's/^## /  /'
+                fi
+                ;;
+            cat\ *)
+                _OPT_search_category="${_line#cat }"
+                _OPT_search_case_sensitive=0
+                search_strategies || true
+                _OPT_search_category=""
+                ;;
+            *)
+                # Space-separated keywords (AND semantics via search_strategies)
+                _OPT_search_category=""
+                _OPT_search_case_sensitive=0
+                _repl_words=()
+                read -ra _repl_words <<< "$_line"
+                search_strategies "${_repl_words[@]}" || echo "(no match)"
+                ;;
+        esac
+        echo ""
+    done
+    exit 0
+fi
+
+if [[ -n "$_OPT_validate_strategy" ]]; then
+    validate_strategy "$_OPT_validate_strategy"
+    exit $?
+fi
+
+if [[ $_OPT_validate_all -eq 1 ]]; then
+    # ENV-143: full-corpus validation can produce hundreds of lines.
+    validate_all_strategies | provost_maybe_page
+    exit "${PIPESTATUS[0]}"
+fi
+
+# Remaining positional arguments: FILE and FIELD-LIST
+file=""
+fields=""
+
+if [[ $# -ge 1 ]]; then
+    if [[ -f "$1" ]]; then
+        file="$1"
+        shift
+    elif [[ "$1" =~ ^[0-9,]+$ || "$1" == *,* ]]; then
+        # Looks like a field list (numbers or names), no file argument
+        :
+    else
+        # ENV-137: distinguish between "you typo'd a flag / subcommand" and a
+        # genuine missing-file error. The typo case is much more common in
+        # interactive use and deserves a clearer message.
+        if declare -f _provost_arg_looks_like_typo >/dev/null 2>&1 \
+           && _provost_arg_looks_like_typo "$1"; then
+            _log_error "'$1' is not a known option, subcommand, or file"
+            _log_info "Did you mean a subcommand? Run 'provost-extract --help' for the full list."
+            exit 2
+        fi
+        _log_error "File not found: $1"
+        # Suggest common file-extension completions for the typo'd path case.
+        if [[ -f "${1}.log" ]]; then
+            _log_info "Did you mean: ${1}.log?"
+        elif [[ -f "${1}.txt" ]]; then
+            _log_info "Did you mean: ${1}.txt?"
+        elif [[ -f "${1}.json" ]]; then
+            _log_info "Did you mean: ${1}.json?"
+        fi
+        _log_info "Try: provost-extract --help"
+        exit 1
+    fi
+fi
+
+# Parse any remaining flags that appeared after the file argument
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f|--format)
+            [[ $# -lt 2 ]] && _log_error "--format requires an argument" && exit 1
+            _OPT_format="$2"; _OPT_format_explicit=1; shift 2 ;;
+        -s|--strategy)
+            [[ $# -lt 2 ]] && _log_error "--strategy requires an argument" && exit 1
+            _OPT_strategy="$2"; shift 2 ;;
+        -r|--raw)     _OPT_raw=1; shift ;;
+        -d|--debug)   _OPT_debug=1; shift ;;
+        -v|--verbose) _OPT_verbose=1; shift ;;
+        -q|--quiet)   _OPT_quiet=1; shift ;;
+        --*)
+            # Any other flag that wasn't consumed earlier — treat as post-file flag
+            # Re-parse using the main parser would be ideal, but for safety just warn
+            _log_error "Unknown option after filename: $1"
+            exit 1 ;;
+        *)
+            # Non-flag argument after file = field selector
+            fields="$1"; shift ;;
+    esac
+done
+
+########################################
+## STREAMING MODE (early exit path)
+##
+
+if [[ $_OPT_stream -eq 1 ]]; then
+    run_stream_mode
+fi
+
+########################################
+## BATCH MODE (early exit path)
+##
+
+if [[ $_OPT_batch -eq 1 ]]; then
+    if [[ -n "$file" ]]; then
+        _log_error "--batch reads file paths from stdin; do not specify a FILE argument"
+        exit 1
+    fi
+    run_batch_mode
+fi
+
+########################################
+## INPUT READING
+##
+
+text=""
+if [[ -n "$file" ]]; then
+    # Check file size before reading
+    _file_size=$(wc -c < "$file")
+    if [[ $_file_size -gt $_OPT_max_input_size ]]; then
+        _log_error "Input file is too large (${_file_size} bytes, max ${_OPT_max_input_size}). Try --stream for large inputs."
+        exit 1
+    fi
+    text=$(<"$file")
+elif [[ ! -t 0 ]]; then
+    # Read from stdin, capping at max_input_size + 1 to detect oversized input
+    # without exhausting memory on very large streams.
+    # ENV-182: pre-fix we did `text=$(head -c $((N+1)))` then checked
+    # `${#text} > N`. `$(...)` strips trailing newlines, so an input of
+    # exactly N+1 bytes ending in newline(s) shrank to ≤ N and slipped
+    # past the cap. We now cache the raw byte count from the stage
+    # file (BEFORE the trailing-newline-strip) and check against
+    # _text_byte_len, while keeping the in-memory $text for downstream
+    # consumers.
+    _raw_stage=$(mktemp "${TMPDIR:-/tmp}/provost-extract-stage.XXXXXX") || {
+        _log_error "Could not stage stdin"
+        exit 1
+    }
+    head -c $((_OPT_max_input_size + 2)) > "$_raw_stage"
+    _text_byte_len=$(wc -c < "$_raw_stage" | tr -d ' ')
+    text=$(<"$_raw_stage")
+    rm -f "$_raw_stage" 2>/dev/null
+    # ENV-182 introduced this empty-input gate, but the original form
+    # required BOTH `-z "$text"` AND `_text_byte_len -eq 0`.  An input
+    # like `echo "" | provost-extract` sends a single newline byte:
+    # `text=$(<file)` strips trailing newlines so `$text` is empty but
+    # `_text_byte_len=1`, the AND condition is false, processing
+    # continues, and the user sees the downstream "warning: No fields
+    # extracted." with exit 0 instead of the documented "error: No
+    # data received on stdin." with exit 1.  Treat any whitespace-only
+    # stdin as no-data; this also subsumes the strict empty-buffer
+    # case (text="" and byte-len 0).
+    if [[ -z "${text//[[:space:]]/}" ]]; then
+        _log_error "No data received on stdin."
+        exit 1
+    fi
+    _text_len=${#text}
+    if [[ "$_text_byte_len" -gt $_OPT_max_input_size ]]; then
+        _log_error "Input is too large (>${_OPT_max_input_size} bytes). Try --stream for large inputs."
+        exit 1
+    fi
+else
+    _log_error "No input file provided and no data on stdin."
+    _log_info "Run 'provost-extract --help' for usage information."
+    exit 1
+fi
+
+# Binary file detection: compare file size with byte count of read text.
+# Binary detection: bash strips NUL bytes when reading via $(<file), so a
+# byte-count mismatch indicates binary content. Also strips trailing newlines
+# which can account for several bytes in normal text files.
+# Use tr to count NUL-free bytes for a direct comparison.
+# _file_size already set by the size guard above.
+if [[ -n "$file" && -f "$file" ]]; then
+    _clean_bytes=$(tr -d '\0' < "$file" | wc -c)
+    if [[ $((_file_size - _clean_bytes)) -gt 0 ]]; then
+        _log_warn "Input appears to be a binary file, skipping extraction."
+        exit 0
+    fi
+fi
+
+# Input-normalisation pipeline (shared with batch mode — see _helpers.sh).
+preprocess_input_text
+
+# Metadata for strategy interface enrichment
+_STATE_filename="${file:-}"
+_STATE_encoding_hint=""
+if [[ -n "$file" ]]; then
+    case "${file##*.}" in
+        json|yaml|yml|xml|csv|tsv|ini|toml|hcl) _STATE_encoding_hint="utf-8" ;;
+    esac
+fi
+
+# Cache for clean_text: strategies that need date/paren normalization call
+# clean_text() which now uses a cached result after the first call.
+_CLEAN_TEXT_CACHE=""
+_CLEAN_TEXT_DONE=0
+
+########################################
+## EXPLAIN MODE (dry-run)
+##
+
+if [[ $_OPT_explain -eq 1 ]]; then
+    run_explain_mode
+    exit 0
+fi
+
+########################################
+## STRATEGY EXECUTION
+##
+
+# ENV-135: arm progress before the strategy loop. Translate the CLI
+# tri-state into the env-var contract provost_progress_init reads. -1 (auto)
+# leaves both knobs unset so the helper applies its TTY + threshold
+# defaults; explicit on/off forces the matching knob.
+case "$_OPT_progress" in
+    1) export PROVOST_PROGRESS_OPT_IN=1; unset PROVOST_PROGRESS_DISABLE ;;
+    0) export PROVOST_PROGRESS_DISABLE=1; unset PROVOST_PROGRESS_OPT_IN ;;
+    *) : ;;
+esac
+[[ "$_OPT_quiet" -eq 1 ]] && export PROVOST_QUIET=1
+provost_progress_init
+
+# Multi-dataset mode: sections extracted independently (see _dispatch.sh).
+if [[ $_OPT_multi -eq 1 ]]; then
+    run_multi_mode
+    exit 0
+fi
+
+# Dispatch to chain or auto strategy runner
+if [[ -n "$_OPT_chain" ]]; then
+    run_chain_strategies
+else
+    # A very large input's result may stay in the file lane to the end (see
+    # _xl_begin / _xl_can_keep) — only in the plain -f tsv configuration.
+    _XL_KEEP=0
+    _xl_can_keep && _XL_KEEP=1
+    run_auto_strategies
+fi
+# Clear any in-place progress line so the field-table output below starts
+# on a clean stderr.
+provost_progress_done
+
+# ENV-200: opt-in winner metadata to stderr, so a single extract run yields both
+# the data (stdout) and the winning strategy + confidence (no second `explain`
+# pass). Format: a single line `__EXTRACT_META__<TAB>strategy<TAB>confidence`.
+if [[ $_OPT_emit_meta -eq 1 ]]; then
+    printf '__EXTRACT_META__\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" >&2
+fi
+
+########################################
+## POST-PROCESSING + OUTPUT
+##
+if [[ -n "${_XL_OUT:-}" ]]; then
+    # kept file-lane result: the same two stages, file to file
+    _xl_finalize
+else
+    run_postprocess
+    run_output_mode
+fi

@@ -310,7 +310,7 @@ check "imported store preserves row #1 source" "Mem" "$(PROVOST_WORKSPACE="$DEST
 
 # --- plugin strategies + metadata prologue (deframe integration) -----------
 # An external project's strategies reach detection via --plugin-dir (or
-# $PROVOST_PLUGIN_DIR) — no ~/.mfe/strategies symlink required.
+# $PROVOST_PLUGIN_DIR) — no ~/.config/provost/strategies symlink required.
 PLUG="$(mktemp -d)/strategies"; mkdir -p "$PLUG"
 cat > "$PLUG/frames.sh" <<'EOS'
 #!/bin/bash
@@ -352,8 +352,8 @@ check "PROVOST_PLUGIN_DIR reaches 'run' detection too" "strategy frames" "$plug_
 badplug_out="$("$PROVOST" --plugin-dir /nonexistent/nowhere "$FRAMES_IN" 2>&1 || true)"
 check "--plugin-dir validates the directory up front" "plugin strategy dir not found" "$badplug_out"
 
-# The engine's legacy .envoyrc layer is OFF under provost (ENVOY_NO_RC=1): a
-# .envoyrc in the CWD cannot reconfigure a capture. A probe strategy records
+# The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
+# .provostrc in the CWD cannot reconfigure a capture. A probe strategy records
 # what the engine process saw.
 PROBE_DIR="$(mktemp -d)/probe"; mkdir -p "$PROBE_DIR"
 cat > "$PROBE_DIR/probe.sh" <<'EOS'
@@ -363,17 +363,17 @@ cat > "$PROBE_DIR/probe.sh" <<'EOS'
 ## Version: 1.0
 ## Priority: 10
 strategy_detect () {
-    printf '%s|%s\n' "${ENVOY_NO_RC:-unset}" "${SMOKE_RC_PROBE:-unset}" > "$SMOKE_PROBE_OUT"
+    printf '%s|%s\n' "${PROVOST_NO_RC:-unset}" "${SMOKE_RC_PROBE:-unset}" > "$SMOKE_PROBE_OUT"
     _STRATEGY_CONFIDENCE=0; return 1
 }
 strategy_extract () { :; }
 EOS
-RCDIR="$(mktemp -d)"; printf 'SMOKE_RC_PROBE=leaked\n' > "$RCDIR/.envoyrc"
+RCDIR="$(mktemp -d)"; printf 'SMOKE_RC_PROBE=leaked\n' > "$RCDIR/.provostrc"
 export SMOKE_PROBE_OUT="$RCDIR/probe.out"
 ( cd "$RCDIR" && printf 'a=1, b=2\n' | "$PROVOST" --plugin-dir "$PROBE_DIR" >/dev/null 2>&1 ) || true
-check "engines run with ENVOY_NO_RC=1 (.envoyrc not loaded)" "1|unset" "$(cat "$SMOKE_PROBE_OUT" 2>&1)"
-check "the .envoyrc loader honours ENVOY_NO_RC=1" "unset" \
-    "$(cd "$RCDIR" && ENVOY_NO_RC=1 bash -c 'source "$1"; envoy_envoyrc_load; echo "${SMOKE_RC_PROBE:-unset}"' _ "$HERE/../lib/envoy_envoyrc.sh" 2>&1)"
+check "engines run with PROVOST_NO_RC=1 (.provostrc not loaded)" "1|unset" "$(cat "$SMOKE_PROBE_OUT" 2>&1)"
+check "the .provostrc loader honours PROVOST_NO_RC=1" "unset" \
+    "$(cd "$RCDIR" && PROVOST_NO_RC=1 bash -c 'source "$1"; provost_rc_load; echo "${SMOKE_RC_PROBE:-unset}"' _ "$HERE/../lib/provost_rc.sh" 2>&1)"
 unset SMOKE_PROBE_OUT
 
 # A leading '#%' prologue is capture context, not data: peeled before
@@ -496,8 +496,8 @@ check "source refuses a tampered capture id" "invalid capture id" "$(PROVOST_WOR
 EH="$(mktemp -d)/evilhome"; mkdir -p "$EH/transform" "$EH/extract" "$EH/analyze"
 MARK="$(mktemp -d)/pwned"
 printf 'touch %q\n' "$MARK.transform" > "$EH/transform/melt.sh"
-printf 'touch %q\n' "$MARK.extract" > "$EH/extract/envoy-extract"
-printf 'touch %q\n' "$MARK.analyze" > "$EH/analyze/envoy-analyze"
+printf 'touch %q\n' "$MARK.extract" > "$EH/extract/provost-extract"
+printf 'touch %q\n' "$MARK.analyze" > "$EH/analyze/provost-analyze"
 ev_out="$(printf 'a=1, b=2\n' | env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" 2>&1)"
 env -u PROVOST_WORKSPACE PROVOST_HOME="$EH" "$PROVOST" stats kv-pairs >/dev/null 2>&1 || true
 check "a store-planted engine/transform is never executed" "none" \
@@ -582,7 +582,8 @@ check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sy
 # every user-facing PROVOST_* setting is documented in help and the man page
 MAN="$HERE/../man/provost.1"
 while IFS= read -r v; do
-    case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR) continue ;; esac
+    case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR \
+        |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING) continue ;; esac  # set for the engines, not by users
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)

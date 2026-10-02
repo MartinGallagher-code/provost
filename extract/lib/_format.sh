@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Output formatting functions for envoy-extract
+## Output formatting functions for provost-extract
 ##
 ## Format extracted fields as JSON, CSV, TSV, plain, YAML, or XML.
 ## Dependencies: _helpers.sh (_parse_field_line, strip_strat_prefix)

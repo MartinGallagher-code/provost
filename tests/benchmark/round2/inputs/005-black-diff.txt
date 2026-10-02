@@ -1,0 +1,35 @@
+--- app.py	2026-10-02 15:53:12.719185+00:00
++++ app.py	2026-10-02 15:53:17.993094+00:00
+@@ -1,19 +1,25 @@
+ import os, sys
+ import json
+ from typing import List
+ 
++
+ def total(xs: List[int]) -> int:
+     return sum(xs)
++
+ 
+ def greet(name: str) -> str:
+     return 1 + name
+ 
++
+ def parse(s):
+-  x = json.loads(s)
+-  unused = 3
+-  return x
++    x = json.loads(s)
++    unused = 3
++    return x
++
+ 
+ class Store:
+     def get(self, key: str) -> int:
+         return self.data.get(key)
++
++
+ total("abc")
+would reformat app.py
+
+Oh no! 💥 💔 💥
+1 file would be reformatted.

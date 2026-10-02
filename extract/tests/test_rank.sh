@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Candidate ranking tests (--rank confidence|priority, MFE_RANK)
+## Candidate ranking tests (--rank confidence|priority, PROVOST_RANK)
 ##
 ## Under --rank confidence (the default) every eligible detector runs and the
 ## candidates are tried highest-confidence first (ties: priority, then name);
@@ -25,7 +25,7 @@ TMPDIR_R="$(mktemp -d "${TMPDIR:-/tmp}/rank_tests.XXXXXX")"
 
 # _winner ARGS... FILE — the --emit-meta winner name.
 _winner () {
-    run_mfe --emit-meta -f tsv --max-strategies 1 "$@" 2>&1 >/dev/null \
+    run_extract --emit-meta -f tsv --max-strategies 1 "$@" 2>&1 >/dev/null \
         | awk -F'\t' '/^__EXTRACT_META__/ { print $2 }'
 }
 
@@ -74,15 +74,15 @@ test_rank_priority_flag () {
 test_rank_env_override () {
     _dates_fixture
     local w
-    w="$(MFE_RANK=priority bash "$MFE_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$TMPDIR_R/dates.txt" 2>&1 >/dev/null \
+    w="$(PROVOST_RANK=priority bash "$PROVOST_EXTRACT_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$TMPDIR_R/dates.txt" 2>&1 >/dev/null \
         | awk -F'\t' '/^__EXTRACT_META__/ { print $2 }')"
-    assert_eq "aligned-columns" "$w" "MFE_RANK=priority selects priority order"
+    assert_eq "aligned-columns" "$w" "PROVOST_RANK=priority selects priority order"
 }
 
 test_rank_invalid_value () {
     _dates_fixture
     local rc=0
-    run_mfe --rank bogus -f tsv "$TMPDIR_R/dates.txt" >/dev/null 2>&1 || rc=$?
+    run_extract --rank bogus -f tsv "$TMPDIR_R/dates.txt" >/dev/null 2>&1 || rc=$?
     assert_exit_nonzero "$rc" "--rank bogus is rejected"
 }
 
@@ -148,13 +148,13 @@ test_rank_pruning_is_exact () {
 # --explain lists matches in RANK order: its first MATCH is the winner.
 test_rank_explain_lists_rank_order () {
     local f="$SCRIPT_DIR/../samples/aligned-columns/basic.txt" first
-    first="$(run_mfe --explain "$f" 2>/dev/null | awk '$1 == "MATCH" { print $2; exit }')"
+    first="$(run_extract --explain "$f" 2>/dev/null | awk '$1 == "MATCH" { print $2; exit }')"
     assert_eq "$first" "$(_winner "$f")" "first --explain MATCH is the winner"
 }
 
 run_test "rank: default is confidence" test_rank_default_is_confidence
 run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
-run_test "rank: MFE_RANK env override" test_rank_env_override
+run_test "rank: PROVOST_RANK env override" test_rank_env_override
 run_test "rank: invalid --rank value rejected" test_rank_invalid_value
 run_test "rank: empty top candidate falls through" test_rank_empty_top_candidate_falls_through
 run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priority_then_name

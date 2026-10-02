@@ -28,7 +28,12 @@
 # number shaped (optional -, optional currency symbol, digits with , and .),
 # so `option  description` help text never reads as a balance.
 
-_lb_amount_re='^-?[$€£]?-?[0-9][0-9,]*(\.[0-9]+)?$'
+# (Currency symbols are alternatives, not a bracket: under LC_ALL=C a bracket
+# matches ONE byte, and € / £ are multi-byte — `€890,50` never matched.)
+_lb_amount_re='^-?(\$|€|£)?-?[0-9][0-9,]*(\.[0-9]+)?$'
+# A multi-commodity grand total joins one amount per commodity with `, `
+# (`$1,234.56, €890,50, -£1,200.00`).
+_lb_total_re='^-?(\$|€|£)?-?[0-9][0-9,]*(\.[0-9]+)?(, -?(\$|€|£)?-?[0-9][0-9,]*(\.[0-9]+)?)*$'
 
 # `AMOUNT  account` -> _LB_AMT / _LB_ACCT. Account is a single token.
 _lb_split () {
@@ -62,7 +67,7 @@ strategy_detect () {
             continue
         fi
         # A lone amount is the grand total: only valid after the rule.
-        if [[ $rule -eq 1 && "$body" =~ $_lb_amount_re ]]; then
+        if [[ $rule -eq 1 && "$body" =~ $_lb_total_re ]]; then
             total=$((total + 1))
             continue
         fi
@@ -94,7 +99,7 @@ strategy_extract () {
             result+="entry${entry}.account ${_LB_ACCT}"$'\n'
             continue
         fi
-        if [[ $rule -eq 1 && "$body" =~ $_lb_amount_re ]]; then
+        if [[ $rule -eq 1 && "$body" =~ $_lb_total_re ]]; then
             result+="total ${body}"$'\n'
         fi
     done

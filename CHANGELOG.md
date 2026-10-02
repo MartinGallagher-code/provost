@@ -1,5 +1,242 @@
 # provost — Changelog
 
+## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
+
+The names inherited from the Envoy suite are gone from provost's own code.
+- **Files.** `extract/envoy-extract` → `extract/provost-extract`;
+  `analyze/envoy-analyze` → `analyze/provost-analyze`;
+  `analyze/completions/envoy-{analyze,browse}.bash` → `provost-*.bash`;
+  `analyze/schemas/envoy-analyze-output.json` → `provost-analyze-output.json`;
+  `lib/envoy_{output,pager,progress,suggest,version}.sh` → `lib/provost_*.sh`;
+  `lib/envoy_envoyrc.sh` → `lib/provost_rc.sh`;
+  `extract/tests/test_envoyrc.sh` → `test_provostrc.sh`;
+  `extract/tests/test_mfe.sh` → `test_extract_cli.sh`.
+- **Settings.** `ENVOY_*` → `PROVOST_*` (`ENVOY_HOME` → `PROVOST_ROOT`, the
+  install root provost already used); `MFE_RANK` → `PROVOST_RANK`;
+  `MFE_HINTS_FILE` → `PROVOST_HINTS_FILE`; `MFE_SCRIPT` / `MFE_DIR` →
+  `PROVOST_EXTRACT_SCRIPT` / `PROVOST_EXTRACT_DIR` (tests). Functions
+  `envoy_*` → `provost_*`. The config file is `.provostrc` and
+  `~/.config/provost/config`, and it accepts `PROVOST_*` keys only. The
+  per-user strategies dir is `${XDG_CONFIG_HOME:-~/.config}/provost/strategies`.
+  The replay hint now prints `provost-extract --replay …` instead of the
+  nonexistent `mfe`.
+- **Compatibility, one release.** Both engines map a set legacy variable
+  onto its new name when the new one is unset. This covers `ENVOY_HOME`,
+  `MFE_RANK`, `MFE_HINTS_FILE`, `ENVOY_NO_RC`, `ENVOY_QUIET`, `ENVOY_VERBOSE`,
+  `ENVOY_NO_PAGER`, `ENVOY_NO_PROGRESS` and
+  `ENVOY_ANALYZE_SUPPRESS_AWK_WARNING`. `~/.mfe/strategies` is still read,
+  below the new dir. `.envoyrc` files are no longer read: provost runs its
+  engines with that layer off anyway.
+- **Untouched.** The history in CHANGELOGs and `docs/0001-*` / `docs/archive`
+  is unchanged. `tests/corpus/{inputs,expected}/envoy-*`, `expected.tsv` and
+  `double-colon-fields` are untouched too: they describe the real Envoy
+  proxy's tools.
+- How: a token-level script over every tracked text file. Nothing else
+  changes behaviour. `tests/smoke.sh` now excludes `PROVOST_NO_RC` and
+  `PROVOST_ANALYZE_SUPPRESS_AWK_WARNING` from its "documented in help"
+  check, because provost sets them for its engines; users don't set them.
+  Also updated: `pyproject.toml` force-include paths, CI, the corpus and
+  benchmark scripts, `man/provost.1`, README, CLAUDE.md.
+
+## 2026-10-02 — large inputs: middle windows in the detection sample
+
+**Middle-evidence false rejects (`extract/lib/_discovery.sh`
+`_detect_sample_build` only — no detector, confidence, ranking or pruning
+change).** Above `_FR_SAMPLE_BYTES` the detection sample was the first 120 /
+last 40 lines, so a detector whose only evidence sat in the MIDDLE of a big
+input rejected the sample and a weaker strategy won. The sample now also
+carries MIDDLE WINDOWS — contiguous blocks of whole lines (≤ 16 lines / 2 KB
+each), file order, never overlapping each other or the tail:
+- **even** windows (`_FR_SAMPLE_MID`, 4) at byte offsets 0, ¼, ½, ¾ of the
+  body after the head — a representative slice;
+- **novel** windows (`_FR_SAMPLE_NOVEL`, up to 4) where a line SHAPE first
+  appears after the head (first non-blank byte class, field-count bucket,
+  indent, which of `: = , |` TAB occur — one integer per line, plain regex
+  tests, mawk-safe): a section / table / record block that starts mid-input.
+  A novel window opens up to `_FR_SAMPLE_LEAD` (2) lines early (title /
+  header row) and stretches to ≤ 32 lines while new shapes keep coming;
+- every junction joins WHOLE records, following the structure the head shows
+  (group lines over indented children / blank-separated records): an even
+  window apart from the sample waits ≤ 16 lines for a record start or opens
+  back at a blank line just above; a window that runs out of lines finishes
+  the record in hand (≤ 32 lines); the tail backs up to its record's group
+  line / opening blank line; a blank repeated at a junction is dropped. A
+  first cut without these rules flipped 1 of the 360 synthetic inputs
+  (debconf-show: a junction glued one group's line to another group's
+  children, group-children saw a duplicate key and rejected the sample).
+The sample is a superset of the old one (evidence counts only grow), ≤ ~36 KB;
+a uniform body adds the 4 even windows only (+64 lines). JSON/XML documents
+are unchanged (grammar strategies still see them whole) and the full-text
+re-run still alone decides. `_FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0` restores the
+head + tail sample exactly.
+- Corpus, sampling forced tiny (`_FR_SAMPLE_BYTES=0 _FR_SAMPLE_HEAD=8
+  _FR_SAMPLE_TAIL=4`, windows `_FR_SAMPLE_WIN=4`) vs unsampled: winner flips
+  **41 → 0** (full) and **41 → 0** (`--generic`); tidy output byte-identical
+  to unsampled for all 3,705 inputs.
+- Middle-evidence synthetic set (256 corpus tools buried between two ~17 KB
+  blocks of uniform filler of a different shape — prose / heartbeat log —
+  512 inputs of ~35 KB, default settings; 249 full-text winners are the
+  buried tool's, not the filler's): sampled-vs-full flips **46 → 0**. Same
+  tools with ~9 KB filler and sampling forced: **46 → 0**.
+- 360 synthetic big inputs (header once + body repeated): SYN_RESULT.
+- Corpus at default settings, full + `--generic`: byte-identical to main
+  (every corpus input is below 32 KB).
+- Timings: TIMING_RESULT
+- Tests: `extract/tests/test_big_input_paths.sh` — even-window shape / byte
+  cap / tail overlap / full coverage, blank-line record junctions, a novel
+  window carrying a mid-file title + header + rows, and a middle-evidence
+  false reject (describe-report: colons won on the head + tail sample;
+  reproduced with `_FR_SAMPLE_MID=0 _FR_SAMPLE_NOVEL=0`, fixed by the
+  windows); the older sample tests pin the head + tail form. Docs:
+  `extract/README.md` "Very large inputs".
+
+## 2026-10-02 — extract: known misparses fixed, 29 corpus gaps closed
+
+**Misparses (HANDOFF "Open").**
+- `box-table` promoted the first DATA row into the header when the column
+  names sit in the TOP BORDER (clickhouse PrettyCompact `┌─name──┬─type──┐`).
+  `_box_border_names` now reads those names (a later block repeating the
+  border is skipped), so every cell row is data. clickhouse-describe-table
+  and clickhouse-system-mutations had their manifest row counts frozen on the
+  misparse (5 → 6, 3 → 4: the inputs hold 6 and 4 data rows);
+  clickhouse-processlist / clickhouse-client-query now tidy generically too.
+- pnpm/npm audit boxes (a two-column box whose first row — severity + title,
+  a phrase — is set off by a rule, over `Label | value` rows) are a KEY/VALUE
+  BOX: every row is a `key`/`value` record, the title row included, with a
+  `box` index when several boxes repeat (`box-table`, generic — no bespoke).
+- `_tech_kv_colon` (lib/_techniques.sh) dropped every value starting
+  `http://` / `https://` (`Homepage: https://…`). Only a bare URL LINE (split
+  at its scheme colon, value `//…`) is skipped now; the block-records awk twin
+  `_strat_blockrec_extract_awk` matches byte for byte. Unblocked
+  brew-info-casks / brew-info-multi / flatpak-remotes-info and restored the
+  URL column of pip-show-multi, rpm-spec-preamble, quo-ldif-colon-values,
+  quo-recutils-colon-values.
+
+**Generic parser capabilities** (strategies/delimited + structured):
+- `box-table`: a TWO-ROW GROUPED HEADER (group row with blank or spanning
+  cells over a field row, before the first rule) names columns
+  `group_field`; spanning group cells map by divider offset; a field cell of
+  2+-space sub-labels splits into sub-columns when every data cell splits the
+  same way (cmb-double-header-color-emoji, cmb-grouped-header-progress; and
+  cmb-grouped-header-color-box no longer loses its INGRESS columns to a
+  duplicate-name collision).
+- `two-col-gap`: full-line `#` comments are skipped (/etc/hosts); a value may
+  hold a 2+-space run when row 1 is a two-label header, every value starts
+  under its label, and the inner gaps do not line up (no grid).
+- `aligned-columns`: a short abbreviated label (`Verf.`, `No.`) before a
+  header's last token no longer vetoes the header; a one-segment `Label:
+  value` caption directly above a >= 3-column header is chrome (gluster
+  `Brick:`); a SPARSE MATRIX (`_ac_sparse_grid`: ragged rows whose every
+  cell starts inside one header label's column, left to right) is a header
+  table assigned positionally — in the bash path and the big-input path (which
+  hands it back to bash). Also fixes left-packed empty cells in
+  hcloud-floating-ip-list, kubectl-api-groups, micromamba-env-list.
+- `block-records`: an unspaced `key:value` line whose rest holds a 2+-space
+  column gap (`Assets:Checking     5432.10`) is no longer key/value evidence
+  (awk screen and bash test identical); a block's TITLE line (unindented, no
+  `:`/`=`, over a flat list of indented fields — one indent or one colon
+  column) is kept as `title` instead of dropped (bash + awk twin; the twin
+  hands non-ASCII titles back to bash).
+- `ledger-balance`: currency symbols are alternatives, not a bracket (a
+  bracket matched one byte of `€`/`£` under LC_ALL=C); a multi-commodity
+  total (`$1,234.56, €890,50, -£1,200.00`) is the grand total.
+- `syslog`: indented lines under a syslog line (a traceback) continue its
+  message — not counted by detect, space-joined by extract (bash + awk twin).
+- `yaml`: declines when most top-level keys are dotted (`logo.png: PNG image
+  data, …`) — its extractor skips those keys, so the parse would drop most of
+  the input (`file -b` style output goes to labeled-records).
+- `dns-records`: a parenthesised multi-line rdata (`SOA … (` … `)`, dig
+  +multiline, DNSKEY/RRSIG) is joined; zone-file lines (no TTL, `@` / omitted
+  owner, known types only) are records, with the `$ORIGIN` / `$TTL` in effect
+  per record.
+
+**Engine.** `_match_hint` (lib/_discovery.sh): under `--generic` a row whose
+target is bespoke is passed over and a LATER matching row may route the input,
+so a tool can carry a bespoke routing row for full mode followed by a generic
+pin (`lsusb-v` → bespoke `lsusb-v`, then `lsusb-verbose` → indented-hierarchy).
+
+**Hint rows** (`extract/hints.tsv`): `lsusb-v`, `bazel-query-graph`
+(`digraph mygraph {` → brace-groups), `rsync-itemize` (itemize code + path →
+first-word-kv, paths keep their spaces), `smartctl-scan` (device + options /
+comment → first-word-kv).
+
+**Bespoke** (confidence per the rubric's sub-tiers): new `openssl-asn1parse`
+(security, 92), `systemd-analyze-time` (system, 92), `cargo-search` (build,
+92); `mtr-report` reads `mtr -z` AS columns, rows without the `|--` marker and
+names value columns from the header (best/wrst/stdev no longer dropped);
+`mariadb-innodb-status` extracts every number on its section lines (six
+fields out of 22 lines tripped the truncation guard and lost to text-lines);
+`nodetool-status` accepts ScyllaDB's Rack-less rows. Strategy count 258 → 261.
+
+**Tests / fixtures.** extract/samples (+ goldens `<strategy>@<file>.txt`):
+box-table/{named-border,kv-title,group-header,group-subcols},
+mtr-report/asn, two-col-gap/{comments-gaps,header-anchored},
+syslog/traceback, dns-records/zonefile, ledger-balance/multicurrency,
+aligned-columns/{sparse-matrix,caption-abbrev,abbrev-label}, and samples +
+goldens for the three new strategies; mtr-report / mariadb-innodb-status
+goldens updated (more columns). `test_generic_mode.sh`: labelled URLs kept.
+`tests/corpus/expected.tsv`: clickhouse-describe-table 5→6,
+clickhouse-system-mutations 3→4, nst-dig-multiline-soa 5→6 and
+nst-dns-zonefile 7→8 (every RR is a row — the SOA included),
+openssl-asn1parse 6→7 (7 element lines; the `$ openssl …` echo is not one).
+Corpus (3705 inputs): not tidy 60 → **31** — 21 closed generically (3 of
+them by a hint row), 8 by a bespoke strategy; clickhouse-processlist,
+clickhouse-client-query and rc-status moved from bespoke-only to generic.
+Generic-tidy 3533 → 3557, bespoke-only 112 → 117. 22 existing goldens change
+(all improvements: the two clickhouse header fixes, restored URL / title /
+group-header / multi-line-rdata / continuation data, sparse-grid cells under
+the right column, rsync-itemize + smartctl-scan via their hint rows); zero
+tidy→untidy. Forced routes (`_FR_BIG_BYTES=0 _FR_LANE_BYTES=0`) byte-identical
+to the default route; `_EAS_NOPRUNE=1` byte-identical in full and `--generic`
+mode; holdout 78/80 and tests/benchmark outputs unchanged.
+
+## 2026-10-02 — batch mode no longer skips text files ending in blank lines
+
+`extract/lib/_dispatch.sh`: `--batch` decided "binary" by comparing the file
+size with what `$(<file)` read, which also counts the trailing newlines
+`$(...)` strips — a text file ending in 3+ newlines was skipped as binary.
+It now counts NUL bytes directly, as the single-file path does. Found by the
+round-2 benchmark; test in `extract/tests/test_batch_mode.sh`.
+
+## 2026-10-02 — generalisation benchmark round 2: 109 unseen inputs (measurement only)
+
+A new held-out round, built because round 1 has been tuned against and now
+measures regression. It has **109 inputs, none in the corpus, holdout or
+round 1**. Novelty was checked both by name (tool-mode stem) and by content
+(`round2/novelty.py`: line-set and word-3-gram Jaccard against all 3,853
+existing inputs; maximum 3-gram score 0.20). 67 inputs were **captured** from
+real commands in the container, read-only and scrubbed. 42 were **reproduced**
+from documented formats for tools the container lacks (Windows/macOS,
+databases, cloud CLIs, k8s, monitoring). Each result was rated on round 1's
+PASS/PARTIAL/FAIL scale, which was fixed in `round2/CRITERIA.md` before the
+first run. **No engine, strategy or hint changes.**
+
+- **Result: 17 PASS / 51 PARTIAL / 41 FAIL** (16% / 47% / 38%; 62% usable).
+  Round 1 at first rating was 46% / 24% / 30%, and the corpus shape gate reports
+  96.7% "tidy". At least six of the FAILs would pass a row/column-count check.
+- **Pattern by shape:** explicit-syntax formats (JSON, YAML, CSV, NDJSON,
+  logfmt, box tables) mostly pass. Whitespace tables fail 10 of 21, all because
+  a cell contains a space and boundaries come from tokens rather than header
+  offsets. Multi-section reports fail 11 of 13: one section is claimed and the
+  rest dropped silently, and the size-based truncation guard does not fire.
+- **`--rank priority` vs the confidence ranking: identical winner and
+  byte-identical output on all 109.** 98 inputs had two or more candidates, but
+  the highest-confidence candidate was also the best-priority one in 108.
+  Confidence ≥ 80 is still wrong 37% of the time.
+- **`--multi`** improved 17 inputs (10 of them default-mode FAILs) and made 7
+  worse.
+- Engine finding, not fixed: `--batch` treats text that ends in three or more
+  newlines as binary (`lib/_dispatch.sh`, size minus `$(<file)` bytes > 2) and
+  skips it. No corpus input is affected today.
+
+Files: `tests/benchmark/round2/{inputs/*.txt, manifest.tsv, CRITERIA.md,
+ratings.tsv, novelty.py}` (new); `tests/benchmark/run.sh` (`--round2`, `-j`,
+`--tidy`; adds a `--rank priority` pass; `.multi` now uses provost's exact
+`--multi -f tsv --max-strategies 1` flags; single-dataset modes go through the
+`--batch --batch-out` fast path with a per-input fallback); `tests/benchmark/README.md`;
+`docs/benchmark-2026-10-02-generalisation-round2.md` (new); `mkdocs.yml`
+(Benchmark nav).
+
 ## 2026-10-01 — large inputs: no sample false-rejects, colons / block-records twins, faster ps / CSV
 
 **Sample false-rejects (`extract/lib/_discovery.sh` + share-threshold detectors).**

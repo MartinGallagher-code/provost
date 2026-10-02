@@ -20,7 +20,7 @@ echo "========================================"
 
 test_aligned_columns_ps () {
     local output
-    output=$(run_mfe -r -s aligned-columns "$SAMPLES_DIR/aligned-columns/basic.txt")
+    output=$(run_extract -r -s aligned-columns "$SAMPLES_DIR/aligned-columns/basic.txt")
     assert_contains "$output" "PID" "should extract PID column"
     assert_contains "$output" "USER" "should extract USER column"
     assert_contains "$output" "CPU" "should extract CPU column"
@@ -34,7 +34,7 @@ test_aligned_columns_ps () {
 # capture tidy melt turns it into one row per line, not a single wide record.
 test_aligned_columns_row_groups () {
     local output
-    output=$(run_mfe -r -s aligned-columns "$SAMPLES_DIR/aligned-columns/basic.txt")
+    output=$(run_extract -r -s aligned-columns "$SAMPLES_DIR/aligned-columns/basic.txt")
     assert_contains "$output" "entry1.PID 123" "row 1 grouped under entry1"
     assert_contains "$output" "entry2.USER www" "row 2 grouped under entry2"
     assert_contains "$output" "entry3.COMMAND postgres" "row 3 grouped under entry3"
@@ -50,7 +50,7 @@ test_aligned_columns_df () {
     tmpfile=$(mktemp)
     printf 'Filesystem  Size  Used  Avail  Use%%  Mounted\n/dev/sda1   50G   30G   20G    60%%  /\ntmpfs       4G    0G    4G     0%%   /tmp\n' > "$tmpfile"
     local output
-    output=$(run_mfe -r -s aligned-columns "$tmpfile")
+    output=$(run_extract -r -s aligned-columns "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" "Filesystem" "should extract Filesystem column"
     assert_contains "$output" "Size" "should extract Size column"
@@ -64,7 +64,7 @@ test_aligned_columns_df () {
 
 test_aligned_columns_not_json () {
     local output
-    output=$(run_mfe -d -s aligned-columns "$SAMPLES_DIR/json/basic.json" 2>&1)
+    output=$(run_extract -d -s aligned-columns "$SAMPLES_DIR/json/basic.json" 2>&1)
     assert_contains "$output" "not applicable" "aligned-columns should not apply to JSON"
 }
 
@@ -78,7 +78,7 @@ test_aligned_columns_trailing_tokens_keep_spaces () {
     local tmp output
     tmp="$(mktemp)"
     printf 'drwxr-xr-x 2 root root 4096 Jul  6 09:12 bin\n-rw-r--r-- 1 alice users 1024 Jul  5 18:03 notes.txt\nlrwxrwxrwx 1 root root    7 Jul  1 00:00 sh -> busybox\n' > "$tmp"
-    output=$(run_mfe -s aligned-columns -f plain "$tmp")
+    output=$(run_extract -s aligned-columns -f plain "$tmp")
     rm -f "$tmp"
     assert_contains "$output" " sh -> busybox" "symlink target keeps its spaces"
     assert_not_contains "$output" "sh_->_busybox" "no underscores invented"

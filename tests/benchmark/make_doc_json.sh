@@ -16,7 +16,7 @@ set -u
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
-ENGINE="$ROOT/extract/envoy-extract"
+ENGINE="$ROOT/extract/provost-extract"
 
 out=""
 while [[ $# -gt 0 ]]; do

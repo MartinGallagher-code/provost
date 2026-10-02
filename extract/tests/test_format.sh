@@ -104,7 +104,7 @@ test_yaml_no_quote_underscore () {
 }
 
 ################################################################################
-## format_yaml integration tests (via envoy-extract)
+## format_yaml integration tests (via provost-extract)
 ################################################################################
 
 test_yaml_output_booleans () {
@@ -112,7 +112,7 @@ test_yaml_output_booleans () {
     tmpfile=$(mktemp)
     printf 'enabled: true\nname: myservice\n' > "$tmpfile"
     local output
-    output=$(run_mfe -s colons -f yaml "$tmpfile")
+    output=$(run_extract -s colons -f yaml "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" '"true"' "boolean value should be quoted in YAML"
     assert_not_contains "$output" ': true' "unquoted boolean should not appear"
@@ -123,7 +123,7 @@ test_yaml_output_plain_string () {
     tmpfile=$(mktemp)
     printf 'host: localhost\n' > "$tmpfile"
     local output
-    output=$(run_mfe -s colons -f yaml "$tmpfile")
+    output=$(run_extract -s colons -f yaml "$tmpfile")
     rm -f "$tmpfile"
     assert_contains "$output" 'host: localhost' "plain string should not be quoted in YAML"
 }

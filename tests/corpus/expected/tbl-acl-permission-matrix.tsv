@@ -1,0 +1,5 @@
+n	Role	read	write	delete	admin
+1	viewer	x			
+2	editor	x	x		
+3	publisher	x	x	x	
+4	owner	x	x	x	x

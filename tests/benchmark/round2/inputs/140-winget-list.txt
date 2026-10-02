@@ -1,0 +1,11 @@
+Name                                   Id                                   Version          Available        Source
+------------------------------------------------------------------------------------------------------------------------
+Microsoft Edge                         Microsoft.Edge                       129.0.2792.65                     winget
+Git                                    Git.Git                              2.46.0           2.46.2           winget
+Microsoft Visual Studio Code (User)    Microsoft.VisualStudioCode           1.93.0           1.94.0           winget
+PowerToys (Preview) x64                Microsoft.PowerToys                  0.84.1                            winget
+Mozilla Firefox (x64 en-US)            Mozilla.Firefox                      130.0.1                           winget
+Microsoft Visual C++ 2015-2022 Redist… Microsoft.VCRedist.2015+.x64         14.40.33810.0    14.40.33816.0    winget
+Windows Terminal                       Microsoft.WindowsTerminal            1.21.2361.0                       winget
+Teams Machine-Wide Installer           MSIX\MicrosoftTeams_24215.1007.3082… 24215.1007.3082.1590
+Realtek Audio Driver                   {F132AF7F-7BCA-4EDE-8A7C-958108FE7DBC} 6.0.9411.1

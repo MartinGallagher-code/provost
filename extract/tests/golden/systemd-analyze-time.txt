@@ -1,0 +1,9 @@
+entry1.firmware 4.120s
+entry1.loader 1.204s
+entry1.kernel 3.412s
+entry1.initrd 6.271s
+entry1.userspace 1min 2.998s
+entry1.total 1min 18.005s
+entry1.target graphical.target
+entry1.target_reached 1min 2.921s
+total_entries 1

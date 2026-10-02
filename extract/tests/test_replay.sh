@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Replay Tests for Envoy:Explore (envoy-extract)
+## Replay Tests for provost-extract (provost-extract)
 ##
 ## Tests the --replay flag and -c (command line export) round-tripping
 ## including error handling for malformed and empty replay specs.
@@ -25,7 +25,7 @@ test_replay_nonexistent_strategy () {
     # Replaying a strategy that doesn't exist should produce no output (exits 0)
     # because the strategy loop simply skips it when it's not in the sorted list.
     local output rc=0
-    output=$(run_mfe -r --replay 'nonexistent_strategy@1.0' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay 'nonexistent_strategy@1.0' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     # Should not crash; exit 0 with no output is acceptable
     if [[ $rc -le 1 ]]; then
         return 0
@@ -43,7 +43,7 @@ test_replay_malformed_no_version () {
     # A replay spec without @version should still work; the sed strips @...
     # leaving just the strategy name which gets matched in the loop.
     local output rc=0
-    output=$(run_mfe -r --replay 'json' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay 'json' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_exit_zero "$rc" "replay without @version should not crash"
     # The strategy name 'json' should still be recognized
     assert_contains "$output" "STRAT-json" "should still run the json strategy"
@@ -55,7 +55,7 @@ test_replay_malformed_no_version () {
 
 test_replay_empty_spec () {
     local output rc=0
-    output=$(run_mfe --replay '' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract --replay '' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     # Empty spec means no strategies match the replay filter; should exit cleanly
     if [[ $rc -le 1 ]]; then
         return 0
@@ -72,9 +72,9 @@ test_replay_empty_spec () {
 test_replay_roundtrip () {
     # Run once with -c to get the export command
     local cmd_output
-    cmd_output=$(run_mfe -c -s colons "$SAMPLES_DIR/colons/basic.txt")
+    cmd_output=$(run_extract -c -s colons "$SAMPLES_DIR/colons/basic.txt")
     # Extract the replay spec — third whitespace-separated token after
-    # `mfe --replay`.  ENV-182 dropped the legacy single-quotes in favour
+    # `provost-extract --replay`.  ENV-182 dropped the legacy single-quotes in favour
     # of printf %q, which leaves single-token specs like `colons@1.0`
     # unquoted; the old sed pattern relied on the quotes and silently
     # passed the entire cmdline through as the "spec".
@@ -82,10 +82,10 @@ test_replay_roundtrip () {
     spec=$(awk '{print $3}' <<<"$cmd_output")
     # Run original extraction with raw output
     local original
-    original=$(run_mfe -r -s colons "$SAMPLES_DIR/colons/basic.txt")
+    original=$(run_extract -r -s colons "$SAMPLES_DIR/colons/basic.txt")
     # Run replay with same spec
     local replay_output
-    replay_output=$(run_mfe -r --replay "$spec" "$SAMPLES_DIR/colons/basic.txt")
+    replay_output=$(run_extract -r --replay "$spec" "$SAMPLES_DIR/colons/basic.txt")
     # Both should extract the same field names
     local orig_fields replay_fields
     orig_fields=$(echo "$original" | sed '/^$/d' | awk '{
@@ -108,7 +108,7 @@ test_replay_roundtrip () {
 test_replay_matching_version () {
     # Replay with the correct version should produce no warning
     local output rc=0
-    output=$(run_mfe -r --replay 'json@1.0' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay 'json@1.0' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     # Should NOT contain version mismatch warning
     if [[ "$output" == *"version mismatch"* ]]; then
         echo "  unexpected version mismatch warning"
@@ -120,7 +120,7 @@ test_replay_matching_version () {
 test_replay_mismatched_version () {
     # Replay with a wrong version should warn on stderr
     local output rc=0
-    output=$(run_mfe -r --replay 'json@9.9' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay 'json@9.9' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_contains "$output" "version mismatch" "should warn about version mismatch"
     assert_contains "$output" "requested: 9.9" "should show requested version"
     assert_contains "$output" "installed: 1.0" "should show installed version"
@@ -129,7 +129,7 @@ test_replay_mismatched_version () {
 test_replay_no_version_in_spec () {
     # Replay without version should produce no warning
     local output rc=0
-    output=$(run_mfe -r --replay 'json' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay 'json' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     if [[ "$output" == *"version mismatch"* ]]; then
         echo "  unexpected version mismatch warning"
         return 1

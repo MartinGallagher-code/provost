@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Helper functions for envoy-analyze
+## Helper functions for provost-analyze
 ##
 ## String utilities, escaping, delimiter detection, and common helpers.
 ##
@@ -13,12 +13,12 @@
 ################################################################################
 
 err () {
-    echo "envoy-analyze: error: $*" >&2
+    echo "provost-analyze: error: $*" >&2
     exit 1
 }
 
 warn () {
-    echo "envoy-analyze: warning: $*" >&2
+    echo "provost-analyze: warning: $*" >&2
 }
 
 ################################################################################

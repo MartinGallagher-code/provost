@@ -3,10 +3,10 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Tests for: ENV-135 progress indicator in envoy-analyze.
+## Tests for: ENV-135 progress indicator in provost-analyze.
 ##
-## Mirrors EnvoyExtract/tests/test_progress.sh but for the per-column
-## stats stage. The shared helper at lib/envoy_progress.sh is the same
+## Mirrors provost-extract/tests/test_progress.sh but for the per-column
+## stats stage. The shared helper at lib/provost_progress.sh is the same
 ## code path; we re-test here to pin the analyze-side wiring.
 ################################################################################
 set -uo pipefail
@@ -14,13 +14,13 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/helpers.sh"
 
-EA="$(cd "$SCRIPT_DIR/.." && pwd)/envoy-analyze"
+EA="$(cd "$SCRIPT_DIR/.." && pwd)/provost-analyze"
 SAMPLE="$SAMPLES_DIR/biostats.csv"
 
 # Wrapper that suppresses the unrelated awk/gawk warnings so progress
 # parsing works even with mawk in CI.
 _run_ea () {
-    ENVOY_ANALYZE_SUPPRESS_AWK_WARNING=1 "$@"
+    PROVOST_ANALYZE_SUPPRESS_AWK_WARNING=1 "$@"
 }
 
 ################################################################################
@@ -45,7 +45,7 @@ test_progress_per_column_lines () {
 
 test_progress_uses_cr_on_tty () {
     local err rc=0
-    err=$(ENVOY_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
+    err=$(PROVOST_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
     assert_exit_zero "$rc" "analyze should still succeed with TTY-forced progress"
     if [[ "$err" != *$'\r'* ]]; then
         echo "  ASSERT FAILED: TTY progress should contain a CR for in-place updates"
@@ -59,25 +59,25 @@ test_progress_uses_cr_on_tty () {
 
 test_no_progress_suppresses () {
     local err rc=0
-    err=$(ENVOY_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --no-progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
+    err=$(PROVOST_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --no-progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
     if grep -qE '^\[[0-9]+/[0-9]+\] stats:' <<< "$err"; then
         echo "  ASSERT FAILED: --no-progress should suppress ticks"
         return 1
     fi
 }
 
-test_envoy_no_progress_beats_progress () {
+test_provost_no_progress_beats_progress () {
     local err rc=0
-    err=$(ENVOY_PROGRESS_FORCE_TTY=1 ENVOY_NO_PROGRESS=1 _run_ea bash "$EA" --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
+    err=$(PROVOST_PROGRESS_FORCE_TTY=1 PROVOST_NO_PROGRESS=1 _run_ea bash "$EA" --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
     if grep -qE '^\[[0-9]+/[0-9]+\] stats:' <<< "$err"; then
-        echo "  ASSERT FAILED: ENVOY_NO_PROGRESS=1 should beat --progress"
+        echo "  ASSERT FAILED: PROVOST_NO_PROGRESS=1 should beat --progress"
         return 1
     fi
 }
 
-test_envoy_quiet_suppresses () {
+test_provost_quiet_suppresses () {
     local err rc=0
-    err=$(ENVOY_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --quiet --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
+    err=$(PROVOST_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" --quiet --progress "$SAMPLE" 2>&1 >/dev/null) || rc=$?
     if grep -qE '^\[[0-9]+/[0-9]+\] stats:' <<< "$err"; then
         echo "  ASSERT FAILED: --quiet should suppress progress"
         return 1
@@ -106,7 +106,7 @@ test_below_threshold_silent_on_tty () {
     # biostats.csv has 5 columns — below the 20-column auto threshold.
     # On a forced TTY without --progress, no ticks should appear.
     local err rc=0
-    err=$(ENVOY_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" "$SAMPLE" 2>&1 >/dev/null) || rc=$?
+    err=$(PROVOST_PROGRESS_FORCE_TTY=1 _run_ea bash "$EA" "$SAMPLE" 2>&1 >/dev/null) || rc=$?
     if grep -qE '^\[[0-9]+/[0-9]+\] stats:' <<< "$err"; then
         echo "  ASSERT FAILED: small input (5 cols < 20) should not emit progress on TTY without --progress"
         return 1
@@ -141,8 +141,8 @@ test_help_documents_progress () {
 run_test "ENV-135 --progress emits per-column [n/N] lines" test_progress_per_column_lines
 run_test "ENV-135 TTY progress uses carriage return" test_progress_uses_cr_on_tty
 run_test "ENV-135 --no-progress suppresses ticks" test_no_progress_suppresses
-run_test "ENV-135 ENVOY_NO_PROGRESS=1 beats --progress" test_envoy_no_progress_beats_progress
-run_test "ENV-135 --quiet suppresses progress" test_envoy_quiet_suppresses
+run_test "ENV-135 PROVOST_NO_PROGRESS=1 beats --progress" test_provost_no_progress_beats_progress
+run_test "ENV-135 --quiet suppresses progress" test_provost_quiet_suppresses
 run_test "ENV-135 default (non-TTY, no flag) silent" test_default_non_tty_silent
 run_test "ENV-135 below 20-col threshold silent on TTY without --progress" test_below_threshold_silent_on_tty
 run_test "ENV-135 --progress does not alter stdout payload" test_progress_does_not_alter_stdout

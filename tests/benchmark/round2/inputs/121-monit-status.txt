@@ -1,0 +1,54 @@
+Monit 5.33.0 uptime: 14d 3h 12m
+
+Process 'nginx'
+  status                       OK
+  monitoring status            Monitored
+  monitoring mode              active
+  on reboot                    start
+  pid                          1184
+  parent pid                   1
+  uid                          0
+  effective uid                0
+  gid                          0
+  uptime                       14d 3h 12m
+  threads                      1
+  children                     4
+  cpu                          0.0%
+  cpu total                    0.1%
+  memory                       0.1% [5.2 MB]
+  memory total                 0.6% [24.8 MB]
+  security attribute           unconfined
+  port response time           0.412 ms to localhost:80 type TCP/IP protocol HTTP
+  data collected               Fri, 02 Oct 2026 14:20:31
+
+Filesystem 'rootfs'
+  status                       Resource limit matched
+  monitoring status            Monitored
+  monitoring mode              active
+  on reboot                    start
+  filesystem type              ext4
+  filesystem flags             rw,relatime
+  permission                   755
+  uid                          0
+  gid                          0
+  block size                   4 kB
+  space total                  48.4 GB (of which 5.1% is reserved for root user)
+  space free for non superuser 3.8 GB [7.9%]
+  space free total             6.3 GB [13.0%]
+  inodes total                 3225600
+  inodes free                  2290176 [71.0%]
+  data collected               Fri, 02 Oct 2026 14:20:31
+
+System 'web01.example.com'
+  status                       OK
+  monitoring status            Monitored
+  monitoring mode              active
+  on reboot                    start
+  load average                 [0.31] [0.27] [0.22]
+  cpu                          2.1%usr 0.8%sys 0.0%nice 0.1%iowait 0.0%hardirq 0.0%softirq 0.0%steal 0.0%guest 0.0%guestnice
+  memory usage                 1.2 GB [31.4%]
+  swap usage                   0 B [0.0%]
+  uptime                       14d 3h 14m
+  boot time                    Fri, 18 Sep 2026 11:06:12
+  filedescriptors              1376 [0.0% of 9223372036854775807 limit]
+  data collected               Fri, 02 Oct 2026 14:20:31

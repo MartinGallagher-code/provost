@@ -1,0 +1,50 @@
+backendType: SECOND_GEN
+connectionName: acme-prod:europe-west2:orders-db
+createTime: '2025-11-03T10:22:41.118Z'
+databaseInstalledVersion: POSTGRES_16_4
+databaseVersion: POSTGRES_16
+etag: 3f2a9c1d7b8e4f60a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718
+gceZone: europe-west2-b
+instanceType: CLOUD_SQL_INSTANCE
+ipAddresses:
+- ipAddress: 10.40.0.5
+  type: PRIVATE
+kind: sql#instance
+maintenanceVersion: POSTGRES_16_4.R20240910.01_07
+name: orders-db
+project: acme-prod
+region: europe-west2
+selfLink: https://sqladmin.googleapis.com/sql/v1beta4/projects/acme-prod/instances/orders-db
+serverCaCert:
+  cert: '-----BEGIN CERTIFICATE-----REDACTED-----END CERTIFICATE-----'
+  certSerialNumber: '0'
+  commonName: C=US,O=Google\, Inc,CN=Google Cloud SQL Server CA,dnQualifier=0a1b2c3d
+  createTime: '2025-11-03T10:21:12.441Z'
+  expirationTime: '2035-11-01T10:22:12.441Z'
+  instance: orders-db
+  kind: sql#sslCert
+serviceAccountEmailAddress: p123456789012-abcd12@gcp-sa-cloud-sql.iam.gserviceaccount.com
+settings:
+  activationPolicy: ALWAYS
+  availabilityType: REGIONAL
+  backupConfiguration:
+    backupRetentionSettings:
+      retainedBackups: 7
+      retentionUnit: COUNT
+    enabled: true
+    pointInTimeRecoveryEnabled: true
+    startTime: 02:00
+    transactionLogRetentionDays: 7
+  dataDiskSizeGb: '100'
+  dataDiskType: PD_SSD
+  databaseFlags:
+  - name: max_connections
+    value: '400'
+  - name: log_min_duration_statement
+    value: '500'
+  ipConfiguration:
+    ipv4Enabled: false
+    privateNetwork: projects/acme-prod/global/networks/prod-vpc
+  pricingPlan: PER_USE
+  tier: db-custom-4-16384
+state: RUNNABLE

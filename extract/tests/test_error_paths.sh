@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 
 ################################################################################
-## Error Path Tests for envoy-extract
+## Error Path Tests for provost-extract
 ################################################################################
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -21,14 +21,14 @@ echo "========================================"
 test_missing_file_argument () {
     local rc=0
     local output
-    # When stdin is a tty, mfe reports "No input file provided"
+    # When stdin is a tty, provost-extract reports "No input file provided"
     # Redirect /dev/null to stdin so -t 0 fails, triggering the stdin path
     # which then gets empty data — but to test the actual "no file" path,
     # we need stdin to be a tty. Use the /dev/null redirect to at least
-    # confirm mfe exits non-zero and shows an error.
-    output=$(run_mfe 2>&1 </dev/null) || rc=$?
+    # confirm provost-extract exits non-zero and shows an error.
+    output=$(run_extract 2>&1 </dev/null) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero with no input"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "No data received" "should mention no data received"
 }
 
@@ -39,9 +39,9 @@ test_missing_file_argument () {
 test_nonexistent_file () {
     local rc=0
     local output
-    output=$(run_mfe /tmp/this_file_does_not_exist_mfe_test.txt 2>&1) || rc=$?
+    output=$(run_extract /tmp/this_file_does_not_exist_mfe_test.txt 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for missing file"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "File not found" "should mention file not found"
 }
 
@@ -52,9 +52,9 @@ test_nonexistent_file () {
 test_empty_stdin () {
     local rc=0
     local output
-    output=$(echo "" | run_mfe 2>&1) || rc=$?
+    output=$(echo "" | run_extract 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for empty stdin"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "No data received" "should mention no data"
 }
 
@@ -65,9 +65,9 @@ test_empty_stdin () {
 test_invalid_format () {
     local rc=0
     local output
-    output=$(run_mfe --format bogusformat "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --format bogusformat "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for invalid format"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "Unknown format" "should mention unknown format"
 }
 
@@ -78,9 +78,9 @@ test_invalid_format () {
 test_invalid_min_confidence () {
     local rc=0
     local output
-    output=$(run_mfe --min-confidence abc "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --min-confidence abc "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for non-numeric min-confidence"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--min-confidence" "should mention the flag"
 }
 
@@ -91,9 +91,9 @@ test_invalid_min_confidence () {
 test_invalid_max_strategies () {
     local rc=0
     local output
-    output=$(run_mfe --max-strategies xyz "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --max-strategies xyz "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for non-numeric max-strategies"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--max-strategies" "should mention the flag"
 }
 
@@ -104,9 +104,9 @@ test_invalid_max_strategies () {
 test_stream_without_strategy () {
     local rc=0
     local output
-    output=$(echo "test" | run_mfe --stream 2>&1) || rc=$?
+    output=$(echo "test" | run_extract --stream 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for --stream without --strategy"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--stream requires --strategy" "should mention stream requires strategy"
 }
 
@@ -117,9 +117,9 @@ test_stream_without_strategy () {
 test_stream_with_file () {
     local rc=0
     local output
-    output=$(run_mfe --stream --strategy colons "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --stream --strategy colons "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for --stream with file"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--stream reads from stdin" "should mention stream stdin only"
 }
 
@@ -130,9 +130,9 @@ test_stream_with_file () {
 test_chain_nonexistent_strategy () {
     local rc=0
     local output
-    output=$(run_mfe --chain 'nonexistent_xyz_strategy' "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --chain 'nonexistent_xyz_strategy' "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for chain with missing strategy"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "Strategy not found" "should mention strategy not found"
 }
 
@@ -143,9 +143,9 @@ test_chain_nonexistent_strategy () {
 test_unknown_option () {
     local rc=0
     local output
-    output=$(run_mfe --bogus "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --bogus "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for unknown option"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "Unknown option" "should mention unknown option"
 }
 
@@ -156,9 +156,9 @@ test_unknown_option () {
 test_strategy_nonexistent () {
     local rc=0
     local output
-    output=$(run_mfe --strategy nonexistent_xyz_strategy "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --strategy nonexistent_xyz_strategy "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for missing strategy"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "Strategy not found" "should mention strategy not found"
 }
 
@@ -169,9 +169,9 @@ test_strategy_nonexistent () {
 test_stream_chain_conflict () {
     local rc=0
     local output
-    output=$(echo "test" | run_mfe --stream --strategy colons --chain 'colons' 2>&1) || rc=$?
+    output=$(echo "test" | run_extract --stream --strategy colons --chain 'colons' 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for --stream + --chain"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--stream and --chain cannot be used together" "should mention conflict"
 }
 
@@ -182,9 +182,9 @@ test_stream_chain_conflict () {
 test_count_names_conflict () {
     local rc=0
     local output
-    output=$(run_mfe --count --names "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --count --names "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for --count + --names"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--count and --names cannot be used together" "should mention conflict"
 }
 
@@ -195,9 +195,9 @@ test_count_names_conflict () {
 test_quiet_verbose_conflict () {
     local rc=0
     local output
-    output=$(run_mfe --quiet --verbose "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
+    output=$(run_extract --quiet --verbose "$SAMPLES_DIR/colons/basic.txt" 2>&1) || rc=$?
     assert_exit_nonzero "$rc" "should exit non-zero for --quiet + --verbose"
-    assert_contains "$output" "envoy-extract: error:" "should show error message"
+    assert_contains "$output" "provost-extract: error:" "should show error message"
     assert_contains "$output" "--quiet and --verbose cannot be used together" "should mention conflict"
 }
 
@@ -213,13 +213,13 @@ test_no_dedup () {
 
     # With --no-dedup -r, both strategies should produce duplicate hostname fields
     local output_dup
-    output_dup=$(run_mfe --no-dedup -r "$tmpfile")
+    output_dup=$(run_extract --no-dedup -r "$tmpfile")
     local dup_count
     dup_count=$(echo "$output_dup" | grep -c "hostname" || true)
 
     # Without --no-dedup, deduplication should collapse duplicates
     local output_dedup
-    output_dedup=$(run_mfe -r "$tmpfile")
+    output_dedup=$(run_extract -r "$tmpfile")
     local dedup_count
     dedup_count=$(echo "$output_dedup" | grep -c "hostname" || true)
 
@@ -245,10 +245,10 @@ test_no_dedup () {
 test_output_file () {
     local tmpdir
     tmpdir=$(mktemp -d)
-    local outfile="$tmpdir/mfe_output.txt"
+    local outfile="$tmpdir/provost_output.txt"
 
     local rc=0
-    run_mfe --output "$outfile" -s colons "$SAMPLES_DIR/colons/basic.txt" >/dev/null 2>&1 || rc=$?
+    run_extract --output "$outfile" -s colons "$SAMPLES_DIR/colons/basic.txt" >/dev/null 2>&1 || rc=$?
 
     assert_exit_zero "$rc" "should succeed writing to output file"
 
@@ -272,7 +272,7 @@ test_output_file () {
 
 test_profile_stderr () {
     local output
-    output=$(run_mfe --profile -s colons "$SAMPLES_DIR/colons/basic.txt" 2>&1)
+    output=$(run_extract --profile -s colons "$SAMPLES_DIR/colons/basic.txt" 2>&1)
     assert_contains "$output" "[profile]" "should show profile timing on stderr"
 }
 
@@ -286,7 +286,7 @@ test_binary_file_detection () {
     printf 'aaa\x00\x00\x00bbb\n' > "$tmpfile"
 
     local output
-    output=$(run_mfe "$tmpfile" 2>&1)
+    output=$(run_extract "$tmpfile" 2>&1)
     rm -f "$tmpfile"
 
     assert_contains "$output" "binary" "should warn about binary file"

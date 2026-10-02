@@ -256,7 +256,7 @@ regression).
 New tools added to the corpus should be checked against the generic parsers
 first (`run.sh`); then try a hint row; reach for a bespoke strategy only when
 no generic strategy produces a correct tidy shape even when forced
-(`envoy-extract --strategy <name>`).
+(`provost-extract --strategy <name>`).
 
 The design principle holds: the bulk of common tool output collapses onto a
 handful of structural parsers, not one rule per tool. The corpus includes varied
