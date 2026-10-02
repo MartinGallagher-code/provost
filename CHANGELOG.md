@@ -1,5 +1,13 @@
 # provost — Changelog
 
+## 2026-10-02 — batch mode no longer skips text files ending in blank lines
+
+`extract/lib/_dispatch.sh`: `--batch` decided "binary" by comparing the file
+size with what `$(<file)` read, which also counts the trailing newlines
+`$(...)` strips — a text file ending in 3+ newlines was skipped as binary.
+It now counts NUL bytes directly, as the single-file path does. Found by the
+round-2 benchmark; test in `extract/tests/test_batch_mode.sh`.
+
 ## 2026-10-02 — generalisation benchmark round 2: 109 unseen inputs (measurement only)
 
 A new held-out round, built because round 1 has been tuned against and now

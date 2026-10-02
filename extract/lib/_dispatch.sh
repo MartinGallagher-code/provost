@@ -159,10 +159,12 @@ run_batch_mode () {
         # Read content
         text=$(<"$_bfile")
 
-        # Binary detection (below) needs the RAW text; the shared
-        # normalisation pipeline runs right after it.
-        _bbytes=$(printf '%s' "$text" | wc -c)
-        if [[ $((_bsize - _bbytes)) -gt 2 ]]; then
+        # Binary detection: count NUL-free bytes straight from the file (as the
+        # single-file path does). Comparing the size with what `$(<file)` read
+        # also counted the trailing newlines `$(...)` strips, so a text file
+        # ending in 3+ newlines was skipped as binary.
+        _bbytes=$(tr -d '\0' < "$_bfile" | wc -c)
+        if [[ $((_bsize - _bbytes)) -gt 0 ]]; then
             _log_warn "batch: binary file skipped: $_bfile"
             if [[ $_OPT_batch_summary -eq 1 ]]; then
                 _json_escape "$_bfile"

@@ -91,6 +91,22 @@ test_batch_missing_file () {
 }
 
 # ---------------------------------------------------------------------------
+# Trailing newlines are not binary; a NUL byte is
+# ---------------------------------------------------------------------------
+
+test_batch_trailing_newlines_not_binary () {
+    local txt bin output err
+    txt=$(mktemp --suffix=.txt); bin=$(mktemp --suffix=.txt); err=$(mktemp)
+    printf 'name: alpha\nsize: 3\n\n\n\n' > "$txt"
+    printf 'name: alpha\000\nsize: 3\n' > "$bin"
+    output=$(printf '%s\n%s\n' "$txt" "$bin" | run_mfe --batch 2>"$err")
+    assert_contains "$output" "$txt" "batch: text ending in 3+ newlines gets a record"
+    assert_not_contains "$(cat "$err")" "binary file skipped: $txt" "batch: trailing newlines are not binary"
+    assert_contains "$(cat "$err")" "binary file skipped: $bin" "batch: a NUL byte is still binary"
+    rm -f "$txt" "$bin" "$err"
+}
+
+# ---------------------------------------------------------------------------
 # Empty stdin: warning, no output
 # ---------------------------------------------------------------------------
 
@@ -251,6 +267,7 @@ run_test "batch: two files produce two records"                   test_batch_two
 run_test "batch: file path appears in output record"              test_batch_file_path_in_output
 run_test "batch: no-field file yields empty fields object"        test_batch_empty_fields
 run_test "batch: missing file warns and skips"                    test_batch_missing_file
+run_test "batch: trailing newlines are not binary"               test_batch_trailing_newlines_not_binary
 run_test "batch: empty stdin produces warning"                    test_batch_empty_stdin
 run_test "batch: works with --strategy"                          test_batch_with_strategy
 run_test "batch: works with --rename"                            test_batch_with_rename
