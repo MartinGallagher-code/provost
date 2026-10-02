@@ -10,8 +10,10 @@ __pycache__/
 *.pyc
 
 # Python packaging / test artifacts
-dist/
-build/
+/dist/
+# Anchored to the root: extract/strategies/build/ holds real strategies, and a
+# bare `build/` silently ignored new files there.
+/build/
 *.egg-info/
 .coverage
 .pytest_cache/
