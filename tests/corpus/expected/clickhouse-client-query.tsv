@@ -1,0 +1,4 @@
+n	database	name	rows	bytes_on_disk
+1	default	events	48217304	4102839120
+2	default	sessions	1204882	201448320
+3	analytics	pageviews	88201442	9912834100

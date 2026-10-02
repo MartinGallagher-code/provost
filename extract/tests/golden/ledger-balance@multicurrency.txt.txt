@@ -1,0 +1,8 @@
+entry1.amount $1,234.56
+entry1.account assets:checking
+entry2.amount €890,50
+entry2.account assets:eur
+entry3.amount -£1,200.00
+entry3.account liabilities:card
+total $1,234.56, €890,50, -£1,200.00
+total_entries 3

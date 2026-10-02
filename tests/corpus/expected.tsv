@@ -2233,8 +2233,8 @@ nodetool-netstats	table	3	6
 nodetool-cfstats	kv	-	16
 nodetool-gossipinfo	text	-	2
 scylla-nodetool-tablestats	kv	-	12
-clickhouse-system-mutations	table	3	7
-clickhouse-describe-table	table	5	5
+clickhouse-system-mutations	table	4	7
+clickhouse-describe-table	table	6	5
 duckdb-show-tables	table	5	2
 duckdb-summarize	table	4	8
 cypher-shell-show-databases	table	4	7
@@ -2381,7 +2381,7 @@ conntrack-stats	table	4	8
 openssl-verify	text	-	2
 openssl-pkey	text	-	2
 openssl-enc	text	-	2
-openssl-asn1parse	table	6	3
+openssl-asn1parse	table	7	3
 openssl-s-time	text	-	2
 openssl-genpkey	text	-	2
 openssl-pkcs12-info	text	-	2
@@ -3538,8 +3538,8 @@ nst-region-az-instances	table	6	4
 nst-cluster-node-disks	table	6	4
 nst-block-records-embedded-table	text	-	2
 nst-vagrant-status-blocks	kv	-	2
-nst-dig-multiline-soa	table	5	4
-nst-dns-zonefile	table	7	4
+nst-dig-multiline-soa	table	6	4
+nst-dns-zonefile	table	8	4
 nst-dig-multiline-dnskey	table	3	4
 nst-systemd-show-unit	kv	-	2
 nst-systemd-analyze-dump	text	-	2

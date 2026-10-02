@@ -16,22 +16,29 @@ strategy_detect () {
     # A status block that merely EMBEDS a few journal lines (systemctl
     # status's log tail) is not a syslog capture and belongs to other
     # parsers.
-    local line total=0 hits=0
+    # An INDENTED line directly under a syslog line (or under another such
+    # continuation) is that message continued — a Python traceback, a
+    # wrapped stack — and is part of the record, not a separate line to
+    # count (no blank line in between).
+    local line total=0 hits=0 prev=0
     if (( ${#text} > _FR_BIG_BYTES )); then
         # BIG input: the same count in one awk pass (see _FR_BIG_BYTES)
         cat <<< "$text" | awk -v T=$(( 50 - ${_FR_SLACK:-0} )) '
-            /[^ \t\n\v\f\r]/ {
-                total++
-                if ($0 ~ /^[ \t\n\v\f\r]*[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] /) hits++
-            }
+            $0 !~ /[^ \t\n\v\f\r]/ { prev = 0; next }
+            /^[ \t\n\v\f\r]*[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] / { total++; hits++; prev = 1; next }
+            prev && /^[ \t]/ { next }
+            { total++; prev = 0 }
             END { exit !(total > 0 && int(hits * 100 / total) >= T) }'
         return
     fi
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        [[ "${line}" != *[![:space:]]* ]] && continue
-        total=$((total + 1))
-        [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] && hits=$((hits + 1))
+        [[ "${line}" != *[![:space:]]* ]] && { prev=0; continue; }
+        if [[ "$line" =~ ^[[:space:]]*[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]]; then
+            total=$((total + 1)); hits=$((hits + 1)); prev=1; continue
+        fi
+        [[ $prev -eq 1 && "$line" == [' 	']* ]] && continue
+        total=$((total + 1)); prev=0
     done
     [[ $total -gt 0 && $((hits * 100 / total)) -ge $(( 50 - ${_FR_SLACK:-0} )) ]]
 }
@@ -49,9 +56,18 @@ strategy_extract () {
         # the awk twin reports that the same way.
         local _sl_out
         _sl_out="$(cat <<< "$text" | awk '
-            $0 == "" { next }
-            $0 !~ /^[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] / { next }
+            function flush() { if (msg != "") printf "%s.message %s\n", p, msg; msg = "" }
+            $0 !~ /[^ \t\n\v\f\r]/ { chain = 0; next }
+            $0 !~ /^[A-Z][a-z][a-z] [ 0-9][ 0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] / {
+                if (chain && $0 ~ /^[ \t]/) {
+                    s = $0; sub(/^[ \t\n]+/, "", s); sub(/[ \t\n]+$/, "", s)
+                    n = split(s, a, /[ \t\n]+/)
+                    for (k = 1; k <= n; k++) msg = (msg == "") ? a[k] : msg " " a[k]
+                } else chain = 0
+                next
+            }
             {
+                flush(); chain = 1
                 ln++; p = "line" ln
                 printf "%s.timestamp %s\n", p, substr($0, 1, 15)
                 s = $0; sub(/[ \t\n]+$/, "", s)
@@ -70,20 +86,35 @@ strategy_extract () {
                 if (pid != "") printf "%s.pid %s\n", p, pid
                 msg = ""
                 for (k = 6; k <= n; k++) msg = (msg == "") ? a[k] : msg " " a[k]
-                if (msg != "") printf "%s.message %s\n", p, msg
-            }')" || return 1
+            }
+            END { if (!failed) flush() }')" || return 1
         printf '%s\n' "$_sl_out"
         return 0
     fi
 
+    # The message is held until the record ends, so indented continuation
+    # lines (see strategy_detect) can be appended to it, space-joined.
+    local _sl_msg="" _sl_chain=0 prefix="" _sl_t
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
-        [[ -z "$line" ]] && continue
+        [[ "${line}" != *[![:space:]]* ]] && { _sl_chain=0; continue; }
         # Only process lines matching syslog format
-        [[ "$line" =~ ^[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]] || continue
+        if [[ ! "$line" =~ ^[A-Z][a-z]{2}\ [\ 0-9]{2}\ [0-9]{2}:[0-9]{2}:[0-9]{2}\  ]]; then
+            if [[ $_sl_chain -eq 1 && "$line" == [' 	']* ]]; then
+                _fr_tok "$line"
+                for _sl_t in "${_FR_TOK[@]}"; do
+                    [[ -z "$_sl_msg" ]] && _sl_msg="$_sl_t" || _sl_msg+=" $_sl_t"
+                done
+            else
+                _sl_chain=0
+            fi
+            continue
+        fi
+        [[ -n "$_sl_msg" ]] && result+="${prefix}.message ${_sl_msg}"$'\n'
+        _sl_msg=""; _sl_chain=1
 
         line_num=$((line_num + 1))
-        local prefix="line${line_num}"
+        prefix="line${line_num}"
 
         # Extract timestamp (first 15 chars: "Mon DD HH:MM:SS")
         local timestamp
@@ -114,11 +145,10 @@ strategy_extract () {
         # Extract message (everything after process/pid field)
         local message
         message=$(_strat_syslog_get_message "$line")
-        if [[ -n "$message" ]]; then
-            result+="${prefix}.message ${message}"$'\n'
-        fi
+        _sl_msg="$message"
 
     done
+    [[ -n "$_sl_msg" ]] && result+="${prefix}.message ${_sl_msg}"$'\n'
 
     echo "$result"
 }

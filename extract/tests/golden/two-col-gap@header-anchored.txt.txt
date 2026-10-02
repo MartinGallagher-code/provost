@@ -1,0 +1,7 @@
+entry1.key greeting
+entry1.value hello  world
+entry2.key path
+entry2.value /usr/local  bin
+entry3.key label
+entry3.value north  star
+total_entries 3

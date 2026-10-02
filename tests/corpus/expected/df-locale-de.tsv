@@ -1,0 +1,4 @@
+n	Dateisystem	Größe	Benutzt	Verf	Verw%	Eingehängt_auf
+1	/dev/sda1	1,5G	900M	512M	64%	/
+2	/dev/sdb1	4,0Ki	2,0Ki	2,0Ki	50%	/boot
+3	tmpfs	8,0G	1,2G	6,8G	15%	/run

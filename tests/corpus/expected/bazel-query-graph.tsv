@@ -1,0 +1,10 @@
+n	group	value
+1	digraph mygraph	node [shape=box]
+2	digraph mygraph	"//src:app"
+3	digraph mygraph	"//src:app" -> "//src:lib"
+4	digraph mygraph	"//src:app" -> "//src:cli"
+5	digraph mygraph	"//src:lib" -> "//src:util"
+6	digraph mygraph	"//src:lib" -> "@com_google_absl//absl/strings:strings"
+7	digraph mygraph	"//src:cli" -> "//src:util"
+8	digraph mygraph	"//src:cli" -> "@com_github_gflags_gflags//:gflags"
+9	digraph mygraph	"//src:util" -> "@com_google_absl//absl/base:base"

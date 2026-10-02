@@ -623,6 +623,7 @@ _hint_presence () {
 
 # Match the input against hints.tsv.
 # Sets _HINT_TOOL and _HINT_STRATEGY on a match. Returns 0 on match, 1 otherwise.
+# The first matching row whose target can run wins (see the --generic skip).
 _match_hint () {
     local text="$1"
     _HINT_TOOL="" _HINT_STRATEGY=""
@@ -674,6 +675,14 @@ _match_hint () {
                 [[ "$text" =~ $pattern ]] || continue ;;
             *)        continue ;;
         esac
+        # Under --generic a bespoke target cannot run, so the row is passed
+        # over and a LATER matching row may still route the input: a tool
+        # can carry a bespoke routing row for full mode followed by a generic
+        # pin for --generic (lsusb -v).
+        if [[ "${_OPT_generic:-0}" -eq 1 ]] && find_strategy_file "$strategy" \
+           && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
+            continue
+        fi
         _HINT_TOOL="$tool"
         _HINT_STRATEGY="$strategy"
         return 0

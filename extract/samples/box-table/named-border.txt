@@ -1,0 +1,7 @@
+┌─name───────┬─type────────────┬─default_type─┐
+│ event_id   │ UUID            │              │
+│ ts         │ DateTime64(3)   │ DEFAULT      │
+└────────────┴─────────────────┴──────────────┘
+┌─name───────┬─type────────────┬─default_type─┐
+│ payload    │ String          │ DEFAULT      │
+└────────────┴─────────────────┴──────────────┘

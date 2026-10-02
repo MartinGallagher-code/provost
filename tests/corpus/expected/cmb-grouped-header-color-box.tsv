@@ -1,4 +1,4 @@
-n	IFACE	pkts	bytes
-1	eth0	9982	4.2M
-2	eth1	501	118K
-3	lo	42	3.1K
+n	IFACE	INGRESS_pkts	INGRESS_bytes	EGRESS_pkts	EGRESS_bytes
+1	eth0	10231	8.1M	9982	4.2M
+2	eth1	552	320K	501	118K
+3	lo	42	3.1K	42	3.1K

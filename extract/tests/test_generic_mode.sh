@@ -291,6 +291,22 @@ Host: localhost' ''
     assert_contains "$output" "Host" "_tech_kv_colon should still extract other fields"
 }
 
+# A labelled URL is data: `Homepage: https://…` keeps its value (only a bare
+# URL line, whose scheme colon splits off a `//…` value, is skipped).
+test_technique_kv_colon_labelled_url () {
+    local output
+    output=$(bash -c "
+        source \"$MFE_DIR/lib/_helpers.sh\"
+        source \"$MFE_DIR/lib/_techniques.sh\"
+        _tech_kv_colon 'Homepage: https://brew.sh/x
+https://example.com/bare
+From: http://example.org' ''
+    ")
+    assert_contains "$output" "Homepage https://brew.sh/x" "_tech_kv_colon should keep a labelled https URL"
+    assert_contains "$output" "From http://example.org" "_tech_kv_colon should keep a labelled http URL"
+    assert_not_contains "$output" "//example.com/bare" "_tech_kv_colon should skip a bare URL line"
+}
+
 # ---------------------------------------------------------------------------
 # Unit test: _tech_kv_equals skips comparison operators
 # ---------------------------------------------------------------------------
@@ -379,6 +395,7 @@ run_test "generic: empty input exits 0"                          test_generic_em
 run_test "generic: --list-strategies shows [G] marker"           test_generic_list_strategies_shows_G_marker
 run_test "technique: _tech_kv_colon basic"                       test_technique_kv_colon_basic
 run_test "technique: _tech_kv_colon URL skip"                    test_technique_kv_colon_url_skip
+run_test "technique: _tech_kv_colon labelled URL kept"            test_technique_kv_colon_labelled_url
 run_test "technique: _tech_kv_equals skip comparisons"           test_technique_kv_equals_skip_comparisons
 run_test "technique: _tech_validate_key"                         test_technique_validate_key
 run_test "technique: _tech_split_blocks"                         test_technique_split_blocks

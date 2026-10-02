@@ -1,0 +1,5 @@
+# static hosts
+127.0.0.1   localhost
+10.0.0.5    git.internal git
+# vpn
+10.8.0.1    vpn-gw.internal vpn

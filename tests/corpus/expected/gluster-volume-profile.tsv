@@ -1,0 +1,5 @@
+n	%-latency	Avg-latency	Min-Latency	Max-Latency	No_of_calls	Fop
+1	0.00	0.00 us	0.00 us	0.00 us	4	FORGET
+2	18.42	112.30 us	41.00 us	820.00 us	88214	WRITE
+3	41.08	88.10 us	22.00 us	1204.00 us	210442	READ
+4	12.33	142.90 us	60.00 us	980.00 us	33108	LOOKUP

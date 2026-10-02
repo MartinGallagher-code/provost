@@ -28,7 +28,7 @@ strategy_detect () {
         local _brd_kv=0
         read -r blank_count _brd_kv < <(cat <<< "$text" | awk '
             $0 == "" { b++; next }
-            !kv && /^ *[A-Za-z][A-Za-z0-9_ -]*[:=]/ { kv = 1 }
+            !kv && /^ *[A-Za-z][A-Za-z0-9_ -]*[:=]/ && !/^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  / { kv = 1 }
             END { printf "%d %d\n", b, kv }')
         [[ $blank_count -lt 1 ]] && return 1
         [[ $_brd_kv -eq 1 ]] || return 1
@@ -40,8 +40,18 @@ strategy_detect () {
     _line=""
     [[ $blank_count -lt 1 ]] && return 1
 
-    # Must have key: value or key=value patterns
-    [[ "$text" =~ (^|$'\n')\ *[A-Za-z][A-Za-z0-9_\ -]*[:=] ]] || return 1
+    # Must have key: value or key=value patterns. An unspaced `key:value`
+    # line whose rest holds a 2+-space column gap is a TABLE ROW whose first
+    # cell is a colon-joined name (`Assets:Checking     5432.10` — ledger
+    # accounts), not a field; a vCard `FN:Marie Curie` still counts.
+    # (the same two tests as the awk screen above, byte for byte)
+    local _brd_l _brd_kv=0 _brd_re1='^ *[A-Za-z][A-Za-z0-9_ -]*[:=]' _brd_re2=$'^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  '
+    for _brd_l in "${_FR_LINES[@]}"; do
+        [[ "$_brd_l" =~ $_brd_re1 ]] || continue
+        [[ "$_brd_l" =~ $_brd_re2 ]] && continue
+        _brd_kv=1; break
+    done
+    [[ $_brd_kv -eq 1 ]] || return 1
     fi
 
     # Condition (a): 2+ blank lines is sufficient
@@ -109,9 +119,27 @@ _strat_blockrec_extract_awk () {
             if (k ~ /^[0-9]/) return 0
             return 1
         }
-        function block(   i, l, k, v, c, j, nc, ne, ok) {
+        function block(   i, l, k, v, c, j, nc, ne, ok, tt, si, sc, i0, c0, ci, cc) {
             if (nb == 0) return
             rec++
+            # title line (see _strat_blockrec_title)
+            tt = (B[1] !~ /^[ \t]/ && !index(B[1], ":") && !index(B[1], "="))
+            # (non-ASCII: bash measures characters, awk bytes — bash path)
+            if (tt && B[1] ~ /[^\001-\177]/) { bail = 1; exit 3 }
+            tt = tt && B[1] ~ /[A-Za-z0-9]/
+            ok = 0; si = 1; sc = 1; i0 = -1; c0 = -1
+            for (i = 2; i <= nb && tt; i++) {
+                if (!index(B[i], ":")) continue
+                if (B[i] !~ /^[ \t]+[^ \t]/) { tt = 0; break }
+                ok = 1
+                match(B[i], /^[ \t]+/); ci = RLENGTH; cc = index(B[i], ":")
+                if (substr(B[i], 1, cc) ~ /[^\001-\177]/) { bail = 1; exit 3 }
+                if (i0 < 0) { i0 = ci; c0 = cc }
+                if (ci != i0) si = 0
+                if (cc != c0) sc = 0
+            }
+            if (!si && !sc) tt = 0
+            if (tt && ok) { v = trim(B[1]); gsub(/[\t\r\n]/, " ", v); if (v != "") print "record" rec ".title " v }
             nc = 0
             for (i = 1; i <= nb; i++) {
                 l = B[i]
@@ -123,7 +151,7 @@ _strat_blockrec_extract_awk () {
                 j = index(l, ": ")
                 if (j) v = substr(l, j + 2); else v = substr(l, c + 1)
                 ok = vkey(k); if (ok < 0) { bail = 1; exit 3 }; if (!ok) continue
-                if (substr(v, 1, 7) == "http://" || substr(v, 1, 8) == "https://" || substr(v, 1, 2) == "//") continue
+                if (substr(v, 1, 2) == "//") continue
                 k = trim(k); gsub(/ /, "_", k)
                 v = trim(v); gsub(/[\t\r\n]/, " ", v)
                 if (k == "" || v == "") continue
@@ -158,6 +186,37 @@ _strat_blockrec_extract_awk () {
     return 0
 }
 
+# _strat_blockrec_title BLOCK — 0 when the block opens with a TITLE line over
+# indented fields (`nokogiri (1.16.2)` over `    Author: …`, resolvectl's
+# `Cache` over `   Cache Hits: …`): an unindented first line with
+# no `:` / `=` and a letter or digit, no unindented `:` line after it, at
+# least one indented `:` line, and those lines a flat list (one indent, or
+# one colon column). The title is the record's identity — kept as
+# `title` (cleaned into _CLEANED) instead of being dropped as a non-field.
+_strat_blockrec_title () {
+    local _bt_first="${1%%$'\n'*}" _bt_rest _bt_l _bt_kv=0 _bt_ind _bt_pre
+    local _bt_i0=-1 _bt_c0=-1 _bt_si=1 _bt_sc=1 _bt_ci _bt_cc
+    [[ "$_bt_first" != [' 	']* && "$_bt_first" != *[:=]* && "$_bt_first" == *[A-Za-z0-9]* ]] || return 1
+    [[ "$1" == *$'\n'* ]] || return 1
+    _bt_rest="${1#*$'\n'}"
+    while IFS= read -r _bt_l; do
+        [[ "$_bt_l" == *:* ]] || continue
+        [[ "$_bt_l" == [' 	']*[!' 	']* ]] || return 1
+        _bt_kv=1
+        _bt_ind="${_bt_l%%[!' 	']*}"; _bt_ci=${#_bt_ind}
+        _bt_pre="${_bt_l%%:*}"; _bt_cc=$(( ${#_bt_pre} + 1 ))
+        [[ $_bt_i0 -lt 0 ]] && { _bt_i0=$_bt_ci; _bt_c0=$_bt_cc; }
+        [[ $_bt_ci -ne $_bt_i0 ]] && _bt_si=0
+        [[ $_bt_cc -ne $_bt_c0 ]] && _bt_sc=0
+    done <<< "$_bt_rest"
+    [[ $_bt_kv -eq 1 ]] || return 1
+    # a FLAT field list — every field line at one indent, or every colon in
+    # one column (right-aligned labels) — not a nested report
+    [[ $_bt_si -eq 1 || $_bt_sc -eq 1 ]] || return 1
+    _clean_value "$_bt_first"
+    [[ -n "$_CLEANED" ]]
+}
+
 strategy_extract () {
     local text="$1"
     if (( ${#text} > _FR_BIG_BYTES )); then
@@ -177,6 +236,7 @@ strategy_extract () {
         [[ -z "$_block" ]] && continue
         record_num=$((record_num + 1))
         local _prefix="record${record_num}"
+        _strat_blockrec_title "$_block" && result+="${_prefix}.title ${_CLEANED}"$'\n'
         result+="$(_tech_kv_colon "$_block" "$_prefix")"$'\n'
         result+="$(_tech_kv_equals "$_block" "$_prefix")"$'\n'
     done

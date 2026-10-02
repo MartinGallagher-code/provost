@@ -1,0 +1,5 @@
+n	key	value
+1	/dev/sda	-d scsi # /dev/sda, SCSI device
+2	/dev/sdb	-d sat # /dev/sdb [SAT], ATA device
+3	/dev/nvme0	-d nvme # /dev/nvme0, NVMe device
+4	/dev/sdc	# /dev/sdc, no device info

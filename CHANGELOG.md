@@ -1,5 +1,105 @@
 # provost — Changelog
 
+## 2026-10-02 — extract: known misparses fixed, 29 corpus gaps closed
+
+**Misparses (HANDOFF "Open").**
+- `box-table` promoted the first DATA row into the header when the column
+  names sit in the TOP BORDER (clickhouse PrettyCompact `┌─name──┬─type──┐`).
+  `_box_border_names` now reads those names (a later block repeating the
+  border is skipped), so every cell row is data. clickhouse-describe-table
+  and clickhouse-system-mutations had their manifest row counts frozen on the
+  misparse (5 → 6, 3 → 4: the inputs hold 6 and 4 data rows);
+  clickhouse-processlist / clickhouse-client-query now tidy generically too.
+- pnpm/npm audit boxes (a two-column box whose first row — severity + title,
+  a phrase — is set off by a rule, over `Label | value` rows) are a KEY/VALUE
+  BOX: every row is a `key`/`value` record, the title row included, with a
+  `box` index when several boxes repeat (`box-table`, generic — no bespoke).
+- `_tech_kv_colon` (lib/_techniques.sh) dropped every value starting
+  `http://` / `https://` (`Homepage: https://…`). Only a bare URL LINE (split
+  at its scheme colon, value `//…`) is skipped now; the block-records awk twin
+  `_strat_blockrec_extract_awk` matches byte for byte. Unblocked
+  brew-info-casks / brew-info-multi / flatpak-remotes-info and restored the
+  URL column of pip-show-multi, rpm-spec-preamble, quo-ldif-colon-values,
+  quo-recutils-colon-values.
+
+**Generic parser capabilities** (strategies/delimited + structured):
+- `box-table`: a TWO-ROW GROUPED HEADER (group row with blank or spanning
+  cells over a field row, before the first rule) names columns
+  `group_field`; spanning group cells map by divider offset; a field cell of
+  2+-space sub-labels splits into sub-columns when every data cell splits the
+  same way (cmb-double-header-color-emoji, cmb-grouped-header-progress; and
+  cmb-grouped-header-color-box no longer loses its INGRESS columns to a
+  duplicate-name collision).
+- `two-col-gap`: full-line `#` comments are skipped (/etc/hosts); a value may
+  hold a 2+-space run when row 1 is a two-label header, every value starts
+  under its label, and the inner gaps do not line up (no grid).
+- `aligned-columns`: a short abbreviated label (`Verf.`, `No.`) before a
+  header's last token no longer vetoes the header; a one-segment `Label:
+  value` caption directly above a >= 3-column header is chrome (gluster
+  `Brick:`); a SPARSE MATRIX (`_ac_sparse_grid`: ragged rows whose every
+  cell starts inside one header label's column, left to right) is a header
+  table assigned positionally — in the bash path and the big-input path (which
+  hands it back to bash). Also fixes left-packed empty cells in
+  hcloud-floating-ip-list, kubectl-api-groups, micromamba-env-list.
+- `block-records`: an unspaced `key:value` line whose rest holds a 2+-space
+  column gap (`Assets:Checking     5432.10`) is no longer key/value evidence
+  (awk screen and bash test identical); a block's TITLE line (unindented, no
+  `:`/`=`, over a flat list of indented fields — one indent or one colon
+  column) is kept as `title` instead of dropped (bash + awk twin; the twin
+  hands non-ASCII titles back to bash).
+- `ledger-balance`: currency symbols are alternatives, not a bracket (a
+  bracket matched one byte of `€`/`£` under LC_ALL=C); a multi-commodity
+  total (`$1,234.56, €890,50, -£1,200.00`) is the grand total.
+- `syslog`: indented lines under a syslog line (a traceback) continue its
+  message — not counted by detect, space-joined by extract (bash + awk twin).
+- `yaml`: declines when most top-level keys are dotted (`logo.png: PNG image
+  data, …`) — its extractor skips those keys, so the parse would drop most of
+  the input (`file -b` style output goes to labeled-records).
+- `dns-records`: a parenthesised multi-line rdata (`SOA … (` … `)`, dig
+  +multiline, DNSKEY/RRSIG) is joined; zone-file lines (no TTL, `@` / omitted
+  owner, known types only) are records, with the `$ORIGIN` / `$TTL` in effect
+  per record.
+
+**Engine.** `_match_hint` (lib/_discovery.sh): under `--generic` a row whose
+target is bespoke is passed over and a LATER matching row may route the input,
+so a tool can carry a bespoke routing row for full mode followed by a generic
+pin (`lsusb-v` → bespoke `lsusb-v`, then `lsusb-verbose` → indented-hierarchy).
+
+**Hint rows** (`extract/hints.tsv`): `lsusb-v`, `bazel-query-graph`
+(`digraph mygraph {` → brace-groups), `rsync-itemize` (itemize code + path →
+first-word-kv, paths keep their spaces), `smartctl-scan` (device + options /
+comment → first-word-kv).
+
+**Bespoke** (confidence per the rubric's sub-tiers): new `openssl-asn1parse`
+(security, 92), `systemd-analyze-time` (system, 92), `cargo-search` (build,
+92); `mtr-report` reads `mtr -z` AS columns, rows without the `|--` marker and
+names value columns from the header (best/wrst/stdev no longer dropped);
+`mariadb-innodb-status` extracts every number on its section lines (six
+fields out of 22 lines tripped the truncation guard and lost to text-lines);
+`nodetool-status` accepts ScyllaDB's Rack-less rows. Strategy count 258 → 261.
+
+**Tests / fixtures.** extract/samples (+ goldens `<strategy>@<file>.txt`):
+box-table/{named-border,kv-title,group-header,group-subcols},
+mtr-report/asn, two-col-gap/{comments-gaps,header-anchored},
+syslog/traceback, dns-records/zonefile, ledger-balance/multicurrency,
+aligned-columns/{sparse-matrix,caption-abbrev,abbrev-label}, and samples +
+goldens for the three new strategies; mtr-report / mariadb-innodb-status
+goldens updated (more columns). `test_generic_mode.sh`: labelled URLs kept.
+`tests/corpus/expected.tsv`: clickhouse-describe-table 5→6,
+clickhouse-system-mutations 3→4, nst-dig-multiline-soa 5→6 and
+nst-dns-zonefile 7→8 (every RR is a row — the SOA included),
+openssl-asn1parse 6→7 (7 element lines; the `$ openssl …` echo is not one).
+Corpus (3705 inputs): not tidy 60 → **31** — 21 closed generically (3 of
+them by a hint row), 8 by a bespoke strategy; clickhouse-processlist,
+clickhouse-client-query and rc-status moved from bespoke-only to generic.
+Generic-tidy 3533 → 3557, bespoke-only 112 → 117. 22 existing goldens change
+(all improvements: the two clickhouse header fixes, restored URL / title /
+group-header / multi-line-rdata / continuation data, sparse-grid cells under
+the right column, rsync-itemize + smartctl-scan via their hint rows); zero
+tidy→untidy. Forced routes (`_FR_BIG_BYTES=0 _FR_LANE_BYTES=0`) byte-identical
+to the default route; `_EAS_NOPRUNE=1` byte-identical in full and `--generic`
+mode; holdout 78/80 and tests/benchmark outputs unchanged.
+
 ## 2026-10-02 — batch mode no longer skips text files ending in blank lines
 
 `extract/lib/_dispatch.sh`: `--batch` decided "binary" by comparing the file

@@ -1,3 +1,3 @@
-n	Name	Version	Release	Summary	License	Group
-1	httpd	2.4.57	5.fc39	Apache HTTP Server	ASL 2.0	System Environment/Daemons
-2	mariadb	10.11.5	1.fc39	A community developed branch of MySQL	GPLv2	Applications/Databases
+n	Name	Version	Release	Summary	License	URL	Group
+1	httpd	2.4.57	5.fc39	Apache HTTP Server	ASL 2.0	https://httpd.apache.org	System Environment/Daemons
+2	mariadb	10.11.5	1.fc39	A community developed branch of MySQL	GPLv2	https://mariadb.org	Applications/Databases

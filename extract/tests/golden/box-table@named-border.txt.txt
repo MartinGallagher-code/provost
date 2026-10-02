@@ -1,0 +1,9 @@
+entry1.name event_id
+entry1.type UUID
+entry2.name ts
+entry2.type DateTime64(3)
+entry2.default_type DEFAULT
+entry3.name payload
+entry3.type String
+entry3.default_type DEFAULT
+total_entries 3

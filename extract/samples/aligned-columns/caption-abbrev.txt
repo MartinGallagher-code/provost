@@ -1,0 +1,7 @@
+Brick: node1:/bricks/brick1
+     %-latency   Avg-latency   Min-Latency   Max-Latency   No. of calls   Fop
+     ---------   -----------   -----------   -----------   ------------   ----
+      0.00          0.00 us       0.00 us       0.00 us              4   FORGET
+     18.42        112.30 us      41.00 us     820.00 us          88214   WRITE
+     41.08         88.10 us      22.00 us    1204.00 us         210442   READ
+     12.33        142.90 us      60.00 us     980.00 us          33108   LOOKUP

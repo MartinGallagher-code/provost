@@ -1,5 +1,5 @@
 n	timestamp	hostname	process	pid	message
 1	Jan 15 09:14:22	app-01	api-server	2201	Received request GET /api/v1/users
-2	Jan 15 09:14:23	app-01	api-server	2201	Unhandled exception processing request:
+2	Jan 15 09:14:23	app-01	api-server	2201	Unhandled exception processing request: java.lang.NullPointerException: Cannot invoke "User.getId()" because "user" is null at com.example.UserService.lookup(UserService.java:88) at com.example.ApiHandler.handle(ApiHandler.java:142)
 3	Jan 15 09:14:24	app-01	api-server	2201	Request completed with status 500
 4	Jan 15 09:14:30	app-01	systemd	1	api-server.service: Main process exited, code=killed, status=9/KILL

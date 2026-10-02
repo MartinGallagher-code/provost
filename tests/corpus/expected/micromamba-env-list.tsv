@@ -1,5 +1,5 @@
 n	Name	Active	Path
 1	base	*	/opt/micromamba
-2	ml	/opt/micromamba/envs/ml	
-3	bio	/opt/micromamba/envs/bio	
-4	viz	/opt/micromamba/envs/viz	
+2	ml		/opt/micromamba/envs/ml
+3	bio		/opt/micromamba/envs/bio
+4	viz		/opt/micromamba/envs/viz
