@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2026-10-14 — round 2 re-rated after the fix round; the set is now a regression measure
+
+Measurement and documentation only; no engine or parser change. The 109
+round-2 inputs were re-run on the final engine (`run.sh --round2 --tidy`,
+output byte-identical to the fix round's own run) and re-rated in default
+mode on the unchanged criteria. 87 default tidy outputs are byte-identical to
+2026-10-02 (`cmp`) and keep their rating; the 22 that changed were re-rated
+from the input and both outputs. **17 / 51 / 41 → 26 PASS / 54 PARTIAL /
+29 FAIL** (usable 62% → 73%): 5 FAIL → PASS (lsipc, ps lstart,
+pg_lsclusters, gem env, pip debug), 4 PARTIAL → PASS (set -o, mypy, Log4j,
+rake -T), 7 FAIL → PARTIAL, 6 changed but still PARTIAL, no default-mode
+regression. Line coverage against rating: no input under 97% coverage
+passes and 10 of the 19 under 95% fail, but 19 of the 29 FAILs cover ≥ 95%
+(misplacement, not loss), so at the 60% threshold it flags 2 of 29 FAILs.
+`--rank priority` now differs from the default on 5 inputs and `--multi` on
+27; those columns were not re-rated.
+- `tests/benchmark/round2/ratings.tsv`: original columns kept; new
+  `strategy_1014`, `conf_1014`, `cov_1014`, `rating_1014`, `note_1014`;
+  header comment says the set now measures regression.
+- `docs/benchmark-2026-10-02-generalisation-round2.md`: postscript
+  (2026-10-14) — headline before/after, by family, per-input changes, what
+  still fails per pattern, coverage vs rating, and the call for a round 3.
+- `tests/benchmark/README.md`: the re-rated round-2 numbers.
+
 ## 2026-10-14 — line coverage: a second quality signal, and no more silent one-section parses
 
 **Problem (round-2 benchmark, pattern 2).** A strategy that recognises ONE
