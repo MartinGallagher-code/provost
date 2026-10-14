@@ -959,19 +959,21 @@ function isunit(v) {
     return v ~ /^([KMGTPE]i?B|[KMGTPE]|[kKMGTP]?[Bb]|bytes|[mun]?s|sec|min|hours?|days?|ago|%)$/
 }
 # pcells(q): every non-empty cell of part q is a number-led value (ISNUM) /
-# a unit word or one constant short word (ISUNIT); PROWS marks the rows
-# holding a cell
-function pcells(q,    r, t, v, c, v0) {
-    ISNUM = 1; ISUNIT = 1; PROWS = ""; v0 = ""
+# a unit word or one constant short word (ISUNIT; a word is only seen to be
+# constant in 2+ rows); PROWS marks the rows holding a cell
+function pcells(q,    r, t, v, c, v0, nc, cw) {
+    ISNUM = 1; ISUNIT = 1; PROWS = ""; v0 = ""; nc = 0; cw = 0
     for (r = d0; r <= n; r++) {
         v = ""; c = 0
         for (t = FT[r]; t < FT[r] + NT[r]; t++) if (TP[t] == q) { v = (c++ ? v " " : "") TX[t] }
         if (c == 0) { PROWS = PROWS "0"; continue }
-        PROWS = PROWS "1"
+        PROWS = PROWS "1"; nc++
         if (v !~ /^[-+]?[0-9]/ || c > 1) ISNUM = 0
         if (v0 == "") v0 = v
         if (c > 1 || !(isunit(v) || (v == v0 && v ~ /^[A-Za-z]+$/ && length(v) <= 5))) ISUNIT = 0
+        if (!isunit(v)) cw = 1
     }
+    if (cw && nc < 2) ISUNIT = 0
 }
 function letter(i,    r, k, s) {
     r = (i - 1) % 26 + 1; k = int((i - 1) / 26) + 1; s = ""
@@ -1152,7 +1154,7 @@ END {
                 # (not when a bare `/` or `|` joins the tokens — one
                 # composite value, `1.2MB / 3.4MB` — nor when the values run
                 # on into a label-less segment next door)
-                allm = 1; any = 0; nu = (gm == 2); u0 = ""; uc = 1
+                allm = 1; any = 0; nu = (gm == 2); u0 = ""; uc = 1; n2 = 0
                 if (g == ng && k < ns && !SLN[k + 1]) allm = 0
                 for (r = d0; r <= n && allm; r++) {
                     c = 0; lastp = 0
@@ -1162,6 +1164,7 @@ END {
                         lastp = (TX[t] ~ /^[\/|]$/)
                         if (c == 1 && TX[t] !~ /^[-+]?[0-9]/) nu = 0
                         if (c == 2) {
+                            n2++
                             if (u0 == "") u0 = TX[t]; else if (TX[t] != u0) uc = 0
                             if (!isunit(TX[t]) && TX[t] !~ /^[A-Za-z]+$/) nu = 0
                             if (length(TX[t]) > 5 && !isunit(TX[t])) nu = 0
@@ -1170,7 +1173,9 @@ END {
                     if (c > 0) { any = 1; if (c != gm) allm = 0 }
                 }
                 # (a number and its unit, `512 MiB` / `412034 SOL`, is one
-                # value: a unit word, or one constant short word)
+                # value: a unit word, or one constant short word — constant
+                # only when 2+ rows show it: one row proves nothing)
+                if (nu && n2 < 2) uc = 0
                 if (nu && (uc || isunit(u0))) {
                     for (r = d0; r <= n && nu; r++)
                         for (t = FT[r]; t < FT[r] + NT[r]; t++)

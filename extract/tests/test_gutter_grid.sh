@@ -192,6 +192,43 @@ test_ac_preamble_fields () {
     assert_contains "$out" "scan resilver in progress" "preamble value keeps its spaces"
 }
 
+# A later line is no header when the lines above it already have the
+# table's shape: a command list whose first descriptions carry function
+# words (`Compile the current workspace`) must not lose its first rows to a
+# `clean  Remove generated artifacts` "header".
+test_ac_no_header_inside_command_list () {
+    local out; out="$(run_extract -r -f plain -s aligned-columns "$AC/command-list.txt" 2>/dev/null)"
+    assert_not_contains "$out" "Remove_generated_artifacts" "a row is not taken as the header"
+    out="$(run_extract -r -f plain --max-strategies 1 "$AC/command-list.txt" 2>/dev/null)"
+    assert_contains "$out" "build" "first command kept in the default run"
+}
+
+# ...nor when its words have the rows' shape: a +/- feature grid under
+# version lines is no table with `+archive` as a column name.
+test_ac_no_header_from_feature_grid () {
+    local out; out="$(run_extract -r -f plain -s aligned-columns "$AC/feature-grid.txt" 2>/dev/null)"
+    assert_not_contains "$out" "+archive " "a feature word is not a column name"
+    out="$(run_extract -r -f plain --max-strategies 1 "$AC/feature-grid.txt" 2>/dev/null)"
+    assert_contains "$out" "Frob 3.2.1" "version line kept"
+    assert_contains "$out" "Packaged by" "banner lines kept"
+}
+
+# A number + one short word is one value only when 2+ rows show the word
+# constant: in a ONE-row table `14  main` / `5433 down` are two columns.
+test_grid_unit_join_needs_two_rows () {
+    local out; out="$(_fr_gutter_grid 1 0 < "$AC/one-row-units.txt")"
+    assert_contains "$out" "entry1.Ver 14" "number column kept apart"
+    assert_contains "$out" "entry1.Cluster main" "word column kept apart"
+    assert_contains "$out" "entry1.Status down" "second pair kept apart"
+    out="$(_grid 'Rev Region  Size Health Owner   Mount point' '3   west    250  ok     deploy  /data/vol3')"
+    assert_contains "$out" "entry1.Size 250" "one-row number"
+    assert_contains "$out" "entry1.Health ok" "one-row short word"
+    out="$(_grid 'ID  SIZE     RAW USE  STATUS' ' 0  1.0 TiB  180 GiB  up')"
+    assert_contains "$out" "entry1.RAW_USE 180 GiB" "a real unit word still joins in one row"
+    out="$(_grid 'ID  NAME    SIZE SOL  STATE  Mount point' ' 1  alpha   412 SOL  ok     /data/a' ' 2  beta    977 SOL  ok     /data/b')"
+    assert_contains "$out" "entry2.SIZE_SOL 977 SOL" "a constant word over 2+ rows still joins"
+}
+
 test_fw_equals_rule () {
     local out; out="$(run_extract -r -f plain --max-strategies 1 "$FW/equals-rule.txt" 2>/dev/null)"
     assert_contains "$out" "row1.Image_Name System Idle Process" "multi-word cell under an == run"
@@ -269,6 +306,9 @@ run_test "aligned-columns: indented table under a title" test_ac_indented_table_
 run_test "aligned-columns: TAB banner" test_ac_tab_banner
 run_test "aligned-columns: space inside the first column" test_ac_space_in_first_column
 run_test "aligned-columns: preamble fields kept" test_ac_preamble_fields
+run_test "aligned-columns: no header inside a command list" test_ac_no_header_inside_command_list
+run_test "aligned-columns: no header from a +/- feature grid" test_ac_no_header_from_feature_grid
+run_test "grid: number + word join needs 2 rows" test_grid_unit_join_needs_two_rows
 run_test "fixed-width: == rule" test_fw_equals_rule
 run_test "fixed-width: right-aligned values wider than the rule" test_fw_right_aligned_wider_than_rule
 run_test "fixed-width: dates and empty cells" test_fw_dates_and_empty_length

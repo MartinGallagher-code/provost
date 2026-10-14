@@ -143,6 +143,27 @@ Get-Process / Get-PSDrive / Get-ChildItem / Get-NetAdapter / Get-HotFix,
 istanbul coverage table, a Windows Firewall `#Fields:` log, `shopt`, `mas
 list`, `uniq -c`, macOS `df -h`), not against the round-2 inputs.
 
+**Regression guards (follow-up, after the round-2 run).** Three guards for
+misreads the first round-2 run exposed, each built from new examples
+(`extract/samples/aligned-columns/command-list.txt`, `feature-grid.txt`,
+`one-row-units.txt`), not the round-2 inputs. (1) The later-header banner
+scan (`aligned-columns.sh`, LEADING BANNERS) now rejects a candidate header
+when a line it would cut starts in the header's column with 2+ segments.
+Such a line is a row, as in a command list whose first descriptions contain
+function words (`build  Compile the current workspace` ...
+`clean  Remove generated artifacts`). (2) The same scan rejects a candidate
+whose words have the rows' shape: `+`/`-` prefixed flag words over a row
+that has them too, such as a `+archive  +color  -gpu` feature grid under
+version lines. In both cases nothing is cut and the version and banner
+lines stay. (3) The gutter grid's number+unit join (`_FR_AWK_GRID`, both
+the compound-label split veto and the one-space-gutter join in `pcells`)
+accepts a constant short word as a unit only when 2+ rows show it.
+In a one-row table, `Ver Cluster` over `14  main` and `Port Status` over
+`5433 down` are now four columns. Real unit words (`GiB`, `ms`, `%`, ...)
+still join in a single row. Tests: three new cases in
+`extract/tests/test_gutter_grid.sh` (27 total) and the golden
+`aligned-columns@one-row-units.txt.txt`. Corpus goldens unchanged.
+
 **Gutter grid** (`extract/lib/_helpers.sh` `_FR_AWK_GRID` /
 `_fr_gutter_grid NH RL [PREFIX]`, new; one mawk-safe awk program, run under
 `LC_ALL=C`). Cells by character offset: every position some line prints on

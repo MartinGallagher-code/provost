@@ -432,6 +432,24 @@ _ac_body_compute () {
                     _lb_hind="${_lb_hl%%[![:space:]]*}"
                     _lb_r1="${_FR_LINES[${_lb_nbi[$((_lb_j + 1))]}]}"; _lb_r2="${_FR_LINES[${_lb_nbi[$((_lb_j + 2))]}]}"
                     [[ "${_lb_r1%%[![:space:]]*}" == "$_lb_hind" && "${_lb_r2%%[![:space:]]*}" == "$_lb_hind" ]] || continue
+                    # no header when the lines it would cut already have the
+                    # table's shape — a line above starting in the same column
+                    # with 2+ segments is a ROW (a command list whose first
+                    # descriptions carry function words: `build  Compile the
+                    # workspace` ... `config  Inspect configuration values`)
+                    local _lb_ab=0 _lb_q
+                    for ((_lb_q = _lb_f + 1; _lb_q < _lb_h; _lb_q++)); do
+                        _lb_l="${_FR_LINES[$_lb_q]}"
+                        [[ "$_lb_l" == *[![:space:]]* && "${_lb_l%%[![:space:]]*}" == "$_lb_hind" ]] || continue
+                        _ac_seg_v "$_lb_l"; [[ $_AC_SEG -ge 2 ]] && { _lb_ab=1; break; }
+                    done
+                    [[ $_lb_ab -eq 0 ]] || continue
+                    # ...nor when its words have the rows' shape: `+`/`-`
+                    # prefixed flag words over more of them (a feature grid
+                    # under version lines, `+archive  +color  -gpu`)
+                    if [[ "$_lb_hl" =~ (^|[[:space:]])[-+][A-Za-z] && "$_lb_r1" =~ (^|[[:space:]])[-+][A-Za-z] ]]; then
+                        continue
+                    fi
                     # the table runs to the end: no blank-separated block after it
                     local _lb_seenb=0 _lb_tail=1 _lb_m _lb_rows=()
                     for ((_lb_m = _lb_h; _lb_m < _lb_n && _lb_m < _lb_h + 400; _lb_m++)); do
