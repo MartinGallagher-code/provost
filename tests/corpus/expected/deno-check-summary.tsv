@@ -1,2 +1,5 @@
-Check_file	error	server.listen(port).at_file	error	server.listen(port).at_file
-///home/dev/app/src/main.ts	TS2345 [ERROR]: Argument of type 'string' is not assignable to parameter of type 'number'.	///home/dev/app/src/main.ts:22:17	TS2554 [ERROR]: Expected 2 arguments, but got 1.	///home/dev/app/src/db.ts:55:3
+n	level	code	level2	message	detail
+1				Check file:///home/dev/app/src/main.ts	
+2	error	TS2345	ERROR	Argument of type 'string' is not assignable to parameter of type 'number'.	server.listen(port); at file:///home/dev/app/src/main.ts:22:17
+3	error	TS2554	ERROR	Expected 2 arguments, but got 1.	at file:///home/dev/app/src/db.ts:55:3
+4				Found 2 errors.	

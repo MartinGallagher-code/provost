@@ -1,0 +1,52 @@
+entry1.section 
+entry1.name 
+entry1.description Usage:  docker [OPTIONS] COMMAND
+entry2.section 
+entry2.name 
+entry2.description A self-sufficient runtime for containers
+entry3.section Common Commands
+entry3.name run
+entry3.description Create and run a new container from an image
+entry4.section Common Commands
+entry4.name exec
+entry4.description Execute a command in a running container
+entry5.section Common Commands
+entry5.name ps
+entry5.description List containers
+entry6.section Common Commands
+entry6.name build
+entry6.description Build an image from a Dockerfile
+entry7.section Common Commands
+entry7.name pull
+entry7.description Download an image from a registry
+entry8.section Management Commands
+entry8.name builder
+entry8.description Manage builds
+entry9.section Management Commands
+entry9.name container
+entry9.description Manage containers
+entry10.section Management Commands
+entry10.name image
+entry10.description Manage images
+entry11.section Management Commands
+entry11.name network
+entry11.description Manage networks
+entry12.section Global Options
+entry12.name --config string
+entry12.description Location of client config files (default "/root/.docker")
+entry13.section Global Options
+entry13.name -c, --context string
+entry13.description Name of the context to use to connect to the daemon
+entry14.section Global Options
+entry14.name -D, --debug
+entry14.description Enable debug mode
+entry15.section Global Options
+entry15.name -H, --host list
+entry15.description Daemon socket to connect to
+entry16.section Global Options
+entry16.name -l, --log-level string
+entry16.description Set the logging level ("debug", "info", "warn", "error", "fatal") (default "info")
+entry17.section 
+entry17.name 
+entry17.description Run 'docker COMMAND --help' for more information on a command.
+total_entries 17

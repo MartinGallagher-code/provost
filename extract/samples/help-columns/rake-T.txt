@@ -1,0 +1,7 @@
+rake build            # Build web_shop-2.3.0.gem into the pkg directory
+rake clean            # Remove any temporary products
+rake clobber          # Remove any generated files
+rake db:migrate       # Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
+rake db:seed          # Load the seed data from db/seeds.rb
+rake install          # Build and install web_shop-2.3.0.gem into system gems
+rake release[remote]  # Create tag v2.3.0 and build and push web_shop-2.3.0.gem to rubygems.org

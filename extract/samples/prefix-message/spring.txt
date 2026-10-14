@@ -1,0 +1,9 @@
+2026-10-14T09:00:00.512+02:00  INFO 48211 --- [           main] com.acme.shop.ShopApplication            : Starting ShopApplication v2.4.1 using Java 21.0.2 with PID 48211
+2026-10-14T09:00:00.517+02:00  INFO 48211 --- [           main] com.acme.shop.ShopApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-10-14T09:00:02.040+02:00  INFO 48211 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-10-14T09:00:03.882+02:00  WARN 48211 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default.
+2026-10-14T09:00:04.210+02:00  INFO 48211 --- [           main] com.acme.shop.ShopApplication            : Started ShopApplication in 4.1 seconds (process running for 4.6)
+2026-10-14T09:03:17.091+02:00 ERROR 48211 --- [nio-8080-exec-3] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
+java.lang.IllegalStateException: Cart 77 is locked
+	at com.acme.shop.cart.CartService.checkout(CartService.java:88)
+	at com.acme.shop.web.CartController.checkout(CartController.java:41)

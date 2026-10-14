@@ -1,0 +1,31 @@
+entry1.timestamp 2026-10-14T08:00:01+0000
+entry1.host web01
+entry1.process systemd
+entry1.pid 1
+entry1.message Starting Daily apt download activities...
+entry2.timestamp 2026-10-14T08:00:03+0000
+entry2.host web01
+entry2.process systemd
+entry2.pid 1
+entry2.message apt-daily.service: Deactivated successfully.
+entry3.timestamp 2026-10-14T08:00:03+0000
+entry3.host web01
+entry3.process systemd
+entry3.pid 1
+entry3.message Finished Daily apt download activities.
+entry4.timestamp 2026-10-14T08:14:52+0000
+entry4.host web01
+entry4.process sshd
+entry4.pid 20431
+entry4.message Accepted publickey for deploy from 10.0.0.5 port 50122 ssh2: ED25519 SHA256:abc
+entry5.timestamp 2026-10-14T08:14:52+0000
+entry5.host web01
+entry5.process sshd
+entry5.pid 20431
+entry5.message pam_unix(sshd:session): session opened for user deploy(uid=1001) by (uid=0)
+entry6.timestamp 2026-10-14T08:20:00+0000
+entry6.host web01
+entry6.process CRON
+entry6.pid 20502
+entry6.message (root) CMD (/usr/local/bin/backup.sh)
+total_entries 6

@@ -1,0 +1,6 @@
+2026-10-14T08:00:01+0000 web01 systemd[1]: Starting Daily apt download activities...
+2026-10-14T08:00:03+0000 web01 systemd[1]: apt-daily.service: Deactivated successfully.
+2026-10-14T08:00:03+0000 web01 systemd[1]: Finished Daily apt download activities.
+2026-10-14T08:14:52+0000 web01 sshd[20431]: Accepted publickey for deploy from 10.0.0.5 port 50122 ssh2: ED25519 SHA256:abc
+2026-10-14T08:14:52+0000 web01 sshd[20431]: pam_unix(sshd:session): session opened for user deploy(uid=1001) by (uid=0)
+2026-10-14T08:20:00+0000 web01 CRON[20502]: (root) CMD (/usr/local/bin/backup.sh)

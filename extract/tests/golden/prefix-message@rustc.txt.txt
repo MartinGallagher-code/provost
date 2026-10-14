@@ -1,0 +1,43 @@
+entry1.severity warning
+entry1.code 
+entry1.file src/db.rs
+entry1.line 14
+entry1.col 9
+entry1.message unused variable: `conn`
+entry1.detail |; 14 |     let conn = pool.get()?;; |         ^^^^ help: if this is intentional, prefix it with an underscore: `_conn`; |; = note: `#[warn(unused_variables)]` on by default
+entry2.severity error
+entry2.code E0308
+entry2.file src/db.rs
+entry2.line 31
+entry2.col 20
+entry2.message mismatched types
+entry2.detail |; 31 |     let id: u64 = row.get("id");; |             ---   ^^^^^^^^^^^^^ expected `u64`, found `i64`; |             |; |             expected due to this
+entry3.severity error
+entry3.code E0425
+entry3.file src/main.rs
+entry3.line 8
+entry3.col 5
+entry3.message cannot find value `cfg` in this scope
+entry3.detail |; 8 |     cfg.validate();; |     ^^^ not found in this scope
+entry4.severity error
+entry4.code 
+entry4.file 
+entry4.line 
+entry4.col 
+entry4.message aborting due to 2 previous errors; 1 warning emitted
+entry4.detail 
+entry5.severity 
+entry5.code 
+entry5.file 
+entry5.line 
+entry5.col 
+entry5.message Some errors have detailed explanations: E0308, E0425.
+entry5.detail 
+entry6.severity 
+entry6.code 
+entry6.file 
+entry6.line 
+entry6.col 
+entry6.message For more information about an error, try `rustc --explain E0308`.
+entry6.detail 
+total_entries 6

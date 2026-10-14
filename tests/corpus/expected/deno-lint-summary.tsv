@@ -1,8 +1,6 @@
-n	error[no-explicit-any]:	`any`	type	is	not	allowed
-1	-->	src/handler.ts:14:23				
-2	error[require-await]:	Async	function	has	no	await
-3	-->	src/db.ts:40:1				
-4	error[no-unused-vars]:	`parseConfig`	is	never	used	
-5	-->	src/config.ts:8:10				
-6	Found	3	problems	(3	errors,	0 warnings)
-7	Checked	24	files			
+n	severity	code	file	line	col	message
+1	error	no-explicit-any	src/handler.ts	14	23	`any` type is not allowed
+2	error	require-await	src/db.ts	40	1	Async function has no await
+3	error	no-unused-vars	src/config.ts	8	10	`parseConfig` is never used
+4						Found 3 problems (3 errors, 0 warnings)
+5						Checked 24 files

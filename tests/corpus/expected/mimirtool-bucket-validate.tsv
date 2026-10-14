@@ -1,8 +1,8 @@
-n	A	B	C	D	E
-1	INFO	validating	bucket	configuration	backend=s3
-2	INFO	checking	bucket	access	bucket=mimir-blocks
-3	INFO	bucket	is	writable	bucket=mimir-blocks
-4	INFO	bucket	is	readable	bucket=mimir-blocks
-5	INFO	validating	bucket	configuration	backend=s3 bucket=mimir-ruler
-6	INFO	bucket	is	writable	bucket=mimir-ruler
-7	INFO	validation	completed	successfully	
+n	level	message
+1	INFO	validating bucket configuration backend=s3
+2	INFO	checking bucket access bucket=mimir-blocks
+3	INFO	bucket is writable bucket=mimir-blocks
+4	INFO	bucket is readable bucket=mimir-blocks
+5	INFO	validating bucket configuration backend=s3 bucket=mimir-ruler
+6	INFO	bucket is writable bucket=mimir-ruler
+7	INFO	validation completed successfully

@@ -1,4 +1,4 @@
-n	A	B	C	D
-1	build	compiles	the	binary
-2	test	runs	the	tests
-3	clean	removes	build	artifacts
+n	section	name	description
+1	Targets	build	compiles the binary
+2	Targets	test	runs the tests
+3	Targets	clean	removes build artifacts

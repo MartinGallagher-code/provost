@@ -1,0 +1,16 @@
+entry1.section Lifecycle scripts included in web-shop@2.3.0
+entry1.name start
+entry1.description node dist/server.js
+entry2.section Lifecycle scripts included in web-shop@2.3.0
+entry2.name test
+entry2.description vitest run --coverage
+entry3.section available via `npm run-script`
+entry3.name build
+entry3.description tsc -p tsconfig.build.json
+entry4.section available via `npm run-script`
+entry4.name lint
+entry4.description eslint "src/**/*.ts"
+entry5.section available via `npm run-script`
+entry5.name dev
+entry5.description nodemon --watch src --exec ts-node src/server.ts
+total_entries 5
