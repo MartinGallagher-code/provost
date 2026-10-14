@@ -81,7 +81,7 @@ _worker () {
     local gwide gstrat="" gconf=0
     if [[ -n "$PRE_DIR" && -f "$PRE_DIR/$name.meta" ]]; then
         gwide="$(cat "$PRE_DIR/$name.wide" 2>/dev/null || true)"
-        IFS=$'\t' read -r _ gstrat gconf < "$PRE_DIR/$name.meta" || true
+        IFS=$'\t' read -r _ gstrat gconf _ < "$PRE_DIR/$name.meta" || true
         [[ -z "$gstrat" ]] && gstrat="(none)"
         [[ -z "$gconf" ]] && gconf=0
     else
@@ -100,7 +100,7 @@ _worker () {
         local fwide
         if [[ -n "$PRE_FULL" && -f "$PRE_FULL/$name.meta" ]]; then
             fwide="$(cat "$PRE_FULL/$name.wide" 2>/dev/null || true)"
-            IFS=$'\t' read -r _ fstrat fconf < "$PRE_FULL/$name.meta" || true
+            IFS=$'\t' read -r _ fstrat fconf _ < "$PRE_FULL/$name.meta" || true
         else
             fwide="$(env -u GIT_DIR bash "$ENGINE" --emit-meta -f tsv --max-strategies 1 "$f" 2>"$em")"
             fstrat="$(awk -F'\t' '/^__EXTRACT_META__/{s=$2} END{print s}' "$em")"

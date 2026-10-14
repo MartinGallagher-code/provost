@@ -750,7 +750,7 @@ _ingest () {
             "$in" > "$body"
     fi
 
-    local metaf="$tmp/meta.txt" strategy="" conf=""
+    local metaf="$tmp/meta.txt" strategy="" conf="" cov=""
     # Extra strategy dir (deframe et al.): --plugin-dir / $PROVOST_PLUGIN_DIR is
     # forwarded to the engine, which already searches it alongside its own
     # strategies/ and the ~/.config/provost/strategies user dir.
@@ -803,9 +803,13 @@ _ingest () {
         _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
             ${eargs[@]+"${eargs[@]}"} \
             --emit-meta -f tsv --max-strategies 1 "$body" >"$tmp/wide.tsv" 2>"$metaf" || true
-        IFS=$'\t' read -r strategy conf < <(awk -F'\t' \
-            '/^__EXTRACT_META__/ { s = $2; c = $3 } END { printf "%s\t%s\n", s, c }' "$metaf" 2>/dev/null) || true
+        # The meta line also carries the winner's LINE COVERAGE: the share of
+        # the input's non-blank lines that reached the dataset ('-' = not
+        # measured, e.g. a very large input).
+        IFS=$'\t' read -r strategy conf cov < <(awk -F'\t' \
+            '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4 } END { printf "%s\t%s\t%s\n", s, c, v }' "$metaf" 2>/dev/null) || true
         [[ "$conf" =~ ^[0-9]{1,9}$ ]] || conf=0
+        [[ "$cov" =~ ^[0-9]{1,3}$ ]] || cov=""
 
         # Build the content to file (header + data rows), pre-#-index, for both
         # the matched and the held-back (unsorted) paths.
@@ -891,6 +895,7 @@ _ingest () {
         printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$(_meta_safe "$all_strats")"
         printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
         printf 'row_ids\t%s\n' "$( (( totalrows > 0 )) && echo "$firstid-$((nextid-1))" || echo none)"
+        [[ -n "$cov" && -z "$reason" ]] && printf 'coverage\t%s\n' "$cov"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
@@ -924,7 +929,12 @@ _ingest () {
             info "      ${out_names[j]}  ${out_ranges[j]}  (strategy ${ds_strategy[j]}, conf ${ds_conf[j]})"
         done
     else
-        ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf) — $((fields-1)) field(s)."
+        ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf${cov:+, coverage $cov%}) — $((fields-1)) field(s)."
+        # Low line coverage: the parse kept only part of the input. Say so —
+        # silently filing a fragment is the failure this guards against.
+        if [[ -n "$cov" ]] && (( cov < 60 )); then
+            info "      only $cov% of the input's lines reached '$final'; the whole input stays with capture $id ('provost source'), and --multi files each section as a dataset of its own."
+        fi
     fi
     rm -rf "$tmp"
 }
@@ -1716,7 +1726,7 @@ cmd_rm () {
                         for (i = 1; i <= nd; i++) if (dn[i] in del) { drop[i] = 1; removed = removed (removed == "" ? "" : ",") dn[i] } else kept++
                         for (ln = 1; ln <= NR; ln++) {
                             k = key[ln]; v = val[ln]
-                            if (k == "dataset" || k == "strategy" || k == "confidence") {
+                            if (k == "dataset" || k == "strategy" || k == "confidence" || k == "coverage") {
                                 m = split(v, p, ","); v = ""
                                 for (i = 1; i <= m; i++) if (!(i in drop)) v = v (v == "" ? "" : ",") p[i]
                             } else if (k == "dataset_rows") {
@@ -1907,6 +1917,17 @@ MULTIPLE DATASETS PER INPUT (--multi)
     consecutively across them and 'provost source N' still returns the whole
     original input. 'provost log' shows the comma-joined list; the capture's
     meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
+
+LINE COVERAGE
+    A capture reports its coverage: the share of the input's non-blank lines
+    that reached the dataset (shown after the confidence, recorded as
+    'coverage' in meta.tsv; not measured above 128 KB). Confidence says how sure
+    the engine is of the FORMAT; coverage says how much of the input the parse
+    KEPT. When the parse ranked first keeps under 60% of the lines — one section
+    of a multi-section report, say — the engine tries a lossless key/value parse
+    of the whole report (one row per key, list item and section) and files it
+    instead if it keeps materially more. A capture still filed under 60% says
+    so; the whole input is kept with the capture either way ('provost source').
 
 METADATA PROLOGUE
     A leading run of '#%' lines on injected input is treated as capture context,

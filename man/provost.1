@@ -151,6 +151,17 @@ A capture whose columns differ from the existing dataset's is reconciled into
 it (columns unioned) when the overlap is at least
 \fBPROVOST_RECONCILE_OVERLAP\fR percent, else it goes to a variant
 \fINAME\fR\fB.v2\fR, \fB.v3\fR, ...
+.SH LINE COVERAGE
+A capture reports its \fIcoverage\fR: the share of the input's non-blank lines
+that reached the dataset (shown after the confidence and recorded as
+\fBcoverage\fR in the capture's \fImeta.tsv\fR; not measured above 128 KB).
+Confidence says how sure the engine is of the format; coverage says how much of
+the input the parse kept. When the parse ranked first keeps under 60% of the
+lines \(em one section of a multi-section report \(em the engine tries a
+lossless key/value parse of the whole report (one row per key, list item and
+section) and files that instead if it keeps materially more. A capture still
+filed under 60% says so; the whole input is kept with the capture either way
+(\fBprovost source\fR).
 .SH FOREGROUND AND BACKGROUND
 From an interactive terminal a capture runs in the background; from a script or
 pipeline it runs in the foreground, so

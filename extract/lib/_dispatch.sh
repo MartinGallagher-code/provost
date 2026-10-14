@@ -196,6 +196,7 @@ run_batch_mode () {
         # path never noticed because it doesn't emit the winner.
         _WINNER_NAME=""
         _WINNER_CONF=0
+        _WINNER_COV=""
 
         # Run strategies (auto only; --chain and --replay are excluded by conflicts)
         run_auto_strategies
@@ -235,7 +236,7 @@ run_batch_mode () {
                     esac
                 fi
             } > "$_OPT_batch_out/$_bo_name.wide"
-            printf '__EXTRACT_META__\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" \
+            printf '__EXTRACT_META__\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" \
                 > "$_OPT_batch_out/$_bo_name.meta"
             _bany=1
             continue
@@ -1035,7 +1036,7 @@ run_multi_mode () {
                 continue
             fi
             _CLEAN_TEXT_CACHE=""; _CLEAN_TEXT_DONE=0
-            _WINNER_NAME=""; _WINNER_CONF=0
+            _WINNER_NAME=""; _WINNER_CONF=0; _WINNER_COV=""
             output=""
             run_auto_strategies
             if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then

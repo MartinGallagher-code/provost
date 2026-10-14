@@ -1,4 +1,4 @@
-n	acoustic
-1	not supported
-2	128 (128=quiet ... 254=fast)
-3	254 (128=quiet ... 254=fast)
+n	section	key	value
+1	/dev/sda	acoustic	not supported
+2	/dev/sdb	acoustic	128 (128=quiet ... 254=fast)
+3	/dev/sdc	acoustic	254 (128=quiet ... 254=fast)

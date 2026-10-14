@@ -1,3 +1,18 @@
-n	pool	state	status	action	scan	errors
-1	tank	ONLINE	One or more devices has experienced an unrecoverable error.	Determine if the device needs to be replaced.	scrub repaired 0B in 04:12:33 with 0 errors on Sun Jul  6 04:12:33 2026	
-3						No known data errors
+n	key	value
+1	pool	tank
+2	state	ONLINE
+3	status	One or more devices has experienced an unrecoverable error.
+4	action	Determine if the device needs to be replaced.
+5	scan	scrub repaired 0B in 04:12:33 with 0 errors on Sun Jul  6 04:12:33 2026
+6	config	NAME                        STATE     READ WRITE CKSUM
+7	config	tank                        ONLINE       0     0     0
+8	config	raidz2-0                  ONLINE       0     0     0
+9	config	ata-WDC_WD40EFRX-001    ONLINE       0     0     0
+10	config	ata-WDC_WD40EFRX-002    ONLINE       0     0     2
+11	config	ata-WDC_WD40EFRX-003    ONLINE       0     0     0
+12	config	ata-WDC_WD40EFRX-004    ONLINE       0     0     0
+13	config	logs
+14	config	nvme0n1p1                 ONLINE       0     0     0
+15	config	cache
+16	config	nvme0n1p2                 ONLINE       0     0     0
+17	errors	No known data errors

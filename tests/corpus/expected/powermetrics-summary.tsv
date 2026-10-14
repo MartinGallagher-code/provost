@@ -1,4 +1,9 @@
-n	***_Sampled_system_activity_(2026-07-11_09	GPU_active_residency	GPU_Power	CPU_Power	Package_Power
-1	12:44 -0700) ***				
-5		38.42%	1204 mW		
-7				8820 mW	14402 mW
+n	section	key	value
+1			Sampled system activity (2026-07-11 09:12:44 -0700)
+2	Processor usage		Cluster       Active   Freq(MHz)   Idle(%)
+3	Processor usage		E-Cluster      12.40      1024.0    87.60
+4	Processor usage		P-Cluster      44.20      3204.0    55.80
+5	GPU usage	GPU active residency	38.42%
+6	GPU usage	GPU Power	1204 mW
+7	CPU Power	CPU Power	8820 mW
+8	CPU Power	Package Power	14402 mW

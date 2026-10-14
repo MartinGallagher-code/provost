@@ -1,0 +1,172 @@
+entry1.section 
+entry1.key name of display
+entry1.value :0
+entry2.section 
+entry2.key version number
+entry2.value 11.0
+entry3.section 
+entry3.key vendor string
+entry3.value The X.Org Foundation
+entry4.section 
+entry4.key vendor release number
+entry4.value 12101011
+entry5.section 
+entry5.key X.Org version
+entry5.value 21.1.11
+entry6.section 
+entry6.key maximum request size
+entry6.value 16777212 bytes
+entry7.section 
+entry7.key motion buffer size
+entry7.value 256
+entry8.section 
+entry8.key bitmap unit, bit order, padding
+entry8.value 32, LSBFirst, 32
+entry9.section 
+entry9.key image byte order
+entry9.value LSBFirst
+entry10.section 
+entry10.key number of supported pixmap formats
+entry10.value 7
+entry11.section 
+entry11.key supported pixmap formats
+entry11.value depth 1, bits_per_pixel 1, scanline_pad 32
+entry12.section 
+entry12.key supported pixmap formats
+entry12.value depth 4, bits_per_pixel 8, scanline_pad 32
+entry13.section 
+entry13.key supported pixmap formats
+entry13.value depth 8, bits_per_pixel 8, scanline_pad 32
+entry14.section 
+entry14.key supported pixmap formats
+entry14.value depth 15, bits_per_pixel 16, scanline_pad 32
+entry15.section 
+entry15.key supported pixmap formats
+entry15.value depth 16, bits_per_pixel 16, scanline_pad 32
+entry16.section 
+entry16.key supported pixmap formats
+entry16.value depth 24, bits_per_pixel 32, scanline_pad 32
+entry17.section 
+entry17.key supported pixmap formats
+entry17.value depth 32, bits_per_pixel 32, scanline_pad 32
+entry18.section 
+entry18.key keycode range
+entry18.value minimum 8, maximum 255
+entry19.section 
+entry19.key focus
+entry19.value window 0x2a00006, revert to Parent
+entry20.section 
+entry20.key number of extensions
+entry20.value 23
+entry21.section 
+entry21.key number of extensions
+entry21.value BIG-REQUESTS
+entry22.section 
+entry22.key number of extensions
+entry22.value Composite
+entry23.section 
+entry23.key number of extensions
+entry23.value DAMAGE
+entry24.section 
+entry24.key number of extensions
+entry24.value DOUBLE-BUFFER
+entry25.section 
+entry25.key number of extensions
+entry25.value DPMS
+entry26.section 
+entry26.key number of extensions
+entry26.value DRI2
+entry27.section 
+entry27.key number of extensions
+entry27.value DRI3
+entry28.section 
+entry28.key number of extensions
+entry28.value GLX
+entry29.section 
+entry29.key number of extensions
+entry29.value Generic Event Extension
+entry30.section 
+entry30.key number of extensions
+entry30.value MIT-SCREEN-SAVER
+entry31.section 
+entry31.key number of extensions
+entry31.value MIT-SHM
+entry32.section 
+entry32.key number of extensions
+entry32.value Present
+entry33.section 
+entry33.key number of extensions
+entry33.value RANDR
+entry34.section 
+entry34.key number of extensions
+entry34.value RECORD
+entry35.section 
+entry35.key number of extensions
+entry35.value RENDER
+entry36.section 
+entry36.key number of extensions
+entry36.value SECURITY
+entry37.section 
+entry37.key number of extensions
+entry37.value SHAPE
+entry38.section 
+entry38.key number of extensions
+entry38.value SYNC
+entry39.section 
+entry39.key number of extensions
+entry39.value X-Resource
+entry40.section 
+entry40.key number of extensions
+entry40.value XC-MISC
+entry41.section 
+entry41.key number of extensions
+entry41.value XFIXES
+entry42.section 
+entry42.key number of extensions
+entry42.value XINERAMA
+entry43.section 
+entry43.key number of extensions
+entry43.value XInputExtension
+entry44.section 
+entry44.key default screen number
+entry44.value 0
+entry45.section 
+entry45.key number of screens
+entry45.value 1
+entry46.section screen #0
+entry46.key dimensions
+entry46.value 2560x1440 pixels (677x381 millimeters)
+entry47.section screen #0
+entry47.key resolution
+entry47.value 96x96 dots per inch
+entry48.section screen #0
+entry48.key depths (7)
+entry48.value 24, 1, 4, 8, 15, 16, 32
+entry49.section screen #0
+entry49.key root window id
+entry49.value 0x1d6
+entry50.section screen #0
+entry50.key depth of root window
+entry50.value 24 planes
+entry51.section screen #0
+entry51.key number of colormaps
+entry51.value minimum 1, maximum 1
+entry52.section screen #0
+entry52.key default colormap
+entry52.value 0x22
+entry53.section screen #0
+entry53.key default number of colormap cells
+entry53.value 256
+entry54.section screen #0
+entry54.key preallocated pixels
+entry54.value black 0, white 16777215
+entry55.section screen #0
+entry55.key options
+entry55.value backing-store WHEN MAPPED, save-unders NO
+entry56.section screen #0
+entry56.key largest cursor
+entry56.value 256x256
+entry57.section screen #0
+entry57.key current input event mask
+entry57.value 0xda4033
+total_entries 57

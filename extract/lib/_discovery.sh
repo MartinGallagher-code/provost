@@ -1354,8 +1354,333 @@ _parse_is_truncated () {
     [[ "$_cov" -lt 50 ]]
 }
 
+# LINE COVERAGE — the second quality signal next to confidence.
+#
+# Confidence says how sure a detector is that it recognises the input; it
+# says nothing about how MUCH of the input the extract kept. A strategy that
+# recognises one section of a multi-section report (a `--version` banner over
+# five algorithm lists, the scalar lines of an env dump over its path lists)
+# claims the whole input at full confidence and silently drops the rest, and
+# the truncation guard cannot see it when the kept part is wide.
+#
+# Coverage = the share of the input's non-blank lines that contributed to the
+# parse. A line CONTRIBUTED when more than half of its significant tokens
+# appear somewhere in the parse (field names count: a header word promoted to
+# a column name survived). Tokens split at blanks and at the structural
+# punctuation `= : , ; |`, quotes, brackets and `_` — so `KEY=value`,
+# `key:value`, `a,b` and `_`-joined names split the same way on both sides —
+# with edge punctuation stripped, case-folded; paths, URLs, dotted versions
+# and dashed names stay WHOLE, so a dropped `/home/dev/.conda/envs` is not
+# vouched for by `home`, `dev` and `envs` elsewhere. Two allowances for parses
+# that legitimately cut a token: the parse side also offers each `.` / `/` /
+# `-` part of its tokens (a folded `apps.http.servers` name, a
+# `Summary.Requests/sec` column), and a dashed input token counts when every
+# dash part is present (`glibc-2.34-60.el9` split into name and version). A
+# token is SIGNIFICANT when it holds a letter or is at least 3 characters
+# long: a dropped `colorama==0.4.6` must not pass on its `0` / `4` / `6`; a
+# line of nothing but short numbers is judged on all of them. Lines without a
+# single token (rules, box glyphs) and lines the tool marks as comments
+# (first non-blank byte `#` or `;`) are not counted.
+#
+# It is a cheap set test — one awk pass over parse + input, no parsing — so
+# it can only OVER-estimate: a dropped line whose words all occur elsewhere
+# in the parse counts as covered. Low coverage is therefore conclusive.
+#
+# Measured on inputs up to _FR_COV_BYTES (128 KB; a token set of a 10 MB
+# capture costs seconds, and the reports this exists for are small). Above
+# it — or for an empty parse — _COV is "" (not measured), which nothing
+# treats as low. Sets _COV (0-100 or ""), _COV_LINES (lines counted) and
+# _COV_HIT (lines covered).
+_FR_COV_BYTES="${_FR_COV_BYTES:-131072}"
+[[ "$_FR_COV_BYTES" =~ ^-?[0-9]+$ ]] || _FR_COV_BYTES=131072
+_FR_COV_AWK='
+    # tokens: split at blanks and the structural punctuation = : , ; | quotes
+    # brackets and _, edge punctuation stripped, case-folded; bytes outside
+    # printable ASCII split too (box glyphs, tree art)
+    function toks(s,   n, i, m, t) {
+        s = tolower(s); gsub(/[^ -~]/, " ", s)
+        n = split(s, _raw, /[] \t=:,;|"`()[{}<>_]+/); m = 0
+        for (i = 1; i <= n; i++) {
+            t = _raw[i]
+            gsub(/\047/, "", t)
+            if (t == "") continue
+            if (t ~ /^[^a-z0-9]/ || t ~ /[^a-z0-9]$/) {
+                gsub(/^[^a-z0-9]+/, "", t); gsub(/[^a-z0-9]+$/, "", t)
+                if (t == "") continue
+            }
+            _tok[++m] = t
+        }
+        return m
+    }
+    # input token present: whole, or (a dashed compound) every dash part
+    function has(t,   k, j) {
+        if (t in seen) return 1
+        if (index(t, "-") == 0) return 0
+        k = split(t, _c, "-")
+        for (j = 1; j <= k; j++) if (_c[j] != "" && !(_c[j] in seen)) return 0
+        return 1
+    }
+    function addparts(t, re,   k, j) {
+        k = split(t, _d, re)
+        for (j = 1; j <= k; j++) if (_d[j] != "") seen[_d[j]] = 1
+    }
+    NR == FNR {
+        n = toks($0)
+        for (i = 1; i <= n; i++) {
+            t = _tok[i]; seen[t] = 1
+            if (t ~ /[-.\/]/) {
+                addparts(t, "."); addparts(t, "/"); addparts(t, "-")
+                addparts(t, "[-./]")
+            }
+        }
+        next
+    }
+    {
+        # A line the tool itself marks as a comment (`#`, `;`) is chrome, not
+        # data a parse owes anything to (the `;;` metadata block of dig).
+        if ($0 ~ /^[ \t]*[#;]/) next
+        n = toks($0)
+        if (n == 0) next
+        sig = 0; hit = 0; asig = 0; ahit = 0
+        for (i = 1; i <= n; i++) {
+            t = _tok[i]; h = has(t)
+            asig++; ahit += h
+            if (t ~ /[a-z]/ || length(t) >= 3) { sig++; hit += h }
+        }
+        if (sig == 0) { sig = asig; hit = ahit }
+        nl++
+        if (hit * 2 > sig) cov++
+    }
+    END { if (nl == 0) print 100, 0, 0; else printf "%d %d %d\n", (cov * 100) / nl, nl, cov + 0 }
+'
+_parse_coverage () {
+    local _res="$1" _resf="${2:-}" _pc_out
+    _COV=""; _COV_LINES=0; _COV_HIT=0
+    [[ "$_FR_COV_BYTES" -ge 0 ]] || return 0
+    (( ${#text} <= _FR_COV_BYTES )) || return 0
+    if [[ -n "$_resf" ]]; then
+        _pc_out=$(LC_ALL=C awk "$_FR_COV_AWK" "$_resf" <(printf '%s\n' "$text"))
+    else
+        [[ -n "$_res" ]] || return 0
+        _pc_out=$(LC_ALL=C awk "$_FR_COV_AWK" <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+    fi
+    [[ "$_pc_out" =~ ^([0-9]+)\ ([0-9]+)\ ([0-9]+)$ ]] || return 0
+    _COV="${BASH_REMATCH[1]}"; _COV_LINES="${BASH_REMATCH[2]}"; _COV_HIT="${BASH_REMATCH[3]}"
+}
+
+# COVERAGE HOLD + RESCUE. When only the single best candidate is wanted
+# (ranked extraction with --max-strategies 1 / --first-match — how provost
+# calls the engine), the first candidate to produce output is not stored at
+# once when its line coverage is below _FR_COV_MIN: it is HELD, and the
+# RESCUE parsers (_FR_COV_RESCUERS — strategies written to keep every line of
+# a multi-section report, which never compete in the ordinary ranking) are
+# run on the input. One that covers MATERIALLY more — at least _FR_COV_GAIN
+# points above the held claim — wins instead; if none does, the held claim is
+# stored exactly as it would have been. So a confident one-section claim
+# yields to a parse that keeps the whole report, and an input nothing covers
+# better keeps its old winner byte for byte.
+#
+# Why rescue parsers and not simply the next ranked candidate: every ranked
+# generic parser "covers" more than a section-dropping claim by scattering
+# tokens over generic columns (aligned-columns, colons, vertical-line all
+# reach ~100% on a report they cannot read), and a corpus trial showed such
+# swaps make inputs worse, not better. Coverage says THAT lines were dropped,
+# not which parse is right; a rescue parser is one whose output is right for
+# the shape that drops lines — a lossless key/value table.
+#
+# Never holds a hint-routed or pinned strategy, a structured grammar
+# (json/yaml/xml/toml — authoritative, they fold brace lines and nested
+# paths), a catch-all (_FR_COV_CATCHALL: text-lines / line-records keep
+# every line already), or a parse of fewer than _FR_COV_MIN_LINES counted
+# lines (too small to call). Pruning is unaffected: the held claim is the
+# first candidate in rank order to produce output, which no confidence
+# ceiling ever prunes, and the rescue does not depend on the other
+# candidates — so the outcome is the unpruned ranking's (_EAS_NOPRUNE=1).
+_FR_COV_MIN="${_FR_COV_MIN:-60}"
+_FR_COV_GAIN="${_FR_COV_GAIN:-25}"
+_FR_COV_MIN_LINES="${_FR_COV_MIN_LINES:-6}"
+_FR_COV_CATCHALL="${_FR_COV_CATCHALL:- text-lines line-records }"
+[[ "$_FR_COV_MIN" =~ ^[0-9]+$ ]] || _FR_COV_MIN=60
+[[ "$_FR_COV_GAIN" =~ ^[0-9]+$ ]] || _FR_COV_GAIN=25
+[[ "$_FR_COV_MIN_LINES" =~ ^[0-9]+$ ]] || _FR_COV_MIN_LINES=6
+_FR_COV_RESCUERS="${_FR_COV_RESCUERS:-kv-report}"
+_COV_HOLD_ON=0
+_COV_HELD=0
+
+# _cov_hold_wanted STRATEGY [RESULT [RESULT_FILE]] — should this
+# (stored-to-be) claim be held?
+_cov_hold_wanted () {
+    [[ "${_COV_HOLD_ON:-0}" -eq 1 ]] || return 1
+    [[ "${_TG_EXEMPT:-0}" -eq 1 ]] && return 1
+    [[ -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && return 1
+    [[ -n "$_COV" ]] || return 1
+    case "$1" in json|yaml|xml|toml) return 1 ;; esac
+    [[ "$_FR_COV_CATCHALL" == *" $1 "* ]] && return 1
+    [[ "$_COV_LINES" -ge "$_FR_COV_MIN_LINES" ]] || return 1
+    [[ "$_COV" -lt "$_FR_COV_MIN" ]] || return 1
+    # A BESPOKE strategy (outside delimited/ + structured/, plugins included)
+    # is tool-specific knowledge whose output shape is a deliberate summary
+    # (systemctl status' unit fields without its journal tail, the InnoDB
+    # monitor's counters without their section prose): its coverage is
+    # reported, never second-guessed — a bespoke parse that loses data is
+    # fixed in the strategy (gnu-version keeps its whole report).
+    if find_strategy_file "$1" && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"; then
+        _log_debug "Strategy '$1': line coverage ${_COV}% — bespoke, not held"
+        return 1
+    fi
+    # A TABLE keeps its rows: the lines it dropped are a banner, a summary or
+    # a second table — another dataset (--multi), not rows a key/value parse
+    # could add without flattening the table into text.
+    if [[ $# -ge 2 ]] && _cov_is_table "$2" "${3:-}"; then
+        _log_debug "Strategy '$1': line coverage ${_COV}% but its parse is a table — not held"
+        return 1
+    fi
+    return 0
+}
+
+# _cov_is_table RESULT [RESULT_FILE] — is the parse a TABLE (a record
+# stream): at least 3 records (`<label><N>.<field>`) of 2+ fields, one field
+# shared by at least 3 of them and by 60% or more — not a generic key/value
+# pair list (only key, value, section, group, name … fields), and not a set of
+# unrelated blocks (blank-separated sections share no field)?
+_FR_COV_TABLE_AWK='
+    match($0, /^[A-Za-z]+[0-9]+\./) {
+        r = substr($0, 1, RLENGTH - 1); f = substr($0, RLENGTH + 1); sub(/ .*/, "", f)
+        if (!((r, f) in seen)) {
+            seen[r, f] = 1; nf[r]++; fl[r] = fl[r] SUBSEP f
+            if (f !~ /^(key|value|section|group|name|field|label|block|title|text)$/) gen[r] = 1
+        }
+    }
+    END {
+        for (r in nf) {
+            if (nf[r] < 2 || !(r in gen)) continue
+            nrec++; k = split(substr(fl[r], 2), a, SUBSEP)
+            for (j = 1; j <= k; j++) cnt[a[j]]++
+        }
+        best = 0; for (f in cnt) if (cnt[f] > best) best = cnt[f]
+        print ((nrec >= 3 && best >= 3 && best * 10 >= nrec * 6) ? "table" : "no")
+    }
+'
+_cov_is_table () {
+    local _ct
+    if [[ -n "${2:-}" ]]; then
+        _ct=$(LC_ALL=C awk "$_FR_COV_TABLE_AWK" "$2")
+    else
+        _ct=$(printf '%s\n' "$1" | LC_ALL=C awk "$_FR_COV_TABLE_AWK")
+    fi
+    [[ "$_ct" == table ]]
+}
+
+# _cov_replaces STRATEGY — does the rescue parse just extracted beat the held
+# claim? It must cover at least _FR_COV_GAIN points more, and its confidence
+# must reach min(held confidence, _FR_COV_FLOOR): a rescue parser is held to
+# the format-specific tier (kv-report reports 70), never below the claim it
+# replaces when that claim is itself weaker.
+_FR_COV_FLOOR="${_FR_COV_FLOOR:-70}"
+[[ "$_FR_COV_FLOOR" =~ ^[0-9]+$ ]] || _FR_COV_FLOOR=70
+_cov_replaces () {
+    [[ -n "$_COV" ]] || return 1
+    [[ "$_FR_COV_CATCHALL" == *" $1 "* ]] && return 1
+    local _floor="$_FR_COV_FLOOR"
+    (( _COV_HELD_CONF < _floor )) && _floor="$_COV_HELD_CONF"
+    (( ${_STRATEGY_CONFIDENCE:-0} >= _floor )) || return 1
+    [[ "$_COV" -ge $((_COV_HELD_PCT + _FR_COV_GAIN)) ]]
+}
+
+# _cov_hold RESULT RESULT_FILE STRATEGY REPORT VERSION — set the claim aside.
+_cov_hold () {
+    _COV_HELD=1
+    _COV_HELD_STRAT="$3"; _COV_HELD_REPORT="$4"; _COV_HELD_VER="$5"
+    _COV_HELD_CONF="${_STRATEGY_CONFIDENCE:-0}"; _COV_HELD_COUNT="$_LINE_COUNT"
+    _COV_HELD_PCT="$_COV"
+    _COV_HELD_RES=""; _COV_HELD_FILE=""
+    if [[ -n "$2" ]]; then
+        _COV_HELD_FILE="$_XL_DIR/lane.held"
+        mv -f "$2" "$_COV_HELD_FILE"
+    else
+        _COV_HELD_RES="$1"
+    fi
+}
+
+_cov_drop_held () {
+    _COV_HELD=0; _COV_HELD_RES=""
+    [[ -n "${_COV_HELD_FILE:-}" ]] && rm -f "$_COV_HELD_FILE"
+    _COV_HELD_FILE=""
+}
+
+# _cov_rescue — run each rescue parser (detect with _FR_RESCUE=1, then
+# extract; _extract_and_store stores it only when _cov_replaces says it beats
+# the held claim). Filters (--generic, --exclude, min confidence) apply as to
+# any strategy.
+_cov_rescue () {
+    local _rs _rs_rc
+    for _rs in $_FR_COV_RESCUERS; do
+        [[ "${_COV_HELD:-0}" -eq 1 ]] || return 0
+        _should_run_strategy "$_rs" || continue
+        find_strategy_file "$_rs" || continue
+        [[ "${_OPT_generic:-0}" -eq 1 ]] && ! _is_generic_strategy_file "$_FOUND_STRATEGY_FILE" && continue
+        read_strategy_metadata "$_FOUND_STRATEGY_FILE"
+        [[ -n "$_META_DEPRECATED" ]] && continue
+        _source_strategy_cached "$_FOUND_STRATEGY_FILE" /dev/null || continue
+        _FR_RESCUE=1
+        if _detect_strategy "$_rs" "${_META_PRIORITY:-99}"; then
+            _rs_rc=0
+            _extract_and_store "$_rs" "${_META_VERSION:-0}" || _rs_rc=$?
+        fi
+        _FR_RESCUE=0
+        unset -f strategy_detect strategy_extract 2>/dev/null
+        unset _arr 2>/dev/null
+    done
+}
+
+# _cov_restore_held — no rescue parse covered materially more: store the
+# held claim exactly as it would have been stored when it was extracted.
+_cov_restore_held () {
+    [[ "${_COV_HELD:-0}" -eq 1 ]] || return 0
+    _log_debug "No rescue parse covers materially more than '${_COV_HELD_STRAT}' (${_COV_HELD_PCT}%): keeping it"
+    _store_winner "$_COV_HELD_RES" "$_COV_HELD_FILE" "$_COV_HELD_STRAT" "$_COV_HELD_REPORT" \
+        "$_COV_HELD_VER" "$_COV_HELD_COUNT" "$_COV_HELD_CONF" "$_COV_HELD_PCT" || true
+    _cov_drop_held
+}
+
+# _store_winner RESULT RESULT_FILE STRATEGY REPORT VERSION FIELDS CONF COV —
+# store one claim and record it (matched list, field total, the --emit-meta
+# winner). Returns 1 when the strategy cap is reached.
+_store_winner () {
+    local _sw_res="$1" _sw_file="$2" _sw_strat="$3" _sw_report="$4" _sw_ver="$5"
+    local _sw_n="$6" _sw_conf="$7" _sw_cov="$8"
+    if [[ -n "$_sw_file" ]]; then
+        _store_file "$_sw_file" "STRAT-${_sw_report}"
+    else
+        store "$_sw_res" "STRAT-${_sw_report}"
+    fi
+    strategies_matched=$((strategies_matched + 1))
+    # ENV-200: record the first strategy that produced output (the dispatch
+    # winner) + its confidence and line coverage, for the opt-in --emit-meta
+    # line.
+    if [[ -z "${_WINNER_NAME:-}" ]]; then
+        _WINNER_NAME="$_sw_report"
+        _WINNER_CONF="$_sw_conf"
+        _WINNER_COV="$_sw_cov"
+    fi
+    [[ -n "$matched_strategies" ]] && matched_strategies+=","
+    matched_strategies+="${_sw_report}@${_sw_ver:-0}"
+    total_fields=$((total_fields + _sw_n))
+    _log_debug "Strategy '$_sw_strat': extracted $_sw_n fields"
+    if [[ $_OPT_first_match -eq 1 ]]; then
+        _log_debug "--first-match: stopping after '$_sw_strat'"
+        return 1
+    fi
+    if [[ $_OPT_max_strategies -gt 0 && $strategies_matched -ge $_OPT_max_strategies ]]; then
+        _log_debug "--max-strategies $_OPT_max_strategies reached"
+        return 1
+    fi
+    return 0
+}
+
 # Run strategy extraction and store results.
-# Returns: 0 to continue loop, 2 to break (early exit)
+# Returns: 0 to continue loop, 2 to break (early exit), 3 = claim HELD for low
+# coverage (see COVERAGE HOLD; the caller runs the rescue)
 # Modifies globals: output (via store), strategies_matched, matched_strategies,
 #   total_fields, near_miss_strategies
 # Params: $1=strategy_name, $2=strategy_version
@@ -1401,31 +1726,29 @@ _extract_and_store () {
         # each tool keeps its own dataset identity instead of collapsing to
         # `columnar-specs`. Falls back to the file's strategy name.
         local report_name="${_STRATEGY_REPORT_NAME:-$strategy_name}"
-        if [[ -n "$_xl_res" ]]; then
-            _store_file "$_xl_res" "STRAT-${report_name}"
-        else
-            store "$result" "STRAT-${report_name}"
+        _parse_coverage "$result" "$_xl_res"
+        _log_debug "Strategy '$strategy_name': line coverage ${_COV:-n/a}${_COV:+% ($_COV_HIT of $_COV_LINES lines)}"
+        # COVERAGE HOLD (see _cov_hold_wanted): a low-coverage claim is set
+        # aside instead of stored, and the rescue parser gets its turn; a
+        # rescue parse is stored only when it covers materially more.
+        if [[ "${_COV_HELD:-0}" -eq 1 ]]; then
+            if ! _cov_replaces "$strategy_name"; then
+                _log_debug "Strategy '$strategy_name': does not cover materially more than held '${_COV_HELD_STRAT}' (${_COV:-n/a}% vs ${_COV_HELD_PCT}%)"
+                [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
+                near_miss_strategies+="${strategy_name}(c${_COV:-?}%)"
+                return 0
+            fi
+            _log_debug "Strategy '$strategy_name': covers ${_COV}% — replaces held '${_COV_HELD_STRAT}' (${_COV_HELD_PCT}%)"
+            [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
+            near_miss_strategies+="${_COV_HELD_STRAT}(coverage ${_COV_HELD_PCT}%)"
+            _cov_drop_held
+        elif _cov_hold_wanted "$strategy_name" "$result" "$_xl_res"; then
+            _cov_hold "$result" "$_xl_res" "$strategy_name" "$report_name" "$strategy_version"
+            _log_debug "Strategy '$strategy_name': held — line coverage ${_COV}% < ${_FR_COV_MIN}%; trying the rescue parser(s)"
+            return 3
         fi
-        strategies_matched=$((strategies_matched + 1))
-        # ENV-200: record the first strategy that produced output (the dispatch
-        # winner) + its confidence, for the opt-in --emit-meta line.
-        if [[ -z "${_WINNER_NAME:-}" ]]; then
-            _WINNER_NAME="$report_name"
-            _WINNER_CONF="${_STRATEGY_CONFIDENCE:-0}"
-        fi
-        [[ -n "$matched_strategies" ]] && matched_strategies+=","
-        matched_strategies+="${report_name}@${strategy_version:-0}"
-        # _LINE_COUNT still holds this result's count from the guard above.
-        total_fields=$((total_fields + _LINE_COUNT))
-        _log_debug "Strategy '$strategy_name': extracted $_LINE_COUNT fields"
-        if [[ $_OPT_first_match -eq 1 ]]; then
-            _log_debug "--first-match: stopping after '$strategy_name'"
-            return 2
-        fi
-        if [[ $_OPT_max_strategies -gt 0 && $strategies_matched -ge $_OPT_max_strategies ]]; then
-            _log_debug "--max-strategies $_OPT_max_strategies reached"
-            return 2
-        fi
+        _store_winner "$result" "$_xl_res" "$strategy_name" "$report_name" "$strategy_version" \
+            "$_LINE_COUNT" "${_STRATEGY_CONFIDENCE:-0}" "$_COV" || return 2
     else
         _log_debug "Strategy '$strategy_name': no fields extracted"
         [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
@@ -1496,6 +1819,8 @@ _run_auto_strategies_body () {
     # of THIS input, and batch mode reuses the process across inputs.
     _TG_NB_LINES=""
     _TG_LAST_COVERAGE=""
+    # Coverage hold state is per pass (a redo starts clean).
+    _cov_drop_held; _COV_HOLD_ON=0; _WINNER_COV=""
     # Bounded detection sample for very large inputs (per input: batch mode
     # reuses the process). Pinned/replayed runs skip detection-by-sample.
     _DET_SAMPLED=0; _DET_TEXT=""
@@ -1683,6 +2008,10 @@ _run_auto_strategies_body () {
             _log_debug "Ranked candidates: $_dbg_c"
         fi
         local _eas_redo=0
+        # COVERAGE HOLD applies when one winner is wanted (see above).
+        if [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
+            _COV_HOLD_ON=1
+        fi
         while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
             [[ -z "$strategy_file" ]] && continue
             strategy_priority="$((10#$_pk))"
@@ -1700,16 +2029,28 @@ _run_auto_strategies_body () {
             unset -f strategy_detect strategy_extract 2>/dev/null
             unset _arr 2>/dev/null
             if [[ $_eas_rc -eq 2 ]]; then break; fi
+            # HELD for low coverage: the rescue below decides (pruning cannot
+            # matter — the held claim is the first candidate in rank order to
+            # produce output, which no ceiling ever prunes).
+            if [[ $_eas_rc -eq 3 ]]; then break; fi
             # The top candidate yielded nothing. With detectors pruned, one of
             # them might outrank whatever comes next: redo the pass unpruned.
             if [[ $_eas_pruned -gt 0 ]]; then _eas_redo=1; break; fi
         done <<< "$_eas_cands"
+        _COV_HOLD_ON=0
         if [[ $_eas_redo -eq 1 ]]; then
+            _cov_drop_held
             [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
             _log_debug "Top candidate failed after pruning $_eas_pruned detector(s): redoing unpruned"
             local _eas_rrc=0
             _EAS_NOPRUNE=1 _run_auto_strategies_body || _eas_rrc=$?
             return $_eas_rrc
+        fi
+        # A held claim: the rescue parsers get their turn; if none covers
+        # materially more, the held claim is stored as it was.
+        if [[ "${_COV_HELD:-0}" -eq 1 ]]; then
+            _cov_rescue
+            _cov_restore_held
         fi
     fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
@@ -1735,6 +2076,8 @@ run_explain_mode () {
 
     local matched=0 tested=0 skipped=0
     local match_lines="" miss_lines=""
+    # the first-ranked candidate that extracts something (for the hold note)
+    local _ex_top_conf="" _ex_top_cov="" _ex_top_name="" _ex_top_lines=0 _ex_top_res=""
 
     local strategy_version strategy_file strategy_name strategy_priority
 
@@ -1751,7 +2094,7 @@ run_explain_mode () {
 
         read_strategy_metadata "$strategy_file"
         if [[ -n "$_META_DEPRECATED" ]]; then
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'DEPR' "$strategy_name" "$strategy_priority" '--' "deprecated: $_META_DEPRECATED")"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'DEPR' "$strategy_name" "$strategy_priority" '--' '-' "deprecated: $_META_DEPRECATED")"$'\n'
             skipped=$((skipped + 1))
             continue
         fi
@@ -1763,7 +2106,7 @@ run_explain_mode () {
         _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/provost_explain.XXXXXX") || { umask "$_old_umask"; continue; }
         umask "$_old_umask"
         if ! source "$strategy_file" 2>"$_src_tmpf"; then
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'ERR' "$strategy_name" "$strategy_priority" '--' 'source error')"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'ERR' "$strategy_name" "$strategy_priority" '--' '-' 'source error')"$'\n'
             rm -f "$_src_tmpf"
             continue
         fi
@@ -1780,12 +2123,25 @@ run_explain_mode () {
             [[ $_STRATEGY_CONFIDENCE -lt 0 ]] && _STRATEGY_CONFIDENCE=0
             [[ $_STRATEGY_CONFIDENCE -gt 100 ]] && _STRATEGY_CONFIDENCE=100
             local reason="${_STRATEGY_CONFIDENCE_REASON:-detected}"
+            # LINE COVERAGE of this candidate's extract (see _parse_coverage):
+            # explain is a dry run, but a matching candidate's extract is the
+            # only way to show how much of the input it would keep.
+            local _ex_res _ex_cov="-" _ex_conf="$_STRATEGY_CONFIDENCE"
+            _ex_res="$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" 2>/dev/null)" || true
+            if [[ -z "${_ex_res//[[:space:]]/}" ]]; then
+                _ex_cov="empty"
+            else
+                _parse_coverage "$_ex_res"
+                [[ -n "$_COV" ]] && _ex_cov="${_COV}%"
+                [[ -z "$_ex_top_cov" || "$_ex_conf" -gt "$_ex_top_conf" ]] && \
+                    { _ex_top_conf="$_ex_conf"; _ex_top_cov="${_COV:--}"; _ex_top_name="$strategy_name"; _ex_top_lines="$_COV_LINES"; _ex_top_res="$_ex_res"; }
+            fi
             # Sort key first (confidence, priority, name) — the order ranked
             # detection tries the candidates in; cut off before printing.
-            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_STRATEGY_CONFIDENCE" "$reason")"$'\n'
+            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_ex_conf" "$_ex_cov" "$reason")"$'\n'
             matched=$((matched + 1))
         else
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' 'not applicable')"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' '-' 'not applicable')"$'\n'
         fi
 
         unset -f strategy_detect strategy_extract 2>/dev/null
@@ -1795,9 +2151,9 @@ run_explain_mode () {
         unset _arr 2>/dev/null
     done <<< "$_SORTED_STRATEGIES"
 
-    # Print header
-    printf '%-7s  %-30s  %4s  %4s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "REASON"
-    printf '%-7s  %-30s  %4s  %4s  %s\n' "------" "--------" "---" "----" "------"
+    # Print header (COV = line coverage of the candidate's extract)
+    printf '%-7s  %-30s  %4s  %4s  %5s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "COV" "REASON"
+    printf '%-7s  %-30s  %4s  %4s  %5s  %s\n' "------" "--------" "---" "----" "---" "------"
 
     # Matches first, in RANK order — confidence desc, then priority, then
     # strategy name (LC_ALL=C), exactly as ranked detection tries them (the
@@ -1812,4 +2168,32 @@ run_explain_mode () {
 
     echo ""
     echo "Tested: $tested  Matched: $matched  Skipped: $skipped"
+    # COVERAGE HOLD preview: the top candidate (by confidence) to extract
+    # something, when its coverage is low, is held and the rescue parsers run.
+    if [[ "$_ex_top_cov" =~ ^[0-9]+$ ]]; then
+        _COV="$_ex_top_cov"; _COV_LINES="$_ex_top_lines"; _COV_HOLD_ON=1; _TG_EXEMPT=0
+        if _cov_hold_wanted "$_ex_top_name" && _cov_is_table "$_ex_top_res"; then
+            echo "Coverage: '$_ex_top_name' keeps ${_ex_top_cov}% of the input lines (< ${_FR_COV_MIN}%), but its parse is a table: kept (the rest may be another dataset — --multi)."
+        elif _cov_hold_wanted "$_ex_top_name"; then
+            echo "Coverage: '$_ex_top_name' keeps ${_ex_top_cov}% of the input lines (< ${_FR_COV_MIN}%): held; rescue parsers:"
+            local _rs _rs_cov
+            for _rs in $_FR_COV_RESCUERS; do
+                find_strategy_file "$_rs" || continue
+                source "$_FOUND_STRATEGY_FILE" 2>/dev/null || continue
+                _FR_RESCUE=1; _STRATEGY_CONFIDENCE=50; _rs_cov="does not apply"
+                if strategy_detect "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}"; then
+                    _parse_coverage "$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" 2>/dev/null)"
+                    if [[ -n "$_COV" && "$_COV" -ge $((_ex_top_cov + _FR_COV_GAIN)) ]]; then
+                        _rs_cov="keeps ${_COV}% — REPLACES '$_ex_top_name'"
+                    else
+                        _rs_cov="keeps ${_COV:-?}% — not ${_FR_COV_GAIN} points more; '$_ex_top_name' stays"
+                    fi
+                fi
+                _FR_RESCUE=0
+                echo "  $_rs: $_rs_cov"
+                unset -f strategy_detect strategy_extract 2>/dev/null
+            done
+        fi
+        _COV_HOLD_ON=0
+    fi
 }

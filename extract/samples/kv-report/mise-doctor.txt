@@ -1,0 +1,38 @@
+version: 2024.3.2 linux-x64 (2024-03-11)
+activated: yes
+shims_on_path: no
+
+build_info:
+  Target: x86_64-unknown-linux-gnu
+  Features: DEFAULT, NATIVE_TLS, OPENSSL
+  Built: Mon, 11 Mar 2024 16:02:51 +0000
+  Rust Version: rustc 1.76.0 (07dca489a 2024-02-04)
+  Profile: release
+
+shell:
+  /bin/bash
+  GNU bash, version 5.1.16(1)-release (x86_64-pc-linux-gnu)
+
+dirs:
+  data: ~/.local/share/mise
+  config: ~/.config/mise
+  cache: ~/.cache/mise
+  state: ~/.local/state/mise
+  shims: ~/.local/share/mise/shims
+
+config_files:
+  ~/.config/mise/config.toml
+  ~/projects/api/.tool-versions
+
+plugins:
+  java  (core)
+  node  (core)
+  python  (core)
+  terraform  https://github.com/asdf-community/asdf-hashicorp.git#5e5c1a7
+
+toolset:
+  node@20.11.1
+  python@3.12.2
+  terraform@1.7.4
+
+No problems found

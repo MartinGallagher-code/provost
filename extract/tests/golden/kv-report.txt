@@ -1,0 +1,61 @@
+entry1.key active environment
+entry1.value base
+entry2.key active env location
+entry2.value /opt/conda
+entry3.key shell level
+entry3.value 1
+entry4.key user config file
+entry4.value /home/dev/.condarc
+entry5.key populated config files
+entry5.value /opt/conda/.condarc
+entry6.key conda version
+entry6.value 24.1.2
+entry7.key conda-build version
+entry7.value not installed
+entry8.key python version
+entry8.value 3.11.7.final.0
+entry9.key solver
+entry9.value libmamba (default)
+entry10.key virtual packages
+entry10.value __archspec=1=skylake
+entry11.key virtual packages
+entry11.value __conda=24.1.2=0
+entry12.key virtual packages
+entry12.value __glibc=2.35=0
+entry13.key virtual packages
+entry13.value __linux=6.5.0=0
+entry14.key virtual packages
+entry14.value __unix=0=0
+entry15.key base environment
+entry15.value /opt/conda  (writable)
+entry16.key conda av data dir
+entry16.value /opt/conda/etc/conda
+entry17.key conda av metadata url
+entry17.value None
+entry18.key channel URLs
+entry18.value https://conda.anaconda.org/conda-forge/linux-64
+entry19.key channel URLs
+entry19.value https://conda.anaconda.org/conda-forge/noarch
+entry20.key channel URLs
+entry20.value https://repo.anaconda.com/pkgs/main/linux-64
+entry21.key channel URLs
+entry21.value https://repo.anaconda.com/pkgs/main/noarch
+entry22.key package cache
+entry22.value /opt/conda/pkgs
+entry23.key package cache
+entry23.value /home/dev/.conda/pkgs
+entry24.key envs directories
+entry24.value /opt/conda/envs
+entry25.key envs directories
+entry25.value /home/dev/.conda/envs
+entry26.key platform
+entry26.value linux-64
+entry27.key user-agent
+entry27.value conda/24.1.2 requests/2.31.0 CPython/3.11.7 Linux/6.5.0-21-generic ubuntu/22.04.3 glibc/2.35 solver/libmamba conda-libmamba-solver/24.1.0 libmambapy/1.5.6
+entry28.key UID:GID
+entry28.value 1000:1000
+entry29.key netrc file
+entry29.value None
+entry30.key offline mode
+entry30.value False
+total_entries 30
