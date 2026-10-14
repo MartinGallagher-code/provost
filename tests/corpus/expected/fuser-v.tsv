@@ -1,7 +1,7 @@
-n	USER	PID	ACCESS	COMMAND
-1	/var/lib/mysql:	mysql	1843	F.... mysqld
-2	mysql	1902	f....	mysqld
-3	mysql	1903	f....	mysqld
-4	mysql	1904	f....	mysqld
-5	/var/log/syslog:	syslog	387	F.... rsyslogd
-6	syslog	388	f....	rsyslogd
+n	A	USER	PID	ACCESS	COMMAND
+1	/var/lib/mysql:	mysql	1843	F....	mysqld
+2		mysql	1902	f....	mysqld
+3		mysql	1903	f....	mysqld
+4		mysql	1904	f....	mysqld
+5	/var/log/syslog:	syslog	387	F....	rsyslogd
+6		syslog	388	f....	rsyslogd

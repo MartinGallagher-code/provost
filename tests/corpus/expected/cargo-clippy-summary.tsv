@@ -4,4 +4,4 @@ n	lint	level	count
 3	clippy::single_char_pattern	warn	3
 4	clippy::too_many_arguments	warn	2
 5	clippy::unwrap_used	deny	1
-6	warning:	`myapp`	generated 25 warnings
+6	warning: `myapp` generated 25	warnings	

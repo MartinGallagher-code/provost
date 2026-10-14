@@ -1,4 +1,4 @@
-n	Job	id	Name	User	Time	Use
+n	Job_id	Name	User	Time_Use	S	Queue
 1	1204.head	train	alice	02:14:00	R	gpu
 2	1205.head	eval	bob	00:41:00	R	gpu
 3	1206.head	sim	carol	0	Q	cpu

@@ -1,5 +1,5 @@
-n	A
-1	+ Server: nginx/1.27.0
-2	+ /admin/: Admin login page found.
-3	+ OSVDB-3092: /backup/: This might be interesting.
-4	+ 8821 requests: 0 error(s) and 3 item(s) reported
+n	A	B
+1	+	Server: nginx/1.27.0
+2	+	/admin/: Admin login page found.
+3	+	OSVDB-3092: /backup/: This might be interesting.
+4	+	8821 requests: 0 error(s) and 3 item(s) reported

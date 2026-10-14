@@ -1,0 +1,5 @@
+n	Device	Boot	Start	End	Sectors	Size	Id_Type	Disk_/dev/sda	Disk_model	Units	Sector_size_(logical/physical)	I/O_size_(minimum/optimal)	Disklabel_type	Disk_identifier
+1	/dev/sda1	*	2048	1050623	1048576	512M	83 Linux	465.76 GiB, 500107862016 bytes, 976773168 sectors	Samsung SSD 860	sectors of 1 * 512 = 512 bytes	512 bytes / 512 bytes	512 bytes / 512 bytes	dos	0x1a2b3c4d
+2	/dev/sda2		1050624	17827839	16777216	8G	82 Linux swap / Solaris	465.76 GiB, 500107862016 bytes, 976773168 sectors	Samsung SSD 860	sectors of 1 * 512 = 512 bytes	512 bytes / 512 bytes	512 bytes / 512 bytes	dos	0x1a2b3c4d
+3	/dev/sda3		17827840	494923775	477095936	227.5G	83 Linux	465.76 GiB, 500107862016 bytes, 976773168 sectors	Samsung SSD 860	sectors of 1 * 512 = 512 bytes	512 bytes / 512 bytes	512 bytes / 512 bytes	dos	0x1a2b3c4d
+4	/dev/sda4		494923776	976773167	481849392	229.8G	83 Linux	465.76 GiB, 500107862016 bytes, 976773168 sectors	Samsung SSD 860	sectors of 1 * 512 = 512 bytes	512 bytes / 512 bytes	512 bytes / 512 bytes	dos	0x1a2b3c4d

@@ -1,7 +1,7 @@
-n	target	prot_opt_source	destination
-1	ACCEPT	all -- ::1/128	::/0
-2	ACCEPT	ipv6-icmp -- ::/0	::/0
-3	ACCEPT	tcp -- ::/0	::/0 tcp dpt:22
-4	ACCEPT	tcp -- ::/0	::/0 tcp dpt:443
-5	ACCEPT	udp -- ::/0	fe80::/10 udp dpt:546
-6	DROP	all -- ::/0	::/0
+n	target	prot	opt	source	destination
+1	ACCEPT	all	--	::1/128	::/0
+2	ACCEPT	ipv6-icmp	--	::/0	::/0
+3	ACCEPT	tcp	--	::/0	::/0 tcp dpt:22
+4	ACCEPT	tcp	--	::/0	::/0 tcp dpt:443
+5	ACCEPT	udp	--	::/0	fe80::/10 udp dpt:546
+6	DROP	all	--	::/0	::/0

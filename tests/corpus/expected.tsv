@@ -367,11 +367,11 @@ ps-forest	table	7	7
 systemd-cgls	table	16	1
 latencytop	table	6	2
 schedtool	table	4	2
-perf-list	table	9	1
+perf-list	table	8	1
 vmstat-d	table	5	8
 iostat-x	table	4	8
 mpstat-a	table	5	8
-sar-b	table	4	5
+sar-b	table	5	5
 pidstat-d	table	4	7
 free-w	table	2	3
 proc-interrupts	table	8	4
@@ -2164,7 +2164,7 @@ doctl-volume-list	table	3	8
 doctl-registry-repository-list	table	3	6
 doctl-vpcs-list	text	-	2
 doctl-compute-snapshot-list	table	3	9
-doctl-compute-load-balancer-list	table	2	10
+doctl-compute-load-balancer-list	table	2	9
 doctl-compute-reserved-ip-list	table	3	6
 linode-nodebalancers-list	table	3	6
 linode-volumes-list	table	3	7
@@ -2264,7 +2264,7 @@ mysql-show-status-global	table	8	3
 mariadb-show-status	table	8	3
 pt-diskstats	table	3	17
 pt-mysql-summary	text	-	2
-pscale-database-list	table	4	7
+pscale-database-list	table	4	6
 pscale-branch-list	table	4	7
 neon-branches-list	table	3	6
 supabase-db-migrations-list	table	4	4
@@ -2591,7 +2591,7 @@ rocm-smi-showtemp	table	3	5
 rocm-smi-showpower	table	4	4
 nvidia-smi-pmon	table	4	9
 nvidia-smi-mig	table	7	2
-numastat-m	table	7	5
+numastat-m	table	6	5
 cpupower-info	text	-	2
 ethtool-coalesce	text	-	2
 ethtool-ring	text	-	2

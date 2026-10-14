@@ -145,6 +145,23 @@ follow the same rule: same bytes, proven by forcing it over the corpus.
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).
 
+### Whitespace tables: the gutter grid
+
+A strategy that splits an aligned table should not split on whitespace
+tokens — a cell holding a space (`Number of message queues`, `Oct  2`) or an
+empty cell shifts every later value. `_fr_gutter_grid NH RL [PREFIX]`
+(lib/_helpers.sh) reads the table's lines on stdin and assigns cells by
+character OFFSET: positions blank in the header and in every row are the
+gutters between columns, a header label names the segment it sits in, and an
+empty span is an empty cell. NH is the number of header lines (0 headerless,
+1, or 2 with a group row whose words prefix the names below), RL=1 when a
+`----  ----` / `==== ====` rule follows the header. It prints `PREFIX<N>.name
+value` lines plus `total_entries N`, or NOTHING when the offsets cannot be
+trusted (non-ASCII, a TAB header over space rows, an unpadded single-spaced
+table, a header repeated as data, misaligned cells …) — keep your old path as
+the fallback. aligned-columns (both routes), fixed-width and embedded-table
+use it; `tests/test_gutter_grid.sh` pins its behaviour.
+
 ## Candidate ranking
 
 `run_auto_strategies` (lib/_discovery.sh) picks the winner in two phases:

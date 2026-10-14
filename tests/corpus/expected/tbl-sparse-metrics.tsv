@@ -1,5 +1,5 @@
-n	Host	cpu	net	mem	disk
-1	node1	45	120		
-2	node2			78	90
-3	node3	30			85
-4	node4		200		
+n	Host	cpu	mem	disk	net
+1	node1	45			120
+2	node2		78	90	
+3	node3	30		85	
+4	node4				200

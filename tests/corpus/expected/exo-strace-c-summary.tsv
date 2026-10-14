@@ -1,8 +1,8 @@
-n	%_time	seconds	usecs/call	calls	syscall	errors
-1	41.22	0.048213	12	3912	read	
-2	28.04	0.032811	33	988	openat	12
-3	15.90	0.018602	9	2044	mmap	
-4	8.11	0.009488	21	451	futex	
-5	4.02	0.004701	4	1120	stat	88
-6	2.71	0.003170	158	20	clone	
-7	100.00	0.116985		8535	total	100
+n	%_time	seconds	usecs/call	calls	errors	syscall
+1	41.22	0.048213	12	3912		read
+2	28.04	0.032811	33	988	12	openat
+3	15.90	0.018602	9	2044		mmap
+4	8.11	0.009488	21	451		futex
+5	4.02	0.004701	4	1120	88	stat
+6	2.71	0.003170	158	20		clone
+7	100.00	0.116985		8535	100	total

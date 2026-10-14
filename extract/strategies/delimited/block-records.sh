@@ -28,7 +28,7 @@ strategy_detect () {
         local _brd_kv=0
         read -r blank_count _brd_kv < <(cat <<< "$text" | awk '
             $0 == "" { b++; next }
-            !kv && /^ *[A-Za-z][A-Za-z0-9_ -]*[:=]/ && !/^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  / { kv = 1 }
+            !kv && /^ *[A-Za-z]([A-Za-z0-9_-]| [A-Za-z0-9_-])* *[:=]/ && !/^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  / { kv = 1 }
             END { printf "%d %d\n", b, kv }')
         [[ $blank_count -lt 1 ]] && return 1
         [[ $_brd_kv -eq 1 ]] || return 1
@@ -43,9 +43,12 @@ strategy_detect () {
     # Must have key: value or key=value patterns. An unspaced `key:value`
     # line whose rest holds a 2+-space column gap is a TABLE ROW whose first
     # cell is a colon-joined name (`Assets:Checking     5432.10` — ledger
-    # accounts), not a field; a vCard `FN:Marie Curie` still counts.
+    # accounts), not a field; a vCard `FN:Marie Curie` still counts. A key's
+    # words are single-spaced (padding may follow, `Version : 1.2`):
+    # `Users        C:\Users` is a table row whose first cell is followed by a
+    # column gap and a drive letter, not a key.
     # (the same two tests as the awk screen above, byte for byte)
-    local _brd_l _brd_kv=0 _brd_re1='^ *[A-Za-z][A-Za-z0-9_ -]*[:=]' _brd_re2=$'^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  '
+    local _brd_l _brd_kv=0 _brd_re1='^ *[A-Za-z]([A-Za-z0-9_-]| [A-Za-z0-9_-])* *[:=]' _brd_re2=$'^ *[A-Za-z][A-Za-z0-9_-]*:[^ \t].*  '
     for _brd_l in "${_FR_LINES[@]}"; do
         [[ "$_brd_l" =~ $_brd_re1 ]] || continue
         [[ "$_brd_l" =~ $_brd_re2 ]] && continue

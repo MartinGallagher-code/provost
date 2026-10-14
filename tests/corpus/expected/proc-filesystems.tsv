@@ -1,0 +1,8 @@
+n	A	B
+1	nodev	sysfs
+2	nodev	tmpfs
+3	nodev	proc
+4	nodev	cgroup2
+5		ext4
+6		xfs
+7		vfat

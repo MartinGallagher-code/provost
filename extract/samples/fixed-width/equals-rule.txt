@@ -1,0 +1,10 @@
+
+Image Name                     PID Session Name        Session#    Mem Usage
+========================= ======== ================ =========== ============
+System Idle Process              0 Services                   0          8 K
+System                           4 Services                   0      1,236 K
+smss.exe                       512 Services                   0      1,104 K
+csrss.exe                      688 Services                   0      5,512 K
+explorer.exe                  6140 Console                    1    121,456 K
+Code.exe                     10244 Console                    1    148,220 K
+Microsoft.Photos.exe         14872 Console                    1     64,108 K

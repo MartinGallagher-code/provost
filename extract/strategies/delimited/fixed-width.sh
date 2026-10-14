@@ -33,7 +33,22 @@ strategy_detect () {
     local _det_line _det_prev=""
     _fr_lines "$text"
     for _det_line in "${_FR_LINES[@]}"; do
-        if [[ "$_det_line" =~ ^[-]+(\ +[-]+)+ ]]; then
+        if _strat_fw_is_rule "$_det_line"; then
+            if ! _strat_fw_old_rule "$_det_line"; then
+                # An indented or `=` underline is taken only when it UNDERLINES
+                # a header — a letter-bearing line not opening with a value (a
+                # `====  ====` totals rule under the last data row is no
+                # underline) — and the text holds ONE such table: a second
+                # underline further down is a multi-section report, which
+                # one header's columns would garble.
+                [[ "$_det_prev" == *[A-Za-z]* ]] || return 1
+                [[ "$_det_prev" =~ ^[[:space:]]*[0-9] ]] && return 1
+                local _det_after=0 _det_l2
+                for _det_l2 in "${_FR_LINES[@]}"; do
+                    if [[ $_det_after -eq 1 ]] && _strat_fw_is_rule "$_det_l2"; then return 1; fi
+                    [[ "$_det_l2" == "$_det_line" ]] && _det_after=1
+                done
+            fi
             if [[ -n "$_det_prev" ]]; then
                 # (names as extract derives them: the header sliced at the
                 # rule's dash runs — `min threads` / `max threads` are two
@@ -60,6 +75,20 @@ strategy_detect () {
     return 1
 }
 
+# _strat_fw_is_rule LINE — a per-column UNDERLINE rule: two or more runs of
+# dashes (or of `=`, Windows `tasklist` / `driverquery` / `schtasks`), each
+# under one header label, set apart by spaces; it may be indented. (The
+# original form, dash runs from column 0, is the `-` case; an unbroken rule
+# names no columns and stays vertical-line's.)
+_strat_fw_is_rule () {
+    [[ "$1" =~ ^[-]+(\ +[-]+)+ ]] && return 0
+    [[ "$1" =~ ^\ *(-+|=+)(\ +(-+|=+))+\ *$ ]]
+}
+# _strat_fw_old_rule LINE — the original shape (dash runs from column 0),
+# which keeps the token-slicer fallback; the newer shapes are taken only
+# through the gutter grid (see strategy_extract).
+_strat_fw_old_rule () { [[ "$1" =~ ^[-]+(\ +[-]+)+ ]]; }
+
 _strat_fw_find_columns () {
     # Given a separator line like "-------  --------  --------   -----"
     # return column start:end positions
@@ -72,7 +101,7 @@ _strat_fw_find_columns () {
 
     while [[ $i -lt $len ]]; do
         local ch="${sep_line:$i:1}"
-        if [[ "$ch" == "-" ]]; then
+        if [[ "$ch" == "-" || "$ch" == "=" ]]; then
             if [[ $in_dash -eq 0 ]]; then
                 col_start=$i
                 in_dash=1
@@ -128,6 +157,39 @@ strategy_extract () {
     local text="$1"
     local result=""
 
+    # GUTTER GRID first (lib/_helpers.sh _FR_AWK_GRID): the rule's runs name
+    # the columns, and the data's own alignment gives each column's extent —
+    # a right-aligned number wider than its run (`102400` under a five-dash
+    # `PM(K)`), a date that starts left of its label (`10/14/2026   9:03 AM`
+    # under `LastWriteTime`), an empty cell, all land in their column. The
+    # rows are the ones the slicer below reads (later rules dropped), minus a
+    # trailing result-set footer (`(5 rows affected)` — _FR_FOOTER_RE). When
+    # the grid withdraws, the slicer runs as before.
+    local _fg_l _fg_i _fg_r=-1 _fg_h=-1 _fg_out
+    local -a _fg_rows=()
+    _fr_lines "$text"
+    for ((_fg_i = 0; _fg_i < ${#_FR_LINES[@]}; _fg_i++)); do
+        _fg_l="${_FR_LINES[$_fg_i]}"
+        if [[ $_fg_r -lt 0 ]]; then
+            if _strat_fw_is_rule "$_fg_l"; then _fg_r=$_fg_i; continue; fi
+            [[ "$_fg_l" == *[![:space:]]* ]] && _fg_h=$_fg_i
+            continue
+        fi
+        [[ "$_fg_l" == *[![:space:]]* ]] || continue
+        [[ "$_fg_l" =~ ^[[:space:]]*(-+|=+)([[:space:]]+(-+|=+))*[[:space:]]*$ ]] && continue
+        _fg_rows+=("$_fg_l")
+    done
+    while [[ ${#_fg_rows[@]} -gt 0 ]] && _fr_is_footer "${_fg_rows[$(( ${#_fg_rows[@]} - 1 ))]}"; do
+        unset '_fg_rows[$(( ${#_fg_rows[@]} - 1 ))]'
+    done
+    if [[ $_fg_r -ge 1 && $_fg_h -ge 0 && ${#_fg_rows[@]} -ge 1 ]]; then
+        _fg_out="$(printf '%s\n' "${_FR_LINES[$_fg_h]}" "${_FR_LINES[$_fg_r]}" "${_fg_rows[@]}" | _fr_gutter_grid 1 1 row)"
+        if [[ -n "$_fg_out" ]]; then echo "$_fg_out"; return 0; fi
+    fi
+    # (a newer rule shape has no slicer fallback: nothing, and the next
+    # candidate reads the table)
+    [[ $_fg_r -ge 0 ]] && ! _strat_fw_old_rule "${_FR_LINES[$_fg_r]}" && { echo ""; return 0; }
+
     # Find the separator line
     local sep_line=""
     local header_line=""
@@ -137,7 +199,7 @@ strategy_extract () {
 
     while IFS= read -r line; do
         line_num=$((line_num + 1))
-        if [[ "$line" =~ ^[-]+(\ +[-]+)+ ]]; then
+        if _strat_fw_is_rule "$line"; then
             sep_line="$line"
             sep_line_num=$line_num
             header_line="$prev_line"
@@ -204,7 +266,7 @@ strategy_extract () {
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         if [[ $past_sep -eq 0 ]]; then
-            if [[ "$line" =~ ^[-]+(\ +[-]+)+ ]]; then
+            if _strat_fw_is_rule "$line"; then
                 past_sep=1
             fi
             continue

@@ -1,10 +1,10 @@
-n	A
-1	Time taken for tests      10.2 seconds
-2	Total requests            120488
-3	Successful requests       120488
-4	Failed requests           0
-5	Requests per second       11812.55 [#/sec]
-6	Median time per request   10ms
-7	Average time per request  12ms
-8	Sample standard deviation 8ms
-9	99.0'th percentile        88ms
+n	A	B
+1	Time taken for tests	10.2 seconds
+2	Total requests	120488
+3	Successful requests	120488
+4	Failed requests	0
+5	Requests per second	11812.55 [#/sec]
+6	Median time per request	10ms
+7	Average time per request	12ms
+8	Sample standard deviation	8ms
+9	99.0'th percentile	88ms

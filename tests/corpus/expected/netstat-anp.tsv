@@ -1,5 +1,5 @@
-n	Proto	Recv-Q	Send-Q	Local	Address	Foreign
-1	tcp	0	0	0.0.0.0:22	812/sshd	LISTEN
-2	tcp	0	0	192.168.1.42:52134	3421/firefox	ESTABLISHED
-3	tcp6	0	0	:::80	1337/nginx	LISTEN
-4	udp	0	0	0.0.0.0:68	0.0.0.0:*	640/dhclient
+n	Proto	Recv-Q	Send-Q	Local_Address	Foreign_Address	State	PID/Program_name
+1	tcp	0	0	0.0.0.0:22	0.0.0.0:*	LISTEN	812/sshd
+2	tcp	0	0	192.168.1.42:52134	93.184.216.34:443	ESTABLISHED	3421/firefox
+3	tcp6	0	0	:::80	:::*	LISTEN	1337/nginx
+4	udp	0	0	0.0.0.0:68	0.0.0.0:*		640/dhclient

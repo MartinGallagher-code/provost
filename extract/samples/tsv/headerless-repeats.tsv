@@ -1,0 +1,11 @@
+autocd         	off
+cdable_vars    	off
+cdspell        	off
+checkhash      	off
+checkjobs      	off
+checkwinsize   	on
+cmdhist        	on
+dotglob        	off
+extglob        	on
+globstar       	off
+histappend     	on

@@ -1,4 +1,4 @@
-n	Control	Group	Tasks	%CPU	Memory	Input/s
+n	Control_Group	Tasks	%CPU	Memory	Input/s	Output/s
 1	/	412	8.3	12.4G	-	-
 2	init.scope	1	0.0	324.0M	-	-
 3	system.slice	188	5.1	6.8G	-	-

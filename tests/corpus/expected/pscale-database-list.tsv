@@ -1,5 +1,5 @@
-n	NAME	REGION	DEFAULT_BRANCH	STATE	CREATED	AT
-1	commerce	us-east	main	ready	2 months	ago
-2	customer	us-east	main	ready	2 months	ago
-3	analytics	eu-west	main	ready	3 weeks	ago
-4	sandbox	us-west	main	sleeping	5 days	ago
+n	NAME	REGION	DEFAULT_BRANCH	STATE	CREATED_AT
+1	commerce	us-east	main	ready	2 months ago
+2	customer	us-east	main	ready	2 months ago
+3	analytics	eu-west	main	ready	3 weeks ago
+4	sandbox	us-west	main	sleeping	5 days ago
