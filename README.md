@@ -85,7 +85,7 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, 261 strategies (~110 generic), hints.tsv
+├── extract/            # extract engine, 262 strategies (~110 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries

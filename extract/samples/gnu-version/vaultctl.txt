@@ -1,0 +1,16 @@
+vaultctl 3.2.1
+libsodium 1.0.18
+libargon2 20190702
+Copyright (C) 2024 Example Security Project
+License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Config: /etc/vaultctl/vaultctl.conf
+Keyring: /home/dev/.local/share/vaultctl
+Supported primitives:
+Sign: Ed25519, ECDSA-P256, RSA-PSS
+KDF: Argon2id, scrypt, PBKDF2-SHA256,
+     HKDF-SHA256, HKDF-SHA512
+AEAD: XChaCha20-Poly1305, AES-256-GCM,
+      AES-256-GCM-SIV

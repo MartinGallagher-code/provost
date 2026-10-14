@@ -352,6 +352,23 @@ check "PROVOST_PLUGIN_DIR reaches 'run' detection too" "strategy frames" "$plug_
 badplug_out="$("$PROVOST" --plugin-dir /nonexistent/nowhere "$FRAMES_IN" 2>&1 || true)"
 check "--plugin-dir validates the directory up front" "plugin strategy dir not found" "$badplug_out"
 
+# Line coverage: a multi-section report that the ranked parse would cut to one
+# section is filed whole by the engine's rescue parser (kv-report), and the
+# capture records its line coverage; a capture still filed under 60% of its
+# lines says so.
+COV_IN="$(mktemp)"
+printf 'version: 2024.3.2 linux-x64\nactivated: yes\nshims_on_path: no\n\nbuild_info:\n  Target: x86_64-unknown-linux-gnu\n  Profile: release\n\nconfig_files:\n  ~/.config/mise/config.toml\n  ~/projects/api/.tool-versions\n\ntoolset:\n  node@20.11.1\n  python@3.12.2\n  terraform@1.7.4\n' > "$COV_IN"
+cov_out="$("$PROVOST" --name covrep "$COV_IN" 2>&1)"
+check "a multi-section report is filed whole (rescue parser)" "strategy kv-report" "$cov_out"
+check "the capture reports its line coverage" "coverage 100%" "$cov_out"
+covcap="$(ls "$WS/captures" | sort | tail -1)"
+check "capture meta records the coverage" "coverage	100" "$(cat "$WS/captures/$covcap/meta.tsv")"
+check "list items reach the dataset" "terraform@1.7.4" "$("$PROVOST" show covrep 2>&1)"
+printf 'Volume   Files   Size   Status\nvol-a    12      1.0    OK\nvol-b    13      2.0    OK\nvol-c    14      3.0    WARN\nvol-d    15      4.0    OK\nvol-e    16      5.0    OK\nvol-f    17      6.0    OK\n\nElapsed time:   01:00:12\nExit code:      0\nNext run:       2026-07-12 01:00\nOperator name:  ops team\nPool name:      main pool\nRetention:      7 days\n' > "$COV_IN"
+lowcov_out="$("$PROVOST" --name lowcov "$COV_IN" 2>&1)"
+check "a low-coverage capture says so" "of the input's lines reached 'lowcov'" "$lowcov_out"
+rm -f "$COV_IN"
+
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
 # .provostrc in the CWD cannot reconfigure a capture. A probe strategy records
 # what the engine process saw.

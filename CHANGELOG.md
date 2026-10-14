@@ -1,5 +1,134 @@
 # provost — Changelog
 
+## 2026-10-14 — line coverage: a second quality signal, and no more silent one-section parses
+
+**Problem (round-2 benchmark, pattern 2).** A strategy that recognises ONE
+section of a multi-section report claims the whole input at full confidence
+and drops the rest without a trace — a `--version` banner kept and its
+algorithm lists dropped, an env dump's scalars kept and its path lists
+dropped. Confidence cannot see it, and the round-1 truncation guard compares
+parse SIZE with the input, so wide parses clear it.
+
+**Line coverage (`extract/lib/_discovery.sh` `_parse_coverage`).** The share
+of the input's non-blank lines that contributed to the parse: a line
+contributed when more than half of its significant tokens (a letter, or 3+
+characters) appear in the parse, field names included. Tokens split at blanks,
+`= : , ; |`, quotes, brackets and `_`; paths, URLs, dotted versions and dashed
+names stay whole, so a dropped `/home/dev/.conda/envs` is not vouched for by
+`home` and `envs` elsewhere (a dashed token still counts when each dash part
+is present, for parsers that cut `glibc-2.34-60.el9` into name and version;
+the parse side also offers each `.` / `/` / `-` part, for folded names).
+Comment lines (`#`, `;`) and token-less lines (rules, box art) are not
+counted. One awk pass over parse + input, measured up to `_FR_COV_BYTES`
+(128 KB; `-` above). Cost: none above the cap (10 MB ps / csv / kv / log /
+json inputs within run-to-run noise — 14.8 / 9.5 / 6.3 / 6.7 / 9.2 s base vs
+14.1 / 8.9 / 6.7 / 6.8 / 9.1 s, outputs byte-identical); ≤ ~0.1 s at the cap.
+- **Visible:** `--emit-meta` → `__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage`
+  (batch `.meta` files too); `--explain` gains a `COV` column (each matching
+  candidate is extracted) and a preview of the hold; `-d` logs it per
+  candidate; `provost` prints it after the confidence, records `coverage` in
+  the capture's `meta.tsv`, and adds a note (pointing at `provost source` and
+  `--multi`) when a capture is filed under 60% (`provost help` LINE COVERAGE,
+  `man/provost.1`). `tests/benchmark/run.sh` prints a `COV` column;
+  `tests/corpus/run.sh` reads the 4-field meta.
+
+**Coverage hold + rescue (`_cov_hold_wanted`, `_cov_rescue`).** With one winner
+wanted (ranked, `--max-strategies 1` / `--first-match`, how provost calls the
+engine) the first candidate to produce output is HELD when its coverage is
+below 60% (`_FR_COV_MIN`) on 6+ counted lines; the RESCUE parser then runs and
+wins only if it covers 25+ points more (`_FR_COV_GAIN`); else the held claim is
+stored byte for byte. Never held: hint-routed / pinned strategies, json / yaml
+/ xml / toml, catch-alls (text-lines, line-records), BESPOKE strategies (tool
+knowledge with a deliberately summarised shape — a corpus run showed the rescue
+replacing systemctl-status' clean unit fields and mariadb-innodb-status'
+extracted counters with a lossless but flatter table; a bespoke parse that
+loses data is fixed in the strategy instead, see gnu-version), and TABLES (3+
+records of 2+ fields sharing a field — their rows are the dataset; the dropped
+lines are a banner, summary or second table, i.e. `--multi` territory: a
+corpus trial without this rule flattened ping, arping, git log, slabtop and
+smartctl tables into text rows). Pruning stays exact without a redo: the held
+claim is the first candidate in rank order to produce output, which no
+ceiling prunes, and the rescue does not depend on the other candidates.
+- **Rejected alternatives, with evidence.** (1) Falling through to the next
+  RANKED candidate that covers more: simulated over the corpus it swapped 39
+  generic-mode winners, mostly to aligned-columns / colons / vertical-line
+  "covering" ~100% by scattering tokens (dig → key-value, a backup report →
+  vertical-line cutting words at a fixed column); with comment lines excluded
+  and a format-specific floor it still swapped 4, one a clear gain. Coverage
+  says THAT lines were dropped, not which parse is right. (2) Auto-segmenting
+  in the CLI (`--multi` by default on low coverage): a capture's dataset
+  identity would depend on a per-capture threshold (one day `NAME`, the next
+  `NAME.colons` + `NAME.text-lines`, breaking the longitudinal store),
+  `--multi` made 7 of the 17 round-2 inputs it changed worse, and it re-runs
+  detection per block. The engine instead produces ONE combined, lossless
+  dataset for the key/value-report shape, and the CLI makes any remaining loss
+  visible and points at `--multi`.
+
+**New generic strategy `kv-report`** (`extract/strategies/structured/`, rescue
+only — never ranked; confidence 70 when it replaces a held claim): every line
+of a key/value report becomes a row — `key: value` / `key = value`, a bare
+`Label:` over indented / bulleted / apt-style unindented items (a row per item,
+the label as key; an empty header is a key with an empty value), wrapped
+values folded (path / URL / name lists stay rows; `|` / `>` block scalars
+fold), decorated / underlined / indented titles and short block openers as a
+`section` column, right-aligned keys recognised by a shared colon column, tree
+glyphs read as indentation, a `block` index when blank-separated blocks repeat
+their keys; a report that is one record (no key repeated) comes out as one
+wide `section.key` row, like the other single-record kv parsers. Strategy
+count 261 → 262 (structured 25 → 26; `extract/README.md`, `README.md`).
+
+**`gnu-version` 1.0 → 1.1 keeps the whole banner report** instead of the
+banner alone: `Label: value` lines become fields (indented / comma-wrapped
+continuations folded; a bare label over indented lines takes them; a bare
+heading over more labels adds nothing), `<name> <version>` component lines
+become fields, a lone `<url>` value loses its brackets, a license URL wrapped
+onto its own line is read, other lines go to `notes`. (A `--version` that also
+lists libraries, a home directory and supported algorithms lost all of it at
+confidence 92.) Its sample golden is unchanged.
+
+**Corpus (`tests/corpus/expected/`).** 11 goldens change, 1 is new, none is
+deleted, `expected.tsv` unchanged; every change keeps data the old parse
+dropped: atuin-stats (the "Most used commands" list), dhrystone-run (2 of 3
+results and the banner were dropped), firewall-cmd / firewalld-list-all (empty
+keys and the rich rule kept — one wide row, as before), gem-info (the wrapped
+author list and the description), gpu-burn (both progress lines, the summary),
+hdparm-M (which device each value belongs to), nench-run (every timing),
+powermetrics-summary (section names and the cluster table), yaml-block-scalar
+(block-scalar contents, same columns), exo-zpool-status-tree (status lines and
+the config tree), new mdadm-resync-progress (now tidy: all lines kept). Gate:
+3558 passed, 0 failed, 147 not yet covered (was 3557 / 148);
+`_FR_BIG_BYTES=0` identical; `_EAS_NOPRUNE=1` identical (generic gate 3558 /
+0; full mode, all 3705 inputs byte-identical incl. meta; the 148 uncovered
+identical). Full mode changes the same inputs plus nix-why-depends and
+nst-mdadm-detail-devices (neither tidy before or after; now lossless).
+
+**Round 2 (held out; measured once, at the end).** Default output changed for
+4 of the 109 inputs, all better: gem env (indented-hierarchy kept 9 scalars →
+kv-report: every scalar plus all five lists as rows), gpg --version
+(gnu-version now keeps libgcrypt, home and the algorithm lists), pip debug
+(the 24-line vendored-library list kept), phpunit (test identities and
+messages kept instead of sparse fragments). Still failing: apt-cache showpkg
+(a table claim — not held, 43% visible), update-alternatives (70%), and
+vim --version / diskutil / route print / ffmpeg, whose sections are GLUED
+into cells rather than dropped (coverage ~100% — gluing is not loss, so this
+signal cannot see it; segmentation is still the tool there). Known kv-report
+defect seen there and deliberately not tuned on: a bare header whose first
+bulleted child shares its colon column is taken for a right-aligned sibling
+(gem env loses its `RubyGems Environment` title line, 97%).
+
+**Tests / fixtures.** `extract/tests/test_coverage.sh` (16 tests: the meta
+field, `-` above the cap, pinned strategies report low coverage, comment
+lines, rescue in full and `--generic` mode, list items / sections / colon
+columns, no hold for a covering parse, the off switches and `--rank priority`,
+hint / table / bespoke exemptions, `_EAS_NOPRUNE=1` identical, file lane and
+awk-twin routes identical incl. a restored held claim, kv-report never ranked,
+the explain preview, gnu-version keeps the rest). Fixtures written for this
+work (no corpus or benchmark input): `samples/kv-report/{basic (conda info),
+mise-doctor, xdpyinfo, brew-config}.txt`, `samples/gnu-version/{sed,
+vaultctl}.txt`, goldens `tests/golden/kv-report*.txt`,
+`gnu-version@{sed,vaultctl}.txt.txt`. `tests/smoke.sh` +5 checks (rescue
+through provost, coverage in the message and meta.tsv, the low-coverage note).
+
 ## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
 
 The names inherited from the Envoy suite are gone from provost's own code.

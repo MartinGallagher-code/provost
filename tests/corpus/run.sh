@@ -81,7 +81,7 @@ _worker () {
     local gwide gstrat="" gconf=0
     if [[ -n "$PRE_DIR" && -f "$PRE_DIR/$name.meta" ]]; then
         gwide="$(cat "$PRE_DIR/$name.wide" 2>/dev/null || true)"
-        IFS=$'\t' read -r _ gstrat gconf < "$PRE_DIR/$name.meta" || true
+        IFS=$'\t' read -r _ gstrat gconf _ < "$PRE_DIR/$name.meta" || true
         [[ -z "$gstrat" ]] && gstrat="(none)"
         [[ -z "$gconf" ]] && gconf=0
     else

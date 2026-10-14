@@ -1,0 +1,11 @@
+tool sed
+version 4.8
+copyright 2020 Free Software Foundation, Inc.
+license GPLv3+
+license_url https://gnu.org/licenses/gpl.html
+warranty 1
+author Jay Fenlason, Tom Lord, Ken Pizzini, Paolo Bonzini, Jim Meyering, and Assaf Gordon
+gnu_sed_home_page https://www.gnu.org/software/sed/
+general_help_using_gnu_software https://www.gnu.org/gethelp/
+e_mail_bug_reports_to bug-sed@gnu.org
+notes This sed program was built with SELinux support. SELinux is disabled on this system.

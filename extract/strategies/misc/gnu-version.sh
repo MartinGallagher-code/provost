@@ -4,7 +4,7 @@
 
 ## Name: gnu-version
 ## Description: Extract tool/version/copyright/license fields from a GNU-style `--version` banner
-## Version: 1.0
+## Version: 1.1
 ## Priority: 22
 ## Sample: samples/gnu-version/basic.txt
 
@@ -16,7 +16,21 @@
 # the banner actually has.
 #
 # One wide key/value record (no entryN.*): tool, version, copyright, license,
-# license_url, warranty, author.
+# license_url, warranty, author — and EVERYTHING ELSE the banner carries, so
+# the claim never drops part of the input (v1.1). A `--version` banner is often
+# the head of a longer report: component versions (`libgcrypt 1.9.4`), a home
+# directory, lists of supported algorithms or features wrapped over several
+# lines, build notes, help addresses. Those used to be dropped silently while
+# the strategy claimed the whole input at 92. Now:
+#   - `Label: value` becomes a field named after the label (lower-cased,
+#     non-alphanumerics folded to `_`; a clash gets `_2`, `_3` …); deeper
+#     indented lines, and lines after a value ending in `,`, continue it; a bare
+#     `Label:` over indented lines takes them as its value; a bare `Label:`
+#     over more labels is only a heading and adds nothing;
+#   - a `<name> <version>` line after the first is a component: field `name`;
+#   - a value that is a single `<url>` (optionally followed by `.`) loses the
+#     angle brackets;
+#   - any other non-boilerplate line is kept, space-joined, in `notes`.
 #
 # Three first-line shapes are recognised, all of them in the wild:
 #   provost 2.0.1                                  <- plain "<tool> <version>"
@@ -148,19 +162,41 @@ strategy_extract () {
     local text="$1"
     local result="" line trimmed
     local copyright="" license="" license_url="" warranty=0 author="" in_author=0
+    local notes="" first=1 ind lead cur_ind=-1 cur_key="" after_lic=0
+    local -a xk=() xv=()
+    local -A used=([tool]=1 [version]=1 [copyright]=1 [license]=1 [license_url]=1 [warranty]=1 [author]=1 [notes]=1)
 
     local re_copy_line='^Copyright[[:space:]]+(\(C\)|\(c\)|©)[[:space:]]+(.*)$'
     local re_lic_line='^License[[:space:] :]+(.*)$'
     local re_url='<([^>]*)>'
+    local re_label='^([A-Za-z][A-Za-z0-9 ./()+_-]{0,47}):([[:space:]]+(.*))?$'
+    local re_bare_url='^<([^>[:space:]]*)>\.?$'
 
     local head
     _gnuver_first_line_v "$text"; head="$_GNUVER_FIRST"
     _gnuver_parse_head "$head" || return 1
+    local tool="$_GNUVER_TOOL" version="$_GNUVER_VERSION"
+
+    # _gv_add KEY VALUE — a new extra field (label-derived name, deduplicated)
+    _gv_add () {
+        local k="${1,,}" n=2
+        k="${k//[^a-z0-9]/_}"
+        while [[ "$k" == *__* ]]; do k="${k//__/_}"; done
+        k="${k#_}"; k="${k%_}"
+        [[ -n "$k" ]] || k="field"
+        if [[ -n "${used[$k]:-}" ]]; then
+            while [[ -n "${used[${k}_$n]:-}" ]]; do n=$((n + 1)); done
+            k="${k}_$n"
+        fi
+        used[$k]=1
+        xk+=("$k"); xv+=("$2")
+    }
 
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         trimmed="${line#"${line%%[![:space:]]*}"}"
         trimmed="${trimmed%"${trimmed##*[![:space:]]}"}"
+        lead="${line%%[![:space:]]*}"; ind=${#lead}
 
         # A "Written by ..." trailer can wrap over several lines and ends at the
         # sentence period or the next blank line.
@@ -175,8 +211,22 @@ strategy_extract () {
         fi
 
         if [[ -z "$trimmed" ]]; then
+            cur_key=""; cur_ind=-1; after_lic=0
             continue
-        elif [[ -z "$copyright" && "$trimmed" =~ $re_copy_line ]]; then
+        fi
+        if [[ $first -eq 1 ]]; then
+            first=0          # the banner line itself (tool / version)
+            continue
+        fi
+        # Continuation of the field in hand: deeper indented, or the value so
+        # far ends in a comma (a wrapped list), or a bare label's body.
+        if [[ -n "$cur_key" ]] && { [[ $ind -gt $cur_ind ]] || [[ "${xv[-1]}" == *, ]]; } \
+           && ! { [[ $ind -le $cur_ind ]] && [[ "$trimmed" =~ $re_label ]]; }; then
+            if [[ -n "${xv[-1]}" ]]; then xv[-1]+=" $trimmed"; else xv[-1]="$trimmed"; fi
+            continue
+        fi
+        cur_key=""
+        if [[ -z "$copyright" && "$trimmed" =~ $re_copy_line ]]; then
             copyright="${BASH_REMATCH[2]}"
         elif [[ -z "$license" && "$trimmed" =~ $re_lic_line ]]; then
             local rest="${BASH_REMATCH[1]}"
@@ -187,22 +237,43 @@ strategy_extract () {
             id="${id%"${id##*[!:,.;]}"}"
             [[ -n "$id" ]] && license="$id"
             [[ "$trimmed" =~ $re_url ]] && license_url="${BASH_REMATCH[1]}"
+            after_lic=1
+        elif [[ $after_lic -eq 1 && -z "$license_url" && "$trimmed" =~ $re_url && "$trimmed" == "<"* ]]; then
+            # the license URL wrapped onto its own line
+            license_url="${BASH_REMATCH[1]}"
         elif [[ "${trimmed,,}" == *"no warranty"* ]]; then
             warranty=1
+        elif [[ "$trimmed" == "This is free software"* ]]; then
+            :                # boilerplate, summarised by `license`
         elif [[ -z "$author" && "$trimmed" == "Written by "* ]]; then
             author="${trimmed#Written by }"
             [[ "$author" == *"." ]] || in_author=1
+        elif [[ "$trimmed" =~ $re_label ]]; then
+            local lab="${BASH_REMATCH[1]}" val="${BASH_REMATCH[3]}"
+            [[ "$val" =~ $re_bare_url ]] && val="${BASH_REMATCH[1]}"
+            _gv_add "$lab" "$val"
+            cur_key="$lab"; cur_ind=$ind
+        elif _gnuver_parse_head "$trimmed" && [[ "$_GNUVER_TOOL" != *" "* ]]; then
+            _gv_add "$_GNUVER_TOOL" "$_GNUVER_VERSION"
+        else
+            notes+="${notes:+ }$trimmed"
         fi
     done
 
     author="${author%.}"
 
-    result+="tool ${_GNUVER_TOOL}"$'\n'
-    result+="version ${_GNUVER_VERSION}"$'\n'
+    result+="tool ${tool}"$'\n'
+    result+="version ${version}"$'\n'
     [[ -n "$copyright" ]] && result+="copyright ${copyright}"$'\n'
     [[ -n "$license" ]] && result+="license ${license}"$'\n'
     [[ -n "$license_url" ]] && result+="license_url ${license_url}"$'\n'
     result+="warranty ${warranty}"$'\n'
     [[ -n "$author" ]] && result+="author ${author}"$'\n'
+    # Extra fields; a bare heading that collected nothing adds nothing.
+    local i
+    for ((i = 0; i < ${#xk[@]}; i++)); do
+        [[ -n "${xv[$i]}" ]] && result+="${xk[$i]} ${xv[$i]}"$'\n'
+    done
+    [[ -n "$notes" ]] && result+="notes ${notes}"$'\n'
     echo "$result"
 }

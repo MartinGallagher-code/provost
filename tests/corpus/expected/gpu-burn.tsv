@@ -1,3 +1,7 @@
-n	GPU_0	Summary_at
-1	NVIDIA GeForce RTX 4090 (UUID: GPU-a1b2c3d4)	Thu Jul 10 06:00:00 2026
-3	OK	
+n	section	key	value
+1		GPU 0	NVIDIA GeForce RTX 4090 (UUID: GPU-a1b2c3d4)
+2			100.0%  proc'd: 482100 (82044 Gflop/s)   errors: 0   temps: 78 C
+3		Summary at	Thu Jul 10 06:00:00 2026
+4			100.0%  proc'd: 488210 (82210 Gflop/s)   errors: 0   temps: 79 C
+5			Killing processes.. done
+6	Tested 1 GPUs	GPU 0	OK
