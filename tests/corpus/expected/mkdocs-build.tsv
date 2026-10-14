@@ -1,2 +1,4 @@
-n	INFO	-	Building_documentation_to_directory:_/site
-1	INFO	-	Documentation built in 2.44 seconds
+n	level	message
+1	INFO	Cleaning site directory
+2	INFO	Building documentation to directory: /site
+3	INFO	Documentation built in 2.44 seconds

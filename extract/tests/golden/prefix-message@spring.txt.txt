@@ -1,0 +1,43 @@
+entry1.timestamp 2026-10-14T09:00:00.512+02:00
+entry1.level INFO
+entry1.pid 48211
+entry1.thread main
+entry1.logger com.acme.shop.ShopApplication
+entry1.message Starting ShopApplication v2.4.1 using Java 21.0.2 with PID 48211
+entry1.detail 
+entry2.timestamp 2026-10-14T09:00:00.517+02:00
+entry2.level INFO
+entry2.pid 48211
+entry2.thread main
+entry2.logger com.acme.shop.ShopApplication
+entry2.message No active profile set, falling back to 1 default profile: "default"
+entry2.detail 
+entry3.timestamp 2026-10-14T09:00:02.040+02:00
+entry3.level INFO
+entry3.pid 48211
+entry3.thread main
+entry3.logger o.s.b.w.embedded.tomcat.TomcatWebServer
+entry3.message Tomcat initialized with port 8080 (http)
+entry3.detail 
+entry4.timestamp 2026-10-14T09:00:03.882+02:00
+entry4.level WARN
+entry4.pid 48211
+entry4.thread main
+entry4.logger JpaBaseConfiguration$JpaWebConfiguration
+entry4.message spring.jpa.open-in-view is enabled by default.
+entry4.detail 
+entry5.timestamp 2026-10-14T09:00:04.210+02:00
+entry5.level INFO
+entry5.pid 48211
+entry5.thread main
+entry5.logger com.acme.shop.ShopApplication
+entry5.message Started ShopApplication in 4.1 seconds (process running for 4.6)
+entry5.detail 
+entry6.timestamp 2026-10-14T09:03:17.091+02:00
+entry6.level ERROR
+entry6.pid 48211
+entry6.thread nio-8080-exec-3
+entry6.logger 
+entry6.message o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] threw exception
+entry6.detail java.lang.IllegalStateException: Cart 77 is locked; at com.acme.shop.cart.CartService.checkout(CartService.java:88); at com.acme.shop.web.CartController.checkout(CartController.java:41)
+total_entries 6

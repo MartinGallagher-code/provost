@@ -1,5 +1,5 @@
-n	A
-1	⧗   input: fixed stuff
-2	✖   subject may not be empty [subject-empty]
-3	✖   type may not be empty [type-empty]
-4	✖   found 2 problems, 0 warnings
+n	marker	message	tag
+1	⧗	input: fixed stuff	
+2	✖	subject may not be empty	subject-empty
+3	✖	type may not be empty	type-empty
+4	✖	found 2 problems, 0 warnings	

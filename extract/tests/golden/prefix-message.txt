@@ -1,0 +1,33 @@
+entry1.file main.c
+entry1.line 5
+entry1.col 13
+entry1.severity warning
+entry1.message initialization of 'int' from 'char *' makes integer from pointer without a cast
+entry1.code -Wint-conversion
+entry1.detail 5 |     int x = "hello";; |             ^~~~~~~
+entry1.context main.c: In function 'main'
+entry2.file main.c
+entry2.line 6
+entry2.col 5
+entry2.severity error
+entry2.message 'y' undeclared (first use in this function)
+entry2.code 
+entry2.detail 6 |     y = 3;; |     ^
+entry2.context main.c: In function 'main'
+entry3.file main.c
+entry3.line 6
+entry3.col 5
+entry3.severity note
+entry3.message each undeclared identifier is reported only once for each function it appears in
+entry3.code 
+entry3.detail 
+entry3.context main.c: In function 'main'
+entry4.file util.c
+entry4.line 12
+entry4.col 9
+entry4.severity warning
+entry4.message unused variable 'tmp'
+entry4.code -Wunused-variable
+entry4.detail 12 |     int tmp;; |         ^~~
+entry4.context util.c: In function 'parse'
+total_entries 4

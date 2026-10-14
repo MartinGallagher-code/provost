@@ -25,7 +25,7 @@ strategy.
 |---|---|
 | `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 261 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 263 format-detection strategies, in 15 category dirs (114 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,7 +33,7 @@ strategy.
 
 ## Strategy count
 
-261 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 87, system 58,
+263 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
 network 31, structured 25, security 11, filesystem 8, build 8, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
@@ -196,7 +196,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
-| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79) |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79) |
 | General structure | **55–69**, scaled | a shape any tabular or kv output has (also `git-log`'s oneline branch, 64: a leading hex token) | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
 | Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
 

@@ -1,5 +1,100 @@
 # provost — Changelog
 
+## 2026-10-14 — line diagnostics and logs split into columns (`prefix-message`, `help-columns`)
+
+Round 2's failure pattern 4 (docs/benchmark-2026-10-02-generalisation-round2.md):
+compiler diagnostics, server logs and help listings came out as one column of
+whole lines, because no generic parser handled "a fixed prefix grammar, then
+free text", and lines that continue a record (stack traces, caret diagrams,
+`DETAIL:`) were never attached to it. Two new generic parsers in
+`extract/strategies/delimited/`, each one mawk-safe awk program that serves
+detection and extraction at every input size (no bash line loop, no twin):
+- **`prefix-message`** (p45, `## Confidence-Max: 84`). A small lexer reads
+  TYPED fields off the start of each unindented line — timestamps (ISO 8601
+  + zone abbreviation, `2026/10/14 …`, `14-Oct-2026 …`, ctime / BSD,
+  java.util.logging, a bare time ± AM/PM, glog's `I1014 …`), levels (any
+  common spelling; a bare lowercase word only with a colon, after a
+  location or before a code; an ALL-CAPS `LABEL:` in the level slot),
+  `path:line[:col]` and msbuild/tsc `path(line,col)` locations, error codes,
+  `[bracketed]` fields (named by what most cells hold), pids (`29#29:`,
+  `1:M`, a bare id between fields), journal `host process[pid]:`, loggers
+  (`name - `, spring's padded `name : `, python's `LEVEL:name:`), line
+  markers (`* > < + ✔ ✖ …`) — until the next token is none of them. The
+  grammar is the longest field sequence shared by ≥ 80% of the lines that
+  open with the most common first field; a line matching at least half of
+  it is a record with the missing cells empty. The rest of a record line is
+  `message`; a trailing `[…]` on most records becomes `code` (or `tag`).
+  Non-record lines that read as continuations (indented, `at …`, `Caused
+  by:`, exception / `Traceback` lines, ALL-CAPS `KEYWORD:`, `12 |` gutters,
+  carets) join the record above in `detail` (`; `-joined, bracket-log's
+  convention); rustc / deno `  --> file:line:col` under a headline fills
+  file/line/col; a title right above records (gcc `x.c: In function …:`,
+  go vet `# pkg`, pylint `***** Module x`) is their `context`; any other line
+  is a row holding only `message`, so nothing is dropped. Confidence by
+  evidence points (dated timestamp / `file:line:col` 2, level / logger /
+  code 1, …; +1 each for a location under the headline, a trailing code on
+  most diagnostics, a stack-trace / caret continuation on most records):
+  ≥ 3 → 84, 2 → 80, else 72, less a third of the share of lines it does not
+  explain (a ≤ 3-line banner / summary counts as explained); a BSD-syslog
+  timestamp caps it at 79 so `syslog` keeps its inputs. Declines tables
+  under a date / time column (uniform message word counts, 2+-space column
+  gaps), a lone level column that never repeats (a `Error: 0` kv block), one
+  repeated marker (a list), a single `[tag]` (bracket-log's).
+- **`help-columns`** (p46, `## Confidence-Max: 82`). `--help` pages and
+  command listings: indented `term   description` entries (option lists
+  with arguments as one term; wget's gapped `-V,  --version`; a term alone
+  over a description at the list's description column; npm run's
+  term-over-description pairs; just / rake -T `name  # comment`), wrapped
+  descriptions joined, titles (`Options:`, `CORE COMMANDS`, git's `start a
+  working area (…)`) carried down as `section`, usage / prose lines kept as
+  description-only rows. Why `two-col-gap` never fired: it requires every
+  line unindented, a single-token key and no titles. Detection asks for the
+  help shape — ≥ 3 entries, aligned descriptions, multi-word prose
+  descriptions without further column gaps, word / option terms (not
+  numbers or `key:`), no `|` cells; 82 with ≥ 5 aligned entries (clears the
+  80 of indented-colon-groups / block-records, which welded term and
+  description), else 78.
+
+Developed against the corpus and ~45 new realistic captures written for
+this change (gcc, clang, javac, swiftc, kotlinc, rustc, go build, golangci,
+flake8, pylint parseable, eslint unix, shellcheck gcc, hadolint, dotnet;
+python logging ×2, logback, spring boot, tomcat, nginx error, mysql error,
+journal short-iso, glog, go log, mongo, redis, uvicorn; docker / git / ls /
+tar / wget / pip / cargo / systemctl / terraform / kubectl / go help, npm
+run, rake -T, just --list) — the round-2 set was run once, at the end.
+
+Corpus: 21 goldens change, all reviewed as improvements, none deleted, no
+manifest change: `ruff-check`, `ruff-check-color`, `hadolint-output`,
+`go-vet-summary` (file/line/col/code/message, go vet's package as context),
+`deno-lint-summary`, `deno-check-summary` (severity/code + location),
+`nst-java-log-stacktrace`, `nst-python-traceback-log`,
+`gatk-haplotypecaller-log`, `telegraf-config-test`, `falco-events`,
+`mkdocs-build` (its first line was the header before), `mimirtool-bucket-validate`,
+`poetry-check`, `mongodump-log`, `sops-updatekeys`, `docker-events` (the
+timestamp was cut at its colons), `duplicity-list-files`,
+`exo-tcpdump-x-hexdump` (hex dump lines attach to their packet),
+`commitlint-report` (marker / message / rule), `mage-list`
+(section/name/description instead of one word per column).
+
+Files: `extract/strategies/delimited/prefix-message.sh`,
+`extract/strategies/delimited/help-columns.sh`, samples under
+`extract/samples/{prefix-message,help-columns}/` with goldens
+`extract/tests/golden/{prefix-message,help-columns}*.txt`,
+`extract/tests/test_strategy_prefix_message.sh` (14 tests incl. declines and
+a > 32 KB input), the 21 `tests/corpus/expected/*.tsv`, `extract/README.md`
+(counts 263 / 89 / 114, rubric row), `README.md` (count).
+
+Gates: `tests/corpus/run.sh --golden` 3557 passed, 0 failed, 148
+not-yet-covered (the same with `_FR_BIG_BYTES=0`); extract suite 67/67 files;
+smoke 203; melt 54. A generated 10 MB Log4j-style log: 35 s (text-lines) →
+15 s (prefix-message, one awk pass per phase); a 10 MB CSV is unchanged
+(10.8 s → 10.7 s — both detectors decline on the sample). Round 2, run once
+at the end, untuned: six default outputs change, all for the better
+(`cargo --list`, `make --help`, `rake -T` → section/name/description; mypy,
+Log4j, PostgreSQL → typed columns + attached continuations); tsc improves
+under `--multi` only (its trailing per-file table keeps the whole input
+under the 70% bar).
+
 ## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
 
 The names inherited from the Envoy suite are gone from provost's own code.

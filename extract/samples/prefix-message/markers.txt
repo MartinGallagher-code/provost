@@ -1,0 +1,6 @@
+✔ lint passed (412 files)
+✔ typecheck passed
+✖ unit tests: 3 failed, 211 passed
+✔ build completed in 41s
+⚠ bundle size 1.2 MB exceeds budget 1 MB
+✖ e2e: 1 failed, 18 passed

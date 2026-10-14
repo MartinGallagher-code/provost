@@ -1,0 +1,11 @@
+INFO:root:Loading configuration from /etc/app/config.yaml
+INFO:app.db:Connected to postgres://db:5432/app
+WARNING:app.cache:Redis unavailable, falling back to in-memory cache
+ERROR:app.worker:Job 4411 failed after 3 retries
+Traceback (most recent call last):
+  File "/srv/app/worker.py", line 57, in run
+    result = job.execute()
+  File "/srv/app/jobs.py", line 102, in execute
+    raise TimeoutError("upstream took too long")
+TimeoutError: upstream took too long
+INFO:app.worker:Job 4412 completed in 0.84s

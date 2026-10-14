@@ -1,0 +1,13 @@
+entry1.marker ✔
+entry1.message lint passed (412 files)
+entry2.marker ✔
+entry2.message typecheck passed
+entry3.marker ✖
+entry3.message unit tests: 3 failed, 211 passed
+entry4.marker ✔
+entry4.message build completed in 41s
+entry5.marker ⚠
+entry5.message bundle size 1.2 MB exceeds budget 1 MB
+entry6.marker ✖
+entry6.message e2e: 1 failed, 18 passed
+total_entries 6

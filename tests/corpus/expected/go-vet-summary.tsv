@@ -1,7 +1,5 @@
-n	A	B	C	D
-1	# github.com/acme/svc/internal/handler			
-2	./handler.go	52	2	 unreachable code
-3	./handler.go	88	6	 result of fmt.Sprintf call not used
-4	# github.com/acme/svc/internal/store			
-5	./store.go	14	9	 Printf format %d has arg name of wrong type string
-6	./store.go	120	3	 lock copies value of type sync.Mutex
+n	file	line	col	message	context
+1	./handler.go	52	2	unreachable code	github.com/acme/svc/internal/handler
+2	./handler.go	88	6	result of fmt.Sprintf call not used	github.com/acme/svc/internal/handler
+3	./store.go	14	9	Printf format %d has arg name of wrong type string	github.com/acme/svc/internal/store
+4	./store.go	120	3	lock copies value of type sync.Mutex	github.com/acme/svc/internal/store

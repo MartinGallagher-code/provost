@@ -1,0 +1,40 @@
+entry1.section 
+entry1.name 
+entry1.description GNU Wget 1.21.4, a non-interactive network retriever.
+entry2.section 
+entry2.name 
+entry2.description Usage: wget [OPTION]... [URL]...
+entry3.section 
+entry3.name 
+entry3.description Mandatory arguments to long options are mandatory for short options too.
+entry4.section Startup
+entry4.name -V, --version
+entry4.description display the version of Wget and exit
+entry5.section Startup
+entry5.name -h, --help
+entry5.description print this help
+entry6.section Startup
+entry6.name -b, --background
+entry6.description go to background after startup
+entry7.section Startup
+entry7.name -e, --execute=COMMAND
+entry7.description execute a `.wgetrc'-style command
+entry8.section Logging and input file
+entry8.name -o, --output-file=FILE
+entry8.description log messages to FILE
+entry9.section Logging and input file
+entry9.name -a, --append-output=FILE
+entry9.description append messages to FILE
+entry10.section Logging and input file
+entry10.name -q, --quiet
+entry10.description quiet (no output)
+entry11.section Logging and input file
+entry11.name -v, --verbose
+entry11.description be verbose (this is the default)
+entry12.section Logging and input file
+entry12.name --report-speed=TYPE
+entry12.description output bandwidth as TYPE.  TYPE can be bits
+entry13.section Logging and input file
+entry13.name -i, --input-file=FILE
+entry13.description download URLs found in local or external FILE
+total_entries 13

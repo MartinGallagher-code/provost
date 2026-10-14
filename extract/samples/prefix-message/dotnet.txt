@@ -1,0 +1,4 @@
+/src/Billing/InvoiceService.cs(42,17): warning CS0168: The variable 'ex' is declared but never used [/src/Billing/Billing.csproj]
+/src/Billing/InvoiceService.cs(88,9): warning CS8602: Dereference of a possibly null reference. [/src/Billing/Billing.csproj]
+/src/Billing/Models/Invoice.cs(12,23): error CS0246: The type or namespace name 'Money' could not be found (are you missing a using directive or an assembly reference?) [/src/Billing/Billing.csproj]
+/src/Api/Program.cs(5,1): warning CS1591: Missing XML comment for publicly visible type or member 'Program' [/src/Api/Api.csproj]
