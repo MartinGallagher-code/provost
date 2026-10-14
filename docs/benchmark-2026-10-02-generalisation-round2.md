@@ -392,3 +392,220 @@ When the next fix round works these clusters, update `ratings.tsv` in the same
 commit and add a postscript here, as round 1 did. From then on the set measures
 regression, not generalisation. The next honest generalisation number needs a
 round 3 that nobody has parsed.
+
+## Postscript, 2026-10-14: patterns 1–4 were worked, and this set is now a regression measure
+
+A fix round worked failure patterns 1 to 4 (CHANGELOG, the three 2026-10-14 engine
+entries):
+
+- **Pattern 1, whitespace tables.** A gutter grid (`_fr_gutter_grid` in
+  `extract/lib/_helpers.sh`) assigns cells by character offset. It is used by
+  `aligned-columns`, `fixed-width` and `embedded-table`. A cell holding a
+  space, an empty cell and a two-word header no longer shift the values after
+  them.
+- **Pattern 3, banners.** `aligned-columns` recognises some banners, titles
+  and W3C `#Fields:` directives. Result-set footers are dropped. `pipe-table`
+  now reads bare tables drawn with `---|---` rules in default mode.
+- **Pattern 4, line diagnostics.** Two new generic parsers:
+  `prefix-message`, for diagnostics and logs (typed prefix fields, then the
+  message, with continuation lines attached), and `help-columns`, for
+  `--help` pages and command lists.
+- **Pattern 2, multi-section reports.** The engine now measures line
+  coverage: the share of input lines that contributed to the parse. When a
+  claim covers less than 60%, the engine holds it and tries a key/value-report
+  rescue (`kv-report`). `gnu-version` now keeps the whole report.
+- **Regression guards.** Three guards were added after the first round-2 run
+  exposed misreads.
+
+The work was developed against new examples and the corpus. Round 2 was run
+only at the end of each change. Even so, the set has now been looked at, so
+the numbers below are not a generalisation result.
+
+Ratings were redone on the final engine in default mode, with the same
+criteria and the same six rules. In 87 of the 109 inputs the default tidy
+output is byte-identical to 2026-10-02 (checked with `cmp`), so those ratings
+carry over. The other 22 were re-rated from the input and both outputs.
+`ratings.tsv` keeps the original columns and adds `strategy_1014`,
+`conf_1014`, `cov_1014`, `rating_1014` and `note_1014`.
+
+### Headline
+
+| | 2026-10-02 | share | 2026-10-14 | share |
+|---|---:|---:|---:|---:|
+| PASS | 17 | 16% | 26 | **24%** |
+| PARTIAL | 51 | 47% | 54 | **50%** |
+| FAIL | 41 | 38% | 29 | **27%** |
+| usable (PASS + PARTIAL) | 68 | 62% | 80 | **73%** |
+
+Of the 22 changed outputs:
+
+- 9 became PASS: 5 from FAIL and 4 from PARTIAL.
+- 7 went from FAIL to PARTIAL.
+- 6 changed but kept their PARTIAL rating.
+
+**No default-mode output got worse.**
+
+| family (only those that moved) | n | 10-02 PASS / PARTIAL / FAIL | usable | 10-14 PASS / PARTIAL / FAIL | usable |
+|---|---:|---|---:|---|---:|
+| aligned / fixed-width table | 21 | 4 / 7 / 10 | 52% | 7 / 9 / 5 | 76% |
+| list, grid, help text, free text | 20 | 0 / 13 / 7 | 65% | 1 / 14 / 5 | 75% |
+| log and diagnostic lines | 20 | 3 / 14 / 3 | 85% | 5 / 13 / 2 | 90% |
+| multi-section report | 13 | 0 / 2 / 11 | 15% | 0 / 4 / 9 | 31% |
+| single key/value record | 11 | 3 / 6 / 2 | 82% | 4 / 5 / 2 | 82% |
+| key/value blocks | 10 | 0 / 5 / 5 | 50% | 2 / 5 / 3 | 70% |
+
+Structured data (8) and box tables (6) are unchanged.
+
+### What changed, input by input
+
+**FAIL to PASS (5):**
+
+- `lsipc` (025), `ps -eo lstart` (048) and `pg_lsclusters` (040): the gutter
+  grid keeps a multi-word description, a five-token date and two two-word
+  headers as one cell or label each.
+- `gem env` (016) and `pip debug` (043): `kv-report` keeps every scalar and
+  every list as rows. The only things dropped are a title with no content and
+  the debugging disclaimer.
+
+**PARTIAL to PASS (4):**
+
+- `bash set -o` (004): the first option is no longer taken for the header.
+- mypy (029) and Log4j (115): `prefix-message` splits the typed fields, and
+  for Log4j it attaches the stack trace to its event.
+- `rake -T` (056): `help-columns` splits name and description at the `#`.
+
+**FAIL to PARTIAL (7):**
+
+- `gcc -Q --help=warnings` (015): the banner is no longer the header, but the
+  first option is.
+- `gpg --version` (019): every section is kept, but the licence is cut to
+  `GNU`.
+- `lslogins` (026): the values are right, but the empty LAST-LOGIN column is
+  merged into the header `PWD-DENY_LAST-LOGIN`.
+- cProfile (051): no value is dropped or shifted, but the second `percall`
+  is merged with the filename, and the call-count banner is still dropped.
+- `python -m dis` (052): the columns are stable, but the first instruction is
+  still the header and offset and opname stay merged.
+- IIS W3C (110): every record is under the right names, but the second
+  block's directives are shredded data rows.
+- phpunit (128): every line is kept, but each error spans four to five rows.
+
+**Changed, still PARTIAL (6):**
+
+- `cargo --list` (007) and `make --help` (027): one entry each lands whole in
+  `description`.
+- `choco list` (103): the banner is a data row rather than the header.
+- IBM Cloud (109): the table is exact, but the banner that names the account
+  and user is dropped.
+- nyc (124): the table is exact, but the indentation that shows nesting is
+  stripped.
+- PostgreSQL log (130): timestamp and pid are split and continuation lines
+  are attached, but user@db and severity stay inside `message`.
+
+### What still fails, by pattern
+
+1. **Whitespace tables.** Fixed: `lsipc`, `ps`, `pg_lsclusters` (PASS) and
+   `lslogins`, cProfile (PARTIAL). Byte-identical and still FAIL:
+   - `winget list` (140): the input has non-ASCII bytes, and the grid
+     withdraws on those.
+   - `gzip -lv` (021).
+   - PowerShell `Get-Volume` (131).
+   - `diff -y` (013).
+
+   The footers of `sqlcmd` (137) and SQL\*Plus (138) are still data rows, even
+   though footer handling was part of this round.
+2. **Multi-section reports.** Four of the 11 FAILs moved: `gem env`,
+   `pip debug`, `gpg --version` and phpunit. Seven still FAIL:
+   - `apt-cache showpkg` (001): a table claim, which is exempt from the hold,
+     at 43% coverage.
+   - `update-alternatives` (064): 70%.
+   - `kubectl explain` (113): 91%.
+   - `vim --version` (065), `diskutil` (106), `route print` (133) and
+     ffmpeg (107): their sections are glued into cells rather than dropped.
+     Coverage stays near 100%, so the hold never fires. Segmentation is
+     still the tool for these.
+3. **Banners.** Still FAIL:
+   - `readelf -l` (058).
+   - `go tool pprof -top` (017).
+   - the mainframe report (117): the page header is still the column names.
+
+   Partly fixed: gcc, dis, IIS, choco and IBM Cloud, as listed above.
+4. **Line diagnostics.** Fixed: mypy, Log4j and `rake`. Improved but PARTIAL:
+   PostgreSQL, `cargo` and `make`. Byte-identical and still `text-lines`:
+   - tsc (139): improves under `--multi` only.
+   - `unittest -v` (055).
+   - `curl -v` (011).
+   - `factor` (014).
+   - `od` (035).
+   - monit (121).
+   - surefire (118), as `aligned-columns`.
+5. **Wrong strategy, wrong delimiter.** Not worked, and unchanged except
+   `rake`:
+   - `composer config` (010) is still claimed by `toml` from one banner line.
+     Coverage reads 2%, but `toml` is exempt from the hold.
+   - strace (063), pytest (049), Prometheus (132), Nagios (122), the
+     `openssl list` records (037) and the JS literal (032) are as before.
+6. **Indentation.** Not worked: `comm`, `namei`, the calendar, mocha and nyc
+   are as before.
+
+`--rank priority` no longer matches the default on every input. It differs
+on five. On four of them (`gem env`, `pip debug`, `rake -T`, phpunit) the
+priority-mode output is byte-identical to the 2026-10-02 default. The rescue
+does not run under priority ranking, and priority order still gives
+`rake -T` to `pkg-config`. On the fifth, the Apache error log (101), priority mode
+now picks `prefix-message` over `bracket-log`. The `prio_rating` column was
+not redone; for those four inputs the old rating still applies. `--multi`
+output changed on 27 inputs, and the `multi` column was not redone either.
+
+### Line coverage against rating
+
+The final engine reports coverage as the 4th field of `--emit-meta`, so the
+`.meta` files give it for every input:
+
+| line coverage | n | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|---:|
+| ≥ 95% | 90 | 26 | 45 | 19 |
+| 80–94% | 11 | 0 | 6 | 5 |
+| 60–79% | 5 | 0 | 2 | 3 |
+| < 60% | 3 | 0 | 1 | 2 |
+
+The three inputs below the 60% threshold are `composer config` (2%, FAIL),
+`apt-cache showpkg` (43%, FAIL) and `go test -v` (52%, PARTIAL: the failure
+messages are dropped). All three are bad parses. None of them is rescued,
+because `toml`, tables and bespoke strategies are exempt from the hold.
+provost now prints a low-coverage note for each of them.
+
+The same inputs by confidence, for comparison with the 2026-10-02 table:
+
+| winning confidence | n | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|---:|
+| ≥ 85 | 17 | 6 | 7 | 4 |
+| 80–84 | 38 | 9 | 19 | 10 |
+| 60–79 | 38 | 10 | 17 | 11 |
+| < 60 | 16 | 1 | 11 | 4 |
+
+**Coverage separates bad parses better than confidence does, but only in one
+direction.** No input below 97% coverage is a PASS. Of the 19 inputs below
+95%, 10 are FAIL, against 27% across the whole set. Confidence has no band
+like that: a claim of 80 or more is still wrong a quarter of the time (14 of
+55). But coverage misses most FAILs. 19 of the 29 cover 95% or more, because
+what is left in the FAIL column is mostly misplacement: values under the
+wrong header, sections glued into a cell, prose shredded across columns.
+Those parses keep every token. Coverage measures whether lines were dropped,
+not whether a parse is right. At the 60% threshold it catches 2 of the 29
+FAILs.
+
+### What these numbers are now
+
+From this round on, **round 2 is a regression set on seen inputs, not a
+generalisation measure.** The fixes were developed elsewhere, but every
+change was checked here at the end, and this postscript lists defects input
+by input. Any further work on the remaining defects would be fitted to these
+files. 24% PASS and 73% usable is what provost does on these 109 inputs
+today. It does not say what provost does on output it has never seen.
+`run.sh --round2` still works unchanged; re-run it and read the diff against
+`ratings.tsv` to catch regressions.
+
+The next honest generalisation number needs a **round 3**: a fresh set
+nobody has parsed, chosen and novelty-checked before its first run, and
+rated on the same criteria.
