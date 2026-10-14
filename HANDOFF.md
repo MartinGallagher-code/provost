@@ -3,22 +3,63 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-02)
+## Present state (2026-10-14)
 
-provost 2.0.1 is on PyPI. It is one Bash entry point (`provost`) over:
-- the extract engine (`extract/provost-extract`, ~260 strategies)
+PyPI has provost 2.0.1. `main` (after PR #74) is unreleased and holds a lot of
+user-visible change since 2.0.1:
+- the rename to `provost-extract` / `PROVOST_*`
+- the misparse fixes and mid-file sampling (PR #73)
+- this round's parser work (PR #74)
+
+The next release should be **2.1.0**.
+
+provost is one Bash entry point (`provost`) over:
+- the extract engine (`extract/provost-extract`, 264 strategies, ~115 of them
+  generic)
 - the tidy melt (`transform/melt.sh`)
 - the analyze engine (`analyze/provost-analyze`)
 
 It has a git-backed store and ships as a thin Python launcher
 (`src/provost_data/`).
 
-The internal names inherited from Envoy (`envoy-*`, `ENVOY_*`, `MFE_*`) were
-renamed to provost names on 2026-10-02 (see the CHANGELOG entry). The engines
-honour the old variables for one release. **Drop that "Legacy names" block,
-and the `~/.mfe/strategies` read in `_collect_strategy_dirs`, in the release
-after next.** `tests/corpus/*/envoy-*` are real Envoy-proxy captures, not
-leftovers.
+### This round (2026-10-14)
+
+- **Whitespace tables: cells by column offset.** The "gutter grid" in
+  `extract/lib/_helpers.sh` is used by aligned-columns, fixed-width and
+  embedded-table. It also handles:
+  - banner, title and footer lines
+  - IIS `#Fields:`
+  - preamble `Label: value` lines, kept as constant columns
+  - headerless tables
+- **Diagnostics, logs and help text.**
+  - `prefix-message` splits typed prefix fields followed by a message, and
+    attaches continuation lines to the record above.
+  - `help-columns` splits a term from its description.
+- **Line coverage.**
+  - Every parse now reports the share of input lines it used: in
+    `--emit-meta` (4th field), in `--explain`, and in provost's ok line and
+    `meta.tsv`.
+  - A single-winner claim under 60% is held, and the rescue-only `kv-report`
+    replaces it when it covers at least 25 points more.
+  - `gnu-version` now keeps the whole report.
+- **Round-2 benchmark re-rated:**
+
+  | | before | after |
+  |---|---:|---:|
+  | PASS | 16% | 24% |
+  | PARTIAL | 47% | 50% |
+  | FAIL | 38% | 27% |
+  | usable | 62% | 73% |
+
+  No input regressed. **This set has been looked at now, so it is a
+  regression measure, not a generalisation one.**
+- **Corpus:** 3579 golden passes, 0 failed (was 3557). COVERAGE.md shows
+  3675 / 3705 tidy.
+
+The engines honour the pre-rename `ENVOY_*` / `MFE_*` names and
+`~/.mfe/strategies` for one release. Remove that "Legacy names" block, and
+the legacy dir in `_collect_strategy_dirs`, in the release AFTER the one that
+first ships the rename. `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
 
 Behaviour worth knowing:
 
@@ -29,43 +70,46 @@ Behaviour worth knowing:
 - Captures and `rm` are refused while `provost restore <id>` has a capture out.
 - A store whose `.git/config` others can write is refused if it sets keys that
   make git run programs.
-- Engines run with `PROVOST_NO_RC=1`, so the `.provostrc` layer is off under
-  provost.
-- Detection: the best confidence wins, with exact ceiling pruning.
-  `--rank priority` gives the old first-match order. The rubric is in
-  `extract/README.md`.
+- Engines run with `PROVOST_NO_RC=1`.
+- Detection: the best confidence wins, with exact ceiling pruning, then the
+  coverage hold. `--rank priority` gives the old first-match order; the rescue
+  does not run there.
 - Large inputs: above 32 KB, detectors screen a sample and the winner is
-  re-confirmed on the full text. The sample is head 120 + tail 40 lines, plus
-  middle windows (4 evenly spaced, and up to 4 where a new line shape first
-  appears). 10 MB takes 7–22 s end to end.
-- Old stores migrate to store format 2 on their next write.
+  re-confirmed on the full text. The sample is head + tail plus middle
+  windows. Coverage is measured up to 128 KB (`_FR_COV_BYTES`).
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (203)
+- `tests/smoke.sh` (208)
 - `transform/tests/test_melt.sh` (54)
-- `extract/tests/run_tests.sh` (~2 min)
+- `extract/tests/run_tests.sh` (69 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
-- `tests/corpus/run.sh --golden` (3557 pass, 148 not yet covered, of 3705)
+- `tests/corpus/run.sh --golden`
 - `python -m pytest`
+
+`tests/corpus/run.sh --coverage` now takes about 11 minutes.
 
 ## Next steps
 
-1. **Generalisation is the real gap.** Benchmark round 2 used 109 unseen
-   inputs and was never tuned on (`docs/benchmark-2026-10-02-generalisation-round2.md`).
-   It scored 16% PASS, 47% PARTIAL and 38% FAIL, while corpus coverage is
-   96.7%. The top failure patterns, in order:
-   - column boundaries are taken from whitespace instead of header offsets
-   - multi-section reports keep only one section
-   - a banner or title line is promoted to the header
-   - line diagnostics fall back to a single column
-
-   Fix those in the generic parsers, not with bespoke strategies. Then measure
-   on a **new** held-out round 3. Round 2 has been looked at now; don't reuse
-   it as the score.
-2. Corpus: 31 corpus tools are still not tidy (`tests/corpus/COVERAGE.md` was
-   not regenerated: the full `--coverage` run exceeds an hour on a loaded box).
-3. Sampling: evidence whose lines share their shape with the head, and that
-   no even window lands on, can still be missed. Keep such evidence a
-   fallback route in detectors.
-4. Strategies whose extract is still a bash line loop are slow on big
-   inputs. Give them awk twins, proven over the corpus with `_FR_BIG_BYTES=0`.
+1. **Release 2.1.0.** Bump `VERSION` and add a CHANGELOG release note. The user
+   publishes to PyPI.
+2. **Round 3: a fresh held-out set.** This is the only honest way to know how
+   much this round generalised. Gather it the way round 2 was gathered
+   (`tests/benchmark/round2/CRITERIA.md`, `novelty.py`), and rate it before
+   anyone tunes on it.
+3. **What still fails, by pattern** (the round-2 postscript has details):
+   - Whitespace tables with non-ASCII cells: the grid withdraws (winget).
+     Also gzip -lv, Get-Volume, diff -y.
+   - Footers: sqlcmd and SQL*Plus footers are still data rows outside
+     aligned-columns.
+   - Sections glued into cells: vim, diskutil, route print, ffmpeg. Coverage
+     cannot see this; it needs segmentation.
+   - The first data row still becomes the header in gcc and dis. Banners
+     defeat readelf, pprof and the mainframe report.
+   - Suffix grammars such as `unittest -v`'s `... ok`, and curl -v.
+   - Patterns 5 (wrong strategy or delimiter: composer claimed by toml at 2%
+     coverage, because toml is exempt from the hold) and 6 (meaningful
+     indentation) were not worked.
+4. **Coverage as a quality signal.** It catches dropped lines, but not values
+   under the wrong header: 19 of the 29 round-2 FAILs cover 95% or more. A
+   second check, such as column-type consistency, would catch those.
+5. 30 corpus tools are still not tidy (`tests/corpus/COVERAGE.md`).

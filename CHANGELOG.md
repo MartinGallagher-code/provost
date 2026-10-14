@@ -1,5 +1,25 @@
 # provost — Changelog
 
+## 2026-10-14 — housekeeping: fast coverage runner, COVERAGE.md regenerated
+
+- `tests/corpus/run.sh`: `--report` and `--coverage` now use the same
+  `--batch --batch-out` fast path as `--golden`. Each mode runs one generic
+  pass and one full-mode pass, with one engine process per job slot. Any input
+  a batch leaves without a record falls back to the per-input call.
+  - Before, `--coverage` spawned the engine twice per input (about 7,400
+    processes) and took over an hour. Now it takes about 11 minutes on 4 cores.
+  - On 610 inputs the report is byte-identical to the per-input path.
+  - The full-mode `.meta` read takes the 4-field meta line (coverage was added
+    this round).
+- `tests/corpus/COVERAGE.md` is regenerated: **3675 / 3705** tidy (3422
+  generic, 157 hint, 96 bespoke). It was 3588 / 3705 when last generated, and
+  30 tools remain not tidy.
+- `CLAUDE.md`: smoke now has 208 checks.
+- Not done, on purpose: the pre-rename `ENVOY_*` / `MFE_*` /
+  `~/.mfe/strategies` fallbacks stay in. They were promised for one release,
+  and no release has shipped the rename yet (PyPI is at 2.0.1). Remove them in
+  the release after the one that first ships `provost-extract`.
+
 ## 2026-10-14 — round 2 re-rated after the fix round; the set is now a regression measure
 
 Measurement and documentation only; no engine or parser change. The 109
