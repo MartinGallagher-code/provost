@@ -1,5 +1,5 @@
-n	NODE	NAMESPACE	TYPE	ID	VERSION	KIND	HW	ADDR	OPER
-1	10.5.0.2	network	ether	eth0	4	52:54:00:a1:b2:c3	up	true	
-2	10.5.0.2	network	loopback	lo	2	00:00:00:00:00:00	unknown	true	
-3	10.5.0.2	network	ether	cni0	6	bridge	9a:1f:22:0d:e4:55	up	true
-4	10.5.0.2	network	ether	flannel.1	3	vxlan	0e:22:9a:11:cc:80	unknown	true
+n	NODE	NAMESPACE	TYPE	ID	VERSION	TYPE_2	KIND	HW_ADDR	OPER_STATE	LINK_STATE
+1	10.5.0.2	network	LinkStatus	eth0	4	ether		52:54:00:a1:b2:c3	up	true
+2	10.5.0.2	network	LinkStatus	lo	2	loopback		00:00:00:00:00:00	unknown	true
+3	10.5.0.2	network	LinkStatus	cni0	6	ether	bridge	9a:1f:22:0d:e4:55	up	true
+4	10.5.0.2	network	LinkStatus	flannel.1	3	ether	vxlan	0e:22:9a:11:cc:80	unknown	true

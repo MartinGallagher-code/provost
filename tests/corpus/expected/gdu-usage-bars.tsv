@@ -1,6 +1,6 @@
-n	apparent_disk_usage
-1	12.3 GiB [##########] 45% /var/lib/docker
-2	6.1 GiB [##### ] 22% /home/user/.cache
-3	3.9 GiB [### ] 14% /usr/lib
-4	2.2 GiB [## ] 8% /var/log
-5	1.1 GiB [# ] 4% /opt
+n	A	apparent_disk_usage
+1	12.3 GiB [##########] 45%	/var/lib/docker
+2	6.1 GiB [##### ] 22%	/home/user/.cache
+3	3.9 GiB [### ] 14%	/usr/lib
+4	2.2 GiB [## ] 8%	/var/log
+5	1.1 GiB [# ] 4%	/opt

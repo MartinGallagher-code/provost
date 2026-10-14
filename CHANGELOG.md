@@ -1,5 +1,154 @@
 # provost — Changelog
 
+## 2026-10-14 — whitespace tables: cells by column OFFSET; banners, titles and footers
+
+Round-2 benchmark patterns 1 and 3 (docs/benchmark-2026-10-02-generalisation-round2.md):
+an aligned table's cells were whitespace TOKENS, so any cell holding a space
+(`Number of message queues`, `Oct  2`, `Data directory`) or an empty cell
+shifted every later value; and a banner or title above a table became its
+header or kept the table from being found. Developed against the corpus and
+new examples written for this change (Windows `query user` / `tasklist` /
+`driverquery` / `schtasks` / `net share` / `netstat -ano`, PowerShell
+Get-Process / Get-PSDrive / Get-ChildItem / Get-NetAdapter / Get-HotFix,
+`yarn outdated`, SQL*Plus / sqlcmd / isql / DB2 result sets, gprof, an
+istanbul coverage table, a Windows Firewall `#Fields:` log, `shopt`, `mas
+list`, `uniq -c`, macOS `df -h`), not against the round-2 inputs.
+
+**Gutter grid** (`extract/lib/_helpers.sh` `_FR_AWK_GRID` /
+`_fr_gutter_grid NH RL [PREFIX]`, new; one mawk-safe awk program, run under
+`LC_ALL=C`). Cells by character offset: every position some line prints on
+belongs to a SEGMENT, and the runs blank in the header AND every row are the
+gutters between columns. A segment under one header label is that column,
+whatever its cells hold; right-aligned numbers wider than their label still
+land in it; an EMPTY cell stays empty. Then: single-spaced header words in
+one segment are ONE label (`IDLE TIME`, `Data directory`) unless every row
+holds that many tokens there and they sit under the words (an unpadded
+table); labels 2+ spaces apart that the data crosses split at the
+least-occupied position (at most 1 row in 10 may cross); a data-empty label
+word single-spaced to a neighbour joins it (`Used` of `Used (GB)`, `All
+time` of `All time blocked`); a number split from its unit by a one-space
+gutter under a one-space label is one value (`RAW USE` = `180 GiB`); a bare
+`/` column is the inside of one composite column (`Total / Used / Free`); a
+label-less LEADING segment is a column of its own (the row labels of `free`,
+`numastat`, /proc/interrupts), a TRAILING one continues the last column (or,
+after right-aligned numbers, is a column of its own), an interior one joins
+its left neighbour unless it sits right-aligned under the next label; an
+isolated marker (`>`) is a marker column; a `|` column is a separator and is
+dropped; repeated names get `_2`; an optional GROUP row (NH=2) prefixes the
+names of the columns it sits over (gprof's `self_seconds`, `total_ms/call`);
+a rule line (RL=1) names columns by its runs. When the first row leaves a
+column empty that a later row fills, cells go out column by column so the
+melt keeps the header's column order. It WITHDRAWS (prints nothing, the
+caller's old path runs) on: non-ASCII bytes; a TAB header over space rows;
+rows that all hold one token per label (tokens already agree); a
+`label: value` "header"; a header word repeated as every cell (`Nintendo`
+over `Nintendo …` — the first record); a 3+-word label over cells as long in
+a header with no 2-space gap (a sentence); a label-like first row over
+numeric rows (a second header line); columns past the last label of a
+single-spaced header; a crossing beyond the 1-in-10 allowance; < 80% of
+cells at their column's modal start or end. Headerless (NH=0): 2–8 columns
+every row fills, each aligned, a one-space gutter breaking only after
+right-aligned numbers or a flag column.
+
+**aligned-columns** (`extract/strategies/delimited/aligned-columns.sh`):
+- HDR tables go through the grid FIRST, in the bash path and in
+  `_ac_extract_big` at the same point on the same rows (byte-identical
+  routes); the positional / segment / offset / token paths are the fallback,
+  unchanged. Not when a later blank-separated block opens with a different
+  digit-free line (`_ac_multisection`: a second section's title/header).
+- New mode HLG (headerless by offset, `mas list`, `uniq -c`, `composer
+  show`): when tokens give no consistent count, the grid (NH=0) decides.
+- Shape: an all-text header whose rows the grid places is a header (`net
+  share`); a `v`-version (`v0.16.2`) is a value token, so such a row is
+  data; sysstat headers led by a clock time are headers when the other
+  tokens are labels and every row opens with a time (`sar -b`, `pidstat -d`).
+- Body (banners, pattern 3): a TAB banner set off by a blank line over a
+  space-aligned table (sysstat's `Linux … (host) <TAB>date <TAB>_x86_64_`)
+  — only over one table (blocks repeating one header); a prose title ending
+  `:` (no digit) over lines all indented deeper; and, when the first line
+  is single-spaced, a later line that is a header (>= 3 labels, no function
+  words or bracketed labels, a 2-space gap, rows below in its first column)
+  over which the grid finds a table to the end of the text makes the lines
+  above a banner (yarn's `yarn outdated v1.22.22` / `info Color legend :`).
+  Every scan stops early or is bounded (first 400 lines).
+- Footers (`_FR_FOOTER_RE`, `_fr_is_footer`, new in `_helpers.sh`):
+  `(5 rows affected)`, `4 rows selected.`, `no rows selected`, `3 record(s)
+  selected.`, `The command completed successfully.`, `Done in 0.84s.` are
+  dropped as a table's last line (bash path and its awk twin).
+- W3C `#Fields: a b c` (IIS, Windows Firewall, CloudFront): the directive
+  word is no column — tried without it first.
+- Preamble fields: a `Label: value` line a banner rule cut from above the
+  table (fdisk's `Disk model:`, zpool's `state:`, gluster's `Status of
+  volume:`, trivy's `Target:`) is emitted after the rows as `Label value`,
+  which the melt repeats on every row (a constant column) — data the old
+  rules dropped (`strategy_extract` now wraps `_ac_extract_main`).
+
+**fixed-width** (`extract/strategies/delimited/fixed-width.sh`): the grid
+with the rule's runs as labels runs first (records stay `row<N>`), a
+trailing result-set footer dropped; the slicer is the fallback. Also takes
+indented and `=` underlines (`tasklist`, `driverquery`, `schtasks`, SQL*Plus
+indents) — only under a letter-bearing header not opening with a value and
+when no second underline follows (a multi-section report), and without the
+slicer fallback.
+
+**embedded-table**: the grid (with the line above the header as a group row
+when it is one) before the midpoint slicer — gprof's two `seconds` / two
+`ms/call` no longer overwrite each other.
+
+**pipe-table**: `strategy_extract` derives the dialect exactly as detect does
+(markdown needs a `|---|` rule AND a `| … |` row) and the bare dialect skips
+`-----|-----` rule lines. A bare table drawn with such rules (nyc / istanbul
+/ c8 coverage) was detected as bare, extracted as markdown, came out empty,
+and fell to text-lines — while `--multi`, whose block split drops rule
+lines, parsed it: the default path now does too.
+
+**tsv**: row 1 is data, not a header, when one of its cells recurs in the
+same column in 2+ later rows (`set -o` / `shopt`: `autocd<TAB>off`;
+/proc/filesystems' `nodev`).
+
+**indented-hierarchy**: the table decline accepts rows whose 2-space column
+counts differ by <= 2 (empty cells: `netstat -ano`'s UDP rows).
+**block-records**: a key's words are single-spaced (padding may follow, as
+in `Version : 1.2`), so a table row whose first cell is followed by a gap and
+a drive letter (`Users        C:\Users`) is no key/value evidence (bash and
+awk screens alike).
+
+**Tests / fixtures.** New `extract/tests/test_gutter_grid.sh` (24 tests:
+the engine, its withdrawals, mawk = default awk, and the strategies through
+auto-detection). Samples + goldens: aligned-columns/{offset-cells,
+banner-lines, title-indented, w3c-fields, footer-empty-cells,
+indented-banner, space-in-cell, tab-banner}, fixed-width/{equals-rule,
+right-aligned, dates-empties, sql-footer}, embedded-table/group-row,
+pipe-table/dash-rules, tsv/headerless-repeats.tsv. Goldens updated:
+aligned-columns@caption-abbrev (the `Brick` caption is now a field),
+aligned-columns@sparse-matrix (column-by-column emission), fixed-width
+(`total_entries` line). `extract/README.md` gains a short "Whitespace
+tables: the gutter grid" note for strategy authors.
+
+**Corpus.** 103 goldens change, every one reviewed against its input; 21
+inputs become tidy and gain a golden (sysstat `mpstat` / `pidstat` / `sar`
+under their TAB banner, `fdisk -l`, `smartctl` self-test log,
+`semanage boolean`, `/proc/filesystems`, `/proc/net/tcp`); no golden
+deleted. Groups: multi-word cells and two-word headers rejoined
+(`Created At`, `RAW USE`, `Local Address`, `LAST CHANGE`, dates
+`Mon 2026-06-29 14:02:11 UTC`, `systemctl list-timers`, prlimit / unixbench
+descriptions); empty cells no longer shift values (loginctl SEAT, sacct
+Partition, netstat UDP State, finger Idle, fuser's file column); row-label
+columns kept (free, numastat, /proc/interrupts, softirqs); column order kept
+when row 1 has an empty cell (kubectl api-resources, kn, rustic, sparse
+matrices); sysstat banner no longer the header; fixed-width right-aligned /
+missing columns (strace -c, btrfs qgroup, zip -v, sqlite pragma); preamble
+fields kept (nodetool compactionstats, rc-status, trivy, zpool); headerless
+lists split by offset (composer, poetry, xbps, tailscale, vegeta, rabin2,
+git log --oneline). A few were garbage before and stay garbage differently
+(nfsstat-server's second section, glances, the postfix queue listing, rsync
+progress, dmesg's `[ 2.410]` split at its inner padding). Manifest (`tests/corpus/expected.tsv`) rows that encoded a
+defect: numastat-m 7→6 and perf-list 9→8 rows (a header / title had been
+counted as a row), sar-b 4→5 (4 intervals + `Average:`, as
+tbl-avg-footer-sar counts it), doctl-compute-load-balancer-list 10→9 and
+pscale-database-list 7→6 min columns (`Created At` / `CREATED AT` had been
+split in two).
+
 ## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
 
 The names inherited from the Envoy suite are gone from provost's own code.

@@ -83,6 +83,9 @@ _pt_bare_shape () {
     _fr_lines "$text"
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
+        # (a `-----|-----` rule — istanbul/nyc/c8 text reports draw one above
+        # and below the header and under the last row — is chrome, not a row)
+        _pt_is_rule "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         [[ "$_line" == "|"* ]] && return 1
         # A trailing `|` on a DATA row is an empty last cell (`sacct -p`'s
@@ -157,6 +160,7 @@ _pt_extract_bare () {
     _fr_lines "$text"
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
+        _pt_is_rule "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         _pt_split_bare "$_line"
         if [[ $first -eq 1 ]]; then
@@ -194,13 +198,22 @@ _pt_extract_bare () {
 
 strategy_extract () {
     local text="$1" result="" entry=0 _line
-    # Which dialect won detection? A markdown table always carries a rule row;
-    # re-check here (detect's globals don't survive into this subshell).
-    local _has_rule=0
-    while IFS= read -r _line; do
-        _pt_is_rule "$_line" && [[ "$_line" == *"|"* ]] && { _has_rule=1; break; }
-    done <<< "$text"
-    if [[ $_has_rule -eq 0 ]]; then
+    # Which dialect won detection? Re-derive it EXACTLY as strategy_detect
+    # does (detect's globals don't survive into this subshell): markdown needs
+    # a `|---|` rule AND a `| … |` row. Keying on the rule alone sent a bare
+    # table drawn with `---|---` rules (nyc / istanbul coverage) down the
+    # markdown path, which found no `| … |` row and extracted nothing — so the
+    # default run fell back to text-lines while --multi, whose block split
+    # drops the rule lines, parsed the same table.
+    local _has_rule=0 _has_row=0
+    _fr_lines "$text"
+    for _line in "${_FR_LINES[@]}"; do
+        [[ "${_line}" != *[![:space:]]* ]] && continue
+        if _pt_is_rule "$_line" && [[ "$_line" == *"|"* ]]; then _has_rule=1
+        elif _pt_is_row "$_line"; then _has_row=1; fi
+    done
+    _line=""
+    if [[ $_has_rule -eq 0 || $_has_row -eq 0 ]]; then
         _pt_extract_bare "$text"
         return
     fi

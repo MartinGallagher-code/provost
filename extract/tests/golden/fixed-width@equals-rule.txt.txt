@@ -1,0 +1,36 @@
+row1.Image_Name System Idle Process
+row1.PID 0
+row1.Session_Name Services
+row1.Session# 0
+row1.Mem_Usage 8 K
+row2.Image_Name System
+row2.PID 4
+row2.Session_Name Services
+row2.Session# 0
+row2.Mem_Usage 1,236 K
+row3.Image_Name smss.exe
+row3.PID 512
+row3.Session_Name Services
+row3.Session# 0
+row3.Mem_Usage 1,104 K
+row4.Image_Name csrss.exe
+row4.PID 688
+row4.Session_Name Services
+row4.Session# 0
+row4.Mem_Usage 5,512 K
+row5.Image_Name explorer.exe
+row5.PID 6140
+row5.Session_Name Console
+row5.Session# 1
+row5.Mem_Usage 121,456 K
+row6.Image_Name Code.exe
+row6.PID 10244
+row6.Session_Name Console
+row6.Session# 1
+row6.Mem_Usage 148,220 K
+row7.Image_Name Microsoft.Photos.exe
+row7.PID 14872
+row7.Session_Name Console
+row7.Session# 1
+row7.Mem_Usage 64,108 K
+total_entries 7

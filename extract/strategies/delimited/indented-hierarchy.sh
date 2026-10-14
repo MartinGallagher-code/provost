@@ -46,11 +46,13 @@ strategy_detect () {
     done
 
     # The indented lines are a TABLE, not children: every one (>= 2) splits
-    # into the SAME >= 3 two-space columns and none is a `key: value` pair
-    # (pueue's `Group "default" (2 parallel):` over an indented id/status/
-    # command/start grid). Flattening that into one record of dotted paths
-    # garbles it; the aligned-table parser reads it.
-    local _iht_l _iht_n=0 _iht_seg=-1 _iht_tab=1 _iht_t _iht_u
+    # into >= 3 two-space columns — the SAME count, or (a table with empty
+    # cells, `netstat -ano`'s UDP rows without a State) counts within 2 of
+    # the widest — and none is a `key: value` pair (pueue's `Group "default"
+    # (2 parallel):` over an indented id/status/command/start grid).
+    # Flattening that into one record of dotted paths garbles it; the
+    # aligned-table parser reads it.
+    local _iht_l _iht_n=0 _iht_seg=-1 _iht_tab=1 _iht_t _iht_u _iht_max=0
     for _iht_l in "${_FR_LINES[@]}"; do
         [[ "$_iht_l" == " "*[![:space:]]* ]] || continue
         [[ "$_iht_l" == *": "* || "$_iht_l" == *":" ]] && { _iht_tab=0; break; }
@@ -61,11 +63,11 @@ strategy_detect () {
         _iht_u="${_iht_u//[!$'\001']/}"
         _iht_t=$(( ${#_iht_u} + 1 ))
         [[ $_iht_t -ge 3 ]] || { _iht_tab=0; break; }
-        if [[ $_iht_seg -lt 0 ]]; then _iht_seg=$_iht_t
-        elif [[ $_iht_t -ne $_iht_seg ]]; then _iht_tab=0; break; fi
+        [[ $_iht_seg -lt 0 || $_iht_t -lt $_iht_seg ]] && _iht_seg=$_iht_t
+        [[ $_iht_t -gt ${_iht_max:-0} ]] && _iht_max=$_iht_t
         _iht_n=$((_iht_n + 1))
     done
-    [[ $_iht_tab -eq 1 && $_iht_n -ge 2 ]] && return 1
+    [[ $_iht_tab -eq 1 && $_iht_n -ge 2 && $(( ${_iht_max:-0} - _iht_seg )) -le 2 ]] && return 1
 
     return 0
 }

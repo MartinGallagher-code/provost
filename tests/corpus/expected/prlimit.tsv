@@ -1,9 +1,9 @@
 n	RESOURCE	DESCRIPTION	SOFT	HARD	UNITS
-1	CPU	CPU	time	unlimited	unlimited seconds
-2	FSIZE	maximum	file	size	unlimited unlimited bytes
-3	DATA	max	data	size	unlimited unlimited bytes
-4	STACK	max	stack	size	8388608 unlimited bytes
-5	NOFILE	max	number	of	open files 1024 1048576 files
-6	NPROC	max	number	of	processes 63237 63237 processes
-7	LOCKS	max	number	of	file locks held unlimited unlimited locks
-8	MEMLOCK	max	locked-in-memory	address	space 8388608 8388608 bytes
+1	CPU	CPU time	unlimited	unlimited	seconds
+2	FSIZE	maximum file size	unlimited	unlimited	bytes
+3	DATA	max data size	unlimited	unlimited	bytes
+4	STACK	max stack size	8388608	unlimited	bytes
+5	NOFILE	max number of open files	1024	1048576	files
+6	NPROC	max number of processes	63237	63237	processes
+7	LOCKS	max number of file locks held	unlimited	unlimited	locks
+8	MEMLOCK	max locked-in-memory address space	8388608	8388608	bytes

@@ -1,0 +1,19 @@
+row1.Mode d-----
+row2.Mode d-----
+row3.Mode -a----
+row4.Mode -a----
+row5.Mode -a----
+row1.LastWriteTime 10/14/2026 9:03 AM
+row2.LastWriteTime 10/12/2026 4:51 PM
+row3.LastWriteTime 10/14/2026 8:58 AM
+row4.LastWriteTime 10/13/2026 11:20 AM
+row5.LastWriteTime 10/1/2026 2:07 PM
+row3.Length 512
+row4.Length 18432
+row5.Length 2048
+row1.Name .vscode
+row2.Name src
+row3.Name .gitignore
+row4.Name Project Plan.docx
+row5.Name README.md
+total_entries 5

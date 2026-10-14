@@ -1,0 +1,5 @@
+The following ports are currently installed:
+  curl @8.10.1_0 (active)
+  git @2.47.0_0+credential_osxkeychain+diff_highlight (active)
+  python312 @3.12.7_0+lto+optimizations (active)
+  zlib @1.3.1_0

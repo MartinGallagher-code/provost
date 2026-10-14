@@ -1,0 +1,23 @@
+entry1.USERNAME >dev
+entry1.SESSIONNAME console
+entry1.ID 1
+entry1.STATE Active
+entry1.IDLE_TIME none
+entry1.LOGON_TIME 10/14/2026 9:02 AM
+entry2.USERNAME alice
+entry2.SESSIONNAME rdp-tcp#3
+entry2.ID 2
+entry2.STATE Active
+entry2.IDLE_TIME 5
+entry2.LOGON_TIME 10/14/2026 8:15 AM
+entry3.USERNAME bob
+entry3.ID 3
+entry3.STATE Disc
+entry3.IDLE_TIME 1:05
+entry3.LOGON_TIME 10/13/2026 5:12 PM
+entry4.USERNAME svc-backup
+entry4.ID 4
+entry4.STATE Disc
+entry4.IDLE_TIME 2+03:11
+entry4.LOGON_TIME 10/11/2026 11:40 PM
+total_entries 4

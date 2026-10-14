@@ -1,0 +1,13 @@
+entry1.Share_name C$
+entry1.Resource C:\
+entry1.Remark Default share
+entry2.Share_name IPC$
+entry2.Remark Remote IPC
+entry3.Share_name ADMIN$
+entry3.Resource C:\WINDOWS
+entry3.Remark Remote Admin
+entry4.Share_name Projects
+entry4.Resource D:\Shares\Projects
+entry5.Share_name Users
+entry5.Resource C:\Users
+total_entries 5

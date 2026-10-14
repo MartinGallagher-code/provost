@@ -1,4 +1,4 @@
-n	Control	Group	Tasks	%CPU	Memory	Input/s
+n	Control_Group	Tasks	%CPU	Memory	Input/s	Output/s
 1	/	412	38.4	6.2G	-	-
 2	/system.slice	198	21.7	2.8G	-	-
 3	/system.slice/nginx.service	3	8.2	118.4M	-	-

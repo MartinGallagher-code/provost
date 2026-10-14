@@ -1,4 +1,4 @@
-n	Proto	Recv-Q	Send-Q	Local	Address	Foreign
-1	tcp	0	0	0.0.0.0:22	812/sshd	LISTEN
-2	tcp	0	0	127.0.0.1:5432	990/postgres	LISTEN
-3	udp	0	0	127.0.0.1:53	0.0.0.0:*	640/systemd-resolve
+n	Proto	Recv-Q	Send-Q	Local_Address	Foreign_Address	State	PID/Program_name
+1	tcp	0	0	0.0.0.0:22	0.0.0.0:*	LISTEN	812/sshd
+2	tcp	0	0	127.0.0.1:5432	0.0.0.0:*	LISTEN	990/postgres
+3	udp	0	0	127.0.0.1:53	0.0.0.0:*		640/systemd-resolve

@@ -231,6 +231,27 @@ strategy_extract () {
             done
         fi
     fi
+    # Labels do not recur as values: a row-1 cell that the SAME column repeats
+    # in 2+ later rows (`shopt` / `set -o`: `autocd<TAB>off` over more
+    # `…<TAB>off` lines) makes row 1 the first record, not a header.
+    if [[ $headerless -eq 0 ]]; then
+        local -a _rv=(); local _rl _rk _rc _rj
+        local -A _rrep=()
+        _rk=0
+        while IFS= read -r _rl; do
+            _rk=$((_rk + 1)); [[ $_rk -eq 1 ]] && continue
+            [[ "$_rl" == *[![:space:]]* ]] || continue
+            _tsv_split "$_rl"; _rv=("${_TSV_FIELDS[@]}")
+            for ((_rj = 0; _rj < ${#headers[@]}; _rj++)); do
+                _rc="${headers[$_rj]}"; _rc="${_rc#"${_rc%%[![:space:]]*}"}"; _rc="${_rc%"${_rc##*[![:space:]]}"}"
+                [[ -n "$_rc" ]] || continue
+                local _rvv="${_rv[$_rj]:-}"; _rvv="${_rvv#"${_rvv%%[![:space:]]*}"}"; _rvv="${_rvv%"${_rvv##*[![:space:]]}"}"
+                [[ "$_rvv" == "$_rc" ]] && _rrep[$_rj]=$(( ${_rrep[$_rj]:-0} + 1 ))
+            done
+            [[ $_rk -ge 41 ]] && break
+        done <<< "$text"
+        for _rj in "${!_rrep[@]}"; do [[ ${_rrep[$_rj]} -ge 2 ]] && { headerless=1; break; }; done
+    fi
     if [[ $headerless -eq 1 ]]; then
         local _n=${#headers[@]} _i
         headers=()

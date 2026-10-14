@@ -1,4 +1,4 @@
-n	LV	VG	Attr	#Str	Type	Size	PE
+n	LV	VG	Attr	#Str	Type	Size	PE_Ranges
 1	root	vg0	-wi-ao----	1	linear	40.00g	/dev/sda2:0-10239
 2	swap	vg0	-wi-ao----	1	linear	8.00g	/dev/sda2:10240-12287
 3	data	vg0	-wi-ao----	2	striped	500.00g	/dev/sdb1:0-63999

@@ -882,3 +882,630 @@ _fr_col_letter () {
     _FR_LETTER=""
     for (( _fr_k = 0; _fr_k < _fr_reps; _fr_k++ )); do _FR_LETTER+="$_fr_ch"; done
 }
+
+# ---------------------------------------------------------------------------
+# RESULT-SET FOOTERS — the line a client prints UNDER a table to count it or
+# sign off, never a row of it: `(5 rows affected)` (sqlcmd, isql), `4 rows
+# selected.` / `no rows selected` (SQL*Plus), `3 record(s) selected.` (DB2),
+# `The command completed successfully.` (Windows `net`), `Done in 0.84s.`
+# (yarn). One ERE (bash `=~` and awk alike), matched against the line with
+# its edge whitespace trimmed.
+_FR_FOOTER_RE='^\(?[0-9]+ (rows?|records?|record\(s\)|items?|entries) (affected|selected|returned)\)?\.?$|^no rows selected\.?$|^The command completed successfully\.?$|^Done in [0-9.]+ ?m?s\.?$'
+# _fr_is_footer LINE — 0 when LINE is such a footer.
+_fr_is_footer () {
+    local _ff="${1#"${1%%[![:space:]]*}"}"
+    _ff="${_ff%"${_ff##*[![:space:]]}"}"
+    [[ "$_ff" =~ $_FR_FOOTER_RE ]]
+}
+
+# ---------------------------------------------------------------------------
+# GUTTER GRID — assign the cells of a whitespace-aligned table by character
+# offsets. Input: the table lines; when nh=1 the first is the header, and
+# when rl=1 the next is a rule line (`----  -----` / `==== ===`) whose runs
+# give the label spans exactly. Output: `entry<N>.<name> <value>` lines and
+# `total_entries N`, or NOTHING when the offsets cannot be trusted (the
+# caller then falls back to its token paths). mawk-safe; run under LC_ALL=C.
+#
+# How: every position some line prints on (header, rule or data) belongs to a
+# SEGMENT; the runs of positions that are blank in ALL of them are GUTTERS. A
+# segment under one header label is that column, whatever its cells hold
+# (`Number of message queues`, `Oct  2`, `10/14/2026 9:02 AM`); right-aligned
+# numbers end on their label, so a value wider than its label still lands in
+# its segment. Then:
+#   * a segment under several labels was crossed by data: single-spaced words
+#     (`Data directory`, `IDLE TIME`) are ONE label, unless every row holds
+#     exactly that many tokens there (an unpadded table: token order); labels
+#     2+ spaces apart (or separate rule runs) split at the least-occupied
+#     position between them, which at most 1 row in 10 may cross;
+#   * a labelled segment with no data, single-spaced to its neighbour in the
+#     header (`Used` of `Used (GB)`, `on` of `Mounted on`), joins that label;
+#     two or more spaces away it is a genuinely empty column and stays;
+#   * a segment under no label (a value split by a gutter of its own) joins a
+#     neighbour: leading -> right, trailing -> left, interior -> left unless
+#     the right column is right-aligned only;
+#   * an empty cell stays empty — nothing shifts left.
+# Duplicate names get `_2`, `_3`; tail-wrapped / leading-overflow rows are
+# rejoined as the positional grid does. It WITHDRAWS (prints nothing) on
+# non-ASCII bytes, < 2 columns, an unresolvable segment, or when fewer than
+# 80% of the cells start at their column modal start or end at its modal end
+# (prose and ragged text are not offset-aligned). Shared by aligned-columns
+# (bash and big-input paths alike, so they stay byte-identical) and
+# fixed-width.
+# ---------------------------------------------------------------------------
+_FR_AWK_GRID='
+function untab(s,    o, k, col) {
+    o = ""; col = 0
+    while ((k = index(s, "\t")) > 0) {
+        o = o substr(s, 1, k - 1); col += k - 1
+        do { o = o " "; col++ } while (col % 8)
+        s = substr(s, k + 1)
+    }
+    return o s
+}
+# palign(q): RA / LA = 1 when every cell of part q ends / starts at one
+# position (right- / left-aligned); 0 when the part holds no cell
+function palign(q,    r, t, fs, fe, cs, ce) {
+    RA = 1; LA = 1; cs = -1; ce = -1
+    for (r = d0; r <= n; r++) {
+        fs = 0; fe = 0
+        for (t = FT[r]; t < FT[r] + NT[r]; t++) if (TP[t] == q) { if (!fs) fs = TS[t]; fe = TE[t] }
+        if (!fs) continue
+        if (ce < 0) { ce = fe; cs = fs } else { if (fe != ce) RA = 0; if (fs != cs) LA = 0 }
+    }
+    if (ce < 0) { RA = 0; LA = 0 }
+}
+# isunit(v): a unit word (`GiB`, `ms`, `ago`, ...)
+function isunit(v) {
+    return v ~ /^([KMGTPE]i?B|[KMGTPE]|[kKMGTP]?[Bb]|bytes|[mun]?s|sec|min|hours?|days?|ago|%)$/
+}
+# pcells(q): every non-empty cell of part q is a number-led value (ISNUM) /
+# a unit word or one constant short word (ISUNIT); PROWS marks the rows
+# holding a cell
+function pcells(q,    r, t, v, c, v0) {
+    ISNUM = 1; ISUNIT = 1; PROWS = ""; v0 = ""
+    for (r = d0; r <= n; r++) {
+        v = ""; c = 0
+        for (t = FT[r]; t < FT[r] + NT[r]; t++) if (TP[t] == q) { v = (c++ ? v " " : "") TX[t] }
+        if (c == 0) { PROWS = PROWS "0"; continue }
+        PROWS = PROWS "1"
+        if (v !~ /^[-+]?[0-9]/ || c > 1) ISNUM = 0
+        if (v0 == "") v0 = v
+        if (c > 1 || !(isunit(v) || (v == v0 && v ~ /^[A-Za-z]+$/ && length(v) <= 5))) ISUNIT = 0
+    }
+}
+function letter(i,    r, k, s) {
+    r = (i - 1) % 26 + 1; k = int((i - 1) / 26) + 1; s = ""
+    while (k-- > 0) s = s substr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", r, 1)
+    return s
+}
+BEGIN { if (pfx == "") pfx = "entry" }
+{
+    s = $0
+    sub(/\r$/, "", s)
+    if (index(s, "\t")) { s = untab(s); TAB[n + 1] = 1 }
+    sub(/ +$/, "", s)
+    L[++n] = s
+    if (s ~ /[\200-\377]/) bad = 1
+}
+END {
+    if (bad) exit
+    d0 = nh + rl + 1
+    hx = nh
+    # a header printed with TABs over data printed with spaces (or the other
+    # way round) has offsets that say nothing about the data
+    if (nh && n >= d0) {
+        dt = 0
+        for (r = d0; r <= n; r++) if (TAB[r]) { dt = 1; break }
+        if (TAB[hx] != dt) exit
+    }
+    if (n < d0) exit
+    W = 0
+    for (r = 1; r <= n; r++) if (length(L[r]) > W) W = length(L[r])
+    # --- header tokens ---
+    nht = 0
+    if (nh) {
+        s = L[hx]; off = 0
+        while (match(s, /[^ ]+/)) {
+            nht++; HS[nht] = off + RSTART; HE[nht] = HS[nht] + RLENGTH - 1
+            HX[nht] = substr(s, RSTART, RLENGTH); off = HE[nht]
+            s = substr(s, RSTART + RLENGTH)
+            HD[HS[nht]]++; HD[HE[nht] + 1]--
+        }
+        if (nht == 0) exit
+        # a `label: value` line (`pool: tank`) is a caption, not labels
+        if (nht <= 3 && HX[1] ~ /:$/) exit
+    }
+    # --- rule runs ---
+    nr = 0
+    if (rl) {
+        s = L[nh + 1]
+        if (s !~ /^ *[-=]+( +[-=]+)* *$/) exit
+        off = 0
+        while (match(s, /[-=]+/)) {
+            nr++; QS[nr] = off + RSTART; QE[nr] = QS[nr] + RLENGTH - 1
+            off = QE[nr]; s = substr(s, RSTART + RLENGTH)
+        }
+        # (one unbroken rule names no columns: it is only skipped)
+        if (nr >= 2) { for (j = 1; j <= nr; j++) { HD[QS[j]]++; HD[QE[j] + 1]-- } }
+        else nr = 0
+    }
+    ur = (nr >= 2)
+    hgap = 0
+    if (nh) { hl = L[hx]; sub(/^ +/, "", hl); hgap = (hl ~ /[^ ]  +[^ ]/) }
+    # --- data tokens + occupancy ---
+    nt = 0; nrow = 0
+    for (r = d0; r <= n; r++) {
+        s = L[r]; off = 0; FT[r] = nt + 1
+        while (match(s, /[^ ]+/)) {
+            nt++; TS[nt] = off + RSTART; TE[nt] = TS[nt] + RLENGTH - 1
+            TX[nt] = substr(s, RSTART, RLENGTH); off = TE[nt]
+            s = substr(s, RSTART + RLENGTH)
+            OD[TS[nt]]++; OD[TE[nt] + 1]--
+        }
+        NT[r] = nt - FT[r] + 1
+        if (NT[r] > 0) nrow++
+    }
+    if (nrow == 0) exit
+    # a LABEL-LIKE first row (at most 1 token in 4 a number) over rows that
+    # are numbers (4 rows in 5 of the rest at least half numeric tokens) is a
+    # second header line (`KB/s in  KB/s out` under `eth0  wlan0`, `1 min
+    # swpd free` under `loadavg memory`), not data: this header names nothing
+    # below it
+    if (nh) {
+        fr = 0; dg = 0; ot = 0
+        for (r = d0; r <= n; r++) {
+            if (!NT[r]) continue
+            c = 0
+            for (t = FT[r]; t < FT[r] + NT[r]; t++) if (TX[t] ~ /^[-+]?[0-9]/) c++
+            if (!fr) { fr = r; fc = c; continue }
+            ot++; if (c * 2 >= NT[r]) dg++
+        }
+        if (fr && fc * 4 <= NT[fr] && ot >= 2 && dg * 10 >= ot * 8) exit
+    }
+    hc = 0; oc = 0
+    for (p = 1; p <= W; p++) { hc += HD[p]; oc += OD[p]; HM[p] = (hc > 0); OC[p] = oc }
+    # --- segments: maximal runs of positions some line (header, rule or
+    # data) prints on; the runs between them are GUTTERS ---
+    ns = 0; in_ = 0
+    for (p = 1; p <= W; p++) {
+        if (HM[p] || OC[p] > 0) { if (!in_) { ns++; SS[ns] = p; in_ = 1 } }
+        else if (in_) { SE[ns] = p - 1; in_ = 0 }
+    }
+    if (in_) SE[ns] = W
+    # --- labels: rule runs (named by the header tokens over them), else the
+    # header tokens themselves ---
+    nl = 0
+    if (ur) {
+        nl = nr
+        for (j = 1; j <= nl; j++) { LS[j] = QS[j]; LE[j] = QE[j]; LN[j] = "" }
+        for (t = 1; t <= nht; t++) {
+            bj = 0; bo = 0
+            for (j = 1; j <= nl; j++) {
+                lo = (HS[t] > QS[j]) ? HS[t] : QS[j]; hi = (HE[t] < QE[j]) ? HE[t] : QE[j]
+                if (hi - lo + 1 > bo) { bo = hi - lo + 1; bj = j }
+            }
+            if (!bj) {
+                bd = -1
+                for (j = 1; j <= nl; j++) {
+                    dd = (HE[t] < QS[j]) ? QS[j] - HE[t] : HS[t] - QE[j]
+                    if (bd < 0 || dd < bd) { bd = dd; bj = j }
+                }
+            }
+            LN[bj] = (LN[bj] == "") ? HX[t] : LN[bj] " " HX[t]
+            if (HS[t] < LS[bj]) LS[bj] = HS[t]
+            if (HE[t] > LE[bj]) LE[bj] = HE[t]
+        }
+    } else if (nh) {
+        nl = nht
+        for (j = 1; j <= nl; j++) { LS[j] = HS[j]; LE[j] = HE[j]; LN[j] = HX[j] }
+    }
+    # label -> segment (both in left-to-right order)
+    k = 1
+    for (j = 1; j <= nl; j++) {
+        while (k < ns && LS[j] > SE[k]) k++
+        LG[j] = k
+        if (!(k in SL1)) SL1[k] = j
+        SLN[k]++
+    }
+    # a table every row of which holds exactly one token per header label
+    # reads the same by tokens: nothing for offsets to fix (and an unpadded,
+    # single-spaced table has no trustworthy offsets at all)
+    if (!ur && nh) {
+        same = 1
+        for (r = d0; r <= n; r++) if (NT[r] && NT[r] != nl) { same = 0; break }
+        if (same) exit
+    }
+    # --- parts: each segment becomes one or more parts ---
+    np = 0
+    for (k = 1; k <= ns; k++) {
+        m = SLN[k] + 0
+        if (m == 0) { np++; PA[np] = SS[k]; PB[np] = SE[k]; PL1[np] = 0; PLN[np] = 0; PO[np] = 0; continue }
+        j1 = SL1[k]
+        # groups of labels: a rule run, or a 2+-space header gap, starts one
+        ng = 1; G1[1] = j1; GN[1] = 1
+        for (j = j1 + 1; j < j1 + m; j++) {
+            if (ur || LS[j] - LE[j - 1] - 1 >= 2) { ng++; G1[ng] = j; GN[ng] = 1 }
+            else GN[ng]++
+        }
+        # soft boundaries between groups: the least-occupied header-blank
+        # position; a few overflowing rows may cross it, no more
+        ga = SS[k]
+        for (g = 1; g <= ng; g++) {
+            if (g < ng) {
+                lo = LE[G1[g] + GN[g] - 1] + 1; hi = LS[G1[g + 1]] - 1
+                bp = 0; bo = -1; mid = (lo + hi) / 2
+                for (p = lo; p <= hi; p++) {
+                    dd = p - mid; if (dd < 0) dd = -dd
+                    if (bo < 0 || OC[p] < bo || (OC[p] == bo && dd < bdd)) { bo = OC[p]; bp = p; bdd = dd }
+                }
+                if (bp == 0) bp = hi + 1
+                if (bo > int(nrow / 10)) exit
+                gb = bp - 1
+            } else gb = SE[k]
+            gm = GN[g]
+            if (gm == 1) {
+                np++; PA[np] = ga; PB[np] = gb; PL1[np] = G1[g]; PLN[np] = 1; PO[np] = 0
+            } else {
+                # single-spaced words: separate columns only when EVERY row
+                # holds exactly that many tokens here (an unpadded table —
+                # token order is then the answer); otherwise one label
+                # (not when a bare `/` or `|` joins the tokens — one
+                # composite value, `1.2MB / 3.4MB` — nor when the values run
+                # on into a label-less segment next door)
+                allm = 1; any = 0; nu = (gm == 2); u0 = ""; uc = 1
+                if (g == ng && k < ns && !SLN[k + 1]) allm = 0
+                for (r = d0; r <= n && allm; r++) {
+                    c = 0; lastp = 0
+                    for (t = FT[r]; t < FT[r] + NT[r]; t++) if (TS[t] >= ga && TS[t] <= gb) {
+                        c++
+                        if (lastp) allm = 0
+                        lastp = (TX[t] ~ /^[\/|]$/)
+                        if (c == 1 && TX[t] !~ /^[-+]?[0-9]/) nu = 0
+                        if (c == 2) {
+                            if (u0 == "") u0 = TX[t]; else if (TX[t] != u0) uc = 0
+                            if (!isunit(TX[t]) && TX[t] !~ /^[A-Za-z]+$/) nu = 0
+                            if (length(TX[t]) > 5 && !isunit(TX[t])) nu = 0
+                        }
+                    }
+                    if (c > 0) { any = 1; if (c != gm) allm = 0 }
+                }
+                # (a number and its unit, `512 MiB` / `412034 SOL`, is one
+                # value: a unit word, or one constant short word)
+                if (nu && (uc || isunit(u0))) {
+                    for (r = d0; r <= n && nu; r++)
+                        for (t = FT[r]; t < FT[r] + NT[r]; t++)
+                            if (TS[t] >= ga && TS[t] <= gb && TX[t] ~ /^[A-Za-z]+$/ && !isunit(TX[t]) && !uc) nu = 0
+                    if (nu) allm = 0
+                }
+                # ...and the i-th token sits under the i-th word (its start or
+                # end on the word, +-1) in 4 rows out of 5
+                for (j = 0; j < gm && allm && any; j++) {
+                    jj = G1[g] + j; hit = 0; den = 0
+                    for (r = d0; r <= n; r++) {
+                        c = 0
+                        for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+                            if (TS[t] < ga || TS[t] > gb) continue
+                            if (c++ != j) continue
+                            den++
+                            dd = TS[t] - LS[jj]; if (dd < 0) dd = -dd
+                            de = TE[t] - LE[jj]; if (de < 0) de = -de
+                            if (dd <= 1 || de <= 1) hit++
+                        }
+                    }
+                    if (den == 0 || hit * 10 < den * 8) allm = 0
+                }
+                if (any && allm) {
+                    for (j = 0; j < gm; j++) { np++; PA[np] = ga; PB[np] = gb; PL1[np] = G1[g] + j; PLN[np] = 1; PO[np] = j + 1 }
+                    nord++
+                } else if (gm <= 4) {
+                    np++; PA[np] = ga; PB[np] = gb; PL1[np] = G1[g]; PLN[np] = gm; PO[np] = 0
+                } else exit
+            }
+            ga = gb + 1
+        }
+    }
+    # --- tokens -> parts ---
+    for (r = d0; r <= n; r++) {
+        q = 1; curg = 0; oi = 0
+        for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+            while (q < np && TS[t] > PB[q]) q++
+            # (an ordered group shares one span, and the lookup lands on its
+            # first part: the i-th token of the row there takes part i)
+            if (PO[q] > 0) {
+                if (q != curg) { curg = q; oi = 0 }
+                tq = q + oi; oi++
+            } else tq = q
+            TP[t] = tq
+            PN[tq]++
+        }
+    }
+    # --- merge parts into columns: OW[q] = the part q joins ---
+    for (q = 1; q <= np; q++) OW[q] = q
+    # a data-empty labelled part, single-spaced in the header to a neighbour
+    # label (`Used` of `Used (GB)`, `on` of `Mounted on`, `All time` of `All
+    # time blocked`), is part of that label: it joins the side whose values
+    # it sits nearer, through any other data-empty words of the label
+    if (!ur) {
+        for (q = 1; q <= np; q++) {
+            if (PN[q] || !PLN[q] || PO[q]) continue
+            # nearest data-bearing labelled part reachable through single
+            # spaces, each way
+            dl = -1; for (x = q - 1; x >= 1; x--) {
+                if (!PLN[x] || LS[PL1[x + 1]] - LE[PL1[x] + PLN[x] - 1] - 1 != 1) break
+                if (PN[x]) { dl = x; break }
+            }
+            dr = -1; for (x = q + 1; x <= np; x++) {
+                if (!PLN[x] || LS[PL1[x]] - LE[PL1[x - 1] + PLN[x - 1] - 1] - 1 != 1) break
+                if (PN[x]) { dr = x; break }
+            }
+            if (dl > 0 && dr > 0) {
+                # nearer to whose values?
+                le_ = 0; rs_ = 0
+                for (t = 1; t <= nt; t++) { if (TP[t] == dl && TE[t] > le_) le_ = TE[t]; if (TP[t] == dr && (!rs_ || TS[t] < rs_)) rs_ = TS[t] }
+                if (rs_ - LE[PL1[q] + PLN[q] - 1] < LS[PL1[q]] - le_) dl = -1; else dr = -1
+            }
+            if (dl > 0) OW[q] = dl; else if (dr > 0) OW[q] = dr
+        }
+        # a number split from its unit by a one-space gutter under a
+        # one-space label (`RAW USE` over `180 GiB`) is one value
+        for (q = 1; q < np; q++) {
+            if (!PLN[q] || !PLN[q + 1] || !PN[q] || !PN[q + 1] || PO[q] || PO[q + 1]) continue
+            if (LS[PL1[q + 1]] - LE[PL1[q] + PLN[q] - 1] - 1 != 1 || PA[q + 1] - PB[q] - 1 != 1) continue
+            pcells(q); nu = ISNUM; rq = PROWS
+            pcells(q + 1)
+            if (nu && ISUNIT && PROWS == rq) OW[q + 1] = q
+        }
+    }
+    # a run of label-less parts: a LEADING run is a column of its own (the
+    # row labels of `free`, `numastat`, /proc/interrupts); a TRAILING run
+    # continues the last column unless that one is right-aligned numbers
+    # (then each of its parts is a column of its own); an interior run joins
+    # the left neighbour, unless the right one is right-aligned and in EVERY
+    # row the run sits closer to its value than to the previous one (a value
+    # right-aligned under a short label)
+    fl = 0; ll = 0
+    for (q = 1; q <= np; q++) if (PLN[q]) { if (!fl) fl = q; ll = q }
+    if (nh && !fl) exit
+    q = 1
+    while (nh && q <= np) {
+        if (PLN[q]) { q++; continue }
+        a = q; while (q <= np && !PLN[q]) q++; b = q - 1
+        if (a < fl) tgt = a
+        else if (b > ll) {
+            # (beyond the last label of a single-spaced header the data has
+            # columns the header never names: no offsets to trust)
+            if (!hgap && !ur) exit
+            palign(ll)
+            if (RA && !LA) { for (x = a; x <= b; x++) OW[x] = x; continue }
+            tgt = ll
+        }
+        else {
+            palign(b + 1); right = (RA && !PO[b + 1]); seen = 0
+            for (r = d0; r <= n && right; r++) {
+                fs = 0; fe = 0; pe = -1; ns = -1
+                for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+                    if (TP[t] < b) pe = TE[t]
+                    else if (TP[t] == b) { if (!fs) fs = TS[t]; fe = TE[t] }
+                    else if (ns < 0) ns = TS[t]
+                }
+                if (!fs) continue
+                seen = 1
+                if (ns < 0 || (pe >= 0 && ns - fe >= fs - pe)) right = 0
+            }
+            tgt = (right && seen) ? b + 1 : a - 1
+            # (a run holding only a one-character marker, `>` / `*`, on the
+            # rows it marks is a marker column of its own)
+            # (set off by 2+ spaces on both sides)
+            mk = 1
+            for (r = d0; r <= n && mk; r++)
+                for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+                    if (TP[t] < a || TP[t] > b) continue
+                    if (TX[t] !~ /^[^A-Za-z0-9]$/) { mk = 0; break }
+                    if (t > FT[r] && TS[t] - TE[t - 1] < 3) { mk = 0; break }
+                    if (t + 1 < FT[r] + NT[r] && TS[t + 1] - TE[t] < 3) { mk = 0; break }
+                }
+            if (mk) tgt = a
+        }
+        for (x = a; x <= b; x++) OW[x] = tgt
+    }
+    # a bare `/` label over bare `/` cells (`Total / Used / Free` over
+    # `4 TiB / 2.1 TiB / 1.9 TiB`) is the inside of ONE composite column:
+    # it joins its left neighbour, and so does the right one
+    for (q = 2; q < np; q++) {
+        if (PLN[q] != 1 || LN[PL1[q]] != "/" || !PN[q]) continue
+        ok = 1
+        for (t = 1; t <= nt && ok; t++) if (TP[t] == q && TX[t] != "/") ok = 0
+        if (!ok || !PLN[q - 1] || !PLN[q + 1]) continue
+        o = q - 1; while (OW[o] != o) o = OW[o]
+        OW[q] = o
+        o2 = q + 1; while (OW[o2] != o2) o2 = OW[o2]
+        if (o2 > q) OW[o2] = o
+    }
+    # headerless (nh=0): with no header to say so, a ONE-space gutter is a
+    # space inside a cell when, in 2+ rows, the text on both sides touches it
+    # (`Microsoft Remote Desktop` over `Slack for Desktop`) — unless the
+    # left side is right-aligned numbers (the counts of `uniq -c`) or a flag
+    # column (one value, or at most 2 characters: `ii`); a gutter only the
+    # widest cell reaches is column padding
+    if (!nh) {
+        for (q = 2; q <= np; q++) {
+            gp = PB[q - 1] + 1
+            if (PA[q] - PB[q - 1] - 1 != 1) continue
+            palign(q - 1); pcells(q - 1)
+            if (RA && ISNUM) continue
+            ab = 0; fl1 = 1; fv = ""; sh = 1; nlr = 0; nrr_ = 0
+            for (r = d0; r <= n; r++) {
+                le = 0; rs = 0; lv = ""
+                for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+                    if (TP[t] == q - 1) { le = TE[t]; lv = (lv == "") ? TX[t] : lv " " TX[t] }
+                    if (TP[t] == q && !rs) rs = TS[t]
+                }
+                if (lv != "") { nlr++; if (fv == "") fv = lv; else if (lv != fv) fl1 = 0; if (length(lv) > 2) sh = 0 }
+                if (rs) nrr_++
+                if (le == gp - 1 && rs == gp + 1) ab++
+            }
+            # (text the right side holds in FEWER rows than the left is the
+            # tail of a longer cell, never a column of its own)
+            if (nrr_ >= nlr && (fl1 || sh || ab < 2)) continue
+            o = q - 1; while (OW[o] != o) o = OW[o]
+            OW[q] = o
+        }
+    }
+    # column ids, left to right (an owner may itself have joined another)
+    nc = 0
+    for (q = 1; q <= np; q++) {
+        o = OW[q]; while (OW[o] != o) o = OW[o]
+        if (!(o in CID)) CID[o] = ++nc
+        PC[q] = CID[o]
+    }
+    if (nc < 2) exit
+    # column names: label words in order
+    for (q = 1; q <= np; q++) {
+        c = PC[q]
+        for (j = PL1[q]; j < PL1[q] + PLN[q]; j++) CN[c] = (CN[c] == "") ? LN[j] : CN[c] " " LN[j]
+        if (PO[q]) CO[c] = 1
+    }
+    # group row (nh=2): each word prefixes the ONE column it sits over; a
+    # word spanning two columns (`----memory----`) is a different header
+    # shape, so the grid withdraws
+    if (nh == 2) {
+        for (q = 1; q <= np; q++) {
+            c = PC[q]
+            if (!(c in CA) || PA[q] < CA[c]) CA[c] = PA[q]
+            if (!(c in CB) || PB[q] > CB[c]) CB[c] = PB[q]
+        }
+        s = L[1]; off = 0
+        while (match(s, /[^ ]+/)) {
+            us = off + RSTART; ue = us + RLENGTH - 1; ux = substr(s, RSTART, RLENGTH)
+            off = ue; s = substr(s, RSTART + RLENGTH)
+            bc = 0; bo = 0; nov = 0
+            for (c = 1; c <= nc; c++) {
+                lo = (us > CA[c]) ? us : CA[c]; hi = (ue < CB[c]) ? ue : CB[c]
+                if (hi >= lo) { nov++; if (hi - lo + 1 > bo) { bo = hi - lo + 1; bc = c } }
+            }
+            if (nov > 1 || !bc) exit
+            UP[bc] = (UP[bc] == "") ? ux : UP[bc] " " ux
+        }
+        for (c = 1; c <= nc; c++) if (UP[c] != "") CN[c] = UP[c] " " CN[c]
+    }
+    for (c = 1; c <= nc; c++) {
+        nw = split(CN[c], WW, " "); NW[c] = 0; PU[c] = 0
+        for (x = 1; x <= nw; x++) { if (WW[x] ~ /[A-Za-z0-9]/) NW[c]++; else PU[c] = 1 }
+        nm = CN[c]; gsub(/\./, "_", nm); gsub(/ /, "_", nm); gsub(/__+/, "_", nm)
+        if (nm == "") nm = letter(c)
+        if (nm in SEEN) { SEEN[nm]++; nm = nm "_" SEEN[nm] } else SEEN[nm] = 1
+        NM[c] = nm
+    }
+    # --- cells ---
+    nrr = 0
+    for (r = d0; r <= n; r++) {
+        if (!NT[r]) continue
+        nrr++
+        for (t = FT[r]; t < FT[r] + NT[r]; t++) {
+            c = PC[TP[t]]
+            if (CELL[nrr, c] == "") { CELL[nrr, c] = TX[t]; CS[nrr, c] = TS[t] }
+            else CELL[nrr, c] = CELL[nrr, c] " " TX[t]
+            CTK[nrr, c]++
+            CEND[nrr, c] = TE[t]
+        }
+    }
+    # a header is not a data row: a label that every row repeats as its cell
+    # (`Nintendo` over `Nintendo`) means the "header" is the first record;
+    # and in a header with no 2+-space gap anywhere, a label of 3+ words over
+    # cells of as many words in EVERY row is a sentence, not a label
+    # (`Getting image source signatures` over `Copying blob a1b2c3d4 done`)
+    for (c = 1; c <= nc && nh; c++) {
+        if (CN[c] !~ /[A-Za-z0-9]/) continue
+        eq = 1; full = 1
+        for (i = 1; i <= nrr; i++) {
+            if (CELL[i, c] != CN[c]) eq = 0
+            if (CTK[i, c] < NW[c]) full = 0
+        }
+        if (eq || (NW[c] >= 3 && !PU[c] && !CO[c] && full && !hgap)) exit
+    }
+    # headerless (nh=0): only a grid every row FILLS (no empty cell — nothing
+    # names an empty column), 2-8 columns, each aligned on its own (4 cells
+    # in 5 at its modal start or end); else the token reading stands
+    if (!nh) {
+        if (nc > 8) exit
+        for (c = 1; c <= nc; c++) {
+            delete MS; delete ME; bs = 0; be = 0
+            for (i = 1; i <= nrr; i++) {
+                if (CELL[i, c] == "") exit
+                x = ++MS[CS[i, c]]; if (x > bs) bs = x
+                x = ++ME[CEND[i, c]]; if (x > be) be = x
+            }
+            if ((bs > be ? bs : be) * 10 < nrr * 8) exit
+        }
+    }
+    # alignment gate: a cell is aligned when it starts at the column modal
+    # start or ends at its modal end (token-order columns excepted)
+    tot = 0; ali = 0
+    for (c = 1; c <= nc; c++) {
+        if (CO[c]) continue
+        delete MS; delete ME; bs = 0; be = 0; vs = 0; ve = 0
+        for (i = 1; i <= nrr; i++) {
+            if (CELL[i, c] == "") continue
+            x = ++MS[CS[i, c]]; if (x > bs) { bs = x; vs = CS[i, c] }
+            x = ++ME[CEND[i, c]]; if (x > be) { be = x; ve = CEND[i, c] }
+        }
+        for (i = 1; i <= nrr; i++) {
+            if (CELL[i, c] == "") continue
+            tot++
+            if (CS[i, c] == vs || CEND[i, c] == ve) ali++
+        }
+    }
+    if (tot == 0 || ali * 10 < tot * 8) exit
+    # --- wrapped cells: a row holding only its LAST cell continues the row
+    # above; a row holding only its FIRST cell, over a row whose first cell is
+    # empty, is the first cell of that row, printed early ---
+    ne = 0
+    for (i = 1; i <= nrr; i++) {
+        f = 0; only1 = (CELL[i, 1] != ""); onlyl = (CELL[i, nc] != "")
+        for (c = 1; c <= nc; c++) if (CELL[i, c] != "") f++
+        if (f == 1 && onlyl && ne > 0) {
+            OUTC[ne, nc] = (OUTC[ne, nc] == "") ? CELL[i, nc] : OUTC[ne, nc] " " CELL[i, nc]
+            continue
+        }
+        if (f == 1 && only1 && i < nrr && CELL[i + 1, 1] == "") {
+            nf = 0; for (c = 1; c <= nc; c++) if (CELL[i + 1, c] != "") nf++
+            if (nf >= 1) { CELL[i + 1, 1] = CELL[i, 1]; continue }
+        }
+        ne++
+        for (c = 1; c <= nc; c++) OUTC[ne, c] = CELL[i, c]
+    }
+    # a column that only ever holds the `|` its label is (a drawn column
+    # rule: `Task  |  Runtime ms  |`) is a separator, not data
+    for (c = 1; c <= nc; c++) {
+        if (CN[c] != "|" && CN[c] != "") continue
+        sep = 0
+        for (i = 1; i <= ne; i++) { if (OUTC[i, c] == "") continue; if (OUTC[i, c] != "|") { sep = 0; break }; sep = 1 }
+        if (sep) DROP[c] = 1
+    }
+    # Emission order: row by row — unless the first row leaves a column
+    # empty that a later row fills. The melt names columns in the order they
+    # first appear, so then the cells go column by column, which keeps the
+    # header order (`Name Used (GB) Free (GB) Provider`, not `Name Provider
+    # Used (GB)`).
+    cm = 0
+    for (c = 1; c <= nc && !cm; c++) {
+        if (DROP[c] || OUTC[1, c] != "") continue
+        for (i = 2; i <= ne; i++) if (OUTC[i, c] != "") { cm = 1; break }
+    }
+    if (cm) {
+        for (c = 1; c <= nc; c++)
+            if (!DROP[c]) for (i = 1; i <= ne; i++)
+                if (OUTC[i, c] != "") printf "%s%d.%s %s\n", pfx, i, NM[c], OUTC[i, c]
+    } else {
+        for (i = 1; i <= ne; i++)
+            for (c = 1; c <= nc; c++)
+                if (!DROP[c] && OUTC[i, c] != "") printf "%s%d.%s %s\n", pfx, i, NM[c], OUTC[i, c]
+    }
+    printf "total_entries %d\n", ne
+}
+'
+# _fr_gutter_grid NH RL [PREFIX] < table-lines — run the gutter grid (bytes:
+# LC_ALL=C); records are PREFIX<N>.<name> (default `entry`).
+_fr_gutter_grid () {
+    LC_ALL=C awk -v nh="$1" -v rl="$2" -v pfx="${3:-entry}" "$_FR_AWK_GRID"
+}
