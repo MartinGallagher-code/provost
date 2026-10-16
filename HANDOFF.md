@@ -54,10 +54,9 @@ It has a git-backed store and ships as a thin Python launcher
 - **Corpus:** 3579 golden passes, 0 failed (was 3557). COVERAGE.md shows
   3675 / 3705 tidy.
 
-The engines honour the pre-rename `ENVOY_*` / `MFE_*` names and
-`~/.mfe/strategies` for one release. Remove that "Legacy names" block, and
-the legacy dir in `_collect_strategy_dirs`, in 2.2.0 (the release after 2.1.0,
-which first ships the rename). `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
+The pre-rename `ENVOY_*` / `MFE_*` names and `~/.mfe/strategies` were honoured
+in 2.1.0 only; the fallbacks are removed on `main` (2026-10-16) and ship removed
+in 2.2.0. `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
 
 Behaviour worth knowing:
 

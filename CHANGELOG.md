@@ -1,5 +1,21 @@
 # provost — Changelog
 
+## 2026-10-16 — pre-rename name fallbacks removed (ships in 2.2.0)
+
+2.1.0, the first release with the `provost-extract` / `PROVOST_*` names,
+still honoured the old ones. As promised there, they are gone after it:
+- The "Legacy names" block at the top of `extract/provost-extract` and
+  `analyze/provost-analyze` is deleted. `ENVOY_HOME`, `ENVOY_NO_RC`,
+  `ENVOY_QUIET`, `ENVOY_VERBOSE`, `ENVOY_NO_PAGER`, `ENVOY_NO_PROGRESS`,
+  `ENVOY_ANALYZE_SUPPRESS_AWK_WARNING`, `MFE_RANK` and `MFE_HINTS_FILE` no
+  longer have any effect. Use the `PROVOST_*` names.
+- `_collect_strategy_dirs` (`extract/lib/_discovery.sh`) no longer reads
+  `~/.mfe/strategies`. The per-user dir is only
+  `${XDG_CONFIG_HOME:-~/.config}/provost/strategies`.
+- `extract/tests/test_rank.sh` gains `test_rank_legacy_env_ignored`
+  (`MFE_RANK=priority` no longer changes the winner). CLAUDE.md and HANDOFF
+  are updated.
+
 ## 2026-10-16 — release v2.1.0
 
 `VERSION` 2.0.1 → 2.1.0 (and the `man/provost.1` header). It is a minor

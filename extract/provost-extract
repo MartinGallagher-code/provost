@@ -36,18 +36,6 @@ set -eo pipefail
 # guard optional reads with `${VAR:-default}`.
 set -o nounset
 
-# Legacy names: before 2026-10-02 the engine's settings were ENVOY_* / MFE_*.
-# For one release an old name still applies when its PROVOST_* name is unset.
-for _legacy in ENVOY_HOME:PROVOST_ROOT MFE_RANK:PROVOST_RANK \
-        MFE_HINTS_FILE:PROVOST_HINTS_FILE ENVOY_NO_RC:PROVOST_NO_RC \
-        ENVOY_QUIET:PROVOST_QUIET ENVOY_VERBOSE:PROVOST_VERBOSE \
-        ENVOY_NO_PAGER:PROVOST_NO_PAGER ENVOY_NO_PROGRESS:PROVOST_NO_PROGRESS \
-        ENVOY_ANALYZE_SUPPRESS_AWK_WARNING:PROVOST_ANALYZE_SUPPRESS_AWK_WARNING; do
-    _old="${_legacy%%:*}" _new="${_legacy#*:}"
-    if [[ -n "${!_old:-}" && -z "${!_new:-}" ]]; then export "$_new=${!_old}"; fi
-done
-unset _legacy _old _new
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STRATEGIES_DIR="$SCRIPT_DIR/strategies"
 # Declarative tool->strategy routing table (see _discovery.sh for the format).

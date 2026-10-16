@@ -144,15 +144,12 @@ _is_generic_strategy_file () {
 # _collect_strategy_dirs — the strategy search path in the global array
 # _STRATEGY_DIRS, in precedence order (a later directory wins a name clash in
 # build_strategy_list): the bundled tree, then the per-user strategies dir
-# ${XDG_CONFIG_HOME:-~/.config}/provost/strategies (when it exists; the
-# pre-rename ~/.mfe/strategies is still read, below it, for one release), then
+# ${XDG_CONFIG_HOME:-~/.config}/provost/strategies (when it exists), then
 # --plugin-dir (when set and it exists). The single definition of the search
 # path — every caller used to spell it out inline.
 _collect_strategy_dirs () {
     _STRATEGY_DIRS=("$STRATEGIES_DIR")
-    local _legacy_dir="${HOME:-/nonexistent}/.mfe/strategies"
     local _user_dir="${XDG_CONFIG_HOME:-${HOME:-/nonexistent}/.config}/provost/strategies"
-    [[ -d "$_legacy_dir" ]] && _STRATEGY_DIRS+=("$_legacy_dir")
     [[ -d "$_user_dir" ]] && _STRATEGY_DIRS+=("$_user_dir")
     [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && _STRATEGY_DIRS+=("$_OPT_plugin_dir")
     return 0
