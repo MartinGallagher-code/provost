@@ -1,5 +1,117 @@
 # provost — Changelog
 
+## 2026-10-16 — format parsers decline what they do not read; sections and indentation kept
+
+Round-2 benchmark patterns 5 (wrong strategy / wrong delimiter), 2 (sections
+glued into cells) and 6 (indentation that carries data). Developed against
+the corpus and new examples written for this work — ltrace / strace -c,
+cargo test, a node_exporter grep, check_load / check_http, rpm -qi, an
+OpenCL platform list, node `-p` literals, hiera lookups, nmcli -t, macOS
+netstat -rn, Windows arp -a, ipcs, docker system df -v, iptables -L -n -v,
+docker info, mutt -v, an RSpec run, a sorted-list comparison — not against
+the round-2 inputs, which were run once at the end as a regression check.
+
+**Part A — format parsers decline input they do not understand**
+- `toml` 1.1 (exempt from the coverage hold, so it checks itself): the TOML
+  LINE GRAMMAR must hold for 90%+ of the lines — a `[table]` header standing
+  alone, `key = value`, comments, multi-line strings / arrays. A `[key]
+  value` listing under a `Set X=1` banner is no longer TOML (a pinned `-s
+  toml` still reads what parses).
+- `equals` 1.3: declines when a quarter of the `=` lines hold the `=`
+  INSIDE brackets or quotes (`fstat(3, {st_mode=…}) = 0`, `getenv("HOME") =
+  "/root"`); the awk screen counts the same.
+- `vertical-line` 1.1: the first separator must be a pure rule; a TITLED
+  rule (`==== FAILURES ====`, `---- x stdout ----`) is a banner, not a
+  column underline.
+- `yaml` 1.2: a table wearing colons is not YAML — an unindented non-key
+  line with 2+ column gutters (a header), or `key: value` lines whose values
+  carry 2+ gutters (`C:   Local Fixed Disk   3   NTFS`).
+- `csv` 2.1: commas inside a label set glued to a name (`metric{a="x",b="y"}
+  42`) are not separators.
+- `semicolon-values` 1.1: a single dense line must read as fields (80%+
+  cells without blanks, `;` not inside 2+ blank-separated words): Nagios
+  perfdata is not a record.
+- `colons` 1.2: a key/value stream that splits cleanly into REPEATED RECORDS
+  (the first key recurring, no key repeated inside a record, 2+ fields per
+  record) is emitted as `entry<N>` records, a bare heading above them as
+  `section`, colon-less lines as `text`; the awk twin hands such inputs back
+  to the bash loop (exit 3), so both routes stay byte-identical.
+- `json` (version unchanged): a JavaScript / Python OBJECT LITERAL that jq
+  rejects (bare keys, single quotes, trailing commas, True/None) is rewritten
+  to JSON and read; a literal array is one row per element. Anything else
+  bare (`[Function]`, `NaN`) leaves the extract as before.
+- `colon-fields` 1.1: a `::` between two letters is a namespace
+  (`APT::Key::…`, `profile::base::ssh`), not two delimiters; a second way in
+  for genuinely colon-delimited lines whose fields hold blanks — the same
+  colon count (2+) on every line, no `: `, URL, clock, MAC or IP:port colon,
+  no column gap (`gpgconf --list-components`, `nmcli -t`).
+- `indented-hierarchy` 1.1: with 4+ colon lines, half must split cleanly at
+  their first colon (not a `::`, a `file:line` or a clock) — pytest's report
+  is no longer shredded into `0.31s_call_____test_app.py` keys.
+
+**Part B — sections glued into cells; indentation kept**
+- New generic `section-tables` (structured/, priority 36, 82 when every
+  titled table shares its header, else 80): one aligned table per title (a
+  disk, a chain, an address family, an interface) or a few different tables
+  under `====` rules and titles → ONE table with a `section` column; tables
+  with the same header line are read together (gutter grid, else a
+  label-span pass), different headers are unioned by column name, untitled
+  lines are `text` rows. A header needs 3+ gutter cells (or 3+ words over a
+  3-cell row) and no `Label: value` / `Label = value` pair; declines a single
+  table, untitled tables, `#` comment headers, dashed group rows, two-column
+  `key   value` blocks, and reports with 3+ `Label: value` text lines. Strategy count 264 → 265 (structured 26 → 27).
+- `key-value` 1.1 (detection unchanged): a key line ends at the first
+  STRUCTURAL colon, so a label may hold its own (`Stream #0:1(eng): Audio:
+  …` → key `Stream #0:1(eng)`), dot leaders are not words; a bare label over
+  2+ DEEPER lines gives one row per line (lists, `Stream mapping:`), unless
+  the pieces are a wrapped value (`,` / `:` / `;` endings, 60+ bytes — hex
+  dumps, comma lists); a text line at or left of the key's indent, or one
+  holding a column gap, is its own row instead of being glued onto the value
+  above; rules are dropped; tree glyphs (`|- `) are stripped from keys; a
+  pre-key banner is still dropped unless it holds a `: `.
+- `kv-report` 1.1: SIGN GRIDS (3+ lines of only `+name` / `-name` tokens,
+  12+) become one row per token (key = name, value = sign) under the grid's
+  `…:` title; a report holding one is RANKED at 81 (the one exception to
+  rescue-only), so `vim --version`-style banner + grid + `key: value` is no
+  longer an aligned table.
+- `indent-tree` 1.1: TAB columns that are not a tree (`comm`) → `depth` =
+  column rank; an indented TEXT OUTLINE (RSpec / nested test output, ldd /
+  gem / guix dependency trees, keepalived blocks) → `depth` / `parent` /
+  `name` at 70 (guards: column gaps, `label:` share, right-aligned numbers).
+
+**Corpus.** 47 goldens change, none deleted, none new, `expected.tsv`
+unchanged; `--golden` and `_FR_BIG_BYTES=0 --golden` both 3579 passed / 0
+failed / 126 not yet covered. Every changed golden was reviewed against the
+previous one: key-value (26: lists itemised, labels with colons whole, text
+lines no longer glued onto values, rules dropped, tree glyphs off keys),
+json (6 node / mongosh / fx literals now read instead of bracket debris),
+indent-tree (8: nesting kept as depth / parent — ldd / gem / guix trees,
+promtool, keepalived, radvd, pipx, redis-cli, a CJK tree), section-tables
+(3: faillock, nfsstat-client, yugabyte gain a `section` column), and
+flink-list-jobs (dates no longer cut at a fixed column), ipvsadm-list (rows
+instead of mangled keys), stat-format (clean names). Neutral: sestatus-v's
+`path  user:role:type` lines are now kept whole instead of split at the
+first colon of the context.
+
+**Round 2 (regression check, run once at the end).** Default tidy output
+changed for 17 of 109 inputs, none worse: comm (depth column), composer
+config (no longer toml at 2% coverage), gpgconf (colon fields), node
+os.cpus (json rows), objdump (per-offset rows), openssl list (records with
+section), pytest and strace (lossless lines instead of shredded columns),
+vim --version (feature rows), diskutil and route print (one table with a
+section column), ffmpeg (stream lines as rows, keys whole), Nagios (no
+positional shreds), Prometheus (exposition-format), RSpec (depth / parent),
+apt-config dump (namespaced keys whole), wmic (header kept).
+
+**Tests / fixtures.** `extract/tests/test_format_claims.sh` (14 tests);
+samples `section-tables/{netstat-rn,arp-a,docker-system-df,ipcs,
+iptables-chains}.txt`, `kv-report/{mutt-v,feature-grid}.txt`,
+`json/{node-inspect,node-interfaces}.txt`, `colons/{rpm-qi,
+opencl-platforms}.txt`, `colon-fields/nmcli-terse.txt`,
+`key-value/docker-info-lists.txt`, `indent-tree/comm-columns.txt`, with
+goldens. `extract/README.md` (counts, kv-report exception, "Sections glued
+into cells"), `README.md` (count).
+
 ## 2026-10-16 — release v2.1.0
 
 `VERSION` 2.0.1 → 2.1.0 (and the `man/provost.1` header). It is a minor

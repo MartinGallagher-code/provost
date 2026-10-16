@@ -1,3 +1,4 @@
-n	Waiting	for	response___
-1	10.07.2	026	06:00:00 : a1b2c3d4e5f6 : streaming-etl (RUNNING)
-2	10.07.2	026	05:00:00 : b2c3d4e5f6a7 : windowed-agg (RUNNING)
+n	A	B	C	D	E	F	G
+1	------------------	Running/Restarting	Jobs	-------------------			
+2	10.07.2026	06:00:00	:	a1b2c3d4e5f6	:	streaming-etl	(RUNNING)
+3	10.07.2026	05:00:00	:	b2c3d4e5f6a7	:	windowed-agg	(RUNNING)

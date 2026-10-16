@@ -4,9 +4,9 @@
 
 ## Name: kv-report
 ## Description: Multi-section key/value reports — `key: value` lines, bare `Label:` lists, titled sections, wrapped values — as one lossless key/value table (the engine's coverage RESCUE parser)
-## Version: 1.0
+## Version: 1.1
 ## Priority: 98
-## Confidence-Max: 70
+## Confidence-Max: 81
 ## Sample: samples/kv-report/basic.txt
 
 # Environment and diagnostic dumps mix scalar `key: value` lines with LIST
@@ -68,13 +68,18 @@
 # one wide row — a column per key, named `section.key` — like the other
 # single-record kv parsers; anything else is the long table above.
 #
-# RESCUE ONLY. A KV report is too common a shape to compete in the ordinary
-# ranking, where it would take inputs from more specific parsers. The engine
+# RESCUE ONLY — except a report holding a SIGN GRID (below). A KV report is
+# too common a shape to compete in the ordinary ranking, where it would take
+# inputs from more specific parsers. The engine
 # runs this strategy only as the COVERAGE RESCUE (lib/_discovery.sh, see
 # "COVERAGE HOLD"): when the winning candidate's line coverage is low it is
 # held, and this parse replaces it only if it covers materially more. So it
 # detects only while the engine has set _FR_RESCUE=1, or when pinned with
-# `--strategy kv-report`.
+# `--strategy kv-report` — or, in the ordinary ranking, on a report holding a
+# SIGN GRID: 3+ lines of nothing but `+name` / `-name` tokens (12+), a
+# feature list printed in columns (`vim --version`). Each token becomes a row
+# (key = the name, value = its sign) under the grid's `…:` title line as its
+# section; the banner and `key: value` lines around it are read as usual.
 
 _KVR_AWK='
 function indent_of(s,   i, c, w, n) {
@@ -98,6 +103,14 @@ function okkey(k,   w, t) {
     t = k; if (gsub(/\[/, "", t) != gsub(/\]/, "", t)) return 0
     t = k; w = gsub(/[ \t]+/, " ", t)
     return (w < 8)
+}
+# signline(s): every blank-separated token is `+name` / `++name` / `-name`
+# (a name opens with a letter or `_`); SIGNW = how many
+function signline(s,   w, m, k) {
+    m = split(trim(s), w, /[ \t]+/); SIGNW = m
+    if (m < 1) return 0
+    for (k = 1; k <= m; k++) if (w[k] !~ /^(\+\+?|-)[A-Za-z_][A-Za-z0-9_()]*$/) return 0
+    return 1
 }
 # a line that can NAME a section: short, no column gaps (a table row is not)
 function titlelike(t) { return (length(t) <= 60 && t !~ /[ \t][ \t]/) }
@@ -178,6 +191,27 @@ END {
     # a TEXT line underlined by a rule (no blank between) is a title
     for (i = 1; i < n; i++)
         if (kind[i] == "O" && !bul[i] && kind[i + 1] == "R") kind[i] = "T"
+    # SIGN GRIDS: 3+ consecutive TEXT lines made only of `+name` / `-name`
+    # tokens (12+ of them, 2+ lines holding several) laid out in columns — a feature list printed as a
+    # grid (the `+acl  +arabic  -tcl …` block of vim --version). Each token is a row of
+    # its own: the name as key, its sign as value; a TEXT line ending in `:`
+    # right above the grid (`Features included (+) or not (-):`) is its
+    # section, not a row.
+    ngrid = 0
+    for (i = 1; i <= n; i++) {
+        if (kind[i] != "O" || !signline(raw[i])) continue
+        nt = 0; nw = 0
+        for (j = i; j <= n && kind[j] == "O" && signline(raw[j]); j++) { nt += SIGNW; if (SIGNW >= 2) nw++ }
+        if (j - i >= 3 && nt >= 12 && nw >= 2) {
+            ngrid++
+            gt = ""
+            if (i > 1 && (kind[i - 1] == "O" || kind[i - 1] == "H") && raw[i - 1] ~ /:[ \t]*$/) {
+                gt = trim(raw[i - 1]); sub(/[ \t]*:$/, "", gt); kind[i - 1] = "C"
+            }
+            for (k = i; k < j; k++) { kind[k] = "G"; gtitle[k] = gt }
+        }
+        i = j - 1
+    }
     if (ENVIRON["_KVR_MODE"] == "detect") {
         for (i = 1; i <= n; i++) {
             if (kind[i] == "K") nk++
@@ -187,7 +221,7 @@ END {
         tot = nk + nh + no
         # a kv report: several key lines, and they are a real share of it
         ok = (nk >= 2 && nk + nh >= 3 && (nk + nh) * 100 >= tot * 30)
-        print (ok ? "yes" : "no")
+        print (ok ? (ngrid ? "grid" : "yes") : "no")
         exit
     }
     # RIGHT-ALIGNED keys (`     Raid Level : raid5` over `   Raid Devices : 4`):
@@ -209,6 +243,16 @@ END {
             continue
         }
         if (kd == "C" || kd == "R") continue
+        if (kd == "G") {
+            flushcont(); cr = 0; flat = 0
+            m = split(trim(raw[i]), gw, /[ \t]+/)
+            for (k = 1; k <= m; k++) {
+                sg = gw[k]; match(sg, /^[-+]+/)
+                emit(gtitle[i], substr(sg, RLENGTH + 1), substr(sg, 1, RLENGTH))
+            }
+            seen = 1
+            continue
+        }
         bstart = (prevb || !seen)
         if (prevb) { blk++; prevb = 0 }
         seen = 1
@@ -298,12 +342,36 @@ END {
 strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
-    # RESCUE ONLY (see header): never competes in the ordinary ranking.
-    [[ "${_FR_RESCUE:-0}" -eq 1 || "${_OPT_strategy:-}" == kv-report ]] || return 1
+    # RESCUE ONLY (see header) — with one exception: a report that holds a
+    # SIGN GRID (a `+feature` / `-feature` list laid out in columns, under a
+    # banner and over `key: value` lines: `vim --version`) is ranked too. No
+    # other parser reads that shape: a whitespace-table parser takes the grid
+    # for a table (aligned-columns, 65) and glues the banner and the
+    # key/value lines into its cells, at full coverage, so the coverage hold
+    # never fires. The grid check is narrow (3+ lines of nothing but signed
+    # names, 12+ of them), so the ordinary ranking only meets this parser on
+    # that shape.
+    local _rescue=0
+    [[ "${_FR_RESCUE:-0}" -eq 1 || "${_OPT_strategy:-}" == kv-report ]] && _rescue=1
+    if [[ $_rescue -eq 0 ]]; then
+        # PREFILTER (exact): a sign grid needs a line opening with `+` / `-`
+        # and a signed name after a blank
+        [[ "$text" == *$'\n'[-+]* || "$text" == [-+]* ]] || return 1
+        [[ "$text" == *[[:blank:]][-+][A-Za-z_]* ]] || return 1
+    fi
     [[ "$text" == *:* || "$text" == *" = "* ]] || return 1
     local _v
     _v="$(printf '%s\n' "$text" | _KVR_MODE=detect LC_ALL=C awk "$_KVR_AWK")"
-    [[ "$_v" == yes ]] || return 1
+    if [[ $_rescue -eq 0 ]]; then
+        [[ "$_v" == grid ]] || return 1
+        # (81: a distinctive syntax — format-specific tier — just above the
+        # lax shape parsers at 80 that otherwise take it, indented-hierarchy
+        # on the indented `file: "…"` lines)
+        _STRATEGY_CONFIDENCE=81
+        _STRATEGY_CONFIDENCE_REASON="key/value report with a +/- feature grid"
+        return 0
+    fi
+    [[ "$_v" == yes || "$_v" == grid ]] || return 1
     _STRATEGY_CONFIDENCE=70
     _STRATEGY_CONFIDENCE_REASON="key/value report with list sections (coverage rescue)"
     return 0

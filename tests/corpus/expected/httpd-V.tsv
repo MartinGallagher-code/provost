@@ -5,4 +5,5 @@ n	key	value
 4	Server loaded	APR 1.7.2, APR-UTIL 1.6.3
 5	Compiled using	APR 1.7.2, APR-UTIL 1.6.3
 6	Architecture	64-bit
-7	Server MPM	event Server compiled with.... -D APR_HAS_SENDFILE -D APR_HAS_MMAP -D APACHE_MPM_DIR="server/mpm/event" -D HTTPD_ROOT="/etc/apache2" -D SERVER_CONFIG_FILE="/etc/apache2/apache2.conf"
+7	Server MPM	event
+8	Server compiled with....	-D APR_HAS_SENDFILE -D APR_HAS_MMAP -D APACHE_MPM_DIR="server/mpm/event" -D HTTPD_ROOT="/etc/apache2" -D SERVER_CONFIG_FILE="/etc/apache2/apache2.conf"

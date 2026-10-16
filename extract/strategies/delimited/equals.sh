@@ -4,7 +4,7 @@
 
 ## Name: equals
 ## Description: Extract field=value pairs from equals-delimited data
-## Version: 1.2
+## Version: 1.3
 ## Priority: 65
 ## Confidence-Max: 75
 ## Sample: samples/equals/basic.txt
@@ -36,8 +36,8 @@ strategy_detect () {
         # The {0,63}-bounded keys are checked by length — mawk-safe, no
         # interval expressions. Prints "<non-blank> <kv-lines> <any-form
         # lines> <any-hit>".
-        local _cf_hit=0
-        read -r _cf_nb _cf_ok _cf_any _cf_hit < <(cat <<< "$text" | awk '
+        local _cf_hit=0 _cf_eq=0 _cf_nest=0
+        read -r _cf_nb _cf_ok _cf_any _cf_hit _cf_eq _cf_nest < <(cat <<< "$text" | awk '
             function keyok(t, re,    i, k) {
                 i = index(t, "="); if (!i) return 0
                 k = substr(t, 1, i - 1)
@@ -52,6 +52,13 @@ strategy_detect () {
                     || $0 ~ /^[A-Za-z][A-Za-z0-9_().: -]* = [^=]/) { hit = 1; nany++ }
                 if ($0 !~ /[^ \t\n\v\f\r]/) next
                 nb++
+                if (i = index($0, "=")) {
+                    neq++; p = substr($0, 1, i - 1)
+                    if (gsub(/[(]/, "(", p) > gsub(/[)]/, ")", p) \
+                        || gsub(/[{]/, "{", p) > gsub(/[}]/, "}", p) \
+                        || gsub(/\[/, "[", p) > gsub(/\]/, "]", p) \
+                        || index(p, "\"") || index(p, "\047")) nest++
+                }
                 t = $0; ok = keyok(t, "^[A-Za-z_][A-Za-z0-9_.-]*$")
                 if (!ok && t ~ /^export[ \t\n\v\f\r]+/) {
                     sub(/^export[ \t\n\v\f\r]+/, "", t)
@@ -61,12 +68,13 @@ strategy_detect () {
                 if (!ok && $0 ~ /^[+-]/) ok = keyok(substr($0, 2), "^[A-Za-z_][A-Za-z0-9_.]*$")
                 if (ok) nok++
             }
-            END { printf "%d %d %d %d\n", nb, nok, nany, hit }')
+            END { printf "%d %d %d %d %d %d\n", nb, nok, nany, hit, neq, nest }')
         [[ $_cf_nb -gt 0 ]] && _STRATEGY_CONFIDENCE=$(( 50 + _cf_any * 5 / _cf_nb ))
         if [[ $_cf_nb -ge 2 && $(( _cf_ok * 100 )) -ge $(( _cf_nb * 90 )) ]]; then
             _STRATEGY_CONFIDENCE=75
             _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
         fi
+        _strat_equals_nested_decline && return 1
         [[ $_cf_hit -eq 1 ]]
         return
     fi
@@ -76,9 +84,29 @@ strategy_detect () {
     # The four line forms the detection loop below accepts.
     local _cf_a1='^[A-Za-z][A-Za-z0-9_.\ -]*=[^=]' _cf_a2='^[+-][A-Za-z][A-Za-z0-9_.]*=[^=]'
     local _cf_a3='^[A-Za-z][A-Za-z0-9_().:\ -]*\ =\ [^=]'
+    local _cf_eq=0 _cf_nest=0 _cf_pre _cf_o _cf_c
     while IFS= read -r _cf_line; do
         [[ -z "${_cf_line//[[:space:]]/}" ]] && continue
         _cf_nb=$((_cf_nb + 1))
+        if [[ "$_cf_line" == *=* ]]; then
+            # (nesting of the text before the first `=`; see
+            # _strat_equals_nested_decline)
+            _cf_eq=$((_cf_eq + 1)); _cf_pre="${_cf_line%%=*}"
+            if [[ "$_cf_pre" == *[\"\'\(\{\[]* ]]; then
+                _cf_o="${_cf_pre//[!(]/}"; _cf_c="${_cf_pre//[!)]/}"
+                if [[ "$_cf_pre" == *[\"\']* || ${#_cf_o} -gt ${#_cf_c} ]]; then
+                    _cf_nest=$((_cf_nest + 1))
+                else
+                    _cf_o="${_cf_pre//[!\{]/}"; _cf_c="${_cf_pre//[!\}]/}"
+                    if [[ ${#_cf_o} -gt ${#_cf_c} ]]; then
+                        _cf_nest=$((_cf_nest + 1))
+                    else
+                        _cf_o="${_cf_pre//[!\[]/}"; _cf_c="${_cf_pre//[!\]]/}"
+                        [[ ${#_cf_o} -gt ${#_cf_c} ]] && _cf_nest=$((_cf_nest + 1))
+                    fi
+                fi
+            fi
+        fi
         if [[ "$_cf_line" =~ $_cf_kv || "$_cf_line" =~ $_cf_pin || "$_cf_line" =~ $_cf_sig ]]; then
             _cf_ok=$((_cf_ok + 1))
         fi
@@ -92,6 +120,7 @@ strategy_detect () {
         _STRATEGY_CONFIDENCE=75
         _STRATEGY_CONFIDENCE_REASON="${_cf_ok}/${_cf_nb} lines are KEY=VALUE"
     fi
+    _strat_equals_nested_decline && return 1
     # Apply if input contains lines with equals signs that look like assignments
     # Skip lines that look like code (==, +=, !=)
     # Use while-read so ^ anchors match per-line (not start of entire string)
@@ -118,6 +147,17 @@ strategy_detect () {
         [[ "$_det_line" =~ ^[A-Za-z][A-Za-z0-9_().:\ -]*\ =\ [^=] ]] && return 0
     done <<< "$text"
     return 1
+}
+
+# _strat_equals_nested_decline — true (decline) when the `=` is mostly NOT a
+# delimiter: in a quarter or more of the lines holding an `=` (widened by
+# _FR_SLACK on the detection sample), the text before the first `=` holds a
+# quote or an unclosed `(` / `{` / `[` — the `=` sits INSIDE an argument
+# list, a struct or a string. strace / ltrace print `fstat(3, {st_mode=…}) =
+# 0` and `getenv("HOME") = "/root"`: splitting there made `fstat(3,_{st_mode`
+# a field name. Reads _cf_eq / _cf_nest from strategy_detect.
+_strat_equals_nested_decline () {
+    [[ $_cf_eq -ge 2 && $(( _cf_nest * 100 )) -ge $(( _cf_eq * (25 + ${_FR_SLACK:-0}) )) ]]
 }
 
 # _strat_equals_extract_awk TEXT — strategy_extract for a BIG input in awk

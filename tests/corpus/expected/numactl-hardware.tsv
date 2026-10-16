@@ -6,4 +6,6 @@ n	key	value
 5	node 1 cpus	8 9 10 11 12 13 14 15 24 25 26 27 28 29 30 31
 6	node 1 size	32768 MB
 7	node 1 free	30122 MB
-8	node distances	node   0   1 0:  10  21 1:  21  10
+8	node distances	node   0   1
+9	node distances	0:  10  21
+10	node distances	1:  21  10

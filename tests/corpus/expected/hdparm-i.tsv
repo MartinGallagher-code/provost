@@ -8,12 +8,15 @@ n	key	value
 7	Used	unknown (minor revision code 0x005e)
 8	Supported	11 10 9 8 7 6 5
 9	Likely used	11
-10	Configuration	Logical  max current cylinders 16383 16383 heads  16 16 sectors/track 63 63
-11	CHS current addressable sectors	16514064
-12	LBA    user addressable sectors	268435455
-13	LBA48  user addressable sectors	976773168
-14	Logical  Sector size	512 bytes
-15	Physical Sector size	512 bytes
-16	device size with M = 1024*1024	476940 MBytes
-17	device size with M = 1000*1000	500107 MBytes (500 GB)
-18	Nominal Media Rotation Rate	Solid State Device
+10	Configuration	Logical  max current
+11	Configuration	cylinders 16383 16383
+12	Configuration	heads  16 16
+13	Configuration	sectors/track 63 63
+14	CHS current addressable sectors	16514064
+15	LBA    user addressable sectors	268435455
+16	LBA48  user addressable sectors	976773168
+17	Logical  Sector size	512 bytes
+18	Physical Sector size	512 bytes
+19	device size with M = 1024*1024	476940 MBytes
+20	device size with M = 1000*1000	500107 MBytes (500 GB)
+21	Nominal Media Rotation Rate	Solid State Device

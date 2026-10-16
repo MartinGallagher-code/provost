@@ -1,10 +1,10 @@
-n	A
-1	interface eth0
-2	{
-3	AdvSendAdvert on;
-4	prefix 2001:db8:1::/64
-5	{
-6	AdvOnLink on;
-7	AdvAutonomous on;
-8	};
-9	};
+n	depth	name	parent
+1	0	interface eth0	
+2	0	{	
+3	1	AdvSendAdvert on;	{
+4	1	prefix 2001:db8:1::/64	{
+5	1	{	{
+6	2	AdvOnLink on;	{
+7	2	AdvAutonomous on;	{
+8	1	};	{
+9	0	};	

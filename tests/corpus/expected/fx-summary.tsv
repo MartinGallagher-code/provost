@@ -1,2 +1,2 @@
-line1	count	page	hasMore	line2
-{	88201,	1,	true	}
+count	page	hasMore
+88201	1	true

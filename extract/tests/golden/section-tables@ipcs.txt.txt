@@ -1,0 +1,36 @@
+entry1.section Shared Memory Segments
+entry1.key 0x00000000
+entry1.shmid 32768
+entry1.owner gdm
+entry1.perms 600
+entry1.bytes 524288
+entry1.nattch 2
+entry1.status dest
+entry2.section Shared Memory Segments
+entry2.key 0x00000000
+entry2.shmid 98305
+entry2.owner alice
+entry2.perms 600
+entry2.bytes 4194304
+entry2.nattch 2
+entry2.status dest
+entry3.section Shared Memory Segments
+entry3.key 0x51020a3c
+entry3.shmid 131074
+entry3.owner postgres
+entry3.perms 600
+entry3.bytes 56
+entry3.nattch 6
+entry4.section Semaphore Arrays
+entry4.key 0x51020a3c
+entry4.semid 32768
+entry4.owner postgres
+entry4.perms 600
+entry4.nsems 17
+entry5.section Semaphore Arrays
+entry5.key 0x51020a3d
+entry5.semid 32769
+entry5.owner postgres
+entry5.perms 600
+entry5.nsems 17
+total_entries 5

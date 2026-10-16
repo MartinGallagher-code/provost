@@ -1,2 +1,22 @@
-1)_1)_(integer)_14.4)_1)_"GET".2)_"user	1)_1)_(integer)_14.5)_"10.0.0.23	2)_1)_(integer)_13.4)_1)_"HGETALL".2)_"session	2)_1)_(integer)_13.5)_"10.0.0.24	3)_1)_(integer)_12.5)_"10.0.0.25
-1000:profile"	53412"	abc123"	44210"	51002"
+n	depth	name	parent
+1	0	1) 1) (integer) 14	
+2	1	2) (integer) 1709812345	1) 1) (integer) 14
+3	1	3) (integer) 15230	1) 1) (integer) 14
+4	1	4) 1) "GET"	1) 1) (integer) 14
+5	2	2) "user:1000:profile"	4) 1) "GET"
+6	1	5) "10.0.0.23:53412"	1) 1) (integer) 14
+7	1	6) ""	1) 1) (integer) 14
+8	0	2) 1) (integer) 13	
+9	1	2) (integer) 1709812201	2) 1) (integer) 13
+10	1	3) (integer) 12045	2) 1) (integer) 13
+11	1	4) 1) "HGETALL"	2) 1) (integer) 13
+12	2	2) "session:abc123"	4) 1) "HGETALL"
+13	1	5) "10.0.0.24:44210"	2) 1) (integer) 13
+14	1	6) ""	2) 1) (integer) 13
+15	0	3) 1) (integer) 12	
+16	1	2) (integer) 1709812150	3) 1) (integer) 12
+17	1	3) (integer) 9870	3) 1) (integer) 12
+18	1	4) 1) "SMEMBERS"	3) 1) (integer) 12
+19	2	2) "online_users"	4) 1) "SMEMBERS"
+20	1	5) "10.0.0.25:51002"	3) 1) (integer) 12
+21	1	6) ""	3) 1) (integer) 12

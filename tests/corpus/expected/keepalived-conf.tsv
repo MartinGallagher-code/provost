@@ -1,11 +1,11 @@
-n	A
-1	vrrp_instance VI_1 {
-2	state MASTER
-3	interface eth0
-4	virtual_router_id 51
-5	priority 150
-6	advert_int 1
-7	virtual_ipaddress {
-8	192.0.2.100/24 dev eth0
-9	}
-10	}
+n	depth	name	parent
+1	0	vrrp_instance VI_1 {	
+2	1	state MASTER	vrrp_instance VI_1 {
+3	1	interface eth0	vrrp_instance VI_1 {
+4	1	virtual_router_id 51	vrrp_instance VI_1 {
+5	1	priority 150	vrrp_instance VI_1 {
+6	1	advert_int 1	vrrp_instance VI_1 {
+7	1	virtual_ipaddress {	vrrp_instance VI_1 {
+8	2	192.0.2.100/24 dev eth0	virtual_ipaddress {
+9	1	}	vrrp_instance VI_1 {
+10	0	}	

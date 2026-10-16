@@ -3,4 +3,4 @@ n	key	value
 2	Device "TapeDrive0" (/dev/nst0) is mounted with	
 3	Volume	Full-0042
 4	Pool	Full
-5	Media type	LTO-8 ====
+5	Media type	LTO-8
