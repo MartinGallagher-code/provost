@@ -1,5 +1,64 @@
 # provost — Changelog
 
+## 2026-10-16 — round 3 re-rated after the fix round (honest delta: 3 FAIL → PARTIAL); round 2 regression check; round 3 is now a regression set
+
+Measurement and documentation only. No engine, parser, strategy or hint
+changes. Round 3 was built, frozen and rated on 2.1.0 before the 2026-10-16
+fix round started, and that round's agents never saw it. Its before/after is
+therefore an honest generalisation delta for the round's changes. It is the
+last one round 3 can give.
+
+- **Round 3** (107 inputs, `run.sh --round3 --tidy` once on the final
+  engine). 93 default tidy outputs are byte-identical to the 2.1.0 run
+  (`cmp`) and keep their rating. The 14 that changed were re-rated from the
+  input and both outputs on the unchanged criteria. **22 / 45 / 40 →
+  22 PASS / 48 PARTIAL / 37 FAIL** (usable 63% → 65%, FAIL 37% → 35%).
+  - FAIL → PARTIAL: `aws logs tail` (the consistency hold replaced `tsv`
+    with `prefix-message`), PowerShell `Get-ChildItem` (table exact, digit no
+    longer lost), `doctest -v`.
+  - Changed, still PARTIAL (7): php `var_dump`, Icinga (depth/parent),
+    `pip config debug`, `tmux list-keys`, `systeminfo`, `wevtutil`, velero.
+  - Changed, still FAIL (4): `--prof-process`, `numa_maps`, pyright and the
+    JES2 log. In the last two, a parser that now declines hands the input to
+    `aligned-columns`, which takes the banner as the header.
+  - No new PASS and no default-mode regression. Families that moved: tables
+    67% → 70% usable, log/diagnostic lines 54% → 63%. Multi-section reports
+    are unchanged (25%), and `section-tables` matches no round-3 input.
+  - `java -XX:+PrintFlagsFinal` still gives no output.
+  - **Consistency against rating** (after): under 80, 8 of 10 inputs are
+    FAIL; under 95, 11 of 20. But 17 of the 37 FAILs score 95 or more, and
+    9 are not judged.
+  - The hold fired on 11 default claims and replaced 1.
+  - Coverage: every input under 60% is FAIL, and 18 FAILs cover 95% or more.
+  - Confidence ≥ 80 is wrong 33% of the time (was 40%).
+- **Round 2** (regression check, against the 2026-10-14 run). 24 default
+  outputs changed, and **none got worse**.
+  - **26 / 54 / 29 → 35 PASS / 63 PARTIAL / 11 FAIL** (usable 73% → 90%).
+  - 8 FAIL → PASS, 1 PARTIAL → PASS, 10 FAIL → PARTIAL, 2 better but still
+    PARTIAL, 3 neutral. `sqlcmd` and SQL*Plus no longer show the footer as a
+    row but now drop it, so both stay PARTIAL.
+  - That set moved 19 ratings against round 3's 3. The gap is the size of the
+    fit to seen inputs.
+- **Round 3 is now seen, like round 2.** It measures regression, not
+  generalisation, and the next honest number needs a round 4.
+- `--rank priority` and `--multi` were not re-rated in either set.
+
+Files:
+- `tests/benchmark/round3/ratings.tsv`: original columns kept. It gains
+  `strategy_1016`, `conf_1016`, `cov_1016`, `cons_1016`, `rating_1016` and
+  `note_1016`, and its header comment updated.
+- `tests/benchmark/round2/ratings.tsv`: gains `rating_1016` and `note_1016`,
+  and its header comment updated.
+- `docs/benchmark-2026-10-16-generalisation-round3.md`: a pointer at the top,
+  and a 2026-10-16 postscript covering what the fix round changed, the
+  before/after headline and families, per-input changes, what still fails
+  per pattern, consistency and coverage against rating, and the call for a
+  round 4.
+- `docs/benchmark-2026-10-02-generalisation-round2.md`: the 2026-10-16
+  regression check.
+- `tests/benchmark/README.md`: the numbers.
+- HANDOFF.md was not edited.
+
 ## 2026-10-16 — format parsers decline what they do not read; sections and indentation kept
 
 Round-2 benchmark patterns 5 (wrong strategy / wrong delimiter), 2 (sections

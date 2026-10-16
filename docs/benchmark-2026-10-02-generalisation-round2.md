@@ -609,3 +609,58 @@ today. It does not say what provost does on output it has never seen.
 The next honest generalisation number needs a **round 3**: a fresh set
 nobody has parsed, chosen and novelty-checked before its first run, and
 rated on the same criteria.
+
+## Regression check, 2026-10-16
+
+The 2026-10-16 fix round worked the rest of this report's patterns:
+column-type consistency and its hold, the gutter grid's UTF-8 and headerless
+work, footers and banners, format parsers that decline near-misses,
+`section-tables`, and indentation kept as depth (CHANGELOG, the three
+2026-10-16 engine entries). It was developed against the corpus and new
+examples. This set was run once, at the end, as a regression check. The
+numbers below are on seen inputs. They are not generalisation: for that, see
+the round-3 postscript, where the same engine moved 3 of 107 ratings.
+
+Against the 2026-10-14 run, the default tidy output changed on 24 of the 109
+inputs (`cmp`). The other 85 carry their `rating_1014` over. `ratings.tsv`
+adds `rating_1016` and `note_1016`.
+
+| | 2026-10-14 | share | 2026-10-16 | share |
+|---|---:|---:|---:|---:|
+| PASS | 26 | 24% | 35 | **32%** |
+| PARTIAL | 54 | 50% | 63 | **58%** |
+| FAIL | 29 | 27% | 11 | **10%** |
+| usable (PASS + PARTIAL) | 80 | 73% | 98 | **90%** |
+
+**No default-mode output got worse.** Of the 24 changes:
+
+- **FAIL to PASS (8):** `comm` (009, a depth column), `gpgconf` (020),
+  `gzip -lv` (021), node `os.cpus()` (032), `openssl list` (037),
+  `vim --version` (065), PowerShell `Get-Volume` (131) and Prometheus (132).
+- **PARTIAL to PASS (1):** `gcc -Q --help=warnings` (015): headerless now, so
+  the first option stays in the data.
+- **FAIL to PARTIAL (10):**
+  - `composer config` (010): 33 of 37 settings, but under `timestamp` /
+    `message`.
+  - `go tool pprof -top` (017): the table is exact, but the `Showing` lines
+    are dropped.
+  - pytest (049) and strace (063): lossless lines.
+  - `diskutil` (106) and `route print` (133): one table with a `section`
+    column.
+  - ffmpeg (107).
+  - the mainframe report (117): its page header is dropped.
+  - Nagios (122).
+  - RSpec (134): depth / parent.
+- **Better, still PARTIAL (2):** `apt-config dump` (002): key and value
+  separate, but the first line becomes the header. `objdump -d` (034): no
+  merged cell.
+- **Neutral (3):**
+  - `sqlcmd` (137) and SQL\*Plus (138): the footer is no longer a data row,
+    but it is now dropped. A footer with a number is information, so both stay
+    PARTIAL.
+  - `wmic` (141): still FAIL.
+
+Still FAIL (11): `apt-cache showpkg` (001), `diff` (012), `diff -y` (013),
+`openssl ecparam` (036), `php --ini` (041), `readelf -l` (058),
+`update-alternatives` (064), the AWS table (102), `kubectl explain` (113),
+`winget list` (140) and `wmic` (141).
