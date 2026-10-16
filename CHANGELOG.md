@@ -1,5 +1,443 @@
 # provost — Changelog
 
+## 2026-10-14 — housekeeping: fast coverage runner, COVERAGE.md regenerated
+
+- `tests/corpus/run.sh`: `--report` and `--coverage` now use the same
+  `--batch --batch-out` fast path as `--golden`. Each mode runs one generic
+  pass and one full-mode pass, with one engine process per job slot. Any input
+  a batch leaves without a record falls back to the per-input call.
+  - Before, `--coverage` spawned the engine twice per input (about 7,400
+    processes) and took over an hour. Now it takes about 11 minutes on 4 cores.
+  - On 610 inputs the report is byte-identical to the per-input path.
+  - The full-mode `.meta` read takes the 4-field meta line (coverage was added
+    this round).
+- `tests/corpus/COVERAGE.md` is regenerated: **3675 / 3705** tidy (3422
+  generic, 157 hint, 96 bespoke). It was 3588 / 3705 when last generated, and
+  30 tools remain not tidy.
+- `CLAUDE.md`: smoke now has 208 checks.
+- Not done, on purpose: the pre-rename `ENVOY_*` / `MFE_*` /
+  `~/.mfe/strategies` fallbacks stay in. They were promised for one release,
+  and no release has shipped the rename yet (PyPI is at 2.0.1). Remove them in
+  the release after the one that first ships `provost-extract`.
+
+## 2026-10-14 — round 2 re-rated after the fix round; the set is now a regression measure
+
+Measurement and documentation only; no engine or parser change. The 109
+round-2 inputs were re-run on the final engine (`run.sh --round2 --tidy`,
+output byte-identical to the fix round's own run) and re-rated in default
+mode on the unchanged criteria. 87 default tidy outputs are byte-identical to
+2026-10-02 (`cmp`) and keep their rating; the 22 that changed were re-rated
+from the input and both outputs. **17 / 51 / 41 → 26 PASS / 54 PARTIAL /
+29 FAIL** (usable 62% → 73%): 5 FAIL → PASS (lsipc, ps lstart,
+pg_lsclusters, gem env, pip debug), 4 PARTIAL → PASS (set -o, mypy, Log4j,
+rake -T), 7 FAIL → PARTIAL, 6 changed but still PARTIAL, no default-mode
+regression. Line coverage against rating: no input under 97% coverage
+passes and 10 of the 19 under 95% fail, but 19 of the 29 FAILs cover ≥ 95%
+(misplacement, not loss), so at the 60% threshold it flags 2 of 29 FAILs.
+`--rank priority` now differs from the default on 5 inputs and `--multi` on
+27; those columns were not re-rated.
+- `tests/benchmark/round2/ratings.tsv`: original columns kept; new
+  `strategy_1014`, `conf_1014`, `cov_1014`, `rating_1014`, `note_1014`;
+  header comment says the set now measures regression.
+- `docs/benchmark-2026-10-02-generalisation-round2.md`: postscript
+  (2026-10-14) — headline before/after, by family, per-input changes, what
+  still fails per pattern, coverage vs rating, and the call for a round 3.
+- `tests/benchmark/README.md`: the re-rated round-2 numbers.
+
+## 2026-10-14 — line coverage: a second quality signal, and no more silent one-section parses
+
+**Problem (round-2 benchmark, pattern 2).** A strategy that recognises ONE
+section of a multi-section report claims the whole input at full confidence
+and drops the rest without a trace — a `--version` banner kept and its
+algorithm lists dropped, an env dump's scalars kept and its path lists
+dropped. Confidence cannot see it, and the round-1 truncation guard compares
+parse SIZE with the input, so wide parses clear it.
+
+**Line coverage (`extract/lib/_discovery.sh` `_parse_coverage`).** The share
+of the input's non-blank lines that contributed to the parse: a line
+contributed when more than half of its significant tokens (a letter, or 3+
+characters) appear in the parse, field names included. Tokens split at blanks,
+`= : , ; |`, quotes, brackets and `_`; paths, URLs, dotted versions and dashed
+names stay whole, so a dropped `/home/dev/.conda/envs` is not vouched for by
+`home` and `envs` elsewhere (a dashed token still counts when each dash part
+is present, for parsers that cut `glibc-2.34-60.el9` into name and version;
+the parse side also offers each `.` / `/` / `-` part, for folded names).
+Comment lines (`#`, `;`) and token-less lines (rules, box art) are not
+counted. One awk pass over parse + input, measured up to `_FR_COV_BYTES`
+(128 KB; `-` above). Cost: none above the cap (10 MB ps / csv / kv / log /
+json inputs within run-to-run noise — 14.8 / 9.5 / 6.3 / 6.7 / 9.2 s base vs
+14.1 / 8.9 / 6.7 / 6.8 / 9.1 s, outputs byte-identical); ≤ ~0.1 s at the cap.
+- **Visible:** `--emit-meta` → `__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage`
+  (batch `.meta` files too); `--explain` gains a `COV` column (each matching
+  candidate is extracted) and a preview of the hold; `-d` logs it per
+  candidate; `provost` prints it after the confidence, records `coverage` in
+  the capture's `meta.tsv`, and adds a note (pointing at `provost source` and
+  `--multi`) when a capture is filed under 60% (`provost help` LINE COVERAGE,
+  `man/provost.1`). `tests/benchmark/run.sh` prints a `COV` column;
+  `tests/corpus/run.sh` reads the 4-field meta.
+
+**Coverage hold + rescue (`_cov_hold_wanted`, `_cov_rescue`).** With one winner
+wanted (ranked, `--max-strategies 1` / `--first-match`, how provost calls the
+engine) the first candidate to produce output is HELD when its coverage is
+below 60% (`_FR_COV_MIN`) on 6+ counted lines; the RESCUE parser then runs and
+wins only if it covers 25+ points more (`_FR_COV_GAIN`); else the held claim is
+stored byte for byte. Never held: hint-routed / pinned strategies, json / yaml
+/ xml / toml, catch-alls (text-lines, line-records), BESPOKE strategies (tool
+knowledge with a deliberately summarised shape — a corpus run showed the rescue
+replacing systemctl-status' clean unit fields and mariadb-innodb-status'
+extracted counters with a lossless but flatter table; a bespoke parse that
+loses data is fixed in the strategy instead, see gnu-version), and TABLES (3+
+records of 2+ fields sharing a field — their rows are the dataset; the dropped
+lines are a banner, summary or second table, i.e. `--multi` territory: a
+corpus trial without this rule flattened ping, arping, git log, slabtop and
+smartctl tables into text rows). Pruning stays exact without a redo: the held
+claim is the first candidate in rank order to produce output, which no
+ceiling prunes, and the rescue does not depend on the other candidates.
+- **Rejected alternatives, with evidence.** (1) Falling through to the next
+  RANKED candidate that covers more: simulated over the corpus it swapped 39
+  generic-mode winners, mostly to aligned-columns / colons / vertical-line
+  "covering" ~100% by scattering tokens (dig → key-value, a backup report →
+  vertical-line cutting words at a fixed column); with comment lines excluded
+  and a format-specific floor it still swapped 4, one a clear gain. Coverage
+  says THAT lines were dropped, not which parse is right. (2) Auto-segmenting
+  in the CLI (`--multi` by default on low coverage): a capture's dataset
+  identity would depend on a per-capture threshold (one day `NAME`, the next
+  `NAME.colons` + `NAME.text-lines`, breaking the longitudinal store),
+  `--multi` made 7 of the 17 round-2 inputs it changed worse, and it re-runs
+  detection per block. The engine instead produces ONE combined, lossless
+  dataset for the key/value-report shape, and the CLI makes any remaining loss
+  visible and points at `--multi`.
+
+**New generic strategy `kv-report`** (`extract/strategies/structured/`, rescue
+only — never ranked; confidence 70 when it replaces a held claim): every line
+of a key/value report becomes a row — `key: value` / `key = value`, a bare
+`Label:` over indented / bulleted / apt-style unindented items (a row per item,
+the label as key; an empty header is a key with an empty value), wrapped
+values folded (path / URL / name lists stay rows; `|` / `>` block scalars
+fold), decorated / underlined / indented titles and short block openers as a
+`section` column, right-aligned keys recognised by a shared colon column, tree
+glyphs read as indentation, a `block` index when blank-separated blocks repeat
+their keys; a report that is one record (no key repeated) comes out as one
+wide `section.key` row, like the other single-record kv parsers. Strategy
+count 261 → 262 (structured 25 → 26; `extract/README.md`, `README.md`).
+
+**`gnu-version` 1.0 → 1.1 keeps the whole banner report** instead of the
+banner alone: `Label: value` lines become fields (indented / comma-wrapped
+continuations folded; a bare label over indented lines takes them; a bare
+heading over more labels adds nothing), `<name> <version>` component lines
+become fields, a lone `<url>` value loses its brackets, a license URL wrapped
+onto its own line is read, other lines go to `notes`. (A `--version` that also
+lists libraries, a home directory and supported algorithms lost all of it at
+confidence 92.) Its sample golden is unchanged.
+
+**Corpus (`tests/corpus/expected/`).** 11 goldens change, 1 is new, none is
+deleted, `expected.tsv` unchanged; every change keeps data the old parse
+dropped: atuin-stats (the "Most used commands" list), dhrystone-run (2 of 3
+results and the banner were dropped), firewall-cmd / firewalld-list-all (empty
+keys and the rich rule kept — one wide row, as before), gem-info (the wrapped
+author list and the description), gpu-burn (both progress lines, the summary),
+hdparm-M (which device each value belongs to), nench-run (every timing),
+powermetrics-summary (section names and the cluster table), yaml-block-scalar
+(block-scalar contents, same columns), exo-zpool-status-tree (status lines and
+the config tree), new mdadm-resync-progress (now tidy: all lines kept). Gate:
+3558 passed, 0 failed, 147 not yet covered (was 3557 / 148);
+`_FR_BIG_BYTES=0` identical; `_EAS_NOPRUNE=1` identical (generic gate 3558 /
+0; full mode, all 3705 inputs byte-identical incl. meta; the 148 uncovered
+identical). Full mode changes the same inputs plus nix-why-depends and
+nst-mdadm-detail-devices (neither tidy before or after; now lossless).
+
+**Round 2 (held out; measured once, at the end).** Default output changed for
+4 of the 109 inputs, all better: gem env (indented-hierarchy kept 9 scalars →
+kv-report: every scalar plus all five lists as rows), gpg --version
+(gnu-version now keeps libgcrypt, home and the algorithm lists), pip debug
+(the 24-line vendored-library list kept), phpunit (test identities and
+messages kept instead of sparse fragments). Still failing: apt-cache showpkg
+(a table claim — not held, 43% visible), update-alternatives (70%), and
+vim --version / diskutil / route print / ffmpeg, whose sections are GLUED
+into cells rather than dropped (coverage ~100% — gluing is not loss, so this
+signal cannot see it; segmentation is still the tool there). Known kv-report
+defect seen there and deliberately not tuned on: a bare header whose first
+bulleted child shares its colon column is taken for a right-aligned sibling
+(gem env loses its `RubyGems Environment` title line, 97%).
+
+**Tests / fixtures.** `extract/tests/test_coverage.sh` (16 tests: the meta
+field, `-` above the cap, pinned strategies report low coverage, comment
+lines, rescue in full and `--generic` mode, list items / sections / colon
+columns, no hold for a covering parse, the off switches and `--rank priority`,
+hint / table / bespoke exemptions, `_EAS_NOPRUNE=1` identical, file lane and
+awk-twin routes identical incl. a restored held claim, kv-report never ranked,
+the explain preview, gnu-version keeps the rest). Fixtures written for this
+work (no corpus or benchmark input): `samples/kv-report/{basic (conda info),
+mise-doctor, xdpyinfo, brew-config}.txt`, `samples/gnu-version/{sed,
+vaultctl}.txt`, goldens `tests/golden/kv-report*.txt`,
+`gnu-version@{sed,vaultctl}.txt.txt`. `tests/smoke.sh` +5 checks (rescue
+through provost, coverage in the message and meta.tsv, the low-coverage note).
+
+## 2026-10-14 — whitespace tables: cells by column OFFSET; banners, titles and footers
+
+Round-2 benchmark patterns 1 and 3 (docs/benchmark-2026-10-02-generalisation-round2.md):
+an aligned table's cells were whitespace TOKENS, so any cell holding a space
+(`Number of message queues`, `Oct  2`, `Data directory`) or an empty cell
+shifted every later value; and a banner or title above a table became its
+header or kept the table from being found. Developed against the corpus and
+new examples written for this change (Windows `query user` / `tasklist` /
+`driverquery` / `schtasks` / `net share` / `netstat -ano`, PowerShell
+Get-Process / Get-PSDrive / Get-ChildItem / Get-NetAdapter / Get-HotFix,
+`yarn outdated`, SQL*Plus / sqlcmd / isql / DB2 result sets, gprof, an
+istanbul coverage table, a Windows Firewall `#Fields:` log, `shopt`, `mas
+list`, `uniq -c`, macOS `df -h`), not against the round-2 inputs.
+
+**Regression guards (follow-up, after the round-2 run).** Three guards for
+misreads the first round-2 run exposed, each built from new examples
+(`extract/samples/aligned-columns/command-list.txt`, `feature-grid.txt`,
+`one-row-units.txt`), not the round-2 inputs. (1) The later-header banner
+scan (`aligned-columns.sh`, LEADING BANNERS) now rejects a candidate header
+when a line it would cut starts in the header's column with 2+ segments.
+Such a line is a row, as in a command list whose first descriptions contain
+function words (`build  Compile the current workspace` ...
+`clean  Remove generated artifacts`). (2) The same scan rejects a candidate
+whose words have the rows' shape: `+`/`-` prefixed flag words over a row
+that has them too, such as a `+archive  +color  -gpu` feature grid under
+version lines. In both cases nothing is cut and the version and banner
+lines stay. (3) The gutter grid's number+unit join (`_FR_AWK_GRID`, both
+the compound-label split veto and the one-space-gutter join in `pcells`)
+accepts a constant short word as a unit only when 2+ rows show it.
+In a one-row table, `Ver Cluster` over `14  main` and `Port Status` over
+`5433 down` are now four columns. Real unit words (`GiB`, `ms`, `%`, ...)
+still join in a single row. Tests: three new cases in
+`extract/tests/test_gutter_grid.sh` (27 total) and the golden
+`aligned-columns@one-row-units.txt.txt`. Corpus goldens unchanged.
+
+**Gutter grid** (`extract/lib/_helpers.sh` `_FR_AWK_GRID` /
+`_fr_gutter_grid NH RL [PREFIX]`, new; one mawk-safe awk program, run under
+`LC_ALL=C`). Cells by character offset: every position some line prints on
+belongs to a SEGMENT, and the runs blank in the header AND every row are the
+gutters between columns. A segment under one header label is that column,
+whatever its cells hold; right-aligned numbers wider than their label still
+land in it; an EMPTY cell stays empty. Then: single-spaced header words in
+one segment are ONE label (`IDLE TIME`, `Data directory`) unless every row
+holds that many tokens there and they sit under the words (an unpadded
+table); labels 2+ spaces apart that the data crosses split at the
+least-occupied position (at most 1 row in 10 may cross); a data-empty label
+word single-spaced to a neighbour joins it (`Used` of `Used (GB)`, `All
+time` of `All time blocked`); a number split from its unit by a one-space
+gutter under a one-space label is one value (`RAW USE` = `180 GiB`); a bare
+`/` column is the inside of one composite column (`Total / Used / Free`); a
+label-less LEADING segment is a column of its own (the row labels of `free`,
+`numastat`, /proc/interrupts), a TRAILING one continues the last column (or,
+after right-aligned numbers, is a column of its own), an interior one joins
+its left neighbour unless it sits right-aligned under the next label; an
+isolated marker (`>`) is a marker column; a `|` column is a separator and is
+dropped; repeated names get `_2`; an optional GROUP row (NH=2) prefixes the
+names of the columns it sits over (gprof's `self_seconds`, `total_ms/call`);
+a rule line (RL=1) names columns by its runs. When the first row leaves a
+column empty that a later row fills, cells go out column by column so the
+melt keeps the header's column order. It WITHDRAWS (prints nothing, the
+caller's old path runs) on: non-ASCII bytes; a TAB header over space rows;
+rows that all hold one token per label (tokens already agree); a
+`label: value` "header"; a header word repeated as every cell (`Nintendo`
+over `Nintendo …` — the first record); a 3+-word label over cells as long in
+a header with no 2-space gap (a sentence); a label-like first row over
+numeric rows (a second header line); columns past the last label of a
+single-spaced header; a crossing beyond the 1-in-10 allowance; < 80% of
+cells at their column's modal start or end. Headerless (NH=0): 2–8 columns
+every row fills, each aligned, a one-space gutter breaking only after
+right-aligned numbers or a flag column.
+
+**aligned-columns** (`extract/strategies/delimited/aligned-columns.sh`):
+- HDR tables go through the grid FIRST, in the bash path and in
+  `_ac_extract_big` at the same point on the same rows (byte-identical
+  routes); the positional / segment / offset / token paths are the fallback,
+  unchanged. Not when a later blank-separated block opens with a different
+  digit-free line (`_ac_multisection`: a second section's title/header).
+- New mode HLG (headerless by offset, `mas list`, `uniq -c`, `composer
+  show`): when tokens give no consistent count, the grid (NH=0) decides.
+- Shape: an all-text header whose rows the grid places is a header (`net
+  share`); a `v`-version (`v0.16.2`) is a value token, so such a row is
+  data; sysstat headers led by a clock time are headers when the other
+  tokens are labels and every row opens with a time (`sar -b`, `pidstat -d`).
+- Body (banners, pattern 3): a TAB banner set off by a blank line over a
+  space-aligned table (sysstat's `Linux … (host) <TAB>date <TAB>_x86_64_`)
+  — only over one table (blocks repeating one header); a prose title ending
+  `:` (no digit) over lines all indented deeper; and, when the first line
+  is single-spaced, a later line that is a header (>= 3 labels, no function
+  words or bracketed labels, a 2-space gap, rows below in its first column)
+  over which the grid finds a table to the end of the text makes the lines
+  above a banner (yarn's `yarn outdated v1.22.22` / `info Color legend :`).
+  Every scan stops early or is bounded (first 400 lines).
+- Footers (`_FR_FOOTER_RE`, `_fr_is_footer`, new in `_helpers.sh`):
+  `(5 rows affected)`, `4 rows selected.`, `no rows selected`, `3 record(s)
+  selected.`, `The command completed successfully.`, `Done in 0.84s.` are
+  dropped as a table's last line (bash path and its awk twin).
+- W3C `#Fields: a b c` (IIS, Windows Firewall, CloudFront): the directive
+  word is no column — tried without it first.
+- Preamble fields: a `Label: value` line a banner rule cut from above the
+  table (fdisk's `Disk model:`, zpool's `state:`, gluster's `Status of
+  volume:`, trivy's `Target:`) is emitted after the rows as `Label value`,
+  which the melt repeats on every row (a constant column) — data the old
+  rules dropped (`strategy_extract` now wraps `_ac_extract_main`).
+
+**fixed-width** (`extract/strategies/delimited/fixed-width.sh`): the grid
+with the rule's runs as labels runs first (records stay `row<N>`), a
+trailing result-set footer dropped; the slicer is the fallback. Also takes
+indented and `=` underlines (`tasklist`, `driverquery`, `schtasks`, SQL*Plus
+indents) — only under a letter-bearing header not opening with a value and
+when no second underline follows (a multi-section report), and without the
+slicer fallback.
+
+**embedded-table**: the grid (with the line above the header as a group row
+when it is one) before the midpoint slicer — gprof's two `seconds` / two
+`ms/call` no longer overwrite each other.
+
+**pipe-table**: `strategy_extract` derives the dialect exactly as detect does
+(markdown needs a `|---|` rule AND a `| … |` row) and the bare dialect skips
+`-----|-----` rule lines. A bare table drawn with such rules (nyc / istanbul
+/ c8 coverage) was detected as bare, extracted as markdown, came out empty,
+and fell to text-lines — while `--multi`, whose block split drops rule
+lines, parsed it: the default path now does too.
+
+**tsv**: row 1 is data, not a header, when one of its cells recurs in the
+same column in 2+ later rows (`set -o` / `shopt`: `autocd<TAB>off`;
+/proc/filesystems' `nodev`).
+
+**indented-hierarchy**: the table decline accepts rows whose 2-space column
+counts differ by <= 2 (empty cells: `netstat -ano`'s UDP rows).
+**block-records**: a key's words are single-spaced (padding may follow, as
+in `Version : 1.2`), so a table row whose first cell is followed by a gap and
+a drive letter (`Users        C:\Users`) is no key/value evidence (bash and
+awk screens alike).
+
+**Tests / fixtures.** New `extract/tests/test_gutter_grid.sh` (24 tests:
+the engine, its withdrawals, mawk = default awk, and the strategies through
+auto-detection). Samples + goldens: aligned-columns/{offset-cells,
+banner-lines, title-indented, w3c-fields, footer-empty-cells,
+indented-banner, space-in-cell, tab-banner}, fixed-width/{equals-rule,
+right-aligned, dates-empties, sql-footer}, embedded-table/group-row,
+pipe-table/dash-rules, tsv/headerless-repeats.tsv. Goldens updated:
+aligned-columns@caption-abbrev (the `Brick` caption is now a field),
+aligned-columns@sparse-matrix (column-by-column emission), fixed-width
+(`total_entries` line). `extract/README.md` gains a short "Whitespace
+tables: the gutter grid" note for strategy authors.
+
+**Corpus.** 103 goldens change, every one reviewed against its input; 21
+inputs become tidy and gain a golden (sysstat `mpstat` / `pidstat` / `sar`
+under their TAB banner, `fdisk -l`, `smartctl` self-test log,
+`semanage boolean`, `/proc/filesystems`, `/proc/net/tcp`); no golden
+deleted. Groups: multi-word cells and two-word headers rejoined
+(`Created At`, `RAW USE`, `Local Address`, `LAST CHANGE`, dates
+`Mon 2026-06-29 14:02:11 UTC`, `systemctl list-timers`, prlimit / unixbench
+descriptions); empty cells no longer shift values (loginctl SEAT, sacct
+Partition, netstat UDP State, finger Idle, fuser's file column); row-label
+columns kept (free, numastat, /proc/interrupts, softirqs); column order kept
+when row 1 has an empty cell (kubectl api-resources, kn, rustic, sparse
+matrices); sysstat banner no longer the header; fixed-width right-aligned /
+missing columns (strace -c, btrfs qgroup, zip -v, sqlite pragma); preamble
+fields kept (nodetool compactionstats, rc-status, trivy, zpool); headerless
+lists split by offset (composer, poetry, xbps, tailscale, vegeta, rabin2,
+git log --oneline). A few were garbage before and stay garbage differently
+(nfsstat-server's second section, glances, the postfix queue listing, rsync
+progress, dmesg's `[ 2.410]` split at its inner padding). Manifest (`tests/corpus/expected.tsv`) rows that encoded a
+defect: numastat-m 7→6 and perf-list 9→8 rows (a header / title had been
+counted as a row), sar-b 4→5 (4 intervals + `Average:`, as
+tbl-avg-footer-sar counts it), doctl-compute-load-balancer-list 10→9 and
+pscale-database-list 7→6 min columns (`Created At` / `CREATED AT` had been
+split in two).
+
+## 2026-10-14 — line diagnostics and logs split into columns (`prefix-message`, `help-columns`)
+
+Round 2's failure pattern 4 (docs/benchmark-2026-10-02-generalisation-round2.md):
+compiler diagnostics, server logs and help listings came out as one column of
+whole lines, because no generic parser handled "a fixed prefix grammar, then
+free text", and lines that continue a record (stack traces, caret diagrams,
+`DETAIL:`) were never attached to it. Two new generic parsers in
+`extract/strategies/delimited/`, each one mawk-safe awk program that serves
+detection and extraction at every input size (no bash line loop, no twin):
+- **`prefix-message`** (p45, `## Confidence-Max: 84`). A small lexer reads
+  TYPED fields off the start of each unindented line — timestamps (ISO 8601
+  + zone abbreviation, `2026/10/14 …`, `14-Oct-2026 …`, ctime / BSD,
+  java.util.logging, a bare time ± AM/PM, glog's `I1014 …`), levels (any
+  common spelling; a bare lowercase word only with a colon, after a
+  location or before a code; an ALL-CAPS `LABEL:` in the level slot),
+  `path:line[:col]` and msbuild/tsc `path(line,col)` locations, error codes,
+  `[bracketed]` fields (named by what most cells hold), pids (`29#29:`,
+  `1:M`, a bare id between fields), journal `host process[pid]:`, loggers
+  (`name - `, spring's padded `name : `, python's `LEVEL:name:`), line
+  markers (`* > < + ✔ ✖ …`) — until the next token is none of them. The
+  grammar is the longest field sequence shared by ≥ 80% of the lines that
+  open with the most common first field; a line matching at least half of
+  it is a record with the missing cells empty. The rest of a record line is
+  `message`; a trailing `[…]` on most records becomes `code` (or `tag`).
+  Non-record lines that read as continuations (indented, `at …`, `Caused
+  by:`, exception / `Traceback` lines, ALL-CAPS `KEYWORD:`, `12 |` gutters,
+  carets) join the record above in `detail` (`; `-joined, bracket-log's
+  convention); rustc / deno `  --> file:line:col` under a headline fills
+  file/line/col; a title right above records (gcc `x.c: In function …:`,
+  go vet `# pkg`, pylint `***** Module x`) is their `context`; any other line
+  is a row holding only `message`, so nothing is dropped. Confidence by
+  evidence points (dated timestamp / `file:line:col` 2, level / logger /
+  code 1, …; +1 each for a location under the headline, a trailing code on
+  most diagnostics, a stack-trace / caret continuation on most records):
+  ≥ 3 → 84, 2 → 80, else 72, less a third of the share of lines it does not
+  explain (a ≤ 3-line banner / summary counts as explained); a BSD-syslog
+  timestamp caps it at 79 so `syslog` keeps its inputs. Declines tables
+  under a date / time column (uniform message word counts, 2+-space column
+  gaps), a lone level column that never repeats (a `Error: 0` kv block), one
+  repeated marker (a list), a single `[tag]` (bracket-log's).
+- **`help-columns`** (p46, `## Confidence-Max: 82`). `--help` pages and
+  command listings: indented `term   description` entries (option lists
+  with arguments as one term; wget's gapped `-V,  --version`; a term alone
+  over a description at the list's description column; npm run's
+  term-over-description pairs; just / rake -T `name  # comment`), wrapped
+  descriptions joined, titles (`Options:`, `CORE COMMANDS`, git's `start a
+  working area (…)`) carried down as `section`, usage / prose lines kept as
+  description-only rows. Why `two-col-gap` never fired: it requires every
+  line unindented, a single-token key and no titles. Detection asks for the
+  help shape — ≥ 3 entries, aligned descriptions, multi-word prose
+  descriptions without further column gaps, word / option terms (not
+  numbers or `key:`), no `|` cells; 82 with ≥ 5 aligned entries (clears the
+  80 of indented-colon-groups / block-records, which welded term and
+  description), else 78.
+
+Developed against the corpus and ~45 new realistic captures written for
+this change (gcc, clang, javac, swiftc, kotlinc, rustc, go build, golangci,
+flake8, pylint parseable, eslint unix, shellcheck gcc, hadolint, dotnet;
+python logging ×2, logback, spring boot, tomcat, nginx error, mysql error,
+journal short-iso, glog, go log, mongo, redis, uvicorn; docker / git / ls /
+tar / wget / pip / cargo / systemctl / terraform / kubectl / go help, npm
+run, rake -T, just --list) — the round-2 set was run once, at the end.
+
+Corpus: 21 goldens change, all reviewed as improvements, none deleted, no
+manifest change: `ruff-check`, `ruff-check-color`, `hadolint-output`,
+`go-vet-summary` (file/line/col/code/message, go vet's package as context),
+`deno-lint-summary`, `deno-check-summary` (severity/code + location),
+`nst-java-log-stacktrace`, `nst-python-traceback-log`,
+`gatk-haplotypecaller-log`, `telegraf-config-test`, `falco-events`,
+`mkdocs-build` (its first line was the header before), `mimirtool-bucket-validate`,
+`poetry-check`, `mongodump-log`, `sops-updatekeys`, `docker-events` (the
+timestamp was cut at its colons), `duplicity-list-files`,
+`exo-tcpdump-x-hexdump` (hex dump lines attach to their packet),
+`commitlint-report` (marker / message / rule), `mage-list`
+(section/name/description instead of one word per column).
+
+Files: `extract/strategies/delimited/prefix-message.sh`,
+`extract/strategies/delimited/help-columns.sh`, samples under
+`extract/samples/{prefix-message,help-columns}/` with goldens
+`extract/tests/golden/{prefix-message,help-columns}*.txt`,
+`extract/tests/test_strategy_prefix_message.sh` (14 tests incl. declines and
+a > 32 KB input), the 21 `tests/corpus/expected/*.tsv`, `extract/README.md`
+(counts 263 / 89 / 114, rubric row), `README.md` (count).
+
+Gates: `tests/corpus/run.sh --golden` 3557 passed, 0 failed, 148
+not-yet-covered (the same with `_FR_BIG_BYTES=0`); extract suite 67/67 files;
+smoke 203; melt 54. A generated 10 MB Log4j-style log: 35 s (text-lines) →
+15 s (prefix-message, one awk pass per phase); a 10 MB CSV is unchanged
+(10.8 s → 10.7 s — both detectors decline on the sample). Round 2, run once
+at the end, untuned: six default outputs change, all for the better
+(`cargo --list`, `make --help`, `rake -T` → section/name/description; mypy,
+Log4j, PostgreSQL → typed columns + attached continuations); tsc improves
+under `--multi` only (its trailing per-file table keeps the whole input
+under the 70% bar).
+
 ## 2026-10-02 — internal names: envoy-* / ENVOY_* / MFE_* renamed to provost
 
 The names inherited from the Envoy suite are gone from provost's own code.

@@ -1,3 +1,10 @@
-n	CPU	ioping	min/avg/max/mdev
-2	AES-encrypting 500 MB		
-3		sequential read speed	44.2 us / 88.4 us / 412.1 us / 22.1 us
+n	section	key	value
+1	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	SHA256-hashing 500 MB
+2	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	2.104 seconds
+3	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	bzip2-compressing 500 MB
+4	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	4.821 seconds
+5	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	AES-encrypting 500 MB
+6	nench.sh v2019.07.20 -- https://git.io/nench.sh	CPU	0.882 seconds
+7	nench.sh v2019.07.20 -- https://git.io/nench.sh	ioping	seek rate
+8	nench.sh v2019.07.20 -- https://git.io/nench.sh > ioping	min/avg/max/mdev	44.2 us / 88.4 us / 412.1 us / 22.1 us
+9	nench.sh v2019.07.20 -- https://git.io/nench.sh	ioping	sequential read speed generated 12044 requests in 3.00 s, 2.94 GiB, 4014 iops, 15.7 GiB/s

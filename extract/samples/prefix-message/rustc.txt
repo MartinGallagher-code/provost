@@ -1,0 +1,26 @@
+warning: unused variable: `conn`
+ --> src/db.rs:14:9
+  |
+14 |     let conn = pool.get()?;
+  |         ^^^^ help: if this is intentional, prefix it with an underscore: `_conn`
+  |
+  = note: `#[warn(unused_variables)]` on by default
+
+error[E0308]: mismatched types
+ --> src/db.rs:31:20
+  |
+31 |     let id: u64 = row.get("id");
+  |             ---   ^^^^^^^^^^^^^ expected `u64`, found `i64`
+  |             |
+  |             expected due to this
+
+error[E0425]: cannot find value `cfg` in this scope
+ --> src/main.rs:8:5
+  |
+8 |     cfg.validate();
+  |     ^^^ not found in this scope
+
+error: aborting due to 2 previous errors; 1 warning emitted
+
+Some errors have detailed explanations: E0308, E0425.
+For more information about an error, try `rustc --explain E0308`.

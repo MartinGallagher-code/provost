@@ -1,2 +1,5 @@
-/src/app.js.12	/src/app.js.44
-1   error    'foo' is not defined       no-undef	10  warning  Unexpected console statement no-console
+n	A
+1	/src/app.js
+2	12:1   error    'foo' is not defined       no-undef
+3	44:10  warning  Unexpected console statement no-console
+4	✖ 2 problems (1 error, 1 warning)

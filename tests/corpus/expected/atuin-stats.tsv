@@ -1,2 +1,6 @@
-Total_commands	Unique_commands
-88201	4102
+n	key	value
+1	Total commands	88201
+2	Unique commands	4102
+3	Most used commands	1204  git
+4	Most used commands	882  kubectl
+5	Most used commands	441  cd

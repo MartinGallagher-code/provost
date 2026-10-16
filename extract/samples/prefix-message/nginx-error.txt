@@ -1,0 +1,6 @@
+2026/10/14 08:01:22 [notice] 1#1: using the "epoll" event method
+2026/10/14 08:01:22 [notice] 1#1: nginx/1.25.3
+2026/10/14 08:01:22 [notice] 1#1: start worker processes
+2026/10/14 09:47:10 [error] 29#29: *1182 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), client: 10.0.4.17, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "shop.example.com"
+2026/10/14 09:52:33 [warn] 29#29: *1201 an upstream response is buffered to a temporary file /var/cache/nginx/proxy_temp/1/00/0000000001 while reading upstream, client: 10.0.4.22, server: shop.example.com, request: "GET /export.csv HTTP/1.1"
+2026/10/14 10:03:05 [crit] 30#30: *1312 connect() to unix:/run/php/php-fpm.sock failed (2: No such file or directory) while connecting to upstream

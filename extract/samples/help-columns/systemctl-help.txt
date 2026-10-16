@@ -1,0 +1,23 @@
+systemctl [OPTIONS...] COMMAND ...
+
+Query or send control commands to the system manager.
+
+Unit Commands:
+  list-units [PATTERN...]             List units currently in memory
+  list-automounts [PATTERN...]        List automount units currently in memory,
+                                      ordered by path
+  list-sockets [PATTERN...]           List socket units currently in memory,
+                                      ordered by address
+  list-timers [PATTERN...]            List timer units currently in memory,
+                                      ordered by next elapse
+  is-active PATTERN...                Check whether units are active
+  is-failed [PATTERN...]              Check whether units are failed or
+                                      system is in degraded state
+  status [PATTERN...|PID...]          Show runtime status of one or more units
+  start UNIT...                       Start (activate) one or more units
+  stop UNIT...                        Stop (deactivate) one or more units
+
+Unit File Commands:
+  list-unit-files [PATTERN...]        List installed unit files
+  enable [UNIT...|PATH...]            Enable one or more unit files
+  disable UNIT...                     Disable one or more unit files

@@ -1,0 +1,9 @@
+Available subcommands:
+    build                Compile the current workspace
+    check                Analyze the workspace without building
+    clean                Remove generated artifacts
+    fmt                  Format all source files
+    lint                 Run every configured linter
+    publish              Upload the package to the registry
+    serve                Start the local preview server
+    status               Show workspace build status

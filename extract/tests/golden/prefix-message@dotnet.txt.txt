@@ -1,0 +1,29 @@
+entry1.file /src/Billing/InvoiceService.cs
+entry1.line 42
+entry1.col 17
+entry1.severity warning
+entry1.code CS0168
+entry1.message The variable 'ex' is declared but never used
+entry1.tag /src/Billing/Billing.csproj
+entry2.file /src/Billing/InvoiceService.cs
+entry2.line 88
+entry2.col 9
+entry2.severity warning
+entry2.code CS8602
+entry2.message Dereference of a possibly null reference.
+entry2.tag /src/Billing/Billing.csproj
+entry3.file /src/Billing/Models/Invoice.cs
+entry3.line 12
+entry3.col 23
+entry3.severity error
+entry3.code CS0246
+entry3.message The type or namespace name 'Money' could not be found (are you missing a using directive or an assembly reference?)
+entry3.tag /src/Billing/Billing.csproj
+entry4.file /src/Api/Program.cs
+entry4.line 5
+entry4.col 1
+entry4.severity warning
+entry4.code CS1591
+entry4.message Missing XML comment for publicly visible type or member 'Program'
+entry4.tag /src/Api/Api.csproj
+total_entries 4

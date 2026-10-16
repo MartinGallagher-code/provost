@@ -31,7 +31,8 @@
 ##
 ## Writes, per input NAME:
 ##   NAME.def        default single-dataset extract (what `provost` does bare)
-##   NAME.meta       the strategy that claimed it, and its confidence
+##   NAME.meta       the strategy that claimed it, its confidence and its line
+##                   coverage (the --emit-meta line)
 ##   NAME.prio       the same extract under --rank priority (the pre-calibration
 ##                   ranking: first detecting strategy in priority order wins)
 ##   NAME.prio.meta  ... and the strategy/confidence that won under it
@@ -155,15 +156,18 @@ printf 'benchmark outputs: %s\n' "$outdir"
 # out relative to the input. A parse much SHORTER than its input is the
 # signature of silent truncation, which is the failure mode that hurts most.
 # PRIORITY shows the --rank priority winner only where it differs.
+# COV is the winner's line coverage (the 4th --emit-meta field): the share of
+# the input's lines that reached the parse.
 _strat () { awk -F'\t' '$1 == "__EXTRACT_META__" {print $2 "/" $3; exit}' "$1" 2>/dev/null; }
-printf '\n%-40s %-26s %5s %5s %5s %s\n' NAME STRATEGY/CONF IN OUT MULTI PRIORITY
+_cov () { awk -F'\t' '$1 == "__EXTRACT_META__" {print ($4 == "" ? "-" : $4); exit}' "$1" 2>/dev/null; }
+printf '\n%-40s %-26s %4s %5s %5s %5s %s\n' NAME STRATEGY/CONF COV IN OUT MULTI PRIORITY
 for f in "$set_dir"/*.txt; do
     n=$(basename "$f" .txt)
     s=$(_strat "$outdir/$n.meta")
     p=$(_strat "$outdir/$n.prio.meta")
     [[ "${p%/*}" == "${s%/*}" ]] && p="="
-    printf '%-40s %-26s %5s %5s %5s %s\n' \
-        "$n" "${s:-none}" "$(wc -l <"$f")" "$(wc -l <"$outdir/$n.def")" \
+    printf '%-40s %-26s %4s %5s %5s %5s %s\n' \
+        "$n" "${s:-none}" "$(_cov "$outdir/$n.meta")" "$(wc -l <"$f")" "$(wc -l <"$outdir/$n.def")" \
         "$(grep -c '__DATASET__' "$outdir/$n.multi" 2>/dev/null || echo 0)" \
         "${p:-none}"
 done

@@ -128,19 +128,23 @@ _ac_body () {
 # The key is the full text, so a memo outliving one input is still exact.)
 : "${_AC_BODY_KEY=}" "${_AC_BODY_OK:=0}" "${_AC_BODY=}"
 : "${_AC_BODY_KEY2=}" "${_AC_BODY2=}" "${_AC_BODY_OK2:=0}"
+: "${_AC_BODY_PRE=}" "${_AC_BODY_PRE2=}"
 _ac_body_v () {
     if [[ $_AC_BODY_OK -eq 1 ]] && (( ${#1} == ${#_AC_BODY_KEY} )) && [[ "$1" == "$_AC_BODY_KEY" ]]; then return 0; fi
     local _out
     if [[ $_AC_BODY_OK2 -eq 1 ]] && (( ${#1} == ${#_AC_BODY_KEY2} )) && [[ "$1" == "$_AC_BODY_KEY2" ]]; then
         # hit in the second slot: swap it to the front
         _out="$_AC_BODY"; _AC_BODY="$_AC_BODY2"; _AC_BODY2="$_out"
+        _out="$_AC_BODY_PRE"; _AC_BODY_PRE="$_AC_BODY_PRE2"; _AC_BODY_PRE2="$_out"
         _out="$_AC_BODY_KEY"; _AC_BODY_KEY="$_AC_BODY_KEY2"; _AC_BODY_KEY2="$_out"
         return 0
     fi
     if [[ $_AC_BODY_OK -eq 1 ]]; then
         _AC_BODY_KEY2="$_AC_BODY_KEY"; _AC_BODY2="$_AC_BODY"; _AC_BODY_OK2=1
+        _AC_BODY_PRE2="$_AC_BODY_PRE"
     fi
     _ac_body_compute "$1"
+    _AC_BODY_PRE="$_AC_BODY_PRE_RAW"
     if (( ${#_AC_BODY_RAW} > _FR_BIG_BYTES )); then
         # (count the trailing newlines from the end instead of the
         # `${x##*[!$'\n']}` suffix scan, which walks the whole big string)
@@ -160,6 +164,14 @@ _ac_body_v () {
 # The _ac_body computation proper; leaves its printed form in _AC_BODY_RAW.
 _ac_body_compute () {
     local text="$1" _l _tk out="" started=0 has_table=0
+    # PREAMBLE FIELDS: a `Label: value` line the banner rules below cut from
+    # above the table (fdisk's `Disk model: Samsung SSD 860`, zpool's
+    # `state: DEGRADED`, gluster's `Brick: node1:/bricks/brick1`) is data
+    # about the whole table: it is kept, as a `Label value` field that
+    # strategy_extract emits after the rows — the melt repeats it on every
+    # row (a constant column). Collected here, memoised with the body.
+    local _pre_kv=()
+    _AC_BODY_PRE_RAW=""
 
     # AUDIT-REPORT chrome (aureport family): `====` rule lines are never
     # data; a 1-2 token line DIRECTLY ABOVE a rule is the report title; a
@@ -313,6 +325,152 @@ _ac_body_compute () {
             printf -v text '%s\n' "${_wl_out[@]}"
             text="${text%$'\n'}"
         fi
+    fi
+
+    # LEADING BANNERS (aligned-columns' banner rules, round 2). A first line
+    # that is chrome above the table is dropped when it is:
+    #   * a TAB banner — the first line holds a TAB, a blank line follows, and
+    #     no other line has one (sysstat's `Linux 6.5.0 (host) <TAB>07/11/2026
+    #     <TAB>_x86_64_<TAB>(4 CPU)` over a space-aligned table): a different
+    #     formatter printed it, so its offsets are not the table's;
+    #   * a prose TITLE ending in `:` — >= 3 words, no digit (a count or a
+    #     name with digits is data: `gpiochip0 - 32 lines:`) — over lines
+    #     that are ALL indented deeper (`The following ports are currently
+    #     installed:`).
+    # Then, when the first line is no header itself (single-spaced, no
+    # 2-space column gap), a later line that IS one — >= 3 label tokens (no
+    # function words: a sentence is no header), a 2+-space gap, rows below
+    # starting in its first column — over which
+    # the gutter grid (lib/_helpers.sh) finds a table running to the end of
+    # the text (its first 400 lines), makes every line above it a BANNER
+    # (yarn's `yarn outdated
+    # v1.22.22` / `info Color legend :` lines, a CLI's `Retrieving ... / OK`).
+    _fr_lines "$text"
+    local _lb_n=${#_FR_LINES[@]} _lb_f=-1 _lb_i _lb_l _lb_cut=-1
+    for ((_lb_i = 0; _lb_i < _lb_n; _lb_i++)); do
+        [[ "${_FR_LINES[$_lb_i]}" == *[![:space:]]* ]] && { _lb_f=$_lb_i; break; }
+    done
+    if [[ $_lb_f -ge 0 && $((_lb_f + 2)) -lt $_lb_n ]]; then
+        # (every scan below stops early or is bounded: this runs on every
+        # input, big ones included)
+        local _lb_first="${_FR_LINES[$_lb_f]}" _lb_rest _lb_nb=0 _lb_ind _lb_deep=0
+        for ((_lb_i = _lb_f + 1; _lb_i < _lb_n && _lb_nb < 2; _lb_i++)); do
+            [[ "${_FR_LINES[$_lb_i]}" == *[![:space:]]* ]] && _lb_nb=$((_lb_nb + 1))
+        done
+        _fr_tok "$_lb_first"; local _lb_ft=("${_FR_TOK[@]}")
+        if [[ ${#_lb_ft[@]} -ge 3 && "$_lb_first" =~ :[[:space:]]*$ ]]; then
+            local _lb_find="${_lb_first%%[![:space:]]*}"
+            _lb_deep=1
+            for ((_lb_i = _lb_f + 1; _lb_i < _lb_n; _lb_i++)); do
+                _lb_l="${_FR_LINES[$_lb_i]}"
+                [[ "$_lb_l" == *[![:space:]]* ]] || continue
+                _lb_ind="${_lb_l%%[![:space:]]*}"
+                [[ ${#_lb_ind} -gt ${#_lb_find} ]] || { _lb_deep=0; break; }
+            done
+        fi
+        _lb_rest=""
+        if [[ "$_lb_first" == *$'\t'* ]]; then
+            local _lb_off=0
+            for ((_lb_i = 0; _lb_i <= _lb_f; _lb_i++)); do _lb_off=$((_lb_off + ${#_FR_LINES[$_lb_i]} + 1)); done
+            _lb_rest="${text:$_lb_off}"
+        fi
+        # (the TAB banner only over ONE table: blank-separated blocks below it
+        # must repeat one header, digits aside — `mpstat -I SUM` prints two
+        # different tables, which no single header reads)
+        local _lb_one=1
+        if [[ "$_lb_first" == *$'\t'* ]]; then
+            local _lb_hk="" _lb_bh _lb_pb=1
+            for ((_lb_i = _lb_f + 1; _lb_i < _lb_n && _lb_i < _lb_f + 2000; _lb_i++)); do
+                _lb_l="${_FR_LINES[$_lb_i]}"
+                if [[ "$_lb_l" != *[![:space:]]* ]]; then _lb_pb=1; continue; fi
+                if [[ $_lb_pb -eq 1 ]]; then
+                    _fr_tok "${_lb_l//[0-9]/#}"; _lb_bh="${_FR_TOK[*]}"
+                    if [[ -z "$_lb_hk" ]]; then _lb_hk="$_lb_bh"
+                    elif [[ "$_lb_bh" != "$_lb_hk" ]]; then _fr_is_footer "$_lb_l" || [[ "$_lb_l" =~ ^Average: ]] || { _lb_one=0; break; }; fi
+                fi
+                _lb_pb=0
+            done
+        fi
+        if [[ "$_lb_first" == *$'\t'* && "${_FR_LINES[$((_lb_f + 1))]}" != *[![:space:]]* \
+              && "$_lb_rest" != *$'\t'* && $_lb_nb -ge 2 && $_lb_one -eq 1 ]]; then
+            _lb_cut=$((_lb_f + 1))
+        elif [[ ${#_lb_ft[@]} -ge 3 && "$_lb_first" =~ :[[:space:]]*$ && "$_lb_first" =~ [a-z] \
+              && "$_lb_first" != *[0-9]* && $_lb_deep -eq 1 && $_lb_nb -ge 2 ]]; then
+            _lb_cut=$((_lb_f + 1))
+        fi
+        # a header further down, under banner lines (from the first line
+        # that survived the rules above)
+        if [[ $_lb_cut -ge 0 ]]; then
+            for ((_lb_f = _lb_cut; _lb_f < _lb_n; _lb_f++)); do
+                [[ "${_FR_LINES[$_lb_f]}" == *[![:space:]]* ]] && break
+            done
+            _lb_first="${_FR_LINES[$_lb_f]:-}"
+            _fr_tok "$_lb_first"; _lb_ft=("${_FR_TOK[@]}")
+        fi
+        if [[ $_lb_f -lt $_lb_n ]]; then
+            _ac_seg_v "$_lb_first"
+            if [[ $_AC_SEG -lt 2 ]]; then
+                local _lb_h _lb_hl _lb_ok _lb_t _lb_hind _lb_r1 _lb_r2 _lb_j _lb_k=0
+                local -a _lb_nbi=()
+                for ((_lb_i = _lb_f; _lb_i < _lb_n && ${#_lb_nbi[@]} < 16; _lb_i++)); do
+                    [[ "${_FR_LINES[$_lb_i]}" == *[![:space:]]* ]] && _lb_nbi+=("$_lb_i")
+                done
+                for ((_lb_j = 1; _lb_j + 2 < ${#_lb_nbi[@]} && _lb_j <= 12; _lb_j++)); do
+                    _lb_h=${_lb_nbi[$_lb_j]}; _lb_hl="${_FR_LINES[$_lb_h]}"
+                    _fr_tok "$_lb_hl"; [[ ${#_FR_TOK[@]} -ge 3 ]] || continue
+                    _lb_ok=1
+                    for _lb_t in "${_FR_TOK[@]}"; do
+                        # (the header test of _ac_shape_compute: a label is
+                        # never bracketed, `[Nr]`, nor a `label:`)
+                        [[ "$_lb_t" =~ [A-Za-z] && ! "$_lb_t" =~ ^[0-9] && "$_lb_t" != *: \
+                           && "$_lb_t" != \[* && "$_lb_t" != *\] ]] || { _lb_ok=0; break; }
+                        case "${_lb_t,,}" in the|a|an|of|to|in|for|with|and|on|at|by|from|is|are) _lb_ok=0; break ;; esac
+                    done
+                    [[ $_lb_ok -eq 1 ]] || continue
+                    _ac_seg_v "$_lb_hl"; [[ $_AC_SEG -ge 2 ]] || continue
+                    # the rows directly below start in the header's first column
+                    _lb_hind="${_lb_hl%%[![:space:]]*}"
+                    _lb_r1="${_FR_LINES[${_lb_nbi[$((_lb_j + 1))]}]}"; _lb_r2="${_FR_LINES[${_lb_nbi[$((_lb_j + 2))]}]}"
+                    [[ "${_lb_r1%%[![:space:]]*}" == "$_lb_hind" && "${_lb_r2%%[![:space:]]*}" == "$_lb_hind" ]] || continue
+                    # no header when the lines it would cut already have the
+                    # table's shape — a line above starting in the same column
+                    # with 2+ segments is a ROW (a command list whose first
+                    # descriptions carry function words: `build  Compile the
+                    # workspace` ... `config  Inspect configuration values`)
+                    local _lb_ab=0 _lb_q
+                    for ((_lb_q = _lb_f + 1; _lb_q < _lb_h; _lb_q++)); do
+                        _lb_l="${_FR_LINES[$_lb_q]}"
+                        [[ "$_lb_l" == *[![:space:]]* && "${_lb_l%%[![:space:]]*}" == "$_lb_hind" ]] || continue
+                        _ac_seg_v "$_lb_l"; [[ $_AC_SEG -ge 2 ]] && { _lb_ab=1; break; }
+                    done
+                    [[ $_lb_ab -eq 0 ]] || continue
+                    # ...nor when its words have the rows' shape: `+`/`-`
+                    # prefixed flag words over more of them (a feature grid
+                    # under version lines, `+archive  +color  -gpu`)
+                    if [[ "$_lb_hl" =~ (^|[[:space:]])[-+][A-Za-z] && "$_lb_r1" =~ (^|[[:space:]])[-+][A-Za-z] ]]; then
+                        continue
+                    fi
+                    # the table runs to the end: no blank-separated block after it
+                    local _lb_seenb=0 _lb_tail=1 _lb_m _lb_rows=()
+                    for ((_lb_m = _lb_h; _lb_m < _lb_n && _lb_m < _lb_h + 400; _lb_m++)); do
+                        _lb_l="${_FR_LINES[$_lb_m]}"
+                        if [[ "$_lb_l" != *[![:space:]]* ]]; then _lb_seenb=1; continue; fi
+                        if [[ $_lb_seenb -eq 1 ]]; then _fr_is_footer "$_lb_l" || { _lb_tail=0; break; }; continue; fi
+                        _fr_is_footer "$_lb_l" && continue
+                        [[ ${#_lb_rows[@]} -lt 41 ]] && _lb_rows+=("$_lb_l")
+                    done
+                    [[ $_lb_tail -eq 1 && ${#_lb_rows[@]} -ge 3 ]] || continue
+                    [[ -n "$(printf '%s\n' "${_lb_rows[@]}" | _fr_gutter_grid 1 0)" ]] || continue
+                    _lb_cut=$_lb_h
+                    break
+                done
+            fi
+        fi
+    fi
+    if [[ $_lb_cut -ge 1 ]]; then
+        for ((_lb_i = 0; _lb_i < _lb_cut; _lb_i++)); do _ac_pre_kv "${_FR_LINES[$_lb_i]}"; done
+        printf -v text '%s\n' "${_FR_LINES[@]:$_lb_cut}"
+        text="${text%$'\n'}"
     fi
 
     # LEADING CHROME BLOCK: a short block (<= 12 lines) of banner / log /
@@ -526,7 +684,7 @@ _ac_body_compute () {
             _fr_tok "$_l"; _tk=("${_FR_TOK[@]}")
             [[ "$_l" =~ ^[[:space:]]*total[[:space:]]+[0-9]+[[:space:]]*$ ]] && continue
             [[ -n "$_fwbanner" && "$_l" == "$_fwbanner" ]] && { _fwbanner=""; continue; }
-            [[ -n "$_title" && "$_l" == "$_title" ]] && { _title=""; continue; }
+            [[ -n "$_title" && "$_l" == "$_title" ]] && { _ac_pre_kv "$_title"; _title=""; continue; }
             if [[ "$_l" =~ ^[[:space:]]*# ]]; then
                 # Strip the leading `#` (and one following space) — a candidate header.
                 local _h="${_l#"${_l%%[!#[:space:]]*}"}"
@@ -585,8 +743,19 @@ _ac_body_compute () {
                 for _ft in "${_tk[@]}"; do [[ "$_ft" =~ [A-Za-z] && "$_ft" != *: ]] || { _fhdr=0; break; }; done
             fi
             if [[ ${#held[@]} -gt 0 && $_fhdr -eq 0 ]]; then
-                local _pick="" _c _ct _u _t2
+                local _pick="" _c _ct _u _t2 _cd
                 for _c in "${held[@]}"; do
+                    # (a W3C-style DIRECTIVE, `#Fields: date time c-ip …`
+                    # — IIS, Windows Firewall, CloudFront logs — names the
+                    # columns AFTER its `Name:`; the directive word itself is
+                    # no column, so it is tried without it first)
+                    _cd=""
+                    [[ "$_c" =~ ^[A-Za-z][A-Za-z\ -]*:[[:space:]]+[^[:space:]] ]] && _cd="${_c#*:}"
+                    _cd="${_cd#"${_cd%%[![:space:]]*}"}"
+                    if [[ -n "$_cd" ]]; then
+                        _fr_tok "$_cd"
+                        [[ ${#_FR_TOK[@]} -eq ${#_tk[@]} ]] && _c="$_cd"
+                    fi
                     _fr_tok "$_c"; _ct=("${_FR_TOK[@]}")
                     [[ ${#_ct[@]} -ne ${#_tk[@]} ]] && continue
                     _u=1; local -A _seen_tok=()
@@ -630,7 +799,7 @@ _ac_body_compute () {
             [[ "$_acb_pl" == *[![:space:]]* ]] && _acb_prenb=$((_acb_prenb + 1))
             [[ "$_acb_pl" =~ ^[[:space:]]*[0-9] ]] && _acb_predig=1
         done
-        _acb_tail="$(cat <<< "$text" | awk -v k="$_acb_i" -v pre="${#_outl[@]}" -v prenb="$_acb_prenb" -v predig="$_acb_predig" -v cm="$_acb_cmt" '
+        _acb_tail="$(cat <<< "$text" | _FRF="$_FR_FOOTER_RE" awk -v k="$_acb_i" -v pre="${#_outl[@]}" -v prenb="$_acb_prenb" -v predig="$_acb_predig" -v cm="$_acb_cmt" '
             NR <= k { next }
             cm == 1 && (substr($0, 1, 2) == "# " || $0 == "#") { next }
             /^[ \t\n\v\f\r]*[=-]+([ \t\n\v\f\r]+[=-]+)*[ \t\n\v\f\r]*$/ { next }
@@ -641,6 +810,10 @@ _ac_body_compute () {
                 if (!have) { printf "0"; exit }
                 drop = 0
                 if (pre + nk >= 2 && held ~ /^[ \t\n\v\f\r]*[0-9]+[ \t\n\v\f\r]+([A-Za-z]+[ \t\n\v\f\r]+)*(listed|shown|found)\.?[ \t\n\v\f\r]*$/) drop = 1
+                # a result-set footer (`(5 rows affected)`, `4 rows selected.`
+                # — _FR_FOOTER_RE)
+                ft = held; sub(/^[ \t]+/, "", ft); sub(/[ \t]+$/, "", ft)
+                if (pre + nk >= 2 && ft ~ ENVIRON["_FRF"]) drop = 1
                 # a COUNT footer: `3 requests, 3 succeeded` whose leading
                 # number is the row count above it (with or without header)
                 if (!drop && !predig && held ~ /^[ \t]*[0-9]+[ \t]+[A-Za-z]/) {
@@ -662,8 +835,10 @@ _ac_body_compute () {
     # rescanning the joined string.)
     local _acb_k=${#_outl[@]} last=""
     [[ $_acb_k -gt 0 ]] && last="${_outl[$((_acb_k - 1))]}"
-    if [[ $_acb_owns -ne 1 && $_acb_k -ge 2 \
-          && "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]]; then
+    if [[ $_acb_owns -ne 1 && $_acb_k -ge 2 ]] \
+       && { [[ "$last" =~ ^[[:space:]]*[0-9]+[[:space:]]+([A-Za-z]+[[:space:]]+)*(listed|shown|found)\.?[[:space:]]*$ ]] \
+            || _fr_is_footer "$last"; }; then
+        # (…or a result-set footer: `(5 rows affected)`, `4 rows selected.`)
         unset '_outl[$((_acb_k - 1))]'
     elif [[ $_acb_owns -ne 1 && $_acb_k -ge 2 && "$last" =~ ^[[:space:]]*([0-9]+)[[:space:]]+[A-Za-z] ]]; then
         # A COUNT footer (`3 requests, 3 succeeded`): its leading number is
@@ -686,6 +861,21 @@ _ac_body_compute () {
     [[ ${#_outl[@]} -gt 0 ]] && printf -v out '%s\n' "${_outl[@]}"
     out+="$_acb_tail"
     _AC_BODY_RAW="$out"
+    [[ ${#_pre_kv[@]} -gt 0 ]] && printf -v _AC_BODY_PRE_RAW '%s\n' "${_pre_kv[@]}"
+}
+
+# _ac_pre_kv LINE — when LINE is a `Label: value` line (a label of <= 5
+# words, a non-empty value), append `Label value` (name sanitised — spaces
+# and dots to `_`) to the caller's _pre_kv.
+_ac_pre_kv () {
+    [[ "$1" =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9\ ()/_-]{0,40}[A-Za-z0-9\)]):[[:space:]]+([^[:space:]].*)$ ]] || return 0
+    local _pk_k="${BASH_REMATCH[1]}" _pk_v="${BASH_REMATCH[2]}"
+    [[ "$_pk_k" == *"  "* ]] && return 0
+    _fr_tok "$_pk_k"; [[ ${#_FR_TOK[@]} -le 5 ]] || return 0
+    _clean_field "$_pk_k"; _pk_k="${_CLEANED//./_}"
+    _clean_value "$_pk_v"
+    [[ -n "$_CLEANED" ]] && _pre_kv+=("$_pk_k $_CLEANED")
+    return 0
 }
 
 # _ac_tok_spans LINE — byte start / end (exclusive) of each whitespace token
@@ -1014,8 +1204,11 @@ _ac_shape_compute () {
         # 7.8Gi, 39%), or a time / IP / date. `1K-blocks` is NOT one (the hyphen),
         # so a df-T-style header label stays a header.
         [[ "$_t" =~ ^[0-9]+([.,][0-9]+)*[a-zA-Z%]*$ || "$_t" =~ ^[0-9]{1,2}:[0-9]{2} \
-           || "$_t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} ]] && v0=$((v0 + 1))
+           || "$_t" =~ ^[0-9]+\.[0-9]+\.[0-9]+\. || "$_t" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2} \
+           || "$_t" =~ ^v[0-9]+(\.[0-9]+)+$ ]] && v0=$((v0 + 1))
     done
+    # (a `v`-prefixed VERSION, `v0.16.2`, is a value too: a label never is
+    # one — `- core  v0.16.2` heading `- lwt  5.7.0` is the first record)
     # Row 1 is a header when it is a pure label row (zero digit tokens) over
     # data that carries digits anywhere (az/aws listings — one digit-bearing
     # row is enough); when it is digit-free of VALUE tokens while most data
@@ -1081,6 +1274,27 @@ _ac_shape_compute () {
             [[ "${_t1arr[$_ss_i]}" =~ ^[A-Z][A-Z0-9/]*$ ]] && _ss_lab=$((_ss_lab + 1))
         done
         [[ $((_ss_lab * 2)) -ge $(( ${#_t1arr[@]} - 1 )) ]] && v0=0
+        # ...or every other token is a label (letters; `AM`/`PM` belongs to
+        # the time) and EVERY row opens with a clock time too (`sar -b`'s
+        # `10:00:01  tps  rtps  wtps  bread/s` over `10:10:01  45.23 …`): the
+        # leading time is the interval column, the rest are its labels
+        if [[ $v0 -eq 1 ]]; then
+            local _ss_all=1 _ss_r _ss_rl _ss_ri=0
+            for ((_ss_i = 1; _ss_i < ${#_t1arr[@]}; _ss_i++)); do
+                [[ "${_t1arr[$_ss_i]}" == AM || "${_t1arr[$_ss_i]}" == PM ]] && continue
+                [[ "${_t1arr[$_ss_i]}" =~ [A-Za-z] ]] || { _ss_all=0; break; }
+            done
+            if [[ $_ss_all -eq 1 ]]; then
+                [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
+                for _ss_rl in "${_FR_LINES[@]}"; do
+                    [[ "$_ss_rl" == *[![:space:]]* ]] || continue
+                    _ss_ri=$((_ss_ri + 1)); [[ $_ss_ri -eq 1 ]] && continue
+                    [[ "$_ss_rl" =~ ^[[:space:]]*[0-9]{1,2}:[0-9]{2}(:[0-9]{2})?[[:space:]] || "$_ss_rl" =~ ^[[:space:]]*[A-Z][a-z]+:[[:space:]] ]] || { _ss_all=0; break; }
+                    [[ $_ss_ri -ge 41 ]] && break
+                done
+                [[ $_ss_ri -ge 3 && $_ss_all -eq 1 ]] && v0=0
+            fi
+        fi
     fi
     # YEAR columns: a report header whose only value tokens are distinct
     # calendar years (`Metric  2023  2024  2025`) over data that never shows a
@@ -1245,6 +1459,20 @@ _ac_shape_compute () {
             # x` / `editor  x  x`): ragged rows whose every cell sits under
             # one header label, left to right, at most one cell per label.
             [[ $shaped -eq 0 && ${counts[0]} -ge 3 && $nlines -ge 3 ]] && _ac_sparse_grid "$text" && shaped=1
+            # ...or the rows sit in the header's columns by OFFSET, multi-word
+            # cells and empty cells included (`net share`'s `Share name` over
+            # `C$  C:\  Default share` / `IPC$  Remote IPC`): the gutter grid
+            # (lib/_helpers.sh) finds every row a home under the labels.
+            # (The first 41 lines, as the checks above.)
+            if [[ $shaped -eq 0 && ${counts[0]} -ge 2 && $nlines -ge 3 ]]; then
+                [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
+                local _gs_l _gs_rows=()
+                for _gs_l in "${_FR_LINES[@]}"; do
+                    [[ "$_gs_l" == *[![:space:]]* ]] && _gs_rows+=("$_gs_l")
+                    [[ ${#_gs_rows[@]} -ge 41 ]] && break
+                done
+                [[ -n "$(printf '%s\n' "${_gs_rows[@]}" | _fr_gutter_grid 1 0)" ]] && shaped=1
+            fi
         fi
         if [[ $shaped -eq 1 ]]; then
             local second_line="" idx2=0
@@ -1284,6 +1512,29 @@ _ac_shape_compute () {
             done
         done
         [[ $tot -gt 0 && $(( vlike * 100 / tot )) -ge $(( 75 - ${_FR_SLACK:-0} )) ]] && { _AC_SHAPE_OUT="HL 2"; return 0; }
+    fi
+    # HEADERLESS BY OFFSET: the token counts disagree because cells hold
+    # spaces (`mas list`'s `497799835  Xcode  (16.0)` beside `1295203466
+    # Microsoft Remote Desktop  (10.9.10)`, `uniq -c`'s count + message), yet
+    # the gutter grid (nh=0: every row fills every column, each column
+    # aligned) reads 2-8 columns. Mode HLG <n>; extraction is the grid.
+    # (not under a digit-free label row over numeric rows: that is a header
+    # the checks above refused, which the grid would read as a record)
+    local _hg_dg=0 _hg_i
+    for ((_hg_i = 1; _hg_i < nlines; _hg_i++)); do [[ ${dcount[$_hg_i]} -gt 0 ]] && _hg_dg=$((_hg_dg + 1)); done
+    if [[ ( $mode -lt 3 || $(( best * 100 / ${#counts[@]} )) -lt 60 ) && $nlines -ge 3 ]] \
+       && ! [[ ${dcount[0]} -eq 0 && $(( _hg_dg * 10 )) -ge $(( (nlines - 1) * 8 )) ]]; then
+        local _hg_rows=() _hg_l _hg_out _hg_n=0
+        [[ $_acs_fl -eq 1 ]] || _fr_lines "$text"
+        for _hg_l in "${_FR_LINES[@]}"; do
+            [[ "$_hg_l" == *[![:space:]]* ]] && _hg_rows+=("$_hg_l")
+            [[ ${#_hg_rows[@]} -ge 41 ]] && break
+        done
+        _hg_out="$(printf '%s\n' "${_hg_rows[@]}" | _fr_gutter_grid 0 0)"
+        if [[ -n "$_hg_out" ]]; then
+            while IFS= read -r _hg_l; do [[ "$_hg_l" == entry1.* ]] && _hg_n=$((_hg_n + 1)); done <<< "$_hg_out"
+            [[ $_hg_n -ge 2 ]] && { _AC_SHAPE_OUT="HLG $_hg_n"; return 0; }
+        fi
     fi
     [[ $mode -lt 3 ]] && return 1
     [[ $(( best * 100 / ${#counts[@]} )) -lt 60 ]] && return 1
@@ -1389,7 +1640,7 @@ _ac_detect () {
     local shape; _ac_shape_v "$text" || return 1; shape="$_AC_SHAPE"
     local mode="${shape%% *}" n_h="${shape##* }"
     local hdr_lines=1
-    case "$mode" in HL) hdr_lines=0 ;; HDR) hdr_lines=1 ;; HDR2) hdr_lines=2 ;; esac
+    case "$mode" in HL|HLG) hdr_lines=0 ;; HDR) hdr_lines=1 ;; HDR2) hdr_lines=2 ;; esac
 
     local idx=0 data_rows=0 consistent=0 header_caps=1 _line
     [[ ${_AC_SHAPE_FRESH:-0} -eq 1 ]] || { _ac_body_v "$text"; _fr_lines "$_AC_BODY"; }
@@ -1409,7 +1660,7 @@ _ac_detect () {
         [[ $n -ge $((n_h - 1)) ]] && consistent=$((consistent + 1))
         [[ $idx -ge 40 ]] && break
     done
-    [[ "$mode" == HL ]] && header_caps=0
+    [[ "$mode" == HL || "$mode" == HLG ]] && header_caps=0
 
     [[ $data_rows -lt 1 ]] && return 1
 
@@ -1417,7 +1668,7 @@ _ac_detect () {
     [[ $data_rows -ge 2 ]] && conf=$((conf + 10))
     conf=$((conf + consistent * 20 / data_rows))   # column-consistency bonus (0..20)
     [[ $header_caps -eq 1 ]] && conf=$((conf + 5))  # ALL-CAPS header (ps/df/ss style)
-    [[ "$mode" == HL ]] && conf=$((conf - 10))      # headerless is a weaker signal
+    [[ "$mode" == HL || "$mode" == HLG ]] && conf=$((conf - 10))      # headerless is a weaker signal
     [[ $conf -gt 75 ]] && conf=75
     [[ $conf -lt 40 ]] && conf=40
     # General-structure tier (extract/README.md "Confidence rubric"): the raw
@@ -1919,6 +2170,22 @@ _ac_group_prefix () {
     fi
 }
 
+# _ac_multisection < body — 0 when a block after a blank line (one that
+# follows data rows) opens with a digit-free line (>= 2 words) that is not
+# the table's header again: a
+# second section's title or header (nodetool tpstats' `Latencies waiting in
+# queue …` under its pool table). One header's offsets do not read that
+# section, so the gutter grid stands aside (the token paths keep the rows).
+_ac_multisection () {
+    awk '
+        $0 !~ /[^ \t]/ { if (rows) blank = 1; next }
+        { t = $0; gsub(/[ \t]+/, " ", t); sub(/^ /, "", t); sub(/ $/, "", t) }
+        !seen { seen = 1; h = t; next }
+        blank && t != h && t !~ /[0-9]/ && split(t, a, " ") >= 2 { found = 1; exit }
+        { blank = 0; rows++ }
+        END { exit found ? 0 : 1 }'
+}
+
 # The OFFSET-ASSIGNMENT pass of strategy_extract (see the comment there),
 # shared by the bash path and the big-table path.
 _AC_AWK_OFFSET='
@@ -2102,6 +2369,7 @@ _ac_extract_big () {
     local cur="$p.rows0" n H=()
     _ACX_F=""
     printf '%s\n' "$_AC_BODY" > "$p.body"
+    local _acx_ms=0; _ac_multisection < "$p.body" && _acx_ms=1
 
     # --- collect non-blank rows (footer-legend stop, as the bash loop) ---
     local need=0
@@ -2184,6 +2452,18 @@ _ac_extract_big () {
     fi
     _ACX_F="$cur"
     _ACX_STATS_KEY=""     # _ac_lines_stats reads $_ACX_F from here on
+
+    # --- HLG: the grid alone (as the bash path) ---
+    if [[ "$mode" == HLG ]]; then
+        _fr_gutter_grid 0 0 < "$cur"
+        return 0
+    fi
+
+    # --- gutter grid (HDR): the bash path's first choice, same awk ---
+    if [[ "$mode" == HDR && $n -ge 2 && $_acx_ms -eq 0 ]]; then
+        local _gg_out; _gg_out="$(_fr_gutter_grid 1 0 < "$cur")"
+        if [[ -n "$_gg_out" ]]; then echo "$_gg_out"; return 0; fi
+    fi
 
     # --- positional decision (HDR/HDR2) ---
     if [[ "$mode" == HDR || "$mode" == HDR2 ]]; then
@@ -2323,7 +2603,27 @@ _ac_extract_big () {
     return 0
 }
 
+# strategy_extract — the table (_ac_extract_main: bash or big-input path),
+# then the PREAMBLE FIELDS the body kept (see _ac_body_compute), one
+# `Label value` line each — skipped when a column already has that name.
 strategy_extract () {
+    local _sx_out _sx_rc=0 _sx_kv _sx_k
+    _sx_out="$(_ac_extract_main "$1")" || _sx_rc=$?
+    printf '%s\n' "$_sx_out"
+    [[ $_sx_rc -eq 0 && -n "$_sx_out" ]] || return $_sx_rc
+    _ac_body_v "$1"
+    if [[ -n "$_AC_BODY_PRE" ]]; then
+        while IFS= read -r _sx_kv; do
+            [[ -n "$_sx_kv" ]] || continue
+            _sx_k="${_sx_kv%% *}"
+            [[ $'\n'"$_sx_out" == *$'\n'entry1."$_sx_k "* ]] && continue
+            printf '%s\n' "$_sx_kv"
+        done <<< "$_AC_BODY_PRE"
+    fi
+    return 0
+}
+
+_ac_extract_main () {
     local text="$1"
     local shape; _ac_shape_v "$text" || { echo ""; return 0; }; shape="$_AC_SHAPE"
     local mode="${shape%% *}" ncols="${shape##* }"
@@ -2542,6 +2842,24 @@ strategy_extract () {
             _mw+=("${lines[$_mi]}")
         done
         lines=("${_mw[@]}")
+    fi
+
+    # GUTTER GRID (HDR): cells by character offset — the header and the data
+    # alignment give each column's span, so a cell holding spaces stays one
+    # cell and an empty cell stays empty (lib/_helpers.sh _FR_AWK_GRID). It
+    # withdraws when the offsets are not trustworthy, and the token paths
+    # below read the table as before. (The big-input path runs the same awk
+    # on the same rows: _ac_extract_big.)
+    if [[ "$mode" == HDR && ${#lines[@]} -ge 2 ]] && ! printf '%s\n' "$_AC_BODY" | _ac_multisection; then
+        local _gg_out
+        _gg_out="$(printf '%s\n' "${lines[@]}" | _fr_gutter_grid 1 0)"
+        if [[ -n "$_gg_out" ]]; then echo "$_gg_out"; return 0; fi
+    fi
+    # (HLG — headerless by offset — is the grid's alone: nothing when it
+    # withdraws on the full table, and the next candidate reads it)
+    if [[ "$mode" == HLG ]]; then
+        printf '%s\n' "${lines[@]}" | _fr_gutter_grid 0 0
+        return 0
     fi
 
     # For a cleanly-aligned HDR/HDR2 table, use positional token assignment so

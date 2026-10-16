@@ -1,8 +1,5 @@
-n	pool:	tank
-1	state:	DEGRADED
-2	scan:	resilver in progress, 44.20% done, 0h21m to go
-3	NAME	STATE PROGRESS
-4	raidz2-0	DEGRADED [#########-----------] 44.2%
-5	sda	ONLINE [####################] 100%
-6	sdb	RESILVER [#######-------------] 38.1%
-7	sdc	ONLINE [####################] 100%
+n	NAME	STATE	PROGRESS	pool	state	scan
+1	raidz2-0	DEGRADED	[#########-----------] 44.2%	tank	DEGRADED	resilver in progress, 44.20% done, 0h21m to go
+2	sda	ONLINE	[####################] 100%	tank	DEGRADED	resilver in progress, 44.20% done, 0h21m to go
+3	sdb	RESILVER	[#######-------------] 38.1%	tank	DEGRADED	resilver in progress, 44.20% done, 0h21m to go
+4	sdc	ONLINE	[####################] 100%	tank	DEGRADED	resilver in progress, 44.20% done, 0h21m to go

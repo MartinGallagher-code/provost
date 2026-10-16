@@ -1,2 +1,5 @@
-data/report-q2.parquet.412,481,024_100%__118.42MB/s____0	data/archive.tar.gz.1,204,883,456__67%___94.11MB/s____0
-00:03 (xfr#1, to-chk=88/214)	00:12 (xfr#2, to-chk=87/214)
+n	sending	incremental	file	list
+1	data/report-q2.parquet			
+2	412,481,024	100%	118.42MB/s	0:00:03 (xfr#1, to-chk=88/214)
+3	data/archive.tar.gz			
+4	1,204,883,456	67%	94.11MB/s	0:00:12 (xfr#2, to-chk=87/214)

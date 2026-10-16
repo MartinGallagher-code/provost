@@ -1,3 +1,2 @@
-n	A1B2C3D4_______1842_Sat_Jul_11_05	E5F6G7H8_______2210_Sat_Jul_11_05	(connect_to_mx.remote.net
-1	10:22  alice@example.com		
-2		11:03  noreply@example.com	Connection timed out)
+A1B2C3D4_______1842_Sat_Jul_11_05	E5F6G7H8_______2210_Sat_Jul_11_05	-Queue_ID-__--Size--_----Arrival_Time----_-Sender/Recipient-------.(connect_to_mx.remote.net
+10:22  alice@example.com	11:03  noreply@example.com	Connection timed out)

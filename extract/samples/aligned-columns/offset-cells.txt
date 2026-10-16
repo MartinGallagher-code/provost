@@ -1,0 +1,5 @@
+ USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+>dev                   console             1  Active      none   10/14/2026 9:02 AM
+ alice                 rdp-tcp#3           2  Active         5   10/14/2026 8:15 AM
+ bob                                       3  Disc        1:05   10/13/2026 5:12 PM
+ svc-backup                                4  Disc       2+03:11 10/11/2026 11:40 PM

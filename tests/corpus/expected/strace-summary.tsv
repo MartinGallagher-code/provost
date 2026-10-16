@@ -1,4 +1,4 @@
-n	%_time	seconds	usecs/call	calls	syscall	errors
-1	44.20	0.012044	12	1004	read	
-2	28.81	0.008201	8	1024	openat	12
-3	12.04	0.003441	3	1148	close	
+n	%_time	seconds	usecs/call	calls	errors	syscall
+1	44.20	0.012044	12	1004		read
+2	28.81	0.008201	8	1024	12	openat
+3	12.04	0.003441	3	1148		close

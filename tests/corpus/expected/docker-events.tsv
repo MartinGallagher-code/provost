@@ -1,8 +1,8 @@
-n	A	B	C	D	E
-1	2026-07-07T09	12	03.482100011+00	00 container create b3f1a2c4d5e6 (image=nginx	1.25, name=web)
-2	2026-07-07T09	12	03.611204418+00	00 network connect 9e8d7c6b5a4f (container=b3f1a2c4d5e6, name=app_backend, type=bridge)	
-3	2026-07-07T09	12	04.019887342+00	00 container start b3f1a2c4d5e6 (image=nginx	1.25, name=web)
-4	2026-07-07T09	33	51.774310985+00	00 image pull redis	7-alpine (name=redis)
-5	2026-07-07T09	34	02.118449276+00	00 volume create acme_pgdata (driver=local)	
-6	2026-07-07T10	05	19.902337614+00	00 container die 1a2b3c4d5e6f (exitCode=137, image=ghcr.io/acme/api	2.1, name=api)
-7	2026-07-07T10	05	20.144902871+00	00 container kill 1a2b3c4d5e6f (image=ghcr.io/acme/api	2.1, name=api, signal=9)
+n	timestamp	message
+1	2026-07-07T09:12:03.482100011+00:00	container create b3f1a2c4d5e6 (image=nginx:1.25, name=web)
+2	2026-07-07T09:12:03.611204418+00:00	network connect 9e8d7c6b5a4f (container=b3f1a2c4d5e6, name=app_backend, type=bridge)
+3	2026-07-07T09:12:04.019887342+00:00	container start b3f1a2c4d5e6 (image=nginx:1.25, name=web)
+4	2026-07-07T09:33:51.774310985+00:00	image pull redis:7-alpine (name=redis)
+5	2026-07-07T09:34:02.118449276+00:00	volume create acme_pgdata (driver=local)
+6	2026-07-07T10:05:19.902337614+00:00	container die 1a2b3c4d5e6f (exitCode=137, image=ghcr.io/acme/api:2.1, name=api)
+7	2026-07-07T10:05:20.144902871+00:00	container kill 1a2b3c4d5e6f (image=ghcr.io/acme/api:2.1, name=api, signal=9)

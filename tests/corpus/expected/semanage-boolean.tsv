@@ -1,0 +1,7 @@
+n	SELinux_boolean	State	Default	Description
+1	abrt_anon_write	(off	, off)	Allow ABRT to modify public files used for public file transfer services.
+2	antivirus_can_scan_system	(on	, on)	Allow antivirus to scan system
+3	auditadm_exec_content	(on	, on)	Allow auditadm to exec content
+4	httpd_can_network_connect	(off	, off)	Allow HTTPD scripts and modules to connect to the network
+5	nfs_export_all_rw	(on	, on)	Allow nfs to export all read/write
+6	samba_enable_home_dirs	(off	, off)	Allow samba to enable home directories

@@ -319,6 +319,32 @@ strategy_extract () {
         done
     done
 
+    # GUTTER GRID first (lib/_helpers.sh _FR_AWK_GRID): cells by the
+    # column spans the header and the rows' own alignment give, so a
+    # repeated label (gprof's two `seconds`, two `ms/call`) is kept apart
+    # instead of overwriting its twin, and an empty cell stays empty. A
+    # GROUP row directly above the header — fewer words, none a value
+    # (`%  cumulative  self  self  total`) — prefixes the names of the
+    # columns it sits over. The midpoint slicer below runs when the grid
+    # withdraws.
+    local -a _eg_rows=()
+    for j in "${row_idx[@]}"; do _eg_rows+=("${_lines[$j]}"); done
+    local _eg_out="" _eg_up=""
+    if [[ $_ET_START -ge 1 && "${_lines[$((_ET_START - 1))]}" == *[![:space:]]* ]]; then
+        _eg_up="${_lines[$((_ET_START - 1))]}"
+        local -a _eg_ut=(); { _fr_tok "$_eg_up"; _eg_ut=("${_FR_TOK[@]}"); }
+        local _eg_t
+        [[ ${#_eg_ut[@]} -ge 2 && ${#_eg_ut[@]} -lt $ncols ]] || _eg_up=""
+        for _eg_t in "${_eg_ut[@]}"; do
+            [[ "$_eg_t" =~ ^[0-9] || "$_eg_t" == *: ]] && { _eg_up=""; break; }
+        done
+    fi
+    if [[ -n "$_eg_up" ]]; then
+        _eg_out="$(printf '%s\n' "$_eg_up" "$hline" "${_eg_rows[@]}" | _fr_gutter_grid 2 0)"
+    fi
+    [[ -z "$_eg_out" ]] && _eg_out="$(printf '%s\n' "$hline" "${_eg_rows[@]}" | _fr_gutter_grid 1 0)"
+    if [[ -n "$_eg_out" ]]; then echo "$_eg_out"; return 0; fi
+
     local result="" entry=0
     for j in "${row_idx[@]}"; do
         local row="${_lines[$j]}"

@@ -1,0 +1,21 @@
+entry1.level INFO
+entry1.logger root
+entry1.message Loading configuration from /etc/app/config.yaml
+entry1.detail 
+entry2.level INFO
+entry2.logger app.db
+entry2.message Connected to postgres://db:5432/app
+entry2.detail 
+entry3.level WARNING
+entry3.logger app.cache
+entry3.message Redis unavailable, falling back to in-memory cache
+entry3.detail 
+entry4.level ERROR
+entry4.logger app.worker
+entry4.message Job 4411 failed after 3 retries
+entry4.detail Traceback (most recent call last):; File "/srv/app/worker.py", line 57, in run; result = job.execute(); File "/srv/app/jobs.py", line 102, in execute; raise TimeoutError("upstream took too long"); TimeoutError: upstream took too long
+entry5.level INFO
+entry5.logger app.worker
+entry5.message Job 4412 completed in 0.84s
+entry5.detail 
+total_entries 5

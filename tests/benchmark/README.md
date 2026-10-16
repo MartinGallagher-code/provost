@@ -16,8 +16,11 @@ no hint row, no strategy, no golden and no prior review.
 **Round 2** (`round2/`, 109 inputs, 2026-10-02): **17 PASS / 51 PARTIAL /
 41 FAIL**, measured before any tuning. 67 inputs are real captures and 42 are
 faithful reproductions of documented formats; `round2/manifest.tsv` records the
-provenance of each. See
-[`docs/benchmark-2026-10-02-generalisation-round2.md`](../../docs/benchmark-2026-10-02-generalisation-round2.md).
+provenance of each. Re-rated 2026-10-14 after the fix round that worked its
+patterns 1-4: **26 PASS / 54 PARTIAL / 29 FAIL**. It has now been looked at, so
+it is a regression set too; the next generalisation number needs a round 3. See
+[`docs/benchmark-2026-10-02-generalisation-round2.md`](../../docs/benchmark-2026-10-02-generalisation-round2.md)
+and its postscript.
 
 ## There is no gate here, on purpose
 
@@ -55,7 +58,7 @@ worse than no rating.
 | `round2/inputs/*.txt` | round 2: 109 inputs (001-067 captured, 101-142 reproduced) |
 | `round2/manifest.tsv` | round 2: provenance, category, shape and source command per input |
 | `round2/CRITERIA.md` | round 2: the rating rules, fixed before the run |
-| `round2/ratings.tsv` | round 2: winner, confidence, priority winner, rating, `--multi` effect, cluster, reason |
+| `round2/ratings.tsv` | round 2: winner, confidence, priority winner, rating, `--multi` effect, cluster, reason (2026-10-02); then winner, confidence, line coverage, rating and what changed (2026-10-14 re-rating) |
 | `round2/novelty.py` | round 2: name and content near-duplicate check against every existing input |
 | `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |

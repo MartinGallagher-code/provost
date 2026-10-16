@@ -1,0 +1,10 @@
+#Version: 1.5
+#Software: Microsoft Windows Firewall
+#Time Format: Local
+#Fields: date time action protocol src-ip dst-ip src-port dst-port size tcpflags tcpsyn tcpack tcpwin icmptype icmpcode info path
+
+2026-10-14 09:12:01 ALLOW TCP 10.0.0.15 140.82.112.25 52144 443 0 - - - - - - - SEND
+2026-10-14 09:12:03 DROP UDP 10.0.0.1 10.0.0.255 137 137 78 - - - - - - - RECEIVE
+2026-10-14 09:12:07 ALLOW UDP 10.0.0.15 10.0.0.1 53211 53 0 - - - - - - - SEND
+2026-10-14 09:12:09 DROP TCP 203.0.113.9 10.0.0.15 41422 3389 52 S 1871204399 0 64240 - - - RECEIVE
+2026-10-14 09:12:15 ALLOW ICMP 10.0.0.15 10.0.0.1 - - 0 - - - - 8 0 - SEND

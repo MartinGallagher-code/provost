@@ -1,0 +1,43 @@
+entry1.section 
+entry1.name 
+entry1.description systemctl [OPTIONS...] COMMAND ...
+entry2.section 
+entry2.name 
+entry2.description Query or send control commands to the system manager.
+entry3.section Unit Commands
+entry3.name list-units [PATTERN...]
+entry3.description List units currently in memory
+entry4.section Unit Commands
+entry4.name list-automounts [PATTERN...]
+entry4.description List automount units currently in memory, ordered by path
+entry5.section Unit Commands
+entry5.name list-sockets [PATTERN...]
+entry5.description List socket units currently in memory, ordered by address
+entry6.section Unit Commands
+entry6.name list-timers [PATTERN...]
+entry6.description List timer units currently in memory, ordered by next elapse
+entry7.section Unit Commands
+entry7.name is-active PATTERN...
+entry7.description Check whether units are active
+entry8.section Unit Commands
+entry8.name is-failed [PATTERN...]
+entry8.description Check whether units are failed or system is in degraded state
+entry9.section Unit Commands
+entry9.name status [PATTERN...|PID...]
+entry9.description Show runtime status of one or more units
+entry10.section Unit Commands
+entry10.name start UNIT...
+entry10.description Start (activate) one or more units
+entry11.section Unit Commands
+entry11.name stop UNIT...
+entry11.description Stop (deactivate) one or more units
+entry12.section Unit File Commands
+entry12.name list-unit-files [PATTERN...]
+entry12.description List installed unit files
+entry13.section Unit File Commands
+entry13.name enable [UNIT...|PATH...]
+entry13.description Enable one or more unit files
+entry14.section Unit File Commands
+entry14.name disable UNIT...
+entry14.description Disable one or more unit files
+total_entries 14

@@ -25,7 +25,7 @@ strategy.
 |---|---|
 | `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 261 format-detection strategies, in 15 category dirs (112 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 264 format-detection strategies, in 15 category dirs (115 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,8 +33,8 @@ strategy.
 
 ## Strategy count
 
-261 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 87, system 58,
-network 31, structured 25, security 11, filesystem 8, build 8, misc 7,
+264 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
+network 31, structured 26, security 11, filesystem 8, build 8, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
 when it is counted. Every strategy has a `## Sample:` file under `samples/`
@@ -145,6 +145,23 @@ follow the same rule: same bytes, proven by forcing it over the corpus.
 Values keep their spaces: sanitise field NAMES with `_clean_field`, and pass
 values through `_clean_value` (never replace a value's spaces with `_`).
 
+### Whitespace tables: the gutter grid
+
+A strategy that splits an aligned table should not split on whitespace
+tokens — a cell holding a space (`Number of message queues`, `Oct  2`) or an
+empty cell shifts every later value. `_fr_gutter_grid NH RL [PREFIX]`
+(lib/_helpers.sh) reads the table's lines on stdin and assigns cells by
+character OFFSET: positions blank in the header and in every row are the
+gutters between columns, a header label names the segment it sits in, and an
+empty span is an empty cell. NH is the number of header lines (0 headerless,
+1, or 2 with a group row whose words prefix the names below), RL=1 when a
+`----  ----` / `==== ====` rule follows the header. It prints `PREFIX<N>.name
+value` lines plus `total_entries N`, or NOTHING when the offsets cannot be
+trusted (non-ASCII, a TAB header over space rows, an unpadded single-spaced
+table, a header repeated as data, misaligned cells …) — keep your old path as
+the fallback. aligned-columns (both routes), fixed-width and embedded-table
+use it; `tests/test_gutter_grid.sh` pins its behaviour.
+
 ## Candidate ranking
 
 `run_auto_strategies` (lib/_discovery.sh) picks the winner in two phases:
@@ -159,7 +176,9 @@ values through `_clean_value` (never replace a value's spaces with `_`).
    strategy's detect-time state, then extract. A candidate whose extract is
    empty, or that trips the truncation guard, yields to the next one, so the
    winner always has output. `--max-strategies N` / `--first-match` stop after
-   N / 1 candidates produced output.
+   N / 1 candidates produced output. With one winner wanted, the first
+   candidate to produce output is HELD when its line coverage is low, and the
+   rescue parser gets a turn (see "Line coverage" below).
 
 `--rank priority` (or `PROVOST_RANK=priority`) restores the historical single pass:
 the first strategy in priority order whose detect passes and whose extract is
@@ -179,7 +198,81 @@ confidence must declare `## Confidence-Max`** or it forfeits the speed-up. If
 the top candidate then extracts nothing, the whole pass is redone unpruned, so
 the winner is always exactly the unpruned ranking (`_EAS_NOPRUNE=1` forces the
 unpruned pass; `tests/test_rank.sh` pins it, and the corpus was checked
-byte-for-byte in full and `--generic` mode).
+byte-for-byte in full and `--generic` mode). The coverage hold keeps this
+exact without a redo: the held claim is the first candidate in rank order to
+produce output, which no ceiling ever prunes, and the rescue does not depend
+on the other candidates (`tests/test_coverage.sh` compares both runs).
+
+## Line coverage, the coverage hold and the rescue parser
+
+Confidence says how sure a detector is of the FORMAT; it says nothing about
+how much of the input the extract KEPT. A strategy that recognises one section
+of a multi-section report — a `--version` banner over its algorithm lists, the
+scalar lines of an environment dump over its path lists, the first block of a
+report — claims the whole input at full confidence and drops the rest without
+a trace, and the truncation guard (parse SIZE against input size) cannot see
+it when the kept part is wide. So the engine measures a second signal:
+
+- **Coverage** (`_parse_coverage`, lib/_discovery.sh) = the share of the
+  input's non-blank lines that contributed to the parse: a line contributed
+  when more than half of its significant tokens appear in the parse (field
+  names count). Tokens split at blanks and `= : , ; |`, quotes, brackets and
+  `_`; paths, URLs, dotted versions and dashed names stay whole, so a dropped
+  `/home/dev/.conda/envs` is not vouched for by `home` and `envs` elsewhere
+  (a dashed token still counts when each dash part is present — a
+  `glibc-2.34-60.el9` cut into name and version). Lines the tool marks as
+  comments (`#`, `;`) and lines without a token (rules, box art) are not
+  counted. One awk pass, no parsing: it can only over-estimate, so a low value
+  is conclusive. Measured on inputs up to `_FR_COV_BYTES` (128 KB) — a token
+  set of a 10 MB capture costs seconds, and the reports this is for are small;
+  above it coverage is `-` (not measured) and nothing changes.
+- **Visible.** `--emit-meta` prints it as a 4th field
+  (`__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage`); `--explain`
+  shows each matching candidate's `COV` and previews the hold below; `-d`
+  logs it per candidate. `provost` records it in the capture's `meta.tsv`,
+  prints it after the confidence, and says so when a capture is filed under
+  60%.
+- **Hold.** With one winner wanted (ranked, `--max-strategies 1` /
+  `--first-match` — how provost calls the engine), the first candidate to
+  produce output is HELD instead of stored when its coverage is below
+  `_FR_COV_MIN` (60) and the input has at least `_FR_COV_MIN_LINES` (6)
+  counted lines. Never held: a hint-routed or pinned (`-s`, `--replay`)
+  strategy, a structured grammar (json / yaml / xml / toml), a catch-all
+  (`text-lines`, `line-records`), a BESPOKE strategy (outside `delimited/` +
+  `structured/`, plugins included — tool knowledge whose output is a
+  deliberate summary, e.g. systemctl-status without its journal tail; a
+  bespoke parse that loses data is fixed in the strategy, as gnu-version
+  was), and a TABLE — a parse whose records (3 or more, of 2+ fields) share a
+  field: its rows are the dataset, and what it dropped is a banner, a summary
+  or another table (`--multi`), not rows a key/value parse could add without
+  flattening the table into text.
+- **Rescue.** A held claim is offered to the rescue parsers
+  (`_FR_COV_RESCUERS`, today `kv-report`): one that covers at least
+  `_FR_COV_GAIN` (25) points more wins; otherwise the held claim is stored
+  byte for byte as before. Why not simply the next ranked candidate: every
+  general parser "covers" a report it cannot read by scattering tokens over
+  generic columns (aligned-columns, colons, vertical-line reach ~100%), and a
+  corpus trial of that rule turned good parses into worse ones. Coverage says
+  THAT lines were dropped, not which parse is right; the rescue parser is
+  written for the shape that drops them.
+- **`kv-report`** (strategies/structured, rescue only — it never competes in
+  the ordinary ranking, where a key/value report is too common a shape to
+  claim inputs from more specific parsers): every line of a key/value report
+  becomes a row — `key: value` / `key = value` lines, a bare `Label:` over
+  indented, bulleted or (apt-style) unindented items (one row per item, the
+  label as key), wrapped values folded, path / URL lists as rows, titled
+  sections (`**** GPU ****`, underlined titles, a title over deeper lines, a
+  short block opener) in a `section` column, right-aligned keys recognised by
+  their shared colon column, a `block` index when blank-separated blocks
+  repeat their keys. A report that is one record (every key unique) comes out
+  as one wide row (`section.key` columns), like the other single-record kv
+  parsers; anything else as the long key/value table.
+
+Knobs (internal, like `_FR_BIG_BYTES`): `_FR_COV_BYTES`, `_FR_COV_MIN` (0
+disables the hold), `_FR_COV_GAIN`, `_FR_COV_MIN_LINES`, `_FR_COV_CATCHALL`,
+`_FR_COV_RESCUERS`, `_FR_COV_FLOOR` (a rescue parser's confidence must reach
+min(held confidence, 70)). The truncation guard keeps its own, older token
+test (whitespace words) and its size gate; it is unchanged.
 
 
 ## Confidence rubric
@@ -196,7 +289,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
-| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79) |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage") |
 | General structure | **55–69**, scaled | a shape any tabular or kv output has (also `git-log`'s oneline branch, 64: a leading hex token) | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
 | Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
 

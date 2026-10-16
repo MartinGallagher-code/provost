@@ -1,5 +1,5 @@
-n	Component	init	live	ready	metrics
-1	api	ok	ok		
+n	Component	init	ready	live	metrics
+1	api	ok		ok	
 2	worker	ok	ok	ok	ok
-3	scheduler	ok	ok		
-4	gateway	ok		ok	ok
+3	scheduler	ok		ok	
+4	gateway	ok	ok		ok

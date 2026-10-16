@@ -1,2 +1,2 @@
 apiVersion	kind	metadata.name	metadata.namespace	data.startup.sh	data.message	data.retries
-v1	ConfigMap	app-config	production	|	>	"5"
+v1	ConfigMap	app-config	production	| set -euo pipefail echo "Starting application..." exec /usr/local/bin/app --config /etc/app/config.yaml	> This is a folded scalar that spans multiple lines but collapses into a single string value when parsed by a YAML processor.	"5"

@@ -1,0 +1,2 @@
+Ver Cluster Port Status Owner    Data directory              Log file
+14  main    5433 down   postgres /srv/pg/14/main             /srv/log/pg-14-main.log

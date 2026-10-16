@@ -1,0 +1,37 @@
+entry1.timestamp 10:14:02.118
+entry1.thread main
+entry1.level INFO
+entry1.logger c.a.inventory.Application
+entry1.message Starting Application using Java 17.0.9
+entry1.detail 
+entry2.timestamp 10:14:03.471
+entry2.thread main
+entry2.level DEBUG
+entry2.logger c.a.inventory.db.Migrations
+entry2.message Applying migration V12__add_sku_index
+entry2.detail 
+entry3.timestamp 10:14:03.902
+entry3.thread main
+entry3.level INFO
+entry3.logger c.a.inventory.Application
+entry3.message Started Application in 2.1 seconds
+entry3.detail 
+entry4.timestamp 10:15:40.006
+entry4.thread pool-2-thread-1
+entry4.level WARN
+entry4.logger c.a.inventory.sync.Supplier
+entry4.message Supplier feed returned 0 items
+entry4.detail 
+entry5.timestamp 10:16:12.774
+entry5.thread pool-2-thread-3
+entry5.level ERROR
+entry5.logger c.a.inventory.sync.Supplier
+entry5.message Sync failed
+entry5.detail java.net.SocketTimeoutException: Read timed out; at java.base/java.net.SocketInputStream.read(SocketInputStream.java:168); at c.a.inventory.sync.Supplier.fetch(Supplier.java:77); Caused by: java.io.IOException: stream closed; ... 4 common frames omitted
+entry6.timestamp 10:16:13.001
+entry6.thread pool-2-thread-3
+entry6.level INFO
+entry6.logger c.a.inventory.sync.Supplier
+entry6.message Retry scheduled in 60s
+entry6.detail 
+total_entries 6

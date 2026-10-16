@@ -1,0 +1,13 @@
+Lifecycle scripts included in web-shop@2.3.0:
+  start
+    node dist/server.js
+  test
+    vitest run --coverage
+
+available via `npm run-script`:
+  build
+    tsc -p tsconfig.build.json
+  lint
+    eslint "src/**/*.ts"
+  dev
+    nodemon --watch src --exec ts-node src/server.ts

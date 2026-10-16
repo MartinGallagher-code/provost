@@ -1,0 +1,11 @@
+
+Share name   Resource                        Remark
+
+-------------------------------------------------------------------------------
+C$           C:\                             Default share
+IPC$                                         Remote IPC
+ADMIN$       C:\WINDOWS                      Remote Admin
+Projects     D:\Shares\Projects
+Users        C:\Users
+The command completed successfully.
+

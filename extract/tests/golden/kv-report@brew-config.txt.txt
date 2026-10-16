@@ -1,0 +1,18 @@
+HOMEBREW_VERSION 4.2.14
+ORIGIN https://github.com/Homebrew/brew
+HEAD 3b8ecb6e48d5a0a6d3ad8f2b7a0d0bb9e0ea21f3
+Last_commit 5 days ago
+Core_tap_JSON 21 Mar 13:41 UTC
+Core_cask_tap_JSON 21 Mar 13:41 UTC
+HOMEBREW_PREFIX /opt/homebrew
+HOMEBREW_CASK_OPTS []
+HOMEBREW_MAKE_JOBS 10
+Homebrew_Ruby 3.1.4 => /opt/homebrew/Library/Homebrew/vendor/portable-ruby/3.1.4/bin/ruby
+CPU deca-core 64-bit arm_firestorm_icestorm
+Clang 15.0.0 build 1500
+Git 2.39.3 => /Library/Developer/CommandLineTools/usr/bin/git
+Curl 8.4.0 => /usr/bin/curl
+macOS 14.4-arm64
+CLT 15.3.0.0.1.1708646388
+Xcode N/A
+Rosetta_2 false

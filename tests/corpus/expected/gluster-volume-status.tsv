@@ -1,3 +1,3 @@
-n	Gluster	process	TCP	Port	Online
-1	Brick	node1:/data/brick	49152	Y	812
-2	Brick	node2:/data/brick	49152	Y	813
+n	Gluster_process	TCP_Port	Online	Pid	Status_of_volume
+1	Brick node1:/data/brick	49152	Y	812	gv0
+2	Brick node2:/data/brick	49152	Y	813	gv0

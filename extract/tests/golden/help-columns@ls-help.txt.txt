@@ -1,0 +1,29 @@
+entry1.name 
+entry1.description Usage: ls [OPTION]... [FILE]...
+entry2.name 
+entry2.description List information about the FILEs (the current directory by default).
+entry3.name 
+entry3.description Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.
+entry4.name 
+entry4.description Mandatory arguments to long options are mandatory for short options too.
+entry5.name -a, --all
+entry5.description do not ignore entries starting with .
+entry6.name -A, --almost-all
+entry6.description do not list implied . and ..
+entry7.name --author
+entry7.description with -l, print the author of each file
+entry8.name -b, --escape
+entry8.description print C-style escapes for nongraphic characters
+entry9.name --block-size=SIZE
+entry9.description with -l, scale sizes by SIZE when printing them; e.g., '--block-size=M'; see SIZE format below
+entry10.name -B, --ignore-backups
+entry10.description do not list implied entries ending with ~
+entry11.name -c
+entry11.description with -lt: sort by, and show, ctime (time of last change of file status information); with -l: show ctime and sort by name; otherwise: sort by ctime, newest first
+entry12.name -C
+entry12.description list entries by columns
+entry13.name --color[=WHEN]
+entry13.description color the output WHEN; more info below
+entry14.name -d, --directory
+entry14.description list directories themselves, not their contents
+total_entries 14

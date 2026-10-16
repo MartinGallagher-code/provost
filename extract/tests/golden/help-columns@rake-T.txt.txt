@@ -1,0 +1,15 @@
+entry1.name rake build
+entry1.description Build web_shop-2.3.0.gem into the pkg directory
+entry2.name rake clean
+entry2.description Remove any temporary products
+entry3.name rake clobber
+entry3.description Remove any generated files
+entry4.name rake db:migrate
+entry4.description Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)
+entry5.name rake db:seed
+entry5.description Load the seed data from db/seeds.rb
+entry6.name rake install
+entry6.description Build and install web_shop-2.3.0.gem into system gems
+entry7.name rake release[remote]
+entry7.description Create tag v2.3.0 and build and push web_shop-2.3.0.gem to rubygems.org
+total_entries 7

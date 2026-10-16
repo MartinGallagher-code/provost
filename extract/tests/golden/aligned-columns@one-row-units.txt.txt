@@ -1,0 +1,8 @@
+entry1.Ver 14
+entry1.Cluster main
+entry1.Port 5433
+entry1.Status down
+entry1.Owner postgres
+entry1.Data_directory /srv/pg/14/main
+entry1.Log_file /srv/log/pg-14-main.log
+total_entries 1

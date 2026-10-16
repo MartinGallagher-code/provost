@@ -1,0 +1,25 @@
+entry1.timestamp 2026/10/14 08:01:22
+entry1.level notice
+entry1.pid 1#1
+entry1.message using the "epoll" event method
+entry2.timestamp 2026/10/14 08:01:22
+entry2.level notice
+entry2.pid 1#1
+entry2.message nginx/1.25.3
+entry3.timestamp 2026/10/14 08:01:22
+entry3.level notice
+entry3.pid 1#1
+entry3.message start worker processes
+entry4.timestamp 2026/10/14 09:47:10
+entry4.level error
+entry4.pid 29#29
+entry4.message *1182 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), client: 10.0.4.17, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "shop.example.com"
+entry5.timestamp 2026/10/14 09:52:33
+entry5.level warn
+entry5.pid 29#29
+entry5.message *1201 an upstream response is buffered to a temporary file /var/cache/nginx/proxy_temp/1/00/0000000001 while reading upstream, client: 10.0.4.22, server: shop.example.com, request: "GET /export.csv HTTP/1.1"
+entry6.timestamp 2026/10/14 10:03:05
+entry6.level crit
+entry6.pid 30#30
+entry6.message *1312 connect() to unix:/run/php/php-fpm.sock failed (2: No such file or directory) while connecting to upstream
+total_entries 6

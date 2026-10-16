@@ -1,0 +1,9 @@
+Frob 3.2.1 (built 2026 Mar 04)
+Patch level: 1-212
+Packaged by builder@example.org
+Normal build with scripting. Optional features (+) or not (-):
++archive           +color             -gpu               +network
++clipboard         +compress          +i18n              -profiling
+-cloud             +crypto            +json              +regex
++cluster           -debug             -ldap              +sqlite
++codec             +editor            +lua

@@ -1,0 +1,10 @@
+
+DNAME          LOC               BUDGET
+-------------- ------------- ----------
+ACCOUNTING     NEW YORK          125000
+RESEARCH       DALLAS             98000
+SALES          SAN FRANCISCO     143500
+OPERATIONS     BOSTON
+
+4 rows selected.
+

@@ -1,4 +1,4 @@
-n	State	Recv-Q	Send-Q	Local	Address:Port
+n	State	Recv-Q	Send-Q	Local_Address:Port	Peer_Address:Port
 1	LISTEN	0	128	0.0.0.0:22	0.0.0.0:*
 2	LISTEN	0	511	0.0.0.0:80	0.0.0.0:*
 3	LISTEN	0	128	127.0.0.1:3306	0.0.0.0:*

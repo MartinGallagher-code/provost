@@ -1,0 +1,76 @@
+entry1.section 
+entry1.key version
+entry1.value 2024.3.2 linux-x64 (2024-03-11)
+entry2.section 
+entry2.key activated
+entry2.value yes
+entry3.section 
+entry3.key shims_on_path
+entry3.value no
+entry4.section build_info
+entry4.key Target
+entry4.value x86_64-unknown-linux-gnu
+entry5.section build_info
+entry5.key Features
+entry5.value DEFAULT, NATIVE_TLS, OPENSSL
+entry6.section build_info
+entry6.key Built
+entry6.value Mon, 11 Mar 2024 16:02:51 +0000
+entry7.section build_info
+entry7.key Rust Version
+entry7.value rustc 1.76.0 (07dca489a 2024-02-04)
+entry8.section build_info
+entry8.key Profile
+entry8.value release
+entry9.section 
+entry9.key shell
+entry9.value /bin/bash
+entry10.section 
+entry10.key shell
+entry10.value GNU bash, version 5.1.16(1)-release (x86_64-pc-linux-gnu)
+entry11.section dirs
+entry11.key data
+entry11.value ~/.local/share/mise
+entry12.section dirs
+entry12.key config
+entry12.value ~/.config/mise
+entry13.section dirs
+entry13.key cache
+entry13.value ~/.cache/mise
+entry14.section dirs
+entry14.key state
+entry14.value ~/.local/state/mise
+entry15.section dirs
+entry15.key shims
+entry15.value ~/.local/share/mise/shims
+entry16.section 
+entry16.key config_files
+entry16.value ~/.config/mise/config.toml
+entry17.section 
+entry17.key config_files
+entry17.value ~/projects/api/.tool-versions
+entry18.section 
+entry18.key plugins
+entry18.value java  (core)
+entry19.section 
+entry19.key plugins
+entry19.value node  (core)
+entry20.section 
+entry20.key plugins
+entry20.value python  (core)
+entry21.section 
+entry21.key plugins
+entry21.value terraform  https://github.com/asdf-community/asdf-hashicorp.git#5e5c1a7
+entry22.section 
+entry22.key toolset
+entry22.value node@20.11.1
+entry23.section 
+entry23.key toolset
+entry23.value python@3.12.2
+entry24.section 
+entry24.key toolset
+entry24.value terraform@1.7.4
+entry25.section 
+entry25.key 
+entry25.value No problems found
+total_entries 25

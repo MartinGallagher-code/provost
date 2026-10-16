@@ -76,12 +76,12 @@ _worker () {
     local f="$1" name; name="$(basename "$f" .txt)"
     local em="$WORK/$name.err"
 
-    # Precomputed by the batch phase (golden/update), or one generic call
-    # (report/coverage): wide on stdout, meta on stderr.
+    # Precomputed by the batch phase, or (when the batch left no record) one
+    # generic call: wide on stdout, meta on stderr.
     local gwide gstrat="" gconf=0
     if [[ -n "$PRE_DIR" && -f "$PRE_DIR/$name.meta" ]]; then
         gwide="$(cat "$PRE_DIR/$name.wide" 2>/dev/null || true)"
-        IFS=$'\t' read -r _ gstrat gconf < "$PRE_DIR/$name.meta" || true
+        IFS=$'\t' read -r _ gstrat gconf _ < "$PRE_DIR/$name.meta" || true
         [[ -z "$gstrat" ]] && gstrat="(none)"
         [[ -z "$gconf" ]] && gconf=0
     else
@@ -93,13 +93,21 @@ _worker () {
     printf '%s\n' "$gtidy" > "$WORK/$name.tidy"
     local gc gr; read -r gc gr <<< "$(_melt_dims "$gwide")"
 
-    # Optional full-mode call.
+    # Optional full-mode result (report/coverage): precomputed by the batch
+    # phase like the generic one, or one call when the batch left no record.
     local fstrat="(none)" fconf=0 fc=0 fr=0
     if [[ $need_full -eq 1 ]]; then
         local fwide
-        fwide="$(env -u GIT_DIR bash "$ENGINE" --emit-meta -f tsv --max-strategies 1 "$f" 2>"$em")"
-        fstrat="$(awk -F'\t' '/^__EXTRACT_META__/{s=$2} END{print s}' "$em")"; [[ -z "$fstrat" ]] && fstrat="(none)"
-        fconf="$(awk -F'\t' '/^__EXTRACT_META__/{c=$3} END{print c+0}' "$em")"
+        if [[ -n "$PRE_FULL" && -f "$PRE_FULL/$name.meta" ]]; then
+            fwide="$(cat "$PRE_FULL/$name.wide" 2>/dev/null || true)"
+            IFS=$'\t' read -r _ fstrat fconf _ < "$PRE_FULL/$name.meta" || true
+        else
+            fwide="$(env -u GIT_DIR bash "$ENGINE" --emit-meta -f tsv --max-strategies 1 "$f" 2>"$em")"
+            fstrat="$(awk -F'\t' '/^__EXTRACT_META__/{s=$2} END{print s}' "$em")"
+            fconf="$(awk -F'\t' '/^__EXTRACT_META__/{c=$3} END{print c+0}' "$em")"
+        fi
+        [[ -z "$fstrat" ]] && fstrat="(none)"
+        [[ -z "$fconf" ]] && fconf=0
         read -r fc fr <<< "$(_melt_dims "$fwide")"
     fi
 
@@ -145,30 +153,36 @@ for f in "$IN"/*.txt; do
     INPUTS+=("$f")
 done
 
-# --- batch extraction fast path (golden / update) --------------------------
+# --- batch extraction fast path --------------------------------------------
 # One engine process per job slot handles a whole chunk of inputs via
-# `--batch --batch-out`, so the ~200-file strategy tree is read and parsed
+# `--batch --batch-out`, so the ~260-file strategy tree is read and parsed
 # JOBS times per run instead of once per input. Workers then consume the
-# precomputed .wide/.meta files (PRE_DIR) instead of spawning the engine.
-# report/coverage keep the per-input spawn: they need a second full-mode
-# call per input anyway and are not the CI hot path.
-PRE_DIR=""
-if [[ "$mode" == "golden" || "$mode" == "update" ]]; then
-    PRE_DIR="$WORK/pre"
-    mkdir -p "$PRE_DIR"
-    _chunk=0
+# precomputed .wide/.meta files (PRE_DIR, and PRE_FULL for the full-mode
+# result report/coverage also need) instead of spawning the engine per input.
+# (coverage used to spawn twice per input and took over an hour; any input a
+# batch leaves without a record falls back to the per-input call.)
+_batch_pass () { # $1=out dir, rest=engine mode flags
+    local _out="$1" _chunk=0; shift
+    mkdir -p "$_out"
     while [[ $_chunk -lt $JOBS ]]; do
         (
             _i=$_chunk
             while [[ $_i -lt ${#INPUTS[@]} ]]; do
                 printf '%s\n' "${INPUTS[$_i]}"
                 _i=$((_i + JOBS))
-            done | env -u GIT_DIR bash "$ENGINE" --batch --batch-out "$PRE_DIR" \
-                       --generic -f tsv --max-strategies 1 2>/dev/null
+            done | env -u GIT_DIR bash "$ENGINE" --batch --batch-out "$_out" \
+                       "$@" -f tsv --max-strategies 1 2>/dev/null
         ) &
         _chunk=$((_chunk + 1))
     done
     wait
+}
+PRE_DIR="$WORK/pre"
+_batch_pass "$PRE_DIR" --generic
+PRE_FULL=""
+if [[ $need_full -eq 1 ]]; then
+    PRE_FULL="$WORK/pre-full"
+    _batch_pass "$PRE_FULL"
 fi
 
 # --- fan out over inputs with a bounded job pool ---------------------------
