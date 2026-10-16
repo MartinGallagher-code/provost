@@ -133,6 +133,8 @@ _et_scan () {
         for ((j = i + 1; j < n; j++)); do
             local dl="${_lines[$j]}"
             [[ "${dl}" != *[![:space:]]* ]] && break
+            # (a result-set footer — `(3 rows affected)` — closes the table)
+            _fr_is_footer "$dl" && break
             local -a dk=(); { _fr_tok "$dl"; dk=("${_FR_TOK[@]}"); }
             # A row with fewer tokens than the header is admitted ONLY when its
             # tokens positionally align to distinct header columns — a blank
@@ -309,6 +311,8 @@ strategy_extract () {
         for ((j = k + 1; j < ${#_lines[@]}; j++)); do
             local dl="${_lines[$j]}"
             [[ "${dl}" != *[![:space:]]* ]] && break
+            # (a result-set footer — `(3 rows affected)` — closes the table)
+            _fr_is_footer "$dl" && break
             local -a dk2=(); { _fr_tok "$dl"; dk2=("${_FR_TOK[@]}"); }
             if [[ ${#dk2[@]} -lt $ncols ]]; then
                 _et_row_aligns "$hline" "$dl" || break

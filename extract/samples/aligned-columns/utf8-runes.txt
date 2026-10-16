@@ -1,0 +1,5 @@
+NAME             APP     READY   STATUS             RESTARTS     AGE
+web-7d4b9c-x2k   商店前端    1/1     Running            0            3d
+api-5f6c8d-p9q   订单服务    1/1     Running            2 (4h ago)   3d
+worker-0         批处理     0/1     CrashLoopBackOff   17           1h
+redis-0          cache   1/1     Running            0            12d

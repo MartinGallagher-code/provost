@@ -1,0 +1,7 @@
+NAME        LABEL    SIZE FSTYPE MOUNTPOINT
+sda                931.5G
+├─sda1      EFI      512M vfat   /boot/efi
+├─sda2      データ   900G ext4   /data
+└─sda3      备份      31G ext4   /backup
+nvme0n1            476.9G
+└─nvme0n1p1 系统盘   476G btrfs  /

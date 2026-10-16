@@ -1,5 +1,5 @@
-n	UNIT	LOAD	ACTIVE	SUB	DESCRIPTION
-1	●	docker.service	loaded	failed	failed Docker Application Container Engine
-2	●	mysql.service	loaded	failed	failed MySQL Community Server
-3	●	openvpn@client.service	loaded	failed	failed OpenVPN connection to client
-4	●	fail2ban.service	loaded	failed	failed Fail2Ban Service
+n	A	UNIT	LOAD	ACTIVE	SUB	DESCRIPTION
+1	●	docker.service	loaded	failed	failed	Docker Application Container Engine
+2	●	mysql.service	loaded	failed	failed	MySQL Community Server
+3	●	openvpn@client.service	loaded	failed	failed	OpenVPN connection to client
+4	●	fail2ban.service	loaded	failed	failed	Fail2Ban Service

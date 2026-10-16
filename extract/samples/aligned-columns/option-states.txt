@@ -1,0 +1,13 @@
+The following options control optimizations:
+  -faggressive-loop-optimizations		[enabled]
+  -falign-functions           		[disabled]
+  -falign-jumps               		[disabled]
+  -fasynchronous-unwind       		[enabled]
+  -fauto-inc-dec              		[enabled]
+  -fbranch-count-reg          		[disabled]
+  -fcombine-stack-adjustments 		[disabled]
+  -fexcess-precision=         		
+  -fdelete-dead-exceptions    		[disabled]
+  -fomit-frame-pointer        		[enabled]
+  -fvect-cost-model=          		dynamic
+  -fzero-call-used-regs=      		skip

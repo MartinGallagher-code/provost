@@ -1,0 +1,31 @@
+entry1.Customer C10045
+entry1.Name Northwind Traders
+entry1.Region EAST
+entry1.Credit_Limit 50,000.00
+entry1.Balance 12,450.75
+entry1.Status OK
+entry2.Customer C10046
+entry2.Name Contoso Ltd
+entry2.Region WEST
+entry2.Credit_Limit 75,000.00
+entry2.Balance 80,120.00
+entry2.Status OVER
+entry3.Customer C10047
+entry3.Name Fabrikam Inc
+entry3.Region EAST
+entry3.Credit_Limit 25,000.00
+entry3.Balance 0.00
+entry3.Status OK
+entry4.Customer C10048
+entry4.Name Tailspin Toys
+entry4.Region SOUTH
+entry4.Credit_Limit 10,000.00
+entry4.Balance 2,300.10
+entry4.Status OK
+entry5.Customer C10049
+entry5.Name Wide World Importers
+entry5.Region NORTH
+entry5.Credit_Limit 100,000.00
+entry5.Balance 45,000.00
+entry5.Status OK
+total_entries 5

@@ -1,0 +1,5 @@
+method  crc     date  time           compressed        uncompressed  ratio uncompressed_name
+defla 1c2b3a4d Sep 30 08:01               10240               40960  75.0% /var/log/app.log.1
+defla 5e6f7a8b Oct  1 08:01                8120               30001  73.0% /var/log/app.log.2
+defla 9c0d1e2f Oct 12 08:01                 950                4096  76.8% /var/log/app.log.3
+                                          19310               75057  74.3% (totals)

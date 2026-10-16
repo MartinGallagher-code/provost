@@ -1,0 +1,6 @@
+n	A	B
+1	*	phoenix 1.7.11 (Hex package) (mix) locked at 1.7.11 (phoenix) b1e9dc8f ok
+2	*	ecto 3.11.1 (Hex package) (mix) locked at 3.11.1 (ecto) 4c2e6a90 ok
+3	*	jason 1.4.1 (Hex package) (mix) locked at 1.4.1 (jason) fbc1e2d3 ok
+4	*	plug_cowboy 2.7.0 (Hex package) (mix) locked at 2.7.0 (plug_cowboy) 9a8b7c6d ok
+5	*	telemetry 1.2.1 (Hex package) (mix) locked at 1.2.1 (telemetry) 3e4f5a6b ok

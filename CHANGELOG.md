@@ -1,5 +1,144 @@
 # provost — Changelog
 
+## 2026-10-16 — whitespace tables: UTF-8 offsets, loose headers, footers and banners everywhere
+
+The gaps the 2026-10-14 gutter-grid work left (round-2 postscript, pattern 1
+and 3). Developed against the corpus and new examples written for this
+change — `docker ps` (tabwriter `…`), `lslogins` / `ls -l` with accented
+names, `lsblk` with a CJK label (display width), a CJK `kubectl get` and a
+pandas frame (character count), `gh run list` (`✓`), SQL*Plus / sqlcmd /
+Sybase isql / DB2 result sets with footers and prompts, `perf report
+--stdio`, `py-spy top`, a `dotnet-trace` top list, an AS/400 spooled report,
+a COBOL print report with ASA carriage control, `Get-Disk` /
+`Get-NetAdapter` / `Get-PSDrive`, `zcat -lv`, `lzop -l`, `xz -lv`, a gcc-style
+option listing, a Ruby iseq disassembly — not against the round-2 inputs.
+
+**Gutter grid** (`extract/lib/_helpers.sh` `_FR_AWK_GRID`, still one
+mawk-safe program under `LC_ALL=C`):
+- **UTF-8.** It no longer withdraws on non-ASCII bytes: a line holding bytes
+  >= 0x80 is re-coded before any offset is taken — each UTF-8 character one
+  placeholder byte (two for a wide East Asian / emoji character), its bytes
+  kept aside and put back into the cells (`u8enc` / `u8dec`; zero-width marks
+  ride on the character before). Wide characters count two columns first
+  (terminal tools: `column`, `lsblk`, `ls`); when the offsets do not hold, the
+  whole grid is re-run counting every character as one (Go tabwriter, Python
+  `ljust`). A Unicode space next to another space (`a<thin><thin>1`) is
+  padding; a lone one inside a cell (`67<nbsp>390<nbsp>000`) stays in it.
+  `µs` is a unit. The END block became `grid()` (each withdrawal a `return
+  0`) so it can run twice; `greset()` clears its arrays.
+- **Loose headers.** When the rows cross a label boundary in force (the
+  header printed in a format of its own, `method  crc     date  time` over
+  `defla 1c2b3a4d Oct  1 08:01`), the data's own gutters cut the segment
+  and each sub-column goes to the ONE label group it overlaps (`dsplit`) —
+  not when every row holds one token per label (the token reading is right).
+- **One crossing row.** In a small table one cell may run a column into
+  the gap (`Full Repair Needed`, PowerShell `Get-Volume`); a boundary never
+  falls between two words of a crossing cell in more rows than the 1-in-10
+  allowance (`splits1`, candidates tried best first); a row whose cells on
+  both sides of a one-space gap sit at neither their column's modal start
+  nor its modal end is misplaced (`9 (2m ago)` pushed under `AGE`) — beyond
+  1 row in 10 the grid withdraws.
+- **Last label group** of a line may hold short rows (lsblk's `0 disk` under
+  `RO TYPE MOUNTPOINTS`) or one run-on totals row (`[total of 2 files]`).
+- Two labels one space apart over parts one column apart, the left holding
+  the SAME word in every row (`CREATED BY` over `/bin/sh -c …`), are one
+  label; a run holding the same lone sign in every row (`±`) is a column of
+  its own; a box-drawing bar column (`│`, also glued to a label, `ON │`) is
+  dropped like `|`; a label's trailing `.` is not turned into `_`.
+- A labelled column empty in every row while every row holds one token per
+  label and another column's cells hold 2+-space gaps (a header of another
+  width: escape codes or overstrikes) withdraws.
+- **Headerless** (NH=0): a SOFT gutter (a 2+-wide stretch at most 1 row in 10
+  prints on, whose crossing rows leave 2+ spaces before their next cell — a
+  TAB-pushed long option); empty cells allowed in a sparse leading column,
+  at the end of a row and anywhere in a marker column (`>>`), half the rows
+  full; a TAB row whose cell spans a wide gap withdraws.
+
+**aligned-columns** (`extract/strategies/delimited/aligned-columns.sh`):
+- Headerless decision: a command-line option token (`-Wall`,
+  `--all-warnings`) is no label; an ALL-CAPS row that opens with a value as
+  4 rows in 5 do is data (falls back to the old reading when no headerless
+  one holds); abbreviations of up to 8 letters (`uncompr.`) are labels.
+- New mode **HLS** (headerless by segment): every row splits into the same
+  3–8 cells at its 2+-space runs (`heroku releases`), taken when it reads
+  more columns than the grid. Bash path and `_ac_extract_big` share one awk
+  (`_ac_hls_emit`).
+- Banners: a `Label: value` comment (`# Samples: 12K of event …`) is never
+  the commented header, and the picked commented header keeps its offsets
+  (`# Name   Version` → `  Name   Version`); in a commented file indented
+  call-graph lines (`|`, `---Func`, `--10.11%--Func`) are annotation (bash
+  loop and awk tail alike); the leading-chrome-block and later-header banner
+  rules accept rows that agree with the header by tokens (digit-free header
+  over rows with digits) or by the grid (`_ac_table_ok`), and rows
+  right-aligned under the header's first label (pprof `-top`); the
+  chrome's `Label: value` lines are kept as preamble fields unless one would
+  take a column name; a cut banner that opened with `#` keeps the file a
+  commented one.
+- A DECORATED TITLE (`== disasm: …`, `--- / (total: 480 GiB) ---`, `------
+  Shared Memory Segments --------`) on the input's first line is a `title`
+  field, not a row or header.
+- Print reports: ASA carriage control in column 1 is cut when every line
+  opens with a control byte and some `1`/`0` is glued to a letter; PAGE
+  HEADERS (a line ending `Page <n>` / `PAGE: <n>` and the lines that follow
+  it identically on every page, up to the header above a rule) are dropped,
+  as is a closing `* * *  E N D  O F  L I S T I N G  * * *` line.
+
+**Footers** (`_FR_FOOTER_RE` extended: `row(s) retrieved`, `(3 rows)`, `2
+rows in set (0.00 sec)`, thousands separators; new `_fr_footer_cut` with
+`_FR_AFTER_FOOTER_RE` for the client prompt / timing line after a footer):
+fixed-width cuts its rows (grid and slicer) at the footer and drops the
+`SQL>` / `1>` prompt after it; embedded-table ends a table window at a
+footer; a bare pipe table skips a footer line.
+
+**fixed-width**: a header wrapped onto two lines (PowerShell `Partition` /
+`Style`) — the line above the rule naming only some runs, the line above it
+the others — goes to the grid as a group row (NH=2, RL=1; a column named
+only by the group row now takes that name alone).
+
+**Gates.** `tests/corpus/run.sh --golden` and `_FR_BIG_BYTES=0 … --golden`:
+3583 passed, 0 failed. mawk and gawk give the same bytes (the grid's
+arrays avoid gawk's builtin names — an `RT` array would be fatal under
+gawk). Big inputs (one loaded 4-core box, outputs byte-identical): 10 MB ps
+74.3 s → 77.7 s, 10 MB csv 13.6 s → 13.1 s, 1 MB ps 8.8 s → 9.4 s — the
+UTF-8 checks are one regex per line and one test per token on ASCII input.
+
+**Not done.** `diff -y` / `sdiff` stays with `tsv` (owned elsewhere): the grid
+could read it but tsv outranks aligned-columns. `python -m dis` keeps its old
+reading (the headerless grid needs the long-opname rows' pushed arguments);
+`readelf -l` two-line records are unchanged; a `dotnet-trace`-style table
+under `Label:` lines parses with `-s aligned-columns` but `grouped-rows`
+outranks it.
+
+**Tests / fixtures.** `extract/tests/test_gutter_grid.sh`: 9 new tests (36
+total; the non-ASCII withdrawal case now checks the placeholder bytes). New
+samples + goldens: aligned-columns/{utf8-widths, utf8-runes, comment-header,
+data-gutters, page-headers, asa-report, option-states},
+fixed-width/{wrapped-header, footer-prompt}, pipe-table/footer.
+
+**Corpus.** 28 goldens change, each reviewed against its input and the
+base output; 4 inputs become tidy and gain a golden; no golden deleted.
+Multi-word / non-ASCII cells by offset: `uni-invoice-multi-currency`
+(`Server rental`), `uni-nbsp-thousands` (`2 940`), `uni-subscript-chemistry`
+(`carbon dioxide`), `findmnt-tree` (`│ ├─/sys/…` one TARGET, OPTIONS apart),
+`procs-tree` (`└─ sshd`), `qbittorrent-list` (`4.2 GiB`), `ping-heatmap`
+(`11/14/28 ms`, `Heatmap (last 20)`), `lazydocker-gauges` and
+`intel-gpu-top` (bar and value in their own columns), `goose-report`
+(`GET /health`, values unshifted), `nvme-list` (values the slicer cut —
+`12   B`, `20331WD` — now whole). Marker columns: `opam-switch-list` (`->`),
+`systemctl-failed` (`●`). Headerless: `ip-br-addr` (3 columns),
+`heroku-releases` (HLS, 4 columns + title; manifest 5→4 rows: the title had
+been counted). Commented headers: `perf-report` (`Shared Object` one
+column), `nst-perf-report-sections` and `exo-perf-report-tree` (the `#
+Overhead` header instead of `Samples:` / text-lines; call-graph lines
+dropped). Titles kept as a field: `ipcs-m`, `ipcs-s`, `gdu-interactive`,
+`ncdu-bar-columns`, `sysdig-summary`. Preamble fields kept: `trivy-fs-scan`,
+`trivy-repo-scan`, `trivy-sbom-scan` (`Target`), `trivy-image-summary`
+(`Total`). `redis-benchmark`: a header-garbled table that lost values →
+text-lines keeping every line. New goldens: `hledger-register-fx`
+(headerless), `iptables-nat` (table under its `Chain` title), `mix-deps`
+(one record per dependency), `nicstat-summary` (lossless token rows; the
+title, group row and header are still rows).
+
 ## 2026-10-16 — generalisation benchmark round 3: 107 unseen inputs, rated on 2.1.0 (measurement only)
 
 This is the first honest generalisation measurement of the 2026-10-14 parser
