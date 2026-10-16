@@ -1,0 +1,12 @@
+./inventory.py:1:1: F401 'os' imported but unused
+./inventory.py:1:1: F401 'sys' imported but unused
+./inventory.py:1:10: E401 multiple imports on one line
+./inventory.py:9:5: F841 local variable 'unused' is assigned to but never used
+./inventory.py:28:1: E302 expected 2 blank lines, found 1
+./inventory.py:32:23: E231 missing whitespace after ','
+1     E231 missing whitespace after ','
+1     E302 expected 2 blank lines, found 1
+1     E401 multiple imports on one line
+2     F401 'os' imported but unused
+1     F841 local variable 'unused' is assigned to but never used
+6

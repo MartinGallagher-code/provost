@@ -1,0 +1,70 @@
+Name:         nightly-shop-20261015020012
+Namespace:    velero
+Labels:       velero.io/schedule-name=nightly-shop
+              velero.io/storage-location=default
+Annotations:  velero.io/resource-timeout=10m0s
+              velero.io/source-cluster-k8s-gitversion=v1.30.4
+              velero.io/source-cluster-k8s-major-version=1
+              velero.io/source-cluster-k8s-minor-version=30
+
+Phase:  PartiallyFailed (run `velero backup logs nightly-shop-20261015020012` for more information)
+
+
+Warnings:
+  Velero:     <none>
+  Cluster:    <none>
+  Namespaces:
+    shop-prod:  resource: /pods name: /reviews-legacy-0 message: /Skip pod volume cache-vol because it's not supported
+
+Errors:
+  Velero:     name: /payments-db-0 message: /Error backing up item error: /pod volume backup failed: data path backup failed: Failed to run kopia backup: unable to get local block device entry
+  Cluster:    <none>
+  Namespaces: <none>
+
+Namespaces:
+  Included:  shop-prod, shop-shared
+  Excluded:  <none>
+
+Resources:
+  Included:        *
+  Excluded:        events, events.events.k8s.io
+  Cluster-scoped:  auto
+
+Label selector:  <none>
+
+Or label selector:  <none>
+
+Storage Location:  default
+
+Velero-Native Snapshot PVs:  auto
+Snapshot Move Data:          false
+Data Mover:                  velero
+
+TTL:  720h0m0s
+
+CSISnapshotTimeout:    10m0s
+ItemOperationTimeout:  4h0m0s
+
+Hooks:  <none>
+
+Backup Format Version:  1.1.0
+
+Started:    2026-10-15 02:00:12 +0000 UTC
+Completed:  2026-10-15 02:07:48 +0000 UTC
+
+Expiration:  2026-11-14 02:00:12 +0000 UTC
+
+Total items to be backed up:  412
+Items backed up:              411
+
+Backup Volumes:
+  Velero-Native Snapshots: <none included>
+
+  CSI Snapshots: <none included>
+
+  Pod Volume Backups - kopia (specify --details for more information):
+    Completed:  6
+    Failed:     1
+
+HooksAttempted:  0
+HooksFailed:     0

@@ -1,0 +1,17 @@
+WARNING: there is a new pyright version available (v1.1.408 -> v1.1.414).
+Please install the new version or set PYRIGHT_PYTHON_FORCE_VERSION to `latest`
+
+/home/dev/project/ledger.py
+  /home/dev/project/ledger.py:17:16 - error: Argument of type "str | None" cannot be assigned to parameter "obj" of type "Sized" in function "len"
+    Type "str | None" is not assignable to type "Sized"
+      "None" is incompatible with protocol "Sized"
+        "__len__" is not present (reportArgumentType)
+  /home/dev/project/ledger.py:20:49 - error: Function with declared return type "Entry" must return value on all code paths
+    "None" is not assignable to "Entry" (reportReturnType)
+  /home/dev/project/ledger.py:26:14 - error: Type "int" is not assignable to declared type "str"
+    "int" is not assignable to "str" (reportAssignmentType)
+  /home/dev/project/ledger.py:26:56 - error: Argument of type "Literal['5']" cannot be assigned to parameter "amount" of type "int" in function "__init__"
+    "Literal['5']" is not assignable to "int" (reportArgumentType)
+  /home/dev/project/ledger.py:27:7 - error: Argument missing for parameter "amount" (reportCallIssue)
+  /home/dev/project/ledger.py:28:7 - error: "missing_name" is not defined (reportUndefinedVariable)
+6 errors, 0 warnings, 0 informations

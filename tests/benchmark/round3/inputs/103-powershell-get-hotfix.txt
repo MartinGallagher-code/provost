@@ -1,0 +1,13 @@
+
+Source        Description      HotFixID      InstalledBy          InstalledOn
+------        -----------      --------      -----------          -----------
+WS-ACCT-07    Update           KB5034466     NT AUTHORITY\SYSTEM  1/9/2026 12:00:00 AM
+WS-ACCT-07    Security Update  KB5034439     NT AUTHORITY\SYSTEM  1/9/2026 12:00:00 AM
+WS-ACCT-07    Update           KB5011048                          2/14/2026 12:00:00 AM
+WS-ACCT-07    Security Update  KB5040437     NT AUTHORITY\SYSTEM  7/9/2026 12:00:00 AM
+WS-ACCT-07    Update           KB5041578     CORP\svc-patch       8/13/2026 12:00:00 AM
+WS-ACCT-07    Security Update  KB5043050     NT AUTHORITY\SYSTEM  9/10/2026 12:00:00 AM
+WS-ACCT-07    Hotfix           KB4562830     CORP\a.okafor        
+WS-ACCT-07    Security Update  KB5044273     NT AUTHORITY\SYSTEM  10/8/2026 12:00:00 AM
+
+

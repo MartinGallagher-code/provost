@@ -1,0 +1,23 @@
+[09:00:01] [ServerMain/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, name=PROD]
+[09:00:03] [ServerMain/INFO]: Loaded 1290 recipes
+[09:00:04] [Server thread/INFO]: Starting minecraft server version 1.21.1
+[09:00:04] [Server thread/INFO]: Loading properties
+[09:00:04] [Server thread/INFO]: Default game type: SURVIVAL
+[09:00:04] [Server thread/INFO]: Starting Minecraft server on *:25565
+[09:00:06] [Server thread/INFO]: Preparing level "world"
+[09:00:11] [Server thread/INFO]: Preparing spawn area: 83%
+[09:00:12] [Server thread/INFO]: Time elapsed: 5871 ms
+[09:00:12] [Server thread/INFO]: Done (8.204s)! For help, type "help"
+[09:03:47] [User Authenticator #1/INFO]: UUID of player Søren_B is 4a1b2c3d-5e6f-4a7b-8c9d-0e1f2a3b4c5d
+[09:03:47] [Server thread/INFO]: Søren_B[/203.0.113.44:51022] logged in with entity id 211 at (-118.5, 64.0, 302.5)
+[09:03:47] [Server thread/INFO]: Søren_B joined the game
+[09:05:12] [Server thread/INFO]: <Søren_B> anyone near the mesa base?
+[09:07:30] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2531ms or 50 ticks behind
+[09:09:02] [Server thread/INFO]: Søren_B was slain by Zombie
+[09:11:58] [Server thread/ERROR]: Encountered an unexpected exception
+net.minecraft.ReportedException: Ticking entity
+	at net.minecraft.server.MinecraftServer.b(SourceFile:1203)
+	at net.minecraft.server.dedicated.DedicatedServer.b(SourceFile:412)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[09:12:00] [Server thread/INFO]: Søren_B lost connection: Disconnected
+[09:12:00] [Server thread/INFO]: Søren_B left the game

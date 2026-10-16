@@ -1,0 +1,32 @@
+Object 'web-01!http' of type 'Service':
+  % declared in '/etc/icinga2/conf.d/services.conf', lines 31:1-31:22
+  * __name = "web-01!http"
+  * check_command = "http"
+    % = modified in '/etc/icinga2/conf.d/services.conf', lines 34:3-34:25
+  * check_interval = 60
+  * display_name = "HTTP storefront"
+  * groups = [ "web-services", "customer-facing" ]
+  * host_name = "web-01"
+  * max_check_attempts = 3
+  * vars
+    * http_uri = "/healthz"
+    * http_vhost = "shop.example.com"
+    * notification
+      * mail
+        * groups = [ "oncall" ]
+  * zone = "master"
+
+Object 'db-primary!pgsql-connections' of type 'Service':
+  % declared in '/etc/icinga2/conf.d/services.conf', lines 52:1-52:38
+  * __name = "db-primary!pgsql-connections"
+  * check_command = "postgres"
+  * check_interval = 120
+  * display_name = "PostgreSQL connections"
+  * groups = [ ]
+  * host_name = "db-primary"
+  * max_check_attempts = 5
+  * vars
+    * postgres_action = "connection"
+    * postgres_warning = 150
+    * postgres_critical = 190
+  * zone = "master"

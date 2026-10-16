@@ -1,0 +1,22 @@
+Breakpoint 1 at 0x1232: file pack.c, line 5.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, first_fit (w=w@entry=0x5555555592a0, n=n@entry=3000, cap=cap@entry=100) at pack.c:5
+5	static int first_fit(const int *w, int n, int cap) { int bins[4096] = {0}, used = 0; for (int i = 0; i < n; i++) { int j = 0; while (j < used && bins[j] + w[i] > cap) j++; if (j == used) used++; bins[j] += w[i]; } return used; }
+#0  first_fit (w=w@entry=0x5555555592a0, n=n@entry=3000, cap=cap@entry=100) at pack.c:5
+#1  0x00005555555553b0 in main () at pack.c:6
+Stack level 0, frame at 0x7fffffffc7c0:
+ rip = 0x555555555232 in first_fit (pack.c:5); saved rip = 0x5555555553b0
+ called by frame at 0x7fffffffc7f0
+ source language c.
+ Arglist at 0x7fffffffc7b0, args: w=w@entry=0x5555555592a0, n=n@entry=3000, cap=cap@entry=100
+ Locals at 0x7fffffffc7b0, Previous frame's sp is 0x7fffffffc7c0
+ Saved registers:
+  rip at 0x7fffffffc7b8
+rip            0x555555555232      0x555555555232 <first_fit>
+rsp            0x7fffffffc7b8      0x7fffffffc7b8
+rbp            0x55555555c180      0x55555555c180
+rdi            0x5555555592a0      93824992252576
+rsi            0xbb8               3000
+rdx            0x64                100

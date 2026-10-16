@@ -1,0 +1,20 @@
+cpython-3.14.0rc2-linux-x86_64-gnu                 <download available>
+cpython-3.14.0rc2+freethreaded-linux-x86_64-gnu    <download available>
+cpython-3.13.12-linux-x86_64-gnu                   /usr/bin/python3.13
+cpython-3.13.7-linux-x86_64-gnu                    <download available>
+cpython-3.13.7+freethreaded-linux-x86_64-gnu       <download available>
+cpython-3.12.11-linux-x86_64-gnu                   <download available>
+cpython-3.12.3-linux-x86_64-gnu                    /usr/bin/python3.12
+cpython-3.11.15-linux-x86_64-gnu                   /usr/local/bin/python3 -> /usr/bin/python3.11
+cpython-3.11.15-linux-x86_64-gnu                   /usr/local/bin/python -> /usr/bin/python3.11
+cpython-3.11.15-linux-x86_64-gnu                   /usr/bin/python3.11
+cpython-3.11.15-linux-x86_64-gnu                   /usr/bin/python3 -> /etc/alternatives/python3
+cpython-3.11.15-linux-x86_64-gnu                   /usr/bin/python -> /etc/alternatives/python
+cpython-3.11.13-linux-x86_64-gnu                   <download available>
+cpython-3.10.20-linux-x86_64-gnu                   /usr/bin/python3.10
+cpython-3.10.18-linux-x86_64-gnu                   <download available>
+cpython-3.9.23-linux-x86_64-gnu                    <download available>
+cpython-3.8.20-linux-x86_64-gnu                    <download available>
+pypy-3.11.13-linux-x86_64-gnu                      <download available>
+pypy-3.10.16-linux-x86_64-gnu                      <download available>
+pypy-3.9.19-linux-x86_64-gnu                       <download available>

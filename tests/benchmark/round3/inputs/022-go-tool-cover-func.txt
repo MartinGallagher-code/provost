@@ -1,0 +1,5 @@
+example.com/shelf/shelf.go:7:	Add		100.0%
+example.com/shelf/shelf.go:13:	Remove		0.0%
+example.com/shelf/shelf.go:20:	Free		0.0%
+example.com/shelf/shelf.go:22:	Label		66.7%
+total:				(statements)	46.2%

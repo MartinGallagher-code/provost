@@ -1,0 +1,39 @@
+Cluster Summary
+Name:                orders-db
+Namespace:           shop-prod
+System ID:           7421988312047195161
+PostgreSQL Image:    ghcr.io/cloudnative-pg/postgresql:16.4
+Primary instance:    orders-db-1
+Primary start time:  2026-10-01 03:12:44 +0000 UTC (uptime 342h18m31s)
+Status:              Cluster in healthy state 
+Instances:           3
+Ready instances:     3
+Current Write LSN:   1A/4C0F2E88 (Timeline: 2 - WAL File: 000000020000001A0000004C)
+
+Certificates Status
+Certificate Name       Expiration Date                Days Left Until Expiration
+----------------       ---------------                --------------------------
+orders-db-ca           2026-12-30 03:07:12 +0000 UTC  75.73
+orders-db-replication  2026-12-30 03:07:12 +0000 UTC  75.73
+orders-db-server       2026-12-30 03:07:12 +0000 UTC  75.73
+
+Continuous Backup status
+First Point of Recoverability:  2026-09-15T02:00:09Z
+Working WAL archiving:          OK
+WALs waiting to be archived:    0
+Last Archived WAL:              000000020000001A0000004B   @   2026-10-15T09:28:41.117Z
+Last Failed WAL:                -
+
+Streaming Replication status
+Replication Slots Enabled
+Name         Sent LSN    Write LSN   Flush LSN   Replay LSN  Write Lag        Flush Lag        Replay Lag       State      Sync State  Sync Priority  Replication Slot
+----         --------    ---------   ---------   ----------  ---------        ---------        ----------       -----      ----------  -------------  ----------------
+orders-db-2  1A/4C0F2E88 1A/4C0F2E88 1A/4C0F2E88 1A/4C0F2E88 00:00:00.000412  00:00:00.001207  00:00:00.001311  streaming  async       0              active
+orders-db-3  1A/4C0F2E88 1A/4C0F2E88 1A/4C0F2E88 1A/4C0F2DA0 00:00:00.000398  00:00:00.001102  00:00:00.211044  streaming  async       0              active
+
+Instances status
+Name         Database Size  Current LSN  Replication role  Status  QoS         Manager Version  Node
+----         -------------  -----------  ----------------  ------  ---         ---------------  ----
+orders-db-1  14 GB          1A/4C0F2E88  Primary           OK      Guaranteed  1.24.1           aks-pool1-31877112-vmss000002
+orders-db-2  14 GB          1A/4C0F2E88  Standby (async)   OK      Guaranteed  1.24.1           aks-pool1-31877112-vmss000000
+orders-db-3  14 GB          1A/4C0F2DA0  Standby (async)   OK      Guaranteed  1.24.1           aks-pool1-31877112-vmss000001

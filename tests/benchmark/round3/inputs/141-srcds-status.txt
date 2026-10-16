@@ -1,0 +1,17 @@
+hostname: [EU] Example Community #2 | Casual
+version : 1.38.8.1/13881 9442 secure  [G:1:1234567] 
+udp/ip  : 203.0.113.80:27015  (public ip: 203.0.113.80)
+os      :  Linux
+type    :  community dedicated
+map     : de_inferno
+players : 5 humans, 2 bots (12/0 max) (not hibernating)
+
+# userid name uniqueid connected ping loss state rate adr
+#  2 1 "GOTV" BOT active 64
+# 3 2 "Ковальски" STEAM_1:0:11223344 41:07 38 0 active 196608 198.51.100.21:27005
+# 4 3 "anna the sniper" STEAM_1:1:55667788 1:02:51 52 0 active 786432 198.51.100.34:27005
+# 5 4 "ゆうき" STEAM_1:0:99001122 12:44 112 2 active 196608 198.51.100.57:27005
+#11 10 "Brett" BOT active 64
+#12 11 "mehmet_ö" STEAM_1:1:33445566 03:19 67 0 spawning 196608 198.51.100.90:27005
+#13 12 "x" STEAM_1:0:77889900 00:41 49 0 active 786432 198.51.100.112:27005
+#end

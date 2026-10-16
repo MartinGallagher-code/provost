@@ -1,0 +1,45 @@
+SSE3=1 SSSE3=1 SSE4_1=1 SSE4_2=1 SAHF=1 AVX=1 AVX2=1 FMA3=1 BMI1=1 BMI2=1 LZCNT=1 POPCNT=1 ATOM=0
+The following syntax for options is accepted (both '-' and '--' are ok):
+  --flag        (bool flags only)
+  --no-flag     (bool flags only)
+  --flag=value  (non-bool flags only, no spaces around '=')
+  --flag value  (non-bool flags only)
+  --            (captures all remaining args in JavaScript)
+
+Options:
+  --experimental (Indicates that V8 is running with experimental features enabled. This flag is typically not set explicitly but instead enabled as an implication of other flags which enable experimental features.)
+        type: bool  default: --no-experimental
+  --abort-on-contradictory-flags (Disallow flags or implications overriding each other.)
+        type: bool  default: --no-abort-on-contradictory-flags
+  --exit-on-contradictory-flags (Exit with return code 0 on contradictory flags.)
+        type: bool  default: --no-exit-on-contradictory-flags
+  --allow-overwriting-for-next-flag (temporary disable flag contradiction to allow overwriting just the next flag)
+        type: bool  default: --no-allow-overwriting-for-next-flag
+  --use-strict (enforce strict mode)
+        type: bool  default: --no-use-strict
+  --trace-temporal (trace temporal code)
+        type: bool  default: --no-trace-temporal
+  --harmony (enable all completed harmony features)
+        type: bool  default: --no-harmony
+  --harmony-shipping (enable all shipped harmony features)
+        type: bool  default: --harmony-shipping
+  --js-staging (enable all completed JavaScript features)
+        type: bool  default: --no-js-staging
+  --js-shipping (enable all shipped JavaScript features)
+        type: bool  default: --js-shipping
+  --harmony-weak-refs-with-cleanup-some (enable "harmony weak references with FinalizationRegistry.prototype.cleanupSome" (in progress / experimental))
+        type: bool  default: --no-harmony-weak-refs-with-cleanup-some
+  --harmony-temporal (enable "Temporal" (in progress / experimental))
+        type: bool  default: --no-harmony-temporal
+  --harmony-shadow-realm (enable "harmony ShadowRealm" (in progress / experimental))
+        type: bool  default: --no-harmony-shadow-realm
+  --harmony-struct (enable "harmony structs, shared structs, and shared arrays" (in progress / experimental))
+        type: bool  default: --no-harmony-struct
+  --harmony-intl-best-fit-matcher (enable "Intl BestFitMatcher" (in progress / experimental))
+        type: bool  default: --no-harmony-intl-best-fit-matcher
+  --harmony-remove-intl-locale-info-getters (enable "Remove Obsoleted Intl Locale Info getters" (in progress / experimental))
+        type: bool  default: --no-harmony-remove-intl-locale-info-getters
+  --harmony-intl-locale-info-func (enable "Intl Locale Info API as functions" (in progress / experimental))
+        type: bool  default: --no-harmony-intl-locale-info-func
+  --harmony-intl-duration-format (enable "Intl DurationFormat API" (in progress / experimental))
+        type: bool  default: --no-harmony-intl-duration-format

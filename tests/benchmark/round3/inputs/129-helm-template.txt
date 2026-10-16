@@ -1,0 +1,81 @@
+---
+# Source: storefront/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-storefront
+  labels:
+    helm.sh/chart: storefront-2.8.1
+    app.kubernetes.io/name: storefront
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "2.8.1"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: false
+---
+# Source: storefront/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-storefront
+  labels:
+    helm.sh/chart: storefront-2.8.1
+    app.kubernetes.io/name: storefront
+    app.kubernetes.io/instance: release-name
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: storefront
+    app.kubernetes.io/instance: release-name
+---
+# Source: storefront/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-storefront
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: storefront
+      app.kubernetes.io/instance: release-name
+  template:
+    spec:
+      serviceAccountName: release-name-storefront
+      containers:
+        - name: storefront
+          image: "registry.example.com/shop/storefront:2.8.1"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+# Source: storefront/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "release-name-storefront-test-connection"
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['release-name-storefront:80']
+  restartPolicy: Never

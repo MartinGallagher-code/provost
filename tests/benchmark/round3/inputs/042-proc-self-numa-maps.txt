@@ -1,0 +1,23 @@
+5597364ff000 default file=/usr/bin/head mapped=2 N0=2 kernelpagesize_kB=4
+559736501000 default file=/usr/bin/head mapped=6 N0=6 kernelpagesize_kB=4
+559736507000 default file=/usr/bin/head mapped=2 N0=2 kernelpagesize_kB=4
+559736509000 default file=/usr/bin/head anon=1 dirty=1 active=0 N0=1 kernelpagesize_kB=4
+55973650a000 default file=/usr/bin/head anon=1 dirty=1 active=0 N0=1 kernelpagesize_kB=4
+559737b61000 default heap anon=1 dirty=1 active=0 N0=1 kernelpagesize_kB=4
+7ffa84800000 default file=/usr/lib/x86_64-linux-gnu/libc.so.6 mapped=40 mapmax=22 N0=40 kernelpagesize_kB=4
+7ffa84828000 default file=/usr/lib/x86_64-linux-gnu/libc.so.6 mapped=231 mapmax=39 N0=231 kernelpagesize_kB=4
+7ffa849b0000 default file=/usr/lib/x86_64-linux-gnu/libc.so.6 mapped=47 mapmax=35 N0=47 kernelpagesize_kB=4
+7ffa849ff000 default file=/usr/lib/x86_64-linux-gnu/libc.so.6 anon=4 dirty=4 active=0 N0=4 kernelpagesize_kB=4
+7ffa84a03000 default file=/usr/lib/x86_64-linux-gnu/libc.so.6 anon=2 dirty=2 active=0 N0=2 kernelpagesize_kB=4
+7ffa84a05000 default anon=5 dirty=5 active=0 N0=5 kernelpagesize_kB=4
+7ffa84b81000 default anon=2 dirty=2 active=0 N0=2 kernelpagesize_kB=4
+7ffa84b8d000 default anon=1 dirty=1 active=0 N0=1 kernelpagesize_kB=4
+7ffa84b8f000 default
+7ffa84b93000 default
+7ffa84b95000 default
+7ffa84b97000 default file=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 mapped=1 mapmax=22 N0=1 kernelpagesize_kB=4
+7ffa84b98000 default file=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 mapped=43 mapmax=22 N0=43 kernelpagesize_kB=4
+7ffa84bc3000 default file=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 mapped=10 mapmax=22 N0=10 kernelpagesize_kB=4
+7ffa84bcd000 default file=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 anon=2 dirty=2 active=0 N0=2 kernelpagesize_kB=4
+7ffa84bcf000 default file=/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 anon=2 dirty=2 active=0 N0=2 kernelpagesize_kB=4
+7ffdb5824000 default stack anon=5 dirty=5 active=2 N0=5 kernelpagesize_kB=4

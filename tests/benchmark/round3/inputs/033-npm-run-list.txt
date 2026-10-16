@@ -1,0 +1,16 @@
+Lifecycle scripts included in parts-web@0.4.1:
+  pretest
+    node scripts/check-env.js
+  test
+    node --test test/
+  start
+    node dist/server.js --port 8080
+available via `npm run-script`:
+  build
+    tsc -p tsconfig.json
+  lint
+    eslint src --max-warnings 0
+  bundle:analyze
+    esbuild src/index.ts --bundle --metafile=meta.json --outfile=/dev/null
+  db:migrate
+    node scripts/migrate.js up

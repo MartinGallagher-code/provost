@@ -1,0 +1,48 @@
+
+
+2026-10-12 08:30             Pick list - north aisle              Page 1
+
+
+  1  washer M6      156  bin A7
+  2  rivet 3mm       80  bin A2
+  3  bolt M6        206  bin C5
+  4  bolt M6        114  bin C9
+  5  screw 4x30     142  bin A2
+  6  hinge 50mm     110  bin A5
+  7  hinge 50mm     100  bin A5
+  8  hinge 50mm     322  bin C6
+  9  bolt M8        311  bin B7
+ 10  spring 12mm    128  bin A4
+ 11  rivet 3mm      144  bin A9
+ 12  hinge 50mm       4  bin B5
+ 13  spring 12mm    100  bin B7
+ 14  clip 8mm       148  bin B8
+
+
+
+
+
+
+
+2026-10-12 08:30             Pick list - north aisle              Page 2
+
+
+ 15  nut M6         120  bin B5
+ 16  bolt M6         42  bin A8
+ 17  hinge 50mm     266  bin C8
+ 18  screw 4x30      75  bin C4
+ 19  bolt M8        212  bin A8
+ 20  hinge 50mm      95  bin B7
+ 21  clip 8mm       165  bin C9
+ 22  washer M6      166  bin A1
+ 23  washer M6      143  bin C4
+ 24  bolt M8        170  bin A5
+ 25  rivet 3mm       14  bin A6
+ 26  bolt M8        147  bin C6
+ 27  bolt M6        166  bin B6
+ 28  nut M6         397  bin C7
+
+
+
+
+

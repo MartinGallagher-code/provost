@@ -1,0 +1,25 @@
+
+Call:
+lm(formula = price ~ carat + cut + clarity, data = sample_diamonds)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-4812.3  -671.9  -178.4   488.2  9311.7 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -4321.18     201.44 -21.452  < 2e-16 ***
+carat        8412.07      48.91 171.993  < 2e-16 ***
+cutGood       612.40     118.02   5.189 2.21e-07 ***
+cutIdeal      903.77     104.35   8.661  < 2e-16 ***
+cutPremium    781.15     107.80   7.246 5.12e-13 ***
+clarityVS1    104.92      71.66   1.464   0.1432    
+claritySI1   -393.04      69.18  -5.681 1.41e-08 ***
+claritySI2   -811.53     160.72  -5.049 4.61e-07 *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1302 on 4992 degrees of freedom
+Multiple R-squared:  0.8931,	Adjusted R-squared:  0.8929 
+F-statistic:  5957 on 7 and 4992 DF,  p-value: < 2.2e-16
+

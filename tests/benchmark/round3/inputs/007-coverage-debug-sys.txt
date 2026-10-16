@@ -1,0 +1,37 @@
+-- sys -------------------------------------------------------
+               coverage_version: 7.16.2
+                coverage_module: /usr/local/lib/python3.11/dist-packages/coverage/__init__.py
+                           core: -none-
+                        CTracer: available from /usr/local/lib/python3.11/dist-packages/coverage/tracer.cpython-311-x86_64-linux-gnu.so
+           plugins.file_tracers: -none-
+            plugins.configurers: -none-
+      plugins.context_switchers: -none-
+              configs_attempted: /home/dev/project/.coveragerc
+                                 /home/dev/project/.coveragerc.toml
+                                 /home/dev/project/setup.cfg
+                                 /home/dev/project/tox.ini
+                                 /home/dev/project/pyproject.toml
+                   configs_read: -none-
+                    config_file: None
+                config_contents: -none-
+                      data_file: -none-
+                         python: 3.11.15 (main, Mar  3 2026, 09:26:23) [GCC 13.3.0]
+                       platform: Linux-6.18.44-fc-v139-x86_64-with-glibc2.39
+                 implementation: CPython
+                          build: ('main', 'Mar  3 2026 09:26:23')
+                    gil_enabled: True
+                     executable: /usr/local/bin/python3
+                      pth_files: /usr/local/lib/python3.11/dist-packages/a1_coverage.pth
+                   def_encoding: utf-8
+                    fs_encoding: utf-8
+                            pid: 32119
+                            cwd: /home/dev/project
+                           path: /home/dev/project
+                                 /usr/lib/python311.zip
+                                 /usr/lib/python3.11
+                                 /usr/lib/python3.11/lib-dynload
+                                 /usr/local/lib/python3.11/dist-packages
+                                 /usr/lib/python3/dist-packages
+                    environment: HOME = /home/dev
+                   command_line: /usr/local/lib/python3.11/dist-packages/coverage/__main__.py debug sys
+                           time: 2026-10-16 18:05:42

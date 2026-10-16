@@ -1,0 +1,18 @@
+bundle.txt.xz (1/1)
+  Streams:           1
+  Blocks:            2
+  Compressed size:   6032 B
+  Uncompressed size: 107.4 KiB (109988 B)
+  Ratio:             0.055
+  Check:             CRC64
+  Stream Padding:    0 B
+  Streams:
+    Stream    Blocks      CompOffset    UncompOffset        CompSize      UncompSize  Ratio  Check      Padding
+         1         2               0               0            6032          109988  0.055  CRC64            0
+  Blocks:
+    Stream     Block      CompOffset    UncompOffset       TotalSize      UncompSize  Ratio  Check      CheckVal          Header  Flags        CompSize    MemUsage  Filters
+         1         1              12               0            3548           60000  0.059  CRC64      07d2f6d76c42a64b      12  --               3527       9 MiB  --lzma2=dict=8MiB
+         1         2            3560           60000            2444           49988  0.049  CRC64      29f997d86b71c616      12  --               2422       9 MiB  --lzma2=dict=8MiB
+  Memory needed:     9 MiB
+  Sizes in headers:  No
+  Minimum XZ Utils version: 5.0.0

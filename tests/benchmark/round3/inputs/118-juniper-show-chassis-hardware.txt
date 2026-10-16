@@ -1,0 +1,22 @@
+admin@mx-core-01> show chassis hardware 
+Hardware inventory:
+Item             Version  Part number  Serial number     Description
+Chassis                                JN12345ABCDE      MX204
+Midplane         REV 27   750-069579   ABCD1234          Midplane
+PEM 0            REV 06   740-069994   1EDB9270123       DC 650W PSU
+PEM 1            REV 06   740-069994   1EDB9270456       DC 650W PSU
+Routing Engine 0 BUILTIN  BUILTIN      ABCD1234          RE-S-1600x8
+CB 0             REV 27   750-069579   ABCD1234          Control Board
+FPC 0            BUILTIN  BUILTIN      ABCD1234          MPC10E-10C
+  CPU            BUILTIN  BUILTIN      ABCD1234          RMPC PMB
+  PIC 0                   BUILTIN      ABCD1234          4XQSFP28 PIC
+    Xcvr 0       REV 01   740-061405   1ACQ12345AB       QSFP-100GBASE-SR4
+    Xcvr 1       REV 01   740-061405   1ACQ12345CD       QSFP-100GBASE-SR4
+    Xcvr 3       REV 01   740-067443   XYZ0A1B2C3        QSFP+-40G-SR4
+  PIC 1                   BUILTIN      ABCD1234          8XSFPP PIC
+    Xcvr 0       REV 01   740-031980   AQX0123ABC        SFP+-10G-SR
+    Xcvr 1                NON-JNPR     G2131234567       SFP+-10G-LR
+    Xcvr 7       REV 01   740-021308   AQX0456DEF        SFP+-10G-SR
+Fan Tray 0       REV 01   760-069992   ACDB1234          Front to Back Airflow - AFO
+Fan Tray 1       REV 01   760-069992   ACDB5678          Front to Back Airflow - AFO
+Fan Tray 2       REV 01   760-069992   ACDB9012          Front to Back Airflow - AFO

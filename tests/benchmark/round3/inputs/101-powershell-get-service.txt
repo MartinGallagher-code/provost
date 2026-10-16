@@ -1,0 +1,32 @@
+
+Status   Name               DisplayName
+------   ----               -----------
+Running  AppIDSvc           Application Identity
+Stopped  AppMgmt            Application Management
+Running  Appinfo            Application Information
+Running  AudioEndpointBu... Windows Audio Endpoint Builder
+Running  Audiosrv           Windows Audio
+Stopped  autotimesvc        Cellular Time
+Running  BFE                Base Filtering Engine
+Running  BITS               Background Intelligent Transfer Ser...
+Running  BrokerInfrastru... Background Tasks Infrastructure Ser...
+Stopped  Browser            Computer Browser
+Running  CryptSvc           Cryptographic Services
+Running  DcomLaunch         DCOM Server Process Launcher
+Stopped  diagnosticshub.... Microsoft (R) Diagnostics Hub Stand...
+Running  Dhcp               DHCP Client
+Running  Dnscache           DNS Client
+Stopped  dot3svc            Wired AutoConfig
+Running  EventLog           Windows Event Log
+Stopped  Fax                Fax
+Running  LanmanServer       Server
+Running  LanmanWorkstation  Workstation
+Stopped  MSSQL$REPORTING    SQL Server (REPORTING)
+Running  MSSQLSERVER        SQL Server (MSSQLSERVER)
+Stopped  RemoteRegistry     Remote Registry
+Running  Spooler            Print Spooler
+Running  W32Time            Windows Time
+Running  WinRM              Windows Remote Management (WS-Manag...
+Running  wuauserv           Windows Update
+
+

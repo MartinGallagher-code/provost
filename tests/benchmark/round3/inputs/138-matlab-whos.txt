@@ -1,0 +1,13 @@
+  Name               Size                 Bytes  Class      Attributes
+
+  T                  412x6               104392  table                 
+  X                  412x12               39552  double                
+  ans                1x1                      8  double                
+  cfg                1x1                   2214  struct                
+  idx                412x1                  412  logical               
+  labels             1x412                52736  cell                  
+  model              1x1                 488201  ClassificationTree    
+  nIter              1x1                      4  int32      global     
+  w                  12x1                    96  double     complex    
+  yhat               412x1                 3296  double     sparse     
+

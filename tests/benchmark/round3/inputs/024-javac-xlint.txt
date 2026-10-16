@@ -1,0 +1,27 @@
+Ledger.java:4: warning: [rawtypes] found raw type: List
+    private List entries = new ArrayList();
+            ^
+  missing type arguments for generic class List<E>
+  where E is a type-variable:
+    E extends Object declared in interface List
+Ledger.java:4: warning: [rawtypes] found raw type: ArrayList
+    private List entries = new ArrayList();
+                               ^
+  missing type arguments for generic class ArrayList<E>
+  where E is a type-variable:
+    E extends Object declared in class ArrayList
+Ledger.java:8: warning: [unchecked] unchecked call to add(E) as a member of the raw type List
+        entries.add(account + ":" + amount);
+                   ^
+  where E is a type-variable:
+    E extends Object declared in interface List
+Ledger.java:19: warning: [removal] Integer(int) in Integer has been deprecated and marked for removal
+        Integer boxed = new Integer(7);
+                        ^
+Ledger.java:21: warning: [removal] stop() in Thread has been deprecated and marked for removal
+        t.stop();
+         ^
+Ledger.java:24: warning: [fallthrough] possible fall-through into case
+            case 1: System.out.println("one"); break;
+            ^
+6 warnings
