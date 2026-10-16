@@ -200,8 +200,10 @@ Advanced:
   --max-input-size N      Max input size in bytes (default: 50MB)
   --emit-meta             Print the winning strategy + confidence + line
                           coverage (% of non-blank input lines that reached the
-                          parse; '-' when not measured) to stderr as one line:
-                          __EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage
+                          parse) + column-type consistency (% of judged cells
+                          that match their column's type; '-' when not
+                          measured) to stderr as one line:
+                          __EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency
   --multi                 MULTI-DATASET mode: split the input on blank-line
                           boundaries, group consecutive blocks that detect the
                           same strategy, and emit EACH group as its own dataset
@@ -856,11 +858,12 @@ provost_progress_done
 # ENV-200: opt-in winner metadata to stderr, so a single extract run yields both
 # the data (stdout) and the winning strategy + confidence (no second `explain`
 # pass). Format: a single line
-# `__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage` — coverage is the
-# winner's line coverage in percent (`-` when not measured; see
-# _parse_coverage in lib/_discovery.sh).
+# `__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency` —
+# coverage is the winner's line coverage in percent, consistency its
+# column-type consistency in percent (`-` when not measured; see
+# _parse_coverage and _FR_CONS_AWK in lib/_discovery.sh).
 if [[ $_OPT_emit_meta -eq 1 ]]; then
-    printf '__EXTRACT_META__\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" >&2
+    printf '__EXTRACT_META__\t%s\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" "${_WINNER_CONS:--}" >&2
 fi
 
 ########################################

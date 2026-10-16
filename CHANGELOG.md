@@ -1,5 +1,152 @@
 # provost — Changelog
 
+## 2026-10-16 — column-type consistency: a third quality signal, and misplaced parses yield
+
+**Problem (round-2 postscript).** Line coverage catches parses that DROP
+lines, but 19 of the 29 round-2 FAILs cover 95% or more: they keep every
+token and put values under the wrong headers — a date split over three
+columns, a multi-word name spread over Name / Id / Version, a word cut at a
+fixed column, a `Key:<TAB>value` report read as a two-column table.
+
+**Consistency (`extract/lib/_discovery.sh` `_FR_CONS_AWK`, in the coverage
+awk pass).** Every cell of a record stream is typed cheaply (integer,
+decimal, number + unit incl. sizes / rates / durations / percent / `2 weeks`,
+date / time / datetime incl. `3 days ago`, IPv4 / IPv6 / CIDR / MAC /
+host:port, hex / hash / uuid, version, path / URL, flag, digits-and-punctuation
+like `8,1`, word, multi-word text, rule / box-art debris; nulls skipped).
+Types count for FAMILIES a column may legitimately mix (a version column of
+`2.0` and `1.2.3`, a name column of words and phrases are consistent; a
+dotted quad counts as IPv4 and version, a dotted date as date and calendar
+version). A column scores the share of its filled cells in its best family;
+a cell holding a word CUT IN HALF (an alphanumeric run of 3+ bytes with a
+letter that the input never prints) and rule debris are mismatches; a column
+NAMED for a type (`Version`, `Size`, `PID`, `Created` …) whose cells are of
+another family while another column holds that type (a header slid against
+its cells) is judged by its name. Parse score = cell-weighted mean over
+columns with 3+ filled cells, value columns of key/value lists (`value`,
+`message`, `description`, `command` …) excluded; a column under 80% is
+"mixed"; nothing judged → `-`. mawk-safe, one pass, bounded by
+`_FR_COV_BYTES` (128 KB) like coverage (`-` above it: no cost on big inputs).
+- **Visible:** `--emit-meta` 5th field
+  (`__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency`,
+  batch `.meta` too); `--explain` gains a `CONS` column and a preview of the
+  hold (which candidate replaces the claim, or why none does); `-d` logs it
+  with the number of mixed columns; `provost` records `consistency` in the
+  capture's `meta.tsv` (`provost help` COLUMN-TYPE CONSISTENCY,
+  `man/provost.1`); `tests/benchmark/run.sh` prints a `CONS` column.
+  `tests/corpus/run.sh` already reads any field count.
+
+**Consistency hold (`_cons_hold_wanted`, `_cons_replaces`,
+`_cons_same_labels`).** With one winner wanted, the first candidate to
+produce output is HELD when it is a generic parse (not json / yaml / xml /
+toml, not a catch-all, not hint-routed / pinned, not bespoke) with a mixed
+column and consistency under `_FR_CONS_MIN` (95); a coverage-held claim that
+no rescue replaces is checked the same way. The ranked candidates down to
+`_FR_CONS_WINDOW` (20) points below it are extracted in order; the first
+generic, non-catch-all one that is `_FR_CONS_GAIN` (5) points more
+consistent and itself ≥ 95 with fewer mixed columns, keeps at least as many
+lines, is judged on comparable evidence (≥ half the claim's judged columns,
+≥ a third of its judged cells), adds no RECORDS, and does not RELABEL
+(every column name both parses use holds the same family in both) replaces
+it; otherwise the held
+claim is stored byte for byte. Pruning stays exact: when a claim is held
+for consistency after pruning, the pruned detectors that could be an
+alternative (generic, not a catch-all, ceiling inside the window) run then,
+and the candidates below the claim are tried in the unpruned ranking's
+order. (A first version redid the whole pass unpruned, like an empty top
+candidate: 2.7x the time on held inputs, ~2 s each; the targeted re-detect
+costs ~5%.) Above `_FR_CONS_HOLD_BYTES` (32 KB) the hold is skipped and the
+measure only reported (a held 100 KB ps table cost 3 s more).
+- **Rejected designs, with evidence** (corpus, generic mode; simulated from
+  a dump of every candidate's parse, then run):
+  1. *Prefer a more consistent candidate within N points* with no guards
+     (first classifier, window 30, gain 5): 23 swaps, 5 clearly worse —
+     psql-table → vertical-line on deliberately odd numbers
+     (num-psql-numeric), psql-table → an aligned-columns parse of the rule
+     line (quo-pipe-table-bar-in-cell), tree-view → box-art columns
+     (systemd-cgls-machine-unit), grouped-rows → two glued text columns
+     (nst-lsof-per-process), grouped-rows → group-children
+     (nst-ledger-grouped-subtotal). Gluing a table into text columns is
+     perfectly "consistent" — the coverage work's scatter trap from the other
+     side. Fixed by: the alternative must itself reach 95, judge comparable
+     evidence, and rule debris counts against a column.
+  2. *A column-name prior applied unconditionally*: 12 bracket-log claims
+     (its `timestamp` column holding `INFO`, `+`, `0:0:0:0`) yielded; of the
+     four reviewed, three got worse (lsscsi → colon-fields cutting
+     `[0:0:0:0]`, `service --status-all` → `[` / `]` columns, a maven tree →
+     a `+-` column) and one better (nuclei → prefix-message). Kept only for a
+     slid header: the named type must sit in another column.
+  3. *No relabel guard*: chronyc-offset-signed and dotnet-tool-list yielded
+     whole-cell parses whose labels slide one column (`Stratum` holding the
+     poll interval) — no better than cut cells. Two parses of one header that
+     disagree on what sits under a label give no reason to prefer either.
+  4. *No record guard*: the extract suite's big-input CSV fixture (quoted
+     CSV, multi-line cells, rows alternating types on purpose) yielded to an
+     aligned-columns parse of two glued text columns, one row per physical
+     line — "100% consistent". A yield now never adds records (row-adding
+     alternatives in the corpus are typically box art, a rule line or a
+     banner kept as rows: nvidia-smi, psql \pset, repquota); on the corpus
+     the rule removes only one swap the other guards allowed, a marginal
+     one (iftop: both parses garbage).
+  5. *Fall back to the lossless catch-all on low consistency*: not taken — a
+     misplaced table → one text column fails the corpus manifest's column
+     counts, and round 2 rates text-lines PARTIAL at best.
+
+**Corpus (`tests/corpus/expected/`).** 11 goldens change, none deleted, none
+new; every change reviewed against base and input:
+chronyc-sources and chronyc-sourcestats-delta (host names no longer cut at
+a fixed column), lshw / lshw-short / lshw-businfo (hardware paths and bus
+ids whole, `Bus info` / `H/W path` one column), dotnet-workload-list (ids
+and `34.0.113/8.0.100` whole), luarocks-list (`lpeg 1.1.` | `0-1` → `lpeg` |
+`1.1.0-1`), tbl-dash-rule-single-space / tbl-underline-1space (single-
+spaced tables no longer sliced inside words), enc-mixed-tab-space-table
+(tab/space padding no longer read as TSV: three clean columns),
+lspci-vmm (`Key:<TAB>value` blocks → one row per device instead of a
+key/value pair list). `expected.tsv`: two min-column counts encoded the cut
+header (`Package Id` / `Bus info` counted twice): dotnet-workload-list 6 → 4,
+lshw-businfo 6 → 5; no row count changed. 12 generic-mode winners change
+in all: these 11 and nodetool-status (aligned-columns instead of cells cut
+at a fixed column; not tidy before or after, no golden). Gate (final engine): 3579 passed, 0 failed, 126 not yet covered (as before: every golden either unchanged or one of the 11 above); `_FR_BIG_BYTES=0` (awk twins forced) the same, 3579 / 0.
+`_EAS_NOPRUNE=1` identical: all 3705 inputs, `.wide` and `.meta` byte for
+byte, in `--generic` and in full mode. Full mode changes the same 11
+inputs (vs base), nothing else; nodetool-status keeps its bespoke parse.
+
+**Big inputs.** Nothing is measured above 128 KB, and the hold is skipped
+above 32 KB. 10 MB inputs, base vs this engine, two interleaved runs each
+on a shared machine (load ~7 on 4 cores): ps 66.2 / 68.1 s vs 66.1 / 69.0 s,
+csv 13.1 / 11.8 vs 13.0 / 12.0, json 11.7 / 11.5 vs 12.6 / 11.1, log
+13.0 / 12.0 vs 13.4 / 13.2, kv 9.4 / 9.1 vs 8.9 / 9.1 — noise; outputs
+byte-identical. 100 KB (measured, not held): ps 2.37 vs 2.47 s, csv 2.05 vs
+2.33 s. Held small inputs (40 sampled from the 414 corpus inputs whose claim
+is held): 29.2 s vs 30.7 s in all (+5%).
+
+**Round 2 (regression set, run once at the end).** `run.sh --round2 --tidy`
+on base and on this engine: every default (`.def`), tidy, `--rank priority`
+and `--multi` output is byte-identical (109 inputs) — no change, so no
+rating moves. The `.meta` lines gain the consistency field. Against the
+2026-10-14 ratings it separates in one direction, like coverage: the 6
+inputs under 80% are 4 FAIL / 2 PARTIAL / 0 PASS, the 25 under 95% are
+9 FAIL / 13 PARTIAL / 3 PASS (FAIL 36%, against 27% overall), but 11 FAILs
+score 100 — a header slid uniformly over its cells, or sections glued into
+one cell, leaves every column internally consistent. None of the 25 has a
+nearby candidate that passes the hold's guards.
+
+**Tests / fixtures.** New `extract/tests/test_consistency.sh` (16 tests:
+the meta field, `-` above the cap / nothing judged, low consistency reported
+when nothing is better, the three yields, consistent claims kept byte for
+byte, pinned / `--rank priority` not held, the off switches and a restored
+claim, a bespoke plugin claim not held, the relabel and record guards, `_EAS_NOPRUNE=1`
+identical, file lane / awk-twin routes identical, the explain preview, the
+type families). Fixtures written for this work (no corpus or benchmark
+input), `extract/samples/consistency/`: pkg-table-overflow (constructed),
+virsh-snapshot-list, tab-kv-blocks (constructed), smbclient-ls,
+ps-get-package (PowerShell Get-Package), scoop-list, peer-table-relabel
+and csv-multiline-cells.csv (constructed). Docs: `extract/README.md` (new "Column-type consistency and
+the consistency hold" section; ranking and pruning notes).
+Suites: `extract/tests/run_tests.sh` 70/70 files; `tests/smoke.sh` 208 / 0;
+`transform/tests/test_melt.sh` 54 / 0; `analyze/tests/run_tests.sh` all
+pass; `python -m pytest` 8 passed, 100% coverage. HANDOFF.md not edited.
+
 ## 2026-10-16 — whitespace tables: UTF-8 offsets, loose headers, footers and banners everywhere
 
 The gaps the 2026-10-14 gutter-grid work left (round-2 postscript, pattern 1
