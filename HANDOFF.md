@@ -3,111 +3,113 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-14)
+## Present state (2026-10-16)
 
-**provost 2.1.0 is prepared** (`VERSION`, man page header, and a CHANGELOG
-release entry). PyPI still serves 2.0.1 until a GitHub release tagged
-`v2.1.0` is published on the merged commit; `release.yml` then uploads it.
-2.1.0 is the first release that ships the rename (`provost-extract` /
-`PROVOST_*`), store format 2, line coverage and the 2026-10 parser work.
+PyPI has **provost 2.1.0**, published 2026-10-16. It is the first release with
+the rename, store format 2, line coverage and the 2026-10-14 parser work.
+`main` after PR #76 is unreleased and becomes **2.2.0**.
 
 provost is one Bash entry point (`provost`) over:
-- the extract engine (`extract/provost-extract`, 264 strategies, ~115 of them
-  generic)
+- the extract engine (`extract/provost-extract`, 265 strategies, ~116 generic)
 - the tidy melt (`transform/melt.sh`)
 - the analyze engine (`analyze/provost-analyze`)
 
 It has a git-backed store and ships as a thin Python launcher
 (`src/provost_data/`).
 
-### This round (2026-10-14)
+### The honest picture: generalisation
 
-- **Whitespace tables: cells by column offset.** The "gutter grid" in
-  `extract/lib/_helpers.sh` is used by aligned-columns, fixed-width and
-  embedded-table. It also handles:
-  - banner, title and footer lines
-  - IIS `#Fields:`
-  - preamble `Label: value` lines, kept as constant columns
-  - headerless tables
-- **Diagnostics, logs and help text.**
-  - `prefix-message` splits typed prefix fields followed by a message, and
-    attaches continuation lines to the record above.
-  - `help-columns` splits a term from its description.
-- **Line coverage.**
-  - Every parse now reports the share of input lines it used: in
-    `--emit-meta` (4th field), in `--explain`, and in provost's ok line and
-    `meta.tsv`.
-  - A single-winner claim under 60% is held, and the rescue-only `kv-report`
-    replaces it when it covers at least 25 points more.
-  - `gnu-version` now keeps the whole report.
-- **Round-2 benchmark re-rated:**
+| measure | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| round 2, first rating (unseen, 2026-10-02) | 16% | 47% | 38% | 62% |
+| round 3 on 2.1.0 (unseen) | 21% | 42% | 37% | 63% |
+| round 3 after the 2026-10-16 round (unseen by its fixers) | 21% | 45% | 35% | 65% |
+| round 2 after both rounds (seen: a regression set) | 32% | 58% | 10% | 90% |
 
-  | | before | after |
-  |---|---:|---:|
-  | PASS | 16% | 24% |
-  | PARTIAL | 47% | 50% |
-  | FAIL | 38% | 27% |
-  | usable | 62% | 73% |
+**On output provost has never seen, about one input in five is fully right and
+about one in three is wrong, and two fix rounds have barely moved that.**
+They have moved the seen sets a lot. The gap between round 2 (90% usable)
+and round 3 (65%) measures how much the fixes fit what their authors could
+see. The corpus figure (3677 / 3705 tidy) is a shape check on tuned inputs,
+not a quality measure.
 
-  No input regressed. **This set has been looked at now, so it is a
-  regression measure, not a generalisation one.**
-- **Corpus:** 3579 golden passes, 0 failed (was 3557). COVERAGE.md shows
-  3675 / 3705 tidy.
+Round 3 is now seen too, so the next honest number needs a **round 4**. Build
+it, freeze it and rate it before any fix, as round 3 was
+(`tests/benchmark/round3/`, `docs/benchmark-2026-10-16-generalisation-round3.md`).
 
-The pre-rename `ENVOY_*` / `MFE_*` names and `~/.mfe/strategies` were honoured
-in 2.1.0 only; the fallbacks are removed on `main` (2026-10-16) and ship removed
-in 2.2.0. `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
+### This round (2026-10-16, PR #76)
+
+- **Round 3 benchmark:** 107 inputs, rated on 2.1.0 and then once after the
+  round.
+- **Column-type consistency:** a 5th `--emit-meta` field and a guarded
+  consistency hold. It fixed about a dozen corpus misparses but replaced only
+  1 of 11 held round-3 claims. Like coverage, it only warns one way: a
+  uniformly shifted header scores 100.
+- **Whitespace tables:**
+  - a UTF-8-aware gutter grid
+  - headerless first rows
+  - footers handled in every table parser
+  - print-report and pprof banners
+- **Format parsers decline what they don't understand:** toml, equals, yaml,
+  csv, semicolon-values, colon-fields and colons.
+- **New `section-tables`** (titled sub-tables in one table with a section
+  column), and indentation kept as depth/parent.
+- **Pre-rename `ENVOY_*` / `MFE_*` fallbacks removed**; this ships in 2.2.0.
+- **Corpus:** 3583 golden passes, 0 failed. COVERAGE.md shows 3677 / 3705.
+
+`tests/corpus/*/envoy-*` are real Envoy-proxy captures, not leftovers.
 
 Behaviour worth knowing:
 
 - `provost run CMD` names the dataset after the command. Piped input is named
   after the winning parser. `--name` overrides both.
-- Capture runs in the background only at an interactive terminal; scripts run
+- Background capture only at an interactive terminal; scripts run
   synchronously. Failures: `provost log --failed`.
 - Captures and `rm` are refused while `provost restore <id>` has a capture out.
 - A store whose `.git/config` others can write is refused if it sets keys that
   make git run programs.
 - Engines run with `PROVOST_NO_RC=1`.
-- Detection: the best confidence wins, with exact ceiling pruning, then the
-  coverage hold. `--rank priority` gives the old first-match order; the rescue
-  does not run there.
-- Large inputs: above 32 KB, detectors screen a sample and the winner is
-  re-confirmed on the full text. The sample is head + tail plus middle
-  windows. Coverage is measured up to 128 KB (`_FR_COV_BYTES`).
+- Detection steps, in order:
+  1. best confidence wins, with exact ceiling pruning;
+  2. the coverage hold (`kv-report` rescue);
+  3. the consistency hold.
+
+  `--rank priority` gives the old first-match order. `--emit-meta` prints
+  strategy, confidence, coverage and consistency.
+- Large inputs: above 32 KB, detectors screen a sample (head, tail and middle
+  windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
 - `tests/smoke.sh` (208)
 - `transform/tests/test_melt.sh` (54)
-- `extract/tests/run_tests.sh` (69 files)
+- `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
 - `python -m pytest`
 
-`tests/corpus/run.sh --coverage` now takes about 11 minutes.
+`tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
 
-1. **Publish 2.1.0.** Publish a GitHub release tagged `v2.1.0` on the merge
-   commit, then check that `pip install provost==2.1.0` works. In the release
-   after that (2.2.0), remove the legacy-name fallbacks (see above).
-2. **Round 3: a fresh held-out set.** This is the only honest way to know how
-   much this round generalised. Gather it the way round 2 was gathered
-   (`tests/benchmark/round2/CRITERIA.md`, `novelty.py`), and rate it before
-   anyone tunes on it.
-3. **What still fails, by pattern** (the round-2 postscript has details):
-   - Whitespace tables with non-ASCII cells: the grid withdraws (winget).
-     Also gzip -lv, Get-Volume, diff -y.
-   - Footers: sqlcmd and SQL*Plus footers are still data rows outside
-     aligned-columns.
-   - Sections glued into cells: vim, diskutil, route print, ffmpeg. Coverage
-     cannot see this; it needs segmentation.
-   - The first data row still becomes the header in gcc and dis. Banners
-     defeat readelf, pprof and the mainframe report.
-   - Suffix grammars such as `unittest -v`'s `... ok`, and curl -v.
-   - Patterns 5 (wrong strategy or delimiter: composer claimed by toml at 2%
-     coverage, because toml is exempt from the hold) and 6 (meaningful
-     indentation) were not worked.
-4. **Coverage as a quality signal.** It catches dropped lines, but not values
-   under the wrong header: 19 of the 29 round-2 FAILs cover 95% or more. A
-   second check, such as column-type consistency, would catch those.
-5. 30 corpus tools are still not tidy (`tests/corpus/COVERAGE.md`).
+1. **Rethink the approach before another fix round.** Two rounds of
+   pattern-level fixes, each developed against new examples, moved unseen
+   FAIL by only 1–3 points while seen sets improved a lot. More heuristics in
+   the same style will probably fit what we can see again. Options worth
+   weighing:
+   - Use `--multi` segmentation by default when coverage or consistency is
+     weak. `--multi` was better on 19 round-3 inputs.
+   - Make the parse-quality signals decide more often, not just veto.
+   - Narrow the claim: report low confidence and route to triage instead of
+     committing a wrong table. Today every input clears the commit
+     threshold, but a third are wrong.
+2. **Engine bugs found by round 3** (real defects, not tuning):
+   - `java -XX:+PrintFlagsFinal`-style input gives no output at all.
+   - `tsv` truncates rows to the first row's width while coverage reads 100.
+   - duplicate column names lose values in the melt.
+   - `gnu-version` emits a field that is not in the input.
+   - a bespoke parser claims near-miss input at under 31% coverage and is not
+     held.
+3. **Round 4**, built before the next fix round, to measure it.
+4. **Release 2.2.0** when PR #76 lands, following the 2.1.0 steps (CHANGELOG
+   2026-10-16 release entry). Publishing needs a person: this session type
+   cannot create GitHub releases.
