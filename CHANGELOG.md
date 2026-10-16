@@ -1,5 +1,61 @@
 # provost — Changelog
 
+## 2026-10-16 — release v2.1.0
+
+`VERSION` 2.0.1 → 2.1.0 (and the `man/provost.1` header). It is a minor
+release because the engine's internal names and two user-facing paths
+changed. The old names still work in this release. Everything below has
+landed since 2.0.1 (2026-08-19); the dated entries further down hold the
+detail.
+
+**Upgrading from 2.0.1**
+- **Renamed internals.** The engines are now `extract/provost-extract` and
+  `analyze/provost-analyze`, and every engine setting is `PROVOST_*` (for
+  example `MFE_RANK` → `PROVOST_RANK`). The per-user strategies dir is now
+  `${XDG_CONFIG_HOME:-~/.config}/provost/strategies`.
+  - Old `ENVOY_*` / `MFE_*` variables and `~/.mfe/strategies` are still
+    honoured in 2.1.0 and will be removed in the next release.
+  - `.envoyrc` files are no longer read (provost always ran its engines with
+    that layer off).
+- **Store format 2.** An existing store migrates on its next write, and
+  datasets lose the `total_entries` column.
+- **Coverage everywhere.** Captures now report line coverage: in the ok line,
+  in `meta.tsv`, and in the engine's `--emit-meta` (a 4th field). Anything
+  parsing `--emit-meta` with exactly three fields needs to allow for it.
+
+**What's new since 2.0.1**
+- **Safety and integrity** (2026-09-25):
+  - silent data loss on captures over ~3,000 rows
+  - capture-id reuse
+  - path traversal and command injection in the CLI
+  - code execution via a shared store or an rc file
+  - value corruption
+- **Detection** ranks every candidate by calibrated confidence, with exact
+  pruning; `--rank priority` keeps the old first-match order. `--explain`
+  lists matches in rank order.
+- **Very large inputs:** a 10 MB capture takes 7–22 s, where it used to take
+  minutes. This comes from a bounded detection sample (head, tail and middle
+  windows) and awk twins of the hot parsers.
+- **Parsing quality:**
+  - Whitespace tables place cells by column offset and handle banners,
+    titles, footers and headerless tables.
+  - New `prefix-message` parser for diagnostics and logs, with continuation
+    lines attached, and `help-columns` for help text.
+  - A line-coverage hold rescues multi-section reports.
+  - Known misparses fixed (box tables, URL values).
+  - New strategies since 2.0.1, both tool-specific and generic.
+- **Measured results:**
+  - Corpus: 3675 / 3705 tools tidy, up from 3588 before this work.
+  - Held-out round 2: 62% usable before the fix round, 73% after. Round 2 is
+    now a regression set.
+- **Fixes:** batch mode no longer skips text files that end in blank lines.
+- **Faster test tooling:** `tests/corpus/run.sh --coverage` takes ~11 min,
+  down from over an hour.
+
+**Publishing.** Publishing a GitHub release tagged `v2.1.0` on the merged
+commit runs `.github/workflows/release.yml`, which builds the sdist and wheel
+and uploads them to PyPI through Trusted Publishing.
+
 ## 2026-10-14 — housekeeping: fast coverage runner, COVERAGE.md regenerated
 
 - `tests/corpus/run.sh`: `--report` and `--coverage` now use the same

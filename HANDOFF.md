@@ -5,13 +5,11 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-14)
 
-PyPI has provost 2.0.1. `main` (after PR #74) is unreleased and holds a lot of
-user-visible change since 2.0.1:
-- the rename to `provost-extract` / `PROVOST_*`
-- the misparse fixes and mid-file sampling (PR #73)
-- this round's parser work (PR #74)
-
-The next release should be **2.1.0**.
+**provost 2.1.0 is prepared** (`VERSION`, man page header, and a CHANGELOG
+release entry). PyPI still serves 2.0.1 until a GitHub release tagged
+`v2.1.0` is published on the merged commit; `release.yml` then uploads it.
+2.1.0 is the first release that ships the rename (`provost-extract` /
+`PROVOST_*`), store format 2, line coverage and the 2026-10 parser work.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 264 strategies, ~115 of them
@@ -58,8 +56,8 @@ It has a git-backed store and ships as a thin Python launcher
 
 The engines honour the pre-rename `ENVOY_*` / `MFE_*` names and
 `~/.mfe/strategies` for one release. Remove that "Legacy names" block, and
-the legacy dir in `_collect_strategy_dirs`, in the release AFTER the one that
-first ships the rename. `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
+the legacy dir in `_collect_strategy_dirs`, in 2.2.0 (the release after 2.1.0,
+which first ships the rename). `tests/corpus/*/envoy-*` are real Envoy-proxy captures.
 
 Behaviour worth knowing:
 
@@ -90,8 +88,9 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-1. **Release 2.1.0.** Bump `VERSION` and add a CHANGELOG release note. The user
-   publishes to PyPI.
+1. **Publish 2.1.0.** Publish a GitHub release tagged `v2.1.0` on the merge
+   commit, then check that `pip install provost==2.1.0` works. In the release
+   after that (2.2.0), remove the legacy-name fallbacks (see above).
 2. **Round 3: a fresh held-out set.** This is the only honest way to know how
    much this round generalised. Gather it the way round 2 was gathered
    (`tests/benchmark/round2/CRITERIA.md`, `novelty.py`), and rate it before
