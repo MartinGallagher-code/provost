@@ -1,5 +1,4 @@
-n	A	B	C	D	E
-1	------	Top	processes	by	CPU
-2	44.20%	postgres			
-3	28.10%	dockerd			
-4	12.40%	nginx			
+n	A	B	title
+1	44.20%	postgres	Top processes by CPU
+2	28.10%	dockerd	Top processes by CPU
+3	12.40%	nginx	Top processes by CPU

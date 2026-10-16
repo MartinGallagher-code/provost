@@ -1,0 +1,17 @@
+row1.DEPT_ID 10
+row1.DEPT_NAME Comptabilité
+row1.CITY Montréal
+row1.BUDGET 125000
+row2.DEPT_ID 20
+row2.DEPT_NAME Research
+row2.CITY Zürich
+row2.BUDGET 480500
+row3.DEPT_ID 30
+row3.DEPT_NAME Sales
+row3.CITY São Paulo
+row3.BUDGET 310000
+row4.DEPT_ID 40
+row4.DEPT_NAME Operations
+row4.CITY Kraków
+row4.BUDGET 98750
+total_entries 4

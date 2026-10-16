@@ -1,19 +1,6 @@
-n	A
-1	# Samples: 44K of event 'cycles:u'
-2	# Event count (approx.): 38221004556
-3	#
-4	# Overhead  Command  Shared Object        Symbol
-5	# ........  .......  ...................  ..................................
-6	#
-7	28.14%  postgres postgres             [.] ExecInterpExpr
-8	|
-9	---ExecInterpExpr
-10	|
-11	|--18.02%--ExecScan
-12	|          ExecSeqScan
-13	|
-14	--10.11%--advance_aggregates
-15	14.77%  postgres libc.so.6            [.] __memcpy_avx_unaligned
-16	9.31%  postgres postgres             [.] slot_deform_heap_tuple
-17	6.02%  postgres postgres             [.] heap_getnextslot
-18	3.88%  postgres [kernel.kallsyms]    [k] copy_user_enhanced_fast_string
+n	Overhead	Command	Shared	Object	Symbol
+1	28.14%	postgres	postgres	[.]	ExecInterpExpr
+2	14.77%	postgres	libc.so.6	[.]	__memcpy_avx_unaligned
+3	9.31%	postgres	postgres	[.]	slot_deform_heap_tuple
+4	6.02%	postgres	postgres	[.]	heap_getnextslot
+5	3.88%	postgres	[kernel.kallsyms]	[k]	copy_user_enhanced_fast_string

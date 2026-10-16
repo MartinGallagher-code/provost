@@ -1,0 +1,9 @@
+
+Number Friendly Name                 Serial Number        HealthStatus         OperationalStatus      Total Size Partition
+                                                                                                                 Style
+------ -------------                 -------------        ------------         -----------------      ---------- ----------
+0      Samsung SSD 970 EVO Plus 1TB  S4EWNX0R123456A      Healthy              Online                  931.51 GB GPT
+1      WDC WD40EFRX-68N32N0          WD-WCC7K1234567      Healthy              Online                    3.64 TB GPT
+2      SanDisk Ultra                 4C530001230915111111 Healthy              Online                   57.28 GB MBR
+
+

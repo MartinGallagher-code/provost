@@ -1,0 +1,21 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 12K of event 'cycles:P'
+# Event count (approx.): 9876543210
+#
+# Overhead  Command  Shared Object      Symbol
+# ........  .......  .................  ...................................
+#
+    23.45%  python3  libpython3.12.so   [.] _PyEval_EvalFrameDefault
+    10.12%  python3  [kernel.kallsyms]  [k] clear_page_erms
+     6.80%  python3  libc.so.6          [.] __memmove_avx_unaligned_erms
+     4.02%  python3  libpython3.12.so   [.] PyObject_Malloc
+     2.11%  sh       [kernel.kallsyms]  [k] copy_page
+
+
+#
+# (Tip: For a higher level overview, try: perf report --sort comm,dso)
+#

@@ -1,0 +1,22 @@
+row1.Number 0
+row1.Friendly_Name Samsung SSD 970 EVO Plus 1TB
+row1.Serial_Number S4EWNX0R123456A
+row1.HealthStatus Healthy
+row1.OperationalStatus Online
+row1.Total_Size 931.51 GB
+row1.Partition_Style GPT
+row2.Number 1
+row2.Friendly_Name WDC WD40EFRX-68N32N0
+row2.Serial_Number WD-WCC7K1234567
+row2.HealthStatus Healthy
+row2.OperationalStatus Online
+row2.Total_Size 3.64 TB
+row2.Partition_Style GPT
+row3.Number 2
+row3.Friendly_Name SanDisk Ultra
+row3.Serial_Number 4C530001230915111111
+row3.HealthStatus Healthy
+row3.OperationalStatus Online
+row3.Total_Size 57.28 GB
+row3.Partition_Style MBR
+total_entries 3

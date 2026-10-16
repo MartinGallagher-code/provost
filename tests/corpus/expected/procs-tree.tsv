@@ -1,4 +1,4 @@
 n	PID	USER	TREE	CPU	MEM
 1	1	root	init	0.0	0.1
-2	812	root	└─	sshd	0.2 0.3
-3	30122	deploy	└─	sshd:	deploy 0.0 0.1
+2	812	root	└─ sshd	0.2	0.3
+3	30122	deploy	└─ sshd: deploy	0.0	0.1

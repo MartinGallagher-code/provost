@@ -111,8 +111,8 @@ test_grid_withdraws () {
     assert_eq "" "$out" "a TAB header over space-aligned data"
     out="$(_grid '      eth0                wlan0' ' KB/s in  KB/s out   KB/s in  KB/s out' '   12.45     3.21       0.98      0.12' '   88.30    15.67       1.20      0.34')"
     assert_eq "" "$out" "a second header line is no data row"
-    out="$(_grid 'Name     Ünit    Value' 'alpha    kg      1' 'beta     m       2')"
-    assert_eq "" "$out" "non-ASCII: byte offsets are not columns"
+    out="$(printf '%s\n' 'a  b' $'x\001y  z' 'p  q' | _fr_gutter_grid 1 0)"
+    assert_eq "" "$out" "a placeholder byte in the input"
 }
 
 # mawk and the default awk give the same bytes (CI runs mawk and gawk).
@@ -290,6 +290,143 @@ test_embedded_table_group_row () {
     assert_contains "$out" "entry5.name mcount" "row with empty cells"
 }
 
+################################################################################
+## 2026-10-16: UTF-8 offsets, soft and data gutters, footers, banners
+################################################################################
+
+# Offsets count characters: an accented or CJK cell no longer withdraws the
+# grid. Wide characters count two columns first (what a terminal shows:
+# lsblk / column), then one (tools that pad by character count: Go
+# tabwriter, Python ljust).
+test_grid_utf8_widths () {
+    local out
+    out="$(_fr_gutter_grid 1 0 < "$AC/utf8-widths.txt")"
+    assert_contains "$out" "entry3.LABEL データ" "a CJK cell in its column (display width)"
+    assert_contains "$out" "entry3.SIZE 900G" "the next column unshifted"
+    assert_contains "$out" "entry1.SIZE 931.5G" "an empty LABEL stays empty"
+    assert_not_contains "$out" "entry1.LABEL" "no value shifted into LABEL"
+    out="$(_fr_gutter_grid 1 0 < "$AC/utf8-runes.txt")"
+    assert_contains "$out" "entry2.APP 订单服务" "a CJK cell (character count)"
+    assert_contains "$out" "entry2.RESTARTS 2 (4h ago)" "a multi-word cell after it"
+    out="$(_grid 'UID USER    GECOS          SHELL' '  0 root    root           /bin/bash' '1000 josé    José Álvarez   /bin/zsh' '1001 chloé   Chloé Lefèvre  /bin/sh')"
+    assert_contains "$out" "entry2.GECOS José Álvarez" "accented multi-word cell"
+    assert_contains "$out" "entry3.SHELL /bin/sh" "columns after accents unshifted"
+    out="$(_grid 'NAME   STATUS     NOTE' 'build  ✓ passed   cached' 'test   ✗ failed   …' 'lint   ✓ passed   -')"
+    assert_contains "$out" "entry2.STATUS ✗ failed" "check marks are narrow"
+    assert_contains "$out" "entry2.NOTE …" "an ellipsis cell"
+    local a b
+    command -v mawk >/dev/null 2>&1 || return 0
+    a="$(LC_ALL=C mawk -v nh=1 -v rl=0 -v pfx=entry "$_FR_AWK_GRID" < "$AC/utf8-runes.txt")"
+    b="$(_fr_gutter_grid 1 0 < "$AC/utf8-runes.txt")"
+    assert_eq "$a" "$b" "mawk output identical (UTF-8)"
+}
+
+# One over-long cell crossing a gutter in a small table (`Full Repair
+# Needed` one character past its label) no longer withdraws the grid.
+test_grid_one_crossing_row () {
+    local out
+    out="$(_grid 'Drive Status                 Free      Size' 'C     OK                   120 GB    476 GB' 'D     OK                   841 GB    931 GB' 'E     Unknown                 0 B       0 B' 'F     Full Repair Needed    58 GB     60 GB' 'G     OK                     1 GB      2 GB')"
+    assert_contains "$out" "entry4.Status Full Repair Needed" "the crossing cell stays whole"
+    assert_contains "$out" "entry4.Free 58 GB" "the value after it in its column"
+    assert_contains "$out" "entry1.Size 476 GB" "right-aligned last column"
+}
+
+# A header printed in a format of its own (`method  crc     date  time`
+# over `defla 1c2b3a4d Oct  1 08:01`): the data's own gutters cut the
+# columns, each going to the label it overlaps.
+test_grid_data_gutters () {
+    local out; out="$(_fr_gutter_grid 1 0 < "$AC/data-gutters.txt")"
+    assert_contains "$out" "entry2.date Oct 1" "a date with a padded day is one cell"
+    assert_contains "$out" "entry2.time 08:01" "time after it"
+    assert_contains "$out" "entry2.compressed 8120" "numbers unshifted"
+    assert_contains "$out" "entry4.compressed 19310" "totals row: empty leading cells"
+}
+
+# The last single-spaced label group may take a run-on totals row.
+test_grid_last_group_run_on () {
+    local out
+    out="$(_grid 'method      compressed  uncompr. ratio uncompressed_name' 'LZO1X-1          4021      12813  31.4% services' 'LZO1X-1          1102       3144  35.1% protocols' '                 5123      15957  32.1% [total of 2 files]')"
+    assert_contains "$out" "entry1.ratio 31.4%" "ratio apart from the name"
+    assert_contains "$out" "entry3.uncompressed_name [total of 2 files]" "run-on cell in the last column"
+}
+
+# Headerless: a soft gutter (a TAB-pushed over-long option) and empty
+# trailing / sparse leading cells.
+test_ac_option_states_headerless () {
+    local out; out="$(run_extract -r -f plain --max-strategies 1 "$AC/option-states.txt" 2>/dev/null)"
+    assert_contains "$out" "entry1.A -faggressive-loop-optimizations" "the first option is a row"
+    assert_contains "$out" "entry1.B [enabled]" "its state"
+    assert_contains "$out" "entry11.B dynamic" "a row after the overflow"
+    assert_not_contains "$out" "entry8.B" "an option with no state: empty last cell"
+    assert_not_contains "$out" "following" "the title is no row"
+    out="$(printf '%s\n' '  1           0 RESUME   0' '  2           2 LOAD     0 (x)' '              4 STORE    1 (y)' '              6 RETURN' '  3           8 LOAD     2 (z)' '             10 RETURN' | _fr_gutter_grid 0 0)"
+    assert_contains "$out" "entry3.B 4" "sparse leading column: the row keeps its cells"
+    assert_not_contains "$out" "entry3.A" "the empty leading cell stays empty"
+    assert_contains "$out" "entry4.C RETURN" "an empty trailing cell"
+}
+
+# An all-caps row that opens with a value, as the rows below do, is data.
+test_ac_caps_row_with_values_is_data () {
+    local tmp out; tmp="$(mktemp)"
+    printf '%s\n' '0000 PUSH     1' '0002 PUSH     2' '0004 ADD' '0005 STORE    x' '0007 RETURN' > "$tmp"
+    out="$(run_extract -r -s aligned-columns -f plain "$tmp" 2>/dev/null)"; rm -f "$tmp"
+    assert_not_contains "$out" ".PUSH " "PUSH is no column name"
+    assert_contains "$out" "0000" "the first instruction is a row"
+}
+
+# Footers end a fixed-width / pipe table, and the client prompt after one
+# goes too.
+test_footers_everywhere () {
+    local out
+    out="$(run_extract -r -f plain --max-strategies 1 "$FW/footer-prompt.txt" 2>/dev/null)"
+    assert_contains "$out" "row1.DEPT_NAME Comptabilité" "accented cell"
+    assert_contains "$out" "row3.CITY São Paulo" "multi-word accented cell"
+    assert_not_contains "$out" "selected" "footer dropped"
+    assert_not_contains "$out" "SQL>" "prompt after the footer dropped"
+    out="$(run_extract -r -f plain --max-strategies 1 "$SAMPLES_DIR/pipe-table/footer.txt" 2>/dev/null)"
+    assert_contains "$out" "entry3.city Rome" "bare pipe table with a footer"
+    assert_not_contains "$out" "rows" "footer is no row"
+    _FR_FC=('a  b' '1  2' '' '(1 row affected)' '' '1>'); _fr_footer_cut
+    assert_eq "2" "$_FR_FC_N" "footer cut keeps the rows"
+    _FR_FC=('a  b' '1  2' '3 >'); _fr_footer_cut
+    assert_eq "3" "$_FR_FC_N" "no footer: nothing cut"
+}
+
+# A PowerShell header wrapped onto two lines.
+test_fw_wrapped_header () {
+    local out; out="$(run_extract -r -f plain --max-strategies 1 "$FW/wrapped-header.txt" 2>/dev/null)"
+    assert_contains "$out" "row1.Partition_Style GPT" "the wrapped label joined"
+    assert_contains "$out" "row1.Friendly_Name Samsung SSD 970 EVO Plus 1TB" "first-line labels kept"
+    assert_contains "$out" "row2.Total_Size 3.64 TB" "right-aligned value"
+}
+
+# Banners: a commented header with a dotted rule (perf report), print-report
+# page headers repeated at page breaks, ASA carriage control, and a
+# right-aligned table under `Label: value` / prose lines.
+test_ac_banners_2026_10_16 () {
+    local out
+    out="$(run_extract -r -f plain --max-strategies 1 "$AC/comment-header.txt" 2>/dev/null)"
+    assert_contains "$out" "entry1.Shared_Object libpython3.12.so" "two-word commented label"
+    assert_contains "$out" "entry1.Symbol [.] _PyEval_EvalFrameDefault" "last column whole"
+    assert_not_contains "$out" "Samples:" "a Label: comment is no header"
+    out="$(run_extract -r -f plain --max-strategies 1 "$AC/page-headers.txt" 2>/dev/null)"
+    assert_contains "$out" "entry1.Customer C10045" "page header is no column name"
+    assert_contains "$out" "entry5.Name Wide World Importers" "rows of page 2 kept"
+    assert_not_contains "$out" "5770SS1" "page header lines dropped"
+    assert_not_contains "$out" "L I S T I N G" "end-of-listing line dropped"
+    out="$(run_extract -r -f plain --max-strategies 1 "$AC/asa-report.txt" 2>/dev/null)"
+    assert_contains "$out" "entry1.ITEM-NO A-10021" "carriage control cut from the header"
+    assert_contains "$out" "entry4.DESCRIPTION GASKET SET" "page 2 rows kept"
+    assert_not_contains "$out" "RUN DATE" "page header dropped"
+    local tmp; tmp="$(mktemp)"
+    printf '%s\n' 'Process: dotnet (pid 4412)' 'Duration: 10.02s, 4,812 samples' 'Showing top 3 methods' \
+        '   Exclusive  Exclusive%   Inclusive  Method' '     1,201ms      24.96%     3,410ms  MyApp.Parser.ParseRow' \
+        '       812ms      16.87%       812ms  System.String.Split' '        97ms       2.02%     4,790ms  MyApp.Program.Main' > "$tmp"
+    out="$(run_extract -r -f plain -s aligned-columns "$tmp" 2>/dev/null)"; rm -f "$tmp"
+    assert_contains "$out" "entry1.Exclusive 1,201ms" "right-aligned rows under a later header"
+    assert_contains "$out" "entry3.Method MyApp.Program.Main" "last row"
+}
+
 run_test "grid: multi-word and empty cells" test_grid_multiword_and_empty
 run_test "grid: unit join and label words" test_grid_unit_and_label_words
 run_test "grid: duplicate names" test_grid_duplicate_names
@@ -317,5 +454,15 @@ run_test "fixed-width: declines a multi-section report" test_fw_declines_multi_s
 run_test "pipe-table: ---|--- rules in the default run" test_pipe_table_dash_rules_default_path
 run_test "tsv: headerless when row-1 values recur" test_tsv_headerless_repeats
 run_test "embedded-table: group row + repeated labels" test_embedded_table_group_row
+
+run_test "grid: UTF-8 widths (display, then characters)" test_grid_utf8_widths
+run_test "grid: one crossing row in a small table" test_grid_one_crossing_row
+run_test "grid: data gutters under a loose header" test_grid_data_gutters
+run_test "grid: run-on totals row in the last group" test_grid_last_group_run_on
+run_test "aligned-columns: headerless option listing" test_ac_option_states_headerless
+run_test "aligned-columns: all-caps row with values is data" test_ac_caps_row_with_values_is_data
+run_test "footers: fixed-width prompt, bare pipe table" test_footers_everywhere
+run_test "fixed-width: header wrapped onto two lines" test_fw_wrapped_header
+run_test "aligned-columns: banners (comment header, page headers, ASA)" test_ac_banners_2026_10_16
 
 print_summary

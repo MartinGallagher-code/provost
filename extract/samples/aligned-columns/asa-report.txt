@@ -1,0 +1,13 @@
+1RUN DATE 10/02/26                 MIDWEST SUPPLY CO                       PAGE     1
+ PROGRAM INV0420                INVENTORY VALUATION REPORT
+0ITEM-NO   DESCRIPTION              WHSE    QTY-ON-HAND   UNIT-COST     EXT-VALUE
+ --------  -----------------------  ----    -----------   ---------   -----------
+ A-10021   HEX BOLT 3/8 X 2          01          1,250       0.18         225.00
+ A-10022   HEX NUT 3/8               01          4,800       0.05         240.00
+ B-20410   PIPE CLAMP 2 IN           03            320       1.95         624.00
+1RUN DATE 10/02/26                 MIDWEST SUPPLY CO                       PAGE     2
+ PROGRAM INV0420                INVENTORY VALUATION REPORT
+0ITEM-NO   DESCRIPTION              WHSE    QTY-ON-HAND   UNIT-COST     EXT-VALUE
+ --------  -----------------------  ----    -----------   ---------   -----------
+ C-30001   GASKET SET               02             75      12.40         930.00
+ C-30002   O-RING KIT ASSORTED      02             40      18.75         750.00

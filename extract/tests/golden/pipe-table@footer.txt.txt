@@ -1,0 +1,10 @@
+entry1.id 1
+entry1.name Ana
+entry1.city Lisbon
+entry2.id 2
+entry2.name Bo
+entry2.city Oslo
+entry3.id 3
+entry3.name Cy
+entry3.city Rome
+total_entries 3

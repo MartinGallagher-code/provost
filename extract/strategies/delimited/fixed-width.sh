@@ -165,8 +165,8 @@ strategy_extract () {
     # rows are the ones the slicer below reads (later rules dropped), minus a
     # trailing result-set footer (`(5 rows affected)` — _FR_FOOTER_RE). When
     # the grid withdraws, the slicer runs as before.
-    local _fg_l _fg_i _fg_r=-1 _fg_h=-1 _fg_out
-    local -a _fg_rows=()
+    local _fg_l _fg_i _fg_r=-1 _fg_h=-1 _fg_out _fg_cut=-1
+    local -a _fg_rows=() _fg_at=()
     _fr_lines "$text"
     for ((_fg_i = 0; _fg_i < ${#_FR_LINES[@]}; _fg_i++)); do
         _fg_l="${_FR_LINES[$_fg_i]}"
@@ -177,11 +177,31 @@ strategy_extract () {
         fi
         [[ "$_fg_l" == *[![:space:]]* ]] || continue
         [[ "$_fg_l" =~ ^[[:space:]]*(-+|=+)([[:space:]]+(-+|=+))*[[:space:]]*$ ]] && continue
-        _fg_rows+=("$_fg_l")
+        _fg_rows+=("$_fg_l"); _fg_at+=("$_fg_i")
     done
-    while [[ ${#_fg_rows[@]} -gt 0 ]] && _fr_is_footer "${_fg_rows[$(( ${#_fg_rows[@]} - 1 ))]}"; do
-        unset '_fg_rows[$(( ${#_fg_rows[@]} - 1 ))]'
-    done
+    # (the table ends at a result-set footer; the client's prompt or timing
+    # line after it goes too — lib/_helpers.sh _fr_footer_cut)
+    _FR_FC=("${_fg_rows[@]}"); _fr_footer_cut
+    if [[ $_FR_FC_N -lt ${#_fg_rows[@]} ]]; then
+        _fg_cut=${_fg_at[$_FR_FC_N]}
+        _fg_rows=("${_fg_rows[@]:0:$_FR_FC_N}")
+    fi
+    # A header WRAPPED onto two lines (PowerShell's Format-Table: `Partition`
+    # over `Style`) leaves the line above the rule naming only some of its
+    # runs; the line directly above that one, naming the others, is the
+    # first half of the labels — read as the grid's group row, whose words
+    # prefix the names under them.
+    if [[ $_fg_r -ge 1 && $_fg_h -ge 1 && $_fg_h -eq $((_fg_r - 1)) && ${#_fg_rows[@]} -ge 1 \
+          && "${_FR_LINES[$((_fg_h - 1))]}" == *[![:space:]]* ]]; then
+        local _fg_up="${_FR_LINES[$((_fg_h - 1))]}" _fg_runs _fg_hw
+        _fr_tok "${_FR_LINES[$_fg_r]}"; _fg_runs=${#_FR_TOK[@]}
+        _fr_tok "${_FR_LINES[$_fg_h]}"; _fg_hw=${#_FR_TOK[@]}
+        _fr_tok "$_fg_up"
+        if [[ $_fg_hw -lt $_fg_runs && ${#_FR_TOK[@]} -ge $_fg_runs ]]; then
+            _fg_out="$(printf '%s\n' "$_fg_up" "${_FR_LINES[$_fg_h]}" "${_FR_LINES[$_fg_r]}" "${_fg_rows[@]}" | _fr_gutter_grid 2 1 row)"
+            if [[ -n "$_fg_out" ]]; then echo "$_fg_out"; return 0; fi
+        fi
+    fi
     if [[ $_fg_r -ge 1 && $_fg_h -ge 0 && ${#_fg_rows[@]} -ge 1 ]]; then
         _fg_out="$(printf '%s\n' "${_FR_LINES[$_fg_h]}" "${_FR_LINES[$_fg_r]}" "${_fg_rows[@]}" | _fr_gutter_grid 1 1 row)"
         if [[ -n "$_fg_out" ]]; then echo "$_fg_out"; return 0; fi
@@ -262,9 +282,11 @@ strategy_extract () {
 
     # Extract data rows (lines after separator)
     local row_num=0
-    local past_sep=0
+    local past_sep=0 _fw_li=-1
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
+        _fw_li=$((_fw_li + 1))
+        [[ $_fg_cut -ge 0 && $_fw_li -ge $_fg_cut ]] && break
         if [[ $past_sep -eq 0 ]]; then
             if _strat_fw_is_rule "$line"; then
                 past_sep=1

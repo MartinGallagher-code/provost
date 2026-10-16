@@ -157,9 +157,13 @@ empty span is an empty cell. NH is the number of header lines (0 headerless,
 1, or 2 with a group row whose words prefix the names below), RL=1 when a
 `----  ----` / `==== ====` rule follows the header. It prints `PREFIX<N>.name
 value` lines plus `total_entries N`, or NOTHING when the offsets cannot be
-trusted (non-ASCII, a TAB header over space rows, an unpadded single-spaced
-table, a header repeated as data, misaligned cells …) — keep your old path as
-the fallback. aligned-columns (both routes), fixed-width and embedded-table
+trusted (a TAB header over space rows, an unpadded single-spaced table, a
+header repeated as data, misaligned cells …) — keep your old path as the
+fallback. Offsets count CHARACTERS, not bytes: a UTF-8 character is one
+column, a wide East Asian / emoji character two (what a terminal shows), and
+when the offsets do not hold that way the grid retries with every character
+one column (tools that pad by character count, such as Go's tabwriter). Cells
+come back as the original bytes. aligned-columns (both routes), fixed-width and embedded-table
 use it; `tests/test_gutter_grid.sh` pins its behaviour.
 
 ## Candidate ranking
