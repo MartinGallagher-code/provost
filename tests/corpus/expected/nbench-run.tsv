@@ -1,6 +1,7 @@
 n	key	value
 1	TEST	Iterations/sec.  : Old Index   : New Index
-2	NUMERIC SORT	1204.8    :      30.89   :      10.14
-3	STRING SORT	482.10   :     215.44   :      33.36
-4	FP EMULATION	221.04   :     106.10   :      24.48
-5	FOURIER	48210.0    :      54.82   :      30.78
+2	:                  : Pentium 90  : AMD K6/233	
+3	NUMERIC SORT	1204.8    :      30.89   :      10.14
+4	STRING SORT	482.10   :     215.44   :      33.36
+5	FP EMULATION	221.04   :     106.10   :      24.48
+6	FOURIER	48210.0    :      54.82   :      30.78

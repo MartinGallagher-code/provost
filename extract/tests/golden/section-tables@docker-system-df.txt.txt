@@ -1,0 +1,52 @@
+entry1.section Images space usage
+entry1.REPOSITORY nginx
+entry1.TAG 1.27
+entry1.IMAGE_ID 3b25b682ea82
+entry1.CREATED 2 weeks ago
+entry1.SIZE 192MB
+entry1.SHARED_SIZE 74.8MB
+entry1.UNIQUE_SIZE 117.2MB
+entry1.CONTAINERS 2
+entry2.section Images space usage
+entry2.REPOSITORY postgres
+entry2.TAG 16
+entry2.IMAGE_ID b0b90c1d9579
+entry2.CREATED 3 weeks ago
+entry2.SIZE 432MB
+entry2.SHARED_SIZE 74.8MB
+entry2.UNIQUE_SIZE 357.2MB
+entry2.CONTAINERS 1
+entry3.section Images space usage
+entry3.REPOSITORY redis
+entry3.TAG 7
+entry3.IMAGE_ID 7fe72c486b91
+entry3.CREATED 5 weeks ago
+entry3.SIZE 117MB
+entry3.SHARED_SIZE 0B
+entry3.UNIQUE_SIZE 117MB
+entry3.CONTAINERS 0
+entry4.section Containers space usage
+entry4.CONTAINER_ID 4f1c2a9b7d3e
+entry4.IMAGE nginx:1.27
+entry4.COMMAND "/docker-entrypoint.…"
+entry4.LOCAL_VOLUMES 0
+entry4.SIZE 1.09kB
+entry4.CREATED 3 days ago
+entry4.STATUS Up 3 days
+entry4.NAMES web
+entry5.section Containers space usage
+entry5.CONTAINER_ID 9e8d7c6b5a4f
+entry5.IMAGE postgres:16
+entry5.COMMAND "docker-entrypoint.s…"
+entry5.LOCAL_VOLUMES 1
+entry5.SIZE 63B
+entry5.CREATED 3 days ago
+entry5.STATUS Up 3 days
+entry5.NAMES db
+entry6.section Local Volumes space usage
+entry6.VOLUME_NAME pgdata
+entry6.LINKS 1
+entry6.SIZE 48.2MB
+entry7.section Local Volumes space usage
+entry7.text Build cache usage: 0B
+total_entries 7

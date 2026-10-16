@@ -1,0 +1,4 @@
+Wired connection 1:5b7c3f2e-1d9a-4e6b-8c0f-2a1b3c4d5e6f:802-3-ethernet:enp0s31f6
+home wifi 5G:0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0:802-11-wireless:wlp0s20f3
+docker0:7a6b5c4d-3e2f-1a0b-9c8d-7e6f5a4b3c2d:bridge:docker0
+Office VPN:11223344-5566-7788-99aa-bbccddeeff00:vpn:

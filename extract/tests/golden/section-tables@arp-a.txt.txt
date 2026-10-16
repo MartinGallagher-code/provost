@@ -1,0 +1,29 @@
+entry1.section Interface: 192.168.1.23 --- 0x6
+entry1.Internet_Address 192.168.1.1
+entry1.Physical_Address a0-b1-c2-d3-e4-f5
+entry1.Type dynamic
+entry2.section Interface: 192.168.1.23 --- 0x6
+entry2.Internet_Address 192.168.1.40
+entry2.Physical_Address 10-20-30-40-50-60
+entry2.Type dynamic
+entry3.section Interface: 192.168.1.23 --- 0x6
+entry3.Internet_Address 192.168.1.255
+entry3.Physical_Address ff-ff-ff-ff-ff-ff
+entry3.Type static
+entry4.section Interface: 192.168.1.23 --- 0x6
+entry4.Internet_Address 224.0.0.22
+entry4.Physical_Address 01-00-5e-00-00-16
+entry4.Type static
+entry5.section Interface: 172.27.80.1 --- 0x1c
+entry5.Internet_Address 172.27.95.255
+entry5.Physical_Address ff-ff-ff-ff-ff-ff
+entry5.Type static
+entry6.section Interface: 172.27.80.1 --- 0x1c
+entry6.Internet_Address 224.0.0.22
+entry6.Physical_Address 01-00-5e-00-00-16
+entry6.Type static
+entry7.section Interface: 172.27.80.1 --- 0x1c
+entry7.Internet_Address 239.255.255.250
+entry7.Physical_Address 01-00-5e-7f-ff-fa
+entry7.Type static
+total_entries 7

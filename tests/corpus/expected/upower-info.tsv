@@ -6,19 +6,20 @@ n	key	value
 5	power supply	yes
 6	updated	Mon 06 Jul 2026 09:14:52 AM UTC (34 seconds ago)
 7	has history	yes
-8	has statistics	yes battery
-9	present	yes
-10	rechargeable	yes
-11	state	discharging
-12	warning-level	none
-13	energy	42.117 Wh
-14	energy-empty	0 Wh
-15	energy-full	51.234 Wh
-16	energy-full-design	57.0 Wh
-17	energy-rate	9.812 W
-18	voltage	11.523 V
-19	charge-cycles	142
-20	time to empty	4.3 hours
-21	percentage	82%
-22	capacity	89.885%
-23	technology	lithium-ion
+8	has statistics	yes
+9	battery	
+10	present	yes
+11	rechargeable	yes
+12	state	discharging
+13	warning-level	none
+14	energy	42.117 Wh
+15	energy-empty	0 Wh
+16	energy-full	51.234 Wh
+17	energy-full-design	57.0 Wh
+18	energy-rate	9.812 W
+19	voltage	11.523 V
+20	charge-cycles	142
+21	time to empty	4.3 hours
+22	percentage	82%
+23	capacity	89.885%
+24	technology	lithium-ion

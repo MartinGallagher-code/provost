@@ -1,0 +1,19 @@
+Images space usage:
+
+REPOSITORY   TAG       IMAGE ID       CREATED        SIZE      SHARED SIZE   UNIQUE SIZE   CONTAINERS
+nginx        1.27      3b25b682ea82   2 weeks ago    192MB     74.8MB        117.2MB       2
+postgres     16        b0b90c1d9579   3 weeks ago    432MB     74.8MB        357.2MB       1
+redis        7         7fe72c486b91   5 weeks ago    117MB     0B            117MB         0
+
+Containers space usage:
+
+CONTAINER ID   IMAGE         COMMAND                  LOCAL VOLUMES   SIZE      CREATED       STATUS         NAMES
+4f1c2a9b7d3e   nginx:1.27    "/docker-entrypoint.…"   0               1.09kB    3 days ago    Up 3 days      web
+9e8d7c6b5a4f   postgres:16   "docker-entrypoint.s…"   1               63B       3 days ago    Up 3 days      db
+
+Local Volumes space usage:
+
+VOLUME NAME   LINKS     SIZE
+pgdata        1         48.2MB
+
+Build cache usage: 0B

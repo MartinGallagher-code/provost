@@ -1,0 +1,59 @@
+entry1.section Routing tables / Internet
+entry1.Destination default
+entry1.Gateway 192.168.1.1
+entry1.Flags UGScg
+entry1.Netif en0
+entry2.section Routing tables / Internet
+entry2.Destination 127
+entry2.Gateway 127.0.0.1
+entry2.Flags UCS
+entry2.Netif lo0
+entry3.section Routing tables / Internet
+entry3.Destination 127.0.0.1
+entry3.Gateway 127.0.0.1
+entry3.Flags UH
+entry3.Netif lo0
+entry4.section Routing tables / Internet
+entry4.Destination 192.168.1
+entry4.Gateway link#6
+entry4.Flags UCS
+entry4.Netif en0
+entry4.Expire !
+entry5.section Routing tables / Internet
+entry5.Destination 192.168.1.1/32
+entry5.Gateway link#6
+entry5.Flags UCS
+entry5.Netif en0
+entry5.Expire !
+entry6.section Routing tables / Internet
+entry6.Destination 192.168.1.23/32
+entry6.Gateway link#6
+entry6.Flags UCS
+entry6.Netif en0
+entry6.Expire !
+entry7.section Internet6
+entry7.Destination default
+entry7.Gateway fe80::%utun0
+entry7.Flags UGcIg
+entry7.Netif utun0
+entry8.section Internet6
+entry8.Destination ::1
+entry8.Gateway ::1
+entry8.Flags UHL
+entry8.Netif lo0
+entry9.section Internet6
+entry9.Destination fe80::%lo0/64
+entry9.Gateway fe80::1%lo0
+entry9.Flags UcI
+entry9.Netif lo0
+entry10.section Internet6
+entry10.Destination fe80::1%lo0
+entry10.Gateway link#1
+entry10.Flags UHLI
+entry10.Netif lo0
+entry11.section Internet6
+entry11.Destination fe80::%en0/64
+entry11.Gateway link#6
+entry11.Flags UCI
+entry11.Netif en0
+total_entries 11

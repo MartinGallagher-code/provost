@@ -4,7 +4,7 @@
 
 ## Name: vertical-line
 ## Description: Extract data from tables with separator lines (---, ===, etc.)
-## Version: 1.0
+## Version: 1.1
 ## Priority: 45
 ## Sample: samples/vertical-line/benchmark.txt
 
@@ -13,6 +13,21 @@ strategy_detect () {
     _STRATEGY_CONFIDENCE=80
     # Apply if input contains a separator line (--- or === repeated)
     [[ "$text" =~ (^|$'\n')[-=]{3,} ]] || return 1
+
+    # The FIRST separator (the one extract splits under) must be a pure RULE
+    # — dashes / equals, optionally broken by blanks, `+` or `|`. A TITLED
+    # rule (`==== FAILURES ====`, `---- tests::x stdout ----`) is a section
+    # banner in a test-runner or build report, not the underline of a column
+    # header: reading the line above it as a header cut prose at fixed
+    # character columns (pytest's `slowest durations` lines).
+    local _vr_l
+    _fr_lines "$text"
+    for _vr_l in "${_FR_LINES[@]}"; do
+        if [[ "$_vr_l" =~ ^[-=]{3,} ]]; then
+            [[ "$_vr_l" =~ ^[-=+|[:space:]]+$ ]] || return 1
+            break
+        fi
+    done
 
     # Decline a `label: value` key/value block that merely carries a `===`/`---`
     # banner (aureport --summary, `duplicity collection-status`). vertical-line

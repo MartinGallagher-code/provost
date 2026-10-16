@@ -25,7 +25,7 @@ strategy.
 |---|---|
 | `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 264 format-detection strategies, in 15 category dirs (115 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 265 format-detection strategies, in 15 category dirs (116 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,8 +33,8 @@ strategy.
 
 ## Strategy count
 
-264 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
-network 31, structured 26, security 11, filesystem 8, build 8, misc 7,
+265 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
+network 31, structured 27, security 11, filesystem 8, build 8, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
 when it is counted. Every strategy has a `## Sample:` file under `samples/`
@@ -278,7 +278,31 @@ it when the kept part is wide. So the engine measures a second signal:
   their shared colon column, a `block` index when blank-separated blocks
   repeat their keys. A report that is one record (every key unique) comes out
   as one wide row (`section.key` columns), like the other single-record kv
-  parsers; anything else as the long key/value table.
+  parsers; anything else as the long key/value table. One exception to
+  "rescue only" (2026-10-16): a report holding a SIGN GRID — 3+ lines of
+  nothing but `+name` / `-name` tokens, 12+ of them, a feature list printed
+  in columns (`vim --version`, `mutt -v`) — is ranked too, at 81: a
+  whitespace-table parser otherwise takes the grid for a table and glues the
+  banner and key/value lines into its cells at full coverage, so the hold
+  never sees it. Each grid token is a row (key = name, value = sign) under
+  the grid's `…:` title line as its section.
+
+### Sections glued into cells
+
+Coverage cannot see a parse that keeps every line but files whole sections
+into one cell (round-2 pattern 2: `diskutil list`, `route print`, ffmpeg's
+stream info). Those shapes are read by the parsers that own them:
+`section-tables` (structured; one aligned table per title — a disk, a chain,
+an address family — or a few different tables under `====` rules and titles,
+emitted as ONE table with a `section` column, same-header tables stacked,
+different headers unioned by column name, untitled lines kept as `text`
+rows); `key-value` (a bare label over deeper lines gives one row per line,
+not one cell; a label may hold a colon of its own, `Stream #0:1(eng):`);
+`colons` (a stream of repeated records — the first key recurring — becomes
+`entry<N>` records, a bare heading above them their `section`). Indentation
+that carries data keeps it as a column: `indent-tree` reads TAB columns
+(`comm`) as `depth` and a gutter-free indented text outline (RSpec / mocha
+nesting) as `depth` / `parent`.
 
 Knobs (internal, like `_FR_BIG_BYTES`): `_FR_COV_BYTES`, `_FR_COV_MIN` (0
 disables the hold), `_FR_COV_GAIN`, `_FR_COV_MIN_LINES`, `_FR_COV_CATCHALL`,
@@ -379,7 +403,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
-| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage") |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage"), except a report holding a `+feature` / `-feature` sign grid, ranked at 81; `section-tables` 82 when every titled table shares its header, else 80; `indent-tree` 70 for a text outline |
 | General structure | **55–69**, scaled | a shape any tabular or kv output has (also `git-log`'s oneline branch, 64: a leading hex token) | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
 | Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
 

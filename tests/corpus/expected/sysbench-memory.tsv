@@ -4,7 +4,8 @@ n	key	value
 3	total size	102400MiB
 4	operation	write
 5	scope	global
-6	Total operations	104857600 (8821042.11 per second) 102400.00 MiB transferred (8614.30 MiB/sec)
-7	General statistics	
-8	total time	11.8912s
-9	total number of events	104857600
+6	Total operations	104857600 (8821042.11 per second)
+7	102400.00 MiB transferred (8614.30 MiB/sec)	
+8	General statistics	
+9	total time	11.8912s
+10	total number of events	104857600

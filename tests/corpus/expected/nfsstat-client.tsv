@@ -1,5 +1,3 @@
-n	calls	retrans	authrefrsh
-1	8821404	12	8821404
-2	Client	nfs	v4:
-3	null	read	write commit open
-4	0	0%	4102881 46% 2841094 32% 88214 1% 142088 2%
+n	section	calls	retrans	authrefrsh	null	read	write	commit	open
+1	Client rpc stats	8821404	12	8821404					
+2	Client nfs v4				0	0% 4102881	46% 2841094	32% 88214 1%	142088 2%

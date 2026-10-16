@@ -4,7 +4,7 @@
 
 ## Name: csv
 ## Description: Extract field names and values from CSV files (comma-delimited with header row)
-## Version: 2.0
+## Version: 2.1
 ## Priority: 14
 ## Sample: samples/csv/basic.csv
 
@@ -347,6 +347,15 @@ _strat_csv_detect_body () {
         # (apt-get's download progress, whose only "consistency" came from
         # repeated `[N,NNN kB]` tags).
         local _sep="${_line//(*)/}"
+        # Same for a LABEL SET glued to a name — `metric{a="x",b="y"} 42`
+        # (Prometheus / OpenMetrics samples, InfluxDB-style series keys): its
+        # commas separate labels inside one field. A grep'd metrics dump
+        # carries the same label count on every line, which read as a
+        # consistent comma count — csv split the samples inside the braces.
+        local _lb_re='[A-Za-z0-9_]\{[^{}]*\}' _lb_m
+        while [[ "$_sep" =~ $_lb_re ]]; do
+            _lb_m="${BASH_REMATCH[0]}"; _sep="${_sep/"$_lb_m"/${_lb_m:0:1}}"
+        done
         _csv_strip_thousands "$_sep"; _sep="$_CSV_NOTH"
         # A comma after a WEEKDAY abbreviation is date punctuation, not a
         # field separator: borg prints `Monday    Mon, 2016-02-15 19:15:11`

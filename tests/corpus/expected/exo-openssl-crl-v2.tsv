@@ -18,5 +18,4 @@ n	key	value
 17	Revocation Date	Jun 20 08:11:00 2026 GMT
 18	CRL entry extensions	
 19	X509v3 CRL Reason Code	Cessation Of Operation
-20	Signature Algorithm	sha256WithRSAEncryption
-21	6d	41:90:8a:5b:2e:77:1c:0a:d5:c2:9e:78:1a:4f:33:88:be
+20	Signature Algorithm	sha256WithRSAEncryption 6d:41:90:8a:5b:2e:77:1c:0a:d5:c2:9e:78:1a:4f:33:88:be

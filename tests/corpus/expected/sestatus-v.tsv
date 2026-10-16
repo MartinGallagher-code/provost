@@ -12,9 +12,9 @@ n	key	value
 11	Process contexts	
 12	Current context	unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
 13	Init context	system_u:system_r:init_t:s0
-14	/usr/sbin/sshd                  system_u	system_r:sshd_t:s0-s0:c0.c1023
+14	/usr/sbin/sshd                  system_u:system_r:sshd_t:s0-s0:c0.c1023	
 15	File contexts	
 16	Controlling terminal	unconfined_u:object_r:user_devpts_t:s0
-17	/etc/passwd                     system_u	object_r:passwd_file_t:s0
-18	/etc/shadow                     system_u	object_r:shadow_t:s0
-19	/bin/bash                       system_u	object_r:shell_exec_t:s0
+17	/etc/passwd                     system_u:object_r:passwd_file_t:s0	
+18	/etc/shadow                     system_u:object_r:shadow_t:s0	
+19	/bin/bash                       system_u:object_r:shell_exec_t:s0	

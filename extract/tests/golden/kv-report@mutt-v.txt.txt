@@ -1,0 +1,184 @@
+entry1.section Mutt 2.2.12 (2023-09-09)
+entry1.key 
+entry1.value Copyright (C) 1996-2022 Michael R. Elkins and others.
+entry2.section Mutt 2.2.12 (2023-09-09)
+entry2.key 
+entry2.value Mutt comes with ABSOLUTELY NO WARRANTY; for details type `mutt -vv'.
+entry3.section Mutt 2.2.12 (2023-09-09)
+entry3.key 
+entry3.value Mutt is free software, and you are welcome to redistribute it
+entry4.section Mutt 2.2.12 (2023-09-09)
+entry4.key 
+entry4.value under certain conditions; type `mutt -vv' for details.
+entry5.section 
+entry5.key System
+entry5.value Linux 6.8.0-45-generic (x86_64)
+entry6.section 
+entry6.key ncurses
+entry6.value ncurses 6.4.20240113 (compiled with 6.4)
+entry7.section 
+entry7.key libidn2
+entry7.value 2.3.7 (compiled with 2.3.7)
+entry8.section 
+entry8.key hcache backends
+entry8.value tokyocabinet
+entry9.section 
+entry9.key Compiler
+entry9.value gcc version 13.2.0 (Ubuntu 13.2.0-23ubuntu4)
+entry10.section 
+entry10.key Configure options
+entry10.value '--prefix=/usr' '--sysconfdir=/etc' '--enable-imap' '--enable-smtp'
+entry11.section Compile options
+entry11.key DOMAIN
+entry11.value -
+entry12.section Compile options
+entry12.key DEBUG
+entry12.value +
+entry13.section Compile options
+entry13.key HOMESPOOL
+entry13.value -
+entry14.section Compile options
+entry14.key USE_SETGID
+entry14.value +
+entry15.section Compile options
+entry15.key USE_DOTLOCK
+entry15.value +
+entry16.section Compile options
+entry16.key DL_STANDALONE
+entry16.value +
+entry17.section Compile options
+entry17.key USE_FCNTL
+entry17.value +
+entry18.section Compile options
+entry18.key USE_FLOCK
+entry18.value -
+entry19.section Compile options
+entry19.key USE_POP
+entry19.value +
+entry20.section Compile options
+entry20.key USE_IMAP
+entry20.value +
+entry21.section Compile options
+entry21.key USE_SMTP
+entry21.value +
+entry22.section Compile options
+entry22.key USE_SSL_OPENSSL
+entry22.value -
+entry23.section Compile options
+entry23.key USE_SSL_GNUTLS
+entry23.value +
+entry24.section Compile options
+entry24.key USE_SASL
+entry24.value +
+entry25.section Compile options
+entry25.key USE_GSS
+entry25.value +
+entry26.section Compile options
+entry26.key HAVE_GETADDRINFO
+entry26.value +
+entry27.section Compile options
+entry27.key HAVE_REGCOMP
+entry27.value +
+entry28.section Compile options
+entry28.key USE_GNU_REGEX
+entry28.value -
+entry29.section Compile options
+entry29.key HAVE_COLOR
+entry29.value +
+entry30.section Compile options
+entry30.key HAVE_START_COLOR
+entry30.value +
+entry31.section Compile options
+entry31.key HAVE_TYPEAHEAD
+entry31.value +
+entry32.section Compile options
+entry32.key HAVE_BKGDSET
+entry32.value +
+entry33.section Compile options
+entry33.key HAVE_CURS_SET
+entry33.value +
+entry34.section Compile options
+entry34.key HAVE_META
+entry34.value +
+entry35.section Compile options
+entry35.key HAVE_RESIZETERM
+entry35.value +
+entry36.section Compile options
+entry36.key HAVE_FUTIMENS
+entry36.value +
+entry37.section Compile options
+entry37.key CRYPT_BACKEND_CLASSIC_PGP
+entry37.value +
+entry38.section Compile options
+entry38.key CRYPT_BACKEND_CLASSIC_SMIME
+entry38.value +
+entry39.section Compile options
+entry39.key CRYPT_BACKEND_GPGME
+entry39.value +
+entry40.section Compile options
+entry40.key EXACT_ADDRESS
+entry40.value -
+entry41.section Compile options
+entry41.key SUN_ATTACHMENT
+entry41.value -
+entry42.section Compile options
+entry42.key ENABLE_NLS
+entry42.value +
+entry43.section Compile options
+entry43.key LOCALES_HACK
+entry43.value -
+entry44.section Compile options
+entry44.key HAVE_WC_FUNCS
+entry44.value +
+entry45.section Compile options
+entry45.key HAVE_LANGINFO_CODESET
+entry45.value +
+entry46.section Compile options
+entry46.key HAVE_LANGINFO_YESEXPR
+entry46.value +
+entry47.section Compile options
+entry47.key HAVE_ICONV
+entry47.value +
+entry48.section Compile options
+entry48.key ICONV_NONTRANS
+entry48.value -
+entry49.section Compile options
+entry49.key HAVE_LIBIDN
+entry49.value +
+entry50.section Compile options
+entry50.key HAVE_GETSID
+entry50.value +
+entry51.section Compile options
+entry51.key USE_HCACHE
+entry51.value +
+entry52.section Compile options
+entry52.key USE_SIDEBAR
+entry52.value +
+entry53.section Compile options
+entry53.key USE_COMPRESSED
+entry53.value +
+entry54.section Compile options
+entry54.key USE_INOTIFY
+entry54.value +
+entry55.section Compile options
+entry55.key ISPELL
+entry55.value -
+entry56.section SENDMAIL="/usr/sbin/sendmail"
+entry56.key 
+entry56.value MAILPATH="/var/mail"
+entry57.section SENDMAIL="/usr/sbin/sendmail"
+entry57.key 
+entry57.value PKGDATADIR="/usr/share/mutt"
+entry58.section SENDMAIL="/usr/sbin/sendmail"
+entry58.key 
+entry58.value SYSCONFDIR="/etc"
+entry59.section SENDMAIL="/usr/sbin/sendmail"
+entry59.key 
+entry59.value EXECSHELL="/bin/sh"
+entry60.section SENDMAIL="/usr/sbin/sendmail"
+entry60.key 
+entry60.value MIXMASTER="mixmaster"
+entry61.section 
+entry61.key 
+entry61.value To contact the developers, please mail to <mutt-dev@mutt.org>.
+total_entries 61

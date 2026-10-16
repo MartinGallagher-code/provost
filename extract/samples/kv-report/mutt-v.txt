@@ -1,0 +1,39 @@
+Mutt 2.2.12 (2023-09-09)
+Copyright (C) 1996-2022 Michael R. Elkins and others.
+Mutt comes with ABSOLUTELY NO WARRANTY; for details type `mutt -vv'.
+Mutt is free software, and you are welcome to redistribute it
+under certain conditions; type `mutt -vv' for details.
+
+System: Linux 6.8.0-45-generic (x86_64)
+ncurses: ncurses 6.4.20240113 (compiled with 6.4)
+libidn2: 2.3.7 (compiled with 2.3.7)
+hcache backends: tokyocabinet
+
+Compiler:
+gcc version 13.2.0 (Ubuntu 13.2.0-23ubuntu4)
+
+Configure options: '--prefix=/usr' '--sysconfdir=/etc' '--enable-imap' '--enable-smtp'
+
+Compile options:
+-DOMAIN
++DEBUG
+-HOMESPOOL  +USE_SETGID  +USE_DOTLOCK  +DL_STANDALONE  +USE_FCNTL  -USE_FLOCK
++USE_POP  +USE_IMAP  +USE_SMTP
+-USE_SSL_OPENSSL  +USE_SSL_GNUTLS  +USE_SASL  +USE_GSS  +HAVE_GETADDRINFO
++HAVE_REGCOMP  -USE_GNU_REGEX
++HAVE_COLOR  +HAVE_START_COLOR  +HAVE_TYPEAHEAD  +HAVE_BKGDSET
++HAVE_CURS_SET  +HAVE_META  +HAVE_RESIZETERM  +HAVE_FUTIMENS
++CRYPT_BACKEND_CLASSIC_PGP  +CRYPT_BACKEND_CLASSIC_SMIME  +CRYPT_BACKEND_GPGME
+-EXACT_ADDRESS  -SUN_ATTACHMENT
++ENABLE_NLS  -LOCALES_HACK  +HAVE_WC_FUNCS  +HAVE_LANGINFO_CODESET  +HAVE_LANGINFO_YESEXPR
++HAVE_ICONV  -ICONV_NONTRANS  +HAVE_LIBIDN  +HAVE_GETSID  +USE_HCACHE
++USE_SIDEBAR  +USE_COMPRESSED  +USE_INOTIFY
+-ISPELL
+SENDMAIL="/usr/sbin/sendmail"
+MAILPATH="/var/mail"
+PKGDATADIR="/usr/share/mutt"
+SYSCONFDIR="/etc"
+EXECSHELL="/bin/sh"
+MIXMASTER="mixmaster"
+
+To contact the developers, please mail to <mutt-dev@mutt.org>.

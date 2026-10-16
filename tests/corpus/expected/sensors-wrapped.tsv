@@ -4,8 +4,9 @@ n	key	value
 3	Core 0	+48.0°C  (high = +80.0°C, crit = +100.0°C)
 4	Core 1	+50.0°C  (high = +80.0°C, crit = +100.0°C)
 5	Core 2	+47.0°C  (high = +80.0°C, crit = +100.0°C)
-6	Core 3	+49.0°C  (high = +80.0°C, crit = +100.0°C) nvme-pci-0400
-7	Adapter	PCI adapter
-8	Composite	+36.9°C  (low  = -273.1°C, high = +84.8°C) (crit = +85.8°C)
-9	Sensor 1	+36.9°C  (low  = -273.1°C, high = +65261.8°C)
-10	Sensor 2	+40.9°C  (low  = -273.1°C, high = +65261.8°C)
+6	Core 3	+49.0°C  (high = +80.0°C, crit = +100.0°C)
+7	nvme-pci-0400	
+8	Adapter	PCI adapter
+9	Composite	+36.9°C  (low  = -273.1°C, high = +84.8°C) (crit = +85.8°C)
+10	Sensor 1	+36.9°C  (low  = -273.1°C, high = +65261.8°C)
+11	Sensor 2	+40.9°C  (low  = -273.1°C, high = +65261.8°C)

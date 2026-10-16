@@ -1,0 +1,17 @@
+Chain INPUT (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 1520  121K ACCEPT     all  --  lo     *       0.0.0.0/0            0.0.0.0/0           
+ 8812  9.1M ACCEPT     all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate RELATED,ESTABLISHED
+   12   720 ACCEPT     tcp  --  *      *       0.0.0.0/0            0.0.0.0/0            tcp dpt:22
+    3   180 DROP       all  --  *      *       0.0.0.0/0            0.0.0.0/0            ctstate INVALID
+
+Chain FORWARD (policy DROP 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 DOCKER-USER  all  --  *      *       0.0.0.0/0            0.0.0.0/0           
+
+Chain OUTPUT (policy ACCEPT 10423 packets, 1203K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain DOCKER-USER (1 references)
+ pkts bytes target     prot opt in     out     source               destination         
+    0     0 RETURN     all  --  *      *       0.0.0.0/0            0.0.0.0/0           

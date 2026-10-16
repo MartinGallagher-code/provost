@@ -1,0 +1,73 @@
+entry1.section 
+entry1.key 
+entry1.value nvi-like editor 3.2.1 (built 2026-03-04 11:20:07)
+entry2.section 
+entry2.key 
+entry2.value Built by builder@ci.example.net
+entry3.section 
+entry3.key Build type
+entry3.value release
+entry4.section Optional features (+ enabled, - disabled)
+entry4.key cscope
+entry4.value +
+entry5.section Optional features (+ enabled, - disabled)
+entry5.key iconv
+entry5.value +
+entry6.section Optional features (+ enabled, - disabled)
+entry6.key perl
+entry6.value -
+entry7.section Optional features (+ enabled, - disabled)
+entry7.key tags
+entry7.value +
+entry8.section Optional features (+ enabled, - disabled)
+entry8.key db185
+entry8.value +
+entry9.section Optional features (+ enabled, - disabled)
+entry9.key motif
+entry9.value -
+entry10.section Optional features (+ enabled, - disabled)
+entry10.key regex
+entry10.value +
+entry11.section Optional features (+ enabled, - disabled)
+entry11.key tcl
+entry11.value -
+entry12.section Optional features (+ enabled, - disabled)
+entry12.key filec
+entry12.value +
+entry13.section Optional features (+ enabled, - disabled)
+entry13.key ncurses
+entry13.value +
+entry14.section Optional features (+ enabled, - disabled)
+entry14.key ruby
+entry14.value -
+entry15.section Optional features (+ enabled, - disabled)
+entry15.key widechar
+entry15.value +
+entry16.section Optional features (+ enabled, - disabled)
+entry16.key gtk
+entry16.value -
+entry17.section Optional features (+ enabled, - disabled)
+entry17.key nls
+entry17.value +
+entry18.section Optional features (+ enabled, - disabled)
+entry18.key shell
+entry18.value +
+entry19.section Optional features (+ enabled, - disabled)
+entry19.key x11
+entry19.value +
+entry20.section Build type
+entry20.key system exrc file
+entry20.value "/etc/vi.exrc"
+entry21.section Build type
+entry21.key user exrc file
+entry21.value "$HOME/.exrc"
+entry22.section Build type
+entry22.key user nexrc file
+entry22.value "$HOME/.nexrc"
+entry23.section 
+entry23.key Compilation
+entry23.value cc -O2 -pipe -DHAVE_CONFIG_H -I. -I../common
+entry24.section 
+entry24.key Linking
+entry24.value cc -o vi -lncursesw -ldb
+total_entries 24
