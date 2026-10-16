@@ -1,8 +1,8 @@
-n	Class	Description	H/W	path	Device
-1	system	Standard PC (Q35 + ICH9, 2009)			
-2	bus	Motherboard	/0		
-3	memory	96KiB BIOS	/0/	0	
-4	processor	Intel(R) Xeon(R) CPU E5-2680 v4	/0/	400	
-5	memory	16GiB System Memory	/0/	1000	
-6	disk	107GB QEMU HARDDISK	/0/	100/1/0	/dev/sda
-7	network	82540EM Gigabit Ethernet Controller	/0/	100/2	eth0
+n	H/W_path	Device	Class	Description
+1			system	Standard PC (Q35 + ICH9, 2009)
+2	/0		bus	Motherboard
+3	/0/0		memory	96KiB BIOS
+4	/0/400		processor	Intel(R) Xeon(R) CPU E5-2680 v4
+5	/0/1000		memory	16GiB System Memory
+6	/0/100/1/0	/dev/sda	disk	107GB QEMU HARDDISK
+7	/0/100/2	eth0	network	82540EM Gigabit Ethernet Controller

@@ -1,0 +1,10 @@
+
+Name                           Version          Source                           ProviderName
+----                           -------          ------                           ------------
+Microsoft Edge                 129.0.2792.89                                     Programs
+Mozilla Firefox (x64 en-US)    131.0.2          C:\Program Files\Mozilla Firef…  Programs
+7-Zip 23.01 (x64)              23.01                                             Programs
+PowerShell 7-x64               7.4.5.0          C:\Program Files\PowerShell\7\   msi
+Python 3.12.7 (64-bit)         3.12.7150.0                                       Programs
+Git                            2.46.0                                            Programs
+

@@ -1,0 +1,5 @@
+Peer Host name          Stratum  Poll  Delay      Offset      Jitter
+=======================================================================
+a  time1.corp.example.org      2    64   0.412ms   -0.512ms[-0.489ms]  12ms
+b  time2.corp.example.org      2    64   1.234ms   +1.234ms[+1.301ms]  23ms
+c  gps0.lab.example.org        1    16   0.051ms   -12.045ms[-11.98ms] 45ms

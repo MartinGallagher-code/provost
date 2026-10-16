@@ -1,0 +1,6 @@
+ Name                    Creation Time               State
+-----------------------------------------------------------------
+ pre-upgrade             2026-10-01 09:12:44 +0000   shutoff
+ after-install-fixes-and-cleanup 2026-10-05 17:40:02 +0000   running
+ nightly-2026-10-12      2026-10-12 02:00:01 +0000   disk-snapshot
+ before-kernel           2026-10-13 08:55:12 +0000   shutoff

@@ -2472,7 +2472,7 @@ mix-hex-outdated	table	5	5
 rebar3-tree	text	-	2
 dotnet-sln-list	text	-	2
 dotnet-tool-list	table	4	5
-dotnet-workload-list	table	4	6
+dotnet-workload-list	table	4	4
 swift-package-show-dependencies	text	-	2
 swift-build-summary	text	-	2
 zig-build-summary	table	5	4
@@ -2566,7 +2566,7 @@ timedatectl-timesync-status	text	-	2
 systemd-analyze-verify	text	-	2
 systemd-analyze-timespan	text	-	2
 systemd-analyze-cat-config	text	-	2
-lshw-businfo	table	6	6
+lshw-businfo	table	6	5
 lshw-cpu	text	-	2
 lshw-class-storage	text	-	2
 lspci-mm	table	5	3

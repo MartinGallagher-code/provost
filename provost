@@ -750,7 +750,7 @@ _ingest () {
             "$in" > "$body"
     fi
 
-    local metaf="$tmp/meta.txt" strategy="" conf="" cov=""
+    local metaf="$tmp/meta.txt" strategy="" conf="" cov="" tcons=""
     # Extra strategy dir (deframe et al.): --plugin-dir / $PROVOST_PLUGIN_DIR is
     # forwarded to the engine, which already searches it alongside its own
     # strategies/ and the ~/.config/provost/strategies user dir.
@@ -803,13 +803,15 @@ _ingest () {
         _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
             ${eargs[@]+"${eargs[@]}"} \
             --emit-meta -f tsv --max-strategies 1 "$body" >"$tmp/wide.tsv" 2>"$metaf" || true
-        # The meta line also carries the winner's LINE COVERAGE: the share of
-        # the input's non-blank lines that reached the dataset ('-' = not
-        # measured, e.g. a very large input).
-        IFS=$'\t' read -r strategy conf cov < <(awk -F'\t' \
-            '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4 } END { printf "%s\t%s\t%s\n", s, c, v }' "$metaf" 2>/dev/null) || true
+        # The meta line also carries the winner's LINE COVERAGE (the share of
+        # the input's non-blank lines that reached the dataset) and its
+        # COLUMN-TYPE CONSISTENCY (the share of typed cells that match their
+        # column's type); '-' = not measured, e.g. a very large input.
+        IFS=$'\t' read -r strategy conf cov tcons < <(awk -F'\t' \
+            '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$metaf" 2>/dev/null) || true
         [[ "$conf" =~ ^[0-9]{1,9}$ ]] || conf=0
         [[ "$cov" =~ ^[0-9]{1,3}$ ]] || cov=""
+        [[ "$tcons" =~ ^[0-9]{1,3}$ ]] || tcons=""
 
         # Build the content to file (header + data rows), pre-#-index, for both
         # the matched and the held-back (unsorted) paths.
@@ -896,6 +898,7 @@ _ingest () {
         printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
         printf 'row_ids\t%s\n' "$( (( totalrows > 0 )) && echo "$firstid-$((nextid-1))" || echo none)"
         [[ -n "$cov" && -z "$reason" ]] && printf 'coverage\t%s\n' "$cov"
+        [[ -n "$tcons" && -z "$reason" ]] && printf 'consistency\t%s\n' "$tcons"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
@@ -1726,7 +1729,7 @@ cmd_rm () {
                         for (i = 1; i <= nd; i++) if (dn[i] in del) { drop[i] = 1; removed = removed (removed == "" ? "" : ",") dn[i] } else kept++
                         for (ln = 1; ln <= NR; ln++) {
                             k = key[ln]; v = val[ln]
-                            if (k == "dataset" || k == "strategy" || k == "confidence" || k == "coverage") {
+                            if (k == "dataset" || k == "strategy" || k == "confidence" || k == "coverage" || k == "consistency") {
                                 m = split(v, p, ","); v = ""
                                 for (i = 1; i <= m; i++) if (!(i in drop)) v = v (v == "" ? "" : ",") p[i]
                             } else if (k == "dataset_rows") {
@@ -1928,6 +1931,18 @@ LINE COVERAGE
     of the whole report (one row per key, list item and section) and files it
     instead if it keeps materially more. A capture still filed under 60% says
     so; the whole input is kept with the capture either way ('provost source').
+
+COLUMN-TYPE CONSISTENCY
+    A parse can keep every line and still put values under the wrong headers:
+    a date split over three columns, a multi-word name spread over Name / Id /
+    Version, a key: value file read as a two-column table. The engine types
+    every cell (number, size, date/time, address, version, path, word, …) and
+    records the share of cells that match their column's type as
+    'consistency' in meta.tsv (not measured above 128 KB; a cell holding a
+    word cut in half counts as a mismatch). When the generic parse ranked
+    first is below 95% and another generic parse within 20 confidence points
+    keeps as many lines, types its columns better (95% or more) and mixes
+    fewer columns, the capture is filed with that parse instead.
 
 METADATA PROLOGUE
     A leading run of '#%' lines on injected input is treated as capture context,

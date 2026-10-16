@@ -1,0 +1,14 @@
+Interface:	eth0
+Address:	10.0.0.12
+Netmask:	255.255.255.0
+Gateway:	10.0.0.1
+
+Interface:	wlan0
+Address:	192.168.1.23
+Netmask:	255.255.255.0
+Gateway:	192.168.1.1
+
+Interface:	tun0
+Address:	10.8.0.2
+Netmask:	255.255.255.255
+Gateway:	-

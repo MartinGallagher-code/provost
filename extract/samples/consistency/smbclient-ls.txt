@@ -1,0 +1,9 @@
+  .                                   D        0  Tue Oct 13 09:12:44 2026
+  ..                                  D        0  Mon Oct  5 17:40:02 2026
+  Quarterly Report.xlsx               A    48213  Mon Oct 12 16:03:11 2026
+  backup                              D        0  Fri Sep 25 08:00:00 2026
+  notes.txt                           A     1204  Tue Oct 13 09:10:57 2026
+  Team Photo 2026.jpg                 A  2345678  Wed Sep 30 12:22:33 2026
+  setup.exe                          AH   901234  Thu Aug 20 10:01:02 2026
+
+		123456789 blocks of size 1024. 98765432 blocks available
