@@ -1,0 +1,60 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/dev/project
+plugins: cov-7.1.0
+collected 10 items
+capsys -- .../_pytest/capture.py:1007
+    Enable text capturing of writes to ``sys.stdout`` and ``sys.stderr``.
+
+capteesys -- .../_pytest/capture.py:1035
+    Enable simultaneous text capturing and pass-through of writes
+    to ``sys.stdout`` and ``sys.stderr`` as defined by ``--capture=``.
+
+capsysbinary -- .../_pytest/capture.py:1070
+    Enable bytes capturing of writes to ``sys.stdout`` and ``sys.stderr``.
+
+capfd -- .../_pytest/capture.py:1098
+    Enable text capturing of writes to file descriptors ``1`` and ``2``.
+
+capfdbinary -- .../_pytest/capture.py:1126
+    Enable bytes capturing of writes to file descriptors ``1`` and ``2``.
+
+doctest_namespace [session scope] -- .../_pytest/doctest.py:721
+    Fixture that returns a :py:class:`dict` that will be injected into the
+    namespace of doctests.
+
+pytestconfig [session scope] -- .../_pytest/fixtures.py:1564
+    Session-scoped fixture that returns the session's :class:`pytest.Config`
+    object.
+
+record_property -- .../_pytest/junitxml.py:275
+    Add extra properties to the calling test.
+
+record_xml_attribute -- .../_pytest/junitxml.py:298
+    Add extra xml attributes to the tag for the calling test.
+
+record_testsuite_property [session scope] -- .../_pytest/junitxml.py:336
+    Record a new ``<property>`` tag as child of the root ``<testsuite>``.
+
+tmpdir_factory [session scope] -- .../_pytest/legacypath.py:298
+    Return a :class:`pytest.TempdirFactory` instance for the test session.
+
+tmpdir -- .../_pytest/legacypath.py:305
+    Return a temporary directory (as `legacy_path`_ object)
+    which is unique to each test function invocation.
+    The temporary directory is created as a subdirectory
+    of the base temporary directory, with configurable retention,
+    as discussed in :ref:`temporary directory location and retention`.
+
+caplog -- .../_pytest/logging.py:611
+    Access and control log capturing.
+
+monkeypatch -- .../_pytest/monkeypatch.py:36
+    A convenient fixture for monkey-patching.
+
+recwarn -- .../_pytest/recwarn.py:37
+    Return a :class:`WarningsRecorder` instance that records all warnings emitted by test functions.
+
+subtests -- .../_pytest/subtests.py:136
+    Provides subtests functionality.
+

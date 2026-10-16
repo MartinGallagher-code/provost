@@ -1,0 +1,36 @@
+Trying:
+    summarise([{"kind": "a"}, {"kind": "b"}, {"kind": "a"}])
+Expecting:
+    {'a': 2, 'b': 1}
+ok
+Trying:
+    summarise([])
+Expecting:
+    {}
+ok
+Trying:
+    summarise([{"kind": "x"}], key="kind")
+Expecting:
+    {'x': 2}
+**********************************************************************
+File "/home/dev/project/inventory.py", line 20, in inventory.summarise
+Failed example:
+    summarise([{"kind": "x"}], key="kind")
+Expected:
+    {'x': 2}
+Got:
+    {'x': 1}
+7 items had no tests:
+    inventory
+    inventory.Shelf
+    inventory.Shelf.__init__
+    inventory.Shelf.__repr__
+    inventory.Shelf.add
+    inventory.load
+    inventory.price_total
+**********************************************************************
+1 items had failures:
+   1 of   3 in inventory.summarise
+3 tests in 8 items.
+2 passed and 1 failed.
+***Test Failed*** 1 failures.

@@ -1,0 +1,36 @@
+Locale aliasing:
+
+Locale defaults as determined by getdefaultlocale():
+------------------------------------------------------------------------
+Language:  en_US
+Encoding:  UTF-8
+
+Locale settings on startup:
+------------------------------------------------------------------------
+LC_CTYPE ...
+   Language:  en_US
+   Encoding:  UTF-8
+
+LC_TIME ...
+   Language:  (undefined)
+   Encoding:  (undefined)
+
+LC_COLLATE ...
+   Language:  (undefined)
+   Encoding:  (undefined)
+
+LC_MONETARY ...
+   Language:  (undefined)
+   Encoding:  (undefined)
+
+LC_MESSAGES ...
+   Language:  (undefined)
+   Encoding:  (undefined)
+
+LC_NUMERIC ...
+   Language:  (undefined)
+   Encoding:  (undefined)
+
+
+Locale settings after calling resetlocale():
+------------------------------------------------------------------------

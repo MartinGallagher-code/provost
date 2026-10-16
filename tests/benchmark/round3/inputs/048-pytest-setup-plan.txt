@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/dev/project
+plugins: cov-7.1.0
+collected 10 items
+
+tests/test_inventory.py 
+        tests/test_inventory.py::test_summarise_counts
+        SETUP    F rows[[]]
+        SETUP    F expected[0]
+        tests/test_inventory.py::test_price_total[rows0-0] (fixtures used: expected, rows)
+        TEARDOWN F expected[0]
+        TEARDOWN F rows[[]]
+        SETUP    F rows[[{'qty': 2, 'unit': 1.5}]]
+        SETUP    F expected[3.0]
+        tests/test_inventory.py::test_price_total[rows1-3.0] (fixtures used: expected, rows)
+        TEARDOWN F expected[3.0]
+        TEARDOWN F rows[[{'qty': 2, 'unit': 1.5}]]
+        SETUP    F rows[[{'qty': 1, 'unit':...y': 2, 'unit': 0.2}]]
+        SETUP    F expected[0.5]
+        tests/test_inventory.py::test_price_total[rows2-0.5] (fixtures used: expected, rows)
+        TEARDOWN F expected[0.5]
+        TEARDOWN F rows[[{'qty': 1, 'unit':...y': 2, 'unit': 0.2}]]
+        SETUP    F rows[[{'qty': 3, 'unit': 9.99}]]
+        SETUP    F expected[29.97]
+        tests/test_inventory.py::test_price_total[rows3-29.97] (fixtures used: expected, rows)
+        TEARDOWN F expected[29.97]
+        TEARDOWN F rows[[{'qty': 3, 'unit': 9.99}]]
+        tests/test_inventory.py::test_shelf_full
+        tests/test_inventory.py::test_shelf_reprs
+    SETUP    M catalogue
+        SETUP    F stocked_shelf
+        tests/test_inventory.py::test_stocked (fixtures used: catalogue, stocked_shelf)
+        TEARDOWN F stocked_shelf
+        tests/test_inventory.py::test_xfail_rounding
+    TEARDOWN M catalogue
+
+============================== 1 skipped in 0.01s ==============================

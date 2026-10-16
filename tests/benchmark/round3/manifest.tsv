@@ -1,0 +1,136 @@
+## Round-3 held-out benchmark — provenance manifest (frozen 2026-10-16).
+##
+## provenance  captured   = real output, produced by running the command in the
+##                          2026-10-16 build container (read-only invocations on
+##                          scratch projects, repos and image files created for
+##                          the purpose; inputs 001-064). Scrubbed: scratch paths
+##                          became /home/dev/{project,web,prof,src,binpack} and the
+##                          scratch HOME became /home/dev; commands that would echo
+##                          proxy, CA-bundle or token environment were run with
+##                          those variables unset (pip, coverage); git identities
+##                          are invented example.com names.
+##             reproduced = faithful reproduction of the tool's documented
+##                          output format, written by hand because the tool or
+##                          platform is not available in the container (Windows,
+##                          macOS, network gear, databases, cloud CLIs, k8s
+##                          plugins, CI, monitoring, mainframe/IBM i, scientific
+##                          tools, game servers; inputs 101-143). Data values
+##                          are invented; addresses use the RFC 5737
+##                          documentation ranges and example.com.
+## category    the axis the write-up breaks results down by (round-2 names,
+##             plus ci, mainframe, scientific, game-server).
+## family      the shape family the write-up aggregates by (round-2 names).
+## shape       free-text description of the layout.
+## source      the command line (captured) or "reproduced: <format>".
+##
+## Chosen for shape diversity and novelty BEFORE any input was run through
+## provost; no input was chosen, edited or dropped after its parse was seen.
+##
+## input	provenance	category	family	shape	source
+001-apt-cache-madison	captured	package-manager	table	pipe-separated aligned rows, no header	apt-cache madison coreutils bash openssl python3 curl git tzdata
+002-bash-help-builtins	captured	shell	list/grid/help/text	banner + two-column grid, truncated cells (>)	bash -c help | head -40
+003-callgrind-annotate	captured	build	multi-section-report	rule-separated header kv + count/percent/function table	valgrind --tool=callgrind ./pack; callgrind_annotate cg.out | head -35
+004-clang-wall-diagnostics	captured	build	log/diagnostic-lines	diagnostics + code frame + caret + notes + summary	clang -Wall -Wextra -fsyntax-only queue.c
+005-cmake-cache-advanced-help	captured	build	kv-blocks	// help comment + KEY:TYPE=value, blank-separated	cmake -LAH -N build | head -60
+006-composer-check-platform-reqs	captured	language-tooling	table	banner + aligned table, one multi-word cell	composer check-platform-reqs -n
+007-coverage-debug-sys	captured	test/lint	kv-record	title rule + right-aligned key: value, multi-line list values	env -i PATH=... HOME=/home/dev python3 -m coverage debug sys
+008-cpp-dM-predefined	captured	build	list/grid/help/text	#define NAME value lines	cpp -dM /dev/null | sort | head -40
+009-ctest-run	captured	test/lint	log/diagnostic-lines	progress lines with dot leaders + error block + summary + failed list	ctest (in build dir)
+010-debugfs-stat-inode	captured	storage	kv-record	several key: value pairs per line + extents	debugfs -R "stat /data/series.txt" fs2.img
+011-diff3	captured	text-utils	list/grid/help/text	==== hunks with n:range c headers + indented lines	diff3 mine.conf base.conf theirs.conf
+012-flake8-statistics	captured	test/lint	log/diagnostic-lines	file:line:col: CODE msg + count/code/msg statistics + total	flake8 --max-line-length 79 --statistics --count .
+013-gcc-print-search-dirs	captured	build	kv-record	key: =path:path:... (colon-joined lists)	gcc -print-search-dirs
+014-gdb-batch-frame	captured	build	multi-section-report	breakpoint banner + backtrace + info frame + register table	gdb -batch -ex 'break first_fit' -ex run -ex bt -ex 'info frame' -ex 'info registers rip rsp rbp rdi rsi rdx' ./pack
+015-gem-help-commands	captured	language-tooling	list/grid/help/text	help: name + description, wrapped continuation	gem help commands
+016-git-blame-default	captured	language-tooling	table	hash (author date line) text; non-ASCII author	git blame feature/tls -- app.conf
+017-git-range-diff	captured	language-tooling	list/grid/help/text	commit-pair headers + nested diff-of-diff	git range-diff --creation-factor=100 feature/tls~2..feature/tls main..feature/tls-v2
+018-git-show-branch	captured	language-tooling	list/grid/help/text	branch legend + ---  + column-indicator matrix	git show-branch
+019-git-status-porcelain-v2	captured	language-tooling	list/grid/help/text	# header kv + typed space-separated records	git status --porcelain=v2 --branch
+020-git-verify-pack-v	captured	language-tooling	table	headerless ragged table (5 or 7 fields) + summary lines	git verify-pack -v .git/objects/pack/*.idx
+021-go-build-gcflags-m	captured	build	log/diagnostic-lines	# package banner + file:line:col: message	go build -gcflags=-m ./...
+022-go-tool-cover-func	captured	test/lint	table	tab-separated file:line func percent + total	go tool cover -func=c.out
+023-java-printflagsfinal	captured	language-tooling	table	[banner] + type name = value {kind} {origin}, empty values	java -XX:+PrintFlagsFinal -version | sed -n 1,40p
+024-javac-xlint	captured	build	log/diagnostic-lines	file:line: warning: [key] msg + code + caret + where-clauses	javac -Xlint:all Ledger.java
+025-join-outer	captured	text-utils	table	space-separated, no header, EMPTY fill	join -a1 -a2 -e EMPTY -o 0,1.2,2.2,2.3 bins.txt counts.txt
+026-locale-k	captured	system	kv-record	key="value;value" and key=value	LC_ALL=C.UTF-8 locale -k LC_TIME
+027-localedef-help	captured	system	list/grid/help/text	argp help: sections + options + wrapped descriptions + kv footer	localedef --help
+028-mke2fs-image	captured	storage	log/diagnostic-lines	progress lines with backspace overwrites	mke2fs -t ext4 -L scratchfs -U ... fs.img
+029-node-prof-process	captured	language-tooling	multi-section-report	[Section]: headers + aligned ticks/percent tables	node --prof work.js; node --prof-process isolate*.log | head -70
+030-node-test-spec	captured	test/lint	log/diagnostic-lines	tree of ✔/✖ results + ℹ summary + failure blocks	node --test --test-reporter=spec
+031-node-test-tap	captured	test/lint	log/diagnostic-lines	TAP 13 with nested subtests and YAML diagnostics	node --test --test-reporter=tap
+032-node-v8-options	captured	language-tooling	list/grid/help/text	help: --flag (desc) + indented type/default line	node --v8-options | sed -n 1,45p
+033-npm-run-list	captured	language-tooling	kv-blocks	two titled groups of name + indented command	npm run
+034-objdump-private-headers	captured	build	multi-section-report	program header (two-line records) + dynamic kv + version refs	objdump -p /usr/bin/xz
+035-openssl-list-providers	captured	crypto	kv-blocks	nested indented key: value	openssl list -providers -verbose
+036-patch-dry-run-verbose	captured	text-utils	log/diagnostic-lines	verbose narration with |-quoted blocks and hunk results	patch --dry-run --verbose target.conf < fix.patch
+037-php-var-dump	captured	language-tooling	structured-data	var_dump nested arrays, non-ASCII string	php -r 'var_dump($order);'
+038-pip-config-debug	captured	package-manager	kv-blocks	variant: headings + indented files + nested key: value	pip config debug (PIP_CERT unset)
+039-poetry-config-list	captured	package-manager	kv-record	dotted.key = value  # resolved comment	poetry config --list
+040-pr-paged	captured	text-utils	table	paginated report: page headers + aligned rows	TZ=UTC pr -l 24 -h "Pick list - north aisle" picklist.txt
+041-proc-net-sockstat	captured	system	kv-blocks	LABEL: key value key value per line	cat /proc/net/sockstat
+042-proc-self-numa-maps	captured	system	log/diagnostic-lines	address policy then key=value tokens	head -25 /proc/self/numa_maps
+043-prove-verbose	captured	test/lint	log/diagnostic-lines	TAP via prove + interleaved # diagnostics + summary report	prove -v t/
+044-psql-help	captured	database	list/grid/help/text	help text: sections + options + wrapped descriptions	psql --help
+045-ptx	captured	text-utils	list/grid/help/text	permuted index (keyword-in-context columns)	ptx parts.txt
+046-pyright	captured	test/lint	log/diagnostic-lines	banner + file heading + indented diagnostics with continuation lines + summary	pyright ledger.py
+047-pytest-fixtures	captured	test/lint	list/grid/help/text	session header + fixture -- location + indented docstring	python3 -m pytest --fixtures -p no:cacheprovider tests/ | head -60
+048-pytest-setup-plan	captured	test/lint	log/diagnostic-lines	session header + indented SETUP/TEARDOWN plan + footer	python3 -m pytest --setup-plan -p no:cacheprovider tests/
+049-python-doctest-verbose	captured	test/lint	log/diagnostic-lines	Trying:/Expecting:/ok blocks + failure + summary	python3 -m doctest -v inventory.py
+050-python-filecmp	captured	text-utils	kv-blocks	diff a b headings + Label : [list]	python3 -m filecmp -r a b
+051-python-locale	captured	system	multi-section-report	ruled sections + kv + per-category blocks	python3 -W ignore -m locale 2>/dev/null
+052-python-site	captured	language-tooling	kv-record	sys.path = [list] + KEY: 'value' (note)	python3 -m site
+053-python-timeit-verbose	captured	language-tooling	log/diagnostic-lines	n loops -> t secs lines + raw times + result	python3 -m timeit -v -s 'import json' 'json.dumps(...)'
+054-python-tokenize	captured	language-tooling	table	headerless range: TYPE 'token' columns	python3 -m tokenize inventory.py | head -40
+055-python-trace-listfuncs	captured	language-tooling	log/diagnostic-lines	program output + title + k: v, k: v records	python3 -m trace --listfuncs inventory.py | head -40
+056-readelf-notes	captured	build	multi-section-report	repeated titled 3-column tables + indented detail lines	readelf -n /bin/ls
+057-rustc-lint-help	captured	build	multi-section-report	option list + right-aligned name/default/meaning table	rustc -W help | head -45
+058-rustc-warnings	captured	build	log/diagnostic-lines	rustc diagnostics with --> location, | frames, = notes, help	rustc --edition 2021 stock.rs -o /dev/null
+059-sort-debug	captured	text-utils	list/grid/help/text	data lines interleaved with ___ key-marking lines	LC_ALL=C.UTF-8 sort --debug -t$'\t' -k2,2n stock.tsv
+060-sys-node0-meminfo	captured	system	kv-record	Node 0 Key: value kB	cat /sys/devices/system/node/node0/meminfo
+061-tmux-list-keys	captured	shell	table	bind-key -T table key command (command has spaces)	tmux -L r3 -f /dev/null start-server \; list-keys | head -40
+062-tsc-extended-diagnostics	captured	build	kv-record	aligned Key: value with units + trailing diagnostic	tsc -p tsconfig.json --noEmit --extendedDiagnostics
+063-uv-python-list	captured	language-tooling	table	headerless two columns, path with -> link, <download available>	uv python list --offline | head -20
+064-xz-list-vv	captured	storage	multi-section-report	kv + nested Streams/Blocks tables + kv	xz -lvv bundle.txt.xz
+101-powershell-get-service	reproduced	system	table	PowerShell Format-Table, multi-word cells, ... truncation	reproduced: Get-Service (Windows PowerShell 5.1 Format-Table)
+102-powershell-get-childitem	reproduced	storage	table	Directory: title + Format-Table, empty Length, non-ASCII names, spaces in names	reproduced: Get-ChildItem (de-DE culture)
+103-powershell-get-hotfix	reproduced	package-manager	table	Format-Table, multi-word cells, empty cells, two-token dates	reproduced: Get-HotFix
+104-windows-systeminfo	reproduced	system	kv-record	aligned Key: value + indented [nn]: lists, nested NIC details	reproduced: systeminfo (Windows 11)
+105-windows-sc-queryex	reproduced	system	kv-blocks	SERVICE_NAME blocks, indented KEY : value, flag continuation lines	reproduced: sc queryex type= service
+106-windows-wevtutil-qe-text	reproduced	logs	kv-blocks	Event[n]: blocks, indented kv, multi-line Description	reproduced: wevtutil qe System /f:text /c:3
+107-windows-icacls	reproduced	storage	list/grid/help/text	path + ACE, continuation ACEs aligned under, summary	reproduced: icacls D:\Shares\Finance /t (excerpt)
+108-macos-system-profiler-hardware	reproduced	system	kv-record	nested indented headings + Key: Value	reproduced: system_profiler SPHardwareDataType
+109-macos-launchctl-list	reproduced	system	table	tab-separated PID Status Label, - for empty	reproduced: launchctl list (excerpt)
+110-macos-log-show	reproduced	logs	log/diagnostic-lines	banner + header + fixed columns then message + rule + count footer	reproduced: log show --predicate ... --last 5m
+111-macos-pmset-g	reproduced	system	kv-blocks	two titled groups of name value (name may contain spaces), value + parenthetical	reproduced: pmset -g
+112-cisco-show-interfaces-status	reproduced	network	table	prompt + aligned table, empty/multi-word Name cells	reproduced: Cisco IOS XE show interfaces status
+113-cisco-show-cdp-neighbors	reproduced	network	table	legend + table where long Device IDs wrap to their own line + total	reproduced: Cisco IOS show cdp neighbors
+114-routeros-ip-address-print	reproduced	network	table	flags legend + table, ;;; comment lines inside records, flag column	reproduced: MikroTik RouterOS /ip address print
+115-cisco-show-spanning-tree-vlan	reproduced	network	multi-section-report	indented kv (Root ID / Bridge ID) + dash-ruled interface table	reproduced: Cisco show spanning-tree vlan 20
+116-cisco-show-version	reproduced	network	multi-section-report	prose banner + uptime prose + kv (:) + small table	reproduced: Cisco IOS XE show version
+117-juniper-show-route	reproduced	network	table	legend + table with continuation rows (second path), empty cells	reproduced: Junos show route table inet.0 terse
+118-juniper-show-chassis-hardware	reproduced	network	table	table with indentation-encoded hierarchy, empty cells	reproduced: Junos show chassis hardware
+119-cqlsh-select	reproduced	database	table	pipe table, right-aligned, null, set literals, footer	reproduced: cqlsh SELECT ... (Cassandra 4)
+120-oracle-lsnrctl-status	reproduced	database	multi-section-report	banner + aligned kv + endpoint list + services summary	reproduced: lsnrctl status (Oracle 19c)
+121-sqlplus-describe	reproduced	database	table	SQL prompt + dash-ruled table, empty Null? cells, multi-word types	reproduced: SQL*Plus DESC
+122-clickhouse-client-prettycompact	reproduced	database	box-table	Unicode box table with header in top rule, non-ASCII cells + footer stats	reproduced: clickhouse-client FORMAT PrettyCompact
+123-aws-logs-tail	reproduced	cloud	log/diagnostic-lines	timestamp stream message, tab-delimited Lambda fields, traceback continuation	reproduced: aws logs tail /aws/lambda/orders-archiver
+124-doctl-compute-droplet-list	reproduced	cloud	table	wide aligned table, empty cells, multi-word Image	reproduced: doctl compute droplet list
+125-az-vm-list-usage	reproduced	cloud	table	dash-ruled table, multi-word names	reproduced: az vm list-usage -l westeurope -o table
+126-kubectl-cnpg-status	reproduced	k8s	multi-section-report	titled kv sections + dash-ruled tables	reproduced: kubectl cnpg status orders-db
+127-minikube-profile-list	reproduced	k8s	box-table	pipe/dash box table, empty cells	reproduced: minikube profile list
+128-velero-backup-describe	reproduced	k8s	kv-blocks	kv with nested indented sub-keys, multi-line values, blank-separated	reproduced: velero backup describe
+129-helm-template	reproduced	k8s	structured-data	multi-document YAML with # Source: comments	reproduced: helm template ./storefront
+130-github-actions-job-log	reproduced	ci	log/diagnostic-lines	ISO timestamp + ##[group]/##[error] markers + tool output	reproduced: GitHub Actions raw job log
+131-jenkins-pipeline-console	reproduced	ci	log/diagnostic-lines	[Pipeline] markers + shell trace + nested test failure	reproduced: Jenkins Pipeline console output
+132-icinga2-object-list	reproduced	monitoring	kv-blocks	Object headers + * key = value with nested * levels and % provenance	reproduced: icinga2 object list --type Service
+133-check-mk-agent	reproduced	monitoring	multi-section-report	<<<section>>> markers, each section its own format	reproduced: check_mk_agent (Linux)
+134-nagios-verify-config	reproduced	monitoring	log/diagnostic-lines	banner + step narration + Checked N x counts + warnings + totals	reproduced: nagios -v /etc/nagios/nagios.cfg
+135-zos-jes2-job-log	reproduced	mainframe	multi-section-report	JES2 job log: time jobid message lines + step table + statistics	reproduced: z/OS JES2 JESMSGLG
+136-as400-wrkactjob	reproduced	mainframe	table	5250 screen print: title, options legend, indented subsystem/job tree, footer keys	reproduced: IBM i WRKACTJOB (printed screen)
+137-r-lm-summary	reproduced	scientific	multi-section-report	Call/Residuals/Coefficients sections, signif stars, footer stats	reproduced: R summary(lm(...))
+138-matlab-whos	reproduced	scientific	table	aligned table, sparse Attributes column	reproduced: MATLAB whos
+139-hmmscan-tblout	reproduced	scientific	table	# two-row grouped header + space columns + free-text last column + # footer kv	reproduced: HMMER 3.4 hmmscan --tblout
+140-minecraft-server-log	reproduced	game-server	log/diagnostic-lines	[time] [thread/LEVEL]: message, stack-trace continuation, non-ASCII player	reproduced: Minecraft Java server latest.log
+141-srcds-status	reproduced	game-server	multi-section-report	key : value header + # player table with quoted names (non-ASCII, spaces)	reproduced: Source dedicated server rcon status
+142-syslog-rfc5424	reproduced	logs	log/diagnostic-lines	RFC 5424 lines with structured-data brackets, - nil values, BOM	reproduced: RFC 5424 syslog (examples style)
+143-hl7-v2-message	reproduced	data-format	structured-data	HL7 v2 segments, | and ^ delimiters, CR segment separators	reproduced: HL7 v2.5.1 ORU^R01 message

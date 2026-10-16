@@ -1,0 +1,18 @@
+Name                                      CurrentValue    Limit
+----------------------------------------  --------------  -------
+Availability Sets                         3               2500
+Total Regional vCPUs                      52              100
+Virtual Machines                          14              25000
+Virtual Machine Scale Sets                2               2500
+Dedicated vCPUs                           0               3000
+Cloud Services                            0               2500
+Total Regional Low-priority vCPUs         0               100
+Standard DSv3 Family vCPUs                16              50
+Standard Dv4 Family vCPUs                 0               10
+Standard ESv5 Family vCPUs                32              50
+Standard NCASv3_T4 Family vCPUs           4               4
+Standard FSv2 Family vCPUs                0               10
+Premium Storage Managed Disks             19              50000
+Standard Storage Managed Disks            7               50000
+StandardSSDStorageDisks                   0               50000
+Ultra Storage Managed Disks               0               0

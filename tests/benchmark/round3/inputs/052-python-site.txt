@@ -1,0 +1,11 @@
+sys.path = [
+    '/home/dev/project',
+    '/usr/lib/python311.zip',
+    '/usr/lib/python3.11',
+    '/usr/lib/python3.11/lib-dynload',
+    '/usr/local/lib/python3.11/dist-packages',
+    '/usr/lib/python3/dist-packages',
+]
+USER_BASE: '/home/dev/.local' (doesn't exist)
+USER_SITE: '/home/dev/.local/lib/python3.11/site-packages' (doesn't exist)
+ENABLE_USER_SITE: True

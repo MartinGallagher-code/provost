@@ -1,0 +1,64 @@
+▶ cart total
+  ✔ is zero for an empty cart (0.706194ms)
+  ✔ multiplies qty by price (0.178526ms)
+  ✖ handles fractional prices (1.016314ms)
+  ▶ discounts
+    ﹣ applies a flat discount (0.146101ms) # discount engine not wired
+    ✖ never goes negative (0.227051ms)
+  ✖ discounts (0.659215ms)
+✖ cart total (5.732011ms)
+✔ formats currency (0.127744ms) # TODO
+ℹ tests 6
+ℹ suites 2
+ℹ pass 2
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 1
+ℹ duration_ms 180.395411
+
+✖ failing tests:
+
+test at test/cart.test.js:9:3
+✖ handles fractional prices (1.016314ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 0.30000000000000004
+  - 0.3
+       ^
+  
+      at TestContext.<anonymous> (/home/dev/web/test/cart.test.js:9:50)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:744:18)
+      at Test.postRun (node:internal/test_runner/test:1173:19)
+      at Test.run (node:internal/test_runner/test:1101:12)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0.30000000000000004,
+    expected: 0.3,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at test/cart.test.js:12:5
+✖ never goes negative (0.227051ms)
+  AssertionError [ERR_ASSERTION]: total went negative
+      at TestContext.<anonymous> (/home/dev/web/test/cart.test.js:12:46)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Suite.processPendingSubtests (node:internal/test_runner/test:744:18)
+      at Test.postRun (node:internal/test_runner/test:1173:19)
+      at Test.run (node:internal/test_runner/test:1101:12)
+      at async Promise.all (index 0)
+      at async Suite.run (node:internal/test_runner/test:1442:7)
+      at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

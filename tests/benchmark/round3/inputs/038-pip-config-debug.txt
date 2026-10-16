@@ -1,0 +1,15 @@
+env_var:
+  PIP_DEFAULT_TIMEOUT='30'
+env:
+global:
+  /etc/xdg/pip/pip.conf, exists: False
+  /etc/pip.conf, exists: False
+site:
+  /usr/pip.conf, exists: False
+user:
+  /home/dev/.pip/pip.conf, exists: False
+  /home/dev/.config/pip/pip.conf, exists: True
+    global.timeout: 60
+    global.index-url: https://pypi.example.com/simple
+    install.no-compile: true
+    install.trusted-host: pypi.example.com

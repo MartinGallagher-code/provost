@@ -1,0 +1,31 @@
+1:  051c5c3 ! 1:  4fb7f21 Enable TLS
+    @@ Commit message
+      ## app.conf ##
+     @@ app.conf: workers = 8
+      port = 8080
+    - log = info
+    + log = debug
+      timeout = 30
+     +tls = on
+     +cert = /etc/app/tls.pem
+2:  d336560 ! 2:  8e981de Move to port 8443
+    @@ Metadata
+     Author: Zoë Müller <zoe@example.com>
+     
+      ## Commit message ##
+    -    Move to port 8443
+    +    Move to port 8443 (and document it)
+    +
+    + ## TLS.md (new) ##
+    +@@
+    ++# tls notes
+     
+      ## app.conf ##
+     @@
+      workers = 8
+     -port = 8080
+     +port = 8443
+    - log = info
+    + log = debug
+      timeout = 30
+      tls = on

@@ -22,6 +22,16 @@ it is a regression set too; the next generalisation number needs a round 3. See
 [`docs/benchmark-2026-10-02-generalisation-round2.md`](../../docs/benchmark-2026-10-02-generalisation-round2.md)
 and its postscript.
 
+**Round 3** (`round3/`, 107 inputs, 2026-10-16): **22 PASS / 45 PARTIAL /
+40 FAIL** (21% / 42% / 37%; 63% usable) on provost 2.1.0. This is the first
+measurement of the 2026-10-14 parser work on inputs nobody had parsed. 64
+inputs are real captures and 43 are reproductions of documented formats. The
+set was novelty-checked against the corpus and rounds 1-2, and frozen with
+round 2's criteria before the run. See
+[`docs/benchmark-2026-10-16-generalisation-round3.md`](../../docs/benchmark-2026-10-16-generalisation-round3.md).
+Until someone works its patterns, it is the current generalisation set: do not
+tune against it.
+
 ## There is no gate here, on purpose
 
 A pass/fail gate would invite fitting the engine to these fifty files, and the
@@ -35,6 +45,7 @@ So: re-run and read the diff.
 bash tests/benchmark/run.sh /tmp/bench-out                 # round 1
 bash tests/benchmark/run.sh --round2 /tmp/bench-r2         # round 2 (~4-5 min, 4 cores)
 bash tests/benchmark/run.sh --round2 --tidy /tmp/bench-r2  # + melted .tidy / .multi.tidy
+bash tests/benchmark/run.sh --round3 --tidy -j 2 /tmp/bench-r3  # round 3 (107 inputs)
 ```
 
 Prints a summary line per input: strategy, confidence, input lines, output
@@ -60,6 +71,11 @@ worse than no rating.
 | `round2/CRITERIA.md` | round 2: the rating rules, fixed before the run |
 | `round2/ratings.tsv` | round 2: winner, confidence, priority winner, rating, `--multi` effect, cluster, reason (2026-10-02); then winner, confidence, line coverage, rating and what changed (2026-10-14 re-rating) |
 | `round2/novelty.py` | round 2: name and content near-duplicate check against every existing input |
+| `round3/inputs/*.txt` | round 3: 107 inputs (001-064 captured, 101-143 reproduced) |
+| `round3/manifest.tsv` | round 3: provenance, category, family, shape and source command per input |
+| `round3/CRITERIA.md` | round 3: round 2's rating rules, reused unchanged and frozen before the run |
+| `round3/ratings.tsv` | round 3: default-mode winner, confidence, line coverage, rating and note per input (2026-10-16) |
+| `round3/novelty.py` | round 3: name and content check against the corpus, holdout, round 1 and round 2 |
 | `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |
 | `make_doc.js` | render that JSON as a markable `.docx` |

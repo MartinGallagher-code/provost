@@ -1,0 +1,15 @@
+sw-access-03#show cdp neighbors
+Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge
+                  S - Switch, H - Host, I - IGMP, r - Repeater, P - Phone,
+                  D - Remote, C - CVTA, M - Two-port Mac Relay
+
+Device ID        Local Intrfce     Holdtme    Capability  Platform  Port ID
+core-01.corp.example.com
+                 Gig 1/0/1         152             R S I  C9500-24Y Twe 1/0/17
+sw-access-04.corp.example.com
+                 Ten 1/1/2         171              S I   C9300-48P Ten 1/1/2
+SEP001B54C3A2F1  Gig 1/0/5         139              H P   IP Phone  Port 1
+AP-LOBBY         Gig 1/0/4         127              T B I AIR-AP380 Gig 0
+fw-edge-01       Gig 1/0/1         164             R S    ASA5516   Gig 0/3
+
+Total cdp entries displayed : 5

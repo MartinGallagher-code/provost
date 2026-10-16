@@ -1,0 +1,15 @@
+SQL> DESC sales.order_lines
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ORDER_ID                                  NOT NULL NUMBER(12)
+ LINE_NO                                   NOT NULL NUMBER(4)
+ SKU                                       NOT NULL VARCHAR2(32)
+ DESCRIPTION                                        VARCHAR2(400 CHAR)
+ QTY                                       NOT NULL NUMBER(9,3)
+ UNIT_PRICE                                         NUMBER(12,4)
+ DISCOUNT_PCT                                       NUMBER(5,2)
+ CREATED_AT                                NOT NULL TIMESTAMP(6) WITH TIME ZONE
+ NOTES                                              CLOB
+ ROW_VERSION                                        RAW(16)
+
+SQL> 

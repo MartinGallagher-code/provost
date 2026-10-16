@@ -1,0 +1,37 @@
+2026-10-15T08:12:03.1180932Z ##[group]Run actions/setup-node@v4
+2026-10-15T08:12:03.1181844Z with:
+2026-10-15T08:12:03.1182311Z   node-version: 20
+2026-10-15T08:12:03.1182760Z   cache: npm
+2026-10-15T08:12:03.1183207Z   always-auth: false
+2026-10-15T08:12:03.1183650Z   check-latest: false
+2026-10-15T08:12:03.1184432Z ##[endgroup]
+2026-10-15T08:12:03.4401177Z Found in cache @ /opt/hostedtoolcache/node/20.17.0/x64
+2026-10-15T08:12:03.4412093Z ##[group]Environment details
+2026-10-15T08:12:04.0219561Z node: v20.17.0
+2026-10-15T08:12:04.0220402Z npm: 10.8.2
+2026-10-15T08:12:04.0220888Z yarn: 1.22.22
+2026-10-15T08:12:04.0221933Z ##[endgroup]
+2026-10-15T08:12:05.8803112Z ##[group]Run npm ci
+2026-10-15T08:12:05.8803699Z npm ci
+2026-10-15T08:12:05.8840126Z shell: /usr/bin/bash -e {0}
+2026-10-15T08:12:05.8840573Z ##[endgroup]
+2026-10-15T08:12:19.2207741Z 
+2026-10-15T08:12:19.2208663Z added 812 packages, and audited 813 packages in 13s
+2026-10-15T08:12:19.2209004Z 
+2026-10-15T08:12:19.2209329Z 4 vulnerabilities (2 moderate, 2 high)
+2026-10-15T08:12:19.3550021Z ##[group]Run npm test -- --ci
+2026-10-15T08:12:19.3550720Z npm test -- --ci
+2026-10-15T08:12:19.3586014Z shell: /usr/bin/bash -e {0}
+2026-10-15T08:12:19.3586470Z ##[endgroup]
+2026-10-15T08:12:27.6610233Z FAIL src/cart/total.test.ts
+2026-10-15T08:12:27.6612980Z   ● cart total › applies the regional VAT rate
+2026-10-15T08:12:27.6613601Z 
+2026-10-15T08:12:27.6614012Z     expect(received).toBe(expected) // Object.is equality
+2026-10-15T08:12:27.6614534Z 
+2026-10-15T08:12:27.6614921Z     Expected: 119
+2026-10-15T08:12:27.6615340Z     Received: 120
+2026-10-15T08:12:27.6702115Z ##[error]src/cart/total.test.ts:42:21: expect(received).toBe(expected)
+2026-10-15T08:12:27.9917402Z Tests:       1 failed, 211 passed, 212 total
+2026-10-15T08:12:27.9918113Z Time:        7.912 s
+2026-10-15T08:12:28.0420331Z ##[warning]Node.js 16 actions are deprecated. Please update the following actions to use Node.js 20: actions/upload-artifact@v2
+2026-10-15T08:12:28.0611447Z ##[error]Process completed with exit code 1.

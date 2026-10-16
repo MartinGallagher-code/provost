@@ -1,0 +1,11 @@
+Flags: X - disabled, I - invalid, D - dynamic 
+ #   ADDRESS            NETWORK         INTERFACE                                                  
+ 0   ;;; default configuration
+     192.0.2.1/24       192.0.2.0       bridge                                                     
+ 1   ;;; uplink from ISP (static, ticket 4471)
+     198.51.100.2/30    198.51.100.0    ether1                                                     
+ 2 D 203.0.113.17/28    203.0.113.16    pppoe-out1                                                 
+ 3 X ;;; old guest network - kept for rollback
+     192.0.2.129/25     192.0.2.128     vlan30-guest                                               
+ 4   192.0.2.65/27      192.0.2.64      vlan20-voice                                               
+ 5 I 198.51.100.10/30   198.51.100.8    ether5-gone                                                

@@ -1,0 +1,45 @@
+Event[0]:
+  Log Name: System
+  Source: Microsoft-Windows-Kernel-Power
+  Date: 2026-10-14T07:57:41.3120000Z
+  Event ID: 41
+  Task: (63)
+  Level: Critical
+  Opcode: Info
+  Keyword: N/A
+  User: S-1-5-18
+  User Name: NT AUTHORITY\SYSTEM
+  Computer: WS-ACCT-07.corp.example.com
+  Description: 
+The system has rebooted without cleanly shutting down first. This error could be caused if the system stopped responding, crashed, or lost power unexpectedly.
+
+Event[1]:
+  Log Name: System
+  Source: Service Control Manager
+  Date: 2026-10-14T07:58:22.9050000Z
+  Event ID: 7000
+  Task: N/A
+  Level: Error
+  Opcode: Info
+  Keyword: Classic
+  User: N/A
+  User Name: N/A
+  Computer: WS-ACCT-07.corp.example.com
+  Description: 
+The Contoso Backup Agent service failed to start due to the following error: 
+The system cannot find the file specified.
+
+Event[2]:
+  Log Name: System
+  Source: Microsoft-Windows-Time-Service
+  Date: 2026-10-14T08:03:10.0110000Z
+  Event ID: 37
+  Task: N/A
+  Level: Information
+  Opcode: Info
+  Keyword: N/A
+  User: S-1-5-19
+  User Name: NT AUTHORITY\LOCAL SERVICE
+  Computer: WS-ACCT-07.corp.example.com
+  Description: 
+The time provider NtpClient is currently receiving valid time data from dc02.corp.example.com (ntp.d|192.0.2.10:123->192.0.2.47:123).

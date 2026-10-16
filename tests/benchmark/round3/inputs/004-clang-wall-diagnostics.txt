@@ -1,0 +1,24 @@
+queue.c:10:1: warning: non-void function does not return a value in all control paths [-Wreturn-type]
+   10 | }
+      | ^
+queue.c:25:42: warning: more '%' conversions than data arguments [-Wformat-insufficient-args]
+   25 |     while (pop(&q, &v) == 0) printf("%d %s\n", v);
+      |                                         ~^
+queue.c:26:14: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+   26 |     if (argc = 2) puts(argv[1]);
+      |         ~~~~~^~~
+queue.c:26:14: note: place parentheses around the assignment to silence this warning
+   26 |     if (argc = 2) puts(argv[1]);
+      |              ^  
+      |         (       )
+queue.c:26:14: note: use '==' to turn this assignment into an equality comparison
+   26 |     if (argc = 2) puts(argv[1]);
+      |              ^
+      |              ==
+queue.c:20:9: warning: unused variable 'unused_total' [-Wunused-variable]
+   20 |     int unused_total;
+      |         ^~~~~~~~~~~~
+queue.c:22:5: warning: 'strcpy' will always overflow; destination buffer has size 8, but the source string has length 19 (including NUL byte) [-Wfortify-source]
+   22 |     strcpy(name, "a-much-longer-name");
+      |     ^
+5 warnings generated.

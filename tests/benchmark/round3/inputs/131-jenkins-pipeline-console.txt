@@ -1,0 +1,54 @@
+Started by user Priya Raman
+Obtained Jenkinsfile from git https://git.example.com/shop/payments.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on build-agent-07 in /var/lib/jenkins/workspace/payments_main
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout)
+[Pipeline] checkout
+The recommended git tool is: NONE
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/payments_main/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git fetch --tags --force --progress -- https://git.example.com/shop/payments.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+Checking out Revision 3f9a2c7e1b4d5f60718293a4b5c6d7e8f9012345 (refs/remotes/origin/main)
+Commit message: "Retry ledger writes on deadlock"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build)
+[Pipeline] sh
++ ./gradlew --no-daemon clean assemble
+> Task :clean
+> Task :compileJava
+Note: Some input files use unchecked or unsafe operations.
+> Task :assemble
+
+BUILD SUCCESSFUL in 41s
+5 actionable tasks: 5 executed
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Test)
+[Pipeline] sh
++ ./gradlew --no-daemon test
+
+LedgerServiceTest > retriesOnDeadlock() FAILED
+    org.opentest4j.AssertionFailedError: expected: <3> but was: <2>
+        at app//org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+        at app//com.example.payments.LedgerServiceTest.retriesOnDeadlock(LedgerServiceTest.java:88)
+
+64 tests completed, 1 failed
+> Task :test FAILED
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy)
+Stage "Deploy" skipped due to earlier failure(s)
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 1
+Finished: FAILURE

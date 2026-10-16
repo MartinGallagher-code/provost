@@ -1,0 +1,6 @@
+<165>1 2026-10-15T09:44:01.003Z app01.example.com orders 2211 ID47 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1011"] Order 88123 accepted
+<134>1 2026-10-15T09:44:01.118Z app01.example.com orders 2211 - - Payment authorised for order 88123
+<131>1 2026-10-15T09:44:02.552Z app02.example.com inventory 977 STOCK [meta sequenceId="29"][origin ip="192.0.2.41" software="inventoryd" swVersion="4.2.0"] Insufficient stock for SKU BOLT-M6: requested 120, available 95
+<86>1 2026-10-15T09:44:05.000+01:00 bastion.example.com sshd 30122 - - Accepted publickey for deploy from 198.51.100.7 port 51522 ssh2
+<14>1 2026-10-15T09:44:07.411Z - cron - - - (backup) CMD (/usr/local/bin/nightly-backup --incremental)
+<165>1 2026-10-15T09:44:09.020Z app01.example.com orders 2211 ID48 [exampleSDID@32473 iut="3" eventSource="Application" eventID="1012"] ﻿Order 88124 accepted (gift wrap, note: "Für Oma")

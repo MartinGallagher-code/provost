@@ -1,0 +1,20 @@
+sort: text ordering performed using ‘C.UTF-8’ sorting rules
+sort: note numbers use ‘.’ as a decimal point in this locale
+hinge 50mm>12>1.40
+           __
+__________________
+bolt M8>40>0.18
+        __
+_______________
+nut M6>95>0.05
+       __
+______________
+bolt M6>120>0.10
+        ___
+________________
+washer M6>300>0.02
+          ___
+__________________
+screw 4x30>1000>0.03
+           ____
+____________________

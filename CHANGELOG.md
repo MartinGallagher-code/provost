@@ -1,5 +1,68 @@
 # provost — Changelog
 
+## 2026-10-16 — generalisation benchmark round 3: 107 unseen inputs, rated on 2.1.0 (measurement only)
+
+This is the first honest generalisation measurement of the 2026-10-14 parser
+work. Round 2's re-rating measured that work on inputs it had been checked
+against, so it was not one. Round 3 has **107 inputs**, none in the corpus,
+holdout, round 1 or round 2. Of these, 64 were **captured** from read-only
+commands in the container (scrubbed), and 43 were **reproduced** from
+documented formats the container lacks: PowerShell/Windows, macOS,
+Cisco/Junos/RouterOS, databases, cloud and k8s CLIs, CI logs, monitoring,
+z/OS and IBM i, scientific tools and game servers.
+
+Novelty was checked by name and by content (`round3/novelty.py`, against all
+3,960 existing inputs). Five name clashes and five close relatives were
+replaced before the freeze. In the final set the maximum word-3-gram score is
+0.14, and 105 of 107 inputs score 0.06 or below. Round 2's `CRITERIA.md` was
+reused unchanged and frozen before the first run. The set was run once, on
+main at the 2.1.0 release (`eacc9fa`). **No engine, strategy, hint or parser
+changes.**
+
+- **Result: 22 PASS / 45 PARTIAL / 40 FAIL** (21% / 42% / 37%; 63% usable).
+  Round 2 was 16% / 47% / 38% at its first rating, and 24% / 50% / 27% when
+  re-rated on its own (seen) set. The FAIL share on unseen input has not moved,
+  and the PASS gain of five points is within the margin for sets this size.
+- **By family:**
+  - key/value records: 100% usable;
+  - key/value blocks: 82%;
+  - whitespace tables: 67%, up from 52%;
+  - multi-section reports: 25%;
+  - log/diagnostic lines: 54%. Compiler diagnostics pass, but test-runner
+    reports and CI logs mostly fail.
+- **Top patterns:**
+  - a banner, prompt, legend or first record is taken as a table's header
+    (10 FAIL);
+  - nested or sectioned text is flattened into one record or one cell
+    (11 FAIL);
+  - one section of a report is claimed and the rest dropped, which line
+    coverage sees but the hold does not act on (9 FAIL);
+  - a wrong strategy or delimiter is used, including two cases of silent data
+    loss (7 FAIL);
+  - two-word headers and wide right-aligned cells in whitespace tables
+    (3 FAIL).
+- **Signals:**
+  - confidence ≥ 80 is wrong 40% of the time;
+  - every input below 60% coverage is FAIL, but 18 of 40 FAILs cover 95% or
+    more;
+  - `--rank priority` differs on 11 inputs and scores 18 / 42 / 47, so the
+    calibrated ranking and the rescue are worth about +4 PASS and −7 FAIL;
+  - `--multi` is better on 19 inputs and worse on 6.
+- **Engine findings, not fixed:**
+  - a `json` near-miss leaves no fallback (one input gives no output at all);
+  - `tsv` truncates rows to the first row's width while coverage reads 100;
+  - duplicate column names from a split header lose values in the melt;
+  - `fixed-width` drops leading digits of a right-aligned value wider than its
+    header;
+  - `gnu-version` emits a field that is not in the input.
+
+Files: `tests/benchmark/round3/{inputs/*.txt, manifest.tsv, CRITERIA.md,
+ratings.tsv, novelty.py}` (new); `tests/benchmark/run.sh` (`--round3`; the
+summary's `--multi` count no longer prints `0` twice when there are no
+datasets); `tests/benchmark/README.md`;
+`docs/benchmark-2026-10-16-generalisation-round3.md` (new); `mkdocs.yml`
+(Benchmark nav).
+
 ## 2026-10-16 — pre-rename name fallbacks removed (ships in 2.2.0)
 
 2.1.0, the first release with the `provost-extract` / `PROVOST_*` names,

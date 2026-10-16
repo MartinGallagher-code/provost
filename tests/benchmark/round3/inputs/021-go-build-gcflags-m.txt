@@ -1,0 +1,15 @@
+# example.com/shelf
+./shelf.go:7:6: can inline (*Shelf).Add
+./shelf.go:13:6: can inline (*Shelf).Remove
+./shelf.go:20:6: can inline (*Shelf).Free
+./shelf.go:22:6: can inline Label
+./shelf.go:8:46: inlining call to errors.New
+./shelf.go:7:7: leaking param content: s
+./shelf.go:7:21: leaking param: it
+./shelf.go:8:46: &errors.errorString{...} escapes to heap
+./shelf.go:13:7: leaking param content: s
+./shelf.go:13:24: it does not escape
+./shelf.go:20:7: s does not escape
+./shelf.go:24:31: string(rune(65 + row)) + string(rune(48 + col)) escapes to heap
+./shelf.go:24:20: string(rune(65 + row)) does not escape
+./shelf.go:24:44: string(rune(48 + col)) does not escape

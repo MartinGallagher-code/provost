@@ -1,0 +1,40 @@
+Shelf('A1', 3/3) {'bolt': 3}
+
+functions called:
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: <lambda>
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: <listcomp>
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: EnumType.__call__
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: Flag._get_value
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: __and__
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: __new__
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: __or__
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: _iter_bits_lsb
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: _iter_member_by_def_
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: _iter_member_by_value_
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: _missing_
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: property.__get__
+filename: /usr/lib/python3.11/enum.py, modulename: enum, funcname: value
+filename: /usr/lib/python3.11/json/__init__.py, modulename: __init__, funcname: <module>
+filename: /usr/lib/python3.11/json/decoder.py, modulename: decoder, funcname: <module>
+filename: /usr/lib/python3.11/json/decoder.py, modulename: decoder, funcname: JSONDecodeError
+filename: /usr/lib/python3.11/json/decoder.py, modulename: decoder, funcname: JSONDecoder
+filename: /usr/lib/python3.11/json/decoder.py, modulename: decoder, funcname: JSONDecoder.__init__
+filename: /usr/lib/python3.11/json/encoder.py, modulename: encoder, funcname: <module>
+filename: /usr/lib/python3.11/json/encoder.py, modulename: encoder, funcname: JSONEncoder
+filename: /usr/lib/python3.11/json/encoder.py, modulename: encoder, funcname: JSONEncoder.__init__
+filename: /usr/lib/python3.11/json/scanner.py, modulename: scanner, funcname: <module>
+filename: /usr/lib/python3.11/re/__init__.py, modulename: __init__, funcname: _compile
+filename: /usr/lib/python3.11/re/__init__.py, modulename: __init__, funcname: compile
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: <listcomp>
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _code
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _combine_flags
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _compile
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _compile_charset
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _compile_info
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _get_charset_prefix
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _get_iscased
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _get_literal_prefix
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _mk_bitmap
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _optimize_charset
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: _simple
+filename: /usr/lib/python3.11/re/_compiler.py, modulename: _compiler, funcname: compile
