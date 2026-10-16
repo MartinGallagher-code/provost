@@ -1,5 +1,10 @@
 # Held-out generalisation benchmark, round 3: 107 inputs nobody had parsed
 
+> **Later the same day:** the set was re-rated after a fix round that had
+> never seen it. The rating went from 22 / 45 / 40 to 22 / 48 / 37. Round 3 is
+> now a regression set, and the next honest number needs a round 4. See the
+> [postscript](#postscript-2026-10-16-re-rated-after-a-fix-round-and-this-set-is-now-a-regression-measure).
+
 **2026-10-16.** This round put 107 tool outputs through `provost` 2.1.0
 (main at `eacc9fa`). None of them appear in the corpus, the holdout, round 1
 or round 2. The set was built, novelty-checked and frozen, and round 2's
@@ -501,3 +506,224 @@ parser should work from the pattern descriptions and fresh inputs, not from
 these files. The next honest generalisation number needs a **round 4**:
 built, novelty-checked against rounds 1–3 and the corpus, frozen, and rated
 on the same criteria before anyone parses it.
+
+## Postscript, 2026-10-16: re-rated after a fix round, and this set is now a regression measure
+
+After the rating above, a fix round worked round 2's remaining patterns
+(CHANGELOG, the three 2026-10-16 engine entries):
+
+- **Column-type consistency.** Every parse now gets a third quality signal:
+  the share of its cells whose type fits their column (the 5th `--emit-meta`
+  field). A generic claim with a mixed column and consistency under 95 is
+  held. A more consistent nearby candidate replaces it, but only under guards:
+  it must reach 95, keep as many lines, add no records and relabel nothing.
+- **Whitespace tables.** The gutter grid reads UTF-8 cells by character, and
+  it handles loose headers, one crossing row and headerless tables with soft
+  gutters. `aligned-columns` gained a headerless-by-segment mode, decorated
+  titles, print-report page headers and ASA control. Footers and the prompt
+  after them are cut in every table reader.
+- **Format parsers decline what they do not read.** `toml`, `equals`,
+  `vertical-line`, `yaml`, `csv`, `semicolon-values`, `colons`,
+  `colon-fields` and `indented-hierarchy` each refuse a near-miss shape they
+  used to claim. `json` reads JavaScript and Python object literals.
+- **Sections and indentation.** A new `section-tables` strategy gives titled
+  tables one table with a `section` column. `key-value` keeps labels that
+  contain colons and itemises lists. `kv-report` reads `+name` / `-name`
+  feature grids. `indent-tree` keeps a text outline as `depth` / `parent` /
+  `name`.
+- The pre-rename names were removed. That does not touch parsing.
+
+**The fix round's agents never saw round 3.** The set was built, frozen and
+rated on 2.1.0 first, and the fixes were developed against the corpus,
+round 2's postscript and new examples. So this before/after is an honest
+generalisation delta: it measures what the round's changes do to output
+nobody tuned them for.
+
+The final engine ran `run.sh --round3 --tidy` once. In 93 of the 107 inputs
+the default tidy output is byte-identical to the 2.1.0 run (checked with
+`cmp`), so those ratings carry over. The other 14 were re-rated from the
+input and both outputs, with the same criteria and the same six rules.
+`ratings.tsv` keeps the original columns and adds `strategy_1016`,
+`conf_1016`, `cov_1016`, `cons_1016`, `rating_1016` and `note_1016`.
+`--rank priority` and `--multi` were not re-rated: their output changed on 12
+and 13 inputs.
+
+### Headline
+
+| | 2.1.0 | share | after the fix round | share |
+|---|---:|---:|---:|---:|
+| PASS | 22 | 21% | 22 | **21%** |
+| PARTIAL | 45 | 42% | 48 | **45%** |
+| FAIL | 40 | 37% | 37 | **35%** |
+| usable (PASS + PARTIAL) | 67 | 63% | 70 | **65%** |
+
+**On round 3 the fix round turned three FAILs into PARTIALs and made no new
+PASS.** Of the 14 changed outputs, 3 moved from FAIL to PARTIAL, and 11
+changed without moving: 7 PARTIAL and 4 FAIL. **No default-mode output got
+worse.** Three points of FAIL share is well inside the ±8-point margin.
+
+On round 2, the set the fixes were aimed at, the same engine moved 19 of 109
+ratings, as the next section of the round-2 report shows. That set went from
+24% to 32% PASS and from 27% to 10% FAIL. The gap between the two sets is the
+size of the fit: the round's changes fixed round 2's specific failures far
+more thoroughly than they fixed the patterns behind them.
+
+| family (only those that moved) | n | 2.1.0 PASS / PARTIAL / FAIL | usable | after | usable |
+|---|---:|---|---:|---|---:|
+| aligned / fixed-width table | 27 | 8 / 10 / 9 | 67% | 8 / 11 / 8 | 70% |
+| log and diagnostic lines | 24 | 4 / 9 / 11 | 54% | 4 / 11 / 9 | 63% |
+
+The other six families are unchanged: multi-section reports are still
+0 / 4 / 12 (25% usable). By provenance, captured inputs are 15 / 28 / 21
+(67% usable) and reproduced inputs 7 / 20 / 16 (63%, up from 58%).
+
+### What changed, input by input
+
+**FAIL to PARTIAL (3):**
+
+- `aws logs tail` (123): the consistency hold replaced the `tsv` claim
+  (consistency 86) with `prefix-message` (100). Every field `tsv` dropped is
+  back, and the traceback is attached to its event, but log stream, level and
+  request id stay inside `message`. This is the only round-3 input where the
+  hold changed the winner.
+- PowerShell `Get-ChildItem` (102): the table is exact. Date and time sit
+  together, and 1204736 keeps its first digit. Only the `Directory:` title
+  that names the folder is dropped.
+- `doctest -v` (049): the failure report, the untested items and the totals
+  are rows of their own, not glued onto `Got`. Two examples' source is still
+  split at a colon, and each example spans three or four rows.
+
+**Changed, still PARTIAL (7):**
+
+- `php var_dump` (037): `indent-tree` keeps the nesting as depth/parent, but
+  each key is still on a different row from its value.
+- Icinga 2 objects (132): `indent-tree` keeps object membership and nesting,
+  but `key = value` is never split.
+- `pip config debug` (038): each config file is its own row. The variants are
+  empty-valued rows, and settings still lose their file.
+- `tmux list-keys` (061): headerless now, so the first binding stays in the
+  data, but the command is split over three columns.
+- `systeminfo` (104): `IP address(es)` is no longer glued onto a value.
+  Nesting is still lost.
+- `wevtutil` (106): one description is joined whole. The events are still not
+  records.
+- velero (128): one key keeps a trailing `:`. Nothing else changed.
+
+**Changed, still FAIL (4):**
+
+- `node --prof-process` (029): three of the five tables give one row per
+  line, but no row is split into columns. Two tables are still one cell each.
+- `numa_maps` (042): the first record is still the header, and the rest of
+  each line is now one glued cell.
+- pyright (046): `indented-hierarchy` now declines. `aligned-columns` takes
+  the second banner line as the header and shreds every diagnostic word by
+  word.
+- JES2 job log (135): `vertical-line` now declines, and coverage goes from 28
+  to 100. But `aligned-columns` takes the letter-spaced banner as the header.
+  Its repeated letters make duplicate column names, so the melt drops and
+  reorders tokens. Consistency reads 72, and the hold finds no replacement.
+
+### What still fails, by pattern
+
+The 37 FAILs, by the patterns of the report above:
+
+1. **A non-table line becomes the header (12 FAIL, was 10).** All ten are
+   still FAIL: `composer` (006), `git status --porcelain=v2` (019),
+   `objdump -p` (034), `numa_maps` (042), Cisco `show interfaces status`
+   (112), RouterOS (114), Junos `show route` (117), Jenkins (131), `srcds`
+   (141) and HL7 (143). Pyright (046) and the JES2 log (135) joined them. Both
+   used to be claimed by a parser that now declines, and `aligned-columns`
+   takes their banner as the header. `tmux` (061) is PARTIAL for a new reason.
+   The round's banner work recognises decorated titles, `Label: value`
+   comments and page headers. It does not recognise prompts, legends,
+   letter-spaced banners or a first record.
+2. **Nested or sectioned text flattened (10 FAIL, was 11).** All are
+   unchanged except pyright, which moved to pattern 1: `callgrind_annotate`
+   (003), `cmake -LAH` (005), `--prof-process` (029), node `--test` spec (030)
+   and TAP (031), `trace --listfuncs` (055), `xz -lvv` (064), `helm template`
+   (129), check_mk (133) and `nagios -v` (134). `section-tables` does not
+   match any round-3 input (`--explain`). The multi-section family is still
+   0 / 4 / 12, and `--prof-process`'s five titled tables still do not come
+   out as tables.
+3. **One section claimed, the rest dropped (8 FAIL, was 9).** `git
+   show-branch` (018), `patch --verbose` (036), `pytest --fixtures` (047) and
+   `--setup-plan` (048), `show spanning-tree` (115), `lsnrctl` (120),
+   `cnpg status` (126) and `summary(lm())` (137) are byte-identical. The JES2
+   log left this pattern for pattern 1. Tables, `vertical-line` and bespoke
+   parsers are still exempt from the coverage hold.
+4. **Wrong strategy or delimiter (5 FAIL, was 7).** `aws logs tail` and
+   `doctest` were fixed. Still FAIL: `git blame` (016), `tokenize` (054),
+   `openssl list -providers` (035) and `icacls` (107). So is
+   `java -XX:+PrintFlagsFinal` (023): `json` still claims it, extracts
+   nothing, and **there is still no output at all.**
+5. **Two-word headers and wide cells (2 FAIL, was 3).** `Get-ChildItem` was
+   fixed. Still FAIL: `doctl` (124), which still loses its IP addresses to
+   duplicate column names in the melt, and `readelf -n` (056).
+
+Of the engine findings above, two are fixed on these inputs: the
+right-aligned value that lost a digit (102), and the silent `tsv` truncation
+(123), which the consistency hold caught. `json` leaving no fallback (023),
+duplicate names in the melt (124, and now 135), `gnu-version`'s invented
+`warranty` field (134) and `pytest-summary` claiming at 27–31% coverage
+(047, 048) all remain.
+
+### Consistency and coverage against rating (after the fix round)
+
+| column-type consistency | n | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|---:|
+| 100 | 61 | 16 | 31 | 14 |
+| 95–99 | 10 | 1 | 6 | 3 |
+| 80–94 | 10 | 0 | 7 | 3 |
+| < 80 | 10 | 1 | 1 | 8 |
+| not judged (`-`, incl. the no-output input) | 16 | 4 | 3 | 9 |
+
+| line coverage | n | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|---:|
+| ≥ 95% | 75 | 21 | 36 | 18 |
+| 80–94% | 16 | 1 | 9 | 6 |
+| 60–79% | 9 | 0 | 3 | 6 |
+| < 60% (incl. 1 with no output) | 7 | 0 | 0 | 7 |
+
+**Consistency separates in one direction only, like coverage.**
+
+- Below 80, 8 of 10 inputs are FAIL. Below 95, 11 of 20 are FAIL (55%,
+  against 35% overall).
+- The one PASS under 80 is MATLAB `whos` (76). Its likely mixed column is
+  `Size`: the name says size, but the cells are dimensions (`412x6`).
+- But 17 of the 37 FAILs score 95 or more, and 9 more are not judged. A
+  banner taken as the header, sections glued into a cell and a record
+  flattened into columns all keep each column internally uniform.
+  Consistency, like coverage, cannot see misplacement that is uniform.
+- **The hold rarely acts.** `--explain` shows it holding 11 of the run's
+  default claims and replacing one (123). Of the 10 it left standing, 7 are
+  FAIL, 2 PARTIAL and 1 PASS. Eight of the ten have no candidate within 20
+  points at all. On `srcds` (141) the only candidate cannot be judged. On
+  `cnpg` (126) the record guard rejected an `aligned-columns` parse that
+  scores 100, because it splits the rows further.
+
+Coverage still catches dropped lines and nothing else. Every input below 60%
+fails. Only one input below 95% passes (`system_profiler`, 92%). 18 FAILs
+cover 95% or more. The two signals overlap little. An input that covers
+under 60%, scores under 80 on consistency, or gives no output is a FAIL in 12
+of 14 cases, but those 14 hold only 12 of the 37 FAILs. Where both signals
+read 95 or more (56 inputs), 10 are still FAIL.
+
+By confidence, a claim of 80 or more is wrong 33% of the time (21 of 63).
+At 2.1.0 the figure was 40%.
+
+### What these numbers are now
+
+**Round 3 has now been measured after a fix round.** The fix agents never saw
+it, so the before/after above (22 / 45 / 40 to 22 / 48 / 37) is an honest
+generalisation delta for this round's changes. It is small: three FAILs
+became PARTIALs, and the PASS count did not move.
+
+**From here on, round 3 is seen.** This postscript names its remaining
+defects input by input, and any work on them would be fitted to these files.
+From now on it is a regression set, like rounds 1 and 2: re-run
+`run.sh --round3` and read the diff against `ratings.tsv`. Do not quote
+21% / 65% / 35% as what provost does on unseen output.
+
+The next honest generalisation number needs a **round 4**: a fresh set that
+is built, novelty-checked against rounds 1–3 and the corpus, frozen, and
+rated on the same criteria before anyone parses it.
