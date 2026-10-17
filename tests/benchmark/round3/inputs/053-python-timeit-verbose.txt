@@ -1,0 +1,21 @@
+1 loop -> 1.91e-05 secs
+2 loops -> 1.78e-05 secs
+5 loops -> 1.92e-05 secs
+10 loops -> 2.11e-05 secs
+20 loops -> 3.78e-05 secs
+50 loops -> 9.18e-05 secs
+100 loops -> 0.000192 secs
+200 loops -> 0.0004 secs
+500 loops -> 0.00122 secs
+1000 loops -> 0.00237 secs
+2000 loops -> 0.00384 secs
+5000 loops -> 0.0109 secs
+10000 loops -> 0.0193 secs
+20000 loops -> 0.0402 secs
+50000 loops -> 0.0986 secs
+100000 loops -> 0.192 secs
+200000 loops -> 0.415 secs
+
+raw times: 397 msec, 387 msec, 398 msec, 398 msec, 386 msec
+
+200000 loops, best of 5: 1.93 usec per loop

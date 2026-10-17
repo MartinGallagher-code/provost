@@ -1,13 +1,13 @@
-n	A	B
-1	emacs@28.2	
-2	->	gtk+@3.24.34
-3	->	glib@2.72.3
-4	->	libffi@3.4.4
-5	->	pcre@8.45
-6	->	cairo@1.16.0
-7	->	pixman@0.40.0
-8	->	fontconfig@2.13.94
-9	->	ncurses@6.2.20210619
-10	->	libxml2@2.9.14
-11	->	zlib@1.2.12
-12	->	xz@5.2.5
+n	depth	name	parent
+1	0	emacs@28.2	
+2	1	-> gtk+@3.24.34	emacs@28.2
+3	2	-> glib@2.72.3	-> gtk+@3.24.34
+4	3	-> libffi@3.4.4	-> glib@2.72.3
+5	3	-> pcre@8.45	-> glib@2.72.3
+6	2	-> cairo@1.16.0	-> gtk+@3.24.34
+7	3	-> pixman@0.40.0	-> cairo@1.16.0
+8	3	-> fontconfig@2.13.94	-> cairo@1.16.0
+9	1	-> ncurses@6.2.20210619	emacs@28.2
+10	1	-> libxml2@2.9.14	emacs@28.2
+11	2	-> zlib@1.2.12	-> libxml2@2.9.14
+12	2	-> xz@5.2.5	-> libxml2@2.9.14

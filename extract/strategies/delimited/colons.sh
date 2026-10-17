@@ -4,7 +4,7 @@
 
 ## Name: colons
 ## Description: Extract field:value pairs from colon-delimited data
-## Version: 1.1
+## Version: 1.2
 ## Priority: 60
 ## Confidence-Max: 60
 ## Sample: samples/colons/basic.txt
@@ -187,6 +187,20 @@ _strat_colons_extract_awk () {
                 if (val == "") continue
                 out(key, val)
             }
+            # RECORDS (see _COLONS_REC_AWK): the bash loop emits those
+            if (nk && KS[1] !~ /^line[0-9]+$/) {
+                op = KS[1]; r = 0; distinct = 0; fields = 0; bad = 0
+                for (i = 1; i <= nk; i++) {
+                    k = KS[i]
+                    if (k == op) r++
+                    if (k ~ /^line[0-9]+$/) continue
+                    if ((r, k) in rseen) bad = 1
+                    rseen[r, k] = 1
+                    if (!(k in RD)) { RD[k] = 1; distinct++ }
+                    fields++
+                }
+                if (!bad && r >= 2 && distinct >= 2 && fields >= 2 * r) exit 3
+            }
             # `echo "$_RESTORED_TEXT"`: echo adds a newline, and
             # restore_text_values (which only rewrites when a sentinel is
             # present) re-reads its newline-terminated input with a
@@ -200,6 +214,7 @@ _strat_colons_extract_awk () {
             if (!sent && (index(k v, SP) || index(k v, CO))) sent = 1
             gsub(SP, "_", k); gsub(CO, "_", k)
             gsub(SP, " ", v); gsub(CO, ":", v)
+            KS[++nk] = k
             print k " " v
         }' && printf .)" || return 3
     [[ "$_o" == *. ]] || return 3
@@ -286,7 +301,8 @@ strategy_extract () {
     # discard were routinely the most important in the input — curl's first
     # line (its version and entire library list), gcc's closing `gcc version
     # 13.3.0 (…)`, openssl's banner. Pure separator rules are still chrome.
-    local result="" _nc_n=0
+    local result="" _nc_n=0 _nr=0 _rawkey
+    local -A _col_sec=()
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         # Skip empty lines
@@ -309,7 +325,7 @@ strategy_extract () {
             [[ -z "$_nc" ]] && continue
             [[ "$_nc" =~ ^[-=~*+_]{3,}$ ]] && continue
             _nc_n=$((_nc_n + 1))
-            result+="line${_nc_n} ${_nc}"$'\n'
+            result+="line${_nc_n} ${_nc}"$'\n'; _nr=$((_nr + 1))
             continue
         fi
 
@@ -350,6 +366,7 @@ strategy_extract () {
         key="${key#"${key%%[![:space:]]*}"}"
         key="${key%"${key##*[![:space:]]}"}"
 
+        _rawkey="$key"
         # Skip if key is empty, too long, or looks like a non-field line
         [[ -z "$key" ]] && continue
         [[ ${#key} -gt 50 ]] && continue
@@ -376,14 +393,78 @@ strategy_extract () {
         # keeps everything after the first space as the value).
         _trim "$value"; value="$_TRIMMED"
 
-        # Skip if value is empty
-        [[ -z "$value" ]] && continue
+        # Skip if value is empty (a bare heading: remembered for RECORDS)
+        if [[ -z "$value" ]]; then
+            _rawkey="${_rawkey//$_CT_SP/ }"; _col_sec[$_nr]="${_rawkey//$_CT_CO/:}"
+            continue
+        fi
 
-        result+="${key} ${value}"$'\n'
+        result+="${key} ${value}"$'\n'; _nr=$((_nr + 1))
     done
 
     # clean_text protected dates/parenthesised spans with sentinels; put the
     # original spaces and colons back into the values.
     restore_text_values "$result"
+    if [[ $_nr -ge 4 ]]; then
+        local _rs="" _ri=0 _rl _ro
+        _fr_lines "$_RESTORED_TEXT"
+        for _rl in "${_FR_LINES[@]}"; do
+            [[ -z "$_rl" ]] && continue
+            [[ -n "${_col_sec[$_ri]+x}" ]] && _rs+=$'\001S\t'"${_col_sec[$_ri]}"$'\n'
+            _rs+="$_rl"$'\n'; _ri=$((_ri + 1))
+        done
+        _ro="$(printf '%s' "$_rs" | awk "$_COLONS_REC_AWK")"
+        if [[ "$_ro" == R$'\n'* ]]; then
+            printf '%s\n' "${_ro#R$'\n'}"
+            return 0
+        fi
+    fi
     echo "$_RESTORED_TEXT"
 }
+
+# RECORDS. A listing of repeated records — `openssl list -public-key-
+# algorithms`: ` Name: …` over tab-indented `Type:` / `OID:` fields, fifteen
+# times, under `Legacy:` / `Provided:` headings; `rpm -qi a b c` — comes out
+# of the loops above as one key/value stream whose keys repeat, which a wide
+# row collapses into one record with fifteen `Name` columns. When the stream
+# splits cleanly into records it is emitted as records instead: the FIRST key
+# opens a record each time it recurs (>= 2 records), no key repeats inside a
+# record, there are >= 2 distinct keys and >= 2 fields per record on
+# average, and no colon-less line comes before the first record. A bare
+# `Label:` heading met before an opener (dropped by the loop as an empty
+# value) names the `section` of the records below it; a record's colon-less
+# lines join (`; `) into its `text` field. Input: the "key value" lines,
+# with `\001S<TAB>heading` marker lines; prints `N` (not records) or `R`
+# then the records. The awk twin applies the same test to its own key
+# stream and hands such an input back to the bash loop (exit 3).
+_COLONS_REC_AWK='
+substr($0, 1, 1) == "\001" { pend = substr($0, 4); hassec = 1; next }
+$0 == "" { next }
+{
+    k = $1; v = substr($0, length(k) + 2)
+    n++; K[n] = k; V[n] = v
+    if (n == 1) op = k
+    if (k == op) { r++; SECR[r] = pend }
+    if (k ~ /^line[0-9]+$/) next
+    if ((r, k) in seen) bad = 1
+    seen[r, k] = 1
+    if (!(k in D)) { D[k] = 1; distinct++ }
+    fields++
+}
+END {
+    if (!n || op ~ /^line[0-9]+$/ || bad || r < 2 || distinct < 2 || fields < 2 * r) { print "N"; exit }
+    print "R"
+    e = 0
+    for (i = 1; i <= n; i++) {
+        if (K[i] == op) {
+            if (e && txt != "") print "entry" e ".text " txt
+            e++; txt = ""
+            if (hassec) print "entry" e ".section " SECR[e]
+        }
+        if (K[i] ~ /^line[0-9]+$/) { txt = txt (txt != "" ? "; " : "") V[i]; continue }
+        print "entry" e "." K[i] " " V[i]
+    }
+    if (txt != "") print "entry" e ".text " txt
+    print "total_entries " e
+}'
+

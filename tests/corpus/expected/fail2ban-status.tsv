@@ -1,8 +1,10 @@
 n	key	value
-1	Status for the jail	sshd |- Filter
-2	|  |- Currently failed	3
-3	|  |- Total failed	1287
-4	|  `- File list	/var/log/auth.log `- Actions
-5	|- Currently banned	4
-6	|- Total banned	52
-7	`- Banned IP list	192.0.2.14 198.51.100.7 203.0.113.9 203.0.113.44
+1	Status for the jail	sshd
+2	|- Filter	
+3	Currently failed	3
+4	Total failed	1287
+5	File list	/var/log/auth.log
+6	`- Actions	
+7	Currently banned	4
+8	Total banned	52
+9	Banned IP list	192.0.2.14 198.51.100.7 203.0.113.9 203.0.113.44

@@ -4,7 +4,7 @@
 
 ## Name: toml
 ## Description: Extract key/value pairs from TOML format with section and array table support
-## Version: 1.0
+## Version: 1.1
 ## Priority: 15
 ## Sample: samples/toml/basic.toml
 
@@ -33,23 +33,23 @@ strategy_detect () {
 
     # 1. [[array]] table headers
     if [[ "$text" == *$'\n'"[["* || "$text" == "[["* ]]; then
-        return 0
+        _strat_toml_grammar "$text"; return
     fi
 
     # 2. [dotted.section] headers
     if [[ "$text" =~ (^|$'\n')\[[a-zA-Z][a-zA-Z0-9_-]*\. ]]; then
-        return 0
+        _strat_toml_grammar "$text"; return
     fi
 
     # 3. key = "quoted_value" pattern (TOML uses = with spaces, not :)
     if [[ "$text" =~ (^|$'\n')[a-zA-Z][a-zA-Z0-9_-]*[\ ]*=[\ ]*\" ]]; then
         # Also must have [section] to distinguish from env-vars / equals
         if [[ "$text" == *$'\n'"["* || "$text" == "["* ]]; then
-            return 0
+            _strat_toml_grammar "$text"; return
         fi
         # Or [[array]] tables
         if [[ "$text" == *"[["* ]]; then
-            return 0
+            _strat_toml_grammar "$text"; return
         fi
         # Accept if we have key = "value" at top level AND [section] somewhere
         local section_count=0
@@ -58,10 +58,75 @@ strategy_detect () {
             [[ "$_line" == "["* ]] && section_count=$((section_count + 1))
         done
         _line=""
-        [[ $section_count -ge 1 ]] && return 0
+        [[ $section_count -ge 1 ]] && { _strat_toml_grammar "$text"; return; }
     fi
 
     return 1
+}
+
+# _strat_toml_grammar TEXT — the TOML LINE GRAMMAR must hold for (nearly)
+# every line. The signatures above are single-line clues (one `[a.b]`
+# header, one `key = "v"`), and toml is exempt from the engine's coverage
+# hold (it is a document grammar), so it checks itself: a line is TOML when
+# it is blank, a `#` comment, a `[table]` / `[[array]]` header STANDING ALONE
+# (a trailing comment allowed), a `key = value` assignment (bare, quoted or
+# dotted key, any non-empty value), or a continuation inside a multi-line
+# string or array. A `[key] value` listing (`composer config --list`: a
+# `Set X=1` banner line over `[repositories.x.url] https://…` rows) and prose
+# break almost every line. Accept when at most 10% of the counted lines
+# break the grammar (widened by _FR_SLACK on the detection sample). Not
+# applied when the strategy is pinned (`-s toml`).
+_strat_toml_grammar () {
+    # (pinned with `--strategy toml`, the caller has decided: read what parses)
+    [[ "${_OPT_strategy:-}" == toml ]] && return 0
+    local _tg_l _tg_t _tg_v _tg_ok=0 _tg_bad=0 _tg_arr=0 _tg_mls="" _tg_s _tg_o _tg_c
+    local _tg_q="'"
+    local _tg_k="([A-Za-z0-9_-]+|\"[^\"]*\"|${_tg_q}[^${_tg_q}]*${_tg_q})"
+    local _tg_key="${_tg_k}([[:space:]]*\\.[[:space:]]*${_tg_k})*"
+    local _tg_hdr="^\\[[[:space:]]*${_tg_key}[[:space:]]*\\][[:space:]]*(#.*)?$"
+    local _tg_ahdr="^\\[\\[[[:space:]]*${_tg_key}[[:space:]]*\\]\\][[:space:]]*(#.*)?$"
+    local _tg_kv="^${_tg_key}[[:space:]]*=[[:space:]]*(.*)$"
+    local _tg_dq="\"[^\"]*\"" _tg_sq="${_tg_q}[^${_tg_q}]*${_tg_q}"
+    _fr_lines "$1"
+    for _tg_l in "${_FR_LINES[@]}"; do
+        if [[ -n "$_tg_mls" ]]; then
+            _tg_ok=$((_tg_ok + 1))
+            [[ "$_tg_l" == *"$_tg_mls"* ]] && _tg_mls=""
+            continue
+        fi
+        _tg_t="${_tg_l#"${_tg_l%%[![:space:]]*}"}"
+        [[ -z "$_tg_t" || "$_tg_t" == "#"* ]] && continue
+        if [[ $_tg_arr -gt 0 ]]; then
+            _tg_v="$_tg_t"
+        elif [[ "$_tg_t" =~ $_tg_ahdr || "$_tg_t" =~ $_tg_hdr ]]; then
+            _tg_ok=$((_tg_ok + 1)); continue
+        elif [[ "$_tg_t" =~ $_tg_kv ]]; then
+            _tg_v="${BASH_REMATCH[${#BASH_REMATCH[@]}-1]}"
+            _tg_v="${_tg_v%"${_tg_v##*[![:space:]]}"}"
+            [[ -n "$_tg_v" ]] || { _tg_bad=$((_tg_bad + 1)); continue; }
+            # a multi-line basic / literal string opens here
+            _tg_s="${_tg_v:0:3}"
+            if [[ "$_tg_s" == '"""' || "$_tg_s" == "${_tg_q}${_tg_q}${_tg_q}" ]]; then
+                [[ "${_tg_v:3}" == *"$_tg_s"* ]] || _tg_mls="$_tg_s"
+                _tg_ok=$((_tg_ok + 1)); continue
+            fi
+            [[ "$_tg_v" == "["* ]] || { _tg_ok=$((_tg_ok + 1)); continue; }
+        else
+            _tg_bad=$((_tg_bad + 1)); continue
+        fi
+        # an array value or its continuation: bracket depth outside strings
+        _tg_ok=$((_tg_ok + 1))
+        _tg_s="$_tg_v"
+        while [[ "$_tg_s" =~ $_tg_dq ]]; do _tg_s="${_tg_s/"${BASH_REMATCH[0]}"/}"; done
+        while [[ "$_tg_s" =~ $_tg_sq ]]; do _tg_s="${_tg_s/"${BASH_REMATCH[0]}"/}"; done
+        _tg_s="${_tg_s%%#*}"
+        _tg_o="${_tg_s//[!\[]/}"; _tg_c="${_tg_s//[!\]]/}"
+        _tg_arr=$((_tg_arr + ${#_tg_o} - ${#_tg_c}))
+        [[ $_tg_arr -lt 0 ]] && _tg_arr=0
+    done
+    _tg_l=""
+    [[ $((_tg_ok + _tg_bad)) -gt 0 ]] || return 1
+    [[ $(( _tg_bad * 100 )) -le $(( (_tg_ok + _tg_bad) * (10 + ${_FR_SLACK:-0}) )) ]]
 }
 
 strategy_extract () {

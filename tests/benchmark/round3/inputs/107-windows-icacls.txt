@@ -1,0 +1,17 @@
+D:\Shares\Finance BUILTIN\Administrators:(OI)(CI)(F)
+                  NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+                  CORP\Finance Team:(OI)(CI)(M)
+                  CORP\Auditors:(OI)(CI)(RX)
+                  CREATOR OWNER:(OI)(CI)(IO)(F)
+                  CORP\j.ramírez:(DENY)(W,D)
+
+D:\Shares\Finance\Payroll CORP\Finance Team:(OI)(CI)(RX)
+                          CORP\Payroll Admins:(OI)(CI)(F)
+                          BUILTIN\Administrators:(I)(OI)(CI)(F)
+                          NT AUTHORITY\SYSTEM:(I)(OI)(CI)(F)
+
+D:\Shares\Finance\Budget 2027.xlsx CORP\Finance Team:(I)(M)
+                                   BUILTIN\Administrators:(I)(F)
+                                   NT AUTHORITY\SYSTEM:(I)(F)
+
+Successfully processed 3 files; Failed processing 0 files

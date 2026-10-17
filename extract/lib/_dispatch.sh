@@ -197,6 +197,7 @@ run_batch_mode () {
         _WINNER_NAME=""
         _WINNER_CONF=0
         _WINNER_COV=""
+        _WINNER_CONS=""
 
         # Run strategies (auto only; --chain and --replay are excluded by conflicts)
         run_auto_strategies
@@ -236,7 +237,7 @@ run_batch_mode () {
                     esac
                 fi
             } > "$_OPT_batch_out/$_bo_name.wide"
-            printf '__EXTRACT_META__\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" \
+            printf '__EXTRACT_META__\t%s\t%s\t%s\t%s\n' "${_WINNER_NAME:-}" "${_WINNER_CONF:-0}" "${_WINNER_COV:--}" "${_WINNER_CONS:--}" \
                 > "$_OPT_batch_out/$_bo_name.meta"
             _bany=1
             continue
@@ -1036,7 +1037,7 @@ run_multi_mode () {
                 continue
             fi
             _CLEAN_TEXT_CACHE=""; _CLEAN_TEXT_DONE=0
-            _WINNER_NAME=""; _WINNER_CONF=0; _WINNER_COV=""
+            _WINNER_NAME=""; _WINNER_CONF=0; _WINNER_COV=""; _WINNER_CONS=""
             output=""
             run_auto_strategies
             if [[ $_OPT_no_dedup -eq 0 && -n "$output" ]]; then

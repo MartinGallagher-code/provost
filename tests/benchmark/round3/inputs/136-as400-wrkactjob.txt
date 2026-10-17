@@ -1,0 +1,24 @@
+ 5770SS1 V7R5M0  220415                  Work with Active Jobs                      PRODAS1   10/15/26  09:40:12 UTC
+ CPU %:   12.4     Elapsed time:   00:01:45     Active jobs:   214
+
+ Type options, press Enter.
+   2=Change   3=Hold   4=End   5=Work with   6=Release   7=Display message
+   8=Work with spooled files   13=Disconnect ...
+
+ Opt  Subsystem/Job  User        Type  CPU %  Function        Status
+      QBATCH         QSYS        SBS      .0                   DEQW
+        PAYRL01      BATCH01     BCH     6.1  PGM-PAYCALC      RUN
+        INVSYNC      INVADM      BCH      .8  CMD-DLYJOB       DLY
+      QINTER         QSYS        SBS      .0                   DEQW
+        DSP01        JSMITH      INT      .2  MNU-MAIN         DSPW
+        QPADEV0004   MKOWALSKI   INT     2.9  CMD-WRKACTJOB    RUN
+        QPADEV0007   ANAKAMURA   INT      .0  PGM-ORDENTRY     LCKW
+      QSYSWRK        QSYS        SBS      .0                   DEQW
+        QTCPIP       QTCP        BCH      .1                   DEQW
+        QZDASOINIT   QUSER       PJ       .3                   TIMW
+      QUSRWRK        QSYS        SBS      .0                   DEQW
+        QZSCSRVS     QUSER       PJ       .0                   PSRW
+                                                                                                         More...
+ Parameters or command
+ ===>
+ F3=Exit   F5=Refresh   F7=Find   F10=Restart statistics   F11=Display elapsed data   F12=Cancel   F23=More options

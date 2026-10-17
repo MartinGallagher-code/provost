@@ -1,0 +1,70 @@
+Statistical profiling result from isolate-0x3ac5f000-26576-v8.log, (653 ticks, 14 unaccounted, 0 excluded).
+
+ [Shared libraries]:
+   ticks  total  nonlib   name
+     87   13.3%          /opt/node22/bin/node
+     49    7.5%          /usr/lib/x86_64-linux-gnu/libc.so.6
+      1    0.2%          [vdso]
+
+ [JavaScript]:
+   ticks  total  nonlib   name
+    169   25.9%   32.8%  JS: *<anonymous> /home/dev/prof/work.js:2:107
+     86   13.2%   16.7%  Builtin: MergeAt
+     48    7.4%    9.3%  Builtin: ArrayTimSort
+     46    7.0%    8.9%  Builtin: CallFunction_ReceiverIsNullOrUndefined
+     24    3.7%    4.7%  Builtin: RecordWriteSaveFP
+     18    2.8%    3.5%  Builtin: SortCompareUserFn
+     13    2.0%    2.5%  JS: *fib /home/dev/prof/work.js:1:13
+     11    1.7%    2.1%  Builtin: Call_ReceiverIsNullOrUndefined
+     10    1.5%    1.9%  Builtin: Copy
+      9    1.4%    1.7%  Builtin: NumberPrototypeToString
+      9    1.4%    1.7%  Builtin: MathRandom
+      6    0.9%    1.2%  Builtin: Store_FastDoubleElements_0
+      4    0.6%    0.8%  Builtin: Load_FastDoubleElements_0
+      2    0.3%    0.4%  JS: *sortMany /home/dev/prof/work.js:2:18
+      1    0.2%    0.2%  JS: ~fib /home/dev/prof/work.js:1:13
+      1    0.2%    0.2%  JS: ^sortMany /home/dev/prof/work.js:2:18
+      1    0.2%    0.2%  JS: ^fib /home/dev/prof/work.js:1:13
+      1    0.2%    0.2%  JS: *strings /home/dev/prof/work.js:3:17
+      1    0.2%    0.2%  Builtin: InterpreterEntryTrampoline
+      1    0.2%    0.2%  Builtin: GallopLeft
+      1    0.2%    0.2%  Builtin: ArrayPrototypePush
+
+ [C++]:
+   ticks  total  nonlib   name
+     14    2.1%    2.7%  __write@@GLIBC_2.2.5
+      8    1.2%    1.6%  _IO_fwrite@@GLIBC_2.2.5
+      5    0.8%    1.0%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)@@GLIBCXX_3.4.9
+      4    0.6%    0.8%  __munmap@@GLIBC_PRIVATE
+      3    0.5%    0.6%  __lll_lock_wake_private@@GLIBC_PRIVATE
+      2    0.3%    0.4%  __madvise@@GLIBC_PRIVATE
+      2    0.3%    0.4%  _IO_file_xsputn@@GLIBC_2.2.5
+      1    0.2%    0.2%  pthread_cond_signal@@GLIBC_2.3.2
+      1    0.2%    0.2%  __getpid@@GLIBC_2.2.5
+
+ [Summary]:
+   ticks  total  nonlib   name
+    462   70.8%   89.5%  JavaScript
+     40    6.1%    7.8%  C++
+     97   14.9%   18.8%  GC
+    137   21.0%          Shared libraries
+     14    2.1%          Unaccounted
+
+ [C++ entry points]:
+   ticks    cpp   total   name
+      7   33.3%    1.1%  __write@@GLIBC_2.2.5
+      7   33.3%    1.1%  _IO_fwrite@@GLIBC_2.2.5
+      5   23.8%    0.8%  std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)@@GLIBCXX_3.4.9
+      2    9.5%    0.3%  _IO_file_xsputn@@GLIBC_2.2.5
+
+ [Bottom up (heavy) profile]:
+  Note: percentage shows a share of a particular caller in the total
+  amount of its parent calls.
+  Callers occupying less than 1.0% are not shown.
+
+   ticks parent  name
+    169   25.9%  JS: *<anonymous> /home/dev/prof/work.js:2:107
+    169  100.0%    Builtin: ArrayPrototypeSort
+    126   74.6%      JS: *sortMany /home/dev/prof/work.js:2:18
+    126  100.0%        JS: ~<anonymous> /home/dev/prof/work.js:1:1
+    126  100.0%          JS: ~<anonymous> node:internal/main/run_main_module:1:1

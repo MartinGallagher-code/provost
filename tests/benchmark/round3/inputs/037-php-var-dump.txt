@@ -1,0 +1,45 @@
+array(6) {
+  ["id"]=>
+  int(1042)
+  ["customer"]=>
+  array(3) {
+    ["name"]=>
+    string(12) "Zoë Müller"
+    ["tier"]=>
+    string(4) "gold"
+    ["tags"]=>
+    array(2) {
+      [0]=>
+      string(9) "wholesale"
+      [1]=>
+      string(2) "eu"
+    }
+  }
+  ["lines"]=>
+  array(2) {
+    [0]=>
+    array(3) {
+      ["sku"]=>
+      string(7) "BOLT-M6"
+      ["qty"]=>
+      int(120)
+      ["unit"]=>
+      float(0.1)
+    }
+    [1]=>
+    array(3) {
+      ["sku"]=>
+      string(6) "NUT-M6"
+      ["qty"]=>
+      int(95)
+      ["unit"]=>
+      float(0.05)
+    }
+  }
+  ["paid"]=>
+  bool(false)
+  ["note"]=>
+  NULL
+  ["total"]=>
+  float(16.75)
+}

@@ -1,0 +1,25 @@
+entry1.NAME web-7d4b9c-x2k
+entry1.APP 商店前端
+entry1.READY 1/1
+entry1.STATUS Running
+entry1.RESTARTS 0
+entry1.AGE 3d
+entry2.NAME api-5f6c8d-p9q
+entry2.APP 订单服务
+entry2.READY 1/1
+entry2.STATUS Running
+entry2.RESTARTS 2 (4h ago)
+entry2.AGE 3d
+entry3.NAME worker-0
+entry3.APP 批处理
+entry3.READY 0/1
+entry3.STATUS CrashLoopBackOff
+entry3.RESTARTS 17
+entry3.AGE 1h
+entry4.NAME redis-0
+entry4.APP cache
+entry4.READY 1/1
+entry4.STATUS Running
+entry4.RESTARTS 0
+entry4.AGE 12d
+total_entries 4

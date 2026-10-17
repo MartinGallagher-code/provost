@@ -12,5 +12,5 @@ n	key	value
 11	cilium-operator    Running	2
 12	Cluster Pods	142/142 managed by Cilium
 13	Helm chart version	1.15.5
-14	Image versions         cilium             quay.io/cilium/cilium	v1.15.5: 5
-15	cilium-operator    quay.io/cilium/operator-generic	v1.15.5: 2
+14	Image versions         cilium             quay.io/cilium/cilium:v1.15.5: 5	
+15	cilium-operator    quay.io/cilium/operator-generic:v1.15.5	2

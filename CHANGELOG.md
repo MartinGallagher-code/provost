@@ -1,5 +1,541 @@
 # provost — Changelog
 
+## 2026-10-16 — round 3 re-rated after the fix round (honest delta: 3 FAIL → PARTIAL); round 2 regression check; round 3 is now a regression set
+
+Measurement and documentation only. No engine, parser, strategy or hint
+changes. Round 3 was built, frozen and rated on 2.1.0 before the 2026-10-16
+fix round started, and that round's agents never saw it. Its before/after is
+therefore an honest generalisation delta for the round's changes. It is the
+last one round 3 can give.
+
+- **Round 3** (107 inputs, `run.sh --round3 --tidy` once on the final
+  engine). 93 default tidy outputs are byte-identical to the 2.1.0 run
+  (`cmp`) and keep their rating. The 14 that changed were re-rated from the
+  input and both outputs on the unchanged criteria. **22 / 45 / 40 →
+  22 PASS / 48 PARTIAL / 37 FAIL** (usable 63% → 65%, FAIL 37% → 35%).
+  - FAIL → PARTIAL: `aws logs tail` (the consistency hold replaced `tsv`
+    with `prefix-message`), PowerShell `Get-ChildItem` (table exact, digit no
+    longer lost), `doctest -v`.
+  - Changed, still PARTIAL (7): php `var_dump`, Icinga (depth/parent),
+    `pip config debug`, `tmux list-keys`, `systeminfo`, `wevtutil`, velero.
+  - Changed, still FAIL (4): `--prof-process`, `numa_maps`, pyright and the
+    JES2 log. In the last two, a parser that now declines hands the input to
+    `aligned-columns`, which takes the banner as the header.
+  - No new PASS and no default-mode regression. Families that moved: tables
+    67% → 70% usable, log/diagnostic lines 54% → 63%. Multi-section reports
+    are unchanged (25%), and `section-tables` matches no round-3 input.
+  - `java -XX:+PrintFlagsFinal` still gives no output.
+  - **Consistency against rating** (after): under 80, 8 of 10 inputs are
+    FAIL; under 95, 11 of 20. But 17 of the 37 FAILs score 95 or more, and
+    9 are not judged.
+  - The hold fired on 11 default claims and replaced 1.
+  - Coverage: every input under 60% is FAIL, and 18 FAILs cover 95% or more.
+  - Confidence ≥ 80 is wrong 33% of the time (was 40%).
+- **Round 2** (regression check, against the 2026-10-14 run). 24 default
+  outputs changed, and **none got worse**.
+  - **26 / 54 / 29 → 35 PASS / 63 PARTIAL / 11 FAIL** (usable 73% → 90%).
+  - 8 FAIL → PASS, 1 PARTIAL → PASS, 10 FAIL → PARTIAL, 2 better but still
+    PARTIAL, 3 neutral. `sqlcmd` and SQL*Plus no longer show the footer as a
+    row but now drop it, so both stay PARTIAL.
+  - That set moved 19 ratings against round 3's 3. The gap is the size of the
+    fit to seen inputs.
+- **Round 3 is now seen, like round 2.** It measures regression, not
+  generalisation, and the next honest number needs a round 4.
+- `--rank priority` and `--multi` were not re-rated in either set.
+
+Files:
+- `tests/benchmark/round3/ratings.tsv`: original columns kept. It gains
+  `strategy_1016`, `conf_1016`, `cov_1016`, `cons_1016`, `rating_1016` and
+  `note_1016`, and its header comment updated.
+- `tests/benchmark/round2/ratings.tsv`: gains `rating_1016` and `note_1016`,
+  and its header comment updated.
+- `docs/benchmark-2026-10-16-generalisation-round3.md`: a pointer at the top,
+  and a 2026-10-16 postscript covering what the fix round changed, the
+  before/after headline and families, per-input changes, what still fails
+  per pattern, consistency and coverage against rating, and the call for a
+  round 4.
+- `docs/benchmark-2026-10-02-generalisation-round2.md`: the 2026-10-16
+  regression check.
+- `tests/benchmark/README.md`: the numbers.
+- HANDOFF.md was not edited.
+
+## 2026-10-16 — format parsers decline what they do not read; sections and indentation kept
+
+Round-2 benchmark patterns 5 (wrong strategy / wrong delimiter), 2 (sections
+glued into cells) and 6 (indentation that carries data). Developed against
+the corpus and new examples written for this work — ltrace / strace -c,
+cargo test, a node_exporter grep, check_load / check_http, rpm -qi, an
+OpenCL platform list, node `-p` literals, hiera lookups, nmcli -t, macOS
+netstat -rn, Windows arp -a, ipcs, docker system df -v, iptables -L -n -v,
+docker info, mutt -v, an RSpec run, a sorted-list comparison — not against
+the round-2 inputs, which were run once at the end as a regression check.
+
+**Part A — format parsers decline input they do not understand**
+- `toml` 1.1 (exempt from the coverage hold, so it checks itself): the TOML
+  LINE GRAMMAR must hold for 90%+ of the lines — a `[table]` header standing
+  alone, `key = value`, comments, multi-line strings / arrays. A `[key]
+  value` listing under a `Set X=1` banner is no longer TOML (a pinned `-s
+  toml` still reads what parses).
+- `equals` 1.3: declines when a quarter of the `=` lines hold the `=`
+  INSIDE brackets or quotes (`fstat(3, {st_mode=…}) = 0`, `getenv("HOME") =
+  "/root"`); the awk screen counts the same.
+- `vertical-line` 1.1: the first separator must be a pure rule; a TITLED
+  rule (`==== FAILURES ====`, `---- x stdout ----`) is a banner, not a
+  column underline.
+- `yaml` 1.2: a table wearing colons is not YAML — an unindented non-key
+  line with 2+ column gutters (a header), or `key: value` lines whose values
+  carry 2+ gutters (`C:   Local Fixed Disk   3   NTFS`).
+- `csv` 2.1: commas inside a label set glued to a name (`metric{a="x",b="y"}
+  42`) are not separators.
+- `semicolon-values` 1.1: a single dense line must read as fields (80%+
+  cells without blanks, `;` not inside 2+ blank-separated words): Nagios
+  perfdata is not a record.
+- `colons` 1.2: a key/value stream that splits cleanly into REPEATED RECORDS
+  (the first key recurring, no key repeated inside a record, 2+ fields per
+  record) is emitted as `entry<N>` records, a bare heading above them as
+  `section`, colon-less lines as `text`; the awk twin hands such inputs back
+  to the bash loop (exit 3), so both routes stay byte-identical.
+- `json` (version unchanged): a JavaScript / Python OBJECT LITERAL that jq
+  rejects (bare keys, single quotes, trailing commas, True/None) is rewritten
+  to JSON and read; a literal array is one row per element. Anything else
+  bare (`[Function]`, `NaN`) leaves the extract as before.
+- `colon-fields` 1.1: a `::` between two letters is a namespace
+  (`APT::Key::…`, `profile::base::ssh`), not two delimiters; a second way in
+  for genuinely colon-delimited lines whose fields hold blanks — the same
+  colon count (2+) on every line, no `: `, URL, clock, MAC or IP:port colon,
+  no column gap (`gpgconf --list-components`, `nmcli -t`).
+- `indented-hierarchy` 1.1: with 4+ colon lines, half must split cleanly at
+  their first colon (not a `::`, a `file:line` or a clock) — pytest's report
+  is no longer shredded into `0.31s_call_____test_app.py` keys.
+
+**Part B — sections glued into cells; indentation kept**
+- New generic `section-tables` (structured/, priority 36, 82 when every
+  titled table shares its header, else 80): one aligned table per title (a
+  disk, a chain, an address family, an interface) or a few different tables
+  under `====` rules and titles → ONE table with a `section` column; tables
+  with the same header line are read together (gutter grid, else a
+  label-span pass), different headers are unioned by column name, untitled
+  lines are `text` rows. A header needs 3+ gutter cells (or 3+ words over a
+  3-cell row) and no `Label: value` / `Label = value` pair; declines a single
+  table, untitled tables, `#` comment headers, dashed group rows, two-column
+  `key   value` blocks, and reports with 3+ `Label: value` text lines. Strategy count 264 → 265 (structured 26 → 27).
+- `key-value` 1.1 (detection unchanged): a key line ends at the first
+  STRUCTURAL colon, so a label may hold its own (`Stream #0:1(eng): Audio:
+  …` → key `Stream #0:1(eng)`), dot leaders are not words; a bare label over
+  2+ DEEPER lines gives one row per line (lists, `Stream mapping:`), unless
+  the pieces are a wrapped value (`,` / `:` / `;` endings, 60+ bytes — hex
+  dumps, comma lists); a text line at or left of the key's indent, or one
+  holding a column gap, is its own row instead of being glued onto the value
+  above; rules are dropped; tree glyphs (`|- `) are stripped from keys; a
+  pre-key banner is still dropped unless it holds a `: `.
+- `kv-report` 1.1: SIGN GRIDS (3+ lines of only `+name` / `-name` tokens,
+  12+) become one row per token (key = name, value = sign) under the grid's
+  `…:` title; a report holding one is RANKED at 81 (the one exception to
+  rescue-only), so `vim --version`-style banner + grid + `key: value` is no
+  longer an aligned table.
+- `indent-tree` 1.1: TAB columns that are not a tree (`comm`) → `depth` =
+  column rank; an indented TEXT OUTLINE (RSpec / nested test output, ldd /
+  gem / guix dependency trees, keepalived blocks) → `depth` / `parent` /
+  `name` at 70 (guards: column gaps, `label:` share, right-aligned numbers).
+
+**Corpus.** 47 goldens change, none deleted, none new, `expected.tsv`
+unchanged; `--golden` and `_FR_BIG_BYTES=0 --golden` both 3579 passed / 0
+failed / 126 not yet covered. Every changed golden was reviewed against the
+previous one: key-value (26: lists itemised, labels with colons whole, text
+lines no longer glued onto values, rules dropped, tree glyphs off keys),
+json (6 node / mongosh / fx literals now read instead of bracket debris),
+indent-tree (8: nesting kept as depth / parent — ldd / gem / guix trees,
+promtool, keepalived, radvd, pipx, redis-cli, a CJK tree), section-tables
+(3: faillock, nfsstat-client, yugabyte gain a `section` column), and
+flink-list-jobs (dates no longer cut at a fixed column), ipvsadm-list (rows
+instead of mangled keys), stat-format (clean names). Neutral: sestatus-v's
+`path  user:role:type` lines are now kept whole instead of split at the
+first colon of the context.
+
+**Round 2 (regression check, run once at the end).** Default tidy output
+changed for 17 of 109 inputs, none worse: comm (depth column), composer
+config (no longer toml at 2% coverage), gpgconf (colon fields), node
+os.cpus (json rows), objdump (per-offset rows), openssl list (records with
+section), pytest and strace (lossless lines instead of shredded columns),
+vim --version (feature rows), diskutil and route print (one table with a
+section column), ffmpeg (stream lines as rows, keys whole), Nagios (no
+positional shreds), Prometheus (exposition-format), RSpec (depth / parent),
+apt-config dump (namespaced keys whole), wmic (header kept).
+
+**Tests / fixtures.** `extract/tests/test_format_claims.sh` (14 tests);
+samples `section-tables/{netstat-rn,arp-a,docker-system-df,ipcs,
+iptables-chains}.txt`, `kv-report/{mutt-v,feature-grid}.txt`,
+`json/{node-inspect,node-interfaces}.txt`, `colons/{rpm-qi,
+opencl-platforms}.txt`, `colon-fields/nmcli-terse.txt`,
+`key-value/docker-info-lists.txt`, `indent-tree/comm-columns.txt`, with
+goldens. `extract/README.md` (counts, kv-report exception, "Sections glued
+into cells"), `README.md` (count).
+
+## 2026-10-16 — column-type consistency: a third quality signal, and misplaced parses yield
+
+**Problem (round-2 postscript).** Line coverage catches parses that DROP
+lines, but 19 of the 29 round-2 FAILs cover 95% or more: they keep every
+token and put values under the wrong headers — a date split over three
+columns, a multi-word name spread over Name / Id / Version, a word cut at a
+fixed column, a `Key:<TAB>value` report read as a two-column table.
+
+**Consistency (`extract/lib/_discovery.sh` `_FR_CONS_AWK`, in the coverage
+awk pass).** Every cell of a record stream is typed cheaply (integer,
+decimal, number + unit incl. sizes / rates / durations / percent / `2 weeks`,
+date / time / datetime incl. `3 days ago`, IPv4 / IPv6 / CIDR / MAC /
+host:port, hex / hash / uuid, version, path / URL, flag, digits-and-punctuation
+like `8,1`, word, multi-word text, rule / box-art debris; nulls skipped).
+Types count for FAMILIES a column may legitimately mix (a version column of
+`2.0` and `1.2.3`, a name column of words and phrases are consistent; a
+dotted quad counts as IPv4 and version, a dotted date as date and calendar
+version). A column scores the share of its filled cells in its best family;
+a cell holding a word CUT IN HALF (an alphanumeric run of 3+ bytes with a
+letter that the input never prints) and rule debris are mismatches; a column
+NAMED for a type (`Version`, `Size`, `PID`, `Created` …) whose cells are of
+another family while another column holds that type (a header slid against
+its cells) is judged by its name. Parse score = cell-weighted mean over
+columns with 3+ filled cells, value columns of key/value lists (`value`,
+`message`, `description`, `command` …) excluded; a column under 80% is
+"mixed"; nothing judged → `-`. mawk-safe, one pass, bounded by
+`_FR_COV_BYTES` (128 KB) like coverage (`-` above it: no cost on big inputs).
+- **Visible:** `--emit-meta` 5th field
+  (`__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency`,
+  batch `.meta` too); `--explain` gains a `CONS` column and a preview of the
+  hold (which candidate replaces the claim, or why none does); `-d` logs it
+  with the number of mixed columns; `provost` records `consistency` in the
+  capture's `meta.tsv` (`provost help` COLUMN-TYPE CONSISTENCY,
+  `man/provost.1`); `tests/benchmark/run.sh` prints a `CONS` column.
+  `tests/corpus/run.sh` already reads any field count.
+
+**Consistency hold (`_cons_hold_wanted`, `_cons_replaces`,
+`_cons_same_labels`).** With one winner wanted, the first candidate to
+produce output is HELD when it is a generic parse (not json / yaml / xml /
+toml, not a catch-all, not hint-routed / pinned, not bespoke) with a mixed
+column and consistency under `_FR_CONS_MIN` (95); a coverage-held claim that
+no rescue replaces is checked the same way. The ranked candidates down to
+`_FR_CONS_WINDOW` (20) points below it are extracted in order; the first
+generic, non-catch-all one that is `_FR_CONS_GAIN` (5) points more
+consistent and itself ≥ 95 with fewer mixed columns, keeps at least as many
+lines, is judged on comparable evidence (≥ half the claim's judged columns,
+≥ a third of its judged cells), adds no RECORDS, and does not RELABEL
+(every column name both parses use holds the same family in both) replaces
+it; otherwise the held
+claim is stored byte for byte. Pruning stays exact: when a claim is held
+for consistency after pruning, the pruned detectors that could be an
+alternative (generic, not a catch-all, ceiling inside the window) run then,
+and the candidates below the claim are tried in the unpruned ranking's
+order. (A first version redid the whole pass unpruned, like an empty top
+candidate: 2.7x the time on held inputs, ~2 s each; the targeted re-detect
+costs ~5%.) Above `_FR_CONS_HOLD_BYTES` (32 KB) the hold is skipped and the
+measure only reported (a held 100 KB ps table cost 3 s more).
+- **Rejected designs, with evidence** (corpus, generic mode; simulated from
+  a dump of every candidate's parse, then run):
+  1. *Prefer a more consistent candidate within N points* with no guards
+     (first classifier, window 30, gain 5): 23 swaps, 5 clearly worse —
+     psql-table → vertical-line on deliberately odd numbers
+     (num-psql-numeric), psql-table → an aligned-columns parse of the rule
+     line (quo-pipe-table-bar-in-cell), tree-view → box-art columns
+     (systemd-cgls-machine-unit), grouped-rows → two glued text columns
+     (nst-lsof-per-process), grouped-rows → group-children
+     (nst-ledger-grouped-subtotal). Gluing a table into text columns is
+     perfectly "consistent" — the coverage work's scatter trap from the other
+     side. Fixed by: the alternative must itself reach 95, judge comparable
+     evidence, and rule debris counts against a column.
+  2. *A column-name prior applied unconditionally*: 12 bracket-log claims
+     (its `timestamp` column holding `INFO`, `+`, `0:0:0:0`) yielded; of the
+     four reviewed, three got worse (lsscsi → colon-fields cutting
+     `[0:0:0:0]`, `service --status-all` → `[` / `]` columns, a maven tree →
+     a `+-` column) and one better (nuclei → prefix-message). Kept only for a
+     slid header: the named type must sit in another column.
+  3. *No relabel guard*: chronyc-offset-signed and dotnet-tool-list yielded
+     whole-cell parses whose labels slide one column (`Stratum` holding the
+     poll interval) — no better than cut cells. Two parses of one header that
+     disagree on what sits under a label give no reason to prefer either.
+  4. *No record guard*: the extract suite's big-input CSV fixture (quoted
+     CSV, multi-line cells, rows alternating types on purpose) yielded to an
+     aligned-columns parse of two glued text columns, one row per physical
+     line — "100% consistent". A yield now never adds records (row-adding
+     alternatives in the corpus are typically box art, a rule line or a
+     banner kept as rows: nvidia-smi, psql \pset, repquota); on the corpus
+     the rule removes only one swap the other guards allowed, a marginal
+     one (iftop: both parses garbage).
+  5. *Fall back to the lossless catch-all on low consistency*: not taken — a
+     misplaced table → one text column fails the corpus manifest's column
+     counts, and round 2 rates text-lines PARTIAL at best.
+
+**Corpus (`tests/corpus/expected/`).** 11 goldens change, none deleted, none
+new; every change reviewed against base and input:
+chronyc-sources and chronyc-sourcestats-delta (host names no longer cut at
+a fixed column), lshw / lshw-short / lshw-businfo (hardware paths and bus
+ids whole, `Bus info` / `H/W path` one column), dotnet-workload-list (ids
+and `34.0.113/8.0.100` whole), luarocks-list (`lpeg 1.1.` | `0-1` → `lpeg` |
+`1.1.0-1`), tbl-dash-rule-single-space / tbl-underline-1space (single-
+spaced tables no longer sliced inside words), enc-mixed-tab-space-table
+(tab/space padding no longer read as TSV: three clean columns),
+lspci-vmm (`Key:<TAB>value` blocks → one row per device instead of a
+key/value pair list). `expected.tsv`: two min-column counts encoded the cut
+header (`Package Id` / `Bus info` counted twice): dotnet-workload-list 6 → 4,
+lshw-businfo 6 → 5; no row count changed. 12 generic-mode winners change
+in all: these 11 and nodetool-status (aligned-columns instead of cells cut
+at a fixed column; not tidy before or after, no golden). Gate (final engine): 3579 passed, 0 failed, 126 not yet covered (as before: every golden either unchanged or one of the 11 above); `_FR_BIG_BYTES=0` (awk twins forced) the same, 3579 / 0.
+`_EAS_NOPRUNE=1` identical: all 3705 inputs, `.wide` and `.meta` byte for
+byte, in `--generic` and in full mode. Full mode changes the same 11
+inputs (vs base), nothing else; nodetool-status keeps its bespoke parse.
+
+**Big inputs.** Nothing is measured above 128 KB, and the hold is skipped
+above 32 KB. 10 MB inputs, base vs this engine, two interleaved runs each
+on a shared machine (load ~7 on 4 cores): ps 66.2 / 68.1 s vs 66.1 / 69.0 s,
+csv 13.1 / 11.8 vs 13.0 / 12.0, json 11.7 / 11.5 vs 12.6 / 11.1, log
+13.0 / 12.0 vs 13.4 / 13.2, kv 9.4 / 9.1 vs 8.9 / 9.1 — noise; outputs
+byte-identical. 100 KB (measured, not held): ps 2.37 vs 2.47 s, csv 2.05 vs
+2.33 s. Held small inputs (40 sampled from the 414 corpus inputs whose claim
+is held): 29.2 s vs 30.7 s in all (+5%).
+
+**Round 2 (regression set, run once at the end).** `run.sh --round2 --tidy`
+on base and on this engine: every default (`.def`), tidy, `--rank priority`
+and `--multi` output is byte-identical (109 inputs) — no change, so no
+rating moves. The `.meta` lines gain the consistency field. Against the
+2026-10-14 ratings it separates in one direction, like coverage: the 6
+inputs under 80% are 4 FAIL / 2 PARTIAL / 0 PASS, the 25 under 95% are
+9 FAIL / 13 PARTIAL / 3 PASS (FAIL 36%, against 27% overall), but 11 FAILs
+score 100 — a header slid uniformly over its cells, or sections glued into
+one cell, leaves every column internally consistent. None of the 25 has a
+nearby candidate that passes the hold's guards.
+
+**Tests / fixtures.** New `extract/tests/test_consistency.sh` (16 tests:
+the meta field, `-` above the cap / nothing judged, low consistency reported
+when nothing is better, the three yields, consistent claims kept byte for
+byte, pinned / `--rank priority` not held, the off switches and a restored
+claim, a bespoke plugin claim not held, the relabel and record guards, `_EAS_NOPRUNE=1`
+identical, file lane / awk-twin routes identical, the explain preview, the
+type families). Fixtures written for this work (no corpus or benchmark
+input), `extract/samples/consistency/`: pkg-table-overflow (constructed),
+virsh-snapshot-list, tab-kv-blocks (constructed), smbclient-ls,
+ps-get-package (PowerShell Get-Package), scoop-list, peer-table-relabel
+and csv-multiline-cells.csv (constructed). Docs: `extract/README.md` (new "Column-type consistency and
+the consistency hold" section; ranking and pruning notes).
+Suites: `extract/tests/run_tests.sh` 70/70 files; `tests/smoke.sh` 208 / 0;
+`transform/tests/test_melt.sh` 54 / 0; `analyze/tests/run_tests.sh` all
+pass; `python -m pytest` 8 passed, 100% coverage. HANDOFF.md not edited.
+
+## 2026-10-16 — whitespace tables: UTF-8 offsets, loose headers, footers and banners everywhere
+
+The gaps the 2026-10-14 gutter-grid work left (round-2 postscript, pattern 1
+and 3). Developed against the corpus and new examples written for this
+change — `docker ps` (tabwriter `…`), `lslogins` / `ls -l` with accented
+names, `lsblk` with a CJK label (display width), a CJK `kubectl get` and a
+pandas frame (character count), `gh run list` (`✓`), SQL*Plus / sqlcmd /
+Sybase isql / DB2 result sets with footers and prompts, `perf report
+--stdio`, `py-spy top`, a `dotnet-trace` top list, an AS/400 spooled report,
+a COBOL print report with ASA carriage control, `Get-Disk` /
+`Get-NetAdapter` / `Get-PSDrive`, `zcat -lv`, `lzop -l`, `xz -lv`, a gcc-style
+option listing, a Ruby iseq disassembly — not against the round-2 inputs.
+
+**Gutter grid** (`extract/lib/_helpers.sh` `_FR_AWK_GRID`, still one
+mawk-safe program under `LC_ALL=C`):
+- **UTF-8.** It no longer withdraws on non-ASCII bytes: a line holding bytes
+  >= 0x80 is re-coded before any offset is taken — each UTF-8 character one
+  placeholder byte (two for a wide East Asian / emoji character), its bytes
+  kept aside and put back into the cells (`u8enc` / `u8dec`; zero-width marks
+  ride on the character before). Wide characters count two columns first
+  (terminal tools: `column`, `lsblk`, `ls`); when the offsets do not hold, the
+  whole grid is re-run counting every character as one (Go tabwriter, Python
+  `ljust`). A Unicode space next to another space (`a<thin><thin>1`) is
+  padding; a lone one inside a cell (`67<nbsp>390<nbsp>000`) stays in it.
+  `µs` is a unit. The END block became `grid()` (each withdrawal a `return
+  0`) so it can run twice; `greset()` clears its arrays.
+- **Loose headers.** When the rows cross a label boundary in force (the
+  header printed in a format of its own, `method  crc     date  time` over
+  `defla 1c2b3a4d Oct  1 08:01`), the data's own gutters cut the segment
+  and each sub-column goes to the ONE label group it overlaps (`dsplit`) —
+  not when every row holds one token per label (the token reading is right).
+- **One crossing row.** In a small table one cell may run a column into
+  the gap (`Full Repair Needed`, PowerShell `Get-Volume`); a boundary never
+  falls between two words of a crossing cell in more rows than the 1-in-10
+  allowance (`splits1`, candidates tried best first); a row whose cells on
+  both sides of a one-space gap sit at neither their column's modal start
+  nor its modal end is misplaced (`9 (2m ago)` pushed under `AGE`) — beyond
+  1 row in 10 the grid withdraws.
+- **Last label group** of a line may hold short rows (lsblk's `0 disk` under
+  `RO TYPE MOUNTPOINTS`) or one run-on totals row (`[total of 2 files]`).
+- Two labels one space apart over parts one column apart, the left holding
+  the SAME word in every row (`CREATED BY` over `/bin/sh -c …`), are one
+  label; a run holding the same lone sign in every row (`±`) is a column of
+  its own; a box-drawing bar column (`│`, also glued to a label, `ON │`) is
+  dropped like `|`; a label's trailing `.` is not turned into `_`.
+- A labelled column empty in every row while every row holds one token per
+  label and another column's cells hold 2+-space gaps (a header of another
+  width: escape codes or overstrikes) withdraws.
+- **Headerless** (NH=0): a SOFT gutter (a 2+-wide stretch at most 1 row in 10
+  prints on, whose crossing rows leave 2+ spaces before their next cell — a
+  TAB-pushed long option); empty cells allowed in a sparse leading column,
+  at the end of a row and anywhere in a marker column (`>>`), half the rows
+  full; a TAB row whose cell spans a wide gap withdraws.
+
+**aligned-columns** (`extract/strategies/delimited/aligned-columns.sh`):
+- Headerless decision: a command-line option token (`-Wall`,
+  `--all-warnings`) is no label; an ALL-CAPS row that opens with a value as
+  4 rows in 5 do is data (falls back to the old reading when no headerless
+  one holds); abbreviations of up to 8 letters (`uncompr.`) are labels.
+- New mode **HLS** (headerless by segment): every row splits into the same
+  3–8 cells at its 2+-space runs (`heroku releases`), taken when it reads
+  more columns than the grid. Bash path and `_ac_extract_big` share one awk
+  (`_ac_hls_emit`).
+- Banners: a `Label: value` comment (`# Samples: 12K of event …`) is never
+  the commented header, and the picked commented header keeps its offsets
+  (`# Name   Version` → `  Name   Version`); in a commented file indented
+  call-graph lines (`|`, `---Func`, `--10.11%--Func`) are annotation (bash
+  loop and awk tail alike); the leading-chrome-block and later-header banner
+  rules accept rows that agree with the header by tokens (digit-free header
+  over rows with digits) or by the grid (`_ac_table_ok`), and rows
+  right-aligned under the header's first label (pprof `-top`); the
+  chrome's `Label: value` lines are kept as preamble fields unless one would
+  take a column name; a cut banner that opened with `#` keeps the file a
+  commented one.
+- A DECORATED TITLE (`== disasm: …`, `--- / (total: 480 GiB) ---`, `------
+  Shared Memory Segments --------`) on the input's first line is a `title`
+  field, not a row or header.
+- Print reports: ASA carriage control in column 1 is cut when every line
+  opens with a control byte and some `1`/`0` is glued to a letter; PAGE
+  HEADERS (a line ending `Page <n>` / `PAGE: <n>` and the lines that follow
+  it identically on every page, up to the header above a rule) are dropped,
+  as is a closing `* * *  E N D  O F  L I S T I N G  * * *` line.
+
+**Footers** (`_FR_FOOTER_RE` extended: `row(s) retrieved`, `(3 rows)`, `2
+rows in set (0.00 sec)`, thousands separators; new `_fr_footer_cut` with
+`_FR_AFTER_FOOTER_RE` for the client prompt / timing line after a footer):
+fixed-width cuts its rows (grid and slicer) at the footer and drops the
+`SQL>` / `1>` prompt after it; embedded-table ends a table window at a
+footer; a bare pipe table skips a footer line.
+
+**fixed-width**: a header wrapped onto two lines (PowerShell `Partition` /
+`Style`) — the line above the rule naming only some runs, the line above it
+the others — goes to the grid as a group row (NH=2, RL=1; a column named
+only by the group row now takes that name alone).
+
+**Gates.** `tests/corpus/run.sh --golden` and `_FR_BIG_BYTES=0 … --golden`:
+3583 passed, 0 failed. mawk and gawk give the same bytes (the grid's
+arrays avoid gawk's builtin names — an `RT` array would be fatal under
+gawk). Big inputs (one loaded 4-core box, outputs byte-identical): 10 MB ps
+74.3 s → 77.7 s, 10 MB csv 13.6 s → 13.1 s, 1 MB ps 8.8 s → 9.4 s — the
+UTF-8 checks are one regex per line and one test per token on ASCII input.
+
+**Not done.** `diff -y` / `sdiff` stays with `tsv` (owned elsewhere): the grid
+could read it but tsv outranks aligned-columns. `python -m dis` keeps its old
+reading (the headerless grid needs the long-opname rows' pushed arguments);
+`readelf -l` two-line records are unchanged; a `dotnet-trace`-style table
+under `Label:` lines parses with `-s aligned-columns` but `grouped-rows`
+outranks it.
+
+**Tests / fixtures.** `extract/tests/test_gutter_grid.sh`: 9 new tests (36
+total; the non-ASCII withdrawal case now checks the placeholder bytes). New
+samples + goldens: aligned-columns/{utf8-widths, utf8-runes, comment-header,
+data-gutters, page-headers, asa-report, option-states},
+fixed-width/{wrapped-header, footer-prompt}, pipe-table/footer.
+
+**Corpus.** 28 goldens change, each reviewed against its input and the
+base output; 4 inputs become tidy and gain a golden; no golden deleted.
+Multi-word / non-ASCII cells by offset: `uni-invoice-multi-currency`
+(`Server rental`), `uni-nbsp-thousands` (`2 940`), `uni-subscript-chemistry`
+(`carbon dioxide`), `findmnt-tree` (`│ ├─/sys/…` one TARGET, OPTIONS apart),
+`procs-tree` (`└─ sshd`), `qbittorrent-list` (`4.2 GiB`), `ping-heatmap`
+(`11/14/28 ms`, `Heatmap (last 20)`), `lazydocker-gauges` and
+`intel-gpu-top` (bar and value in their own columns), `goose-report`
+(`GET /health`, values unshifted), `nvme-list` (values the slicer cut —
+`12   B`, `20331WD` — now whole). Marker columns: `opam-switch-list` (`->`),
+`systemctl-failed` (`●`). Headerless: `ip-br-addr` (3 columns),
+`heroku-releases` (HLS, 4 columns + title; manifest 5→4 rows: the title had
+been counted). Commented headers: `perf-report` (`Shared Object` one
+column), `nst-perf-report-sections` and `exo-perf-report-tree` (the `#
+Overhead` header instead of `Samples:` / text-lines; call-graph lines
+dropped). Titles kept as a field: `ipcs-m`, `ipcs-s`, `gdu-interactive`,
+`ncdu-bar-columns`, `sysdig-summary`. Preamble fields kept: `trivy-fs-scan`,
+`trivy-repo-scan`, `trivy-sbom-scan` (`Target`), `trivy-image-summary`
+(`Total`). `redis-benchmark`: a header-garbled table that lost values →
+text-lines keeping every line. New goldens: `hledger-register-fx`
+(headerless), `iptables-nat` (table under its `Chain` title), `mix-deps`
+(one record per dependency), `nicstat-summary` (lossless token rows; the
+title, group row and header are still rows).
+
+## 2026-10-16 — generalisation benchmark round 3: 107 unseen inputs, rated on 2.1.0 (measurement only)
+
+This is the first honest generalisation measurement of the 2026-10-14 parser
+work. Round 2's re-rating measured that work on inputs it had been checked
+against, so it was not one. Round 3 has **107 inputs**, none in the corpus,
+holdout, round 1 or round 2. Of these, 64 were **captured** from read-only
+commands in the container (scrubbed), and 43 were **reproduced** from
+documented formats the container lacks: PowerShell/Windows, macOS,
+Cisco/Junos/RouterOS, databases, cloud and k8s CLIs, CI logs, monitoring,
+z/OS and IBM i, scientific tools and game servers.
+
+Novelty was checked by name and by content (`round3/novelty.py`, against all
+3,960 existing inputs). Five name clashes and five close relatives were
+replaced before the freeze. In the final set the maximum word-3-gram score is
+0.14, and 105 of 107 inputs score 0.06 or below. Round 2's `CRITERIA.md` was
+reused unchanged and frozen before the first run. The set was run once, on
+main at the 2.1.0 release (`eacc9fa`). **No engine, strategy, hint or parser
+changes.**
+
+- **Result: 22 PASS / 45 PARTIAL / 40 FAIL** (21% / 42% / 37%; 63% usable).
+  Round 2 was 16% / 47% / 38% at its first rating, and 24% / 50% / 27% when
+  re-rated on its own (seen) set. The FAIL share on unseen input has not moved,
+  and the PASS gain of five points is within the margin for sets this size.
+- **By family:**
+  - key/value records: 100% usable;
+  - key/value blocks: 82%;
+  - whitespace tables: 67%, up from 52%;
+  - multi-section reports: 25%;
+  - log/diagnostic lines: 54%. Compiler diagnostics pass, but test-runner
+    reports and CI logs mostly fail.
+- **Top patterns:**
+  - a banner, prompt, legend or first record is taken as a table's header
+    (10 FAIL);
+  - nested or sectioned text is flattened into one record or one cell
+    (11 FAIL);
+  - one section of a report is claimed and the rest dropped, which line
+    coverage sees but the hold does not act on (9 FAIL);
+  - a wrong strategy or delimiter is used, including two cases of silent data
+    loss (7 FAIL);
+  - two-word headers and wide right-aligned cells in whitespace tables
+    (3 FAIL).
+- **Signals:**
+  - confidence ≥ 80 is wrong 40% of the time;
+  - every input below 60% coverage is FAIL, but 18 of 40 FAILs cover 95% or
+    more;
+  - `--rank priority` differs on 11 inputs and scores 18 / 42 / 47, so the
+    calibrated ranking and the rescue are worth about +4 PASS and −7 FAIL;
+  - `--multi` is better on 19 inputs and worse on 6.
+- **Engine findings, not fixed:**
+  - a `json` near-miss leaves no fallback (one input gives no output at all);
+  - `tsv` truncates rows to the first row's width while coverage reads 100;
+  - duplicate column names from a split header lose values in the melt;
+  - `fixed-width` drops leading digits of a right-aligned value wider than its
+    header;
+  - `gnu-version` emits a field that is not in the input.
+
+Files: `tests/benchmark/round3/{inputs/*.txt, manifest.tsv, CRITERIA.md,
+ratings.tsv, novelty.py}` (new); `tests/benchmark/run.sh` (`--round3`; the
+summary's `--multi` count no longer prints `0` twice when there are no
+datasets); `tests/benchmark/README.md`;
+`docs/benchmark-2026-10-16-generalisation-round3.md` (new); `mkdocs.yml`
+(Benchmark nav).
+
+## 2026-10-16 — pre-rename name fallbacks removed (ships in 2.2.0)
+
+2.1.0, the first release with the `provost-extract` / `PROVOST_*` names,
+still honoured the old ones. As promised there, they are gone after it:
+- The "Legacy names" block at the top of `extract/provost-extract` and
+  `analyze/provost-analyze` is deleted. `ENVOY_HOME`, `ENVOY_NO_RC`,
+  `ENVOY_QUIET`, `ENVOY_VERBOSE`, `ENVOY_NO_PAGER`, `ENVOY_NO_PROGRESS`,
+  `ENVOY_ANALYZE_SUPPRESS_AWK_WARNING`, `MFE_RANK` and `MFE_HINTS_FILE` no
+  longer have any effect. Use the `PROVOST_*` names.
+- `_collect_strategy_dirs` (`extract/lib/_discovery.sh`) no longer reads
+  `~/.mfe/strategies`. The per-user dir is only
+  `${XDG_CONFIG_HOME:-~/.config}/provost/strategies`.
+- `extract/tests/test_rank.sh` gains `test_rank_legacy_env_ignored`
+  (`MFE_RANK=priority` no longer changes the winner). CLAUDE.md and HANDOFF
+  are updated.
+
 ## 2026-10-16 — release v2.1.0
 
 `VERSION` 2.0.1 → 2.1.0 (and the `man/provost.1` header). It is a minor

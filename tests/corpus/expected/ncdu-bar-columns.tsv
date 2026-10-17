@@ -1,7 +1,6 @@
-n	A	B	C	D	E
-1	---	/home/user	----------------------------------------------------------------		
-2	4.2	GiB	[##########]	/Downloads	
-3	2.1	GiB	[#####	]	/Videos
-4	842.0	MiB	[##	]	/.cache
-5	511.4	MiB	[#	]	/Projects
-6	96.2	MiB	[	]	/Documents
+n	A	B	C	D	E	title
+1	4.2	GiB	[##########]	/Downloads		/home/user
+2	2.1	GiB	[#####	]	/Videos	/home/user
+3	842.0	MiB	[##	]	/.cache	/home/user
+4	511.4	MiB	[#	]	/Projects	/home/user
+5	96.2	MiB	[	]	/Documents	/home/user

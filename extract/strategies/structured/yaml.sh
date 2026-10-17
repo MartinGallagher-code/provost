@@ -4,7 +4,7 @@
 
 ## Name: yaml
 ## Description: Extract key/value pairs from YAML, flattening nested keys with dot notation
-## Version: 1.1
+## Version: 1.2
 ## Priority: 12
 ## Sample: samples/yaml/basic.yaml
 
@@ -45,6 +45,34 @@ strategy_detect () {
     done
     [[ $nonblank -eq 0 ]] && return 1
     [[ $(( yamlish * 100 / nonblank )) -ge $(( 80 - ${_FR_SLACK:-0} )) ]] || return 1
+
+    # A TABLE wearing colons is not YAML (the 80% share above lets a fifth
+    # of the lines be anything):
+    #  - an UNINDENTED line that is not a mapping key (`key:` then a blank or
+    #    the end; any key text), a `-` list item, a `---` / `...` marker, a
+    #    `#` comment nor a `%` directive, and that holds two or more column
+    #    gutters (runs of 2+ blanks): a table header (`Caption  Description
+    #    DriveType …`), with nothing at indent 0 for it to continue. (A
+    #    one-line banner without gutters stays allowed.)
+    #  - most top-level `key: value` lines carry two or more gutters in the
+    #    value — a drive letter or row label (`C:       Local Fixed Disk
+    #    3   NTFS …`) over aligned cells, not a scalar.
+    local _ytl=0 _ytg=0 _yt
+    for _l in "${_FR_LINES[@]}"; do
+        [[ "${_l}" != *[![:space:]]* || "$_l" == [[:space:]]* ]] && continue
+        case "$_l" in
+            '#'*|'%'*|'---'*|'...'*|'- '*|'-') continue ;;
+        esac
+        if ! [[ "$_l" =~ ^[^:]*:([[:space:]]|$) ]]; then
+            [[ "$_l" =~ [^[:space:]]\ \ +[^[:space:]].*[^[:space:]]\ \ +[^[:space:]] ]] && return 1
+            continue
+        fi
+        [[ "$_l" =~ ^[^:[:space:]][^:]*:[[:space:]]+[^[:space:]] ]] || continue
+        _ytl=$((_ytl + 1))
+        _yt="${_l#*:}"; _yt="${_yt#"${_yt%%[![:space:]]*}"}"; _yt="${_yt%"${_yt##*[![:space:]]}"}"
+        [[ "$_yt" =~ [^[:space:]]\ \ +[^[:space:]].*[^[:space:]]\ \ +[^[:space:]] ]] && _ytg=$((_ytg + 1))
+    done
+    [[ $_ytl -ge 2 && $(( _ytg * 100 )) -ge $(( _ytl * (60 + ${_FR_SLACK:-0}) )) ]] && return 1
 
     # The extractor takes `[A-Za-z][A-Za-z0-9_-]*` keys; a DOTTED top-level
     # key (`logo.png: PNG image data, …`) is skipped there. When most

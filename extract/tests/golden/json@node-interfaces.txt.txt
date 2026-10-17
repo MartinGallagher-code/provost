@@ -1,0 +1,12 @@
+lo.0.address 127.0.0.1
+lo.0.netmask 255.0.0.0
+lo.0.family IPv4
+lo.0.mac 00:00:00:00:00:00
+lo.0.internal true
+lo.0.cidr 127.0.0.1/8
+eth0.0.address 10.0.2.15
+eth0.0.netmask 255.255.255.0
+eth0.0.family IPv4
+eth0.0.mac 52:54:00:12:34:56
+eth0.0.internal false
+eth0.0.cidr 10.0.2.15/24

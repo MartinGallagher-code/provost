@@ -12,5 +12,4 @@ n	key	value
 11	Revocation Date	Jun 15 12:30:00 2026 GMT
 12	Serial Number	4E5F6071
 13	Revocation Date	Jun 20 09:15:00 2026 GMT
-14	Signature Algorithm	sha256WithRSAEncryption
-15	3a	8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9
+14	Signature Algorithm	sha256WithRSAEncryption 3a:8f:1c:2d:4e:5f:60:71:82:93:a4:b5:c6:d7:e8:f9

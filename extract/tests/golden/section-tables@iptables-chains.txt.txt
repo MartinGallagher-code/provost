@@ -1,0 +1,61 @@
+entry1.section Chain INPUT (policy DROP 0 packets, 0 bytes)
+entry1.pkts 1520
+entry1.bytes 121K
+entry1.target ACCEPT
+entry1.prot all
+entry1.opt --
+entry1.in lo
+entry1.out *
+entry1.source 0.0.0.0/0
+entry1.destination 0.0.0.0/0
+entry2.section Chain INPUT (policy DROP 0 packets, 0 bytes)
+entry2.pkts 8812
+entry2.bytes 9.1M
+entry2.target ACCEPT
+entry2.prot all
+entry2.opt --
+entry2.in *
+entry2.out *
+entry2.source 0.0.0.0/0
+entry2.destination 0.0.0.0/0 ctstate RELATED,ESTABLISHED
+entry3.section Chain INPUT (policy DROP 0 packets, 0 bytes)
+entry3.pkts 12
+entry3.bytes 720
+entry3.target ACCEPT
+entry3.prot tcp
+entry3.opt --
+entry3.in *
+entry3.out *
+entry3.source 0.0.0.0/0
+entry3.destination 0.0.0.0/0 tcp dpt:22
+entry4.section Chain INPUT (policy DROP 0 packets, 0 bytes)
+entry4.pkts 3
+entry4.bytes 180
+entry4.target DROP
+entry4.prot all
+entry4.opt --
+entry4.in *
+entry4.out *
+entry4.source 0.0.0.0/0
+entry4.destination 0.0.0.0/0 ctstate INVALID
+entry5.section Chain FORWARD (policy DROP 0 packets, 0 bytes)
+entry5.pkts 0
+entry5.bytes 0
+entry5.target DOCKER-USER
+entry5.prot all
+entry5.opt --
+entry5.in *
+entry5.out *
+entry5.source 0.0.0.0/0
+entry5.destination 0.0.0.0/0
+entry6.section Chain DOCKER-USER (1 references)
+entry6.pkts 0
+entry6.bytes 0
+entry6.target RETURN
+entry6.prot all
+entry6.opt --
+entry6.in *
+entry6.out *
+entry6.source 0.0.0.0/0
+entry6.destination 0.0.0.0/0
+total_entries 6

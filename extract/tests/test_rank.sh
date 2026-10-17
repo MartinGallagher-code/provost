@@ -79,6 +79,16 @@ test_rank_env_override () {
     assert_eq "aligned-columns" "$w" "PROVOST_RANK=priority selects priority order"
 }
 
+# The pre-rename MFE_RANK was honoured for one release (2.1.0) and is ignored
+# from 2.2.0 on: only PROVOST_RANK changes the order.
+test_rank_legacy_env_ignored () {
+    _dates_fixture
+    local w
+    w="$(MFE_RANK=priority bash "$PROVOST_EXTRACT_SCRIPT" --emit-meta -f tsv --max-strategies 1 "$TMPDIR_R/dates.txt" 2>&1 >/dev/null \
+        | awk -F'\t' '/^__EXTRACT_META__/ { print $2 }')"
+    assert_eq "equals" "$w" "legacy MFE_RANK no longer changes the ranking"
+}
+
 test_rank_invalid_value () {
     _dates_fixture
     local rc=0
@@ -155,6 +165,7 @@ test_rank_explain_lists_rank_order () {
 run_test "rank: default is confidence" test_rank_default_is_confidence
 run_test "rank: --rank priority / --rank=confidence" test_rank_priority_flag
 run_test "rank: PROVOST_RANK env override" test_rank_env_override
+run_test "rank: legacy MFE_RANK is ignored" test_rank_legacy_env_ignored
 run_test "rank: invalid --rank value rejected" test_rank_invalid_value
 run_test "rank: empty top candidate falls through" test_rank_empty_top_candidate_falls_through
 run_test "rank: ties break on priority then name" test_rank_tie_breaks_on_priority_then_name

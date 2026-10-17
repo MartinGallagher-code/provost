@@ -144,15 +144,12 @@ _is_generic_strategy_file () {
 # _collect_strategy_dirs — the strategy search path in the global array
 # _STRATEGY_DIRS, in precedence order (a later directory wins a name clash in
 # build_strategy_list): the bundled tree, then the per-user strategies dir
-# ${XDG_CONFIG_HOME:-~/.config}/provost/strategies (when it exists; the
-# pre-rename ~/.mfe/strategies is still read, below it, for one release), then
+# ${XDG_CONFIG_HOME:-~/.config}/provost/strategies (when it exists), then
 # --plugin-dir (when set and it exists). The single definition of the search
 # path — every caller used to spell it out inline.
 _collect_strategy_dirs () {
     _STRATEGY_DIRS=("$STRATEGIES_DIR")
-    local _legacy_dir="${HOME:-/nonexistent}/.mfe/strategies"
     local _user_dir="${XDG_CONFIG_HOME:-${HOME:-/nonexistent}/.config}/provost/strategies"
-    [[ -d "$_legacy_dir" ]] && _STRATEGY_DIRS+=("$_legacy_dir")
     [[ -d "$_user_dir" ]] && _STRATEGY_DIRS+=("$_user_dir")
     [[ -n "${_OPT_plugin_dir:-}" && -d "${_OPT_plugin_dir:-}" ]] && _STRATEGY_DIRS+=("$_OPT_plugin_dir")
     return 0
@@ -1393,6 +1390,201 @@ _parse_is_truncated () {
 # _COV_HIT (lines covered).
 _FR_COV_BYTES="${_FR_COV_BYTES:-131072}"
 [[ "$_FR_COV_BYTES" =~ ^-?[0-9]+$ ]] || _FR_COV_BYTES=131072
+_FR_CONS_AWK='
+    # ---- COLUMN-TYPE CONSISTENCY (parse side only) ----
+    # ctype(v): one letter per cell — E empty/null, I integer, D decimal,
+    # N number with a unit (size, rate, duration, percent, 1,234), T date /
+    # time / datetime / clock duration, A IP / CIDR / MAC / host:port,
+    # H hex / hash / uuid, V version, P path / URL, F flag, O digits and
+    # punctuation (`8,1`, `0:0`), W word (one token), X text (several
+    # tokens), R rule / box-art debris; Q (dotted quad: IPv4 or version)
+    # and U (dotted date or calendar version) count for both readings.
+    function ctype(v,   lv, n, i, t, dt, anyd) {
+        sub(/^[ \t]+/, "", v); sub(/[ \t]+$/, "", v)
+        if (v == "") return "E"
+        lv = tolower(v)
+        if (lv ~ /^(-+|n\/a|na|none|null|nil|<none>|\(none\)|<nil>|\?|unknown|undefined|\*)$/) return "E"
+        # rule / box-art debris: no letter or digit, and a run of 3 of one
+        # punctuation byte or any non-ASCII byte (`-----+----`, `│`, `├─`)
+        if (lv !~ /[a-z0-9]/ && (lv ~ /[^ -~]/ || lv ~ /(--|==|__|\+\+|~~|\*\*|\.\.|##)[-=_+~*.#]/)) return "R"
+        if (index(lv, " ") == 0 && index(lv, "\t") == 0) return ctok(lv)
+        # several tokens: a date / time written in words and numbers
+        n = split(lv, _ct, /[ \t]+/); dt = 1; anyd = 0
+        for (i = 1; i <= n; i++) {
+            t = _ct[i]; sub(/,$/, "", t)
+            if (t ~ _RE_MON || t ~ _RE_WDAY || t ~ _RE_TIME || t ~ _RE_DATE || t ~ _RE_DTIME) { anyd = 1; continue }
+            if (t ~ /^[0-9]+$/ && length(t) <= 4) continue
+            if (t ~ /^(am|pm|utc|gmt|z|[a-z][a-z]?[sd]t|[-+][0-9][0-9]:?[0-9][0-9])$/) continue
+            dt = 0; break
+        }
+        if (dt && anyd) return "T"
+        # a number and its unit: `12 kB`, `30 ms`, `5 days`, `2 weeks ago`
+        if (lv ~ _RE_NUMSP) return (lv ~ / (ago|from now)$/ ? "T" : "N")
+        return "X"
+    }
+    function ctok(t) {
+        if (t ~ /^[-+]?[0-9]+$/) return "I"
+        if (t ~ /^[-+]?([0-9]+\.[0-9]*|\.[0-9]+)(e[-+]?[0-9]+)?$/) return "D"
+        # dotted numbers: 3 parts are a version, or (a 4-digit year at one
+        # end) a date or a calendar version; 4 parts an IPv4 or a version
+        if (t ~ /^[0-9]+\.[0-9]+\.[0-9]+$/)
+            return (t ~ /^([0-9][0-9][0-9][0-9]\.[0-9][0-9]?\.[0-9][0-9]?|[0-9][0-9]?\.[0-9][0-9]?\.[0-9][0-9][0-9][0-9])$/ ? "U" : "V")
+        if (t ~ _RE_TIME || t ~ _RE_DATE || t ~ _RE_DTIME || t ~ _RE_MON || t ~ _RE_WDAY || t ~ _RE_MONDAY) return "T"
+        if (t ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) return (ip4ok(t) ? "Q" : "V")
+        if (t ~ _RE_IP4) return (ip4ok(t) ? "A" : "W")
+        if (t ~ _RE_MAC || t ~ _RE_HOSTPORT) return "A"
+        if (index(t, ":") && t ~ _RE_IP6) return "A"
+        if (t ~ /^0x[0-9a-f]+$/ || (length(t) >= 7 && t ~ /^[0-9a-f]+$/ && t ~ /[a-f]/ && t ~ /[0-9]/) || t ~ _RE_UUID) return "H"
+        if (t ~ _RE_NUM) return "N"
+        if (t ~ _RE_VER) return "V"
+        if (t ~ /^(\/|~\/|~$|\.\.?\/|[a-z]:\\|\\\\)/ || index(t, "://")) return "P"
+        if (t ~ /^(yes|no|true|false|on|off|y|n|t|f|enabled|disabled|\+|ok)$/) return "F"
+        # digits and punctuation that are no number, date or address
+        # (`8,1`, `0:0`, a date cut short as `2026-10-`)
+        if (t !~ /[a-z]/ && t ~ /[0-9]/) return "O"
+        return "W"
+    }
+    # every octet of a dotted quad is at most 255
+    function ip4ok(t,   q, k, j) {
+        sub(/[\/:].*$/, "", t); k = split(t, q, ".")
+        for (j = 1; j <= k; j++) if (q[j] + 0 > 255) return 0
+        return 1
+    }
+    function cons_init(   u, mon, wday) {
+        u = "[a-z%][a-z]?[a-z]?[a-z]?"
+        # a number, its unit, and more duration parts (`1h30m`, `2d3h`)
+        _RE_NUM = "^[-+]?[$]?([0-9]+(,[0-9][0-9][0-9])*(\\.[0-9]+)?|\\.[0-9]+)(" u ")?([0-9]+(\\.[0-9]+)?(ms|us|ns|[wdhms]))*(/" u ")?$"
+        _RE_NUMSP = "^[-+]?[0-9]+(,[0-9][0-9][0-9])*(\\.[0-9]+)? (%|[kmgtpe]i?b?|bytes?|blocks?|pages?|[kmg]?hz|[kmg]?bps|x|[nuµm]?s|secs?|seconds?|mins?|minutes?|hrs?|hours?|days?|weeks?|months?|yrs?|years?)(/" u ")?( ago| from now)?$"
+        mon = "(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)"
+        wday = "(mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)"
+        _RE_MON = "^" mon "[a-z]*\\.?$"
+        _RE_WDAY = "^" wday "[a-z]*,?$"
+        _RE_MONDAY = "^" mon "[0-9][0-9]?$"
+        _RE_TIME = "^([0-9]+-)?[0-9]+:[0-5][0-9](:[0-5][0-9])?([.,][0-9]+)?(am|pm|z)?$"
+        _RE_DATE = "^([0-9][0-9][0-9][0-9][-/][0-9][0-9]?[-/][0-9][0-9]?|[0-9][0-9]?[-/][0-9][0-9]?[-/][0-9][0-9]([0-9][0-9])?|[0-9][0-9]?[-/ ]" mon "[a-z]*[-/ ][0-9][0-9]([0-9][0-9])?)$"
+        _RE_DTIME = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][t_][0-9][0-9]:[0-9][0-9](:[0-9][0-9])?([.,][0-9]+)?(z|[-+][0-9][0-9]:?[0-9][0-9])?$"
+        _RE_IP4 = "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+(/[0-9]+|:[0-9*]+)?$"
+        _RE_IP6 = "^\\[?[0-9a-f]*:[0-9a-f:]*:[0-9a-f.]*(%[a-z0-9]+)?\\]?(/[0-9]+|:[0-9*]+)?$"
+        _RE_MAC = "^[0-9a-f][0-9a-f][:-][0-9a-f][0-9a-f][:-][0-9a-f][0-9a-f][:-][0-9a-f][0-9a-f][:-][0-9a-f][0-9a-f][:-][0-9a-f][0-9a-f]$"
+        _RE_HOSTPORT = "^(\\*|\\[[0-9a-f:]*\\]|[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+):([0-9]+|\\*)$"
+        _RE_UUID = "^[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f][0-9a-f][0-9a-f][0-9a-f]-[0-9a-f-]+$"
+        _RE_VER = "^v?[0-9]+(:[0-9]+)?(\\.[0-9]+)+([-+~._#a-z0-9]*)?(/v?[0-9]+(\\.[0-9]+)+)?$|^v[0-9]+$|^[0-9]+(\\.[0-9]+)*[-+~](rc|beta|alpha|dev|pre|post|git|el|fc|ubuntu|deb|r)[a-z0-9._~+-]*$"
+        _CONS_INIT = 1
+    }
+    # one parse line: `<label><N>.<field> value` is a cell of column
+    # <label>.<field>; anything else (scalars, total_entries) is skipped
+    function cons_line(s,   p, k, v, t, i) {
+        if (!_CONS_INIT) cons_init()
+        if (!match(s, /^[A-Za-z][A-Za-z_]*[0-9]+\./)) return
+        p = substr(s, 1, RLENGTH - 1)
+        if (!(p in _crec)) { _crec[p] = 1; _cnrec++ }
+        sub(/[0-9]+$/, "", p)
+        k = substr(s, RLENGTH + 1)
+        if ((i = index(k, " ")) > 0) { v = substr(k, i + 1); k = substr(k, 1, i - 1) } else v = ""
+        k = p "." k
+        t = ctype(v)
+        if (t == "E") return
+        if (v ~ /[A-Za-z][A-Za-z]/) { _fv[++_fn] = v; _fk[_fn] = k }
+        if (!(k in _cn)) { _cn[k] = 0; _ck[++_cnk] = k }
+        _cn[k]++
+        if (t == "R") return
+        if (t == "X") { _cx[k]++; _cf[k, "id"]++; return }
+        if (t == "I") { _cf[k, "num"]++; _cf[k, "ver"]++; _cf[k, "hex"]++ }
+        else if (t == "D") { _cf[k, "num"]++; _cf[k, "ver"]++ }
+        else if (t == "N") _cf[k, "num"]++
+        else if (t == "T") _cf[k, "time"]++
+        else if (t == "A") _cf[k, "addr"]++
+        else if (t == "Q") { _cf[k, "addr"]++; _cf[k, "ver"]++ }
+        else if (t == "U") { _cf[k, "time"]++; _cf[k, "ver"]++ }
+        else if (t == "H") { _cf[k, "hex"]++; _cf[k, "id"]++ }
+        else if (t == "V") { _cf[k, "ver"]++; _cf[k, "id"]++ }
+        else if (t == "O") _cf[k, "sym"]++
+        else _cf[k, "id"]++
+    }
+    # one input line: its alphanumeric runs (case-folded) are what a parse
+    # cell may hold
+    function cons_input(s,   n, j) {
+        _cons_inp = 1
+        if (_fn == 0) return
+        n = split(tolower(s), _ci, /[^a-z0-9]+/)
+        for (j = 1; j <= n; j++) if (_ci[j] != "") _it[_ci[j]] = 1
+    }
+    # a FRAGMENT: a cell holding a word the input never prints whole — the
+    # second half of a fixed-column cut through `boost-algorithm` (`lgorithm`)
+    # — i.e. an alphanumeric run of 3+ bytes, with a letter, that is no
+    # alphanumeric run of the input
+    function cons_frag(   i, n, j) {
+        for (i = 1; i <= _fn; i++) {
+            n = split(tolower(_fv[i]), _ci, /[^a-z0-9]+/)
+            for (j = 1; j <= n; j++)
+                if (length(_ci[j]) >= 3 && _ci[j] ~ /[a-z]/ && !(_ci[j] in _it)) { _cfr[_fk[i]]++; break }
+        }
+    }
+    # cons_want(name): the type family a column name promises, if any
+    function cons_want(nm,   n, j, w) {
+        n = split(nm, _cw, /[^a-z%]+/)
+        for (j = 1; j <= n; j++) {
+            w = _cw[j]
+            if (w ~ /^(version|ver)$/) return "ver"
+            if (w ~ /^(size|bytes|pid|ppid|uid|gid|rss|vsz|mtu|%cpu|%mem|cpu%|mem%|use%|percent|ratio)$/) return "num"
+            if (w ~ /^(date|time|timestamp|created|modified|updated|started)$/) return "time"
+        }
+        return ""
+    }
+    # -> "score judged_columns inconsistent_columns judged_cells signature records",
+    # the signature listing each clearly typed column as name=family; score "-" when no
+    # column can be judged (fewer than 3 filled cells, free text, or a
+    # value column of a key/value list)
+    function cons_result(   j, k, n, b, bf, f, nm, tot, hit, nc, nbad, sig, sf, sb) {
+        tot = 0; hit = 0; nc = 0; nbad = 0
+        if (_fn > 0 && _cons_inp) cons_frag()
+        # pass 1: each judged column: its best family; families that clearly
+        # type some column
+        for (j = 1; j <= _cnk; j++) {
+            k = _ck[j]; n = _cn[k]
+            if (n < 3) continue
+            nm = tolower(k); sub(/^[^.]*\./, "", nm); sub(/^.*\./, "", nm)
+            if (nm ~ /^(value|values|val|data|setting|content|contents|text|message|msg|description|desc|detail|details|comment|comments|note|notes|line|raw|output|info|summary|title|args|arguments|command|cmd)$/) continue
+            b = 0; bf = ""
+            if ((k, "num") in _cf && _cf[k, "num"] > b) { b = _cf[k, "num"]; bf = "num" }
+            if ((k, "ver") in _cf && _cf[k, "ver"] > b) { b = _cf[k, "ver"]; bf = "ver" }
+            if ((k, "hex") in _cf && _cf[k, "hex"] > b) { b = _cf[k, "hex"]; bf = "hex" }
+            if ((k, "time") in _cf && _cf[k, "time"] > b) { b = _cf[k, "time"]; bf = "time" }
+            if ((k, "addr") in _cf && _cf[k, "addr"] > b) { b = _cf[k, "addr"]; bf = "addr" }
+            if ((k, "id") in _cf && _cf[k, "id"] > b) { b = _cf[k, "id"]; bf = "id" }
+            if ((k, "sym") in _cf && _cf[k, "sym"] > b) { b = _cf[k, "sym"]; bf = "sym" }
+            _jb[k] = b; _jf[k] = bf; _jn[k] = nm; _jk[++_jkn] = k
+            if (b * 10 >= n * 8) _dom[bf] = 1
+            # signature: the most specific family that types 80% of the
+            # column (a version column with one stray cell is `ver`, not
+            # the identifier family that also counts versions)
+            sf = ""; sb = 0
+            if ((k, "num") in _cf && _cf[k, "num"] > sb) { sb = _cf[k, "num"]; sf = "num" }
+            if ((k, "ver") in _cf && _cf[k, "ver"] > sb) { sb = _cf[k, "ver"]; sf = "ver" }
+            if ((k, "hex") in _cf && _cf[k, "hex"] > sb) { sb = _cf[k, "hex"]; sf = "hex" }
+            if ((k, "time") in _cf && _cf[k, "time"] > sb) { sb = _cf[k, "time"]; sf = "time" }
+            if ((k, "addr") in _cf && _cf[k, "addr"] > sb) { sb = _cf[k, "addr"]; sf = "addr" }
+            if ((k, "sym") in _cf && _cf[k, "sym"] > sb) { sb = _cf[k, "sym"]; sf = "sym" }
+            if (sb * 10 < n * 8) sf = (bf == "id" && b * 10 >= n * 8) ? "id" : ""
+            if (sf != "") sig = sig (sig == "" ? "" : ",") nm "=" sf
+        }
+        # pass 2: a column NAMED for a type (`Version`, `Size`, `Created`)
+        # whose cells are of another family, while another column holds that
+        # type, is a header shifted against its cells: judged by its name
+        for (j = 1; j <= _jkn; j++) {
+            k = _jk[j]; n = _cn[k]; b = _jb[k]
+            f = cons_want(_jn[k])
+            if (f != "" && f != _jf[k] && !(f == "time" && _jf[k] == "num") && (f in _dom))
+                b = ((k, f) in _cf) ? _cf[k, f] : 0
+            if (k in _cfr) { b -= _cfr[k]; if (b < 0) b = 0 }
+            tot += n; hit += b; nc++
+            if (b * 10 < n * 8) nbad++
+        }
+        if (tot == 0) return "- 0 0 0 - " (_cnrec + 0)
+        gsub(/[ \t]/, "_", sig)
+        return int(hit * 100 / tot) " " nc " " nbad " " tot " " (sig == "" ? "-" : sig) " " (_cnrec + 0)
+    }
+'
 _FR_COV_AWK='
     # tokens: split at blanks and the structural punctuation = : , ; | quotes
     # brackets and _, edge punctuation stripped, case-folded; bytes outside
@@ -1425,6 +1617,7 @@ _FR_COV_AWK='
         for (j = 1; j <= k; j++) if (_d[j] != "") seen[_d[j]] = 1
     }
     NR == FNR {
+        cons_line($0)
         n = toks($0)
         for (i = 1; i <= n; i++) {
             t = _tok[i]; seen[t] = 1
@@ -1438,6 +1631,7 @@ _FR_COV_AWK='
     {
         # A line the tool itself marks as a comment (`#`, `;`) is chrome, not
         # data a parse owes anything to (the `;;` metadata block of dig).
+        cons_input($0)
         if ($0 ~ /^[ \t]*[#;]/) next
         n = toks($0)
         if (n == 0) next
@@ -1451,21 +1645,25 @@ _FR_COV_AWK='
         nl++
         if (hit * 2 > sig) cov++
     }
-    END { if (nl == 0) print 100, 0, 0; else printf "%d %d %d\n", (cov * 100) / nl, nl, cov + 0 }
+    END { if (nl == 0) print 100, 0, 0, cons_result(); else printf "%d %d %d %s\n", (cov * 100) / nl, nl, cov + 0, cons_result() }
 '
 _parse_coverage () {
     local _res="$1" _resf="${2:-}" _pc_out
-    _COV=""; _COV_LINES=0; _COV_HIT=0
+    _COV=""; _COV_LINES=0; _COV_HIT=0; _CONS=""; _CONS_COLS=0; _CONS_BAD=0; _CONS_CELLS=0; _CONS_SIG="-"; _CONS_RECS=0
     [[ "$_FR_COV_BYTES" -ge 0 ]] || return 0
     (( ${#text} <= _FR_COV_BYTES )) || return 0
     if [[ -n "$_resf" ]]; then
-        _pc_out=$(LC_ALL=C awk "$_FR_COV_AWK" "$_resf" <(printf '%s\n' "$text"))
+        _pc_out=$(LC_ALL=C awk "$_FR_CONS_AWK$_FR_COV_AWK" "$_resf" <(printf '%s\n' "$text"))
     else
         [[ -n "$_res" ]] || return 0
-        _pc_out=$(LC_ALL=C awk "$_FR_COV_AWK" <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
+        _pc_out=$(LC_ALL=C awk "$_FR_CONS_AWK$_FR_COV_AWK" <(printf '%s\n' "$_res") <(printf '%s\n' "$text"))
     fi
-    [[ "$_pc_out" =~ ^([0-9]+)\ ([0-9]+)\ ([0-9]+)$ ]] || return 0
+    [[ "$_pc_out" =~ ^([0-9]+)\ ([0-9]+)\ ([0-9]+)\ ([0-9]+|-)\ ([0-9]+)\ ([0-9]+)\ ([0-9]+)\ ([^ ]+)\ ([0-9]+)$ ]] || return 0
     _COV="${BASH_REMATCH[1]}"; _COV_LINES="${BASH_REMATCH[2]}"; _COV_HIT="${BASH_REMATCH[3]}"
+    _CONS="${BASH_REMATCH[4]}"; _CONS_COLS="${BASH_REMATCH[5]}"; _CONS_BAD="${BASH_REMATCH[6]}"
+    _CONS_CELLS="${BASH_REMATCH[7]}"; _CONS_SIG="${BASH_REMATCH[8]}"; _CONS_RECS="${BASH_REMATCH[9]}"
+    [[ "$_CONS" == - ]] && _CONS=""
+    return 0
 }
 
 # COVERAGE HOLD + RESCUE. When only the single best candidate is wanted
@@ -1587,12 +1785,16 @@ _cov_replaces () {
     [[ "$_COV" -ge $((_COV_HELD_PCT + _FR_COV_GAIN)) ]]
 }
 
-# _cov_hold RESULT RESULT_FILE STRATEGY REPORT VERSION — set the claim aside.
+# _cov_hold RESULT RESULT_FILE STRATEGY REPORT VERSION [KIND] — set the claim
+# aside (KIND cov: held for line coverage, the rescue decides; cons: held for
+# column-type consistency, the next ranked candidates decide).
 _cov_hold () {
-    _COV_HELD=1
+    _COV_HELD=1; _COV_HELD_KIND="${6:-cov}"; _COV_HELD_BAD="$_CONS_BAD"
+    _COV_HELD_CCOLS="$_CONS_COLS"; _COV_HELD_CELLS="$_CONS_CELLS"; _COV_HELD_SIG="$_CONS_SIG"
+    _COV_HELD_RECS="$_CONS_RECS"
     _COV_HELD_STRAT="$3"; _COV_HELD_REPORT="$4"; _COV_HELD_VER="$5"
     _COV_HELD_CONF="${_STRATEGY_CONFIDENCE:-0}"; _COV_HELD_COUNT="$_LINE_COUNT"
-    _COV_HELD_PCT="$_COV"
+    _COV_HELD_PCT="$_COV"; _COV_HELD_CONS="$_CONS"
     _COV_HELD_RES=""; _COV_HELD_FILE=""
     if [[ -n "$2" ]]; then
         _COV_HELD_FILE="$_XL_DIR/lane.held"
@@ -1603,7 +1805,7 @@ _cov_hold () {
 }
 
 _cov_drop_held () {
-    _COV_HELD=0; _COV_HELD_RES=""
+    _COV_HELD=0; _COV_HELD_RES=""; _COV_HELD_KIND=""
     [[ -n "${_COV_HELD_FILE:-}" ]] && rm -f "$_COV_HELD_FILE"
     _COV_HELD_FILE=""
 }
@@ -1637,18 +1839,132 @@ _cov_rescue () {
 # held claim exactly as it would have been stored when it was extracted.
 _cov_restore_held () {
     [[ "${_COV_HELD:-0}" -eq 1 ]] || return 0
-    _log_debug "No rescue parse covers materially more than '${_COV_HELD_STRAT}' (${_COV_HELD_PCT}%): keeping it"
+    if [[ "$_COV_HELD_KIND" == cons ]]; then
+        _log_debug "No candidate types its columns materially better than '${_COV_HELD_STRAT}' (${_COV_HELD_CONS}%): keeping it"
+    else
+        _log_debug "No rescue parse covers materially more than '${_COV_HELD_STRAT}' (${_COV_HELD_PCT}%): keeping it"
+    fi
     _store_winner "$_COV_HELD_RES" "$_COV_HELD_FILE" "$_COV_HELD_STRAT" "$_COV_HELD_REPORT" \
-        "$_COV_HELD_VER" "$_COV_HELD_COUNT" "$_COV_HELD_CONF" "$_COV_HELD_PCT" || true
+        "$_COV_HELD_VER" "$_COV_HELD_COUNT" "$_COV_HELD_CONF" "$_COV_HELD_PCT" "$_COV_HELD_CONS" || true
     _cov_drop_held
 }
 
-# _store_winner RESULT RESULT_FILE STRATEGY REPORT VERSION FIELDS CONF COV —
+# CONSISTENCY YIELD. Coverage catches a parse that DROPS lines; a parse that
+# keeps every line but puts values under the wrong headers (a date split over
+# three columns, a multi-word name spread over Name / Id / Version, a key:
+# value file read as a two-column table) covers ~100%. Column-type
+# consistency (_FR_CONS_AWK) sees it: such a parse has columns that hold
+# numbers in some rows and words in others. With one winner wanted, the
+# first candidate to produce output is HELD when it is a generic parse with
+# an inconsistent column and consistency under _FR_CONS_MIN (95); the next
+# ranked candidates down to _FR_CONS_WINDOW (20) confidence points below it
+# are extracted in rank order, and the first that is
+#   - a generic parser (delimited/ + structured/), not a catch-all,
+#   - at least _FR_CONS_GAIN (5) points more consistent and itself at
+#     _FR_CONS_MIN or more, with fewer inconsistent columns,
+#   - keeps at least as many lines (coverage not lower),
+#   - is judged on comparable evidence (half the columns, a third of the
+#     cells), adds no records, and
+#   - does not relabel (a column name both parses use has the same type
+#     family in both — _cons_same_labels)
+# replaces it; otherwise the held claim is stored byte for byte. A claim held
+# for coverage that no rescue replaces is checked the same way.
+#
+# Why a held claim and not a score: consistency alone favours parses that
+# scatter prose over generic columns (every column holds words — perfectly
+# "consistent"), the trap the coverage work hit. So it never ranks; it only
+# decides between a claim that is visibly inconsistent and a nearby
+# candidate that keeps the same lines AND types its columns better. Never
+# held: a hint-routed or pinned strategy, a bespoke strategy (tool knowledge;
+# lsof's NODE column legitimately holds `TCP` among inode numbers), a
+# structured grammar (json / yaml / xml / toml), a catch-all, a parse that
+# is not measured (over _FR_COV_BYTES) or has no column with 3+ filled cells.
+#
+# Exactness: the alternatives are candidates a pruned pass may have skipped,
+# so a claim held after pruning has the pruned detectors that could be an
+# alternative (generic, not a catch-all, ceiling inside the window) run then,
+# and the candidates below it are tried in the unpruned ranking's order (all
+# pruned candidates rank below the claim) — the outcome is always the
+# unpruned ranking's, without a full redo.
+_FR_CONS_MIN="${_FR_CONS_MIN:-95}"
+_FR_CONS_GAIN="${_FR_CONS_GAIN:-5}"
+_FR_CONS_WINDOW="${_FR_CONS_WINDOW:-20}"
+[[ "$_FR_CONS_MIN" =~ ^[0-9]+$ ]] || _FR_CONS_MIN=95
+[[ "$_FR_CONS_GAIN" =~ ^[0-9]+$ ]] || _FR_CONS_GAIN=5
+[[ "$_FR_CONS_WINDOW" =~ ^[0-9]+$ ]] || _FR_CONS_WINDOW=20
+# The hold re-runs detection unpruned and extracts its alternatives: seconds
+# on a 100 KB table. It applies up to _FR_CONS_HOLD_BYTES (32 KB, the size
+# the detection sample starts at); the measure is reported up to
+# _FR_COV_BYTES either way.
+_FR_CONS_HOLD_BYTES="${_FR_CONS_HOLD_BYTES:-32768}"
+[[ "$_FR_CONS_HOLD_BYTES" =~ ^[0-9]+$ ]] || _FR_CONS_HOLD_BYTES=32768
+
+# _cons_eligible STRATEGY — a generic, non-catch-all strategy (a claim that
+# may be held, or an alternative that may replace it)?
+_cons_eligible () {
+    case "$1" in json|yaml|xml|toml) return 1 ;; esac
+    [[ "$_FR_COV_CATCHALL" == *" $1 "* ]] && return 1
+    find_strategy_file "$1" && _is_generic_strategy_file "$_FOUND_STRATEGY_FILE"
+}
+
+# _cons_hold_wanted STRATEGY — should this (stored-to-be) claim be held for
+# its column-type consistency?
+_cons_hold_wanted () {
+    [[ "${_COV_HOLD_ON:-0}" -eq 1 ]] || return 1
+    [[ "${_TG_EXEMPT:-0}" -eq 1 ]] && return 1
+    [[ -n "$_OPT_strategy" || -n "$_OPT_replay" ]] && return 1
+    [[ -n "$_CONS" && "$_CONS_BAD" -ge 1 ]] || return 1
+    [[ "$_CONS" -lt "$_FR_CONS_MIN" ]] || return 1
+    (( ${#text} <= _FR_CONS_HOLD_BYTES )) || return 1
+    _cons_eligible "$1"
+}
+
+# _cons_replaces STRATEGY — does the candidate just extracted beat the claim
+# held for consistency?
+_cons_replaces () {
+    [[ -n "$_CONS" && -n "$_COV" ]] || return 1
+    _cons_eligible "$1" || return 1
+    [[ "$_CONS" -ge $((_COV_HELD_CONS + _FR_CONS_GAIN)) && "$_CONS" -ge "$_FR_CONS_MIN" ]] || return 1
+    [[ "$_CONS_BAD" -lt "$_COV_HELD_BAD" ]] || return 1
+    [[ -z "$_COV_HELD_PCT" || "$_COV" -ge "$_COV_HELD_PCT" ]] || return 1
+    # judged on comparable evidence: at least half the claim's typed
+    # columns and a third of its typed cells (a parse that glues a table
+    # into two text columns is "consistent" by having nothing left to type)
+    (( _CONS_COLS * 2 >= _COV_HELD_CCOLS && _CONS_CELLS * 3 >= _COV_HELD_CELLS )) || return 1
+    # it never adds RECORDS: re-reading the same rows (or gathering
+    # key/value pairs into records) is a fix; splitting them further — a
+    # rule line, a banner or a multi-line cell turned into rows — is the
+    # scatter a consistent-looking parse is made of
+    (( _CONS_RECS <= _COV_HELD_RECS )) || return 1
+    # and it must not RELABEL: a column both parses name (from the same
+    # header) holds the same type family in both — when they disagree on
+    # what sits under `Stratum`, one of them has shifted the header against
+    # the cells, and nothing says it is the claim
+    _cons_same_labels "$_COV_HELD_SIG" "$_CONS_SIG"
+}
+
+# _cons_same_labels SIG_A SIG_B — no column name typed differently in the two
+# `name=family,…` signatures (see _FR_CONS_AWK).
+_cons_same_labels () {
+    [[ "$1" == - || "$2" == - ]] && return 0
+    local -A _sl=()
+    local -a _sa=() _sb=()
+    local _e
+    IFS=, read -ra _sa <<< "$1"
+    IFS=, read -ra _sb <<< "$2"
+    for _e in "${_sa[@]}"; do [[ -n "${_e%=*}" ]] && _sl["${_e%=*}"]="${_e##*=}"; done
+    for _e in "${_sb[@]}"; do
+        [[ -n "${_e%=*}" && -n "${_sl["${_e%=*}"]+x}" && "${_sl["${_e%=*}"]}" != "${_e##*=}" ]] && return 1
+    done
+    return 0
+}
+
+# _store_winner RESULT RESULT_FILE STRATEGY REPORT VERSION FIELDS CONF COV CONS —
 # store one claim and record it (matched list, field total, the --emit-meta
 # winner). Returns 1 when the strategy cap is reached.
 _store_winner () {
     local _sw_res="$1" _sw_file="$2" _sw_strat="$3" _sw_report="$4" _sw_ver="$5"
-    local _sw_n="$6" _sw_conf="$7" _sw_cov="$8"
+    local _sw_n="$6" _sw_conf="$7" _sw_cov="$8" _sw_cons="${9:-}"
     if [[ -n "$_sw_file" ]]; then
         _store_file "$_sw_file" "STRAT-${_sw_report}"
     else
@@ -1662,6 +1978,7 @@ _store_winner () {
         _WINNER_NAME="$_sw_report"
         _WINNER_CONF="$_sw_conf"
         _WINNER_COV="$_sw_cov"
+        _WINNER_CONS="$_sw_cons"
     fi
     [[ -n "$matched_strategies" ]] && matched_strategies+=","
     matched_strategies+="${_sw_report}@${_sw_ver:-0}"
@@ -1680,7 +1997,9 @@ _store_winner () {
 
 # Run strategy extraction and store results.
 # Returns: 0 to continue loop, 2 to break (early exit), 3 = claim HELD for low
-# coverage (see COVERAGE HOLD; the caller runs the rescue)
+# coverage (see COVERAGE HOLD; the caller runs the rescue), 4 = claim HELD for
+# low column-type consistency (see CONSISTENCY YIELD; the caller tries the
+# next candidates)
 # Modifies globals: output (via store), strategies_matched, matched_strategies,
 #   total_fields, near_miss_strategies
 # Params: $1=strategy_name, $2=strategy_version
@@ -1727,11 +2046,22 @@ _extract_and_store () {
         # `columnar-specs`. Falls back to the file's strategy name.
         local report_name="${_STRATEGY_REPORT_NAME:-$strategy_name}"
         _parse_coverage "$result" "$_xl_res"
-        _log_debug "Strategy '$strategy_name': line coverage ${_COV:-n/a}${_COV:+% ($_COV_HIT of $_COV_LINES lines)}"
+        _log_debug "Strategy '$strategy_name': line coverage ${_COV:-n/a}${_COV:+% ($_COV_HIT of $_COV_LINES lines)}, type consistency ${_CONS:-n/a}${_CONS:+% ($_CONS_BAD of $_CONS_COLS judged columns inconsistent)}"
         # COVERAGE HOLD (see _cov_hold_wanted): a low-coverage claim is set
         # aside instead of stored, and the rescue parser gets its turn; a
         # rescue parse is stored only when it covers materially more.
-        if [[ "${_COV_HELD:-0}" -eq 1 ]]; then
+        if [[ "${_COV_HELD:-0}" -eq 1 && "$_COV_HELD_KIND" == cons ]]; then
+            if ! _cons_replaces "$strategy_name"; then
+                _log_debug "Strategy '$strategy_name': does not type its columns materially better than held '${_COV_HELD_STRAT}' (${_CONS:-n/a}% vs ${_COV_HELD_CONS}%)"
+                [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
+                near_miss_strategies+="${strategy_name}(t${_CONS:-?}%)"
+                return 0
+            fi
+            _log_debug "Strategy '$strategy_name': type consistency ${_CONS}% — replaces held '${_COV_HELD_STRAT}' (${_COV_HELD_CONS}%)"
+            [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
+            near_miss_strategies+="${_COV_HELD_STRAT}(consistency ${_COV_HELD_CONS}%)"
+            _cov_drop_held
+        elif [[ "${_COV_HELD:-0}" -eq 1 ]]; then
             if ! _cov_replaces "$strategy_name"; then
                 _log_debug "Strategy '$strategy_name': does not cover materially more than held '${_COV_HELD_STRAT}' (${_COV:-n/a}% vs ${_COV_HELD_PCT}%)"
                 [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
@@ -1746,9 +2076,13 @@ _extract_and_store () {
             _cov_hold "$result" "$_xl_res" "$strategy_name" "$report_name" "$strategy_version"
             _log_debug "Strategy '$strategy_name': held — line coverage ${_COV}% < ${_FR_COV_MIN}%; trying the rescue parser(s)"
             return 3
+        elif _cons_hold_wanted "$strategy_name"; then
+            _cov_hold "$result" "$_xl_res" "$strategy_name" "$report_name" "$strategy_version" cons
+            _log_debug "Strategy '$strategy_name': held — type consistency ${_CONS}% < ${_FR_CONS_MIN}% (${_CONS_BAD} of ${_CONS_COLS} columns inconsistent); trying the next candidates"
+            return 4
         fi
         _store_winner "$result" "$_xl_res" "$strategy_name" "$report_name" "$strategy_version" \
-            "$_LINE_COUNT" "${_STRATEGY_CONFIDENCE:-0}" "$_COV" || return 2
+            "$_LINE_COUNT" "${_STRATEGY_CONFIDENCE:-0}" "$_COV" "$_CONS" || return 2
     else
         _log_debug "Strategy '$strategy_name': no fields extracted"
         [[ -n "$near_miss_strategies" ]] && near_miss_strategies+=", "
@@ -1803,6 +2137,64 @@ run_auto_strategies () {
     return $_ras_rc
 }
 
+# _eas_try_cands LIST — phase 2 of the ranked pass: try the sorted candidate
+# lines (key|priority|name|version|file) best first (see RANKING in
+# _run_auto_strategies_body, whose locals it shares). Sets _eas_redo (redo
+# unpruned), _eas_more (held for consistency after pruning: the caller
+# re-detects the pruned alternatives) and _eas_ln (lines consumed).
+_eas_try_cands () {
+    local _ck _pk
+    _eas_ln=0
+    while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
+        _eas_ln=$((_eas_ln + 1))
+        [[ -z "$strategy_file" ]] && continue
+        strategy_priority="$((10#$_pk))"
+        if [[ "${_COV_HELD:-0}" -eq 1 && "$_COV_HELD_KIND" == cons ]]; then
+            # held for consistency: only the window below it, and only
+            # candidates that may replace it, are extracted
+            (( 100 - 10#$_ck >= _COV_HELD_CONF - _FR_CONS_WINDOW )) || break
+            _cons_eligible "$strategy_name" || continue
+        fi
+        _source_strategy_cached "$strategy_file" /dev/null || continue
+        # Re-run detect: it restores the per-strategy state extract reads
+        # (report name, detect-time globals) and the confidence itself.
+        # Only the candidates actually tried pay it — normally just one.
+        if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
+            unset -f strategy_detect strategy_extract 2>/dev/null
+            unset _arr 2>/dev/null
+            continue
+        fi
+        _eas_rc=0
+        _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
+        unset -f strategy_detect strategy_extract 2>/dev/null
+        unset _arr 2>/dev/null
+        if [[ $_eas_rc -eq 2 ]]; then break; fi
+        # HELD for low coverage: the rescue decides (pruning cannot matter —
+        # the held claim is the first candidate in rank order to produce
+        # output, which no ceiling ever prunes, and the rescue parsers are
+        # not ranked candidates).
+        if [[ $_eas_rc -eq 3 ]]; then
+            # The rescue parsers get their turn now; a claim no rescue
+            # replaces may still be held for its consistency (below).
+            _cov_rescue
+            [[ "${_COV_HELD:-0}" -eq 1 ]] || break
+            _CONS="$_COV_HELD_CONS"; _CONS_BAD="$_COV_HELD_BAD"
+            _cons_hold_wanted "$_COV_HELD_STRAT" || break
+            _COV_HELD_KIND=cons; _eas_rc=4
+            _log_debug "Strategy '$_COV_HELD_STRAT': still held — type consistency ${_COV_HELD_CONS}% < ${_FR_CONS_MIN}%; trying the next candidates"
+        fi
+        # HELD for consistency: the alternatives are the candidates below it
+        # — some of which a pruned pass skipped (the caller detects those).
+        if [[ $_eas_rc -eq 4 && $_eas_pruned -gt 0 ]]; then _eas_more=1; break; fi
+        [[ $_eas_rc -eq 4 ]] && continue
+        [[ "${_COV_HELD:-0}" -eq 1 && "$_COV_HELD_KIND" == cons ]] && continue
+        # The top candidate yielded nothing. With detectors pruned, one of
+        # them might outrank whatever comes next: redo the pass unpruned.
+        if [[ $_eas_pruned -gt 0 ]]; then _eas_redo=1; break; fi
+    done <<< "$1"
+    return 0
+}
+
 _run_auto_strategies_body () {
     if [[ ! -d "$STRATEGIES_DIR" ]]; then
         _log_error "Strategies directory not found: $STRATEGIES_DIR"
@@ -1820,7 +2212,7 @@ _run_auto_strategies_body () {
     _TG_NB_LINES=""
     _TG_LAST_COVERAGE=""
     # Coverage hold state is per pass (a redo starts clean).
-    _cov_drop_held; _COV_HOLD_ON=0; _WINNER_COV=""
+    _cov_drop_held; _COV_HOLD_ON=0; _WINNER_COV=""; _WINNER_CONS=""
     # Bounded detection sample for very large inputs (per input: batch mode
     # reuses the process). Pinned/replayed runs skip detection-by-sample.
     _DET_SAMPLED=0; _DET_TEXT=""
@@ -1898,7 +2290,7 @@ _run_auto_strategies_body () {
     # always exactly the unpruned ranking. This is what keeps a 10 MB JSON
     # document fast: once json-array scores 85, no generic parser (<= 80)
     # walks the text.
-    local _eas_prune=0 _eas_pruned=0 _eas_best=-1
+    local _eas_prune=0 _eas_pruned=0 _eas_best=-1 _eas_pruned_list=""
     if [[ $_eas_rank -eq 1 && "${_EAS_NOPRUNE:-0}" -ne 1 ]] \
        && [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
         _eas_prune=1
@@ -1926,6 +2318,7 @@ _run_auto_strategies_body () {
             _strategy_ceiling "$strategy_file"
             if (( _CEIL <= _eas_best )); then
                 _eas_pruned=$((_eas_pruned + 1))
+                _eas_pruned_list+="${_priority}|${strategy_version}|${strategy_file}"$'\n'
                 continue
             fi
         fi
@@ -2012,31 +2405,39 @@ _run_auto_strategies_body () {
         if [[ $_OPT_first_match -eq 1 || $_OPT_max_strategies -eq 1 ]]; then
             _COV_HOLD_ON=1
         fi
-        while IFS='|' read -r _ck _pk strategy_name strategy_version strategy_file; do
-            [[ -z "$strategy_file" ]] && continue
-            strategy_priority="$((10#$_pk))"
-            _source_strategy_cached "$strategy_file" /dev/null || continue
-            # Re-run detect: it restores the per-strategy state extract reads
-            # (report name, detect-time globals) and the confidence itself.
-            # Only the candidates actually tried pay it — normally just one.
-            if ! _detect_strategy "$strategy_name" "$strategy_priority"; then
+        local _eas_ln=0 _eas_more=0
+        _eas_try_cands "$_eas_cands"
+        if [[ $_eas_more -eq 1 ]]; then
+            # Held for consistency after pruning: the pruned detectors that
+            # could be an alternative (generic, not a catch-all, a ceiling
+            # inside the window) are detected now, and every candidate below
+            # the claim is tried in the unpruned ranking's order.
+            local _eas_rest _eas_extra=""
+            _eas_rest="$(printf '%s\n' "$_eas_cands" | tail -n +$((_eas_ln + 1)))"
+            while IFS='|' read -r _priority strategy_version strategy_file; do
+                [[ -z "$strategy_file" ]] && continue
+                strategy_name="${strategy_file##*/}"; strategy_name="${strategy_name%.sh}"
+                _is_generic_strategy_file "$strategy_file" || continue
+                case "$strategy_name" in json|yaml|xml|toml) continue ;; esac
+                [[ "$_FR_COV_CATCHALL" == *" $strategy_name "* ]] && continue
+                _strategy_ceiling "$strategy_file"
+                (( _CEIL >= _COV_HELD_CONF - _FR_CONS_WINDOW )) || continue
+                read_strategy_metadata "$strategy_file"
+                [[ -n "$_META_DEPRECATED" ]] && continue
+                _source_strategy_cached "$strategy_file" /dev/null || continue
+                strategy_priority="${_priority#0}"; strategy_priority="${strategy_priority:-99}"
+                if _detect_strategy "$strategy_name" "$strategy_priority"; then
+                    _ck="000$((100 - _STRATEGY_CONFIDENCE))"; _pk="000${_priority}"
+                    _eas_extra+="${_ck: -3}|${_pk: -3}|${strategy_name}|${strategy_version}|${strategy_file}"$'\n'
+                fi
                 unset -f strategy_detect strategy_extract 2>/dev/null
                 unset _arr 2>/dev/null
-                continue
-            fi
-            _eas_rc=0
-            _extract_and_store "$strategy_name" "$strategy_version" || _eas_rc=$?
-            unset -f strategy_detect strategy_extract 2>/dev/null
-            unset _arr 2>/dev/null
-            if [[ $_eas_rc -eq 2 ]]; then break; fi
-            # HELD for low coverage: the rescue below decides (pruning cannot
-            # matter — the held claim is the first candidate in rank order to
-            # produce output, which no ceiling ever prunes).
-            if [[ $_eas_rc -eq 3 ]]; then break; fi
-            # The top candidate yielded nothing. With detectors pruned, one of
-            # them might outrank whatever comes next: redo the pass unpruned.
-            if [[ $_eas_pruned -gt 0 ]]; then _eas_redo=1; break; fi
-        done <<< "$_eas_cands"
+            done <<< "$_eas_pruned_list"
+            [[ $_OPT_debug -eq 1 ]] && _log_debug "Held for consistency after pruning: pruned alternatives that fire: ${_eas_extra//$'\n'/ }"
+            _eas_more=0
+            [[ -n "$_eas_rest" ]] && _eas_rest+=$'\n'
+            _eas_try_cands "$(printf '%s%s' "$_eas_rest" "$_eas_extra" | LC_ALL=C sort -t'|' -k1,1 -k2,2 -k3,3)"
+        fi
         _COV_HOLD_ON=0
         if [[ $_eas_redo -eq 1 ]]; then
             _cov_drop_held
@@ -2046,12 +2447,9 @@ _run_auto_strategies_body () {
             _EAS_NOPRUNE=1 _run_auto_strategies_body || _eas_rrc=$?
             return $_eas_rrc
         fi
-        # A held claim: the rescue parsers get their turn; if none covers
-        # materially more, the held claim is stored as it was.
-        if [[ "${_COV_HELD:-0}" -eq 1 ]]; then
-            _cov_rescue
-            _cov_restore_held
-        fi
+        # A claim still held (no rescue / no consistent alternative replaced
+        # it) is stored exactly as it was extracted.
+        _cov_restore_held
     fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
     return 0
@@ -2078,6 +2476,7 @@ run_explain_mode () {
     local match_lines="" miss_lines=""
     # the first-ranked candidate that extracts something (for the hold note)
     local _ex_top_conf="" _ex_top_cov="" _ex_top_name="" _ex_top_lines=0 _ex_top_res=""
+    local _ex_recs=""   # conf|pri|name|cov|cons|bad|cols|cells per candidate that extracts
 
     local strategy_version strategy_file strategy_name strategy_priority
 
@@ -2094,7 +2493,7 @@ run_explain_mode () {
 
         read_strategy_metadata "$strategy_file"
         if [[ -n "$_META_DEPRECATED" ]]; then
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'DEPR' "$strategy_name" "$strategy_priority" '--' '-' "deprecated: $_META_DEPRECATED")"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'DEPR' "$strategy_name" "$strategy_priority" '--' '-' '-' "deprecated: $_META_DEPRECATED")"$'\n'
             skipped=$((skipped + 1))
             continue
         fi
@@ -2106,7 +2505,7 @@ run_explain_mode () {
         _src_tmpf=$(mktemp "${TMPDIR:-/tmp}/provost_explain.XXXXXX") || { umask "$_old_umask"; continue; }
         umask "$_old_umask"
         if ! source "$strategy_file" 2>"$_src_tmpf"; then
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'ERR' "$strategy_name" "$strategy_priority" '--' '-' 'source error')"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'ERR' "$strategy_name" "$strategy_priority" '--' '-' '-' 'source error')"$'\n'
             rm -f "$_src_tmpf"
             continue
         fi
@@ -2126,22 +2525,24 @@ run_explain_mode () {
             # LINE COVERAGE of this candidate's extract (see _parse_coverage):
             # explain is a dry run, but a matching candidate's extract is the
             # only way to show how much of the input it would keep.
-            local _ex_res _ex_cov="-" _ex_conf="$_STRATEGY_CONFIDENCE"
+            local _ex_res _ex_cov="-" _ex_cons="-" _ex_conf="$_STRATEGY_CONFIDENCE"
             _ex_res="$(strategy_extract "$text" "${_STATE_filename:-}" "${_STATE_encoding_hint:-}" 2>/dev/null)" || true
             if [[ -z "${_ex_res//[[:space:]]/}" ]]; then
                 _ex_cov="empty"
             else
                 _parse_coverage "$_ex_res"
                 [[ -n "$_COV" ]] && _ex_cov="${_COV}%"
+                [[ -n "$_CONS" ]] && _ex_cons="${_CONS}%"
+                _ex_recs+="${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|${_COV}|${_CONS}|${_CONS_BAD}|${_CONS_COLS}|${_CONS_CELLS}|${_CONS_SIG}|${_CONS_RECS}"$'\n'
                 [[ -z "$_ex_top_cov" || "$_ex_conf" -gt "$_ex_top_conf" ]] && \
                     { _ex_top_conf="$_ex_conf"; _ex_top_cov="${_COV:--}"; _ex_top_name="$strategy_name"; _ex_top_lines="$_COV_LINES"; _ex_top_res="$_ex_res"; }
             fi
             # Sort key first (confidence, priority, name) — the order ranked
             # detection tries the candidates in; cut off before printing.
-            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_ex_conf" "$_ex_cov" "$reason")"$'\n'
+            match_lines="${match_lines}${_STRATEGY_CONFIDENCE}|${strategy_priority}|${strategy_name}|$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'MATCH' "$strategy_name" "$strategy_priority" "$_ex_conf" "$_ex_cov" "$_ex_cons" "$reason")"$'\n'
             matched=$((matched + 1))
         else
-            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' '-' 'not applicable')"$'\n'
+            miss_lines="${miss_lines}$(printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s' 'MISS' "$strategy_name" "$strategy_priority" '0' '-' '-' 'not applicable')"$'\n'
         fi
 
         unset -f strategy_detect strategy_extract 2>/dev/null
@@ -2151,9 +2552,10 @@ run_explain_mode () {
         unset _arr 2>/dev/null
     done <<< "$_SORTED_STRATEGIES"
 
-    # Print header (COV = line coverage of the candidate's extract)
-    printf '%-7s  %-30s  %4s  %4s  %5s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "COV" "REASON"
-    printf '%-7s  %-30s  %4s  %4s  %5s  %s\n' "------" "--------" "---" "----" "---" "------"
+    # Print header (COV = line coverage of the candidate's extract, CONS =
+    # its column-type consistency)
+    printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s\n' "STATUS" "STRATEGY" "PRI" "CONF" "COV" "CONS" "REASON"
+    printf '%-7s  %-30s  %4s  %4s  %5s  %5s  %s\n' "------" "--------" "---" "----" "---" "----" "------"
 
     # Matches first, in RANK order — confidence desc, then priority, then
     # strategy name (LC_ALL=C), exactly as ranked detection tries them (the
@@ -2195,5 +2597,38 @@ run_explain_mode () {
             done
         fi
         _COV_HOLD_ON=0
+    fi
+    # CONSISTENCY YIELD preview: the first candidate in rank order to extract
+    # something, when it is held for its column-type consistency, and the
+    # candidate that would replace it (see _cons_hold_wanted).
+    if [[ -n "$_ex_recs" ]]; then
+        local _xr _xc _xp _xn _xv _xs _xb _xl _xe _xg _xq _held=""
+        while IFS='|' read -r _xc _xp _xn _xv _xs _xb _xl _xe _xg _xq; do
+            [[ -n "$_xn" ]] || continue
+            _COV="$_xv"; _CONS="$_xs"; _CONS_BAD="$_xb"; _CONS_COLS="$_xl"; _CONS_CELLS="$_xe"; _CONS_SIG="$_xg"; _CONS_RECS="$_xq"
+            if [[ -z "$_held" ]]; then
+                _COV_HOLD_ON=1; _TG_EXEMPT=0
+                _cons_hold_wanted "$_xn" || { _COV_HOLD_ON=0; break; }
+                _COV_HOLD_ON=0
+                _held="$_xn"; _COV_HELD_CONF="$_xc"; _COV_HELD_CONS="$_xs"; _COV_HELD_BAD="$_xb"
+                _COV_HELD_PCT="$_xv"; _COV_HELD_CCOLS="$_xl"; _COV_HELD_CELLS="$_xe"; _COV_HELD_SIG="$_xg"; _COV_HELD_RECS="$_xq"
+                echo "Consistency: '$_held' types ${_xs}% of its cells consistently (< ${_FR_CONS_MIN}%, ${_xb} of ${_xl} columns mixed): held; candidates within ${_FR_CONS_WINDOW} points:"
+                continue
+            fi
+            (( _xc >= _COV_HELD_CONF - _FR_CONS_WINDOW )) || break
+            _cons_eligible "$_xn" || continue
+            if _cons_replaces "$_xn"; then
+                echo "  $_xn: ${_xs:-?}% consistent, coverage ${_xv:-?}% — REPLACES '$_held'"
+                _held=""; break
+            fi
+            if [[ -n "$_xs" ]] && (( _xq > _COV_HELD_RECS )); then
+                echo "  $_xn: ${_xs:-?}% consistent, coverage ${_xv:-?}% — splits the rows further (${_xq} records, not ${_COV_HELD_RECS}): does not replace it"
+            elif [[ -n "$_xs" ]] && ! _cons_same_labels "$_COV_HELD_SIG" "$_xg"; then
+                echo "  $_xn: ${_xs:-?}% consistent, coverage ${_xv:-?}% — types a column of the same name differently (relabels it): does not replace it"
+            else
+                echo "  $_xn: ${_xs:-?}% consistent, coverage ${_xv:-?}% — does not replace it"
+            fi
+        done < <(printf '%s' "$_ex_recs" | LC_ALL=C sort -t'|' -k1,1nr -k2,2n -k3,3)
+        [[ -n "$_held" ]] && echo "  (no candidate replaces it; '$_held' stays)"
     fi
 }

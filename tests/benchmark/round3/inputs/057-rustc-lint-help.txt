@@ -1,0 +1,45 @@
+
+Available lint options:
+    -W <foo>           Warn about <foo>
+    -A <foo>           Allow <foo>
+    -D <foo>           Deny <foo>
+    -F <foo>           Forbid <foo> (deny <foo> and all attempts to override)
+
+
+Lint checks provided by rustc:
+
+                                                       name  default  meaning
+                                                       ----  -------  -------
+                     absolute-paths-not-starting-with-crate  allow    fully qualified paths that start with a module name instead of `crate`, `self`, or an extern crate name
+                                ambiguous-negative-literals  allow    ambiguous negative literals operations
+                              closure-returning-async-block  allow    closure that returns `async {}` could be rewritten as an async closure
+                                       deprecated-in-future  allow    detects use of items that will be deprecated in a future version
+                                       deprecated-safe-2024  allow    detects unsafe functions being used as safe functions
+                                  deref-into-dyn-supertrait  allow    `Deref` implementation with a supertrait trait object for output is shadowed by trait upcasting
+                       edition-2024-expr-fragment-specifier  allow    The `expr` fragment specifier will accept more expressions in the 2024 edition. To keep the existing behavior, use the `expr_2021` fragment specifier.
+                                  elided-lifetimes-in-paths  allow    hidden lifetime parameters in types are deprecated
+                             explicit-outlives-requirements  allow    outlives requirements can be inferred
+                                           ffi-unwind-calls  allow    call to foreign functions or function pointers with FFI-unwind ABI
+                                     fuzzy-provenance-casts  allow    a fuzzy integer to pointer cast is used
+                                             if-let-rescope  allow    `if let` assigns a shorter lifetime to temporary values being pattern-matched against in Edition 2024 and rewriting in `match` is an option to preserve the semantics up to Edition 2021
+                                    impl-trait-overcaptures  allow    `impl Trait` will capture more lifetimes than possibly intended in edition 2024
+                              impl-trait-redundant-captures  allow    redundant precise-capturing `use<...>` syntax on an `impl Trait`
+                                        keyword-idents-2018  allow    detects edition keywords being used as an identifier
+                                        keyword-idents-2024  allow    detects edition keywords being used as an identifier
+                                        let-underscore-drop  allow    non-binding let on a type that has a destructor
+                                            linker-messages  allow    warnings emitted at runtime by the target-specific linker program
+                                     lossy-provenance-casts  allow    a lossy pointer to integer cast is used
+                                     macro-use-extern-crate  allow    the `#[macro_use]` attribute is now deprecated in favor of using macros via the module system
+                                       meta-variable-misuse  allow    possible meta-variable misuse at macro definition
+                               missing-copy-implementations  allow    detects potentially-forgotten implementations of `Copy`
+                              missing-debug-implementations  allow    detects missing implementations of Debug
+                                               missing-docs  allow    detects missing documentation for public members
+                                   missing-unsafe-on-extern  allow    detects missing unsafe keyword on extern declarations
+                             multiple-supertrait-upcastable  allow    detect when a dyn-compatible trait has multiple supertraits
+                                           must-not-suspend  allow    use of a `#[must_not_suspend]` value across a yield point
+                                           non-ascii-idents  allow    detects non-ASCII identifiers
+                            non-exhaustive-omitted-patterns  allow    detect when patterns of types marked `non_exhaustive` are missed
+                                          redundant-imports  allow    imports that are redundant due to being imported already
+                                        redundant-lifetimes  allow    detects lifetime parameters that are redundant because they are equal to some other named lifetime
+              resolving-to-items-shadowing-supertrait-items  allow    detects when a supertrait item is shadowed by a subtrait item
+                    rust-2021-incompatible-closure-captures  allow    detects closures affected by Rust 2021 changes

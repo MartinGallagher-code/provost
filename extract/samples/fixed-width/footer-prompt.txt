@@ -1,0 +1,12 @@
+SQL> SELECT dept_id, dept_name, city, budget FROM depts ORDER BY dept_id;
+
+   DEPT_ID DEPT_NAME            CITY                 BUDGET
+---------- -------------------- --------------- -----------
+        10 Comptabilité         Montréal            125000
+        20 Research             Zürich              480500
+        30 Sales                São Paulo           310000
+        40 Operations           Kraków               98750
+
+4 rows selected.
+
+SQL> 

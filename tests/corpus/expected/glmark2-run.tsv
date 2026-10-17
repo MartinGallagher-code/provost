@@ -1,8 +1,8 @@
 n	key	value
 1	GL_VENDOR	NVIDIA Corporation
 2	GL_RENDERER	NVIDIA GeForce RTX 4090/PCIe/SSE2
-3	GL_VERSION	4.6.0 NVIDIA 555.42.06 =======================================================
+3	GL_VERSION	4.6.0 NVIDIA 555.42.06
 4	[build] use-vbo=false	FPS: 4821 FrameTime: 0.207 ms
 5	[build] use-vbo=true	FPS: 5210 FrameTime: 0.192 ms
-6	[texture] texture-filter=nearest	FPS: 4482 FrameTime: 0.223 ms =======================================================
-7	glmark2 Score	4821 =======================================================
+6	[texture] texture-filter=nearest	FPS: 4482 FrameTime: 0.223 ms
+7	glmark2 Score	4821

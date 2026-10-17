@@ -1,0 +1,6 @@
+A1 bolt 120 aisle-north
+A2 washer 300 aisle-north
+B1 nut 95 aisle-east
+B2 EMPTY 0 aisle-east
+B3 hinge EMPTY EMPTY
+C2 screw 1000 dock

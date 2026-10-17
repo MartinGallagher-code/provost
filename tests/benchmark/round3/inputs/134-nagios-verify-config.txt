@@ -1,0 +1,40 @@
+
+Nagios Core 4.5.7
+Copyright (c) 2009-present Nagios Core Development Team and Community Contributors
+Copyright (c) 1999-2009 Ethan Galstad
+Last Modified: 2024-10-24
+License: GPL
+
+Website: https://www.nagios.org
+Reading configuration data...
+   Read main config file okay...
+   Read object config files okay...
+
+Running pre-flight check on configuration data...
+
+Checking objects...
+	Checked 214 services.
+	Checked 38 hosts.
+	Checked 9 host groups.
+	Checked 4 service groups.
+	Checked 12 contacts.
+	Checked 3 contact groups.
+	Checked 61 commands.
+	Checked 5 time periods.
+	Checked 0 host escalations.
+	Checked 0 service escalations.
+Checking for circular paths...
+	Checked 38 hosts
+	Checked 0 service dependencies
+	Checked 0 host dependencies
+	Checked 5 timeperiods
+Checking global event handlers...
+Checking obsessive compulsive processor commands...
+Checking misc settings...
+Warning: Service 'Disk /data' on host 'db-replica-2' has no default contacts or contact groups defined!
+Warning: Host 'printer-3f' has no services associated with it!
+
+Total Warnings: 2
+Total Errors:   0
+
+Things look okay - No serious problems were detected during the pre-flight check

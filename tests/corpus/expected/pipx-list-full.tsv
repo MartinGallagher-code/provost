@@ -1,5 +1,7 @@
-n	apps	are	exposed	on	your	$PATH	at
-1	package	black	24.4.2,	installed	using	Python	3.12.4
-2	-	black					
-3	package	ruff	0.5.0,	installed	using	Python	3.12.4
-4	-	ruff					
+n	depth	name	parent
+1	0	venvs are in /home/dev/.local/share/pipx/venvs	
+2	0	apps are exposed on your $PATH at /home/dev/.local/bin	
+3	1	package black 24.4.2, installed using Python 3.12.4	apps are exposed on your $PATH at /home/dev/.local/bin
+4	2	- black	package black 24.4.2, installed using Python 3.12.4
+5	1	package ruff 0.5.0, installed using Python 3.12.4	apps are exposed on your $PATH at /home/dev/.local/bin
+6	2	- ruff	package ruff 0.5.0, installed using Python 3.12.4

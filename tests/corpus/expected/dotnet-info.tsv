@@ -13,4 +13,6 @@ n	key	value
 12	Version	8.0.0
 13	Architecture	x64
 14	Commit	5535e31a71
-15	.NET SDKs installed	6.0.417 [/usr/share/dotnet/sdk] 7.0.404 [/usr/share/dotnet/sdk] 8.0.100 [/usr/share/dotnet/sdk]
+15	.NET SDKs installed	6.0.417 [/usr/share/dotnet/sdk]
+16	.NET SDKs installed	7.0.404 [/usr/share/dotnet/sdk]
+17	.NET SDKs installed	8.0.100 [/usr/share/dotnet/sdk]

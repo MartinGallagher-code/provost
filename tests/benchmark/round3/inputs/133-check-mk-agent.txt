@@ -1,0 +1,40 @@
+<<<check_mk>>>
+Version: 2.3.0p17
+AgentOS: linux
+Hostname: web-01
+AgentDirectory: /etc/check_mk
+DataDirectory: /var/lib/check_mk_agent
+SpoolDirectory: /var/lib/check_mk_agent/spool
+PluginsDirectory: /usr/lib/check_mk_agent/plugins
+LocalDirectory: /usr/lib/check_mk_agent/local
+OSType: linux
+OSName: Ubuntu
+OSVersion: 24.04
+<<<df_v2>>>
+/dev/sda1 ext4 61611820 19204112 39242164 33% /
+tmpfs tmpfs 1634260 1220 1633040 1% /run
+/dev/sdb1 xfs 524032000 401883122 122148878 77% /var/lib/postgresql
+<<<mem>>>
+MemTotal:        8167932 kB
+MemFree:          412880 kB
+MemAvailable:    5201744 kB
+Buffers:          188412 kB
+Cached:          4417092 kB
+SwapTotal:       2097148 kB
+SwapFree:        2097148 kB
+<<<cpu>>>
+0.42 0.51 0.48 2/412 30122 4
+<<<uptime>>>
+1287712.48 5003121.07
+<<<systemd_units>>>
+[list-unit-files]
+UNIT FILE                          STATE           PRESET
+nginx.service                      enabled         enabled
+postgresql@16-main.service         enabled-runtime enabled
+[all]
+  UNIT                             LOAD   ACTIVE   SUB     DESCRIPTION
+  nginx.service                    loaded active   running A high performance web server and a reverse proxy server
+● postgresql@16-main.service       loaded failed   failed  PostgreSQL Cluster 16-main
+<<<local:sep(0)>>>
+0 "Backup age" age=14211;86400;172800 OK - last backup 3h56m ago
+2 "Certificate shop.example.com" days=6;14;7 CRIT - expires in 6 days

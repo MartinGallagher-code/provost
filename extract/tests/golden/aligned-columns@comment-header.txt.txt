@@ -1,0 +1,21 @@
+entry1.Overhead 23.45%
+entry1.Command python3
+entry1.Shared_Object libpython3.12.so
+entry1.Symbol [.] _PyEval_EvalFrameDefault
+entry2.Overhead 10.12%
+entry2.Command python3
+entry2.Shared_Object [kernel.kallsyms]
+entry2.Symbol [k] clear_page_erms
+entry3.Overhead 6.80%
+entry3.Command python3
+entry3.Shared_Object libc.so.6
+entry3.Symbol [.] __memmove_avx_unaligned_erms
+entry4.Overhead 4.02%
+entry4.Command python3
+entry4.Shared_Object libpython3.12.so
+entry4.Symbol [.] PyObject_Malloc
+entry5.Overhead 2.11%
+entry5.Command sh
+entry5.Shared_Object [kernel.kallsyms]
+entry5.Symbol [k] copy_page
+total_entries 5

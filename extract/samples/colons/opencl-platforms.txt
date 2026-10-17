@@ -1,0 +1,13 @@
+Platforms:
+ Platform: NVIDIA CUDA
+	Vendor: NVIDIA Corporation
+	Version: OpenCL 3.0 CUDA 12.4.131
+	Devices: 1
+ Platform: Intel(R) OpenCL Graphics
+	Vendor: Intel(R) Corporation
+	Version: OpenCL 3.0
+	Devices: 1
+ Platform: Portable Computing Language
+	Vendor: The pocl project
+	Version: OpenCL 3.0 PoCL 5.0
+	Devices: 1

@@ -25,7 +25,7 @@ strategy.
 |---|---|
 | `provost-extract` | engine entry point (invoked internally by `provost`) |
 | `lib/` | engine libraries (dispatch, format, postprocess, …) |
-| `strategies/` | the 264 format-detection strategies, in 15 category dirs (115 generic format parsers in `delimited/` + `structured/`) |
+| `strategies/` | the 265 format-detection strategies, in 15 category dirs (116 generic format parsers in `delimited/` + `structured/`) |
 | `tools/` | strategy-authoring helpers (`new_strategy.sh`, `review_strategy.sh`) |
 | `samples/` | sample inputs used by the strategy tests |
 | `tests/` | the strategy + engine test suite (`bash tests/run_tests.sh`) |
@@ -33,8 +33,8 @@ strategy.
 
 ## Strategy count
 
-264 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
-network 31, structured 26, security 11, filesystem 8, build 8, misc 7,
+265 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
+network 31, structured 27, security 11, filesystem 8, build 8, misc 7,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
 when it is counted. Every strategy has a `## Sample:` file under `samples/`
@@ -157,9 +157,13 @@ empty span is an empty cell. NH is the number of header lines (0 headerless,
 1, or 2 with a group row whose words prefix the names below), RL=1 when a
 `----  ----` / `==== ====` rule follows the header. It prints `PREFIX<N>.name
 value` lines plus `total_entries N`, or NOTHING when the offsets cannot be
-trusted (non-ASCII, a TAB header over space rows, an unpadded single-spaced
-table, a header repeated as data, misaligned cells …) — keep your old path as
-the fallback. aligned-columns (both routes), fixed-width and embedded-table
+trusted (a TAB header over space rows, an unpadded single-spaced table, a
+header repeated as data, misaligned cells …) — keep your old path as the
+fallback. Offsets count CHARACTERS, not bytes: a UTF-8 character is one
+column, a wide East Asian / emoji character two (what a terminal shows), and
+when the offsets do not hold that way the grid retries with every character
+one column (tools that pad by character count, such as Go's tabwriter). Cells
+come back as the original bytes. aligned-columns (both routes), fixed-width and embedded-table
 use it; `tests/test_gutter_grid.sh` pins its behaviour.
 
 ## Candidate ranking
@@ -178,7 +182,9 @@ use it; `tests/test_gutter_grid.sh` pins its behaviour.
    winner always has output. `--max-strategies N` / `--first-match` stop after
    N / 1 candidates produced output. With one winner wanted, the first
    candidate to produce output is HELD when its line coverage is low, and the
-   rescue parser gets a turn (see "Line coverage" below).
+   rescue parser gets a turn (see "Line coverage" below), or when its columns
+   mix types, and the next candidates get a turn (see "Column-type
+   consistency").
 
 `--rank priority` (or `PROVOST_RANK=priority`) restores the historical single pass:
 the first strategy in priority order whose detect passes and whose extract is
@@ -201,7 +207,13 @@ unpruned pass; `tests/test_rank.sh` pins it, and the corpus was checked
 byte-for-byte in full and `--generic` mode). The coverage hold keeps this
 exact without a redo: the held claim is the first candidate in rank order to
 produce output, which no ceiling ever prunes, and the rescue does not depend
-on the other candidates (`tests/test_coverage.sh` compares both runs).
+on the other candidates (`tests/test_coverage.sh` compares both runs). The
+consistency hold does depend on them — its alternatives rank below the claim
+— so when a claim is held for consistency after pruning, the pruned detectors
+that could be an alternative (generic, not a catch-all, a ceiling inside the
+window) are run then, and every candidate below the claim is tried in the
+unpruned ranking's order (no full redo: that cost seconds per held input).
+`tests/test_consistency.sh` compares both runs.
 
 ## Line coverage, the coverage hold and the rescue parser
 
@@ -266,7 +278,31 @@ it when the kept part is wide. So the engine measures a second signal:
   their shared colon column, a `block` index when blank-separated blocks
   repeat their keys. A report that is one record (every key unique) comes out
   as one wide row (`section.key` columns), like the other single-record kv
-  parsers; anything else as the long key/value table.
+  parsers; anything else as the long key/value table. One exception to
+  "rescue only" (2026-10-16): a report holding a SIGN GRID — 3+ lines of
+  nothing but `+name` / `-name` tokens, 12+ of them, a feature list printed
+  in columns (`vim --version`, `mutt -v`) — is ranked too, at 81: a
+  whitespace-table parser otherwise takes the grid for a table and glues the
+  banner and key/value lines into its cells at full coverage, so the hold
+  never sees it. Each grid token is a row (key = name, value = sign) under
+  the grid's `…:` title line as its section.
+
+### Sections glued into cells
+
+Coverage cannot see a parse that keeps every line but files whole sections
+into one cell (round-2 pattern 2: `diskutil list`, `route print`, ffmpeg's
+stream info). Those shapes are read by the parsers that own them:
+`section-tables` (structured; one aligned table per title — a disk, a chain,
+an address family — or a few different tables under `====` rules and titles,
+emitted as ONE table with a `section` column, same-header tables stacked,
+different headers unioned by column name, untitled lines kept as `text`
+rows); `key-value` (a bare label over deeper lines gives one row per line,
+not one cell; a label may hold a colon of its own, `Stream #0:1(eng):`);
+`colons` (a stream of repeated records — the first key recurring — becomes
+`entry<N>` records, a bare heading above them their `section`). Indentation
+that carries data keeps it as a column: `indent-tree` reads TAB columns
+(`comm`) as `depth` and a gutter-free indented text outline (RSpec / mocha
+nesting) as `depth` / `parent`.
 
 Knobs (internal, like `_FR_BIG_BYTES`): `_FR_COV_BYTES`, `_FR_COV_MIN` (0
 disables the hold), `_FR_COV_GAIN`, `_FR_COV_MIN_LINES`, `_FR_COV_CATCHALL`,
@@ -274,6 +310,84 @@ disables the hold), `_FR_COV_GAIN`, `_FR_COV_MIN_LINES`, `_FR_COV_CATCHALL`,
 min(held confidence, 70)). The truncation guard keeps its own, older token
 test (whitespace words) and its size gate; it is unchanged.
 
+
+## Column-type consistency and the consistency hold
+
+Coverage catches a parse that DROPS lines. A parse can also keep every line
+and put values under the wrong headers — a date split over three columns, a
+multi-word name spread over Name / Id / Version, a fixed-column cut through
+`boost-algorithm`, a `Key:<TAB>value` report read as a two-column table — and
+cover ~100%. A person sees at once that "column `Size` holds `Oct`, `2`,
+`12:01`" is wrong; the engine measures the same thing:
+
+- **Consistency** (`_FR_CONS_AWK`, lib/_discovery.sh; computed in the same awk
+  pass as coverage, on the same inputs up to `_FR_COV_BYTES`). Every cell of a
+  record stream (`<label><N>.<field> value`) is typed cheaply: integer,
+  decimal, number with a unit (size, rate, duration, percent, `1,234`, `2
+  weeks ago`), date / time / datetime, IP / CIDR / MAC / host:port, hex / hash
+  / uuid, version, path / URL, flag, digits-and-punctuation (`8,1`, `0:0`),
+  word, multi-word text, and rule / box-art debris; empty and null markers
+  (`-`, `n/a`, `<none>`) are skipped. Types fall into FAMILIES a column may
+  legitimately mix — numeric (integer, decimal, unit), version (version,
+  integer, decimal), hex (hash, integer), time, address, digit-punctuation,
+  and identifier/text (word, flag, path, hash, version, multi-word text) — so
+  a name column of words and phrases, or a version column of `2.0` and
+  `1.2.3`, is consistent, while numbers among words, words among numbers or
+  times among sizes are not. A dotted quad counts as IPv4 and version, a
+  dotted date (`2026.10.13`) as date and calendar version. A column's score is
+  the share of its filled cells in its best family; a cell holding a WORD CUT
+  IN HALF (an alphanumeric run of 3+ bytes, with a letter, that the input
+  never prints — `lgorithm`) and a rule-debris cell count as mismatches. A
+  column NAMED for a type (`Version`, `Size`, `PID`, `Created`, `Time` …)
+  whose cells are of another family while another column holds that type is
+  a header shifted against its cells, and is judged by its name. The parse's
+  consistency is the cell-weighted mean over the JUDGED columns: those with
+  3+ filled cells, except value columns of key/value lists (named `value`,
+  `message`, `description`, `command` …, which are mixed by design). A
+  column under 80% is an inconsistent ("mixed") column. No judged column →
+  `-`.
+- **Visible.** `--emit-meta` prints it as a 5th field
+  (`__EXTRACT_META__<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency`;
+  batch `.meta` files too); `--explain` shows each candidate's `CONS` and
+  previews the hold below; `-d` logs it with the number of mixed columns;
+  `provost` records it as `consistency` in the capture's `meta.tsv`.
+- **Hold.** With one winner wanted, the first candidate to produce output is
+  HELD when it is a GENERIC parse (delimited/ + structured/, not json / yaml
+  / xml / toml, not a catch-all, not hint-routed or pinned) with at least one
+  mixed column and consistency under `_FR_CONS_MIN` (95). A claim held for
+  coverage that no rescue replaces is checked the same way. The next ranked
+  candidates down to `_FR_CONS_WINDOW` (20) confidence points below it are
+  extracted in rank order; the first GENERIC, non-catch-all one that
+  - is at least `_FR_CONS_GAIN` (5) points more consistent and itself at
+    `_FR_CONS_MIN` or more, with fewer mixed columns,
+  - keeps at least as many lines (coverage not lower), and
+  - is judged on comparable evidence (at least half the claim's judged
+    columns and a third of its judged cells),
+  - adds no RECORDS (re-reading the same rows, or gathering key/value pairs
+    into records, is a fix; a rule line, banner or multi-line cell turned
+    into rows is the scatter a consistent-looking parse is made of), and
+  - does not RELABEL: every column name both parses use holds the same type
+    family in both (when two parses of one header disagree on what sits
+    under `Stratum`, one has shifted the header against the cells, and
+    nothing says it is the claim)
+  replaces it; otherwise the held claim is stored byte for byte.
+- **Why a hold and not a score.** Consistency alone favours parses that glue
+  or scatter: two text columns, or every token of a prose line in its own
+  column, are perfectly "consistent". So it never ranks; it only decides
+  between a claim that visibly mixes types and a nearby candidate that keeps
+  the same lines and types its columns at least as well on comparable
+  evidence. A BESPOKE claim is never held: tool knowledge may legitimately
+  mix types (lsof's NODE column holds `TCP` among inode numbers). On the
+  corpus the hold swaps 12 generic-mode winners, almost all a fixed-column
+  slicer (`vertical-line`, `fixed-width`) cutting words that the gutter grid
+  (`aligned-columns`) reads whole, or `tsv` reading space padding or
+  `Key:<TAB>value` blocks as columns.
+
+Knobs (internal): `_FR_CONS_MIN` (0 disables the hold), `_FR_CONS_GAIN`,
+`_FR_CONS_WINDOW`, `_FR_CONS_HOLD_BYTES` (32 KB: above it the hold — which
+re-runs detection unpruned and extracts alternatives, seconds on a 100 KB
+table — is skipped and the measure only reported); the measure itself is
+bounded by `_FR_COV_BYTES` (`-` above it) and costs nothing there.
 
 ## Confidence rubric
 
@@ -289,7 +403,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
-| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage") |
+| Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage"), except a report holding a `+feature` / `-feature` sign grid, ranked at 81; `section-tables` 82 when every titled table shares its header, else 80; `indent-tree` 70 for a text outline |
 | General structure | **55–69**, scaled | a shape any tabular or kv output has (also `git-log`'s oneline branch, 64: a leading hex token) | `aligned-columns` 60–69 (the 40–75 header/consistency score mapped linearly); `colons` 55–60 by the share of `label: value` lines (40% → 55, 100% → 60); `numeric-lead-records` 60 |
 | Catch-all | **≤ 60 (50–55)**, scaled | line structure only | `equals` (weak) 50–55 by the share of assignment lines; `line-records` 50–55 by the share of lines at the modal token count (60% → 50, 100% → 55), 50 for a one-token-per-line list, 51 for a single line; `text-lines` **50** — ranks last, still clears provost's default commit threshold (50) |
 

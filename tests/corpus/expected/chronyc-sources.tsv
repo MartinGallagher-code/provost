@@ -1,7 +1,7 @@
-n	MS	Name/IP	address	Stratum	Poll	Reach	LastRx	Last	sample
-1	^*	ntp1.ex	ample.com	2	6	377	23	+14u	s[  +18us] +/-   12ms
-2	^-	ntp2.ex	ample.com	2	6	377	27	-1204	us[-1198us] +/-   24ms
-3	^+	ntp3.ex	ample.com	3	6	377	25	+512	us[ +518us] +/-   30ms
-4	^-	ntp4.ex	ample.com	2	7	377	112	+2100	us[+2106us] +/-   41ms
-5	^?	ntp5.ex	ample.com	0	6	0	-	+0	ns[   +0ns] +/-    0ns
-6	^*	ntp6.ex	ample.com	1	6	377	19	-33	us[  -29us] +/-    8ms
+n	MS	Name/IP_address	Stratum	Poll	Reach	LastRx_Last_sample
+1	^*	ntp1.example.com	2	6	377	23 +14us[ +18us] +/- 12ms
+2	^-	ntp2.example.com	2	6	377	27 -1204us[-1198us] +/- 24ms
+3	^+	ntp3.example.com	3	6	377	25 +512us[ +518us] +/- 30ms
+4	^-	ntp4.example.com	2	7	377	112 +2100us[+2106us] +/- 41ms
+5	^?	ntp5.example.com	0	6	0	- +0ns[ +0ns] +/- 0ns
+6	^*	ntp6.example.com	1	6	377	19 -33us[ -29us] +/- 8ms

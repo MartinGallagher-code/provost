@@ -4,7 +4,7 @@
 
 ## Name: semicolon-values
 ## Description: Semicolon-delimited records (fio --output-format=terse, European-locale CSV)
-## Version: 1.0
+## Version: 1.1
 ## Priority: 13
 ## Sample: samples/semicolon-values/basic.txt
 
@@ -85,6 +85,33 @@ strategy_detect () {
     # a single low-density line is not enough signal (a lone prose line with
     # two semicolons); the dense band keeps single-line acceptance (fio terse)
     [[ $dense -eq 0 && $nonblank -lt 2 ]] && return 1
+    # ...and a single dense line must still READ as fields: fio terse cells
+    # are atoms (`randread`, `28221440`, `5.000000%=40`). A status line that
+    # merely carries semicolons — Nagios plugin output, `OK - load average:
+    # 0.12, 0.15|load1=0.120;5.000;10.000;0; …` — has prose cells; split at
+    # its `;` it scatters the message and the perfdata across positional
+    # columns. At least 80% of the non-empty cells must hold no blank, and
+    # the semicolons must not sit inside two or more blank-separated words:
+    # there `;` is a SUB-delimiter of space-separated items (Nagios perfdata
+    # `load1=0.120;5.000;10.000;0; load5=…;…`), not the record's delimiter.
+    if [[ $nonblank -eq 1 ]]; then
+        local _sv_c _sv_n=0 _sv_a=0 _sv_w=0
+        for _l in "${_FR_LINES[@]}"; do
+            [[ "${_l}" != *[![:space:]]* ]] && continue
+            _fr_tok "$_l"
+            for _sv_c in "${_FR_TOK[@]}"; do [[ "$_sv_c" == *\;* ]] && _sv_w=$((_sv_w + 1)); done
+            [[ $_sv_w -ge 2 ]] && return 1
+            _strat_ssv_split "$_l"
+            for _sv_c in "${_SSV_CELLS[@]}"; do
+                _sv_c="${_sv_c#"${_sv_c%%[![:space:]]*}"}"; _sv_c="${_sv_c%"${_sv_c##*[![:space:]]}"}"
+                [[ -z "$_sv_c" ]] && continue
+                _sv_n=$((_sv_n + 1))
+                [[ "$_sv_c" == *[[:space:]]* ]] || _sv_a=$((_sv_a + 1))
+            done
+            break
+        done
+        [[ $(( _sv_a * 100 )) -ge $(( _sv_n * 80 )) ]] || return 1
+    fi
     _STRATEGY_CONFIDENCE=80
     return 0
 }

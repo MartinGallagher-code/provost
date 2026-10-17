@@ -6,6 +6,10 @@ n	key	value
 5	Standards	
 6	Used	ATA-8-ACS
 7	Supported	11 10 9 8
-8	Configuration	Logical  max current cylinders 16383 16383 heads  16 16 sectors/track 63 63
-9	Commands/features	
-10	Enabled Supported	* SMART feature set * Security Mode feature set
+8	Configuration	Logical  max current
+9	Configuration	cylinders 16383 16383
+10	Configuration	heads  16 16
+11	Configuration	sectors/track 63 63
+12	Commands/features	
+13	Enabled Supported	* SMART feature set
+14	Enabled Supported	* Security Mode feature set

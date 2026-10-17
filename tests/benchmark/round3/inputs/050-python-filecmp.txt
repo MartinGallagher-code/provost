@@ -1,0 +1,8 @@
+diff a b
+Only in a : ['only_a.cfg']
+Only in b : ['only_b.log']
+Identical files : ['diff.txt', 'same.txt']
+Common subdirectories : ['sub']
+
+diff a/sub b/sub
+Identical files : ['k']

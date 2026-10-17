@@ -1,11 +1,12 @@
-n	======	SET
-1	completed in 1.20 seconds	requests
-2	clients	parallel
-3	payload	bytes
-4	1	alive:
-5	(usec)	percentiles
-6	50.000%	412.00
-7	95.000%	882.00
-8	99.000%	1204.00
-9	100.000%	2210.00
-10	per second	requests
+n	A
+1	====== SET ======
+2	120488 requests completed in 1.20 seconds
+3	50 parallel clients
+4	3 bytes payload
+5	keep alive: 1
+6	Latency percentiles (usec)
+7	50.000% 412.00
+8	95.000% 882.00
+9	99.000% 1204.00
+10	100.000% 2210.00
+11	100482.44 requests per second

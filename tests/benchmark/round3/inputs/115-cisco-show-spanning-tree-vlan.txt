@@ -1,0 +1,23 @@
+sw-access-03#show spanning-tree vlan 20
+
+VLAN0020
+  Spanning tree enabled protocol rstp
+  Root ID    Priority    24596
+             Address     0019.e8a1.2c00
+             Cost        4
+             Port        1 (GigabitEthernet1/0/1)
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    32788  (priority 32768 sys-id-ext 20)
+             Address     7c95.f3b2.4a80
+             Hello Time   2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  300 sec
+
+Interface           Role Sts Cost      Prio.Nbr Type
+------------------- ---- --- --------- -------- --------------------------------
+Gi1/0/1             Root FWD 4         128.1    P2p 
+Gi1/0/2             Desg FWD 19        128.2    P2p Edge 
+Gi1/0/10            Desg FWD 4         128.10   P2p Edge 
+Te1/1/2             Altn BLK 2         128.50   P2p 
+Po1                 Desg FWD 3         128.65   P2p Peer(STP) 
+

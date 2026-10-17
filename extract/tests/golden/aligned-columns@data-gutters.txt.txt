@@ -1,0 +1,29 @@
+entry1.method defla
+entry1.crc 1c2b3a4d
+entry1.date Sep 30
+entry1.time 08:01
+entry1.compressed 10240
+entry1.uncompressed 40960
+entry1.ratio 75.0%
+entry1.uncompressed_name /var/log/app.log.1
+entry2.method defla
+entry2.crc 5e6f7a8b
+entry2.date Oct 1
+entry2.time 08:01
+entry2.compressed 8120
+entry2.uncompressed 30001
+entry2.ratio 73.0%
+entry2.uncompressed_name /var/log/app.log.2
+entry3.method defla
+entry3.crc 9c0d1e2f
+entry3.date Oct 12
+entry3.time 08:01
+entry3.compressed 950
+entry3.uncompressed 4096
+entry3.ratio 76.8%
+entry3.uncompressed_name /var/log/app.log.3
+entry4.compressed 19310
+entry4.uncompressed 75057
+entry4.ratio 74.3%
+entry4.uncompressed_name (totals)
+total_entries 4

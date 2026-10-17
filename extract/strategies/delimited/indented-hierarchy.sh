@@ -4,7 +4,7 @@
 
 ## Name: indented-hierarchy
 ## Description: Indentation-based hierarchical data, flattened with dot notation
-## Version: 1.0
+## Version: 1.1
 ## Priority: 50
 ## Sample: samples/indented-hierarchy/basic.txt
 
@@ -30,6 +30,30 @@ strategy_detect () {
 
     # Must contain colons
     [[ "$text" == *":"* ]] || return 1
+
+    # ...and the colons must be KEY colons. extract splits every colon line
+    # at its FIRST colon; when most colon-bearing lines put that colon inside
+    # a token — a `::` namespace (`mod.py::test_x`), a `file:line` location
+    # (`test_app.py:14: AssertionError`) or a clock (`06:00:00`) — the colons
+    # are not keys, and the split shreds the lines (pytest's report became
+    # `0.31s_call_____test_app.py` = `:test_slow`). `Key: value` and
+    # `Key:value` (iwconfig's `Mode:Managed`) both split cleanly. With 4+
+    # colon lines, half of them (widened by _FR_SLACK) must.
+    local _ihk_l _ihk_pre _ihk_post _ihk_c=0 _ihk_s=0
+    _fr_lines "$text"
+    for _ihk_l in "${_FR_LINES[@]}"; do
+        [[ "$_ihk_l" == *:* ]] || continue
+        _ihk_c=$((_ihk_c + 1))
+        _ihk_pre="${_ihk_l%%:*}"; _ihk_post="${_ihk_l#*:}"
+        [[ "$_ihk_post" == :* ]] && continue
+        if [[ "$_ihk_post" == [0-9]* ]]; then
+            [[ "$_ihk_pre" == *[0-9] ]] && continue
+            _ihk_pre="${_ihk_pre##*[[:space:]]}"
+            [[ "$_ihk_pre" == *[./]* ]] && continue
+        fi
+        _ihk_s=$((_ihk_s + 1))
+    done
+    [[ $_ihk_c -lt 4 || $(( _ihk_s * 100 )) -ge $(( _ihk_c * (50 - ${_FR_SLACK:-0}) )) ]] || return 1
 
     # A `|` in either of the first two lines is a TABLE header with piped
     # group separators (/proc/net/dev's `Inter-|  Receive | Transmit`), not a

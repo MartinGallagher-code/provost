@@ -1,0 +1,40 @@
+Test project /home/dev/binpack/build
+    Start 1: smoke
+1/5 Test #1: smoke ............................   Passed    0.01 sec
+    Start 2: args_none
+2/5 Test #2: args_none ........................   Passed    0.00 sec
+    Start 3: large
+3/5 Test #3: large ............................***Failed    0.00 sec
+    Start 4: slow
+4/5 Test #4: slow .............................***Timeout   1.00 sec
+    Start 5: missing_tool
+Could not find executable does-not-exist
+Looked in the following places:
+does-not-exist
+does-not-exist
+Release/does-not-exist
+Release/does-not-exist
+Debug/does-not-exist
+Debug/does-not-exist
+MinSizeRel/does-not-exist
+MinSizeRel/does-not-exist
+RelWithDebInfo/does-not-exist
+RelWithDebInfo/does-not-exist
+Deployment/does-not-exist
+Deployment/does-not-exist
+Development/does-not-exist
+Development/does-not-exist
+Unable to find executable: does-not-exist
+5/5 Test #5: missing_tool .....................***Not Run   0.00 sec
+
+40% tests passed, 3 tests failed out of 5
+
+Total Test time (real) =   1.02 sec
+
+The following tests FAILED:
+	  3 - large (Failed)
+	  4 - slow (Timeout)
+	  5 - missing_tool (Not Run)
+Errors while running CTest
+Output from these tests are in: /home/dev/binpack/build/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.

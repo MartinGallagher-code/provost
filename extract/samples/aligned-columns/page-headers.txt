@@ -1,0 +1,13 @@
+ 5770SS1 V7R4M0 190419             Customer Balance Report               ACME01   10/02/26 09:15:22 EDT   Page    1
+ Customer  Name                       Region   Credit Limit      Balance  Status
+ --------  -------------------------  ------   ------------  -----------  ------
+ C10045    Northwind Traders          EAST         50,000.00    12,450.75  OK
+ C10046    Contoso Ltd                WEST         75,000.00    80,120.00  OVER
+ C10047    Fabrikam Inc               EAST         25,000.00         0.00  OK
+
+ 5770SS1 V7R4M0 190419             Customer Balance Report               ACME01   10/02/26 09:15:22 EDT   Page    2
+ Customer  Name                       Region   Credit Limit      Balance  Status
+ --------  -------------------------  ------   ------------  -----------  ------
+ C10048    Tailspin Toys              SOUTH        10,000.00     2,300.10  OK
+ C10049    Wide World Importers       NORTH       100,000.00    45,000.00  OK
+                                       * * * * *  E N D  O F  L I S T I N G  * * * * *

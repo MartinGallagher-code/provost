@@ -5,8 +5,9 @@
 ################################################################################
 ## Held-out generalisation benchmark.
 ##
-## Every input under inputs/ (round 1) or round2/inputs/ (round 2) is a tool
-## output the engine had NEVER been tuned against when it was added — no hint
+## Every input under inputs/ (round 1), round2/inputs/ (round 2) or
+## round3/inputs/ (round 3) is a tool output the engine had NEVER been tuned
+## against when it was added — no hint
 ## row, no strategy, no golden. The corpus under tests/corpus/ measures
 ## regression; this measures generalisation, which is a different and harsher
 ## question: what happens the first time provost meets an output nobody wrote a
@@ -14,25 +15,29 @@
 ##
 ## There is deliberately no pass/fail gate here. A gate would invite fitting
 ## the engine to these files, which destroys the only property that makes
-## them useful. The ratings (ratings.tsv, round2/ratings.tsv) are a snapshot of
-## a human-readable judgement (see docs/benchmark-2026-08-12-generalisation.md
-## and docs/benchmark-2026-10-02-generalisation-round2.md); re-run this script
+## them useful. The ratings (ratings.tsv, round2/ratings.tsv, round3/ratings.tsv)
+## are a snapshot of a human-readable judgement (see
+## docs/benchmark-2026-08-12-generalisation.md,
+## docs/benchmark-2026-10-02-generalisation-round2.md and
+## docs/benchmark-2026-10-16-generalisation-round3.md); re-run this script
 ## and re-read the diff when you want to know whether a change helped or hurt
 ## inputs it was not written for.
 ##
 ## Usage:
-##   bash tests/benchmark/run.sh [--round2] [-j N] [--tidy] [outdir]
+##   bash tests/benchmark/run.sh [--round2 | --round3] [-j N] [--tidy] [outdir]
 ##
 ##   --round2   run the round-2 set (round2/inputs/, 109 inputs) instead of
 ##              the round-1 set (inputs/, 50 inputs)
+##   --round3   run the round-3 set (round3/inputs/, 107 inputs)
 ##   -j N       parallel jobs (default: CPU count; PROVOST_BENCH_JOBS)
 ##   --tidy     also melt the default parse to tidy TSV (NAME.tidy)
 ##   outdir     default: a fresh mktemp dir
 ##
 ## Writes, per input NAME:
 ##   NAME.def        default single-dataset extract (what `provost` does bare)
-##   NAME.meta       the strategy that claimed it, its confidence and its line
-##                   coverage (the --emit-meta line)
+##   NAME.meta       the strategy that claimed it, its confidence, its line
+##                   coverage and its column-type consistency (the --emit-meta
+##                   line)
 ##   NAME.prio       the same extract under --rank priority (the pre-calibration
 ##                   ranking: first detecting strategy in priority order wins)
 ##   NAME.prio.meta  ... and the strategy/confidence that won under it
@@ -55,6 +60,7 @@ outdir=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --round2) set_dir="$here/round2/inputs"; shift ;;
+        --round3) set_dir="$here/round3/inputs"; shift ;;
         -j) jobs="${2:?-j needs a number}"; shift 2 ;;
         -j*) jobs="${1#-j}"; shift ;;
         --tidy) tidy=1; shift ;;
@@ -157,17 +163,21 @@ printf 'benchmark outputs: %s\n' "$outdir"
 # signature of silent truncation, which is the failure mode that hurts most.
 # PRIORITY shows the --rank priority winner only where it differs.
 # COV is the winner's line coverage (the 4th --emit-meta field): the share of
-# the input's lines that reached the parse.
+# the input's lines that reached the parse. CONS is its column-type
+# consistency (the 5th): the share of typed cells that match their column.
 _strat () { awk -F'\t' '$1 == "__EXTRACT_META__" {print $2 "/" $3; exit}' "$1" 2>/dev/null; }
 _cov () { awk -F'\t' '$1 == "__EXTRACT_META__" {print ($4 == "" ? "-" : $4); exit}' "$1" 2>/dev/null; }
-printf '\n%-40s %-26s %4s %5s %5s %5s %s\n' NAME STRATEGY/CONF COV IN OUT MULTI PRIORITY
+_cons () { awk -F'\t' '$1 == "__EXTRACT_META__" {print ($5 == "" ? "-" : $5); exit}' "$1" 2>/dev/null; }
+printf '\n%-40s %-26s %4s %4s %5s %5s %5s %s\n' NAME STRATEGY/CONF COV CONS IN OUT MULTI PRIORITY
 for f in "$set_dir"/*.txt; do
     n=$(basename "$f" .txt)
     s=$(_strat "$outdir/$n.meta")
     p=$(_strat "$outdir/$n.prio.meta")
     [[ "${p%/*}" == "${s%/*}" ]] && p="="
-    printf '%-40s %-26s %4s %5s %5s %5s %s\n' \
-        "$n" "${s:-none}" "$(_cov "$outdir/$n.meta")" "$(wc -l <"$f")" "$(wc -l <"$outdir/$n.def")" \
-        "$(grep -c '__DATASET__' "$outdir/$n.multi" 2>/dev/null || echo 0)" \
+    # grep -c prints 0 AND exits 1 on no match, so `|| echo 0` printed "0" twice.
+    m=$(grep -c '__DATASET__' "$outdir/$n.multi" 2>/dev/null)
+    printf '%-40s %-26s %4s %4s %5s %5s %5s %s\n' \
+        "$n" "${s:-none}" "$(_cov "$outdir/$n.meta")" "$(_cons "$outdir/$n.meta")" "$(wc -l <"$f")" "$(wc -l <"$outdir/$n.def")" \
+        "${m:-0}" \
         "${p:-none}"
 done

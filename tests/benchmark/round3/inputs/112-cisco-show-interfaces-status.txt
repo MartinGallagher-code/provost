@@ -1,0 +1,16 @@
+sw-access-03#show interfaces status
+
+Port      Name               Status       Vlan       Duplex  Speed Type
+Gi1/0/1   uplink to core-01  connected    trunk        full a-1000 10/100/1000BaseTX
+Gi1/0/2   Printer 2nd floor  connected    20         a-full a-100 10/100/1000BaseTX
+Gi1/0/3                      notconnect   20           auto   auto 10/100/1000BaseTX
+Gi1/0/4   AP-LOBBY           connected    30         a-full a-1000 10/100/1000BaseTX
+Gi1/0/5   Conf Room B phone  connected    40         a-full  a-100 10/100/1000BaseTX
+Gi1/0/6                      disabled     1            auto   auto 10/100/1000BaseTX
+Gi1/0/7   *** reserved ***   err-disabled 20           auto   auto 10/100/1000BaseTX
+Gi1/0/8   cam-parking-n      connected    50         a-full  a-100 10/100/1000BaseTX
+Gi1/0/9                      notconnect   20           auto   auto 10/100/1000BaseTX
+Gi1/0/10  desk 2.14          connected    20         a-full a-1000 10/100/1000BaseTX
+Gi1/1/1                      notconnect   1            auto   auto Not Present
+Gi1/1/2   to sw-access-04    connected    trunk        full    10G SFP-10GBase-SR
+Po1       core LACP          connected    trunk      a-full a-1000 

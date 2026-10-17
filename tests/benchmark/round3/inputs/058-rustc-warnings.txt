@@ -1,0 +1,61 @@
+warning: unused import: `std::collections::HashMap`
+ --> stock.rs:1:5
+  |
+1 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `std::fmt::Write`
+ --> stock.rs:2:5
+  |
+2 | use std::fmt::Write;
+  |     ^^^^^^^^^^^^^^^
+
+warning: unused variable: `threshold`
+ --> stock.rs:7:9
+  |
+7 |     let threshold = 5;
+  |         ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_threshold`
+  |
+  = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `Total`
+  --> stock.rs:15:9
+   |
+15 |     let Total = 0;
+   |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_Total`
+
+warning: field `label` is never read
+ --> stock.rs:4:14
+  |
+4 | struct Bin { label: String, count: u32 }
+  |        ---   ^^^^^
+  |        |
+  |        field in this struct
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variable `Total` should have a snake case name
+  --> stock.rs:15:9
+   |
+15 |     let Total = 0;
+   |         ^^^^^ help: convert the identifier to snake case: `total`
+   |
+   = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: unused `Result` that must be used
+  --> stock.rs:18:5
+   |
+18 |     r.map(|v| v + 1);
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = note: this `Result` may be an `Err` variant, which should be handled
+   = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+   |
+18 |     let _ = r.map(|v| v + 1);
+   |     +++++++
+
+warning: 7 warnings emitted
+

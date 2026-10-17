@@ -86,6 +86,8 @@ _pt_bare_shape () {
         # (a `-----|-----` rule — istanbul/nyc/c8 text reports draw one above
         # and below the header and under the last row — is chrome, not a row)
         _pt_is_rule "$_line" && continue
+        # (a result-set footer under the rows — `(3 rows)` — is no row)
+        [[ $lines -ge 2 && "$_line" != *"|"* ]] && _fr_is_footer "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         [[ "$_line" == "|"* ]] && return 1
         # A trailing `|` on a DATA row is an empty last cell (`sacct -p`'s
@@ -161,6 +163,7 @@ _pt_extract_bare () {
     for _line in "${_FR_LINES[@]}"; do
         [[ "${_line}" != *[![:space:]]* ]] && continue
         _pt_is_rule "$_line" && continue
+        [[ $entry -ge 1 && "$_line" != *"|"* ]] && _fr_is_footer "$_line" && continue
         _pt_trim "$_line"; _line="$_PT_TRIM"
         _pt_split_bare "$_line"
         if [[ $first -eq 1 ]]; then

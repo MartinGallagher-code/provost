@@ -1,0 +1,17 @@
+PID	Status	Label
+-	0	com.apple.SafariHistoryServiceAgent
+612	0	com.apple.Finder
+-	0	com.apple.homed
+1022	0	com.apple.dock.extra
+-	-9	com.apple.quicklook.ThumbnailsAgent
+-	0	com.apple.parentalcontrols.check
+788	0	com.apple.cloudd
+-	78	com.example.backup-helper
+-	0	com.apple.mdworker.shared.0A000000-0000-0000-0000-000000000000
+4410	0	com.microsoft.VSCode.ShipIt
+-	1	org.postgresql.postgres
+-	0	com.apple.knowledge-agent
+903	0	com.apple.Spotlight
+-	-15	com.apple.ReportCrash
+2201	0	application.com.apple.Terminal.1520031.1520037
+-	0	com.apple.AirPlayUIAgent

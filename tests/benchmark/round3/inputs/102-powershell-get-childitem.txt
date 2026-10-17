@@ -1,0 +1,17 @@
+
+    Directory: C:\Users\jdoe\Documents\Projekte
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----        14.09.2026     09:12                Angebote 2026
+d-----        02.10.2026     17:45                Archiv
+d-r---        11.08.2026     08:03                Vorlagen
+-a----        03.10.2026     11:27          48213 Budget Übersicht Q4.xlsx
+-a----        28.09.2026     16:02        1204736 Präsentation Kunde Müller.pptx
+-a----        15.09.2026     10:41           2210 notizen.txt
+-a---l        01.10.2026     08:55              0 Projektplan.lnk
+-a----        07.10.2026     14:19         887142 Straßenplan_Entwurf_v3.pdf
+-a-h--        12.08.2026     12:00            162 desktop.ini
+
+

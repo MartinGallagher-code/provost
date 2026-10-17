@@ -1,0 +1,31 @@
+
+LSNRCTL for Linux: Version 19.0.0.0.0 - Production on 15-OCT-2026 10:51:03
+
+Copyright (c) 1991, 2019, Oracle.  All rights reserved.
+
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=db01.example.com)(PORT=1521)))
+STATUS of the LISTENER
+------------------------
+Alias                     LISTENER
+Version                   TNSLSNR for Linux: Version 19.0.0.0.0 - Production
+Start Date                02-SEP-2026 06:12:44
+Uptime                    43 days 4 hr. 38 min. 19 sec
+Trace Level               off
+Security                  ON: Local OS Authentication
+SNMP                      OFF
+Listener Parameter File   /u01/app/oracle/product/19.0.0/dbhome_1/network/admin/listener.ora
+Listener Log File         /u01/app/oracle/diag/tnslsnr/db01/listener/alert/log.xml
+Listening Endpoints Summary...
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=db01.example.com)(PORT=1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=EXTPROC1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcps)(HOST=db01.example.com)(PORT=5500))(Security=(my_wallet_directory=/u01/app/oracle/admin/ORCL/xdb_wallet))(Presentation=HTTP)(Session=RAW))
+Services Summary...
+Service "ORCL" has 1 instance(s).
+  Instance "ORCL", status READY, has 1 handler(s) for this service...
+Service "ORCLXDB" has 1 instance(s).
+  Instance "ORCL", status READY, has 1 handler(s) for this service...
+Service "orclpdb1" has 1 instance(s).
+  Instance "ORCL", status READY, has 1 handler(s) for this service...
+Service "sales_ro" has 1 instance(s).
+  Instance "ORCL", status UNKNOWN, has 1 handler(s) for this service...
+The command completed successfully

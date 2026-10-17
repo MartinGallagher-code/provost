@@ -1,0 +1,44 @@
+entry1.key Server
+entry2.key Containers
+entry2.value 4
+entry3.key Running
+entry3.value 2
+entry4.key Paused
+entry4.value 0
+entry5.key Stopped
+entry5.value 2
+entry6.key Images
+entry6.value 17
+entry7.key Server Version
+entry7.value 27.3.1
+entry8.key Storage Driver
+entry8.value overlay2
+entry9.key Backing Filesystem
+entry9.value extfs
+entry10.key Logging Driver
+entry10.value json-file
+entry11.key Cgroup Driver
+entry11.value systemd
+entry12.key Kernel Version
+entry12.value 6.8.0-45-generic
+entry13.key Operating System
+entry13.value Ubuntu 24.04.1 LTS
+entry14.key Total Memory
+entry14.value 31.06GiB
+entry15.key Docker Root Dir
+entry15.value /var/lib/docker
+entry16.key Registry Mirrors
+entry16.value https://mirror.gcr.io/
+entry17.key Registry Mirrors
+entry17.value https://registry.example.net/
+entry18.key Insecure Registries
+entry18.value registry.lab.internal:5000
+entry19.key Insecure Registries
+entry19.value 127.0.0.0/8
+entry20.key Live Restore Enabled
+entry20.value false
+entry21.key WARNING
+entry21.value bridge-nf-call-iptables is disabled
+entry22.key WARNING
+entry22.value bridge-nf-call-ip6tables is disabled
+total_entries 22

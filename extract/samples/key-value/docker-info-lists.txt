@@ -1,0 +1,25 @@
+Server:
+ Containers: 4
+  Running: 2
+  Paused: 0
+  Stopped: 2
+ Images: 17
+ Server Version: 27.3.1
+ Storage Driver: overlay2
+  Backing Filesystem: extfs
+ Logging Driver: json-file
+ Cgroup Driver: systemd
+ Kernel Version: 6.8.0-45-generic
+ Operating System: Ubuntu 24.04.1 LTS
+ Total Memory: 31.06GiB
+ Docker Root Dir: /var/lib/docker
+ Registry Mirrors:
+  https://mirror.gcr.io/
+  https://registry.example.net/
+ Insecure Registries:
+  registry.lab.internal:5000
+  127.0.0.0/8
+ Live Restore Enabled: false
+
+WARNING: bridge-nf-call-iptables is disabled
+WARNING: bridge-nf-call-ip6tables is disabled

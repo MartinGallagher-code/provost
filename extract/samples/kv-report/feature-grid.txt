@@ -1,0 +1,13 @@
+nvi-like editor 3.2.1 (built 2026-03-04 11:20:07)
+Built by builder@ci.example.net
+Build type: release
+Optional features (+ enabled, - disabled):
++cscope            +iconv             -perl              +tags
++db185             -motif             +regex             -tcl
++filec             +ncurses           -ruby              +widechar
+-gtk               +nls               +shell             +x11
+   system exrc file: "/etc/vi.exrc"
+     user exrc file: "$HOME/.exrc"
+   user nexrc file: "$HOME/.nexrc"
+Compilation: cc -O2 -pipe -DHAVE_CONFIG_H -I. -I../common
+Linking: cc -o vi -lncursesw -ldb

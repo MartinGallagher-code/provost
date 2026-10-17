@@ -1,0 +1,9 @@
+mke2fs 1.47.0 (5-Feb-2023)
+Discarding device blocks:    0/2048         done                            
+Creating filesystem with 2048 4k blocks and 2048 inodes
+
+Allocating group tables: 0/1   done                            
+Writing inode tables: 0/1   done                            
+Creating journal (1024 blocks): done
+Writing superblocks and filesystem accounting information: 0/1   done
+

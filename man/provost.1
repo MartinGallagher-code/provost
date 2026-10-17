@@ -162,6 +162,17 @@ lossless key/value parse of the whole report (one row per key, list item and
 section) and files that instead if it keeps materially more. A capture still
 filed under 60% says so; the whole input is kept with the capture either way
 (\fBprovost source\fR).
+.SH COLUMN-TYPE CONSISTENCY
+A parse can keep every line and still put values under the wrong headers: a
+date split over three columns, a multi-word name spread over Name / Id /
+Version, a key: value file read as a two-column table. The engine types every
+cell (number, size, date/time, address, version, path, word, ...) and records
+the share of cells that match their column's type as \fBconsistency\fR in the
+capture's \fImeta.tsv\fR (not measured above 128 KB; a cell holding a word cut
+in half counts as a mismatch). When the generic parse ranked first is below
+95% and another generic parse within 20 confidence points keeps as many lines,
+types its columns better (95% or more) and mixes fewer columns, the capture is
+filed with that parse instead.
 .SH FOREGROUND AND BACKGROUND
 From an interactive terminal a capture runs in the background; from a script or
 pipeline it runs in the foreground, so

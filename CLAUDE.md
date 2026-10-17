@@ -31,9 +31,9 @@ manual merge — not a routine sync.
 
 > The inherited `envoy-*` / `ENVOY_*` / `MFE_*` names were renamed on 2026-10-02:
 > the engines are `extract/provost-extract` and `analyze/provost-analyze`, the libs
-> `lib/provost_*.sh`, and every engine setting is `PROVOST_*`. The engines still
-> honour the old names for one release (see the "Legacy names" block at the top of
-> each). `tests/corpus/*/envoy-*` are captures of the real Envoy proxy's tools:
+> `lib/provost_*.sh`, and every engine setting is `PROVOST_*`. 2.1.0 still honoured
+> the old names; the fallbacks were removed after it (2026-10-16) and ship removed in
+> 2.2.0. `tests/corpus/*/envoy-*` are captures of the real Envoy proxy's tools:
 > leave those names alone.
 
 ## Documentation
