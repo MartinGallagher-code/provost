@@ -1,0 +1,38 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: /home/dev/pricing
+plugins: cov-7.1.0
+collected 7 items
+
+test_pricing.py ....Fsx                                                  [100%]
+
+=================================== FAILURES ===================================
+________________________________ test_rounding _________________________________
+
+    def test_rounding():
+        print("checking half-up rounding")
+>       assert gross(Decimal("0.05")) == Decimal("0.07")
+E       AssertionError: assert Decimal('0.06') == Decimal('0.07')
+E        +  where Decimal('0.06') = gross(Decimal('0.05'))
+E        +    where Decimal('0.05') = Decimal('0.05')
+E        +  and   Decimal('0.07') = Decimal('0.07')
+
+test_pricing.py:27: AssertionError
+----------------------------- Captured stdout call -----------------------------
+checking half-up rounding
+==================================== PASSES ====================================
+_________________________________ test_germany _________________________________
+----------------------------- Captured stdout call -----------------------------
+net 100 -> de
+_________________________________ test_france __________________________________
+------------------------------ Captured log call -------------------------------
+WARNING  pricing:test_pricing.py:15 fr rate taken from table
+=========================== short test summary info ============================
+PASSED test_pricing.py::test_germany
+PASSED test_pricing.py::test_france
+PASSED test_pricing.py::test_unknown[it]
+PASSED test_pricing.py::test_unknown[pl]
+SKIPPED [1] test_pricing.py:30: VAT table for ch not loaded
+XFAIL test_pricing.py::test_negative - negative nets not rejected yet
+FAILED test_pricing.py::test_rounding - AssertionError: assert Decimal('0.06'...
+============== 1 failed, 4 passed, 1 skipped, 1 xfailed in 0.03s ===============

@@ -1,0 +1,138 @@
+## Round-4 held-out benchmark — provenance manifest (frozen 2026-10-20).
+##
+## provenance  captured   = real output, produced by running the command in the
+##                          2026-10-20 build container (read-only invocations on
+##                          scratch C, Java, Go, Python, Ruby, Perl, PHP and JS
+##                          projects, a scratch ext4 image, a scratch redis-server
+##                          and a scratch JVM made for the purpose; inputs
+##                          001-065). Scrubbed: scratch paths became
+##                          /home/dev/{src,ledger,tally,pricing,cart,slug,
+##                          inventory,work} and the scratch HOME became
+##                          /home/dev; Java tools were run with the container's
+##                          JAVA_TOOL_OPTIONS (proxy settings) unset. No git
+##                          command was run to make any input.
+##             reproduced = faithful reproduction of the tool's documented
+##                          output format, written by hand because the tool or
+##                          platform is not available in the container (Windows,
+##                          macOS, network gear, databases, AIX/HP-UX/z/OS/IBM i,
+##                          HPC schedulers, bioinformatics, k8s tooling, CI,
+##                          monitoring, logs, game servers; inputs 101-142).
+##                          Data values are invented; addresses use the RFC 5737
+##                          documentation ranges and example.com.
+## category    the axis the write-up breaks results down by (round-3 names).
+## family      the shape family the write-up aggregates by (round-3 names).
+## shape       free-text description of the layout.
+## source      the command line (captured) or "reproduced: <format>".
+##
+## Chosen for shape diversity and novelty BEFORE any input was run through
+## provost; no input was chosen, edited or dropped after its parse was seen.
+## The sha256 of every frozen input is in SHA256SUMS (same directory).
+##
+## input	provenance	category	family	shape	source
+001-apt-get-simulate-install	captured	package-manager	log/diagnostic-lines	progress narration + wrapped package lists + Inst/Conf records with parenthesised origins	apt-get -s install sqlite3 lua5.4 tree
+002-bison-counterexamples	captured	build	log/diagnostic-lines	file: warning: lines each followed by an indented derivation tree (`-> rule markers)	bison -Wcounterexamples -o calc.tab.c calc.y
+003-bison-report-states	captured	build	multi-section-report	titled sections: numbered grammar, terminal/nonterminal cross-reference, per-state item and action lists	bison --report=state,lookaheads -o calc.tab.c calc.y; head -120 calc.output
+004-bun-test	captured	test/lint	log/diagnostic-lines	runner banner + failure code frames with caret + (fail) lines + count summary	bun test (NO_COLOR=1, one test file, 7 tests)
+005-bundle-env	captured	language-tooling	multi-section-report	markdown ## headings + fenced blocks of aligned key value with indented sub-keys	bundle env
+006-clang-ast-dump-filter	captured	build	structured-data	tree drawn with |- and `- connectors, node kind + address + source range + type	clang -fsyntax-only -Xclang -ast-dump -Xclang -ast-dump-filter -Xclang total inventory.c
+007-clang-ftime-report	captured	build	multi-section-report	ruled report titles + header row of grouped time/percent columns + Total rows, repeated per timer group	clang -O0 -c -o /dev/null -ftime-report inventory.c
+008-clang-record-layouts	captured	build	multi-section-report	*** banners; offset | indented field tables with [sizeof=..] footers, then IRgen AST trees and <CGRecordLayout ...> blocks	clang -c -o /dev/null -Xclang -fdump-record-layouts records.c
+009-cmake-trace-source	captured	build	log/diagnostic-lines	path(line):  command(args) trace lines interleaved with -- status messages	cmake -S . -B build -G Ninja --trace-source=CMakeLists.txt
+010-composer-list	captured	language-tooling	list/grid/help/text	ASCII-art banner + Usage + option list + grouped command list with descriptions	COMPOSER_ALLOW_SUPERUSER=1 composer list --no-ansi
+011-diagtool-tree	captured	build	list/grid/help/text	colour legend + flag hierarchy by indentation only	diagtool-18 tree -Wall
+012-dircolors-database	captured	system	list/grid/help/text	# comment paragraphs + TERM lines + KEY value # comment lines	dircolors -p | head -100
+013-e2freefrag-image	captured	storage	multi-section-report	Key: value header + free-extent summary + histogram table with range column ("512K...  1024K-")	e2freefrag fs.img (scratch 64 MiB ext4 image)
+014-fc-match-verbose	captured	system	kv-record	Pattern header + tab-indented key: value(type) lines, a multi-line hex charset block, long |-joined lang list	fc-match -v 'DejaVu Sans:bold'
+015-gcov-annotated-source	captured	test/lint	table	count:  line:source columns with -/##### markers, interleaved function/branch/call annotation lines	gcov -b -c -f covmain.c util.c; cat util.c.gcov
+016-gcov-branch-counts	captured	test/lint	kv-blocks	Function '...' / File '...' blocks of Label:percent of N, Creating lines, grand total	gcov -b -c -f covmain.c util.c
+017-gio-info-file	captured	system	kv-record	top-level key: value + attributes: block of indented namespace::key: value	gio info xml/order.xml
+018-go-build-x	captured	build	log/diagnostic-lines	shell command trace: WORK=, mkdir/cd/cp lines, here-documents (cat > ... << 'EOF') with packagefile lines	go build -x -o tally . (warm build cache, one package rebuilt)
+019-go-doc-all	captured	language-tooling	list/grid/help/text	package doc: prose + TYPES heading + Go declarations each followed by indented prose	go doc -all container/ring
+020-golangci-lint-linters	captured	test/lint	kv-blocks	two titled groups of name: description [flags] lines	golangci-lint linters
+021-golangci-lint-run	captured	test/lint	log/diagnostic-lines	file:line:col: message (linter) + source line + caret, then N issues: summary list	golangci-lint run --enable=misspell,revive,unparam,errorlint,gocritic ./...
+022-gprof-brief	captured	build	multi-section-report	flat profile table with two-row header + call graph blocks separated by dashes + index by function name grid	gprof -b ./sim gmon.out
+023-infocmp-terminfo	captured	system	structured-data	terminfo source: comment, name line, comma-separated capabilities wrapped on tab-indented lines	infocmp vt220
+024-java-xlog-gc	captured	language-tooling	log/diagnostic-lines	[uptime][level][tags] prefix + GC(n) event lines with indented phase details	java -Xmx48m -Xlog:gc*:stdout:uptime,level,tags -cp classes shop.Churn | head -90
+025-javap-c-private	captured	language-tooling	list/grid/help/text	class declaration with members; each method has descriptor, Code: numbered bytecode with // comments, LineNumberTable	javap -c -p -s -l -cp classes shop.Ledger | head -120
+026-jcmd-vm-metaspace	captured	language-tooling	multi-section-report	pid line + usage rows with many comma-separated measures + virtual space block + chunk freelists per size class	jcmd <pid> VM.metaspace (scratch JVM)
+027-jfr-print-events	captured	language-tooling	structured-data	EventType { key = value ... } blocks, nested stackTrace = [ ... ] lists	jfr print --events jdk.GCHeapMemoryPoolUsage,jdk.ThreadStart rec.jfr
+028-jfr-summary	captured	language-tooling	table	key: value header + ruled table Event Type / Count / Size (bytes)	jfr summary rec.jfr | head -60
+029-jhsdb-jmap-heap	captured	language-tooling	kv-blocks	attach narration + Heap Configuration aligned key = value (units in parens) + per-generation blocks	jhsdb jmap --heap --pid <pid> (scratch JVM)
+030-jlink-list-plugins	captured	language-tooling	list/grid/help/text	help: --option <arg> + description, wrapped continuation lines, long options on their own line	jlink --list-plugins
+031-jstack-thread-dump	captured	language-tooling	log/diagnostic-lines	JVM thread dump: header, SMR info, "name" #n ... thread lines + State + tab-indented stack frames and - locked lines	jstack <pid> (scratch JVM)
+032-llc-mattr-help	captured	build	list/grid/help/text	two titled lists of name - description	llc -march=mips -mattr=help -o /dev/null </dev/null
+033-lldb-batch-session	captured	build	multi-section-report	(lldb) echoed commands + source listing with -> marker + frame variables + backtrace + struct dumps + image list	lldb -b -o 'breakpoint set -n total' -o run -o 'frame variable' -o 'thread backtrace' -o 'p *it' -o 'p *it->next' -o 'image list -b' -o kill ./invd
+034-llvm-dwarfdump-debug-info	captured	build	structured-data	DIE tree: 0xoffset: DW_TAG lines with deeper-indented DW_AT_name\t(value) attributes	llvm-dwarfdump --debug-info records.o
+035-llvm-mca-report	captured	build	multi-section-report	kv summary + legend lists + bracket-numbered column tables, - for empty cells, instruction text as last column	llvm-mca -mtriple=x86_64-unknown-unknown -mcpu=btver2 -iterations=300 dot.s
+036-llvm-readobj-headers	captured	build	structured-data	File/Format kv then brace-nested ElfHeader { Ident { ... } } and Sections [ Section { ... } ]	llvm-readobj --file-headers --section-headers records.o | head -135
+037-ninja-debug-stats	captured	build	table	[n/N] build progress lines + tab-padded metric table + hash load footer	ninja -C build -d stats
+038-node-trace-gc	captured	language-tooling	log/diagnostic-lines	[pid:isolate] ms: Scavenge a (b) -> c (d) MB, ... lines, program output interleaved	node --trace-gc --max-old-space-size=64 churn.js
+039-perl-concise-optree	captured	language-tooling	list/grid/help/text	syntax OK line + op tree: sequence label, indented <type> op[args] flags ->next	perl -MO=Concise tally.pl
+040-pg-test-fsync	captured	database	multi-section-report	prose headings + parenthesised notes + aligned method / ops/sec / usecs/op rows, n/a cells	pg_test_fsync -s 1 -f <scratch file>
+041-pg-test-timing	captured	database	table	narration + histogram with header row (< us, % of total, count)	pg_test_timing -d 2
+042-php-rc-class	captured	language-tooling	structured-data	PHP reflection: Class [ ... ] { - Section [n] { Method [ ... ] { - Parameters [n] { ... } } } }	php --rc DateInterval
+043-podchecker-errors	captured	language-tooling	log/diagnostic-lines	*** ERROR: message at line N in file F + summary	podchecker -warnings -warnings Tally.pod
+044-postgres-describe-config	captured	database	table	headerless tab-separated, 9 fields, many empty, prose in the last two	postgres --describe-config | head -80
+045-prtstat-process	captured	system	kv-blocks	section titles + several key: value pairs per line, tab-separated, grouped measures in parens	prtstat <pid of a sleep>
+046-pydoc-module	captured	language-tooling	list/grid/help/text	man-style headings NAME / DESCRIPTION / FUNCTIONS / DATA / FILE with indented bodies	pydoc3 colorsys (PAGER=cat)
+047-pygmentize-list-formatters	captured	language-tooling	kv-blocks	banner + underlined title + * names: lines each followed by an indented description	pygmentize -L formatters
+048-pytest-ra-report	captured	test/lint	log/diagnostic-lines	session header, progress line, ===/___/--- titled sections (failure code, captured output), short summary lines, totals	python3 -m pytest -rA -p no:cacheprovider test_pricing.py
+049-python-ast-dump	captured	language-tooling	structured-data	indented Python-repr tree Node(field=[ ... ], ...)	python3 -m ast pricing.py
+050-python-chained-traceback	captured	language-tooling	log/diagnostic-lines	three tracebacks joined by "direct cause"/"During handling" sentences; File lines, source, caret underlines	python3 loader.py
+051-python-pickletools	captured	language-tooling	table	offset: opcode-byte NAME argument, indentation shows MARK nesting, highest protocol footer	python3 -m pickletools data.pkl
+052-python-pyclbr	captured	language-tooling	list/grid/help/text	class/def name [bases] line-number, methods indented	python3 -m pyclbr logging.handlers
+053-python-warnings-dev	captured	language-tooling	log/diagnostic-lines	path:line: Category: message + indented source line	python3.12 -X dev -W default legacy.py
+054-python-zipfile-list	captured	storage	table	header row, file names with spaces and mis-decoded non-ASCII, date and time as two tokens	python3 -m zipfile -l bundle.zip
+055-redis-cli-bigkeys	captured	database	multi-section-report	# comment banner + [percent] progress lines + summary kv sentences + per-type count sentences	redis-cli -p <scratch port> --bigkeys
+056-redis-cli-stat	captured	database	table	grouped two-row header (data / load / child) + rolling rows with (+delta) cells	redis-cli -p <scratch port> --stat -i 1 (stopped after ~7 s)
+057-ruby-dump-insns	captured	language-tooling	multi-section-report	== disasm: headers + numbered instruction rows, operand column, (line)[flags] at the right; local tables	ruby --dump=insns cart.rb
+058-stty-all	captured	shell	kv-record	semicolon-separated name = value pairs, then space-separated [-]flag words over several lines	script -qc "stty -a" /dev/null
+059-systemd-analyze-syscall-filter	captured	system	kv-blocks	@group headings, # description, indented syscall names, blank-separated	systemd-analyze syscall-filter @clock @cpu-emulation @debug @module @mount @reboot @swap @sync
+060-systemd-delta	captured	system	log/diagnostic-lines	[TYPE] path → path lines + count footer	systemd-delta --no-pager
+061-tmux-show-options-global	captured	shell	kv-record	option value per line, values quoted or containing spaces and commas	tmux -L <scratch> show-options -g
+062-valgrind-helgrind-race	captured	build	log/diagnostic-lines	==pid== prefixed report: banner, thread announcements, race blocks with at/by stack frames, program output interleaved, summary	valgrind --tool=helgrind ./race
+063-vim-startuptime	captured	language-tooling	table	legend lines + clock / self+sourced / self: event rows, some with 2 and some with 3 numbers	vim -u DEFAULTS -i NONE --startuptime vimst.log -es -c q xml/order.xml; cat vimst.log
+064-xmllint-debug-tree	captured	data-format	structured-data	DOM dump by indentation: DOCUMENT, ELEMENT, ATTRIBUTE, TEXT, content= lines	xmllint --debug xml/order.xml
+065-zipdetails-archive	captured	storage	table	offset + field name + hex value + 'decoded' columns, blank-separated headers, indented extra fields	zipdetails bundle.zip | head -110
+101-aix-errpt	reproduced	mainframe	table	header + fixed columns, packed MMDDhhmmYY timestamp, multi-word description last	reproduced: AIX errpt summary report
+102-aix-lsattr-el-hdisk	reproduced	mainframe	table	headerless four columns: attribute, value (may be empty), multi-word description, True/False/True+	reproduced: AIX lsattr -El hdisk3
+103-apcupsd-apcaccess-status	reproduced	monitoring	kv-record	KEY padded to 9 chars + : value with units, END APC footer	reproduced: apcupsd apcaccess status
+104-cisco-show-mac-address-table	reproduced	network	table	prompt + centred title + dash-ruled table with All/numeric VLAN + total footer + prompt	reproduced: Cisco IOS show mac address-table
+105-cisco-show-processes-cpu-sorted	reproduced	network	table	prompt + CPU utilization summary line + right-aligned table with percent cells + prompt	reproduced: Cisco IOS show processes cpu sorted
+106-f5-tmsh-show-ltm-pool	reproduced	network	multi-section-report	ruled Ltm::Pool titles, Status kv blocks, Traffic tables with ServerSide/General columns, nested members	reproduced: F5 tmsh show ltm pool NAME members
+107-firebird-isql-show-table	reproduced	database	list/grid/help/text	SQL prompt + column definitions (name, type, nullability, default) with continuation lines + CONSTRAINT blocks + triggers	reproduced: Firebird isql SHOW TABLE
+108-gitlab-ci-job-log	reproduced	ci	log/diagnostic-lines	runner banner + section_start/section_end markers with CR and ANSI erase codes + $ commands + test output	reproduced: GitLab CI raw job log
+109-hp-ssacli-show-config	reproduced	storage	kv-blocks	controller line + indented arrays, logical and physical drives with parenthesised attribute lists	reproduced: HPE ssacli ctrl all show config
+110-hpux-ioscan-fnc-disk	reproduced	mainframe	table	header + = rule + device rows each followed by an indented device-file continuation line	reproduced: HP-UX ioscan -fnC disk
+111-htcondor-condor-q	reproduced	scientific	table	-- Schedd: banner + table with _ for zero, DAG/ID batch names, job-id ranges + two Total sentences	reproduced: HTCondor condor_q
+112-huawei-display-interface-brief	reproduced	network	table	prompt + legend lines + table, member ports indented under Eth-Trunk, flags glued to cells	reproduced: Huawei VRP display interface brief
+113-ibmi-wrksyssts	reproduced	mainframe	multi-section-report	5250 screen: title, two-column dot-leader kv grid, grouped-header pool table, function-key footer	reproduced: IBM i WRKSYSSTS screen print
+114-informix-onstat-d	reproduced	database	multi-section-report	banner line + Dbspaces table + count footer + Chunks table with continuation row + NOTE + kv	reproduced: Informix onstat -d
+115-juju-status	reproduced	k8s	multi-section-report	five blank-separated tables (Model, App, Unit, Machine, Offer), empty cells, * leader marks	reproduced: juju status
+116-junos-show-interfaces-terse	reproduced	network	table	prompt + table where protocol and address continuation rows have only some columns + prompt	reproduced: Junos show interfaces terse
+117-klog-kubelet	reproduced	k8s	log/diagnostic-lines	klog Lmmdd hh:mm:ss.us pid file:line] message, structured key=value tails, a multi-line err=< block	reproduced: kubelet klog output
+118-kops-validate-cluster	reproduced	k8s	multi-section-report	narration + three titled tab-separated tables (ragged tabs) + failure footer	reproduced: kops validate cluster
+119-kraken2-report	reproduced	scientific	table	headerless tab-separated: percent, clade count, direct count, rank code, taxid, indented name (indent = depth)	reproduced: Kraken 2 --report
+120-macos-diskutil-info	reproduced	storage	kv-record	indented aligned Key: value, blank-separated groups, values with parenthesised byte counts, a prose line	reproduced: macOS diskutil info disk3s1
+121-macos-ioreg-usb-tree	reproduced	system	structured-data	+-o node tree with | rails, names with spaces and non-ASCII, <class ..., key value, ...> attributes	reproduced: macOS ioreg -p IOService (abridged)
+122-macos-mdls	reproduced	storage	kv-record	kMDItem key = value, quoted strings, (null), multi-line ( ... ) arrays	reproduced: macOS mdls FILE
+123-macos-xcrun-simctl-list	reproduced	system	multi-section-report	== titled sections, -- runtime subsections, device lines with (UUID) (state) (notes)	reproduced: xcrun simctl list
+124-mikrotik-interface-print-detail	reproduced	network	kv-blocks	flags legend + numbered records of key=value pairs wrapped onto indented lines, ;;; comments, flag letters	reproduced: RouterOS /interface print detail
+125-mssql-sp-who2	reproduced	database	table	dash-ruled wide result set, two SPID columns, multi-word cells, left/right padding, empty program names	reproduced: SQL Server sp_who2 (sqlcmd)
+126-paloalto-show-session-all	reproduced	network	table	dash-ruled two-row header, each session spans two lines (vsys and destination on the second)	reproduced: PAN-OS show session all
+127-picard-alignment-summary-metrics	reproduced	scientific	multi-section-report	## / # comment header + METRICS CLASS + wide tab-separated table with empty trailing cells	reproduced: Picard CollectAlignmentSummaryMetrics output
+128-rails-production-log	reproduced	logs	log/diagnostic-lines	Ruby Logger prefix + [request-id] tag, request blocks (Started/Processing/Parameters/Completed), backtrace lines with only the tag	reproduced: Rails production.log
+129-sge-qhost	reproduced	scientific	table	header + dash rule + global row of - + rows with - for unknown	reproduced: Grid Engine qhost
+130-sybase-sp-helpdb	reproduced	database	multi-section-report	isql prompt echo + three result sets with dash rules, a ruled free-space line, (1 row affected), return status	reproduced: Sybase ASE sp_helpdb via isql
+131-teamcity-build-log	reproduced	ci	log/diagnostic-lines	[time] S:\t [Step n/m] prefix + ##teamcity[...] service messages with quoted attributes	reproduced: TeamCity build log
+132-teamspeak-serverquery-clientlist	reproduced	game-server	structured-data	one line of |-separated records of key=value with \s escapes, non-ASCII nicknames + error id=0 msg=ok	reproduced: TeamSpeak 3 ServerQuery clientlist
+133-teradata-bteq-select	reproduced	database	multi-section-report	BTEQ banner + ruler lines + echoed commands + *** status lines + result table with ? for null	reproduced: Teradata BTEQ session
+134-windows-bcdedit-enum	reproduced	system	kv-blocks	titled, dash-underlined blocks of aligned key value, a continuation value line	reproduced: Windows bcdedit /enum
+135-windows-gpresult-r	reproduced	system	multi-section-report	banner + titled, dash-underlined sections, aligned kv, nested lists, filtered-GPO sub-blocks	reproduced: Windows gpresult /r
+136-windows-quser	reproduced	system	table	header + rows with an empty SESSIONNAME, > marker on the current session, two-token logon time	reproduced: Windows quser
+137-windows-robocopy-log	reproduced	storage	multi-section-report	ruled banner + kv header + tab-indented per-file lines with error/retry lines + summary table + speed footer	reproduced: Windows robocopy /MIR log
+138-windows-schtasks-query-list	reproduced	system	kv-blocks	Folder line + blank-separated blocks of aligned Key: value; keys containing colons (Repeat: Every:)	reproduced: Windows schtasks /query /fo LIST /v
+139-windows-tasklist-v	reproduced	system	table	= ruled wide table, multi-word cells, thousands separators with K unit, non-ASCII window titles	reproduced: Windows tasklist /v
+140-windows-whoami-priv	reproduced	system	table	title + rule + = ruled three-column table with multi-word descriptions	reproduced: Windows whoami /priv
+141-zeek-conn-log	reproduced	logs	table	#separator/#fields/#types header lines + tab-separated rows with - and (empty) + #close	reproduced: Zeek conn.log (ASCII writer)
+142-zos-idcams-listcat	reproduced	mainframe	multi-section-report	ASA carriage-control column, page headers, entry type ------- name lines, nested groups of KEY----value pairs several per line, totals and IDC messages	reproduced: z/OS IDCAMS LISTCAT ALL

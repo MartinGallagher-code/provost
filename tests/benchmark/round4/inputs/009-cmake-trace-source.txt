@@ -1,0 +1,47 @@
+/home/dev/srcm/CMakeLists.txt(1):  cmake_minimum_required(VERSION 3.20 )Put cmake in trace mode, but output only lines of a specified file. Multiple options are allowed.
+
+/home/dev/srcm/CMakeLists.txt(2):  project(inventory C )
+-- The C compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(1):  cmake_minimum_required(VERSION 3.28.3.0 )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(2):  cmake_policy(SET CMP0126 OLD )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(3):  cmake_policy(SET CMP0128 OLD )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(4):  project(CMAKE_TRY_COMPILE C )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(5):  set_property(DIRECTORY PROPERTY INCLUDE_DIRECTORIES  )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(6):  set(CMAKE_VERBOSE_MAKEFILE 1 )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(7):  set(CMAKE_C_FLAGS  )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(8):  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${COMPILE_DEFINITIONS} )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(9):  set(CMAKE_C_FLAGS_DEBUG -g )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(10):  set(CMAKE_EXE_LINKER_FLAGS  )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(11):  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${EXE_LINKER_FLAGS} )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(12):  include_directories(${INCLUDE_DIRECTORIES} )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(13):  set(CMAKE_SUPPRESS_REGENERATION 1 )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(14):  link_directories(${LINK_DIRECTORIES} )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(15):  add_definitions(-v )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(16):  cmake_policy(SET CMP0065 NEW )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(17):  cmake_policy(SET CMP0083 NEW )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(18):  cmake_policy(SET CMP0155 OLD )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(19):  include(${CMAKE_ROOT}/Modules/Internal/HeaderpadWorkaround.cmake )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(20):  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(21):  add_executable(cmTC_f2c4f )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(22):  target_sources(cmTC_f2c4f PRIVATE /usr/share/cmake-3.28/Modules/CMakeCCompilerABI.c )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(25):  file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/cmTC_f2c4f_loc CONTENT $<TARGET_FILE:cmTC_f2c4f> )
+/home/dev/srcm/build/CMakeFiles/CMakeScratch/TryCompile-9SRySU/CMakeLists.txt(27):  target_link_libraries(cmTC_f2c4f ${LINK_LIBRARIES} )
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+/home/dev/srcm/CMakeLists.txt(3):  option(WITH_UTIL build the util library ON )
+/home/dev/srcm/CMakeLists.txt(4):  set(CMAKE_C_STANDARD 11 )
+/home/dev/srcm/CMakeLists.txt(5):  if(WITH_UTIL )
+/home/dev/srcm/CMakeLists.txt(6):  add_library(util STATIC util.c )
+/home/dev/srcm/CMakeLists.txt(7):  target_compile_definitions(util PRIVATE UTIL_LEVEL=2 )
+/home/dev/srcm/CMakeLists.txt(9):  add_executable(inventory inventory.c )
+/home/dev/srcm/CMakeLists.txt(10):  foreach(w IN ITEMS all extra )
+/home/dev/srcm/CMakeLists.txt(11):  target_compile_options(inventory PRIVATE -W${w} )
+/home/dev/srcm/CMakeLists.txt(11):  target_compile_options(inventory PRIVATE -W${w} )
+/home/dev/srcm/CMakeLists.txt(13):  message(STATUS util enabled: ${WITH_UTIL} )
+-- util enabled: ON
+-- Configuring done (0.2s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/dev/srcm/build

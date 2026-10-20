@@ -1,0 +1,150 @@
+2026-10-20 22:21:35
+Full thread dump OpenJDK 64-Bit Server VM (21.0.10+7-Ubuntu-124.04 mixed mode, sharing):
+
+Threads class SMR info:
+_java_thread_list=0x00007f3394001d80, length=17, elements={
+0x00007f3424019780, 0x00007f34240b1af0, 0x00007f34240b3070, 0x00007f34240b4810,
+0x00007f34240b5e60, 0x00007f34240b7410, 0x00007f34240b8f60, 0x00007f34240ba630,
+0x00007f3424158e90, 0x00007f34241aa730, 0x00007f342422c420, 0x00007f3370001540,
+0x00007f3424243890, 0x00007f34242105c0, 0x00007f3424211700, 0x00007f3424212880,
+0x00007f33940010f0
+}
+
+"main" #1 [20910] prio=5 os_prio=0 cpu=412.99ms elapsed=6.38s tid=0x00007f3424019780 nid=20910 waiting on condition  [0x00007f3428ffe000]
+   java.lang.Thread.State: TIMED_WAITING (sleeping)
+	at java.lang.Thread.sleep0(java.base@21.0.10/Native Method)
+	at java.lang.Thread.sleep(java.base@21.0.10/Thread.java:509)
+	at shop.Ledger.main(Ledger.java:38)
+
+"Reference Handler" #9 [20926] daemon prio=10 os_prio=0 cpu=0.29ms elapsed=6.36s tid=0x00007f34240b1af0 nid=20926 waiting on condition  [0x00007f340c278000]
+   java.lang.Thread.State: RUNNABLE
+	at java.lang.ref.Reference.waitForReferencePendingList(java.base@21.0.10/Native Method)
+	at java.lang.ref.Reference.processPendingReferences(java.base@21.0.10/Reference.java:246)
+	at java.lang.ref.Reference$ReferenceHandler.run(java.base@21.0.10/Reference.java:208)
+
+"Finalizer" #10 [20927] daemon prio=8 os_prio=0 cpu=0.32ms elapsed=6.36s tid=0x00007f34240b3070 nid=20927 in Object.wait()  [0x00007f340c178000]
+   java.lang.Thread.State: WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <0x00000000ff0100f0> (a java.lang.ref.NativeReferenceQueue$Lock)
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:339)
+	at java.lang.ref.NativeReferenceQueue.await(java.base@21.0.10/NativeReferenceQueue.java:48)
+	at java.lang.ref.ReferenceQueue.remove0(java.base@21.0.10/ReferenceQueue.java:158)
+	at java.lang.ref.NativeReferenceQueue.remove(java.base@21.0.10/NativeReferenceQueue.java:89)
+	- locked <0x00000000ff0100f0> (a java.lang.ref.NativeReferenceQueue$Lock)
+	at java.lang.ref.Finalizer$FinalizerThread.run(java.base@21.0.10/Finalizer.java:173)
+
+"Signal Dispatcher" #11 [20928] daemon prio=9 os_prio=0 cpu=0.77ms elapsed=6.36s tid=0x00007f34240b4810 nid=20928 waiting on condition  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Service Thread" #12 [20929] daemon prio=9 os_prio=0 cpu=0.23ms elapsed=6.36s tid=0x00007f34240b5e60 nid=20929 runnable  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"Monitor Deflation Thread" #13 [20930] daemon prio=9 os_prio=0 cpu=0.67ms elapsed=6.36s tid=0x00007f34240b7410 nid=20930 runnable  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"C2 CompilerThread0" #14 [20931] daemon prio=9 os_prio=0 cpu=283.19ms elapsed=6.36s tid=0x00007f34240b8f60 nid=20931 waiting on condition  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+   No compile task
+
+"C1 CompilerThread0" #16 [20932] daemon prio=9 os_prio=0 cpu=274.49ms elapsed=6.36s tid=0x00007f34240ba630 nid=20932 waiting on condition  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+   No compile task
+
+"Common-Cleaner" #17 [21014] daemon prio=8 os_prio=0 cpu=0.41ms elapsed=6.22s tid=0x00007f3424158e90 nid=21014 waiting on condition  [0x00007f33fda2d000]
+   java.lang.Thread.State: TIMED_WAITING (parking)
+	at jdk.internal.misc.Unsafe.park(java.base@21.0.10/Native Method)
+	- parking to wait for  <0x00000000ff010660> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)
+	at java.util.concurrent.locks.LockSupport.parkNanos(java.base@21.0.10/LockSupport.java:269)
+	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(java.base@21.0.10/AbstractQueuedSynchronizer.java:1886)
+	at java.lang.ref.ReferenceQueue.await(java.base@21.0.10/ReferenceQueue.java:71)
+	at java.lang.ref.ReferenceQueue.remove0(java.base@21.0.10/ReferenceQueue.java:143)
+	at java.lang.ref.ReferenceQueue.remove(java.base@21.0.10/ReferenceQueue.java:218)
+	at jdk.internal.ref.CleanerImpl.run(java.base@21.0.10/CleanerImpl.java:140)
+	at java.lang.Thread.runWith(java.base@21.0.10/Thread.java:1596)
+	at java.lang.Thread.run(java.base@21.0.10/Thread.java:1583)
+	at jdk.internal.misc.InnocuousThread.run(java.base@21.0.10/InnocuousThread.java:186)
+
+"JFR Recorder Thread" #18 [21099] daemon prio=5 os_prio=0 cpu=1.55ms elapsed=6.08s tid=0x00007f34241aa730 nid=21099 runnable  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"JFR Periodic Tasks" #20 [21219] daemon prio=5 os_prio=0 cpu=5.56ms elapsed=5.67s tid=0x00007f342422c420 nid=21219 in Object.wait()  [0x00007f33fc70f000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <no object reference available>
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at jdk.jfr.internal.PlatformRecorder.takeNap(jdk.jfr@21.0.10/PlatformRecorder.java:559)
+	- locked <0x00000000fef554c8> (a jdk.jfr.internal.JVM$ChunkRotationMonitor)
+	at jdk.jfr.internal.PlatformRecorder.periodicTask(jdk.jfr@21.0.10/PlatformRecorder.java:527)
+	at jdk.jfr.internal.PlatformRecorder.lambda$startDiskMonitor$1(jdk.jfr@21.0.10/PlatformRecorder.java:446)
+	at jdk.jfr.internal.PlatformRecorder$$Lambda/0x00007f33b0042928.run(jdk.jfr@21.0.10/Unknown Source)
+	at java.lang.Thread.runWith(java.base@21.0.10/Thread.java:1596)
+	at java.lang.Thread.run(java.base@21.0.10/Thread.java:1583)
+
+"JFR Recording Scheduler" #24 [21249] daemon prio=5 os_prio=0 cpu=0.26ms elapsed=5.58s tid=0x00007f3370001540 nid=21249 in Object.wait()  [0x00007f33fc40e000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <0x00000000ff476490> (a java.util.TaskQueue)
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at java.util.TimerThread.mainLoop(java.base@21.0.10/Timer.java:563)
+	- locked <0x00000000ff476490> (a java.util.TaskQueue)
+	at java.util.TimerThread.run(java.base@21.0.10/Timer.java:516)
+
+"Notification Thread" #25 [21252] daemon prio=9 os_prio=0 cpu=0.07ms elapsed=5.58s tid=0x00007f3424243890 nid=21252 runnable  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+"poster-0" #26 [21261] prio=5 os_prio=0 cpu=13.53ms elapsed=5.56s tid=0x00007f34242105c0 nid=21261 in Object.wait()  [0x00007f33fc30e000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <no object reference available>
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at shop.Ledger.lambda$main$0(Ledger.java:33)
+	- locked <0x00000000ff44f788> (a shop.Ledger)
+	at shop.Ledger$$Lambda/0x00007f33b0006a18.run(Unknown Source)
+	at java.lang.Thread.runWith(java.base@21.0.10/Thread.java:1596)
+	at java.lang.Thread.run(java.base@21.0.10/Thread.java:1583)
+
+"poster-1" #27 [21262] prio=5 os_prio=0 cpu=6.40ms elapsed=5.56s tid=0x00007f3424211700 nid=21262 in Object.wait()  [0x00007f33fc20e000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <no object reference available>
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at shop.Ledger.lambda$main$0(Ledger.java:33)
+	- locked <0x00000000ff44f788> (a shop.Ledger)
+	at shop.Ledger$$Lambda/0x00007f33b0006a18.run(Unknown Source)
+	at java.lang.Thread.runWith(java.base@21.0.10/Thread.java:1596)
+	at java.lang.Thread.run(java.base@21.0.10/Thread.java:1583)
+
+"poster-2" #28 [21264] prio=5 os_prio=0 cpu=5.30ms elapsed=5.55s tid=0x00007f3424212880 nid=21264 in Object.wait()  [0x00007f33fc10e000]
+   java.lang.Thread.State: TIMED_WAITING (on object monitor)
+	at java.lang.Object.wait0(java.base@21.0.10/Native Method)
+	- waiting on <no object reference available>
+	at java.lang.Object.wait(java.base@21.0.10/Object.java:366)
+	at shop.Ledger.lambda$main$0(Ledger.java:33)
+	- locked <0x00000000ff44f788> (a shop.Ledger)
+	at shop.Ledger$$Lambda/0x00007f33b0006a18.run(Unknown Source)
+	at java.lang.Thread.runWith(java.base@21.0.10/Thread.java:1596)
+	at java.lang.Thread.run(java.base@21.0.10/Thread.java:1583)
+
+"Attach Listener" #29 [24266] daemon prio=9 os_prio=0 cpu=0.34ms elapsed=0.10s tid=0x00007f33940010f0 nid=24266 waiting on condition  [0x0000000000000000]
+   java.lang.Thread.State: RUNNABLE
+
+os_prio=0 cpu=8.30ms elapsed=5.61s tid=0x00007f3424225b30 nid=21237 runnable  
+"GC Thread#1" os_prio=0 cpu=3.63ms elapsed=5.74s tid=0x00007f33a4006b90 nid=21179 runnable  
+
+"VM Thread" os_prio=0 cpu=7.32ms elapsed=6.36s tid=0x00007f34240a8e80 nid=20923 runnable  
+
+"VM Periodic Task Thread" os_prio=0 cpu=3.89ms elapsed=6.37s tid=0x00007f34240971a0 nid=20921 waiting on condition  
+
+"G1 Service" os_prio=0 cpu=0.28ms elapsed=6.38s tid=0x00007f3424088240 nid=20917 runnable  
+
+"G1 Refine#0" os_prio=0 cpu=0.13ms elapsed=6.38s tid=0x00007f3424087270 nid=20916 runnable  
+
+"G1 Conc#0" os_prio=0 cpu=0.06ms elapsed=6.38s tid=0x00007f342403b3f0 nid=20915 runnable  
+
+"G1 Main Marker" os_prio=0 cpu=0.07ms elapsed=6.38s tid=0x00007f342403a440 nid=20914 runnable  
+
+"GC Thread#0" os_prio=0 cpu=3.44ms elapsed=6.38s tid=0x00007f3424038b10 nid=20913 runnable  
+
+JNI global refs: 30, weak refs: 3
+

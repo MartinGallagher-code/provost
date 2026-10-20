@@ -1,0 +1,30 @@
+
+
+times in msec
+ clock   self+sourced   self:  sourced script
+ clock   elapsed:              other lines
+
+000.013  000.013: --- VIM STARTING ---
+001.038  001.025: locale set
+001.046  000.008: window checked
+006.050  005.004: inits 1
+006.663  000.613: parsing arguments
+006.666  000.003: expanding arguments
+006.794  000.128: shell init
+006.863  000.069: inits 2
+007.182  000.319: init highlight
+187.442  095.005  095.005: sourcing /usr/share/vim/vim91/filetype.vim
+188.467  000.491  000.491: sourcing /usr/share/vim/vim91/ftplugin.vim
+188.816  000.249  000.249: sourcing /usr/share/vim/vim91/indent.vim
+189.254  140.511  044.766: sourcing $VIMRUNTIME/defaults.vim
+189.258  041.565: sourcing vimrc file(s)
+189.265  000.007: inits 3
+189.272  000.007: reading viminfo
+189.274  000.002: setting raw mode
+189.275  000.001: start termcap
+194.287  002.711  002.711: sourcing /usr/share/vim/vim91/autoload/dist/ft.vim
+195.253  000.227  000.227: sourcing /usr/share/vim/vim91/ftplugin/xml.vim
+196.350  000.340  000.340: sourcing /usr/share/vim/vim91/indent/xml.vim
+196.847  004.294: opening buffers
+196.849  000.002: BufEnter autocommands
+196.850  000.001: editing files in windows

@@ -1,0 +1,26 @@
+SQL> SHOW TABLE KUNDEN;
+KUNDEN_ID                       INTEGER Not Null 
+NAME                            VARCHAR(80) CHARACTER SET UTF8 Not Null 
+                                 COLLATE UNICODE_CI_AI
+STRASSE                         VARCHAR(120) CHARACTER SET UTF8 Nullable 
+PLZ                             CHAR(5) CHARACTER SET UTF8 Nullable 
+ORT                             VARCHAR(60) CHARACTER SET UTF8 Nullable 
+LAND                            CHAR(2) CHARACTER SET UTF8 Not Null DEFAULT 'DE'
+KREDITLIMIT                     NUMERIC(12, 2) Nullable DEFAULT 0
+ANGELEGT_AM                     TIMESTAMP Not Null DEFAULT CURRENT_TIMESTAMP
+AKTIV                           (D_BOOL) SMALLINT Not Null DEFAULT 1
+                                CHECK (VALUE IN (0, 1))
+BEMERKUNG                       BLOB segment 80, subtype TEXT CHARACTER SET UTF8 Nullable 
+CONSTRAINT FK_KUNDEN_LAND:
+  Foreign key (LAND)    References LAENDER (ISO2) On Update Cascade
+CONSTRAINT PK_KUNDEN:
+  Primary key (KUNDEN_ID)
+CONSTRAINT UQ_KUNDEN_NAME_PLZ:
+  Unique key (NAME, PLZ)
+CONSTRAINT CHK_KREDITLIMIT:
+  CHECK (KREDITLIMIT >= 0)
+
+Triggers on Table KUNDEN:
+TRG_KUNDEN_BI, Sequence: 0, Type: BEFORE INSERT, Active
+TRG_KUNDEN_AU, Sequence: 5, Type: AFTER UPDATE, Inactive
+SQL> 

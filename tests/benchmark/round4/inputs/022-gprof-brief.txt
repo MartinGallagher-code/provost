@@ -1,0 +1,40 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+100.00      0.71     0.71  1499999     0.00     0.00  collatz
+  0.00      0.71     0.00  8000000     0.00     0.00  step
+  0.00      0.71     0.00       40     0.00     0.00  integrate
+  0.00      0.71     0.00        1     0.00   710.00  scan
+
+			Call graph
+
+
+granularity: each sample hit covers 4 byte(s) for 1.41% of 0.71 seconds
+
+index % time    self  children    called     name
+                0.71    0.00 1499999/1499999     scan [2]
+[1]    100.0    0.71    0.00 1499999         collatz [1]
+-----------------------------------------------
+                0.00    0.71       1/1           main [3]
+[2]    100.0    0.00    0.71       1         scan [2]
+                0.71    0.00 1499999/1499999     collatz [1]
+-----------------------------------------------
+                                                 <spontaneous>
+[3]    100.0    0.00    0.71                 main [3]
+                0.00    0.71       1/1           scan [2]
+                0.00    0.00      40/40          integrate [5]
+-----------------------------------------------
+                0.00    0.00 8000000/8000000     integrate [5]
+[4]      0.0    0.00    0.00 8000000         step [4]
+-----------------------------------------------
+                0.00    0.00      40/40          main [3]
+[5]      0.0    0.00    0.00      40         integrate [5]
+                0.00    0.00 8000000/8000000     step [4]
+-----------------------------------------------
+
+Index by function name
+
+   [1] collatz                 [2] scan
+   [5] integrate               [4] step

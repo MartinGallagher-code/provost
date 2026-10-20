@@ -1,5 +1,39 @@
 # provost — Changelog
 
+## 2026-10-20 — generalisation benchmark round 4: 107 unseen inputs, rated on the current engine (measurement only)
+
+A fresh held-out set, built and frozen before the first input was run, to
+measure the 2026-10-16 fix round and the 2026-10-20 engine work on output
+nobody had parsed, and to baseline the planned "segment when the signals are
+weak" change.
+- **The set.** 107 inputs: 65 real captures from read-only commands on
+  scratch projects in the build container (LLVM/clang, lldb, gcov, gprof,
+  valgrind, bison, CMake, ninja, Go, golangci-lint, JDK tools, Python
+  modules, pytest, Ruby, Perl, PHP, Node, bun, redis, PostgreSQL utilities,
+  e2fsprogs, fontconfig, GIO, terminfo, systemd and more) and 42 hand-written
+  reproductions of documented formats (Windows, macOS, network gear,
+  databases, AIX/HP-UX/z/OS/IBM i, HPC and bioinformatics, k8s tooling, CI,
+  monitoring, logs, a game server). No git command was run to make any input.
+- **Novelty.** `round4/novelty.py` (round 3's, extended to round 3) checks
+  every input against all 4,067 existing inputs. No name clash; highest word
+  3-gram similarity 0.09, highest line-set similarity 0.07. One candidate was
+  dropped as a close relative (0.14, a shared licence banner).
+- **Frozen** with round 3's `CRITERIA.md` copied unchanged plus a dated note,
+  and the sha256 of every input in `round4/SHA256SUMS`.
+- **Result, default mode: 12 PASS / 51 PARTIAL / 44 FAIL** (11% / 48% / 41%;
+  59% usable), against round 3's 21% / 42% / 37% on 2.1.0 and 21% / 45% / 35%
+  after the fix round. **`--multi` on the same scale: 12 / 64 / 31** (71%
+  usable): better on 15 inputs, worse on 2.
+- **Quality gate:** it would hold 18 captures, 17 FAIL and 1 PARTIAL, no PASS.
+  It catches none of the 15 FAILs where a banner, prompt, title or legend
+  becomes the header.
+- **Runner:** `tests/benchmark/run.sh --round4`. No engine, strategy, hint or
+  parser file was touched.
+- Files: `tests/benchmark/round4/` (inputs, `manifest.tsv`, `SHA256SUMS`,
+  `CRITERIA.md`, `ratings.tsv`, `novelty.py`), `tests/benchmark/run.sh`,
+  `tests/benchmark/README.md`,
+  `docs/benchmark-2026-10-20-generalisation-round4.md`, `mkdocs.yml`.
+
 ## 2026-10-20 — release v2.2.0
 
 `VERSION` 2.1.0 → 2.2.0, and the `man/provost.1` header. Everything below has

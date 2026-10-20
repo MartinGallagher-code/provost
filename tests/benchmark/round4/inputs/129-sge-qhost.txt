@@ -1,0 +1,8 @@
+HOSTNAME                ARCH         NCPU NSOC NCOR NTHR  LOAD  MEMTOT  MEMUSE  SWAPTO  SWAPUS
+----------------------------------------------------------------------------------------------
+global                  -               -    -    -    -     -       -       -       -       -
+node01                  lx-amd64       32    2   16   32  29.84  251.6G   88.2G   16.0G  212.0M
+node02                  lx-amd64       32    2   16   32  31.02  251.6G  201.7G   16.0G    1.3G
+node03                  lx-amd64       32    2   16   32   0.01  251.6G    3.1G   16.0G     0.0
+node04                  lx-amd64       64    2   32   64     -  503.4G       -   16.0G       -
+gpu-a                   lx-amd64       48    2   24   48  12.50  377.4G  120.9G    8.0G  105.4M

@@ -1,0 +1,54 @@
+DOCUMENT
+version=1.0
+encoding=UTF-8
+URL=xml/order.xml
+standalone=true
+  COMMENT
+    content= order export 
+  ELEMENT order
+    namespace x href=urn:example:ext
+    ATTRIBUTE id
+      TEXT compact
+        content=1042
+    TEXT compact
+      content=   
+    ELEMENT customer
+      ATTRIBUTE country
+        TEXT compact
+          content=DE
+      TEXT
+        content=J#C3#BCrgen M#C3#BCller
+    TEXT compact
+      content=   
+    ELEMENT items
+      TEXT compact
+        content=     
+      ELEMENT item
+        ATTRIBUTE sku
+          TEXT compact
+            content=B-M6
+        ATTRIBUTE qty
+          TEXT compact
+            content=40
+        TEXT compact
+          content=bolt M6
+      TEXT compact
+        content=     
+      ELEMENT item
+        ATTRIBUTE sku
+          TEXT compact
+            content=W-8
+        ATTRIBUTE qty
+          TEXT compact
+            content=12
+        CDATA_SECTION
+          content=washer <8mm>
+      TEXT compact
+        content=   
+    TEXT compact
+      content=   
+    ELEMENT x:note
+      TEXT compact
+        content=rush
+    TEXT compact
+      content= 

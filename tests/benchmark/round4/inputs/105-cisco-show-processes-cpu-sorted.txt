@@ -1,0 +1,18 @@
+core-rtr1#show processes cpu sorted
+CPU utilization for five seconds: 23%/7%; one minute: 18%; five minutes: 15%
+ PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process 
+ 412    88213516   143890112        613  6.39%  4.81%  4.02%   0 IP Input         
+ 228    41022884    10022871       4092  3.11%  2.40%  2.17%   0 BGP Router       
+ 101    12850432   408812240         31  1.27%  1.09%  1.11%   0 ARP Input        
+ 377     9022180     2210388       4081  0.95%  0.71%  0.62%   0 OSPF-1 Hello     
+  64     6612844    18803311        351  0.47%  0.40%  0.38%   0 Net Background   
+ 231     3002912     1102293       2724  0.31%  0.22%  0.20%   0 BGP Scanner      
+ 118     1803380    40110044         44  0.15%  0.11%  0.10%   0 CDP Protocol     
+   3      910244       41120      22136  0.00%  0.04%  0.05%   0 Exec             
+ 290      402116      884213        454  0.00%  0.01%  0.00%   0 SNMP ENGINE      
+ 344      188020     1902231         98  0.00%  0.00%  0.00%   0 NTP              
+   1           0           6          0  0.00%  0.00%  0.00%   0 Chunk Manager    
+   2        1416      442212          3  0.00%  0.00%  0.00%   0 Load Meter       
+   4      338120       71212       4748  0.00%  0.02%  0.00%   0 Check heaps      
+ 512          12          44        272  0.00%  0.00%  0.00%   2 SSH Process      
+core-rtr1#

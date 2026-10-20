@@ -1,0 +1,18 @@
+  1.84	18422	18422	U	0	unclassified
+ 98.16	982311	1402	R	1	root
+ 97.71	977802	288	R1	131567	  cellular organisms
+ 96.90	969705	3012	D	2	    Bacteria
+ 61.25	612938	1180	P	1224	      Pseudomonadota
+ 58.02	580601	977	C	1236	        Gammaproteobacteria
+ 41.37	414002	203	O	91347	          Enterobacterales
+ 40.88	409114	1022	F	543	            Enterobacteriaceae
+ 38.64	386701	51207	G	561	              Escherichia
+ 33.52	335494	335494	S	562	                Escherichia coli
+  1.12	11201	11201	G	620	              Shigella
+ 16.11	161211	2210	O	72274	          Pseudomonadales
+ 15.89	159001	159001	G	286	            Pseudomonas
+ 31.88	319011	844	P	1239	      Bacillota
+ 29.01	290322	290322	G	1386	        Bacillus
+  0.81	8097	4120	D	2759	    Eukaryota
+  0.40	3977	3977	S	4932	      Saccharomyces cerevisiae
+  0.45	4509	4509	D	10239	  Viruses

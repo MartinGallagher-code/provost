@@ -1,0 +1,52 @@
+   Device Identifier:         disk3s1
+   Device Node:               /dev/disk3s1
+   Whole:                     No
+   Part of Whole:             disk3
+
+   Volume Name:               Macintosh HD - Data
+   Mounted:                   Yes
+   Mount Point:               /System/Volumes/Data
+
+   Partition Type:            41504653-0000-11AA-AA11-00306543ECAC
+   File System Personality:   APFS
+   Type (Bundle):             apfs
+   Name (User Visible):       APFS
+   Owners:                    Enabled
+
+   OS Can Be Installed:       No
+   Booter Disk:               disk3s2
+   Recovery Disk:             disk3s3
+   Media Type:                Generic
+   Protocol:                  Apple Fabric
+   SMART Status:              Verified
+   Volume UUID:               5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19
+   Disk / Partition UUID:     5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19
+
+   Disk Size:                 994.7 GB (994662584320 Bytes) (exactly 1942700360 512-Byte-Units)
+   Device Block Size:         4096 Bytes
+
+   Container Total Space:     994.7 GB (994662584320 Bytes) (exactly 1942700360 512-Byte-Units)
+   Container Free Space:      412.3 GB (412301918208 Bytes) (exactly 805277184 512-Byte-Units)
+   Allocation Block Size:     4096 Bytes
+
+   Media OS Use Only:         No
+   Media Read-Only:           No
+   Volume Read-Only:          No
+
+   Device Location:           Internal
+   Removable Media:           Fixed
+
+   Solid State:               Yes
+   Hardware AES Support:      Yes
+
+   This disk is an APFS Volume.  APFS Information:
+   APFS Container:            disk3
+   APFS Physical Store:       disk0s2
+   Fusion Drive:              No
+   APFS Volume Group:         5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19
+   EFI Driver In macOS:       2142081000000000
+   Encrypted:                 Yes
+   FileVault:                 Yes
+   Sealed:                    No
+   Locked:                    No
+

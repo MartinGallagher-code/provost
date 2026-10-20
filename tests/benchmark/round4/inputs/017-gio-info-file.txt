@@ -1,0 +1,57 @@
+display name: order.xml
+edit name: order.xml
+name: order.xml
+type: regular
+size:  317
+uri: file:///home/dev/work/xml/order.xml
+local path: /home/dev/work/xml/order.xml
+unix mount: /dev/vda / ext4 rw,relatime,discard,no_prefetch_block_bitmaps,resv_strict,resuid=65534,resgid=65534
+attributes:
+  standard::type: 1
+  standard::is-hidden: FALSE
+  standard::is-backup: FALSE
+  standard::is-symlink: FALSE
+  standard::name: order.xml
+  standard::display-name: order.xml
+  standard::edit-name: order.xml
+  standard::copy-name: order.xml
+  standard::icon: application-xml, text-html, application-xml-symbolic, text-html-symbolic
+  standard::content-type: application/xml
+  standard::fast-content-type: application/xml
+  standard::size: 317
+  standard::allocated-size: 4096
+  standard::symbolic-icon: application-xml-symbolic, text-html-symbolic, application-xml, text-html
+  etag::value: 1792535295:360632:360632619
+  id::file: l65024:4475541
+  id::filesystem: l65024
+  access::can-read: TRUE
+  access::can-write: TRUE
+  access::can-execute: FALSE
+  access::can-delete: TRUE
+  access::can-trash: TRUE
+  access::can-rename: TRUE
+  time::modified: 1792535295
+  time::modified-usec: 360632
+  time::access: 1792535295
+  time::access-usec: 365089
+  time::changed: 1792535295
+  time::changed-usec: 360632
+  time::created: 1792535295
+  time::created-usec: 357254
+  time::modified-nsec: 360632619
+  time::access-nsec: 365089740
+  time::created-nsec: 357254495
+  time::changed-nsec: 360632619
+  unix::device: 65024
+  unix::inode: 4475541
+  unix::mode: 33188
+  unix::nlink: 1
+  unix::uid: 0
+  unix::gid: 0
+  unix::rdev: 0
+  unix::block-size: 4096
+  unix::blocks: 8
+  unix::is-mountpoint: FALSE
+  owner::user: root
+  owner::user-real: root
+  owner::group: root

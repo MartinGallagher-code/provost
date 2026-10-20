@@ -1,0 +1,34 @@
+admin@edge-fra1> show interfaces terse 
+Interface               Admin Link Proto    Local                 Remote
+ge-0/0/0                up    up
+ge-0/0/0.0              up    up   inet     192.0.2.1/30    
+                                   multiservice
+ge-0/0/1                up    down
+ge-0/0/1.0              up    down inet     198.51.100.1/24 
+                                   inet6    2001:db8:10::1/64
+                                            fe80::5668:a3ff:fe12:3401/64
+ge-0/0/2                down  down
+gr-0/0/0                up    up
+ip-0/0/0                up    up
+lsq-0/0/0               up    up
+lt-0/0/0                up    up
+mt-0/0/0                up    up
+sp-0/0/0                up    up
+sp-0/0/0.0              up    up   inet    
+                                   inet6   
+sp-0/0/0.16383          up    up   inet     10.0.0.1            --> 10.0.0.16
+                                            10.0.0.6            --> 0/0
+                                            128.0.0.1           --> 128.0.1.16
+                                            128.0.0.6           --> 0/0
+dsc                     up    up
+irb                     up    up
+lo0                     up    up
+lo0.0                   up    up   inet     203.0.113.254       --> 0/0
+lo0.16384               up    up   inet     127.0.0.1           --> 0/0
+lo0.16385               up    up   inet    
+st0                     up    up
+st0.1                   up    down inet     169.254.10.1/30 
+vlan                    up    down
+
+{master:0}
+admin@edge-fra1> 

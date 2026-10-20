@@ -1,0 +1,22 @@
+                              Work with System Status                    PRODSYS1
+                                                             10/20/26  09:44:12 CEST
+ % CPU used . . . . . . . :       37.4    Auxiliary storage:
+ % DB capability  . . . . :       12.1      System ASP . . . . . . :     2048 G
+ Elapsed time . . . . . . :   00:05:00      % system ASP used  . . :    71.9328
+ Jobs in system . . . . . :       4182      Total  . . . . . . . . :     2048 G
+ % perm addresses . . . . :      0.012      Current unprotect used :    18342 M
+ % temp addresses . . . . :      0.087      Maximum unprotect  . . :    21207 M
+
+ Type changes (if allowed), press Enter.
+
+ System     Pool    Reserved    Max   -----DB-----  ---Non-DB---  Act-  Wait-  Act-
+  Pool    Size (M)  Size (M)   Active  Fault  Pages  Fault  Pages  Wait  Inel   Inel
+    1      4096.00    812.47   +++++    .0     .0     2.1    7.4    41.2    .0    .0
+    2     28672.00     21.10     412    1.4   61.0    4.9   18.2   312.7    .0    .0
+    3      2048.00       .00      38     .0    3.2     .4    1.1    17.9    .0    .0
+    4      1024.00       .00      12     .0     .0     .0     .0     2.4    .0    .0
+                                                                         Bottom
+ Command
+ ===>                                                                          
+ F3=Exit   F4=Prompt   F5=Refresh   F9=Retrieve   F10=Restart   F12=Cancel
+ F19=Extended system status          F24=More keys

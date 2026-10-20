@@ -1,0 +1,21 @@
+1> sp_helpdb pubs2
+2> go
+ name    db_size       owner    dbid   created              durability  lobcomplvl inrowlen status                                                   
+ ------- ------------- -------- ------ -------------------- ----------- ---------- -------- -------------------------------------------------------- 
+ pubs2        120.0 MB sa            4 Oct 02, 2026         full                 0     NULL trunc log on chkpt, mixed log and data                    
+
+(1 row affected)
+ device_fragments               size          usage                created                   free kbytes                    
+ ------------------------------ ------------- -------------------- ------------------------- ------------------------------ 
+ pubsdev                              80.0 MB data and log         Oct  2 2026  9:14AM                                75264 
+ pubsdev2                             40.0 MB data and log         Oct 14 2026  4:02PM                                40800 
+                                                                                                                                       
+ --------------------------------------------------------------------------------------------------------------------------------------
+ log only free kbytes = 0                                                                                                               
+ device                         segment                        
+ ------------------------------ ------------------------------ 
+ pubsdev                        default                        
+ pubsdev                        logsegment                     
+ pubsdev                        system                         
+ pubsdev2                       default                        
+(return status = 0)

@@ -1,0 +1,110 @@
+
+0000 LOCAL HEADER #1       04034B50
+0004 Extract Zip Spec      0A '1.0'
+0005 Extract OS            00 'MS-DOS'
+0006 General Purpose Flag  0000
+0008 Compression Method    0000 'Stored'
+000A Last Mod Time         5D54B2F3 'Tue Oct 20 22:23:38 2026'
+000E CRC                   00000000
+0012 Compressed Length     00000000
+0016 Uncompressed Length   00000000
+001A Filename Length       0005
+001C Extra Length          001C
+001E Filename              'docs/'
+0023 Extra ID #0001        5455 'UT: Extended Timestamp'
+0025   Length              0009
+0027   Flags               '03 mod access'
+0028   Mod Time            6AD7E9E9 'Tue Oct 20 22:23:37 2026'
+002C   Access Time         6AD7E9E9 'Tue Oct 20 22:23:37 2026'
+0030 Extra ID #0002        7875 'ux: Unix Extra Type 3'
+0032   Length              000B
+0034   Version             01
+0035   UID Size            04
+0036   UID                 00000000
+003A   GID Size            04
+003B   GID                 00000000
+
+003F LOCAL HEADER #2       04034B50
+0043 Extract Zip Spec      0A '1.0'
+0044 Extract OS            00 'MS-DOS'
+0045 General Purpose Flag  0000
+0047 Compression Method    0000 'Stored'
+0049 Last Mod Time         5D5341E0 'Mon Oct 19 08:15:00 2026'
+004D CRC                   102E5D9B
+0051 Compressed Length     0000000D
+0055 Uncompressed Length   0000000D
+0059 Filename Length       0015
+005B Extra Length          001C
+005D Filename              'docs/prüfbericht.txt'
+0072 Extra ID #0001        5455 'UT: Extended Timestamp'
+0074   Length              0009
+0076   Flags               '03 mod access'
+0077   Mod Time            6AD5D184 'Mon Oct 19 08:15:00 2026'
+007B   Access Time         6AD5D184 'Mon Oct 19 08:15:00 2026'
+007F Extra ID #0002        7875 'ux: Unix Extra Type 3'
+0081   Length              000B
+0083   Version             01
+0084   UID Size            04
+0085   UID                 00000000
+0089   GID Size            04
+008A   GID                 00000000
+008E PAYLOAD               Pr..fbericht.
+
+009B LOCAL HEADER #3       04034B50
+009F Extract Zip Spec      0A '1.0'
+00A0 Extract OS            00 'MS-DOS'
+00A1 General Purpose Flag  0000
+00A3 Compression Method    0000 'Stored'
+00A5 Last Mod Time         5D5341E0 'Mon Oct 19 08:15:00 2026'
+00A9 CRC                   F7AA3E73
+00AD Compressed Length     00000011
+00B1 Uncompressed Length   00000011
+00B5 Filename Length       0013
+00B7 Extra Length          001C
+00B9 Filename              'docs/stock list.csv'
+00CC Extra ID #0001        5455 'UT: Extended Timestamp'
+00CE   Length              0009
+00D0   Flags               '03 mod access'
+00D1   Mod Time            6AD5D184 'Mon Oct 19 08:15:00 2026'
+00D5   Access Time         6AD5D184 'Mon Oct 19 08:15:00 2026'
+00D9 Extra ID #0002        7875 'ux: Unix Extra Type 3'
+00DB   Length              000B
+00DD   Version             01
+00DE   UID Size            04
+00DF   UID                 00000000
+00E3   GID Size            04
+00E4   GID                 00000000
+00E8 PAYLOAD               name,qty.bolt,40.
+
+00F9 LOCAL HEADER #4       04034B50
+00FD Extract Zip Spec      14 '2.0'
+00FE Extract OS            00 'MS-DOS'
+00FF General Purpose Flag  0000
+     [Bits 1-2]            0 'Normal Compression'
+0101 Compression Method    0008 'Deflated'
+0103 Last Mod Time         5D5341E0 'Mon Oct 19 08:15:00 2026'
+0107 CRC                   2D054FE3
+010B Compressed Length     00001940
+010F Uncompressed Length   00003645
+0113 Filename Length       0010
+0115 Extra Length          001C
+0117 Filename              'docs/numbers.txt'
+0127 Extra ID #0001        5455 'UT: Extended Timestamp'
+0129   Length              0009
+012B   Flags               '03 mod access'
+012C   Mod Time            6AD5D184 'Mon Oct 19 08:15:00 2026'
+0130   Access Time         6AD5D184 'Mon Oct 19 08:15:00 2026'
+0134 Extra ID #0002        7875 'ux: Unix Extra Type 3'
+0136   Length              000B
+0138   Version             01
+0139   UID Size            04
+013A   UID                 00000000
+013E   GID Size            04
+013F   GID                 00000000
+0143 PAYLOAD
+
+1A83 LOCAL HEADER #5       04034B50
+1A87 Extract Zip Spec      0A '1.0'
+1A88 Extract OS            00 'MS-DOS'
+1A89 General Purpose Flag  0000
+1A8B Compression Method    0000 'Stored'

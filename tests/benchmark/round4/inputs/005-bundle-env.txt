@@ -1,0 +1,41 @@
+## Environment
+
+```
+Bundler       4.0.9
+  Platforms   ruby, x86_64-linux
+Ruby          3.3.6p108 (2024-11-05 revision 75015d4c1f6965b5e85e96fb309f1f2129f933c0) [x86_64-linux]
+  Full Path   /opt/rbenv/versions/3.3.6/bin/ruby
+  Config Dir  /opt/rbenv/versions/3.3.6/etc
+RubyGems      3.5.22
+  Gem Home    /opt/rbenv/versions/3.3.6/lib/ruby/gems/3.3.0
+  Gem Path    /opt/rbenv/versions/3.3.6/lib/ruby/gems/3.3.0
+  User Home   /home/dev
+  User Path   /home/dev/.local/share/gem/ruby/3.3.0
+  Bin Dir     /opt/rbenv/versions/3.3.6/bin
+Tools         
+  Git         2.43.0
+  RVM         not installed
+  rbenv       rbenv 1.3.2-20-g23c3041
+  chruby      not installed
+```
+
+## Bundler Build Metadata
+
+```
+Timestamp  2026-10-20
+Git SHA    3ce4a32411
+```
+
+## Gemfile
+
+### Gemfile
+
+```ruby
+source "https://rubygems.org"
+```
+
+### Gemfile.lock
+
+```
+<No /home/dev/cart/Gemfile.lock found>
+```

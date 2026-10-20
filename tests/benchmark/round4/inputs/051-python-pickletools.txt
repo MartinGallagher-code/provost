@@ -1,0 +1,56 @@
+    0: \x80 PROTO      4
+    2: \x95 FRAME      148
+   11: }    EMPTY_DICT
+   12: \x94 MEMOIZE    (as 0)
+   13: (    MARK
+   14: \x8c     SHORT_BINUNICODE 'order'
+   21: \x94     MEMOIZE    (as 1)
+   22: M        BININT2    1042
+   25: \x8c     SHORT_BINUNICODE 'items'
+   32: \x94     MEMOIZE    (as 2)
+   33: ]        EMPTY_LIST
+   34: \x94     MEMOIZE    (as 3)
+   35: (        MARK
+   36: \x8c         SHORT_BINUNICODE 'bolt M6'
+   45: \x94         MEMOIZE    (as 4)
+   46: K            BININT1    40
+   48: G            BINFLOAT   0.12
+   57: \x87         TUPLE3
+   58: \x94         MEMOIZE    (as 5)
+   59: \x8c         SHORT_BINUNICODE 'Schraube Ø8'
+   73: \x94         MEMOIZE    (as 6)
+   74: K            BININT1    12
+   76: G            BINFLOAT   0.25
+   85: \x87         TUPLE3
+   86: \x94         MEMOIZE    (as 7)
+   87: e            APPENDS    (MARK at 35)
+   88: \x8c     SHORT_BINUNICODE 'paid'
+   94: \x94     MEMOIZE    (as 8)
+   95: \x88     NEWTRUE
+   96: \x8c     SHORT_BINUNICODE 'when'
+  102: \x94     MEMOIZE    (as 9)
+  103: \x8c     SHORT_BINUNICODE 'datetime'
+  113: \x94     MEMOIZE    (as 10)
+  114: \x8c     SHORT_BINUNICODE 'date'
+  120: \x94     MEMOIZE    (as 11)
+  121: \x93     STACK_GLOBAL
+  122: \x94     MEMOIZE    (as 12)
+  123: C        SHORT_BINBYTES b'\x07\xea\n\x14'
+  129: \x94     MEMOIZE    (as 13)
+  130: \x85     TUPLE1
+  131: \x94     MEMOIZE    (as 14)
+  132: R        REDUCE
+  133: \x94     MEMOIZE    (as 15)
+  134: \x8c     SHORT_BINUNICODE 'tags'
+  140: \x94     MEMOIZE    (as 16)
+  141: \x8f     EMPTY_SET
+  142: \x94     MEMOIZE    (as 17)
+  143: (        MARK
+  144: \x8c         SHORT_BINUNICODE 'eu'
+  148: \x94         MEMOIZE    (as 18)
+  149: \x8c         SHORT_BINUNICODE 'bulk'
+  155: \x94         MEMOIZE    (as 19)
+  156: \x90         ADDITEMS   (MARK at 143)
+  157: u        SETITEMS   (MARK at 13)
+  158: .    STOP
+highest protocol among opcodes = 4

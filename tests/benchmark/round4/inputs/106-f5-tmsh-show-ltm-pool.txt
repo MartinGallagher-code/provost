@@ -1,0 +1,78 @@
+root@(bigip-a)(cfg-sync In Sync)(Active)(/Common)(tmos)# show ltm pool web_pool members
+
+-------------------------------------------------------------
+Ltm::Pool: web_pool
+-------------------------------------------------------------
+Status               
+  Availability : available
+  State        : enabled
+  Reason       : The pool is available
+  Monitor      : http_head_f5 
+  Minimum Active Members : 0
+  Current Active Members : 2
+  Available Members      : 2
+  Total Members          : 3
+
+Traffic                 ServerSide
+  Bits In                    184.2G
+  Bits Out                     1.4T
+  Packets In                  91.7M
+  Packets Out                122.0M
+  Current Connections           412
+  Maximum Connections          3.1K
+  Total Connections           18.6M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: web01:80
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : enabled
+    Reason       : Pool member is available
+    Monitor      : http_head_f5 (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                    92.4G        -
+    Bits Out                  701.3G        -
+    Current Connections          208        -
+    Maximum Connections         1.6K        -
+    Total Connections           9.4M        -
+    Total Requests                 -    41.0M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: web02:80
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : enabled
+    Reason       : Pool member is available
+    Monitor      : http_head_f5 (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                    91.8G        -
+    Bits Out                  698.9G        -
+    Current Connections          204        -
+    Maximum Connections         1.5K        -
+    Total Connections           9.2M        -
+    Total Requests                 -    40.6M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: web03:80
+  ---------------------------------------------------------
+  Status               
+    Availability : offline
+    State        : disabled
+    Reason       : Pool member has been marked down by a monitor
+    Monitor      : http_head_f5 (pool monitor)
+    Monitor Status : down
+
+  Traffic                 ServerSide  General
+    Bits In                        0        -
+    Bits Out                       0        -
+    Current Connections            0        -
+    Maximum Connections            0        -
+    Total Connections              0        -
+    Total Requests                 -        0
+

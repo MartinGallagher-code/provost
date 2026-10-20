@@ -1,0 +1,38 @@
+bun test v1.3.11 (af24e281)
+
+slug.test.js:
+2 | import { slug } from './slug.js';
+3 | 
+4 | describe('slug', () => {
+5 |   test('lowercases', () => { expect(slug('Hello World')).toBe('hello-world'); });
+6 |   test('strips accents', () => { expect(slug('Crème Brûlée')).toBe('creme-brulee'); });
+7 |   test('handles ß', () => { expect(slug('Straße')).toBe('strasse'); });
+                                                      ^
+error: expect(received).toBe(expected)
+
+Expected: "strasse"
+Received: "stra-e"
+
+      at <anonymous> (/home/dev/slug/slug.test.js:7:51)
+(fail) slug > handles ß [45.67ms]
+ 6 |   test('strips accents', () => { expect(slug('Crème Brûlée')).toBe('creme-brulee'); });
+ 7 |   test('handles ß', () => { expect(slug('Straße')).toBe('strasse'); });
+ 8 |   test.skip('emoji', () => {});
+ 9 |   test.todo('cjk transliteration');
+10 |   describe('edges', () => {
+11 |     test('trims dashes', () => { expect(slug('  --a--  ')).toBe('a'); });
+                                                                ^
+error: expect(received).toBe(expected)
+
+Expected: "a"
+Received: "-a-"
+
+      at <anonymous> (/home/dev/slug/slug.test.js:11:60)
+(fail) slug > edges > trims dashes [0.14ms]
+
+ 3 pass
+ 1 skip
+ 1 todo
+ 2 fail
+ 5 expect() calls
+Ran 7 tests across 1 file. [1.67s]

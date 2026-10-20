@@ -1,0 +1,48 @@
+(lldb) target create "./invd"
+Current executable set to '/home/dev/src/invd' (x86_64).
+(lldb) breakpoint set -n total
+Breakpoint 1: where = invd`total + 8 at inventory.c:25:12, address = 0x00000000000012e8
+(lldb) run
+Process 325 launched: '/home/dev/src/invd' (x86_64)
+Process 325 stopped
+* thread #1, name = 'invd', stop reason = breakpoint 1.1
+    frame #0: 0x00005555555552e8 invd`total(it=0x0000555555559320) at inventory.c:25:12
+   22  	}
+   23  	
+   24  	static double total(const struct item *it) {
+-> 25  	    double sum = 0;
+    	           ^
+   26  	    for (; it; it = it->next) {
+   27  	        if (it->qty > 10)
+   28  	            sum += it->qty * it->price * 0.9;
+(lldb) frame variable
+(const item *) it = 0x0000555555559320
+(double) sum = 4.6355705393350535E-310
+(lldb) thread backtrace
+* thread #1, name = 'invd', stop reason = breakpoint 1.1
+  * frame #0: 0x00005555555552e8 invd`total(it=0x0000555555559320) at inventory.c:25:12
+    frame #1: 0x0000555555555204 invd`main(argc=1, argv=0x00007fffffffc988) at inventory.c:42:38
+    frame #2: 0x00007ffff7c2a1ca libc.so.6`__libc_start_call_main(main=(invd`main at inventory.c:35), argc=1, argv=0x00007fffffffc988) at libc_start_call_main.h:58:16
+    frame #3: 0x00007ffff7c2a28b libc.so.6`__libc_start_main_impl(main=(invd`main at inventory.c:35), argc=1, argv=0x00007fffffffc988, init=<unavailable>, fini=<unavailable>, rtld_fini=<unavailable>, stack_end=0x00007fffffffc978) at libc-start.c:360:3
+    frame #4: 0x0000555555555095 invd`_start + 37
+(lldb) p *it
+(const item) {
+  name = "Schraube Ø8"
+  qty = 12
+  price = 0.25
+  next = 0x00005555555592e0
+}
+(lldb) p *it->next
+(item) {
+  name = "washer"
+  qty = 7
+  price = 0.029999999999999999
+  next = 0x00005555555592a0
+}
+(lldb) image list -b
+[  0] invd
+[  1] ld-linux-x86-64.so.2
+[  2] [vdso](0x00007ffff7fc3000)
+[  3] libc.so.6
+(lldb) kill
+Process 325 exited with status = 9 (0x00000009) killed

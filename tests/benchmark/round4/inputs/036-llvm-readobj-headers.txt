@@ -1,0 +1,135 @@
+
+File: records.o
+Format: elf64-x86-64
+Arch: x86_64
+AddressSize: 64bit
+LoadName: <Not found>
+ElfHeader {
+  Ident {
+    Magic: (7F 45 4C 46)
+    Class: 64-bit (0x2)
+    DataEncoding: LittleEndian (0x1)
+    FileVersion: 1
+    OS/ABI: SystemV (0x0)
+    ABIVersion: 0
+    Unused: (00 00 00 00 00 00 00)
+  }
+  Type: Relocatable (0x1)
+  Machine: EM_X86_64 (0x3E)
+  Version: 1
+  Entry: 0x0
+  ProgramHeaderOffset: 0x0
+  SectionHeaderOffset: 0x950
+  Flags [ (0x0)
+  ]
+  HeaderSize: 64
+  ProgramHeaderEntrySize: 0
+  ProgramHeaderCount: 0
+  SectionHeaderEntrySize: 64
+  SectionHeaderCount: 19
+  StringTableSectionIndex: 1
+}
+Sections [
+  Section {
+    Index: 0
+    Name:  (0)
+    Type: SHT_NULL (0x0)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x0
+    Size: 0
+    Link: 0
+    Info: 0
+    AddressAlignment: 0
+    EntrySize: 0
+  }
+  Section {
+    Index: 1
+    Name: .strtab (179)
+    Type: SHT_STRTAB (0x3)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x888
+    Size: 195
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 2
+    Name: .text (15)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x6)
+      SHF_ALLOC (0x2)
+      SHF_EXECINSTR (0x4)
+    ]
+    Address: 0x0
+    Offset: 0x40
+    Size: 0
+    Link: 0
+    Info: 0
+    AddressAlignment: 4
+    EntrySize: 0
+  }
+  Section {
+    Index: 3
+    Name: .bss (54)
+    Type: SHT_NOBITS (0x8)
+    Flags [ (0x3)
+      SHF_ALLOC (0x2)
+      SHF_WRITE (0x1)
+    ]
+    Address: 0x0
+    Offset: 0x40
+    Size: 68
+    Link: 0
+    Info: 0
+    AddressAlignment: 8
+    EntrySize: 0
+  }
+  Section {
+    Index: 4
+    Name: .debug_abbrev (1)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0x40
+    Size: 140
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 5
+    Name: .debug_info (108)
+    Type: SHT_PROGBITS (0x1)
+    Flags [ (0x0)
+    ]
+    Address: 0x0
+    Offset: 0xCC
+    Size: 242
+    Link: 0
+    Info: 0
+    AddressAlignment: 1
+    EntrySize: 0
+  }
+  Section {
+    Index: 6
+    Name: .rela.debug_info (103)
+    Type: SHT_RELA (0x4)
+    Flags [ (0x40)
+      SHF_INFO_LINK (0x40)
+    ]
+    Address: 0x0
+    Offset: 0x540
+    Size: 96
+    Link: 18
+    Info: 5
+    AddressAlignment: 8
+    EntrySize: 24
+  }

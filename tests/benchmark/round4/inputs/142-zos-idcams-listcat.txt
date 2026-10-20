@@ -1,0 +1,71 @@
+IDCAMS  SYSTEM SERVICES                                           TIME: 09:41:22        10/20/26     PAGE      1
+0
+  LISTCAT ENTRIES(PAY.PROD.MASTER PAY.PROD.TRANS.G0042V00) ALL
+0CLUSTER ------- PAY.PROD.MASTER
+      IN-CAT --- CATALOG.PROD.UCAT01
+      HISTORY
+        DATASET-OWNER-----(NULL)     CREATION--------2024.031
+        RELEASE----------------2     EXPIRATION------0000.000
+      SMSDATA
+        STORAGECLASS ----SCPROD     MANAGEMENTCLASS---MCDAILY
+        DATACLASS --------(NULL)     LBACKUP ---0000.000.0000
+      PROTECTION-PSWD-----(NULL)     RACF----------------(NO)
+      ASSOCIATIONS
+        DATA-----PAY.PROD.MASTER.DATA
+        INDEX----PAY.PROD.MASTER.INDEX
+0   DATA ------- PAY.PROD.MASTER.DATA
+      IN-CAT --- CATALOG.PROD.UCAT01
+      HISTORY
+        DATASET-OWNER-----(NULL)     CREATION--------2024.031
+        RELEASE----------------2     EXPIRATION------0000.000
+        ACCOUNT-INFO-----------------------------------(NULL)
+      ATTRIBUTES
+        KEYLEN----------------12     AVGLRECL-------------400     BUFSPACE-----------11264     CISIZE--------------4096
+        RKP--------------------0     MAXLRECL-------------800     EXCPEXIT----------(NULL)     CI/CA----------------180
+        SHROPTNS(2,3)   SPEED     UNIQUE           NOERASE     INDEXED     NOWRITECHK     NOIMBED       NOREPLICAT
+      STATISTICS
+        REC-TOTAL-------------412318     SPLITS-CI------------1402     EXCPS-------------8829104
+        REC-DELETED------------18822     SPLITS-CA---------------27     EXTENTS-------------------3
+        REC-INSERTED-----------22014     FREESPACE-%CI-----------10     SYSTEM-TIMESTAMP:
+        REC-UPDATED-----------981201     FREESPACE-%CA-----------10          X'DC8F2E31A4B7C000'
+      ALLOCATION
+        SPACE-TYPE------CYLINDER     HI-A-RBA---------294912000
+        SPACE-PRI------------200     HI-U-RBA---------271319040
+        SPACE-SEC-------------50
+      VOLUME
+        VOLSER------------PRD101     PHYREC-SIZE---------4096     HI-A-RBA---------294912000     EXTENT-NUMBER--------3
+        DEVTYPE------X'3010200F'     PHYRECS/TRK-----------12     HI-U-RBA---------271319040     EXTENT-TYPE--------X'40'
+0NONVSAM ------- PAY.PROD.TRANS.G0042V00
+      IN-CAT --- CATALOG.PROD.UCAT01
+      HISTORY
+        DATASET-OWNER-----(NULL)     CREATION--------2026.292
+        RELEASE----------------2     EXPIRATION------0000.000
+        ACCOUNT-INFO-----------------------------------(NULL)
+      SMSDATA
+        STORAGECLASS ----SCPROD     MANAGEMENTCLASS---MCGDG07
+        DATACLASS ------DCFB80     LBACKUP ---0000.000.0000
+      VOLUMES
+        VOLSER------------PRD207     DEVTYPE------X'3010200F'     FSEQN------------------0
+      ASSOCIATIONS
+        GDG------PAY.PROD.TRANS
+      ATTRIBUTES
+1IDCAMS  SYSTEM SERVICES                                           TIME: 09:41:22        10/20/26     PAGE      2
+0         THE NUMBER OF ENTRIES PROCESSED WAS:
+                    AIX -------------------0
+                    ALIAS -----------------0
+                    CLUSTER ---------------1
+                    DATA ------------------1
+                    GDG -------------------0
+                    INDEX -----------------0
+                    NONVSAM ---------------1
+                    PAGESPACE -------------0
+                    PATH ------------------0
+                    SPACE -----------------0
+                    USERCATALOG -----------0
+                    TAPELIBRARY -----------0
+                    TAPEVOLUME ------------0
+                    TOTAL -----------------3
+0         THE NUMBER OF PROTECTED ENTRIES SUPPRESSED WAS 0
+0IDC0001I FUNCTION COMPLETED, HIGHEST CONDITION CODE WAS 0
+0
+0IDC0002I IDCAMS PROCESSING COMPLETE. MAXIMUM CONDITION CODE WAS 0
