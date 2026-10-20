@@ -55,6 +55,12 @@ a wrapping project's strategies compete without being symlinked into
 .B --multi
 File every dataset the input holds (or \fBPROVOST_MULTI=1\fR).
 .TP
+.BR --auto-multi ", " --no-auto-multi
+Before the quality gate holds a parse, try segmenting the input and file the
+parts when that is clearly better (the default, or
+\fBPROVOST_AUTO_MULTI=1\fR); \fB--no-auto-multi\fR holds it straight away.
+See \fBAUTO-MULTI\fR.
+.TP
 .BR --sync ", " --wait
 Capture in the foreground and print the resulting dataset and \fI#N\fR range.
 This is the default when stderr is not a terminal (scripts, pipelines).
@@ -155,7 +161,9 @@ files into \fBdf\fR. Injected input is named after the winning parser (e.g.
 Names consist of letters, digits, \fB.\fR, \fB_\fR and \fB-\fR, start with a
 letter or digit, and never contain \fB..\fR. Unmatched input goes to
 \fBunsorted\fR. With \fB--multi\fR each dataset is named after its strategy,
-prefixed \fINAME\fR\fB.\fR for \fBrun\fR or \fB--name\fR.
+prefixed \fINAME\fR\fB.\fR for \fBrun\fR or \fB--name\fR; so are the parts of a
+capture segmented by \fBAUTO-MULTI\fR, except that with a \fINAME\fR the part
+whose columns match the single parse's keeps \fINAME\fR.
 .PP
 A capture whose columns differ from the existing dataset's is reconciled into
 it (columns unioned) when the overlap is at least
@@ -181,7 +189,31 @@ a likely-wrong table is worse than none. On the rated benchmark sets this held
 18 of 48 wrong parses and no fully right one. Tool-specific parsers and strict
 grammars (json, yaml, xml, toml) are exempt, and a measurement that is absent
 (very large inputs) never holds a capture back. Set either to 0 to turn that
-check off.
+check off. Before a capture is held, \fBAUTO-MULTI\fR tries segmenting it.
+.SH AUTO-MULTI
+When the quality gate would hold a parse for low coverage or low consistency,
+provost first asks the engine to segment the input, as \fB--multi\fR does, and
+files the parts instead when the split is clearly better: it is a real split
+(two or more datasets); every part passes the gate on its own (confidence,
+coverage, consistency); together the parts keep at least \fB--min-coverage\fR
+percent of the lines and 10 points more than the single parse; no part is a
+table under positional A/B/C... columns only; a part read by the parser the
+gate rejected has judged column types; and parts of three or more lines hold at
+least half the lines, so the input is not shattered into fragments. Otherwise
+the capture is held as before and the reason segmenting did not help is printed
+and recorded as \fBauto_multi\fR (\fIdeclined: ...\fR) in \fImeta.tsv\fR.
+.PP
+A segmented capture says so in its ok line and records \fBauto_multi\fR (why
+the single parse was held), \fBsingle_strategy\fR, \fBsingle_coverage\fR and
+\fBsingle_consistency\fR, the parts' joint \fBcoverage\fR, and each part's
+\fBdataset_coverage\fR and \fBdataset_consistency\fR. The parts are named as
+with \fB--multi\fR (\fINAME\fR\fB.\fR\fIstrategy\fR, or the strategy for a
+nameless injection), except that with a \fINAME\fR the part whose columns
+match the single parse's (\fBPROVOST_RECONCILE_OVERLAP\fR) keeps dataset
+\fINAME\fR, so repeated captures of one command keep their rows in one dataset
+whether or not a given capture segments. Only captures the gate would hold pay
+for the second engine run. \fB--no-auto-multi\fR or \fBPROVOST_AUTO_MULTI=0\fR
+turns it off.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -256,6 +288,11 @@ unset or \fBauto\fR (the default) backgrounds only when stderr is a terminal.
 .TP
 .B PROVOST_MULTI
 File every dataset an input holds (default 0; same as \fB--multi\fR).
+.TP
+.B PROVOST_AUTO_MULTI
+\fB1\fR (the default): before the quality gate holds a parse, try segmenting
+the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
+\fB--no-auto-multi\fR).
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).

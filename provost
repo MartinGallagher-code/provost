@@ -106,6 +106,7 @@ PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the s
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
+PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
@@ -162,6 +163,7 @@ _validate_settings () {
     PROVOST_MAX_INPUT=$((10#$PROVOST_MAX_INPUT))
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
+    [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
 
@@ -747,6 +749,142 @@ _quality_exempt () {
     return 0
 }
 
+# _multi_split FILE DIR — split the engine's --multi output into DIR/ds.N.meta
+# (`strategy<TAB>confidence<TAB>coverage<TAB>consistency<TAB>lines`, the
+# fields after `__DATASET__<TAB>N`) and DIR/ds.N.wide (that dataset's -f tsv).
+_multi_split () {
+    rm -f "$2"/ds.* 2>/dev/null || true
+    DIR="$2" awk -F'\t' '
+        /^__DATASET__/ { n = ($2 ~ /^[0-9]+$/) ? $2 : ""; if (n != "") printf "%s\t%s\t%s\t%s\t%s\n", $3, $4, $5, $6, $7 > (ENVIRON["DIR"] "/ds." n ".meta"); next }
+        n != "" { print > (ENVIRON["DIR"] "/ds." n ".wide") }
+    ' "$1" 2>/dev/null || true
+}
+
+# _tidy_cols FILE — a tidy dataset's column names, one per line, without the
+# generated row index (`n`).
+_tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next } { print }'; }
+
+# AUTO-MULTI (PROVOST_AUTO_MULTI, --auto-multi / --no-auto-multi). Called by
+# _ingest when the quality gate would hold the single-winner parse for
+# low coverage or low consistency. It runs the engine's --multi segmentation
+# and files its datasets INSTEAD of holding the capture only when the split
+# is clearly better:
+#   1. it is a split: the engine's own choice is not the unsplit input, and
+#      it yields at least two datasets;
+#   2. every dataset passes the gate itself — confidence >= the threshold
+#      and, for a generic parser, its own coverage and consistency (measured
+#      by the engine against the dataset's own blocks) >= the gate's;
+#   3. together they cover MATERIALLY more of the input: the whole input's
+#      coverage by all the datasets is at least the gate's minimum and
+#      _AM_GAIN (10) points above the single parse's;
+#   4. no dataset is a POSITIONAL table — 2+ rows under nothing but generated
+#      A/B/C… column names: a header the split cut off (a rule line between
+#      header and rows), or box chrome read as cells. Filing values under
+#      positional names is the misplacement the gate exists to stop;
+#   5. the parser the gate just rejected does not come back unmeasured: a
+#      dataset (3+ lines) read by the same strategy must have a judged
+#      column-type consistency (a one-record flatten is not judged);
+#   6. it is not shattered into trivial fragments: datasets of 3+ input lines
+#      hold at least half the input's lines (a banner, a footer or a prompt
+#      may be a one-line dataset of its own; most of the input may not).
+# Otherwise it returns 1 with the reason in am_note, and the capture is held
+# exactly as before. Works on _ingest's locals (dynamic scope): reads engine,
+# eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
+_AM_GAIN=10
+_AM_FRAG_LINES=3
+_auto_multi () {
+    local mo="$tmp/am.txt" mm="$tmp/am.meta" kind="" n="" mcov="" mlines=""
+    _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+        ${eargs[@]+"${eargs[@]}"} --multi --emit-meta -f tsv --max-strategies 1 "$body" \
+        >"$mo" 2>"$mm" || true
+    IFS=$'\t' read -r kind n mcov mlines < <(awk -F'\t' \
+        '/^__MULTI_META__/ { k = $2; n = $3; c = $4; l = $5 } END { printf "%s\t%s\t%s\t%s\n", k, n, c, l }' "$mm" 2>/dev/null) || true
+    [[ "$n" =~ ^[0-9]{1,6}$ ]] || n=0
+    if [[ "$kind" != split && "$kind" != strict && "$kind" != hdr ]]; then
+        am_note="the unsplit input is still the engine's best reading"; return 1
+    fi
+    (( n >= 2 )) || { am_note="segmenting yields one dataset"; return 1; }
+    [[ "$mcov" =~ ^[0-9]{1,3}$ ]] || { am_note="the segmented coverage is not measured"; return 1; }
+    local need=$(( ${cov:-0} + _AM_GAIN ))
+    (( need < PROVOST_MIN_COVERAGE )) && need=$PROVOST_MIN_COVERAGE
+    if (( need > 100 )); then
+        # The single parse already keeps (nearly) every line — it was held for
+        # its column types — so no split can keep materially more.
+        am_note="the single parse already keeps $cov% of the lines"; return 1
+    fi
+    if (( mcov < need )); then
+        am_note="$n parts keep $mcov% of the lines, <$need%"; return 1
+    fi
+
+    _multi_split "$mo" "$tmp"
+    local i dstrat dconf dcov dcons dlines nrows ncols nsyn tot=0 sub=0
+    local -a an=() as=() ac=() af=() acv=() acs=() arows=()
+    for (( i = 1; i <= n; i++ )); do
+        if [[ ! -f "$tmp/ds.$i.meta" || ! -s "$tmp/ds.$i.wide" ]]; then
+            am_note="part $i is empty"; return 1
+        fi
+        dstrat=""; dconf=""; dcov=""; dcons=""; dlines=""
+        IFS=$'\t' read -r dstrat dconf dcov dcons dlines < "$tmp/ds.$i.meta" || true
+        [[ "$dconf" =~ ^[0-9]{1,9}$ ]] || dconf=0
+        [[ "$dcov" =~ ^[0-9]{1,3}$ ]] || dcov="-"
+        [[ "$dcons" =~ ^[0-9]{1,3}$ ]] || dcons="-"
+        [[ "$dlines" =~ ^[0-9]{1,9}$ ]] || dlines=0
+        [[ -n "$dstrat" ]] || { am_note="part $i has no strategy"; return 1; }
+        if (( dconf < threshold )); then
+            am_note="part $i ($dstrat) is low-confidence ($dconf<$threshold)"; return 1
+        fi
+        if ! _quality_exempt "$engine" "$dstrat"; then
+            if [[ "$dcov" != - ]] && (( PROVOST_MIN_COVERAGE > 0 && dcov < PROVOST_MIN_COVERAGE )); then
+                am_note="part $i ($dstrat) keeps $dcov% of its lines"; return 1
+            fi
+            if [[ "$dcons" != - ]] && (( PROVOST_MIN_CONSISTENCY > 0 && dcons < PROVOST_MIN_CONSISTENCY )); then
+                am_note="part $i ($dstrat) columns are $dcons% type-consistent"; return 1
+            fi
+        fi
+        if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
+            am_note="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 1
+        fi
+        _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
+        nrows=$(awk 'NR > 1 && $0 != "" { r++ } END { print r + 0 }' "$tmp/ds.$i.tsv")
+        read -r ncols nsyn < <(_tidy_cols "$tmp/ds.$i.tsv" | awk '{ c++ } /^[A-Z][A-Z]?$/ { s++ } END { print c + 0, s + 0 }')
+        if (( nrows >= 2 && ncols >= 2 && nsyn == ncols )); then
+            am_note="part $i ($dstrat) is a table with positional columns only"; return 1
+        fi
+        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
+        an+=("${name:+$name.}$dstrat"); as+=("$dstrat"); ac+=("$dconf"); af+=("$tmp/ds.$i.tsv")
+        acv+=("$dcov"); acs+=("$dcons"); arows+=("$nrows")
+    done
+    if (( sub == 0 || sub * 2 < tot )); then
+        am_note="the parts are fragments ($sub of $tot lines in parts of $_AM_FRAG_LINES+ lines)"; return 1
+    fi
+
+    # Naming. Every part is named as --multi names it: NAME.strategy for
+    # 'run' / --name, its strategy for a nameless inject (which is how a
+    # nameless inject is always named — after the parser that read it). With
+    # a NAME, the part that reads the same columns as the single parse (the
+    # store's own reconcile overlap, PROVOST_RECONCILE_OVERLAP) CONTINUES
+    # dataset NAME, where that parse would have been filed: a command whose
+    # output passes the gate one day and segments the next keeps its rows in
+    # one dataset. When several parts qualify, the one with the most rows.
+    if [[ -n "$name" && -s "$tmp/wide.tsv" ]]; then
+        local best=-1 bi=-1 ov hs hd
+        _core_melt_tidy_file "$tmp/wide.tsv" > "$tmp/single.tsv"
+        hs="$(_tidy_cols "$tmp/single.tsv" | paste -sd '\t' -)"
+        for (( i = 0; i < ${#af[@]}; i++ )); do
+            hd="$(_tidy_cols "${af[i]}" | paste -sd '\t' -)"
+            ov="$(printf '%s\n%s\n' "$hs" "$hd" | _col_overlap)"
+            [[ "$ov" =~ ^[0-9]+$ ]] || ov=0
+            if (( ov >= PROVOST_RECONCILE_OVERLAP && arows[i] > best )); then best=${arows[i]}; bi=$i; fi
+        done
+        (( bi >= 0 )) && an[bi]="$name"
+    fi
+    ds_name=("${an[@]}"); ds_strategy=("${as[@]}"); ds_conf=("${ac[@]}"); ds_file=("${af[@]}")
+    ds_cov=("${acv[@]}"); ds_cons=("${acs[@]}")
+    am_cov="$mcov"; am_kind="$kind"
+    return 0
+}
+
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
 #   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
@@ -788,25 +926,30 @@ _ingest () {
     # (iostat -x: a uname banner, an avg-cpu kv block and a Device table).
     # Everything downstream — row ids, provenance, the commit — loops over
     # these, so the single-dataset case is just N=1.
-    local -a ds_name=() ds_strategy=() ds_conf=() ds_file=()
+    local -a ds_name=() ds_strategy=() ds_conf=() ds_file=() ds_cov=() ds_cons=()
     local reason=""
+    # AUTO-MULTI state (see _auto_multi): am_reason = why the gate held the
+    # single parse that was segmented instead; am_note = why segmenting was
+    # declined (the capture is then held as before); am_cov = the coverage of
+    # all the datasets together.
+    local am_reason="" am_note="" am_cov="" am_kind="" single_strategy="" single_conf=""
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
-        # surviving dataset behind a `__DATASET__ n strategy confidence` line.
+        # surviving dataset behind a `__DATASET__ n strategy confidence
+        # coverage consistency lines` line.
         local multi_out="$tmp/multi.txt"
         _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
             ${eargs[@]+"${eargs[@]}"} --multi -f tsv --max-strategies 1 "$body" \
             >"$multi_out" 2>"$metaf" || true
-        DIR="$tmp" awk -F'\t' '
-            /^__DATASET__/ { n = ($2 ~ /^[0-9]+$/) ? $2 : ""; if (n != "") printf "%s\t%s\n", $3, $4 > (ENVIRON["DIR"] "/ds." n ".meta"); next }
-            n != "" { print > (ENVIRON["DIR"] "/ds." n ".wide") }
-        ' "$multi_out" 2>/dev/null || true
-        local i=1 dstrat dconf
+        _multi_split "$multi_out" "$tmp"
+        local i=1 dstrat dconf dcov dcons
         while [[ -f "$tmp/ds.$i.meta" ]]; do
-            dstrat=""; dconf=""
-            IFS=$'\t' read -r dstrat dconf < "$tmp/ds.$i.meta" || true
+            dstrat=""; dconf=""; dcov=""; dcons=""
+            IFS=$'\t' read -r dstrat dconf dcov dcons _ < "$tmp/ds.$i.meta" || true
             [[ "$dconf" =~ ^[0-9]{1,9}$ ]] || dconf=0
+            [[ "$dcov" =~ ^[0-9]{1,3}$ ]] || dcov="-"
+            [[ "$dcons" =~ ^[0-9]{1,3}$ ]] || dcons="-"
             # A dataset below the threshold is dropped rather than queued: it is
             # a fragment of an input whose other parts did match, and the whole
             # input is stored with the capture either way.
@@ -814,6 +957,7 @@ _ingest () {
                 _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
                 if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
                 ds_name+=("${name:+$name.}$dstrat"); ds_strategy+=("$dstrat"); ds_conf+=("$dconf")
+                ds_cov+=("$dcov"); ds_cons+=("$dcons")
                 ds_file+=("$tmp/ds.$i.tsv")
             fi
             i=$((i + 1))
@@ -847,22 +991,33 @@ _ingest () {
                 reason="low-consistency ($strategy columns $tcons% type-consistent, <$PROVOST_MIN_CONSISTENCY%)"
             fi
         fi
-        local dsname content="$tmp/content.tsv"
-        if [[ -n "$reason" ]]; then
-            dsname="unsorted"; strategy="${strategy:-none}"
-            {
-                printf 'raw\n'
-                if ! base64 -w0 < "$in" 2>/dev/null; then base64 < "$in" | tr -d '\n'; fi
-                printf '\n'
-            } > "$content"
-        else
-            if _valid_name "$strategy"; then dsname="$strategy"
-            else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
-            [[ -n "$name" ]] && dsname="$name"
-            _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
+        single_strategy="$strategy"; single_conf="$conf"
+        # AUTO-MULTI: before holding a parse the quality gate rejects, try
+        # segmenting the input (the engine's --multi); file the datasets when
+        # every one of them passes the gate and together they keep materially
+        # more of the input (see _auto_multi). Only gate failures pay for this
+        # second engine run — a parse that passes is never re-run.
+        if [[ "$PROVOST_AUTO_MULTI" == 1 && ( "$reason" == low-coverage* || "$reason" == low-consistency* ) ]]; then
+            if _auto_multi; then am_reason="$reason"; reason=""; fi
         fi
-        ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
-        ds_file=("$content")
+        if [[ -z "$am_reason" ]]; then
+            local dsname content="$tmp/content.tsv"
+            if [[ -n "$reason" ]]; then
+                dsname="unsorted"; strategy="${strategy:-none}"
+                {
+                    printf 'raw\n'
+                    if ! base64 -w0 < "$in" 2>/dev/null; then base64 < "$in" | tr -d '\n'; fi
+                    printf '\n'
+                } > "$content"
+            else
+                if _valid_name "$strategy"; then dsname="$strategy"
+                else dsname="$(_sanitize_name "$strategy")"; dsname="${dsname:-dataset}"; fi
+                [[ -n "$name" ]] && dsname="$name"
+                _core_melt_tidy_file "$tmp/wide.tsv" > "$content"
+            fi
+            ds_name=("$dsname"); ds_strategy=("$strategy"); ds_conf=("$conf")
+            ds_file=("$content")
+        fi
     fi
 
     # --- critical section: assign #N, append, provenance, commit -----------
@@ -914,12 +1069,14 @@ _ingest () {
 
     # meta.tsv keeps its single-dataset keys; with several datasets they carry a
     # comma-joined value and `datasets` records how many (plus each one's rows).
-    local j all_names="" all_strats="" all_confs="" all_rows=""
+    local j all_names="" all_strats="" all_confs="" all_rows="" all_covs="" all_conss=""
     for (( j=0; j<${#out_names[@]}; j++ )); do
         all_names="${all_names:+$all_names,}${out_names[j]}"
         all_strats="${all_strats:+$all_strats,}${ds_strategy[j]}"
         all_confs="${all_confs:+$all_confs,}${ds_conf[j]}"
         all_rows="${all_rows:+$all_rows,}${out_names[j]}:${out_ranges[j]}"
+        all_covs="${all_covs:+$all_covs,}${out_names[j]}:${ds_cov[j]:--}"
+        all_conss="${all_conss:+$all_conss,}${out_names[j]}:${ds_cons[j]:--}"
     done
     {
         printf 'id\t%s\n' "$id";            printf 'ts\t%s\n' "$ts"
@@ -927,11 +1084,27 @@ _ingest () {
         printf 'rc\t%s\n' "$rc";            printf 'strategy\t%s\n' "$(_meta_safe "$all_strats")"
         printf 'confidence\t%s\n' "$all_confs";  printf 'dataset\t%s\n' "$all_names"
         printf 'row_ids\t%s\n' "$( (( totalrows > 0 )) && echo "$firstid-$((nextid-1))" || echo none)"
-        [[ -n "$cov" && -z "$reason" ]] && printf 'coverage\t%s\n' "$cov"
-        [[ -n "$tcons" && -z "$reason" ]] && printf 'consistency\t%s\n' "$tcons"
+        if [[ -n "$am_reason" ]]; then
+            # Segmented by auto-multi: coverage is that of all the datasets
+            # together; the single parse the gate held is kept for the record.
+            printf 'coverage\t%s\n' "$am_cov"
+            printf 'auto_multi\t%s\n' "$(_meta_safe "segmented ($am_kind): $am_reason")"
+            printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
+            printf 'single_confidence\t%s\n' "$single_conf"
+            [[ -n "$cov" ]] && printf 'single_coverage\t%s\n' "$cov"
+            [[ -n "$tcons" ]] && printf 'single_consistency\t%s\n' "$tcons"
+        else
+            [[ -n "$cov" && -z "$reason" ]] && printf 'coverage\t%s\n' "$cov"
+            [[ -n "$tcons" && -z "$reason" ]] && printf 'consistency\t%s\n' "$tcons"
+        fi
+        [[ -n "$am_note" ]] && printf 'auto_multi\t%s\n' "$(_meta_safe "declined: $am_note")"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
+            if [[ ${#ds_cov[@]} -gt 0 ]]; then
+                printf 'dataset_coverage\t%s\n' "$all_covs"
+                printf 'dataset_consistency\t%s\n' "$all_conss"
+            fi
         fi
         if [[ -n "${PROVOST_PLUGIN_DIR:-}" ]]; then
             printf 'plugin_dir\t%s\n' "$(_meta_safe "$PROVOST_PLUGIN_DIR")"
@@ -956,10 +1129,18 @@ _ingest () {
     local idrange="#${startid}..$((startid+nrows-1))"; (( nrows == 0 )) && idrange="(no rows)"
     if [[ -n "$reason" ]]; then
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
+        [[ -n "$am_note" ]] && info "      segmenting it did not help: $am_note."
     elif [[ ${#out_names[@]} -gt 1 ]]; then
-        ok "$id: → ${#out_names[@]} datasets, rows $idrange:"
+        if [[ -n "$am_reason" ]]; then
+            ok "$id: → ${#out_names[@]} datasets, rows $idrange — segmented: the single parse was $am_reason; the ${#out_names[@]} parts keep $am_cov%:"
+        else
+            ok "$id: → ${#out_names[@]} datasets, rows $idrange:"
+        fi
         for (( j=0; j<${#out_names[@]}; j++ )); do
-            info "      ${out_names[j]}  ${out_ranges[j]}  (strategy ${ds_strategy[j]}, conf ${ds_conf[j]})"
+            local dq=""
+            [[ "${ds_cov[j]:-}" =~ ^[0-9]+$ ]] && dq+=", coverage ${ds_cov[j]}%"
+            [[ "${ds_cons[j]:-}" =~ ^[0-9]+$ ]] && dq+=", consistency ${ds_cons[j]}%"
+            info "      ${out_names[j]}  ${out_ranges[j]}  (strategy ${ds_strategy[j]}, conf ${ds_conf[j]}$dq)"
         done
     else
         ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf${cov:+, coverage $cov%}) — $((fields-1)) field(s)."
@@ -1173,6 +1354,9 @@ options:
                           are < N% type-consistent (default: $PROVOST_MIN_CONSISTENCY; 0 = off)
   --plugin-dir DIR        extra extract strategy directory
   --multi                 file every dataset the output holds (as NAME.<strategy>)
+  --no-auto-multi         hold a parse the quality gate rejects for triage
+                          without first trying to segment it (--auto-multi: try;
+                          the default, PROVOST_AUTO_MULTI)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1191,6 +1375,9 @@ options:
                           are < N% type-consistent (default: $PROVOST_MIN_CONSISTENCY; 0 = off)
   --plugin-dir DIR        extra extract strategy directory
   --multi                 file every dataset the input holds
+  --no-auto-multi         hold a parse the quality gate rejects for triage
+                          without first trying to segment it (--auto-multi: try;
+                          the default, PROVOST_AUTO_MULTI)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1256,6 +1443,8 @@ _parse_capture_opts () {
                 _O_NAME="$2"; shift 2 ;;
             --name=*) _O_NAME="${1#*=}"; shift ;;
             --multi) PROVOST_MULTI=1; shift ;;
+            --auto-multi) PROVOST_AUTO_MULTI=1; shift ;;
+            --no-auto-multi) PROVOST_AUTO_MULTI=0; shift ;;
             --async) _O_ASYNC=1; shift ;;
             --sync|--wait) _O_ASYNC=0; shift ;;
             -h|--help) _cmd_help "$verb" ;;
@@ -1956,6 +2145,9 @@ ENV
     PROVOST_ASYNC             1 = always background, 0 = always foreground,
                               unset/auto = background only when interactive
     PROVOST_MULTI             file every dataset an input holds (default 0; same as --multi)
+    PROVOST_AUTO_MULTI        1 = when the quality gate would hold a parse, try
+                              segmenting the input first (default 1; 0 = off,
+                              same as --no-auto-multi). See AUTO-MULTI.
     PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
@@ -1998,7 +2190,32 @@ QUALITY GATE
     none. On the rated benchmark sets this held 18 of 48 wrong parses and no
     fully right one. Tool-specific parsers and strict grammars (json, yaml,
     xml, toml) are exempt; measurements absent on very large inputs never hold
-    a capture back. Set either to 0 to turn that check off.
+    a capture back. Set either to 0 to turn that check off. Before a capture
+    is held, AUTO-MULTI tries segmenting it.
+
+AUTO-MULTI (segmenting a weak parse)
+    When the quality gate would hold a parse for low coverage or low
+    consistency, provost first asks the engine to segment the input, as
+    --multi does, and files the parts instead when the split is clearly
+    better: it really is a split (2+ datasets), every part passes the gate on
+    its own (confidence, coverage, consistency), the parts together keep at
+    least --min-coverage % of the lines and 10 points more than the single
+    parse, no part is a table under positional A/B/C... columns only, a part
+    read by the parser the gate rejected has judged column types, and parts
+    of 3+ lines hold at least half the lines (no shattering into fragments).
+    Otherwise the capture is held as before, and the reason segmenting did
+    not help is printed and recorded ('auto_multi declined: ...' in
+    meta.tsv). A segmented capture says so in its ok line and records
+    'auto_multi' (why the single parse was held), 'single_strategy' /
+    'single_coverage' / 'single_consistency', the parts' joint 'coverage'
+    and each part's 'dataset_coverage' / 'dataset_consistency'.
+    Names follow --multi: NAME.<strategy> for 'run' / --name, the strategy
+    for a nameless inject — except that, with a NAME, the part whose columns
+    match the single parse's (PROVOST_RECONCILE_OVERLAP) keeps dataset NAME,
+    so repeated captures of one command keep their rows in one dataset
+    whether a given capture segments or not. Only captures the gate would
+    hold pay for the second engine run. --no-auto-multi or
+    PROVOST_AUTO_MULTI=0 turns it off.
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:

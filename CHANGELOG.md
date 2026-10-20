@@ -1,5 +1,167 @@
 # provost — Changelog
 
+## 2026-10-20 — auto-multi: a parse the quality gate would hold is segmented first, when the split is clearly better
+
+The quality gate holds a weak generic parse for triage. On held-out data
+`--multi` was better than the single parse on 19 of 107 inputs (round 3) and
+worse on 6, so before holding a capture provost now tries segmentation and
+files the parts when — and only when — they are clearly better.
+
+- **Where: the CLI, with per-dataset measures from the engine.** The gate's
+  policy (thresholds a user sets, the exemptions) lives in `provost`, so the
+  decision does too; the engine only reports. `--multi` already ran the full
+  ranked pipeline per group, including line coverage and column-type
+  consistency, but dropped them; each separator now carries them:
+  `__DATASET__<TAB>n<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency<TAB>lines`
+  (measured against the dataset's own blocks, `-` when not measured; lines =
+  its non-blank input lines). With `--emit-meta`, `--multi` prints
+  `__MULTI_META__<TAB>kind<TAB>datasets<TAB>coverage<TAB>lines` on stderr:
+  the candidate that won (split / strict / hdr, or `whole`) and the WHOLE
+  input's coverage by all the datasets together (`_parse_coverage`). Appended
+  fields only: every reader (`provost`, the benchmark and corpus JSON
+  builders) cuts fields 3–4. An engine `--auto-multi` mode was rejected: it
+  would duplicate the gate's thresholds in the engine and make engine output
+  depend on CLI policy. The single-winner path is untouched, so no corpus
+  golden moves.
+- **When.** Only when the gate would hold the single parse for
+  `low-coverage` or `low-consistency` — never for no-match / low-confidence,
+  never for a parse that passes. Gated captures are all ≤ 128 KB (both
+  measures are `-` above it, and an absent measure never holds), so the
+  second engine run is bounded.
+- **The rule (`_auto_multi` in `provost`).** Filed instead of held when:
+  1. it is a split — the engine's choice is not the unsplit input, and it
+     yields 2+ datasets;
+  2. every dataset passes the gate itself: confidence ≥ the threshold and,
+     for a generic parser, its own coverage and consistency ≥ the gate's;
+  3. together they cover MATERIALLY more: joint coverage ≥
+     `--min-coverage` and ≥ the single parse's + 10 points. A parse held for
+     consistency that already keeps ≥ 91% of the lines cannot gain 10 points,
+     so it is held;
+  4. no dataset is a POSITIONAL table: 2+ rows under nothing but generated
+     `A`/`B`/`C`… names (a single text column is exempt). In practice this
+     is a header cut off by a rule line, or box chrome read as cells;
+  5. a dataset of 3+ lines read by the parser the gate just rejected must
+     have a JUDGED consistency (a one-record flatten is not judged);
+  6. no shattering: datasets of 3+ input lines hold at least half the
+     input's lines (a banner, footer or prompt may be a one-line dataset;
+     most of the input may not).
+  Otherwise the capture is held exactly as before, and the reason
+  segmenting did not help is printed and recorded.
+- **Naming and stability.** The parts are named as `--multi` names them:
+  `NAME.strategy` for `run` / `--name`, the strategy for a nameless inject
+  (an injected dataset is always named after the parser that read it). One
+  exception keeps repeated captures together: with a NAME, the part whose
+  columns match the single parse's (Jaccard ≥ `PROVOST_RECONCILE_OVERLAP`,
+  the store's own reconcile rule; the part with the most rows if several)
+  keeps dataset `NAME`. So when one capture of a command passes the gate (→
+  `NAME`) and the next segments (→ `NAME` + `NAME.key-value`), the table rows
+  of both land in `NAME`; when the parts' columns differ from the single
+  parse's, nothing is continued and `NAME` is untouched. A capture that
+  neither passes nor segments goes to `unsorted`, as before. Explicit
+  `--multi` naming is unchanged. The known instability: a capture that
+  segments creates `NAME.<strategy>` datasets a passing capture never feeds
+  (a kv footer the single parse dropped has nowhere else to go).
+- **Visible.** The ok line says it segmented and why: `→ 2 datasets, rows
+  #1..12 — segmented: the single parse was low-coverage (embedded-table kept
+  53% of the lines, <80%); the 2 parts keep 100%:`, each part with its
+  coverage and consistency. `meta.tsv` records `auto_multi` (`segmented
+  (split): <gate reason>`), `single_strategy`, `single_confidence`,
+  `single_coverage`, `single_consistency`, the parts' joint `coverage`, and
+  `dataset_coverage` / `dataset_consistency` per dataset (explicit `--multi`
+  captures record the last two as well). A declined attempt prints
+  `segmenting it did not help: <reason>` under the hold line and records
+  `auto_multi	declined: <reason>`.
+- **Settings.** `PROVOST_AUTO_MULTI=1` (default; 0 = off, anything else is
+  refused with exit 2); `--auto-multi` / `--no-auto-multi` on inject and run.
+  Documented in `provost help` (new AUTO-MULTI section, ENV, both option
+  lists, a pointer from QUALITY GATE), `man/provost.1`, `README.md`,
+  `docs/usage.md`, and the bash completion (which also gains the missing
+  `--min-coverage` / `--min-consistency`).
+
+**Evidence: rounds 2 and 3 (seen regression sets), 216 inputs.** The gate
+holds 26 of them on this engine. Auto-multi files 3 and holds 23. Every
+changed outcome:
+
+- **048 `pytest --setup-plan`** (held: protobuf-text kept 72%) → 3 datasets,
+  100% of the lines: the session header (`colons`, one wide record whose
+  prose lines are `line1`/`line2` columns), the 30-line setup/teardown plan
+  (`text-lines`, every line one row, not split), the summary line (one row,
+  split at spaces). PARTIAL (rule 5: a free-text fallback that keeps every
+  line). Better than holding it, and than the 72% single parse.
+- **051 `python -m locale`** (held: block-records kept 79%, rated PARTIAL)
+  → 3 datasets, 91%: the defaults record (Language/Encoding), the LC_*
+  table with each category NAMED (`LC_CTYPE … en_US UTF-8`, which the single
+  parse could not tell apart), and the two section titles split at the first
+  word (`Locale` / `aliasing:`). PARTIAL; better than the single parse.
+- **138 `sqlplus` SELECT** (held: fixed-width kept 77%, rated PARTIAL) → 4
+  datasets, 100%: the table exact under its real header, plus the echoed
+  SELECT (split at spaces), `5 rows selected.` and the `SQL>` prompt as
+  one-row datasets. PARTIAL (the SQL echo is shredded); better than the
+  single parse, which dropped the footer count.
+
+The 23 still held, by the rule that declined them: one dataset only or the
+unsplit input wins (007, 012, 018, 034, 035, 109); a part fails the gate
+(001, 005, 030, 047, 110, 137); joint coverage short (056, 064); held for
+consistency with ≥ 92% already kept (059, 114, 120, 141); a positional
+table (036, 102, 115, 126); the rejected parser back unjudged (003). What
+each guard prevented — the per-dataset gate alone would have filed 12, and 8
+of those are worse than holding:
+- the coverage-gain rule stops `RouterOS ip address print` (114: the flags
+  legend split off, rows still shifted, consistency 74) and `lsnrctl status`
+  (120: `Alias LISTENER` as the header, every key cut at its first space);
+  it also stops `srcds status` (141), the one good segmentation lost (the kv
+  block as one record, the `#` player table verbatim) — accepted, because
+  "covers materially more" is the condition that keeps 114 and 120 out;
+- the positional rule stops `patch --verbose` (036: prose as name/description
+  and `checking file target.conf` as a header), the AWS boxed table (102:
+  `||` cells), `show spanning-tree` (115: `Spanning tree enabled protocol
+  rstp` as a header, the interface table's header cut off by its rule line)
+  and `cnpg status` (126: three tables headerless, dates in three columns,
+  one table's rows misaligned);
+- the rejected-parser rule stops `callgrind_annotate` (003: the function
+  table still flattened into one record whose column names are data);
+- the fragment rule binds on none of these (a dev example below).
+`sort --debug` (059) would be stopped by the positional rule too; the rule
+order reports the coverage gain first.
+
+**Dev examples** (written for this work, not corpus or benchmark inputs):
+a table + key/value footer (→ 2 datasets: the table under its header, the
+footer as key/value; the smoke test), the same report with a one-line footer
+(passes the gate; with `--name` both captures' table rows land in one
+dataset), a banner + kv block + rule-split table (→ the header-folded table
+and the banner record), a 9-line input of five 1–2-line blocks (declined:
+fragments; smoke), an iostat report (declined: its avg-cpu part keeps half
+its own lines; smoke). Inputs that pass the gate (a backup report, two
+titled tables, a log with a gap, help text, a cluster status) are untouched:
+the second run never happens.
+
+**Timing.** None for a parse that passes the gate: `_auto_multi` runs only
+after the gate has decided to hold, and large inputs never get there (both
+measures are absent above 128 KB). `provost` on the 10 MB inputs, before →
+after (one run each, shared 4-core box): csv 19.5 → 17.2 s, ps 68.4 → 64.2
+s, syslog 12.8 → 12.6 s, kv 218.1 → 218.1 s — noise. A capture the gate
+WOULD hold pays for the `--multi` run (per-block detection over every
+strategy plus the whole / strict / header-fold candidates): ~1 s → 8–10 s on
+the 0.8–2.4 KB round-3 inputs timed (051, 126, 030, 047). That is 26 of the
+216 benchmark captures; interactive captures run in the background, so the
+prompt does not wait. `--no-auto-multi` / `PROVOST_AUTO_MULTI=0` avoid it.
+
+**Corpus:** no golden changes — the corpus runs the single-winner
+`--generic` path, which this change does not touch.
+
+**Tests:** `tests/smoke.sh` 217 → 235 (segments a gated table + kv, the ok
+line and every new meta key, naming with and without NAME, two captures
+sharing NAME, `PROVOST_AUTO_MULTI=0` and its validation, `--no-auto-multi`,
+a declined iostat split and a fragment split held with their reasons; the
+existing gate checks now pass `--no-auto-multi`).
+`extract/tests/test_multi_mode.sh` 17 → 20 (the 7-field separator, the
+`__MULTI_META__` line on stderr only and only with `--emit-meta`, a comment
+run's `-` measures).
+
+**Files:** `provost`, `extract/lib/_dispatch.sh`, `extract/provost-extract`,
+`extract/tests/test_multi_mode.sh`, `tests/smoke.sh`, `man/provost.1`,
+`README.md`, `docs/usage.md`, `completions/provost.bash`, `CHANGELOG.md`.
+
 ## 2026-10-20 — generalisation benchmark round 4: 107 unseen inputs, rated on the current engine (measurement only)
 
 A fresh held-out set, built and frozen before the first input was run, to
