@@ -1,0 +1,120 @@
+Compiled from "Ledger.java"
+public final class shop.Ledger {
+  public static final int MAX_LINES;
+    descriptor: I
+
+  private final java.util.List<java.lang.String> lines;
+    descriptor: Ljava/util/List;
+
+  private final java.util.concurrent.locks.ReentrantLock lock;
+    descriptor: Ljava/util/concurrent/locks/ReentrantLock;
+
+  private long total;
+    descriptor: J
+
+  public shop.Ledger();
+    descriptor: ()V
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: new           #7                  // class java/util/ArrayList
+       8: dup
+       9: invokespecial #9                  // Method java/util/ArrayList."<init>":()V
+      12: putfield      #10                 // Field lines:Ljava/util/List;
+      15: aload_0
+      16: new           #16                 // class java/util/concurrent/locks/ReentrantLock
+      19: dup
+      20: invokespecial #18                 // Method java/util/concurrent/locks/ReentrantLock."<init>":()V
+      23: putfield      #19                 // Field lock:Ljava/util/concurrent/locks/ReentrantLock;
+      26: return
+    LineNumberTable:
+      line 7: 0
+      line 9: 4
+      line 10: 15
+
+  public void post(java.lang.String, long);
+    descriptor: (Ljava/lang/String;J)V
+    Code:
+       0: aload_0
+       1: getfield      #19                 // Field lock:Ljava/util/concurrent/locks/ReentrantLock;
+       4: invokevirtual #23                 // Method java/util/concurrent/locks/ReentrantLock.lock:()V
+       7: aload_0
+       8: getfield      #10                 // Field lines:Ljava/util/List;
+      11: invokeinterface #25,  1           // InterfaceMethod java/util/List.size:()I
+      16: sipush        512
+      19: if_icmplt     32
+      22: new           #31                 // class java/lang/IllegalStateException
+      25: dup
+      26: ldc           #33                 // String ledger full
+      28: invokespecial #35                 // Method java/lang/IllegalStateException."<init>":(Ljava/lang/String;)V
+      31: athrow
+      32: aload_0
+      33: getfield      #10                 // Field lines:Ljava/util/List;
+      36: aload_1
+      37: lload_2
+      38: invokedynamic #38,  0             // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;J)Ljava/lang/String;
+      43: invokeinterface #42,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      48: pop
+      49: aload_0
+      50: dup
+      51: getfield      #46                 // Field total:J
+      54: lload_2
+      55: ladd
+      56: putfield      #46                 // Field total:J
+      59: aload_0
+      60: getfield      #19                 // Field lock:Ljava/util/concurrent/locks/ReentrantLock;
+      63: invokevirtual #50                 // Method java/util/concurrent/locks/ReentrantLock.unlock:()V
+      66: goto          81
+      69: astore        4
+      71: aload_0
+      72: getfield      #19                 // Field lock:Ljava/util/concurrent/locks/ReentrantLock;
+      75: invokevirtual #50                 // Method java/util/concurrent/locks/ReentrantLock.unlock:()V
+      78: aload         4
+      80: athrow
+      81: return
+    Exception table:
+       from    to  target type
+           7    59    69   any
+          69    71    69   any
+    LineNumberTable:
+      line 14: 0
+      line 16: 7
+      line 17: 32
+      line 18: 49
+      line 20: 59
+      line 21: 66
+      line 20: 69
+      line 21: 78
+      line 22: 81
+
+  public long total();
+    descriptor: ()J
+    Code:
+       0: aload_0
+       1: getfield      #46                 // Field total:J
+       4: lreturn
+    LineNumberTable:
+      line 24: 0
+
+  public static void main(java.lang.String[]) throws java.lang.Exception;
+    descriptor: ([Ljava/lang/String;)V
+    Code:
+       0: new           #11                 // class shop/Ledger
+       3: dup
+       4: invokespecial #53                 // Method "<init>":()V
+       7: astore_1
+       8: iconst_3
+       9: anewarray     #54                 // class java/lang/Thread
+      12: astore_2
+      13: iconst_0
+      14: istore_3
+      15: iload_3
+      16: aload_2
+      17: arraylength
+      18: if_icmpge     60
+      21: iload_3
+      22: istore        4
+      24: aload_2
+      25: iload_3
+      26: new           #54                 // class java/lang/Thread

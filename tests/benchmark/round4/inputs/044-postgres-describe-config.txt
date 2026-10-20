@@ -1,0 +1,80 @@
+archive_cleanup_command	sighup	Write-Ahead Log / Archive Recovery	STRING				Sets the shell command that will be executed at every restart point.	
+archive_command	sighup	Write-Ahead Log / Archiving	STRING				Sets the shell command that will be called to archive a WAL file.	This is used only if "archive_library" is not set.
+archive_library	sighup	Write-Ahead Log / Archiving	STRING				Sets the library that will be called to archive a WAL file.	An empty string indicates that "archive_command" should be used.
+archive_mode	postmaster	Write-Ahead Log / Archiving	ENUM	off			Allows archiving of WAL files using archive_command.	
+archive_timeout	sighup	Write-Ahead Log / Archiving	INTEGER	0	0	1073741823	Sets the amount of time to wait before forcing a switch to the next WAL file.	
+array_nulls	user	Version and Platform Compatibility / Previous PostgreSQL Versions	BOOLEAN	FALSE			Enable input of NULL elements in arrays.	When turned on, unquoted NULL in an array input value means a null value; otherwise it is taken literally.
+authentication_timeout	sighup	Connections and Authentication / Authentication	INTEGER	0	1	600	Sets the maximum allowed time to complete client authentication.	
+autovacuum	sighup	Autovacuum	BOOLEAN	FALSE			Starts the autovacuum subprocess.	
+autovacuum_analyze_scale_factor	sighup	Autovacuum	REAL	0	0	100	Number of tuple inserts, updates, or deletes prior to analyze as a fraction of reltuples.	
+autovacuum_analyze_threshold	sighup	Autovacuum	INTEGER	0	0	2147483647	Minimum number of tuple inserts, updates, or deletes prior to analyze.	
+autovacuum_freeze_max_age	postmaster	Autovacuum	INTEGER	0	100000	2000000000	Age at which to autovacuum a table to prevent transaction ID wraparound.	
+autovacuum_max_workers	postmaster	Autovacuum	INTEGER	0	1	262143	Sets the maximum number of simultaneously running autovacuum worker processes.	
+autovacuum_multixact_freeze_max_age	postmaster	Autovacuum	INTEGER	0	10000	2000000000	Multixact age at which to autovacuum a table to prevent multixact wraparound.	
+autovacuum_naptime	sighup	Autovacuum	INTEGER	0	1	2147483	Time to sleep between autovacuum runs.	
+autovacuum_vacuum_cost_delay	sighup	Autovacuum	REAL	0	-1	100	Vacuum cost delay in milliseconds, for autovacuum.	
+autovacuum_vacuum_cost_limit	sighup	Autovacuum	INTEGER	0	-1	10000	Vacuum cost amount available before napping, for autovacuum.	
+autovacuum_vacuum_insert_scale_factor	sighup	Autovacuum	REAL	0	0	100	Number of tuple inserts prior to vacuum as a fraction of reltuples.	
+autovacuum_vacuum_insert_threshold	sighup	Autovacuum	INTEGER	0	-1	2147483647	Minimum number of tuple inserts prior to vacuum, or -1 to disable insert vacuums.	
+autovacuum_vacuum_scale_factor	sighup	Autovacuum	REAL	0	0	100	Number of tuple updates or deletes prior to vacuum as a fraction of reltuples.	
+autovacuum_vacuum_threshold	sighup	Autovacuum	INTEGER	0	0	2147483647	Minimum number of tuple updates or deletes prior to vacuum.	
+autovacuum_work_mem	sighup	Resource Usage / Memory	INTEGER	0	-1	2147483647	Sets the maximum memory to be used by each autovacuum worker process.	
+backend_flush_after	user	Resource Usage / Asynchronous Behavior	INTEGER	0	0	256	Number of pages after which previously performed writes are flushed to disk.	
+backslash_quote	user	Version and Platform Compatibility / Previous PostgreSQL Versions	ENUM	safe_encoding			Sets whether "\'" is allowed in string literals.	
+bgwriter_delay	sighup	Resource Usage / Background Writer	INTEGER	0	10	10000	Background writer sleep time between rounds.	
+bgwriter_flush_after	sighup	Resource Usage / Background Writer	INTEGER	0	0	256	Number of pages after which previously performed writes are flushed to disk.	
+bgwriter_lru_maxpages	sighup	Resource Usage / Background Writer	INTEGER	0	0	1073741823	Background writer maximum number of LRU pages to flush per round.	
+bgwriter_lru_multiplier	sighup	Resource Usage / Background Writer	REAL	0	0	10	Multiple of the average buffer usage to free per round.	
+bonjour	postmaster	Connections and Authentication / Connection Settings	BOOLEAN	FALSE			Enables advertising the server via Bonjour.	
+bonjour_name	postmaster	Connections and Authentication / Connection Settings	STRING				Sets the Bonjour service name.	
+bytea_output	user	Client Connection Defaults / Statement Behavior	ENUM	hex			Sets the output format for bytea.	
+check_function_bodies	user	Client Connection Defaults / Statement Behavior	BOOLEAN	FALSE			Check routine bodies during CREATE FUNCTION and CREATE PROCEDURE.	
+checkpoint_completion_target	sighup	Write-Ahead Log / Checkpoints	REAL	0	0	1	Time spent flushing dirty buffers during checkpoint, as fraction of checkpoint interval.	
+checkpoint_flush_after	sighup	Write-Ahead Log / Checkpoints	INTEGER	0	0	256	Number of pages after which previously performed writes are flushed to disk.	
+checkpoint_timeout	sighup	Write-Ahead Log / Checkpoints	INTEGER	0	30	86400	Sets the maximum time between automatic WAL checkpoints.	
+checkpoint_warning	sighup	Write-Ahead Log / Checkpoints	INTEGER	0	0	2147483647	Sets the maximum time before warning if checkpoints triggered by WAL volume happen too frequently.	Write a message to the server log if checkpoints caused by the filling of WAL segment files happen more frequently than this amount of time. Zero turns off the warning.
+client_connection_check_interval	user	Connections and Authentication / TCP Settings	INTEGER	0	0	2147483647	Sets the time interval between checks for disconnection while running queries.	
+client_encoding	user	Client Connection Defaults / Locale and Formatting	STRING	SQL_ASCII			Sets the client's character set encoding.	
+client_min_messages	user	Client Connection Defaults / Statement Behavior	ENUM	notice			Sets the message levels that are sent to the client.	Each level includes all the levels that follow it. The later the level, the fewer messages are sent.
+cluster_name	postmaster	Reporting and Logging / Process Title	STRING				Sets the name of the cluster, which is included in the process title.	
+commit_delay	superuser	Write-Ahead Log / Settings	INTEGER	0	0	100000	Sets the delay in microseconds between transaction commit and flushing WAL to disk.	
+commit_siblings	user	Write-Ahead Log / Settings	INTEGER	0	0	1000	Sets the minimum number of concurrent open transactions required before performing commit_delay.	
+compute_query_id	superuser	Statistics / Monitoring	ENUM	auto			Enables in-core computation of query identifiers.	
+constraint_exclusion	user	Query Tuning / Other Planner Options	ENUM	partition			Enables the planner to use constraints to optimize queries.	Table scans will be skipped if their constraints guarantee that no rows match the query.
+cpu_index_tuple_cost	user	Query Tuning / Planner Cost Constants	REAL	0	0	1.79769e+308	Sets the planner's estimate of the cost of processing each index entry during an index scan.	
+cpu_operator_cost	user	Query Tuning / Planner Cost Constants	REAL	0	0	1.79769e+308	Sets the planner's estimate of the cost of processing each operator or function call.	
+cpu_tuple_cost	user	Query Tuning / Planner Cost Constants	REAL	0	0	1.79769e+308	Sets the planner's estimate of the cost of processing each tuple (row).	
+createrole_self_grant	user	Client Connection Defaults / Statement Behavior	STRING				Sets whether a CREATEROLE user automatically grants the role to themselves, and with which options.	
+cursor_tuple_fraction	user	Query Tuning / Other Planner Options	REAL	0	0	1	Sets the planner's estimate of the fraction of a cursor's rows that will be retrieved.	
+data_directory	postmaster	File Locations	STRING				Sets the server's data directory.	
+data_sync_retry	postmaster	Error Handling	BOOLEAN	FALSE			Whether to continue running after a failure to sync data files.	
+DateStyle	user	Client Connection Defaults / Locale and Formatting	STRING	ISO, MDY			Sets the display format for date and time values.	Also controls interpretation of ambiguous date inputs.
+db_user_namespace	sighup	Connections and Authentication / Authentication	BOOLEAN	FALSE			Enables per-database user names.	
+deadlock_timeout	superuser	Lock Management	INTEGER	0	1	2147483647	Sets the time to wait on a lock before checking for deadlock.	
+debug_pretty_print	user	Reporting and Logging / What to Log	BOOLEAN	FALSE			Indents parse and plan tree displays.	
+debug_print_parse	user	Reporting and Logging / What to Log	BOOLEAN	FALSE			Logs each query's parse tree.	
+debug_print_plan	user	Reporting and Logging / What to Log	BOOLEAN	FALSE			Logs each query's execution plan.	
+debug_print_rewritten	user	Reporting and Logging / What to Log	BOOLEAN	FALSE			Logs each query's rewritten parse tree.	
+default_statistics_target	user	Query Tuning / Other Planner Options	INTEGER	0	1	10000	Sets the default statistics target.	This applies to table columns that have not had a column-specific target set via ALTER TABLE SET STATISTICS.
+default_table_access_method	user	Client Connection Defaults / Statement Behavior	STRING	heap			Sets the default table access method for new tables.	
+default_tablespace	user	Client Connection Defaults / Statement Behavior	STRING				Sets the default tablespace to create tables and indexes in.	An empty string selects the database's default tablespace.
+default_text_search_config	user	Client Connection Defaults / Locale and Formatting	STRING	pg_catalog.simple			Sets default text search configuration.	
+default_toast_compression	user	Client Connection Defaults / Statement Behavior	ENUM	pglz			Sets the default compression method for compressible values.	
+default_transaction_deferrable	user	Client Connection Defaults / Statement Behavior	BOOLEAN	FALSE			Sets the default deferrable status of new transactions.	
+default_transaction_isolation	user	Client Connection Defaults / Statement Behavior	ENUM	read committed			Sets the transaction isolation level of each new transaction.	
+default_transaction_read_only	user	Client Connection Defaults / Statement Behavior	BOOLEAN	FALSE			Sets the default read-only status of new transactions.	
+dynamic_library_path	superuser	Client Connection Defaults / Other Defaults	STRING	$libdir			Sets the path for dynamically loadable modules.	If a dynamically loadable module needs to be opened and the specified name does not have a directory component (i.e., the name does not contain a slash), the system will search this path for the specified file.
+dynamic_shared_memory_type	postmaster	Resource Usage / Memory	ENUM	posix			Selects the dynamic shared memory implementation used.	
+effective_cache_size	user	Query Tuning / Planner Cost Constants	INTEGER	0	1	2147483647	Sets the planner's assumption about the total size of the data caches.	That is, the total size of the caches (kernel cache and shared buffers) used for PostgreSQL data files. This is measured in disk pages, which are normally 8 kB each.
+effective_io_concurrency	user	Resource Usage / Asynchronous Behavior	INTEGER	0	0	1000	Number of simultaneous requests that can be handled efficiently by the disk subsystem.	
+enable_async_append	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of async append plans.	
+enable_bitmapscan	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of bitmap-scan plans.	
+enable_gathermerge	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of gather merge plans.	
+enable_hashagg	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of hashed aggregation plans.	
+enable_hashjoin	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of hash join plans.	
+enable_incremental_sort	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of incremental sort steps.	
+enable_indexonlyscan	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of index-only-scan plans.	
+enable_indexscan	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of index-scan plans.	
+enable_material	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of materialization.	
+enable_memoize	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of memoization.	
+enable_mergejoin	user	Query Tuning / Planner Method Configuration	BOOLEAN	FALSE			Enables the planner's use of merge join plans.	

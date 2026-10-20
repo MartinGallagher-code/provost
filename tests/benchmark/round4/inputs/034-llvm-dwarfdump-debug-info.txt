@@ -1,0 +1,202 @@
+records.o:	file format elf64-x86-64
+
+.debug_info contents:
+0x00000000: Compile Unit: length = 0x000000ee, format = DWARF32, version = 0x0005, unit_type = DW_UT_compile, abbr_offset = 0x0000, addr_size = 0x08 (next unit at 0x000000f2)
+
+0x0000000c: DW_TAG_compile_unit
+              DW_AT_producer	("Ubuntu clang version 18.1.3 (1ubuntu1)")
+              DW_AT_language	(DW_LANG_C11)
+              DW_AT_name	("records.c")
+              DW_AT_str_offsets_base	(0x00000008)
+              DW_AT_stmt_list	(0x00000000)
+              DW_AT_comp_dir	("/home/dev/src")
+              DW_AT_addr_base	(0x00000008)
+
+0x0000001e:   DW_TAG_variable
+                DW_AT_name	("f")
+                DW_AT_type	(0x00000029 "flags")
+                DW_AT_external	(true)
+                DW_AT_decl_file	("/home/dev/src/records.c")
+                DW_AT_decl_line	(4)
+                DW_AT_location	(DW_OP_addrx 0x0)
+
+0x00000029:   DW_TAG_structure_type
+                DW_AT_name	("flags")
+                DW_AT_byte_size	(0x40)
+                DW_AT_decl_file	("/home/dev/src/records.c")
+                DW_AT_decl_line	(3)
+
+0x0000002e:     DW_TAG_member
+                  DW_AT_name	("ready")
+                  DW_AT_type	(0x0000005e "unsigned int")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(3)
+                  DW_AT_bit_size	(0x01)
+                  DW_AT_data_bit_offset	(0x00)
+
+0x00000038:     DW_TAG_member
+                  DW_AT_name	("mode")
+                  DW_AT_type	(0x0000005e "unsigned int")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(3)
+                  DW_AT_bit_size	(0x03)
+                  DW_AT_data_bit_offset	(0x01)
+
+0x00000042:     DW_TAG_member
+                  DW_AT_name	("level")
+                  DW_AT_type	(0x00000062 "unsigned char")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(3)
+                  DW_AT_data_member_location	(0x04)
+
+0x0000004b:     DW_TAG_member
+                  DW_AT_name	("first")
+                  DW_AT_type	(0x00000066 "item")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(3)
+                  DW_AT_data_member_location	(0x08)
+
+0x00000054:     DW_TAG_member
+                  DW_AT_name	("t")
+                  DW_AT_type	(0x000000b1 "tag")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(3)
+                  DW_AT_data_member_location	(0x38)
+
+0x0000005d:     NULL
+
+0x0000005e:   DW_TAG_base_type
+                DW_AT_name	("unsigned int")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x04)
+
+0x00000062:   DW_TAG_base_type
+                DW_AT_name	("unsigned char")
+                DW_AT_encoding	(DW_ATE_unsigned_char)
+                DW_AT_byte_size	(0x01)
+
+0x00000066:   DW_TAG_structure_type
+                DW_AT_name	("item")
+                DW_AT_byte_size	(0x30)
+                DW_AT_decl_file	("/home/dev/src/records.c")
+                DW_AT_decl_line	(1)
+
+0x0000006b:     DW_TAG_member
+                  DW_AT_name	("name")
+                  DW_AT_type	(0x00000090 "char[24]")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(1)
+                  DW_AT_data_member_location	(0x00)
+
+0x00000074:     DW_TAG_member
+                  DW_AT_name	("qty")
+                  DW_AT_type	(0x000000a4 "unsigned short")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(1)
+                  DW_AT_data_member_location	(0x18)
+
+0x0000007d:     DW_TAG_member
+                  DW_AT_name	("price")
+                  DW_AT_type	(0x000000a8 "double")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(1)
+                  DW_AT_data_member_location	(0x20)
+
+0x00000086:     DW_TAG_member
+                  DW_AT_name	("next")
+                  DW_AT_type	(0x000000ac "item *")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(1)
+                  DW_AT_data_member_location	(0x28)
+
+0x0000008f:     NULL
+
+0x00000090:   DW_TAG_array_type
+                DW_AT_type	(0x0000009c "char")
+
+0x00000095:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000000a0 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x18)
+
+0x0000009b:     NULL
+
+0x0000009c:   DW_TAG_base_type
+                DW_AT_name	("char")
+                DW_AT_encoding	(DW_ATE_signed_char)
+                DW_AT_byte_size	(0x01)
+
+0x000000a0:   DW_TAG_base_type
+                DW_AT_name	("__ARRAY_SIZE_TYPE__")
+                DW_AT_byte_size	(0x08)
+                DW_AT_encoding	(DW_ATE_unsigned)
+
+0x000000a4:   DW_TAG_base_type
+                DW_AT_name	("unsigned short")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x02)
+
+0x000000a8:   DW_TAG_base_type
+                DW_AT_name	("double")
+                DW_AT_encoding	(DW_ATE_float)
+                DW_AT_byte_size	(0x08)
+
+0x000000ac:   DW_TAG_pointer_type
+                DW_AT_type	(0x00000066 "item")
+
+0x000000b1:   DW_TAG_union_type
+                DW_AT_name	("tag")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	("/home/dev/src/records.c")
+                DW_AT_decl_line	(2)
+
+0x000000b6:     DW_TAG_member
+                  DW_AT_name	("id")
+                  DW_AT_type	(0x000000d2 "int")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(2)
+                  DW_AT_data_member_location	(0x00)
+
+0x000000bf:     DW_TAG_member
+                  DW_AT_name	("weight")
+                  DW_AT_type	(0x000000d6 "float")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(2)
+                  DW_AT_data_member_location	(0x00)
+
+0x000000c8:     DW_TAG_member
+                  DW_AT_name	("code")
+                  DW_AT_type	(0x000000da "char[4]")
+                  DW_AT_decl_file	("/home/dev/src/records.c")
+                  DW_AT_decl_line	(2)
+                  DW_AT_data_member_location	(0x00)
+
+0x000000d1:     NULL
+
+0x000000d2:   DW_TAG_base_type
+                DW_AT_name	("int")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x000000d6:   DW_TAG_base_type
+                DW_AT_name	("float")
+                DW_AT_encoding	(DW_ATE_float)
+                DW_AT_byte_size	(0x04)
+
+0x000000da:   DW_TAG_array_type
+                DW_AT_type	(0x0000009c "char")
+
+0x000000df:     DW_TAG_subrange_type
+                  DW_AT_type	(0x000000a0 "__ARRAY_SIZE_TYPE__")
+                  DW_AT_count	(0x04)
+
+0x000000e5:     NULL
+
+0x000000e6:   DW_TAG_variable
+                DW_AT_name	("t")
+                DW_AT_type	(0x000000b1 "tag")
+                DW_AT_external	(true)
+                DW_AT_decl_file	("/home/dev/src/records.c")
+                DW_AT_decl_line	(5)
+                DW_AT_location	(DW_OP_addrx 0x1)
+
+0x000000f1:   NULL

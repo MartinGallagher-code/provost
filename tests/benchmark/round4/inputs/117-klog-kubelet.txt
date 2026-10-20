@@ -1,0 +1,16 @@
+I1020 08:01:12.418233    1874 server.go:487] "Kubelet version" kubeletVersion="v1.31.2"
+I1020 08:01:12.418290    1874 server.go:489] "Golang settings" GOGC="" GOMAXPROCS="" GOTRACEBACK=""
+I1020 08:01:12.421007    1874 dynamic_cafile_content.go:160] "Starting controller" name="client-ca-bundle::/etc/kubernetes/pki/ca.crt"
+W1020 08:01:12.436112    1874 feature_gate.go:351] Setting GA feature gate KubeletInUserNamespace=false. It will be removed in a future release.
+I1020 08:01:12.512944    1874 container_manager_linux.go:300] "Creating Container Manager object based on Node Config" nodeConfig={"NodeName":"worker-03","RuntimeCgroupsName":"","SystemCgroupsName":"","KubeletCgroupsName":"","KubeletOOMScoreAdj":-999,"ContainerRuntime":"","CgroupsPerQOS":true,"CgroupRoot":"/","CgroupDriver":"systemd"}
+E1020 08:01:14.007731    1874 kubelet.go:2901] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+I1020 08:01:19.871202    1874 kubelet_node_status.go:75] "Attempting to register node" node="worker-03"
+I1020 08:01:19.902114    1874 kubelet_node_status.go:78] "Successfully registered node" node="worker-03"
+E1020 08:02:41.330918    1874 pod_workers.go:1301] "Error syncing pod, skipping" err="failed to \"StartContainer\" for \"api\" with CrashLoopBackOff: \"back-off 20s restarting failed container=api pod=billing-api-7d9c5b8f6-x2kqp_shop(0e4f2a1c-9b3d-4e5f-8a7b-6c5d4e3f2a1b)\"" pod="shop/billing-api-7d9c5b8f6-x2kqp" podUID="0e4f2a1c-9b3d-4e5f-8a7b-6c5d4e3f2a1b"
+I1020 08:03:05.004417    1874 scope.go:117] "RemoveContainer" containerID="4d1c9e2a7b3f5e6d8c0a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6a"
+W1020 08:04:22.118540    1874 eviction_manager.go:376] "Eviction manager: attempting to reclaim" resourceName="ephemeral-storage"
+I1020 08:04:22.120901    1874 eviction_manager.go:387] "Eviction manager: must evict pod(s) to reclaim" resourceName="ephemeral-storage"
+I1020 08:04:22.121044    1874 eviction_manager.go:405] "Eviction manager: pods ranked for eviction" pods=["shop/log-shipper-5f7d8c9b4-qzt8w","monitoring/node-exporter-8kx2p"]
+F1020 08:05:01.000022    1874 server.go:302] "Failed to run kubelet" err=<
+	failed to run Kubelet: validate service connection: CRI v1 runtime API is not implemented for endpoint "unix:///run/containerd/containerd.sock": rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing: dial unix /run/containerd/containerd.sock: connect: no such file or directory"
+ >

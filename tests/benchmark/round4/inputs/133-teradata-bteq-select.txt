@@ -1,0 +1,35 @@
+ BTEQ 17.20.00.08 Mon Oct 20 09:31:17 2026 PID: 41822
+ 
++---------+---------+---------+---------+---------+---------+---------+----
+.LOGON tdprod/etl_reader,
+
+ *** Logon successfully completed.
+ *** Teradata Database Release is 17.20.03.22                   
+ *** Teradata Database Version is 17.20.03.22                     
+ *** Transaction Semantics are BTET.
+ *** Session Character Set Name is 'UTF8'.
+ 
+ *** Total elapsed time was 1 second.
+ 
++---------+---------+---------+---------+---------+---------+---------+----
+SELECT region_cd, store_nm, sales_amt, last_upd_ts FROM sales.v_store_daily WHERE sales_dt = DATE '2026-10-19' ORDER BY 3 DESC;
+
+ *** Query completed. 6 rows found. 4 columns returned. 
+ *** Total elapsed time was 2 seconds.
+
+region_cd  store_nm                         sales_amt  last_upd_ts
+---------  ------------------------------  ----------  --------------------------
+NORD       Hamburg Altona                   184211.40  2026-10-20 01:12:44.000000
+WEST       Köln Ehrenfeld                   171009.95  2026-10-20 01:12:44.000000
+SUED       München Schwabing                168744.00  2026-10-20 01:13:02.000000
+OST        Leipzig Zentrum                   92318.15  2026-10-20 01:13:02.000000
+SUED       Nürnberg Südstadt                 88102.60                           ?
+NORD       Bremen Überseestadt                    .00  2026-10-20 01:12:44.000000
+
++---------+---------+---------+---------+---------+---------+---------+----
+.LOGOFF
+ *** You are now logged off from the DBC.
++---------+---------+---------+---------+---------+---------+---------+----
+.QUIT
+ *** Exiting BTEQ...
+ *** RC (return code) = 0 

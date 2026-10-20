@@ -1,0 +1,13 @@
+
+
+-- Schedd: submit01.cluster.example.com : <192.0.2.40:9618?... @ 10/20/26 09:52:17
+OWNER    BATCH_NAME          SUBMITTED   DONE   RUN    IDLE   HOLD  TOTAL JOB_IDS
+mkrause  ID: 88412          10/19 22:04  1180     40      _      _   1220 88412.0-1219
+mkrause  rnaseq_align       10/20 07:11     _     12    188      _    200 88501.0-199
+tnguyen  ID: 88633          10/20 08:30     _      1      _      _      1 88633.0
+lfischer DAG: mc_sweep      10/20 09:01    24      8     60      4     96 88640.0 ... 88739.0
+svc_ci   nightly-build      10/20 09:40     _      _      3      _      3 88740.0-2
+
+Total for query: 1520 jobs; 0 completed, 0 removed, 251 idle, 61 running, 4 held, 0 suspended 
+Total for all users: 2911 jobs; 0 completed, 0 removed, 1409 idle, 497 running, 9 held, 0 suspended
+

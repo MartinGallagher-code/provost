@@ -1,0 +1,21 @@
+I, [2026-10-20T10:04:11.204118 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Started GET "/orders?page=2&status=open" for 192.0.2.45 at 2026-10-20 10:04:11 +0200
+I, [2026-10-20T10:04:11.209441 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Processing by OrdersController#index as HTML
+I, [2026-10-20T10:04:11.209502 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b]   Parameters: {"page"=>"2", "status"=>"open"}
+I, [2026-10-20T10:04:11.248177 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b]   Rendered orders/index.html.erb within layouts/application (Duration: 31.4ms | Allocations: 18822)
+I, [2026-10-20T10:04:11.251090 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Completed 200 OK in 42ms (Views: 30.9ms | ActiveRecord: 6.2ms | Allocations: 24410)
+I, [2026-10-20T10:04:12.002917 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Started POST "/orders/1042/confirm" for 192.0.2.77 at 2026-10-20 10:04:12 +0200
+I, [2026-10-20T10:04:12.004118 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Processing by OrdersController#confirm as JSON
+I, [2026-10-20T10:04:12.004201 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6]   Parameters: {"note"=>"Lieferung bitte an Tor 3", "id"=>"1042"}
+W, [2026-10-20T10:04:12.019334 #4123]  WARN -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Can't verify CSRF token authenticity.
+I, [2026-10-20T10:04:12.020011 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Completed 422 Unprocessable Entity in 16ms (ActiveRecord: 0.0ms | Allocations: 1880)
+I, [2026-10-20T10:04:13.441002 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Started GET "/reports/monthly.pdf" for 192.0.2.12 at 2026-10-20 10:04:13 +0200
+I, [2026-10-20T10:04:13.443117 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Processing by ReportsController#monthly as PDF
+I, [2026-10-20T10:04:13.502781 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Completed 500 Internal Server Error in 59ms (ActiveRecord: 11.8ms | Allocations: 9123)
+F, [2026-10-20T10:04:13.504002 #4121] FATAL -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e]   
+[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] NoMethodError (undefined method `strftime' for nil):
+[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e]   
+[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] app/models/report.rb:31:in `period_label'
+[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] app/controllers/reports_controller.rb:12:in `monthly'
+I, [2026-10-20T10:04:14.120339 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Started GET "/up" for 10.20.0.2 at 2026-10-20 10:04:14 +0200
+I, [2026-10-20T10:04:14.120902 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Processing by Rails::HealthController#show as HTML
+I, [2026-10-20T10:04:14.121417 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Completed 200 OK in 0ms (Views: 0.2ms | Allocations: 214)

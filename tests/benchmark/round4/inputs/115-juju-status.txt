@@ -1,0 +1,23 @@
+Model       Controller     Cloud/Region         Version  SLA          Timestamp
+monitoring  prod-maas-ctl  maas-ber/default     3.5.4    unsupported  09:58:31+02:00
+
+App              Version  Status   Scale  Charm            Channel        Rev  Exposed  Message
+grafana          10.4.2   active       1  grafana          latest/stable   98  yes      
+postgresql       14.12    active       2  postgresql       14/stable      429  no       Primary
+prometheus       2.52.0   waiting      1  prometheus2      latest/stable   61  no       waiting for leadership
+telegraf                  blocked      0  telegraf         latest/stable   75  no       no metrics relation
+
+Unit             Workload  Agent      Machine  Public address  Ports     Message
+grafana/0*       active    idle       0        192.0.2.21      3000/tcp  
+postgresql/0*    active    idle       1        192.0.2.22      5432/tcp  Primary
+postgresql/1     active    executing  2        192.0.2.23      5432/tcp  Syncing with primary (41%)
+prometheus/0*    waiting   idle       3        192.0.2.24      9090/tcp  waiting for leadership
+
+Machine  State    Address     Inst id         Base          AZ       Message
+0        started  192.0.2.21  graf-node-01    ubuntu@22.04  default  Deployed
+1        started  192.0.2.22  pg-node-01      ubuntu@22.04  default  Deployed
+2        started  192.0.2.23  pg-node-02      ubuntu@22.04  default  Deployed
+3        pending  192.0.2.24  prom-node-01    ubuntu@24.04  default  Deploying: Powering on
+
+Offer       Application  Charm        Rev  Connected  Endpoint  Interface  Role
+pg-metrics  postgresql   postgresql   429  1/1        db        pgsql      provider

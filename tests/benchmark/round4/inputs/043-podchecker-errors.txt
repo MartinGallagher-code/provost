@@ -1,0 +1,6 @@
+*** ERROR: Unterminated I<...> sequence at line 15 in file Tally.pod
+*** ERROR: You forgot a '=back' before '=head1' at line 21 in file Tally.pod
+*** ERROR: An empty L<> at line 23 in file Tally.pod
+*** ERROR: Unknown E content in E<unknown> at line 23 in file Tally.pod
+*** ERROR: unresolved internal link 'split' at line 23 in file Tally.pod
+Tally.pod has 5 pod syntax errors.

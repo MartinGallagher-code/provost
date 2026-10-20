@@ -1,0 +1,61 @@
+Dumping total:
+FunctionDecl 0x557bde489118 <inventory.c:24:1, line:33:1> line:24:15 used total 'double (const struct item *)' static
+|-ParmVarDecl 0x557bde489008 <col:21, col:40> col:40 used it 'const struct item *'
+`-CompoundStmt 0x557bde4898c8 <col:44, line:33:1>
+  |-DeclStmt 0x557bde489280 <line:25:5, col:19>
+  | `-VarDecl 0x557bde4891e0 <col:5, col:18> col:12 used sum 'double' cinit
+  |   `-ImplicitCastExpr 0x557bde489268 <col:18> 'double' <IntegralToFloating>
+  |     `-IntegerLiteral 0x557bde489248 <col:18> 'int' 0
+  |-ForStmt 0x557bde489848 <line:26:5, line:31:5>
+  | |-<<<NULL>>>
+  | |-<<<NULL>>>
+  | |-ImplicitCastExpr 0x557bde4892b8 <line:26:12> 'const struct item *' <LValueToRValue>
+  | | `-DeclRefExpr 0x557bde489298 <col:12> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  | |-BinaryOperator 0x557bde489388 <col:16, col:25> 'const struct item *' '='
+  | | |-DeclRefExpr 0x557bde4892d0 <col:16> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  | | `-ImplicitCastExpr 0x557bde489370 <col:21, col:25> 'const struct item *' <NoOp>
+  | |   `-ImplicitCastExpr 0x557bde489358 <col:21, col:25> 'struct item *' <LValueToRValue>
+  | |     `-MemberExpr 0x557bde489328 <col:21, col:25> 'struct item *const' lvalue ->next 0x557bde488138
+  | |       `-ImplicitCastExpr 0x557bde489310 <col:21> 'const struct item *' <LValueToRValue>
+  | |         `-DeclRefExpr 0x557bde4892f0 <col:21> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  | `-CompoundStmt 0x557bde489830 <col:31, line:31:5>
+  |   `-IfStmt 0x557bde489800 <line:27:9, line:30:34> has_else
+  |     |-BinaryOperator 0x557bde489460 <line:27:13, col:23> 'int' '>'
+  |     | |-ImplicitCastExpr 0x557bde489448 <col:13, col:17> 'int' <IntegralCast>
+  |     | | `-ImplicitCastExpr 0x557bde489430 <col:13, col:17> 'unsigned short' <LValueToRValue>
+  |     | |   `-MemberExpr 0x557bde4893e0 <col:13, col:17> 'const unsigned short' lvalue ->qty 0x557bde487fc8
+  |     | |     `-ImplicitCastExpr 0x557bde4893c8 <col:13> 'const struct item *' <LValueToRValue>
+  |     | |       `-DeclRefExpr 0x557bde4893a8 <col:13> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  |     | `-IntegerLiteral 0x557bde489410 <col:23> 'int' 10
+  |     |-CompoundAssignOperator 0x557bde489630 <line:28:13, col:42> 'double' '+=' ComputeLHSTy='double' ComputeResultTy='double'
+  |     | |-DeclRefExpr 0x557bde489480 <col:13> 'double' lvalue Var 0x557bde4891e0 'sum' 'double'
+  |     | `-BinaryOperator 0x557bde489610 <col:20, col:42> 'double' '*'
+  |     |   |-BinaryOperator 0x557bde4895d0 <col:20, col:34> 'double' '*'
+  |     |   | |-ImplicitCastExpr 0x557bde4895b8 <col:20, col:24> 'double' <IntegralToFloating>
+  |     |   | | `-ImplicitCastExpr 0x557bde489588 <col:20, col:24> 'int' <IntegralCast>
+  |     |   | |   `-ImplicitCastExpr 0x557bde489570 <col:20, col:24> 'unsigned short' <LValueToRValue>
+  |     |   | |     `-MemberExpr 0x557bde4894d8 <col:20, col:24> 'const unsigned short' lvalue ->qty 0x557bde487fc8
+  |     |   | |       `-ImplicitCastExpr 0x557bde4894c0 <col:20> 'const struct item *' <LValueToRValue>
+  |     |   | |         `-DeclRefExpr 0x557bde4894a0 <col:20> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  |     |   | `-ImplicitCastExpr 0x557bde4895a0 <col:30, col:34> 'double' <LValueToRValue>
+  |     |   |   `-MemberExpr 0x557bde489540 <col:30, col:34> 'const double' lvalue ->price 0x557bde488030
+  |     |   |     `-ImplicitCastExpr 0x557bde489528 <col:30> 'const struct item *' <LValueToRValue>
+  |     |   |       `-DeclRefExpr 0x557bde489508 <col:30> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  |     |   `-FloatingLiteral 0x557bde4895f0 <col:42> 'double' 9.000000e-01
+  |     `-CompoundAssignOperator 0x557bde4897d0 <line:30:13, col:34> 'double' '+=' ComputeLHSTy='double' ComputeResultTy='double'
+  |       |-DeclRefExpr 0x557bde489660 <col:13> 'double' lvalue Var 0x557bde4891e0 'sum' 'double'
+  |       `-BinaryOperator 0x557bde4897b0 <col:20, col:34> 'double' '*'
+  |         |-ImplicitCastExpr 0x557bde489798 <col:20, col:24> 'double' <IntegralToFloating>
+  |         | `-ImplicitCastExpr 0x557bde489768 <col:20, col:24> 'int' <IntegralCast>
+  |         |   `-ImplicitCastExpr 0x557bde489750 <col:20, col:24> 'unsigned short' <LValueToRValue>
+  |         |     `-MemberExpr 0x557bde4896b8 <col:20, col:24> 'const unsigned short' lvalue ->qty 0x557bde487fc8
+  |         |       `-ImplicitCastExpr 0x557bde4896a0 <col:20> 'const struct item *' <LValueToRValue>
+  |         |         `-DeclRefExpr 0x557bde489680 <col:20> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  |         `-ImplicitCastExpr 0x557bde489780 <col:30, col:34> 'double' <LValueToRValue>
+  |           `-MemberExpr 0x557bde489720 <col:30, col:34> 'const double' lvalue ->price 0x557bde488030
+  |             `-ImplicitCastExpr 0x557bde489708 <col:30> 'const struct item *' <LValueToRValue>
+  |               `-DeclRefExpr 0x557bde4896e8 <col:30> 'const struct item *' lvalue ParmVar 0x557bde489008 'it' 'const struct item *'
+  `-ReturnStmt 0x557bde4898b8 <line:32:5, col:12>
+    `-ImplicitCastExpr 0x557bde4898a0 <col:12> 'double' <LValueToRValue>
+      `-DeclRefExpr 0x557bde489880 <col:12> 'double' lvalue Var 0x557bde4891e0 'sum' 'double'
+

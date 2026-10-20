@@ -1,0 +1,7 @@
+File Name                                             Modified             Size
+docs/                                          2026-10-20 22:23:38            0
+docs/pr├╝fbericht.txt                          2026-10-19 08:15:00           13
+docs/stock list.csv                            2026-10-19 08:15:00           17
+docs/numbers.txt                               2026-10-19 08:15:00        13893
+run.sh                                         2026-10-19 08:15:00           18
+empty/                                         2026-10-19 08:15:00            0

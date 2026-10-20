@@ -1,0 +1,14 @@
+Class     I  H/W Path        Driver S/W State   H/W Type     Description
+==========================================================================
+disk      0  0/0/1/1.0.0     sdisk   CLAIMED     DEVICE       HP 146 GST3146707LC
+                            /dev/dsk/c1t0d0   /dev/rdsk/c1t0d0
+disk      1  0/0/1/1.2.0     sdisk   CLAIMED     DEVICE       HP 146 GST3146707LC
+                            /dev/dsk/c1t2d0   /dev/rdsk/c1t2d0
+disk      2  0/0/2/0.2.0     sdisk   CLAIMED     DEVICE       HP      DVD-ROM 305
+                            /dev/dsk/c0t2d0   /dev/rdsk/c0t2d0
+disk      5  0/2/1/0.1.4.0.0.0.1  sdisk   CLAIMED     DEVICE       HP      HSV300
+                            /dev/dsk/c4t0d1   /dev/rdsk/c4t0d1
+disk      6  0/2/1/0.1.4.0.0.0.2  sdisk   CLAIMED     DEVICE       HP      HSV300
+                            /dev/dsk/c4t0d2   /dev/rdsk/c4t0d2
+disk      7  0/2/1/0.1.5.0.0.0.1  sdisk   NO_HW       DEVICE       HP      HSV300
+                            /dev/dsk/c6t0d1   /dev/rdsk/c6t0d1

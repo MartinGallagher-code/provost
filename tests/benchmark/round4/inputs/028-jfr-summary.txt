@@ -1,0 +1,60 @@
+
+ Version: 2.1
+ Chunks: 1
+ Start: 2026-10-20 22:21:30 (UTC)
+ Duration: 20 s
+
+ Event Type                              Count  Size (bytes) 
+=============================================================
+ jdk.JavaMonitorWait                      1180         29768
+ jdk.BooleanFlag                           505         15365
+ jdk.ActiveSetting                         360         10410
+ jdk.LongFlag                              161          5220
+ jdk.ModuleRequire                         153          1530
+ jdk.InitialEnvironmentVariable            149          8998
+ jdk.UnsignedLongFlag                      132          4479
+ jdk.SystemProcess                          90         26903
+ jdk.InitialSecurityProperty                48          2555
+ jdk.Checkpoint                             39         31265
+ jdk.ThreadAllocationStatistics             29           300
+ jdk.NativeLibrary                          28          1782
+ jdk.StringFlag                             28           877
+ jdk.IntFlag                                25           935
+ jdk.ResidentSetSize                        19           289
+ jdk.CPULoad                                19           365
+ jdk.JavaThreadStatistics                   19           213
+ jdk.ClassLoadingStatistics                 19           194
+ jdk.CompilerStatistics                     19           498
+ jdk.ExceptionStatistics                    19           232
+ jdk.InitialSystemProperty                  15           835
+ jdk.DoubleFlag                             15           605
+ jdk.UnsignedIntFlag                        14           473
+ jdk.ThreadCPULoad                          10           160
+ jdk.ThreadStart                             7            77
+ jdk.GCHeapMemoryPoolUsage                   6           227
+ jdk.ClassLoaderStatistics                   6           159
+ jdk.CodeCacheStatistics                     6           195
+ jdk.ObjectAllocationSample                  4            57
+ jdk.DirectBufferStatistics                  3            66
+ jdk.ThreadEnd                               2            18
+ jdk.GCHeapMemoryUsage                       2            39
+ jdk.Deoptimization                          2            46
+ jdk.NetworkUtilization                      2            27
+ jdk.PhysicalMemory                          2            35
+ jdk.ThreadDump                              2         16977
+ jdk.GCConfiguration                         2            51
+ jdk.Metadata                                1        103222
+ jdk.ContainerConfiguration                  1            71
+ jdk.JVMInformation                          1           287
+ jdk.OSInformation                           1           207
+ jdk.VirtualizationInformation               1            27
+ jdk.CPUInformation                          1          1433
+ jdk.CPUTimeStampCounter                     1            19
+ jdk.ThreadContextSwitchRate                 1            11
+ jdk.CompilerConfiguration                   1            10
+ jdk.CodeCacheConfiguration                  1            45
+ jdk.GCSurvivorConfiguration                 1            10
+ jdk.GCTLABConfiguration                     1            12
+ jdk.GCHeapConfiguration                     1            24
+ jdk.YoungGenerationConfiguration            1            16
+ jdk.JavaErrorThrow                          1           127

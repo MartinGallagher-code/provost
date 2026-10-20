@@ -1,0 +1,8 @@
+[EXTENDED]   /usr/lib/systemd/system/rc-local.service → /usr/lib/systemd/system/rc-local.service.d/debian.conf
+[EXTENDED]   /usr/lib/systemd/system/systemd-journald.service → /usr/lib/systemd/system/systemd-journald.service.d/nice.conf
+[EXTENDED]   /usr/lib/systemd/system/systemd-localed.service → /usr/lib/systemd/system/systemd-localed.service.d/x11-keyboard.conf
+[EXTENDED]   /usr/lib/systemd/system/systemd-logind.service → /usr/lib/systemd/system/systemd-logind.service.d/dbus.conf
+[EXTENDED]   /usr/lib/systemd/system/user@.service → /usr/lib/systemd/system/user@.service.d/10-login-barrier.conf
+[EXTENDED]   /usr/lib/systemd/system/user@.service → /usr/lib/systemd/system/user@.service.d/timeout.conf
+
+6 overridden configuration files found.

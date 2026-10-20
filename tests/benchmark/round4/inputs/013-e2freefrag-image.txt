@@ -1,0 +1,17 @@
+Device: fs.img
+Blocksize: 4096 bytes
+Total blocks: 16384
+Free blocks: 12535 (76.5%)
+
+Min. free extent: 40 KB 
+Max. free extent: 47288 KB
+Avg. free extent: 2276 KB
+Num. free extent: 22
+
+HISTOGRAM OF FREE EXTENT SIZES:
+Extent Size Range :  Free extents   Free Blocks  Percent
+   32K...   64K-  :             3            30    0.24%
+   64K...  128K-  :             7           158    1.26%
+  128K...  256K-  :             9           397    3.17%
+  256K...  512K-  :             2           128    1.02%
+   32M...   64M-  :             1         11822   94.31%

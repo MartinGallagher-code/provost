@@ -37,6 +37,18 @@ PARTIALs, and that small delta is the round's honest generalisation number.
 The postscript lists the remaining defects input by input, so round 3 is now
 a regression set too. The next generalisation number needs a round 4.
 
+**Round 4** (`round4/`, 107 inputs, 2026-10-20): **12 PASS / 51 PARTIAL /
+44 FAIL** (11% / 48% / 41%; 59% usable) on the 2026-10-20 engine (2.1.0 plus
+the 2026-10-16 fix round, the 2026-10-20 engine-defect fixes and the quality
+gate). 65 inputs are real captures and 42 are reproductions of documented
+formats. The set was novelty-checked against the corpus and rounds 1-3, and
+frozen (sha256 of every input in `round4/SHA256SUMS`) with round 3's criteria
+before the run. Every input also carries a `--multi` rating on the same
+scale: **12 / 64 / 31** (71% usable). The quality gate would hold 18
+captures: 17 FAIL, 1 PARTIAL, no PASS. See
+[`docs/benchmark-2026-10-20-generalisation-round4.md`](../../docs/benchmark-2026-10-20-generalisation-round4.md).
+It is a self-assessment screen and is still unseen by any parser fix.
+
 ## There is no gate here, on purpose
 
 A pass/fail gate would invite fitting the engine to these fifty files, and the
@@ -51,6 +63,7 @@ bash tests/benchmark/run.sh /tmp/bench-out                 # round 1
 bash tests/benchmark/run.sh --round2 /tmp/bench-r2         # round 2 (~4-5 min, 4 cores)
 bash tests/benchmark/run.sh --round2 --tidy /tmp/bench-r2  # + melted .tidy / .multi.tidy
 bash tests/benchmark/run.sh --round3 --tidy -j 2 /tmp/bench-r3  # round 3 (107 inputs)
+bash tests/benchmark/run.sh --round4 --tidy -j 2 /tmp/bench-r4  # round 4 (107 inputs, ~7 min)
 ```
 
 Prints a summary line per input: strategy, confidence, input lines, output
@@ -81,6 +94,12 @@ worse than no rating.
 | `round3/CRITERIA.md` | round 3: round 2's rating rules, reused unchanged and frozen before the run |
 | `round3/ratings.tsv` | round 3: default-mode winner, confidence, line coverage, rating and note per input (2.1.0); then winner, confidence, coverage, consistency, rating and what changed (re-rating after the 2026-10-16 fix round) |
 | `round3/novelty.py` | round 3: name and content check against the corpus, holdout, round 1 and round 2 |
+| `round4/inputs/*.txt` | round 4: 107 inputs (001-065 captured, 101-142 reproduced) |
+| `round4/manifest.tsv` | round 4: provenance, category, family, shape and source command per input |
+| `round4/SHA256SUMS` | round 4: sha256 of every input, recorded at the freeze |
+| `round4/CRITERIA.md` | round 4: round 3's (round 2's) rating rules, reused unchanged and frozen before the run |
+| `round4/ratings.tsv` | round 4: default-mode winner, confidence, coverage, consistency, whether the quality gate would hold it, rating, `--multi` dataset count and `--multi` rating, and a note per input |
+| `round4/novelty.py` | round 4: name and content check against the corpus, holdout and rounds 1-3 |
 | `run.sh` | re-run every input through default, `--rank priority` and `--multi` mode |
 | `make_doc_json.sh` | build the workbook JSON (input + melted parse + rating) |
 | `make_doc.js` | render that JSON as a markable `.docx` |
