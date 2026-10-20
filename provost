@@ -95,6 +95,11 @@ else
     unset _ctl
 fi
 PROVOST_MIN_CONFIDENCE="${PROVOST_MIN_CONFIDENCE:-50}"
+# Quality gate: a parse that kept too little of the input (line coverage) or
+# put values under the wrong headers (column-type consistency) is held back for
+# triage instead of filed. 0 turns a check off. See _quality_exempt.
+PROVOST_MIN_COVERAGE="${PROVOST_MIN_COVERAGE:-80}"
+PROVOST_MIN_CONSISTENCY="${PROVOST_MIN_CONSISTENCY:-70}"
 PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
@@ -141,12 +146,16 @@ _norm_uint () { printf '%d' "$((10#$1))"; }
 
 _validate_settings () {
     _validate_uint PROVOST_MIN_CONFIDENCE    "$PROVOST_MIN_CONFIDENCE"    0 101
+    _validate_uint PROVOST_MIN_COVERAGE      "$PROVOST_MIN_COVERAGE"      0 100
+    _validate_uint PROVOST_MIN_CONSISTENCY   "$PROVOST_MIN_CONSISTENCY"   0 100
     _validate_uint PROVOST_RECONCILE_OVERLAP "$PROVOST_RECONCILE_OVERLAP" 0 101
     _validate_uint PROVOST_LOCK_TIMEOUT      "$PROVOST_LOCK_TIMEOUT"      0 86400
     _validate_uint PROVOST_LOCK_MAX_AGE      "$PROVOST_LOCK_MAX_AGE"      1
     _validate_uint PROVOST_MAX_INPUT         "$PROVOST_MAX_INPUT"         1
     # (validated above, so these arithmetic reads are safe)
     PROVOST_MIN_CONFIDENCE=$((10#$PROVOST_MIN_CONFIDENCE))
+    PROVOST_MIN_COVERAGE=$((10#$PROVOST_MIN_COVERAGE))
+    PROVOST_MIN_CONSISTENCY=$((10#$PROVOST_MIN_CONSISTENCY))
     PROVOST_RECONCILE_OVERLAP=$((10#$PROVOST_RECONCILE_OVERLAP))
     PROVOST_LOCK_TIMEOUT=$((10#$PROVOST_LOCK_TIMEOUT))
     PROVOST_LOCK_MAX_AGE=$((10#$PROVOST_LOCK_MAX_AGE))
@@ -724,6 +733,20 @@ _snapshot_context () {
     printf '%s\n' "$n"
 }
 
+# _quality_exempt ENGINE STRATEGY — true when the quality gate does not apply.
+# Coverage and consistency judge GENERIC parses: a tool-specific (bespoke or
+# plugin) parser normalises values, so its output legitimately shares few
+# tokens with the input (22 correct corpus winners read under 40% coverage),
+# and a strict grammar (json/yaml/xml/toml) validates the whole document
+# itself. Only parsers under extract/strategies/{delimited,structured} are
+# gated.
+_quality_exempt () {
+    local sdir; sdir="$(dirname "$1")/strategies"
+    case "$2" in json|json-array|jsonl|yaml|xml|toml|har) return 0 ;; esac
+    [[ -f "$sdir/delimited/$2.sh" || -f "$sdir/structured/$2.sh" ]] && return 1
+    return 0
+}
+
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
 #   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
@@ -816,7 +839,14 @@ _ingest () {
         # Build the content to file (header + data rows), pre-#-index, for both
         # the matched and the held-back (unsorted) paths.
         if [[ -z "$strategy" || ! -s "$tmp/wide.tsv" ]] || ! grep -q . "$tmp/wide.tsv"; then reason="no-match"
-        elif (( conf < threshold )); then reason="low-confidence ($conf<$threshold)"; fi
+        elif (( conf < threshold )); then reason="low-confidence ($conf<$threshold)"
+        elif ! _quality_exempt "$engine" "$strategy"; then
+            if [[ -n "$cov" ]] && (( PROVOST_MIN_COVERAGE > 0 && cov < PROVOST_MIN_COVERAGE )); then
+                reason="low-coverage ($strategy kept $cov% of the lines, <$PROVOST_MIN_COVERAGE%)"
+            elif [[ -n "$tcons" ]] && (( PROVOST_MIN_CONSISTENCY > 0 && tcons < PROVOST_MIN_CONSISTENCY )); then
+                reason="low-consistency ($strategy columns $tcons% type-consistent, <$PROVOST_MIN_CONSISTENCY%)"
+            fi
+        fi
         local dsname content="$tmp/content.tsv"
         if [[ -n "$reason" ]]; then
             dsname="unsorted"; strategy="${strategy:-none}"
@@ -1137,6 +1167,10 @@ usage: provost run [options] [--] <command> [args...]
 options:
   --name NAME             file into dataset NAME instead
   --min-confidence N      commit threshold 0-101 (default: $PROVOST_MIN_CONFIDENCE)
+  --min-coverage N        quality gate: hold back a generic parse keeping < N% of
+                          the lines (default: $PROVOST_MIN_COVERAGE; 0 = off)
+  --min-consistency N     quality gate: hold back a generic parse whose columns
+                          are < N% type-consistent (default: $PROVOST_MIN_CONSISTENCY; 0 = off)
   --plugin-dir DIR        extra extract strategy directory
   --multi                 file every dataset the output holds (as NAME.<strategy>)
   --sync, --wait          capture in the foreground (default when not interactive)
@@ -1151,6 +1185,10 @@ usage: cmd | provost [options]      or      provost [options] FILE
 options:
   --name NAME             file into dataset NAME instead of the strategy's name
   --min-confidence N      commit threshold 0-101 (default: $PROVOST_MIN_CONFIDENCE)
+  --min-coverage N        quality gate: hold back a generic parse keeping < N% of
+                          the lines (default: $PROVOST_MIN_COVERAGE; 0 = off)
+  --min-consistency N     quality gate: hold back a generic parse whose columns
+                          are < N% type-consistent (default: $PROVOST_MIN_CONSISTENCY; 0 = off)
   --plugin-dir DIR        extra extract strategy directory
   --multi                 file every dataset the input holds
   --sync, --wait          capture in the foreground (default when not interactive)
@@ -1175,12 +1213,16 @@ EOF
         show) echo "usage: provost show NAME    present a dataset as a table (leading #N = row index)" ;;
         rm) echo "usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used" ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
-        triage) echo "usage: provost triage    show the low-confidence / unmatched bucket, raw input decoded" ;;
+        triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
         doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
         *) return 1 ;;
     esac
 }
-_cmd_help () { _usage_text "$1" | sed "s/\\\$PROVOST_MIN_CONFIDENCE/$PROVOST_MIN_CONFIDENCE/"; exit 0; }
+_cmd_help () {
+    _usage_text "$1" | sed -e "s/\\\$PROVOST_MIN_CONFIDENCE/$PROVOST_MIN_CONFIDENCE/" \
+        -e "s/\\\$PROVOST_MIN_COVERAGE/$PROVOST_MIN_COVERAGE/" -e "s/\\\$PROVOST_MIN_CONSISTENCY/$PROVOST_MIN_CONSISTENCY/"
+    exit 0
+}
 _cmd_usage_die () { local u; u="$(_usage_text "$1")"; printf '%s\n' "${u%%$'\n'*}" >&2; exit 2; }
 
 # Parse the options shared by inject and run. Sets: _O_THRESHOLD _O_ASYNC _O_NAME
@@ -1196,6 +1238,16 @@ _parse_capture_opts () {
                 _validate_uint --min-confidence "$2" 0 101; _O_THRESHOLD="$(_norm_uint "$2")"; shift 2 ;;
             --min-confidence=*)
                 _validate_uint --min-confidence "${1#*=}" 0 101; _O_THRESHOLD="$(_norm_uint "${1#*=}")"; shift ;;
+            --min-coverage|--min-consistency)
+                [[ $# -ge 2 ]] || usage_die "$1 needs a number."
+                _validate_uint "$1" "$2" 0 100
+                if [[ "$1" == --min-coverage ]]; then PROVOST_MIN_COVERAGE="$(_norm_uint "$2")"
+                else PROVOST_MIN_CONSISTENCY="$(_norm_uint "$2")"; fi
+                shift 2 ;;
+            --min-coverage=*)
+                _validate_uint --min-coverage "${1#*=}" 0 100; PROVOST_MIN_COVERAGE="$(_norm_uint "${1#*=}")"; shift ;;
+            --min-consistency=*)
+                _validate_uint --min-consistency "${1#*=}" 0 100; PROVOST_MIN_CONSISTENCY="$(_norm_uint "${1#*=}")"; shift ;;
             --plugin-dir)
                 [[ $# -ge 2 ]] || usage_die "--plugin-dir needs a directory."
                 PROVOST_PLUGIN_DIR="$2"; shift 2 ;;
@@ -1613,7 +1665,7 @@ cmd_triage () {
     [[ $# -eq 0 ]] || _cmd_usage_die triage
     local f; f="$(_ds_dir)/unsorted.tsv"
     [[ -f "$f" ]] || { info "triage queue empty — nothing unmatched."; return 0; }
-    info "unsorted rows (low-confidence / no-match), raw input decoded ('provost source #N' for exact bytes):"
+    info "unsorted rows (no-match / low-confidence / failed quality gate), raw input decoded ('provost source #N' for exact bytes):"
     _decode_unsorted_tsv "$f" | _table
 }
 
@@ -1833,7 +1885,8 @@ USAGE
                                                  after the winning parser (--name NAME
                                                  overrides)
     provost [opts] FILE                             inject a file instead of stdin
-      capture opts: --name NAME  --min-confidence N  --plugin-dir DIR  --multi
+      capture opts: --name NAME  --min-confidence N  --min-coverage N
+                    --min-consistency N  --plugin-dir DIR  --multi
                     --sync|--wait  --async  -q|--silent
     provost source <#N>                             show the original source behind row #N
     provost control [<dir>]                         make <dir> its own capture instance
@@ -1867,8 +1920,9 @@ DATASET NAMES
     timeout are skipped, with their options). An injected input is named after
     the winning parser (e.g. csv, free, aligned-columns). --name NAME sets it
     explicitly. Names: letters, digits, '.', '_', '-' (starting with a letter
-    or digit, no '..'). Inputs that match nothing, or match below
-    --min-confidence, go to the 'unsorted' triage bucket. A same-named capture
+    or digit, no '..'). Inputs that match nothing, match below
+    --min-confidence, or fail the quality gate (QUALITY GATE below) go to the
+    'unsorted' triage bucket. A same-named capture
     with a different column set RECONCILES (columns unioned) when the overlap
     is at least PROVOST_RECONCILE_OVERLAP%, else it splits into NAME.v2, ...
 
@@ -1892,6 +1946,10 @@ ENV
     PROVOST_WORKSPACE         explicit store override (wins over PROVOST_HOME)
     PROVOST_MIN_CONFIDENCE    commit threshold 0-100 (default: 50; 101 holds every
                               capture back for triage)
+    PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
+                              parse to be filed (default: 80; 0 = off)
+    PROVOST_MIN_CONSISTENCY   quality gate: min column-type consistency % for a
+                              generic parse to be filed (default: 70; 0 = off)
     PROVOST_PLUGIN_DIR        extra strategy dir for detection (same as --plugin-dir
                               on inject/run; for wrappers like deframe — no
                               ~/.config/provost/strategies symlink needed)
@@ -1931,6 +1989,16 @@ LINE COVERAGE
     of the whole report (one row per key, list item and section) and files it
     instead if it keeps materially more. A capture still filed under 60% says
     so; the whole input is kept with the capture either way ('provost source').
+
+QUALITY GATE
+    A capture whose GENERIC parse keeps under --min-coverage % of the input's
+    lines (default 80) or whose columns are under --min-consistency % type-
+    consistent (default 70) is held back in the 'unsorted' triage bucket, with
+    the reason, instead of filed as a table: a likely-wrong table is worse than
+    none. On the rated benchmark sets this held 18 of 48 wrong parses and no
+    fully right one. Tool-specific parsers and strict grammars (json, yaml,
+    xml, toml) are exempt; measurements absent on very large inputs never hold
+    a capture back. Set either to 0 to turn that check off.
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:

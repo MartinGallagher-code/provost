@@ -1995,6 +1995,39 @@ _store_winner () {
     return 0
 }
 
+# _uniq_record_names < pairs — a field name REPEATED inside one record
+# (`<label><N>.<name>`: entry3.IPv4 twice when `Public IPv4` and `Private
+# IPv4` are read word by word; conntrack's `src=` for both directions)
+# becomes name_2, name_3 … (the first suffix the record does not already
+# hold). Without it the second value either overwrote the first in the tidy
+# melt or, when equal, was dropped as a duplicate line (deduplicate_output).
+# A record is a RUN of lines with the same `<label><N>` (row-major output;
+# a column-major emitter names its columns once, so it has nothing to fix);
+# a border column — name and value the same bar / rule glyphs, a `|` or `│`
+# read as a cell — is chrome and keeps its name, and so does a repeated
+# name with an empty value (nothing to lose). Other lines pass through.
+# One mawk-safe pass (LC_ALL=C; U+2500..U+257F are E2 94/95 xx).
+_uniq_record_names () {
+    LC_ALL=C awk '
+    {
+        sp = index($0, " "); k = (sp ? substr($0, 1, sp - 1) : $0)
+        d = index(k, ".")
+        if (d < 2) { print; next }
+        r = substr(k, 1, d - 1)
+        if (r !~ /^[A-Za-z_]+[0-9]+$/) { print; next }
+        if (r != pr) { pr = r; split("", S) }
+        nm = substr(k, d + 1)
+        if (!(nm in S)) { S[nm] = 1; print; next }
+        v = (sp ? substr($0, sp + 1) : "")
+        if (v == "") { print; next }
+        if (v == nm && nm ~ /^[-|+=:]+$|^(\342\224[\200-\277]|\342\225[\200-\277])+$/) { print; next }
+        j = 2; u = nm "_" j
+        while (u in S) u = nm "_" (++j)
+        S[u] = 1
+        print r "." u (sp ? substr($0, sp) : "")
+    }'
+}
+
 # Run strategy extraction and store results.
 # Returns: 0 to continue loop, 2 to break (early exit), 3 = claim HELD for low
 # coverage (see COVERAGE HOLD; the caller runs the rescue), 4 = claim HELD for
@@ -2023,6 +2056,14 @@ _extract_and_store () {
     fi
     if [[ $_ext_rc -ne 0 ]]; then
         _log_debug "Strategy '$strategy_name': strategy_extract exited with code $_ext_rc"
+    fi
+    # UNIQUE NAMES inside a record (see _uniq_record_names), on both routes.
+    if [[ -n "$_xl_res" ]]; then
+        if [[ -n "$result" ]]; then
+            _uniq_record_names < "$_xl_res" > "$_xl_res.u" && mv -f "$_xl_res.u" "$_xl_res"
+        fi
+    elif [[ -n "$result" ]]; then
+        result="$(printf '%s\n' "$result" | _uniq_record_names)"
     fi
     if [[ $_OPT_profile -eq 1 ]]; then
         local _prof_elapsed=$(( SECONDS - _prof_start ))
@@ -2452,6 +2493,37 @@ _run_auto_strategies_body () {
         _cov_restore_held
     fi
     [[ -n "$_src_tmpf" ]] && rm -f "$_src_tmpf"
+    _eas_catchall_net
+    return 0
+}
+
+# CATCH-ALL NET. When every candidate yielded nothing — a near-miss
+# (`[Global flags]` opening a flag table: `json` detects it, extracts
+# nothing, and nothing else fires) — the input is still text, and the
+# lossless catch-all (`text-lines`: one row per line) is extracted whatever
+# its own detector says: its guards defer to the markup / key-value parsers
+# that have just failed. Only on an auto-detect run (never pinned or
+# replayed), with text-lines in the strategy set and allowed by
+# --min-confidence, and on 2+ non-blank lines (a single prose line stays
+# unextracted, as text-lines' detector decides).
+_eas_catchall_net () {
+    [[ $strategies_matched -eq 0 && -z "$_OPT_strategy" && -z "$_OPT_replay" ]] || return 0
+    (( ${_OPT_min_confidence:-0} <= 50 )) || return 0
+    local _cn_line _cn_ver _cn_file="" _cn_nb
+    while IFS='|' read -r _ _cn_ver _cn_line; do
+        [[ "$_cn_line" == */text-lines.sh ]] && { _cn_file="$_cn_line"; break; }
+    done <<< "$_SORTED_STRATEGIES"
+    [[ -n "$_cn_file" ]] || return 0
+    _cn_nb=$(printf '%s\n' "$text" | awk '/[^ \t\r\v\f]/ { if (++n > 1) exit } END { print n + 0 }')
+    [[ "$_cn_nb" -ge 2 ]] || return 0
+    _source_strategy_cached "$_cn_file" /dev/null || return 0
+    _log_debug "No candidate produced output: the catch-all 'text-lines' keeps every line"
+    _STRATEGY_CONFIDENCE=50; _STRATEGY_CONFIDENCE_REASON="catch-all net"; _STRATEGY_REPORT_NAME=""
+    local _cn_hold="${_COV_HOLD_ON:-0}"
+    _COV_HOLD_ON=0
+    _extract_and_store text-lines "$_cn_ver" || true
+    _COV_HOLD_ON="$_cn_hold"
+    unset -f strategy_detect strategy_extract 2>/dev/null
     return 0
 }
 

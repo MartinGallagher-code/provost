@@ -1,2 +1,2 @@
-Timestamp	Features	Architecture	ActiveEnterTimestamp	InactiveExitTimestamp	ActiveEnterTimestamp	InactiveExitTimestamp
+Timestamp	Features	Architecture	ActiveEnterTimestamp	InactiveExitTimestamp	ActiveEnterTimestamp_2	InactiveExitTimestamp_2
 Sat 2026-07-11 01:00:00 UTC	+PAM +AUDIT +SELINUX	x86-64	Sat 2026-07-11 01:00:42 UTC	Sat 2026-07-11 01:00:12 UTC	Sat 2026-07-11 01:00:38 UTC	Sat 2026-07-11 01:00:20 UTC

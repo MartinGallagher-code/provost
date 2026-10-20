@@ -1,2 +1,2 @@
-line1	inprog	line2	type	opid	active	secs_running	op	ns	planSummary	waitingForLock	line3	line4	opid	secs_running	op	ns	planSummary	waitingForLock	line5	line6	ok	line7
+line1	inprog	line2	type	opid	active	secs_running	op	ns	planSummary	waitingForLock	line3	line4	opid_2	secs_running_2	op_2	ns_2	planSummary_2	waitingForLock_2	line5	line6	ok	line7
 {	[	{	'op',	128374,	true,	Long("12"),	'query',	'ecommerce.orders',	'COLLSCAN',	false	},	{	128412,	Long("3"),	'update',	'ecommerce.inventory',	'IXSCAN { sku: 1 }',	true	}	],	1	}

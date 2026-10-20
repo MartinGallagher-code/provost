@@ -4,7 +4,7 @@
 
 ## Name: tsv
 ## Description: Extract field names and values from TSV files (tab-delimited with header row)
-## Version: 2.1
+## Version: 2.2
 ## Priority: 14
 ## Sample: samples/tsv/basic.tsv
 
@@ -52,8 +52,32 @@ strategy_detect () {
     done
 
     local diff=$(( header_tabs - data_tabs ))
-    [[ ${diff#-} -le 1 ]] && return 0
-    return 1
+    [[ ${diff#-} -le 1 ]] || return 1
+
+    # A tab-delimited table puts its tabs on its ROWS, one column count for
+    # all of them: when most non-blank lines carry no tab at all AND the
+    # lines that do mostly disagree with the header's tab count, the tabs
+    # are incidental — a log whose lines end in a tab-separated suffix of
+    # varying width (Lambda's `[INFO]<TAB>…<TAB>…` among tab-less `START
+    # RequestId: …` lines), not columns (v2.2; until rows wider than the
+    # header were kept, the truncation hid how little such a parse read). A
+    # diff whose two `---` / `+++` lines carry a tab each is still read.
+    local _tl _tl_nb=0 _tl_no=0 _tl_tab=0 _tl_same=0 _tl_t
+    _fr_lines "$text"
+    for _tl in "${_FR_LINES[@]}"; do
+        [[ "$_tl" == *[![:space:]]* ]] || continue
+        _tl_nb=$((_tl_nb + 1))
+        if [[ "$_tl" == *$'\t'* ]]; then
+            _tl_tab=$((_tl_tab + 1))
+            _tl_t="${_tl//[!$'\t']/}"
+            [[ ${#_tl_t} -eq $header_tabs ]] && _tl_same=$((_tl_same + 1))
+        else
+            _tl_no=$((_tl_no + 1))
+        fi
+    done
+    (( _tl_no * 100 > _tl_nb * (50 + ${_FR_SLACK:-0}) \
+       && _tl_same * 100 < _tl_tab * (50 + ${_FR_SLACK:-0}) )) && return 1
+    return 0
 }
 
 # Split one TSV line into _TSV_FIELDS, QUOTE-AWARE (the csv treatment with a
@@ -264,6 +288,30 @@ strategy_extract () {
         local _ei
         for ((_ei = 0; _ei < ${#headers[@]}; _ei++)); do
             [[ -z "${headers[$_ei]//[[:space:]\"]/}" ]] && headers[$_ei]="$(_col_letter $((_ei + 1)))"
+        done
+    fi
+
+    # WIDER ROWS. A data row with more cells than the header keeps them: the
+    # header is widened with positional names (`_col_letter`, made unique
+    # against the real labels), never truncated to row 1's width — the cells
+    # past it used to vanish silently while line coverage still read 100%
+    # (a line counts as kept when most of its tokens are).
+    local _ww_l _ww_n=0 _ww_max=${#headers[@]} _ww_rn=0
+    while IFS= read -r _ww_l; do
+        _ww_rn=$((_ww_rn + 1))
+        [[ $_ww_rn -eq 1 && $headerless -eq 0 ]] && continue
+        [[ -z "$_ww_l" ]] && continue
+        _tsv_split "$_ww_l"
+        (( ${#_TSV_FIELDS[@]} > _ww_max )) && _ww_max=${#_TSV_FIELDS[@]}
+    done <<< "$text"
+    if (( _ww_max > ${#headers[@]} )); then
+        local -A _ww_seen=()
+        for _ww_l in "${headers[@]}"; do _ww_seen[${_ww_l:-_}]=1; done
+        for ((_ww_n = ${#headers[@]}; _ww_n < _ww_max; _ww_n++)); do
+            _ww_l="$(_col_letter $((_ww_n + 1)))"
+            [[ -n "${_ww_seen[$_ww_l]:-}" ]] && _ww_l="col$((_ww_n + 1))"
+            _ww_seen[$_ww_l]=1
+            headers+=("$_ww_l")
         done
     fi
 

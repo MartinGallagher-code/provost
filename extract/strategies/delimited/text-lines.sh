@@ -4,7 +4,7 @@
 
 ## Name: text-lines
 ## Description: Absolute last resort — each non-blank line becomes a one-column record (whole line)
-## Version: 1.0
+## Version: 1.1
 ## Priority: 97
 ## Sample: samples/text-lines/basic.txt
 
@@ -72,7 +72,12 @@ strategy_detect () {
         last="$_l"
         [[ $nb -ge 200 ]] && break
     done
-    if [[ "$first" =~ ^[[:space:]]*[\{\[] ]]; then
+    # A first line that is a CLOSED bracketed tag — `[Global flags]`, `[INFO]
+    # msg`, `[2026-10-01 12:00]` (no `,` `{` `"` before its `]`) — opens a
+    # section or a log line, not a JSON array (`[`, `[{`, `[1, 2,`), even when
+    # the last line happens to end in `}` / `]` (`{product} {default}`).
+    if [[ "$first" =~ ^[[:space:]]*[\{\[] && ( $nb -eq 1 \
+          || ! "$first" =~ ^[[:space:]]*\[[^]\[,{}\"]*\] ) ]]; then
         local _lt="${last%"${last##*[![:space:]]}"}"
         [[ "$_lt" == *'}' || "$_lt" == *']' || "$_lt" == *','  ]] && return 1
     fi

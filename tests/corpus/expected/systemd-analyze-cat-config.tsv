@@ -1,2 +1,2 @@
-DefaultTimeoutStartSec	DefaultTimeoutStopSec	DefaultLimitNOFILE	DefaultTasksMax	DefaultTasksMax
+DefaultTimeoutStartSec	DefaultTimeoutStopSec	DefaultLimitNOFILE	DefaultTasksMax	DefaultTasksMax_2
 90s	90s	1024:524288	15%	8192

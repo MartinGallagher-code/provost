@@ -365,8 +365,18 @@ covcap="$(ls "$WS/captures" | sort | tail -1)"
 check "capture meta records the coverage" "coverage	100" "$(cat "$WS/captures/$covcap/meta.tsv")"
 check "list items reach the dataset" "terraform@1.7.4" "$("$PROVOST" show covrep 2>&1)"
 printf 'Volume   Files   Size   Status\nvol-a    12      1.0    OK\nvol-b    13      2.0    OK\nvol-c    14      3.0    WARN\nvol-d    15      4.0    OK\nvol-e    16      5.0    OK\nvol-f    17      6.0    OK\n\nElapsed time:   01:00:12\nExit code:      0\nNext run:       2026-07-12 01:00\nOperator name:  ops team\nPool name:      main pool\nRetention:      7 days\n' > "$COV_IN"
+# The quality gate holds a generic parse under 80% coverage back for triage,
+# with the reason; with the gate off it is filed, and the low-coverage note
+# says how little of the input reached the dataset.
 lowcov_out="$("$PROVOST" --name lowcov "$COV_IN" 2>&1)"
-check "a low-coverage capture says so" "of the input's lines reached 'lowcov'" "$lowcov_out"
+check "the quality gate holds a low-coverage parse for triage" "low-coverage (" "$lowcov_out"
+check "a gated capture lands in the triage bucket" "queued in 'unsorted'" "$lowcov_out"
+check "triage shows the gated capture" "Retention" "$("$PROVOST" triage 2>&1)"
+lowcov_out="$("$PROVOST" --name lowcov --min-coverage 0 "$COV_IN" 2>&1)"
+check "--min-coverage 0 turns the gate off; the low-coverage note remains" "of the input's lines reached 'lowcov'" "$lowcov_out"
+lowcov_out="$(PROVOST_MIN_COVERAGE=0 "$PROVOST" --name lowcov2 "$COV_IN" 2>&1)"
+check "PROVOST_MIN_COVERAGE=0 turns the gate off too" "→ dataset 'lowcov2'" "$lowcov_out"
+check "--min-coverage rejects a value over 100" "2" "$(rc_of "$PROVOST" --min-coverage 101 "$COV_IN")"
 rm -f "$COV_IN"
 
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
@@ -429,7 +439,9 @@ multirow="$(sed -n 's/.*rows #\([0-9]*\)\..*/\1/p' <<< "$multi_out")"; multirow=
 check "a multi-capture row still traces back to its input" "original source" \
     "$("$PROVOST" source "$multirow" 2>&1)"
 # Without --multi the same input keeps the one-winner behaviour.
-single_out="$("$PROVOST" --sync "$MULTI_IN" 2>&1)"
+# (Its one-winner parse keeps a fraction of the report, so the quality gate
+# would hold it back; turn the gate off to see the single-dataset filing.)
+single_out="$("$PROVOST" --sync --min-coverage 0 --min-consistency 0 "$MULTI_IN" 2>&1)"
 check "default capture is still single-dataset" "→ dataset" "$single_out"
 
 # rm of ONE dataset of a --multi capture keeps the capture (it still feeds the

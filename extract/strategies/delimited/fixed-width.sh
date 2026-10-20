@@ -4,7 +4,7 @@
 
 ## Name: fixed-width
 ## Description: Fixed-width column format with header/separator
-## Version: 1.0
+## Version: 1.1
 ## Priority: 30
 ## Sample: samples/fixed-width/basic.txt
 
@@ -131,7 +131,12 @@ _strat_fw_find_columns () {
     # marks where a column begins, and slicing at the run's own END truncates
     # any value wider than its run (heroku's `heroku-postgresql:standard-0`
     # under a 24-dash run lost its tail into the next column). The last
-    # column runs to end-of-line.
+    # column runs to end-of-line. The end is EXCLUSIVE and is the next start
+    # itself (it used to be one short of it: the byte just before the next
+    # run belonged to no column, and a right-aligned `1204736` one digit wider
+    # than its `------` lost its `1`). Each run's own end is kept in
+    # _FW_RUN_ENDS for the straddle rule in strategy_extract.
+    _FW_RUN_ENDS=""
     local stretched="" seg next_start
     local -a segs=()
     local IFS='|'
@@ -140,9 +145,10 @@ _strat_fw_find_columns () {
     for ((si = 0; si < ${#segs[@]}; si++)); do
         seg="${segs[$si]}"
         [[ -z "$seg" ]] && continue
+        _FW_RUN_ENDS+="${seg##*:} "
         if [[ $((si + 1)) -lt ${#segs[@]} ]]; then
             next_start="${segs[$((si + 1))]%%:*}"
-            seg="${seg%%:*}:$((next_start - 1))"
+            seg="${seg%%:*}:${next_start}"
         else
             seg="${seg%%:*}:100000"
         fi
@@ -150,6 +156,7 @@ _strat_fw_find_columns () {
         stretched+="$seg"
     done
 
+    _FW_COLS="$stretched"
     echo "$stretched"
 }
 
@@ -231,8 +238,9 @@ strategy_extract () {
     [[ -z "$sep_line" ]] && return
 
     # Get column positions from separator
-    local col_positions
-    col_positions=$(_strat_fw_find_columns "$sep_line")
+    local col_positions runends_arr
+    _strat_fw_find_columns "$sep_line" >/dev/null; col_positions="$_FW_COLS"
+    { _fr_tok "$_FW_RUN_ENDS"; runends_arr=("${_FR_TOK[@]}"); }
 
     # Parse column positions into arrays
     local col_starts=""
@@ -281,7 +289,7 @@ strategy_extract () {
     { _fr_tok "$headers"; headers_arr=("${_FR_TOK[@]}"); }
 
     # Extract data rows (lines after separator)
-    local row_num=0
+    local row_num=0 _fw_alltok=1 _fw_agree=1
     local past_sep=0 _fw_li=-1
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
@@ -299,6 +307,10 @@ strategy_extract () {
         # closing rule) is table chrome, never a data row.
         [[ "$line" =~ ^[[:space:]]*--+([[:space:]]+--+)*[[:space:]]*$ ]] && continue
         row_num=$((row_num + 1))
+        # (token-order check, below: this row's whitespace tokens)
+        local _fw_tk=() _fw_cells=()
+        _fr_tok "$line"; _fw_tk=("${_FR_TOK[@]}")
+        [[ ${#_fw_tk[@]} -eq $num_cols ]] || _fw_alltok=0
 
         # SOFT boundaries with a per-row cursor. A tool's separator rule can be
         # NARROWER than its own data (heroku-addons' 24-dash Plan run under a
@@ -314,14 +326,27 @@ strategy_extract () {
             local hdr="${headers_arr[$ci]}"
             local val
 
-            [[ $cs -lt $_fw_cursor ]] && cs=$_fw_cursor
+            # (a column starts where the previous one ended: at its run, or
+            # left of it when it widened over a straddling value)
+            [[ $ci -gt 0 ]] && cs=$_fw_cursor
             if [[ $ci -eq $((num_cols - 1)) ]]; then
                 ce=$_fw_len
-            else
-                # extend through a straddling word
-                while [[ $ce -lt $_fw_len && "${line:$ce:1}" != " " && "${line:$((ce - 1)):1}" != " " ]]; do
-                    ce=$((ce + 1))
-                done
+            elif [[ $ce -lt $_fw_len && $ce -gt $cs && "${line:$ce:1}" != " " && "${line:$((ce - 1)):1}" != " " ]]; then
+                # A word STRADDLES the cut. It is the NEXT column's when it
+                # starts past the end of this column's run — a right-aligned
+                # value wider than its header (`1204736` under `------`), a
+                # value printed one space early in a single-spaced table: the
+                # next column widens left to cover it, never cutting its
+                # leading characters. Otherwise this column keeps the whole
+                # word (a left-aligned value wider than its run).
+                local _fw_ws=$((ce - 1)) _fw_we=$ce
+                while [[ $_fw_ws -gt $cs && "${line:$((_fw_ws - 1)):1}" != " " ]]; do _fw_ws=$((_fw_ws - 1)); done
+                while [[ $_fw_we -lt $_fw_len && "${line:$_fw_we:1}" != " " ]]; do _fw_we=$((_fw_we + 1)); done
+                if [[ $_fw_ws -ge ${runends_arr[$ci]:-$ce} ]]; then
+                    ce=$_fw_ws
+                else
+                    ce=$_fw_we
+                fi
             fi
             val="${line:$cs:$((ce - cs))}"
             _fw_cursor=$ce
@@ -330,12 +355,20 @@ strategy_extract () {
             # everything after the first space as the value).
             while [[ "$val" == " "* ]]; do val="${val# }"; done
             while [[ "$val" == *" " ]]; do val="${val% }"; done
+            _fw_cells+=("$val")
             [[ -z "$val" ]] && continue
 
             result+="row${row_num}.${hdr} ${val}"$'\n'
         done
+        [[ "${_fw_cells[*]}" == "${_fw_tk[*]}" ]] || _fw_agree=0
     done
     line=""
 
+    # An UNPADDED table — every row exactly one token per column — whose
+    # slices disagree with token order has values printed off their runs
+    # (`2 idle bob` under `-- ------ -----`): the runs say nothing there, so
+    # decline and let a token reader take it (the gutter grid withdraws on
+    # such a table too).
+    [[ $_fw_alltok -eq 1 && $_fw_agree -eq 0 && $row_num -ge 1 ]] && { echo ""; return 0; }
     echo "$result"
 }

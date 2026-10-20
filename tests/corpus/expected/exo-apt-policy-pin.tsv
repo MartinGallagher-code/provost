@@ -1,2 +1,2 @@
-nginx.Installed	nginx.Candidate	nginx.Version_table.1.24.0-1ubuntu1.2_500.500_http	nginx.Version_table.1.24.0-1ubuntu1.2_500.500_http	nginx.***_1.24.0-1ubuntu1_100.1.25.3-1~mainline_1001.1001_http
+nginx.Installed	nginx.Candidate	nginx.Version_table.1.24.0-1ubuntu1.2_500.500_http	nginx.Version_table.1.24.0-1ubuntu1.2_500.500_http_2	nginx.***_1.24.0-1ubuntu1_100.1.25.3-1~mainline_1001.1001_http
 1.24.0-1ubuntu1	1.24.0-1ubuntu1.2	//archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages	//security.ubuntu.com/ubuntu noble-security/main amd64 Packages	//nginx.org/packages/mainline/ubuntu noble/nginx amd64 Packages

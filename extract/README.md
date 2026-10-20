@@ -179,7 +179,14 @@ use it; `tests/test_gutter_grid.sh` pins its behaviour.
    `LC_ALL=C`), and tried in that order: detect is re-run to restore the
    strategy's detect-time state, then extract. A candidate whose extract is
    empty, or that trips the truncation guard, yields to the next one, so the
-   winner always has output. `--max-strategies N` / `--first-match` stop after
+   winner always has output. When EVERY candidate yields nothing (a near-miss:
+   `json` detects a `[Section]` text, extracts nothing, and nothing else
+   fires), the CATCH-ALL NET extracts `text-lines` whatever its detector says
+   — its guards defer to the markup / key-value parsers that have just failed
+   — on an auto-detect run with 2+ non-blank lines (never pinned or replayed,
+   and only when `--min-confidence` allows 50): non-empty text never comes out
+   empty (`_eas_catchall_net`, lib/_discovery.sh; a single prose line is still
+   left unextracted, as text-lines decides). `--max-strategies N` / `--first-match` stop after
    N / 1 candidates produced output. With one winner wanted, the first
    candidate to produce output is HELD when its line coverage is low, and the
    rescue parser gets a turn (see "Line coverage" below), or when its columns
@@ -254,7 +261,11 @@ it when the kept part is wide. So the engine measures a second signal:
   `structured/`, plugins included — tool knowledge whose output is a
   deliberate summary, e.g. systemctl-status without its journal tail; a
   bespoke parse that loses data is fixed in the strategy, as gnu-version
-  was), and a TABLE — a parse whose records (3 or more, of 2+ fields) share a
+  was — and a bespoke or hint-routed claim that does not read the input is
+  fixed in its detector, as dot-leader-row was (2026-10-20): its coverage is
+  no evidence, since a bespoke parse normalises values — `8,412.33` →
+  `8412.33`, dates rebuilt — and 22 correct bespoke corpus winners score
+  under 40%, perf-stat and keytool-list 0%), and a TABLE — a parse whose records (3 or more, of 2+ fields) share a
   field: its rows are the dataset, and what it dropped is a banner, a summary
   or another table (`--multi`), not rows a key/value parse could add without
   flattening the table into text.

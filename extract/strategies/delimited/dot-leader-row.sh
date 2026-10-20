@@ -4,7 +4,7 @@
 
 ## Name: dot-leader-row
 ## Description: rows padded with a run of filler dots, result in trailing [brackets] (pytest, dbt) -> left fields + result columns — hint-routed
-## Version: 1.0
+## Version: 1.1
 ## Priority: 47
 ## Sample: samples/dot-leader-row/basic.txt
 
@@ -34,14 +34,33 @@
 _dlr_dots='\.\.\.'
 _dlr_br='^(.*)\[([^][]*)\][[:space:]]*$'
 
+# _dlr_filler LINE — 0 when LINE holds a filler token (see strategy_extract).
+_dlr_filler () {
+    local _t _d
+    _fr_tok "$1"
+    for _t in "${_FR_TOK[@]}"; do
+        [[ "$_t" == *...* && "$_t" != *[!.A-Za-z]* ]] || continue
+        _d="${_t//[!.]/}"
+        (( ${#_d} * 2 > ${#_t} )) && return 0
+    done
+    return 1
+}
+
 strategy_extract () {
     local text="$1"
     local line result="" entry=0
     _fr_lines "$text"
     for line in "${_FR_LINES[@]}"; do
         [[ "${line}" != *[![:space:]]* ]] && continue
-        # Qualify: the line must carry a dot-run of 3+ somewhere.
+        # Qualify: the line must carry a FILLER token — a whitespace-separated
+        # run of 3+ dots, optionally holding status letters (`.......`,
+        # `....F...`, `..ss..`), dots over half of it. A `...` inside a word
+        # is not a leader: an elided path (`.../_pytest/capture.py:1007`), a
+        # truncated repr (`'unit':...y'`), `Loading...` (v1.1 — pytest's
+        # --fixtures and --setup-plan reports were claimed through the
+        # pytest-summary hint on those, keeping 2 to 16 lines of 38).
         [[ "$line" =~ $_dlr_dots ]] || continue
+        _dlr_filler "$line" || continue
         local left="$line" right=""
         if [[ "$line" =~ $_dlr_br ]]; then
             left="${BASH_REMATCH[1]}"; right="${BASH_REMATCH[2]}"

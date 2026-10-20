@@ -145,6 +145,25 @@ same   "align: a repeated source name maps to its first column" \
        $'1' "$(printf '1\t2\n' | _core_align_rows $'a\ta' 'a')"
 same   "union: empty old header yields the new one" $'a\tb' "$(_core_union_header '' $'a\tb')"
 
+# 7b. A REPEATED name never loses a value (2026-10-20): a field named twice in
+#     one record (a two-word header split into words: `Public IPv4`,
+#     `Private IPv4`) used to keep only the later value; the second is now
+#     name_2 (the first free suffix). Pass-through and scalar names likewise.
+same   "dup: a field repeated in a record keeps both values" \
+       $'n\tname\tip\tip_2\n1\tweb\t1.1.1.1\t10.0.0.1\n2\tdb\t2.2.2.2\t10.0.0.2' \
+       "$(_core_melt_tidy $'entry1.name\tentry1.ip\tentry1.ip\tentry2.name\tentry2.ip\tentry2.ip\ttotal_entries\nweb\t1.1.1.1\t10.0.0.1\tdb\t2.2.2.2\t10.0.0.2\t2')"
+same   "dup: the suffix skips a name already taken" \
+       $'n\tip\tip_2\tip_3\n1\ta\tb\tc' \
+       "$(_core_melt_tidy $'entry1.ip\tentry1.ip_2\tentry1.ip\na\tb\tc')"
+same   "dup: an empty repeat never blanks the first value" \
+       $'n\ta\ta_2\n1\tx\t\n2\ty\tz' "$(_core_melt_tidy $'entry1.a\tentry1.a\tentry2.a\tentry2.a\nx\t\ty\tz')"
+same   "dup: a pass-through header gets unique names" \
+       $'a\ta_2\tb\n1\t2\t3' "$(_core_melt_tidy $'a\ta\tb\n1\t2\t3')"
+same   "dup: pass-through minus total_entries, unique names" \
+       $'a\ta_2\n1\t2' "$(_core_melt_tidy $'a\ta\ttotal_entries\n1\t2\t5')"
+same   "dup: a scalar named like a field is renamed, not merged" \
+       $'n\tx\tx_2\n1\tv\ts' "$(_core_melt_tidy $'entry1.x\tx\nv\ts')"
+
 # 8. _core_melt_tidy_file FILE == _core_melt_tidy "$(cat FILE)" byte for byte
 #    (provost melts the engine's output file directly), including the
 #    trailing-newline and empty-file shapes the $(cat) round trip normalises.

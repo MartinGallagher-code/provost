@@ -1,4 +1,4 @@
-n	MS	Name/IP	address	Stratum	Poll	Reach	LastRx	Last	sample
-1	^*	ntp1.ex	ample.net	2	6	377	23	-0.51	2ms[-0.489ms] +/- 12ms
-2	^-	ntp2.ex	ample.net	2	6	377	45	+1.23	4ms[+1.301ms] +/- 23ms
-3	^+	ntp3.ex	ample.net	3	6	377	51 -	12.04	5ms[-11.98ms] +/- 45ms
+n	MS	Name/IP	address	Stratum	Poll	Reach	LastRx	sample
+1	^*	ntp1.ex	ample.net	2	6	377	23	-0.512ms[-0.489ms] +/- 12ms
+2	^-	ntp2.ex	ample.net	2	6	377	45	+1.234ms[+1.301ms] +/- 23ms
+3	^+	ntp3.ex	ample.net	3	6	377	51	-12.045ms[-11.98ms] +/- 45ms
