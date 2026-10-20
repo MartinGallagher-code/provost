@@ -3,11 +3,14 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-16)
+## Present state (2026-10-20)
 
-PyPI has **provost 2.1.0**, published 2026-10-16. It is the first release with
-the rename, store format 2, line coverage and the 2026-10-14 parser work.
-`main` after PR #76 is unreleased and becomes **2.2.0**.
+**provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
+PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
+published. 2.1.0 was the first release with the rename, store format 2, line
+coverage and the 2026-10-14 parser work. 2.2.0 adds the 2026-10-16 and
+2026-10-20 work: the quality gate, the engine fixes, and removal of the legacy
+names.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 265 strategies, ~116 generic)

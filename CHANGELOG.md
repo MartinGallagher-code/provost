@@ -1,5 +1,51 @@
 # provost — Changelog
 
+## 2026-10-20 — release v2.2.0
+
+`VERSION` 2.1.0 → 2.2.0, and the `man/provost.1` header. Everything below has
+landed since 2.1.0 (2026-10-16); the dated entries further down hold the
+detail.
+
+**Upgrading from 2.1.0: behaviour changes**
+- **Quality gate.** A capture whose generic parse keeps under 80% of the
+  input's lines, or whose columns are under 70% type-consistent, now goes to
+  the `unsorted` triage bucket with the reason instead of being filed as a
+  table. Turn it off with `--min-coverage 0 --min-consistency 0` (or
+  `PROVOST_MIN_COVERAGE=0` / `PROVOST_MIN_CONSISTENCY=0`). Tool-specific
+  parsers and strict grammars are exempt.
+- **Old names removed.** The pre-rename `ENVOY_*` / `MFE_*` variables and
+  `~/.mfe/strategies` have no effect any more. Use `PROVOST_*` and
+  `~/.config/provost/strategies`.
+- **Repeated column names are made unique.** A record that repeats a name now
+  gets `name_2`, `name_3` and so on, so no value is lost in the tidy table.
+  Datasets that used to lose such values gain those columns.
+- **`--emit-meta`** gains a 5th field: column-type consistency.
+
+**What's new since 2.1.0**
+- **Parsing:**
+  - a UTF-8/CJK-aware gutter grid for whitespace tables;
+  - headerless first rows; footers handled in every table parser;
+    print-report and pprof banners;
+  - format parsers (toml, yaml, csv, equals, …) decline input they don't
+    understand;
+  - new `section-tables`; indentation kept as depth/parent.
+- **Quality signals.** Column-type consistency is reported next to coverage,
+  with a guarded consistency hold.
+- **Engine fixes** (found by the round-3 benchmark):
+  - no more empty output: a catch-all net;
+  - `tsv` no longer truncates rows;
+  - `fixed-width` / `vertical-line` no longer cut digits;
+  - `gnu-version` no longer invents a field;
+  - `dot-leader-row` no longer claims arbitrary `...` text.
+- **Measurement.** Round 3, a held-out benchmark of 107 unseen inputs, scored
+  21% PASS / 35% FAIL after the fixes, against 37% FAIL on 2.1.0. On rated sets
+  the quality gate holds 18 of 48 wrong parses and none of 57 correct ones.
+  Corpus: 3584 golden passes; COVERAGE.md 3677 / 3705.
+
+**Publishing.** Publish a GitHub release tagged `v2.2.0` on the merged commit.
+That runs `release.yml`, which uploads to PyPI. Alternatively, run the
+"Release to PyPI" workflow on `main`. This session cannot create releases.
+
 ## 2026-10-20 — quality gate: likely-wrong parses go to triage
 
 Every capture has cleared the commit threshold, yet about a third of unseen
