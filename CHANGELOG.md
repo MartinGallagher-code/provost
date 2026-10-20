@@ -1,5 +1,18 @@
 # provost — Changelog
 
+## 2026-10-20 — round 4 measures the auto-multi fallback (once)
+
+Round 4 was built and frozen before the fallback was built. Every input was
+captured once through the real CLI.
+- **Before:** the gate alone holds 18.
+- **After:** auto-multi segments 3 and 15 stay held.
+  - 2 rescues, FAIL → PARTIAL: 026, 106.
+  - 1 wrong table filed that the gate would have held: 048.
+  - 6 missed rescues, where `--multi` would have been PARTIAL.
+- **Verdict:** a small net gain, with conservative guards. Details are in the
+  postscript to `docs/benchmark-2026-10-20-generalisation-round4.md`.
+  CLAUDE.md smoke count is updated (235).
+
 ## 2026-10-20 — auto-multi: a parse the quality gate would hold is segmented first, when the split is clearly better
 
 The quality gate holds a weak generic parse for triage. On held-out data

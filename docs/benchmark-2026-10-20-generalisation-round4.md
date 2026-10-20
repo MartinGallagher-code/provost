@@ -495,3 +495,39 @@ should work from the pattern descriptions and fresh inputs, not from these
 files. The next honest generalisation number after a parser fix round needs a
 **round 5**: built, novelty-checked against rounds 1–4 and the corpus, frozen,
 and rated on the same criteria before anyone parses it.
+
+## Postscript, 2026-10-20: the automatic `--multi` fallback, measured once
+
+The auto-multi change was built without seeing round 4. Before the quality
+gate holds a weak parse, it segments the input and files the parts only if
+every part passes the gate and together they keep materially more. Each
+round-4 input was then captured once through the real CLI
+(`provost --sync`, one fresh store per input). The `--multi` ratings above
+stand for what segmentation files.
+
+| | gate alone (before) | with auto-multi |
+|---|---:|---:|
+| held for triage | 18 | 15 |
+| segmented and filed | 0 | 3 |
+
+**What changed:**
+- **026** (jcmd VM metaspace): FAIL → PARTIAL, 14 parts keeping 96%.
+- **106** (F5 tmsh pool stats): FAIL → PARTIAL, 12 parts keeping 100%.
+- **048** (pytest `-ra` report): it was held, and is now filed as 5 parts that
+  are still a FAIL. That is worse than holding it, because a wrong table
+  reached the store.
+
+**What stayed held (15):**
+- 8 whose `--multi` output is also a FAIL, correctly declined.
+- 6 whose `--multi` output would have been a PARTIAL. These are missed
+  rescues.
+- 1 PARTIAL either way.
+
+**Verdict:** a small net gain on unseen input. Two rescues out of a possible
+eight, against one wrong table that the gate alone would have held. The
+guards were chosen on rounds 2 and 3, where they rescued 3 of 26. On fresh
+data they are conservative, and the per-part gate let one bad split through.
+Round 4 has now been looked at for this change, so any further tuning of the
+guards against it would not be an honest measure. Re-measuring needs a round
+5.
+
