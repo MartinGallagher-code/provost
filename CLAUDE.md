@@ -48,8 +48,8 @@ preserving can also go in `CHANGELOG.md`.
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (208 checks)
-bash transform/tests/test_melt.sh   # transform unit test (54 checks)
+bash tests/smoke.sh                 # end-to-end (217 checks)
+bash transform/tests/test_melt.sh   # transform unit test (60 checks)
 ```
 
 When you change `src/provost_data/` (the PyPI launcher) or `pyproject.toml`, run

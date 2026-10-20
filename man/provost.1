@@ -37,6 +37,16 @@ File into dataset \fINAME\fR instead of the default name (see
 Commit threshold 0\-101 (default: \fBPROVOST_MIN_CONFIDENCE\fR, 50). A capture
 the engine is less sure of goes to the \fBunsorted\fR triage bucket.
 .TP
+.BI --min-coverage " N"
+Quality gate (default: \fBPROVOST_MIN_COVERAGE\fR, 80; 0 turns it off): a
+generic parse that keeps under \fIN\fR% of the input's lines goes to the
+\fBunsorted\fR triage bucket. See \fBQUALITY GATE\fR.
+.TP
+.BI --min-consistency " N"
+Quality gate (default: \fBPROVOST_MIN_CONSISTENCY\fR, 70; 0 turns it off): a
+generic parse whose columns are under \fIN\fR% type-consistent goes to the
+\fBunsorted\fR triage bucket.
+.TP
 .BI --plugin-dir " DIR"
 Add an extra strategy directory to detection (or \fBPROVOST_PLUGIN_DIR\fR), so
 a wrapping project's strategies compete without being symlinked into
@@ -162,6 +172,16 @@ lossless key/value parse of the whole report (one row per key, list item and
 section) and files that instead if it keeps materially more. A capture still
 filed under 60% says so; the whole input is kept with the capture either way
 (\fBprovost source\fR).
+.SH QUALITY GATE
+A capture whose \fIgeneric\fR parse keeps under \fB--min-coverage\fR percent of
+the input's lines (default 80), or whose columns are under
+\fB--min-consistency\fR percent type-consistent (default 70), is held back in
+the \fBunsorted\fR triage bucket with the reason, instead of filed as a table:
+a likely-wrong table is worse than none. On the rated benchmark sets this held
+18 of 48 wrong parses and no fully right one. Tool-specific parsers and strict
+grammars (json, yaml, xml, toml) are exempt, and a measurement that is absent
+(very large inputs) never holds a capture back. Set either to 0 to turn that
+check off.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -217,6 +237,14 @@ Explicit store override (wins over PROVOST_HOME).
 .TP
 .B PROVOST_MIN_CONFIDENCE
 Commit threshold 0\-100 (default: 50); 101 holds every capture back for triage.
+.TP
+.B PROVOST_MIN_COVERAGE
+Quality gate: minimum line coverage, in percent, for a generic parse to be
+filed (default: 80; 0 turns it off).
+.TP
+.B PROVOST_MIN_CONSISTENCY
+Quality gate: minimum column-type consistency, in percent, for a generic parse
+to be filed (default: 70; 0 turns it off).
 .TP
 .B PROVOST_PLUGIN_DIR
 Extra strategy directory for detection (same as \fB--plugin-dir\fR on
