@@ -134,6 +134,16 @@ _core_melt_tidy_stream () {
           }
         }
         function isint(s) { return s ~ /^[0-9]+$/ }
+        # uniq(name, SEEN): name itself the first time, else name_2, name_3 …
+        # (the first suffix not already taken) — a REPEATED column name must
+        # never collapse two values into one cell, nor leave two columns the
+        # by-name union / align would merge.
+        function uniq(nm, SEEN,    k, u) {
+          if (!(nm in SEEN)) { SEEN[nm] = 1; return nm }
+          k = 2; u = nm "_" k
+          while (u in SEEN) u = nm "_" (++k)
+          SEEN[u] = 1; return u
+        }
         BEGIN {
           cap = ENVIRON["_MELT_CAP"]
           nr = split(ENVIRON["_MELT_RECS"], rl, " "); for (i = 1; i <= nr; i++) REC[rl[i]] = 1
@@ -163,7 +173,7 @@ _core_melt_tidy_stream () {
             if (d <= 1) continue
             left = substr(h, 1, d - 1)
             if (left != pleft) {
-              pleft = left
+              pleft = left; split("", OCC)
               pok = match(left, /[0-9]+$/) && RSTART > 1
               if (pok) {
                 stem = substr(left, 1, RSTART - 1); num = substr(left, RSTART) + 0
@@ -173,7 +183,15 @@ _core_melt_tidy_stream () {
               }
             }
             if (!pok) continue
-            f = FLD[i] = substr(h, d + 1)
+            # (a field name repeated inside ONE record — a two-word header
+            # split into two columns of the same name, merged documents —
+            # becomes name_2 … so the second value is not written over the
+            # first; records are runs of adjacent columns, OCC is per run)
+            # (an EMPTY repeat holds nothing: skipped, never written over the
+            # first value)
+            f = substr(h, d + 1)
+            if ((f in OCC) && V[i] == "") { SKIPC[i] = 1; continue }
+            f = FLD[i] = uniq(f, OCC)
             # (the field names of each kind in first-seen order, collected here
             # rather than in a second pass over every column)
             if (prec) {
@@ -199,9 +217,11 @@ _core_melt_tidy_stream () {
             # not a single table: pass through verbatim, minus the record-count
             # metadata (unless that is the only column)
             ndrop = 0; for (i in DROP) ndrop++
-            if (ndrop == 0 || ndrop >= nf) { print L[1]; print L[2]; exit }
+            # (repeated names made unique: name, name_2 …)
+            hu = ""; for (i = 1; i <= nf; i++) { U[i] = uniq(H[i], PSEEN); hu = hu (i > 1 ? OFS : "") U[i] }
+            if (ndrop == 0 || ndrop >= nf) { print hu; print L[2]; exit }
             hs = ""; c = 0
-            for (i = 1; i <= nf; i++) if (!(i in DROP)) { hs = hs (c ? OFS : "") H[i]; c++ }
+            for (i = 1; i <= nf; i++) if (!(i in DROP)) { hs = hs (c ? OFS : "") U[i]; c++ }
             nd = split(L[2], D, "\t"); vs = ""; c = 0
             for (i = 1; i <= nd; i++) if (!(i in DROP)) { vs = vs (c ? OFS : "") D[i]; c++ }
             print hs; print vs; exit
@@ -218,6 +238,7 @@ _core_melt_tidy_stream () {
           # once per run of one id, not once per cell)
           lastid = ""; base = 0
           for (i = 1; i <= nf; i++) {
+            if (i in SKIPC) continue
             if (KIND[i] == mode) {
               id = ID[i]
               if (id != lastid || i == 1) {
@@ -250,14 +271,15 @@ _core_melt_tidy_stream () {
           # column (valgrind-massif records carry their own `n`): a repeated name
           # breaks the by-name union/align. On a clash, prefix `_` until unique.
           for (k = 1; k <= nfld; k++) USED[FLDS[k]] = 1
-          for (s = 1; s <= nsc; s++) USED[H[SC[s]]] = 1
+          # (a scalar named like a field or another scalar: name_2 …)
+          for (s = 1; s <= nsc; s++) SCN[s] = uniq(H[SC[s]], USED)
           idcol = (mode == "r") ? "n" : "key"
           while (idcol in USED) idcol = "_" idcol
           USED[idcol] = 1; capcol = "capture"
           while (capcol in USED) capcol = "_" capcol
           hdr = (cap != "" ? capcol OFS : "") idcol
           for (k = 1; k <= nfld; k++) hdr = hdr OFS FLDS[k]
-          for (s = 1; s <= nsc; s++) hdr = hdr OFS H[SC[s]]
+          for (s = 1; s <= nsc; s++) hdr = hdr OFS SCN[s]
           print hdr
           sc = ""; for (s = 1; s <= nsc; s++) sc = sc OFS V[SC[s]]
           pre = (cap != "" ? cap OFS : "")

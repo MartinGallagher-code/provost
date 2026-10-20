@@ -1,4 +1,4 @@
-n	gpg	Author	Date
-1	Good signature from "Martin Gallagher <martin@example.com>"	Martin Gallagher <martin@example.com>	Mon Jan 15 08:22:41 2024 +0000
-4		Jane Doe <jane@example.com>	Sun Jan 14 12:00:00 2024 +0000
-6	Good signature from "Alex Kim <alex@example.com>"	Alex Kim <alex@example.com>	Sat Jan 13 09:00:00 2024 +0000
+n	gpg	gpg_2	gpg_3	Author	Date
+1	Signature made Mon Jan 15 08:22:41 2024 UTC	using RSA key 4AEE18F83AFDEB23	Good signature from "Martin Gallagher <martin@example.com>"	Martin Gallagher <martin@example.com>	Mon Jan 15 08:22:41 2024 +0000
+4				Jane Doe <jane@example.com>	Sun Jan 14 12:00:00 2024 +0000
+6	Signature made Sat Jan 13 09:00:00 2024 UTC	Good signature from "Alex Kim <alex@example.com>"		Alex Kim <alex@example.com>	Sat Jan 13 09:00:00 2024 +0000

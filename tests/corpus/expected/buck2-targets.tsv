@@ -1,2 +1,2 @@
-n	root//app	root//core	root//third-party
-1	lib	core_test	grpc
+n	root//app	root//app_2	root//core	root//core_2	root//third-party	root//third-party_2
+1	main	lib	core	core_test	absl	grpc

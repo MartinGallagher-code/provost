@@ -4,7 +4,7 @@
 
 ## Name: gnu-version
 ## Description: Extract tool/version/copyright/license fields from a GNU-style `--version` banner
-## Version: 1.1
+## Version: 1.2
 ## Priority: 22
 ## Sample: samples/gnu-version/basic.txt
 
@@ -16,7 +16,8 @@
 # the banner actually has.
 #
 # One wide key/value record (no entryN.*): tool, version, copyright, license,
-# license_url, warranty, author — and EVERYTHING ELSE the banner carries, so
+# license_url, warranty (only when the banner says NO WARRANTY, v1.2), author
+# — and EVERYTHING ELSE the banner carries, so
 # the claim never drops part of the input (v1.1). A `--version` banner is often
 # the head of a longer report: component versions (`libgcrypt 1.9.4`), a home
 # directory, lists of supported algorithms or features wrapped over several
@@ -267,7 +268,10 @@ strategy_extract () {
     [[ -n "$copyright" ]] && result+="copyright ${copyright}"$'\n'
     [[ -n "$license" ]] && result+="license ${license}"$'\n'
     [[ -n "$license_url" ]] && result+="license_url ${license_url}"$'\n'
-    result+="warranty ${warranty}"$'\n'
+    # `warranty 1` stands for the banner's own NO WARRANTY line; a banner
+    # without one gets no warranty field (it used to get an invented
+    # `warranty 0`: every value must come from the input).
+    [[ $warranty -eq 1 ]] && result+="warranty ${warranty}"$'\n'
     [[ -n "$author" ]] && result+="author ${author}"$'\n'
     # Extra fields; a bare heading that collected nothing adds nothing.
     local i

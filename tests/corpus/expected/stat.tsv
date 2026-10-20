@@ -1,2 +1,2 @@
-_.File	_.Size	Device	Access	Access	Modify	Change	Birth
+_.File	_.Size	Device	Access	Access_2	Modify	Change	Birth
 report.csv	20480           Blocks: 40         IO Block: 4096   regular file	801h/2049d      Inode: 1443527     Links: 1	(0644/-rw-r--r--)  Uid: ( 1000/  martin)   Gid: ( 1000/  martin)	2026-07-06 09:14:22.512340118 +0100	2026-07-05 21:03:47.884210553 +0100	2026-07-05 21:03:47.884210553 +0100	2026-07-01 08:55:10.100000000 +0100

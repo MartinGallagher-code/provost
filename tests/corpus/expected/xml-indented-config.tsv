@@ -1,2 +1,2 @@
-bean.id	bean.class	property.name	property.value	property.name	property.value	property.name	bean.class	property.name	property.value	property.name	property.value	bean.id	bean.class	property.name	property.ref
+bean.id	bean.class	property.name	property.value	property.name_2	property.value_2	property.name_3	bean.class_2	property.name_4	property.value_3	property.name_5	property.value_4	bean.id_2	bean.class_3	property.name_6	property.ref
 dataSource	HikariDataSource	jdbcUrl	jdbc:postgresql://db:5432/app	username	app	pool	PoolConfig	maxSize	20	minIdle	5	txManager	DataSourceTransactionManager	dataSource	dataSource

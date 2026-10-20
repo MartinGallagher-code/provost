@@ -1,2 +1,2 @@
-Error_Log_Entries_for_device	line1	line2	line3	error_count	sqid	cmdid	status_field	phase_tag	parm_err_loc	lba	nsid	vs	trtype	cs	trtype_spec_info	line4	line5	line6	error_count	cmdid	status_field	line7
+Error_Log_Entries_for_device	line1	line2	line3	error_count	sqid	cmdid	status_field	phase_tag	parm_err_loc	lba	nsid	vs	trtype	cs	trtype_spec_info	line4	line5	line6	error_count_2	cmdid_2	status_field_2	line7
 nvme0n1 entries:64	.................	Entry[ 0]	.................	4521	0	0x8	0x4004(INVALID_FIELD: A reserved coded value or an unsupported value in a defined field)	0	0xffff	0	0xffffffff	0	The transport type is not indicated or the error is not transport related.	0	0	.................	Entry[ 1]	.................	4520	0x1006	0x4004(INVALID_FIELD)	.................

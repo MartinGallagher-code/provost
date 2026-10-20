@@ -1,5 +1,158 @@
 # provost — Changelog
 
+## 2026-10-20 — engine defects: no output, truncated tsv rows, repeated names, cut values, an invented field, a near-miss hint claim
+
+Six defects from round 3's "Engine findings" (now a seen regression set).
+Each was reproduced first and fixed at its cause, not on the round-3 input,
+and each has a regression test with a fixture written for this work
+(`extract/tests/test_engine_defects.sh`, 7 tests, and 6 new
+`transform/tests/test_melt.sh` checks). All of them fail on the previous
+engine and pass on this one.
+
+1. **No output at all.** A text input whose first line is a `[Section]`
+   tag over lines that end in `}` (`java -XX:+PrintFlagsFinal`) came out
+   empty with exit 0. `json` detects it, extracts nothing, and every other
+   parser declined. `text-lines` declined too, because its JSON-document
+   guard (opens with `[`, closes with `}`) took the tag for an array.
+   - `text-lines` 1.1: a first line that is a CLOSED bracketed tag (no `,`
+     `{` `"` before its `]`) is text, not an array.
+   - New CATCH-ALL NET (`_eas_catchall_net`, lib/_discovery.sh). When every
+     candidate yields nothing, `text-lines` is extracted whatever its own
+     detector says, since its guards defer to the parsers that just failed.
+     Applies to auto-detect runs with 2+ non-blank lines, in ranked,
+     priority and `--multi` mode; never to pinned or replayed runs, and only
+     when `--min-confidence` is 50 or less. A single prose line is still
+     left unextracted, as before.
+   - What is still missing: a proper parse of this shape.
+     `aligned-columns` declines ` = ` blocks in favour of `equals`, and
+     `equals` only reads unindented keys. Its parse would put the trailing
+     `{product} {default}` columns into the value anyway, so the
+     `[Section]` table is now one row per line.
+2. **`tsv` truncated rows to the header's width.**
+   - `tsv` 2.2: a row with more cells than the header keeps them. The header
+     is widened with positional names (`C`, `D` …, or `colN` when a real
+     label already has that letter).
+   - Why coverage did not see it: a line counts as kept when more than half
+     of its tokens appear anywhere in the parse. A truncated row keeps its
+     leading cells, and the dropped cells' tokens often recur elsewhere.
+     Coverage only notices when the dropped cells are most of a row (the
+     test fixture read 75). Making it stricter would need a second,
+     per-cell measure; that was not attempted.
+   - Widening made the round-3 Lambda log (`aws logs tail`) worse. The
+     consistency hold had replaced `tsv` there, but the widened parse has
+     more judged columns, so `prefix-message` no longer passed the
+     comparable-evidence guard. So `tsv` now also declines when most lines
+     carry no tab AND most tab-bearing lines disagree with the header's tab
+     count: the tabs are an incidental suffix, not columns. A diff whose
+     `---` / `+++` lines carry one tab each is still `tsv`. No corpus
+     winner changes.
+3. **Repeated column names lost values.** `Public IPv4` / `Private IPv4`
+   read word by word gave two `IPv4` columns, and conntrack prints `src=`
+   for both directions. The melt kept only the later value. When both
+   values were equal, `deduplicate_output` had already dropped the line, so
+   the melt could not have recovered it.
+   - Engine (`_uniq_record_names`, lib/_discovery.sh, applied to every
+     extract on both the string and the file-lane route): a name repeated
+     inside one record (`<label><N>.name`, a run of lines) becomes
+     `name_2`, `name_3` …, using the first suffix the record does not hold.
+     The gutter grid already did this; the token readers and every other
+     emitter did not.
+   - Two exceptions keep their name: a border column whose name and value
+     are the same bar or rule glyphs (`|`, `│`), and an empty value.
+   - Melt (`transform/melt.sh`), as the backstop: a field repeated inside a
+     record, a repeated pass-through column name, and a scalar named like a
+     field all get unique names. An empty repeat never blanks the first
+     value. Plain and tidy output now agree.
+4. **`fixed-width` cut leading digits.** Its token-slicer fallback ended
+   each column one byte short of the next column's start, so that byte
+   belonged to no column. A right-aligned `1204736`, one digit wider than
+   its `------`, lost its `1`.
+   - `fixed-width` 1.1: columns end at the next start.
+   - A word that straddles a cut and starts past the end of this column's
+     run is the next column's, which widens left to cover it. A word that
+     starts inside the run stays with this column, as before.
+   - An unpadded table (every row exactly one token per column) whose slices
+     disagree with token order is declined, and the token reader takes it
+     (`2 idle bob` under `-- ------ -----`, as before through the
+     consistency hold).
+   - `vertical-line` 1.2, the same defect at label midpoints: a word that
+     crosses a midpoint and overlaps the right label more moves whole to
+     the right column (`512000 1` | `024000` → `512000` | `1024000`). A word
+     that belongs to the left label stays cut. That cut is what lets the
+     consistency hold hand a table of overflowing left-aligned names to the
+     gutter grid (chronyc, lshw, dotnet: unchanged).
+5. **`gnu-version` invented a field.** `gnu-version` 1.2 emits `warranty 1`
+   only for the banner's own NO WARRANTY line. It no longer invents
+   `warranty 0` when that line is missing.
+6. **A 95-confidence claim at 27–31% coverage.** The claim was the
+   `pytest-summary` hints row (pytest's session banner) routed to
+   `dot-leader-row`, which ran on `pytest --fixtures` and `--setup-plan`.
+   It counted any `...` as a leader: an elided path `.../_pytest/x.py`, or
+   a truncated repr.
+   - `dot-leader-row` 1.1: a row needs a FILLER token, a whitespace-separated
+     run of 3+ dots, optionally holding status letters (`....F...`,
+     `..ss..`), with dots over half the token. The hint then extracts
+     nothing and auto-detection runs.
+   - The alternative, letting a bespoke or hinted claim under 40% coverage
+     fall through to the next candidate, was measured on the corpus (full
+     mode) and rejected. 22 bespoke winners score under 40%, and most are
+     correct. A bespoke parse normalises values (`8,412.33` → `8412.33`,
+     dates rebuilt), so its coverage reads 0% on perf-stat, keytool-list,
+     mix-deps, masscan, openssl-asn1parse and others. The corpus's one
+     hinted claim under 40% (`pytest-summary`, 33%) is its correct golden.
+   - Cost: auto-detection reads those two reports no better. `--fixtures`
+     goes to `block-records` (56%, held, no rescue) and `--setup-plan` to
+     `protobuf-text`. Both were FAIL and stay FAIL. `--fixtures` used to
+     have a column of fixture names, so it now reads worse (see below).
+
+**Corpus.** `--golden` 3584 passed, 0 failed, 121 not yet covered; `_FR_BIG_BYTES=0 --golden` the same. The base engine passes 3583 against its 3583 goldens. 64 goldens change, 1 is new, and none is deleted (compared file by file against the previous tree).
+- Every changed golden was reviewed against the old one; no row count
+  changed and `expected.tsv` is unchanged.
+- Repeated names now kept, values recovered: buck2-targets, conntrack and conntrack-L (both directions of `src`/`dst`/`sport`/`dport`), cxlstat, doctl-apps-list, duf-usage (SIZE / USED / AVAIL values had been overwritten by `│`), exo-drbdadm-status, exo-ss-i-cc-metrics, git-log-signed, iotop and iotop-batch (`DISK READ` and `DISK WRITE`), quo-pipe-sql-in-query, repquota (the block limits had been overwritten by the file limits), scw-instance-server-list (`NAME` had been overwritten by the image's last word), spec-cpu-result, systemctl-status and systemctl-status-nginx, talosctl-dmesg, vmstat-d (19).
+- Pass-through headers made unique, with the same cells: apk-stats, apt-cache-depends, aws-iam-get-role, desktop-entries-apps, desktop-mimetype-apps, edac-util, exo-apt-policy-pin, exo-dmidecode-handles-multi, exo-lspci-vv-caps, exo-nmap-grepable, exo-tcpdump-vv-packets, ffprobe-streams, fio-run, hive-show-partitions, html-indented-dom, loginctl-seat-status, mongod-version, mongosh-db-currentop, mongosh-rs-status, mpirun-map, needrestart, nginx-t, nst-systemd-analyze-dump, nst-yaml-multidoc-blockscalar, nvme-error-log, powercap-info, sockperf-throughput, stat, sudo-l, systemd-analyze-cat-config, utmpdump-output, vainfo-profiles, xml-indented-config (33).
+- Cut cells now whole (`vertical-line`): ausearch-record-gaps (`USER_LOGI|N`, `pid=81|5` whole), btrfs-inspect-super (`4|8213` → `48213`), chronyc-offset-signed (host names and offsets whole), exo-psql-explain-analyze-tree, ray-status, rustup-show (toolchain names whole; one line still cut, as before), sas-proc-means (the Mean column whole; `Std Dev` is still cut, as before). Neutral, with rule or banner debris only: cloc-summary, latencystats-dump, memtier-benchmark (10 in all).
+- `tsv` rows kept past the header: vcftools-freq (the second allele
+  frequency) and etc-hosts-comment-tabs (the comment).
+- New golden: jless-navigate (was no output; now one row per line).
+- Generic-mode winners that change without a golden changing:
+  - tbl-dash-rule-single-space: `aligned-columns` → `vertical-line`, with
+    identical tidy output.
+  - nodetool-status: `aligned-columns` → `vertical-line`. Neither parse is
+    tidy and there is no golden. It is worse: an IP is cut at a fixed
+    column (`10.0.0.|11`). The word cut the hold used to catch
+    (`State=No|rmal`) is now whole, and a cut IP is not a cut word. Full
+    mode keeps the bespoke parse.
+- `_EAS_NOPRUNE=1` is identical in `--generic` and full mode (all 3705
+  inputs, `.wide` and `.meta`).
+
+**Round 3** (against a base run): 16 default outputs change (`run.sh --round3 --tidy`, `.def` / `.meta` / `.tidy`). Ratings were not re-scored.
+- Better (8):
+  - `java -XX:+PrintFlagsFinal` (023): from no output to every line, one row each.
+  - doctl (124): the IP addresses are kept.
+  - JES2 (135): no token is dropped by the repeated letter names.
+  - `nagios -v` (134): `warranty 0` gone.
+  - `openssl list -providers` (035): the provider id and the parameter names are recovered.
+  - `git show-branch` (018), `patch --verbose` (036), `lsnrctl` (120): fewer words cut at fixed columns.
+- Neutral (7):
+  - node `--test` spec and TAP (030, 031), `trace --listfuncs` (055), `helm template` (129): repeated pass-through names get `_2`, and the cells are the same.
+  - RouterOS (114): `-` cells recovered under a banner header.
+  - cnpg (126): no word cut any more, but two words shift into the next column.
+  - `pytest --setup-plan` (048): `protobuf-text` debris instead of 2 shredded lines.
+- Worse (1), still FAIL: `pytest --fixtures` (047). The 16-row list of fixture names, with paths that lost their dots, becomes a `block-records` parse that puts names into column headers (bug 6).
+
+**Round 2** (against a base run): 2 default outputs change, both better.
+- `diff` side-by-side (013): the right-hand new values (`port=8443`, `workers=8`, `log=debug`), which `tsv` dropped, are kept.
+- `diff` normal (012): `5c5,6` is whole.
+- Black's diff (005) stays `tsv`: its two tab-bearing lines agree with the header.
+
+Files: `extract/lib/_discovery.sh`, `extract/strategies/delimited/{text-lines,
+fixed-width,vertical-line,dot-leader-row}.sh`,
+`extract/strategies/structured/tsv.sh`, `extract/strategies/misc/gnu-version.sh`,
+`transform/melt.sh`, `extract/README.md` (catch-all net, bespoke coverage
+evidence), `extract/tests/test_engine_defects.sh` (new),
+`transform/tests/test_melt.sh` (now 60 checks; CLAUDE.md still says 54),
+`tests/corpus/expected/` (64 changed, 1 new). HANDOFF.md not edited.
+
 ## 2026-10-16 — round 3 re-rated after the fix round (honest delta: 3 FAIL → PARTIAL); round 2 regression check; round 3 is now a regression set
 
 Measurement and documentation only. No engine, parser, strategy or hint

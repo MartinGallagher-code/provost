@@ -4,7 +4,7 @@
 
 ## Name: vertical-line
 ## Description: Extract data from tables with separator lines (---, ===, etc.)
-## Version: 1.1
+## Version: 1.2
 ## Priority: 45
 ## Sample: samples/vertical-line/benchmark.txt
 
@@ -246,9 +246,34 @@ strategy_extract () {
         [[ -z "$row" ]] && continue
         entry=$((entry + 1))
 
+        # A boundary that falls INSIDE a word that overlaps the RIGHT
+        # column's label more than the left one's — a right-aligned
+        # `1024000` wider than its `hard` label, crossing the midpoint —
+        # moves left to the word's start: the right column widens to cover
+        # it (v1.2 — it used to be cut, `512000 1` | `024000`). A word that
+        # belongs to the left label stays cut as before: that cut is what
+        # lets the consistency hold hand a table of overflowing left-aligned
+        # names to the gutter grid.
+        local -a r_lo=("${col_lo[@]}") r_hi=("${col_hi[@]}")
+        for ((c=1; c<num_cols; c++)); do
+            local b=${r_lo[$c]}
+            [[ $b -ge 1 && $b -lt ${#row} && "${row:$((b - 1)):1}" != " " && "${row:$b:1}" != " " ]] || continue
+            local ws=$((b - 1)) we=$b
+            while [[ $ws -gt 0 && "${row:$((ws - 1)):1}" != " " ]]; do ws=$((ws - 1)); done
+            while [[ $we -lt ${#row} && "${row:$we:1}" != " " ]]; do we=$((we + 1)); done
+            local oL=$(( (we - 1 < h_ends[c-1] ? we - 1 : h_ends[c-1]) - (ws > h_starts[c-1] ? ws : h_starts[c-1]) + 1 ))
+            local oR=$(( (we - 1 < h_ends[c] ? we - 1 : h_ends[c]) - (ws > h_starts[c] ? ws : h_starts[c]) + 1 ))
+            (( oR > oL )) || continue
+            b=$ws
+            # (never past the neighbouring boundaries)
+            (( b < r_lo[c-1] )) && b=${r_lo[$((c - 1))]}
+            (( c + 1 < num_cols && b > r_hi[c] )) && b=${r_hi[$c]}
+            r_hi[$((c - 1))]=$b; r_lo[$c]=$b
+        done
+
         for ((c=0; c<num_cols; c++)); do
-            local lo=${col_lo[$c]}
-            local hi=${col_hi[$c]}
+            local lo=${r_lo[$c]}
+            local hi=${r_hi[$c]}
 
             # Clamp to row length
             [[ $lo -ge ${#row} ]] && continue

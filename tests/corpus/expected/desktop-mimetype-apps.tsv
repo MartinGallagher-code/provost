@@ -1,2 +1,2 @@
-Name	Exec	Type	MimeType	Categories	Name	Exec	MimeType	Categories
+Name	Exec	Type	MimeType	Categories	Name_2	Exec_2	MimeType_2	Categories_2
 Evince	evince %U	Application	application/pdf;	Office;Viewer;	Eog	eog %U	image/png;image/jpeg;	Graphics;Viewer;
