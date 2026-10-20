@@ -91,6 +91,16 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0. **Done 2026-10-20 (PR #77), not yet released.**
+   - Six engine defects from round 3 are fixed: no-output fallback, tsv
+     truncation, duplicate names losing values, fixed-width cutting digits,
+     the invented gnu-version field, and the dot-leader near-miss.
+   - The **quality gate** is in: likely-wrong generic parses (coverage < 80 or
+     consistency < 70) go to triage. On the rated sets it holds 18 of 48 FAILs
+     and 0 of 57 PASSes. Tune it with `PROVOST_MIN_COVERAGE` /
+     `PROVOST_MIN_CONSISTENCY`, or turn it off with 0.
+   - Release as 2.2.0 together with the 2026-10-16 work.
+
 1. **Rethink the approach before another fix round.** Two rounds of
    pattern-level fixes, each developed against new examples, moved unseen
    FAIL by only 1–3 points while seen sets improved a lot. More heuristics in
@@ -102,7 +112,7 @@ Suites (all CI-enforced):
    - Narrow the claim: report low confidence and route to triage instead of
      committing a wrong table. Today every input clears the commit
      threshold, but a third are wrong.
-2. **Engine bugs found by round 3** (real defects, not tuning):
+2. ~~Engine bugs found by round 3~~ — fixed 2026-10-20 (see 0). Originally:
    - `java -XX:+PrintFlagsFinal`-style input gives no output at all.
    - `tsv` truncates rows to the first row's width while coverage reads 100.
    - duplicate column names lose values in the melt.

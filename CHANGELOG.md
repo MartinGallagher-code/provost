@@ -1,5 +1,44 @@
 # provost — Changelog
 
+## 2026-10-20 — quality gate: likely-wrong parses go to triage
+
+Every capture has cleared the commit threshold, yet about a third of unseen
+parses are wrong (round 3). provost now holds back a parse that its own
+quality signals say is likely wrong, instead of filing a misleading table.
+- **Rule.** A capture whose winner is a GENERIC parser (under
+  `extract/strategies/{delimited,structured}`) is held back if it keeps
+  under `PROVOST_MIN_COVERAGE`% of the input's lines (default 80), or if its
+  columns are under `PROVOST_MIN_CONSISTENCY`% type-consistent (default 70).
+  It goes to the `unsorted` triage bucket, the same path as no-match and
+  low-confidence, and the reason is printed: `low-coverage (indented-hierarchy
+  kept 77% of the lines, <80%)`.
+- **Exempt:**
+  - tool-specific (bespoke) and plugin parsers. They normalise values, so 22
+    correct corpus winners read under 40% coverage.
+  - the strict grammars: json, json-array, jsonl, yaml, xml, toml, har.
+  - inputs where a measure is absent (very large inputs). An absent measure
+    never holds a capture.
+- **Overrides:** `--min-coverage N` and `--min-consistency N` on inject and
+  run, or the two environment variables. 0 turns a check off. The gate applies
+  to the single-dataset path; `--multi` keeps its own per-dataset confidence
+  rule.
+- **Evidence, chosen with the user from the rated benchmark sets** (current
+  engine, round-2 and round-3 ratings; the ratings predate this PR's engine
+  fixes):
+  - It holds 26 of 216 captures: **18 of the 48 FAILs**, 8 of 111 PARTIALs
+    and **none of the 57 PASSes**.
+  - On round 3 alone it holds 14 of the 37 FAILs.
+  - The other ~30 FAILs keep every line and look internally consistent, so no
+    signal here can catch them.
+- **Docs:** `provost help` (new QUALITY GATE section, ENV, option lists),
+  `provost triage` wording, `man/provost.1`.
+- **Tests:** `tests/smoke.sh` 208 → 217. A gated capture is held with its
+  reason and shows in `provost triage`, both overrides file it, and an
+  out-of-range value is rejected. Two existing checks that fed deliberately
+  low-coverage inputs now turn the gate off explicitly. CLAUDE.md test counts
+  are updated (smoke 217, melt 60).
+- **Files:** `provost`, `man/provost.1`, `tests/smoke.sh`, `CLAUDE.md`.
+
 ## 2026-10-20 — engine defects: no output, truncated tsv rows, repeated names, cut values, an invented field, a near-miss hint claim
 
 Six defects from round 3's "Engine findings" (now a seen regression set).
