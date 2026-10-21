@@ -1,0 +1,71 @@
+calc.y: warning: 7 shift/reduce conflicts [-Wconflicts-sr]
+calc.y: warning: shift/reduce conflict on token '+' [-Wcounterexamples]
+  Example: '-' expr . '+' expr
+  Shift derivation
+    expr
+    `-> 10: '-' expr
+                `-> 8: expr . '+' expr
+  Reduce derivation
+    expr
+    `-> 8: expr               '+' expr
+           `-> 10: '-' expr .
+calc.y: warning: shift/reduce conflict on token '*' [-Wcounterexamples]
+  Example: '-' expr . '*' expr
+  Shift derivation
+    expr
+    `-> 10: '-' expr
+                `-> 9: expr . '*' expr
+  Reduce derivation
+    expr
+    `-> 9: expr               '*' expr
+           `-> 10: '-' expr .
+calc.y: warning: shift/reduce conflict on token '+' [-Wcounterexamples]
+  Example: expr '+' expr . '+' expr
+  Shift derivation
+    expr
+    `-> 8: expr '+' expr
+                    `-> 8: expr . '+' expr
+  Reduce derivation
+    expr
+    `-> 8: expr                   '+' expr
+           `-> 8: expr '+' expr .
+calc.y: warning: shift/reduce conflict on token '*' [-Wcounterexamples]
+  Example: expr '+' expr . '*' expr
+  Shift derivation
+    expr
+    `-> 8: expr '+' expr
+                    `-> 9: expr . '*' expr
+  Reduce derivation
+    expr
+    `-> 9: expr                   '*' expr
+           `-> 8: expr '+' expr .
+calc.y: warning: shift/reduce conflict on token '+' [-Wcounterexamples]
+  Example: expr '*' expr . '+' expr
+  Shift derivation
+    expr
+    `-> 9: expr '*' expr
+                    `-> 8: expr . '+' expr
+  Reduce derivation
+    expr
+    `-> 8: expr                   '+' expr
+           `-> 9: expr '*' expr .
+calc.y: warning: shift/reduce conflict on token '*' [-Wcounterexamples]
+  Example: expr '*' expr . '*' expr
+  Shift derivation
+    expr
+    `-> 9: expr '*' expr
+                    `-> 9: expr . '*' expr
+  Reduce derivation
+    expr
+    `-> 9: expr                   '*' expr
+           `-> 9: expr '*' expr .
+calc.y: warning: shift/reduce conflict on token ELSE [-Wcounterexamples]
+  Example: IF '(' expr ')' IF '(' expr ')' stmt . ELSE stmt
+  Shift derivation
+    stmt
+    `-> 5: IF '(' expr ')' stmt
+                           `-> 6: IF '(' expr ')' stmt . ELSE stmt
+  Reduce derivation
+    stmt
+    `-> 6: IF '(' expr ')' stmt                          ELSE stmt
+                           `-> 5: IF '(' expr ')' stmt .

@@ -209,8 +209,16 @@ Advanced:
                           same strategy, and emit EACH group as its own dataset
                           (iostat's avg-cpu kv block AND its Device table).
                           Datasets are separated on stdout by a line
-                          __DATASET__<TAB>n<TAB>strategy<TAB>confidence
-                          followed by the group's extraction in the -f format.
+                          __DATASET__<TAB>n<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency<TAB>lines
+                          followed by the group's extraction in the -f format
+                          (coverage / consistency measured against the
+                          dataset's own blocks, '-' when not measured; lines =
+                          its non-blank input lines). With --emit-meta, one
+                          stderr line sums the segmentation up:
+                          __MULTI_META__<TAB>kind<TAB>datasets<TAB>coverage<TAB>lines
+                          (kind split / strict / hdr, or whole when the
+                          unsplit input won; coverage of the WHOLE input by
+                          all the datasets together).
 
 Debug & Development:
   -d, --debug             Show strategy matching details and field provenance

@@ -1,0 +1,67 @@
+==22491== Helgrind, a thread error detector
+==22491== Copyright (C) 2007-2017, and GNU GPL'd, by OpenWorks LLP et al.
+==22491== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==22491== Command: ./race
+==22491== 
+==22491== ---Thread-Announcement------------------------------------------
+==22491== 
+==22491== Thread #3 was created
+==22491==    at 0x4995A53: clone (clone.S:76)
+==22491==    by 0x4995BD2: __clone_internal_fallback (clone-internal.c:64)
+==22491==    by 0x4995BD2: __clone_internal (clone-internal.c:109)
+==22491==    by 0x490854F: create_thread (pthread_create.c:297)
+==22491==    by 0x49091A4: pthread_create@@GLIBC_2.34 (pthread_create.c:836)
+==22491==    by 0x4854975: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x109237: main (race.c:12)
+==22491== 
+==22491== ---Thread-Announcement------------------------------------------
+==22491== 
+==22491== Thread #2 was created
+==22491==    at 0x4995A53: clone (clone.S:76)
+==22491==    by 0x4995BD2: __clone_internal_fallback (clone-internal.c:64)
+==22491==    by 0x4995BD2: __clone_internal (clone-internal.c:109)
+==22491==    by 0x490854F: create_thread (pthread_create.c:297)
+==22491==    by 0x49091A4: pthread_create@@GLIBC_2.34 (pthread_create.c:836)
+==22491==    by 0x4854975: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x10921A: main (race.c:11)
+==22491== 
+==22491== ----------------------------------------------------------------
+==22491== 
+==22491== Possible data race during read of size 8 at 0x10C018 by thread #3
+==22491== Locks held: none
+==22491==    at 0x1091BE: worker (race.c:6)
+==22491==    by 0x4854B7A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x4908AA3: start_thread (pthread_create.c:447)
+==22491==    by 0x4995A63: clone (clone.S:100)
+==22491== 
+==22491== This conflicts with a previous write of size 8 by thread #2
+==22491== Locks held: none
+==22491==    at 0x1091C9: worker (race.c:6)
+==22491==    by 0x4854B7A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x4908AA3: start_thread (pthread_create.c:447)
+==22491==    by 0x4995A63: clone (clone.S:100)
+==22491==  Address 0x10c018 is 0 bytes inside data symbol "counter"
+==22491== 
+==22491== ----------------------------------------------------------------
+==22491== 
+==22491== Possible data race during write of size 8 at 0x10C018 by thread #3
+==22491== Locks held: none
+==22491==    at 0x1091C9: worker (race.c:6)
+==22491==    by 0x4854B7A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x4908AA3: start_thread (pthread_create.c:447)
+==22491==    by 0x4995A63: clone (clone.S:100)
+==22491== 
+==22491== This conflicts with a previous write of size 8 by thread #2
+==22491== Locks held: none
+==22491==    at 0x1091C9: worker (race.c:6)
+==22491==    by 0x4854B7A: ??? (in /usr/libexec/valgrind/vgpreload_helgrind-amd64-linux.so)
+==22491==    by 0x4908AA3: start_thread (pthread_create.c:447)
+==22491==    by 0x4995A63: clone (clone.S:100)
+==22491==  Address 0x10c018 is 0 bytes inside data symbol "counter"
+==22491== 
+2000
+==22491== 
+==22491== Use --history-level=approx or =none to gain increased speed, at
+==22491== the cost of reduced accuracy of conflicting-access information
+==22491== For lists of detected and suppressed errors, rerun with: -s
+==22491== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 1 from 1)

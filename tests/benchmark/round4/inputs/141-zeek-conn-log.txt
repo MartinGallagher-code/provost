@@ -1,0 +1,16 @@
+#separator \x09
+#set_separator	,
+#empty_field	(empty)
+#unset_field	-
+#path	conn
+#open	2026-10-20-08-00-00
+#fields	ts	uid	id.orig_h	id.orig_p	id.resp_h	id.resp_p	proto	service	duration	orig_bytes	resp_bytes	conn_state	local_orig	local_resp	missed_bytes	history	orig_pkts	orig_ip_bytes	resp_pkts	resp_ip_bytes	tunnel_parents
+#types	time	string	addr	port	addr	port	enum	string	interval	count	count	string	bool	bool	count	string	count	count	count	count	set[string]
+1792483201.104221	CHhAvVGS1DHFjwGM9	192.0.2.45	52114	198.51.100.20	443	tcp	ssl	12.204117	2271	48211	SF	T	F	0	ShADadFf	31	3891	44	50511	-
+1792483201.882013	C4J4Th3PJpwUYZZ6gc	192.0.2.45	60123	198.51.100.53	53	udp	dns	0.012004	38	54	SF	T	F	0	Dd	1	66	1	82	-
+1792483202.331920	CUM0KZ3MLUfNB0cl11	192.0.2.77	49820	198.51.100.80	80	tcp	http	0.410221	412	15022	SF	T	F	0	ShADadfF	9	888	14	15762	-
+1792483203.009118	CmES5u32sYpV7JYN	192.0.2.91	51002	203.0.113.15	3389	tcp	-	-	-	-	S0	T	F	0	S	3	180	0	0	-
+1792483204.712004	CP5puj4I8PtEU4qzYg	198.51.100.200	0	203.0.113.10	8	icmp	-	0.000412	56	56	OTH	F	T	0	-	1	84	1	84	-
+1792483206.220187	C37jN32gN3y3AZzyf6	192.0.2.12	55521	198.51.100.140	8443	tcp	ssl,http	31.880211	(empty)	0	RSTO	T	F	1448	ShADar	6	592	4	216	-
+1792483209.551003	CYfHyC28tAhkLYkXB7	fe80::5668:a3ff:fe12:3401	133	ff02::2	134	icmp	-	-	-	-	OTH	T	F	0	-	1	56	0	0	-
+#close	2026-10-20-09-00-00

@@ -1,0 +1,29 @@
+Using cluster from kubectl context: k8s.eu-central.example.com
+
+Validating cluster k8s.eu-central.example.com
+
+INSTANCE GROUPS
+NAME			ROLE		MACHINETYPE	MIN	MAX	SUBNETS
+control-plane-eu-central-1a	ControlPlane	m6i.large	1	1	eu-central-1a
+control-plane-eu-central-1b	ControlPlane	m6i.large	1	1	eu-central-1b
+control-plane-eu-central-1c	ControlPlane	m6i.large	1	1	eu-central-1c
+nodes-general			Node		m6i.xlarge	3	9	eu-central-1a,eu-central-1b,eu-central-1c
+nodes-spot			Node		c6i.2xlarge	0	12	eu-central-1a,eu-central-1b
+
+NODE STATUS
+NAME			ROLE		READY
+i-0a1b2c3d4e5f60718	control-plane	True
+i-0b2c3d4e5f6071829	control-plane	True
+i-0c3d4e5f607182930	control-plane	True
+i-0d4e5f60718293a41	node		True
+i-0e5f60718293a4b52	node		True
+i-0f60718293a4b5c63	node		False
+
+VALIDATION ERRORS
+KIND	NAME						MESSAGE
+Machine	i-0f60718293a4b5c63				machine "i-0f60718293a4b5c63" has not yet joined cluster
+Pod	kube-system/ebs-csi-node-7xq2k			system-node-critical pod "ebs-csi-node-7xq2k" is pending
+Pod	kube-system/cilium-operator-6d8f9c7b5-vx2lm	system-cluster-critical pod "cilium-operator-6d8f9c7b5-vx2lm" is not ready (cilium-operator)
+
+Validation Failed
+Error: validation failed: cluster not yet healthy

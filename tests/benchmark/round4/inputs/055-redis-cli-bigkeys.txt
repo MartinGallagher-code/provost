@@ -1,0 +1,37 @@
+
+# Scanning the entire keyspace to find biggest keys as well as
+# average sizes per key type.  You can use -i 0.1 to sleep 0.1 sec
+# per 100 SCAN commands (not usually needed).
+
+[00.00%] Biggest string found so far '"session:0065"' with 228 bytes
+[00.00%] Biggest set    found so far '"tags:6"' with 18 members
+[00.00%] Biggest string found so far '"session:0275"' with 323 bytes
+[00.00%] Biggest list   found so far '"queue:01"' with 15 items
+[00.00%] Biggest string found so far '"session:0188"' with 388 bytes
+[05.24%] Biggest hash   found so far '"user:022"' with 30 fields
+[05.24%] Biggest list   found so far '"queue:36"' with 22 items
+[05.24%] Biggest set    found so far '"tags:5"' with 88 members
+[07.85%] Biggest list   found so far '"queue:24"' with 59 items
+[21.99%] Biggest stream found so far '"events"' with 1 entries
+[29.84%] Biggest string found so far '"session:0276"' with 398 bytes
+[54.45%] Biggest zset   found so far '"board:2"' with 110 members
+[87.17%] Biggest zset   found so far '"board:0"' with 116 members
+
+-------- summary -------
+
+Sampled 382 keys in the keyspace!
+Total key length in bytes is 4228 (avg len 11.07)
+
+Biggest   list found '"queue:24"' has 59 items
+Biggest   hash found '"user:022"' has 30 fields
+Biggest string found '"session:0276"' has 398 bytes
+Biggest stream found '"events"' has 1 entries
+Biggest    set found '"tags:5"' has 88 members
+Biggest   zset found '"board:0"' has 116 members
+
+40 lists with 1297 items (10.47% of keys, avg size 32.42)
+25 hashs with 382 fields (06.54% of keys, avg size 15.28)
+300 strings with 60260 bytes (78.53% of keys, avg size 200.87)
+1 streams with 1 entries (00.26% of keys, avg size 1.00)
+10 sets with 444 members (02.62% of keys, avg size 44.40)
+6 zsets with 411 members (01.57% of keys, avg size 68.50)

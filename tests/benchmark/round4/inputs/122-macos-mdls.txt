@@ -1,0 +1,58 @@
+_kMDItemDisplayNameWithExtensions      = "Quartalsbericht Q3 – Übersicht.pdf"
+kMDItemAuthors                         = (
+    "Jana Nováková",
+    "Finance Team"
+)
+kMDItemContentCreationDate             = 2026-10-02 07:41:18 +0000
+kMDItemContentCreationDate_Ranking     = 2026-10-02 00:00:00 +0000
+kMDItemContentModificationDate         = 2026-10-19 15:03:52 +0000
+kMDItemContentType                     = "com.adobe.pdf"
+kMDItemContentTypeTree                 = (
+    "com.adobe.pdf",
+    "public.data",
+    "public.item",
+    "public.composite-content",
+    "public.content"
+)
+kMDItemCreator                         = "Microsoft® Word for Microsoft 365"
+kMDItemDateAdded                       = 2026-10-19 15:04:10 +0000
+kMDItemDisplayName                     = "Quartalsbericht Q3 – Übersicht"
+kMDItemDocumentIdentifier              = 0
+kMDItemEncodingApplications            = (
+    "macOS Version 15.1 (Build 24B83) Quartz PDFContext"
+)
+kMDItemFSContentChangeDate             = 2026-10-19 15:03:52 +0000
+kMDItemFSCreationDate                  = 2026-10-19 15:04:10 +0000
+kMDItemFSCreatorCode                   = ""
+kMDItemFSFinderFlags                   = 0
+kMDItemFSHasCustomIcon                 = (null)
+kMDItemFSInvisible                     = 0
+kMDItemFSIsExtensionHidden             = 0
+kMDItemFSIsStationery                  = (null)
+kMDItemFSLabel                         = 0
+kMDItemFSName                          = "Quartalsbericht Q3 – Übersicht.pdf"
+kMDItemFSNodeCount                     = (null)
+kMDItemFSOwnerGroupID                  = 20
+kMDItemFSOwnerUserID                   = 501
+kMDItemFSSize                          = 1843217
+kMDItemFSTypeCode                      = ""
+kMDItemInterestingDate_Ranking         = 2026-10-19 00:00:00 +0000
+kMDItemKind                            = "PDF document"
+kMDItemLastUsedDate                    = 2026-10-20 08:12:44 +0000
+kMDItemLogicalSize                     = 1843217
+kMDItemNumberOfPages                   = 14
+kMDItemPageHeight                      = 841.89
+kMDItemPageWidth                       = 595.276
+kMDItemPhysicalSize                    = 1847296
+kMDItemSecurityMethod                  = "None"
+kMDItemTitle                           = "Quartalsbericht Q3"
+kMDItemUseCount                        = 3
+kMDItemUsedDates                       = (
+    "2026-10-18 22:00:00 +0000",
+    "2026-10-19 22:00:00 +0000"
+)
+kMDItemVersion                         = "1.7"
+kMDItemWhereFroms                      = (
+    "https://intranet.example.com/finance/reports/q3",
+    "https://intranet.example.com/"
+)

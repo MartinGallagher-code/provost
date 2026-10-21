@@ -134,6 +134,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_PLUGIN_DIR` | — | extra strategy dir for detection (same as `--plugin-dir`) |
 | `PROVOST_ASYNC` | unset | `1` always background, `0` always foreground; unset = background only at a terminal |
 | `PROVOST_MULTI` | `0` | file every dataset an input holds (same as `--multi`) |
+| `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MAX_INPUT` | `10485760` | max input bytes (inject and `run`) |
 | `PROVOST_LOCK_TIMEOUT` | `30` | seconds to wait for the store lock |
 | `PROVOST_LOCK_MAX_AGE` | `3600` | seconds after which a lock is presumed stale |

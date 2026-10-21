@@ -1,0 +1,11 @@
+/home/dev/pricing/legacy.py:3: SyntaxWarning: invalid escape sequence '\d'
+  PATTERN = re.compile("\d+-\d+")
+/home/dev/pricing/legacy.py:6: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  return datetime.datetime.utcnow()
+/home/dev/pricing/legacy.py:18: ResourceWarning: unclosed file <_io.TextIOWrapper name='/dev/null' mode='r' encoding='utf-8'>
+  open_log()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/dev/pricing/legacy.py:19: UserWarning: level above 3 is clamped
+  tune(5)
+/home/dev/pricing/legacy.py:21: DeprecationWarning: There is no current event loop
+  asyncio.get_event_loop()

@@ -333,6 +333,65 @@ test_multi_scoring_keeps_a_winning_split () {
         || assert_eq "2+" "$n" "a split that recovers content survives the veto"
 }
 
+# Each separator carries the dataset's own quality measures (2026-10-20, for
+# provost's auto-multi): coverage and consistency against the dataset's own
+# blocks, and their non-blank line count.
+_multi_table_kv_input () {
+    cat <<'EOF'
+Volume   Files   Size   Status
+vol-a    12      1.0    OK
+vol-b    13      2.0    OK
+vol-c    14      3.0    WARN
+vol-d    15      4.0    OK
+vol-e    16      5.0    OK
+vol-f    17      6.0    OK
+
+Elapsed time:   01:00:12
+Exit code:      0
+Next run:       2026-07-12 01:00
+Operator name:  ops team
+Pool name:      main pool
+Retention:      7 days
+EOF
+}
+
+test_multi_separator_carries_measures () {
+    local tmpfile out sep1 sep2
+    tmpfile=$(mktemp)
+    _multi_table_kv_input > "$tmpfile"
+    out=$(run_extract --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    sep1=$(printf '%s\n' "$out" | grep '^__DATASET__' | sed -n 1p)
+    sep2=$(printf '%s\n' "$out" | grep '^__DATASET__' | sed -n 2p)
+    assert_eq "7" "$(printf '%s\n' "$sep1" | awk -F'\t' '{ print NF }')" "separator has 7 fields"
+    assert_eq "$(printf '100\t100\t7')" "$(printf '%s\n' "$sep1" | cut -f5-7)" "table: coverage, consistency, lines"
+    assert_eq "$(printf 'key-value\t80\t100\t100\t6')" "$(printf '%s\n' "$sep2" | cut -f3-7)" "kv block: strategy, conf, measures, lines"
+}
+
+test_multi_emit_meta_summary () {
+    local tmpfile meta out
+    tmpfile=$(mktemp)
+    _multi_table_kv_input > "$tmpfile"
+    meta=$(run_extract --multi --emit-meta -f tsv --max-strategies 1 "$tmpfile" 2>&1 >/dev/null | grep '^__MULTI_META__')
+    assert_eq "$(printf '__MULTI_META__\tsplit\t2\t100\t13')" "$meta" "summary: split, 2 datasets, joint coverage 100 of 13 lines"
+    out=$(run_extract --multi --emit-meta -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    assert_not_contains "$out" "__MULTI_META__" "the summary goes to stderr only"
+    meta=$(run_extract --multi -f tsv --max-strategies 1 "$tmpfile" 2>&1 >/dev/null)
+    assert_not_contains "$meta" "__MULTI_META__" "no summary without --emit-meta"
+    rm -f "$tmpfile"
+}
+
+# A comment run kept verbatim has nothing to measure: `-` / `-`, its lines.
+test_multi_text_group_measures () {
+    local tmpfile out sep
+    tmpfile=$(mktemp)
+    printf '# first note here\n# second note here\n\nname  size\na     1\nb     2\nc     3\n' > "$tmpfile"
+    out=$(run_extract --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
+    sep=$(printf '%s\n' "$out" | grep "$(printf '^__DATASET__\t[0-9]*\ttext\t')" | head -1)
+    assert_eq "$(printf -- '-\t-\t2')" "$(printf '%s\n' "$sep" | cut -f5-7)" "text group: unmeasured, 2 lines"
+}
+
 run_test "scoring vetoes a losing split"        test_multi_scoring_vetoes_a_losing_split
 run_test "scoring keeps a winning split"        test_multi_scoring_keeps_a_winning_split
 run_test "count preamble is its own dataset"    test_multi_count_preamble_splits
@@ -350,5 +409,9 @@ run_test "legend folds in as the table header"  test_multi_comment_legend_become
 run_test "under-naming legend is not folded"    test_multi_undernaming_legend_not_folded
 run_test "legend may omit the row ordinal"      test_multi_legend_may_omit_row_ordinal
 run_test "comment run kept verbatim"            test_multi_comment_run_kept_verbatim
+
+run_test "separator carries per-dataset measures" test_multi_separator_carries_measures
+run_test "--emit-meta summary line"            test_multi_emit_meta_summary
+run_test "comment run reports no measures"     test_multi_text_group_measures
 
 print_summary

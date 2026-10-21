@@ -1,0 +1,2 @@
+clid=1 cid=1 client_database_id=1 client_nickname=serveradmin\sfrom\s192.0.2.40:51822 client_type=1|clid=4 cid=2 client_database_id=12 client_nickname=Jürgen client_type=0|clid=5 cid=2 client_database_id=31 client_nickname=Ania\s(AFK) client_type=0|clid=7 cid=5 client_database_id=44 client_nickname=Тимур client_type=0|clid=9 cid=5 client_database_id=2 client_nickname=MusicBot\s\p\sRadio client_type=0|clid=11 cid=8 client_database_id=58 client_nickname=Kenji\s健二 client_type=0
+error id=0 msg=ok

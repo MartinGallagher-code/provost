@@ -1,0 +1,14 @@
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Suggested packages:
+  sqlite3-doc
+The following NEW packages will be installed:
+  lua5.4 sqlite3 tree
+0 upgraded, 3 newly installed, 0 to remove and 1 not upgraded.
+Inst lua5.4 (5.4.6-3build2 Ubuntu:24.04/noble [amd64])
+Inst sqlite3 (3.45.1-1ubuntu2.5 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Inst tree (2.1.1-2ubuntu3.24.04.2 Ubuntu:24.04/noble-updates [amd64])
+Conf lua5.4 (5.4.6-3build2 Ubuntu:24.04/noble [amd64])
+Conf sqlite3 (3.45.1-1ubuntu2.5 Ubuntu:24.04/noble-updates, Ubuntu:24.04/noble-security [amd64])
+Conf tree (2.1.1-2ubuntu3.24.04.2 Ubuntu:24.04/noble-updates [amd64])

@@ -1,0 +1,28 @@
+PCM             PCM/friend/aixmpiods8k                              Path Control Module              False
+PR_key_value    none                                                Persistant Reserve Key Value     True+
+algorithm       shortest_queue                                      Algorithm                        True+
+clr_q           no                                                  Device CLEARS its Queue on error True
+dist_err_pcnt   0                                                   Distributed Error Percentage     True
+dist_tw_width   50                                                  Distributed Error Sample Time    True
+hcheck_cmd      test_unit_rdy                                       Health Check Command             True+
+hcheck_interval 60                                                  Health Check Interval            True+
+hcheck_mode     nonactive                                           Health Check Mode                True+
+location                                                            Location Label                   True+
+lun_id          0x4012400000000000                                  Logical Unit Number ID           False
+lun_reset_spt   yes                                                 Support SCSI LUN reset           True
+max_coalesce    0x40000                                             Maximum Coalesce Size            True
+max_retry_delay 60                                                  Maximum Quiesce Time             True
+max_transfer    0x80000                                             Maximum TRANSFER Size            True
+node_name       0x5005076303ffc4a2                                  FC Node Name                     False
+pvid            00f6a1c2d3e4f5a60000000000000000                    Physical volume identifier       False
+q_err           yes                                                 Use QERR bit                     True
+q_type          simple                                              Queuing TYPE                     True
+queue_depth     20                                                  Queue DEPTH                      True+
+reassign_to     120                                                 REASSIGN time out value          True
+reserve_policy  no_reserve                                          Reserve Policy                   True+
+rw_timeout      30                                                  READ/WRITE time out value        True
+scsi_id         0x10a00                                             SCSI ID                          False
+start_timeout   60                                                  START unit time out value        True
+timeout_policy  fail_path                                           Timeout Policy                   True+
+unique_id       200B75DK421054207210790003IBMfcp                    Unique device identifier         False
+ww_name         0x50050763031044a2                                  FC World Wide Name               False

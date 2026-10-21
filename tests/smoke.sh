@@ -10,7 +10,8 @@ set -euo pipefail
 # install dir, never from a store, so a developer's ~/.provost can't shadow the
 # bundled trees — that is asserted below too.)
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
-      PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR
+      PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR \
+      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -367,8 +368,9 @@ check "list items reach the dataset" "terraform@1.7.4" "$("$PROVOST" show covrep
 printf 'Volume   Files   Size   Status\nvol-a    12      1.0    OK\nvol-b    13      2.0    OK\nvol-c    14      3.0    WARN\nvol-d    15      4.0    OK\nvol-e    16      5.0    OK\nvol-f    17      6.0    OK\n\nElapsed time:   01:00:12\nExit code:      0\nNext run:       2026-07-12 01:00\nOperator name:  ops team\nPool name:      main pool\nRetention:      7 days\n' > "$COV_IN"
 # The quality gate holds a generic parse under 80% coverage back for triage,
 # with the reason; with the gate off it is filed, and the low-coverage note
-# says how little of the input reached the dataset.
-lowcov_out="$("$PROVOST" --name lowcov "$COV_IN" 2>&1)"
+# says how little of the input reached the dataset. (--no-auto-multi: this
+# input segments cleanly, see AUTO-MULTI below.)
+lowcov_out="$("$PROVOST" --name lowcov --no-auto-multi "$COV_IN" 2>&1)"
 check "the quality gate holds a low-coverage parse for triage" "low-coverage (" "$lowcov_out"
 check "a gated capture lands in the triage bucket" "queued in 'unsorted'" "$lowcov_out"
 check "triage shows the gated capture" "Retention" "$("$PROVOST" triage 2>&1)"
@@ -377,6 +379,39 @@ check "--min-coverage 0 turns the gate off; the low-coverage note remains" "of t
 lowcov_out="$(PROVOST_MIN_COVERAGE=0 "$PROVOST" --name lowcov2 "$COV_IN" 2>&1)"
 check "PROVOST_MIN_COVERAGE=0 turns the gate off too" "→ dataset 'lowcov2'" "$lowcov_out"
 check "--min-coverage rejects a value over 100" "2" "$(rc_of "$PROVOST" --min-coverage 101 "$COV_IN")"
+# AUTO-MULTI: before holding the parse, provost segments the input; a table and
+# a key/value block that each pass the gate, and together keep every line, are
+# filed as two datasets instead of being held.
+AWS="$(mktemp -d)/.automulti"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$COV_IN" 2>&1)"
+check "auto-multi files a gated parse as segments" "→ 2 datasets" "$am_out"
+check "the ok line says it segmented, and why" "segmented: the single parse was low-coverage (" "$am_out"
+am_meta="$(cat "$AWS/captures/c0001/meta.tsv")"
+check "meta records the auto-multi segmentation" "auto_multi	segmented (split): low-coverage" "$am_meta"
+check "meta records the held single parse" "single_coverage	" "$am_meta"
+check "meta records the parts' joint coverage" "coverage	100" "$am_meta"
+check "meta records each part's coverage" "dataset_coverage	" "$am_meta"
+check "a nameless segment is named by its strategy" "key-value" "$(ls "$AWS/datasets")"
+# With a NAME, the part that reads the single parse's columns keeps NAME, so a
+# capture that passes the gate and one that segments share one dataset.
+printf 'Volume   Files   Size   Status\nvol-a    12      1.0    OK\nvol-b    13      2.0    OK\nvol-c    14      3.0    WARN\nvol-d    15      4.0    OK\nvol-e    16      5.0    OK\nvol-f    17      6.0    OK\n\nElapsed time:   01:00:12\n' > "$COV_IN.small"
+PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync --name volrep "$COV_IN.small" >/dev/null 2>&1
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync --name volrep "$COV_IN" 2>&1)"
+check "with a NAME the other parts are NAME.strategy" "volrep.key-value" "$am_out"
+check "the part matching the single parse continues dataset NAME" "vol-f" \
+    "$(PROVOST_WORKSPACE="$AWS" "$PROVOST" show volrep 2>&1 | tail -1)"
+check "both captures' table rows share dataset NAME" "2" \
+    "$(grep -c 'vol-f' "$AWS/datasets/volrep.tsv")"
+rm -f "$COV_IN.small"
+am_out="$(PROVOST_WORKSPACE="$AWS" PROVOST_AUTO_MULTI=0 "$PROVOST" --sync "$COV_IN" 2>&1)"
+check "PROVOST_AUTO_MULTI=0 holds the capture as before" "queued in 'unsorted'" "$am_out"
+check "PROVOST_AUTO_MULTI must be 0 or 1" "2" "$(PROVOST_AUTO_MULTI=2 rc_of "$PROVOST" --sync "$COV_IN")"
+# A split into trivial fragments (five datasets of 1-2 lines from a 9-line
+# input) is declined: the capture is held, with the reason.
+printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nRETRY=3\n\nname,size\nalpha,1\n\nlast check 2026-10-19 ok\n' > "$COV_IN.frag"
+am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$COV_IN.frag" 2>&1)"
+check "a split into fragments is declined and held" "segmenting it did not help: the parts are fragments" "$am_out"
+rm -f "$COV_IN.frag"
 rm -f "$COV_IN"
 
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
@@ -443,6 +478,13 @@ check "a multi-capture row still traces back to its input" "original source" \
 # would hold it back; turn the gate off to see the single-dataset filing.)
 single_out="$("$PROVOST" --sync --min-coverage 0 --min-consistency 0 "$MULTI_IN" 2>&1)"
 check "default capture is still single-dataset" "→ dataset" "$single_out"
+# With the gate on, auto-multi tries the split and declines it (the avg-cpu
+# block keeps half its own lines), so the capture is held with that reason.
+held_out="$("$PROVOST" --sync "$MULTI_IN" 2>&1)"
+check "a declined segmentation is held for triage" "queued in 'unsorted'" "$held_out"
+check "the hold says why segmenting did not help" "segmenting it did not help: part" "$held_out"
+check "meta records the declined segmentation" "auto_multi	declined: part" \
+    "$(cat "$WS/captures/$(ls "$WS/captures" | sort | tail -1)/meta.tsv")"
 
 # rm of ONE dataset of a --multi capture keeps the capture (it still feeds the
 # others) and drops the name from its meta; removing the rest then purges it.

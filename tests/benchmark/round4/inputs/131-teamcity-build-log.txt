@@ -1,0 +1,29 @@
+[09:12:01] : Build #1482 in branch refs/heads/main
+[09:12:01] : Step 1/3: Compile (Gradle)
+[09:12:01] :	 [Step 1/3] Starting: /opt/buildagent/temp/agentTmp/custom_script8812345.sh
+[09:12:01] :	 [Step 1/3] in directory: /opt/buildagent/work/7f3a1c2e9b0d
+[09:12:04] :	 [Step 1/3] Welcome to Gradle 8.10.2!
+[09:12:19] :	 [Step 1/3] > Task :core:compileJava
+[09:12:27] W:	 [Step 1/3] warning: [deprecation] Date(int,int,int) in Date has been deprecated
+[09:12:41] :	 [Step 1/3] > Task :app:compileJava
+[09:12:44] :	 [Step 1/3] BUILD SUCCESSFUL in 40s
+[09:12:44] :	 [Step 1/3] Process exited with code 0
+[09:12:44] : Step 2/3: Unit tests (Gradle)
+[09:12:44] :	 [Step 2/3] ##teamcity[testSuiteStarted name='com.example.billing.InvoiceTest' flowId='2']
+[09:12:45] :	 [Step 2/3] ##teamcity[testStarted name='com.example.billing.InvoiceTest.totalsRoundHalfUp' captureStandardOutput='true' flowId='2']
+[09:12:45] :	 [Step 2/3] ##teamcity[testFinished name='com.example.billing.InvoiceTest.totalsRoundHalfUp' duration='112' flowId='2']
+[09:12:45] :	 [Step 2/3] ##teamcity[testStarted name='com.example.billing.InvoiceTest.vatForSwitzerland' flowId='2']
+[09:12:46] E:	 [Step 2/3] ##teamcity[testFailed name='com.example.billing.InvoiceTest.vatForSwitzerland' message='expected: <8.1> but was: <7.7>' details='org.opentest4j.AssertionFailedError: expected: <8.1> but was: <7.7>|n	at com.example.billing.InvoiceTest.vatForSwitzerland(InvoiceTest.java:58)|n' flowId='2']
+[09:12:46] :	 [Step 2/3] ##teamcity[testFinished name='com.example.billing.InvoiceTest.vatForSwitzerland' duration='201' flowId='2']
+[09:12:46] :	 [Step 2/3] ##teamcity[testIgnored name='com.example.billing.InvoiceTest.legacyCsvExport' message='@Disabled' flowId='2']
+[09:12:46] :	 [Step 2/3] ##teamcity[testSuiteFinished name='com.example.billing.InvoiceTest' flowId='2']
+[09:12:52] :	 [Step 2/3] 3 tests completed, 1 failed, 1 skipped
+[09:12:52] E:	 [Step 2/3] > Task :billing:test FAILED
+[09:12:53] E:	 [Step 2/3] Process exited with code 1
+[09:12:53] E:	 [Step 2/3] Step Unit tests (Gradle) failed
+[09:12:53] : Step 3/3: Publish artifacts (Command Line) (1s)
+[09:12:53] :	 [Step 3/3] Build step Publish artifacts (Command Line) is skipped because the previous step has failed
+[09:12:53] : Publishing artifacts
+[09:12:53] :	 [Publishing artifacts] Collecting files to publish: [build/reports/tests/** => test-report.zip]
+[09:12:54] :	 [Publishing artifacts] Publishing 1 file using [ArtifactsCachePublisher]: /opt/buildagent/work/7f3a1c2e9b0d/build/reports/tests/** => test-report.zip
+[09:12:54] : Build finished

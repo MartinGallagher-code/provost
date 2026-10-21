@@ -5,9 +5,9 @@
 ################################################################################
 ## Held-out generalisation benchmark.
 ##
-## Every input under inputs/ (round 1), round2/inputs/ (round 2) or
-## round3/inputs/ (round 3) is a tool output the engine had NEVER been tuned
-## against when it was added — no hint
+## Every input under inputs/ (round 1), round2/inputs/ (round 2),
+## round3/inputs/ (round 3) or round4/inputs/ (round 4) is a tool output the
+## engine had NEVER been tuned against when it was added — no hint
 ## row, no strategy, no golden. The corpus under tests/corpus/ measures
 ## regression; this measures generalisation, which is a different and harsher
 ## question: what happens the first time provost meets an output nobody wrote a
@@ -15,20 +15,23 @@
 ##
 ## There is deliberately no pass/fail gate here. A gate would invite fitting
 ## the engine to these files, which destroys the only property that makes
-## them useful. The ratings (ratings.tsv, round2/ratings.tsv, round3/ratings.tsv)
+## them useful. The ratings (ratings.tsv, round2/ratings.tsv, round3/ratings.tsv,
+## round4/ratings.tsv)
 ## are a snapshot of a human-readable judgement (see
 ## docs/benchmark-2026-08-12-generalisation.md,
-## docs/benchmark-2026-10-02-generalisation-round2.md and
-## docs/benchmark-2026-10-16-generalisation-round3.md); re-run this script
+## docs/benchmark-2026-10-02-generalisation-round2.md,
+## docs/benchmark-2026-10-16-generalisation-round3.md and
+## docs/benchmark-2026-10-20-generalisation-round4.md); re-run this script
 ## and re-read the diff when you want to know whether a change helped or hurt
 ## inputs it was not written for.
 ##
 ## Usage:
-##   bash tests/benchmark/run.sh [--round2 | --round3] [-j N] [--tidy] [outdir]
+##   bash tests/benchmark/run.sh [--round2 | --round3 | --round4] [-j N] [--tidy] [outdir]
 ##
 ##   --round2   run the round-2 set (round2/inputs/, 109 inputs) instead of
 ##              the round-1 set (inputs/, 50 inputs)
 ##   --round3   run the round-3 set (round3/inputs/, 107 inputs)
+##   --round4   run the round-4 set (round4/inputs/, 107 inputs)
 ##   -j N       parallel jobs (default: CPU count; PROVOST_BENCH_JOBS)
 ##   --tidy     also melt the default parse to tidy TSV (NAME.tidy)
 ##   outdir     default: a fresh mktemp dir
@@ -61,6 +64,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --round2) set_dir="$here/round2/inputs"; shift ;;
         --round3) set_dir="$here/round3/inputs"; shift ;;
+        --round4) set_dir="$here/round4/inputs"; shift ;;
         -j) jobs="${2:?-j needs a number}"; shift 2 ;;
         -j*) jobs="${1#-j}"; shift ;;
         --tidy) tidy=1; shift ;;

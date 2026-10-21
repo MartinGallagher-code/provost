@@ -1,0 +1,41 @@
+        -:    0:Source:util.c
+        -:    1:/* small integer helpers */
+function clamp called 45 returned 100% blocks executed 100%
+       45:    2:int clamp(int v, int lo, int hi)
+        -:    3:{
+       45:    4:    if (v < lo)
+branch  0 taken 5 (fallthrough)
+branch  1 taken 40
+        5:    5:        return lo;
+       40:    6:    if (v > hi)
+branch  0 taken 9 (fallthrough)
+branch  1 taken 31
+        9:    7:        return hi;
+       31:    8:    return v;
+        -:    9:}
+        -:   10:
+function sign called 45 returned 100% blocks executed 100%
+       45:   11:int sign(int v)
+        -:   12:{
+       45:   13:    return v > 0 ? 1 : v < 0 ? -1 : 0;
+branch  0 taken 6 (fallthrough)
+branch  1 taken 39
+branch  2 taken 5 (fallthrough)
+branch  3 taken 1
+        -:   14:}
+        -:   15:
+function unused_path called 0 returned 0% blocks executed 0%
+    #####:   16:int unused_path(int v)
+        -:   17:{
+    #####:   18:    switch (v) {
+branch  0 never executed
+branch  1 never executed
+branch  2 never executed
+    #####:   19:    case 1:
+    #####:   20:        return 10;
+    #####:   21:    case 2:
+    #####:   22:        return 20;
+    #####:   23:    default:
+    #####:   24:        return 0;
+        -:   25:    }
+        -:   26:}

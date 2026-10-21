@@ -94,6 +94,19 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0a. **2026-10-20, PR #79 (unreleased; would be 2.3.0):**
+    - **Round 4:** 107 unseen inputs on the 2.2.0 engine.
+      - Default mode: 11% PASS, 48% PARTIAL, 41% FAIL (59% usable).
+      - `--multi`: 71% usable.
+    - **Automatic `--multi` fallback** (`PROVOST_AUTO_MULTI=1`): before the
+      gate holds a weak parse, segment it and file the parts if every part
+      passes the gate.
+    - **Measured once on round 4:** 2 rescues, 1 wrong table filed, 6 missed
+      rescues. That is a small net gain.
+    - **Next:** loosen the guards to recover more of the 8 possible rescues,
+      tighten the per-part check that let 048 through, then measure on a
+      round 5.
+
 0. **Done 2026-10-20 (PR #77), not yet released.**
    - Six engine defects from round 3 are fixed: no-output fallback, tsv
      truncation, duplicate names losing values, fixed-width cutting digits,

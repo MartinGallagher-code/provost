@@ -714,13 +714,18 @@ _output_tty_summary () {
 # pipeline (hints, auto-detection, dedup) on each group independently.
 #
 # Output contract (stdout): per surviving group, one separator line
-#   __DATASET__<TAB>n<TAB>strategy<TAB>confidence
-# followed by that group's fields in the -f format. Groups whose extraction
-# yields nothing are skipped. Errors/logging stay on stderr as usual.
+#   __DATASET__<TAB>n<TAB>strategy<TAB>confidence<TAB>coverage<TAB>consistency<TAB>lines
+# followed by that group's fields in the -f format. coverage / consistency
+# are the group winner's own measures against the group's text (`-` when not
+# measured), lines its non-blank line count. Groups whose extraction yields
+# nothing are skipped. Errors/logging stay on stderr as usual. With
+# --emit-meta a `__MULTI_META__` line on stderr gives the winning candidate
+# and the whole input's coverage by all the datasets together (see below).
 #
-# NOT wired into the provost capture pipeline: a capture stores ONE dataset by
-# invariant (meta.tsv, captures/<id>/). Adopting multi-dataset captures is a
-# deliberate follow-up (see docs/0003-multi-dataset.md).
+# provost files these datasets with --multi, and with AUTO-MULTI (a single
+# parse its quality gate would hold is segmented when every dataset passes
+# the gate and together they keep materially more of the input — the CLI
+# applies that policy from the fields above; see _auto_multi in provost).
 # ---------------------------------------------------------------------------
 
 # Detect-only winner for "$1" -> _MULTI_DET (strategy name). Returns 1 if no
@@ -1023,6 +1028,9 @@ run_multi_mode () {
                     fi
                 done <<< "$text"
                 [[ $_t_n -gt 0 ]] || continue
+                # A comment run is kept whole (every line a row, or every
+                # `# key: value` a pair): nothing to measure, `-` / `-`.
+                eval "${_p}_cov[$_n]=-; ${_p}_cons[$_n]=-; ${_p}_lines[$_n]=$_t_n"
                 if [[ $_kv_all -eq 1 && $_kv_n -ge 2 ]]; then
                     _kv_out+="total_entries ${_kv_n}"$'\n'
                     eval "${_p}_name[$_n]=commented-kv; ${_p}_conf[$_n]=90"
@@ -1054,6 +1062,13 @@ run_multi_mode () {
             done <<< "$output"
             eval "${_p}_name[$_n]=\"\${_WINNER_NAME:-}\"; ${_p}_conf[$_n]=\"\${_WINNER_CONF:-0}\""
             eval "${_p}_fields[$_n]=\"\${_m_fields%\$'\\n'}\""
+            # The group's own quality measures — its winner's line coverage and
+            # column-type consistency, taken against the GROUP's text (`-` when
+            # not measured) — and its non-blank line count, so a caller can
+            # apply a quality gate per dataset (provost's auto-multi).
+            local _m_nl=0 _m_l
+            while IFS= read -r _m_l; do [[ -n "${_m_l//[[:space:]]/}" ]] && _m_nl=$((_m_nl + 1)); done <<< "$text"
+            eval "${_p}_cov[$_n]=\"\${_WINNER_COV:--}\"; ${_p}_cons[$_n]=\"\${_WINNER_CONS:--}\"; ${_p}_lines[$_n]=$_m_nl"
             _n=$((_n + 1))
         done
         eval "${_p}_n=$_n"
@@ -1063,6 +1078,7 @@ run_multi_mode () {
     local -a blocks_saved=("${blocks[@]}") istext_saved=("${block_istext[@]}")
     local -a split_name=() split_conf=() split_fields=() split_n=0
     local -a whole_name=() whole_conf=() whole_fields=() whole_n=0
+    local -a split_cov=() split_cons=() split_lines=() whole_cov=() whole_cons=() whole_lines=()
     local -a group_text_saved=() group_name_saved=() group_istext_saved=()
     local _gi_saved=$gi
 
@@ -1074,6 +1090,7 @@ run_multi_mode () {
     # CANDIDATE 1b: the same split with the shape tolerance turned off, so two
     # adjacent blocks re-form only when their rows are the SAME width.
     local -a strict_name=() strict_conf=() strict_fields=() strict_n=0
+    local -a strict_cov=() strict_cons=() strict_lines=()
     _multi_group_blocks 0
     local _strict_gi=$gi
     if [[ $_strict_gi -ne $_gi_saved ]]; then
@@ -1112,6 +1129,7 @@ run_multi_mode () {
     # that available on a COMPOUND input, where taking the whole input would
     # lose the other sections.
     local -a hdr_name=() hdr_conf=() hdr_fields=() hdr_n=0
+    local -a hdr_cov=() hdr_cons=() hdr_lines=()
     local _have_hdr=0 _hj
     local -a _hblocks=() _histext=()
     for ((_hj = 0; _hj < ${#blocks_saved[@]}; _hj++)); do
@@ -1178,9 +1196,9 @@ run_multi_mode () {
     # about the input, and because a margin of a few points out of 10000 is
     # noise in a heuristic score, not a finding. kubectl describe clears the
     # margin by 600; cargo bench differs by 18.
-    local -a win_name=() win_conf=() win_fields=()
-    local win_n=0
-    local _MULTI_VETO_MARGIN=200
+    local -a win_name=() win_conf=() win_fields=() win_cov=() win_cons=() win_lines=()
+    local win_n=0 _win_kind=""
+    local _MULTI_VETO_MARGIN=200 _split_kind=split
     # The strict grouping and the header fold are both REFINEMENTS of the split,
     # so they compete for the split slot first, and the winner of that then
     # faces the whole-input veto. Each only needs to TIE: given equal coverage
@@ -1189,11 +1207,15 @@ run_multi_mode () {
     if [[ $strict_n -gt 0 && $_sc_strict -ge $_sc_split ]]; then
         split_name=("${strict_name[@]}"); split_conf=("${strict_conf[@]}")
         split_fields=("${strict_fields[@]}"); split_n=$strict_n; _sc_split=$_sc_strict
+        split_cov=("${strict_cov[@]}"); split_cons=("${strict_cons[@]}"); split_lines=("${strict_lines[@]}")
+        _split_kind=strict
         _log_debug "multi: strict grouping wins the split slot"
     fi
     if [[ $hdr_n -gt 0 && $_sc_hdr -ge $_sc_split ]]; then
         split_name=("${hdr_name[@]}"); split_conf=("${hdr_conf[@]}")
         split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
+        split_cov=("${hdr_cov[@]}"); split_cons=("${hdr_cons[@]}"); split_lines=("${hdr_lines[@]}")
+        _split_kind=hdr
         _log_debug "multi: header fold wins the split slot"
     fi
     # EXACT TIE, AND EVERY PIECE OF THE SPLIT TOO SMALL TO HAVE BEEN CHECKED:
@@ -1235,19 +1257,48 @@ run_multi_mode () {
     if [[ $split_n -gt 0 && $((_sc_whole - _sc_split)) -le $_MULTI_VETO_MARGIN && $_tie_favours_whole -eq 0 ]]; then
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
         win_fields=("${split_fields[@]}"); win_n=$split_n
+        win_cov=("${split_cov[@]}"); win_cons=("${split_cons[@]}"); win_lines=("${split_lines[@]}")
+        _win_kind="$_split_kind"
     elif [[ $whole_n -gt 0 ]]; then
         win_name=("${whole_name[@]}"); win_conf=("${whole_conf[@]}")
         win_fields=("${whole_fields[@]}"); win_n=$whole_n
+        win_cov=("${whole_cov[@]}"); win_cons=("${whole_cons[@]}"); win_lines=("${whole_lines[@]}")
+        _win_kind=whole
     else
         win_name=("${split_name[@]:-}"); win_conf=("${split_conf[@]:-}")
         win_fields=("${split_fields[@]:-}"); win_n=$split_n
+        win_cov=("${split_cov[@]:-}"); win_cons=("${split_cons[@]:-}"); win_lines=("${split_lines[@]:-}")
+        _win_kind="$_split_kind"
     fi
 
-    # Emit the winner.
+    # --emit-meta: one summary line on stderr for the whole segmentation —
+    #   __MULTI_META__<TAB>kind<TAB>datasets<TAB>coverage<TAB>lines
+    # kind is the candidate that won (split / strict / hdr — the segmentations
+    # — or whole, the unsplit input); coverage is the share of the WHOLE
+    # input's counted lines that reached ANY of the emitted datasets (the same
+    # _parse_coverage measure as the single-winner meta, `-` above
+    # _FR_COV_BYTES), lines the number of counted lines. A caller compares it
+    # with the single-winner parse's coverage (provost's auto-multi).
     local i ds=0
+    if [[ ${_OPT_emit_meta:-0} -eq 1 ]]; then
+        local _mm_all="" _mm_cov="-" _mm_lines="-"
+        for ((i = 0; i < win_n; i++)); do _mm_all+="${win_fields[$i]}"$'\n'; done
+        text="$_whole_text"
+        if [[ $win_n -gt 0 ]]; then
+            _parse_coverage "$_mm_all"
+            [[ -n "$_COV" ]] && { _mm_cov="$_COV"; _mm_lines="$_COV_LINES"; }
+        fi
+        printf '__MULTI_META__\t%s\t%d\t%s\t%s\n' "${_win_kind:-none}" "$win_n" "$_mm_cov" "$_mm_lines" >&2
+    fi
+
+    # Emit the winner. Each separator carries the dataset's own quality
+    # measures after its confidence: line coverage and column-type
+    # consistency against the dataset's own block(s) (`-` = not measured),
+    # and the number of non-blank input lines those blocks hold.
     for ((i = 0; i < win_n; i++)); do
         ds=$((ds + 1))
-        printf '__DATASET__\t%d\t%s\t%s\n' "$ds" "${win_name[$i]}" "${win_conf[$i]}"
+        printf '__DATASET__\t%d\t%s\t%s\t%s\t%s\t%s\n' "$ds" "${win_name[$i]}" "${win_conf[$i]}" \
+            "${win_cov[$i]:--}" "${win_cons[$i]:--}" "${win_lines[$i]:-0}"
         local _m_fields="${win_fields[$i]}"
         case "$_OPT_format" in
             json)        format_json "$_m_fields" ;;

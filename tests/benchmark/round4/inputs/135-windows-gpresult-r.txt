@@ -1,0 +1,89 @@
+
+Microsoft (R) Windows (R) Operating System Group Policy Result tool v2.0
+© Microsoft Corporation. All rights reserved.
+
+Created on 20.10.2026 at 09:14:52
+
+
+RSOP data for CONTOSO\jkowalski on WS-0412 : Logging Mode
+----------------------------------------------------------
+
+OS Configuration:            Member Workstation
+OS Version:                  10.0.22631
+Site Name:                   Berlin-HQ
+Roaming Profile:             N/A
+Local Profile:               C:\Users\jkowalski
+Connected over a slow link?: No
+
+
+COMPUTER SETTINGS
+------------------
+    CN=WS-0412,OU=Workstations,OU=Berlin,DC=contoso,DC=example,DC=com
+    Last time Group Policy was applied: 20.10.2026 at 08:51:07
+    Group Policy was applied from:      dc02.contoso.example.com
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        CONTOSO
+    Domain Type:                        Windows 2008 or later
+
+    Applied Group Policy Objects
+    -----------------------------
+        Workstation Baseline
+        BitLocker Enforcement
+        Default Domain Policy
+
+    The following GPOs were not applied because they were filtered out
+    -------------------------------------------------------------------
+        Server Hardening
+            Filtering:  Denied (Security)
+
+        Local Group Policy
+            Filtering:  Not Applied (Empty)
+
+    The computer is a part of the following security groups
+    -------------------------------------------------------
+        BUILTIN\Administrators
+        Everyone
+        BUILTIN\Users
+        NT AUTHORITY\NETWORK
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        WS-0412$
+        Domain Computers
+        Authentication authority asserted identity
+        System Mandatory Level
+
+USER SETTINGS
+--------------
+    CN=Jan Kowalski,OU=Users,OU=Berlin,DC=contoso,DC=example,DC=com
+    Last time Group Policy was applied: 20.10.2026 at 09:02:33
+    Group Policy was applied from:      dc02.contoso.example.com
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        CONTOSO
+    Domain Type:                        Windows 2008 or later
+
+    Applied Group Policy Objects
+    -----------------------------
+        Drive Mappings - Vertrieb
+        Office Defaults
+        Default Domain Policy
+
+    The following GPOs were not applied because they were filtered out
+    -------------------------------------------------------------------
+        Drive Mappings - Technik
+            Filtering:  Denied (WMI Filter)
+            WMI Filter: Technik-Laptops
+
+    The user is a part of the following security groups
+    ---------------------------------------------------
+        Domain Users
+        Everyone
+        BUILTIN\Users
+        NT AUTHORITY\INTERACTIVE
+        CONSOLE LOGON
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        LOCAL
+        Vertrieb Berlin
+        VPN-Benutzer
+        Authentication authority asserted identity
+        Medium Mandatory Level

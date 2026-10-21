@@ -1,0 +1,30 @@
+== Device Types ==
+iPhone 15 (com.apple.CoreSimulator.SimDeviceType.iPhone-15)
+iPhone 15 Pro Max (com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro-Max)
+iPhone SE (3rd generation) (com.apple.CoreSimulator.SimDeviceType.iPhone-SE-3rd-generation)
+iPad Pro 11-inch (M4) (com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4-8GB)
+Apple Watch Series 9 (45mm) (com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Series-9-45mm)
+Apple TV 4K (3rd generation) (com.apple.CoreSimulator.SimDeviceType.Apple-TV-4K-3rd-generation-4K)
+== Runtimes ==
+iOS 17.5 (17.5 - 21F79) - com.apple.CoreSimulator.SimRuntime.iOS-17-5
+iOS 18.0 (18.0 - 22A3351) - com.apple.CoreSimulator.SimRuntime.iOS-18-0
+watchOS 10.5 (10.5 - 21T575) - com.apple.CoreSimulator.SimRuntime.watchOS-10-5
+tvOS 17.5 (17.5 - 21L569) - com.apple.CoreSimulator.SimRuntime.tvOS-17-5 (unavailable, runtime path not found)
+== Devices ==
+-- iOS 17.5 --
+    iPhone 15 (0E4B6A1C-2D3F-4E58-9A7B-1C2D3E4F5A6B) (Shutdown) 
+    iPhone 15 Pro Max (7A1B2C3D-4E5F-4061-8728-394A5B6C7D8E) (Booted) 
+    iPhone SE (3rd generation) (B9C8D7E6-F5A4-4B3C-A2D1-E0F9A8B7C6D5) (Shutdown) 
+-- iOS 18.0 --
+    iPhone 15 (3F2E1D0C-B9A8-4776-8554-433221100FFE) (Shutdown) 
+    iPad Pro 11-inch (M4) (5A6B7C8D-9E0F-4A1B-8C2D-3E4F5A6B7C8D) (Shutting Down) 
+-- watchOS 10.5 --
+    Apple Watch Series 9 (45mm) (C1D2E3F4-A5B6-4C7D-8E9F-0A1B2C3D4E5F) (Shutdown) 
+-- tvOS 17.5 --
+    Apple TV 4K (3rd generation) (D4E5F6A7-B8C9-4D0E-9F1A-2B3C4D5E6F70) (Shutdown) (unavailable, runtime profile not found using "System" match policy)
+-- Unavailable: com.apple.CoreSimulator.SimRuntime.iOS-16-4 --
+    iPhone 14 (E7F8A9B0-C1D2-4E3F-8A4B-5C6D7E8F9A0B) (Shutdown) (unavailable, runtime profile not found using "System" match policy)
+== Device Pairs ==
+8B9C0D1E-2F3A-4B4C-9D5E-6F7A8B9C0D1E (active, disconnected)
+    Watch: Apple Watch Series 9 (45mm) (C1D2E3F4-A5B6-4C7D-8E9F-0A1B2C3D4E5F) (Shutdown)
+    Phone: iPhone 15 Pro Max (7A1B2C3D-4E5F-4061-8728-394A5B6C7D8E) (Booted)

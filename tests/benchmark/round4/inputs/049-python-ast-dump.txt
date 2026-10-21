@@ -1,0 +1,84 @@
+Module(
+   body=[
+      ImportFrom(
+         module='decimal',
+         names=[
+            alias(name='Decimal')],
+         level=0),
+      Assign(
+         targets=[
+            Name(id='RATES', ctx=Store())],
+         value=Dict(
+            keys=[
+               Constant(value='de'),
+               Constant(value='fr')],
+            values=[
+               Call(
+                  func=Name(id='Decimal', ctx=Load()),
+                  args=[
+                     Constant(value='0.19')],
+                  keywords=[]),
+               Call(
+                  func=Name(id='Decimal', ctx=Load()),
+                  args=[
+                     Constant(value='0.20')],
+                  keywords=[])])),
+      FunctionDef(
+         name='gross',
+         args=arguments(
+            posonlyargs=[],
+            args=[
+               arg(arg='net'),
+               arg(arg='country')],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[
+               Constant(value='de')]),
+         body=[
+            Assign(
+               targets=[
+                  Name(id='rate', ctx=Store())],
+               value=Call(
+                  func=Attribute(
+                     value=Name(id='RATES', ctx=Load()),
+                     attr='get',
+                     ctx=Load()),
+                  args=[
+                     Name(id='country', ctx=Load())],
+                  keywords=[])),
+            If(
+               test=Compare(
+                  left=Name(id='rate', ctx=Load()),
+                  ops=[
+                     Is()],
+                  comparators=[
+                     Constant(value=None)]),
+               body=[
+                  Raise(
+                     exc=Call(
+                        func=Name(id='KeyError', ctx=Load()),
+                        args=[
+                           Name(id='country', ctx=Load())],
+                        keywords=[]))],
+               orelse=[]),
+            Return(
+               value=Call(
+                  func=Attribute(
+                     value=BinOp(
+                        left=Name(id='net', ctx=Load()),
+                        op=Mult(),
+                        right=BinOp(
+                           left=Constant(value=1),
+                           op=Add(),
+                           right=Name(id='rate', ctx=Load()))),
+                     attr='quantize',
+                     ctx=Load()),
+                  args=[
+                     Call(
+                        func=Name(id='Decimal', ctx=Load()),
+                        args=[
+                           Constant(value='0.01')],
+                        keywords=[])],
+                  keywords=[]))],
+         decorator_list=[])],
+   type_ignores=[])

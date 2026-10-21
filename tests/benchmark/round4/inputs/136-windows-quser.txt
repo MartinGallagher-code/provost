@@ -1,0 +1,6 @@
+ USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+ administrator                             1  Disc        2+03:14  17.10.2026 08:02
+>jkowalski             rdp-tcp#12          2  Active          .  20.10.2026 07:58
+ m.schäfer             rdp-tcp#15          3  Active         14  20.10.2026 08:41
+ svc_backup                                4  Disc         1:22  19.10.2026 23:10
+ a.nowak               console             5  Active       none  20.10.2026 06:30

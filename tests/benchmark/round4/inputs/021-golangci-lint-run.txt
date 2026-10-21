@@ -1,0 +1,33 @@
+main.go:40:12: Error return value of `fmt.Errorf` is not checked (errcheck)
+	fmt.Errorf("never returned %d", unused)
+	          ^
+report.go:15:13: Error return value of `fmt.Fprintf` is not checked (errcheck)
+	fmt.Fprintf(w, "== %s ==\n", title)
+	           ^
+report.go:24:16: Error return value of `f.WriteString` is not checked (errcheck)
+		f.WriteString(l + "\n")
+		             ^
+report.go:12:2: ineffectual assignment to n (ineffassign)
+	n = 1
+	^
+report.go:9:4: `recieve` is a misspelling of `receive` (misspell)
+// recieve writes the report header; it is never called.
+   ^
+main.go:1:1: package-comments: should have a package comment (revive)
+package main
+^
+report.go:27:21: error-strings: error strings should not be capitalized or end with punctuation or a newline (revive)
+		return fmt.Errorf("Empty report.")
+		                  ^
+report.go:10:6: func recieve is unused (unused)
+func recieve(w io.Writer, title string) {
+     ^
+report.go:18:6: func save is unused (unused)
+func save(path string, lines []string) error {
+     ^
+9 issues:
+* errcheck: 3
+* ineffassign: 1
+* misspell: 1
+* revive: 2
+* unused: 2

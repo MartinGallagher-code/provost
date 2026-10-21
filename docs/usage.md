@@ -28,6 +28,7 @@ Capture flags (for `run` and inject):
 | `--min-confidence N` | commit threshold, 0–100 (default 50) |
 | `--plugin-dir DIR` | add an extra strategy directory to detection |
 | `--multi` | file **every** dataset the input holds instead of one winner |
+| `--no-auto-multi` | hold a parse the quality gate rejects without first trying to segment it (`--auto-multi`, the default, tries) |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -85,6 +86,7 @@ includes can make git run programs as whoever captures next.
 | `PROVOST_PLUGIN_DIR` | extra strategy dir for detection | — |
 | `PROVOST_ASYNC` | `1` always background, `0` always foreground, unset = background only at a terminal | unset |
 | `PROVOST_MULTI` | file every dataset an input holds (same as `--multi`) | `0` |
+| `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
 | `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
 | `PROVOST_LOCK_MAX_AGE` | seconds after which a lock is presumed stale | `3600` |
@@ -107,6 +109,20 @@ way but differ in shape land in `NAME` and `NAME.v2`. Row indices (`#N`) run
 consecutively across them and `provost source N` still returns the whole
 original input. `provost log` shows the comma-joined list; the capture's
 `meta.tsv` records `datasets` (how many) and `dataset_rows` (each one's range).
+
+**Auto-multi.** Without `--multi`, provost still segments a capture when the
+quality gate would otherwise hold its single parse for low coverage or low
+consistency — but only when the split is clearly better: two or more parts,
+each passing the gate on its own, together keeping at least the gate's
+coverage and 10 points more than the single parse, no part a table under
+positional `A`/`B`/`C` columns only, and no shattering into fragments.
+Otherwise the capture is held as before, with the reason. The ok line says it
+segmented and why; `meta.tsv` records `auto_multi`, the held single parse's
+`single_*` measures, and each part's `dataset_coverage` /
+`dataset_consistency`. With a `NAME`, the part whose columns match the single
+parse's keeps dataset `NAME`, so repeated captures of one command keep their
+rows together whether or not a capture segments. `PROVOST_AUTO_MULTI=0` (or
+`--no-auto-multi`) turns it off.
 
 See [the multi-dataset design note](0003-multi-dataset.md) for the rationale
 and the scoring machinery behind the split.
