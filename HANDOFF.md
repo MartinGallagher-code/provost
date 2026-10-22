@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-20)
+## Present state (2026-10-22)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -93,6 +93,34 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0b. **2026-10-22: a small learned layout model, steps 1-2 (`ml/`, dev-only,
+    nothing ships).** Write-up: `docs/model-2026-10-22-layout-steps1-2.md`.
+    - **Training set:** 2,831 corpus files (18,231 lines) labelled from the
+      goldens with line roles and field starts, plus a 4,000-document
+      synthetic generator. Stdlib tests run in CI (`quick-checks`).
+    - **Best model:** LightGBM trees trained on the corpus. On held-out tool
+      families they split 77% of lines exactly right, against 54% for
+      splitting on spaces (about 85% after a hand audit of label errors).
+      Roles: 87% (95% counting row≈kv). Size: 3.3 MB gzipped.
+    - **LayoutNet** (a 53k-parameter CNN+GRU, 100 KB) reaches 69%: smaller,
+      not better. Synthetic data barely transfers to real tools.
+    - **The labels are now the limit:** about a third of the disagreements are
+      provost's own golden mistakes.
+    - **Measured against 300 hand-labelled lines** (`ml/eval/gold-*.jsonl`,
+      scored out of fold by `ml/crossval.py`):
+      - the improved tree model is right on 62% of all lines and 77% of
+        random lines;
+      - the engine scores 64% and 80%;
+      - one or the other is right on 85% of random lines.
+      - The model uses the new features plus `--clean 0.05 --fix-labels`;
+        `train_baseline.py --final` builds it.
+    - **Step 3 (next):**
+      - a pure-Python tree evaluator, so there is no new dependency;
+      - wire it behind `PROVOST_MODEL` (off by default), only for captures the
+        gate would hold, and accept its parse only if it passes the gate;
+      - measure once on round 4. `tests/benchmark/` was never read by `ml/`.
+    - Reproduce: `ml/README.md`.
 
 0a. **2026-10-20, PR #79 (unreleased; would be 2.3.0):**
     - **Round 4:** 107 unseen inputs on the 2.2.0 engine.

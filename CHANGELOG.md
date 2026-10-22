@@ -1,5 +1,74 @@
 # provost — Changelog
 
+## 2026-10-22 — layout model: a hand-labelled answer key, and a better tree model (ml/)
+
+Development-only, as before; provost is unchanged.
+
+- **Answer keys that don't come from the engine,** committed under `ml/eval/`
+  and built and scored by `ml/adjudicated.py`:
+  - `adjudicated-2026-10-22.jsonl`: the 150 blind A/B verdicts;
+  - `gold-2026-10-22.jsonl`: 300 hand-labelled lines (150 hard, 150 random),
+    labelled by six reviewer agents on numbered candidate lists, 85 of them
+    with an acceptable alternative.
+
+  `ml/crossval.py` now scores both.
+- **Why:** the A/B key turned out to punish any model that produces a third
+  split, and agreement with the engine rewards copying its mistakes.
+- **Model changes:**
+  - **New candidate features** (`ml/features.py`): timestamp and unit joins,
+    CSV quote parity, delimiter density, alignment with the block's header,
+    right-aligned column ends, column crossings, relative gap.
+  - **Confident-learning label cleaning** and a **timestamp label fix**, as
+    `--clean` and `--fix-labels` on `train_baseline.py` and `crossval.py`
+    (`prepare()` in `train_baseline.py`).
+  - `train_baseline.py --final` trains the step-3 model on the whole corpus.
+- **Result, exact splits vs hand labels, out of fold:**
+
+  | | all 300 lines | 150 random lines |
+  |---|---:|---:|
+  | before | 53.3% | 73.3% |
+  | after | 62.0% | 76.7% |
+  | engine | 64.3% | 80.0% |
+
+  On random lines the model is level with the engine (paired 8 vs 11
+  discordant). Engine or model is right on 85% of them.
+- **Tried and dropped:** a second-pass "column consistency" model, which
+  measured the same.
+- **Docs and tests:** a new section in
+  `docs/model-2026-10-22-layout-steps1-2.md`; tests for the scoring and the
+  timestamp joins in `ml/tests/test_ml.py` (21 tests).
+
+## 2026-10-22 — a layout model, steps 1-2: training set and first models (ml/)
+
+Development-only tooling for a small learned model of text layout. Nothing
+ships, and provost's behaviour is unchanged.
+- **Training set:** `ml/corpus_labels.py` derives per-line roles (header, row,
+  cont, kv, section, skip, blank) and field-start offsets from the corpus by
+  lining each golden's cells back up with the raw lines. `ml/synth.py`
+  generates labelled synthetic layouts. The vocabulary is in `ml/layout.py`.
+- **Models:** `ml/train_baseline.py` (LightGBM on hand-made features) and
+  `ml/train_neural.py` (LayoutNet, a 53k-parameter CNN+GRU over the character
+  grid). `ml/dataset.py` holds the held-out-family split, the scoring and the
+  rule baselines; `ml/features.py` the features.
+- **Result on held-out tool families:**
+  - Lines split exactly right: trees 77%, LayoutNet 69%, splitting on spaces
+    54%.
+  - Line roles: trees 87%.
+  - A hand audit of 40 disagreements found 11 golden errors and 8 ambiguous
+    cases. Details: `docs/model-2026-10-22-layout-steps1-2.md` (added to the
+    mkdocs nav).
+- **Whole-corpus comparison (`ml/crossval.py`):**
+  - 5-fold cross-validation over families: every labelled file is predicted
+    by a tree model that never saw its family. 76% of line splits and 86% of
+    roles agree with the engine.
+  - Three judges rated 150 disagreements blind: engine better 44%, model
+    better 34%, both fine 18%, neither 4%. That is ≈91% vs ≈89% of lines
+    right, and ≈99% for whichever is better per line.
+- **Tests:** `ml/tests/test_ml.py` (stdlib), run in the CI `quick-checks` job.
+- **Repo housekeeping:** `ml/data/` and `ml/models/` are gitignored. CLAUDE.md
+  lists `ml/` and its test. HANDOFF has next step 0b (step 3: wire the trees in
+  behind `PROVOST_MODEL`).
+
 ## 2026-10-20 — round 4 measures the auto-multi fallback (once)
 
 Round 4 was built and frozen before the fallback was built. Every input was
