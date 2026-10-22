@@ -19,6 +19,13 @@ ships, and provost's behaviour is unchanged.
   - A hand audit of 40 disagreements found 11 golden errors and 8 ambiguous
     cases. Details: `docs/model-2026-10-22-layout-steps1-2.md` (added to the
     mkdocs nav).
+- **Whole-corpus comparison (`ml/crossval.py`):**
+  - 5-fold cross-validation over families: every labelled file is predicted
+    by a tree model that never saw its family. 76% of line splits and 86% of
+    roles agree with the engine.
+  - Three judges rated 150 disagreements blind: engine better 44%, model
+    better 34%, both fine 18%, neither 4%. That is ≈91% vs ≈89% of lines
+    right, and ≈99% for whichever is better per line.
 - **Tests:** `ml/tests/test_ml.py` (stdlib), run in the CI `quick-checks` job.
 - **Repo housekeeping:** `ml/data/` and `ml/models/` are gitignored. CLAUDE.md
   lists `ml/` and its test. HANDOFF has next step 0b (step 3: wire the trees in

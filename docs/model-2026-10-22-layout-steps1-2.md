@@ -123,6 +123,69 @@ right**, against 77% measured. The sample is small (±15 points on each share).
 Lines where model and label agree on the same wrong answer aren't measured
 at all.
 
+## The whole corpus, against the engine
+
+To use every labelled file, `ml/crossval.py` runs 5-fold cross-validation over
+families: train on four fifths, predict the remaining fifth, and rotate. Every
+one of the 2,831 files is then predicted by a tree model that never saw its
+family. The labels are the engine's own output, so this measures agreement
+with the engine:
+
+| out-of-fold, all 2,831 labelled files | agree with the engine |
+|---|---:|
+| line roles (17,741 lines) | 86.0% |
+| line splits (14,916 lines) | 76.4% |
+| files where every line agrees | 50.0% |
+
+Agreement is high for `block-records` (98%), `yaml`/`colons` (94-95%) and
+`psql`/`box` tables (89-90%). It is low for `csv` (37%: the model splits
+quoted cells at spaces) and `bracket-log` (13%: see below).
+
+**Who is right when they disagree?** There are 3,519 disagreeing lines. A
+random 150 went on a blind sheet:
+
+- each item shows the line in context and its two splits, A and B;
+- A and B are the engine and the model in random order;
+- three independent reviewer agents judged 50 items each, without knowing
+  which split was which.
+
+| verdict | items | share |
+|---|---:|---:|
+| engine's split better | 66 | 44% |
+| model's split better | 51 | 34% |
+| both acceptable | 27 | 18% |
+| neither | 6 | 4% |
+
+The 10-point gap in the engine's favour is within the noise of 150 items
+(95% interval about ±14 points on the difference). Typical cases:
+
+- **model better:** `git ls-tree` mode/type/hash/path, `atuin stats` count vs
+  command, `mvn versions:display` artifact vs version change, `multipathd`
+  paths, and `bracket-log` lines where the engine keeps everything after
+  `[tag]` as one field;
+- **engine better:** `route -n` and `netstat -i` columns, `nmap -sV` port vs
+  state, and a timestamp kept whole in `kubeadm certs check-expiration`.
+
+**Extrapolated to all 14,916 line splits**, counting agreed lines as right:
+
+| | lines split right |
+|---|---:|
+| engine | ≈ 91% |
+| tree model | ≈ 89% |
+| best of the two, if something could pick | ≈ 99% |
+
+"Agreed means right" flatters both: an error they share isn't measured.
+
+Two readings:
+
+1. **On the corpus, the engine has home advantage and the model nearly
+   matches it anyway.** The corpus is what the engine was tuned on for
+   months, family by family, while the model sees each family for the first
+   time.
+2. **They fail on different lines**, which is what a fallback needs. The
+   question for step 3 is whether the gate can tell which one to trust. That
+   is measured on round 4, not here.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen
