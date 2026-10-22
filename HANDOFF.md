@@ -94,6 +94,25 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0c. **2026-10-22: the layout model is in provost, opt-in (`--model`,
+    `PROVOST_MODEL=1`, default off).**
+    - **Where:** the runtime is `extract/model/` (stdlib; the trees are
+      `layout-model.json.gz`, rebuilt by `ml/export_model.py`), behind the
+      explicit-only strategy `layout-model`.
+    - **When it runs:** only for a capture the gate still holds after
+      auto-multi. Its table is filed only if it passes the same gate.
+    - **Round 4, measured once:** 15 held captures became 14 held and 1 filed
+      (PARTIAL); no wrong table was filed. Almost everything still held is a
+      mixed multi-section report, which the model declines by design.
+    - **Next:** apply the model per segment inside auto-multi (the parts
+      the engine can't read), and use `ml/arbiter.py` where both produce a
+      table.
+    - **Round 4 is now spent** for this change too; the next honest
+      measurement needs a round 5.
+    - **Ceiling and arbiter:** the labeller-agreement ceiling is about 97%.
+      The arbiter scores 88.7% on the fresh test (model 86.7%, engine 84%).
+      `ml/decode.py` became `extract/model/decode.py`.
+
 0b. **2026-10-22: a small learned layout model, steps 1-2 (`ml/`, dev-only,
     nothing ships).** Write-up: `docs/model-2026-10-22-layout-steps1-2.md`.
     - **Training set:** 2,831 corpus files (18,231 lines) labelled from the

@@ -531,3 +531,36 @@ Round 4 has now been looked at for this change, so any further tuning of the
 guards against it would not be an honest measure. Re-measuring needs a round
 5.
 
+
+## Postscript, 2026-10-22: the layout-model fallback, measured once
+
+The learned layout model (`--model`, `PROVOST_MODEL=1`;
+`docs/model-2026-10-22-layout-steps1-2.md`) was built and tuned without ever
+reading round 4. When the gate still holds a capture after auto-multi, it
+offers its own table, which is filed only if it passes the same gate. Every
+round-4 input was captured once through the real CLI with and without
+`--model` (one fresh store per input). Nothing else changed: the two runs
+differ only where the model acted.
+
+| | without the model | with the model |
+|---|---:|---:|
+| held for triage | 15 | 14 |
+| filed by the model | — | 1 |
+
+**What it filed:** **023** (infocmp terminfo) at coverage 100%. Every line
+becomes a row, and the capability lists stay as text, one per physical line.
+That is PARTIAL by rule 5: a record split across rows, with all information
+present. The engine's own parse, held at 79%, was also rated PARTIAL.
+
+**What it declined (14):**
+- 13 failed its shape check: they are mixed multi-section reports, not one
+  table or one key/value record;
+- 1 table fell short of the coverage gate.
+
+None reached the 600-line limit.
+
+**Verdict:** safe but rarely useful as a whole-document fallback. It made one
+PARTIAL rescue and filed no wrong table. What the gate still holds is almost
+all mixed reports, which this fallback deliberately leaves alone. The model
+would have to work section by section, inside auto-multi's segments, to reach
+them. It stays off by default.

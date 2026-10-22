@@ -1,6 +1,6 @@
 # ml/ — a small layout model for provost (training tools)
 
-Development-only tooling: **nothing here ships in the wheel or runs when you
+Development-only tooling (the label vocabulary `layout.py`, the features `features.py` and the whole-table decoder `decode.py` live in `extract/model/`, because provost runs them at capture time; everything here imports them from there): **nothing here ships in the wheel or runs when you
 use provost.** It builds a training set and trains small models that answer
 the two questions provost's heuristics get wrong on unseen formats:
 
@@ -21,17 +21,15 @@ they mean are in
 
 | File | What it does | Needs |
 |---|---|---|
-| `layout.py` | the label vocabulary (roles, candidates) shared by everything | stdlib |
 | `corpus_labels.py` | derives labels from `tests/corpus`: lines each golden's cells back up with the raw lines | stdlib |
 | `synth.py` | generates labelled synthetic tables/records in 13 layout families | stdlib |
 | `dataset.py` | loading, the held-out-family split, scoring, rule baselines | stdlib |
-| `features.py` | hand-made features for the tree baseline | stdlib |
 | `train_baseline.py` | gradient-boosted trees (LightGBM) | numpy, lightgbm |
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
 | `eval/` | those two sets — committed, because they are review work, not regenerable | data |
-| `decode.py` | whole-table decoding: one column decision per block of rows | stdlib |
+| `export_model.py` | compiles the trained trees into `extract/model/layout-model.json.gz` (the shipped model) | lightgbm |
 | `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |

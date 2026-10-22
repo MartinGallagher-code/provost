@@ -401,6 +401,51 @@ right (about 68 per fold, 85 for the final model).
 This is the fresh test's second use. The arbiter never saw it, and only the
 decoder was chosen since its first use.
 
+## Step 3: in provost, behind `--model`
+
+**How it's wired:**
+
+- **The runtime** (`extract/model/layout_model.py`, stdlib) walks the trees
+  exported by `ml/export_model.py`: a 0.68 MB gz, 1,800 role trees and 300
+  start trees, matching LightGBM exactly. It runs the whole-table decoder
+  and builds the engine's `entryN.col value` records.
+  - It handles one table (header names mapped to rows by position, with
+    right-aligned ends counting, and unnamed columns positional) or one
+    key/value record.
+  - It **declines** anything else (a mixed report is auto-multi's job) and
+    inputs over 600 lines.
+- **The `layout-model` strategy** is explicit-only, like kv-report, so the
+  ordinary ranking never sees it. The corpus is unchanged: 3,584 / 0.
+- **In `provost`:** when the gate still holds a capture after auto-multi and
+  `PROVOST_MODEL=1`, the strategy runs. Its table is filed only if the
+  engine's coverage and consistency for it pass the gate and it keeps at
+  least as many lines as the held parse.
+- **The arbiter isn't used here:** on this path the engine's parse has
+  already been rejected, so there is nothing to arbitrate.
+
+**Speed:**
+
+- about 0.1 s for a typical capture, on held captures only;
+- 2 s per 500 lines, capped by the 600-line limit.
+
+**Measured once on round 4** (postscript to
+`docs/benchmark-2026-10-20-generalisation-round4.md`):
+
+- 15 held captures became 14 held and 1 filed (023 infocmp, PARTIAL);
+- no wrong table was filed;
+- 13 of the declines are mixed multi-section reports.
+
+On round 3 (development), it was likewise 1 filed, a PARTIAL, out of 16.
+
+**Conclusion:**
+
+- **It's safe, and rarely used.** The line-level accuracy shown above barely
+  reaches users through a whole-document fallback, because what the gate
+  holds is almost all mixed reports.
+- **Next:** run the model **per segment inside auto-multi**, so it reads the
+  parts the engine can't. Use the **arbiter** where both the engine and the
+  model produce a table.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen

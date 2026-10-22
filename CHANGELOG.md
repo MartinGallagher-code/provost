@@ -26,6 +26,16 @@ provost's behaviour is unchanged unless `--model` or `PROVOST_MODEL=1` is set.
   - the CI wheel job now files a `--model` capture from the installed
     wheel.
 - **Packaging:** `pyproject.toml` lists the runtime files.
+- **Measured once on round 4** (postscript in
+  `docs/benchmark-2026-10-20-generalisation-round4.md`):
+  - 15 held captures became 14 held and 1 filed (023, PARTIAL);
+  - no wrong table was filed;
+  - 13 of the declines are mixed reports.
+
+  It stays off by default.
+- **Docs:** README settings table, CLAUDE.md (smoke 246, the
+  `extract/model/` row), `docs/model-2026-10-22-layout-steps1-2.md` (step-3
+  section).
 
 ## 2026-10-22 — layout model, round 4: ceiling, whole-table decoder, arbiter (ml/)
 
