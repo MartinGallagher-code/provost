@@ -27,6 +27,12 @@ def is_test(ex):
     return zlib.crc32(family(ex["name"]).encode()) % 5 == 0
 
 
+def is_val(ex):
+    """A tenth of the TRAINING families, for choosing epochs and settings
+    without looking at the test families."""
+    return zlib.crc32(family(ex["name"]).encode()) % 10 == 1
+
+
 def split(examples):
     tr = [e for e in examples if not is_test(e)]
     te = [e for e in examples if is_test(e)]

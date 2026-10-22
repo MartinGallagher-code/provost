@@ -53,8 +53,10 @@ def char_id(ch):
     return 99
 
 
-def encode(ex, lo=0, hi=None):
-    lines = ex["lines"][lo:hi]
+def encode(ex, lo=0, hi=None, shift=0):
+    """Grid + targets for lines lo:hi. shift > 0 indents every line by that
+    many spaces (training augmentation: layouts don't depend on indent)."""
+    lines = [" " * shift + ln for ln in ex["lines"][lo:hi]]
     H = len(lines)
     W = min(W_MAX, max([len(ln) for ln in lines] + [1]))
     grid = np.zeros((H, W), dtype=np.int64)
@@ -73,8 +75,8 @@ def encode(ex, lo=0, hi=None):
                 if c < W:
                     smask[h, c] = 1.0
             for s in st:
-                if s < W:
-                    sgold[h, s] = 1.0
+                if s + shift < W:
+                    sgold[h, s + shift] = 1.0
     return grid, role, smask, sgold
 
 
@@ -106,8 +108,10 @@ class Block(nn.Module):
 
 
 class LayoutNet(nn.Module):
-    def __init__(self, c=24, emb=12, hid=32):
+    def __init__(self, c=24, emb=12, hid=32, drop=0.1):
         super().__init__()
+        self.drop2d = nn.Dropout2d(drop)
+        self.drop = nn.Dropout(2 * drop)
         self.emb = nn.Embedding(VOCAB, emb, padding_idx=0)
         self.inp = nn.Conv2d(emb, c, (3, 3), padding=1)
         self.blocks = nn.Sequential(Block(c, 1), Block(c, 2), Block(c, 4), Block(c, 1))
@@ -118,26 +122,27 @@ class LayoutNet(nn.Module):
     def forward(self, grid):
         pad = (grid == 0)
         x = self.emb(grid).permute(0, 3, 1, 2)            # B,E,H,W
-        x = self.blocks(F.relu(self.inp(x)))              # B,C,H,W
+        x = self.blocks(self.drop2d(F.relu(self.inp(x))))  # B,C,H,W
         starts = self.start(x).squeeze(1)                 # B,H,W
         m = (~pad).unsqueeze(1).float()
         mx = (x * m - (1 - m) * 1e4).amax(3)              # B,C,H
         mean = (x * m).sum(3) / m.sum(3).clamp(min=1)
         blank = (m.sum(3) == 0).float()                   # B,1,H
         rows = torch.cat([mx.clamp(min=-50), mean, blank], 1).permute(0, 2, 1)
-        h, _ = self.rnn(rows)
-        return starts, self.role(h)
+        h, _ = self.rnn(self.drop(rows))
+        return starts, self.role(self.drop(h))
 
 
 def batches(examples, bs, train):
     items = []
     for e in examples:
         n = len(e["lines"])
+        shift = random.choice([0, 0, 0, 1, 2, 4]) if train else 0
         if train and n > H_TRAIN:
             lo = random.randint(0, n - H_TRAIN)
-            items.append(encode(e, lo, lo + H_TRAIN))
+            items.append(encode(e, lo, lo + H_TRAIN, shift))
         else:
-            items.append(encode(e))
+            items.append(encode(e, shift=shift))
     order = sorted(range(len(items)), key=lambda k: items[k][0].size)
     groups = [order[k:k + bs] for k in range(0, len(order), bs)]
     if train:
@@ -146,11 +151,14 @@ def batches(examples, bs, train):
         yield g, collate([items[k] for k in g])
 
 
-def train(model, examples, epochs, log=print):
+def train(model, examples, epochs, val=None, log=print):
+    """AdamW + one-cycle. With val, keep the weights from the epoch that
+    scores best on it (line-exact starts + role accuracy)."""
     opt = torch.optim.AdamW(model.parameters(), lr=3e-3, weight_decay=1e-4)
     steps = epochs * ((len(examples) + 15) // 16)
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=3e-3, total_steps=steps)
     rw = torch.ones(len(PREDICTED))
+    best = (-1.0, 0, None)
     for ep in range(epochs):
         model.train()
         t0, tot, nb = time.time(), 0.0, 0
@@ -167,7 +175,17 @@ def train(model, examples, epochs, log=print):
             opt.step()
             sched.step()
             tot, nb = tot + loss.item(), nb + 1
-        log(f"    epoch {ep + 1}/{epochs}  loss {tot / max(1, nb):.4f}  ({time.time() - t0:.0f}s)")
+        msg = f"    epoch {ep + 1}/{epochs}  loss {tot / max(1, nb):.4f}  ({time.time() - t0:.0f}s)"
+        if val:
+            rr, br, _ = evaluate(model, val)
+            score = rr["acc"] + br["exact"]
+            msg += f"  val roles {rr['acc']:.3f} starts {br['exact']:.3f}"
+            if score > best[0]:
+                best = (score, ep + 1, {k: v.clone() for k, v in model.state_dict().items()})
+        log(msg)
+    if val:
+        model.load_state_dict(best[2])
+        log(f"    kept epoch {best[1]} (best on validation)")
 
 
 @torch.no_grad()
@@ -227,13 +245,16 @@ def main(argv=None):
     torch.manual_seed(a.seed)
     torch.set_num_threads(os.cpu_count() or 1)
     ctr, cte = D.split(D.load(a.corpus))
+    val = [e for e in ctr if D.is_val(e)]
+    ctr = [e for e in ctr if not D.is_val(e)]
     syn = D.load(a.synth)
     syn = syn[: int(len(syn) * a.synth_share)]
     syn_te = D.load(a.synth_test) if os.path.exists(a.synth_test) else []
     model = LayoutNet()
     n = sum(p.numel() for p in model.parameters())
-    print(f"LayoutNet: {n} parameters; train {len(ctr)} corpus + {len(syn)} synthetic docs")
-    train(model, ctr + syn, a.epochs)
+    print(f"LayoutNet: {n} parameters; train {len(ctr)} corpus + {len(syn)} synthetic docs; "
+          f"validate on {len(val)} corpus docs (their own families)")
+    train(model, ctr + syn, a.epochs, val)
     for tname, te in [("corpus-test", cte)] + ([("synth-test", syn_te)] if syn_te else []):
         rr, br, (g, p) = evaluate(model, te)
         print(f"  {tname:13} roles   " + D.fmt_roles(rr) + f"  lenient {lenient(g, p):.3f}")
