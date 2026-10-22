@@ -61,6 +61,12 @@ parts when that is clearly better (the default, or
 \fBPROVOST_AUTO_MULTI=1\fR); \fB--no-auto-multi\fR holds it straight away.
 See \fBAUTO-MULTI\fR.
 .TP
+.BR --model ", " --no-model
+Before holding a parse the gate still rejects after \fBAUTO-MULTI\fR, try the
+learned layout model and file its table when it passes the same gate (or
+\fBPROVOST_MODEL=1\fR; \fB--no-model\fR, the default, doesn't). Needs
+\fBpython3\fR. See \fBLAYOUT MODEL\fR.
+.TP
 .BR --sync ", " --wait
 Capture in the foreground and print the resulting dataset and \fI#N\fR range.
 This is the default when stderr is not a terminal (scripts, pipelines).
@@ -214,6 +220,20 @@ match the single parse's (\fBPROVOST_RECONCILE_OVERLAP\fR) keeps dataset
 whether or not a given capture segments. Only captures the gate would hold pay
 for the second engine run. \fB--no-auto-multi\fR or \fBPROVOST_AUTO_MULTI=0\fR
 turns it off.
+.SH LAYOUT MODEL
+With \fBPROVOST_MODEL=1\fR (\fB--model\fR), a capture the quality gate would
+still hold after \fBAUTO-MULTI\fR gets one more try: the learned layout model
+(\fIextract/model/\fR, the explicit-only \fBlayout-model\fR strategy). It
+labels each line's role and where its fields start, decides each table's
+columns once for all its rows, and cuts every value from the input. The
+engine measures its table with the same line coverage and column consistency
+as any parser; it is filed (strategy \fBlayout-model\fR) only when it passes
+the gate and keeps at least as many lines as the parse the gate held, and only
+for an input that is one table or one key/value record. Otherwise the capture
+is held exactly as before. \fImeta.tsv\fR records \fBlayout_model\fR (filed
+or declined, and why) and the held parse's \fBsingle_strategy\fR and
+\fBsingle_coverage\fR. It needs \fBpython3\fR (no packages) and declines
+inputs over 600 lines; only held captures pay for it.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -293,6 +313,11 @@ File every dataset an input holds (default 0; same as \fB--multi\fR).
 \fB1\fR (the default): before the quality gate holds a parse, try segmenting
 the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
 \fB--no-auto-multi\fR).
+.TP
+.B PROVOST_MODEL
+\fB1\fR: when the quality gate would still hold a parse, try the learned
+layout model (see \fBLAYOUT MODEL\fR); \fB0\fR (the default): don't (same as
+\fB--no-model\fR).
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).

@@ -1,0 +1,13 @@
+entry1.NAME web-frontend
+entry1.STATUS running
+entry1.LAST_SEEN 5 minutes ago
+entry1.PORTS 80/tcp, 443/tcp
+entry2.NAME api-gateway
+entry2.STATUS running
+entry2.LAST_SEEN 2 hours ago
+entry2.PORTS 8080/tcp
+entry3.NAME batch-worker
+entry3.STATUS exited
+entry3.LAST_SEEN 3 days ago
+entry3.PORTS -
+total_entries 3

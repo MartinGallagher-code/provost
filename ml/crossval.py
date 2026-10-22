@@ -26,6 +26,7 @@ from collections import Counter
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "extract", "model"))
 import adjudicated as ADJ  # noqa: E402
 import dataset as D  # noqa: E402
 import decode as DEC  # noqa: E402

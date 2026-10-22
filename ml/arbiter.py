@@ -31,6 +31,7 @@ import sys
 import zlib
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "extract", "model"))
 import adjudicated as A  # noqa: E402
 import dataset as D  # noqa: E402
 

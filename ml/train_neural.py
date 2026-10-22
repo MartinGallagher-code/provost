@@ -30,6 +30,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "extract", "model"))
 import dataset as D  # noqa: E402
 from layout import PREDICTED, candidates, is_blank  # noqa: E402
 

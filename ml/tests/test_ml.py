@@ -10,6 +10,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "extract", "model"))
 import adjudicated as ADJ  # noqa: E402
 import corpus_labels as CL  # noqa: E402
 import dataset as D  # noqa: E402

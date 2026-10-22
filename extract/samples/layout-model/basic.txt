@@ -1,0 +1,4 @@
+NAME              STATUS    LAST SEEN        PORTS
+web-frontend      running   5 minutes ago    80/tcp, 443/tcp
+api-gateway       running   2 hours ago      8080/tcp
+batch-worker      exited    3 days ago       -

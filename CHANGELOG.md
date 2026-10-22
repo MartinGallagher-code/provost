@@ -1,5 +1,32 @@
 # provost — Changelog
 
+## 2026-10-22 — step 3: the layout model as an opt-in fallback (PROVOST_MODEL / --model)
+
+provost's behaviour is unchanged unless `--model` or `PROVOST_MODEL=1` is set.
+
+- **Runtime, `extract/model/`** (stdlib, ships in the wheel):
+  - `layout_model.py` labels lines and field starts with the exported trees
+    in `layout-model.json.gz` (0.68 MB, from `ml/export_model.py`);
+  - it decides each table's columns once (`decode.py`), builds the engine's
+    `entryN.col value` records, and declines mixed reports and inputs over
+    600 lines;
+  - `layout.py`, `features.py` and `decode.py` moved here from `ml/`, which
+    now imports them.
+- **Strategy `extract/strategies/structured/layout-model.sh`:** explicit
+  only (`-s layout-model`), like kv-report. It never competes in detection,
+  so no other parse changes. It has a sample and a golden.
+- **`provost`:** `_layout_model`. When the gate still holds a parse after
+  auto-multi, it runs the strategy and files its table only if the engine's
+  coverage and consistency for it pass the gate and it keeps at least as
+  many lines as the held parse. meta.tsv records `layout_model` and
+  `single_*`. Also `--model` / `--no-model`, help text, and the man page.
+- **Tests:**
+  - smoke: 246;
+  - `ml/tests/test_runtime.py`;
+  - the CI wheel job now files a `--model` capture from the installed
+    wheel.
+- **Packaging:** `pyproject.toml` lists the runtime files.
+
 ## 2026-10-22 — layout model, round 4: ceiling, whole-table decoder, arbiter (ml/)
 
 Development-only; provost is unchanged.
