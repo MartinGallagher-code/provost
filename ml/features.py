@@ -136,6 +136,49 @@ def _cls(ch):
             '"': 9, "'": 9}.get(ch, 10 if not ch.isalnum() else 11 if ch.isdigit() else 12)
 
 
+MONTH = re.compile(r"^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?,?$", re.I)
+WDAY = re.compile(r"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\.?,?$", re.I)
+DAYNUM = re.compile(r"^\d{1,2},?$")
+DATE = re.compile(r"^(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}),?$")
+TIME = re.compile(r"^\d{1,2}:\d{2}(:\d{2}([.,]\d+)?)?,?$")
+AMPM_TZ = re.compile(r"^(AM|PM|am|pm|UTC|GMT|Z|[A-Z]{3,4}|[+-]\d{2}:?\d{2})\)?,?$")
+UNIT = re.compile(r"^(%|[KMGTPE]i?B|[kKMGT]B?/s|[kMG]?bit/s|[kMG]?bits/sec|MBit/s|bytes?|[kKmM]?[Bb]|"
+                  r"ns|us|µs|ms|s|sec|secs|seconds?|min|mins|minutes?|h|hrs?|hours?|days?|weeks?|"
+                  r"months?|years?|ago|mW|W|V|mV|A|mA|C|°C|RPM|Hz|[kMG]Hz|ops/s|req/s|pages?)\)?,?;?$")
+
+
+def _join_kind(prev_tok, cur):
+    """Does the boundary between prev_tok and cur sit inside one value? A
+    timestamp (`Jul 11 08:01:00`, `12:30:01 AM`) or a number and its unit
+    (`18.44 ms`, `5 minutes ago`) is one field whatever the gap looks like."""
+    if not prev_tok:
+        return 0
+    if MONTH.match(prev_tok) and (DAYNUM.match(cur) or TIME.match(cur)):
+        return 1
+    if WDAY.match(prev_tok) and (MONTH.match(cur) or DATE.match(cur) or DAYNUM.match(cur)):
+        return 2
+    if (DATE.match(prev_tok) or DAYNUM.match(prev_tok)) and TIME.match(cur):
+        return 3
+    if TIME.match(prev_tok) and AMPM_TZ.match(cur):
+        return 4
+    if NUM.match(prev_tok) and UNIT.match(cur):
+        return 5
+    if UNIT.match(prev_tok) and cur.lower().startswith("ago"):
+        return 6
+    if TIME.match(prev_tok) and re.match(r"^\d{4},?$", cur):
+        return 7          # ctime: `Thu Jul  2 10:00:00 2026`
+    return 0
+
+
+def _block_top(lines, j):
+    """First line of the run of non-blank lines that contains line j (a
+    header, when the block has one)."""
+    k = j
+    while k > 0 and not is_blank(lines[k - 1]):
+        k -= 1
+    return k
+
+
 def cand_features(lines, j, window=6):
     """[(position, features)] for every candidate on line j."""
     line = lines[j]
@@ -154,6 +197,15 @@ def cand_features(lines, j, window=6):
         after_colon = k
     gaps2 = len(re.findall(r"\S\s{2,}(?=\S)", line))
     kvish = 1.0 if (COLON_KV.match(line) or EQ_KV.match(line)) else 0.0
+    top_j = _block_top(lines, j)
+    top = lines[top_j] if top_j != j else ""
+    top_c = set(candidates(top))
+    n_comma, n_tab, n_pipe = line.count(","), line.count("\t"), line.count("|") + line.count("│")
+    blk = [o for o in ctx] + [line]
+    doc_comma = sum(1 for o in blk if o.count(",") >= 2) / len(blk)
+    doc_tab = sum(1 for o in blk if "\t" in o) / len(blk)
+    gap_sizes = [len(m) for m in re.findall(r"(?<=\S) +(?=\S)", line)] or [0]
+    max_gap = max(gap_sizes)
     out = []
     for k, i in enumerate(cands):
         g = 0
@@ -172,6 +224,13 @@ def cand_features(lines, j, window=6):
         short = sum(1 for o in ctx if len(o.rstrip()) <= i) / n
         nonsp = sum(1 for o in ctx if i < len(o) and not o[i].isspace()) / n
         cand = sum(1 for c in ctx_c if i in c) / n
+        # right-aligned columns end together: lines whose token ends where ours does
+        end_al = sum(1 for o in ctx if tok_end - 1 < len(o) and not o[tok_end - 1].isspace()
+                     and (tok_end >= len(o) or o[tok_end].isspace())) / n
+        # a value that crosses this column in other lines: not a boundary
+        cross = sum(1 for o in ctx if i >= 1 and i < len(o) and not o[i - 1].isspace()
+                    and not o[i].isspace()) / n
+        quotes = line[:i].count('"') % 2
         out.append((i, [
             k, len(cands), i / max(1, len(line)), float(k == 0), g, float(before == "\t"),
             _cls(line[i - 1] if i else ""), _cls(before), _cls(line[i]),
@@ -179,6 +238,11 @@ def cand_features(lines, j, window=6):
             float(prev_tok.endswith(":")), float(prev_tok.endswith("=")),
             len(cur), len(prev_tok), float(i == after_colon), gaps2, kvish,
             sp, sp2, short, nonsp, cand, float(i in pc), float(i in nc), len(ctx),
+            # v2 (2026-10-22): the audit's error kinds
+            _join_kind(prev_tok, cur), float(quotes), n_comma, n_tab, n_pipe, doc_comma, doc_tab,
+            float(i in top_c), float(bool(top) and i >= 1 and i - 1 < len(top) and top[i - 1] == " "),
+            float(bool(top) and 1 <= i < len(top) and not top[i - 1].isspace() and not top[i].isspace()),
+            float(top_j == j), end_al, cross, g / max(1, max_gap), max_gap,
         ]))
     return out
 

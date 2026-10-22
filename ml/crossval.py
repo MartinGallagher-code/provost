@@ -26,6 +26,7 @@ from collections import Counter
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import adjudicated as ADJ  # noqa: E402
 import dataset as D  # noqa: E402
 import train_baseline as B  # noqa: E402
 from features import cand_features, line_rows  # noqa: E402
@@ -56,6 +57,35 @@ def predict_doc(rm, cm, ex):
     return roles, starts
 
 
+def clean(tr, thresh):
+    """Confident-learning style label cleaning on the training docs: predict
+    each training row from models that did not see its family (3 inner
+    folds) and drop the rows whose label the prediction contradicts with
+    confidence >= 1-thresh. Those are mostly the engine's own mistakes."""
+    Xc, yc, kc = B.cand_xy(tr)
+    Xr, yr = B.role_xy(tr)
+    inner = {id(e): zlib.crc32((D.family(e["name"]) + "#inner").encode()) % 3 for e in tr}
+    rfam = np.array([inner[id(e)] for e in tr for f, r, _ in line_rows(e) if r >= 0])
+    cfam = np.array([inner[eid] for eid, _, _ in kc])
+    keep_c = np.ones(len(yc), bool)
+    keep_r = np.ones(len(yr), bool)
+    for k in range(3):
+        m = B.train_cands(Xc[cfam != k], yc[cfam != k])
+        p = m.predict_proba(Xc[cfam == k])[:, 1]
+        y = yc[cfam == k]
+        bad = ((y == 1) & (p < thresh)) | ((y == 0) & (p > 1 - thresh))
+        idx = np.where(cfam == k)[0]
+        keep_c[idx[bad]] = False
+        mr = B.train_roles(Xr[rfam != k], yr[rfam != k])
+        pr = mr.predict_proba(Xr[rfam == k])
+        yk = yr[rfam == k]
+        badr = pr[np.arange(len(yk)), yk] < thresh
+        idx = np.where(rfam == k)[0]
+        keep_r[idx[badr]] = False
+    return (Xr[keep_r], yr[keep_r], Xc[keep_c], yc[keep_c],
+            (~keep_r).sum(), len(yr), (~keep_c).sum(), len(yc))
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
@@ -64,14 +94,24 @@ def main(argv=None):
     ap.add_argument("--sheet", default=os.path.join(HERE, "data", "adjudicate.txt"))
     ap.add_argument("--key", default=os.path.join(HERE, "data", "adjudicate-key.json"))
     ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--clean", type=float, default=0.0,
+                    help="drop training labels contradicted at this confidence (e.g. 0.05)")
+    ap.add_argument("--gold", default=ADJ.GOLD, help="hand-labelled lines (see adjudicated.py)")
+    ap.add_argument("--adjudicated", default=ADJ.DEFAULT,
+                    help="blind-judged disagreements to score against (see adjudicated.py)")
     a = ap.parse_args(argv)
     exs = D.load(a.corpus)
     preds = {}
     for k in range(K):
         tr = [e for e in exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
-        Xr, yr = B.role_xy(tr)
-        Xc, yc, _ = B.cand_xy(tr)
+        if a.clean:
+            Xr, yr, Xc, yc, dr, nr, dc, nc = clean(tr, a.clean)
+            print(f"  fold {k + 1}: cleaning dropped {dr}/{nr} role labels, {dc}/{nc} start labels",
+                  file=sys.stderr)
+        else:
+            Xr, yr = B.role_xy(tr)
+            Xc, yc, _ = B.cand_xy(tr)
         rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc)
         for e in te:
             preds[e["name"]] = predict_doc(rm, cm, e)
@@ -120,6 +160,27 @@ def main(argv=None):
             continue
         sp = f"{c['split_ok'] / c['split']:.3f}" if c["split"] else "  -  "
         print(f"    {name:24} {nfiles[name]:5d}  {c['roles_ok'] / max(1, c['roles']):.3f}  {sp}")
+
+    if os.path.exists(a.gold):
+        gold = [g for g in ADJ.load(a.gold) if g["name"] in preds]
+        r, n = ADJ.gold_score(gold, lambda g: preds[g["name"]][1][g["line"]])
+        eng = {e["name"]: e for e in exs}
+        re_, _ = ADJ.gold_score(gold, lambda g: eng[g["name"]]["starts"][g["line"]])
+        print(f"\n  hand-labelled lines (gold): model {r}/{n} = {r / max(1, n):.3f}   "
+              f"(engine {re_}/{n} = {re_ / max(1, n):.3f})")
+        for src in ("random", "disagree"):
+            sub = [g for g in gold if g["source"] == src]
+            r, n = ADJ.gold_score(sub, lambda g: preds[g["name"]][1][g["line"]])
+            re_, _ = ADJ.gold_score(sub, lambda g: eng[g["name"]]["starts"][g["line"]])
+            print(f"    {src:9} lines: model {r}/{n} = {r / max(1, n):.3f}   "
+                  f"engine {re_}/{n} = {re_ / max(1, n):.3f}")
+
+    if os.path.exists(a.adjudicated):
+        items = [it for it in ADJ.load(a.adjudicated) if it["name"] in preds]
+        right, scored = ADJ.score(items, lambda it: preds[it["name"]][1][it["line"]] or [])
+        eng, _ = ADJ.score(items, lambda it: it["engine"])
+        print(f"\n  adjudicated hard lines (independent answer key): model {right}/{scored} "
+              f"= {right / max(1, scored):.3f}   (engine {eng}/{scored} = {eng / max(1, scored):.3f})")
 
     if a.sample:
         dis = []
