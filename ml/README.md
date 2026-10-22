@@ -31,6 +31,8 @@ they mean are in
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
 | `eval/` | those two sets — committed, because they are review work, not regenerable | data |
+| `decode.py` | whole-table decoding: one column decision per block of rows | stdlib |
+| `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |
 

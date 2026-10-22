@@ -1,5 +1,30 @@
 # provost — Changelog
 
+## 2026-10-22 — layout model, round 4: ceiling, whole-table decoder, arbiter (ml/)
+
+Development-only; provost is unchanged.
+
+- **Ceiling:** two new labellers re-labelled 100 random lines and agreed
+  with the existing labels on 97 (100 with alternatives).
+  `ml/eval/agreement-2026-10-22.jsonl`.
+- **`ml/decode.py`** (stdlib), the whole-table decoder: one column decision
+  per run of `row` lines (gutter slots, or token indexes for single-space
+  tables).
+  - `crossval.py --decode`.
+  - `crossval.py` now saves per-candidate probabilities.
+  - Approved outputs 85.2% → 85.9%; hand labels 196 → 194.
+- **`ml/arbiter.py`:** a logistic regression that picks the engine's or the
+  model's split per line.
+
+  | | hand labels, out of fold (300) | fresh test (150) |
+  |---|---:|---:|
+  | engine | 193 | 126 |
+  | model + decoder | 194 | 130 |
+  | arbiter | 210 | 133 |
+
+- **Tests:** decoder tests in `ml/tests/test_ml.py` (24 tests).
+- **Docs:** `docs/model-2026-10-22-layout-steps1-2.md` (round-4 section).
+
 ## 2026-10-22 — layout model, round 3: approved outputs, token-consistency features, and a fresh test (ml/)
 
 Development-only; provost is unchanged.

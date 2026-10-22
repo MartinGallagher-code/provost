@@ -28,6 +28,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import adjudicated as ADJ  # noqa: E402
 import dataset as D  # noqa: E402
+import decode as DEC  # noqa: E402
 import train_baseline as B  # noqa: E402
 from features import cand_features, line_rows  # noqa: E402
 from layout import PREDICTED, fields, is_blank  # noqa: E402
@@ -40,7 +41,10 @@ def fold(ex):
     return zlib.crc32(D.family(ex["name"]).encode()) % K
 
 
-def predict_doc(rm, cm, ex):
+def predict_doc(rm, cm, ex, decoder=False):
+    """(roles, starts, probs) for one document; probs is per line
+    {position: p} for the lines whose fields are scored. With decoder, the
+    starts of `row` blocks are re-decided as whole tables (decode.py)."""
     rows = line_rows(ex)
     roles = [("blank" if is_blank(ln) else None) for ln in ex["lines"]]
     if rows:
@@ -48,13 +52,18 @@ def predict_doc(rm, cm, ex):
         for (_, _, j), p in zip(rows, P):
             roles[j] = PREDICTED[int(p)]
     starts = [None] * len(ex["lines"])
+    probs = [None] * len(ex["lines"])
     for j, st in enumerate(ex["starts"]):
         if not st:
             continue
         cf = cand_features(ex["lines"], j)
-        P = cm.predict(np.array([f for _, f in cf], dtype=np.float32))
-        starts[j] = [i for (i, _), q in zip(cf, P) if q]
-    return roles, starts
+        P = cm.predict_proba(np.array([f for _, f in cf], dtype=np.float32))[:, 1]
+        probs[j] = {i: float(q) for (i, _), q in zip(cf, P)}
+        starts[j] = [i for (i, _), q in zip(cf, P) if q > 0.5]
+    if decoder:
+        for j, st in DEC.decode(ex["lines"], roles, probs).items():
+            starts[j] = st
+    return roles, starts, probs
 
 
 def main(argv=None):
@@ -76,6 +85,7 @@ def main(argv=None):
                     help="weight for labels of maintainer-approved tools (0 = treat them like the rest)")
     ap.add_argument("--cand-params", help="JSON overrides for the field-start model's LightGBM settings")
     ap.add_argument("--test", default=ADJ.TEST, help="the fresh hand-labelled test set (see adjudicated.py)")
+    ap.add_argument("--decode", action="store_true", help="decide each table's columns once (decode.py)")
     ap.add_argument("--gold", default=ADJ.GOLD, help="hand-labelled lines (see adjudicated.py)")
     ap.add_argument("--adjudicated", default=ADJ.DEFAULT,
                     help="blind-judged disagreements to score against (see adjudicated.py)")
@@ -85,7 +95,7 @@ def main(argv=None):
     exs = D.load(a.corpus)
     hand = B.load_hand(a.hand)
     validated = B.load_validated()
-    preds = {}
+    preds, probs = {}, {}
     for k in range(K):
         tr = [e for e in exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
@@ -94,13 +104,16 @@ def main(argv=None):
                                        log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
         rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
         for e in te:
-            preds[e["name"]] = predict_doc(rm, cm, e)
+            r, st, pr = predict_doc(rm, cm, e, a.decode)
+            preds[e["name"]] = (r, st)
+            probs[e["name"]] = pr
         print(f"fold {k + 1}/{K}: trained on {len(tr)}, predicted {len(te)}", file=sys.stderr)
 
     with open(a.out, "w", encoding="utf-8") as fh:
         for e in exs:
             r, s = preds[e["name"]]
-            fh.write(json.dumps({"name": e["name"], "roles": r, "starts": s}) + "\n")
+            pr = [None if q is None else sorted(q.items()) for q in probs[e["name"]]]
+            fh.write(json.dumps({"name": e["name"], "roles": r, "starts": s, "probs": pr}) + "\n")
 
     # agreement with the engine, overall and per strategy
     tot, per = Counter(), {}

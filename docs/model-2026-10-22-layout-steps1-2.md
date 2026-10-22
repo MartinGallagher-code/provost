@@ -349,6 +349,58 @@ agents after every decision above was made, and scored once
   Use it where the gate holds the engine's parse, and measure that on
   round 4.
 
+## Round 4: the ceiling, a whole-table decoder, and an arbiter
+
+**The ceiling.** Two new labellers independently re-labelled 100 random
+lines that already had labels: 50 from the fresh test set and 50 from the
+random half of the dev set (`ml/eval/agreement-2026-10-22.jsonl`).
+
+- They gave the same main answer on **97 of 100** lines.
+- They shared an acceptable answer on all 100.
+
+So the task is well defined and about 97% is reachable. The caveat: every
+labeller is an AI agent of the same kind, so people might agree less often.
+
+**Whole-table decoder (`ml/decode.py`, stdlib).** Each run of `row` lines
+gets one column decision from the summed log-odds of all its rows:
+
+- **slot mode**, when the block has gutters: each slot votes once, so
+  right-aligned numbers vote together even though their starts differ;
+- **token mode**, when it has none (single-space tables): rows with the same
+  token count vote per token index.
+
+A split inside a slot survives only at p > 0.9. The first version made a
+leading `|` its own empty field (approved outputs fell to 78.2%); with that
+fixed:
+
+| | approved outputs | hand labels, 300 |
+|---|---:|---:|
+| model | 85.2% | 196 |
+| model + decoder | 85.9% (27 lines better, 15 worse) | 194 |
+
+That's a small net gain. It stays on because a table filed by provost needs
+the same columns on every row, which is what the decoder enforces.
+
+**Arbiter (`ml/arbiter.py`).** A 14-input logistic regression picks, per
+line, the engine's split or the model's. Its inputs:
+
+- each split's log-likelihood under the model's probabilities;
+- the field counts, and whether neighbouring lines have the same count;
+- the engine's confidence, coverage and consistency for the capture.
+
+It is trained on the hand-labelled lines where exactly one of the two is
+right (about 68 per fold, 85 for the final model).
+
+| | hand labels, out of fold (300) | fresh test (150) |
+|---|---:|---:|
+| engine | 193 | 126 (84.0%) |
+| model + decoder | 194 | 130 (86.7%) |
+| **arbiter** | **210** | **133 (88.7%)** |
+| ceiling (labeller agreement) | | ~97% |
+
+This is the fresh test's second use. The arbiter never saw it, and only the
+decoder was chosen since its first use.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen
