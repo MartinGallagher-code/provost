@@ -69,18 +69,30 @@ def main(argv=None):
                     help="drop training labels contradicted at this confidence (e.g. 0.05)")
     ap.add_argument("--fix-labels", action="store_true",
                     help="drop engine field starts that fall inside a timestamp (training only)")
+    ap.add_argument("--hand", nargs="*", default=[],
+                    help="hand-labelled lines to TRAIN on (only those in each fold's training families)")
+    ap.add_argument("--hand-weight", type=float, default=20.0)
+    ap.add_argument("--trusted-weight", type=float, default=0.0,
+                    help="weight for labels of maintainer-approved tools (0 = treat them like the rest)")
+    ap.add_argument("--cand-params", help="JSON overrides for the field-start model's LightGBM settings")
+    ap.add_argument("--test", default=ADJ.TEST, help="the fresh hand-labelled test set (see adjudicated.py)")
     ap.add_argument("--gold", default=ADJ.GOLD, help="hand-labelled lines (see adjudicated.py)")
     ap.add_argument("--adjudicated", default=ADJ.DEFAULT,
                     help="blind-judged disagreements to score against (see adjudicated.py)")
     a = ap.parse_args(argv)
+    if a.cand_params:
+        B.CAND_PARAMS.update(json.loads(a.cand_params))
     exs = D.load(a.corpus)
+    hand = B.load_hand(a.hand)
+    validated = B.load_validated()
     preds = {}
     for k in range(K):
         tr = [e for e in exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
-        Xr, yr, Xc, yc = B.prepare(tr, a.clean, a.fix_labels,
-                                   log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
-        rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc)
+        Xr, yr, Xc, yc, wc = B.prepare(tr, a.clean, a.fix_labels, hand, a.hand_weight,
+                                       validated if a.trusted_weight else None, a.trusted_weight,
+                                       log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
+        rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
         for e in te:
             preds[e["name"]] = predict_doc(rm, cm, e)
         print(f"fold {k + 1}/{K}: trained on {len(tr)}, predicted {len(te)}", file=sys.stderr)
@@ -128,6 +140,29 @@ def main(argv=None):
             continue
         sp = f"{c['split_ok'] / c['split']:.3f}" if c["split"] else "  -  "
         print(f"    {name:24} {nfiles[name]:5d}  {c['roles_ok'] / max(1, c['roles']):.3f}  {sp}")
+
+    vt = Counter()
+    for e in exs:
+        if e["name"] not in validated:
+            continue
+        _, s = preds[e["name"]]
+        for j, st in enumerate(e["starts"]):
+            if st:
+                vt["n"] += 1
+                t = e["lines"][j]
+                vt["ok"] += ADJ.canon(t, s[j]) == ADJ.canon(t, st)
+        vt["files"] += 1
+    if vt["n"]:
+        print(f"\n  maintainer-approved tools ({vt['files']} files, {vt['n']} lines): "
+              f"model splits match the approved output on {vt['ok'] / vt['n']:.3f}")
+
+    if os.path.exists(a.test):
+        test = [g for g in ADJ.load(a.test) if g["name"] in preds]
+        eng = {e["name"]: e for e in exs}
+        r, n = ADJ.gold_score(test, lambda g: preds[g["name"]][1][g["line"]])
+        re_, _ = ADJ.gold_score(test, lambda g: eng[g["name"]]["starts"][g["line"]])
+        print(f"\n  FRESH TEST lines (scored once): model {r}/{n} = {r / max(1, n):.3f}   "
+              f"(engine {re_}/{n} = {re_ / max(1, n):.3f})")
 
     if os.path.exists(a.gold):
         gold = [g for g in ADJ.load(a.gold) if g["name"] in preds]

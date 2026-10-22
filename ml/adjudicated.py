@@ -57,6 +57,8 @@ def score(items, predict):
 
 
 GOLD = os.path.join(HERE, "eval", "gold-2026-10-22.jsonl")
+# 150 random lines labelled after every model decision was made; scored once.
+TEST = os.path.join(HERE, "eval", "test-2026-10-22.jsonl")
 
 
 def gold_sheet(a):
@@ -70,8 +72,11 @@ def gold_sheet(a):
     for ln in open(a.corpus, encoding="utf-8"):
         e = json.loads(ln)
         corpus[e["name"]] = e
-    items = [(it["name"], it["line"], "disagree") for it in load(a.adjudicated)]
-    taken = {(n, j) for n, j, _ in items}
+    items = [] if a.only_random else [(it["name"], it["line"], "disagree")
+                                      for it in load(a.adjudicated)]
+    taken = {(n, j) for n, j, _ in items} | {(it["name"], it["line"]) for it in load(a.adjudicated)}
+    for path in a.exclude:
+        taken |= {(g["name"], g["line"]) for g in load(path)}
     pool = [(n, j) for n, e in sorted(corpus.items()) for j, st in enumerate(e["starts"])
             if st and (n, j) not in taken]
     rng = random.Random(a.seed)
@@ -204,6 +209,8 @@ def main(argv=None):
     g.add_argument("--adjudicated", default=DEFAULT)
     g.add_argument("--random", type=int, default=150)
     g.add_argument("--seed", type=int, default=7)
+    g.add_argument("--only-random", action="store_true", help="random lines only (a fresh test set)")
+    g.add_argument("--exclude", nargs="*", default=[], help="labelled sets whose lines must not be drawn")
     g.add_argument("--sheet-out", required=True)
     g.add_argument("--meta-out", required=True)
     i = sub.add_parser("gold-ingest")
