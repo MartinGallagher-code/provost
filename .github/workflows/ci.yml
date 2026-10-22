@@ -53,6 +53,9 @@ jobs:
           exit $missing
       - name: transform unit test
         run: bash transform/tests/test_melt.sh
+      # stdlib only (no numpy/torch): the layout-model label builders
+      - name: layout-model training-set tests
+        run: python3 -m unittest discover -s ml/tests -v
       - name: REUSE licensing lint
         uses: fsfe/reuse-action@v5
 

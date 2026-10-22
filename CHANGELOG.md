@@ -1,5 +1,16 @@
 # provost — Changelog
 
+## 2026-10-22 — a layout model, steps 1-2: training set and first models (ml/)
+
+Development-only tooling for a small learned model of text layout. Nothing
+ships and provost's behaviour is unchanged.
+- **Training set:** `ml/corpus_labels.py` derives per-line roles (header, row,
+  cont, kv, section, skip, blank) and field-start offsets from the corpus by
+  lining each golden's cells back up with the raw lines. `ml/synth.py`
+  generates labelled synthetic layouts. The vocabulary is in `ml/layout.py`.
+- **Tests:** `ml/tests/test_ml.py` (stdlib), run in the CI `quick-checks` job.
+- `ml/data/` and `ml/models/` are gitignored. CLAUDE.md lists `ml/` and its test.
+
 ## 2026-10-20 — round 4 measures the auto-multi fallback (once)
 
 Round 4 was built and frozen before the fallback was built. Every input was
