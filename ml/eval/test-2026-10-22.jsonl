@@ -1,0 +1,150 @@
+{"name": "age-encrypt", "line": 1, "text": "recipients: 1", "source": "random", "starts": [0, 12], "alt": null, "note": "key and value"}
+{"name": "akamai-property-list", "line": 0, "text": "Property Name                 Property ID    Latest    Staging    Production    Group", "source": "random", "starts": [0, 30, 45, 55, 66, 80], "alt": null, "note": "six header columns, two-word ones joined"}
+{"name": "alertmanager-silences", "line": 1, "text": "a1b2c3d4-1111-2222-3333-444455556666  alertname=HighCPU        2026-07-11 06:00:00", "source": "random", "starts": [0, 38, 63], "alt": null, "note": "matcher expression one value; timestamp one"}
+{"name": "amass-enum", "line": 1, "text": "www.example.com", "source": "random", "starts": [0], "alt": null, "note": "single value"}
+{"name": "apt-cache-show-multi", "line": 10, "text": "Maintainer: Noel Kothe <noel@debian.org>", "source": "random", "starts": [0, 12], "alt": [0, 12, 24], "note": "key, name with email; email maybe split"}
+{"name": "apt-cache-show-python", "line": 2, "text": "Architecture: all", "source": "random", "starts": [0, 14], "alt": null, "note": "key and value"}
+{"name": "ar-t", "line": 1, "text": "parser.o", "source": "random", "starts": [0], "alt": null, "note": "single value"}
+{"name": "auditd-aureport-auth", "line": 1, "text": "Number of failed logins: 12", "source": "random", "starts": [0, 25], "alt": null, "note": "multi-word key and value"}
+{"name": "ausearch-msg-fields", "line": 3, "text": "exe=\"/usr/sbin/sshd\"", "source": "random", "starts": [0, 5], "alt": null, "note": "key, value inside quotes"}
+{"name": "aws-ec2-describe-volumes", "line": 10, "text": "|  vol-0112233445566778 |  16    |  creating |  gp3   |  us-east-1d  |  -                  |", "source": "random", "starts": [3, 27, 36, 48, 57, 72], "alt": null, "note": "pipes are decoration"}
+{"name": "aws-rds-describe-db-instances", "line": 8, "text": "|  analytics-warehouse      |  aurora    |  db.r6g.2xlarge |  available|  1000         |  True   |", "source": "random", "starts": [3, 31, 44, 62, 74, 90], "alt": null, "note": "pipe separators decoration"}
+{"name": "aws-s3api-list-buckets", "line": 8, "text": "|  acme-backups-eu           |  2024-06-20T06:02Z |", "source": "random", "starts": [3, 32], "alt": null, "note": "pipes are decoration"}
+{"name": "az-aks-list", "line": 3, "text": "dev-aks      westus2     dev-rg           1.28.9               Succeeded            dev-aks-dns-i9j0k1l2.hcp.westus2.azmk8s.io", "source": "random", "starts": [0, 13, 25, 42, 63, 84], "alt": null, "note": "six header columns"}
+{"name": "az-group-list", "line": 5, "text": "shared-rg      centralus   Succeeded", "source": "random", "starts": [0, 15, 27], "alt": null, "note": "three columns"}
+{"name": "bacula-status-dir", "line": 2, "text": "   412 Back Incr      1,204   12.04 M  BackupServer01    OK", "source": "random", "starts": [3, 7, 12, 22, 30, 39, 57], "alt": null, "note": "1,204 one number; 12.04 M with unit"}
+{"name": "bazel-query-somepath", "line": 2, "text": "//src/main:router", "source": "random", "starts": [0], "alt": [0, 11], "note": "bazel label one value; package/target split possible"}
+{"name": "blkid-full-devices", "line": 2, "text": "TYPE: vfat", "source": "random", "starts": [0, 6], "alt": null, "note": "key and value"}
+{"name": "blkid-list", "line": 1, "text": "/dev/sda1                  vfat      EFI     /boot/efi     A1B2-C3D4", "source": "random", "starts": [0, 27, 37, 45, 59], "alt": null, "note": "five header columns"}
+{"name": "blockdev-report", "line": 2, "text": "rw   256   512  4096       2048       536870912   /dev/sda1", "source": "random", "starts": [0, 5, 11, 16, 27, 38, 50], "alt": null, "note": "seven header columns"}
+{"name": "bloop-projects", "line": 4, "text": "server", "source": "random", "starts": [0], "alt": null, "note": "single value"}
+{"name": "borg-info", "line": 3, "text": "Cache: /home/deploy/.cache/borg", "source": "random", "starts": [0, 7], "alt": null, "note": "key and path"}
+{"name": "brew-info-multi", "line": 7, "text": "Version: 1.7", "source": "random", "starts": [0, 9], "alt": null, "note": "key and value"}
+{"name": "buildah-containers", "line": 0, "text": "CONTAINER ID   BUILDER   IMAGE ID       IMAGE NAME                       CONTAINER NAME", "source": "random", "starts": [0, 15, 25, 40, 73], "alt": null, "note": "five two-word header columns"}
+{"name": "busctl-introspect", "line": 0, "text": "NAME                                TYPE      SIGNATURE RESULT/VALUE  FLAGS", "source": "random", "starts": [0, 36, 46, 56, 70], "alt": null, "note": "five header columns"}
+{"name": "busctl-list", "line": 5, "text": "org.freedesktop.login1           412 systemd-logind root :1.42      systemd-logind.service      -       -", "source": "random", "starts": [0, 33, 37, 52, 57, 68, 96, 104], "alt": null, "note": "connection :1.42 is one value starting at colon"}
+{"name": "ccache-stats", "line": 1, "text": "  Hits:             4102 / 4821 (85.08%)", "source": "random", "starts": [2, 20, 27, 33], "alt": [2, 20, 33], "note": "key, hits, total, percent; ratio could be one"}
+{"name": "chronyc-serverstats", "line": 8, "text": "Interleaved NTP packets    : 34", "source": "random", "starts": [0, 29], "alt": null, "note": "multiword key, colon decoration, value"}
+{"name": "chronyc-tracking", "line": 6, "text": "Frequency       : 12.345 ppm slow", "source": "random", "starts": [0, 18], "alt": [0, 18, 29], "note": "key, value with unit and direction"}
+{"name": "click-table-fancy", "line": 5, "text": "│ canary   │ 1         │ no       │", "source": "random", "starts": [2, 13, 25], "alt": null, "note": "box separators are decoration"}
+{"name": "cmus-status", "line": 2, "text": "duration 221", "source": "random", "starts": [0, 9], "alt": null, "note": "key and value"}
+{"name": "collectd-flush", "line": 0, "text": "Success: 44 records flushed to write_prometheus", "source": "random", "starts": [0, 9], "alt": [0, 9, 31], "note": "status key and message; maybe count and target"}
+{"name": "consul-kv-get-recurse", "line": 5, "text": "service/feature/beta_enabled:true", "source": "random", "starts": [0, 29], "alt": null, "note": "key path and value"}
+{"name": "consul-version", "line": 1, "text": "Revision a1b2c3d4", "source": "random", "starts": [0, 9], "alt": null, "note": "key and value"}
+{"name": "cpan-list-modules", "line": 3, "text": "Mojolicious\t9.36", "source": "random", "starts": [0, 12], "alt": null, "note": "module and version"}
+{"name": "cryptsetup-luksdump", "line": 3, "text": "Metadata area: \t16384 [bytes]", "source": "random", "starts": [0, 16], "alt": null, "note": "multi-word key; bytes unit stays with number"}
+{"name": "ctr-snapshots-ls", "line": 6, "text": "sha256:f1db227348d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f  sha256:b8d6e692a25e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6  Committed", "source": "random", "starts": [0, 72, 144], "alt": null, "note": "sha256: prefix belongs to digest"}
+{"name": "decode-dimms", "line": 16, "text": "SDRAM Device Width\t\t\t8 bits", "source": "random", "starts": [0, 21], "alt": null, "note": "multi-word key; 8 bits number+unit"}
+{"name": "dig-plus-trace-short", "line": 1, "text": ".\t\t\t518400\tIN\tNS\ta.root-servers.net.", "source": "random", "starts": [0, 4, 11, 14, 17], "alt": null, "note": "root dot is the name field"}
+{"name": "dig_mx", "line": 6, "text": "gmail.com.\t3600\tIN\tMX\t30 alt3.gmail-smtp-in.l.google.com.", "source": "random", "starts": [0, 11, 16, 19, 22, 25], "alt": [0, 11, 16, 19, 22], "note": "MX priority and target separate, or rdata as one"}
+{"name": "direnv-status", "line": 6, "text": "Loaded RC allowed 0", "source": "random", "starts": [0, 18], "alt": [0, 10, 18], "note": "multi-word key then value"}
+{"name": "docker-compose-ps", "line": 4, "text": "myapp-redis-1         redis:7-alpine       \"docker-entrypoint.s…\"   redis       5 minutes ago   Up 5 minutes             6379/tcp", "source": "random", "starts": [0, 22, 44, 68, 80, 96, 121], "alt": null, "note": "quoted command; relative time and status phrases whole"}
+{"name": "docker-stats-format", "line": 3, "text": "cache      0.09%     6.812MiB / 7.77GiB    0.09%     4", "source": "random", "starts": [0, 11, 21, 43, 53], "alt": [0, 11, 21, 32, 43, 53], "note": "MEM USAGE / LIMIT is one header column"}
+{"name": "dotenv-quoted-values", "line": 0, "text": "DATABASE_URL=\"postgres://user:p@ss@localhost:5432/db?sslmode=require\"", "source": "random", "starts": [0, 14], "alt": null, "note": "key, quoted URL value inside quotes"}
+{"name": "du-tree-depth3", "line": 7, "text": "1.6M    ./src/core", "source": "random", "starts": [0, 8], "alt": null, "note": "size and path"}
+{"name": "duckdb-explain-box", "line": 6, "text": "│         HASH_JOIN         │", "source": "random", "starts": [10], "alt": null, "note": "box drawing is decoration; single node name"}
+{"name": "duckdb-explain-box", "line": 8, "text": "│    Join Type: INNER       │", "source": "random", "starts": [5, 16], "alt": null, "note": "key and value inside box borders"}
+{"name": "dust-output", "line": 0, "text": "4.2G  ┌── datasets", "source": "random", "starts": [0, 10], "alt": null, "note": "size, tree drawing, name"}
+{"name": "enc-crlf-mixed-lf", "line": 2, "text": "web02       up       15ms", "source": "random", "starts": [0, 12, 21], "alt": null, "note": "three columns"}
+{"name": "enc-vtab-in-cell", "line": 0, "text": "code    message           severity", "source": "random", "starts": [0, 8, 26], "alt": null, "note": "three header columns"}
+{"name": "es-cat-nodes", "line": 0, "text": "10.0.0.61 62 88 12 1.20 1.15 1.08 cdfhilmrstw - es-node-1", "source": "random", "starts": [0, 10, 13, 16, 19, 24, 29, 34, 46, 48], "alt": null, "note": "cat nodes columns, all separate"}
+{"name": "ethtool", "line": 1, "text": "\tSupported ports: [ TP ]", "source": "random", "starts": [1, 20], "alt": null, "note": "key; value inside brackets"}
+{"name": "exo-dpkg-deb-I-control", "line": 1, "text": " size 1284412 bytes: control archive=2210 bytes.", "source": "random", "starts": [1, 6, 21, 37], "alt": null, "note": "size value with unit; control archive key and value"}
+{"name": "exo-journalctl-export", "line": 14, "text": "__MONOTONIC_TIMESTAMP=88221882301", "source": "random", "starts": [0, 22], "alt": null, "note": "key=value"}
+{"name": "exo-numactl-hardware-matrix", "line": 3, "text": "node 0 free: 98221 MB", "source": "random", "starts": [0, 13], "alt": [0, 7, 13], "note": "key node 0 free, value with unit"}
+{"name": "exo-pg-stat-activity-vertical", "line": 2, "text": "datname          | appdb", "source": "random", "starts": [0, 19], "alt": null, "note": "expanded record key and value"}
+{"name": "gdu-interactive", "line": 5, "text": "      /root             9.6 GiB  [█░░░░░░░░░]   5.9%", "source": "random", "starts": [6, 24, 34, 48], "alt": [6, 24, 48], "note": "mount, size+unit, bar inside brackets, percent"}
+{"name": "getconf", "line": 7, "text": "LEVEL1_DCACHE_SIZE                 32768", "source": "random", "starts": [0, 35], "alt": null, "note": "name and value"}
+{"name": "git-count-objects", "line": 3, "text": "packs: 1", "source": "random", "starts": [0, 7], "alt": null, "note": "key and value"}
+{"name": "git-shortlog", "line": 0, "text": "    42\tJane Developer", "source": "random", "starts": [4, 7], "alt": null, "note": "count then full name"}
+{"name": "glmark2-run", "line": 6, "text": "    GL_VERSION:     4.6.0 NVIDIA 555.42.06", "source": "random", "starts": [4, 20], "alt": null, "note": "key then version string value"}
+{"name": "gnutls-cli-info", "line": 4, "text": "- Options: safe renegotiation,", "source": "random", "starts": [2, 11], "alt": null, "note": "bullet decoration; key and value"}
+{"name": "go-bench", "line": 6, "text": "BenchmarkEncode-8          1204882      1002.1 ns/op      2048 B/op       12 allocs/op", "source": "random", "starts": [0, 27, 40, 58, 74], "alt": null, "note": "number with unit pairs kept together"}
+{"name": "heroku-pg-info", "line": 8, "text": "Rows:                  1842991/10000000 (In compliance)", "source": "random", "starts": [0, 23, 41], "alt": [0, 23], "note": "key, value, parenthetical status maybe separate"}
+{"name": "hostnamectl", "line": 6, "text": "  Operating System: Ubuntu 22.04.4 LTS", "source": "random", "starts": [2, 20], "alt": null, "note": "multi-word key, OS name phrase value"}
+{"name": "influx-org-list", "line": 3, "text": "3333444455556666\tdata-eng", "source": "random", "starts": [0, 17], "alt": null, "note": "ID and name"}
+{"name": "iozone-run", "line": 8, "text": "524288      4     482100   512044  1204882  1288201   882014   721048", "source": "random", "starts": [0, 12, 18, 27, 35, 44, 54, 63], "alt": null, "note": "eight numeric columns"}
+{"name": "iw-station-dump", "line": 1, "text": "\tinactive time:\t1520 ms", "source": "random", "starts": [1, 16], "alt": null, "note": "key and value with unit"}
+{"name": "java-showsettings", "line": 7, "text": "    java.version = 17.0.9", "source": "random", "starts": [4, 19], "alt": null, "note": "lone = is decoration"}
+{"name": "journalctl-boot", "line": 6, "text": " -1 4d3c2b1a09f8e7d6c5b4a3928170f6e5 Sun 2026-06-21 14:48:26 UTC Fri 2026-07-03 11:27:40 UTC", "source": "random", "starts": [1, 4, 37, 65], "alt": null, "note": "index, boot id, two full timestamps"}
+{"name": "journalctl-short-gaps", "line": 4, "text": "Jul 11 08:01:00 dev-box CRON[1442]: pam_unix(cron:session): session opened for user root", "source": "random", "starts": [0, 16, 24, 29, 36], "alt": [0, 16, 24, 36], "note": "timestamp, host, process, pid, message"}
+{"name": "kube-capacity-pods", "line": 0, "text": "NODE          NAMESPACE     POD                CPU REQUESTS   CPU LIMITS   MEMORY REQUESTS   MEMORY LIMITS", "source": "random", "starts": [0, 14, 28, 47, 62, 75, 93], "alt": null, "note": "two-word headers like CPU REQUESTS"}
+{"name": "kubectl-get-crd", "line": 5, "text": "servicemonitors.monitoring.coreos.com       2026-05-12T09:14:24Z", "source": "random", "starts": [0, 44], "alt": null, "note": "name and timestamp"}
+{"name": "kubectl-get-cronjobs", "line": 3, "text": "report-export     0 6 * * 1      False     0        2d              63d", "source": "random", "starts": [0, 18, 33, 43, 52, 68], "alt": null, "note": "cron schedule is one field"}
+{"name": "kubectl-get-limitrange", "line": 2, "text": "cpu-limit    2026-05-01T10:00:00Z", "source": "random", "starts": [0, 13], "alt": null, "note": "ISO timestamp is one value"}
+{"name": "lsblk-fs", "line": 0, "text": "NAME        FSTYPE   LABEL     UUID                                   MOUNTPOINT", "source": "random", "starts": [0, 12, 21, 31, 70], "alt": null, "note": "header row, five columns"}
+{"name": "lsinitramfs", "line": 15, "text": "lib/modules/5.4.0-42-generic", "source": "random", "starts": [0], "alt": null, "note": "single path"}
+{"name": "lspci-vmm", "line": 22, "text": "Rev:\t00", "source": "random", "starts": [0, 5], "alt": null, "note": "key and value"}
+{"name": "lvs-devices", "line": 2, "text": "  pool0                 vg_data twi-aotz--  60.00g                52.14  18.03            pool0_tdata(0)", "source": "random", "starts": [2, 24, 32, 44, 66, 73, 90], "alt": null, "note": "device spec pool0_tdata(0) kept whole"}
+{"name": "mimirtool-bucket-validate", "line": 6, "text": "INFO validation completed successfully", "source": "random", "starts": [0, 5], "alt": null, "note": "level then free-text message"}
+{"name": "mongosh-db-currentop", "line": 23, "text": "  ok: 1", "source": "random", "starts": [2, 6], "alt": null, "note": "key and value"}
+{"name": "mongosh-rs-status", "line": 9, "text": "  writeMajorityCount: 2,", "source": "random", "starts": [2, 22], "alt": null, "note": "key and value"}
+{"name": "mpstat-all", "line": 7, "text": "10:14:52       3   24.30    0.00    4.20    0.90    0.00    0.60    0.00    0.00    0.00   70.00", "source": "random", "starts": [0, 15, 19, 28, 36, 44, 52, 60, 68, 76, 84, 91], "alt": null, "note": "time one value, then numeric columns"}
+{"name": "mysql-show-grants", "line": 1, "text": "| Grants for appuser@%                                                    |", "source": "random", "starts": [2], "alt": null, "note": "single column table header"}
+{"name": "needrestart", "line": 2, "text": "NEEDRESTART-KEXP: 6.1.0-21-amd64", "source": "random", "starts": [0, 18], "alt": null, "note": "key and value"}
+{"name": "netlify-sites-list", "line": 1, "text": " Name:       acme-marketing", "source": "random", "starts": [1, 13], "alt": null, "note": "key and value"}
+{"name": "netperf-udp-rr", "line": 2, "text": "bytes  Bytes  bytes    bytes   secs.    per sec", "source": "random", "starts": [0, 7, 14, 23, 31, 40], "alt": null, "note": "third header row; per sec one column"}
+{"name": "nicstat", "line": 2, "text": "21:04:10     eth1       2.11       1.90     22.10     18.40     97.8    105.7     0.02   0.00", "source": "random", "starts": [0, 13, 24, 35, 44, 54, 64, 72, 82, 89], "alt": null, "note": "time one value then columns"}
+{"name": "nst-ceph-osd-tree-nested", "line": 2, "text": "-3          3.63898     host ceph-01", "source": "random", "starts": [0, 12, 24, 29], "alt": null, "note": "ID WEIGHT TYPE NAME; empty class"}
+{"name": "nst-hdparm-nested-sections", "line": 12, "text": "\theads\t\t16\t16", "source": "random", "starts": [1, 8, 11], "alt": null, "note": "name, max, current"}
+{"name": "nst-hdparm-nested-sections", "line": 17, "text": "\t   *\tSecurity Mode feature set", "source": "random", "starts": [4, 6], "alt": null, "note": "marker then feature name phrase"}
+{"name": "nst-namespace-pods-tree", "line": 2, "text": "  coredns-5d78c9-abcde       1/1     Running   0", "source": "random", "starts": [2, 29, 37, 47], "alt": null, "note": "four header columns"}
+{"name": "nst-slurm-sacct-nested", "line": 4, "text": "5521.0       python                COMPLETED  02:10:01", "source": "random", "starts": [0, 13, 35, 46], "alt": null, "note": "Partition empty; elapsed time one value"}
+{"name": "nst-smartctl-info-attrs-selftest", "line": 13, "text": "199 UDMA_CRC_Error_Count    0x0032   200   200   000    Old_age  0", "source": "random", "starts": [0, 4, 28, 37, 43, 49, 56, 65], "alt": null, "note": "SMART attribute columns"}
+{"name": "nst-systemd-analyze-dump", "line": 7, "text": "InactiveExitTimestamp=Sat 2026-07-11 01:00:12 UTC", "source": "random", "starts": [0, 22], "alt": null, "note": "key and timestamp value"}
+{"name": "nuget-list", "line": 1, "text": "Serilog 3.1.1", "source": "random", "starts": [0, 8], "alt": null, "note": "package and version"}
+{"name": "num-accounting-dashes", "line": 4, "text": "Revenue         -             (45,000.00)", "source": "random", "starts": [0, 16, 31], "alt": null, "note": "parenthesised amount starts at value"}
+{"name": "num-mac-counters", "line": 1, "text": "eth0       de:ad:be:ef:00:01   1,234      12", "source": "random", "starts": [0, 11, 31, 42], "alt": null, "note": "MAC and 1,234 kept whole"}
+{"name": "num-psql-numeric", "line": 5, "text": "  4 |   0xFF        | NaN       | hex", "source": "random", "starts": [2, 8, 22, 34], "alt": null, "note": "pipes are separators"}
+{"name": "nvme-id-ctrl", "line": 10, "text": "cntlid    : 0x1", "source": "random", "starts": [0, 12], "alt": null, "note": "lone colon is decoration"}
+{"name": "pacman-Fl", "line": 7, "text": "git usr/share/doc/git/RelNotes.txt", "source": "random", "starts": [0, 4], "alt": null, "note": "package and path"}
+{"name": "parquet-tools-schema", "line": 0, "text": "message schema {", "source": "random", "starts": [0, 8], "alt": [0], "note": "keyword and schema name; brace decoration"}
+{"name": "pg-stat-activity-x", "line": 8, "text": "datname          | metrics", "source": "random", "starts": [0, 19], "alt": null, "note": "key, pipe separator, value"}
+{"name": "pgbouncer-clients", "line": 2, "text": " C    | appuser  | app_prod  | active | 192.168.1.20  | 51234", "source": "random", "starts": [1, 8, 19, 31, 40, 56], "alt": null, "note": "pipes are separators"}
+{"name": "pgrep-a", "line": 5, "text": "774 /usr/bin/containerd", "source": "random", "starts": [0, 4], "alt": null, "note": "pid and command"}
+{"name": "ping", "line": 3, "text": "64 bytes from 93.184.216.34: icmp_seq=3 ttl=56 time=11.8 ms", "source": "random", "starts": [0, 14, 29, 38, 40, 44, 47, 52], "alt": null, "note": "64 bytes one; keys and values split; 11.8 ms"}
+{"name": "pip-list-outdated", "line": 4, "text": "urllib3    1.26.16  2.3.0    wheel", "source": "random", "starts": [0, 11, 20, 29], "alt": null, "note": "four header columns"}
+{"name": "pip-list-outdated", "line": 5, "text": "setuptools 68.0.0   75.6.0   wheel", "source": "random", "starts": [0, 11, 20, 29], "alt": null, "note": "four header columns"}
+{"name": "pip-show-multi", "line": 11, "text": "Author: Travis Oliphant et al.", "source": "random", "starts": [0, 8], "alt": null, "note": "key and multiword value"}
+{"name": "proc-meminfo", "line": 5, "text": "SwapTotal:       2097148 kB", "source": "random", "starts": [0, 17], "alt": null, "note": "key and number with unit"}
+{"name": "proc-sys-kernel", "line": 7, "text": "kernel.sched_rt_runtime_us = 950000", "source": "random", "starts": [0, 29], "alt": null, "note": "key = value; equals is decoration"}
+{"name": "promtool-query-range", "line": 1, "text": "  0.8234 @1720684800", "source": "random", "starts": [2, 9], "alt": null, "note": "value and timestamp"}
+{"name": "pueue-status", "line": 1, "text": " id  status    command              start", "source": "random", "starts": [1, 5, 15, 36], "alt": null, "note": "four header columns"}
+{"name": "quo-table-freetext-lastcol", "line": 3, "text": "3    E_IO     write error: /var/log/app.log (disk full, 100%)", "source": "random", "starts": [0, 5, 14], "alt": null, "note": "message is free text"}
+{"name": "rclone-copy-progress", "line": 3, "text": " *                    logs/app-jan.log: 100% /820Mi, 9.1Mi/s, 0s", "source": "random", "starts": [22, 40, 45, 53, 62], "alt": null, "note": "bullet decoration; file, pct, size, rate, eta"}
+{"name": "rdmsr-turbo", "line": 4, "text": "3    0x198     IA32_PERF_STATUS      0x2e00            Current 46x", "source": "random", "starts": [0, 5, 15, 37, 55], "alt": [0, 5, 15, 37, 55, 63], "note": "Decimal column value Current 46x one field"}
+{"name": "rich-panel-table", "line": 4, "text": "│ daily-0710    │ 4.1 GB   │ 26h      │ ✓               │", "source": "random", "starts": [2, 18, 29, 40], "alt": null, "note": "box drawing decoration; 4.1 GB together"}
+{"name": "sbt-version", "line": 0, "text": "sbt version in this project: 1.10.0", "source": "random", "starts": [0, 29], "alt": null, "note": "key phrase and version value"}
+{"name": "sensors-fans", "line": 3, "text": "fan3:           0 RPM", "source": "random", "starts": [0, 16], "alt": null, "note": "key and value with unit"}
+{"name": "sensors-wrapped", "line": 5, "text": "Core 2:        +47.0°C  (high = +80.0°C, crit = +100.0°C)", "source": "random", "starts": [0, 15, 25, 32, 41, 48], "alt": null, "note": "label, temp, high key/value, crit key/value"}
+{"name": "sestatus", "line": 8, "text": "Max kernel policy version:      33", "source": "random", "starts": [0, 32], "alt": null, "note": "multiword key and value"}
+{"name": "sops-updatekeys", "line": 4, "text": "File secrets.enc.yaml updated: 3 keys synced, 0 removed", "source": "random", "starts": [0], "alt": [0, 31, 46], "note": "summary sentence; counts could be split"}
+{"name": "spark-history-apps", "line": 2, "text": "app-20260710050000-0041       agg-hourly  2026-07-10 05:00    1.8 min", "source": "random", "starts": [0, 30, 42, 62], "alt": null, "note": "date-time and duration with unit kept together"}
+{"name": "speedometer-run", "line": 2, "text": "Runs / Minute: 42.10", "source": "random", "starts": [0, 15], "alt": null, "note": "multi-word key and value"}
+{"name": "speedtest-cli-rates", "line": 3, "text": "Ping        23.456 ms", "source": "random", "starts": [0, 12], "alt": null, "note": "metric and value with unit"}
+{"name": "ss-tcp", "line": 2, "text": "LISTEN     0       100          127.0.0.1:25           0.0.0.0:*", "source": "random", "starts": [0, 11, 19, 32, 55], "alt": [0, 11, 19, 32, 42, 55, 63], "note": "address:port one column per header"}
+{"name": "ss-tulpn-ipv6", "line": 2, "text": "tcp   LISTEN 0      511    [::1]:6379         [::]:*            users:((\"redis\",pid=44,fd=6))", "source": "random", "starts": [0, 6, 13, 20, 27, 46, 64], "alt": [0, 6, 13, 20, 28, 33, 47, 51, 64], "note": "address:port as one column per header; alt split"}
+{"name": "ssh-Q-cipher", "line": 5, "text": "aes192-ctr", "source": "random", "starts": [0], "alt": null, "note": "single value"}
+{"name": "sysbench-fileio", "line": 11, "text": "Latency (ms):", "source": "random", "starts": [0], "alt": null, "note": "section header, one field"}
+{"name": "sysbench-fileio", "line": 13, "text": "         avg:                                    0.44", "source": "random", "starts": [9, 49], "alt": null, "note": "key and value"}
+{"name": "sysbench-threads", "line": 8, "text": "    total number of events:              12048", "source": "random", "starts": [4, 41], "alt": null, "note": "multiword key and value"}
+{"name": "systemctl-cat", "line": 9, "text": "PIDFile=/run/nginx.pid", "source": "random", "starts": [0, 8], "alt": null, "note": "key= and value"}
+{"name": "systemctl-list", "line": 3, "text": "cron.service               loaded active running Regular background program processing daemon", "source": "random", "starts": [0, 27, 34, 41, 49], "alt": null, "note": "description free text"}
+{"name": "systemctl-show-timer", "line": 4, "text": "Persistent=yes", "source": "random", "starts": [0, 11], "alt": null, "note": "key=value"}
+{"name": "systemd-networkd-links", "line": 10, "text": "Address: 10.8.0.2", "source": "random", "starts": [0, 9], "alt": null, "note": "key and value"}
+{"name": "talosctl-services", "line": 1, "text": "10.5.0.2   apid         Running   OK       12h58m ago    Health check successful", "source": "random", "starts": [0, 11, 24, 34, 43, 57], "alt": null, "note": "relative time and event message kept together"}
+{"name": "tbl-header-2space-words", "line": 3, "text": "node-c         1 hour ago        healthy", "source": "random", "starts": [0, 15, 33], "alt": null, "note": "1 hour ago is one relative time"}
+{"name": "uni-box-currency-ledger", "line": 1, "text": "│ ACCT │ NAME       │     BALANCE │", "source": "random", "starts": [2, 9, 26], "alt": null, "note": "box drawing decoration"}
+{"name": "uni-csv-cjk", "line": 1, "text": "1,山田太郎,営業部,5000000", "source": "random", "starts": [0, 2, 7, 11], "alt": null, "note": "csv four columns"}
+{"name": "uni-k8s-node-emoji-health", "line": 3, "text": "node-03  🟡 warn  91%  88%", "source": "random", "starts": [0, 9, 17, 22], "alt": [0, 11, 17, 22], "note": "HEALTH covers emoji plus word; emoji may be decoration"}
+{"name": "uni-ps-aux-cjk", "line": 3, "text": "用户    91011   0.0   0.1  监视器", "source": "random", "starts": [0, 6, 14, 20, 25], "alt": null, "note": "five columns per header"}
+{"name": "uptrace-spans", "line": 2, "text": "e5f6g7h8      db            SELECT orders   12ms", "source": "random", "starts": [0, 14, 28, 44], "alt": null, "note": "SELECT orders is one operation"}
+{"name": "v4l2-ctl-list-devices", "line": 6, "text": "\t/dev/video2", "source": "random", "starts": [1], "alt": null, "note": "single device path"}
+{"name": "velero-schedule-get", "line": 2, "text": "weekly-arch   Enabled   2026-06-01 09:00:00 +0000 UTC    0 3 * * 0     2160h0m0s    3d ago        <none>     false", "source": "random", "starts": [0, 14, 24, 57, 71, 84, 99, 109], "alt": null, "note": "timestamp, cron, relative time grouped; none inside brackets"}
+{"name": "vercel-domains-ls", "line": 4, "text": "  example.io             Third Party   Custom         2026-11-02             412d", "source": "random", "starts": [2, 25, 39, 54, 77], "alt": null, "note": "Third Party is one registrar"}
+{"name": "vgdisplay", "line": 18, "text": "  Free  PE / Size       42435 / 165.76 GiB", "source": "random", "starts": [2, 24, 32], "alt": [2, 24], "note": "key, PE count, size; or pair as one value"}
+{"name": "victoria-metrics-vmbackup", "line": 3, "text": "INFO uploading part path=part_0003 size=88104412", "source": "random", "starts": [0, 5, 20, 25, 35, 40], "alt": [0, 5, 25, 40], "note": "level, message, key/value pairs"}
+{"name": "virsh-dominfo", "line": 6, "text": "Max memory:     8388608 KiB", "source": "random", "starts": [0, 16], "alt": null, "note": "multiword key and value with unit"}
+{"name": "wg-showconf-peers", "line": 12, "text": "Endpoint = 203.0.113.22:51820", "source": "random", "starts": [0, 11], "alt": null, "note": "endpoint host:port one value"}
+{"name": "zfs-list-nested", "line": 7, "text": "tank/vms/db01                  85G   488G       82G  -", "source": "random", "starts": [0, 31, 37, 48, 53], "alt": null, "note": "zfs list columns"}
+{"name": "zpool-list", "line": 3, "text": "backup  3.62T  2.90T   740G        -         -    31%    80%  1.00x  DEGRADED  -", "source": "random", "starts": [0, 8, 15, 23, 35, 45, 50, 57, 62, 69, 79], "alt": null, "note": "eleven header columns incl dashes"}
