@@ -57,35 +57,6 @@ def predict_doc(rm, cm, ex):
     return roles, starts
 
 
-def clean(tr, thresh):
-    """Confident-learning style label cleaning on the training docs: predict
-    each training row from models that did not see its family (3 inner
-    folds) and drop the rows whose label the prediction contradicts with
-    confidence >= 1-thresh. Those are mostly the engine's own mistakes."""
-    Xc, yc, kc = B.cand_xy(tr)
-    Xr, yr = B.role_xy(tr)
-    inner = {id(e): zlib.crc32((D.family(e["name"]) + "#inner").encode()) % 3 for e in tr}
-    rfam = np.array([inner[id(e)] for e in tr for f, r, _ in line_rows(e) if r >= 0])
-    cfam = np.array([inner[eid] for eid, _, _ in kc])
-    keep_c = np.ones(len(yc), bool)
-    keep_r = np.ones(len(yr), bool)
-    for k in range(3):
-        m = B.train_cands(Xc[cfam != k], yc[cfam != k])
-        p = m.predict_proba(Xc[cfam == k])[:, 1]
-        y = yc[cfam == k]
-        bad = ((y == 1) & (p < thresh)) | ((y == 0) & (p > 1 - thresh))
-        idx = np.where(cfam == k)[0]
-        keep_c[idx[bad]] = False
-        mr = B.train_roles(Xr[rfam != k], yr[rfam != k])
-        pr = mr.predict_proba(Xr[rfam == k])
-        yk = yr[rfam == k]
-        badr = pr[np.arange(len(yk)), yk] < thresh
-        idx = np.where(rfam == k)[0]
-        keep_r[idx[badr]] = False
-    return (Xr[keep_r], yr[keep_r], Xc[keep_c], yc[keep_c],
-            (~keep_r).sum(), len(yr), (~keep_c).sum(), len(yc))
-
-
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
@@ -96,6 +67,8 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=2026)
     ap.add_argument("--clean", type=float, default=0.0,
                     help="drop training labels contradicted at this confidence (e.g. 0.05)")
+    ap.add_argument("--fix-labels", action="store_true",
+                    help="drop engine field starts that fall inside a timestamp (training only)")
     ap.add_argument("--gold", default=ADJ.GOLD, help="hand-labelled lines (see adjudicated.py)")
     ap.add_argument("--adjudicated", default=ADJ.DEFAULT,
                     help="blind-judged disagreements to score against (see adjudicated.py)")
@@ -105,13 +78,8 @@ def main(argv=None):
     for k in range(K):
         tr = [e for e in exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
-        if a.clean:
-            Xr, yr, Xc, yc, dr, nr, dc, nc = clean(tr, a.clean)
-            print(f"  fold {k + 1}: cleaning dropped {dr}/{nr} role labels, {dc}/{nc} start labels",
-                  file=sys.stderr)
-        else:
-            Xr, yr = B.role_xy(tr)
-            Xc, yc, _ = B.cand_xy(tr)
+        Xr, yr, Xc, yc = B.prepare(tr, a.clean, a.fix_labels,
+                                   log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
         rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc)
         for e in te:
             preds[e["name"]] = predict_doc(rm, cm, e)

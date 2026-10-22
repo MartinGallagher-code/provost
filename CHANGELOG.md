@@ -1,5 +1,43 @@
 # provost — Changelog
 
+## 2026-10-22 — layout model: a hand-labelled answer key, and a better tree model (ml/)
+
+Development-only, as before; provost is unchanged.
+
+- **Answer keys that don't come from the engine,** committed under `ml/eval/`
+  and built and scored by `ml/adjudicated.py`:
+  - `adjudicated-2026-10-22.jsonl`: the 150 blind A/B verdicts;
+  - `gold-2026-10-22.jsonl`: 300 hand-labelled lines (150 hard, 150 random),
+    labelled by six reviewer agents on numbered candidate lists, 85 of them
+    with an acceptable alternative.
+
+  `ml/crossval.py` now scores both.
+- **Why:** the A/B key turned out to punish any model that produces a third
+  split, and agreement with the engine rewards copying its mistakes.
+- **Model changes:**
+  - **New candidate features** (`ml/features.py`): timestamp and unit joins,
+    CSV quote parity, delimiter density, alignment with the block's header,
+    right-aligned column ends, column crossings, relative gap.
+  - **Confident-learning label cleaning** and a **timestamp label fix**, as
+    `--clean` and `--fix-labels` on `train_baseline.py` and `crossval.py`
+    (`prepare()` in `train_baseline.py`).
+  - `train_baseline.py --final` trains the step-3 model on the whole corpus.
+- **Result, exact splits vs hand labels, out of fold:**
+
+  | | all 300 lines | 150 random lines |
+  |---|---:|---:|
+  | before | 53.3% | 73.3% |
+  | after | 62.0% | 76.7% |
+  | engine | 64.3% | 80.0% |
+
+  On random lines the model is level with the engine (paired 8 vs 11
+  discordant). Engine or model is right on 85% of them.
+- **Tried and dropped:** a second-pass "column consistency" model, which
+  measured the same.
+- **Docs and tests:** a new section in
+  `docs/model-2026-10-22-layout-steps1-2.md`; tests for the scoring and the
+  timestamp joins in `ml/tests/test_ml.py` (21 tests).
+
 ## 2026-10-22 — a layout model, steps 1-2: training set and first models (ml/)
 
 Development-only tooling for a small learned model of text layout. Nothing

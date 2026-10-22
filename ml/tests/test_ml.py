@@ -10,6 +10,7 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+import adjudicated as ADJ  # noqa: E402
 import corpus_labels as CL  # noqa: E402
 import dataset as D  # noqa: E402
 import synth  # noqa: E402
@@ -127,7 +128,37 @@ class Dataset(unittest.TestCase):
         self.assertAlmostEqual(rr["acc"], 2 / 3)
 
 
+class Adjudicated(unittest.TestCase):
+    def test_bracket_convention(self):
+        t = '[ 0.04] x "POST /a"'
+        self.assertEqual(ADJ.canon(t, [0, 8, 10]), [2, 8, 11])
+
+    def test_gold_score_accepts_alternative(self):
+        items = [{"text": "a b c", "starts": [0, 2], "alt": [0, 2, 4]},
+                 {"text": "a b c", "starts": [0], "alt": None}]
+        self.assertEqual(ADJ.gold_score(items, lambda it: [0, 2, 4]), (1, 2))
+
+    def test_ab_score(self):
+        items = [{"verdict": "engine", "engine": [0], "model": [0, 2]},
+                 {"verdict": "both", "engine": [0], "model": [0, 2]},
+                 {"verdict": "neither", "engine": [0], "model": [0, 2]}]
+        self.assertEqual(ADJ.score(items, lambda it: [0, 2]), (1, 2))
+
+    def test_committed_sets_load(self):
+        self.assertEqual(len(ADJ.load()), 150)
+        gold = ADJ.load(ADJ.GOLD)
+        self.assertEqual(len(gold), 300)
+        self.assertTrue(all(set(g["starts"]) <= set(candidates(g["text"])) for g in gold))
+
+
 class Features(unittest.TestCase):
+    def test_timestamp_joins(self):
+        from features import _join_kind
+        self.assertEqual(_join_kind("Jul", "11"), 1)
+        self.assertEqual(_join_kind("12:30:01", "AM"), 4)
+        self.assertEqual(_join_kind("18.44", "ms"), 5)
+        self.assertEqual(_join_kind("web", "cache"), 0)
+
     def test_shapes(self):
         ex = synth.example(random.Random(11), 0)
         rows = line_rows(ex)

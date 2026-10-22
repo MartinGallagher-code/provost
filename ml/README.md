@@ -29,6 +29,8 @@ they mean are in
 | `train_baseline.py` | gradient-boosted trees (LightGBM) | numpy, lightgbm |
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
+| `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
+| `eval/` | those two sets — committed, because they are review work, not regenerable | data |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |
 
@@ -41,6 +43,8 @@ python3 ml/synth.py -n 800 --seed 2 -o ml/data/synth-test.jsonl
 python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
     && .venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu
 .venv/bin/python ml/train_baseline.py            # ~1 min on 4 cores
+.venv/bin/python ml/crossval.py --clean 0.05 --fix-labels   # whole corpus + hand labels, ~3 min
+.venv/bin/python ml/train_baseline.py --final --clean 0.05 --fix-labels   # the model step 3 would use
 .venv/bin/python ml/train_neural.py --epochs 30  # ~15 min on 4 cores, CPU only
 python3 -m unittest discover -s ml/tests         # stdlib tests
 ```

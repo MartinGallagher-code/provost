@@ -179,6 +179,9 @@ def _block_top(lines, j):
     return k
 
 
+JOIN_KIND = 26   # index of _join_kind in cand_features' vector
+
+
 def cand_features(lines, j, window=6):
     """[(position, features)] for every candidate on line j."""
     line = lines[j]

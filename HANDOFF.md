@@ -107,6 +107,14 @@ Suites (all CI-enforced):
       not better. Synthetic data barely transfers to real tools.
     - **The labels are now the limit:** about a third of the disagreements are
       provost's own golden mistakes.
+    - **Measured against 300 hand-labelled lines** (`ml/eval/gold-*.jsonl`,
+      scored out of fold by `ml/crossval.py`):
+      - the improved tree model is right on 62% of all lines and 77% of
+        random lines;
+      - the engine scores 64% and 80%;
+      - one or the other is right on 85% of random lines.
+      - The model uses the new features plus `--clean 0.05 --fix-labels`;
+        `train_baseline.py --final` builds it.
     - **Step 3 (next):**
       - a pure-Python tree evaluator, so there is no new dependency;
       - wire it behind `PROVOST_MODEL` (off by default), only for captures the

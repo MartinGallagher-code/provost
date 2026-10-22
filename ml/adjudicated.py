@@ -127,12 +127,28 @@ def gold_ingest(a):
     print(f"{len(out)} gold lines -> {a.out}; unusable answers: {sorted(bad)}", file=sys.stderr)
 
 
+def canon(text, starts):
+    """A field that starts at an opening bracket or quote starts at the value
+    inside it: `[ 0.04]` and `"POST /"` are the same split either way, and
+    the labellers chose the inside convention."""
+    out = set()
+    for s0 in starts or []:
+        k = s0
+        while k < len(text) and text[k] in "[(\"'{<" :
+            k += 1
+        while k < len(text) and text[k] == " ":
+            k += 1
+        out.add(k if k < len(text) else s0)
+    return sorted(out)
+
+
 def gold_score(items, predict):
     """Exact-split accuracy against the hand labels (either answer counts)."""
     right = 0
     for it in items:
-        p = sorted(predict(it) or [])
-        right += p == it["starts"] or (it["alt"] is not None and p == it["alt"])
+        t = it["text"]
+        p = canon(t, predict(it))
+        right += p == canon(t, it["starts"]) or (it["alt"] is not None and p == canon(t, it["alt"]))
     return right, len(items)
 
 

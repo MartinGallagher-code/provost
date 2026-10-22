@@ -186,6 +186,94 @@ Two readings:
    question for step 3 is whether the gate can tell which one to trust. That
    is measured on round 4, not here.
 
+## Improving the models: a hand-labelled answer key first
+
+Scoring changes against the engine's labels rewards copying the engine,
+mistakes included. The first round of new features showed this directly:
+agreement with the engine rose from 76.4% to 77.8%, while the A/B answer key
+above *fell* from 78 to 66 of 144. That key only knows the two splits on its
+sheet, and the new model produced a third split on 44 of them.
+
+**So the models are now scored against 300 hand-labelled lines**
+(`ml/eval/gold-2026-10-22.jsonl`):
+
+- the 150 hard lines from the blind sheet, plus 150 lines drawn uniformly at
+  random from all labelled corpus lines;
+- six reviewer agents marked each line's true field starts on a numbered
+  candidate list, with a second acceptable split where a line is genuinely
+  ambiguous (85 of 300);
+- a field starting at `[`, `(` or a quote counts the same as one starting at
+  the value inside, because the labellers chose the inside convention.
+
+Every model below is scored out of fold (5-fold by family), so no line is
+scored by a model that saw its family:
+
+| exact split vs hand labels | 150 random lines | 150 hard lines | all 300 |
+|---|---:|---:|---:|
+| **engine (what provost does today)** | **80.0%** | 48.7% | **64.3%** |
+| tree model, original features | 73.3% | 33.3% | 53.3% |
+| + new features | 75.3% | 43.3% | 59.3% |
+| + label cleaning (0.05) | 78.0% | 44.0% | 61.0% |
+| **+ timestamp label fix (final)** | 76.7% | 47.3% | 62.0% |
+| either engine or final model right | 85.3% | 71.3% | 78.3% |
+
+The "hard lines" are where the engine and the original model disagreed, so
+both score low there by construction. The random lines are the unbiased
+measure.
+
+What was added, and why:
+
+- **New candidate features**, aimed at the audit's error kinds:
+  - whether the boundary falls inside a timestamp (`Jul 11`, `11 08:01:00`,
+    `08:01:00 AM`, `21:18:07 UTC`, `10:00:00 2026`) or between a number and
+    its unit;
+  - whether the position is inside a quoted CSV cell;
+  - comma, tab and pipe density for the line and its block;
+  - alignment with the block's first line (usually the header);
+  - right-aligned column ends, and other lines' values crossing this column;
+  - the gap relative to the line's widest gap.
+
+  This was the largest gain: +18 lines of 300.
+- **Label cleaning** (`--clean 0.05`, confident learning). Training labels
+  that models trained on other families contradict with 95% confidence are
+  dropped: about 7% of role labels and 2% of start labels. That cost
+  agreement with the engine but gained 5 lines on the hand labels. A
+  threshold of 0.15 measured the same.
+- **A timestamp label fix** (`--fix-labels`), training only. Engine field
+  starts that fall inside a timestamp are dropped. Every `sar`-family golden
+  splits `12:30:01 | AM`, so cross-family cleaning can never see it. The gain
+  is +3 lines, within noise; it stays because the reason is sound.
+- **Tried and dropped:** a second pass that reads the first pass's
+  predictions for neighbouring lines, so a column is decided as a column.
+  It measured the same (182 of 300), so the code was removed.
+
+**Where this leaves the model:**
+
+- **Random lines:** the final model is level with the engine. Paired on
+  those lines, it alone is right on 8 and the engine alone on 11, which is
+  not a significant difference.
+- **All 300 lines:** the engine is 2.3 points ahead.
+- **The two are complementary:** on random lines, one or the other is right
+  85% of the time.
+
+**What's still wrong**, from the final model's misses on random lines:
+
+- prose and `key:value` runs where the hand labels and engine conventions
+  differ (`rto:212` as one field or two, `Kubernetes control plane is running
+  at` as one field);
+- tree and bar decorations (`│████░░│`, `[====>   ]`);
+- a few real misses: `ls -l` user, group and size merged, `top level` split,
+  `12:30:01 AM` still split in `pidstat` and `mpstat`.
+
+**Caveats:**
+
+- The hand labels are agent judgements, not people's.
+- The new features were designed after the 40-line audit and before the hand
+  labels existed. The timestamp fix was confirmed, though not designed, on
+  them.
+- About six configurations have now been compared on these 300 lines.
+- Round 4 remains unread, for step 3.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen
