@@ -107,6 +107,7 @@ PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any l
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
+PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
@@ -164,6 +165,7 @@ _validate_settings () {
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
+    [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
 
@@ -885,6 +887,42 @@ _auto_multi () {
     return 0
 }
 
+# LAYOUT MODEL (PROVOST_MODEL, --model / --no-model). Called by _ingest when
+# the quality gate would still hold the single parse (after AUTO-MULTI). It
+# runs the explicit-only layout-model strategy and adopts its table INSTEAD of
+# holding the capture only when the engine's own measures of that table pass
+# the gate — coverage >= PROVOST_MIN_COVERAGE, consistency (when judged) >=
+# PROVOST_MIN_CONSISTENCY — and it keeps at least as many lines as the held
+# parse. Otherwise it returns 1 with the reason in lm_note. Works on
+# _ingest's locals (dynamic scope): reads engine, eargs, body, tmp, cov;
+# on success replaces wide.tsv and sets strategy, conf, cov, tcons.
+_layout_model () {
+    local lo="$tmp/lm.tsv" lmeta="$tmp/lm.meta" ls="" lc="" lv="" lt=""
+    _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+        ${eargs[@]+"${eargs[@]}"} -s layout-model --emit-meta -f tsv --max-strategies 1 "$body" \
+        >"$lo" 2>"$lmeta" || true
+    IFS=$'\t' read -r ls lc lv lt < <(awk -F'\t' \
+        '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$lmeta" 2>/dev/null) || true
+    if [[ "$ls" != layout-model || ! -s "$lo" ]] || ! grep -q . "$lo"; then
+        lm_note="it found nothing to file (it needs python3 and declines inputs over 600 lines)"; return 1
+    fi
+    [[ "$lc" =~ ^[0-9]{1,9}$ ]] || lc=0
+    [[ "$lv" =~ ^[0-9]{1,3}$ ]] || { lm_note="its line coverage is not measured"; return 1; }
+    [[ "$lt" =~ ^[0-9]{1,3}$ ]] || lt=""
+    if (( PROVOST_MIN_COVERAGE > 0 && lv < PROVOST_MIN_COVERAGE )); then
+        lm_note="its table keeps $lv% of the lines, <$PROVOST_MIN_COVERAGE%"; return 1
+    fi
+    if [[ -n "$lt" ]] && (( PROVOST_MIN_CONSISTENCY > 0 && lt < PROVOST_MIN_CONSISTENCY )); then
+        lm_note="its columns are $lt% type-consistent, <$PROVOST_MIN_CONSISTENCY%"; return 1
+    fi
+    if [[ -n "$cov" ]] && (( lv < cov )); then
+        lm_note="its table keeps $lv% of the lines, fewer than the held parse ($cov%)"; return 1
+    fi
+    cp "$lo" "$tmp/wide.tsv"
+    strategy=layout-model; conf="$lc"; cov="$lv"; tcons="$lt"
+    return 0
+}
+
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
 #   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
@@ -933,6 +971,10 @@ _ingest () {
     # declined (the capture is then held as before); am_cov = the coverage of
     # all the datasets together.
     local am_reason="" am_note="" am_cov="" am_kind="" single_strategy="" single_conf=""
+    # LAYOUT MODEL state (see _layout_model): lm_reason = why the gate held the
+    # engine's parse that the model's table replaced; lm_note = why the model
+    # was declined; single_cov / single_cons = the held parse's measures.
+    local lm_reason="" lm_note="" single_cov="" single_cons=""
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
@@ -999,6 +1041,12 @@ _ingest () {
         # second engine run — a parse that passes is never re-run.
         if [[ "$PROVOST_AUTO_MULTI" == 1 && ( "$reason" == low-coverage* || "$reason" == low-consistency* ) ]]; then
             if _auto_multi; then am_reason="$reason"; reason=""; fi
+        fi
+        # LAYOUT MODEL: still held after that? Try the learned layout model's
+        # table, filed only if it passes the same gate (see _layout_model).
+        if [[ "$PROVOST_MODEL" == 1 && -z "$am_reason" && ( "$reason" == low-coverage* || "$reason" == low-consistency* ) ]]; then
+            single_cov="$cov"; single_cons="$tcons"
+            if _layout_model; then lm_reason="$reason"; reason=""; fi
         fi
         if [[ -z "$am_reason" ]]; then
             local dsname content="$tmp/content.tsv"
@@ -1098,6 +1146,14 @@ _ingest () {
             [[ -n "$tcons" && -z "$reason" ]] && printf 'consistency\t%s\n' "$tcons"
         fi
         [[ -n "$am_note" ]] && printf 'auto_multi\t%s\n' "$(_meta_safe "declined: $am_note")"
+        if [[ -n "$lm_reason" ]]; then
+            printf 'layout_model\t%s\n' "$(_meta_safe "filed: the engine's parse was $lm_reason")"
+            printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
+            printf 'single_confidence\t%s\n' "$single_conf"
+            [[ -n "$single_cov" ]] && printf 'single_coverage\t%s\n' "$single_cov"
+            [[ -n "$single_cons" ]] && printf 'single_consistency\t%s\n' "$single_cons"
+        fi
+        [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
@@ -1130,6 +1186,7 @@ _ingest () {
     if [[ -n "$reason" ]]; then
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
         [[ -n "$am_note" ]] && info "      segmenting it did not help: $am_note."
+        [[ -n "$lm_note" ]] && info "      the layout model did not help: $lm_note."
     elif [[ ${#out_names[@]} -gt 1 ]]; then
         if [[ -n "$am_reason" ]]; then
             ok "$id: → ${#out_names[@]} datasets, rows $idrange — segmented: the single parse was $am_reason; the ${#out_names[@]} parts keep $am_cov%:"
@@ -1144,6 +1201,7 @@ _ingest () {
         done
     else
         ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf${cov:+, coverage $cov%}) — $((fields-1)) field(s)."
+        [[ -n "$lm_reason" ]] && info "      the engine's parse ($single_strategy) was $lm_reason; the layout model's table passes the gate."
         # Low line coverage: the parse kept only part of the input. Say so —
         # silently filing a fragment is the failure this guards against.
         if [[ -n "$cov" ]] && (( cov < 60 )); then
@@ -1357,6 +1415,9 @@ options:
   --no-auto-multi         hold a parse the quality gate rejects for triage
                           without first trying to segment it (--auto-multi: try;
                           the default, PROVOST_AUTO_MULTI)
+  --model                 before holding such a parse, try the learned layout
+                          model (needs python3; --no-model: don't, the default,
+                          PROVOST_MODEL)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1378,6 +1439,9 @@ options:
   --no-auto-multi         hold a parse the quality gate rejects for triage
                           without first trying to segment it (--auto-multi: try;
                           the default, PROVOST_AUTO_MULTI)
+  --model                 before holding such a parse, try the learned layout
+                          model (needs python3; --no-model: don't, the default,
+                          PROVOST_MODEL)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1445,6 +1509,8 @@ _parse_capture_opts () {
             --multi) PROVOST_MULTI=1; shift ;;
             --auto-multi) PROVOST_AUTO_MULTI=1; shift ;;
             --no-auto-multi) PROVOST_AUTO_MULTI=0; shift ;;
+            --model) PROVOST_MODEL=1; shift ;;
+            --no-model) PROVOST_MODEL=0; shift ;;
             --async) _O_ASYNC=1; shift ;;
             --sync|--wait) _O_ASYNC=0; shift ;;
             -h|--help) _cmd_help "$verb" ;;
@@ -2148,6 +2214,9 @@ ENV
     PROVOST_AUTO_MULTI        1 = when the quality gate would hold a parse, try
                               segmenting the input first (default 1; 0 = off,
                               same as --no-auto-multi). See AUTO-MULTI.
+    PROVOST_MODEL             1 = when the quality gate would still hold a parse,
+                              try the learned layout model (default 0; same as
+                              --model; needs python3). See LAYOUT MODEL.
     PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
@@ -2216,6 +2285,22 @@ AUTO-MULTI (segmenting a weak parse)
     whether a given capture segments or not. Only captures the gate would
     hold pay for the second engine run. --no-auto-multi or
     PROVOST_AUTO_MULTI=0 turns it off.
+
+LAYOUT MODEL (a learned fallback for a weak parse)
+    With PROVOST_MODEL=1 (--model), a capture the quality gate would still
+    hold after AUTO-MULTI gets one more try: the learned layout model
+    (extract/model/, the explicit-only 'layout-model' strategy). It labels
+    each line's role and where its fields start, decides each table's
+    columns once for all its rows, and cuts every value from the input.
+    The engine measures its table with the same line coverage and column
+    consistency as any parser; it is filed (strategy 'layout-model') only
+    when it passes the gate and keeps at least as many lines as the parse
+    the gate held, and only for an input that is one table or one
+    key/value record. Otherwise the capture is held exactly as before. meta.tsv
+    records 'layout_model' (filed or declined, and why) and the held
+    parse's 'single_strategy' / 'single_coverage'. It needs python3 (plain,
+    no packages) and declines inputs over 600 lines. Only held captures pay
+    for it.
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:

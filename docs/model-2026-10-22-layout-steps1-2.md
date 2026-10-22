@@ -349,6 +349,103 @@ agents after every decision above was made, and scored once
   Use it where the gate holds the engine's parse, and measure that on
   round 4.
 
+## Round 4: the ceiling, a whole-table decoder, and an arbiter
+
+**The ceiling.** Two new labellers independently re-labelled 100 random
+lines that already had labels: 50 from the fresh test set and 50 from the
+random half of the dev set (`ml/eval/agreement-2026-10-22.jsonl`).
+
+- They gave the same main answer on **97 of 100** lines.
+- They shared an acceptable answer on all 100.
+
+So the task is well defined and about 97% is reachable. The caveat: every
+labeller is an AI agent of the same kind, so people might agree less often.
+
+**Whole-table decoder (`ml/decode.py`, stdlib).** Each run of `row` lines
+gets one column decision from the summed log-odds of all its rows:
+
+- **slot mode**, when the block has gutters: each slot votes once, so
+  right-aligned numbers vote together even though their starts differ;
+- **token mode**, when it has none (single-space tables): rows with the same
+  token count vote per token index.
+
+A split inside a slot survives only at p > 0.9. The first version made a
+leading `|` its own empty field (approved outputs fell to 78.2%); with that
+fixed:
+
+| | approved outputs | hand labels, 300 |
+|---|---:|---:|
+| model | 85.2% | 196 |
+| model + decoder | 85.9% (27 lines better, 15 worse) | 194 |
+
+That's a small net gain. It stays on because a table filed by provost needs
+the same columns on every row, which is what the decoder enforces.
+
+**Arbiter (`ml/arbiter.py`).** A 14-input logistic regression picks, per
+line, the engine's split or the model's. Its inputs:
+
+- each split's log-likelihood under the model's probabilities;
+- the field counts, and whether neighbouring lines have the same count;
+- the engine's confidence, coverage and consistency for the capture.
+
+It is trained on the hand-labelled lines where exactly one of the two is
+right (about 68 per fold, 85 for the final model).
+
+| | hand labels, out of fold (300) | fresh test (150) |
+|---|---:|---:|
+| engine | 193 | 126 (84.0%) |
+| model + decoder | 194 | 130 (86.7%) |
+| **arbiter** | **210** | **133 (88.7%)** |
+| ceiling (labeller agreement) | | ~97% |
+
+This is the fresh test's second use. The arbiter never saw it, and only the
+decoder was chosen since its first use.
+
+## Step 3: in provost, behind `--model`
+
+**How it's wired:**
+
+- **The runtime** (`extract/model/layout_model.py`, stdlib) walks the trees
+  exported by `ml/export_model.py`: a 0.68 MB gz, 1,800 role trees and 300
+  start trees, matching LightGBM exactly. It runs the whole-table decoder
+  and builds the engine's `entryN.col value` records.
+  - It handles one table (header names mapped to rows by position, with
+    right-aligned ends counting, and unnamed columns positional) or one
+    key/value record.
+  - It **declines** anything else (a mixed report is auto-multi's job) and
+    inputs over 600 lines.
+- **The `layout-model` strategy** is explicit-only, like kv-report, so the
+  ordinary ranking never sees it. The corpus is unchanged: 3,584 / 0.
+- **In `provost`:** when the gate still holds a capture after auto-multi and
+  `PROVOST_MODEL=1`, the strategy runs. Its table is filed only if the
+  engine's coverage and consistency for it pass the gate and it keeps at
+  least as many lines as the held parse.
+- **The arbiter isn't used here:** on this path the engine's parse has
+  already been rejected, so there is nothing to arbitrate.
+
+**Speed:**
+
+- about 0.1 s for a typical capture, on held captures only;
+- 2 s per 500 lines, capped by the 600-line limit.
+
+**Measured once on round 4** (postscript to
+`docs/benchmark-2026-10-20-generalisation-round4.md`):
+
+- 15 held captures became 14 held and 1 filed (023 infocmp, PARTIAL);
+- no wrong table was filed;
+- 13 of the declines are mixed multi-section reports.
+
+On round 3 (development), it was likewise 1 filed, a PARTIAL, out of 16.
+
+**Conclusion:**
+
+- **It's safe, and rarely used.** The line-level accuracy shown above barely
+  reaches users through a whole-document fallback, because what the gate
+  holds is almost all mixed reports.
+- **Next:** run the model **per segment inside auto-multi**, so it reads the
+  parts the engine can't. Use the **arbiter** where both the engine and the
+  model produce a table.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen

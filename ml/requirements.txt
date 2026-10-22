@@ -3,6 +3,7 @@
 # synth.py) and their tests are stdlib-only.
 numpy>=1.24
 lightgbm>=4.0
+scikit-learn>=1.3   # arbiter.py only
 # CPU wheels are enough (and ~10x smaller):
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch>=2.1

@@ -22,6 +22,7 @@ import lightgbm as lgb
 import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "extract", "model"))
 import dataset as D  # noqa: E402
 from features import JOIN_KIND, cand_rows, line_rows  # noqa: E402
 from layout import PREDICTED  # noqa: E402

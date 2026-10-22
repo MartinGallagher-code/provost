@@ -66,7 +66,7 @@ def gold_sheet(a):
     lines, each with numbered field-start candidates; reviewers answer with
     the numbers that start a field."""
     import random
-    sys.path.insert(0, HERE)
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), "extract", "model"))
     from layout import candidates
     corpus = {}
     for ln in open(a.corpus, encoding="utf-8"):

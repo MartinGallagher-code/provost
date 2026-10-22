@@ -128,4 +128,7 @@ jobs:
           provost ls | grep aligned-columns
           provost run df -h
           provost show df
+          # the layout model ships in the wheel: a gated capture it can read
+          provost --model tests/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt 2>&1 \
+              | grep "strategy layout-model"
 

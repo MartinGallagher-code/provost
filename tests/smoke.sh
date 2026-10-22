@@ -11,7 +11,7 @@ set -euo pipefail
 # bundled trees — that is asserted below too.)
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR \
-      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY
+      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -412,6 +412,35 @@ printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nR
 am_out="$(PROVOST_WORKSPACE="$AWS" "$PROVOST" --sync "$COV_IN.frag" 2>&1)"
 check "a split into fragments is declined and held" "segmenting it did not help: the parts are fragments" "$am_out"
 rm -f "$COV_IN.frag"
+
+# LAYOUT MODEL (--model / PROVOST_MODEL=1): a capture the gate still holds
+# after AUTO-MULTI gets the learned layout model's table, filed only when that
+# table passes the same gate. Off by default. Needs python3.
+check "PROVOST_MODEL must be 0 or 1" "2" "$(PROVOST_MODEL=2 rc_of "$PROVOST" --sync "$COV_IN")"
+check "--model is documented" "--model" "$("$PROVOST" inject --help 2>&1)"
+if command -v python3 >/dev/null 2>&1; then
+    LM_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
+    LWS="$(mktemp -d)/.model"
+    lm_out="$(PROVOST_WORKSPACE="$LWS" "$PROVOST" --sync "$LM_IN" 2>&1)"
+    check "without --model the gated capture is held" "queued in 'unsorted'" "$lm_out"
+    lm_out="$(PROVOST_WORKSPACE="$LWS" "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check "--model files the layout model's table when it passes the gate" "strategy layout-model" "$lm_out"
+    check "the ok line says why the model was used" "the layout model's table passes the gate" "$lm_out"
+    lm_meta="$(cat "$LWS/captures/c0002/meta.tsv")"
+    check "meta records the layout model" "layout_model	filed: the engine's parse was low-coverage" "$lm_meta"
+    check "meta keeps the held parse's strategy" "single_strategy	block-records" "$lm_meta"
+    check "the model's values are cut from the input" "FILEPATH=/usr/bin/ar" "$(cat "$LWS/datasets/layout-model.tsv")"
+    # Declined: the model's table would keep too little; held as before, with why.
+    printf '%s\n' '-- Cache values' '// Upper bound on bins per run' 'BINPACK_MAX_BINS:STRING=64' '' \
+        '// Collect allocation statistics' 'BINPACK_WITH_STATS:BOOL=ON' '' '// Path to a program.' \
+        'CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line' '' '// Path to a program.' 'CMAKE_AR:FILEPATH=/usr/bin/ar' '' \
+        '// Flags used by the C compiler during all build types.' 'CMAKE_C_FLAGS:STRING=' '' \
+        '// Enable/Disable output of compile commands during generation.' 'CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON' \
+        > "$COV_IN.small2"
+    lm_out="$(PROVOST_WORKSPACE="$LWS" PROVOST_MODEL=1 "$PROVOST" --sync "$COV_IN.small2" 2>&1)"
+    check "a model table that fails the gate is declined" "the layout model did not help:" "$lm_out"
+    rm -f "$COV_IN.small2"
+fi
 rm -f "$COV_IN"
 
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a

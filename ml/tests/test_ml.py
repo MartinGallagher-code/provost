@@ -10,9 +10,11 @@ import sys
 import unittest
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+sys.path.insert(1, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "extract", "model"))
 import adjudicated as ADJ  # noqa: E402
 import corpus_labels as CL  # noqa: E402
 import dataset as D  # noqa: E402
+import decode as DEC  # noqa: E402
 import synth  # noqa: E402
 from features import NBASE, cand_rows, line_rows  # noqa: E402
 from layout import PREDICTED, ROLES, candidates, fields  # noqa: E402
@@ -149,6 +151,29 @@ class Adjudicated(unittest.TestCase):
         gold = ADJ.load(ADJ.GOLD)
         self.assertEqual(len(gold), 300)
         self.assertTrue(all(set(g["starts"]) <= set(candidates(g["text"])) for g in gold))
+
+
+class Decode(unittest.TestCase):
+    def test_slot_vote_keeps_a_column_whole(self):
+        # one row wants to split "5 min ago"; the other rows outvote it
+        lines = ["web   5 min ago   ok", "db    2 h ago     ok", "api   1 d ago     ok"]
+        roles = ["row"] * 3
+        probs = [{0: .99, 6: .99, 8: .7, 12: .1, 18: .99},
+                 {0: .99, 6: .99, 8: .2, 10: .2, 18: .99},
+                 {0: .99, 6: .99, 8: .2, 10: .2, 18: .99}]
+        out = DEC.decode(lines, roles, probs)
+        self.assertEqual(out[0], [0, 6, 18])
+
+    def test_token_mode_for_single_space_tables(self):
+        lines = ["vim/stable 2:9.0 amd64", "bash/stable 5.2.15 amd64", "curl/stable 7.88 amd64x"]
+        roles = ["row"] * 3
+        probs = [{0: .99, 11: .9, 17: .3}, {0: .99, 12: .3, 19: .9}, {0: .99, 12: .9, 17: .9}]
+        out = DEC.decode(lines, roles, probs)
+        self.assertEqual(out[0], [0, 11, 17])
+        self.assertEqual(out[1], [0, 12, 19])
+
+    def test_short_blocks_are_left_alone(self):
+        self.assertEqual(DEC.decode(["a b", "c d"], ["row", "row"], [{0: .9, 2: .4}, {0: .9, 2: .4}]), {})
 
 
 class Features(unittest.TestCase):
