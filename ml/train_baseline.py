@@ -78,19 +78,22 @@ def score_rule(rule, examples):
     return D.bound_report([g for _, _, g in gold], [rule(e["lines"][j]) for e, j, _ in gold])
 
 
-def run(name, train, tests, save=None):
+def run(name, tag, train, tests, save=None):
     print(f"\n## trained on {name} ({len(train)} docs)")
     Xr, yr = role_xy(train)
     Xc, yc, _ = cand_xy(train)
     rm, cm = train_roles(Xr, yr), train_cands(Xc, yc)
     for tname, te in tests:
         Xt, yt = role_xy(te)
-        print(f"  {tname:13} roles   " + D.fmt_roles(D.role_report(list(yt), list(rm.predict(Xt)))))
+        g, p = list(yt), list(rm.predict(Xt))
+        print(f"  {tname:13} roles   " + D.fmt_roles(D.role_report(g, p), g, p))
         print(f"  {tname:13} starts  " + D.fmt_bounds(score_bounds(cm, te)))
     if save:
         os.makedirs(save, exist_ok=True)
-        rm.booster_.save_model(os.path.join(save, "baseline-roles.txt"))
-        cm.booster_.save_model(os.path.join(save, "baseline-starts.txt"))
+        for m, part in ((rm, "roles"), (cm, "starts")):
+            path = os.path.join(save, f"baseline-{tag}-{part}.txt")
+            m.booster_.save_model(path)
+            print(f"  saved {path} ({os.path.getsize(path)} bytes)")
     return rm, cm
 
 
@@ -116,9 +119,9 @@ def main(argv=None):
         print(f"  {tname:13} starts  split-on-whitespace: " + D.fmt_bounds(score_rule(D.rule_ws, te)))
         print(f"  {tname:13} starts  split-on-2+-spaces:  " + D.fmt_bounds(score_rule(D.rule_gap2, te)))
 
-    run("synthetic only", syn, tests)
-    run("corpus-train only", ctr, tests)
-    run("corpus-train + synthetic", ctr + syn, tests, save=a.save)
+    run("synthetic only", "synth", syn, tests)
+    run("corpus-train only", "corpus", ctr, tests, save=a.save)
+    run("corpus-train + synthetic", "mix", ctr + syn, tests, save=a.save)
 
 
 if __name__ == "__main__":

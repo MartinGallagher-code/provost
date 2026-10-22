@@ -216,14 +216,6 @@ def evaluate(model, examples):
     return D.role_report(gold_r, pred_r), D.bound_report(gold_s, pred_s), (gold_r, pred_r)
 
 
-def lenient(gold_r, pred_r):
-    """Role accuracy with row/kv treated as one class (a two-field line can
-    honestly be either, depending on the shape the golden took)."""
-    row, kv = PREDICTED.index("row"), PREDICTED.index("kv")
-    f = lambda x: row if x == kv else x  # noqa: E731
-    return sum(f(g) == f(p) for g, p in zip(gold_r, pred_r)) / max(1, len(gold_r))
-
-
 def save_npz(model, path):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
     np.savez_compressed(path, **{k: v.detach().numpy().astype(np.float16)
@@ -257,7 +249,7 @@ def main(argv=None):
     train(model, ctr + syn, a.epochs, val)
     for tname, te in [("corpus-test", cte)] + ([("synth-test", syn_te)] if syn_te else []):
         rr, br, (g, p) = evaluate(model, te)
-        print(f"  {tname:13} roles   " + D.fmt_roles(rr) + f"  lenient {lenient(g, p):.3f}")
+        print(f"  {tname:13} roles   " + D.fmt_roles(rr, g, p))
         print(f"  {tname:13} starts  " + D.fmt_bounds(br))
     if a.save:
         save_npz(model, a.save)

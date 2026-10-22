@@ -3,13 +3,26 @@
 ## 2026-10-22 — a layout model, steps 1-2: training set and first models (ml/)
 
 Development-only tooling for a small learned model of text layout. Nothing
-ships and provost's behaviour is unchanged.
+ships, and provost's behaviour is unchanged.
 - **Training set:** `ml/corpus_labels.py` derives per-line roles (header, row,
   cont, kv, section, skip, blank) and field-start offsets from the corpus by
   lining each golden's cells back up with the raw lines. `ml/synth.py`
   generates labelled synthetic layouts. The vocabulary is in `ml/layout.py`.
+- **Models:** `ml/train_baseline.py` (LightGBM on hand-made features) and
+  `ml/train_neural.py` (LayoutNet, a 53k-parameter CNN+GRU over the character
+  grid). `ml/dataset.py` holds the held-out-family split, the scoring and the
+  rule baselines; `ml/features.py` the features.
+- **Result on held-out tool families:**
+  - Lines split exactly right: trees 77%, LayoutNet 69%, splitting on spaces
+    54%.
+  - Line roles: trees 87%.
+  - A hand audit of 40 disagreements found 11 golden errors and 8 ambiguous
+    cases. Details: `docs/model-2026-10-22-layout-steps1-2.md` (added to the
+    mkdocs nav).
 - **Tests:** `ml/tests/test_ml.py` (stdlib), run in the CI `quick-checks` job.
-- `ml/data/` and `ml/models/` are gitignored. CLAUDE.md lists `ml/` and its test.
+- **Repo housekeeping:** `ml/data/` and `ml/models/` are gitignored. CLAUDE.md
+  lists `ml/` and its test. HANDOFF has next step 0b (step 3: wire the trees in
+  behind `PROVOST_MODEL`).
 
 ## 2026-10-20 — round 4 measures the auto-multi fallback (once)
 

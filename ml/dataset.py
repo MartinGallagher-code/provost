@@ -57,6 +57,14 @@ def role_report(gold, pred):
     return {"n": n, "acc": acc, "macro_f1": sum(present) / max(1, len(present)), "per": per}
 
 
+def lenient(gold, pred):
+    """Role accuracy with row/kv as one class: a two-field `key  value` line
+    is honestly either, depending on the shape the golden took."""
+    row, kv = PREDICTED.index("row"), PREDICTED.index("kv")
+    f = lambda x: row if x == kv else x  # noqa: E731
+    return sum(f(g) == f(p) for g, p in zip(gold, pred)) / max(1, len(gold))
+
+
 def bound_report(lines_gold, lines_pred):
     """Per line: sets of starts. Candidate-level F1 and whole-line exact match."""
     tp = fp = fn = exact = 0
@@ -71,9 +79,10 @@ def bound_report(lines_gold, lines_pred):
             "f1": 2 * prec * rec / (prec + rec) if prec + rec else 0.0}
 
 
-def fmt_roles(r):
+def fmt_roles(r, gold=None, pred=None):
     per = "  ".join(f"{k}={v[0]:.2f}" for k, v in r["per"].items() if v[1])
-    return f"acc {r['acc']:.3f}  macro-F1 {r['macro_f1']:.3f}   [{per}]  (n={r['n']})"
+    len_ = f"  lenient {lenient(gold, pred):.3f}" if gold is not None else ""
+    return f"acc {r['acc']:.3f}  macro-F1 {r['macro_f1']:.3f}   [{per}]  (n={r['n']}){len_}"
 
 
 def fmt_bounds(r):
