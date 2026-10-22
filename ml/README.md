@@ -28,6 +28,7 @@ they mean are in
 | `features.py` | hand-made features for the tree baseline | stdlib |
 | `train_baseline.py` | gradient-boosted trees (LightGBM) | numpy, lightgbm |
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
+| `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |
 
