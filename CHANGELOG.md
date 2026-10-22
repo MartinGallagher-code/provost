@@ -1,5 +1,33 @@
 # provost — Changelog
 
+## 2026-10-22 — layout model, round 3: approved outputs, token-consistency features, and a fresh test (ml/)
+
+Development-only; provost is unchanged.
+
+- **The maintainer's validated list as a yardstick.**
+  `docs/archive/review-validated-cumulative.txt` (409 approved tools, 332 in
+  the training set, 1,755 lines) is now scored out of fold by
+  `ml/crossval.py` ("maintainer-approved tools").
+- **New `ml/train_baseline.py prepare()` options**, also on `crossval.py`:
+  - `--trusted-weight`: approved tools' labels are never cleaned and get
+    extra weight;
+  - `--hand` / `--hand-weight`: hand labels as training data, restricted to
+    each fold's training families;
+  - `--cand-params`: LightGBM overrides.
+
+  None of these measurably helped, so the final model uses none of them.
+- **Token-consistency candidate features** (`ml/features.py`), aimed at
+  tables separated by single spaces: whitespace-token count, how many
+  neighbouring lines share it, token index, and token-type agreement across
+  those lines. Approved outputs went from 83.0% to 84.4%.
+- **Fresh test set:** `ml/eval/test-2026-10-22.jsonl`, 150 random lines
+  labelled after all decisions and scored once. Final model 86.0% vs engine
+  84.0% (paired 11 vs 8): level. Earlier model versions were also level, so
+  the large dev-set gains reported in the previous entry were mostly a
+  selection effect of the "hard" lines. Engine or model is right on 91%.
+- **Docs:** `docs/model-2026-10-22-layout-steps1-2.md` (new round-3 section),
+  HANDOFF.
+
 ## 2026-10-22 — layout model: a hand-labelled answer key, and a better tree model (ml/)
 
 Development-only, as before; provost is unchanged.

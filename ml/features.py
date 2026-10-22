@@ -170,6 +170,24 @@ def _join_kind(prev_tok, cur):
     return 0
 
 
+def _tclass(tok):
+    """Coarse token type: number, number+unit, word, path/url, hex/hash,
+    bracketed, other."""
+    if NUM.match(tok):
+        return 0
+    if re.match(r"^[-+]?\d[\d.,]*[A-Za-z/%]+$", tok):
+        return 1
+    if re.match(r"^[A-Za-z][A-Za-z_-]*:?$", tok):
+        return 2
+    if "/" in tok:
+        return 3
+    if re.match(r"^(0x)?[0-9a-fA-F]{6,}$", tok):
+        return 4
+    if tok[:1] in "[(<{":
+        return 5
+    return 6
+
+
 def _block_top(lines, j):
     """First line of the run of non-blank lines that contains line j (a
     header, when the block has one)."""
@@ -209,6 +227,15 @@ def cand_features(lines, j, window=6):
     doc_tab = sum(1 for o in blk if "\t" in o) / len(blk)
     gap_sizes = [len(m) for m in re.findall(r"(?<=\S) +(?=\S)", line)] or [0]
     max_gap = max(gap_sizes)
+    # v3: whitespace-token consistency with the block. A table separated by
+    # single spaces (apt list, /proc/locks, arp -a) isn't visually aligned,
+    # but its lines have the same number of tokens and token t has the same
+    # type on every line.
+    toks = line.split()
+    tstarts = token_starts(line)
+    ctx_toks = [o.split() for o in ctx]
+    same_n = [t for t in ctx_toks if len(t) == len(toks)]
+    frac_same_n = len(same_n) / max(1, len(ctx_toks))
     out = []
     for k, i in enumerate(cands):
         g = 0
@@ -234,6 +261,20 @@ def cand_features(lines, j, window=6):
         cross = sum(1 for o in ctx if i >= 1 and i < len(o) and not o[i - 1].isspace()
                     and not o[i].isspace()) / n
         quotes = line[:i].count('"') % 2
+        is_tok = i in tstarts
+        t_idx = tstarts.index(i) if is_tok else -1
+        if is_tok and same_n:
+            mine = _tclass(toks[t_idx])
+            prev_mine = _tclass(toks[t_idx - 1]) if t_idx > 0 else -1
+            tok_type_agree = sum(1 for t in same_n if _tclass(t[t_idx]) == mine) / len(same_n)
+            prev_type_agree = sum(1 for t in same_n if t_idx > 0 and _tclass(t[t_idx - 1]) == prev_mine) \
+                / len(same_n)
+            # the pair (prev, this) differs in type on most lines: a column edge
+            pair_differs = sum(1 for t in same_n if t_idx > 0 and _tclass(t[t_idx]) != _tclass(t[t_idx - 1])) \
+                / len(same_n)
+        else:
+            tok_type_agree = prev_type_agree = pair_differs = -1.0
+        url_cont = float(i >= 1 and line[i - 1] == ":" and line.startswith("//", i))
         out.append((i, [
             k, len(cands), i / max(1, len(line)), float(k == 0), g, float(before == "\t"),
             _cls(line[i - 1] if i else ""), _cls(before), _cls(line[i]),
@@ -246,6 +287,9 @@ def cand_features(lines, j, window=6):
             float(i in top_c), float(bool(top) and i >= 1 and i - 1 < len(top) and top[i - 1] == " "),
             float(bool(top) and 1 <= i < len(top) and not top[i - 1].isspace() and not top[i].isspace()),
             float(top_j == j), end_al, cross, g / max(1, max_gap), max_gap,
+            # v3
+            len(toks), frac_same_n, float(is_tok), t_idx, tok_type_agree, prev_type_agree,
+            pair_differs, url_cont,
         ]))
     return out
 

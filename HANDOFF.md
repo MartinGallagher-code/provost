@@ -115,6 +115,14 @@ Suites (all CI-enforced):
       - one or the other is right on 85% of random lines.
       - The model uses the new features plus `--clean 0.05 --fix-labels`;
         `train_baseline.py --final` builds it.
+    - **Fresh test (150 random lines, scored once; `ml/eval/test-*.jsonl`):**
+      model 86.0%, engine 84.0%, so the two are level. One or the other is
+      right on 91%.
+      - The large dev-set gains were mostly a selection effect: the "hard"
+        lines were picked where the first model was wrong.
+      - On the 1,755 maintainer-approved lines the model matches 85%.
+      - Don't expect it to replace the engine. Step 3 should use it only
+        where the gate holds the engine's parse.
     - **Step 3 (next):**
       - a pure-Python tree evaluator, so there is no new dependency;
       - wire it behind `PROVOST_MODEL` (off by default), only for captures the

@@ -274,6 +274,81 @@ What was added, and why:
 - About six configurations have now been compared on these 300 lines.
 - Round 4 remains unread, for step 3.
 
+## Round 3: the maintainer's approved outputs, more features, and a fresh test
+
+**The maintainer's review rounds, as data.** Rounds 1-20 (2026-07/08,
+`docs/archive/review-marks-*.tsv`) left two things:
+
+- instructions such as "put the data into three different columns", already
+  turned into engine fixes and so into the goldens;
+- `review-validated-cumulative.txt`: **409 tools whose output was approved**,
+  332 of them in the training set (1,755 lines with known fields).
+
+That list became a third yardstick: out-of-fold agreement with outputs a
+person approved. It is larger than the hand labels and was not chosen by any
+model's errors.
+
+**What was tried** (dev measures: approved outputs, plus the 300 hand labels
+scored out of fold; hand labels used for training come only from each fold's
+training families):
+
+| change | approved outputs | hand labels, 300 |
+|---|---:|---:|
+| previous model (new features + cleaning + timestamp fix) | 83.0% | 186 |
+| approved tools' labels never cleaned, weighted ×3 | 81.7% | 189 |
+| hand labels as training data, weighted ×20 | 81.9% | 186 |
+| both | 82.5% | 187 |
+| **token-consistency features (kept)** | **84.4%** | 196 |
+| + bigger trees (600 × 127 leaves) | 84.5% | 197 |
+| + smaller trees | 82.7% | 192 |
+
+The kept features target the largest error group on the approved outputs:
+tables separated by single spaces (`apt list`, `/proc/locks`, `arp -a`,
+`atq`), which aren't visually aligned. They are:
+
+- the line's whitespace-token count;
+- the share of neighbouring lines with the same count;
+- whether this candidate starts a whitespace token, and its index;
+- whether that token's type, and the previous token's, agree across the
+  same-count lines;
+- a URL-continuation flag.
+
+Weighting the approved tools, or training on the hand labels, didn't move a
+model trained on 87,000 rows. Bigger trees measure the same, so the default
+size stays.
+
+**The fresh test.** 150 new random lines were labelled by three new reviewer
+agents after every decision above was made, and scored once
+(`ml/eval/test-2026-10-22.jsonl`):
+
+| fresh test, 150 lines | right | only it is right | only the engine is right |
+|---|---:|---:|---:|
+| engine | 126 (84.0%) | — | — |
+| first model (v1) | 128 | 12 | 10 |
+| previous model | 132 | 14 | 8 |
+| **final model** | **129 (86.0%)** | 11 | 8 |
+| engine or final model | 137 (91.3%) | | |
+
+**Reading it honestly:**
+
+- **Level with the engine.** On unseen lines every version of the model is
+  level with the engine, and the versions are level with each other. A few
+  lines out of 150 is noise.
+- **The large gains on the 300 dev lines were inflated.** The 150 "hard"
+  lines were chosen where the first model disagreed with the engine, so the
+  first model was wrong on many of them by construction. Any retrained model
+  regresses to the mean there. The random half of the dev set, which has no
+  such bias, moved +7 lines (110 → 117), and the fresh test +1.
+- **What holds up:**
+  - +1.4 points on the 1,755 approved lines (token-consistency features);
+  - 78.6% agreement with the engine, up from 77.2%;
+  - the model matches a mature heuristic engine on tools from families it
+    never saw;
+  - the two are right on different lines: one or the other on 91%.
+- **Implication for step 3:** don't expect the model to *replace* the engine.
+  Use it where the gate holds the engine's parse, and measure that on
+  round 4.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen
