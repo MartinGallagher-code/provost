@@ -182,6 +182,15 @@ Most of the remaining LLM misses are judgement calls. For example, it reads `pid
 | adjudicated A/B lines | **83 / 144** | 72 / 144 |
 | matches maintainer-approved engine output | **0.859** | 0.806 |
 
+**Two more settings, also trained on the LLM labels:**
+
+| setting | fresh test | gold |
+|---|---:|---:|
+| with confident-learning cleaning (`--clean 0.05`) | 131 / 150 | 225 / 300 |
+| without the decoder | 129 / 150 | 222 / 300 |
+
+All three settings were scored on the fresh test set, so 132 is the best of three, and the spread (129–132) is within noise. Gold improves consistently, by 21–31 lines. The fresh test barely moves.
+
 The last two rows score agreement with the engine's own output, either through an A/B choice that includes the engine's split, or through approved engine output. A model that moves away from the engine loses points there by design.
 
 **What this says:**
