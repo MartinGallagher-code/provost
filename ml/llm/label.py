@@ -62,6 +62,12 @@ def params(a, name, lines, retry=None):
             "messages": messages}
 
 
+def create(client, p):
+    """One request, streamed (the SDK requires it for large max_tokens)."""
+    with client.messages.stream(**p) as stream:
+        return stream.get_final_message()
+
+
 def log_usage(name, msg, mode):
     u = msg.usage
     with open(os.path.join(OUT, "usage.jsonl"), "a", encoding="utf-8") as fh:
@@ -80,7 +86,7 @@ def finish(client, a, name, lines, msg, mode):
     except ValueError as exc:
         label, problems = {}, [f"reply is not valid JSON: {exc}"]
     if problems:
-        msg = client.messages.create(**params(a, name, lines, retry=(label, problems)))
+        msg = create(client, params(a, name, lines, retry=(label, problems)))
         log_usage(name, msg, "retry")
         try:
             label = parse_reply(msg)
@@ -94,6 +100,7 @@ def finish(client, a, name, lines, msg, mode):
 
 
 def main(argv=None):
+    global OUT
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     g = ap.add_mutually_exclusive_group(required=True)
     g.add_argument("--names", help="file with one corpus tool name per line")
@@ -104,12 +111,14 @@ def main(argv=None):
     ap.add_argument("--max-lines", type=int, default=600, help="skip longer captures")
     ap.add_argument("--batch", action="store_true", help="use the Message Batches API (half price)")
     ap.add_argument("--redo", action="store_true", help="relabel captures that already have a label")
+    ap.add_argument("--out", default=OUT, help="where labels and usage.jsonl go (default ml/data/llm)")
     a = ap.parse_args(argv)
 
     import anthropic
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
 
+    OUT = a.out
     os.makedirs(OUT, exist_ok=True)
     if a.all:
         names = sorted(f[:-4] for f in os.listdir(INPUTS) if f.endswith(".txt"))
@@ -141,7 +150,7 @@ def main(argv=None):
                 print(f"{n}: {r.result.type}", file=sys.stderr)
     else:
         for n, ln in todo.items():
-            ok += finish(client, a, n, ln, client.messages.create(**params(a, n, ln)), "sync")
+            ok += finish(client, a, n, ln, create(client, params(a, n, ln)), "sync")
     print(f"{ok}/{len(todo)} labels pass the checker", file=sys.stderr)
     return 0
 
