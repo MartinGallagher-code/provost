@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-22)
+## Present state (2026-10-23)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -93,6 +93,21 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0e. **2026-10-23: LLM teacher pilot. Claude labelled 50 corpus captures
+    from the text alone** (`ml/llm/`, `docs/llm-teacher-2026-10-23-pilot.md`).
+    - **Result:** against the hand labels, the LLM got 42/45 lines right and
+      the engine 31/45. The three misses are decoration, not values.
+    - **Against the engine:** splits agree on 65% of the lines the engine
+      files; most of the 102 differing lines look like engine errors.
+    - **Cost:** the whole corpus via the API would be ~$9–65.
+    - **Next:**
+      1. Add `ANTHROPIC_API_KEY` to the environment, then run
+         `python3 ml/llm/label.py --all --batch`.
+      2. Review `ml/eval/llm-pilot-review-2026-10-23.md` (102 lines).
+      3. Retrain the trees on the LLM labels and score on the fresh test
+         set.
+      4. Then the character-grid model.
 
 0d. **2026-10-23: the model now works inside auto-multi (per part, and
     with its own sections) and arbitrates with the engine per line.**

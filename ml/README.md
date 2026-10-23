@@ -28,11 +28,15 @@ they mean are in
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
-| `eval/` | those two sets — committed, because they are review work, not regenerable | data |
+| `eval/` | those sets, plus the LLM pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |
 | `export_model.py` | compiles the trained trees into `extract/model/layout-model.json.gz` (the shipped model) | lightgbm |
 | `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
-| `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |
+| `llm/GUIDE.md` | the labelling guide the LLM teacher follows (also the API run's system prompt) | text |
+| `llm/check.py` | validates one LLM label and turns it into roles + field starts | stdlib |
+| `llm/label.py` | labels corpus captures with Claude through the Anthropic API (`--batch` for half price) | anthropic, `ANTHROPIC_API_KEY` |
+| `llm/score.py` | scores LLM labels against the hand labels and the engine; cost estimate; review sheet | stdlib |
+| `tests/test_ml.py`, `tests/test_llm.py` | tests for the label builders and the LLM-label checker (run in CI) | stdlib |
 
 ## Reproduce
 

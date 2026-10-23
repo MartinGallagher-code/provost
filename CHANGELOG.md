@@ -1,5 +1,39 @@
 # provost — Changelog
 
+## 2026-10-23 — LLM teacher pilot: Claude labels 50 corpus captures
+
+The first step of distillation: a large LLM labels the corpus without seeing
+the engine's output, so the layout model can learn from something better than
+the engine. Nothing in provost changes.
+
+- **Guide, checker, labeller, scorer** (new `ml/llm/`; dev-only, not shipped):
+  - `GUIDE.md` sets the label format: a role and verbatim cells per line. Its
+    conventions match the hand labels.
+  - `check.py` validates a label and converts it to the layout model's roles
+    and field starts (`snap` moves each start to an offset the model can
+    use).
+  - `label.py` runs the full corpus through the Anthropic API, with the
+    Batches API, a cached guide, one retry with the checker's complaints,
+    and per-request usage logged.
+  - `score.py` scores labels against the hand labels and against the engine,
+    estimates the whole-corpus cost, and writes a review sheet of
+    disagreements.
+- **Pilot, 50 captures** (`ml/llm/pilot-2026-10-23.txt`; labels in
+  `ml/eval/llm-pilot-2026-10-23.jsonl`):
+  - **Labeller:** Claude subagents, since there is no API key in the
+    container.
+  - **Against the hand labels:** the LLM got 42/45 lines right, the engine
+    31/45. All three misses are decoration (a progress bar, a filler word).
+  - **Against the engine:** splits agree on 65% of the lines it files. The
+    102 differing lines are in `ml/eval/llm-pilot-review-2026-10-23.md` for
+    review; most look like engine errors.
+  - **Whole-corpus cost estimate:** ~$9–65 depending on model and batching.
+- **Guide fixes from the pilot:** syslog program and pid are separate cells;
+  don't drop filler words.
+- **Tests:** `ml/tests/test_llm.py` (6 tests; `ml/tests` now has 45).
+- **Docs:** `docs/llm-teacher-2026-10-23-pilot.md`, `ml/README.md`,
+  `HANDOFF.md`.
+
 ## 2026-10-23 — layout model inside auto-multi, its own segmenting, and the arbiter at capture time (`--model`)
 
 Still opt-in; provost is unchanged without `--model`.
