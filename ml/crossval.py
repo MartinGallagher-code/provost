@@ -72,6 +72,9 @@ def main(argv=None):
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
     ap.add_argument("--train-corpus", help="learn from these labels instead (e.g. ml/data/corpus-llm.jsonl); "
                     "--corpus stays the engine reference everything is scored against")
+    ap.add_argument("--learner", choices=["trees", "grid"], default="trees",
+                    help="grid: the axial-transformer GridNet (train_grid.py; needs torch)")
+    ap.add_argument("--epochs", type=int, default=20, help="GridNet training epochs")
     ap.add_argument("--out", default=os.path.join(HERE, "data", "crossval.jsonl"))
     ap.add_argument("--sample", type=int, default=0, help="disagreeing lines to put on the blind sheet")
     ap.add_argument("--sheet", default=os.path.join(HERE, "data", "adjudicate.txt"))
@@ -103,12 +106,19 @@ def main(argv=None):
     for k in range(K):
         tr = [e for e in train_exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
-        Xr, yr, Xc, yc, wc = B.prepare(tr, a.clean, a.fix_labels, hand, a.hand_weight,
-                                       validated if a.trusted_weight else None, a.trusted_weight,
-                                       log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
-        rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
+        if a.learner == "grid":
+            import train_grid as G
+            gm = G.fit(tr, a.epochs, log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
+        else:
+            Xr, yr, Xc, yc, wc = B.prepare(tr, a.clean, a.fix_labels, hand, a.hand_weight,
+                                           validated if a.trusted_weight else None, a.trusted_weight,
+                                           log=lambda m: print(f"  fold {k + 1}: {m}", file=sys.stderr))
+            rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
         for e in te:
-            r, st, pr = predict_doc(rm, cm, e, a.decode)
+            if a.learner == "grid":
+                r, st, pr = G.predict_doc(gm, e, a.decode, [bool(s) for s in e["starts"]])
+            else:
+                r, st, pr = predict_doc(rm, cm, e, a.decode)
             preds[e["name"]] = (r, st)
             probs[e["name"]] = pr
         print(f"fold {k + 1}/{K}: trained on {len(tr)}, predicted {len(te)}", file=sys.stderr)
