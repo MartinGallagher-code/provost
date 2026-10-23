@@ -72,6 +72,7 @@ def log_usage(name, msg, mode):
     u = msg.usage
     with open(os.path.join(OUT, "usage.jsonl"), "a", encoding="utf-8") as fh:
         fh.write(json.dumps({"name": name, "mode": mode, "model": msg.model,
+                             "stop": msg.stop_reason,
                              "input": u.input_tokens, "output": u.output_tokens,
                              "cache_read": u.cache_read_input_tokens or 0,
                              "cache_write": u.cache_creation_input_tokens or 0}) + "\n")
@@ -80,6 +81,13 @@ def log_usage(name, msg, mode):
 def finish(client, a, name, lines, msg, mode):
     """Check a reply; retry once (synchronously) with the checker's problems."""
     log_usage(name, msg, mode)
+    if msg.stop_reason == "refusal":
+        # a safety classifier declined the capture (seen on password-cracker
+        # output): record it, don't retry; the capture stays out of training
+        why = getattr(getattr(msg, "stop_details", None), "category", None) or "refusal"
+        with open(os.path.join(OUT, f"{name}.json"), "w", encoding="utf-8") as fh:
+            json.dump({"name": name, "_refused": why, "_problems": [f"refused ({why})"]}, fh)
+        return False
     try:
         label = parse_reply(msg)
         problems = check.convert(label, lines)[2]

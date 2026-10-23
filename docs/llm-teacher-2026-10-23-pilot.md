@@ -146,3 +146,46 @@ The real figure will be logged per request in `ml/data/llm/usage.jsonl`.
 3. **Retrain the tree model on the LLM labels.** This is a cheap test: score
    it on the fresh test set against the current model.
 4. **Train the character-grid model**, the step after that.
+
+---
+
+## Full corpus (2026-10-23, same day)
+
+The full run used the API with the user's key: `python3 ml/llm/label.py --all --batch`. It labelled 3,705 captures with claude-opus-5-5 at medium effort, in one Message Batches request, using the guide as revised after the pilot.
+
+- **Cost:** $24.48 in all, including 119 synchronous retries. Every request's usage is logged in `ml/data/llm/usage.jsonl`.
+- **Time:** the batch itself finished in under 20 minutes. Collecting the results and running the retries one at a time took about as long again.
+- **Labels kept:** 3,674 pass the checker and are kept, in `ml/eval/llm-labels-2026-10-23.jsonl.gz`.
+- **Refused:** 25 were blocked by the API's cyber-safety classifier, all password-cracker and scanner output (john, hashcat, gobuster, masscan and similar). `label.py` now records a refusal and doesn't retry it.
+- **Failed the checker:** 6 contain control characters that the LLM didn't copy byte for byte: BEL, backspace overstrike, ANSI SGR codes and NBSP digit grouping.
+
+### The teacher
+
+| hand-labelled lines | LLM labels | engine |
+|---|---:|---:|
+| **fresh test (150)** | **147 (98.0%)** | 126 (84.0%) |
+| gold (297 of 300 in labelled captures) | 286 (96.3%) | 192 (64.6%) |
+
+Two careful humans agree on 97% of lines. The fresh test set was never used to tune the guide, so it is the clean number. The gold number is slightly flattered, because the guide's conventions were written to match the hand labels.
+
+Most of the remaining LLM misses are judgement calls. For example, it reads `pid 8821, uptime 2:14:08` as one value where the hand label splits it into key/value pairs, and it gives `Node 0, zone DMA` as one value. Over the whole corpus the LLM's split matches the engine's on 58% of the lines the engine files: 8,931 lines differ.
+
+### The student: the tree model retrained on the LLM labels
+
+5-fold cross-validation by tool family, with the decoder on. The model is the same LightGBM model with the same features. Only the labels change.
+
+| | trained on engine labels (shipped) | trained on LLM labels |
+|---|---:|---:|
+| **fresh test** | 130 / 150 | **132 / 150** |
+| gold | 194 / 300 | **215 / 300** |
+| gold, lines where v1 disagreed with the engine | 77 / 150 | **95 / 150** |
+| adjudicated A/B lines | **83 / 144** | 72 / 144 |
+| matches maintainer-approved engine output | **0.859** | 0.806 |
+
+The last two rows score agreement with the engine's own output, either through an A/B choice that includes the engine's split, or through approved engine output. A model that moves away from the engine loses points there by design.
+
+**What this says:**
+
+- **The teacher is no longer the limit. The student is.** The labels are 98% right, but the tree model learns only a few points from them (130 → 132 on the fresh test).
+- **The model's hand-made features can't express what the LLM does.** For example, it keeps `Jul  6 09:12` whole, splits `ip neigh` keys from their values, and treats a column whose header has a double space as one field.
+- **That is the case for the next step:** a model that learns its own features from the whole capture (the character-grid model), trained on these labels.

@@ -94,20 +94,24 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0e. **2026-10-23: LLM teacher pilot. Claude labelled 50 corpus captures
-    from the text alone** (`ml/llm/`, `docs/llm-teacher-2026-10-23-pilot.md`).
-    - **Result:** against the hand labels, the LLM got 42/45 lines right and
-      the engine 31/45. The three misses are decoration, not values.
-    - **Against the engine:** splits agree on 65% of the lines the engine
-      files; most of the 102 differing lines look like engine errors.
-    - **Cost:** the whole corpus via the API would be ~$9–65.
+0e. **2026-10-23: LLM teacher. Claude labelled the whole corpus (3,674 of
+    3,705 kept; $24.48)** (`ml/llm/`, `ml/eval/llm-labels-2026-10-23.jsonl.gz`,
+    `docs/llm-teacher-2026-10-23-pilot.md`).
+    - **Teacher:** 147/150 on the fresh test lines (engine 126/150) and
+      286/297 on gold, against a 97% human ceiling.
+    - **Student:** the same tree model trained on these labels scores 132/150
+      on the fresh test (shipped model 130/150) and 215/300 on gold (194).
+      **The student is now the limit, not the labels.** The shipped model is
+      unchanged.
     - **Next:**
-      1. Add `ANTHROPIC_API_KEY` to the environment, then run
-         `python3 ml/llm/label.py --all --batch`.
-      2. Review `ml/eval/llm-pilot-review-2026-10-23.md` (102 lines).
-      3. Retrain the trees on the LLM labels and score on the fresh test
-         set.
-      4. Then the character-grid model.
+      1. A character-grid model that learns its own features from the whole
+         capture, trained on the LLM labels (numpy/onnxruntime at capture
+         time, as an optional extra).
+      2. Then a round 5 to measure it.
+      3. Review a sample of the 8,931 lines where the LLM and the engine
+         differ (`ml/llm/score.py --sheet`); the pilot's 102 lines are in
+         `ml/eval/llm-pilot-review-2026-10-23.md`.
+      4. **Rotate the API key the user pasted into chat on 2026-10-23.**
 
 0d. **2026-10-23: the model now works inside auto-multi (per part, and
     with its own sections) and arbitrates with the engine per line.**

@@ -13,6 +13,7 @@ tool is there, else from running the engine on the capture. --sheet writes
 every line where the two disagree, side by side, for review. Stdlib only.
 """
 import argparse
+import gzip
 import json
 import os
 import subprocess
@@ -42,12 +43,14 @@ def engine_starts(name, lines):
 
 
 def load_labels(path):
-    """A directory of <tool>.json labels, or one .jsonl file of them."""
+    """A directory of <tool>.json labels, or one .jsonl (or .jsonl.gz) of them."""
     if os.path.isdir(path):
-        return {f[:-5]: json.load(open(os.path.join(path, f), encoding="utf-8"))
-                for f in os.listdir(path) if f.endswith(".json")}
+        out = {f[:-5]: json.load(open(os.path.join(path, f), encoding="utf-8"))
+               for f in os.listdir(path) if f.endswith(".json") and not f.startswith("batch-")}
+        return {n: d for n, d in out.items() if isinstance(d, dict) and "lines" in d}
     out = {}
-    for ln in open(path, encoding="utf-8"):
+    opener = gzip.open if path.endswith(".gz") else open
+    for ln in opener(path, "rt", encoding="utf-8"):
         d = json.loads(ln)
         out[d["name"]] = d
     return out

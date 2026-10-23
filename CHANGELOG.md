@@ -1,5 +1,29 @@
 # provost — Changelog
 
+## 2026-10-23 — LLM teacher, full corpus: Claude labels all 3,705 captures; trees retrained on them
+
+- **The run:** `ml/llm/label.py --all --batch`, with claude-opus-5-5 and one Message Batches request.
+  - **Cost:** $24.48, including 119 retries.
+  - **Kept:** 3,674 labels, in `ml/eval/llm-labels-2026-10-23.jsonl.gz` (0.7 MB).
+  - **Refused:** 25, all password-cracker and scanner output, blocked by the API's cyber classifier.
+  - **Failed the checker:** 6, because of control characters.
+- **Teacher accuracy against the hand labels:**
+  - fresh test: 147/150 (98%), against the engine's 126/150;
+  - gold: 286/297, against the engine's 192/297;
+  - for comparison, two humans agree on 97%.
+- **Student, the same tree model trained on the LLM labels** (5-fold cross-validation by tool family):
+  - fresh test: 132/150, against 130 for the shipped model;
+  - gold: 215/300, against 194.
+  - **What it means:** the student, not the labels, is now the limit.
+- **Shipped model unchanged.** `extract/model/layout-model.json.gz` is still the engine-trained model.
+- **Changed files:**
+  - `ml/llm/label.py`: `--batch-id` resumes collecting a submitted batch; the script reconnects when the results stream drops; it records refusals instead of retrying them; single requests are streamed; new `--out`.
+  - new `ml/llm/to_corpus.py`: turns LLM labels into a training set.
+  - `ml/crossval.py`: new `--train-corpus`.
+  - `ml/llm/score.py`: reads `.jsonl.gz`.
+  - `ml/tests/test_llm.py`.
+  - `docs/llm-teacher-2026-10-23-pilot.md`: full-corpus section.
+
 ## 2026-10-23 — LLM teacher pilot: Claude labels 50 corpus captures
 
 The first step of distillation: a large LLM labels the corpus without seeing
