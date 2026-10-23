@@ -110,6 +110,7 @@ def main(argv=None):
     ap.add_argument("--max-tokens", type=int, default=32000)
     ap.add_argument("--max-lines", type=int, default=600, help="skip longer captures")
     ap.add_argument("--batch", action="store_true", help="use the Message Batches API (half price)")
+    ap.add_argument("--batch-id", help="collect the results of a batch already submitted (resume)")
     ap.add_argument("--redo", action="store_true", help="relabel captures that already have a label")
     ap.add_argument("--out", default=OUT, help="where labels and usage.jsonl go (default ml/data/llm)")
     a = ap.parse_args(argv)
@@ -134,20 +135,37 @@ def main(argv=None):
     print(f"{len(todo)} captures to label", file=sys.stderr)
     client = anthropic.Anthropic()
     ok = 0
-    if a.batch:
-        batch = client.messages.batches.create(requests=[
-            Request(custom_id=f"c{i}", params=MessageCreateParamsNonStreaming(**params(a, n, ln)))
-            for i, (n, ln) in enumerate(todo.items())])
-        ids = {f"c{i}": n for i, n in enumerate(todo)}
-        print(f"batch {batch.id}", file=sys.stderr)
-        while client.messages.batches.retrieve(batch.id).processing_status != "ended":
+    if a.batch or a.batch_id:
+        if a.batch_id:
+            bid = a.batch_id
+            with open(os.path.join(OUT, f"batch-{bid}.json"), encoding="utf-8") as fh:
+                ids = json.load(fh)
+        else:
+            batch = client.messages.batches.create(requests=[
+                Request(custom_id=f"c{i}", params=MessageCreateParamsNonStreaming(**params(a, n, ln)))
+                for i, (n, ln) in enumerate(todo.items())])
+            bid, ids = batch.id, {f"c{i}": n for i, n in enumerate(todo)}
+            with open(os.path.join(OUT, f"batch-{bid}.json"), "w", encoding="utf-8") as fh:
+                json.dump(ids, fh)
+            print(f"batch {bid}", file=sys.stderr)
+        while client.messages.batches.retrieve(bid).processing_status != "ended":
             time.sleep(60)
-        for r in client.messages.batches.results(batch.id):
-            n = ids[r.custom_id]
-            if r.result.type == "succeeded":
-                ok += finish(client, a, n, todo[n], r.result.message, "batch")
-            else:
-                print(f"{n}: {r.result.type}", file=sys.stderr)
+        # results stream for minutes; a dropped connection resumes where it was
+        for attempt in range(6):
+            try:
+                for r in client.messages.batches.results(bid):
+                    n = ids[r.custom_id]
+                    if os.path.exists(os.path.join(OUT, f"{n}.json")) and not a.redo:
+                        continue
+                    lines = todo.get(n) or check.read_lines(os.path.join(INPUTS, f"{n}.txt"))
+                    if r.result.type == "succeeded":
+                        ok += finish(client, a, n, lines, r.result.message, "batch")
+                    else:
+                        print(f"{n}: {r.result.type}", file=sys.stderr)
+                break
+            except Exception as exc:
+                print(f"results interrupted ({type(exc).__name__}); resuming", file=sys.stderr)
+                time.sleep(5 * (attempt + 1))
     else:
         for n, ln in todo.items():
             ok += finish(client, a, n, ln, create(client, params(a, n, ln)), "sync")
