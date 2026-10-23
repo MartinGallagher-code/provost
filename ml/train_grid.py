@@ -38,6 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(1, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "extract", "model"))
 import dataset as D  # noqa: E402
 import decode as DEC  # noqa: E402
+from features import cand_features  # noqa: E402
 from layout import PREDICTED, candidates, is_blank  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -47,6 +48,7 @@ H_MAX = 64           # lines per training crop (the corpus is shorter)
 VOID = 1             # a cell past the end of its line
 VOCAB = 104
 CELLS_PER_BATCH = 24000
+NF = 49              # the tree model's candidate features (features.py), for hybrid=True
 
 
 def char_id(ch):
@@ -66,7 +68,18 @@ def char_id(ch):
     return 102
 
 
-def encode(ex, lo=0, hi=None, shift=0, with_targets=True):
+def cell_features(lines, W):
+    """H,W,NF: the tree model's features at each field-start candidate,
+    squashed (sign * log1p) so counts and offsets sit near the unit range."""
+    out = np.zeros((len(lines), W, NF), dtype=np.float32)
+    for h in range(len(lines)):
+        for c, f in cand_features(lines, h):
+            if c < W:
+                out[h, c] = f
+    return np.sign(out) * np.log1p(np.abs(out))
+
+
+def encode(ex, lo=0, hi=None, shift=0, with_targets=True, feats=False):
     lines = [" " * shift + ln for ln in ex["lines"][lo:hi]]
     H = len(lines)
     W = min(W_MAX, max([len(ln) for ln in lines] + [1]))
@@ -74,8 +87,9 @@ def encode(ex, lo=0, hi=None, shift=0, with_targets=True):
     for h, ln in enumerate(lines):
         for w, ch in enumerate(ln[:W]):
             grid[h, w] = char_id(ch)
+    feat = cell_features(lines, W) if feats else None
     if not with_targets:
-        return grid, None, None, None
+        return grid, None, None, None, feat
     role = np.full(H, -1, dtype=np.int64)
     smask = np.zeros((H, W), dtype=np.float32)
     sgold = np.zeros((H, W), dtype=np.float32)
@@ -91,7 +105,7 @@ def encode(ex, lo=0, hi=None, shift=0, with_targets=True):
             for s in st:
                 if s + shift < W:
                     sgold[h, s + shift] = 1.0
-    return grid, role, smask, sgold
+    return grid, role, smask, sgold, feat
 
 
 def collate(items):
@@ -102,14 +116,17 @@ def collate(items):
     role = torch.full((B, H), -1, dtype=torch.long)
     smask = torch.zeros(B, H, W)
     sgold = torch.zeros(B, H, W)
-    for b, (g, r, m, s) in enumerate(items):
+    feat = torch.zeros(B, H, W, NF) if items[0][4] is not None else None
+    for b, (g, r, m, s, f) in enumerate(items):
         h, w = g.shape
         grid[b, :h, :w] = torch.from_numpy(g)
+        if feat is not None:
+            feat[b, :h, :w] = torch.from_numpy(f)
         if r is not None:
             role[b, :h] = torch.from_numpy(r)
             smask[b, :h, :w] = torch.from_numpy(m)
             sgold[b, :h, :w] = torch.from_numpy(s)
-    return grid, role, smask, sgold
+    return grid, role, smask, sgold, feat
 
 
 def sinusoid(n, d):
@@ -169,8 +186,10 @@ class AxialLayer(nn.Module):
 
 
 class GridNet(nn.Module):
-    def __init__(self, d=64, heads=4, layers=4, line_layers=2, drop=0.0):
+    def __init__(self, d=64, heads=4, layers=4, line_layers=2, drop=0.0, hybrid=False):
         super().__init__()
+        self.hybrid = hybrid
+        self.feat = nn.Linear(NF, d) if hybrid else None
         self.emb = nn.Embedding(VOCAB, d, padding_idx=0)
         self.inp = nn.Conv2d(d, d, (3, 3), padding=1)
         self.register_buffer("xpos", sinusoid(W_MAX + 8, d), persistent=False)
@@ -183,10 +202,12 @@ class GridNet(nn.Module):
         self.lines = nn.TransformerEncoder(enc, line_layers, enable_nested_tensor=False)
         self.role = nn.Linear(d, len(PREDICTED))
 
-    def forward(self, grid):
+    def forward(self, grid, feat=None):
         B, H, W = grid.shape
         pad = grid == 0
         x = self.emb(grid)
+        if self.hybrid:
+            x = x + self.feat(feat)
         x = x + F.gelu(self.inp(x.permute(0, 3, 1, 2))).permute(0, 2, 3, 1)
         ys = torch.arange(H).clamp(max=H_MAX - 1)
         x = x + self.xpos[:W].view(1, 1, W, -1) + self.ypos(ys).view(1, H, 1, -1)
@@ -241,7 +262,7 @@ def augment(ex):
     return {**ex, "lines": lines, "starts": starts}
 
 
-def batches(examples, train):
+def batches(examples, train, feats=False):
     items = []
     for e in examples:
         if train:
@@ -250,9 +271,9 @@ def batches(examples, train):
         shift = random.choice([0, 0, 0, 1, 2, 4]) if train else 0
         if n > H_MAX:
             lo = random.randint(0, n - H_MAX) if train else 0
-            items.append(encode(e, lo, lo + H_MAX, shift))
+            items.append(encode(e, lo, lo + H_MAX, shift, feats=feats))
         else:
-            items.append(encode(e, shift=shift))
+            items.append(encode(e, shift=shift, feats=feats))
     order = sorted(range(len(items)), key=lambda k: (items[k][0].shape[1], items[k][0].shape[0]))
     groups, cur, cells = [], [], 0
     for k in order:
@@ -271,8 +292,8 @@ def batches(examples, train):
         yield collate([items[k] for k in g])
 
 
-def loss_of(model, grid, role, smask, sgold):
-    s_logit, r_logit = model(grid)
+def loss_of(model, grid, role, smask, sgold, feat=None):
+    s_logit, r_logit = model(grid, feat)
     lr = F.cross_entropy(r_logit.reshape(-1, len(PREDICTED)), role.reshape(-1), ignore_index=-1)
     ls = (F.binary_cross_entropy_with_logits(s_logit, sgold, reduction="none") * smask).sum() \
         / smask.sum().clamp(min=1)
@@ -283,8 +304,8 @@ def loss_of(model, grid, role, smask, sgold):
 def val_loss(model, examples):
     model.eval()
     tot, n = 0.0, 0
-    for grid, role, smask, sgold in batches(examples, False):
-        tot += loss_of(model, grid, role, smask, sgold).item()
+    for grid, role, smask, sgold, feat in batches(examples, False, model.hybrid):
+        tot += loss_of(model, grid, role, smask, sgold, feat).item()
         n += 1
     return tot / max(1, n)
 
@@ -300,8 +321,8 @@ def train(model, examples, epochs, val=None, lr=2e-3, log=print):
     for ep in range(epochs):
         model.train()
         t0, tot, k = time.time(), 0.0, 0
-        for grid, role, smask, sgold in batches(examples, True):
-            loss = loss_of(model, grid, role, smask, sgold)
+        for grid, role, smask, sgold, feat in batches(examples, True, model.hybrid):
+            loss = loss_of(model, grid, role, smask, sgold, feat)
             opt.zero_grad()
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -333,8 +354,9 @@ def predict_doc(model, ex, decoder=False, score_lines=None):
         hi = min(len(lines), lo + H_MAX)
         if lo >= hi:
             break
-        grid, *_ = encode(ex, lo, hi, with_targets=False)
-        s, r = model(torch.from_numpy(grid).unsqueeze(0))
+        grid, _, _, _, feat = encode(ex, lo, hi, with_targets=False, feats=model.hybrid)
+        s, r = model(torch.from_numpy(grid).unsqueeze(0),
+                     None if feat is None else torch.from_numpy(feat).unsqueeze(0))
         p = torch.sigmoid(s[0]).numpy()
         sp[lo:hi, :p.shape[1]] = p
         for h, k in enumerate(r[0].argmax(-1).tolist()):
