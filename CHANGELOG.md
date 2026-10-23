@@ -43,7 +43,7 @@ Still opt-in; provost is unchanged without `--model`.
   - `extract/tests/test_multi_mode.sh`: the part-text directory;
   - `ml/tests/test_runtime.py`: segments, hysteresis, alignment, the
     arbiter (39 ml tests);
-  - smoke: the segmenting note.
+  - smoke: the segmenting note (247 checks; CLAUDE.md updated).
 - **Packaging and docs:** `pyproject.toml` ships `align.py`,
   `arbitrate.py` and `arbiter.json`. The help and man-page LAYOUT MODEL
   sections are updated.
