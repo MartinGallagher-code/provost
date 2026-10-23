@@ -46,6 +46,17 @@ class Convert(unittest.TestCase):
         self.assertEqual(check.snap("├─sda1  8:1", [2, 8]), [0, 8])
 
 
+class ToCorpus(unittest.TestCase):
+    def test_a_pilot_label_becomes_a_training_example(self):
+        import to_corpus
+        path = os.path.join(ROOT, "ml", "eval", "llm-pilot-2026-10-23.jsonl")
+        labs = {json.loads(ln)["name"]: json.loads(ln) for ln in open(path, encoding="utf-8")}
+        ex = to_corpus.example("git-ls-tree", labs["git-ls-tree"])
+        self.assertEqual(ex["strategy"], "llm")
+        self.assertEqual(len(ex["lines"]), len(ex["roles"]))
+        self.assertEqual(ex["starts"][0], [0, 7, 12, 53])
+
+
 class Files(unittest.TestCase):
     def test_numbered_and_raw_inputs_read_the_same(self):
         with tempfile.TemporaryDirectory() as d:

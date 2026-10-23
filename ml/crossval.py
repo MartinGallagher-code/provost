@@ -70,6 +70,8 @@ def predict_doc(rm, cm, ex, decoder=False):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
+    ap.add_argument("--train-corpus", help="learn from these labels instead (e.g. ml/data/corpus-llm.jsonl); "
+                    "--corpus stays the engine reference everything is scored against")
     ap.add_argument("--out", default=os.path.join(HERE, "data", "crossval.jsonl"))
     ap.add_argument("--sample", type=int, default=0, help="disagreeing lines to put on the blind sheet")
     ap.add_argument("--sheet", default=os.path.join(HERE, "data", "adjudicate.txt"))
@@ -94,11 +96,12 @@ def main(argv=None):
     if a.cand_params:
         B.CAND_PARAMS.update(json.loads(a.cand_params))
     exs = D.load(a.corpus)
+    train_exs = D.load(a.train_corpus) if a.train_corpus else exs
     hand = B.load_hand(a.hand)
     validated = B.load_validated()
     preds, probs = {}, {}
     for k in range(K):
-        tr = [e for e in exs if fold(e) != k]
+        tr = [e for e in train_exs if fold(e) != k]
         te = [e for e in exs if fold(e) == k]
         Xr, yr, Xc, yc, wc = B.prepare(tr, a.clean, a.fix_labels, hand, a.hand_weight,
                                        validated if a.trusted_weight else None, a.trusted_weight,
