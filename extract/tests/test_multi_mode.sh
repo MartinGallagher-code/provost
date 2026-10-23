@@ -59,6 +59,19 @@ test_multi_separator_format () {
     assert_contains "$sep" "$(printf '__DATASET__\t1\t')" "separator carries index 1"
 }
 
+# PROVOST_MULTI_TEXT_DIR: each emitted dataset's own input text lands in
+# DIR/ds.N.txt (provost re-reads a gate-rejected part with the layout model).
+test_multi_text_dir () {
+    local tmpfile dir out n
+    tmpfile=$(mktemp); dir=$(mktemp -d)
+    _multi_iostat_input > "$tmpfile"
+    out=$(PROVOST_MULTI_TEXT_DIR="$dir" run_extract --generic --multi -f tsv --max-strategies 1 "$tmpfile" 2>/dev/null)
+    n=$(printf '%s\n' "$out" | grep -c '__DATASET__')
+    assert_eq "$(ls "$dir" | grep -c '^ds\.[0-9]*\.txt$')" "$n" "one ds.N.txt per dataset"
+    assert_contains "$(cat "$dir"/ds.*.txt)" "avg-cpu" "the parts' text is the input's"
+    rm -rf "$tmpfile" "$dir"
+}
+
 # A blank-line record STREAM must NOT shatter: its blocks share strategy and
 # shape, so they re-form into ONE dataset.
 test_multi_record_stream_stays_one () {

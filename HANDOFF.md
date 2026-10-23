@@ -94,6 +94,20 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0d. **2026-10-23: the model now works inside auto-multi (per part, and
+    with its own sections) and arbitrates with the engine per line.**
+    - **Result:** 0 extra rescues on rounds 2 and 3 (22 held captures). The
+      gate rejects every model section there, for dropped prose lines or
+      headerless tables.
+    - **Where the value is instead: captures the engine files WRONG at
+      high coverage.** One constructed example: a summary over a table,
+      with no blank line between them, filed as whole-line text cells; the
+      model's sections are exactly right.
+    - **Next:**
+      - the model as a second opinion on FILED generic parses (hold or
+        replace when it disagrees strongly);
+      - a round 5 to measure that honestly.
+
 0c. **2026-10-22: the layout model is in provost, opt-in (`--model`,
     `PROVOST_MODEL=1`, default off).**
     - **Where:** the runtime is `extract/model/` (stdlib; the trees are

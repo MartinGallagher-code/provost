@@ -229,8 +229,13 @@ columns once for all its rows, and cuts every value from the input. The
 engine measures its table with the same line coverage and column consistency
 as any parser; it is filed (strategy \fBlayout-model\fR) only when it passes
 the gate and keeps at least as many lines as the parse the gate held, and only
-for an input that is one table or one key/value record. Otherwise the capture
-is held exactly as before. \fImeta.tsv\fR records \fBlayout_model\fR (filed
+for an input that is one table or one key/value record. Where the engine also
+read the lines, an arbiter keeps the engine's field split on the lines it
+trusts more. Before that, \fBAUTO-MULTI\fR asks the model to re-read any part
+of its split that the gate rejects; and when the whole-capture table is
+declined, the model cuts the report into its own uniform sections (a
+key/value block, a table, a list), filed under \fBAUTO-MULTI\fR's rules.
+Otherwise the capture is held exactly as before. \fImeta.tsv\fR records \fBlayout_model\fR (filed
 or declined, and why) and the held parse's \fBsingle_strategy\fR and
 \fBsingle_coverage\fR. It needs \fBpython3\fR (no packages) and declines
 inputs over 600 lines; only held captures pay for it.

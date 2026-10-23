@@ -38,36 +38,9 @@ import dataset as D  # noqa: E402
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
-def loglik(probs, split):
-    s, out = set(split), 0.0
-    for x, p in probs:
-        p = min(max(p, 1e-4), 1 - 1e-4)
-        out += math.log(p if x in s else 1 - p)
-    return out
-
-
-def _consistency(starts, j):
-    me = len(starts[j])
-    nb = [k for k in range(max(0, j - 3), min(len(starts), j + 4)) if k != j and starts[k]]
-    if not nb:
-        return -1.0
-    return sum(1 for k in nb if len(starts[k]) == me) / len(nb)
-
-
-def features(eng_starts, mod_starts, probs, j, meta, strategy, role):
-    """eng_starts / mod_starts: per line (lists or None); probs: per line
-    [(pos, p)]; meta: [confidence, coverage, consistency] (-1 = unknown)."""
-    pr = probs[j] or []
-    le, lm = loglik(pr, eng_starts[j]), loglik(pr, mod_starts[j])
-    return [le - lm, le, lm, len(eng_starts[j]), len(mod_starts[j]),
-            len(eng_starts[j]) - len(mod_starts[j]),
-            _consistency(eng_starts, j), _consistency(mod_starts, j),
-            *meta, float(strategy == "aligned-columns"), float(role == "kv")]
-
-
-def prefer_engine(model, f):
-    z = model["intercept"] + sum(w * x for w, x in zip(model["coef"], f))
-    return 1 / (1 + math.exp(-z)) > 0.5
+# The feature code is shared with the capture-time runtime, so training and
+# use can't drift apart.
+from arbitrate import features, loglik, prefer_engine  # noqa: E402,F401
 
 
 def read_meta(meta_dir, name):
