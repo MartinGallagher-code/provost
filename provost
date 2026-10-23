@@ -794,9 +794,65 @@ _tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next
 # eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
 _AM_GAIN=10
 _AM_FRAG_LINES=3
+
+# _am_part_check I WIDE TSV — the per-part checks of _auto_multi (rules 2, 4
+# and 5) on part I's dstrat / dconf / dcov / dcons / dlines (the caller's
+# locals); melts WIDE into TSV. Sets _AMP_NOTE (empty = the part passes) and
+# _AMP_ROWS.
+_am_part_check () {
+    local i="$1" wide="$2" tsv="$3" ncols nsyn
+    _AMP_NOTE=""; _AMP_ROWS=0
+    if [[ -z "$dstrat" ]]; then _AMP_NOTE="part $i has no strategy"; return 0; fi
+    if (( dconf < threshold )); then
+        _AMP_NOTE="part $i ($dstrat) is low-confidence ($dconf<$threshold)"; return 0
+    fi
+    if ! _quality_exempt "$engine" "$dstrat"; then
+        if [[ "$dcov" != - ]] && (( PROVOST_MIN_COVERAGE > 0 && dcov < PROVOST_MIN_COVERAGE )); then
+            _AMP_NOTE="part $i ($dstrat) keeps $dcov% of its lines"; return 0
+        fi
+        if [[ "$dcons" != - ]] && (( PROVOST_MIN_CONSISTENCY > 0 && dcons < PROVOST_MIN_CONSISTENCY )); then
+            _AMP_NOTE="part $i ($dstrat) columns are $dcons% type-consistent"; return 0
+        fi
+    fi
+    if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
+        _AMP_NOTE="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 0
+    fi
+    _core_melt_tidy_file "$wide" > "$tsv"
+    _AMP_ROWS=$(awk 'NR > 1 && $0 != "" { r++ } END { print r + 0 }' "$tsv")
+    read -r ncols nsyn < <(_tidy_cols "$tsv" | awk '{ c++ } /^[A-Z][A-Z]?$/ { s++ } END { print c + 0, s + 0 }')
+    if (( _AMP_ROWS >= 2 && ncols >= 2 && nsyn == ncols )); then
+        _AMP_NOTE="part $i ($dstrat) is a table with positional columns only"
+    fi
+    return 0
+}
+
+# _model_table INPUT ENGINE_WIDE ENGINE_META TAG — the layout model's table
+# for INPUT (the explicit-only layout-model strategy, measured by the engine
+# like any parser), arbitrating line by line with the engine's own parse of
+# the same lines (ENGINE_WIDE: its -f tsv output; ENGINE_META: strategy,
+# confidence, coverage, consistency, tab-separated). Sets _MT_OUT (the -f tsv
+# output) and _MT_C / _MT_V / _MT_T (confidence, coverage, consistency; empty
+# when unmeasured). Returns 1 when the model produced nothing.
+_model_table () {
+    local inp="$1" ew="$2" em="$3" tag="$4" lmeta="$tmp/lm.$4.meta" ls=""
+    _MT_OUT="$tmp/lm.$tag.tsv"; _MT_C=""; _MT_V=""; _MT_T=""
+    PROVOST_LM_ENGINE_WIDE="$ew" PROVOST_LM_ENGINE_META="$em" \
+        _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+        ${eargs[@]+"${eargs[@]}"} -s layout-model --emit-meta -f tsv --max-strategies 1 "$inp" \
+        >"$_MT_OUT" 2>"$lmeta" || true
+    IFS=$'\t' read -r ls _MT_C _MT_V _MT_T < <(awk -F'\t' \
+        '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$lmeta" 2>/dev/null) || true
+    [[ "$ls" == layout-model && -s "$_MT_OUT" ]] && grep -q . "$_MT_OUT" || return 1
+    [[ "$_MT_C" =~ ^[0-9]{1,9}$ ]] || _MT_C=0
+    [[ "$_MT_V" =~ ^[0-9]{1,3}$ ]] || _MT_V=""
+    [[ "$_MT_T" =~ ^[0-9]{1,3}$ ]] || _MT_T=""
+    return 0
+}
+
 _auto_multi () {
-    local mo="$tmp/am.txt" mm="$tmp/am.meta" kind="" n="" mcov="" mlines=""
-    _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+    local mo="$tmp/am.txt" mm="$tmp/am.meta" kind="" n="" mcov="" mlines="" textdir=""
+    if [[ "$PROVOST_MODEL" == 1 ]]; then textdir="$tmp/amtext"; mkdir -p "$textdir"; fi
+    PROVOST_MULTI_TEXT_DIR="$textdir" _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
         ${eargs[@]+"${eargs[@]}"} --multi --emit-meta -f tsv --max-strategies 1 "$body" \
         >"$mo" 2>"$mm" || true
     IFS=$'\t' read -r kind n mcov mlines < <(awk -F'\t' \
@@ -831,27 +887,27 @@ _auto_multi () {
         [[ "$dcov" =~ ^[0-9]{1,3}$ ]] || dcov="-"
         [[ "$dcons" =~ ^[0-9]{1,3}$ ]] || dcons="-"
         [[ "$dlines" =~ ^[0-9]{1,9}$ ]] || dlines=0
-        [[ -n "$dstrat" ]] || { am_note="part $i has no strategy"; return 1; }
-        if (( dconf < threshold )); then
-            am_note="part $i ($dstrat) is low-confidence ($dconf<$threshold)"; return 1
-        fi
-        if ! _quality_exempt "$engine" "$dstrat"; then
-            if [[ "$dcov" != - ]] && (( PROVOST_MIN_COVERAGE > 0 && dcov < PROVOST_MIN_COVERAGE )); then
-                am_note="part $i ($dstrat) keeps $dcov% of its lines"; return 1
+        _am_part_check "$i" "$tmp/ds.$i.wide" "$tmp/ds.$i.tsv"
+        # LAYOUT MODEL, per part: a part the gate rejects is read again by
+        # the model on just that part's lines (its text comes from the engine,
+        # PROVOST_MULTI_TEXT_DIR), arbitrating with the engine's own parse of
+        # the part line by line. The model's table replaces the part only if
+        # it passes the very same checks; otherwise the split is declined as
+        # before.
+        if [[ -n "$_AMP_NOTE" && "$PROVOST_MODEL" == 1 && -s "$tmp/amtext/ds.$i.txt" ]] &&
+           _model_table "$tmp/amtext/ds.$i.txt" "$tmp/ds.$i.wide" "$dstrat"$'\t'"$dconf"$'\t'"$dcov"$'\t'"$dcons" "part$i"; then
+            local _pnote="$_AMP_NOTE" _ostrat="$dstrat"
+            dstrat=layout-model; dconf="$_MT_C"; dcov="$_MT_V"; dcons="${_MT_T:--}"
+            _am_part_check "$i" "$_MT_OUT" "$tmp/ds.$i.lm.tsv"
+            if [[ -z "$_AMP_NOTE" ]]; then
+                cp "$_MT_OUT" "$tmp/ds.$i.wide"; mv "$tmp/ds.$i.lm.tsv" "$tmp/ds.$i.tsv"
+                am_model=$((am_model + 1))
+            else
+                dstrat="$_ostrat"; _AMP_NOTE="$_pnote; the layout model's reading of it fails too"
             fi
-            if [[ "$dcons" != - ]] && (( PROVOST_MIN_CONSISTENCY > 0 && dcons < PROVOST_MIN_CONSISTENCY )); then
-                am_note="part $i ($dstrat) columns are $dcons% type-consistent"; return 1
-            fi
         fi
-        if [[ "$dstrat" == "$strategy" && "$dcons" == - ]] && (( dlines >= _AM_FRAG_LINES )); then
-            am_note="part $i is read by the rejected parser ($dstrat) and cannot be judged"; return 1
-        fi
-        _core_melt_tidy_file "$tmp/ds.$i.wide" > "$tmp/ds.$i.tsv"
-        nrows=$(awk 'NR > 1 && $0 != "" { r++ } END { print r + 0 }' "$tmp/ds.$i.tsv")
-        read -r ncols nsyn < <(_tidy_cols "$tmp/ds.$i.tsv" | awk '{ c++ } /^[A-Z][A-Z]?$/ { s++ } END { print c + 0, s + 0 }')
-        if (( nrows >= 2 && ncols >= 2 && nsyn == ncols )); then
-            am_note="part $i ($dstrat) is a table with positional columns only"; return 1
-        fi
+        [[ -z "$_AMP_NOTE" ]] || { am_note="$_AMP_NOTE"; return 1; }
+        nrows="$_AMP_ROWS"
         tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
         if _valid_name "$dstrat"; then :; else dstrat="$(_sanitize_name "$dstrat")"; dstrat="${dstrat:-dataset}"; fi
         an+=("${name:+$name.}$dstrat"); as+=("$dstrat"); ac+=("$dconf"); af+=("$tmp/ds.$i.tsv")
@@ -897,18 +953,12 @@ _auto_multi () {
 # _ingest's locals (dynamic scope): reads engine, eargs, body, tmp, cov;
 # on success replaces wide.tsv and sets strategy, conf, cov, tcons.
 _layout_model () {
-    local lo="$tmp/lm.tsv" lmeta="$tmp/lm.meta" ls="" lc="" lv="" lt=""
-    _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
-        ${eargs[@]+"${eargs[@]}"} -s layout-model --emit-meta -f tsv --max-strategies 1 "$body" \
-        >"$lo" 2>"$lmeta" || true
-    IFS=$'\t' read -r ls lc lv lt < <(awk -F'\t' \
-        '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$lmeta" 2>/dev/null) || true
-    if [[ "$ls" != layout-model || ! -s "$lo" ]] || ! grep -q . "$lo"; then
-        lm_note="it found nothing to file (it needs python3 and declines inputs over 600 lines)"; return 1
+    local lv lt
+    if ! _model_table "$body" "$tmp/wide.tsv" "$strategy"$'\t'"$conf"$'\t'"${cov:--}"$'\t'"${tcons:--}" whole; then
+        lm_note="it found nothing to file (it needs python3 and declines inputs over 600 lines, and mixed reports)"; return 1
     fi
-    [[ "$lc" =~ ^[0-9]{1,9}$ ]] || lc=0
-    [[ "$lv" =~ ^[0-9]{1,3}$ ]] || { lm_note="its line coverage is not measured"; return 1; }
-    [[ "$lt" =~ ^[0-9]{1,3}$ ]] || lt=""
+    lv="$_MT_V"; lt="$_MT_T"
+    [[ -n "$lv" ]] || { lm_note="its line coverage is not measured"; return 1; }
     if (( PROVOST_MIN_COVERAGE > 0 && lv < PROVOST_MIN_COVERAGE )); then
         lm_note="its table keeps $lv% of the lines, <$PROVOST_MIN_COVERAGE%"; return 1
     fi
@@ -918,8 +968,55 @@ _layout_model () {
     if [[ -n "$cov" ]] && (( lv < cov )); then
         lm_note="its table keeps $lv% of the lines, fewer than the held parse ($cov%)"; return 1
     fi
-    cp "$lo" "$tmp/wide.tsv"
-    strategy=layout-model; conf="$lc"; cov="$lv"; tcons="$lt"
+    cp "$_MT_OUT" "$tmp/wide.tsv"
+    strategy=layout-model; conf="$_MT_C"; cov="$lv"; tcons="$lt"
+    return 0
+}
+
+# LAYOUT MODEL, segmenting (after _layout_model declines a whole capture):
+# the model cuts a mixed report into uniform runs — a key/value block, a
+# table, a list — from its own line roles (layout_model.py --segments), and
+# each run's records, made from the whole document's labels, are measured by
+# the engine like any parse (PROVOST_LM_RECORDS). The runs are filed as the
+# capture's datasets INSTEAD of holding it under AUTO-MULTI's rules: every
+# run passes the per-part checks (_am_part_check), the runs hold at least
+# _AM_GAIN points more of the input than the held parse (and the gate's
+# minimum), and they are not fragments. Otherwise 1, the reason in mm_note.
+# Works on _ingest's locals like _auto_multi; fills ds_* and am_cov/am_kind.
+_model_multi () {
+    local segd="$tmp/lmseg" i f n=0 dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
+    command -v python3 >/dev/null 2>&1 || { mm_note="python3 is not installed"; return 1; }
+    rm -rf "$segd"; mkdir -p "$segd"
+    python3 "$PROVOST_ROOT/extract/model/layout_model.py" "$body" --segments "$segd" >/dev/null 2>&1 \
+        || { mm_note="it finds no two sections it can read"; return 1; }
+    while [[ -f "$segd/seg.$((n + 1)).txt" ]]; do n=$((n + 1)); done
+    local -a an=() as=() ac=() af=() acv=() acs=()
+    for (( i = 1; i <= n; i++ )); do
+        f="$segd/seg.$i.txt"
+        PROVOST_LM_RECORDS="$segd/seg.$i.rec" _model_table "$f" "" "" "seg$i" \
+            || { mm_note="its section $i yields nothing"; return 1; }
+        dstrat=layout-model; dconf="$_MT_C"; dcov="${_MT_V:--}"; dcons="${_MT_T:--}"
+        dlines=$(grep -c '[^[:space:]]' "$f" || true)
+        _am_part_check "$i" "$_MT_OUT" "$segd/seg.$i.tsv"
+        [[ -z "$_AMP_NOTE" ]] || { mm_note="${_AMP_NOTE/#part/section}"; return 1; }
+        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
+        an+=("${name:+$name.}layout-model"); as+=(layout-model); ac+=("$dconf"); af+=("$segd/seg.$i.tsv")
+        acv+=("$dcov"); acs+=("$dcons")
+    done
+    if (( sub == 0 || sub * 2 < tot )); then
+        mm_note="its sections are fragments ($sub of $tot lines in sections of $_AM_FRAG_LINES+ lines)"; return 1
+    fi
+    alll=$(grep -c '[^[:space:]]' "$body" || true)
+    (( alll > 0 )) || { mm_note="the input is empty"; return 1; }
+    jcov=$(( covl / alll ))
+    need=$(( ${cov:-0} + _AM_GAIN ))
+    (( need < PROVOST_MIN_COVERAGE )) && need=$PROVOST_MIN_COVERAGE
+    if (( need > 100 )); then mm_note="the held parse already keeps $cov% of the lines"; return 1; fi
+    if (( jcov < need )); then mm_note="its $n sections keep $jcov% of the lines, <$need%"; return 1; fi
+    ds_name=("${an[@]}"); ds_strategy=("${as[@]}"); ds_conf=("${ac[@]}"); ds_file=("${af[@]}")
+    ds_cov=("${acv[@]}"); ds_cons=("${acs[@]}")
+    am_cov="$jcov"; am_kind=layout-model
     return 0
 }
 
@@ -970,11 +1067,11 @@ _ingest () {
     # single parse that was segmented instead; am_note = why segmenting was
     # declined (the capture is then held as before); am_cov = the coverage of
     # all the datasets together.
-    local am_reason="" am_note="" am_cov="" am_kind="" single_strategy="" single_conf=""
+    local am_reason="" am_note="" am_cov="" am_kind="" single_strategy="" single_conf="" am_model=0
     # LAYOUT MODEL state (see _layout_model): lm_reason = why the gate held the
     # engine's parse that the model's table replaced; lm_note = why the model
     # was declined; single_cov / single_cons = the held parse's measures.
-    local lm_reason="" lm_note="" single_cov="" single_cons=""
+    local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note=""
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
@@ -1046,7 +1143,9 @@ _ingest () {
         # table, filed only if it passes the same gate (see _layout_model).
         if [[ "$PROVOST_MODEL" == 1 && -z "$am_reason" && ( "$reason" == low-coverage* || "$reason" == low-consistency* ) ]]; then
             single_cov="$cov"; single_cons="$tcons"
-            if _layout_model; then lm_reason="$reason"; reason=""; fi
+            if _layout_model; then lm_reason="$reason"; reason=""
+            elif _model_multi; then am_reason="$reason"; reason=""
+            else lm_note="$lm_note; segmenting it itself: $mm_note"; fi
         fi
         if [[ -z "$am_reason" ]]; then
             local dsname content="$tmp/content.tsv"
@@ -1137,6 +1236,7 @@ _ingest () {
             # together; the single parse the gate held is kept for the record.
             printf 'coverage\t%s\n' "$am_cov"
             printf 'auto_multi\t%s\n' "$(_meta_safe "segmented ($am_kind): $am_reason")"
+            (( am_model > 0 )) && printf 'auto_multi_model_parts\t%s\n' "$am_model"
             printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
             printf 'single_confidence\t%s\n' "$single_conf"
             [[ -n "$cov" ]] && printf 'single_coverage\t%s\n' "$cov"
@@ -1190,6 +1290,8 @@ _ingest () {
     elif [[ ${#out_names[@]} -gt 1 ]]; then
         if [[ -n "$am_reason" ]]; then
             ok "$id: → ${#out_names[@]} datasets, rows $idrange — segmented: the single parse was $am_reason; the ${#out_names[@]} parts keep $am_cov%:"
+            (( am_model > 0 )) && info "      the layout model read $am_model of the parts the engine could not."
+            [[ "$am_kind" == layout-model ]] && info "      the layout model segmented it (the engine's own segmenting did not help: $am_note)."
         else
             ok "$id: → ${#out_names[@]} datasets, rows $idrange:"
         fi
@@ -2296,7 +2398,13 @@ LAYOUT MODEL (a learned fallback for a weak parse)
     consistency as any parser; it is filed (strategy 'layout-model') only
     when it passes the gate and keeps at least as many lines as the parse
     the gate held, and only for an input that is one table or one
-    key/value record. Otherwise the capture is held exactly as before. meta.tsv
+    key/value record. Where the engine also read the lines, an arbiter
+    keeps the engine's field split on the lines it trusts more. Before
+    that, AUTO-MULTI asks the model to re-read any part of its split that
+    the gate rejects; and when the whole-capture table is declined, the
+    model cuts the report into its own uniform sections (a key/value
+    block, a table, a list), filed under AUTO-MULTI's rules. Otherwise
+    the capture is held exactly as before. meta.tsv
     records 'layout_model' (filed or declined, and why) and the held
     parse's 'single_strategy' / 'single_coverage'. It needs python3 (plain,
     no packages) and declines inputs over 600 lines. Only held captures pay

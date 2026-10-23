@@ -1031,6 +1031,7 @@ run_multi_mode () {
                 # A comment run is kept whole (every line a row, or every
                 # `# key: value` a pair): nothing to measure, `-` / `-`.
                 eval "${_p}_cov[$_n]=-; ${_p}_cons[$_n]=-; ${_p}_lines[$_n]=$_t_n"
+                printf -v "${_p}_text[$_n]" '%s' "$text"
                 if [[ $_kv_all -eq 1 && $_kv_n -ge 2 ]]; then
                     _kv_out+="total_entries ${_kv_n}"$'\n'
                     eval "${_p}_name[$_n]=commented-kv; ${_p}_conf[$_n]=90"
@@ -1069,6 +1070,7 @@ run_multi_mode () {
             local _m_nl=0 _m_l
             while IFS= read -r _m_l; do [[ -n "${_m_l//[[:space:]]/}" ]] && _m_nl=$((_m_nl + 1)); done <<< "$text"
             eval "${_p}_cov[$_n]=\"\${_WINNER_COV:--}\"; ${_p}_cons[$_n]=\"\${_WINNER_CONS:--}\"; ${_p}_lines[$_n]=$_m_nl"
+            printf -v "${_p}_text[$_n]" '%s' "$text"
             _n=$((_n + 1))
         done
         eval "${_p}_n=$_n"
@@ -1079,6 +1081,7 @@ run_multi_mode () {
     local -a split_name=() split_conf=() split_fields=() split_n=0
     local -a whole_name=() whole_conf=() whole_fields=() whole_n=0
     local -a split_cov=() split_cons=() split_lines=() whole_cov=() whole_cons=() whole_lines=()
+    local -a split_text=() whole_text=() strict_text=() hdr_text=() win_text=()
     local -a group_text_saved=() group_name_saved=() group_istext_saved=()
     local _gi_saved=$gi
 
@@ -1207,14 +1210,14 @@ run_multi_mode () {
     if [[ $strict_n -gt 0 && $_sc_strict -ge $_sc_split ]]; then
         split_name=("${strict_name[@]}"); split_conf=("${strict_conf[@]}")
         split_fields=("${strict_fields[@]}"); split_n=$strict_n; _sc_split=$_sc_strict
-        split_cov=("${strict_cov[@]}"); split_cons=("${strict_cons[@]}"); split_lines=("${strict_lines[@]}")
+        split_cov=("${strict_cov[@]}"); split_cons=("${strict_cons[@]}"); split_lines=("${strict_lines[@]}"); split_text=("${strict_text[@]}")
         _split_kind=strict
         _log_debug "multi: strict grouping wins the split slot"
     fi
     if [[ $hdr_n -gt 0 && $_sc_hdr -ge $_sc_split ]]; then
         split_name=("${hdr_name[@]}"); split_conf=("${hdr_conf[@]}")
         split_fields=("${hdr_fields[@]}"); split_n=$hdr_n; _sc_split=$_sc_hdr
-        split_cov=("${hdr_cov[@]}"); split_cons=("${hdr_cons[@]}"); split_lines=("${hdr_lines[@]}")
+        split_cov=("${hdr_cov[@]}"); split_cons=("${hdr_cons[@]}"); split_lines=("${hdr_lines[@]}"); split_text=("${hdr_text[@]}")
         _split_kind=hdr
         _log_debug "multi: header fold wins the split slot"
     fi
@@ -1258,16 +1261,19 @@ run_multi_mode () {
         win_name=("${split_name[@]}"); win_conf=("${split_conf[@]}")
         win_fields=("${split_fields[@]}"); win_n=$split_n
         win_cov=("${split_cov[@]}"); win_cons=("${split_cons[@]}"); win_lines=("${split_lines[@]}")
+        win_text=("${split_text[@]}")
         _win_kind="$_split_kind"
     elif [[ $whole_n -gt 0 ]]; then
         win_name=("${whole_name[@]}"); win_conf=("${whole_conf[@]}")
         win_fields=("${whole_fields[@]}"); win_n=$whole_n
         win_cov=("${whole_cov[@]}"); win_cons=("${whole_cons[@]}"); win_lines=("${whole_lines[@]}")
+        win_text=("${whole_text[@]}")
         _win_kind=whole
     else
         win_name=("${split_name[@]:-}"); win_conf=("${split_conf[@]:-}")
         win_fields=("${split_fields[@]:-}"); win_n=$split_n
         win_cov=("${split_cov[@]:-}"); win_cons=("${split_cons[@]:-}"); win_lines=("${split_lines[@]:-}")
+        win_text=("${split_text[@]:-}")
         _win_kind="$_split_kind"
     fi
 
@@ -1299,6 +1305,12 @@ run_multi_mode () {
         ds=$((ds + 1))
         printf '__DATASET__\t%d\t%s\t%s\t%s\t%s\t%s\n' "$ds" "${win_name[$i]}" "${win_conf[$i]}" \
             "${win_cov[$i]:--}" "${win_cons[$i]:--}" "${win_lines[$i]:-0}"
+        # PROVOST_MULTI_TEXT_DIR (set by provost's auto-multi): each dataset's
+        # own input text, as ds.N.txt, so a part the gate rejects can be read
+        # again by another parser (the layout model) on just its lines.
+        if [[ -n "${PROVOST_MULTI_TEXT_DIR:-}" && -d "$PROVOST_MULTI_TEXT_DIR" ]]; then
+            printf '%s\n' "${win_text[$i]:-}" > "$PROVOST_MULTI_TEXT_DIR/ds.$ds.txt"
+        fi
         local _m_fields="${win_fields[$i]}"
         case "$_OPT_format" in
             json)        format_json "$_m_fields" ;;

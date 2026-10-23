@@ -38,5 +38,13 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
+    # PROVOST_LM_RECORDS: records the model already made for exactly this
+    # text (one part of a report it segmented, labelled in the context of
+    # the whole document) — emit them so the engine measures them like any
+    # parse, instead of labelling the part again out of context.
+    if [[ -n "${PROVOST_LM_RECORDS:-}" && -r "$PROVOST_LM_RECORDS" ]]; then
+        cat "$PROVOST_LM_RECORDS"
+        return 0
+    fi
     printf '%s\n' "$text" | python3 "$(_lm_script)" - 2>/dev/null
 }

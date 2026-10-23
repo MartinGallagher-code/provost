@@ -1,5 +1,111 @@
 # provost — Changelog
 
+## 2026-10-23 — LLM teacher, full corpus: Claude labels all 3,705 captures; trees retrained on them
+
+- **The run:** `ml/llm/label.py --all --batch`, with claude-opus-5-5 and one Message Batches request.
+  - **Cost:** $24.48, including 119 retries.
+  - **Kept:** 3,674 labels, in `ml/eval/llm-labels-2026-10-23.jsonl.gz` (0.7 MB).
+  - **Refused:** 25, all password-cracker and scanner output, blocked by the API's cyber classifier.
+  - **Failed the checker:** 6, because of control characters.
+- **Teacher accuracy against the hand labels:**
+  - fresh test: 147/150 (98%), against the engine's 126/150;
+  - gold: 286/297, against the engine's 192/297;
+  - for comparison, two humans agree on 97%.
+- **Student, the same tree model trained on the LLM labels** (5-fold cross-validation by tool family):
+  - fresh test: 132/150, against 130 for the shipped model;
+  - gold: 215/300, against 194.
+  - **What it means:** the student, not the labels, is now the limit.
+- **Shipped model unchanged.** `extract/model/layout-model.json.gz` is still the engine-trained model.
+- **Changed files:**
+  - `ml/llm/label.py`: `--batch-id` resumes collecting a submitted batch; the script reconnects when the results stream drops; it records refusals instead of retrying them; single requests are streamed; new `--out`.
+  - new `ml/llm/to_corpus.py`: turns LLM labels into a training set.
+  - `ml/crossval.py`: new `--train-corpus`.
+  - `ml/llm/score.py`: reads `.jsonl.gz`.
+  - `ml/tests/test_llm.py`.
+  - `docs/llm-teacher-2026-10-23-pilot.md`: full-corpus section.
+
+## 2026-10-23 — LLM teacher pilot: Claude labels 50 corpus captures
+
+The first step of distillation: a large LLM labels the corpus without seeing
+the engine's output, so the layout model can learn from something better than
+the engine. Nothing in provost changes.
+
+- **Guide, checker, labeller, scorer** (new `ml/llm/`; dev-only, not shipped):
+  - `GUIDE.md` sets the label format: a role and verbatim cells per line. Its
+    conventions match the hand labels.
+  - `check.py` validates a label and converts it to the layout model's roles
+    and field starts (`snap` moves each start to an offset the model can
+    use).
+  - `label.py` runs the full corpus through the Anthropic API, with the
+    Batches API, a cached guide, one retry with the checker's complaints,
+    and per-request usage logged.
+  - `score.py` scores labels against the hand labels and against the engine,
+    estimates the whole-corpus cost, and writes a review sheet of
+    disagreements.
+- **Pilot, 50 captures** (`ml/llm/pilot-2026-10-23.txt`; labels in
+  `ml/eval/llm-pilot-2026-10-23.jsonl`):
+  - **Labeller:** Claude subagents, since there is no API key in the
+    container.
+  - **Against the hand labels:** the LLM got 42/45 lines right, the engine
+    31/45. All three misses are decoration (a progress bar, a filler word).
+  - **Against the engine:** splits agree on 65% of the lines it files. The
+    102 differing lines are in `ml/eval/llm-pilot-review-2026-10-23.md` for
+    review; most look like engine errors.
+  - **Whole-corpus cost estimate:** ~$9–65 depending on model and batching.
+- **Guide fixes from the pilot:** syslog program and pid are separate cells;
+  don't drop filler words.
+- **Tests:** `ml/tests/test_llm.py` (6 tests; `ml/tests` now has 45).
+- **Docs:** `docs/llm-teacher-2026-10-23-pilot.md`, `ml/README.md`,
+  `HANDOFF.md`.
+
+## 2026-10-23 — layout model inside auto-multi, its own segmenting, and the arbiter at capture time (`--model`)
+
+Still opt-in; provost is unchanged without `--model`.
+
+- **#1, the model per part and per section** (`provost`):
+  - **Per part:** `_auto_multi` asks the engine for each part's input text
+    (the new `PROVOST_MULTI_TEXT_DIR`, written by
+    `extract/lib/_dispatch.sh`). A part the gate rejects is re-read by the
+    model on just those lines, and replaces the part only if it passes the
+    same per-part checks (`_am_part_check`, factored out of `_auto_multi`).
+  - **Its own sections:** when the whole-capture table is declined,
+    `_model_multi` has the model cut the report into uniform sections
+    (`layout_model.py --segments`: key/value blocks, tables and lists,
+    from its line roles, with hysteresis so a table whose rows alternate
+    between 2 and 3 fields stays whole).
+    - Each section's records come from the whole document's labels
+      (`PROVOST_LM_RECORDS`, emitted by the strategy for the engine to
+      measure).
+    - The sections are filed under auto-multi's rules.
+- **#2, the arbiter at capture time:**
+  - `extract/model/align.py` (moved from `ml/corpus_labels.py`; the
+    regenerated training labels are byte-identical) lines the engine's
+    parse up with the input.
+  - `extract/model/arbitrate.py` with `arbiter.json` (13 coefficients;
+    `ml/arbiter.py` now imports its features) keeps the engine's split on
+    the lines it trusts more.
+  - It is used wherever provost hands the model the engine's parse of the
+    same lines (`PROVOST_LM_ENGINE_WIDE` / `_META`): the whole-capture
+    fallback and the per-part re-read.
+- **Measured on the development sets** (rounds 2 and 3, both seen):
+  - **0 additional rescues:** 22 held captures, and the gate rejects every
+    section or part the model produces, mostly for dropped prose lines or
+    headerless tables. Round 4 is spent, so there is no unseen
+    measurement; that needs a round 5.
+  - **One constructed example** (a cluster summary over a table, with no
+    blank line between them) shows where the model's value actually lies.
+    The engine FILES it wrong, with the table rows as whole-line text, at
+    100% coverage. The model's sections are exactly right. It is never
+    asked, because it only runs on held captures.
+- **Tests:**
+  - `extract/tests/test_multi_mode.sh`: the part-text directory;
+  - `ml/tests/test_runtime.py`: segments, hysteresis, alignment, the
+    arbiter (39 ml tests);
+  - smoke: the segmenting note (247 checks; CLAUDE.md updated).
+- **Packaging and docs:** `pyproject.toml` ships `align.py`,
+  `arbitrate.py` and `arbiter.json`. The help and man-page LAYOUT MODEL
+  sections are updated.
+
 ## 2026-10-22 — step 3: the layout model as an opt-in fallback (PROVOST_MODEL / --model)
 
 provost's behaviour is unchanged unless `--model` or `PROVOST_MODEL=1` is set.

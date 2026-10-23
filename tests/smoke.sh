@@ -439,6 +439,7 @@ if command -v python3 >/dev/null 2>&1; then
         > "$COV_IN.small2"
     lm_out="$(PROVOST_WORKSPACE="$LWS" PROVOST_MODEL=1 "$PROVOST" --sync "$COV_IN.small2" 2>&1)"
     check "a model table that fails the gate is declined" "the layout model did not help:" "$lm_out"
+    check "the model also tries segmenting a declined capture itself" "segmenting it itself:" "$lm_out"
     rm -f "$COV_IN.small2"
 fi
 rm -f "$COV_IN"
@@ -683,7 +684,8 @@ check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sy
 MAN="$HERE/../man/provost.1"
 while IFS= read -r v; do
     case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR \
-        |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING) continue ;; esac  # set for the engines, not by users
+        |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING|PROVOST_MULTI_TEXT_DIR \
+        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS) continue ;; esac  # set for the engines, not by users
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)

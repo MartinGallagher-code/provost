@@ -28,11 +28,16 @@ they mean are in
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
-| `eval/` | those two sets — committed, because they are review work, not regenerable | data |
+| `eval/` | those sets, plus the LLM labels of the whole corpus (`llm-labels-*.jsonl.gz`) and the pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |
 | `export_model.py` | compiles the trained trees into `extract/model/layout-model.json.gz` (the shipped model) | lightgbm |
 | `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
-| `tests/test_ml.py` | tests for the label builders (run in CI) | stdlib |
+| `llm/GUIDE.md` | the labelling guide the LLM teacher follows (also the API run's system prompt) | text |
+| `llm/check.py` | validates one LLM label and turns it into roles + field starts | stdlib |
+| `llm/label.py` | labels corpus captures with Claude through the Anthropic API (`--batch` for half price) | anthropic, `ANTHROPIC_API_KEY` |
+| `llm/score.py` | scores LLM labels against the hand labels and the engine; cost estimate; review sheet | stdlib |
+| `llm/to_corpus.py` | turns LLM labels into a training set (`crossval.py --train-corpus`, `train_baseline.py --corpus`) | stdlib |
+| `tests/test_ml.py`, `tests/test_llm.py` | tests for the label builders and the LLM-label checker (run in CI) | stdlib |
 
 ## Reproduce
 
@@ -47,6 +52,10 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/python ml/train_baseline.py --final --clean 0.05 --fix-labels   # the model step 3 would use
 .venv/bin/python ml/train_neural.py --epochs 30  # ~15 min on 4 cores, CPU only
 python3 -m unittest discover -s ml/tests         # stdlib tests
+# LLM teacher (needs `pip install anthropic` and ANTHROPIC_API_KEY; ~$25 for the corpus):
+python3 ml/llm/label.py --all --batch            # -> ml/data/llm/<tool>.json (+ usage.jsonl)
+python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz   # the committed labels -> ml/data/corpus-llm.jsonl
+.venv/bin/python ml/crossval.py --train-corpus ml/data/corpus-llm.jsonl --decode   # learn from the LLM, score as before
 ```
 
 `ml/data/` and `ml/models/` are gitignored: everything in them is regenerated

@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-22)
+## Present state (2026-10-23)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -93,6 +93,39 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0e. **2026-10-23: LLM teacher. Claude labelled the whole corpus (3,674 of
+    3,705 kept; $24.48)** (`ml/llm/`, `ml/eval/llm-labels-2026-10-23.jsonl.gz`,
+    `docs/llm-teacher-2026-10-23-pilot.md`).
+    - **Teacher:** 147/150 on the fresh test lines (engine 126/150) and
+      286/297 on gold, against a 97% human ceiling.
+    - **Student:** the same tree model trained on these labels scores 132/150
+      on the fresh test (shipped model 130/150) and 215/300 on gold (194).
+      **The student is now the limit, not the labels.** The shipped model is
+      unchanged.
+    - **Next:**
+      1. A character-grid model that learns its own features from the whole
+         capture, trained on the LLM labels (numpy/onnxruntime at capture
+         time, as an optional extra).
+      2. Then a round 5 to measure it.
+      3. Review a sample of the 8,931 lines where the LLM and the engine
+         differ (`ml/llm/score.py --sheet`); the pilot's 102 lines are in
+         `ml/eval/llm-pilot-review-2026-10-23.md`.
+      4. **Rotate the API key the user pasted into chat on 2026-10-23.**
+
+0d. **2026-10-23: the model now works inside auto-multi (per part, and
+    with its own sections) and arbitrates with the engine per line.**
+    - **Result:** 0 extra rescues on rounds 2 and 3 (22 held captures). The
+      gate rejects every model section there, for dropped prose lines or
+      headerless tables.
+    - **Where the value is instead: captures the engine files WRONG at
+      high coverage.** One constructed example: a summary over a table,
+      with no blank line between them, filed as whole-line text cells; the
+      model's sections are exactly right.
+    - **Next:**
+      - the model as a second opinion on FILED generic parses (hold or
+        replace when it disagrees strongly);
+      - a round 5 to measure that honestly.
 
 0c. **2026-10-22: the layout model is in provost, opt-in (`--model`,
     `PROVOST_MODEL=1`, default off).**

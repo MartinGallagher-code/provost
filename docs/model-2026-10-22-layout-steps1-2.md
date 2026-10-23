@@ -446,6 +446,48 @@ On round 3 (development), it was likewise 1 filed, a PARTIAL, out of 16.
   parts the engine can't. Use the **arbiter** where both the engine and the
   model produce a table.
 
+## Inside auto-multi, its own sections, and the arbiter at capture time (2026-10-23)
+
+**What was added, all behind `--model`:**
+
+- **The model per part:** auto-multi gets each part's input text from the
+  engine. A part the gate rejects is re-read by the model on just those
+  lines, and the model's table replaces it only if it passes the same
+  per-part checks.
+- **The model's own sections:** when the whole-capture table is declined,
+  the model cuts the report into key/value blocks, tables and lists, from
+  its line roles.
+  - A run switches kind only when the new kind holds for two lines.
+  - Each section's records come from the whole document's labels.
+  - The engine measures each section, and the sections are filed under
+    auto-multi's rules.
+- **The arbiter at capture time:** the engine's parse is lined up with the
+  input (`align.py`, the same code that built the training labels), and
+  the arbiter keeps the engine's split on the lines it trusts more,
+  wherever provost hands over both.
+
+**Measured on rounds 2 and 3** (development sets; round 4 is spent):
+
+- **No additional rescues among 22 held captures.**
+- **Why:** the gate rejects every part or section the model produces
+  there. Most lose prose lines, so coverage drops below 80%, or are
+  headerless tables, which the positional-columns rule rejects. That rule
+  exists because a header cut off by a rule line produced exactly such
+  tables.
+- **The arbiter switched no lines** on the one whole-capture rescue.
+
+**Where the value actually is.** A constructed example (a cluster summary
+over a pod table, with no blank line between them) is filed by the engine
+as one `colons` record, with the four table rows as whole-line text cells,
+at 100% coverage. The model's own sections are a correct key/value record
+and a correctly named table. The model never sees that capture, because it
+only runs on what the gate holds. Round 4 bears this out: 41% FAIL, but
+only 15 of 107 captures held, so most wrong tables are FILED.
+
+**The next step** is the model as a **second opinion on filed generic
+parses**: hold, or replace, when its reading disagrees strongly with the
+engine's. That must be measured on a round 5.
+
 ## What this says
 
 1. **A learned model beats the heuristics by a wide margin on unseen

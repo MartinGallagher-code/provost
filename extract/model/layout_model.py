@@ -32,6 +32,8 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import arbitrate  # noqa: E402
+from align import Labeller, rows_from_wide  # noqa: E402
 from decode import decode  # noqa: E402
 from features import cand_features, line_rows  # noqa: E402
 from layout import fields, is_blank  # noqa: E402
@@ -90,7 +92,41 @@ def label(model, lines):
     starts = [None if p is None else sorted(i for i, q in p.items() if q > 0.5) for p in probs]
     for j, st in decode(lines, roles, probs).items():
         starts[j] = st
-    return roles, starts
+    return roles, starts, probs
+
+
+def engine_starts(lines, wide):
+    """Per-line field starts of the ENGINE's parse of these lines (its -f tsv
+    output), found by lining its records back up with the input."""
+    cols, rows = rows_from_wide(wide)
+    if not rows:
+        return [None] * len(lines)
+    lab = Labeller(lines, cols, rows)
+    lab.label()
+    return lab.starts
+
+
+def arbitrate_with_engine(lines, roles, starts, probs, env=os.environ):
+    """When provost hands over the engine's own parse of this input
+    (PROVOST_LM_ENGINE_WIDE: its -f tsv output; PROVOST_LM_ENGINE_META:
+    strategy, confidence, coverage, consistency), keep the engine's split on
+    the lines where the arbiter trusts it more. Returns (starts, switched)."""
+    path = env.get("PROVOST_LM_ENGINE_WIDE", "")
+    if not path or not os.path.isfile(path) or not os.path.isfile(arbitrate.COEFFS):
+        return starts, 0
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        wide = fh.read()
+    meta = (env.get("PROVOST_LM_ENGINE_META", "") + "\t\t\t\t").split("\t")
+    strategy = meta[0]
+
+    def num(v):
+        try:
+            return float(v)
+        except ValueError:
+            return -1.0
+    es = engine_starts(lines, wide)
+    return arbitrate.choose(arbitrate.load(), roles, es, starts, probs,
+                            [num(meta[1]), num(meta[2]), num(meta[3])], strategy)
 
 
 # -- turning labels into records ---------------------------------------------
@@ -217,12 +253,13 @@ def _kv(line, st):
 
 
 MIN_TABLE_ROWS = 3
+PART_MIN_ROWS = 2    # a part of a segmented report is small by nature
 MAIN_SHARE = 0.6     # the main table holds this share of all rows
 SAME_FIELDS = 0.7    # and this share of its rows have one field count
 KV_SHARE = 0.6       # key/value lines are this share of the content lines
 
 
-def shape(lines, roles, starts):
+def shape(lines, roles, starts, min_rows=MIN_TABLE_ROWS):
     """What the document is, or None when it is neither one table nor one
     key/value record — a mixed report is AUTO-MULTI's job, not the model's,
     and declining leaves the capture held exactly as before. Returns
@@ -257,7 +294,7 @@ def shape(lines, roles, starts):
     if blocks:
         main = max(blocks, key=nrows)
         k, c = mode_fields(main)
-        if nrows(main) >= MIN_TABLE_ROWS and nrows(main) >= MAIN_SHARE * all_rows \
+        if nrows(main) >= min_rows and nrows(main) >= MAIN_SHARE * all_rows \
                 and c >= SAME_FIELDS * nrows(main):
             keep = set(main)
             for b in blocks:   # sectioned tables: other blocks of the same shape
@@ -265,14 +302,14 @@ def shape(lines, roles, starts):
                     keep |= set(b)
             return "table", keep
     kv = [j for j in content if roles[j] == "kv"]
-    if len(kv) >= MIN_TABLE_ROWS and len(kv) >= KV_SHARE * len(content):
+    if len(kv) >= min_rows and len(kv) >= KV_SHARE * len(content):
         return "kv", set(kv)
     return None, set()
 
 
-def records(lines, roles, starts):
+def records(lines, roles, starts, min_rows=MIN_TABLE_ROWS):
     """Flat records (list of 'key value' strings) from the labels."""
-    mode, keep = shape(lines, roles, starts)
+    mode, keep = shape(lines, roles, starts, min_rows)
     if mode is None:
         return []
     out = []
@@ -343,9 +380,108 @@ def records(lines, roles, starts):
     return out
 
 
+def _kinds(roles, starts):
+    """Per line: 'kv' (a key and its value: a kv line, a two-field row, or a
+    two-field header over such lines), 'table' (a header or a row of one or
+    three-plus fields, a continuation), 'section', 'blank', or None (a rule
+    or prose line)."""
+    k = []
+    for r, st in zip(roles, starts):
+        if r == "kv" or (r == "row" and st and len(st) == 2):
+            k.append("kv")
+        elif r in ("header", "row", "cont"):
+            k.append("table")
+        elif r in ("section", "blank"):
+            k.append(r)
+        else:
+            k.append(None)
+    for j, r in enumerate(roles):
+        if r == "header" and starts[j] and len(starts[j]) <= 2:
+            nxt = next((k[q] for q in range(j + 1, len(k)) if k[q] not in (None, "blank")), None)
+            if nxt == "kv":
+                k[j] = "kv"
+    # Hysteresis: within a block a run switches kind only when the new kind
+    # holds for two content lines in a row — a table whose rows alternate
+    # between two and three fields stays one table. A header always starts
+    # a table.
+    cur = None
+    for j in range(len(k)):
+        if k[j] in ("blank", "section"):
+            cur = None
+            continue
+        if k[j] is None:
+            continue
+        if cur is None or k[j] == cur or roles[j] == "header":
+            cur = k[j]
+            continue
+        nxt = next((k[q] for q in range(j + 1, len(k)) if k[q] is not None), None)
+        if nxt == k[j]:
+            cur = k[j]
+        else:
+            k[j] = cur
+    return k
+
+
+def segments(lines, roles, starts):
+    """Cut a mixed report into uniform runs: a run of key/value lines, or a
+    table (header, rows, continuations, and rule lines between them). A
+    section title opens the run below it; a blank line or a change of kind
+    closes a run. Runs of fewer than two content lines are left out.
+    Returns [(first, last, kind)]."""
+    kinds = _kinds(roles, starts)
+    out, cur, ck, pending = [], [], None, None
+    for j, k in enumerate(kinds):
+        if k == "section":
+            if cur:
+                out.append((cur, ck))
+            cur, ck, pending = [], None, j
+            continue
+        if k == "blank":
+            if cur:
+                out.append((cur, ck))
+            cur, ck, pending = [], None, None
+            continue
+        if k is None:            # a rule or prose line: stays inside a table run
+            if cur and ck == "table":
+                cur.append(j)
+            continue
+        if ck is not None and k != ck:
+            out.append((cur, ck))
+            cur, pending = [], None
+        if not cur and pending is not None:
+            cur.append(pending)
+            pending = None
+        cur.append(j)
+        ck = k
+    if cur:
+        out.append((cur, ck))
+    res = []
+    for run, k in out:
+        while run and kinds[run[-1]] not in ("kv", "table"):
+            run.pop()
+        if sum(1 for j in run if kinds[j] in ("kv", "table") and roles[j] != "header") >= 2:
+            res.append((run[0], run[-1], k))
+    return res
+
+
+def segment_records(lines, roles, starts, a, b, kind):
+    """One run's records, from the whole document's labels (a run is never
+    re-labelled out of context): in a key/value run every two-field line is
+    read as a key and its value."""
+    sl, sr, ss = lines[a:b + 1], list(roles[a:b + 1]), starts[a:b + 1]
+    if kind == "kv":
+        sr = ["kv" if r in ("row", "header") and st and len(st) == 2 else r for r, st in zip(sr, ss)]
+    return records(sl, sr, ss, PART_MIN_ROWS)
+
+
 def main(argv=None):
     argv = sys.argv[1:] if argv is None else argv
     debug = "--debug" in argv
+    segdir = None
+    if "--segments" in argv:
+        k = argv.index("--segments")
+        segdir = argv[k + 1]
+        argv = argv[:k] + argv[k + 2:]
     args = [a for a in argv if a != "--debug"]
     src = args[0] if args else "-"
     data = sys.stdin.read() if src == "-" else open(src, encoding="utf-8", errors="replace").read()
@@ -355,8 +491,26 @@ def main(argv=None):
     if len(lines) > MAX_LINES:
         return 3
     model = load()
-    roles, starts = label(model, lines)
+    roles, starts, probs = label(model, lines)
+    if segdir is not None:
+        # --segments DIR: each uniform run as DIR/seg.N.txt (its verbatim
+        # lines) and DIR/seg.N.rec (its records, from the whole document's
+        # labels), for provost to measure and file part by part; runs that
+        # yield no records are left out. Exit 1 below two runs.
+        n = 0
+        for a, b, kind in segments(lines, roles, starts):
+            rec = segment_records(lines, roles, starts, a, b, kind)
+            if not rec:
+                continue
+            n += 1
+            with open(os.path.join(segdir, f"seg.{n}.txt"), "w", encoding="utf-8") as fh:
+                fh.write("\n".join(lines[a:b + 1]) + "\n")
+            with open(os.path.join(segdir, f"seg.{n}.rec"), "w", encoding="utf-8") as fh:
+                fh.write("\n".join(rec) + "\n")
+        return 0 if n >= 2 else 1
+    starts, switched = arbitrate_with_engine(lines, roles, starts, probs)
     if debug:
+        sys.stderr.write(f"arbiter: {switched} line(s) kept the engine's split\n")
         for ln, r, st in zip(lines, roles, starts):
             sys.stderr.write(f"{r:8}|{ln}\n" + (f"{'':8}|{' ' * min(st)}{'^'} {st}\n" if st else ""))
     out = records(lines, roles, starts)
