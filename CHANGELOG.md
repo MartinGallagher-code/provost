@@ -1,5 +1,28 @@
 # provost — Changelog
 
+## 2026-10-25 — 297 Claude-written format generators; LLM-trained trees measured on the full test
+
+- **New `ml/gen/`:**
+  - `lib.py`: a `Doc` builder that labels lines as it writes them, plus fake
+    values.
+  - `run.py`: checks every sample with `ml/llm/check.py`, refuses tool
+    families already in `tests/corpus/`, and writes `ml/data/gen.jsonl`.
+  - `tools/`: 297 generators across 20 domains, written by Claude helpers in
+    the session.
+- **New `ml/fold_eval.py`:** one fold scored against the LLM labels (3,163
+  lines), the quick development yardstick.
+- **`ml/crossval.py`:** new `--extra`, for training sets added to every fold.
+- **Result (fold 0):**
+  - generated data: trees 83.1% (82.9% without), GridNet 80.1% (79.3%),
+    average 83.6%;
+  - trees on LLM labels + `synth.py`: 83.3%, gold 40/48.
+- **Full 5-fold test of that setup** (fresh test scored once):
+  - fresh test 131/150, against 130 for the shipped model;
+  - gold 219/300, against 194 (hard lines 97 against 77).
+- **Shipped model unchanged.** Whether to ship the LLM-trained trees is the
+  maintainer's call; see `docs/gridnet-2026-10-23.md`.
+- **Tests:** `ml/tests/test_gen.py` (all generators pass the checker).
+
 ## 2026-10-23 — GridNet: a self-learning layout model, built and measured (not shipped)
 
 - **New:**

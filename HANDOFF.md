@@ -94,6 +94,18 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0g. **2026-10-25: 297 format generators** (`ml/gen/`), **plus the
+    LLM-trained trees measured on the full test** (`docs/gridnet-2026-10-23.md`).
+    - **Generated data:** small gains for GridNet (+0.8 points), none for the
+      trees.
+    - **Trees on LLM labels + `synth.py`:** fresh test 131/150 (shipped
+      130); gold 219/300 (194), hard lines 97 against 77.
+    - **Decision needed:** ship these trees as the opt-in `--model`? It
+      would need the arbiter refitted and the layout-model golden
+      regenerated.
+    - **Otherwise the layout model has plateaued** at about 83% of the
+      teacher's splits on unseen families.
+
 0f. **2026-10-23: GridNet, the self-learning model, was built and measured,
     and is not shipped** (`ml/train_grid.py`, `extract/model/gridnet.py`,
     `docs/gridnet-2026-10-23.md`).

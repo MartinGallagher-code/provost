@@ -72,6 +72,8 @@ def main(argv=None):
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"))
     ap.add_argument("--train-corpus", help="learn from these labels instead (e.g. ml/data/corpus-llm.jsonl); "
                     "--corpus stays the engine reference everything is scored against")
+    ap.add_argument("--extra", nargs="*", default=[],
+                    help="extra training sets in every fold (synthetic/generated layouts: no corpus family)")
     ap.add_argument("--learner", choices=["trees", "grid"], default="trees",
                     help="grid: the axial-transformer GridNet (train_grid.py; needs torch)")
     ap.add_argument("--epochs", type=int, default=20, help="GridNet training epochs")
@@ -100,11 +102,12 @@ def main(argv=None):
         B.CAND_PARAMS.update(json.loads(a.cand_params))
     exs = D.load(a.corpus)
     train_exs = D.load(a.train_corpus) if a.train_corpus else exs
+    extra = [e for p in a.extra for e in D.load(p)]
     hand = B.load_hand(a.hand)
     validated = B.load_validated()
     preds, probs = {}, {}
     for k in range(K):
-        tr = [e for e in train_exs if fold(e) != k]
+        tr = [e for e in train_exs if fold(e) != k] + extra
         te = [e for e in exs if fold(e) == k]
         if a.learner == "grid":
             import train_grid as G
