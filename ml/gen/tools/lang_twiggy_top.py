@@ -20,7 +20,9 @@ def generate(rng):
     retained = rng.random() < .35
     total = rng.randint(4000, 3000000)
     n = rng.randint(3, 25)
-    sizes = sorted([int(total * rng.random() ** 3 * .3) + 1 for _ in range(n)], reverse=True)
+    ws = [rng.random() ** 3 + .001 for _ in range(n)]
+    shown = rng.uniform(.5, .97)
+    sizes = sorted([max(1, int(total * shown * w / sum(ws))) for w in ws], reverse=True)
     rows = []
     for s in sizes:
         it = rng.choice(ITEMS).format(h=fake.hexid(rng, 16), w=fake.word(rng), n=rng.randint(0, 900))

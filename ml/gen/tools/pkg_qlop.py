@@ -1,7 +1,7 @@
 """Gentoo portage-utils `qlop`: emerge history as fixed-layout log lines
 (`timestamp >>> category/pkg-ver[: duration]`, `<<<` for unmerges, `***`
 for syncs), or per-package averages with a total line."""
-from lib import Doc, fake
+from lib import Doc
 
 TOOL = "qlop"
 
@@ -18,8 +18,8 @@ def pver(rng):
     return v + (f"-r{rng.randint(1, 5)}" if rng.random() < .35 else "")
 
 
-def dur(rng, big=False):
-    s = rng.randint(4, 30000 if big else 5400)
+def dur(rng, secs=None):
+    s = secs if secs is not None else rng.randint(4, 5400)
     h, m, s = s // 3600, s % 3600 // 60, s % 60
     if h:
         return f"{h}:{m:02d}′{s:02d}″"
@@ -44,13 +44,15 @@ def generate(rng):
         tot, cnt = 0, 0
         for a in atoms:
             n = rng.randint(1, 30)
-            du = dur(rng)
+            secs = rng.randint(4, 5400)
+            du = dur(rng, secs)
             cnt += n
+            tot += secs * n
             pad = "" if rng.random() < .5 else " " * (w - len(a) - 1)
             text = f"{a}:{pad} {du} average for {n} merge{'s' if n > 1 else ''}"
             d.line(text, "row", [a, du, f"average for {n} merge{'s' if n > 1 else ''}"])
         if rng.random() < .8:
-            du = dur(rng, big=True)
+            du = dur(rng, tot)
             d.line(f"total: {du} for {cnt} merges", "row", ["total", du, f"for {cnt} merges"])
         return d
     style = "iso" if rng.random() < .75 else "ctime"

@@ -54,8 +54,8 @@ def _users(rng):
 def generate(rng):
     d = Doc()
     silent = rng.random() < .4
+    rel = rng.choice(["19.0.0.0.0", "21.0.0.0.0", "23.0.0.0.0"])
     if not silent:
-        rel = rng.choice(["19.0.0.0.0", "21.0.0.0.0", "23.0.0.0.0"])
         d.blank()
         d.skip(f"SQL*Plus: Release {rel} - Production on {fake.date(rng, 'rfc')[:3]} Oct {rng.randint(1, 28)} "
                f"{fake.date(rng, 'time')} 2026")
@@ -80,8 +80,6 @@ def generate(rng):
                         for c, v in enumerate(vals)).rstrip()
 
     pagesize = rng.choice([14, 14, 50, 100])
-    if not silent:
-        d.blank()
     for i, r in enumerate(rows):
         if i % (pagesize - 3) == 0:
             if i:
@@ -94,5 +92,5 @@ def generate(rng):
         d.skip(f"{len(rows)} rows selected.")
     if not silent:
         d.blank()
-        d.skip(f"Disconnected from Oracle Database {rng.choice(['19c', '21c', '23ai'])} Enterprise Edition Release - Production")
+        d.skip(f"Disconnected from Oracle Database {rel[:2]}c Enterprise Edition Release {rel} - Production")
     return d

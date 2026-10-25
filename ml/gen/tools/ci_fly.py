@@ -12,11 +12,15 @@ JOBS = ["unit", "integration", "build-image", "deploy-staging", "deploy-prod", "
 TEAMS = ["main", "main", "main", "platform", "mobile", "data"]
 
 
-def ts(rng, base):
-    t = base + rng.randint(0, 600)
+def ts(rng, t, day=None, tz=None):
+    """Concourse's local-time stamp for t seconds into a day."""
+    day = day or f"2024-{rng.randint(1, 12):02d}-{rng.randint(1, 27):02d}"
+    tz = tz or rng.choice(['-0700', '+0000', '+0100', '-0400'])
+    if t >= 86400:
+        day, t = day[:8] + f"{int(day[8:]) + 1:02d}", t - 86400
     h, rem = divmod(t, 3600)
     m, s = divmod(rem, 60)
-    return t, f"2024-{rng.randint(1, 12):02d}-{rng.randint(1, 28):02d}@{h % 24:02d}:{m:02d}:{s:02d}{rng.choice(['-0700', '+0000', '+0100', '-0400'])}"
+    return f"{day}@{h:02d}:{m:02d}:{s:02d}{tz}"
 
 
 def dur(sec):
@@ -31,6 +35,8 @@ def builds(rng, d):
            ["status", "start", "end", "duration", "team", "created by"]
     rows = []
     bid = rng.randint(100, 900000)
+    tz = rng.choice(['-0700', '+0000', '+0100', '-0400', '+0530'])
+    day = f"2024-{rng.randint(1, 12):02d}-{rng.randint(1, 27):02d}"
     for _ in range(rng.randint(3, 50 if rng.random() < .2 else 12)):
         bid -= rng.randint(1, 40)
         status = rng.choice(["succeeded"] * 6 + ["failed", "failed", "errored", "aborted", "started", "pending"])
@@ -41,13 +47,13 @@ def builds(rng, d):
             start = end = "n/a"
             du = "n/a"
         else:
-            base = rng.randint(0, 80000)
-            t0, start = ts(rng, base)
+            t0 = rng.randint(0, 86000)
+            start = ts(rng, t0, day, tz)
             secs = rng.randint(3, 5400)
             if status == "started":
                 end, du = "n/a", dur(secs) + "+"
             else:
-                end = start[:11] + ts(rng, t0 + secs)[1][11:] if rng.random() < .9 else ts(rng, t0 + secs)[1]
+                end = ts(rng, t0 + secs, day, tz)
                 du = dur(secs)
         who = rng.choice(["system"] * 4 + [fake.user(rng), "admin", "github:octocat", None])
         team = rng.choice(TEAMS)
@@ -87,7 +93,7 @@ def pipelines(rng, d):
     for i, p in enumerate(rng.sample(PIPES, rng.randint(1, len(PIPES)))):
         r = {"id": str(rng.randint(1, 400)), "team": rng.choice(TEAMS), "name": p,
              "paused": rng.choice(["no", "no", "no", "yes"]), "public": rng.choice(["no", "no", "yes"]),
-             "last updated": ts(rng, rng.randint(0, 80000))[1]}
+             "last updated": ts(rng, rng.randint(0, 86000))}
         rows.append([r[h] for h in head])
     d.table(head, rows)
 

@@ -32,7 +32,7 @@ def generate(rng):
         d.skip(rng.choice([
             f"Warning: skipping read 'SRR{rng.randint(100000, 9999999)}.{rng.randint(1, 9999999)}' because length (1) <= # seed mismatches (0)",
             f"Warning: skipping read 'read_{rng.randint(1, 99999)}' because it was < 2 characters long",
-            "Warning: Unsupported file format",
+            f"Warning: {rng.randint(1, 900)} reads were skipped due to empty sequence",
         ]))
     total = rng.choice([rng.randint(1000, 99999), rng.randint(100000, 9999999), rng.randint(10 ** 7, 9 * 10 ** 7)])
     paired = rng.random() < 0.6
@@ -47,7 +47,8 @@ def generate(rng):
         if paired:
             disc = int(a0 * rng.uniform(0, 0.1))
             d.kv("Total pairs", str(total), indent="\t")
-            d.kv("Aligned concordantly or discordantly 0 time", [str(a0 - disc), _p(a0 - disc, total)], sep=": ", indent="\t\t")
+            k0 = "Aligned concordantly or discordantly 0 time"
+            d.line(f"\t\t{k0}: {a0 - disc} {_p(a0 - disc, total)}", "kv", [k0, str(a0 - disc), _p(a0 - disc, total)])
             d.line(f"\t\tAligned concordantly 1 time: {a1} {_p(a1, total)}", "kv", ["Aligned concordantly 1 time", str(a1), _p(a1, total)])
             d.line(f"\t\tAligned concordantly >1 times: {am} {_p(am, total)}", "kv", ["Aligned concordantly >1 times", str(am), _p(am, total)])
             d.line(f"\t\tAligned discordantly 1 time: {disc} {_p(disc, total)}", "kv", ["Aligned discordantly 1 time", str(disc), _p(disc, total)])

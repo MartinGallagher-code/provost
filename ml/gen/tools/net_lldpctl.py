@@ -20,7 +20,8 @@ def generate(rng):
         ifname = rng.choice(["eth0", "eth1", "eno1", "eno2", "enp3s0", "ens192", "swp" + str(rng.randint(1, 48))])
         via = rng.choice(["LLDP", "LLDP", "LLDP", "CDPv2", "EDP"])
         rid = str(i + rng.randint(1, 3))
-        t = f"{rng.randint(0, 40)} day{'s' if rng.random() < .5 else ''}, {rng.randint(0, 23):02d}:{rng.randint(0, 59):02d}:{rng.randint(0, 59):02d}"
+        nd = rng.choice([0, 0, rng.randint(1, 400)])
+        t = f"{nd} day{'s' if nd != 1 else ''}, {rng.randint(0, 23):02d}:{rng.randint(0, 59):02d}:{rng.randint(0, 59):02d}"
         head = "Interface:    "
         text = f"{head}{ifname}, via: {via}, RID: {rid}, Time: {t}"
         d.line(text, "row", ["Interface", ifname, "via", via, "RID", rid, "Time", t])
@@ -57,13 +58,16 @@ def generate(rng):
         if rng.random() < .4:
             d.line("    PMD autoneg:  supported: yes, enabled: yes", "row",
                    ["PMD autoneg", "supported", "yes", "enabled", "yes"])
-            mau = rng.choice(["1000BaseTFD", "10GigBaseSR", "100BaseTXFD"])
-            _kv(d, 6, "MAU oper type", f"{mau} - {rng.choice(['Four-pair Category 5 UTP, full duplex mode', 'R PCS/PMA, 850 nm serial', '2 pair category 5 UTP, full duplex mode'])}", 16)
+            mau = rng.choice(["1000BaseTFD - Four-pair Category 5 UTP, full duplex mode",
+                              "10GigBaseSR - R PCS/PMA, 850 nm serial",
+                              "100BaseTXFD - 2 pair category 5 UTP, full duplex mode"])
+            _kv(d, 6, "MAU oper type", mau, 16)
         for _ in range(rng.choice([0, 1, 1, 2])):
             vid = str(rng.randint(1, 4094))
             pvid = rng.choice(["yes", "no"])
             if rng.random() < .5:
-                vname = f"VLAN{vid.zfill(4)}" if rng.random() < .5 else fake.word(rng)
+                vname = f"VLAN{vid.zfill(4)}" if rng.random() < .5 else \
+                    rng.choice(["mgmt", "servers", "voice", "guest", "storage", f"v{vid}-{fake.word(rng)}"])
                 d.line(f"  VLAN:         {vid}, pvid: {pvid} {vname}", "row", ["VLAN", vid, "pvid", pvid, vname])
             else:
                 d.line(f"  VLAN:         {vid}, pvid: {pvid}", "row", ["VLAN", vid, "pvid", pvid])
