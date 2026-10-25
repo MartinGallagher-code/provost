@@ -41,7 +41,7 @@ def generate(rng):
             ver = rng.choice([darwin, f"{rng.randint(1, 900)}.{rng.randint(0, 99)}",
                               f"{rng.randint(1, 3)}.{rng.randint(0, 9)}.{rng.randint(0, 9)}", "1"])
             linked = " ".join(str(x) for x in sorted(rng.sample(range(1, max(idx, 3)), rng.randint(1, min(8, max(idx - 1, 1)))), reverse=True))
-        refs = str(rng.choice([0, 0, 1, 2, 3, rng.randint(4, 180)]))
+        refs = str(rng.randint(20, 190) if i < 8 else rng.choice([0, 0, 1, 2, 3, rng.randint(4, 40)]))
         uuid = fake.uuid(rng).upper()
         text = f"{idx:>5} {refs:>4} {addr:<18} {size:<10} {wired:<10} {name} ({ver}) {uuid} <{linked}>"
         d.line(text, "row", [str(idx), refs, addr, size, wired, name, f"({ver})", uuid, f"<{linked}>"])

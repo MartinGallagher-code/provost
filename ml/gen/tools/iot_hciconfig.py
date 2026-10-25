@@ -12,9 +12,6 @@ CHIPS = [("Broadcom Corporation (15)", "4.1 (0x7)", "0x168", "0x2209"),
          ("Qualcomm (29)", "5.0 (0x9)", "0x1", "0x25a")]
 
 
-def pairs_row(d, text, cells):
-    d.line(text, "row", cells)
-
 
 def adapter(d, rng, i, full):
     mac = fake.mac(rng).upper()

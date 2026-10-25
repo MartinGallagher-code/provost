@@ -29,6 +29,7 @@ def generate(rng):
     counts = {}
     picks = rng.sample(DEVICES, rng.randint(2, 9))
     bus = 0
+    sep = rng.choice(["\t", " "])     # older releases use a tab, newer a space
     for drv, cls, vend, vname, dname, klass, sub in picks:
         n = counts.get(drv, 0)
         counts[drv] = n + 1
@@ -38,7 +39,7 @@ def generate(rng):
                  ("vendor", vend), ("device", f"0x{rng.randint(0, 0xffff):04x}")]
         if rng.random() < .8:
             pairs += [("subvendor", f"0x{rng.randint(0, 0xffff):04x}"), ("subdevice", f"0x{rng.randint(0, 0xffff):04x}")]
-        text = f"{sel}:" + rng.choice(["\t", " "]) + " ".join(f"{k}={v}" for k, v in pairs)
+        text = f"{sel}:" + sep + " ".join(f"{k}={v}" for k, v in pairs)
         d.line(text, "row", [sel] + [x for p in pairs for x in p])
         if rng.random() < .1:
             continue    # -l only for this one: no description lines
