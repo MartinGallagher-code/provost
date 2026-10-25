@@ -88,9 +88,12 @@ def generate(rng):
             ("Resource_List.nodect", str(nodes)), ("Resource_List.nodes", f"{nodes}:ppn={ppn}"),
             ("Resource_List.walltime", wall)]
     event("A", None, base)
-    if rng.random() < 0.5:
-        event("M", rng.choice(["job was terminated", "scan_for_terminated: job " + full + " task 1 terminated",
-                               "Exit_status=" + str(status)]))
+    t += rng.randint(60, 200000)   # the job runs
+    r = rng.random()
+    if r < 0.2:
+        event("M", None, [("Exit_status", str(status))])
+    elif r < 0.5:
+        event("M", rng.choice(["job was terminated", "scan_for_terminated: job " + full + " task 1 terminated"]))
     used = [("resources_used.cput", f"{rng.randint(0, 900):02d}:{rng.randint(0, 59):02d}:{rng.randint(0, 59):02d}"),
             ("resources_used.energy_used", "0"),
             ("resources_used.mem", f"{rng.randint(1000, 90000000)}kb"),
