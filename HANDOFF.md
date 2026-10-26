@@ -94,6 +94,15 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0h. **2026-10-26: `--model` ships the LLM-trained trees, with a refitted
+    arbiter.**
+    - **Measured:** fresh test 136/150 (previous model + arbiter 133,
+      engine 126); gold 242/300 (210, 193).
+    - **Still opt-in**, and the corpus goldens are unchanged.
+    - **Next:**
+      - an end-to-end round 5 to measure `--model` on unseen captures;
+      - consider making the model the default fallback for held captures.
+
 0g. **2026-10-25: 297 format generators** (`ml/gen/`), **plus the
     LLM-trained trees measured on the full test** (`docs/gridnet-2026-10-23.md`).
     - **Generated data:** small gains for GridNet (+0.8 points), none for the
