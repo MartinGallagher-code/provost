@@ -26,6 +26,14 @@ unchanged.
   | **new model + arbiter** | **136** | **242** |
   | engine | 126 | 193 |
 
+- **End to end with `--model` on benchmark rounds 2–4** (development
+  rounds; these rescues are not yet rated for correctness):
+  - 5 of the 38 held captures are now filed (round 2: 2 of 7; round 3: 1 of
+    16; round 4: 2 of 15). Three of them come from the model's own
+    sectioning (apt-cache showpkg, jhsdb jmap, a robocopy log), and two are
+    whole-capture tables.
+  - No capture the engine already files changed, and none went from filed
+    to held.
 - **`ml/train_baseline.py`:** new `--extra` for `--final`.
 - **Docs:** `ml/README.md`, `docs/gridnet-2026-10-23.md`, `HANDOFF.md`.
 
