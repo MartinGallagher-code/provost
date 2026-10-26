@@ -226,11 +226,13 @@ def main(argv=None):
     ap.add_argument("--hand-weight", type=float, default=20.0)
     ap.add_argument("--trusted-weight", type=float, default=0.0,
                     help="weight for labels of maintainer-approved tools (0 = treat them like the rest)")
+    ap.add_argument("--extra", nargs="*", default=[],
+                    help="with --final: extra training sets (e.g. ml/data/synth.jsonl)")
     ap.add_argument("--final", action="store_true",
                     help="train one model on the WHOLE corpus (no held-out test) and save it")
     a = ap.parse_args(argv)
     if a.final:
-        everything = D.load(a.corpus)
+        everything = D.load(a.corpus) + [e for p in a.extra for e in D.load(p)]
         run("the whole corpus (final model)", "final", everything, [], save=a.save or
             os.path.join(HERE, "models"), clean_at=a.clean, fix_labels=a.fix_labels,
             hand=load_hand(a.hand), hand_w=a.hand_weight,

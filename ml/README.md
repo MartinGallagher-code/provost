@@ -53,7 +53,10 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
     && .venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu
 .venv/bin/python ml/train_baseline.py            # ~1 min on 4 cores
 .venv/bin/python ml/crossval.py --clean 0.05 --fix-labels   # whole corpus + hand labels, ~3 min
-.venv/bin/python ml/train_baseline.py --final --clean 0.05 --fix-labels   # the model step 3 would use
+.venv/bin/python ml/train_baseline.py --final --corpus ml/data/corpus-llm.jsonl --extra ml/data/synth.jsonl --save ml/models/llm   # the SHIPPED model (2026-10-26): LLM labels + synth
+.venv/bin/python ml/export_model.py --roles ml/models/llm/baseline-final-roles.txt --starts ml/models/llm/baseline-final-starts.txt
+.venv/bin/python ml/crossval.py --train-corpus ml/data/corpus-llm.jsonl --extra ml/data/synth.jsonl --decode --out ml/data/crossval.jsonl
+.venv/bin/python ml/arbiter.py --crossval ml/data/crossval.jsonl --meta DIR --save extract/model/arbiter.json   # DIR: engine --batch --generic metas
 .venv/bin/python ml/train_neural.py --epochs 30  # ~15 min on 4 cores, CPU only
 python3 -m unittest discover -s ml/tests         # stdlib tests
 # LLM teacher (needs `pip install anthropic` and ANTHROPIC_API_KEY; ~$25 for the corpus):

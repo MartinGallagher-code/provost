@@ -1,5 +1,42 @@
 # provost — Changelog
 
+## 2026-10-26 — the layout model (`--model`) now learns from the LLM teacher's labels
+
+Still opt-in. Nothing changes without `--model`, and the corpus goldens are
+unchanged.
+
+- **`extract/model/layout-model.json.gz`: retrained.**
+  - Same LightGBM trees and features (1,800 role trees, 300 start trees,
+    0.69 MB), now trained on the 3,674 LLM-labelled captures plus
+    `ml/synth.py` layouts.
+  - Previously it was trained on the engine's own output.
+  - Command: `train_baseline.py --final --corpus ml/data/corpus-llm.jsonl
+    --extra ml/data/synth.jsonl`.
+- **`extract/model/arbiter.json`: refitted** to the new model's
+  out-of-fold probabilities (`arbiter.py --crossval` from
+  `crossval.py --train-corpus ... --extra ... --decode`).
+- **Measured** (5-fold cross-validation by tool family; the fresh test set
+  scored by the same scripts as for the previous model):
+
+  | | fresh test (150) | gold (300) |
+  |---|---:|---:|
+  | previous model | 130 | 194 |
+  | previous model + arbiter | 133 | 210 |
+  | new model | 131 | 219 |
+  | **new model + arbiter** | **136** | **242** |
+  | engine | 126 | 193 |
+
+- **End to end with `--model` on benchmark rounds 2–4** (development
+  rounds; these rescues are not yet rated for correctness):
+  - 5 of the 38 held captures are now filed (round 2: 2 of 7; round 3: 1 of
+    16; round 4: 2 of 15). Three of them come from the model's own
+    sectioning (apt-cache showpkg, jhsdb jmap, a robocopy log), and two are
+    whole-capture tables.
+  - No capture the engine already files changed, and none went from filed
+    to held.
+- **`ml/train_baseline.py`:** new `--extra` for `--final`.
+- **Docs:** `ml/README.md`, `docs/gridnet-2026-10-23.md`, `HANDOFF.md`.
+
 ## 2026-10-25 — 297 Claude-written format generators; LLM-trained trees measured on the full test
 
 - **New `ml/gen/`:**
