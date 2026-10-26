@@ -131,4 +131,7 @@ jobs:
           # the layout model ships in the wheel: a gated capture it can read
           provost --model tests/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt 2>&1 \
               | grep "strategy layout-model"
+          # the LLM template runtime and its shipped templates are in the wheel
+          provost --llm extract/samples/llm-template/basic.txt 2>&1 \
+              | grep "strategy llm-template"
 

@@ -1,0 +1,13 @@
+version: Java 1.17.3 (protocol 665)
+motd: Bedrock Realm
+players: 9/50
+  ⮑ Dinnerbone (c474c025-1908-fcdc-e4b3-14f68d9dcbd7)
+  ⮑ Notch (a085a368-932f-f2b2-d409-dd311ca87190)
+  ⮑ NetherNinja (2316d984-1aab-4cce-c38d-79d89a0da0c4)
+  ⮑ xXCreeperXx (1aebb8f0-10b8-e9a5-b5ab-89c3049787a5)
+  ⮑ redstone_wiz (d33aa7e5-2a6e-8731-6a58-a2b4d98ebd9d)
+  ⮑ Grumm (d1d460fd-71e9-a729-3711-6d10f35970d1)
+  ⮑ TNT_Tom (3a48f1b7-6335-7840-fc18-78d1fa014131)
+  ⮑ DiamondMiner42 (2f12fa5a-2bcc-9b86-ad34-0c251bec1d1b)
+  ⮑ llama_lover (fadde076-82d7-d40a-b83e-3c3a30f47c12)
+ping: 169.73 ms

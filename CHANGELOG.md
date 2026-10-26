@@ -1,5 +1,53 @@
 # provost — Changelog
 
+## 2026-10-26 — `--llm`: Claude writes a parsing template for a tool once; provost reuses it offline
+
+Opt-in (`--llm`, `PROVOST_LLM=1`, default off). Nothing changes without it, and
+the corpus goldens are unchanged (3584/0).
+
+- **What a template is:** JSON holding a regular expression for each kind of
+  line: table rows (named groups as columns), key/value lines, and
+  decoration to skip.
+  - `detect` recognises the tool's output.
+  - Applied by `extract/llm/template.py` (stdlib), through the new
+    explicit-only strategy `llm-template`, so the engine measures what it
+    yields like any parse.
+- **Flow** (`provost`: `_llm_template`, `_llm_file`, `_llm_table`):
+  1. **Look up a template:** for a capture the gate holds, provost looks
+     in the store's `llm-templates/` (`NAME.json` for `--name` or the run
+     command, else any template whose `detect` matches), then in the
+     templates shipped in `extract/llm/templates/`.
+  2. **Ask Claude only if needed:** when none fits and
+     `PROVOST_LLM_API_KEY` / `ANTHROPIC_API_KEY` is set, Claude
+     (`PROVOST_LLM_MODEL`, default `claude-opus-5-5`) writes one from the
+     capture.
+     - The request is raw HTTP (provost stays dependency-free), API version
+       `2026-10-21`, with `fallbacks: "default"` for refusals.
+     - Captures over 400 lines / 64 KB are not sent.
+     - If the first template misses lines, Claude gets one more try with
+       those lines.
+  3. **File under the gate's rules:** every block is measured on its own
+     lines and must pass the per-part checks. One block becomes the
+     capture's dataset; several are filed as `NAME.<block>`. A new template
+     is kept, and committed with the capture, only when it passes.
+  4. **Reuse offline:** every later capture of that tool is parsed offline.
+- **Stored templates also win** over a generic parse the gate passed, but
+  never over exact-format or tool-specific parsers.
+- **New files:**
+  - `extract/llm/template.py`, `extract/llm/GUIDE.md` (the prompt), and
+    `extract/llm/templates/mcstatus.json` (the first shipped template);
+  - `extract/strategies/structured/llm-template.sh` with its sample and
+    golden;
+  - `tests/fake_anthropic.py` (a stand-in API for the smoke test).
+- **Docs:** help and man page (`--llm`, the LLM TEMPLATES section,
+  `PROVOST_LLM*`), README, CLAUDE.md.
+- **Packaging:** `pyproject.toml` ships `extract/llm`, and the wheel CI job
+  checks it.
+- **Tests:**
+  - smoke: 275 (the learn path through the fake API, the request's headers
+    and body, offline reuse, a refusal, the shipped template);
+  - `ml/tests/test_llm_template.py`: 12.
+
 ## 2026-10-26 — the layout model (`--model`) now learns from the LLM teacher's labels
 
 Still opt-in. Nothing changes without `--model`, and the corpus goldens are

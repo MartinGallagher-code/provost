@@ -1,0 +1,12 @@
+{
+ "format": 1,
+ "tool": "mcstatus",
+ "detect": "^version: .*\\(protocol \\d+\\)$",
+ "skip": [],
+ "blocks": [
+  {"name": "players", "kind": "table",
+   "line": "^\\s*⮑ (?P<player>\\S+) \\((?P<uuid>[0-9a-f-]{36})\\)$"},
+  {"name": "status", "kind": "kv",
+   "line": "^(?P<key>[a-z]+): (?P<value>\\S.*)$"}
+ ]
+}

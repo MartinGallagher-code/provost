@@ -11,7 +11,8 @@ set -euo pipefail
 # bundled trees — that is asserted below too.)
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR \
-      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL
+      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
+      PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -444,6 +445,62 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 rm -f "$COV_IN"
 
+# LLM TEMPLATES (--llm / PROVOST_LLM=1): a capture the gate holds is parsed by
+# a template Claude wrote for the tool, stored in the store or shipped with
+# provost; with an API key and no fitting template, Claude is asked to write
+# one. The API here is tests/fake_anthropic.py: no network, no key, no cost.
+check "PROVOST_LLM must be 0 or 1" "2" "$(PROVOST_LLM=2 rc_of "$PROVOST" --sync "$HERE/../extract/samples/llm-template/basic.txt")"
+check "--llm is documented" "--llm" "$("$PROVOST" inject --help 2>&1)"
+if command -v python3 >/dev/null 2>&1; then
+    LT_SAMPLE="$HERE/../extract/samples/llm-template/basic.txt"
+    LT_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
+    LTD="$(mktemp -d)"; LTWS="$LTD/.llm"
+    # a shipped template wins over the engine's generic parse of its tool
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$LT_SAMPLE" 2>&1)"
+    check "a shipped template reads its tool's output" "mcstatus.players  #1..9  (strategy llm-template" "$lt_out"
+    check "the template's second block is a dataset too" "mcstatus.status" "$lt_out"
+    check "meta records the template" "llm_template	filed by template mcstatus.json" "$(cat "$LTWS/captures/c0001/meta.tsv")"
+    # held, no key, no template: held as before, with why
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "with no template and no key the capture is held" "queued in 'unsorted'" "$lt_out"
+    check "the held line says the key is missing" "no API key to have Claude write one" "$lt_out"
+    # learn: Claude (the fake API) writes a template, provost checks it, files, keeps it
+    printf '%s' '{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"cmake-cache\", \"detect\": \"^[A-Za-z0-9_.-]+:(?:STRING|BOOL|FILEPATH|PATH|INTERNAL|STATIC)=\", \"skip\": [\"^-- \", \"^// \"], \"blocks\": [{\"name\": \"entries\", \"kind\": \"table\", \"line\": \"^(?P<name>[A-Za-z0-9_.-]+):(?P<type>[A-Z]+)=(?P<value>.*)$\"}]}"}]}' > "$LTD/reply.json"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "--llm files a held capture with the template Claude wrote" "dataset 'cmake-cache' rows" "$lt_out"
+    check "the ok line says a new template was written" "read by a new template Claude wrote (llm-templates/cmake-cache.json)" "$lt_out"
+    check "the new template is committed with the capture" "llm-templates/cmake-cache.json" "$(git -C "$LTWS" show --stat HEAD 2>&1)"
+    check "the template's values are cut from the input" "CMAKE_AR	FILEPATH	/usr/bin/ar" "$(cat "$LTWS/datasets/cmake-cache.tsv")"
+    lt_req="$(head -n 1 "$LTD/log")"
+    check "the request names the API version" '"anthropic-version": "2026-10-21"' "${lt_req,,}"
+    check "the request sends the key" '"x-api-key": "k-test"' "${lt_req,,}"
+    check "the request asks for refusal fallbacks" '"fallbacks": "default"' "$lt_req"
+    check "the request names the model" '"model": "claude-opus-5-5"' "$lt_req"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    # offline: the next capture of the tool is parsed by the stored template, no API
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "the next capture uses the stored template, offline" "read by template cmake-cache.json" "$lt_out"
+    check "the API was called once in all" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    # a refusal: held, with the category
+    printf '%s' '{"id":"msg_2","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"refusal","stop_details":{"type":"refusal","category":"cyber","explanation":"x"},"usage":{"input_tokens":1,"output_tokens":0},"content":[]}' > "$LTD/reply.json"
+    rm -f "$LTD/port"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nRETRY=3\n\nname,size\nalpha,1\n\nlast check 2026-10-19 ok\n' > "$LTD/held.txt"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name other-tool "$LTD/held.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a refusal leaves the capture held" "queued in 'unsorted'" "$lt_out"
+    check "the held line names the refusal" "the model declined this capture (refusal: cyber)" "$lt_out"
+    check_not "no template is kept after a refusal" "other-tool" "$(ls "$LTWS/llm-templates")"
+fi
+
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
 # .provostrc in the CWD cannot reconfigure a capture. A probe strategy records
 # what the engine process saw.
@@ -685,7 +742,7 @@ MAN="$HERE/../man/provost.1"
 while IFS= read -r v; do
     case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR \
         |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING|PROVOST_MULTI_TEXT_DIR \
-        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS) continue ;; esac  # set for the engines, not by users
+        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS|PROVOST_LLM_RECORDS) continue ;; esac  # set for the engines, not by users
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)

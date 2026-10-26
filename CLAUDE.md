@@ -16,6 +16,7 @@ its format, and present it as a tidy, git-backed dataset. Single entry point:
 | `tests/`, `transform/tests/` | first-party tests | **yes** |
 | `ml/` | layout-model training tools (dev-only, not shipped; see `ml/README.md`) | **yes** |
 | `extract/model/` | the layout model's capture-time runtime + exported trees (shipped; rebuild with `ml/export_model.py`) | **yes** |
+| `extract/llm/` | LLM-written parsing templates (`--llm`): the template engine, the prompt Claude writes them from, and the shipped templates | **yes** |
 
 ### Standalone — everything here is first-party, edit it in place
 
@@ -50,7 +51,7 @@ preserving can also go in `CHANGELOG.md`.
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (247 checks)
+bash tests/smoke.sh                 # end-to-end (275 checks)
 bash transform/tests/test_melt.sh   # transform unit test (60 checks)
 ```
 
@@ -72,7 +73,7 @@ see the `analyze-engine` job in `.github/workflows/ci.yml`):
 bash analyze/tests/run_tests.sh
 ```
 
-When you change `ml/` or `extract/model/`, run their stdlib tests (CI-enforced, `quick-checks` job):
+When you change `ml/`, `extract/model/` or `extract/llm/`, run their stdlib tests (CI-enforced, `quick-checks` job):
 
 ```bash
 python3 -m unittest discover -s ml/tests

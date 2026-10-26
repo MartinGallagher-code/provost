@@ -94,6 +94,17 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
+    and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in
+    `provost help`).
+    - **Tested** end to end against a fake API (`tests/fake_anthropic.py`).
+    - **Not yet run against the real API:** the session's key was deleted.
+    - **Next:**
+      1. With a real key, run `--llm` over the 38 captures held in rounds
+         2–4 and rate the templates.
+      2. Grow `extract/llm/templates/` from the templates that prove good.
+      3. Consider letting `--llm` re-check generic parses the gate passed.
+
 0h. **2026-10-26: `--model` ships the LLM-trained trees, with a refitted
     arbiter.**
     - **Measured:** fresh test 136/150 (previous model + arbiter 133,
