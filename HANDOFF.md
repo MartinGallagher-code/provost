@@ -94,6 +94,30 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0g. **2026-10-25: 297 format generators** (`ml/gen/`), **plus the
+    LLM-trained trees measured on the full test** (`docs/gridnet-2026-10-23.md`).
+    - **Generated data:** small gains for GridNet (+0.8 points), none for the
+      trees.
+    - **Trees on LLM labels + `synth.py`:** fresh test 131/150 (shipped
+      130); gold 219/300 (194), hard lines 97 against 77.
+    - **Decision needed:** ship these trees as the opt-in `--model`? It
+      would need the arbiter refitted and the layout-model golden
+      regenerated.
+    - **Otherwise the layout model has plateaued** at about 83% of the
+      teacher's splits on unseen families.
+
+0f. **2026-10-23: GridNet, the self-learning model, was built and measured,
+    and is not shipped** (`ml/train_grid.py`, `extract/model/gridnet.py`,
+    `docs/gridnet-2026-10-23.md`).
+    - **Result:** on 3,163 held-out lines it matches the LLM labels 79–81% of
+      the time, against 82.9% for the trees. Averaging the two gives 83.5%.
+      Too little data (about 3,000 small captures) for it to learn layout
+      from scratch.
+    - **Next:** have Claude write a few hundred format generators (correct
+      labels by construction, about $10–30), then retrain both models and run
+      the full 5-fold test plus the fresh test once. Needs a new
+      `ANTHROPIC_API_KEY` in the environment.
+
 0e. **2026-10-23: LLM teacher. Claude labelled the whole corpus (3,674 of
     3,705 kept; $24.48)** (`ml/llm/`, `ml/eval/llm-labels-2026-10-23.jsonl.gz`,
     `docs/llm-teacher-2026-10-23-pilot.md`).

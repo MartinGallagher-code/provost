@@ -26,6 +26,10 @@ they mean are in
 | `dataset.py` | loading, the held-out-family split, scoring, rule baselines | stdlib |
 | `train_baseline.py` | gradient-boosted trees (LightGBM) | numpy, lightgbm |
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
+| `train_grid.py` | `GridNet`, a ~279k-parameter axial model (row convolutions, column attention) that learns its own features; `crossval.py --learner grid` scores it | numpy, torch |
+| `export_grid.py` | writes GridNet's float16 weights for `extract/model/gridnet.py` (numpy-only forward pass) and checks it matches torch | numpy, torch |
+| `gen/` | 297 format generators written by Claude (`gen/tools/`, one real tool each, all from tool families the corpus doesn't have), the `Doc` builder they use (`gen/lib.py`), and `gen/run.py`, which checks them and writes `ml/data/gen.jsonl` | stdlib |
+| `fold_eval.py` | one cross-validation fold scored against the LLM labels: the quick development yardstick for learners and extra training sets | numpy, lightgbm (+ torch for GridNet) |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
 | `eval/` | those sets, plus the LLM labels of the whole corpus (`llm-labels-*.jsonl.gz`) and the pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |

@@ -1,5 +1,55 @@
 # provost — Changelog
 
+## 2026-10-25 — 297 Claude-written format generators; LLM-trained trees measured on the full test
+
+- **New `ml/gen/`:**
+  - `lib.py`: a `Doc` builder that labels lines as it writes them, plus fake
+    values.
+  - `run.py`: checks every sample with `ml/llm/check.py`, refuses tool
+    families already in `tests/corpus/`, and writes `ml/data/gen.jsonl`.
+  - `tools/`: 297 generators across 20 domains, written by Claude helpers in
+    the session.
+- **New `ml/fold_eval.py`:** one fold scored against the LLM labels (3,163
+  lines), the quick development yardstick.
+- **`ml/crossval.py`:** new `--extra`, for training sets added to every fold.
+- **Result (fold 0):**
+  - generated data: trees 83.1% (82.9% without), GridNet 80.1% (79.3%),
+    average 83.6%;
+  - trees on LLM labels + `synth.py`: 83.3%, gold 40/48.
+- **Full 5-fold test of that setup** (fresh test scored once):
+  - fresh test 131/150, against 130 for the shipped model;
+  - gold 219/300, against 194 (hard lines 97 against 77).
+- **Shipped model unchanged.** Whether to ship the LLM-trained trees is the
+  maintainer's call; see `docs/gridnet-2026-10-23.md`.
+- **Tests:** `ml/tests/test_gen.py` (all generators pass the checker).
+
+## 2026-10-23 — GridNet: a self-learning layout model, built and measured (not shipped)
+
+- **New:**
+  - `ml/train_grid.py` (GridNet): an axial model over the character grid.
+    Dilated convolutions run along each line and attention runs down each
+    column. It has the same outputs as the tree model and about 279k
+    parameters. Options: augmentation (redrawn digits and letters, widened
+    gutters), synthetic mix-in, and a hybrid input of the tree features.
+  - `ml/crossval.py --learner grid`.
+  - `extract/model/gridnet.py`: a numpy-only forward pass. It matches torch to
+    within 1e-6, and the weights are 0.5 MB.
+  - `ml/export_grid.py`: writes the weights and checks that match.
+  - GridNet is not wired into provost and nothing new is shipped.
+- **Result** (fold 0, 3,163 held-out lines, how often a split matches the LLM
+  labels):
+  - engine 81.4%;
+  - trees 82.9%;
+  - GridNet 79.3%;
+  - GridNet hybrid 81.2%;
+  - trees and GridNet averaged 83.5%.
+  - **What it means:** learning its own features loses to the hand-made
+    features at this data size (about 3,000 small captures). It memorises
+    training tools, and validation loss bottoms out by epoch 5–8.
+- **Next:** more labelled layouts, from Claude-written generators (about
+  $10–30), then retrain. See `docs/gridnet-2026-10-23.md`.
+- **Fresh test set not used.**
+
 ## 2026-10-23 — LLM teacher, full corpus: Claude labels all 3,705 captures; trees retrained on them
 
 - **The run:** `ml/llm/label.py --all --batch`, with claude-opus-5-5 and one Message Batches request.
