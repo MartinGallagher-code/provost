@@ -627,7 +627,13 @@ def main(argv=None):
                 print(" and ".join(x for x in (u and f"{len(u)} unread line(s)", sk and f"{len(sk)} skipped line(s)") if x)
                       + " of a kind it has not met")
         elif a.cmd in ("learn", "repair"):
-            t = learn(lines, a.tool, a.model) if a.cmd == "learn" else repair(load(a.template), lines, a.tool, a.model)
+            if a.cmd == "learn":
+                t = learn(lines, a.tool, a.model)
+            else:
+                old = load(a.template)
+                t = repair(old, lines, a.tool, a.model)
+                bare = lambda x: {k: v for k, v in x.items() if k not in ("examples", "tool")}  # noqa: E731
+                print("unchanged" if bare(t) == bare(old) else "extended")
             tmp = a.out + ".tmp"
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(t, fh, indent=1, ensure_ascii=False)

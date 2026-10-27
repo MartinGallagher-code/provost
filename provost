@@ -1167,18 +1167,25 @@ _llm_template () {
         # Claude once to be extended; the extension is kept only if it still
         # reads the captures the template was written from and passes the
         # same rules. Otherwise the template stays as it was.
-        local miss="" rnote=""
+        local miss="" rnote="" rstat=""
         if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
             && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
-            if err="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>&1 >/dev/null)"; then
+            if rstat="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>"$tmp/llm-repair.err")"; then
                 if _llm_file "$new"; then
+                    # kept even when unchanged: it now holds this capture, so
+                    # these lines are not sent again
                     mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
-                    llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                    if [[ "$rstat" == unchanged ]]; then
+                        llm_how="template ${tpl##*/}, which Claude checked for $miss and left as it was (llm-templates/$kf)"
+                    else
+                        llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                    fi
                     llm_learned="llm-templates/$kf"
                     return 0
                 fi
                 rnote="the template Claude extended for $miss fails the gate: $llm_note"
             else
+                err="$(cat "$tmp/llm-repair.err" 2>/dev/null)"
                 rnote="Claude could not extend it for $miss: ${err#template: }"
             fi
         fi
