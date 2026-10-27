@@ -1,0 +1,80 @@
+Module(
+   body=[
+      Expr(
+         value=Constant(value='Order totals with tier discounts.')),
+      Import(
+         names=[
+            alias(name='math')]),
+      Assign(
+         targets=[
+            Name(id='DISCOUNTS', ctx=Store())],
+         value=Dict(
+            keys=[
+               Constant(value='gold'),
+               Constant(value='silver')],
+            values=[
+               Constant(value=0.15),
+               Constant(value=0.05)])),
+      FunctionDef(
+         name='total',
+         args=arguments(
+            posonlyargs=[],
+            args=[
+               arg(arg='lines'),
+               arg(arg='tier')],
+            kwonlyargs=[],
+            kw_defaults=[],
+            defaults=[
+               Constant(value=None)]),
+         body=[
+            Assign(
+               targets=[
+                  Name(id='amount', ctx=Store())],
+               value=Constant(value=0)),
+            For(
+               target=Tuple(
+                  elts=[
+                     Name(id='qty', ctx=Store()),
+                     Name(id='price', ctx=Store())],
+                  ctx=Store()),
+               iter=Name(id='lines', ctx=Load()),
+               body=[
+                  AugAssign(
+                     target=Name(id='amount', ctx=Store()),
+                     op=Add(),
+                     value=BinOp(
+                        left=Name(id='qty', ctx=Load()),
+                        op=Mult(),
+                        right=Name(id='price', ctx=Load())))],
+               orelse=[]),
+            If(
+               test=Name(id='tier', ctx=Load()),
+               body=[
+                  AugAssign(
+                     target=Name(id='amount', ctx=Store()),
+                     op=Mult(),
+                     value=BinOp(
+                        left=Constant(value=1),
+                        op=Sub(),
+                        right=Subscript(
+                           value=Name(id='DISCOUNTS', ctx=Load()),
+                           slice=Name(id='tier', ctx=Load()),
+                           ctx=Load())))],
+               orelse=[]),
+            Return(
+               value=BinOp(
+                  left=Call(
+                     func=Attribute(
+                        value=Name(id='math', ctx=Load()),
+                        attr='ceil',
+                        ctx=Load()),
+                     args=[
+                        BinOp(
+                           left=Name(id='amount', ctx=Load()),
+                           op=Mult(),
+                           right=Constant(value=100))],
+                     keywords=[]),
+                  op=Div(),
+                  right=Constant(value=100)))],
+         decorator_list=[])],
+   type_ignores=[])

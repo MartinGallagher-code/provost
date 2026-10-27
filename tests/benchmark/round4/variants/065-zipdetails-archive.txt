@@ -4,7 +4,7 @@
 0005 Extract OS            00 'MS-DOS'
 0006 General Purpose Flag  0000
 0008 Compression Method    0000 'Stored'
-000A Last Mod Time         5D584D27 'Mon Oct 24 09:41:14 2026'
+000A Last Mod Time         5D584D27 'Sat Oct 24 09:41:14 2026'
 000E CRC                   00000000
 0012 Compressed Length     00000000
 0016 Uncompressed Length   00000000
@@ -29,7 +29,7 @@
 0046 Extract OS            00 'MS-DOS'
 0047 General Purpose Flag  0000
 0049 Compression Method    0000 'Stored'
-004B Last Mod Time         5D4380B8 'Mon Oct  3 16:05:48 2026'
+004B Last Mod Time         5D4380B8 'Sat Oct  3 16:05:48 2026'
 004F CRC                   00000000
 0053 Compressed Length     00000000
 0057 Uncompressed Length   00000000
@@ -54,7 +54,7 @@
 008B Extract OS            00 'MS-DOS'
 008C General Purpose Flag  0000
 008E Compression Method    0000 'Stored'
-0090 Last Mod Time         5D579044 'Mon Oct 23 18:02:08 2026'
+0090 Last Mod Time         5D579044 'Fri Oct 23 18:02:08 2026'
 0094 CRC                   8C1D33A0
 0098 Compressed Length     0000000F
 009C Uncompressed Length   0000000F
@@ -81,7 +81,7 @@
 00E2 General Purpose Flag  0002
      [Bits 1-2]            1 'Maximum Compression'
 00E4 Compression Method    0008 'Deflated'
-00E6 Last Mod Time         5D4380B6 'Mon Oct  3 16:05:44 2026'
+00E6 Last Mod Time         5D4380B6 'Sat Oct  3 16:05:44 2026'
 00EA CRC                   6E0B9A51
 00EE Compressed Length     000002F1
 00F2 Uncompressed Length   000008A4
@@ -107,4 +107,4 @@
 041F Extract OS            00 'MS-DOS'
 0420 General Purpose Flag  0000
 0422 Compression Method    0000 'Stored'
-0424 Last Mod Time         5D584D27 'Mon Oct 24 09:41:14 2026'
+0424 Last Mod Time         5D584D27 'Sat Oct 24 09:41:14 2026'

@@ -1,0 +1,58 @@
+display name: invoice-2026-q3.xml
+edit name: invoice-2026-q3.xml
+name: invoice-2026-q3.xml
+type: regular
+size:  28417
+uri: file:///home/builder/projects/ledger/xml/invoice-2026-q3.xml
+local path: /home/builder/projects/ledger/xml/invoice-2026-q3.xml
+unix mount: /dev/nvme0n1p3 /home btrfs rw,relatime,seclabel,compress=zstd:1,ssd,discard=async,space_cache=v2,subvolid=257,subvol=/home
+attributes:
+  standard::type: 1
+  standard::is-hidden: FALSE
+  standard::is-backup: FALSE
+  standard::is-symlink: FALSE
+  standard::name: invoice-2026-q3.xml
+  standard::display-name: invoice-2026-q3.xml
+  standard::edit-name: invoice-2026-q3.xml
+  standard::copy-name: invoice-2026-q3.xml
+  standard::icon: application-xml, text-html, application-xml-symbolic, text-html-symbolic
+  standard::content-type: application/xml
+  standard::fast-content-type: application/xml
+  standard::size: 28417
+  standard::allocated-size: 32768
+  standard::symbolic-icon: application-xml-symbolic, text-html-symbolic, application-xml, text-html
+  etag::value: 1793811042:918204:918204377
+  id::file: l39:1189402
+  id::filesystem: l39
+  access::can-read: TRUE
+  access::can-write: TRUE
+  access::can-execute: FALSE
+  access::can-delete: TRUE
+  access::can-trash: TRUE
+  access::can-rename: TRUE
+  time::modified: 1793811042
+  time::modified-usec: 918204
+  time::access: 1793897310
+  time::access-usec: 52871
+  time::changed: 1793811042
+  time::changed-usec: 921466
+  time::created: 1792006718
+  time::created-usec: 40312
+  time::modified-nsec: 918204377
+  time::access-nsec: 52871905
+  time::created-nsec: 40312650
+  time::changed-nsec: 921466083
+  unix::device: 39
+  unix::inode: 1189402
+  unix::mode: 33204
+  unix::nlink: 1
+  unix::uid: 1000
+  unix::gid: 1000
+  unix::rdev: 0
+  unix::block-size: 4096
+  unix::blocks: 64
+  unix::is-mountpoint: FALSE
+  owner::user: builder
+  owner::user-real: Build User
+  owner::group: builder
+  selinux::context: unconfined_u:object_r:user_home_t:s0

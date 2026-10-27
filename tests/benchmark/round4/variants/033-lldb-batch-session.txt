@@ -1,0 +1,51 @@
+(lldb) target create "./invd"
+Current executable set to '/srv/builds/inventory-tool/invd' (x86_64).
+(lldb) breakpoint set -n total
+Breakpoint 1: where = invd`total + 15 at inventory.c:31:12, address = 0x000000000000134f
+(lldb) run
+Process 70418 launched: '/srv/builds/inventory-tool/invd' (x86_64)
+Process 70418 stopped
+* thread #1, name = 'invd', stop reason = breakpoint 1.1
+    frame #0: 0x000055555555534f invd`total(it=0x00005555555596b0) at inventory.c:31:12
+   28  	
+   29  	static double total(const struct item *it)
+   30  	{
+-> 31  	    double sum = 0.0;
+    	           ^
+   32  	    unsigned lines = 0;
+   33  	
+   34  	    for (; it != NULL; it = it->next, lines++) {
+(lldb) frame variable
+(const item *) it = 0x00005555555596b0
+(double) sum = 6.9533558078350043E-310
+(unsigned int) lines = 21845
+(lldb) thread backtrace
+* thread #1, name = 'invd', stop reason = breakpoint 1.1
+  * frame #0: 0x000055555555534f invd`total(it=0x00005555555596b0) at inventory.c:31:12
+    frame #1: 0x0000555555555421 invd`print_report(head=0x00005555555596b0, out=0x00007ffff7e1b780) at inventory.c:52:23
+    frame #2: 0x00005555555554d6 invd`main(argc=1, argv=0x00007fffffffe2f8) at inventory.c:71:5
+    frame #3: 0x00007ffff7c2a1ca libc.so.6`__libc_start_call_main(main=(invd`main at inventory.c:60), argc=1, argv=0x00007fffffffe2f8) at libc_start_call_main.h:58:16
+    frame #4: 0x00007ffff7c2a28b libc.so.6`__libc_start_main_impl(main=(invd`main at inventory.c:60), argc=1, argv=0x00007fffffffe2f8, init=<unavailable>, fini=<unavailable>, rtld_fini=<unavailable>, stack_end=0x00007fffffffe2e8) at libc-start.c:360:3
+    frame #5: 0x0000555555555145 invd`_start + 37
+(lldb) p *it
+(const item) {
+  name = "hex nut M5"
+  qty = 240
+  price = 0.035000000000000003
+  next = 0x0000555555559670
+}
+(lldb) p *it->next
+(item) {
+  name = "cable tie 200mm, black"
+  qty = 3
+  price = 4.9900000000000002
+  next = 0x0000000000000000
+}
+(lldb) image list -b
+[  0] invd
+[  1] ld-linux-x86-64.so.2
+[  2] [vdso](0x00007ffff7fc1000)
+[  3] libm.so.6
+[  4] libc.so.6
+(lldb) kill
+Process 70418 exited with status = 9 (0x00000009) killed
