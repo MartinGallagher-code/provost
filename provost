@@ -1132,16 +1132,18 @@ _llm_file () {
     return 0
 }
 
-# LLM TEMPLATES (PROVOST_LLM, --llm / --no-llm). Called by _ingest when the
-# quality gate would still hold the capture (after AUTO-MULTI and the layout
-# model). A template is a set of regular expressions per kind of line that
-# Claude wrote for one tool (extract/llm/). provost looks for one in the
-# store (llm-templates/, committed with the captures: the tool's name, or any
-# template whose `detect` pattern recognises the input), then among the
-# templates shipped with provost, and files what it yields (_llm_file). Only
-# when none fits, and an API key is set, does it ask Claude to write one from
-# this capture — the one step that sends the capture's text to the Anthropic
-# API — and the new template is kept only when what it yields passes the same
+# LLM TEMPLATES (PROVOST_LLM, --llm / --no-llm). Called by _ingest on a
+# capture the quality gate would hold, and on a generic parse it passed. A
+# template is a set of regular expressions per kind of line, or a boxed
+# parser, that Claude wrote for one tool (extract/llm/). provost looks for one
+# in the store (llm-templates/, committed with the captures: the tool's name,
+# or any template whose `detect` pattern recognises the input), then in
+# PROVOST_LLM_TEMPLATE_DIRS and among the templates shipped with provost, and
+# files what it yields (_llm_file). With an API key, a stored template that
+# meets a kind of line it has not met before is first sent back to Claude to
+# be extended (repair), and when none fits Claude writes one from this
+# capture — the steps that send the capture's text to the Anthropic API. A
+# new or extended template is kept only when what it yields passes the same
 # rules. Every later capture of the tool is then parsed offline. With LEARN=0
 # Claude is never asked (only a stored template can fit). Otherwise 1, the
 # reason in llm_note.
@@ -1160,8 +1162,30 @@ _llm_template () {
         found="$(python3 "$py" find "$body" --dirs "$dirs" 2>/dev/null)" && tpl="${found%%$'\t'*}"
     fi
     if [[ -n "$tpl" ]]; then
-        if _llm_file "$tpl"; then llm_how="template ${tpl##*/}"; return 0; fi
-        llm_note="template ${tpl##*/} does not fit: $llm_note"
+        # REPAIR: a stored template that meets a kind of line it has not met
+        # before (left unread, or dropped by a skip pattern) goes back to
+        # Claude once to be extended; the extension is kept only if it still
+        # reads the captures the template was written from and passes the
+        # same rules. Otherwise the template stays as it was.
+        local miss="" rnote=""
+        if (( learn )) && [[ -n "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]] \
+            && miss="$(python3 "$py" misses "$tpl" "$body" 2>/dev/null)" && [[ -n "$miss" ]]; then
+            if err="$(python3 "$py" repair "$tpl" "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>&1 >/dev/null)"; then
+                if _llm_file "$new"; then
+                    mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
+                    llm_how="template ${tpl##*/}, which Claude extended for $miss (llm-templates/$kf)"
+                    llm_learned="llm-templates/$kf"
+                    return 0
+                fi
+                rnote="the template Claude extended for $miss fails the gate: $llm_note"
+            else
+                rnote="Claude could not extend it for $miss: ${err#template: }"
+            fi
+        fi
+        if _llm_file "$tpl"; then llm_how="template ${tpl##*/}${rnote:+ ($rnote)}"; return 0; fi
+        llm_note="template ${tpl##*/} does not fit: $llm_note${rnote:+; $rnote}"
+        # a repair was tried: don't also have Claude start the tool's template over
+        [[ -z "$rnote" ]] || return 1
     fi
     (( learn )) || { llm_note="${llm_note:-no stored template fits}"; return 1; }
     if [[ -z "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]]; then
@@ -2542,6 +2566,8 @@ ENV
     PROVOST_LLM_BASE_URL      API base URL (default https://api.anthropic.com)
     PROVOST_LLM_TEMPLATE_DIRS colon-separated directories of templates to look
                               in after the store's and before provost's own
+    PROVOST_LLM_LOG           a file to append each API reply's usage to (one
+                              JSON line: purpose, tool, model, tokens)
     PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
@@ -2661,8 +2687,18 @@ LLM TEMPLATES (Claude writes a parser for a tool once; provost reuses it)
     skipped line is a lost line). A new
     template is kept, and committed with the capture, only when it passes.
     From then on every capture of that tool is parsed offline,
-    deterministically and at no cost. meta.tsv records 'llm_template' (filed
-    by which template, or declined and why). Needs python3 (plain, no
+    deterministically and at no cost. A template keeps the captures it was
+    written from (its "examples", in the JSON). REPAIR: with a key, when a
+    stored template meets a kind of line it has not met before (one it
+    leaves unread, or one a skip pattern drops), provost sends the template,
+    those captures and this one to Claude once, to extend it. The extension
+    is kept, with this capture added to its examples, only if it still reads
+    every line of the earlier captures the template read and passes the same
+    rules; otherwise the template is used as it was. A capture whose lines
+    the template has all met before is never sent. meta.tsv records
+    'llm_template' (filed by which template, or declined and why).
+    PROVOST_LLM_LOG names a file that gets one JSON line per API reply (what
+    for, the tool, the model, its token usage). Needs python3 (plain, no
     packages).
 
 COLUMN-TYPE CONSISTENCY

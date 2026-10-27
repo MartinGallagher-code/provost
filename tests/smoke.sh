@@ -520,6 +520,47 @@ if command -v python3 >/dev/null 2>&1; then
     lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
         "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
     check "a stored template beats the heuristic offline" "read by template volumes.json" "$lt_out"
+    # REPAIR: a later capture shows a kind of line the stored template has not
+    # met (a swap volume). With a key, the template, the capture it was
+    # written from and this one go to Claude once; the extension is kept only
+    # if it still reads the earlier capture, and replaces the store's copy.
+    printf 'Volumes on host beta\nNAME     SIZE   USED   MOUNT\ndata     200G   80G    /srv/data\nswap     8G     -      [SWAP]\nlogs     50G    5G     /var/log\n' > "$LTD/vol2.txt"
+    check "a new kind of line is a miss" "1 unread line(s) of a kind it has not met" "$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol2.txt")"
+    sed 's/alpha/gamma-7/' "$LTD/vol.txt" > "$LTD/vol1b.txt"
+    check "another host in the banner is not" "[]" "[$(python3 "$HERE/../extract/llm/template.py" misses "$LTWS/llm-templates/volumes.json" "$LTD/vol1b.txt")]"
+    printf '%s' '{"id":"msg_5","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?|-)\\\\s+(?P<mount>/\\\\S*|\\\\[SWAP\\\\])$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol2.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a stored template that meets a new kind of line is extended" "read by template volumes.json, which Claude extended for 1 unread line(s) of a kind it has not met (llm-templates/volumes.json)" "$lt_out"
+    check "the extension reads the new line" "swap	8G	-	[SWAP]" "$(cat "$LTWS/datasets/volumes.tsv")"
+    check "the repair was one API call" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the request carries the capture the template was written from" "Earlier capture 1" "$(cat "$LTD/log")"
+    check "the extended template keeps both captures" "2" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol2.txt" 2>&1)"
+    check "the next capture like it is read offline" "read by template volumes.json." "$lt_out"
+    # an extension that no longer reads an earlier capture is refused (after
+    # one more try), and the stored template is used as it was
+    printf 'NAME     SIZE   USED   MOUNT\n' > "$LTD/vol3.txt"
+    for i in 1 2 3 4 5 6 7 8 9 10; do printf 'd%s       %sG    1G     /srv/d%s\n' "$i" "$i" "$i" >> "$LTD/vol3.txt"; done
+    printf 'tmp      1G     0      tmpfs (noexec)\n' >> "$LTD/vol3.txt"
+    printf '%s' '{"id":"msg_6","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>\\\\S+)\\\\s+(?P<used>\\\\S+)\\\\s+(?P<mount>/\\\\S*|tmpfs.*)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol3.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a refused extension had one more try" "2" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the stored template is used as it was" "read by template volumes.json (Claude could not extend it for 1 unread line(s) of a kind it has not met" "$lt_out"
+    check "and says why" "on earlier capture 2 it no longer reads 1 line(s) the template read" "$lt_out"
+    check "the store keeps the template it had" "2" "$(python3 -c 'import json, sys; print(len(json.load(open(sys.argv[1]))["examples"]))' "$LTWS/llm-templates/volumes.json")"
     # without --llm the heuristic is filed as before
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
     check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
