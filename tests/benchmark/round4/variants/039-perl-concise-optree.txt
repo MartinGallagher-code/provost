@@ -1,0 +1,60 @@
+tally.pl syntax OK
+1a <@> leave[1 ref] vKP/REFC ->(end)
+1     <0> enter v ->2
+2     <;> nextstate(main 3 tally.pl:2) v:*,&,{,x*,x&,x$,$ ->3
+3     <0> padhv[%seen:3,12] vM/LVINTRO ->4
+4     <;> nextstate(main 4 tally.pl:3) v:*,&,{,x*,x&,x$,$ ->5
+7     <2> sassign vKS/2 ->8
+5        <$> const[IV 0] s ->6
+6        <0> padsv[$n:4,12] sRM*/LVINTRO ->7
+8     <;> nextstate(main 5 tally.pl:4) v:*,&,{,x*,x&,x$,$ ->9
+n     <2> leaveloop vKP/2 ->o
+d        <{> enteriter(next->k last->n redo->e)[$w:6,10] vK/LVINTRO ->l
+-           <0> ex-pushmark s ->9
+-           <1> ex-list lKM ->d
+9              <0> pushmark sM ->a
+c              </> split(/","/)[t5] lKM/IMPLIM ->d
+a                 <$> const[PV "red,green,red,blue,green,red"] s ->b
+b                 <$> const[IV 0] s ->c
+-        <1> null vK/1 ->n
+m           <|> and(other->e) vK/1 ->n
+l              <0> iter s ->m
+-              <@> lineseq vK ->-
+e                 <;> nextstate(main 8 tally.pl:4) v:*,&,x*,x&,x$,$ ->f
+g                 <1> preinc[t6] vK/1 ->h
+-                    <1> ex-helem sKRM/2 ->g
+f                       <+> multideref($seen{$w}) sKM ->g
+-                          <0> ex-padhv sR ->f
+h                 <;> nextstate(main 9 tally.pl:4) v:*,&,x*,x&,x$,$ ->i
+j                 <1> preinc vK/1 ->k
+i                    <0> padsv[$n:4,12] sRM ->j
+k                 <0> unstack v ->l
+o     <;> nextstate(main 11 tally.pl:5) v:*,&,{,x*,x&,x$,$ ->p
+s     <@> prtf vK ->t
+p        <0> pushmark s ->q
+q        <$> const[PV "%d words\n"] sM ->r
+r        <0> padsv[$n:4,12] l ->s
+t     <;> nextstate(main 12 tally.pl:6) v:*,&,{,x*,x&,x$,$ ->u
+19    <2> leaveloop vK/2 ->1a
+10       <{> enteriter(next->16 last->19 redo->11) vK/DEF ->17
+-           <0> ex-pushmark s ->u
+-           <1> ex-list lKM ->z
+u              <0> pushmark sM ->v
+y              <@> sort lKM ->z
+v                 <0> pushmark s ->w
+x                 <1> keys[t8] lK/1 ->y
+w                    <0> padhv[%seen:3,12] lRM ->x
+z           <#> gv[*_] s ->10
+-        <1> null vK/1 ->19
+18          <|> and(other->11) vK/1 ->19
+17             <0> iter s ->18
+-              <@> lineseq vK ->-
+15                <@> prtf vK ->16
+11                   <0> pushmark sM ->12
+12                   <$> const[PV "%s=%d\n"] sM ->13
+-                    <1> ex-rv2sv sKM/STRICT,1 ->-
+13                      <#> gvsv[*_] s ->14
+-                    <1> ex-helem sKM/LVDEFER,2 ->15
+14                      <+> multideref($seen{$_}) sKM/LVDEFER ->15
+-                          <0> ex-padhv sR ->14
+16                <0> unstack v ->17
