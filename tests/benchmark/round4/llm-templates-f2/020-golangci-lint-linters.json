@@ -1,0 +1,6 @@
+{
+ "format": 2,
+ "tool": "golangci-lint-linters",
+ "detect": "^(?:Enabled|Disabled) by (?:your configuration|default) linters:$",
+ "parser": "import re\n\nTITLE = re.compile(r\"^(?P<state>Enabled|Disabled) by (?P<by>.+?) linters:\\s*$\")\nLINTER = re.compile(r\"^(?P<linter>\\S+?)(?: \\[(?P<status>[^\\]]+)\\])?: (?P<description>.*?)(?: \\[(?P<flags>[^\\]]+)\\])?\\s*$\")\n\n\ndef parse(lines):\n    rows, used = [], []\n    state = \"\"\n    for j, ln in enumerate(lines):\n        if not ln.strip():\n            continue\n        m = TITLE.match(ln)\n        if m:\n            state = m.group(\"state\").lower()\n            used.append(j)\n            continue\n        m = LINTER.match(ln)\n        if m:\n            rows.append({\"linter\": m.group(\"linter\"), \"state\": state,\n                         \"status\": m.group(\"status\") or \"\",\n                         \"description\": m.group(\"description\"),\n                         \"flags\": m.group(\"flags\") or \"\"})\n            used.append(j)\n    return [{\"name\": \"linters\", \"kind\": \"table\", \"lines\": used, \"records\": rows}]\n"
+}

@@ -1,0 +1,6 @@
+{
+ "format": 2,
+ "tool": "diagtool-tree",
+ "detect": "^GREEN = enabled by default$",
+ "parser": "import re\nLEGEND = re.compile(r\"^(?P<key>[A-Z]+) = (?P<value>\\S.*)$\")\nITEM = re.compile(r\"^(?P<indent> *)(?P<flag>\\S.*?)\\s*$\")\n\n\ndef parse(lines):\n    legend, warnings, ll, wl = {}, [], [], []\n    stack = []\n    for i, ln in enumerate(lines):\n        if not ln.strip():\n            continue\n        m = LEGEND.match(ln)\n        if m:\n            legend[m.group(\"key\")] = m.group(\"value\")\n            ll.append(i)\n            continue\n        m = ITEM.match(ln)\n        if not m:\n            continue\n        depth = len(m.group(\"indent\")) // 2\n        del stack[depth:]\n        parent = stack[-1] if stack else \"\"\n        stack.append(m.group(\"flag\"))\n        warnings.append({\"flag\": m.group(\"flag\"), \"depth\": depth, \"parent\": parent})\n        wl.append(i)\n    blocks = [\n        {\"name\": \"legend\", \"kind\": \"kv\", \"lines\": ll, \"records\": [legend]},\n        {\"name\": \"warnings\", \"kind\": \"table\", \"lines\": wl, \"records\": warnings},\n    ]\n    return {\"blocks\": blocks, \"skip\": []}\n"
+}
