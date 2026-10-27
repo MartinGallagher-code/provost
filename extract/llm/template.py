@@ -50,6 +50,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -65,6 +66,7 @@ MAX_LINES = 400          # learn: larger captures are not sent
 MAX_BYTES = 64 * 1024
 MAX_LINE = 4096          # apply: longer lines are uncovered (keeps regexes cheap)
 MIN_COVERAGE = 0.8       # a learned template must cover this share of its capture
+RETRIES = 3              # learn: more tries on a rate limit, an overload or a dropped connection
 API_VERSION = "2026-10-21"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 _KEYCHARS = re.compile(r"[^\w.%()/+#@-]+")
@@ -288,9 +290,27 @@ def _api_key():
     return os.environ.get("PROVOST_LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY") or ""
 
 
-def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300):
+def _log_call(msg, purpose, tool, secs):
+    """PROVOST_LLM_LOG names a file that gets one JSON line per API reply
+    (what it was for, the tool, the model that answered, its usage): the
+    cost of a run can be added up afterwards."""
+    path = os.environ.get("PROVOST_LLM_LOG")
+    if not path:
+        return
+    rec = {"purpose": purpose, "tool": tool, "model": msg.get("model"), "stop_reason": msg.get("stop_reason"),
+           "usage": msg.get("usage"), "seconds": round(secs, 1)}
+    try:
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec) + "\n")
+    except OSError:
+        pass
+
+
+def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300,
+                purpose="", tool=""):
     """One Messages API request over plain HTTP (no SDK: provost stays
-    dependency-free). Returns the reply's text; raises TemplateError."""
+    dependency-free), retried on a rate limit, an overload or a dropped
+    connection. Returns the reply's text; raises TemplateError."""
     k = _api_key()
     if not k:
         raise TemplateError("no API key (set PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)")
@@ -304,17 +324,34 @@ def call_claude(system, messages, model, effort="medium", max_tokens=16000, time
                                  headers={"content-type": "application/json", "x-api-key": k,
                                           "anthropic-version": API_VERSION,
                                           "anthropic-beta": FALLBACK_BETA})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            msg = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
+    for attempt in range(RETRIES + 1):
+        t0 = time.monotonic()
         try:
-            detail = json.loads(exc.read().decode("utf-8")).get("error", {}).get("message", "")
-        except (ValueError, OSError):
-            detail = ""
-        raise TemplateError(f"the API answered {exc.code}" + (f": {detail}" if detail else "")) from None
-    except (urllib.error.URLError, OSError, ValueError) as exc:
-        raise TemplateError(f"the API could not be reached: {exc}") from None
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                msg = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            try:
+                detail = json.loads(exc.read().decode("utf-8")).get("error", {}).get("message", "")
+            except (ValueError, OSError):
+                detail = ""
+            err = f"the API answered {exc.code}" + (f": {detail}" if detail else "")
+            if exc.code not in (408, 409, 429) and exc.code < 500:
+                raise TemplateError(err) from None
+            try:
+                wait = float(exc.headers.get("retry-after") or 0)
+            except (TypeError, ValueError):
+                wait = 0.0
+        except (urllib.error.URLError, OSError, ValueError) as exc:
+            err, wait = f"the API could not be reached: {exc}", 0.0
+            # a timeout or a dropped connection is worth another try; a refused
+            # connection, a bad address or a garbled reply is not
+            if not isinstance(getattr(exc, "reason", exc), (TimeoutError, ConnectionResetError)):
+                raise TemplateError(err) from None
+        if attempt == RETRIES:
+            raise TemplateError(err) from None
+        time.sleep(min(60.0, max(wait, 2.0 * 2 ** attempt)))
+    _log_call(msg, purpose, tool, time.monotonic() - t0)
     if msg.get("stop_reason") == "refusal":
         cat = (msg.get("stop_details") or {}).get("category") or "unspecified"
         raise TemplateError(f"the model declined this capture (refusal: {cat})")
@@ -358,7 +395,7 @@ def learn(lines, tool="", model="claude-opus-5-5"):
     messages = [{"role": "user", "content": f"Tool: {tool or '(unnamed)'}\nLines: {len(lines)}\n\n{body}\n"}]
     last = None
     for attempt in range(2):
-        text = call_claude(system, messages, model)
+        text = call_claude(system, messages, model, purpose="learn", tool=tool)
         try:
             t = _parse(text)
             cov, miss = _report(lines, t)
@@ -369,6 +406,9 @@ def learn(lines, tool="", model="claude-opus-5-5"):
             continue
         if cov >= MIN_COVERAGE:
             t.setdefault("tool", tool)
+            # the capture it was written from: repair checks a changed
+            # template still reads it
+            t["examples"] = ["\n".join(lines)]
             return t
         last = f"it covers {cov:.0%} of the lines"
         shown = "\n".join(f"{j} |{lines[j]}" for j in miss[:40])
