@@ -114,11 +114,110 @@ the same day) is for, and the 65 notes are its work list.
   alone. The PASS share is a floor under a lenient reader.
 - Round 4 is now seen by `--llm` as well. The next number needs round 5.
 
+## Part 2, the same day: format 2 on the 65 limited inputs
+
+Step 2 of the plan. Ten helpers rewrote the 65 templates whose note named a
+cross-line limit as **format-2 parsers** (`round4/llm-templates-f2/`), from
+the guide, the input, and the format-1 template with its note (not the
+ratings). All 65 compile and apply in the sandbox at 100% coverage. The
+round was run again with the format-2 set over the format-1 set
+(`llm_round.sh --round4 --templates llm-templates-f2:llm-templates`), and
+every input whose filed output changed (63) was rated again by other
+helpers, blind as before; the rest carry their format-1 rating
+(`round4/ratings-llm-templates-f2.tsv`).
+
+Two gate rules had to change first, because the first format-2 run
+declined 23 templates:
+
+- **Type consistency is recorded, not gated, for a template's blocks**
+  (`_quality_exempt`). A parser deliberately makes key/value-shaped tables
+  (section, key, value) whose value column mixes types; the measure, built
+  for homogeneous tables, read 33-66% on 14 good parsers and 0% on a log
+  table.
+- **The catch-all guard has 20 points of slack** (`_LLM_CATCHALL_SLACK`):
+  against `text-lines` a template may skip a fifth of the lines as
+  decoration. At 10 it declined seven templates for skipping titles,
+  rules and legends.
+
+### Headline
+
+| | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| round 4, default engine | 12 (11%) | 51 (48%) | 44 (41%) | 59% |
+| `--llm`, format 1 only | 35 (33%) | 66 (62%) | 6 (6%) | 94% |
+| **`--llm`, format 2 where format 1 could not express it** | **86 (80%)** | **18 (17%)** | **3 (3%)** | **97%** |
+
+Of the 65 rewritten inputs: format 1 scored 5 / 54 / 6, format 2 scores
+**56 / 8 / 1**. 47 went PARTIAL→PASS and 4 FAIL→PASS; 2 went PARTIAL→FAIL,
+both by the catch-all guard, not by a parser (below).
+
+### By shape family
+
+| family | n | default | format 1 | format 2 |
+|---|---:|---|---|---|
+| aligned / fixed-width table | 26 | 7 / 10 / 9 | 20 / 6 / 0 | **24 / 1 / 1** |
+| multi-section report | 24 | 0 / 12 / 12 | 5 / 18 / 1 | **18 / 5 / 1** |
+| log and diagnostic lines | 19 | 1 / 10 / 8 | 4 / 14 / 1 | **14 / 5 / 0** |
+| list, grid, help, free text | 11 | 2 / 6 / 3 | 2 / 7 / 2 | **8 / 3 / 0** |
+| structured data (trees, dumps) | 10 | 0 / 8 / 2 | 0 / 9 / 1 | **7 / 2 / 1** |
+| key/value blocks (several records) | 10 | 0 / 3 / 7 | 0 / 9 / 1 | **8 / 2 / 0** |
+| single key/value record | 7 | 2 / 2 / 3 | 4 / 3 / 0 | **7 / 0 / 0** |
+
+No family is below 70% PASS. Multi-section reports, which no engine round
+ever passed, are at 75%.
+
+### What is left (21 inputs)
+
+- **The catch-all guard, 4** (004 bun-test, 005 bundle-env: declined at
+  56% and 75%, filed as `text-lines`, PARTIAL; 112 huawei, 130 sybase:
+  declined at 50% and 63%, `text-lines`, rated FAIL because a raw-lines
+  dump of a table is "no structure"). In every one of the four the
+  skipped lines were decoration or echoes (a legend, dash rules, markdown
+  fences, echoed source), and the parser the guard declined would have
+  been rated higher. The guard was written for two format-1 regressions
+  that format 2 has since fixed (019, 030 are PASS). On this evidence it
+  costs more than it saves; it stays only until the judge (step 3) can
+  tell dropped data from decoration, which a count cannot.
+- **The fragments rule, 1** (132 teamspeak): the whole client list is one
+  line; a block of one line with six records is read as a fragment
+  (`_AM_FRAG_LINES` counts lines, not records). Held.
+- **The `yaml` exemption, 1** (020): the hook never consults a template
+  when an exact-format parser claims the input.
+- **Format-1 templates that were not rewritten, 10** (their note said
+  `ok`), PARTIAL on strict rule-3 readings: a dropped usage line, a
+  version banner, a comment cut at a wrap (009, 010, 012, 038, 127, 141),
+  or a flat tree (031, 039, 114, 121). A second pass would redo these as
+  format 2.
+- **Format-2 near-misses, 5**: two `<<<NULL>>>` placeholders dropped
+  (006); bit-field sub-nodes collapsed (008); a `#` column colliding with
+  the generated row id (124: a provost melt issue, not the template);
+  per-line timestamps folded into the request (128); a page header's time
+  dropped (142).
+- One rater called 046 and 048 borderline PASS; two called 128 and 142
+  borderline PARTIAL. The rating noise is about ±2 either way.
+
+### Reading this honestly
+
+- These parsers were written by helpers who could iterate against the
+  applier and a hand-made variant; `learn` gets two attempts and no
+  variant. The first-contact rate through the API will be lower, and the
+  second capture of a tool is where the feedback loop earns it back.
+- The helpers wrote for the layout (several checked their parser on a
+  variant with other values), but **nothing here measures a template on a
+  second capture of the same tool.** That is the generalisation claim the
+  whole approach rests on, and it needs its own test (`ml/gen/` can make
+  variants; the corpus has a handful of repeats).
+- Round 4 is now seen by both formats. The next number needs round 5.
+
 ## Next
 
-1. Redo the 65 limited templates as format 2 (a parser per tool) and
-   re-rate: the plan's step 2 measurement.
-2. A judge before storing (step 3), which also fixes the two regressions.
+1. A second capture per tool, to measure what a stored template does on
+   output it was not written from.
+2. The judge before storing (step 3): it replaces the catch-all guard and
+   the ±10 floor with a reading of the output, and can rate round 5
+   automatically.
 3. With a key in the environment: the same run through `learn` (the API,
-   two attempts) to measure the first-contact rate, then the library (step
-   5) and round 5.
+   two attempts, format 2 allowed) to measure the first-contact rate, then
+   the library (step 5) and round 5.
+4. Small: `_AM_FRAG_LINES` should count records; the melt should rename a
+   template column that collides with the generated row id.

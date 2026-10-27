@@ -56,6 +56,20 @@ generalisation problem; it only has to fit the next capture of the same tool.
     declined, filed by text-lines as before). Smoke +3.
   - **`llm_round.sh --templates A:B`:** several directories, the first
     holding the stem wins (format-2 rewrites over the format-1 set).
+  - **Format 2 on the 65 limited inputs** (`round4/llm-templates-f2/`, 65
+    parsers by Claude helpers; `round4/ratings-llm-templates-f2.tsv`;
+    part 2 of the write-up): **86 PASS / 18 PARTIAL / 3 FAIL** (80% PASS,
+    97% usable) against the engine's 12 / 51 / 44. The 65 rewritten went
+    from 5 / 54 / 6 to 56 / 8 / 1. No shape family under 70% PASS;
+    multi-section reports 18/24. Of the 21 left: 4 are the catch-all
+    guard declining a parser for skipping decoration (it now costs more
+    than it saves, kept until the judge), 1 the fragments rule on a
+    one-line input, 1 the `yaml` exemption, 10 unrewritten format-1
+    templates PARTIAL on strict rule 3, 5 near-misses.
+  - **Rules changed for it:** a template's blocks are exempt from the
+    type-consistency gate (`_quality_exempt`: a parser's key/value-shaped
+    tables read 33-66%); the catch-all guard allows `_LLM_CATCHALL_SLACK`
+    = 20 points of skipped lines.
 - **Tests:** smoke +15 (LLM-first with the fake API, offline reuse, no-key
   behaviour, the shipped parser template, a refused parser);
   `ml/tests/test_llm_template.py` +4 (format 2 apply/report, static refusal,

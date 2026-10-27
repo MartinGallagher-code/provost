@@ -108,14 +108,22 @@ Suites (all CI-enforced):
       `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
       Claude helpers, with `.note`s on what format 1 could not express).
     - **Round 4 with templates** (`docs/benchmark-2026-10-27-llm-templates-round4.md`):
-      **35 / 66 / 6 against the engine's 12 / 51 / 44** (usable 94% vs 59%).
-      Where format 1 fits (42 inputs) 30 PASS and 0 FAIL; where it does not
-      (65) the output is PARTIAL of one shape: values right, parent lost.
-    - **Next:** redo those 65 as format 2 (their `.note`s are the work
-      list) and re-rate; a guard so a template never beats a lossless
-      catch-all parse by dropping lines (two regressions), then the judge
-      (step 3), the shipped library (step 5) and round 5 — the last three
-      need `ANTHROPIC_API_KEY` in the environment.
+      format 1 alone **35 / 66 / 6**; with format-2 parsers for the 65
+      inputs format 1 could not express, **86 / 18 / 3 (80% PASS, 97%
+      usable) against the engine's 12 / 51 / 44**. No shape family under
+      70% PASS. Of the 21 left, 4 are the catch-all guard declining a
+      parser that skipped decoration, 1 the fragments rule on a one-line
+      input, 1 the `yaml` exemption, 10 unrewritten format-1 templates
+      PARTIAL on strict rule 3, 5 near-misses.
+    - **Not yet measured:** a stored template on a SECOND capture of the
+      same tool (the generalisation claim); the first-contact rate through
+      `learn` (two API attempts, no iteration).
+    - **Next:** a second-capture test (`ml/gen/` variants, corpus repeats);
+      the judge (step 3: replaces the catch-all guard and the ±10 floor,
+      rates round 5 automatically); with `ANTHROPIC_API_KEY` in the
+      environment, the `learn` run, the shipped library (step 5) and round
+      5. Small: `_AM_FRAG_LINES` should count records; the melt should
+      rename a template column colliding with the row id.
 
 0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
     and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in
