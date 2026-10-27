@@ -542,7 +542,7 @@ if command -v python3 >/dev/null 2>&1; then
         "$PROVOST" --sync --llm --name moorings "$LTD/prose.txt" 2>&1)"
     kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
     check "a template that skips what text-lines kept does not replace it" "strategy text-lines" "$lt_out"
-    check "meta says the template lost lines" "the template Claude wrote fails the gate: its 1 block(s) keep 30% of the input's data lines, <90%" "$(cat "$LTD/.fresh/captures/c0002/meta.tsv")"
+    check "meta says the template lost lines" "the template Claude wrote fails the gate: its 1 block(s) keep 30% of the input's data lines, <80%" "$(cat "$LTD/.fresh/captures/c0002/meta.tsv")"
     check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh/llm-templates" 2>/dev/null)"
     # FORMAT 2: a template that is a small Python parser, for records that
     # span lines (ip-addr.json ships with provost), run in the sandbox

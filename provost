@@ -747,10 +747,13 @@ _snapshot_context () {
 # tokens with the input (22 correct corpus winners read under 40% coverage),
 # and a strict grammar (json/yaml/xml/toml) validates the whole document
 # itself. Only parsers under extract/strategies/{delimited,structured} are
-# gated.
+# gated. An LLM template's blocks are exempt too: a template is written for
+# the tool's layout and deliberately makes key/value tables whose value
+# column mixes types (a type-consistency measure built for homogeneous
+# tables reads 30-60% on them); _llm_file's own rules judge its blocks.
 _quality_exempt () {
     local sdir; sdir="$(dirname "$1")/strategies"
-    case "$2" in json|json-array|jsonl|yaml|xml|toml|har) return 0 ;; esac
+    case "$2" in json|json-array|jsonl|yaml|xml|toml|har|llm-template) return 0 ;; esac
     [[ -f "$sdir/delimited/$2.sh" || -f "$sdir/structured/$2.sh" ]] && return 1
     return 0
 }
@@ -797,6 +800,7 @@ _tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next
 # exactly as before. Works on _ingest's locals (dynamic scope): reads engine,
 # eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
 _AM_GAIN=10
+_LLM_CATCHALL_SLACK=20   # _llm_file: lines a template may skip against a catch-all parse
 _AM_FRAG_LINES=3
 
 # _am_part_check I WIDE TSV — the per-part checks of _auto_multi (rules 2, 4
@@ -1075,8 +1079,9 @@ _llm_file () {
         # is 100 and jcov below is the share of the input's data lines the
         # template read. The engine's token-recall measure is not used here:
         # it counts a value the template dropped on purpose (a broadcast
-        # address, a trailing flag) as a missed line. Its type consistency,
-        # and the shape checks, still apply.
+        # address, a trailing flag) as a missed line. Its type consistency
+        # is recorded, not gated (see _quality_exempt); the shape checks
+        # still apply.
         dstrat=llm-template; dconf="$_MT_C"; dcov=100; dcons="${_MT_T:--}"
         dlines=$(grep -c '[^[:space:]]' "$f" || true)
         _am_part_check "$i" "$_MT_OUT" "$bd/blk.$i.tsv"
@@ -1094,18 +1099,21 @@ _llm_file () {
     # except against a CATCH-ALL parse the gate passed (text-lines,
     # line-records: the engine's own lossless readings, _FR_COV_CATCHALL).
     # A template may not beat a parse that kept every line by declaring
-    # the lines it cannot read decoration: there every line counts.
-    case " $strategy " in
-        *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] || alll=$(( alll - skipped )) ;;
-        *) alll=$(( alll - skipped )) ;;
-    esac
+    # the lines it cannot read decoration: there every line counts, with an
+    # allowance of _LLM_CATCHALL_SLACK points for real decoration (titles,
+    # rules, legends, prompts), which a count cannot tell from dropped data.
+    local catchall=0
+    case " $strategy " in *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] && catchall=1 ;; esac
+    (( catchall )) || alll=$(( alll - skipped ))
     (( alll > 0 )) || { llm_note="it keeps none of the input's data lines"; return 1; }
     jcov=$(( covl / alll ))
     # against a held parse the template must gain _AM_GAIN points; against a
     # generic parse the gate passed (llm_floor=match) it may trail by that
     # much: it was written for this tool's layout, the heuristic was not, and
     # a title or prompt the heuristic counted as a row is decoration here
-    if [[ "$llm_floor" == match ]]; then need=$(( ${cov:-0} - _AM_GAIN )); else need=$(( ${cov:-0} + _AM_GAIN )); fi
+    if (( catchall )); then need=$(( ${cov:-0} - _LLM_CATCHALL_SLACK ))
+    elif [[ "$llm_floor" == match ]]; then need=$(( ${cov:-0} - _AM_GAIN ))
+    else need=$(( ${cov:-0} + _AM_GAIN )); fi
     (( need < PROVOST_MIN_COVERAGE )) && need=$PROVOST_MIN_COVERAGE
     (( need > 100 )) && need=100
     if (( jcov < need )); then
