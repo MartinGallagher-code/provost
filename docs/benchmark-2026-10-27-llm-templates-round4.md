@@ -306,16 +306,184 @@ capture. That is the step that turns 61% on the next run back toward the
 80% on the first, and the second-capture test above is the measurement to
 rerun after it.
 
+## Part 4: first contact through `learn` (the real API)
+
+Parts 1–3 used templates Claude helpers wrote by iterating against the
+applier. Here the product writes them: every round-4 input through
+`provost --sync --llm` with a key and **no stored template**
+(`llm_round.sh --round4 --learn`), so `template.py learn` (the guide, the
+capture, claude-opus-5-5 at effort medium, at most two attempts) wrote each
+one and provost's own rules decided whether to file it.
+
+- **Cost:** 108 API calls, **$5.20**, 4.5 minutes at 8 in parallel
+  (`round4/llm-templates-learn/llm-log.jsonl`). 104 templates fit their
+  capture first time, 2 on the second attempt; one reply came from the
+  refusal fallback model (`windows-whoami-priv`). None was over the
+  400-line / 64 KB limit.
+- **Routing:** 98 filed by the new template (56 format 2, 42 format 1); 8
+  by the engine (7 templates declined by the catch-all guard, 1 the `yaml`
+  exemption); 1 held (the fragments rule, 132).
+- **Rating:** blind, on `CRITERIA.md` (`round4/ratings-learn.tsv`).
+
+| | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| default engine | 12 (11%) | 51 (48%) | 44 (41%) | 59% |
+| helper templates, iterated (part 2) | 86 (80%) | 18 (17%) | 3 (3%) | 97% |
+| **`learn`, first contact** | **66 (62%)** | **30 (28%)** | **11 (10%)** | **90%** |
+
+| family | n | default | helpers | `learn` |
+|---|---:|---|---|---|
+| aligned / fixed-width table | 26 | 7 / 10 / 9 | 24 / 1 / 1 | **19 / 6 / 1** |
+| multi-section report | 24 | 0 / 12 / 12 | 18 / 5 / 1 | **12 / 8 / 4** |
+| log and diagnostic lines | 19 | 1 / 10 / 8 | 14 / 5 / 0 | **10 / 7 / 2** |
+| list, grid, help, free text | 11 | 2 / 6 / 3 | 8 / 3 / 0 | **5 / 4 / 2** |
+| structured data (trees, dumps) | 10 | 0 / 8 / 2 | 7 / 2 / 1 | **8 / 1 / 1** |
+| key/value blocks (several records) | 10 | 0 / 3 / 7 | 8 / 2 / 0 | **6 / 3 / 1** |
+| single key/value record | 7 | 2 / 2 / 3 | 7 / 0 / 0 | **6 / 1 / 0** |
+
+**First contact is 62% PASS against the engine's 11%,** on output neither had
+seen, for about five cents a tool. 57 inputs went from FAIL or PARTIAL to
+PASS; 9 went the other way (1 PASS→FAIL, 2 PASS→PARTIAL, 6 PARTIAL→FAIL).
+It is 18 points under the iterated helpers, which is the price of two
+attempts and no second look.
+
+Where the 41 that are not PASS come from:
+
+- **The gate, 9** (6 FAIL, 3 PARTIAL): the catch-all guard declined 7
+  templates (bun-test, bundle-env, golangci-lint-run, pg_test_fsync, huawei,
+  simctl, sybase: each kept 50–72% of the lines `text-lines` kept), and
+  the `text-lines` dump stood; the `yaml` exemption (020) and the
+  fragments rule (132) as in parts 1–2. The guard is now the largest
+  single cause of FAIL on first contact.
+- **Information put in `skip`, about 15 PARTIAL:** a version banner
+  (047), a usage synopsis (010), a preamble with the test's duration
+  (041), a summary line with counts (014, 142), a header section (127,
+  114), `ninja: Entering directory` (037), a program output line between
+  log lines (038, 062). The guide says "lines that carry no data go in
+  skip"; first-contact templates read that generously. This is the skip
+  audit the second-capture test asked for, and it would lift more first
+  contacts than anything else here.
+- **Structure lost, about 9:** a parent or nesting dropped (039, 057, 121,
+  065), caller/callee lines with no link (022, FAIL), two layouts under
+  one header (063), a multi-line event split (128).
+- **A parser's continuation lines turned into columns, 4 FAIL:** body
+  lines or later doc paragraphs became spurious keys copied onto every
+  record (019 go doc, 046 pydoc, 048 pytest, 117 klog). A judge reading
+  the output would catch each one.
+- **A row missed, 2:** a regex too narrow for the longest name (140), a
+  wrapped comment (012).
+
+## Part 5: template repair on the second capture
+
+The repair part 3 asked for (`template.py misses` / `repair`, wired into
+`_llm_template`): a stored template that meets **a kind of line it has not
+met** on this capture (left unread, or dropped by a skip pattern; a line's
+kind is its first word as printed and the shape of the rest, so another
+host in a banner is not new) goes back to Claude **once**, with the
+captures it was written from. The extension is kept only if it covers the
+new capture at least as well and still reads every line of the earlier
+captures that the template read; an unchanged reply is accepted and the
+capture remembered, so it is not sent again.
+
+- **Run:** part 3 again, the same stored templates (`llm-templates-f2`
+  over `llm-templates`), each given its first capture as its example (what
+  `learn` stores now), with a key: `llm_round.sh --round4 --inputs
+  round4/variants --examples round4/inputs --learn`.
+- **Cost:** 26 repair calls and 1 `learn` (a declined template with
+  nothing new to repair), **$1.51**. The other 80 captures were read
+  offline, as before.
+- **Outcome:** 13 templates extended and kept; 9 sent back unchanged (the
+  new kinds were prompts and banners, rightly decoration); 4 extensions
+  failed the gate (3 the catch-all guard again, 1 the ±10 floor) and the
+  engine stood, as in part 3.
+- **Rating:** the 13 inputs whose output changed were rated again, blind;
+  the other 94 are byte-identical to part 3's output and keep its rating
+  (`round4/ratings-variants-repair.tsv`).
+
+| second capture | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| stored templates, no repair (part 3) | 65 (61%) | 32 (30%) | 10 (9%) | 91% |
+| **stored templates, with repair** | **73 (68%)** | **28 (26%)** | **6 (6%)** | **94%** |
+| (the same templates on the first capture) | 86 (80%) | 18 (17%) | 3 (3%) | 97% |
+
+5 FAIL→PASS (bison, javap and ninja, which part 3 had declined to the
+engine; the chained traceback; **systemd-delta**, whose skip rule had
+swallowed a diff at "100%" coverage: the new kinds of skipped line sent it
+to repair and the diff is now read), 3 PARTIAL→PASS (podchecker, pytest,
+tmux), 4 PARTIAL stayed PARTIAL, 1 PARTIAL→FAIL (031 jstack: extended for
+its new SMR lines, then rated FAIL for the frames' missing thread key, the
+same flaw part 3's rater called PARTIAL). Logs and diagnostics, the family
+part 3 hit hardest, go from 4 to 9 PASS of 19.
+
+**Repair wins back 8 of the 21 PASSes lost between the captures.** What it
+cannot reach is the other kind of miss. 11 of the 14 first-PASS inputs
+still short left nothing new unread or skipped, so repair never ran:
+- **a new kind of line that a pattern matches and misreads:** LXD container
+  rows taken for units (115), ioscan's continuation device files under the
+  wrong column (110), a value merged into its neighbour (102), wrapped
+  service messages (131);
+- **structure the template does not keep on this capture:** a field's doc
+  comment on its own row (019), one-line init records collapsed (024),
+  locals not tied to their method (057), two layouts under one header
+  (063), a tree's depth (119), steps in a separate table (108, 137).
+
+No count sees those; a reading of the output (the judge) does.
+
+## Part 6: the whole pipeline, learned then repaired
+
+What a user with a key sees: the templates `learn` wrote on first contact
+(part 4, each holding its first capture), meeting the second capture of
+their tool, with repair on, and `learn` for the tools first contact kept
+no template for (`llm_round.sh --round4 --inputs round4/variants
+--templates round4/llm-templates-learn --learn`). All 107 rated blind
+(`round4/ratings-variants-learn.tsv`).
+
+- **Cost:** 34 calls (26 repairs, 8 `learn`), **$1.87**, about five cents
+  a call. 73 captures were read offline by their stored template: on a
+  tool's second capture, about one in three called the API.
+- **Routing:** 100 by a template (73 stored as they were, 17 extended, 7
+  checked and left as they were, 3 learned now), 6 by the engine (5 the
+  catch-all guard, 1 the `yaml` exemption), 1 held (132).
+
+| | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| default engine, first capture | 12 (11%) | 51 (48%) | 44 (41%) | 59% |
+| `learn`, first capture (part 4) | 66 (62%) | 30 (28%) | 11 (10%) | 90% |
+| **learned templates, second capture, with repair** | **66 (62%)** | **35 (33%)** | **6 (6%)** | **94%** |
+
+The learned templates keep their PASS count on output they were not written
+from: 59 PASS both times, 7 PASS→PARTIAL, 7 up to PASS (6 from PARTIAL, 1
+from FAIL), and 4 FAIL→PARTIAL. By route: stored as they were 47 / 25 / 1;
+extended 11 / 5 / 1; left as they were 6 / 1 / 0; learned now 2 / 1 / 0;
+the engine 0 / 3 / 3; held 1 FAIL. Of the 6 FAILs, 4 are the gate (the
+catch-all guard twice, the `yaml` exemption, the fragments rule) and 2 a
+parser turning continuation lines into columns (048 pytest, 117 klog),
+both already FAIL on first contact.
+
+**So the pipeline holds at first-contact quality from one capture to the
+next.** For the helpers' templates, repair won back 8 of the 21 PASSes they
+lost between captures (part 5). For the learned templates it kept the
+level: 7 PASSes lost, 7 gained. What moves the level itself is the judge
+(the skip audit, and reading for misread lines) and the gate rules that
+decline good templates, not more capture.
+
 ## Next
 
-1. **Template repair on a miss** (part 3): a stored template's unread lines
-   on a new capture go back to Claude to extend it, checked against the
-   captures it was written from. Then rerun part 3.
-2. The judge before storing (step 3): it replaces the catch-all guard and
-   the ±10 floor with a reading of the output, and can rate round 5
-   automatically.
-3. With a key in the environment: the same run through `learn` (the API,
-   two attempts, format 2 allowed) to measure the first-contact rate, then
-   the library (step 5) and round 5.
-4. Small: `_AM_FRAG_LINES` should count records; the melt should rename a
-   template column that collides with the generated row id.
+1. **The judge** (plan step 3): one call after `learn` and after `repair`
+   that reads the capture and the records and answers PASS or a list of
+   fixes, fed back once. It is what reaches the three causes no count can
+   see:
+   - information put in `skip` (about 15 first-contact PARTIALs);
+   - a parser turning continuation lines into columns (4 FAILs);
+   - a new kind of line that a pattern matches and misreads (most of what
+     repair cannot reach).
+2. **Replace the catch-all guard with the judge.** On first contact it
+   declined 7 learned templates and stood a `text-lines` dump (3 FAIL, 3
+   PARTIAL), and 3 repaired ones on the second capture. A count cannot tell
+   decoration from dropped data; a reading can.
+3. Then the library (plan step 5) and **round 5**, built and frozen before
+   anything runs: round 4 is now seen by `learn`, repair and the guide.
+4. Small: `_AM_FRAG_LINES` should count records (132 is held every time);
+   the melt should rename a template column that collides with the
+   generated row id; the `yaml` exemption keeps 020 from ever reaching a
+   template.

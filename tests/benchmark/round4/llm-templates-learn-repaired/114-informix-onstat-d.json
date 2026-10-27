@@ -1,0 +1,85 @@
+{
+ "format": 1,
+ "tool": "informix-onstat-d",
+ "detect": "address\\s+number\\s+flags\\s+fchunk\\s+nchunks",
+ "skip": [
+  "^(?:Dbspaces|Chunks)\\s*$",
+  "^NOTE:",
+  "^\\s+displayed in terms of"
+ ],
+ "blocks": [
+  {
+   "name": "server",
+   "kind": "table",
+   "line": "^IBM Informix Dynamic Server Version\\s+(?P<version>\\S+)\\s+--\\s+(?P<mode>\\S(?:.*?\\S)?)(?:\\s+--\\s+Up\\s+(?P<uptime>\\S(?:.*?\\S)?))?\\s+--\\s+(?P<shared_memory>\\d+\\s+Kbytes)\\s*$",
+   "columns": {
+    "version": "Version",
+    "mode": "mode",
+    "uptime": "Up",
+    "shared_memory": "Kbytes"
+   }
+  },
+  {
+   "name": "dbspaces",
+   "kind": "table",
+   "header": "^address\\s+number\\s+flags\\s+fchunk",
+   "line": "^(?P<address>[0-9a-fA-F]+)\\s+(?P<number>\\d+)\\s+(?P<flags>0x[0-9a-fA-F]+)\\s+(?P<fchunk>\\d+)\\s+(?P<nchunks>\\d+)\\s+(?P<pgsize>\\d+)\\s+(?P<type_flags>\\S+(?:\\s{1,2}\\S+)?)\\s+(?P<owner>\\S+)\\s+(?P<name>\\S+)\\s*$",
+   "columns": {
+    "address": "address",
+    "number": "number",
+    "flags": "flags",
+    "fchunk": "fchunk",
+    "nchunks": "nchunks",
+    "pgsize": "pgsize",
+    "type_flags": "flags (2)",
+    "owner": "owner",
+    "name": "name"
+   }
+  },
+  {
+   "name": "chunks",
+   "kind": "table",
+   "header": "^address\\s+chunk/dbs",
+   "line": "^(?P<address>[0-9a-fA-F]+)\\s+(?P<chunk>\\d+)\\s+(?P<dbs>\\d+)\\s+(?P<offset>\\d+)\\s+(?P<size>\\d+)\\s+(?P<free>\\d+)\\s+(?:(?P<bpages>\\d+)\\s+)?(?P<flags>[A-Z-]{4,})\\s+(?P<pathname>\\S.*?)\\s*$",
+   "columns": {
+    "address": "address",
+    "chunk": "chunk",
+    "dbs": "dbs",
+    "offset": "offset",
+    "size": "size",
+    "free": "free",
+    "bpages": "bpages",
+    "flags": "flags",
+    "pathname": "pathname"
+   }
+  },
+  {
+   "name": "chunk_metadata",
+   "kind": "table",
+   "line": "^\\s+Metadata\\s+(?P<size>\\d+)\\s+(?P<free>\\d+)\\s+(?P<bpages>\\d+)\\s*$",
+   "columns": {
+    "size": "size",
+    "free": "free",
+    "bpages": "bpages"
+   }
+  },
+  {
+   "name": "counts",
+   "kind": "table",
+   "line": "^\\s*(?P<active>\\d+) active,\\s+(?P<maximum>\\d+) maximum\\s*$",
+   "columns": {
+    "active": "active",
+    "maximum": "maximum"
+   }
+  },
+  {
+   "name": "settings",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][A-Za-z ]*?)\\s*:\\s*(?P<value>\\S.*?)\\s*$"
+  }
+ ],
+ "examples": [
+  "\nIBM Informix Dynamic Server Version 14.10.FC10 -- On-Line -- Up 12 days 04:21:07 -- 2124368 Kbytes\n\nDbspaces\naddress          number   flags      fchunk   nchunks  pgsize   flags    owner    name\n4e2a1028         1        0x70001    1        1        2048     N  BA    informix rootdbs\n4e3c5d40         2        0x60001    2        1        2048     N  BA    informix logdbs\n4e3c5f68         3        0x60001    3        2        2048     N  BA    informix datadbs1\n4e3c6190         4        0x48001    5        1        2048     N SBA    informix sbspace1\n4e3c63b8         5        0x42001    6        1        16384    N TBA    informix tempdbs1\n 5 active, 2047 maximum\n\nChunks\naddress          chunk/dbs     offset     size       free       bpages     flags pathname\n4e2a1258         1      1      0          512000     12907                 PO-B-- /opt/informix/chunks/rootdbs\n4e3d0028         2      2      0          1024000    23                    PO-B-- /opt/informix/chunks/logdbs\n4e3d0258         3      3      0          2560000    410211                PO-B-- /opt/informix/chunks/datadbs1.c1\n4e3d0488         4      3      0          2560000    2559947               PO-B-- /opt/informix/chunks/datadbs1.c2\n4e3d06b8         5      4      0          256000     187423     187423     POSB-- /opt/informix/chunks/sbspace1\n                         Metadata 13277      9850       13277   \n4e3d08e8         6      5      0          128000     127841                PO-B-- /opt/informix/chunks/tempdbs1\n 6 active, 32766 maximum\n\nNOTE: The values in the \"size\" and \"free\" columns for DBspace chunks are\n      displayed in terms of \"pgsize\" of the DBspace to which they belong.\n\n\nExpanded chunk capacity mode: always",
+  "\nIBM Informix Dynamic Server Version 15.0.0.1 -- On-Line (Prim) -- Up 3 days 17:08:44 -- 8781320 Kbytes\n\nDbspaces\naddress          number   flags      fchunk   nchunks  pgsize   flags    owner    name\n7c1a3028         1        0x70001    1        1        2048     N  BA    informix rootdbs\n7c2e8d40         2        0x60001    2        1        2048     N  BA    informix plogdbs\n7c2e8f68         3        0x60001    3        1        2048     N  BA    informix llogdbs\n7c2e9190         4        0x60001    4        3        4096     N  BA    informix dbs_orders\n7c2e93b8         5        0x60001    7        2        16384    N  BA    informix dbs_idx16k\n7c2e95e0         6        0x48001    9        1        2048     N SBA    informix sbs_docs\n7c2e9808         7        0x42001    10       1        8192     N TBA    informix tmpdbs_a\n7c2e9a30         8        0x42001    11       1        8192     N TBA    informix tmpdbs_b\n 8 active, 2047 maximum\n\nChunks\naddress          chunk/dbs     offset     size       free       bpages     flags pathname\n7c1a3258         1      1      0          1024000    20511                 PO-B-- /informix/chunks/rootdbs.c1\n7c2f0028         2      2      0          2048000    1047                  PO-B-- /informix/chunks/plogdbs.c1\n7c2f0258         3      3      0          4096000    205                   PO-B-- /informix/chunks/llogdbs.c1\n7c2f0488         4      4      0          5000000    38                    PO-B-- /dev/informix/raw_orders01\n7c2f06b8         5      4      50         5000000    112904                PO-B-- /dev/informix/raw_orders02\n7c2f08e8         6      4      50         5000000    4999947               PD-B-- /dev/informix/raw_orders03\n7c2f0b18         7      5      0          640000     301266                PO-B-- /informix/chunks/dbs_idx16k.c1\n7c2f0d48         8      5      0          640000     639961                PO-BE- /informix/chunks/dbs_idx16k.c2\n7c2f0f78         9      6      0          1500000    1102318    1102318    POSB-- /informix/chunks/sbs_docs.c1\n                         Metadata 77451      57226      77451   \n7c2f11a8         10     7      0          256000     255881                PO-B-- /informix/tmp/tmpdbs_a.c1\n7c2f13d8         11     8      0          256000     255901                PO-B-- /informix/tmp/tmpdbs_b.c1\n 11 active, 32766 maximum\n\nNOTE: The values in the \"size\" and \"free\" columns for DBspace chunks are\n      displayed in terms of \"pgsize\" of the DBspace to which they belong.\n\n\nExpanded chunk capacity mode: always"
+ ]
+}

@@ -83,8 +83,8 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (208)
-- `transform/tests/test_melt.sh` (54)
+- `tests/smoke.sh` (310)
+- `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
@@ -93,6 +93,43 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0k. **2026-10-27 (later): `--llm` measured through the real API, and
+    template repair on a miss** (PR #87, stacked on #86; parts 4–6 of
+    `docs/benchmark-2026-10-27-llm-templates-round4.md`).
+    - **First contact (`learn`, the real API, no stored template):** round
+      4 scores **66 / 30 / 11 (62% PASS, 90% usable)** against the engine's
+      12 / 51 / 44, for $5.20 (108 calls). The iterated helpers' 86 / 18 / 3
+      was the upper bound.
+    - **Repair** (`template.py misses` / `repair`, wired into
+      `_llm_template`): a stored template that meets a kind of line it has
+      not met goes back to Claude once, with the captures it was written
+      from (its `"examples"`), and the extension is kept only if it still
+      reads them. On the second captures (part 3 rerun): **73 / 28 / 6**
+      against 65 / 32 / 10, for $1.51 (26 repairs; 80 captures stayed
+      offline).
+    - **The whole pipeline** (the templates `learn` wrote, on the second
+      captures, repair on): **66 / 35 / 6 (62% PASS, 94% usable)** for
+      $1.87 (34 calls; 73 captures offline). First-contact quality holds
+      from one capture to the next; FAILs fall from 11 to 6.
+    - **What is left, in order of how much it would lift:**
+      1. **The skip audit / judge.** On first contact about 15 PARTIALs
+         are information put in `skip` (version banners, summary lines,
+         a preamble with a duration), and 4 FAILs are a parser turning
+         continuation lines into columns. On the second capture most of
+         what repair cannot reach is a new line kind a pattern **matches
+         and misreads** (LXD rows as units). Only a reading of the output
+         catches these: the judge (plan step 3), one call after `learn`
+         and after `repair`, PASS or a list of fixes.
+      2. **The catch-all guard** declined 7 learned templates (and 3
+         repaired ones); it is now the largest single cause of first-contact
+         FAIL. The judge is what can replace it (it tells decoration from
+         dropped data; a count cannot).
+      3. Then the library (plan step 5) and round 5, built and frozen before
+         anything runs. Round 4 is spent for `--llm` as well.
+    - Small: `_AM_FRAG_LINES` should count records (132 is held on every
+      run); the melt should rename a template column colliding with the row
+      id; the `yaml` exemption keeps 020 from ever reaching a template.
 
 0j. **2026-10-27: `--llm` goes first, templates can be parsers (format 2),
     and round 4 is measured with templates** (`docs/plan-2026-10-27-near-100.md`

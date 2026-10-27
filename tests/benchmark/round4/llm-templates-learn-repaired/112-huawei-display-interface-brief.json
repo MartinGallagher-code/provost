@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "tool": "huawei-display-interface-brief",
+ "detect": "^Interface\\s+PHY\\s+Protocol\\s+InUti\\s+OutUti",
+ "skip": [
+  "^<[^>]+>"
+ ],
+ "blocks": [
+  {
+   "name": "interfaces",
+   "kind": "table",
+   "header": "^Interface\\s+PHY\\s+Protocol\\s+InUti\\s+OutUti",
+   "line": "^\\s*(?P<interface>\\S+)\\s+(?P<phy>\\S+)\\s+(?P<protocol>\\S+)\\s+(?P<inuti>\\S+)\\s+(?P<oututi>\\S+)\\s+(?P<inerrors>\\d+)\\s+(?P<outerrors>\\d+)\\s*$",
+   "columns": {
+    "interface": "Interface",
+    "phy": "PHY",
+    "protocol": "Protocol",
+    "inuti": "InUti",
+    "oututi": "OutUti",
+    "inerrors": "inErrors",
+    "outerrors": "outErrors"
+   }
+  },
+  {
+   "name": "legend",
+   "kind": "kv",
+   "line": "^(?P<key>\\S+):\\s+(?P<value>\\S(?:.*\\S)?)\\s*$"
+  }
+ ],
+ "examples": [
+  "<DC1-CORE-SW-A01>display interface brief\nPHY: Physical\n*down: administratively down\n^down: standby\n(l): loopback\n(s): spoofing\n(E): E-Trunk down\n(b): BFD down\n(e): ETHOAM down\n(d): Dampening Suppressed\n(p): port alarm down\n(dl): DLDP down\nInUti/OutUti: input utility rate/output utility rate\nInterface                     PHY      Protocol  InUti OutUti   inErrors  outErrors\nEth-Trunk10                   up       up       23.17% 18.92%          0          0\n  XGigabitEthernet0/0/1       up       up       23.40% 19.01%          0          0\n  XGigabitEthernet0/0/2       up       up       22.94% 18.83%          0          0\nEth-Trunk20                   up       up        4.06%  7.71%          0          0\n  XGigabitEthernet0/0/3       up       up        4.11%  7.68%          0          0\n  XGigabitEthernet0/0/4(b)    down     down         0%     0%          0          0\nEth-Trunk30                   down     down         0%     0%          0          0\nGE0/0/1                       up       up        0.07%  0.02%          3          0\nGE0/0/2                       *down    down         0%     0%          0          0\nGE0/0/3(d)                    down     down         0%     0%       1288         41\n100GE0/0/1                    up       up       61.35% 58.70%          0          0\n100GE0/0/2(e)                 up       down         0%     0%          0          0\nLoopBack0                     up       up(s)        0%     0%          0          0\nLoopBack1023                  up       up(s)        0%     0%          0          0\nMEth0/0/1                     up       up        0.03%  0.01%          0          0\nNULL0                         up       up(s)        0%     0%          0          0\nVlanif1                       *down    down         --     --          0          0\nVlanif300                     up       up           --     --          0          0\nVlanif3001                    up       up           --     --          0          0\nVbdif5010                     up       up           --     --          0          0\n<DC1-CORE-SW-A01>"
+ ]
+}
