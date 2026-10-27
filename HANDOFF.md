@@ -115,15 +115,27 @@ Suites (all CI-enforced):
       parser that skipped decoration, 1 the fragments rule on a one-line
       input, 1 the `yaml` exemption, 10 unrewritten format-1 templates
       PARTIAL on strict rule 3, 5 near-misses.
-    - **Not yet measured:** a stored template on a SECOND capture of the
-      same tool (the generalisation claim); the first-contact rate through
-      `learn` (two API attempts, no iteration).
-    - **Next:** a second-capture test (`ml/gen/` variants, corpus repeats);
-      the judge (step 3: replaces the catch-all guard and the ±10 floor,
-      rates round 5 automatically); with `ANTHROPIC_API_KEY` in the
-      environment, the `learn` run, the shipped library (step 5) and round
-      5. Small: `_AM_FRAG_LINES` should count records; the melt should
-      rename a template column colliding with the row id.
+    - **Second capture** (part 3; `round4/variants/`, frozen; rated blind):
+      the same stored templates on a never-seen second capture of each
+      tool score **65 / 32 / 10 (61% PASS, 91% usable)**. Nearly every drop
+      is a line kind the first capture never showed: the template is
+      declined (5, falls back to the engine) or misses it (17); once a
+      `skip` rule swallowed a diff while coverage read 100%.
+    - **Not yet measured:** the first-contact rate through `learn` (two API
+      attempts, no iteration).
+    - **Next:**
+      1. **Template repair on a miss:** a stored template's unread lines on
+         a new capture go back to Claude to extend it (one call), kept only
+         if it still reads the captures it was written from; record which
+         captures each template has seen. Then rerun part 3.
+      2. Skip lines audited (count + sample, judged), not counted as
+         covered for free.
+      3. The judge (step 3), then with the key the `learn` run, the library
+         (step 5) and round 5.
+      - **The key:** add it as `PROVOST_LLM_API_KEY` (a Claude Code
+        environment keeps `ANTHROPIC_API_KEY` for its own sign-in).
+      - Small: `_AM_FRAG_LINES` should count records; the melt should
+        rename a template column colliding with the row id.
 
 0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
     and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in

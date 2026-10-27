@@ -209,10 +209,108 @@ ever passed, are at 75%.
   variants; the corpus has a handful of repeats).
 - Round 4 is now seen by both formats. The next number needs round 5.
 
+## Part 3: the second capture — does a stored template fit the next run?
+
+The claim the approach rests on: a template written from one capture of a
+tool reads the next capture of the same tool. Measured here for the first
+time.
+
+- **Inputs.** `round4/variants/`: one more capture of every round-4 tool,
+  written by Claude helpers who saw only the original capture and the
+  manifest (no template, no parser, no rating), to the tool's format, with
+  every value changed, at least one count changed, widths shifted and
+  optional parts added or dropped. Some ran the real tool on new scratch
+  input (python, redis, ruby, stty, php, pytest, podchecker, prtstat);
+  some changed the subject (`go doc container/list`, `php --rc DatePeriod`)
+  or the tool version where the output is fixed for an argument or a
+  release. Frozen in `variants-SHA256SUMS` before any template ran.
+  `variants/README.md` lists how each was made.
+- **Run.** The templates stored from the first capture, unchanged
+  (`llm-templates-f2` over `llm-templates`), through
+  `llm_round.sh --round4 --inputs round4/variants`. No API.
+- **Rating.** Blind, as before; raters saw the variant and the output only.
+  `round4/ratings-variants.tsv`.
+
+### Headline
+
+| | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| engine, first capture | 12 (11%) | 51 (48%) | 44 (41%) | 59% |
+| stored templates, **first** capture (written from it) | 86 (80%) | 18 (17%) | 3 (3%) | 97% |
+| stored templates, **second** capture (never seen) | **65 (61%)** | **32 (30%)** | **10 (9%)** | **91%** |
+
+The engine was not rated on the variants; its first-capture score, at
+four rounds of 11–21% PASS on unseen output, is the comparison.
+
+**A stored template keeps most of its value on the next run, and loses
+about a fifth of its PASSes.** 64 inputs PASS both times; 22 PASS→PARTIAL
+or FAIL; 2 got better. By family, tables (19/26 PASS) and key/value
+output (15/17) hold up; **logs and diagnostics fall hardest** (14 → 4
+PASS of 19): they are where optional line kinds live.
+
+### Why the 23 got worse
+
+One cause underlies nearly all of them: **the second capture contains a
+kind of line or part the first one never showed**, and the template was
+written from the first.
+
+- **The template no longer covers the capture, so it is declined and the
+  engine's parse is filed, 5** (001 apt-get, 002 bison, 025 javap, 037
+  ninja, 040 pg_test_fsync). New lines (a NOTE banner, a reduce/reduce
+  block, a LocalVariableTable, a compiler warning, `n/a*` footnotes) pull
+  the template under its floor, and the fallback is the engine at its
+  usual: three of the five are FAIL.
+- **The template is used but misses or misreads the new part, 17.** A
+  warnings-summary section (048), an exception note read as the exception
+  (050), a `WARNING ... at line -` (043), `<Opt=0>` locals (057), LXD
+  container rows matching the unit pattern (115), device files spread
+  over two continuation lines (110), a lock-announcement block (062),
+  `@user` options sorted first (061), a two-value timing line (063), a
+  unified diff swallowed by a `skip` pattern (060), wrapped service
+  messages (131), a `RETRY LIMIT EXCEEDED` line (137), and so on.
+- **The `skip` hole, 1 of those, and the most worrying** (060
+  systemd-delta): the template's skip rule took the whole diff block, and
+  skipped lines count as covered, so provost reports 100% while the actual
+  configuration change is gone. No count can catch this; a reading of the
+  output can.
+- **Rater variance, about 2** (020, 119: the same parse rated differently
+  by two raters).
+
+Nothing here says the template approach is wrong. It says what a template
+is: a description of the layout **the tool has shown so far**. The
+feedback loop is the missing half.
+
+### What this changes in the plan
+
+1. **Template repair on a miss, before the judge.** A stored template
+   knows exactly which lines of a new capture it did not read (unlike the
+   engine's coverage, this is exact). When those exist, provost should not
+   fall back to the engine: it should send the template, the new capture
+   and the unread lines back to Claude to *extend* the template (one call,
+   on the first capture of a tool that shows something new), keep the
+   extended template only if it still reads the earlier captures stored
+   with it, and file with it. Five of the 23 are this case outright, and
+   most of the 17 left unread lines.
+2. **Skip must be audited.** A template's `skip` lines on a capture should
+   be reported (count and a sample) and judged, not counted as covered for
+   free: the judge (step 3) reads them; until then, a capture whose skip
+   share rises well above the share on the capture the template was
+   written from should go to repair.
+3. **Keep the captures a template was written from.** Repair and judging
+   both need them; the store already commits each capture, so it is a
+   matter of recording which captures a template has seen.
+
+With repair, every tool's template converges on its tool's real output
+after a few captures; without it, a template is only as good as the first
+capture. That is the step that turns 61% on the next run back toward the
+80% on the first, and the second-capture test above is the measurement to
+rerun after it.
+
 ## Next
 
-1. A second capture per tool, to measure what a stored template does on
-   output it was not written from.
+1. **Template repair on a miss** (part 3): a stored template's unread lines
+   on a new capture go back to Claude to extend it, checked against the
+   captures it was written from. Then rerun part 3.
 2. The judge before storing (step 3): it replaces the catch-all guard and
    the ±10 floor with a reading of the output, and can rate round 5
    automatically.

@@ -11,6 +11,21 @@
   another inputs directory, for the second-capture test
   (`round4/variants/`: one more capture of each round-4 tool, written to the
   tool's format by Claude helpers who saw only the original capture).
+- **The second-capture test** (part 3 of
+  `docs/benchmark-2026-10-27-llm-templates-round4.md`;
+  `round4/variants/` + `variants-SHA256SUMS` + `variants/README.md`;
+  `round4/ratings-variants.tsv`): the templates stored from the first
+  capture, unchanged, on a never-seen second capture of each tool, rated
+  blind: **65 PASS / 32 PARTIAL / 10 FAIL (61% PASS, 91% usable)**, against
+  86 / 18 / 3 on the first capture and the engine's 12 / 51 / 44. Tables
+  and key/value output hold up; logs fall hardest (14 → 4 PASS of 19).
+  Nearly every drop is one cause: the second capture shows a line kind or
+  part the first did not, so the template is declined (5, falling back to
+  the engine) or misses it (17), once by a `skip` rule that swallowed a
+  diff while coverage read 100%. Next: template repair on a miss (the
+  template's unread lines go back to Claude to extend it, checked against
+  the captures it was written from), and skip lines audited, not counted
+  as covered for free.
 
 ## 2026-10-27 — `--llm` goes first, and a template can be a parser (format 2)
 
