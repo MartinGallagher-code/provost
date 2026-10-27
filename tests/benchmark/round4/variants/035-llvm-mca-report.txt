@@ -1,0 +1,57 @@
+Iterations:        300
+Instructions:      1800
+Total Cycles:      909
+Total uOps:        1800
+
+Dispatch Width:    2
+uOps Per Cycle:    1.98
+IPC:               1.98
+Block RThroughput: 3.0
+
+
+Instruction Info:
+[1]: #uOps
+[2]: Latency
+[3]: RThroughput
+[4]: MayLoad
+[5]: MayStore
+[6]: HasSideEffects (U)
+
+[1]    [2]    [3]    [4]    [5]    [6]    Instructions:
+ 1      5     1.00    *                   vmovaps	(%rsi), %xmm1
+ 1      2     1.00                        vmulps	%xmm0, %xmm1, %xmm2
+ 1      3     1.00                        vaddps	%xmm2, %xmm5, %xmm5
+ 1      2     1.00           *            vmovss	%xmm5, (%rdi)
+ 1      1     0.50                        addq	$16, %rsi
+ 1      1     0.50                        addq	$4, %rdi
+
+
+Resources:
+[0]   - JALU0
+[1]   - JALU1
+[2]   - JDiv
+[3]   - JFPA
+[4]   - JFPM
+[5]   - JFPU0
+[6]   - JFPU1
+[7]   - JLAGU
+[8]   - JMul
+[9]   - JSAGU
+[10]  - JSTC
+[11]  - JVALU0
+[12]  - JVALU1
+[13]  - JVIMUL
+
+
+Resource pressure per iteration:
+[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    [10]   [11]   [12]   [13]   
+1.00   1.00    -     1.00   1.00   1.50   2.50   1.00    -     1.00   1.00    -      -      -     
+
+Resource pressure by instruction:
+[0]    [1]    [2]    [3]    [4]    [5]    [6]    [7]    [8]    [9]    [10]   [11]   [12]   [13]   Instructions:
+ -      -      -      -      -     0.50   0.50   1.00    -      -      -      -      -      -     vmovaps	(%rsi), %xmm1
+ -      -      -      -     1.00    -     1.00    -      -      -      -      -      -      -     vmulps	%xmm0, %xmm1, %xmm2
+ -      -      -     1.00    -     1.00    -      -      -      -      -      -      -      -     vaddps	%xmm2, %xmm5, %xmm5
+ -      -      -      -      -      -     1.00    -      -     1.00   1.00    -      -      -     vmovss	%xmm5, (%rdi)
+0.50   0.50    -      -      -      -      -      -      -      -      -      -      -      -     addq	$16, %rsi
+0.50   0.50    -      -      -      -      -      -      -      -      -      -      -      -     addq	$4, %rdi
