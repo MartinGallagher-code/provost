@@ -1,0 +1,6 @@
+{
+ "format": 2,
+ "tool": "systemd-analyze-syscall-filter",
+ "detect": "^@[\\w-]+$",
+ "parser": "import re\nGROUP = re.compile(r'^@(?P<group>[\\w-]+)\\s*$')\nDESC = re.compile(r'^\\s+#\\s*(?P<description>\\S.*?)\\s*$')\nCALL = re.compile(r'^\\s+(?P<syscall>[@\\w-]+)\\s*$')\n\ndef parse(lines):\n    recs, used = [], []\n    group, desc = '', ''\n    for i, ln in enumerate(lines):\n        if not ln.strip():\n            continue\n        m = GROUP.match(ln)\n        if m:\n            group, desc = m.group('group'), ''\n            used.append(i)\n            continue\n        m = DESC.match(ln)\n        if m:\n            desc = (desc + ' ' + m.group('description')).strip()\n            used.append(i)\n            continue\n        m = CALL.match(ln)\n        if m and group:\n            recs.append({'group': group, 'description': desc, 'syscall': m.group('syscall')})\n            used.append(i)\n    return [{'name': 'syscalls', 'kind': 'table', 'lines': used, 'records': recs}]"
+}
