@@ -1,0 +1,42 @@
+== Device Types ==
+iPhone 16 (com.apple.CoreSimulator.SimDeviceType.iPhone-16)
+iPhone 16 Plus (com.apple.CoreSimulator.SimDeviceType.iPhone-16-Plus)
+iPhone 16 Pro (com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro)
+iPhone 16e (com.apple.CoreSimulator.SimDeviceType.iPhone-16e)
+iPad Air 13-inch (M3) (com.apple.CoreSimulator.SimDeviceType.iPad-Air-13-inch-M3)
+iPad mini (A17 Pro) (com.apple.CoreSimulator.SimDeviceType.iPad-mini-A17-Pro)
+Apple Watch Ultra 2 (49mm) (com.apple.CoreSimulator.SimDeviceType.Apple-Watch-Ultra-2-49mm)
+Apple Watch SE (40mm) (2nd generation) (com.apple.CoreSimulator.SimDeviceType.Apple-Watch-SE-40mm-2nd-generation)
+Apple Vision Pro (com.apple.CoreSimulator.SimDeviceType.Apple-Vision-Pro)
+== Runtimes ==
+iOS 18.2 (18.2 - 22C150) - com.apple.CoreSimulator.SimRuntime.iOS-18-2
+iOS 18.4 (18.4 - 22E238) - com.apple.CoreSimulator.SimRuntime.iOS-18-4
+watchOS 11.4 (11.4 - 22T250) - com.apple.CoreSimulator.SimRuntime.watchOS-11-4
+visionOS 2.4 (2.4 - 22O233) - com.apple.CoreSimulator.SimRuntime.xrOS-2-4
+== Devices ==
+-- iOS 18.2 --
+    iPhone 16 (2B7E4F19-6C3A-4D85-9E01-7F3A2C6B8D40) (Shutdown) 
+    iPad mini (A17 Pro) (91D0C4E7-3A58-4F2B-B6E9-0C47D8A1F352) (Shutdown) 
+-- iOS 18.4 --
+    iPhone 16 (6E2D9B31-48F7-4C0A-A5D3-1B9E7F2C4A86) (Booted) 
+    iPhone 16 Plus (A3F81C6D-0B92-47E5-8D14-5C6B3E9F0A27) (Shutdown) 
+    iPhone 16 Pro (C58B2E07-9D41-4A63-B7F0-2E1D8C5A9B34) (Creating) 
+    iPhone 16e (0F49D7A2-E6C1-4B38-95A7-3D8E1F6C0B59) (Shutdown) 
+    iPad Air 13-inch (M3) (7D1E3A95-C2B4-46F8-A0D9-8B5C7E2F1A63) (Booted) 
+-- watchOS 11.4 --
+    Apple Watch Ultra 2 (49mm) (4C8A0E62-B7D3-4F19-8E25-6A1F9C3D7B08) (Booted) 
+    Apple Watch SE (40mm) (2nd generation) (E91B5D3F-2A07-4C6E-B8F4-0D3A7C1E5B92) (Shutdown) 
+-- visionOS 2.4 --
+    Apple Vision Pro (5A3C7E19-D8B2-4F06-9A41-E2C6B0D8F375) (Shutdown) 
+-- Unavailable: com.apple.CoreSimulator.SimRuntime.iOS-17-5 --
+    iPhone 15 (B08E2C47-1F95-4D3A-86C0-7E4A9D2B1F63) (Shutdown) (unavailable, runtime profile not found using "System" match policy)
+    iPhone 15 Pro (3D6F1A82-C4E9-47B0-A15D-9F2B8E6C0A74) (Shutdown) (unavailable, runtime profile not found using "System" match policy)
+-- Unavailable: com.apple.CoreSimulator.SimRuntime.watchOS-10-5 --
+    Apple Watch Series 9 (41mm) (F2A6C08D-5B31-4E97-BD62-14C8E3A7F950) (Shutdown) (unavailable, runtime profile not found using "System" match policy)
+== Device Pairs ==
+1E7C4B92-0A5D-4F38-B6E1-9D2C7A3F8B05 (active, connected)
+    Watch: Apple Watch Ultra 2 (49mm) (4C8A0E62-B7D3-4F19-8E25-6A1F9C3D7B08) (Booted)
+    Phone: iPhone 16 (6E2D9B31-48F7-4C0A-A5D3-1B9E7F2C4A86) (Booted)
+9F3D0A61-C7B8-4E25-A904-6B1E2D8C5F37 (unavailable)
+    Watch: Apple Watch Series 9 (41mm) (F2A6C08D-5B31-4E97-BD62-14C8E3A7F950) (Shutdown)
+    Phone: iPhone 15 Pro (3D6F1A82-C4E9-47B0-A15D-9F2B8E6C0A74) (Shutdown)

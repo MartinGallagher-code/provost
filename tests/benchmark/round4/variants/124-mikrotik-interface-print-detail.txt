@@ -1,0 +1,35 @@
+[netops@rb-filiale-nord] > /interface print detail
+Flags: D - dynamic, X - disabled, R - running, S - slave 
+ 0  R  ;;; WAN Glasfaser
+       name="sfp-sfpplus1" default-name="sfp-sfpplus1" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=10218 mac-address=DC:2C:6E:0A:91:B7 
+       last-link-down-time=aug/02/2026 19:40:05 last-link-up-time=aug/02/2026 19:40:11 link-downs=1 
+
+ 1  RS name="ether1" default-name="ether1" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=9578 mac-address=DC:2C:6E:0A:91:B8 
+       last-link-up-time=jul/30/2026 11:02:47 link-downs=0 
+
+ 2  RS name="ether2-drucker" default-name="ether2" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=9578 mac-address=DC:2C:6E:0A:91:B9 
+       last-link-down-time=sep/11/2026 07:15:33 last-link-up-time=sep/11/2026 07:15:36 link-downs=12 
+
+ 3   S name="ether3" default-name="ether3" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=9578 mac-address=DC:2C:6E:0A:91:BA link-downs=0 
+
+ 4   S name="ether4" default-name="ether4" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=9578 mac-address=DC:2C:6E:0A:91:BB link-downs=0 
+
+ 5  X  ;;; reserviert fuer Zeiterfassung
+       name="ether5" default-name="ether5" type="ether" mtu=1500 actual-mtu=1500 l2mtu=1592 max-l2mtu=9578 mac-address=DC:2C:6E:0A:91:BC link-downs=0 
+
+ 6  R  name="bridge1" type="bridge" mtu=auto actual-mtu=1500 l2mtu=1592 mac-address=DC:2C:6E:0A:91:B8 
+       last-link-up-time=jul/30/2026 11:02:47 link-downs=0 
+
+ 7  R  name="vlan20-gaeste" type="vlan" mtu=1500 actual-mtu=1500 l2mtu=1588 mac-address=DC:2C:6E:0A:91:B8 
+       last-link-up-time=jul/30/2026 11:02:48 link-downs=0 
+
+ 8  R  name="vlan30-voip" type="vlan" mtu=1500 actual-mtu=1500 l2mtu=1588 mac-address=DC:2C:6E:0A:91:B8 
+       last-link-up-time=jul/30/2026 11:02:48 link-downs=0 
+
+ 9  R  ;;; Tunnel Zentrale
+       name="l2tp-zentrale" type="l2tp-out" mtu=1450 actual-mtu=1450 last-link-down-time=sep/24/2026 02:00:12 
+       last-link-up-time=sep/24/2026 02:00:19 link-downs=41 
+
+10 DR  name="<sstp-wartung>" type="sstp-in" mtu=1500 actual-mtu=1500 last-link-up-time=sep/25/2026 09:47:58 link-downs=0 
+
+11 D   name="<pptp-altkunde>" type="pptp-in" mtu=1450 actual-mtu=1450 link-downs=0 

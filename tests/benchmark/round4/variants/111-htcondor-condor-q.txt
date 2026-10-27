@@ -1,0 +1,15 @@
+
+
+-- Schedd: ap2003.hpc.example.org : <198.51.100.17:9618?... @ 10/27/26 08:19:44
+OWNER    BATCH_NAME          SUBMITTED   DONE   RUN    IDLE   HOLD  TOTAL JOB_IDS
+dpatel   ID: 4102217        10/26 18:45  5320     96      _      _   5416 4102217.0-5415
+dpatel   ID: 4102894        10/26 23:02     _      2      _      _      2 4102894.0-1
+aoyelara DAG: cosmo_mcmc    10/27 01:14  1012     64    412      2   1490 4103001.0 ... 4104502.0
+rsilva   blast_shard_b      10/27 06:30     _    128   1872      _   2000 4104610.0-1999
+rsilva   ID: 4106611        10/27 07:05     _      _      _      1      1 4106611.0
+bwu      sim-alpha          10/27 07:48     9      1      _      _     10 4106620.0-9
+ci_bot   ID: 4106701        10/27 08:12     _      _      4      _      4 4106701.0-3
+
+Total for query: 2583 jobs; 0 completed, 1 removed, 2288 idle, 291 running, 3 held, 0 suspended 
+Total for all users: 7384 jobs; 0 completed, 3 removed, 4655 idle, 2701 running, 25 held, 0 suspended
+

@@ -1,0 +1,120 @@
+State 4 conflicts: 4 reduce/reduce
+State 13 conflicts: 2 shift/reduce
+State 19 conflicts: 2 shift/reduce
+State 20 conflicts: 2 shift/reduce
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: %empty
+    2      | input line
+
+    3 line: '\n'
+    4     | expr '\n'
+    5     | lval '=' expr '\n'
+
+    6 expr: expr '-' expr
+    7     | expr '/' expr
+    8     | '-' expr
+    9     | NUM
+   10     | ID
+   11     | lval
+   12     | '(' expr ')'
+
+   13 lval: ID
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '\n' (10) 3 4 5
+    '(' (40) 12
+    ')' (41) 12
+    '-' (45) 6 8
+    '/' (47) 7
+    '=' (61) 5
+    error (256)
+    NUM (258) 9
+    ID (259) 10 13
+
+
+Nonterminals, with rules where they appear
+
+    $accept (11)
+        on left: 0
+    input (12)
+        on left: 1 2
+        on right: 0 2
+    line (13)
+        on left: 3 4 5
+        on right: 2
+    expr (14)
+        on left: 6 7 8 9 10 11 12
+        on right: 4 5 6 7 8 12
+    lval (15)
+        on left: 13
+        on right: 5 11
+
+
+State 0
+
+    0 $accept: . input $end
+
+    $default  reduce using rule 1 (input)
+
+    input  go to state 1
+
+
+State 1
+
+    0 $accept: input . $end
+    2 input: input . line
+
+    $end  shift, and go to state 2
+    NUM   shift, and go to state 3
+    ID    shift, and go to state 4
+    '\n'  shift, and go to state 5
+    '('   shift, and go to state 6
+    '-'   shift, and go to state 7
+
+    line  go to state 8
+    expr  go to state 9
+    lval  go to state 10
+
+
+State 2
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 3
+
+    9 expr: NUM .
+
+    $default  reduce using rule 9 (expr)
+
+
+State 4
+
+   10 expr: ID .  ['\n', ')', '-', '/']
+   13 lval: ID .  ['\n', ')', '-', '/', '=']
+
+    '\n'      reduce using rule 10 (expr)
+    '\n'      [reduce using rule 13 (lval)]
+    ')'       reduce using rule 10 (expr)
+    ')'       [reduce using rule 13 (lval)]
+    '-'       reduce using rule 10 (expr)
+    '-'       [reduce using rule 13 (lval)]
+    '/'       reduce using rule 10 (expr)
+    '/'       [reduce using rule 13 (lval)]
+    '='       reduce using rule 13 (lval)
+    $default  reduce using rule 10 (expr)
+
+
+State 5
+
+    3 line: '\n' .

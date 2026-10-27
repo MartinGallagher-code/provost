@@ -1,0 +1,9 @@
+*** ERROR: Expected text after =item, not a bullet at line 19 in file Tally.pod
+*** WARNING: =item has no contents at line 19 in file Tally.pod
+*** ERROR: Deleting unknown formatting code Y<> at line 27 in file Tally.pod
+*** WARNING: line containing nothing but whitespace in paragraph at line 33 in file Tally.pod
+*** ERROR: You forgot a '=back' before '=head1' at line 36 in file Tally.pod
+*** WARNING: empty section in previous paragraph at line 38 in file Tally.pod
+*** ERROR: Unterminated B<...> sequence at line 44 in file Tally.pod
+*** WARNING: multiple occurrences (2) of link target 'OPTIONS' at line - in file Tally.pod
+Tally.pod has 4 pod syntax errors.

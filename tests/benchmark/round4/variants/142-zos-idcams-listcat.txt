@@ -1,0 +1,88 @@
+IDCAMS  SYSTEM SERVICES                                           TIME: 22:07:49        10/26/26     PAGE      1
+0
+  LISTCAT ENTRIES(ACCT.HIST.JOURNAL ACCT.HIST.EXTRACT.G0118V00 ACCT.HIST.EXTRACT.G0119V00) ALL
+0CLUSTER ------- ACCT.HIST.JOURNAL
+      IN-CAT --- CATALOG.FIN.UCAT03
+      HISTORY
+        DATASET-OWNER----FINJRNL     CREATION--------2021.207
+        RELEASE----------------2     EXPIRATION------2099.365
+      SMSDATA
+        STORAGECLASS ---SCFINLG     MANAGEMENTCLASS---MCNOMIG
+        DATACLASS --------(NULL)     LBACKUP ---2026.298.2140
+      PROTECTION-PSWD-----(NULL)     RACF---------------(YES)
+      ASSOCIATIONS
+        DATA-----ACCT.HIST.JOURNAL.DATA
+0   DATA ------- ACCT.HIST.JOURNAL.DATA
+      IN-CAT --- CATALOG.FIN.UCAT03
+      HISTORY
+        DATASET-OWNER----FINJRNL     CREATION--------2021.207
+        RELEASE----------------2     EXPIRATION------2099.365
+        ACCOUNT-INFO-----------------------------------(NULL)
+      ATTRIBUTES
+        KEYLEN-----------------0     AVGLRECL------------1210     BUFSPACE-----------53248     CISIZE-------------26624
+        RKP--------------------0     MAXLRECL-----------32756     EXCPEXIT----------(NULL)     CI/CA-----------------30
+        SHROPTNS(1,3)   RECOVERY  UNIQUE           NOERASE     NONINDEXED  NOWRITECHK     NOIMBED       NOREPLICAT
+      STATISTICS
+        REC-TOTAL-----------28441907     SPLITS-CI---------------0     EXCPS-----------211873466
+        REC-DELETED----------------0     SPLITS-CA----------------0     EXTENTS------------------17
+        REC-INSERTED---------------0     FREESPACE-%CI------------0     SYSTEM-TIMESTAMP:
+        REC-UPDATED----------------0     FREESPACE-%CA------------0          X'DD14A70B93C25000'
+      ALLOCATION
+        SPACE-TYPE------CYLINDER     HI-A-RBA-------36633477120
+        SPACE-PRI-----------1500     HI-U-RBA-------34418892800
+        SPACE-SEC------------750
+      VOLUME
+        VOLSER------------FIN301     PHYREC-SIZE--------26624     HI-A-RBA-------18316738560     EXTENT-NUMBER--------9
+        DEVTYPE------X'3010200F'     PHYRECS/TRK------------2     HI-U-RBA-------18316738560     EXTENT-TYPE--------X'00'
+      VOLUME
+        VOLSER------------FIN318     PHYREC-SIZE--------26624     HI-A-RBA-------36633477120     EXTENT-NUMBER--------8
+        DEVTYPE------X'3010200F'     PHYRECS/TRK------------2     HI-U-RBA-------34418892800     EXTENT-TYPE--------X'00'
+1IDCAMS  SYSTEM SERVICES                                           TIME: 22:07:49        10/26/26     PAGE      2
+0NONVSAM ------- ACCT.HIST.EXTRACT.G0118V00
+      IN-CAT --- CATALOG.FIN.UCAT03
+      HISTORY
+        DATASET-OWNER-----(NULL)     CREATION--------2026.298
+        RELEASE----------------2     EXPIRATION------0000.000
+        ACCOUNT-INFO-----------------------------------(NULL)
+      SMSDATA
+        STORAGECLASS ---SCFINLG     MANAGEMENTCLASS---MCGDG30
+        DATACLASS -----DCVB27K     LBACKUP ---0000.000.0000
+      VOLUMES
+        VOLSER------------FIN412     DEVTYPE------X'3010200F'     FSEQN------------------0
+      ASSOCIATIONS
+        GDG------ACCT.HIST.EXTRACT
+      ATTRIBUTES
+0NONVSAM ------- ACCT.HIST.EXTRACT.G0119V00
+      IN-CAT --- CATALOG.FIN.UCAT03
+      HISTORY
+        DATASET-OWNER-----(NULL)     CREATION--------2026.299
+        RELEASE----------------2     EXPIRATION------0000.000
+        ACCOUNT-INFO-----------------------------------(NULL)
+      SMSDATA
+        STORAGECLASS ---SCFINLG     MANAGEMENTCLASS---MCGDG30
+        DATACLASS -----DCVB27K     LBACKUP ---0000.000.0000
+      VOLUMES
+        VOLSER------------FIN407     DEVTYPE------X'3010200F'     FSEQN------------------0
+      ASSOCIATIONS
+        GDG------ACCT.HIST.EXTRACT
+      ATTRIBUTES
+1IDCAMS  SYSTEM SERVICES                                           TIME: 22:07:49        10/26/26     PAGE      3
+0         THE NUMBER OF ENTRIES PROCESSED WAS:
+                    AIX -------------------0
+                    ALIAS -----------------0
+                    CLUSTER ---------------1
+                    DATA ------------------1
+                    GDG -------------------0
+                    INDEX -----------------0
+                    NONVSAM ---------------2
+                    PAGESPACE -------------0
+                    PATH ------------------0
+                    SPACE -----------------0
+                    USERCATALOG -----------0
+                    TAPELIBRARY -----------0
+                    TAPEVOLUME ------------0
+                    TOTAL -----------------4
+0         THE NUMBER OF PROTECTED ENTRIES SUPPRESSED WAS 1
+0IDC0001I FUNCTION COMPLETED, HIGHEST CONDITION CODE WAS 0
+0
+0IDC0002I IDCAMS PROCESSING COMPLETE. MAXIMUM CONDITION CODE WAS 0

@@ -1,0 +1,24 @@
+1> sp_helpdb inventory_prod
+2> go
+ name           db_size       owner    dbid   created              durability  lobcomplvl inrowlen status                                                   
+ -------------- ------------- -------- ------ -------------------- ----------- ---------- -------- -------------------------------------------------------- 
+ inventory_prod     2048.0 MB sa            7 Sep 14, 2026         full                 0     NULL select into/bulkcopy/pllsort, trunc log on chkpt         
+
+(1 row affected)
+ device_fragments               size          usage                created                   free kbytes                    
+ ------------------------------ ------------- -------------------- ------------------------- ------------------------------ 
+ inv_data01                         1024.0 MB data only            Sep 14 2026 11:02AM                               188416 
+ inv_data02                          512.0 MB data only            Sep 14 2026 11:03AM                               522240 
+ inv_log01                           384.0 MB log only             Sep 14 2026 11:03AM                       not applicable 
+ inv_data01                          128.0 MB data only            Oct 21 2026  8:47PM                               131072 
+                                                                                                                                       
+ --------------------------------------------------------------------------------------------------------------------------------------
+ log only free kbytes = 377904                                                                                                          
+ device                         segment                        
+ ------------------------------ ------------------------------ 
+ inv_data01                     default                        
+ inv_data01                     system                         
+ inv_data02                     default                        
+ inv_data02                     idx_seg                        
+ inv_log01                      logsegment                     
+(return status = 0)

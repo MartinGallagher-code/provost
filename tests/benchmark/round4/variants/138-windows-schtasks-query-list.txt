@@ -1,0 +1,118 @@
+
+Folder: \Fabrikam
+HostName:                             PC-FIN-207
+TaskName:                             \Fabrikam\Belegimport
+Next Run Time:                        27.10.2026 10:00:00
+Status:                               Running
+Logon Mode:                           Interactive/Background
+Last Run Time:                        27.10.2026 09:30:00
+Last Result:                          267009
+Author:                               FABRIKAM\svc-deploy
+Task To Run:                          "D:\Apps\Belegimport\import.cmd" /quelle:\\fs-archiv\scan$
+Start In:                             D:\Apps\Belegimport
+Comment:                              Importiert gescannte Belege alle 30 Minuten
+Scheduled Task State:                 Enabled
+Idle Time:                            Disabled
+Power Management:                     Stop On Battery Mode, No Start On Batteries
+Run As User:                          FABRIKAM\svc-buchhaltung
+Delete Task If Not Rescheduled:       Disabled
+Stop Task If Runs X Hours and X Mins: 02:00:00
+Schedule:                             Scheduling data is not available in this format.
+Schedule Type:                        Daily 
+Start Time:                           06:00:00
+Start Date:                           12.01.2026
+End Date:                             N/A
+Days:                                 Every 1 day(s)
+Months:                               N/A
+Repeat: Every:                        0 Hour(s), 30 Minute(s)
+Repeat: Until: Time:                  None
+Repeat: Until: Duration:              12 Hour(s), 0 Minute(s)
+Repeat: Stop If Still Running:        Disabled
+
+HostName:                             PC-FIN-207
+TaskName:                             \Fabrikam\Monatsabschluss Export
+Next Run Time:                        02.11.2026 05:15:00
+Status:                               Ready
+Logon Mode:                           Background only
+Last Run Time:                        01.10.2026 05:15:02
+Last Result:                          2147942402
+Author:                               FABRIKAM\a.brennan
+Task To Run:                          C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File "E:\Finanz\Skripte\export_abschluss.ps1"
+Start In:                             N/A
+Comment:                              N/A
+Scheduled Task State:                 Enabled
+Idle Time:                            Disabled
+Power Management:                     
+Run As User:                          SYSTEM
+Delete Task If Not Rescheduled:       Disabled
+Stop Task If Runs X Hours and X Mins: 04:00:00
+Schedule:                             Scheduling data is not available in this format.
+Schedule Type:                        Weekly
+Start Time:                           05:15:00
+Start Date:                           03.11.2025
+End Date:                             31.12.2027
+Days:                                 MON
+Months:                               Every 4 week(s)
+Repeat: Every:                        Disabled
+Repeat: Until: Time:                  Disabled
+Repeat: Until: Duration:              Disabled
+Repeat: Stop If Still Running:        Disabled
+
+HostName:                             PC-FIN-207
+TaskName:                             \Fabrikam\Updater
+Next Run Time:                        N/A
+Status:                               Ready
+Logon Mode:                           Interactive/Background
+Last Run Time:                        27.10.2026 07:01:44
+Last Result:                          0
+Author:                               FABRIKAM\it-admin
+Task To Run:                          "C:\Program Files (x86)\Fabrikam\Updater\fupd.exe" /silent
+Start In:                             N/A
+Comment:                              N/A
+Scheduled Task State:                 Enabled
+Idle Time:                            Disabled
+Power Management:                     Stop On Battery Mode
+Run As User:                          SYSTEM
+Delete Task If Not Rescheduled:       Disabled
+Stop Task If Runs X Hours and X Mins: 72:00:00
+Schedule:                             Scheduling data is not available in this format.
+Schedule Type:                        At system start up
+Start Time:                           N/A
+Start Date:                           N/A
+End Date:                             N/A
+Days:                                 N/A
+Months:                               N/A
+Repeat: Every:                        Disabled
+Repeat: Until: Time:                  Disabled
+Repeat: Until: Duration:              Disabled
+Repeat: Stop If Still Running:        Disabled
+
+Folder: \Fabrikam\Wartung
+HostName:                             PC-FIN-207
+TaskName:                             \Fabrikam\Wartung\Temp bereinigen
+Next Run Time:                        N/A
+Status:                               Disabled
+Logon Mode:                           Interactive only
+Last Run Time:                        30.11.1999 00:00:00
+Last Result:                          267011
+Author:                               FABRIKAM\l.okafor
+Task To Run:                          cmd.exe /c del /q /s %TEMP%\*.*
+Start In:                             C:\Windows\Temp
+Comment:                              N/A
+Scheduled Task State:                 Disabled
+Idle Time:                            Only Start If Idle for 15 minutes, If Not Idle Retry For 30 minutes
+Power Management:                     Stop On Battery Mode
+Run As User:                          l.okafor
+Delete Task If Not Rescheduled:       Disabled
+Stop Task If Runs X Hours and X Mins: 00:30:00
+Schedule:                             Scheduling data is not available in this format.
+Schedule Type:                        Weekly
+Start Time:                           18:00:00
+Start Date:                           05.05.2026
+End Date:                             N/A
+Days:                                 TUE, THU
+Months:                               Every 1 week(s)
+Repeat: Every:                        Disabled
+Repeat: Until: Time:                  Disabled
+Repeat: Until: Duration:              Disabled
+Repeat: Stop If Still Running:        Disabled

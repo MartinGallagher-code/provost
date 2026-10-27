@@ -1,0 +1,48 @@
+bun test v1.2.23 (cf136713)
+
+tests/price.test.ts:
+3 |
+4 | describe('formatPrice', () => {
+5 |   test('pads cents', () => { expect(formatPrice(1205)).toBe('12.05'); });
+6 |   test('groups thousands', () => { expect(formatPrice(123456789)).toBe('1,234,567.89'); });
+7 |   test('negative', () => { expect(formatPrice(-50)).toBe('-0.50'); });
+                                                       ^
+error: expect(received).toBe(expected)
+
+Expected: "-0.50"
+Received: "0.-50"
+
+      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:7:52)
+(fail) formatPrice > negative [3.08ms]
+ 8 | });
+ 9 |
+10 | describe('parsePrice', () => {
+11 |   test('plain', () => { expect(parsePrice('3.10')).toBe(310); });
+12 |   test('with currency sign', () => { expect(parsePrice('$7.99')).toBe(799); });
+                                                                     ^
+error: expect(received).toBe(expected)
+
+Expected: 799
+Received: NaN
+
+      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:12:65)
+(fail) parsePrice > with currency sign [0.21ms]
+15 |
+16 | describe('splitTotal', () => {
+17 |   test('even split', () => { expect(splitTotal(900, 3)).toEqual([300, 300, 300]); });
+18 |   test('remainder goes first', () => { expect(splitTotal(1000, 3)).toEqual([334, 333, 333]); });
+19 |   test('drops zero shares', () => { expect(splitTotal(2, 4)).toHaveLength(2); });
+                                                                 ^
+error: expect(received).toHaveLength(expected)
+
+Expected length: 2
+Received length: 4
+
+      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:19:61)
+(fail) splitTotal > drops zero shares [0.09ms]
+
+ 5 pass
+ 1 skip
+ 3 fail
+ 8 expect() calls
+Ran 9 tests across 1 file. [212.00ms]

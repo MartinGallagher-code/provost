@@ -1,0 +1,71 @@
+calc.y: warning: 6 shift/reduce conflicts [-Wconflicts-sr]
+calc.y: warning: 4 reduce/reduce conflicts [-Wconflicts-rr]
+calc.y: warning: reduce/reduce conflict on tokens '\n', ')', '-', '/' [-Wcounterexamples]
+  Example: ID .
+  First reduce derivation
+    expr
+    `-> 10: ID .
+  Second reduce derivation
+    expr
+    `-> 11: lval
+            `-> 13: ID .
+calc.y: warning: shift/reduce conflict on token '-' [-Wcounterexamples]
+  Example: '-' expr . '-' expr
+  Shift derivation
+    expr
+    `-> 8: '-' expr
+               `-> 6: expr . '-' expr
+  Reduce derivation
+    expr
+    `-> 6: expr              '-' expr
+           `-> 8: '-' expr .
+calc.y: warning: shift/reduce conflict on token '/' [-Wcounterexamples]
+  Example: '-' expr . '/' expr
+  Shift derivation
+    expr
+    `-> 8: '-' expr
+               `-> 7: expr . '/' expr
+  Reduce derivation
+    expr
+    `-> 7: expr              '/' expr
+           `-> 8: '-' expr .
+calc.y: warning: shift/reduce conflict on token '-' [-Wcounterexamples]
+  Example: expr '-' expr . '-' expr
+  Shift derivation
+    expr
+    `-> 6: expr '-' expr
+                    `-> 6: expr . '-' expr
+  Reduce derivation
+    expr
+    `-> 6: expr                   '-' expr
+           `-> 6: expr '-' expr .
+calc.y: warning: shift/reduce conflict on token '/' [-Wcounterexamples]
+  Example: expr '-' expr . '/' expr
+  Shift derivation
+    expr
+    `-> 6: expr '-' expr
+                    `-> 7: expr . '/' expr
+  Reduce derivation
+    expr
+    `-> 7: expr                   '/' expr
+           `-> 6: expr '-' expr .
+calc.y: warning: shift/reduce conflict on token '-' [-Wcounterexamples]
+  Example: expr '/' expr . '-' expr
+  Shift derivation
+    expr
+    `-> 7: expr '/' expr
+                    `-> 6: expr . '-' expr
+  Reduce derivation
+    expr
+    `-> 6: expr                   '-' expr
+           `-> 7: expr '/' expr .
+calc.y: warning: shift/reduce conflict on token '/' [-Wcounterexamples]
+  Example: expr '/' expr . '/' expr
+  Shift derivation
+    expr
+    `-> 7: expr '/' expr
+                    `-> 7: expr . '/' expr
+  Reduce derivation
+    expr
+    `-> 7: expr                   '/' expr
+           `-> 7: expr '/' expr .

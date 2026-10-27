@@ -1,0 +1,63 @@
+
+Smart Array P840ar in Slot 0 (Embedded)   (sn: PDNMF0ARH9Z2C7)
+
+
+   Internal Drive Cage at Port 1I, Box 1, OK
+
+   Internal Drive Cage at Port 2I, Box 2, OK
+
+
+   Port Name: 1I
+
+   Port Name: 2I
+
+   Array A (Solid State SATA, Unused Space: 0  MB)
+
+      logicaldrive 1 (223.54 GB, RAID 1, OK)
+
+      physicaldrive 1I:1:1 (port 1I:box 1:bay 1, Solid State SATA, 240 GB, OK)
+      physicaldrive 1I:1:2 (port 1I:box 1:bay 2, Solid State SATA, 240 GB, OK)
+
+   Array B (SAS, Unused Space: 1907702  MB)
+
+      logicaldrive 2 (10.92 TB, RAID 5, OK)
+
+      physicaldrive 1I:1:3 (port 1I:box 1:bay 3, SAS HDD, 4 TB, OK)
+      physicaldrive 1I:1:4 (port 1I:box 1:bay 4, SAS HDD, 4 TB, Predictive Failure)
+      physicaldrive 2I:2:1 (port 2I:box 2:bay 1, SAS HDD, 4 TB, OK)
+      physicaldrive 2I:2:2 (port 2I:box 2:bay 2, SAS HDD, 4 TB, OK)
+
+   Array C (SATA, Unused Space: 0  MB)
+
+      logicaldrive 3 (14.55 TB, RAID 1+0, OK)
+
+      physicaldrive 2I:2:3 (port 2I:box 2:bay 3, SATA HDD, 8 TB, OK)
+      physicaldrive 2I:2:4 (port 2I:box 2:bay 4, SATA HDD, 8 TB, OK)
+      physicaldrive 2I:2:5 (port 2I:box 2:bay 5, SATA HDD, 8 TB, OK)
+      physicaldrive 2I:2:6 (port 2I:box 2:bay 6, SATA HDD, 8 TB, OK)
+
+   SEP (Vendor ID PMCSIERA, Model SRCv24x6G) 380  (WWID: 5001438034F1E2A9)
+
+Smart Array P441 in Slot 3   (sn: PDNNK0BRHAB4F1)
+
+
+   Port Name: 1E
+
+   Port Name: 2E
+
+   Array A (SAS, Unused Space: 0  MB)
+
+      logicaldrive 1 (21.83 TB, RAID 6, Ready for Rebuild)
+
+      physicaldrive 1E:1:1 (port 1E:box 1:bay 1, SAS HDD, 6 TB, OK)
+      physicaldrive 1E:1:2 (port 1E:box 1:bay 2, SAS HDD, 6 TB, OK)
+      physicaldrive 1E:1:3 (port 1E:box 1:bay 3, SAS HDD, 6 TB, Failed)
+      physicaldrive 1E:1:4 (port 1E:box 1:bay 4, SAS HDD, 6 TB, OK)
+      physicaldrive 1E:1:5 (port 1E:box 1:bay 5, SAS HDD, 6 TB, OK)
+      physicaldrive 1E:1:6 (port 1E:box 1:bay 6, SAS HDD, 6 TB, OK)
+
+   Unassigned
+
+      physicaldrive 1E:1:7 (port 1E:box 1:bay 7, SAS HDD, 6 TB, OK, spare)
+      physicaldrive 1E:1:8 (port 1E:box 1:bay 8, SAS HDD, 6 TB, OK)
+

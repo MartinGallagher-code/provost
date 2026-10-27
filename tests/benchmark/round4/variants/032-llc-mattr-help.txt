@@ -1,0 +1,84 @@
+Available CPUs for this target:
+
+  generic  - Select the generic processor.
+  i6400    - Select the i6400 processor.
+  i6500    - Select the i6500 processor.
+  mips1    - Select the mips1 processor.
+  mips2    - Select the mips2 processor.
+  mips3    - Select the mips3 processor.
+  mips32   - Select the mips32 processor.
+  mips32r2 - Select the mips32r2 processor.
+  mips32r3 - Select the mips32r3 processor.
+  mips32r5 - Select the mips32r5 processor.
+  mips32r6 - Select the mips32r6 processor.
+  mips4    - Select the mips4 processor.
+  mips5    - Select the mips5 processor.
+  mips64   - Select the mips64 processor.
+  mips64r2 - Select the mips64r2 processor.
+  mips64r3 - Select the mips64r3 processor.
+  mips64r5 - Select the mips64r5 processor.
+  mips64r6 - Select the mips64r6 processor.
+  octeon   - Select the octeon processor.
+  octeon+  - Select the octeon+ processor.
+  p5600    - Select the p5600 processor.
+
+Available features for this target:
+
+  abs2008                  - Disable IEEE 754-2008 abs.fmt mode.
+  cnmips                   - Octeon cnMIPS Support.
+  cnmipsp                  - Octeon+ cnMIPS Support.
+  crc                      - Mips R6 CRC ASE.
+  dsp                      - Mips DSP ASE.
+  dspr2                    - Mips DSP-R2 ASE.
+  dspr3                    - Mips DSP-R3 ASE.
+  eva                      - Mips EVA ASE.
+  fp64                     - Support 64-bit FP registers.
+  fpxx                     - Support for FPXX.
+  ginv                     - Mips Global Invalidate ASE.
+  gp64                     - General Purpose Registers are 64-bit wide.
+  i6400                    - MIPS I6400 Processor.
+  i6500                    - MIPS I6500 Processor.
+  long-calls               - Disable use of the jal instruction.
+  micromips                - microMips mode.
+  mips1                    - Mips I ISA Support [highly experimental].
+  mips16                   - Mips16 mode.
+  mips2                    - Mips II ISA Support [highly experimental].
+  mips3                    - MIPS III ISA Support [highly experimental].
+  mips32                   - Mips32 ISA Support.
+  mips32r2                 - Mips32r2 ISA Support.
+  mips32r3                 - Mips32r3 ISA Support.
+  mips32r5                 - Mips32r5 ISA Support.
+  mips32r6                 - Mips32r6 ISA Support [experimental].
+  mips3_32                 - Subset of MIPS-III that is also in MIPS32 [highly experimental].
+  mips3_32r2               - Subset of MIPS-III that is also in MIPS32r2 [highly experimental].
+  mips3d                   - Mips 3D ASE.
+  mips4                    - MIPS IV ISA Support.
+  mips4_32                 - Subset of MIPS-IV that is also in MIPS32 [highly experimental].
+  mips4_32r2               - Subset of MIPS-IV that is also in MIPS32r2 [highly experimental].
+  mips5                    - MIPS V ISA Support [highly experimental].
+  mips5_32r2               - Subset of MIPS-V that is also in MIPS32r2 [highly experimental].
+  mips64                   - Mips64 ISA Support.
+  mips64r2                 - Mips64r2 ISA Support.
+  mips64r3                 - Mips64r3 ISA Support.
+  mips64r5                 - Mips64r5 ISA Support.
+  mips64r6                 - Mips64r6 ISA Support [experimental].
+  msa                      - Mips MSA ASE.
+  mt                       - Mips MT ASE.
+  nan2008                  - IEEE 754-2008 NaN encoding.
+  noabicalls               - Disable SVR4-style position-independent code.
+  nomadd4                  - Disable 4-operand madd.fmt and related instructions.
+  nooddspreg               - Disable odd numbered single-precision registers.
+  p5600                    - The P5600 Processor.
+  ptr64                    - Pointers are 64-bit wide.
+  single-float             - Only supports single precision float.
+  soft-float               - Does not support floating point instructions.
+  strict-align             - Disable unaligned load store for r6.
+  sym32                    - Symbols are 32 bit on Mips64.
+  use-indirect-jump-hazard - Use indirect jump guards to prevent certain speculation based attacks.
+  use-tcc-in-div           - Force the assembler to use trapping.
+  vfpu                     - Enable vector FPU instructions.
+  virt                     - Mips Virtualization ASE.
+  xgot                     - Assume 32-bit GOT.
+
+Use +feature to enable a feature, or -feature to disable it.
+For example, llc -mcpu=mycpu -mattr=+feature1,-feature2

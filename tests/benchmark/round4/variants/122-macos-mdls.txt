@@ -1,0 +1,54 @@
+_kMDItemDisplayNameWithExtensions      = "Bildschirmfoto 2026-09-14 um 16.08.31.png"
+kMDItemBitsPerSample                   = 32
+kMDItemColorSpace                      = "RGB"
+kMDItemContentCreationDate             = 2026-09-14 14:08:31 +0000
+kMDItemContentCreationDate_Ranking     = 2026-09-14 00:00:00 +0000
+kMDItemContentModificationDate         = 2026-09-14 14:08:31 +0000
+kMDItemContentType                     = "public.png"
+kMDItemContentTypeTree                 = (
+    "public.png",
+    "public.image",
+    "public.data",
+    "public.item",
+    "public.content"
+)
+kMDItemDateAdded                       = 2026-09-14 14:08:32 +0000
+kMDItemDisplayName                     = "Bildschirmfoto 2026-09-14 um 16.08.31"
+kMDItemDocumentIdentifier              = 0
+kMDItemFSContentChangeDate             = 2026-09-14 14:08:31 +0000
+kMDItemFSCreationDate                  = 2026-09-14 14:08:31 +0000
+kMDItemFSCreatorCode                   = ""
+kMDItemFSFinderFlags                   = 0
+kMDItemFSHasCustomIcon                 = (null)
+kMDItemFSInvisible                     = 0
+kMDItemFSIsExtensionHidden             = 1
+kMDItemFSIsStationery                  = (null)
+kMDItemFSLabel                         = 0
+kMDItemFSName                          = "Bildschirmfoto 2026-09-14 um 16.08.31.png"
+kMDItemFSNodeCount                     = (null)
+kMDItemFSOwnerGroupID                  = 20
+kMDItemFSOwnerUserID                   = 502
+kMDItemFSSize                          = 286415
+kMDItemFSTypeCode                      = ""
+kMDItemHasAlphaChannel                 = 1
+kMDItemInterestingDate_Ranking         = 2026-09-14 00:00:00 +0000
+kMDItemIsScreenCapture                 = 1
+kMDItemKind                            = "PNG-Bild"
+kMDItemLogicalSize                     = 286415
+kMDItemOrientation                     = 0
+kMDItemPhysicalSize                    = 290816
+kMDItemPixelCount                      = 2304000
+kMDItemPixelHeight                     = 960
+kMDItemPixelWidth                      = 2400
+kMDItemProfileName                     = "Farb-LCD"
+kMDItemResolutionHeightDPI             = 144
+kMDItemResolutionWidthDPI              = 144
+kMDItemScreenCaptureGlobalRect         = (
+    0,
+    0,
+    1200,
+    480
+)
+kMDItemScreenCaptureType               = "selection"
+kMDItemUserTags                        = (
+)

@@ -1,0 +1,61 @@
+@continuum-restore on
+@plugin tmux-plugins/tmux-resurrect
+@resurrect-capture-pane-contents on
+activity-action other
+assume-paste-time 1
+base-index 1
+bell-action none
+default-command ''
+default-shell /usr/bin/zsh
+default-size 132x43
+destroy-unattached off
+detach-on-destroy off
+display-panes-active-colour colour214
+display-panes-colour colour33
+display-panes-time 2500
+display-time 1500
+history-limit 100000
+key-table root
+lock-after-time 0
+lock-command "lock -np"
+message-command-style bg=black,fg=yellow
+message-line 0
+message-style bg=colour236,fg=colour250,bold
+mouse on
+prefix C-a
+prefix2 C-b
+renumber-windows on
+repeat-time 750
+set-titles on
+set-titles-string "#h: #S:#I:#W"
+silence-action other
+status 2
+status-bg default
+status-fg default
+status-format[0] "#[align=left range=left #{E:status-left-style}]#[push-default]#{T;=/#{status-left-length}:status-left}#[pop-default]#[norange default]#[list=on align=#{status-justify}]#[list=left-marker]<#[list=right-marker]>#[list=on]#{W:#[range=window|#{window_index} #{E:window-status-style}#{?#{&&:#{window_last_flag},#{!=:#{E:window-status-last-style},default}}, #{E:window-status-last-style},}#{?#{&&:#{window_bell_flag},#{!=:#{E:window-status-bell-style},default}}, #{E:window-status-bell-style},#{?#{&&:#{||:#{window_activity_flag},#{window_silence_flag}},#{!=:#{E:window-status-activity-style},default}}, #{E:window-status-activity-style},}}]#[push-default]#{T:window-status-format}#[pop-default]#[norange default]#{?window_end_flag,,#{window-status-separator}},#[range=window|#{window_index} list=focus #{?#{!=:#{E:window-status-current-style},default},#{E:window-status-current-style},#{E:window-status-style}}#{?#{&&:#{window_last_flag},#{!=:#{E:window-status-last-style},default}}, #{E:window-status-last-style},}#{?#{&&:#{window_bell_flag},#{!=:#{E:window-status-bell-style},default}}, #{E:window-status-bell-style},#{?#{&&:#{||:#{window_activity_flag},#{window_silence_flag}},#{!=:#{E:window-status-activity-style},default}}, #{E:window-status-activity-style},}}]#[push-default]#{T:window-status-current-format}#[pop-default]#[norange list=on default]#{?window_end_flag,,#{window-status-separator}}}#[nolist align=right range=right #{E:status-right-style}]#[push-default]#{T;=/#{status-right-length}:status-right}#[pop-default]#[norange default]"
+status-format[1] "#[align=centre]#{P:#{?pane_active,#[reverse],}#{pane_index}[#{pane_width}x#{pane_height}]#[default] }"
+status-interval 5
+status-justify centre
+status-keys vi
+status-left "#[fg=colour46]#S #[fg=colour244]| "
+status-left-length 32
+status-left-style default
+status-position top
+status-right "#{?client_prefix,#[reverse]^A#[noreverse] ,}#H %Y-%m-%d %H:%M"
+status-right-length 60
+status-right-style fg=colour250
+status-style bg=colour235,fg=colour250
+update-environment[0] DISPLAY
+update-environment[1] KRB5CCNAME
+update-environment[2] SSH_ASKPASS
+update-environment[3] SSH_AUTH_SOCK
+update-environment[4] SSH_AGENT_PID
+update-environment[5] SSH_CONNECTION
+update-environment[6] WINDOWID
+update-environment[7] XAUTHORITY
+update-environment[8] TERM_PROGRAM
+update-environment[9] COLORTERM
+visual-activity on
+visual-bell off
+visual-silence off
+word-separators " -_@./"

@@ -1,0 +1,68 @@
+DOCUMENT
+version=1.0
+encoding=UTF-8
+URL=xml/order.xml
+standalone=true
+  COMMENT
+    content= order export v2 
+  ELEMENT order
+    namespace ns href=urn:example:shipping
+    ATTRIBUTE id
+      TEXT compact
+        content=20931
+    TEXT compact
+      content=   
+    ELEMENT customer
+      ATTRIBUTE country
+        TEXT compact
+          content=PT
+      TEXT
+        content=Ana Sof#C3#ADa Ribeiro
+    TEXT compact
+      content=   
+    ELEMENT items
+      TEXT compact
+        content=     
+      ELEMENT item
+        ATTRIBUTE sku
+          TEXT compact
+            content=N-M8
+        ATTRIBUTE qty
+          TEXT compact
+            content=250
+        TEXT
+          content=hex nut M8 galvanised
+      TEXT compact
+        content=     
+      ELEMENT item
+        ATTRIBUTE sku
+          TEXT compact
+            content=W-10
+        ATTRIBUTE qty
+          TEXT compact
+            content=6
+        CDATA_SECTION
+          content=washer <10mm> & seal
+      TEXT compact
+        content=     
+      ELEMENT item
+        ATTRIBUTE sku
+          TEXT compact
+            content=S-4x30
+        ATTRIBUTE qty
+          TEXT compact
+            content=1200
+        TEXT compact
+          content=screw 4x30
+      TEXT compact
+        content=   
+    TEXT compact
+      content=   
+    ELEMENT ns:note
+      ATTRIBUTE priority
+        TEXT compact
+          content=high
+      TEXT compact
+        content=fragile
+    TEXT compact
+      content= 

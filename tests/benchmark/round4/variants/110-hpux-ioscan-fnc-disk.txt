@@ -1,0 +1,21 @@
+Class     I  H/W Path        Driver S/W State   H/W Type     Description
+==========================================================================
+disk      0  0/1/1/0.0.0     sdisk   CLAIMED     DEVICE       HP 300 GST3300655LC
+                            /dev/dsk/c2t0d0     /dev/dsk/c2t0d0s2   /dev/rdsk/c2t0d0    /dev/rdsk/c2t0d0s2
+                            /dev/dsk/c2t0d0s1   /dev/dsk/c2t0d0s3   /dev/rdsk/c2t0d0s1  /dev/rdsk/c2t0d0s3
+disk      1  0/1/1/0.1.0     sdisk   CLAIMED     DEVICE       HP 300 GST3300655LC
+                            /dev/dsk/c2t1d0   /dev/rdsk/c2t1d0
+disk      3  0/0/0/2/1.0.0   sdisk   CLAIMED     DEVICE       TEAC    DV-28E-N
+                            /dev/dsk/c0t0d0   /dev/rdsk/c0t0d0
+disk      8  0/3/1/0.4.10.0.0.0.0  sdisk   CLAIMED     DEVICE       HP      OPEN-V
+                            /dev/dsk/c8t0d0   /dev/rdsk/c8t0d0
+disk      9  0/3/1/0.4.10.0.0.0.1  sdisk   CLAIMED     DEVICE       HP      OPEN-V
+                            /dev/dsk/c8t0d1   /dev/rdsk/c8t0d1
+disk     10  0/3/1/0.4.10.0.0.0.2  sdisk   CLAIMED     DEVICE       HP      OPEN-V
+                            /dev/dsk/c8t0d2   /dev/rdsk/c8t0d2
+disk     11  0/3/1/0.4.10.0.0.0.3  sdisk   CLAIMED     DEVICE       HP      OPEN-V
+                            /dev/dsk/c8t0d3   /dev/rdsk/c8t0d3
+disk     14  0/6/2/0.5.12.0.0.0.0  sdisk   CLAIMED     DEVICE       HP      OPEN-V
+                            /dev/dsk/c12t0d0  /dev/rdsk/c12t0d0
+disk     15  0/6/2/0.5.12.0.0.0.1  sdisk   NO_HW       DEVICE       HP      OPEN-V
+                            /dev/dsk/c12t0d1  /dev/rdsk/c12t0d1

@@ -1,0 +1,8 @@
+ USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME
+ p.lindqvist           rdp-tcp#3           2  Active         47  26.10.2026 07:12
+ svc_sqlagent                              3  Disc      3+19:05  23.10.2026 01:45
+>b.oduya               rdp-tcp#27          4  Active          .  27.10.2026 09:03
+ helpdesk.temp                             6  Disc         4:51  27.10.2026 04:20
+ r.vandenberghe.adm    rdp-tcp#31          7  Active       none  27.10.2026 09:17
+ ö.yılmaz              console            11  Active          5  27.10.2026 06:58
+ tng                   rdp-tcp#33         12  Active         12  27.10.2026 09:24

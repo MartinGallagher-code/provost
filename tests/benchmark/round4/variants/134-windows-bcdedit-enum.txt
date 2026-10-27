@@ -1,0 +1,72 @@
+
+Windows Boot Manager
+--------------------
+identifier              {bootmgr}
+device                  partition=\Device\HarddiskVolume2
+path                    \EFI\Microsoft\Boot\bootmgfw.efi
+description             Windows Boot Manager
+locale                  en-GB
+inherit                 {globalsettings}
+bootshutdowndisabled    Yes
+default                 {current}
+resumeobject            {3f0b6d21-a9c4-11f0-8e17-c2d45b7a9f03}
+displayorder            {current}
+                        {3f0b6d25-a9c4-11f0-8e17-c2d45b7a9f03}
+                        {3f0b6d27-a9c4-11f0-8e17-c2d45b7a9f03}
+toolsdisplayorder       {memdiag}
+timeout                 5
+displaybootmenu         Yes
+
+Windows Boot Loader
+-------------------
+identifier              {current}
+device                  partition=C:
+path                    \Windows\system32\winload.efi
+description             Windows Server 2025 Datacenter
+locale                  en-GB
+inherit                 {bootloadersettings}
+recoverysequence        {3f0b6d23-a9c4-11f0-8e17-c2d45b7a9f03}
+displaymessageoverride  Recovery
+recoveryenabled         Yes
+isolatedcontext         Yes
+allowedinmemorysettings 0x15000075
+osdevice                partition=C:
+systemroot              \Windows
+resumeobject            {3f0b6d21-a9c4-11f0-8e17-c2d45b7a9f03}
+nx                      OptOut
+bootmenupolicy          Standard
+hypervisorlaunchtype    Auto
+
+Windows Boot Loader
+-------------------
+identifier              {3f0b6d25-a9c4-11f0-8e17-c2d45b7a9f03}
+device                  partition=E:
+path                    \Windows\system32\winload.efi
+description             Windows 11 Enterprise
+locale                  fr-FR
+inherit                 {bootloadersettings}
+recoveryenabled         No
+isolatedcontext         Yes
+allowedinmemorysettings 0x15000075
+osdevice                partition=E:
+systemroot              \Windows
+nx                      OptIn
+bootmenupolicy          Standard
+hypervisorlaunchtype    Off
+
+Windows Boot Loader
+-------------------
+identifier              {3f0b6d27-a9c4-11f0-8e17-c2d45b7a9f03}
+device                  partition=F:
+path                    \WINDOWS\system32\winload.efi
+description             Windows 11 (Driver debug)
+locale                  en-US
+inherit                 {bootloadersettings}
+osdevice                partition=F:
+systemroot              \WINDOWS
+nx                      OptIn
+bootmenupolicy          Legacy
+bootstatuspolicy        IgnoreAllFailures
+testsigning             Yes
+nointegritychecks       Yes
+debug                   Yes

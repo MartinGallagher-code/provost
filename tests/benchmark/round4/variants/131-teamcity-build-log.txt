@@ -1,0 +1,43 @@
+[16:03:27] : Build #2297 in branch refs/heads/release/4.12
+[16:03:27] : Step 1/4: Install dependencies (Command Line) (14s)
+[16:03:27] :	 [Step 1/4] Starting: /home/tcagent/temp/agentTmp/custom_script2290417733611852.sh
+[16:03:27] :	 [Step 1/4] in directory: /home/tcagent/work/c51e09a2f4b8d73e
+[16:03:31] W:	 [Step 1/4] npm WARN deprecated inflight@1.0.6: This module is not supported, and leaks memory.
+[16:03:41] :	 [Step 1/4] added 1184 packages, and audited 1185 packages in 13s
+[16:03:41] :	 [Step 1/4] Process exited with code 0
+[16:03:41] : Step 2/4: Lint and type-check (Command Line)
+[16:03:41] :	 [Step 2/4] Starting: /home/tcagent/temp/agentTmp/custom_script2290417733611853.sh
+[16:03:41] :	 [Step 2/4] in directory: /home/tcagent/work/c51e09a2f4b8d73e
+[16:03:58] :	 [Step 2/4] ##teamcity[buildStatisticValue key='eslint.warnings' value='3']
+[16:04:02] :	 [Step 2/4] Process exited with code 0
+[16:04:02] : Step 3/4: Unit tests (Jest)
+[16:04:02] :	 [Step 3/4] Starting: /home/tcagent/temp/agentTmp/custom_script2290417733611854.sh
+[16:04:02] :	 [Step 3/4] in directory: /home/tcagent/work/c51e09a2f4b8d73e
+[16:04:09] :	 [Step 3/4] ##teamcity[testSuiteStarted name='src/cart/discounts.test.ts' flowId='7']
+[16:04:09] :	 [Step 3/4] ##teamcity[testStarted name='applies percentage coupon before tax' flowId='7']
+[16:04:09] :	 [Step 3/4] ##teamcity[testFinished name='applies percentage coupon before tax' duration='14' flowId='7']
+[16:04:09] :	 [Step 3/4] ##teamcity[testStarted name='rejects expired coupon' captureStandardOutput='true' flowId='7']
+[16:04:09] :	 [Step 3/4] ##teamcity[testStdOut name='rejects expired coupon' out='coupon AUTUMN24 expired at 2026-10-01|n' flowId='7']
+[16:04:09] :	 [Step 3/4] ##teamcity[testFinished name='rejects expired coupon' duration='6' flowId='7']
+[16:04:10] :	 [Step 3/4] ##teamcity[testSuiteFinished name='src/cart/discounts.test.ts' flowId='7']
+[16:04:10] :	 [Step 3/4] ##teamcity[testSuiteStarted name='src/checkout/address.test.ts' flowId='8']
+[16:04:10] :	 [Step 3/4] ##teamcity[testStarted name='normalises postcode |'SW1A 1AA|'' flowId='8']
+[16:04:10] :	 [Step 3/4] ##teamcity[testFinished name='normalises postcode |'SW1A 1AA|'' duration='3' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testStarted name='geocodes via fallback provider' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testIgnored name='geocodes via fallback provider' message='test.skip: provider sandbox offline' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testFinished name='geocodes via fallback provider' duration='0' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testStarted name='rejects PO box for express shipping' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testFinished name='rejects PO box for express shipping' duration='22' flowId='8']
+[16:04:11] :	 [Step 3/4] ##teamcity[testSuiteFinished name='src/checkout/address.test.ts' flowId='8']
+[16:04:12] :	 [Step 3/4] Tests:       1 skipped, 4 passed, 5 total
+[16:04:12] :	 [Step 3/4] Process exited with code 0
+[16:04:12] : Step 4/4: Publish artifacts (Command Line) (2s)
+[16:04:12] :	 [Step 4/4] Starting: /home/tcagent/temp/agentTmp/custom_script2290417733611855.sh
+[16:04:12] :	 [Step 4/4] in directory: /home/tcagent/work/c51e09a2f4b8d73e
+[16:04:14] :	 [Step 4/4] ##teamcity[publishArtifacts 'dist/** => web-dist-4.12.0.zip']
+[16:04:14] :	 [Step 4/4] Process exited with code 0
+[16:04:14] : Publishing artifacts
+[16:04:14] :	 [Publishing artifacts] Collecting files to publish: [dist/** => web-dist-4.12.0.zip, coverage/lcov-report/** => coverage.zip]
+[16:04:16] :	 [Publishing artifacts] Publishing 2 files using [ArtifactsCachePublisher]: /home/tcagent/work/c51e09a2f4b8d73e/dist/** => web-dist-4.12.0.zip, /home/tcagent/work/c51e09a2f4b8d73e/coverage/lcov-report/** => coverage.zip
+[16:04:16] :	 [Publishing artifacts] Publishing 2 files using [WebPublisher]: /home/tcagent/work/c51e09a2f4b8d73e/dist/** => web-dist-4.12.0.zip, /home/tcagent/work/c51e09a2f4b8d73e/coverage/lcov-report/** => coverage.zip
+[16:04:16] : Build finished
