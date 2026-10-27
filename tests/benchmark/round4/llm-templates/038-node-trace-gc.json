@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "tool": "node-trace-gc",
+  "detect": "^\\[\\d+:0x[0-9a-f]+\\]\\s+\\d+ ms: ",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "gc_events",
+      "kind": "table",
+      "line": "^\\[(?P<pid>\\d+):(?P<isolate>0x[0-9a-f]+)\\]\\s+(?P<time_ms>\\d+) ms: (?P<gc>[A-Za-z-]+(?: \\([^)]*\\))?) (?P<before_mb>[\\d.]+) \\((?P<before_committed_mb>[\\d.]+)\\) -> (?P<after_mb>[\\d.]+) \\((?P<after_committed_mb>[\\d.]+)\\) MB,(?: pooled: (?P<pooled_mb>[\\d.]+) MB,)? (?P<duration_ms>[\\d.]+) / (?P<background_ms>[\\d.]+) ms\\s*(?:\\((?P<detail>[^)]*)\\)\\s*)?\\(average mu = (?P<average_mu>[\\d.]+), current mu = (?P<current_mu>[\\d.]+)\\)\\s*(?P<reason>[^;]*?)\\s*(?:;\\s*(?P<note>.*?))?\\s*$"
+    }
+  ]
+}

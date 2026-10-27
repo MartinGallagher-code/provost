@@ -24,6 +24,17 @@ line (its named groups, in order); a kv block yields one record of
 key -> value. Records go out in the extract engine's flat format, so the
 engine measures them like any parse and provost's quality gate decides.
 
+A format-2 template carries a small Python parser instead of regexes, for
+output no line-by-line pattern can describe (records that span lines,
+indented attribute blocks, section titles that become a column):
+
+    {"format": 2, "tool": "ip-addr", "detect": "^\\d+: \\S+: <",
+     "parser": "import re\\ndef parse(lines):\\n    ..."}
+
+`parse(lines)` returns the same blocks `apply` makes (name, kind, lines,
+records), and runs in sandbox.py: a separate interpreter with a whitelist of
+builtins and imports, a CPU and memory limit, no files and no network.
+
     python3 template.py apply TEMPLATE INPUT [--out DIR]   # blk.N.txt / blk.N.rec per block
     python3 template.py find INPUT [--dirs D1:D2]          # the best stored template for INPUT
     python3 template.py learn INPUT --out TEMPLATE [--tool NAME]   # ask Claude (needs a key)
@@ -37,13 +48,19 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import urllib.error
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import sandbox  # noqa: E402  (the static check; the parser itself runs in a subprocess)
+
 SHIPPED = os.path.join(HERE, "templates")
 GUIDE = os.path.join(HERE, "GUIDE.md")
+SANDBOX = os.path.join(HERE, "sandbox.py")
+PARSER_TIMEOUT = 10      # apply (format 2): wall-clock seconds for the boxed parser
 MAX_LINES = 400          # learn: larger captures are not sent
 MAX_BYTES = 64 * 1024
 MAX_LINE = 4096          # apply: longer lines are uncovered (keeps regexes cheap)
@@ -74,12 +91,10 @@ def read_lines(path):
 
 # -- the template ---------------------------------------------------------
 def compile_template(t):
-    """Validate a template dict and compile its regexes; raises TemplateError."""
-    if not isinstance(t, dict) or t.get("format") != 1:
-        raise TemplateError("not a format-1 template")
-    blocks = t.get("blocks")
-    if not isinstance(blocks, list) or not blocks:
-        raise TemplateError("a template needs at least one block")
+    """Validate a template dict and compile its regexes (format 1) or check
+    its parser statically (format 2); raises TemplateError."""
+    if not isinstance(t, dict) or t.get("format") not in (1, 2):
+        raise TemplateError("not a format-1 or format-2 template")
 
     def rx(p, what):
         if not isinstance(p, str) or not p:
@@ -89,8 +104,18 @@ def compile_template(t):
         except re.error as exc:
             raise TemplateError(f"{what}: {exc}") from None
 
-    out = {"skip": [rx(p, "skip") for p in t.get("skip", [])], "blocks": [],
-           "detect": rx(t["detect"], "detect") if t.get("detect") else None}
+    detect = rx(t["detect"], "detect") if t.get("detect") else None
+    if t["format"] == 2:
+        try:
+            sandbox.check(t.get("parser"))
+        except sandbox.ParserError as exc:
+            raise TemplateError(f"parser: {exc}") from None
+        return {"_compiled": True, "format": 2, "detect": detect, "parser": t["parser"]}
+    blocks = t.get("blocks")
+    if not isinstance(blocks, list) or not blocks:
+        raise TemplateError("a template needs at least one block")
+    out = {"_compiled": True, "format": 1, "detect": detect,
+           "skip": [rx(p, "skip") for p in t.get("skip", [])], "blocks": []}
     for i, b in enumerate(blocks):
         kind = b.get("kind")
         if kind not in ("table", "kv"):
@@ -114,6 +139,8 @@ def apply(t, lines):
     {name, kind, lines: [index], records: [dict]} for the blocks that matched;
     covered counts skip, header and data lines, skipped the skip lines."""
     ct = t if _compiled(t) else compile_template(t)
+    if ct["format"] == 2:
+        return _apply_parser(ct, lines)
     res = [{"name": b["name"], "kind": b["kind"], "lines": [], "records": []} for b in ct["blocks"]]
     covered = nonblank = skipped = 0
     for j, ln in enumerate(lines):
@@ -145,7 +172,46 @@ def apply(t, lines):
 
 
 def _compiled(t):
-    return isinstance(t, dict) and t.get("blocks") and hasattr(t["blocks"][0].get("line"), "fullmatch")
+    return isinstance(t, dict) and t.get("_compiled") is True
+
+
+def _apply_parser(ct, lines):
+    """Format 2: run the template's parser in the sandbox (a subprocess) and
+    shape its blocks like format 1's: (blocks, covered, nonblank, skipped)."""
+    blocks, used, skip, nonblank = _run_parser(ct, lines)
+    return blocks, len(used | skip), len(nonblank), len(skip)
+
+
+def _run_parser(ct, lines):
+    """-> (blocks, used line indexes, skip line indexes, non-blank indexes)."""
+    req = json.dumps({"code": ct["parser"], "lines": lines}, ensure_ascii=False).encode("utf-8")
+    try:
+        p = subprocess.run([sys.executable, "-I", "-S", SANDBOX], input=req, capture_output=True,
+                           timeout=PARSER_TIMEOUT, env={"PATH": os.environ.get("PATH", "")})
+    except subprocess.TimeoutExpired:
+        raise TemplateError(f"the parser ran longer than {PARSER_TIMEOUT}s") from None
+    except OSError as exc:
+        raise TemplateError(f"the parser could not be run: {exc}") from None
+    try:
+        res = json.loads(p.stdout.decode("utf-8"))
+    except ValueError:
+        err = p.stderr.decode("utf-8", "replace").strip().splitlines()
+        raise TemplateError("the parser died" + (f": {err[-1]}" if err else f" (exit {p.returncode})")) from None
+    if "error" in res:
+        raise TemplateError(res["error"])
+    nonblank = {j for j, ln in enumerate(lines) if ln.strip()}
+    skip = set(res["skip"]) & nonblank
+    blocks, used = [], set()
+    for b in res["blocks"]:
+        recs = [{_name(k): v for k, v in r.items()} for r in b["records"]]
+        recs = [r for r in recs if r]
+        if not recs:
+            continue
+        bl = set(b["lines"]) & nonblank
+        used |= bl
+        blocks.append({"name": _name(b["name"]), "kind": b["kind"], "lines": sorted(bl), "records": recs})
+    skip -= used
+    return blocks, used, skip, nonblank
 
 
 def flat_records(block):
@@ -271,6 +337,9 @@ def _parse(text):
 def _report(lines, t):
     """Why a template falls short on its own capture, for a second try."""
     ct = compile_template(t)
+    if ct["format"] == 2:
+        blocks, used, skip, nonblank = _run_parser(ct, lines)
+        return len(used | skip) / max(1, len(nonblank)), sorted(nonblank - used - skip)
     blocks, cov, nb, _ = apply(ct, lines)
     used = {j for b in blocks for j in b["lines"]}
     miss = [j for j, ln in enumerate(lines) if ln.strip() and j not in used

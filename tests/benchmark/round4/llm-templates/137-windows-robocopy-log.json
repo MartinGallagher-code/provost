@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "tool": "windows-robocopy-log",
+  "detect": "ROBOCOPY\\s+::\\s+Robust File Copy for Windows",
+  "skip": [
+    "^-{20,}\\s*$",
+    "ROBOCOPY\\s+::\\s+Robust File Copy for Windows",
+    "^Waiting \\d+ seconds\\.\\.\\. Retrying\\.\\.\\.\\s*$",
+    "^[A-Z][a-z]+ [a-z].*\\.\\s*$"
+  ],
+  "blocks": [
+    {"name": "summary",
+     "kind": "table",
+     "header": "^\\s+Total\\s+Copied\\s+Skipped\\s+Mismatch\\s+FAILED\\s+Extras\\s*$",
+     "line": "^\\s*(?P<item>[A-Za-z]+) :(?P<total>.{10})(?P<copied>.{10})(?P<skipped>.{10})(?P<mismatch>.{10})(?P<failed>.{10})(?P<extras>.{10})\\s*$",
+     "columns": {"item": "Item", "total": "Total", "copied": "Copied", "skipped": "Skipped", "mismatch": "Mismatch", "failed": "FAILED", "extras": "Extras"}},
+    {"name": "speed",
+     "kind": "table",
+     "line": "^\\s*Speed :\\s+(?P<speed>\\S+ \\S+)\\s*$",
+     "columns": {"speed": "Speed"}},
+    {"name": "errors",
+     "kind": "table",
+     "line": "^(?P<time>\\d{4}/\\d\\d/\\d\\d \\d\\d:\\d\\d:\\d\\d) ERROR (?P<code>\\d+) \\((?P<hex>0x[0-9A-Fa-f]+)\\) (?P<action>[A-Z][\\w-]*(?: [A-Z][\\w-]*)*) (?P<path>\\S.*?)\\s*$",
+     "columns": {"time": "Time", "code": "Error", "hex": "Code", "action": "Action", "path": "Path"}},
+    {"name": "files",
+     "kind": "table",
+     "line": "^\\t\\s*(?P<class>\\*?\\w+(?: \\w+)?)\\s*\\t+\\s*(?P<size>[\\d.]+(?: [kmg])?)\\t(?P<name>[^\\t]+?)\\s*$",
+     "columns": {"class": "Class", "size": "Size", "name": "File"}},
+    {"name": "directories",
+     "kind": "table",
+     "line": "^\\t\\s*(?:(?P<class>\\*?\\w+(?: \\w+)?) +)?(?P<count>-?\\d+)\\t(?P<path>[^\\t]+?)\\s*$",
+     "columns": {"class": "Class", "count": "Files", "path": "Directory"}},
+    {"name": "job",
+     "kind": "kv",
+     "line": "^\\s+(?P<key>[A-Z][\\w ]*?) :(?:\\s+(?P<value>\\S.*?))?\\s*$"}
+  ]
+}

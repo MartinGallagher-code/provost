@@ -68,10 +68,11 @@ learned layout model and file its table when it passes the same gate (or
 \fBpython3\fR. See \fBLAYOUT MODEL\fR.
 .TP
 .BR --llm ", " --no-llm
-Before holding such a parse, use a parsing template Claude wrote for this tool,
-or have Claude write one (or \fBPROVOST_LLM=1\fR; \fB--no-llm\fR, the default,
-doesn't). Writing one sends the capture's text to the Anthropic API and needs
-an API key. Needs \fBpython3\fR. See \fBLLM TEMPLATES\fR.
+Parse with a template Claude wrote for this tool, or have Claude write one,
+before trusting a generic parse or holding the capture (or
+\fBPROVOST_LLM=1\fR; \fB--no-llm\fR, the default, doesn't). Writing one sends
+the capture's text to the Anthropic API and needs an API key. Needs
+\fBpython3\fR. See \fBLLM TEMPLATES\fR.
 .TP
 .BR --sync ", " --wait
 Capture in the foreground and print the resulting dataset and \fI#N\fR range.
@@ -246,20 +247,26 @@ or declined, and why) and the held parse's \fBsingle_strategy\fR and
 \fBsingle_coverage\fR. It needs \fBpython3\fR (no packages) and declines
 inputs over 600 lines; only held captures pay for it.
 .SH LLM TEMPLATES
-With \fBPROVOST_LLM=1\fR (\fB--llm\fR), a capture the quality gate would still
-hold is parsed by a \fItemplate\fR: regular expressions per kind of line that
-Claude wrote for that tool (\fIextract/llm/\fR, the explicit-only
-\fBllm-template\fR strategy). provost looks in the store's \fIllm-templates/\fR
-(\fINAME\fR.json for \fB--name\fR or the run command, else any template whose
-detect pattern recognises the input), then in the templates shipped with
-provost. Only when none fits, and \fBPROVOST_LLM_API_KEY\fR or
-\fBANTHROPIC_API_KEY\fR is set, does it ask Claude (\fBPROVOST_LLM_MODEL\fR) to
+With \fBPROVOST_LLM=1\fR (\fB--llm\fR), a capture is parsed by a
+\fItemplate\fR Claude wrote for that tool (\fIextract/llm/\fR, the
+explicit-only \fBllm-template\fR strategy): regular expressions per kind of
+line (format 1) or, for records that span lines, a small Python parser
+(format 2) run in a box (a separate interpreter, a few pure modules, no files
+or network, a CPU and memory limit). provost looks in the store's
+\fIllm-templates/\fR (\fINAME\fR.json for \fB--name\fR or the run command,
+else any template whose detect pattern recognises the input), then in the
+templates shipped with provost. When none fits, and \fBPROVOST_LLM_API_KEY\fR
+or \fBANTHROPIC_API_KEY\fR is set, it asks Claude (\fBPROVOST_LLM_MODEL\fR) to
 write one from this capture; \fBthat step sends the capture's text to the
-Anthropic API\fR (at most 400 lines / 64 KB). What a template yields is measured
-by the engine and filed only under the gate's rules; a new template is kept,
-and committed with the capture, only when it passes. Later captures of the tool
-are parsed offline. A stored template for the tool also wins over a generic
-parse the gate passed. \fImeta.tsv\fR records \fBllm_template\fR.
+Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
+tried first: on a capture the gate would hold, before segmenting and the
+layout model; and on a generic parse the gate passed, before that parse is
+trusted (never over an exact-format or tool-specific parser). What a template
+yields is measured by the engine and filed only under the gate's rules;
+against a generic parse the gate passed it must keep that parse's share of the
+data lines within 10 points. A new template is kept, and committed with the
+capture, only when it passes. Later captures of the tool are parsed offline.
+\fImeta.tsv\fR records \fBllm_template\fR.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -346,9 +353,10 @@ layout model (see \fBLAYOUT MODEL\fR); \fB0\fR (the default): don't (same as
 \fB--no-model\fR).
 .TP
 .B PROVOST_LLM
-\fB1\fR: parse a capture the gate would hold with a template Claude wrote for the
-tool, or have Claude write one (see \fBLLM TEMPLATES\fR); \fB0\fR (the default):
-don't (same as \fB--llm\fR / \fB--no-llm\fR).
+\fB1\fR: parse with a template Claude wrote for the tool, or have Claude write
+one, before a generic parse is trusted or a capture held (see \fBLLM
+TEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
+\fB--no-llm\fR).
 .TP
 .B PROVOST_LLM_MODEL
 The model that writes templates (default \fBclaude-opus-5-5\fR).
@@ -358,6 +366,10 @@ Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR).
 .TP
 .B PROVOST_LLM_BASE_URL
 API base URL (default \fBhttps://api.anthropic.com\fR).
+.TP
+.B PROVOST_LLM_TEMPLATE_DIRS
+Colon-separated directories of templates to look in after the store's
+\fIllm-templates/\fR and before the ones shipped with provost.
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).

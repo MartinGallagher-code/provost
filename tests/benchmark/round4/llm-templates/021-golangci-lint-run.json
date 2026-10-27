@@ -1,0 +1,33 @@
+{
+ "format": 1,
+ "tool": "golangci-lint-run",
+ "detect": "^[^\\s:]+:\\d+:\\d+: .*\\([\\w-]+\\)$",
+ "skip": [
+  "^\\d+ issues:$",
+  "^\\s*\\^\\s*$",
+  "^(?![^\\s:]+:\\d+:\\d+: )(?!\\* [\\w-]+: \\d+$)(?!\\d+ issues:$)"
+ ],
+ "blocks": [
+  {
+   "name": "issues",
+   "kind": "table",
+   "line": "^(?P<file>[^\\s:]+):(?P<line>\\d+):(?P<col>\\d+): (?P<message>.*?) \\((?P<linter>[\\w-]+)\\)$",
+   "columns": {
+    "file": "file",
+    "line": "line",
+    "col": "col",
+    "message": "message",
+    "linter": "linter"
+   }
+  },
+  {
+   "name": "issues by linter",
+   "kind": "table",
+   "line": "^\\* (?P<linter>[\\w-]+): (?P<count>\\d+)$",
+   "columns": {
+    "linter": "linter",
+    "count": "count"
+   }
+  }
+ ]
+}

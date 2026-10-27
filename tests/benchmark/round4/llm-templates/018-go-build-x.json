@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "tool": "go-build-x",
+  "detect": "^WORK=\\S*go-build",
+  "skip": ["^# import config$", "^EOF$", "^modinfo \""],
+  "blocks": [
+    {"name": "work",
+     "kind": "kv",
+     "line": "(?P<key>WORK)=(?P<value>\\S+)"},
+    {"name": "packagefiles",
+     "kind": "table",
+     "line": "packagefile (?P<package>\\S+)=(?P<file>\\S+)",
+     "columns": {"package": "package", "file": "file"}},
+    {"name": "commands",
+     "kind": "table",
+     "line": "(?:(?P<env>\\w+=\\S+)\\s+)?(?P<command>\\S+)(?:\\s+(?P<args>.*?))?(?:\\s+#\\s*(?P<note>\\S+))?",
+     "columns": {"env": "env", "command": "command", "args": "args", "note": "note"}}
+  ]
+}

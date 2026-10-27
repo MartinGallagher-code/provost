@@ -94,6 +94,27 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0j. **2026-10-27: `--llm` goes first, templates can be parsers (format 2),
+    and round 4 is measured with templates** (`docs/plan-2026-10-27-near-100.md`
+    is the plan; CHANGELOG has the detail).
+    - **Why:** four rounds at 11–21% PASS on unseen output; the gate files
+      27 of round 4's 44 FAILs at ≥95% coverage, so nothing behind it ever
+      ran. A template written for one tool only has to fit that tool's next
+      capture: no cross-tool generalisation needed.
+    - **Done:** LLM-first hook in `_ingest` (before auto-multi/model on a
+      held capture; before a generic parse the gate passed is trusted);
+      `extract/llm/sandbox.py` runs a format-2 parser in a box;
+      `PROVOST_LLM_TEMPLATE_DIRS`; `tests/benchmark/llm_round.sh`;
+      `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
+      Claude helpers, with `.note`s on what format 1 could not express).
+    - **Round 4 with templates:** 102/107 filed by template. Ratings are
+      being written (`docs/benchmark-2026-10-27-llm-templates-round4.md`,
+      next commit).
+    - **Next:** the write-up; redo the templates whose `.note` names a
+      cross-line limit as format 2 and re-rate; then the judge (step 3 of
+      the plan), the shipped library (step 5) and round 5 — the last three
+      need `ANTHROPIC_API_KEY` in the environment.
+
 0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
     and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in
     `provost help`).

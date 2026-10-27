@@ -1,0 +1,1 @@
+Mostly ok. The heredoc structure (which "cat > importcfg << 'EOF'" command owns the following packagefile lines) cannot be expressed, so all packagefile lines from both importcfg files land in one table; the binary "modinfo" blob line inside the second heredoc is skipped. Commands are one table of env / command / args / "# internal" note.

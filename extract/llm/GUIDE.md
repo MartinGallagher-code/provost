@@ -83,3 +83,46 @@ never for this capture's particular values.
 - **When the output has several sections** (a summary block, then a table, or
   several tables), give each its own block.
 - **Section titles and lines that carry no data go in `skip`.**
+
+## Format 2: a parser, when no line pattern can describe the output
+
+Write format 1 whenever each line can be read on its own. Write **format 2**
+when the data's shape runs across lines:
+
+- a record spans several lines (a header line, then indented attribute
+  lines that belong to it: `ip addr`, `lsblk -f` trees, thread dumps);
+- a section title names the rows under it and should become a column;
+- a table's columns are fixed-width and values contain spaces;
+- continuation lines belong to the row above them;
+- the same key/value block repeats once per record, separated by blank lines
+  or a title.
+
+```json
+{
+  "format": 2,
+  "tool": "<short tool name>",
+  "detect": "<regex found in any output of this tool>",
+  "parser": "<Python source that defines parse(lines)>"
+}
+```
+
+- `parse(lines)` takes the capture's lines (strings, no newline) and returns
+  **a list of blocks**, each `{"name": ..., "kind": "table" | "kv",
+  "lines": [<index of every input line the block consumed>],
+  "records": [<dict per row>]}`. A `kv` block's records hold key → value
+  pairs; a `table` block's records are rows with the same keys in the same
+  order. Return `{"blocks": [...], "skip": [<decoration line indexes>]}` to
+  mark the lines you deliberately dropped (rules, banners, prompts), so they
+  count as covered. Every other input line is uncovered; the same 80% rule
+  applies.
+- Keys are column names: use the tool's printed names where it has them.
+  Values are strings (numbers may be ints or floats).
+- The parser runs in a box: only `re`, `json`, `collections`, `itertools`,
+  `math` and `string` can be imported; no files, no network, no `open`,
+  `eval`, `exec`, `getattr` or dunder attributes; 5 CPU seconds. Keep it
+  short, plain and deterministic. Use `re` with named groups for the lines,
+  and plain loops for the structure. It is stored next to the capture and
+  reused on every later capture, so write it for the layout, not for these
+  values.
+- Put the source in the JSON string with `\n` for newlines, 4-space
+  indentation, and `\\` for every backslash in a regex.

@@ -1,0 +1,1 @@
+Fixed-width columns with spaces inside values (Image Name, Status, User Name, Window Title). Image Name uses its fixed 25-char width and Status its 15-char width; the other columns are matched by content (PID/Session#/CPU Time/Mem Usage shapes) so a few chars of drift in User Name padding still parse.

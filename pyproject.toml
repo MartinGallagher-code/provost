@@ -68,6 +68,7 @@ packages = ["src/provost_data"]
 "extract/model/arbiter.json" = "provost_data/_bundle/extract/model/arbiter.json"
 "extract/model/layout-model.json.gz" = "provost_data/_bundle/extract/model/layout-model.json.gz"
 "extract/llm/template.py" = "provost_data/_bundle/extract/llm/template.py"
+"extract/llm/sandbox.py" = "provost_data/_bundle/extract/llm/sandbox.py"
 "extract/llm/GUIDE.md" = "provost_data/_bundle/extract/llm/GUIDE.md"
 "extract/llm/templates" = "provost_data/_bundle/extract/llm/templates"
 "extract/README.md" = "provost_data/_bundle/extract/README.md"

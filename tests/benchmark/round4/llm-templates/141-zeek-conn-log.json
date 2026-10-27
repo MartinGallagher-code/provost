@@ -1,0 +1,16 @@
+{
+  "format": 1,
+  "tool": "zeek-conn-log",
+  "detect": "^#fields\\tts\\tuid\\tid\\.orig_h\\tid\\.orig_p\\tid\\.resp_h\\tid\\.resp_p\\tproto\\t",
+  "skip": ["^#types\\t"],
+  "blocks": [
+    {"name": "connections",
+     "kind": "table",
+     "header": "^#fields\\tts\\tuid\\t",
+     "line": "^(?P<ts>[^\\t]+)\\t(?P<uid>[^\\t]+)\\t(?P<id_orig_h>[^\\t]+)\\t(?P<id_orig_p>[^\\t]+)\\t(?P<id_resp_h>[^\\t]+)\\t(?P<id_resp_p>[^\\t]+)\\t(?P<proto>[^\\t]+)\\t(?P<service>[^\\t]+)\\t(?P<duration>[^\\t]+)\\t(?P<orig_bytes>[^\\t]+)\\t(?P<resp_bytes>[^\\t]+)\\t(?P<conn_state>[^\\t]+)\\t(?P<local_orig>[^\\t]+)\\t(?P<local_resp>[^\\t]+)\\t(?P<missed_bytes>[^\\t]+)\\t(?P<history>[^\\t]+)\\t(?P<orig_pkts>[^\\t]+)\\t(?P<orig_ip_bytes>[^\\t]+)\\t(?P<resp_pkts>[^\\t]+)\\t(?P<resp_ip_bytes>[^\\t]+)\\t(?P<tunnel_parents>[^\\t]*)$",
+     "columns": {"ts": "ts", "uid": "uid", "id_orig_h": "id.orig_h", "id_orig_p": "id.orig_p", "id_resp_h": "id.resp_h", "id_resp_p": "id.resp_p", "proto": "proto", "service": "service", "duration": "duration", "orig_bytes": "orig_bytes", "resp_bytes": "resp_bytes", "conn_state": "conn_state", "local_orig": "local_orig", "local_resp": "local_resp", "missed_bytes": "missed_bytes", "history": "history", "orig_pkts": "orig_pkts", "orig_ip_bytes": "orig_ip_bytes", "resp_pkts": "resp_pkts", "resp_ip_bytes": "resp_ip_bytes", "tunnel_parents": "tunnel_parents"}},
+    {"name": "meta",
+     "kind": "kv",
+     "line": "^#(?P<key>\\w+)[\\t ](?P<value>.*?)\\s*$"}
+  ]
+}

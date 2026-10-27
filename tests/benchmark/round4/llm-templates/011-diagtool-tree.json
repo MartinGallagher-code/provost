@@ -1,0 +1,15 @@
+{
+  "format": 1,
+  "tool": "diagtool-tree",
+  "detect": "^GREEN = enabled by default$",
+  "skip": [],
+  "blocks": [
+    {"name": "legend",
+     "kind": "kv",
+     "line": "(?P<key>[A-Z]+) = (?P<value>.+)"},
+    {"name": "warnings",
+     "kind": "table",
+     "line": "\\s*(?P<flag>-W[\\w+.=-]+)",
+     "columns": {"flag": "flag"}}
+  ]
+}

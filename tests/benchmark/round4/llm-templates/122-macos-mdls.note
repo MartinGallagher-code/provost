@@ -1,0 +1,1 @@
+multi-line array values (key = ( ... ) ) span lines: format 1 cannot attach the items to their key, so the key is recorded with an empty value, the items go into a separate "list items" table and the ")" closer is skipped. Quotes around string values are stripped.

@@ -1,0 +1,1 @@
+records are groups: each LOCAL HEADER starts a record and indented Length/Flags/... rows belong to the Extra ID above; format 1 flattens all to one offset/field/value/decoded table (the header row and sub-field nesting are not linked).

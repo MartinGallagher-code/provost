@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "tool": "systemd-analyze-syscall-filter",
+  "detect": "^@[\\w-]+$",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "filter",
+      "kind": "table",
+      "line": "^(?:@(?P<group>[\\w-]+)|\\s+# (?P<description>\\S.*?)|\\s+(?P<syscall>[@\\w-]+))\\s*$",
+      "columns": {
+        "group": "group",
+        "description": "description",
+        "syscall": "syscall"
+      }
+    }
+  ]
+}

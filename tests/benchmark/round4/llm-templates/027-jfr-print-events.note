@@ -1,0 +1,1 @@
+Each event is a multi-line record (`type {` then `key = value` lines, optionally a stack trace) that should become one row per event; format 1 cannot group them, so events, field/value pairs and stack frames are three flat tables in file order.

@@ -1,0 +1,1 @@
+ok. Stack frames and monitor lines belong to the thread header above them (records span several lines); format 1 flattens them into separate frames/monitors/thread_states tables with no thread column. A truncated header line without a thread name still matches vm_threads (name empty).

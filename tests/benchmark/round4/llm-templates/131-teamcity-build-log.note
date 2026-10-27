@@ -1,0 +1,1 @@
+ok: ##teamcity[...] service messages get their own table with one column per attribute; every other line is time/severity/step/message.

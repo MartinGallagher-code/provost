@@ -1,0 +1,18 @@
+{
+ "format": 1,
+ "tool": "cmake-trace-source",
+ "detect": "^\\S+\\(\\d+\\):\\s+\\w+\\(",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "calls",
+   "kind": "table",
+   "line": "^(?P<file>\\S+?)\\((?P<line>\\d+)\\):\\s+(?P<command>\\w+)\\((?P<args>.*?)\\s*\\)$"
+  },
+  {
+   "name": "messages",
+   "kind": "table",
+   "line": "^-- (?P<message>\\S.*)$"
+  }
+ ]
+}

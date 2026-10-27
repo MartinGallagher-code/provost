@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "tool": "apt-get-simulate-install",
+ "detect": "^(?:Inst|Conf) \\S+ \\(",
+ "skip": [
+  "^(?:Reading package lists|Building dependency tree|Reading state information)\\.\\.\\.",
+  "^(?:Suggested|Recommended) packages:$",
+  "^The following .* will be (?:installed|upgraded|REMOVED|kept back):$",
+  "^The following packages have unmet dependencies:$"
+ ],
+ "blocks": [
+  {
+   "name": "actions",
+   "kind": "table",
+   "line": "^(?P<action>Inst|Conf|Remv|Purg) (?P<package>\\S+)(?: \\[(?P<current>[^\\]]+)\\])?(?: \\((?P<version>\\S+) (?P<origin>\\S(?:.*?\\S)?) \\[(?P<arch>[^\\]]+)\\]\\))?$"
+  },
+  {
+   "name": "summary",
+   "kind": "table",
+   "line": "^(?P<upgraded>\\d+) upgraded, (?P<newly_installed>\\d+) newly installed, (?P<to_remove>\\d+) to remove and (?P<not_upgraded>\\d+) not upgraded\\.$"
+  },
+  {
+   "name": "package_lists",
+   "kind": "table",
+   "line": "^\\s{2}(?P<packages>\\S(?:.*?\\S)?)\\s*$"
+  }
+ ]
+}

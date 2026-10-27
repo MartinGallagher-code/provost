@@ -1,0 +1,14 @@
+{
+  "format": 1,
+  "tool": "gio-info-file",
+  "detect": "^display name: ",
+  "skip": ["^attributes:$"],
+  "blocks": [
+    {"name": "info",
+     "kind": "kv",
+     "line": "(?P<key>[a-z][a-z ]*?):\\s*(?P<value>.*)"},
+    {"name": "attributes",
+     "kind": "kv",
+     "line": "\\s+(?P<key>[\\w:.-]+):\\s*(?P<value>.*)"}
+  ]
+}

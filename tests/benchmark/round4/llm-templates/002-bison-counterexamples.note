@@ -1,0 +1,1 @@
+Records span several lines: each conflict warning is followed by its Example line and two derivation trees that belong to it. Captured conflicts and examples as parallel tables (same row order); the derivation trees are skipped.

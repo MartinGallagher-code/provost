@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "tool": "aix-errpt",
+  "detect": "(?m)^IDENTIFIER\\s+TIMESTAMP\\s+T\\s+C\\s+RESOURCE_NAME\\s+DESCRIPTION",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "errors",
+      "kind": "table",
+      "header": "^IDENTIFIER\\s+TIMESTAMP\\s+T\\s+C\\s+RESOURCE_NAME",
+      "line": "(?P<identifier>[0-9A-F]+)\\s+(?P<timestamp>\\d{10})\\s+(?P<t>[A-Z])\\s+(?P<c>[A-Z])\\s+(?P<resource_name>\\S+)\\s+(?P<description>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "identifier": "IDENTIFIER",
+        "timestamp": "TIMESTAMP",
+        "t": "T",
+        "c": "C",
+        "resource_name": "RESOURCE_NAME",
+        "description": "DESCRIPTION"
+      }
+    }
+  ]
+}

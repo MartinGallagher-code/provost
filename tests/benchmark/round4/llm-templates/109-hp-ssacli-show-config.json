@@ -1,0 +1,87 @@
+{
+ "format": 1,
+ "tool": "hp-ssacli-show-config",
+ "detect": "^\\S.* in Slot \\d+.*\\(sn: ",
+ "skip": [
+  "^\\s*Unassigned\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "controller",
+   "kind": "table",
+   "line": "^(?P<controller>\\S.*?) in Slot (?P<slot>\\d+)(?:\\s+\\((?P<type>[^)]*)\\))?\\s+\\(sn: (?P<serial>[^)]*)\\)\\s*$",
+   "columns": {
+    "controller": "Controller",
+    "slot": "Slot",
+    "type": "Type",
+    "serial": "Serial"
+   }
+  },
+  {
+   "name": "drive_cages",
+   "kind": "table",
+   "line": "^\\s+(?P<cage>\\S.*? Drive Cage) at Port (?P<port>\\S+), Box (?P<box>\\d+), (?P<status>\\S.*?)\\s*$",
+   "columns": {
+    "cage": "Cage",
+    "port": "Port",
+    "box": "Box",
+    "status": "Status"
+   }
+  },
+  {
+   "name": "ports",
+   "kind": "table",
+   "line": "^\\s+Port Name: (?P<port>\\S+)\\s*$",
+   "columns": {
+    "port": "Port Name"
+   }
+  },
+  {
+   "name": "arrays",
+   "kind": "table",
+   "line": "^\\s+Array (?P<array>\\S+) \\((?P<type>[^,]+), Unused Space: (?P<unused_space>[^)]*?)\\s*\\)\\s*$",
+   "columns": {
+    "array": "Array",
+    "type": "Type",
+    "unused_space": "Unused Space"
+   }
+  },
+  {
+   "name": "logical_drives",
+   "kind": "table",
+   "line": "^\\s+logicaldrive (?P<id>\\d+) \\((?P<size>[^,]+), (?P<raid>RAID [^,]+), (?P<status>[^)]*)\\)\\s*$",
+   "columns": {
+    "id": "logicaldrive",
+    "size": "Size",
+    "raid": "RAID",
+    "status": "Status"
+   }
+  },
+  {
+   "name": "physical_drives",
+   "kind": "table",
+   "line": "^\\s+physicaldrive (?P<id>\\S+) \\(port (?P<port>[^:]+):box (?P<box>\\d+):bay (?P<bay>\\d+), (?P<type>[^,]+), (?P<size>[^,]+), (?P<status>[^,)]+)(?:, (?P<role>[^)]*))?\\)\\s*$",
+   "columns": {
+    "id": "physicaldrive",
+    "port": "Port",
+    "box": "Box",
+    "bay": "Bay",
+    "type": "Type",
+    "size": "Size",
+    "status": "Status",
+    "role": "Role"
+   }
+  },
+  {
+   "name": "sep",
+   "kind": "table",
+   "line": "^\\s+SEP \\(Vendor ID (?P<vendor>[^,]+), Model (?P<model>[^)]+)\\)\\s+(?P<id>\\d+)\\s+\\(WWID: (?P<wwid>\\w+)\\)\\s*$",
+   "columns": {
+    "vendor": "Vendor ID",
+    "model": "Model",
+    "id": "SEP",
+    "wwid": "WWID"
+   }
+  }
+ ]
+}

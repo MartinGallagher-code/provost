@@ -1,0 +1,2 @@
+section titles (@group) and their comment should become columns of the syscall rows.
+Used one table with sparse group/description/syscall columns in document order so the grouping can be read back.

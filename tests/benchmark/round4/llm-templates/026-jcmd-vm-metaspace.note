@@ -1,0 +1,1 @@
+The chunk-freelist sub-titles (Non-Class / Class / Both) should become a column of the freelist rows and of the "Total word size" rows; format 1 cannot, so they are skipped and the rows of the three lists are concatenated in order (15 sizes each).

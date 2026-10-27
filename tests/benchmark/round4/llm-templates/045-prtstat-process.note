@@ -1,0 +1,1 @@
+Two or three "Key: value" pairs per line; a kv block takes one pair per line, so each multi-pair line layout is its own one-row table block with a group per key, and single-pair lines go to one kv block. Section titles (Memory, Scheduling, ...) carry no data and are skipped rather than becoming a column.

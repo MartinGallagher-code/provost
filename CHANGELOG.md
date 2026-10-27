@@ -1,5 +1,53 @@
 # provost — Changelog
 
+## 2026-10-27 — `--llm` goes first, and a template can be a parser (format 2)
+
+The plan behind this: `docs/plan-2026-10-27-near-100.md`. On unseen output the
+engine's whole-capture score has sat at 11–21% PASS for four rounds; 27 of
+round 4's 44 FAILs pass the gate at ≥95% coverage, so a fallback behind the
+gate never saw them. A template written for one tool's layout sidesteps the
+generalisation problem; it only has to fit the next capture of the same tool.
+
+- **LLM-first (`provost`, the hook in `_ingest`):** with `--llm`, a template
+  for the tool (stored, in `PROVOST_LLM_TEMPLATE_DIRS`, or shipped) is tried
+  **before** auto-multi and the layout model on a held capture, and **before a
+  generic parse the gate passed is trusted**; with a key and no template,
+  Claude is asked (once per tool) in both cases. Never over an exact-format
+  or tool-specific parser (`_quality_exempt`). Against a passed generic
+  parse the template must keep that parse's share of the data lines within
+  10 points (`llm_floor=match` in `_llm_file`); against a held parse it must
+  gain 10, as before.
+- **Format 2 (`extract/llm/template.py`, new `extract/llm/sandbox.py`):** a
+  template may carry `"parser"`, Python source defining `parse(lines) ->
+  blocks`, for what one regex per line cannot say (records spanning lines,
+  indented attribute blocks, section titles as a column, fixed-width values
+  with spaces). It runs in a box: `python3 -I -S`, builtins cut to a
+  whitelist, imports limited to re/json/collections/itertools/math/string,
+  no `open`/`exec`/`getattr`/dunders (refused statically before it is stored
+  or run), 5 CPU s, 512 MB, a 10 s wall clock. `apply`, `find`, `learn` and
+  the strategy take both formats. `GUIDE.md` gained the format-2 section.
+  Shipped example: `templates/ip-addr.json` (`samples/llm-template/nested.txt`,
+  golden `llm-template@nested.txt.txt`).
+- **A template block's coverage is its own accounting** (`_llm_file`): its
+  lines are the ones its records were read from, so 100; the engine's
+  token-recall measure counted a value a parser dropped on purpose (a
+  broadcast address) as a missed line and refused every multi-line record.
+  Type consistency and the shape checks still apply.
+- **`PROVOST_LLM_TEMPLATE_DIRS`** is now honoured by provost itself (it was
+  the engine strategy's only), documented in help, man and README.
+- **Round 4 measured with templates:** `tests/benchmark/llm_round.sh --round4`
+  runs a round through the real CLI with `round4/llm-templates/` (107
+  format-1 templates written by Claude helpers from the guide and the input
+  alone, with a `.note` each on what format 1 could not express). 102 of 107
+  are filed by their template, 4 by the engine (one `yaml` claim is exempt;
+  three templates fail the fragments, coverage-within-10 or consistency
+  rule), 1 held (a 2-line input). Ratings: the next entry.
+- **Tests:** smoke +15 (LLM-first with the fake API, offline reuse, no-key
+  behaviour, the shipped parser template, a refused parser);
+  `ml/tests/test_llm_template.py` +4 (format 2 apply/report, static refusal,
+  runaway and broken parsers, find/write_blocks). `pyproject.toml` ships
+  `sandbox.py`.
+
 ## 2026-10-26 — `--llm`: Claude writes a parsing template for a tool once; provost reuses it offline
 
 Opt-in (`--llm`, `PROVOST_LLM=1`, default off). Nothing changes without it, and

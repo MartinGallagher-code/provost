@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "tool": "ninja-debug-stats",
+  "detect": "^metric\\s+count\\s+avg \\(us\\)\\s+total \\(ms\\)",
+  "skip": [],
+  "blocks": [
+    {"name": "directory", "kind": "kv",
+     "line": "^ninja: (?P<key>Entering directory) `(?P<value>.*)'$"},
+    {"name": "steps", "kind": "table",
+     "line": "^\\[(?P<step>\\d+)/(?P<total>\\d+)\\] (?P<action>\\S(?:.*?\\S)?)\\s*$"},
+    {"name": "metrics", "kind": "table",
+     "header": "^metric\\s+count\\s+avg \\(us\\)\\s+total \\(ms\\)",
+     "line": "^(?P<metric>[^\\t]*?)\\s*\\t(?P<count>\\d+)\\s*\\t(?P<avg>[\\d.]+)\\s*\\t(?P<total>[\\d.]+)\\s*$",
+     "columns": {"avg": "avg (us)", "total": "total (ms)"}},
+    {"name": "hash_load", "kind": "table",
+     "line": "^path->node hash load (?P<load>[\\d.]+) \\((?P<entries>\\d+) entries / (?P<buckets>\\d+) buckets\\)\\s*$"}
+  ]
+}

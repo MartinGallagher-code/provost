@@ -1,0 +1,1 @@
+a multi-line value (err=< ... >) spans lines: the tab-indented continuation line belongs to the F record above; format 1 cannot join it, so it is a separate "continuation" table and the closing " >" is skipped. The structured tail (key="value" pairs) varies per line, so the message stays one column.

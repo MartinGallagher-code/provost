@@ -1,0 +1,1 @@
+tree: indentation encodes nesting and each content= line belongs to the node above it; format 1 cannot express depth or parent, so nodes, content lines, namespaces and the DOCUMENT properties are separate flat blocks.

@@ -1,0 +1,2 @@
+a warning spans two lines: the location/category/message line plus an indented source line that belongs to it.
+Put the source lines in a second table in the same order; the stray "ResourceWarning: Enable tracemalloc..." line is a kv record.

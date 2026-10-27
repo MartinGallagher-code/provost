@@ -1,0 +1,1 @@
+result-set columns are those of this SELECT (region_cd, store_nm, sales_amt, last_upd_ts); another query prints other columns, which one fixed line pattern cannot express. The '***' status lines ('Release is', 'elapsed time was', 'RC = ') are one kv record (the twice-printed 'Total elapsed time' keeps the last value).

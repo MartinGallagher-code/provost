@@ -44,7 +44,7 @@ class Apply(unittest.TestCase):
         self.assertEqual(T.flat_records(b), ["a 1", "a_2 2"])
 
     def test_bad_templates_are_refused(self):
-        for bad, why in ((dict(TPL, format=2), "format-1"), (dict(TPL, blocks=[]), "at least one"),
+        for bad, why in ((dict(TPL, format=3), "format-1 or format-2"), (dict(TPL, blocks=[]), "at least one"),
                          (dict(TPL, blocks=[{"kind": "kv", "line": "^(?P<k>.*)$"}]), "key and value"),
                          (dict(TPL, blocks=[{"kind": "table", "line": "(unclosed"}]), "line"),
                          (dict(TPL, blocks=[{"kind": "table", "line": "^.*$"}]), "named groups")):
@@ -59,6 +59,66 @@ class Apply(unittest.TestCase):
             self.assertEqual(open(os.path.join(d, "blk.1.txt")).read().splitlines()[0], "NAME    SIZE   MOUNTED ON")
             self.assertEqual(open(os.path.join(d, "blk.2.name")).read().strip(), "status")
             self.assertEqual(open(os.path.join(d, "tool")).read().strip(), "disks")
+
+
+PARSER = '''import re
+HEAD = re.compile(r"^(?P<n>\\d+): (?P<name>\\S+)$")
+def parse(lines):
+    rows, used, skip = [], [], []
+    for j, ln in enumerate(lines):
+        m = HEAD.match(ln)
+        if m:
+            rows.append({"n": m.group("n"), "name": m.group("name")}); used.append(j)
+        elif ln.startswith("    ") and rows:
+            k, v = ln.split(": ", 1); rows[-1][k.strip()] = v; used.append(j)
+        elif ln.startswith("#"):
+            skip.append(j)
+    return {"blocks": [{"name": "items", "kind": "table", "lines": used, "records": rows}], "skip": skip}
+'''
+NESTED = ["# items", "1: alpha", "    size: 10 MB", "    state: up", "2: beta", "    size: 2 GB", "stray"]
+TPL2 = {"format": 2, "tool": "items", "detect": "^\\d+: \\S+$", "parser": PARSER}
+
+
+class Parser(unittest.TestCase):
+    def test_a_parser_template_runs_in_the_box_and_counts_its_skips(self):
+        blocks, cov, nb, skipped = T.apply(T.compile_template(TPL2), NESTED)
+        self.assertEqual((cov, nb, skipped), (6, 7, 1))
+        self.assertEqual(blocks[0]["records"][0], {"n": "1", "name": "alpha", "size": "10 MB", "state": "up"})
+        self.assertEqual(blocks[0]["lines"], [1, 2, 3, 4, 5])
+        self.assertEqual(T.flat_records(blocks[0])[-1], "total_entries 2")
+        self.assertEqual(T._report(NESTED, TPL2), (6 / 7, [6]))
+
+    def test_a_parser_that_imports_or_reaches_out_is_refused_before_it_runs(self):
+        for code, why in (("import os\ndef parse(l): return []", "imports os"),
+                          ("def parse(l):\n    return open('/etc/passwd')", "uses open"),
+                          ("def parse(l):\n    return l.__class__", "__class__"),
+                          ("def nothing(l): pass", "no parse"),
+                          ("def parse(l:\n", "syntax error")):
+            with self.assertRaises(T.TemplateError) as cm:
+                T.compile_template(dict(TPL2, parser=code))
+            self.assertIn(why, str(cm.exception))
+
+    def test_a_runaway_or_broken_parser_is_an_error_not_a_hang(self):
+        with self.assertRaises(T.TemplateError):
+            T.apply(T.compile_template(dict(TPL2, parser="def parse(l):\n    while True: pass")), NESTED)
+        for code, why in (("def parse(l):\n    return 7", "list of blocks"),
+                          ("def parse(l):\n    return [{'kind': 'row'}]", "table or kv"),
+                          ("def parse(l):\n    return [{'kind': 'kv', 'lines': [99], 'records': []}]", "line indexes"),
+                          ("def parse(l):\n    raise ValueError('boom')", "boom"),
+                          ("def parse(l):\n    import socket", "imports socket")):
+            with self.assertRaises(T.TemplateError) as cm:
+                T.apply(T.compile_template(dict(TPL2, parser=code)), NESTED)
+            self.assertIn(why, str(cm.exception))
+
+    def test_find_and_write_blocks_take_a_parser_template(self):
+        with tempfile.TemporaryDirectory() as d:
+            json.dump(TPL2, open(os.path.join(d, "items.json"), "w"))
+            json.dump(TPL, open(os.path.join(d, "disks.json"), "w"))
+            path, score = T.find(NESTED, [d])
+            self.assertEqual(os.path.basename(path), "items.json")
+            blocks, *_ = T.apply(T.compile_template(TPL2), NESTED)
+            T.write_blocks(blocks, NESTED, os.path.join(d, "out"), "items")
+            self.assertIn("entry2.size 2 GB", open(os.path.join(d, "out", "blk.1.rec")).read())
 
 
 class Store(unittest.TestCase):

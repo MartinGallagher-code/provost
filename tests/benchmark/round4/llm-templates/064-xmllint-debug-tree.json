@@ -1,0 +1,42 @@
+{
+  "format": 1,
+  "tool": "xmllint-debug-tree",
+  "detect": "(?m)^DOCUMENT\\s*$",
+  "skip": [
+    "^DOCUMENT\\s*$"
+  ],
+  "blocks": [
+    {
+      "name": "document",
+      "kind": "kv",
+      "line": "(?P<key>[A-Za-z]\\w*)=(?P<value>.*)"
+    },
+    {
+      "name": "content",
+      "kind": "table",
+      "line": "\\s+content=(?P<content>.*)",
+      "columns": {
+        "content": "content"
+      }
+    },
+    {
+      "name": "namespaces",
+      "kind": "table",
+      "line": "\\s+namespace (?P<prefix>\\S+) href=(?P<href>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "prefix": "prefix",
+        "href": "href"
+      }
+    },
+    {
+      "name": "nodes",
+      "kind": "table",
+      "line": "\\s*(?P<type>[A-Z][A-Z_]*)(?: (?P<name>(?!compact\\s*$)\\S+))?(?: (?P<compact>compact))?\\s*",
+      "columns": {
+        "type": "node",
+        "name": "name",
+        "compact": "compact"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "tool": "zipdetails-archive",
+  "detect": "(?m)^[0-9A-F]{4} LOCAL HEADER #\\d+\\s+[0-9A-F]{8}",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "fields",
+      "kind": "table",
+      "line": "(?:(?P<offset>[0-9A-F]{4,})|\\s{4})\\s+(?P<field>\\S(?:.*?\\S)?)(?:\\s{2,}(?:(?P<value>[^'\\s]\\S*)\\s*)?(?:'(?P<decoded>[^']*)')?)?\\s*",
+      "columns": {
+        "offset": "offset",
+        "field": "field",
+        "value": "value",
+        "decoded": "decoded"
+      }
+    }
+  ]
+}

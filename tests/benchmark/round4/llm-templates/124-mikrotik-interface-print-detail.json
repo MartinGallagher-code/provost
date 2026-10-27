@@ -1,0 +1,52 @@
+{
+ "format": 1,
+ "tool": "mikrotik-interface-print-detail",
+ "detect": "^Flags: D - dynamic, X - disabled, R - running",
+ "skip": [
+  "^\\[[^\\]]+\\] > ",
+  "^Flags: "
+ ],
+ "blocks": [
+  {
+   "name": "interfaces",
+   "kind": "table",
+   "line": "^\\s*(?P<id>\\d+) (?P<flags>[DXRS ]{3})(?:\\s+;;; (?P<comment>\\S.*?))?(?:\\s+name=\"(?P<name>[^\"]*)\")?(?:\\s+default-name=\"(?P<default_name>[^\"]*)\")?(?:\\s+type=\"(?P<type>[^\"]*)\")?(?:\\s+mtu=(?P<mtu>\\S+))?(?:\\s+actual-mtu=(?P<actual_mtu>\\S+))?(?:\\s+l2mtu=(?P<l2mtu>\\S+))?(?:\\s+max-l2mtu=(?P<max_l2mtu>\\S+))?(?:\\s+mac-address=(?P<mac_address>\\S+))?(?:\\s+last-link-down-time=(?P<last_link_down_time>\\S+ \\d\\d:\\d\\d:\\d\\d))?(?:\\s+last-link-up-time=(?P<last_link_up_time>\\S+ \\d\\d:\\d\\d:\\d\\d))?(?:\\s+link-downs=(?P<link_downs>\\d+))?(?:\\s+(?P<other>\\S+=\\S.*?))?\\s*$",
+   "columns": {
+    "id": "#",
+    "flags": "flags",
+    "comment": "comment",
+    "name": "name",
+    "default_name": "default-name",
+    "type": "type",
+    "mtu": "mtu",
+    "actual_mtu": "actual-mtu",
+    "l2mtu": "l2mtu",
+    "max_l2mtu": "max-l2mtu",
+    "mac_address": "mac-address",
+    "last_link_down_time": "last-link-down-time",
+    "last_link_up_time": "last-link-up-time",
+    "link_downs": "link-downs",
+    "other": "other"
+   }
+  },
+  {
+   "name": "continuation",
+   "kind": "table",
+   "line": "^(?=\\s+\\S)(?:\\s+name=\"(?P<name>[^\"]*)\")?(?:\\s+default-name=\"(?P<default_name>[^\"]*)\")?(?:\\s+type=\"(?P<type>[^\"]*)\")?(?:\\s+mtu=(?P<mtu>\\S+))?(?:\\s+actual-mtu=(?P<actual_mtu>\\S+))?(?:\\s+l2mtu=(?P<l2mtu>\\S+))?(?:\\s+max-l2mtu=(?P<max_l2mtu>\\S+))?(?:\\s+mac-address=(?P<mac_address>\\S+))?(?:\\s+last-link-down-time=(?P<last_link_down_time>\\S+ \\d\\d:\\d\\d:\\d\\d))?(?:\\s+last-link-up-time=(?P<last_link_up_time>\\S+ \\d\\d:\\d\\d:\\d\\d))?(?:\\s+link-downs=(?P<link_downs>\\d+))?(?:\\s+(?P<other>\\S+=\\S.*?))?\\s*$",
+   "columns": {
+    "name": "name",
+    "default_name": "default-name",
+    "type": "type",
+    "mtu": "mtu",
+    "actual_mtu": "actual-mtu",
+    "l2mtu": "l2mtu",
+    "max_l2mtu": "max-l2mtu",
+    "mac_address": "mac-address",
+    "last_link_down_time": "last-link-down-time",
+    "last_link_up_time": "last-link-up-time",
+    "link_downs": "link-downs",
+    "other": "other"
+   }
+  }
+ ]
+}

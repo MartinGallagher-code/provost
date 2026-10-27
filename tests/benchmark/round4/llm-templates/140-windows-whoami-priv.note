@@ -1,0 +1,1 @@
+ok. Column widths are sized to the longest value in each run, so the description is matched as "everything between the single-token privilege name and the last token (State)" instead of by width.

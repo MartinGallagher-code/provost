@@ -1,0 +1,60 @@
+{
+ "format": 1,
+ "tool": "jhsdb-jmap-heap",
+ "detect": "^Heap Configuration:\\s*$",
+ "skip": [
+  "^Debugger attached successfully\\.",
+  "^\\S.* compiler detected\\.",
+  "^using .* object allocation\\.",
+  "^[\\w() -]+:\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "process",
+   "kind": "kv",
+   "line": "^Attaching to (?P<key>process ID) (?P<value>\\d+), please wait\\.{3}\\s*$"
+  },
+  {
+   "name": "jvm",
+   "kind": "kv",
+   "line": "^(?P<key>JVM version) is (?P<value>\\S+)\\s*$"
+  },
+  {
+   "name": "collector",
+   "kind": "table",
+   "line": "^(?P<collector>\\S.*?) GC with (?P<threads>\\d+) thread\\(s\\)\\s*$",
+   "columns": {
+    "collector": "collector",
+    "threads": "threads"
+   }
+  },
+  {
+   "name": "heap configuration",
+   "kind": "table",
+   "line": "^\\s+(?P<name>[A-Z]\\w*)\\s+= (?P<value>[\\d.]+(?: \\w+)?)(?: \\((?P<mb>[\\d.]+MB)\\))?\\s*$",
+   "columns": {
+    "name": "name",
+    "value": "value",
+    "mb": "MB"
+   }
+  },
+  {
+   "name": "heap usage",
+   "kind": "table",
+   "line": "^\\s+(?P<name>[a-z]\\w*)\\s+= (?P<value>[\\d.]+(?: \\w+)?)(?: \\((?P<mb>[\\d.]+MB)\\))?\\s*$",
+   "columns": {
+    "name": "name",
+    "value": "value",
+    "mb": "MB"
+   }
+  },
+  {
+   "name": "percent used",
+   "kind": "table",
+   "line": "^\\s+(?P<used>[\\d.]+%) used\\s*$",
+   "columns": {
+    "used": "used"
+   }
+  }
+ ]
+}

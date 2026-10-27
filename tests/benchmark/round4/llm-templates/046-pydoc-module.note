@@ -1,0 +1,1 @@
+Section titles (NAME, FUNCTIONS, DATA, ...) should become a column; instead each section kind is its own block. Free-prose DESCRIPTION lines and the pydoc boilerplate cannot be data: the fixed boilerplate is skipped, module-specific prose stays uncovered (84%); "Key: value" prose lines go to a generic kv block.

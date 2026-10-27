@@ -1,0 +1,1 @@
+ok (no header printed; empty value column handled by requiring 2+ spaces between value and description; columns named as lsattr -H would print them)

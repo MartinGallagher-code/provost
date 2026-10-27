@@ -499,6 +499,43 @@ if command -v python3 >/dev/null 2>&1; then
     check "a refusal leaves the capture held" "queued in 'unsorted'" "$lt_out"
     check "the held line names the refusal" "the model declined this capture (refusal: cyber)" "$lt_out"
     check_not "no template is kept after a refusal" "other-tool" "$(ls "$LTWS/llm-templates")"
+    # LLM-FIRST: a GENERIC parse the gate passed is not trusted over a template
+    # for the tool. With a key, Claude is asked before the heuristic is filed;
+    # the template wins when it keeps the input's data lines (its own skip
+    # lines aside). A title the heuristic took for data is decoration here.
+    printf 'Volumes on host alpha\nNAME     SIZE   USED   MOUNT\ndata     100G   40G    /srv/data\nbackup   2T     1.5T   /srv/backup\nscratch  500G   12G    /scratch\n' > "$LTD/vol.txt"
+    printf '%s' '{"id":"msg_3","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a generic parse the gate passed is offered to Claude first" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the template Claude wrote wins over the heuristic" "was passed over (the engine read it as aligned-columns, coverage 100%): a template Claude wrote for this tool fits; read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
+    check "the template's rows are filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTWS/datasets/volumes.tsv")"
+    check "meta records the template over the heuristic" "llm_template	filed by a new template Claude wrote (llm-templates/volumes.json)" "$(cat "$LTWS/captures/c0006/meta.tsv")"
+    # the next capture of the tool: the stored template, offline, no API
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    check "a stored template beats the heuristic offline" "read by template volumes.json" "$lt_out"
+    # without --llm the heuristic is filed as before
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
+    check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
+    # with no key and no template (a fresh store), a generic parse the gate
+    # passed is filed as it was, quietly; meta.tsv records why
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.fresh" "$PROVOST" --sync --llm --name other-vols "$LTD/vol.txt" 2>&1)"
+    check "no key: the passed heuristic is filed as it was" "strategy aligned-columns" "$lt_out"
+    check_not "no key: no LLM note on a filed heuristic" "no LLM template helped" "$lt_out"
+    check "meta says why no template was used" "llm_template	declined: no stored template fits; no API key" "$(cat "$LTD/.fresh/captures/c0001/meta.tsv")"
+    # FORMAT 2: a template that is a small Python parser, for records that
+    # span lines (ip-addr.json ships with provost), run in the sandbox
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"
+    check "a shipped parser template reads multi-line records" "read by template ip-addr.json" "$lt_out"
+    check "the parser's blocks are the capture's datasets" "ip-addr.addresses" "$lt_out"
+    check "a record is built from several lines" "enp3s0	inet	10.20.30.7/24	global	85211sec	85211sec	10.20.30.255	dynamic,noprefixroute" "$(cat "$LTWS/datasets/ip-addr.addresses.tsv")"
+    check "a parser that reaches outside the box is refused" "imports os" "$(printf '{"format": 2, "tool": "x", "detect": "^a", "parser": "import os\\ndef parse(l): return []"}' > "$LTD/bad.json"; python3 "$HERE/../extract/llm/template.py" apply "$LTD/bad.json" "$LTD/vol.txt" 2>&1)"
 fi
 
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a

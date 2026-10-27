@@ -1,0 +1,1 @@
+continuation lines (exception and backtrace after a FATAL line) carry only the request id, not the timestamp/pid; they belong to the request above but format 1 cannot attach them, so they are a second table keyed by request_id.

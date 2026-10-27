@@ -1,0 +1,1 @@
+Each plugin's description wraps over continuation lines indented to column 28 that belong to the row above; format 1 cannot join them, so the row keeps only the text on the option line (often empty) and the continuation lines and footer prose are skipped.

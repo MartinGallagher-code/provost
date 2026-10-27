@@ -1,0 +1,1 @@
+DIEs span several lines (an offset+tag header plus indented DW_AT_ attribute lines) and the tag indent encodes tree depth: format 1 cannot attach attributes to their DIE or express depth, so dies and attributes are two flat tables.

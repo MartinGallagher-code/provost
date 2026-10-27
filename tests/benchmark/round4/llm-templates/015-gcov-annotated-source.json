@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "tool": "gcov-annotated-source",
+  "detect": "^\\s*-:\\s+0:Source:",
+  "skip": [],
+  "blocks": [
+    {"name": "metadata",
+     "kind": "kv",
+     "line": "\\s*-:\\s+0:(?P<key>[A-Za-z]+):(?P<value>.*)"},
+    {"name": "functions",
+     "kind": "table",
+     "line": "function (?P<name>\\S+) called (?P<called>\\d+) returned (?P<returned>\\d+%) blocks executed (?P<blocks_executed>\\d+%)",
+     "columns": {"name": "function", "called": "called", "returned": "returned", "blocks_executed": "blocks executed"}},
+    {"name": "branches",
+     "kind": "table",
+     "line": "branch\\s+(?P<branch>\\d+) (?:taken (?P<taken>\\d+)(?: \\((?P<note>[^)]*)\\))?|(?P<status>never executed))",
+     "columns": {"branch": "branch", "taken": "taken", "note": "note", "status": "status"}},
+    {"name": "source",
+     "kind": "table",
+     "line": "\\s*(?P<count>-|#+|=+|\\d+\\*?):\\s*(?P<line>\\d+):(?P<source>.*)",
+     "columns": {"count": "count", "line": "line", "source": "source"}}
+  ]
+}

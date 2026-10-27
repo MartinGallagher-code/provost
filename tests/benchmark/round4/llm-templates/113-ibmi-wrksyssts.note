@@ -1,0 +1,1 @@
+the status area has two key/value pairs per line (left and right columns) with dot leaders; a kv block takes one pair per line, so it is emitted as a 4-column table (Field, Value, Field (right), Value (right)); 'Auxiliary storage:' is a right-column title with an empty value.

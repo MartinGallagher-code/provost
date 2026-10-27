@@ -1,0 +1,1 @@
+Members span two lines (declaration, then an indented descriptor line) and bytecode/line-number/exception rows are nested under their method; format 1 cannot attach them, so members and descriptors are parallel tables (row i matches row i) and the bytecode, line-number and exception tables are flat without a method column.

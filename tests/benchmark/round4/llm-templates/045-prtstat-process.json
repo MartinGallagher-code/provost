@@ -1,0 +1,69 @@
+{
+ "format": 1,
+ "tool": "prtstat-process",
+ "detect": "^Process:\\s+\\S.*\\s+State:\\s+\\S",
+ "skip": [
+  "^(?:Process, Group and Session IDs|Page Faults|CPU Times|Memory|Scheduling)\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "process",
+   "kind": "table",
+   "line": "^Process:\\s+(?P<process>\\S(?:.*?\\S)?)\\s+State:\\s+(?P<state>\\S.*?)\\s*$"
+  },
+  {
+   "name": "cpu",
+   "kind": "table",
+   "line": "^\\s*CPU#:\\s+(?P<cpu>\\d+)\\s+TTY:\\s+(?P<tty>\\S+)\\s+Threads:\\s+(?P<threads>\\d+)\\s*$"
+  },
+  {
+   "name": "process_ids",
+   "kind": "table",
+   "line": "^\\s*Process ID:\\s+(?P<process_id>-?\\d+)\\s+Parent ID:\\s+(?P<parent_id>-?\\d+)\\s*$"
+  },
+  {
+   "name": "group_ids",
+   "kind": "table",
+   "line": "^\\s*Group ID:\\s+(?P<group_id>-?\\d+)\\s+Session ID:\\s+(?P<session_id>-?\\d+)\\s*$"
+  },
+  {
+   "name": "page_faults",
+   "kind": "table",
+   "line": "^\\s*(?P<scope>This Process|Child Processes)\\s+\\(minor major\\):\\s+(?P<minor>\\d+)\\s+(?P<major>\\d+)\\s*$"
+  },
+  {
+   "name": "cpu_times",
+   "kind": "table",
+   "line": "^\\s*(?P<scope>This Process|Child [Pp]rocesses)\\s+\\(user system guest(?: blkio)?\\):\\s+(?P<user>[\\d.]+)\\s+(?P<system>[\\d.]+)\\s+(?P<guest>[\\d.]+)(?:\\s+(?P<blkio>[\\d.]+))?\\s*$"
+  },
+  {
+   "name": "rss",
+   "kind": "table",
+   "line": "^\\s*RSS:\\s+(?P<rss>\\d+ \\w+)\\s+RSS Limit:\\s+(?P<rss_limit>\\d+ \\w+)\\s*$"
+  },
+  {
+   "name": "code",
+   "kind": "table",
+   "line": "^\\s*Code Start:\\s+(?P<code_start>\\S+)\\s+Code Stop:\\s+(?P<code_stop>\\S+)\\s*$"
+  },
+  {
+   "name": "pointers",
+   "kind": "table",
+   "line": "^\\s*Stack Pointer \\(ESP\\):\\s+(?P<esp>\\S+)\\s+Inst Pointer \\(EIP\\):\\s+(?P<eip>\\S+)\\s*$",
+   "columns": {
+    "esp": "Stack Pointer (ESP)",
+    "eip": "Inst Pointer (EIP)"
+   }
+  },
+  {
+   "name": "priority",
+   "kind": "table",
+   "line": "^\\s*Nice:\\s+(?P<nice>-?\\d+)\\s+RT Priority:\\s+(?P<rt_priority>\\S.*?)\\s*$"
+  },
+  {
+   "name": "fields",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>[^:\\t]+?):\\s+(?P<value>\\S(?:[^\\t]*?\\S)?)\\s*$"
+  }
+ ]
+}
