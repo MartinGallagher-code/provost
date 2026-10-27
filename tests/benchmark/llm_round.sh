@@ -11,7 +11,10 @@
 ## the default run would).
 ##
 ## Usage:
-##   bash tests/benchmark/llm_round.sh --round4 [outdir] [--templates DIR]
+##   bash tests/benchmark/llm_round.sh --round4 [outdir] [--templates DIR[:DIR...]]
+##   (several directories: the first one holding <stem>.json wins, so
+##   `--templates round4/llm-templates-f2:round4/llm-templates` runs the
+##   format-2 rewrites where they exist and the format-1 templates elsewhere)
 ##
 ## Writes, per input NAME, under outdir:
 ##   NAME.out        provost's own report of the capture
@@ -42,7 +45,6 @@ set_dir="$here/$round/inputs"
 [[ -n "$tdir" ]] || tdir="$here/$round/llm-templates"
 [[ -n "$outdir" ]] || outdir="$(mktemp -d)"
 mkdir -p "$outdir"
-tdir="$(cd -- "$tdir" && pwd)"
 
 unset PROVOST_LLM_API_KEY ANTHROPIC_API_KEY
 export PROVOST_LLM=1 PROVOST_LLM_TEMPLATE_DIRS="$tdir" PROVOST_NO_RC=1
@@ -54,7 +56,10 @@ for in_file in "$set_dir"/*.txt; do
     # a per-input template dir: the capture is named after the stem's tool, and
     # provost looks for <name>.json first, then any template whose detect fits
     one="$(mktemp -d)"
-    [[ -f "$tdir/$stem.json" ]] && cp "$tdir/$stem.json" "$one/${stem#[0-9]*-}.json"
+    IFS=: read -ra _tds <<< "$tdir"
+    for _td in "${_tds[@]}"; do      # --templates A:B — the first dir holding the stem wins
+        [[ -f "$_td/$stem.json" ]] && { cp "$_td/$stem.json" "$one/${stem#[0-9]*-}.json"; break; }
+    done
     PROVOST_WORKSPACE="$ws" PROVOST_LLM_TEMPLATE_DIRS="$one" \
         "$provost" --sync --name "${stem#[0-9]*-}" "$in_file" > "$outdir/$stem.out" 2>&1
     cp "$ws/captures/c0001/meta.tsv" "$outdir/$stem.meta" 2>/dev/null || true

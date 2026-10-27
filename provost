@@ -1090,7 +1090,15 @@ _llm_file () {
         llm_note="its blocks are fragments ($sub of $tot lines in blocks of $_AM_FRAG_LINES+ lines)"; return 1
     fi
     alll=$(grep -c '[^[:space:]]' "$body" || true)
-    alll=$(( alll - skipped ))
+    # the lines a template marks as decoration are not counted against it —
+    # except against a CATCH-ALL parse the gate passed (text-lines,
+    # line-records: the engine's own lossless readings, _FR_COV_CATCHALL).
+    # A template may not beat a parse that kept every line by declaring
+    # the lines it cannot read decoration: there every line counts.
+    case " $strategy " in
+        *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] || alll=$(( alll - skipped )) ;;
+        *) alll=$(( alll - skipped )) ;;
+    esac
     (( alll > 0 )) || { llm_note="it keeps none of the input's data lines"; return 1; }
     jcov=$(( covl / alll ))
     # against a held parse the template must gain _AM_GAIN points; against a
@@ -2638,7 +2646,9 @@ LLM TEMPLATES (Claude writes a parser for a tool once; provost reuses it)
     engine and filed only under the gate's rules: one block as the capture's
     dataset, several as NAME.<block>, AUTO-MULTI's way; against a generic
     parse the gate passed it must keep that parse's share of the data lines
-    (within 10 points; lines it marks as decoration not counted). A new
+    (within 10 points; lines it marks as decoration not counted, except
+    against text-lines or line-records, which keep every line: there a
+    skipped line is a lost line). A new
     template is kept, and committed with the capture, only when it passes.
     From then on every capture of that tool is parsed offline,
     deterministically and at no cost. meta.tsv records 'llm_template' (filed

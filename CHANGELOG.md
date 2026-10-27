@@ -50,6 +50,12 @@ generalisation problem; it only has to fit the next capture of the same tool.
     (values right, parent lost), the format-2 work list. 5 inputs got
     worse, 2 of them because the within-10 floor let a template beat a
     lossless `text-lines` parse by dropping continuation lines.
+  - **Guard (`_llm_file`):** against a catch-all parse (`text-lines`,
+    `line-records`) a template's skip lines count as lost, so it cannot win
+    by declaring what it cannot read decoration (019 go-doc-all is now
+    declined, filed by text-lines as before). Smoke +3.
+  - **`llm_round.sh --templates A:B`:** several directories, the first
+    holding the stem wins (format-2 rewrites over the format-1 set).
 - **Tests:** smoke +15 (LLM-first with the fake API, offline reuse, no-key
   behaviour, the shipped parser template, a refused parser);
   `ml/tests/test_llm_template.py` +4 (format 2 apply/report, static refusal,

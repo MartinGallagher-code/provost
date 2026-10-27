@@ -529,6 +529,21 @@ if command -v python3 >/dev/null 2>&1; then
     check "no key: the passed heuristic is filed as it was" "strategy aligned-columns" "$lt_out"
     check_not "no key: no LLM note on a filed heuristic" "no LLM template helped" "$lt_out"
     check "meta says why no template was used" "llm_template	declined: no stored template fits; no API key" "$(cat "$LTD/.fresh/captures/c0001/meta.tsv")"
+    # a template may not beat a CATCH-ALL parse (text-lines keeps every line)
+    # by declaring the lines it cannot read decoration: against one, its
+    # skip lines count as lost
+    printf 'The quick brown fox jumps over the lazy dog near the river bank.\nEvery morning the ferry leaves the harbour at six and returns at noon.\nNobody counted the gulls, though the keeper swore there were hundreds.\nRain came late in the season and the orchard did poorly that year.\nThe mill wheel still turns when the sluice is open, which is rarely.\nVisitors are asked to keep to the path and to close the gate.\nSummary of moorings:\nNAME     LENGTH\nkestrel  12m\nosprey   9m\n' > "$LTD/prose.txt"
+    printf '%s' '{"id":"msg_4","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"moorings\", \"detect\": \"^NAME\\\\s+LENGTH$\", \"skip\": [\"^[A-Z].*[.:]$\"], \"blocks\": [{\"name\": \"moorings\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+LENGTH$\", \"line\": \"^(?P<name>[a-z]+)\\\\s+(?P<length>\\\\d+m)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.fresh" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name moorings "$LTD/prose.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a template that skips what text-lines kept does not replace it" "strategy text-lines" "$lt_out"
+    check "meta says the template lost lines" "the template Claude wrote fails the gate: its 1 block(s) keep 30% of the input's data lines, <90%" "$(cat "$LTD/.fresh/captures/c0002/meta.tsv")"
+    check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh/llm-templates" 2>/dev/null)"
     # FORMAT 2: a template that is a small Python parser, for records that
     # span lines (ip-addr.json ships with provost), run in the sandbox
     lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"

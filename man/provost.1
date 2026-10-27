@@ -264,7 +264,9 @@ layout model; and on a generic parse the gate passed, before that parse is
 trusted (never over an exact-format or tool-specific parser). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
-data lines within 10 points. A new template is kept, and committed with the
+data lines within 10 points (its decoration lines not counted, except against
+\fBtext-lines\fR or \fBline-records\fR, which keep every line). A new template
+is kept, and committed with the
 capture, only when it passes. Later captures of the tool are parsed offline.
 \fImeta.tsv\fR records \fBllm_template\fR.
 .SH COLUMN-TYPE CONSISTENCY
