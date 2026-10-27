@@ -1,5 +1,17 @@
 # provost — Changelog
 
+## 2026-10-27 — `PROVOST_LLM_API_KEY` is the key name to use; `llm_round.sh --inputs`
+
+- **Docs (`provost` help, `man/provost.1`, `README.md`):** prefer
+  `PROVOST_LLM_API_KEY` where `ANTHROPIC_API_KEY` is taken. A Claude Code
+  environment keeps `ANTHROPIC_API_KEY` for its own sign-in ("won't be used
+  to authenticate requests"), so an `--llm` key belongs under the provost
+  name, which provost already reads first.
+- **`tests/benchmark/llm_round.sh --inputs DIR`:** run a round's templates on
+  another inputs directory, for the second-capture test
+  (`round4/variants/`: one more capture of each round-4 tool, written to the
+  tool's format by Claude helpers who saw only the original capture).
+
 ## 2026-10-27 — `--llm` goes first, and a template can be a parser (format 2)
 
 The plan behind this: `docs/plan-2026-10-27-near-100.md`. On unseen output the

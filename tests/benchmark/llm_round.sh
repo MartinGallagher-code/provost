@@ -15,6 +15,9 @@
 ##   (several directories: the first one holding <stem>.json wins, so
 ##   `--templates round4/llm-templates-f2:round4/llm-templates` runs the
 ##   format-2 rewrites where they exist and the format-1 templates elsewhere)
+##   [--inputs DIR]   read the inputs from DIR instead of roundN/inputs/ (e.g.
+##   round4/variants/: a second capture of each tool, to test a stored
+##   template on output it was not written from)
 ##
 ## Writes, per input NAME, under outdir:
 ##   NAME.out        provost's own report of the capture
@@ -30,18 +33,19 @@ here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 root=$(cd -- "$here/../.." && pwd)
 provost="$root/provost"
 
-round=""; outdir=""; tdir=""
+round=""; outdir=""; tdir=""; idir=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --round[0-9]*) round="${1#--}"; shift ;;
         --templates) tdir="$2"; shift 2 ;;
+        --inputs) idir="$2"; shift 2 ;;
         -*) echo "unknown option: $1" >&2; exit 2 ;;
         *) outdir="$1"; shift ;;
     esac
 done
 [[ -n "$round" ]] || { echo "usage: $0 --roundN [outdir] [--templates DIR]" >&2; exit 2; }
-set_dir="$here/$round/inputs"
-[[ -d "$set_dir" ]] || { echo "no such round: $set_dir" >&2; exit 2; }
+set_dir="${idir:-$here/$round/inputs}"
+[[ -d "$set_dir" ]] || { echo "no such inputs directory: $set_dir" >&2; exit 2; }
 [[ -n "$tdir" ]] || tdir="$here/$round/llm-templates"
 [[ -n "$outdir" ]] || outdir="$(mktemp -d)"
 mkdir -p "$outdir"

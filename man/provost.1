@@ -364,7 +364,9 @@ TEMPLATES\fR); \fB0\fR (the default): don't (same as \fB--llm\fR /
 The model that writes templates (default \fBclaude-opus-5-5\fR).
 .TP
 .B PROVOST_LLM_API_KEY
-Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR).
+Anthropic API key for \fB--llm\fR (else \fBANTHROPIC_API_KEY\fR; prefer this one
+where \fBANTHROPIC_API_KEY\fR is taken, e.g. inside Claude Code, which keeps it
+for its own sign-in).
 .TP
 .B PROVOST_LLM_BASE_URL
 API base URL (default \fBhttps://api.anthropic.com\fR).

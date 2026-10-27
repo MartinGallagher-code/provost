@@ -138,7 +138,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
 | `PROVOST_LLM` | `0` | `1` = parse with a template Claude wrote for that tool (regexes, or a small boxed Python parser for records that span lines; stored in the store's `llm-templates/`, or shipped), before a generic parse is trusted or a capture held; with no fitting template and an API key, ask Claude to write one. Writing one sends the capture to the Anthropic API, once per tool; every later capture of the tool is parsed offline (same as `--llm`) |
 | `PROVOST_LLM_MODEL` | `claude-opus-5-5` | the model that writes templates |
-| `PROVOST_LLM_API_KEY` | — | Anthropic API key for `--llm` (else `ANTHROPIC_API_KEY`) |
+| `PROVOST_LLM_API_KEY` | — | Anthropic API key for `--llm` (else `ANTHROPIC_API_KEY`; prefer this one where `ANTHROPIC_API_KEY` is taken, e.g. in a Claude Code environment, which keeps that name for its own sign-in) |
 | `PROVOST_LLM_BASE_URL` | `https://api.anthropic.com` | API base URL |
 | `PROVOST_LLM_TEMPLATE_DIRS` | — | colon-separated directories of templates to look in after the store's `llm-templates/` and before the ones shipped with provost |
 | `PROVOST_MAX_INPUT` | `10485760` | max input bytes (inject and `run`) |

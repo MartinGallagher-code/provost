@@ -2536,7 +2536,9 @@ ENV
                               same as --llm). See LLM TEMPLATES.
     PROVOST_LLM_MODEL         the model that writes templates (default
                               claude-opus-5-5)
-    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else ANTHROPIC_API_KEY)
+    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else ANTHROPIC_API_KEY;
+                              prefer this one where ANTHROPIC_API_KEY is taken,
+                              e.g. inside Claude Code, which keeps it for itself)
     PROVOST_LLM_BASE_URL      API base URL (default https://api.anthropic.com)
     PROVOST_LLM_TEMPLATE_DIRS colon-separated directories of templates to look
                               in after the store's and before provost's own
