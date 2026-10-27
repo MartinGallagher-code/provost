@@ -1,0 +1,39 @@
+
+# Scanning the entire keyspace to find biggest keys as well as
+# average sizes per key type.  You can use -i 0.1 to sleep 0.1 sec
+# per 100 SCAN commands (not usually needed).
+
+[00.00%] Biggest string found so far '"cache:page:00167"' with 603 bytes
+[00.00%] Biggest string found so far '"cache:page:00125"' with 720 bytes
+[00.00%] Biggest string found so far '"cache:page:00351"' with 768 bytes
+[00.00%] Biggest string found so far '"cache:page:00048"' with 875 bytes
+[00.00%] Biggest hash   found so far '"account:0061"' with 7 fields
+[01.65%] Biggest hash   found so far '"account:0000"' with 32 fields
+[01.65%] Biggest string found so far '"cache:page:00338"' with 900 bytes
+[04.94%] Biggest stream found so far '"audit:1"' with 22 entries
+[06.92%] Biggest list   found so far '"jobs:pending:1"' with 71 items
+[06.92%] Biggest list   found so far '"jobs:pending:10"' with 111 items
+[15.16%] Biggest hash   found so far '"account:0022"' with 38 fields
+[18.45%] Biggest hash   found so far '"account:0058"' with 47 fields
+[35.26%] Biggest zset   found so far '"rank:0"' with 77 members
+[52.55%] Biggest hash   found so far '"account:0009"' with 48 fields
+[54.37%] Biggest list   found so far '"jobs:pending:7"' with 121 items
+[93.08%] Biggest list   found so far '"jobs:pending:14"' with 139 items
+
+-------- summary -------
+
+Sampled 607 keys in the keyspace!
+Total key length in bytes is 9380 (avg len 15.45)
+
+Biggest   list found '"jobs:pending:14"' has 139 items
+Biggest   hash found '"account:0009"' has 48 fields
+Biggest string found '"cache:page:00338"' has 900 bytes
+Biggest stream found '"audit:1"' has 22 entries
+Biggest   zset found '"rank:0"' has 77 members
+
+18 lists with 1056 items (02.97% of keys, avg size 58.67)
+64 hashs with 1511 fields (10.54% of keys, avg size 23.61)
+520 strings with 241884 bytes (85.67% of keys, avg size 465.16)
+2 streams with 37 entries (00.33% of keys, avg size 18.50)
+0 sets with 0 members (00.00% of keys, avg size 0.00)
+3 zsets with 155 members (00.49% of keys, avg size 51.67)

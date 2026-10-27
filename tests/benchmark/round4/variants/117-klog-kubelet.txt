@@ -1,0 +1,25 @@
+I0903 14:22:07.009114  412987 server.go:487] "Kubelet version" kubeletVersion="v1.30.5"
+I0903 14:22:07.009180  412987 server.go:489] "Golang settings" GOGC="" GOMAXPROCS="" GOTRACEBACK=""
+I0903 14:22:07.011652  412987 dynamic_cafile_content.go:160] "Starting controller" name="client-ca-bundle::/etc/kubernetes/pki/ca.crt"
+I0903 14:22:07.020341  412987 server.go:929] "Client rotation is on, will bootstrap in background"
+W0903 14:22:07.033870  412987 feature_gate.go:351] Setting GA feature gate KubeletInUserNamespace=false. It will be removed in a future release.
+W0903 14:22:07.034002  412987 feature_gate.go:354] Setting deprecated feature gate ServiceAccountTokenNodeBinding=true. It will be removed in a future release.
+I0903 14:22:07.101275  412987 container_manager_linux.go:300] "Creating Container Manager object based on Node Config" nodeConfig={"NodeName":"gpu-node-a17","RuntimeCgroupsName":"/system.slice/containerd.service","SystemCgroupsName":"","KubeletCgroupsName":"","KubeletOOMScoreAdj":-999,"ContainerRuntime":"","CgroupsPerQOS":true,"CgroupRoot":"/","CgroupDriver":"systemd"}
+I0903 14:22:08.442019  412987 kubelet_node_status.go:75] "Attempting to register node" node="gpu-node-a17"
+E0903 14:22:08.447510  412987 kubelet_node_status.go:97] "Unable to register node with API server" err="Post \"https://192.0.2.40:6443/api/v1/nodes\": dial tcp 192.0.2.40:6443: connect: connection refused" node="gpu-node-a17"
+I0903 14:22:15.618304  412987 kubelet_node_status.go:75] "Attempting to register node" node="gpu-node-a17"
+I0903 14:22:15.664893  412987 kubelet_node_status.go:78] "Successfully registered node" node="gpu-node-a17"
+E0903 14:22:16.210077  412987 kubelet.go:2901] "Container runtime network not ready" networkReady="NetworkReady=false reason:NetworkPluginNotReady message:Network plugin returns error: cni plugin not initialized"
+I0903 14:23:40.877512  412987 reconciler_common.go:245] "operationExecutor.VerifyControllerAttachedVolume started for volume \"model-cache\" (UniqueName: \"kubernetes.io/host-path/9c1f5e2a-44b0-4d3e-a6f1-0b7c2d8e9f13-model-cache\") pod \"inference-worker-0\" (UID: \"9c1f5e2a-44b0-4d3e-a6f1-0b7c2d8e9f13\") " pod="ml/inference-worker-0"
+E0903 14:25:02.004561  412987 pod_workers.go:1301] "Error syncing pod, skipping" err="failed to \"StartContainer\" for \"triton\" with ImagePullBackOff: \"Back-off pulling image \\\"registry.example.com/ml/triton:24.08\\\"\"" pod="ml/inference-worker-0" podUID="9c1f5e2a-44b0-4d3e-a6f1-0b7c2d8e9f13"
+I0903 14:25:19.330140  412987 scope.go:117] "RemoveContainer" containerID="a07f3c19e2d84b5f6a7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c"
+I0903 14:25:19.331022  412987 scope.go:117] "RemoveContainer" containerID="e5d4c3b2a1908f7e6d5c4b3a29180f7e6d5c4b3a2918e7f6d5c4b3a2918070f"
+W0903 14:31:47.902266  412987 eviction_manager.go:376] "Eviction manager: attempting to reclaim" resourceName="memory"
+I0903 14:31:47.905380  412987 eviction_manager.go:387] "Eviction manager: must evict pod(s) to reclaim" resourceName="memory"
+I0903 14:31:47.905511  412987 eviction_manager.go:405] "Eviction manager: pods ranked for eviction" pods=["batch/feature-extract-28771540-tq9zd","ml/inference-worker-0","kube-system/fluent-bit-lw5rc"]
+I0903 14:31:48.011907  412987 eviction_manager.go:616] "Eviction manager: pod is evicted successfully" pod="batch/feature-extract-28771540-tq9zd"
+E0903 14:36:12.551803  412987 kuberuntime_manager.go:1256] "Unhandled Error" err=<
+	container &Container{Name:triton,Image:registry.example.com/ml/triton:24.08,Command:[],Args:[],WorkingDir:,} start failed in pod inference-worker-0_ml(9c1f5e2a-44b0-4d3e-a6f1-0b7c2d8e9f13): ErrImagePull: failed to pull and unpack image "registry.example.com/ml/triton:24.08": failed to resolve reference "registry.example.com/ml/triton:24.08": unexpected status from HEAD request: 401 Unauthorized
+	retrying with backoff
+ > logger="UnhandledError"
+I0903 14:36:30.120448  412987 kubelet.go:2462] "SyncLoop DELETE" source="api" pods=["batch/feature-extract-28771540-tq9zd"]

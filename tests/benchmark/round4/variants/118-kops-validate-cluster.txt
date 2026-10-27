@@ -1,0 +1,28 @@
+Using cluster from kubectl context: staging.k8s.example.com
+
+Validating cluster staging.k8s.example.com
+
+INSTANCE GROUPS
+NAME				ROLE		MACHINETYPE	MIN	MAX	SUBNETS
+control-plane-us-west-2a	ControlPlane	t3.medium	1	1	us-west-2a
+nodes-us-west-2a		Node		t3.large	2	4	us-west-2a
+nodes-us-west-2b		Node		t3.large	2	4	us-west-2b
+gpu				Node		g5.xlarge	2	2	us-west-2b
+
+NODE STATUS
+NAME			ROLE		READY
+i-07d3a9c1e5b2f4086	control-plane	True
+i-0e81b4f6a2c9d3157	node		True
+i-03c5e7a9b1d2f4608	node		True
+i-0a9f8e7d6c5b4a321	node		True
+i-01b2c3d4e5f6a7b8c	node		True
+
+VALIDATION ERRORS
+KIND		NAME							MESSAGE
+InstanceGroup	gpu							InstanceGroup "gpu" did not have enough nodes 0 vs 2
+Pod		kube-system/nvidia-device-plugin-daemonset-k8m2r	system-node-critical pod "nvidia-device-plugin-daemonset-k8m2r" is pending
+Pod		kube-system/coredns-autoscaler-5c7b9d6f4-hp4wz		system-cluster-critical pod "coredns-autoscaler-5c7b9d6f4-hp4wz" is not ready (autoscaler)
+Pod		kube-system/coredns-7f9c6b8d5-zk2tq			system-cluster-critical pod "coredns-7f9c6b8d5-zk2tq" is not ready (coredns)
+
+Validation Failed
+Error: validation failed: cluster not yet healthy

@@ -1,0 +1,32 @@
+SQL> SHOW TABLE ORDER_LINES;
+ORDER_ID                        BIGINT Not Null 
+LINE_NO                         SMALLINT Not Null 
+SKU                             (D_SKU) VARCHAR(24) CHARACTER SET UTF8 Not Null 
+                                CHECK (VALUE SIMILAR TO '[A-Z0-9-]+')
+DESCRIPTION                     VARCHAR(255) CHARACTER SET UTF8 Nullable 
+                                 COLLATE UNICODE_CI
+QTY                             INTEGER Not Null DEFAULT 1
+UNIT_PRICE                      NUMERIC(15, 4) Not Null 
+DISCOUNT_PCT                    DECIMAL(5, 2) Nullable DEFAULT 0.00
+LINE_TOTAL                      Computed by: (QTY * UNIT_PRICE * (100 - COALESCE(DISCOUNT_PCT, 0)) / 100)
+CURRENCY                        CHAR(3) CHARACTER SET ASCII Not Null DEFAULT 'EUR'
+SHIPPED                         BOOLEAN Nullable DEFAULT FALSE
+UPDATED_AT                      TIMESTAMP Nullable 
+NOTE                            BLOB segment 80, subtype TEXT CHARACTER SET UTF8 Nullable 
+CONSTRAINT FK_ORDER_LINES_ORDER:
+  Foreign key (ORDER_ID)    References ORDERS (ORDER_ID) On Update Cascade On Delete Cascade
+CONSTRAINT FK_ORDER_LINES_SKU:
+  Foreign key (SKU)    References PRODUCTS (SKU)
+CONSTRAINT PK_ORDER_LINES:
+  Primary key (ORDER_ID, LINE_NO)
+CONSTRAINT CHK_QTY_POSITIVE:
+  CHECK (QTY > 0)
+CONSTRAINT CHK_DISCOUNT_RANGE:
+  CHECK (DISCOUNT_PCT BETWEEN 0 AND 100)
+
+Triggers on Table ORDER_LINES:
+ORDER_LINES_BI0, Sequence: 0, Type: BEFORE INSERT, Active
+ORDER_LINES_BU0, Sequence: 0, Type: BEFORE UPDATE, Active
+TRG_ORDER_LINES_AIUD_TOTALS, Sequence: 10, Type: AFTER INSERT OR UPDATE OR DELETE, Active
+TRG_ORDER_LINES_AUDIT, Sequence: 32767, Type: AFTER DELETE, Inactive
+SQL> 

@@ -1,0 +1,9 @@
+File Name                                             Modified             Size
+reports/                                       2026-09-28 17:04:12            0
+reports/2026-Q3 ├£bersicht final.csv           2026-09-28 17:02:46        48211
+reports/a├▒o fiscal.txt                        2026-09-27 09:41:00          731
+reports/archive/                               2026-09-28 17:04:12            0
+reports/archive/monthly-reconciliation-summary-2026-07.xlsx 2026-08-01 06:00:02      1203344
+reports/archive/notes.md                       2026-08-01 06:00:02            2
+README                                         2026-09-25 11:30:58          412
+install helper.ps1                             2026-09-25 11:31:04         5097
