@@ -41,7 +41,15 @@ generalisation problem; it only has to fit the next capture of the same tool.
   alone, with a `.note` each on what format 1 could not express). 102 of 107
   are filed by their template, 4 by the engine (one `yaml` claim is exempt;
   three templates fail the fragments, coverage-within-10 or consistency
-  rule), 1 held (a 2-line input). Ratings: the next entry.
+  rule), 1 held (a 2-line input).
+  - **Rated** (`docs/benchmark-2026-10-27-llm-templates-round4.md`,
+    `round4/ratings-llm-templates.tsv`): **35 PASS / 66 PARTIAL / 6 FAIL**
+    against the engine's 12 / 51 / 44 (usable 94% against 59%). Tables
+    20/26 PASS. Where format 1 could express the output (42 inputs): 30
+    PASS, 0 FAIL; where it could not (65): 5 PASS, 54 PARTIAL of one shape
+    (values right, parent lost), the format-2 work list. 5 inputs got
+    worse, 2 of them because the within-10 floor let a template beat a
+    lossless `text-lines` parse by dropping continuation lines.
 - **Tests:** smoke +15 (LLM-first with the fake API, offline reuse, no-key
   behaviour, the shipped parser template, a refused parser);
   `ml/tests/test_llm_template.py` +4 (format 2 apply/report, static refusal,

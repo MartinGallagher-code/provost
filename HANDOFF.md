@@ -107,12 +107,14 @@ Suites (all CI-enforced):
       `PROVOST_LLM_TEMPLATE_DIRS`; `tests/benchmark/llm_round.sh`;
       `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
       Claude helpers, with `.note`s on what format 1 could not express).
-    - **Round 4 with templates:** 102/107 filed by template. Ratings are
-      being written (`docs/benchmark-2026-10-27-llm-templates-round4.md`,
-      next commit).
-    - **Next:** the write-up; redo the templates whose `.note` names a
-      cross-line limit as format 2 and re-rate; then the judge (step 3 of
-      the plan), the shipped library (step 5) and round 5 — the last three
+    - **Round 4 with templates** (`docs/benchmark-2026-10-27-llm-templates-round4.md`):
+      **35 / 66 / 6 against the engine's 12 / 51 / 44** (usable 94% vs 59%).
+      Where format 1 fits (42 inputs) 30 PASS and 0 FAIL; where it does not
+      (65) the output is PARTIAL of one shape: values right, parent lost.
+    - **Next:** redo those 65 as format 2 (their `.note`s are the work
+      list) and re-rate; a guard so a template never beats a lossless
+      catch-all parse by dropping lines (two regressions), then the judge
+      (step 3), the shipped library (step 5) and round 5 — the last three
       need `ANTHROPIC_API_KEY` in the environment.
 
 0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
