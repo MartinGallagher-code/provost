@@ -1,0 +1,74 @@
+{
+ "format": 1,
+ "tool": "gprof-brief",
+ "detect": "^Flat profile:|^\\s*Call graph|^index\\s+% time\\s+self\\s+children\\s+called\\s+name",
+ "skip": [
+  "^Flat profile:",
+  "^Each sample counts as",
+  "^\\s*Call graph",
+  "^granularity:",
+  "^-{5,}\\s*$",
+  "^Index by function name",
+  "^\\s*<spontaneous>\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "call_graph_entries",
+   "kind": "table",
+   "header": "^index\\s+% time\\s+self\\s+children\\s+called\\s+name",
+   "line": "^\\[(?P<index>\\d+)\\]\\s+(?P<pct_time>[\\d.]+)\\s+(?P<self>[\\d.]+)\\s+(?P<children>[\\d.]+)(?:\\s+(?P<called>\\d+(?:\\+\\d+)?))?\\s+(?P<name>\\S.*?)\\s+\\[(?P<ref>\\d+)\\]\\s*$",
+   "columns": {
+    "index": "index",
+    "pct_time": "% time",
+    "self": "self",
+    "children": "children",
+    "called": "called",
+    "name": "name",
+    "ref": "ref"
+   }
+  },
+  {
+   "name": "call_graph_callers_callees",
+   "kind": "table",
+   "line": "^\\s+(?P<self>[\\d.]+)\\s+(?P<children>[\\d.]+)(?:\\s+(?P<called>\\d+(?:[/+]\\d+)*))?\\s+(?P<name>\\S.*?)\\s+\\[(?P<index>\\d+)\\]\\s*$",
+   "columns": {
+    "self": "self",
+    "children": "children",
+    "called": "called",
+    "name": "name",
+    "index": "index"
+   }
+  },
+  {
+   "name": "flat_profile",
+   "kind": "table",
+   "header": "^\\s*%\\s+cumulative\\s+self|^\\s*time\\s+seconds\\s+seconds",
+   "line": "^\\s*(?P<pct_time>[\\d.]+)\\s+(?P<cumulative_seconds>[\\d.]+)\\s+(?P<self_seconds>[\\d.]+)(?:\\s+(?P<calls>\\d+)\\s+(?P<self_ms_call>[\\d.]+)\\s+(?P<total_ms_call>[\\d.]+))?\\s+(?P<name>[^\\s\\d].*?)\\s*$",
+   "columns": {
+    "pct_time": "% time",
+    "cumulative_seconds": "cumulative seconds",
+    "self_seconds": "self seconds",
+    "calls": "calls",
+    "self_ms_call": "self ms/call",
+    "total_ms_call": "total ms/call",
+    "name": "name"
+   }
+  },
+  {
+   "name": "function_index",
+   "kind": "table",
+   "line": "^\\s+\\[(?P<index_1>\\d+)\\]\\s+(?P<name_1>\\S+)(?:\\s+\\[(?P<index_2>\\d+)\\]\\s+(?P<name_2>\\S+))?(?:\\s+\\[(?P<index_3>\\d+)\\]\\s+(?P<name_3>\\S+))?\\s*$",
+   "columns": {
+    "index_1": "index",
+    "name_1": "name",
+    "index_2": "index",
+    "name_2": "name",
+    "index_3": "index",
+    "name_3": "name"
+   }
+  }
+ ],
+ "examples": [
+  "Flat profile:\n\nEach sample counts as 0.01 seconds.\n  %   cumulative   self              self     total           \n time   seconds   seconds    calls  ms/call  ms/call  name    \n100.00      0.71     0.71  1499999     0.00     0.00  collatz\n  0.00      0.71     0.00  8000000     0.00     0.00  step\n  0.00      0.71     0.00       40     0.00     0.00  integrate\n  0.00      0.71     0.00        1     0.00   710.00  scan\n\f\n\t\t\tCall graph\n\n\ngranularity: each sample hit covers 4 byte(s) for 1.41% of 0.71 seconds\n\nindex % time    self  children    called     name\n                0.71    0.00 1499999/1499999     scan [2]\n[1]    100.0    0.71    0.00 1499999         collatz [1]\n-----------------------------------------------\n                0.00    0.71       1/1           main [3]\n[2]    100.0    0.00    0.71       1         scan [2]\n                0.71    0.00 1499999/1499999     collatz [1]\n-----------------------------------------------\n                                                 <spontaneous>\n[3]    100.0    0.00    0.71                 main [3]\n                0.00    0.71       1/1           scan [2]\n                0.00    0.00      40/40          integrate [5]\n-----------------------------------------------\n                0.00    0.00 8000000/8000000     integrate [5]\n[4]      0.0    0.00    0.00 8000000         step [4]\n-----------------------------------------------\n                0.00    0.00      40/40          main [3]\n[5]      0.0    0.00    0.00      40         integrate [5]\n                0.00    0.00 8000000/8000000     step [4]\n-----------------------------------------------\n\f\nIndex by function name\n\n   [1] collatz                 [2] scan\n   [5] integrate               [4] step"
+ ]
+}

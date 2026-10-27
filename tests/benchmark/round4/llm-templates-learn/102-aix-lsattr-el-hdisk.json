@@ -1,0 +1,22 @@
+{
+ "format": 1,
+ "tool": "aix-lsattr-el-hdisk",
+ "detect": "^\\w+\\s+.*\\s(?:True\\+?|False)\\s*$",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "attributes",
+   "kind": "table",
+   "line": "^(?P<attribute>\\S+)\\s+(?:(?P<value>\\S(?:.*?\\S)?)\\s{2,})?(?P<description>\\S(?:.*?\\S)?)\\s+(?P<user_settable>True\\+?|False)\\s*$",
+   "columns": {
+    "attribute": "attribute",
+    "value": "value",
+    "description": "description",
+    "user_settable": "user_settable"
+   }
+  }
+ ],
+ "examples": [
+  "PCM             PCM/friend/aixmpiods8k                              Path Control Module              False\nPR_key_value    none                                                Persistant Reserve Key Value     True+\nalgorithm       shortest_queue                                      Algorithm                        True+\nclr_q           no                                                  Device CLEARS its Queue on error True\ndist_err_pcnt   0                                                   Distributed Error Percentage     True\ndist_tw_width   50                                                  Distributed Error Sample Time    True\nhcheck_cmd      test_unit_rdy                                       Health Check Command             True+\nhcheck_interval 60                                                  Health Check Interval            True+\nhcheck_mode     nonactive                                           Health Check Mode                True+\nlocation                                                            Location Label                   True+\nlun_id          0x4012400000000000                                  Logical Unit Number ID           False\nlun_reset_spt   yes                                                 Support SCSI LUN reset           True\nmax_coalesce    0x40000                                             Maximum Coalesce Size            True\nmax_retry_delay 60                                                  Maximum Quiesce Time             True\nmax_transfer    0x80000                                             Maximum TRANSFER Size            True\nnode_name       0x5005076303ffc4a2                                  FC Node Name                     False\npvid            00f6a1c2d3e4f5a60000000000000000                    Physical volume identifier       False\nq_err           yes                                                 Use QERR bit                     True\nq_type          simple                                              Queuing TYPE                     True\nqueue_depth     20                                                  Queue DEPTH                      True+\nreassign_to     120                                                 REASSIGN time out value          True\nreserve_policy  no_reserve                                          Reserve Policy                   True+\nrw_timeout      30                                                  READ/WRITE time out value        True\nscsi_id         0x10a00                                             SCSI ID                          False\nstart_timeout   60                                                  START unit time out value        True\ntimeout_policy  fail_path                                           Timeout Policy                   True+\nunique_id       200B75DK421054207210790003IBMfcp                    Unique device identifier         False\nww_name         0x50050763031044a2                                  FC World Wide Name               False"
+ ]
+}

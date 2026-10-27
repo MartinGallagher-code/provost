@@ -1,0 +1,16 @@
+{
+ "format": 1,
+ "tool": "apcupsd-apcaccess-status",
+ "detect": "^(?:APC|STATUS|UPSNAME|END APC)\\s*:",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "status",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Z][A-Z0-9 ]*?)\\s*:\\s?(?P<value>.*?)\\s*$"
+  }
+ ],
+ "examples": [
+  "APC      : 001,036,0868\nDATE     : 2026-10-20 10:02:14 +0200  \nHOSTNAME : nas01\nVERSION  : 3.14.14 (31 May 2016) debian\nUPSNAME  : ups-keller\nCABLE    : USB Cable\nDRIVER   : USB UPS Driver\nUPSMODE  : Stand Alone\nSTARTTIME: 2026-09-28 04:12:44 +0200  \nMODEL    : Back-UPS XS 950U \nSTATUS   : ONLINE \nLINEV    : 232.0 Volts\nLOADPCT  : 18.0 Percent\nBCHARGE  : 100.0 Percent\nTIMELEFT : 41.3 Minutes\nMBATTCHG : 5 Percent\nMINTIMEL : 3 Minutes\nMAXTIME  : 0 Seconds\nSENSE    : Medium\nLOTRANS  : 155.0 Volts\nHITRANS  : 280.0 Volts\nALARMDEL : 30 Seconds\nBATTV    : 13.6 Volts\nLASTXFER : Unacceptable line voltage changes\nNUMXFERS : 2\nXONBATT  : 2026-10-14 17:31:02 +0200  \nTONBATT  : 0 Seconds\nCUMONBATT: 14 Seconds\nXOFFBATT : 2026-10-14 17:31:09 +0200  \nSELFTEST : NO\nSTATFLAG : 0x05000008\nSERIALNO : 4B1932P12345  \nBATTDATE : 2023-08-01\nNOMINV   : 230 Volts\nNOMBATTV : 12.0 Volts\nNOMPOWER : 480 Watts\nFIRMWARE : 925.T2 .I USB FW:T2\nEND APC  : 2026-10-20 10:02:51 +0200  "
+ ]
+}

@@ -1,0 +1,26 @@
+{
+ "format": 1,
+ "tool": "windows-quser",
+ "detect": "USERNAME\\s+SESSIONNAME\\s+ID\\s+STATE",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "sessions",
+   "kind": "table",
+   "header": "^\\s*USERNAME\\s+SESSIONNAME\\s+ID\\s+STATE",
+   "line": "^(?:(?P<current>>)| )?(?P<username>\\S+)\\s+(?:(?P<sessionname>\\S+)\\s+)?(?P<id>\\d+)\\s+(?P<state>\\S+)\\s+(?P<idle_time>\\S+)\\s+(?P<logon_time>\\S(?:.*\\S)?)\\s*$",
+   "columns": {
+    "current": "current",
+    "username": "USERNAME",
+    "sessionname": "SESSIONNAME",
+    "id": "ID",
+    "state": "STATE",
+    "idle_time": "IDLE TIME",
+    "logon_time": "LOGON TIME"
+   }
+  }
+ ],
+ "examples": [
+  " USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME\n administrator                             1  Disc        2+03:14  17.10.2026 08:02\n>jkowalski             rdp-tcp#12          2  Active          .  20.10.2026 07:58\n m.schäfer             rdp-tcp#15          3  Active         14  20.10.2026 08:41\n svc_backup                                4  Disc         1:22  19.10.2026 23:10\n a.nowak               console             5  Active       none  20.10.2026 06:30"
+ ]
+}

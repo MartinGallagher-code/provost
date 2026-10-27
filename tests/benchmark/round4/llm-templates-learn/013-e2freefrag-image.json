@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "tool": "e2freefrag",
+ "detect": "HISTOGRAM OF FREE EXTENT SIZES|Free blocks:",
+ "skip": [
+  "^HISTOGRAM OF FREE EXTENT SIZES:"
+ ],
+ "blocks": [
+  {
+   "name": "histogram",
+   "kind": "table",
+   "header": "^Extent Size Range\\s*:",
+   "line": "^\\s*(?P<range_start>[\\d.]+[KMGT]?)\\.\\.\\.\\s*(?P<range_end>[\\d.]+[KMGT]?)-\\s*:\\s*(?P<free_extents>\\d+)\\s+(?P<free_blocks>\\d+)\\s+(?P<percent>[\\d.]+%)\\s*$",
+   "columns": {
+    "range_start": "Range Start",
+    "range_end": "Range End",
+    "free_extents": "Free extents",
+    "free_blocks": "Free Blocks",
+    "percent": "Percent"
+   }
+  },
+  {
+   "name": "summary",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][A-Za-z. ]*?):\\s+(?P<value>\\S(?:.*?\\S)?)\\s*$"
+  }
+ ],
+ "examples": [
+  "Device: fs.img\nBlocksize: 4096 bytes\nTotal blocks: 16384\nFree blocks: 12535 (76.5%)\n\nMin. free extent: 40 KB \nMax. free extent: 47288 KB\nAvg. free extent: 2276 KB\nNum. free extent: 22\n\nHISTOGRAM OF FREE EXTENT SIZES:\nExtent Size Range :  Free extents   Free Blocks  Percent\n   32K...   64K-  :             3            30    0.24%\n   64K...  128K-  :             7           158    1.26%\n  128K...  256K-  :             9           397    3.17%\n  256K...  512K-  :             2           128    1.02%\n   32M...   64M-  :             1         11822   94.31%"
+ ]
+}

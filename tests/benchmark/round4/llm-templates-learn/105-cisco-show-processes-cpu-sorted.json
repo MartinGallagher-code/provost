@@ -1,0 +1,41 @@
+{
+ "format": 1,
+ "tool": "cisco-show-processes-cpu-sorted",
+ "detect": "PID\\s+Runtime\\(ms\\)\\s+Invoked\\s+uSecs",
+ "skip": [
+  "^\\S+#"
+ ],
+ "blocks": [
+  {
+   "name": "cpu_utilization",
+   "kind": "table",
+   "line": "CPU utilization for five seconds:\\s*(?P<five_seconds>[\\d.]+%)/(?P<five_seconds_interrupt>[\\d.]+%);\\s*one minute:\\s*(?P<one_minute>[\\d.]+%);\\s*five minutes:\\s*(?P<five_minutes>[\\d.]+%)\\s*",
+   "columns": {
+    "five_seconds": "five seconds",
+    "five_seconds_interrupt": "five seconds interrupt",
+    "one_minute": "one minute",
+    "five_minutes": "five minutes"
+   }
+  },
+  {
+   "name": "processes",
+   "kind": "table",
+   "header": "^\\s*PID\\s+Runtime\\(ms\\)",
+   "line": "\\s*(?P<pid>\\d+)\\s+(?P<runtime>\\d+)\\s+(?P<invoked>\\d+)\\s+(?P<usecs>\\d+)\\s+(?P<sec5>[\\d.]+%)\\s+(?P<min1>[\\d.]+%)\\s+(?P<min5>[\\d.]+%)\\s+(?P<tty>\\d+)\\s+(?P<process>\\S(?:.*?\\S)?)\\s*",
+   "columns": {
+    "pid": "PID",
+    "runtime": "Runtime(ms)",
+    "invoked": "Invoked",
+    "usecs": "uSecs",
+    "sec5": "5Sec",
+    "min1": "1Min",
+    "min5": "5Min",
+    "tty": "TTY",
+    "process": "Process"
+   }
+  }
+ ],
+ "examples": [
+  "core-rtr1#show processes cpu sorted\nCPU utilization for five seconds: 23%/7%; one minute: 18%; five minutes: 15%\n PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process \n 412    88213516   143890112        613  6.39%  4.81%  4.02%   0 IP Input         \n 228    41022884    10022871       4092  3.11%  2.40%  2.17%   0 BGP Router       \n 101    12850432   408812240         31  1.27%  1.09%  1.11%   0 ARP Input        \n 377     9022180     2210388       4081  0.95%  0.71%  0.62%   0 OSPF-1 Hello     \n  64     6612844    18803311        351  0.47%  0.40%  0.38%   0 Net Background   \n 231     3002912     1102293       2724  0.31%  0.22%  0.20%   0 BGP Scanner      \n 118     1803380    40110044         44  0.15%  0.11%  0.10%   0 CDP Protocol     \n   3      910244       41120      22136  0.00%  0.04%  0.05%   0 Exec             \n 290      402116      884213        454  0.00%  0.01%  0.00%   0 SNMP ENGINE      \n 344      188020     1902231         98  0.00%  0.00%  0.00%   0 NTP              \n   1           0           6          0  0.00%  0.00%  0.00%   0 Chunk Manager    \n   2        1416      442212          3  0.00%  0.00%  0.00%   0 Load Meter       \n   4      338120       71212       4748  0.00%  0.02%  0.00%   0 Check heaps      \n 512          12          44        272  0.00%  0.00%  0.00%   2 SSH Process      \ncore-rtr1#"
+ ]
+}

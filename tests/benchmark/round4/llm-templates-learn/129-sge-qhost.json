@@ -1,0 +1,32 @@
+{
+ "format": 1,
+ "tool": "sge-qhost",
+ "detect": "^HOSTNAME\\s+ARCH\\s+NCPU",
+ "skip": [
+  "^-{10,}\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "hosts",
+   "kind": "table",
+   "header": "^HOSTNAME\\s+ARCH\\s+NCPU",
+   "line": "^(?P<hostname>\\S+)\\s+(?P<arch>\\S+)\\s+(?P<ncpu>\\S+)\\s+(?P<nsoc>\\S+)\\s+(?P<ncor>\\S+)\\s+(?P<nthr>\\S+)\\s+(?P<load>\\S+)\\s+(?P<memtot>\\S+)\\s+(?P<memuse>\\S+)\\s+(?P<swapto>\\S+)\\s+(?P<swapus>\\S+)\\s*$",
+   "columns": {
+    "hostname": "HOSTNAME",
+    "arch": "ARCH",
+    "ncpu": "NCPU",
+    "nsoc": "NSOC",
+    "ncor": "NCOR",
+    "nthr": "NTHR",
+    "load": "LOAD",
+    "memtot": "MEMTOT",
+    "memuse": "MEMUSE",
+    "swapto": "SWAPTO",
+    "swapus": "SWAPUS"
+   }
+  }
+ ],
+ "examples": [
+  "HOSTNAME                ARCH         NCPU NSOC NCOR NTHR  LOAD  MEMTOT  MEMUSE  SWAPTO  SWAPUS\n----------------------------------------------------------------------------------------------\nglobal                  -               -    -    -    -     -       -       -       -       -\nnode01                  lx-amd64       32    2   16   32  29.84  251.6G   88.2G   16.0G  212.0M\nnode02                  lx-amd64       32    2   16   32  31.02  251.6G  201.7G   16.0G    1.3G\nnode03                  lx-amd64       32    2   16   32   0.01  251.6G    3.1G   16.0G     0.0\nnode04                  lx-amd64       64    2   32   64     -  503.4G       -   16.0G       -\ngpu-a                   lx-amd64       48    2   24   48  12.50  377.4G  120.9G    8.0G  105.4M"
+ ]
+}

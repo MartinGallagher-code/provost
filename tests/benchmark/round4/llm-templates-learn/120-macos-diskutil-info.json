@@ -1,0 +1,18 @@
+{
+ "format": 1,
+ "tool": "macos-diskutil-info",
+ "detect": "^\\s*Device Identifier:\\s+\\S",
+ "skip": [
+  "^\\s*This disk is an? .*Information:\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "disk_info",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>[^:]*\\S):\\s+(?P<value>\\S(?:.*\\S)?)\\s*$"
+  }
+ ],
+ "examples": [
+  "   Device Identifier:         disk3s1\n   Device Node:               /dev/disk3s1\n   Whole:                     No\n   Part of Whole:             disk3\n\n   Volume Name:               Macintosh HD - Data\n   Mounted:                   Yes\n   Mount Point:               /System/Volumes/Data\n\n   Partition Type:            41504653-0000-11AA-AA11-00306543ECAC\n   File System Personality:   APFS\n   Type (Bundle):             apfs\n   Name (User Visible):       APFS\n   Owners:                    Enabled\n\n   OS Can Be Installed:       No\n   Booter Disk:               disk3s2\n   Recovery Disk:             disk3s3\n   Media Type:                Generic\n   Protocol:                  Apple Fabric\n   SMART Status:              Verified\n   Volume UUID:               5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19\n   Disk / Partition UUID:     5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19\n\n   Disk Size:                 994.7 GB (994662584320 Bytes) (exactly 1942700360 512-Byte-Units)\n   Device Block Size:         4096 Bytes\n\n   Container Total Space:     994.7 GB (994662584320 Bytes) (exactly 1942700360 512-Byte-Units)\n   Container Free Space:      412.3 GB (412301918208 Bytes) (exactly 805277184 512-Byte-Units)\n   Allocation Block Size:     4096 Bytes\n\n   Media OS Use Only:         No\n   Media Read-Only:           No\n   Volume Read-Only:          No\n\n   Device Location:           Internal\n   Removable Media:           Fixed\n\n   Solid State:               Yes\n   Hardware AES Support:      Yes\n\n   This disk is an APFS Volume.  APFS Information:\n   APFS Container:            disk3\n   APFS Physical Store:       disk0s2\n   Fusion Drive:              No\n   APFS Volume Group:         5D1E2A3B-7C44-4F0E-9B61-2E8A0C7D4F19\n   EFI Driver In macOS:       2142081000000000\n   Encrypted:                 Yes\n   FileVault:                 Yes\n   Sealed:                    No\n   Locked:                    No\n"
+ ]
+}
