@@ -264,8 +264,13 @@ layout model; and on a generic parse the gate passed, before that parse is
 trusted (never over an exact-format or tool-specific parser). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
-data lines within 10 points (its decoration lines not counted, except against
-\fBtext-lines\fR or \fBline-records\fR, which keep every line). A new template
+data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;
+its decoration lines not counted). \fBNotes:\fR the lines a template sets aside
+(decoration, or lines it cannot read) that still carry a word or a number are
+filed beside its datasets as \fINAME\fR\fB.notes\fR (line, kind, text), so a
+title, a version banner, a summary count or an error between the rows is kept,
+never lost; only rules and box glyphs are dropped. A tab or newline inside a
+value becomes a space. A new template
 is kept, and committed with the
 capture, only when it passes. Later captures of the tool are parsed offline.
 A template keeps the captures it was written from (its \fBexamples\fR).

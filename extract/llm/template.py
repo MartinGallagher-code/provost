@@ -35,7 +35,7 @@ indented attribute blocks, section titles that become a column):
 records), and runs in sandbox.py: a separate interpreter with a whitelist of
 builtins and imports, a CPU and memory limit, no files and no network.
 
-    python3 template.py apply TEMPLATE INPUT [--out DIR]   # blk.N.txt / blk.N.rec per block
+    python3 template.py apply TEMPLATE INPUT [--out DIR]   # blk.N.txt / blk.N.rec per block, notes.tsv
     python3 template.py find INPUT [--dirs D1:D2]          # the best stored template for INPUT
     python3 template.py learn INPUT --out TEMPLATE [--tool NAME]   # ask Claude (needs a key)
     python3 template.py key INPUT [--name NAME]            # the template file name for INPUT
@@ -219,6 +219,21 @@ def _run_parser(ct, lines):
     return blocks, used, skip, nonblank
 
 
+_CELL = re.compile(r"[\t\r\n]")
+_WORD = re.compile(r"[^\W_]")      # a letter or a digit, in any script
+
+
+def _cell(v):
+    """A value kept to its cell: a tab, CR or newline inside it becomes one
+    space, as the engine's _clean_value does. The flat format is one field
+    per line and the tidy output is TSV: a parser that joins a multi-line
+    body into one value (an `err=<` block, a docstring) would otherwise make
+    each continuation line a field of its own, repeated on every row. Unlike
+    _clean_value it does not trim: a parser keeps a source line's indent or
+    a whitespace-only text node on purpose."""
+    return _CELL.sub(" ", v) if isinstance(v, str) else v
+
+
 def flat_records(block):
     """The engine's flat format: `entryN.col value` lines + total_entries for
     a table, `key value` lines for a kv block (a repeated key gets _2, _3)."""
@@ -227,16 +242,29 @@ def flat_records(block):
         for rec in block["records"]:
             for k, v in rec.items():
                 seen[k] = seen.get(k, 0) + 1
-                out.append(f"{k if seen[k] == 1 else f'{k}_{seen[k]}'} {v}")
+                out.append(f"{k if seen[k] == 1 else f'{k}_{seen[k]}'} {_cell(v)}")
         return out
     out = []
     for n, rec in enumerate(block["records"], 1):
-        out += [f"entry{n}.{k} {v}" for k, v in rec.items()]
+        out += [f"entry{n}.{k} {_cell(v)}" for k, v in rec.items()]
     out.append(f"total_entries {len(block['records'])}")
     return out
 
 
-def write_blocks(blocks, lines, out_dir, tool=""):
+def notes(ct, lines, classified=None):
+    """The lines a template drops as decoration (skip) or does not read that
+    still carry a word or a number: a title, a version banner, a summary
+    count, a warning or an error between the rows. provost files them
+    beside the template's datasets (NAME.notes), so a line that carries
+    information is set aside, never lost; a line of rules, box glyphs or
+    carets alone is decoration. CLASSIFIED is _classify's result when the
+    caller has it. -> [{line, kind, text}], line numbered from 1."""
+    read, skip, unread = classified or _classify(ct, lines)
+    return [{"line": str(j + 1), "kind": "skipped" if j in skip else "unread", "text": _cell(lines[j]).strip()}
+            for j in sorted(skip | unread) if _WORD.search(lines[j])]
+
+
+def write_blocks(blocks, lines, out_dir, tool="", notes_=()):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "tool"), "w", encoding="utf-8") as fh:
         fh.write(_name(tool) + "\n" if tool else "")
@@ -247,6 +275,13 @@ def write_blocks(blocks, lines, out_dir, tool=""):
             fh.write("".join(r + "\n" for r in flat_records(b)))
         with open(os.path.join(out_dir, f"blk.{n}.name"), "w", encoding="utf-8") as fh:
             fh.write(b["name"] + "\n")
+    # notes.tsv is already tidy (line, kind, text): provost files it as is
+    path = os.path.join(out_dir, "notes.tsv")
+    if notes_:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("line\tkind\ttext\n" + "".join(f"{r['line']}\t{r['kind']}\t{r['text']}\n" for r in notes_))
+    elif os.path.exists(path):
+        os.remove(path)
 
 
 def load(path):
@@ -612,11 +647,18 @@ def main(argv=None):
             print(f"{path}\t{score * 100:.0f}")
         elif a.cmd == "apply":
             t = load(a.template)
-            blocks, cov, nb, skipped = apply(compile_template(t), lines)
+            ct = compile_template(t)
+            classified = None
+            if ct["format"] == 2:      # one run of the boxed parser for both
+                blocks, used, skip, nonblank = _run_parser(ct, lines)
+                cov, nb, skipped = len(used | skip), len(nonblank), len(skip)
+                classified = (used, skip, nonblank - used - skip)
+            else:
+                blocks, cov, nb, skipped = apply(ct, lines)
             if not blocks:
                 return 1
             if a.out:
-                write_blocks(blocks, lines, a.out, t.get("tool") or "")
+                write_blocks(blocks, lines, a.out, t.get("tool") or "", notes(ct, lines, classified))
             if a.records:
                 print("\n".join(flat_records(blocks[0])))
             else:

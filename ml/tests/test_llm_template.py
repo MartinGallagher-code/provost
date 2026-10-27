@@ -39,6 +39,38 @@ class Apply(unittest.TestCase):
         self.assertIn("entry2.Mounted_on /data disk", recs)
         self.assertEqual(recs[-1], "total_entries 2")
 
+    def test_a_value_keeps_to_its_cell(self):
+        # a parser that joins a multi-line body into one value: each
+        # continuation line would otherwise be a field of its own
+        b = {"name": "events", "kind": "table", "lines": [0],
+             "records": [{"msg": "failed", "err": "err=<\nfailed to run\n>", "pid": 7},
+                         {"msg": "a\tb", "err": "", "pid": 8}]}
+        self.assertEqual(T.flat_records(b), ["entry1.msg failed", "entry1.err err=< failed to run >", "entry1.pid 7",
+                                             "entry2.msg a b", "entry2.err ", "entry2.pid 8", "total_entries 2"])
+        self.assertEqual(T.flat_records(dict(b, kind="kv", records=[{"doc": "one\r\ntwo"}])), ["doc one  two"])
+
+    def test_notes_keep_the_lines_set_aside_that_carry_words(self):
+        ct = T.compile_template(TPL)
+        self.assertEqual(T.notes(ct, LINES), [{"line": "8", "kind": "unread", "text": "free text no one matches"}])
+        # a skipped line that carries a word is a note; a rule is not
+        lines = LINES + ["  ===  ", "Version 2.1 (c) 2026"]
+        ct = T.compile_template(dict(TPL, skip=TPL["skip"] + ["^free text", "^\\s*=+\\s*$", "^Version "]))
+        self.assertEqual([(n["line"], n["kind"]) for n in T.notes(ct, lines)], [("8", "skipped"), ("10", "skipped")])
+        # a parser's skipped and unread lines alike
+        self.assertEqual(T.notes(T.compile_template(TPL2), NESTED),
+                         [{"line": "1", "kind": "skipped", "text": "# items"},
+                          {"line": "7", "kind": "unread", "text": "stray"}])
+
+    def test_write_blocks_writes_the_notes_as_a_tidy_table(self):
+        ct = T.compile_template(TPL)
+        blocks = T.apply(ct, LINES)[0]
+        with tempfile.TemporaryDirectory() as d:
+            T.write_blocks(blocks, LINES, d, "disks", T.notes(ct, LINES))
+            with open(os.path.join(d, "notes.tsv"), encoding="utf-8") as fh:
+                self.assertEqual(fh.read(), "line\tkind\ttext\n8\tunread\tfree text no one matches\n")
+            T.write_blocks(blocks, LINES, d, "disks")          # none this time: no stale notes
+            self.assertFalse(os.path.exists(os.path.join(d, "notes.tsv")))
+
     def test_a_repeated_kv_key_is_numbered(self):
         b = {"kind": "kv", "records": [{"a": "1"}, {"a": "2"}]}
         self.assertEqual(T.flat_records(b), ["a 1", "a_2 2"])
