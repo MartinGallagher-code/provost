@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/opt/orders/app/loader.py", line 15, in load_timeout
+    return float(cfg["worker"]["timeout_s"])
+                 ~~~~~~~~~~~~~^^^^^^^^^^^^^
+KeyError: 'timeout_s'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/opt/orders/app/loader.py", line 24, in start
+    return load_timeout(text)
+           ^^^^^^^^^^^^^^^^^^
+  File "/opt/orders/app/loader.py", line 19, in load_timeout
+    raise err from exc
+SettingsError: worker.timeout_s missing or invalid
+source: /etc/orders/worker.json
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/opt/orders/app/loader.py", line 35, in <module>
+    main()
+  File "/opt/orders/app/loader.py", line 31, in main
+    timeout = start('{"worker": {"timeout": 30}}')
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/orders/app/loader.py", line 26, in start
+    fallback = DEFAULTS["timeout_s"]
+               ^^^^^^^^
+NameError: name 'DEFAULTS' is not defined

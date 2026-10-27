@@ -1,0 +1,24 @@
+dist-sw-b2#show mac address-table
+          Mac Address Table
+-------------------------------------------
+
+Vlan    Mac Address       Type        Ports
+----    -----------       --------    -----
+ All    0100.0ccc.cccc    STATIC      CPU
+ All    0100.0ccc.cccd    STATIC      CPU
+ All    0180.c200.0000    STATIC      CPU
+ All    0180.c200.0001    STATIC      CPU
+ All    0180.c200.0002    STATIC      CPU
+ All    0180.c200.0003    STATIC      CPU
+ All    ffff.ffff.ffff    STATIC      CPU
+   1    00a7.42c3.9e01    DYNAMIC     Te1/1/1
+   5    0050.5687.1a2c    DYNAMIC     Po12
+   5    0050.5687.3bf0    DYNAMIC     Po12
+   5    0050.56a1.0e44    DYNAMIC     Po12
+  30    f4ce.4602.b7d9    DYNAMIC     Gi2/0/17
+  30    6c41.6a0e.55c2    STATIC      Gi2/0/5
+ 300    b8ae.ed7c.1f03    DYNAMIC     Gi1/0/31
+1001    00e0.4c3a.9b10    DYNAMIC     Gi2/0/44
+1001    00e0.4c3a.9b11    DYNAMIC     Gi2/0/44
+Total Mac Addresses for this criterion: 16
+dist-sw-b2#
