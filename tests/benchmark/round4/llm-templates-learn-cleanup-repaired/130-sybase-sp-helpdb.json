@@ -1,0 +1,63 @@
+{
+ "format": 1,
+ "tool": "sybase-sp-helpdb",
+ "detect": "^\\s*name\\s+db_size\\s+owner\\s+dbid\\s+created",
+ "skip": [
+  "^\\d+>\\s",
+  "^\\s*\\(\\d+ rows? affected\\)",
+  "^\\s*\\(return status = -?\\d+\\)",
+  "^\\s*-[- ]*$",
+  "^\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "database",
+   "kind": "table",
+   "header": "^\\s*name\\s+db_size\\s+owner\\s+dbid\\s+created",
+   "line": "^\\s*(?P<name>\\S+)\\s+(?P<db_size>[\\d.]+\\s+[KMGT]B)\\s+(?P<owner>\\S+)\\s+(?P<dbid>\\d+)\\s+(?P<created>[A-Z][a-z]{2}\\s+\\d{1,2},\\s+\\d{4})\\s+(?P<durability>\\S+)\\s+(?P<lobcomplvl>\\d+)\\s+(?P<inrowlen>\\S+)(?:\\s+(?P<status>\\S(?:.*?\\S)?))?\\s*$",
+   "columns": {
+    "name": "name",
+    "db_size": "db_size",
+    "owner": "owner",
+    "dbid": "dbid",
+    "created": "created",
+    "durability": "durability",
+    "lobcomplvl": "lobcomplvl",
+    "inrowlen": "inrowlen",
+    "status": "status"
+   }
+  },
+  {
+   "name": "device_fragments",
+   "kind": "table",
+   "header": "^\\s*device_fragments\\s+size\\s+usage",
+   "line": "^\\s*(?P<device_fragments>\\S+)\\s+(?P<size>[\\d.]+\\s+[KMGT]B)\\s+(?P<usage>\\S(?:.*?\\S)?)\\s{2,}(?P<created>[A-Z][a-z]{2}\\s+\\d{1,2}\\s+\\d{4}\\s+\\d{1,2}:\\d{2}[AP]M)\\s+(?P<free_kbytes>\\d+|[A-Za-z](?:[A-Za-z ]*[A-Za-z])?)\\s*$",
+   "columns": {
+    "device_fragments": "device_fragments",
+    "size": "size",
+    "usage": "usage",
+    "created": "created",
+    "free_kbytes": "free kbytes"
+   }
+  },
+  {
+   "name": "log_free",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>log only free kbytes)\\s*=\\s*(?P<value>\\S+)\\s*$"
+  },
+  {
+   "name": "segments",
+   "kind": "table",
+   "header": "^\\s*device\\s+segment\\s*$",
+   "line": "^\\s*(?P<device>\\S+)\\s+(?P<segment>\\S+)\\s*$",
+   "columns": {
+    "device": "device",
+    "segment": "segment"
+   }
+  }
+ ],
+ "examples": [
+  "1> sp_helpdb pubs2\n2> go\n name    db_size       owner    dbid   created              durability  lobcomplvl inrowlen status                                                   \n ------- ------------- -------- ------ -------------------- ----------- ---------- -------- -------------------------------------------------------- \n pubs2        120.0 MB sa            4 Oct 02, 2026         full                 0     NULL trunc log on chkpt, mixed log and data                    \n\n(1 row affected)\n device_fragments               size          usage                created                   free kbytes                    \n ------------------------------ ------------- -------------------- ------------------------- ------------------------------ \n pubsdev                              80.0 MB data and log         Oct  2 2026  9:14AM                                75264 \n pubsdev2                             40.0 MB data and log         Oct 14 2026  4:02PM                                40800 \n                                                                                                                                       \n --------------------------------------------------------------------------------------------------------------------------------------\n log only free kbytes = 0                                                                                                               \n device                         segment                        \n ------------------------------ ------------------------------ \n pubsdev                        default                        \n pubsdev                        logsegment                     \n pubsdev                        system                         \n pubsdev2                       default                        \n(return status = 0)",
+  "1> sp_helpdb inventory_prod\n2> go\n name           db_size       owner    dbid   created              durability  lobcomplvl inrowlen status                                                   \n -------------- ------------- -------- ------ -------------------- ----------- ---------- -------- -------------------------------------------------------- \n inventory_prod     2048.0 MB sa            7 Sep 14, 2026         full                 0     NULL select into/bulkcopy/pllsort, trunc log on chkpt         \n\n(1 row affected)\n device_fragments               size          usage                created                   free kbytes                    \n ------------------------------ ------------- -------------------- ------------------------- ------------------------------ \n inv_data01                         1024.0 MB data only            Sep 14 2026 11:02AM                               188416 \n inv_data02                          512.0 MB data only            Sep 14 2026 11:03AM                               522240 \n inv_log01                           384.0 MB log only             Sep 14 2026 11:03AM                       not applicable \n inv_data01                          128.0 MB data only            Oct 21 2026  8:47PM                               131072 \n                                                                                                                                       \n --------------------------------------------------------------------------------------------------------------------------------------\n log only free kbytes = 377904                                                                                                          \n device                         segment                        \n ------------------------------ ------------------------------ \n inv_data01                     default                        \n inv_data01                     system                         \n inv_data02                     default                        \n inv_data02                     idx_seg                        \n inv_log01                      logsegment                     \n(return status = 0)"
+ ]
+}

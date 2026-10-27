@@ -1,5 +1,40 @@
 # provost — Changelog
 
+## 2026-10-27 — `--llm` clean-up: values keep to their cells, lines set aside go to `NAME.notes`
+
+A clean-up after extraction, asked for after part 6 (part 7 of
+`docs/benchmark-2026-10-27-llm-templates-round4.md`). The ratings said
+information dropped outnumbers junk left in about four to one, so it moves
+rather than deletes.
+
+- **Values keep to their cells** (`extract/llm/template.py` `_cell`, in
+  `flat_records`): a tab, CR or newline inside a template's value becomes a
+  space, as the engine's `_clean_value` does (no trim: a parser keeps an
+  indent on purpose). A format-2 parser that joined a multi-line body into
+  one value made each continuation line a field of its own, repeated on
+  every row: this was all four first-contact FAILs that read as junk
+  columns (go doc, pydoc, pytest, klog).
+- **`NAME.notes`** (`template.py` `notes`, `write_blocks`; `provost`
+  `_ingest`): the lines a template drops as decoration or does not read
+  that still carry a word or a number are filed beside its datasets as
+  `NAME.notes` (`line`, `kind` skipped|unread, `text`). Rules and box
+  glyphs alone are still dropped.
+- **The catch-all guard** (`_llm_file`): skipped lines no longer count as
+  lost against `text-lines` / `line-records` (they are in the notes); the
+  template still has to read 80% of the lines it does not set aside.
+- **Not built, on evidence:** no rule-only or repeated-header rows in any of
+  602 template tables on round 4; the 65 all-empty columns are the tool's
+  schema, so dropping them would change a dataset's shape between captures.
+- **Measured, blind** (`round4/ratings-learn-cleanup.tsv`,
+  `round4/ratings-variants-learn-cleanup.tsv`; new templates in
+  `round4/llm-templates-learn-cleanup/` and `-cleanup-repaired/`): first
+  contact **87 / 18 / 2 (81% PASS, 98% usable)**, from 66 / 30 / 11; the
+  whole pipeline's second capture **83 / 22 / 2 (78%, 98%)**, from 66 / 35
+  / 6. No rated output went down. What is left is structure (a parent not
+  kept, a record split across tables) and two gate rules (the `yaml`
+  exemption, the fragments rule).
+- **Tests:** unit +3; smoke 310 → 315. Help, man page, README.
+
 ## 2026-10-27 — `--llm`: first contact through the real API, and template repair on a miss
 
 - **Template repair (`extract/llm/template.py`, `provost` `_llm_template`):**

@@ -467,23 +467,92 @@ level: 7 PASSes lost, 7 gained. What moves the level itself is the judge
 (the skip audit, and reading for misread lines) and the gate rules that
 decline good templates, not more capture.
 
+## Part 7: a clean-up after extraction
+
+The question asked after part 6: should a phase after extraction get rid of
+what is always superfluous (columns, decoration, error lines)? The ratings
+said the opposite problem is four times as common: of the non-PASS notes,
+about a fifth name junk left in and four fifths information dropped (most
+of part 4's PARTIALs were information a template put in `skip`). So the
+clean-up moves rather than deletes, and only removes what carries nothing.
+
+- **Values keep to their cells** (`template.py` `_cell` in `flat_records`):
+  a tab, CR or newline inside a template's value becomes a space, as the
+  engine's `_clean_value` does (without its trim: parsers keep a source
+  line's indent on purpose). **All four first-contact FAILs that read as
+  "junk columns copied onto every row" were this one bug** (019 go doc, 046
+  pydoc, 048 pytest, 117 klog): a format-2 parser joined a multi-line body
+  into one value, the flat format is one field per line, and each
+  continuation line became a scalar field the melt repeats on every row.
+  The helpers' iterated templates never hit it; `learn`'s did 5 times.
+- **`NAME.notes`:** the lines a template drops as decoration or does not
+  read that still carry a word or a number (a title, a version banner, a
+  summary count, a warning, a prompt, an unread line) are filed beside its
+  datasets as `NAME.notes` (`line`, `kind` skipped|unread, `text`). Lines of
+  rules, box glyphs or carets alone are still dropped.
+- **The catch-all guard** no longer counts skipped lines as lost against
+  `text-lines` / `line-records`, since they are in the notes; a template
+  still has to read 80% of the lines it does not set aside.
+- **Not built, on evidence:** across all 602 template tables on round 4
+  there is no rule-only row and no repeated header row to drop; and the
+  65 all-empty columns are the tool's schema (a column empty this time is
+  filled the next, and dropping it would change the dataset's shape from
+  capture to capture; raters credited keeping them).
+
+**Measured** (everything rated blind; only outputs that changed were
+rated again, the rest keep their rating):
+
+- **First contact** (`round4/ratings-learn-cleanup.tsv`): the same 98
+  templates `learn` wrote, offline, plus a new first contact for the 7 the
+  old guard declined (`round4/llm-templates-learn-cleanup/`; 8 calls,
+  $0.34). 66 outputs changed (55 gained only a notes dataset), all rated
+  again.
+- **The whole pipeline, second capture**
+  (`round4/ratings-variants-learn-cleanup.tsv`): part 6's stored and
+  repaired templates plus those 7, with a key (6 calls, $0.26; the 7 new
+  templates repaired where they met new kinds of line). 64 outputs
+  changed, all rated again.
+
+| | PASS | PARTIAL | FAIL | usable |
+|---|---:|---:|---:|---:|
+| default engine | 12 (11%) | 51 (48%) | 44 (41%) | 59% |
+| first contact (part 4) | 66 (62%) | 30 (28%) | 11 (10%) | 90% |
+| **first contact, with the clean-up** | **87 (81%)** | **18 (17%)** | **2 (2%)** | **98%** |
+| the whole pipeline, second capture (part 6) | 66 (62%) | 35 (33%) | 6 (6%) | 94% |
+| **the whole pipeline, second capture, with the clean-up** | **83 (78%)** | **22 (21%)** | **2 (2%)** | **98%** |
+
+First contact: 21 up to PASS (7 FAIL, 14 PARTIAL), 2 FAIL→PARTIAL, **none
+down**. Second capture: 17 up to PASS (4 FAIL, 13 PARTIAL), **none down**.
+The notes did what the "information put in skip" PARTIALs asked for
+(pygmentize's version banner, pg_test_timing's duration, ninja's directory,
+node's interleaved output, picard's header, bteq's logon lines are all now
+kept and rated PASS), the newline fix cleared the four junk-column FAILs,
+and all 7 inputs the guard used to leave as a raw-line dump are now filed
+by their template (005, 021, 040, 123, 130 PASS; 004, 112 PARTIAL). First contact through the API is now at the iterated helpers'
+level (86 / 18 / 3).
+
+**What is left is structure, not loss.** The 2 FAILs are gate rules (the
+`yaml` exemption, 020; the fragments rule on a one-line record list, 132).
+The ~20 PARTIALs are almost all a parent the template does not keep: an op
+tree's nesting (039), iseq headers not applied (057), trunk members (112),
+taxonomy depth (119), ioreg's tree (121), caller/callee links (022), which
+struct a member belongs to (033), a record split across tables (004, 009,
+128), a two-layout header half applied (063), suffixes stripped (014). A
+count cannot see any of them; a reading of the output can.
+
 ## Next
 
-1. **The judge** (plan step 3): one call after `learn` and after `repair`
-   that reads the capture and the records and answers PASS or a list of
-   fixes, fed back once. It is what reaches the three causes no count can
-   see:
-   - information put in `skip` (about 15 first-contact PARTIALs);
-   - a parser turning continuation lines into columns (4 FAILs);
-   - a new kind of line that a pattern matches and misreads (most of what
-     repair cannot reach).
-2. **Replace the catch-all guard with the judge.** On first contact it
-   declined 7 learned templates and stood a `text-lines` dump (3 FAIL, 3
-   PARTIAL), and 3 repaired ones on the second capture. A count cannot tell
-   decoration from dropped data; a reading can.
+1. **The judge** (plan step 3), now aimed at structure: one call after
+   `learn` and after `repair` that reads the capture and the records and
+   answers PASS or a list of fixes (a parent not kept, a record split
+   across tables, a header half applied, a new kind of line misread), fed
+   back once. Information loss is no longer the main failure: the notes
+   keep it.
+2. **The gate rules that still cost a FAIL:** the `yaml` exemption keeps
+   020 from ever reaching a template; `_AM_FRAG_LINES` counts lines, not
+   records, so 132's one-line record list is held every time.
 3. Then the library (plan step 5) and **round 5**, built and frozen before
-   anything runs: round 4 is now seen by `learn`, repair and the guide.
-4. Small: `_AM_FRAG_LINES` should count records (132 is held every time);
-   the melt should rename a template column that collides with the
-   generated row id; the `yaml` exemption keeps 020 from ever reaching a
-   template.
+   anything runs: round 4 is now seen by `learn`, repair, the guide and the
+   clean-up.
+4. Small: the melt should rename a template column that collides with the
+   generated row id.
