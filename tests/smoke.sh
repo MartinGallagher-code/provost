@@ -41,6 +41,10 @@ check_not () { # desc, forbidden-substring, actual
         echo "  ok   $1"; pass=$((pass+1))
     fi
 }
+# Table output with runs of spaces and tabs squeezed to one space: 'show' and
+# 'search' align columns with column(1) where it is installed, and print the
+# TSV's tabs where it is not.
+sq () { tr -s ' \t' '  '; }
 # Exit status of a command (stdout/stderr discarded), without tripping set -e.
 rc_of () { local rc=0; "$@" >/dev/null 2>&1 || rc=$?; echo "$rc"; }
 # git on a test store with a throwaway identity (the smoke's own git use).
@@ -974,12 +978,12 @@ check "the format-3 store records it" "3" "$(cat "$CWS/.store_format")"
 BWS="$(mktemp -d)/.browse"
 for st in PASS FAIL PASS; do printf 'TEST STATUS\nt1 PASS\nt2 %s\n' "$st" | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name tests >/dev/null 2>&1; done
 printf 'a=1\n' | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name other >/dev/null 2>&1
-bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture c2 2>&1)"
-check "show --capture keeps that capture's rows" "4	c0002	2	t2	FAIL" "$bs"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture c2 2>&1 | sq)"
+check "show --capture keeps that capture's rows" "4 c0002 2 t2 FAIL" "$bs"
 check_not "and only those" "c0001" "$bs"
 check "--capture takes a bare number too" "c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture 2 2>&1)"
-bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at c0002 2>&1)"
-check "show --at reads the dataset as it stood after that capture" "4	c0002	2	t2	FAIL" "$bs"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at c0002 2>&1 | sq)"
+check "show --at reads the dataset as it stood after that capture" "4 c0002 2 t2 FAIL" "$bs"
 check_not "and nothing filed after it" "c0003" "$bs"
 check "show --at an unknown capture is refused" "no such capture: c0099" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at 99 2>&1 || true)"
 check "show --capture with no rows says so" "no rows in 'other' from capture c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show other --capture 1 2>&1)"
@@ -991,7 +995,7 @@ PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
 check "prev from the latest brings up the capture before it" "c0003" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
 PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
 check "prev again steps back one more" "c0002" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
-check "while restored, show is the store as it was" "4	c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests 2>&1)"
+check "while restored, show is the store as it was" "4 c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests 2>&1 | sq)"
 bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" log 2>&1)"
 check "log still lists every capture while restored" "c0004" "$bs"
 check "and says where the store is" "restored to c0002" "$bs"
@@ -1036,15 +1040,15 @@ check "with the dataset rows" "  + t1	FAIL" "$bs"
 check "diff -- PATH shows that file's changes" "+v = 2" "$(fr diff c1 c2 -- m.py)"
 
 # search: git grep over the store's rows, outputs and run files.
-bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL 2>&1 | sq)"
 check "search finds the matching rows, named by dataset" "tests (1 row)" "$bs"
-check "under the dataset's header" "#	capture	n	TEST	STATUS" "$bs"
-check "with the row itself" "4	c0002	2	t2	FAIL" "$bs"
+check "under the dataset's header" "# capture n TEST STATUS" "$bs"
+check "with the row itself" "4 c0002 2 t2 FAIL" "$bs"
 check "search -i ignores case" "tests (5 rows)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -i pass 2>&1)"
 check "search NAME limits it to that dataset" "no dataset rows match 'a'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -w a tests 2>&1)"
 check "a capture id finds that capture's rows" "other (1 row)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search c0004 2>&1)"
 check "search --at reads the store as it stood then" "no dataset rows match 'FAIL' at c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL --at 1 2>&1)"
-check "search --output finds a line of captured output" "c0004	1	a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search --output 'a=' 2>&1)"
+check "search --output finds a line of captured output" "c0004 1 a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search --output 'a=' 2>&1 | sq)"
 check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -e -x 2>&1)"
 check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
 check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
@@ -1055,7 +1059,7 @@ printf '#!/bin/sh\necho "TEST STATUS"; echo "t1 PASS"; echo "t2 $1"; exit 3\n' >
 bs="$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" run --show "$LBIN/mytest" FAIL 2>/dev/null; echo "rc=$?")"
 check "run --show prints the command's output" "t2 FAIL" "$bs"
 check "and keeps its exit status" "rc=3" "$bs"
-check "and files it" "t2	FAIL" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1)"
+check "and files it" "t2 FAIL" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
 check "inject --show passes the input through" "x y" "$(printf 'x y\n1 2\n' | PROVOST_WORKSPACE="$LWS2" "$PROVOST" --show --name teed 2>/dev/null)"
 check "and files it" "teed" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" ls 2>&1)"
 lr () { env XDG_CONFIG_HOME="$LCFG" HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" "$PROVOST" "$@" 2>&1; }
@@ -1067,7 +1071,7 @@ check "provost itself is refused" "cannot listen on itself" "$(lr listen provost
 bs="$(env XDG_CONFIG_HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" bash -c '. "$XDG_CONFIG_HOME/provost/listen.sh"; mytest PASS; echo "rc=$?"' 2>/dev/null)"
 check "a listened command shows its output" "t2 PASS" "$bs"
 check "keeps its exit status" "rc=3" "$bs"
-check "and is filed each time it runs" "t2	PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1)"
+check "and is filed each time it runs" "t2 PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
 check "unlisten stops it" "stopped listening on: mytest" "$(lr unlisten mytest)"
 check "and the list is empty" "listening on nothing" "$(lr listen)"
 
