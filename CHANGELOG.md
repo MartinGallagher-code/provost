@@ -1,5 +1,129 @@
 # provost — Changelog
 
+## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`
+
+- **`provost help`** (`cmd_help`) is now 47 lines: capture, look, go back,
+  one example (with what `#`, `capture` and `n` mean), the four everyday
+  options, and where to find more. Bare `provost` at a terminal prints it.
+- **`provost help advanced`** (`cmd_help_advanced`; also `help all`,
+  `--help advanced`) is the full reference: every command grouped (capture,
+  look, history, directories and stores, upkeep), every capture option, the
+  store, names, foreground/background, then **how a capture is filed** in
+  the order it happens (prologue, detection, confidence, the quality gate,
+  `--llm`, AUTO-MULTI, the layout model) and each step's section, and every
+  setting. The LLM TEMPLATES section, one paragraph before, is split into
+  where templates come from, when they are used, NOTES and REPAIR. Nothing
+  the old help said was dropped.
+- Per-command usage for `source`, `show`, `next`, `prev`, `files`, `diff`,
+  `search`, `listen`, `unlisten`; `run` / inject list `--show`. The
+  did-you-mean list knows the new commands.
+- **Man page, README, `docs/usage.md`, bash completion** updated for the new
+  commands and options (completion: `help advanced`, `show`/`search`
+  options, capture ids for `files`/`source`, commands for `listen`).
+- **Tests (`tests/smoke.sh`):** the short help fits 50 lines and points at
+  the advanced one; the advanced help lists every command and documents
+  every setting; no help line is wider than 79 columns; `--help` for every
+  new command.
+
+## 2026-10-28 — `provost listen`: capture a command every time it runs; `--show`
+
+- **`--show`** (alias `--tee`) on `run` and on injected input: the command's
+  output (or the piped input) goes to stdout as it comes, as well as being
+  captured; the bound (`PROVOST_MAX_INPUT`) applies to what is filed.
+- **`listen [CMD...]` / `unlisten CMD...`** (`cmd_listen`, `cmd_unlisten`):
+  each listened command becomes a shell function, `CMD () { command provost
+  run --show -- CMD "$@"; }`, in `${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh`,
+  which the shell loads from its startup file (provost says how, once, if no
+  startup file loads it yet). The output is on screen as always, the exit
+  status is the command's, and a copy is filed (in the background at a
+  terminal) into the store the directory routes to. Builtins (they must run
+  in the shell) and provost itself are refused. `listen` alone lists them.
+  Envoy's `watch` was dropped in the rename (docs/0001 §4.2); this is the
+  shell-level version.
+- **Tests (`tests/smoke.sh`):** +15.
+
+## 2026-10-28 — `provost search`, on git grep
+
+- **`search PATTERN [NAME...]`** (`cmd_search`, alias `find`): `git grep`
+  over the store's datasets, shown as a table per dataset under its header.
+  The pattern is matched anywhere in the row, so a capture id finds that
+  capture's rows. `-i`, `-F`, `-w`, and `-e` for a pattern starting with a
+  dash. `--at ID` searches the store as it stood after capture ID (the
+  capture's commit; no checkout). `--output` searches the captured outputs
+  (`captures/*/output.txt`: capture, line, text). `--files` searches a
+  controlled directory's files as the latest run kept them (`files-<id>`;
+  with `--at`, that run's). The triage bucket is base64 and is left out:
+  `--output` reaches its text.
+- **Tests (`tests/smoke.sh`):** +11.
+
+## 2026-10-28 — Browsing runs: `show --capture/--at`, `source ID`, `next`/`prev`, `files`, `diff`
+
+For using provost as a test runner, where every run should stay viewable.
+Everything reads straight from git; only `next`/`prev`/`restore` move the
+store.
+
+- **`show NAME --capture ID`** — only the rows that capture filed (by the
+  capture column; by provenance in a store from before it). **`--at ID`** —
+  the dataset as it stood just after that capture (`git show
+  capture-ID:datasets/NAME.tsv`).
+- **`source ID`** (`c0007`, `capture-c0007`) — that capture's details and
+  original output, from the store or, when it is not checked out (a later
+  capture while restored, or one `rm` purged), from its commit. `source N`
+  still means row #N.
+- **`next` / `prev`** (`cmd_step`) — step the restored store one capture
+  forward or back, as `restore` does; `next` past the last capture returns
+  to the latest. `log` while restored lists every capture (from the
+  latest's tree) and says where the store is.
+- **`files [ID] [PATH] [--to DIR]`** — a controlled directory's files as a
+  capture kept them (`files-<id>`): list them, print one, or write them all
+  out into a new directory (`git archive`).
+- **`diff [NAME] [A [B]] [-- PATH...]`** — the rows only A filed (`-`) and
+  only B filed (`+`), per dataset, compared without `#`/`capture`/`n`, and
+  the files that changed (`git diff --stat files-A files-B`; with PATH, the
+  full diff). Defaults: the last two captures, or NAME's last two.
+- **Tests (`tests/smoke.sh`):** +37.
+
+## 2026-10-28 — Every row names its capture; a controlled directory's files are kept per run
+
+- **`capture` column (`provost` `_ingest`; store format 3):** every dataset
+  row now carries the id of the capture it came from, after `#`:
+  `#` is unique across the store, `capture` says which run (`c0007`, the id
+  `provost log`, `restore` and the `capture-c0007` tag use), and `n` numbers
+  the records within that run. A data column already named `capture` keeps
+  its name and the added one is `_capture` (melt's clash rule). The
+  reconcile overlap leaves the column out, so it never nudges two shapes into
+  one dataset. Older stores get the column on the next write
+  (`_migrate_add_capture`), filled in from `provenance.tsv`, committed as
+  store maintenance; a dataset that already has it is left alone. The triage
+  bucket shows it too (`_decode_unsorted_tsv` now finds `raw` by name).
+- **Run files (`_snapshot_files`):** a capture in a controlled directory
+  also commits the directory's files themselves, tagged `files-<id>`, built
+  with a scratch index and the directory as the work tree, so the store's
+  own tree never holds a copy and git keeps an unchanged file once. The
+  directory's `.gitignore` is honoured, `.provost` and `.git` never go in,
+  and a file over `PROVOST_FILES_MAX_SIZE` bytes (new; default 1048576; 0 =
+  none) is only listed in `context/manifest.tsv`, as before. Each run's
+  commit has the previous run's as its parent (a run with nothing changed
+  is tagged on the previous commit), so `git log --stat files-c0007` is the
+  directory's history across runs. Tags travel with `export`/`import`.
+- **Tests (`tests/smoke.sh`):** capture column, clash, triage, format-2
+  migration and idempotence (+12); run files (+12); format checks now 3.
+  Help ENV and man page document `PROVOST_FILES_MAX_SIZE`.
+
+## 2026-10-28 — `provost import` works from any directory
+
+- **Fix (`provost` `cmd_import`):** an import run from a directory that is
+  not inside a git repository failed with "not a valid provost export
+  bundle", whatever the bundle. `git bundle verify` needs a repository to
+  check a bundle's prerequisites against and refuses to run outside one;
+  import ran it in the caller's directory. It now verifies in an empty
+  scratch repository (an export is `--all`, so it has no prerequisites),
+  which also stops it checking against an unrelated repository the caller
+  happened to stand in. A relative bundle path is made absolute first.
+- **Tests (`tests/smoke.sh`):** import from a non-repository directory with a
+  relative path, the copy works, and a non-bundle is still refused without
+  leaving a destination behind (+4).
+
 ## 2026-10-27 — `--llm` clean-up: values keep to their cells, lines set aside go to `NAME.notes`
 
 A clean-up after extraction, asked for after part 6 (part 7 of

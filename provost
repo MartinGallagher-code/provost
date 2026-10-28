@@ -101,6 +101,7 @@ PROVOST_MIN_CONFIDENCE="${PROVOST_MIN_CONFIDENCE:-50}"
 PROVOST_MIN_COVERAGE="${PROVOST_MIN_COVERAGE:-80}"
 PROVOST_MIN_CONSISTENCY="${PROVOST_MIN_CONSISTENCY:-70}"
 PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
+PROVOST_FILES_MAX_SIZE="${PROVOST_FILES_MAX_SIZE:-1048576}"  # a controlled dir's files kept per run up to this size (0 = none)
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
@@ -156,6 +157,7 @@ _validate_settings () {
     _validate_uint PROVOST_LOCK_TIMEOUT      "$PROVOST_LOCK_TIMEOUT"      0 86400
     _validate_uint PROVOST_LOCK_MAX_AGE      "$PROVOST_LOCK_MAX_AGE"      1
     _validate_uint PROVOST_MAX_INPUT         "$PROVOST_MAX_INPUT"         1
+    _validate_uint PROVOST_FILES_MAX_SIZE    "$PROVOST_FILES_MAX_SIZE"    0
     # (validated above, so these arithmetic reads are safe)
     PROVOST_MIN_CONFIDENCE=$((10#$PROVOST_MIN_CONFIDENCE))
     PROVOST_MIN_COVERAGE=$((10#$PROVOST_MIN_COVERAGE))
@@ -164,6 +166,7 @@ _validate_settings () {
     PROVOST_LOCK_TIMEOUT=$((10#$PROVOST_LOCK_TIMEOUT))
     PROVOST_LOCK_MAX_AGE=$((10#$PROVOST_LOCK_MAX_AGE))
     PROVOST_MAX_INPUT=$((10#$PROVOST_MAX_INPUT))
+    PROVOST_FILES_MAX_SIZE=$((10#$PROVOST_FILES_MAX_SIZE))
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
@@ -177,6 +180,13 @@ _validate_settings () {
 _valid_name () { [[ "$1" =~ $_NAME_RE && "$1" != *..* ]]; }
 _require_name () { _valid_name "$1" || usage_die "invalid dataset name '$1' (allowed: letters, digits, '.', '_', '-'; must start with a letter or digit; no '..')."; }
 _valid_capid () { [[ "$1" =~ ^c[0-9]{1,12}$ ]]; }
+# A capture id from what a user types for one: c0007, c7, 7 or capture-c0007
+# all mean c0007. Prints it; fails on anything else.
+_capid_of () {
+    local t="${1#capture-}"
+    [[ "$t" =~ ^c?([0-9]{1,12})$ ]] || return 1
+    printf 'c%04d\n' "$((10#${BASH_REMATCH[1]}))"
+}
 
 # Turn an arbitrary word (a command's basename) into a valid dataset name.
 # Prints nothing when nothing usable is left.
@@ -309,7 +319,7 @@ _git () {
         fi
     fi
     env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
-        -u GIT_COMMON_DIR -u GIT_NAMESPACE \
+        -u GIT_COMMON_DIR -u GIT_NAMESPACE ${_GIT_INDEX:+"GIT_INDEX_FILE=$_GIT_INDEX"} \
         git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
         -c core.hooksPath=/dev/null -c core.fsmonitor=false \
         -c user.name=provost -c user.email=provost@localhost \
@@ -533,8 +543,10 @@ _scan_max_capture_num () {
 # monotonic capture counter. Only when writable and on the capture branch.
 # Store format, recorded (and committed) in .store_format. 2 = datasets carry
 # no `total_entries` column (melt stopped emitting the engine's record count
-# on 2026-09-25; datasets written before then still had it).
-_STORE_FORMAT=2
+# on 2026-09-25; datasets written before then still had it). 3 = every
+# dataset's second column is `capture`, the id of the capture each row came
+# from (2026-10-28; earlier rows are filled in from provenance.tsv).
+_STORE_FORMAT=3
 _store_format_file () { printf '%s/.store_format\n' "$PROVOST_WORKSPACE"; }
 _store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$f" || echo 1; }
 
@@ -567,6 +579,46 @@ _migrate_drop_total_entries () {
     done
 }
 
+# Format 2 -> 3: insert the `capture` column after '#' in every dataset,
+# filled from provenance.tsv (# -> capture). One awk over provenance and every
+# dataset; a header that does not start with '#' is not a provost dataset and
+# is left alone. A data column already named `capture` keeps its name and the
+# added one becomes `_capture`, exactly as a new capture names it. A dataset
+# that already carries the column (its second column is named so and every
+# row's value is that row's capture) is left as it is, so a store whose
+# .store_format went missing is not given the column twice.
+_migrate_add_capture () {
+    local dir prov f skip; dir="$(_ds_dir)"; prov="$(_prov_file)"
+    local -a files=()
+    for f in "$dir"/*.tsv; do [[ -f "$f" ]] && files+=("$f"); done
+    (( ${#files[@]} )) || return 0
+    [[ -f "$prov" ]] || prov=/dev/null
+    skip="$dir/.mig-skip.$$"; : > "$skip"
+    awk -F'\t' -v OFS='\t' -v P="$prov" -v SKIP="$skip" '
+        function done_file() { if (out != "") { close(out); if (had) print prev > SKIP }; out = "" }
+        FILENAME == P { if (FNR > 1) cap[$1] = $3; next }
+        FNR == 1 {
+            done_file(); if ($1 != "#") next
+            out = FILENAME ".mig"; prev = FILENAME; split("", U)
+            had = ($2 ~ /^_*capture$/)
+            for (i = 1; i <= NF; i++) U[$i] = 1
+            c = "capture"; while (c in U) c = "_" c
+        }
+        out == "" { next }
+        FNR > 1 && had && !($1 in cap && $2 == cap[$1]) { had = 0 }
+        { rest = substr($0, length($1) + 2)
+          v = (FNR == 1) ? c : (($1 in cap) ? cap[$1] : "")
+          if (NF == 1) print $1, v > out; else print $1, v, rest > out }
+        END { done_file() }
+    ' "$prov" "${files[@]}" || { for f in "${files[@]}"; do rm -f "$f.mig"; done; rm -f "$skip"; return 1; }
+    for f in "${files[@]}"; do
+        [[ -f "$f.mig" ]] || continue
+        if grep -qxF -- "$f" "$skip"; then rm -f "$f.mig"; else mv "$f.mig" "$f"; fi
+    done
+    rm -f "$skip"
+    return 0
+}
+
 _migrate_store () {
     local ws="$PROVOST_WORKSPACE" first=""
     [[ -d "$ws/.git" && -w "$ws" ]] || return 0
@@ -585,6 +637,9 @@ _migrate_store () {
     fi
     if (( $(_store_format) < 2 )); then
         _migrate_drop_total_entries
+    fi
+    if (( $(_store_format) < 3 )); then
+        _migrate_add_capture || die "could not add the capture column to the datasets (store format 3)."
     fi
     echo "$_STORE_FORMAT" > "$(_store_format_file)"
     _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter, store format $_STORE_FORMAT)"
@@ -639,9 +694,12 @@ _next_capture_id () {
 # Column overlap (Jaccard, as an integer percent) between two tab-separated
 # headers passed as the two lines of stdin.
 _col_overlap () {
+    # A stored header's second column (after '#') is the capture id every
+    # dataset carries; it is in both headers by construction, so it is left
+    # out rather than let it nudge two different shapes into one dataset.
     awk -F'\t' '
-        NR==1 { for(i=1;i<=NF;i++){a[$i]=1}; na=NF }
-        NR==2 { for(i=1;i<=NF;i++){ b[$i]=1; if($i in a) inter++ } }
+        NR==1 { for(i=1;i<=NF;i++){ if(i==2 && $1=="#") continue; a[$i]=1 }; na=NF }
+        NR==2 { for(i=1;i<=NF;i++){ if(i==2 && $1=="#") continue; b[$i]=1; if($i in a) inter++ } }
         END { for(k in a) u[k]=1; for(k in b) u[k]=1; nu=0; for(k in u) nu++;
               if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
 }
@@ -739,6 +797,46 @@ _snapshot_context () {
     rm -f "$mani.tmp"
     local n=0; n=$(( $(wc -l < "$mani") - 1 ))
     printf '%s\n' "$n"
+}
+
+# RUN FILES — a capture in a controlled directory also commits the
+# directory's files themselves: a commit of their own, tagged files-<id>, so
+# any run's files can be listed, read, compared or written out again later
+# ('provost files', 'provost diff'). It is built with a scratch index and the
+# controlled directory as the work tree, so the store's own tree never holds
+# a copy, and git stores a file that did not change between runs once. The
+# directory's .gitignore is honoured; .provost and .git never go in; a file
+# over PROVOST_FILES_MAX_SIZE bytes (0 = keep no files) is only listed in
+# context/manifest.tsv. Each run's commit has the previous run's as its
+# parent, so plain git shows the directory's history across runs
+# (git log --stat files-c0007); a run whose files did not change is tagged on
+# the previous commit rather than given an empty one. Called under the lock.
+_snapshot_files () {
+    local dir="$1" id="$2" git_dir idx spec tree parent ptree commit out f
+    (( PROVOST_FILES_MAX_SIZE > 0 )) || return 0
+    git_dir="$PROVOST_WORKSPACE/.git"
+    idx="$git_dir/provost-files.index"; spec="$git_dir/provost-files.pathspec"
+    rm -f "$idx" "$spec"
+    {
+        printf ':/\0:(top,exclude,literal).provost\0'
+        while IFS= read -r -d '' f; do printf ':(top,exclude,literal)%s\0' "${f#./}"; done \
+            < <(cd "$dir" && find . \( -path ./.provost -o -path ./.git \) -prune -o \
+                    -type f -size +"${PROVOST_FILES_MAX_SIZE}"c -print0 2>/dev/null)
+    } > "$spec"
+    out="$(_GIT_INDEX="$idx" _git --work-tree="$dir" add -A \
+            --pathspec-from-file="$spec" --pathspec-file-nul 2>&1)" \
+        || { rm -f "$idx" "$spec"; printf 'git: %s\n' "$out" >&2; return 1; }
+    tree="$(_GIT_INDEX="$idx" _git write-tree 2>/dev/null)" || { rm -f "$idx" "$spec"; return 1; }
+    rm -f "$idx" "$spec"
+    parent="$(_git for-each-ref --count=1 --sort=-v:refname --format='%(objectname)' 'refs/tags/files-c*' 2>/dev/null)"
+    ptree=""; [[ -n "$parent" ]] && ptree="$(_git rev-parse -q --verify "$parent^{tree}" 2>/dev/null)"
+    if [[ -n "$parent" && "$ptree" == "$tree" ]]; then
+        commit="$parent"
+    else
+        commit="$(_git commit-tree "$tree" ${parent:+-p "$parent"} \
+                    -m "files of $dir at capture $id" 2>/dev/null)" || return 1
+    fi
+    _git tag "files-$id" "$commit" >/dev/null 2>&1
 }
 
 # _quality_exempt ENGINE STRATEGY — true when the quality gate does not apply.
@@ -1421,12 +1519,18 @@ _ingest () {
     local -a out_names=() out_ranges=()
     for (( k=0; k<${#ds_file[@]}; k++ )); do
         startid="$nextid"
-        # Prepend the visible, globally-unique '#' index to the header + each
-        # row (blank lines dropped), counting rows and header fields as we go.
-        CNTF="$tmp/cnt" awk -F'\t' -v s="$startid" '
+        # Prepend the visible, globally-unique '#' index and the capture id
+        # (which run each row came from) to the header + each row (blank lines
+        # dropped), counting rows and header fields as we go. A data column
+        # already named `capture` keeps its name; the added one becomes
+        # `_capture` (melt's clash rule), so a by-name union never merges them.
+        CNTF="$tmp/cnt" CAPID="$id" awk -F'\t' -v s="$startid" '
             length($0) == 0 { next }
-            !h { h = 1; nf = NF + 1; print "#\t" $0; next }
-            { print (s + n) "\t" $0; n++ }
+            !h { h = 1; nf = NF + 1
+                 for (i = 1; i <= NF; i++) U[$i] = 1
+                 c = "capture"; while (c in U) c = "_" c
+                 print "#\t" c "\t" $0; next }
+            { print (s + n) "\t" ENVIRON["CAPID"] "\t" $0; n++ }
             END { print n + 0, nf + 0 > (ENVIRON["CNTF"]) }' "${ds_file[k]}" > "$tmp/id.tsv"
         read -r nrows nf < "$tmp/cnt"
         [[ $k -eq 0 ]] && fields="$nf"
@@ -1512,8 +1616,10 @@ _ingest () {
 
     # In a controlled directory, snapshot the directory's contents as commit
     # context so the capture is tied to what the tree looked like at the time.
+    local ctl_dir=""
     if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
-        _snapshot_context "$(dirname "$PROVOST_WORKSPACE")" "$PROVOST_WORKSPACE" >/dev/null \
+        ctl_dir="$(dirname "$PROVOST_WORKSPACE")"
+        _snapshot_context "$ctl_dir" "$PROVOST_WORKSPACE" >/dev/null \
             || warn "could not snapshot the controlled directory's context."
     fi
     local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
@@ -1521,6 +1627,10 @@ _ingest () {
     _commit "$msg"
     local out
     out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
+    if [[ -n "$ctl_dir" ]]; then
+        _snapshot_files "$ctl_dir" "$id" \
+            || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
+    fi
     _unlock
 
     local idrange="#${startid}..$((startid+nrows-1))"; (( nrows == 0 )) && idrange="(no rows)"
@@ -1772,6 +1882,7 @@ options:
                           don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
+  --show                  show the command's output as it runs, as well
   -q, --silent            no progress output
 EOF
             ;;
@@ -1801,10 +1912,16 @@ options:
                           don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
+  --show                  pass the input through to stdout as well (a tee)
   -q, --silent            no progress output
 EOF
             ;;
-        source) echo "usage: provost source <#N>    show the original captured input behind row #N" ;;
+        source) cat <<'EOF'
+usage: provost source <#N | ID>
+  The original captured input behind dataset row #N, or behind capture ID
+  (c0007 or capture-c0007), with that capture's details.
+EOF
+            ;;
         control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
         uncontrol) echo "usage: provost uncontrol [<dir>]    release a controlled directory (its data is kept)" ;;
         instances) echo "usage: provost instances    list controlled directories" ;;
@@ -1817,8 +1934,59 @@ usage: provost log [--failed]
 EOF
             ;;
         restore) echo "usage: provost restore <capture-id|latest>    bring a capture's commit back up (detached); 'latest' returns" ;;
+        files) cat <<'EOF'
+usage: provost files [ID] [PATH] [--to DIR]
+  The controlled directory's files as capture ID kept them (default: the
+  latest capture that kept any). No PATH: list them (size, path); a PATH:
+  print that file (or list that directory); --to DIR: write them all out
+  into DIR, a new or empty directory.
+EOF
+            ;;
+        listen) cat <<'EOF'
+usage: provost listen [CMD...]
+  Capture CMD every time you run it: its output is shown as always and a copy
+  is filed (as 'provost run --show CMD' would). Each command becomes a shell
+  function in one file, which your shell loads from its startup file; provost
+  says how. With no CMD, list the commands listened on.
+EOF
+            ;;
+        unlisten) echo "usage: provost unlisten CMD...    stop capturing CMD every time it runs" ;;
+        search) cat <<'EOF'
+usage: provost search PATTERN [NAME...] [options]
+  Find the dataset rows that match PATTERN (a regular expression, matched
+  anywhere in the row, '#' and capture included) with git grep, shown as a
+  table per dataset. NAME... limits it to those datasets.
+options:
+  -i, -F, -w              ignore case / a fixed string / whole words
+  --at ID                 search the store as it stood after capture ID
+  --output                search the captured outputs instead (capture, line, text)
+  --files                 search a controlled directory's files as the latest
+                          run kept them (or capture ID's, with --at)
+EOF
+            ;;
+        diff) cat <<'EOF'
+usage: provost diff [NAME] [A [B]] [-- PATH...]
+  What changed between capture A and capture B: for each dataset, the rows
+  only A filed (-) and only B filed (+), compared without the columns
+  provost adds; and, in a controlled directory, which files changed. With
+  NAME, only that dataset, and the default captures are its own.
+  No A: the last two captures; A alone: A against the capture before it.
+  -- PATH...              the full diff of those files between A and B
+EOF
+            ;;
+        next) echo "usage: provost next    step the restored store forward one capture (past the last: back to the latest)" ;;
+        prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
         ls) echo "usage: provost ls    list datasets" ;;
-        show) echo "usage: provost show NAME    present a dataset as a table (leading #N = row index)" ;;
+        show) cat <<'EOF'
+usage: provost show NAME [--capture ID] [--at ID]
+  Present a dataset as a table: '#' is each row's index in the store,
+  'capture' the capture it came from, 'n' its record number in that capture.
+options:
+  --capture ID            only the rows capture ID filed (c0007, or 7)
+  --at ID                 the dataset as it stood just after capture ID, read
+                          from git (the store stays where it is)
+EOF
+            ;;
         rm) echo "usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used" ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
@@ -1837,7 +2005,7 @@ _cmd_usage_die () { local u; u="$(_usage_text "$1")"; printf '%s\n' "${u%%$'\n'*
 # and leaves the remaining args in _O_REST.
 _parse_capture_opts () {
     local verb="$1"; shift
-    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_REST=()
+    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0; _O_REST=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) PROVOST_QUIET=1; shift ;;
@@ -1872,6 +2040,7 @@ _parse_capture_opts () {
             --no-llm) PROVOST_LLM=0; shift ;;
             --async) _O_ASYNC=1; shift ;;
             --sync|--wait) _O_ASYNC=0; shift ;;
+            --show|--tee) _O_SHOW=1; shift ;;
             -h|--help) _cmd_help "$verb" ;;
             --) shift; _O_REST=("$@"); return 0 ;;
             -?*) usage_die "unknown option for '$verb': $1 (see 'provost $verb --help')." ;;
@@ -1911,6 +2080,11 @@ cmd_inject () {
     local in="$tmp/in.txt" size
     if [[ -n "$file" ]]; then
         head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" | tr -d '\r' > "$in"
+        (( _O_SHOW )) && cat -- "$file"
+    elif (( _O_SHOW )); then
+        # --show: pass all of stdin through to stdout (a tee), keep the bound.
+        tee "$tmp/full"
+        head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" | tr -d '\r' > "$in"; rm -f "$tmp/full"
     else
         head -c "$((PROVOST_MAX_INPUT + 1))" | tr -d '\r' > "$in"
     fi
@@ -1941,8 +2115,15 @@ cmd_run () {
     # bounded by PROVOST_MAX_INPUT exactly as inject is.
     local -a st=()
     set +e
-    "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
-    st=("${PIPESTATUS[@]}")
+    if (( _O_SHOW )); then
+        # --show: the output goes to the terminal as it comes, as well.
+        "$@" 2>&1 | tee "$in.full"
+        st=("${PIPESTATUS[@]}")
+        head -c "$((PROVOST_MAX_INPUT + 1))" "$in.full" > "$in.raw"; rm -f "$in.full"
+    else
+        "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
+        st=("${PIPESTATUS[@]}")
+    fi
     set -e
     rc="${st[0]}"
     size="$(wc -c < "$in.raw")"; size="${size//[!0-9]/}"
@@ -1974,7 +2155,14 @@ cmd_log () {
         esac
     done
     if [[ $failed -eq 1 ]]; then _show_failures; return 0; fi
-    local capdir; capdir="$(_cap_dir)"
+    local capdir cur=""; capdir="$(_cap_dir)"
+    # Restored to an earlier capture: the store's files stop at that capture,
+    # so list every capture from the latest's tree, read from git.
+    if [[ -d "$PROVOST_WORKSPACE/.git" ]] && cur="$(_current_capture)" && [[ -n "$cur" ]]; then
+        _mktempd log
+        _git archive "$(_main_branch)" -- 'captures/*/meta.tsv' 2>/dev/null | tar -x -C "$_MKTEMPD" 2>/dev/null || true
+        capdir="$_MKTEMPD/captures"
+    fi
     local d b keys=() files=() k
     shopt -s nullglob
     for d in "$capdir"/c*/; do
@@ -2001,6 +2189,7 @@ cmd_log () {
         FNR == 1 { emit() }
         { k = $1; val = substr($0, length(k) + 2); v[k] = val; have = 1 }
         END { emit() }' "${files[@]}"
+    [[ -z "$cur" ]] || info "the store is restored to $cur — step with: provost next / prev; return with: provost restore latest"
 }
 
 cmd_restore () {
@@ -2017,18 +2206,383 @@ cmd_restore () {
         ok "restored workspace to latest ($main)."
         return 0
     fi
-    target="${target#capture-}"
-    [[ "$target" =~ ^[0-9]{1,12}$ ]] && target="$(printf 'c%04d' "$((10#$target))")"
-    _valid_capid "$target" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
+    target="$(_capid_of "$target")" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
     _git rev-parse -q --verify "refs/tags/capture-$target" >/dev/null 2>&1 \
         || die "no such capture: $target (see 'provost log')."
     # Bring that capture's committed tree back up (detached).
     _lock
     out="$(_git checkout -q "capture-$target" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "checkout failed for capture-$target."; }
     _unlock
-    ok "brought up $target (detached; new captures are refused until you return). Return with: provost restore latest"
+    ok "brought up $target (detached; new captures are refused until you return). Step with: provost next / prev; return with: provost restore latest"
     local capd; capd="$(_cap_dir)/$target"
     if [[ -f "$capd/meta.tsv" ]]; then echo; sed 's/\t/: /' "$capd/meta.tsv"; fi
+}
+
+# Every capture id, oldest first (from the capture-<id> tags).
+_capture_ids () {
+    _git for-each-ref --sort=v:refname --format='%(refname:short)' 'refs/tags/capture-c*' 2>/dev/null \
+        | sed -n 's/^capture-\(c[0-9]*\)$/\1/p'
+}
+# The capture the store is restored to; empty when it is on the latest.
+_current_capture () {
+    _git symbolic-ref -q HEAD >/dev/null 2>&1 && return 0
+    _git describe --tags --exact-match --match 'capture-c*' HEAD 2>/dev/null | sed 's/^capture-//'
+}
+
+# next / prev — step the restored store one capture forward or back, as
+# 'restore' does: from the latest, 'prev' brings up the last capture (or the
+# one before it, when the latest is that capture's own commit); 'next' past
+# the last capture returns to the latest.
+cmd_step () {
+    local verb="$1"; shift
+    case "${1:-}" in -h|--help) _cmd_help "$verb" ;; esac
+    [[ $# -eq 0 ]] || _cmd_usage_die "$verb"
+    _ensure_workspace
+    local -a ids=(); local x cur pos=-1 n i
+    while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(_capture_ids)
+    n=${#ids[@]}
+    (( n > 0 )) || die "no captures yet — nothing to step through."
+    cur="$(_current_capture)"
+    if [[ -z "$cur" ]]; then
+        [[ "$verb" == next ]] && { info "already at the latest (step back with: provost prev)."; return 0; }
+        pos=$n
+        [[ "$(_git rev-parse HEAD 2>/dev/null)" == "$(_git rev-parse "capture-${ids[n-1]}^{commit}" 2>/dev/null)" ]] && pos=$((n - 1))
+    else
+        for i in "${!ids[@]}"; do [[ "${ids[i]}" == "$cur" ]] && pos=$i; done
+        (( pos >= 0 )) || die "the store is at a commit that is not a capture — return with: provost restore latest"
+    fi
+    if [[ "$verb" == next ]]; then
+        if (( pos + 1 >= n )); then cmd_restore latest; else cmd_restore "${ids[pos+1]}"; fi
+    else
+        (( pos > 0 )) || { info "already at the first capture (${ids[0]})."; return 0; }
+        cmd_restore "${ids[pos-1]}"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# files — a controlled directory's files as a capture kept them (files-<id>).
+# ---------------------------------------------------------------------------
+# The newest capture whose files were kept ('' when none).
+_latest_files_id () {
+    _git for-each-ref --count=1 --sort=-v:refname --format='%(refname:short)' 'refs/tags/files-c*' 2>/dev/null \
+        | sed -n 's/^files-\(c[0-9]*\)$/\1/p'
+}
+
+cmd_files () {
+    local id="" path="" to="" a v
+    while [[ $# -gt 0 ]]; do
+        a="$1"
+        case "$a" in
+            -h|--help) _cmd_help files ;;
+            --to) [[ $# -ge 2 ]] || usage_die "--to needs a directory."; to="$2"; shift 2; continue ;;
+            --) shift; [[ $# -le 1 ]] || _cmd_usage_die files; path="${1:-}"; shift $#; continue ;;
+            -?*) usage_die "unknown option for 'files': $a (see 'provost files --help')." ;;
+        esac
+        if [[ -z "$id" && -z "$path" ]] && v="$(_capid_of "$a")"; then id="$v"
+        elif [[ -z "$path" ]]; then path="${a#./}"
+        else _cmd_usage_die files; fi
+        shift
+    done
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    if [[ -z "$id" ]]; then
+        id="$(_latest_files_id)"
+        [[ -n "$id" ]] || die "no run files yet — they are kept for captures made in a controlled directory (see 'provost control')."
+    fi
+    local ref="files-$id"
+    if ! _git rev-parse -q --verify "refs/tags/$ref" >/dev/null 2>&1; then
+        _git rev-parse -q --verify "refs/tags/capture-$id" >/dev/null 2>&1 \
+            || die "no such capture: $id (see 'provost log')."
+        die "capture $id kept no files (it was not made in a controlled directory, or PROVOST_FILES_MAX_SIZE was 0)."
+    fi
+    if [[ -n "$to" ]]; then
+        [[ -z "$path" ]] || usage_die "--to writes out every file; leave out the path."
+        if [[ -e "$to" ]]; then
+            [[ -d "$to" && -z "$(ls -A "$to" 2>/dev/null)" ]] || die "$to exists and is not an empty directory."
+        else
+            mkdir -p "$to" || die "cannot create $to"
+        fi
+        _git archive "$ref" | tar -x -C "$to" || die "could not write the files of $id to $to."
+        ok "wrote the files of $id to $to."
+        return 0
+    fi
+    local kind=tree
+    if [[ -n "$path" ]]; then
+        path="${path%/}"
+        kind="$(_git cat-file -t "$ref:$path" 2>/dev/null)" || die "no file '$path' in the files of $id (see 'provost files $id')."
+    fi
+    if [[ "$kind" == blob ]]; then
+        _git cat-file blob "$ref:$path"
+    else
+        info "files of $id${path:+ under $path} (size, path):"
+        _git ls-tree -r -l --full-tree "$ref" ${path:+-- "$path"} \
+            | awk -F'\t' '{ split($1, m, " "); printf "%10s  %s\n", m[4], $2 }'
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# search — git grep over the store: dataset rows (default), the captured
+# outputs (--output), or a controlled directory's run files (--files); as the
+# store stands, or as it stood after a capture (--at).
+# ---------------------------------------------------------------------------
+cmd_search () {
+    local pat="" what=rows at="" v
+    local -a gopt=() names=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help search ;;
+            -i|--ignore-case) gopt+=(-i); shift ;;
+            -F|--fixed-strings) gopt+=(-F); shift ;;
+            -w|--word-regexp) gopt+=(-w); shift ;;
+            --output) what=output; shift ;;
+            --files) what=files; shift ;;
+            --at) [[ $# -ge 2 ]] || usage_die "--at needs a capture id (e.g. c0007)."
+                  at="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                  shift 2 ;;
+            -e) [[ $# -ge 2 && -z "$pat" ]] || _cmd_usage_die search; pat="$2"; shift 2 ;;
+            --) shift; if [[ -z "$pat" && $# -gt 0 ]]; then pat="$1"; shift; fi; names+=("$@"); break ;;
+            -?*) usage_die "unknown option for 'search': $1 (see 'provost search --help')." ;;
+            *) if [[ -z "$pat" ]]; then pat="$1"; else _require_name "$1"; names+=("$1"); fi; shift ;;
+        esac
+    done
+    [[ -n "$pat" ]] || _cmd_usage_die search
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    local rev=HEAD
+    if [[ "$what" == files ]]; then
+        (( ${#names[@]} == 0 )) || usage_die "--files searches every file a run kept; leave out dataset names."
+        if [[ -z "$at" ]]; then at="$(_latest_files_id)"
+            [[ -n "$at" ]] || die "no run files yet — they are kept for captures made in a controlled directory (see 'provost control')."
+        fi
+        _git rev-parse -q --verify "refs/tags/files-$at" >/dev/null 2>&1 || die "capture $at kept no files (see 'provost files')."
+        info "files of $at matching '$pat' (path:line:text):"
+        _git grep -I -n "${gopt[@]}" -e "$pat" "files-$at" -- 2>/dev/null | sed "s/^files-$at://"
+        return 0
+    fi
+    if [[ -n "$at" ]]; then
+        _git rev-parse -q --verify "refs/tags/capture-$at" >/dev/null 2>&1 || die "no such capture: $at (see 'provost log')."
+        rev="capture-$at"
+    fi
+    _mktempd search; local hits="$_MKTEMPD/hits"
+    if [[ "$what" == output ]]; then
+        _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- 'captures/*/output.txt' > "$hits" 2>/dev/null || true
+        [[ -s "$hits" ]] || { info "no captured output matches '$pat'."; return 0; }
+        # REV:captures/<id>/output.txt:LINE:TEXT -> capture, line, text
+        R="$rev:" awk 'BEGIN { r = ENVIRON["R"]; print "capture\tline\ttext" }
+            { s = substr($0, length(r) + 1); i = index(s, ":"); p = substr(s, 1, i - 1); s = substr(s, i + 1)
+              j = index(s, ":"); split(p, P, "/"); print P[2] "\t" substr(s, 1, j - 1) "\t" substr(s, j + 1) }' "$hits" | _table
+        return 0
+    fi
+    local -a spec=()
+    if (( ${#names[@]} )); then for v in "${names[@]}"; do spec+=("datasets/$v.tsv"); done
+    else spec=(datasets ':(exclude)datasets/unsorted.tsv'); fi
+    _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- "${spec[@]}" > "$hits" 2>/dev/null || true
+    # REV:datasets/NAME.tsv:LINE:ROW — line 1 is the header, not a row.
+    R="$rev:" awk -v OFS='\t' 'BEGIN { r = ENVIRON["R"] }
+        { s = substr($0, length(r) + 1); i = index(s, ":"); p = substr(s, 1, i - 1); s = substr(s, i + 1)
+          j = index(s, ":"); if (substr(s, 1, j - 1) == 1) next
+          sub(/^datasets\//, "", p); sub(/\.tsv$/, "", p); print p, substr(s, j + 1) }' "$hits" > "$hits.rows"
+    [[ -s "$hits.rows" ]] || { info "no dataset rows match '$pat'${at:+ at $at}."; return 0; }
+    local ds prev="" first=1
+    while IFS= read -r ds; do
+        (( first )) || echo; first=0
+        printf '%s (%s row%s)\n' "$ds" "$(awk -F'\t' -v d="$ds" '$1 == d { n++ } END { print n }' "$hits.rows")" \
+            "$(awk -F'\t' -v d="$ds" '$1 == d { n++ } END { print (n == 1 ? "" : "s") }' "$hits.rows")"
+        { _git show "$rev:datasets/$ds.tsv" 2>/dev/null | head -n 1
+          awk -F'\t' -v d="$ds" '$1 == d { print substr($0, length(d) + 2) }' "$hits.rows"; } | _table
+    done < <(cut -f1 "$hits.rows" | awk '!seen[$0]++')
+}
+
+# ---------------------------------------------------------------------------
+# diff — what changed between two captures: the rows each dataset got from
+# them, and (in a controlled directory) the files.
+# ---------------------------------------------------------------------------
+cmd_diff () {
+    local name="" a="" b="" v x
+    local -a paths=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help diff ;;
+            --) shift; paths=("$@"); break ;;
+            -?*) usage_die "unknown option for 'diff': $1 (see 'provost diff --help')." ;;
+        esac
+        if v="$(_capid_of "$1")"; then
+            if [[ -z "$a" ]]; then a="$v"; elif [[ -z "$b" ]]; then b="$v"; else _cmd_usage_die diff; fi
+        elif [[ -z "$name" && -z "$a" ]]; then
+            _require_name "$1"; name="$1"
+        else _cmd_usage_die diff; fi
+        shift
+    done
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    local main; main="$(_main_branch)"
+    _mktempd diff; local tmp="$_MKTEMPD"
+    # Default: the last two captures (that filed into NAME, when one is given);
+    # one capture given: it against the one before it.
+    local -a ids=()
+    if [[ -n "$name" ]]; then
+        _git show "$main:datasets/$name.tsv" > "$tmp/name.tsv" 2>/dev/null || die "no such dataset: $name (try 'provost ls')."
+        _git show "$main:provenance.tsv" > "$tmp/name.prov" 2>/dev/null || : > "$tmp/name.prov"
+        while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(awk -F'\t' -v P="$tmp/name.prov" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); next }
+            { c = col ? $2 : pc[$1]; if (c != "" && !(c in seen)) { seen[c] = 1; print c } }' "$tmp/name.prov" "$tmp/name.tsv")
+    else
+        while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(_capture_ids)
+    fi
+    local n=${#ids[@]} i
+    if [[ -z "$a" ]]; then
+        (( n >= 2 )) || die "need two captures${name:+ of '$name'} to compare (found $n)."
+        a="${ids[n-2]}"; b="${ids[n-1]}"
+    elif [[ -z "$b" ]]; then
+        b="$a"; a=""
+        for i in "${!ids[@]}"; do [[ "${ids[i]}" == "$b" && $i -gt 0 ]] && a="${ids[i-1]}"; done
+        [[ -n "$a" ]] || die "no capture${name:+ of '$name'} before $b to compare it with."
+    fi
+    for x in "$a" "$b"; do
+        _git rev-parse -q --verify "refs/tags/capture-$x" >/dev/null 2>&1 || die "no such capture: $x (see 'provost log')."
+    done
+    # Read both captures' rows from the later capture's tree (it holds the
+    # earlier one's rows too), so the store's own checkout does not matter.
+    local late="$b"
+    (( 10#${a#c} > 10#${b#c} )) && late="$a"
+    mkdir -p "$tmp/t"
+    _git archive "capture-$late" -- datasets provenance.tsv 2>/dev/null | tar -x -C "$tmp/t" 2>/dev/null || true
+    local cmd_a cmd_b
+    cmd_a="$(_git show "capture-$a:captures/$a/meta.tsv" 2>/dev/null | awk -F'\t' '$1 == "command" { print substr($0, 9) }')"
+    cmd_b="$(_git show "capture-$b:captures/$b/meta.tsv" 2>/dev/null | awk -F'\t' '$1 == "command" { print substr($0, 9) }')"
+    printf '%s%s → %s%s\n' "$a" "${cmd_a:+ ($cmd_a)}" "$b" "${cmd_b:+ ($cmd_b)}"
+    local f ds any=0 prov="$tmp/t/provenance.tsv"
+    [[ -f "$prov" ]] || prov=/dev/null
+    for f in "$tmp"/t/datasets/*.tsv; do
+        [[ -f "$f" ]] || continue
+        ds="$(basename "$f" .tsv)"
+        [[ -z "$name" || "$ds" == "$name" ]] || continue
+        # Rows from A and from B, without the columns provost adds ('#',
+        # capture, n): a row is the same when its data is. Removed rows in A's
+        # order, added rows in B's, then a count of the rows both have.
+        awk -F'\t' -v OFS='\t' -v P="$prov" -v A="$a" -v B="$b" -v DS="$ds" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 {
+                col = ($1 == "#" && $2 ~ /^_*capture$/); first = col ? 3 : 2
+                if ($first == "n" || $first ~ /^_+n$/) first++
+                hdr = ""; for (i = first; i <= NF; i++) hdr = hdr (i > first ? OFS : "") $i
+                next
+            }
+            {
+                c = col ? $2 : pc[$1]
+                if (c != A && c != B) next
+                r = ""; for (i = first; i <= NF; i++) r = r (i > first ? OFS : "") $i
+                if (c == A) { ra[++na] = r; ca[r]++ } else { rb[++nb] = r; cb[r]++ }
+            }
+            END {
+                if (!na && !nb) exit
+                print ""
+                if (!nb) { printf "%s: only in %s (%d row%s)\n", DS, A, na, na == 1 ? "" : "s"; exit }
+                if (!na) { printf "%s: only in %s (%d row%s)\n", DS, B, nb, nb == 1 ? "" : "s"; exit }
+                for (r in cb) left[r] = cb[r]
+                out = ""; same = 0
+                for (i = 1; i <= na; i++) { r = ra[i]; if (left[r] > 0) { left[r]--; same++ } else out = out "  - " r "\n" }
+                for (r in ca) lefta[r] = ca[r]
+                for (i = 1; i <= nb; i++) { r = rb[i]; if (lefta[r] > 0) lefta[r]-- ; else out = out "  + " r "\n" }
+                if (out == "") { printf "%s: no change (%d row%s)\n", DS, na, na == 1 ? "" : "s"; exit }
+                printf "%s:\n    %s\n%s", DS, hdr, out
+                if (same) printf "  (%d row%s the same)\n", same, same == 1 ? "" : "s"
+            }' "$prov" "$f" > "$tmp/out" || true
+        if [[ -s "$tmp/out" ]]; then any=1; cat "$tmp/out"; fi
+    done
+    (( any )) || { echo; echo "no dataset rows from $a or $b${name:+ in '$name'}."; }
+    # Files: only when both captures kept them.
+    local fa=0 fb=0
+    _git rev-parse -q --verify "refs/tags/files-$a" >/dev/null 2>&1 && fa=1
+    _git rev-parse -q --verify "refs/tags/files-$b" >/dev/null 2>&1 && fb=1
+    if (( fa && fb )); then
+        echo
+        if (( ${#paths[@]} )); then
+            _git diff "files-$a" "files-$b" -- "${paths[@]}"
+        else
+            local st; st="$(_git diff --stat=100 "files-$a" "files-$b" 2>/dev/null)"
+            if [[ -n "$st" ]]; then echo "files:"; printf '%s\n' "$st" | sed 's/^/  /'
+                echo "  (the changes themselves: provost diff $a $b -- PATH)"
+            else echo "files: no change"; fi
+        fi
+    elif (( ${#paths[@]} )); then
+        die "$a and $b did not both keep the controlled directory's files."
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# listen / unlisten — capture a command every time you run it. Each listened
+# command is a shell function in one file the user loads from their shell's
+# startup file; the function runs it through 'provost run --show', so its
+# output is on screen as always and a copy is filed (in the background at a
+# terminal). Commands go to the store the directory routes to, as 'run' does.
+# ---------------------------------------------------------------------------
+_listen_file () { printf '%s/provost/listen.sh\n' "${XDG_CONFIG_HOME:-$HOME/.config}"; }
+_listen_names () { local f; f="$(_listen_file)"; [[ -f "$f" ]] && sed -n 's/^\([A-Za-z_][A-Za-z0-9_.-]*\) () { command .* # provost listen$/\1/p' "$f"; return 0; }
+_listen_write () {   # NAME... — rewrite the file with exactly these commands
+    local f tmpf n prov; f="$(_listen_file)"
+    mkdir -p "$(dirname "$f")" || die "cannot create $(dirname "$f")"
+    # How the functions call provost: by name when it is on PATH (so an
+    # upgrade or move is picked up), else by this script's own path.
+    prov="provost"
+    command -v provost >/dev/null 2>&1 || prov="$(printf '%q' "$PROVOST_ROOT/provost")"
+    tmpf="$f.tmp.$$"
+    {
+        printf '# provost listen: commands whose output provost files every time they run.\n'
+        printf '# Load from your shell startup file:  . %s\n' "$(printf '%q' "$f")"
+        printf "# Change it with 'provost listen CMD' / 'provost unlisten CMD'.\n"
+        for n in "$@"; do
+            printf '%s () { command %s run --show -- %s "$@"; } # provost listen\n' "$n" "$prov" "$n"
+        done
+    } > "$tmpf" && mv "$tmpf" "$f" || { rm -f "$tmpf"; die "cannot write $f"; }
+}
+_listen_hint () {
+    local f q rc found=0; f="$(_listen_file)"; q="$(printf '%q' "$f")"
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.bash_profile"; do
+        [[ -f "$rc" ]] && F="$f" awk 'index($0, ENVIRON["F"]) { f = 1 } END { exit !f }' "$rc" 2>/dev/null && found=1
+    done
+    if (( found )); then info "takes effect in new shells; in this one, run:  . $q"
+    else info "load it in every shell by adding this line to ~/.bashrc (or ~/.zshrc):  . $q"
+         info "and in this shell now:  . $q"; fi
+}
+
+cmd_listen () {
+    case "${1:-}" in -h|--help) _cmd_help listen ;; esac
+    local -a have=() n x
+    while IFS= read -r x; do [[ -n "$x" ]] && have+=("$x"); done < <(_listen_names)
+    if [[ $# -eq 0 ]]; then
+        if (( ${#have[@]} == 0 )); then info "listening on nothing — 'provost listen CMD' to start."; return 0; fi
+        printf '%s\n' "${have[@]}"
+        return 0
+    fi
+    local -a add=()
+    for n in "$@"; do
+        [[ "$n" =~ ^[A-Za-z_][A-Za-z0-9_.-]{0,63}$ ]] || usage_die "'$n' is not a command name provost can listen on."
+        [[ "$n" == provost ]] && usage_die "provost cannot listen on itself."
+        case "$(type -t -- "$n" 2>/dev/null)" in
+            builtin|keyword) usage_die "'$n' is a shell builtin; it has to run in your shell, so provost cannot run it for you." ;;
+        esac
+        command -v -- "$n" >/dev/null 2>&1 || warn "'$n' is not on PATH here; listening anyway."
+        for x in ${have[@]+"${have[@]}"} ${add[@]+"${add[@]}"}; do [[ "$x" == "$n" ]] && continue 2; done
+        add+=("$n")
+    done
+    if (( ${#add[@]} == 0 )); then info "already listening on: $*"; return 0; fi
+    _listen_write ${have[@]+"${have[@]}"} "${add[@]}"
+    ok "listening on: ${add[*]} — its output is shown as always and filed each time it runs."
+    _listen_hint
+}
+
+cmd_unlisten () {
+    case "${1:-}" in -h|--help) _cmd_help unlisten ;; esac
+    [[ $# -ge 1 ]] || _cmd_usage_die unlisten
+    local -a have=() keep=() gone=() x n
+    while IFS= read -r x; do [[ -n "$x" ]] && have+=("$x"); done < <(_listen_names)
+    for x in ${have[@]+"${have[@]}"}; do
+        for n in "$@"; do [[ "$x" == "$n" ]] && { gone+=("$x"); continue 2; }; done
+        keep+=("$x")
+    done
+    (( ${#gone[@]} )) || { info "not listening on: $*"; return 0; }
+    _listen_write ${keep[@]+"${keep[@]}"}
+    ok "stopped listening on: ${gone[*]}."
+    info "in a shell that already loaded it, also run:  unset -f ${gone[*]}"
 }
 
 # ---------------------------------------------------------------------------
@@ -2142,7 +2696,15 @@ cmd_import () {
     local dest="${2:-}"
     [[ -z "$dest" ]] && dest="$PWD/provost-import-$(basename "$file" .bundle)"
     dest="$(_abspath "$dest")"
-    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
+    file="$(_abspath "$file")"
+    # 'git bundle verify' needs a repository to check the bundle's
+    # prerequisites against, and refuses to run outside one -- which made an
+    # import from any ordinary directory fail as "not a valid bundle". An
+    # export is --all and has no prerequisites, so verify it in an empty
+    # scratch repository, not whatever one the caller happens to stand in.
+    _mktempd import
+    git init -q "$_MKTEMPD" >/dev/null 2>&1 || die "cannot create a scratch repository in $PROVOST_TEMP_DIR (set TMPDIR)."
+    git -C "$_MKTEMPD" bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
     # mkdir is the atomic claim on the destination (two concurrent imports to
     # the same place cannot both win); the clone then fills the empty dir.
     [[ -e "$dest" ]] && die "destination already exists: $dest"
@@ -2165,6 +2727,8 @@ cmd_source () {
     [[ $# -ge 1 ]] || _cmd_usage_die source
     case "$1" in -h|--help) _cmd_help source ;; esac
     [[ $# -eq 1 ]] || _cmd_usage_die source
+    # A capture id (c0007, capture-c0007) shows that whole capture.
+    if [[ "$1" =~ ^(capture-)?c[0-9]{1,12}$ ]]; then _source_capture "$(_capid_of "$1")"; return; fi
     local n="${1#\#}"                             # tolerate a leading '#'
     [[ "$n" =~ ^[0-9]{1,15}$ ]] || usage_die "row index must be a number (got '$1')."
     local prov; prov="$(_prov_file)"
@@ -2185,6 +2749,28 @@ cmd_source () {
     else
         die "capture $cap has no stored output (workspace may be detached — try 'provost restore latest')."
     fi
+}
+
+# _source_capture ID — a capture's meta and original output: from the store's
+# files when they are there, else from the capture's own commit (a capture
+# after the one the store is restored to, or one whose files 'rm' purged).
+_source_capture () {
+    local id="$1" capd meta out
+    capd="$(_cap_dir)/$id"
+    if [[ -f "$capd/output.txt" ]]; then
+        meta="$(cat "$capd/meta.tsv" 2>/dev/null || true)"; out="$capd/output.txt"
+    else
+        _git rev-parse -q --verify "refs/tags/capture-$id" >/dev/null 2>&1 \
+            || die "no such capture: $id (see 'provost log')."
+        meta="$(_git show "capture-$id:captures/$id/meta.tsv" 2>/dev/null || true)"
+        _mktempd source; out="$_MKTEMPD/output.txt"
+        _git show "capture-$id:captures/$id/output.txt" > "$out" 2>/dev/null \
+            || die "capture $id has no stored output."
+    fi
+    info "capture $id"
+    if [[ -n "$meta" ]]; then echo; printf '%s\n' "$meta" | sed 's/\t/: /'; fi
+    echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$id" "$C_RST"
+    cat "$out"
 }
 
 # ---------------------------------------------------------------------------
@@ -2237,13 +2823,16 @@ _decode_unsorted_tsv () {
             for (i = 1; i <= 64; i++) val[substr(b, i, 1)] = i - 1
             for (i = 1; i < 256; i++) ch[i] = sprintf("%c", i)
             ch[9] = "\\t"; ch[10] = "\\n"; ch[13] = "\\r"
-            print "#\traw"
         }
-        NR == 1 { next }
+        # The raw column by name (a store made before format 3 has no
+        # capture column); the capture id, when there is one, is shown too.
+        NR == 1 { r = 2; for (i = 2; i <= NF; i++) { if ($i == "raw") r = i }
+                  cc = (r > 2) ? 2 : 0
+                  print "#\t" (cc ? $cc "\t" : "") "raw"; next }
         {
-            s = $2
-            if (s ~ /[^A-Za-z0-9+\/=]/) { print $1 "\t" s; next }
-            printf "%s\t", $1
+            s = $r; pre = $1 "\t" (cc ? $cc "\t" : "")
+            if (s ~ /[^A-Za-z0-9+\/=]/) { print pre s; next }
+            printf "%s", pre
             out = ""; acc = 0; bits = 0; n = length(s); cnt = 0
             for (i = 1; i <= n; i++) {
                 c = substr(s, i, 1)
@@ -2264,12 +2853,47 @@ _table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else 
 
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    case "$1" in -h|--help) _cmd_help show ;; esac
-    [[ $# -eq 1 ]] || _cmd_usage_die show
-    local name="$1"
+    local name="" at="" cap="" v
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help show ;;
+            --at|--capture)
+                [[ $# -ge 2 ]] || usage_die "$1 needs a capture id (e.g. c0007)."
+                v="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                if [[ "$1" == --at ]]; then at="$v"; else cap="$v"; fi
+                shift 2 ;;
+            -?*) usage_die "unknown option for 'show': $1 (see 'provost show --help')." ;;
+            *) [[ -z "$name" ]] || _cmd_usage_die show; name="$1"; shift ;;
+        esac
+    done
+    [[ -n "$name" ]] || _cmd_usage_die show
     _require_name "$name"
-    local f; f="$(_ds_dir)/$name.tsv"
-    [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
+    local f prov
+    if [[ -n "$at" ]]; then
+        # The dataset as it stood just after capture AT, read from git: no
+        # checkout, so the store stays where it is.
+        _git rev-parse -q --verify "refs/tags/capture-$at" >/dev/null 2>&1 \
+            || die "no such capture: $at (see 'provost log')."
+        _mktempd show; f="$_MKTEMPD/ds.tsv"; prov="$_MKTEMPD/prov.tsv"
+        _git show "capture-$at:datasets/$name.tsv" > "$f" 2>/dev/null \
+            || die "no dataset '$name' at capture $at."
+        _git show "capture-$at:provenance.tsv" > "$prov" 2>/dev/null || : > "$prov"
+    else
+        f="$(_ds_dir)/$name.tsv"; prov="$(_prov_file)"
+        [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
+    fi
+    if [[ -n "$cap" ]]; then
+        # Only the rows capture CAP filed: by the capture column, or, in a
+        # store from before it (format 2), by provenance.
+        _mktempd show; local only="$_MKTEMPD/only.tsv"
+        [[ -f "$prov" ]] || prov=/dev/null
+        awk -F'\t' -v P="$prov" -v C="$cap" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); print; next }
+            (col ? $2 : pc[$1]) == C' "$prov" "$f" > "$only"
+        f="$only"
+        [[ "$(wc -l < "$f")" -gt 1 ]] || { info "no rows in '$name' from capture $cap."; return 0; }
+    fi
     if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _table
     else _table < "$f"; fi
 }
@@ -2490,261 +3114,378 @@ cmd_help () {
     cat <<EOF
 provost $PROVOST_VERSION — turn command output into data
 
-USAGE
-    provost run [opts] [--] <cmd> [args...]         run a command, capture its output as a
-                                                 commit, auto-detect + file it as dataset
-                                                 <cmd> (wrappers like sudo/env/timeout are
-                                                 looked through; --name NAME overrides)
-    cmd | provost [opts]                            inject stdin into a typed dataset named
-                                                 after the winning parser (--name NAME
-                                                 overrides)
-    provost [opts] FILE                             inject a file instead of stdin
-      capture opts: --name NAME  --min-confidence N  --min-coverage N
-                    --min-consistency N  --plugin-dir DIR  --multi
-                    --sync|--wait  --async  -q|--silent
-    provost source <#N>                             show the original source behind row #N
-    provost control [<dir>]                         make <dir> its own capture instance
-    provost uncontrol [<dir>]                       release a controlled directory
-    provost instances                               list controlled directories
-    provost export [<file>]                         bundle the store into a portable file
-    provost import <file> [<dest>]                  reconstitute a bundle elsewhere to browse
-    provost log [--failed]                          list captures (--failed: failed background ones)
-    provost restore <id|latest>                     bring a capture's commit back up
-    provost ls                                      list datasets
-    provost show NAME                               present a dataset (leading #N = row index)
-    provost rm [-f] [--no-purge] NAME...            delete dataset(s) + captures only they used
-    provost stats NAME [analyze-args]               statistics on a dataset (--all for everything)
-    provost triage                                  show low-confidence / unmatched bucket (raw input decoded)
-    provost doctor                                  check engines + store, list failed captures
-    provost help | <command> --help                 this text / one command's usage
+Give provost a command's output: it works out the format and files it as a
+table you can list, show, search and compare. Every capture is a git commit,
+so every run stays viewable.
 
-    Example:  provost run df -h;  provost show df
+CAPTURE
+    provost run CMD [ARGS...]     run CMD and file its output (dataset CMD)
+    CMD | provost                 file piped output
+    provost FILE                  file output saved in FILE
+    provost listen CMD            file CMD's output every time you run it
+    provost control               give this directory its own store; each run
+                                  here also keeps the directory's files
 
-FOREGROUND / BACKGROUND
-    From an interactive terminal a capture runs in the BACKGROUND and the
-    prompt returns at once; from a script or pipeline (stderr not a terminal)
-    it runs in the FOREGROUND, so 'cmd | provost; provost show x' is race-free.
-    --async / --sync (or PROVOST_ASYNC=1/0) force either. A failed background
-    capture is logged in the store: every later provost command warns until
-    you look at it with 'provost log --failed' or 'provost doctor'.
+LOOK
+    provost ls                    list datasets
+    provost show NAME             show a dataset as a table
+    provost search PATTERN        find matching rows in every dataset
+    provost log                   list captures (c0001, c0002, ...)
+    provost source ID             a capture's original output
+    provost diff [NAME]           what changed between the last two captures
+    provost files [ID]            a controlled directory's files at a capture
+    provost stats NAME            statistics on a dataset
+    provost triage                output provost could not file, and why
+
+GO BACK
+    provost prev / provost next   step the store back / forward one capture
+    provost restore latest        return to the present
+
+EXAMPLE
+    provost run df -h             capture 'df -h' into dataset 'df'
+    provost show df               see it: '#' numbers the row in the store,
+                                  'capture' names the run it came from, 'n'
+                                  its place in that run
+
+OPTIONS (for run, piped or file input)
+    --name NAME                   file into dataset NAME
+    --show                        show the output as well as filing it
+    --sync                        wait until it is filed
+    --llm                         have Claude write a parser for output
+                                  provost reads badly (sends that output to
+                                  the Anthropic API; needs an API key)
+
+MORE
+    provost COMMAND --help        one command's usage (provost show --help)
+    provost help advanced         every command, option and setting, and how
+                                  provost decides what to file
+EOF
+}
+
+cmd_help_advanced () {
+    cat <<EOF
+provost $PROVOST_VERSION — advanced help
+
+COMMANDS
+  Capture
+    provost run [OPTIONS] [--] CMD [ARGS...]
+        Run CMD and file its stdout+stderr as dataset CMD (sudo, env, timeout
+        and other wrappers are looked through). Exits with CMD's status.
+    CMD | provost [OPTIONS]        provost [OPTIONS] FILE
+        File piped input, or a file, as a dataset named after the parser that
+        read it (csv, free, aligned-columns, ...).
+    provost listen [CMD...]        provost unlisten CMD...
+        Capture CMD every time it runs (a shell function per command, in
+        \${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh; provost says how to
+        load it). No CMD: list them.
+  Look
+    provost ls                     list datasets and their row counts
+    provost show NAME [--capture ID] [--at ID]
+        A dataset as a table; --capture: only the rows capture ID filed;
+        --at: the dataset as it stood just after capture ID.
+    provost search PATTERN [NAME...] [-i -F -w] [--at ID] [--output | --files]
+        git grep over the rows (or the captured outputs, or a controlled
+        directory's run files), shown per dataset under its header.
+    provost source N | ID          the input behind row #N, or a capture's
+    provost diff [NAME] [A [B]] [-- PATH...]
+        Rows only A filed (-) and only B filed (+), per dataset, and the run
+        files that changed (with PATH: their full diff). Default: the last
+        two captures, or NAME's.
+    provost stats NAME [ARGS]      statistics (ARGS go to the analyze engine;
+                                   --all for every analysis)
+    provost triage                 the 'unsorted' bucket: what was held, why
+  History
+    provost log [--failed]         list captures (--failed: failed background)
+    provost restore ID | latest    check out capture ID (read-only) / return to
+                                   the latest
+    provost prev                   step the store back one capture
+    provost next                   step it forward one (past the last: the latest)
+  Directories and stores
+    provost control [DIR]          give DIR (default: here) its own store
+    provost uncontrol [DIR]        release it (its data is kept)
+    provost instances              list controlled directories
+    provost files [ID] [PATH] [--to DIR]
+        A controlled directory's files as capture ID kept them: list them,
+        print PATH, or write them all out into DIR.
+    provost export [FILE]          the whole store as one portable git bundle
+    provost import FILE [DEST]     open an exported store elsewhere to browse
+  Upkeep
+    provost rm [-f] [--no-purge] NAME...
+        Delete datasets, and the captures only they used (--no-purge: keep
+        those). The deletion is a commit, so 'restore' still reaches it.
+    provost doctor                 check the engines and the store
+    provost help [advanced]        the short help / this text
+    provost COMMAND --help         one command's usage
+
+  An ID is a capture id: c0007, 7 or capture-c0007.
+
+CAPTURE OPTIONS (run, piped input, FILE)
+    --name NAME             file into dataset NAME
+    --show, --tee           show the output (or pass the input through) as well
+    --sync, --wait          file in the foreground (the default when not at a
+                            terminal)
+    --async                 file in the background (the default at a terminal)
+    -q, --silent            no progress output
+    --multi                 file every dataset the input holds (MULTIPLE
+                            DATASETS below)
+    --llm, --no-llm         try a template Claude wrote for the tool first
+                            (LLM TEMPLATES below; default off)
+    --model, --no-model     try the learned layout model before holding a
+                            capture (LAYOUT MODEL below; default off)
+    --auto-multi, --no-auto-multi
+                            try segmenting before holding a capture
+                            (AUTO-MULTI below; default on)
+    --min-confidence N      file only at confidence N or more (0-101; 101
+                            holds every capture for triage)
+    --min-coverage N        quality gate: line coverage (0-100; 0 = off)
+    --min-consistency N     quality gate: type consistency (0-100; 0 = off)
+    --plugin-dir DIR        an extra directory of extract strategies
+
+THE STORE
+    Captures go to a GLOBAL git store, so you can capture from any directory:
+    \$PROVOST_HOME, or ~/.provost. Point PROVOST_HOME at a shared,
+    group-writable directory to collaborate; a lock serialises writers. Only
+    data lives in the store: provost's engines always load from its own
+    install directory ($PROVOST_ROOT).
+
+    'provost control DIR' gives DIR its own store (DIR/.provost): captures
+    made in DIR or below it go there. Which store a capture uses:
+    PROVOST_WORKSPACE if set, else the nearest controlled directory above the
+    current one, else the global store.
+
+    Every capture is one commit, tagged capture-<id>. Capture ids and row
+    numbers are never reused. Every dataset row carries:
+      #        its number, unique in the store ('provost source N')
+      capture  the capture it came from (c0007; 'provost source c0007')
+      n        its record number within that capture
+    In a controlled directory, each capture also lists the directory's files
+    (context/manifest.tsv) and commits the files themselves, tagged
+    files-<id>: the directory's .gitignore is honoured, and a file over
+    PROVOST_FILES_MAX_SIZE is only listed. Each run's files commit has the
+    previous run's as its parent, so git shows the directory's history
+    across runs (git log --stat files-c0007, in DIR/.provost).
+
+    'restore ID', 'prev' and 'next' check out an earlier capture: ls, show
+    and source then show the store as it was, and new captures are refused
+    until 'provost restore latest'. 'show --at', 'source ID', 'search --at',
+    'files' and 'diff' read any capture straight from git without moving the
+    store. 'export' bundles everything, tags included; 'import' opens it.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
     (sudo, doas, env, nice, ionice, nohup, time, command, exec, stdbuf and
-    timeout are skipped, with their options). An injected input is named after
-    the winning parser (e.g. csv, free, aligned-columns). --name NAME sets it
-    explicitly. Names: letters, digits, '.', '_', '-' (starting with a letter
-    or digit, no '..'). Inputs that match nothing, match below
-    --min-confidence, or fail the quality gate (QUALITY GATE below) go to the
-    'unsorted' triage bucket. A same-named capture
-    with a different column set RECONCILES (columns unioned) when the overlap
-    is at least PROVOST_RECONCILE_OVERLAP%, else it splits into NAME.v2, ...
+    timeout are skipped, with their options). Piped input is named after the
+    parser that read it (csv, free, aligned-columns, ...). --name sets it.
+    Names: letters, digits, '.', '_' and '-', starting with a letter or
+    digit, no '..'. A capture of the same name with different columns
+    RECONCILES into the dataset (columns unioned) when at least
+    PROVOST_RECONCILE_OVERLAP% of the columns are shared, else it goes to
+    NAME.v2, NAME.v3, ...
 
-STORE (global by default, or a controlled directory)
-    Captures go to a GLOBAL git store so you can capture from any directory:
-      \$PROVOST_HOME, or ~/.provost if unset. Point PROVOST_HOME at a shared,
-      group-writable dir to collaborate; a lock serialises concurrent writers.
-      Only DATA lives in the store: provost's engines always load from its own
-      install dir ($PROVOST_ROOT), never from the store.
-    'provost control <dir>' makes <dir> its own instance (<dir>/.provost): captures
-    run inside it (or a subdir) route there, and each commit snapshots the
-    directory's contents as context. Resolution: PROVOST_WORKSPACE override, else
-    the nearest controlled dir walking up from CWD, else the global store.
-    Every capture is one commit tagged capture-<id> ('log' / 'restore'); capture
-    ids and row indices are never reused. Every dataset row has a globally-unique
-    visible index #N; 'provost source N' maps it back to the exact captured input.
-    After 'provost restore <id>' the store is read-only until 'provost restore latest'.
+FOREGROUND AND BACKGROUND
+    At a terminal a capture is filed in the BACKGROUND and the prompt returns
+    at once; from a script or a pipeline (stderr not a terminal) it is filed
+    in the FOREGROUND, so 'cmd | provost; provost show x' is race-free.
+    --async / --sync (or PROVOST_ASYNC=1 / 0) force either. A failed
+    background capture is logged in the store, and every later command warns
+    until you look at it with 'provost log --failed' or 'provost doctor'.
 
-ENV
-    PROVOST_HOME              global store dir (default: ~/.provost)
-    PROVOST_WORKSPACE         explicit store override (wins over PROVOST_HOME)
-    PROVOST_MIN_CONFIDENCE    commit threshold 0-100 (default: 50; 101 holds every
-                              capture back for triage)
-    PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
-                              parse to be filed (default: 80; 0 = off)
-    PROVOST_MIN_CONSISTENCY   quality gate: min column-type consistency % for a
-                              generic parse to be filed (default: 70; 0 = off)
-    PROVOST_PLUGIN_DIR        extra strategy dir for detection (same as --plugin-dir
-                              on inject/run; for wrappers like deframe — no
-                              ~/.config/provost/strategies symlink needed)
-    PROVOST_ASYNC             1 = always background, 0 = always foreground,
-                              unset/auto = background only when interactive
-    PROVOST_MULTI             file every dataset an input holds (default 0; same as --multi)
-    PROVOST_AUTO_MULTI        1 = when the quality gate would hold a parse, try
-                              segmenting the input first (default 1; 0 = off,
-                              same as --no-auto-multi). See AUTO-MULTI.
-    PROVOST_MODEL             1 = when the quality gate would still hold a parse,
-                              try the learned layout model (default 0; same as
-                              --model; needs python3). See LAYOUT MODEL.
-    PROVOST_LLM               1 = parse with a template Claude wrote for the
-                              tool, or have Claude write one, before a generic
-                              parse is trusted or a capture held (default 0;
-                              same as --llm). See LLM TEMPLATES.
-    PROVOST_LLM_MODEL         the model that writes templates (default
-                              claude-opus-5-5)
-    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else ANTHROPIC_API_KEY;
-                              prefer this one where ANTHROPIC_API_KEY is taken,
-                              e.g. inside Claude Code, which keeps it for itself)
-    PROVOST_LLM_BASE_URL      API base URL (default https://api.anthropic.com)
-    PROVOST_LLM_TEMPLATE_DIRS colon-separated directories of templates to look
-                              in after the store's and before provost's own
-    PROVOST_LLM_LOG           a file to append each API reply's usage to (one
-                              JSON line: purpose, tool, model, tokens)
-    PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
-    PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
-    PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
-                              its owner can't be checked, e.g. another host (default: 3600)
-    PROVOST_RECONCILE_OVERLAP % column overlap needed to reconcile a changed schema into
-                              the same dataset instead of a NAME.vN variant (default: 60)
-    PROVOST_QUIET             1 = suppress progress/ok messages (same as --silent)
-    TMPDIR                    where temp and background spool dirs go (default: /tmp)
-    Numeric settings must be whole numbers; anything else is refused (exit 2).
-
-MULTIPLE DATASETS PER INPUT (--multi)
-    Some reports hold more than one kind of data — a key/value block, a table,
-    and a banner or comment run that is best left alone. The default one-winner
-    capture keeps whichever the engine ranks first and drops the rest; --multi
-    splits the input, parses each part on its own terms (a kv block and a table
-    can even use different delimiters), and files each as its own dataset under
-    ONE capture. Datasets are named by their winning strategy (prefixed NAME.
-    for 'run' or --name, e.g. iostat.aligned-columns), so two parts that parse
-    the same way but differ in shape land in X and X.v2. Row indices (#N) run
-    consecutively across them and 'provost source N' still returns the whole
-    original input. 'provost log' shows the comma-joined list; the capture's
-    meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
+HOW A CAPTURE IS FILED
+    1. A leading run of '#%' lines is set aside as context (METADATA PROLOGUE).
+    2. Every extract strategy scores the input; exact formats and
+       tool-specific parsers outrank generic ones. The engine may swap its
+       top generic parse for one that keeps more lines (LINE COVERAGE) or
+       types its columns better (COLUMN-TYPE CONSISTENCY).
+    3. No match, or below --min-confidence: held in 'unsorted', with the
+       reason.
+    4. A generic parse is checked by the QUALITY GATE. With --llm, a template
+       for the tool is tried first (LLM TEMPLATES). One the gate would hold
+       is then tried segmented (AUTO-MULTI), then by the layout model
+       (--model); if nothing passes, it is held in 'unsorted', with the
+       reason.
+    The whole input is kept with every capture, filed or held
+    ('provost source').
 
 LINE COVERAGE
     A capture reports its coverage: the share of the input's non-blank lines
     that reached the dataset (shown after the confidence, recorded as
-    'coverage' in meta.tsv; not measured above 128 KB). Confidence says how sure
-    the engine is of the FORMAT; coverage says how much of the input the parse
-    KEPT. When the parse ranked first keeps under 60% of the lines — one section
-    of a multi-section report, say — the engine tries a lossless key/value parse
-    of the whole report (one row per key, list item and section) and files it
-    instead if it keeps materially more. A capture still filed under 60% says
-    so; the whole input is kept with the capture either way ('provost source').
-
-QUALITY GATE
-    A capture whose GENERIC parse keeps under --min-coverage % of the input's
-    lines (default 80) or whose columns are under --min-consistency % type-
-    consistent (default 70) is held back in the 'unsorted' triage bucket, with
-    the reason, instead of filed as a table: a likely-wrong table is worse than
-    none. On the rated benchmark sets this held 18 of 48 wrong parses and no
-    fully right one. Tool-specific parsers and strict grammars (json, yaml,
-    xml, toml) are exempt; measurements absent on very large inputs never hold
-    a capture back. Set either to 0 to turn that check off. Before a capture
-    is held, AUTO-MULTI tries segmenting it.
-
-AUTO-MULTI (segmenting a weak parse)
-    When the quality gate would hold a parse for low coverage or low
-    consistency, provost first asks the engine to segment the input, as
-    --multi does, and files the parts instead when the split is clearly
-    better: it really is a split (2+ datasets), every part passes the gate on
-    its own (confidence, coverage, consistency), the parts together keep at
-    least --min-coverage % of the lines and 10 points more than the single
-    parse, no part is a table under positional A/B/C... columns only, a part
-    read by the parser the gate rejected has judged column types, and parts
-    of 3+ lines hold at least half the lines (no shattering into fragments).
-    Otherwise the capture is held as before, and the reason segmenting did
-    not help is printed and recorded ('auto_multi declined: ...' in
-    meta.tsv). A segmented capture says so in its ok line and records
-    'auto_multi' (why the single parse was held), 'single_strategy' /
-    'single_coverage' / 'single_consistency', the parts' joint 'coverage'
-    and each part's 'dataset_coverage' / 'dataset_consistency'.
-    Names follow --multi: NAME.<strategy> for 'run' / --name, the strategy
-    for a nameless inject — except that, with a NAME, the part whose columns
-    match the single parse's (PROVOST_RECONCILE_OVERLAP) keeps dataset NAME,
-    so repeated captures of one command keep their rows in one dataset
-    whether a given capture segments or not. Only captures the gate would
-    hold pay for the second engine run. --no-auto-multi or
-    PROVOST_AUTO_MULTI=0 turns it off.
-
-LAYOUT MODEL (a learned fallback for a weak parse)
-    With PROVOST_MODEL=1 (--model), a capture the quality gate would still
-    hold after AUTO-MULTI gets one more try: the learned layout model
-    (extract/model/, the explicit-only 'layout-model' strategy). It labels
-    each line's role and where its fields start, decides each table's
-    columns once for all its rows, and cuts every value from the input.
-    The engine measures its table with the same line coverage and column
-    consistency as any parser; it is filed (strategy 'layout-model') only
-    when it passes the gate and keeps at least as many lines as the parse
-    the gate held, and only for an input that is one table or one
-    key/value record. Where the engine also read the lines, an arbiter
-    keeps the engine's field split on the lines it trusts more. Before
-    that, AUTO-MULTI asks the model to re-read any part of its split that
-    the gate rejects; and when the whole-capture table is declined, the
-    model cuts the report into its own uniform sections (a key/value
-    block, a table, a list), filed under AUTO-MULTI's rules. Otherwise
-    the capture is held exactly as before. meta.tsv
-    records 'layout_model' (filed or declined, and why) and the held
-    parse's 'single_strategy' / 'single_coverage'. It needs python3 (plain,
-    no packages) and declines inputs over 600 lines. Only held captures pay
-    for it.
-
-LLM TEMPLATES (Claude writes a parser for a tool once; provost reuses it)
-    With PROVOST_LLM=1 (--llm), a capture is parsed by a template Claude
-    wrote for that tool (extract/llm/, the explicit-only 'llm-template'
-    strategy): either regular expressions per kind of line (table rows,
-    key/value lines, decoration to skip; format 1), or, for records that
-    span lines, a small Python parser (format 2) that runs in a box (a
-    separate interpreter, a few pure modules, no files or network, a CPU and
-    memory limit). provost looks in the store's llm-templates/ (NAME.json for
-    --name or the run command, else any template whose detect pattern
-    recognises the input), then in PROVOST_LLM_TEMPLATE_DIRS, then in the
-    templates shipped with provost. When
-    none fits, and PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY is set, it asks
-    Claude (PROVOST_LLM_MODEL, default claude-opus-5-5) to write one from
-    this capture: THAT STEP SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at
-    most 400 lines / 64 KB), once per tool. The template is tried FIRST: on a
-    capture the gate would hold, before segmenting and the layout model; and
-    on a GENERIC parse the gate passed, before that parse is trusted (the
-    gate cannot see a title or prompt read as the header; a template written
-    for the tool's layout can). It never replaces an exact-format or
-    tool-specific parser. Every block the template yields is measured by the
-    engine and filed only under the gate's rules: one block as the capture's
-    dataset, several as NAME.<block>, AUTO-MULTI's way; against a generic
-    parse the gate passed it must keep that parse's share of the data lines
-    (within 10 points, 20 against text-lines or line-records; lines it
-    marks as decoration not counted). NOTES: the lines a template sets
-    aside (decoration, or lines it cannot read) that still carry a word or
-    a number are filed beside its datasets as NAME.notes (line, kind,
-    text), so a title, a version banner, a summary count or an error
-    between the rows is kept, never lost; only rules and box glyphs are
-    dropped. A value is kept to its cell: a tab or newline inside one
-    becomes a space. A new
-    template is kept, and committed with the capture, only when it passes.
-    From then on every capture of that tool is parsed offline,
-    deterministically and at no cost. A template keeps the captures it was
-    written from (its "examples", in the JSON). REPAIR: with a key, when a
-    stored template meets a kind of line it has not met before (one it
-    leaves unread, or one a skip pattern drops), provost sends the template,
-    those captures and this one to Claude once, to extend it. The extension
-    is kept, with this capture added to its examples, only if it still reads
-    every line of the earlier captures the template read and passes the same
-    rules; otherwise the template is used as it was. A capture whose lines
-    the template has all met before is never sent. meta.tsv records
-    'llm_template' (filed by which template, or declined and why).
-    PROVOST_LLM_LOG names a file that gets one JSON line per API reply (what
-    for, the tool, the model, its token usage). Needs python3 (plain, no
-    packages).
+    'coverage' in meta.tsv; not measured above 128 KB). Confidence says how
+    sure the engine is of the FORMAT; coverage says how much of the input the
+    parse KEPT. When the parse ranked first keeps under 60% of the lines (one
+    section of a multi-section report, say) the engine tries a lossless
+    key/value parse of the whole report (one row per key, list item and
+    section) and files that instead if it keeps materially more. A capture
+    still filed under 60% says so.
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:
     a date split over three columns, a multi-word name spread over Name / Id /
     Version, a key: value file read as a two-column table. The engine types
-    every cell (number, size, date/time, address, version, path, word, …) and
-    records the share of cells that match their column's type as
-    'consistency' in meta.tsv (not measured above 128 KB; a cell holding a
-    word cut in half counts as a mismatch). When the generic parse ranked
-    first is below 95% and another generic parse within 20 confidence points
-    keeps as many lines, types its columns better (95% or more) and mixes
-    fewer columns, the capture is filed with that parse instead.
+    every cell (number, size, date/time, address, version, path, word, ...)
+    and records the share of cells that match their column's type as
+    'consistency' in meta.tsv (not measured above 128 KB; a word cut in half
+    counts as a mismatch). When the generic parse ranked first is below 95%
+    and another generic parse within 20 confidence points keeps as many
+    lines, types its columns better (95% or more) and mixes fewer columns,
+    the capture is filed with that parse instead.
+
+QUALITY GATE
+    A GENERIC parse that keeps under --min-coverage % of the input's lines
+    (default 80) or whose columns are under --min-consistency % type-
+    consistent (default 70) is held in 'unsorted', with the reason, instead
+    of filed as a table: a likely-wrong table is worse than none. On the
+    rated benchmark sets this held 18 of 48 wrong parses and no fully right
+    one. Tool-specific parsers and strict grammars (json, yaml, xml, toml)
+    are exempt; a measurement missing on a very large input never holds a
+    capture. Set either to 0 to turn that check off.
+
+AUTO-MULTI (segmenting a weak parse)
+    When the gate would hold a parse, provost first asks the engine to
+    segment the input, as --multi does, and files the parts instead when the
+    split is clearly better:
+      - it really is a split (2 or more datasets);
+      - every part passes the gate on its own (confidence, coverage,
+        consistency);
+      - together the parts keep at least --min-coverage % of the lines, and
+        10 points more than the single parse;
+      - no part is a table under positional A/B/C... columns only;
+      - a part read by the parser the gate rejected has judged column types;
+      - parts of 3+ lines hold at least half the lines (no shattering into
+        fragments).
+    Otherwise the capture is held as before, and why segmenting did not help
+    is printed and recorded ('auto_multi declined: ...' in meta.tsv). A
+    segmented capture says so in its ok line and records 'auto_multi' (why
+    the single parse was held), 'single_strategy' / 'single_coverage' /
+    'single_consistency', the parts' joint 'coverage', and each part's
+    'dataset_coverage' / 'dataset_consistency'. Names follow --multi, except
+    that with a NAME the part whose columns match the single parse's keeps
+    dataset NAME, so repeated captures of one command keep their rows in one
+    dataset whether a given capture segments or not. Only captures the gate
+    would hold pay for the second engine run.
+
+LAYOUT MODEL (--model, PROVOST_MODEL=1)
+    A capture the gate would still hold after AUTO-MULTI gets one more try:
+    the learned layout model (extract/model/, the explicit-only
+    'layout-model' strategy). It labels each line's role and where its fields
+    start, decides each table's columns once for all its rows, and cuts every
+    value from the input. Its table is filed (strategy 'layout-model') only
+    when it passes the gate, keeps at least as many lines as the parse the
+    gate held, and the input is one table or one key/value record. Where the
+    engine also read the lines, an arbiter keeps the engine's field split on
+    the lines it trusts more. Before that, AUTO-MULTI asks the model to
+    re-read any part of its split the gate rejects; and when the
+    whole-capture table is declined, the model cuts the report into its own
+    uniform sections (a key/value block, a table, a list), filed under
+    AUTO-MULTI's rules. meta.tsv records 'layout_model' (filed or declined,
+    and why). Needs python3 (no packages); declines inputs over 600 lines.
+
+LLM TEMPLATES (--llm, PROVOST_LLM=1)
+    Claude writes a parser for a tool once; provost reuses it offline.
+    A template is either regular expressions per kind of line (table rows,
+    key/value lines, decoration to skip; format 1), or, for records that span
+    lines, a small Python parser (format 2) run in a box: a separate
+    interpreter, a few pure modules, no files or network, CPU and memory
+    limits.
+
+    Where templates come from: the store's llm-templates/ (NAME.json for
+    --name or the run command, else any template whose detect pattern
+    recognises the input), then PROVOST_LLM_TEMPLATE_DIRS, then the
+    templates shipped with provost. When none fits and PROVOST_LLM_API_KEY
+    or ANTHROPIC_API_KEY is set, Claude (PROVOST_LLM_MODEL) writes one from
+    this capture: THAT SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at most
+    400 lines / 64 KB), once per tool. A new template is kept, and committed
+    with the capture, only when it passes; from then on every capture of the
+    tool is parsed offline, deterministically and at no cost.
+
+    When it is used: FIRST, on a capture the gate would hold (before
+    segmenting and the layout model), and on a GENERIC parse the gate passed,
+    before that parse is trusted (the gate cannot see a title or prompt read
+    as the header; a template written for the tool's layout can). Never in
+    place of an exact-format or tool-specific parser. Every block it yields
+    is measured and filed under the gate's rules: one block as the capture's
+    dataset, several as NAME.<block>, AUTO-MULTI's way. Against a generic
+    parse the gate passed, it must keep that parse's share of the data lines
+    (within 10 points; 20 against text-lines or line-records; lines it marks
+    as decoration not counted).
+
+    NOTES: lines a template sets aside (decoration, or lines it cannot read)
+    that still carry a word or a number are filed beside its datasets as
+    NAME.notes (line, kind, text): a title, a version banner, a summary count
+    or an error between the rows is kept, never lost; only rules and box
+    glyphs are dropped. A tab or newline inside a value becomes a space.
+
+    REPAIR: a template keeps the captures it was written from (its
+    "examples"). With a key, when a stored template meets a kind of line it
+    has not met before (one it leaves unread, or one a skip pattern drops),
+    provost sends the template, those captures and this one to Claude once,
+    to extend it. The extension is kept, with this capture added to its
+    examples, only if it still reads every line of the earlier captures the
+    template read and passes the same rules; otherwise the template is used
+    as it was. A capture whose lines the template has all met is never sent.
+
+    meta.tsv records 'llm_template' (filed by which template, or declined and
+    why). PROVOST_LLM_LOG names a file that gets one JSON line per API reply.
+    Needs python3 (no packages).
+
+MULTIPLE DATASETS (--multi)
+    Some reports hold more than one kind of data: a key/value block, a table,
+    and a banner best left alone. The default keeps whichever part the engine
+    ranks first; --multi splits the input, parses each part on its own terms
+    (a kv block and a table can even use different delimiters), and files
+    each as its own dataset under ONE capture. Datasets are named by their
+    strategy (prefixed NAME. for 'run' or --name, e.g. iostat.aligned-columns),
+    so two parts that parse the same way but differ in shape land in X and
+    X.v2. Row numbers run on across them, and 'provost source N' still
+    returns the whole input. meta.tsv records 'datasets' (how many) and
+    'dataset_rows' (each one's range).
 
 METADATA PROLOGUE
-    A leading run of '#%' lines on injected input is treated as capture context,
-    not data: it is peeled off before format detection (so it cannot corrupt a
-    parse), stored with the capture (context.txt), and shown verbatim by
-    'provost source'. Wrappers can prepend context unconditionally.
+    A leading run of '#%' lines on piped input is capture context, not data:
+    it is set aside before format detection (so it cannot corrupt a parse),
+    stored with the capture (context.txt), and shown by 'provost source'.
+    Wrappers can prepend context unconditionally.
+
+SETTINGS (environment)
+    PROVOST_HOME              the global store (default: ~/.provost)
+    PROVOST_WORKSPACE         use this store, whatever the directory
+    PROVOST_ASYNC             1 = always background, 0 = always foreground,
+                              unset/auto = background only at a terminal
+    PROVOST_QUIET             1 = no progress / ok messages (as --silent)
+    PROVOST_MIN_CONFIDENCE    file only at this confidence or more (0-101,
+                              default: 50; 101 holds every capture)
+    PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
+                              parse (default: 80; 0 = off)
+    PROVOST_MIN_CONSISTENCY   quality gate: min column-type consistency % for a
+                              generic parse (default: 70; 0 = off)
+    PROVOST_RECONCILE_OVERLAP % of columns shared to reconcile a changed shape
+                              into the same dataset, not NAME.vN (default: 60)
+    PROVOST_MULTI             1 = file every dataset an input holds (--multi)
+    PROVOST_AUTO_MULTI        1 = segment a parse the gate would hold (default;
+                              0 = off, as --no-auto-multi)
+    PROVOST_MODEL             1 = try the learned layout model (as --model;
+                              needs python3)
+    PROVOST_LLM               1 = use / have Claude write a template (as --llm)
+    PROVOST_LLM_MODEL         the model that writes templates (default:
+                              claude-opus-5-5)
+    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else
+                              ANTHROPIC_API_KEY; use this one where that is
+                              taken, e.g. inside Claude Code)
+    PROVOST_LLM_BASE_URL      API base URL (default: https://api.anthropic.com)
+    PROVOST_LLM_TEMPLATE_DIRS colon-separated template directories, looked in
+                              after the store's and before provost's own
+    PROVOST_LLM_LOG           a file to append each API reply's usage to (one
+                              JSON line: purpose, tool, model, tokens)
+    PROVOST_PLUGIN_DIR        an extra strategy directory (as --plugin-dir)
+    PROVOST_MAX_INPUT         max input bytes, piped or run (default: 10485760)
+    PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept
+                              with each run (bytes; default: 1048576; 0 = none)
+    PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
+    PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even
+                              if its owner cannot be checked (default: 3600)
+    TMPDIR                    temp and background spool directories (default:
+                              /tmp)
+    XDG_CONFIG_HOME           where 'listen' keeps its file (default ~/.config)
+    Numeric settings must be whole numbers; anything else is refused (exit 2).
 
 See docs/0001-rename-and-simplification.md for the design.
 EOF
@@ -2764,7 +3505,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -2782,6 +3523,7 @@ main () {
     local verb="${1:-}"
     case "$verb" in
         help|-h|--help)
+            case "${2:-}" in advanced|all|--all|-a) cmd_help_advanced; exit 0 ;; esac
             if [[ $# -ge 2 ]] && _usage_text "$2" >/dev/null 2>&1; then _cmd_help "$2"; fi
             cmd_help; exit 0 ;;
         -V|--version)
@@ -2807,6 +3549,12 @@ main () {
         import)        shift; cmd_import "$@" ;;
         log)           shift; cmd_log "$@" ;;
         restore)       shift; cmd_restore "$@" ;;
+        next|prev)     cmd_step "$@" ;;
+        files)         shift; cmd_files "$@" ;;
+        diff)          shift; cmd_diff "$@" ;;
+        search|find)   shift; cmd_search "$@" ;;
+        listen)        shift; cmd_listen "$@" ;;
+        unlisten)      shift; cmd_unlisten "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
         rm|delete|drop) shift; cmd_rm "$@" ;;

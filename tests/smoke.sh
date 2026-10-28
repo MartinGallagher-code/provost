@@ -41,6 +41,10 @@ check_not () { # desc, forbidden-substring, actual
         echo "  ok   $1"; pass=$((pass+1))
     fi
 }
+# Table output with runs of spaces and tabs squeezed to one space: 'show' and
+# 'search' align columns with column(1) where it is installed, and print the
+# TSV's tabs where it is not.
+sq () { tr -s ' \t' '  '; }
 # Exit status of a command (stdout/stderr discarded), without tripping set -e.
 rc_of () { local rc=0; "$@" >/dev/null 2>&1 || rc=$?; echo "$rc"; }
 # git on a test store with a throwaway identity (the smoke's own git use).
@@ -284,6 +288,29 @@ check "each capture in a controlled dir updates the context snapshot" "added-lat
     "$(cat "$PROJ/.provost/context/manifest.tsv" 2>&1)"
 check "the refreshed snapshot is committed with the capture" "added-later.txt" \
     "$(git -C "$PROJ/.provost" show HEAD:context/manifest.tsv 2>&1)"
+# ... and commits the directory's files themselves, tagged files-<id>: the
+# directory's .gitignore is honoured, a file over PROVOST_FILES_MAX_SIZE is
+# only listed, and a run with nothing changed reuses the previous commit.
+printf 'ignored/\n' > "$PROJ/.gitignore"; mkdir -p "$PROJ/ignored"; echo junk > "$PROJ/ignored/x"
+head -c 2048 /dev/zero > "$PROJ/big.bin"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+fl="$(git -C "$PROJ/.provost" ls-tree -r --name-only files-c0003 2>&1)"
+check "a run commits the controlled directory's files" "added-later.txt" "$fl"
+check "and their contents" "later" "$(git -C "$PROJ/.provost" show files-c0003:added-later.txt 2>&1)"
+check_not "the directory's .gitignore is honoured" "ignored/x" "$fl"
+check_not "a file over PROVOST_FILES_MAX_SIZE is not committed" "big.bin" "$fl"
+check "but it is still listed in the manifest" "big.bin" "$(git -C "$PROJ/.provost" show capture-c0003:context/manifest.tsv 2>&1)"
+check_not "the store itself never goes in" ".provost" "$fl"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "a run with no file changes reuses the previous files commit" "$(git -C "$PROJ/.provost" rev-parse files-c0003)" "$(git -C "$PROJ/.provost" rev-parse files-c0004 2>&1)"
+echo changed > "$PROJ/added-later.txt"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "each files commit's parent is the previous run's" "$(git -C "$PROJ/.provost" rev-parse files-c0004)" "$(git -C "$PROJ/.provost" rev-parse files-c0005^ 2>&1)"
+check "so git shows what changed between runs" "added-later.txt" "$(git -C "$PROJ/.provost" diff --stat files-c0004 files-c0005 2>&1)"
+check "the store's own tree holds no copy of the files" "" "$(git -C "$PROJ/.provost" status --porcelain 2>&1)"
+check_not "nor does its commit" "added-later.txt" "$(git -C "$PROJ/.provost" ls-tree -r --name-only HEAD | grep -v '^context/' || true)"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=0 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "PROVOST_FILES_MAX_SIZE=0 keeps no files" "no" "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0006 >/dev/null && echo yes || echo no)"
 inst_out="$(PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" instances 2>&1)"
 check "instances lists the controlled dir" "$PROJ" "$inst_out"
 # re-controlling a dir the registry already lists does not duplicate it
@@ -309,6 +336,16 @@ check "import reconstitutes the store" "imported" "$imp_out"
 check "imported store lists the free dataset" "free" "$(PROVOST_WORKSPACE="$DEST" "$PROVOST" ls 2>&1)"
 # provenance survives the move: row #1's original source is browsable in the copy
 check "imported store preserves row #1 source" "Mem" "$(PROVOST_WORKSPACE="$DEST" "$PROVOST" source 1 2>&1)"
+# Importing from an ordinary directory (not inside any git repository), with
+# a relative bundle path: 'git bundle verify' refuses to run outside a
+# repository, which once made every such import fail as "not a valid bundle".
+NOREPO="$(mktemp -d)"; cp "$BUNDLE" "$NOREPO/store.bundle"
+nr_out="$(cd "$NOREPO" && GIT_CEILING_DIRECTORIES="$NOREPO/.." PROVOST_WORKSPACE="" "$PROVOST" import store.bundle copy 2>&1)"
+check "import works from a directory that is not a git repository" "imported" "$nr_out"
+check "and the copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/copy" "$PROVOST" ls 2>&1)"
+printf 'not a bundle\n' > "$NOREPO/junk.bundle"
+check "a file that is not a bundle is still refused" "not a valid provost export bundle" "$(cd "$NOREPO" && "$PROVOST" import junk.bundle junk 2>&1 || true)"
+check "and leaves no destination behind" "absent" "$([[ -e "$NOREPO/junk" ]] || echo absent)"
 
 # --- plugin strategies + metadata prologue (deframe integration) -----------
 # An external project's strategies reach detection via --plugin-dir (or
@@ -839,11 +876,22 @@ check "import hint shell-quotes the destination (printf %q)" "PROVOST_WORKSPACE=
 check "rm works in a store path with a space and a quote" "deleted sp" "$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" rm -f sp 2>&1)"
 
 # Help / CLI polish: help → stdout + exit 0; usage errors → stderr + exit 2.
-help_out="$("$PROVOST" help 2>/dev/null)"
-check "help prints to stdout" "USAGE" "$help_out"
+short_help="$("$PROVOST" help 2>/dev/null)"
+check "help prints to stdout" "CAPTURE" "$short_help"
 check "help exits 0" "0" "$(rc_of "$PROVOST" help)"
-check "--help prints to stdout" "USAGE" "$("$PROVOST" --help 2>/dev/null)"
-check "-h prints to stdout" "USAGE" "$("$PROVOST" -h 2>/dev/null)"
+check "--help prints to stdout" "CAPTURE" "$("$PROVOST" --help 2>/dev/null)"
+check "-h prints to stdout" "CAPTURE" "$("$PROVOST" -h 2>/dev/null)"
+check "the short help fits a screen (50 lines or fewer)" "yes" "$([[ $(wc -l <<< "$short_help") -le 50 ]] && echo yes || echo "no: $(wc -l <<< "$short_help") lines")"
+check "the short help points at the advanced help" "provost help advanced" "$short_help"
+help_out="$("$PROVOST" help advanced 2>/dev/null)"
+check "help advanced prints the full reference" "SETTINGS (environment)" "$help_out"
+check "help all is the same" "SETTINGS (environment)" "$("$PROVOST" help all 2>/dev/null)"
+check "--help advanced too" "SETTINGS (environment)" "$("$PROVOST" --help advanced 2>/dev/null)"
+check "help advanced exits 0" "0" "$(rc_of "$PROVOST" help advanced)"
+check "no help line is wider than 79 columns" "" "$(printf '%s\n%s\n' "$short_help" "$help_out" | awk 'length($0) > 79')"
+for v in run listen search source diff files prev next restore control export rm doctor; do
+    check "help advanced lists '$v'" "provost $v" "$help_out"
+done
 check_not "help no longer claims reconciliation is missing" "Not yet" "$help_out"
 check "help cites the real design doc" "docs/0001-rename-and-simplification.md" "$help_out"
 check "unknown command suggests the right one" "unknown command 'stat' (did you mean 'stats'?)" "$("$PROVOST" stat 2>&1 || true)"
@@ -851,7 +899,7 @@ check "unknown command exits 2" "2" "$(rc_of "$PROVOST" stat)"
 check "'show' with no name is a clean usage error" "usage: provost show" "$("$PROVOST" show 2>&1 || true)"
 check "'show' with no name exits 2" "2" "$(rc_of "$PROVOST" show)"
 check "unknown option exits 2" "2" "$(rc_of "$PROVOST" rm --bogus x)"
-for sub in run rm show stats log restore source; do
+for sub in run rm show stats log restore source next prev files diff search listen unlisten; do
     check "'$sub --help' prints its own usage to stdout" "usage: provost $sub" "$("$PROVOST" "$sub" --help 2>/dev/null)"
 done
 check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sync --help 2>/dev/null)"
@@ -882,10 +930,10 @@ check "no capture runs git in a refused store" "no" "$([[ -e "$T/pwned-filter" ]
 
 # Store format 2: an old store's datasets lose the engine's `total_entries`
 # record-count column on the next write (reads never rewrite the store); a non-integer column of that name is data
-# and stays; new stores start at format 2.
+# and stays; new stores start at format 3.
 MWS="$(mktemp -d)/.migrate"
 printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
-check "new store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "new store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
 mds="$(ls "$MWS/datasets" | head -1)"
 awk -F'\t' -v OFS='\t' 'NR==1{print $0, "total_entries"; next} {print $0, 2}' "$MWS/datasets/$mds" > "$MWS/x" && mv "$MWS/x" "$MWS/datasets/$mds"
 printf 'a\ttotal_entries\nx\tnot-a-count\n' > "$MWS/datasets/keep.tsv"
@@ -895,8 +943,137 @@ printf 'k=v\nj=w\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
 check_not "migration drops the record-count column" "total_entries" "$(head -1 "$MWS/datasets/$mds")"
 check "migration keeps the dataset's rows" "sdb1" "$(cat "$MWS/datasets/$mds")"
 check "a non-count total_entries column is kept" "total_entries" "$(head -1 "$MWS/datasets/keep.tsv")"
-check "migrated store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
-check "migration is committed" "store format 2" "$(tgit "$MWS" log --format=%s)"
+check "migrated store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "migration is committed" "store format 3" "$(tgit "$MWS" log --format=%s)"
+check_not "a store that already has the capture column is not given it twice" "_capture" "$(head -1 "$MWS/datasets/$mds")"
+
+# Store format 3: every dataset row carries the capture it came from, after
+# '#'. An older store's datasets get the column on the next write, filled in
+# from provenance.tsv; a data column already named `capture` is kept and the
+# added one is `_capture`.
+CWS="$(mktemp -d)/.capcol"
+printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+printf 'Filesystem Size Used\n/dev/sda1 50G 21G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+check "a dataset's second column is the capture" "#	capture	n	Filesystem" "$(head -1 "$CWS/datasets/df.tsv")"
+check "each row names the capture it came from" "3	c0002	1	/dev/sda1" "$(cat "$CWS/datasets/df.tsv")"
+check "show prints the capture column" "c0001" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" show df 2>&1)"
+printf 'capture value\nx 1\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name own >/dev/null 2>&1
+check "a data column named capture keeps its name beside _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
+printf 'held\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --min-confidence 101 >/dev/null 2>&1
+check "triage shows the capture of a held input" "c0004" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" triage 2>/dev/null)"
+for f in "$CWS"/datasets/*.tsv; do cut -f1,3- "$f" > "$CWS/x" && mv "$CWS/x" "$f"; done   # back to format 2
+echo 2 > "$CWS/.store_format"
+tgit "$CWS" add -A >/dev/null 2>&1; tgit "$CWS" commit -qm "simulate a format-2 store" >/dev/null 2>&1
+check "triage still decodes a format-2 bucket" "held" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" triage 2>/dev/null)"
+printf 'Filesystem Size Used\n/dev/sdc1 5G 2G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+check "migration fills each old row's capture from provenance" "$(printf '1\tc0001\t1\t/dev/sda1\n2\tc0001\t2\t/dev/sdb1\n3\tc0002\t1\t/dev/sda1')" "$(cat "$CWS/datasets/df.tsv")"
+check "and the new rows carry theirs" "6	c0005	1	/dev/sdc1" "$(cat "$CWS/datasets/df.tsv")"
+check "migration names a clashing column _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
+check "migration covers the triage bucket" "5	c0004	" "$(cat "$CWS/datasets/unsorted.tsv")"
+check "the format-3 store records it" "3" "$(cat "$CWS/.store_format")"
+
+# Browsing runs: show --capture / --at, source by capture id, next / prev,
+# and log while restored. All read from git; the store stays where it is
+# except under next / prev / restore.
+BWS="$(mktemp -d)/.browse"
+for st in PASS FAIL PASS; do printf 'TEST STATUS\nt1 PASS\nt2 %s\n' "$st" | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name tests >/dev/null 2>&1; done
+printf 'a=1\n' | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name other >/dev/null 2>&1
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture c2 2>&1 | sq)"
+check "show --capture keeps that capture's rows" "4 c0002 2 t2 FAIL" "$bs"
+check_not "and only those" "c0001" "$bs"
+check "--capture takes a bare number too" "c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture 2 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at c0002 2>&1 | sq)"
+check "show --at reads the dataset as it stood after that capture" "4 c0002 2 t2 FAIL" "$bs"
+check_not "and nothing filed after it" "c0003" "$bs"
+check "show --at an unknown capture is refused" "no such capture: c0099" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at 99 2>&1 || true)"
+check "show --capture with no rows says so" "no rows in 'other' from capture c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show other --capture 1 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source c0002 2>&1)"
+check "source ID shows that capture's output" "t2 FAIL" "$bs"
+check "and its details" "row_ids: 3-4" "$bs"
+check "source #N still means a row" "row #3" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source 3 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev from the latest brings up the capture before it" "c0003" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev again steps back one more" "c0002" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+check "while restored, show is the store as it was" "4 c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests 2>&1 | sq)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" log 2>&1)"
+check "log still lists every capture while restored" "c0004" "$bs"
+check "and says where the store is" "restored to c0002" "$bs"
+check "source reaches a capture after the restored one" "a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source c0004 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev at the first capture stays there" "already at the first capture" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" prev 2>&1)"
+for _ in 1 2 3; do PROVOST_WORKSPACE="$BWS" "$PROVOST" next >/dev/null 2>&1; done
+check "next steps forward to the last capture" "c0004" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" next >/dev/null 2>&1
+check "next past the last returns to the latest" "main" "$(tgit "$BWS" symbolic-ref --short HEAD 2>&1)"
+check "next at the latest says so" "already at the latest" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" next 2>&1)"
+
+# diff: the rows two captures filed, compared without provost's own columns.
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff tests 2>&1)"
+check "diff NAME compares that dataset's last two captures" "c0002 → c0003" "$bs"
+check "a row only the earlier capture has is -" "  - t2	FAIL" "$bs"
+check "a row only the later one has is +" "  + t2	PASS" "$bs"
+check "rows both have are counted" "(1 row the same)" "$bs"
+check "diff A alone compares it with the capture before it" "c0001 → c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff c2 2>&1)"
+check "a dataset only one capture filed is named" "other: only in c0004 (1 row)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff 2>&1)"
+check "the same rows read as no change" "tests: no change (2 rows)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff 1 3 2>&1)"
+
+# files + diff in a controlled directory: each run's files, and what changed.
+FH="$(mktemp -d)/home"; FP="$(mktemp -d)/proj"; mkdir -p "$FP"
+( cd "$FP" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  echo 'v = 1' > m.py; printf 'TEST STATUS\nt1 PASS\n' > r.txt
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run cat r.txt >/dev/null 2>&1
+  echo 'v = 2' > m.py; printf 'TEST STATUS\nt1 FAIL\n' > r.txt; echo x > new.txt
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run cat r.txt >/dev/null 2>&1 )
+fr () { ( cd "$FP" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" "$@" 2>&1 ); }
+check "files lists the latest run's files" "new.txt" "$(fr files)"
+check_not "files ID lists that run's" "new.txt" "$(fr files c1)"
+check "files ID PATH prints the file as it was" "v = 1" "$(fr files c1 m.py)"
+fr files c1 --to "$FP/../out1" >/dev/null
+check "files ID --to writes the run's files out" "v = 1" "$(cat "$FP/../out1/m.py" 2>&1)"
+check "--to refuses a directory that is not empty" "is not an empty directory" "$(fr files c1 --to "$FP" || true)"
+check "files of an unknown capture is refused" "no such capture: c0009" "$(fr files c9 || true)"
+check "files of a capture that kept none says why" "capture c0001 kept no files" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" files c1 2>&1 || true)"
+bs="$(fr diff)"
+check "diff lists the files that changed" "new.txt" "$bs"
+check "with the dataset rows" "  + t1	FAIL" "$bs"
+check "diff -- PATH shows that file's changes" "+v = 2" "$(fr diff c1 c2 -- m.py)"
+
+# search: git grep over the store's rows, outputs and run files.
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL 2>&1 | sq)"
+check "search finds the matching rows, named by dataset" "tests (1 row)" "$bs"
+check "under the dataset's header" "# capture n TEST STATUS" "$bs"
+check "with the row itself" "4 c0002 2 t2 FAIL" "$bs"
+check "search -i ignores case" "tests (5 rows)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -i pass 2>&1)"
+check "search NAME limits it to that dataset" "no dataset rows match 'a'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -w a tests 2>&1)"
+check "a capture id finds that capture's rows" "other (1 row)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search c0004 2>&1)"
+check "search --at reads the store as it stood then" "no dataset rows match 'FAIL' at c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL --at 1 2>&1)"
+check "search --output finds a line of captured output" "c0004 1 a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search --output 'a=' 2>&1 | sq)"
+check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -e -x 2>&1)"
+check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
+check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
+
+# --show and listen: the output is shown as always and filed too.
+LWS2="$(mktemp -d)/.listen"; LCFG="$(mktemp -d)"; LBIN="$(mktemp -d)"
+printf '#!/bin/sh\necho "TEST STATUS"; echo "t1 PASS"; echo "t2 $1"; exit 3\n' > "$LBIN/mytest"; chmod +x "$LBIN/mytest"
+bs="$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" run --show "$LBIN/mytest" FAIL 2>/dev/null; echo "rc=$?")"
+check "run --show prints the command's output" "t2 FAIL" "$bs"
+check "and keeps its exit status" "rc=3" "$bs"
+check "and files it" "t2 FAIL" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
+check "inject --show passes the input through" "x y" "$(printf 'x y\n1 2\n' | PROVOST_WORKSPACE="$LWS2" "$PROVOST" --show --name teed 2>/dev/null)"
+check "and files it" "teed" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" ls 2>&1)"
+lr () { env XDG_CONFIG_HOME="$LCFG" HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" "$PROVOST" "$@" 2>&1; }
+check "listen says how to load it" "listen.sh" "$(lr listen mytest)"
+check "listen with no CMD lists the commands" "mytest" "$(lr listen)"
+check "listening twice is a no-op" "already listening on: mytest" "$(lr listen mytest)"
+check "a shell builtin is refused" "is a shell builtin" "$(lr listen cd || true)"
+check "provost itself is refused" "cannot listen on itself" "$(lr listen provost || true)"
+bs="$(env XDG_CONFIG_HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" bash -c '. "$XDG_CONFIG_HOME/provost/listen.sh"; mytest PASS; echo "rc=$?"' 2>/dev/null)"
+check "a listened command shows its output" "t2 PASS" "$bs"
+check "keeps its exit status" "rc=3" "$bs"
+check "and is filed each time it runs" "t2 PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
+check "unlisten stops it" "stopped listening on: mytest" "$(lr unlisten mytest)"
+check "and the list is empty" "listening on nothing" "$(lr listen)"
 
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

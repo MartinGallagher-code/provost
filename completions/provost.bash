@@ -10,8 +10,8 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help"
-    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --async --sync --wait --silent --help"
+    local verbs="run inject listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help"
+    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb (or a capture option / file for inject).
@@ -25,20 +25,29 @@ _provost_complete () {
 
     local verb="${COMP_WORDS[1]}"
     case "$verb" in
-        show|stats|rm|delete|drop)
+        help)
+            COMPREPLY=( $(compgen -W "advanced $verbs" -- "$cur") ) ;;
+        show|stats|rm|delete|drop|diff|search)
             # complete dataset names from the active store (rm also offers flags)
             case "$cur" in
-                -*) COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ); return ;;
+                -*) case "$verb" in
+                        show)   COMPREPLY=( $(compgen -W "--capture --at --help" -- "$cur") ) ;;
+                        search) COMPREPLY=( $(compgen -W "-i -F -w -e --at --output --files --help" -- "$cur") ) ;;
+                        diff)   COMPREPLY=( $(compgen -W "--help" -- "$cur") ) ;;
+                        *)      COMPREPLY=( $(compgen -W "-f --yes --purge --no-purge --keep-captures --help" -- "$cur") ) ;;
+                    esac; return ;;
             esac
             local ds
             ds="$(cd "$ws/datasets" 2>/dev/null && ls -1 *.tsv 2>/dev/null | sed 's/\.tsv$//')"
             COMPREPLY=( $(compgen -W "$ds" -- "$cur") ) ;;
-        restore)
+        restore|files|source)
             local caps
             caps="latest $(cd "$ws/captures" 2>/dev/null && ls -1d c* 2>/dev/null)"
             COMPREPLY=( $(compgen -W "$caps --help" -- "$cur") ) ;;
         log)
             COMPREPLY=( $(compgen -W "--failed --help" -- "$cur") ) ;;
+        listen|unlisten)
+            COMPREPLY=( $(compgen -c -- "$cur") ) ;;
         control|uncontrol|import|export)
             COMPREPLY=( $(compgen -o default -- "$cur") ) ;;   # paths
         run|inject)
