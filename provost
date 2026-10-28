@@ -2142,7 +2142,15 @@ cmd_import () {
     local dest="${2:-}"
     [[ -z "$dest" ]] && dest="$PWD/provost-import-$(basename "$file" .bundle)"
     dest="$(_abspath "$dest")"
-    git bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
+    file="$(_abspath "$file")"
+    # 'git bundle verify' needs a repository to check the bundle's
+    # prerequisites against, and refuses to run outside one -- which made an
+    # import from any ordinary directory fail as "not a valid bundle". An
+    # export is --all and has no prerequisites, so verify it in an empty
+    # scratch repository, not whatever one the caller happens to stand in.
+    _mktempd import
+    git init -q "$_MKTEMPD" >/dev/null 2>&1 || die "cannot create a scratch repository in $PROVOST_TEMP_DIR (set TMPDIR)."
+    git -C "$_MKTEMPD" bundle verify "$file" >/dev/null 2>&1 || die "not a valid provost export bundle: $file"
     # mkdir is the atomic claim on the destination (two concurrent imports to
     # the same place cannot both win); the clone then fills the empty dir.
     [[ -e "$dest" ]] && die "destination already exists: $dest"

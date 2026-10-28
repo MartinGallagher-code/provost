@@ -1,5 +1,19 @@
 # provost — Changelog
 
+## 2026-10-28 — `provost import` works from any directory
+
+- **Fix (`provost` `cmd_import`):** an import run from a directory that is
+  not inside a git repository failed with "not a valid provost export
+  bundle", whatever the bundle. `git bundle verify` needs a repository to
+  check a bundle's prerequisites against and refuses to run outside one;
+  import ran it in the caller's directory. It now verifies in an empty
+  scratch repository (an export is `--all`, so it has no prerequisites),
+  which also stops it checking against an unrelated repository the caller
+  happened to stand in. A relative bundle path is made absolute first.
+- **Tests (`tests/smoke.sh`):** import from a non-repository directory with a
+  relative path, the copy works, and a non-bundle is still refused without
+  leaving a destination behind (+4).
+
 ## 2026-10-27 — `--llm` clean-up: values keep to their cells, lines set aside go to `NAME.notes`
 
 A clean-up after extraction, asked for after part 6 (part 7 of

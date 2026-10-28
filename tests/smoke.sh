@@ -309,6 +309,16 @@ check "import reconstitutes the store" "imported" "$imp_out"
 check "imported store lists the free dataset" "free" "$(PROVOST_WORKSPACE="$DEST" "$PROVOST" ls 2>&1)"
 # provenance survives the move: row #1's original source is browsable in the copy
 check "imported store preserves row #1 source" "Mem" "$(PROVOST_WORKSPACE="$DEST" "$PROVOST" source 1 2>&1)"
+# Importing from an ordinary directory (not inside any git repository), with
+# a relative bundle path: 'git bundle verify' refuses to run outside a
+# repository, which once made every such import fail as "not a valid bundle".
+NOREPO="$(mktemp -d)"; cp "$BUNDLE" "$NOREPO/store.bundle"
+nr_out="$(cd "$NOREPO" && GIT_CEILING_DIRECTORIES="$NOREPO/.." PROVOST_WORKSPACE="" "$PROVOST" import store.bundle copy 2>&1)"
+check "import works from a directory that is not a git repository" "imported" "$nr_out"
+check "and the copy is a working store" "free" "$(PROVOST_WORKSPACE="$NOREPO/copy" "$PROVOST" ls 2>&1)"
+printf 'not a bundle\n' > "$NOREPO/junk.bundle"
+check "a file that is not a bundle is still refused" "not a valid provost export bundle" "$(cd "$NOREPO" && "$PROVOST" import junk.bundle junk 2>&1 || true)"
+check "and leaves no destination behind" "absent" "$([[ -e "$NOREPO/junk" ]] || echo absent)"
 
 # --- plugin strategies + metadata prologue (deframe integration) -----------
 # An external project's strategies reach detection via --plugin-dir (or
