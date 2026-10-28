@@ -180,6 +180,13 @@ _validate_settings () {
 _valid_name () { [[ "$1" =~ $_NAME_RE && "$1" != *..* ]]; }
 _require_name () { _valid_name "$1" || usage_die "invalid dataset name '$1' (allowed: letters, digits, '.', '_', '-'; must start with a letter or digit; no '..')."; }
 _valid_capid () { [[ "$1" =~ ^c[0-9]{1,12}$ ]]; }
+# A capture id from what a user types for one: c0007, c7, 7 or capture-c0007
+# all mean c0007. Prints it; fails on anything else.
+_capid_of () {
+    local t="${1#capture-}"
+    [[ "$t" =~ ^c?([0-9]{1,12})$ ]] || return 1
+    printf 'c%04d\n' "$((10#${BASH_REMATCH[1]}))"
+}
 
 # Turn an arbitrary word (a command's basename) into a valid dataset name.
 # Prints nothing when nothing usable is left.
@@ -1907,7 +1914,12 @@ options:
   -q, --silent            no progress output
 EOF
             ;;
-        source) echo "usage: provost source <#N>    show the original captured input behind row #N" ;;
+        source) cat <<'EOF'
+usage: provost source <#N | ID>
+  The original captured input behind dataset row #N, or behind capture ID
+  (c0007 or capture-c0007), with that capture's details.
+EOF
+            ;;
         control) echo "usage: provost control [<dir>]    make <dir> (default: cwd) its own capture instance" ;;
         uncontrol) echo "usage: provost uncontrol [<dir>]    release a controlled directory (its data is kept)" ;;
         instances) echo "usage: provost instances    list controlled directories" ;;
@@ -1920,8 +1932,37 @@ usage: provost log [--failed]
 EOF
             ;;
         restore) echo "usage: provost restore <capture-id|latest>    bring a capture's commit back up (detached); 'latest' returns" ;;
+        files) cat <<'EOF'
+usage: provost files [ID] [PATH] [--to DIR]
+  The controlled directory's files as capture ID kept them (default: the
+  latest capture that kept any). No PATH: list them (size, path); a PATH:
+  print that file (or list that directory); --to DIR: write them all out
+  into DIR, a new or empty directory.
+EOF
+            ;;
+        diff) cat <<'EOF'
+usage: provost diff [NAME] [A [B]] [-- PATH...]
+  What changed between capture A and capture B: for each dataset, the rows
+  only A filed (-) and only B filed (+), compared without the columns
+  provost adds; and, in a controlled directory, which files changed. With
+  NAME, only that dataset, and the default captures are its own.
+  No A: the last two captures; A alone: A against the capture before it.
+  -- PATH...              the full diff of those files between A and B
+EOF
+            ;;
+        next) echo "usage: provost next    step the restored store forward one capture (past the last: back to the latest)" ;;
+        prev) echo "usage: provost prev    step the store back one capture (from the latest: the last capture)" ;;
         ls) echo "usage: provost ls    list datasets" ;;
-        show) echo "usage: provost show NAME    present a dataset as a table (leading #N = row index)" ;;
+        show) cat <<'EOF'
+usage: provost show NAME [--capture ID] [--at ID]
+  Present a dataset as a table: '#' is each row's index in the store,
+  'capture' the capture it came from, 'n' its record number in that capture.
+options:
+  --capture ID            only the rows capture ID filed (c0007, or 7)
+  --at ID                 the dataset as it stood just after capture ID, read
+                          from git (the store stays where it is)
+EOF
+            ;;
         rm) echo "usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used" ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
@@ -2077,7 +2118,14 @@ cmd_log () {
         esac
     done
     if [[ $failed -eq 1 ]]; then _show_failures; return 0; fi
-    local capdir; capdir="$(_cap_dir)"
+    local capdir cur=""; capdir="$(_cap_dir)"
+    # Restored to an earlier capture: the store's files stop at that capture,
+    # so list every capture from the latest's tree, read from git.
+    if [[ -d "$PROVOST_WORKSPACE/.git" ]] && cur="$(_current_capture)" && [[ -n "$cur" ]]; then
+        _mktempd log
+        _git archive "$(_main_branch)" -- 'captures/*/meta.tsv' 2>/dev/null | tar -x -C "$_MKTEMPD" 2>/dev/null || true
+        capdir="$_MKTEMPD/captures"
+    fi
     local d b keys=() files=() k
     shopt -s nullglob
     for d in "$capdir"/c*/; do
@@ -2104,6 +2152,7 @@ cmd_log () {
         FNR == 1 { emit() }
         { k = $1; val = substr($0, length(k) + 2); v[k] = val; have = 1 }
         END { emit() }' "${files[@]}"
+    [[ -z "$cur" ]] || info "the store is restored to $cur — step with: provost next / prev; return with: provost restore latest"
 }
 
 cmd_restore () {
@@ -2120,18 +2169,234 @@ cmd_restore () {
         ok "restored workspace to latest ($main)."
         return 0
     fi
-    target="${target#capture-}"
-    [[ "$target" =~ ^[0-9]{1,12}$ ]] && target="$(printf 'c%04d' "$((10#$target))")"
-    _valid_capid "$target" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
+    target="$(_capid_of "$target")" || usage_die "invalid capture id '$1' (expected e.g. c0003, 3 or latest)."
     _git rev-parse -q --verify "refs/tags/capture-$target" >/dev/null 2>&1 \
         || die "no such capture: $target (see 'provost log')."
     # Bring that capture's committed tree back up (detached).
     _lock
     out="$(_git checkout -q "capture-$target" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "checkout failed for capture-$target."; }
     _unlock
-    ok "brought up $target (detached; new captures are refused until you return). Return with: provost restore latest"
+    ok "brought up $target (detached; new captures are refused until you return). Step with: provost next / prev; return with: provost restore latest"
     local capd; capd="$(_cap_dir)/$target"
     if [[ -f "$capd/meta.tsv" ]]; then echo; sed 's/\t/: /' "$capd/meta.tsv"; fi
+}
+
+# Every capture id, oldest first (from the capture-<id> tags).
+_capture_ids () {
+    _git for-each-ref --sort=v:refname --format='%(refname:short)' 'refs/tags/capture-c*' 2>/dev/null \
+        | sed -n 's/^capture-\(c[0-9]*\)$/\1/p'
+}
+# The capture the store is restored to; empty when it is on the latest.
+_current_capture () {
+    _git symbolic-ref -q HEAD >/dev/null 2>&1 && return 0
+    _git describe --tags --exact-match --match 'capture-c*' HEAD 2>/dev/null | sed 's/^capture-//'
+}
+
+# next / prev — step the restored store one capture forward or back, as
+# 'restore' does: from the latest, 'prev' brings up the last capture (or the
+# one before it, when the latest is that capture's own commit); 'next' past
+# the last capture returns to the latest.
+cmd_step () {
+    local verb="$1"; shift
+    case "${1:-}" in -h|--help) _cmd_help "$verb" ;; esac
+    [[ $# -eq 0 ]] || _cmd_usage_die "$verb"
+    _ensure_workspace
+    local -a ids=(); local x cur pos=-1 n i
+    while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(_capture_ids)
+    n=${#ids[@]}
+    (( n > 0 )) || die "no captures yet — nothing to step through."
+    cur="$(_current_capture)"
+    if [[ -z "$cur" ]]; then
+        [[ "$verb" == next ]] && { info "already at the latest (step back with: provost prev)."; return 0; }
+        pos=$n
+        [[ "$(_git rev-parse HEAD 2>/dev/null)" == "$(_git rev-parse "capture-${ids[n-1]}^{commit}" 2>/dev/null)" ]] && pos=$((n - 1))
+    else
+        for i in "${!ids[@]}"; do [[ "${ids[i]}" == "$cur" ]] && pos=$i; done
+        (( pos >= 0 )) || die "the store is at a commit that is not a capture — return with: provost restore latest"
+    fi
+    if [[ "$verb" == next ]]; then
+        if (( pos + 1 >= n )); then cmd_restore latest; else cmd_restore "${ids[pos+1]}"; fi
+    else
+        (( pos > 0 )) || { info "already at the first capture (${ids[0]})."; return 0; }
+        cmd_restore "${ids[pos-1]}"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# files — a controlled directory's files as a capture kept them (files-<id>).
+# ---------------------------------------------------------------------------
+# The newest capture whose files were kept ('' when none).
+_latest_files_id () {
+    _git for-each-ref --count=1 --sort=-v:refname --format='%(refname:short)' 'refs/tags/files-c*' 2>/dev/null \
+        | sed -n 's/^files-\(c[0-9]*\)$/\1/p'
+}
+
+cmd_files () {
+    local id="" path="" to="" a v
+    while [[ $# -gt 0 ]]; do
+        a="$1"
+        case "$a" in
+            -h|--help) _cmd_help files ;;
+            --to) [[ $# -ge 2 ]] || usage_die "--to needs a directory."; to="$2"; shift 2; continue ;;
+            --) shift; [[ $# -le 1 ]] || _cmd_usage_die files; path="${1:-}"; shift $#; continue ;;
+            -?*) usage_die "unknown option for 'files': $a (see 'provost files --help')." ;;
+        esac
+        if [[ -z "$id" && -z "$path" ]] && v="$(_capid_of "$a")"; then id="$v"
+        elif [[ -z "$path" ]]; then path="${a#./}"
+        else _cmd_usage_die files; fi
+        shift
+    done
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    if [[ -z "$id" ]]; then
+        id="$(_latest_files_id)"
+        [[ -n "$id" ]] || die "no run files yet — they are kept for captures made in a controlled directory (see 'provost control')."
+    fi
+    local ref="files-$id"
+    if ! _git rev-parse -q --verify "refs/tags/$ref" >/dev/null 2>&1; then
+        _git rev-parse -q --verify "refs/tags/capture-$id" >/dev/null 2>&1 \
+            || die "no such capture: $id (see 'provost log')."
+        die "capture $id kept no files (it was not made in a controlled directory, or PROVOST_FILES_MAX_SIZE was 0)."
+    fi
+    if [[ -n "$to" ]]; then
+        [[ -z "$path" ]] || usage_die "--to writes out every file; leave out the path."
+        if [[ -e "$to" ]]; then
+            [[ -d "$to" && -z "$(ls -A "$to" 2>/dev/null)" ]] || die "$to exists and is not an empty directory."
+        else
+            mkdir -p "$to" || die "cannot create $to"
+        fi
+        _git archive "$ref" | tar -x -C "$to" || die "could not write the files of $id to $to."
+        ok "wrote the files of $id to $to."
+        return 0
+    fi
+    local kind=tree
+    if [[ -n "$path" ]]; then
+        path="${path%/}"
+        kind="$(_git cat-file -t "$ref:$path" 2>/dev/null)" || die "no file '$path' in the files of $id (see 'provost files $id')."
+    fi
+    if [[ "$kind" == blob ]]; then
+        _git cat-file blob "$ref:$path"
+    else
+        info "files of $id${path:+ under $path} (size, path):"
+        _git ls-tree -r -l --full-tree "$ref" ${path:+-- "$path"} \
+            | awk -F'\t' '{ split($1, m, " "); printf "%10s  %s\n", m[4], $2 }'
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# diff — what changed between two captures: the rows each dataset got from
+# them, and (in a controlled directory) the files.
+# ---------------------------------------------------------------------------
+cmd_diff () {
+    local name="" a="" b="" v x
+    local -a paths=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help diff ;;
+            --) shift; paths=("$@"); break ;;
+            -?*) usage_die "unknown option for 'diff': $1 (see 'provost diff --help')." ;;
+        esac
+        if v="$(_capid_of "$1")"; then
+            if [[ -z "$a" ]]; then a="$v"; elif [[ -z "$b" ]]; then b="$v"; else _cmd_usage_die diff; fi
+        elif [[ -z "$name" && -z "$a" ]]; then
+            _require_name "$1"; name="$1"
+        else _cmd_usage_die diff; fi
+        shift
+    done
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    local main; main="$(_main_branch)"
+    _mktempd diff; local tmp="$_MKTEMPD"
+    # Default: the last two captures (that filed into NAME, when one is given);
+    # one capture given: it against the one before it.
+    local -a ids=()
+    if [[ -n "$name" ]]; then
+        _git show "$main:datasets/$name.tsv" > "$tmp/name.tsv" 2>/dev/null || die "no such dataset: $name (try 'provost ls')."
+        _git show "$main:provenance.tsv" > "$tmp/name.prov" 2>/dev/null || : > "$tmp/name.prov"
+        while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(awk -F'\t' -v P="$tmp/name.prov" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); next }
+            { c = col ? $2 : pc[$1]; if (c != "" && !(c in seen)) { seen[c] = 1; print c } }' "$tmp/name.prov" "$tmp/name.tsv")
+    else
+        while IFS= read -r x; do [[ -n "$x" ]] && ids+=("$x"); done < <(_capture_ids)
+    fi
+    local n=${#ids[@]} i
+    if [[ -z "$a" ]]; then
+        (( n >= 2 )) || die "need two captures${name:+ of '$name'} to compare (found $n)."
+        a="${ids[n-2]}"; b="${ids[n-1]}"
+    elif [[ -z "$b" ]]; then
+        b="$a"; a=""
+        for i in "${!ids[@]}"; do [[ "${ids[i]}" == "$b" && $i -gt 0 ]] && a="${ids[i-1]}"; done
+        [[ -n "$a" ]] || die "no capture${name:+ of '$name'} before $b to compare it with."
+    fi
+    for x in "$a" "$b"; do
+        _git rev-parse -q --verify "refs/tags/capture-$x" >/dev/null 2>&1 || die "no such capture: $x (see 'provost log')."
+    done
+    # Read both captures' rows from the later capture's tree (it holds the
+    # earlier one's rows too), so the store's own checkout does not matter.
+    local late="$b"
+    (( 10#${a#c} > 10#${b#c} )) && late="$a"
+    mkdir -p "$tmp/t"
+    _git archive "capture-$late" -- datasets provenance.tsv 2>/dev/null | tar -x -C "$tmp/t" 2>/dev/null || true
+    local cmd_a cmd_b
+    cmd_a="$(_git show "capture-$a:captures/$a/meta.tsv" 2>/dev/null | awk -F'\t' '$1 == "command" { print substr($0, 9) }')"
+    cmd_b="$(_git show "capture-$b:captures/$b/meta.tsv" 2>/dev/null | awk -F'\t' '$1 == "command" { print substr($0, 9) }')"
+    printf '%s%s → %s%s\n' "$a" "${cmd_a:+ ($cmd_a)}" "$b" "${cmd_b:+ ($cmd_b)}"
+    local f ds any=0 prov="$tmp/t/provenance.tsv"
+    [[ -f "$prov" ]] || prov=/dev/null
+    for f in "$tmp"/t/datasets/*.tsv; do
+        [[ -f "$f" ]] || continue
+        ds="$(basename "$f" .tsv)"
+        [[ -z "$name" || "$ds" == "$name" ]] || continue
+        # Rows from A and from B, without the columns provost adds ('#',
+        # capture, n): a row is the same when its data is. Removed rows in A's
+        # order, added rows in B's, then a count of the rows both have.
+        awk -F'\t' -v OFS='\t' -v P="$prov" -v A="$a" -v B="$b" -v DS="$ds" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 {
+                col = ($1 == "#" && $2 ~ /^_*capture$/); first = col ? 3 : 2
+                if ($first == "n" || $first ~ /^_+n$/) first++
+                hdr = ""; for (i = first; i <= NF; i++) hdr = hdr (i > first ? OFS : "") $i
+                next
+            }
+            {
+                c = col ? $2 : pc[$1]
+                if (c != A && c != B) next
+                r = ""; for (i = first; i <= NF; i++) r = r (i > first ? OFS : "") $i
+                if (c == A) { ra[++na] = r; ca[r]++ } else { rb[++nb] = r; cb[r]++ }
+            }
+            END {
+                if (!na && !nb) exit
+                print ""
+                if (!nb) { printf "%s: only in %s (%d row%s)\n", DS, A, na, na == 1 ? "" : "s"; exit }
+                if (!na) { printf "%s: only in %s (%d row%s)\n", DS, B, nb, nb == 1 ? "" : "s"; exit }
+                for (r in cb) left[r] = cb[r]
+                out = ""; same = 0
+                for (i = 1; i <= na; i++) { r = ra[i]; if (left[r] > 0) { left[r]--; same++ } else out = out "  - " r "\n" }
+                for (r in ca) lefta[r] = ca[r]
+                for (i = 1; i <= nb; i++) { r = rb[i]; if (lefta[r] > 0) lefta[r]-- ; else out = out "  + " r "\n" }
+                if (out == "") { printf "%s: no change (%d row%s)\n", DS, na, na == 1 ? "" : "s"; exit }
+                printf "%s:\n    %s\n%s", DS, hdr, out
+                if (same) printf "  (%d row%s the same)\n", same, same == 1 ? "" : "s"
+            }' "$prov" "$f" > "$tmp/out" || true
+        if [[ -s "$tmp/out" ]]; then any=1; cat "$tmp/out"; fi
+    done
+    (( any )) || { echo; echo "no dataset rows from $a or $b${name:+ in '$name'}."; }
+    # Files: only when both captures kept them.
+    local fa=0 fb=0
+    _git rev-parse -q --verify "refs/tags/files-$a" >/dev/null 2>&1 && fa=1
+    _git rev-parse -q --verify "refs/tags/files-$b" >/dev/null 2>&1 && fb=1
+    if (( fa && fb )); then
+        echo
+        if (( ${#paths[@]} )); then
+            _git diff "files-$a" "files-$b" -- "${paths[@]}"
+        else
+            local st; st="$(_git diff --stat=100 "files-$a" "files-$b" 2>/dev/null)"
+            if [[ -n "$st" ]]; then echo "files:"; printf '%s\n' "$st" | sed 's/^/  /'
+                echo "  (the changes themselves: provost diff $a $b -- PATH)"
+            else echo "files: no change"; fi
+        fi
+    elif (( ${#paths[@]} )); then
+        die "$a and $b did not both keep the controlled directory's files."
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -2276,6 +2541,8 @@ cmd_source () {
     [[ $# -ge 1 ]] || _cmd_usage_die source
     case "$1" in -h|--help) _cmd_help source ;; esac
     [[ $# -eq 1 ]] || _cmd_usage_die source
+    # A capture id (c0007, capture-c0007) shows that whole capture.
+    if [[ "$1" =~ ^(capture-)?c[0-9]{1,12}$ ]]; then _source_capture "$(_capid_of "$1")"; return; fi
     local n="${1#\#}"                             # tolerate a leading '#'
     [[ "$n" =~ ^[0-9]{1,15}$ ]] || usage_die "row index must be a number (got '$1')."
     local prov; prov="$(_prov_file)"
@@ -2296,6 +2563,28 @@ cmd_source () {
     else
         die "capture $cap has no stored output (workspace may be detached — try 'provost restore latest')."
     fi
+}
+
+# _source_capture ID — a capture's meta and original output: from the store's
+# files when they are there, else from the capture's own commit (a capture
+# after the one the store is restored to, or one whose files 'rm' purged).
+_source_capture () {
+    local id="$1" capd meta out
+    capd="$(_cap_dir)/$id"
+    if [[ -f "$capd/output.txt" ]]; then
+        meta="$(cat "$capd/meta.tsv" 2>/dev/null || true)"; out="$capd/output.txt"
+    else
+        _git rev-parse -q --verify "refs/tags/capture-$id" >/dev/null 2>&1 \
+            || die "no such capture: $id (see 'provost log')."
+        meta="$(_git show "capture-$id:captures/$id/meta.tsv" 2>/dev/null || true)"
+        _mktempd source; out="$_MKTEMPD/output.txt"
+        _git show "capture-$id:captures/$id/output.txt" > "$out" 2>/dev/null \
+            || die "capture $id has no stored output."
+    fi
+    info "capture $id"
+    if [[ -n "$meta" ]]; then echo; printf '%s\n' "$meta" | sed 's/\t/: /'; fi
+    echo; printf '%s----- original source (capture %s) -----%s\n' "$C_DIM" "$id" "$C_RST"
+    cat "$out"
 }
 
 # ---------------------------------------------------------------------------
@@ -2378,12 +2667,47 @@ _table () { if command -v column >/dev/null 2>&1; then column -t -s $'\t'; else 
 
 cmd_show () {
     [[ $# -ge 1 ]] || _cmd_usage_die show
-    case "$1" in -h|--help) _cmd_help show ;; esac
-    [[ $# -eq 1 ]] || _cmd_usage_die show
-    local name="$1"
+    local name="" at="" cap="" v
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help show ;;
+            --at|--capture)
+                [[ $# -ge 2 ]] || usage_die "$1 needs a capture id (e.g. c0007)."
+                v="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                if [[ "$1" == --at ]]; then at="$v"; else cap="$v"; fi
+                shift 2 ;;
+            -?*) usage_die "unknown option for 'show': $1 (see 'provost show --help')." ;;
+            *) [[ -z "$name" ]] || _cmd_usage_die show; name="$1"; shift ;;
+        esac
+    done
+    [[ -n "$name" ]] || _cmd_usage_die show
     _require_name "$name"
-    local f; f="$(_ds_dir)/$name.tsv"
-    [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
+    local f prov
+    if [[ -n "$at" ]]; then
+        # The dataset as it stood just after capture AT, read from git: no
+        # checkout, so the store stays where it is.
+        _git rev-parse -q --verify "refs/tags/capture-$at" >/dev/null 2>&1 \
+            || die "no such capture: $at (see 'provost log')."
+        _mktempd show; f="$_MKTEMPD/ds.tsv"; prov="$_MKTEMPD/prov.tsv"
+        _git show "capture-$at:datasets/$name.tsv" > "$f" 2>/dev/null \
+            || die "no dataset '$name' at capture $at."
+        _git show "capture-$at:provenance.tsv" > "$prov" 2>/dev/null || : > "$prov"
+    else
+        f="$(_ds_dir)/$name.tsv"; prov="$(_prov_file)"
+        [[ -f "$f" ]] || die "no such dataset: $name (try 'provost ls')."
+    fi
+    if [[ -n "$cap" ]]; then
+        # Only the rows capture CAP filed: by the capture column, or, in a
+        # store from before it (format 2), by provenance.
+        _mktempd show; local only="$_MKTEMPD/only.tsv"
+        [[ -f "$prov" ]] || prov=/dev/null
+        awk -F'\t' -v P="$prov" -v C="$cap" '
+            FILENAME == P { if (FNR > 1) pc[$1] = $3; next }
+            FNR == 1 { col = ($1 == "#" && $2 ~ /^_*capture$/); print; next }
+            (col ? $2 : pc[$1]) == C' "$prov" "$f" > "$only"
+        f="$only"
+        [[ "$(wc -l < "$f")" -gt 1 ]] || { info "no rows in '$name' from capture $cap."; return 0; }
+    fi
     if [[ "$name" == "unsorted" ]]; then _decode_unsorted_tsv "$f" | _table
     else _table < "$f"; fi
 }
@@ -2923,6 +3247,9 @@ main () {
         import)        shift; cmd_import "$@" ;;
         log)           shift; cmd_log "$@" ;;
         restore)       shift; cmd_restore "$@" ;;
+        next|prev)     cmd_step "$@" ;;
+        files)         shift; cmd_files "$@" ;;
+        diff)          shift; cmd_diff "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
         rm|delete|drop) shift; cmd_rm "$@" ;;

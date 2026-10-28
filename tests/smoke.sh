@@ -957,5 +957,72 @@ check "migration names a clashing column _capture" "#	_capture	n	capture	value" 
 check "migration covers the triage bucket" "5	c0004	" "$(cat "$CWS/datasets/unsorted.tsv")"
 check "the format-3 store records it" "3" "$(cat "$CWS/.store_format")"
 
+# Browsing runs: show --capture / --at, source by capture id, next / prev,
+# and log while restored. All read from git; the store stays where it is
+# except under next / prev / restore.
+BWS="$(mktemp -d)/.browse"
+for st in PASS FAIL PASS; do printf 'TEST STATUS\nt1 PASS\nt2 %s\n' "$st" | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name tests >/dev/null 2>&1; done
+printf 'a=1\n' | PROVOST_WORKSPACE="$BWS" "$PROVOST" --sync --name other >/dev/null 2>&1
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture c2 2>&1)"
+check "show --capture keeps that capture's rows" "4	c0002	2	t2	FAIL" "$bs"
+check_not "and only those" "c0001" "$bs"
+check "--capture takes a bare number too" "c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --capture 2 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at c0002 2>&1)"
+check "show --at reads the dataset as it stood after that capture" "4	c0002	2	t2	FAIL" "$bs"
+check_not "and nothing filed after it" "c0003" "$bs"
+check "show --at an unknown capture is refused" "no such capture: c0099" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests --at 99 2>&1 || true)"
+check "show --capture with no rows says so" "no rows in 'other' from capture c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show other --capture 1 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source c0002 2>&1)"
+check "source ID shows that capture's output" "t2 FAIL" "$bs"
+check "and its details" "row_ids: 3-4" "$bs"
+check "source #N still means a row" "row #3" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source 3 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev from the latest brings up the capture before it" "c0003" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev again steps back one more" "c0002" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+check "while restored, show is the store as it was" "4	c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" show tests 2>&1)"
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" log 2>&1)"
+check "log still lists every capture while restored" "c0004" "$bs"
+check "and says where the store is" "restored to c0002" "$bs"
+check "source reaches a capture after the restored one" "a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" source c0004 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" prev >/dev/null 2>&1
+check "prev at the first capture stays there" "already at the first capture" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" prev 2>&1)"
+for _ in 1 2 3; do PROVOST_WORKSPACE="$BWS" "$PROVOST" next >/dev/null 2>&1; done
+check "next steps forward to the last capture" "c0004" "$(tgit "$BWS" describe --tags --exact-match HEAD 2>&1)"
+PROVOST_WORKSPACE="$BWS" "$PROVOST" next >/dev/null 2>&1
+check "next past the last returns to the latest" "main" "$(tgit "$BWS" symbolic-ref --short HEAD 2>&1)"
+check "next at the latest says so" "already at the latest" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" next 2>&1)"
+
+# diff: the rows two captures filed, compared without provost's own columns.
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff tests 2>&1)"
+check "diff NAME compares that dataset's last two captures" "c0002 → c0003" "$bs"
+check "a row only the earlier capture has is -" "  - t2	FAIL" "$bs"
+check "a row only the later one has is +" "  + t2	PASS" "$bs"
+check "rows both have are counted" "(1 row the same)" "$bs"
+check "diff A alone compares it with the capture before it" "c0001 → c0002" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff c2 2>&1)"
+check "a dataset only one capture filed is named" "other: only in c0004 (1 row)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff 2>&1)"
+check "the same rows read as no change" "tests: no change (2 rows)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" diff 1 3 2>&1)"
+
+# files + diff in a controlled directory: each run's files, and what changed.
+FH="$(mktemp -d)/home"; FP="$(mktemp -d)/proj"; mkdir -p "$FP"
+( cd "$FP" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  echo 'v = 1' > m.py; printf 'TEST STATUS\nt1 PASS\n' > r.txt
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run cat r.txt >/dev/null 2>&1
+  echo 'v = 2' > m.py; printf 'TEST STATUS\nt1 FAIL\n' > r.txt; echo x > new.txt
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run cat r.txt >/dev/null 2>&1 )
+fr () { ( cd "$FP" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" "$@" 2>&1 ); }
+check "files lists the latest run's files" "new.txt" "$(fr files)"
+check_not "files ID lists that run's" "new.txt" "$(fr files c1)"
+check "files ID PATH prints the file as it was" "v = 1" "$(fr files c1 m.py)"
+fr files c1 --to "$FP/../out1" >/dev/null
+check "files ID --to writes the run's files out" "v = 1" "$(cat "$FP/../out1/m.py" 2>&1)"
+check "--to refuses a directory that is not empty" "is not an empty directory" "$(fr files c1 --to "$FP" || true)"
+check "files of an unknown capture is refused" "no such capture: c0009" "$(fr files c9 || true)"
+check "files of a capture that kept none says why" "capture c0001 kept no files" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" files c1 2>&1 || true)"
+bs="$(fr diff)"
+check "diff lists the files that changed" "new.txt" "$bs"
+check "with the dataset rows" "  + t1	FAIL" "$bs"
+check "diff -- PATH shows that file's changes" "+v = 2" "$(fr diff c1 c2 -- m.py)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

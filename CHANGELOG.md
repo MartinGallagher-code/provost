@@ -1,5 +1,32 @@
 # provost — Changelog
 
+## 2026-10-28 — Browsing runs: `show --capture/--at`, `source ID`, `next`/`prev`, `files`, `diff`
+
+For using provost as a test runner, where every run should stay viewable.
+Everything reads straight from git; only `next`/`prev`/`restore` move the
+store.
+
+- **`show NAME --capture ID`** — only the rows that capture filed (by the
+  capture column; by provenance in a store from before it). **`--at ID`** —
+  the dataset as it stood just after that capture (`git show
+  capture-ID:datasets/NAME.tsv`).
+- **`source ID`** (`c0007`, `capture-c0007`) — that capture's details and
+  original output, from the store or, when it is not checked out (a later
+  capture while restored, or one `rm` purged), from its commit. `source N`
+  still means row #N.
+- **`next` / `prev`** (`cmd_step`) — step the restored store one capture
+  forward or back, as `restore` does; `next` past the last capture returns
+  to the latest. `log` while restored lists every capture (from the
+  latest's tree) and says where the store is.
+- **`files [ID] [PATH] [--to DIR]`** — a controlled directory's files as a
+  capture kept them (`files-<id>`): list them, print one, or write them all
+  out into a new directory (`git archive`).
+- **`diff [NAME] [A [B]] [-- PATH...]`** — the rows only A filed (`-`) and
+  only B filed (`+`), per dataset, compared without `#`/`capture`/`n`, and
+  the files that changed (`git diff --stat files-A files-B`; with PATH, the
+  full diff). Defaults: the last two captures, or NAME's last two.
+- **Tests (`tests/smoke.sh`):** +37.
+
 ## 2026-10-28 — Every row names its capture; a controlled directory's files are kept per run
 
 - **`capture` column (`provost` `_ingest`; store format 3):** every dataset
