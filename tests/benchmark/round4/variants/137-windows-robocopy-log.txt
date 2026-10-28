@@ -1,0 +1,54 @@
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Robust File Copy for Windows                              
+-------------------------------------------------------------------------------
+
+  Started : Sunday, 25 October 2026 01:15:00
+   Source : E:\Daten\Vertrieb\
+     Dest : \\fs-archiv\Vertrieb$\
+
+    Files : *.*
+	    
+  Options : *.* /S /E /DCOPY:DA /COPY:DAT /PURGE /MIR /R:2 /W:5 
+
+------------------------------------------------------------------------------
+
+	                   5	E:\Daten\Vertrieb\
+	    Newer     		  48.7 k	Kundenliste.xlsx
+	    New File  		   1.2 m	Preisliste 2027 (final).pdf
+	                   4	E:\Daten\Vertrieb\Angebote\
+	  *EXTRA File 		  88.1 k	A-2025-0990 - Kopie.docx
+	    Changed   		   96512	A-2026-1187.docx
+	                   0	E:\Daten\Vertrieb\Angebote\Alt\
+	  *EXTRA Dir        -1	\\fs-archiv\Vertrieb$\Angebote\Alt\2023\
+	    New Dir          3	E:\Daten\Vertrieb\Messen\
+	    New File  		  12.8 m	Stand_Entwurf_v3.png
+	    New File  		 640.0 k	Ausstellerliste.csv
+	    New File  		     917	notizen.txt
+	    New Dir          1	E:\Daten\Vertrieb\Messen\Fotos\
+2026/10/25 01:15:41 ERROR 32 (0x00000020) Copying File E:\Daten\Vertrieb\Messen\Fotos\DSC_8801.NEF
+The process cannot access the file because it is being used by another process.
+Waiting 5 seconds... Retrying...
+2026/10/25 01:15:46 ERROR 32 (0x00000020) Copying File E:\Daten\Vertrieb\Messen\Fotos\DSC_8801.NEF
+The process cannot access the file because it is being used by another process.
+Waiting 5 seconds... Retrying...
+2026/10/25 01:15:51 ERROR 32 (0x00000020) Copying File E:\Daten\Vertrieb\Messen\Fotos\DSC_8801.NEF
+The process cannot access the file because it is being used by another process.
+ERROR: RETRY LIMIT EXCEEDED.
+	                   2	E:\Daten\Vertrieb\Verträge\
+	  *EXTRA File 		     162	~$hmenvertrag.docx
+	    New File  		 205.3 k	Rahmenvertrag Müller & Söhne.docx
+
+------------------------------------------------------------------------------
+
+               Total    Copied   Skipped  Mismatch    FAILED    Extras
+    Dirs :         6         2         4         0         0         1
+   Files :        15         7         7         0         1         2
+   Bytes :   42.69 m   14.97 m    3.12 m         0   24.60 m    88.3 k
+   Times :   0:00:58   0:00:46                       0:00:10   0:00:00
+
+
+   Speed :            341,147 Bytes/sec.
+   Speed :             19.520 MegaBytes/min.
+   Ended : Sunday, 25 October 2026 01:15:58
+

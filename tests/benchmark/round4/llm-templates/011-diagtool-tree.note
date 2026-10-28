@@ -1,0 +1,1 @@
+The tree's nesting (indentation = the parent warning group) cannot be expressed: values are stripped, so the depth is lost and every -W flag becomes one flat row. Legend lines (GREEN = ...) kept as a kv block.

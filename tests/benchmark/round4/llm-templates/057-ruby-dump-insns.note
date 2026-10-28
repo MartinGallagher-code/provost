@@ -1,0 +1,2 @@
+section titles (== disasm: #<ISeq:name@file:line ...>) should become a column of the instruction rows; put them in their own table in order instead.
+Local-variable lines ("[ 3] name@0<Arg>[ 2] qty@1 ...") hold a variable number of entries per line: skipped.

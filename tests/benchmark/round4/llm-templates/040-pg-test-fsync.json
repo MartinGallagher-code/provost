@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "tool": "pg-test-fsync",
+  "detect": "^Compare file sync methods using one 8kB write:",
+  "skip": ["^\\S"],
+  "blocks": [
+    {"name": "sync_methods", "kind": "table",
+     "line": "^\\s+(?P<method>\\S(?:.*?\\S)?)\\s{2,}(?P<ops_per_sec>[\\d.]+|n/a)(?: ops/sec\\s+(?P<usecs_per_op>\\d+) usecs/op)?\\s*$",
+     "columns": {"ops_per_sec": "ops/sec", "usecs_per_op": "usecs/op"}}
+  ]
+}

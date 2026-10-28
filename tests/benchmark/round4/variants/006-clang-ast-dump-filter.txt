@@ -1,0 +1,49 @@
+Dumping total:
+FunctionDecl 0x5610f3a2c1e8 <inventory.c:9:1, col:46> col:6 total 'long (const struct item *, size_t)'
+|-ParmVarDecl 0x5610f3a2c058 <col:12, col:31> col:31 items 'const struct item *'
+`-ParmVarDecl 0x5610f3a2c0d0 <col:38, col:45> col:45 n 'size_t':'unsigned long'
+
+Dumping total:
+FunctionDecl 0x5610f3a2d6f0 prev 0x5610f3a2c1e8 <inventory.c:30:1, line:36:1> line:30:6 used total 'long (const struct item *, size_t)'
+|-ParmVarDecl 0x5610f3a2d560 <col:12, col:31> col:31 used items 'const struct item *'
+|-ParmVarDecl 0x5610f3a2d5d8 <col:38, col:45> col:45 used n 'size_t':'unsigned long'
+`-CompoundStmt 0x5610f3a2de30 <line:31:1, line:36:1>
+  |-DeclStmt 0x5610f3a2d8a0 <line:32:5, col:17>
+  | `-VarDecl 0x5610f3a2d800 <col:5, col:16> col:10 used sum 'long' cinit
+  |   `-ImplicitCastExpr 0x5610f3a2d888 <col:16> 'long' <IntegralCast>
+  |     `-IntegerLiteral 0x5610f3a2d868 <col:16> 'int' 0
+  |-ForStmt 0x5610f3a2ddb8 <line:33:5, line:34:40>
+  | |-DeclStmt 0x5610f3a2d960 <line:33:10, col:22>
+  | | `-VarDecl 0x5610f3a2d8c8 <col:10, col:21> col:17 used i 'size_t':'unsigned long' cinit
+  | |   `-ImplicitCastExpr 0x5610f3a2d948 <col:21> 'size_t':'unsigned long' <IntegralCast>
+  | |     `-IntegerLiteral 0x5610f3a2d928 <col:21> 'int' 0
+  | |-<<<NULL>>>
+  | |-BinaryOperator 0x5610f3a2d9f0 <col:24, col:28> 'int' '<'
+  | | |-ImplicitCastExpr 0x5610f3a2d9c0 <col:24> 'size_t':'unsigned long' <LValueToRValue>
+  | | | `-DeclRefExpr 0x5610f3a2d978 <col:24> 'size_t':'unsigned long' lvalue Var 0x5610f3a2d8c8 'i' 'size_t':'unsigned long'
+  | | `-ImplicitCastExpr 0x5610f3a2d9d8 <col:28> 'size_t':'unsigned long' <LValueToRValue>
+  | |   `-DeclRefExpr 0x5610f3a2d998 <col:28> 'size_t':'unsigned long' lvalue ParmVar 0x5610f3a2d5d8 'n' 'size_t':'unsigned long'
+  | |-UnaryOperator 0x5610f3a2da30 <col:31, col:32> 'size_t':'unsigned long' postfix '++'
+  | | `-DeclRefExpr 0x5610f3a2da10 <col:31> 'size_t':'unsigned long' lvalue Var 0x5610f3a2d8c8 'i' 'size_t':'unsigned long'
+  | `-CompoundAssignOperator 0x5610f3a2dd88 <line:34:9, col:40> 'long' '+=' ComputeLHSTy='long' ComputeResultTy='long'
+  |   |-DeclRefExpr 0x5610f3a2da48 <col:9> 'long' lvalue Var 0x5610f3a2d800 'sum' 'long'
+  |   `-BinaryOperator 0x5610f3a2dd68 <col:16, col:40> 'long' '*'
+  |     |-ImplicitCastExpr 0x5610f3a2dd50 <col:16, col:25> 'long' <IntegralCast>
+  |     | `-ImplicitCastExpr 0x5610f3a2dd38 <col:16, col:25> 'unsigned int' <LValueToRValue>
+  |     |   `-MemberExpr 0x5610f3a2db20 <col:16, col:25> 'const unsigned int' lvalue .qty 0x5610f3a2a4f0
+  |     |     `-ArraySubscriptExpr 0x5610f3a2db00 <col:16, col:23> 'const struct item' lvalue
+  |     |       |-ImplicitCastExpr 0x5610f3a2dad0 <col:16> 'const struct item *' <LValueToRValue>
+  |     |       | `-DeclRefExpr 0x5610f3a2da68 <col:16> 'const struct item *' lvalue ParmVar 0x5610f3a2d560 'items' 'const struct item *'
+  |     |       `-ImplicitCastExpr 0x5610f3a2dae8 <col:22> 'size_t':'unsigned long' <LValueToRValue>
+  |     |         `-DeclRefExpr 0x5610f3a2da88 <col:22> 'size_t':'unsigned long' lvalue Var 0x5610f3a2d8c8 'i' 'size_t':'unsigned long'
+  |     `-ImplicitCastExpr 0x5610f3a2dd20 <col:31, col:40> 'long' <LValueToRValue>
+  |       `-MemberExpr 0x5610f3a2dcf0 <col:31, col:40> 'const long' lvalue .cents 0x5610f3a2a558
+  |         `-ArraySubscriptExpr 0x5610f3a2dcd0 <col:31, col:38> 'const struct item' lvalue
+  |           |-ImplicitCastExpr 0x5610f3a2dca0 <col:31> 'const struct item *' <LValueToRValue>
+  |           | `-DeclRefExpr 0x5610f3a2db40 <col:31> 'const struct item *' lvalue ParmVar 0x5610f3a2d560 'items' 'const struct item *'
+  |           `-ImplicitCastExpr 0x5610f3a2dcb8 <col:37> 'size_t':'unsigned long' <LValueToRValue>
+  |             `-DeclRefExpr 0x5610f3a2db60 <col:37> 'size_t':'unsigned long' lvalue Var 0x5610f3a2d8c8 'i' 'size_t':'unsigned long'
+  `-ReturnStmt 0x5610f3a2de20 <line:35:5, col:12>
+    `-ImplicitCastExpr 0x5610f3a2de08 <col:12> 'long' <LValueToRValue>
+      `-DeclRefExpr 0x5610f3a2dde8 <col:12> 'long' lvalue Var 0x5610f3a2d800 'sum' 'long'
+

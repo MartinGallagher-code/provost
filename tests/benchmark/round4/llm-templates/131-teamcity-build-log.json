@@ -1,0 +1,36 @@
+{
+ "format": 1,
+ "tool": "teamcity-build-log",
+ "detect": "^\\[\\d\\d:\\d\\d:\\d\\d\\] ?[A-Z]?:\\s*(?:\\[Step \\d+/\\d+\\]|Step \\d+/\\d+:|Build )",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "service_messages",
+   "kind": "table",
+   "line": "^\\[(?P<time>\\d\\d:\\d\\d:\\d\\d)\\] ?(?P<severity>[A-Z]?):\\s*\\[(?P<step>[^\\]]+)\\]\\s+##teamcity\\[(?P<event>\\w+) name='(?P<name>[^']*)'(?: captureStandardOutput='(?P<captureStandardOutput>[^']*)')?(?: message='(?P<message>[^']*)')?(?: details='(?P<details>[^']*)')?(?: duration='(?P<duration>[^']*)')?(?: flowId='(?P<flowId>[^']*)')?\\]\\s*$",
+   "columns": {
+    "time": "time",
+    "severity": "severity",
+    "step": "step",
+    "event": "event",
+    "name": "name",
+    "captureStandardOutput": "captureStandardOutput",
+    "message": "message",
+    "details": "details",
+    "duration": "duration",
+    "flowId": "flowId"
+   }
+  },
+  {
+   "name": "log",
+   "kind": "table",
+   "line": "^\\[(?P<time>\\d\\d:\\d\\d:\\d\\d)\\] ?(?P<severity>[A-Z]?):\\s*(?:\\[(?P<step>[^\\]]+)\\]\\s*)?(?P<message>\\S(?:.*?\\S)?)?\\s*$",
+   "columns": {
+    "time": "time",
+    "severity": "severity",
+    "step": "step",
+    "message": "message"
+   }
+  }
+ ]
+}

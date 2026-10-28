@@ -1,0 +1,45 @@
+APC      : 001,043,0994
+DATE     : 2026-10-26 22:47:31 -0400  
+HOSTNAME : backup-host-02
+VERSION  : 3.14.14 (31 May 2016) redhat
+UPSNAME  : rack2-ups
+CABLE    : USB Cable
+DRIVER   : USB UPS Driver
+UPSMODE  : Stand Alone
+STARTTIME: 2026-10-07 13:05:58 -0400  
+MODEL    : Smart-UPS 1500 
+STATUS   : ONLINE 
+LINEV    : 121.5 Volts
+LOADPCT  : 34.4 Percent
+BCHARGE  : 100.0 Percent
+TIMELEFT : 22.0 Minutes
+MBATTCHG : 10 Percent
+MINTIMEL : 5 Minutes
+MAXTIME  : 0 Seconds
+OUTPUTV  : 121.5 Volts
+SENSE    : High
+DWAKE    : 0 Seconds
+DSHUTD   : 180 Seconds
+LOTRANS  : 106.0 Volts
+HITRANS  : 127.0 Volts
+RETPCT   : 15.0 Percent
+ITEMP    : 29.7 C
+ALARMDEL : 5 Seconds
+BATTV    : 27.3 Volts
+LINEFREQ : 60.0 Hz
+LASTXFER : No transfers since turnon
+NUMXFERS : 0
+TONBATT  : 0 Seconds
+CUMONBATT: 0 Seconds
+XOFFBATT : N/A
+SELFTEST : NO
+STESTI   : 336
+STATFLAG : 0x05000008
+MANDATE  : 2019-03-14
+SERIALNO : AS1911123456  
+BATTDATE : 2024-11-02
+NOMOUTV  : 120 Volts
+NOMBATTV : 24.0 Volts
+NOMPOWER : 980 Watts
+FIRMWARE : UPS 09.3 / ID=18
+END APC  : 2026-10-26 22:48:02 -0400  

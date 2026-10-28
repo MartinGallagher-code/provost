@@ -1,0 +1,63 @@
+============================= test session starts ==============================
+platform linux -- Python 3.11.17, pytest-9.1.1, pluggy-1.7.0
+rootdir: /srv/ci/workspace/shop-pricing
+plugins: cov-7.1.0
+collected 11 items
+
+test_pricing.py ..F...F.ssx                                              [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_sweden_cents _______________________________
+
+    def test_sweden_cents():
+        print("sweden, 3 decimal input")
+>       assert gross(Decimal("9.999"), "se") == Decimal("12.49")
+E       AssertionError: assert Decimal('12.50') == Decimal('12.49')
+E        +  where Decimal('12.50') = gross(Decimal('9.999'), 'se')
+E        +    where Decimal('9.999') = Decimal('9.999')
+E        +  and   Decimal('12.49') = Decimal('12.49')
+
+test_pricing.py:20: AssertionError
+----------------------------- Captured stdout call -----------------------------
+sweden, 3 decimal input
+_____________________________ test_unknown_country _____________________________
+
+    def test_unknown_country():
+>       assert gross(Decimal("10"), "dk") == Decimal("12.50")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+test_pricing.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+net = Decimal('10'), country = 'dk'
+
+    def gross(net, country="at"):
+        rate = RATES.get(country)
+        if rate is None:
+>           raise KeyError(country)
+E           KeyError: 'dk'
+
+pricing.py:13: KeyError
+=============================== warnings summary ===============================
+test_pricing.py::test_legacy
+  /srv/ci/workspace/shop-pricing/pricing.py:18: DeprecationWarning: legacy_gross() is deprecated, use gross()
+    warnings.warn("legacy_gross() is deprecated, use gross()", DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+==================================== PASSES ====================================
+_______________________________ test_netherlands _______________________________
+------------------------------ Captured log call -------------------------------
+WARNING  pricing:test_pricing.py:14 nl rate taken from table
+=========================== short test summary info ============================
+PASSED test_pricing.py::test_austria
+PASSED test_pricing.py::test_netherlands
+PASSED test_pricing.py::test_positive[at]
+PASSED test_pricing.py::test_positive[nl]
+PASSED test_pricing.py::test_positive[se]
+PASSED test_pricing.py::test_legacy
+SKIPPED [1] test_pricing.py:36: rate feed for no is offline
+SKIPPED [1] test_pricing.py:41: needs EUR/SEK fixture
+XFAIL test_pricing.py::test_zero - zero nets still priced
+FAILED test_pricing.py::test_sweden_cents - AssertionError: assert Decimal('1...
+FAILED test_pricing.py::test_unknown_country - KeyError: 'dk'
+========= 2 failed, 6 passed, 2 skipped, 1 xfailed, 1 warning in 0.11s =========

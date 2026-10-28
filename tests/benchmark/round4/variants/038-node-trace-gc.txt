@@ -1,0 +1,21 @@
+[40917:0x3a1f2000]       47 ms: Scavenge 4.4 (5.3) -> 3.6 (6.3) MB, pooled: 0 MB, 0.92 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       49 ms: Scavenge 4.5 (6.3) -> 3.7 (6.3) MB, pooled: 0 MB, 0.58 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       55 ms: Scavenge 4.6 (6.3) -> 3.8 (6.6) MB, pooled: 0 MB, 2.71 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       58 ms: Scavenge 4.7 (6.6) -> 4.0 (9.1) MB, pooled: 0 MB, 0.66 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       61 ms: Scavenge 5.8 (9.1) -> 4.2 (9.1) MB, pooled: 0 MB, 0.44 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       64 ms: Scavenge 6.0 (9.1) -> 4.4 (9.3) MB, pooled: 0 MB, 0.79 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       68 ms: Scavenge 6.2 (9.3) -> 4.6 (9.6) MB, pooled: 0 MB, 1.85 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       73 ms: Scavenge 6.4 (9.6) -> 4.8 (14.1) MB, pooled: 0 MB, 0.51 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       81 ms: Scavenge 8.3 (14.1) -> 5.4 (14.3) MB, pooled: 0 MB, 1.12 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]       94 ms: Scavenge 8.9 (14.3) -> 6.1 (15.1) MB, pooled: 0 MB, 3.06 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+kept 1840
+[40917:0x3a1f2000]      118 ms: Scavenge 9.7 (15.1) -> 6.9 (15.6) MB, pooled: 0 MB, 1.47 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]      141 ms: Scavenge 10.4 (15.6) -> 7.6 (23.4) MB, pooled: 0 MB, 2.20 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]      163 ms: Scavenge 12.1 (23.4) -> 9.0 (23.9) MB, pooled: 0 MB, 1.31 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]      189 ms: Scavenge 14.8 (23.9) -> 11.3 (29.1) MB, pooled: 0 MB, 4.62 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]      207 ms: Scavenge 17.2 (29.1) -> 13.9 (29.1) MB, pooled: 0 MB, 0.97 / 0.00 ms  (average mu = 1.000, current mu = 1.000) allocation failure; 
+[40917:0x3a1f2000]      226 ms: Mark-Compact 19.8 (29.1) -> 12.3 (29.6) MB, pooled: 0 MB, 11.64 / 0.00 ms  (+ 5.3 ms in 41 steps since start of marking, biggest step 0.8 ms, walltime since start of marking 38 ms) (average mu = 0.951, current mu = 0.951) finalize incremental marking via stack guard; GC in old space requested
+[40917:0x3a1f2000]      305 ms: Scavenge 16.2 (29.6) -> 13.0 (29.6) MB, pooled: 0 MB, 0.88 / 0.00 ms  (average mu = 0.951, current mu = 0.989) allocation failure; 
+[40917:0x3a1f2000]      612 ms: Scavenge 17.9 (29.6) -> 13.4 (29.6) MB, pooled: 0 MB, 0.73 / 0.00 ms  (average mu = 0.951, current mu = 0.997) allocation failure; 
+kept 3712
+[40917:0x3a1f2000]     1048 ms: Scavenge 17.6 (29.6) -> 13.6 (29.6) MB, pooled: 0 MB, 25.94 / 0.00 ms  (average mu = 0.951, current mu = 0.996) task; 

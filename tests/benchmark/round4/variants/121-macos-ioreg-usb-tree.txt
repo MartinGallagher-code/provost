@@ -1,0 +1,22 @@
++-o Root  <class IORegistryEntry, id 0x100000100, retain 31>
+  +-o Mac14,2  <class IOPlatformExpertDevice, id 0x100000213, registered, matched, active, busy 0 (644 ms), retain 41>
+    +-o AppleARMPE  <class AppleARMPE, id 0x100000214, registered, matched, active, busy 0 (590 ms), retain 25>
+      +-o arm-io@10F00000  <class IOPlatformDevice, id 0x100000120, registered, matched, active, busy 0 (401 ms), retain 11>
+        +-o usb-drd0@2280000  <class IOPlatformDevice, id 0x100000171, registered, matched, active, busy 0 (133 ms), retain 8>
+        | +-o AppleT8112USBXHCI@00000000  <class AppleT8112USBXHCI, id 0x1000005a1, registered, matched, active, busy 0 (102 ms), retain 28>
+        |   +-o USB2.0 Hub@00100000  <class IOUSBHostDevice, id 0x100000f03, registered, matched, active, busy 0 (27 ms), retain 24>
+        |   | +-o AppleUSB20Hub  <class AppleUSB20Hub, id 0x100000f0a, registered, matched, active, busy 0 (0 ms), retain 10>
+        |   | +-o Clavier Français Compact@00140000  <class IOUSBHostDevice, id 0x100000f2c, registered, matched, active, busy 0 (9 ms), retain 31>
+        |   | | +-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000f31, registered, matched, active, busy 0 (3 ms), retain 8>
+        |   | | +-o IOUSBHostInterface@1  <class IOUSBHostInterface, id 0x100000f34, registered, matched, active, busy 0 (3 ms), retain 8>
+        |   | | +-o IOUSBHostInterface@2  <class IOUSBHostInterface, id 0x100000f37, registered, matched, active, busy 0 (2 ms), retain 7>
+        |   | +-o USB Optical Mouse@00120000  <class IOUSBHostDevice, id 0x100000f40, registered, matched, active, busy 0 (6 ms), retain 27>
+        |   |   +-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000f45, registered, matched, active, busy 0 (2 ms), retain 7>
+        |   +-o USB 10/100/1000 LAN@00200000  <class IOUSBHostDevice, id 0x100000f88, registered, matched, active, busy 0 (140 ms), retain 26>
+        |     +-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000f8e, registered, matched, active, busy 0 (61 ms), retain 9>
+        |     | +-o AppleUSBECM  <class AppleUSBECM, id 0x100000f93, registered, matched, active, busy 0 (58 ms), retain 12>
+        |     +-o IOUSBHostInterface@1  <class IOUSBHostInterface, id 0x100000f96, registered, matched, active, busy 0 (1 ms), retain 6>
+        +-o usb-drd1@2380000  <class IOPlatformDevice, id 0x100000172, registered, matched, active, busy 0 (48 ms), retain 7>
+        | +-o AppleT8112USBXHCI@01000000  <class AppleT8112USBXHCI, id 0x1000005a5, registered, matched, active, busy 0 (44 ms), retain 22>
+        +-o usb-drd2@2480000  <class IOPlatformDevice, id 0x100000173, registered, matched, active, busy 0 (0 ms), retain 6>
+          +-o AppleT8112USBXHCI@02000000  <class AppleT8112USBXHCI, id 0x1000005a9, !registered, !matched, active, busy 0, retain 4>

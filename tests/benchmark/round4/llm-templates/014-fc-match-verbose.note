@@ -1,0 +1,1 @@
+Mostly ok. The charset bitmap rows (hex page: 8 words) belong to the "charset:" property above them and the lone "(s)" line closes that multi-line value; format 1 cannot nest, so they are a separate charset table and the "(s)" terminator is skipped. Quotes and the (s)/(w)/(i)/(f) binding/type annotations are treated as decoration and dropped from values.

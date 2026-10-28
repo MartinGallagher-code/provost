@@ -1,0 +1,19 @@
+{
+ "format": 1,
+ "tool": "bundle-env",
+ "detect": "^Bundler\\s{2,}\\d",
+ "skip": [
+  "^#+ ",
+  "^```",
+  "^Tools\\s*$",
+  "^<No .* found>$",
+  "^(?:source|gem|group|ruby|gemspec|git_source|platforms|end)\\b"
+ ],
+ "blocks": [
+  {
+   "name": "environment",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>\\S(?:.*?\\S)?)\\s{2,}(?P<value>\\S.*?)\\s*$"
+  }
+ ]
+}

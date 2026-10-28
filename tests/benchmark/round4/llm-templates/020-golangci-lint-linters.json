@@ -1,0 +1,12 @@
+{
+  "format": 1,
+  "tool": "golangci-lint-linters",
+  "detect": "^Enabled by your configuration linters:$",
+  "skip": ["^(?:Enabled|Disabled) by your configuration linters:$"],
+  "blocks": [
+    {"name": "linters",
+     "kind": "table",
+     "line": "(?P<linter>\\S+?)(?: \\[(?P<status>[^\\]]+)\\])?: (?P<description>.*?)(?: \\[(?P<flags>[^\\]]+)\\])?",
+     "columns": {"linter": "linter", "status": "status", "description": "description", "flags": "flags"}}
+  ]
+}

@@ -1,0 +1,19 @@
+Device: scratch.img
+Blocksize: 4096 bytes
+Total blocks: 32768
+Free blocks: 27104 (82.7%)
+
+Min. free extent: 4 KB 
+Max. free extent: 85984 KB
+Avg. free extent: 5162 KB
+Num. free extent: 21
+
+HISTOGRAM OF FREE EXTENT SIZES:
+Extent Size Range :  Free extents   Free Blocks  Percent
+    4K...    8K-  :             6             6    0.02%
+    8K...   16K-  :             4             9    0.03%
+   16K...   32K-  :             5            23    0.08%
+   64K...  128K-  :             3            61    0.23%
+    1M...    2M-  :             1           389    1.44%
+   16M...   32M-  :             1          5120   18.89%
+   64M...  128M-  :             1         21496   79.31%

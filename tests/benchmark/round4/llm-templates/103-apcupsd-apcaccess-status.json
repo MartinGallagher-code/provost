@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "tool": "apcupsd-apcaccess-status",
+  "detect": "(?m)^APC\\s*:.*\\n(?:.*\\n)*?END APC\\s*:",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "status",
+      "kind": "kv",
+      "line": "(?P<key>[A-Z][A-Z0-9 ]*?)\\s*:(?:\\s+(?P<value>\\S(?:.*?\\S)?))?\\s*"
+    }
+  ]
+}

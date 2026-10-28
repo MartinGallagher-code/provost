@@ -1,0 +1,1 @@
+each device's device-file line (indented, below the row) belongs to the row above; emitted as a second table in the same order instead of extra columns on the device row.

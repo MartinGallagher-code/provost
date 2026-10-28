@@ -1,0 +1,1 @@
+The failure detail (source context, E lines, location, captured output) belongs to the test-section header above it; format 1 cannot nest, so each kind of line is its own flat table. Captured stdout lines are free text and stay uncovered (94%).

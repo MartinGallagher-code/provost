@@ -1,0 +1,30 @@
+{
+ "format": 1,
+ "tool": "rails-production-log",
+ "detect": "^[A-Z], \\[\\d{4}-\\d\\d-\\d\\dT[\\d:.]+ #\\d+\\]\\s+[A-Z]+ -- :",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "log",
+   "kind": "table",
+   "line": "^(?P<severity>[A-Z]), \\[(?P<timestamp>\\S+) #(?P<pid>\\d+)\\]\\s+(?P<level>[A-Z]+) -- :(?:\\s+\\[(?P<request_id>[^\\]\\s]+)\\])?\\s*(?P<message>.*?)\\s*$",
+   "columns": {
+    "severity": "severity",
+    "timestamp": "timestamp",
+    "pid": "pid",
+    "level": "level",
+    "request_id": "request_id",
+    "message": "message"
+   }
+  },
+  {
+   "name": "continuation",
+   "kind": "table",
+   "line": "^\\[(?P<request_id>[^\\]\\s]+)\\]\\s*(?P<message>.*?)\\s*$",
+   "columns": {
+    "request_id": "request_id",
+    "message": "message"
+   }
+  }
+ ]
+}

@@ -1,0 +1,1 @@
+constraints span two lines (a 'CONSTRAINT name:' line plus an indented definition line) and a column's type can continue on an indented line (COLLATE/CHECK): the pair cannot be joined, so constraint names and definitions are two tables in the same order and the type continuation lines are skipped.

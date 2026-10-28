@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "tool": "windows-quser",
+  "detect": "^\\s*USERNAME\\s+SESSIONNAME\\s+ID\\s+STATE\\s+IDLE TIME\\s+LOGON TIME\\s*$",
+  "skip": [],
+  "blocks": [
+    {"name": "sessions",
+     "kind": "table",
+     "header": "^\\s*USERNAME\\s+SESSIONNAME\\s+ID\\s+STATE\\s+IDLE TIME\\s+LOGON TIME\\s*$",
+     "line": "^(?P<current>>)?\\s*(?P<username>\\S+)\\s+(?:(?P<sessionname>\\S+)\\s+)?(?P<id>\\d+)\\s+(?P<state>\\S+)\\s+(?P<idle>\\S+)\\s+(?P<logon>\\S+ \\S+)\\s*$",
+     "columns": {"current": "CURRENT", "username": "USERNAME", "sessionname": "SESSIONNAME", "id": "ID", "state": "STATE", "idle": "IDLE TIME", "logon": "LOGON TIME"}}
+  ]
+}

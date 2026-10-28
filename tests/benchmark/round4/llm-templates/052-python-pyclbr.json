@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "tool": "python-pyclbr",
+  "detect": "^\\s*(class|def) \\S+ (\\[.*\\] )?\\d+$",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "definitions",
+      "kind": "table",
+      "line": "^\\s*(?P<kind>class|def) (?P<name>\\S+)(?: \\[(?P<bases>.*)\\])? (?P<lineno>\\d+)$",
+      "columns": {
+        "kind": "kind",
+        "name": "name",
+        "bases": "bases",
+        "lineno": "lineno"
+      }
+    }
+  ]
+}

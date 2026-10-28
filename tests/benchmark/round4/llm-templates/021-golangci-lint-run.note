@@ -1,0 +1,1 @@
+Each issue is followed by a source-snippet line and a caret line that belong to the issue above; format 1 cannot attach them, so they are skipped (a negative-lookahead skip drops any line that is not an issue or summary line). Issues and the per-linter counts are tables.

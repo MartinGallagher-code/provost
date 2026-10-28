@@ -1,0 +1,26 @@
+{
+ "format": 1,
+ "tool": "huawei-display-interface-brief",
+ "detect": "^Interface\\s+PHY\\s+Protocol\\s+InUti",
+ "skip": [
+  "^<[^<>]+>",
+  "^\\S+: \\S"
+ ],
+ "blocks": [
+  {
+   "name": "interfaces",
+   "kind": "table",
+   "header": "^Interface\\s+PHY\\s+Protocol\\s+InUti",
+   "line": "^\\s*(?P<interface>\\S+)\\s+(?P<phy>\\S+)\\s+(?P<protocol>\\S+)\\s+(?P<inuti>[\\d.]+%|--)\\s+(?P<oututi>[\\d.]+%|--)\\s+(?P<inerrors>\\d+)\\s+(?P<outerrors>\\d+)\\s*$",
+   "columns": {
+    "interface": "Interface",
+    "phy": "PHY",
+    "protocol": "Protocol",
+    "inuti": "InUti",
+    "oututi": "OutUti",
+    "inerrors": "inErrors",
+    "outerrors": "outErrors"
+   }
+  }
+ ]
+}

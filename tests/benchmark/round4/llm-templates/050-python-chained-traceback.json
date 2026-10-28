@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "tool": "python-chained-traceback",
+ "detect": "^Traceback \\(most recent call last\\):$",
+ "skip": [
+  "^Traceback \\(most recent call last\\):$",
+  "^The above exception was the direct cause of the following exception:$",
+  "^During handling of the above exception, another exception occurred:$",
+  "^\\s*[~^]+\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "frames",
+   "kind": "table",
+   "line": "^\\s{2}File \\\"(?P<file>[^\\\"]+)\\\", line (?P<line>\\d+)(?:, in (?P<function>\\S+))?\\s*$"
+  },
+  {
+   "name": "source",
+   "kind": "table",
+   "line": "^\\s{4}(?P<code>\\S.*?)\\s*$"
+  },
+  {
+   "name": "exceptions",
+   "kind": "table",
+   "line": "^(?P<exception>\\w[\\w.]*)(?:: (?P<message>.*?))?\\s*$"
+  }
+ ]
+}

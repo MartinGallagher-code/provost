@@ -1,0 +1,37 @@
+{
+  "format": 1,
+  "tool": "cisco-show-processes-cpu-sorted",
+  "detect": "CPU utilization for five seconds: ",
+  "skip": [
+    "^\\S+#"
+  ],
+  "blocks": [
+    {
+      "name": "cpu_utilization",
+      "kind": "table",
+      "line": "CPU utilization for five seconds: (?P<five_seconds>\\S+); one minute: (?P<one_minute>\\S+); five minutes: (?P<five_minutes>\\S+)\\s*",
+      "columns": {
+        "five_seconds": "five seconds",
+        "one_minute": "one minute",
+        "five_minutes": "five minutes"
+      }
+    },
+    {
+      "name": "processes",
+      "kind": "table",
+      "header": "^\\s*PID\\s+Runtime\\(ms\\)\\s+Invoked\\s+uSecs",
+      "line": "\\s*(?P<pid>\\d+)\\s+(?P<runtime>\\d+)\\s+(?P<invoked>\\d+)\\s+(?P<usecs>\\d+)\\s+(?P<sec5>[\\d.]+%)\\s+(?P<min1>[\\d.]+%)\\s+(?P<min5>[\\d.]+%)\\s+(?P<tty>\\S+)\\s+(?P<process>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "pid": "PID",
+        "runtime": "Runtime(ms)",
+        "invoked": "Invoked",
+        "usecs": "uSecs",
+        "sec5": "5Sec",
+        "min1": "1Min",
+        "min5": "5Min",
+        "tty": "TTY",
+        "process": "Process"
+      }
+    }
+  ]
+}

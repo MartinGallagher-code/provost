@@ -1,0 +1,52 @@
+{
+ "format": 1,
+ "tool": "clang-ftime-report",
+ "detect": "^\\s*---User Time---\\s+",
+ "skip": [
+  "^===-+===$",
+  "^\\s*[\\d.]+ \\(\\s*[\\d.]+%\\)(?:\\s+[\\d.]+ \\(\\s*[\\d.]+%\\))*\\s+Total$"
+ ],
+ "blocks": [
+  {
+   "name": "sections",
+   "kind": "table",
+   "line": "^\\s{2,}(?P<title>[A-Za-z][A-Za-z0-9 ,/<>&-]*?)\\s*$"
+  },
+  {
+   "name": "totals",
+   "kind": "table",
+   "line": "^\\s*Total Execution Time: (?P<seconds>[\\d.]+) seconds \\((?P<wall_clock>[\\d.]+) wall clock\\)$"
+  },
+  {
+   "name": "timers_with_system",
+   "kind": "table",
+   "header": "^\\s*---User Time---\\s+",
+   "line": "^\\s*(?P<user>[\\d.]+) \\(\\s*(?P<user_pct>[\\d.]+%)\\)\\s+(?P<system>[\\d.]+) \\(\\s*(?P<system_pct>[\\d.]+%)\\)\\s+(?P<user_system>[\\d.]+) \\(\\s*(?P<user_system_pct>[\\d.]+%)\\)\\s+(?P<wall>[\\d.]+) \\(\\s*(?P<wall_pct>[\\d.]+%)\\)\\s+(?P<name>\\S.*?)\\s*$",
+   "columns": {
+    "user": "User Time",
+    "user_pct": "User Time %",
+    "system": "System Time",
+    "system_pct": "System Time %",
+    "user_system": "User+System",
+    "user_system_pct": "User+System %",
+    "wall": "Wall Time",
+    "wall_pct": "Wall Time %",
+    "name": "Name"
+   }
+  },
+  {
+   "name": "timers",
+   "kind": "table",
+   "line": "^\\s*(?P<user>[\\d.]+) \\(\\s*(?P<user_pct>[\\d.]+%)\\)\\s+(?P<user_system>[\\d.]+) \\(\\s*(?P<user_system_pct>[\\d.]+%)\\)\\s+(?P<wall>[\\d.]+) \\(\\s*(?P<wall_pct>[\\d.]+%)\\)\\s+(?P<name>\\S.*?)\\s*$",
+   "columns": {
+    "user": "User Time",
+    "user_pct": "User Time %",
+    "user_system": "User+System",
+    "user_system_pct": "User+System %",
+    "wall": "Wall Time",
+    "wall_pct": "Wall Time %",
+    "name": "Name"
+   }
+  }
+ ]
+}

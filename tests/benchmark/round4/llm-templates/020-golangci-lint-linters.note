@@ -1,0 +1,1 @@
+Section titles ("Enabled by your configuration linters:" / "Disabled ...") should become an enabled/disabled column of each linter row; format 1 cannot carry a section into rows, so they are skipped and all linters land in one table (with [deprecated] status and trailing [fast, auto-fix] flags as columns).

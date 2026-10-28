@@ -1,0 +1,1 @@
+ok, except the 'N active, N maximum' footers (one per section) become a two-row table without a section column, and the sbspace chunk's indented Metadata line belongs to the chunk row above (emitted as its own table).

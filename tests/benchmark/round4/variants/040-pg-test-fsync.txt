@@ -1,0 +1,40 @@
+1 second per test
+O_DIRECT supported on this platform for open_datasync and open_sync.
+
+Compare file sync methods using one 8kB write:
+(in wal_sync_method preference order, except fdatasync is Linux's default)
+        open_datasync                                  n/a*
+        fdatasync                          1187.402 ops/sec     842 usecs/op
+        fsync                              1093.618 ops/sec     914 usecs/op
+        fsync_writethrough                              n/a
+        open_sync                                      n/a*
+* This file system and its mount options do not support direct
+  I/O, e.g. ext4 in journaled mode.
+
+Compare file sync methods using two 8kB writes:
+(in wal_sync_method preference order, except fdatasync is Linux's default)
+        open_datasync                                  n/a*
+        fdatasync                           842.157 ops/sec    1187 usecs/op
+        fsync                               801.774 ops/sec    1247 usecs/op
+        fsync_writethrough                              n/a
+        open_sync                                      n/a*
+* This file system and its mount options do not support direct
+  I/O, e.g. ext4 in journaled mode.
+
+Compare open_sync with different write sizes:
+(This is designed to compare the cost of writing 16kB in different write
+open_sync sizes.)
+         1 * 16kB open_sync write                      n/a*
+         2 *  8kB open_sync writes                     n/a*
+         4 *  4kB open_sync writes                     n/a*
+         8 *  2kB open_sync writes                     n/a*
+        16 *  1kB open_sync writes                     n/a*
+
+Test if fsync on non-write file descriptor is honored:
+(If the times are similar, fsync() can sync data written on a different
+descriptor.)
+        write, fsync, close                1052.339 ops/sec     950 usecs/op
+        write, close, fsync                1118.906 ops/sec     894 usecs/op
+
+Non-sync'ed 8kB writes:
+        write                            413958.627 ops/sec       2 usecs/op

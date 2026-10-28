@@ -1,0 +1,23 @@
+{
+  "format": 1,
+  "tool": "redis-cli-stat",
+  "detect": "^keys\\s+mem\\s+clients\\s+blocked\\s+requests\\s+connections",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "stats",
+      "kind": "table",
+      "header": "^(-+ data -+|keys\\s+mem\\s+clients\\s+blocked\\s+requests)",
+      "line": "^(?P<keys>\\d+)\\s+(?P<mem>[\\d.]+[KMGT]?)\\s+(?P<clients>\\d+)\\s+(?P<blocked>\\d+)\\s+(?P<requests>\\d+ \\([-+]?\\d+\\))\\s+(?P<connections>\\d+)(?:\\s+(?P<child>\\S.*?))?\\s*$",
+      "columns": {
+        "keys": "keys",
+        "mem": "mem",
+        "clients": "clients",
+        "blocked": "blocked",
+        "requests": "requests",
+        "connections": "connections",
+        "child": "child"
+      }
+    }
+  ]
+}

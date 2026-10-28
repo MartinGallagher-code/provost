@@ -1,0 +1,51 @@
+{
+ "format": 1,
+ "tool": "bun-test",
+ "detect": "^bun test v\\d",
+ "skip": [
+  "^\\s*\\d+ \\|(?: |$)",
+  "^\\s*\\^$"
+ ],
+ "blocks": [
+  {
+   "name": "version",
+   "kind": "kv",
+   "line": "^(?P<key>bun test) (?P<value>v\\S+(?: \\(\\S+\\))?)$"
+  },
+  {
+   "name": "files",
+   "kind": "table",
+   "line": "^(?P<file>\\S+):$"
+  },
+  {
+   "name": "results",
+   "kind": "table",
+   "line": "^\\((?P<status>pass|fail|skip|todo)\\) (?P<test>\\S.*?)(?: \\[(?P<duration>[\\d.]+m?s)\\])?$"
+  },
+  {
+   "name": "errors",
+   "kind": "table",
+   "line": "^error: (?P<message>\\S.*)$"
+  },
+  {
+   "name": "expectations",
+   "kind": "kv",
+   "line": "^(?P<key>Expected|Received): (?P<value>.*)$"
+  },
+  {
+   "name": "frames",
+   "kind": "table",
+   "line": "^\\s+at (?P<function>\\S+) \\((?P<location>[^)]+)\\)$"
+  },
+  {
+   "name": "run",
+   "kind": "table",
+   "line": "^Ran (?P<tests>\\d+) tests? across (?P<files>\\d+) files?\\. \\[(?P<duration>[\\d.]+m?s)\\]$"
+  },
+  {
+   "name": "counts",
+   "kind": "kv",
+   "line": "^\\s*(?P<value>\\d+) (?P<key>pass|fail|skip|todo|expect\\(\\) calls)$"
+  }
+ ]
+}

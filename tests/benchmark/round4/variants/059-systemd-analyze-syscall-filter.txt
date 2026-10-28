@@ -1,0 +1,67 @@
+@clock
+    # Change the system time
+    adjtimex
+    clock_adjtime
+    clock_adjtime64
+    clock_settime
+    clock_settime64
+    settimeofday
+
+@cpu-emulation
+    # System calls for CPU emulation functionality
+    modify_ldt
+    subpage_prot
+    switch_endian
+    vm86
+    vm86old
+
+@debug
+    # Debugging, performance monitoring and tracing functionality
+    lookup_dcookie
+    perf_event_open
+    pidfd_getfd
+    ptrace
+    rtas
+    s390_runtime_instr
+    sys_debug_setcontext
+
+@module
+    # Loading and unloading of kernel modules
+    delete_module
+    finit_module
+    init_module
+
+@mount
+    # Mounting and unmounting of file systems
+    chroot
+    fsconfig
+    fsmount
+    fsopen
+    fspick
+    mount
+    move_mount
+    open_tree
+    pivot_root
+    umount
+    umount2
+
+@reboot
+    # Reboot and reboot preparation/kexec
+    kexec_file_load
+    kexec_load
+    reboot
+
+@swap
+    # Enable/disable swap devices
+    swapoff
+    swapon
+
+@sync
+    # Synchronize files and memory to storage
+    fdatasync
+    fsync
+    msync
+    sync
+    sync_file_range
+    sync_file_range2
+    syncfs

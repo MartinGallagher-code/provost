@@ -1,0 +1,35 @@
+ 10.47	31458	31458	U	0	unclassified
+ 89.53	268955	812	R	1	root
+ 89.25	268106	140	R1	131567	  cellular organisms
+ 88.36	265450	2214	D	2	    Bacteria
+ 57.01	171275	96	P	976	      Bacteroidota
+ 56.98	171179	51	C	200643	        Bacteroidia
+ 56.96	171128	388	O	171549	          Bacteroidales
+ 56.84	170740	120	F	815	            Bacteroidaceae
+ 34.73	104333	30117	G	816	              Bacteroides
+ 16.05	48210	48210	S	818	                Bacteroides thetaiotaomicron
+  8.66	26006	22904	S	817	                Bacteroides fragilis
+  1.03	3102	3102	S1	272559	                  Bacteroides fragilis NCTC 9343
+ 22.07	66287	4410	G	909656	              Phocaeicola
+ 20.60	61877	61877	S	821	                Phocaeicola vulgatus
+ 26.02	78174	1802	P	1239	      Bacillota
+ 25.42	76372	955	C	186801	        Clostridia
+ 25.10	75417	412	O	186802	          Eubacteriales
+ 22.04	66198	63	F	216572	            Oscillospiraceae
+ 22.01	66135	9021	G	216851	              Faecalibacterium
+ 19.01	57114	57114	S	853	                Faecalibacterium prausnitzii
+  2.93	8807	8807	F	186803	            Lachnospiraceae
+  4.59	13787	14	P	201174	      Actinomycetota
+  4.58	13773	8	C	1760	        Actinomycetes
+  4.58	13765	2	O	85004	          Bifidobacteriales
+  4.58	13763	5	F	31953	            Bifidobacteriaceae
+  4.58	13758	2290	G	1678	              Bifidobacterium
+  3.82	11468	11468	S	216816	                Bifidobacterium longum
+  0.84	2516	0	D	2157	    Archaea
+  0.84	2516	0	P	28890	      Methanobacteriota
+  0.84	2516	0	C	183925	        Methanobacteria
+  0.84	2516	0	O	2158	          Methanobacteriales
+  0.84	2516	0	F	2159	            Methanobacteriaceae
+  0.84	2516	612	G	2172	              Methanobrevibacter
+  0.63	1904	1904	S	2173	                Methanobrevibacter smithii
+  0.01	37	37	D	10239	  Viruses

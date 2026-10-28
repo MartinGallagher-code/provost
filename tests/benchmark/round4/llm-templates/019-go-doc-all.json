@@ -1,0 +1,24 @@
+{
+  "format": 1,
+  "tool": "go-doc-all",
+  "detect": "^package \\w+ // import \"",
+  "skip": ["^    \\S", "^[A-Z]+$", "^\\}$", "^\\t// ", "^Package \\w+ ", "^(?:const|var) \\($"],
+  "blocks": [
+    {"name": "package",
+     "kind": "table",
+     "line": "package (?P<package>\\w+) // import \"(?P<import>[^\"]+)\"",
+     "columns": {"package": "package", "import": "import"}},
+    {"name": "types",
+     "kind": "table",
+     "line": "type (?P<name>\\w+) (?P<definition>.*?)(?: \\{)?",
+     "columns": {"name": "type", "definition": "definition"}},
+    {"name": "fields",
+     "kind": "table",
+     "line": "\\t(?P<field>\\w+) (?P<type>.*?)(?: // (?P<comment>.*))?",
+     "columns": {"field": "field", "type": "type", "comment": "comment"}},
+    {"name": "funcs",
+     "kind": "table",
+     "line": "func (?:\\((?P<receiver>[^)]*)\\) )?(?P<name>\\w+)\\((?P<params>.*?)\\)(?: (?P<result>.*))?",
+     "columns": {"receiver": "receiver", "name": "func", "params": "params", "result": "result"}}
+  ]
+}

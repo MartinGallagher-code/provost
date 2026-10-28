@@ -1,0 +1,27 @@
+{
+ "format": 1,
+ "tool": "composer-list",
+ "detect": "^Composer version \\S+",
+ "skip": [
+  "^[\\s_/\\\\`.()|-]+$",
+  "^\\w[\\w ]*:$",
+  "^\\s+command \\[options\\] \\[arguments\\]$"
+ ],
+ "blocks": [
+  {
+   "name": "version",
+   "kind": "table",
+   "line": "^Composer version (?P<version>\\S+)(?: (?P<built>\\d{4}-\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d))?$"
+  },
+  {
+   "name": "options",
+   "kind": "table",
+   "line": "^\\s+(?:(?P<short>-\\S+), )?(?P<long>--\\S+)\\s{2,}(?P<description>\\S.*)$"
+  },
+  {
+   "name": "commands",
+   "kind": "table",
+   "line": "^\\s+(?P<command>[\\w:-]+)\\s{2,}(?:\\[(?P<aliases>[^\\]]+)\\] )?(?P<description>\\S.*)$"
+  }
+ ]
+}

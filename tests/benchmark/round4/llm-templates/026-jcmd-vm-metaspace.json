@@ -1,0 +1,110 @@
+{
+ "format": 1,
+ "tool": "jcmd-vm-metaspace",
+ "detect": "^Total Usage - \\d+ loaders, \\d+ classes",
+ "skip": [
+  "^\\d+:\\s*$",
+  "^\\s*[A-Za-z][\\w -]*:\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "totals",
+   "kind": "table",
+   "line": "^Total Usage - (?P<loaders>\\d+) loaders, (?P<classes>\\d+) classes \\((?P<shared>\\d+) shared\\):\\s*$",
+   "columns": {
+    "loaders": "loaders",
+    "classes": "classes",
+    "shared": "shared"
+   }
+  },
+  {
+   "name": "usage",
+   "kind": "table",
+   "line": "^\\s*(?P<space>[\\w-]+):\\s+(?P<chunks>\\d+) chunks,\\s+(?P<capacity>[\\d.]+ \\w+) capacity,\\s+(?P<committed>[\\d.]+ \\w+) \\(\\s*(?P<committed_pct><?\\d+%)\\) committed,\\s+(?P<used>[\\d.]+ \\w+) \\(\\s*(?P<used_pct><?\\d+%)\\) used,\\s+(?P<free>[\\d.]+ \\w+) \\(\\s*(?P<free_pct><?\\d+%)\\) free,\\s+(?P<waste>[\\d.]+ \\w+) \\(\\s*(?P<waste_pct><?\\d+%)\\) waste\\s?, deallocated: (?P<dealloc_blocks>\\d+) blocks with (?P<dealloc>[\\d.]+ \\w+)\\s*$",
+   "columns": {
+    "space": "space",
+    "chunks": "chunks",
+    "capacity": "capacity",
+    "committed": "committed",
+    "committed_pct": "committed %",
+    "used": "used",
+    "used_pct": "used %",
+    "free": "free",
+    "free_pct": "free %",
+    "waste": "waste",
+    "waste_pct": "waste %",
+    "dealloc_blocks": "deallocated blocks",
+    "dealloc": "deallocated"
+   }
+  },
+  {
+   "name": "virtual space",
+   "kind": "table",
+   "line": "^\\s*(?P<space>[\\w-]+(?: space)?):\\s+(?P<reserved>[\\d.]+ \\w+) reserved,\\s+(?P<committed>[\\d.]+ \\w+) \\(\\s*(?P<committed_pct><?\\d+%)\\) committed(?:,\\s+(?P<nodes>\\d+) nodes)?\\.\\s*$",
+   "columns": {
+    "space": "space",
+    "reserved": "reserved",
+    "committed": "committed",
+    "committed_pct": "committed %",
+    "nodes": "nodes"
+   }
+  },
+  {
+   "name": "chunk freelists",
+   "kind": "table",
+   "line": "^\\s*(?P<size>\\d+[kmgKMG]):\\s+(?:\\(none\\)|(?P<count>\\d+), capacity=(?P<capacity>[\\d.]+ \\w+), committed=(?P<committed>[\\d.]+ \\w+) \\(\\s*(?P<committed_pct><?\\d+%)\\))\\s*$",
+   "columns": {
+    "size": "chunk size",
+    "count": "count",
+    "capacity": "capacity",
+    "committed": "committed",
+    "committed_pct": "committed %"
+   }
+  },
+  {
+   "name": "chunk freelist totals",
+   "kind": "table",
+   "line": "^Total word size: (?P<total>[\\d.]+ \\w+), committed: (?P<committed>[\\d.]+ \\w+) \\(\\s*(?P<committed_pct><?\\d+%)\\)\\s*$",
+   "columns": {
+    "total": "total word size",
+    "committed": "committed",
+    "committed_pct": "committed %"
+   }
+  },
+  {
+   "name": "waste total committed",
+   "kind": "kv",
+   "line": "^Waste \\(unused committed space\\):\\s*\\(percentages refer to (?P<key>total committed size) (?P<value>[\\d.]+ \\w+)\\):\\s*$"
+  },
+  {
+   "name": "waste",
+   "kind": "table",
+   "line": "^\\s*(?P<item>[\\w-][\\w -]*?):\\s+(?P<size>[\\d.]+ \\w+) \\(\\s*(?P<pct><?\\d+%)\\)(?: \\((?P<blocks>\\d+) blocks\\))?\\s*$",
+   "columns": {
+    "item": "item",
+    "size": "size",
+    "pct": "%",
+    "blocks": "blocks"
+   }
+  },
+  {
+   "name": "chunk header pool",
+   "kind": "table",
+   "line": "^chunk header pool: (?P<items>\\d+) items, (?P<size>[\\d.]+ \\w+)\\.\\s*$",
+   "columns": {
+    "items": "items",
+    "size": "size"
+   }
+  },
+  {
+   "name": "internal statistics",
+   "kind": "kv",
+   "line": "^(?P<key>\\w+): (?P<value>\\d+)\\.\\s*$"
+  },
+  {
+   "name": "settings",
+   "kind": "kv",
+   "line": "^(?:\\s*- )?(?P<key>\\w[\\w ]*?): (?P<value>\\S.*?)\\.?\\s*$"
+  }
+ ]
+}

@@ -1,0 +1,25 @@
+ninja: Entering directory `build'
+[1/9] Building C object CMakeFiles/qcore.dir/src/queue.c.o
+[2/9] Building C object CMakeFiles/qcore.dir/src/level.c.o
+[3/9] Building C object CMakeFiles/qcore.dir/src/parse.c.o
+/srv/work/qtool/src/parse.c:41:9: warning: unused variable 'tmp' [-Wunused-variable]
+   41 |     int tmp;
+      |         ^~~
+1 warning generated.
+[4/9] Generating version.h
+[5/9] Building C object CMakeFiles/qtool.dir/src/main.c.o
+[6/9] Linking C static library libqcore.a
+[7/9] Building C object CMakeFiles/qbench.dir/bench/bench_push.c.o
+[8/9] Linking C executable qtool
+[9/9] Linking C executable qbench
+metric          	count 	avg (us) 	total (ms)
+.ninja parse    	3     	1204.7  	3.6
+.ninja_log load 	1     	41.0    	0.0
+.ninja_deps load	1     	57.0    	0.1
+node stat       	213   	1.8     	0.4
+node stat       	227   	1.7     	0.4
+depfile load    	1     	22.0    	0.0
+StartEdge       	10    	511.3   	5.1
+FinishCommand   	9     	1388.6  	12.5
+
+path->node hash load 0.69 (373 entries / 541 buckets)

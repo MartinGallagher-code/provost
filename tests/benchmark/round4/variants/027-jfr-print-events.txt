@@ -1,0 +1,113 @@
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:07.552 (2026-10-23)
+  name = "G1 Eden Space"
+  used = 4.0 MB
+  committed = 26.0 MB
+  max = -1 byte
+}
+
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:07.552 (2026-10-23)
+  name = "G1 Survivor Space"
+  used = 0 bytes
+  committed = 0 bytes
+  max = -1 byte
+}
+
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:07.552 (2026-10-23)
+  name = "G1 Old Gen"
+  used = 812.6 kB
+  committed = 102.0 MB
+  max = 128.0 MB
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:07.571 (2026-10-23)
+  thread = "JFR Recording Scheduler" (javaThreadId = 31)
+  parentThread = "Permissionless thread" (javaThreadId = 30)
+  eventThread = "JFR Recording Scheduler" (javaThreadId = 31)
+  stackTrace = [
+    java.util.Timer.<init>(String, boolean) line: 188
+    jdk.jfr.internal.PlatformRecorder.lambda$createTimer$0(List) line: 98
+    java.lang.Thread.runWith(Object, Runnable) line: 1596
+    java.lang.Thread.run() line: 1583
+    ...
+  ]
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:07.580 (2026-10-23)
+  thread = "main" (javaThreadId = 1)
+  parentThread = N/A
+  eventThread = "main" (javaThreadId = 1)
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:07.604 (2026-10-23)
+  thread = "inventory-loader" (javaThreadId = 33)
+  parentThread = "main" (javaThreadId = 1)
+  eventThread = "inventory-loader" (javaThreadId = 33)
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.addWorker(Runnable, boolean) line: 945
+    java.util.concurrent.ThreadPoolExecutor.execute(Runnable) line: 1364
+    shop.Restock.schedule(List) line: 58
+    shop.Restock.main(String[]) line: 21
+  ]
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:07.611 (2026-10-23)
+  thread = "pool-1-thread-1" (javaThreadId = 34)
+  parentThread = "main" (javaThreadId = 1)
+  eventThread = "pool-1-thread-1" (javaThreadId = 34)
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.addWorker(Runnable, boolean) line: 945
+    java.util.concurrent.ThreadPoolExecutor.execute(Runnable) line: 1364
+    shop.Restock.main(String[]) line: 27
+  ]
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:07.612 (2026-10-23)
+  thread = "pool-1-thread-2" (javaThreadId = 35)
+  parentThread = "main" (javaThreadId = 1)
+  eventThread = "pool-1-thread-2" (javaThreadId = 35)
+  stackTrace = [
+    java.util.concurrent.ThreadPoolExecutor.addWorker(Runnable, boolean) line: 945
+    java.util.concurrent.ThreadPoolExecutor.execute(Runnable) line: 1364
+    shop.Restock.main(String[]) line: 27
+  ]
+}
+
+jdk.ThreadStart {
+  startTime = 09:14:41.093 (2026-10-23)
+  thread = "Attach Listener" (javaThreadId = 36)
+  parentThread = "Signal Dispatcher" (javaThreadId = 9)
+  eventThread = "Attach Listener" (javaThreadId = 36)
+}
+
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:52.218 (2026-10-23)
+  name = "G1 Eden Space"
+  used = 17.0 MB
+  committed = 26.0 MB
+  max = -1 byte
+}
+
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:52.218 (2026-10-23)
+  name = "G1 Survivor Space"
+  used = 3.0 MB
+  committed = 3.0 MB
+  max = -1 byte
+}
+
+jdk.GCHeapMemoryPoolUsage {
+  startTime = 09:14:52.218 (2026-10-23)
+  name = "G1 Old Gen"
+  used = 9.4 MB
+  committed = 99.0 MB
+  max = 128.0 MB
+}
+

@@ -1,0 +1,95 @@
+WORK=/tmp/go-build1749226083
+mkdir -p $WORK/b002/
+cat >/tmp/go-build1749226083/b002/importcfg << 'EOF' # internal
+# import config
+packagefile math=/home/builder/.cache/go-build/53/53ea76ff5f9e8683a57576b6f6980ac7cb88939f4f566d4df368af2f4f4f272b-d
+packagefile sort=/home/builder/.cache/go-build/6c/6c042fcc5cd48cb4aa94d0d45d0e308dcffd4755b9f12b5468257493b2ba28b5-d
+packagefile runtime=/home/builder/.cache/go-build/cd/cdd08d18c82695b4e23a8e272ea527bfcc9e06602cb208674a047e80d58d4f78-d
+EOF
+cd /home/builder/src/tally/internal/stats
+/usr/local/go/pkg/tool/linux_amd64/compile -o $WORK/b002/_pkg_.a -trimpath "$WORK/b002=>" -p example.com/tally/internal/stats -lang=go1.21 -complete -buildid 8hSh6LKbyBcvMEy0iwd6/8hSh6LKbyBcvMEy0iwd6 -goversion go1.23.4 -c=2 -nolocalimports -importcfg $WORK/b002/importcfg -pack ./median.go ./stats.go
+/usr/local/go/pkg/tool/linux_amd64/buildid -w $WORK/b002/_pkg_.a # internal
+cp $WORK/b002/_pkg_.a /home/builder/.cache/go-build/7e/7e2ff66ea8d946ca8b6124c22f8b6f22b4aa0db6196754b6014a4175a9aaa89b-d # internal
+mkdir -p $WORK/b001/
+cat >/tmp/go-build1749226083/b001/importcfg << 'EOF' # internal
+# import config
+packagefile bufio=/home/builder/.cache/go-build/7f/7fbddb38e46fb7e96f489cb8f9690c7c13b1cd2dbfb6d9c7272da8dbabb5951a-d
+packagefile example.com/tally/internal/stats=/tmp/go-build1749226083/b002/_pkg_.a
+packagefile flag=/home/builder/.cache/go-build/06/06c7af3f9a429787dd623daaa60255004c346dc7a4cd1c6faee1d2185184a301-d
+packagefile fmt=/home/builder/.cache/go-build/03/039a89e4ac9227d248a710e3ca2d3851a196d564fe714bb85ce6b7afcbf7dc4f-d
+packagefile os=/home/builder/.cache/go-build/0b/0b56fe9d739012f7d2cb191a5b734575a1d8c4f6b4428d5b8c1628f9edede5ff-d
+packagefile strings=/home/builder/.cache/go-build/b1/b155b81f6415728520a7f7f0549c00cd16b9d3698dd88a3131c14a5333008ee2-d
+packagefile runtime=/home/builder/.cache/go-build/cd/cdd08d18c82695b4e23a8e272ea527bfcc9e06602cb208674a047e80d58d4f78-d
+EOF
+cd /home/builder/src/tally
+/usr/local/go/pkg/tool/linux_amd64/compile -o $WORK/b001/_pkg_.a -trimpath "$WORK/b001=>" -p main -lang=go1.21 -complete -buildid mx7a2T3As20VyEMctTy6/mx7a2T3As20VyEMctTy6 -goversion go1.23.4 -c=2 -nolocalimports -importcfg $WORK/b001/importcfg -pack ./flags.go ./main.go
+/usr/local/go/pkg/tool/linux_amd64/buildid -w $WORK/b001/_pkg_.a # internal
+cp $WORK/b001/_pkg_.a /home/builder/.cache/go-build/df/df610a9e3c5003a902d3ee1037c0242eaa4c3c2ec5bd26571148d1e9a1361f40-d # internal
+cat >/tmp/go-build1749226083/b001/importcfg.link << 'EOF' # internal
+packagefile example.com/tally=/tmp/go-build1749226083/b001/_pkg_.a
+packagefile bufio=/home/builder/.cache/go-build/7f/7fbddb38e46fb7e96f489cb8f9690c7c13b1cd2dbfb6d9c7272da8dbabb5951a-d
+packagefile example.com/tally/internal/stats=/tmp/go-build1749226083/b002/_pkg_.a
+packagefile flag=/home/builder/.cache/go-build/06/06c7af3f9a429787dd623daaa60255004c346dc7a4cd1c6faee1d2185184a301-d
+packagefile fmt=/home/builder/.cache/go-build/03/039a89e4ac9227d248a710e3ca2d3851a196d564fe714bb85ce6b7afcbf7dc4f-d
+packagefile os=/home/builder/.cache/go-build/0b/0b56fe9d739012f7d2cb191a5b734575a1d8c4f6b4428d5b8c1628f9edede5ff-d
+packagefile strings=/home/builder/.cache/go-build/b1/b155b81f6415728520a7f7f0549c00cd16b9d3698dd88a3131c14a5333008ee2-d
+packagefile runtime=/home/builder/.cache/go-build/cd/cdd08d18c82695b4e23a8e272ea527bfcc9e06602cb208674a047e80d58d4f78-d
+packagefile bytes=/home/builder/.cache/go-build/92/92fbf4aa8a91dc2291a699b1946172fe09c5878cd7013b410f90cd089526e209-d
+packagefile errors=/home/builder/.cache/go-build/2e/2e64fea988ba964ab6fa492d2edb629789d3aec6856e90a9219d3d64263c2334-d
+packagefile io=/home/builder/.cache/go-build/d7/d7be0c3f6258e4433506a10b24499dbf9dcb9d4aee250f6ab1ea3242479c079d-d
+packagefile unicode=/home/builder/.cache/go-build/ea/ea683d06491db8a7befea85a4e302bec960320742d111897d9f09148351d06fb-d
+packagefile unicode/utf8=/home/builder/.cache/go-build/be/be18163c56b9c09c09ba3b292ac6814eecaa2bace8e92d65617387607f5ac368-d
+packagefile internal/bytealg=/home/builder/.cache/go-build/9a/9a900c71648147ee3438bc2f8e1f81167c817dfbd17d19a976cc31f3781e54f5-d
+packagefile internal/cpu=/home/builder/.cache/go-build/4e/4ef58090f196abb2f4c86c93a9c53c6e69aa117c3c4198f2ae5d0a2ce304b268-d
+packagefile internal/abi=/home/builder/.cache/go-build/56/56699c2d00a40bceca3143df1fa46a485bbf1669eb47bcb2c52ed87d6802391e-d
+packagefile internal/goarch=/home/builder/.cache/go-build/10/10b26b779fedfe1debdb6a958a32740b1fec0c1294ea2d2c4bc84060c2088e47-d
+packagefile iter=/home/builder/.cache/go-build/b6/b6fdaadb9737b60293f9ba960c5bdffffd47b485db72f3530444b0d2a7afe8a1-d
+packagefile internal/race=/home/builder/.cache/go-build/54/54c7cb2622967061f3c3253d5b36f4f99abc86b9f5715fe2f3216dd7f568b6f1-d
+packagefile sync/atomic=/home/builder/.cache/go-build/23/2388a5b4c2864ad2899e163abe14e8cb3eef7f95eabbd5da3297020b7a36b3db-d
+packagefile internal/godebug=/home/builder/.cache/go-build/d5/d5b59384ddc77ce0336442085b69ac4fedc8342750bea93d51a0cd3df8279993-d
+packagefile internal/reflectlite=/home/builder/.cache/go-build/3b/3b67165e19f0bbc5d1349083268439daf85bc5c851e7a8ed9f38b22584b91f45-d
+packagefile internal/sync=/home/builder/.cache/go-build/4e/4e56e26fc8023c8d1d2dee529f643ad8915a6793dee3289b7b8e260dc6efe44e-d
+packagefile internal/bisect=/home/builder/.cache/go-build/19/19590eb92663ae8262c9db73b30487bf6f36f601a5717e0c4fcd5e4a72ff54a0-d
+packagefile internal/godebugs=/home/builder/.cache/go-build/2b/2b6312a87bc660f17c4e4897853b900eae788595a565bb6bad1ea6cfbb8e38c9-d
+packagefile sync=/home/builder/.cache/go-build/a2/a20c94e90c2db994ea53e27fc8350b3db026dff32d96d77413d0dea001272c6a-d
+packagefile internal/unsafeheader=/home/builder/.cache/go-build/fa/fa9f33ed73d7914a82ba2b183df08c415954bae82533d7c8f0ec45ce853e0db1-d
+packagefile math=/home/builder/.cache/go-build/53/53ea76ff5f9e8683a57576b6f6980ac7cb88939f4f566d4df368af2f4f4f272b-d
+packagefile internal/byteorder=/home/builder/.cache/go-build/7b/7b0b49d709ab796327f0811182a3bb0c07e0b346ed10cfbc2849485a0c0d369a-d
+packagefile math/bits=/home/builder/.cache/go-build/c2/c2a8e79628373e36320ea9e770019b02379c66a688c42486615b56d1b8b567f8-d
+packagefile encoding=/home/builder/.cache/go-build/f1/f14dafca0eab04203892e651f974c8084897a0b511b3f793381043a7b4771991-d
+packagefile reflect=/home/builder/.cache/go-build/bc/bcd3790138a4542a5cb53f791dce4cb97bc4ee9e0f29392bb43bcadb3876f0d2-d
+packagefile slices=/home/builder/.cache/go-build/8b/8bbf0161858396827e40514a0da83b7d730c39fbec1994645681a305e720121d-d
+packagefile strconv=/home/builder/.cache/go-build/51/51993ccaefbafdceb5ea58566a72f5866ca7a1c39796d3108623e1351d6f8b62-d
+packagefile time=/home/builder/.cache/go-build/1e/1edf166df12f0f4cfd9809bedd87a4afab5dbefa99ab52c387a0815e4032dbcc-d
+packagefile internal/fmtsort=/home/builder/.cache/go-build/b3/b3372d7c94058d585a281990b24ce190a085df8877d4a6c6f5e303bf71538a17-d
+packagefile internal/filepathlite=/home/builder/.cache/go-build/eb/ebb5a0507d664bfc6f3a3d2a7607e1a7683ffaea3b85c081a3fcba75e023ecc0-d
+packagefile internal/itoa=/home/builder/.cache/go-build/13/134130a20d787fb39ba14ba581a77671cd2ea2c1b74a9991abeb6f9e113ef8c1-d
+packagefile internal/poll=/home/builder/.cache/go-build/1e/1e59bde9ab18a01a8d70ecfa1e6d98500def80f8dae217171eba70584579377d-d
+packagefile internal/stringslite=/home/builder/.cache/go-build/17/17ef51218deaa5683004c89ecf6fc10439678b3b6fc83e6cf03a1980ac67f715-d
+packagefile internal/syscall/execenv=/home/builder/.cache/go-build/1c/1c1f5731ece947d798973b3aa932af06e220a6a81568538e594eb99c83c13ace-d
+packagefile internal/syscall/unix=/home/builder/.cache/go-build/f8/f846c0799ff78e0f96992b9cd042593f4e7d9a9e047eb3bb20f3561ecdfc9b9b-d
+packagefile internal/testlog=/home/builder/.cache/go-build/45/45c96a2fda7141073a44acc0054d8d1df4054e082f2e2a39e76cc6a34471df1c-d
+packagefile io/fs=/home/builder/.cache/go-build/64/64ed9e048850c1934bfc72e54c111132bae1eb5051688cf208f0ee217c5efd9c-d
+packagefile sort=/home/builder/.cache/go-build/6c/6c042fcc5cd48cb4aa94d0d45d0e308dcffd4755b9f12b5468257493b2ba28b5-d
+packagefile cmp=/home/builder/.cache/go-build/d9/d9db1c6b2e8dc1c0b1bd718da65b50b24517d64538331c2593d304fac2a7ab0c-d
+packagefile internal/oserror=/home/builder/.cache/go-build/de/de66b4dc209d4f1e622b8fe132beff03455867f3b98d7b19e9dbdc3af3cc3667-d
+packagefile syscall=/home/builder/.cache/go-build/ce/ce28d210d818d23e528abd3aee66a86b2c4e6d936b877ad52b1f4f6c01a612ba-d
+packagefile path=/home/builder/.cache/go-build/5e/5ea8b4c71ec1699b612d0e6c5b3f4eb40ec01d4b4d603dd8685761e8ad8bf2fe-d
+packagefile internal/chacha8rand=/home/builder/.cache/go-build/33/331c5defd5adc1874bb622833df1104816251c14941f6346ff1a7337eebee139-d
+packagefile internal/coverage/rtcov=/home/builder/.cache/go-build/9b/9b9db5b7daa5651f902242f8e11d4258756716d6ba3de3673f52ced59d4f5d45-d
+packagefile internal/goexperiment=/home/builder/.cache/go-build/34/34f002f12f18a4f7f4a1ec3a881d5be72d686d7c517da8903e1787f29c01c15e-d
+packagefile internal/goos=/home/builder/.cache/go-build/60/60855f55088dcad4f7ccbc681a188465546820c03c741c94be29c6b3c340ec24-d
+packagefile internal/profilerecord=/home/builder/.cache/go-build/a2/a2b9c972d9053f3f1fac96f3cf203ff547b3d82d37c4dc15101f49f6174cac7c-d
+packagefile internal/runtime/atomic=/home/builder/.cache/go-build/ed/eda11f480b791b41314437dff446dbc66696391a9dd406403b2c0015dd19c336-d
+packagefile internal/runtime/exithook=/home/builder/.cache/go-build/6a/6a8dc5fd36f1ca79193b7e7e1407a93e66476f4311e02c1823947352dbfdf36c-d
+packagefile internal/runtime/syscall=/home/builder/.cache/go-build/4c/4c4f9a5655f5bfdb6525433adbceb8e87af2a094361d4f7645ae6aa95ce07424-d
+packagefile internal/asan=/home/builder/.cache/go-build/8e/8e820e08bf0cfd9bdf4b8c375a85db60247f5e37eff880dfd61fd4ad0a04746f-d
+packagefile internal/msan=/home/builder/.cache/go-build/83/83afee2c25212703dce3512a469a943921fcf4ca0a67bbd6916b33b8029482f0-d
+modinfo "0w\xaf\f\x92t\b\x02A\xe1\xc1\a\xe6\xd6\x18\xe6path\texample.com/tally\nmod\texample.com/tally\t(devel)\t\nbuild\t-buildmode=exe\nbuild\t-compiler=gc\nbuild\tDefaultGODEBUG=asynctimerchan=1,gotypesalias=0,httplaxcontentlength=1,httpmuxgo121=1,tls10server=1,tlsrsakex=1,tlsunsafeekm=1,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1\nbuild\tCGO_ENABLED=0\nbuild\tGOARCH=amd64\nbuild\tGOOS=linux\nbuild\tGOAMD64=v1\nbuild\tvcs=git\nbuild\tvcs.revision=4c1e9a07b2d85f3e6a19c0d7e2b48f5a63d1c9e0\nbuild\tvcs.time=2026-10-26T14:08:51Z\nbuild\tvcs.modified=true\n\xf92C1\x86\x18 r\x00\x82B\x10A\x16\xd8\xf2"
+EOF
+mkdir -p $WORK/b001/exe/
+cd .
+GOROOT='/usr/local/go' /usr/local/go/pkg/tool/linux_amd64/link -o $WORK/b001/exe/a.out -importcfg $WORK/b001/importcfg.link -X=runtime.godebugDefault=asynctimerchan=1,gotypesalias=0,httplaxcontentlength=1,httpmuxgo121=1,tls10server=1,tlsrsakex=1,tlsunsafeekm=1,winreadlinkvolume=0,winsymlink=0,x509keypairleaf=0,x509negativeserial=1 -buildmode=exe -buildid=G291YyD3DIp1WSz0pVx4/mx7a2T3As20VyEMctTy6/ETfZrQN8-KXBugbWdImD/G291YyD3DIp1WSz0pVx4 $WORK/b001/_pkg_.a
+/usr/local/go/pkg/tool/linux_amd64/buildid -w $WORK/b001/exe/a.out # internal
+mv $WORK/b001/exe/a.out tally
+rm -rf $WORK/b001/

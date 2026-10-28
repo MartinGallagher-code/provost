@@ -1,0 +1,1 @@
+Nesting depth (indentation) and which node a field belongs to cannot be expressed; one row per line with field / node (opened on this line) / value, closing brackets left as decoration.

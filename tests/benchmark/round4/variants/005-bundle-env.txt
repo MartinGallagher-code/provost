@@ -1,0 +1,77 @@
+## Environment
+
+```
+Bundler       2.6.9
+  Platforms   ruby, aarch64-linux
+Ruby          3.4.4p34 (2025-05-14 revision a38531fd3f) +PRISM [aarch64-linux]
+  Full Path   /usr/local/bin/ruby
+  Config Dir  /usr/local/etc
+RubyGems      3.6.7
+  Gem Home    /usr/local/bundle
+  Gem Path    /root/.local/share/gem/ruby/3.4.0:/usr/local/lib/ruby/gems/3.4.0
+  User Home   /root
+  User Path   /root/.local/share/gem/ruby/3.4.0
+  Bin Dir     /usr/local/bundle/bin
+OpenSSL       
+  Compiled    OpenSSL 3.0.15 3 Sep 2024
+  Loaded      OpenSSL 3.0.15 3 Sep 2024
+  Cert File   /usr/lib/ssl/cert.pem
+  Cert Dir    /usr/lib/ssl/certs
+Tools         
+  Git         2.39.5
+  RVM         not installed
+  rbenv       not installed
+  chruby      not installed
+```
+
+## Bundler Build Metadata
+
+```
+Timestamp  2025-05-21
+Git SHA    b81a4c76e1
+```
+
+## Bundler settings
+
+```
+app_config
+  Set via BUNDLE_APP_CONFIG: "/usr/local/bundle"
+path
+  Set via BUNDLE_PATH: "/usr/local/bundle"
+silence_root_warning
+  Set via BUNDLE_SILENCE_ROOT_WARNING: true
+```
+
+## Gemfile
+
+### Gemfile
+
+```ruby
+source "https://rubygems.org"
+
+gem "rack", "~> 3.1"
+gem "puma", "~> 6.6"
+```
+
+### Gemfile.lock
+
+```
+GEM
+  remote: https://rubygems.org/
+  specs:
+    nio4r (2.7.4)
+    puma (6.6.0)
+      nio4r (~> 2.0)
+    rack (3.1.16)
+
+PLATFORMS
+  aarch64-linux
+  ruby
+
+DEPENDENCIES
+  puma (~> 6.6)
+  rack (~> 3.1)
+
+BUNDLED WITH
+   2.6.9
+```

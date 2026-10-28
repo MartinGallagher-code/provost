@@ -1,0 +1,65 @@
+    0: \x80 PROTO      4
+    2: \x95 FRAME      231
+   11: }    EMPTY_DICT
+   12: \x94 MEMOIZE    (as 0)
+   13: (    MARK
+   14: \x8c     SHORT_BINUNICODE 'invoice'
+   23: \x94     MEMOIZE    (as 1)
+   24: \x8c     SHORT_BINUNICODE 'INV-20931'
+   35: \x94     MEMOIZE    (as 2)
+   36: \x8c     SHORT_BINUNICODE 'customer'
+   46: \x94     MEMOIZE    (as 3)
+   47: \x8c     SHORT_BINUNICODE 'Nørregaard ApS'
+   64: \x94     MEMOIZE    (as 4)
+   65: \x8c     SHORT_BINUNICODE 'lines'
+   72: \x94     MEMOIZE    (as 5)
+   73: ]        EMPTY_LIST
+   74: \x94     MEMOIZE    (as 6)
+   75: (        MARK
+   76: \x8c         SHORT_BINUNICODE 'hex nut M10'
+   89: \x94         MEMOIZE    (as 7)
+   90: K            BININT1    250
+   92: G            BINFLOAT   0.04
+  101: \x87         TUPLE3
+  102: \x94         MEMOIZE    (as 8)
+  103: \x8c         SHORT_BINUNICODE 'washer 10mm'
+  116: \x94         MEMOIZE    (as 9)
+  117: K            BININT1    250
+  119: G            BINFLOAT   0.02
+  128: \x87         TUPLE3
+  129: \x94         MEMOIZE    (as 10)
+  130: \x8c         SHORT_BINUNICODE 'Gewindestange M10×1000'
+  155: \x94         MEMOIZE    (as 11)
+  156: K            BININT1    4
+  158: G            BINFLOAT   3.85
+  167: \x87         TUPLE3
+  168: \x94         MEMOIZE    (as 12)
+  169: e            APPENDS    (MARK at 75)
+  170: \x8c     SHORT_BINUNICODE 'total'
+  177: \x94     MEMOIZE    (as 13)
+  178: N        NONE
+  179: \x8c     SHORT_BINUNICODE 'issued'
+  187: \x94     MEMOIZE    (as 14)
+  188: \x8c     SHORT_BINUNICODE 'datetime'
+  198: \x94     MEMOIZE    (as 15)
+  199: \x8c     SHORT_BINUNICODE 'date'
+  205: \x94     MEMOIZE    (as 16)
+  206: \x93     STACK_GLOBAL
+  207: \x94     MEMOIZE    (as 17)
+  208: C        SHORT_BINBYTES b'\x07\xea\t\x03'
+  214: \x94     MEMOIZE    (as 18)
+  215: \x85     TUPLE1
+  216: \x94     MEMOIZE    (as 19)
+  217: R        REDUCE
+  218: \x94     MEMOIZE    (as 20)
+  219: \x8c     SHORT_BINUNICODE 'flags'
+  226: \x94     MEMOIZE    (as 21)
+  227: \x8f     EMPTY_SET
+  228: \x94     MEMOIZE    (as 22)
+  229: (        MARK
+  230: \x8c         SHORT_BINUNICODE 'export'
+  238: \x94         MEMOIZE    (as 23)
+  239: \x90         ADDITEMS   (MARK at 229)
+  240: u        SETITEMS   (MARK at 13)
+  241: .    STOP
+highest protocol among opcodes = 4

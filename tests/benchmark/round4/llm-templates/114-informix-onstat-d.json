@@ -1,0 +1,82 @@
+{
+ "format": 1,
+ "tool": "informix-onstat-d",
+ "detect": "^address\\s+number\\s+flags\\s+fchunk\\s+nchunks",
+ "skip": [
+  "^(?:Dbspaces|Chunks)\\s*$",
+  "^NOTE: ",
+  "^\\s+displayed in terms of "
+ ],
+ "blocks": [
+  {
+   "name": "server",
+   "kind": "table",
+   "line": "^(?P<server>\\S.*?) Version (?P<version>\\S+) -- (?P<state>\\S.*?) -- Up (?P<uptime>\\S.*?) -- (?P<memory>\\d+ Kbytes)\\s*$",
+   "columns": {
+    "server": "Server",
+    "version": "Version",
+    "state": "State",
+    "uptime": "Up",
+    "memory": "Memory"
+   }
+  },
+  {
+   "name": "dbspaces",
+   "kind": "table",
+   "header": "^address\\s+number\\s+flags\\s+fchunk\\s+nchunks",
+   "line": "^(?P<address>[0-9a-f]+)\\s+(?P<number>\\d+)\\s+(?P<flags>0x[0-9a-f]+)\\s+(?P<fchunk>\\d+)\\s+(?P<nchunks>\\d+)\\s+(?P<pgsize>\\d+)\\s+(?P<flags2>\\S(?:.*?\\S)?)\\s+(?P<owner>\\S+)\\s+(?P<name>\\S+)\\s*$",
+   "columns": {
+    "address": "address",
+    "number": "number",
+    "flags": "flags",
+    "fchunk": "fchunk",
+    "nchunks": "nchunks",
+    "pgsize": "pgsize",
+    "flags2": "flags_2",
+    "owner": "owner",
+    "name": "name"
+   }
+  },
+  {
+   "name": "chunks",
+   "kind": "table",
+   "header": "^address\\s+chunk/dbs\\s+offset\\s+size",
+   "line": "^(?P<address>[0-9a-f]+)\\s+(?P<chunk>\\d+)\\s+(?P<dbs>\\d+)\\s+(?P<offset>\\d+)\\s+(?P<size>\\d+)\\s+(?P<free>\\d+)\\s+(?:(?P<bpages>\\d+)\\s+)?(?P<flags>\\S+)\\s+(?P<pathname>\\S.*?)\\s*$",
+   "columns": {
+    "address": "address",
+    "chunk": "chunk",
+    "dbs": "dbs",
+    "offset": "offset",
+    "size": "size",
+    "free": "free",
+    "bpages": "bpages",
+    "flags": "flags",
+    "pathname": "pathname"
+   }
+  },
+  {
+   "name": "metadata",
+   "kind": "table",
+   "line": "^\\s+Metadata\\s+(?P<size>\\d+)\\s+(?P<free>\\d+)\\s+(?P<bpages>\\d+)\\s*$",
+   "columns": {
+    "size": "Metadata size",
+    "free": "Metadata free",
+    "bpages": "Metadata bpages"
+   }
+  },
+  {
+   "name": "counts",
+   "kind": "table",
+   "line": "^\\s*(?P<active>\\d+) active, (?P<maximum>\\d+) maximum\\s*$",
+   "columns": {
+    "active": "active",
+    "maximum": "maximum"
+   }
+  },
+  {
+   "name": "settings",
+   "kind": "kv",
+   "line": "^(?P<key>[A-Za-z][A-Za-z ]+?): (?P<value>\\S.*?)\\s*$"
+  }
+ ]
+}

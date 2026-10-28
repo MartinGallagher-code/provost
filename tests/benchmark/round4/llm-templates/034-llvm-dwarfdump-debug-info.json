@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "tool": "llvm-dwarfdump-debug-info",
+  "detect": "^\\.debug_info contents:$",
+  "skip": [
+    "^\\.debug_info contents:$"
+  ],
+  "blocks": [
+    {"name": "file", "kind": "table",
+     "line": "^(?P<file>\\S+):\\s+file format (?P<format>\\S+)\\s*$"},
+    {"name": "compile_units", "kind": "table",
+     "line": "^(?P<offset>0x[0-9a-f]+): Compile Unit: length = (?P<length>0x[0-9a-f]+), format = (?P<format>\\S+), version = (?P<version>0x[0-9a-f]+),(?: unit_type = (?P<unit_type>\\S+),)? abbr_offset = (?P<abbr_offset>0x[0-9a-f]+), addr_size = (?P<addr_size>0x[0-9a-f]+) \\(next unit at (?P<next_unit>0x[0-9a-f]+)\\)\\s*$"},
+    {"name": "dies", "kind": "table",
+     "line": "^(?P<offset>0x[0-9a-f]+):\\s+(?P<tag>DW_TAG_\\w+|NULL)\\s*$"},
+    {"name": "attributes", "kind": "table",
+     "line": "^\\s+(?P<attribute>DW_AT_\\w+)\\t\\((?P<value>.*)\\)\\s*$"}
+  ]
+}

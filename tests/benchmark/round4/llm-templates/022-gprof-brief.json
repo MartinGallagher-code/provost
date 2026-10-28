@@ -1,0 +1,58 @@
+{
+ "format": 1,
+ "tool": "gprof-brief",
+ "detect": "^Flat profile:|^\\s*%\\s+cumulative\\s+self\\b",
+ "skip": [
+  "^Flat profile:",
+  "^Each sample counts as",
+  "^\\s*Call graph\\s*$",
+  "^granularity:",
+  "^-{5,}\\s*$",
+  "^\\s*<spontaneous>\\s*$",
+  "^Index by function name",
+  "^\\s*\\[\\d+\\] \\S+(?:\\s+\\[\\d+\\] \\S+)*\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "flat profile",
+   "kind": "table",
+   "header": "^\\s*(?:%\\s+cumulative\\s+self\\b|time\\s+seconds\\s+seconds\\b)",
+   "line": "^\\s*(?P<time>[\\d.]+)\\s+(?P<cumulative>[\\d.]+)\\s+(?P<self>[\\d.]+)(?:\\s+(?P<calls>\\d+)\\s+(?P<self_call>[\\d.]+)\\s+(?P<total_call>[\\d.]+))?\\s+(?P<name>\\S.*?)\\s*$",
+   "columns": {
+    "time": "% time",
+    "cumulative": "cumulative seconds",
+    "self": "self seconds",
+    "calls": "calls",
+    "self_call": "self ms/call",
+    "total_call": "total ms/call",
+    "name": "name"
+   }
+  },
+  {
+   "name": "call graph entries",
+   "kind": "table",
+   "header": "^index\\s+% time\\s+self\\s+children\\s+called\\s+name",
+   "line": "^\\[(?P<index>\\d+)\\]\\s+(?P<time>[\\d.]+)\\s+(?P<self>[\\d.]+)\\s+(?P<children>[\\d.]+)(?:\\s+(?P<called>\\d+(?:\\+\\d+)?))?\\s+(?P<name>\\S.*?)\\s+\\[\\d+\\]\\s*$",
+   "columns": {
+    "index": "index",
+    "time": "% time",
+    "self": "self",
+    "children": "children",
+    "called": "called",
+    "name": "name"
+   }
+  },
+  {
+   "name": "call graph callers and callees",
+   "kind": "table",
+   "line": "^\\s+(?P<self>[\\d.]+)\\s+(?P<children>[\\d.]+)\\s+(?P<called>\\d+(?:/\\d+)?)\\s+(?P<name>\\S.*?)\\s+\\[(?P<index>\\d+)\\]\\s*$",
+   "columns": {
+    "self": "self",
+    "children": "children",
+    "called": "called",
+    "name": "name",
+    "index": "index"
+   }
+  }
+ ]
+}

@@ -1,0 +1,32 @@
+Model          Controller  Cloud/Region           Version  SLA          Timestamp  Notes
+openstack-lab  lab-ctl     maas-lab-west/default  3.4.6    unsupported  13:22:07Z  upgrade available: 3.4.7
+
+App       Version  Status   Scale  Charm     Channel        Rev  Exposed  Message
+ceph-mon  18.2.4   active       3  ceph-mon  reef/stable    227  no       Unit is ready and clustered
+haproxy   2.8.5    active       1  haproxy   latest/stable   75  yes      
+keystone  25.0.0   active       1  keystone  2024.1/stable  702  no       Application Ready
+mysql     8.0.39   active       1  mysql     8.0/stable     240  no       
+vault              blocked      1  vault     1.15/stable    367  no       Vault needs to be initialized
+
+Unit         Workload  Agent      Machine  Public address  Ports           Message
+ceph-mon/0*  active    idle       0/lxd/0  192.0.2.101                     Unit is ready and clustered
+ceph-mon/1   active    idle       1/lxd/0  192.0.2.102                     Unit is ready and clustered
+ceph-mon/2   active    executing  2/lxd/0  192.0.2.103                     Unit is ready and clustered
+haproxy/0*   active    idle       0        198.51.100.10   80,443/tcp      
+keystone/0*  active    idle       1/lxd/1  192.0.2.104     5000/tcp        Unit is ready
+mysql/0*     active    idle       2/lxd/1  192.0.2.105     3306,33060/tcp  Primary
+vault/0*     blocked   idle       2        198.51.100.12   8200/tcp        Vault needs to be initialized
+
+Machine  State    Address        Inst id              Base          AZ     Message
+0        started  198.51.100.10  node-ash             ubuntu@22.04  zone1  Deployed
+0/lxd/0  started  192.0.2.101    juju-5e1a2c-0-lxd-0  ubuntu@22.04  zone1  Container started
+1        started  198.51.100.11  node-birch           ubuntu@22.04  zone2  Deployed
+1/lxd/0  started  192.0.2.102    juju-5e1a2c-1-lxd-0  ubuntu@22.04  zone2  Container started
+1/lxd/1  started  192.0.2.104    juju-5e1a2c-1-lxd-1  ubuntu@22.04  zone2  Container started
+2        started  198.51.100.12  node-cedar           ubuntu@22.04  zone3  Deployed
+2/lxd/0  started  192.0.2.103    juju-5e1a2c-2-lxd-0  ubuntu@22.04  zone3  Container started
+2/lxd/1  started  192.0.2.105    juju-5e1a2c-2-lxd-1  ubuntu@22.04  zone3  Container started
+
+Offer                 Application  Charm     Rev  Connected  Endpoint              Interface             Role
+ceph-mon-client       ceph-mon     ceph-mon  227  2/2        client                ceph-client           provider
+keystone-credentials  keystone     keystone  702  0/0        identity-credentials  keystone-credentials  provider

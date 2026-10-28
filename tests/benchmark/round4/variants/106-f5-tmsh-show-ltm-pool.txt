@@ -1,0 +1,114 @@
+root@(lb-edge-07)(cfg-sync Changes Pending)(Standby)(/Common)(tmos)# show ltm pool pool_api_gateway_https members
+
+-------------------------------------------------------------
+Ltm::Pool: pool_api_gateway_https
+-------------------------------------------------------------
+Status               
+  Availability : available
+  State        : enabled
+  Reason       : The pool is available
+  Monitor      : https_api_health 
+  Minimum Active Members : 0
+  Current Active Members : 3
+  Available Members      : 4
+  Total Members          : 5
+
+Traffic                 ServerSide
+  Bits In                      2.7T
+  Bits Out                    19.8T
+  Packets In                   1.2G
+  Packets Out                  2.0G
+  Current Connections          1.9K
+  Maximum Connections         14.2K
+  Total Connections          402.5M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: api-gw-node-01.example.com:443
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : enabled
+    Reason       : Pool member is available
+    Monitor      : https_api_health (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                   904.1G        -
+    Bits Out                    6.5T        -
+    Current Connections          641        -
+    Maximum Connections         4.8K        -
+    Total Connections         134.9M        -
+    Total Requests                 -   611.7M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: api-gw-node-02.example.com:443
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : enabled
+    Reason       : Pool member is available
+    Monitor      : https_api_health (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                   899.6G        -
+    Bits Out                    6.6T        -
+    Current Connections          633        -
+    Maximum Connections         4.7K        -
+    Total Connections         133.2M        -
+    Total Requests                 -   608.0M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: gw03:8443
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : enabled
+    Reason       : Pool member is available
+    Monitor      : https_api_health (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                     1.1T        -
+    Bits Out                    7.9T        -
+    Current Connections          618        -
+    Maximum Connections         5.2K        -
+    Total Connections         135.0M        -
+    Total Requests                 -   614.9M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: api-gw-node-04.example.com:443
+  ---------------------------------------------------------
+  Status               
+    Availability : available
+    State        : disabled
+    Reason       : Pool member is available, user disabled
+    Monitor      : https_api_health (pool monitor)
+    Monitor Status : up
+
+  Traffic                 ServerSide  General
+    Bits In                   912.3G        -
+    Bits Out                    6.7T        -
+    Current Connections            4        -
+    Maximum Connections         4.9K        -
+    Total Connections         134.4M        -
+    Total Requests                 -   613.2M
+
+  ---------------------------------------------------------
+  Ltm::Pool Member: api-gw-dr-01:443
+  ---------------------------------------------------------
+  Status               
+    Availability : offline
+    State        : enabled
+    Reason       : Pool member has been marked down by a monitor
+    Monitor      : https_api_health (pool monitor)
+    Monitor Status : down
+
+  Traffic                 ServerSide  General
+    Bits In                    17.4M        -
+    Bits Out                   88.0M        -
+    Current Connections            0        -
+    Maximum Connections           12        -
+    Total Connections           2.1K        -
+    Total Requests                 -     9.4K
+

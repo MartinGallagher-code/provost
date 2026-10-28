@@ -1,0 +1,25 @@
+PCM             PCM/friend/sddpcm                                   PCM                                     True
+PR_key_value    none                                                Reserve Key                             True
+algorithm       load_balance                                        Algorithm                               True
+dist_err_pcnt   0                                                   Distributed Error Percentage            True
+dist_tw_width   50                                                  Distributed Error Sample Time           True
+hcheck_interval 60                                                  Health Check Interval                   True
+hcheck_mode     nonactive                                           Health Check Mode                       True
+location                                                            Location Label                          True
+lun_id          0x7000000000000                                     Logical Unit Number ID                  False
+lun_reset_spt   yes                                                 Support SCSI LUN reset                  True
+max_transfer    0x100000                                            Maximum TRANSFER Size                   True
+node_name       0x5005076801000a3c                                  FC Node Name                            False
+pvid            00c8e24b91f0d7330000000000000000                    Physical volume identifier              False
+q_err           yes                                                 Use QERR bit                            True
+q_type          simple                                              Queuing TYPE                            True
+qfull_dly       2                                                   delay in seconds for SCSI TASK SET FULL True
+queue_depth     32                                                  Queue DEPTH                             True
+reserve_policy  no_reserve                                          Reserve Policy                          True
+retry_timeout   120                                                 Retry Timeout                           True
+rw_timeout      60                                                  READ/WRITE time out value               True
+scbsy_dly       20                                                  delay in seconds for SCSI BUSY          True
+scsi_id         0x20e00                                             SCSI ID                                 False
+start_timeout   180                                                 START unit time out value               True
+unique_id       33213600507680181840a38000000000000E104214503IBMfcp Unique device identifier                False
+ww_name         0x5005076801401a3c                                  FC World Wide Name                      False

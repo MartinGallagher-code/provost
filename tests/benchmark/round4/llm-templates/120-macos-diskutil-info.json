@@ -1,0 +1,16 @@
+{
+ "format": 1,
+ "tool": "macos-diskutil-info",
+ "detect": "^\\s+Device Identifier:\\s+\\S+$",
+ "skip": [
+  "^\\s*This disk is an? .*:\\s*$",
+  "^\\*{5,}$"
+ ],
+ "blocks": [
+  {
+   "name": "disk info",
+   "kind": "kv",
+   "line": "^\\s+(?P<key>[^:]+?):\\s*(?P<value>.*?)\\s*$"
+  }
+ ]
+}

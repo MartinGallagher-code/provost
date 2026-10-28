@@ -1,0 +1,54 @@
+Running with gitlab-runner 16.11.3 (0f4a2b9c)
+  on k8s-shared-runner-eu-west-12 xZ7pQ_mL, system ID: r_9c8b7a6d5e4f
+section_start:1793019455:prepare_executor[0KPreparing the "docker" executor
+Using Docker executor with image node:20.17-bookworm ...
+Using locally found image version due to "if-not-present" pull policy
+Using docker image sha256:3e7d1c5b9a2f4e6d8c0b1a3f5e7d9c2b4a6f8e0d1c3b5a7f9e2d4c6b8a0f1e3d for node:20.17-bookworm with digest node@sha256:7b6a5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b ...
+section_end:1793019458:prepare_executor[0K
+section_start:1793019458:prepare_script[0KPreparing environment
+Running on runner-xz7pqml-project-4417-concurrent-2 via ci-host-b.example.com...
+section_end:1793019459:prepare_script[0K
+section_start:1793019459:get_sources[0KGetting source from Git repository
+Fetching changes with git depth set to 50...
+Reinitialized existing Git repository in /builds/platform/web-frontend-storefront/.git/
+Checking out e81f07b3 as detached HEAD (ref is feature/checkout-redesign)...
+Removing node_modules/
+Updating/initializing submodules recursively with git depth set to 50...
+Submodule 'vendor/design-tokens' (https://gitlab.example.com/platform/design-tokens.git) registered for path 'vendor/design-tokens'
+Synchronizing submodule url for 'vendor/design-tokens'
+Entering 'vendor/design-tokens'
+section_end:1793019466:get_sources[0K
+section_start:1793019466:restore_cache[0KRestoring cache
+Checking cache for npm-cache-protected...
+WARNING: file does not exist                       
+Failed to extract cache
+section_end:1793019467:restore_cache[0K
+section_start:1793019467:step_script[0KExecuting "step_script" stage of the job script
+$ npm ci --cache .npm --prefer-offline
+added 1184 packages, and audited 1185 packages in 38s
+found 0 vulnerabilities
+$ npm run lint
+> storefront@4.2.0 lint
+> eslint src --max-warnings 25
+$ npx vitest run --reporter=junit --outputFile=junit.xml
+ Test Files  42 passed (42)
+      Tests  611 passed | 3 todo (614)
+   Duration  27.93s
+section_end:1793019541:step_script[0K
+section_start:1793019541:archive_cache[0KSaving cache for successful job
+Creating cache npm-cache-protected...
+.npm: found 9214 matching artifact files and directories 
+Uploading cache.zip to https://storage.example.com/runner-cache/project/4417/npm-cache-protected 
+Created cache
+section_end:1793019549:archive_cache[0K
+section_start:1793019549:upload_artifacts_on_success[0KUploading artifacts for successful job
+Uploading artifacts...
+junit.xml: found 1 matching artifact files and directories 
+Uploading artifacts as "junit" to coordinator... 201 Created  id=2219873 responseStatus=201 Created
+Uploading artifacts...
+dist/: found 63 matching artifact files and directories 
+Uploading artifacts as "archive" to coordinator... 201 Created  id=2219873 responseStatus=201 Created
+section_end:1793019552:upload_artifacts_on_success[0K
+section_start:1793019552:cleanup_file_variables[0KCleaning up project directory and file based variables
+section_end:1793019553:cleanup_file_variables[0K
+Job succeeded

@@ -1,0 +1,47 @@
+{
+ "format": 1,
+ "tool": "bison-report-states",
+ "detect": "^State \\d+$",
+ "skip": [
+  "^Grammar$",
+  "^Terminals, with rules where they appear$",
+  "^Nonterminals, with rules where they appear$"
+ ],
+ "blocks": [
+  {
+   "name": "conflicts",
+   "kind": "table",
+   "line": "^State (?P<state>\\d+) conflicts: (?P<conflicts>\\S.*)$"
+  },
+  {
+   "name": "states",
+   "kind": "table",
+   "line": "^State (?P<state>\\d+)$"
+  },
+  {
+   "name": "items",
+   "kind": "table",
+   "line": "^(?=.*(?<!\\S)\\.(?!\\S))\\s*(?P<rule>\\d+) (?P<lhs>\\S+): (?P<item>\\S.*?)(?:\\s{2}\\[(?P<lookahead>.*)\\])?$"
+  },
+  {
+   "name": "grammar",
+   "kind": "table",
+   "line": "^\\s*(?P<rule>\\d+)\\s+(?:(?P<lhs>\\S+):|\\|)\\s+(?P<rhs>\\S.*)$"
+  },
+  {
+   "name": "symbols",
+   "kind": "table",
+   "line": "^\\s+(?P<symbol>\\S+) \\((?P<number>\\d+)\\)(?: (?P<rules>\\d+(?: \\d+)*))?$"
+  },
+  {
+   "name": "nonterminal_rules",
+   "kind": "table",
+   "line": "^\\s+on (?P<side>left|right): (?P<rules>\\d+(?: \\d+)*)$"
+  },
+  {
+   "name": "actions",
+   "kind": "table",
+   "line": "^\\s+(?P<symbol>\\S+)\\s{2,}\\[?(?P<action>[A-Za-z][a-z ,]*?)(?: (?P<number>\\d+))?(?: \\((?P<rule_lhs>[^)]*)\\))?\\]?$"
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+several "key = value" pairs and several mode flags per line, wrapped at terminal width; one record should hold all of them.
+Used fixed-order optional groups so each wrapped line becomes a sparse row with the right columns whatever the wrap points.

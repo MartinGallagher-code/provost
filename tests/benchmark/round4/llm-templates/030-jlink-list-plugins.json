@@ -1,0 +1,23 @@
+{
+ "format": 1,
+ "tool": "jlink-list-plugins",
+ "detect": "^List of available plugins:",
+ "skip": [
+  "^List of available plugins:",
+  "^ {3,}\\S",
+  "^  [^-\\s]",
+  "^[A-Za-z]"
+ ],
+ "blocks": [
+  {
+   "name": "plugins",
+   "kind": "table",
+   "line": "^  (?P<option>--[\\w-]+)(?:\\s+(?P<argument>[<\\[@].*?))?(?:\\s{2,}(?P<description>[A-Za-z].*?))?\\s*$",
+   "columns": {
+    "option": "option",
+    "argument": "argument",
+    "description": "description"
+   }
+  }
+ ]
+}

@@ -1,0 +1,64 @@
+        -:    0:Source:util.c
+        -:    1:#include <string.h>
+        -:    2:#include "util.h"
+        -:    3:
+        -:    4:/* string helpers used by the report writer */
+function trim_right called 1208 returned 100% blocks executed 100%
+     1208:    5:size_t trim_right(char *s)
+        -:    6:{
+     1208:    7:    size_t n = strlen(s);
+call    0 returned 1208
+     3014:    8:    while (n > 0 && s[n - 1] == ' ')
+branch  0 taken 2950 (fallthrough)
+branch  1 taken 64
+branch  2 taken 1806
+branch  3 taken 1144 (fallthrough)
+     1806:    9:        s[--n] = '\0';
+     1208:   10:    return n;
+        -:   11:}
+        -:   12:
+function is_sep called 2178 returned 100% blocks executed 100%
+     2178:   13:static int is_sep(char c) { return c == ' ' || c == ','; }
+branch  0 taken 1887 (fallthrough)
+branch  1 taken 291
+branch  2 taken 50 (fallthrough)
+branch  3 taken 1837
+        -:   14:
+function count_words called 37 returned 100% blocks executed 100%
+       37:   15:int count_words(const char *s)
+        -:   16:{
+       37:   17:    int words = 0, in = 0;
+     2215:   18:    for (; *s; s++) {
+branch  0 taken 2178
+branch  1 taken 37 (fallthrough)
+     2178:   19:        if (is_sep(*s)) {
+call    0 returned 2178
+branch  1 taken 341 (fallthrough)
+branch  2 taken 1837
+      341:   20:            in = 0;
+     1837:   21:        } else if (!in) {
+branch  0 taken 378 (fallthrough)
+branch  1 taken 1459
+      378:   22:            in = 1;
+      378:   23:            words++;
+        -:   24:        }
+        -:   25:    }
+       37:   26:    return words;
+        -:   27:}
+        -:   28:
+function join_fields called 0 returned 0% blocks executed 0%
+    #####:   29:char *join_fields(char *dst, const char *a, const char *b)
+        -:   30:{
+    #####:   31:    if (!a || !b)
+branch  0 never executed
+branch  1 never executed
+branch  2 never executed
+branch  3 never executed
+    #####:   32:        return NULL;
+    #####:   33:    strcpy(dst, a);
+    #####:   34:    strcat(dst, ",");
+call    0 never executed
+    #####:   35:    strcat(dst, b);
+call    0 never executed
+    #####:   36:    return dst;
+        -:   37:}

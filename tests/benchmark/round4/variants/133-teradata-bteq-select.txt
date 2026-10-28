@@ -1,0 +1,38 @@
+ BTEQ 20.00.00.11 Tue Oct 27 07:48:02 2026 PID: 118306
+ 
++---------+---------+---------+---------+---------+---------+---------+----
+.LOGON tdqa01/rpt_svc,
+
+ *** Logon successfully completed.
+ *** Teradata Database Release is 17.20.03.31                   
+ *** Teradata Database Version is 17.20.03.31                     
+ *** Transaction Semantics are BTET.
+ *** Session Character Set Name is 'UTF8'.
+ 
+ *** Total elapsed time was 3 seconds.
+ 
++---------+---------+---------+---------+---------+---------+---------+----
+SELECT region_cd, store_nm, sales_amt, last_upd_ts FROM sales.v_store_daily WHERE sales_dt = DATE '2026-10-26' ORDER BY 3 DESC;
+
+ *** Query completed. 9 rows found. 4 columns returned. 
+ *** Total elapsed time was 1 second.
+
+region_cd  store_nm                         sales_amt  last_upd_ts
+---------  ------------------------------  ----------  --------------------------
+OST        Wien Favoriten                   212907.30  2026-10-27 02:05:11.000000
+OST        Wien Donaustadt                  198114.85  2026-10-27 02:05:11.000000
+WEST       Innsbruck Pradl                  121450.00  2026-10-27 02:06:40.000000
+SUED       Graz Lend                        104882.15  2026-10-27 02:05:58.000000
+MITTE      Linz Urfahr                       99310.40                           ?
+WEST       Salzburg Lehen                    87002.95  2026-10-27 02:06:40.000000
+SUED       Klagenfurt Völkermarkter Ring     61774.20  2026-10-27 02:05:58.000000
+MITTE      St. Pölten Süd                       12.50                           ?
+WEST       Dornbirn Messepark                -1240.50  2026-10-27 02:06:40.000000
+
++---------+---------+---------+---------+---------+---------+---------+----
+.LOGOFF
+ *** You are now logged off from the DBC.
++---------+---------+---------+---------+---------+---------+---------+----
+.QUIT
+ *** Exiting BTEQ...
+ *** RC (return code) = 0 

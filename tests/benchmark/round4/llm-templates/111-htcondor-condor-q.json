@@ -1,0 +1,50 @@
+{
+ "format": 1,
+ "tool": "htcondor-condor-q",
+ "detect": "^OWNER\\s+BATCH_NAME\\s+SUBMITTED\\s+",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "schedd",
+   "kind": "table",
+   "line": "^-- Schedd: (?P<schedd>\\S+) : <?(?P<address>\\S+?)>? @ (?P<timestamp>\\S.*?)\\s*$",
+   "columns": {
+    "schedd": "Schedd",
+    "address": "Address",
+    "timestamp": "Timestamp"
+   }
+  },
+  {
+   "name": "totals",
+   "kind": "table",
+   "line": "^Total for (?P<scope>\\S.*?): (?P<jobs>\\d+) jobs; (?P<completed>\\d+) completed, (?P<removed>\\d+) removed, (?P<idle>\\d+) idle, (?P<running>\\d+) running, (?P<held>\\d+) held, (?P<suspended>\\d+) suspended\\s*$",
+   "columns": {
+    "scope": "Total for",
+    "jobs": "jobs",
+    "completed": "completed",
+    "removed": "removed",
+    "idle": "idle",
+    "running": "running",
+    "held": "held",
+    "suspended": "suspended"
+   }
+  },
+  {
+   "name": "batches",
+   "kind": "table",
+   "header": "^OWNER\\s+BATCH_NAME\\s+SUBMITTED\\s+",
+   "line": "^(?P<owner>\\S+)\\s+(?P<batch_name>\\S(?:.*?\\S)?)\\s+(?P<submitted>\\d+/\\d+\\s+\\d+:\\d+)\\s+(?P<done>\\d+|_)\\s+(?P<run>\\d+|_)\\s+(?P<idle>\\d+|_)\\s+(?P<hold>\\d+|_)\\s+(?P<total>\\d+|_)\\s+(?P<job_ids>\\S.*?)\\s*$",
+   "columns": {
+    "owner": "OWNER",
+    "batch_name": "BATCH_NAME",
+    "submitted": "SUBMITTED",
+    "done": "DONE",
+    "run": "RUN",
+    "idle": "IDLE",
+    "hold": "HOLD",
+    "total": "TOTAL",
+    "job_ids": "JOB_IDS"
+   }
+  }
+ ]
+}

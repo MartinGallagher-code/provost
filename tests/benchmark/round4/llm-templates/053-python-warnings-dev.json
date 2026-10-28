@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "tool": "python-warnings-dev",
+  "detect": "^\\S.*:\\d+: \\w+Warning: ",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "warnings",
+      "kind": "table",
+      "line": "^(?P<file>\\S.*?):(?P<line>\\d+): (?P<category>\\w+): (?P<message>\\S.*?)\\s*$",
+      "columns": {
+        "file": "file",
+        "line": "line",
+        "category": "category",
+        "message": "message"
+      }
+    },
+    {
+      "name": "notes",
+      "kind": "kv",
+      "line": "^(?P<key>\\w+(?:Warning|Error)): (?P<value>\\S.*?)\\s*$"
+    },
+    {
+      "name": "source",
+      "kind": "table",
+      "line": "^\\s+(?P<source>\\S.*?)\\s*$",
+      "columns": {
+        "source": "source"
+      }
+    }
+  ]
+}

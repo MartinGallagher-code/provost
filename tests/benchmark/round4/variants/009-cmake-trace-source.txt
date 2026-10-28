@@ -1,0 +1,57 @@
+/srv/build/ledger/CMakeLists.txt(1):  cmake_minimum_required(VERSION 3.22 )Put cmake in trace mode, but output only lines of a specified file. Multiple options are allowed.
+
+/srv/build/ledger/CMakeLists.txt(2):  project(ledger VERSION 0.4.1 LANGUAGES C )
+-- The C compiler identification is Clang 18.1.8
+-- Detecting C compiler ABI info
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(1):  cmake_minimum_required(VERSION 3.28.6.0 )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(2):  cmake_policy(SET CMP0126 OLD )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(3):  cmake_policy(SET CMP0128 OLD )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(4):  project(CMAKE_TRY_COMPILE C )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(5):  set_property(DIRECTORY PROPERTY INCLUDE_DIRECTORIES  )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(6):  set(CMAKE_VERBOSE_MAKEFILE 1 )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(7):  set(CMAKE_C_FLAGS  )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(8):  set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} ${COMPILE_DEFINITIONS} )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(9):  set(CMAKE_C_FLAGS_DEBUG -g )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(10):  set(CMAKE_EXE_LINKER_FLAGS  )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(11):  set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} ${EXE_LINKER_FLAGS} )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(12):  include_directories(${INCLUDE_DIRECTORIES} )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(13):  set(CMAKE_SUPPRESS_REGENERATION 1 )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(14):  link_directories(${LINK_DIRECTORIES} )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(15):  add_definitions(-v )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(16):  cmake_policy(SET CMP0065 NEW )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(17):  cmake_policy(SET CMP0083 NEW )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(18):  cmake_policy(SET CMP0155 OLD )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(19):  include(${CMAKE_ROOT}/Modules/Internal/HeaderpadWorkaround.cmake )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(20):  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(21):  add_executable(cmTC_9b1e7 )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(22):  target_sources(cmTC_9b1e7 PRIVATE /usr/local/share/cmake-3.28/Modules/CMakeCCompilerABI.c )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(25):  file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/cmTC_9b1e7_loc CONTENT $<TARGET_FILE:cmTC_9b1e7> )
+/srv/build/ledger/build/CMakeFiles/CMakeScratch/TryCompile-qL7wXa/CMakeLists.txt(27):  target_link_libraries(cmTC_9b1e7 ${LINK_LIBRARIES} )
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/clang - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+/srv/build/ledger/CMakeLists.txt(3):  set(CMAKE_C_STANDARD 17 )
+/srv/build/ledger/CMakeLists.txt(4):  set(CMAKE_C_STANDARD_REQUIRED ON )
+/srv/build/ledger/CMakeLists.txt(5):  option(LEDGER_TESTS build the tests OFF )
+/srv/build/ledger/CMakeLists.txt(6):  add_library(ledgercore STATIC src/book.c src/entry.c src/money.c )
+/srv/build/ledger/CMakeLists.txt(7):  target_include_directories(ledgercore PUBLIC include )
+/srv/build/ledger/CMakeLists.txt(8):  add_executable(ledger src/main.c )
+/srv/build/ledger/CMakeLists.txt(9):  target_link_libraries(ledger PRIVATE ledgercore m )
+/srv/build/ledger/CMakeLists.txt(10):  foreach(w IN ITEMS all extra pedantic shadow )
+/srv/build/ledger/CMakeLists.txt(11):  target_compile_options(ledgercore PRIVATE -W${w} )
+/srv/build/ledger/CMakeLists.txt(11):  target_compile_options(ledgercore PRIVATE -W${w} )
+/srv/build/ledger/CMakeLists.txt(11):  target_compile_options(ledgercore PRIVATE -W${w} )
+/srv/build/ledger/CMakeLists.txt(11):  target_compile_options(ledgercore PRIVATE -W${w} )
+/srv/build/ledger/CMakeLists.txt(13):  if(LEDGER_TESTS )
+/srv/build/ledger/CMakeLists.txt(15):  else()
+/srv/build/ledger/CMakeLists.txt(16):  message(WARNING tests disabled; pass -DLEDGER_TESTS=ON to build them )
+CMake Warning at CMakeLists.txt:16 (message):
+  tests disabled; pass -DLEDGER_TESTS=ON to build them
+
+
+/srv/build/ledger/CMakeLists.txt(18):  message(STATUS ledger version: ${PROJECT_VERSION} )
+-- ledger version: 0.4.1
+-- Configuring done (0.4s)
+-- Generating done (0.1s)
+-- Build files have been written to: /srv/build/ledger/build

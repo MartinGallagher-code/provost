@@ -1,0 +1,23 @@
+{
+ "format": 1,
+ "tool": "macos-ioreg-usb-tree",
+ "detect": "^\\+-o Root\\s+<class IORegistryEntry, id 0x[0-9a-f]+",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "registry entries",
+   "kind": "table",
+   "line": "^[\\s|]*\\+-o (?P<name>\\S.*?)\\s+<class (?P<class_>[^,]+), id (?P<id>0x[0-9a-f]+)(?:, (?P<registered>!?registered))?(?:, (?P<matched>!?matched))?(?:, (?P<active>!?active|inactive))?(?:, busy (?P<busy>\\d+(?: \\(\\d+ ms\\))?))?, retain (?P<retain>\\d+)>\\s*$",
+   "columns": {
+    "name": "name",
+    "class_": "class",
+    "id": "id",
+    "registered": "registered",
+    "matched": "matched",
+    "active": "active",
+    "busy": "busy",
+    "retain": "retain"
+   }
+  }
+ ]
+}

@@ -1,0 +1,18 @@
+/home/ops/billing/legacy.py:2: SyntaxWarning: invalid escape sequence '\s'
+  SKU = re.compile("[A-Z]{3}\s\d{4}")
+/home/ops/billing/legacy.py:3: SyntaxWarning: invalid escape sequence '\:'
+  TAB = "col\:1"
+/home/ops/billing/legacy.py:19: SyntaxWarning: "is" with 'int' literal. Did you mean "=="?
+  x = 1 is 1
+/home/ops/billing/legacy.py:5: DeprecationWarning: datetime.datetime.utcfromtimestamp() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.fromtimestamp(timestamp, datetime.UTC).
+  return datetime.datetime.utcfromtimestamp(ts)
+/home/ops/billing/legacy.py:15: ResourceWarning: unclosed file <_io.TextIOWrapper name='/etc/hostname' mode='r' encoding='utf-8'>
+  read_rates()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/ops/billing/legacy.py:11: FutureWarning: unknown rounding mode 'down', using 'bankers'
+  warnings.warn("unknown rounding mode %r, using 'bankers'" % mode, FutureWarning)
+/home/ops/billing/legacy.py:17: RuntimeWarning: coroutine 'refresh' was never awaited
+  refresh()
+RuntimeWarning: Enable tracemalloc to get the object allocation traceback
+/home/ops/billing/legacy.py:18: DeprecationWarning: 'locale.getdefaultlocale' is deprecated and slated for removal in Python 3.15. Use setlocale(), getencoding() and getlocale() instead.
+  locale.getdefaultlocale()

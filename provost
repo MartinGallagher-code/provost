@@ -108,6 +108,8 @@ PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
+PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
+PROVOST_LLM_MODEL="${PROVOST_LLM_MODEL:-claude-opus-5-5}"   # the model that writes templates
 PROVOST_QUIET="${PROVOST_QUIET:-0}"                  # 1 = no progress/ok chatter on stderr
 PROVOST_ASYNC="${PROVOST_ASYNC:-}"                   # ''/auto = background only when interactive
 
@@ -166,6 +168,8 @@ _validate_settings () {
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
+    [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
+    [[ "$PROVOST_LLM_MODEL" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$ ]] || usage_die "PROVOST_LLM_MODEL must be a model id (got '$PROVOST_LLM_MODEL')."
     case "$PROVOST_ASYNC" in ""|auto|0|1) ;; *) usage_die "PROVOST_ASYNC must be 0, 1 or auto (got '$PROVOST_ASYNC')." ;; esac
 }
 
@@ -743,10 +747,13 @@ _snapshot_context () {
 # tokens with the input (22 correct corpus winners read under 40% coverage),
 # and a strict grammar (json/yaml/xml/toml) validates the whole document
 # itself. Only parsers under extract/strategies/{delimited,structured} are
-# gated.
+# gated. An LLM template's blocks are exempt too: a template is written for
+# the tool's layout and deliberately makes key/value tables whose value
+# column mixes types (a type-consistency measure built for homogeneous
+# tables reads 30-60% on them); _llm_file's own rules judge its blocks.
 _quality_exempt () {
     local sdir; sdir="$(dirname "$1")/strategies"
-    case "$2" in json|json-array|jsonl|yaml|xml|toml|har) return 0 ;; esac
+    case "$2" in json|json-array|jsonl|yaml|xml|toml|har|llm-template) return 0 ;; esac
     [[ -f "$sdir/delimited/$2.sh" || -f "$sdir/structured/$2.sh" ]] && return 1
     return 0
 }
@@ -793,6 +800,7 @@ _tidy_cols () { head -n 1 "$1" | tr '\t' '\n' | awk 'NR == 1 && $0 == "n" { next
 # exactly as before. Works on _ingest's locals (dynamic scope): reads engine,
 # eargs, body, tmp, threshold, name, strategy, cov; fills ds_* and am_*.
 _AM_GAIN=10
+_LLM_CATCHALL_SLACK=20   # _llm_file: lines a template may skip against a catch-all parse
 _AM_FRAG_LINES=3
 
 # _am_part_check I WIDE TSV — the per-part checks of _auto_multi (rules 2, 4
@@ -1020,6 +1028,158 @@ _model_multi () {
     return 0
 }
 
+# _llm_table INPUT TAG — the engine's measure of records an LLM template made
+# for INPUT (the explicit-only llm-template strategy emits PROVOST_LLM_RECORDS,
+# set by the caller). Sets _MT_OUT / _MT_C / _MT_V / _MT_T like _model_table.
+_llm_table () {
+    local inp="$1" tag="$2" lmeta="$tmp/llm.$2.meta" ls=""
+    _MT_OUT="$tmp/llm.$tag.tsv"; _MT_C=""; _MT_V=""; _MT_T=""
+    _run_engine "$engine" --max-input-size "$PROVOST_MAX_INPUT" \
+        ${eargs[@]+"${eargs[@]}"} -s llm-template --emit-meta -f tsv --max-strategies 1 "$inp" \
+        >"$_MT_OUT" 2>"$lmeta" || true
+    IFS=$'\t' read -r ls _MT_C _MT_V _MT_T < <(awk -F'\t' \
+        '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 } END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$lmeta" 2>/dev/null) || true
+    [[ "$ls" == llm-template && -s "$_MT_OUT" ]] && grep -q . "$_MT_OUT" || return 1
+    [[ "$_MT_C" =~ ^[0-9]{1,9}$ ]] || _MT_C=0
+    [[ "$_MT_V" =~ ^[0-9]{1,3}$ ]] || _MT_V=""
+    [[ "$_MT_T" =~ ^[0-9]{1,3}$ ]] || _MT_T=""
+    return 0
+}
+
+# _llm_file TEMPLATE — apply one LLM template to the capture and file what it
+# yields under the gate's rules: each block the template finds is measured by
+# the engine on that block's own lines and must pass the per-part checks
+# (_am_part_check); the blocks are not fragments; and together they keep at
+# least _AM_GAIN points more of the input than the held parse (and the gate's
+# minimum), the lines the template marks as decoration not counted. One block
+# replaces the held parse (wide.tsv); several are filed as the capture's
+# datasets, named NAME.<block>. Otherwise 1, the reason in llm_note.
+_llm_file () {
+    local t="$1" py="$PROVOST_ROOT/extract/llm/template.py" bd="$tmp/llmblk" out n=0 skipped=0 i f bname
+    local dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
+    rm -rf "$bd"
+    out="$(python3 "$py" apply "$t" "$body" --out "$bd" 2>/dev/null)" \
+        || { llm_note="it matches nothing in the input"; return 1; }
+    skipped="${out##*$'\t'}"; [[ "$skipped" =~ ^[0-9]{1,9}$ ]] || skipped=0
+    while [[ -f "$bd/blk.$((n + 1)).rec" ]]; do n=$((n + 1)); done
+    (( n >= 1 )) || { llm_note="it matches nothing in the input"; return 1; }
+    # a nameless capture's datasets are named after the template's tool
+    local dsbase="$name"
+    if [[ -z "$dsbase" ]]; then
+        dsbase="$(head -n 1 "$bd/tool" 2>/dev/null)"; _valid_name "$dsbase" || dsbase=""
+    fi
+    local -a an=() as=() ac=() af=() acv=() acs=() aw=()
+    for (( i = 1; i <= n; i++ )); do
+        f="$bd/blk.$i.txt"; bname="$(head -n 1 "$bd/blk.$i.name" 2>/dev/null)"
+        _valid_name "$bname" || bname="block$i"
+        PROVOST_LLM_RECORDS="$bd/blk.$i.rec" _llm_table "$f" "blk$i" \
+            || { llm_note="its block '$bname' yields nothing"; return 1; }
+        # a block's lines are, by construction, the lines the template read
+        # into its records (its text is written from them), so its coverage
+        # is 100 and jcov below is the share of the input's data lines the
+        # template read. The engine's token-recall measure is not used here:
+        # it counts a value the template dropped on purpose (a broadcast
+        # address, a trailing flag) as a missed line. Its type consistency
+        # is recorded, not gated (see _quality_exempt); the shape checks
+        # still apply.
+        dstrat=llm-template; dconf="$_MT_C"; dcov=100; dcons="${_MT_T:--}"
+        dlines=$(grep -c '[^[:space:]]' "$f" || true)
+        _am_part_check "$i" "$_MT_OUT" "$bd/blk.$i.tsv"
+        [[ -z "$_AMP_NOTE" ]] || { llm_note="${_AMP_NOTE/#part $i/block $bname}"; return 1; }
+        tot=$(( tot + dlines )); (( dlines >= _AM_FRAG_LINES )) && sub=$(( sub + dlines ))
+        [[ "$dcov" == - ]] || covl=$(( covl + dcov * dlines ))
+        an+=("${dsbase:+$dsbase.}$bname"); as+=(llm-template); ac+=("$dconf"); af+=("$bd/blk.$i.tsv")
+        acv+=("$dcov"); acs+=("$dcons"); aw+=("$_MT_OUT")
+    done
+    if (( n > 1 )) && (( sub == 0 || sub * 2 < tot )); then
+        llm_note="its blocks are fragments ($sub of $tot lines in blocks of $_AM_FRAG_LINES+ lines)"; return 1
+    fi
+    alll=$(grep -c '[^[:space:]]' "$body" || true)
+    # the lines a template marks as decoration are not counted against it —
+    # except against a CATCH-ALL parse the gate passed (text-lines,
+    # line-records: the engine's own lossless readings, _FR_COV_CATCHALL).
+    # A template may not beat a parse that kept every line by declaring
+    # the lines it cannot read decoration: there every line counts, with an
+    # allowance of _LLM_CATCHALL_SLACK points for real decoration (titles,
+    # rules, legends, prompts), which a count cannot tell from dropped data.
+    local catchall=0
+    case " $strategy " in *" text-lines "*|*" line-records "*) [[ "$llm_floor" == match ]] && catchall=1 ;; esac
+    (( catchall )) || alll=$(( alll - skipped ))
+    (( alll > 0 )) || { llm_note="it keeps none of the input's data lines"; return 1; }
+    jcov=$(( covl / alll ))
+    # against a held parse the template must gain _AM_GAIN points; against a
+    # generic parse the gate passed (llm_floor=match) it may trail by that
+    # much: it was written for this tool's layout, the heuristic was not, and
+    # a title or prompt the heuristic counted as a row is decoration here
+    if (( catchall )); then need=$(( ${cov:-0} - _LLM_CATCHALL_SLACK ))
+    elif [[ "$llm_floor" == match ]]; then need=$(( ${cov:-0} - _AM_GAIN ))
+    else need=$(( ${cov:-0} + _AM_GAIN )); fi
+    (( need < PROVOST_MIN_COVERAGE )) && need=$PROVOST_MIN_COVERAGE
+    (( need > 100 )) && need=100
+    if (( jcov < need )); then
+        llm_note="its $n block(s) keep $jcov% of the input's data lines, <$need%"; return 1
+    fi
+    if (( n == 1 )); then
+        cp "${aw[0]}" "$tmp/wide.tsv"
+        strategy=llm-template; conf="${ac[0]}"; cov="$jcov"; tcons="${acs[0]/#-/}"
+        [[ -z "$name" && -n "$dsbase" ]] && name="$dsbase"
+        llm_multi=0
+    else
+        ds_name=("${an[@]}"); ds_strategy=("${as[@]}"); ds_conf=("${ac[@]}"); ds_file=("${af[@]}")
+        ds_cov=("${acv[@]}"); ds_cons=("${acs[@]}")
+        am_cov="$jcov"; am_kind=llm-template; llm_multi=1
+    fi
+    return 0
+}
+
+# LLM TEMPLATES (PROVOST_LLM, --llm / --no-llm). Called by _ingest when the
+# quality gate would still hold the capture (after AUTO-MULTI and the layout
+# model). A template is a set of regular expressions per kind of line that
+# Claude wrote for one tool (extract/llm/). provost looks for one in the
+# store (llm-templates/, committed with the captures: the tool's name, or any
+# template whose `detect` pattern recognises the input), then among the
+# templates shipped with provost, and files what it yields (_llm_file). Only
+# when none fits, and an API key is set, does it ask Claude to write one from
+# this capture — the one step that sends the capture's text to the Anthropic
+# API — and the new template is kept only when what it yields passes the same
+# rules. Every later capture of the tool is then parsed offline. With LEARN=0
+# Claude is never asked (only a stored template can fit). Otherwise 1, the
+# reason in llm_note.
+_llm_template () {
+    local learn="${1:-1}" py="$PROVOST_ROOT/extract/llm/template.py" tdir="$PROVOST_WORKSPACE/llm-templates"
+    local tool="$name" kf tpl="" found="" new="$tmp/llm-new.json" err prev
+    command -v python3 >/dev/null 2>&1 || { llm_note="python3 is not installed"; return 1; }
+    [[ -z "$tool" && -n "$cmd" ]] && { tool="${cmd%% *}"; tool="${tool##*/}"; }
+    kf="$(python3 "$py" key "$body" --name "$tool" 2>/dev/null)" || { llm_note="the input could not be read"; return 1; }
+    # the store's templates, then the user's own libraries
+    # (PROVOST_LLM_TEMPLATE_DIRS), then the ones shipped with provost
+    local d dirs="$tdir:${PROVOST_LLM_TEMPLATE_DIRS:-}"
+    IFS=: read -ra _dl <<< "$dirs"
+    for d in "${_dl[@]}"; do [[ -n "$d" && -f "$d/$kf" ]] && { tpl="$d/$kf"; break; }; done
+    if [[ -z "$tpl" ]]; then
+        found="$(python3 "$py" find "$body" --dirs "$dirs" 2>/dev/null)" && tpl="${found%%$'\t'*}"
+    fi
+    if [[ -n "$tpl" ]]; then
+        if _llm_file "$tpl"; then llm_how="template ${tpl##*/}"; return 0; fi
+        llm_note="template ${tpl##*/} does not fit: $llm_note"
+    fi
+    (( learn )) || { llm_note="${llm_note:-no stored template fits}"; return 1; }
+    if [[ -z "${PROVOST_LLM_API_KEY:-}${ANTHROPIC_API_KEY:-}" ]]; then
+        llm_note="${llm_note:-no stored template fits}; no API key to have Claude write one (PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)"
+        return 1
+    fi
+    prev="$llm_note"
+    if ! err="$(python3 "$py" learn "$body" --out "$new" --tool "$tool" --model "$PROVOST_LLM_MODEL" 2>&1 >/dev/null)"; then
+        llm_note="${prev:+$prev; }Claude wrote no usable template: ${err#template: }"; return 1
+    fi
+    if ! _llm_file "$new"; then
+        llm_note="${prev:+$prev; }the template Claude wrote fails the gate: $llm_note"; return 1
+    fi
+    mkdir -p "$tdir" && cp "$new" "$tdir/$kf"
+    llm_how="a new template Claude wrote (llm-templates/$kf)"; llm_learned="llm-templates/$kf"
+    return 0
+}
+
 # Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
 #   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
 #   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
@@ -1072,6 +1232,7 @@ _ingest () {
     # engine's parse that the model's table replaced; lm_note = why the model
     # was declined; single_cov / single_cons = the held parse's measures.
     local lm_reason="" lm_note="" single_cov="" single_cons="" mm_note=""
+    local llm_reason="" llm_note="" llm_how="" llm_learned="" llm_multi=0 llm_floor=gain
 
     if [[ "$PROVOST_MULTI" == 1 ]]; then
         # --multi splits the input into blocks, groups them, and emits each
@@ -1136,6 +1297,30 @@ _ingest () {
         # every one of them passes the gate and together they keep materially
         # more of the input (see _auto_multi). Only gate failures pay for this
         # second engine run — a parse that passes is never re-run.
+        # LLM TEMPLATES, FIRST (PROVOST_LLM=1): a template Claude wrote for this
+        # tool — stored, or written now — is tried before the heuristics'
+        # fallbacks on a held capture, and before a GENERIC parse the gate
+        # passed is trusted (the gate cannot see a title or prompt read as the
+        # header; a template written for the tool's layout can). Never over an
+        # exact-format or tool-specific parser. See _llm_template, _llm_file.
+        if [[ "$PROVOST_LLM" == 1 ]]; then
+            single_cov="$cov"; single_cons="$tcons"
+            if [[ "$reason" == low-coverage* || "$reason" == low-consistency* ]]; then
+                if _llm_template 1; then
+                    if (( llm_multi )); then am_reason="$reason"; else llm_reason="$reason"; fi
+                    reason=""
+                fi
+            elif [[ -z "$reason" ]] && ! _quality_exempt "$engine" "$strategy"; then
+                local _held="passed over (the engine read it as $strategy, coverage ${cov:--}%): a template"
+                llm_floor=match
+                if _llm_template 1; then
+                    if [[ -n "$llm_learned" ]]; then _held="$_held Claude wrote for this tool fits"
+                    else _held="$_held stored for this tool fits"; fi
+                    if (( llm_multi )); then am_reason="$_held"; else llm_reason="$_held"; fi
+                fi
+                llm_floor=gain
+            fi
+        fi
         if [[ "$PROVOST_AUTO_MULTI" == 1 && ( "$reason" == low-coverage* || "$reason" == low-consistency* ) ]]; then
             if _auto_multi; then am_reason="$reason"; reason=""; fi
         fi
@@ -1147,6 +1332,8 @@ _ingest () {
             elif _model_multi; then am_reason="$reason"; reason=""
             else lm_note="$lm_note; segmenting it itself: $mm_note"; fi
         fi
+        # (a generic parse the gate passed and no template bettered is filed
+        # as it was; meta.tsv still records why the template was declined)
         if [[ -z "$am_reason" ]]; then
             local dsname content="$tmp/content.tsv"
             if [[ -n "$reason" ]]; then
@@ -1254,6 +1441,15 @@ _ingest () {
             [[ -n "$single_cons" ]] && printf 'single_consistency\t%s\n' "$single_cons"
         fi
         [[ -n "$lm_note" ]] && printf 'layout_model\t%s\n' "$(_meta_safe "declined: $lm_note")"
+        if [[ -n "$llm_how" ]]; then
+            printf 'llm_template\t%s\n' "$(_meta_safe "filed by $llm_how")"
+            if [[ -n "$llm_reason" ]]; then
+                printf 'single_strategy\t%s\n' "$(_meta_safe "$single_strategy")"
+                printf 'single_confidence\t%s\n' "$single_conf"
+                [[ -n "$single_cov" ]] && printf 'single_coverage\t%s\n' "$single_cov"
+            fi
+        fi
+        [[ -n "$llm_note" && -z "$llm_how" ]] && printf 'llm_template\t%s\n' "$(_meta_safe "declined: $llm_note")"
         if [[ ${#out_names[@]} -gt 1 ]]; then
             printf 'datasets\t%s\n' "${#out_names[@]}"
             printf 'dataset_rows\t%s\n' "$all_rows"
@@ -1287,11 +1483,13 @@ _ingest () {
         info "$id: $reason — queued in 'unsorted' as $idrange (committed)."
         [[ -n "$am_note" ]] && info "      segmenting it did not help: $am_note."
         [[ -n "$lm_note" ]] && info "      the layout model did not help: $lm_note."
+        [[ -n "$llm_note" ]] && info "      no LLM template helped: $llm_note."
     elif [[ ${#out_names[@]} -gt 1 ]]; then
         if [[ -n "$am_reason" ]]; then
             ok "$id: → ${#out_names[@]} datasets, rows $idrange — segmented: the single parse was $am_reason; the ${#out_names[@]} parts keep $am_cov%:"
             (( am_model > 0 )) && info "      the layout model read $am_model of the parts the engine could not."
             [[ "$am_kind" == layout-model ]] && info "      the layout model segmented it (the engine's own segmenting did not help: $am_note)."
+            [[ "$am_kind" == llm-template ]] && info "      read by $llm_how${llm_learned:+ (committed with this capture; later captures of the tool are parsed offline)}."
         else
             ok "$id: → ${#out_names[@]} datasets, rows $idrange:"
         fi
@@ -1304,6 +1502,7 @@ _ingest () {
     else
         ok "$id: → dataset '$final' rows $idrange (strategy $strategy, conf $conf${cov:+, coverage $cov%}) — $((fields-1)) field(s)."
         [[ -n "$lm_reason" ]] && info "      the engine's parse ($single_strategy) was $lm_reason; the layout model's table passes the gate."
+        [[ -n "$llm_reason" ]] && info "      the engine's parse ($single_strategy) was $llm_reason; read by $llm_how${llm_learned:+ (committed with this capture; later captures of the tool are parsed offline)}."
         # Low line coverage: the parse kept only part of the input. Say so —
         # silently filing a fragment is the failure this guards against.
         if [[ -n "$cov" ]] && (( cov < 60 )); then
@@ -1520,6 +1719,11 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
+  --llm                   parse with a template Claude wrote for this tool, or
+                          have Claude write one, before trusting a generic parse
+                          or holding the capture (sends the capture to the
+                          Anthropic API; needs python3 and an API key; --no-llm:
+                          don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1544,6 +1748,11 @@ options:
   --model                 before holding such a parse, try the learned layout
                           model (needs python3; --no-model: don't, the default,
                           PROVOST_MODEL)
+  --llm                   parse with a template Claude wrote for this tool, or
+                          have Claude write one, before trusting a generic parse
+                          or holding the capture (sends the capture to the
+                          Anthropic API; needs python3 and an API key; --no-llm:
+                          don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   -q, --silent            no progress output
@@ -1613,6 +1822,8 @@ _parse_capture_opts () {
             --no-auto-multi) PROVOST_AUTO_MULTI=0; shift ;;
             --model) PROVOST_MODEL=1; shift ;;
             --no-model) PROVOST_MODEL=0; shift ;;
+            --llm) PROVOST_LLM=1; shift ;;
+            --no-llm) PROVOST_LLM=0; shift ;;
             --async) _O_ASYNC=1; shift ;;
             --sync|--wait) _O_ASYNC=0; shift ;;
             -h|--help) _cmd_help "$verb" ;;
@@ -2319,6 +2530,18 @@ ENV
     PROVOST_MODEL             1 = when the quality gate would still hold a parse,
                               try the learned layout model (default 0; same as
                               --model; needs python3). See LAYOUT MODEL.
+    PROVOST_LLM               1 = parse with a template Claude wrote for the
+                              tool, or have Claude write one, before a generic
+                              parse is trusted or a capture held (default 0;
+                              same as --llm). See LLM TEMPLATES.
+    PROVOST_LLM_MODEL         the model that writes templates (default
+                              claude-opus-5-5)
+    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else ANTHROPIC_API_KEY;
+                              prefer this one where ANTHROPIC_API_KEY is taken,
+                              e.g. inside Claude Code, which keeps it for itself)
+    PROVOST_LLM_BASE_URL      API base URL (default https://api.anthropic.com)
+    PROVOST_LLM_TEMPLATE_DIRS colon-separated directories of templates to look
+                              in after the store's and before provost's own
     PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
@@ -2409,6 +2632,38 @@ LAYOUT MODEL (a learned fallback for a weak parse)
     parse's 'single_strategy' / 'single_coverage'. It needs python3 (plain,
     no packages) and declines inputs over 600 lines. Only held captures pay
     for it.
+
+LLM TEMPLATES (Claude writes a parser for a tool once; provost reuses it)
+    With PROVOST_LLM=1 (--llm), a capture is parsed by a template Claude
+    wrote for that tool (extract/llm/, the explicit-only 'llm-template'
+    strategy): either regular expressions per kind of line (table rows,
+    key/value lines, decoration to skip; format 1), or, for records that
+    span lines, a small Python parser (format 2) that runs in a box (a
+    separate interpreter, a few pure modules, no files or network, a CPU and
+    memory limit). provost looks in the store's llm-templates/ (NAME.json for
+    --name or the run command, else any template whose detect pattern
+    recognises the input), then in PROVOST_LLM_TEMPLATE_DIRS, then in the
+    templates shipped with provost. When
+    none fits, and PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY is set, it asks
+    Claude (PROVOST_LLM_MODEL, default claude-opus-5-5) to write one from
+    this capture: THAT STEP SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at
+    most 400 lines / 64 KB), once per tool. The template is tried FIRST: on a
+    capture the gate would hold, before segmenting and the layout model; and
+    on a GENERIC parse the gate passed, before that parse is trusted (the
+    gate cannot see a title or prompt read as the header; a template written
+    for the tool's layout can). It never replaces an exact-format or
+    tool-specific parser. Every block the template yields is measured by the
+    engine and filed only under the gate's rules: one block as the capture's
+    dataset, several as NAME.<block>, AUTO-MULTI's way; against a generic
+    parse the gate passed it must keep that parse's share of the data lines
+    (within 10 points; lines it marks as decoration not counted, except
+    against text-lines or line-records, which keep every line: there a
+    skipped line is a lost line). A new
+    template is kept, and committed with the capture, only when it passes.
+    From then on every capture of that tool is parsed offline,
+    deterministically and at no cost. meta.tsv records 'llm_template' (filed
+    by which template, or declined and why). Needs python3 (plain, no
+    packages).
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:

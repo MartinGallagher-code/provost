@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "tool": "tmux-show-options-global",
+  "detect": "(?m)^(?:status-keys|history-limit|default-shell|base-index) ",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "options",
+      "kind": "table",
+      "line": "(?P<option>[A-Za-z][\\w-]*(?:\\[\\d+\\])?) (?P<value>.*)",
+      "columns": {
+        "option": "option",
+        "value": "value"
+      }
+    }
+  ]
+}

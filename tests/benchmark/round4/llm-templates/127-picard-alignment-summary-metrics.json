@@ -1,0 +1,55 @@
+{
+ "format": 1,
+ "tool": "picard-alignment-summary-metrics",
+ "detect": "^## METRICS CLASS\\tpicard\\.analysis\\.AlignmentSummaryMetrics",
+ "skip": [
+  "^## htsjdk\\.samtools\\.metrics\\.",
+  "^# ",
+  "^## METRICS CLASS\\t"
+ ],
+ "blocks": [
+  {
+   "name": "metrics",
+   "kind": "table",
+   "header": "^CATEGORY\\tTOTAL_READS\\t",
+   "line": "^(?P<category>[^\\t]*)\\t(?P<total_reads>[^\\t]*)\\t(?P<pf_reads>[^\\t]*)\\t(?P<pct_pf_reads>[^\\t]*)\\t(?P<pf_noise_reads>[^\\t]*)\\t(?P<pf_reads_aligned>[^\\t]*)\\t(?P<pct_pf_reads_aligned>[^\\t]*)\\t(?P<pf_aligned_bases>[^\\t]*)\\t(?P<pf_hq_aligned_reads>[^\\t]*)\\t(?P<pf_hq_aligned_bases>[^\\t]*)\\t(?P<pf_hq_aligned_q20_bases>[^\\t]*)\\t(?P<pf_hq_median_mismatches>[^\\t]*)\\t(?P<pf_mismatch_rate>[^\\t]*)\\t(?P<pf_hq_error_rate>[^\\t]*)\\t(?P<pf_indel_rate>[^\\t]*)\\t(?P<mean_read_length>[^\\t]*)\\t(?P<sd_read_length>[^\\t]*)\\t(?P<median_read_length>[^\\t]*)\\t(?P<mad_read_length>[^\\t]*)\\t(?P<min_read_length>[^\\t]*)\\t(?P<max_read_length>[^\\t]*)\\t(?P<reads_aligned_in_pairs>[^\\t]*)\\t(?P<pct_reads_aligned_in_pairs>[^\\t]*)\\t(?P<pf_reads_improper_pairs>[^\\t]*)\\t(?P<pct_pf_reads_improper_pairs>[^\\t]*)\\t(?P<bad_cycles>[^\\t]*)\\t(?P<strand_balance>[^\\t]*)\\t(?P<pct_chimeras>[^\\t]*)\\t(?P<pct_adapter>[^\\t]*)\\t(?P<pct_softclip>[^\\t]*)\\t(?P<pct_hardclip>[^\\t]*)\\t(?P<avg_pos_3prime_softclip_length>[^\\t]*)\\t(?P<sample>[^\\t]*)\\t(?P<library>[^\\t]*)\\t(?P<read_group>[^\\t]*)\\s*$",
+   "columns": {
+    "category": "CATEGORY",
+    "total_reads": "TOTAL_READS",
+    "pf_reads": "PF_READS",
+    "pct_pf_reads": "PCT_PF_READS",
+    "pf_noise_reads": "PF_NOISE_READS",
+    "pf_reads_aligned": "PF_READS_ALIGNED",
+    "pct_pf_reads_aligned": "PCT_PF_READS_ALIGNED",
+    "pf_aligned_bases": "PF_ALIGNED_BASES",
+    "pf_hq_aligned_reads": "PF_HQ_ALIGNED_READS",
+    "pf_hq_aligned_bases": "PF_HQ_ALIGNED_BASES",
+    "pf_hq_aligned_q20_bases": "PF_HQ_ALIGNED_Q20_BASES",
+    "pf_hq_median_mismatches": "PF_HQ_MEDIAN_MISMATCHES",
+    "pf_mismatch_rate": "PF_MISMATCH_RATE",
+    "pf_hq_error_rate": "PF_HQ_ERROR_RATE",
+    "pf_indel_rate": "PF_INDEL_RATE",
+    "mean_read_length": "MEAN_READ_LENGTH",
+    "sd_read_length": "SD_READ_LENGTH",
+    "median_read_length": "MEDIAN_READ_LENGTH",
+    "mad_read_length": "MAD_READ_LENGTH",
+    "min_read_length": "MIN_READ_LENGTH",
+    "max_read_length": "MAX_READ_LENGTH",
+    "reads_aligned_in_pairs": "READS_ALIGNED_IN_PAIRS",
+    "pct_reads_aligned_in_pairs": "PCT_READS_ALIGNED_IN_PAIRS",
+    "pf_reads_improper_pairs": "PF_READS_IMPROPER_PAIRS",
+    "pct_pf_reads_improper_pairs": "PCT_PF_READS_IMPROPER_PAIRS",
+    "bad_cycles": "BAD_CYCLES",
+    "strand_balance": "STRAND_BALANCE",
+    "pct_chimeras": "PCT_CHIMERAS",
+    "pct_adapter": "PCT_ADAPTER",
+    "pct_softclip": "PCT_SOFTCLIP",
+    "pct_hardclip": "PCT_HARDCLIP",
+    "avg_pos_3prime_softclip_length": "AVG_POS_3PRIME_SOFTCLIP_LENGTH",
+    "sample": "SAMPLE",
+    "library": "LIBRARY",
+    "read_group": "READ_GROUP"
+   }
+  }
+ ]
+}

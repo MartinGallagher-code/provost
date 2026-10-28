@@ -1,0 +1,43 @@
+internal/store/cache.go:44:20: Error return value of `c.file.Close` is not checked (errcheck)
+	defer c.file.Close()
+	                  ^
+internal/store/cache.go:87:13: Error return value of `os.Remove` is not checked (errcheck)
+			os.Remove(tmp)
+			         ^
+pkg/wire/codec.go:61:10: Error return value of `bw.Flush` is not checked (errcheck)
+	bw.Flush()
+	        ^
+internal/store/cache.go:91:6: comparing with == will fail on wrapped errors (errorlint)
+		if err == io.EOF {
+		   ^
+internal/store/index.go:27:2: ifElseChain: rewrite if-else to switch statement (gocritic)
+	if kind == "full" {
+	^
+internal/store/index.go:63:14: appendAssign: append result not assigned to the same slice (gocritic)
+	nextKeys := append(keys, k)
+	            ^
+internal/store/index.go:9:25: `occured` is a misspelling of `occurred` (misspell)
+// lastErr records what occured during the previous rebuild.
+                        ^
+pkg/wire/codec.go:18:28: `seperator` is a misspelling of `separator` (misspell)
+	// fieldSep is the record seperator used on the wire.
+	                          ^
+cmd/ingest/main.go:1:1: package-comments: should have a package comment (revive)
+package main
+^
+pkg/wire/codec.go:30:2: var-naming: var frameId should be frameID (revive)
+	frameId := hdr[0]
+	^
+pkg/wire/codec.go:33:6: exported: exported function DecodeHeader should have comment or be unexported (revive)
+func DecodeHeader(r io.Reader) (Header, error) {
+     ^
+pkg/wire/codec.go:52:30: decodeFrame - `strict` always receives `true` (unparam)
+func decodeFrame(buf []byte, strict bool) (Frame, error) {
+                             ^
+12 issues:
+* errcheck: 3
+* errorlint: 1
+* gocritic: 2
+* misspell: 2
+* revive: 3
+* unparam: 1

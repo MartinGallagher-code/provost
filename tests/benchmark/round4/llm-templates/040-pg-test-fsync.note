@@ -1,0 +1,1 @@
+Section titles ("Compare file sync methods using one 8kB write:" etc.) should become a column of the sync_methods table; format 1 cannot carry a section title into rows, so all unindented prose/title lines are skipped and the rows from every section go into one table.

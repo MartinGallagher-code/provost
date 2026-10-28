@@ -1,0 +1,20 @@
+{
+  "format": 1,
+  "tool": "gcov-branch-counts",
+  "detect": "^Lines executed:[\\d.]+% of \\d+$",
+  "skip": ["^Creating '", "^No calls$"],
+  "blocks": [
+    {"name": "functions",
+     "kind": "table",
+     "line": "Function '(?P<function>[^']+)'",
+     "columns": {"function": "Function"}},
+    {"name": "files",
+     "kind": "table",
+     "line": "File '(?P<file>[^']+)'",
+     "columns": {"file": "File"}},
+    {"name": "metrics",
+     "kind": "table",
+     "line": "(?P<metric>[A-Za-z ]+?):\\s*(?P<percent>[\\d.]+%) of (?P<total>\\d+)",
+     "columns": {"metric": "metric", "percent": "percent", "total": "of"}}
+  ]
+}

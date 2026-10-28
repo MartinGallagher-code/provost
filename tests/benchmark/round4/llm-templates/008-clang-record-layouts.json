@@ -1,0 +1,58 @@
+{
+ "format": 1,
+ "tool": "clang-record-layouts",
+ "detect": "^\\*\\*\\* Dumping (?:AST|IRgen) Record Layout$",
+ "skip": [
+  "^\\*\\*\\* Dumping ",
+  "^Layout: <CGRecordLayout$",
+  "^\\s*BitFields:\\[$",
+  "^\\]>$"
+ ],
+ "blocks": [
+  {
+   "name": "records",
+   "kind": "table",
+   "line": "^\\s*(?P<offset>\\d+) \\| (?P<kind>struct|union|class) (?P<name>\\S.*?)\\s*$"
+  },
+  {
+   "name": "fields",
+   "kind": "table",
+   "line": "^\\s*(?P<offset>\\S+) \\|\\s{3,}(?P<type>\\S(?:.*?\\S)?)(?: (?P<name>\\w+)| )?$"
+  },
+  {
+   "name": "sizes",
+   "kind": "table",
+   "line": "^\\s*\\| \\[sizeof=(?P<sizeof>\\d+),(?: dsize=(?P<dsize>\\d+),)? align=(?P<align>\\d+)(?:, (?P<more>.*?))?\\]?$"
+  },
+  {
+   "name": "decls",
+   "kind": "table",
+   "line": "^Record: (?P<kind>\\w+) (?P<address>0x[0-9a-f]+) <(?P<range>.*?)>(?= |$)(?: (?P<location>\\S+:\\d+(?::\\d+)?))? (?P<detail>\\S.*)$"
+  },
+  {
+   "name": "ast_fields",
+   "kind": "table",
+   "line": "^[ |`]*[|`]-FieldDecl (?P<address>0x[0-9a-f]+) <(?P<range>.*?)>(?= |$) (?P<location>\\S+:\\d+(?::\\d+)?) (?:(?P<name>\\w+) )?'(?P<type>[^']*)'$"
+  },
+  {
+   "name": "bit_widths",
+   "kind": "table",
+   "line": "^[ |`]*[|`]-value: (?P<type>\\w+) (?P<value>\\S+)$"
+  },
+  {
+   "name": "nodes",
+   "kind": "table",
+   "line": "^(?:[ |`]*[|`]-)?(?P<kind>[A-Z]\\w+) (?P<address>0x[0-9a-f]+)(?: <(?P<range>.*?)>(?= |$))?(?: (?P<detail>\\S.*))?$"
+  },
+  {
+   "name": "bitfields",
+   "kind": "table",
+   "line": "^\\s*<CGBitFieldInfo Offset:(?P<Offset>\\d+) Size:(?P<Size>\\d+) IsSigned:(?P<IsSigned>\\d+) StorageSize:(?P<StorageSize>\\d+) StorageOffset:(?P<StorageOffset>\\d+) VolatileOffset:(?P<VolatileOffset>\\d+) VolatileStorageSize:(?P<VolatileStorageSize>\\d+) VolatileStorageOffset:(?P<VolatileStorageOffset>\\d+)>$"
+  },
+  {
+   "name": "llvm_layout",
+   "kind": "kv",
+   "line": "^\\s+(?P<key>LLVMType|IsZeroInitializable):(?P<value>\\S.*)$"
+  }
+ ]
+}

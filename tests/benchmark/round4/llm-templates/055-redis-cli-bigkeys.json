@@ -1,0 +1,61 @@
+{
+  "format": 1,
+  "tool": "redis-cli-bigkeys",
+  "detect": "^# Scanning the entire keyspace to find biggest keys",
+  "skip": [
+    "^# ",
+    "^-+ summary -+$"
+  ],
+  "blocks": [
+    {
+      "name": "progress",
+      "kind": "table",
+      "line": "^\\[(?P<progress>[\\d.]+%)\\] Biggest (?P<type>\\w+)\\s+found so far '\\\"?(?P<key>.*?)\\\"?' with (?P<size>\\d+ \\w+)$",
+      "columns": {
+        "progress": "progress",
+        "type": "type",
+        "key": "key",
+        "size": "size"
+      }
+    },
+    {
+      "name": "biggest",
+      "kind": "table",
+      "line": "^Biggest\\s+(?P<type>\\w+) found '\\\"?(?P<key>.*?)\\\"?' has (?P<size>\\d+ \\w+)$",
+      "columns": {
+        "type": "type",
+        "key": "key",
+        "size": "size"
+      }
+    },
+    {
+      "name": "sampled",
+      "kind": "table",
+      "line": "^Sampled (?P<keys>\\d+) keys in the keyspace!$",
+      "columns": {
+        "keys": "sampled keys"
+      }
+    },
+    {
+      "name": "key_length",
+      "kind": "table",
+      "line": "^Total key length in bytes is (?P<total>\\d+) \\(avg len (?P<avg>[\\d.]+)\\)$",
+      "columns": {
+        "total": "total key length",
+        "avg": "avg len"
+      }
+    },
+    {
+      "name": "types",
+      "kind": "table",
+      "line": "^(?P<count>\\d+) (?P<type>\\w+) with (?P<total>\\d+ \\w+) \\((?P<pct>[\\d.]+%) of keys, avg size (?P<avg>[\\d.]+)\\)$",
+      "columns": {
+        "count": "keys",
+        "type": "type",
+        "total": "total",
+        "pct": "% of keys",
+        "avg": "avg size"
+      }
+    }
+  ]
+}

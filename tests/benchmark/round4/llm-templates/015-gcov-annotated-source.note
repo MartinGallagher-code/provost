@@ -1,0 +1,1 @@
+The output interleaves three kinds of rows: "function ..." summaries apply to the source line that follows, and "branch N taken ..." rows belong to the source line above them; format 1 cannot attach them, so they are three flat tables (functions, branches, source) plus a kv block for the line-0 metadata (Source:...). Leading indentation of source text is lost by stripping.

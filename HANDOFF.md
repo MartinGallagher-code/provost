@@ -94,6 +94,60 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0j. **2026-10-27: `--llm` goes first, templates can be parsers (format 2),
+    and round 4 is measured with templates** (`docs/plan-2026-10-27-near-100.md`
+    is the plan; CHANGELOG has the detail).
+    - **Why:** four rounds at 11–21% PASS on unseen output; the gate files
+      27 of round 4's 44 FAILs at ≥95% coverage, so nothing behind it ever
+      ran. A template written for one tool only has to fit that tool's next
+      capture: no cross-tool generalisation needed.
+    - **Done:** LLM-first hook in `_ingest` (before auto-multi/model on a
+      held capture; before a generic parse the gate passed is trusted);
+      `extract/llm/sandbox.py` runs a format-2 parser in a box;
+      `PROVOST_LLM_TEMPLATE_DIRS`; `tests/benchmark/llm_round.sh`;
+      `tests/benchmark/round4/llm-templates/` (107 format-1 templates by
+      Claude helpers, with `.note`s on what format 1 could not express).
+    - **Round 4 with templates** (`docs/benchmark-2026-10-27-llm-templates-round4.md`):
+      format 1 alone **35 / 66 / 6**; with format-2 parsers for the 65
+      inputs format 1 could not express, **86 / 18 / 3 (80% PASS, 97%
+      usable) against the engine's 12 / 51 / 44**. No shape family under
+      70% PASS. Of the 21 left, 4 are the catch-all guard declining a
+      parser that skipped decoration, 1 the fragments rule on a one-line
+      input, 1 the `yaml` exemption, 10 unrewritten format-1 templates
+      PARTIAL on strict rule 3, 5 near-misses.
+    - **Second capture** (part 3; `round4/variants/`, frozen; rated blind):
+      the same stored templates on a never-seen second capture of each
+      tool score **65 / 32 / 10 (61% PASS, 91% usable)**. Nearly every drop
+      is a line kind the first capture never showed: the template is
+      declined (5, falls back to the engine) or misses it (17); once a
+      `skip` rule swallowed a diff while coverage read 100%.
+    - **Not yet measured:** the first-contact rate through `learn` (two API
+      attempts, no iteration).
+    - **Next:**
+      1. **Template repair on a miss:** a stored template's unread lines on
+         a new capture go back to Claude to extend it (one call), kept only
+         if it still reads the captures it was written from; record which
+         captures each template has seen. Then rerun part 3.
+      2. Skip lines audited (count + sample, judged), not counted as
+         covered for free.
+      3. The judge (step 3), then with the key the `learn` run, the library
+         (step 5) and round 5.
+      - **The key:** add it as `PROVOST_LLM_API_KEY` (a Claude Code
+        environment keeps `ANTHROPIC_API_KEY` for its own sign-in).
+      - Small: `_AM_FRAG_LINES` should count records; the melt should
+        rename a template column colliding with the row id.
+
+0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
+    and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in
+    `provost help`).
+    - **Tested** end to end against a fake API (`tests/fake_anthropic.py`).
+    - **Not yet run against the real API:** the session's key was deleted.
+    - **Next:**
+      1. With a real key, run `--llm` over the 38 captures held in rounds
+         2–4 and rate the templates.
+      2. Grow `extract/llm/templates/` from the templates that prove good.
+      3. Consider letting `--llm` re-check generic parses the gate passed.
+
 0h. **2026-10-26: `--model` ships the LLM-trained trees, with a refitted
     arbiter.**
     - **Measured:** fresh test 136/150 (previous model + arbiter 133,

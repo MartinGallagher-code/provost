@@ -1,0 +1,28 @@
+{
+ "format": 1,
+ "tool": "bison-counterexamples",
+ "detect": "\\[-Wcounterexamples\\]$",
+ "skip": [
+  "^\\s+(?:Shift|Reduce|First|Second) derivation$",
+  "^\\s+`->\\s*\\d+:",
+  "^\\s{4}\\S+$",
+  "^\\s+(?:First|Second) example: "
+ ],
+ "blocks": [
+  {
+   "name": "conflicts",
+   "kind": "table",
+   "line": "^(?P<file>[^:\\s]+): (?P<level>warning|error): (?P<kind>shift/reduce|reduce/reduce) conflict on token (?P<token>\\S+) \\[(?P<flag>-W[\\w-]+)\\]$"
+  },
+  {
+   "name": "diagnostics",
+   "kind": "table",
+   "line": "^(?P<file>[^:\\s]+): (?P<level>warning|error|note): (?P<message>\\S.*?)(?: \\[(?P<flag>-W[\\w-]+)\\])?$"
+  },
+  {
+   "name": "examples",
+   "kind": "table",
+   "line": "^\\s+Example: (?P<example>\\S.*)$"
+  }
+ ]
+}

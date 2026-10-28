@@ -1,0 +1,166 @@
+queue.o:	file format elf64-x86-64
+
+.debug_info contents:
+0x00000000: Compile Unit: length = 0x000000cb, format = DWARF32, version = 0x0005, unit_type = DW_UT_compile, abbr_offset = 0x0000, addr_size = 0x08 (next unit at 0x000000cf)
+
+0x0000000c: DW_TAG_compile_unit
+              DW_AT_producer	("Debian clang version 16.0.6 (15~deb12u1)")
+              DW_AT_language	(DW_LANG_C11)
+              DW_AT_name	("queue.c")
+              DW_AT_str_offsets_base	(0x00000008)
+              DW_AT_stmt_list	(0x00000000)
+              DW_AT_comp_dir	("/srv/work/qtool")
+              DW_AT_low_pc	(0x0000000000000000)
+              DW_AT_high_pc	(0x0000003a)
+              DW_AT_addr_base	(0x00000008)
+
+0x00000024:   DW_TAG_variable
+                DW_AT_name	("q")
+                DW_AT_type	(0x0000002e "queue")
+                DW_AT_external	(true)
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(18)
+                DW_AT_location	(DW_OP_addrx 0x0)
+
+0x0000002e:   DW_TAG_structure_type
+                DW_AT_name	("queue")
+                DW_AT_byte_size	(0x18)
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(12)
+
+0x00000033:     DW_TAG_member
+                  DW_AT_name	("head")
+                  DW_AT_type	(0x00000059 "node *")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(13)
+                  DW_AT_data_member_location	(0x00)
+
+0x0000003c:     DW_TAG_member
+                  DW_AT_name	("tail")
+                  DW_AT_type	(0x00000059 "node *")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(14)
+                  DW_AT_data_member_location	(0x08)
+
+0x00000045:     DW_TAG_member
+                  DW_AT_name	("count")
+                  DW_AT_type	(0x00000096 "unsigned int")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(15)
+                  DW_AT_data_member_location	(0x10)
+
+0x0000004e:     DW_TAG_member
+                  DW_AT_name	("closed")
+                  DW_AT_type	(0x00000096 "unsigned int")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(16)
+                  DW_AT_bit_size	(0x01)
+                  DW_AT_data_bit_offset	(0xa0)
+
+0x00000058:     NULL
+
+0x00000059:   DW_TAG_pointer_type
+                DW_AT_type	(0x0000005e "node")
+
+0x0000005e:   DW_TAG_structure_type
+                DW_AT_name	("node")
+                DW_AT_byte_size	(0x10)
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(6)
+
+0x00000063:     DW_TAG_member
+                  DW_AT_name	("value")
+                  DW_AT_type	(0x0000007f "int")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(7)
+                  DW_AT_data_member_location	(0x00)
+
+0x0000006c:     DW_TAG_member
+                  DW_AT_name	("prio")
+                  DW_AT_type	(0x00000083 "level")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(8)
+                  DW_AT_data_member_location	(0x04)
+
+0x00000075:     DW_TAG_member
+                  DW_AT_name	("next")
+                  DW_AT_type	(0x00000059 "node *")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(9)
+                  DW_AT_data_member_location	(0x08)
+
+0x0000007e:     NULL
+
+0x0000007f:   DW_TAG_base_type
+                DW_AT_name	("int")
+                DW_AT_encoding	(DW_ATE_signed)
+                DW_AT_byte_size	(0x04)
+
+0x00000083:   DW_TAG_enumeration_type
+                DW_AT_type	(0x00000096 "unsigned int")
+                DW_AT_name	("level")
+                DW_AT_byte_size	(0x04)
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(4)
+
+0x0000008c:     DW_TAG_enumerator
+                  DW_AT_name	("LOW")
+                  DW_AT_const_value	(0)
+
+0x0000008f:     DW_TAG_enumerator
+                  DW_AT_name	("NORMAL")
+                  DW_AT_const_value	(1)
+
+0x00000092:     DW_TAG_enumerator
+                  DW_AT_name	("URGENT")
+                  DW_AT_const_value	(2)
+
+0x00000095:     NULL
+
+0x00000096:   DW_TAG_base_type
+                DW_AT_name	("unsigned int")
+                DW_AT_encoding	(DW_ATE_unsigned)
+                DW_AT_byte_size	(0x04)
+
+0x0000009a:   DW_TAG_variable
+                DW_AT_name	("verbosity")
+                DW_AT_type	(0x00000083 "level")
+                DW_AT_external	(true)
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(19)
+                DW_AT_location	(DW_OP_addrx 0x1)
+
+0x000000a4:   DW_TAG_subprogram
+                DW_AT_low_pc	(0x0000000000000000)
+                DW_AT_high_pc	(0x0000003a)
+                DW_AT_frame_base	(DW_OP_reg6 RBP)
+                DW_AT_name	("push")
+                DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                DW_AT_decl_line	(21)
+                DW_AT_prototyped	(true)
+                DW_AT_external	(true)
+
+0x000000af:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_fbreg -4)
+                  DW_AT_name	("v")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(21)
+                  DW_AT_type	(0x0000007f "int")
+
+0x000000b9:     DW_TAG_formal_parameter
+                  DW_AT_location	(DW_OP_fbreg -8)
+                  DW_AT_name	("p")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(21)
+                  DW_AT_type	(0x00000083 "level")
+
+0x000000c3:     DW_TAG_variable
+                  DW_AT_location	(DW_OP_fbreg -16)
+                  DW_AT_name	("n")
+                  DW_AT_decl_file	("/srv/work/qtool/queue.c")
+                  DW_AT_decl_line	(23)
+                  DW_AT_type	(0x00000059 "node *")
+
+0x000000cd:     NULL
+
+0x000000ce:   NULL

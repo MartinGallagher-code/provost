@@ -1,0 +1,24 @@
+{
+  "format": 1,
+  "tool": "python-pickletools",
+  "detect": "^highest protocol among opcodes = \\d+$",
+  "skip": [],
+  "blocks": [
+    {
+      "name": "opcodes",
+      "kind": "table",
+      "line": "^\\s*(?P<pos>\\d+): (?P<code>\\S+)\\s+(?P<opcode>[A-Z][A-Z0-9_]*)(?:\\s+(?P<arg>\\S.*?))?\\s*$",
+      "columns": {
+        "pos": "pos",
+        "code": "code",
+        "opcode": "opcode",
+        "arg": "arg"
+      }
+    },
+    {
+      "name": "summary",
+      "kind": "kv",
+      "line": "^(?P<key>[a-z][a-z ]*[a-z]) = (?P<value>\\S.*?)\\s*$"
+    }
+  ]
+}

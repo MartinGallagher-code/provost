@@ -1,0 +1,6 @@
+{
+ "format": 2,
+ "tool": "python-warnings-dev",
+ "detect": "^\\S.*:\\d+: \\w+Warning: ",
+ "parser": "import re\nWARN = re.compile(r'^(?P<file>\\S.*?):(?P<line>\\d+): (?P<category>\\w+): (?P<message>\\S.*?)\\s*$')\nNOTE = re.compile(r'^\\w+(?:Warning|Error): \\S')\nSRC = re.compile(r'^\\s+(?P<source>\\S.*?)\\s*$')\n\ndef parse(lines):\n    recs, used = [], []\n    for i, ln in enumerate(lines):\n        if not ln.strip():\n            continue\n        m = WARN.match(ln)\n        if m:\n            recs.append({'file': m.group('file'), 'line': m.group('line'),\n                         'category': m.group('category'), 'message': m.group('message'),\n                         'source': '', 'note': ''})\n            used.append(i)\n            continue\n        if not recs:\n            continue\n        rec = recs[-1]\n        m = SRC.match(ln)\n        if m:\n            rec['source'] = (rec['source'] + ' ' + m.group('source')).strip()\n            used.append(i)\n        elif NOTE.match(ln):\n            rec['note'] = (rec['note'] + '; ' + ln.strip()).strip('; ')\n            used.append(i)\n    return [{'name': 'warnings', 'kind': 'table', 'lines': used, 'records': recs}]"
+}

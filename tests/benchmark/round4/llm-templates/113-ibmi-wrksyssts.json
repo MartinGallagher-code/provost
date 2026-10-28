@@ -1,0 +1,62 @@
+{
+ "format": 1,
+ "tool": "ibmi-wrksyssts",
+ "detect": "Work with System Status",
+ "skip": [
+  "^\\s*Type changes \\(if allowed\\), press Enter\\.",
+  "^\\s*(?:Bottom|More\\.\\.\\.)\\s*$",
+  "^\\s*Command\\s*$",
+  "^\\s*===>",
+  "^\\s*F\\d+="
+ ],
+ "blocks": [
+  {
+   "name": "screen",
+   "kind": "table",
+   "line": "^\\s*Work with System Status\\s+(?P<system>\\S+)\\s*$",
+   "columns": {
+    "system": "System"
+   }
+  },
+  {
+   "name": "timestamp",
+   "kind": "table",
+   "line": "^\\s*(?P<date>\\d\\d/\\d\\d/\\d\\d)\\s+(?P<time>\\d\\d:\\d\\d:\\d\\d)(?:\\s+(?P<zone>\\S+))?\\s*$",
+   "columns": {
+    "date": "Date",
+    "time": "Time",
+    "zone": "Zone"
+   }
+  },
+  {
+   "name": "pools",
+   "kind": "table",
+   "header": "^\\s*(?:System\\s+Pool\\s+Reserved\\s+Max|Pool\\s+Size \\(M\\)\\s+Size \\(M\\))",
+   "line": "^\\s*(?P<pool>\\d+)\\s+(?P<pool_size>[\\d.]+)\\s+(?P<reserved_size>[\\d.]+)\\s+(?P<max_active>\\S+)\\s+(?P<db_fault>[\\d.]+)\\s+(?P<db_pages>[\\d.]+)\\s+(?P<nondb_fault>[\\d.]+)\\s+(?P<nondb_pages>[\\d.]+)\\s+(?P<act_wait>[\\d.]+)\\s+(?P<wait_inel>[\\d.]+)\\s+(?P<act_inel>[\\d.]+)\\s*$",
+   "columns": {
+    "pool": "System Pool",
+    "pool_size": "Pool Size (M)",
+    "reserved_size": "Reserved Size (M)",
+    "max_active": "Max Active",
+    "db_fault": "DB Fault",
+    "db_pages": "DB Pages",
+    "nondb_fault": "Non-DB Fault",
+    "nondb_pages": "Non-DB Pages",
+    "act_wait": "Act-Wait",
+    "wait_inel": "Wait-Inel",
+    "act_inel": "Act-Inel"
+   }
+  },
+  {
+   "name": "status",
+   "kind": "table",
+   "line": "^\\s*(?P<field>\\S(?:.*?\\S)?)\\s*(?:\\. )*\\.?\\s*:\\s*(?P<value>\\S(?:.*?\\S)?)?(?:\\s{2,}(?P<field2>\\S(?:.*?\\S)?)\\s*(?:\\. )*\\.?\\s*:\\s*(?P<value2>\\S(?:.*?\\S)?)?)?\\s*$",
+   "columns": {
+    "field": "Field",
+    "value": "Value",
+    "field2": "Field (right)",
+    "value2": "Value (right)"
+   }
+  }
+ ]
+}

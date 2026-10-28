@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "tool": "valgrind-helgrind-race",
+  "detect": "==\\d+== Helgrind, a thread error detector",
+  "skip": [
+    "^==\\d+== (?:Helgrind, a thread error detector|Copyright \\(C\\)|Using Valgrind-|Command: )",
+    "^==\\d+== -{3,}",
+    "^==\\d+== \\s*$",
+    "^==\\d+== (?:Use --history-level|the cost of reduced accuracy|For lists of detected and suppressed errors)",
+    "^(?!==\\d+==)"
+  ],
+  "blocks": [
+    {
+      "name": "races",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)== Possible data race during (?P<access>\\w+) of size (?P<size>\\d+) at (?P<address>0x[0-9A-Fa-f]+) by thread #(?P<thread>\\d+)",
+      "columns": {
+        "pid": "pid",
+        "access": "access",
+        "size": "size",
+        "address": "address",
+        "thread": "thread"
+      }
+    },
+    {
+      "name": "conflicts",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)== This conflicts with a previous (?P<access>\\w+) of size (?P<size>\\d+) by thread #(?P<thread>\\d+)",
+      "columns": {
+        "pid": "pid",
+        "access": "access",
+        "size": "size",
+        "thread": "thread"
+      }
+    },
+    {
+      "name": "threads",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)== Thread #(?P<thread>\\d+) was (?P<event>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "pid": "pid",
+        "thread": "thread",
+        "event": "event"
+      }
+    },
+    {
+      "name": "locks",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)== Locks held: (?P<locks>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "pid": "pid",
+        "locks": "locks held"
+      }
+    },
+    {
+      "name": "frames",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)==\\s+(?P<frame>at|by) (?P<address>0x[0-9A-Fa-f]+): (?P<function>\\S(?:.*?\\S)?) \\((?P<location>[^()]*)\\)\\s*",
+      "columns": {
+        "pid": "pid",
+        "frame": "frame",
+        "address": "address",
+        "function": "function",
+        "location": "location"
+      }
+    },
+    {
+      "name": "symbols",
+      "kind": "table",
+      "line": "==(?P<pid>\\d+)==\\s+Address (?P<address>0x[0-9A-Fa-f]+) is (?P<offset>\\d+) bytes inside (?P<kind>\\S(?:.*?\\S)?) \\\"(?P<symbol>[^\\\"]*)\\\"\\s*",
+      "columns": {
+        "pid": "pid",
+        "address": "address",
+        "offset": "offset bytes",
+        "kind": "kind",
+        "symbol": "symbol"
+      }
+    },
+    {
+      "name": "summary",
+      "kind": "kv",
+      "line": "==\\d+== (?P<key>ERROR SUMMARY): (?P<value>\\S(?:.*?\\S)?)\\s*"
+    }
+  ]
+}

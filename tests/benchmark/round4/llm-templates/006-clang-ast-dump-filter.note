@@ -1,0 +1,1 @@
+Tree depth (the |- and `- glyph prefix) is the parent/child structure and cannot be a column; captured one row per node (kind, address, range, location, detail) with the glyphs left out, so the tree is flattened. The trailing attributes vary per node kind and stay in one detail column.

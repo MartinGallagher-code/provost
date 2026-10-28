@@ -1,0 +1,22 @@
+{
+  "format": 1,
+  "tool": "vim-startuptime",
+  "detect": "(?m)^times in msec\\s*$",
+  "skip": [
+    "^times in msec\\s*$"
+  ],
+  "blocks": [
+    {
+      "name": "startup",
+      "kind": "table",
+      "header": "^\\s*clock\\s+(?:self\\+sourced|elapsed)",
+      "line": "\\s*(?P<clock>\\d+\\.\\d+)\\s+(?:(?P<self_sourced>\\d+\\.\\d+)\\s+)?(?P<self>\\d+\\.\\d+):\\s+(?P<event>\\S(?:.*?\\S)?)\\s*",
+      "columns": {
+        "clock": "clock",
+        "self_sourced": "self+sourced",
+        "self": "self",
+        "event": "event"
+      }
+    }
+  ]
+}

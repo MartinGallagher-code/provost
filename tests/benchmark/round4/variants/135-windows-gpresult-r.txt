@@ -1,0 +1,97 @@
+
+Microsoft (R) Windows (R) Operating System Group Policy Result tool v2.0
+© Microsoft Corporation. All rights reserved.
+
+Created on 10/27/2026 at 2:41:07 PM
+
+
+RSOP data for FABRIKAM\svc-reporting on APP-SRV-17 : Logging Mode
+------------------------------------------------------------------
+
+OS Configuration:            Member Server
+OS Version:                  10.0.26100
+Site Name:                   Default-First-Site-Name
+Roaming Profile:             \\files01.fabrikam.example.com\profiles$\svc-reporting
+Local Profile:               C:\Users\svc-reporting
+Connected over a slow link?: No
+
+
+COMPUTER SETTINGS
+------------------
+    CN=APP-SRV-17,OU=Application Servers,OU=Servers,DC=fabrikam,DC=example,DC=com
+    Last time Group Policy was applied: 10/27/2026 at 2:12:48 PM
+    Group Policy was applied from:      dc-east-01.fabrikam.example.com
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        FABRIKAM
+    Domain Type:                        Windows 2008 or later
+
+    Applied Group Policy Objects
+    -----------------------------
+        Server Baseline 2025
+        Windows Firewall - App Tier
+        LAPS Configuration
+        Audit Policy (Advanced)
+        Default Domain Policy
+
+    The following GPOs were not applied because they were filtered out
+    -------------------------------------------------------------------
+        Workstation Baseline
+            Filtering:  Denied (Security)
+
+        RDS Session Host Settings
+            Filtering:  Denied (WMI Filter)
+            WMI Filter: RDS Hosts Only
+
+        Legacy SMBv1 Exception
+            Filtering:  Disabled (GPO)
+
+        Local Group Policy
+            Filtering:  Not Applied (Empty)
+
+    The computer is a part of the following security groups
+    -------------------------------------------------------
+        BUILTIN\Administrators
+        Everyone
+        BUILTIN\Users
+        NT AUTHORITY\NETWORK
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        APP-SRV-17$
+        Domain Computers
+        Tier1 Servers
+        Authentication authority asserted identity
+        System Mandatory Level
+
+USER SETTINGS
+--------------
+    CN=svc-reporting,OU=Service Accounts,DC=fabrikam,DC=example,DC=com
+    Last time Group Policy was applied: 10/27/2026 at 2:38:55 PM
+    Group Policy was applied from:      dc-east-02.fabrikam.example.com
+    Group Policy slow link threshold:   500 kbps
+    Domain Name:                        FABRIKAM
+    Domain Type:                        Windows 2008 or later
+
+    Applied Group Policy Objects
+    -----------------------------
+        Service Account Restrictions
+        Default Domain Policy
+
+    The following GPOs were not applied because they were filtered out
+    -------------------------------------------------------------------
+        Local Group Policy
+            Filtering:  Not Applied (Empty)
+
+    The user is a part of the following security groups
+    ---------------------------------------------------
+        Domain Users
+        Everyone
+        BUILTIN\Users
+        BUILTIN\Performance Log Users
+        NT AUTHORITY\BATCH
+        CONSOLE LOGON
+        NT AUTHORITY\Authenticated Users
+        This Organization
+        LOCAL
+        SQL Reporting Readers
+        Authentication authority asserted identity
+        High Mandatory Level

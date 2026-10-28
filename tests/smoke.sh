@@ -11,7 +11,8 @@ set -euo pipefail
 # bundled trees — that is asserted below too.)
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
       PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR \
-      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL
+      PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
+      PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY
 # From a non-interactive caller capture is synchronous by default anyway; pin
 # the foreground path explicitly for determinism. The async blocks below
 # override this with --async / env -u PROVOST_ASYNC.
@@ -444,6 +445,114 @@ if command -v python3 >/dev/null 2>&1; then
 fi
 rm -f "$COV_IN"
 
+# LLM TEMPLATES (--llm / PROVOST_LLM=1): a capture the gate holds is parsed by
+# a template Claude wrote for the tool, stored in the store or shipped with
+# provost; with an API key and no fitting template, Claude is asked to write
+# one. The API here is tests/fake_anthropic.py: no network, no key, no cost.
+check "PROVOST_LLM must be 0 or 1" "2" "$(PROVOST_LLM=2 rc_of "$PROVOST" --sync "$HERE/../extract/samples/llm-template/basic.txt")"
+check "--llm is documented" "--llm" "$("$PROVOST" inject --help 2>&1)"
+if command -v python3 >/dev/null 2>&1; then
+    LT_SAMPLE="$HERE/../extract/samples/llm-template/basic.txt"
+    LT_IN="$HERE/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt"
+    LTD="$(mktemp -d)"; LTWS="$LTD/.llm"
+    # a shipped template wins over the engine's generic parse of its tool
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$LT_SAMPLE" 2>&1)"
+    check "a shipped template reads its tool's output" "mcstatus.players  #1..9  (strategy llm-template" "$lt_out"
+    check "the template's second block is a dataset too" "mcstatus.status" "$lt_out"
+    check "meta records the template" "llm_template	filed by template mcstatus.json" "$(cat "$LTWS/captures/c0001/meta.tsv")"
+    # held, no key, no template: held as before, with why
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "with no template and no key the capture is held" "queued in 'unsorted'" "$lt_out"
+    check "the held line says the key is missing" "no API key to have Claude write one" "$lt_out"
+    # learn: Claude (the fake API) writes a template, provost checks it, files, keeps it
+    printf '%s' '{"id":"msg_1","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"cmake-cache\", \"detect\": \"^[A-Za-z0-9_.-]+:(?:STRING|BOOL|FILEPATH|PATH|INTERNAL|STATIC)=\", \"skip\": [\"^-- \", \"^// \"], \"blocks\": [{\"name\": \"entries\", \"kind\": \"table\", \"line\": \"^(?P<name>[A-Za-z0-9_.-]+):(?P<type>[A-Z]+)=(?P<value>.*)$\"}]}"}]}' > "$LTD/reply.json"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "--llm files a held capture with the template Claude wrote" "dataset 'cmake-cache' rows" "$lt_out"
+    check "the ok line says a new template was written" "read by a new template Claude wrote (llm-templates/cmake-cache.json)" "$lt_out"
+    check "the new template is committed with the capture" "llm-templates/cmake-cache.json" "$(git -C "$LTWS" show --stat HEAD 2>&1)"
+    check "the template's values are cut from the input" "CMAKE_AR	FILEPATH	/usr/bin/ar" "$(cat "$LTWS/datasets/cmake-cache.tsv")"
+    lt_req="$(head -n 1 "$LTD/log")"
+    check "the request names the API version" '"anthropic-version": "2026-10-21"' "${lt_req,,}"
+    check "the request sends the key" '"x-api-key": "k-test"' "${lt_req,,}"
+    check "the request asks for refusal fallbacks" '"fallbacks": "default"' "$lt_req"
+    check "the request names the model" '"model": "claude-opus-5-5"' "$lt_req"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    # offline: the next capture of the tool is parsed by the stored template, no API
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name cmake-cache "$LT_IN" 2>&1)"
+    check "the next capture uses the stored template, offline" "read by template cmake-cache.json" "$lt_out"
+    check "the API was called once in all" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    # a refusal: held, with the category
+    printf '%s' '{"id":"msg_2","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"refusal","stop_details":{"type":"refusal","category":"cyber","explanation":"x"},"usage":{"input_tokens":1,"output_tokens":0},"content":[]}' > "$LTD/reply.json"
+    rm -f "$LTD/port"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    printf 'Region: eu-west-1\nZone: a\n\nID    STATE\ni-1   running\n\nMODE=fast\nRETRY=3\n\nname,size\nalpha,1\n\nlast check 2026-10-19 ok\n' > "$LTD/held.txt"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name other-tool "$LTD/held.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a refusal leaves the capture held" "queued in 'unsorted'" "$lt_out"
+    check "the held line names the refusal" "the model declined this capture (refusal: cyber)" "$lt_out"
+    check_not "no template is kept after a refusal" "other-tool" "$(ls "$LTWS/llm-templates")"
+    # LLM-FIRST: a GENERIC parse the gate passed is not trusted over a template
+    # for the tool. With a key, Claude is asked before the heuristic is filed;
+    # the template wins when it keeps the input's data lines (its own skip
+    # lines aside). A title the heuristic took for data is decoration here.
+    printf 'Volumes on host alpha\nNAME     SIZE   USED   MOUNT\ndata     100G   40G    /srv/data\nbackup   2T     1.5T   /srv/backup\nscratch  500G   12G    /scratch\n' > "$LTD/vol.txt"
+    printf '%s' '{"id":"msg_3","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"volumes\", \"detect\": \"^NAME\\\\s+SIZE\\\\s+USED\\\\s+MOUNT$\", \"skip\": [\"^Volumes on host \"], \"blocks\": [{\"name\": \"volumes\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+SIZE\", \"line\": \"^(?P<name>\\\\S+)\\\\s+(?P<size>[\\\\d.]+[KMGT]?)\\\\s+(?P<used>[\\\\d.]+[KMGT]?)\\\\s+(?P<mount>/\\\\S*)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port" "$LTD/log"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a generic parse the gate passed is offered to Claude first" "1" "$(wc -l < "$LTD/log" | tr -d ' ')"
+    check "the template Claude wrote wins over the heuristic" "was passed over (the engine read it as aligned-columns, coverage 100%): a template Claude wrote for this tool fits; read by a new template Claude wrote (llm-templates/volumes.json)" "$lt_out"
+    check "the template's rows are filed" "backup	2T	1.5T	/srv/backup" "$(cat "$LTWS/datasets/volumes.tsv")"
+    check "meta records the template over the heuristic" "llm_template	filed by a new template Claude wrote (llm-templates/volumes.json)" "$(cat "$LTWS/captures/c0006/meta.tsv")"
+    # the next capture of the tool: the stored template, offline, no API
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" PROVOST_LLM_BASE_URL="http://127.0.0.1:9" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name volumes "$LTD/vol.txt" 2>&1)"
+    check "a stored template beats the heuristic offline" "read by template volumes.json" "$lt_out"
+    # without --llm the heuristic is filed as before
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --name volumes "$LTD/vol.txt" 2>&1)"
+    check "without --llm the heuristic is filed" "strategy aligned-columns" "$lt_out"
+    # with no key and no template (a fresh store), a generic parse the gate
+    # passed is filed as it was, quietly; meta.tsv records why
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.fresh" "$PROVOST" --sync --llm --name other-vols "$LTD/vol.txt" 2>&1)"
+    check "no key: the passed heuristic is filed as it was" "strategy aligned-columns" "$lt_out"
+    check_not "no key: no LLM note on a filed heuristic" "no LLM template helped" "$lt_out"
+    check "meta says why no template was used" "llm_template	declined: no stored template fits; no API key" "$(cat "$LTD/.fresh/captures/c0001/meta.tsv")"
+    # a template may not beat a CATCH-ALL parse (text-lines keeps every line)
+    # by declaring the lines it cannot read decoration: against one, its
+    # skip lines count as lost
+    printf 'The quick brown fox jumps over the lazy dog near the river bank.\nEvery morning the ferry leaves the harbour at six and returns at noon.\nNobody counted the gulls, though the keeper swore there were hundreds.\nRain came late in the season and the orchard did poorly that year.\nThe mill wheel still turns when the sluice is open, which is rarely.\nVisitors are asked to keep to the path and to close the gate.\nSummary of moorings:\nNAME     LENGTH\nkestrel  12m\nosprey   9m\n' > "$LTD/prose.txt"
+    printf '%s' '{"id":"msg_4","type":"message","role":"assistant","model":"claude-opus-5-5","stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1},"content":[{"type":"text","text":"{\"format\": 1, \"tool\": \"moorings\", \"detect\": \"^NAME\\\\s+LENGTH$\", \"skip\": [\"^[A-Z].*[.:]$\"], \"blocks\": [{\"name\": \"moorings\", \"kind\": \"table\", \"header\": \"^NAME\\\\s+LENGTH$\", \"line\": \"^(?P<name>[a-z]+)\\\\s+(?P<length>\\\\d+m)$\"}]}"}]}' > "$LTD/reply.json"
+    rm -f "$LTD/port"
+    python3 "$HERE/fake_anthropic.py" "$LTD/port" "$LTD/log" "$LTD/reply.json" & LT_PID=$!
+    for _ in $(seq 1 50); do [[ -s "$LTD/port" ]] && break; sleep 0.1; done
+    LT_URL="http://127.0.0.1:$(cat "$LTD/port")"
+    lt_out="$(PROVOST_WORKSPACE="$LTD/.fresh" PROVOST_LLM_BASE_URL="$LT_URL" PROVOST_LLM_API_KEY=k-test \
+        "$PROVOST" --sync --llm --name moorings "$LTD/prose.txt" 2>&1)"
+    kill "$LT_PID" 2>/dev/null || true; wait "$LT_PID" 2>/dev/null || true
+    check "a template that skips what text-lines kept does not replace it" "strategy text-lines" "$lt_out"
+    check "meta says the template lost lines" "the template Claude wrote fails the gate: its 1 block(s) keep 30% of the input's data lines, <80%" "$(cat "$LTD/.fresh/captures/c0002/meta.tsv")"
+    check_not "such a template is not kept" "moorings" "$(ls "$LTD/.fresh/llm-templates" 2>/dev/null)"
+    # FORMAT 2: a template that is a small Python parser, for records that
+    # span lines (ip-addr.json ships with provost), run in the sandbox
+    lt_out="$(PROVOST_WORKSPACE="$LTWS" "$PROVOST" --sync --llm "$HERE/../extract/samples/llm-template/nested.txt" 2>&1)"
+    check "a shipped parser template reads multi-line records" "read by template ip-addr.json" "$lt_out"
+    check "the parser's blocks are the capture's datasets" "ip-addr.addresses" "$lt_out"
+    check "a record is built from several lines" "enp3s0	inet	10.20.30.7/24	global	85211sec	85211sec	10.20.30.255	dynamic,noprefixroute" "$(cat "$LTWS/datasets/ip-addr.addresses.tsv")"
+    check "a parser that reaches outside the box is refused" "imports os" "$(printf '{"format": 2, "tool": "x", "detect": "^a", "parser": "import os\\ndef parse(l): return []"}' > "$LTD/bad.json"; python3 "$HERE/../extract/llm/template.py" apply "$LTD/bad.json" "$LTD/vol.txt" 2>&1)"
+fi
+
 # The engine's legacy .provostrc layer is OFF under provost (PROVOST_NO_RC=1): a
 # .provostrc in the CWD cannot reconfigure a capture. A probe strategy records
 # what the engine process saw.
@@ -685,7 +794,7 @@ MAN="$HERE/../man/provost.1"
 while IFS= read -r v; do
     case "$v" in PROVOST_VERSION|PROVOST_ROOT|PROVOST_WORKSPACE_EXPLICIT|PROVOST_STORE_KIND|PROVOST_TEMP_DIR \
         |PROVOST_NO_RC|PROVOST_ANALYZE_SUPPRESS_AWK_WARNING|PROVOST_MULTI_TEXT_DIR \
-        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS) continue ;; esac  # set for the engines, not by users
+        |PROVOST_LM_ENGINE_WIDE|PROVOST_LM_ENGINE_META|PROVOST_LM_RECORDS|PROVOST_LLM_RECORDS) continue ;; esac  # set for the engines, not by users
     check "help documents $v" "$v" "$help_out"
     check "man page documents $v" "$v" "$(cat "$MAN")"
 done < <(grep -o 'PROVOST_[A-Z_]*' "$PROVOST" | sort -u)
