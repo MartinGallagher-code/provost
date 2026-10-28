@@ -1,5 +1,19 @@
 # provost — Changelog
 
+## 2026-10-28 — `provost search`, on git grep
+
+- **`search PATTERN [NAME...]`** (`cmd_search`, alias `find`): `git grep`
+  over the store's datasets, shown as a table per dataset under its header.
+  The pattern is matched anywhere in the row, so a capture id finds that
+  capture's rows. `-i`, `-F`, `-w`, and `-e` for a pattern starting with a
+  dash. `--at ID` searches the store as it stood after capture ID (the
+  capture's commit; no checkout). `--output` searches the captured outputs
+  (`captures/*/output.txt`: capture, line, text). `--files` searches a
+  controlled directory's files as the latest run kept them (`files-<id>`;
+  with `--at`, that run's). The triage bucket is base64 and is left out:
+  `--output` reaches its text.
+- **Tests (`tests/smoke.sh`):** +11.
+
 ## 2026-10-28 — Browsing runs: `show --capture/--at`, `source ID`, `next`/`prev`, `files`, `diff`
 
 For using provost as a test runner, where every run should stay viewable.

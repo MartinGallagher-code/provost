@@ -1024,5 +1024,19 @@ check "diff lists the files that changed" "new.txt" "$bs"
 check "with the dataset rows" "  + t1	FAIL" "$bs"
 check "diff -- PATH shows that file's changes" "+v = 2" "$(fr diff c1 c2 -- m.py)"
 
+# search: git grep over the store's rows, outputs and run files.
+bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL 2>&1)"
+check "search finds the matching rows, named by dataset" "tests (1 row)" "$bs"
+check "under the dataset's header" "#	capture	n	TEST	STATUS" "$bs"
+check "with the row itself" "4	c0002	2	t2	FAIL" "$bs"
+check "search -i ignores case" "tests (5 rows)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -i pass 2>&1)"
+check "search NAME limits it to that dataset" "no dataset rows match 'a'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -w a tests 2>&1)"
+check "a capture id finds that capture's rows" "other (1 row)" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search c0004 2>&1)"
+check "search --at reads the store as it stood then" "no dataset rows match 'FAIL' at c0001" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL --at 1 2>&1)"
+check "search --output finds a line of captured output" "c0004	1	a=1" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search --output 'a=' 2>&1)"
+check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" "$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search -e -x 2>&1)"
+check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
+check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

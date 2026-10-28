@@ -1940,6 +1940,19 @@ usage: provost files [ID] [PATH] [--to DIR]
   into DIR, a new or empty directory.
 EOF
             ;;
+        search) cat <<'EOF'
+usage: provost search PATTERN [NAME...] [options]
+  Find the dataset rows that match PATTERN (a regular expression, matched
+  anywhere in the row, '#' and capture included) with git grep, shown as a
+  table per dataset. NAME... limits it to those datasets.
+options:
+  -i, -F, -w              ignore case / a fixed string / whole words
+  --at ID                 search the store as it stood after capture ID
+  --output                search the captured outputs instead (capture, line, text)
+  --files                 search a controlled directory's files as the latest
+                          run kept them (or capture ID's, with --at)
+EOF
+            ;;
         diff) cat <<'EOF'
 usage: provost diff [NAME] [A [B]] [-- PATH...]
   What changed between capture A and capture B: for each dataset, the rows
@@ -2280,6 +2293,78 @@ cmd_files () {
         _git ls-tree -r -l --full-tree "$ref" ${path:+-- "$path"} \
             | awk -F'\t' '{ split($1, m, " "); printf "%10s  %s\n", m[4], $2 }'
     fi
+}
+
+# ---------------------------------------------------------------------------
+# search — git grep over the store: dataset rows (default), the captured
+# outputs (--output), or a controlled directory's run files (--files); as the
+# store stands, or as it stood after a capture (--at).
+# ---------------------------------------------------------------------------
+cmd_search () {
+    local pat="" what=rows at="" v
+    local -a gopt=() names=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help) _cmd_help search ;;
+            -i|--ignore-case) gopt+=(-i); shift ;;
+            -F|--fixed-strings) gopt+=(-F); shift ;;
+            -w|--word-regexp) gopt+=(-w); shift ;;
+            --output) what=output; shift ;;
+            --files) what=files; shift ;;
+            --at) [[ $# -ge 2 ]] || usage_die "--at needs a capture id (e.g. c0007)."
+                  at="$(_capid_of "$2")" || usage_die "invalid capture id '$2' (expected e.g. c0007 or 7)."
+                  shift 2 ;;
+            -e) [[ $# -ge 2 && -z "$pat" ]] || _cmd_usage_die search; pat="$2"; shift 2 ;;
+            --) shift; if [[ -z "$pat" && $# -gt 0 ]]; then pat="$1"; shift; fi; names+=("$@"); break ;;
+            -?*) usage_die "unknown option for 'search': $1 (see 'provost search --help')." ;;
+            *) if [[ -z "$pat" ]]; then pat="$1"; else _require_name "$1"; names+=("$1"); fi; shift ;;
+        esac
+    done
+    [[ -n "$pat" ]] || _cmd_usage_die search
+    [[ -d "$PROVOST_WORKSPACE/.git" ]] || die "no store yet — capture something first."
+    local rev=HEAD
+    if [[ "$what" == files ]]; then
+        (( ${#names[@]} == 0 )) || usage_die "--files searches every file a run kept; leave out dataset names."
+        if [[ -z "$at" ]]; then at="$(_latest_files_id)"
+            [[ -n "$at" ]] || die "no run files yet — they are kept for captures made in a controlled directory (see 'provost control')."
+        fi
+        _git rev-parse -q --verify "refs/tags/files-$at" >/dev/null 2>&1 || die "capture $at kept no files (see 'provost files')."
+        info "files of $at matching '$pat' (path:line:text):"
+        _git grep -I -n "${gopt[@]}" -e "$pat" "files-$at" -- 2>/dev/null | sed "s/^files-$at://"
+        return 0
+    fi
+    if [[ -n "$at" ]]; then
+        _git rev-parse -q --verify "refs/tags/capture-$at" >/dev/null 2>&1 || die "no such capture: $at (see 'provost log')."
+        rev="capture-$at"
+    fi
+    _mktempd search; local hits="$_MKTEMPD/hits"
+    if [[ "$what" == output ]]; then
+        _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- 'captures/*/output.txt' > "$hits" 2>/dev/null || true
+        [[ -s "$hits" ]] || { info "no captured output matches '$pat'."; return 0; }
+        # REV:captures/<id>/output.txt:LINE:TEXT -> capture, line, text
+        R="$rev:" awk 'BEGIN { r = ENVIRON["R"]; print "capture\tline\ttext" }
+            { s = substr($0, length(r) + 1); i = index(s, ":"); p = substr(s, 1, i - 1); s = substr(s, i + 1)
+              j = index(s, ":"); split(p, P, "/"); print P[2] "\t" substr(s, 1, j - 1) "\t" substr(s, j + 1) }' "$hits" | _table
+        return 0
+    fi
+    local -a spec=()
+    if (( ${#names[@]} )); then for v in "${names[@]}"; do spec+=("datasets/$v.tsv"); done
+    else spec=(datasets ':(exclude)datasets/unsorted.tsv'); fi
+    _git grep -I -n "${gopt[@]}" -e "$pat" "$rev" -- "${spec[@]}" > "$hits" 2>/dev/null || true
+    # REV:datasets/NAME.tsv:LINE:ROW — line 1 is the header, not a row.
+    R="$rev:" awk -v OFS='\t' 'BEGIN { r = ENVIRON["R"] }
+        { s = substr($0, length(r) + 1); i = index(s, ":"); p = substr(s, 1, i - 1); s = substr(s, i + 1)
+          j = index(s, ":"); if (substr(s, 1, j - 1) == 1) next
+          sub(/^datasets\//, "", p); sub(/\.tsv$/, "", p); print p, substr(s, j + 1) }' "$hits" > "$hits.rows"
+    [[ -s "$hits.rows" ]] || { info "no dataset rows match '$pat'${at:+ at $at}."; return 0; }
+    local ds prev="" first=1
+    while IFS= read -r ds; do
+        (( first )) || echo; first=0
+        printf '%s (%s row%s)\n' "$ds" "$(awk -F'\t' -v d="$ds" '$1 == d { n++ } END { print n }' "$hits.rows")" \
+            "$(awk -F'\t' -v d="$ds" '$1 == d { n++ } END { print (n == 1 ? "" : "s") }' "$hits.rows")"
+        { _git show "$rev:datasets/$ds.tsv" 2>/dev/null | head -n 1
+          awk -F'\t' -v d="$ds" '$1 == d { print substr($0, length(d) + 2) }' "$hits.rows"; } | _table
+    done < <(cut -f1 "$hits.rows" | awk '!seen[$0]++')
 }
 
 # ---------------------------------------------------------------------------
@@ -3250,6 +3335,7 @@ main () {
         next|prev)     cmd_step "$@" ;;
         files)         shift; cmd_files "$@" ;;
         diff)          shift; cmd_diff "$@" ;;
+        search|find)   shift; cmd_search "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
         rm|delete|drop) shift; cmd_rm "$@" ;;
