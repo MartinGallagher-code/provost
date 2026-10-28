@@ -1,0 +1,70 @@
+{
+ "format": 1,
+ "tool": "bun-test",
+ "detect": "^bun test v\\d",
+ "skip": [
+  "^bun test v\\d",
+  "^\\S+\\.(?:test|spec)\\.[\\w.]+:$",
+  "^\\s*\\d+ \\| ",
+  "^\\s+\\^\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "results",
+   "kind": "table",
+   "line": "^\\((?P<status>pass|fail|skip|todo)\\) (?P<test>.+?)(?: \\[(?P<duration>[\\d.]+\\s*m?s)\\])?$",
+   "columns": {
+    "status": "status",
+    "test": "test",
+    "duration": "duration"
+   }
+  },
+  {
+   "name": "errors",
+   "kind": "table",
+   "line": "^error: (?P<error>.+)$",
+   "columns": {
+    "error": "error"
+   }
+  },
+  {
+   "name": "assertion_values",
+   "kind": "table",
+   "line": "^(?P<kind>(?:Expected|Received)(?: [a-z][\\w ]*?)?): (?P<value>.*)$",
+   "columns": {
+    "kind": "kind",
+    "value": "value"
+   }
+  },
+  {
+   "name": "locations",
+   "kind": "table",
+   "line": "^\\s+at (?P<function>.+?) \\((?P<file>.+?):(?P<line>\\d+):(?P<column>\\d+)\\)$",
+   "columns": {
+    "function": "function",
+    "file": "file",
+    "line": "line",
+    "column": "column"
+   }
+  },
+  {
+   "name": "run_summary",
+   "kind": "table",
+   "line": "^Ran (?P<tests>\\d+) tests? across (?P<files>\\d+) files?\\. \\[(?P<duration>[^\\]]+)\\]$",
+   "columns": {
+    "tests": "tests",
+    "files": "files",
+    "duration": "duration"
+   }
+  },
+  {
+   "name": "summary",
+   "kind": "kv",
+   "line": "^\\s*(?P<value>\\d+) (?P<key>pass|skip|todo|fail|expect\\(\\) calls|snapshots?|errors?)$"
+  }
+ ],
+ "examples": [
+  "bun test v1.3.11 (af24e281)\n\nslug.test.js:\n2 | import { slug } from './slug.js';\n3 | \n4 | describe('slug', () => {\n5 |   test('lowercases', () => { expect(slug('Hello World')).toBe('hello-world'); });\n6 |   test('strips accents', () => { expect(slug('Crème Brûlée')).toBe('creme-brulee'); });\n7 |   test('handles ß', () => { expect(slug('Straße')).toBe('strasse'); });\n                                                      ^\nerror: expect(received).toBe(expected)\n\nExpected: \"strasse\"\nReceived: \"stra-e\"\n\n      at <anonymous> (/home/dev/slug/slug.test.js:7:51)\n(fail) slug > handles ß [45.67ms]\n 6 |   test('strips accents', () => { expect(slug('Crème Brûlée')).toBe('creme-brulee'); });\n 7 |   test('handles ß', () => { expect(slug('Straße')).toBe('strasse'); });\n 8 |   test.skip('emoji', () => {});\n 9 |   test.todo('cjk transliteration');\n10 |   describe('edges', () => {\n11 |     test('trims dashes', () => { expect(slug('  --a--  ')).toBe('a'); });\n                                                                ^\nerror: expect(received).toBe(expected)\n\nExpected: \"a\"\nReceived: \"-a-\"\n\n      at <anonymous> (/home/dev/slug/slug.test.js:11:60)\n(fail) slug > edges > trims dashes [0.14ms]\n\n 3 pass\n 1 skip\n 1 todo\n 2 fail\n 5 expect() calls\nRan 7 tests across 1 file. [1.67s]",
+  "bun test v1.2.23 (cf136713)\n\ntests/price.test.ts:\n3 | \n4 | describe('formatPrice', () => {\n5 |   test('pads cents', () => { expect(formatPrice(1205)).toBe('12.05'); });\n6 |   test('groups thousands', () => { expect(formatPrice(123456789)).toBe('1,234,567.89'); });\n7 |   test('negative', () => { expect(formatPrice(-50)).toBe('-0.50'); });\n                                                        ^\nerror: expect(received).toBe(expected)\n\nExpected: \"-0.50\"\nReceived: \"0.-50\"\n\n      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:7:53)\n(fail) formatPrice > negative [3.08ms]\n 8 | });\n 9 | \n10 | describe('parsePrice', () => {\n11 |   test('plain', () => { expect(parsePrice('3.10')).toBe(310); });\n12 |   test('with currency sign', () => { expect(parsePrice('$7.99')).toBe(799); });\n                                                                      ^\nerror: expect(received).toBe(expected)\n\nExpected: 799\nReceived: NaN\n\n      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:12:66)\n(fail) parsePrice > with currency sign [0.21ms]\n15 | \n16 | describe('splitTotal', () => {\n17 |   test('even split', () => { expect(splitTotal(900, 3)).toEqual([300, 300, 300]); });\n18 |   test('remainder goes first', () => { expect(splitTotal(1000, 3)).toEqual([334, 333, 333]); });\n19 |   test('drops zero shares', () => { expect(splitTotal(2, 4)).toHaveLength(2); });\n                                                                  ^\nerror: expect(received).toHaveLength(expected)\n\nExpected length: 2\nReceived length: 4\n\n      at <anonymous> (/srv/ci/workspace/shop-utils/tests/price.test.ts:19:62)\n(fail) splitTotal > drops zero shares [0.09ms]\n\n 5 pass\n 1 skip\n 3 fail\n 8 expect() calls\nRan 9 tests across 1 file. [212.00ms]"
+ ]
+}

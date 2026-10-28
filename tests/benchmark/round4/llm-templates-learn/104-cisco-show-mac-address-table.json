@@ -1,0 +1,32 @@
+{
+ "format": 1,
+ "tool": "cisco-show-mac-address-table",
+ "detect": "Mac Address Table|Vlan\\s+Mac Address\\s+Type\\s+Ports",
+ "skip": [
+  "^\\S+#",
+  "^\\s*Mac Address Table\\s*$",
+  "^[-\\s]+$"
+ ],
+ "blocks": [
+  {
+   "name": "mac_addresses",
+   "kind": "table",
+   "header": "^\\s*Vlan\\s+Mac Address\\s+Type\\s+Ports",
+   "line": "^\\s*(?P<vlan>\\S+)\\s+(?P<mac>[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4})\\s+(?P<type>\\S+)\\s+(?P<ports>\\S(?:.*?\\S)?)\\s*$",
+   "columns": {
+    "vlan": "Vlan",
+    "mac": "Mac Address",
+    "type": "Type",
+    "ports": "Ports"
+   }
+  },
+  {
+   "name": "summary",
+   "kind": "kv",
+   "line": "^\\s*(?P<key>Total Mac Addresses[^:]*):\\s*(?P<value>\\d+)\\s*$"
+  }
+ ],
+ "examples": [
+  "sw-acc-3f#show mac address-table\n          Mac Address Table\n-------------------------------------------\n\nVlan    Mac Address       Type        Ports\n----    -----------       --------    -----\n All    0100.0ccc.cccc    STATIC      CPU\n All    0100.0ccc.cccd    STATIC      CPU\n All    0180.c200.0000    STATIC      CPU\n All    ffff.ffff.ffff    STATIC      CPU\n   1    0019.e7a1.5c40    DYNAMIC     Gi1/0/48\n  10    3c52.821a.7f04    DYNAMIC     Gi1/0/3\n  10    9cb6.d044.21e8    DYNAMIC     Gi1/0/7\n  10    0015.5d0a.1201    DYNAMIC     Gi1/0/7\n  20    00e0.4c68.319a    DYNAMIC     Gi1/0/12\n  20    a483.e71d.4420    STATIC      Gi1/0/14\n  99    0019.e7a1.5c41    DYNAMIC     Po1\n 120    5254.0012.3456    DYNAMIC     Gi1/0/22\nTotal Mac Addresses for this criterion: 12\nsw-acc-3f#"
+ ]
+}

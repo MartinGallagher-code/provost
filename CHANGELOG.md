@@ -1,5 +1,100 @@
 # provost — Changelog
 
+## 2026-10-27 — `--llm` clean-up: values keep to their cells, lines set aside go to `NAME.notes`
+
+A clean-up after extraction, asked for after part 6 (part 7 of
+`docs/benchmark-2026-10-27-llm-templates-round4.md`). The ratings said
+information dropped outnumbers junk left in about four to one, so it moves
+rather than deletes.
+
+- **Values keep to their cells** (`extract/llm/template.py` `_cell`, in
+  `flat_records`): a tab, CR or newline inside a template's value becomes a
+  space, as the engine's `_clean_value` does (no trim: a parser keeps an
+  indent on purpose). A format-2 parser that joined a multi-line body into
+  one value made each continuation line a field of its own, repeated on
+  every row: this was all four first-contact FAILs that read as junk
+  columns (go doc, pydoc, pytest, klog).
+- **`NAME.notes`** (`template.py` `notes`, `write_blocks`; `provost`
+  `_ingest`): the lines a template drops as decoration or does not read
+  that still carry a word or a number are filed beside its datasets as
+  `NAME.notes` (`line`, `kind` skipped|unread, `text`). Rules and box
+  glyphs alone are still dropped.
+- **The catch-all guard** (`_llm_file`): skipped lines no longer count as
+  lost against `text-lines` / `line-records` (they are in the notes); the
+  template still has to read 80% of the lines it does not set aside.
+- **Not built, on evidence:** no rule-only or repeated-header rows in any of
+  602 template tables on round 4; the 65 all-empty columns are the tool's
+  schema, so dropping them would change a dataset's shape between captures.
+- **Measured, blind** (`round4/ratings-learn-cleanup.tsv`,
+  `round4/ratings-variants-learn-cleanup.tsv`; new templates in
+  `round4/llm-templates-learn-cleanup/` and `-cleanup-repaired/`): first
+  contact **87 / 18 / 2 (81% PASS, 98% usable)**, from 66 / 30 / 11; the
+  whole pipeline's second capture **83 / 22 / 2 (78%, 98%)**, from 66 / 35
+  / 6. No rated output went down. What is left is structure (a parent not
+  kept, a record split across tables) and two gate rules (the `yaml`
+  exemption, the fragments rule).
+- **Tests:** unit +3; smoke 310 → 315. Help, man page, README.
+
+## 2026-10-27 — `--llm`: first contact through the real API, and template repair on a miss
+
+- **Template repair (`extract/llm/template.py`, `provost` `_llm_template`):**
+  a template now keeps the captures it was written from (`"examples"`:
+  `learn` stores its capture, repair appends; at most 3, the first and the
+  latest). With a key, a stored template that meets **a kind of line it has
+  not met** on a new capture (`misses`: left unread, or dropped by a skip
+  pattern; a kind is the line's first word as printed and the shape of the
+  rest, so another host in a banner is not new) goes back to Claude once
+  (`repair`: the template, its examples, the new capture, the lines listed).
+  The extension is kept only if it covers the new capture at least as well
+  (and 80%) and still reads every line of the examples the template read
+  (one more try with what fell short), then passes the same gate; it
+  replaces the store's copy and is committed with the capture. Otherwise
+  the template is used as it was, and a failed repair does not also start
+  the template over. An unchanged reply is accepted and the capture
+  remembered, so it is not sent again. New verbs `misses`, `repair`;
+  help and man page (REPAIR in LLM TEMPLATES).
+- **`call_claude`:** retries a 408/409/429/5xx reply, a timeout or a dropped
+  connection (3 more tries, honouring `retry-after`); not a refused
+  connection or a bad request. **`PROVOST_LLM_LOG`** (help, man page): one
+  JSON line per reply (purpose, tool, model, usage, seconds).
+- **`tests/benchmark/llm_round.sh`:** `--learn` keeps the key (the CLI
+  writes or repairs templates itself, and every reply is logged to
+  `outdir/llm-log.jsonl`), `--examples DIR` gives offered templates their
+  original capture, `--jobs N` runs inputs in parallel.
+- **Tests:** `ml/tests/test_llm_template.py` +11 (misses and kinds; an
+  extension accepted, refused after a second try, returned unchanged; the
+  examples cap; retries; the usage log; learn keeps its capture);
+  `tests/smoke.sh` 293 → 307 (an extension through the fake API and
+  offline reuse after it; a refused extension leaves the template as it
+  was).
+- **Part 4, first contact** (`docs/benchmark-2026-10-27-llm-templates-round4.md`;
+  `round4/ratings-learn.tsv`, `round4/llm-templates-learn/`): every round-4
+  input through `provost --llm` with a key and no stored template, Claude
+  writing each template (claude-opus-5-5, effort medium, two attempts):
+  108 calls, $5.20; 98 filed by the new template. Rated blind: **66 PASS /
+  30 PARTIAL / 11 FAIL (62% PASS, 90% usable)**, against the engine's
+  12 / 51 / 44 and the iterated helpers' 86 / 18 / 3. Of the 41 short: 9
+  are the gate (7 templates declined by the catch-all guard), about 15
+  are information put in `skip` (banners with versions, summary lines),
+  about 9 lost structure, 4 FAILs a parser turning continuation lines
+  into columns.
+- **Part 5, repair on the second capture** (`round4/ratings-variants-repair.tsv`,
+  `round4/llm-templates-repaired/`): part 3 again with a key, so repair
+  runs: 26 repairs + 1 learn, $1.51; 13 templates extended, 9 sent back
+  unchanged, 4 extensions refused by the gate. **73 / 28 / 6 (68% PASS,
+  94% usable), against part 3's 65 / 32 / 10**; systemd-delta's swallowed
+  diff is read now; logs go from 4 to 9 PASS of 19. The losses left are
+  lines a pattern matches and misreads, which no count sees.
+- **Part 6, the whole pipeline** (`round4/ratings-variants-learn.tsv`,
+  `round4/llm-templates-learn-repaired/`): the templates `learn` wrote on
+  first contact, on the second captures with repair on: 34 calls ($1.87;
+  73 captures offline). **66 / 35 / 6 (62% PASS, 94% usable)**: the
+  learned templates hold their first-contact PASS count on output they
+  were not written from (7 lost, 7 gained), and FAILs fall from 11 to 6.
+- **The record says which a repair was:** `repair` prints `extended` or
+  `unchanged`, and `llm_template` reads "which Claude extended for …" or
+  "which Claude checked for … and left as it was" (smoke 307 → 310).
+
 ## 2026-10-27 — `PROVOST_LLM_API_KEY` is the key name to use; `llm_round.sh --inputs`
 
 - **Docs (`provost` help, `man/provost.1`, `README.md`):** prefer

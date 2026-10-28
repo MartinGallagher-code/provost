@@ -35,13 +35,16 @@ indented attribute blocks, section titles that become a column):
 records), and runs in sandbox.py: a separate interpreter with a whitelist of
 builtins and imports, a CPU and memory limit, no files and no network.
 
-    python3 template.py apply TEMPLATE INPUT [--out DIR]   # blk.N.txt / blk.N.rec per block
+    python3 template.py apply TEMPLATE INPUT [--out DIR]   # blk.N.txt / blk.N.rec per block, notes.tsv
     python3 template.py find INPUT [--dirs D1:D2]          # the best stored template for INPUT
     python3 template.py learn INPUT --out TEMPLATE [--tool NAME]   # ask Claude (needs a key)
     python3 template.py key INPUT [--name NAME]            # the template file name for INPUT
+    python3 template.py misses TEMPLATE INPUT              # line kinds in INPUT the template has not met
+    python3 template.py repair TEMPLATE INPUT --out NEW [--tool NAME]   # ask Claude to extend it
 
-`learn` sends the capture's text to the Anthropic API: provost only runs it
-under --llm. Stdlib only.
+`learn` and `repair` send the capture's text (and repair, the captures a
+template was written from: its "examples") to the Anthropic API: provost only
+runs them under --llm with a key. Stdlib only.
 """
 import argparse
 import hashlib
@@ -50,6 +53,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -65,6 +69,7 @@ MAX_LINES = 400          # learn: larger captures are not sent
 MAX_BYTES = 64 * 1024
 MAX_LINE = 4096          # apply: longer lines are uncovered (keeps regexes cheap)
 MIN_COVERAGE = 0.8       # a learned template must cover this share of its capture
+RETRIES = 3              # learn: more tries on a rate limit, an overload or a dropped connection
 API_VERSION = "2026-10-21"
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 _KEYCHARS = re.compile(r"[^\w.%()/+#@-]+")
@@ -214,6 +219,21 @@ def _run_parser(ct, lines):
     return blocks, used, skip, nonblank
 
 
+_CELL = re.compile(r"[\t\r\n]")
+_WORD = re.compile(r"[^\W_]")      # a letter or a digit, in any script
+
+
+def _cell(v):
+    """A value kept to its cell: a tab, CR or newline inside it becomes one
+    space, as the engine's _clean_value does. The flat format is one field
+    per line and the tidy output is TSV: a parser that joins a multi-line
+    body into one value (an `err=<` block, a docstring) would otherwise make
+    each continuation line a field of its own, repeated on every row. Unlike
+    _clean_value it does not trim: a parser keeps a source line's indent or
+    a whitespace-only text node on purpose."""
+    return _CELL.sub(" ", v) if isinstance(v, str) else v
+
+
 def flat_records(block):
     """The engine's flat format: `entryN.col value` lines + total_entries for
     a table, `key value` lines for a kv block (a repeated key gets _2, _3)."""
@@ -222,16 +242,29 @@ def flat_records(block):
         for rec in block["records"]:
             for k, v in rec.items():
                 seen[k] = seen.get(k, 0) + 1
-                out.append(f"{k if seen[k] == 1 else f'{k}_{seen[k]}'} {v}")
+                out.append(f"{k if seen[k] == 1 else f'{k}_{seen[k]}'} {_cell(v)}")
         return out
     out = []
     for n, rec in enumerate(block["records"], 1):
-        out += [f"entry{n}.{k} {v}" for k, v in rec.items()]
+        out += [f"entry{n}.{k} {_cell(v)}" for k, v in rec.items()]
     out.append(f"total_entries {len(block['records'])}")
     return out
 
 
-def write_blocks(blocks, lines, out_dir, tool=""):
+def notes(ct, lines, classified=None):
+    """The lines a template drops as decoration (skip) or does not read that
+    still carry a word or a number: a title, a version banner, a summary
+    count, a warning or an error between the rows. provost files them
+    beside the template's datasets (NAME.notes), so a line that carries
+    information is set aside, never lost; a line of rules, box glyphs or
+    carets alone is decoration. CLASSIFIED is _classify's result when the
+    caller has it. -> [{line, kind, text}], line numbered from 1."""
+    read, skip, unread = classified or _classify(ct, lines)
+    return [{"line": str(j + 1), "kind": "skipped" if j in skip else "unread", "text": _cell(lines[j]).strip()}
+            for j in sorted(skip | unread) if _WORD.search(lines[j])]
+
+
+def write_blocks(blocks, lines, out_dir, tool="", notes_=()):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "tool"), "w", encoding="utf-8") as fh:
         fh.write(_name(tool) + "\n" if tool else "")
@@ -242,6 +275,13 @@ def write_blocks(blocks, lines, out_dir, tool=""):
             fh.write("".join(r + "\n" for r in flat_records(b)))
         with open(os.path.join(out_dir, f"blk.{n}.name"), "w", encoding="utf-8") as fh:
             fh.write(b["name"] + "\n")
+    # notes.tsv is already tidy (line, kind, text): provost files it as is
+    path = os.path.join(out_dir, "notes.tsv")
+    if notes_:
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("line\tkind\ttext\n" + "".join(f"{r['line']}\t{r['kind']}\t{r['text']}\n" for r in notes_))
+    elif os.path.exists(path):
+        os.remove(path)
 
 
 def load(path):
@@ -288,9 +328,27 @@ def _api_key():
     return os.environ.get("PROVOST_LLM_API_KEY") or os.environ.get("ANTHROPIC_API_KEY") or ""
 
 
-def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300):
+def _log_call(msg, purpose, tool, secs):
+    """PROVOST_LLM_LOG names a file that gets one JSON line per API reply
+    (what it was for, the tool, the model that answered, its usage): the
+    cost of a run can be added up afterwards."""
+    path = os.environ.get("PROVOST_LLM_LOG")
+    if not path:
+        return
+    rec = {"purpose": purpose, "tool": tool, "model": msg.get("model"), "stop_reason": msg.get("stop_reason"),
+           "usage": msg.get("usage"), "seconds": round(secs, 1)}
+    try:
+        with open(path, "a", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec) + "\n")
+    except OSError:
+        pass
+
+
+def call_claude(system, messages, model, effort="medium", max_tokens=16000, timeout=300,
+                purpose="", tool=""):
     """One Messages API request over plain HTTP (no SDK: provost stays
-    dependency-free). Returns the reply's text; raises TemplateError."""
+    dependency-free), retried on a rate limit, an overload or a dropped
+    connection. Returns the reply's text; raises TemplateError."""
     k = _api_key()
     if not k:
         raise TemplateError("no API key (set PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY)")
@@ -304,17 +362,34 @@ def call_claude(system, messages, model, effort="medium", max_tokens=16000, time
                                  headers={"content-type": "application/json", "x-api-key": k,
                                           "anthropic-version": API_VERSION,
                                           "anthropic-beta": FALLBACK_BETA})
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            msg = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as exc:
+    for attempt in range(RETRIES + 1):
+        t0 = time.monotonic()
         try:
-            detail = json.loads(exc.read().decode("utf-8")).get("error", {}).get("message", "")
-        except (ValueError, OSError):
-            detail = ""
-        raise TemplateError(f"the API answered {exc.code}" + (f": {detail}" if detail else "")) from None
-    except (urllib.error.URLError, OSError, ValueError) as exc:
-        raise TemplateError(f"the API could not be reached: {exc}") from None
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                msg = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            try:
+                detail = json.loads(exc.read().decode("utf-8")).get("error", {}).get("message", "")
+            except (ValueError, OSError):
+                detail = ""
+            err = f"the API answered {exc.code}" + (f": {detail}" if detail else "")
+            if exc.code not in (408, 409, 429) and exc.code < 500:
+                raise TemplateError(err) from None
+            try:
+                wait = float(exc.headers.get("retry-after") or 0)
+            except (TypeError, ValueError):
+                wait = 0.0
+        except (urllib.error.URLError, OSError, ValueError) as exc:
+            err, wait = f"the API could not be reached: {exc}", 0.0
+            # a timeout or a dropped connection is worth another try; a refused
+            # connection, a bad address or a garbled reply is not
+            if not isinstance(getattr(exc, "reason", exc), (TimeoutError, ConnectionResetError)):
+                raise TemplateError(err) from None
+        if attempt == RETRIES:
+            raise TemplateError(err) from None
+        time.sleep(min(60.0, max(wait, 2.0 * 2 ** attempt)))
+    _log_call(msg, purpose, tool, time.monotonic() - t0)
     if msg.get("stop_reason") == "refusal":
         cat = (msg.get("stop_details") or {}).get("category") or "unspecified"
         raise TemplateError(f"the model declined this capture (refusal: {cat})")
@@ -334,31 +409,57 @@ def _parse(text):
         raise TemplateError(f"the reply is not JSON: {exc}") from None
 
 
-def _report(lines, t):
-    """Why a template falls short on its own capture, for a second try."""
-    ct = compile_template(t)
+def _classify(ct, lines):
+    """-> (read, skipped, unread): the indexes of the non-blank lines a
+    compiled template takes as header or data lines, drops as decoration
+    (skip), and leaves unread."""
+    nonblank = {j for j, ln in enumerate(lines) if ln.strip()}
     if ct["format"] == 2:
         blocks, used, skip, nonblank = _run_parser(ct, lines)
-        return len(used | skip) / max(1, len(nonblank)), sorted(nonblank - used - skip)
-    blocks, cov, nb, _ = apply(ct, lines)
-    used = {j for b in blocks for j in b["lines"]}
-    miss = [j for j, ln in enumerate(lines) if ln.strip() and j not in used
-            and not any(s.search(ln) for s in ct["skip"])]
-    return cov / max(1, nb), miss
+        return used, skip, nonblank - used - skip
+    read, skip = set(), set()
+    for j in nonblank:
+        ln = lines[j]
+        if len(ln) > MAX_LINE:
+            continue
+        if any(s.search(ln) for s in ct["skip"]):
+            skip.add(j)
+        elif any((b["header"] is not None and b["header"].search(ln)) or b["line"].fullmatch(ln)
+                 for b in ct["blocks"]):
+            read.add(j)
+    return read, skip, nonblank - read - skip
+
+
+def _cover(read, skip, unread):
+    return (len(read) + len(skip)) / max(1, len(read) + len(skip) + len(unread))
+
+
+def _report(lines, t):
+    """Why a template falls short on its own capture, for a second try."""
+    read, skip, unread = _classify(compile_template(t), lines)
+    return _cover(read, skip, unread), sorted(unread)
+
+
+def _too_large(lines):
+    if len(lines) > MAX_LINES or sum(len(ln) + 1 for ln in lines) > MAX_BYTES:
+        raise TemplateError(f"the capture is too large to send (over {MAX_LINES} lines or {MAX_BYTES // 1024} KB)")
+
+
+def _numbered(lines, idx):
+    return "\n".join(f"{j} |{lines[j]}" for j in idx)
 
 
 def learn(lines, tool="", model="claude-opus-5-5"):
     """Ask Claude for a template for this capture, check it on the capture,
     and give it one more try with the lines it missed. -> template dict."""
-    if len(lines) > MAX_LINES or sum(len(ln) + 1 for ln in lines) > MAX_BYTES:
-        raise TemplateError(f"the capture is too large to send (over {MAX_LINES} lines or {MAX_BYTES // 1024} KB)")
+    _too_large(lines)
     with open(GUIDE, encoding="utf-8") as fh:
         system = fh.read()
     body = "\n".join(f"{j} |{ln}" for j, ln in enumerate(lines))
     messages = [{"role": "user", "content": f"Tool: {tool or '(unnamed)'}\nLines: {len(lines)}\n\n{body}\n"}]
     last = None
     for attempt in range(2):
-        text = call_claude(system, messages, model)
+        text = call_claude(system, messages, model, purpose="learn", tool=tool)
         try:
             t = _parse(text)
             cov, miss = _report(lines, t)
@@ -369,6 +470,9 @@ def learn(lines, tool="", model="claude-opus-5-5"):
             continue
         if cov >= MIN_COVERAGE:
             t.setdefault("tool", tool)
+            # the capture it was written from: repair checks a changed
+            # template still reads it
+            t["examples"] = ["\n".join(lines)]
             return t
         last = f"it covers {cov:.0%} of the lines"
         shown = "\n".join(f"{j} |{lines[j]}" for j in miss[:40])
@@ -377,6 +481,129 @@ def learn(lines, tool="", model="claude-opus-5-5"):
                       f"These lines match no skip, header or line pattern:\n{shown}\n"
                       "Reply with the corrected JSON only."}]
     raise TemplateError(f"Claude's template does not fit this capture ({last})")
+
+
+# -- repairing a stored template --------------------------------------------
+# A template describes the layout its tool has shown so far. When a later
+# capture shows a kind of line the template has not met, the template either
+# leaves it unread or, worse, a skip pattern drops it while coverage reads
+# 100%. Repair sends the template, the captures it was written from and the
+# new capture to Claude once, to be extended; the extension is kept only if
+# it still reads every line of the earlier captures the template read.
+MAX_EXAMPLES = 3         # captures a template keeps: the first and the latest
+SHOW = 60                # lines listed in a repair request
+_SIG_RUN = re.compile(r"([^\w\s])\1+")
+REPAIR_ASK = (
+    "Extend the template so that it reads the new capture as correctly as the earlier ones: a new kind "
+    "of record gets its own block (or its own columns), and a line that carries data must not be skipped. "
+    "It must still read every line of the earlier captures that it reads now. If the lines listed are only "
+    "decoration, return the template unchanged. Reply with the complete template JSON only (format 1 or 2), "
+    "without the earlier captures.")
+
+
+def _kind(ln):
+    """A line's kind, to tell a new kind of line from one met before: its
+    first word as printed (digits folded), the rest folded to its shape (a
+    run of words, numbers and names like `beta-2` or `v1.4` to `a`, a run of
+    one punctuation mark to one, spacing to one space). Another host, file
+    or count in a banner is not a new kind of line; a WARNING line where
+    there were only INFO lines is."""
+    s = _SIG_RUN.sub(r"\1", re.sub(r"\d+", "0", ln.strip()))
+    head, _, rest = s.partition(" ")
+    rest = re.sub(r"a(?:\s+a)+", "a", re.sub(r"[\w.-]+", "a", rest))
+    return (head + " " + re.sub(r"\s+", " ", rest).strip()).strip()
+
+
+def _split(text):
+    lines = text.split("\n")
+    return lines[:-1] if len(lines) > 1 and lines[-1] == "" else lines
+
+
+def _examples(t):
+    return [e for e in t.get("examples") or [] if isinstance(e, str)]
+
+
+def misses(t, lines):
+    """What a stored template meets in this capture that it has not met
+    before: the non-blank lines it leaves unread, and the lines its skip
+    patterns drop, of a kind (_kind) it neither left unread nor skipped on the
+    captures it was written from (its examples). With no examples, only
+    unread lines count. -> (unread, skipped) line indexes."""
+    ct = compile_template(t)
+    read, skip, unread = _classify(ct, lines)
+    known_u, known_s = set(), set()
+    exl = [_split(e) for e in _examples(t)]
+    for el in exl:
+        _, s, u = _classify(ct, el)
+        known_u |= {_kind(el[j]) for j in u}
+        known_s |= {_kind(el[j]) for j in s}
+    return (sorted(j for j in unread if _kind(lines[j]) not in known_u),
+            sorted(j for j in skip if exl and _kind(lines[j]) not in known_s))
+
+
+def repair(t, lines, tool="", model="claude-opus-5-5"):
+    """Ask Claude to extend a stored template for what this capture shows
+    that it has not met before (misses), and check the extension: it must
+    cover this capture at least as well as the template did (and 80%), and
+    still read every line of its examples that the template read. One more
+    try with what fell short. -> the extended (or unchanged) template, with
+    this capture added to its examples."""
+    _too_large(lines)
+    ct = compile_template(t)
+    new_u, new_s = misses(t, lines)
+    examples = _examples(t)
+    exl = [_split(e) for e in examples]
+    before = [_classify(ct, el)[0] for el in exl]
+    cov0 = _cover(*_classify(ct, lines))
+    with open(GUIDE, encoding="utf-8") as fh:
+        system = fh.read()
+    bare = {k: v for k, v in t.items() if k != "examples"}
+    parts = [f"Tool: {tool or t.get('tool') or '(unnamed)'}",
+             "This template was written from earlier captures of the tool:",
+             json.dumps(bare, indent=1, ensure_ascii=False)]
+    for n, el in enumerate(exl, 1):
+        parts += [f"Earlier capture {n} ({len(el)} lines):", _numbered(el, range(len(el)))]
+    parts += [f"A new capture of the same tool ({len(lines)} lines):", _numbered(lines, range(len(lines)))]
+    if new_u:
+        parts += ["On the new capture the template leaves these lines unread (no skip, header or line "
+                  "pattern takes them):", _numbered(lines, new_u[:SHOW])]
+    if new_s:
+        parts += ["Its skip patterns drop these lines of the new capture, a kind the earlier captures "
+                  "never showed:", _numbered(lines, new_s[:SHOW])]
+    messages = [{"role": "user", "content": "\n\n".join(parts + [REPAIR_ASK]) + "\n"}]
+    for attempt in range(2):
+        text = call_claude(system, messages, model, purpose="repair", tool=tool)
+        try:
+            t2 = _parse(text)
+            if not isinstance(t2, dict):
+                raise TemplateError("not a format-1 or format-2 template")
+            t2.pop("examples", None)
+            ct2 = compile_template(t2)
+            short, shown = [], []
+            cov = _cover(*_classify(ct2, lines))
+            if cov < min(cov0, 1.0) - 1e-9 or cov < MIN_COVERAGE:
+                short.append(f"it covers {cov:.0%} of the new capture's non-blank lines "
+                             f"(the template covered {cov0:.0%}; at least {max(cov0, MIN_COVERAGE):.0%} is needed)")
+            for n, (el, was) in enumerate(zip(exl, before), 1):
+                lost = sorted(was - _classify(ct2, el)[0])
+                if lost:
+                    short.append(f"on earlier capture {n} it no longer reads {len(lost)} line(s) the template read")
+                    shown.append(f"Earlier capture {n}, lines it no longer reads:\n" + _numbered(el, lost[:SHOW]))
+        except TemplateError as exc:
+            last = f"the template is invalid: {exc}"
+            messages += [{"role": "assistant", "content": text},
+                         {"role": "user", "content": f"That template is invalid: {exc}. Reply with the corrected JSON only."}]
+            continue
+        if not short:
+            t2.setdefault("tool", t.get("tool") or tool)
+            keep = examples if len(examples) < MAX_EXAMPLES else examples[:1] + examples[len(examples) - MAX_EXAMPLES + 2:]
+            t2["examples"] = keep + ["\n".join(lines)]
+            return t2
+        last = "; ".join(short)
+        messages += [{"role": "assistant", "content": text},
+                     {"role": "user", "content": "That template falls short: " + last + ".\n\n" + "\n\n".join(shown)
+                      + "\n\nReply with the corrected complete template JSON only."}]
+    raise TemplateError(f"Claude's extension of the template does not hold ({last})")
 
 
 def main(argv=None):
@@ -398,6 +625,15 @@ def main(argv=None):
     p = sub.add_parser("key")
     p.add_argument("input")
     p.add_argument("--name", default="")
+    p = sub.add_parser("misses")
+    p.add_argument("template")
+    p.add_argument("input")
+    p = sub.add_parser("repair")
+    p.add_argument("template")
+    p.add_argument("input")
+    p.add_argument("--out", required=True)
+    p.add_argument("--tool", default="")
+    p.add_argument("--model", default=os.environ.get("PROVOST_LLM_MODEL") or "claude-opus-5-5")
     a = ap.parse_args(argv)
     lines = read_lines(a.input)
     try:
@@ -411,17 +647,35 @@ def main(argv=None):
             print(f"{path}\t{score * 100:.0f}")
         elif a.cmd == "apply":
             t = load(a.template)
-            blocks, cov, nb, skipped = apply(compile_template(t), lines)
+            ct = compile_template(t)
+            classified = None
+            if ct["format"] == 2:      # one run of the boxed parser for both
+                blocks, used, skip, nonblank = _run_parser(ct, lines)
+                cov, nb, skipped = len(used | skip), len(nonblank), len(skip)
+                classified = (used, skip, nonblank - used - skip)
+            else:
+                blocks, cov, nb, skipped = apply(ct, lines)
             if not blocks:
                 return 1
             if a.out:
-                write_blocks(blocks, lines, a.out, t.get("tool") or "")
+                write_blocks(blocks, lines, a.out, t.get("tool") or "", notes(ct, lines, classified))
             if a.records:
                 print("\n".join(flat_records(blocks[0])))
             else:
                 print(f"{len(blocks)}\t{cov * 100 // max(1, nb)}\t{skipped}")
-        elif a.cmd == "learn":
-            t = learn(lines, a.tool, a.model)
+        elif a.cmd == "misses":
+            u, sk = misses(load(a.template), lines)
+            if u or sk:
+                print(" and ".join(x for x in (u and f"{len(u)} unread line(s)", sk and f"{len(sk)} skipped line(s)") if x)
+                      + " of a kind it has not met")
+        elif a.cmd in ("learn", "repair"):
+            if a.cmd == "learn":
+                t = learn(lines, a.tool, a.model)
+            else:
+                old = load(a.template)
+                t = repair(old, lines, a.tool, a.model)
+                bare = lambda x: {k: v for k, v in x.items() if k not in ("examples", "tool")}  # noqa: E731
+                print("unchanged" if bare(t) == bare(old) else "extended")
             tmp = a.out + ".tmp"
             with open(tmp, "w", encoding="utf-8") as fh:
                 json.dump(t, fh, indent=1, ensure_ascii=False)

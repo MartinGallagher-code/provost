@@ -1,0 +1,26 @@
+{
+ "format": 1,
+ "tool": "macos-ioreg-usb-tree",
+ "detect": "\\+-o \\S.*<class [^,>]+, id 0x[0-9a-fA-F]+",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "registry_entries",
+   "kind": "table",
+   "line": "^[ |]*\\+-o (?P<name>\\S(?:.*?\\S)?)(?:@(?P<location>[0-9A-Fa-f]+))?\\s+<class (?P<cls>[^,>]+), id (?P<id>0x[0-9a-fA-F]+)(?:, (?P<state>[!a-z]+(?:, [!a-z]+)*?))?(?:, busy (?P<busy>\\d+)(?: \\((?P<busy_time>\\d+ ms)\\))?)?, retain (?P<retain>\\d+)>\\s*$",
+   "columns": {
+    "name": "name",
+    "location": "location",
+    "cls": "class",
+    "id": "id",
+    "state": "state",
+    "busy": "busy",
+    "busy_time": "busy time",
+    "retain": "retain"
+   }
+  }
+ ],
+ "examples": [
+  "+-o Root  <class IORegistryEntry, id 0x100000100, retain 34>\n  +-o MacBookPro18,3  <class IOPlatformExpertDevice, id 0x100000210, registered, matched, active, busy 0 (412 ms), retain 39>\n    +-o AppleARMPE  <class AppleARMPE, id 0x100000211, registered, matched, active, busy 0 (377 ms), retain 22>\n      +-o arm-io@10F00000  <class IOPlatformDevice, id 0x10000011a, registered, matched, active, busy 0 (288 ms), retain 9>\n        +-o usb-drd0@2280000  <class IOPlatformDevice, id 0x10000016c, registered, matched, active, busy 0 (95 ms), retain 7>\n        | +-o AppleT8103USBXHCI@00000000  <class AppleT8103USBXHCI, id 0x1000004d2, registered, matched, active, busy 0 (63 ms), retain 26>\n        |   +-o USB3.1 Hub@00100000  <class IOUSBHostDevice, id 0x100000c4e, registered, matched, active, busy 0 (12 ms), retain 22>\n        |   | +-o AppleUSB20Hub  <class AppleUSB20Hub, id 0x100000c55, registered, matched, active, busy 0 (0 ms), retain 10>\n        |   | +-o Logitech USB Receiver@00110000  <class IOUSBHostDevice, id 0x100000c71, registered, matched, active, busy 0 (5 ms), retain 30>\n        |   |   +-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000c76, registered, matched, active, busy 0 (2 ms), retain 7>\n        |   |   +-o IOUSBHostInterface@1  <class IOUSBHostInterface, id 0x100000c79, registered, matched, active, busy 0 (2 ms), retain 7>\n        |   +-o Ultra Fit@00200000  <class IOUSBHostDevice, id 0x100000d02, registered, matched, active, busy 0 (31 ms), retain 24>\n        |     +-o IOUSBMassStorageInterfaceNub  <class IOUSBMassStorageInterfaceNub, id 0x100000d08, registered, matched, active, busy 0 (24 ms), retain 6>\n        |       +-o IOUSBMassStorageDriverNub  <class IOUSBMassStorageDriverNub, id 0x100000d0b, registered, matched, active, busy 0 (22 ms), retain 6>\n        +-o usb-drd1@2380000  <class IOPlatformDevice, id 0x10000016d, registered, matched, active, busy 0 (41 ms), retain 7>\n          +-o AppleT8103USBXHCI@01000000  <class AppleT8103USBXHCI, id 0x1000004d6, registered, matched, active, busy 0 (39 ms), retain 23>\n            +-o Clé USB «Bureau»@01100000  <class IOUSBHostDevice, id 0x100000e1a, registered, matched, active, busy 0 (18 ms), retain 22>\n              +-o IOUSBHostInterface@0  <class IOUSBHostInterface, id 0x100000e20, !registered, !matched, active, busy 0, retain 5>"
+ ]
+}

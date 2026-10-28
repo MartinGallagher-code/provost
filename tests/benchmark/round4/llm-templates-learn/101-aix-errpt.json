@@ -1,0 +1,25 @@
+{
+ "format": 1,
+ "tool": "aix-errpt",
+ "detect": "^IDENTIFIER\\s+TIMESTAMP\\s+T\\s+C\\s+RESOURCE_NAME\\s+DESCRIPTION",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "errors",
+   "kind": "table",
+   "header": "^IDENTIFIER\\s+TIMESTAMP\\s+T\\s+C\\s+RESOURCE_NAME\\s+DESCRIPTION",
+   "line": "^(?P<identifier>[0-9A-Fa-f]{8})\\s+(?P<timestamp>\\d{10})\\s+(?P<type>\\S)\\s+(?P<class>\\S)\\s+(?P<resource_name>\\S+)\\s+(?P<description>\\S(?:.*\\S)?)\\s*$",
+   "columns": {
+    "identifier": "IDENTIFIER",
+    "timestamp": "TIMESTAMP",
+    "type": "T",
+    "class": "C",
+    "resource_name": "RESOURCE_NAME",
+    "description": "DESCRIPTION"
+   }
+  }
+ ],
+ "examples": [
+  "IDENTIFIER TIMESTAMP  T C RESOURCE_NAME  DESCRIPTION\nDE3B8540   1020091426 P H hdisk3         PATH HAS FAILED\nDE3B8540   1020091226 P H hdisk3         PATH HAS FAILED\nA6DF45AA   1020083326 I O RMCdaemon      The daemon is started.\nAA8AB241   1019230126 T O OPERATOR       OPERATOR NOTIFICATION\nB6267342   1019180226 P H hdisk3         DISK OPERATION ERROR\nE87EF1BE   1018021526 P O dumpcheck      The largest dump device is too small.\n4B436A3D   1017113026 T H ent2           LINK DOWN\nC4F4E9F7   1017113126 I H ent2           LINK UP\n2BFA76F6   1015060026 T S SYSPROC        SYSTEM SHUTDOWN BY USER\n9DBCFDEE   1015060526 T O errdemon       ERROR LOGGING TURNED ON\n192AC071   1015060526 T O errdemon       ERROR LOGGING TURNED OFF"
+ ]
+}

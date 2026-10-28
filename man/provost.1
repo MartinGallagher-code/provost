@@ -254,8 +254,8 @@ line (format 1) or, for records that span lines, a small Python parser
 (format 2) run in a box (a separate interpreter, a few pure modules, no files
 or network, a CPU and memory limit). provost looks in the store's
 \fIllm-templates/\fR (\fINAME\fR.json for \fB--name\fR or the run command,
-else any template whose detect pattern recognises the input), then in the
-templates shipped with provost. When none fits, and \fBPROVOST_LLM_API_KEY\fR
+else any template whose detect pattern recognises the input), then in
+\fBPROVOST_LLM_TEMPLATE_DIRS\fR, then in the templates shipped with provost. When none fits, and \fBPROVOST_LLM_API_KEY\fR
 or \fBANTHROPIC_API_KEY\fR is set, it asks Claude (\fBPROVOST_LLM_MODEL\fR) to
 write one from this capture; \fBthat step sends the capture's text to the
 Anthropic API\fR (at most 400 lines / 64 KB), once per tool. The template is
@@ -264,11 +264,23 @@ layout model; and on a generic parse the gate passed, before that parse is
 trusted (never over an exact-format or tool-specific parser). What a template
 yields is measured by the engine and filed only under the gate's rules;
 against a generic parse the gate passed it must keep that parse's share of the
-data lines within 10 points (its decoration lines not counted, except against
-\fBtext-lines\fR or \fBline-records\fR, which keep every line). A new template
+data lines within 10 points (20 against \fBtext-lines\fR or \fBline-records\fR;
+its decoration lines not counted). \fBNotes:\fR the lines a template sets aside
+(decoration, or lines it cannot read) that still carry a word or a number are
+filed beside its datasets as \fINAME\fR\fB.notes\fR (line, kind, text), so a
+title, a version banner, a summary count or an error between the rows is kept,
+never lost; only rules and box glyphs are dropped. A tab or newline inside a
+value becomes a space. A new template
 is kept, and committed with the
 capture, only when it passes. Later captures of the tool are parsed offline.
-\fImeta.tsv\fR records \fBllm_template\fR.
+A template keeps the captures it was written from (its \fBexamples\fR).
+\fBRepair:\fR with a key, when a stored template meets a kind of line it has
+not met before (one it leaves unread, or one a skip pattern drops), provost
+sends the template, those captures and this one to Claude once, to extend it;
+the extension is kept, with this capture added to its examples, only if it
+still reads every line of the earlier captures the template read and passes
+the same rules. A capture whose lines the template has all met before is
+never sent. \fImeta.tsv\fR records \fBllm_template\fR.
 .SH COLUMN-TYPE CONSISTENCY
 A parse can keep every line and still put values under the wrong headers: a
 date split over three columns, a multi-word name spread over Name / Id /
@@ -374,6 +386,10 @@ API base URL (default \fBhttps://api.anthropic.com\fR).
 .B PROVOST_LLM_TEMPLATE_DIRS
 Colon-separated directories of templates to look in after the store's
 \fIllm-templates/\fR and before the ones shipped with provost.
+.TP
+.B PROVOST_LLM_LOG
+A file to append one JSON line per API reply to (what it was for, the tool,
+the model that answered, its token usage), to add up what \fB--llm\fR cost.
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).

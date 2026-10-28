@@ -1,0 +1,86 @@
+{
+ "format": 1,
+ "tool": "rails-production-log",
+ "detect": "^[DIWEFAU], \\[\\d{4}-\\d\\d-\\d\\dT[\\d:.]+ #\\d+\\]\\s+[A-Z]+ -- ",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "requests_started",
+   "kind": "table",
+   "line": "^(?P<sev>[DIWEFAU]), \\[(?P<timestamp>\\S+) #(?P<pid>\\d+)\\]\\s+(?P<level>[A-Z]+) -- (?P<progname>[^:]*): \\[(?P<request_id>[^\\]]+)\\]\\s*Started (?P<method>[A-Z]+) \"(?P<path>[^\"]*)\" for (?P<remote_ip>\\S+) at (?P<started_at>\\S(?:.*\\S)?)\\s*$",
+   "columns": {
+    "sev": "Severity",
+    "timestamp": "Timestamp",
+    "pid": "PID",
+    "level": "Level",
+    "progname": "Progname",
+    "request_id": "Request ID",
+    "method": "Method",
+    "path": "Path",
+    "remote_ip": "Remote IP",
+    "started_at": "Started at"
+   }
+  },
+  {
+   "name": "requests_processing",
+   "kind": "table",
+   "line": "^(?P<sev>[DIWEFAU]), \\[(?P<timestamp>\\S+) #(?P<pid>\\d+)\\]\\s+(?P<level>[A-Z]+) -- (?P<progname>[^:]*): \\[(?P<request_id>[^\\]]+)\\]\\s*Processing by (?P<controller>[\\w:]+)#(?P<action>\\w+) as (?P<format>\\S+)\\s*$",
+   "columns": {
+    "sev": "Severity",
+    "timestamp": "Timestamp",
+    "pid": "PID",
+    "level": "Level",
+    "progname": "Progname",
+    "request_id": "Request ID",
+    "controller": "Controller",
+    "action": "Action",
+    "format": "Format"
+   }
+  },
+  {
+   "name": "requests_completed",
+   "kind": "table",
+   "line": "^(?P<sev>[DIWEFAU]), \\[(?P<timestamp>\\S+) #(?P<pid>\\d+)\\]\\s+(?P<level>[A-Z]+) -- (?P<progname>[^:]*): \\[(?P<request_id>[^\\]]+)\\]\\s*Completed (?P<status>\\d+) (?P<status_text>.*?) in (?P<duration>[\\d.]+ms)(?: \\((?:Views: (?P<views>[\\d.]+ms)(?: \\| )?)?(?:ActiveRecord: (?P<activerecord>[\\d.]+ms)(?: \\| )?)?(?:Allocations: (?P<allocations>\\d+))?[^)]*\\))?\\s*$",
+   "columns": {
+    "sev": "Severity",
+    "timestamp": "Timestamp",
+    "pid": "PID",
+    "level": "Level",
+    "progname": "Progname",
+    "request_id": "Request ID",
+    "status": "Status",
+    "status_text": "Status text",
+    "duration": "Duration",
+    "views": "Views",
+    "activerecord": "ActiveRecord",
+    "allocations": "Allocations"
+   }
+  },
+  {
+   "name": "log_entries",
+   "kind": "table",
+   "line": "^(?P<sev>[DIWEFAU]), \\[(?P<timestamp>\\S+) #(?P<pid>\\d+)\\]\\s+(?P<level>[A-Z]+) -- (?P<progname>[^:]*): (?:\\[(?P<request_id>[^\\]]+)\\])?\\s*(?:(?P<message>\\S.*?))?\\s*$",
+   "columns": {
+    "sev": "Severity",
+    "timestamp": "Timestamp",
+    "pid": "PID",
+    "level": "Level",
+    "progname": "Progname",
+    "request_id": "Request ID",
+    "message": "Message"
+   }
+  },
+  {
+   "name": "continuation_lines",
+   "kind": "table",
+   "line": "^\\[(?P<request_id>[^\\]]+)\\]\\s*(?:(?P<message>\\S.*?))?\\s*$",
+   "columns": {
+    "request_id": "Request ID",
+    "message": "Message"
+   }
+  }
+ ],
+ "examples": [
+  "I, [2026-10-20T10:04:11.204118 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Started GET \"/orders?page=2&status=open\" for 192.0.2.45 at 2026-10-20 10:04:11 +0200\nI, [2026-10-20T10:04:11.209441 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Processing by OrdersController#index as HTML\nI, [2026-10-20T10:04:11.209502 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b]   Parameters: {\"page\"=>\"2\", \"status\"=>\"open\"}\nI, [2026-10-20T10:04:11.248177 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b]   Rendered orders/index.html.erb within layouts/application (Duration: 31.4ms | Allocations: 18822)\nI, [2026-10-20T10:04:11.251090 #4121]  INFO -- : [8f2c1a9e-4b3d-4e5f-9a1b-2c3d4e5f6a7b] Completed 200 OK in 42ms (Views: 30.9ms | ActiveRecord: 6.2ms | Allocations: 24410)\nI, [2026-10-20T10:04:12.002917 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Started POST \"/orders/1042/confirm\" for 192.0.2.77 at 2026-10-20 10:04:12 +0200\nI, [2026-10-20T10:04:12.004118 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Processing by OrdersController#confirm as JSON\nI, [2026-10-20T10:04:12.004201 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6]   Parameters: {\"note\"=>\"Lieferung bitte an Tor 3\", \"id\"=>\"1042\"}\nW, [2026-10-20T10:04:12.019334 #4123]  WARN -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Can't verify CSRF token authenticity.\nI, [2026-10-20T10:04:12.020011 #4123]  INFO -- : [1d0e9f8a-7b6c-4d5e-8f90-a1b2c3d4e5f6] Completed 422 Unprocessable Entity in 16ms (ActiveRecord: 0.0ms | Allocations: 1880)\nI, [2026-10-20T10:04:13.441002 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Started GET \"/reports/monthly.pdf\" for 192.0.2.12 at 2026-10-20 10:04:13 +0200\nI, [2026-10-20T10:04:13.443117 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Processing by ReportsController#monthly as PDF\nI, [2026-10-20T10:04:13.502781 #4121]  INFO -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] Completed 500 Internal Server Error in 59ms (ActiveRecord: 11.8ms | Allocations: 9123)\nF, [2026-10-20T10:04:13.504002 #4121] FATAL -- : [b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e]   \n[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] NoMethodError (undefined method `strftime' for nil):\n[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e]   \n[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] app/models/report.rb:31:in `period_label'\n[b7c6d5e4-f3a2-4b1c-8d0e-9f8a7b6c5d4e] app/controllers/reports_controller.rb:12:in `monthly'\nI, [2026-10-20T10:04:14.120339 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Started GET \"/up\" for 10.20.0.2 at 2026-10-20 10:04:14 +0200\nI, [2026-10-20T10:04:14.120902 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Processing by Rails::HealthController#show as HTML\nI, [2026-10-20T10:04:14.121417 #4123]  INFO -- : [2a3b4c5d-6e7f-4801-9a2b-3c4d5e6f7a8b] Completed 200 OK in 0ms (Views: 0.2ms | Allocations: 214)"
+ ]
+}

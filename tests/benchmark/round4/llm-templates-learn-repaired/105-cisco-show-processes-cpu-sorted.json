@@ -1,0 +1,42 @@
+{
+ "format": 1,
+ "tool": "cisco-show-processes-cpu-sorted",
+ "detect": "PID\\s+Runtime\\(ms\\)\\s+Invoked\\s+uSecs",
+ "skip": [
+  "^\\S+#"
+ ],
+ "blocks": [
+  {
+   "name": "cpu_utilization",
+   "kind": "table",
+   "line": "CPU utilization for five seconds:\\s*(?P<five_seconds>[\\d.]+%)/(?P<five_seconds_interrupt>[\\d.]+%);\\s*one minute:\\s*(?P<one_minute>[\\d.]+%);\\s*five minutes:\\s*(?P<five_minutes>[\\d.]+%)\\s*",
+   "columns": {
+    "five_seconds": "five seconds",
+    "five_seconds_interrupt": "five seconds interrupt",
+    "one_minute": "one minute",
+    "five_minutes": "five minutes"
+   }
+  },
+  {
+   "name": "processes",
+   "kind": "table",
+   "header": "^\\s*PID\\s+Runtime\\(ms\\)",
+   "line": "\\s*(?P<pid>\\d+)\\s+(?P<runtime>\\d+)\\s+(?P<invoked>\\d+)\\s+(?P<usecs>\\d+)\\s+(?P<sec5>[\\d.]+%)\\s+(?P<min1>[\\d.]+%)\\s+(?P<min5>[\\d.]+%)\\s+(?P<tty>\\d+)\\s+(?P<process>\\S(?:.*?\\S)?)\\s*",
+   "columns": {
+    "pid": "PID",
+    "runtime": "Runtime(ms)",
+    "invoked": "Invoked",
+    "usecs": "uSecs",
+    "sec5": "5Sec",
+    "min1": "1Min",
+    "min5": "5Min",
+    "tty": "TTY",
+    "process": "Process"
+   }
+  }
+ ],
+ "examples": [
+  "core-rtr1#show processes cpu sorted\nCPU utilization for five seconds: 23%/7%; one minute: 18%; five minutes: 15%\n PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process \n 412    88213516   143890112        613  6.39%  4.81%  4.02%   0 IP Input         \n 228    41022884    10022871       4092  3.11%  2.40%  2.17%   0 BGP Router       \n 101    12850432   408812240         31  1.27%  1.09%  1.11%   0 ARP Input        \n 377     9022180     2210388       4081  0.95%  0.71%  0.62%   0 OSPF-1 Hello     \n  64     6612844    18803311        351  0.47%  0.40%  0.38%   0 Net Background   \n 231     3002912     1102293       2724  0.31%  0.22%  0.20%   0 BGP Scanner      \n 118     1803380    40110044         44  0.15%  0.11%  0.10%   0 CDP Protocol     \n   3      910244       41120      22136  0.00%  0.04%  0.05%   0 Exec             \n 290      402116      884213        454  0.00%  0.01%  0.00%   0 SNMP ENGINE      \n 344      188020     1902231         98  0.00%  0.00%  0.00%   0 NTP              \n   1           0           6          0  0.00%  0.00%  0.00%   0 Chunk Manager    \n   2        1416      442212          3  0.00%  0.00%  0.00%   0 Load Meter       \n   4      338120       71212       4748  0.00%  0.02%  0.00%   0 Check heaps      \n 512          12          44        272  0.00%  0.00%  0.00%   2 SSH Process      \ncore-rtr1#",
+  "edge-rtr02#show processes cpu sorted\nCPU utilization for five seconds: 38%/14%; one minute: 31%; five minutes: 28%\n PID Runtime(ms)     Invoked      uSecs   5Sec   1Min   5Min TTY Process \n  87   402113288   288104115       1395 10.87%  9.42%  8.95%   0 IP Input         \n 201   120448212    20311472       5930  5.03%  4.11%  3.80%   0 BGP Router       \n 316    61002338   912044310         66  2.39%  2.02%  1.94%   0 ARP Input        \n 145    38822104    88213004        440  1.59%  1.20%  1.07%   0 HSRP Common      \n 399    20311009     4830112       4205  0.95%  0.88%  0.81%   0 OSPF-100 Router  \n 400    11200446    33018221        339  0.63%  0.51%  0.49%   0 OSPF-100 Hello   \n  77     9840112    61022983        161  0.47%  0.39%  0.33%   0 Net Background   \n 222     5003218     1830441       2733  0.31%  0.28%  0.24%   0 BGP Scanner      \n 181     3302871    14401193        229  0.15%  0.12%  0.11%   0 IP SNMP          \n  46     2210334    70221804         31  0.07%  0.06%  0.05%   0 Per-Second Jobs  \n 530        4128        2811       1468  0.07%  0.01%  0.00%   3 SSH Process      \n   5     1288015       52003      24768  0.00%  0.03%  0.04%   0 Exec             \n 512      602001     1203344        500  0.00%  0.01%  0.00%   0 SNMP ENGINE      \n   1           8          19        421  0.00%  0.00%  0.00%   0 Chunk Manager    \n   2        2088      601118          3  0.00%  0.00%  0.00%   0 Load Meter       \n   4      512330       88104       5815  0.00%  0.02%  0.01%   0 Check heaps      \n 268      288104     2911043         98  0.00%  0.00%  0.00%   0 NTP              \n  12           0           1          0  0.00%  0.00%  0.00%   0 Crash writer     \nedge-rtr02#"
+ ]
+}

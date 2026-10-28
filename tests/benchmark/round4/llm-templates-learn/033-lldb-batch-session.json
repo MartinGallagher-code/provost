@@ -1,0 +1,118 @@
+{
+ "format": 1,
+ "tool": "lldb-batch-session",
+ "detect": "^\\(lldb\\) ",
+ "skip": [
+  "^\\(lldb\\) ",
+  "^\\s+\\^\\s*$",
+  "^\\([^)]+\\) \\{$",
+  "^\\}$"
+ ],
+ "blocks": [
+  {
+   "name": "executable",
+   "kind": "table",
+   "line": "^Current executable set to '(?P<path>[^']*)' \\((?P<arch>[^)]+)\\)\\.$",
+   "columns": {
+    "path": "executable",
+    "arch": "arch"
+   }
+  },
+  {
+   "name": "breakpoints",
+   "kind": "table",
+   "line": "^Breakpoint (?P<id>\\d+): (?:where = (?P<module>[^`\\s]+)`(?P<location>.*?)(?: at (?P<file>[^\\s:]+):(?P<line>\\d+)(?::(?P<column>\\d+))?)?, address = (?P<address>0x[0-9a-fA-F]+)|(?P<other>.*))$",
+   "columns": {
+    "id": "Breakpoint",
+    "module": "module",
+    "location": "where",
+    "file": "file",
+    "line": "line",
+    "column": "column",
+    "address": "address",
+    "other": "info"
+   }
+  },
+  {
+   "name": "process_events",
+   "kind": "table",
+   "line": "^Process (?P<pid>\\d+) (?P<event>\\w+)(?:: '(?P<path>[^']*)' \\((?P<arch>[^)]+)\\)| with status = (?P<status>-?\\d+) \\((?P<status_hex>0x[0-9a-fA-F]+)\\)(?: (?P<description>.*))?)?$",
+   "columns": {
+    "pid": "Process",
+    "event": "event",
+    "path": "path",
+    "arch": "arch",
+    "status": "status",
+    "status_hex": "status (hex)",
+    "description": "description"
+   }
+  },
+  {
+   "name": "threads",
+   "kind": "table",
+   "line": "^\\*?\\s*thread #(?P<thread>\\d+)(?:, tid = (?P<tid>\\S+?))?(?:, name = '(?P<name>[^']*)')?(?:, stop reason = (?P<stop_reason>.*))?$",
+   "columns": {
+    "thread": "thread",
+    "tid": "tid",
+    "name": "name",
+    "stop_reason": "stop reason"
+   }
+  },
+  {
+   "name": "frames",
+   "kind": "table",
+   "line": "^\\s*(?P<selected>\\*)?\\s*frame #(?P<frame>\\d+): (?P<address>0x[0-9a-fA-F]+) (?P<module>[^`\\s]+)`(?P<function>.*?)(?: at (?P<file>[^\\s:]+):(?P<line>\\d+)(?::(?P<column>\\d+))?)?$",
+   "columns": {
+    "selected": "selected",
+    "frame": "frame",
+    "address": "address",
+    "module": "module",
+    "function": "function",
+    "file": "file",
+    "line": "line",
+    "column": "column"
+   }
+  },
+  {
+   "name": "variables",
+   "kind": "table",
+   "line": "^\\((?P<type>[^)]+)\\) (?P<name>[^=]+?) = (?P<value>.*)$",
+   "columns": {
+    "type": "type",
+    "name": "name",
+    "value": "value"
+   }
+  },
+  {
+   "name": "images",
+   "kind": "table",
+   "line": "^\\[\\s*(?P<index>\\d+)\\] (?P<image>.*)$",
+   "columns": {
+    "index": "index",
+    "image": "image"
+   }
+  },
+  {
+   "name": "struct_members",
+   "kind": "table",
+   "line": "^\\s+(?P<name>[\\w\\[\\].]+) = (?P<value>.*)$",
+   "columns": {
+    "name": "member",
+    "value": "value"
+   }
+  },
+  {
+   "name": "source",
+   "kind": "table",
+   "line": "^(?P<current>->)?\\s*(?P<line>\\d+)\\s+(?P<code>.*)$",
+   "columns": {
+    "current": "current",
+    "line": "line",
+    "code": "code"
+   }
+  }
+ ],
+ "examples": [
+  "(lldb) target create \"./invd\"\nCurrent executable set to '/home/dev/src/invd' (x86_64).\n(lldb) breakpoint set -n total\nBreakpoint 1: where = invd`total + 8 at inventory.c:25:12, address = 0x00000000000012e8\n(lldb) run\nProcess 325 launched: '/home/dev/src/invd' (x86_64)\nProcess 325 stopped\n* thread #1, name = 'invd', stop reason = breakpoint 1.1\n    frame #0: 0x00005555555552e8 invd`total(it=0x0000555555559320) at inventory.c:25:12\n   22  \t}\n   23  \t\n   24  \tstatic double total(const struct item *it) {\n-> 25  \t    double sum = 0;\n    \t           ^\n   26  \t    for (; it; it = it->next) {\n   27  \t        if (it->qty > 10)\n   28  \t            sum += it->qty * it->price * 0.9;\n(lldb) frame variable\n(const item *) it = 0x0000555555559320\n(double) sum = 4.6355705393350535E-310\n(lldb) thread backtrace\n* thread #1, name = 'invd', stop reason = breakpoint 1.1\n  * frame #0: 0x00005555555552e8 invd`total(it=0x0000555555559320) at inventory.c:25:12\n    frame #1: 0x0000555555555204 invd`main(argc=1, argv=0x00007fffffffc988) at inventory.c:42:38\n    frame #2: 0x00007ffff7c2a1ca libc.so.6`__libc_start_call_main(main=(invd`main at inventory.c:35), argc=1, argv=0x00007fffffffc988) at libc_start_call_main.h:58:16\n    frame #3: 0x00007ffff7c2a28b libc.so.6`__libc_start_main_impl(main=(invd`main at inventory.c:35), argc=1, argv=0x00007fffffffc988, init=<unavailable>, fini=<unavailable>, rtld_fini=<unavailable>, stack_end=0x00007fffffffc978) at libc-start.c:360:3\n    frame #4: 0x0000555555555095 invd`_start + 37\n(lldb) p *it\n(const item) {\n  name = \"Schraube Ø8\"\n  qty = 12\n  price = 0.25\n  next = 0x00005555555592e0\n}\n(lldb) p *it->next\n(item) {\n  name = \"washer\"\n  qty = 7\n  price = 0.029999999999999999\n  next = 0x00005555555592a0\n}\n(lldb) image list -b\n[  0] invd\n[  1] ld-linux-x86-64.so.2\n[  2] [vdso](0x00007ffff7fc3000)\n[  3] libc.so.6\n(lldb) kill\nProcess 325 exited with status = 9 (0x00000009) killed"
+ ]
+}

@@ -1,0 +1,56 @@
+{
+ "format": 1,
+ "tool": "kops-validate-cluster",
+ "detect": "^(Validating cluster |INSTANCE GROUPS$|NODE STATUS$|VALIDATION ERRORS$)",
+ "skip": [
+  "^(INSTANCE GROUPS|NODE STATUS|VALIDATION ERRORS)\\s*$",
+  "^Validation (Failed|Succeeded)",
+  "^Your cluster .* is ready"
+ ],
+ "blocks": [
+  {
+   "name": "cluster",
+   "kind": "kv",
+   "line": "^(?P<key>Using cluster from kubectl context|Validating cluster|Error):? (?P<value>\\S.*)$"
+  },
+  {
+   "name": "instance_groups",
+   "kind": "table",
+   "header": "^NAME(?:\\t+| {2,})ROLE(?:\\t+| {2,})MACHINETYPE",
+   "line": "^(?P<name>\\S+)(?:\\t+| {2,})(?P<role>\\S+)(?:\\t+| {2,})(?P<machinetype>\\S+)(?:\\t+| {2,})(?P<min>\\d+)(?:\\t+| {2,})(?P<max>\\d+)(?:(?:\\t+| {2,})(?P<subnets>\\S+))?\\s*$",
+   "columns": {
+    "name": "NAME",
+    "role": "ROLE",
+    "machinetype": "MACHINETYPE",
+    "min": "MIN",
+    "max": "MAX",
+    "subnets": "SUBNETS"
+   }
+  },
+  {
+   "name": "node_status",
+   "kind": "table",
+   "header": "^NAME(?:\\t+| {2,})ROLE(?:\\t+| {2,})READY\\s*$",
+   "line": "^(?P<name>\\S+)(?:\\t+| {2,})(?P<role>\\S+)(?:\\t+| {2,})(?P<ready>True|False|Unknown)\\s*$",
+   "columns": {
+    "name": "NAME",
+    "role": "ROLE",
+    "ready": "READY"
+   }
+  },
+  {
+   "name": "validation_errors",
+   "kind": "table",
+   "header": "^KIND(?:\\t+| {2,})NAME(?:\\t+| {2,})MESSAGE",
+   "line": "^(?P<kind>\\S+)(?:\\t+| {2,})(?P<name>\\S+)(?:\\t+| {2,})(?P<message>\\S.*?)\\s*$",
+   "columns": {
+    "kind": "KIND",
+    "name": "NAME",
+    "message": "MESSAGE"
+   }
+  }
+ ],
+ "examples": [
+  "Using cluster from kubectl context: k8s.eu-central.example.com\n\nValidating cluster k8s.eu-central.example.com\n\nINSTANCE GROUPS\nNAME\t\t\tROLE\t\tMACHINETYPE\tMIN\tMAX\tSUBNETS\ncontrol-plane-eu-central-1a\tControlPlane\tm6i.large\t1\t1\teu-central-1a\ncontrol-plane-eu-central-1b\tControlPlane\tm6i.large\t1\t1\teu-central-1b\ncontrol-plane-eu-central-1c\tControlPlane\tm6i.large\t1\t1\teu-central-1c\nnodes-general\t\t\tNode\t\tm6i.xlarge\t3\t9\teu-central-1a,eu-central-1b,eu-central-1c\nnodes-spot\t\t\tNode\t\tc6i.2xlarge\t0\t12\teu-central-1a,eu-central-1b\n\nNODE STATUS\nNAME\t\t\tROLE\t\tREADY\ni-0a1b2c3d4e5f60718\tcontrol-plane\tTrue\ni-0b2c3d4e5f6071829\tcontrol-plane\tTrue\ni-0c3d4e5f607182930\tcontrol-plane\tTrue\ni-0d4e5f60718293a41\tnode\t\tTrue\ni-0e5f60718293a4b52\tnode\t\tTrue\ni-0f60718293a4b5c63\tnode\t\tFalse\n\nVALIDATION ERRORS\nKIND\tNAME\t\t\t\t\t\tMESSAGE\nMachine\ti-0f60718293a4b5c63\t\t\t\tmachine \"i-0f60718293a4b5c63\" has not yet joined cluster\nPod\tkube-system/ebs-csi-node-7xq2k\t\t\tsystem-node-critical pod \"ebs-csi-node-7xq2k\" is pending\nPod\tkube-system/cilium-operator-6d8f9c7b5-vx2lm\tsystem-cluster-critical pod \"cilium-operator-6d8f9c7b5-vx2lm\" is not ready (cilium-operator)\n\nValidation Failed\nError: validation failed: cluster not yet healthy"
+ ]
+}

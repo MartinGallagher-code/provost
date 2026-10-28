@@ -39,6 +39,38 @@ class Apply(unittest.TestCase):
         self.assertIn("entry2.Mounted_on /data disk", recs)
         self.assertEqual(recs[-1], "total_entries 2")
 
+    def test_a_value_keeps_to_its_cell(self):
+        # a parser that joins a multi-line body into one value: each
+        # continuation line would otherwise be a field of its own
+        b = {"name": "events", "kind": "table", "lines": [0],
+             "records": [{"msg": "failed", "err": "err=<\nfailed to run\n>", "pid": 7},
+                         {"msg": "a\tb", "err": "", "pid": 8}]}
+        self.assertEqual(T.flat_records(b), ["entry1.msg failed", "entry1.err err=< failed to run >", "entry1.pid 7",
+                                             "entry2.msg a b", "entry2.err ", "entry2.pid 8", "total_entries 2"])
+        self.assertEqual(T.flat_records(dict(b, kind="kv", records=[{"doc": "one\r\ntwo"}])), ["doc one  two"])
+
+    def test_notes_keep_the_lines_set_aside_that_carry_words(self):
+        ct = T.compile_template(TPL)
+        self.assertEqual(T.notes(ct, LINES), [{"line": "8", "kind": "unread", "text": "free text no one matches"}])
+        # a skipped line that carries a word is a note; a rule is not
+        lines = LINES + ["  ===  ", "Version 2.1 (c) 2026"]
+        ct = T.compile_template(dict(TPL, skip=TPL["skip"] + ["^free text", "^\\s*=+\\s*$", "^Version "]))
+        self.assertEqual([(n["line"], n["kind"]) for n in T.notes(ct, lines)], [("8", "skipped"), ("10", "skipped")])
+        # a parser's skipped and unread lines alike
+        self.assertEqual(T.notes(T.compile_template(TPL2), NESTED),
+                         [{"line": "1", "kind": "skipped", "text": "# items"},
+                          {"line": "7", "kind": "unread", "text": "stray"}])
+
+    def test_write_blocks_writes_the_notes_as_a_tidy_table(self):
+        ct = T.compile_template(TPL)
+        blocks = T.apply(ct, LINES)[0]
+        with tempfile.TemporaryDirectory() as d:
+            T.write_blocks(blocks, LINES, d, "disks", T.notes(ct, LINES))
+            with open(os.path.join(d, "notes.tsv"), encoding="utf-8") as fh:
+                self.assertEqual(fh.read(), "line\tkind\ttext\n8\tunread\tfree text no one matches\n")
+            T.write_blocks(blocks, LINES, d, "disks")          # none this time: no stale notes
+            self.assertFalse(os.path.exists(os.path.join(d, "notes.tsv")))
+
     def test_a_repeated_kv_key_is_numbered(self):
         b = {"kind": "kv", "records": [{"a": "1"}, {"a": "2"}]}
         self.assertEqual(T.flat_records(b), ["a 1", "a_2 2"])
@@ -146,7 +178,7 @@ class Store(unittest.TestCase):
             T.compile_template(T.load(os.path.join(T.SHIPPED, f)))
 
 
-class Learn(unittest.TestCase):
+class FakeAPI:
     def setUp(self):
         self.calls, self._orig = [], T.call_claude
 
@@ -157,9 +189,12 @@ class Learn(unittest.TestCase):
         replies = list(replies)
 
         def call(system, messages, model, **kw):
-            self.calls.append(messages)
+            self.calls.append([dict(m) for m in messages])
             return replies.pop(0)
         T.call_claude = call
+
+
+class Learn(FakeAPI, unittest.TestCase):
 
     def test_a_template_that_misses_lines_gets_one_more_try(self):
         poor = dict(TPL, blocks=TPL["blocks"][:1])         # no status block: 4/7
@@ -193,6 +228,139 @@ class Learn(unittest.TestCase):
             self.assertIn("no API key", str(cm.exception))
         finally:
             os.environ.update(env)
+
+    def test_a_learned_template_keeps_its_capture(self):
+        self.fake(json.dumps(dict(TPL, skip=TPL["skip"] + ["^free text"])))
+        self.assertEqual(T.learn(LINES, "disks")["examples"], ["\n".join(LINES)])
+
+
+class CallClaude(unittest.TestCase):
+    """The HTTP side: transient errors are retried, the rest are not, and
+    PROVOST_LLM_LOG gets each reply's usage."""
+    REPLY = {"model": "claude-opus-5-5", "stop_reason": "end_turn", "usage": {"input_tokens": 3, "output_tokens": 2},
+             "content": [{"type": "text", "text": "{}"}]}
+
+    def setUp(self):
+        import urllib.request
+        self.ur, self._urlopen, self._sleep = urllib.request, urllib.request.urlopen, T.time.sleep
+        self.env = {k: os.environ.get(k) for k in ("PROVOST_LLM_API_KEY", "PROVOST_LLM_LOG")}
+        os.environ["PROVOST_LLM_API_KEY"] = "k-test"
+        os.environ.pop("PROVOST_LLM_LOG", None)
+        T.time.sleep = lambda s: None
+        self.calls = 0
+
+    def tearDown(self):
+        self.ur.urlopen, T.time.sleep = self._urlopen, self._sleep
+        for k, v in self.env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+    def serve(self, *outcomes):
+        import io
+        import urllib.error
+        outcomes = list(outcomes)
+
+        def urlopen(req, timeout=None):
+            self.calls += 1
+            o = outcomes.pop(0)
+            if isinstance(o, int):
+                raise urllib.error.HTTPError(req.full_url, o, "x", {}, io.BytesIO(b'{"error": {"message": "busy"}}'))
+            if isinstance(o, Exception):
+                raise o
+            return io.BytesIO(json.dumps(o).encode())
+        self.ur.urlopen = urlopen
+
+    def test_an_overload_or_a_timeout_is_retried(self):
+        import urllib.error
+        self.serve(529, urllib.error.URLError(TimeoutError("timed out")), self.REPLY)
+        self.assertEqual(T.call_claude("s", [], "m"), "{}")
+        self.assertEqual(self.calls, 3)
+
+    def test_a_bad_request_or_a_refused_connection_is_not(self):
+        import urllib.error
+        self.serve(400)
+        with self.assertRaises(T.TemplateError) as cm:
+            T.call_claude("s", [], "m")
+        self.assertIn("400: busy", str(cm.exception))
+        self.serve(urllib.error.URLError(ConnectionRefusedError("refused")))
+        with self.assertRaises(T.TemplateError):
+            T.call_claude("s", [], "m")
+        self.assertEqual(self.calls, 2)
+
+    def test_retries_run_out(self):
+        self.serve(*[429] * (T.RETRIES + 1))
+        with self.assertRaises(T.TemplateError) as cm:
+            T.call_claude("s", [], "m")
+        self.assertIn("429", str(cm.exception))
+        self.assertEqual(self.calls, T.RETRIES + 1)
+
+    def test_the_log_gets_each_replys_usage(self):
+        with tempfile.TemporaryDirectory() as d:
+            os.environ["PROVOST_LLM_LOG"] = os.path.join(d, "log")
+            self.serve(self.REPLY)
+            T.call_claude("s", [], "m", purpose="learn", tool="disks")
+            rec = json.loads(open(os.environ["PROVOST_LLM_LOG"]).read())
+        self.assertEqual((rec["purpose"], rec["tool"], rec["usage"]["output_tokens"]), ("learn", "disks", 2))
+
+
+class Repair(FakeAPI, unittest.TestCase):
+    """A stored template that meets a kind of line it has not seen goes back
+    to Claude once, and the extension is kept only if it still reads the
+    captures the template was written from."""
+    NEW = LINES[:7] + ["sdb1    2T     -", "Health:  degraded", "free text no one matches"]
+    STORED = dict(TPL, skip=TPL["skip"] + ["^free text"], examples=["\n".join(LINES)])
+    WIDER = dict(STORED, blocks=[dict(TPL["blocks"][0], line="^(?P<name>\\S+)\\s+(?P<size>[\\d.]+[KMGT])\\s+(?P<mount>/.*|-)$"),
+                                 TPL["blocks"][1]])
+
+    def test_a_kind_is_the_first_word_and_the_shape_of_the_rest(self):
+        self.assertEqual(T._kind("eth0   up  1500"), T._kind("eth12 up 9000"))
+        self.assertEqual(T._kind("-----"), T._kind("----------"))
+        self.assertEqual(T._kind("Volumes on host alpha"), T._kind("Volumes on host beta-2"))
+        self.assertNotEqual(T._kind("WARNING: disk full"), T._kind("INFO: disk full"))
+        self.assertNotEqual(T._kind("+ExecStart=/usr/bin/x"), T._kind("6 overridden files found."))
+
+    def test_misses_are_only_kinds_the_examples_did_not_show(self):
+        self.assertEqual(T.misses(self.STORED, LINES), ([], []))
+        self.assertEqual(T.misses(self.STORED, self.NEW), ([7], []))     # "Health:" is a kv line: read
+        # a skip rule that swallows a new kind of line is a miss too...
+        swallow = dict(self.STORED, skip=self.STORED["skip"] + ["^sdb"])
+        self.assertEqual(T.misses(swallow, self.NEW), ([], [7]))
+        # ...but only against examples: with none, every skip is new, and
+        # only unread lines count
+        self.assertEqual(T.misses(dict(swallow, examples=[]), self.NEW), ([], []))
+
+    def test_an_extension_that_reads_the_new_lines_is_kept_with_the_capture(self):
+        self.fake(json.dumps({k: v for k, v in self.WIDER.items() if k != "examples"}))
+        t = T.repair(self.STORED, self.NEW, "disks")
+        self.assertEqual(T.misses(t, self.NEW), ([], []))
+        self.assertEqual(t["examples"], ["\n".join(LINES), "\n".join(self.NEW)])
+        sent = self.calls[0][-1]["content"]
+        self.assertIn("7 |sdb1    2T     -", sent)            # the unread line, numbered
+        self.assertIn("Earlier capture 1", sent)             # the capture it was written from
+        self.assertNotIn('"examples"', sent)                 # not the template's own copy of it
+
+    def test_an_extension_that_loses_an_earlier_line_gets_one_more_try_then_is_refused(self):
+        narrow = dict(self.WIDER, blocks=self.WIDER["blocks"][:1])     # drops the status kv
+        self.fake(json.dumps(narrow), json.dumps(narrow))
+        with self.assertRaises(T.TemplateError) as cm:
+            T.repair(self.STORED, self.NEW, "disks")
+        self.assertIn("no longer reads", str(cm.exception))
+        self.assertIn("Status: ok", self.calls[1][-1]["content"])
+
+    def test_an_unchanged_reply_is_accepted_and_the_capture_remembered(self):
+        swallow = dict(self.STORED, skip=self.STORED["skip"] + ["^sdb"])
+        self.fake(json.dumps(swallow))
+        t = T.repair(swallow, self.NEW, "disks")
+        self.assertEqual(T.misses(t, self.NEW), ([], []))    # sdb1 is now a known skip kind
+        self.assertEqual(len(t["examples"]), 2)
+
+    def test_examples_are_capped_keeping_the_first(self):
+        t = dict(self.STORED, examples=["a", "b", "c"])
+        self.fake(json.dumps(self.WIDER))
+        ex = T.repair(t, self.NEW, "disks")["examples"]
+        self.assertEqual(ex, ["a", "c", "\n".join(self.NEW)])
 
 
 if __name__ == "__main__":

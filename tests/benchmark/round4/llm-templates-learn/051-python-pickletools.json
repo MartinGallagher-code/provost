@@ -1,0 +1,27 @@
+{
+ "format": 1,
+ "tool": "python-pickletools",
+ "detect": "^\\s*\\d+: (?:\\\\x[0-9a-f]{2}|\\S)\\s+[A-Z][A-Z0-9_]+",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "opcodes",
+   "kind": "table",
+   "line": "^\\s*(?P<offset>\\d+):\\s(?P<code>\\\\x[0-9a-f]{2}|\\S)\\s+(?P<opcode>[A-Z][A-Z0-9_]*)(?:\\s+(?P<arg>\\S.*?))?\\s*$",
+   "columns": {
+    "offset": "offset",
+    "code": "code",
+    "opcode": "opcode",
+    "arg": "argument"
+   }
+  },
+  {
+   "name": "summary",
+   "kind": "kv",
+   "line": "^(?P<key>highest protocol among opcodes)\\s*=\\s*(?P<value>\\S+)\\s*$"
+  }
+ ],
+ "examples": [
+  "    0: \\x80 PROTO      4\n    2: \\x95 FRAME      148\n   11: }    EMPTY_DICT\n   12: \\x94 MEMOIZE    (as 0)\n   13: (    MARK\n   14: \\x8c     SHORT_BINUNICODE 'order'\n   21: \\x94     MEMOIZE    (as 1)\n   22: M        BININT2    1042\n   25: \\x8c     SHORT_BINUNICODE 'items'\n   32: \\x94     MEMOIZE    (as 2)\n   33: ]        EMPTY_LIST\n   34: \\x94     MEMOIZE    (as 3)\n   35: (        MARK\n   36: \\x8c         SHORT_BINUNICODE 'bolt M6'\n   45: \\x94         MEMOIZE    (as 4)\n   46: K            BININT1    40\n   48: G            BINFLOAT   0.12\n   57: \\x87         TUPLE3\n   58: \\x94         MEMOIZE    (as 5)\n   59: \\x8c         SHORT_BINUNICODE 'Schraube Ø8'\n   73: \\x94         MEMOIZE    (as 6)\n   74: K            BININT1    12\n   76: G            BINFLOAT   0.25\n   85: \\x87         TUPLE3\n   86: \\x94         MEMOIZE    (as 7)\n   87: e            APPENDS    (MARK at 35)\n   88: \\x8c     SHORT_BINUNICODE 'paid'\n   94: \\x94     MEMOIZE    (as 8)\n   95: \\x88     NEWTRUE\n   96: \\x8c     SHORT_BINUNICODE 'when'\n  102: \\x94     MEMOIZE    (as 9)\n  103: \\x8c     SHORT_BINUNICODE 'datetime'\n  113: \\x94     MEMOIZE    (as 10)\n  114: \\x8c     SHORT_BINUNICODE 'date'\n  120: \\x94     MEMOIZE    (as 11)\n  121: \\x93     STACK_GLOBAL\n  122: \\x94     MEMOIZE    (as 12)\n  123: C        SHORT_BINBYTES b'\\x07\\xea\\n\\x14'\n  129: \\x94     MEMOIZE    (as 13)\n  130: \\x85     TUPLE1\n  131: \\x94     MEMOIZE    (as 14)\n  132: R        REDUCE\n  133: \\x94     MEMOIZE    (as 15)\n  134: \\x8c     SHORT_BINUNICODE 'tags'\n  140: \\x94     MEMOIZE    (as 16)\n  141: \\x8f     EMPTY_SET\n  142: \\x94     MEMOIZE    (as 17)\n  143: (        MARK\n  144: \\x8c         SHORT_BINUNICODE 'eu'\n  148: \\x94         MEMOIZE    (as 18)\n  149: \\x8c         SHORT_BINUNICODE 'bulk'\n  155: \\x94         MEMOIZE    (as 19)\n  156: \\x90         ADDITEMS   (MARK at 143)\n  157: u        SETITEMS   (MARK at 13)\n  158: .    STOP\nhighest protocol among opcodes = 4"
+ ]
+}
