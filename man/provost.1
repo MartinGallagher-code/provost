@@ -109,8 +109,13 @@ Show the original captured input behind dataset row \fI#N\fR.
 .TP
 .B control \fR[\fIdir\fR]
 Make \fIdir\fR (default: cwd) its own capture instance; captures run inside it
-route there, and every capture's commit snapshots the directory's contents as
-context (\fIcontext/manifest.tsv\fR).
+route there. Every capture's commit lists the directory's files
+(\fIcontext/manifest.tsv\fR: path, size, mtime, sha1), and the files
+themselves are committed too, tagged \fBfiles-\fIid\fR, so any run's files can
+be read back later. The directory's \fI.gitignore\fR is honoured, and a file
+over \fBPROVOST_FILES_MAX_SIZE\fR bytes is only listed. Each run's files commit
+has the previous run's as its parent, so plain git shows the directory's
+history across runs (\fBgit log --stat files-c0007\fR in \fIdir/.provost\fR).
 .TP
 .B uncontrol \fR[\fIdir\fR]
 Release a controlled directory (its data is kept).
@@ -393,6 +398,10 @@ the model that answered, its token usage), to add up what \fB--llm\fR cost.
 .TP
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).
+.TP
+.B PROVOST_FILES_MAX_SIZE
+In a controlled directory, the largest file (bytes) committed with each run
+(default: 1048576; 0 keeps no files, only the manifest).
 .TP
 .B PROVOST_LOCK_TIMEOUT
 Seconds to wait for the store lock (default: 30).

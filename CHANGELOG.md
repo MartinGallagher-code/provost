@@ -1,5 +1,32 @@
 # provost — Changelog
 
+## 2026-10-28 — Every row names its capture; a controlled directory's files are kept per run
+
+- **`capture` column (`provost` `_ingest`; store format 3):** every dataset
+  row now carries the id of the capture it came from, after `#`:
+  `#` is unique across the store, `capture` says which run (`c0007`, the id
+  `provost log`, `restore` and the `capture-c0007` tag use), and `n` numbers
+  the records within that run. A data column already named `capture` keeps
+  its name and the added one is `_capture` (melt's clash rule). The
+  reconcile overlap leaves the column out, so it never nudges two shapes into
+  one dataset. Older stores get the column on the next write
+  (`_migrate_add_capture`), filled in from `provenance.tsv`, committed as
+  store maintenance; a dataset that already has it is left alone. The triage
+  bucket shows it too (`_decode_unsorted_tsv` now finds `raw` by name).
+- **Run files (`_snapshot_files`):** a capture in a controlled directory
+  also commits the directory's files themselves, tagged `files-<id>`, built
+  with a scratch index and the directory as the work tree, so the store's
+  own tree never holds a copy and git keeps an unchanged file once. The
+  directory's `.gitignore` is honoured, `.provost` and `.git` never go in,
+  and a file over `PROVOST_FILES_MAX_SIZE` bytes (new; default 1048576; 0 =
+  none) is only listed in `context/manifest.tsv`, as before. Each run's
+  commit has the previous run's as its parent (a run with nothing changed
+  is tagged on the previous commit), so `git log --stat files-c0007` is the
+  directory's history across runs. Tags travel with `export`/`import`.
+- **Tests (`tests/smoke.sh`):** capture column, clash, triage, format-2
+  migration and idempotence (+12); run files (+12); format checks now 3.
+  Help ENV and man page document `PROVOST_FILES_MAX_SIZE`.
+
 ## 2026-10-28 — `provost import` works from any directory
 
 - **Fix (`provost` `cmd_import`):** an import run from a directory that is

@@ -284,6 +284,29 @@ check "each capture in a controlled dir updates the context snapshot" "added-lat
     "$(cat "$PROJ/.provost/context/manifest.tsv" 2>&1)"
 check "the refreshed snapshot is committed with the capture" "added-later.txt" \
     "$(git -C "$PROJ/.provost" show HEAD:context/manifest.tsv 2>&1)"
+# ... and commits the directory's files themselves, tagged files-<id>: the
+# directory's .gitignore is honoured, a file over PROVOST_FILES_MAX_SIZE is
+# only listed, and a run with nothing changed reuses the previous commit.
+printf 'ignored/\n' > "$PROJ/.gitignore"; mkdir -p "$PROJ/ignored"; echo junk > "$PROJ/ignored/x"
+head -c 2048 /dev/zero > "$PROJ/big.bin"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+fl="$(git -C "$PROJ/.provost" ls-tree -r --name-only files-c0003 2>&1)"
+check "a run commits the controlled directory's files" "added-later.txt" "$fl"
+check "and their contents" "later" "$(git -C "$PROJ/.provost" show files-c0003:added-later.txt 2>&1)"
+check_not "the directory's .gitignore is honoured" "ignored/x" "$fl"
+check_not "a file over PROVOST_FILES_MAX_SIZE is not committed" "big.bin" "$fl"
+check "but it is still listed in the manifest" "big.bin" "$(git -C "$PROJ/.provost" show capture-c0003:context/manifest.tsv 2>&1)"
+check_not "the store itself never goes in" ".provost" "$fl"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "a run with no file changes reuses the previous files commit" "$(git -C "$PROJ/.provost" rev-parse files-c0003)" "$(git -C "$PROJ/.provost" rev-parse files-c0004 2>&1)"
+echo changed > "$PROJ/added-later.txt"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=1024 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "each files commit's parent is the previous run's" "$(git -C "$PROJ/.provost" rev-parse files-c0004)" "$(git -C "$PROJ/.provost" rev-parse files-c0005^ 2>&1)"
+check "so git shows what changed between runs" "added-later.txt" "$(git -C "$PROJ/.provost" diff --stat files-c0004 files-c0005 2>&1)"
+check "the store's own tree holds no copy of the files" "" "$(git -C "$PROJ/.provost" status --porcelain 2>&1)"
+check_not "nor does its commit" "added-later.txt" "$(git -C "$PROJ/.provost" ls-tree -r --name-only HEAD | grep -v '^context/' || true)"
+( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=0 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
+check "PROVOST_FILES_MAX_SIZE=0 keeps no files" "no" "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0006 >/dev/null && echo yes || echo no)"
 inst_out="$(PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" instances 2>&1)"
 check "instances lists the controlled dir" "$PROJ" "$inst_out"
 # re-controlling a dir the registry already lists does not duplicate it
@@ -892,10 +915,10 @@ check "no capture runs git in a refused store" "no" "$([[ -e "$T/pwned-filter" ]
 
 # Store format 2: an old store's datasets lose the engine's `total_entries`
 # record-count column on the next write (reads never rewrite the store); a non-integer column of that name is data
-# and stays; new stores start at format 2.
+# and stays; new stores start at format 3.
 MWS="$(mktemp -d)/.migrate"
 printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
-check "new store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "new store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
 mds="$(ls "$MWS/datasets" | head -1)"
 awk -F'\t' -v OFS='\t' 'NR==1{print $0, "total_entries"; next} {print $0, 2}' "$MWS/datasets/$mds" > "$MWS/x" && mv "$MWS/x" "$MWS/datasets/$mds"
 printf 'a\ttotal_entries\nx\tnot-a-count\n' > "$MWS/datasets/keep.tsv"
@@ -905,8 +928,34 @@ printf 'k=v\nj=w\n' | PROVOST_WORKSPACE="$MWS" "$PROVOST" --sync >/dev/null 2>&1
 check_not "migration drops the record-count column" "total_entries" "$(head -1 "$MWS/datasets/$mds")"
 check "migration keeps the dataset's rows" "sdb1" "$(cat "$MWS/datasets/$mds")"
 check "a non-count total_entries column is kept" "total_entries" "$(head -1 "$MWS/datasets/keep.tsv")"
-check "migrated store records format 2" "2" "$(cat "$MWS/.store_format" 2>/dev/null)"
-check "migration is committed" "store format 2" "$(tgit "$MWS" log --format=%s)"
+check "migrated store records format 3" "3" "$(cat "$MWS/.store_format" 2>/dev/null)"
+check "migration is committed" "store format 3" "$(tgit "$MWS" log --format=%s)"
+check_not "a store that already has the capture column is not given it twice" "_capture" "$(head -1 "$MWS/datasets/$mds")"
+
+# Store format 3: every dataset row carries the capture it came from, after
+# '#'. An older store's datasets get the column on the next write, filled in
+# from provenance.tsv; a data column already named `capture` is kept and the
+# added one is `_capture`.
+CWS="$(mktemp -d)/.capcol"
+printf 'Filesystem Size Used\n/dev/sda1 50G 20G\n/dev/sdb1 10G 1G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+printf 'Filesystem Size Used\n/dev/sda1 50G 21G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+check "a dataset's second column is the capture" "#	capture	n	Filesystem" "$(head -1 "$CWS/datasets/df.tsv")"
+check "each row names the capture it came from" "3	c0002	1	/dev/sda1" "$(cat "$CWS/datasets/df.tsv")"
+check "show prints the capture column" "c0001" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" show df 2>&1)"
+printf 'capture value\nx 1\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name own >/dev/null 2>&1
+check "a data column named capture keeps its name beside _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
+printf 'held\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --min-confidence 101 >/dev/null 2>&1
+check "triage shows the capture of a held input" "c0004" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" triage 2>/dev/null)"
+for f in "$CWS"/datasets/*.tsv; do cut -f1,3- "$f" > "$CWS/x" && mv "$CWS/x" "$f"; done   # back to format 2
+echo 2 > "$CWS/.store_format"
+tgit "$CWS" add -A >/dev/null 2>&1; tgit "$CWS" commit -qm "simulate a format-2 store" >/dev/null 2>&1
+check "triage still decodes a format-2 bucket" "held" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" triage 2>/dev/null)"
+printf 'Filesystem Size Used\n/dev/sdc1 5G 2G\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name df >/dev/null 2>&1
+check "migration fills each old row's capture from provenance" "$(printf '1\tc0001\t1\t/dev/sda1\n2\tc0001\t2\t/dev/sdb1\n3\tc0002\t1\t/dev/sda1')" "$(cat "$CWS/datasets/df.tsv")"
+check "and the new rows carry theirs" "6	c0005	1	/dev/sdc1" "$(cat "$CWS/datasets/df.tsv")"
+check "migration names a clashing column _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
+check "migration covers the triage bucket" "5	c0004	" "$(cat "$CWS/datasets/unsorted.tsv")"
+check "the format-3 store records it" "3" "$(cat "$CWS/.store_format")"
 
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

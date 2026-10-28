@@ -101,6 +101,7 @@ PROVOST_MIN_CONFIDENCE="${PROVOST_MIN_CONFIDENCE:-50}"
 PROVOST_MIN_COVERAGE="${PROVOST_MIN_COVERAGE:-80}"
 PROVOST_MIN_CONSISTENCY="${PROVOST_MIN_CONSISTENCY:-70}"
 PROVOST_MAX_INPUT="${PROVOST_MAX_INPUT:-10485760}"   # 10 MiB
+PROVOST_FILES_MAX_SIZE="${PROVOST_FILES_MAX_SIZE:-1048576}"  # a controlled dir's files kept per run up to this size (0 = none)
 PROVOST_TEMP_DIR="${TMPDIR:-/tmp}"
 PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the store lock
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
@@ -156,6 +157,7 @@ _validate_settings () {
     _validate_uint PROVOST_LOCK_TIMEOUT      "$PROVOST_LOCK_TIMEOUT"      0 86400
     _validate_uint PROVOST_LOCK_MAX_AGE      "$PROVOST_LOCK_MAX_AGE"      1
     _validate_uint PROVOST_MAX_INPUT         "$PROVOST_MAX_INPUT"         1
+    _validate_uint PROVOST_FILES_MAX_SIZE    "$PROVOST_FILES_MAX_SIZE"    0
     # (validated above, so these arithmetic reads are safe)
     PROVOST_MIN_CONFIDENCE=$((10#$PROVOST_MIN_CONFIDENCE))
     PROVOST_MIN_COVERAGE=$((10#$PROVOST_MIN_COVERAGE))
@@ -164,6 +166,7 @@ _validate_settings () {
     PROVOST_LOCK_TIMEOUT=$((10#$PROVOST_LOCK_TIMEOUT))
     PROVOST_LOCK_MAX_AGE=$((10#$PROVOST_LOCK_MAX_AGE))
     PROVOST_MAX_INPUT=$((10#$PROVOST_MAX_INPUT))
+    PROVOST_FILES_MAX_SIZE=$((10#$PROVOST_FILES_MAX_SIZE))
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
@@ -309,7 +312,7 @@ _git () {
         fi
     fi
     env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_OBJECT_DIRECTORY \
-        -u GIT_COMMON_DIR -u GIT_NAMESPACE \
+        -u GIT_COMMON_DIR -u GIT_NAMESPACE ${_GIT_INDEX:+"GIT_INDEX_FILE=$_GIT_INDEX"} \
         git -C "$PROVOST_WORKSPACE" -c safe.directory="$_WS_REAL" \
         -c core.hooksPath=/dev/null -c core.fsmonitor=false \
         -c user.name=provost -c user.email=provost@localhost \
@@ -533,8 +536,10 @@ _scan_max_capture_num () {
 # monotonic capture counter. Only when writable and on the capture branch.
 # Store format, recorded (and committed) in .store_format. 2 = datasets carry
 # no `total_entries` column (melt stopped emitting the engine's record count
-# on 2026-09-25; datasets written before then still had it).
-_STORE_FORMAT=2
+# on 2026-09-25; datasets written before then still had it). 3 = every
+# dataset's second column is `capture`, the id of the capture each row came
+# from (2026-10-28; earlier rows are filled in from provenance.tsv).
+_STORE_FORMAT=3
 _store_format_file () { printf '%s/.store_format\n' "$PROVOST_WORKSPACE"; }
 _store_format () { local f; f="$(cat "$(_store_format_file)" 2>/dev/null || true)"; [[ "$f" =~ ^[0-9]{1,6}$ ]] && echo "$f" || echo 1; }
 
@@ -567,6 +572,46 @@ _migrate_drop_total_entries () {
     done
 }
 
+# Format 2 -> 3: insert the `capture` column after '#' in every dataset,
+# filled from provenance.tsv (# -> capture). One awk over provenance and every
+# dataset; a header that does not start with '#' is not a provost dataset and
+# is left alone. A data column already named `capture` keeps its name and the
+# added one becomes `_capture`, exactly as a new capture names it. A dataset
+# that already carries the column (its second column is named so and every
+# row's value is that row's capture) is left as it is, so a store whose
+# .store_format went missing is not given the column twice.
+_migrate_add_capture () {
+    local dir prov f skip; dir="$(_ds_dir)"; prov="$(_prov_file)"
+    local -a files=()
+    for f in "$dir"/*.tsv; do [[ -f "$f" ]] && files+=("$f"); done
+    (( ${#files[@]} )) || return 0
+    [[ -f "$prov" ]] || prov=/dev/null
+    skip="$dir/.mig-skip.$$"; : > "$skip"
+    awk -F'\t' -v OFS='\t' -v P="$prov" -v SKIP="$skip" '
+        function done_file() { if (out != "") { close(out); if (had) print prev > SKIP }; out = "" }
+        FILENAME == P { if (FNR > 1) cap[$1] = $3; next }
+        FNR == 1 {
+            done_file(); if ($1 != "#") next
+            out = FILENAME ".mig"; prev = FILENAME; split("", U)
+            had = ($2 ~ /^_*capture$/)
+            for (i = 1; i <= NF; i++) U[$i] = 1
+            c = "capture"; while (c in U) c = "_" c
+        }
+        out == "" { next }
+        FNR > 1 && had && !($1 in cap && $2 == cap[$1]) { had = 0 }
+        { rest = substr($0, length($1) + 2)
+          v = (FNR == 1) ? c : (($1 in cap) ? cap[$1] : "")
+          if (NF == 1) print $1, v > out; else print $1, v, rest > out }
+        END { done_file() }
+    ' "$prov" "${files[@]}" || { for f in "${files[@]}"; do rm -f "$f.mig"; done; rm -f "$skip"; return 1; }
+    for f in "${files[@]}"; do
+        [[ -f "$f.mig" ]] || continue
+        if grep -qxF -- "$f" "$skip"; then rm -f "$f.mig"; else mv "$f.mig" "$f"; fi
+    done
+    rm -f "$skip"
+    return 0
+}
+
 _migrate_store () {
     local ws="$PROVOST_WORKSPACE" first=""
     [[ -d "$ws/.git" && -w "$ws" ]] || return 0
@@ -585,6 +630,9 @@ _migrate_store () {
     fi
     if (( $(_store_format) < 2 )); then
         _migrate_drop_total_entries
+    fi
+    if (( $(_store_format) < 3 )); then
+        _migrate_add_capture || die "could not add the capture column to the datasets (store format 3)."
     fi
     echo "$_STORE_FORMAT" > "$(_store_format_file)"
     _commit "provost: store maintenance (.gitignore, untrack runtime files, capture counter, store format $_STORE_FORMAT)"
@@ -639,9 +687,12 @@ _next_capture_id () {
 # Column overlap (Jaccard, as an integer percent) between two tab-separated
 # headers passed as the two lines of stdin.
 _col_overlap () {
+    # A stored header's second column (after '#') is the capture id every
+    # dataset carries; it is in both headers by construction, so it is left
+    # out rather than let it nudge two different shapes into one dataset.
     awk -F'\t' '
-        NR==1 { for(i=1;i<=NF;i++){a[$i]=1}; na=NF }
-        NR==2 { for(i=1;i<=NF;i++){ b[$i]=1; if($i in a) inter++ } }
+        NR==1 { for(i=1;i<=NF;i++){ if(i==2 && $1=="#") continue; a[$i]=1 }; na=NF }
+        NR==2 { for(i=1;i<=NF;i++){ if(i==2 && $1=="#") continue; b[$i]=1; if($i in a) inter++ } }
         END { for(k in a) u[k]=1; for(k in b) u[k]=1; nu=0; for(k in u) nu++;
               if(nu==0){print 100; exit} printf "%d\n", int(inter*100/nu) }'
 }
@@ -739,6 +790,46 @@ _snapshot_context () {
     rm -f "$mani.tmp"
     local n=0; n=$(( $(wc -l < "$mani") - 1 ))
     printf '%s\n' "$n"
+}
+
+# RUN FILES — a capture in a controlled directory also commits the
+# directory's files themselves: a commit of their own, tagged files-<id>, so
+# any run's files can be listed, read, compared or written out again later
+# ('provost files', 'provost diff'). It is built with a scratch index and the
+# controlled directory as the work tree, so the store's own tree never holds
+# a copy, and git stores a file that did not change between runs once. The
+# directory's .gitignore is honoured; .provost and .git never go in; a file
+# over PROVOST_FILES_MAX_SIZE bytes (0 = keep no files) is only listed in
+# context/manifest.tsv. Each run's commit has the previous run's as its
+# parent, so plain git shows the directory's history across runs
+# (git log --stat files-c0007); a run whose files did not change is tagged on
+# the previous commit rather than given an empty one. Called under the lock.
+_snapshot_files () {
+    local dir="$1" id="$2" git_dir idx spec tree parent ptree commit out f
+    (( PROVOST_FILES_MAX_SIZE > 0 )) || return 0
+    git_dir="$PROVOST_WORKSPACE/.git"
+    idx="$git_dir/provost-files.index"; spec="$git_dir/provost-files.pathspec"
+    rm -f "$idx" "$spec"
+    {
+        printf ':/\0:(top,exclude,literal).provost\0'
+        while IFS= read -r -d '' f; do printf ':(top,exclude,literal)%s\0' "${f#./}"; done \
+            < <(cd "$dir" && find . \( -path ./.provost -o -path ./.git \) -prune -o \
+                    -type f -size +"${PROVOST_FILES_MAX_SIZE}"c -print0 2>/dev/null)
+    } > "$spec"
+    out="$(_GIT_INDEX="$idx" _git --work-tree="$dir" add -A \
+            --pathspec-from-file="$spec" --pathspec-file-nul 2>&1)" \
+        || { rm -f "$idx" "$spec"; printf 'git: %s\n' "$out" >&2; return 1; }
+    tree="$(_GIT_INDEX="$idx" _git write-tree 2>/dev/null)" || { rm -f "$idx" "$spec"; return 1; }
+    rm -f "$idx" "$spec"
+    parent="$(_git for-each-ref --count=1 --sort=-v:refname --format='%(objectname)' 'refs/tags/files-c*' 2>/dev/null)"
+    ptree=""; [[ -n "$parent" ]] && ptree="$(_git rev-parse -q --verify "$parent^{tree}" 2>/dev/null)"
+    if [[ -n "$parent" && "$ptree" == "$tree" ]]; then
+        commit="$parent"
+    else
+        commit="$(_git commit-tree "$tree" ${parent:+-p "$parent"} \
+                    -m "files of $dir at capture $id" 2>/dev/null)" || return 1
+    fi
+    _git tag "files-$id" "$commit" >/dev/null 2>&1
 }
 
 # _quality_exempt ENGINE STRATEGY — true when the quality gate does not apply.
@@ -1421,12 +1512,18 @@ _ingest () {
     local -a out_names=() out_ranges=()
     for (( k=0; k<${#ds_file[@]}; k++ )); do
         startid="$nextid"
-        # Prepend the visible, globally-unique '#' index to the header + each
-        # row (blank lines dropped), counting rows and header fields as we go.
-        CNTF="$tmp/cnt" awk -F'\t' -v s="$startid" '
+        # Prepend the visible, globally-unique '#' index and the capture id
+        # (which run each row came from) to the header + each row (blank lines
+        # dropped), counting rows and header fields as we go. A data column
+        # already named `capture` keeps its name; the added one becomes
+        # `_capture` (melt's clash rule), so a by-name union never merges them.
+        CNTF="$tmp/cnt" CAPID="$id" awk -F'\t' -v s="$startid" '
             length($0) == 0 { next }
-            !h { h = 1; nf = NF + 1; print "#\t" $0; next }
-            { print (s + n) "\t" $0; n++ }
+            !h { h = 1; nf = NF + 1
+                 for (i = 1; i <= NF; i++) U[$i] = 1
+                 c = "capture"; while (c in U) c = "_" c
+                 print "#\t" c "\t" $0; next }
+            { print (s + n) "\t" ENVIRON["CAPID"] "\t" $0; n++ }
             END { print n + 0, nf + 0 > (ENVIRON["CNTF"]) }' "${ds_file[k]}" > "$tmp/id.tsv"
         read -r nrows nf < "$tmp/cnt"
         [[ $k -eq 0 ]] && fields="$nf"
@@ -1512,8 +1609,10 @@ _ingest () {
 
     # In a controlled directory, snapshot the directory's contents as commit
     # context so the capture is tied to what the tree looked like at the time.
+    local ctl_dir=""
     if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
-        _snapshot_context "$(dirname "$PROVOST_WORKSPACE")" "$PROVOST_WORKSPACE" >/dev/null \
+        ctl_dir="$(dirname "$PROVOST_WORKSPACE")"
+        _snapshot_context "$ctl_dir" "$PROVOST_WORKSPACE" >/dev/null \
             || warn "could not snapshot the controlled directory's context."
     fi
     local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
@@ -1521,6 +1620,10 @@ _ingest () {
     _commit "$msg"
     local out
     out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
+    if [[ -n "$ctl_dir" ]]; then
+        _snapshot_files "$ctl_dir" "$id" \
+            || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
+    fi
     _unlock
 
     local idrange="#${startid}..$((startid+nrows-1))"; (( nrows == 0 )) && idrange="(no rows)"
@@ -2245,13 +2348,16 @@ _decode_unsorted_tsv () {
             for (i = 1; i <= 64; i++) val[substr(b, i, 1)] = i - 1
             for (i = 1; i < 256; i++) ch[i] = sprintf("%c", i)
             ch[9] = "\\t"; ch[10] = "\\n"; ch[13] = "\\r"
-            print "#\traw"
         }
-        NR == 1 { next }
+        # The raw column by name (a store made before format 3 has no
+        # capture column); the capture id, when there is one, is shown too.
+        NR == 1 { r = 2; for (i = 2; i <= NF; i++) { if ($i == "raw") r = i }
+                  cc = (r > 2) ? 2 : 0
+                  print "#\t" (cc ? $cc "\t" : "") "raw"; next }
         {
-            s = $2
-            if (s ~ /[^A-Za-z0-9+\/=]/) { print $1 "\t" s; next }
-            printf "%s\t", $1
+            s = $r; pre = $1 "\t" (cc ? $cc "\t" : "")
+            if (s ~ /[^A-Za-z0-9+\/=]/) { print pre s; next }
+            printf "%s", pre
             out = ""; acc = 0; bits = 0; n = length(s); cnt = 0
             for (i = 1; i <= n; i++) {
                 c = substr(s, i, 1)
@@ -2599,6 +2705,8 @@ ENV
     PROVOST_LLM_LOG           a file to append each API reply's usage to (one
                               JSON line: purpose, tool, model, tokens)
     PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
+    PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept with
+                              each run (bytes; default: 1048576; 0 = none)
     PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
     PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
                               its owner can't be checked, e.g. another host (default: 3600)
