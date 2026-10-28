@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-23)
+## Present state (2026-10-23; commands and store format updated 2026-10-28)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -68,7 +68,13 @@ Behaviour worth knowing:
   after the winning parser. `--name` overrides both.
 - Background capture only at an interactive terminal; scripts run
   synchronously. Failures: `provost log --failed`.
-- Captures and `rm` are refused while `provost restore <id>` has a capture out.
+- Captures and `rm` are refused while `provost restore <id>` (or `prev` /
+  `next`) has a capture out; `show --at`, `source ID`, `search --at`,
+  `files` and `diff` read any capture from git without moving the store.
+- Every dataset row is `#` (unique in the store), `capture` (`c0007`), `n`
+  (record within that capture), then the data (store format 3).
+- In a controlled directory each capture also commits the directory's files
+  (`files-<id>` tags, chained); `provost files`, `provost diff`.
 - A store whose `.git/config` others can write is refused if it sets keys that
   make git run programs.
 - Engines run with `PROVOST_NO_RC=1`.
@@ -83,7 +89,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (310)
+- `tests/smoke.sh` (435)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -93,6 +99,40 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0l. **2026-10-28: provost as a test runner — every run viewable** (PR #88).
+    Asked for in one session: a short help, search on git, a way to see
+    every run, a capture id per row, a listen on commands, and an import
+    that said every bundle was invalid.
+    - **Import fixed:** `git bundle verify` refuses to run outside a git
+      repository, so importing from an ordinary directory always failed. It
+      now verifies in a scratch repository.
+    - **`capture` column (store format 3):** every row is `#`, `capture`,
+      `n`, then the data. Older stores are migrated on the next write from
+      `provenance.tsv`; a data column already named `capture` keeps its name
+      and the added one is `_capture`.
+    - **Run files:** a capture in a controlled directory commits the
+      directory's files too, tagged `files-<id>`, chained run to run, built
+      with a scratch index (the store's tree never holds a copy).
+      `.gitignore` honoured; `PROVOST_FILES_MAX_SIZE` (1 MiB) caps a file.
+    - **Browse, all from git:** `show --capture ID` / `--at ID`,
+      `source ID`, `prev` / `next` (move the restored store), `files`,
+      `diff` (rows only A or only B filed, plus the files that changed),
+      `search` (`git grep`: rows, `--output`, `--files`, `--at`).
+    - **`listen CMD`:** a shell function per command in
+      `~/.config/provost/listen.sh` running it through `run --show` (new:
+      output shown and filed). Envoy's `watch`, dropped in the rename,
+      comes back at shell level.
+    - **Help:** `provost help` is 47 lines; `provost help advanced` is the
+      full reference, ordered by how a capture is filed. Smoke checks every
+      setting there, every command, and a 79-column width.
+    - **Not built / worth doing next:** `diff` compares rows as multisets
+      (row order and `n` ignored), which suits test results; a keyed diff
+      (match rows on a column, report changed values) would suit tables
+      like `df`. `listen` pipes the command, so it loses its terminal
+      (no colour; Python buffers): running it under `script` would keep a
+      pty. The run-files snapshot happens when the capture is filed, which
+      at a terminal is in the background just after the command ends.
 
 0k. **2026-10-27 (later): `--llm` measured through the real API, template
     repair on a miss, and a clean-up after extraction** (PR #87, stacked on

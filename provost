@@ -3114,263 +3114,378 @@ cmd_help () {
     cat <<EOF
 provost $PROVOST_VERSION — turn command output into data
 
-USAGE
-    provost run [opts] [--] <cmd> [args...]         run a command, capture its output as a
-                                                 commit, auto-detect + file it as dataset
-                                                 <cmd> (wrappers like sudo/env/timeout are
-                                                 looked through; --name NAME overrides)
-    cmd | provost [opts]                            inject stdin into a typed dataset named
-                                                 after the winning parser (--name NAME
-                                                 overrides)
-    provost [opts] FILE                             inject a file instead of stdin
-      capture opts: --name NAME  --min-confidence N  --min-coverage N
-                    --min-consistency N  --plugin-dir DIR  --multi
-                    --sync|--wait  --async  -q|--silent
-    provost source <#N>                             show the original source behind row #N
-    provost control [<dir>]                         make <dir> its own capture instance
-    provost uncontrol [<dir>]                       release a controlled directory
-    provost instances                               list controlled directories
-    provost export [<file>]                         bundle the store into a portable file
-    provost import <file> [<dest>]                  reconstitute a bundle elsewhere to browse
-    provost log [--failed]                          list captures (--failed: failed background ones)
-    provost restore <id|latest>                     bring a capture's commit back up
-    provost ls                                      list datasets
-    provost show NAME                               present a dataset (leading #N = row index)
-    provost rm [-f] [--no-purge] NAME...            delete dataset(s) + captures only they used
-    provost stats NAME [analyze-args]               statistics on a dataset (--all for everything)
-    provost triage                                  show low-confidence / unmatched bucket (raw input decoded)
-    provost doctor                                  check engines + store, list failed captures
-    provost help | <command> --help                 this text / one command's usage
+Give provost a command's output: it works out the format and files it as a
+table you can list, show, search and compare. Every capture is a git commit,
+so every run stays viewable.
 
-    Example:  provost run df -h;  provost show df
+CAPTURE
+    provost run CMD [ARGS...]     run CMD and file its output (dataset CMD)
+    CMD | provost                 file piped output
+    provost FILE                  file output saved in FILE
+    provost listen CMD            file CMD's output every time you run it
+    provost control               give this directory its own store; each run
+                                  here also keeps the directory's files
 
-FOREGROUND / BACKGROUND
-    From an interactive terminal a capture runs in the BACKGROUND and the
-    prompt returns at once; from a script or pipeline (stderr not a terminal)
-    it runs in the FOREGROUND, so 'cmd | provost; provost show x' is race-free.
-    --async / --sync (or PROVOST_ASYNC=1/0) force either. A failed background
-    capture is logged in the store: every later provost command warns until
-    you look at it with 'provost log --failed' or 'provost doctor'.
+LOOK
+    provost ls                    list datasets
+    provost show NAME             show a dataset as a table
+    provost search PATTERN        find matching rows in every dataset
+    provost log                   list captures (c0001, c0002, ...)
+    provost source ID             a capture's original output
+    provost diff [NAME]           what changed between the last two captures
+    provost files [ID]            a controlled directory's files at a capture
+    provost stats NAME            statistics on a dataset
+    provost triage                output provost could not file, and why
+
+GO BACK
+    provost prev / provost next   step the store back / forward one capture
+    provost restore latest        return to the present
+
+EXAMPLE
+    provost run df -h             capture 'df -h' into dataset 'df'
+    provost show df               see it: '#' numbers the row in the store,
+                                  'capture' names the run it came from, 'n'
+                                  its place in that run
+
+OPTIONS (for run, piped or file input)
+    --name NAME                   file into dataset NAME
+    --show                        show the output as well as filing it
+    --sync                        wait until it is filed
+    --llm                         have Claude write a parser for output
+                                  provost reads badly (sends that output to
+                                  the Anthropic API; needs an API key)
+
+MORE
+    provost COMMAND --help        one command's usage (provost show --help)
+    provost help advanced         every command, option and setting, and how
+                                  provost decides what to file
+EOF
+}
+
+cmd_help_advanced () {
+    cat <<EOF
+provost $PROVOST_VERSION — advanced help
+
+COMMANDS
+  Capture
+    provost run [OPTIONS] [--] CMD [ARGS...]
+        Run CMD and file its stdout+stderr as dataset CMD (sudo, env, timeout
+        and other wrappers are looked through). Exits with CMD's status.
+    CMD | provost [OPTIONS]        provost [OPTIONS] FILE
+        File piped input, or a file, as a dataset named after the parser that
+        read it (csv, free, aligned-columns, ...).
+    provost listen [CMD...]        provost unlisten CMD...
+        Capture CMD every time it runs (a shell function per command, in
+        \${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh; provost says how to
+        load it). No CMD: list them.
+  Look
+    provost ls                     list datasets and their row counts
+    provost show NAME [--capture ID] [--at ID]
+        A dataset as a table; --capture: only the rows capture ID filed;
+        --at: the dataset as it stood just after capture ID.
+    provost search PATTERN [NAME...] [-i -F -w] [--at ID] [--output | --files]
+        git grep over the rows (or the captured outputs, or a controlled
+        directory's run files), shown per dataset under its header.
+    provost source N | ID          the input behind row #N, or a capture's
+    provost diff [NAME] [A [B]] [-- PATH...]
+        Rows only A filed (-) and only B filed (+), per dataset, and the run
+        files that changed (with PATH: their full diff). Default: the last
+        two captures, or NAME's.
+    provost stats NAME [ARGS]      statistics (ARGS go to the analyze engine;
+                                   --all for every analysis)
+    provost triage                 the 'unsorted' bucket: what was held, why
+  History
+    provost log [--failed]         list captures (--failed: failed background)
+    provost restore ID | latest    check out capture ID (read-only) / return to
+                                   the latest
+    provost prev                   step the store back one capture
+    provost next                   step it forward one (past the last: the latest)
+  Directories and stores
+    provost control [DIR]          give DIR (default: here) its own store
+    provost uncontrol [DIR]        release it (its data is kept)
+    provost instances              list controlled directories
+    provost files [ID] [PATH] [--to DIR]
+        A controlled directory's files as capture ID kept them: list them,
+        print PATH, or write them all out into DIR.
+    provost export [FILE]          the whole store as one portable git bundle
+    provost import FILE [DEST]     open an exported store elsewhere to browse
+  Upkeep
+    provost rm [-f] [--no-purge] NAME...
+        Delete datasets, and the captures only they used (--no-purge: keep
+        those). The deletion is a commit, so 'restore' still reaches it.
+    provost doctor                 check the engines and the store
+    provost help [advanced]        the short help / this text
+    provost COMMAND --help         one command's usage
+
+  An ID is a capture id: c0007, 7 or capture-c0007.
+
+CAPTURE OPTIONS (run, piped input, FILE)
+    --name NAME             file into dataset NAME
+    --show, --tee           show the output (or pass the input through) as well
+    --sync, --wait          file in the foreground (the default when not at a
+                            terminal)
+    --async                 file in the background (the default at a terminal)
+    -q, --silent            no progress output
+    --multi                 file every dataset the input holds (MULTIPLE
+                            DATASETS below)
+    --llm, --no-llm         try a template Claude wrote for the tool first
+                            (LLM TEMPLATES below; default off)
+    --model, --no-model     try the learned layout model before holding a
+                            capture (LAYOUT MODEL below; default off)
+    --auto-multi, --no-auto-multi
+                            try segmenting before holding a capture
+                            (AUTO-MULTI below; default on)
+    --min-confidence N      file only at confidence N or more (0-101; 101
+                            holds every capture for triage)
+    --min-coverage N        quality gate: line coverage (0-100; 0 = off)
+    --min-consistency N     quality gate: type consistency (0-100; 0 = off)
+    --plugin-dir DIR        an extra directory of extract strategies
+
+THE STORE
+    Captures go to a GLOBAL git store, so you can capture from any directory:
+    \$PROVOST_HOME, or ~/.provost. Point PROVOST_HOME at a shared,
+    group-writable directory to collaborate; a lock serialises writers. Only
+    data lives in the store: provost's engines always load from its own
+    install directory ($PROVOST_ROOT).
+
+    'provost control DIR' gives DIR its own store (DIR/.provost): captures
+    made in DIR or below it go there. Which store a capture uses:
+    PROVOST_WORKSPACE if set, else the nearest controlled directory above the
+    current one, else the global store.
+
+    Every capture is one commit, tagged capture-<id>. Capture ids and row
+    numbers are never reused. Every dataset row carries:
+      #        its number, unique in the store ('provost source N')
+      capture  the capture it came from (c0007; 'provost source c0007')
+      n        its record number within that capture
+    In a controlled directory, each capture also lists the directory's files
+    (context/manifest.tsv) and commits the files themselves, tagged
+    files-<id>: the directory's .gitignore is honoured, and a file over
+    PROVOST_FILES_MAX_SIZE is only listed. Each run's files commit has the
+    previous run's as its parent, so git shows the directory's history
+    across runs (git log --stat files-c0007, in DIR/.provost).
+
+    'restore ID', 'prev' and 'next' check out an earlier capture: ls, show
+    and source then show the store as it was, and new captures are refused
+    until 'provost restore latest'. 'show --at', 'source ID', 'search --at',
+    'files' and 'diff' read any capture straight from git without moving the
+    store. 'export' bundles everything, tags included; 'import' opens it.
 
 DATASET NAMES
     'provost run CMD ...' files into a dataset named after CMD's basename
     (sudo, doas, env, nice, ionice, nohup, time, command, exec, stdbuf and
-    timeout are skipped, with their options). An injected input is named after
-    the winning parser (e.g. csv, free, aligned-columns). --name NAME sets it
-    explicitly. Names: letters, digits, '.', '_', '-' (starting with a letter
-    or digit, no '..'). Inputs that match nothing, match below
-    --min-confidence, or fail the quality gate (QUALITY GATE below) go to the
-    'unsorted' triage bucket. A same-named capture
-    with a different column set RECONCILES (columns unioned) when the overlap
-    is at least PROVOST_RECONCILE_OVERLAP%, else it splits into NAME.v2, ...
+    timeout are skipped, with their options). Piped input is named after the
+    parser that read it (csv, free, aligned-columns, ...). --name sets it.
+    Names: letters, digits, '.', '_' and '-', starting with a letter or
+    digit, no '..'. A capture of the same name with different columns
+    RECONCILES into the dataset (columns unioned) when at least
+    PROVOST_RECONCILE_OVERLAP% of the columns are shared, else it goes to
+    NAME.v2, NAME.v3, ...
 
-STORE (global by default, or a controlled directory)
-    Captures go to a GLOBAL git store so you can capture from any directory:
-      \$PROVOST_HOME, or ~/.provost if unset. Point PROVOST_HOME at a shared,
-      group-writable dir to collaborate; a lock serialises concurrent writers.
-      Only DATA lives in the store: provost's engines always load from its own
-      install dir ($PROVOST_ROOT), never from the store.
-    'provost control <dir>' makes <dir> its own instance (<dir>/.provost): captures
-    run inside it (or a subdir) route there, and each commit snapshots the
-    directory's contents as context. Resolution: PROVOST_WORKSPACE override, else
-    the nearest controlled dir walking up from CWD, else the global store.
-    Every capture is one commit tagged capture-<id> ('log' / 'restore'); capture
-    ids and row indices are never reused. Every dataset row has a globally-unique
-    visible index #N; 'provost source N' maps it back to the exact captured input.
-    After 'provost restore <id>' the store is read-only until 'provost restore latest'.
+FOREGROUND AND BACKGROUND
+    At a terminal a capture is filed in the BACKGROUND and the prompt returns
+    at once; from a script or a pipeline (stderr not a terminal) it is filed
+    in the FOREGROUND, so 'cmd | provost; provost show x' is race-free.
+    --async / --sync (or PROVOST_ASYNC=1 / 0) force either. A failed
+    background capture is logged in the store, and every later command warns
+    until you look at it with 'provost log --failed' or 'provost doctor'.
 
-ENV
-    PROVOST_HOME              global store dir (default: ~/.provost)
-    PROVOST_WORKSPACE         explicit store override (wins over PROVOST_HOME)
-    PROVOST_MIN_CONFIDENCE    commit threshold 0-100 (default: 50; 101 holds every
-                              capture back for triage)
-    PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
-                              parse to be filed (default: 80; 0 = off)
-    PROVOST_MIN_CONSISTENCY   quality gate: min column-type consistency % for a
-                              generic parse to be filed (default: 70; 0 = off)
-    PROVOST_PLUGIN_DIR        extra strategy dir for detection (same as --plugin-dir
-                              on inject/run; for wrappers like deframe — no
-                              ~/.config/provost/strategies symlink needed)
-    PROVOST_ASYNC             1 = always background, 0 = always foreground,
-                              unset/auto = background only when interactive
-    PROVOST_MULTI             file every dataset an input holds (default 0; same as --multi)
-    PROVOST_AUTO_MULTI        1 = when the quality gate would hold a parse, try
-                              segmenting the input first (default 1; 0 = off,
-                              same as --no-auto-multi). See AUTO-MULTI.
-    PROVOST_MODEL             1 = when the quality gate would still hold a parse,
-                              try the learned layout model (default 0; same as
-                              --model; needs python3). See LAYOUT MODEL.
-    PROVOST_LLM               1 = parse with a template Claude wrote for the
-                              tool, or have Claude write one, before a generic
-                              parse is trusted or a capture held (default 0;
-                              same as --llm). See LLM TEMPLATES.
-    PROVOST_LLM_MODEL         the model that writes templates (default
-                              claude-opus-5-5)
-    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else ANTHROPIC_API_KEY;
-                              prefer this one where ANTHROPIC_API_KEY is taken,
-                              e.g. inside Claude Code, which keeps it for itself)
-    PROVOST_LLM_BASE_URL      API base URL (default https://api.anthropic.com)
-    PROVOST_LLM_TEMPLATE_DIRS colon-separated directories of templates to look
-                              in after the store's and before provost's own
-    PROVOST_LLM_LOG           a file to append each API reply's usage to (one
-                              JSON line: purpose, tool, model, tokens)
-    PROVOST_MAX_INPUT         max input bytes, for inject AND run (default: 10485760)
-    PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept with
-                              each run (bytes; default: 1048576; 0 = none)
-    PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
-    PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even if
-                              its owner can't be checked, e.g. another host (default: 3600)
-    PROVOST_RECONCILE_OVERLAP % column overlap needed to reconcile a changed schema into
-                              the same dataset instead of a NAME.vN variant (default: 60)
-    PROVOST_QUIET             1 = suppress progress/ok messages (same as --silent)
-    TMPDIR                    where temp and background spool dirs go (default: /tmp)
-    Numeric settings must be whole numbers; anything else is refused (exit 2).
-
-MULTIPLE DATASETS PER INPUT (--multi)
-    Some reports hold more than one kind of data — a key/value block, a table,
-    and a banner or comment run that is best left alone. The default one-winner
-    capture keeps whichever the engine ranks first and drops the rest; --multi
-    splits the input, parses each part on its own terms (a kv block and a table
-    can even use different delimiters), and files each as its own dataset under
-    ONE capture. Datasets are named by their winning strategy (prefixed NAME.
-    for 'run' or --name, e.g. iostat.aligned-columns), so two parts that parse
-    the same way but differ in shape land in X and X.v2. Row indices (#N) run
-    consecutively across them and 'provost source N' still returns the whole
-    original input. 'provost log' shows the comma-joined list; the capture's
-    meta.tsv records 'datasets' (how many) and 'dataset_rows' (each one's range).
+HOW A CAPTURE IS FILED
+    1. A leading run of '#%' lines is set aside as context (METADATA PROLOGUE).
+    2. Every extract strategy scores the input; exact formats and
+       tool-specific parsers outrank generic ones. The engine may swap its
+       top generic parse for one that keeps more lines (LINE COVERAGE) or
+       types its columns better (COLUMN-TYPE CONSISTENCY).
+    3. No match, or below --min-confidence: held in 'unsorted', with the
+       reason.
+    4. A generic parse is checked by the QUALITY GATE. With --llm, a template
+       for the tool is tried first (LLM TEMPLATES). One the gate would hold
+       is then tried segmented (AUTO-MULTI), then by the layout model
+       (--model); if nothing passes, it is held in 'unsorted', with the
+       reason.
+    The whole input is kept with every capture, filed or held
+    ('provost source').
 
 LINE COVERAGE
     A capture reports its coverage: the share of the input's non-blank lines
     that reached the dataset (shown after the confidence, recorded as
-    'coverage' in meta.tsv; not measured above 128 KB). Confidence says how sure
-    the engine is of the FORMAT; coverage says how much of the input the parse
-    KEPT. When the parse ranked first keeps under 60% of the lines — one section
-    of a multi-section report, say — the engine tries a lossless key/value parse
-    of the whole report (one row per key, list item and section) and files it
-    instead if it keeps materially more. A capture still filed under 60% says
-    so; the whole input is kept with the capture either way ('provost source').
-
-QUALITY GATE
-    A capture whose GENERIC parse keeps under --min-coverage % of the input's
-    lines (default 80) or whose columns are under --min-consistency % type-
-    consistent (default 70) is held back in the 'unsorted' triage bucket, with
-    the reason, instead of filed as a table: a likely-wrong table is worse than
-    none. On the rated benchmark sets this held 18 of 48 wrong parses and no
-    fully right one. Tool-specific parsers and strict grammars (json, yaml,
-    xml, toml) are exempt; measurements absent on very large inputs never hold
-    a capture back. Set either to 0 to turn that check off. Before a capture
-    is held, AUTO-MULTI tries segmenting it.
-
-AUTO-MULTI (segmenting a weak parse)
-    When the quality gate would hold a parse for low coverage or low
-    consistency, provost first asks the engine to segment the input, as
-    --multi does, and files the parts instead when the split is clearly
-    better: it really is a split (2+ datasets), every part passes the gate on
-    its own (confidence, coverage, consistency), the parts together keep at
-    least --min-coverage % of the lines and 10 points more than the single
-    parse, no part is a table under positional A/B/C... columns only, a part
-    read by the parser the gate rejected has judged column types, and parts
-    of 3+ lines hold at least half the lines (no shattering into fragments).
-    Otherwise the capture is held as before, and the reason segmenting did
-    not help is printed and recorded ('auto_multi declined: ...' in
-    meta.tsv). A segmented capture says so in its ok line and records
-    'auto_multi' (why the single parse was held), 'single_strategy' /
-    'single_coverage' / 'single_consistency', the parts' joint 'coverage'
-    and each part's 'dataset_coverage' / 'dataset_consistency'.
-    Names follow --multi: NAME.<strategy> for 'run' / --name, the strategy
-    for a nameless inject — except that, with a NAME, the part whose columns
-    match the single parse's (PROVOST_RECONCILE_OVERLAP) keeps dataset NAME,
-    so repeated captures of one command keep their rows in one dataset
-    whether a given capture segments or not. Only captures the gate would
-    hold pay for the second engine run. --no-auto-multi or
-    PROVOST_AUTO_MULTI=0 turns it off.
-
-LAYOUT MODEL (a learned fallback for a weak parse)
-    With PROVOST_MODEL=1 (--model), a capture the quality gate would still
-    hold after AUTO-MULTI gets one more try: the learned layout model
-    (extract/model/, the explicit-only 'layout-model' strategy). It labels
-    each line's role and where its fields start, decides each table's
-    columns once for all its rows, and cuts every value from the input.
-    The engine measures its table with the same line coverage and column
-    consistency as any parser; it is filed (strategy 'layout-model') only
-    when it passes the gate and keeps at least as many lines as the parse
-    the gate held, and only for an input that is one table or one
-    key/value record. Where the engine also read the lines, an arbiter
-    keeps the engine's field split on the lines it trusts more. Before
-    that, AUTO-MULTI asks the model to re-read any part of its split that
-    the gate rejects; and when the whole-capture table is declined, the
-    model cuts the report into its own uniform sections (a key/value
-    block, a table, a list), filed under AUTO-MULTI's rules. Otherwise
-    the capture is held exactly as before. meta.tsv
-    records 'layout_model' (filed or declined, and why) and the held
-    parse's 'single_strategy' / 'single_coverage'. It needs python3 (plain,
-    no packages) and declines inputs over 600 lines. Only held captures pay
-    for it.
-
-LLM TEMPLATES (Claude writes a parser for a tool once; provost reuses it)
-    With PROVOST_LLM=1 (--llm), a capture is parsed by a template Claude
-    wrote for that tool (extract/llm/, the explicit-only 'llm-template'
-    strategy): either regular expressions per kind of line (table rows,
-    key/value lines, decoration to skip; format 1), or, for records that
-    span lines, a small Python parser (format 2) that runs in a box (a
-    separate interpreter, a few pure modules, no files or network, a CPU and
-    memory limit). provost looks in the store's llm-templates/ (NAME.json for
-    --name or the run command, else any template whose detect pattern
-    recognises the input), then in PROVOST_LLM_TEMPLATE_DIRS, then in the
-    templates shipped with provost. When
-    none fits, and PROVOST_LLM_API_KEY or ANTHROPIC_API_KEY is set, it asks
-    Claude (PROVOST_LLM_MODEL, default claude-opus-5-5) to write one from
-    this capture: THAT STEP SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at
-    most 400 lines / 64 KB), once per tool. The template is tried FIRST: on a
-    capture the gate would hold, before segmenting and the layout model; and
-    on a GENERIC parse the gate passed, before that parse is trusted (the
-    gate cannot see a title or prompt read as the header; a template written
-    for the tool's layout can). It never replaces an exact-format or
-    tool-specific parser. Every block the template yields is measured by the
-    engine and filed only under the gate's rules: one block as the capture's
-    dataset, several as NAME.<block>, AUTO-MULTI's way; against a generic
-    parse the gate passed it must keep that parse's share of the data lines
-    (within 10 points, 20 against text-lines or line-records; lines it
-    marks as decoration not counted). NOTES: the lines a template sets
-    aside (decoration, or lines it cannot read) that still carry a word or
-    a number are filed beside its datasets as NAME.notes (line, kind,
-    text), so a title, a version banner, a summary count or an error
-    between the rows is kept, never lost; only rules and box glyphs are
-    dropped. A value is kept to its cell: a tab or newline inside one
-    becomes a space. A new
-    template is kept, and committed with the capture, only when it passes.
-    From then on every capture of that tool is parsed offline,
-    deterministically and at no cost. A template keeps the captures it was
-    written from (its "examples", in the JSON). REPAIR: with a key, when a
-    stored template meets a kind of line it has not met before (one it
-    leaves unread, or one a skip pattern drops), provost sends the template,
-    those captures and this one to Claude once, to extend it. The extension
-    is kept, with this capture added to its examples, only if it still reads
-    every line of the earlier captures the template read and passes the same
-    rules; otherwise the template is used as it was. A capture whose lines
-    the template has all met before is never sent. meta.tsv records
-    'llm_template' (filed by which template, or declined and why).
-    PROVOST_LLM_LOG names a file that gets one JSON line per API reply (what
-    for, the tool, the model, its token usage). Needs python3 (plain, no
-    packages).
+    'coverage' in meta.tsv; not measured above 128 KB). Confidence says how
+    sure the engine is of the FORMAT; coverage says how much of the input the
+    parse KEPT. When the parse ranked first keeps under 60% of the lines (one
+    section of a multi-section report, say) the engine tries a lossless
+    key/value parse of the whole report (one row per key, list item and
+    section) and files that instead if it keeps materially more. A capture
+    still filed under 60% says so.
 
 COLUMN-TYPE CONSISTENCY
     A parse can keep every line and still put values under the wrong headers:
     a date split over three columns, a multi-word name spread over Name / Id /
     Version, a key: value file read as a two-column table. The engine types
-    every cell (number, size, date/time, address, version, path, word, …) and
-    records the share of cells that match their column's type as
-    'consistency' in meta.tsv (not measured above 128 KB; a cell holding a
-    word cut in half counts as a mismatch). When the generic parse ranked
-    first is below 95% and another generic parse within 20 confidence points
-    keeps as many lines, types its columns better (95% or more) and mixes
-    fewer columns, the capture is filed with that parse instead.
+    every cell (number, size, date/time, address, version, path, word, ...)
+    and records the share of cells that match their column's type as
+    'consistency' in meta.tsv (not measured above 128 KB; a word cut in half
+    counts as a mismatch). When the generic parse ranked first is below 95%
+    and another generic parse within 20 confidence points keeps as many
+    lines, types its columns better (95% or more) and mixes fewer columns,
+    the capture is filed with that parse instead.
+
+QUALITY GATE
+    A GENERIC parse that keeps under --min-coverage % of the input's lines
+    (default 80) or whose columns are under --min-consistency % type-
+    consistent (default 70) is held in 'unsorted', with the reason, instead
+    of filed as a table: a likely-wrong table is worse than none. On the
+    rated benchmark sets this held 18 of 48 wrong parses and no fully right
+    one. Tool-specific parsers and strict grammars (json, yaml, xml, toml)
+    are exempt; a measurement missing on a very large input never holds a
+    capture. Set either to 0 to turn that check off.
+
+AUTO-MULTI (segmenting a weak parse)
+    When the gate would hold a parse, provost first asks the engine to
+    segment the input, as --multi does, and files the parts instead when the
+    split is clearly better:
+      - it really is a split (2 or more datasets);
+      - every part passes the gate on its own (confidence, coverage,
+        consistency);
+      - together the parts keep at least --min-coverage % of the lines, and
+        10 points more than the single parse;
+      - no part is a table under positional A/B/C... columns only;
+      - a part read by the parser the gate rejected has judged column types;
+      - parts of 3+ lines hold at least half the lines (no shattering into
+        fragments).
+    Otherwise the capture is held as before, and why segmenting did not help
+    is printed and recorded ('auto_multi declined: ...' in meta.tsv). A
+    segmented capture says so in its ok line and records 'auto_multi' (why
+    the single parse was held), 'single_strategy' / 'single_coverage' /
+    'single_consistency', the parts' joint 'coverage', and each part's
+    'dataset_coverage' / 'dataset_consistency'. Names follow --multi, except
+    that with a NAME the part whose columns match the single parse's keeps
+    dataset NAME, so repeated captures of one command keep their rows in one
+    dataset whether a given capture segments or not. Only captures the gate
+    would hold pay for the second engine run.
+
+LAYOUT MODEL (--model, PROVOST_MODEL=1)
+    A capture the gate would still hold after AUTO-MULTI gets one more try:
+    the learned layout model (extract/model/, the explicit-only
+    'layout-model' strategy). It labels each line's role and where its fields
+    start, decides each table's columns once for all its rows, and cuts every
+    value from the input. Its table is filed (strategy 'layout-model') only
+    when it passes the gate, keeps at least as many lines as the parse the
+    gate held, and the input is one table or one key/value record. Where the
+    engine also read the lines, an arbiter keeps the engine's field split on
+    the lines it trusts more. Before that, AUTO-MULTI asks the model to
+    re-read any part of its split the gate rejects; and when the
+    whole-capture table is declined, the model cuts the report into its own
+    uniform sections (a key/value block, a table, a list), filed under
+    AUTO-MULTI's rules. meta.tsv records 'layout_model' (filed or declined,
+    and why). Needs python3 (no packages); declines inputs over 600 lines.
+
+LLM TEMPLATES (--llm, PROVOST_LLM=1)
+    Claude writes a parser for a tool once; provost reuses it offline.
+    A template is either regular expressions per kind of line (table rows,
+    key/value lines, decoration to skip; format 1), or, for records that span
+    lines, a small Python parser (format 2) run in a box: a separate
+    interpreter, a few pure modules, no files or network, CPU and memory
+    limits.
+
+    Where templates come from: the store's llm-templates/ (NAME.json for
+    --name or the run command, else any template whose detect pattern
+    recognises the input), then PROVOST_LLM_TEMPLATE_DIRS, then the
+    templates shipped with provost. When none fits and PROVOST_LLM_API_KEY
+    or ANTHROPIC_API_KEY is set, Claude (PROVOST_LLM_MODEL) writes one from
+    this capture: THAT SENDS THE CAPTURE'S TEXT TO THE ANTHROPIC API (at most
+    400 lines / 64 KB), once per tool. A new template is kept, and committed
+    with the capture, only when it passes; from then on every capture of the
+    tool is parsed offline, deterministically and at no cost.
+
+    When it is used: FIRST, on a capture the gate would hold (before
+    segmenting and the layout model), and on a GENERIC parse the gate passed,
+    before that parse is trusted (the gate cannot see a title or prompt read
+    as the header; a template written for the tool's layout can). Never in
+    place of an exact-format or tool-specific parser. Every block it yields
+    is measured and filed under the gate's rules: one block as the capture's
+    dataset, several as NAME.<block>, AUTO-MULTI's way. Against a generic
+    parse the gate passed, it must keep that parse's share of the data lines
+    (within 10 points; 20 against text-lines or line-records; lines it marks
+    as decoration not counted).
+
+    NOTES: lines a template sets aside (decoration, or lines it cannot read)
+    that still carry a word or a number are filed beside its datasets as
+    NAME.notes (line, kind, text): a title, a version banner, a summary count
+    or an error between the rows is kept, never lost; only rules and box
+    glyphs are dropped. A tab or newline inside a value becomes a space.
+
+    REPAIR: a template keeps the captures it was written from (its
+    "examples"). With a key, when a stored template meets a kind of line it
+    has not met before (one it leaves unread, or one a skip pattern drops),
+    provost sends the template, those captures and this one to Claude once,
+    to extend it. The extension is kept, with this capture added to its
+    examples, only if it still reads every line of the earlier captures the
+    template read and passes the same rules; otherwise the template is used
+    as it was. A capture whose lines the template has all met is never sent.
+
+    meta.tsv records 'llm_template' (filed by which template, or declined and
+    why). PROVOST_LLM_LOG names a file that gets one JSON line per API reply.
+    Needs python3 (no packages).
+
+MULTIPLE DATASETS (--multi)
+    Some reports hold more than one kind of data: a key/value block, a table,
+    and a banner best left alone. The default keeps whichever part the engine
+    ranks first; --multi splits the input, parses each part on its own terms
+    (a kv block and a table can even use different delimiters), and files
+    each as its own dataset under ONE capture. Datasets are named by their
+    strategy (prefixed NAME. for 'run' or --name, e.g. iostat.aligned-columns),
+    so two parts that parse the same way but differ in shape land in X and
+    X.v2. Row numbers run on across them, and 'provost source N' still
+    returns the whole input. meta.tsv records 'datasets' (how many) and
+    'dataset_rows' (each one's range).
 
 METADATA PROLOGUE
-    A leading run of '#%' lines on injected input is treated as capture context,
-    not data: it is peeled off before format detection (so it cannot corrupt a
-    parse), stored with the capture (context.txt), and shown verbatim by
-    'provost source'. Wrappers can prepend context unconditionally.
+    A leading run of '#%' lines on piped input is capture context, not data:
+    it is set aside before format detection (so it cannot corrupt a parse),
+    stored with the capture (context.txt), and shown by 'provost source'.
+    Wrappers can prepend context unconditionally.
+
+SETTINGS (environment)
+    PROVOST_HOME              the global store (default: ~/.provost)
+    PROVOST_WORKSPACE         use this store, whatever the directory
+    PROVOST_ASYNC             1 = always background, 0 = always foreground,
+                              unset/auto = background only at a terminal
+    PROVOST_QUIET             1 = no progress / ok messages (as --silent)
+    PROVOST_MIN_CONFIDENCE    file only at this confidence or more (0-101,
+                              default: 50; 101 holds every capture)
+    PROVOST_MIN_COVERAGE      quality gate: min line coverage % for a generic
+                              parse (default: 80; 0 = off)
+    PROVOST_MIN_CONSISTENCY   quality gate: min column-type consistency % for a
+                              generic parse (default: 70; 0 = off)
+    PROVOST_RECONCILE_OVERLAP % of columns shared to reconcile a changed shape
+                              into the same dataset, not NAME.vN (default: 60)
+    PROVOST_MULTI             1 = file every dataset an input holds (--multi)
+    PROVOST_AUTO_MULTI        1 = segment a parse the gate would hold (default;
+                              0 = off, as --no-auto-multi)
+    PROVOST_MODEL             1 = try the learned layout model (as --model;
+                              needs python3)
+    PROVOST_LLM               1 = use / have Claude write a template (as --llm)
+    PROVOST_LLM_MODEL         the model that writes templates (default:
+                              claude-opus-5-5)
+    PROVOST_LLM_API_KEY       Anthropic API key for --llm (else
+                              ANTHROPIC_API_KEY; use this one where that is
+                              taken, e.g. inside Claude Code)
+    PROVOST_LLM_BASE_URL      API base URL (default: https://api.anthropic.com)
+    PROVOST_LLM_TEMPLATE_DIRS colon-separated template directories, looked in
+                              after the store's and before provost's own
+    PROVOST_LLM_LOG           a file to append each API reply's usage to (one
+                              JSON line: purpose, tool, model, tokens)
+    PROVOST_PLUGIN_DIR        an extra strategy directory (as --plugin-dir)
+    PROVOST_MAX_INPUT         max input bytes, piped or run (default: 10485760)
+    PROVOST_FILES_MAX_SIZE    in a controlled directory, the largest file kept
+                              with each run (bytes; default: 1048576; 0 = none)
+    PROVOST_LOCK_TIMEOUT      seconds to wait for the store lock (default: 30)
+    PROVOST_LOCK_MAX_AGE      seconds after which a lock is presumed stale even
+                              if its owner cannot be checked (default: 3600)
+    TMPDIR                    temp and background spool directories (default:
+                              /tmp)
+    XDG_CONFIG_HOME           where 'listen' keeps its file (default ~/.config)
+    Numeric settings must be whole numbers; anything else is refused (exit 2).
 
 See docs/0001-rename-and-simplification.md for the design.
 EOF
@@ -3390,7 +3505,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject source control uncontrol instances export import log restore ls show rm stats triage doctor help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -3408,6 +3523,7 @@ main () {
     local verb="${1:-}"
     case "$verb" in
         help|-h|--help)
+            case "${2:-}" in advanced|all|--all|-a) cmd_help_advanced; exit 0 ;; esac
             if [[ $# -ge 2 ]] && _usage_text "$2" >/dev/null 2>&1; then _cmd_help "$2"; fi
             cmd_help; exit 0 ;;
         -V|--version)

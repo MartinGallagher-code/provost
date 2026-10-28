@@ -872,11 +872,22 @@ check "import hint shell-quotes the destination (printf %q)" "PROVOST_WORKSPACE=
 check "rm works in a store path with a space and a quote" "deleted sp" "$(env -u PROVOST_WORKSPACE PROVOST_HOME="$SPH" "$PROVOST" rm -f sp 2>&1)"
 
 # Help / CLI polish: help → stdout + exit 0; usage errors → stderr + exit 2.
-help_out="$("$PROVOST" help 2>/dev/null)"
-check "help prints to stdout" "USAGE" "$help_out"
+short_help="$("$PROVOST" help 2>/dev/null)"
+check "help prints to stdout" "CAPTURE" "$short_help"
 check "help exits 0" "0" "$(rc_of "$PROVOST" help)"
-check "--help prints to stdout" "USAGE" "$("$PROVOST" --help 2>/dev/null)"
-check "-h prints to stdout" "USAGE" "$("$PROVOST" -h 2>/dev/null)"
+check "--help prints to stdout" "CAPTURE" "$("$PROVOST" --help 2>/dev/null)"
+check "-h prints to stdout" "CAPTURE" "$("$PROVOST" -h 2>/dev/null)"
+check "the short help fits a screen (50 lines or fewer)" "yes" "$([[ $(wc -l <<< "$short_help") -le 50 ]] && echo yes || echo "no: $(wc -l <<< "$short_help") lines")"
+check "the short help points at the advanced help" "provost help advanced" "$short_help"
+help_out="$("$PROVOST" help advanced 2>/dev/null)"
+check "help advanced prints the full reference" "SETTINGS (environment)" "$help_out"
+check "help all is the same" "SETTINGS (environment)" "$("$PROVOST" help all 2>/dev/null)"
+check "--help advanced too" "SETTINGS (environment)" "$("$PROVOST" --help advanced 2>/dev/null)"
+check "help advanced exits 0" "0" "$(rc_of "$PROVOST" help advanced)"
+check "no help line is wider than 79 columns" "" "$(printf '%s\n%s\n' "$short_help" "$help_out" | awk 'length($0) > 79')"
+for v in run listen search source diff files prev next restore control export rm doctor; do
+    check "help advanced lists '$v'" "provost $v" "$help_out"
+done
 check_not "help no longer claims reconciliation is missing" "Not yet" "$help_out"
 check "help cites the real design doc" "docs/0001-rename-and-simplification.md" "$help_out"
 check "unknown command suggests the right one" "unknown command 'stat' (did you mean 'stats'?)" "$("$PROVOST" stat 2>&1 || true)"
@@ -884,7 +895,7 @@ check "unknown command exits 2" "2" "$(rc_of "$PROVOST" stat)"
 check "'show' with no name is a clean usage error" "usage: provost show" "$("$PROVOST" show 2>&1 || true)"
 check "'show' with no name exits 2" "2" "$(rc_of "$PROVOST" show)"
 check "unknown option exits 2" "2" "$(rc_of "$PROVOST" rm --bogus x)"
-for sub in run rm show stats log restore source; do
+for sub in run rm show stats log restore source next prev files diff search listen unlisten; do
     check "'$sub --help' prints its own usage to stdout" "usage: provost $sub" "$("$PROVOST" "$sub" --help 2>/dev/null)"
 done
 check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sync --help 2>/dev/null)"

@@ -1,6 +1,6 @@
 # Usage
 
-Everything `provost` does, from `provost help`. The man page
+Everything `provost` does, from `provost help advanced` (`provost help` is the short version). The man page
 (`man/provost.1` in the repository, installed with the wheel) carries the same
 content in roff form.
 
@@ -10,6 +10,7 @@ content in roff form.
 $ provost run [--] <cmd> [args...]     # run a command, file its output as dataset <cmd>
 $ cmd | provost                        # inject stdin (dataset named after the parser)
 $ provost FILE                         # inject a file instead of stdin
+$ provost listen <cmd>                 # file <cmd>'s output every time it runs (unlisten to stop)
 ```
 
 `provost run df -h` files into a dataset called `df` — wrappers such as `sudo`,
@@ -40,19 +41,30 @@ about it, and `provost log --failed` lists it with the kept input and log.
 
 ```console
 $ provost ls                     # list datasets
-$ provost show NAME              # present a dataset (leading #N = row index)
+$ provost show NAME              # present a dataset ('#', 'capture', 'n' lead each row)
+$ provost show NAME --capture ID # only the rows capture ID filed
+$ provost show NAME --at ID      # the dataset as it stood just after capture ID
+$ provost search PATTERN [NAME]  # git grep over the rows (--output, --files, --at ID)
 $ provost log [--failed]         # list captures (the git history) / failed background ones
-$ provost source <#N>            # the original input behind row #N
+$ provost source <#N | ID>       # the original input behind row #N, or a capture
+$ provost diff [NAME] [A [B]]    # rows and run files that changed between two captures
 $ provost stats NAME [args]      # statistics on a dataset (--all for everything)
 $ provost triage                 # low-confidence / unmatched bucket
 $ provost restore <id|latest>    # bring a capture's commit back up
+$ provost prev / provost next    # step the store back / forward one capture
 $ provost rm [-f] [--no-purge] NAME...   # captures are purged only when no dataset still uses them
 ```
+
+Every row carries `#` (its number in the store, `provost source N`),
+`capture` (the capture it came from, `provost source c0007`) and, for
+records, `n` (its place within that capture). An ID is `c0007`, `7` or
+`capture-c0007`.
 
 ## Instances and portability
 
 ```console
-$ provost control [<dir>]        # make <dir> its own capture instance
+$ provost control [<dir>]        # make <dir> its own capture instance; each run keeps its files
+$ provost files [ID] [PATH]      # those files as a capture kept them (--to DIR writes them out)
 $ provost uncontrol [<dir>]      # release a controlled directory
 $ provost instances              # list controlled directories
 $ provost export [<file>]        # bundle the store into a portable file

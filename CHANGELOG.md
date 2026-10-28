@@ -1,5 +1,30 @@
 # provost — Changelog
 
+## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`
+
+- **`provost help`** (`cmd_help`) is now 47 lines: capture, look, go back,
+  one example (with what `#`, `capture` and `n` mean), the four everyday
+  options, and where to find more. Bare `provost` at a terminal prints it.
+- **`provost help advanced`** (`cmd_help_advanced`; also `help all`,
+  `--help advanced`) is the full reference: every command grouped (capture,
+  look, history, directories and stores, upkeep), every capture option, the
+  store, names, foreground/background, then **how a capture is filed** in
+  the order it happens (prologue, detection, confidence, the quality gate,
+  `--llm`, AUTO-MULTI, the layout model) and each step's section, and every
+  setting. The LLM TEMPLATES section, one paragraph before, is split into
+  where templates come from, when they are used, NOTES and REPAIR. Nothing
+  the old help said was dropped.
+- Per-command usage for `source`, `show`, `next`, `prev`, `files`, `diff`,
+  `search`, `listen`, `unlisten`; `run` / inject list `--show`. The
+  did-you-mean list knows the new commands.
+- **Man page, README, `docs/usage.md`, bash completion** updated for the new
+  commands and options (completion: `help advanced`, `show`/`search`
+  options, capture ids for `files`/`source`, commands for `listen`).
+- **Tests (`tests/smoke.sh`):** the short help fits 50 lines and points at
+  the advanced one; the advanced help lists every command and documents
+  every setting; no help line is wider than 79 columns; `--help` for every
+  new command.
+
 ## 2026-10-28 — `provost listen`: capture a command every time it runs; `--show`
 
 - **`--show`** (alias `--tee`) on `run` and on injected input: the command's

@@ -68,17 +68,26 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 |---|---|
 | `provost run [--] <cmd>` | capture a command's output as a commit, into dataset `<cmd>` |
 | `<cmd> \| provost` / `provost [FILE]` | inject stdin / a file |
+| `provost listen <cmd>` / `unlisten <cmd>` | capture `<cmd>` every time it runs (output still on screen) |
 | `… --name NAME` | file into dataset `NAME` (inject/run) |
+| `… --show` | show the output as well as filing it (inject/run) |
 | `… --sync` / `--async` | foreground / background capture (default: background only at a terminal) |
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
-| `provost source <#N>` | original source behind a dataset row |
-| `provost control [<dir>]` / `uncontrol` / `instances` | per-directory capture instances |
+| `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
+| `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
+| `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
+| `provost diff [name] [A [B]]` | rows and run files that changed between two captures |
+| `provost log [--failed]` / `restore <id\|latest>` / `prev` / `next` | capture history / move the store to a capture and back |
+| `provost control [<dir>]` / `uncontrol` / `instances` | per-directory capture instances (each run keeps the directory's files) |
+| `provost files [ID] [path] [--to dir]` | a controlled directory's files as a capture kept them |
 | `provost export [<file>]` / `import <file> [<dest>]` | portable store bundle |
-| `provost log [--failed]` / `restore <id\|latest>` | capture history (or failed background captures) / bring one back up |
-| `provost ls` / `show <name>` / `stats <name>` | datasets |
 | `provost triage` | low-confidence / unmatched bucket |
 | `provost doctor` | engine + store check |
-| `provost help` / `<command> --help` | usage |
+| `provost help` / `help advanced` / `<command> --help` | short help / full reference / one command's usage |
+
+Every dataset row carries `#` (its number in the store), `capture` (the
+capture it came from, e.g. `c0007`) and, for records, `n` (its place in that
+capture).
 
 ## Layout
 

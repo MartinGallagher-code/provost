@@ -82,6 +82,10 @@ This is the default when stderr is not a terminal (scripts, pipelines).
 Capture in a detached background process; the prompt returns at once. This is
 the default when stderr is a terminal.
 .TP
+.BR --show ", " --tee
+Show the command's output as it runs (for piped input: pass it through to
+stdout), as well as filing it.
+.TP
 .BR -q ", " --silent
 No progress output (or \fBPROVOST_QUIET=1\fR).
 .SH SUBCOMMANDS
@@ -104,8 +108,21 @@ Run with no arguments from a terminal (nothing piped in),
 .B provost
 prints its help instead of waiting on stdin.
 .TP
-.B source \fI#N\fR
-Show the original captured input behind dataset row \fI#N\fR.
+.B listen \fR[\fIcmd\fR...]
+Capture \fIcmd\fR every time it runs: its output is shown as always and a
+copy is filed, as \fBprovost run --show\fR \fIcmd\fR would. Each command
+becomes a shell function in
+\fI${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh\fR, which the shell loads
+from its startup file (provost says how). Builtins and provost itself are
+refused. With no \fIcmd\fR, list the commands listened on.
+.TP
+.B unlisten \fIcmd\fR...
+Stop capturing \fIcmd\fR.
+.TP
+.B source \fI#N\fR|\fIid\fR
+Show the original captured input behind dataset row \fI#N\fR, or behind
+capture \fIid\fR (\fBc0007\fR, \fBcapture-c0007\fR) with its details; a
+capture the store is not checked out at is read from its commit.
 .TP
 .B control \fR[\fIdir\fR]
 Make \fIdir\fR (default: cwd) its own capture instance; captures run inside it
@@ -116,6 +133,11 @@ be read back later. The directory's \fI.gitignore\fR is honoured, and a file
 over \fBPROVOST_FILES_MAX_SIZE\fR bytes is only listed. Each run's files commit
 has the previous run's as its parent, so plain git shows the directory's
 history across runs (\fBgit log --stat files-c0007\fR in \fIdir/.provost\fR).
+.TP
+.B files \fR[\fIid\fR] [\fIpath\fR] [\fB--to\fR \fIdir\fR]
+A controlled directory's files as capture \fIid\fR kept them (default: the
+latest capture that kept any): list them (size, path), print \fIpath\fR, or
+write them all out into \fIdir\fR, a new or empty directory.
 .TP
 .B uncontrol \fR[\fIdir\fR]
 Release a controlled directory (its data is kept).
@@ -137,12 +159,45 @@ failed (and marks them seen).
 Bring a capture's commit back up (detached); \fBlatest\fR returns to the tip.
 While a capture is restored, new captures and \fBrm\fR are refused.
 .TP
+.BR prev ", " next
+Step the store back or forward one capture, as \fBrestore\fR does. From the
+latest, \fBprev\fR brings up the last capture (or the one before it, when the
+latest is that capture's own commit); \fBnext\fR past the last capture
+returns to the latest. While restored, \fBlog\fR still lists every capture
+and says where the store is.
+.TP
 .B ls
 List datasets.
 .TP
-.B show \fINAME\fR
-Present a dataset as a tidy table (leading \fB#N\fR is the row index).
-For the \fBunsorted\fR bucket the base64 \fBraw\fR column is decoded to text.
+.B show \fINAME\fR [\fB--capture\fR \fIid\fR] [\fB--at\fR \fIid\fR]
+Present a dataset as a tidy table. Every row carries \fB#\fR (its number,
+unique in the store), \fBcapture\fR (the capture it came from) and, for
+records, \fBn\fR (its record number within that capture); a data column
+already named \fBcapture\fR keeps its name and the added one is
+\fB_capture\fR. \fB--capture\fR shows only the rows capture \fIid\fR
+filed; \fB--at\fR shows the dataset as it stood just after capture \fIid\fR,
+read from git without moving the store. For the \fBunsorted\fR bucket the
+base64 \fBraw\fR column is decoded to text.
+.TP
+.B search \fIpattern\fR [\fINAME\fR...] [\fB-i\fR] [\fB-F\fR] [\fB-w\fR] [\fB--at\fR \fIid\fR] [\fB--output\fR|\fB--files\fR]
+\fBgit grep\fR over the store: the dataset rows matching \fIpattern\fR (a
+regular expression, matched anywhere in the row, \fB#\fR and capture
+included), shown as a table per dataset under its header; \fINAME\fR...
+limits it to those datasets. \fB-i\fR ignores case, \fB-F\fR takes a fixed
+string, \fB-w\fR whole words, \fB-e\fR \fIpattern\fR one starting with a
+dash. \fB--at\fR searches the store as it stood after capture \fIid\fR;
+\fB--output\fR the captured outputs (capture, line, text); \fB--files\fR a
+controlled directory's files as the latest run (or \fB--at\fR's) kept them.
+Alias: \fBfind\fR.
+.TP
+.B diff \fR[\fINAME\fR] [\fIa\fR [\fIb\fR]] [\fB--\fR \fIpath\fR...]
+What changed between capture \fIa\fR and capture \fIb\fR: per dataset, the
+rows only \fIa\fR filed (\fB-\fR) and only \fIb\fR filed (\fB+\fR),
+compared without \fB#\fR, \fBcapture\fR and \fBn\fR, and a count of the rows
+both have; and, when both kept a controlled directory's files, which files
+changed (with \fIpath\fR: their full diff). Default: the last two captures,
+or \fINAME\fR's last two; \fIa\fR alone is compared with the capture before
+it.
 .TP
 .B rm [\fB-f\fR|\fB--yes\fR] [\fB--no-purge\fR] \fINAME\fR...
 Delete one or more datasets. Removes each named dataset file, prunes its rows
@@ -164,8 +219,10 @@ Show the low-confidence / unmatched bucket, raw input decoded to text
 Check the extract/analyze engines and the store; lists failed background
 captures.
 .TP
-.B help
-Print help to stdout. \fIsubcommand\fR \fB--help\fR prints that command's usage.
+.B help \fR[\fBadvanced\fR]
+Print the short help to stdout; \fBhelp advanced\fR prints every command,
+option and setting, and how a capture is filed. \fIsubcommand\fR \fB--help\fR
+prints that command's usage.
 .SH DATASET NAMES
 .B provost run
 \fIcmd\fR ... files into a dataset named after \fIcmd\fR's basename, looking
@@ -419,6 +476,10 @@ dataset instead of a \fB.v\fIN\fR variant (default: 60; 0\-101).
 .TP
 .B TMPDIR
 Where temporary and background spool directories are created (default: /tmp).
+.TP
+.B XDG_CONFIG_HOME
+Where \fBlisten\fR keeps its file, \fIprovost/listen.sh\fR (default:
+\fI~/.config\fR).
 .SH EXIT STATUS
 0 on success; 1 on a runtime error (including a git failure \- provost never
 reports a capture git did not record); 2 on a usage error (unknown command or
@@ -435,6 +496,12 @@ provost stats df                  # statistics on the dataset
 provost run --name disks df -h    # file into a dataset of your choosing
 provost log --failed              # background captures that failed
 provost export ~/store.bundle     # portable export
+provost show df --capture c0003   # only the rows capture c0003 filed
+provost diff df                   # what changed between df's last two captures
+provost search -i error           # every row mentioning 'error', via git grep
+provost prev                      # step the store back one capture
+provost listen pytest             # file pytest's output every time it runs
+provost control; provost run make test; provost files    # a run's files
 .fi
 .SH SEE ALSO
 The provost design is documented in
