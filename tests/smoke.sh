@@ -1038,5 +1038,27 @@ check "-e takes a pattern that starts with a dash" "no dataset rows match '-x'" 
 check "search --files searches the latest run's files" "m.py:1:v = 2" "$(fr search --files 'v =')"
 check "--files --at searches that run's" "m.py:1:v = 1" "$(fr search --files 'v =' --at 1)"
 
+# --show and listen: the output is shown as always and filed too.
+LWS2="$(mktemp -d)/.listen"; LCFG="$(mktemp -d)"; LBIN="$(mktemp -d)"
+printf '#!/bin/sh\necho "TEST STATUS"; echo "t1 PASS"; echo "t2 $1"; exit 3\n' > "$LBIN/mytest"; chmod +x "$LBIN/mytest"
+bs="$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" run --show "$LBIN/mytest" FAIL 2>/dev/null; echo "rc=$?")"
+check "run --show prints the command's output" "t2 FAIL" "$bs"
+check "and keeps its exit status" "rc=3" "$bs"
+check "and files it" "t2	FAIL" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1)"
+check "inject --show passes the input through" "x y" "$(printf 'x y\n1 2\n' | PROVOST_WORKSPACE="$LWS2" "$PROVOST" --show --name teed 2>/dev/null)"
+check "and files it" "teed" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" ls 2>&1)"
+lr () { env XDG_CONFIG_HOME="$LCFG" HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" "$PROVOST" "$@" 2>&1; }
+check "listen says how to load it" "listen.sh" "$(lr listen mytest)"
+check "listen with no CMD lists the commands" "mytest" "$(lr listen)"
+check "listening twice is a no-op" "already listening on: mytest" "$(lr listen mytest)"
+check "a shell builtin is refused" "is a shell builtin" "$(lr listen cd || true)"
+check "provost itself is refused" "cannot listen on itself" "$(lr listen provost || true)"
+bs="$(env XDG_CONFIG_HOME="$LCFG" PATH="$LBIN:$PATH" PROVOST_WORKSPACE="$LWS2" bash -c '. "$XDG_CONFIG_HOME/provost/listen.sh"; mytest PASS; echo "rc=$?"' 2>/dev/null)"
+check "a listened command shows its output" "t2 PASS" "$bs"
+check "keeps its exit status" "rc=3" "$bs"
+check "and is filed each time it runs" "t2	PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1)"
+check "unlisten stops it" "stopped listening on: mytest" "$(lr unlisten mytest)"
+check "and the list is empty" "listening on nothing" "$(lr listen)"
+
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

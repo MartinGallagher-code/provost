@@ -1,5 +1,22 @@
 # provost — Changelog
 
+## 2026-10-28 — `provost listen`: capture a command every time it runs; `--show`
+
+- **`--show`** (alias `--tee`) on `run` and on injected input: the command's
+  output (or the piped input) goes to stdout as it comes, as well as being
+  captured; the bound (`PROVOST_MAX_INPUT`) applies to what is filed.
+- **`listen [CMD...]` / `unlisten CMD...`** (`cmd_listen`, `cmd_unlisten`):
+  each listened command becomes a shell function, `CMD () { command provost
+  run --show -- CMD "$@"; }`, in `${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh`,
+  which the shell loads from its startup file (provost says how, once, if no
+  startup file loads it yet). The output is on screen as always, the exit
+  status is the command's, and a copy is filed (in the background at a
+  terminal) into the store the directory routes to. Builtins (they must run
+  in the shell) and provost itself are refused. `listen` alone lists them.
+  Envoy's `watch` was dropped in the rename (docs/0001 §4.2); this is the
+  shell-level version.
+- **Tests (`tests/smoke.sh`):** +15.
+
 ## 2026-10-28 — `provost search`, on git grep
 
 - **`search PATTERN [NAME...]`** (`cmd_search`, alias `find`): `git grep`

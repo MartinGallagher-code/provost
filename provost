@@ -1882,6 +1882,7 @@ options:
                           don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
+  --show                  show the command's output as it runs, as well
   -q, --silent            no progress output
 EOF
             ;;
@@ -1911,6 +1912,7 @@ options:
                           don't, the default, PROVOST_LLM)
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
+  --show                  pass the input through to stdout as well (a tee)
   -q, --silent            no progress output
 EOF
             ;;
@@ -1940,6 +1942,15 @@ usage: provost files [ID] [PATH] [--to DIR]
   into DIR, a new or empty directory.
 EOF
             ;;
+        listen) cat <<'EOF'
+usage: provost listen [CMD...]
+  Capture CMD every time you run it: its output is shown as always and a copy
+  is filed (as 'provost run --show CMD' would). Each command becomes a shell
+  function in one file, which your shell loads from its startup file; provost
+  says how. With no CMD, list the commands listened on.
+EOF
+            ;;
+        unlisten) echo "usage: provost unlisten CMD...    stop capturing CMD every time it runs" ;;
         search) cat <<'EOF'
 usage: provost search PATTERN [NAME...] [options]
   Find the dataset rows that match PATTERN (a regular expression, matched
@@ -1994,7 +2005,7 @@ _cmd_usage_die () { local u; u="$(_usage_text "$1")"; printf '%s\n' "${u%%$'\n'*
 # and leaves the remaining args in _O_REST.
 _parse_capture_opts () {
     local verb="$1"; shift
-    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_REST=()
+    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0; _O_REST=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -q|--silent) PROVOST_QUIET=1; shift ;;
@@ -2029,6 +2040,7 @@ _parse_capture_opts () {
             --no-llm) PROVOST_LLM=0; shift ;;
             --async) _O_ASYNC=1; shift ;;
             --sync|--wait) _O_ASYNC=0; shift ;;
+            --show|--tee) _O_SHOW=1; shift ;;
             -h|--help) _cmd_help "$verb" ;;
             --) shift; _O_REST=("$@"); return 0 ;;
             -?*) usage_die "unknown option for '$verb': $1 (see 'provost $verb --help')." ;;
@@ -2068,6 +2080,11 @@ cmd_inject () {
     local in="$tmp/in.txt" size
     if [[ -n "$file" ]]; then
         head -c "$((PROVOST_MAX_INPUT + 1))" < "$file" | tr -d '\r' > "$in"
+        (( _O_SHOW )) && cat -- "$file"
+    elif (( _O_SHOW )); then
+        # --show: pass all of stdin through to stdout (a tee), keep the bound.
+        tee "$tmp/full"
+        head -c "$((PROVOST_MAX_INPUT + 1))" "$tmp/full" | tr -d '\r' > "$in"; rm -f "$tmp/full"
     else
         head -c "$((PROVOST_MAX_INPUT + 1))" | tr -d '\r' > "$in"
     fi
@@ -2098,8 +2115,15 @@ cmd_run () {
     # bounded by PROVOST_MAX_INPUT exactly as inject is.
     local -a st=()
     set +e
-    "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
-    st=("${PIPESTATUS[@]}")
+    if (( _O_SHOW )); then
+        # --show: the output goes to the terminal as it comes, as well.
+        "$@" 2>&1 | tee "$in.full"
+        st=("${PIPESTATUS[@]}")
+        head -c "$((PROVOST_MAX_INPUT + 1))" "$in.full" > "$in.raw"; rm -f "$in.full"
+    else
+        "$@" 2>&1 | head -c "$((PROVOST_MAX_INPUT + 1))" > "$in.raw"
+        st=("${PIPESTATUS[@]}")
+    fi
     set -e
     rc="${st[0]}"
     size="$(wc -c < "$in.raw")"; size="${size//[!0-9]/}"
@@ -2482,6 +2506,83 @@ cmd_diff () {
     elif (( ${#paths[@]} )); then
         die "$a and $b did not both keep the controlled directory's files."
     fi
+}
+
+# ---------------------------------------------------------------------------
+# listen / unlisten — capture a command every time you run it. Each listened
+# command is a shell function in one file the user loads from their shell's
+# startup file; the function runs it through 'provost run --show', so its
+# output is on screen as always and a copy is filed (in the background at a
+# terminal). Commands go to the store the directory routes to, as 'run' does.
+# ---------------------------------------------------------------------------
+_listen_file () { printf '%s/provost/listen.sh\n' "${XDG_CONFIG_HOME:-$HOME/.config}"; }
+_listen_names () { local f; f="$(_listen_file)"; [[ -f "$f" ]] && sed -n 's/^\([A-Za-z_][A-Za-z0-9_.-]*\) () { command .* # provost listen$/\1/p' "$f"; return 0; }
+_listen_write () {   # NAME... — rewrite the file with exactly these commands
+    local f tmpf n prov; f="$(_listen_file)"
+    mkdir -p "$(dirname "$f")" || die "cannot create $(dirname "$f")"
+    # How the functions call provost: by name when it is on PATH (so an
+    # upgrade or move is picked up), else by this script's own path.
+    prov="provost"
+    command -v provost >/dev/null 2>&1 || prov="$(printf '%q' "$PROVOST_ROOT/provost")"
+    tmpf="$f.tmp.$$"
+    {
+        printf '# provost listen: commands whose output provost files every time they run.\n'
+        printf '# Load from your shell startup file:  . %s\n' "$(printf '%q' "$f")"
+        printf "# Change it with 'provost listen CMD' / 'provost unlisten CMD'.\n"
+        for n in "$@"; do
+            printf '%s () { command %s run --show -- %s "$@"; } # provost listen\n' "$n" "$prov" "$n"
+        done
+    } > "$tmpf" && mv "$tmpf" "$f" || { rm -f "$tmpf"; die "cannot write $f"; }
+}
+_listen_hint () {
+    local f q rc found=0; f="$(_listen_file)"; q="$(printf '%q' "$f")"
+    for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile" "$HOME/.bash_profile"; do
+        [[ -f "$rc" ]] && F="$f" awk 'index($0, ENVIRON["F"]) { f = 1 } END { exit !f }' "$rc" 2>/dev/null && found=1
+    done
+    if (( found )); then info "takes effect in new shells; in this one, run:  . $q"
+    else info "load it in every shell by adding this line to ~/.bashrc (or ~/.zshrc):  . $q"
+         info "and in this shell now:  . $q"; fi
+}
+
+cmd_listen () {
+    case "${1:-}" in -h|--help) _cmd_help listen ;; esac
+    local -a have=() n x
+    while IFS= read -r x; do [[ -n "$x" ]] && have+=("$x"); done < <(_listen_names)
+    if [[ $# -eq 0 ]]; then
+        if (( ${#have[@]} == 0 )); then info "listening on nothing — 'provost listen CMD' to start."; return 0; fi
+        printf '%s\n' "${have[@]}"
+        return 0
+    fi
+    local -a add=()
+    for n in "$@"; do
+        [[ "$n" =~ ^[A-Za-z_][A-Za-z0-9_.-]{0,63}$ ]] || usage_die "'$n' is not a command name provost can listen on."
+        [[ "$n" == provost ]] && usage_die "provost cannot listen on itself."
+        case "$(type -t -- "$n" 2>/dev/null)" in
+            builtin|keyword) usage_die "'$n' is a shell builtin; it has to run in your shell, so provost cannot run it for you." ;;
+        esac
+        command -v -- "$n" >/dev/null 2>&1 || warn "'$n' is not on PATH here; listening anyway."
+        for x in ${have[@]+"${have[@]}"} ${add[@]+"${add[@]}"}; do [[ "$x" == "$n" ]] && continue 2; done
+        add+=("$n")
+    done
+    if (( ${#add[@]} == 0 )); then info "already listening on: $*"; return 0; fi
+    _listen_write ${have[@]+"${have[@]}"} "${add[@]}"
+    ok "listening on: ${add[*]} — its output is shown as always and filed each time it runs."
+    _listen_hint
+}
+
+cmd_unlisten () {
+    case "${1:-}" in -h|--help) _cmd_help unlisten ;; esac
+    [[ $# -ge 1 ]] || _cmd_usage_die unlisten
+    local -a have=() keep=() gone=() x n
+    while IFS= read -r x; do [[ -n "$x" ]] && have+=("$x"); done < <(_listen_names)
+    for x in ${have[@]+"${have[@]}"}; do
+        for n in "$@"; do [[ "$x" == "$n" ]] && { gone+=("$x"); continue 2; }; done
+        keep+=("$x")
+    done
+    (( ${#gone[@]} )) || { info "not listening on: $*"; return 0; }
+    _listen_write ${keep[@]+"${keep[@]}"}
+    ok "stopped listening on: ${gone[*]}."
+    info "in a shell that already loaded it, also run:  unset -f ${gone[*]}"
 }
 
 # ---------------------------------------------------------------------------
@@ -3336,6 +3437,8 @@ main () {
         files)         shift; cmd_files "$@" ;;
         diff)          shift; cmd_diff "$@" ;;
         search|find)   shift; cmd_search "$@" ;;
+        listen)        shift; cmd_listen "$@" ;;
+        unlisten)      shift; cmd_unlisten "$@" ;;
         ls)            shift; cmd_ls "$@" ;;
         show)          shift; cmd_show "$@" ;;
         rm|delete|drop) shift; cmd_rm "$@" ;;
