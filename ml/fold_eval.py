@@ -4,8 +4,9 @@
 """One cross-validation fold, scored against the LLM labels: the quick
 development yardstick for comparing learners and training sets.
 
-    python3 ml/fold_eval.py [--fold 0] [--learner trees|grid|both]
+    python3 ml/fold_eval.py [--fold 0] [--learner trees|grid|both|lm]
         [--extra ml/data/gen.jsonl ...] [--epochs 9] [--hybrid]
+        [--lm-load ml/models/lm/best] [--lm-base HuggingFaceTB/SmolLM2-135M]
 
 Every learner trains on the LLM labels (ml/data/corpus-llm.jsonl) of the
 other folds, plus any --extra sets (synthetic or generated layouts, which
@@ -14,7 +15,10 @@ reports how often each line's split matches the LLM label, on every line
 where both the engine and the LLM see fields (thousands of lines; the LLM
 labels are 98% right against the hand labels), plus the few gold lines in
 the fold. With --learner both, the average of the two models' start
-probabilities is scored too. The fresh hand-labelled test set is not read.
+probabilities is scored too. --learner lm is the tiny pretrained language
+model (train_lm.py): trained here for --lm-epochs, or a saved one scored with
+--lm-load (train it with train_lm.py --fold N for a fair score). The fresh
+hand-labelled test set is not read.
 """
 import argparse
 import os
@@ -40,16 +44,22 @@ def starts_from(lines, roles, probs):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--fold", type=int, default=0)
-    ap.add_argument("--learner", choices=["trees", "grid", "both"], default="both")
+    ap.add_argument("--learner", choices=["trees", "grid", "both", "lm"], default="both")
     ap.add_argument("--corpus", default=os.path.join(HERE, "data", "corpus.jsonl"), help="engine labels")
     ap.add_argument("--llm", default=os.path.join(HERE, "data", "corpus-llm.jsonl"))
     ap.add_argument("--extra", nargs="*", default=[], help="extra training sets (any family-free layouts)")
     ap.add_argument("--extra-trees", action="store_true", help="give the trees the extra sets too")
     ap.add_argument("--epochs", type=int, default=9)
     ap.add_argument("--hybrid", action="store_true")
+    ap.add_argument("--lm-load", help="a saved train_lm.py model (trained without this fold)")
+    ap.add_argument("--lm-base", default=None, help="the LM to fine-tune (default: train_lm.BASE)")
+    ap.add_argument("--lm-epochs", type=int, default=2)
+    ap.add_argument("--limit", type=int, default=0, help="score only the first N held-out docs (a quick look)")
     a = ap.parse_args(argv)
 
     eng = {e["name"]: e for e in D.load(a.corpus) if CV.fold(e) == a.fold}
+    if a.limit:
+        eng = dict(list(eng.items())[: a.limit])
     llm_all = D.load(a.llm)
     llm = {e["name"]: e for e in llm_all}
     tr = [e for e in llm_all if CV.fold(e) != a.fold]
@@ -71,11 +81,22 @@ def main(argv=None):
                    log=lambda m: print("  grid: " + m, file=sys.stderr))
         preds["grid"] = {n: G.predict_doc(gm, e, False, [bool(s) for s in e["starts"]])
                          for n, e in eng.items()}
+    if a.learner == "lm":
+        import torch
+        import train_lm as LM
+        torch.set_num_threads(os.cpu_count() or 1)
+        if a.lm_load:
+            lm, enc = LM.load(a.lm_load)
+            print(f"  lm: loaded {a.lm_load} ({lm.meta})", file=sys.stderr)
+        else:
+            lm, enc = LM.fit(tr, a.lm_epochs, base=a.lm_base or LM.BASE, extra=extra,
+                             log=lambda m: print("  lm: " + m, file=sys.stderr))
+        preds["lm"] = {n: LM.predict_doc(lm, enc, e) for n, e in eng.items()}
 
     out = {}
     for k, P in preds.items():
         out[k] = {n: starts_from(eng[n]["lines"], r, pr) for n, (r, _, pr) in P.items()}
-    if len(preds) == 2:
+    if set(preds) == {"trees", "grid"}:
         out["avg"] = {}
         for n, e in eng.items():
             pt, pg = preds["trees"][n][2], preds["grid"][n][2]
