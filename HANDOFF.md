@@ -92,7 +92,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (475)
+- `tests/smoke.sh` (478)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)

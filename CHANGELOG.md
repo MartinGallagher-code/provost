@@ -31,16 +31,21 @@ host's answer, without fifty serialised commits.
   after `#` and `capture` (`#% host=web03 rack=r2` → `host`, `rack`). Keys
   `[A-Za-z_][A-Za-z0-9_.-]*`; the last value of a repeated key wins; other
   words stay context only. A data column of the same name keeps it and the
-  context one takes a leading `_`, as `capture` does. A held capture
-  (`unsorted`) is kept as it came. Default off: existing stores and
-  wrappers that already send `#%` lines see no change.
+  context one takes a leading `_`, as `capture` does; the names are chosen
+  once per capture (against the data columns of all its datasets, and
+  `capture` itself) and recorded in `meta.tsv` as `context_columns`
+  (`host=_host,rack=rack`), so a reader can tell a context column from a
+  data column of the same name. A held capture (`unsorted`) is kept as it
+  came. Default off: existing stores and wrappers that already send `#%`
+  lines see no change.
 - **`_capture_opt`**: the capture options are parsed in one place for
   `run`, inject and `batch`.
 - **Docs:** `batch` usage, the advanced help (command, BATCH CAPTURE,
   METADATA PROLOGUE, the option and the setting), the short help (one line,
   48 lines now), man page, README, `docs/usage.md`, bash completion.
-- **Tests (`tests/smoke.sh`):** +40 — one commit and a tag per capture, ids
-  in input order, context columns and their clash rule, `provost source` per
+- **Tests (`tests/smoke.sh`):** +43 — one commit and a tag per capture, ids
+  in input order, context columns, their clash rule and `context_columns`,
+  `provost source` per
   input, `--name` per file, `--from` (file and stdin), a missing input
   refusing the batch, empty and oversized inputs, `-j 1` = `-j 8`, `--llm`
   one at a time, usage errors, and `batch --help`.

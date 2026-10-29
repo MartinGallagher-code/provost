@@ -1097,9 +1097,14 @@ check "source still returns each input on its own" "db01,0.5" "$(bt source c0003
 check_not "...and only that input" "web01" "$(bt source c0003)"
 check "meta.tsv records the batch" "batch	c0001..c0003" "$(cat "$BTWS/captures/c0002/meta.tsv")"
 check "...and each capture's input" "web02.txt" "$(cat "$BTWS/captures/c0002/meta.tsv")"
+check "...and which columns came from its context" "context_columns	host=host,rack=rack" "$(cat "$BTWS/captures/c0002/meta.tsv")"
 printf '#%% host=h1 Load=9\nhost,Load\nweb,0.5\n' > "$BTD/clash.txt"
 bt batch -q --context-columns --name clash "$BTD/clash.txt" >/dev/null || true
 check "a data column keeps its name; the context one takes a '_'" "# capture _host _Load n host Load" "$(bt show clash | sq)"
+check "...and meta.tsv says which is which" "context_columns	host=_host,Load=_Load" "$(cat "$BTWS/captures/c0004/meta.tsv")"
+printf '#%% capture=zz\nName,Load\nx,1\n' > "$BTD/capkey.txt"
+bt batch -q --context-columns --name capkey "$BTD/capkey.txt" >/dev/null || true
+check "a context key named capture never takes the capture column" "# capture _capture n Name Load" "$(bt show capkey | sq)"
 printf '#%% host=plain\nName,Load\nx,1\n' > "$BTD/plain.txt"
 bt batch -q --name plain "$BTD/plain.txt" >/dev/null || true
 check_not "without --context-columns the context is no column" "plain" "$(bt show plain | sq)"

@@ -164,8 +164,11 @@ Keys are letters, digits, `_`, `.` and `-`, starting with a letter or `_`;
 the last value of a repeated key wins, and words that are not `key=value` stay
 context only. A data column of the same name keeps it, and the context column
 becomes `_host` — the rule `capture` already follows, so a by-name union never
-merges the two. A capture held in `unsorted` is kept as it came, one raw
-column.
+merges the two. The names are chosen once per capture, against the data
+columns of every dataset it files (and `capture` itself), and recorded in its
+`meta.tsv` as `context_columns` (`host=_host,rack=rack`), so a reader can tell
+a context column from a data column of the same name. A capture held in
+`unsorted` is kept as it came, one raw column.
 
 ## Batch capture
 

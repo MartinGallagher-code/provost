@@ -131,7 +131,9 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
   every row the capture files, after `#` and `capture`: `#% host=web03
   rack=r2` gives each row `host` and `rack` columns. A data column of the same
   name keeps it and the context one becomes `_host` (the rule `capture` already
-  follows); a capture held in `unsorted` is kept as it came.
+  follows), and the capture's `meta.tsv` records which columns came from the
+  context (`context_columns  host=_host,rack=rack`); a capture held in
+  `unsorted` is kept as it came.
 - **`provost batch FILE... [--from LIST]`**: many inputs, one commit. Each file
   is a capture of its own — its own id, its own `provost source`, its own
   `capture-<id>` tag — but they are parsed in parallel (`-j N`, default the

@@ -1550,9 +1550,13 @@ _ingest_store () {
     # host's output can say `#% host=web03 rack=r2` and every row carries it.
     # The last value of a repeated key wins; words that are not `key=value`
     # stay context only. A data column of the same name keeps its name and the
-    # context one takes a leading `_` (melt's clash rule, as `capture` does).
+    # context one takes a leading `_` (melt's clash rule, as `capture` does);
+    # the names are chosen once per capture, against the data columns of all
+    # its datasets (and `capture`), and recorded in meta.tsv as
+    # `context_columns` (key=column,...), so a reader can tell a context
+    # column from a data column of the same name.
     # A held capture (`unsorted`) stays as it is: one raw column.
-    local ctx_keys="" ctx_vals=""
+    local ctx_keys="" ctx_vals="" ctx_cols="" ctx_map=""
     if [[ "$PROVOST_CONTEXT_COLUMNS" == 1 && -s "$ctxf" ]]; then
         { IFS= read -r ctx_keys; IFS= read -r ctx_vals; } < <(awk '
             { sub(/^#%[ \t]*/, "")
@@ -1565,6 +1569,21 @@ _ingest_store () {
               } }
             END { for (j = 1; j <= n; j++) { ks = ks (j > 1 ? "\t" : "") O[j]; vs = vs (j > 1 ? "\t" : "") V[O[j]] }
                   print ks; print vs }' "$ctxf") || true
+        local -a ctx_files=(); local ci
+        for (( ci=0; ci<${#ds_name[@]}; ci++ )); do
+            [[ "${ds_name[ci]}" == unsorted ]] || ctx_files+=("${ds_file[ci]}")
+        done
+        if [[ -n "$ctx_keys" ]] && (( ${#ctx_files[@]} > 0 )); then
+            { IFS= read -r ctx_cols; IFS= read -r ctx_map; } < <(CK="$ctx_keys" awk -F'\t' '
+                !(FILENAME in H) && length($0) { H[FILENAME] = 1; for (i = 1; i <= NF; i++) U[$i] = 1 }
+                END { U["capture"] = 1
+                      n = split(ENVIRON["CK"], K, "\t")
+                      for (j = 1; j <= n; j++) {
+                          m = K[j]; while (m in U) m = "_" m
+                          U[m] = 1; cs = cs (j > 1 ? "\t" : "") m; ms = ms (j > 1 ? "," : "") K[j] "=" m
+                      }
+                      print cs; print ms }' "${ctx_files[@]}") || true
+        fi
     fi
 
     # File each dataset in turn: allocate its own #N range, store it, and record
@@ -1582,7 +1601,7 @@ _ingest_store () {
         # dropped), counting rows and header fields as we go. A data column
         # already named `capture` keeps its name; the added one becomes
         # `_capture` (melt's clash rule), so a by-name union never merges them.
-        ck="$ctx_keys"; cv="$ctx_vals"
+        ck="$ctx_cols"; cv="$ctx_vals"
         [[ "${ds_name[k]}" == unsorted ]] && { ck=""; cv=""; }
         CNTF="$tmp/cnt" CAPID="$id" CK="$ck" CV="$cv" awk -F'\t' -v s="$startid" '
             length($0) == 0 { next }
@@ -1678,6 +1697,7 @@ _ingest_store () {
             printf 'plugin_dir\t%s\n' "$(_meta_safe "$PROVOST_PLUGIN_DIR")"
         fi
         if [[ -s "$ctxf" ]]; then printf 'context\tcontext.txt\n'; fi
+        if [[ -n "$ctx_map" ]]; then printf 'context_columns\t%s\n' "$ctx_map"; fi
     } > "$capd/meta.tsv"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
@@ -3744,7 +3764,9 @@ METADATA PROLOGUE
     letters, digits, '_', '.' and '-', starting with a letter or '_'; the
     last value of a repeated key wins, and other words stay context only. A
     data column of the same name keeps it, and the context column becomes
-    _NAME. A capture held in 'unsorted' is kept as it came.
+    _NAME; meta.tsv records which columns came from the context
+    ('context_columns', key=column,...). A capture held in 'unsorted' is
+    kept as it came.
 
 BATCH CAPTURE (provost batch)
     'provost batch FILE...' files each FILE as a capture of its own, as

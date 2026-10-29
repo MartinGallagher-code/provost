@@ -119,8 +119,10 @@ puts \fBhost\fR and \fBrack\fR on each row, so one host's answers stay
 labelled in a dataset many hosts feed. Keys are letters, digits, \fB_\fR,
 \fB.\fR and \fB-\fR, starting with a letter or \fB_\fR; the last value of a
 repeated key wins, and other words stay context only. A data column of the
-same name keeps it and the context column becomes \fB_\fR\fINAME\fR. A
-capture held in \fBunsorted\fR is kept as it came.
+same name keeps it and the context column becomes \fB_\fR\fINAME\fR;
+\fImeta.tsv\fR records which columns came from the context
+(\fBcontext_columns\fR, \fIkey\fB=\fIcolumn\fR,...). A capture held in
+\fBunsorted\fR is kept as it came.
 Run with no arguments from a terminal (nothing piped in),
 .B provost
 prints its help instead of waiting on stdin.
