@@ -242,6 +242,41 @@ run_extract () {
     bash "$PROVOST_EXTRACT_SCRIPT" "$@"
 }
 
+# A strategy's `## Version:`, read from its file, for the tests that check
+# version metadata end to end (so a version bump does not break them).
+strategy_version () {
+    local f
+    for f in "${PROVOST_EXTRACT_SCRIPT%/*}"/strategies/*/"$1".sh; do
+        [[ -f "$f" ]] && { sed -n 's/^## Version: //p' "$f" | head -1; return 0; }
+    done
+    return 1
+}
+
+# A PATH with everything on this one except jq, for the strategies' no-jq
+# readers: a directory of links, made once per test file. (`command -v jq`
+# sees functions as well as files, so jq cannot be hidden any other way.)
+_NOJQ_PATH=""
+nojq_path () {
+    if [[ -z "$_NOJQ_PATH" ]]; then
+        local d p f b
+        d="$(mktemp -d)"
+        local IFS=:
+        for p in $PATH; do
+            for f in "$p"/*; do
+                b="${f##*/}"
+                [[ -x "$f" && ! -d "$f" && "$b" != jq && ! -e "$d/$b" ]] || continue
+                ln -s "$f" "$d/$b"
+            done
+        done
+        _NOJQ_PATH="$d"
+    fi
+    echo "$_NOJQ_PATH"
+}
+
+run_extract_nojq () {
+    PATH="$(nojq_path)" bash "$PROVOST_EXTRACT_SCRIPT" "$@"
+}
+
 ################################################################################
 ## run_test
 ##
