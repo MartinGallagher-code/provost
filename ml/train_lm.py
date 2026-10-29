@@ -52,7 +52,7 @@ BASE = "HuggingFaceTB/SmolLM2-135M"
 SEP = "\n=====\n"        # between the two copies
 MAX_TOK = 640           # tokens per copy of a window (lines are kept whole)
 MAX_LINE = 400          # characters of a line the model sees; later candidates score 0
-BATCH_TOK = 6000        # padded tokens per training batch
+BATCH_TOK = 2048        # padded tokens per training batch (6000 ran out of 15 GB)
 LORA_TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
 
 
@@ -168,13 +168,17 @@ class LMLabeller(nn.Module):
         return self.backbone(input_ids=ids, attention_mask=mask).last_hidden_state
 
 
-def build(base=BASE, lora=16, full=False, backbone=None):
-    """(model, encoder). backbone: an already-built transformers model (tests)."""
+def build(base=BASE, lora=16, full=False, backbone=None, checkpointing=False):
+    """(model, tokenizer). backbone: an already-built transformers model
+    (tests). checkpointing trades ~30% more time for much less memory."""
     tok = None
     if backbone is None:
         from transformers import AutoModel, AutoTokenizer
         tok = AutoTokenizer.from_pretrained(base)
-        backbone = AutoModel.from_pretrained(base, torch_dtype=torch.float32)
+        backbone = AutoModel.from_pretrained(base, dtype=torch.float32, attn_implementation="sdpa")
+    if checkpointing:
+        backbone.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        backbone.enable_input_require_grads()
     if not full and lora:
         from peft import LoraConfig, get_peft_model
         backbone = get_peft_model(backbone, LoraConfig(r=lora, lora_alpha=2 * lora, lora_dropout=0.05,
@@ -365,11 +369,11 @@ def predict_doc(model, enc, ex, decoder=False):
 
 
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
-        ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4):
+        ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False):
     """Train on train_exs (+ extra layouts), validating on their val families."""
     random.seed(seed)
     torch.manual_seed(seed)
-    model, tok = build(base, lora, full)
+    model, tok = build(base, lora, full, checkpointing=checkpointing)
     model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok}
     enc = hf_encoder(tok, max_tok)
     val = [e for e in train_exs if D.is_val(e)]
@@ -382,7 +386,7 @@ def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, ex
     log(f"  {base}: {nall / 1e6:.1f}M parameters, {ntr / 1e6:.2f}M trained; "
         f"{len(tr)} docs ({len(tr_items)} windows, {sum(len(i['ids']) for i in tr_items)} tokens), "
         f"validate on {len(val)}; encoded in {time.time() - t0:.0f}s")
-    train(model, tr_items, epochs, val_items, lr=lr, log=log, ckpt=ckpt, ckpt_every=ckpt_every)
+    train(model, tr_items, epochs, val_items, lr=lr, log=log, ckpt=ckpt, ckpt_every=ckpt_every, budget=budget)
     return model, enc
 
 
@@ -398,6 +402,8 @@ def main(argv=None):
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--max-docs", type=int, default=0, help="train on a random sample (a pilot)")
     ap.add_argument("--max-tok", type=int, default=MAX_TOK)
+    ap.add_argument("--batch-tok", type=int, default=BATCH_TOK, help="padded tokens per batch (memory)")
+    ap.add_argument("--checkpointing", action="store_true", help="gradient checkpointing: less memory, ~30%% slower")
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 1)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--save", help="write the adapter + heads here (with last/ and best/ checkpoints)")
@@ -413,7 +419,8 @@ def main(argv=None):
         exs = exs[: a.max_docs]
     extra = [e for p in a.extra for e in D.load(p)]
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
-                   ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr)
+                   ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
+                   budget=a.batch_tok, checkpointing=a.checkpointing)
     if a.save:
         save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra})
         print(f"saved -> {a.save}")
