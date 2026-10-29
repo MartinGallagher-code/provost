@@ -96,7 +96,7 @@ capture).
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, 265 strategies (~116 generic), hints.tsv
+├── extract/            # extract engine, 268 strategies (~116 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries

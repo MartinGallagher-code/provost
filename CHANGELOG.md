@@ -1,5 +1,51 @@
 # provost — Changelog
 
+## 2026-10-29 — four readers: TSV quotes, nested JSON without jq, JSON Lines after comments, the floor-plan viewer's results
+
+What quarterdeck (`qd`) had been working around by converting outputs to
+TSV before filing them, and escaping quotes in its own tables.
+
+- **`tsv` keeps quotes that are data** (`strategies/structured/tsv.sh`,
+  v2.3). The split already took a `"` as structural only at the start of a
+  field, but every value then had every quote deleted: `said "hi"` filed
+  as `said hi`, and a JSON column as `{a:1}`. Values keep them; `""` inside
+  a quoted field is one quote, as in CSV (which was already right). The
+  corpus golden `quo-tsv-json-column` had frozen the damage and now holds
+  the JSON as written; no other golden moved.
+- **Nested JSON without jq** (`_json_walk` in `extract/lib/_helpers.sh`;
+  `json` v1.1, `jsonl` v1.2). The no-jq fallbacks read `"key": value` pairs
+  a line at a time and stopped at the first nested object or array, so
+  `{"host": …, "cpu": {"count": 64}}` filed `host` alone. An awk reader
+  (mawk-safe) now prints what the jq filters print: for `json` every leaf
+  under jq's path (arrays from 0), strings decoded (escapes, `\uXXXX`,
+  surrogate pairs), numbers as written, a stream of values each in turn;
+  for `jsonl` each line's top-level keys, nested values as compact JSON.
+  Checked against jq on every JSON input in the corpus and the samples:
+  98 documents and 15 JSON Lines files, identical. jq 1.7 spells `1e3` as
+  `1E+3`; the reader keeps `1e3`.
+- **`jsonl` reads past `#` comment lines** (v1.2): a header a tool prints
+  above its records (`# dcprobe scan …`) is skipped in detection and
+  extraction and not counted in `line<N>`. It used to push the records
+  out of the detector's three-line window, and the file read as
+  `aligned-columns` with `{"host":` for a cell.
+- **`dc-results`** (`strategies/misc/dc-results.sh`, confidence 92): the
+  datacenter floor-plan viewer's results format, which mx export,
+  iperf_orchestrator export-overlay, reckon --overlay, dcprobe and dcimport
+  write. A row per `test target value [k=v …]` sample — fields split on
+  tabs, commas or runs of spaces outside quotes — with its own keys, then
+  its test's `!test` metadata (the sample's own key wins); `test`, `target`
+  or `value` as a key is `meta_<key>`. Claimed only with `!test` lines: a
+  file written `--no-meta` looks like ordinary output (`cpu0 user 123`).
+  Sample, golden and `extract/tests/test_strategy_dc_results.sh`.
+- Tests: `test_strategy_tsv.sh` (quotes), `test_strategy_json.sh` (the
+  reader against jq, and nested values with jq hidden),
+  `test_strategy_jsonl.sh` (comments; rows with and without jq), and
+  `nojq_path` / `run_extract_nojq` in `extract/tests/helpers.sh`, a PATH
+  with everything but jq. `test_replay.sh` and `test_critique_fixes.sh`
+  read `json`'s version from its file (`strategy_version`) instead of
+  hard-coding `1.0`, which the bump to 1.1 broke. `extract/README.md`'s
+  strategy count recounted (268; it said 265).
+
 ## 2026-10-29 — `provost batch`: many inputs, one commit; `#%` context as row columns (`--context-columns`)
 
 For wrappers that capture a fleet (quarterdeck's `qd run`: one command on

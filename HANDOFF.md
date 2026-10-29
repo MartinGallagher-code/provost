@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` 2026-10-29)
+## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -13,7 +13,7 @@ coverage and the 2026-10-14 parser work. 2.2.0 adds the 2026-10-16 and
 names.
 
 provost is one Bash entry point (`provost`) over:
-- the extract engine (`extract/provost-extract`, 265 strategies, ~116 generic)
+- the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
 - the tidy melt (`transform/melt.sh`)
 - the analyze engine (`analyze/provost-analyze`)
 
@@ -103,6 +103,34 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0n. **2026-10-29: four readers qd was working around.** qd converted
+    some outputs to TSV before filing them, and escaped quotes in its own
+    tables, because provost read them badly. Fixed here instead:
+    - **TSV quotes are data.** `tsv` deleted every `"` from every value
+      after its split had already consumed the structural ones: `said
+      "hi"` filed as `said hi`, a JSON column lost its quotes (the corpus
+      golden `quo-tsv-json-column` had frozen exactly that). `""` inside a
+      quoted field is now one quote, as in CSV.
+    - **Nested JSON without jq.** `json`'s no-jq fallback read `"key":
+      value` pairs a line at a time and stopped at the first nested value.
+      `_json_walk` (`extract/lib/_helpers.sh`, mawk-safe awk) prints what
+      the jq filters print — leaves under jq's paths for `json`, top-level
+      keys with nested values as compact JSON for `jsonl` — and was
+      checked byte for byte against jq on every JSON input in the corpus
+      and samples (98 and 15). One difference, documented: jq 1.7 spells
+      `1e3` as `1E+3`.
+    - **JSON Lines after `#` comments.** `jsonl` skips comment lines in
+      detection and extraction; a header line or two used to push the
+      records out of its three-line window and the file read as aligned
+      columns.
+    - **`dc-results`** (`strategies/misc/`): the floor-plan viewer's
+      results format (`!test` metadata over `test target value k=v`
+      samples) written by mx export, iperf export-overlay, reckon
+      --overlay, dcprobe and dcimport. A row per sample, its test's
+      metadata on each. Claimed only by its `!test` lines: a `--no-meta`
+      file is shaped like ordinary output, and stays with the generic
+      parsers.
+
 0m. **2026-10-29: `provost batch` and `--context-columns`**, for
     quarterdeck (`qd`), which drives the toolchain on a fleet and now
     files what comes back through provost: one capture per host, with
@@ -118,10 +146,8 @@ Suites (all CI-enforced):
       very large batches.
     - **`--context-columns`:** `key=value` prologue words as columns after
       `#` and `capture`; clash → `_NAME`; `unsorted` untouched; default off.
-    - **Worth doing next:** a strategy for datacenter_visualization's
-      results format (`test target value k=v` lines with `!test` metadata)
-      and for NDJSON after leading comments; both come out as `text-lines`
-      today, so qd converts them to TSV before filing.
+    - The results format and NDJSON after comments, listed here as worth
+      doing next, are done: see 0n.
 
 0l. **2026-10-28: provost as a test runner — every run viewable** (PR #88).
     Asked for in one session: a short help, search on git, a way to see
