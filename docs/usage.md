@@ -10,6 +10,7 @@ content in roff form.
 $ provost run [--] <cmd> [args...]     # run a command, file its output as dataset <cmd>
 $ cmd | provost                        # inject stdin (dataset named after the parser)
 $ provost FILE                         # inject a file instead of stdin
+$ provost batch FILE... [--from LIST]  # inject many files: a capture each, one commit
 $ provost listen <cmd>                 # file <cmd>'s output every time it runs (unlisten to stop)
 ```
 
@@ -30,6 +31,7 @@ Capture flags (for `run` and inject):
 | `--plugin-dir DIR` | add an extra strategy directory to detection |
 | `--multi` | file **every** dataset the input holds instead of one winner |
 | `--no-auto-multi` | hold a parse the quality gate rejects without first trying to segment it (`--auto-multi`, the default, tries) |
+| `--context-columns` | make each `key=value` word of a `#%` prologue a column on every row (see [Metadata prologue](#metadata-prologue)) |
 
 At an interactive terminal the capture runs in the background and the prompt
 returns at once; in a script or pipeline (stderr not a terminal) it runs in the
@@ -98,6 +100,7 @@ includes can make git run programs as whoever captures next.
 | `PROVOST_PLUGIN_DIR` | extra strategy dir for detection | — |
 | `PROVOST_ASYNC` | `1` always background, `0` always foreground, unset = background only at a terminal | unset |
 | `PROVOST_MULTI` | file every dataset an input holds (same as `--multi`) | `0` |
+| `PROVOST_CONTEXT_COLUMNS` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) | `0` |
 | `PROVOST_AUTO_MULTI` | `1` = segment a parse the quality gate would hold, when the parts are clearly better; `0` = hold it (same as `--no-auto-multi`) | `1` |
 | `PROVOST_MAX_INPUT` | max input bytes, for inject and `run` | `10485760` |
 | `PROVOST_LOCK_TIMEOUT` | seconds to wait for the store lock | `30` |
@@ -145,3 +148,55 @@ A leading run of `#%` lines on injected input is treated as capture context,
 not data: it is peeled off before format detection (so it cannot corrupt a
 parse), stored with the capture (`context.txt`), and shown verbatim by
 `provost source`. Wrappers can prepend context unconditionally.
+
+**Context columns.** With `--context-columns` (or `PROVOST_CONTEXT_COLUMNS=1`)
+every `key=value` word in the prologue is also put on each row the capture
+files, after `#` and `capture`:
+
+```console
+$ printf '#%% host=web03 rack=r2\nName,Load\nweb,0.5\n' | provost --sync --context-columns --name load
+$ provost show load
+#  capture  host   rack  n  Name  Load
+1  c0001    web03  r2    1  web   0.5
+```
+
+Keys are letters, digits, `_`, `.` and `-`, starting with a letter or `_`;
+the last value of a repeated key wins, and words that are not `key=value` stay
+context only. A data column of the same name keeps it, and the context column
+becomes `_host` — the rule `capture` already follows, so a by-name union never
+merges the two. A capture held in `unsorted` is kept as it came, one raw
+column.
+
+## Batch capture
+
+```console
+$ provost batch [options] FILE... [--from LIST]
+```
+
+Each file is a capture of its own, exactly as `provost FILE` would make it —
+its own id, its own `provost source`, its own `capture-<id>` tag — but the
+inputs are parsed in parallel and filed under one hold of the store lock as
+**one** commit. The parse is the slow half of a capture and needs no lock, so
+fifty captures in a row each pay for their own parse and commit, while fifty
+in a batch share the CPUs and one commit (40 small inputs: 13 s against 55 s
+on 4 CPUs). The lock is held about 50 ms an input; other writers wait for it
+up to `PROVOST_LOCK_TIMEOUT`.
+
+- Capture ids follow the order the files were named, whichever parsed first.
+  Each capture's `meta.tsv` records its `input` path and its `batch` (the id
+  range).
+- `--name NAME` applies to the files after it, until the next `--name`.
+- `--from LIST` reads more files from `LIST` (`-` for stdin), one a line:
+  `PATH`, or `NAME<TAB>PATH` for a file of its own name. Blank lines and lines
+  starting `#` are skipped.
+- `-j N` / `--jobs N` parses at most `N` files at a time (default: the CPUs,
+  at most 16). `--llm` parses one at a time, so a template Claude writes for a
+  tool is written once, not once per file.
+- Every file is checked before anything is filed. An empty file is skipped
+  with a note; one that is too large or fails to parse is reported and the
+  rest are still filed. The exit status is 1 if any file was not captured.
+
+For a wrapper that captures a fleet, write one file per host, open each with
+`#% host=NAME` (and anything else worth a column), and pass
+`--context-columns`: every row then says which host it came from, and
+`provost source` still shows each host's answer on its own.

@@ -1,5 +1,50 @@
 # provost — Changelog
 
+## 2026-10-29 — `provost batch`: many inputs, one commit; `#%` context as row columns (`--context-columns`)
+
+For wrappers that capture a fleet (quarterdeck's `qd run`: one command on
+fifty hosts) — one capture per host, so `provost source` still finds each
+host's answer, without fifty serialised commits.
+
+- **`batch [OPTIONS] FILE... [--from LIST]`** (`cmd_batch`): each file is a
+  capture of its own, as `provost FILE` would make it (its own id, its own
+  `provost source`, its own `capture-<id>` tag). The parse halves run in
+  parallel (`-j/--jobs N`, default the CPUs, at most 16; `_ncpu`), and the
+  store halves run in input order under one hold of the store lock, ending
+  in ONE commit (`batch: N capture(s) cA..cB (R rows)`). Capture ids follow
+  the order the files were named. Each capture's `meta.tsv` gains `input`
+  (the file) and `batch` (the id range). `--name NAME` applies to the files
+  after it; `--from LIST` (`-`: stdin) reads `PATH` or `NAME<TAB>PATH`
+  lines. Every file is checked before anything is filed (a missing one
+  refuses the batch); an empty one is skipped and said; an oversized one is
+  reported and the rest filed (exit 1). `--llm` parses one at a time so a
+  new template is written once. Measured: 40 small inputs on 4 CPUs, 13.2 s
+  against 54.6 s as 40 captures; the lock is held about 50 ms an input.
+- **`_ingest` split in two** (`_ingest_parse`, `_ingest_store`): the parse
+  half (prologue, detection, gate, auto-multi, model, `--llm`, melt) writes
+  into a work dir and leaves its verdict as `state.sh` (`declare -p`); the
+  store half sources it back and does #N, append, provenance, and — for a
+  single capture — the lock, commit and tag. `inject` and `run` call both,
+  as before; their behaviour is unchanged (smoke unchanged).
+- **`--context-columns` / `PROVOST_CONTEXT_COLUMNS=1`**: every `key=value`
+  word in a `#%` prologue becomes a column on each of the capture's rows,
+  after `#` and `capture` (`#% host=web03 rack=r2` → `host`, `rack`). Keys
+  `[A-Za-z_][A-Za-z0-9_.-]*`; the last value of a repeated key wins; other
+  words stay context only. A data column of the same name keeps it and the
+  context one takes a leading `_`, as `capture` does. A held capture
+  (`unsorted`) is kept as it came. Default off: existing stores and
+  wrappers that already send `#%` lines see no change.
+- **`_capture_opt`**: the capture options are parsed in one place for
+  `run`, inject and `batch`.
+- **Docs:** `batch` usage, the advanced help (command, BATCH CAPTURE,
+  METADATA PROLOGUE, the option and the setting), the short help (one line,
+  48 lines now), man page, README, `docs/usage.md`, bash completion.
+- **Tests (`tests/smoke.sh`):** +40 — one commit and a tag per capture, ids
+  in input order, context columns and their clash rule, `provost source` per
+  input, `--name` per file, `--from` (file and stdin), a missing input
+  refusing the batch, empty and oversized inputs, `-j 1` = `-j 8`, `--llm`
+  one at a time, usage errors, and `batch --help`.
+
 ## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`
 
 - **`provost help`** (`cmd_help`) is now 47 lines: capture, look, go back,

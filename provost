@@ -107,6 +107,7 @@ PROVOST_LOCK_TIMEOUT="${PROVOST_LOCK_TIMEOUT:-30}"   # seconds to wait for the s
 PROVOST_LOCK_MAX_AGE="${PROVOST_LOCK_MAX_AGE:-3600}" # seconds after which any lock is stale
 PROVOST_RECONCILE_OVERLAP="${PROVOST_RECONCILE_OVERLAP:-60}"  # % column overlap to union vs split a variant
 PROVOST_MULTI="${PROVOST_MULTI:-0}"                  # 1 = file every dataset an input holds (--multi)
+PROVOST_CONTEXT_COLUMNS="${PROVOST_CONTEXT_COLUMNS:-0}" # 1 = '#% key=value' context becomes row columns (--context-columns)
 PROVOST_AUTO_MULTI="${PROVOST_AUTO_MULTI:-1}"        # 1 = segment a parse the quality gate would hold (see _auto_multi)
 PROVOST_MODEL="${PROVOST_MODEL:-0}"                  # 1 = try the learned layout model on a parse the gate would hold (see _layout_model)
 PROVOST_LLM="${PROVOST_LLM:-0}"                      # 1 = use (or have Claude write) a parsing template for a parse the gate would hold (see _llm_template)
@@ -169,6 +170,7 @@ _validate_settings () {
     PROVOST_FILES_MAX_SIZE=$((10#$PROVOST_FILES_MAX_SIZE))
     [[ "$PROVOST_QUIET" == 0 || "$PROVOST_QUIET" == 1 ]] || usage_die "PROVOST_QUIET must be 0 or 1 (got '$PROVOST_QUIET')."
     [[ "$PROVOST_MULTI" == 0 || "$PROVOST_MULTI" == 1 ]] || usage_die "PROVOST_MULTI must be 0 or 1 (got '$PROVOST_MULTI')."
+    [[ "$PROVOST_CONTEXT_COLUMNS" == 0 || "$PROVOST_CONTEXT_COLUMNS" == 1 ]] || usage_die "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (got '$PROVOST_CONTEXT_COLUMNS')."
     [[ "$PROVOST_AUTO_MULTI" == 0 || "$PROVOST_AUTO_MULTI" == 1 ]] || usage_die "PROVOST_AUTO_MULTI must be 0 or 1 (got '$PROVOST_AUTO_MULTI')."
     [[ "$PROVOST_MODEL" == 0 || "$PROVOST_MODEL" == 1 ]] || usage_die "PROVOST_MODEL must be 0 or 1 (got '$PROVOST_MODEL')."
     [[ "$PROVOST_LLM" == 0 || "$PROVOST_LLM" == 1 ]] || usage_die "PROVOST_LLM must be 0 or 1 (got '$PROVOST_LLM')."
@@ -1309,17 +1311,31 @@ _llm_template () {
     return 0
 }
 
-# Core ingest pipeline shared by `inject` (pipe/file) and `run` (a command).
-#   $1 input file  $2 threshold  $3 source (inject|run)  $4 cmd ("" for inject)
-#   $5 rc ("" for inject)  $6 dataset name ("" = the winning strategy's name)
-# Extracts → classifies → melts → assigns a global #N to each row → stores →
-# records provenance (#N → capture) → commits, all under the store lock.
+# Core ingest pipeline shared by `inject` (pipe/file), `run` (a command) and
+# `batch` (many inputs, one commit). A capture is two halves:
+#   _ingest_parse  extracts → classifies → melts, into a work dir, touching
+#                  nothing in the store (LLM templates aside, see _llm_template);
+#   _ingest_store  assigns a global #N to each row → stores → records
+#                  provenance (#N → capture) → commits, under the store lock.
+# The halves meet in the work dir: the dataset files, and state.sh (the parse's
+# verdict, as `declare -p`), which _ingest_store sources back into locals.
+# `batch` runs the parse halves in parallel and the store halves in one lock.
+#   $1 input file  $2 threshold  $3 source (inject|run|batch)  $4 cmd ("" for
+#   inject)  $5 rc ("" for inject)  $6 dataset name ("" = the winning
+#   strategy's name)
 _ingest () {
     local in="$1" threshold="$2" source="$3" cmd="${4:-}" rc="${5:-}" name="${6:-}"
+    _mktempd provost; local tmp="$_MKTEMPD"
+    _ingest_parse "$in" "$threshold" "$cmd" "$name" "$tmp"
+    _ingest_store "$in" "$source" "$cmd" "$rc" "$tmp" 1
+    rm -rf "$tmp"
+}
+
+# _ingest_parse IN THRESHOLD CMD NAME WORKDIR — the parse half of a capture.
+_ingest_parse () {
+    local in="$1" threshold="$2" cmd="${3:-}" name="${4:-}" tmp="$5"
     local engine; engine="$(_find_engine)" \
         || die "extract engine not found (expected at $PROVOST_ROOT/extract/provost-extract)."
-
-    _mktempd provost; local tmp="$_MKTEMPD"
 
     # A metadata prologue — a leading run of '#%' lines, as prepended by
     # wrappers like deframe — is capture context, not data: peel it off before
@@ -1497,9 +1513,28 @@ _ingest () {
         ds_file[nk]="$llm_notes"; ds_cov[nk]="-"; ds_cons[nk]="-"
     fi
 
+    # The verdict, for the store half: every variable it reads, as `declare -p`
+    # (sourced inside _ingest_store, each comes back as a local there).
+    declare -p ds_name ds_strategy ds_conf ds_file ds_cov ds_cons reason \
+        strategy conf cov tcons am_reason am_note am_cov am_kind am_model \
+        single_strategy single_conf single_cov single_cons lm_reason lm_note \
+        llm_reason llm_note llm_how llm_learned ctxf > "$tmp/state.sh"
+}
+
+# _ingest_store IN SOURCE CMD RC WORKDIR COMMIT — the store half of a capture
+# parsed into WORKDIR. COMMIT=1 takes the store lock, commits and tags, as one
+# capture always has; COMMIT=0 is for `batch`, which holds the lock across all
+# its captures and makes one commit, and leaves the capture id in $_CAPID.
+_ingest_store () {
+    local in="$1" source="$2" cmd="${3:-}" rc="${4:-}" tmp="$5" commit="${6:-1}"
+    # shellcheck source=/dev/null
+    source "$tmp/state.sh"
+
     # --- critical section: assign #N, append, provenance, commit -----------
-    _lock
-    _require_on_branch
+    if (( commit )); then
+        _lock
+        _require_on_branch
+    fi
 
     local id capd ts
     _next_capture_id; id="$_CAPID"; capd="$(_cap_dir)/$id"; mkdir -p "$capd"
@@ -1509,10 +1544,33 @@ _ingest () {
     local prov; prov="$(_prov_file)"
     [[ -f "$prov" ]] || printf '#\tdataset\tcapture\n' > "$prov"
 
+    # CONTEXT COLUMNS (--context-columns, PROVOST_CONTEXT_COLUMNS=1): every
+    # `key=value` word in the '#%' prologue becomes a column on each of this
+    # capture's rows, after `#` and `capture` -- so a wrapper that captures one
+    # host's output can say `#% host=web03 rack=r2` and every row carries it.
+    # The last value of a repeated key wins; words that are not `key=value`
+    # stay context only. A data column of the same name keeps its name and the
+    # context one takes a leading `_` (melt's clash rule, as `capture` does).
+    # A held capture (`unsorted`) stays as it is: one raw column.
+    local ctx_keys="" ctx_vals=""
+    if [[ "$PROVOST_CONTEXT_COLUMNS" == 1 && -s "$ctxf" ]]; then
+        { IFS= read -r ctx_keys; IFS= read -r ctx_vals; } < <(awk '
+            { sub(/^#%[ \t]*/, "")
+              for (i = 1; i <= NF; i++) {
+                  e = index($i, "="); if (e < 2) continue
+                  k = substr($i, 1, e - 1)
+                  if (k !~ /^[A-Za-z_][A-Za-z0-9_.-]*$/) continue
+                  if (!(k in V)) O[++n] = k
+                  V[k] = substr($i, e + 1)
+              } }
+            END { for (j = 1; j <= n; j++) { ks = ks (j > 1 ? "\t" : "") O[j]; vs = vs (j > 1 ? "\t" : "") V[O[j]] }
+                  print ks; print vs }' "$ctxf") || true
+    fi
+
     # File each dataset in turn: allocate its own #N range, store it, and record
     # a provenance line per row. Row ids run consecutively across the datasets
     # of one capture, so every row still maps back to this one input.
-    local nextid firstid startid nrows nf totalrows=0 fields=0 k final
+    local nextid firstid startid nrows nf totalrows=0 fields=0 k final ck cv
     nextid="$(cat "$(_rowid_file)" 2>/dev/null || true)"
     [[ "$nextid" =~ ^[0-9]{1,15}$ ]] || die "corrupt row counter in $(_rowid_file): '$nextid'"
     nextid=$((10#$nextid)); firstid="$nextid"
@@ -1524,13 +1582,22 @@ _ingest () {
         # dropped), counting rows and header fields as we go. A data column
         # already named `capture` keeps its name; the added one becomes
         # `_capture` (melt's clash rule), so a by-name union never merges them.
-        CNTF="$tmp/cnt" CAPID="$id" awk -F'\t' -v s="$startid" '
+        ck="$ctx_keys"; cv="$ctx_vals"
+        [[ "${ds_name[k]}" == unsorted ]] && { ck=""; cv=""; }
+        CNTF="$tmp/cnt" CAPID="$id" CK="$ck" CV="$cv" awk -F'\t' -v s="$startid" '
             length($0) == 0 { next }
             !h { h = 1; nf = NF + 1
                  for (i = 1; i <= NF; i++) U[$i] = 1
+                 nc = (ENVIRON["CK"] == "") ? 0 : split(ENVIRON["CK"], K, "\t")
+                 split(ENVIRON["CV"], W, "\t")
+                 ch = ""; cr = ""
+                 for (j = 1; j <= nc; j++) {
+                     m = K[j]; while (m in U) m = "_" m
+                     U[m] = 1; ch = ch m "\t"; cr = cr W[j] "\t"
+                 }
                  c = "capture"; while (c in U) c = "_" c
-                 print "#\t" c "\t" $0; next }
-            { print (s + n) "\t" ENVIRON["CAPID"] "\t" $0; n++ }
+                 print "#\t" c "\t" ch $0; next }
+            { print (s + n) "\t" ENVIRON["CAPID"] "\t" cr $0; n++ }
             END { print n + 0, nf + 0 > (ENVIRON["CNTF"]) }' "${ds_file[k]}" > "$tmp/id.tsv"
         read -r nrows nf < "$tmp/cnt"
         [[ $k -eq 0 ]] && fields="$nf"
@@ -1614,24 +1681,27 @@ _ingest () {
     } > "$capd/meta.tsv"
     startid="$firstid"; nrows="$totalrows"; final="$all_names"; strategy="$all_strats"; conf="$all_confs"
 
-    # In a controlled directory, snapshot the directory's contents as commit
-    # context so the capture is tied to what the tree looked like at the time.
-    local ctl_dir=""
-    if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
-        ctl_dir="$(dirname "$PROVOST_WORKSPACE")"
-        _snapshot_context "$ctl_dir" "$PROVOST_WORKSPACE" >/dev/null \
-            || warn "could not snapshot the controlled directory's context."
+    if (( commit )); then
+        # In a controlled directory, snapshot the directory's contents as commit
+        # context so the capture is tied to what the tree looked like at the time.
+        local ctl_dir=""
+        if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
+            ctl_dir="$(dirname "$PROVOST_WORKSPACE")"
+            _snapshot_context "$ctl_dir" "$PROVOST_WORKSPACE" >/dev/null \
+                || warn "could not snapshot the controlled directory's context."
+        fi
+        local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
+        [[ -n "$cmd" ]] && msg="$msg [$cmd]"
+        _commit "$msg"
+        local out
+        out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
+        if [[ -n "$ctl_dir" ]]; then
+            _snapshot_files "$ctl_dir" "$id" \
+                || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
+        fi
+        _unlock
     fi
-    local msg="capture $id: $source $strategy → $final (#${startid}..$((startid+nrows-1)))"
-    [[ -n "$cmd" ]] && msg="$msg [$cmd]"
-    _commit "$msg"
-    local out
-    out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "capture $id was committed but could not be tagged capture-$id."; }
-    if [[ -n "$ctl_dir" ]]; then
-        _snapshot_files "$ctl_dir" "$id" \
-            || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
-    fi
-    _unlock
+    _CAPID="$id"
 
     local idrange="#${startid}..$((startid+nrows-1))"; (( nrows == 0 )) && idrange="(no rows)"
     if [[ -n "$reason" ]]; then
@@ -1665,7 +1735,8 @@ _ingest () {
             info "      only $cov% of the input's lines reached '$final'; the whole input stays with capture $id ('provost source'), and --multi files each section as a dataset of its own."
         fi
     fi
-    rm -rf "$tmp"
+    # (the messages above end in `[[ ]] &&` tests; the capture itself is filed)
+    return 0
 }
 
 # Background ingest: spool the input and run _ingest in a detached child so the
@@ -1913,7 +1984,34 @@ options:
   --sync, --wait          capture in the foreground (default when not interactive)
   --async                 capture in the background (default when interactive)
   --show                  pass the input through to stdout as well (a tee)
+  --context-columns       make each 'key=value' in a '#%' prologue a column
+                          on every row (--no-context-columns: don't, the
+                          default, PROVOST_CONTEXT_COLUMNS)
   -q, --silent            no progress output
+EOF
+            ;;
+        batch) cat <<'EOF'
+usage: provost batch [options] [--name NAME] FILE... [--from LIST]
+  File many inputs at once: each is a capture of its own (its own id, its own
+  'provost source'), parsed in parallel, and all are filed under the store
+  lock in ONE commit, with a capture-<id> tag for each. For a wrapper that
+  captures a fleet: one file per host, each opening with '#% host=NAME', and
+  --context-columns to put the host on every row.
+options:
+  --name NAME             file the inputs after it into dataset NAME (it
+                          applies until the next --name)
+  --from LIST             read more inputs from LIST, one a line: PATH, or
+                          NAME<TAB>PATH for an input of its own name; '-' is
+                          stdin; blank and '#' lines are skipped
+  -j, --jobs N            parse at most N inputs at a time (default: the
+                          CPUs, at most 16; --llm parses one at a time)
+  --context-columns       make each 'key=value' in a '#%' prologue a column
+                          on every row (PROVOST_CONTEXT_COLUMNS)
+  --min-confidence N, --min-coverage N, --min-consistency N, --plugin-dir DIR,
+  --multi, --no-auto-multi, --model, --llm, -q
+                          as for piped input ('provost inject --help')
+  An empty input is skipped; one that cannot be read or parsed is reported and
+  the rest are filed. Exits 1 if any input was not captured, 0 otherwise.
 EOF
             ;;
         source) cat <<'EOF'
@@ -2003,47 +2101,65 @@ _cmd_usage_die () { local u; u="$(_usage_text "$1")"; printf '%s\n' "${u%%$'\n'*
 
 # Parse the options shared by inject and run. Sets: _O_THRESHOLD _O_ASYNC _O_NAME
 # and leaves the remaining args in _O_REST.
+# _capture_opt VERB ARGS... — apply the one capture option at the front of
+# ARGS, and set _CO_N to how many words it took (0: it is not one). Shared by
+# _parse_capture_opts (inject, run) and cmd_batch, so the three take the same
+# options with the same checks.
+_capture_opt () {
+    local verb="$1"; shift
+    _CO_N=1
+    case "$1" in
+        -q|--silent) PROVOST_QUIET=1 ;;
+        --min-confidence)
+            [[ $# -ge 2 ]] || usage_die "--min-confidence needs a number."
+            _validate_uint --min-confidence "$2" 0 101; _O_THRESHOLD="$(_norm_uint "$2")"; _CO_N=2 ;;
+        --min-confidence=*)
+            _validate_uint --min-confidence "${1#*=}" 0 101; _O_THRESHOLD="$(_norm_uint "${1#*=}")" ;;
+        --min-coverage|--min-consistency)
+            [[ $# -ge 2 ]] || usage_die "$1 needs a number."
+            _validate_uint "$1" "$2" 0 100
+            if [[ "$1" == --min-coverage ]]; then PROVOST_MIN_COVERAGE="$(_norm_uint "$2")"
+            else PROVOST_MIN_CONSISTENCY="$(_norm_uint "$2")"; fi
+            _CO_N=2 ;;
+        --min-coverage=*)
+            _validate_uint --min-coverage "${1#*=}" 0 100; PROVOST_MIN_COVERAGE="$(_norm_uint "${1#*=}")" ;;
+        --min-consistency=*)
+            _validate_uint --min-consistency "${1#*=}" 0 100; PROVOST_MIN_CONSISTENCY="$(_norm_uint "${1#*=}")" ;;
+        --plugin-dir)
+            [[ $# -ge 2 ]] || usage_die "--plugin-dir needs a directory."
+            PROVOST_PLUGIN_DIR="$2"; _CO_N=2 ;;
+        --name)
+            [[ $# -ge 2 ]] || usage_die "--name needs a dataset name."
+            _O_NAME="$2"; _CO_N=2 ;;
+        --name=*) _O_NAME="${1#*=}" ;;
+        --multi) PROVOST_MULTI=1 ;;
+        --auto-multi) PROVOST_AUTO_MULTI=1 ;;
+        --no-auto-multi) PROVOST_AUTO_MULTI=0 ;;
+        --model) PROVOST_MODEL=1 ;;
+        --no-model) PROVOST_MODEL=0 ;;
+        --llm) PROVOST_LLM=1 ;;
+        --no-llm) PROVOST_LLM=0 ;;
+        --context-columns) PROVOST_CONTEXT_COLUMNS=1 ;;
+        --no-context-columns) PROVOST_CONTEXT_COLUMNS=0 ;;
+        --async) _O_ASYNC=1 ;;
+        --sync|--wait) _O_ASYNC=0 ;;
+        --show|--tee) _O_SHOW=1 ;;
+        -h|--help) _cmd_help "$verb" ;;
+        *) _CO_N=0 ;;
+    esac
+    return 0
+}
+
 _parse_capture_opts () {
     local verb="$1"; shift
     _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0; _O_REST=()
     while [[ $# -gt 0 ]]; do
         case "$1" in
-            -q|--silent) PROVOST_QUIET=1; shift ;;
-            --min-confidence)
-                [[ $# -ge 2 ]] || usage_die "--min-confidence needs a number."
-                _validate_uint --min-confidence "$2" 0 101; _O_THRESHOLD="$(_norm_uint "$2")"; shift 2 ;;
-            --min-confidence=*)
-                _validate_uint --min-confidence "${1#*=}" 0 101; _O_THRESHOLD="$(_norm_uint "${1#*=}")"; shift ;;
-            --min-coverage|--min-consistency)
-                [[ $# -ge 2 ]] || usage_die "$1 needs a number."
-                _validate_uint "$1" "$2" 0 100
-                if [[ "$1" == --min-coverage ]]; then PROVOST_MIN_COVERAGE="$(_norm_uint "$2")"
-                else PROVOST_MIN_CONSISTENCY="$(_norm_uint "$2")"; fi
-                shift 2 ;;
-            --min-coverage=*)
-                _validate_uint --min-coverage "${1#*=}" 0 100; PROVOST_MIN_COVERAGE="$(_norm_uint "${1#*=}")"; shift ;;
-            --min-consistency=*)
-                _validate_uint --min-consistency "${1#*=}" 0 100; PROVOST_MIN_CONSISTENCY="$(_norm_uint "${1#*=}")"; shift ;;
-            --plugin-dir)
-                [[ $# -ge 2 ]] || usage_die "--plugin-dir needs a directory."
-                PROVOST_PLUGIN_DIR="$2"; shift 2 ;;
-            --name)
-                [[ $# -ge 2 ]] || usage_die "--name needs a dataset name."
-                _O_NAME="$2"; shift 2 ;;
-            --name=*) _O_NAME="${1#*=}"; shift ;;
-            --multi) PROVOST_MULTI=1; shift ;;
-            --auto-multi) PROVOST_AUTO_MULTI=1; shift ;;
-            --no-auto-multi) PROVOST_AUTO_MULTI=0; shift ;;
-            --model) PROVOST_MODEL=1; shift ;;
-            --no-model) PROVOST_MODEL=0; shift ;;
-            --llm) PROVOST_LLM=1; shift ;;
-            --no-llm) PROVOST_LLM=0; shift ;;
-            --async) _O_ASYNC=1; shift ;;
-            --sync|--wait) _O_ASYNC=0; shift ;;
-            --show|--tee) _O_SHOW=1; shift ;;
-            -h|--help) _cmd_help "$verb" ;;
             --) shift; _O_REST=("$@"); return 0 ;;
-            -?*) usage_die "unknown option for '$verb': $1 (see 'provost $verb --help')." ;;
+            -?*)
+                _capture_opt "$verb" "$@"
+                (( _CO_N > 0 )) || usage_die "unknown option for '$verb': $1 (see 'provost $verb --help')."
+                shift "$_CO_N" ;;
             *) _O_REST=("$@"); return 0 ;;
         esac
     done
@@ -2140,6 +2256,175 @@ cmd_run () {
     if _want_async "$_O_ASYNC"; then _ingest_async "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"
     else _ingest "$in" "$_O_THRESHOLD" "run" "$cmd" "$rc" "$name"; fi
     return "$rc"
+}
+
+# ---------------------------------------------------------------------------
+# batch — many inputs, one commit. Each input is a capture of its own (its own
+# id, its own `provost source`), the parse halves run in parallel, and the
+# store halves run in input order under one lock, ending in ONE commit with a
+# tag per capture. For wrappers that capture a fleet: one input per host,
+# with `#% host=...` context and --context-columns.
+# ---------------------------------------------------------------------------
+_ncpu () {
+    local n; n="$(getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null || echo 4)"
+    [[ "$n" =~ ^[0-9]+$ ]] && (( n >= 1 )) || n=4
+    (( n > 16 )) && n=16
+    echo "$n"
+}
+
+cmd_batch () {
+    _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0
+    local jobs="" line lname lpath
+    local -a files=() names=()
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -j|--jobs)
+                [[ $# -ge 2 ]] || usage_die "--jobs needs a number."
+                _validate_uint --jobs "$2" 1 1024; jobs="$(_norm_uint "$2")"; shift 2 ;;
+            --jobs=*)
+                _validate_uint --jobs "${1#*=}" 1 1024; jobs="$(_norm_uint "${1#*=}")"; shift ;;
+            --from)
+                # A list of inputs, one a line: PATH, or NAME<TAB>PATH for an
+                # input of its own name; '-' reads the list from stdin. For
+                # more inputs than a command line holds.
+                [[ $# -ge 2 ]] || usage_die "--from needs a file (or - for stdin)."
+                [[ "$2" == - || -f "$2" ]] || die "no such list: $2"
+                while IFS= read -r line || [[ -n "$line" ]]; do
+                    line="${line%$'\r'}"
+                    [[ -z "$line" || "$line" == '#'* ]] && continue
+                    if [[ "$line" == *$'\t'* ]]; then lname="${line%%$'\t'*}"; lpath="${line#*$'\t'}"
+                    else lname="$_O_NAME"; lpath="$line"; fi
+                    files+=("$lpath"); names+=("$lname")
+                done < <(if [[ "$2" == - ]]; then cat; else cat -- "$2"; fi)
+                shift 2 ;;
+            --) shift
+                while [[ $# -gt 0 ]]; do files+=("$1"); names+=("$_O_NAME"); shift; done ;;
+            -?*)
+                _capture_opt batch "$@"
+                (( _CO_N > 0 )) || usage_die "unknown option for 'batch': $1 (see 'provost batch --help')."
+                shift "$_CO_N" ;;
+            *) files+=("$1"); names+=("$_O_NAME"); shift ;;
+        esac
+    done
+    [[ -z "$_O_ASYNC" && "$_O_SHOW" == 0 ]] \
+        || usage_die "batch files in the foreground and shows nothing: --async, --sync and --show do not apply."
+    (( ${#files[@]} > 0 )) || _cmd_usage_die batch
+    local i missing=()
+    for (( i = 0; i < ${#files[@]}; i++ )); do
+        [[ -f "${files[i]}" ]] || missing+=("${files[i]}")
+        if [[ -n "${names[i]}" ]]; then
+            _require_name "${names[i]}"
+            [[ "${names[i]}" == unsorted ]] && usage_die "'unsorted' is reserved for the triage bucket; pick another --name."
+        fi
+    done
+    (( ${#missing[@]} == 0 )) || die "no such file: ${missing[*]} -- nothing was captured."
+    if [[ -n "${PROVOST_PLUGIN_DIR:-}" && ! -d "$PROVOST_PLUGIN_DIR" ]]; then
+        die "plugin strategy dir not found: $PROVOST_PLUGIN_DIR"
+    fi
+    [[ -n "$jobs" ]] || jobs="$(_ncpu)"
+    # --llm may have Claude write a template from the first input that needs
+    # one; parsed in parallel, every input would ask for the same template.
+    if [[ "$PROVOST_LLM" == 1 && "$jobs" -gt 1 ]]; then
+        info "batch: --llm parses one input at a time, so a template is written once, not once per input."
+        jobs=1
+    fi
+
+    _ensure_workspace
+    _require_on_branch
+    _mktempd batch; local broot="$_MKTEMPD" d size failed=0 skipped=0
+    local -a todo=()
+    # Stage each input as inject does: bounded by PROVOST_MAX_INPUT, CRs
+    # stripped. An empty one is said and skipped, as `run` skips a command
+    # that printed nothing; an oversized one is an error for that input.
+    for (( i = 0; i < ${#files[@]}; i++ )); do
+        d="$broot/$i"; mkdir -p "$d"
+        head -c "$((PROVOST_MAX_INPUT + 1))" < "${files[i]}" | tr -d '\r' > "$d/in.txt"
+        if [[ ! -s "$d/in.txt" ]]; then
+            info "${files[i]}: empty -- nothing captured."; skipped=$((skipped + 1)); continue
+        fi
+        size="$(wc -c < "$d/in.txt")"; size="${size//[!0-9]/}"
+        if (( size > PROVOST_MAX_INPUT )); then
+            warn "${files[i]}: too large (max $PROVOST_MAX_INPUT bytes; raise PROVOST_MAX_INPUT) -- not captured."
+            failed=$((failed + 1)); continue
+        fi
+        todo+=("$i")
+    done
+
+    # The parse halves, at most $jobs at a time. Each child starts with no
+    # temp dirs or locks of the parent's to clean up, as _ingest_async's does:
+    # its EXIT trap must never remove the batch's own work dirs.
+    local -a pids=() parsed=()
+    local k head=0 rc
+    for (( k = 0; k < ${#todo[@]}; k++ )); do
+        i="${todo[k]}"; d="$broot/$i"
+        (
+            _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
+            trap _cleanup EXIT
+            _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
+        ) > "$d/parse.log" 2>&1 &
+        pids[k]=$!
+        while (( k + 1 - head >= jobs )); do
+            rc=0; wait "${pids[head]}" || rc=$?
+            if (( rc == 0 )); then parsed+=("${todo[head]}")
+            else
+                warn "${files[${todo[head]}]}: not captured: $(awk 'NF { l = $0 } END { print l }' "$broot/${todo[head]}/parse.log")"
+                failed=$((failed + 1))
+            fi
+            head=$((head + 1))
+        done
+    done
+    while (( head < ${#todo[@]} )); do
+        rc=0; wait "${pids[head]}" || rc=$?
+        if (( rc == 0 )); then parsed+=("${todo[head]}")
+        else
+            warn "${files[${todo[head]}]}: not captured: $(awk 'NF { l = $0 } END { print l }' "$broot/${todo[head]}/parse.log")"
+            failed=$((failed + 1))
+        fi
+        head=$((head + 1))
+    done
+    # (waited in launch order, so parsed[] is in input order: capture ids are
+    # given out in the order the inputs were named, whatever finished first)
+
+    if (( ${#parsed[@]} > 0 )); then
+        _lock
+        _require_on_branch
+        local -a ids=()
+        local rows0 rows1
+        rows0="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"
+        for i in "${parsed[@]}"; do
+            _ingest_store "$broot/$i/in.txt" batch "" "" "$broot/$i" 0
+            ids+=("$_CAPID")
+            printf 'input\t%s\n' "$(_meta_safe "${files[i]}")" >> "$(_cap_dir)/$_CAPID/meta.tsv"
+        done
+        rows1="$(cat "$(_rowid_file)" 2>/dev/null || echo 1)"
+        local first="${ids[0]}" last="${ids[${#ids[@]}-1]}" id
+        for id in "${ids[@]}"; do
+            printf 'batch\t%s..%s\n' "$first" "$last" >> "$(_cap_dir)/$id/meta.tsv"
+        done
+        local ctl_dir=""
+        if [[ "${PROVOST_STORE_KIND:-}" == controlled:* ]]; then
+            ctl_dir="$(dirname "$PROVOST_WORKSPACE")"
+            _snapshot_context "$ctl_dir" "$PROVOST_WORKSPACE" >/dev/null \
+                || warn "could not snapshot the controlled directory's context."
+        fi
+        local range="$first..$last"; (( ${#ids[@]} == 1 )) && range="$first"
+        _commit "batch: ${#ids[@]} capture(s) $range ($((rows1 - rows0)) rows)"
+        local out
+        for id in "${ids[@]}"; do
+            out="$(_git tag "capture-$id" 2>&1)" || { printf 'git: %s\n' "$out" >&2; die "batch $first..$last was committed but $id could not be tagged capture-$id."; }
+            if [[ -n "$ctl_dir" ]]; then
+                _snapshot_files "$ctl_dir" "$id" \
+                    || warn "could not save the controlled directory's files for $id (the capture itself is filed)."
+            fi
+        done
+        _unlock
+        local what="captures $first..$last"; (( ${#ids[@]} == 1 )) && what="capture $first"
+        ok "batch: ${#ids[@]} input(s) -> $what, one commit$( (( skipped )) && printf '; %d empty' "$skipped")$( (( failed )) && printf '; %d not captured' "$failed")."
+    else
+        info "batch: nothing captured ($skipped empty, $failed not captured)."
+    fi
+    rm -rf "$broot"
+    (( failed == 0 ))
 }
 
 # ---------------------------------------------------------------------------
@@ -3122,6 +3407,7 @@ CAPTURE
     provost run CMD [ARGS...]     run CMD and file its output (dataset CMD)
     CMD | provost                 file piped output
     provost FILE                  file output saved in FILE
+    provost batch FILE...         file many outputs at once, one commit
     provost listen CMD            file CMD's output every time you run it
     provost control               give this directory its own store; each run
                                   here also keeps the directory's files
@@ -3174,6 +3460,9 @@ COMMANDS
     CMD | provost [OPTIONS]        provost [OPTIONS] FILE
         File piped input, or a file, as a dataset named after the parser that
         read it (csv, free, aligned-columns, ...).
+    provost batch [OPTIONS] FILE... [--from LIST]
+        File many inputs as one commit, a capture each, parsed in parallel
+        (BATCH CAPTURE below).
     provost listen [CMD...]        provost unlisten CMD...
         Capture CMD every time it runs (a shell function per command, in
         \${XDG_CONFIG_HOME:-~/.config}/provost/listen.sh; provost says how to
@@ -3240,6 +3529,9 @@ CAPTURE OPTIONS (run, piped input, FILE)
     --min-coverage N        quality gate: line coverage (0-100; 0 = off)
     --min-consistency N     quality gate: type consistency (0-100; 0 = off)
     --plugin-dir DIR        an extra directory of extract strategies
+    --context-columns, --no-context-columns
+                            make a '#%' prologue's key=value words columns
+                            (METADATA PROLOGUE below; default off)
 
 THE STORE
     Captures go to a GLOBAL git store, so you can capture from any directory:
@@ -3445,6 +3737,27 @@ METADATA PROLOGUE
     stored with the capture (context.txt), and shown by 'provost source'.
     Wrappers can prepend context unconditionally.
 
+    With --context-columns (PROVOST_CONTEXT_COLUMNS=1) every key=value word
+    in it also becomes a column on each of the capture's rows, after '#' and
+    'capture': '#% host=web03 rack=r2' puts host and rack on every row, so
+    one host's answers stay labelled in a dataset many hosts feed. Keys are
+    letters, digits, '_', '.' and '-', starting with a letter or '_'; the
+    last value of a repeated key wins, and other words stay context only. A
+    data column of the same name keeps it, and the context column becomes
+    _NAME. A capture held in 'unsorted' is kept as it came.
+
+BATCH CAPTURE (provost batch)
+    'provost batch FILE...' files each FILE as a capture of its own, as
+    'provost FILE' would, but parses them in parallel (--jobs, default the
+    CPUs, at most 16) and files them all under one hold of the store lock as
+    ONE commit, tagged capture-<id> for each. Capture ids follow the order
+    the files were named; meta.tsv records each one's 'input' path and its
+    'batch' (the id range). --name applies to the files after it; --from
+    LIST reads files one a line (NAME<TAB>PATH sets the name per file).
+    Every file is checked before anything is filed; an empty one is skipped,
+    and one that fails to parse is reported while the rest are filed (exit
+    1). --llm parses one file at a time, so a new template is written once.
+
 SETTINGS (environment)
     PROVOST_HOME              the global store (default: ~/.provost)
     PROVOST_WORKSPACE         use this store, whatever the directory
@@ -3460,6 +3773,8 @@ SETTINGS (environment)
     PROVOST_RECONCILE_OVERLAP % of columns shared to reconcile a changed shape
                               into the same dataset, not NAME.vN (default: 60)
     PROVOST_MULTI             1 = file every dataset an input holds (--multi)
+    PROVOST_CONTEXT_COLUMNS   1 = a '#%' prologue's key=value words become row
+                              columns (as --context-columns)
     PROVOST_AUTO_MULTI        1 = segment a parse the gate would hold (default;
                               0 = off, as --no-auto-multi)
     PROVOST_MODEL             1 = try the learned layout model (as --model;
@@ -3505,7 +3820,7 @@ _suggest_verb () {
             return d[la, lb]
         }
         BEGIN {
-            w = ENVIRON["W"]; n = split("run inject listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help", v, " ")
+            w = ENVIRON["W"]; n = split("run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help", v, " ")
             best = ""; bd = 3
             for (i = 1; i <= n; i++) {
                 dist = lev(w, v[i])
@@ -3541,6 +3856,7 @@ main () {
     esac
     case "$verb" in
         run)           shift; cmd_run "$@" ;;
+        batch)         shift; cmd_batch "$@" ;;
         source|src)    shift; cmd_source "$@" ;;
         control)       shift; cmd_control "$@" ;;
         uncontrol)     shift; cmd_uncontrol "$@" ;;

@@ -3,7 +3,7 @@
 The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 `git show 9f9d7c0:HANDOFF.md`. `CHANGELOG.md` has the dated detail.
 
-## Present state (2026-10-23; commands and store format updated 2026-10-28)
+## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` 2026-10-29)
 
 **provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
 PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
@@ -75,6 +75,9 @@ Behaviour worth knowing:
   (record within that capture), then the data (store format 3).
 - In a controlled directory each capture also commits the directory's files
   (`files-<id>` tags, chained); `provost files`, `provost diff`.
+- `provost batch FILE...` files many inputs as one commit, a capture each
+  (parse halves in parallel, store halves under one lock). With
+  `--context-columns` a `#%` prologue's `key=value` words become row columns.
 - A store whose `.git/config` others can write is refused if it sets keys that
   make git run programs.
 - Engines run with `PROVOST_NO_RC=1`.
@@ -89,7 +92,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (435)
+- `tests/smoke.sh` (475)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -99,6 +102,26 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0m. **2026-10-29: `provost batch` and `--context-columns`**, for
+    quarterdeck (`qd`), which drives the toolchain on a fleet and now
+    files what comes back through provost: one capture per host, with
+    `#% host=NAME ...` context.
+    - **`batch`:** N inputs, a capture each (id, `source`, tag), ONE
+      commit. `_ingest` is now `_ingest_parse` (no store writes, LLM
+      templates aside) + `_ingest_store` (under the lock); `batch` runs the
+      parse halves in parallel (`-j`) and the store halves in input order
+      in one lock. 40 inputs: 13 s against 55 s as single captures, on 4
+      CPUs; the lock is held about 50 ms an input, so a batch of several
+      hundred inputs keeps other writers waiting past
+      `PROVOST_LOCK_TIMEOUT` (30 s). Not built: committing in chunks for
+      very large batches.
+    - **`--context-columns`:** `key=value` prologue words as columns after
+      `#` and `capture`; clash → `_NAME`; `unsorted` untouched; default off.
+    - **Worth doing next:** a strategy for datacenter_visualization's
+      results format (`test target value k=v` lines with `!test` metadata)
+      and for NDJSON after leading comments; both come out as `text-lines`
+      today, so qd converts them to TSV before filing.
 
 0l. **2026-10-28: provost as a test runner — every run viewable** (PR #88).
     Asked for in one session: a short help, search on git, a way to see
