@@ -120,10 +120,10 @@ Suites (all CI-enforced):
       ~83% plateau. Two passes, about 2 h on 4 cores. Continuing it on
       generated layouts scored lower (0.854, 37/48), so the corpus labels
       stay the training set.
-    - **Folds 1 and 2** (trained on the user's iMac, M4 GPU, 15–21 min a
-      run): LM 0.849 / 0.893 against trees 0.783 / 0.853 and engine
-      0.785 / 0.832. Over folds 0–2: LM 0.870, trees 0.825, engine 0.813;
-      gold 138 / 124 / 106 of 164. The plateau result holds on every fold.
+    - **All five folds** (1–4 trained on the user's iMac, M4 GPU, 15.5–19
+      min a fold): the LM wins every fold, 0.842–0.893. Over all 14,468
+      lines: LM 0.862, trees 0.819, engine 0.814; gold 240 / 212 / 189 of
+      287. Two epochs is about right (fold 3 kept epoch 1).
       The model on every fold (`lm-all`) was trained there too; the user has
       it, and weights are not in git.
     - **Whole captures, round 4, model-first, blind-rated:** LM 7 / 30 / 70,

@@ -133,17 +133,17 @@ was near zero. So the corpus labels stay the training set, and folds 1 and 2
 use run 1's recipe.
 
 **Caveats:**
-- Fold 0 alone is one fold of five; folds 1 and 2 (next section) confirm it.
+- Fold 0 alone is one fold of five; the other four (next section) confirm it.
 - It is still scored against the teacher's labels (98% right against the hand
   labels), as every learner here is.
 - Per-line agreement is not whole-capture quality; the next section measures
   that.
 
-## Cross-validation: folds 1 and 2, on an iMac (2026-10-30)
+## Cross-validation: all five folds, on an iMac (2026-10-30)
 
-Folds 1 and 2 never finished in the cloud container. Worker restarts killed
-fold 1 four times, at steps ~160, ~150, ~180 and 320, and the worker was down
-from about 06:06 to 13:50 UTC. Two options came out of that:
+Folds 1–4 never finished in the cloud container. Worker restarts killed fold
+1 four times, at steps ~160, ~150, ~180 and 320, and the worker was down from
+about 06:06 to 13:50 UTC. Two options came out of that:
 - `train_lm.py --start-step N` resumes a killed run at its checkpoint;
 - `--device auto` trains on a GPU when there is one, NVIDIA (cuda) or Apple
   (mps).
@@ -154,29 +154,32 @@ The user then trained on an iMac with a training kit: the code at 98e7e20a,
   `--batch-tok 2048`.
 - **Speed:** about 1,600 tokens a second, 1.1 s a step, about 4.5 times the
   container's speed.
-- **Run times:** fold 1 took 19 min, fold 2 15.5 min, and the model on every
+- **Run times:** each of folds 1–4 took 15.5–19 min, and the model on every
   fold (`lm-all`) 21 min.
 
-| learner | fold 0 | fold 1 | fold 2 | folds 0–2 | gold |
-|---|---:|---:|---:|---:|---:|
-| engine | 0.814 | 0.785 | 0.832 | 0.813 | 106/164 |
-| trees | 0.829 | 0.783 | 0.853 | 0.825 | 124/164 |
-| **tiny LM** | **0.863** | **0.849** | **0.893** | **0.870** | **138/164** |
-| tiny LM and trees averaged | 0.865 | 0.843 | 0.890 | 0.868 | 136/164 |
+| learner | fold 0 | fold 1 | fold 2 | fold 3 | fold 4 | all five | gold |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| engine | 0.814 | 0.785 | 0.832 | 0.828 | 0.803 | 0.814 | 189/287 |
+| trees | 0.829 | 0.783 | 0.853 | 0.823 | 0.795 | 0.819 | 212/287 |
+| **tiny LM** | **0.863** | **0.849** | **0.893** | **0.856** | **0.842** | **0.862** | **240/287** |
+| tiny LM and trees averaged | 0.865 | 0.843 | 0.890 | 0.854 | 0.843 | 0.860 | 235/287 |
 
-Folds 1 and 2 hold out 506 captures (2,431 lines) and 574 captures (3,209
-lines). Folds 0–2 together are 8,803 lines; the gold column is the
-hand-labelled lines in all three folds.
+The held-out lines per fold are 3,163, 2,431, 3,209, 2,713 and 2,952. "All
+five" is the 14,468 lines together, and the gold column is the hand-labelled
+lines in every fold.
 
-- **The plateau result holds.** The tiny LM wins every fold:
-  - against the engine, by 4.9, 6.4 and 6.1 points;
-  - against the trees, by 3.4, 6.6 and 4.0;
-  - over the three folds, 397 more lines than the trees.
-- **On the hand-labelled lines** it gets 138 of 164 (84%), against 124 for
-  the trees and 106 for the engine.
-- **Averaging with the trees** helped by a hair on fold 0 and hurt on folds 1
-  and 2. Use the LM on its own.
-- **Folds 3 and 4 were not run.**
+- **The plateau result holds on every fold.** The tiny LM gets 0.842–0.893.
+  - Against the engine it wins by 2.8–6.4 points on each fold, and by 698
+    lines in all.
+  - Against the trees it wins by 3.3–6.6 points on each fold, and by 626
+    lines in all.
+- **On the hand-labelled lines** it gets 240 of 287 (84%), against 212 for
+  the trees and 189 for the engine. It has the most on every fold.
+- **Averaging with the trees does not pay.** It is within 0.006 of the LM
+  alone on every fold and gets fewer gold lines (235). Use the LM on its own.
+- **Two epochs is about right.** Fold 3 kept epoch 1: its validation loss
+  rose in epoch 2 (0.547 to 0.585). Fold 2 and `lm-all` improved only a
+  little in epoch 2.
 
 Two things the iMac runs found:
 - **The validation families all fall in fold 1.**
@@ -188,7 +191,8 @@ Two things the iMac runs found:
   - Effect on `lm-all`: it trained on 3,271 of the 3,674 captures, not all of
     them.
   - The fold scores are therefore not quite like for like. Fold 2 trained on
-    the fewest captures and still scored highest, so its families are easier.
+    15% fewer captures than fold 1 and still scored highest, so its families
+    are easier.
 - **`fold_eval.py` crashes on macOS (exit 139)** when LightGBM and torch share
   a process. Two copies of `libomp` are loaded, LightGBM's Homebrew one and
   the one shipped with the Python packages. `OMP_NUM_THREADS=1 ...
