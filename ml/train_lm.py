@@ -369,11 +369,20 @@ def predict_doc(model, enc, ex, decoder=False):
 
 
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
-        ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False):
-    """Train on train_exs (+ extra layouts), validating on their val families."""
+        ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False,
+        init=None):
+    """Train on train_exs (+ extra layouts), validating on their val families.
+    init: a saved model to continue from (its base, rank and weights)."""
     random.seed(seed)
     torch.manual_seed(seed)
+    if init:
+        with open(os.path.join(init, "config.json"), encoding="utf-8") as fh:
+            cfg = json.load(fh)
+        base, lora, full = cfg.get("base", base), cfg.get("lora", lora), cfg.get("full", full)
     model, tok = build(base, lora, full, checkpointing=checkpointing)
+    if init:
+        model.load_state_dict(torch.load(os.path.join(init, "weights.pt")), strict=False)
+        log(f"  continuing from {init}")
     model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok}
     enc = hf_encoder(tok, max_tok)
     val = [e for e in train_exs if D.is_val(e)]
@@ -407,6 +416,7 @@ def main(argv=None):
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 1)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--save", help="write the adapter + heads here (with last/ and best/ checkpoints)")
+    ap.add_argument("--init", help="continue training a saved model (its base and rank win)")
     ap.add_argument("--ckpt-every", type=int, default=200, help="steps between checkpoints in --save/last")
     a = ap.parse_args(argv)
     torch.set_num_threads(a.threads)
@@ -420,9 +430,10 @@ def main(argv=None):
     extra = [e for p in a.extra for e in D.load(p)]
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
                    ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
-                   budget=a.batch_tok, checkpointing=a.checkpointing)
+                   budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init)
     if a.save:
-        save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra})
+        save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra,
+                             "init": a.init})
         print(f"saved -> {a.save}")
 
 

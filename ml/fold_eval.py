@@ -55,6 +55,9 @@ def main(argv=None):
     ap.add_argument("--lm-base", default=None, help="the LM to fine-tune (default: train_lm.BASE)")
     ap.add_argument("--lm-epochs", type=int, default=2)
     ap.add_argument("--limit", type=int, default=0, help="score only the first N held-out docs (a quick look)")
+    ap.add_argument("--lm-trees", action="store_true",
+                    help="with --learner lm: also train the trees and score the average of the two")
+    ap.add_argument("--threads", type=int, default=os.cpu_count() or 1, help="torch threads")
     a = ap.parse_args(argv)
 
     eng = {e["name"]: e for e in D.load(a.corpus) if CV.fold(e) == a.fold}
@@ -68,7 +71,7 @@ def main(argv=None):
           f"score {len(eng)} held-out docs", file=sys.stderr)
 
     preds = {}
-    if a.learner in ("trees", "both"):
+    if a.learner in ("trees", "both") or (a.learner == "lm" and a.lm_trees):
         Xr, yr, Xc, yc, wc = B.prepare(tr + (extra if a.extra_trees else []), 0.0, False, [], 0, None, 0,
                                        log=lambda m: print("  trees: " + m, file=sys.stderr))
         rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
@@ -76,7 +79,7 @@ def main(argv=None):
     if a.learner in ("grid", "both"):
         import torch
         import train_grid as G
-        torch.set_num_threads(os.cpu_count() or 1)
+        torch.set_num_threads(a.threads)
         gm = G.fit(tr, a.epochs, synth=extra, hybrid=a.hybrid,
                    log=lambda m: print("  grid: " + m, file=sys.stderr))
         preds["grid"] = {n: G.predict_doc(gm, e, False, [bool(s) for s in e["starts"]])
@@ -84,7 +87,7 @@ def main(argv=None):
     if a.learner == "lm":
         import torch
         import train_lm as LM
-        torch.set_num_threads(os.cpu_count() or 1)
+        torch.set_num_threads(a.threads)
         if a.lm_load:
             lm, enc = LM.load(a.lm_load)
             print(f"  lm: loaded {a.lm_load} ({lm.meta})", file=sys.stderr)
@@ -96,13 +99,14 @@ def main(argv=None):
     out = {}
     for k, P in preds.items():
         out[k] = {n: starts_from(eng[n]["lines"], r, pr) for n, (r, _, pr) in P.items()}
-    if set(preds) == {"trees", "grid"}:
+    pair = ("grid" if "grid" in preds else "lm") if "trees" in preds else None
+    if pair in preds:
         out["avg"] = {}
         for n, e in eng.items():
-            pt, pg = preds["trees"][n][2], preds["grid"][n][2]
+            pt, pg = preds["trees"][n][2], preds[pair][n][2]
             avg = [None if (x is None or y is None) else {c: (x[c] + y.get(c, 0.0)) / 2 for c in x}
                    for x, y in zip(pt, pg)]
-            out["avg"][n] = starts_from(e["lines"], preds["grid"][n][0], avg)
+            out["avg"][n] = starts_from(e["lines"], preds[pair][n][0], avg)
     out["engine"] = {n: e["starts"] for n, e in eng.items()}
 
     tot, n = {k: 0 for k in out}, 0
