@@ -3199,7 +3199,7 @@ COMMANDS
     provost restore ID | latest    check out capture ID (read-only) / return to
                                    the latest
     provost prev                   step the store back one capture
-    provost next                   step it forward one (past the last: the latest)
+    provost next                   step it forward one capture
   Directories and stores
     provost control [DIR]          give DIR (default: here) its own store
     provost uncontrol [DIR]        release it (its data is kept)
@@ -3464,6 +3464,9 @@ SETTINGS (environment)
                               0 = off, as --no-auto-multi)
     PROVOST_MODEL             1 = try the learned layout model (as --model;
                               needs python3)
+    PROVOST_LAYOUT_LM         with --model, label with the tiny pretrained LM
+                              saved in this directory (ml/train_lm.py; needs
+                              torch, transformers, peft), not the trees
     PROVOST_LLM               1 = use / have Claude write a template (as --llm)
     PROVOST_LLM_MODEL         the model that writes templates (default:
                               claude-opus-5-5)

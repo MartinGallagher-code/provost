@@ -30,6 +30,19 @@ pretrained language model, fine-tuned on provost's own labels, get past the
   - averaged with the trees: 0.865, 38/48;
   - two passes, about 2 h on 4 cores.
 - `ml/README.md`: files table and reproduce steps.
+- **Capture time, opt-in:**
+  - **`extract/model/lm_runtime.py`:** the encoding and the model now live
+    beside `layout.py` and `decode.py`, shared by training and capture time.
+    `train_lm.py` imports them. `lm_runtime.load` returns None when torch,
+    transformers or peft or the model is missing.
+  - **`PROVOST_LAYOUT_LM=DIR`** (`layout_model.py`: `load_lm`, `label_lm`):
+    `--model` labels with the tiny LM saved in DIR instead of the trees,
+    without the arbiter (it was fitted to the trees' probabilities). With no
+    model or no torch, the trees label as before (smoke +1).
+  - Documented in `help advanced` and the man page.
+- **Fixed:** the smoke check "no help line is wider than 79 columns" could
+  never fail: an empty expected substring matches anything. It now counts
+  the wide lines. It found one, `provost next`, now shortened.
 
 ## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`
 

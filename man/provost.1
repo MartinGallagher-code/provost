@@ -456,6 +456,12 @@ the model that answered, its token usage), to add up what \fB--llm\fR cost.
 .B PROVOST_MAX_INPUT
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).
 .TP
+.B PROVOST_LAYOUT_LM
+With \fB--model\fR, label lines with the tiny pretrained language model saved
+in this directory (trained by \fIml/train_lm.py\fR; needs \fBtorch\fR,
+\fBtransformers\fR and \fBpeft\fR) instead of the shipped trees. Without
+those packages or the model, the trees label as before.
+.TP
 .B PROVOST_FILES_MAX_SIZE
 In a controlled directory, the largest file (bytes) committed with each run
 (default: 1048576; 0 keeps no files, only the manifest).

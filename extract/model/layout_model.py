@@ -18,6 +18,12 @@ the quality gate would otherwise hold (PROVOST_MODEL=1); the engine then
 measures the result with the same coverage and consistency checks as every
 other parser.
 
+PROVOST_LAYOUT_LM=DIR labels with the tiny pretrained language model instead
+(lm_runtime.py; trained by ml/train_lm.py, needs torch, transformers and
+peft). The arbiter is left out then: it was fitted to the trees'
+probabilities. Without those packages, or with no model in DIR, the trees
+label as before.
+
 Exit status: 0 with records on stdout; 1 when nothing usable was found;
 3 when the input is too large to label here (MAX_LINES).
 
@@ -93,6 +99,25 @@ def label(model, lines):
     for j, st in decode(lines, roles, probs).items():
         starts[j] = st
     return roles, starts, probs
+
+
+def label_lm(lm, lines):
+    """label() with the tiny LM (lm_runtime.run): the same three answers."""
+    import lm_runtime
+    roles, probs = lm_runtime.run(lm, lines)
+    starts = [None if p is None else sorted(i for i, q in p.items() if q > 0.5) for p in probs]
+    for j, st in decode(lines, roles, probs).items():
+        starts[j] = st
+    return roles, starts, probs
+
+
+def load_lm(env=os.environ):
+    """The tiny LM named by PROVOST_LAYOUT_LM, or None (the trees label)."""
+    path = env.get("PROVOST_LAYOUT_LM", "")
+    if not path:
+        return None
+    import lm_runtime
+    return lm_runtime.load(path)
 
 
 def engine_starts(lines, wide):
@@ -490,8 +515,11 @@ def main(argv=None):
         lines.pop()
     if len(lines) > MAX_LINES:
         return 3
-    model = load()
-    roles, starts, probs = label(model, lines)
+    lm = load_lm()
+    if lm is not None:
+        roles, starts, probs = label_lm(lm, lines)
+    else:
+        roles, starts, probs = label(load(), lines)
     if segdir is not None:
         # --segments DIR: each uniform run as DIR/seg.N.txt (its verbatim
         # lines) and DIR/seg.N.rec (its records, from the whole document's
@@ -508,7 +536,9 @@ def main(argv=None):
             with open(os.path.join(segdir, f"seg.{n}.rec"), "w", encoding="utf-8") as fh:
                 fh.write("\n".join(rec) + "\n")
         return 0 if n >= 2 else 1
-    starts, switched = arbitrate_with_engine(lines, roles, starts, probs)
+    switched = 0
+    if lm is None:
+        starts, switched = arbitrate_with_engine(lines, roles, starts, probs)
     if debug:
         sys.stderr.write(f"arbiter: {switched} line(s) kept the engine's split\n")
         for ln, r, st in zip(lines, roles, starts):
