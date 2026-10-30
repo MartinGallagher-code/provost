@@ -5,12 +5,15 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.2.0 is prepared** (`VERSION`, man header, CHANGELOG release entry).
-PyPI serves 2.1.0 (published 2026-10-16) until a `v2.2.0` GitHub release is
-published. 2.1.0 was the first release with the rename, store format 2, line
-coverage and the 2026-10-14 parser work. 2.2.0 adds the 2026-10-16 and
-2026-10-20 work: the quality gate, the engine fixes, and removal of the legacy
-names.
+**provost 2.2.0 is everything through 2026-10-29** (`VERSION`, man header, the
+release entry at the top of CHANGELOG). It is published by running the
+"Release to PyPI" workflow on `main` (or a GitHub release tagged `v2.2.0`,
+not both); PyPI's provost page says whether that has happened. 2.1.0
+(2026-10-16) was the first release with the rename, store format 2, line
+coverage and the 2026-10-14 parser work. 2.2.0 adds the quality gate and
+auto-multi, the engine fixes, removal of the legacy names, store format 3,
+browsing and search, `batch`, the opt-in `--llm` and `--model`, and the
+2026-10-29 readers.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
