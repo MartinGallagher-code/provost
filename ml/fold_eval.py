@@ -58,6 +58,8 @@ def main(argv=None):
     ap.add_argument("--lm-trees", action="store_true",
                     help="with --learner lm: also train the trees and score the average of the two")
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 1, help="torch threads")
+    ap.add_argument("--show", nargs=2, metavar=("LEARNER", "N"),
+                    help="print N held-out lines where LEARNER's split differs from the LLM label")
     a = ap.parse_args(argv)
 
     eng = {e["name"]: e for e in D.load(a.corpus) if CV.fold(e) == a.fold}
@@ -109,6 +111,8 @@ def main(argv=None):
             out["avg"][n] = starts_from(e["lines"], preds[pair][n][0], avg)
     out["engine"] = {n: e["starts"] for n, e in eng.items()}
 
+    shown, show_k, show_n = 0, *(a.show if a.show else (None, 0))
+    show_n = int(show_n)
     tot, n = {k: 0 for k in out}, 0
     gold = {(g["name"], g["line"]): g for g in ADJ.load(ADJ.GOLD)}
     gtot, gn = {k: 0 for k in out}, 0
@@ -123,6 +127,11 @@ def main(argv=None):
             want = ADJ.canon(t, L["starts"][j])
             for k in out:
                 tot[k] += ADJ.canon(t, out[k][name][j] or []) == want
+            if show_k in out and shown < show_n and ADJ.canon(t, out[show_k][name][j] or []) != want:
+                shown += 1
+                cut = lambda st: " | ".join(t[x:y].strip() for x, y in zip(st, list(st[1:]) + [len(t)]))  # noqa: E731
+                print(f"  {name}:{j}\n    label {cut(sorted(L['starts'][j]))}\n    {show_k:5} "
+                      f"{cut(sorted(out[show_k][name][j] or []))}", file=sys.stderr)
             g = gold.get((name, j))
             if g:
                 gn += 1
