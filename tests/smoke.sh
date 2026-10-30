@@ -10,7 +10,7 @@ set -euo pipefail
 # install dir, never from a store, so a developer's ~/.provost can't shadow the
 # bundled trees — that is asserted below too.)
 unset PROVOST_HOME PROVOST_MIN_CONFIDENCE PROVOST_RECONCILE_OVERLAP PROVOST_QUIET PROVOST_MAX_INPUT \
-      PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_PLUGIN_DIR \
+      PROVOST_LOCK_TIMEOUT PROVOST_LOCK_MAX_AGE PROVOST_MULTI PROVOST_CONTEXT_COLUMNS PROVOST_PLUGIN_DIR \
       PROVOST_AUTO_MULTI PROVOST_MIN_COVERAGE PROVOST_MIN_CONSISTENCY PROVOST_MODEL \
       PROVOST_LLM PROVOST_LLM_MODEL PROVOST_LLM_API_KEY PROVOST_LLM_BASE_URL ANTHROPIC_API_KEY
 # From a non-interactive caller capture is synchronous by default anyway; pin
@@ -889,7 +889,7 @@ check "help all is the same" "SETTINGS (environment)" "$("$PROVOST" help all 2>/
 check "--help advanced too" "SETTINGS (environment)" "$("$PROVOST" --help advanced 2>/dev/null)"
 check "help advanced exits 0" "0" "$(rc_of "$PROVOST" help advanced)"
 check "no help line is wider than 79 columns" "" "$(printf '%s\n%s\n' "$short_help" "$help_out" | awk 'length($0) > 79')"
-for v in run listen search source diff files prev next restore control export rm doctor; do
+for v in run batch listen search source diff files prev next restore control export rm doctor; do
     check "help advanced lists '$v'" "provost $v" "$help_out"
 done
 check_not "help no longer claims reconciliation is missing" "Not yet" "$help_out"
@@ -899,7 +899,7 @@ check "unknown command exits 2" "2" "$(rc_of "$PROVOST" stat)"
 check "'show' with no name is a clean usage error" "usage: provost show" "$("$PROVOST" show 2>&1 || true)"
 check "'show' with no name exits 2" "2" "$(rc_of "$PROVOST" show)"
 check "unknown option exits 2" "2" "$(rc_of "$PROVOST" rm --bogus x)"
-for sub in run rm show stats log restore source next prev files diff search listen unlisten; do
+for sub in run batch rm show stats log restore source next prev files diff search listen unlisten; do
     check "'$sub --help' prints its own usage to stdout" "usage: provost $sub" "$("$PROVOST" "$sub" --help 2>/dev/null)"
 done
 check "inject --help prints the inject usage" "cmd | provost" "$("$PROVOST" --sync --help 2>/dev/null)"
@@ -1074,6 +1074,71 @@ check "keeps its exit status" "rc=3" "$bs"
 check "and is filed each time it runs" "t2 PASS" "$(PROVOST_WORKSPACE="$LWS2" "$PROVOST" show mytest 2>&1 | sq)"
 check "unlisten stops it" "stopped listening on: mytest" "$(lr unlisten mytest)"
 check "and the list is empty" "listening on nothing" "$(lr listen)"
+
+# batch: many inputs, one commit, a capture each; and '#%' context as columns.
+BTWS="$(mktemp -d)/.batch"; BTD="$(mktemp -d)"
+for h in web01 web02 db01; do printf '#%% host=%s rack=r1 note\nName,Load\n%s,0.5\n' "$h" "$h" > "$BTD/$h.txt"; done
+: > "$BTD/empty.txt"
+bt () { PROVOST_WORKSPACE="$BTWS" "$PROVOST" "$@" 2>&1; }
+bout="$(bt batch --context-columns --name load "$BTD/web01.txt" "$BTD/empty.txt" "$BTD/web02.txt" "$BTD/db01.txt"; echo "rc=$?")"
+check "batch files each input as a capture of its own" "captures c0001..c0003, one commit; 1 empty" "$bout"
+check "an empty input is skipped, and said" "empty.txt: empty -- nothing captured." "$bout"
+check "batch exits 0 when every input was captured" "rc=0" "$bout"
+check "batch makes one commit for all of them" "2" "$(tgit "$BTWS" rev-list --count HEAD)"
+check "the commit names the captures and the rows" "batch: 3 capture(s) c0001..c0003 (3 rows)" "$(tgit "$BTWS" log -1 --format=%s)"
+check "each capture is tagged" "capture-c0001 capture-c0002 capture-c0003" "$(tgit "$BTWS" tag | sort | tr '\n' ' ')"
+check "each is logged with source batch" "batch" "$(bt log | sq | awk '$1 == "c0002" { print $3 }')"
+bshow="$(bt show load | sq)"
+check "context columns come after # and capture" "# capture host rack n Name Load" "$bshow"
+check "ids follow the order the inputs were named" "2 c0002 web02 r1 1 web02 0.5" "$bshow"
+check "each row carries its own input's context" "3 c0003 db01 r1 1 db01 0.5" "$bshow"
+check_not "a word that is not key=value is not a column" "note" "$bshow"
+check "source still returns each input on its own" "db01,0.5" "$(bt source c0003)"
+check_not "...and only that input" "web01" "$(bt source c0003)"
+check "meta.tsv records the batch" "batch	c0001..c0003" "$(cat "$BTWS/captures/c0002/meta.tsv")"
+check "...and each capture's input" "web02.txt" "$(cat "$BTWS/captures/c0002/meta.tsv")"
+check "...and which columns came from its context" "context_columns	host=host,rack=rack" "$(cat "$BTWS/captures/c0002/meta.tsv")"
+printf '#%% host=h1 Load=9\nhost,Load\nweb,0.5\n' > "$BTD/clash.txt"
+bt batch -q --context-columns --name clash "$BTD/clash.txt" >/dev/null || true
+check "a data column keeps its name; the context one takes a '_'" "# capture _host _Load n host Load" "$(bt show clash | sq)"
+check "...and meta.tsv says which is which" "context_columns	host=_host,Load=_Load" "$(cat "$BTWS/captures/c0004/meta.tsv")"
+printf '#%% capture=zz\nName,Load\nx,1\n' > "$BTD/capkey.txt"
+bt batch -q --context-columns --name capkey "$BTD/capkey.txt" >/dev/null || true
+check "a context key named capture never takes the capture column" "# capture _capture n Name Load" "$(bt show capkey | sq)"
+printf '#%% host=plain\nName,Load\nx,1\n' > "$BTD/plain.txt"
+bt batch -q --name plain "$BTD/plain.txt" >/dev/null || true
+check_not "without --context-columns the context is no column" "plain" "$(bt show plain | sq)"
+PROVOST_CONTEXT_COLUMNS=1 bt batch -q --name envcc "$BTD/plain.txt" >/dev/null || true
+check "PROVOST_CONTEXT_COLUMNS=1 is the flag" "# capture host n Name Load" "$(bt show envcc | sq)"
+printf '#%% host=piped\nName,Load\nx,1\n' | PROVOST_WORKSPACE="$BTWS" "$PROVOST" --context-columns --name pipedcc >/dev/null 2>&1 || true
+check "--context-columns works on piped input too" "piped 1 x 1" "$(bt show pipedcc | sq)"
+bt batch -q --context-columns --min-confidence 101 "$BTD/plain.txt" >/dev/null || true
+check "a held capture stays one raw column" "# capture raw" "$(bt show unsorted | sq)"
+check "PROVOST_CONTEXT_COLUMNS must be 0 or 1 (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" PROVOST_CONTEXT_COLUMNS=yes rc_of "$PROVOST" ls)"
+nout="$(bt batch --name n1 "$BTD/web01.txt" --name n2 "$BTD/web02.txt")"
+check "--name applies to the files after it" "dataset 'n1'" "$nout"
+check "...until the next --name" "dataset 'n2'" "$nout"
+printf 'fa\t%s\n# a comment\n\n%s\n' "$BTD/web01.txt" "$BTD/web02.txt" > "$BTD/list"
+fout="$(bt batch --name fb --from "$BTD/list")"
+check "--from reads NAME<TAB>PATH lines" "dataset 'fa'" "$fout"
+check "...and PATH lines, under --name" "dataset 'fb'" "$fout"
+check "--from - reads the list from stdin" "dataset 'fs'" "$(printf 'fs\t%s\n' "$BTD/db01.txt" | PROVOST_WORKSPACE="$BTWS" "$PROVOST" batch --from - 2>&1)"
+before="$(tgit "$BTWS" rev-list --count HEAD)"
+check "a missing input refuses the whole batch" "no such file" "$(bt batch "$BTD/web01.txt" "$BTD/nosuch.txt" || true)"
+check "...and nothing is filed" "same" "$([[ "$(tgit "$BTWS" rev-list --count HEAD)" == "$before" ]] && echo same || echo changed)"
+head -c 3000 /dev/zero | tr '\0' x > "$BTD/big.txt"
+oout="$(PROVOST_MAX_INPUT=2000 bt batch --name ov "$BTD/web01.txt" "$BTD/big.txt"; echo "rc=$?")"
+check "an oversized input is reported" "big.txt: too large" "$oout"
+check "...the rest are filed" "dataset 'ov'" "$oout"
+check "...and batch exits 1" "rc=1" "$oout"
+J1="$(mktemp -d)/.j1"; J8="$(mktemp -d)/.j8"
+PROVOST_WORKSPACE="$J1" "$PROVOST" batch -q -j 1 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
+PROVOST_WORKSPACE="$J8" "$PROVOST" batch -q -j 8 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
+check "-j 1 and -j 8 file the same rows" "same" "$(cmp -s "$J1/datasets/load.tsv" "$J8/datasets/load.tsv" && echo same || echo differ)"
+check "--llm parses one input at a time" "parses one input at a time" "$(bt batch --llm -j 4 --name llmone "$BTD/web01.txt")"
+check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
+check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"
+check "--jobs must be a number (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch -j x "$BTD/web01.txt")"
 
 echo "smoke: $pass passed, $fail failed"
 [[ $fail -eq 0 ]]

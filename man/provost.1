@@ -1,4 +1,4 @@
-.TH PROVOST 1 "2026-10-20" "provost 2.2.0" "User Commands"
+.TH PROVOST 1 "2026-10-30" "provost 2.2.0" "User Commands"
 .SH NAME
 provost \- turn command output into data
 .SH SYNOPSIS
@@ -12,6 +12,9 @@ provost \- turn command output into data
 .br
 .B provost
 [\fIoptions\fR] \fIFILE\fR
+.br
+.B provost batch
+[\fIoptions\fR] \fIFILE\fR... [\fB--from\fR \fILIST\fR]
 .br
 .B provost
 \fIsubcommand\fR [\fIargs...\fR]
@@ -54,6 +57,12 @@ a wrapping project's strategies compete without being symlinked into
 .TP
 .B --multi
 File every dataset the input holds (or \fBPROVOST_MULTI=1\fR).
+.TP
+.BR --context-columns ", " --no-context-columns
+Make every \fIkey\fB=\fIvalue\fR word of a \fB#%\fR metadata prologue a
+column on each of the capture's rows, after \fB#\fR and \fBcapture\fR (or
+\fBPROVOST_CONTEXT_COLUMNS=1\fR; \fB--no-context-columns\fR, the default,
+doesn't). See \fBprovost batch\fR under \fBSUBCOMMANDS\fR.
 .TP
 .BR --auto-multi ", " --no-auto-multi
 Before the quality gate holds a parse, try segmenting the input and file the
@@ -104,9 +113,37 @@ A leading run of \fB#%\fR lines on injected input is a metadata prologue:
 it is peeled off before detection (it cannot corrupt a parse), stored with the
 capture as \fIcontext.txt\fR, and shown verbatim by
 .BR "provost source" .
+With \fB--context-columns\fR, each \fIkey\fB=\fIvalue\fR word in it also
+becomes a column on every row the capture files: \fB#% host=web03 rack=r2\fR
+puts \fBhost\fR and \fBrack\fR on each row, so one host's answers stay
+labelled in a dataset many hosts feed. Keys are letters, digits, \fB_\fR,
+\fB.\fR and \fB-\fR, starting with a letter or \fB_\fR; the last value of a
+repeated key wins, and other words stay context only. A data column of the
+same name keeps it and the context column becomes \fB_\fR\fINAME\fR;
+\fImeta.tsv\fR records which columns came from the context
+(\fBcontext_columns\fR, \fIkey\fB=\fIcolumn\fR,...). A capture held in
+\fBunsorted\fR is kept as it came.
 Run with no arguments from a terminal (nothing piped in),
 .B provost
 prints its help instead of waiting on stdin.
+.TP
+.B batch [\fIoptions\fR] \fIFILE\fR... [\fB--from\fR \fILIST\fR]
+File many inputs at once. Each \fIFILE\fR is a capture of its own, as
+\fBprovost\fR \fIFILE\fR would make it (its own id and
+\fBprovost source\fR), but the inputs are parsed in parallel and filed under
+one hold of the store lock as ONE commit, with a \fBcapture-\fIid\fR tag for
+each. Capture ids follow the order the files were named; \fImeta.tsv\fR
+records each one's \fBinput\fR path and its \fBbatch\fR (the id range).
+\fB--name\fR \fINAME\fR applies to the files after it; \fB--from\fR
+\fILIST\fR reads more files from \fILIST\fR (\fB-\fR: stdin), one a line,
+as \fIPATH\fR or \fINAME\fR<TAB>\fIPATH\fR; \fB-j\fR, \fB--jobs\fR
+\fIN\fR parses at most \fIN\fR at a time (default: the CPUs, at most 16;
+\fB--llm\fR parses one at a time, so a new template is written once). The
+other capture options apply as for injection. Every file is checked before
+anything is filed; an empty one is skipped, and one that fails to parse is
+reported while the rest are filed. Exits 1 if any input was not captured.
+For a wrapper that captures a fleet: one file per host, each opening with
+\fB#% host=\fINAME\fR, and \fB--context-columns\fR.
 .TP
 .B listen \fR[\fIcmd\fR...]
 Capture \fIcmd\fR every time it runs: its output is shown as always and a
@@ -418,6 +455,11 @@ unset or \fBauto\fR (the default) backgrounds only when stderr is a terminal.
 .B PROVOST_MULTI
 File every dataset an input holds (default 0; same as \fB--multi\fR).
 .TP
+.B PROVOST_CONTEXT_COLUMNS
+\fB1\fR: every \fIkey\fB=\fIvalue\fR word of a \fB#%\fR prologue becomes
+a column on the capture's rows; \fB0\fR (the default): it is context only
+(same as \fB--context-columns\fR / \fB--no-context-columns\fR).
+.TP
 .B PROVOST_AUTO_MULTI
 \fB1\fR (the default): before the quality gate holds a parse, try segmenting
 the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
@@ -501,6 +543,7 @@ provost diff df                   # what changed between df's last two captures
 provost search -i error           # every row mentioning 'error', via git grep
 provost prev                      # step the store back one capture
 provost listen pytest             # file pytest's output every time it runs
+provost batch --context-columns --name uptime out/*.txt  # many hosts, one commit
 provost control; provost run make test; provost files    # a run's files
 .fi
 .SH SEE ALSO

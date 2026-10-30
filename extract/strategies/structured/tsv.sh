@@ -4,7 +4,7 @@
 
 ## Name: tsv
 ## Description: Extract field names and values from TSV files (tab-delimited with header row)
-## Version: 2.2
+## Version: 2.3
 ## Priority: 14
 ## Sample: samples/tsv/basic.tsv
 
@@ -82,10 +82,12 @@ strategy_detect () {
 
 # Split one TSV line into _TSV_FIELDS, QUOTE-AWARE (the csv treatment with a
 # tab delimiter): a '"' is structural only at FIELD START — it protects any
-# tabs inside the field (`"a<TAB>b"` is ONE cell, not two) and is consumed;
-# a mid-field quote is literal data. A protected tab becomes a single space in
-# the emitted value — the tidy output is itself TSV, so a literal tab inside a
-# cell would shear every column after it.
+# tabs inside the field (`"a<TAB>b"` is ONE cell, not two) and is consumed,
+# and inside such a field `""` is one literal quote; a mid-field quote is
+# literal data and is KEPT (`said "hi"` stays `said "hi"` — v2.3; until then
+# every quote in a cell was deleted after the split). A protected tab becomes
+# a single space in the emitted value — the tidy output is itself TSV, so a
+# literal tab inside a cell would shear every column after it.
 #
 # EMPTY FIELDS. Two kinds of input put two tabs in a row, and they need
 # opposite treatment:
@@ -108,7 +110,8 @@ _tsv_split () {
         for ((i = 0; i < n; i++)); do
             c="${line:$i:1}"
             if [[ $in_q -eq 1 ]]; then
-                if [[ "$c" == '"' ]]; then in_q=0
+                if [[ "$c" == '"' && "${line:$((i + 1)):1}" == '"' ]]; then field+='"'; i=$((i + 1))
+                elif [[ "$c" == '"' ]]; then in_q=0
                 elif [[ "$c" == '	' ]]; then field+=' '
                 else field+="$c"; fi
             elif [[ "$c" == '"' && -z "$field" ]]; then
@@ -126,7 +129,8 @@ _tsv_split () {
     for ((i = 0; i < n; i++)); do
         c="${line:$i:1}"
         if [[ $in_q -eq 1 ]]; then
-            if [[ "$c" == '"' ]]; then in_q=0
+            if [[ "$c" == '"' && "${line:$((i + 1)):1}" == '"' ]]; then field+='"'; i=$((i + 1))
+            elif [[ "$c" == '"' ]]; then in_q=0
             elif [[ "$c" == '	' ]]; then field+=' '
             else field+="$c"; fi
         elif [[ "$c" == '"' && -z "$field" ]]; then
@@ -408,13 +412,13 @@ strategy_extract () {
                 [[ -n "$_cp_rest" ]] && result+="entry${rec}.${_nm1}_b ${_cp_rest}"$'\n'
                 continue
             fi
-            # Clean up name and value: replace spaces with underscores, remove quotes
+            # Clean up the name (spaces to underscores, no quotes); the value
+            # is data, quotes and all (_tsv_split consumed the structural ones)
             name="${name//\"}"
             name="${name// /_}"
             name="${name#_}"
             name="${name%_}"
             name="${name//./_}"   # '.' would break the tidy melt's group key split
-            value="${value//\"}"
             [[ -z "$name" ]] && continue
             if [[ -z "$value" ]]; then
                 [[ $_TSV_KEEP_EMPTY -eq 1 ]] && result+="entry${rec}.${name} "$'\n'

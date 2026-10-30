@@ -132,8 +132,9 @@ test_chain_version_real () {
     local output
     output=$(echo '{"name": "test"}' | bash "$PROVOST_EXTRACT_SCRIPT" --chain 'json' -c 2>/dev/null) || true
     # The replay spec should contain json@ followed by the actual version from json.sh
-    # json.sh has ## Version: 1.0
-    assert_contains "$output" "json@1.0" "chain version should be real metadata version"
+    local v; v="$(strategy_version json)"
+    [[ -n "$v" ]] || { echo "  json.sh has no ## Version:"; return 1; }
+    assert_contains "$output" "json@$v" "chain version should be real metadata version"
 }
 
 run_test "chain version uses real strategy metadata" test_chain_version_real

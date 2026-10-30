@@ -279,6 +279,194 @@ _list_explode () {
 }
 
 # ---------------------------------------------------------------------------
+# _json_walk MODE TEXT — JSON read without jq, printing what the jq filters
+# in the json and jsonl strategies print, so a machine without jq files the
+# same rows as one with it (the corpus goldens are jq's).
+#
+#   leaves   every scalar under its path, `a.b.0.c VALUE`: arrays indexed
+#            from 0, strings decoded (escapes, \uXXXX and surrogate pairs to
+#            UTF-8), numbers, true, false and null as written — what
+#            `path(..|scalars) as $p | ($p|join(".")) + " " + getpath($p)`
+#            prints. Several top-level values are a stream, as in jq: each
+#            one's leaves print once it has parsed, and the walk stops at
+#            the first that does not.
+#   entries  one JSON object per line, as JSON Lines: blank lines skipped,
+#            and lines whose first non-blank character is `#` (a comment —
+#            no JSON line starts with one). Each object's top-level keys
+#            print as `line<N>.KEY VALUE`, a nested object or array as its
+#            compact JSON text — jq's `to_entries[] | "\(.key) \(.value)"`.
+#            N counts the lines that are not blank or comments.
+#
+# Unlike jq, a number in exponent form keeps its spelling (jq 1.7 prints
+# `1e3` as `1E+3`), and a nested value's compact text keeps its string
+# escapes as written. (mawk-safe; LC_ALL=C so `%c` writes one byte.)
+# ---------------------------------------------------------------------------
+_JSON_WALK_AWK='
+function ws() { while (P <= N && index(" \t\r\n", substr(S, P, 1)) > 0) P++ }
+function hex(h,   i, v, d) {
+    v = 0; h = tolower(h)
+    for (i = 1; i <= 4; i++) {
+        d = index("0123456789abcdef", substr(h, i, 1)) - 1
+        if (d < 0) { BAD = 1; return 0 }
+        v = v * 16 + d
+    }
+    return v
+}
+function utf8(cp) {
+    if (cp < 128) return sprintf("%c", cp)
+    if (cp < 2048) return sprintf("%c%c", 192 + int(cp / 64), 128 + cp % 64)
+    if (cp < 65536) return sprintf("%c%c%c", 224 + int(cp / 4096), \
+        128 + int(cp / 64) % 64, 128 + cp % 64)
+    return sprintf("%c%c%c%c", 240 + int(cp / 262144), \
+        128 + int(cp / 4096) % 64, 128 + int(cp / 64) % 64, 128 + cp % 64)
+}
+# The string opening at P, decoded; P is left past its closing quote.
+function str(   out, c, e, cp, lo) {
+    P++; out = ""
+    while (P <= N) {
+        c = substr(S, P, 1)
+        if (c == "\"") { P++; return out }
+        if (c != "\\") { out = out c; P++; continue }
+        e = substr(S, P + 1, 1)
+        if (e == "n") out = out "\n"
+        else if (e == "t") out = out "\t"
+        else if (e == "r") out = out "\r"
+        else if (e == "b") out = out "\b"
+        else if (e == "f") out = out "\f"
+        else if (e == "u") {
+            cp = hex(substr(S, P + 2, 4)); P += 4
+            if (cp >= 55296 && cp < 56320 && substr(S, P + 2, 2) == "\\u") {
+                lo = hex(substr(S, P + 4, 4))
+                if (lo >= 56320 && lo < 57344) {
+                    cp = 65536 + (cp - 55296) * 1024 + (lo - 56320); P += 6
+                }
+            }
+            out = out utf8(cp)
+        }
+        else out = out e
+        P += 2
+    }
+    BAD = 1; return out
+}
+# The value at P, its scalars added to OUT under path PATH (D: its depth).
+function val(path, d,   c, k, i) {
+    ws(); c = substr(S, P, 1)
+    if (c == "{") {
+        P++; ws()
+        if (substr(S, P, 1) == "}") { P++; return }
+        while (P <= N && !BAD) {
+            ws()
+            if (substr(S, P, 1) != "\"") { BAD = 1; return }
+            k = str(); ws()
+            if (substr(S, P, 1) != ":") { BAD = 1; return }
+            P++
+            val(d ? path "." k : k, d + 1)
+            ws(); c = substr(S, P, 1)
+            if (c == ",") { P++; continue }
+            if (c == "}") { P++; return }
+            BAD = 1; return
+        }
+        BAD = 1; return
+    }
+    if (c == "[") {
+        P++; ws()
+        if (substr(S, P, 1) == "]") { P++; return }
+        i = 0
+        while (P <= N && !BAD) {
+            val(d ? path "." i : i "", d + 1); i++
+            ws(); c = substr(S, P, 1)
+            if (c == ",") { P++; continue }
+            if (c == "]") { P++; return }
+            BAD = 1; return
+        }
+        BAD = 1; return
+    }
+    c = scalar()
+    if (!BAD) OUT = OUT path " " c "\n"
+}
+# The string, number, true, false or null at P, as jq prints it.
+function scalar(   start, lit) {
+    if (substr(S, P, 1) == "\"") return str()
+    start = P
+    while (P <= N && index(",}] \t\r\n", substr(S, P, 1)) == 0) P++
+    lit = substr(S, start, P - start)
+    if (lit !~ /^(-?[0-9][0-9]*(\.[0-9]+)?([eE][-+]?[0-9]+)?|true|false|null)$/)
+        BAD = 1
+    return lit
+}
+# A nested value at P skipped, and its text with no space outside strings.
+function compact(   start, depth, c, out, esc, instr) {
+    start = P; depth = 0; out = ""; instr = 0; esc = 0
+    while (P <= N) {
+        c = substr(S, P, 1); P++
+        if (instr) {
+            out = out c
+            if (esc) esc = 0; else if (c == "\\") esc = 1; else if (c == "\"") instr = 0
+            continue
+        }
+        if (c == "\"") { instr = 1; out = out c; continue }
+        if (index(" \t\r\n", c) > 0) continue
+        out = out c
+        if (c == "{" || c == "[") depth++
+        else if (c == "}" || c == "]") { depth--; if (depth == 0) return out }
+    }
+    BAD = 1; return out
+}
+# One JSON Lines object: its top-level keys, nested values as compact text.
+function entries(n,   c, k) {
+    ws()
+    if (substr(S, P, 1) != "{") { BAD = 1; return }
+    P++; ws()
+    if (substr(S, P, 1) == "}") return
+    while (P <= N && !BAD) {
+        ws()
+        if (substr(S, P, 1) != "\"") { BAD = 1; return }
+        k = str(); ws()
+        if (substr(S, P, 1) != ":") { BAD = 1; return }
+        P++; ws(); c = substr(S, P, 1)
+        if (c == "{" || c == "[") c = compact(); else c = scalar()
+        if (BAD) return
+        OUT = OUT "line" n "." k " " c "\n"
+        ws(); c = substr(S, P, 1)
+        if (c == ",") { P++; continue }
+        if (c == "}") return
+        BAD = 1; return
+    }
+    BAD = 1
+}
+MODE == "entries" {
+    s = $0; sub(/^[ \t\r]+/, "", s)
+    if (s == "" || substr(s, 1, 1) == "#") next
+    LINE++; S = $0; N = length(S); P = 1; BAD = 0; OUT = ""
+    entries(LINE)
+    if (!BAD) printf "%s", OUT
+    next
+}
+# leaves: the whole input is one record (RS is \001, which JSON text never
+# holds), or one line at a time when it does hold one
+WHOLE { T = $0; next }
+{ T = T $0 "\n" }
+END {
+    if (MODE != "leaves") exit
+    S = T; N = length(S); P = 1
+    while (1) {
+        ws(); if (P > N) break
+        BAD = 0; OUT = ""
+        val("", 0)
+        if (BAD) break
+        printf "%s", OUT
+    }
+}'
+
+_json_walk () {
+    if [[ "$1" == leaves && "$2" != *$'\001'* ]]; then
+        printf '%s' "$2" | LC_ALL=C awk -v MODE=leaves -v WHOLE=1 -v RS=$'\001' "$_JSON_WALK_AWK"
+    else
+        printf '%s\n' "$2" | LC_ALL=C awk -v MODE="$1" -v WHOLE=0 "$_JSON_WALK_AWK"
+    fi
+}
+
+# ---------------------------------------------------------------------------
 # preprocess_input_text — the input-normalisation pipeline, applied to the
 # global $text BEFORE strategy detection. Factored out of the single-file
 # main path so batch mode runs the IDENTICAL pipeline: before this existed,

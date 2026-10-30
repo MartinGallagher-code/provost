@@ -4,7 +4,7 @@
 
 ## Name: json
 ## Description: Extract key/value pairs from JSON input, flattening nested objects with dot notation
-## Version: 1.0
+## Version: 1.1
 ## Priority: 10
 ## Sample: samples/json/benchmark.json
 
@@ -180,49 +180,9 @@ _strat_json_extract_jq () {
 }
 
 _strat_json_extract_fallback () {
-    local text="$1"
-
-    # Simple fallback: extract "key": value patterns with bash
-    # Limitations: processes line-by-line, so multi-line JSON strings are broken.
-    # This won't handle deeply nested structures as well as jq
-    _fr_lines "$text"
-    for _line in "${_FR_LINES[@]}"; do
-        [[ -z "$_line" ]] && continue
-        # Match patterns like "key": "value" or "key": 123 or "key": true
-        local remaining="$_line"
-        while [[ "$remaining" == *'"'*':'* ]]; do
-            # Find the next "key":
-            local after_quote="${remaining#*\"}"
-            local key="${after_quote%%\"*}"
-            [[ -z "$key" ]] && break
-            # Move past the key and colon
-            remaining="${after_quote#*\"}"
-            remaining="${remaining#*:}"
-            # Trim spaces
-            while [[ "$remaining" == " "* ]]; do remaining="${remaining# }"; done
-            # Extract value
-            local value=""
-            if [[ "$remaining" == '"'* ]]; then
-                # String value
-                remaining="${remaining#\"}"
-                value="${remaining%%\"*}"
-                remaining="${remaining#*\"}"
-            elif [[ "$remaining" =~ ^([0-9.eE+-]+) ]]; then
-                value="${BASH_REMATCH[1]}"
-                remaining="${remaining#"$value"}"
-            elif [[ "$remaining" == "true"* ]]; then
-                value="true"
-                remaining="${remaining#true}"
-            elif [[ "$remaining" == "false"* ]]; then
-                value="false"
-                remaining="${remaining#false}"
-            elif [[ "$remaining" == "null"* ]]; then
-                value="null"
-                remaining="${remaining#null}"
-            else
-                break
-            fi
-            [[ -n "$key" && -n "$value" ]] && echo "$key $value"
-        done
-    done
+    # No jq: the same leaves, under the same paths, from an awk reader
+    # (_json_walk in _helpers.sh). Until v1.1 this read "key": value pairs
+    # line by line and stopped at the first nested object or array, so
+    # `{"host": …, "cpu": {"count": 64}}` filed `host` alone.
+    _json_walk leaves "$1"
 }
