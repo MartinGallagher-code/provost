@@ -131,6 +131,11 @@ jobs:
           # the layout model ships in the wheel: a gated capture it can read
           provost --model tests/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt 2>&1 \
               | grep "strategy layout-model"
+          # PROVOST_LAYOUT_LM naming no model: the LM runtime is in the wheel, finds
+          # no model (and no torch here), and the trees label as before
+          PROVOST_LAYOUT_LM="$RUNNER_TEMP/no-model" \
+              provost --model tests/benchmark/round3/inputs/005-cmake-cache-advanced-help.txt 2>&1 \
+              | grep "strategy layout-model"
           # the LLM template runtime and its shipped templates are in the wheel
           provost --llm extract/samples/llm-template/basic.txt 2>&1 \
               | grep "strategy llm-template"
