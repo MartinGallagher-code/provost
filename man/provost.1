@@ -460,6 +460,14 @@ File every dataset an input holds (default 0; same as \fB--multi\fR).
 a column on the capture's rows; \fB0\fR (the default): it is context only
 (same as \fB--context-columns\fR / \fB--no-context-columns\fR).
 .TP
+.B PROVOST_BATCH_REUSE
+\fB0\fR: \fBprovost batch\fR detects every input's format from scratch.
+\fB1\fR (the default): the inputs after the first of each name are read
+with the first one's strategy, each kept only if that gives the same table
+(same strategy, same header, coverage no lower), and detected from scratch
+otherwise; \fImeta.tsv\fR says \fBdetection reused\fR where it was. Off
+under \fB--multi\fR, \fB--model\fR and \fB--llm\fR.
+.TP
 .B PROVOST_AUTO_MULTI
 \fB1\fR (the default): before the quality gate holds a parse, try segmenting
 the input (see \fBAUTO-MULTI\fR); \fB0\fR: hold it straight away (same as
