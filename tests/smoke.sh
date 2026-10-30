@@ -1147,6 +1147,16 @@ check "the inputs after the first record the reused detection" "detection	reused
 check_not "the first input of a name is detected itself" "detection	" "$(cat "$RU1/captures/c0001/meta.tsv")"
 check_not "an input the hint does not fit is detected from scratch" "detection	" "$(cat "$RU1/captures/c0005/meta.tsv")"
 check_not "PROVOST_BATCH_REUSE=0 detects every input" "detection	" "$(cat "$RU0"/captures/*/meta.tsv)"
+# Several names in one batch (a fleet's answers to several commands): each
+# name's first input is parsed side by side, and gives its own name's hint
+for h in m1 m2 m3; do printf 'host,load\n%s,0.%s\n' "$h" "${h#m}" > "$BTD/$h.csv"; done
+RM1="$(mktemp -d)/.rm1"; RMJ="$(mktemp -d)/.rmj"
+for ws in "$RM1:1" "$RMJ:8"; do
+    PROVOST_WORKSPACE="${ws%:*}" "$PROVOST" batch -q -j "${ws#*:}" --name kv "$BTD"/r[1-4].txt --name csv "$BTD"/m?.csv >/dev/null 2>&1 || true
+done
+check "several names: -j 1 and -j 8 file the same rows" "same" "$( (diff -r "$RM1/datasets" "$RMJ/datasets" >/dev/null && echo same) || echo differ)"
+check "several names: each name's own hint is reused" "reused (" "$(cat "$RMJ/captures/c0006/meta.tsv")"
+check "several names: ...and the first name's too" "reused (" "$(cat "$RMJ/captures/c0002/meta.tsv")"
 check "--llm parses one input at a time" "parses one input at a time" "$(bt batch --llm -j 4 --name llmone "$BTD/web01.txt")"
 check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
 check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"

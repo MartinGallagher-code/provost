@@ -1,5 +1,21 @@
 # provost — Changelog
 
+## 2026-10-30 — `batch` parses each name's first input side by side
+
+The detection reuse just above parsed the first input of every name one
+after another, before the parallel parse of the rest began. A batch of one
+name barely notices; a batch of many does. quarterdeck's `qd probe facts
+inventory` files the answers to 7 probes and its own `qd.hosts` and
+`qd.runs` in one batch: 9 names, so 9 full detections in turn while the
+other CPUs waited. The first parses now run `-j` at a time, as the rest do,
+and are waited for in the order they started (`cmd_batch`,
+`_batch_first_done`). On six hosts that request went from 26 s to 16 s. The
+captures, their order, and each name's hint are as before.
+
+- Tests (`tests/smoke.sh`, +3): two names in one batch file the same rows
+  with `-j 1` and `-j 8`, and the inputs after each name's first record
+  the reused detection.
+
 ## 2026-10-30 — `batch` reuses a name's detection: a fleet's answers, three times faster
 
 A fleet's answers to one command are one format, and detection -- trying

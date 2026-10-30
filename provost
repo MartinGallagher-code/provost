@@ -2341,6 +2341,21 @@ _batch_hint () {
     )
 }
 
+# _batch_first_done — cmd_batch's: wait for the next first parse it started
+# (pre_pid[ph], in launch order), keep its exit status, and the hint it
+# gives the rest of its name when it read cleanly. Works on cmd_batch's
+# locals, which bash lets a function it calls see.
+_batch_first_done () {
+    local g="${pre_g[ph]}" k i d rc=0
+    k="${first_of[$g]}"; i="${todo[k]}"; d="$broot/$i"
+    wait "${pre_pid[ph]}" || rc=$?
+    pre_rc[$k]=$rc
+    if (( rc == 0 )) && _batch_hint "$d" > "$broot/hint.$k"; then
+        hint_of[$g]="$broot/hint.$k"
+    fi
+    ph=$((ph + 1))
+}
+
 cmd_batch () {
     _O_THRESHOLD="$PROVOST_MIN_CONFIDENCE"; _O_ASYNC=""; _O_NAME=""; _O_SHOW=0
     local jobs="" line lname lpath
@@ -2437,17 +2452,27 @@ cmd_batch () {
             group_n[$g]=$(( ${group_n[$g]:-0} + 1 ))
             [[ -n "${first_of[$g]+x}" ]] || first_of[$g]=$k
         done
+        # The first inputs are parsed side by side, at most $jobs at a time,
+        # as the rest are below: one after another, a batch of many names (a
+        # fleet's answers to several commands at once) waited on each first
+        # parse in turn with the other CPUs idle.
+        local -a pre_g=() pre_pid=()
+        local ph=0
         for g in "${!first_of[@]}"; do
             (( ${group_n[$g]} > 1 )) || continue
             k="${first_of[$g]}"; i="${todo[k]}"; d="$broot/$i"
-            rc=0
             (
                 _TMPDIRS=(); _LOCKS_HELD=(); _LOCKS_OWNER=()
                 trap _cleanup EXIT
                 _ingest_parse "$d/in.txt" "$_O_THRESHOLD" "" "${names[i]}" "$d"
-            ) > "$d/parse.log" 2>&1 || rc=$?
-            pre_rc[$k]=$rc
-            (( rc == 0 )) && _batch_hint "$d" > "$broot/hint.$k" && hint_of[$g]="$broot/hint.$k"
+            ) > "$d/parse.log" 2>&1 &
+            pre_g+=("$g"); pre_pid+=("$!")
+            while (( ${#pre_pid[@]} - ph >= jobs )); do
+                _batch_first_done
+            done
+        done
+        while (( ph < ${#pre_pid[@]} )); do
+            _batch_first_done
         done
     fi
 

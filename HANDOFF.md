@@ -106,6 +106,15 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0p. **2026-10-30: `batch` parses each name's first input side by side**
+    (after #91). #91's pre-pass parsed the first input of every name one
+    after another, before the parallel parse of the rest began: a batch of
+    many names (qd's `probe facts inventory` files 7 probes' answers and
+    its own `qd.hosts`/`qd.runs`, 9 names) waited on 9 full detections in
+    turn with the other CPUs idle. They now run `-j` at a time, as the rest
+    do. That qd request on six hosts: 26 s -> 16 s. Same captures, same
+    order, same hints.
+
 0o. **2026-10-30: `batch` reuses a name's detection** (after 2.2.0). The
     first input of each name is detected; the rest try its strategy first
     and keep the result only if it is the same table (strategy, header,
