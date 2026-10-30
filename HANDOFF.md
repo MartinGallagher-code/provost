@@ -106,6 +106,15 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0o. **2026-10-30: `batch` reuses a name's detection** (after 2.2.0). The
+    first input of each name is detected; the rest try its strategy first
+    and keep the result only if it is the same table (strategy, header,
+    coverage no lower). 200 one-format inputs: 70 s -> 22 s through qd.
+    Equivalence checked on 400 corpus inputs (376 identical, 24 refused by
+    the rule and detected from scratch). Not done: reusing the detection
+    of a hint row (its label is not a strategy name, so `-s` refuses it --
+    those inputs are detected from scratch, correct but not faster).
+
 0n. **2026-10-29: four readers qd was working around.** qd converted
     some outputs to TSV before filing them, and escaped quotes in its own
     tables, because provost read them badly. Fixed here instead:
