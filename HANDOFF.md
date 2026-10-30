@@ -133,7 +133,8 @@ Suites (all CI-enforced):
     - **Workflow lesson:** run nothing else while it trains. Four torch
       threads on four cores stall behind any other process, even a
       low-priority one. A worker restart kills a run: resume it with
-      `--init DIR/last` (checkpoints every `--ckpt-every` steps).
+      `--init DIR/last --start-step N`, N being the step recorded in
+      `DIR/last/config.json` (checkpoints every `--ckpt-every` steps).
     - **Environment:**
       - `pip install torch transformers peft lightgbm scikit-learn`; the
         PyPI torch runs on CPU, and download.pytorch.org is blocked here.

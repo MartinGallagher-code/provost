@@ -15,6 +15,9 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     offsets map to tokens exactly.
   - `--batch-tok` (2,048 default; 6,000 ran out of 15 GB), `--checkpointing`,
     `--full`, `--base`, checkpoints in `--save DIR/{last,best}`.
+  - `--start-step N` with `--init DIR/last` resumes a run a worker restart
+    killed, at its step in the schedule and the data; checkpoints record
+    their step (test +1).
 - **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
   fold. `--limit N` scores the first N held-out docs for a quick look.
 - **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no

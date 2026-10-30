@@ -6,6 +6,7 @@ transformers or peft is not installed (CI's quick checks are stdlib only).
 
     python3 -m unittest ml.tests.test_train_lm -v
 """
+import json
 import os
 import sys
 import tempfile
@@ -103,6 +104,21 @@ class Model(unittest.TestCase):
         self.assertEqual(sorted(probs[0]), candidates(DOC["lines"][0]))
         self.assertIsNone(probs[2])
         self.assertEqual(starts[0], [c for c, q in probs[0].items() if q > 0.5])
+
+    def test_start_step_resumes_where_a_run_stopped(self):
+        model, _ = LM.build(lora=4, backbone=tiny_backbone())
+        enc = LM.Encoder(char_tok, bos=0, max_tok=64)
+        its = LM.items(enc, DOC) * 4
+        nb = sum(1 for _ in LM.batches(its, False, 64))
+        before = {n: p.detach().clone() for n, p in model.named_parameters() if p.requires_grad}
+        LM.train(model, its, epochs=2, lr=3e-3, log=lambda m: None, budget=64, start=2 * nb)
+        self.assertTrue(all(torch.equal(p, before[n]) for n, p in model.named_parameters() if n in before))
+        with tempfile.TemporaryDirectory() as d:
+            LM.train(model, its, epochs=2, lr=3e-3, log=lambda m: None, budget=64, start=nb + 1,
+                     ckpt=d, ckpt_every=1)
+            with open(os.path.join(d, "last", "config.json"), encoding="utf-8") as fh:
+                self.assertEqual(json.load(fh)["step"], 2 * nb)
+        self.assertFalse(all(torch.equal(p, before[n]) for n, p in model.named_parameters() if n in before))
 
     def test_lora_trains_only_the_adapter_and_heads(self):
         model, _ = LM.build(lora=4, backbone=tiny_backbone())

@@ -115,8 +115,10 @@ def val_loss(model, val_items):
 
 
 def train(model, tr_items, epochs, val_items=None, lr=3e-4, head_lr=1e-3, log=print,
-          ckpt=None, ckpt_every=0, budget=BATCH_TOK):
-    """AdamW, linear warm-up then cosine; with val, keep the lowest val loss."""
+          ckpt=None, ckpt_every=0, budget=BATCH_TOK, start=0):
+    """AdamW, linear warm-up then cosine; with val, keep the lowest val loss.
+    start: resume a killed run at this step (its schedule and its place in the
+    data; the optimizer's moments start afresh). Checkpoints record the step."""
     heads = [p for n, p in model.named_parameters() if not n.startswith("backbone.") and p.requires_grad]
     body = [p for n, p in model.named_parameters() if n.startswith("backbone.") and p.requires_grad]
     opt = torch.optim.AdamW([{"params": body, "lr": lr}, {"params": heads, "lr": head_lr}], weight_decay=0.01)
@@ -124,12 +126,15 @@ def train(model, tr_items, epochs, val_items=None, lr=3e-4, head_lr=1e-3, log=pr
     total = max(1, epochs * nb)
     warm = max(1, total // 20)
     sched = torch.optim.lr_scheduler.LambdaLR(
-        opt, lambda s: min(1.0, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(1.0, s / total))))
-    best, step, t0 = (float("inf"), 0, None), 0, time.time()
+        opt, lambda s: min(1.0, (s + start + 1) / warm)
+        * 0.5 * (1 + math.cos(math.pi * min(1.0, (s + start) / total))))
+    best, step, t0 = (float("inf"), 0, None), start, time.time()
     for ep in range(epochs):
         model.train()
         te, tot, k, toks = time.time(), 0.0, 0, 0
-        for b in batches(tr_items, True, budget):
+        for j, b in enumerate(batches(tr_items, True, budget)):
+            if ep * nb + j < start:
+                continue
             loss, _, _ = loss_of(model, b)
             opt.zero_grad()
             loss.backward()
@@ -143,7 +148,7 @@ def train(model, tr_items, epochs, val_items=None, lr=3e-4, head_lr=1e-3, log=pr
                 log(f"    step {step}/{total}  loss {tot / k:.4f}  {toks / (time.time() - te):.0f} tok/s"
                     f"  ({(time.time() - t0) / 60:.1f} min)")
             if ckpt and ckpt_every and step % ckpt_every == 0:
-                save(model, os.path.join(ckpt, "last"))
+                save(model, os.path.join(ckpt, "last"), {"step": step})
         msg = f"    epoch {ep + 1}/{epochs}  loss {tot / max(1, k):.4f}  ({time.time() - te:.0f}s)"
         if val_items:
             v = val_loss(model, val_items)
@@ -154,7 +159,7 @@ def train(model, tr_items, epochs, val_items=None, lr=3e-4, head_lr=1e-3, log=pr
                 if ckpt:
                     save(model, os.path.join(ckpt, "best"))
         if ckpt:
-            save(model, os.path.join(ckpt, "last"))
+            save(model, os.path.join(ckpt, "last"), {"step": step})
         log(msg)
     if val_items and best[2] is not None:
         model.load_state_dict(best[2], strict=False)
@@ -197,9 +202,10 @@ def predict_doc(model, enc, ex, decoder=False):
 
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
         ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False,
-        init=None):
+        init=None, start=0):
     """Train on train_exs (+ extra layouts), validating on their val families.
-    init: a saved model to continue from (its base, rank and weights)."""
+    init: a saved model to continue from (its base, rank and weights);
+    start: with init = a killed run's last/, the step to resume it at."""
     random.seed(seed)
     torch.manual_seed(seed)
     if init:
@@ -222,7 +228,8 @@ def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, ex
     log(f"  {base}: {nall / 1e6:.1f}M parameters, {ntr / 1e6:.2f}M trained; "
         f"{len(tr)} docs ({len(tr_items)} windows, {sum(len(i['ids']) for i in tr_items)} tokens), "
         f"validate on {len(val)}; encoded in {time.time() - t0:.0f}s")
-    train(model, tr_items, epochs, val_items, lr=lr, log=log, ckpt=ckpt, ckpt_every=ckpt_every, budget=budget)
+    train(model, tr_items, epochs, val_items, lr=lr, log=log, ckpt=ckpt, ckpt_every=ckpt_every, budget=budget,
+          start=start)
     return model, enc
 
 
@@ -245,6 +252,8 @@ def main(argv=None):
     ap.add_argument("--save", help="write the adapter + heads here (with last/ and best/ checkpoints)")
     ap.add_argument("--init", help="continue training a saved model (its base and rank win)")
     ap.add_argument("--ckpt-every", type=int, default=200, help="steps between checkpoints in --save/last")
+    ap.add_argument("--start-step", type=int, default=0,
+                    help="resume a killed run: --init DIR/last at the step its config.json records")
     a = ap.parse_args(argv)
     torch.set_num_threads(a.threads)
     exs = D.load(a.corpus)
@@ -257,7 +266,7 @@ def main(argv=None):
     extra = [e for p in a.extra for e in D.load(p)]
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
                    ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
-                   budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init)
+                   budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init, start=a.start_step)
     if a.save:
         save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra,
                              "init": a.init})
