@@ -107,14 +107,20 @@ Suites (all CI-enforced):
     - **What it is:** SmolLM2-135M with LoRA, plus two heads giving the trees'
       two answers. The capture is echoed so a causal model sees the rows
       below a header.
-    - **Status:** not in provost's capture path. Scored on fold 0 against
-      the engine (0.814) and the trees (0.829); the result is in the doc.
+    - **Result, fold 0** (627 held-out captures): **0.863 split agreement
+      and 39/48 gold**, against trees 0.829 / engine 0.814 (both 32/48) and
+      the documented trees + GridNet 0.835. It is the first learner past the
+      ~83% plateau. Two passes, about 2 h on 4 cores. Not yet in provost's
+      capture path.
+    - **Workflow lesson:** run nothing else while it trains. Four torch
+      threads on four cores stall behind any other process, even a
+      low-priority one.
     - **Environment:**
       - `pip install torch transformers peft lightgbm scikit-learn`; the
         PyPI torch runs on CPU, and download.pytorch.org is blocked here.
       - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
         and `ml/corpus_labels.py` rebuild `ml/data/`.
-    - **If it clears the plateau (phase B):**
+    - **It cleared the plateau, so next is phase B:**
       1. train on every fold;
       2. export (ONNX/int8) for an `extract/model/` runtime behind `--model`,
          declining when the runtime is missing;

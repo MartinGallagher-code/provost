@@ -23,8 +23,12 @@ pretrained language model, fine-tuned on provost's own labels, get past the
 - **Measured** (`docs/lm-2026-10-29-tiny-labeller.md`):
   - about 220 training tokens a second on 4 cores, about an hour per pass over
     fold 0's 2,493 training captures, 9 GB RAM;
-  - fold 0: engine 0.814, trees 0.829 (both 32/48 gold);
-  - the tiny LM's score is in the doc.
+  - fold 0 (627 held-out captures, 3,163 lines): **tiny LM 0.863, 39/48
+    gold**, against trees 0.829 and engine 0.814 (both 32/48), and the
+    documented trees + GridNet average of 0.835: the first learner past the
+    plateau;
+  - averaged with the trees: 0.865, 38/48;
+  - two passes, about 2 h on 4 cores.
 - `ml/README.md`: files table and reproduce steps.
 
 ## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`

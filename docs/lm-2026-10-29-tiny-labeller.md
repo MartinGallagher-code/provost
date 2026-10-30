@@ -59,8 +59,15 @@ needs a GPU, so this is plain PyTorch 2.15 + transformers 5.22 + peft 0.21.
   ran out of memory and was killed.
 - **One pass over fold 0's training set:** 2,493 captures, 748k tokens, about
   an hour.
-- **Prediction:** about 0.6 s per capture, including its echo; 150 held-out
-  captures took 90 s, model load included.
+- **Prediction:** about 0.4 s per capture, including its echo. Scoring all of
+  fold 0 (627 captures) took 4 m 37 s, including loading the model and
+  training the trees beside it.
+- **Full run:** two passes over fold 0's training set, 842 steps, about 2 h 5 m
+  of the CPU. Validation loss went 0.60 after pass 1, then 0.54 after pass 2,
+  so pass 2 was kept.
+- **Run alone.** With four training threads on four cores, any other process
+  stalls them all: one low-priority job alongside cut training to under half
+  speed.
 
 ## Results
 
@@ -74,7 +81,8 @@ the hand-labelled lines in the fold.
 | engine (provost's parsers) | 0.814 | 32/48 |
 | trees (LightGBM, retrained here) | 0.829 | 32/48 |
 | trees + GridNet averaged (documented 2026-10-23) | 0.835 | — |
-| **tiny LM, full run** | *running* | |
+| **tiny LM (SmolLM2-135M + LoRA), 2 passes** | **0.863** | **39/48** |
+| tiny LM and trees, start probabilities averaged | 0.865 | 38/48 |
 
 **Pilot** (only to check the pipeline): 263 captures, one pass, 6 minutes.
 On the first 150 held-out captures it scored **0.450**, against trees 0.833
@@ -87,4 +95,37 @@ It showed the pipeline works end to end, not what the model can do.
 
 ## Reading it
 
-*(to be written when the full run is scored)*
+**The tiny LM clears the plateau the from-scratch models could not.**
+
+- **Against the trees:** it agrees with the teacher on 106 more held-out lines
+  (0.863 against 0.829).
+- **Against the documented best:** it beats the averaged trees + GridNet
+  (0.835).
+- **On the hand-labelled lines:** it gets 39 of 48 right, where the trees and
+  the engine get 32. Those lines are the answer key that does not come from a
+  model.
+- **Cost:** a 135M-parameter model, trained for two hours on a 4-core CPU,
+  with 5.55M trained parameters.
+
+The hand-labelled lines give the clearest difference, so that is where "a
+pretrained model knows what text looks like" pays most.
+
+Averaging it with the trees adds almost nothing: 0.865 overall, one fewer
+gold line. The two are not right on complementary lines; the LM is simply
+the better reader.
+
+**What it still gets wrong** (`fold_eval.py --show lm 12`). The misses are
+mostly judgment calls rather than misreadings:
+- `pid /path not confined` read as two cells where the label has three;
+- `product:sdk_gphone` kept as one cell where the label splits key from value;
+- `Simple mixer control 'Master',0` left whole.
+
+Several of these are cases the guide settles by convention (`key:value`
+pairs split), which the model learns only from examples.
+
+**Caveats:**
+- This is one fold of five: 627 captures from the families it never saw.
+- It is still scored against the teacher's labels (98% right against the hand
+  labels), as every learner here is.
+- It says nothing yet about whole captures. That needs it behind `--model`
+  and a blind benchmark round.
