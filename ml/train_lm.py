@@ -75,7 +75,8 @@ def batches(all_items, shuffle, budget=BATCH_TOK):
 
 def loss_of(model, batch):
     ids, mask = collate(batch)
-    h = model(ids, mask)
+    dev = next(model.parameters()).device
+    h = model(ids.to(dev), mask.to(dev))
     ls, lr, ns, nr = h.new_zeros(()), h.new_zeros(()), 0, 0
     bi, ci, cg, ri, rp, rg = [], [], [], [], [], []
     for i, b in enumerate(batch):
@@ -90,12 +91,12 @@ def loss_of(model, batch):
                 rp.append(p)
                 rg.append(g)
     if ci:
-        logit = model.start(h[torch.tensor(bi), torch.tensor(ci)]).squeeze(-1)
-        ls = F.binary_cross_entropy_with_logits(logit, torch.tensor(cg))
+        logit = model.start(h[torch.tensor(bi, device=dev), torch.tensor(ci, device=dev)]).squeeze(-1)
+        ls = F.binary_cross_entropy_with_logits(logit, torch.tensor(cg, device=dev))
         ns = len(ci)
     if rp:
-        logit = model.role(h[torch.tensor(ri), torch.tensor(rp)])
-        lr = F.cross_entropy(logit, torch.tensor(rg))
+        logit = model.role(h[torch.tensor(ri, device=dev), torch.tensor(rp, device=dev)])
+        lr = F.cross_entropy(logit, torch.tensor(rg, device=dev))
         nr = len(rp)
     return ls + lr, ns, nr
 
@@ -200,9 +201,18 @@ def predict_doc(model, enc, ex, decoder=False):
     return roles, starts, probs
 
 
+def pick_device(name="auto"):
+    """torch.device for --device: auto is an NVIDIA GPU (cuda), else an Apple
+    one (mps), else cpu."""
+    if name == "auto":
+        mps = getattr(torch.backends, "mps", None)
+        name = "cuda" if torch.cuda.is_available() else "mps" if mps and mps.is_available() else "cpu"
+    return torch.device(name)
+
+
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
         ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False,
-        init=None, start=0):
+        init=None, start=0, device="auto"):
     """Train on train_exs (+ extra layouts), validating on their val families.
     init: a saved model to continue from (its base, rank and weights);
     start: with init = a killed run's last/, the step to resume it at."""
@@ -214,8 +224,9 @@ def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, ex
         base, lora, full = cfg.get("base", base), cfg.get("lora", lora), cfg.get("full", full)
     model, tok = build(base, lora, full, checkpointing=checkpointing)
     if init:
-        model.load_state_dict(torch.load(os.path.join(init, "weights.pt")), strict=False)
+        model.load_state_dict(torch.load(os.path.join(init, "weights.pt"), map_location="cpu"), strict=False)
         log(f"  continuing from {init}")
+    model.to(pick_device(device))
     model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok}
     enc = hf_encoder(tok, max_tok)
     val = [e for e in train_exs if D.is_val(e)]
@@ -227,7 +238,7 @@ def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, ex
     ntr = sum(p.numel() for p in trainable(model))
     log(f"  {base}: {nall / 1e6:.1f}M parameters, {ntr / 1e6:.2f}M trained; "
         f"{len(tr)} docs ({len(tr_items)} windows, {sum(len(i['ids']) for i in tr_items)} tokens), "
-        f"validate on {len(val)}; encoded in {time.time() - t0:.0f}s")
+        f"validate on {len(val)}; encoded in {time.time() - t0:.0f}s; on {next(model.parameters()).device}")
     train(model, tr_items, epochs, val_items, lr=lr, log=log, ckpt=ckpt, ckpt_every=ckpt_every, budget=budget,
           start=start)
     return model, enc
@@ -248,6 +259,7 @@ def main(argv=None):
     ap.add_argument("--batch-tok", type=int, default=BATCH_TOK, help="padded tokens per batch (memory)")
     ap.add_argument("--checkpointing", action="store_true", help="gradient checkpointing: less memory, ~30%% slower")
     ap.add_argument("--threads", type=int, default=os.cpu_count() or 1)
+    ap.add_argument("--device", default="auto", help="auto (cuda, else mps on an Apple GPU, else cpu), cpu, cuda, mps")
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--save", help="write the adapter + heads here (with last/ and best/ checkpoints)")
     ap.add_argument("--init", help="continue training a saved model (its base and rank win)")
@@ -266,7 +278,8 @@ def main(argv=None):
     extra = [e for p in a.extra for e in D.load(p)]
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
                    ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
-                   budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init, start=a.start_step)
+                   budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init, start=a.start_step,
+                   device=a.device)
     if a.save:
         save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra,
                              "init": a.init})

@@ -18,6 +18,9 @@ pretrained language model, fine-tuned on provost's own labels, get past the
   - `--start-step N` with `--init DIR/last` resumes a run a worker restart
     killed, at its step in the schedule and the data; checkpoints record
     their step (test +1).
+  - `--device auto|cpu|cuda|mps`: auto trains on an NVIDIA GPU, else an
+    Apple one (an M-series Mac's Metal GPU), else the CPU; `lm_runtime.run`
+    labels on whatever device the model is on (test +1).
 - **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
   fold. `--limit N` scores the first N held-out docs for a quick look.
 - **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no

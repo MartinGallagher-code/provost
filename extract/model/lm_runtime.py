@@ -198,7 +198,7 @@ def load_model(path):
     with open(os.path.join(path, "config.json"), encoding="utf-8") as fh:
         cfg = json.load(fh)
     model, tok = build(cfg.get("base", BASE), cfg.get("lora", 16), cfg.get("full", False))
-    model.load_state_dict(torch.load(os.path.join(path, "weights.pt")), strict=False)
+    model.load_state_dict(torch.load(os.path.join(path, "weights.pt"), map_location="cpu"), strict=False)
     model.meta = cfg
     model.eval()
     return model, hf_encoder(tok, cfg.get("max_tok", MAX_TOK))
@@ -219,6 +219,7 @@ def run(lm, lines):
     field-start candidates, {candidate offset: p} (0.0 past MAX_LINE)."""
     model, enc = lm
     model.eval()
+    dev = next(model.parameters()).device
     roles = ["blank" if is_blank(ln) else None for ln in lines]
     probs = [None] * len(lines)
     for j, ln in enumerate(lines):
@@ -228,13 +229,13 @@ def run(lm, lines):
     with torch.no_grad():
         for it in items(enc, {"lines": lines}, with_targets=False):
             ids, mask = collate([it])
-            h = model(ids, mask)[0]
+            h = model(ids.to(dev), mask.to(dev))[0]
             if it["cpos"]:
-                p = torch.sigmoid(model.start(h[torch.tensor(it["cpos"])]).squeeze(-1)).tolist()
+                p = torch.sigmoid(model.start(h[torch.tensor(it["cpos"], device=dev)]).squeeze(-1)).tolist()
                 for (j, c), q in zip(it["cref"], p):
                     probs[j][c] = float(q)
             if it["rpos"]:
-                r = model.role(h[torch.tensor(it["rpos"])]).argmax(-1).tolist()
+                r = model.role(h[torch.tensor(it["rpos"], device=dev)]).argmax(-1).tolist()
                 for j, k in zip(it["rref"], r):
                     roles[j] = PREDICTED[k]
     return [r or "skip" for r in roles], probs

@@ -120,6 +120,10 @@ class Model(unittest.TestCase):
                 self.assertEqual(json.load(fh)["step"], 2 * nb)
         self.assertFalse(all(torch.equal(p, before[n]) for n, p in model.named_parameters() if n in before))
 
+    def test_pick_device(self):
+        self.assertEqual(LM.pick_device("cpu").type, "cpu")
+        self.assertIn(LM.pick_device().type, ("cpu", "cuda", "mps"))
+
     def test_lora_trains_only_the_adapter_and_heads(self):
         model, _ = LM.build(lora=4, backbone=tiny_backbone())
         names = [n for n, p in model.named_parameters() if p.requires_grad]
