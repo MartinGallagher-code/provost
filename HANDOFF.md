@@ -155,13 +155,22 @@ Suites (all CI-enforced):
       2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
          process (two `libomp` copies). Until it is fixed, use
          `OMP_NUM_THREADS=1 ... --threads 1`.
-      3. **Round 4 again with `lm-all`,** blind-rated, against fold 0's
+      3. **How many layers does it need?** `train_lm.py --layers N` keeps
+         the base's first N of 30 layers. Train 3, 6, 12 and 18 on fold 0
+         (the user's iMac, a few minutes each) and compare with 0.863 and
+         39/48.
+         - If 6–12 layers keep most of the gain, the model is about 50–70M
+           weights.
+         - Then the next step is cutting the vocabulary (its 49k × 576
+           embedding is 28M weights), 8-bit weights and a numpy-only
+           runtime: a model provost could ship without torch.
+      4. **Round 4 again with `lm-all`,** blind-rated, against fold 0's
          7 / 30 / 70.
-      4. an arbiter fitted to the LM's probabilities, so `--model` keeps the
+      5. an arbiter fitted to the LM's probabilities, so `--model` keeps the
          engine's split where it trusts it more;
-      5. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
+      6. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
          for `extract/model/` is the likelier route.
-      6. Train on a GPU when one is to hand: `--device auto` picks cuda or
+      7. Train on a GPU when one is to hand: `--device auto` picks cuda or
          mps, and an M4 iMac ran a fold in about 20 minutes, against 2 hours
          here.
 

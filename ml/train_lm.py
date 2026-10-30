@@ -212,22 +212,24 @@ def pick_device(name="auto"):
 
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
         ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False,
-        init=None, start=0, device="auto"):
+        init=None, start=0, device="auto", layers=0):
     """Train on train_exs (+ extra layouts), validating on their val families.
-    init: a saved model to continue from (its base, rank and weights);
-    start: with init = a killed run's last/, the step to resume it at."""
+    init: a saved model to continue from (its base, rank, layers and weights);
+    start: with init = a killed run's last/, the step to resume it at;
+    layers: keep only the base's first N transformer layers (0 = all)."""
     random.seed(seed)
     torch.manual_seed(seed)
     if init:
         with open(os.path.join(init, "config.json"), encoding="utf-8") as fh:
             cfg = json.load(fh)
         base, lora, full = cfg.get("base", base), cfg.get("lora", lora), cfg.get("full", full)
-    model, tok = build(base, lora, full, checkpointing=checkpointing)
+        layers = cfg.get("layers", layers)
+    model, tok = build(base, lora, full, checkpointing=checkpointing, layers=layers)
     if init:
         model.load_state_dict(torch.load(os.path.join(init, "weights.pt"), map_location="cpu"), strict=False)
         log(f"  continuing from {init}")
     model.to(pick_device(device))
-    model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok}
+    model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok, "layers": layers}
     enc = hf_encoder(tok, max_tok)
     val = [e for e in train_exs if D.is_val(e)]
     tr = [e for e in train_exs if not D.is_val(e)] + list(extra or [])
@@ -252,6 +254,8 @@ def main(argv=None):
     ap.add_argument("--base", default=BASE)
     ap.add_argument("--lora", type=int, default=16, help="LoRA rank (0 with --full)")
     ap.add_argument("--full", action="store_true", help="fine-tune every weight, not a LoRA adapter")
+    ap.add_argument("--layers", type=int, default=0,
+                    help="keep only the base's first N transformer layers (0 = all): a smaller model")
     ap.add_argument("--epochs", type=int, default=2)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--max-docs", type=int, default=0, help="train on a random sample (a pilot)")
@@ -279,7 +283,7 @@ def main(argv=None):
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
                    ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
                    budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init, start=a.start_step,
-                   device=a.device)
+                   device=a.device, layers=a.layers)
     if a.save:
         save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra,
                              "init": a.init})

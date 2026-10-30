@@ -124,6 +124,30 @@ class Model(unittest.TestCase):
         self.assertEqual(LM.pick_device("cpu").type, "cpu")
         self.assertIn(LM.pick_device().type, ("cpu", "cuda", "mps"))
 
+    def test_keep_layers_cuts_the_backbone(self):
+        bb = LM.LMR.keep_layers(tiny_backbone(), 1)
+        self.assertEqual((len(bb.layers), bb.config.num_hidden_layers), (1, 1))
+        ids = torch.tensor([[1, 2, 3]])
+        out = bb(input_ids=ids, attention_mask=torch.ones_like(ids)).last_hidden_state
+        self.assertEqual(tuple(out.shape), (1, 3, 32))
+        self.assertEqual(len(LM.LMR.keep_layers(tiny_backbone(), 0).layers), 2)
+
+    def test_a_cut_model_saves_and_reloads(self):
+        model, _ = LM.build(lora=4, backbone=tiny_backbone(), layers=1)
+        lora = [n for n, p in model.named_parameters() if p.requires_grad and "lora_" in n]
+        self.assertTrue(lora)
+        self.assertTrue(all(".layers.0." in n for n in lora))
+        model.meta = {"base": "tiny", "layers": 1}
+        with tempfile.TemporaryDirectory() as d:
+            LM.save(model, d)
+            with open(os.path.join(d, "config.json"), encoding="utf-8") as fh:
+                self.assertEqual(json.load(fh)["layers"], 1)
+            fresh, _ = LM.build(lora=4, backbone=tiny_backbone(), layers=1)
+            fresh.load_state_dict(torch.load(os.path.join(d, "weights.pt")), strict=False)
+            for n, p in fresh.named_parameters():
+                if p.requires_grad:
+                    self.assertTrue(torch.equal(p, dict(model.named_parameters())[n]))
+
     def test_lora_trains_only_the_adapter_and_heads(self):
         model, _ = LM.build(lora=4, backbone=tiny_backbone())
         names = [n for n, p in model.named_parameters() if p.requires_grad]

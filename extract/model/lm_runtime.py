@@ -148,14 +148,29 @@ class LMLabeller(nn.Module if nn else object):
         return self.backbone(input_ids=ids, attention_mask=mask).last_hidden_state
 
 
-def build(base=BASE, lora=16, full=False, backbone=None, checkpointing=False):
+def keep_layers(backbone, n):
+    """Keep only the first n transformer layers of a Llama-style backbone
+    (0, or n >= its layer count, keeps them all). The config's layer count
+    moves with them: the forward pass and the cache are sized from it."""
+    cfg = backbone.config
+    if n and n < cfg.num_hidden_layers:
+        backbone.layers = backbone.layers[:n]
+        cfg.num_hidden_layers = n
+        if getattr(cfg, "layer_types", None):
+            cfg.layer_types = cfg.layer_types[:n]
+    return backbone
+
+
+def build(base=BASE, lora=16, full=False, backbone=None, checkpointing=False, layers=0):
     """(model, tokenizer). backbone: an already-built transformers model
-    (tests). checkpointing trades ~30% more time for much less memory."""
+    (tests). checkpointing trades ~30% more time for much less memory;
+    layers: keep only the base's first N transformer layers (0 = all)."""
     tok = None
     if backbone is None:
         from transformers import AutoModel, AutoTokenizer
         tok = AutoTokenizer.from_pretrained(base)
         backbone = AutoModel.from_pretrained(base, dtype=torch.float32, attn_implementation="sdpa")
+    keep_layers(backbone, layers)
     if checkpointing:
         backbone.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
         backbone.enable_input_require_grads()
@@ -197,7 +212,8 @@ def load_model(path):
     """(model, encoder) from a train_lm.py --save directory; raises if it can't."""
     with open(os.path.join(path, "config.json"), encoding="utf-8") as fh:
         cfg = json.load(fh)
-    model, tok = build(cfg.get("base", BASE), cfg.get("lora", 16), cfg.get("full", False))
+    model, tok = build(cfg.get("base", BASE), cfg.get("lora", 16), cfg.get("full", False),
+                       layers=cfg.get("layers", 0))
     model.load_state_dict(torch.load(os.path.join(path, "weights.pt"), map_location="cpu"), strict=False)
     model.meta = cfg
     model.eval()

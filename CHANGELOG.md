@@ -21,6 +21,10 @@ pretrained language model, fine-tuned on provost's own labels, get past the
   - `--device auto|cpu|cuda|mps`: auto trains on an NVIDIA GPU, else an
     Apple one (an M-series Mac's Metal GPU), else the CPU; `lm_runtime.run`
     labels on whatever device the model is on (test +1).
+  - `--layers N` keeps only the base's first N transformer layers, so a
+    smaller model can be measured (6 of 30: 51M weights instead of 140M).
+    The count is saved in `config.json`, and `lm_runtime.load_model`
+    rebuilds the same cut; models without it load whole (tests +2).
 - **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
   fold. `--limit N` scores the first N held-out docs for a quick look.
 - **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no
