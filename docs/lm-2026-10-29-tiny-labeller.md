@@ -222,6 +222,7 @@ the input, the output and the criteria, never which model made it, and
 | default engine (`ratings.tsv`, 2026-10-20) | — | — | **12** | **51** | **44** |
 | tiny LM, model-first (fold-0 run 1) | 87 | 20 | 7 | 30 | 70 |
 | trees, model-first (shipped) | 94 | 13 | 2 | 32 | 73 |
+| tiny LM `lm-all`, model-first (every fold, 2026-10-30) | 90 | 17 | 5 | 31 | 71 |
 
 - **Neither model replaces the engine.** Model-first, the LM fails 70 of 107
   where the engine fails 44. Round 4 is mostly mixed reports, logs and nested
@@ -247,6 +248,23 @@ heading built from content, a section's title read as a column. Nested
 derivations, wrapped continuation lines and logs come next. These are
 failures of what the model *files*, not of where it cuts: one uniform table
 per section cannot hold a tree.
+
+**Training on every fold does not change the whole-capture picture.** The
+user's `lm-all` (trained on the iMac on 3,271 captures) was run the same way.
+- **Unchanged output:** 39 captures came out byte-identical to the fold-0
+  model's, so their ratings carry over.
+- **Changed output:** the other 68 were rated blind, as before.
+- **The total:** 5 / 31 / 71 against fold 0's 7 / 30 / 70. Head to head, 93
+  rate the same, 6 better and 8 worse. That is about the spread two rating
+  rounds give anyway.
+- **One concrete regression:** on `sge-qhost` it took the first data row
+  (`global`) as the header, a PASS that became a FAIL.
+- **Where `--model` acts,** the 18 captures the gate holds, it rates
+  0 / 2 / 16 against fold 0's 0 / 5 / 13.
+
+More of the same training data moves the per-line score a little and the
+whole-capture result not at all. The limit is what the model can file, not
+how well it reads lines.
 
 **So the labeller belongs where it is, behind `--model`** (opt in with
 `PROVOST_LAYOUT_LM`), as a better second reader for the captures the engine

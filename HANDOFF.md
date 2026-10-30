@@ -163,8 +163,12 @@ Suites (all CI-enforced):
          - Then the next step is cutting the vocabulary (its 49k × 576
            embedding is 28M weights), 8-bit weights and a numpy-only
            runtime: a model provost could ship without torch.
-      4. **Round 4 again with `lm-all`,** blind-rated, against fold 0's
-         7 / 30 / 70.
+      4. **Whole captures are limited by what the model files, not how it
+         reads lines.** Round 4 with `lm-all` (2026-10-30) rated 5 / 31 / 71
+         against fold 0's 7 / 30 / 70, and 0 / 2 / 16 on the gate-held 18
+         against 0 / 5 / 13. One regression: `sge-qhost` took a data row as
+         the header. The lever is the output shape (nesting, multi-line
+         records, logs) or an arbiter, not more training.
       5. an arbiter fitted to the LM's probabilities, so `--model` keeps the
          engine's split where it trusts it more;
       6. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export

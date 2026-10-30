@@ -46,6 +46,11 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     12 / 51 / 44. Neither model replaces the engine; on the 18 captures the
     gate holds, the only ones `--model` touches, the LM rates 0 / 5 / 13
     against the engine's 0 / 1 / 17;
+  - **round 4 again with the user's all-data model `lm-all`:** 5 / 31 / 71
+    against fold 0's 7 / 30 / 70. The 39 captures with byte-identical output
+    carry their ratings; the other 68 were rated blind. Head to head: 93
+    the same, 6 better, 8 worse; on the 18 gate-held captures, 0 / 2 / 16
+    against 0 / 5 / 13. More training data does not move whole captures;
   - **folds 1–4, trained on the user's iMac** (Apple M4, `--device` picked
     its GPU, about 4.5 times the container's speed, 15.5–19 min a fold).
     The tiny LM wins every fold, 0.842–0.893. Over all five folds (14,468
