@@ -10,8 +10,8 @@ _provost_complete () {
         cword=$COMP_CWORD
     }
 
-    local verbs="run inject listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help"
-    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --show --async --sync --wait --silent --help"
+    local verbs="run inject batch listen unlisten source control uncontrol instances export import log restore next prev files diff search ls show rm stats triage doctor help"
+    local capopts="--name --min-confidence --min-coverage --min-consistency --plugin-dir --multi --auto-multi --no-auto-multi --model --no-model --llm --no-llm --context-columns --no-context-columns --show --async --sync --wait --silent --help"
     local ws="${PROVOST_WORKSPACE:-${PROVOST_HOME:-$HOME/.provost}}"
 
     # First word: complete the verb (or a capture option / file for inject).
@@ -50,13 +50,15 @@ _provost_complete () {
             COMPREPLY=( $(compgen -c -- "$cur") ) ;;
         control|uncontrol|import|export)
             COMPREPLY=( $(compgen -o default -- "$cur") ) ;;   # paths
-        run|inject)
+        run|inject|batch)
             case "$prev" in
                 --plugin-dir) COMPREPLY=( $(compgen -d -- "$cur") ); return ;;
-                --name|--min-confidence) COMPREPLY=(); return ;;
+                --name|--min-confidence|--jobs|-j) COMPREPLY=(); return ;;
+                --from) COMPREPLY=( $(compgen -f -- "$cur") ); return ;;
             esac
             case "$cur" in
-                -*) COMPREPLY=( $(compgen -W "$capopts" -- "$cur") ) ;;
+                -*) if [[ "$verb" == batch ]]; then COMPREPLY=( $(compgen -W "$capopts --jobs --from" -- "$cur") )
+                    else COMPREPLY=( $(compgen -W "$capopts" -- "$cur") ); fi ;;
                 *)  if [[ "$verb" == run ]]; then COMPREPLY=( $(compgen -c -- "$cur") )   # a command to run
                     else COMPREPLY=( $(compgen -f -- "$cur") ); fi ;;                    # a file to inject
             esac ;;

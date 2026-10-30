@@ -108,7 +108,7 @@ test_replay_roundtrip () {
 test_replay_matching_version () {
     # Replay with the correct version should produce no warning
     local output rc=0
-    output=$(run_extract -r --replay 'json@1.0' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
+    output=$(run_extract -r --replay "json@$(strategy_version json)" "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     # Should NOT contain version mismatch warning
     if [[ "$output" == *"version mismatch"* ]]; then
         echo "  unexpected version mismatch warning"
@@ -123,7 +123,7 @@ test_replay_mismatched_version () {
     output=$(run_extract -r --replay 'json@9.9' "$SAMPLES_DIR/json/basic.json" 2>&1) || rc=$?
     assert_contains "$output" "version mismatch" "should warn about version mismatch"
     assert_contains "$output" "requested: 9.9" "should show requested version"
-    assert_contains "$output" "installed: 1.0" "should show installed version"
+    assert_contains "$output" "installed: $(strategy_version json)" "should show installed version"
 }
 
 test_replay_no_version_in_spec () {

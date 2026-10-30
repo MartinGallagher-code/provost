@@ -4,7 +4,7 @@
 
 ## Name: jsonl
 ## Description: Extract key/value pairs from JSON Lines (one JSON object per line)
-## Version: 1.1
+## Version: 1.2
 ## Priority: 9
 ## Sample: samples/jsonl/basic.jsonl
 ##
@@ -15,6 +15,14 @@
 ## pretty-printed JSON (whose lines are not standalone objects) is left to json.
 ## Each line is emitted as a `line<N>.<field>` group so the capture tidy melt
 ## renders one row per record.
+##
+## v1.2 — `#` comment lines (a header a tool prints above its records:
+## `# dcprobe scan …`) are skipped, in detection and extraction alike, and
+## not counted in N: they used to push the JSON lines out of the detector's
+## first-three window and the file fell to aligned-columns. Without jq, the
+## lines are read by _json_walk (_helpers.sh), which prints what the jq
+## filter prints, nested values as compact JSON; the old fallback stopped at
+## the first nested value.
 
 strategy_detect () {
     local text="$1"
@@ -26,25 +34,25 @@ strategy_detect () {
     # (prefix test first: a non-matching `#"$bom"` scans every prefix — quadratic)
     if [[ "$text" == "$bom"* ]]; then text="${text#"$bom"}"; fi
 
-    # Must have 2+ lines, each looking like a JSON object
-    local line_count=0
+    # Must have 2+ lines, each looking like a JSON object (comments aside)
+    local line_count=0 trimmed
     _fr_lines "$text"
     for _line in "${_FR_LINES[@]}"; do
-        [[ -n "$_line" ]] && line_count=$((line_count + 1))
+        trimmed="${_line#"${_line%%[!$' \t']*}"}"
+        [[ -n "$trimmed" && "$trimmed" != '#'* ]] && line_count=$((line_count + 1))
         # only `>= 2` matters below — stop counting there
         [[ $line_count -ge 2 ]] && break
     done
     _line=""
     [[ $line_count -lt 2 ]] && return 1
 
-    # Check first 3 non-empty lines are JSON objects
+    # Check the first 3 lines that are not blank or comments are JSON objects
     local json_lines=0
     local checked=0
     while IFS= read -r _line; do
-        [[ -z "$_line" ]] && continue
+        trimmed="${_line#"${_line%%[!$' \t']*}"}"
+        [[ -z "$trimmed" || "$trimmed" == '#'* ]] && continue
         checked=$((checked + 1))
-        local trimmed="$_line"
-        while [[ "$trimmed" == " "* || "$trimmed" == $'\t'* ]]; do trimmed="${trimmed#?}"; done
         if [[ "$trimmed" == "{"*"}" ]]; then
             json_lines=$((json_lines + 1))
         fi
@@ -57,57 +65,31 @@ strategy_detect () {
 
 strategy_extract () {
     local text="$1"
-    local result=""
-    local line_num=0
 
+    # No jq: one awk pass, printing what the loop below prints with jq
+    if ! command -v jq &>/dev/null; then
+        _json_walk entries "$text"
+        echo
+        return 0
+    fi
+
+    local result="" line_num=0 trimmed
     while IFS= read -r line; do
-        [[ -z "$line" ]] && continue
+        trimmed="${line#"${line%%[!$' \t']*}"}"
+        [[ -z "$trimmed" || "$trimmed" == '#'* ]] && continue
         line_num=$((line_num + 1))
-
-        # Try jq first, fall back to regex
-        if command -v jq &>/dev/null; then
-            local fields
-            fields=$(echo "$line" | jq -r '
-                to_entries[] | "\(.key) \(.value)"
-            ' 2>/dev/null)
-            if [[ -n "$fields" ]]; then
-                _fr_lines "$fields"
-                for field_line in "${_FR_LINES[@]}"; do
-                    [[ -z "$field_line" ]] && continue
-                    { _fr_tok "$field_line"; _arr=("${_FR_TOK[@]}"); }
-                    local fname="${_arr[0]}"
-                    local fval="${field_line#"$fname" }"
-                    result+="line${line_num}.${fname} ${fval}"$'\n'
-                done
-            fi
-        else
-            # Fallback: simple extraction of "key": value patterns
-            local remaining="$line"
-            while [[ "$remaining" == *'"'*':'* ]]; do
-                local after_quote="${remaining#*\"}"
-                local fname="${after_quote%%\"*}"
-                [[ -z "$fname" ]] && break
-                remaining="${after_quote#*\"}"
-                remaining="${remaining#*:}"
-                while [[ "$remaining" == " "* ]]; do remaining="${remaining# }"; done
-                local fval=""
-                if [[ "$remaining" == '"'* ]]; then
-                    remaining="${remaining#\"}"
-                    fval="${remaining%%\"*}"
-                    remaining="${remaining#*\"}"
-                elif [[ "$remaining" =~ ^([0-9.eE+-]+) ]]; then
-                    fval="${BASH_REMATCH[1]}"
-                    remaining="${remaining#"$fval"}"
-                elif [[ "$remaining" == "true"* ]]; then
-                    fval="true"; remaining="${remaining#true}"
-                elif [[ "$remaining" == "false"* ]]; then
-                    fval="false"; remaining="${remaining#false}"
-                elif [[ "$remaining" == "null"* ]]; then
-                    fval="null"; remaining="${remaining#null}"
-                else
-                    break
-                fi
-                [[ -n "$fname" && -n "$fval" ]] && result+="line${line_num}.${fname} ${fval}"$'\n'
+        local fields
+        fields=$(echo "$line" | jq -r '
+            to_entries[] | "\(.key) \(.value)"
+        ' 2>/dev/null)
+        if [[ -n "$fields" ]]; then
+            _fr_lines "$fields"
+            for field_line in "${_FR_LINES[@]}"; do
+                [[ -z "$field_line" ]] && continue
+                { _fr_tok "$field_line"; _arr=("${_FR_TOK[@]}"); }
+                local fname="${_arr[0]}"
+                local fval="${field_line#"$fname" }"
+                result+="line${line_num}.${fname} ${fval}"$'\n'
             done
         fi
     done <<< "$text"

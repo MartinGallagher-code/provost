@@ -93,6 +93,27 @@ test_tsv_value_spaces_kept () {
     assert_not_contains "$output" "John_Smith" "no underscore invented for a space"
 }
 
+# A quote inside a cell is data: it used to be deleted from every value after
+# the split had already consumed the structural ones. A quoted field still
+# protects its tabs, and `""` inside one is a single literal quote.
+test_tsv_quotes_are_data () {
+    local tmp output
+    tmp="$(mktemp)"
+    printf 'host\tnote\n' > "$tmp"
+    printf 'wr01\tsaid "hello" twice\n' >> "$tmp"
+    printf 'wr02\t"quoted whole"\n' >> "$tmp"
+    printf 'wr03\t"a ""b"" c"\n' >> "$tmp"
+    printf 'wr04\t"tab\there"\n' >> "$tmp"
+    output=$(run_extract -r -s tsv -f plain "$tmp")
+    rm -f "$tmp"
+    assert_contains "$output" 'entry1.note said "hello" twice' "a mid-cell quote is kept"
+    assert_contains "$output" "entry2.note quoted whole" "a quoted field's quotes are consumed"
+    assert_contains "$output" 'entry3.note a "b" c' '"" in a quoted field is one quote'
+    assert_contains "$output" "entry4.note tab here" "a quoted tab stays in its cell"
+    assert_contains "$output" "entry4.host wr04" "and the row keeps its columns"
+}
+
+run_test "tsv: quotes in a cell are data" test_tsv_quotes_are_data
 run_test "tsv: empty cell keeps its column" test_tsv_empty_cell_keeps_columns
 run_test "tsv: empty-cells sample" test_tsv_empty_cells_sample
 run_test "tsv: tab-padded display output still collapses" test_tsv_tab_padding_collapses

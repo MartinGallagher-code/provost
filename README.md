@@ -68,11 +68,13 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 |---|---|
 | `provost run [--] <cmd>` | capture a command's output as a commit, into dataset `<cmd>` |
 | `<cmd> \| provost` / `provost [FILE]` | inject stdin / a file |
+| `provost batch FILE... [--from LIST]` | inject many files as one commit, a capture each, parsed in parallel (`-j N`) |
 | `provost listen <cmd>` / `unlisten <cmd>` | capture `<cmd>` every time it runs (output still on screen) |
 | `… --name NAME` | file into dataset `NAME` (inject/run) |
 | `… --show` | show the output as well as filing it (inject/run) |
 | `… --sync` / `--async` | foreground / background capture (default: background only at a terminal) |
 | `… --plugin-dir <dir>` | extra strategy dir for this capture (inject/run) |
+| `… --context-columns` | each `key=value` in a `#%` prologue becomes a column on every row (inject/batch) |
 | `provost ls` / `show <name>` / `stats <name>` | datasets (`show --capture ID`: one capture's rows; `--at ID`: as it stood then) |
 | `provost search <pattern> [name...]` | `git grep` over the rows (`--output`: raw outputs; `--files`: run files; `--at ID`) |
 | `provost source <#N \| ID>` | original source behind a dataset row, or a capture |
@@ -94,7 +96,7 @@ capture).
 ```
 provost/
 ├── provost               # the single entry point
-├── extract/            # extract engine, 265 strategies (~116 generic), hints.tsv
+├── extract/            # extract engine, 268 strategies (~116 generic), hints.tsv
 ├── analyze/            # analyze engine
 ├── transform/          # tidy-melt transform
 ├── lib/                # shared suite libraries
@@ -124,7 +126,23 @@ Wrappers that pipe into provost (e.g. deframe) get two hooks:
   corrupt the generic parsers), stored with the capture as `context.txt`, and
   `provost source` still shows the original input verbatim. A `#%` line after the
   first data line is data and passes through untouched — so context no longer
-  has to travel out-of-band in a run manifest.
+  has to travel out-of-band in a run manifest. With **`--context-columns`**
+  (or `PROVOST_CONTEXT_COLUMNS=1`) each `key=value` word in it is also put on
+  every row the capture files, after `#` and `capture`: `#% host=web03
+  rack=r2` gives each row `host` and `rack` columns. A data column of the same
+  name keeps it and the context one becomes `_host` (the rule `capture` already
+  follows), and the capture's `meta.tsv` records which columns came from the
+  context (`context_columns  host=_host,rack=rack`); a capture held in
+  `unsorted` is kept as it came.
+- **`provost batch FILE... [--from LIST]`**: many inputs, one commit. Each file
+  is a capture of its own — its own id, its own `provost source`, its own
+  `capture-<id>` tag — but they are parsed in parallel (`-j N`, default the
+  CPUs, at most 16) and filed under one hold of the store lock, so capturing
+  a 50-host fleet costs one commit rather than fifty serialised ones. Ids
+  follow the order the files were named. `--name NAME` applies to the files
+  after it; `--from LIST` reads `PATH` or `NAME<TAB>PATH` lines. A fleet
+  wrapper writes one file per host opening with `#% host=NAME` and passes
+  `--context-columns`, and every row says which host it came from.
 
 The store itself is plain files (TSV datasets, per-capture `meta.tsv` +
 `output.txt`, `provenance.tsv`), so other tools can browse it read-only without
@@ -143,6 +161,7 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_PLUGIN_DIR` | — | extra strategy dir for detection (same as `--plugin-dir`) |
 | `PROVOST_ASYNC` | unset | `1` always background, `0` always foreground; unset = background only at a terminal |
 | `PROVOST_MULTI` | `0` | file every dataset an input holds (same as `--multi`) |
+| `PROVOST_CONTEXT_COLUMNS` | `0` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) |
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
 | `PROVOST_LLM` | `0` | `1` = parse with a template Claude wrote for that tool (regexes, or a small boxed Python parser for records that span lines; stored in the store's `llm-templates/`, or shipped), before a generic parse is trusted or a capture held; with no fitting template and an API key, ask Claude to write one. Writing one sends the capture to the Anthropic API, once per tool; lines a template sets aside that still carry a word or a number (titles, version banners, summary counts, errors) are filed beside its datasets as `NAME.notes`, never dropped; later captures of the tool are parsed offline, except one that shows a kind of line the template has not met, which (with a key) is sent once with the template's earlier captures so Claude can extend it (repair; kept only if it still reads them) (same as `--llm`) |

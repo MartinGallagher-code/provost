@@ -1,0 +1,39 @@
+entry1.test rtt_p99
+entry1.target wr01r01u01
+entry1.value 182
+entry1.at 2026-10-29T12:00:00Z
+entry1.peer wr01r02u01
+entry1.unit us
+entry1.higher bad
+entry1.label RTT p99
+entry2.test rtt_p99
+entry2.target wr01r01u02
+entry2.value 191
+entry2.at 2026-10-29T12:00:00Z
+entry2.peer wr01r02u02
+entry2.unit us
+entry2.higher bad
+entry2.label RTT p99
+entry3.test loss_pct
+entry3.target wr01r01u01
+entry3.value 0
+entry3.at 2026-10-29T12:00:00Z
+entry3.unit %
+entry3.higher bad
+entry4.test loss_pct
+entry4.target wr01r01u02
+entry4.value 0.4
+entry4.at 2026-10-29T12:00:00Z
+entry4.note retransmits on eth1
+entry4.unit pct
+entry4.higher bad
+entry5.test verdict
+entry5.target wr01r01u01
+entry5.value pass
+entry5.kind status
+entry6.test verdict
+entry6.target wr01r01u02
+entry6.value warn
+entry6.reason loss
+entry6.kind status
+total_entries 6

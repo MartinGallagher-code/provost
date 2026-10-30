@@ -1,0 +1,10 @@
+# mx export 2026-10-29T12:00:00Z run=r42
+!test	rtt_p99	unit=us higher=bad label="RTT p99"
+!test	loss_pct	unit=% higher=bad
+!test	verdict	kind=status
+rtt_p99	wr01r01u01	182	at=2026-10-29T12:00:00Z peer=wr01r02u01
+rtt_p99	wr01r01u02	191	at=2026-10-29T12:00:00Z peer=wr01r02u02
+loss_pct	wr01r01u01	0	at=2026-10-29T12:00:00Z
+loss_pct	wr01r01u02	0.4	at=2026-10-29T12:00:00Z note="retransmits on eth1" unit=pct
+verdict	wr01r01u01	pass
+verdict	wr01r01u02	warn	reason=loss

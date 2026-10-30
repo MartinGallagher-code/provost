@@ -33,8 +33,8 @@ strategy.
 
 ## Strategy count
 
-265 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
-network 31, structured 27, security 11, filesystem 8, build 8, misc 7,
+268 strategy files (`ls strategies/*/*.sh | wc -l`): delimited 89, system 58,
+network 31, structured 29, security 11, filesystem 8, build 8, misc 8,
 database 6, hardware 6, packages 6, scientific 5, cloud 1, container 1,
 profiling 1. Re-count after adding or removing one — the number is only true
 when it is counted. Every strategy has a `## Sample:` file under `samples/`
@@ -411,7 +411,7 @@ evidence, the more specific one (lower priority number) wins. Set
 | Tier | Confidence | What earns it | Strategies |
 |---|---|---|---|
 | Bespoke, unmistakable | **95** | two or more anchors only that tool prints: an exact banner or title line plus its own header/fields (`INNODB MONITOR OUTPUT` + `History list length`, `Device Descriptor:` + `bLength` + `idVendor`, a zpool `pool:`/`config:` + `NAME STATE READ WRITE CKSUM`) | 38 per-tool strategies — see "Bespoke sub-tiers" below |
-| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (97 strategies) |
+| Bespoke, strong signature | **92** | a tool-unique literal or layout (banner, header, fixed field set) only that tool prints | the default for a per-tool strategy outside `delimited/` + `structured/` (98 strategies) |
 | Bespoke, distinctive | **88** | distinctive, but a sibling tool or a common format prints the same shape | 12 strategies — see below |
 | Grammar | **85** | the whole input validates against a formal grammar, or a strict dialect of one | `json`, `json-array`, `jsonl`, `yaml`, `toml`, `xml`, `csv`, `tsv`, `har`; dialects that must outrank their grammar: `quoted-fields` (CSV), `dns-records` / `columnar-specs` (TSV-shaped), `colon-pairs` (YAML-shaped), `kv-pairs` (CSV-shaped); `pipe-table` / `bracket-log` at their strongest |
 | Format-specific generic | **70–85**, default **80** | a distinctive syntax (box drawing, psql rules, dot leaders, tree glyphs, `KEY=VALUE` blocks, blank-line records …) | the other `delimited/` + `structured/` parsers at 80; `equals` 75 when ≥ 90% of lines are tight `KEY=VALUE`; `prefix-message` 72 / 80 / 84 by how much typed prefix its line grammar has (a dated timestamp or `file:line:col` 2 points, level / logger / code 1 …), less a third of the share of lines it does not explain; `help-columns` 82 (≥ 5 aligned entries) or 78. Weak-signature bespoke strategies whose detector is a shape heuristic rather than a tool-unique literal sit at or just under this default (`user-groups` 80, `pkg-config` 79). `kv-report` 70 is RESCUE ONLY — never ranked; it reports 70 when it replaces a held low-coverage claim (see "Line coverage"), except a report holding a `+feature` / `-feature` sign grid, ranked at 81; `section-tables` 82 when every titled table shares its header, else 80; `indent-tree` 70 for a text outline |
@@ -434,9 +434,11 @@ counted how many inputs it fires on and how many of those it parses tidily
   `proc-devices`, `proc-net-dev`, `proc-net-tcp`, `proc-slabinfo`,
   `resolvectl-query`, `semanage-boolean`, `systemd-analyze-security`,
   `tcpdump-summary`, `top-batch`, `vault-status`, `xfs-info`, `zpool-status`.
-- **92, strong** (97): every other per-tool strategy. Its literal or layout is
+- **92, strong** (98): every other per-tool strategy. Its literal or layout is
   the tool's own, even when a closely related tool shares it (`proc-net-tcp`
-  also reads `/proc/net/udp`; `iptables-nat` reads any `iptables -L`).
+  also reads `/proc/net/udp`; `iptables-nat` reads any `iptables -L`;
+  `dc-results` reads what five toolchain tools write for the floor-plan
+  viewer, by its `!test` lines).
 - **88, distinctive but shared** (12): `bcc-funccount`, `bpftrace`, `csvlook`
   (a markdown table has the same rule line), `fleet-host-lines` (a shape shared
   by several orchestrators), `flatpak-remotes`, `git-annex-list`,
