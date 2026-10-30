@@ -9,7 +9,11 @@ OUTDIR/<stem>.rec, in one process so the tiny LM loads once.
 
 --lm DIR labels with the tiny pretrained LM saved in DIR (ml/train_lm.py),
 else with the shipped trees. Neither consults the arbiter, which needs the
-engine's own parse. An input the model reads nothing from, or one over the
+engine's own parse. When the whole input is not one table or one key/value
+record, the report is cut into the model's own uniform sections, as
+provost's --model does (layout_model.py --segments): <stem>.seg.N.txt (the
+section's lines) and <stem>.seg.N.rec (its records, labelled in the context
+of the whole input). An input the model reads nothing from, or one over the
 runtime's line limit, gets an empty .rec. model_round.sh turns the records
 into datasets.
 """
@@ -47,13 +51,24 @@ def main(argv=None):
     for path in a.inputs:
         stem = os.path.splitext(os.path.basename(path))[0]
         lines = read_lines(path)
-        out = []
+        out, nseg = [], 0
         if lines and len(lines) <= LMOD.MAX_LINES:
             roles, starts, _ = label(lines)
             out = LMOD.records(lines, roles, starts)
+            if not out:
+                for lo, hi, kind in LMOD.segments(lines, roles, starts):
+                    rec = LMOD.segment_records(lines, roles, starts, lo, hi, kind)
+                    if not rec:
+                        continue
+                    nseg += 1
+                    base = os.path.join(a.outdir, f"{stem}.seg.{nseg}")
+                    with open(base + ".txt", "w", encoding="utf-8") as fh:
+                        fh.write("\n".join(lines[lo:hi + 1]) + "\n")
+                    with open(base + ".rec", "w", encoding="utf-8") as fh:
+                        fh.write("\n".join(rec) + "\n")
         with open(os.path.join(a.outdir, stem + ".rec"), "w", encoding="utf-8") as fh:
             fh.write("\n".join(out) + ("\n" if out else ""))
-        print(f"{stem}\t{len(out)}", flush=True)
+        print(f"{stem}\t{len(out)}\t{nseg}", flush=True)
 
 
 if __name__ == "__main__":

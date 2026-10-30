@@ -17,8 +17,11 @@
 ## Writes, per input NAME, under outdir:
 ##   NAME.out        one line: what the model filed (or that it read nothing)
 ##   NAME.meta       strategy, confidence, coverage, consistency
-##   NAME.layout-model.tsv   the dataset (tidy), when there is one
-## and outdir/summary.tsv: name, rows, coverage, consistency.
+##   NAME.layout-model.tsv   the dataset (tidy), when the whole input is one
+##                   table or one key/value record; else, as provost's
+##                   --model does, NAME.layout-model.segK.tsv for each of the
+##                   model's own sections
+## and outdir/summary.tsv: name, rows, how it was filed, coverage, consistency.
 ################################################################################
 set -uo pipefail
 
@@ -45,32 +48,50 @@ python3 "$here/model_records.py" ${lm:+--lm "$lm"} "$outdir/.rec" "$set_dir"/*.t
 # shellcheck source=../../transform/melt.sh
 source "$root/transform/melt.sh"
 export PROVOST_NO_RC=1
-printf 'name\trows\tcoverage\tconsistency\n' > "$outdir/summary.tsv"
-for in_file in "$set_dir"/*.txt; do
-    stem="$(basename "$in_file" .txt)"
-    rec="$outdir/.rec/$stem.rec"
-    wide="$outdir/.rec/$stem.wide"
-    meta="$outdir/.rec/$stem.emeta"
-    : > "$wide"
-    if [[ -s "$rec" ]]; then
-        PROVOST_LM_RECORDS="$rec" bash "$root/extract/provost-extract" -s layout-model --emit-meta \
-            -f tsv --max-strategies 1 "$in_file" > "$wide" 2> "$meta" || true
-    fi
+printf 'name\trows\tfiled\tcoverage\tconsistency\n' > "$outdir/summary.tsv"
+# measure: the engine's -s layout-model on the records handed in, then the melt.
+# Sets M_ROWS / M_COV / M_CONS; writes the tidy table to $3.
+measure () {
+    local inp="$1" rec="$2" tsv="$3" wide="$outdir/.rec/m.wide" meta="$outdir/.rec/m.meta" s c v t
+    M_ROWS=0; M_COV=-; M_CONS=-
+    [[ -s "$rec" ]] || return 1
+    PROVOST_LM_RECORDS="$rec" bash "$root/extract/provost-extract" -s layout-model --emit-meta \
+        -f tsv --max-strategies 1 "$inp" > "$wide" 2> "$meta" || true
     IFS=$'\t' read -r s c v t < <(awk -F'\t' '/^__EXTRACT_META__/ { s = $2; c = $3; v = $4; t = $5 }
         END { printf "%s\t%s\t%s\t%s\n", s, c, v, t }' "$meta" 2>/dev/null) || true
-    if [[ "${s:-}" == layout-model && -s "$wide" ]] && grep -q . "$wide"; then
-        _core_melt_tidy_file "$wide" > "$outdir/$stem.layout-model.tsv"
-        rows=$(( $(wc -l < "$outdir/$stem.layout-model.tsv") - 1 ))
-        printf 'filed by the layout model: dataset layout-model, %s row(s), coverage %s%%\n' \
-            "$rows" "${v:--}" > "$outdir/$stem.out"
+    [[ "${s:-}" == layout-model && -s "$wide" ]] && grep -q . "$wide" || return 1
+    _core_melt_tidy_file "$wide" > "$tsv"
+    M_ROWS=$(( $(wc -l < "$tsv") - 1 )); M_COV="${v:--}"; M_CONS="${t:--}"
+    return 0
+}
+
+for in_file in "$set_dir"/*.txt; do
+    stem="$(basename "$in_file" .txt)"
+    how="" rows=0 cov=- cons=-
+    if measure "$in_file" "$outdir/.rec/$stem.rec" "$outdir/$stem.layout-model.tsv"; then
+        how="one dataset"; rows=$M_ROWS; cov=$M_COV; cons=$M_CONS
     else
-        rows=0
+        rm -f "$outdir/$stem.layout-model.tsv"
+        k=0
+        for seg in "$outdir/.rec/$stem".seg.*.txt; do
+            [[ -f "$seg" ]] || continue
+            k=$((k + 1))
+            if measure "$seg" "${seg%.txt}.rec" "$outdir/$stem.layout-model.seg$k.tsv"; then
+                rows=$(( rows + M_ROWS ))
+            else
+                rm -f "$outdir/$stem.layout-model.seg$k.tsv"
+            fi
+        done
+        (( rows > 0 )) && how="$k section(s)"
+    fi
+    if [[ -n "$how" ]]; then
+        printf 'filed by the layout model: %s, %s row(s), coverage %s%%\n' "$how" "$rows" "$cov" > "$outdir/$stem.out"
+    else
         printf 'the layout model read nothing it could file: nothing extracted\n' > "$outdir/$stem.out"
     fi
-    printf 'strategy\tlayout-model\nconfidence\t%s\ncoverage\t%s\nconsistency\t%s\n' \
-        "${c:--}" "${v:--}" "${t:--}" > "$outdir/$stem.meta"
-    printf '%s\t%s\t%s\t%s\n' "$stem" "$rows" "${v:--}" "${t:--}" >> "$outdir/summary.tsv"
-    unset s c v t
+    printf 'strategy\tlayout-model\nfiled\t%s\ncoverage\t%s\nconsistency\t%s\n' \
+        "${how:-nothing}" "$cov" "$cons" > "$outdir/$stem.meta"
+    printf '%s\t%s\t%s\t%s\t%s\n' "$stem" "$rows" "${how:-nothing}" "$cov" "$cons" >> "$outdir/summary.tsv"
 done
 rm -rf "$outdir/.rec"
 echo "wrote $outdir/summary.tsv"
