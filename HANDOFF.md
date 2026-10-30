@@ -147,19 +147,13 @@ Suites (all CI-enforced):
       - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
         and `ml/corpus_labels.py` rebuild `ml/data/`.
     - **Next:**
-      1. **Fix `is_val`.** It picks a tenth of families as
-         `crc32 % 10 == 1`, which is always inside fold 1
-         (`crc32 % 5 == 1`). So fold 1 has no validation set, and `lm-all`
-         never trains on those 403 captures. A salted hash would spread them
-         out, but it moves every learner's documented numbers.
+      1. **Retrain `lm-all` with `--no-val`** (on the Mac, about 25 min).
+         The current `lm-all` was trained before `is_val` was fixed
+         (2026-10-30) and never saw the 403 old validation captures.
+         `--no-val` trains on all 3,674.
       2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
          process (two `libomp` copies). Until it is fixed, use
          `OMP_NUM_THREADS=1 ... --threads 1`.
-         The PyPI wheel does not ship `extract/model/lm_runtime.py` either
-         (not in `pyproject.toml`'s force-include). A pip-installed provost
-         with `PROVOST_LAYOUT_LM` set therefore fails the import, and
-         `--model` declines rather than falling back to the trees. The fix:
-         add the file, plus a wheel-contents test (`python -m pytest`).
       3. **How many layers does it need?** `train_lm.py --layers N` keeps
          the base's first N of 30 layers. Train 3, 6, 12 and 18 on fold 0
          (the user's iMac, a few minutes each) and compare with 0.863 and

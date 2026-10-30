@@ -182,9 +182,12 @@ lines in every fold.
   little in epoch 2.
 
 Two things the iMac runs found:
-- **The validation families all fall in fold 1.**
-  - Why: `dataset.is_val` is `crc32(family) % 10 == 1`, and `crossval.fold`
-    is `crc32(family) % 5`, so every validation family has fold 1.
+- **The validation families all fell in fold 1.** These runs used that split.
+  It is fixed since: a salted hash spreads 346 validation captures over
+  folds 1–4, and `train_lm.py --no-val` trains a final model on everything.
+  - Why: `dataset.is_val` was `crc32(family) % 10 == 1`, and
+    `crossval.fold` is `crc32(family) % 5`, so every validation family had
+    fold 1.
   - Effect on the folds: `--fold 1` has no validation set and trains on all
     2,987 of its captures. Every other fold holds back the same 403 and picks
     its epoch on them.

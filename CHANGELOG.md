@@ -52,12 +52,31 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     lines): LM 0.862, trees 0.819, engine 0.814; gold 240 / 212 / 189 of 287.
     Averaging with the trees does not pay. Worker restarts had killed fold 1
     four times in the container.
-  - **Found by those runs, not yet fixed:**
-    - every validation family falls in fold 1 (`is_val`'s `% 10 == 1` implies
-      `fold`'s `% 5 == 1`);
-    - `fold_eval.py` crashes on macOS with two `libomp` copies loaded; work
-      around it with `OMP_NUM_THREADS=1` and `--threads 1` (noted in
-      `ml/README.md`).
+  - **Found by those runs:**
+    - every validation family fell in fold 1 (`is_val`'s `% 10 == 1` implies
+      `fold`'s `% 5 == 1`); fixed below;
+    - `fold_eval.py` crashes on macOS with two `libomp` copies loaded; not
+      fixed, but work around it with `OMP_NUM_THREADS=1` and `--threads 1`
+      (noted in `ml/README.md`).
+- **The validation split** (`ml/dataset.py` `is_val`):
+  - **What it was:** `crc32(family) % 10 == 1` put all 403 validation
+    captures in cross-validation fold 1. So fold 1 trained with no validation
+    set, and every other fold picked its epoch on the same families.
+  - **What it is:** a salted hash, still never a test family. 346 captures of
+    125 families (of 1,261), spread 91 / 101 / 69 / 85 over folds 1–4, so
+    every fold now validates on 245–346 captures.
+  - **What it changes:** LM and GridNet results recorded before this used
+    the old split and may move slightly if retrained. The trees do not use
+    it, so the shipped model is unchanged.
+  - `train_lm.py --no-val` holds nothing back: the final model, on every
+    capture, for the 2 epochs cross-validation chose (`split`).
+  - Tests +2.
+- **The PyPI wheel ships `extract/model/lm_runtime.py`** (`pyproject.toml`).
+  - Before, a pip-installed provost with `PROVOST_LAYOUT_LM` set failed the
+    import, and `--model` declined.
+  - Now it labels with the trees when there is no model or no torch, as a
+    checkout does.
+  - CI's python-package job checks this from the installed wheel.
 - **`tests/benchmark/model_records.py` + `model_round.sh --roundN OUT [--lm
   DIR]`:** the layout model alone on a benchmark round, filed as `--model`
   files it (one table or key/value record, else the model's own sections).

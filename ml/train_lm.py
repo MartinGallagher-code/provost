@@ -210,13 +210,23 @@ def pick_device(name="auto"):
     return torch.device(name)
 
 
+def split(exs, no_val=False):
+    """(train, val): val is the validation families (dataset.is_val), or
+    nothing with no_val, for a final model trained on every capture for the
+    epochs cross-validation chose."""
+    if no_val:
+        return list(exs), []
+    return [e for e in exs if not D.is_val(e)], [e for e in exs if D.is_val(e)]
+
+
 def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, extra=None,
         ckpt=None, ckpt_every=0, max_tok=MAX_TOK, lr=3e-4, budget=BATCH_TOK, checkpointing=False,
-        init=None, start=0, device="auto", layers=0):
+        init=None, start=0, device="auto", layers=0, no_val=False):
     """Train on train_exs (+ extra layouts), validating on their val families.
     init: a saved model to continue from (its base, rank, layers and weights);
     start: with init = a killed run's last/, the step to resume it at;
-    layers: keep only the base's first N transformer layers (0 = all)."""
+    layers: keep only the base's first N transformer layers (0 = all);
+    no_val: train on every capture, holding none back for validation."""
     random.seed(seed)
     torch.manual_seed(seed)
     if init:
@@ -231,8 +241,8 @@ def fit(train_exs, epochs, base=BASE, lora=16, full=False, seed=1, log=print, ex
     model.to(pick_device(device))
     model.meta = {"base": base, "lora": lora, "full": full, "max_tok": max_tok, "layers": layers}
     enc = hf_encoder(tok, max_tok)
-    val = [e for e in train_exs if D.is_val(e)]
-    tr = [e for e in train_exs if not D.is_val(e)] + list(extra or [])
+    tr, val = split(train_exs, no_val)
+    tr += list(extra or [])
     t0 = time.time()
     tr_items = [i for e in tr for i in items(enc, e)]
     val_items = [i for e in val for i in items(enc, e)]
@@ -254,6 +264,8 @@ def main(argv=None):
     ap.add_argument("--base", default=BASE)
     ap.add_argument("--lora", type=int, default=16, help="LoRA rank (0 with --full)")
     ap.add_argument("--full", action="store_true", help="fine-tune every weight, not a LoRA adapter")
+    ap.add_argument("--no-val", action="store_true",
+                    help="hold no validation families back: the final model, on every capture")
     ap.add_argument("--layers", type=int, default=0,
                     help="keep only the base's first N transformer layers (0 = all): a smaller model")
     ap.add_argument("--epochs", type=int, default=2)
@@ -283,10 +295,10 @@ def main(argv=None):
     model, _ = fit(exs, a.epochs, a.base, a.lora, a.full, a.seed, extra=extra,
                    ckpt=a.save, ckpt_every=a.ckpt_every if a.save else 0, max_tok=a.max_tok, lr=a.lr,
                    budget=a.batch_tok, checkpointing=a.checkpointing, init=a.init, start=a.start_step,
-                   device=a.device, layers=a.layers)
+                   device=a.device, layers=a.layers, no_val=a.no_val)
     if a.save:
         save(model, a.save, {"fold": a.fold, "epochs": a.epochs, "docs": len(exs), "extra": a.extra,
-                             "init": a.init})
+                             "init": a.init, "no_val": a.no_val})
         print(f"saved -> {a.save}")
 
 

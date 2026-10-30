@@ -120,6 +120,14 @@ class Model(unittest.TestCase):
                 self.assertEqual(json.load(fh)["step"], 2 * nb)
         self.assertFalse(all(torch.equal(p, before[n]) for n, p in model.named_parameters() if n in before))
 
+    def test_split_holds_validation_families_back_unless_no_val(self):
+        exs = [{"name": f"tool{i}-x"} for i in range(200)]
+        tr, val = LM.split(exs)
+        self.assertTrue(val)
+        self.assertEqual(len(tr) + len(val), len(exs))
+        self.assertTrue(all(LM.D.is_val(e) for e in val))
+        self.assertEqual(LM.split(exs, no_val=True), (exs, []))
+
     def test_pick_device(self):
         self.assertEqual(LM.pick_device("cpu").type, "cpu")
         self.assertIn(LM.pick_device().type, ("cpu", "cuda", "mps"))
