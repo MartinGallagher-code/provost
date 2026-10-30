@@ -155,6 +155,11 @@ Suites (all CI-enforced):
       2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
          process (two `libomp` copies). Until it is fixed, use
          `OMP_NUM_THREADS=1 ... --threads 1`.
+         The PyPI wheel does not ship `extract/model/lm_runtime.py` either
+         (not in `pyproject.toml`'s force-include). A pip-installed provost
+         with `PROVOST_LAYOUT_LM` set therefore fails the import, and
+         `--model` declines rather than falling back to the trees. The fix:
+         add the file, plus a wheel-contents test (`python -m pytest`).
       3. **How many layers does it need?** `train_lm.py --layers N` keeps
          the base's first N of 30 layers. Train 3, 6, 12 and 18 on fold 0
          (the user's iMac, a few minutes each) and compare with 0.863 and
