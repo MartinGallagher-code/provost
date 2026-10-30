@@ -63,6 +63,8 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/pip install transformers peft scikit-learn   # the tiny LM (downloads SmolLM2-135M, ~270 MB)
 .venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --save ml/models/lm-f0   # ~1 h per epoch on 4 cores, ~9 GB RAM
 .venv/bin/python ml/fold_eval.py --fold 0 --learner lm --lm-load ml/models/lm-f0/best
+# on macOS fold_eval crashes when LightGBM and torch share a process (two libomp copies):
+#   OMP_NUM_THREADS=1 .venv/bin/python ml/fold_eval.py ... --threads 1   (a fold in ~80 s)
 python3 -m unittest discover -s ml/tests         # stdlib tests
 # LLM teacher (needs `pip install anthropic` and ANTHROPIC_API_KEY; ~$25 for the corpus):
 python3 ml/llm/label.py --all --batch            # -> ml/data/llm/<tool>.json (+ usage.jsonl)

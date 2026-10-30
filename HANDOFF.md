@@ -120,6 +120,12 @@ Suites (all CI-enforced):
       ~83% plateau. Two passes, about 2 h on 4 cores. Continuing it on
       generated layouts scored lower (0.854, 37/48), so the corpus labels
       stay the training set.
+    - **Folds 1 and 2** (trained on the user's iMac, M4 GPU, 15–21 min a
+      run): LM 0.849 / 0.893 against trees 0.783 / 0.853 and engine
+      0.785 / 0.832. Over folds 0–2: LM 0.870, trees 0.825, engine 0.813;
+      gold 138 / 124 / 106 of 164. The plateau result holds on every fold.
+      The model on every fold (`lm-all`) was trained there too; the user has
+      it, and weights are not in git.
     - **Whole captures, round 4, model-first, blind-rated:** LM 7 / 30 / 70,
       trees 2 / 32 / 73, default engine 12 / 51 / 44. Neither model replaces
       the engine: it cannot file nested, log or mixed output. On the 18
@@ -141,12 +147,23 @@ Suites (all CI-enforced):
       - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
         and `ml/corpus_labels.py` rebuild `ml/data/`.
     - **Next:**
-      1. folds 1 and 2 (running 2026-10-30), to see whether 0.863 holds;
-      2. a model trained on every fold;
-      3. an arbiter fitted to the LM's probabilities, so `--model` keeps the
+      1. **Fix `is_val`.** It picks a tenth of families as
+         `crc32 % 10 == 1`, which is always inside fold 1
+         (`crc32 % 5 == 1`). So fold 1 has no validation set, and `lm-all`
+         never trains on those 403 captures. A salted hash would spread them
+         out, but it moves every learner's documented numbers.
+      2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
+         process (two `libomp` copies). Until it is fixed, use
+         `OMP_NUM_THREADS=1 ... --threads 1`.
+      3. **Round 4 again with `lm-all`,** blind-rated, against fold 0's
+         7 / 30 / 70.
+      4. an arbiter fitted to the LM's probabilities, so `--model` keeps the
          engine's split where it trusts it more;
-      4. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
+      5. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
          for `extract/model/` is the likelier route.
+      6. Train on a GPU when one is to hand: `--device auto` picks cuda or
+         mps, and an M4 iMac ran a fold in about 20 minutes, against 2 hours
+         here.
 
 0n. **2026-10-29: four readers qd was working around.** qd converted
     some outputs to TSV before filing them, and escaped quotes in its own

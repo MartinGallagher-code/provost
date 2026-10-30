@@ -41,7 +41,19 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     blind: tiny LM 7 / 30 / 70, trees 2 / 32 / 73, default engine
     12 / 51 / 44. Neither model replaces the engine; on the 18 captures the
     gate holds, the only ones `--model` touches, the LM rates 0 / 5 / 13
-    against the engine's 0 / 1 / 17.
+    against the engine's 0 / 1 / 17;
+  - **folds 1 and 2, trained on the user's iMac** (Apple M4, `--device`
+    picked its GPU, about 4.5 times the container's speed): tiny LM 0.849 and
+    0.893, against trees 0.783 / 0.853 and engine 0.785 / 0.832. Over folds
+    0–2: LM 0.870, trees 0.825, engine 0.813; gold 138 / 124 / 106 of 164.
+    Averaging with the trees no longer helps. Worker restarts had killed
+    fold 1 four times in the container.
+  - **Found by those runs, not yet fixed:**
+    - every validation family falls in fold 1 (`is_val`'s `% 10 == 1` implies
+      `fold`'s `% 5 == 1`);
+    - `fold_eval.py` crashes on macOS with two `libomp` copies loaded; work
+      around it with `OMP_NUM_THREADS=1` and `--threads 1` (noted in
+      `ml/README.md`).
 - **`tests/benchmark/model_records.py` + `model_round.sh --roundN OUT [--lm
   DIR]`:** the layout model alone on a benchmark round, filed as `--model`
   files it (one table or key/value record, else the model's own sections).
