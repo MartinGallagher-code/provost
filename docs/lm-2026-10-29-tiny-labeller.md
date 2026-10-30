@@ -83,6 +83,7 @@ the hand-labelled lines in the fold.
 | trees + GridNet averaged (documented 2026-10-23) | 0.835 | — |
 | **tiny LM (SmolLM2-135M + LoRA), 2 passes** | **0.863** | **39/48** |
 | tiny LM and trees, start probabilities averaged | 0.865 | 38/48 |
+| tiny LM, continued on 856 corpus captures + 594 generated layouts | 0.854 | 37/48 |
 
 **Pilot** (only to check the pipeline): 263 captures, one pass, 6 minutes.
 On the first 150 held-out captures it scored **0.450**, against trees 0.833
@@ -122,6 +123,14 @@ mostly judgment calls rather than misreadings:
 
 Several of these are cases the guide settles by convention (`key:value`
 pairs split), which the model learns only from examples.
+
+**More data of the wrong kind does not help.** Run 2 continued run 1's
+model for one pass over half the corpus and 594 layouts from the
+Claude-written generators (`ml/gen`, two per generator, from tool families
+the corpus does not have). It scored *lower*: 0.854 and 37/48. The pass was
+cut at step 600 of 670 by a worker restart, but by then its learning rate
+was near zero. So the corpus labels stay the training set, and folds 1 and 2
+use run 1's recipe.
 
 **Caveats:**
 - This is one fold of five: 627 captures from the families it never saw.
