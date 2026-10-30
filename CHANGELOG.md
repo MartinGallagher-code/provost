@@ -1,5 +1,32 @@
 # provost — Changelog
 
+## 2026-10-29 — A tiny pretrained LM as the layout labeller, trained on a CPU
+
+An experiment, not yet in provost's capture path: can an ultra-small
+pretrained language model, fine-tuned on provost's own labels, get past the
+~83% plateau of the from-scratch students (trees, GridNet)?
+
+- **`ml/train_lm.py`:**
+  - fine-tunes SmolLM2-135M (LoRA rank 16 on every linear layer, plus two
+    heads; 5.55M trained of 140M) to give the trees' two answers, so
+    `decode.py` and the scoring are reused;
+  - echoes the capture, so a causal model sees the rows below a header;
+  - cuts each line at its field-start candidates before tokenizing, so
+    offsets map to tokens exactly.
+  - `--batch-tok` (2,048 default; 6,000 ran out of 15 GB), `--checkpointing`,
+    `--full`, `--base`, checkpoints in `--save DIR/{last,best}`.
+- **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
+  fold. `--limit N` scores the first N held-out docs for a quick look.
+- **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no
+  download); they skip without torch, transformers and peft, so CI's
+  stdlib-only job is unaffected.
+- **Measured** (`docs/lm-2026-10-29-tiny-labeller.md`):
+  - about 220 training tokens a second on 4 cores, about an hour per pass over
+    fold 0's 2,493 training captures, 9 GB RAM;
+  - fold 0: engine 0.814, trees 0.829 (both 32/48 gold);
+  - the tiny LM's score is in the doc.
+- `ml/README.md`: files table and reproduce steps.
+
 ## 2026-10-28 — Help: a short `provost help`, the full reference under `provost help advanced`
 
 - **`provost help`** (`cmd_help`) is now 47 lines: capture, look, go back,

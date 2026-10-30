@@ -100,6 +100,32 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0m. **2026-10-29: a tiny pretrained LM as the layout labeller, on a CPU**
+    (`ml/train_lm.py`, `docs/lm-2026-10-29-tiny-labeller.md`). The user
+    asked for an ultra-small model trained on provost's own inputs and
+    results, which trains and runs on a CPU.
+    - **What it is:** SmolLM2-135M with LoRA, plus two heads giving the trees'
+      two answers. The capture is echoed so a causal model sees the rows
+      below a header.
+    - **Status:** not in provost's capture path. Scored on fold 0 against
+      the engine (0.814) and the trees (0.829); the result is in the doc.
+    - **Environment:**
+      - `pip install torch transformers peft lightgbm scikit-learn`; the
+        PyPI torch runs on CPU, and download.pytorch.org is blocked here.
+      - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
+        and `ml/corpus_labels.py` rebuild `ml/data/`.
+    - **If it clears the plateau (phase B):**
+      1. train on every fold;
+      2. export (ONNX/int8) for an `extract/model/` runtime behind `--model`,
+         declining when the runtime is missing;
+      3. smoke-test it, then measure blind on round 4 (or round 5).
+
+      Shipping the weights (22 MB adapter at fp32, plus the base model
+      fetched from Hugging Face) needs a decision.
+    - **If not:** try a bigger base (`--base HuggingFaceTB/SmolLM2-360M`,
+      Qwen3-0.6B), more epochs, the generated and synthetic sets
+      (`--extra`), or `--full`.
+
 0l. **2026-10-28: provost as a test runner — every run viewable** (PR #88).
     Asked for in one session: a short help, search on git, a way to see
     every run, a capture id per row, a listen on commands, and an import
