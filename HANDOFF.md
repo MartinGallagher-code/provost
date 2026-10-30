@@ -95,7 +95,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (481)
+- `tests/smoke.sh` (491)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -106,7 +106,7 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0o. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
+0q. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
     (PR #90; `ml/train_lm.py`, `extract/model/lm_runtime.py`,
     `docs/lm-2026-10-29-tiny-labeller.md`). The user asked for an
     ultra-small model trained on provost's own inputs and results, which
@@ -173,6 +173,24 @@ Suites (all CI-enforced):
       7. Train on a GPU when one is to hand: `--device auto` picks cuda or
          mps, and an M4 iMac ran a fold in about 20 minutes, against 2 hours
          here.
+
+0p. **2026-10-30: `batch` parses each name's first input side by side**
+    (after #91). #91's pre-pass parsed the first input of every name one
+    after another, before the parallel parse of the rest began: a batch of
+    many names (qd's `probe facts inventory` files 7 probes' answers and
+    its own `qd.hosts`/`qd.runs`, 9 names) waited on 9 full detections in
+    turn with the other CPUs idle. They now run `-j` at a time, as the rest
+    do. That qd request on six hosts: 26 s -> 16 s. Same captures, same
+    order, same hints.
+
+0o. **2026-10-30: `batch` reuses a name's detection** (after 2.2.0). The
+    first input of each name is detected; the rest try its strategy first
+    and keep the result only if it is the same table (strategy, header,
+    coverage no lower). 200 one-format inputs: 70 s -> 22 s through qd.
+    Equivalence checked on 400 corpus inputs (376 identical, 24 refused by
+    the rule and detected from scratch). Not done: reusing the detection
+    of a hint row (its label is not a strategy name, so `-s` refuses it --
+    those inputs are detected from scratch, correct but not faster).
 
 0n. **2026-10-29: four readers qd was working around.** qd converted
     some outputs to TSV before filing them, and escaped quotes in its own

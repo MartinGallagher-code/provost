@@ -1143,6 +1143,28 @@ J1="$(mktemp -d)/.j1"; J8="$(mktemp -d)/.j8"
 PROVOST_WORKSPACE="$J1" "$PROVOST" batch -q -j 1 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
 PROVOST_WORKSPACE="$J8" "$PROVOST" batch -q -j 8 --context-columns --name load "$BTD/web01.txt" "$BTD/web02.txt" "$BTD/db01.txt" >/dev/null 2>&1 || true
 check "-j 1 and -j 8 file the same rows" "same" "$(cmp -s "$J1/datasets/load.tsv" "$J8/datasets/load.tsv" && echo same || echo differ)"
+# Detection reuse: the rest of a name's inputs are read the way its first
+# was, when that gives the same table -- and the rows are the same as without
+for h in r1 r2 r3 r4; do printf 'load1: 0.%s\nconns: 1%s\n' "${h#r}" "${h#r}" > "$BTD/$h.txt"; done
+printf 'ssh: connect to host r5 port 22: Connection refused\n' > "$BTD/r5.txt"
+RU0="$(mktemp -d)/.ru0"; RU1="$(mktemp -d)/.ru1"
+PROVOST_BATCH_REUSE=0 PROVOST_WORKSPACE="$RU0" "$PROVOST" batch -q --name kv "$BTD"/r?.txt >/dev/null 2>&1 || true
+PROVOST_WORKSPACE="$RU1" "$PROVOST" batch -q --name kv "$BTD"/r?.txt >/dev/null 2>&1 || true
+check "detection reuse files the same rows as without it" "same" "$( (diff -r "$RU0/datasets" "$RU1/datasets" >/dev/null && echo same) || echo differ)"
+check "the inputs after the first record the reused detection" "detection	reused (" "$(cat "$RU1/captures/c0003/meta.tsv")"
+check_not "the first input of a name is detected itself" "detection	" "$(cat "$RU1/captures/c0001/meta.tsv")"
+check_not "an input the hint does not fit is detected from scratch" "detection	" "$(cat "$RU1/captures/c0005/meta.tsv")"
+check_not "PROVOST_BATCH_REUSE=0 detects every input" "detection	" "$(cat "$RU0"/captures/*/meta.tsv)"
+# Several names in one batch (a fleet's answers to several commands): each
+# name's first input is parsed side by side, and gives its own name's hint
+for h in m1 m2 m3; do printf 'host,load\n%s,0.%s\n' "$h" "${h#m}" > "$BTD/$h.csv"; done
+RM1="$(mktemp -d)/.rm1"; RMJ="$(mktemp -d)/.rmj"
+for ws in "$RM1:1" "$RMJ:8"; do
+    PROVOST_WORKSPACE="${ws%:*}" "$PROVOST" batch -q -j "${ws#*:}" --name kv "$BTD"/r[1-4].txt --name csv "$BTD"/m?.csv >/dev/null 2>&1 || true
+done
+check "several names: -j 1 and -j 8 file the same rows" "same" "$( (diff -r "$RM1/datasets" "$RMJ/datasets" >/dev/null && echo same) || echo differ)"
+check "several names: each name's own hint is reused" "reused (" "$(cat "$RMJ/captures/c0006/meta.tsv")"
+check "several names: ...and the first name's too" "reused (" "$(cat "$RMJ/captures/c0002/meta.tsv")"
 check "--llm parses one input at a time" "parses one input at a time" "$(bt batch --llm -j 4 --name llmone "$BTD/web01.txt")"
 check "batch with no files is a usage error (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch)"
 check "batch refuses --async (exit 2)" "2" "$(PROVOST_WORKSPACE="$BTWS" rc_of "$PROVOST" batch --async "$BTD/web01.txt")"

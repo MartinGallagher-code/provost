@@ -76,6 +76,51 @@ pretrained language model, fine-tuned on provost's own labels, get past the
   never fail: an empty expected substring matches anything. It now counts
   the wide lines. It found one, `provost next`, now shortened.
 
+## 2026-10-30 — `batch` parses each name's first input side by side
+
+The detection reuse just above parsed the first input of every name one
+after another, before the parallel parse of the rest began. A batch of one
+name barely notices; a batch of many does. quarterdeck's `qd probe facts
+inventory` files the answers to 7 probes and its own `qd.hosts` and
+`qd.runs` in one batch: 9 names, so 9 full detections in turn while the
+other CPUs waited. The first parses now run `-j` at a time, as the rest do,
+and are waited for in the order they started (`cmd_batch`,
+`_batch_first_done`). On six hosts that request went from 26 s to 16 s. The
+captures, their order, and each name's hint are as before.
+
+- Tests (`tests/smoke.sh`, +3): two names in one batch file the same rows
+  with `-j 1` and `-j 8`, and the inputs after each name's first record
+  the reused detection.
+
+## 2026-10-30 — `batch` reuses a name's detection: a fleet's answers, three times faster
+
+A fleet's answers to one command are one format, and detection -- trying
+every strategy -- is most of the engine's time on a small input (0.44 s of
+it for a three-line `key: value` answer, against 0.06 s with the strategy
+named). quarterdeck filing 200 hosts' answers took 70 s; it takes 22 s.
+
+- **Detection reuse** (`cmd_batch`, `_ingest_parse`, `_batch_hint`). The
+  first input of each name that has others after it is parsed on its own.
+  When it is read cleanly -- one table, nothing held, no auto-multi, model
+  or template, coverage measured -- its strategy, coverage and header line
+  are a hint the others try first (`-s STRATEGY`), each kept only if the
+  engine gives the same strategy, the same header and coverage no lower;
+  anything else is detected from scratch, as before. A reused capture's
+  `meta.tsv` says `detection  reused (STRATEGY, from the batch's first input
+  of this name)`. Off with `PROVOST_BATCH_REUSE=0`, and under `--multi`,
+  `--model` and `--llm`.
+- **Why it is safe.** On 400 corpus inputs, the winner pinned gave a table
+  byte for byte the same as full detection on 376; on the other 24 (a hint
+  row's label, which is not a strategy file, or lower coverage when pinned)
+  the acceptance rule refuses the pinned result, and the input is detected
+  from scratch. A 41-input batch (40 alike and an error message) files the
+  same datasets either way, in 5.1 s against 13.1 s.
+- `_read_engine_meta` reads the engine's meta line for both paths.
+- Tests (`tests/smoke.sh`, +7): the same rows with and without reuse; the
+  meta line on the inputs after the first; none on the first, on an input
+  the hint does not fit, or with `PROVOST_BATCH_REUSE=0`; the setting in
+  the help and the man page. 485 passed.
+
 ## 2026-10-30 — release v2.2.0
 
 `VERSION` 2.1.0 → 2.2.0, and the `man/provost.1` header. Everything below has
