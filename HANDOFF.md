@@ -106,6 +106,47 @@ Suites (all CI-enforced):
 
 ## Next steps
 
+0o. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
+    (PR #90; `ml/train_lm.py`, `extract/model/lm_runtime.py`,
+    `docs/lm-2026-10-29-tiny-labeller.md`). The user asked for an
+    ultra-small model trained on provost's own inputs and results, which
+    trains and runs on a CPU.
+    - **What it is:** SmolLM2-135M with LoRA, plus two heads giving the trees'
+      two answers. The capture is echoed so a causal model sees the rows
+      below a header.
+    - **Per line, fold 0** (627 held-out captures): **0.863 split agreement
+      and 39/48 gold**, against trees 0.829 / engine 0.814 (both 32/48) and
+      the documented trees + GridNet 0.835. It is the first learner past the
+      ~83% plateau. Two passes, about 2 h on 4 cores. Continuing it on
+      generated layouts scored lower (0.854, 37/48), so the corpus labels
+      stay the training set.
+    - **Whole captures, round 4, model-first, blind-rated:** LM 7 / 30 / 70,
+      trees 2 / 32 / 73, default engine 12 / 51 / 44. Neither model replaces
+      the engine: it cannot file nested, log or mixed output. On the 18
+      captures the gate holds (all `--model` touches) the LM rates 0 / 5 / 13
+      against the engine's 0 / 1 / 17.
+    - **Capture time, opt-in:** `PROVOST_LAYOUT_LM=DIR` with `--model` labels
+      with the LM instead of the trees, without the arbiter; with no model or
+      no torch the trees label as before.
+    - **Weights are not in git** (`ml/models/`, gitignored): a 22 MB adapter
+      plus the base model from Hugging Face.
+    - **Workflow lesson:** run nothing else while it trains. Four torch
+      threads on four cores stall behind any other process, even a
+      low-priority one. A worker restart kills a run: resume it with
+      `--init DIR/last` (checkpoints every `--ckpt-every` steps).
+    - **Environment:**
+      - `pip install torch transformers peft lightgbm scikit-learn`; the
+        PyPI torch runs on CPU, and download.pytorch.org is blocked here.
+      - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
+        and `ml/corpus_labels.py` rebuild `ml/data/`.
+    - **Next:**
+      1. folds 1 and 2 (running 2026-10-30), to see whether 0.863 holds;
+      2. a model trained on every fold;
+      3. an arbiter fitted to the LM's probabilities, so `--model` keeps the
+         engine's split where it trusts it more;
+      4. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
+         for `extract/model/` is the likelier route.
+
 0n. **2026-10-29: four readers qd was working around.** qd converted
     some outputs to TSV before filing them, and escaped quotes in its own
     tables, because provost read them badly. Fixed here instead:
@@ -151,38 +192,6 @@ Suites (all CI-enforced):
       `#` and `capture`; clash → `_NAME`; `unsorted` untouched; default off.
     - The results format and NDJSON after comments, listed here as worth
       doing next, are done: see 0n.
-
-0m. **2026-10-29: a tiny pretrained LM as the layout labeller, on a CPU**
-    (`ml/train_lm.py`, `docs/lm-2026-10-29-tiny-labeller.md`). The user
-    asked for an ultra-small model trained on provost's own inputs and
-    results, which trains and runs on a CPU.
-    - **What it is:** SmolLM2-135M with LoRA, plus two heads giving the trees'
-      two answers. The capture is echoed so a causal model sees the rows
-      below a header.
-    - **Result, fold 0** (627 held-out captures): **0.863 split agreement
-      and 39/48 gold**, against trees 0.829 / engine 0.814 (both 32/48) and
-      the documented trees + GridNet 0.835. It is the first learner past the
-      ~83% plateau. Two passes, about 2 h on 4 cores. Not yet in provost's
-      capture path.
-    - **Workflow lesson:** run nothing else while it trains. Four torch
-      threads on four cores stall behind any other process, even a
-      low-priority one.
-    - **Environment:**
-      - `pip install torch transformers peft lightgbm scikit-learn`; the
-        PyPI torch runs on CPU, and download.pytorch.org is blocked here.
-      - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
-        and `ml/corpus_labels.py` rebuild `ml/data/`.
-    - **It cleared the plateau, so next is phase B:**
-      1. train on every fold;
-      2. export (ONNX/int8) for an `extract/model/` runtime behind `--model`,
-         declining when the runtime is missing;
-      3. smoke-test it, then measure blind on round 4 (or round 5).
-
-      Shipping the weights (22 MB adapter at fp32, plus the base model
-      fetched from Hugging Face) needs a decision.
-    - **If not:** try a bigger base (`--base HuggingFaceTB/SmolLM2-360M`,
-      Qwen3-0.6B), more epochs, the generated and synthetic sets
-      (`--extra`), or `--full`.
 
 0l. **2026-10-28: provost as a test runner — every run viewable** (PR #88).
     Asked for in one session: a short help, search on git, a way to see

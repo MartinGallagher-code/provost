@@ -28,7 +28,17 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     documented trees + GridNet average of 0.835: the first learner past the
     plateau;
   - averaged with the trees: 0.865, 38/48;
-  - two passes, about 2 h on 4 cores.
+  - two passes, about 2 h on 4 cores;
+  - continued on generated layouts (`ml/gen`): 0.854, 37/48, so the corpus
+    labels stay the training set;
+  - **round 4, whole captures, model-first** (no engine, no gate), rated
+    blind: tiny LM 7 / 30 / 70, trees 2 / 32 / 73, default engine
+    12 / 51 / 44. Neither model replaces the engine; on the 18 captures the
+    gate holds, the only ones `--model` touches, the LM rates 0 / 5 / 13
+    against the engine's 0 / 1 / 17.
+- **`tests/benchmark/model_records.py` + `model_round.sh --roundN OUT [--lm
+  DIR]`:** the layout model alone on a benchmark round, filed as `--model`
+  files it (one table or key/value record, else the model's own sections).
 - `ml/README.md`: files table and reproduce steps.
 - **Capture time, opt-in:**
   - **`extract/model/lm_runtime.py`:** the encoding and the model now live

@@ -136,5 +136,55 @@ use run 1's recipe.
 - This is one fold of five: 627 captures from the families it never saw.
 - It is still scored against the teacher's labels (98% right against the hand
   labels), as every learner here is.
-- It says nothing yet about whole captures. That needs it behind `--model`
-  and a blind benchmark round.
+- Per-line agreement is not whole-capture quality; the next section measures
+  that.
+
+## Whole captures: round 4, blind-rated
+
+Round 4 is the held-out benchmark: 107 captures the engine was never tuned
+against, rated PASS / PARTIAL / FAIL on its frozen `CRITERIA.md`.
+`tests/benchmark/model_round.sh --round4 OUT [--lm DIR]` runs the layout
+model **model-first**: every capture is labelled by the model alone and filed
+as provost's `--model` path files it (one table or key/value record, else the
+model's own sections). There is no engine parse, no quality gate and no
+arbiter. So this is a stress test of the labeller on its own, harsher than
+`--model` will ever be: `--model` only acts on a capture the gate would hold.
+
+Both outputs were rated blind by subagents in batches of about 18. They saw
+the input, the output and the criteria, never which model made it, and
+"nothing extracted" is a FAIL.
+
+| reader | filed | read nothing | PASS | PARTIAL | FAIL |
+|---|---:|---:|---:|---:|---:|
+| default engine (`ratings.tsv`, 2026-10-20) | — | — | **12** | **51** | **44** |
+| tiny LM, model-first (fold-0 run 1) | 87 | 20 | 7 | 30 | 70 |
+| trees, model-first (shipped) | 94 | 13 | 2 | 32 | 73 |
+
+- **Neither model replaces the engine.** Model-first, the LM fails 70 of 107
+  where the engine fails 44. Round 4 is mostly mixed reports, logs and nested
+  output, and the model can only file tables, key/value records and its own
+  uniform sections. The engine's bespoke strategies read those shapes better.
+- **The LM is the better whole-capture reader of the two models,** as it was
+  per line. It passes 7 against the trees' 2. Head to head it rates higher on
+  14 captures and lower on 7; the other 86 tie.
+- **Where it beats the engine** it is on captures the engine fails: 7 FAIL
+  become PARTIAL and `017-gio-info-file` becomes a PASS. The engine is better
+  on 38. Taking the better of the two on every capture would give 13 / 58 /
+  36: that is the ceiling for any arbiter between them, and a picker that
+  cannot see the ratings will get less.
+- **On the 18 captures the engine's gate holds** (the only ones `--model`
+  touches), the engine's parse rates 0 / 1 / 17. The LM reads 5 of them to a
+  PARTIAL and loses the one PARTIAL (0 / 5 / 13); the trees manage 0 / 4 /
+  14. That is where it would earn its keep.
+
+**How it fails.** 62 of its 70 FAIL notes name content dropped (the summary
+line, a key/value block beside a table, most of the records). 21 read
+nothing at all. 30 mention headers: a data line taken as the header, a
+heading built from content, a section's title read as a column. Nested
+derivations, wrapped continuation lines and logs come next. These are
+failures of what the model *files*, not of where it cuts: one uniform table
+per section cannot hold a tree.
+
+**So the labeller belongs where it is, behind `--model`** (opt in with
+`PROVOST_LAYOUT_LM`), as a better second reader for the captures the engine
+holds. The engine stays the first reader.
