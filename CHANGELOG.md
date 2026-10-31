@@ -33,6 +33,14 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     - **12 layers is not safe:** on fold 4 it scored 0.796, below the
       engine.
     - **On fold 0, 6 and 3 layers** scored 0.821 and 0.796.
+    - **The final 18-layer model, `lm-all-l18`:**
+      - every fold, 14 min, a 14.5 MB adapter, validation loss 0.540
+        against 0.563 at 30 layers;
+      - trained without `--no-val`, so on 3,271 captures;
+      - it loads and labels through `lm_runtime`, but on round 3's
+        `cmake-cache-advanced-help` its labels file nothing where the
+        trees and the 30-layer fold-0 model file a table. Its
+        whole-capture behaviour is unmeasured.
 - **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
   fold. `--limit N` scores the first N held-out docs for a quick look.
 - **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no

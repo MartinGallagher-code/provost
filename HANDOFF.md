@@ -159,10 +159,17 @@ Suites (all CI-enforced):
            246 against 242 of 287.
          - It is 95.6M parameters against 140.1M.
          - 12 layers dipped below the engine on fold 4; 6 and 3 are worse.
+         The final model at 18 layers, `lm-all-l18`, was trained on the
+         iMac on 2026-10-31: 14 min, a 14.5 MB adapter, validation loss
+         0.540. The weights are with the user, not in git. It was trained
+         without `--no-val`, so on 3,271 captures, not 3,674.
          Next:
-         - train the final model at 18 layers on every capture:
-           `train_lm.py --epochs 2 --layers 18 --no-val --save models/lm-all-l18`,
-           about 13 min on the iMac;
+         - **Round 4 with `lm-all-l18`,** blind-rated. On round 3's
+           `cmake-cache-advanced-help`, its labels file nothing where the
+           trees and the 30-layer fold-0 model file a table, so
+           whole-capture behaviour at 18 layers is not known yet.
+         - Optionally retrain it with `--no-val`, for the other 403
+           captures (14 min on the iMac).
          - cut the vocabulary (the 49k × 576 embedding is 28M weights) to
            the tokens the corpus uses, for about 70M weights, about 70 MB
            at 8 bits;

@@ -251,6 +251,23 @@ and 39/48. Rerunning on the iMac reproduced its scores exactly.
   - That is still a size that wants a numpy runtime rather than plain
     Python.
 
+**The final 18-layer model, `lm-all-l18`** (the iMac, 2026-10-31):
+- **How it was trained:** every fold, 2 epochs, 14 min.
+- **Weights:** a 14.5 MB adapter, against 22.4 MB at 30 layers. They stay
+  out of git.
+- **Validation loss:** 0.540, against 0.563 for the 30-layer `lm-all`.
+- **Data:** it was trained with the earlier kit, without `--no-val`. So it
+  saw 3,271 captures and held back the 403 old-split validation ones.
+- **It loads as 18 layers** through `lm_runtime.load` (95.6M parameters) and
+  labels a `df` table right.
+- **But whole captures can differ from the 30-layer models.** On round 3's
+  `005-cmake-cache-advanced-help`:
+  - the trees and the fold-0 30-layer model each file a table (92% and 82%
+    of lines);
+  - `lm-all-l18`'s labels make nothing fileable, so `--model` declines.
+
+  Per-line scores cannot show that, and round 4 has not been run with it.
+
 ## Whole captures: round 4, blind-rated
 
 Round 4 is the held-out benchmark: 107 captures the engine was never tuned
