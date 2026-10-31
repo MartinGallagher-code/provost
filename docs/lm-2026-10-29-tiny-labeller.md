@@ -202,6 +202,55 @@ Two things the iMac runs found:
   fold_eval.py ... --threads 1` works around it; a fold then scores in about
   80 s. `train_lm.py` never loads LightGBM, so it is unaffected.
 
+## How many layers does it need? (iMac, 2026-10-30/31)
+
+The base model has 30 transformer layers. `--layers N` keeps the first N, to
+see how small the model can get before it loses its lead. The user ran the
+kit's loop on the iMac:
+- the code at 9ebf60de, so the old validation split, the same for every run;
+- 2 epochs each, on the M4's GPU.
+
+**Fold 0, every size:**
+
+| layers | parameters | train time | split | gold |
+|---:|---:|---:|---:|---:|
+| 3 | 40.1M | 2.1 min | 0.796 | 36/48 |
+| 6 | 51.2M | 3.7 min | 0.821 | 38/48 |
+| 12 | 73.4M | 6.9 min | 0.854 | 39/48 |
+| 18 | 95.6M | 10.3 min | 0.876 | 40/48 |
+| 30 (all) | 140.1M | 16.8 min | 0.865 | 41/48 |
+| *engine* | | | *0.814* | *32/48* |
+
+**18 against 30 layers, all five folds:**
+
+| fold | 18 layers | 30 layers | 18 gold | 30 gold |
+|---:|---:|---:|---:|---:|
+| 0 | 0.876 | 0.865 | 40/48 | 41/48 |
+| 1 | 0.847 | 0.849 | 44/51 | 42/51 |
+| 2 | 0.878 | 0.893 | 59/65 | 57/65 |
+| 3 | 0.859 | 0.856 | 64/70 | 61/70 |
+| 4 | 0.846 | 0.842 | 39/53 | 41/53 |
+| **all 14,468 lines** | **0.862** (12,476) | **0.862** (12,477) | **246/287** | **242/287** |
+
+The 30-layer column is the iMac's own five-fold run, rescored with the same
+command. Its fold 0 is 0.865 and 41/48, where the cloud CPU run got 0.863
+and 39/48. Rerunning on the iMac reproduced its scores exactly.
+
+- **18 layers matches 30.** One line fewer right out of 14,468, and 4 more
+  gold lines. Each fold is within 0.015, in both directions. The worst is
+  fold 2 (−0.015), which kept epoch 1 on validation loss.
+  - It is 68% of the parameters (95.6M against 140.1M).
+  - It took 63% of the training time (53 min against 84 for five folds).
+- **12 layers is not safe.** It came close on fold 0 (0.854), but on fold 4
+  it scored 0.796, below the engine's 0.803.
+- **6 and 3 layers** fall towards the engine and below it.
+- **So the floor is about 18 layers**, not the 6–12 hoped for.
+  - The 18 layers alone are about 64M weights, plus a 28M vocabulary table.
+  - Cutting the vocabulary to the tokens provost's captures use would bring
+    it to about 70M weights: about 70 MB at 8 bits, or 140 MB at 16.
+  - That is still a size that wants a numpy runtime rather than plain
+    Python.
+
 ## Whole captures: round 4, blind-rated
 
 Round 4 is the held-out benchmark: 107 captures the engine was never tuned

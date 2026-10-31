@@ -25,6 +25,14 @@ pretrained language model, fine-tuned on provost's own labels, get past the
     smaller model can be measured (6 of 30: 51M weights instead of 140M).
     The count is saved in `config.json`, and `lm_runtime.load_model`
     rebuilds the same cut; models without it load whole (tests +2).
+  - **The layer experiment** (the user's iMac, 2026-10-30/31):
+    - **18 of 30 layers matches the full model on all five folds:** 0.862
+      both (12,476 against 12,477 of 14,468 lines), gold 246 against 242
+      of 287, at 68% of the parameters (95.6M) and 63% of the training
+      time.
+    - **12 layers is not safe:** on fold 4 it scored 0.796, below the
+      engine.
+    - **On fold 0, 6 and 3 layers** scored 0.821 and 0.796.
 - **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
   fold. `--limit N` scores the first N held-out docs for a quick look.
 - **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no

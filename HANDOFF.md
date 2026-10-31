@@ -154,15 +154,19 @@ Suites (all CI-enforced):
       2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
          process (two `libomp` copies). Until it is fixed, use
          `OMP_NUM_THREADS=1 ... --threads 1`.
-      3. **How many layers does it need?** `train_lm.py --layers N` keeps
-         the base's first N of 30 layers. Train 3, 6, 12 and 18 on fold 0
-         (the user's iMac, a few minutes each) and compare with 0.863 and
-         39/48.
-         - If 6–12 layers keep most of the gain, the model is about 50–70M
-           weights.
-         - Then the next step is cutting the vocabulary (its 49k × 576
-           embedding is 28M weights), 8-bit weights and a numpy-only
-           runtime: a model provost could ship without torch.
+      3. **18 layers is the size** (measured 2026-10-30/31 on the iMac).
+         - It matches all 30 on all five folds: 0.862 against 0.862, gold
+           246 against 242 of 287.
+         - It is 95.6M parameters against 140.1M.
+         - 12 layers dipped below the engine on fold 4; 6 and 3 are worse.
+         Next:
+         - train the final model at 18 layers on every capture:
+           `train_lm.py --epochs 2 --layers 18 --no-val --save models/lm-all-l18`,
+           about 13 min on the iMac;
+         - cut the vocabulary (the 49k × 576 embedding is 28M weights) to
+           the tokens the corpus uses, for about 70M weights, about 70 MB
+           at 8 bits;
+         - a numpy runtime, so provost could ship it without torch.
       4. **Whole captures are limited by what the model files, not how it
          reads lines.** Round 4 with `lm-all` (2026-10-30) rated 5 / 31 / 71
          against fold 0's 7 / 30 / 70, and 0 / 2 / 16 on the gate-held 18
