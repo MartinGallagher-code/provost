@@ -266,7 +266,9 @@ and 39/48. Rerunning on the iMac reproduced its scores exactly.
     of lines);
   - `lm-all-l18`'s labels make nothing fileable, so `--model` declines.
 
-  Per-line scores cannot show that, and round 4 has not been run with it.
+  Per-line scores cannot show that, so it went through round 4 (next
+  section). Across round 4's 107 captures it rates the same as the 30-layer
+  `lm-all`. This capture is a one-off, not a pattern.
 
 ## Whole captures: round 4, blind-rated
 
@@ -289,6 +291,7 @@ the input, the output and the criteria, never which model made it, and
 | tiny LM, model-first (fold-0 run 1) | 87 | 20 | 7 | 30 | 70 |
 | trees, model-first (shipped) | 94 | 13 | 2 | 32 | 73 |
 | tiny LM `lm-all`, model-first (every fold, 2026-10-30) | 90 | 17 | 5 | 31 | 71 |
+| tiny LM `lm-all-l18`, model-first (18 layers, every fold, 2026-10-31) | 93 | 14 | 5 | 30 | 72 |
 
 - **Neither model replaces the engine.** Model-first, the LM fails 70 of 107
   where the engine fails 44. Round 4 is mostly mixed reports, logs and nested
@@ -327,6 +330,16 @@ user's `lm-all` (trained on the iMac on 3,271 captures) was run the same way.
   (`global`) as the header, a PASS that became a FAIL.
 - **Where `--model` acts,** the 18 captures the gate holds, it rates
   0 / 2 / 16 against fold 0's 0 / 5 / 13.
+
+**Cutting to 18 layers changes nothing either.**
+- **How it was rated:** `lm-all-l18` went through the same harness. 42
+  outputs were byte-identical to `lm-all`'s or fold 0's, and keep those
+  ratings. The other 65 were rated blind.
+- **The total:** 5 / 30 / 72, against 5 / 31 / 71 for the 30-layer `lm-all`.
+- **Head to head:** 94 captures rate the same, 6 better and 7 worse.
+- **The 18 gate-held captures:** 0 / 2 / 16, the same as `lm-all`.
+- **Coverage:** it files 93 captures, against 90; 14 read nothing, against
+  17.
 
 More of the same training data moves the per-line score a little and the
 whole-capture result not at all. The limit is what the model can file, not
