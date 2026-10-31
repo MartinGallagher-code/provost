@@ -27,9 +27,10 @@ they mean are in
 | `train_baseline.py` | gradient-boosted trees (LightGBM) | numpy, lightgbm |
 | `train_neural.py` | `LayoutNet`, a ~53k-parameter CNN + GRU over the character grid | numpy, torch |
 | `train_grid.py` | `GridNet`, a ~279k-parameter axial model (row convolutions, column attention) that learns its own features; `crossval.py --learner grid` scores it | numpy, torch |
+| `train_lm.py` | a tiny pretrained language model (SmolLM2-135M, LoRA) fine-tuned to the same two answers: the capture is echoed so a causal model sees the rows below a header, and each line is cut at its candidates before tokenizing; `fold_eval.py --learner lm` scores it. Results: `docs/lm-2026-10-29-tiny-labeller.md` | torch, transformers, peft (CPU is enough) |
 | `export_grid.py` | writes GridNet's float16 weights for `extract/model/gridnet.py` (numpy-only forward pass) and checks it matches torch | numpy, torch |
 | `gen/` | 297 format generators written by Claude (`gen/tools/`, one real tool each, all from tool families the corpus doesn't have), the `Doc` builder they use (`gen/lib.py`), and `gen/run.py`, which checks them and writes `ml/data/gen.jsonl` | stdlib |
-| `fold_eval.py` | one cross-validation fold scored against the LLM labels: the quick development yardstick for learners and extra training sets | numpy, lightgbm (+ torch for GridNet) |
+| `fold_eval.py` | one cross-validation fold scored against the LLM labels: the quick development yardstick for learners and extra training sets | numpy, lightgbm, scikit-learn (+ torch for GridNet; + transformers, peft for `--learner lm`) |
 | `crossval.py` | whole-corpus comparison with the engine: 5-fold cross-validation by family, plus a blind A/B sheet of disagreements for independent judging | numpy, lightgbm |
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
 | `eval/` | those sets, plus the LLM labels of the whole corpus (`llm-labels-*.jsonl.gz`) and the pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |
@@ -42,6 +43,7 @@ they mean are in
 | `llm/score.py` | scores LLM labels against the hand labels and the engine; cost estimate; review sheet | stdlib |
 | `llm/to_corpus.py` | turns LLM labels into a training set (`crossval.py --train-corpus`, `train_baseline.py --corpus`) | stdlib |
 | `tests/test_ml.py`, `tests/test_llm.py` | tests for the label builders and the LLM-label checker (run in CI) | stdlib |
+| `tests/test_train_lm.py` | tests for the tiny-LM labeller on a tiny random model (no download); skipped without torch/transformers/peft | torch, transformers, peft |
 
 ## Reproduce
 
@@ -58,6 +60,12 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/python ml/crossval.py --train-corpus ml/data/corpus-llm.jsonl --extra ml/data/synth.jsonl --decode --out ml/data/crossval.jsonl
 .venv/bin/python ml/arbiter.py --crossval ml/data/crossval.jsonl --meta DIR --save extract/model/arbiter.json   # DIR: engine --batch --generic metas
 .venv/bin/python ml/train_neural.py --epochs 30  # ~15 min on 4 cores, CPU only
+.venv/bin/pip install transformers peft scikit-learn   # the tiny LM (downloads SmolLM2-135M, ~270 MB)
+.venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --save ml/models/lm-f0   # ~1 h per epoch on 4 cores, ~9 GB RAM
+.venv/bin/python ml/fold_eval.py --fold 0 --learner lm --lm-load ml/models/lm-f0/best
+.venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --layers 6 --save ml/models/lm6-f0   # the first 6 of 30 layers: 51M weights
+# on macOS fold_eval crashes when LightGBM and torch share a process (two libomp copies):
+#   OMP_NUM_THREADS=1 .venv/bin/python ml/fold_eval.py ... --threads 1   (a fold in ~80 s)
 python3 -m unittest discover -s ml/tests         # stdlib tests
 # LLM teacher (needs `pip install anthropic` and ANTHROPIC_API_KEY; ~$25 for the corpus):
 python3 ml/llm/label.py --all --batch            # -> ml/data/llm/<tool>.json (+ usage.jsonl)

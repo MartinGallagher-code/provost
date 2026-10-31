@@ -95,7 +95,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (478)
+- `tests/smoke.sh` (491)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -105,6 +105,88 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0q. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
+    (PR #90; `ml/train_lm.py`, `extract/model/lm_runtime.py`,
+    `docs/lm-2026-10-29-tiny-labeller.md`). The user asked for an
+    ultra-small model trained on provost's own inputs and results, which
+    trains and runs on a CPU.
+    - **What it is:** SmolLM2-135M with LoRA, plus two heads giving the trees'
+      two answers. The capture is echoed so a causal model sees the rows
+      below a header.
+    - **Per line, fold 0** (627 held-out captures): **0.863 split agreement
+      and 39/48 gold**, against trees 0.829 / engine 0.814 (both 32/48) and
+      the documented trees + GridNet 0.835. It is the first learner past the
+      ~83% plateau. Two passes, about 2 h on 4 cores. Continuing it on
+      generated layouts scored lower (0.854, 37/48), so the corpus labels
+      stay the training set.
+    - **All five folds** (1–4 trained on the user's iMac, M4 GPU, 15.5–19
+      min a fold): the LM wins every fold, 0.842–0.893. Over all 14,468
+      lines: LM 0.862, trees 0.819, engine 0.814; gold 240 / 212 / 189 of
+      287. Two epochs is about right (fold 3 kept epoch 1).
+      The model on every fold (`lm-all`) was trained there too; the user has
+      it, and weights are not in git.
+    - **Whole captures, round 4, model-first, blind-rated:** LM 7 / 30 / 70,
+      trees 2 / 32 / 73, default engine 12 / 51 / 44. Neither model replaces
+      the engine: it cannot file nested, log or mixed output. On the 18
+      captures the gate holds (all `--model` touches) the LM rates 0 / 5 / 13
+      against the engine's 0 / 1 / 17.
+    - **Capture time, opt-in:** `PROVOST_LAYOUT_LM=DIR` with `--model` labels
+      with the LM instead of the trees, without the arbiter; with no model or
+      no torch the trees label as before.
+    - **Weights are not in git** (`ml/models/`, gitignored): a 22 MB adapter
+      plus the base model from Hugging Face.
+    - **Workflow lesson:** run nothing else while it trains. Four torch
+      threads on four cores stall behind any other process, even a
+      low-priority one. A worker restart kills a run: resume it with
+      `--init DIR/last --start-step N`, N being the step recorded in
+      `DIR/last/config.json` (checkpoints every `--ckpt-every` steps).
+    - **Environment:**
+      - `pip install torch transformers peft lightgbm scikit-learn`; the
+        PyPI torch runs on CPU, and download.pytorch.org is blocked here.
+      - `python3 ml/llm/to_corpus.py ml/eval/llm-labels-2026-10-23.jsonl.gz`
+        and `ml/corpus_labels.py` rebuild `ml/data/`.
+    - **Next:**
+      1. **Retrain `lm-all` with `--no-val`** (on the Mac, about 25 min).
+         The current `lm-all` was trained before `is_val` was fixed
+         (2026-10-30) and never saw the 403 old validation captures.
+         `--no-val` trains on all 3,674.
+      2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
+         process (two `libomp` copies). Until it is fixed, use
+         `OMP_NUM_THREADS=1 ... --threads 1`.
+      3. **18 layers is the size** (measured 2026-10-30/31 on the iMac).
+         - It matches all 30 on all five folds: 0.862 against 0.862, gold
+           246 against 242 of 287.
+         - It is 95.6M parameters against 140.1M.
+         - 12 layers dipped below the engine on fold 4; 6 and 3 are worse.
+         The final model at 18 layers, `lm-all-l18`, was trained on the
+         iMac on 2026-10-31: 14 min, a 14.5 MB adapter, validation loss
+         0.540. The weights are with the user, not in git. It was trained
+         without `--no-val`, so on 3,271 captures, not 3,674.
+         Next:
+         - **Round 4 with `lm-all-l18`,** blind-rated. On round 3's
+           `cmake-cache-advanced-help`, its labels file nothing where the
+           trees and the 30-layer fold-0 model file a table, so
+           whole-capture behaviour at 18 layers is not known yet.
+         - Optionally retrain it with `--no-val`, for the other 403
+           captures (14 min on the iMac).
+         - cut the vocabulary (the 49k × 576 embedding is 28M weights) to
+           the tokens the corpus uses, for about 70M weights, about 70 MB
+           at 8 bits;
+         - a numpy runtime, so provost could ship it without torch.
+      4. **Whole captures are limited by what the model files, not how it
+         reads lines.** Round 4 with `lm-all` (2026-10-30) rated 5 / 31 / 71
+         against fold 0's 7 / 30 / 70, and 0 / 2 / 16 on the gate-held 18
+         against 0 / 5 / 13. One regression: `sge-qhost` took a data row as
+         the header. The lever is the output shape (nesting, multi-line
+         records, logs) or an arbiter, not more training.
+      5. an arbiter fitted to the LM's probabilities, so `--model` keeps the
+         engine's split where it trusts it more;
+      6. decide how to ship: torch is hundreds of MB, so an ONNX/int8 export
+         for `extract/model/` is the likelier route.
+      7. Train on a GPU when one is to hand: `--device auto` picks cuda or
+         mps, and an M4 iMac ran a fold in about 20 minutes, against 2 hours
+         here.
 
 0p. **2026-10-30: `batch` parses each name's first input side by side**
     (after #91). #91's pre-pass parsed the first input of every name one

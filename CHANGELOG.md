@@ -1,5 +1,121 @@
 # provost — Changelog
 
+## 2026-10-29 — A tiny pretrained LM as the layout labeller, trained on a CPU
+
+An experiment, not yet in provost's capture path: can an ultra-small
+pretrained language model, fine-tuned on provost's own labels, get past the
+~83% plateau of the from-scratch students (trees, GridNet)?
+
+- **`ml/train_lm.py`:**
+  - fine-tunes SmolLM2-135M (LoRA rank 16 on every linear layer, plus two
+    heads; 5.55M trained of 140M) to give the trees' two answers, so
+    `decode.py` and the scoring are reused;
+  - echoes the capture, so a causal model sees the rows below a header;
+  - cuts each line at its field-start candidates before tokenizing, so
+    offsets map to tokens exactly.
+  - `--batch-tok` (2,048 default; 6,000 ran out of 15 GB), `--checkpointing`,
+    `--full`, `--base`, checkpoints in `--save DIR/{last,best}`.
+  - `--start-step N` with `--init DIR/last` resumes a run a worker restart
+    killed, at its step in the schedule and the data; checkpoints record
+    their step (test +1).
+  - `--device auto|cpu|cuda|mps`: auto trains on an NVIDIA GPU, else an
+    Apple one (an M-series Mac's Metal GPU), else the CPU; `lm_runtime.run`
+    labels on whatever device the model is on (test +1).
+  - `--layers N` keeps only the base's first N transformer layers, so a
+    smaller model can be measured (6 of 30: 51M weights instead of 140M).
+    The count is saved in `config.json`, and `lm_runtime.load_model`
+    rebuilds the same cut; models without it load whole (tests +2).
+  - **The layer experiment** (the user's iMac, 2026-10-30/31):
+    - **18 of 30 layers matches the full model on all five folds:** 0.862
+      both (12,476 against 12,477 of 14,468 lines), gold 246 against 242
+      of 287, at 68% of the parameters (95.6M) and 63% of the training
+      time.
+    - **12 layers is not safe:** on fold 4 it scored 0.796, below the
+      engine.
+    - **On fold 0, 6 and 3 layers** scored 0.821 and 0.796.
+    - **The final 18-layer model, `lm-all-l18`:**
+      - every fold, 14 min, a 14.5 MB adapter, validation loss 0.540
+        against 0.563 at 30 layers;
+      - trained without `--no-val`, so on 3,271 captures;
+      - it loads and labels through `lm_runtime`, but on round 3's
+        `cmake-cache-advanced-help` its labels file nothing where the
+        trees and the 30-layer fold-0 model file a table. Its
+        whole-capture behaviour is unmeasured.
+- **`ml/fold_eval.py --learner lm [--lm-load DIR]`** scores it on the usual
+  fold. `--limit N` scores the first N held-out docs for a quick look.
+- **`ml/tests/test_train_lm.py`:** 7 tests on a tiny random model (no
+  download); they skip without torch, transformers and peft, so CI's
+  stdlib-only job is unaffected.
+- **Measured** (`docs/lm-2026-10-29-tiny-labeller.md`):
+  - about 220 training tokens a second on 4 cores, about an hour per pass over
+    fold 0's 2,493 training captures, 9 GB RAM;
+  - fold 0 (627 held-out captures, 3,163 lines): **tiny LM 0.863, 39/48
+    gold**, against trees 0.829 and engine 0.814 (both 32/48), and the
+    documented trees + GridNet average of 0.835: the first learner past the
+    plateau;
+  - averaged with the trees: 0.865, 38/48;
+  - two passes, about 2 h on 4 cores;
+  - continued on generated layouts (`ml/gen`): 0.854, 37/48, so the corpus
+    labels stay the training set;
+  - **round 4, whole captures, model-first** (no engine, no gate), rated
+    blind: tiny LM 7 / 30 / 70, trees 2 / 32 / 73, default engine
+    12 / 51 / 44. Neither model replaces the engine; on the 18 captures the
+    gate holds, the only ones `--model` touches, the LM rates 0 / 5 / 13
+    against the engine's 0 / 1 / 17;
+  - **round 4 again with the user's all-data model `lm-all`:** 5 / 31 / 71
+    against fold 0's 7 / 30 / 70. The 39 captures with byte-identical output
+    carry their ratings; the other 68 were rated blind. Head to head: 93
+    the same, 6 better, 8 worse; on the 18 gate-held captures, 0 / 2 / 16
+    against 0 / 5 / 13. More training data does not move whole captures;
+  - **folds 1–4, trained on the user's iMac** (Apple M4, `--device` picked
+    its GPU, about 4.5 times the container's speed, 15.5–19 min a fold).
+    The tiny LM wins every fold, 0.842–0.893. Over all five folds (14,468
+    lines): LM 0.862, trees 0.819, engine 0.814; gold 240 / 212 / 189 of 287.
+    Averaging with the trees does not pay. Worker restarts had killed fold 1
+    four times in the container.
+  - **Found by those runs:**
+    - every validation family fell in fold 1 (`is_val`'s `% 10 == 1` implies
+      `fold`'s `% 5 == 1`); fixed below;
+    - `fold_eval.py` crashes on macOS with two `libomp` copies loaded; not
+      fixed, but work around it with `OMP_NUM_THREADS=1` and `--threads 1`
+      (noted in `ml/README.md`).
+- **The validation split** (`ml/dataset.py` `is_val`):
+  - **What it was:** `crc32(family) % 10 == 1` put all 403 validation
+    captures in cross-validation fold 1. So fold 1 trained with no validation
+    set, and every other fold picked its epoch on the same families.
+  - **What it is:** a salted hash, still never a test family. 346 captures of
+    125 families (of 1,261), spread 91 / 101 / 69 / 85 over folds 1–4, so
+    every fold now validates on 245–346 captures.
+  - **What it changes:** LM and GridNet results recorded before this used
+    the old split and may move slightly if retrained. The trees do not use
+    it, so the shipped model is unchanged.
+  - `train_lm.py --no-val` holds nothing back: the final model, on every
+    capture, for the 2 epochs cross-validation chose (`split`).
+  - Tests +2.
+- **The PyPI wheel ships `extract/model/lm_runtime.py`** (`pyproject.toml`).
+  - Before, a pip-installed provost with `PROVOST_LAYOUT_LM` set failed the
+    import, and `--model` declined.
+  - Now it labels with the trees when there is no model or no torch, as a
+    checkout does.
+  - CI's python-package job checks this from the installed wheel.
+- **`tests/benchmark/model_records.py` + `model_round.sh --roundN OUT [--lm
+  DIR]`:** the layout model alone on a benchmark round, filed as `--model`
+  files it (one table or key/value record, else the model's own sections).
+- `ml/README.md`: files table and reproduce steps.
+- **Capture time, opt-in:**
+  - **`extract/model/lm_runtime.py`:** the encoding and the model now live
+    beside `layout.py` and `decode.py`, shared by training and capture time.
+    `train_lm.py` imports them. `lm_runtime.load` returns None when torch,
+    transformers or peft or the model is missing.
+  - **`PROVOST_LAYOUT_LM=DIR`** (`layout_model.py`: `load_lm`, `label_lm`):
+    `--model` labels with the tiny LM saved in DIR instead of the trees,
+    without the arbiter (it was fitted to the trees' probabilities). With no
+    model or no torch, the trees label as before (smoke +1).
+  - Documented in `help advanced` and the man page.
+- **Fixed:** the smoke check "no help line is wider than 79 columns" could
+  never fail: an empty expected substring matches anything. It now counts
+  the wide lines. It found one, `provost next`, now shortened.
+
 ## 2026-10-30 — `batch` parses each name's first input side by side
 
 The detection reuse just above parsed the first input of every name one

@@ -60,6 +60,7 @@ packages = ["src/provost_data"]
 "extract/lib" = "provost_data/_bundle/extract/lib"
 "extract/strategies" = "provost_data/_bundle/extract/strategies"
 "extract/model/layout_model.py" = "provost_data/_bundle/extract/model/layout_model.py"
+"extract/model/lm_runtime.py" = "provost_data/_bundle/extract/model/lm_runtime.py"
 "extract/model/layout.py" = "provost_data/_bundle/extract/model/layout.py"
 "extract/model/features.py" = "provost_data/_bundle/extract/model/features.py"
 "extract/model/decode.py" = "provost_data/_bundle/extract/model/decode.py"

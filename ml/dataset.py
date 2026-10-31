@@ -28,9 +28,12 @@ def is_test(ex):
 
 
 def is_val(ex):
-    """A tenth of the TRAINING families, for choosing epochs and settings
-    without looking at the test families."""
-    return zlib.crc32(family(ex["name"]).encode()) % 10 == 1
+    """About a tenth of the families, never a test family (is_test), for
+    choosing epochs and settings without looking at the test families.
+    The hash is salted so these families fall in every cross-validation fold
+    but the test one (crossval.fold is crc32(family) % 5): the unsalted
+    crc32 % 10 == 1 put every one of them in fold 1, which then had none."""
+    return not is_test(ex) and zlib.crc32(b"val:" + family(ex["name"]).encode()) % 8 == 0
 
 
 def split(examples):

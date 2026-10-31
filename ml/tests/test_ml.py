@@ -118,6 +118,16 @@ class Dataset(unittest.TestCase):
         self.assertEqual(D.is_test(a), D.is_test(b))
         self.assertEqual(D.family("Foo-bar_baz"), "foo")
 
+    def test_validation_families_fall_in_every_training_fold(self):
+        import zlib
+        names = [f"tool{i}-x" for i in range(400)]
+        val = [n for n in names if D.is_val({"name": n})]
+        self.assertFalse(any(D.is_test({"name": n}) for n in val))
+        # crossval.fold is crc32(family) % 5; fold 0 is the test families
+        folds = {zlib.crc32(D.family(n).encode()) % 5 for n in val}
+        self.assertEqual(folds, {1, 2, 3, 4})
+        self.assertTrue(0.06 < len(val) / len(names) < 0.14)
+
     def test_rules(self):
         self.assertEqual(D.rule_ws("a b  c"), {0, 2, 5})
         self.assertEqual(D.rule_gap2("a b  c"), {0, 5})
