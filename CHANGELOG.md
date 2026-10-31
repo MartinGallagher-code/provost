@@ -1,5 +1,21 @@
 # provost — Changelog
 
+## 2026-10-31 — The 18-layer tiny LM on round 4: the same as 30 layers
+
+`lm-all-l18` (the user's final model: 18 of 30 layers, every fold, a 14.5 MB
+adapter) was run model-first on round 4 and rated blind. The 42 outputs
+byte-identical to an earlier model's keep its rating; the other 65 were rated
+afresh.
+- **The total:** 5 / 30 / 72, against 5 / 31 / 71 for the 30-layer `lm-all`
+  and 12 / 51 / 44 for the default engine.
+- **Head to head with `lm-all`:** 94 the same, 6 better, 7 worse.
+- **The 18 gate-held captures:** 0 / 2 / 16, the same as `lm-all`.
+- **Conclusion:** 18 layers costs nothing on whole captures either, so it is
+  the model to use with `PROVOST_LAYOUT_LM`. Its blank result on round 3's
+  `cmake-cache-advanced-help` is a one-off.
+
+Files: `docs/lm-2026-10-29-tiny-labeller.md`, `HANDOFF.md`.
+
 ## 2026-10-29 — A tiny pretrained LM as the layout labeller, trained on a CPU
 
 An experiment, not yet in provost's capture path: can an ultra-small

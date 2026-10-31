@@ -164,10 +164,10 @@ Suites (all CI-enforced):
          0.540. The weights are with the user, not in git. It was trained
          without `--no-val`, so on 3,271 captures, not 3,674.
          Next:
-         - **Round 4 with `lm-all-l18`,** blind-rated. On round 3's
-           `cmake-cache-advanced-help`, its labels file nothing where the
-           trees and the 30-layer fold-0 model file a table, so
-           whole-capture behaviour at 18 layers is not known yet.
+         - **Round 4 with `lm-all-l18`** (2026-10-31): 5 / 30 / 72, the same
+           as the 30-layer `lm-all` (5 / 31 / 71); gate-held 0 / 2 / 16, also
+           the same. So 18 layers is the model to use. Its blank result on
+           round 3's `cmake-cache-advanced-help` is a one-off.
          - Optionally retrain it with `--no-val`, for the other 403
            captures (14 min on the iMac).
          - cut the vocabulary (the 49k × 576 embedding is 28M weights) to
