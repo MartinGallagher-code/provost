@@ -5,7 +5,9 @@
 `pip install provost[lm]` gives `--model` the 18-layer tiny LM, run with
 numpy alone. The weights live in their own package and repository
 ([provost_model](https://github.com/MartinGallagher-code/provost_model),
-85 MB, Apache-2.0), not in this repository.
+85 MB, Apache-2.0), not in this repository. `provost-model` 0.1.0 is on PyPI
+(2026-11-02). In a fresh venv, `pip install provost[lm]` from this
+release's wheel pulls it from there, and `--model` labels with it.
 
 - **`extract/model/bpe.py`:** SmolLM2's byte-level BPE tokenizer in plain
   Python (the GPT-2 pattern over `unicodedata` classes). It gives ids

@@ -112,9 +112,10 @@ Suites (all CI-enforced):
     pure-Python tokenizer (`bpe.py`).
     - **The weights** live in their own repository and package,
       `MartinGallagher-code/provost_model`: `provost-model` 0.1.0, 85 MB,
-      Apache-2.0. It is pushed to that repository's main and builds and
-      checks for PyPI. Registering and publishing it on PyPI is the user's
-      to do.
+      Apache-2.0. It is published on PyPI: 0.1.0 went up on 2026-11-02 by
+      that repository's `release.yml` (Trusted Publishing, no token). In a
+      fresh venv, `pip install provost[lm]` from this branch's wheel pulls it
+      from PyPI, and `--model` labels with it.
     - **Faithfulness:** on round 4 the 8-bit model rates exactly like torch
       (5 / 30 / 72; 84 of 107 outputs byte-identical, the other 23 rated
       blind to the same ratings). On fold 0 the export scores 0.863 like
@@ -126,13 +127,14 @@ Suites (all CI-enforced):
       `provost-model` is used; `0` keeps the trees. `PROVOST_PYTHON` is set
       by the pip launcher so the package is found.
     - **Next:**
-      1. publish `provost-model` 0.1.0 to PyPI (the user), then release
-         provost with the `lm` extra;
+      1. release provost (2.3.0), so `pip install provost[lm]` works from
+         PyPI: the `lm` extra exists only from that release on;
       2. a new model means: train (`ml/train_lm.py`), export
          (`ml/export_lm.py --model DIR --out
          ../provost_model/src/provost_model/model --check 200`), bump
          `provost_model/__init__.py`'s `__version__` and its CHANGELOG,
-         build, publish;
+         merge, then publish a GitHub release (or run "Release to PyPI"),
+         and `release.yml` uploads it;
       3. `--embed 4` saves 13 MB but moves 19 more round-4 outputs; a
          vocabulary cut is the bigger saving if size ever matters.
 
