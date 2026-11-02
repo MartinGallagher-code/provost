@@ -71,6 +71,9 @@ Behaviour worth knowing:
   after the winning parser. `--name` overrides both.
 - Background capture only at an interactive terminal; scripts run
   synchronously. Failures: `provost log --failed`.
+- `rm NAME` deletes datasets; `rm --capture ID[,ID...]` deletes captures and
+  the rows they filed in every dataset they fed (2026-11-02, for
+  quarterdeck's `qd rm RUN`). Both are one commit.
 - Captures and `rm` are refused while `provost restore <id>` (or `prev` /
   `next`) has a capture out; `show --at`, `source ID`, `search --at`,
   `files` and `diff` read any capture from git without moving the store.
@@ -95,7 +98,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (491)
+- `tests/smoke.sh` (507)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -105,6 +108,11 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0r. **2026-11-02: `rm --capture` is unreleased.** quarterdeck's `qd rm RUN`
+    needs it, and refuses with a clear message on a provost without it
+    (PyPI's 2.2.0 and older). Release it with the rest of what is after
+    2.2.0 when the user says so.
 
 0q. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
     (PR #90; `ml/train_lm.py`, `extract/model/lm_runtime.py`,

@@ -1,5 +1,30 @@
 # provost — Changelog
 
+## 2026-11-02 — `rm --capture`: delete captures, and the rows they filed
+
+`provost rm NAME` deletes whole datasets. Nothing could delete one capture
+out of a dataset that others also filed into, and quarterdeck needs exactly
+that: its `qd rm RUN` deletes one run, whose answers sit in datasets beside
+other runs' answers.
+
+- **`provost rm [-f] --capture ID[,ID...]`** (repeatable; an ID as
+  elsewhere: `c0007`, `7`, `capture-c0007`) deletes those captures: each
+  `captures/<id>/` and its tag, the rows it filed from every dataset it fed
+  (by provenance, and by the `capture` column where there is one), and their
+  provenance rows. A dataset left with no rows goes too. It all goes in one
+  commit, like any `rm`.
+- It asks first, like `rm`, unless `-f`. It refuses the whole operation if
+  any id is not a capture, and refuses dataset names given beside
+  `--capture`.
+- The ids go through a file, not the environment or the command line, and
+  the tags go in one `git update-ref --stdin`. 750 captures out of 1,501
+  take 3 s.
+- Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
+  `docs/usage.md`.
+- Tests (`tests/smoke.sh`, +16): refusals (missing, malformed, mixed with
+  names), the prompt, which rows and datasets go and which stay,
+  provenance, dirs, tags, one clean commit, ids never reused.
+
 ## 2026-10-31 — The 18-layer tiny LM on round 4: the same as 30 layers
 
 `lm-all-l18` (the user's final model: 18 of 30 layers, every fold, a 14.5 MB

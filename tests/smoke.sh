@@ -136,6 +136,32 @@ check "rm commits the deletion (history preserved)" "rm: deleted" \
 reuse_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name after printf 'x=1, y=2\n' 2>&1)"
 check "capture ids are never reused after an rm purge" "c0003:" "$reuse_out"
 
+# rm --capture: captures, and the rows they filed in every dataset they fed;
+# a dataset left with no rows goes too. One commit; their tags go; ids are
+# still never reused.
+RCWS="$(mktemp -d)/.rmc"
+rcp () { PROVOST_WORKSPACE="$RCWS" "$PROVOST" "$@"; }
+rcp run --name t printf 'a b\n1 2\n3 4\n' >/dev/null 2>&1   # c0001 -> t
+rcp run --name t printf 'a b\n5 6\n' >/dev/null 2>&1        # c0002 -> t
+rcp run --name u printf 'x,y\n9,9\n' >/dev/null 2>&1        # c0003 -> u
+check "rm --capture refuses a missing capture" "no such capture: c0009" "$(rcp rm -f --capture c0009 2>&1 || true)"
+check "rm --capture refuses dataset names beside it (exit 2)" "2" "$(PROVOST_WORKSPACE="$RCWS" rc_of "$PROVOST" rm -f t --capture 1)"
+check "rm --capture refuses a malformed id (exit 2)" "2" "$(PROVOST_WORKSPACE="$RCWS" rc_of "$PROVOST" rm -f --capture x1)"
+check "rm --capture asks first, and no means no" "nothing deleted" "$(echo n | rcp rm --capture 2 2>&1)"
+check "rm --capture: an answered no keeps the capture" "true" "$([[ -d "$RCWS/captures/c0002" ]] && echo true)"
+rmc_out="$(rcp rm -f --capture c0002,3 2>&1)"
+check "rm --capture reports the captures and their rows" "deleted 2 capture(s) (c0002 c0003) and the 2 row(s)" "$rmc_out"
+check "rm --capture keeps the rows of the captures it was not given" "c0001" "$(cut -f2 "$RCWS/datasets/t.tsv")"
+check_not "rm --capture drops the rows a capture filed" "c0002" "$(cut -f2 "$RCWS/datasets/t.tsv")"
+check "rm --capture removes a dataset left with no rows" "true" "$([[ ! -f "$RCWS/datasets/u.tsv" ]] && echo true)"
+check "rm --capture prunes their provenance rows" "0" "$(tail -n +2 "$RCWS/provenance.tsv" | grep -c 'c000[23]' || true)"
+check "rm --capture removes the capture dirs" "true" "$([[ ! -d "$RCWS/captures/c0002" && ! -d "$RCWS/captures/c0003" ]] && echo true)"
+check "rm --capture removes their tags" "capture-c0001" "$(git -C "$RCWS" tag | tr '\n' ' ')"
+check_not "rm --capture leaves no tag of a deleted capture" "capture-c0002" "$(git -C "$RCWS" tag | tr '\n' ' ')"
+check "rm --capture is one commit" "rm: deleted 2 capture(s) [c0002 c0003], pruned 2 row(s), emptied 1 dataset(s) [u]" "$(git -C "$RCWS" log -1 --format=%s)"
+check "rm --capture leaves the store clean" "clean" "$( [[ -z "$(git -C "$RCWS" status --porcelain)" ]] && echo clean)"
+check "capture ids are never reused after rm --capture" "c0004:" "$(rcp run --name t printf 'a b\n7 8\n' 2>&1)"
+
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
 DEFWS="$(mktemp -d)/.defasync"
