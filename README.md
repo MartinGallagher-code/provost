@@ -24,6 +24,16 @@ The PyPI package (`provost`) bundles the
 complete tool — the `provost` entry point plus its extract/analyze/transform
 engines — and a thin Python launcher execs it in place. Requires bash and git.
 
+```bash
+pip install provost[lm]
+```
+
+This adds a better reader for `--model`: a tiny pretrained language model
+fine-tuned on provost's own labels. It comes as the
+[`provost-model`](https://github.com/MartinGallagher-code/provost_model)
+package (85 MB) and runs on numpy, with no torch or GPU. Without it,
+`--model` uses the small decision trees provost ships.
+
 ## Quick start
 
 ```bash
@@ -164,6 +174,8 @@ index — including stores on remote (SFTP/SSH) hosts.
 | `PROVOST_CONTEXT_COLUMNS` | `0` | `1` = each `key=value` word of a `#%` prologue becomes a column on the capture's rows (same as `--context-columns`) |
 | `PROVOST_AUTO_MULTI` | `1` | segment a parse the quality gate would hold, when the parts are clearly better (`0` = hold it; same as `--no-auto-multi`) |
 | `PROVOST_MODEL` | `0` | `1` = when the gate would still hold a parse, try the learned layout model and file its table if it passes the same gate (needs `python3`; same as `--model`) |
+| `PROVOST_LAYOUT_LM` | unset | the tiny LM `--model` labels with: a model directory, or unset for the installed `provost-model` package (`pip install provost[lm]`); `0` = the trees only |
+| `PROVOST_PYTHON` | `python3` | the interpreter that runs the layout model (the pip launcher sets it to its own) |
 | `PROVOST_LLM` | `0` | `1` = parse with a template Claude wrote for that tool (regexes, or a small boxed Python parser for records that span lines; stored in the store's `llm-templates/`, or shipped), before a generic parse is trusted or a capture held; with no fitting template and an API key, ask Claude to write one. Writing one sends the capture to the Anthropic API, once per tool; lines a template sets aside that still carry a word or a number (titles, version banners, summary counts, errors) are filed beside its datasets as `NAME.notes`, never dropped; later captures of the tool are parsed offline, except one that shows a kind of line the template has not met, which (with a key) is sent once with the template's earlier captures so Claude can extend it (repair; kept only if it still reads them) (same as `--llm`) |
 | `PROVOST_LLM_MODEL` | `claude-opus-5-5` | the model that writes templates |
 | `PROVOST_LLM_API_KEY` | — | Anthropic API key for `--llm` (else `ANTHROPIC_API_KEY`; prefer this one where `ANTHROPIC_API_KEY` is taken, e.g. in a Claude Code environment, which keeps that name for its own sign-in) |

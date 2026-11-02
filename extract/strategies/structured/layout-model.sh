@@ -26,7 +26,7 @@ strategy_detect () {
     local text="$1"
     _STRATEGY_CONFIDENCE=0
     [[ "${_OPT_strategy:-}" == layout-model ]] || return 1
-    command -v python3 >/dev/null 2>&1 || return 1
+    command -v "${PROVOST_PYTHON:-python3}" >/dev/null 2>&1 || return 1
     [[ -f "$(_lm_script)" ]] || return 1
     [[ "$text" == *[![:space:]]* ]] || return 1
     # 60: above the commit threshold (50), below every format parser; the
@@ -46,5 +46,5 @@ strategy_extract () {
         cat "$PROVOST_LM_RECORDS"
         return 0
     fi
-    printf '%s\n' "$text" | python3 "$(_lm_script)" - 2>/dev/null
+    printf '%s\n' "$text" | "${PROVOST_PYTHON:-python3}" "$(_lm_script)" - 2>/dev/null
 }

@@ -507,10 +507,18 @@ the model that answered, its token usage), to add up what \fB--llm\fR cost.
 Maximum input bytes, for injection and \fBrun\fR output (default: 10485760).
 .TP
 .B PROVOST_LAYOUT_LM
-With \fB--model\fR, label lines with the tiny pretrained language model saved
-in this directory (trained by \fIml/train_lm.py\fR; needs \fBtorch\fR,
-\fBtransformers\fR and \fBpeft\fR) instead of the shipped trees. Without
-those packages or the model, the trees label as before.
+With \fB--model\fR, label lines with the tiny pretrained language model in
+this directory instead of the shipped trees. Unset, the model of the
+installed \fBprovost-model\fR package is used (\fBpip install provost[lm]\fR;
+it needs \fBnumpy\fR). \fB0\fR keeps the trees. A directory
+\fIml/export_lm.py\fR wrote needs \fBnumpy\fR; one \fIml/train_lm.py\fR saved
+needs \fBtorch\fR, \fBtransformers\fR and \fBpeft\fR. Without them or the
+model, the trees label as before.
+.TP
+.B PROVOST_PYTHON
+The \fBpython3\fR that runs the layout model (default: \fBpython3\fR on the
+\fBPATH\fR). The \fBpip\fR launcher sets it to the interpreter it runs under,
+so a \fBprovost-model\fR package installed beside provost is found.
 .TP
 .B PROVOST_FILES_MAX_SIZE
 In a controlled directory, the largest file (bytes) committed with each run
