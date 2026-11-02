@@ -18,11 +18,13 @@ the quality gate would otherwise hold (PROVOST_MODEL=1); the engine then
 measures the result with the same coverage and consistency checks as every
 other parser.
 
-PROVOST_LAYOUT_LM=DIR labels with the tiny pretrained language model instead
-(lm_runtime.py; trained by ml/train_lm.py, needs torch, transformers and
-peft). The arbiter is left out then: it was fitted to the trees'
-probabilities. Without those packages, or with no model in DIR, the trees
-label as before.
+The tiny pretrained language model labels instead (lm_runtime.py) when
+PROVOST_LAYOUT_LM names its directory, or, unset, when the provost-model
+package is installed (its numpy export, lm_numpy.py; ml/train_lm.py saves
+need torch, transformers and peft). PROVOST_LAYOUT_LM=0 keeps the trees.
+The arbiter is left out with the LM: it was fitted to the trees'
+probabilities. Without the packages a model needs, or with no model where
+named, the trees label as before.
 
 Exit status: 0 with records on stdout; 1 when nothing usable was found;
 3 when the input is too large to label here (MAX_LINES).
@@ -112,10 +114,17 @@ def label_lm(lm, lines):
 
 
 def load_lm(env=os.environ):
-    """The tiny LM named by PROVOST_LAYOUT_LM, or None (the trees label)."""
+    """The tiny LM in the directory PROVOST_LAYOUT_LM names, else the
+    installed provost-model package's, or None (the trees label)."""
     path = env.get("PROVOST_LAYOUT_LM", "")
-    if not path:
+    if path == "0":
         return None
+    if not path:
+        try:
+            import provost_model
+        except ImportError:
+            return None
+        path = provost_model.MODEL_DIR
     import lm_runtime
     return lm_runtime.load(path)
 

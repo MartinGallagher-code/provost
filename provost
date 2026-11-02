@@ -1093,9 +1093,9 @@ _layout_model () {
 # Works on _ingest's locals like _auto_multi; fills ds_* and am_cov/am_kind.
 _model_multi () {
     local segd="$tmp/lmseg" i f n=0 dstrat dconf dcov dcons dlines tot=0 sub=0 covl=0 alll jcov need
-    command -v python3 >/dev/null 2>&1 || { mm_note="python3 is not installed"; return 1; }
+    command -v "${PROVOST_PYTHON:-python3}" >/dev/null 2>&1 || { mm_note="python3 is not installed"; return 1; }
     rm -rf "$segd"; mkdir -p "$segd"
-    python3 "$PROVOST_ROOT/extract/model/layout_model.py" "$body" --segments "$segd" >/dev/null 2>&1 \
+    "${PROVOST_PYTHON:-python3}" "$PROVOST_ROOT/extract/model/layout_model.py" "$body" --segments "$segd" >/dev/null 2>&1 \
         || { mm_note="it finds no two sections it can read"; return 1; }
     while [[ -f "$segd/seg.$((n + 1)).txt" ]]; do n=$((n + 1)); done
     local -a an=() as=() ac=() af=() acv=() acs=()
@@ -3927,8 +3927,11 @@ SETTINGS (environment)
     PROVOST_MODEL             1 = try the learned layout model (as --model;
                               needs python3)
     PROVOST_LAYOUT_LM         with --model, label with the tiny pretrained LM
-                              saved in this directory (ml/train_lm.py; needs
-                              torch, transformers, peft), not the trees
+                              in this directory, not the trees; unset, the
+                              installed provost-model package (pip install
+                              provost[lm]); 0 = the trees only
+    PROVOST_PYTHON            the python3 that runs the layout model (the
+                              pip launcher sets it to its own)
     PROVOST_LLM               1 = use / have Claude write a template (as --llm)
     PROVOST_LLM_MODEL         the model that writes templates (default:
                               claude-opus-5-5)

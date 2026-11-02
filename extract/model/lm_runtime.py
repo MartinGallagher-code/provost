@@ -6,10 +6,15 @@
     lm = LMR.load(path)                 # None when torch/transformers/peft or the model is missing
     roles, probs = LMR.run(lm, lines)   # per line: role, {candidate: p} or None
 
-A model directory holds config.json (the base model's name, the LoRA rank)
-and weights.pt (the adapter and the two heads). The base model comes from the
-Hugging Face cache, downloaded on first use. All of this is optional: the
-trees (layout-model.json.gz) need nothing but python3.
+A model directory is one of two kinds:
+- what ml/train_lm.py saves: config.json (the base model's name, the LoRA
+  rank) and weights.pt (the adapter and the two heads). It needs torch,
+  transformers and peft, and the base model comes from the Hugging Face
+  cache, downloaded on first use.
+- what ml/export_lm.py writes from one: the whole model at 8 bits, run by
+  lm_numpy.py on numpy alone. load and run hand those over to it.
+All of this is optional: the trees (layout-model.json.gz) need nothing but
+python3.
 
 The encoding lives here, not in ml/, so training and capture time share it,
 as they share layout.py and decode.py: the capture is echoed (capture,
@@ -34,6 +39,7 @@ SEP = "\n=====\n"        # between the two copies
 MAX_TOK = 640           # tokens per copy of a window (lines are kept whole)
 MAX_LINE = 400          # characters of a line the model sees; later candidates score 0
 LORA_TARGETS = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+NUMPY_FORMAT = "provost-lm-numpy/1"   # config.json "format" of an export_lm.py model
 
 
 # -- encoding ----------------------------------------------------------------
@@ -208,10 +214,23 @@ def available():
     return True
 
 
+def is_numpy_dir(path):
+    """True when path holds a model ml/export_lm.py wrote (lm_numpy runs it)."""
+    try:
+        with open(os.path.join(path, "config.json"), encoding="utf-8") as fh:
+            return json.load(fh).get("format") == NUMPY_FORMAT
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
 def load_model(path):
-    """(model, encoder) from a train_lm.py --save directory; raises if it can't."""
+    """(model, encoder) from a train_lm.py --save directory, or an
+    export_lm.py one (numpy); raises if it can't."""
     with open(os.path.join(path, "config.json"), encoding="utf-8") as fh:
         cfg = json.load(fh)
+    if is_numpy_dir(path):
+        import lm_numpy
+        return lm_numpy.load(path)
     model, tok = build(cfg.get("base", BASE), cfg.get("lora", 16), cfg.get("full", False),
                        layers=cfg.get("layers", 0))
     model.load_state_dict(torch.load(os.path.join(path, "weights.pt"), map_location="cpu"), strict=False)
@@ -222,7 +241,9 @@ def load_model(path):
 
 def load(path):
     """load_model, or None when the runtime or the model is missing."""
-    if not path or not os.path.isfile(os.path.join(path, "weights.pt")) or not available():
+    if not path:
+        return None
+    if not is_numpy_dir(path) and (not os.path.isfile(os.path.join(path, "weights.pt")) or not available()):
         return None
     try:
         return load_model(path)
@@ -234,6 +255,9 @@ def run(lm, lines):
     """(roles, probs): a role per line ("blank" by rule) and, per line with
     field-start candidates, {candidate offset: p} (0.0 past MAX_LINE)."""
     model, enc = lm
+    if getattr(model, "numpy", False):
+        import lm_numpy
+        return lm_numpy.run(lm, lines)
     model.eval()
     dev = next(model.parameters()).device
     roles = ["blank" if is_blank(ln) else None for ln in lines]

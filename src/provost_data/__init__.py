@@ -49,4 +49,7 @@ def main(argv=None):
     if bash is None:
         print("provost: bash is required but was not found on PATH", file=sys.stderr)
         return EXIT_NO_BASH
+    # the layout model runs under this interpreter, the one pip installed
+    # provost (and any provost-model package) into
+    os.environ.setdefault("PROVOST_PYTHON", sys.executable)
     os.execv(bash, [bash, script] + list(argv))
