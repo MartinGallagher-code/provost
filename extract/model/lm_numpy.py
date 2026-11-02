@@ -9,7 +9,7 @@
 ml/export_lm.py turns a trained model (ml/train_lm.py --save) into a model
 directory: the LoRA adapter merged into the base model's weights, the
 transformer layers it kept, and its two heads, stored at 8 bits (the
-vocabulary table at 4) in weights-N.npz shards. It also writes config.json,
+vocabulary table at 8 or 4) in weights-N.npz shards. It also writes config.json,
 and tokenizer.json, which bpe.py reads. This is the same Llama forward pass
 transformers runs (RMSNorm, rotary positions, grouped-query attention, a
 SiLU-gated MLP), in float32, one window at a time.
@@ -21,10 +21,10 @@ import os
 import numpy as np
 
 import bpe
-import lm_runtime as LMR
+import lm_encode as LME
 from layout import PREDICTED, candidates, is_blank
 
-FORMAT = LMR.NUMPY_FORMAT
+FORMAT = LME.NUMPY_FORMAT
 
 
 def dequant8(q, s):
@@ -32,12 +32,20 @@ def dequant8(q, s):
     return (q.astype(np.float32) * s.astype(np.float32)[:, None]).T.copy()
 
 
-def matrix(w, name):
-    """A linear layer's weight as (in, out): stored at 8 bits (name.q, name.s)
-    or, for checking an export, as float (name.w, torch's (out, in))."""
-    if name + ".w" in w:
-        return w[name + ".w"].astype(np.float32).T.copy()
-    return dequant8(w[name + ".q"], w[name + ".s"])
+class Linear:
+    """layer(x) = x @ W.T for one linear layer, W as torch's (out, in). At 8 bits it
+    stays int8 in memory (a quarter of float32) and is widened for each
+    product; the row scales apply to the product's columns instead."""
+
+    def __init__(self, w, name):
+        if name + ".w" in w:                       # float, for checking an export
+            self.w, self.s = w[name + ".w"].astype(np.float32), None
+        else:
+            self.w, self.s = w[name + ".q"], w[name + ".s"].astype(np.float32)
+
+    def __call__(self, x):
+        y = x @ self.w.astype(np.float32, copy=False).T
+        return y if self.s is None else y * self.s
 
 
 def dequant4_rows(packed, s, rows):
@@ -82,7 +90,7 @@ class NumpyLM:
             self.layers.append({
                 "in": w[p + "in_norm"].astype(np.float32),
                 "post": w[p + "post_norm"].astype(np.float32),
-                **{k: matrix(w, p + k) for k in ("q", "k", "v", "o", "gate", "up", "down")},
+                **{k: Linear(w, p + k) for k in ("q", "k", "v", "o", "gate", "up", "down")},
             })
         self.norm = w["norm"].astype(np.float32)
         self.heads = {k: [w[f"{k}.{j}"].astype(np.float32) for j in ("w0", "b0", "w1", "b1")]
@@ -122,9 +130,9 @@ class NumpyLM:
         rep = self.nh // self.nkv
         for L in self.layers:
             a = self._norm(x, L["in"])
-            q = (a @ L["q"]).reshape(t, self.nh, self.hd).transpose(1, 0, 2)
-            k = (a @ L["k"]).reshape(t, self.nkv, self.hd).transpose(1, 0, 2)
-            v = (a @ L["v"]).reshape(t, self.nkv, self.hd).transpose(1, 0, 2)
+            q = L["q"](a).reshape(t, self.nh, self.hd).transpose(1, 0, 2)
+            k = L["k"](a).reshape(t, self.nkv, self.hd).transpose(1, 0, 2)
+            v = L["v"](a).reshape(t, self.nkv, self.hd).transpose(1, 0, 2)
             q = self._rotate(q, cos, sin)
             k = np.repeat(self._rotate(k, cos, sin), rep, axis=0)
             v = np.repeat(v, rep, axis=0)
@@ -132,10 +140,10 @@ class NumpyLM:
             s = np.exp(s - s.max(axis=-1, keepdims=True))
             s /= s.sum(axis=-1, keepdims=True)
             o = (s @ v).transpose(1, 0, 2).reshape(t, self.nh * self.hd)
-            x = x + o @ L["o"]
+            x = x + L["o"](o)
             m = self._norm(x, L["post"])
-            g = m @ L["gate"]
-            x = x + ((g / (1.0 + np.exp(-g))) * (m @ L["up"])) @ L["down"]
+            g = L["gate"](m)
+            x = x + L["down"]((g / (1.0 + np.exp(-g))) * L["up"](m))
         return self._norm(x, self.norm)
 
     def head(self, name, h):
@@ -156,7 +164,7 @@ def load(path):
         with np.load(os.path.join(path, shard), allow_pickle=False) as z:
             w.update({k: z[k] for k in z.files})
     tok = bpe.Tokenizer.load(os.path.join(path, "tokenizer.json"))
-    return NumpyLM(cfg, w), LMR.Encoder(tok, cfg["bos"], cfg["max_tok"])
+    return NumpyLM(cfg, w), LME.Encoder(tok, cfg["bos"], cfg["max_tok"])
 
 
 def run(lm, lines):
@@ -168,7 +176,7 @@ def run(lm, lines):
         cs = candidates(ln)
         if cs:
             probs[j] = {c: 0.0 for c in cs}
-    for it in LMR.items(enc, {"lines": lines}, with_targets=False):
+    for it in LME.items(enc, {"lines": lines}, with_targets=False):
         h = model.hidden(it["ids"])
         if it["cpos"]:
             z = model.head("start", h[it["cpos"]])[:, 0]

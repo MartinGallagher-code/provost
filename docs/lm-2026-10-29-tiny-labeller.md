@@ -270,6 +270,52 @@ and 39/48. Rerunning on the iMac reproduced its scores exactly.
   section). Across round 4's 107 captures it rates the same as the 30-layer
   `lm-all`. This capture is a one-off, not a pattern.
 
+## Shipping it without torch (2026-11-02)
+
+`pip install provost[lm]` installs the 18-layer model as the `provost-model`
+package and runs it with numpy alone. There is no torch, transformers or
+GPU, and the weights stay out of this repository.
+
+**The pieces:**
+- **`ml/export_lm.py`:** merges the LoRA adapter into the base weights and
+  keeps the 18 layers.
+  - Each linear layer and the vocabulary table are stored at 8 bits, one
+    scale per row; the norms and the two heads stay float.
+  - That makes three `.npz` shards, 95 MB, and an 85 MB wheel, under PyPI's
+    100 MB limit.
+- **`extract/model/lm_numpy.py`:** the same Llama forward pass on numpy
+  (RMSNorm, rotary positions, grouped-query attention, the SiLU-gated MLP).
+  - The weights stay at 8 bits in memory; each matrix is widened just
+    before its product.
+  - Peak memory is 282 MB, and the load takes 0.5 s.
+- **`extract/model/bpe.py`:** the tokenizer in plain Python. Its ids are
+  identical to transformers' on every piece of the corpus.
+  - It is the tokenizer as transformers loads it, a GPT2Tokenizer. The
+    Hub's `tokenizer.json` also lists a Digits step that transformers does
+    not apply, so the export writes the tokenizer from transformers.
+
+**How faithful it is:**
+
+| check | torch | 8-bit numpy |
+|---|---:|---:|
+| fold 0, 30 layers, held out (split, gold) | 0.863, 39/48 | 0.863, 39/48 |
+| round 4, 18 layers, whole captures (rated blind) | 5 / 30 / 72 | 5 / 30 / 72 |
+| round 4, the 18 gate-held captures | 0 / 2 / 16 | 0 / 2 / 16 |
+
+- **How round 4 was rated:** 84 of the 107 outputs are byte-identical to
+  torch's. The other 23 were rated blind and every one rated as torch's
+  did. A single changed decision can reshape a whole capture's output, but
+  not, here, its rating.
+- **The 4-bit table:**
+  - It is 13 MB smaller and scored 0.865 on fold 0.
+  - But only 65 of 107 round-4 outputs stayed identical, and its largest
+    probability gap was 0.42 against 0.08.
+  - So 8 bits is the default; `--embed 4` keeps the option.
+
+**Speed:** about 1.7 times torch's time per capture on 4 cores (0.6 s
+against 0.35 s on corpus captures). It runs only on captures the gate would
+otherwise hold.
+
 ## Whole captures: round 4, blind-rated
 
 Round 4 is the held-out benchmark: 107 captures the engine was never tuned

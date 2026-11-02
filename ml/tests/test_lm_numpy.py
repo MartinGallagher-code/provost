@@ -10,6 +10,7 @@ pass is also checked against transformers' Llama on the same weights.
 """
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -147,6 +148,13 @@ class Numpy(unittest.TestCase):
             self.assertTrue(all(r in PREDICTED or r == "blank" for r in roles))
             self.assertEqual(sorted(probs[0]), candidates(lines[0]))
             self.assertTrue(all(0.0 <= p <= 1.0 for p in probs[0].values()))
+
+    def test_the_numpy_runtime_never_imports_torch(self):
+        here = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "extract", "model")
+        out = subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, sys.argv[1]); "
+                              "import layout_model, lm_numpy, lm_encode, bpe; print('torch' in sys.modules)", here],
+                             capture_output=True, text=True, check=True).stdout.strip()
+        self.assertEqual(out, "False")
 
     def test_a_missing_or_foreign_directory_declines(self):
         with tempfile.TemporaryDirectory() as d:

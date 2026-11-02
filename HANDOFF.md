@@ -95,7 +95,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (491)
+- `tests/smoke.sh` (495)
 - `transform/tests/test_melt.sh` (60)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -105,6 +105,36 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0r. **2026-11-02: the tiny LM ships without torch**
+    (`pip install provost[lm]`). The 18-layer model is exported to 8-bit numpy
+    arrays (`ml/export_lm.py`) and run by `extract/model/lm_numpy.py` with a
+    pure-Python tokenizer (`bpe.py`).
+    - **The weights** live in their own repository and package,
+      `MartinGallagher-code/provost_model`: `provost-model` 0.1.0, 85 MB,
+      Apache-2.0. It is pushed to that repository's main and builds and
+      checks for PyPI. Registering and publishing it on PyPI is the user's
+      to do.
+    - **Faithfulness:** on round 4 the 8-bit model rates exactly like torch
+      (5 / 30 / 72; 84 of 107 outputs byte-identical, the other 23 rated
+      blind to the same ratings). On fold 0 the export scores 0.863 like
+      torch.
+    - **Cost:** 282 MB peak memory, a 0.5 s load, no torch import. About 1.7
+      times torch's time per capture on 4 CPU cores (round 4: 14.5 min for
+      107 captures).
+    - **Discovery:** with `PROVOST_LAYOUT_LM` unset, an installed
+      `provost-model` is used; `0` keeps the trees. `PROVOST_PYTHON` is set
+      by the pip launcher so the package is found.
+    - **Next:**
+      1. publish `provost-model` 0.1.0 to PyPI (the user), then release
+         provost with the `lm` extra;
+      2. a new model means: train (`ml/train_lm.py`), export
+         (`ml/export_lm.py --model DIR --out
+         ../provost_model/src/provost_model/model --check 200`), bump
+         `provost_model/__init__.py`'s `__version__` and its CHANGELOG,
+         build, publish;
+      3. `--embed 4` saves 13 MB but moves 19 more round-4 outputs; a
+         vocabulary cut is the bigger saving if size ever matters.
 
 0q. **2026-10-29/30: a tiny pretrained LM as the layout labeller, on a CPU**
     (PR #90; `ml/train_lm.py`, `extract/model/lm_runtime.py`,
@@ -170,10 +200,7 @@ Suites (all CI-enforced):
            round 3's `cmake-cache-advanced-help` is a one-off.
          - Optionally retrain it with `--no-val`, for the other 403
            captures (14 min on the iMac).
-         - cut the vocabulary (the 49k × 576 embedding is 28M weights) to
-           the tokens the corpus uses, for about 70M weights, about 70 MB
-           at 8 bits;
-         - a numpy runtime, so provost could ship it without torch.
+         - Shipping it without torch is done: see 0r.
       4. **Whole captures are limited by what the model files, not how it
          reads lines.** Round 4 with `lm-all` (2026-10-30) rated 5 / 31 / 71
          against fold 0's 7 / 30 / 70, and 0 / 2 / 16 on the gate-held 18

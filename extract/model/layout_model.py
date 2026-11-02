@@ -104,9 +104,13 @@ def label(model, lines):
 
 
 def label_lm(lm, lines):
-    """label() with the tiny LM (lm_runtime.run): the same three answers."""
-    import lm_runtime
-    roles, probs = lm_runtime.run(lm, lines)
+    """label() with the tiny LM (lm_numpy.run or lm_runtime.run): the same
+    three answers."""
+    if getattr(lm[0], "numpy", False):
+        import lm_numpy as runtime            # never imports torch
+    else:
+        import lm_runtime as runtime
+    roles, probs = runtime.run(lm, lines)
     starts = [None if p is None else sorted(i for i, q in p.items() if q > 0.5) for p in probs]
     for j, st in decode(lines, roles, probs).items():
         starts[j] = st
@@ -125,6 +129,13 @@ def load_lm(env=os.environ):
         except ImportError:
             return None
         path = provost_model.MODEL_DIR
+    import lm_encode
+    if lm_encode.is_numpy_dir(path):
+        try:
+            import lm_numpy
+            return lm_numpy.load(path)
+        except Exception:  # noqa: BLE001 -- no numpy, or a broken model: the trees label
+            return None
     import lm_runtime
     return lm_runtime.load(path)
 

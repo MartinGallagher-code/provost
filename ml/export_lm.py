@@ -7,9 +7,12 @@
     python3 ml/export_lm.py --model DIR --out OUT --check 200   # and compare with torch
 
 The LoRA adapter is merged into the base model's weights; only the layers the
-model kept are written. Each linear layer is stored at 8 bits, one scale per
-output row; the vocabulary table at 4 bits, one scale per row and group of 64
-columns (--embed 8 keeps it at 8); the norms and the two heads stay float.
+model kept are written. Each linear layer and the vocabulary table are stored
+at 8 bits, one scale per row; the norms and the two heads stay float.
+--embed 4 stores the vocabulary table at 4 bits (one scale per row and group
+of 64 columns), 13 MB smaller at 18 layers, but it moves the model further
+from torch: on round 4, 65 of 107 whole-capture outputs stay identical
+against 84 at 8 bits.
 Shards (weights-N.npz) are cut under --shard-mb. tokenizer.json is the
 tokenizer as transformers loads it, which extract/model/bpe.py reads.
 
@@ -112,7 +115,7 @@ def write(out_dir, ts, cfg, tok_json, shard_mb):
     return names
 
 
-def export(model_dir, out_dir, quant="int8", embed_bits=4, shard_mb=45):
+def export(model_dir, out_dir, quant="int8", embed_bits=8, shard_mb=45):
     from transformers import AutoTokenizer
     model, _ = LMR.load_model(model_dir)
     meta = dict(model.meta)
@@ -170,7 +173,7 @@ def main(argv=None):
     ap.add_argument("--model", required=True, help="a train_lm.py --save directory")
     ap.add_argument("--out", required=True)
     ap.add_argument("--quant", choices=["int8", "fp32"], default="int8")
-    ap.add_argument("--embed", type=int, choices=[4, 8], default=4, help="bits for the vocabulary table")
+    ap.add_argument("--embed", type=int, choices=[4, 8], default=8, help="bits for the vocabulary table")
     ap.add_argument("--shard-mb", type=float, default=45)
     ap.add_argument("--check", type=int, default=0, metavar="N", help="compare with torch on N captures")
     a = ap.parse_args(argv)

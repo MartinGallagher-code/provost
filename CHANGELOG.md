@@ -1,5 +1,64 @@
 # provost — Changelog
 
+## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
+
+`pip install provost[lm]` gives `--model` the 18-layer tiny LM, run with
+numpy alone. The weights live in their own package and repository
+([provost_model](https://github.com/MartinGallagher-code/provost_model),
+85 MB, Apache-2.0), not in this repository.
+
+- **`extract/model/bpe.py`:** SmolLM2's byte-level BPE tokenizer in plain
+  Python (the GPT-2 pattern over `unicodedata` classes). It gives ids
+  identical to transformers on every piece of the corpus and on 20,000 random
+  strings.
+- **`extract/model/lm_numpy.py`:** the Llama forward pass and the two heads
+  on numpy.
+  - It matches transformers to 1e-4 on the same weights; an exported float
+    model makes every decision torch does.
+  - Weights stay at 8 bits in memory and are widened one matrix at a time.
+    Peak memory is 282 MB, the load takes 0.5 s, and torch is never
+    imported.
+- **`extract/model/lm_encode.py`:** the echo encoding, moved out of
+  `lm_runtime.py` (which re-exports it) so the numpy path is stdlib plus
+  numpy.
+- **`ml/export_lm.py`:** merges the LoRA adapter and keeps the trained
+  layers. Linear layers and the vocabulary table are stored at 8 bits with
+  one scale per row, in `.npz` shards under 45 MB. `--check N` compares
+  with torch; `--embed 4` gives a 4-bit table.
+- **How faithful the 8-bit model is:**
+  - **Held out on fold 0,** the 30-layer model exported this way scores
+    0.863 and 39/48 gold, the same as torch (0.863, 39/48). A 4-bit
+    vocabulary table scored 0.865 (41/48).
+  - **On round 4,** the 18-layer model's outputs are byte-identical to
+    torch's on 84 of 107 captures; the 4-bit table manages 65 of 107.
+  - **Rated blind,** the 23 that differ rate the same as torch's, so the
+    total is the same: 5 / 30 / 72, and 0 / 2 / 16 on the gate-held 18.
+- **Finding the model:**
+  - with `PROVOST_LAYOUT_LM` unset, `layout_model.load_lm` uses an installed
+    `provost-model`;
+  - `PROVOST_LAYOUT_LM=0` keeps the trees;
+  - a directory `export_lm.py` wrote runs on numpy, one `train_lm.py` saved
+    on torch.
+- **`PROVOST_PYTHON`:** the interpreter that runs the layout model
+  (`provost`, `layout-model.sh`). The pip launcher sets it to its own, so a
+  `provost-model` installed beside provost is found.
+- **`pyproject.toml`:**
+  - the `lm` extra (`numpy`, `provost-model`);
+  - the wheel ships `bpe.py`, `lm_encode.py` and `lm_numpy.py`.
+- **Checked from wheels in a fresh venv:**
+  - `pip install provost[lm]` resolves both packages;
+  - `provost --model` labels with the package's model;
+  - `PROVOST_LAYOUT_LM=0` gets the trees back.
+- **Tests:**
+  - `ml/tests/test_lm_numpy.py` (10: the tokenizer, quantizers, export
+    layout, causality, against transformers' Llama, no torch import);
+  - smoke +2 (`PROVOST_LAYOUT_LM=0`, a missing `PROVOST_PYTHON`), +2 for the
+    new setting in help and the man page: 495;
+  - launcher +1;
+  - CI's python-package job installs numpy and runs the numpy tests.
+- **Documented:** README (`provost[lm]`, the two settings), `help advanced`,
+  the man page, `ml/README.md`, `docs/lm-2026-10-29-tiny-labeller.md`.
+
 ## 2026-10-31 — The 18-layer tiny LM on round 4: the same as 30 layers
 
 `lm-all-l18` (the user's final model: 18 of 30 layers, every fold, a 14.5 MB
