@@ -3585,7 +3585,9 @@ _rm_cap_commit () {
     # The lock is this child's while it works: should the shell that took it
     # die first, the lock stays live (its owner, this pid, is running) and no
     # other provost writes beside it. _rm_cap_exit hands it back.
-    _rm_cap_owner
+    # not ours any more (broken as stale and taken by another provost):
+    # nothing has changed yet, so stop here
+    _rm_cap_owner || { echo "the store's lock was taken from it (broken as stale) before it changed anything" >&2; exit 3; }
     if ! _rm_cap_apply && ! _rm_cap_landed; then
         tries=0; put=1
         while (( tries < 5 )); do
@@ -3625,11 +3627,12 @@ _rm_cap_landed () {
 # _rm_cap_owner — the child takes the store lock's owner record over, but
 # only while it is still the record of the shell that took the lock
 # ($rmowner): its own pid, and the time now (a long rm does not go stale by
-# age). The record it wrote is $rmchild.
+# age). The record it wrote is $rmchild. Returns 1 if the record is no
+# longer the shell's (the lock was broken and taken meanwhile).
 _rm_cap_owner () {
     local host pid uid t cur="" lock="$PROVOST_WORKSPACE/.lock"
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
-    [[ "$cur" == "$rmowner" ]] || return 0
+    [[ "$cur" == "$rmowner" ]] || return 1
     IFS=$'\t' read -r host pid uid t <<< "$rmowner"
     printf -v rmchild '%s\t%s\t%s\t%s' "$host" "$BASHPID" "$uid" "$(date +%s)"
     printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
@@ -3735,7 +3738,9 @@ _rm_captures () {
     rm -f "$tmpd/tagsfail" "$tmpd/indexstale"
     ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & echo "$!" > "$tmpd/cpid"; wait $! ) 2>/dev/null
     local outcome=$?
-    if (( outcome > 2 )); then
+    if (( outcome == 3 )); then
+        outcome=1
+    elif (( outcome > 2 )); then
         # The child died (a signal aimed at it alone). A git it started may
         # still be running in its group: wait for that (up to a minute), take
         # the lock's record back if the dead child's is still on it, then see
@@ -3748,7 +3753,17 @@ _rm_captures () {
         { IFS= read -r cur < "$PROVOST_WORKSPACE/.lock/owner"; } 2>/dev/null || true
         IFS=$'\t' read -r host pid uid t <<< "$cur"
         [[ -n "$cpid" && "$pid" == "$cpid" ]] && _rm_cap_hand_back "$cur"
-        if _rm_cap_landed; then outcome=0; : > "$tmpd/tagsfail"; : > "$tmpd/indexstale"; else outcome=2; fi
+        if _rm_cap_landed; then
+            outcome=0
+            # what it did not get to: tags still there, an index behind HEAD
+            _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' 2>/dev/null \
+                | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
+                       ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" 2>/dev/null || true
+            [[ -s "$tmpd/refs" ]] && : > "$tmpd/tagsfail"
+            _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1 || : > "$tmpd/indexstale"
+        else
+            outcome=2
+        fi
     fi
     _unlock
     set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
@@ -3764,7 +3779,7 @@ _rm_captures () {
 
     local tagged="Their tags went with them; git"
     if [[ -e "$tmpd/tagsfail" ]]; then
-        local nt more=""; nt=$(wc -l < "$tmpd/refs" 2>/dev/null || echo 0); nt=$((nt + 0))
+        local nt more=""; nt=$( { wc -l < "$tmpd/refs"; } 2>/dev/null || echo 0); nt=$((nt + 0))
         if (( nt > 0 )); then
             (( nt > 8 )) && more=" ($((nt - 8)) more of them: git -C $wsq tag -l 'capture-c*' 'files-c*')"
             warn "deleted, but could not delete their tags: git -C $wsq tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ' | sed 's/ $//')$more"

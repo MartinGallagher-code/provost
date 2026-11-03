@@ -420,6 +420,18 @@ chmod +x "$RCFB8/git"
 PATH="$RCFB8:$PATH" rck rm -f --capture 3 >/dev/null 2>&1 || true
 check "rm --capture leaves another provost's lock alone" "[otherhost	1	0	1]" "[$(cat "$RCWS11/.lock/owner" 2>/dev/null)]"
 rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
+# A lock broken and taken from it before it changed anything (here a stand-in
+# git, at rm's first add, swaps the owner record as another provost would):
+# it stops there, nothing deleted.
+rck run --name t printf 'a b\n9 9\n' >/dev/null 2>&1   # c0005 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = status ] && printf "otherhost\\t1\\t0\\t1\\n" > %q/.lock/owner; done\nexec %q "$@"\n' "$RCWS11" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+taken_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 5 2>&1 || true)"
+check "rm --capture stops when its lock was taken from it" "nothing deleted" "$taken_out"
+check "rm --capture whose lock was taken changed nothing" "yes []" \
+    "$([[ -d "$RCWS11/captures/c0005" ]] && echo yes) [$(git -C "$RCWS11" status --porcelain | tr '\n' '|')]"
+rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
+check_not "rm --capture whose child died after landing prints no raw error" "No such file" "$dead_out"
 # What made it fail is shown, not swallowed.
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
 rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"
