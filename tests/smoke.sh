@@ -434,6 +434,13 @@ check "rm --capture whose lock was taken changed nothing" "yes []" \
     "$([[ -d "$RCWS11/captures/c0005" ]] && echo yes) [$(git -C "$RCWS11" status --porcelain | tr '\n' '|')]"
 rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
 check_not "rm --capture whose child died after landing prints no raw error" "No such file" "$dead_out"
+# A lock-break mutex left behind (a provost interrupted while breaking a
+# stale lock) does not stop rm --capture for good: one over a minute old
+# is cleared, as _lock_break itself would.
+rck run --name t printf 'a b\n6 6\n' >/dev/null 2>&1   # c0006 -> t
+mkdir "$RCWS11/.lock.break"; touch -d '2 hours ago' "$RCWS11/.lock.break" 2>/dev/null || touch -t 200001010000 "$RCWS11/.lock.break"
+check "rm --capture clears an abandoned lock-break mutex" "deleted 1 capture(s) (c0006)" "$(rck rm -f --capture 6 2>&1 || true)"
+check "...and leaves none behind" "no" "$([[ -e "$RCWS11/.lock.break" ]] && echo yes || echo no)"
 # What made it fail is shown, not swallowed.
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
 rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"
