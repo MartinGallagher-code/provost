@@ -393,15 +393,33 @@ RCWS11="$(mktemp -d)/.rmc11"; RCFB8="$(mktemp -d)"
 rck () { PROVOST_WORKSPACE="$RCWS11" "$PROVOST" "$@"; }
 rck run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
 rck run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
-printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && sleep 1.5; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB8/git"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { : > %q/at-commit; sleep 1.5; }; done\nexec %q "$@"\n' "$RCFB8" "$(command -v git)" > "$RCFB8/git"
 chmod +x "$RCFB8/git"
 PATH="$RCFB8:$PATH" PROVOST_WORKSPACE="$RCWS11" "$PROVOST" rm -f --capture 2 >/dev/null 2>&1 &
-rck_pid=$!; sleep 0.7; kill -KILL "$rck_pid" 2>/dev/null || true; wait "$rck_pid" 2>/dev/null || true
+rck_pid=$!
+for _ in $(seq 1 100); do [[ -e "$RCFB8/at-commit" ]] && break; sleep 0.1; done   # kill it in its commit, not before
+kill -KILL "$rck_pid" 2>/dev/null || true; wait "$rck_pid" 2>/dev/null || true
 PROVOST_LOCK_TIMEOUT=10 rck run --name u printf 'x y\n5 6\n' >/dev/null 2>&1
 check "rm --capture whose shell was killed still commits on its own" "[rm: deleted 1 capture(s) [c0002], pruned 1 row(s)]" \
     "[$(git -C "$RCWS11" log -2 --format=%s | tail -n 1)]"
 check "...and the next capture waited for it, its commit its own" "capture c0003" "$(git -C "$RCWS11" log -1 --format=%s)"
 check_not "...which did not take the deletion with it" "captures/c0002" "$(git -C "$RCWS11" show --stat --format= HEAD)"
+# The child killed outright just after its commit landed: done, said so,
+# and the lock released (not left under the dead child's pid).
+rck run --name t printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %q "$@"; kill -KILL $PPID; exit 0; }; done\nexec %q "$@"\n' "$(command -v git)" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+dead_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 4 2>&1 || true)"
+check "rm --capture whose child died after landing says it deleted" "deleted 1 capture(s) (c0004)" "$dead_out"
+check "rm --capture whose child died leaves no lock" "no" "$([[ -e "$RCWS11/.lock" ]] && echo yes || echo no)"
+git -C "$RCWS11" tag -d capture-c0004 >/dev/null 2>&1 || true; rm -f "$RCFB8/git"
+# A lock another provost has taken meanwhile (here: broken as stale by
+# age) is not handed back over nor removed by rm --capture's child.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { printf "otherhost\\t1\\t0\\t1\\n" > %q/.lock/owner; }; done\nexec %q "$@"\n' "$RCWS11" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+PATH="$RCFB8:$PATH" rck rm -f --capture 3 >/dev/null 2>&1 || true
+check "rm --capture leaves another provost's lock alone" "[otherhost	1	0	1]" "[$(cat "$RCWS11/.lock/owner" 2>/dev/null)]"
+rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
 # What made it fail is shown, not swallowed.
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
 rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"

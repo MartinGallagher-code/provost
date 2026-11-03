@@ -3581,11 +3581,11 @@ _rm_cap_apply () {
 # ($tmpd/tagsfail, $tmpd/indexstale mark what did not follow), 1 when put
 # back, 2 when it could not be put back.
 _rm_cap_commit () {
-    local tries put
+    local tries put rmchild=""
     # The lock is this child's while it works: should the shell that took it
     # die first, the lock stays live (its owner, this pid, is running) and no
     # other provost writes beside it. _rm_cap_exit hands it back.
-    _rm_cap_owner "$BASHPID"
+    _rm_cap_owner
     if ! _rm_cap_apply && ! _rm_cap_landed; then
         tries=0; put=1
         while (( tries < 5 )); do
@@ -3622,20 +3622,35 @@ _rm_cap_landed () {
     [[ -n "$h" && "$h" != "$head0" && "$p" == "$head0" && "$m" == "$msg" ]]
 }
 
-# _rm_cap_owner PID — write the store lock's owner record with PID in it
-# (the record _lock wrote, $rmowner, with only its pid field changed).
+# _rm_cap_owner — the child takes the store lock's owner record over, but
+# only while it is still the record of the shell that took the lock
+# ($rmowner): its own pid, and the time now (a long rm does not go stale by
+# age). The record it wrote is $rmchild.
 _rm_cap_owner () {
-    local host pid uid t lock="$PROVOST_WORKSPACE/.lock"
+    local host pid uid t cur="" lock="$PROVOST_WORKSPACE/.lock"
+    { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
+    [[ "$cur" == "$rmowner" ]] || return 0
     IFS=$'\t' read -r host pid uid t <<< "$rmowner"
-    printf '%s\t%s\t%s\t%s\n' "$host" "$1" "$uid" "$t" > "$lock/owner.tmp" 2>/dev/null \
+    printf -v rmchild '%s\t%s\t%s\t%s' "$host" "$BASHPID" "$uid" "$(date +%s)"
+    printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
         && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    return 0
+}
+
+# _rm_cap_hand_back RECORD — write $rmowner back over the owner record, but
+# only while it is still RECORD (never over another provost's lock).
+_rm_cap_hand_back () {
+    local cur="" lock="$PROVOST_WORKSPACE/.lock"
+    [[ -n "$1" ]] || return 0
+    { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
+    [[ "$cur" == "$1" ]] || return 0
+    printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
     return 0
 }
 
 # _rm_cap_exit CODE — hand the lock back to the shell that took it, and exit.
 _rm_cap_exit () {
-    local lock="$PROVOST_WORKSPACE/.lock"
-    printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    _rm_cap_hand_back "$rmchild"
     exit "$1"
 }
 
@@ -3718,10 +3733,21 @@ _rm_captures () {
     trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
     set +e
     rm -f "$tmpd/tagsfail" "$tmpd/indexstale"
-    ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & wait $! ) 2>/dev/null
+    ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & echo "$!" > "$tmpd/cpid"; wait $! ) 2>/dev/null
     local outcome=$?
     if (( outcome > 2 )); then
-        # the child died (a signal aimed at it alone): what does the store say?
+        # The child died (a signal aimed at it alone). A git it started may
+        # still be running in its group: wait for that (up to a minute), take
+        # the lock's record back if the dead child's is still on it, then see
+        # what the store says.
+        local cpid="" w=0 cur="" host pid uid t
+        { IFS= read -r cpid < "$tmpd/cpid"; } 2>/dev/null || true
+        if [[ -n "$cpid" ]]; then
+            while kill -0 -- "-$cpid" 2>/dev/null && (( w < 600 )); do sleep 0.1; w=$((w + 1)); done
+        fi
+        { IFS= read -r cur < "$PROVOST_WORKSPACE/.lock/owner"; } 2>/dev/null || true
+        IFS=$'\t' read -r host pid uid t <<< "$cur"
+        [[ -n "$cpid" && "$pid" == "$cpid" ]] && _rm_cap_hand_back "$cur"
         if _rm_cap_landed; then outcome=0; : > "$tmpd/tagsfail"; : > "$tmpd/indexstale"; else outcome=2; fi
     fi
     _unlock

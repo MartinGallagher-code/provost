@@ -53,9 +53,13 @@ other runs' answers.
   held-down Ctrl-C (INT to the group every 5 ms, from anywhere in the run)
   150 runs ended committed or unchanged and none in between, where the
   same code without its own process group left 14 of 75 half-applied.
-  The child holds the store's lock as its own while it works, so if the
-  shell that took it is killed the lock stays live until the child is
-  done, and hands it back at the end. What made it fail is shown. Tags go only once the
+  The child holds the store's lock as its own while it works (taking the
+  owner record over only while it is still its shell's, and handing it
+  back only while it is still its own, so another provost's lock is never
+  overwritten), so if the shell that took it is killed the lock stays live
+  until the child is done. A child killed on its own is waited for (its
+  git may still be running), its record taken back, and the outcome read
+  from HEAD. What made it fail is shown. Tags go only once the
   commit has landed, and if they cannot go it says so. The
   scratch directory goes on any exit. The datasets and rows are found again
   under the lock, so one deleted while it waited at the prompt is skipped,
@@ -67,7 +71,7 @@ other runs' answers.
   `_rm_cap_apply`, `_rm_cap_commit`, `rm --help`, `help advanced`;
   `_release_lock_dir` reads the lock's owner with `read`, not `$(cat)`, so
   a Ctrl-C cannot leave a lock it was releasing), `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +72): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +75): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;
   provenance against a reconciled capture column; no provenance; no final
@@ -76,7 +80,9 @@ other runs' answers.
   so, the lock released, no scratch dir, a Ctrl-C to the group during the
   put-back, a put-back retried, a commit that landed, a commit killed
   after landing, another git holding the index, a Ctrl-C while the tags
-  go, the shell killed outright mid-commit, the cause of a failure shown),
+  go, the shell killed outright mid-commit, the child killed after
+  landing, another provost's lock left alone, the cause of a failure
+  shown),
   its `files-<id>` tag, untracked and
   hidden-untracked files refused, other uncommitted and staged files left
   alone, a dataset that
