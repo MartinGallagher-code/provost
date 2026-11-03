@@ -3587,7 +3587,7 @@ _rm_cap_commit () {
     # other provost writes beside it. _rm_cap_exit hands it back.
     # not ours any more (broken as stale and taken by another provost):
     # nothing has changed yet, so stop here
-    _rm_cap_owner || { echo "the store's lock was taken from it (broken as stale) before it changed anything" >&2; exit 3; }
+    _rm_cap_owner || exit 3
     if ! _rm_cap_apply && ! _rm_cap_landed; then
         tries=0; put=1
         while (( tries < 5 )); do
@@ -3630,24 +3630,37 @@ _rm_cap_landed () {
 # age). The record it wrote is $rmchild. Returns 1 if the record is no
 # longer the shell's (the lock was broken and taken meanwhile).
 _rm_cap_owner () {
-    local host pid uid t cur="" lock="$PROVOST_WORKSPACE/.lock"
+    local host pid uid t now cur="" lock="$PROVOST_WORKSPACE/.lock" rc=1
+    now="$(date +%s)"
+    # under _lock_break's own mutex: no break can fall between the compare
+    # and the write (a breaker re-checks staleness holding it)
+    mkdir "$lock.break" 2>/dev/null || return 1
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
-    [[ "$cur" == "$rmowner" ]] || return 1
-    IFS=$'\t' read -r host pid uid t <<< "$rmowner"
-    printf -v rmchild '%s\t%s\t%s\t%s' "$host" "$BASHPID" "$uid" "$(date +%s)"
-    printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
-        && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
-    return 0
+    if [[ "$cur" == "$rmowner" ]]; then
+        IFS=$'\t' read -r host pid uid t <<< "$rmowner"
+        printf -v rmchild '%s\t%s\t%s\t%s' "$host" "$BASHPID" "$uid" "$now"
+        printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
+            && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null && rc=0
+    fi
+    rmdir "$lock.break" 2>/dev/null || true
+    return $rc
 }
 
 # _rm_cap_hand_back RECORD — write $rmowner back over the owner record, but
 # only while it is still RECORD (never over another provost's lock).
 _rm_cap_hand_back () {
-    local cur="" lock="$PROVOST_WORKSPACE/.lock"
+    local cur="" lock="$PROVOST_WORKSPACE/.lock" w=0
     [[ -n "$1" ]] || return 0
+    # under _lock_break's mutex, as the claim; if it cannot be had the record
+    # stays as it is (a dead owner's lock is broken as stale in time)
+    until mkdir "$lock.break" 2>/dev/null; do
+        w=$((w + 1)); (( w < 20 )) || return 0; sleep 0.1
+    done
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
-    [[ "$cur" == "$1" ]] || return 0
-    printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    if [[ "$cur" == "$1" ]]; then
+        printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    fi
+    rmdir "$lock.break" 2>/dev/null || true
     return 0
 }
 
@@ -3739,7 +3752,8 @@ _rm_captures () {
     ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & echo "$!" > "$tmpd/cpid"; wait $! ) 2>/dev/null
     local outcome=$?
     if (( outcome == 3 )); then
-        outcome=1
+        _unlock; set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
+        die "the store's lock was no longer this rm's when it came to change the store (removed by hand, or broken as stale and taken) — nothing deleted; run it again."
     elif (( outcome > 2 )); then
         # The child died (a signal aimed at it alone). A git it started may
         # still be running in its group: wait for that (up to a minute), take
@@ -3756,10 +3770,13 @@ _rm_captures () {
         if _rm_cap_landed; then
             outcome=0
             # what it did not get to: tags still there, an index behind HEAD
-            _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' 2>/dev/null \
-                | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
-                       ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" 2>/dev/null || true
-            [[ -s "$tmpd/refs" ]] && : > "$tmpd/tagsfail"
+            if _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' > "$tmpd/allrefs" 2>/dev/null \
+                && awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
+                        ($1 in del) { print "delete " $1 }' "$tmpd/ids" "$tmpd/allrefs" > "$tmpd/refs" 2>/dev/null; then
+                [[ -s "$tmpd/refs" ]] && : > "$tmpd/tagsfail"
+            else
+                : > "$tmpd/refs"; : > "$tmpd/tagsfail"
+            fi
             _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1 || : > "$tmpd/indexstale"
         else
             outcome=2

@@ -56,8 +56,10 @@ other runs' answers.
   The child holds the store's lock as its own while it works (taking the
   owner record over only while it is still its shell's, and handing it
   back only while it is still its own, so another provost's lock is never
-  overwritten; if the lock was taken from it before it changed anything,
-  it stops there, nothing deleted), so if the shell that took it is killed the lock stays live
+  overwritten; both under the lock-break mutex, so a stale-lock break
+  cannot fall between the compare and the write; if the lock was taken
+  from it before it changed anything, it stops there, nothing deleted),
+  so if the shell that took it is killed the lock stays live
   until the child is done. A child killed on its own is waited for (its
   git may still be running), its record taken back, and the outcome read
   from HEAD. What made it fail is shown. Tags go only once the
@@ -72,7 +74,7 @@ other runs' answers.
   `_rm_cap_apply`, `_rm_cap_commit`, `rm --help`, `help advanced`;
   `_release_lock_dir` reads the lock's owner with `read`, not `$(cat)`, so
   a Ctrl-C cannot leave a lock it was releasing), `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +78): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +80): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;
   provenance against a reconciled capture column; no provenance; no final

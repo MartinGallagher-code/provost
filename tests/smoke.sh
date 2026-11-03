@@ -412,6 +412,7 @@ chmod +x "$RCFB8/git"
 dead_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 4 2>&1 || true)"
 check "rm --capture whose child died after landing says it deleted" "deleted 1 capture(s) (c0004)" "$dead_out"
 check "rm --capture whose child died leaves no lock" "no" "$([[ -e "$RCWS11/.lock" ]] && echo yes || echo no)"
+check "rm --capture whose child died before its tags says they are still there" "tags are still there" "$dead_out"
 git -C "$RCWS11" tag -d capture-c0004 >/dev/null 2>&1 || true; rm -f "$RCFB8/git"
 # A lock another provost has taken meanwhile (here: broken as stale by
 # age) is not handed back over nor removed by rm --capture's child.
@@ -428,6 +429,7 @@ printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = status ] && printf "othe
 chmod +x "$RCFB8/git"
 taken_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 5 2>&1 || true)"
 check "rm --capture stops when its lock was taken from it" "nothing deleted" "$taken_out"
+check_not "rm --capture whose lock was taken does not say it put anything back" "put back" "$taken_out"
 check "rm --capture whose lock was taken changed nothing" "yes []" \
     "$([[ -d "$RCWS11/captures/c0005" ]] && echo yes) [$(git -C "$RCWS11" status --porcelain | tr '\n' '|')]"
 rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
