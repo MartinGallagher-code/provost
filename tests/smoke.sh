@@ -276,6 +276,59 @@ check "rm --capture: a failed commit keeps the tags and the capture" "clean capt
 printf '#\tcapture\tn\ta\tb\n' >> "$RCWS7/datasets/d.tsv"
 check "rm --capture refuses over uncommitted changes" "uncommitted changes" "$(rcv rm -f --capture 2 2>&1 || true)"
 git -C "$RCWS7" checkout -q -- datasets
+# Anything else uncommitted in the store is not this commit's, and is left
+# as it was: an edited .provostrc, an untracked file.
+RCWS8="$(mktemp -d)/.rmc8"; RCFB6="$(mktemp -d)"
+rcw () { PROVOST_WORKSPACE="$RCWS8" "$PROVOST" "$@"; }
+rcw run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcw run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+rcw run --name u printf 'x y\n5 6\n' >/dev/null 2>&1   # c0003 -> u
+echo 'min_confidence=0.1' >> "$RCWS8/.provostrc"; echo 'notes' > "$RCWS8/notes.txt"
+rcw rm -f --capture 2 >/dev/null 2>&1
+check_not "rm --capture commits only what it deleted" "notes.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
+check "rm --capture leaves other uncommitted changes as they were" "[ M .provostrc|?? notes.txt]" \
+    "[$(git -C "$RCWS8" status --porcelain | sort | tr '\n' '|' | sed 's/|$//')]"
+# ...and a hand edit to a dataset it does not touch still stops it.
+git -C "$RCWS8" checkout -q -- .provostrc; rm -f "$RCWS8/notes.txt"
+rcw rm -f --no-purge u >/dev/null 2>&1
+printf '99\tc0009\t1\tUSER\tEDIT\n' >> "$RCWS8/datasets/t.tsv"
+check "rm --capture refuses over an edited dataset it would not touch" "uncommitted changes" "$(rcw rm -f --capture 3 2>&1 || true)"
+git -C "$RCWS8" checkout -q -- datasets
+# A git add that fails puts the store back too.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = add ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+chmod +x "$RCFB6/git"
+check "rm --capture: a failed git add puts the store back" "put back as it was" "$(PATH="$RCFB6:$PATH" rcw rm -f --capture 1 2>&1 || true)"
+check "rm --capture: after a failed git add the store is clean" "clean" "$( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
+# Interrupted while committing (the commit then fails): put back, and the
+# exit status says it was interrupted.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { kill -INT "$PPID"; exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+check "rm --capture interrupted in the commit is put back, exit 130" "130 clean" \
+    "$(PATH="$RCFB6:$PATH" PROVOST_WORKSPACE="$RCWS8" rc_of "$PROVOST" rm -f --capture 1) $( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
+# Tags it could not delete are reported as still there, not as gone.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+tag_out="$(PATH="$RCFB6:$PATH" rcw rm -f --capture 1 2>&1)"
+check "rm --capture says when its tags could not go" "tags are still there" "$tag_out"
+check_not "rm --capture does not claim the tags went when they did not" "tags went with them" "$tag_out"
+# Something someone already staged is not swept into its commit either.
+rcw run --name s printf 'a b\n1 1\n' >/dev/null 2>&1   # c0004 -> s
+echo 'staged' > "$RCWS8/staged.txt"; git -C "$RCWS8" add staged.txt
+rcw rm -f --capture 3 >/dev/null 2>&1 || true
+check_not "rm --capture does not commit what was staged beside it" "staged.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
+check "rm --capture leaves a staged file staged" "A  staged.txt" "$(git -C "$RCWS8" status --porcelain)"
+git -C "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
+# A Ctrl-C to the whole process group while it puts the store back does
+# not stop the put-back (its own git ignores it).
+if command -v setsid >/dev/null 2>&1; then
+    printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && { kill -INT 0; sleep 0.2; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+    PATH="$RCFB6:$PATH" PROVOST_WORKSPACE="$RCWS8" setsid -w "$PROVOST" rm -f --capture 4 >/dev/null 2>&1 || true
+    check "rm --capture's put-back survives a Ctrl-C to its group" "clean" \
+        "$( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
+fi
+# Rows are counted by record: a dataset without a final newline.
+rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> n
+rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0005 -> n
+printf '%s' "$(cat "$RCWS8/datasets/n.tsv")" > "$RCWS8/datasets/n.tsv"; git -C "$RCWS8" commit -qam 'no final newline' >/dev/null 2>&1
+check "rm --capture counts a row in a dataset without a final newline" "the 1 row(s) they filed" "$(rcw rm -f --capture 5 2>&1)"
 # The prompt counts the rows that will go, provenance or not.
 check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
     "$(rm -f "$RCWS7/provenance.tsv"; git -C "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"

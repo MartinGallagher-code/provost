@@ -3508,8 +3508,7 @@ cmd_rm () {
 
 # _rm_cap_scan — for _rm_captures, on its variables: the rows the ids filed
 # ($tmpd/rows), the datasets they fed (names), each dataset rewritten
-# without them into $tmpd/ds.K (keep: K, "" for one left empty, "-" for one
-# that is not there), provenance without them ($tmpd/prov), and how many
+# without them into $tmpd/ds.K (keep: K, or "" for one left empty), provenance without them ($tmpd/prov), and how many
 # rows go (removed). A row is a capture's when provenance says so. provost's
 # capture column (second, after '#'; `_capture` beside a data column named
 # `capture`) is read only for a row provenance does not know, because a
@@ -3535,8 +3534,6 @@ _rm_cap_scan () {
               } | sort -u)
     for n in ${names[@]+"${names[@]}"}; do
         f="$dir/$n.tsv"; k=$((k + 1))
-        # gone since the list was made (a concurrent `rm NAME`): nothing to do
-        [[ -f "$f" ]] || { keep+=("-"); continue; }
         awk -F'\t' -v ds="$n" '
             FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
             FILENAME == ARGV[2] { del[$1] = 1; next }
@@ -3544,7 +3541,7 @@ _rm_cap_scan () {
             FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
             (hc && ($1 in drop)) || (cc && !($1 in known) && ($2 in del)) { next }
             { print }' "$tmpd/rows" "$tmpd/ids" "$pv" "$f" > "$tmpd/ds.$k" || return 1
-        before=$(wc -l < "$f"); after=$(wc -l < "$tmpd/ds.$k")
+        before=$(awk 'END { print NR }' "$f"); after=$(awk 'END { print NR }' "$tmpd/ds.$k")
         removed=$((removed + before - after))
         if (( after <= 1 )); then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
     done
@@ -3556,23 +3553,21 @@ _rm_cap_scan () {
 }
 
 # _rm_cap_apply — for _rm_captures: the scan's files into the store, the
-# capture dirs out of it, and the commit. Returns 1 at the first step that
+# capture dirs out of it, and the commit of those paths (rb) alone. Returns 1 at the first step that
 # fails (never dies), so the caller can put the store back from HEAD.
 _rm_cap_apply () {
     local n c k=0
     for n in ${names[@]+"${names[@]}"}; do
-        case "${keep[k]}" in
-            -) ;;
-            "") rm -f "$dir/$n.tsv" || return 1 ;;
-            *)  mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1 ;;
-        esac
+        if [[ -z "${keep[k]}" ]]; then rm -f "$dir/$n.tsv" || return 1
+        else mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1; fi
         k=$((k + 1))
     done
     if [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || return 1; fi
     while IFS= read -r c; do rm -rf "${cap:?}/$c" || return 1; done < "$tmpd/ids"
-    _git add -A >/dev/null 2>&1 || return 1
-    if ! _git diff --cached --quiet >/dev/null 2>&1; then
-        _git commit -q -m "$msg" >/dev/null 2>&1 || return 1
+    # only what it touches: anything else in the store is not this commit's
+    _git add -A -- "${rb[@]}" >/dev/null 2>&1 || return 1
+    if ! _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1; then
+        _git commit -q -m "$msg" -- "${rb[@]}" >/dev/null 2>&1 || return 1
     fi
     return 0
 }
@@ -3618,12 +3613,12 @@ _rm_captures () {
     _rm_cap_scan || { _unlock; die "could not rewrite the datasets in $dir — nothing deleted."; }
     # What this touches, which HEAD must hold as it is so a failure can put
     # it back from there.
-    (( ${#names[@]} > 0 )) && rb+=("$dir")
+    [[ -n "$(_git ls-files -- "$dir" 2>/dev/null | head -n 1)" ]] && rb+=("$dir")
     [[ -f "$prov" ]] && rb+=("$prov")
     rb+=("$cap")
     if [[ -n "$(_git status --porcelain -- "${rb[@]}" 2>/dev/null)" ]]; then
         _unlock
-        die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C '$PROVOST_WORKSPACE' status) — commit or discard them first; nothing deleted."
+        die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C $(printf '%q' "$PROVOST_WORKSPACE") status) — commit or discard them first; nothing deleted."
     fi
 
     shown="$(head -n 8 "$tmpd/ids" | tr '\n' ' ')"; shown="${shown% }"
@@ -3637,12 +3632,16 @@ _rm_captures () {
     # is put back.
     trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
     if ! _rm_cap_apply; then
-        if _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1; then   # tree and index
+        local rbrel="" r
+        for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
+        # the put-back itself is not to be interrupted (a Ctrl-C reaches git too)
+        if ( trap '' INT TERM HUP; _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 ); then   # tree and index
             trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
+            (( _rmsig == 0 )) || { info "interrupted — the store is put back as it was, nothing deleted."; exit "$_rmsig"; }
             die "could not delete the captures — the store is put back as it was, nothing deleted."
         fi
         trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
-        die "could not delete the captures, nor put the store back. Restore it with: git -C '$PROVOST_WORKSPACE' checkout HEAD -- ."
+        die "could not delete the captures, nor put the store back. Restore it with: git -C $(printf '%q' "$PROVOST_WORKSPACE") checkout HEAD --$rbrel"
     fi
     trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
 
@@ -3650,15 +3649,16 @@ _rm_captures () {
     _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 2>/dev/null \
         | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; next }
                ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" || true
-    if [[ -s "$tmpd/refs" ]]; then
-        _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1 \
-            || warn "deleted, but could not delete their tags (capture-…): git -C '$PROVOST_WORKSPACE' tag -d them by hand."
+    local tagged="Their tags went with them; git"
+    if [[ -s "$tmpd/refs" ]] && ! _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1; then
+        warn "deleted, but could not delete their tags: git -C $(printf '%q' "$PROVOST_WORKSPACE") tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ')…"
+        tagged="Their tags are still there (above); git"
     fi
     _unlock
 
     local extra=""
     (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
-    ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra Their tags went with them; git's history (the commit before this one) still holds what was there."
+    ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra $tagged's history (the commit before this one) still holds what was there."
     (( _rmsig == 0 )) || exit "$_rmsig"
 }
 

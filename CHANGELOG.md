@@ -36,9 +36,12 @@ other runs' answers.
   touches must already be committed (it refuses otherwise, and says so).
   Every dataset and `provenance.tsv` is rewritten in a scratch directory
   first, and any failure after that, up to and including the commit, puts
-  those paths back from HEAD. INT, TERM and HUP wait for the outcome and
-  then set the exit status; a Ctrl-C that also reaches git fails the commit
-  and the store is put back. Tags go only once the commit has landed. The
+  those paths back from HEAD (signals cannot stop the put-back). It stages
+  and commits those paths alone: anything else uncommitted in the store,
+  staged or not, is left as it was. INT, TERM and HUP wait for the outcome
+  and then set the exit status; a Ctrl-C that also reaches git fails the
+  commit, the store is put back, and it exits 130. Tags go only once the
+  commit has landed, and if they cannot go it says so. The
   scratch directory goes on any exit. The datasets and rows are found again
   under the lock, so one deleted while it waited at the prompt is skipped,
   and the counts it prints are the rows that actually go.
@@ -47,14 +50,16 @@ other runs' answers.
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +39): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +51): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;
-  provenance against a reconciled capture column; no provenance), failure
-  at each stage and INT/TERM/HUP (the store as it was or the deletion
-  committed, the exit status, tags kept on failure, the lock released, no
-  scratch dir), a dataset that went while it waited, provenance, dirs,
-  tags, one clean commit, ids never reused.
+  provenance against a reconciled capture column; no provenance; no final
+  newline), failure at each stage and INT/TERM/HUP (the store as it was or
+  the deletion committed, the exit status, tags kept on failure and said
+  so, the lock released, no scratch dir, a Ctrl-C to the group during the
+  put-back), other uncommitted and staged files left alone, a dataset that
+  went while it waited, provenance, dirs, tags, one clean commit, ids never
+  reused.
 
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 
