@@ -21,7 +21,9 @@ other runs' answers.
 
 - **`provost rm [-f] --capture ID[,ID...]`** (repeatable; an ID as
   elsewhere: `c0007`, `7`, `capture-c0007`) deletes those captures: each
-  `captures/<id>/` and its tag, the rows it filed from every dataset it fed,
+  `captures/<id>/` and its tags (`capture-<id>`, and `files-<id>` where it
+  kept a controlled directory's files), the rows it filed from every
+  dataset it fed,
   and their provenance rows. A dataset left with no rows goes too. It all
   goes in one commit, like any `rm`.
 - It asks first, like `rm`, unless `-f`. It refuses the whole operation if
@@ -33,16 +35,19 @@ other runs' answers.
   dataset can hold a data value in that position. A data column named
   `capture` or `#` is never matched.
 - It commits the whole deletion or leaves the store as it was. What it
-  touches must already be committed, untracked files included (it refuses
-  otherwise, and says so).
+  touches must already be committed, untracked files included, and no
+  other git may hold the store's index (it refuses otherwise, and says
+  so).
   Every dataset and `provenance.tsv` is rewritten in a scratch directory
   first, and any failure after that, up to and including the commit, puts
-  those paths back from HEAD, with signals ignored and tried again if git
-  is interrupted all the same (a commit that landed although git then
-  failed counts as done). It stages
+  those paths back from HEAD, with signals ignored and tried again, after
+  a pause, if git is interrupted or locked out all the same. A commit that
+  landed although git then failed counts as done, and the index is brought
+  into line with it. It stages
   and commits those paths alone: anything else uncommitted in the store,
   staged or not, is left as it was. INT, TERM and HUP wait for the outcome
-  and then set the exit status; a Ctrl-C that also reaches git fails the
+  and then set the exit status, from the first change to the last message
+  (tags and the report included); a Ctrl-C that also reaches git fails the
   commit, the store is put back, and it exits 130. Tags go only once the
   commit has landed, and if they cannot go it says so. The
   scratch directory goes on any exit. The datasets and rows are found again
@@ -53,14 +58,16 @@ other runs' answers.
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +59): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +68): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;
   provenance against a reconciled capture column; no provenance; no final
   newline), failure at each stage and INT/TERM/HUP (the store as it was or
   the deletion committed, the exit status, tags kept on failure and said
   so, the lock released, no scratch dir, a Ctrl-C to the group during the
-  put-back, a put-back retried, a commit that landed), untracked and
+  put-back, a put-back retried, a commit that landed, a commit killed
+  after landing, another git holding the index, a Ctrl-C while the tags
+  go), its `files-<id>` tag, untracked and
   hidden-untracked files refused, other uncommitted and staged files left
   alone, a dataset that
   went while it waited, provenance, dirs, tags, one clean commit, ids never

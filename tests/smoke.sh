@@ -352,6 +352,37 @@ check "rm --capture leaves an untracked dataset as it was" "2" "$(tail -n +2 "$R
 mv "$RCWS9/datasets/t.tsv" "$RCWS9/t.keep"; git -C "$RCWS9" config status.showUntrackedFiles no
 echo notes > "$RCWS9/captures/c0001/notes.txt"
 check "rm --capture sees untracked files under showUntrackedFiles=no" "uncommitted changes" "$(rcx rm -f --capture 2 2>&1 || true)"
+# Another git holding the store's index (a shell prompt's git status, an
+# editor): refused before anything changes...
+RCWS10="$(mktemp -d)/.rmc10"; RCFB7="$(mktemp -d)"
+rcz () { PROVOST_WORKSPACE="$RCWS10" "$PROVOST" "$@"; }
+rcz run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcz run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+: > "$RCWS10/.git/index.lock"
+check "rm --capture refuses while another git holds the index" "another git is using the store" "$(rcz rm -f --capture 1 2>&1 || true)"
+check "rm --capture refused over index.lock changes nothing" "[]" "[$(git -C "$RCWS10" status --porcelain 2>/dev/null | tr '\n' '|')]"
+rm -f "$RCWS10/.git/index.lock"
+# ...and one that takes the index part way is waited out by the put-back.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = add ] && { : > %q; ( sleep 0.3; rm -f %q ) & exit 1; }; done\nexec %q "$@"\n' "$RCWS10/.git/index.lock" "$RCWS10/.git/index.lock" "$(command -v git)" > "$RCFB7/git"
+chmod +x "$RCFB7/git"
+check "rm --capture's put-back waits out a git holding the index" "put back as it was" "$(PATH="$RCFB7:$PATH" rcz rm -f --capture 1 2>&1 || true)"
+sleep 0.4
+check "rm --capture: after waiting out the index the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
+# Interrupted while deleting the tags: it finishes them, says so, and then
+# exits 130.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && kill -INT "$PPID"; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB7/git"
+tagint_out="$(PATH="$RCFB7:$PATH" rcz rm -f --capture 1 2>&1; echo "rc=$?")"
+check "rm --capture interrupted in the tag phase still deletes the tags, then exits 130" "rc=130 []" \
+    "$(printf '%s' "$tagint_out" | tail -n 1) [$(git -C "$RCWS10" tag | grep -x capture-c0001 || true)]"
+check "rm --capture interrupted in the tag phase still says what it deleted" "deleted 1 capture(s) (c0001)" "$tagint_out"
+# A commit whose git is killed after moving HEAD (the index not yet
+# written): done, and the store left clean, its index HEAD's.
+printf '#!/usr/bin/env bash
+for a in "$@"; do [ "$a" = commit ] && { %q "$@"; %q -C %q read-tree HEAD~1 2>/dev/null; exit 130; }; done
+exec %q "$@"
+' "$(command -v git)" "$(command -v git)" "$RCWS10" "$(command -v git)" > "$RCFB7/git"
+check "rm --capture: a commit killed after landing is done" "deleted 1 capture(s) (c0002)" "$(PATH="$RCFB7:$PATH" rcz rm -f --capture 2 2>&1 || true)"
+check "rm --capture: after a commit killed after landing the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
 # Rows are counted by record: a dataset without a final newline.
 rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0006 -> n
 rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0007 -> n
@@ -536,6 +567,11 @@ check "the store's own tree holds no copy of the files" "" "$(git -C "$PROJ/.pro
 check_not "nor does its commit" "added-later.txt" "$(git -C "$PROJ/.provost" ls-tree -r --name-only HEAD | grep -v '^context/' || true)"
 ( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=0 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
 check "PROVOST_FILES_MAX_SIZE=0 keeps no files" "no" "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0006 >/dev/null && echo yes || echo no)"
+# rm --capture takes a capture's files-<id> tag with it (its files are no
+# longer served), and leaves the others' alone.
+PROVOST_WORKSPACE="$PROJ/.provost" "$PROVOST" rm -f --capture 5 >/dev/null 2>&1
+check "rm --capture deletes the capture's files tag" "no yes" \
+    "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0005 >/dev/null && echo yes || echo no) $(git -C "$PROJ/.provost" rev-parse -q --verify files-c0004 >/dev/null && echo yes || echo no)"
 inst_out="$(PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" instances 2>&1)"
 check "instances lists the controlled dir" "$PROJ" "$inst_out"
 # re-controlling a dir the registry already lists does not duplicate it

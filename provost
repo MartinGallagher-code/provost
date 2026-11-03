@@ -3623,49 +3623,64 @@ _rm_captures () {
         die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C $(printf '%q' "$PROVOST_WORKSPACE") status) — commit or discard them first; nothing deleted."
     fi
 
+    local ilock; ilock="$(_git rev-parse --absolute-git-dir 2>/dev/null)/index.lock"
+    if [[ -e "$ilock" ]]; then
+        _unlock
+        die "another git is using the store (its index.lock exists: a git status from a shell prompt or an editor, or one that crashed) — try again, or remove $ilock if nothing is running; nothing deleted."
+    fi
+
     shown="$(head -n 8 "$tmpd/ids" | tr '\n' ' ')"; shown="${shown% }"
     (( count > 8 )) && shown="$shown …"
+    # how to put it back by hand, worked out now: nothing in the window
+    # below runs a $(...), which a signal could kill
+    local rbrel="" r
+    for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
+    local wsq; wsq="$(printf '%q' "$PROVOST_WORKSPACE")"
     msg="rm: deleted $count capture(s) [$shown], pruned $removed row(s)"
     (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
 
-    # From the first change to the commit, a signal waits for the outcome
-    # (and sets the exit status) rather than leaving the store half done; a
-    # program it reaches as well (Ctrl-C reaches git) fails, and the store
-    # is put back.
     local head0; head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    # From here to the last message: signals wait (and set the exit status),
+    # and errexit is off, so nothing a signal kills ends it part way.
     trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
+    set +e
     if ! _rm_cap_apply \
         && ! { [[ "$(_git rev-parse -q --verify HEAD 2>/dev/null)" != "$head0" ]] \
                && [[ "$(_git log -1 --format=%s 2>/dev/null)" == "$msg" ]]; }; then
-        local rbrel="" r
-        for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
         # The put-back is not to be interrupted: its git starts with signals
-        # ignored, and is tried again if a Ctrl-C still reaches it (git sets
-        # its own SIGINT handler for its lock files).
+        # ignored, and is tried again, after a pause, if it still fails (git
+        # sets its own SIGINT handler; another git may hold the index).
         local tries=0 put=1
-        while (( tries < 3 )); do
+        while (( tries < 5 )); do
             if ( trap '' INT TERM HUP; _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 ); then put=0; break; fi   # tree and index
-            tries=$((tries + 1))
+            tries=$((tries + 1)); sleep 0.2
         done
+        _unlock; set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
         if (( put == 0 )); then
-            trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
             (( _rmsig == 0 )) || { info "interrupted — the store is put back as it was, nothing deleted."; exit "$_rmsig"; }
             die "could not delete the captures — the store is put back as it was, nothing deleted."
         fi
-        trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
-        die "could not delete the captures, nor put the store back. Restore it with: git -C $(printf '%q' "$PROVOST_WORKSPACE") checkout HEAD --$rbrel"
+        die "could not delete the captures, nor put the store back. Restore it with: git -C $wsq checkout HEAD --$rbrel"
     fi
-    trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
 
-    # Committed: now their tags, in one go.
-    _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 2>/dev/null \
-        | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; next }
-               ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" || true
+    # Committed. A git killed after moving HEAD can leave the index behind
+    # the commit: make the touched paths' index HEAD's, as an ordinary
+    # commit would have left it.
+    local synced=0
+    while (( synced < 5 )); do
+        ( trap '' INT TERM HUP; _git reset -q -- "${rb[@]}" >/dev/null 2>&1 ) && break
+        synced=$((synced + 1)); sleep 0.2
+    done
+    # Now their tags (capture-<id>, and files-<id> where it kept
+    # files), in one go.
+    _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' 2>/dev/null \
+        | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
+               ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs"
     local tagged="Their tags went with them; git"
     if [[ -s "$tmpd/refs" ]] && ! _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1; then
         local nt more=""; nt=$(wc -l < "$tmpd/refs"); nt=$((nt + 0))
-        (( nt > 8 )) && more=" (and $((nt - 8)) more)"
-        warn "deleted, but could not delete their tags: git -C $(printf '%q' "$PROVOST_WORKSPACE") tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ' | sed 's/ $//')$more"
+        (( nt > 8 )) && more=" ($((nt - 8)) more of them: git -C $wsq tag -l 'capture-c*' 'files-c*')"
+        warn "deleted, but could not delete their tags: git -C $wsq tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ' | sed 's/ $//')$more"
         tagged="Their tags are still there (above); git"
     fi
     _unlock
@@ -3673,6 +3688,7 @@ _rm_captures () {
     local extra=""
     (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
     ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra $tagged's history (the commit before this one) still holds what was there."
+    set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
     (( _rmsig == 0 )) || exit "$_rmsig"
 }
 
