@@ -3348,9 +3348,9 @@ cmd_triage () {
 # indices (#N) and capture ids are never reused.
 #   provost rm [-f|--yes] --capture ID[,ID...]...
 # Deletes captures instead: each captures/<id>/ dir and its tag, the rows it
-# filed (by provenance, and by the 'capture' column where there is one) from
-# every dataset it fed, and their provenance rows. A dataset left with no
-# rows is removed. One commit, as above.
+# filed (by provenance; provost's capture column only for a row provenance
+# does not know) from every dataset it fed, and their provenance rows. A
+# dataset left with no rows is removed. One commit, as above, or nothing.
 # ---------------------------------------------------------------------------
 cmd_rm () {
     local yes=0 purge=1 names=() caps=() parts=() v c
@@ -3506,12 +3506,88 @@ cmd_rm () {
     fi
 }
 
+# _rm_cap_scan — for _rm_captures, on its variables: the rows the ids filed
+# ($tmpd/rows), the datasets they fed (names), each dataset rewritten
+# without them into $tmpd/ds.K (keep: K, "" for one left empty, "-" for one
+# that is not there), provenance without them ($tmpd/prov), and how many
+# rows go (removed). A row is a capture's when provenance says so. provost's
+# capture column (second, after '#'; `_capture` beside a data column named
+# `capture`) is read only for a row provenance does not know, because a
+# reconciled dataset can hold a data value in that position. A data column
+# named `#` or `capture` is never matched. Returns 1 if a file cannot be
+# read or written; the store is not touched.
+_rm_cap_scan () {
+    local n f k=0 pv=/dev/null before after
+    names=(); keep=(); gone=(); removed=0
+    rm -f "$tmpd"/ds.* "$tmpd/prov"; : > "$tmpd/rows"
+    if [[ -f "$prov" ]]; then
+        pv="$prov"
+        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
+            FNR > 1 && ($3 in del) { print $1 "\t" $2 }' "$tmpd/ids" "$prov" > "$tmpd/rows" || return 1
+    fi
+    # the datasets they fed, from provenance and from each meta.tsv
+    while IFS= read -r n; do
+        _valid_name "$n" && [[ -f "$dir/$n.tsv" ]] && names+=("$n")
+    done < <( { cut -f2 "$tmpd/rows"
+                ( cd "$cap" && sed 's|$|/meta.tsv|' "$tmpd/ids" | tr '\n' '\0' \
+                    | xargs -0 awk -F'\t' 'FNR == 1 { seen = 0 }
+                        !seen && $1 == "dataset" { n = split(substr($0, 9), d, ","); for (i = 1; i <= n; i++) print d[i]; seen = 1 }' )
+              } | sort -u)
+    for n in ${names[@]+"${names[@]}"}; do
+        f="$dir/$n.tsv"; k=$((k + 1))
+        # gone since the list was made (a concurrent `rm NAME`): nothing to do
+        [[ -f "$f" ]] || { keep+=("-"); continue; }
+        awk -F'\t' -v ds="$n" '
+            FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
+            FILENAME == ARGV[2] { del[$1] = 1; next }
+            FILENAME == ARGV[3] { if (FNR > 1 && $2 == ds) known[$1] = 1; next }
+            FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
+            (hc && ($1 in drop)) || (cc && !($1 in known) && ($2 in del)) { next }
+            { print }' "$tmpd/rows" "$tmpd/ids" "$pv" "$f" > "$tmpd/ds.$k" || return 1
+        before=$(wc -l < "$f"); after=$(wc -l < "$tmpd/ds.$k")
+        removed=$((removed + before - after))
+        if (( after <= 1 )); then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
+    done
+    if [[ -f "$prov" ]]; then
+        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
+            FNR == 1 || !($3 in del)' "$tmpd/ids" "$prov" > "$tmpd/prov" || return 1
+    fi
+    return 0
+}
+
+# _rm_cap_apply — for _rm_captures: the scan's files into the store, the
+# capture dirs out of it, and the commit. Returns 1 at the first step that
+# fails (never dies), so the caller can put the store back from HEAD.
+_rm_cap_apply () {
+    local n c k=0
+    for n in ${names[@]+"${names[@]}"}; do
+        case "${keep[k]}" in
+            -) ;;
+            "") rm -f "$dir/$n.tsv" || return 1 ;;
+            *)  mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1 ;;
+        esac
+        k=$((k + 1))
+    done
+    if [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || return 1; fi
+    while IFS= read -r c; do rm -rf "${cap:?}/$c" || return 1; done < "$tmpd/ids"
+    _git add -A >/dev/null 2>&1 || return 1
+    if ! _git diff --cached --quiet >/dev/null 2>&1; then
+        _git commit -q -m "$msg" >/dev/null 2>&1 || return 1
+    fi
+    return 0
+}
+
 # _rm_captures YES ID... — rm --capture: the captures, and every row they
 # filed. Ids go through files, not the environment or the command line, so
-# a fleet's thousands of captures go in one commit.
+# a fleet's thousands of captures go in one commit. The store is git: what
+# it touches must be committed before it starts, and any failure on the way
+# (a signal included) puts those paths back from HEAD, so it either commits
+# the whole deletion or leaves the store as it was.
 _rm_captures () {
     local yes="$1"; shift
-    local dir cap prov tmpd c n f total=0 gone=() missing=() names=()
+    local dir cap prov tmpd c count removed=0 msg shown _rmsig=0
+    local names=() keep=() gone=() missing=() rb=()
+    local GIT_LITERAL_PATHSPECS=1; export GIT_LITERAL_PATHSPECS
     dir="$(_ds_dir)"; cap="$(_cap_dir)"; prov="$(_prov_file)"
     mkdir -p "$dir"
     tmpd="$(mktemp -d "$dir/.rm.XXXXXX")" && tmpd="$(cd "$tmpd" && pwd)" \
@@ -3521,119 +3597,69 @@ _rm_captures () {
     while IFS= read -r c; do
         [[ -f "$cap/$c/meta.tsv" ]] || missing+=("$c")
     done < "$tmpd/ids"
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        rm -rf "$tmpd"; die "no such capture: ${missing[*]} (see 'provost log')."
-    fi
-
-    # The rows they filed: provenance names each row's dataset and capture.
-    : > "$tmpd/rows"
-    if [[ -f "$prov" ]]; then
-        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
-            FNR > 1 && ($3 in del) { print $1 "\t" $2 }' "$tmpd/ids" "$prov" > "$tmpd/rows" \
-            || { rm -rf "$tmpd"; die "could not read provenance.tsv — nothing deleted."; }
-    fi
-    total=$(wc -l < "$tmpd/rows"); total=$((total + 0))
-    # ...and the datasets they fed, from provenance and from each meta.tsv
-    while IFS= read -r n; do
-        _valid_name "$n" && [[ -f "$dir/$n.tsv" ]] && names+=("$n")
-    done < <( { cut -f2 "$tmpd/rows"
-                ( cd "$cap" && sed 's|$|/meta.tsv|' "$tmpd/ids" | tr '\n' '\0' \
-                    | xargs -0 awk -F'\t' 'FNR == 1 { seen = 0 }
-                        !seen && $1 == "dataset" { n = split(substr($0, 9), d, ","); for (i = 1; i <= n; i++) print d[i]; seen = 1 }' )
-              } | sort -u)
-    local count; count=$(wc -l < "$tmpd/ids"); count=$((count + 0))
+    (( ${#missing[@]} == 0 )) || die "no such capture: ${missing[*]} (see 'provost log')."
+    count=$(wc -l < "$tmpd/ids"); count=$((count + 0))
 
     if [[ $yes -ne 1 ]]; then
+        _rm_cap_scan || die "could not read the store's datasets — nothing deleted."
         printf 'About to delete %d capture(s) and the %d row(s) they filed, from: %s\n' \
-            "$count" "$total" "${names[*]:-(no dataset)}" >&2
+            "$count" "$removed" "${names[*]:-(no dataset)}" >&2
         printf '%s' 'Proceed? [y/N] ' >&2
         local ans=""; read -r ans || ans=""
-        case "$ans" in y|Y|yes|YES|Yes) ;; *) rm -rf "$tmpd"; info "aborted — nothing deleted."; return 0 ;; esac
+        case "$ans" in y|Y|yes|YES|Yes) ;; *) info "aborted — nothing deleted."; return 0 ;; esac
     fi
 
     _lock
     _require_on_branch
     while IFS= read -r c; do
-        [[ -f "$cap/$c/meta.tsv" ]] || { rm -rf "$tmpd"; _unlock; die "capture $c went while waiting for the store — nothing deleted."; }
+        [[ -f "$cap/$c/meta.tsv" ]] || { _unlock; die "capture $c went while waiting for the store — nothing deleted."; }
     done < "$tmpd/ids"
-
-    # Each dataset without their rows; one left with none goes. A row is the
-    # capture's when provenance says so: provenance is the record. provost's
-    # capture column (second, after '#'; `_capture` beside a data column
-    # named `capture`) is read only for a row provenance does not know,
-    # because a reconciled dataset can hold a data value in that position.
-    # A data column named `#` or `capture` is never matched. Everything is
-    # written to the scratch directory first, and the store is changed only
-    # once every rewrite has succeeded, so a failure leaves it as it was.
-    local k=0 keep=() pv=/dev/null
-    [[ -f "$prov" ]] && pv="$prov"
-    for n in ${names[@]+"${names[@]}"}; do
-        f="$dir/$n.tsv"; k=$((k + 1))
-        # gone while waiting for the lock (a concurrent `rm NAME`): nothing to do
-        [[ -f "$f" ]] || { keep+=("-"); continue; }
-        awk -F'\t' -v ds="$n" '
-            FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
-            FILENAME == ARGV[2] { del[$1] = 1; next }
-            FILENAME == ARGV[3] { if (FNR > 1 && $2 == ds) known[$1] = 1; next }
-            FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
-            (hc && ($1 in drop)) || (cc && !($1 in known) && ($2 in del)) { next }
-            { print }' "$tmpd/rows" "$tmpd/ids" "$pv" "$f" > "$tmpd/ds.$k" \
-            && cp -p "$f" "$tmpd/orig.$k" \
-            || { rm -rf "$tmpd"; _unlock; die "could not rewrite $f — nothing deleted."; }
-        if [[ $(wc -l < "$tmpd/ds.$k") -le 1 ]]; then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
-    done
-
-    if [[ -f "$prov" ]]; then
-        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
-            FNR == 1 || !($3 in del)' "$tmpd/ids" "$prov" > "$tmpd/prov" \
-            && cp -p "$prov" "$tmpd/orig.prov" \
-            || { rm -rf "$tmpd"; _unlock; die "could not prune provenance.tsv — nothing deleted."; }
+    # Under the lock, from what is there now.
+    _rm_cap_scan || { _unlock; die "could not rewrite the datasets in $dir — nothing deleted."; }
+    # What this touches, which HEAD must hold as it is so a failure can put
+    # it back from there.
+    (( ${#names[@]} > 0 )) && rb+=("$dir")
+    [[ -f "$prov" ]] && rb+=("$prov")
+    rb+=("$cap")
+    if [[ -n "$(_git status --porcelain -- "${rb[@]}" 2>/dev/null)" ]]; then
+        _unlock
+        die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C '$PROVOST_WORKSPACE' status) — commit or discard them first; nothing deleted."
     fi
 
-    # Into the store, with signals held off until the commit: a failure part
-    # way puts every file back from the scratch copies.
-    trap '' INT TERM
-    local failed=0
-    k=0
-    for n in ${names[@]+"${names[@]}"}; do
-        f="$dir/$n.tsv"
-        if [[ "${keep[k]}" == "-" ]]; then :
-        elif [[ -z "${keep[k]}" ]]; then rm -f "$f" || { failed=1; break; }
-        else mv "$tmpd/ds.${keep[k]}" "$f" || { failed=1; break; }
+    shown="$(head -n 8 "$tmpd/ids" | tr '\n' ' ')"; shown="${shown% }"
+    (( count > 8 )) && shown="$shown …"
+    msg="rm: deleted $count capture(s) [$shown], pruned $removed row(s)"
+    (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
+
+    # From the first change to the commit, a signal waits for the outcome
+    # (and sets the exit status) rather than leaving the store half done; a
+    # program it reaches as well (Ctrl-C reaches git) fails, and the store
+    # is put back.
+    trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
+    if ! _rm_cap_apply; then
+        if _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1; then   # tree and index
+            trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
+            die "could not delete the captures — the store is put back as it was, nothing deleted."
         fi
-        k=$((k + 1))
-    done
-    if (( ! failed )) && [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || failed=1; fi
-    if (( failed )); then
-        k=0
-        for n in ${names[@]+"${names[@]}"}; do
-            k=$((k + 1))
-            if [[ -f "$tmpd/orig.$k" ]]; then cp -p "$tmpd/orig.$k" "$dir/$n.tsv"; fi
-        done
-        [[ -f "$tmpd/orig.prov" ]] && cp -p "$tmpd/orig.prov" "$prov"
-        rm -rf "$tmpd"; _unlock; trap 'exit 130' INT; trap 'exit 143' TERM
-        die "could not update the datasets — put back as they were, nothing deleted."
+        trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
+        die "could not delete the captures, nor put the store back. Restore it with: git -C '$PROVOST_WORKSPACE' checkout HEAD -- ."
     fi
+    trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
 
-    # The capture dirs, and their tags in one go
-    while IFS= read -r c; do rm -rf "${cap:?}/$c"; done < "$tmpd/ids"
+    # Committed: now their tags, in one go.
     _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 2>/dev/null \
         | awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; next }
-               ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs"
-    [[ -s "$tmpd/refs" ]] && { _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1 || true; }
-
-    local shown; shown="$(head -n 8 "$tmpd/ids" | tr '\n' ' ')"; shown="${shown% }"
-    (( count > 8 )) && shown="$shown …"
-    rm -rf "$tmpd"
-    local msg="rm: deleted $count capture(s) [$shown], pruned $total row(s)"
-    (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
-    _commit "$msg"
+               ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" || true
+    if [[ -s "$tmpd/refs" ]]; then
+        _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1 \
+            || warn "deleted, but could not delete their tags (capture-…): git -C '$PROVOST_WORKSPACE' tag -d them by hand."
+    fi
     _unlock
-    trap 'exit 130' INT; trap 'exit 143' TERM
 
     local extra=""
     (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
-    ok "deleted $count capture(s) ($shown) and the $total row(s) they filed.$extra Their tags went with them; git's history (the commit before this one) still holds what was there."
+    ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra Their tags went with them; git's history (the commit before this one) still holds what was there."
+    (( _rmsig == 0 )) || exit "$_rmsig"
 }
 
 cmd_doctor () {

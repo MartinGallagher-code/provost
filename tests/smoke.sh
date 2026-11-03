@@ -192,7 +192,7 @@ check "rm --capture: a failed rewrite leaves the store as it was" "clean t.tsv" 
 RCFB2="$(mktemp -d)"
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) exit 7 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB2/mv"
 chmod +x "$RCFB2/mv"
-check "rm --capture: a failed move puts the datasets back" "put back as they were" \
+check "rm --capture: a failed move puts the store back" "put back as it was" \
     "$(PATH="$RCFB2:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
 check "rm --capture: after a failed move the store is as it was" "clean t.tsv v.tsv" \
     "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | tr '\n' ' ' | sed 's/ $//')"
@@ -225,15 +225,16 @@ rm -f "$RCWS5/provenance.tsv"
 rct rm -f --capture 1 >/dev/null 2>&1
 check "rm --capture with no provenance goes by provost's capture column" "[c0002]" \
     "[$(tail -n +2 "$RCWS5/datasets/d.tsv" 2>/dev/null | cut -f2 | tr '\n' ' ' | sed 's/ $//')]"
-# Killed while moving into the store: the signal waits, and the deletion
-# completes and is committed rather than being left half done.
+# Killed while moving into the store: the signal is held until the
+# deletion is committed (not left half done), and then sets the exit status.
 RCWS6="$(mktemp -d)/.rmc6"; RCFB4="$(mktemp -d)"
 rcu () { PROVOST_WORKSPACE="$RCWS6" "$PROVOST" "$@"; }
 rcu run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
 rcu run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -TERM "$PPID" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB4/mv"
 chmod +x "$RCFB4/mv"
-PATH="$RCFB4:$PATH" rcu rm -f --capture 1 >/dev/null 2>&1 || true
+rcu_rc="$(PATH="$RCFB4:$PATH" PROVOST_WORKSPACE="$RCWS6" rc_of "$PROVOST" rm -f --capture 1)"
+check "rm --capture killed while moving exits 143 once committed" "143" "$rcu_rc"
 check "rm --capture killed while moving still completes, committed" "clean c0002" \
     "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean) $(tail -n +2 "$RCWS6/datasets/t.tsv" | cut -f2 | sort -u | tr '\n' ' ' | sed 's/ $//')"
 # A dataset deleted while rm --capture waits at its prompt (before it takes
@@ -244,6 +245,40 @@ gone_out="$( { rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capt
 check "rm --capture skips a dataset deleted while it waited" "deleted 1 capture(s) (c0003)" "$gone_out"
 check "rm --capture after a dataset went while it waited leaves the store clean" "clean" \
     "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean)"
+# A failure after the datasets are moved (removing a capture dir, here)
+# puts the whole store back from HEAD: rows, provenance, dirs and tags.
+RCWS7="$(mktemp -d)/.rmc7"; RCFB5="$(mktemp -d)"
+rcv () { PROVOST_WORKSPACE="$RCWS7" "$PROVOST" "$@"; }
+rcv run --name d printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> d
+rcv run --name d printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> d
+rcv run --name e printf 'x y\n9 9\n' >/dev/null 2>&1   # c0003 -> e
+printf '#!/usr/bin/env bash\nfor a in "$@"; do case "$a" in */captures/c0001) exit 7 ;; esac; done\nexec %q "$@"\n' "$(command -v rm)" > "$RCFB5/rm"
+chmod +x "$RCFB5/rm"
+check "rm --capture: a late failure puts the store back" "put back as it was" \
+    "$(PATH="$RCFB5:$PATH" rcv rm -f --capture 1,3 2>&1 || true)"
+check "rm --capture: after a late failure, store, dirs and tags as they were" "clean e.tsv c0001 c0003 3" \
+    "$( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(ls "$RCWS7/datasets" | grep -x e.tsv) $(ls "$RCWS7/captures" | grep -x c0001) $(ls "$RCWS7/captures" | grep -x c0003) $(git -C "$RCWS7" tag | wc -l | tr -d ' ')"
+# A hangup (an ssh session dropping) while it applies: held like INT/TERM.
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -HUP "$PPID" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB5/mv"
+chmod +x "$RCFB5/mv"; rm -f "$RCFB5/rm"
+rch_rc="$(PATH="$RCFB5:$PATH" PROVOST_WORKSPACE="$RCWS7" rc_of "$PROVOST" rm -f --capture 1,3)"
+check "rm --capture hung up while applying commits, then exits 129" "129 clean d.tsv" \
+    "$rch_rc $( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(ls "$RCWS7/datasets" | tr '\n' ' ' | sed 's/ $//')"
+# A commit that fails puts the store back, and the tags stay.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB5/git"
+chmod +x "$RCFB5/git"; rm -f "$RCFB5/mv"
+check "rm --capture: a failed commit puts the store back" "put back as it was" \
+    "$(PATH="$RCFB5:$PATH" rcv rm -f --capture 2 2>&1 || true)"
+check "rm --capture: a failed commit keeps the tags and the capture" "clean capture-c0002 c0002" \
+    "$( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(git -C "$RCWS7" tag | grep -x capture-c0002) $(ls "$RCWS7/captures" | grep -x c0002)"
+# It will not start over uncommitted changes to what it would touch (they
+# could not be put back), and says so.
+printf '#\tcapture\tn\ta\tb\n' >> "$RCWS7/datasets/d.tsv"
+check "rm --capture refuses over uncommitted changes" "uncommitted changes" "$(rcv rm -f --capture 2 2>&1 || true)"
+git -C "$RCWS7" checkout -q -- datasets
+# The prompt counts the rows that will go, provenance or not.
+check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
+    "$(rm -f "$RCWS7/provenance.tsv"; git -C "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.

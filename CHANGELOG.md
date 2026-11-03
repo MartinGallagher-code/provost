@@ -32,23 +32,29 @@ other runs' answers.
   read only for a row provenance does not know, because a reconciled
   dataset can hold a data value in that position. A data column named
   `capture` or `#` is never matched.
-- Every dataset and `provenance.tsv` is rewritten in a scratch directory
-  first, and the store changes only once all of them succeed. Signals are
-  held off from the first move into the store to the commit, and a move
-  that fails puts every file back. The scratch directory goes on any exit.
-  A dataset deleted while it waited (at the prompt, say) is skipped.
+- It commits the whole deletion or leaves the store as it was. What it
+  touches must already be committed (it refuses otherwise, and says so).
+  Every dataset and `provenance.tsv` is rewritten in a scratch directory
+  first, and any failure after that, up to and including the commit, puts
+  those paths back from HEAD. INT, TERM and HUP wait for the outcome and
+  then set the exit status; a Ctrl-C that also reaches git fails the commit
+  and the store is put back. Tags go only once the commit has landed. The
+  scratch directory goes on any exit. The datasets and rows are found again
+  under the lock, so one deleted while it waited at the prompt is skipped,
+  and the counts it prints are the rows that actually go.
 - The ids go through a file, not the environment or the command line, and
   the tags go in one `git update-ref --stdin`. 750 captures out of 1,501
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +31): refusals (missing, malformed, mixed with
-  names), the prompt, which rows and datasets go and which stay (data
-  columns named `capture` and `#`; provenance against a reconciled capture
-  column; no provenance), failure and signals part way (the store as it
-  was or the deletion complete, the lock released, no scratch dir), a
-  dataset that went while it waited, provenance, dirs, tags, one clean
-  commit, ids never reused.
+- Tests (`tests/smoke.sh`, +39): refusals (missing, malformed, mixed with
+  names, uncommitted changes), the prompt and its count, which rows and
+  datasets go and which stay (data columns named `capture` and `#`;
+  provenance against a reconciled capture column; no provenance), failure
+  at each stage and INT/TERM/HUP (the store as it was or the deletion
+  committed, the exit status, tags kept on failure, the lock released, no
+  scratch dir), a dataset that went while it waited, provenance, dirs,
+  tags, one clean commit, ids never reused.
 
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 
