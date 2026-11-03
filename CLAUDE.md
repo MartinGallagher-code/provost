@@ -4,6 +4,20 @@
 its format, and present it as a tidy, git-backed dataset. Single entry point:
 [`provost`](provost). Design rationale: [docs/0001-rename-and-simplification.md](docs/0001-rename-and-simplification.md).
 
+## Every task is a ticket
+
+Everything done here goes through a ticket in `MartinGallagher-code/shared_tools`,
+which keeps every project's tickets as files and moves each one Backlog → In Progress
+→ Adversarial Test → Review → Done. Before any change:
+
+1. Attach `MartinGallagher-code/shared_tools` with `add_repo` and push access, and
+   clone it.
+2. Read the "Every task is a ticket" section of its `CLAUDE.md`. It sets out what each
+   column requires, and none of it is optional.
+3. Open the ticket: `scripts/ticket.py new provost "Title"`.
+
+The board: https://claude.ai/artifact/HrB3RpVpqGGQS7UZgZsMJm
+
 ## Repository layout
 
 | Path | What it is | Edit here? |
