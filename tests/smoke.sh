@@ -161,6 +161,20 @@ check_not "rm --capture leaves no tag of a deleted capture" "capture-c0002" "$(g
 check "rm --capture is one commit" "rm: deleted 2 capture(s) [c0002 c0003], pruned 2 row(s), emptied 1 dataset(s) [u]" "$(git -C "$RCWS" log -1 --format=%s)"
 check "rm --capture leaves the store clean" "clean" "$( [[ -z "$(git -C "$RCWS" status --porcelain)" ]] && echo clean)"
 check "capture ids are never reused after rm --capture" "c0004:" "$(rcp run --name t printf 'a b\n7 8\n' 2>&1)"
+# A data column named `capture` (provost's becomes `_capture`) or `#` is the
+# tool's own: a value in it that matches a deleted capture or row must not
+# take another capture's rows with it.
+RCWS2="$(mktemp -d)/.rmc2"
+rcq () { PROVOST_WORKSPACE="$RCWS2" "$PROVOST" "$@"; }
+rcq run --name d printf 'capture,val\nc0009,1\n' >/dev/null 2>&1          # c0001 -> d
+rcq run --name d printf 'capture,val\nc0001,2\nc0001,3\n' >/dev/null 2>&1 # c0002 -> d
+rcq run --name h printf 'x,#\na,1\n' >/dev/null 2>&1                      # c0003 -> h
+rcq run --name h printf 'x,#\nb,3\nc,4\n' >/dev/null 2>&1                 # c0004 -> h
+rcq rm -f --capture 1,3 >/dev/null 2>&1
+check "rm --capture keeps rows whose data column 'capture' names a deleted capture" "c0002 c0002" \
+    "$(tail -n +2 "$RCWS2/datasets/d.tsv" | cut -f2 | tr '\n' ' ' | sed 's/ $//')"
+check "rm --capture keeps rows whose data column '#' names a deleted row" "b c" \
+    "$(tail -n +2 "$RCWS2/datasets/h.tsv" | cut -f4 | tr '\n' ' ' | sed 's/ $//')"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.

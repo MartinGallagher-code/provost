@@ -3556,29 +3556,38 @@ _rm_captures () {
         [[ -f "$cap/$c/meta.tsv" ]] || { rm -rf "$tmpd"; _unlock; die "capture $c went while waiting for the store — nothing deleted."; }
     done < "$tmpd/ids"
 
-    # Each dataset without their rows; one left with none goes.
+    # Each dataset without their rows; one left with none goes. Provost's own
+    # columns are '#' (first) and the capture column (second, `capture` or,
+    # beside a data column of that name, `_capture`); a data column named
+    # either is the tool's and is never matched. Everything is written to
+    # the scratch directory first and the store is changed only once every
+    # rewrite has succeeded, so a failure leaves it as it was.
+    local k=0 keep=()
     for n in ${names[@]+"${names[@]}"}; do
-        f="$dir/$n.tsv"
+        f="$dir/$n.tsv"; k=$((k + 1))
         awk -F'\t' -v ds="$n" '
             FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
             FILENAME == ARGV[2] { del[$1] = 1; next }
-            FNR == 1 { for (i = 1; i <= NF; i++) { if ($i == "#") hc = i; if ($i == "capture") cc = i }; print; next }
-            (hc && ($hc in drop)) || (cc && ($cc in del)) { next }
-            { print }' "$tmpd/rows" "$tmpd/ids" "$f" > "$tmpd/ds" \
-            || { rm -rf "$tmpd"; _unlock; die "could not rewrite $f — nothing committed."; }
-        if [[ $(wc -l < "$tmpd/ds") -le 1 ]]; then
-            rm -f "$f"; gone+=("$n")
-        else
-            mv "$tmpd/ds" "$f"
-        fi
+            FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
+            (hc && ($1 in drop)) || (cc && ($2 in del)) { next }
+            { print }' "$tmpd/rows" "$tmpd/ids" "$f" > "$tmpd/ds.$k" \
+            || { rm -rf "$tmpd"; _unlock; die "could not rewrite $f — nothing deleted."; }
+        if [[ $(wc -l < "$tmpd/ds.$k") -le 1 ]]; then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
     done
 
     if [[ -f "$prov" ]]; then
         awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
             FNR == 1 || !($3 in del)' "$tmpd/ids" "$prov" > "$tmpd/prov" \
-            || { rm -rf "$tmpd"; _unlock; die "could not prune provenance.tsv — nothing committed."; }
-        mv "$tmpd/prov" "$prov"
+            || { rm -rf "$tmpd"; _unlock; die "could not prune provenance.tsv — nothing deleted."; }
     fi
+
+    k=0
+    for n in ${names[@]+"${names[@]}"}; do
+        f="$dir/$n.tsv"
+        if [[ -z "${keep[k]}" ]]; then rm -f "$f"; else mv "$tmpd/ds.${keep[k]}" "$f"; fi
+        k=$((k + 1))
+    done
+    [[ -f "$tmpd/prov" ]] && mv "$tmpd/prov" "$prov"
 
     # The capture dirs, and their tags in one go
     while IFS= read -r c; do rm -rf "${cap:?}/$c"; done < "$tmpd/ids"

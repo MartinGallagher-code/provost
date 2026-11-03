@@ -33,9 +33,17 @@ other runs' answers.
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +16): refusals (missing, malformed, mixed with
-  names), the prompt, which rows and datasets go and which stay,
-  provenance, dirs, tags, one clean commit, ids never reused.
+- Rows are matched only by provost's own columns, `#` (first) and the
+  capture column (second, `_capture` beside a data column named
+  `capture`). A data column named `capture` or `#` is never matched, so a
+  value in it cannot take another capture's rows with it.
+- Every dataset and `provenance.tsv` is rewritten in a scratch directory
+  first, and the store changes only once all of them succeed: a failed
+  rewrite leaves nothing for the next capture to commit.
+- Tests (`tests/smoke.sh`, +18): refusals (missing, malformed, mixed with
+  names), the prompt, which rows and datasets go and which stay (including
+  data columns named `capture` and `#`), provenance, dirs, tags, one clean
+  commit, ids never reused.
 
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 
