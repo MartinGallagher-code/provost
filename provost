@@ -3613,10 +3613,12 @@ _rm_captures () {
     _rm_cap_scan || { _unlock; die "could not rewrite the datasets in $dir — nothing deleted."; }
     # What this touches, which HEAD must hold as it is so a failure can put
     # it back from there.
-    [[ -n "$(_git ls-files -- "$dir" 2>/dev/null | head -n 1)" ]] && rb+=("$dir")
+    if (( ${#names[@]} > 0 )) || [[ -n "$(_git ls-files -- "$dir" 2>/dev/null | head -n 1)" ]]; then
+        rb+=("$dir")
+    fi
     [[ -f "$prov" ]] && rb+=("$prov")
     rb+=("$cap")
-    if [[ -n "$(_git status --porcelain -- "${rb[@]}" 2>/dev/null)" ]]; then
+    if [[ -n "$(_git status --porcelain --untracked-files=all -- "${rb[@]}" 2>/dev/null)" ]]; then
         _unlock
         die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C $(printf '%q' "$PROVOST_WORKSPACE") status) — commit or discard them first; nothing deleted."
     fi
@@ -3630,12 +3632,22 @@ _rm_captures () {
     # (and sets the exit status) rather than leaving the store half done; a
     # program it reaches as well (Ctrl-C reaches git) fails, and the store
     # is put back.
+    local head0; head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
     trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
-    if ! _rm_cap_apply; then
+    if ! _rm_cap_apply \
+        && ! { [[ "$(_git rev-parse -q --verify HEAD 2>/dev/null)" != "$head0" ]] \
+               && [[ "$(_git log -1 --format=%s 2>/dev/null)" == "$msg" ]]; }; then
         local rbrel="" r
         for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
-        # the put-back itself is not to be interrupted (a Ctrl-C reaches git too)
-        if ( trap '' INT TERM HUP; _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 ); then   # tree and index
+        # The put-back is not to be interrupted: its git starts with signals
+        # ignored, and is tried again if a Ctrl-C still reaches it (git sets
+        # its own SIGINT handler for its lock files).
+        local tries=0 put=1
+        while (( tries < 3 )); do
+            if ( trap '' INT TERM HUP; _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 ); then put=0; break; fi   # tree and index
+            tries=$((tries + 1))
+        done
+        if (( put == 0 )); then
             trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP; _unlock
             (( _rmsig == 0 )) || { info "interrupted — the store is put back as it was, nothing deleted."; exit "$_rmsig"; }
             die "could not delete the captures — the store is put back as it was, nothing deleted."
@@ -3651,7 +3663,9 @@ _rm_captures () {
                ($1 in del) { print "delete " $1 }' "$tmpd/ids" - > "$tmpd/refs" || true
     local tagged="Their tags went with them; git"
     if [[ -s "$tmpd/refs" ]] && ! _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1; then
-        warn "deleted, but could not delete their tags: git -C $(printf '%q' "$PROVOST_WORKSPACE") tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ')…"
+        local nt more=""; nt=$(wc -l < "$tmpd/refs"); nt=$((nt + 0))
+        (( nt > 8 )) && more=" (and $((nt - 8)) more)"
+        warn "deleted, but could not delete their tags: git -C $(printf '%q' "$PROVOST_WORKSPACE") tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ' | sed 's/ $//')$more"
         tagged="Their tags are still there (above); git"
     fi
     _unlock

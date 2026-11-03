@@ -323,11 +323,40 @@ git -C "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
 printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && kill -INT $$; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
 PATH="$RCFB6:$PATH" rcw rm -f --capture 4 >/dev/null 2>&1 || true
 check "rm --capture's put-back survives a Ctrl-C" "[]" "[$(git -C "$RCWS8" status --porcelain | tr '\n' '|')]"
+# A put-back that git itself fails once (a Ctrl-C that reached it) is
+# tried again, and the store ends as it was.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && [ ! -e %q/once ] && { : > %q/once; exit 1; }; done\nexec %q "$@"\n' "$RCFB6" "$RCFB6" "$(command -v git)" > "$RCFB6/git"
+check "rm --capture tries the put-back again" "put back as it was" "$(PATH="$RCFB6:$PATH" rcw rm -f --capture 4 2>&1 || true)"
+check "rm --capture: after a retried put-back the store is clean" "[]" "[$(git -C "$RCWS8" status --porcelain | tr '\n' '|')]"
+# A commit that lands although git then fails is a deletion, said as one.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %q "$@"; exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" "$(command -v git)" > "$RCFB6/git"
+landed_out="$(PATH="$RCFB6:$PATH" rcw rm -f --capture 4 2>&1 || true)"
+check "rm --capture: a commit that landed is reported as done" "deleted 1 capture(s) (c0004)" "$landed_out"
+check "rm --capture: a commit that landed takes the tag too" "[]" "[$(git -C "$RCWS8" tag | grep -x capture-c0004 || true)]"
+# The tag hint is a command that can be pasted as it is.
+rcw run --name s printf 'a b\n2 2\n' >/dev/null 2>&1   # c0005 -> s
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+check "rm --capture's tag hint ends with the tag" "[tag -d capture-c0005]" \
+    "[$(PATH="$RCFB6:$PATH" rcw rm -f --capture 5 2>&1 | grep 'could not delete their tags' | sed 's/.*\(tag -d .*\)$/\1/')]"
+git -C "$RCWS8" tag -d capture-c0005 >/dev/null 2>&1 || true
+# With no dataset tracked yet, a dataset file it would rewrite is still
+# covered: untracked, it stops the deletion.
+RCWS9="$(mktemp -d)/.rmc9"
+rcx () { PROVOST_WORKSPACE="$RCWS9" "$PROVOST" "$@"; }
+rcx run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcx run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+cp "$RCWS9/datasets/t.tsv" "$RCWS9/t.keep"; rcx rm -f --no-purge t >/dev/null 2>&1; mv "$RCWS9/t.keep" "$RCWS9/datasets/t.tsv"
+check "rm --capture refuses over an untracked dataset it would rewrite" "uncommitted changes" "$(rcx rm -f --capture 1 2>&1 || true)"
+check "rm --capture leaves an untracked dataset as it was" "2" "$(tail -n +2 "$RCWS9/datasets/t.tsv" | wc -l | tr -d ' ')"
+# ...and untracked files are seen whatever status.showUntrackedFiles says.
+mv "$RCWS9/datasets/t.tsv" "$RCWS9/t.keep"; git -C "$RCWS9" config status.showUntrackedFiles no
+echo notes > "$RCWS9/captures/c0001/notes.txt"
+check "rm --capture sees untracked files under showUntrackedFiles=no" "uncommitted changes" "$(rcx rm -f --capture 2 2>&1 || true)"
 # Rows are counted by record: a dataset without a final newline.
-rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> n
-rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0005 -> n
+rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0006 -> n
+rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0007 -> n
 printf '%s' "$(cat "$RCWS8/datasets/n.tsv")" > "$RCWS8/datasets/n.tsv"; git -C "$RCWS8" commit -qam 'no final newline' >/dev/null 2>&1
-check "rm --capture counts a row in a dataset without a final newline" "the 1 row(s) they filed" "$(rcw rm -f --capture 5 2>&1)"
+check "rm --capture counts a row in a dataset without a final newline" "the 1 row(s) they filed" "$(rcw rm -f --capture 7 2>&1)"
 # The prompt counts the rows that will go, provenance or not.
 check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
     "$(rm -f "$RCWS7/provenance.tsv"; git -C "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"

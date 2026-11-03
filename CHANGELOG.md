@@ -33,10 +33,13 @@ other runs' answers.
   dataset can hold a data value in that position. A data column named
   `capture` or `#` is never matched.
 - It commits the whole deletion or leaves the store as it was. What it
-  touches must already be committed (it refuses otherwise, and says so).
+  touches must already be committed, untracked files included (it refuses
+  otherwise, and says so).
   Every dataset and `provenance.tsv` is rewritten in a scratch directory
   first, and any failure after that, up to and including the commit, puts
-  those paths back from HEAD (signals cannot stop the put-back). It stages
+  those paths back from HEAD, with signals ignored and tried again if git
+  is interrupted all the same (a commit that landed although git then
+  failed counts as done). It stages
   and commits those paths alone: anything else uncommitted in the store,
   staged or not, is left as it was. INT, TERM and HUP wait for the outcome
   and then set the exit status; a Ctrl-C that also reaches git fails the
@@ -50,14 +53,16 @@ other runs' answers.
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Tests (`tests/smoke.sh`, +51): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +59): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;
   provenance against a reconciled capture column; no provenance; no final
   newline), failure at each stage and INT/TERM/HUP (the store as it was or
   the deletion committed, the exit status, tags kept on failure and said
   so, the lock released, no scratch dir, a Ctrl-C to the group during the
-  put-back), other uncommitted and staged files left alone, a dataset that
+  put-back, a put-back retried, a commit that landed), untracked and
+  hidden-untracked files refused, other uncommitted and staged files left
+  alone, a dataset that
   went while it waited, provenance, dirs, tags, one clean commit, ids never
   reused.
 
