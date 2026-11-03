@@ -47,8 +47,12 @@ other runs' answers.
   and commits those paths alone: anything else uncommitted in the store,
   staged or not, is left as it was. INT, TERM and HUP wait for the outcome
   and then set the exit status, from the first change to the last message
-  (tags and the report included); a Ctrl-C that also reaches git fails the
-  commit, the store is put back, and it exits 130. Tags go only once the
+  (tags and the report included). Everything that changes the store runs
+  in a child in a process group of its own, so a Ctrl-C at the terminal
+  reaches only the waiting shell and never a git part way through. Under a
+  held-down Ctrl-C (INT to the group every 5 ms, from anywhere in the run)
+  150 runs ended committed or unchanged and none in between, where the
+  same code without its own process group left 14 of 75 half-applied. Tags go only once the
   commit has landed, and if they cannot go it says so. The
   scratch directory goes on any exit. The datasets and rows are found again
   under the lock, so one deleted while it waited at the prompt is skipped,
@@ -56,8 +60,10 @@ other runs' answers.
 - The ids go through a file, not the environment or the command line, and
   the tags go in one `git update-ref --stdin`. 750 captures out of 1,501
   take 3 s.
-- Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
-  `docs/usage.md`.
+- Files: `provost` (`cmd_rm`, `_rm_captures`, `_rm_cap_scan`,
+  `_rm_cap_apply`, `_rm_cap_commit`, `rm --help`, `help advanced`;
+  `_release_lock_dir` reads the lock's owner with `read`, not `$(cat)`, so
+  a Ctrl-C cannot leave a lock it was releasing), `docs/usage.md`.
 - Tests (`tests/smoke.sh`, +68): refusals (missing, malformed, mixed with
   names, uncommitted changes), the prompt and its count, which rows and
   datasets go and which stay (data columns named `capture` and `#`;

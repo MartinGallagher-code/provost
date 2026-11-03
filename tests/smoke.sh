@@ -231,7 +231,7 @@ RCWS6="$(mktemp -d)/.rmc6"; RCFB4="$(mktemp -d)"
 rcu () { PROVOST_WORKSPACE="$RCWS6" "$PROVOST" "$@"; }
 rcu run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
 rcu run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
-printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -TERM "$PPID" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB4/mv"
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -TERM $(ps -o ppid= -p "$(ps -o ppid= -p $PPID)") ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB4/mv"
 chmod +x "$RCFB4/mv"
 rcu_rc="$(PATH="$RCFB4:$PATH" PROVOST_WORKSPACE="$RCWS6" rc_of "$PROVOST" rm -f --capture 1)"
 check "rm --capture killed while moving exits 143 once committed" "143" "$rcu_rc"
@@ -259,7 +259,7 @@ check "rm --capture: a late failure puts the store back" "put back as it was" \
 check "rm --capture: after a late failure, store, dirs and tags as they were" "clean e.tsv c0001 c0003 3" \
     "$( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(ls "$RCWS7/datasets" | grep -x e.tsv) $(ls "$RCWS7/captures" | grep -x c0001) $(ls "$RCWS7/captures" | grep -x c0003) $(git -C "$RCWS7" tag | wc -l | tr -d ' ')"
 # A hangup (an ssh session dropping) while it applies: held like INT/TERM.
-printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -HUP "$PPID" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB5/mv"
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -HUP $(ps -o ppid= -p "$(ps -o ppid= -p $PPID)") ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB5/mv"
 chmod +x "$RCFB5/mv"; rm -f "$RCFB5/rm"
 rch_rc="$(PATH="$RCFB5:$PATH" PROVOST_WORKSPACE="$RCWS7" rc_of "$PROVOST" rm -f --capture 1,3)"
 check "rm --capture hung up while applying commits, then exits 129" "129 clean d.tsv" \
@@ -301,7 +301,7 @@ check "rm --capture: a failed git add puts the store back" "put back as it was" 
 check "rm --capture: after a failed git add the store is clean" "clean" "$( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
 # Interrupted while committing (the commit then fails): put back, and the
 # exit status says it was interrupted.
-printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { kill -INT "$PPID"; exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { kill -INT $(ps -o ppid= -p "$(ps -o ppid= -p $PPID)"); exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
 check "rm --capture interrupted in the commit is put back, exit 130" "130 clean" \
     "$(PATH="$RCFB6:$PATH" PROVOST_WORKSPACE="$RCWS8" rc_of "$PROVOST" rm -f --capture 1) $( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
 # Tags it could not delete are reported as still there, not as gone.
@@ -370,7 +370,7 @@ sleep 0.4
 check "rm --capture: after waiting out the index the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
 # Interrupted while deleting the tags: it finishes them, says so, and then
 # exits 130.
-printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && kill -INT "$PPID"; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB7/git"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && kill -INT $(ps -o ppid= -p "$(ps -o ppid= -p $PPID)"); done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB7/git"
 tagint_out="$(PATH="$RCFB7:$PATH" rcz rm -f --capture 1 2>&1; echo "rc=$?")"
 check "rm --capture interrupted in the tag phase still deletes the tags, then exits 130" "rc=130 []" \
     "$(printf '%s' "$tagint_out" | tail -n 1) [$(git -C "$RCWS10" tag | grep -x capture-c0001 || true)]"
