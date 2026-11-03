@@ -40,10 +40,10 @@ other runs' answers.
 - Every dataset and `provenance.tsv` is rewritten in a scratch directory
   first, and the store changes only once all of them succeed: a failed
   rewrite leaves nothing for the next capture to commit.
-- Tests (`tests/smoke.sh`, +18): refusals (missing, malformed, mixed with
+- Tests (`tests/smoke.sh`, +20): refusals (missing, malformed, mixed with
   names), the prompt, which rows and datasets go and which stay (including
-  data columns named `capture` and `#`), provenance, dirs, tags, one clean
-  commit, ids never reused.
+  data columns named `capture` and `#`), a failed rewrite leaving the store
+  as it was, provenance, dirs, tags, one clean commit, ids never reused.
 
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 

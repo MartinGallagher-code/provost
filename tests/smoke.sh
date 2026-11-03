@@ -175,6 +175,18 @@ check "rm --capture keeps rows whose data column 'capture' names a deleted captu
     "$(tail -n +2 "$RCWS2/datasets/d.tsv" | cut -f2 | tr '\n' ' ' | sed 's/ $//')"
 check "rm --capture keeps rows whose data column '#' names a deleted row" "b c" \
     "$(tail -n +2 "$RCWS2/datasets/h.tsv" | cut -f4 | tr '\n' ' ' | sed 's/ $//')"
+# A rewrite that fails part way changes nothing: an awk that refuses the
+# second dataset must leave the first one, and the whole tree, untouched.
+RCWS3="$(mktemp -d)/.rmc3"; RCFB="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = ds=v ] && exit 7; done\nexec %q "$@"\n' "$(command -v awk)" > "$RCFB/awk"
+chmod +x "$RCFB/awk"
+rcr () { PROVOST_WORKSPACE="$RCWS3" "$PROVOST" "$@"; }
+rcr run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcr run --name v printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> v
+check "rm --capture: a failed rewrite says nothing was deleted" "nothing deleted" \
+    "$(PATH="$RCFB:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
+check "rm --capture: a failed rewrite leaves the store as it was" "clean t.tsv" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | grep -x t.tsv)"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
