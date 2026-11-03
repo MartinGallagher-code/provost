@@ -109,10 +109,17 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0s. **2026-11-02: `rm --capture` is unreleased.** quarterdeck's `qd rm RUN`
+0t. **2026-11-02: `rm --capture` is unreleased.** quarterdeck's `qd rm RUN`
     needs it, and refuses with a clear message on a provost without it
     (PyPI's 2.2.0 and older). Release it with the rest of what is after
-    2.2.0 when the user says so.
+    2.2.0 when the user says so (PV-003).
+
+0s. **2026-11-03: work is ticketed** (PV-001). Every change goes through a
+    ticket in `MartinGallagher-code/shared_tools` (`tickets/provost/`, PV-…;
+    provost_model's are PM-…), moved Backlog → In Progress → Adversarial
+    Test → Review → Done; see "Every task is a ticket" in `CLAUDE.md`.
+    `ticket.py status provost` there lists what is open and next, and
+    replaces this list as the place to look for the work still to do.
 
 0r. **2026-11-02: the tiny LM ships without torch**
     (`pip install provost[lm]`). The 18-layer model is exported to 8-bit numpy
