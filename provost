@@ -2144,7 +2144,7 @@ usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the cap
   Delete datasets, and the captures that fed only them (--no-purge: keep
   those). Or, with --capture, delete captures and the rows they filed, from
   every dataset they fed; a dataset left with no rows goes too. Either way
-  the deletion is one commit: 'restore' still reaches what was there.
+  the deletion is one commit, and git's history keeps what was there.
 EOF
             ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
@@ -3516,6 +3516,7 @@ _rm_captures () {
     mkdir -p "$dir"
     tmpd="$(mktemp -d "$dir/.rm.XXXXXX")" && tmpd="$(cd "$tmpd" && pwd)" \
         || die "cannot make a scratch directory in $dir."
+    _TMPDIRS+=("$tmpd")          # removed on any exit, a signal's included
     printf '%s\n' "$@" | sort -u > "$tmpd/ids"
     while IFS= read -r c; do
         [[ -f "$cap/$c/meta.tsv" ]] || missing+=("$c")
@@ -3556,21 +3557,28 @@ _rm_captures () {
         [[ -f "$cap/$c/meta.tsv" ]] || { rm -rf "$tmpd"; _unlock; die "capture $c went while waiting for the store — nothing deleted."; }
     done < "$tmpd/ids"
 
-    # Each dataset without their rows; one left with none goes. Provost's own
-    # columns are '#' (first) and the capture column (second, `capture` or,
-    # beside a data column of that name, `_capture`); a data column named
-    # either is the tool's and is never matched. Everything is written to
-    # the scratch directory first and the store is changed only once every
-    # rewrite has succeeded, so a failure leaves it as it was.
-    local k=0 keep=()
+    # Each dataset without their rows; one left with none goes. A row is the
+    # capture's when provenance says so: provenance is the record. provost's
+    # capture column (second, after '#'; `_capture` beside a data column
+    # named `capture`) is read only for a row provenance does not know,
+    # because a reconciled dataset can hold a data value in that position.
+    # A data column named `#` or `capture` is never matched. Everything is
+    # written to the scratch directory first, and the store is changed only
+    # once every rewrite has succeeded, so a failure leaves it as it was.
+    local k=0 keep=() pv=/dev/null
+    [[ -f "$prov" ]] && pv="$prov"
     for n in ${names[@]+"${names[@]}"}; do
         f="$dir/$n.tsv"; k=$((k + 1))
+        # gone while waiting for the lock (a concurrent `rm NAME`): nothing to do
+        [[ -f "$f" ]] || { keep+=("-"); continue; }
         awk -F'\t' -v ds="$n" '
             FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
             FILENAME == ARGV[2] { del[$1] = 1; next }
+            FILENAME == ARGV[3] { if (FNR > 1 && $2 == ds) known[$1] = 1; next }
             FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
-            (hc && ($1 in drop)) || (cc && ($2 in del)) { next }
-            { print }' "$tmpd/rows" "$tmpd/ids" "$f" > "$tmpd/ds.$k" \
+            (hc && ($1 in drop)) || (cc && !($1 in known) && ($2 in del)) { next }
+            { print }' "$tmpd/rows" "$tmpd/ids" "$pv" "$f" > "$tmpd/ds.$k" \
+            && cp -p "$f" "$tmpd/orig.$k" \
             || { rm -rf "$tmpd"; _unlock; die "could not rewrite $f — nothing deleted."; }
         if [[ $(wc -l < "$tmpd/ds.$k") -le 1 ]]; then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
     done
@@ -3578,16 +3586,34 @@ _rm_captures () {
     if [[ -f "$prov" ]]; then
         awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
             FNR == 1 || !($3 in del)' "$tmpd/ids" "$prov" > "$tmpd/prov" \
+            && cp -p "$prov" "$tmpd/orig.prov" \
             || { rm -rf "$tmpd"; _unlock; die "could not prune provenance.tsv — nothing deleted."; }
     fi
 
+    # Into the store, with signals held off until the commit: a failure part
+    # way puts every file back from the scratch copies.
+    trap '' INT TERM
+    local failed=0
     k=0
     for n in ${names[@]+"${names[@]}"}; do
         f="$dir/$n.tsv"
-        if [[ -z "${keep[k]}" ]]; then rm -f "$f"; else mv "$tmpd/ds.${keep[k]}" "$f"; fi
+        if [[ "${keep[k]}" == "-" ]]; then :
+        elif [[ -z "${keep[k]}" ]]; then rm -f "$f" || { failed=1; break; }
+        else mv "$tmpd/ds.${keep[k]}" "$f" || { failed=1; break; }
+        fi
         k=$((k + 1))
     done
-    [[ -f "$tmpd/prov" ]] && mv "$tmpd/prov" "$prov"
+    if (( ! failed )) && [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || failed=1; fi
+    if (( failed )); then
+        k=0
+        for n in ${names[@]+"${names[@]}"}; do
+            k=$((k + 1))
+            if [[ -f "$tmpd/orig.$k" ]]; then cp -p "$tmpd/orig.$k" "$dir/$n.tsv"; fi
+        done
+        [[ -f "$tmpd/orig.prov" ]] && cp -p "$tmpd/orig.prov" "$prov"
+        rm -rf "$tmpd"; _unlock; trap 'exit 130' INT; trap 'exit 143' TERM
+        die "could not update the datasets — put back as they were, nothing deleted."
+    fi
 
     # The capture dirs, and their tags in one go
     while IFS= read -r c; do rm -rf "${cap:?}/$c"; done < "$tmpd/ids"
@@ -3603,10 +3629,11 @@ _rm_captures () {
     (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
     _commit "$msg"
     _unlock
+    trap 'exit 130' INT; trap 'exit 143' TERM
 
     local extra=""
     (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
-    ok "deleted $count capture(s) ($shown) and the $total row(s) they filed.$extra History kept — 'provost log'/'restore' still reach the pre-deletion state."
+    ok "deleted $count capture(s) ($shown) and the $total row(s) they filed.$extra Their tags went with them; git's history (the commit before this one) still holds what was there."
 }
 
 cmd_doctor () {

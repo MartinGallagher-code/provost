@@ -21,29 +21,34 @@ other runs' answers.
 
 - **`provost rm [-f] --capture ID[,ID...]`** (repeatable; an ID as
   elsewhere: `c0007`, `7`, `capture-c0007`) deletes those captures: each
-  `captures/<id>/` and its tag, the rows it filed from every dataset it fed
-  (by provenance, and by the `capture` column where there is one), and their
-  provenance rows. A dataset left with no rows goes too. It all goes in one
-  commit, like any `rm`.
+  `captures/<id>/` and its tag, the rows it filed from every dataset it fed,
+  and their provenance rows. A dataset left with no rows goes too. It all
+  goes in one commit, like any `rm`.
 - It asks first, like `rm`, unless `-f`. It refuses the whole operation if
   any id is not a capture, and refuses dataset names given beside
   `--capture`.
+- A row is a capture's when provenance says so. provost's capture column
+  (column 2, after `#`; `_capture` beside a data column named `capture`) is
+  read only for a row provenance does not know, because a reconciled
+  dataset can hold a data value in that position. A data column named
+  `capture` or `#` is never matched.
+- Every dataset and `provenance.tsv` is rewritten in a scratch directory
+  first, and the store changes only once all of them succeed. Signals are
+  held off from the first move into the store to the commit, and a move
+  that fails puts every file back. The scratch directory goes on any exit.
+  A dataset deleted while it waited (at the prompt, say) is skipped.
 - The ids go through a file, not the environment or the command line, and
   the tags go in one `git update-ref --stdin`. 750 captures out of 1,501
   take 3 s.
 - Files: `provost` (`cmd_rm`, `_rm_captures`, `rm --help`, `help advanced`),
   `docs/usage.md`.
-- Rows are matched only by provost's own columns, `#` (first) and the
-  capture column (second, `_capture` beside a data column named
-  `capture`). A data column named `capture` or `#` is never matched, so a
-  value in it cannot take another capture's rows with it.
-- Every dataset and `provenance.tsv` is rewritten in a scratch directory
-  first, and the store changes only once all of them succeed: a failed
-  rewrite leaves nothing for the next capture to commit.
-- Tests (`tests/smoke.sh`, +20): refusals (missing, malformed, mixed with
-  names), the prompt, which rows and datasets go and which stay (including
-  data columns named `capture` and `#`), a failed rewrite leaving the store
-  as it was, provenance, dirs, tags, one clean commit, ids never reused.
+- Tests (`tests/smoke.sh`, +31): refusals (missing, malformed, mixed with
+  names), the prompt, which rows and datasets go and which stay (data
+  columns named `capture` and `#`; provenance against a reconciled capture
+  column; no provenance), failure and signals part way (the store as it
+  was or the deletion complete, the lock released, no scratch dir), a
+  dataset that went while it waited, provenance, dirs, tags, one clean
+  commit, ids never reused.
 
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 

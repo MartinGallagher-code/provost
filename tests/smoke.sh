@@ -171,10 +171,10 @@ rcq run --name d printf 'capture,val\nc0001,2\nc0001,3\n' >/dev/null 2>&1 # c000
 rcq run --name h printf 'x,#\na,1\n' >/dev/null 2>&1                      # c0003 -> h
 rcq run --name h printf 'x,#\nb,3\nc,4\n' >/dev/null 2>&1                 # c0004 -> h
 rcq rm -f --capture 1,3 >/dev/null 2>&1
-check "rm --capture keeps rows whose data column 'capture' names a deleted capture" "c0002 c0002" \
-    "$(tail -n +2 "$RCWS2/datasets/d.tsv" | cut -f2 | tr '\n' ' ' | sed 's/ $//')"
-check "rm --capture keeps rows whose data column '#' names a deleted row" "b c" \
-    "$(tail -n +2 "$RCWS2/datasets/h.tsv" | cut -f4 | tr '\n' ' ' | sed 's/ $//')"
+check "rm --capture keeps rows whose data column 'capture' names a deleted capture" "[c0002 c0002]" \
+    "[$(tail -n +2 "$RCWS2/datasets/d.tsv" | cut -f2 | tr '\n' ' ' | sed 's/ $//')]"
+check "rm --capture keeps rows whose data column '#' names a deleted row" "[b c]" \
+    "[$(tail -n +2 "$RCWS2/datasets/h.tsv" | cut -f4 | tr '\n' ' ' | sed 's/ $//')]"
 # A rewrite that fails part way changes nothing: an awk that refuses the
 # second dataset must leave the first one, and the whole tree, untouched.
 RCWS3="$(mktemp -d)/.rmc3"; RCFB="$(mktemp -d)"
@@ -187,6 +187,63 @@ check "rm --capture: a failed rewrite says nothing was deleted" "nothing deleted
     "$(PATH="$RCFB:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
 check "rm --capture: a failed rewrite leaves the store as it was" "clean t.tsv" \
     "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | grep -x t.tsv)"
+# ...and so does a move into the store that fails part way: what was moved
+# is put back. No scratch directory is left behind either way.
+RCFB2="$(mktemp -d)"
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) exit 7 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB2/mv"
+chmod +x "$RCFB2/mv"
+check "rm --capture: a failed move puts the datasets back" "put back as they were" \
+    "$(PATH="$RCFB2:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
+check "rm --capture: after a failed move the store is as it was" "clean t.tsv v.tsv" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | tr '\n' ' ' | sed 's/ $//')"
+check "rm --capture leaves no scratch directory behind" "0" "$(find "$RCWS3/datasets" -name '.rm.*' | wc -l | tr -d ' ')"
+# Killed while rewriting: the store as it was, the lock released, and its
+# scratch directory gone with it.
+RCFB3="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = ds=v ] && { kill -TERM "$PPID"; sleep 1; exit 7; }; done\nexec %q "$@"\n' "$(command -v awk)" > "$RCFB3/awk"
+chmod +x "$RCFB3/awk"
+check "rm --capture killed part way exits 143" "143" "$(PATH="$RCFB3:$PATH" PROVOST_WORKSPACE="$RCWS3" rc_of "$PROVOST" rm -f --capture 1,2)"
+check "rm --capture killed part way leaves the store, and no scratch dir" "clean 0" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(find "$RCWS3/datasets" -name '.rm.*' | wc -l | tr -d ' ')"
+check "rm --capture killed part way releases the lock" "deleted 2 capture(s)" "$(rcr rm -f --capture 1,2 2>&1)"
+# Provenance is the record: a reconciled dataset can hold a data value in
+# provost's capture position (a later capture brought a `capture` column),
+# and only provenance says whose row is whose.
+RCWS4="$(mktemp -d)/.rmc4"
+rcs () { PROVOST_WORKSPACE="$RCWS4" "$PROVOST" "$@"; }
+rcs run --name d printf 'a,b,c\n1,2,3\n' >/dev/null 2>&1                 # c0001 -> d
+rcs run --name d printf 'capture,a,b,c\nc0001,4,5,6\n' >/dev/null 2>&1   # c0002 -> d, reconciled
+rcs rm -f --capture 1 >/dev/null 2>&1
+check "rm --capture goes by provenance where the capture column disagrees" "[2]" \
+    "[$(tail -n +2 "$RCWS4/datasets/d.tsv" 2>/dev/null | cut -f1 | tr '\n' ' ' | sed 's/ $//')]"
+# Without provenance, provost's capture column is what is left to go by.
+RCWS5="$(mktemp -d)/.rmc5"
+rct () { PROVOST_WORKSPACE="$RCWS5" "$PROVOST" "$@"; }
+rct run --name d printf 'a,b\n1,2\n' >/dev/null 2>&1    # c0001 -> d
+rct run --name d printf 'a,b\n3,4\n' >/dev/null 2>&1    # c0002 -> d
+rm -f "$RCWS5/provenance.tsv"
+rct rm -f --capture 1 >/dev/null 2>&1
+check "rm --capture with no provenance goes by provost's capture column" "[c0002]" \
+    "[$(tail -n +2 "$RCWS5/datasets/d.tsv" 2>/dev/null | cut -f2 | tr '\n' ' ' | sed 's/ $//')]"
+# Killed while moving into the store: the signal waits, and the deletion
+# completes and is committed rather than being left half done.
+RCWS6="$(mktemp -d)/.rmc6"; RCFB4="$(mktemp -d)"
+rcu () { PROVOST_WORKSPACE="$RCWS6" "$PROVOST" "$@"; }
+rcu run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcu run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -TERM "$PPID" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB4/mv"
+chmod +x "$RCFB4/mv"
+PATH="$RCFB4:$PATH" rcu rm -f --capture 1 >/dev/null 2>&1 || true
+check "rm --capture killed while moving still completes, committed" "clean c0002" \
+    "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean) $(tail -n +2 "$RCWS6/datasets/t.tsv" | cut -f2 | sort -u | tr '\n' ' ' | sed 's/ $//')"
+# A dataset deleted while rm --capture waits at its prompt (before it takes
+# the lock) is skipped, not an error.
+rcu run --name w printf 'a b\n5 6\n' >/dev/null 2>&1   # c0003 -> w
+rcu run --name w printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> w
+gone_out="$( { rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 || true)"
+check "rm --capture skips a dataset deleted while it waited" "deleted 1 capture(s) (c0003)" "$gone_out"
+check "rm --capture after a dataset went while it waited leaves the store clean" "clean" \
+    "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean)"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
