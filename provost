@@ -3581,20 +3581,19 @@ _rm_cap_apply () {
 # ($tmpd/tagsfail, $tmpd/indexstale mark what did not follow), 1 when put
 # back, 2 when it could not be put back.
 _rm_cap_commit () {
-    local tries put h1 p1
-    if ! _rm_cap_apply; then
-        # landed all the same? (a git that failed after moving HEAD)
-        h1="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
-        p1="$(_git rev-parse -q --verify HEAD^ 2>/dev/null || true)"
-        if [[ -z "$h1" || "$h1" == "$head0" || "$p1" != "$head0" ]]; then
-            tries=0; put=1
-            while (( tries < 5 )); do
-                _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 && { put=0; break; }   # tree and index
-                tries=$((tries + 1)); sleep 0.2
-            done
-            (( put == 0 )) && exit 1
-            exit 2
-        fi
+    local tries put
+    # The lock is this child's while it works: should the shell that took it
+    # die first, the lock stays live (its owner, this pid, is running) and no
+    # other provost writes beside it. _rm_cap_exit hands it back.
+    _rm_cap_owner "$BASHPID"
+    if ! _rm_cap_apply && ! _rm_cap_landed; then
+        tries=0; put=1
+        while (( tries < 5 )); do
+            _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 && { put=0; break; }   # tree and index
+            tries=$((tries + 1)); sleep 0.2
+        done
+        (( put == 0 )) && _rm_cap_exit 1
+        _rm_cap_exit 2
     fi
     tries=0
     until _git reset -q -- "${rb[@]}" >/dev/null 2>&1; do
@@ -3610,7 +3609,34 @@ _rm_cap_commit () {
     else
         : > "$tmpd/refs"; : > "$tmpd/tagsfail"
     fi
-    exit 0
+    _rm_cap_exit 0
+}
+
+# _rm_cap_landed — did this rm's commit land (HEAD moved on from the old HEAD
+# to a commit of its own message), whatever git said?
+_rm_cap_landed () {
+    local h p m
+    h="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    p="$(_git rev-parse -q --verify HEAD^ 2>/dev/null || true)"
+    m="$(_git log -1 --format=%s 2>/dev/null || true)"
+    [[ -n "$h" && "$h" != "$head0" && "$p" == "$head0" && "$m" == "$msg" ]]
+}
+
+# _rm_cap_owner PID — write the store lock's owner record with PID in it
+# (the record _lock wrote, $rmowner, with only its pid field changed).
+_rm_cap_owner () {
+    local host pid uid t lock="$PROVOST_WORKSPACE/.lock"
+    IFS=$'\t' read -r host pid uid t <<< "$rmowner"
+    printf '%s\t%s\t%s\t%s\n' "$host" "$1" "$uid" "$t" > "$lock/owner.tmp" 2>/dev/null \
+        && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    return 0
+}
+
+# _rm_cap_exit CODE — hand the lock back to the shell that took it, and exit.
+_rm_cap_exit () {
+    local lock="$PROVOST_WORKSPACE/.lock"
+    printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    exit "$1"
 }
 
 # _rm_captures YES ID... — rm --capture: the captures, and every row they
@@ -3680,6 +3706,10 @@ _rm_captures () {
     (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
 
     local head0; head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    local rmowner="" i
+    for i in ${_LOCKS_HELD[@]+"${!_LOCKS_HELD[@]}"}; do
+        [[ "${_LOCKS_HELD[i]}" == "$PROVOST_WORKSPACE/.lock" ]] && rmowner="${_LOCKS_OWNER[i]}"
+    done
     # From here to the last message signals wait (and set the exit status),
     # and errexit is off. Everything that changes the store runs in a child
     # in a process group of its own, so a Ctrl-C at the terminal (which goes
@@ -3688,10 +3718,17 @@ _rm_captures () {
     trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
     set +e
     rm -f "$tmpd/tagsfail" "$tmpd/indexstale"
-    ( trap '' INT TERM HUP; set -m; _rm_cap_commit & wait $! ) 2>/dev/null
+    ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & wait $! ) 2>/dev/null
     local outcome=$?
+    if (( outcome > 2 )); then
+        # the child died (a signal aimed at it alone): what does the store say?
+        if _rm_cap_landed; then outcome=0; : > "$tmpd/tagsfail"; : > "$tmpd/indexstale"; else outcome=2; fi
+    fi
     _unlock
     set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
+    if (( outcome != 0 )) && [[ -s "$tmpd/err" ]]; then
+        printf '%s\n' "$(tail -n 5 "$tmpd/err")" >&2
+    fi
     case "$outcome" in
         0) ;;
         1)  (( _rmsig == 0 )) || { info "interrupted — the store is put back as it was, nothing deleted."; exit "$_rmsig"; }

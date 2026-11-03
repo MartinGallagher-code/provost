@@ -386,6 +386,26 @@ exec %q "$@"
 ' "$(command -v git)" "$(command -v git)" "$RCWS10" "$(command -v git)" > "$RCFB7/git"
 check "rm --capture: a commit killed after landing is done" "deleted 1 capture(s) (c0002)" "$(PATH="$RCFB7:$PATH" rcz rm -f --capture 2 2>&1 || true)"
 check "rm --capture: after a commit killed after landing the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
+# The shell that took the lock killed outright while its commit runs: the
+# lock stays live until the commit is done (the next provost waits), and
+# the deletion is its own commit, not swept into the next one.
+RCWS11="$(mktemp -d)/.rmc11"; RCFB8="$(mktemp -d)"
+rck () { PROVOST_WORKSPACE="$RCWS11" "$PROVOST" "$@"; }
+rck run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rck run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && sleep 1.5; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+PATH="$RCFB8:$PATH" PROVOST_WORKSPACE="$RCWS11" "$PROVOST" rm -f --capture 2 >/dev/null 2>&1 &
+rck_pid=$!; sleep 0.7; kill -KILL "$rck_pid" 2>/dev/null || true; wait "$rck_pid" 2>/dev/null || true
+PROVOST_LOCK_TIMEOUT=10 rck run --name u printf 'x y\n5 6\n' >/dev/null 2>&1
+check "rm --capture whose shell was killed still commits on its own" "[rm: deleted 1 capture(s) [c0002], pruned 1 row(s)]" \
+    "[$(git -C "$RCWS11" log -2 --format=%s | tail -n 1)]"
+check "...and the next capture waited for it, its commit its own" "capture c0003" "$(git -C "$RCWS11" log -1 --format=%s)"
+check_not "...which did not take the deletion with it" "captures/c0002" "$(git -C "$RCWS11" show --stat --format= HEAD)"
+# What made it fail is shown, not swallowed.
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
+rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"
+check "rm --capture shows why it failed" "No space left on device" "$(PATH="$RCFB8:$PATH" rck rm -f --capture 1 2>&1 || true)"
 # Rows are counted by record: a dataset without a final newline.
 rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0006 -> n
 rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0007 -> n
