@@ -65,7 +65,7 @@ preserving can also go in `CHANGELOG.md`.
 When you change `provost` or a first-party test, run and keep green:
 
 ```bash
-bash tests/smoke.sh                 # end-to-end (577 checks)
+bash tests/smoke.sh                 # end-to-end (579 checks)
 bash transform/tests/test_melt.sh   # transform unit test (60 checks)
 ```
 

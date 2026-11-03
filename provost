@@ -3636,9 +3636,13 @@ _rm_cap_owner () {
     # and the write (a breaker re-checks staleness holding it). Waited for a
     # little, as the hand-back does; one older than a minute was abandoned
     # (_lock_break's own rule) and is cleared.
-    local w=0
+    local w=0 cleared=0
     until mkdir "$lock.break" 2>/dev/null; do
-        if (( $(_age "$lock.break") > 60 )); then rmdir "$lock.break" 2>/dev/null || true; continue; fi
+        # cleared at most once: one that cannot be removed (not empty, not a
+        # directory, another user's) is waited out like a busy one
+        if (( ! cleared )) && (( $(_age "$lock.break") > 60 )); then
+            cleared=1; rmdir "$lock.break" 2>/dev/null || true
+        fi
         w=$((w + 1)); (( w < 30 )) || { : > "$tmpd/claimbusy"; return 1; }; sleep 0.1
     done
     { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
@@ -3760,7 +3764,7 @@ _rm_captures () {
     if (( outcome == 3 )); then
         _unlock; set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
         [[ -e "$tmpd/claimbusy" ]] \
-            && die "another provost held the store's lock-break mutex ($PROVOST_WORKSPACE/.lock.break) throughout — nothing deleted; run it again (if it persists and nothing is breaking a lock, remove that directory)."
+            && die "another provost held the store's lock-break mutex ($PROVOST_WORKSPACE/.lock.break) throughout — nothing deleted; wait a minute and run it again (if it persists and nothing is breaking a lock, remove it)."
         die "the store's lock was no longer this rm's when it came to change the store (removed by hand, or broken as stale and taken) — nothing deleted; run it again."
     elif (( outcome > 2 )); then
         # The child died (a signal aimed at it alone). A git it started may

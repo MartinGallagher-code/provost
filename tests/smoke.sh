@@ -441,6 +441,14 @@ rck run --name t printf 'a b\n6 6\n' >/dev/null 2>&1   # c0006 -> t
 mkdir "$RCWS11/.lock.break"; touch -d '2 hours ago' "$RCWS11/.lock.break" 2>/dev/null || touch -t 200001010000 "$RCWS11/.lock.break"
 check "rm --capture clears an abandoned lock-break mutex" "deleted 1 capture(s) (c0006)" "$(rck rm -f --capture 6 2>&1 || true)"
 check "...and leaves none behind" "no" "$([[ -e "$RCWS11/.lock.break" ]] && echo yes || echo no)"
+# One that cannot be removed (here: not empty) is waited out, not spun on:
+# it gives up within seconds, nothing deleted, and says what is in the way.
+rck run --name t printf 'a b\n6 7\n' >/dev/null 2>&1   # c0007 -> t
+mkdir -p "$RCWS11/.lock.break/x"; touch -d '2 hours ago' "$RCWS11/.lock.break" 2>/dev/null || touch -t 200001010000 "$RCWS11/.lock.break"
+stuck_s=$SECONDS; stuck_out="$(rck rm -f --capture 7 2>&1 || true)"; stuck_s=$((SECONDS - stuck_s))
+check "rm --capture gives up on a lock-break mutex it cannot clear" "lock-break mutex" "$stuck_out"
+check "...within seconds, nothing deleted" "yes yes" "$( (( stuck_s < 15 )) && echo yes) $([[ -d "$RCWS11/captures/c0007" ]] && echo yes)"
+rm -rf "$RCWS11/.lock.break"
 # What made it fail is shown, not swallowed.
 printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
 rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"
