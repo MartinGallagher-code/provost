@@ -37,9 +37,20 @@ def test_main_execs_bash_with_bundled_script(monkeypatch):
     monkeypatch.setattr(
         os, "execv", lambda path, args: calls.update(path=path, args=args)
     )
+    monkeypatch.delenv("PROVOST_PYTHON", raising=False)
     assert provost_data.main(["show", "df"]) is None
     assert calls["path"] == "/bin/bash"
     assert calls["args"] == ["/bin/bash", provost_data.provost_script(), "show", "df"]
+    assert os.environ["PROVOST_PYTHON"] == sys.executable
+
+
+def test_main_keeps_a_chosen_python(monkeypatch):
+    monkeypatch.setattr(os.path, "isfile", lambda p: True)
+    monkeypatch.setattr(shutil, "which", lambda cmd: "/bin/bash")
+    monkeypatch.setattr(os, "execv", lambda path, args: None)
+    monkeypatch.setenv("PROVOST_PYTHON", "/opt/py/bin/python3")
+    provost_data.main(["ls"])
+    assert os.environ["PROVOST_PYTHON"] == "/opt/py/bin/python3"
 
 
 def test_main_defaults_argv_to_sys_argv(monkeypatch):

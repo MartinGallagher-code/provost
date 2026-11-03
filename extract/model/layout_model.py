@@ -18,11 +18,13 @@ the quality gate would otherwise hold (PROVOST_MODEL=1); the engine then
 measures the result with the same coverage and consistency checks as every
 other parser.
 
-PROVOST_LAYOUT_LM=DIR labels with the tiny pretrained language model instead
-(lm_runtime.py; trained by ml/train_lm.py, needs torch, transformers and
-peft). The arbiter is left out then: it was fitted to the trees'
-probabilities. Without those packages, or with no model in DIR, the trees
-label as before.
+The tiny pretrained language model labels instead (lm_runtime.py) when
+PROVOST_LAYOUT_LM names its directory, or, unset, when the provost-model
+package is installed (its numpy export, lm_numpy.py; ml/train_lm.py saves
+need torch, transformers and peft). PROVOST_LAYOUT_LM=0 keeps the trees.
+The arbiter is left out with the LM: it was fitted to the trees'
+probabilities. Without the packages a model needs, or with no model where
+named, the trees label as before.
 
 Exit status: 0 with records on stdout; 1 when nothing usable was found;
 3 when the input is too large to label here (MAX_LINES).
@@ -102,9 +104,13 @@ def label(model, lines):
 
 
 def label_lm(lm, lines):
-    """label() with the tiny LM (lm_runtime.run): the same three answers."""
-    import lm_runtime
-    roles, probs = lm_runtime.run(lm, lines)
+    """label() with the tiny LM (lm_numpy.run or lm_runtime.run): the same
+    three answers."""
+    if getattr(lm[0], "numpy", False):
+        import lm_numpy as runtime            # never imports torch
+    else:
+        import lm_runtime as runtime
+    roles, probs = runtime.run(lm, lines)
     starts = [None if p is None else sorted(i for i, q in p.items() if q > 0.5) for p in probs]
     for j, st in decode(lines, roles, probs).items():
         starts[j] = st
@@ -112,10 +118,24 @@ def label_lm(lm, lines):
 
 
 def load_lm(env=os.environ):
-    """The tiny LM named by PROVOST_LAYOUT_LM, or None (the trees label)."""
+    """The tiny LM in the directory PROVOST_LAYOUT_LM names, else the
+    installed provost-model package's, or None (the trees label)."""
     path = env.get("PROVOST_LAYOUT_LM", "")
-    if not path:
+    if path == "0":
         return None
+    if not path:
+        try:
+            import provost_model
+        except ImportError:
+            return None
+        path = provost_model.MODEL_DIR
+    import lm_encode
+    if lm_encode.is_numpy_dir(path):
+        try:
+            import lm_numpy
+            return lm_numpy.load(path)
+        except Exception:  # noqa: BLE001 -- no numpy, or a broken model: the trees label
+            return None
     import lm_runtime
     return lm_runtime.load(path)
 

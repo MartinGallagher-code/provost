@@ -35,6 +35,7 @@ they mean are in
 | `adjudicated.py` | the answer keys that don't come from the engine: builds and scores `eval/adjudicated-*.jsonl` (150 blind A/B verdicts) and `eval/gold-*.jsonl` (300 hand-labelled lines) | stdlib |
 | `eval/` | those sets, plus the LLM labels of the whole corpus (`llm-labels-*.jsonl.gz`) and the pilot's labels and review sheet (`llm-pilot-*`) — committed, because they are review work, not regenerable | data |
 | `export_model.py` | compiles the trained trees into `extract/model/layout-model.json.gz` (the shipped model) | lightgbm |
+| `export_lm.py` | turns a `train_lm.py` model into the numpy runtime's (`extract/model/lm_numpy.py`): the adapter merged, 8-bit weights in `.npz` shards, the tokenizer for `extract/model/bpe.py`; `--check N` compares it with torch. The `provost-model` package is its output | torch, transformers, peft, numpy |
 | `arbiter.py` | picks the engine's or the model's split per line (logistic regression) | numpy, scikit-learn to train |
 | `show.py` | prints labelled examples for eyeballing | stdlib |
 | `llm/GUIDE.md` | the labelling guide the LLM teacher follows (also the API run's system prompt) | text |
@@ -44,6 +45,7 @@ they mean are in
 | `llm/to_corpus.py` | turns LLM labels into a training set (`crossval.py --train-corpus`, `train_baseline.py --corpus`) | stdlib |
 | `tests/test_ml.py`, `tests/test_llm.py` | tests for the label builders and the LLM-label checker (run in CI) | stdlib |
 | `tests/test_train_lm.py` | tests for the tiny-LM labeller on a tiny random model (no download); skipped without torch/transformers/peft | torch, transformers, peft |
+| `tests/test_lm_numpy.py` | the tiny LM without torch: the tokenizer (stdlib), the numpy forward pass (checked against transformers' Llama where torch is installed), the quantizers, the export layout | numpy |
 
 ## Reproduce
 
@@ -64,6 +66,7 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --save ml/models/lm-f0   # ~1 h per epoch on 4 cores, ~9 GB RAM
 .venv/bin/python ml/fold_eval.py --fold 0 --learner lm --lm-load ml/models/lm-f0/best
 .venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --layers 6 --save ml/models/lm6-f0   # the first 6 of 30 layers: 51M weights
+.venv/bin/python ml/export_lm.py --model ml/models/lm-all-l18 --out ../provost_model/src/provost_model/model --check 200   # the provost-model package
 # on macOS fold_eval crashes when LightGBM and torch share a process (two libomp copies):
 #   OMP_NUM_THREADS=1 .venv/bin/python ml/fold_eval.py ... --threads 1   (a fold in ~80 s)
 python3 -m unittest discover -s ml/tests         # stdlib tests

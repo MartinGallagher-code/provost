@@ -494,11 +494,19 @@ if command -v python3 >/dev/null 2>&1; then
     check "meta records the layout model" "layout_model	filed: the engine's parse was low-coverage" "$lm_meta"
     check "meta keeps the held parse's strategy" "single_strategy	block-records" "$lm_meta"
     check "the model's values are cut from the input" "FILEPATH=/usr/bin/ar" "$(cat "$LWS/datasets/layout-model.tsv")"
-    # PROVOST_LAYOUT_LM names a tiny-LM model (ml/train_lm.py); with no model
-    # there, or no torch, the trees label exactly as before.
+    # PROVOST_LAYOUT_LM names a tiny-LM model (ml/train_lm.py or ml/export_lm.py);
+    # with no model there, or no runtime for it, the trees label exactly as before.
     LWS3="$(mktemp -d)/.lmfallback"
     lm_out="$(PROVOST_WORKSPACE="$LWS3" PROVOST_LAYOUT_LM="$(mktemp -d)/no-model" "$PROVOST" --sync --model "$LM_IN" 2>&1)"
     check "with PROVOST_LAYOUT_LM naming no model, --model falls back to the trees" "strategy layout-model" "$lm_out"
+    # PROVOST_LAYOUT_LM=0 keeps the trees even where a provost-model package is
+    # installed; a PROVOST_PYTHON that is not there declines like no python3.
+    LWS4="$(mktemp -d)/.lmzero"
+    lm_out="$(PROVOST_WORKSPACE="$LWS4" PROVOST_LAYOUT_LM=0 "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check "PROVOST_LAYOUT_LM=0: --model labels with the trees" "strategy layout-model" "$lm_out"
+    LWS5="$(mktemp -d)/.lmnopy"
+    lm_out="$(PROVOST_WORKSPACE="$LWS5" PROVOST_PYTHON=/nonexistent/python3 "$PROVOST" --sync --model "$LM_IN" 2>&1)"
+    check_not "a missing PROVOST_PYTHON: the layout model declines" "strategy layout-model" "$lm_out"
     # Declined: the model's table would keep too little; held as before, with why.
     printf '%s\n' '-- Cache values' '// Upper bound on bins per run' 'BINPACK_MAX_BINS:STRING=64' '' \
         '// Collect allocation statistics' 'BINPACK_WITH_STATS:BOOL=ON' '' '// Path to a program.' \
