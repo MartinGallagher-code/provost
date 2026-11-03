@@ -1,5 +1,17 @@
 # provost — Changelog
 
+## 2026-11-03 — Every task is a ticket on the shared board (PV-001)
+
+provost's work is now tracked as tickets in
+[shared_tools](https://github.com/MartinGallagher-code/shared_tools)
+(`tickets/provost/`, prefix PV), on the shared kanban board. Workflow docs
+only, no code and no version change.
+
+- **`CLAUDE.md`:** the "Every task is a ticket" section, verbatim from
+  shared_tools' `CLAUDE.md` with this repository's name filled in, directly
+  after the opening paragraph.
+- **`HANDOFF.md`:** next step 0s.
+
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 
 `pip install provost[lm]` gives `--model` the 18-layer tiny LM, run with
