@@ -316,14 +316,13 @@ rcw rm -f --capture 3 >/dev/null 2>&1 || true
 check_not "rm --capture does not commit what was staged beside it" "staged.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
 check "rm --capture leaves a staged file staged" "A  staged.txt" "$(git -C "$RCWS8" status --porcelain)"
 git -C "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
-# A Ctrl-C to the whole process group while it puts the store back does
-# not stop the put-back (its own git ignores it).
-if command -v setsid >/dev/null 2>&1; then
-    printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && { kill -INT 0; sleep 0.2; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
-    PATH="$RCFB6:$PATH" PROVOST_WORKSPACE="$RCWS8" setsid -w "$PROVOST" rm -f --capture 4 >/dev/null 2>&1 || true
-    check "rm --capture's put-back survives a Ctrl-C to its group" "clean" \
-        "$( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
-fi
+# A Ctrl-C (which reaches every process in the group) while it puts the
+# store back does not stop the put-back: its git runs with INT ignored. The
+# stand-in git sends itself INT before it checks out; it survives only if
+# INT is ignored.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && kill -INT $$; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+PATH="$RCFB6:$PATH" rcw rm -f --capture 4 >/dev/null 2>&1 || true
+check "rm --capture's put-back survives a Ctrl-C" "[]" "[$(git -C "$RCWS8" status --porcelain | tr '\n' '|')]"
 # Rows are counted by record: a dataset without a final newline.
 rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> n
 rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0005 -> n
