@@ -315,7 +315,7 @@ echo 'staged' > "$RCWS8/staged.txt"; git -C "$RCWS8" add staged.txt
 rcw rm -f --capture 3 >/dev/null 2>&1 || true
 check_not "rm --capture does not commit what was staged beside it" "staged.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
 check "rm --capture leaves a staged file staged" "A  staged.txt" "$(git -C "$RCWS8" status --porcelain)"
-git -C "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
+tgit "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
 # A Ctrl-C (which reaches every process in the group) while it puts the
 # store back does not stop the put-back: its git runs with INT ignored. The
 # stand-in git sends itself INT before it checks out; it survives only if
@@ -355,11 +355,11 @@ check "rm --capture sees untracked files under showUntrackedFiles=no" "uncommitt
 # Rows are counted by record: a dataset without a final newline.
 rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0006 -> n
 rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0007 -> n
-printf '%s' "$(cat "$RCWS8/datasets/n.tsv")" > "$RCWS8/datasets/n.tsv"; git -C "$RCWS8" commit -qam 'no final newline' >/dev/null 2>&1
+printf '%s' "$(cat "$RCWS8/datasets/n.tsv")" > "$RCWS8/datasets/n.tsv"; tgit "$RCWS8" commit -qam 'no final newline' >/dev/null 2>&1
 check "rm --capture counts a row in a dataset without a final newline" "the 1 row(s) they filed" "$(rcw rm -f --capture 7 2>&1)"
 # The prompt counts the rows that will go, provenance or not.
 check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
-    "$(rm -f "$RCWS7/provenance.tsv"; git -C "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"
+    "$(rm -f "$RCWS7/provenance.tsv"; tgit "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
