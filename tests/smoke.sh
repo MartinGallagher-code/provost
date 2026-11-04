@@ -1306,6 +1306,25 @@ check "each row names the capture it came from" "3	c0002	1	/dev/sda1" "$(cat "$C
 check "show prints the capture column" "c0001" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" show df 2>&1)"
 printf 'capture value\nx 1\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --name own >/dev/null 2>&1
 check "a data column named capture keeps its name beside _capture" "#	_capture	n	capture	value" "$(head -1 "$CWS/datasets/own.tsv")"
+# A data column named `#` (a tool's own row number) is renamed #_2 by the melt
+# rather than sit beside the store's row id under the same name (PV-011), and
+# meta.tsv records it.
+HWS="$(mktemp -d)/.hashcol"
+printf 'name,#\nether1,0\nether2,1\n' | PROVOST_WORKSPACE="$HWS" "$PROVOST" --sync --name hash >/dev/null 2>&1
+printf 'name,size\na,1\nb,2\n' | PROVOST_WORKSPACE="$HWS" "$PROVOST" --sync --name plain >/dev/null 2>&1
+check "a data column named # becomes #_2 beside the row id" "#	capture	n	name	#_2" "$(head -1 "$HWS/datasets/hash.tsv")"
+check "...and keeps its values" "ether2	1" "$(cat "$HWS/datasets/hash.tsv")"
+check "...and meta.tsv records the rename" "renamed_columns	hash:#=#_2" "$(cat "$HWS/captures/c0001/meta.tsv")"
+check_not "a capture with nothing renamed records nothing" "renamed_columns" "$(cat "$HWS/captures/c0002/meta.tsv")"
+# A dataset filed before that (two columns named `#`) has its own renamed on
+# the next append, so the old rows keep their values under #_2.
+sed -i '1s/#_2$/#/' "$HWS/datasets/hash.tsv"
+tgit "$HWS" add -A >/dev/null 2>&1; tgit "$HWS" commit -qm "simulate a pre-PV-011 dataset" >/dev/null 2>&1
+printf 'name,#\nether3,2\n' | PROVOST_WORKSPACE="$HWS" "$PROVOST" --sync --name hash >/dev/null 2>&1
+check "an old dataset's second # is renamed #_2 on the next append" "#	capture	n	name	#_2" "$(head -1 "$HWS/datasets/hash.tsv")"
+check "...its old rows keep their values" "ether1	0" "$(cat "$HWS/datasets/hash.tsv")"
+check "...and the new rows land in the same column" "ether3	2" "$(cat "$HWS/datasets/hash.tsv")"
+check "...and it is all one dataset" "1" "$(ls "$HWS/datasets" | grep -c '^hash')"
 printf 'held\n' | PROVOST_WORKSPACE="$CWS" "$PROVOST" --sync --min-confidence 101 >/dev/null 2>&1
 check "triage shows the capture of a held input" "c0004" "$(PROVOST_WORKSPACE="$CWS" "$PROVOST" triage 2>/dev/null)"
 for f in "$CWS"/datasets/*.tsv; do cut -f1,3- "$f" > "$CWS/x" && mv "$CWS/x" "$f"; done   # back to format 2

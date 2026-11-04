@@ -99,7 +99,9 @@ run/inject  →  auto-detect (generic parsers + hint rules)  →  tidy melt  →
 
 Every dataset row carries `#` (its number in the store), `capture` (the
 capture it came from, e.g. `c0007`) and, for records, `n` (its place in that
-capture).
+capture). A tool's own column named `#` (zypper's repo number, a template's
+row index) is filed as `#_2`, so it never shares a name with the store's, and
+the capture's `meta.tsv` says so (`renamed_columns  NAME:#=#_2`).
 
 ## Layout
 

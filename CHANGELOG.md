@@ -33,6 +33,45 @@ Files:
 - `docs/benchmark-2026-11-04-generalisation-round5.md`
 - `HANDOFF.md`, `CHANGELOG.md`
 
+## 2026-11-04 — A data column named `#` is renamed `#_2`, not filed beside the row id (PV-011)
+
+provost puts its own `#` (the row's number in the store) in front of every
+dataset, so a tool's own `#` column ended up as a second column of the same
+name: round 4's case 124 (a format-2 template for mikrotik
+`/interface print detail`, `docs/benchmark-2026-10-27-llm-templates-round4.md`),
+and in the corpus aureport `--login`, zypper `repos` and goose's report. Two
+columns of one name break the by-name union and align when a later capture
+is appended (`_core_union_header` / `_core_align_rows` map a name to its first
+occurrence), so the tool's values would have been lost on reconcile.
+
+- **The melt renames it** (`transform/melt.sh`, `_CORE_MELT_ROW_ID`): a column
+  named exactly `#`, in any output shape (a table passed through, a melted
+  record field or scalar, a one-row snapshot), becomes `#_2`, the first `#_K`
+  (K ≥ 2) no other column of the output holds; several become `#_2`, `#_3` in
+  order. Names that only contain `#` (`#_reqs`, `##`) and a lone `#`
+  observation in `field`/`value` form are left alone.
+- **It says so.** `_core_melt_tidy_file FILE [capid] [RENAMES]` writes one
+  `#=#_2` line per rename to RENAMES (truncated first), and the store records
+  them in the capture's `meta.tsv` as `renamed_columns  DATASET:#=#_2,...`
+  (`provost`, `_ingest_store`; the melt call sites in `_am_part_check`, the
+  auto-multi parts and the single parse pass the file).
+- **Docs:** `provost help advanced`, `man/provost.1`, `README.md`.
+- **Tests:** `transform/tests/test_melt.sh` gains 10 checks (70 now);
+  `tests/smoke.sh` gains 8 (599 with PV-015's): header, values, `meta.tsv`, and nothing
+  recorded when nothing was renamed, and an old dataset's `#` renamed on
+  append with its values kept. Corpus goldens `aureport-login`,
+  `goose-report` and `zypper-repos` are regenerated: their header's `#` is now
+  `#_2`, nothing else changed.
+- **Existing stores** (`provost`, `_store_fix_row_id`, called by
+  `_store_append` on the dataset and on each `.vN` variant it compares): a
+  dataset filed before this has two `#` columns. Left alone, the next
+  capture's `#_2` made its header differ, and the reconcile's by-name union
+  dropped the old second `#` and every value in it (found by filing one
+  capture with the old code and one with the new). The stored header's
+  second `#` is now renamed by the same rule before the comparison, once and
+  in place, so the old rows keep their values under `#_2` and the next
+  capture appends to them.
+
 ## 2026-11-04 — `fold_eval.py` keeps LightGBM and torch apart (PV-014)
 
 `ml/fold_eval.py` crashed on macOS (exit 139) whenever a run loaded both
