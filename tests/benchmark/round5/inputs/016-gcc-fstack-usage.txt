@@ -1,0 +1,5 @@
+ledger.c:16:12:post	32	static
+ledger.c:26:6:balance	48	static
+ledger.c:35:6:scale	16	static
+ledger.c:41:7:leak_label	48	static
+ledger.c:48:5:main	2128	static

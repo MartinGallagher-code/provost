@@ -1,0 +1,90 @@
+###########################################################
+## Do NOT use this node dump for any purpose other than  ##
+## debug and research.  Compatibility is not guaranteed. ##
+###########################################################
+
+# @ NODE_SCOPE (id: 90, line: 1, location: (1,0)-(12,65))
+# +- nd_tbl: (empty)
+# +- nd_args:
+# |   (null node)
+# +- nd_body:
+#     @ NODE_BLOCK (id: 88, line: 2, location: (2,0)-(12,65))
+#     +- nd_head (1):
+#     |   @ NODE_MODULE (id: 76, line: 2, location: (2,0)-(10,3))*
+#     |   +- nd_cpath:
+#     |   |   @ NODE_COLON2 (id: 0, line: 2, location: (2,7)-(2,11))
+#     |   |   +- nd_mid: :Slug
+#     |   |   +- nd_head:
+#     |   |       (null node)
+#     |   +- nd_body:
+#     |       @ NODE_SCOPE (id: 75, line: 10, location: (2,0)-(10,3))
+#     |       +- nd_tbl: (empty)
+#     |       +- nd_args:
+#     |       |   (null node)
+#     |       +- nd_body:
+#     |           @ NODE_BLOCK (id: 21, line: 2, location: (2,11)-(9,5))
+#     |           +- nd_head (1):
+#     |           |   @ NODE_BEGIN (id: 1, line: 2, location: (2,11)-(2,11))
+#     |           |   +- nd_body:
+#     |           |       (null node)
+#     |           +- nd_head (2):
+#     |           |   @ NODE_CDECL (id: 2, line: 3, location: (3,2)-(3,78))*
+#     |           |   +- nd_vid: :TRANSLIT
+#     |           |   +- nd_else: not used
+#     |           |   +- nd_value:
+#     |           |       @ NODE_CALL (id: 20, line: 3, location: (3,13)-(3,78))
+#     |           |       +- nd_mid: :freeze
+#     |           |       +- nd_recv:
+#     |           |       |   @ NODE_HASH (id: 19, line: 3, location: (3,13)-(3,71))
+#     |           |       |   +- nd_brace: 1 (hash literal)
+#     |           |       |   +- nd_head:
+#     |           |       |       @ NODE_LIST (id: 5, line: 3, location: (3,15)-(3,69))
+#     |           |       |       +- as.nd_alen: 8
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_LIT (id: 3, line: 3, location: (3,15)-(3,19))
+#     |           |       |       |   +- nd_lit: "\u00E4"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_STR (id: 4, line: 3, location: (3,23)-(3,27))
+#     |           |       |       |   +- nd_lit: "ae"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_LIT (id: 7, line: 3, location: (3,29)-(3,33))
+#     |           |       |       |   +- nd_lit: "\u00F6"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_STR (id: 8, line: 3, location: (3,37)-(3,41))
+#     |           |       |       |   +- nd_lit: "oe"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_LIT (id: 11, line: 3, location: (3,43)-(3,47))
+#     |           |       |       |   +- nd_lit: "\u00FC"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_STR (id: 12, line: 3, location: (3,51)-(3,55))
+#     |           |       |       |   +- nd_lit: "ue"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_LIT (id: 15, line: 3, location: (3,57)-(3,61))
+#     |           |       |       |   +- nd_lit: "\u00DF"
+#     |           |       |       +- nd_head:
+#     |           |       |       |   @ NODE_STR (id: 16, line: 3, location: (3,65)-(3,69))
+#     |           |       |       |   +- nd_lit: "ss"
+#     |           |       |       +- nd_next:
+#     |           |       |           (null node)
+#     |           |       +- nd_args:
+#     |           |           (null node)
+#     |           +- nd_head (3):
+#     |               @ NODE_DEFS (id: 25, line: 5, location: (5,2)-(9,5))*
+#     |               +- nd_recv:
+#     |               |   @ NODE_SELF (id: 24, line: 5, location: (5,6)-(5,10))
+#     |               +- nd_mid: :call
+#     |               +- nd_defn:
+#     |                   @ NODE_SCOPE (id: 73, line: 9, location: (5,2)-(9,5))
+#     |                   +- nd_tbl: :text,:sep,(internal variable: 0x34359214071),:s
+#     |                   +- nd_args:
+#     |                   |   @ NODE_ARGS (id: 30, line: 5, location: (5,16)-(5,30))
+#     |                   |   +- nd_ainfo.pre_args_num: 1
+#     |                   |   +- nd_ainfo.pre_init:
+#     |                   |   |   (null node)
+#     |                   |   +- nd_ainfo.post_args_num: 0
+#     |                   |   +- nd_ainfo.post_init:
+#     |                   |   |   (null node)
+#     |                   |   +- nd_ainfo.first_post_arg: (null)
+#     |                   |   +- nd_ainfo.rest_arg: (null)
+#     |                   |   +- nd_ainfo.block_arg: (null)
+#     |                   |   +- nd_ainfo.opt_args:

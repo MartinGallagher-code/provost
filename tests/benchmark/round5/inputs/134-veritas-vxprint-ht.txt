@@ -1,0 +1,47 @@
+# vxprint -ht -g findg
+Disk group: findg
+
+DG NAME         NCONFIG      NLOG     MINORS   GROUP-ID
+ST NAME         STATE        DM_CNT   SPARE_CNT         APPVOL_CNT
+DM NAME         DEVICE       TYPE     PRIVLEN  PUBLEN   STATE
+RV NAME         RLINK_CNT    KSTATE   STATE    PRIMARY  DATAVOLS  SRL
+RL NAME         RVG          KSTATE   STATE    REM_HOST REM_DG    REM_RLNK
+CO NAME         CACHEVOL     KSTATE   STATE
+VT NAME         RVG          KSTATE   STATE    NVOLUME
+V  NAME         RVG/VSET/CO  KSTATE   STATE    LENGTH   READPOL   PREFPLEX UTYPE
+PL NAME         VOLUME       KSTATE   STATE    LENGTH   LAYOUT    NCOL/WID MODE
+SD NAME         PLEX         DISK     DISKOFFS LENGTH   [COL/]OFF DEVICE   MODE
+SV NAME         PLEX         VOLNAME  NVOLLAYR LENGTH   [COL/]OFF AM/NM    MODE
+SC NAME         PLEX         CACHE    DISKOFFS LENGTH   [COL/]OFF DEVICE   MODE
+DC NAME         PARENTVOL    LOGVOL
+SP NAME         SNAPVOL      DCO
+EX NAME         ASSOC        VC                       PERMS    MODE     STATE
+SR NAME         KSTATE
+
+dg findg        default      default  48000    1761310421.18.ledger01.example.com
+
+dm findg01      emc0_0a1f    auto     65536    209649408 -
+dm findg02      emc0_0a20    auto     65536    209649408 -
+dm findg03      emc0_0a21    auto     65536    209649408 -
+dm findg04      -            -        -        -        NODEVICE
+
+v  buchhaltung  -            ENABLED  ACTIVE   104857600 SELECT   -        fsgen
+pl buchhaltung-01 buchhaltung ENABLED ACTIVE   104857600 STRIPE   2/128    RW
+sd findg01-01   buchhaltung-01 findg01 0       52428800 0/0       emc0_0a1f ENA
+sd findg02-01   buchhaltung-01 findg02 0       52428800 1/0       emc0_0a20 ENA
+pl buchhaltung-02 buchhaltung ENABLED ACTIVE   104857600 CONCAT   -        RW
+sd findg03-01   buchhaltung-02 findg03 0       104857600 0        emc0_0a21 ENA
+
+v  archiv       -            ENABLED  ACTIVE   41943040 SELECT    -        fsgen
+pl archiv-01    archiv       ENABLED  ACTIVE   41943040 CONCAT    -        RW
+sd findg01-02   archiv-01    findg01  52428800 41943040 0         emc0_0a1f ENA
+pl archiv-02    archiv       DISABLED NODEVICE 41943040 CONCAT    -        WO
+sd findg04-01   archiv-02    findg04  0        41943040 0         -        NDEV
+
+v  redo_logs    -            DISABLED CLEAN    8388608  ROUND     -        gen
+pl redo_logs-01 redo_logs    DISABLED CLEAN    8388608  CONCAT    -        RW
+sd findg02-02   redo_logs-01 findg02  52428800 8388608  0         emc0_0a20 ENA
+dc redo_logs_dco redo_logs   redo_logs_dcl
+v  redo_logs_dcl -           DISABLED CLEAN    544      SELECT    -        gen
+pl redo_logs_dcl-01 redo_logs_dcl DISABLED CLEAN 544    CONCAT    -        RW
+sd findg03-02   redo_logs_dcl-01 findg03 104857600 544  0         emc0_0a21 ENA

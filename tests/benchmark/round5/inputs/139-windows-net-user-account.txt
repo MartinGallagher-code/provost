@@ -1,0 +1,31 @@
+C:\Users\Administrator>net user jkowalski
+User name                    jkowalski
+Full Name                    Jan Kowalski
+Comment                      Księgowość - oddział Łódź
+User's comment
+Country/region code          000 (System Default)
+Account active               Yes
+Account expires              Never
+
+Password last set            9/14/2026 8:12:47 AM
+Password expires             12/13/2026 8:12:47 AM
+Password changeable          9/15/2026 8:12:47 AM
+Password required            Yes
+User may change password     Yes
+
+Workstations allowed         All
+Logon script
+User profile
+Home directory
+Last logon                   11/3/2026 7:58:21 AM
+
+Logon hours allowed          All
+
+Local Group Memberships      *Remote Desktop Users *Users
+                             *Księgowość-Odczyt    *Backup Operators
+                             *Event Log Readers
+Global Group memberships     *None
+The command completed successfully.
+
+
+C:\Users\Administrator>

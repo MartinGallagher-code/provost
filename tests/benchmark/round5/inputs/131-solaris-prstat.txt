@@ -1,0 +1,19 @@
+root@sol11-db01:~# prstat -c 2 1
+Please wait...
+   PID USERNAME  SIZE   RSS STATE  PRI NICE      TIME  CPU PROCESS/NLWP       
+  2817 oracle   4482M 4401M cpu3    30    0 102:41:08 6.2% oracle/11
+  2903 oracle   4471M 4392M sleep   59    0  48:12:55 3.8% oracle/1
+  1288 root      212M  184M sleep   59    0   6:02:19 1.1% java/96
+  4410 webservd  938M  612M cpu0    49    0  11:47:30 0.9% java/143
+  2899 oracle   4468M 4389M sleep   59    0   3:21:04 0.5% oracle/1
+   921 root       18M   12M sleep   59    0   0:41:12 0.2% nscd/41
+ 17442 mlefevre   11M 6216K sleep   59    0   0:00:01 0.1% bash/1
+ 17501 mlefevre 6872K 4400K cpu1    59    0   0:00:00 0.1% prstat/1
+     5 root        0K    0K sleep   99  -20   1:12:47 0.0% zpool-rpool/162
+   742 root     9968K 5340K sleep   59    0   0:02:08 0.0% sshd/1
+   614 daemon   7416K 3152K sleep   59    0   0:00:44 0.0% rpcbind/1
+   101 netadm   6512K 2944K sleep   59    0   0:00:05 0.0% ipmgmtd/5
+    44 root     4220K 2108K sleep   59    0   0:00:02 0.0% dlmgmtd/7
+    12 root       33M   28M sleep   59    0   0:03:51 0.0% svc.configd/23
+    10 root       15M   11M sleep   59    0   0:01:09 0.0% svc.startd/14
+Total: 112 processes, 641 lwps, load averages: 1.42, 1.38, 1.40

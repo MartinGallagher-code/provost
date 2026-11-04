@@ -1,0 +1,22 @@
+slug.pl syntax OK
+File slug.pl
+  Subroutine (main)
+    Package (lexical)
+      $count            i5
+      %translit         i4
+    Package main
+      &report           &26
+  Subroutine report
+    Package (lexical)
+      $count            23
+      $n                23
+      @words            i18, 20, 21
+    Package main
+      $_                21
+      &slugify          &21
+  Subroutine slugify
+    Package (lexical)
+      $count            13
+      $s                14
+      $sep              i8, 9, 11, 12, 12
+      $text             i8, 10

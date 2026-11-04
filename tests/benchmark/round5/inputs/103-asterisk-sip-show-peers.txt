@@ -1,0 +1,12 @@
+pbx01*CLI> sip show peers
+Name/username             Host                                    Dyn Forcerport Comedia    ACL Port     Status      Description                      
+1001/1001                 198.51.100.21                            D  Auto (No)  No             5060     OK (12 ms)  Recepcja – Łódź             
+1002/1002                 198.51.100.22                            D  Auto (No)  No             5060     OK (9 ms)   Księgowość                    
+1003/1003                 (Unspecified)                            D  Auto (No)  No             0        UNKNOWN     Salle de réunion                
+1004/1004                 198.51.100.35                            D  Auto (Yes) Auto (Yes)  A  40213    OK (48 ms)  Home office M. Nováková        
+1005                      (Unspecified)                            D  Auto (No)  No             0        UNREACHABLE Lager Süd                       
+fax-gw                    192.0.2.50                                  No         No             5060     Unmonitored                                  
+trunk-carrier             203.0.113.10                                Yes        Yes            5060     OK (24 ms)  Główna linia operatora         
+trunk-backup              203.0.113.44                                Yes        Yes            5060     LAGGED (2104 ms) Zapasowa linia                   
+8 sip peers [Monitored: 5 online, 2 offline Unmonitored: 1 online, 0 offline]
+pbx01*CLI> 

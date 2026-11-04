@@ -1,0 +1,10 @@
+jshell> jshell> jshell> jshell> jshell> |    int qty = 7
+|    String sku = "K-100"
+|    Map<String,Integer> m = {b=2, a=1}
+jshell> |    double price(int)
+jshell> jshell> 
+   1 : int qty = 7;
+   2 : String sku = "K-100";
+   3 : double price(int q) { return q * 19.99; }
+   4 : var m = java.util.Map.of("a", 1, "b", 2);
+jshell> 

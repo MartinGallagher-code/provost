@@ -1,0 +1,28 @@
+IBM Spectrum Protect
+Command Line Administrative Interface - Version 8, Release 1, Level 22.0
+(c) Copyright by IBM Corporation and other(s) 1990, 2024. All Rights Reserved.
+
+Session established with server SPSRV01: Linux/x86_64
+  Server Version 8, Release 1, Level 23.000
+  Server date/time: 11/04/2026 21:07:13  Last access: 11/04/2026 20:51:40
+
+
+ANS8000I Server command: 'query node'
+
+Node Name                     Platform     Policy Domain      Days Since     Days Since     Locked?
+                                           Name               Last Acce-       Password
+                                                                     ss            Set
+-------------------------     --------     --------------     ----------     ----------     -------
+BUCHHALTUNG-FS01              Linux        STANDARD                  <1             42       No
+DB2-PROD-01                   AIX          DB_7Y                     <1             42       No
+EXCH-ŁÓDŹ-02                  WinNT        MAIL_90D                   1             17       No
+FILESRV-KÖLN                  WinNT        STANDARD                  <1            188       No
+HANA-PRD-HDB00                Linux        DB_7Y                     <1             42       No
+LAPTOP-SVOBODOVÁ              Mac          WORKSTATION               23             95       Yes
+SAP-ERP-APP01                 Linux        STANDARD                  <1             42       No
+VCENTER-DC1                   TDP VMwa-    VMWARE_30D                <1             12       No
+                               re
+VM-DC1-WEB-07                 TDP VMwa-    VMWARE_30D                 3             12       No
+                               re
+
+ANS8002I Highest return code was 0.

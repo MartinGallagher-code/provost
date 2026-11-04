@@ -1,0 +1,24 @@
+ I TRAN
+ STATUS:  RESULTS - OVERTYPE TO MODIFY
+  Tra(AADD) Pri( 001 ) Pro(DFH$AALL) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Uda Bel Iso Bac Wai
+  Tra(ABRW) Pri( 001 ) Pro(DFH$ABRW) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Uda Bel Iso Bac Wai
+  Tra(ACCT) Pri( 010 ) Pro(ACCT00  ) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Uda Bel Iso Bac Wai
+  Tra(AINQ) Pri( 001 ) Pro(DFH$AALL) Tcl( DFHTCL00 ) Dis Pur
+     Prf(DFHCICST) Uda Bel Iso Bac Wai
+  Tra(CEDA) Pri( 255 ) Pro(DFHEDAP ) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Cda Bel Iso Bac Wai
+  Tra(CEMT) Pri( 255 ) Pro(DFHEMTP ) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Cda Bel Iso Bac Wai
+  Tra(PAY1) Pri( 100 ) Pro(PAYMAIN ) Tcl( PAYCLASS ) Ena Pur
+     Prf(PAYPROF ) Uda Bel Iso Bac Wai
+  Tra(PAY2) Pri( 100 ) Pro(PAYUPDT ) Tcl( PAYCLASS ) Ena Pur
+     Prf(PAYPROF ) Uda Bel Iso Bac Wai
+  Tra(RPT9) Pri( 050 ) Pro(RPTGEN  ) Tcl( DFHTCL00 ) Ena Pur
+     Prf(DFHCICST) Uda Bel Iso Bac Wai
++ Tra(XFER) Pri( 120 ) Pro(XFERSRV ) Tcl( DFHTCL00 ) Ena Pur
+                                                  SYSID=CIC1 APPLID=CICSPRD1
+ RESPONSE: NORMAL                    TIME:  14.22.07  DATE: 11.03.26
+ PF 1 HELP       3 END       5 VAR       7 SBH 8 SFH 9 MSG 10 SB 11 SF

@@ -1,0 +1,60 @@
+   Format  Module    Mode  Description
+-------------------------------------------------------------------------------
+      3FR  DNG       r--   Hasselblad CFV/H3D39II
+      3G2  VIDEO     r--   Media Container
+      3GP  VIDEO     r--   Media Container
+      AAI* AAI       rw+   AAI Dune image
+       AI  PDF       rw-   Adobe Illustrator CS2
+     APNG  VIDEO     rw+   Animated Portable Network Graphics
+      ART* ART       rw-   PFS: 1st Publisher Clip Art
+      ARW  DNG       r--   Sony Alpha Raw Image Format
+      AVI  VIDEO     r--   Microsoft Audio/Visual Interleaved
+     AVIF            r--   AV1 Image File Format (1.17.6)
+      AVS* AVS       rw+   AVS X image
+      BGR* BGR       rw+   Raw blue, green, and red samples
+     BGRA* BGR       rw+   Raw blue, green, red, and alpha samples
+     BGRO* BGR       rw+   Raw blue, green, red, and opacity samples
+      BIE* JBIG      rw-   Joint Bi-level Image experts Group interchange format (2.1)
+      BMP* BMP       rw-   Microsoft Windows bitmap image
+     BMP2* BMP       rw-   Microsoft Windows bitmap image (V2)
+     BMP3* BMP       rw-   Microsoft Windows bitmap image (V3)
+      BRF* BRAILLE   -w-   BRF ASCII Braille format
+      CAL* CALS      rw-   Continuous Acquisition and Life-cycle Support Type 1
+             Specified in MIL-R-28002 and MIL-PRF-28002
+     CALS* CALS      rw-   Continuous Acquisition and Life-cycle Support Type 1
+             Specified in MIL-R-28002 and MIL-PRF-28002
+   CANVAS* XC        r--   Constant image uniform color
+  CAPTION* CAPTION   r--   Caption
+      CIN* CIN       rw-   Cineon Image File
+      CIP* CIP       -w-   Cisco IP phone image format
+     CLIP* CLIP      rw+   Image Clip Mask
+     CMYK* CMYK      rw+   Raw cyan, magenta, yellow, and black samples
+    CMYKA* CMYK      rw+   Raw cyan, magenta, yellow, black, and alpha samples
+      CR2  DNG       r--   Canon Digital Camera Raw Image Format
+      CR3  DNG       r--   Canon Digital Camera Raw Image Format
+      CRW  DNG       r--   Canon Digital Camera Raw Image Format
+      CUR* ICON      rw-   Microsoft icon
+      CUT* CUT       r--   DR Halo
+     DATA* INLINE    rw+   Base64-encoded inline images
+      DCM* DCM       r--   Digital Imaging and Communications in Medicine image
+             DICOM is used by the medical community for images like X-rays.  The
+             specification, "Digital Imaging and Communications in Medicine
+             (DICOM)", is available at http://medical.nema.org/.  In particular,
+             see part 5 which describes the image encoding (RLE, JPEG, JPEG-LS),
+             and supplement 61 which adds JPEG-2000 encoding.
+      DCR  DNG       r--   Raw Photo Decoder (dcraw)
+      DCX* PCX       rw+   ZSoft IBM PC multi-page Paintbrush
+      DDS* DDS       rw+   Microsoft DirectDraw Surface
+    DFONT* TTF       r--   Multi-face font package (Freetype 2.13.2)
+      DNG  DNG       r--   Digital Negative
+      DPX* DPX       rw-   SMPTE 268M-2003 (DPX 2.0)
+             Digital Moving Picture Exchange Bitmap, Version 2.0.
+             See SMPTE 268M-2003 specification at http://www.smtpe.org
+             
+     DXT1* DDS       rw+   Microsoft DirectDraw Surface
+     DXT5* DDS       rw+   Microsoft DirectDraw Surface
+     EPDF  PDF       rw-   Encapsulated Portable Document Format
+      EPI  PS        rw-   Encapsulated PostScript Interchange format
+      EPS  PS        rw-   Encapsulated PostScript
+     EPS2  PS2       -w-   Level II Encapsulated PostScript
+     EPS3  PS3       -w+   Level III Encapsulated PostScript

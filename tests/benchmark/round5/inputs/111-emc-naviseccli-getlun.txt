@@ -1,0 +1,86 @@
+C:\Program Files\EMC\Navisphere CLI>naviseccli -h 192.0.2.21 getlun 12
+LOGICAL UNIT NUMBER 12
+Prefetch size (blocks) =         0
+Prefetch multiplier =            4
+Segment size (blocks) =          0
+Segment multiplier =             4
+Maximum prefetch (blocks) =      4096
+Prefetch Disable Size (blocks) = 4097
+Prefetch idle count =            40
+
+Variable length prefetching      YES
+Prefetched data retained         YES
+
+Read cache configured according to
+ specified parameters.
+
+Total Hard Errors:          0
+Total Soft Errors:          0
+Total Queue Length:         0
+Name                        Datenbank_Prüfung_01
+Minimum latency reads       N/A
+
+RAID Type:                  RAID5
+RAIDGroup ID:               3
+State:                      Bound
+Stripe Crossing:            0
+Element Size:               128
+Current owner:              SP A
+Offset:                     0
+Auto-trespass:              DISABLED
+Auto-assign:                DISABLED
+Write cache:                ENABLED
+Read cache:                 ENABLED
+Idle Threshold:             0
+Idle Delay Time:            20
+Write Aside Size:           2048
+Default Owner:              SP A
+Rebuild Priority:           High
+Verify Priority:            Medium
+Prct Reads Forced Flushed:  0
+Prct Writes Forced Flushed: 0
+Prct Rebuilt:               100
+Prct Bound:                 100
+LUN Capacity(Megabytes):    512000
+LUN Capacity(Blocks):       1048576000
+UID:                        60:06:01:60:4A:B0:2C:00:8E:3F:1B:5C:7D:12:E2:11
+Is Private:                 NO
+Snapshots List:             Not Available
+MirrorView Name if any:     Not Mirrored
+Address Offset:             0
+Is Meta LUN:                NO
+Is Thin LUN:                NO
+Is Pool LUN:                NO
+Is HW Spin Down Ready:      NO
+Spin Down Enabled:          NO
+Spin Down Mode:             Pool LUN
+
+C:\Program Files\EMC\Navisphere CLI>naviseccli -h 192.0.2.21 getlun 27 -name -owner -capacity -state -uid -rg -type -default -trespass -prb
+LOGICAL UNIT NUMBER 27
+Name                        Archiv_Łódź_vol2
+Current owner:              SP B
+Default Owner:              SP B
+Auto-trespass:              DISABLED
+LUN Capacity(Megabytes):    2097152
+LUN Capacity(Blocks):       4294967296
+State:                      Bound
+UID:                        60:06:01:60:4A:B0:2C:00:1C:77:90:A3:2B:4D:E3:11
+RAIDGroup ID:               5
+RAID Type:                  RAID6
+Prct Rebuilt:               100
+Prct Bound:                 100
+
+LOGICAL UNIT NUMBER 28
+Name                        LUN 28
+Current owner:              SP A
+Default Owner:              SP B
+Auto-trespass:              DISABLED
+LUN Capacity(Megabytes):    204800
+LUN Capacity(Blocks):       419430400
+State:                      Bound
+UID:                        60:06:01:60:4A:B0:2C:00:F2:08:6E:41:9C:5A:E3:11
+RAIDGroup ID:               5
+RAID Type:                  RAID6
+Prct Rebuilt:               64
+Prct Bound:                 100
+

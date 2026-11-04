@@ -1,0 +1,12 @@
+m4trace: -1- define(`ACCT', `cash')
+m4trace: -1- dnl
+m4trace: -1- define(`TWICE', `$1$1')
+m4trace: -1- dnl
+m4trace: -2- ACCT -> `cash'
+m4trace: -1- TWICE(`cash') -> `cashcash'
+cashcash m4trace: -2- ACCT -> `cash'
+m4trace: -1- ifelse(`cash', `cash', `yes', `no') -> `yes'
+yes
+m4trace: -2- TWICE(`ab') -> `abab'
+m4trace: -1- len(`abab') -> `4'
+4

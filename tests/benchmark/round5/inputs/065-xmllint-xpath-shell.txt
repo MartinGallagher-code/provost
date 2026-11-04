@@ -1,0 +1,27 @@
+/ > -a-        3 ledger
+/ > ledger > -a-        1 entry
+-a-        1 entry
+-a-        1 entry
+ledger > Object is a Node Set :
+Set contains 1 nodes:
+1  ELEMENT entry
+    ATTRIBUTE id
+      TEXT
+        content=1
+    ATTRIBUTE acct
+      TEXT
+        content=cash
+ledger >  -------
+<entry id="2" acct="rent">-45.00</entry>
+ledger > ledger
+  entry
+  entry
+  entry
+ledger > ELEMENT entry
+  ATTRIBUTE id
+    TEXT
+      content=3
+  ATTRIBUTE acct
+    TEXT
+      content=Geb#C3#BChren
+ledger > 
