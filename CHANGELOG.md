@@ -1,5 +1,15 @@
 # provost — Changelog
 
+## 2026-11-04 — The API key pasted into chat on 2026-10-23 is revoked (PV-004)
+
+The owner confirmed on 2026-11-04 that the key is revoked, so HANDOFF 0e's
+step 4 is struck through with the date. Before asking, the tracked tree, the
+gzipped files in it, and the history of every branch (579 commits on `main`,
+8 branches) were searched for `sk-ant-`: no key was ever committed. The code
+reads a key only from the environment (`PROVOST_LLM_API_KEY`, else
+`ANTHROPIC_API_KEY`; `extract/llm/template.py`), which is where any
+replacement goes. Files: `HANDOFF.md`, `CHANGELOG.md`. No code change.
+
 ## 2026-11-04 — release v2.3.0 (PV-003)
 
 `VERSION` 2.2.0 → 2.3.0, and the `man/provost.1` header. Everything below has
