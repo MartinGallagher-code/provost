@@ -12,8 +12,10 @@ name filled in. Workflow docs only, no code and no version change.
 - Step 3 names the `shared_tools` clone's script (`<shared_tools
   clone>/scripts/ticket.py`, not a path in this repository) and passes
   `--request`.
+- The columns read Backlog → In Progress → Review → Done: Adversarial Test is
+  now only on the owner's request (ST-005).
 - **`CLAUDE.md`:** that section only; nothing else in the file changes.
-- **`HANDOFF.md`:** next step 0s mentions the pull.
+- **`HANDOFF.md`:** next step 0s mentions the pull and the columns.
 
 ## 2026-11-03 — Every task is a ticket on the shared board (PV-001)
 

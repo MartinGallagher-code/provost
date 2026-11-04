@@ -108,8 +108,8 @@ Suites (all CI-enforced):
 
 0s. **2026-11-03: work is ticketed** (PV-001). Every change goes through a
     ticket in `MartinGallagher-code/shared_tools` (`tickets/provost/`, PV-…;
-    provost_model's are PM-…), moved Backlog → In Progress → Adversarial
-    Test → Review → Done; see "Every task is a ticket" in `CLAUDE.md`.
+    provost_model's are PM-…), moved Backlog → In Progress → Review →
+    Done (Adversarial Test only when the owner asks, 2026-11-04, ST-005); see "Every task is a ticket" in `CLAUDE.md`.
     `ticket.py status provost` there lists what is open and next, and
     replaces this list as the place to look for the work still to do.
     Pull an existing `shared_tools` clone first (2026-11-04, ST-004): a stale
