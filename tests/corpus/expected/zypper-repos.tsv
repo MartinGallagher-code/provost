@@ -1,4 +1,4 @@
-n	#	Alias	Name	Enabled	GPG_Check	Refresh
+n	#_2	Alias	Name	Enabled	GPG_Check	Refresh
 1	1	openSUSE-Oss	Main Repository	Yes	(r ) Yes	Yes
 2	2	openSUSE-Non-Oss	Non-OSS Repository	Yes	(r ) Yes	Yes
 3	3	openSUSE-Update	Main Update Repo	Yes	(r ) Yes	Yes

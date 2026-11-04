@@ -100,8 +100,8 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (579)
-- `transform/tests/test_melt.sh` (60)
+- `tests/smoke.sh` (599)
+- `transform/tests/test_melt.sh` (70)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
 - `tests/corpus/run.sh --golden`
@@ -110,6 +110,12 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0u. **2026-11-04: a data column named `#` is filed as `#_2`** (PV-011). The
+    melt renames it so it never shares a name with the store's row id, and
+    `meta.tsv` records `renamed_columns`; a dataset filed before has its
+    second `#` renamed on the next append, values kept. Closes the "Small"
+    item under 0j and 0k (round 4's case 124). CHANGELOG has the detail.
 
 0t. **2026-11-04: 2.3.0 is ready to publish** (PV-003). It carries
     `rm --capture`, which quarterdeck's `qd rm RUN` needs, and the `lm`
@@ -385,7 +391,7 @@ Suites (all CI-enforced):
       3. Then the library (plan step 5) and round 5, built and frozen before
          anything runs. Round 4 is spent for `--llm`.
     - Small: the melt should rename a template column colliding with the
-      row id.
+      row id. *(Done 2026-11-04, PV-011: see 0u.)*
 
 0j. **2026-10-27: `--llm` goes first, templates can be parsers (format 2),
     and round 4 is measured with templates** (`docs/plan-2026-10-27-near-100.md`
@@ -428,7 +434,8 @@ Suites (all CI-enforced):
       - **The key:** add it as `PROVOST_LLM_API_KEY` (a Claude Code
         environment keeps `ANTHROPIC_API_KEY` for its own sign-in).
       - Small: `_AM_FRAG_LINES` should count records; the melt should
-        rename a template column colliding with the row id.
+        rename a template column colliding with the row id (done
+        2026-11-04, PV-011).
 
 0i. **2026-10-26: `--llm`. Claude writes a parsing template for a tool once,
     and provost reuses it offline** (`extract/llm/`, LLM TEMPLATES in

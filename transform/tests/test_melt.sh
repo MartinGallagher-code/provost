@@ -164,6 +164,35 @@ same   "dup: pass-through minus total_entries, unique names" \
 same   "dup: a scalar named like a field is renamed, not merged" \
        $'n\tx\tx_2\n1\tv\ts' "$(_core_melt_tidy $'entry1.x\tx\nv\ts')"
 
+# 7b. A data column named `#` would collide with the row id provost puts in
+#     front of every dataset (PV-011): the melt renames it #_2 (the first
+#     free #_K), in every output shape, and reports the rename when asked.
+same   "row id: a table's # column becomes #_2 (pass-through, many rows)" \
+       $'#_2\tname\n0\tether1\n1\tether2' "$(_core_melt_tidy $'#\tname\n0\tether1\n1\tether2')"
+same   "row id: a record field named # becomes #_2 (melted)" \
+       $'n\t#_2\tname\n1\t0\tether1\n2\t1\tether2' \
+       "$(_core_melt_tidy $'entry1.#\tentry1.name\tentry2.#\tentry2.name\n0\tether1\t1\tether2')"
+same   "row id: a scalar named # becomes #_2 (melted)" \
+       $'n\tname\t#_2\n1\ta\t7' "$(_core_melt_tidy $'entry1.name\t#\na\t7')"
+same   "row id: a one-row snapshot's # becomes #_2" \
+       $'#_2\tstate\n3\tok' "$(_core_melt_tidy $'#\tstate\n3\tok')"
+same   "row id: #_2 already taken -> #_3, the existing #_2 is kept" \
+       $'#_3\t#_2\n1\t2' "$(_core_melt_tidy $'#\t#_2\n1\t2')"
+same   "row id: two # columns -> #_2 and #_3, in order" \
+       $'#_2\tx\t#_3\n1\ta\t2\n4\tb\t5' "$(_core_melt_tidy $'#\tx\t#\n1\ta\t2\n4\tb\t5')"
+same   "row id: names that only contain # are left alone" \
+       $'#x\tx#\t##\n1\t2\t3' "$(_core_melt_tidy $'#x\tx#\t##\n1\t2\t3')"
+same   "row id: a lone # observation is a value in long form, not renamed" \
+       $'field\tvalue\n#\t5' "$(_core_melt_tidy $'#\n5')"
+_rn_dir="$(mktemp -d)"
+printf '#\tname\n0\tether1\n' > "$_rn_dir/w"
+_core_melt_tidy_file "$_rn_dir/w" "" "$_rn_dir/r" > "$_rn_dir/o"
+same   "row id: the RENAMES file says #=#_2" "#=#_2" "$(cat "$_rn_dir/r")"
+printf 'a\tb\n1\t2\n' > "$_rn_dir/w"
+_core_melt_tidy_file "$_rn_dir/w" "" "$_rn_dir/r" > "$_rn_dir/o"
+same   "row id: no rename leaves the RENAMES file empty (truncated)" "0" "$(wc -c < "$_rn_dir/r" | tr -d ' ')"
+rm -rf "$_rn_dir"
+
 # 8. _core_melt_tidy_file FILE == _core_melt_tidy "$(cat FILE)" byte for byte
 #    (provost melts the engine's output file directly), including the
 #    trailing-newline and empty-file shapes the $(cat) round trip normalises.
