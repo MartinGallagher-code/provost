@@ -483,7 +483,10 @@ Suites (all CI-enforced):
       3. Review a sample of the 8,931 lines where the LLM and the engine
          differ (`ml/llm/score.py --sheet`); the pilot's 102 lines are in
          `ml/eval/llm-pilot-review-2026-10-23.md`.
-      4. **Rotate the API key the user pasted into chat on 2026-10-23.**
+      4. ~~**Rotate the API key the user pasted into chat on 2026-10-23.**~~
+         Done: the owner confirmed it revoked on 2026-11-04 (PV-004). A
+         replacement goes in the environment as `PROVOST_LLM_API_KEY`, never
+         in chat or git.
 
 0d. **2026-10-23: the model now works inside auto-multi (per part, and
     with its own sections) and arbitrates with the engine per line.**
