@@ -1,5 +1,47 @@
 # provost — Changelog
 
+## 2026-11-04 — release v2.3.0 (PV-003)
+
+`VERSION` 2.2.0 → 2.3.0, and the `man/provost.1` header. Everything below has
+landed since 2.2.0 (published to PyPI from the 2026-10-30 release entry): the
+entries above that one, from 2026-10-29 to 2026-11-04, hold the detail. Nothing
+in an existing store or an existing command line changes; 2.3.0 only adds.
+
+**Why now.** `pip install provost[lm]` only works from PyPI once a release
+carries the `lm` extra, and quarterdeck's `qd rm RUN` refuses on a provost
+without `rm --capture` (PyPI's 2.2.0 and older).
+
+**What's new since 2.2.0**
+- **`provost rm --capture ID[,ID...]`** deletes captures out of datasets that
+  other captures also filed into: the capture's directory and tags, its rows
+  and their provenance, in one commit or not at all (2026-11-02).
+- **`pip install provost[lm]`:** `--model` labels with the 18-layer tiny LM,
+  run on numpy alone, no torch. The weights come from the `provost-model`
+  package (0.1.0 on PyPI). `PROVOST_LAYOUT_LM=0` keeps the trees;
+  `PROVOST_LAYOUT_LM=DIR` uses a model of your own; `PROVOST_PYTHON` names the
+  interpreter that runs the layout model (2026-10-29, 2026-10-31, 2026-11-02).
+- **The wheel ships the layout model's LM runtime** (`lm_runtime.py`,
+  `lm_numpy.py`, `lm_encode.py`, `bpe.py`), so a pip-installed provost with no
+  model or no numpy labels with the trees, as a checkout does.
+- **`batch` is faster on a fleet's answers:** the first input of each name
+  sets a detection hint the others reuse when it gives the same table
+  (`PROVOST_BATCH_REUSE=0` turns it off), and each name's first input is
+  parsed side by side, `-j` at a time (2026-10-30). quarterdeck filing 200
+  hosts went from 70 s to 22 s.
+- **Fixed:** the smoke check on help lines wider than 79 columns could never
+  fail; it now counts them, and `provost next`'s line is shorter.
+- **ml/ (dev-only, not shipped):** `train_lm.py`, `export_lm.py`,
+  `fold_eval.py --learner lm`, `model_round.sh`, and a validation split that
+  no longer puts every validation family in fold 1.
+- **Work is ticketed** (PV-001, ST-004, ST-010): `CLAUDE.md`'s "Every task is
+  a ticket" section. Docs only.
+
+**Publishing.** Run the "Release to PyPI" workflow (`release.yml`) on `main`,
+or publish a GitHub release tagged `v2.3.0`, which runs the same workflow —
+one or the other: PyPI refuses a second upload of 2.3.0. Then, in a fresh
+venv, `pip install 'provost[lm]'` should give provost 2.3.0 and
+provost-model, and `provost rm --help` should list `--capture`.
+
 ## 2026-11-04 — Step 3 of the ticket section is one command line (ST-010)
 
 Step 3 of `CLAUDE.md`'s "Every task is a ticket" section now puts its
