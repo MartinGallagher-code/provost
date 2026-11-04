@@ -200,7 +200,9 @@ Two things the iMac runs found:
   a process. Two copies of `libomp` are loaded, LightGBM's Homebrew one and
   the one shipped with the Python packages. `OMP_NUM_THREADS=1 ...
   fold_eval.py ... --threads 1` works around it; a fold then scores in about
-  80 s. `train_lm.py` never loads LightGBM, so it is unaffected.
+  80 s. `train_lm.py` never loads LightGBM, so it is unaffected. (Fixed
+  2026-11-04, PV-014: `fold_eval.py` now trains the torch learner in a
+  child process of its own, so the workaround is no longer needed.)
 
 ## How many layers does it need? (iMac, 2026-10-30/31)
 

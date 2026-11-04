@@ -229,9 +229,14 @@ Suites (all CI-enforced):
          The current `lm-all` was trained before `is_val` was fixed
          (2026-10-30) and never saw the 403 old validation captures.
          `--no-val` trains on all 3,674.
-      2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
-         process (two `libomp` copies). Until it is fixed, use
-         `OMP_NUM_THREADS=1 ... --threads 1`.
+      2. ~~**`fold_eval.py` on macOS** crashes with LightGBM and torch in one
+         process (two `libomp` copies).~~ Fixed 2026-11-04 (PV-014): the
+         torch learner now trains in a spawned child process whenever the
+         trees train too, so the two never share a process. Verified on
+         Linux (identical scores, and the process maps show each library
+         in its own process); **still to confirm on the Mac** with
+         `ml/fold_eval.py --fold 0` at full threads and no
+         `OMP_NUM_THREADS`.
       3. **18 layers is the size** (measured 2026-10-30/31 on the iMac).
          - It matches all 30 on all five folds: 0.862 against 0.862, gold
            246 against 242 of 287.
@@ -337,7 +342,10 @@ Suites (all CI-enforced):
     - **`capture` column (store format 3):** every row is `#`, `capture`,
       `n`, then the data. Older stores are migrated on the next write from
       `provenance.tsv`; a data column already named `capture` keeps its name
-      and the added one is `_capture`.
+      and the added one is `_capture`. Store format 4 (2026-11-04, PV-015): a
+      reconcile names column 2 alike on both sides first, so a data column
+      `capture` never lands in it; format-3 datasets it got wrong are
+      repaired from `provenance.tsv` on the next write.
     - **Run files:** a capture in a controlled directory commits the
       directory's files too, tagged `files-<id>`, chained run to run, built
       with a scratch index (the store's tree never holds a copy).
