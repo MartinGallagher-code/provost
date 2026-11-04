@@ -109,7 +109,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (599)
+- `tests/smoke.sh` (604)
 - `transform/tests/test_melt.sh` (70)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -119,6 +119,13 @@ Suites (all CI-enforced):
 `tests/corpus/run.sh --coverage` takes about 11 minutes.
 
 ## Next steps
+
+0w. **2026-11-04: `rm NAME` no longer promises `restore`** (PV-016). Its
+    message, the man page and `help advanced` now say git's history (the
+    commit before the deletion) holds what was deleted, the same wording as
+    `rm --capture`; a purged capture's `files-<id>` tag now goes with its
+    `capture-<id>` tag. Making `restore` reach a purged state (tagging the
+    pre-deletion commit, or `restore` taking a commit) was not done.
 
 0v. **2026-11-04: round 5 is built, frozen and rated** (PV-005,
     `docs/benchmark-2026-11-04-generalisation-round5.md`). 107 unseen inputs

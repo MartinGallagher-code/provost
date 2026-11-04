@@ -129,9 +129,17 @@ check "rm keeps other datasets' provenance rows" "1" \
 check "rm --no-purge keeps the source capture" "true" \
     "$([[ -d "$RMWS/captures/c0001" ]] && echo true)"
 # default (purge on): also drops the capture dir that fed the removed dataset
-PROVOST_WORKSPACE="$RMWS" "$PROVOST" rm -f free >/dev/null 2>&1
+free_before="$(cat "$RMWS/datasets/free.tsv")"
+rm_purge_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" rm -f free 2>&1)"
 check "rm purges the source capture dir by default" "true" \
     "$([[ ! -d "$RMWS/captures/c0002" ]] && echo true)"
+# what it says about getting the data back is true: follow it (PV-016)
+check "rm says where the deleted data still is" "git's history (the commit before this one) still holds what was there" "$rm_purge_out"
+check_not "rm does not promise restore reaches a purged capture" "restore" "$rm_purge_out"
+check "the commit before rm's holds the deleted dataset" "$free_before" \
+    "$(git -C "$RMWS" show HEAD~1:datasets/free.tsv 2>&1)"
+check "a purged capture is gone for restore, as rm implies" "no such capture" \
+    "$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" restore c0002 2>&1 || true)"
 check "rm commits the deletion (history preserved)" "rm: deleted" \
     "$(git -C "$RMWS" log -1 --format=%s 2>&1)"
 # capture ids are monotonic: after the purge of c0002 the next capture is
@@ -1437,6 +1445,20 @@ bs="$(fr diff)"
 check "diff lists the files that changed" "new.txt" "$bs"
 check "with the dataset rows" "  + t1	FAIL" "$bs"
 check "diff -- PATH shows that file's changes" "+v = 2" "$(fr diff c1 c2 -- m.py)"
+
+# rm NAME purges a controlled directory's capture with both its tags, so
+# 'files' no longer serves files from a capture rm reports gone (PV-016).
+FP2="$(mktemp -d)/proj"; mkdir -p "$FP2"
+( cd "$FP2" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" control >/dev/null 2>&1
+  echo 'v = 1' > m.py
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run --name gone printf 'a b\n1 2\n' >/dev/null 2>&1
+  PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" run --name kept printf 'a b\n3 4\n' >/dev/null 2>&1 )
+fr2 () { ( cd "$FP2" && PROVOST_HOME="$FH" PROVOST_WORKSPACE="" "$PROVOST" "$@" 2>&1 ); }
+check "a controlled run keeps its files (files-c0001)" "m.py" "$(fr2 files c1)"
+fr2 rm -f gone >/dev/null
+check_not "rm NAME drops a purged capture's files tag" "files-c0001" "$(git -C "$FP2/.provost" tag | tr '\n' ' ')"
+check "files of a capture rm purged is refused" "no such capture: c0001" "$(fr2 files c1 || true)"
+check "files of a surviving capture still works" "m.py" "$(fr2 files c2)"
 
 # search: git grep over the store's rows, outputs and run files.
 bs="$(PROVOST_WORKSPACE="$BWS" "$PROVOST" search FAIL 2>&1 | sq)"
