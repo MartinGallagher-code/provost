@@ -5,15 +5,17 @@ The history that used to live here (2026-07 → 2026-09-16, ~100 KB) is in git:
 
 ## Present state (2026-10-23; commands and store format updated 2026-10-28; `batch` and four readers 2026-10-29)
 
-**provost 2.2.0 is everything through 2026-10-29** (`VERSION`, man header, the
-release entry at the top of CHANGELOG). It is published by running the
-"Release to PyPI" workflow on `main` (or a GitHub release tagged `v2.2.0`,
-not both); PyPI's provost page says whether that has happened. 2.1.0
-(2026-10-16) was the first release with the rename, store format 2, line
-coverage and the 2026-10-14 parser work. 2.2.0 adds the quality gate and
-auto-multi, the engine fixes, removal of the legacy names, store format 3,
-browsing and search, `batch`, the opt-in `--llm` and `--model`, and the
-2026-10-29 readers.
+**provost 2.3.0 is everything through 2026-11-04** (`VERSION`, man header,
+the release entry at the top of CHANGELOG; PV-003). It adds `rm --capture`,
+`provost[lm]` (the tiny LM on numpy, weights in `provost-model`) and the
+faster `batch` to 2.2.0. It is published by running the "Release to PyPI"
+workflow on `main` (or a GitHub release tagged `v2.3.0`, not both); PyPI's
+provost page says whether that has happened. 2.2.0 (2026-10-30, on PyPI)
+added the quality gate and auto-multi, the engine fixes, removal of the
+legacy names, store format 3, browsing and search, `batch`, the opt-in
+`--llm` and `--model`, and the 2026-10-29 readers. 2.1.0 (2026-10-16) was
+the first release with the rename, store format 2, line coverage and the
+2026-10-14 parser work.
 
 provost is one Bash entry point (`provost`) over:
 - the extract engine (`extract/provost-extract`, 268 strategies, ~116 generic)
@@ -109,10 +111,11 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0t. **2026-11-02: `rm --capture` is unreleased.** quarterdeck's `qd rm RUN`
-    needs it, and refuses with a clear message on a provost without it
-    (PyPI's 2.2.0 and older). Release it with the rest of what is after
-    2.2.0 when the user says so (PV-003).
+0t. **2026-11-04: 2.3.0 is ready to publish** (PV-003). It carries
+    `rm --capture`, which quarterdeck's `qd rm RUN` needs, and the `lm`
+    extra. Publishing is the owner's: run "Release to PyPI" on `main` once
+    the release PR has merged, then check `pip install 'provost[lm]'` in a
+    fresh venv.
 
 0s. **2026-11-03: work is ticketed** (PV-001). Every change goes through a
     ticket in `MartinGallagher-code/shared_tools` (`tickets/provost/`, PV-…;
