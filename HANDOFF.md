@@ -109,7 +109,7 @@ Behaviour worth knowing:
   windows) and the winner is re-confirmed on the full text.
 
 Suites (all CI-enforced):
-- `tests/smoke.sh` (599)
+- `tests/smoke.sh` (604)
 - `transform/tests/test_melt.sh` (70)
 - `extract/tests/run_tests.sh` (70 files)
 - `analyze/tests/run_tests.sh` (mawk and gawk)
@@ -120,13 +120,20 @@ Suites (all CI-enforced):
 
 ## Next steps
 
-0w. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
+0x. **2026-11-04: smoke and the extract suite run in parallel** (PV-018).
     One job per CPU, `PROVOST_TEST_JOBS=N` to change it, `=1` for the old
     serial run; output is printed whole, per file or part, in order. Smoke's
     checks sit in parts (`if _part NAME; then ... fi`); a new check goes in
     one (`core` if it uses `$WS`), and the suite refuses a check outside one.
     On 2 CPUs the two went from 7 min 13 s to 3 min 32 s, and every suite
     from 11 min to 7 min 21 s. CHANGELOG has the measurements.
+
+0w. **2026-11-04: `rm NAME` no longer promises `restore`** (PV-016). Its
+    message, the man page and `help advanced` now say git's history (the
+    commit before the deletion) holds what was deleted, the same wording as
+    `rm --capture`; a purged capture's `files-<id>` tag now goes with its
+    `capture-<id>` tag. Making `restore` reach a purged state (tagging the
+    pre-deletion commit, or `restore` taking a commit) was not done.
 
 0v. **2026-11-04: round 5 is built, frozen and rated** (PV-005,
     `docs/benchmark-2026-11-04-generalisation-round5.md`). 107 unseen inputs

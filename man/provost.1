@@ -243,12 +243,18 @@ it.
 .TP
 .B rm [\fB-f\fR|\fB--yes\fR] [\fB--no-purge\fR] \fINAME\fR...
 Delete one or more datasets. Removes each named dataset file, prunes its rows
-from the provenance map, and commits the deletion (the git history and
-\fBrestore\fR still reach the pre-deletion state). By default it also purges
-each capture that fed only removed dataset(s); a \fB--multi\fR capture that
+from the provenance map, and commits the deletion: git's history (the
+commit before it) still holds what was there. By default it also purges
+each capture that fed only removed dataset(s), with its tags, so
+\fBrestore\fR and \fBfiles\fR no longer reach it; a \fB--multi\fR capture that
 still feeds a surviving dataset is kept and its \fImeta.tsv\fR updated.
 \fB--no-purge\fR/\fB--keep-captures\fR keeps every capture. Prompts unless
 \fB-f\fR/\fB--yes\fR. Aliases: \fBdelete\fR, \fBdrop\fR.
+.TP
+.B rm [\fB-f\fR|\fB--yes\fR] \fB--capture\fR \fIid\fR[,\fIid\fR...]...
+Delete captures instead, with their tags, and the rows they filed in every
+dataset they fed; a dataset left with no rows goes too. One commit: git's
+history (the commit before it) still holds what was there.
 .TP
 .B stats \fINAME\fR [analyze-args]
 Statistics on a dataset (\fB--all\fR for every analysis).

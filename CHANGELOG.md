@@ -70,7 +70,32 @@ can move.
   deleting side now waits for the prompt (up to 10 s). It passed 3 full runs
   at 4 jobs on 2 CPUs with the extract suite alongside, and 10 runs of its
   part alone.
-- **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0w).
+- **Docs:** `CLAUDE.md` (Testing), `HANDOFF.md` (0x).
+## 2026-11-04 — `rm NAME` says what is true about getting deleted data back, and drops a purged capture's `files-<id>` tag (PV-016)
+
+`provost rm NAME` ended "History kept — 'provost log'/'restore' still reach
+the pre-deletion state", and the man page said the same. It was not true: the
+purge deletes a capture's `capture-<id>` tag, so `restore cNNNN` answers "no
+such capture", and when that capture was the latest no `restore` target gives
+the pre-deletion state back. Only git's history does. The purge also left the
+capture's `files-<id>` tag, so `provost files cNNNN` kept serving a
+controlled directory's files from a capture `rm` reported gone (`rm --capture`
+has deleted both since PV-002).
+
+- **The purge deletes `files-<id>` too** (`provost`, `cmd_rm`).
+- **One wording everywhere:** `rm NAME`'s message now ends "git's history
+  (the commit before this one) still holds what was there", as
+  `rm --capture`'s does; `provost help advanced` and the `cmd_rm` comment say
+  the same, and `rm --help` already did. `man/provost.1`'s `rm` entry says so
+  and that a purged capture's tags go, so `restore` and `files` no longer
+  reach it, and the man page gains an `rm --capture` entry with the same
+  wording.
+- **Tests:** `tests/smoke.sh` gains 8 checks (604): the message, no promise
+  of `restore`, `git show HEAD~1:datasets/NAME.tsv` giving back the deleted
+  dataset (following the advice), `restore` refusing the purged capture, and
+  in a controlled directory the `files-c0001` tag gone, `files c1` refused
+  and a surviving capture's files still served.
+
 ## 2026-11-04 — Round 5 of the held-out benchmark: built, frozen, rated for four readers (PV-005)
 
 Round 4 was spent on `--llm`, the tiny LM and auto-multi, so every open

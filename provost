@@ -3453,8 +3453,10 @@ cmd_triage () {
 # provenance.tsv, and — BY DEFAULT — purges each captures/<id>/ dir that fed
 # ONLY removed dataset(s) (a --multi capture that also fed a surviving dataset
 # is kept, and its meta.tsv updated to drop the removed names). --no-purge /
-# --keep-captures keeps every capture. The deletion is committed, so the git
-# history (and 'provost restore') still holds the pre-deletion state. Row
+# --keep-captures keeps every capture. The deletion is committed, so git's
+# history (the commit before it) still holds the pre-deletion state; a purged
+# capture's tags (capture-<id>, files-<id>) go with it, so 'restore' and
+# 'files' no longer reach it. Row
 # indices (#N) and capture ids are never reused.
 #   provost rm [-f|--yes] --capture ID[,ID...]...
 # Deletes captures instead: each captures/<id>/ dir and its tag, the rows it
@@ -3571,7 +3573,10 @@ cmd_rm () {
             cid="$(awk -F'\t' '$1 == "id" { print $2; exit }' "$d/meta.tsv")"
             if [[ $survivors -eq 0 ]]; then
                 rm -rf "$d"
-                if _valid_capid "$cid"; then _git tag -d "capture-$cid" >/dev/null 2>&1 || true; fi
+                if _valid_capid "$cid"; then
+                    _git tag -d "capture-$cid" >/dev/null 2>&1 || true
+                    _git tag -d "files-$cid" >/dev/null 2>&1 || true
+                fi
                 purged=$((purged + 1))
             else
                 RMSET="$rmset" awk -F'\t' -v OFS='\t' '
@@ -3610,7 +3615,7 @@ cmd_rm () {
     local extra=""
     (( updated > 0 )) && extra=" $updated capture(s) kept because they also feed a surviving dataset."
     if [[ $purge -eq 1 ]]; then
-        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s).$extra History kept — 'provost log'/'restore' still reach the pre-deletion state."
+        ok "deleted ${names[*]} (${total} row(s)); purged $purged capture(s).$extra git's history (the commit before this one) still holds what was there."
     else
         ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'provost source #N' still resolves surviving rows."
     fi
@@ -4097,7 +4102,8 @@ COMMANDS
   Upkeep
     provost rm [-f] [--no-purge] NAME...
         Delete datasets, and the captures only they used (--no-purge: keep
-        those). The deletion is a commit, so 'restore' still reaches it.
+        those). The deletion is one commit, and git's history (the commit
+        before it) still holds what was there.
     provost rm [-f] --capture ID[,ID...]...
         Delete captures, and the rows they filed in every dataset they fed
         (a dataset left with no rows goes too). One commit, as above.
