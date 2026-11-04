@@ -1,5 +1,30 @@
 # provost — Changelog
 
+## 2026-11-04 — The capture column stays true when a capture brings a data column named `capture` (PV-015)
+
+A dataset that already had provost's `capture` column, reconciled with a later
+capture whose data had a column of the same name, matched the two by name: the
+data value went into column 2 and the real id into a new `_capture` at the end,
+so `show --capture` missed the new rows and listed them under the wrong
+capture. Filed the other way round (`capture,a,b` first, then `a,b`), the later
+rows had an empty column 2. Found by PV-002's adversarial pass.
+
+- **Reconcile** (`_store_append`, new `_capcol_align`): before the by-name
+  union, column 2 of both headers is given the one name no data column of
+  either uses (`capture`, else `_capture`, `__capture`, ...). Both orders now
+  give `#  _capture  n  ...  capture`, with every row's id in column 2.
+- **Store format 4** (`_migrate_fix_capture_column`): on the next write, a
+  format-3 dataset whose rows disagree with `provenance.tsv` in column 2 is put
+  right when one other `*capture` column holds each such row's id: the values
+  change places, and the names too when column 2 had the shorter one. A
+  dataset that cannot be put right that way is left as it is.
+- Smoke: both orders, a third capture after the rename, `show --capture` each
+  way, and the migration of both broken shapes; the format checks read 4.
+  The man page says column 2 is always the capture id.
+
+Files: `provost`, `tests/smoke.sh`, `man/provost.1`, `HANDOFF.md`,
+`CHANGELOG.md`.
+
 ## 2026-11-04 — The API key pasted into chat on 2026-10-23 is revoked (PV-004)
 
 The owner confirmed on 2026-11-04 that the key is revoked, so HANDOFF 0e's
