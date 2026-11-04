@@ -306,7 +306,12 @@ check "rm --capture killed while moving still completes, committed" "clean c0002
 # the lock) is skipped, not an error.
 rcu run --name w printf 'a b\n5 6\n' >/dev/null 2>&1   # c0003 -> w
 rcu run --name w printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> w
-gone_out="$( { rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 || true)"
+# The deletion waits for the prompt (up to 10 s): sent any earlier, it could
+# land while rm --capture is still reading the datasets, which under load
+# (the parts run in parallel) it did.
+gone_err="$(mktemp)"
+gone_out="$( { for _ in $(seq 100); do grep -q 'Proceed?' "$gone_err" && break; sleep 0.1; done
+               rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 | tee "$gone_err" || true)"
 check "rm --capture skips a dataset deleted while it waited" "deleted 1 capture(s) (c0003)" "$gone_out"
 check "rm --capture after a dataset went while it waited leaves the store clean" "clean" \
     "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean)"
