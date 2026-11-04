@@ -76,10 +76,12 @@ trap 'rm -rf "$WORK"' EXIT
 _is_verify () { [[ "${NAMES[$1]}" == verify_strategy_outputs.sh ]]; }
 
 # _run I: run entry I. With one job its output streams straight through;
-# otherwise it goes to WORK/I.log. WORK/I.rc is written last, by rename, so
+# otherwise it goes to WORK/I.log (and the job's own stderr, which would only
+# say "Terminated" after a --fail-fast stop, is dropped). WORK/I.rc is written last, by rename, so
 # its presence means the entry has finished.
 _run () {
     local _start=$SECONDS _rc=0 _args=()
+    [[ -e "$WORK/stop" ]] && ! _is_verify "$1" && return 0
     _is_verify "$1" && _args=(--check)
     if [[ $JOBS -eq 1 ]]; then
         bash "${CMDS[$1]}" "${_args[@]}" || _rc=$?
@@ -125,7 +127,7 @@ _flush () {
     done
 }
 if [[ $JOBS -gt 1 && $_n -gt 0 ]] && _is_verify "$_last"; then
-    _run "$_last" & _vpid=$!
+    _run "$_last" 2>/dev/null & _vpid=$!
 fi
 for (( _i = 0; _i < _n; _i++ )); do
     [[ -n "$_vpid" && $_i -eq $_last ]] && break
@@ -133,16 +135,20 @@ for (( _i = 0; _i < _n; _i++ )); do
     if [[ $JOBS -eq 1 ]]; then
         _run "$_i"
     else
-        _run "$_i" &
+        _run "$_i" 2>/dev/null &
         while [[ "$(jobs -rp | wc -l)" -ge "$JOBS" ]]; do _wait_any; done
     fi
 done
 if [[ $_stopped -eq 1 ]]; then
-    # --fail-fast: stop the test files still running (each one's test, then
-    # its job), but let the golden verification finish and report it.
+    # --fail-fast: stop the test files still running (a job not yet started
+    # sees the stop file and skips its test), but let the golden
+    # verification finish and report it. The jobs themselves are left to
+    # exit as their test does, so the final wait sees nothing left behind.
+    : > "$WORK/stop"
+    _kill_tree () { local _c; for _c in $(pgrep -P "$1"); do _kill_tree "$_c"; done; kill -TERM "$1" 2>/dev/null; }
     for _p in $(jobs -p); do
         [[ "$_p" == "$_vpid" ]] && continue
-        pkill -TERM -P "$_p" 2>/dev/null; kill -TERM "$_p" 2>/dev/null
+        for _c in $(pgrep -P "$_p"); do _kill_tree "$_c"; done
     done
     if _is_verify "$_last" && [[ $_next -lt $_last ]]; then
         [[ -z "$_vpid" ]] && _run "$_last"
