@@ -1,5 +1,16 @@
 # provost — Changelog
 
+## 2026-11-04 — Step 3 of the ticket section is one command line (ST-010)
+
+Step 3 of `CLAUDE.md`'s "Every task is a ticket" section now puts its
+`ticket.py new` command on one line, in a code block of its own, as
+shared_tools' copy does since ST-008. It used to wrap across two lines inside
+one code span, so pasting it into a shell ran two commands and failed.
+Workflow docs only, no code and no version change.
+
+- **`CLAUDE.md`:** step 3 only; nothing else in the file changes.
+- **`HANDOFF.md`:** unchanged; its step 0s is still accurate.
+
 ## 2026-11-04 — The ticket section of CLAUDE.md is the current text (ST-004)
 
 `CLAUDE.md`'s "Every task is a ticket" section is replaced with the current
