@@ -1,5 +1,22 @@
 # provost — Changelog
 
+## 2026-11-04 — The ticket section of CLAUDE.md is the current text (ST-004)
+
+`CLAUDE.md`'s "Every task is a ticket" section is replaced with the current
+text from shared_tools' `CLAUDE.md`, again verbatim with this repository's
+name filled in. Workflow docs only, no code and no version change.
+
+- Step 1 now says to pull an existing clone of `shared_tools` rather than only
+  to clone it: a stale clone read an old `CLAUDE.md` and ran an old
+  `ticket.py`.
+- Step 3 names the `shared_tools` clone's script (`<shared_tools
+  clone>/scripts/ticket.py`, not a path in this repository) and passes
+  `--request`.
+- The columns read Backlog → In Progress → Review → Done: Adversarial Test is
+  now only on the owner's request (ST-005).
+- **`CLAUDE.md`:** that section only; nothing else in the file changes.
+- **`HANDOFF.md`:** next step 0s mentions the pull and the columns.
+
 ## 2026-11-03 — Every task is a ticket on the shared board (PV-001)
 
 provost's work is now tracked as tickets in
