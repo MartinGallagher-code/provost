@@ -19,19 +19,29 @@ probabilities is scored too. --learner lm is the tiny pretrained language
 model (train_lm.py): trained here for --lm-epochs, or a saved one scored with
 --lm-load (train it with train_lm.py --fold N for a fair score). The fresh
 hand-labelled test set is not read.
+
+LightGBM and torch never share a process. Each bundles its own OpenMP
+runtime, and on macOS the two copies of libomp in one process crash it
+(exit 139). When a run needs both (--learner both, or lm with --lm-trees),
+the torch learner trains in a child process of its own, started fresh
+(spawn), and the trees train here.
 """
 import argparse
+import multiprocessing
 import os
 import sys
+from concurrent.futures import ProcessPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 sys.path.insert(1, os.path.join(os.path.dirname(HERE), "extract", "model"))
+# Nothing here loads LightGBM or torch: each learner imports its own, so a
+# process that needs only one never has the other (see run_learners).
 import adjudicated as ADJ  # noqa: E402
-import crossval as CV  # noqa: E402
 import dataset as D  # noqa: E402
 import decode as DEC  # noqa: E402
-import train_baseline as B  # noqa: E402
+
+TORCH = ("grid", "lm")  # the learners that load torch; "trees" loads LightGBM
 
 
 def starts_from(lines, roles, probs):
@@ -39,6 +49,85 @@ def starts_from(lines, roles, probs):
     for j, s in DEC.decode(lines, roles, probs).items():
         st[j] = s
     return st
+
+
+def load(a):
+    """(held-out engine docs by name, LLM-labelled training docs, extra
+    training docs) for a's fold."""
+    eng = {e["name"]: e for e in D.load(a.corpus) if D.fold(e) == a.fold}
+    if a.limit:
+        eng = dict(list(eng.items())[: a.limit])
+    tr = [e for e in D.load(a.llm) if D.fold(e) != a.fold]
+    extra = [e for p in a.extra for e in D.load(p)]
+    return eng, tr, extra
+
+
+def learners(a):
+    """The learners a run trains, in the order they train."""
+    ks = []
+    if a.learner in ("trees", "both") or (a.learner == "lm" and a.lm_trees):
+        ks.append("trees")
+    if a.learner in ("grid", "both"):
+        ks.append("grid")
+    if a.learner == "lm":
+        ks.append("lm")
+    return ks
+
+
+def plan(ks):
+    """[(learner, in_child)]: a torch learner trains in a child process
+    whenever the trees (LightGBM) train in this one."""
+    mixed = "trees" in ks and any(k in TORCH for k in ks)
+    return [(k, mixed and k in TORCH) for k in ks]
+
+
+def in_child(fn, *args):
+    """fn(*args) in a fresh interpreter (spawn, never fork: a forked child
+    would inherit this process's libomp). The child re-imports this module,
+    which loads neither LightGBM nor torch; fn must be a module-level
+    function and its result picklable."""
+    with ProcessPoolExecutor(1, mp_context=multiprocessing.get_context("spawn")) as ex:
+        return ex.submit(fn, *args).result()
+
+
+def run_learners(a, data):
+    """{learner: {doc name: (roles, starts, probs)}} for every learner a asks
+    for, LightGBM and torch kept in separate processes."""
+    preds = {}
+    for k, child in plan(learners(a)):
+        preds[k] = in_child(predict_fold, k, a) if child else predict(k, a, *data)
+    return preds
+
+
+def predict_fold(k, a):
+    """predict() with the fold loaded here: the child process's entry point."""
+    return predict(k, a, *load(a))
+
+
+def predict(k, a, eng, tr, extra):
+    """Train learner k on tr (+ extra) and predict every held-out doc."""
+    if k == "trees":
+        import crossval as CV
+        import train_baseline as B
+        Xr, yr, Xc, yc, wc = B.prepare(tr + (extra if a.extra_trees else []), 0.0, False, [], 0, None, 0,
+                                       log=lambda m: print("  trees: " + m, file=sys.stderr))
+        rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
+        return {n: CV.predict_doc(rm, cm, e) for n, e in eng.items()}
+    import torch
+    torch.set_num_threads(a.threads)
+    if k == "grid":
+        import train_grid as G
+        gm = G.fit(tr, a.epochs, synth=extra, hybrid=a.hybrid,
+                   log=lambda m: print("  grid: " + m, file=sys.stderr))
+        return {n: G.predict_doc(gm, e, False, [bool(s) for s in e["starts"]]) for n, e in eng.items()}
+    import train_lm as LM
+    if a.lm_load:
+        lm, enc = LM.load(a.lm_load)
+        print(f"  lm: loaded {a.lm_load} ({lm.meta})", file=sys.stderr)
+    else:
+        lm, enc = LM.fit(tr, a.lm_epochs, base=a.lm_base or LM.BASE, extra=extra,
+                         log=lambda m: print("  lm: " + m, file=sys.stderr))
+    return {n: LM.predict_doc(lm, enc, e) for n, e in eng.items()}
 
 
 def main(argv=None):
@@ -62,41 +151,12 @@ def main(argv=None):
                     help="print N held-out lines where LEARNER's split differs from the LLM label")
     a = ap.parse_args(argv)
 
-    eng = {e["name"]: e for e in D.load(a.corpus) if CV.fold(e) == a.fold}
-    if a.limit:
-        eng = dict(list(eng.items())[: a.limit])
-    llm_all = D.load(a.llm)
-    llm = {e["name"]: e for e in llm_all}
-    tr = [e for e in llm_all if CV.fold(e) != a.fold]
-    extra = [e for p in a.extra for e in D.load(p)]
-    print(f"fold {a.fold}: train {len(tr)} LLM-labelled docs + {len(extra)} extra; "
+    data = load(a)
+    eng = data[0]
+    print(f"fold {a.fold}: train {len(data[1])} LLM-labelled docs + {len(data[2])} extra; "
           f"score {len(eng)} held-out docs", file=sys.stderr)
-
-    preds = {}
-    if a.learner in ("trees", "both") or (a.learner == "lm" and a.lm_trees):
-        Xr, yr, Xc, yc, wc = B.prepare(tr + (extra if a.extra_trees else []), 0.0, False, [], 0, None, 0,
-                                       log=lambda m: print("  trees: " + m, file=sys.stderr))
-        rm, cm = B.train_roles(Xr, yr), B.train_cands(Xc, yc, wc)
-        preds["trees"] = {n: CV.predict_doc(rm, cm, e) for n, e in eng.items()}
-    if a.learner in ("grid", "both"):
-        import torch
-        import train_grid as G
-        torch.set_num_threads(a.threads)
-        gm = G.fit(tr, a.epochs, synth=extra, hybrid=a.hybrid,
-                   log=lambda m: print("  grid: " + m, file=sys.stderr))
-        preds["grid"] = {n: G.predict_doc(gm, e, False, [bool(s) for s in e["starts"]])
-                         for n, e in eng.items()}
-    if a.learner == "lm":
-        import torch
-        import train_lm as LM
-        torch.set_num_threads(a.threads)
-        if a.lm_load:
-            lm, enc = LM.load(a.lm_load)
-            print(f"  lm: loaded {a.lm_load} ({lm.meta})", file=sys.stderr)
-        else:
-            lm, enc = LM.fit(tr, a.lm_epochs, base=a.lm_base or LM.BASE, extra=extra,
-                             log=lambda m: print("  lm: " + m, file=sys.stderr))
-        preds["lm"] = {n: LM.predict_doc(lm, enc, e) for n, e in eng.items()}
+    preds = run_learners(a, data)
+    llm = {e["name"]: e for e in D.load(a.llm)}
 
     out = {}
     for k, P in preds.items():

@@ -67,8 +67,8 @@ python3 -m venv .venv && .venv/bin/pip install numpy lightgbm \
 .venv/bin/python ml/fold_eval.py --fold 0 --learner lm --lm-load ml/models/lm-f0/best
 .venv/bin/python ml/train_lm.py --fold 0 --epochs 2 --layers 6 --save ml/models/lm6-f0   # the first 6 of 30 layers: 51M weights
 .venv/bin/python ml/export_lm.py --model ml/models/lm-all-l18 --out ../provost_model/src/provost_model/model --check 200   # the provost-model package
-# on macOS fold_eval crashes when LightGBM and torch share a process (two libomp copies):
-#   OMP_NUM_THREADS=1 .venv/bin/python ml/fold_eval.py ... --threads 1   (a fold in ~80 s)
+# fold_eval keeps LightGBM and torch in separate processes (the torch learner trains in a
+# spawned child): on macOS their two libomp copies in one process crashed it (PV-014)
 python3 -m unittest discover -s ml/tests         # stdlib tests
 # LLM teacher (needs `pip install anthropic` and ANTHROPIC_API_KEY; ~$25 for the corpus):
 python3 ml/llm/label.py --all --batch            # -> ml/data/llm/<tool>.json (+ usage.jsonl)
