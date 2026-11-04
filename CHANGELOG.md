@@ -1,5 +1,33 @@
 # provost — Changelog
 
+## 2026-11-04 — `fold_eval.py` keeps LightGBM and torch apart (PV-014)
+
+`ml/fold_eval.py` crashed on macOS (exit 139) whenever a run loaded both
+LightGBM and torch (`--learner both`, the default, or `lm --lm-trees`): each
+brings its own `libomp`, and two copies in one process crash it. The
+workaround was `OMP_NUM_THREADS=1 ... --threads 1`. Now the two never share a
+process:
+- `fold_eval.py` imports neither library at the top. It used to load
+  LightGBM before any learner ran, through `crossval.py` and
+  `train_baseline.py`; each learner now imports its own.
+- When a run needs both, the trees train in the main process and the torch
+  learner in a child started with `spawn` (never `fork`, which would inherit
+  the parent's `libomp`). It reloads the fold itself and sends its
+  predictions back. A run with one library only stays in one process.
+- `fold` moved from `crossval.py` to `dataset.py` (`D.fold`, `D.FOLDS`), so
+  a fold is picked without importing LightGBM. `crossval.fold` and
+  `crossval.K` are the same objects, so callers are unchanged, and
+  `dataset.is_test` is `fold(ex) == 0`, as it was.
+
+Checked on Linux with LightGBM, torch and the rebuilt `ml/data/`: fold 0 with
+`--learner both`, fold 2 with `trees --show`, and fold 1 with `grid` print
+exactly what the old code printed. In a `both` run, the main process maps
+`lib_lightgbm` and no torch, and the child maps torch and no LightGBM. Not yet
+run on a Mac. New stdlib tests in `ml/tests/test_fold_eval.py`. Files:
+`ml/fold_eval.py`, `ml/dataset.py`, `ml/crossval.py`,
+`ml/tests/test_fold_eval.py`, `ml/README.md`, `HANDOFF.md`,
+`docs/lm-2026-10-29-tiny-labeller.md`, `CHANGELOG.md`.
+
 ## 2026-11-04 — The capture column stays true when a capture brings a data column named `capture` (PV-015)
 
 A dataset that already had provost's `capture` column, reconciled with a later

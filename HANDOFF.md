@@ -203,9 +203,14 @@ Suites (all CI-enforced):
          The current `lm-all` was trained before `is_val` was fixed
          (2026-10-30) and never saw the 403 old validation captures.
          `--no-val` trains on all 3,674.
-      2. **`fold_eval.py` on macOS** crashes with LightGBM and torch in one
-         process (two `libomp` copies). Until it is fixed, use
-         `OMP_NUM_THREADS=1 ... --threads 1`.
+      2. ~~**`fold_eval.py` on macOS** crashes with LightGBM and torch in one
+         process (two `libomp` copies).~~ Fixed 2026-11-04 (PV-014): the
+         torch learner now trains in a spawned child process whenever the
+         trees train too, so the two never share a process. Verified on
+         Linux (identical scores, and the process maps show each library
+         in its own process); **still to confirm on the Mac** with
+         `ml/fold_eval.py --fold 0` at full threads and no
+         `OMP_NUM_THREADS`.
       3. **18 layers is the size** (measured 2026-10-30/31 on the iMac).
          - It matches all 30 on all five folds: 0.862 against 0.862, gold
            246 against 242 of 287.
