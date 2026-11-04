@@ -112,6 +112,8 @@ Suites (all CI-enforced):
     Test → Review → Done; see "Every task is a ticket" in `CLAUDE.md`.
     `ticket.py status provost` there lists what is open and next, and
     replaces this list as the place to look for the work still to do.
+    Pull an existing `shared_tools` clone first (2026-11-04, ST-004): a stale
+    one has a stale `CLAUDE.md` and a stale `ticket.py`.
 
 0r. **2026-11-02: the tiny LM ships without torch**
     (`pip install provost[lm]`). The 18-layer model is exported to 8-bit numpy
