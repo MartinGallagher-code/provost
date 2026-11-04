@@ -47,6 +47,9 @@ check_not () { # desc, forbidden-substring, actual
 sq () { tr -s ' \t' '  '; }
 # Exit status of a command (stdout/stderr discarded), without tripping set -e.
 rc_of () { local rc=0; "$@" >/dev/null 2>&1 || rc=$?; echo "$rc"; }
+# own_pg CMD... -- run CMD as a job in a process group of its own, as a shell at a
+# terminal would, so a signal to "its group" reaches it and not this suite
+own_pg () { ( set -m; "$@" 2>&3 & wait $! ) 3>&2 2>/dev/null; }
 # git on a test store with a throwaway identity (the smoke's own git use).
 tgit () { git -C "$1" -c user.name=smoke -c user.email=smoke@localhost -c commit.gpgsign=false "${@:2}"; }
 # The lock owner "host" string provost writes for this machine.
@@ -135,6 +138,329 @@ check "rm commits the deletion (history preserved)" "rm: deleted" \
 # c0003, never a reused c0002 (which would overwrite history/provenance)
 reuse_out="$(PROVOST_WORKSPACE="$RMWS" "$PROVOST" run --name after printf 'x=1, y=2\n' 2>&1)"
 check "capture ids are never reused after an rm purge" "c0003:" "$reuse_out"
+
+# rm --capture: captures, and the rows they filed in every dataset they fed;
+# a dataset left with no rows goes too. One commit; their tags go; ids are
+# still never reused.
+RCWS="$(mktemp -d)/.rmc"
+rcp () { PROVOST_WORKSPACE="$RCWS" "$PROVOST" "$@"; }
+rcp run --name t printf 'a b\n1 2\n3 4\n' >/dev/null 2>&1   # c0001 -> t
+rcp run --name t printf 'a b\n5 6\n' >/dev/null 2>&1        # c0002 -> t
+rcp run --name u printf 'x,y\n9,9\n' >/dev/null 2>&1        # c0003 -> u
+check "rm --capture refuses a missing capture" "no such capture: c0009" "$(rcp rm -f --capture c0009 2>&1 || true)"
+check "rm --capture refuses dataset names beside it (exit 2)" "2" "$(PROVOST_WORKSPACE="$RCWS" rc_of "$PROVOST" rm -f t --capture 1)"
+check "rm --capture refuses a malformed id (exit 2)" "2" "$(PROVOST_WORKSPACE="$RCWS" rc_of "$PROVOST" rm -f --capture x1)"
+check "rm --capture asks first, and no means no" "nothing deleted" "$(echo n | rcp rm --capture 2 2>&1)"
+check "rm --capture: an answered no keeps the capture" "true" "$([[ -d "$RCWS/captures/c0002" ]] && echo true)"
+rmc_out="$(rcp rm -f --capture c0002,3 2>&1)"
+check "rm --capture reports the captures and their rows" "deleted 2 capture(s) (c0002 c0003) and the 2 row(s)" "$rmc_out"
+check "rm --capture keeps the rows of the captures it was not given" "c0001" "$(cut -f2 "$RCWS/datasets/t.tsv")"
+check_not "rm --capture drops the rows a capture filed" "c0002" "$(cut -f2 "$RCWS/datasets/t.tsv")"
+check "rm --capture removes a dataset left with no rows" "true" "$([[ ! -f "$RCWS/datasets/u.tsv" ]] && echo true)"
+check "rm --capture prunes their provenance rows" "0" "$(tail -n +2 "$RCWS/provenance.tsv" | grep -c 'c000[23]' || true)"
+check "rm --capture removes the capture dirs" "true" "$([[ ! -d "$RCWS/captures/c0002" && ! -d "$RCWS/captures/c0003" ]] && echo true)"
+check "rm --capture removes their tags" "capture-c0001" "$(git -C "$RCWS" tag | tr '\n' ' ')"
+check_not "rm --capture leaves no tag of a deleted capture" "capture-c0002" "$(git -C "$RCWS" tag | tr '\n' ' ')"
+check "rm --capture is one commit" "rm: deleted 2 capture(s) [c0002 c0003], pruned 2 row(s), emptied 1 dataset(s) [u]" "$(git -C "$RCWS" log -1 --format=%s)"
+check "rm --capture leaves the store clean" "clean" "$( [[ -z "$(git -C "$RCWS" status --porcelain)" ]] && echo clean)"
+check "capture ids are never reused after rm --capture" "c0004:" "$(rcp run --name t printf 'a b\n7 8\n' 2>&1)"
+# A data column named `capture` (provost's becomes `_capture`) or `#` is the
+# tool's own: a value in it that matches a deleted capture or row must not
+# take another capture's rows with it.
+RCWS2="$(mktemp -d)/.rmc2"
+rcq () { PROVOST_WORKSPACE="$RCWS2" "$PROVOST" "$@"; }
+rcq run --name d printf 'capture,val\nc0009,1\n' >/dev/null 2>&1          # c0001 -> d
+rcq run --name d printf 'capture,val\nc0001,2\nc0001,3\n' >/dev/null 2>&1 # c0002 -> d
+rcq run --name h printf 'x,#\na,1\n' >/dev/null 2>&1                      # c0003 -> h
+rcq run --name h printf 'x,#\nb,3\nc,4\n' >/dev/null 2>&1                 # c0004 -> h
+rcq rm -f --capture 1,3 >/dev/null 2>&1
+check "rm --capture keeps rows whose data column 'capture' names a deleted capture" "[c0002 c0002]" \
+    "[$(tail -n +2 "$RCWS2/datasets/d.tsv" | cut -f2 | tr '\n' ' ' | sed 's/ $//')]"
+check "rm --capture keeps rows whose data column '#' names a deleted row" "[b c]" \
+    "[$(tail -n +2 "$RCWS2/datasets/h.tsv" | cut -f4 | tr '\n' ' ' | sed 's/ $//')]"
+# A rewrite that fails part way changes nothing: an awk that refuses the
+# second dataset must leave the first one, and the whole tree, untouched.
+RCWS3="$(mktemp -d)/.rmc3"; RCFB="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = ds=v ] && exit 7; done\nexec %q "$@"\n' "$(command -v awk)" > "$RCFB/awk"
+chmod +x "$RCFB/awk"
+rcr () { PROVOST_WORKSPACE="$RCWS3" "$PROVOST" "$@"; }
+rcr run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcr run --name v printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> v
+check "rm --capture: a failed rewrite says nothing was deleted" "nothing deleted" \
+    "$(PATH="$RCFB:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
+check "rm --capture: a failed rewrite leaves the store as it was" "clean t.tsv" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | grep -x t.tsv)"
+# ...and so does a move into the store that fails part way: what was moved
+# is put back. No scratch directory is left behind either way.
+RCFB2="$(mktemp -d)"
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) exit 7 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB2/mv"
+chmod +x "$RCFB2/mv"
+check "rm --capture: a failed move puts the store back" "put back as it was" \
+    "$(PATH="$RCFB2:$PATH" rcr rm -f --capture 1,2 2>&1 || true)"
+check "rm --capture: after a failed move the store is as it was" "clean t.tsv v.tsv" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(ls "$RCWS3/datasets" | tr '\n' ' ' | sed 's/ $//')"
+check "rm --capture leaves no scratch directory behind" "0" "$(find "$RCWS3/datasets" -name '.rm.*' | wc -l | tr -d ' ')"
+# Killed while rewriting: the store as it was, the lock released, and its
+# scratch directory gone with it.
+RCFB3="$(mktemp -d)"
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = ds=v ] && { kill -TERM "$PPID"; sleep 1; exit 7; }; done\nexec %q "$@"\n' "$(command -v awk)" > "$RCFB3/awk"
+chmod +x "$RCFB3/awk"
+check "rm --capture killed part way exits 143" "143" "$(PATH="$RCFB3:$PATH" PROVOST_WORKSPACE="$RCWS3" rc_of "$PROVOST" rm -f --capture 1,2)"
+check "rm --capture killed part way leaves the store, and no scratch dir" "clean 0" \
+    "$( [[ -z "$(git -C "$RCWS3" status --porcelain)" ]] && echo clean) $(find "$RCWS3/datasets" -name '.rm.*' | wc -l | tr -d ' ')"
+check "rm --capture killed part way releases the lock" "deleted 2 capture(s)" "$(rcr rm -f --capture 1,2 2>&1)"
+# Provenance is the record: a reconciled dataset can hold a data value in
+# provost's capture position (a later capture brought a `capture` column),
+# and only provenance says whose row is whose.
+RCWS4="$(mktemp -d)/.rmc4"
+rcs () { PROVOST_WORKSPACE="$RCWS4" "$PROVOST" "$@"; }
+rcs run --name d printf 'a,b,c\n1,2,3\n' >/dev/null 2>&1                 # c0001 -> d
+rcs run --name d printf 'capture,a,b,c\nc0001,4,5,6\n' >/dev/null 2>&1   # c0002 -> d, reconciled
+rcs rm -f --capture 1 >/dev/null 2>&1
+check "rm --capture goes by provenance where the capture column disagrees" "[2]" \
+    "[$(tail -n +2 "$RCWS4/datasets/d.tsv" 2>/dev/null | cut -f1 | tr '\n' ' ' | sed 's/ $//')]"
+# Without provenance, provost's capture column is what is left to go by.
+RCWS5="$(mktemp -d)/.rmc5"
+rct () { PROVOST_WORKSPACE="$RCWS5" "$PROVOST" "$@"; }
+rct run --name d printf 'a,b\n1,2\n' >/dev/null 2>&1    # c0001 -> d
+rct run --name d printf 'a,b\n3,4\n' >/dev/null 2>&1    # c0002 -> d
+rm -f "$RCWS5/provenance.tsv"
+rct rm -f --capture 1 >/dev/null 2>&1
+check "rm --capture with no provenance goes by provost's capture column" "[c0002]" \
+    "[$(tail -n +2 "$RCWS5/datasets/d.tsv" 2>/dev/null | cut -f2 | tr '\n' ' ' | sed 's/ $//')]"
+# Killed while moving into the store: the signal is held until the
+# deletion is committed (not left half done), and then sets the exit status.
+RCWS6="$(mktemp -d)/.rmc6"; RCFB4="$(mktemp -d)"
+rcu () { PROVOST_WORKSPACE="$RCWS6" "$PROVOST" "$@"; }
+rcu run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcu run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -TERM -- "$(pg=$(ps -o pgid= -p $$ | tr -d " "); p=$PPID; while q=$(ps -o pgid= -p $p | tr -d " "); [ "$q" = "$pg" ]; do p=$(ps -o ppid= -p $p | tr -d " "); done; echo "-$q")" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB4/mv"
+chmod +x "$RCFB4/mv"
+rcu_rc="$(PATH="$RCFB4:$PATH" PROVOST_WORKSPACE="$RCWS6" rc_of own_pg "$PROVOST" rm -f --capture 1)"
+check "rm --capture killed while moving exits 143 once committed" "143" "$rcu_rc"
+check "rm --capture killed while moving still completes, committed" "clean c0002" \
+    "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean) $(tail -n +2 "$RCWS6/datasets/t.tsv" | cut -f2 | sort -u | tr '\n' ' ' | sed 's/ $//')"
+# A dataset deleted while rm --capture waits at its prompt (before it takes
+# the lock) is skipped, not an error.
+rcu run --name w printf 'a b\n5 6\n' >/dev/null 2>&1   # c0003 -> w
+rcu run --name w printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> w
+gone_out="$( { rcu rm -f --no-purge w >/dev/null 2>&1; echo y; } | rcu rm --capture 3 2>&1 || true)"
+check "rm --capture skips a dataset deleted while it waited" "deleted 1 capture(s) (c0003)" "$gone_out"
+check "rm --capture after a dataset went while it waited leaves the store clean" "clean" \
+    "$( [[ -z "$(git -C "$RCWS6" status --porcelain)" ]] && echo clean)"
+# A failure after the datasets are moved (removing a capture dir, here)
+# puts the whole store back from HEAD: rows, provenance, dirs and tags.
+RCWS7="$(mktemp -d)/.rmc7"; RCFB5="$(mktemp -d)"
+rcv () { PROVOST_WORKSPACE="$RCWS7" "$PROVOST" "$@"; }
+rcv run --name d printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> d
+rcv run --name d printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> d
+rcv run --name e printf 'x y\n9 9\n' >/dev/null 2>&1   # c0003 -> e
+printf '#!/usr/bin/env bash\nfor a in "$@"; do case "$a" in */captures/c0001) exit 7 ;; esac; done\nexec %q "$@"\n' "$(command -v rm)" > "$RCFB5/rm"
+chmod +x "$RCFB5/rm"
+check "rm --capture: a late failure puts the store back" "put back as it was" \
+    "$(PATH="$RCFB5:$PATH" rcv rm -f --capture 1,3 2>&1 || true)"
+check "rm --capture: after a late failure, store, dirs and tags as they were" "clean e.tsv c0001 c0003 3" \
+    "$( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(ls "$RCWS7/datasets" | grep -x e.tsv) $(ls "$RCWS7/captures" | grep -x c0001) $(ls "$RCWS7/captures" | grep -x c0003) $(git -C "$RCWS7" tag | wc -l | tr -d ' ')"
+# A hangup (an ssh session dropping) while it applies: held like INT/TERM.
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) kill -HUP -- "$(pg=$(ps -o pgid= -p $$ | tr -d " "); p=$PPID; while q=$(ps -o pgid= -p $p | tr -d " "); [ "$q" = "$pg" ]; do p=$(ps -o ppid= -p $p | tr -d " "); done; echo "-$q")" ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB5/mv"
+chmod +x "$RCFB5/mv"; rm -f "$RCFB5/rm"
+rch_rc="$(PATH="$RCFB5:$PATH" PROVOST_WORKSPACE="$RCWS7" rc_of own_pg "$PROVOST" rm -f --capture 1,3)"
+check "rm --capture hung up while applying commits, then exits 129" "129 clean d.tsv" \
+    "$rch_rc $( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(ls "$RCWS7/datasets" | tr '\n' ' ' | sed 's/ $//')"
+# A commit that fails puts the store back, and the tags stay.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB5/git"
+chmod +x "$RCFB5/git"; rm -f "$RCFB5/mv"
+check "rm --capture: a failed commit puts the store back" "put back as it was" \
+    "$(PATH="$RCFB5:$PATH" rcv rm -f --capture 2 2>&1 || true)"
+check "rm --capture: a failed commit keeps the tags and the capture" "clean capture-c0002 c0002" \
+    "$( [[ -z "$(git -C "$RCWS7" status --porcelain)" ]] && echo clean) $(git -C "$RCWS7" tag | grep -x capture-c0002) $(ls "$RCWS7/captures" | grep -x c0002)"
+# It will not start over uncommitted changes to what it would touch (they
+# could not be put back), and says so.
+printf '#\tcapture\tn\ta\tb\n' >> "$RCWS7/datasets/d.tsv"
+check "rm --capture refuses over uncommitted changes" "uncommitted changes" "$(rcv rm -f --capture 2 2>&1 || true)"
+git -C "$RCWS7" checkout -q -- datasets
+# Anything else uncommitted in the store is not this commit's, and is left
+# as it was: an edited .provostrc, an untracked file.
+RCWS8="$(mktemp -d)/.rmc8"; RCFB6="$(mktemp -d)"
+rcw () { PROVOST_WORKSPACE="$RCWS8" "$PROVOST" "$@"; }
+rcw run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcw run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+rcw run --name u printf 'x y\n5 6\n' >/dev/null 2>&1   # c0003 -> u
+echo 'min_confidence=0.1' >> "$RCWS8/.provostrc"; echo 'notes' > "$RCWS8/notes.txt"
+rcw rm -f --capture 2 >/dev/null 2>&1
+check_not "rm --capture commits only what it deleted" "notes.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
+check "rm --capture leaves other uncommitted changes as they were" "[ M .provostrc|?? notes.txt]" \
+    "[$(git -C "$RCWS8" status --porcelain | sort | tr '\n' '|' | sed 's/|$//')]"
+# ...and a hand edit to a dataset it does not touch still stops it.
+git -C "$RCWS8" checkout -q -- .provostrc; rm -f "$RCWS8/notes.txt"
+rcw rm -f --no-purge u >/dev/null 2>&1
+printf '99\tc0009\t1\tUSER\tEDIT\n' >> "$RCWS8/datasets/t.tsv"
+check "rm --capture refuses over an edited dataset it would not touch" "uncommitted changes" "$(rcw rm -f --capture 3 2>&1 || true)"
+git -C "$RCWS8" checkout -q -- datasets
+# A git add that fails puts the store back too.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = add ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+chmod +x "$RCFB6/git"
+check "rm --capture: a failed git add puts the store back" "put back as it was" "$(PATH="$RCFB6:$PATH" rcw rm -f --capture 1 2>&1 || true)"
+check "rm --capture: after a failed git add the store is clean" "clean" "$( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
+# Interrupted while committing (the commit then fails): put back, and the
+# exit status says it was interrupted.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { kill -INT -- "$(pg=$(ps -o pgid= -p $$ | tr -d " "); p=$PPID; while q=$(ps -o pgid= -p $p | tr -d " "); [ "$q" = "$pg" ]; do p=$(ps -o ppid= -p $p | tr -d " "); done; echo "-$q")"; exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+check "rm --capture interrupted in the commit is put back, exit 130" "130 clean" \
+    "$(PATH="$RCFB6:$PATH" PROVOST_WORKSPACE="$RCWS8" rc_of own_pg "$PROVOST" rm -f --capture 1) $( [[ -z "$(git -C "$RCWS8" status --porcelain)" ]] && echo clean)"
+# Tags it could not delete are reported as still there, not as gone.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+tag_out="$(PATH="$RCFB6:$PATH" rcw rm -f --capture 1 2>&1)"
+check "rm --capture says when its tags could not go" "tags are still there" "$tag_out"
+check_not "rm --capture does not claim the tags went when they did not" "tags went with them" "$tag_out"
+# Something someone already staged is not swept into its commit either.
+rcw run --name s printf 'a b\n1 1\n' >/dev/null 2>&1   # c0004 -> s
+echo 'staged' > "$RCWS8/staged.txt"; git -C "$RCWS8" add staged.txt
+rcw rm -f --capture 3 >/dev/null 2>&1 || true
+check_not "rm --capture does not commit what was staged beside it" "staged.txt" "$(git -C "$RCWS8" show --stat --format= HEAD)"
+check "rm --capture leaves a staged file staged" "A  staged.txt" "$(git -C "$RCWS8" status --porcelain)"
+tgit "$RCWS8" commit -qm 'stray' >/dev/null 2>&1 || true
+# A Ctrl-C (which reaches every process in the group) while it puts the
+# store back does not stop the put-back: its git runs with INT ignored. The
+# stand-in git sends itself INT before it checks out; it survives only if
+# INT is ignored.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && kill -INT $$; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+PATH="$RCFB6:$PATH" rcw rm -f --capture 4 >/dev/null 2>&1 || true
+check "rm --capture's put-back survives a Ctrl-C" "[]" "[$(git -C "$RCWS8" status --porcelain | tr '\n' '|')]"
+# A put-back that git itself fails once (a Ctrl-C that reached it) is
+# tried again, and the store ends as it was.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && exit 1; [ "$a" = checkout ] && [ ! -e %q/once ] && { : > %q/once; exit 1; }; done\nexec %q "$@"\n' "$RCFB6" "$RCFB6" "$(command -v git)" > "$RCFB6/git"
+check "rm --capture tries the put-back again" "put back as it was" "$(PATH="$RCFB6:$PATH" rcw rm -f --capture 4 2>&1 || true)"
+check "rm --capture: after a retried put-back the store is clean" "[]" "[$(git -C "$RCWS8" status --porcelain | tr '\n' '|')]"
+# A commit that lands although git then fails is a deletion, said as one.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %q "$@"; exit 1; }; done\nexec %q "$@"\n' "$(command -v git)" "$(command -v git)" > "$RCFB6/git"
+landed_out="$(PATH="$RCFB6:$PATH" rcw rm -f --capture 4 2>&1 || true)"
+check "rm --capture: a commit that landed is reported as done" "deleted 1 capture(s) (c0004)" "$landed_out"
+check "rm --capture: a commit that landed takes the tag too" "[]" "[$(git -C "$RCWS8" tag | grep -x capture-c0004 || true)]"
+# The tag hint is a command that can be pasted as it is.
+rcw run --name s printf 'a b\n2 2\n' >/dev/null 2>&1   # c0005 -> s
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && exit 7; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB6/git"
+check "rm --capture's tag hint ends with the tag" "[tag -d capture-c0005]" \
+    "[$(PATH="$RCFB6:$PATH" rcw rm -f --capture 5 2>&1 | grep 'could not delete their tags' | sed 's/.*\(tag -d .*\)$/\1/')]"
+git -C "$RCWS8" tag -d capture-c0005 >/dev/null 2>&1 || true
+# With no dataset tracked yet, a dataset file it would rewrite is still
+# covered: untracked, it stops the deletion.
+RCWS9="$(mktemp -d)/.rmc9"
+rcx () { PROVOST_WORKSPACE="$RCWS9" "$PROVOST" "$@"; }
+rcx run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcx run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+cp "$RCWS9/datasets/t.tsv" "$RCWS9/t.keep"; rcx rm -f --no-purge t >/dev/null 2>&1; mv "$RCWS9/t.keep" "$RCWS9/datasets/t.tsv"
+check "rm --capture refuses over an untracked dataset it would rewrite" "uncommitted changes" "$(rcx rm -f --capture 1 2>&1 || true)"
+check "rm --capture leaves an untracked dataset as it was" "2" "$(tail -n +2 "$RCWS9/datasets/t.tsv" | wc -l | tr -d ' ')"
+# ...and untracked files are seen whatever status.showUntrackedFiles says.
+mv "$RCWS9/datasets/t.tsv" "$RCWS9/t.keep"; git -C "$RCWS9" config status.showUntrackedFiles no
+echo notes > "$RCWS9/captures/c0001/notes.txt"
+check "rm --capture sees untracked files under showUntrackedFiles=no" "uncommitted changes" "$(rcx rm -f --capture 2 2>&1 || true)"
+# Another git holding the store's index (a shell prompt's git status, an
+# editor): refused before anything changes...
+RCWS10="$(mktemp -d)/.rmc10"; RCFB7="$(mktemp -d)"
+rcz () { PROVOST_WORKSPACE="$RCWS10" "$PROVOST" "$@"; }
+rcz run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rcz run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+: > "$RCWS10/.git/index.lock"
+check "rm --capture refuses while another git holds the index" "another git is using the store" "$(rcz rm -f --capture 1 2>&1 || true)"
+check "rm --capture refused over index.lock changes nothing" "[]" "[$(git -C "$RCWS10" status --porcelain 2>/dev/null | tr '\n' '|')]"
+rm -f "$RCWS10/.git/index.lock"
+# ...and one that takes the index part way is waited out by the put-back.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = add ] && { : > %q; ( sleep 0.3; rm -f %q ) & exit 1; }; done\nexec %q "$@"\n' "$RCWS10/.git/index.lock" "$RCWS10/.git/index.lock" "$(command -v git)" > "$RCFB7/git"
+chmod +x "$RCFB7/git"
+check "rm --capture's put-back waits out a git holding the index" "put back as it was" "$(PATH="$RCFB7:$PATH" rcz rm -f --capture 1 2>&1 || true)"
+sleep 0.4
+check "rm --capture: after waiting out the index the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
+# Interrupted while deleting the tags: it finishes them, says so, and then
+# exits 130.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = update-ref ] && kill -INT -- "$(pg=$(ps -o pgid= -p $$ | tr -d " "); p=$PPID; while q=$(ps -o pgid= -p $p | tr -d " "); [ "$q" = "$pg" ]; do p=$(ps -o ppid= -p $p | tr -d " "); done; echo "-$q")"; done\nexec %q "$@"\n' "$(command -v git)" > "$RCFB7/git"
+tagint_out="$(PATH="$RCFB7:$PATH" PROVOST_WORKSPACE="$RCWS10" own_pg "$PROVOST" rm -f --capture 1 2>&1; echo "rc=$?")"
+check "rm --capture interrupted in the tag phase still deletes the tags, then exits 130" "rc=130 []" \
+    "$(printf '%s' "$tagint_out" | tail -n 1) [$(git -C "$RCWS10" tag | grep -x capture-c0001 || true)]"
+check "rm --capture interrupted in the tag phase still says what it deleted" "deleted 1 capture(s) (c0001)" "$tagint_out"
+# A commit whose git is killed after moving HEAD (the index not yet
+# written): done, and the store left clean, its index HEAD's.
+printf '#!/usr/bin/env bash
+for a in "$@"; do [ "$a" = commit ] && { %q "$@"; %q -C %q read-tree HEAD~1 2>/dev/null; exit 130; }; done
+exec %q "$@"
+' "$(command -v git)" "$(command -v git)" "$RCWS10" "$(command -v git)" > "$RCFB7/git"
+check "rm --capture: a commit killed after landing is done" "deleted 1 capture(s) (c0002)" "$(PATH="$RCFB7:$PATH" rcz rm -f --capture 2 2>&1 || true)"
+check "rm --capture: after a commit killed after landing the store is clean" "[]" "[$(git -C "$RCWS10" status --porcelain | tr '\n' '|')]"
+# The shell that took the lock killed outright while its commit runs: the
+# lock stays live until the commit is done (the next provost waits), and
+# the deletion is its own commit, not swept into the next one.
+RCWS11="$(mktemp -d)/.rmc11"; RCFB8="$(mktemp -d)"
+rck () { PROVOST_WORKSPACE="$RCWS11" "$PROVOST" "$@"; }
+rck run --name t printf 'a b\n1 2\n' >/dev/null 2>&1   # c0001 -> t
+rck run --name t printf 'a b\n3 4\n' >/dev/null 2>&1   # c0002 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { : > %q/at-commit; sleep 1.5; }; done\nexec %q "$@"\n' "$RCFB8" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+PATH="$RCFB8:$PATH" PROVOST_WORKSPACE="$RCWS11" "$PROVOST" rm -f --capture 2 >/dev/null 2>&1 &
+rck_pid=$!
+for _ in $(seq 1 100); do [[ -e "$RCFB8/at-commit" ]] && break; sleep 0.1; done   # kill it in its commit, not before
+kill -KILL "$rck_pid" 2>/dev/null || true; wait "$rck_pid" 2>/dev/null || true
+PROVOST_LOCK_TIMEOUT=10 rck run --name u printf 'x y\n5 6\n' >/dev/null 2>&1
+check "rm --capture whose shell was killed still commits on its own" "[rm: deleted 1 capture(s) [c0002], pruned 1 row(s)]" \
+    "[$(git -C "$RCWS11" log -2 --format=%s | tail -n 1)]"
+check "...and the next capture waited for it, its commit its own" "capture c0003" "$(git -C "$RCWS11" log -1 --format=%s)"
+check_not "...which did not take the deletion with it" "captures/c0002" "$(git -C "$RCWS11" show --stat --format= HEAD)"
+# The child killed outright just after its commit landed: done, said so,
+# and the lock released (not left under the dead child's pid).
+rck run --name t printf 'a b\n7 8\n' >/dev/null 2>&1   # c0004 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { %q "$@"; kill -KILL $PPID; exit 0; }; done\nexec %q "$@"\n' "$(command -v git)" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+dead_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 4 2>&1 || true)"
+check "rm --capture whose child died after landing says it deleted" "deleted 1 capture(s) (c0004)" "$dead_out"
+check "rm --capture whose child died leaves no lock" "no" "$([[ -e "$RCWS11/.lock" ]] && echo yes || echo no)"
+check "rm --capture whose child died before its tags says they are still there" "tags are still there" "$dead_out"
+git -C "$RCWS11" tag -d capture-c0004 >/dev/null 2>&1 || true; rm -f "$RCFB8/git"
+# A lock another provost has taken meanwhile (here: broken as stale by
+# age) is not handed back over nor removed by rm --capture's child.
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = commit ] && { printf "otherhost\\t1\\t0\\t1\\n" > %q/.lock/owner; }; done\nexec %q "$@"\n' "$RCWS11" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+PATH="$RCFB8:$PATH" rck rm -f --capture 3 >/dev/null 2>&1 || true
+check "rm --capture leaves another provost's lock alone" "[otherhost	1	0	1]" "[$(cat "$RCWS11/.lock/owner" 2>/dev/null)]"
+rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
+# A lock broken and taken from it before it changed anything (here a stand-in
+# git, at rm's first add, swaps the owner record as another provost would):
+# it stops there, nothing deleted.
+rck run --name t printf 'a b\n9 9\n' >/dev/null 2>&1   # c0005 -> t
+printf '#!/usr/bin/env bash\nfor a in "$@"; do [ "$a" = status ] && printf "otherhost\\t1\\t0\\t1\\n" > %q/.lock/owner; done\nexec %q "$@"\n' "$RCWS11" "$(command -v git)" > "$RCFB8/git"
+chmod +x "$RCFB8/git"
+taken_out="$(PATH="$RCFB8:$PATH" rck rm -f --capture 5 2>&1 || true)"
+check "rm --capture stops when its lock was taken from it" "nothing deleted" "$taken_out"
+check_not "rm --capture whose lock was taken does not say it put anything back" "put back" "$taken_out"
+check "rm --capture whose lock was taken changed nothing" "yes []" \
+    "$([[ -d "$RCWS11/captures/c0005" ]] && echo yes) [$(git -C "$RCWS11" status --porcelain | tr '\n' '|')]"
+rm -rf "$RCWS11/.lock"; rm -f "$RCFB8/git"
+check_not "rm --capture whose child died after landing prints no raw error" "No such file" "$dead_out"
+# A lock-break mutex left behind (a provost interrupted while breaking a
+# stale lock) does not stop rm --capture for good: one over a minute old
+# is cleared, as _lock_break itself would.
+rck run --name t printf 'a b\n6 6\n' >/dev/null 2>&1   # c0006 -> t
+mkdir "$RCWS11/.lock.break"; touch -d '2 hours ago' "$RCWS11/.lock.break" 2>/dev/null || touch -t 200001010000 "$RCWS11/.lock.break"
+check "rm --capture clears an abandoned lock-break mutex" "deleted 1 capture(s) (c0006)" "$(rck rm -f --capture 6 2>&1 || true)"
+check "...and leaves none behind" "no" "$([[ -e "$RCWS11/.lock.break" ]] && echo yes || echo no)"
+# One that cannot be removed (here: not empty) is waited out, not spun on:
+# it gives up within seconds, nothing deleted, and says what is in the way.
+rck run --name t printf 'a b\n6 7\n' >/dev/null 2>&1   # c0007 -> t
+mkdir -p "$RCWS11/.lock.break/x"; touch -d '2 hours ago' "$RCWS11/.lock.break" 2>/dev/null || touch -t 200001010000 "$RCWS11/.lock.break"
+stuck_s=$SECONDS; stuck_out="$(rck rm -f --capture 7 2>&1 || true)"; stuck_s=$((SECONDS - stuck_s))
+check "rm --capture gives up on a lock-break mutex it cannot clear" "lock-break mutex" "$stuck_out"
+check "...within seconds, nothing deleted" "yes yes" "$( (( stuck_s < 15 )) && echo yes) $([[ -d "$RCWS11/captures/c0007" ]] && echo yes)"
+rm -rf "$RCWS11/.lock.break"
+# What made it fail is shown, not swallowed.
+printf '#!/usr/bin/env bash\ncase "$1" in */.rm.*/prov) echo "mv: No space left on device" >&2; exit 1 ;; esac\nexec %q "$@"\n' "$(command -v mv)" > "$RCFB8/mv"
+rm -f "$RCFB8/git"; chmod +x "$RCFB8/mv"
+check "rm --capture shows why it failed" "No space left on device" "$(PATH="$RCFB8:$PATH" rck rm -f --capture 1 2>&1 || true)"
+# Rows are counted by record: a dataset without a final newline.
+rcw run --name n printf 'a b\n7 8\n' >/dev/null 2>&1   # c0006 -> n
+rcw run --name n printf 'a b\n9 9\n' >/dev/null 2>&1   # c0007 -> n
+printf '%s' "$(cat "$RCWS8/datasets/n.tsv")" > "$RCWS8/datasets/n.tsv"; tgit "$RCWS8" commit -qam 'no final newline' >/dev/null 2>&1
+check "rm --capture counts a row in a dataset without a final newline" "the 1 row(s) they filed" "$(rcw rm -f --capture 7 2>&1)"
+# The prompt counts the rows that will go, provenance or not.
+check "rm --capture's prompt counts rows found without provenance" "the 1 row(s) they filed" \
+    "$(rm -f "$RCWS7/provenance.tsv"; tgit "$RCWS7" commit -qam 'drop provenance' >/dev/null 2>&1; echo n | rcv rm --capture 2 2>&1)"
 
 # async is used only when INTERACTIVE: a bare inject from a script (stderr not
 # a terminal, PROVOST_ASYNC unset) now runs in the foreground.
@@ -311,6 +637,11 @@ check "the store's own tree holds no copy of the files" "" "$(git -C "$PROJ/.pro
 check_not "nor does its commit" "added-later.txt" "$(git -C "$PROJ/.provost" ls-tree -r --name-only HEAD | grep -v '^context/' || true)"
 ( cd "$PROJ" && PROVOST_HOME="$GH" PROVOST_WORKSPACE="" PROVOST_FILES_MAX_SIZE=0 "$PROVOST" run printf 'k=v\n' >/dev/null 2>&1 )
 check "PROVOST_FILES_MAX_SIZE=0 keeps no files" "no" "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0006 >/dev/null && echo yes || echo no)"
+# rm --capture takes a capture's files-<id> tag with it (its files are no
+# longer served), and leaves the others' alone.
+PROVOST_WORKSPACE="$PROJ/.provost" "$PROVOST" rm -f --capture 5 >/dev/null 2>&1
+check "rm --capture deletes the capture's files tag" "no yes" \
+    "$(git -C "$PROJ/.provost" rev-parse -q --verify files-c0005 >/dev/null && echo yes || echo no) $(git -C "$PROJ/.provost" rev-parse -q --verify files-c0004 >/dev/null && echo yes || echo no)"
 inst_out="$(PROVOST_HOME="$GH" PROVOST_WORKSPACE="" "$PROVOST" instances 2>&1)"
 check "instances lists the controlled dir" "$PROJ" "$inst_out"
 # re-controlling a dir the registry already lists does not duplicate it

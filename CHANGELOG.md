@@ -29,6 +29,88 @@ only, no code and no version change.
   after the opening paragraph.
 - **`HANDOFF.md`:** next step 0s.
 
+## 2026-11-02 — `rm --capture`: delete captures, and the rows they filed
+
+`provost rm NAME` deletes whole datasets. Nothing could delete one capture
+out of a dataset that others also filed into, and quarterdeck needs exactly
+that: its `qd rm RUN` deletes one run, whose answers sit in datasets beside
+other runs' answers.
+
+- **`provost rm [-f] --capture ID[,ID...]`** (repeatable; an ID as
+  elsewhere: `c0007`, `7`, `capture-c0007`) deletes those captures: each
+  `captures/<id>/` and its tags (`capture-<id>`, and `files-<id>` where it
+  kept a controlled directory's files), the rows it filed from every
+  dataset it fed,
+  and their provenance rows. A dataset left with no rows goes too. It all
+  goes in one commit, like any `rm`.
+- It asks first, like `rm`, unless `-f`. It refuses the whole operation if
+  any id is not a capture, and refuses dataset names given beside
+  `--capture`.
+- A row is a capture's when provenance says so. provost's capture column
+  (column 2, after `#`; `_capture` beside a data column named `capture`) is
+  read only for a row provenance does not know, because a reconciled
+  dataset can hold a data value in that position. A data column named
+  `capture` or `#` is never matched.
+- It commits the whole deletion or leaves the store as it was. What it
+  touches must already be committed, untracked files included, and no
+  other git may hold the store's index (it refuses otherwise, and says
+  so).
+  Every dataset and `provenance.tsv` is rewritten in a scratch directory
+  first, and any failure after that, up to and including the commit, puts
+  those paths back from HEAD, with signals ignored and tried again, after
+  a pause, if git is interrupted or locked out all the same. A commit that
+  landed although git then failed counts as done, and the index is brought
+  into line with it. It stages
+  and commits those paths alone: anything else uncommitted in the store,
+  staged or not, is left as it was. INT, TERM and HUP wait for the outcome
+  and then set the exit status, from the first change to the last message
+  (tags and the report included). Everything that changes the store runs
+  in a child in a process group of its own, so a Ctrl-C at the terminal
+  reaches only the waiting shell and never a git part way through. Under a
+  held-down Ctrl-C (INT to the group every 5 ms, from anywhere in the run)
+  150 runs ended committed or unchanged and none in between, where the
+  same code without its own process group left 14 of 75 half-applied.
+  The child holds the store's lock as its own while it works (taking the
+  owner record over only while it is still its shell's, and handing it
+  back only while it is still its own, so another provost's lock is never
+  overwritten; both under the lock-break mutex, waited for briefly (3 s at
+  most) and cleared once when over a minute old as `_lock_break` does, so a stale-lock
+  break cannot fall between the compare and the write; if the lock was taken
+  from it before it changed anything, it stops there, nothing deleted),
+  so if the shell that took it is killed the lock stays live
+  until the child is done. A child killed on its own is waited for (its
+  git may still be running), its record taken back, and the outcome read
+  from HEAD. What made it fail is shown. Tags go only once the
+  commit has landed, and if they cannot go it says so. The
+  scratch directory goes on any exit. The datasets and rows are found again
+  under the lock, so one deleted while it waited at the prompt is skipped,
+  and the counts it prints are the rows that actually go.
+- The ids go through a file, not the environment or the command line, and
+  the tags go in one `git update-ref --stdin`. 750 captures out of 1,501
+  take 3 s.
+- Files: `provost` (`cmd_rm`, `_rm_captures`, `_rm_cap_scan`,
+  `_rm_cap_apply`, `_rm_cap_commit`, `rm --help`, `help advanced`;
+  `_release_lock_dir` reads the lock's owner with `read`, not `$(cat)`, so
+  a Ctrl-C cannot leave a lock it was releasing), `docs/usage.md`.
+- Tests (`tests/smoke.sh`, +84): refusals (missing, malformed, mixed with
+  names, uncommitted changes), the prompt and its count, which rows and
+  datasets go and which stay (data columns named `capture` and `#`;
+  provenance against a reconciled capture column; no provenance; no final
+  newline), failure at each stage and INT/TERM/HUP (the store as it was or
+  the deletion committed, the exit status, tags kept on failure and said
+  so, the lock released, no scratch dir, a Ctrl-C to the group during the
+  put-back, a put-back retried, a commit that landed, a commit killed
+  after landing, another git holding the index, a Ctrl-C while the tags
+  go, the shell killed outright mid-commit, the child killed after
+  landing, another provost's lock left alone, a lock taken from it
+  before it began, the cause of a failure
+  shown),
+  its `files-<id>` tag, untracked and
+  hidden-untracked files refused, other uncommitted and staged files left
+  alone, a dataset that
+  went while it waited, provenance, dirs, tags, one clean commit, ids never
+  reused.
+
 ## 2026-11-02 — The tiny LM without torch: `provost[lm]` and the `provost-model` package
 
 `pip install provost[lm]` gives `--model` the 18-layer tiny LM, run with

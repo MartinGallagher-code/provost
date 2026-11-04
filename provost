@@ -478,7 +478,8 @@ _lock () {
 # Remove a lock dir only if it still carries OUR owner record.
 _release_lock_dir () {
     local lock="$1" mine="$2" cur
-    cur="$(cat "$lock/owner" 2>/dev/null || true)"
+    # read, not $(cat): no subshell for a Ctrl-C to kill, so the lock goes
+    cur=""; { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
     [[ "$cur" == "$mine" ]] && rm -rf "$lock" 2>/dev/null
     return 0
 }
@@ -2138,7 +2139,15 @@ options:
                           from git (the store stays where it is)
 EOF
             ;;
-        rm) echo "usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used" ;;
+        rm) cat <<'EOF'
+usage: provost rm [-f|--yes] [--no-purge] NAME...    delete dataset(s) + the captures only they used
+       provost rm [-f|--yes] --capture ID[,ID...]...
+  Delete datasets, and the captures that fed only them (--no-purge: keep
+  those). Or, with --capture, delete captures and the rows they filed, from
+  every dataset they fed; a dataset left with no rows goes too. Either way
+  the deletion is one commit, and git's history keeps what was there.
+EOF
+            ;;
         stats) echo "usage: provost stats NAME [analyze-args...]    statistics on a dataset (--all for everything)" ;;
         triage) echo "usage: provost triage    show the held-back bucket (unmatched, low-confidence, failed quality gate), raw input decoded" ;;
         doctor) echo "usage: provost doctor    check the engines and the store; lists failed background captures" ;;
@@ -3338,20 +3347,45 @@ cmd_triage () {
 # --keep-captures keeps every capture. The deletion is committed, so the git
 # history (and 'provost restore') still holds the pre-deletion state. Row
 # indices (#N) and capture ids are never reused.
+#   provost rm [-f|--yes] --capture ID[,ID...]...
+# Deletes captures instead: each captures/<id>/ dir and its tag, the rows it
+# filed (by provenance; provost's capture column only for a row provenance
+# does not know) from every dataset it fed, and their provenance rows. A
+# dataset left with no rows is removed. One commit, as above, or nothing.
 # ---------------------------------------------------------------------------
 cmd_rm () {
-    local yes=0 purge=1 names=()
+    local yes=0 purge=1 names=() caps=() parts=() v c
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -f|--yes|--force)        yes=1; shift ;;
             --purge)                 purge=1; shift ;;
             --no-purge|--keep-captures) purge=0; shift ;;
+            --capture|--capture=*)
+                if [[ "$1" == --capture ]]; then
+                    [[ $# -ge 2 ]] || usage_die "--capture needs a capture id (e.g. c0007)."
+                    v="$2"; shift 2
+                else
+                    v="${1#*=}"; shift
+                fi
+                IFS=',' read -r -a parts <<< "$v" || true
+                [[ ${#parts[@]} -gt 0 ]] || usage_die "--capture needs a capture id (e.g. c0007)."
+                for v in "${parts[@]}"; do
+                    c="$(_capid_of "$v")" || usage_die "invalid capture id '$v' (expected e.g. c0007 or 7)."
+                    caps+=("$c")
+                done ;;
             -h|--help)               _cmd_help rm ;;
             --)                      shift; while [[ $# -gt 0 ]]; do names+=("$1"); shift; done ;;
             -?*)                     usage_die "unknown option for 'rm': $1 (see 'provost rm --help')." ;;
             *)                       names+=("$1"); shift ;;
         esac
     done
+    if [[ ${#caps[@]} -gt 0 ]]; then
+        [[ ${#names[@]} -eq 0 ]] || usage_die "rm takes dataset names or --capture, not both."
+        _ensure_workspace
+        _require_on_branch
+        _rm_captures "$yes" "${caps[@]}"
+        return
+    fi
     [[ ${#names[@]} -gt 0 ]] || _cmd_usage_die rm
     local n
     for n in "${names[@]}"; do _require_name "$n"; done
@@ -3471,6 +3505,324 @@ cmd_rm () {
     else
         ok "deleted ${names[*]} (${total} row(s)); source captures kept (--no-purge). 'provost source #N' still resolves surviving rows."
     fi
+}
+
+# _rm_cap_scan — for _rm_captures, on its variables: the rows the ids filed
+# ($tmpd/rows), the datasets they fed (names), each dataset rewritten
+# without them into $tmpd/ds.K (keep: K, or "" for one left empty), provenance without them ($tmpd/prov), and how many
+# rows go (removed). A row is a capture's when provenance says so. provost's
+# capture column (second, after '#'; `_capture` beside a data column named
+# `capture`) is read only for a row provenance does not know, because a
+# reconciled dataset can hold a data value in that position. A data column
+# named `#` or `capture` is never matched. Returns 1 if a file cannot be
+# read or written; the store is not touched.
+_rm_cap_scan () {
+    local n f k=0 pv=/dev/null before after
+    names=(); keep=(); gone=(); removed=0
+    rm -f "$tmpd"/ds.* "$tmpd/prov"; : > "$tmpd/rows"
+    if [[ -f "$prov" ]]; then
+        pv="$prov"
+        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
+            FNR > 1 && ($3 in del) { print $1 "\t" $2 }' "$tmpd/ids" "$prov" > "$tmpd/rows" || return 1
+    fi
+    # the datasets they fed, from provenance and from each meta.tsv
+    while IFS= read -r n; do
+        _valid_name "$n" && [[ -f "$dir/$n.tsv" ]] && names+=("$n")
+    done < <( { cut -f2 "$tmpd/rows"
+                ( cd "$cap" && sed 's|$|/meta.tsv|' "$tmpd/ids" | tr '\n' '\0' \
+                    | xargs -0 awk -F'\t' 'FNR == 1 { seen = 0 }
+                        !seen && $1 == "dataset" { n = split(substr($0, 9), d, ","); for (i = 1; i <= n; i++) print d[i]; seen = 1 }' )
+              } | sort -u)
+    for n in ${names[@]+"${names[@]}"}; do
+        f="$dir/$n.tsv"; k=$((k + 1))
+        awk -F'\t' -v ds="$n" '
+            FILENAME == ARGV[1] { if ($2 == ds) drop[$1] = 1; next }
+            FILENAME == ARGV[2] { del[$1] = 1; next }
+            FILENAME == ARGV[3] { if (FNR > 1 && $2 == ds) known[$1] = 1; next }
+            FNR == 1 { hc = ($1 == "#"); cc = (hc && $2 ~ /^_*capture$/); print; next }
+            (hc && ($1 in drop)) || (cc && !($1 in known) && ($2 in del)) { next }
+            { print }' "$tmpd/rows" "$tmpd/ids" "$pv" "$f" > "$tmpd/ds.$k" || return 1
+        before=$(awk 'END { print NR }' "$f"); after=$(awk 'END { print NR }' "$tmpd/ds.$k")
+        removed=$((removed + before - after))
+        if (( after <= 1 )); then gone+=("$n"); keep+=(""); else keep+=("$k"); fi
+    done
+    if [[ -f "$prov" ]]; then
+        awk -F'\t' 'FILENAME == ARGV[1] { del[$1] = 1; next }
+            FNR == 1 || !($3 in del)' "$tmpd/ids" "$prov" > "$tmpd/prov" || return 1
+    fi
+    return 0
+}
+
+# _rm_cap_apply — for _rm_captures: the scan's files into the store, the
+# capture dirs out of it, and the commit of those paths (rb) alone. Returns 1 at the first step that
+# fails (never dies), so the caller can put the store back from HEAD.
+_rm_cap_apply () {
+    local n c k=0
+    for n in ${names[@]+"${names[@]}"}; do
+        if [[ -z "${keep[k]}" ]]; then rm -f "$dir/$n.tsv" || return 1
+        else mv "$tmpd/ds.${keep[k]}" "$dir/$n.tsv" || return 1; fi
+        k=$((k + 1))
+    done
+    if [[ -f "$tmpd/prov" ]]; then mv "$tmpd/prov" "$prov" || return 1; fi
+    while IFS= read -r c; do rm -rf "${cap:?}/$c" || return 1; done < "$tmpd/ids"
+    # only what it touches: anything else in the store is not this commit's
+    _git add -A -- "${rb[@]}" >/dev/null 2>&1 || return 1
+    if ! _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1; then
+        _git commit -q -m "$msg" -- "${rb[@]}" >/dev/null 2>&1 || return 1
+    fi
+    return 0
+}
+
+# _rm_cap_commit — for _rm_captures, in a child in its own process group
+# with INT/TERM/HUP ignored: apply and commit; on failure put the touched
+# paths back from HEAD (tried again after a pause: git sets its own SIGINT
+# handler, and another git may hold the index); after a commit, bring their
+# index into line with HEAD and delete the tags. Exits 0 when committed
+# ($tmpd/tagsfail, $tmpd/indexstale mark what did not follow), 1 when put
+# back, 2 when it could not be put back.
+_rm_cap_commit () {
+    local tries put rmchild=""
+    # The lock is this child's while it works: should the shell that took it
+    # die first, the lock stays live (its owner, this pid, is running) and no
+    # other provost writes beside it. _rm_cap_exit hands it back.
+    # not ours any more (broken as stale and taken by another provost):
+    # nothing has changed yet, so stop here
+    _rm_cap_owner || exit 3
+    if ! _rm_cap_apply && ! _rm_cap_landed; then
+        tries=0; put=1
+        while (( tries < 5 )); do
+            _git checkout -q HEAD -- "${rb[@]}" >/dev/null 2>&1 && { put=0; break; }   # tree and index
+            tries=$((tries + 1)); sleep 0.2
+        done
+        (( put == 0 )) && _rm_cap_exit 1
+        _rm_cap_exit 2
+    fi
+    tries=0
+    until _git reset -q -- "${rb[@]}" >/dev/null 2>&1; do
+        tries=$((tries + 1)); (( tries < 5 )) || { : > "$tmpd/indexstale"; break; }; sleep 0.2
+    done
+    # their tags, capture-<id> and files-<id> where it kept files, in one go
+    if _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' > "$tmpd/allrefs" 2>/dev/null \
+        && awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
+                ($1 in del) { print "delete " $1 }' "$tmpd/ids" "$tmpd/allrefs" > "$tmpd/refs"; then
+        if [[ -s "$tmpd/refs" ]]; then
+            _git update-ref --stdin < "$tmpd/refs" >/dev/null 2>&1 || : > "$tmpd/tagsfail"
+        fi
+    else
+        : > "$tmpd/refs"; : > "$tmpd/tagsfail"
+    fi
+    _rm_cap_exit 0
+}
+
+# _rm_cap_landed — did this rm's commit land (HEAD moved on from the old HEAD
+# to a commit of its own message), whatever git said?
+_rm_cap_landed () {
+    local h p m
+    h="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    p="$(_git rev-parse -q --verify HEAD^ 2>/dev/null || true)"
+    m="$(_git log -1 --format=%s 2>/dev/null || true)"
+    [[ -n "$h" && "$h" != "$head0" && "$p" == "$head0" && "$m" == "$msg" ]]
+}
+
+# _rm_cap_owner — the child takes the store lock's owner record over, but
+# only while it is still the record of the shell that took the lock
+# ($rmowner): its own pid, and the time now (a long rm does not go stale by
+# age). The record it wrote is $rmchild. Returns 1 if the record is no
+# longer the shell's (the lock was broken and taken meanwhile).
+_rm_cap_owner () {
+    local host pid uid t now cur="" lock="$PROVOST_WORKSPACE/.lock" rc=1
+    now="$(date +%s)"
+    # under _lock_break's own mutex: no break can fall between the compare
+    # and the write (a breaker re-checks staleness holding it). Waited for a
+    # little, as the hand-back does; one older than a minute was abandoned
+    # (_lock_break's own rule) and is cleared.
+    local w=0 cleared=0
+    until mkdir "$lock.break" 2>/dev/null; do
+        # cleared at most once: one that cannot be removed (not empty, not a
+        # directory, another user's) is waited out like a busy one
+        if (( ! cleared )) && (( $(_age "$lock.break") > 60 )); then
+            cleared=1; rmdir "$lock.break" 2>/dev/null || true
+        fi
+        w=$((w + 1)); (( w < 30 )) || { : > "$tmpd/claimbusy"; return 1; }; sleep 0.1
+    done
+    { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
+    if [[ "$cur" == "$rmowner" ]]; then
+        IFS=$'\t' read -r host pid uid t <<< "$rmowner"
+        printf -v rmchild '%s\t%s\t%s\t%s' "$host" "$BASHPID" "$uid" "$now"
+        printf '%s\n' "$rmchild" > "$lock/owner.tmp" 2>/dev/null \
+            && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null && rc=0
+    fi
+    rmdir "$lock.break" 2>/dev/null || true
+    return $rc
+}
+
+# _rm_cap_hand_back RECORD — write $rmowner back over the owner record, but
+# only while it is still RECORD (never over another provost's lock).
+_rm_cap_hand_back () {
+    local cur="" lock="$PROVOST_WORKSPACE/.lock" w=0
+    [[ -n "$1" ]] || return 0
+    # under _lock_break's mutex, as the claim; if it cannot be had the record
+    # stays as it is (a dead owner's lock is broken as stale in time)
+    until mkdir "$lock.break" 2>/dev/null; do
+        w=$((w + 1)); (( w < 20 )) || return 0; sleep 0.1
+    done
+    { IFS= read -r cur < "$lock/owner"; } 2>/dev/null || true
+    if [[ "$cur" == "$1" ]]; then
+        printf '%s\n' "$rmowner" > "$lock/owner.tmp" 2>/dev/null && mv "$lock/owner.tmp" "$lock/owner" 2>/dev/null
+    fi
+    rmdir "$lock.break" 2>/dev/null || true
+    return 0
+}
+
+# _rm_cap_exit CODE — hand the lock back to the shell that took it, and exit.
+_rm_cap_exit () {
+    _rm_cap_hand_back "$rmchild"
+    exit "$1"
+}
+
+# _rm_captures YES ID... — rm --capture: the captures, and every row they
+# filed. Ids go through files, not the environment or the command line, so
+# a fleet's thousands of captures go in one commit. The store is git: what
+# it touches must be committed before it starts, and any failure on the way
+# (a signal included) puts those paths back from HEAD, so it either commits
+# the whole deletion or leaves the store as it was.
+_rm_captures () {
+    local yes="$1"; shift
+    local dir cap prov tmpd c count removed=0 msg shown _rmsig=0
+    local names=() keep=() gone=() missing=() rb=()
+    local GIT_LITERAL_PATHSPECS=1; export GIT_LITERAL_PATHSPECS
+    dir="$(_ds_dir)"; cap="$(_cap_dir)"; prov="$(_prov_file)"
+    mkdir -p "$dir"
+    tmpd="$(mktemp -d "$dir/.rm.XXXXXX")" && tmpd="$(cd "$tmpd" && pwd)" \
+        || die "cannot make a scratch directory in $dir."
+    _TMPDIRS+=("$tmpd")          # removed on any exit, a signal's included
+    printf '%s\n' "$@" | sort -u > "$tmpd/ids"
+    while IFS= read -r c; do
+        [[ -f "$cap/$c/meta.tsv" ]] || missing+=("$c")
+    done < "$tmpd/ids"
+    (( ${#missing[@]} == 0 )) || die "no such capture: ${missing[*]} (see 'provost log')."
+    count=$(wc -l < "$tmpd/ids"); count=$((count + 0))
+
+    if [[ $yes -ne 1 ]]; then
+        _rm_cap_scan || die "could not read the store's datasets — nothing deleted."
+        printf 'About to delete %d capture(s) and the %d row(s) they filed, from: %s\n' \
+            "$count" "$removed" "${names[*]:-(no dataset)}" >&2
+        printf '%s' 'Proceed? [y/N] ' >&2
+        local ans=""; read -r ans || ans=""
+        case "$ans" in y|Y|yes|YES|Yes) ;; *) info "aborted — nothing deleted."; return 0 ;; esac
+    fi
+
+    _lock
+    _require_on_branch
+    while IFS= read -r c; do
+        [[ -f "$cap/$c/meta.tsv" ]] || { _unlock; die "capture $c went while waiting for the store — nothing deleted."; }
+    done < "$tmpd/ids"
+    # Under the lock, from what is there now.
+    _rm_cap_scan || { _unlock; die "could not rewrite the datasets in $dir — nothing deleted."; }
+    # What this touches, which HEAD must hold as it is so a failure can put
+    # it back from there.
+    if (( ${#names[@]} > 0 )) || [[ -n "$(_git ls-files -- "$dir" 2>/dev/null | head -n 1)" ]]; then
+        rb+=("$dir")
+    fi
+    [[ -f "$prov" ]] && rb+=("$prov")
+    rb+=("$cap")
+    if [[ -n "$(_git status --porcelain --untracked-files=all -- "${rb[@]}" 2>/dev/null)" ]]; then
+        _unlock
+        die "the store has uncommitted changes to its datasets, provenance or captures (see: git -C $(printf '%q' "$PROVOST_WORKSPACE") status) — commit or discard them first; nothing deleted."
+    fi
+
+    local ilock; ilock="$(_git rev-parse --absolute-git-dir 2>/dev/null)/index.lock"
+    if [[ -e "$ilock" ]]; then
+        _unlock
+        die "another git is using the store (its index.lock exists: a git status from a shell prompt or an editor, or one that crashed) — try again, or remove $ilock if nothing is running; nothing deleted."
+    fi
+
+    shown="$(head -n 8 "$tmpd/ids" | tr '\n' ' ')"; shown="${shown% }"
+    (( count > 8 )) && shown="$shown …"
+    # how to put it back by hand, worked out before anything changes
+    local rbrel="" r
+    for r in "${rb[@]}"; do rbrel+=" $(printf '%q' "${r#"$PROVOST_WORKSPACE"/}")"; done
+    local wsq; wsq="$(printf '%q' "$PROVOST_WORKSPACE")"
+    msg="rm: deleted $count capture(s) [$shown], pruned $removed row(s)"
+    (( ${#gone[@]} > 0 )) && msg="$msg, emptied ${#gone[@]} dataset(s) [${gone[*]}]"
+
+    local head0; head0="$(_git rev-parse -q --verify HEAD 2>/dev/null || true)"
+    local rmowner="" i
+    for i in ${_LOCKS_HELD[@]+"${!_LOCKS_HELD[@]}"}; do
+        [[ "${_LOCKS_HELD[i]}" == "$PROVOST_WORKSPACE/.lock" ]] && rmowner="${_LOCKS_OWNER[i]}"
+    done
+    # From here to the last message signals wait (and set the exit status),
+    # and errexit is off. Everything that changes the store runs in a child
+    # in a process group of its own, so a Ctrl-C at the terminal (which goes
+    # to the whole foreground group) reaches only this shell, which waits for
+    # the child's outcome; a git it runs is never interrupted part way.
+    trap '_rmsig=130' INT; trap '_rmsig=143' TERM; trap '_rmsig=129' HUP
+    set +e
+    rm -f "$tmpd/tagsfail" "$tmpd/indexstale"
+    ( trap '' INT TERM HUP; set -m; _rm_cap_commit 2>"$tmpd/err" & echo "$!" > "$tmpd/cpid"; wait $! ) 2>/dev/null
+    local outcome=$?
+    if (( outcome == 3 )); then
+        _unlock; set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
+        [[ -e "$tmpd/claimbusy" ]] \
+            && die "another provost held the store's lock-break mutex ($PROVOST_WORKSPACE/.lock.break) throughout — nothing deleted; wait a minute and run it again (if it persists and nothing is breaking a lock, remove it)."
+        die "the store's lock was no longer this rm's when it came to change the store (removed by hand, or broken as stale and taken) — nothing deleted; run it again."
+    elif (( outcome > 2 )); then
+        # The child died (a signal aimed at it alone). A git it started may
+        # still be running in its group: wait for that (up to a minute), take
+        # the lock's record back if the dead child's is still on it, then see
+        # what the store says.
+        local cpid="" w=0 cur="" host pid uid t
+        { IFS= read -r cpid < "$tmpd/cpid"; } 2>/dev/null || true
+        if [[ -n "$cpid" ]]; then
+            while kill -0 -- "-$cpid" 2>/dev/null && (( w < 600 )); do sleep 0.1; w=$((w + 1)); done
+        fi
+        { IFS= read -r cur < "$PROVOST_WORKSPACE/.lock/owner"; } 2>/dev/null || true
+        IFS=$'\t' read -r host pid uid t <<< "$cur"
+        [[ -n "$cpid" && "$pid" == "$cpid" ]] && _rm_cap_hand_back "$cur"
+        if _rm_cap_landed; then
+            outcome=0
+            # what it did not get to: tags still there, an index behind HEAD
+            if _git for-each-ref --format='%(refname)' 'refs/tags/capture-c*' 'refs/tags/files-c*' > "$tmpd/allrefs" 2>/dev/null \
+                && awk 'FILENAME == ARGV[1] { del["refs/tags/capture-" $1] = 1; del["refs/tags/files-" $1] = 1; next }
+                        ($1 in del) { print "delete " $1 }' "$tmpd/ids" "$tmpd/allrefs" > "$tmpd/refs" 2>/dev/null; then
+                [[ -s "$tmpd/refs" ]] && : > "$tmpd/tagsfail"
+            else
+                : > "$tmpd/refs"; : > "$tmpd/tagsfail"
+            fi
+            _git diff --cached --quiet -- "${rb[@]}" >/dev/null 2>&1 || : > "$tmpd/indexstale"
+        else
+            outcome=2
+        fi
+    fi
+    _unlock
+    set -e; trap 'exit 130' INT; trap 'exit 143' TERM; trap - HUP
+    if (( outcome != 0 )) && [[ -s "$tmpd/err" ]]; then
+        printf '%s\n' "$(tail -n 5 "$tmpd/err")" >&2
+    fi
+    case "$outcome" in
+        0) ;;
+        1)  (( _rmsig == 0 )) || { info "interrupted — the store is put back as it was, nothing deleted."; exit "$_rmsig"; }
+            die "could not delete the captures — the store is put back as it was, nothing deleted." ;;
+        *)  die "could not delete the captures, nor put the store back. Restore it with: git -C $wsq checkout HEAD --$rbrel" ;;
+    esac
+
+    local tagged="Their tags went with them; git"
+    if [[ -e "$tmpd/tagsfail" ]]; then
+        local nt more=""; nt=$( { wc -l < "$tmpd/refs"; } 2>/dev/null || echo 0); nt=$((nt + 0))
+        if (( nt > 0 )); then
+            (( nt > 8 )) && more=" ($((nt - 8)) more of them: git -C $wsq tag -l 'capture-c*' 'files-c*')"
+            warn "deleted, but could not delete their tags: git -C $wsq tag -d $(sed 's|^delete refs/tags/||' "$tmpd/refs" | head -n 8 | tr '\n' ' ' | sed 's/ $//')$more"
+        else
+            warn "deleted, but could not list their tags to delete them: see git -C $wsq tag -l 'capture-c*' 'files-c*'"
+        fi
+        tagged="Their tags are still there (above); git"
+    fi
+    [[ -e "$tmpd/indexstale" ]] && warn "deleted, but the store's index is behind the commit: git -C $wsq reset -q --$rbrel"
+
+    local extra=""
+    (( ${#gone[@]} > 0 )) && extra=" ${gone[*]} had no rows left, and went too."
+    ok "deleted $count capture(s) ($shown) and the $removed row(s) they filed.$extra $tagged's history (the commit before this one) still holds what was there."
+    (( _rmsig == 0 )) || exit "$_rmsig"
 }
 
 cmd_doctor () {
@@ -3637,6 +3989,9 @@ COMMANDS
     provost rm [-f] [--no-purge] NAME...
         Delete datasets, and the captures only they used (--no-purge: keep
         those). The deletion is a commit, so 'restore' still reaches it.
+    provost rm [-f] --capture ID[,ID...]...
+        Delete captures, and the rows they filed in every dataset they fed
+        (a dataset left with no rows goes too). One commit, as above.
     provost doctor                 check the engines and the store
     provost help [advanced]        the short help / this text
     provost COMMAND --help         one command's usage

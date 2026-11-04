@@ -55,6 +55,7 @@ $ provost triage                 # low-confidence / unmatched bucket
 $ provost restore <id|latest>    # bring a capture's commit back up
 $ provost prev / provost next    # step the store back / forward one capture
 $ provost rm [-f] [--no-purge] NAME...   # captures are purged only when no dataset still uses them
+$ provost rm [-f] --capture ID[,ID...]   # captures, and the rows they filed in every dataset
 ```
 
 Every row carries `#` (its number in the store, `provost source N`),
