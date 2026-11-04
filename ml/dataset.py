@@ -23,8 +23,18 @@ def family(name):
     return name.split("-")[0].split("_")[0].lower()
 
 
+FOLDS = 5
+
+
+def fold(ex):
+    """The cross-validation fold (0 to FOLDS-1) of ex's family. Here rather
+    than in crossval.py so a script can pick a fold without importing
+    LightGBM (fold_eval.py keeps LightGBM and torch in separate processes)."""
+    return zlib.crc32(family(ex["name"]).encode()) % FOLDS
+
+
 def is_test(ex):
-    return zlib.crc32(family(ex["name"]).encode()) % 5 == 0
+    return fold(ex) == 0
 
 
 def is_val(ex):

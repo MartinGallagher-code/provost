@@ -20,7 +20,6 @@ import json
 import os
 import random
 import sys
-import zlib
 from collections import Counter
 
 import numpy as np
@@ -35,11 +34,8 @@ from features import cand_features, line_rows  # noqa: E402
 from layout import PREDICTED, fields, is_blank  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-K = 5
-
-
-def fold(ex):
-    return zlib.crc32(D.family(ex["name"]).encode()) % K
+K = D.FOLDS
+fold = D.fold
 
 
 def predict_doc(rm, cm, ex, decoder=False):
