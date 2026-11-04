@@ -1,0 +1,39 @@
+{
+ "format": 1,
+ "tool": "ninja-t-graph",
+ "detect": "^digraph ninja \\{",
+ "skip": [
+  "^digraph ninja \\{\\s*$",
+  "^rankdir=",
+  "^node \\[",
+  "^edge \\[",
+  "^\\}\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "edges",
+   "kind": "table",
+   "line": "\"(?P<source>[^\"]+)\" -> \"(?P<target>[^\"]+)\"(?:\\s+\\[(?:label=\"\\s*(?P<label>[^\"]*)\")?(?:,?\\s*arrowhead=(?P<arrowhead>\\w+))?(?:,?\\s*style=(?P<style>\\w+))?\\])?\\s*",
+   "columns": {
+    "source": "source",
+    "target": "target",
+    "label": "label",
+    "arrowhead": "arrowhead",
+    "style": "style"
+   }
+  },
+  {
+   "name": "nodes",
+   "kind": "table",
+   "line": "\"(?P<id>[^\"]+)\" \\[label=\"(?P<label>[^\"]*)\"(?:,\\s*shape=(?P<shape>\\w+))?\\]\\s*",
+   "columns": {
+    "id": "id",
+    "label": "label",
+    "shape": "shape"
+   }
+  }
+ ],
+ "examples": [
+  "digraph ninja {\nrankdir=\"LR\"\nnode [fontsize=10, shape=box, height=0.25]\nedge [fontsize=10]\n\"0x55b85bb91110\" [label=\"ledger\"]\n\"0x55b85bb90ca0\" -> \"0x55b85bb91110\" [label=\" C_EXECUTABLE_LINKER__ledger_\"]\n\"0x55b85bb90ca0\" [label=\"CMakeFiles/ledger.dir/ledger.c.o\"]\n\"0x55b85bb8a550\" [label=\"C_COMPILER__ledger_unscanned_\", shape=ellipse]\n\"0x55b85bb8a550\" -> \"0x55b85bb90ca0\"\n\"0x55b85bb88e40\" -> \"0x55b85bb8a550\" [arrowhead=none]\n\"0x55b85bb90610\" -> \"0x55b85bb8a550\" [arrowhead=none style=dotted]\n\"0x55b85bb88e40\" [label=\"/home/dev/ledger/ledger.c\"]\n\"0x55b85bb90610\" [label=\"cmake_object_order_depends_target_ledger\"]\n\"0x55b85bb90730\" -> \"0x55b85bb90610\" [label=\" phony\"]\n\"0x55b85bb90730\" [label=\"CMakeFiles/ledger.dir\"]\n}"
+ ]
+}

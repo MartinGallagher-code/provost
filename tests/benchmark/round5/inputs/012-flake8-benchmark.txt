@@ -1,0 +1,22 @@
+cart.py:22:37: E741 ambiguous variable name 'l'
+cart.py:28:49: E741 ambiguous variable name 'l'
+cart.py:37:27: F821 undefined name 'undefined_name'
+test_cart.py:4:1: E302 expected 2 blank lines, found 1
+test_cart.py:6:19: E702 multiple statements on one line (semicolon)
+test_cart.py:6:39: E702 multiple statements on one line (semicolon)
+test_cart.py:7:5: E301 expected 1 blank line, found 0
+test_cart.py:8:31: E702 multiple statements on one line (semicolon)
+test_cart.py:8:48: E702 multiple statements on one line (semicolon)
+test_cart.py:9:5: E301 expected 1 blank line, found 0
+test_cart.py:10:19: E702 multiple statements on one line (semicolon)
+test_cart.py:10:34: E702 multiple statements on one line (semicolon)
+test_cart.py:10:52: E702 multiple statements on one line (semicolon)
+0.0967     seconds elapsed
+35         total logical lines processed
+361        logical lines processed per second
+47         total physical lines processed
+486        physical lines processed per second
+388        total tokens processed
+4012       tokens processed per second
+2          total files processed
+20         files processed per second

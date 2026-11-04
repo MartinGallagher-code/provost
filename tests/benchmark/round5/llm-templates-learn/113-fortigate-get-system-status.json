@@ -1,0 +1,29 @@
+{
+ "format": 1,
+ "tool": "fortigate-get-system-status",
+ "detect": "^Version: Forti\\S+ v\\d",
+ "skip": [
+  "^\\S+ # ",
+  "^\\S+ #\\s*$"
+ ],
+ "blocks": [
+  {
+   "name": "databases",
+   "kind": "table",
+   "line": "(?P<database>[^:]+?):\\s+(?P<version>\\d+\\.\\d+)\\((?P<date>[^)]*)\\)\\s*",
+   "columns": {
+    "database": "Database",
+    "version": "Version",
+    "date": "Date"
+   }
+  },
+  {
+   "name": "status",
+   "kind": "kv",
+   "line": "(?P<key>[^:]+?):\\s*(?P<value>.*?)\\s*"
+  }
+ ],
+ "examples": [
+  "FGT-FRA-01 # get system status\nVersion: FortiGate-100F v7.4.8,build2795,250523 (GA.M)\nFirst GA patch build date: 230509\nSecurity Level: 2\nFirmware Signature: certified\nVirus-DB: 93.04127(2026-11-03 21:14)\nExtended DB: 93.04127(2026-11-03 21:14)\nExtreme DB: 1.00000(2018-04-09 18:07)\nAV AI/ML Model: 3.02215(2026-11-03 15:22)\nIPS-DB: 33.00218(2026-11-02 01:39)\nIPS-ETDB: 0.00000(2001-01-01 00:00)\nAPP-DB: 33.00218(2026-11-02 01:39)\nProxy-IPS-DB: 0.00000(2001-01-01 00:00)\nProxy-IPS-ETDB: 0.00000(2001-01-01 00:00)\nProxy-APP-DB: 0.00000(2001-01-01 00:00)\nFMWP-DB: 24.00131(2026-10-30 10:02)\nIPS Malicious URL Database: 5.00788(2026-11-04 06:18)\nIoT-Detect: 0.00000(2022-08-17 17:31)\nOT-Detect-DB: 0.00000(2001-01-01 00:00)\nOT-Patch-DB: 0.00000(2001-01-01 00:00)\nOT-Threat-DB: 6.00749(2026-10-21 09:47)\nIPS-Engine: 7.01014(2025-04-30 11:02)\nSerial-Number: FG100FTK21004417\nBIOS version: 05000016\nSystem Part-Number: P24304-04\nLog hard disk: Not available\nHostname: FGT-FRA-01\nPrivate Encryption: Disable\nOperation Mode: NAT\nCurrent virtual domain: root\nMax number of virtual domains: 10\nVirtual domains status: 3 in NAT mode, 0 in TP mode\nVirtual domain configuration: multiple\nFIPS-CC mode: disable\nCurrent HA mode: a-p, primary\nCluster uptime: 41 days, 3 hours, 12 minutes, 9 seconds\nCluster state change time: 2026-09-24 08:41:17\nBranch point: 2795\nRelease Version Information: GA\nFortiOS x86-64: Yes\nSystem time: Wed Nov  4 10:15:42 2026\nLast reboot reason: warm reboot\n\nFGT-FRA-01 #"
+ ]
+}

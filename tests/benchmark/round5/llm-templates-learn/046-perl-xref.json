@@ -1,0 +1,9 @@
+{
+ "format": 2,
+ "tool": "perl-xref",
+ "detect": "^\\s+Subroutine\\s+\\S|^File\\s+\\S",
+ "parser": "import re\n\ndef parse(lines):\n    rows = []\n    used = []\n    skip = []\n    f = ''\n    s = ''\n    p = ''\n    for i, l in enumerate(lines):\n        if not l.strip():\n            continue\n        if re.match(r'^\\S.*\\ssyntax OK\\s*$', l) or re.match(r'^\\S.*\\shad compilation errors', l):\n            skip.append(i)\n            continue\n        m = re.match(r'^File\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            f = m.group('v'); s = ''; p = ''\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+Subroutine\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            s = m.group('v'); p = ''\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+Package\\s+(?P<v>\\S.*?)\\s*$', l)\n        if m:\n            p = m.group('v')\n            used.append(i)\n            continue\n        m = re.match(r'^\\s+(?P<sym>\\S+)\\s+(?P<refs>\\S.*?)\\s*$', l)\n        if m:\n            rows.append({'File': f, 'Subroutine': s, 'Package': p, 'Symbol': m.group('sym'), 'Lines': m.group('refs')})\n            used.append(i)\n            continue\n    blocks = []\n    if rows:\n        blocks.append({'name': 'symbols', 'kind': 'table', 'lines': used, 'records': rows})\n    return {'blocks': blocks, 'skip': skip}\n",
+ "examples": [
+  "slug.pl syntax OK\nFile slug.pl\n  Subroutine (main)\n    Package (lexical)\n      $count            i5\n      %translit         i4\n    Package main\n      &report           &26\n  Subroutine report\n    Package (lexical)\n      $count            23\n      $n                23\n      @words            i18, 20, 21\n    Package main\n      $_                21\n      &slugify          &21\n  Subroutine slugify\n    Package (lexical)\n      $count            13\n      $s                14\n      $sep              i8, 9, 11, 12, 12\n      $text             i8, 10"
+ ]
+}

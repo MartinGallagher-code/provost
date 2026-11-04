@@ -1,0 +1,17 @@
+[root@esx01:~] vim-cmd vmsvc/getallvms
+Vmid             Name                                         File                                       Guest OS          Version                    Annotation
+1      vcsa01.example.com            [ds-ssd01] vcsa01.example.com/vcsa01.example.com.vmx                other4xLinux64Guest     vmx-14    VMware vCenter Server Appliance
+3      dc01.example.com              [ds-ssd01] dc01.example.com/dc01.example.com.vmx                    windows2019srv_64Guest  vmx-19
+4      dc02.example.com              [ds-ssd02] dc02.example.com/dc02.example.com.vmx                    windows2019srv_64Guest  vmx-19
+7      web01.example.com             [ds-ssd01] web01.example.com/web01.example.com.vmx                  ubuntu64Guest           vmx-19    Webserver Produktion
+Verantwortlich: Jürgen Weiß
+Wartungsfenster: Di 22:00-23:00
+9      web02.example.com             [ds-ssd02] web02.example.com/web02.example.com.vmx                  ubuntu64Guest           vmx-19    Webserver Produktion (Standby)
+12     db-zoë.example.com            [ds-sas01] db-zoë.example.com/db-zoë.example.com.vmx                rhel9_64Guest           vmx-20    PostgreSQL 16 - base comptable
+Contact : Zoë Lefèvre
+Ne pas redémarrer pendant la clôture mensuelle.
+15     backup-proxy.example.com      [ds-sas01] backup-proxy.example.com/backup-proxy.example.com.vmx    windows2022srvNext_64Guest vmx-21
+18     test-ブランチ.example.com     [ds-sas02] test-ブランチ.example.com/test-ブランチ.example.com.vmx  centos8_64Guest         vmx-15    検証用 - 削除予定
+21     template-ubuntu2404           [ds-sas02] template-ubuntu2404/template-ubuntu2404.vmx              ubuntu64Guest           vmx-21    Golden image 2026-10
+cloud-init enabled
+[root@esx01:~]

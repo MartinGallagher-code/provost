@@ -1,0 +1,36 @@
+{
+ "format": 1,
+ "tool": "hana-hdbsql-m-service-statistics",
+ "detect": "HOST,PORT,SERVICE_NAME,PROCESS_ID",
+ "skip": [
+  "^Welcome to the SAP HANA Database",
+  "^Type:",
+  "^\\s+\\\\q to quit",
+  "^hdbsql \\S+=>",
+  "^\\d+ rows? selected"
+ ],
+ "blocks": [
+  {
+   "name": "service_statistics",
+   "kind": "table",
+   "header": "^HOST,PORT,SERVICE_NAME",
+   "line": "^\"?(?P<host>[^\",]*)\"?,\"?(?P<port>[^\",]*)\"?,\"?(?P<service_name>[^\",]*)\"?,\"?(?P<process_id>[^\",]*)\"?,\"?(?P<active_status>[^\",]*)\"?,\"?(?P<start_time>[^\",]*)\"?,\"?(?P<process_cpu>[^\",]*)\"?,\"?(?P<total_cpu>[^\",]*)\"?,\"?(?P<process_memory>[^\",]*)\"?,\"?(?P<requests_per_sec>[^\",]*)\"?,\"?(?P<pending_request_count>[^\",]*)\"?$",
+   "columns": {
+    "host": "HOST",
+    "port": "PORT",
+    "service_name": "SERVICE_NAME",
+    "process_id": "PROCESS_ID",
+    "active_status": "ACTIVE_STATUS",
+    "start_time": "START_TIME",
+    "process_cpu": "PROCESS_CPU",
+    "total_cpu": "TOTAL_CPU",
+    "process_memory": "PROCESS_MEMORY",
+    "requests_per_sec": "REQUESTS_PER_SEC",
+    "pending_request_count": "PENDING_REQUEST_COUNT"
+   }
+  }
+ ],
+ "examples": [
+  "Welcome to the SAP HANA Database interactive terminal.\n\nType:  \\h for help with commands\n       \\q to quit\n\nhdbsql HDB=> SELECT HOST, PORT, SERVICE_NAME, PROCESS_ID, ACTIVE_STATUS, START_TIME, PROCESS_CPU, TOTAL_CPU, PROCESS_MEMORY, REQUESTS_PER_SEC, PENDING_REQUEST_COUNT FROM M_SERVICE_STATISTICS ORDER BY PORT\nHOST,PORT,SERVICE_NAME,PROCESS_ID,ACTIVE_STATUS,START_TIME,PROCESS_CPU,TOTAL_CPU,PROCESS_MEMORY,REQUESTS_PER_SEC,PENDING_REQUEST_COUNT\n\"hanadb01\",30000,\"daemon\",4811,\"YES\",\"2026-10-12 06:21:00.418000000\",0,9,18874368,0,0\n\"hanadb01\",30001,\"nameserver\",4830,\"YES\",\"2026-10-12 06:21:01.418001000\",1,9,6291456000,12.4,0\n\"hanadb01\",30002,\"preprocessor\",4913,\"YES\",\"2026-10-12 06:21:02.418002000\",0,9,1073741824,0,0\n\"hanadb01\",30003,\"indexserver\",4921,\"YES\",\"2026-10-12 06:21:03.418003000\",7,9,182536110080,418.73,2\n\"hanadb01\",30006,\"webdispatcher\",5102,\"YES\",\"2026-10-12 06:21:06.418006000\",0,9,943718400,3.1,0\n\"hanadb01\",30007,\"xsengine\",4935,\"YES\",\"2026-10-12 06:21:07.418007000\",0,9,3758096384,0.6,0\n\"hanadb01\",30010,\"compileserver\",4904,\"YES\",\"2026-10-12 06:21:10.418010000\",0,9,943718400,0,0\n\"hanadb01\",30040,\"docstore\",0,\"NO\",?,0,0,0,0,0\n8 rows selected (overall time 4127 usec; server time 1983 usec)\n\nhdbsql HDB=> "
+ ]
+}

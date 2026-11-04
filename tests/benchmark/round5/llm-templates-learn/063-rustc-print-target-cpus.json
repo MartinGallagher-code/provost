@@ -1,0 +1,22 @@
+{
+ "format": 1,
+ "tool": "rustc-print-target-cpus",
+ "detect": "^Available CPUs for this target:",
+ "skip": [
+  "^Available CPUs for this target:"
+ ],
+ "blocks": [
+  {
+   "name": "cpus",
+   "kind": "table",
+   "line": "^\\s+(?P<cpu>\\S+)(?:\\s+-\\s+(?P<description>\\S(?:.*\\S)?))?\\s*$",
+   "columns": {
+    "cpu": "CPU",
+    "description": "Description"
+   }
+  }
+ ],
+ "examples": [
+  "Available CPUs for this target:\n    native                  - Select the CPU of the current host (currently emeraldrapids).\n    alderlake\n    amdfam10\n    arrowlake\n    arrowlake-s\n    arrowlake_s\n    athlon\n    athlon-4\n    athlon-fx\n    athlon-mp\n    athlon-tbird\n    athlon-xp\n    athlon64\n    athlon64-sse3\n    atom\n    atom_sse4_2\n    atom_sse4_2_movbe\n    barcelona\n    bdver1\n    bdver2\n    bdver3\n    bdver4\n    bonnell\n    broadwell\n    btver1\n    btver2\n    c3\n    c3-2\n    cannonlake\n    cascadelake\n    clearwaterforest\n    cooperlake\n    core-avx-i\n    core-avx2\n    core2\n    core_2_duo_sse4_1\n    core_2_duo_ssse3\n    core_2nd_gen_avx\n    core_3rd_gen_avx\n    core_4th_gen_avx\n    core_4th_gen_avx_tsx\n    core_5th_gen_avx\n    core_5th_gen_avx_tsx\n    core_aes_pclmulqdq\n    core_i7_sse4_2\n    corei7\n    corei7-avx\n    diamondrapids\n    emeraldrapids\n    generic\n    geode\n    goldmont\n    goldmont-plus\n    goldmont_plus\n    gracemont\n    grandridge\n    graniterapids\n    graniterapids-d\n    graniterapids_d"
+ ]
+}

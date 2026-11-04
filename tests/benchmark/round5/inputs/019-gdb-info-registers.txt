@@ -1,0 +1,42 @@
+Breakpoint 1 at 0x12e4: file ledger.c, line 28.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+
+Breakpoint 1, balance (acct=0x555555556011 "cash") at ledger.c:28
+28	    long sum = 0;
+rax            0x555555556011      93824992239633
+rbx            0x7fffffffc748      140737488340808
+rcx            0x60                96
+rdx            0x4                 4
+rsi            0x2073250072656764  2338253315384895332
+rdi            0x555555556011      93824992239633
+rbp            0x7fffffffbdd0      0x7fffffffbdd0
+rsp            0x7fffffffbdb0      0x7fffffffbdb0
+r8             0x0                 0
+r9             0x7ffff7fca380      140737353917312
+r10            0x7fffffffc340      140737488339776
+r11            0x203               515
+r12            0x1                 1
+r13            0x0                 0
+r14            0x555555557d88      93824992247176
+r15            0x7ffff7ffd000      140737354125312
+rip            0x5555555552e4      0x5555555552e4 <balance+16>
+eflags         0x202               [ IF ]
+cs             0x33                51
+ss             0x2b                43
+ds             0x0                 0
+es             0x0                 0
+fs             0x0                 0
+gs             0x0                 0
+k0             0x810               2064
+k1             0x2221              8737
+k2             0x0                 0
+k3             0x0                 0
+k4             0x0                 0
+k5             0x0                 0
+k6             0x0                 0
+k7             0x0                 0
+fs_base        0x7ffff7fad740      140737353799488
+gs_base        0x0                 0
+#0  balance (acct=0x555555556011 "cash") at ledger.c:28
+#1  0x00005555555554fc in main (argc=1, argv=0x7fffffffc748) at ledger.c:58

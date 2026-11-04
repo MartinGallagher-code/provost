@@ -1,0 +1,32 @@
+C:\Users\mdubois>netsh wlan show interfaces
+
+There is 1 interface on the system:
+
+    Name                   : Wi-Fi
+    Description            : Intel(R) Wi-Fi 6E AX211 160MHz
+    GUID                   : 3f2a9c1e-7b44-4d0e-9a1c-5e6f7a8b9c0d
+    Physical address       : a4:6b:b6:12:3c:9e
+    Interface type         : Primary
+    State                  : connected
+    SSID                   : Café-Résidence-5G
+    AP BSSID               : 6c:4e:f6:21:a0:3b
+    Band                   : 5 GHz
+    Channel                : 44
+    Connected Akm-cipher   : [ akm = 00-0f-ac:02, cipher = 00-0f-ac:04 ]
+    Network type           : Infrastructure
+    Radio type             : 802.11ax
+    Authentication         : WPA2-Personal
+    Cipher                 : CCMP
+    Connection mode        : Profile
+    Receive rate (Mbps)    : 864.8
+    Transmit rate (Mbps)   : 1201
+    Signal                 : 88%
+    Rssi                   : -52
+    Profile                : Café-Résidence-5G
+    QoS MSCS Configured         : 0
+    QoS Map Configured          : 0
+    QoS Map Allowed by Policy   : 0
+
+    Hosted network status  : Not available
+
+C:\Users\mdubois>

@@ -1,0 +1,45 @@
+{
+ "format": 1,
+ "tool": "gpgconf-list-options",
+ "detect": "^[A-Za-z][\\w-]*:\\d+:\\d+:[^:]*:\\d+:\\d+:",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "groups",
+   "kind": "table",
+   "line": "^(?P<name>[^:]+):(?P<flags>1):(?P<level>\\d+):(?P<description>[^:]*):(?P<type>\\d+):(?P<alt_type>\\d+):(?P<argname>[^:]*):(?P<default>[^:]*):(?P<argdef>[^:]*)(?::(?P<value>[^:]*))?$",
+   "columns": {
+    "name": "name",
+    "flags": "flags",
+    "level": "level",
+    "description": "description",
+    "type": "type",
+    "alt_type": "alt-type",
+    "argname": "argname",
+    "default": "default",
+    "argdef": "argdef",
+    "value": "value"
+   }
+  },
+  {
+   "name": "options",
+   "kind": "table",
+   "line": "^(?P<name>[^:]+):(?P<flags>\\d+):(?P<level>\\d+):(?P<description>[^:]*):(?P<type>\\d+):(?P<alt_type>\\d+):(?P<argname>[^:]*):(?P<default>[^:]*):(?P<argdef>[^:]*)(?::(?P<value>[^:]*))?$",
+   "columns": {
+    "name": "name",
+    "flags": "flags",
+    "level": "level",
+    "description": "description",
+    "type": "type",
+    "alt_type": "alt-type",
+    "argname": "argname",
+    "default": "default",
+    "argdef": "argdef",
+    "value": "value"
+   }
+  }
+ ],
+ "examples": [
+  "Monitor:1:0:Options controlling the diagnostic output:0:0::::\nverbose:4:0:verbose:0:0::::\nquiet:0:0:be somewhat more quiet:0:0::::\nno-greeting:0:3::0:0::::\ndebug-level:16:1::1:1::\"none::\nlog-file:0:1:write server mode logs to FILE:32:1:FILE:::\nConfiguration:1:0:Options controlling the configuration:0:0::::\ndefault-key:0:0:use NAME as default secret key:1:1:NAME:::\nencrypt-to:0:0:encrypt to user ID NAME as well:1:1:NAME:::\ngroup:4:1:set up email aliases:37:1:SPEC:::\ncompliance:16:2::1:1::\"gnupg::\ndefault-new-key-algo:0:3::1:1::::\ntrust-model:0:3::1:1::::\ncompletes-needed:0:3::2:2::::\nmarginals-needed:0:3::2:2::::\nmax-cert-depth:0:3::2:2::::\nImportExport:1:0:Options controlling key import and export:0:0::::\nauto-key-locate:0:1:use MECHANISMS to locate keys by mail address:1:1:MECHANISMS:::\nauto-key-import:0:0:import missing key from a signature:0:0::::\nauto-key-retrieve:0:2::0:0::::\ninclude-key-block:0:0:include the public key in signatures:0:0::::\ndisable-dirmngr:0:2:disable all access to the dirmngr:0:0::::\nkeyserver:0:3::1:1::::\nSecurity:1:3:Options controlling the security:0:0::::\ndefault_pubkey_algo:144:3::1:1::\"ed25519/cert,sign+cv25519/encr::\ncompliance_de_vs:144:3::2:2::0::\nuse_keyboxd:144:3::2:2::0::"
+ ]
+}

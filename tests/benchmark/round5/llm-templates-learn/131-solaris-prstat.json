@@ -1,0 +1,45 @@
+{
+ "format": 1,
+ "tool": "solaris-prstat",
+ "detect": "PID\\s+USERNAME\\s+SIZE\\s+RSS\\s+STATE\\s+PRI\\s+NICE\\s+TIME\\s+CPU\\s+PROCESS/NLWP",
+ "skip": [
+  "^\\S+@\\S+.*[#$]\\s*prstat",
+  "^Please wait\\.\\.\\."
+ ],
+ "blocks": [
+  {
+   "name": "processes",
+   "kind": "table",
+   "header": "^\\s*PID\\s+USERNAME\\s+SIZE\\s+RSS\\s+STATE\\s+PRI\\s+NICE\\s+TIME\\s+CPU\\s+PROCESS/NLWP",
+   "line": "^\\s*(?P<pid>\\d+)\\s+(?P<username>\\S+)\\s+(?P<size>[\\d.]+[KMGT]?)\\s+(?P<rss>[\\d.]+[KMGT]?)\\s+(?P<state>\\S+)\\s+(?P<pri>\\d+)\\s+(?P<nice>-?\\d+)\\s+(?P<time>[\\d:.]+)\\s+(?P<cpu>[\\d.]+%)\\s+(?P<process>\\S(?:.*?\\S)?)/(?P<nlwp>\\d+)\\s*$",
+   "columns": {
+    "pid": "PID",
+    "username": "USERNAME",
+    "size": "SIZE",
+    "rss": "RSS",
+    "state": "STATE",
+    "pri": "PRI",
+    "nice": "NICE",
+    "time": "TIME",
+    "cpu": "CPU",
+    "process": "PROCESS",
+    "nlwp": "NLWP"
+   }
+  },
+  {
+   "name": "totals",
+   "kind": "table",
+   "line": "^\\s*Total:\\s+(?P<processes>\\d+)\\s+processes,\\s+(?P<lwps>\\d+)\\s+lwps,\\s+load averages:\\s+(?P<load_1>[\\d.]+),\\s+(?P<load_5>[\\d.]+),\\s+(?P<load_15>[\\d.]+)\\s*$",
+   "columns": {
+    "processes": "processes",
+    "lwps": "lwps",
+    "load_1": "load average 1m",
+    "load_5": "load average 5m",
+    "load_15": "load average 15m"
+   }
+  }
+ ],
+ "examples": [
+  "root@sol11-db01:~# prstat -c 2 1\nPlease wait...\n   PID USERNAME  SIZE   RSS STATE  PRI NICE      TIME  CPU PROCESS/NLWP       \n  2817 oracle   4482M 4401M cpu3    30    0 102:41:08 6.2% oracle/11\n  2903 oracle   4471M 4392M sleep   59    0  48:12:55 3.8% oracle/1\n  1288 root      212M  184M sleep   59    0   6:02:19 1.1% java/96\n  4410 webservd  938M  612M cpu0    49    0  11:47:30 0.9% java/143\n  2899 oracle   4468M 4389M sleep   59    0   3:21:04 0.5% oracle/1\n   921 root       18M   12M sleep   59    0   0:41:12 0.2% nscd/41\n 17442 mlefevre   11M 6216K sleep   59    0   0:00:01 0.1% bash/1\n 17501 mlefevre 6872K 4400K cpu1    59    0   0:00:00 0.1% prstat/1\n     5 root        0K    0K sleep   99  -20   1:12:47 0.0% zpool-rpool/162\n   742 root     9968K 5340K sleep   59    0   0:02:08 0.0% sshd/1\n   614 daemon   7416K 3152K sleep   59    0   0:00:44 0.0% rpcbind/1\n   101 netadm   6512K 2944K sleep   59    0   0:00:05 0.0% ipmgmtd/5\n    44 root     4220K 2108K sleep   59    0   0:00:02 0.0% dlmgmtd/7\n    12 root       33M   28M sleep   59    0   0:03:51 0.0% svc.configd/23\n    10 root       15M   11M sleep   59    0   0:01:09 0.0% svc.startd/14\nTotal: 112 processes, 641 lwps, load averages: 1.42, 1.38, 1.40"
+ ]
+}

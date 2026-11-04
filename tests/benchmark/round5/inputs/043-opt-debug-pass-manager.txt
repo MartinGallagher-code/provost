@@ -1,0 +1,80 @@
+Running pass: Annotation2MetadataPass on [module]
+Running pass: ForceFunctionAttrsPass on [module]
+Running pass: InferFunctionAttrsPass on [module]
+Running analysis: InnerAnalysisManagerProxy<FunctionAnalysisManager, Module> on [module]
+Running analysis: TargetLibraryAnalysis on llvm.lifetime.start.p0
+Running analysis: TargetLibraryAnalysis on strcmp
+Running analysis: TargetLibraryAnalysis on llvm.lifetime.end.p0
+Running analysis: TargetLibraryAnalysis on malloc
+Running analysis: TargetLibraryAnalysis on strlen
+Running analysis: TargetLibraryAnalysis on sprintf
+Running analysis: TargetLibraryAnalysis on printf
+Running analysis: TargetLibraryAnalysis on strtol
+Running analysis: TargetLibraryAnalysis on llvm.memcpy.p0.p0.i64
+Invalidating analysis: InnerAnalysisManagerProxy<FunctionAnalysisManager, Module> on [module]
+Running pass: CoroEarlyPass on [module]
+Running analysis: InnerAnalysisManagerProxy<FunctionAnalysisManager, Module> on [module]
+Running pass: LowerExpectIntrinsicPass on balance (21 instructions)
+Running pass: SimplifyCFGPass on balance (21 instructions)
+Running analysis: TargetIRAnalysis on balance
+Running analysis: AssumptionAnalysis on balance
+Running pass: SROAPass on balance (21 instructions)
+Running analysis: DominatorTreeAnalysis on balance
+Running pass: EarlyCSEPass on balance (21 instructions)
+Running analysis: TargetLibraryAnalysis on balance
+Invalidating analysis: DominatorTreeAnalysis on balance
+Running pass: LowerExpectIntrinsicPass on scale (13 instructions)
+Running pass: SimplifyCFGPass on scale (13 instructions)
+Running analysis: TargetIRAnalysis on scale
+Running analysis: AssumptionAnalysis on scale
+Running pass: SROAPass on scale (13 instructions)
+Running analysis: DominatorTreeAnalysis on scale
+Running pass: EarlyCSEPass on scale (13 instructions)
+Running analysis: TargetLibraryAnalysis on scale
+Invalidating analysis: DominatorTreeAnalysis on scale
+Running pass: LowerExpectIntrinsicPass on leak_label (5 instructions)
+Running pass: SimplifyCFGPass on leak_label (5 instructions)
+Running analysis: TargetIRAnalysis on leak_label
+Running analysis: AssumptionAnalysis on leak_label
+Running pass: SROAPass on leak_label (5 instructions)
+Running analysis: DominatorTreeAnalysis on leak_label
+Running pass: EarlyCSEPass on leak_label (5 instructions)
+Running analysis: TargetLibraryAnalysis on leak_label
+Invalidating analysis: DominatorTreeAnalysis on leak_label
+Running pass: LowerExpectIntrinsicPass on main (131 instructions)
+Running pass: SimplifyCFGPass on main (131 instructions)
+Running analysis: TargetIRAnalysis on main
+Running analysis: AssumptionAnalysis on main
+Running pass: SROAPass on main (131 instructions)
+Running analysis: DominatorTreeAnalysis on main
+Running pass: EarlyCSEPass on main (131 instructions)
+Running analysis: TargetLibraryAnalysis on main
+Invalidating analysis: DominatorTreeAnalysis on main
+Running pass: OpenMPOptPass on [module]
+Running pass: IPSCCPPass on [module]
+Running analysis: DominatorTreeAnalysis on balance
+Running analysis: DominatorTreeAnalysis on scale
+Running analysis: DominatorTreeAnalysis on leak_label
+Running analysis: DominatorTreeAnalysis on main
+Running pass: CalledValuePropagationPass on [module]
+Running pass: GlobalOptPass on [module]
+Running pass: PromotePass on balance (21 instructions)
+Running pass: InstCombinePass on balance (21 instructions)
+Running analysis: OptimizationRemarkEmitterAnalysis on balance
+Running analysis: AAManager on balance
+Running analysis: BasicAA on balance
+Running analysis: ScopedNoAliasAA on balance
+Running analysis: TypeBasedAA on balance
+Running analysis: OuterAnalysisManagerProxy<ModuleAnalysisManager, Function> on balance
+Running pass: SimplifyCFGPass on balance (21 instructions)
+Invalidating analysis: DominatorTreeAnalysis on balance
+Invalidating analysis: BasicAA on balance
+Invalidating analysis: AAManager on balance
+Running pass: PromotePass on scale (13 instructions)
+Running pass: InstCombinePass on scale (13 instructions)
+Running analysis: OptimizationRemarkEmitterAnalysis on scale
+Running analysis: AAManager on scale
+Running analysis: BasicAA on scale
+Running analysis: ScopedNoAliasAA on scale
+Running analysis: TypeBasedAA on scale
+Running analysis: OuterAnalysisManagerProxy<ModuleAnalysisManager, Function> on scale

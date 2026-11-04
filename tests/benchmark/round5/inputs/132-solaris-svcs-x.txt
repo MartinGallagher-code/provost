@@ -1,0 +1,37 @@
+root@sol11-db01:~# svcs -x
+svc:/network/smtp:sendmail (sendmail SMTP mail transfer agent)
+ State: maintenance since Mon Nov 02 09:14:22 2026
+Reason: Start method exited with $SMF_EXIT_ERR_CONFIG.
+   See: http://support.oracle.com/msg/SMF-8000-KS
+   See: sendmail(8)
+   See: /var/svc/log/network-smtp:sendmail.log
+Impact: This service is not running.
+
+svc:/application/database/postgresql_13:default_64bit (PostgreSQL RDBMS version postgresql_13)
+ State: maintenance since Tue Nov 03 02:41:07 2026
+Reason: Restarting too quickly.
+   See: http://support.oracle.com/msg/SMF-8000-L5
+   See: /var/svc/log/application-database-postgresql_13:default_64bit.log
+Impact: 2 dependent services are not running.  (Use -v for list.)
+
+svc:/network/nfs/server:default (NFS server)
+ State: offline since Tue Nov 03 02:40:58 2026
+Reason: Service svc:/network/rpc/bind:default is disabled.
+   See: http://support.oracle.com/msg/SMF-8000-GE
+   See: nfsd(8)
+   See: /var/svc/log/network-nfs-server:default.log
+Impact: This service is not running.
+
+svc:/system/filesystem/local:default (local file system mounts)
+ State: degraded since Tue Nov 03 02:40:41 2026
+Reason: Degraded by an administrator.
+   See: http://support.oracle.com/msg/SMF-8000-9C
+   See: /var/svc/log/system-filesystem-local:default.log
+Impact: Some functionality provided by the service may be unavailable.
+
+svc:/site/backup-agent:default (Site backup agent)
+ State: uninitialized since Tue Nov 03 02:40:33 2026
+Reason: Restarter svc:/system/svc/restarter:default is not running.
+   See: http://support.oracle.com/msg/SMF-8000-5H
+Impact: 1 dependent service is not running:
+        svc:/site/backup-report:default

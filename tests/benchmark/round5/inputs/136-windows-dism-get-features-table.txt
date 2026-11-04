@@ -1,0 +1,53 @@
+C:\Windows\system32>dism /online /get-features /format:table
+
+Deployment Image Servicing and Management tool
+Version: 10.0.26100.5074
+
+Image Version: 10.0.26100.7019
+
+Features listing for package : Microsoft-Windows-Foundation-Package~31bf3856ad364e35~amd64~~10.0.26100.1
+
+-------------------------------------------- | ---------
+Feature Name                                 | State
+-------------------------------------------- | ---------
+Printing-PrintToPDFServices-Features         | Enabled
+Printing-XPSServices-Features                | Disabled
+SearchEngine-Client-Package                  | Enabled
+MSRDC-Infrastructure                         | Enabled
+TelnetClient                                 | Disabled
+TFTP                                         | Disabled
+TIFFIFilter                                  | Disabled
+LegacyComponents                             | Disabled
+DirectPlay                                   | Disabled
+Printing-Foundation-Features                 | Enabled
+Printing-Foundation-InternetPrinting-Client  | Enabled
+Printing-Foundation-LPDPrintService          | Disabled
+Printing-Foundation-LPRPortMonitor           | Disabled
+SimpleTCP                                    | Disabled
+MicrosoftWindowsPowerShellV2Root             | Enabled
+MicrosoftWindowsPowerShellV2                 | Enabled
+Windows-Identity-Foundation                  | Disabled
+Microsoft-Windows-Subsystem-Linux            | Enabled
+HypervisorPlatform                           | Disabled
+VirtualMachinePlatform                       | Enabled
+Microsoft-Hyper-V-All                        | Disabled
+Microsoft-Hyper-V                            | Disabled
+Microsoft-Hyper-V-Tools-All                  | Disabled
+Client-ProjFS                                | Disabled
+NetFx4-AdvSrvs                               | Enabled
+NetFx4Extended-ASPNET45                      | Disabled
+NetFx3                                       | Disabled with Payload Removed
+IIS-WebServerRole                            | Disabled
+WCF-Services45                               | Enabled
+WCF-TCP-PortSharing45                        | Enabled
+SMB1Protocol                                 | Disabled
+SMB1Protocol-Client                          | Disabled
+SMB1Protocol-Server                          | Disabled
+Containers-DisposableClientVM                | Disabled
+MediaPlayback                                | Enabled
+WindowsMediaPlayer                           | Enabled
+Recall                                       | Disabled with Payload Removed
+
+The operation completed successfully.
+
+C:\Windows\system32>

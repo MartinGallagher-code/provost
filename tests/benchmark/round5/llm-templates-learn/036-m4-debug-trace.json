@@ -1,0 +1,31 @@
+{
+ "format": 1,
+ "tool": "m4-debug-trace",
+ "detect": "m4trace: -\\d+- ",
+ "skip": [],
+ "blocks": [
+  {
+   "name": "trace",
+   "kind": "table",
+   "line": "^(?:(?P<output>.*?)\\s)?m4trace: -(?P<depth>\\d+)- (?P<macro>[^\\s(]+)(?:\\((?P<args>.*?)\\))?(?: -> `(?P<expansion>.*)')?$",
+   "columns": {
+    "output": "output",
+    "depth": "depth",
+    "macro": "macro",
+    "args": "args",
+    "expansion": "expansion"
+   }
+  },
+  {
+   "name": "output",
+   "kind": "table",
+   "line": "^(?P<text>.+)$",
+   "columns": {
+    "text": "text"
+   }
+  }
+ ],
+ "examples": [
+  "m4trace: -1- define(`ACCT', `cash')\nm4trace: -1- dnl\nm4trace: -1- define(`TWICE', `$1$1')\nm4trace: -1- dnl\nm4trace: -2- ACCT -> `cash'\nm4trace: -1- TWICE(`cash') -> `cashcash'\ncashcash m4trace: -2- ACCT -> `cash'\nm4trace: -1- ifelse(`cash', `cash', `yes', `no') -> `yes'\nyes\nm4trace: -2- TWICE(`ab') -> `abab'\nm4trace: -1- len(`abab') -> `4'\n4"
+ ]
+}

@@ -1,0 +1,80 @@
+C:\Users\jkowalski>ipconfig /displaydns
+
+Windows IP Configuration
+
+    www.example.com
+    ----------------------------------------
+    Record Name . . . . . : www.example.com
+    Record Type . . . . . : 5
+    Time To Live  . . . . : 212
+    Data Length . . . . . : 8
+    Section . . . . . . . : Answer
+    CNAME Record  . . . . : web-lb.example.com
+
+
+    Record Name . . . . . : web-lb.example.com
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 212
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 203.0.113.80
+
+
+    Record Name . . . . . : web-lb.example.com
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 212
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 203.0.113.81
+
+
+    ipv6.example.com
+    ----------------------------------------
+    Record Name . . . . . : ipv6.example.com
+    Record Type . . . . . : 28
+    Time To Live  . . . . : 3412
+    Data Length . . . . . : 16
+    Section . . . . . . . : Answer
+    AAAA Record . . . . . : 2001:db8:10::25
+
+
+    fileserver.corp.example.com
+    ----------------------------------------
+    No records of type AAAA
+
+
+    fileserver.corp.example.com
+    ----------------------------------------
+    Record Name . . . . . : fileserver.corp.example.com
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 1187
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 192.0.2.40
+
+
+    80.113.0.203.in-addr.arpa
+    ----------------------------------------
+    Record Name . . . . . : 80.113.0.203.in-addr.arpa.
+    Record Type . . . . . : 12
+    Time To Live  . . . . : 86211
+    Data Length . . . . . : 8
+    Section . . . . . . . : Answer
+    PTR Record  . . . . . : web-lb.example.com
+
+
+    wpad.corp.example.com
+    ----------------------------------------
+    Name does not exist.
+
+
+    localhost
+    ----------------------------------------
+    Record Name . . . . . : localhost
+    Record Type . . . . . : 1
+    Time To Live  . . . . : 604800
+    Data Length . . . . . : 4
+    Section . . . . . . . : Answer
+    A (Host) Record . . . : 127.0.0.1
+
+

@@ -1,0 +1,141 @@
+## Round-5 held-out benchmark — provenance manifest (frozen 2026-11-04).
+##
+## provenance  captured   = real output, produced by running the command in the
+##                          2026-11-04 build container (read-only invocations on
+##                          scratch C, Rust, Go, Java, Python, Ruby, Perl, PHP and
+##                          JS projects, a scratch 64 MiB ext4 image, a scratch
+##                          redis-server on a private port and a scratch JVM made
+##                          for the purpose; inputs 001-065). Everything ran with
+##                          HOME=/home/dev from /home/dev/{src,ledger,tally,
+##                          pricing,inventory,cart,slug,work}, so no path needed
+##                          scrubbing; Java tools ran with the container's
+##                          JAVA_TOOL_OPTIONS (proxy settings) unset, and every
+##                          command with NO_COLOR=1 TERM=dumb. Scratch files under
+##                          /tmp keep their /tmp names. No git command was run to
+##                          make any input.
+##             reproduced = faithful reproduction of the tool's documented
+##                          output format, written by hand because the tool or
+##                          platform is not available in the container (Windows,
+##                          macOS, network gear, storage arrays and hypervisors,
+##                          databases, z/OS, CICS, OpenVMS, Solaris, AIX, HP-UX,
+##                          IBM HMC, HPC schedulers, bioinformatics, VoIP, mail;
+##                          inputs 101-142). Data values are invented; addresses
+##                          use the RFC 5737 / RFC 3849 documentation ranges and
+##                          example.com.
+## category    the axis the write-up breaks results down by (round-3 names).
+## family      the shape family the write-up aggregates by (round-3 names).
+## shape       free-text description of the layout.
+## source      the command line (captured) or "reproduced: <format>".
+##
+## Chosen for shape diversity and novelty BEFORE any input was run through
+## provost; no input was chosen, edited or dropped after its parse was seen.
+## The sha256 of every frozen input is in SHA256SUMS (same directory).
+##
+## input	provenance	category	family	shape	source
+001-cargo-test-nocapture-threads	captured	test/lint	log/diagnostic-lines	Compiling/Running banners + per-test ok lines + panic message with indented numbered backtrace frames + failures list + result summary	cargo test --offline -- --test-threads=1 --nocapture 2>&1
+002-clang-dump-tokens	captured	build	list/grid/help/text	one token per line: kind, quoted spelling, bracketed flags, Loc=<file:line:col>	clang -fsyntax-only -Xclang -dump-tokens ledger.c 2>&1 | grep -F "<ledger.c:" | sed -n "1,70p"
+003-clang-format-dump-config	captured	build	structured-data	YAML document: scalar keys, nested maps, lists of maps (IncludeCategories), long string values	clang-format -style=llvm -dump-config | head -110
+004-clang-tidy-diagnostics	captured	test/lint	log/diagnostic-lines	file:line:col: warning: message [check] + source line + caret/underline + note: lines + suppressed-warnings footer	clang-tidy ledger.c -checks="-*,bugprone-*,cert-*,clang-analyzer-*,readability-magic-numbers" -- 2>&1 | head -90
+005-clang-tidy-list-checks	captured	test/lint	list/grid/help/text	"Enabled checks:" heading + indented check names	clang-tidy -list-checks -checks="bugprone-*,cert-*" | head -100
+006-convert-list-format	captured	language-tooling	table	right-aligned Format column with * markers + Module + Mode + wrapped Description continuation lines + legend footer	convert -list format | head -60
+007-debugfs-ls-long	captured	storage	table	version banner + headerless aligned rows: inode, mode, (links), uid, gid, size, date time, name	debugfs -R "ls -l srv/data" /tmp/scratch.img 2>&1
+008-ffmpeg-encoders	captured	language-tooling	table	flag legend block (V..... = Video ...) + rule + rows of 6-char flag strings, codec name, description	ffmpeg -hide_banner -encoders | head -60
+009-ffmpeg-framemd5	captured	language-tooling	table	#format/#tb/#media_type/#codec_id/#dimensions comment header per stream + #stream# column header + comma-separated rows	ffmpeg -hide_banner -loglevel error -i /tmp/t.mp4 -t 0.4 -f framemd5 - 
+010-ffmpeg-pix-fmts	captured	language-tooling	table	flag legend + header "FLAGS NAME NB_COMPONENTS BITS_PER_PIXEL BIT_DEPTHS" + rows with dash-separated bit depths	ffmpeg -hide_banner -pix_fmts | head -60
+011-ffprobe-show-packets-compact	captured	language-tooling	kv-record	one packet per line: packet|key=value|key=value...	ffprobe -v error -show_packets -of compact /tmp/t.mp4 | head -40
+012-flake8-benchmark	captured	test/lint	table	right-aligned value + spaces + metric name, timings then counts	flake8 --benchmark --max-line-length 100 cart.py test_cart.py 2>&1
+013-gcc-Q-help-optimizers	captured	build	list/grid/help/text	heading + option name padded to column + [enabled]/[disabled]/[available] state	gcc -Q -O2 --help=optimizers | head -100
+014-gcc-fdump-tree-original	captured	build	structured-data	;; Function headers + C-like GENERIC tree dump with braces and indentation	gcc -O0 -fdump-tree-original=stdout -c ledger.c -o /tmp/l.o | head -90
+015-gcc-fopt-info-vec	captured	build	log/diagnostic-lines	file:line:col: optimized:/missed: vectorisation notes, many repeated per loop	gcc -O3 -fopt-info-vec-all -c ledger.c -o /tmp/l.o 2>&1 | head -60
+016-gcc-fstack-usage	captured	build	table	file:line:col:function TAB bytes TAB qualifier (.su file)	gcc -O0 -fstack-usage -c ledger.c -o ledger.o && cat ledger.su
+017-gcc-ftime-report	captured	build	table	"Time variable" header + rows of name : usr (pct) sys (pct) wall (pct) GGC (pct) + TOTAL	gcc -O2 -ftime-report -c ledger.c -o /tmp/l.o
+018-gdb-info-functions	captured	language-tooling	list/grid/help/text	"All defined functions:" + File x.c: groups with line:declaration, then Non-debugging symbols: address name	gdb -batch -ex "info functions" ./ledger | head -60
+019-gdb-info-registers	captured	language-tooling	multi-section-report	breakpoint/run narration + register table (name, hex, natural value) incl. flags list + backtrace frames	gdb -batch -ex "break balance" -ex run -ex "info registers" -ex "bt" ./ledger 2>&1 | head -60
+020-gem-specification-rake	captured	language-tooling	structured-data	YAML with !ruby/object tags, nested version objects, lists, multi-line description	gem specification rake 2>&1 | head -70
+021-go-build-gcflags-S	captured	build	list/grid/help/text	# package header + TEXT/FUNCDATA/PCDATA lines + per-instruction lines: offset, pc, (file:line), opcode, operands; data symbol hex dumps	go build -gcflags=-S . 2>&1 | head -70
+022-go-coverprofile	captured	test/lint	table	"mode: set" line + rows file:start.col,end.col statements count	go test -coverprofile=/tmp/c.out ./... >/dev/null 2>&1; cat /tmp/c.out
+023-go-test-json	captured	test/lint	structured-data	JSON Lines: one test event object per line, Output fields with escaped newlines	go test -json ./... 2>&1 | head -40
+024-go-tool-objdump	captured	build	table	TEXT symbol header + tab-separated rows: file:line, address, hex bytes, assembly with operands	go test -c -o /tmp/pricing.test >/dev/null 2>&1; go tool objdump -s "pricing\.TestRound$" /tmp/pricing.test | head -60
+025-gpgconf-list-options	captured	shell	table	colon-separated records: name:flags:level:description:type:alt-type:argname:default:argdef:value	gpgconf --list-options gpg 2>&1 | head -50
+026-identify-verbose	captured	language-tooling	kv-blocks	Image: line + indented key: value tree (Channel statistics, Properties, Artifacts) with nested levels	identify -verbose /tmp/g.png | head -80
+027-java-xlog-class-load	captured	language-tooling	log/diagnostic-lines	[uptime][level][tags] class name source: location lines	java -Xlog:class+load=info Inventory 10 2>&1 | sed -n "200,260p"
+028-jcmd-compiler-codecache	captured	language-tooling	kv-record	pid line + CodeHeap 'name': key=value lists + indented bounds [..] lines + CodeCache totals	jcmd 4746 Compiler.codecache
+029-jinfo-flags	captured	language-tooling	kv-record	"VM Flags:" + one long line of space-separated -XX:Name=value / -XX:+Flag options	jinfo -flags 4746
+030-jq-debug-dump-disasm	captured	language-tooling	list/grid/help/text	bytecode listing: 4-digit offset, opcode, operands; indented subfunction blocks with names	echo "{}" | jq --debug-dump-disasm ".items | map(select(.qty > 0)) | sort_by(.sku) | .[0].sku"
+031-jshell-vars-methods	captured	language-tooling	log/diagnostic-lines	jshell> prompts glued to output: |    typed variable lines, method signatures, numbered /list snippets	printf "%s\n" "int qty = 7;" "String sku = \"K-100\";" "double price(int q) { return q * 19.99; }" "var m = java.util.Map.of(\"a\", 1, \"b\", 2);" "/vars" "/methods" "/types" "/list" "/exit" | jshell -q 2>&1
+032-ldd-verbose	captured	build	multi-section-report	dependency list (name => path (addr)) + "Version information:" with per-object indented version => path lines	ldd -v ./ledger
+033-llvm-bcanalyzer-stats	captured	build	multi-section-report	Summary of file + per-block stats: Block ID #N (NAME): indented key: value lines, Record Histogram tables	llvm-bcanalyzer ledger.bc | head -90
+034-llvm-nm-print-size	captured	build	table	headerless rows: address, size, type letter, symbol name	llvm-nm -S --size-sort --defined-only ledger
+035-llvm-objdump-syms	captured	build	table	file format banner + SYMBOL TABLE: + rows address, flag columns (l/g, df/F/O), section, size, name	llvm-objdump -t ledger | head -80
+036-m4-debug-trace	captured	language-tooling	log/diagnostic-lines	m4trace: -level- macro(args) -> expansion lines interleaved with the macro output	printf "define(\`ACCT', \`cash')dnl\ndefine(\`TWICE', \`\$1\$1')dnl\nTWICE(ACCT) ifelse(ACCT, \`cash', \`yes', \`no')\nlen(TWICE(ab))\n" | m4 --debug=aeqt 2>&1
+037-make-trace	captured	build	log/diagnostic-lines	Entering directory + Makefile:N: update target 'x' due to: y + command lines	make -C /tmp/mk --trace 2>&1
+038-nasm-listing	captured	build	table	listing: line number, address, hex bytes (with <res> and [ ] markers), source text with comments	nasm -f elf64 fib.asm -l fib.lst -o fib.o && cat fib.lst
+039-ninja-t-graph	captured	build	structured-data	graphviz digraph: node and edge statements with quoted pointer ids and labels	ninja -C build -t graph ledger
+040-node-p-process-config	captured	language-tooling	structured-data	JS object literal (unquoted keys, single-quoted strings, nested objects and arrays)	node -p process.config | head -120
+041-node-trace-opt	captured	language-tooling	log/diagnostic-lines	[marking/compiling/completed ...] bracketed V8 trace lines with addresses, plus the program's own output	node --trace-opt --trace-deopt slug.js 2>&1 | head -40
+042-openssl-list-digest-algorithms	captured	shell	list/grid/help/text	"Legacy:" alias => name list + "Provided:" grouped { names } @ provider lines	openssl list -digest-algorithms
+043-opt-debug-pass-manager	captured	build	log/diagnostic-lines	Running pass: / Running analysis: / Invalidating analysis: lines with "on function" targets	opt -passes="default<O2>" -debug-pass-manager ledger.ll -o /dev/null 2>&1 | head -80
+044-pandoc-list-extensions	captured	language-tooling	list/grid/help/text	+name / -name one per line	pandoc --list-extensions=markdown | head -70
+045-pandoc-native-ast	captured	language-tooling	structured-data	Haskell-style native AST: [ Header 1 (..) [..], Para [...], Table ...] nested constructors	pandoc -t native /tmp/doc.md
+046-perl-xref	captured	language-tooling	list/grid/help/text	File/Subroutine/Package headings by indentation + symbol name + use lines (i5, &26)	perl -MO=Xref slug.pl 2>&1 | sed -n "1,2p;/Subroutine (main)/,\$p" | head -80
+047-pyright-stats	captured	test/lint	multi-section-report	auto-exclude notes + diagnostics (file:line:col - error: message (rule)) + summary + Analysis stats key: value + timing table	pyright --stats cart.py 2>&1 | head -60
+048-python-pdb-session	captured	language-tooling	log/diagnostic-lines	(Pdb) prompts glued to output: > file(line)func() / -> source lines, printed objects, where stack, ll listing with markers	printf "%s\n" "b cart.py:23" c "p self.lines" "where" n n "p t" "ll" "c" | python3 -m pdb drive.py 2>&1
+049-python-tracemalloc-top	captured	language-tooling	table	file:line: size=N KiB, count=N, average=N B, one statistic per line	python3 /tmp/tm.py
+050-readelf-relocs	captured	build	multi-section-report	Relocation section 'name' at offset X contains N entries: + table (Offset Info Type Sym. Value Sym. Name + Addend)	readelf -r ledger
+051-readelf-version-info	captured	build	multi-section-report	Version symbols section header + index:  value (name) grid + Version needs section with File:/Name: lines	readelf -V ledger
+052-readelf-wide-symbols	captured	build	multi-section-report	Symbol table 'name' contains N entries: + Num: Value Size Type Bind Vis Ndx Name table, per section	readelf -Ws ledger | head -80
+053-redis-cli-command-docs	captured	database	structured-data	redis-cli nested numbered reply: 1) "key" 2) "value" with nested indented arrays	redis-cli -p 6411 --no-raw COMMAND DOCS SET
+054-redis-cli-info-commandstats	captured	database	kv-record	# Commandstats heading + cmdstat_x:calls=N,usec=N,... lines	redis-cli -p 6411 INFO commandstats
+055-redis-cli-info-persistence	captured	database	kv-record	# Persistence heading + key:value lines	redis-cli -p 6411 INFO persistence
+056-redis-cli-memory-stats	captured	database	kv-record	alternating numbered key line / value line pairs, one nested array (db.0)	redis-cli -p 6411 --no-raw MEMORY STATS
+057-redis-cli-zrange-withscores	captured	database	list/grid/help/text	numbered reply lines alternating member and score	redis-cli -p 6411 --no-raw ZRANGE board 0 24 WITHSCORES
+058-ruby-dump-parsetree	captured	language-tooling	structured-data	#-comment preamble + @ NODE_X (id, location)* + tree drawn with +- and | connectors and field: value lines	ruby --dump=parsetree slug.rb | head -90
+059-ruby-objspace-count	captured	language-tooling	kv-record	pretty-printed Ruby hash {:KEY=>N, ...} one key per line	ruby -e "require \"pp\"; GC.start; pp ObjectSpace.count_objects"
+060-ruff-linter	captured	test/lint	list/grid/help/text	code prefix padded + linter name; indented sub-linters under some	ruff linter | head -70
+061-rustc-borrow-errors	captured	build	log/diagnostic-lines	error[E0382]: message + --> location + gutter |, numbered source lines, carets with labels, help:/note: lines + error count	rustc --edition 2021 borrow.rs -o /tmp/borrow 2>&1
+062-rustc-explain-e0382	captured	language-tooling	list/grid/help/text	markdown-ish prose with ``` code blocks	rustc --explain E0382
+063-rustc-print-target-cpus	captured	build	list/grid/help/text	heading + name - description list, some with default marker	rustc --print target-cpus | head -60
+064-valgrind-cachegrind-annotate	captured	build	multi-section-report	ruled sections: file/command info, summary, per-function and per-line annotated counts with (pct) and source lines	valgrind --tool=cachegrind --cachegrind-out-file=/tmp/cg.out ./ledger 200 >/dev/null 2>&1; cg_annotate /tmp/cg.out | head -80
+065-xmllint-xpath-shell	captured	shell	log/diagnostic-lines	/ > shell prompts glued to output: ls listings with -a- flags, xpath Node Set dump, cat, du tree	printf "<?xml version=\"1.0\"?>\n<ledger currency=\"EUR\"><entry id=\"1\" acct=\"cash\">120.00</entry><entry id=\"2\" acct=\"rent\">-45.00</entry><entry id=\"3\" acct=\"Gebühren\">-1.25</entry></ledger>\n" > /tmp/l.xml; printf "%s\n" "ls" "cd ledger" "ls" "xpath //entry[@acct=\"cash\"]" "cat entry[2]" "du" "dir entry[3]" "bye" | xmllint --shell /tmp/l.xml
+101-aix-lspv	reproduced	storage	multi-section-report	headerless padded table + two-column 'KEY:  value' detail report with missing colon quirk	reproduced: AIX lspv; lspv hdisk0
+102-arista-show-interfaces-status	reproduced	network	table	prompt + space-aligned table with empty name cells and multi-word cells, no rule	reproduced: Arista EOS show interfaces status
+103-asterisk-sip-show-peers	reproduced	network	table	CLI prompt + fixed-width byte-padded table + peer count footer	reproduced: Asterisk CLI sip show peers
+104-checkm-qa	reproduced	scientific	table	progress banner + dashed-rule table with centred columns and parenthesised UIDs + timing footer	reproduced: CheckM checkm qa
+105-cics-cemt-inquire-transaction	reproduced	mainframe	kv-record	3270 screen: status line + Key(value) records over two lines + more-marker + SYSID/response/PF key lines	reproduced: CICS CEMT INQUIRE TRANSACTION
+106-cisco-show-environment-all	reproduced	monitoring	multi-section-report	prompt + fan status sentences + temperature key: value groups + dash-ruled PSU and RPS tables with overflowing cells	reproduced: Cisco IOS-XE show environment all
+107-cisco-show-inventory	reproduced	system	kv-blocks	prompt + blank-separated two-line blocks of quoted and padded comma-separated KEY: value pairs, empty values	reproduced: Cisco IOS-XE show inventory
+108-comware-display-vlan-all	reproduced	network	kv-blocks	prompt + indented key: value blocks per VLAN with multi-column port lists on continuation lines	reproduced: HPE Comware display vlan all
+109-cqlsh-tracing-on	reproduced	database	multi-section-report	cqlsh session: pipe table with right-aligned values + (N rows) + tracing session pipe table	reproduced: Cassandra cqlsh TRACING ON + SELECT
+110-db2-list-tablespaces-show-detail	reproduced	database	kv-blocks	prompt + centred title + indented 'Key = value' blocks per tablespace with nested explanation + DB21011I footer	reproduced: Db2 db2 list tablespaces show detail
+111-emc-naviseccli-getlun	reproduced	storage	kv-blocks	Windows prompt + per-LUN blocks of 'Key:  value' and 'Key = value' lines, wrapped note, blank-separated	reproduced: Dell EMC naviseccli getlun
+112-esxcli-storage-core-device-list	reproduced	storage	kv-blocks	prompt + device-ID header lines each followed by indented 'Key: value' record, blank-separated	reproduced: VMware ESXi esxcli storage core device list
+113-fortigate-get-system-status	reproduced	system	kv-record	prompt + 'Key: value' record with embedded parenthesised dates	reproduced: FortiOS get system status
+114-hana-hdbsql-m-service-statistics	reproduced	database	table	banner + prompt + comma-separated header and quoted CSV rows + rows-selected timing footer	reproduced: SAP HANA hdbsql SELECT FROM M_SERVICE_STATISTICS
+115-hmc-lssyscfg-r-lpar	reproduced	system	kv-record	prompt + one LPAR per line as comma-separated attr=value pairs, some empty values, values with spaces	reproduced: IBM HMC lssyscfg -r lpar -m SYSTEM
+116-hpux-bdf	reproduced	storage	table	prompt + df-style table where long filesystem names wrap the row onto an indented next line	reproduced: HP-UX bdf
+117-ibm-svc-lsvdisk	reproduced	storage	table	CLI prompt + wide space-padded left-aligned table with empty cells	reproduced: IBM Spectrum Virtualize lsvdisk
+118-juniper-show-bgp-summary	reproduced	network	multi-section-report	{master} + prompt + counts line + table section with values wrapped under names + peer table with indented per-RIB counter lines	reproduced: Junos show bgp summary
+119-macos-networksetup-listallhardwareports	reproduced	network	kv-blocks	prompt + blank-separated 'Key: value' blocks + underlined VLAN section	reproduced: macOS networksetup -listallhardwareports
+120-macos-softwareupdate-list	reproduced	system	list/grid/help/text	prompt + banner + bulleted labels with tab-indented comma-separated key: value detail lines	reproduced: macOS softwareupdate --list
+121-macos-vm-stat	reproduced	system	kv-record	title line + label/right-aligned number lines ending in a period	reproduced: macOS vm_stat
+122-netapp-volume-show	reproduced	storage	table	cluster prompt + dash-ruled table with right-aligned sizes, overlong cells wrapped onto own lines + 'N entries were displayed.'	reproduced: NetApp ONTAP volume show
+123-nokia-sros-show-router-interface	reproduced	network	table	prompt + = rule title banner + two-line-per-row table (sub-rows indented) + count footer	reproduced: Nokia SR OS show router interface
+124-openstack-hypervisor-show	reproduced	system	kv-record	prompt + ASCII box Field|Value table with a multi-line value cell	reproduced: OpenStack openstack hypervisor show
+125-openvms-show-system	reproduced	system	table	DCL prompt + node/uptime banner + fixed-width process table with spaces in names and trailing flags	reproduced: OpenVMS SHOW SYSTEM
+126-oracle-sqlplus-show-sga	reproduced	database	multi-section-report	SQL prompt + right-aligned SGA summary + fixed-width query table with repeated page headers + rows-selected footer	reproduced: Oracle SQL*Plus SHOW SGA; SELECT * FROM v$sgainfo
+127-pbs-qstat-f-job	reproduced	system	kv-record	prompt + Job Id line + indented 'attr = value' lines with tab-indented fixed-width continuations	reproduced: PBS Pro qstat -f JOBID
+128-postfix-qshape	reproduced	logs	table	prompt + right-aligned age-bucket matrix with blank header corner + TOTAL row + domain rows	reproduced: Postfix qshape deferred
+129-routeros-ip-route-print	reproduced	network	table	prompt + Flags legend + Columns line + table with flag column, optional row numbers and ;;; comment lines	reproduced: MikroTik RouterOS v7 /ip route print
+130-samtools-coverage	reproduced	scientific	table	tab-separated table with #-prefixed header	reproduced: samtools coverage
+131-solaris-prstat	reproduced	system	table	prompt + wait message + right-aligned process table + Total summary footer	reproduced: Solaris prstat -c 2 1
+132-solaris-svcs-x	reproduced	system	kv-blocks	prompt + per-service blocks: FMRI header with description, right-aligned Key: lines, repeated See:, continuation line	reproduced: Solaris svcs -x
+133-tsm-dsmadmc-query-node	reproduced	storage	table	copyright/session banner + ANS message + table with three-line wrapped headers (hyphenated mid-word), dashed rule, cells wrapped onto continuation lines + ANS return-code footer	reproduced: IBM Spectrum Protect dsmadmc query node
+134-veritas-vxprint-ht	reproduced	storage	multi-section-report	prompt + Disk group line + 18-line record-type legend (DG/DM/V/PL/SD...) + records keyed by a type prefix, grouped by blank lines, ragged column alignment	reproduced: Veritas Volume Manager vxprint -ht -g DG
+135-vim-cmd-vmsvc-getallvms	reproduced	system	table	prompt + loosely aligned table (header not matching row widths) with free-text Annotation spilling onto unindented lines	reproduced: VMware ESXi vim-cmd vmsvc/getallvms
+136-windows-dism-get-features-table	reproduced	system	table	tool banner + version lines + pipe-separated two-column table framed by dash rules + success footer	reproduced: Windows dism /online /get-features /format:table
+137-windows-driverquery-v	reproduced	system	table	prompt + wide fixed-width table with = rule under header, truncated cells, empty cells	reproduced: Windows driverquery /v
+138-windows-ipconfig-displaydns	reproduced	network	kv-blocks	banner + per-name blocks with dash rule and dotted-leader 'key . . : value' records, message-only blocks	reproduced: Windows ipconfig /displaydns
+139-windows-net-user-account	reproduced	system	kv-record	prompt + fixed-column key/value record in blank-line groups, multi-value field wrapped onto continuation lines + completion footer	reproduced: Windows net user jkowalski
+140-windows-netsh-wlan-show-interfaces	reproduced	network	kv-record	prompt + intro line + indented 'key : value' record with uneven colon column + trailing status line	reproduced: Windows netsh wlan show interfaces
+141-windows-powershell-get-netadapter	reproduced	network	table	PS prompt + dash-underlined table with ... truncated cells, right-aligned numeric/speed columns, empty cell	reproduced: Windows PowerShell Get-NetAdapter
+142-zos-d-a-l	reproduced	mainframe	list/grid/help/text	console command + IEE114I header with count row + two-entries-per-line job grid + TSO user pairs	reproduced: z/OS console D A,L

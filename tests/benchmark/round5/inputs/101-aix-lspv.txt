@@ -1,0 +1,21 @@
+# lspv
+hdisk0          00f6a1b2c3d4e5f6                    rootvg          active
+hdisk1          00f6a1b2c3d4e6a1                    rootvg          active
+hdisk2          00f6a1b2d2e1f0a9                    datavg          active
+hdisk3          00f6a1b2d2e1f1b3                    datavg          active
+hdisk4          none                                None
+hdisk5          00f6a1b2e7a90c14                    oravg           concurrent
+hdisk6          00f6a1b2e7a90d22                    oravg           concurrent
+hdisk7          00f6a1b2f0118e05                    backupvg
+# lspv hdisk0
+PHYSICAL VOLUME:    hdisk0                   VOLUME GROUP:     rootvg
+PV IDENTIFIER:      00f6a1b2c3d4e5f6 VG IDENTIFIER     00f6a1b200004c000000014b2e3f1a22
+PV STATE:           active
+STALE PARTITIONS:   0                        ALLOCATABLE:      yes
+PP SIZE:            128 megabyte(s)          LOGICAL VOLUMES:  12
+TOTAL PPs:          511 (65408 megabytes)    VG DESCRIPTORS:   2
+FREE PPs:           312 (39936 megabytes)    HOT SPARE:        no
+USED PPs:           199 (25472 megabytes)    MAX REQUEST:      256 kilobytes
+FREE DISTRIBUTION:  102..83..00..25..102
+USED DISTRIBUTION:  01..19..102..77..00
+MIRROR POOL:        None

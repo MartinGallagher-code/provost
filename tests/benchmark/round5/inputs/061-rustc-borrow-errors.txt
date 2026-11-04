@@ -1,0 +1,44 @@
+error[E0382]: borrow of moved value: `v`
+ --> borrow.rs:5:26
+  |
+3 |     let v = vec![1, 2, 3];
+  |         - move occurs because `v` has type `Vec<i32>`, which does not implement the `Copy` trait
+4 |     let n = take(v);
+  |                  - value moved here
+5 |     println!("{} {}", n, v.len());
+  |                          ^ value borrowed here after move
+  |
+note: consider changing this parameter type in function `take` to borrow instead if owning the value isn't necessary
+ --> borrow.rs:1:12
+  |
+1 | fn take(v: Vec<i32>) -> usize { v.len() }
+  |    ----    ^^^^^^^^ this parameter takes ownership of the value
+  |    |
+  |    in this function
+help: consider cloning the value if the performance cost is acceptable
+  |
+4 |     let n = take(v.clone());
+  |                   ++++++++
+
+error[E0502]: cannot borrow `s` as mutable because it is also borrowed as immutable
+ --> borrow.rs:8:5
+  |
+7 |     let r = &s;
+  |             -- immutable borrow occurs here
+8 |     s.push('y');
+  |     ^^^^^^^^^^^ mutable borrow occurs here
+9 |     println!("{}", r);
+  |                    - immutable borrow later used here
+
+warning: unused variable: `unused`
+  --> borrow.rs:10:9
+   |
+10 |     let unused = 5;
+   |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_unused`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+error: aborting due to 2 previous errors; 1 warning emitted
+
+Some errors have detailed explanations: E0382, E0502.
+For more information about an error, try `rustc --explain E0382`.

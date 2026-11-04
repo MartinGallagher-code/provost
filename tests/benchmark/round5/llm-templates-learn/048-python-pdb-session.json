@@ -1,0 +1,61 @@
+{
+ "format": 1,
+ "tool": "python-pdb-session",
+ "detect": "\\(Pdb\\)",
+ "skip": [
+  "^\\(Pdb\\)\\s*$",
+  "^The program finished and will be restarted"
+ ],
+ "blocks": [
+  {
+   "name": "breakpoints",
+   "kind": "table",
+   "line": "^(?:\\(Pdb\\) )?Breakpoint (?P<number>\\d+) at (?P<file>\\S+):(?P<lineno>\\d+)$",
+   "columns": {
+    "number": "Breakpoint",
+    "file": "file",
+    "lineno": "line"
+   }
+  },
+  {
+   "name": "frames",
+   "kind": "table",
+   "line": "^(?:\\(Pdb\\) )?(?P<current>>)?\\s*(?P<file>[^\\s(]\\S*?)\\((?P<lineno>\\d+)\\)(?P<function>[^\\s(]+)\\(\\)$",
+   "columns": {
+    "current": "current",
+    "file": "file",
+    "lineno": "line",
+    "function": "function"
+   }
+  },
+  {
+   "name": "listing",
+   "kind": "table",
+   "line": "^(?:\\(Pdb\\) )?\\s*(?P<lineno>\\d+)\\s*(?P<marker>B|->)?\\t(?P<code>.*)$",
+   "columns": {
+    "lineno": "line",
+    "marker": "marker",
+    "code": "code"
+   }
+  },
+  {
+   "name": "current_source",
+   "kind": "table",
+   "line": "^-> (?P<code>.*)$",
+   "columns": {
+    "code": "code"
+   }
+  },
+  {
+   "name": "output",
+   "kind": "table",
+   "line": "^\\(Pdb\\) (?P<output>\\S.*)$",
+   "columns": {
+    "output": "output"
+   }
+  }
+ ],
+ "examples": [
+  "> /home/dev/cart/drive.py(1)<module>()\n-> from cart import Cart\n(Pdb) Breakpoint 1 at /home/dev/cart/cart.py:23\n(Pdb) > /home/dev/cart/cart.py(23)total()\n-> if self.coupon == \"TEN\":\n(Pdb) [Line(sku='K-100', cents=1299, qty=2), Line(sku='S-220', cents=450, qty=1)]\n(Pdb)   /usr/local/lib/python3.13/bdb.py(680)run()\n-> exec(cmd, globals, locals)\n  <string>(1)<module>()\n  /home/dev/cart/drive.py(5)<module>()\n-> print(c.total())\n> /home/dev/cart/cart.py(23)total()\n-> if self.coupon == \"TEN\":\n(Pdb) > /home/dev/cart/cart.py(24)total()\n-> t -= t // 10\n(Pdb) > /home/dev/cart/cart.py(25)total()\n-> return t\n(Pdb) 2744\n(Pdb)  21  \t    def total(self) -> int:\n 22  \t        t = sum(l.cents * l.qty for l in self.lines)\n 23 B\t        if self.coupon == \"TEN\":\n 24  \t            t -= t // 10\n 25  ->\t        return t\n(Pdb) 2744\nThe program finished and will be restarted\n> /home/dev/cart/drive.py(1)<module>()\n-> from cart import Cart\n(Pdb) "
+ ]
+}

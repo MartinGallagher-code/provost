@@ -1,0 +1,37 @@
+renee@macstudio-renee ~ % networksetup -listallhardwareports
+
+Hardware Port: Ethernet
+Device: en0
+Ethernet Address: 3c:22:fb:8a:11:02
+
+Hardware Port: Wi-Fi
+Device: en1
+Ethernet Address: 3c:22:fb:8a:11:03
+
+Hardware Port: Thunderbolt Bridge
+Device: bridge0
+Ethernet Address: 36:7d:a1:4e:90:c0
+
+Hardware Port: Thunderbolt 1
+Device: en2
+Ethernet Address: 36:7d:a1:4e:90:c0
+
+Hardware Port: Thunderbolt 2
+Device: en3
+Ethernet Address: 36:7d:a1:4e:90:c4
+
+Hardware Port: USB 10/100/1000 LAN
+Device: en7
+Ethernet Address: 00:e0:4c:68:1a:2b
+
+Hardware Port: iPhone USB
+Device: en8
+Ethernet Address: 7a:31:bf:02:5e:d9
+
+VLAN Configurations
+===================
+VLAN User Defined Name: Labor-VLAN 120
+Parent Device: en0
+Device (VLAN) Name: vlan0
+Tag: 120
+renee@macstudio-renee ~ %

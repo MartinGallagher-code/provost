@@ -1,0 +1,14 @@
+PS C:\Users\jkowalski> Get-NetAdapter
+
+Name                      InterfaceDescription                    ifIndex Status       MacAddress             LinkSpeed
+----                      --------------------                    ------- ------       ----------             ---------
+Ethernet 2                Realtek USB GbE Family Controller            21 Disconnected 00-E0-4C-68-1A-2B         0 bps
+Ethernet                  Intel(R) Ethernet Connection (17) I2...      12 Up           A4-6B-B6-12-3C-9F        1 Gbps
+WLAN                      Intel(R) Wi-Fi 6E AX211 160MHz               18 Up           A4-6B-B6-12-3C-9E    864.8 Mbps
+Bluetooth-Netzwerkverb... Bluetooth Device (Personal Area Netw...       9 Disconnected A4-6B-B6-12-3C-A2        3 Mbps
+vEthernet (Default Swi... Hyper-V Virtual Ethernet Adapter             27 Up           00-15-5D-8A-01-02       10 Gbps
+vEthernet (WSL (Hyper-... Hyper-V Virtual Ethernet Adapter #2          44 Up           00-15-5D-3C-77-E1       10 Gbps
+VPN – Büro München        WireGuard Tunnel                             31 Disabled                            100 Gbps
+
+
+PS C:\Users\jkowalski>

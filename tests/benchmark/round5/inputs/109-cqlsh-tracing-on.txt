@@ -1,0 +1,39 @@
+Connected to Produkcja at 192.0.2.11:9042
+[cqlsh 6.1.0 | Cassandra 4.1.5 | CQL spec 3.4.6 | Native protocol v5]
+Use HELP for help.
+cqlsh> TRACING ON
+Now Tracing is enabled
+cqlsh> SELECT * FROM sklep.klienci WHERE region = 'małopolskie';
+
+ region      | id   | imie      | miasto    | nazwisko 
+-------------+------+-----------+-----------+-----------
+ małopolskie | 1042 |     Zofia |    Kraków |    Wójcik
+ małopolskie | 1077 |    Łukasz | Nowy Sącz | Dąbrowski
+ małopolskie | 1203 | Agnieszka |    Tarnów |       Żak
+
+(3 rows)
+
+Tracing session: 5f0e2b40-b9c4-11ef-9d2a-3b1c8e8f1a77
+
+ activity                                                                                        | timestamp                  | source     | source_elapsed | client      
+-------------------------------------------------------------------------------------------------+----------------------------+------------+----------------+--------------
+                                                                              Execute CQL3 query | 2026-11-03 10:14:22.481000 | 192.0.2.11 |              0 | 198.51.100.7
+ Parsing SELECT * FROM sklep.klienci WHERE region = 'małopolskie'; [Native-Transport-Requests-1] | 2026-11-03 10:14:22.481214 | 192.0.2.11 |            214 | 198.51.100.7
+                                               Preparing statement [Native-Transport-Requests-1] | 2026-11-03 10:14:22.481402 | 192.0.2.11 |            402 | 198.51.100.7
+                                reading data from /192.0.2.12:7000 [Native-Transport-Requests-1] | 2026-11-03 10:14:22.481733 | 192.0.2.11 |            733 | 198.51.100.7
+          Sending READ_REQ message to /192.0.2.12:7000, size=118 bytes [Messaging-EventLoop-3-4] | 2026-11-03 10:14:22.481901 | 192.0.2.11 |            901 | 198.51.100.7
+                       READ_REQ message received from /192.0.2.11:7000 [Messaging-EventLoop-3-1] | 2026-11-03 10:14:22.482117 | 192.0.2.12 |             41 | 198.51.100.7
+                                       Executing single-partition query on klienci [ReadStage-2] | 2026-11-03 10:14:22.482388 | 192.0.2.12 |            312 | 198.51.100.7
+                                                      Acquiring sstable references [ReadStage-2] | 2026-11-03 10:14:22.482460 | 192.0.2.12 |            384 | 198.51.100.7
+         Skipped 0/2 non-slice-intersecting sstables, included 0 due to tombstones [ReadStage-2] | 2026-11-03 10:14:22.482598 | 192.0.2.12 |            522 | 198.51.100.7
+                                                      Key cache hit for sstable 14 [ReadStage-2] | 2026-11-03 10:14:22.482701 | 192.0.2.12 |            625 | 198.51.100.7
+                                         Merged data from memtables and 2 sstables [ReadStage-2] | 2026-11-03 10:14:22.483012 | 192.0.2.12 |            936 | 198.51.100.7
+                                            Read 3 live rows and 0 tombstone cells [ReadStage-2] | 2026-11-03 10:14:22.483087 | 192.0.2.12 |           1011 | 198.51.100.7
+                                            Enqueuing response to /192.0.2.11:7000 [ReadStage-2] | 2026-11-03 10:14:22.483140 | 192.0.2.12 |           1064 | 198.51.100.7
+          Sending READ_RSP message to /192.0.2.11:7000, size=312 bytes [Messaging-EventLoop-3-1] | 2026-11-03 10:14:22.483298 | 192.0.2.12 |           1222 | 198.51.100.7
+                       READ_RSP message received from /192.0.2.12:7000 [Messaging-EventLoop-3-4] | 2026-11-03 10:14:22.483612 | 192.0.2.11 |           2612 | 198.51.100.7
+                              Processing response from /192.0.2.12:7000 [RequestResponseStage-3] | 2026-11-03 10:14:22.483690 | 192.0.2.11 |           2690 | 198.51.100.7
+                                                                                Request complete | 2026-11-03 10:14:22.483742 | 192.0.2.11 |           2742 | 198.51.100.7
+
+
+cqlsh> 

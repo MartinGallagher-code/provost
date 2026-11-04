@@ -1,0 +1,24 @@
+{
+ "format": 1,
+ "tool": "go-tool-objdump",
+ "detect": "^TEXT \\S+\\(SB\\)",
+ "skip": [
+  "^TEXT \\S+\\(SB\\) \\S+"
+ ],
+ "blocks": [
+  {
+   "name": "instructions",
+   "kind": "table",
+   "line": "^\\s*(?P<source>\\S+:\\d+)\\s+(?P<address>0x[0-9a-f]+)\\s+(?P<bytes>[0-9a-f]+)\\s+(?P<instruction>\\S(?:.*?\\S)?)\\s*$",
+   "columns": {
+    "source": "source",
+    "address": "address",
+    "bytes": "bytes",
+    "instruction": "instruction"
+   }
+  }
+ ],
+ "examples": [
+  "TEXT example.com/pricing.TestRound(SB) /home/dev/pricing/pricing_test.go\n  pricing_test.go:18\t0x51ff00\t\t4c8d6424c8\t\tLEAQ -0x38(SP), R12\t\t\t\n  pricing_test.go:18\t0x51ff05\t\t4d3b6610\t\tCMPQ R12, 0x10(R14)\t\t\t\n  pricing_test.go:18\t0x51ff09\t\t0f868f010000\t\tJBE 0x52009e\t\t\t\t\n  pricing_test.go:18\t0x51ff0f\t\t55\t\t\tPUSHQ BP\t\t\t\t\n  pricing_test.go:18\t0x51ff10\t\t4889e5\t\t\tMOVQ SP, BP\t\t\t\t\n  pricing_test.go:18\t0x51ff13\t\t4881ecb0000000\t\tSUBQ $0xb0, SP\t\t\t\t\n  pricing_test.go:19\t0x51ff1a\t\t48898424c0000000\tMOVQ AX, 0xc0(SP)\t\t\t\n  pricing_test.go:19\t0x51ff22\t\t48c744243865000000\tMOVQ $0x65, 0x38(SP)\t\t\t\n  pricing_test.go:19\t0x51ff2b\t\t48c744244064000000\tMOVQ $0x64, 0x40(SP)\t\t\t\n  pricing_test.go:19\t0x51ff34\t\t48c744244867000000\tMOVQ $0x67, 0x48(SP)\t\t\t\n  pricing_test.go:19\t0x51ff3d\t\t48c744245069000000\tMOVQ $0x69, 0x50(SP)\t\t\t\n  pricing_test.go:19\t0x51ff46\t\t48c744245869000000\tMOVQ $0x69, 0x58(SP)\t\t\t\n  pricing_test.go:19\t0x51ff4f\t\t48c744246069000000\tMOVQ $0x69, 0x60(SP)\t\t\t\n  pricing_test.go:19\t0x51ff58\t\t488d4c2438\t\tLEAQ 0x38(SP), CX\t\t\t\n  pricing_test.go:19\t0x51ff5d\t\t31d2\t\t\tXORL DX, DX\t\t\t\t\n  pricing_test.go:19\t0x51ff5f\t\t90\t\t\tNOPL\t\t\t\t\t\n  pricing_test.go:19\t0x51ff60\t\teb0b\t\t\tJMP 0x51ff6d\t\t\t\t\n  pricing_test.go:19\t0x51ff62\t\t4883c110\t\tADDQ $0x10, CX\t\t\t\t\n  pricing_test.go:19\t0x51ff66\t\t488d5701\t\tLEAQ 0x1(DI), DX\t\t\t\n  pricing_test.go:21\t0x51ff6a\t\t4889f0\t\t\tMOVQ SI, AX\t\t\t\t\n  pricing_test.go:19\t0x51ff6d\t\t4883fa03\t\tCMPQ DX, $0x3\t\t\t\t\n  pricing_test.go:19\t0x51ff71\t\t0f8d1e010000\t\tJGE 0x520095\t\t\t\t\n  pricing_test.go:19\t0x51ff77\t\t488b19\t\t\tMOVQ 0(CX), BX\t\t\t\t\n  pricing_test.go:19\t0x51ff7a\t\t4889c6\t\t\tMOVQ AX, SI\t\t\t\t\n  pricing.go:28\t\t0x51ff7d\t\t48b8cdcccccccccccccc\tMOVQ $0xcccccccccccccccd, AX\t\t\n  pricing_test.go:19\t0x51ff87\t\t4889d7\t\t\tMOVQ DX, DI\t\t\t\t\n  pricing.go:28\t\t0x51ff8a\t\t48f7eb\t\t\tIMULQ BX\t\t\t\t\n  pricing.go:28\t\t0x51ff8d\t\t4801da\t\t\tADDQ BX, DX\t\t\t\t\n  pricing.go:28\t\t0x51ff90\t\t48c1fa02\t\tSARQ $0x2, DX\t\t\t\t\n  pricing.go:28\t\t0x51ff94\t\t4889d8\t\t\tMOVQ BX, AX\t\t\t\t\n  pricing.go:28\t\t0x51ff97\t\t48c1fb3f\t\tSARQ $0x3f, BX\t\t\t\t\n  pricing.go:28\t\t0x51ff9b\t\t4829da\t\t\tSUBQ BX, DX\t\t\t\t\n  pricing.go:28\t\t0x51ff9e\t\t488d1492\t\tLEAQ 0(DX)(DX*4), DX\t\t\t\n  pricing.go:28\t\t0x51ffa2\t\t4889c3\t\t\tMOVQ AX, BX\t\t\t\t\n  pricing.go:28\t\t0x51ffa5\t\t4829d3\t\t\tSUBQ DX, BX\t\t\t\t\n  pricing.go:29\t\t0x51ffa8\t\t4883fb03\t\tCMPQ BX, $0x3\t\t\t\t\n  pricing.go:29\t\t0x51ffac\t\t7c0c\t\t\tJL 0x51ffba\t\t\t\t\n  pricing.go:30\t\t0x51ffae\t\t4889c2\t\t\tMOVQ AX, DX\t\t\t\t\n  pricing.go:30\t\t0x51ffb1\t\t4829da\t\t\tSUBQ BX, DX\t\t\t\t\n  pricing.go:30\t\t0x51ffb4\t\t4883c205\t\tADDQ $0x5, DX\t\t\t\t\n  pricing_test.go:20\t0x51ffb8\t\teb06\t\t\tJMP 0x51ffc0\t\t\t\t\n  pricing.go:32\t\t0x51ffba\t\t4889c2\t\t\tMOVQ AX, DX\t\t\t\t\n  pricing.go:32\t\t0x51ffbd\t\t4829da\t\t\tSUBQ BX, DX\t\t\t\t\n  pricing_test.go:19\t0x51ffc0\t\t488b5908\t\tMOVQ 0x8(CX), BX\t\t\t\n  pricing_test.go:20\t0x51ffc4\t\t4839da\t\t\tCMPQ DX, BX\t\t\t\t\n  pricing_test.go:20\t0x51ffc7\t\t7499\t\t\tJE 0x51ff62\t\t\t\t\n  pricing_test.go:19\t0x51ffc9\t\t48897c2470\t\tMOVQ DI, 0x70(SP)\t\t\t\n  pricing_test.go:19\t0x51ffce\t\t48898c24a8000000\tMOVQ CX, 0xa8(SP)\t\t\t\n  pricing_test.go:20\t0x51ffd6\t\t4889542430\t\tMOVQ DX, 0x30(SP)\t\t\t\n  pricing_test.go:19\t0x51ffdb\t\t48895c2468\t\tMOVQ BX, 0x68(SP)\t\t\t\n  pricing_test.go:21\t0x51ffe0\t\t440f117c2478\t\tMOVUPS X15, 0x78(SP)\t\t\t\n  pricing_test.go:21\t0x51ffe6\t\t440f11bc2488000000\tMOVUPS X15, 0x88(SP)\t\t\t\n  pricing_test.go:21\t0x51ffef\t\t440f11bc2498000000\tMOVUPS X15, 0x98(SP)\t\t\t\n  pricing_test.go:21\t0x51fff8\t\te863faf4ff\t\tCALL runtime.convT64(SB)\t\t\n  pricing_test.go:21\t0x51fffd\t\t488d0d5c790200\t\tLEAQ 0x2795c(IP), CX\t\t\t\n  pricing_test.go:21\t0x520004\t\t48894c2478\t\tMOVQ CX, 0x78(SP)\t\t\t\n  pricing_test.go:21\t0x520009\t\t4889842480000000\tMOVQ AX, 0x80(SP)\t\t\t\n  pricing_test.go:21\t0x520011\t\t488b442430\t\tMOVQ 0x30(SP), AX\t\t\t\n  pricing_test.go:21\t0x520016\t\te845faf4ff\t\tCALL runtime.convT64(SB)\t\t"
+ ]
+}

@@ -1,0 +1,22 @@
+[admin@MikroTik-Kraków] > /ip route print
+Flags: D - DYNAMIC; X - DISABLED, I - INACTIVE, A - ACTIVE; c - CONNECT, s - STATIC, r - RIP, b - BGP, o - OSPF, i - IS-IS, d - DHCP, v - VPN, m - MODEM, y - BGP-MPLS-VPN; H - HW-OFFLOADED; + - ECMP
+Columns: DST-ADDRESS, GATEWAY, DISTANCE
+#     DST-ADDRESS        GATEWAY         DISTANCE
+;;; Główne łącze - operator A
+0  As 0.0.0.0/0          203.0.113.1            1
+;;; Zapasowe łącze LTE
+1   s 0.0.0.0/0          lte1                   5
+  DAd 0.0.0.0/0          198.51.100.1          10
+  DAc 192.0.2.0/24       bridge-lan             0
+  DAc 198.51.100.0/26    ether2-wan2            0
+  DAc 203.0.113.0/29     ether1-wan1            0
+  DAc 203.0.113.64/30    wg-oddzial             0
+2  As 192.0.2.128/25     192.0.2.254            1
+  DAo+ 198.51.100.128/27 203.0.113.66         110
+  DAo+ 198.51.100.128/27 192.0.2.253          110
+  DAb 198.51.100.192/26  203.0.113.2           20
+  D b 198.51.100.192/26  203.0.113.3           20
+3 X s 203.0.113.96/27    192.0.2.250            1
+4  Is 203.0.113.128/27   192.0.2.249            1
+  DAv 203.0.113.200/32   ovpn-serwis            0
+[admin@MikroTik-Kraków] >
